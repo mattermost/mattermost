@@ -4,7 +4,6 @@
 package app
 
 import (
-	"errors"
 	"net/http"
 	"slices"
 	"strings"
@@ -12,81 +11,12 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
-	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
-
-func asPermissionSet(permissions []string) map[string]bool {
-	set := make(map[string]bool, len(permissions))
-	for _, p := range permissions {
-		set[p] = true
-	}
-	return set
-}
 
 // hasSpaceChannelScopedPermission reports whether any of the permissions is one
 // of the channel-scoped space permissions.
 func hasSpaceChannelScopedPermission(permissions []string) bool {
 	return slices.ContainsFunc(permissions, model.IsSpaceChannelScopedPermissionID)
-}
-
-// spacePermissionAddDiff returns the channel-scoped space permissions present in
-// the incoming permission set and absent from the stored one. A diff, not a
-// presence check: removing a leaked grant must stay possible.
-func spacePermissionAddDiff(incoming, stored []string) []string {
-	storedSet := asPermissionSet(stored)
-	var added []string
-	for _, p := range incoming {
-		if model.IsSpaceChannelScopedPermissionID(p) && !storedSet[p] {
-			added = append(added, p)
-		}
-	}
-	return added
-}
-
-// storedRoleForSpaceGuard reads the row a role save will overwrite, so the scope
-// guard can diff the incoming permissions against it. A nil role with a nil error
-// means there is no stored row, and every incoming guarded permission counts as an
-// add.
-//
-// Reads the store directly rather than through GetRole or GetRoleByName: those run
-// mergeChannelHigherScopedPermissions on the way out, and a widened baseline would
-// make a genuine re-add look like it was already stored.
-func (a *App) storedRoleForSpaceGuard(role *model.Role) (*model.Role, *model.AppError) {
-	readErr := func(err error) *model.AppError {
-		// An unreadable stored role cannot be diffed against; failing here beats
-		// misreporting the cause as a scope violation.
-		return model.NewAppError("UpdateRole", "app.role.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	var nfErr *store.ErrNotFound
-
-	// Keyed by Id wherever the caller supplies one, so the baseline comes from the
-	// same row the save will write. Name is the fallback for a save carrying no Id.
-	if role.Id != "" {
-		storedRole, err := a.Srv().Store().Role().GetFromMaster(role.Id)
-		if err != nil {
-			if !errors.As(err, &nfErr) {
-				return nil, readErr(err)
-			}
-			return nil, nil
-		}
-		return storedRole, nil
-	}
-
-	if role.Name == "" {
-		return nil, nil
-	}
-
-	// Plain context: the role cache answers this read before the context is
-	// consulted, so asking for the master would claim a freshness it cannot deliver.
-	storedRole, err := a.Srv().Store().Role().GetByName(request.EmptyContext(a.Srv().Log()), role.Name)
-	if err != nil {
-		if !errors.As(err, &nfErr) {
-			return nil, readErr(err)
-		}
-		return nil, nil
-	}
-	return storedRole, nil
 }
 
 // logRefusedSpaceCapabilityRole records a refused space grant, which is a scope
@@ -100,8 +30,8 @@ func logRefusedSpaceCapabilityRole(rctx request.CTX, where, roleName string) {
 	)
 }
 
-// checkSpacePermissionScope rejects any runtime role write that adds a
-// channel-scoped space permission; system_admin is the single exception. The space
+// checkSpacePermissionScope rejects any runtime role write carrying a channel-scoped
+// space permission; system_admin is the single exception. The space
 // capability roles are name-frozen; generated preset and plugin roles are frozen by
 // their scheme association. The guard runs on CreateRole and UpdateRole, including
 // PatchRole; migration seeding writes below it through the store.
@@ -109,10 +39,7 @@ func logRefusedSpaceCapabilityRole(rctx request.CTX, where, roleName string) {
 // Deliberately not gated on the docs feature flag: the permissions, roles and preset
 // schemes are seeded unconditionally at boot, so a grant planted while the flag was
 // off would survive the flip, and nothing re-validates stored rows at enable time.
-func (a *App) checkSpacePermissionScope(role *model.Role, stored []string) *model.AppError {
-	// Ahead of the add diff, because a capability role is frozen in both directions:
-	// diffing first would accept a write that only *removes* a page permission,
-	// which the seeding migration does not repair on a later boot.
+func (a *App) checkSpacePermissionScope(role *model.Role) *model.AppError {
 	if model.IsSpaceCapabilityRole(role.Name) {
 		return model.NewAppError("checkSpacePermissionScope", "app.role.save.space_capability_role.app_error",
 			map[string]any{"RoleName": role.Name}, "", http.StatusBadRequest)
@@ -122,19 +49,7 @@ func (a *App) checkSpacePermissionScope(role *model.Role, stored []string) *mode
 		return appErr
 	}
 
-	added := spacePermissionAddDiff(role.Permissions, stored)
-	if len(added) == 0 {
-		// A write that adds nothing can still change what the grants already on the
-		// role are worth. The explicit-role write paths admit a non-scheme-managed
-		// role on its name alone, so a scheme-generated space role that keeps its
-		// grants while dropping SchemeManaged would become assignable as an arbitrary
-		// explicit user, team or ordinary channel role. Built-ins are exempt: they
-		// carry a reserved name those same guards match on, and a grant already
-		// stored on one has to stay removable.
-		if !role.SchemeManaged && !model.IsBuiltInRole(role.Name) && hasSpaceChannelScopedPermission(role.Permissions) {
-			return model.NewAppError("checkSpacePermissionScope", "app.role.save.space_role_scheme_managed.app_error",
-				map[string]any{"RoleName": role.Name}, "", http.StatusBadRequest)
-		}
+	if !hasSpaceChannelScopedPermission(role.Permissions) {
 		return nil
 	}
 
@@ -143,11 +58,10 @@ func (a *App) checkSpacePermissionScope(role *model.Role, stored []string) *mode
 		return nil
 	}
 
-	// Everything else is refused, a scheme's own generated roles included: the paths
-	// that legitimately hold these grants all write below this guard, so a role
-	// carrying a space permission arrived with it.
+	// Everything else is refused. Legitimate preset, capability, and plugin roles
+	// are created below this guard and are immutable at runtime.
 	return model.NewAppError("checkSpacePermissionScope", "app.role.save.space_permission_scope.app_error",
-		map[string]any{"RoleName": role.Name}, "permissions="+strings.Join(added, ","), http.StatusBadRequest)
+		map[string]any{"RoleName": role.Name}, "permissions="+strings.Join(role.Permissions, ","), http.StatusBadRequest)
 }
 
 // checkFrozenSchemeRole refuses a write to a role generated for a seeded space

@@ -391,6 +391,22 @@ func (s *SqlSchemeStore) GetFromMaster(schemeId string) (*model.Scheme, error) {
 	return s.get(schemeId, true)
 }
 
+func (s *SqlSchemeStore) GetForChannelFromMaster(channelID string) (*model.Scheme, error) {
+	var scheme model.Scheme
+	query := s.schemeSelectQuery.Where(sq.Expr(
+		"Id = (SELECT SchemeId FROM Channels WHERE Channels.Id = ?)",
+		channelID,
+	))
+
+	if err := s.GetMaster().GetBuilder(&scheme, query); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, store.NewErrNotFound("Scheme", fmt.Sprintf("channelId=%s", channelID))
+		}
+		return nil, errors.Wrapf(err, "failed to get Scheme for channelId=%s", channelID)
+	}
+	return &scheme, nil
+}
+
 func (s *SqlSchemeStore) get(schemeId string, fromMaster bool) (*model.Scheme, error) {
 	var scheme model.Scheme
 	query := s.schemeSelectQuery.Where(sq.Eq{"Id": schemeId})

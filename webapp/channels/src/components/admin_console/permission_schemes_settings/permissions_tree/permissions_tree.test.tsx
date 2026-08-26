@@ -210,45 +210,6 @@ describe('components/admin_console/permission_schemes_settings/permission_tree',
             expect(spaces!.permissions).toStrictEqual(['read_space', 'create_space', 'manage_space', 'delete_space']);
         });
 
-        test('appears when the flag is turned on after the first render', () => {
-            const {rerender} = renderWithContext(
-                <PermissionsTree {...defaultProps}/>,
-            );
-
-            PermissionGroup.mockClear();
-
-            rerender(
-                <PermissionsTree
-                    {...defaultProps}
-                    config={{...defaultProps.config, FeatureFlagEnableDocs: 'true'}}
-                />,
-            );
-
-            const groups = PermissionGroup.mock.calls[0][0].permissions as Array<Group | Permission>;
-            expect(groups.map((group) => group.id)).toContain('spaces');
-        });
-
-        test('disappears on the same render that turns the flag off', () => {
-            const {rerender} = renderWithContext(
-                <PermissionsTree
-                    {...defaultProps}
-                    config={{...defaultProps.config, FeatureFlagEnableDocs: 'true'}}
-                />,
-            );
-
-            PermissionGroup.mockClear();
-
-            rerender(
-                <PermissionsTree
-                    {...defaultProps}
-                    config={{...defaultProps.config, FeatureFlagEnableDocs: 'false'}}
-                />,
-            );
-
-            const groups = PermissionGroup.mock.calls[0][0].permissions as Array<Group | Permission>;
-            expect(groups.map((group) => group.id)).not.toContain('spaces');
-        });
-
         test('is appended last, so the index-based group lookups are unaffected', () => {
             renderWithContext(
                 <PermissionsTree

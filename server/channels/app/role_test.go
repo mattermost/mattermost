@@ -315,7 +315,6 @@ func TestSendUpdatedRoleEvent(t *testing.T) {
 		mockSchemeStore := mocks.SchemeStore{}
 		mockChannelStore := mocks.ChannelStore{}
 		mockSchemeStore.On("Get", schemeID).Return(scheme, nil)
-		mockChannelStore.On("CountSpaceChannelsByScheme", schemeID).Return(int64(0), nil)
 		mockChannelStore.On("GetChannelsByScheme", schemeID, 0, 1000).Return(channels, nil)
 		mockStore.On("Scheme").Return(&mockSchemeStore)
 		mockStore.On("Channel").Return(&mockChannelStore)
@@ -452,7 +451,6 @@ func TestSendUpdatedRoleEvent(t *testing.T) {
 		mockSchemeStore := mocks.SchemeStore{}
 		mockChannelStore := mocks.ChannelStore{}
 		mockSchemeStore.On("Get", schemeID).Return(scheme, nil)
-		mockChannelStore.On("CountSpaceChannelsByScheme", schemeID).Return(int64(0), nil)
 		mockChannelStore.On("GetChannelsByScheme", schemeID, 0, 1000).Return(page1, nil)
 		mockChannelStore.On("GetChannelsByScheme", schemeID, 1000, 1000).Return(page2, nil)
 		mockStore.On("Scheme").Return(&mockSchemeStore)
@@ -477,53 +475,7 @@ func TestSendUpdatedRoleEvent(t *testing.T) {
 		mockSchemeStore := mocks.SchemeStore{}
 		mockChannelStore := mocks.ChannelStore{}
 		mockSchemeStore.On("Get", schemeID).Return(scheme, nil)
-		mockChannelStore.On("CountSpaceChannelsByScheme", schemeID).Return(int64(0), nil)
 		mockChannelStore.On("GetChannelsByScheme", schemeID, 0, 1000).Return(nil, errors.New("db error"))
-		mockStore.On("Scheme").Return(&mockSchemeStore)
-		mockStore.On("Channel").Return(&mockChannelStore)
-
-		role := &model.Role{Name: roleName, BuiltIn: false, SchemeId: &schemeID}
-		appErr := th.App.sendUpdatedRoleEvent(role)
-		require.NotNil(t, appErr)
-	})
-
-	t.Run("Channel scheme governing a space broadcasts globally instead of per channel", func(t *testing.T) {
-		mainHelper.Parallel(t)
-		th := SetupWithStoreMock(t)
-
-		schemeID := model.NewId()
-		roleName := model.NewId()
-		scheme := &model.Scheme{Id: schemeID, Scope: model.SchemeScopeChannel}
-
-		mockStore := th.App.Srv().Store().(*mocks.Store)
-		mockSchemeStore := mocks.SchemeStore{}
-		mockChannelStore := mocks.ChannelStore{}
-		mockSchemeStore.On("Get", schemeID).Return(scheme, nil)
-		mockChannelStore.On("CountSpaceChannelsByScheme", schemeID).Return(int64(1), nil)
-		mockStore.On("Scheme").Return(&mockSchemeStore)
-		mockStore.On("Channel").Return(&mockChannelStore)
-
-		role := &model.Role{Name: roleName, BuiltIn: false, SchemeId: &schemeID}
-		appErr := th.App.sendUpdatedRoleEvent(role)
-		require.Nil(t, appErr)
-		// The space backing channel is invisible to GetChannelsByScheme, so a per-channel
-		// broadcast would reach nobody; the global event is the only one that lands.
-		mockChannelStore.AssertNotCalled(t, "GetChannelsByScheme", mock.Anything, mock.Anything, mock.Anything)
-	})
-
-	t.Run("CountSpaceChannelsByScheme store error propagates as AppError", func(t *testing.T) {
-		mainHelper.Parallel(t)
-		th := SetupWithStoreMock(t)
-
-		schemeID := model.NewId()
-		roleName := model.NewId()
-		scheme := &model.Scheme{Id: schemeID, Scope: model.SchemeScopeChannel}
-
-		mockStore := th.App.Srv().Store().(*mocks.Store)
-		mockSchemeStore := mocks.SchemeStore{}
-		mockChannelStore := mocks.ChannelStore{}
-		mockSchemeStore.On("Get", schemeID).Return(scheme, nil)
-		mockChannelStore.On("CountSpaceChannelsByScheme", schemeID).Return(int64(0), errors.New("db error"))
 		mockStore.On("Scheme").Return(&mockSchemeStore)
 		mockStore.On("Channel").Return(&mockChannelStore)
 

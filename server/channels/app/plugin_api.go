@@ -43,7 +43,10 @@ func NewPluginAPI(a *App, rctx request.CTX, manifest *model.Manifest) *PluginAPI
 // REST handlers, so reaching a scheme through a plugin does not skip it: a license
 // covers a capability, not the transport that reaches it.
 func (api *PluginAPI) checkCustomPermissionsSchemesLicense() error {
-	if !api.GetLicense().HasCustomPermissionsSchemes() {
+	license := api.GetLicense()
+	if license == nil ||
+		(license.SkuShortName != model.LicenseShortSkuProfessional &&
+			(license.Features == nil || license.Features.CustomPermissionsSchemes == nil || !*license.Features.CustomPermissionsSchemes)) {
 		return errors.New("license does not support custom permissions schemes")
 	}
 	return nil
@@ -543,8 +546,11 @@ func (api *PluginAPI) GetChannelOfType(channelID string, channelType model.Chann
 	return api.app.GetChannelOfType(ctx, channelID, channelType)
 }
 
-// resolveChannel fetches a channel for plugin mutations. Generic lookup excludes opaque space
-// backing channels, so a miss is retried as that exact type on the primary.
+// resolveChannel fetches a channel by ID for plugin API mutation methods. Generic channel
+// lookups exclude opaque backing channel types (e.g. space); on 404 this retries the ID
+// against each known backing type so plugins can manage backing channels through the standard
+// API without a separate resolution step. The retry uses master context to avoid
+// read-after-write misses on lagging replicas.
 func (api *PluginAPI) resolveChannel(channelID string) (*model.Channel, *model.AppError) {
 	return resolveChannelByID(
 		api.ctx,
@@ -788,14 +794,14 @@ func (api *PluginAPI) PatchChannelMembersNotifications(members []*model.ChannelM
 // rejectSpaceChannel returns a bad-request AppError when channelID is a space backing channel.
 // Notify-prop mutations carry chat semantics (they emit a channel_member_updated event) that do
 // not belong on an internal space backing channel, so they are rejected here. It fails closed by
-// propagating the lookup error, so a lookup failure cannot let a space through.
+// propagating any error other than not-found, so a lookup failure cannot let a space through.
 func (api *PluginAPI) rejectSpaceChannel(channelID string) *model.AppError {
-	isSpace, err := api.app.IsSpaceChannelByID(api.ctx, channelID)
-	if err != nil {
-		return err
-	}
-	if isSpace {
+	_, err := api.app.GetChannelOfType(RequestContextWithMaster(api.ctx), channelID, model.ChannelTypeSpace)
+	if err == nil {
 		return model.NewAppError("PluginAPI.rejectSpaceChannel", "plugin_api.channel.space_notify_props.app_error", nil, "", http.StatusBadRequest)
+	}
+	if err.StatusCode != http.StatusNotFound {
+		return err
 	}
 	return nil
 }

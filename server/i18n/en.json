@@ -5595,16 +5595,8 @@
     "translation": "Failed to retrieve the channel members."
   },
   {
-    "id": "app.channel.count_non_space_channels_by_scheme.app_error",
-    "translation": "Unable to count the channels using this scheme."
-  },
-  {
     "id": "app.channel.count_posts_since.app_error",
     "translation": "Unable to count messages since given date."
-  },
-  {
-    "id": "app.channel.count_space_channels_by_scheme.app_error",
-    "translation": "Unable to count the spaces using this scheme."
   },
   {
     "id": "app.channel.count_urgent_posts_since.app_error",
@@ -5973,10 +5965,6 @@
   {
     "id": "app.channel.update_channel_privacy.space.app_error",
     "translation": "Spaces cannot have their privacy changed through this endpoint."
-  },
-  {
-    "id": "app.channel.update_channel_scheme.space_scheme.app_error",
-    "translation": "This scheme is reserved for spaces and cannot be applied to a channel."
   },
   {
     "id": "app.channel.update_channel_scheme.space_scheme_unusable.app_error",
@@ -8029,16 +8017,8 @@
     "translation": "A policy with this name already exists. Please choose a different name."
   },
   {
-    "id": "app.pap.save_policy.parent_resource_attributes_team_assigned",
-    "translation": "This access rule uses channel attributes, which teams do not have. Remove the teams assigned to this policy before saving."
-  },
-  {
     "id": "app.pap.save_policy.resolver_error",
     "translation": "Could not initialise attribute resolver for policy save."
-  },
-  {
-    "id": "app.pap.save_policy.resource_attributes_disabled",
-    "translation": "Access rules cannot use channel attributes on this server. This capability is not enabled."
   },
   {
     "id": "app.pap.save_policy.rule_name_unique.app_error",
@@ -8049,20 +8029,12 @@
     "translation": "You do not satisfy one or more conditions in this policy."
   },
   {
-    "id": "app.pap.save_policy.team_resource_attributes",
-    "translation": "This access rule uses channel attributes, which teams do not have. Access rules with channel attributes can only be applied to channels."
-  },
-  {
     "id": "app.pap.search_access_control_policies.app_error",
     "translation": "Could not search access control policies."
   },
   {
     "id": "app.pap.simulate.attribute_refresh",
     "translation": "Failed to refresh attributes for the simulation."
-  },
-  {
-    "id": "app.pap.simulate.channel_required_for_resource",
-    "translation": "A channel is required to simulate a policy that references channel attributes."
   },
   {
     "id": "app.pap.simulate.compile_failed",
@@ -9097,10 +9069,6 @@
     "translation": "The role \"{{.RoleName}}\" belongs to a preset space scheme and cannot be changed. Its permissions are fixed by the server."
   },
   {
-    "id": "app.role.save.space_role_scheme_managed.app_error",
-    "translation": "The role \"{{.RoleName}}\" carries space permissions and must remain managed by its scheme. Remove the space permissions before making it a standalone role."
-  },
-  {
     "id": "app.role.send_updated_role_event.app_error",
     "translation": "An error occurred while broadcasting the role update."
   },
@@ -9325,6 +9293,10 @@
   {
     "id": "app.scheme.save.plugin_scheme_rename.app_error",
     "translation": "The plugin scheme \"{{.SchemeName}}\" cannot be renamed."
+  },
+  {
+    "id": "app.scheme.save.plugin_scheme_roles.app_error",
+    "translation": "The generated roles of plugin scheme \"{{.SchemeName}}\" cannot be reassigned."
   },
   {
     "id": "app.scheme.save.space_scheme_name.app_error",

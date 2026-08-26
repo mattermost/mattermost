@@ -351,14 +351,8 @@ export default class PermissionsTree extends React.PureComponent<Props, State> {
             privateChannelsGroup.permissions.push(Permissions.MANAGE_CHANNEL_ACCESS_RULES);
             teamsGroup.permissions.push(Permissions.MANAGE_TEAM_ACCESS_RULES);
         }
-    };
 
-    // Filtered on the way to render rather than in updateGroups, which reads the
-    // groups above by array index and would mis-address them once entries are
-    // dropped. Keeping the full list also lets a group come back when the config
-    // or license that hides it changes.
-    visibleGroups = () => {
-        return this.groups.filter((group) => {
+        this.groups = this.groups.filter((group) => {
             if (group.isVisible) {
                 return group.isVisible(this.props.license, this.props.config);
             }
@@ -413,7 +407,7 @@ export default class PermissionsTree extends React.PureComponent<Props, State> {
                         selected={this.props.selected}
                         selectRow={this.props.selectRow}
                         readOnly={this.props.readOnly}
-                        permissions={this.visibleGroups()}
+                        permissions={this.groups}
                         additionalValues={this.ADDITIONAL_VALUES}
                         role={this.props.role}
                         parentRole={this.props.parentRole}

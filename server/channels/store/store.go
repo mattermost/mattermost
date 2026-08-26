@@ -301,14 +301,6 @@ type ChannelStore interface {
 	ClearCaches()
 	ClearMembersForUserCache()
 	GetChannelsByScheme(schemeID string, offset int, limit int) (model.ChannelList, error)
-	// CountNonSpaceChannelsByScheme counts the ordinary channels carrying the scheme
-	// — the same population GetChannelsByScheme returns, counted rather than paged.
-	// Reads from the primary: the callers are authorization guards.
-	CountNonSpaceChannelsByScheme(schemeID string) (int64, error)
-	// CountSpaceChannelsByScheme counts the space backing channels carrying the
-	// scheme, deliberately including soft-deleted channels: a deleted space is
-	// restorable and keeps its SchemeId. Reads from the primary.
-	CountSpaceChannelsByScheme(schemeID string) (int64, error)
 	MigrateChannelMembers(fromChannelID string, fromUserID string) (map[string]string, error)
 	ResetAllChannelSchemes() error
 	ClearAllCustomRoleAssignments() error
@@ -897,10 +889,6 @@ type RoleStore interface {
 	// Unrecognized permissions are logged (see MM-68830).
 	SavePreservingUnknownPermissions(role *model.Role) (*model.Role, error)
 	Get(roleID string) (*model.Role, error)
-	// GetFromMaster reads on the primary. No cache layer serves the by-id read, so it
-	// is the freshest baseline available to the space permission scope guard, which
-	// diffs a role write against what is stored.
-	GetFromMaster(roleID string) (*model.Role, error)
 	GetAll() ([]*model.Role, error)
 	GetByName(rctx request.CTX, name string) (*model.Role, error)
 	GetByNames(names []string) ([]*model.Role, error)
@@ -936,6 +924,9 @@ type SchemeStore interface {
 	// GetFromMaster reads on the primary, so a scheme created moments earlier cannot
 	// be missed and a soft-deleted one cannot read as live.
 	GetFromMaster(schemeID string) (*model.Scheme, error)
+	// GetForChannelFromMaster returns the scheme directly assigned to channelID. The lookup does
+	// not filter on channel type and reads the primary for plugin read-after-write consistency.
+	GetForChannelFromMaster(channelID string) (*model.Scheme, error)
 	GetByName(schemeName string) (*model.Scheme, error)
 	// GetByNameFromMaster is GetByName on the primary. A plugin that loses a race to
 	// create a scheme adopts the winner's row by name, which on a lagging replica

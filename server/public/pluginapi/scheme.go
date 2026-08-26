@@ -65,7 +65,8 @@ func (s *SchemeService) GetOrCreateChannelScheme(user, admin, guest []string) (*
 	return scheme, nil
 }
 
-// GetForChannel gets the channel's directly assigned scheme and generated roles.
+// GetForChannel gets the channel's directly assigned scheme and generated roles. The server
+// resolves ordinary and opaque channel types from the channel ID.
 // It returns ErrNotFound when the channel has no scheme of its own, and
 // ErrNotSupported when the server predates this method.
 //

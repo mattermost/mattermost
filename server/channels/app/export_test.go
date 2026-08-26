@@ -1381,6 +1381,32 @@ func TestExportSchemes(t *testing.T) {
 		require.NotNil(t, appErr)
 	})
 
+	t.Run("skip server-owned plugin schemes", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		err := th.App.Srv().Store().System().Save(&model.System{Name: model.MigrationKeyAdvancedPermissionsPhase2, Value: "true"})
+		require.NoError(t, err)
+
+		scheme, appErr := th.App.GetOrCreatePluginChannelScheme(
+			"com.example.plugin",
+			[]string{model.PermissionReadPage.Id},
+			[]string{model.PermissionAdminSpace.Id},
+			nil,
+		)
+		require.Nil(t, appErr)
+
+		var b bytes.Buffer
+		appErr = th.App.BulkExport(th.Context, &b, "", nil, model.BulkExportOpts{
+			IncludeRolesAndSchemes: true,
+		})
+		require.Nil(t, appErr)
+
+		assert.NotContains(t, b.String(), scheme.Name)
+		assert.NotContains(t, b.String(), scheme.DefaultChannelUserRole)
+		assert.NotContains(t, b.String(), scheme.DefaultChannelAdminRole)
+		assert.NotContains(t, b.String(), scheme.DefaultChannelGuestRole)
+	})
+
 	t.Run("export channel scheme", func(t *testing.T) {
 		th1 := Setup(t).InitBasic(t)
 

@@ -349,26 +349,6 @@ func (a *App) exportRoles(rctx request.CTX, job *model.Job, writer io.Writer, sc
 	return nil
 }
 
-// schemeGrantsSpacePermissions reports whether any of a channel scheme's generated
-// roles carries a channel-scoped space permission, which marks it as a per-space
-// custom scheme. Answered from the roles already in memory, so it costs no query.
-func schemeGrantsSpacePermissions(scheme *model.Scheme, rolesMap map[string]*model.Role) bool {
-	for _, roleName := range []string{
-		scheme.DefaultChannelAdminRole,
-		scheme.DefaultChannelUserRole,
-		scheme.DefaultChannelGuestRole,
-	} {
-		role, ok := rolesMap[roleName]
-		if !ok {
-			continue
-		}
-		if hasSpaceChannelScopedPermission(role.Permissions) {
-			return true
-		}
-	}
-	return false
-}
-
 func (a *App) exportSchemes(rctx request.CTX, job *model.Job, writer io.Writer, scope string, schemeRolesMap map[string]bool, allRoles []*model.Role) *model.AppError {
 	rolesMap := make(map[string]*model.Role, len(allRoles))
 	for _, role := range allRoles {
@@ -409,16 +389,12 @@ func (a *App) exportSchemes(rctx request.CTX, job *model.Job, writer io.Writer, 
 				schemeRolesMap[scheme.DefaultChannelGuestRole] = true
 			}
 
-			// Space schemes are skipped. Every server seeds the presets by
-			// migration, so exporting one would carry a reserved name into an
-			// import that refuses to create a scheme under it. A per-space custom
-			// scheme is skipped because import recreates it detached — spaces
-			// themselves are not exported — so its space-permission roles would be
-			// rejected and fail the whole import, on data that is orphaned at the
-			// destination anyway. Their generated roles are recorded above, so this
-			// does not leak them into the standalone role export below.
+			// Preset and plugin-pool schemes are server-owned and recreated locally.
+			// Import reserves both name shapes, so exporting either would make the
+			// destination reject the file. Their generated roles are recorded above,
+			// keeping them out of the standalone role export too.
 			if scheme.Scope == model.SchemeScopeChannel &&
-				(model.IsSpaceSchemeName(scheme.Name) || schemeGrantsSpacePermissions(scheme, rolesMap)) {
+				(model.IsSpaceSchemeName(scheme.Name) || model.IsPluginChannelSchemeName(scheme.Name)) {
 				continue
 			}
 

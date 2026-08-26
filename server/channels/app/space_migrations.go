@@ -42,17 +42,11 @@ func validateAdoptableSpaceRole(roleID string, stored, want *model.Role) error {
 	return nil
 }
 
-// validateAdoptableSpaceScheme rejects a row under a reserved preset name if it is
-// deleted, has the wrong scope or generated-role references, or is already used by
-// an ordinary channel. Adopting such a row would rewrite its generated role
-// permission sets and could strip moderated permissions from customer channels.
-//
-// The shape requirements are the seeding's own: a live channel-scoped row with
-// three distinct generated channel roles. Two references converging on one row
-// would merge the sets, leaving the user or guest role with the admin grants, and
-// an empty role name would fail the role seeding outright. A single non-space
-// channel on the scheme proves it is a customer's.
-func (s *Server) validateAdoptableSpaceScheme(existing *model.Scheme) error {
+// validateAdoptableSpaceScheme accepts only the exact immutable state created by
+// SaveChannelSchemeWithRoles. This covers a previous run that committed the scheme
+// before the migration marker was saved, as well as an HA node that lost the insert
+// race, without inferring ownership from channels that happen to reference it.
+func (s *Server) validateAdoptableSpaceScheme(existing *model.Scheme, user, admin, guest []string) error {
 	if existing.DeleteAt != 0 {
 		return fmt.Errorf("scheme %q already exists and is deleted"+seedingConflictSuffix, existing.Name)
 	}
@@ -68,74 +62,37 @@ func (s *Server) validateAdoptableSpaceScheme(existing *model.Scheme) error {
 		return fmt.Errorf("scheme %q already exists with generated channel roles that are not distinct"+seedingConflictSuffix, existing.Name)
 	}
 
-	governed, err := s.Store().Channel().CountNonSpaceChannelsByScheme(existing.Id)
+	roleNames := []string{
+		existing.DefaultChannelUserRole,
+		existing.DefaultChannelAdminRole,
+		existing.DefaultChannelGuestRole,
+	}
+	roles, err := s.Store().Role().GetByNamesFromMaster(roleNames)
 	if err != nil {
-		return fmt.Errorf("could not check scheme %q for non-space channels: %w", existing.Name, err)
+		return fmt.Errorf("could not query generated roles for scheme %q: %w", existing.Name, err)
 	}
-	if governed > 0 {
-		return fmt.Errorf("scheme %q already exists and governs non-space channels"+seedingConflictSuffix, existing.Name)
-	}
-	return nil
-}
-
-// validateAdoptedSpaceSchemeRoles checks the permissions and ownership of every
-// generated role referenced by an existing preset-named scheme. The seeding only
-// strips moderated permissions and adds target permissions, so any other stored
-// permission would survive. A role must also belong to this scheme; otherwise the
-// store-direct seeding would add page and admin permissions to an unrelated role.
-//
-// Only permissions this build recognises are judged, so a server downgraded from a
-// newer release is not blocked by permissions it merely does not know yet — the
-// same reason the seeding writes through SavePreservingUnknownPermissions.
-func (s *Server) validateAdoptedSpaceSchemeRoles(scheme *model.Scheme, userTarget []*model.Permission) error {
-	known := make(map[string]bool, len(model.AllPermissions))
-	for _, p := range model.AllPermissions {
-		known[p.Id] = true
+	rolesByName := make(map[string]*model.Role, len(roles))
+	for _, role := range roles {
+		rolesByName[role.Name] = role
 	}
 
-	for _, generated := range []struct {
-		roleName  string
-		moderated bool
-		target    []*model.Permission
+	for _, expected := range []struct {
+		name        string
+		permissions []string
 	}{
-		{scheme.DefaultChannelUserRole, true, userTarget},
-		{scheme.DefaultChannelAdminRole, false, model.SpaceAdminRolePermissions},
-		{scheme.DefaultChannelGuestRole, true, model.SpaceDefaultReadOnlyPermissions},
+		{existing.DefaultChannelUserRole, user},
+		{existing.DefaultChannelAdminRole, admin},
+		{existing.DefaultChannelGuestRole, guest},
 	} {
-		// GetByNamesFromMaster rather than GetByName with a master context: the role
-		// cache answers GetByName before the context is consulted.
-		matched, err := s.Store().Role().GetByNamesFromMaster([]string{generated.roleName})
-		if err != nil {
-			return fmt.Errorf("could not query scheme role %q for scheme %q: %w", generated.roleName, scheme.Name, err)
+		role := rolesByName[expected.name]
+		if role == nil {
+			return fmt.Errorf("scheme role %q for scheme %q has no row on the primary"+seedingConflictSuffix, expected.name, existing.Name)
 		}
-		if len(matched) == 0 {
-			return fmt.Errorf("scheme role %q for scheme %q has no row on the primary", generated.roleName, scheme.Name)
+		if role.DeleteAt != 0 || !role.SchemeManaged || role.SchemeId == nil || *role.SchemeId != existing.Id {
+			return fmt.Errorf("scheme %q already exists and its generated role %q is deleted, not scheme-managed, or not owned by it"+seedingConflictSuffix, existing.Name, expected.name)
 		}
-		role := matched[0]
-
-		if role.DeleteAt != 0 || !role.SchemeManaged || role.SchemeId == nil || *role.SchemeId != scheme.Id {
-			return fmt.Errorf("scheme %q already exists and its generated role %q is deleted, not scheme-managed, or not owned by it"+seedingConflictSuffix, scheme.Name, generated.roleName)
-		}
-
-		// What the seeding would have produced, which is not the global default role:
-		// creating a channel-scoped scheme starts the generated admin role empty and
-		// reduces the user and guest roles to the channel-moderated permissions. So
-		// the moderated set is the whole baseline for those two, whatever an operator
-		// has granted the global roles, plus this preset's own grants.
-		allowed := make(map[string]bool, len(model.ChannelModeratedPermissionsMap)+len(generated.target))
-		if generated.moderated {
-			for id := range model.ChannelModeratedPermissionsMap {
-				allowed[id] = true
-			}
-		}
-		for _, p := range generated.target {
-			allowed[p.Id] = true
-		}
-
-		for _, p := range role.Permissions {
-			if known[p] && !allowed[p] {
-				return fmt.Errorf("scheme %q already exists and its generated role %q grants %q, which a seeded space preset never does"+seedingConflictSuffix, scheme.Name, generated.roleName, p)
-			}
+		if !slices.Equal(model.NormalizePermissions(role.Permissions), model.NormalizePermissions(expected.permissions)) {
+			return fmt.Errorf("scheme %q already exists and its generated role %q has a different permission set"+seedingConflictSuffix, existing.Name, expected.name)
 		}
 	}
 	return nil
@@ -201,59 +158,6 @@ func (s *Server) doSpaceRolesCreationMigration() error {
 	return nil
 }
 
-// applySpaceSchemeRolePermissions reads a scheme-generated role, strips the
-// moderated permissions inherited from the global role it was seeded from when strip
-// is set, adds any missing target permissions, and saves only when the set changed.
-// It is idempotent, so racing nodes and re-runs converge on the same final set.
-func (s *Server) applySpaceSchemeRolePermissions(roleName string, target []*model.Permission, strip bool) error {
-	// The uncached primary read; converging on a peer node's write needs the row the
-	// primary holds now.
-	matched, err := s.Store().Role().GetByNamesFromMaster([]string{roleName})
-	if err != nil {
-		return fmt.Errorf("could not query scheme role %q: %w", roleName, err)
-	}
-	if len(matched) == 0 {
-		return fmt.Errorf("scheme role %q has no row on the primary", roleName)
-	}
-	role := matched[0]
-
-	perms := asPermissionSet(role.Permissions)
-	changed := false
-	if strip {
-		for moderated := range model.ChannelModeratedPermissionsMap {
-			if perms[moderated] {
-				delete(perms, moderated)
-				changed = true
-			}
-		}
-	}
-	for _, p := range target {
-		if !perms[p.Id] {
-			perms[p.Id] = true
-			changed = true
-		}
-	}
-	if !changed {
-		return nil
-	}
-
-	newPermissions := make([]string, 0, len(perms))
-	for p := range perms {
-		newPermissions = append(newPermissions, p)
-	}
-	// Deterministic order keeps racing HA nodes and re-runs writing identical
-	// rows, and keeps role diffs readable.
-	slices.Sort(newPermissions)
-	role.Permissions = newPermissions
-	// The permission set is carried over from the stored row, so on a server
-	// downgraded from a newer release it can hold permissions this build does not
-	// recognize, which Save would reject.
-	if _, err := s.Store().Role().SavePreservingUnknownPermissions(role); err != nil {
-		return fmt.Errorf("failed to save scheme role %q: %w", roleName, err)
-	}
-	return nil
-}
-
 // doSpaceSchemesCreationMigration seeds the space preset schemes.
 //
 // Deliberately ungated, where App.CreateScheme is gated on the custom permissions
@@ -284,54 +188,25 @@ func (s *Server) doSpaceSchemesCreationMigration() error {
 	}
 
 	for _, preset := range presets {
-		// A row this migration did not just create is one it is adopting, and an
-		// adopted row has to prove it is a preset rather than a name collision.
-		adopted := true
-		scheme, err := s.Store().Scheme().GetByName(preset.name)
-		if err != nil {
-			if !errors.As(err, &nfErr) {
-				return fmt.Errorf("could not query scheme %q: %w", preset.name, err)
-			}
-			scheme, err = s.Store().Scheme().Save(&model.Scheme{
-				Name:        preset.name,
-				DisplayName: preset.displayName,
-				Scope:       model.SchemeScopeChannel,
-			})
-			if err == nil {
-				adopted = false
-			} else {
-				mlog.Warn("Couldn't save the space preset scheme, this can be an expected case; another node likely won the insert race, re-reading on the primary", mlog.String("scheme_name", preset.name), mlog.Err(err))
-
-				// Re-read on the primary before treating the save error as real, the
-				// same recovery doAdvancedPermissionsMigration performs on a role. The
-				// original save error is the root cause, so it is the one reported.
-				var rErr error
-				scheme, rErr = s.Store().Scheme().GetByNameFromMaster(preset.name)
-				if rErr != nil {
-					return fmt.Errorf("failed to create space scheme %q: %w (re-read on the primary also failed: %v)", preset.name, err, rErr)
-				}
-			}
+		user := model.PermissionIDs(preset.userPerms)
+		admin := model.PermissionIDs(model.SpaceAdminRolePermissions)
+		guest := model.PermissionIDs(model.SpaceDefaultReadOnlyPermissions)
+		scheme, err := s.Store().Scheme().SaveChannelSchemeWithRoles(&model.Scheme{
+			Name:        preset.name,
+			DisplayName: preset.displayName,
+			Scope:       model.SchemeScopeChannel,
+		}, user, admin, guest)
+		if err == nil {
+			continue
 		}
 
-		// Only a row this migration did not create needs to prove itself; one it just
-		// inserted is a preset by construction.
-		if adopted {
-			if vErr := s.validateAdoptableSpaceScheme(scheme); vErr != nil {
-				return vErr
-			}
-			if vErr := s.validateAdoptedSpaceSchemeRoles(scheme, preset.userPerms); vErr != nil {
-				return vErr
-			}
+		mlog.Warn("Couldn't save the space preset scheme, another node or an earlier migration run may have created it; re-reading on the primary", mlog.String("scheme_name", preset.name), mlog.Err(err))
+		scheme, readErr := s.Store().Scheme().GetByNameFromMaster(preset.name)
+		if readErr != nil {
+			return fmt.Errorf("failed to create space scheme %q: %w (re-read on the primary also failed: %v)", preset.name, err, readErr)
 		}
-
-		if err := s.applySpaceSchemeRolePermissions(scheme.DefaultChannelUserRole, preset.userPerms, true); err != nil {
-			return err
-		}
-		if err := s.applySpaceSchemeRolePermissions(scheme.DefaultChannelAdminRole, model.SpaceAdminRolePermissions, false); err != nil {
-			return err
-		}
-		if err := s.applySpaceSchemeRolePermissions(scheme.DefaultChannelGuestRole, model.SpaceDefaultReadOnlyPermissions, true); err != nil {
-			return err
+		if validateErr := s.validateAdoptableSpaceScheme(scheme, user, admin, guest); validateErr != nil {
+			return validateErr
 		}
 	}
 

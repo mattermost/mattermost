@@ -31,15 +31,16 @@ func rejectBoardChannelByID(c *Context, channelId string) bool {
 // rejectSpaceChannelByID returns true and sets c.Err if the channel ID belongs
 // to a space channel. Space channels must use the spaces API, not /channels.
 // Use this on write endpoints to give a clear error instead of a 404.
-// A failed lookup fails closed: the request is rejected rather than allowed through.
+// It reads from the primary so a freshly created space cannot slip through on
+// replica lag, and fails closed by rejecting on any error other than not-found.
 func rejectSpaceChannelByID(c *Context, channelId string) bool {
-	isSpace, err := c.App.IsSpaceChannelByID(c.AppContext, channelId)
-	if err != nil {
-		c.Err = err
+	_, err := c.App.GetChannelOfType(c.AppContext.With(app.RequestContextWithMaster), channelId, model.ChannelTypeSpace)
+	if err == nil {
+		c.Err = model.NewAppError("", "api.channel.space_channel.app_error", nil, "space channels cannot be accessed via /channels endpoints", http.StatusBadRequest)
 		return true
 	}
-	if isSpace {
-		c.Err = model.NewAppError("", "api.channel.space_channel.app_error", nil, "space channels cannot be accessed via /channels endpoints", http.StatusBadRequest)
+	if err.StatusCode != http.StatusNotFound {
+		c.Err = err
 		return true
 	}
 	return false
@@ -2335,10 +2336,6 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if rejectSpaceChannelByID(c, c.Params.ChannelId) {
-		return
-	}
-
 	props := model.StringInterfaceFromJSON(r.Body)
 
 	var userIds []string
@@ -2823,10 +2820,6 @@ func updateChannelScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if rejectSpaceChannelByID(c, c.Params.ChannelId) {
-		return
-	}
-
 	auditRec := c.MakeAuditRecord(model.AuditEventUpdateChannelScheme, model.AuditStatusFail)
 	model.AddEventParameterToAuditRec(auditRec, "channel_id", c.Params.ChannelId)
 	defer c.LogAuditRec(auditRec)
@@ -3023,10 +3016,6 @@ func patchChannelModerations(c *Context, w http.ResponseWriter, r *http.Request)
 
 	c.RequireChannelId()
 	if c.Err != nil {
-		return
-	}
-
-	if rejectSpaceChannelByID(c, c.Params.ChannelId) {
 		return
 	}
 

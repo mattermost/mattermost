@@ -430,15 +430,6 @@ func (l *License) HasSharedChannels() bool {
 		MinimumProfessionalLicense(l)
 }
 
-// HasCustomPermissionsSchemes reports whether the license grants custom
-// permissions schemes. Professional licenses retain access even when the feature
-// bit is absent, matching the historical scheme API entitlement.
-func (l *License) HasCustomPermissionsSchemes() bool {
-	return l != nil &&
-		((l.Features != nil && l.Features.CustomPermissionsSchemes != nil && *l.Features.CustomPermissionsSchemes) ||
-			l.SkuShortName == LicenseShortSkuProfessional)
-}
-
 // HasMHPNS reports whether the license grants access to the Mattermost hosted push notification service.
 func (l *License) HasMHPNS() bool {
 	return l != nil && l.Features != nil && l.Features.MHPNS != nil && *l.Features.MHPNS

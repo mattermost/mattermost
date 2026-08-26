@@ -59,9 +59,9 @@ func TestSchemeGetByName(t *testing.T) {
 		defer api.AssertExpectations(t)
 		client := pluginapi.NewClient(api, &plugintest.Driver{})
 
-		api.On("GetSchemeByName", "docs_space_contribute").Return(&model.Scheme{Id: "1", Name: "docs_space_contribute"}, nil)
+		api.On("GetSchemeByName", "example_scheme").Return(&model.Scheme{Id: "1", Name: "example_scheme"}, nil)
 
-		scheme, err := client.Scheme.GetByName("docs_space_contribute")
+		scheme, err := client.Scheme.GetByName("example_scheme")
 		require.NoError(t, err)
 		require.Equal(t, "1", scheme.Id)
 	})
@@ -99,9 +99,9 @@ func TestSchemeGetByName(t *testing.T) {
 		defer api.AssertExpectations(t)
 		client := pluginapi.NewClient(api, &plugintest.Driver{})
 
-		api.On("GetSchemeByName", "docs_space_contribute").Return(nil, (*model.AppError)(nil))
+		api.On("GetSchemeByName", "example_scheme").Return(nil, (*model.AppError)(nil))
 
-		scheme, err := client.Scheme.GetByName("docs_space_contribute")
+		scheme, err := client.Scheme.GetByName("example_scheme")
 		require.ErrorIs(t, err, pluginapi.ErrNotSupported)
 		require.Nil(t, scheme)
 	})

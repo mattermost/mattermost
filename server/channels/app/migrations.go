@@ -1365,10 +1365,9 @@ func (s *Server) doAppMigrations() {
 		{"Permissions Migrations", s.doPermissionsMigrations},
 		{"Content Extraction Config Default True Migration", s.doContentExtractionConfigDefaultTrueMigration},
 		{"Playbooks Roles Creation Migration", func() error { return s.doPlaybooksRolesCreationMigration(rctx) }},
-		// Runs after the generic permissions migrations: those match scheme-generated
-		// channel roles by common name and would re-add the moderated permissions this
-		// migration strips from the space preset schemes' generated roles. Also after
-		// the playbooks roles migration: creating a scheme of any scope loads every
+		// Runs after the generic permissions migrations so they never rewrite the
+		// exact role sets created atomically with the space presets. Also after the
+		// playbooks roles migration: creating a scheme of any scope loads every
 		// default role name, the playbook and run roles included, and fails if one is
 		// missing — on an upgrade those rows exist only once that migration has run.
 		{"Space Schemes Creation Migration", s.doSpaceSchemesCreationMigration},

@@ -1063,7 +1063,8 @@ type API interface {
 	GetOrCreatePluginChannelScheme(user, admin, guest []string) (*model.Scheme, *model.AppError)
 
 	// GetSchemeForChannel returns the channel's directly assigned scheme and its generated guest,
-	// user and admin roles. It returns not found when the channel has no scheme of its own.
+	// user and admin roles. It resolves ordinary and opaque channel types from the channel ID and
+	// returns not found when the channel has no scheme of its own.
 	//
 	// @tag Scheme
 	// @tag Channel

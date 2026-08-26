@@ -9,8 +9,69 @@ import (
 	"slices"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
+
+// getSchemeByNameFromMaster resolves a scheme on the primary for plugin read-after-write calls.
+func (a *App) getSchemeByNameFromMaster(name string) (*model.Scheme, *model.AppError) {
+	if err := a.IsPhase2MigrationCompleted(); err != nil {
+		return nil, err
+	}
+
+	scheme, err := a.Srv().Store().Scheme().GetByNameFromMaster(name)
+	if err != nil {
+		var nfErr *store.ErrNotFound
+		if errors.As(err, &nfErr) {
+			return nil, model.NewAppError("GetSchemeByName", "app.scheme.get.app_error", nil, "", http.StatusNotFound).Wrap(err)
+		}
+		return nil, model.NewAppError("GetSchemeByName", "app.scheme.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return scheme, nil
+}
+
+// GetSchemeForChannel returns a channel's directly assigned scheme and generated roles. The
+// channel-to-scheme lookup does not filter by channel type, so the same API works for ordinary
+// channels and any opaque backing-channel type without exposing that type to the plugin.
+func (a *App) GetSchemeForChannel(rctx request.CTX, channelID string) (scheme *model.Scheme, guestRole, userRole, adminRole *model.Role, err *model.AppError) {
+	scheme, sErr := a.Srv().Store().Scheme().GetForChannelFromMaster(channelID)
+	if sErr != nil {
+		var nfErr *store.ErrNotFound
+		if errors.As(sErr, &nfErr) {
+			err = model.NewAppError("GetSchemeForChannel", "app.scheme.get.app_error", nil, "channel has no directly assigned scheme", http.StatusNotFound).Wrap(sErr)
+		} else {
+			err = model.NewAppError("GetSchemeForChannel", "app.scheme.get.app_error", nil, "", http.StatusInternalServerError).Wrap(sErr)
+		}
+		return
+	}
+
+	roles, nErr := a.Srv().Store().Role().GetByNamesFromMaster([]string{
+		scheme.DefaultChannelGuestRole,
+		scheme.DefaultChannelUserRole,
+		scheme.DefaultChannelAdminRole,
+	})
+	if nErr != nil {
+		err = model.NewAppError("GetSchemeForChannel", "app.role.get_by_names.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+		return
+	}
+	if err = a.mergeChannelHigherScopedPermissions(roles); err != nil {
+		return
+	}
+
+	rolesByName := make(map[string]*model.Role, len(roles))
+	for _, role := range roles {
+		rolesByName[role.Name] = role
+	}
+	guestRole = rolesByName[scheme.DefaultChannelGuestRole]
+	userRole = rolesByName[scheme.DefaultChannelUserRole]
+	adminRole = rolesByName[scheme.DefaultChannelAdminRole]
+	if guestRole == nil || userRole == nil || adminRole == nil {
+		scheme, guestRole, userRole, adminRole = nil, nil, nil, nil
+		err = model.NewAppError("GetSchemeForChannel", "app.role.get_by_names.app_error", nil, "one or more channel scheme roles were not found", http.StatusNotFound)
+	}
+
+	return
+}
 
 // GetOrCreatePluginChannelScheme resolves the channel scheme whose three generated
 // roles grant exactly user, admin and guest for pluginID, creating it on first use.

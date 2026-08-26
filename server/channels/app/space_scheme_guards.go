@@ -72,35 +72,7 @@ func (a *App) isPluginChannelScheme(schemeId string) (bool, *model.AppError) {
 	if scheme == nil {
 		return false, nil
 	}
-	return scheme.Scope == model.SchemeScopeChannel && model.IsPluginChannelSchemeName(scheme.Name), nil
-}
-
-// schemeHoldsSpaceGrants reports whether a scheme's generated channel roles
-// currently carry a space permission — the durable half of the space-scheme test.
-// Whether a space points at a scheme can be taken away, but the grants written onto
-// its roles stay written, and MergeChannelHigherScopedPermissions would carry them
-// through to an ordinary channel's members. Both reads go to the primary and
-// neither is served by a cache.
-func (a *App) schemeHoldsSpaceGrants(schemeId string) (bool, *model.AppError) {
-	scheme, appErr := a.getSchemeFromMaster("schemeHoldsSpaceGrants", schemeId)
-	if appErr != nil {
-		return false, appErr
-	}
-	if scheme == nil {
-		return false, nil
-	}
-
-	names := []string{scheme.DefaultChannelAdminRole, scheme.DefaultChannelUserRole, scheme.DefaultChannelGuestRole}
-	roles, nErr := a.Srv().Store().Role().GetByNamesFromMaster(names)
-	if nErr != nil {
-		return false, model.NewAppError("schemeHoldsSpaceGrants", "app.role.get_by_names.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
-	}
-
-	rolesMap := make(map[string]*model.Role, len(roles))
-	for _, role := range roles {
-		rolesMap[role.Name] = role
-	}
-	return schemeGrantsSpacePermissions(scheme, rolesMap), nil
+	return scheme.DeleteAt == 0 && scheme.Scope == model.SchemeScopeChannel && model.IsPluginChannelSchemeName(scheme.Name), nil
 }
 
 // checkSpaceSchemeName rejects creating or renaming a scheme into a reserved name:
@@ -154,27 +126,31 @@ func (a *App) checkSpaceSchemeUpdate(scheme *model.Scheme) *model.AppError {
 		}
 		return nil
 	}
-	if stored.Name == scheme.Name {
-		return nil
-	}
 	// A plugin channel scheme is identified by its name and nothing else: the role
 	// freeze, the delete refusal and the get-or-create's own lookup all key off it.
 	// Renaming one away unfreezes its roles while every channel already pointing at it
 	// keeps resolving them, and leaves the next get-or-create for the same permission
 	// set creating a second scheme beside it.
 	if stored.Scope == model.SchemeScopeChannel && model.IsPluginChannelSchemeName(stored.Name) {
-		return model.NewAppError("UpdateScheme", "app.scheme.save.plugin_scheme_rename.app_error",
-			map[string]any{"SchemeName": stored.Name}, "", http.StatusBadRequest)
+		if stored.Name != scheme.Name {
+			return model.NewAppError("UpdateScheme", "app.scheme.save.plugin_scheme_rename.app_error",
+				map[string]any{"SchemeName": stored.Name}, "", http.StatusBadRequest)
+		}
+		if stored.DefaultChannelAdminRole != scheme.DefaultChannelAdminRole ||
+			stored.DefaultChannelUserRole != scheme.DefaultChannelUserRole ||
+			stored.DefaultChannelGuestRole != scheme.DefaultChannelGuestRole {
+			return model.NewAppError("UpdateScheme", "app.scheme.save.plugin_scheme_roles.app_error",
+				map[string]any{"SchemeName": stored.Name}, "", http.StatusBadRequest)
+		}
+		return nil
+	}
+	if stored.Name == scheme.Name {
+		return nil
 	}
 	return a.checkSpaceSchemeName("UpdateScheme", scheme.Name)
 }
 
-// checkSpaceSchemeDelete refuses deleting a scheme a space depends on. Deleting one
-// blanks SchemeId on every channel using it, which would drop every member of every
-// space on the scheme to the page-perm-less global roles. The seeded presets are
-// refused by identity, and so is any scheme still referenced by a space backing
-// channel — soft-deleted spaces included, since they are restorable and keep their
-// SchemeId.
+// checkSpaceSchemeDelete refuses deleting the fixed presets and immutable plugin pool schemes.
 func (a *App) checkSpaceSchemeDelete(schemeId string) *model.AppError {
 	isPreset, appErr := a.isSeededSpaceScheme(schemeId)
 	if appErr != nil {
@@ -196,16 +172,6 @@ func (a *App) checkSpaceSchemeDelete(schemeId string) *model.AppError {
 	}
 	if isPluginScheme {
 		return model.NewAppError("DeleteScheme", "app.scheme.delete.plugin_scheme.app_error", nil, "", http.StatusBadRequest)
-	}
-
-	// The count-then-delete window is not transactional — a concurrent repoint can
-	// still race the delete; accepted for this sysconsole-gated, low-frequency path.
-	count, cErr := a.Srv().Store().Channel().CountSpaceChannelsByScheme(schemeId)
-	if cErr != nil {
-		return model.NewAppError("DeleteScheme", "app.scheme.delete.app_error", nil, "", http.StatusInternalServerError).Wrap(cErr)
-	}
-	if count > 0 {
-		return model.NewAppError("DeleteScheme", "app.scheme.delete.space_scheme.app_error", nil, "", http.StatusBadRequest)
 	}
 	return nil
 }

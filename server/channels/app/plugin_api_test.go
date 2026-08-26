@@ -4582,16 +4582,43 @@ func TestPluginAPIGetSchemeForChannel(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 	api := th.SetupPluginAPI()
 
-	scheme := getSeededSpaceScheme(t, th, model.SchemeNameSpaceContribute)
-	space := saveSpaceChannelWithScheme(t, th, scheme.Id)
+	spaceScheme := getSeededSpaceScheme(t, th, model.SchemeNameSpaceContribute)
+	space := saveSpaceChannelWithScheme(t, th, spaceScheme.Id)
 
-	gotScheme, guestRole, userRole, adminRole, appErr := api.GetSchemeForChannel(space.Id)
-	require.Nil(t, appErr)
-	require.Equal(t, scheme.Id, gotScheme.Id)
-	require.Equal(t, scheme.DefaultChannelGuestRole, guestRole.Name)
-	require.Equal(t, scheme.DefaultChannelUserRole, userRole.Name)
-	require.Equal(t, scheme.DefaultChannelAdminRole, adminRole.Name)
-	assert.Subset(t, userRole.Permissions, model.PermissionIDs(model.SpaceDefaultContributePermissions))
+	ordinaryScheme, err := th.App.Srv().Store().Scheme().SaveChannelSchemeWithRoles(&model.Scheme{
+		Name:        model.NewId(),
+		DisplayName: "Plugin API ordinary channel scheme",
+		Scope:       model.SchemeScopeChannel,
+	}, []string{model.PermissionReadChannel.Id}, []string{model.PermissionManageChannelRoles.Id}, nil)
+	require.NoError(t, err)
+	ordinary, err := th.App.Srv().Store().Channel().Save(th.Context, &model.Channel{
+		TeamId:      th.BasicTeam.Id,
+		DisplayName: "Plugin API scheme channel",
+		Name:        "plugin-api-scheme-" + model.NewId(),
+		Type:        model.ChannelTypeOpen,
+		SchemeId:    &ordinaryScheme.Id,
+	}, 1000)
+	require.NoError(t, err)
+
+	for _, tc := range []struct {
+		name           string
+		channel        *model.Channel
+		scheme         *model.Scheme
+		userPermission string
+	}{
+		{"ordinary channel", ordinary, ordinaryScheme, model.PermissionReadChannel.Id},
+		{"opaque channel", space, spaceScheme, model.PermissionReadPage.Id},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			gotScheme, guestRole, userRole, adminRole, appErr := api.GetSchemeForChannel(tc.channel.Id)
+			require.Nil(t, appErr)
+			require.Equal(t, tc.scheme.Id, gotScheme.Id)
+			require.Equal(t, tc.scheme.DefaultChannelGuestRole, guestRole.Name)
+			require.Equal(t, tc.scheme.DefaultChannelUserRole, userRole.Name)
+			require.Equal(t, tc.scheme.DefaultChannelAdminRole, adminRole.Name)
+			assert.Contains(t, userRole.Permissions, tc.userPermission)
+		})
+	}
 }
 
 func TestPluginAPIGetSchemeForChannelRequiresDirectScheme(t *testing.T) {
