@@ -4297,7 +4297,7 @@
   "audit_table.updatePicture": "Updated your profile picture",
   "audit_table.userAdded": "Added {username} to the {channelName} channel",
   "audit_table.userId": "User ID",
-  "audit_table.userRemoved": "Removed {username} to the {channelName} channel",
+  "audit_table.userRemoved": "Removed {username} from the {channelName} channel",
   "audit_table.verified": "Successfully verified your email address",
   "authorize.allow": "Allow",
   "authorize.allowAccess": "Allow <b>{appName}</b> access?",
