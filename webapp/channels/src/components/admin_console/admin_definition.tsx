@@ -3114,7 +3114,7 @@ const AdminDefinition: AdminDefinitionType = {
                             type: 'bool',
                             key: 'TeamSettings.EnableUserDeactivation',
                             label: defineMessage({id: 'admin.team.enableUserDeactivationTitle', defaultMessage: 'Enable Account Deactivation:'}),
-                            help_text: defineMessage({id: 'admin.team.enableUserDeactivationDescription', defaultMessage: 'When true, users may deactivate their own account from **Settings > Advanced**. If a user deactivates their own account, they will get an email notification confirming they were deactivated. When false, users may not deactivate their own account. Only available to users who sign in with an email address and password, and not to users who sign in with SSO, such as SAML or AD/LDAP.'}),
+                            help_text: defineMessage({id: 'admin.team.enableUserDeactivationDescription', defaultMessage: 'When true, users may deactivate their own account from **Settings > Advanced**. If a user deactivates their own account, they will get an email notification confirming they were deactivated. When false, users may not deactivate their own account. Only available to users who sign in with an email address and password.'}),
                             help_text_markdown: true,
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.USERS_AND_TEAMS)),
                         },

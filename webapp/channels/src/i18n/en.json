@@ -3884,7 +3884,7 @@
   "admin.team.enableChannelCategorySortingTitle": "Channel category sorting:",
   "admin.team.enableJoinLeaveMessageDescription": "Choose the default configuration of system messages displayed when users join or leave channels. Users can override this default by configuring Join/Leave messages in Account Settings > Advanced.",
   "admin.team.enableJoinLeaveMessageTitle": "Enable join/leave messages by default:",
-  "admin.team.enableUserDeactivationDescription": "When true, users may deactivate their own account from **Settings > Advanced**. If a user deactivates their own account, they will get an email notification confirming they were deactivated. When false, users may not deactivate their own account. Only available to users who sign in with an email address and password, and not to users who sign in with SSO, such as SAML or AD/LDAP.",
+  "admin.team.enableUserDeactivationDescription": "When true, users may deactivate their own account from **Settings > Advanced**. If a user deactivates their own account, they will get an email notification confirming they were deactivated. When false, users may not deactivate their own account. Only available to users who sign in with an email address and password.",
   "admin.team.enableUserDeactivationTitle": "Enable Account Deactivation:",
   "admin.team.invalidateEmailInvitesDescription": "This will invalidate active email invitations that have not been accepted by the user. By default email invitations expire after 48 hours.",
   "admin.team.invalidateEmailInvitesFail": "Unable to invalidate pending email invites: {error}",
