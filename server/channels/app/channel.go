@@ -2339,6 +2339,62 @@ func (a *App) compensateMutableGroupChannelMemberAdds(rctx request.CTX, userIDs,
 	}
 }
 
+// compensateMutableGroupChannelMemberRemove restores a member after a failed
+// identity sync so Name/DisplayName cannot drift from membership.
+func (a *App) compensateMutableGroupChannelMemberRemove(rctx request.CTX, userID string, channel *model.Channel) {
+	user, err := a.GetUser(userID)
+	if err != nil {
+		rctx.Logger().Error(
+			"Failed to compensate group channel membership after remove sync failure",
+			mlog.String("channel_id", channel.Id),
+			mlog.String("user_id", userID),
+			mlog.Err(err),
+		)
+		return
+	}
+	if _, addErr := a.AddUserToChannel(rctx, user, channel, true); addErr != nil {
+		rctx.Logger().Error(
+			"Failed to compensate group channel membership after remove sync failure",
+			mlog.String("channel_id", channel.Id),
+			mlog.String("user_id", userID),
+			mlog.Err(addErr),
+		)
+	}
+}
+
+// removeGroupChannelMember validates, removes, and syncs GM identity under the
+// per-channel lock. On sync failure the removal is rolled back and the error is
+// returned so callers never observe success with a stale Name/DisplayName.
+func (a *App) removeGroupChannelMember(rctx request.CTX, userIDToRemove, removerUserId string, channel *model.Channel) *model.AppError {
+	if channel.Type != model.ChannelTypeGroup {
+		return model.NewAppError("removeGroupChannelMember", "api.channel.remove_channel_member.type.app_error", nil, "", http.StatusBadRequest)
+	}
+	if !a.Config().FeatureFlags.EnableMutableGroupMessages {
+		return model.NewAppError("removeGroupChannelMember", "api.channel.remove_channel_member.type.app_error", nil, "", http.StatusBadRequest)
+	}
+	if channel.IsShared() {
+		return model.NewAppError("removeGroupChannelMember", "api.channel.remove_user_from_group.shared.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	unlock := a.lockGroupChannelMembers(channel.Id)
+	defer unlock()
+
+	if appErr := a.validateGroupChannelMemberRemove(rctx, channel, userIDToRemove); appErr != nil {
+		return appErr
+	}
+
+	if err := a.removeUserFromChannel(rctx, userIDToRemove, removerUserId, channel); err != nil {
+		return err
+	}
+
+	if _, syncErr := a.syncGroupChannelIdentity(rctx, channel); syncErr != nil {
+		a.compensateMutableGroupChannelMemberRemove(rctx, userIDToRemove, channel)
+		return syncErr
+	}
+
+	return nil
+}
+
 // groupChannelIdentityMatchesMembership reports whether Name/DisplayName already
 // reflect the channel's current members.
 func (a *App) groupChannelIdentityMatchesMembership(rctx request.CTX, channel *model.Channel) (bool, *model.AppError) {
@@ -3233,12 +3289,18 @@ func (a *App) LeaveChannel(rctx request.CTX, channelID string, userID string) *m
 	channel := cresult.Data
 	user := uresult.Data
 
-	if channel.IsGroupOrDirect() {
-		err := model.NewAppError("LeaveChannel", "api.channel.leave.direct.app_error", nil, "", http.StatusBadRequest)
-		return err
+	if channel.Type == model.ChannelTypeDirect {
+		return model.NewAppError("LeaveChannel", "api.channel.leave.direct.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if err := a.removeUserFromChannel(rctx, userID, userID, channel); err != nil {
+	if channel.Type == model.ChannelTypeGroup {
+		if !a.Config().FeatureFlags.EnableMutableGroupMessages {
+			return model.NewAppError("LeaveChannel", "api.channel.leave.direct.app_error", nil, "", http.StatusBadRequest)
+		}
+		if err := a.removeGroupChannelMember(rctx, userID, userID, channel); err != nil {
+			return err
+		}
+	} else if err := a.removeUserFromChannel(rctx, userID, userID, channel); err != nil {
 		return err
 	}
 
@@ -3339,18 +3401,31 @@ func (a *App) postRemoveFromChannelMessage(rctx request.CTX, removerUserId strin
 		messageUserId = systemBot.UserId
 	}
 
+	props := model.StringInterface{
+		"removedUserId":   removedUser.Id,
+		"removedUsername": removedUser.Username,
+	}
+
+	message := fmt.Sprintf(i18n.T("api.channel.remove_member.removed"), fmt.Sprintf("@%s", removedUser.Username))
+	if removerUserId != "" {
+		if remover, err := a.GetUser(removerUserId); err == nil {
+			props["userId"] = remover.Id
+			props["username"] = remover.Username
+			if channel.Type == model.ChannelTypeGroup {
+				message = fmt.Sprintf(i18n.T("api.channel.remove_member.removed_from_group"), fmt.Sprintf("@%s", removedUser.Username), fmt.Sprintf("@%s", remover.Username))
+			}
+		}
+	}
+
 	post := &model.Post{
 		ChannelId: channel.Id,
 		// Message here embeds `@username`, not just `username`, to ensure that mentions
 		// treat this as a username mention even though the user has now left the channel.
 		// The client renders its own system message, ignoring this value altogether.
-		Message: fmt.Sprintf(i18n.T("api.channel.remove_member.removed"), fmt.Sprintf("@%s", removedUser.Username)),
+		Message: message,
 		Type:    model.PostTypeRemoveFromChannel,
 		UserId:  messageUserId,
-		Props: model.StringInterface{
-			"removedUserId":   removedUser.Id,
-			"removedUsername": removedUser.Username,
-		},
+		Props:   props,
 	}
 
 	if _, _, err := a.CreatePost(rctx, post, channel, model.CreatePostFlags{SetOnline: true}); err != nil {
@@ -3490,7 +3565,11 @@ func (a *App) removeUserFromChannel(rctx request.CTX, userIDToRemove string, rem
 func (a *App) RemoveUserFromChannel(rctx request.CTX, userIDToRemove string, removerUserId string, channel *model.Channel) *model.AppError {
 	var err *model.AppError
 
-	if err = a.removeUserFromChannel(rctx, userIDToRemove, removerUserId, channel); err != nil {
+	if channel.Type == model.ChannelTypeGroup {
+		if err = a.removeGroupChannelMember(rctx, userIDToRemove, removerUserId, channel); err != nil {
+			return err
+		}
+	} else if err = a.removeUserFromChannel(rctx, userIDToRemove, removerUserId, channel); err != nil {
 		return err
 	}
 
@@ -3512,6 +3591,41 @@ func (a *App) RemoveUserFromChannel(rctx request.CTX, userIDToRemove string, rem
 		if err := a.postRemoveFromChannelMessage(rctx, removerUserId, user, channel); err != nil {
 			rctx.Logger().Error("Failed to post user removal message", mlog.Err(err))
 		}
+	}
+
+	return nil
+}
+
+// validateGroupChannelMemberRemove checks whether removing a member would
+// produce a member set that already identifies another group channel.
+// Undersized remaining sets (< ChannelGroupMinUsers) are allowed.
+func (a *App) validateGroupChannelMemberRemove(rctx request.CTX, channel *model.Channel, userIDToRemove string) *model.AppError {
+	members, appErr := a.GetChannelMembersPage(rctx, channel.Id, 0, model.ChannelGroupMaxUsers)
+	if appErr != nil {
+		return appErr
+	}
+
+	userIDs := make([]string, 0, len(members))
+	for _, member := range members {
+		if member.UserId == userIDToRemove {
+			continue
+		}
+		userIDs = append(userIDs, member.UserId)
+	}
+
+	if len(userIDs) < model.ChannelGroupMinUsers {
+		return nil
+	}
+
+	existing, err := a.GetChannelByName(rctx, model.GetGroupNameFromUserIds(userIDs), "", false)
+	if err != nil {
+		if err.StatusCode == http.StatusNotFound {
+			return nil
+		}
+		return err
+	}
+	if existing.Id != channel.Id {
+		return model.NewAppError("RemoveUserFromChannel", "api.channel.add_user_to_group.already_exists.app_error", nil, "existing_channel_id="+existing.Id, http.StatusBadRequest)
 	}
 
 	return nil

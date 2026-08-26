@@ -19,6 +19,7 @@ import {isGuest} from 'mattermost-redux/utils/user_utils';
 import {canAccessChannelSettings} from 'selectors/views/channel_settings';
 
 import ChannelMoveToSubMenu from 'components/channel_move_to_sub_menu';
+import useGetFeatureFlagValue from 'components/common/hooks/useGetFeatureFlagValue';
 import * as Menu from 'components/menu';
 import ChannelPermissionGate from 'components/permissions_gates/channel_permission_gate';
 
@@ -30,6 +31,7 @@ import MenuItemChannelSettings from '../menu_items/channel_settings_menu';
 import CloseMessage from '../menu_items/close_message';
 import MenuItemConvertToPrivate from '../menu_items/convert_gm_to_private';
 import EditConversationHeader from '../menu_items/edit_conversation_header';
+import LeaveChannel from '../menu_items/leave_channel';
 import MenuItemNotification from '../menu_items/notification';
 import MenuItemOpenMembersRHS from '../menu_items/open_members_rhs';
 import MenuItemPluginItems from '../menu_items/plugins_submenu';
@@ -54,6 +56,7 @@ const ChannelHeaderGroupMenu = ({channel, user, isMuted, isMobile, isFavorite, p
     const isArchived = channel.delete_at !== 0;
     const {formatMessage} = useIntl();
     const canAccessChannelSettingsForChannel = useSelector((state: GlobalState) => canAccessChannelSettings(state, channel.id));
+    const mutableGroupMessagesEnabled = useGetFeatureFlagValue('EnableMutableGroupMessages') === 'true';
 
     return (
         <>
@@ -165,6 +168,12 @@ const ChannelHeaderGroupMenu = ({channel, user, isMuted, isMobile, isFavorite, p
                 <MenuItemPluginItems pluginItems={pluginItems}/>
             )}
             <Menu.Separator/>
+            {mutableGroupMessagesEnabled && (
+                <LeaveChannel
+                    id='channelLeaveChannel'
+                    channel={channel}
+                />
+            )}
             <CloseMessage
                 currentUserID={user.id}
                 channel={channel}

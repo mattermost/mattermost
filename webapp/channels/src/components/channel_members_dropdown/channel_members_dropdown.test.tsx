@@ -51,6 +51,7 @@ describe('components/channel_members_dropdown', () => {
         currentUserId: 'current-user-id',
         canChangeMemberRoles: false,
         canRemoveMember: true,
+        teammateNameDisplay: 'username',
         index: 0,
         totalUsers: 10,
         actions: {
