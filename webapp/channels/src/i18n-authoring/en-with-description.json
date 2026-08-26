@@ -9152,8 +9152,8 @@
     "description": "Setting label for a text field in the OpenID Connect admin settings; the text shown on the OpenID login button. Ends with a colon."
   },
   "admin.openid.clientIdDescription": {
-    "defaultMessage": "Obtaining the Client ID differs across providers. Please check you provider's documentation.",
-    "description": "Admin console help text under the Client ID field in the generic OpenID Connect settings; contains a typo (you for your) in the source."
+    "defaultMessage": "Obtaining the Client ID differs across providers. Please check your provider's documentation.",
+    "description": "Admin console help text under the Client ID field in the generic OpenID Connect settings."
   },
   "admin.openid.clientIdExample": {
     "defaultMessage": "E.g.: \"adf3sfa2-ag3f-sn4n-ids0-sh1hdax192qq\"",
@@ -9164,8 +9164,8 @@
     "description": "Setting label for a text field in the OpenID Connect admin settings; ends with a colon."
   },
   "admin.openid.clientSecretDescription": {
-    "defaultMessage": "Obtaining the Client Secret differs across providers. Please check you provider's documentation.",
-    "description": "Admin console help text under the Client Secret field in the generic OpenID Connect settings; contains a typo (you for your) in the source."
+    "defaultMessage": "Obtaining the Client Secret differs across providers. Please check your provider's documentation.",
+    "description": "Admin console help text under the Client Secret field in the generic OpenID Connect settings."
   },
   "admin.openid.clientSecretExample": {
     "defaultMessage": "E.g.: \"H8sz0Az-dDs2p15-7QzD231\"",
@@ -21680,8 +21680,8 @@
     "description": "Description under the team setting that restricts joining to specific email domains."
   },
   "general_tab.AllowedDomainsTip": {
-    "defaultMessage": "Seperate multiple domains with a space, comma, tab or enter.",
-    "description": "Help text under the allowed domains input explaining how to enter multiple domains. Note: source contains a typo ('Seperate')."
+    "defaultMessage": "Separate multiple domains with a space, comma, tab or enter.",
+    "description": "Help text under the allowed domains input explaining how to enter multiple domains."
   },
   "general_tab.AllowedDomainsTitle": {
     "defaultMessage": "Users with a specific email domain",

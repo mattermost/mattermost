@@ -6106,8 +6106,8 @@
   },
   {
     "id": "api.user.login.remote_users.login.error",
-    "translation": "Login failed because remote users are not allow to log in.",
-    "description": "Login error when a remote user (an account synchronized from another Mattermost server via shared channels) tries to log in locally; source English contains a typo ('not allow')."
+    "translation": "Login failed because remote users are not allowed to log in.",
+    "description": "Login error when a remote user (an account synchronized from another Mattermost server via shared channels) tries to log in locally."
   },
   {
     "id": "api.user.login.use_auth_service.app_error",
@@ -8408,7 +8408,7 @@
   {
     "id": "app.export.generate_presigned_url.config.app_error",
     "translation": "This action requires the use of a dedicated export store.",
-    "description": "API error (500) shown to a system admin requesting a direct download link for an export, when the server is not configured with a dedicated export file store. Note the source text's \"This actions\" typo — translate it as correct grammar in the target language."
+    "description": "API error (500) shown to a system admin requesting a direct download link for an export, when the server is not configured with a dedicated export file store."
   },
   {
     "id": "app.export.generate_presigned_url.direct_download.app_error",
@@ -9417,8 +9417,8 @@
   },
   {
     "id": "app.import.validate_user_import_data.username_missing.error",
-    "translation": "Missing require user property: username.",
-    "description": "Bulk-import validation error when a user entry lacks the 'username' field; the field name should stay untranslated (source has typo 'require')."
+    "translation": "Missing required user property: username.",
+    "description": "Bulk-import validation error when a user entry lacks the 'username' field; the field name should stay untranslated."
   },
   {
     "id": "app.import.validate_user_teams_import_data.invalid_auth_service.error",
@@ -12203,8 +12203,8 @@
   },
   {
     "id": "app.user.get_known_users.get_users.app_error",
-    "translation": "Unable to get know users from the database.",
-    "description": "API error when fetching the users known to (sharing channels with) the requesting user fails; 'know users' is a typo for 'known users'."
+    "translation": "Unable to get known users from the database.",
+    "description": "API error when fetching the users known to (sharing channels with) the requesting user fails."
   },
   {
     "id": "app.user.get_new_users.app_error",
