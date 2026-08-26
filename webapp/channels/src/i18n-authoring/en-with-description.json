@@ -1247,6 +1247,14 @@
     "defaultMessage": "Attribute-based membership rules",
     "description": "Card title in the membership policy editor above the attribute condition editor."
   },
+  "admin.access_control.policy.edit_policy.channel_attribute_notice.text": {
+    "defaultMessage": "If an assigned channel is missing the referenced attribute, every member of that channel is removed.",
+    "description": ""
+  },
+  "admin.access_control.policy.edit_policy.channel_attribute_notice.title": {
+    "defaultMessage": "Channels without this attribute lose all members",
+    "description": ""
+  },
   "admin.access_control.policy.edit_policy.channel_selector.addChannels": {
     "defaultMessage": "Add channels",
     "description": "Button on the policy editor's assigned channels card; opens a channel picker to attach channels to the policy."
@@ -1454,6 +1462,10 @@
   "admin.access_control.simulate_access.blame.no_applicable_rule": {
     "defaultMessage": "this rule doesn't apply to this user",
     "description": "Label on a neutral chip in the access simulation results when the specific rule being edited does not govern that user. Lowercase fragment inside a compact chip."
+  },
+  "admin.access_control.simulate_access.blame.no_session_data": {
+    "defaultMessage": "No recent session",
+    "description": ""
   },
   "admin.access_control.simulate_access.blame.peer_policy": {
     "defaultMessage": "another policy",
@@ -1715,13 +1727,29 @@
     "defaultMessage": "Apply membership policies to their assigned resources.",
     "description": "Subtitle under the Membership Sync Jobs page title, describing what the sync jobs do."
   },
+  "admin.access_control.sync_jobs.description_channel_scope": {
+    "defaultMessage": "Re-sync channel membership for channels assigned to a membership policy.",
+    "description": ""
+  },
   "admin.access_control.sync_jobs.run": {
     "defaultMessage": "Run Sync Job",
     "description": "Primary button on the Membership Sync Jobs page that starts a membership synchronization job. 'Run' is a verb."
   },
+  "admin.access_control.sync_jobs.run_channel": {
+    "defaultMessage": "Run Channel Sync",
+    "description": ""
+  },
   "admin.access_control.sync_jobs.running": {
     "defaultMessage": "Running Job...",
     "description": "Button text in the access control sync jobs table while a manually started job is in progress; ellipsis indicates ongoing work."
+  },
+  "admin.access_control.sync_jobs.team_sync_note": {
+    "defaultMessage": "To re-sync team membership, use **Sync now** in Team Settings → Team Membership or the team’s page in the System Console.",
+    "description": ""
+  },
+  "admin.access_control.sync_jobs.team_sync_note.title": {
+    "defaultMessage": "This syncs channel membership only",
+    "description": ""
   },
   "admin.access_control.sync_jobs.title": {
     "defaultMessage": "Membership Sync Jobs",
@@ -1787,6 +1815,10 @@
     "defaultMessage": "in",
     "description": "Comparison operator option in the access rule table editor dropdown; reads as 'attribute is in a set of values'. Compact space."
   },
+  "admin.access_control.table_editor.operator.in_cidr": {
+    "defaultMessage": "in IP range",
+    "description": ""
+  },
   "admin.access_control.table_editor.operator.is": {
     "defaultMessage": "is",
     "description": "Comparison operator option in the access rule table editor dropdown; reads as 'attribute is value' (equality). Compact space."
@@ -1819,6 +1851,26 @@
     "defaultMessage": "starts with",
     "description": "Comparison operator option in the access rule table editor dropdown; reads as 'attribute starts with value'. Compact space."
   },
+  "admin.access_control.table_editor.operator.version_at_least": {
+    "defaultMessage": "version is at least",
+    "description": ""
+  },
+  "admin.access_control.table_editor.operator.version_at_most": {
+    "defaultMessage": "version is at most",
+    "description": ""
+  },
+  "admin.access_control.table_editor.operator.version_greater_than": {
+    "defaultMessage": "version is greater than",
+    "description": ""
+  },
+  "admin.access_control.table_editor.operator.version_is": {
+    "defaultMessage": "version is",
+    "description": ""
+  },
+  "admin.access_control.table_editor.operator.version_less_than": {
+    "defaultMessage": "version is less than",
+    "description": ""
+  },
   "admin.access_control.table_editor.operator.younger_than": {
     "defaultMessage": "younger than (days)",
     "description": "Comparison operator option in the access rule table editor for date attributes; '(days)' clarifies the comparison value is a number of days. Compact space."
@@ -1826,6 +1878,18 @@
   "admin.access_control.table_editor.remove_row": {
     "defaultMessage": "Remove row",
     "description": "Accessibility label (not visible) for the trash-icon button that deletes a condition row in the access-rule table editor."
+  },
+  "admin.access_control.table_editor.rhs.channel_attributes_section": {
+    "defaultMessage": "Channel attributes",
+    "description": ""
+  },
+  "admin.access_control.table_editor.rhs.channel_target_label": {
+    "defaultMessage": "Channel: {name}",
+    "description": ""
+  },
+  "admin.access_control.table_editor.rhs.values_section": {
+    "defaultMessage": "Values",
+    "description": ""
   },
   "admin.access_control.table_editor.selector.custom_attributes": {
     "defaultMessage": "Custom attributes",
@@ -1859,6 +1923,10 @@
     "defaultMessage": "You cannot test access rules that would exclude you from the channel",
     "description": "Tooltip on the disabled 'Test access rule' button when the rule being edited would exclude the current admin from the channel."
   },
+  "admin.access_control.table_editor.value.cidr_placeholder": {
+    "defaultMessage": "CIDR range (e.g. 10.0.0.0/8)",
+    "description": ""
+  },
   "admin.access_control.table_editor.value.days_invalid": {
     "defaultMessage": "Enter a whole number of days (e.g. 30).",
     "description": "Inline validation error under the value field of a 'younger than (days)' access-rule condition when the value is not a whole number."
@@ -1875,6 +1943,10 @@
     "defaultMessage": "Select value",
     "description": "Default label of the value picker dropdown in an access-rule row before a value is chosen."
   },
+  "admin.access_control.table_editor.value.version_placeholder": {
+    "defaultMessage": "Version (e.g. 6.0.0)",
+    "description": ""
+  },
   "admin.access_control.table_editor.values": {
     "defaultMessage": "Values",
     "description": "Column header of the access-rule table editor for the attribute values being compared; compact space."
@@ -1886,6 +1958,26 @@
   "admin.access_control.table_editor.values.select_values": {
     "defaultMessage": "Select values...",
     "description": "Placeholder in the multi-value selector of the access rule table editor when no values are chosen yet."
+  },
+  "admin.access_control.test.channel_picker.back": {
+    "defaultMessage": "Back to channel selection",
+    "description": ""
+  },
+  "admin.access_control.test.channel_picker.error": {
+    "defaultMessage": "Could not load channels. Check your connection and try again.",
+    "description": ""
+  },
+  "admin.access_control.test.channel_picker.no_results": {
+    "defaultMessage": "No channels found",
+    "description": ""
+  },
+  "admin.access_control.test.channel_picker.search": {
+    "defaultMessage": "Search channels",
+    "description": ""
+  },
+  "admin.access_control.test.channel_picker.title": {
+    "defaultMessage": "Select a channel to test against",
+    "description": ""
   },
   "admin.access_control.testResults": {
     "defaultMessage": "Access Rule Test Results",
@@ -1919,9 +2011,29 @@
     "defaultMessage": "Allow attribute based access controls on this server",
     "description": "Admin console setting label (toggle) that enables attribute-based access control server-wide."
   },
+  "admin.accesscontrol.enforceDeviceIdConsistency.desc": {
+    "defaultMessage": "When enabled, the **TLS device ID**, **Device ID**, and **Hardware ID** attributes are compared against the values cached for a session. If one of them changes mid-session, the session is revoked, the user must log in again, and the revocation is recorded in the audit log. This mitigates token theft, since a stolen token replayed from another device reports a different identifier. When disabled, a changed device identity overwrites the cached value and the session continues. **Note:** Confirm that these attributes report stable values across your fleet before enabling, since an identifier that legitimately changes will log users out.",
+    "description": ""
+  },
+  "admin.accesscontrol.enforceDeviceIdConsistency.title": {
+    "defaultMessage": "Enforce device ID consistency",
+    "description": ""
+  },
+  "admin.accesscontrol.session_attributes": {
+    "defaultMessage": "Session Attributes",
+    "description": ""
+  },
   "admin.accesscontrol.title": {
     "defaultMessage": "Attribute-Based Access",
     "description": "Page name and title of System Console > System Attributes > Attribute-Based Access Control."
+  },
+  "admin.accesscontrol.trustProxyDeviceIdentityHeader.desc": {
+    "defaultMessage": "When enabled, the **TLS device ID** attribute is populated from the `X-Mattermost-Session-Attribute-Device-Id` request header, letting a reverse proxy that performs mutual TLS assert a device identity that the client cannot forge. **Note:** The device identity is accepted from the request header, so all clients must connect to Mattermost through a proxy that sets it and strips it from inbound requests.",
+    "description": ""
+  },
+  "admin.accesscontrol.trustProxyDeviceIdentityHeader.title": {
+    "defaultMessage": "Trust proxy device identity header",
+    "description": ""
   },
   "admin.accesscontrol.user_properties.link.label": {
     "defaultMessage": "User Attributes",
@@ -3243,6 +3355,18 @@
     "defaultMessage": "True",
     "description": "Label of the 'true' radio option for the enable-classification-markings setting; means the feature is on."
   },
+  "admin.classification_markings.enforcement.clearance.checkbox": {
+    "defaultMessage": "Enable clearance attribute",
+    "description": ""
+  },
+  "admin.classification_markings.enforcement.clearance.help": {
+    "defaultMessage": "Creates a ranked \"Clearance\" user attribute linked to these classification levels. Channel membership can then be managed with a corresponding <link>membership policy</link>.",
+    "description": ""
+  },
+  "admin.classification_markings.enforcement.clearance.title": {
+    "defaultMessage": "Clearance attribute",
+    "description": ""
+  },
   "admin.classification_markings.error.delete_has_dependents": {
     "defaultMessage": "Cannot disable classification markings while channel classifications exist. Remove all channel classification markings first.",
     "description": "Save error shown to admins when they try to disable classification markings while channels still have classification markings applied."
@@ -3715,6 +3839,30 @@
     "defaultMessage": "Customer Type:",
     "description": "Dropdown setting name for the Global Relay account type on the Compliance Export admin page; ends with a colon."
   },
+  "admin.complianceExport.globalRelayCustomHeaderName.description": {
+    "defaultMessage": "An optional custom header added to each exported EML. Both the name and value must be set, or both left blank to omit.",
+    "description": ""
+  },
+  "admin.complianceExport.globalRelayCustomHeaderName.example": {
+    "defaultMessage": "E.g.: \"X-ProofpointArchiveMediaType\"",
+    "description": ""
+  },
+  "admin.complianceExport.globalRelayCustomHeaderName.title": {
+    "defaultMessage": "Custom Header Name:",
+    "description": ""
+  },
+  "admin.complianceExport.globalRelayCustomHeaderValue.description": {
+    "defaultMessage": "The value sent with the custom header. Both the name and value must be set, or both left blank to omit.",
+    "description": ""
+  },
+  "admin.complianceExport.globalRelayCustomHeaderValue.example": {
+    "defaultMessage": "E.g.: \"Message\"",
+    "description": ""
+  },
+  "admin.complianceExport.globalRelayCustomHeaderValue.title": {
+    "defaultMessage": "Custom Header Value:",
+    "description": ""
+  },
   "admin.complianceExport.globalRelayCustomSMTPPort.description": {
     "defaultMessage": "The SMTP server port that will receive your Global Relay EML.",
     "description": "Admin console help text for the SMTP Server Port field used with the Global Relay export format."
@@ -3839,6 +3987,26 @@
     "defaultMessage": "Create custom terms of service with Mattermost Enterprise",
     "description": "Headline on the feature discovery (upsell) page for custom terms of service; mentions the required plan."
   },
+  "admin.customization.allowCustomThemesDesc": {
+    "defaultMessage": "Enables the **Display > Theme > Custom Theme** section in Settings.",
+    "description": ""
+  },
+  "admin.customization.allowCustomThemesTitle": {
+    "defaultMessage": "Allow Custom Themes:",
+    "description": ""
+  },
+  "admin.customization.allowedThemesDesc": {
+    "defaultMessage": "Restrict the themes users can select in **Display > Theme** to a comma-separated list of theme names. Valid names are `denim`, `sapphire`, `quartz`, `indigo`, and `onyx`. Leave this field blank to allow all themes.",
+    "description": ""
+  },
+  "admin.customization.allowedThemesPlaceholder": {
+    "defaultMessage": "E.g.: \"denim,onyx\"",
+    "description": ""
+  },
+  "admin.customization.allowedThemesTitle": {
+    "defaultMessage": "Allowed Themes:",
+    "description": ""
+  },
   "admin.customization.allowSyncedDrafts": {
     "defaultMessage": "Enable server syncing of message drafts:",
     "description": "Admin console setting label (toggle) on Site Configuration > Posts for syncing message drafts to the server."
@@ -3919,6 +4087,34 @@
     "defaultMessage": "E.g.: \"git,smtp\"",
     "description": "Placeholder example for the Custom URL Schemes input, showing the comma-separated format."
   },
+  "admin.customization.defaultTheme.options.denim": {
+    "defaultMessage": "Denim",
+    "description": ""
+  },
+  "admin.customization.defaultTheme.options.indigo": {
+    "defaultMessage": "Indigo",
+    "description": ""
+  },
+  "admin.customization.defaultTheme.options.onyx": {
+    "defaultMessage": "Onyx",
+    "description": ""
+  },
+  "admin.customization.defaultTheme.options.quartz": {
+    "defaultMessage": "Quartz",
+    "description": ""
+  },
+  "admin.customization.defaultTheme.options.sapphire": {
+    "defaultMessage": "Sapphire",
+    "description": ""
+  },
+  "admin.customization.defaultThemeDesc": {
+    "defaultMessage": "Set a default theme that applies to all new users on the system.",
+    "description": ""
+  },
+  "admin.customization.defaultThemeTitle": {
+    "defaultMessage": "Default Theme:",
+    "description": ""
+  },
   "admin.customization.enableCustomEmojiDesc": {
     "defaultMessage": "Enable users to create custom emoji for use in messages. When enabled, custom emoji settings can be accessed in Channels through the emoji picker.",
     "description": "Admin console help text for the custom emoji toggle on the Site Configuration > Emoji page."
@@ -3975,6 +4171,14 @@
     "defaultMessage": "Enable website link previews:",
     "description": "Admin console setting label (toggle) on the Posts page for previews of linked websites under messages."
   },
+  "admin.customization.enableOnboardingFlowDesc": {
+    "defaultMessage": "When true, new users are shown steps to complete as part of an onboarding process",
+    "description": ""
+  },
+  "admin.customization.enableOnboardingFlowTitle": {
+    "defaultMessage": "Enable Onboarding:",
+    "description": ""
+  },
   "admin.customization.enablePermalinkPreviewsDesc": {
     "defaultMessage": "When enabled, links to Mattermost messages will generate a preview for any users that have access to the original message. Please review our <link>documentation</link> for details.",
     "description": "Admin console help text for the message link previews toggle on the Posts page; <link> wraps the word linking to documentation."
@@ -3990,6 +4194,22 @@
   "admin.customization.enableSVGsTitle": {
     "defaultMessage": "Enable SVGs:",
     "description": "Admin console setting label (toggle) on the Posts page for previews of SVG image attachments."
+  },
+  "admin.customization.enableThemeSelectionDesc": {
+    "defaultMessage": "Enables the **Display > Theme** tab in Settings so users can select their theme.",
+    "description": ""
+  },
+  "admin.customization.enableThemeSelectionTitle": {
+    "defaultMessage": "Enable Theme Selection:",
+    "description": ""
+  },
+  "admin.customization.enableTutorialDesc": {
+    "defaultMessage": "When true, users are prompted with a tutorial when they open Mattermost for the first time after account creation. When false, the tutorial is disabled, and users are placed in Town Square when they open Mattermost for the first time after account creation.",
+    "description": ""
+  },
+  "admin.customization.enableTutorialTitle": {
+    "defaultMessage": "Enable Tutorial:",
+    "description": ""
   },
   "admin.customization.frameAncestorDesc": {
     "defaultMessage": "Allows the Mattermost web client to be embedded in other websites. Enter a space-separated list of domains that are allowed to embed the Mattermost web client. Leave blank to disallow embedding.",
@@ -5011,6 +5231,14 @@
     "defaultMessage": "Skip Server Certificate Verification:",
     "description": "Setting label (ends with a colon) for the Skip Server Certificate Verification toggle on the SMTP page."
   },
+  "admin.environment.smtp.skipServerCertificateVerificationProductionWarning.text": {
+    "defaultMessage": "Mattermost will not validate the SMTP server's TLS certificate, exposing email delivery to man-in-the-middle attacks. Enable only while troubleshooting.",
+    "description": ""
+  },
+  "admin.environment.smtp.skipServerCertificateVerificationProductionWarning.title": {
+    "defaultMessage": "Skipping certificate verification is not recommended for production environments",
+    "description": ""
+  },
   "admin.environment.smtp.smtpAuth.description": {
     "defaultMessage": "When true, SMTP Authentication is enabled.",
     "description": "Help text for the Enable SMTP Authentication setting on the System Console SMTP page."
@@ -5087,14 +5315,6 @@
     "defaultMessage": "Web Server",
     "description": "Page name for Environment > Web Server in the System Console sidebar."
   },
-  "admin.experimental.allowCustomThemes.desc": {
-    "defaultMessage": "Enables the **Display > Theme > Custom Theme** section in Settings.",
-    "description": "Admin console help text for the custom themes toggle on the Experimental Features page; ** marks bold Markdown around the settings path."
-  },
-  "admin.experimental.allowCustomThemes.title": {
-    "defaultMessage": "Allow Custom Themes:",
-    "description": "Admin console setting label (toggle) on the Experimental Features page enabling the Custom Theme section for users."
-  },
   "admin.experimental.allowedEmailDomain.desc": {
     "defaultMessage": "(Optional) When set, users must have an email ending in this domain to move threads. Multiple domains can be specified by separating them with commas.",
     "description": "Admin console help text for the allowed email domain setting on the Move Threads (Wrangler) page."
@@ -5126,34 +5346,6 @@
   "admin.experimental.collapsedThreads.title": {
     "defaultMessage": "Threaded Discussions",
     "description": "Admin console setting label for the Threaded Discussions (collapsed reply threads) dropdown on the Posts page."
-  },
-  "admin.experimental.defaultTheme.desc": {
-    "defaultMessage": "Set a default theme that applies to all new users on the system.",
-    "description": "Admin console help text for the default theme dropdown on the Experimental Features page."
-  },
-  "admin.experimental.defaultTheme.options.denim": {
-    "defaultMessage": "Denim",
-    "description": "Theme name option in the default theme dropdown; 'Denim' is a proper theme name, usually untranslated."
-  },
-  "admin.experimental.defaultTheme.options.indigo": {
-    "defaultMessage": "Indigo",
-    "description": "Theme name option in the default theme dropdown; 'Indigo' is a proper theme name, usually untranslated."
-  },
-  "admin.experimental.defaultTheme.options.onyx": {
-    "defaultMessage": "Onyx",
-    "description": "Theme name option in the default theme dropdown; 'Onyx' is a proper theme name, usually untranslated."
-  },
-  "admin.experimental.defaultTheme.options.quartz": {
-    "defaultMessage": "Quartz",
-    "description": "Theme name option in the default theme dropdown; 'Quartz' is a proper theme name, usually untranslated."
-  },
-  "admin.experimental.defaultTheme.options.sapphire": {
-    "defaultMessage": "Sapphire",
-    "description": "Theme name option in the default theme dropdown; 'Sapphire' is a proper theme name, usually untranslated."
-  },
-  "admin.experimental.defaultTheme.title": {
-    "defaultMessage": "Default Theme:",
-    "description": "Admin console field label on the Experimental Features page for the theme applied to new users."
   },
   "admin.experimental.delayChannelAutocomplete.desc": {
     "defaultMessage": "When true, the autocomplete for channel links (such as ~town-square) will only trigger after typing a tilde followed by a couple letters. When false, the autocomplete will appear as soon as the user types a tilde.",
@@ -5211,62 +5403,6 @@
     "defaultMessage": "Email Batching Interval:",
     "description": "Admin console field label on the Experimental Features page for the email batching check interval in seconds."
   },
-  "admin.experimental.emailSettingsLoginButtonBorderColor.desc": {
-    "defaultMessage": "Specify the color of the email login button border for white labeling purposes. Use a hex code with a #-sign before the code. This setting only applies to the mobile apps.",
-    "description": "Admin console help text for the email login button border color field; setting is for white-labeling the mobile apps."
-  },
-  "admin.experimental.emailSettingsLoginButtonBorderColor.title": {
-    "defaultMessage": "Email Login Button Border Color:",
-    "description": "Admin console field label on the Experimental Features page for the border color (hex code) of the email login button in mobile apps."
-  },
-  "admin.experimental.emailSettingsLoginButtonColor.desc": {
-    "defaultMessage": "Specify the color of the email login button for white labeling purposes. Use a hex code with a #-sign before the code. This setting only applies to the mobile apps.",
-    "description": "Admin console help text for the email login button color field; setting is for white-labeling the mobile apps."
-  },
-  "admin.experimental.emailSettingsLoginButtonColor.title": {
-    "defaultMessage": "Email Login Button Color:",
-    "description": "Admin console field label on the Experimental Features page for the background color (hex code) of the email login button in mobile apps."
-  },
-  "admin.experimental.emailSettingsLoginButtonTextColor.desc": {
-    "defaultMessage": "Specify the color of the email login button text for white labeling purposes. Use a hex code with a #-sign before the code. This setting only applies to the mobile apps.",
-    "description": "Admin console help text for the email login button text color field; setting is for white-labeling the mobile apps."
-  },
-  "admin.experimental.emailSettingsLoginButtonTextColor.title": {
-    "defaultMessage": "Email Login Button Text Color:",
-    "description": "Admin console field label on the Experimental Features page for the text color (hex code) of the email login button in mobile apps."
-  },
-  "admin.experimental.enableChannelViewedMessages.desc": {
-    "defaultMessage": "This setting determines whether `channel_viewed` WebSocket events are sent, which synchronize unread notifications across clients and devices. Disabling the setting in larger deployments may improve server performance.",
-    "description": "Admin console help text for the channel-viewed WebSocket events toggle; `channel_viewed` is a literal event name in code formatting."
-  },
-  "admin.experimental.enableChannelViewedMessages.title": {
-    "defaultMessage": "Enable Channel Viewed WebSocket Messages:",
-    "description": "Admin console setting label (toggle) on the Experimental Features page for sending channel-viewed WebSocket events."
-  },
-  "admin.experimental.enableOnboardingFlow.desc": {
-    "defaultMessage": "When true, new users are shown steps to complete as part of an onboarding process",
-    "description": "Admin console help text for the onboarding flow toggle on the Experimental Features page."
-  },
-  "admin.experimental.enableOnboardingFlow.title": {
-    "defaultMessage": "Enable Onboarding:",
-    "description": "Admin console setting label (toggle) on the Experimental Features page enabling onboarding steps for new users."
-  },
-  "admin.experimental.enableThemeSelection.desc": {
-    "defaultMessage": "Enables the **Display > Theme** tab in Settings so users can select their theme.",
-    "description": "Admin console help text for the theme selection toggle; ** marks bold Markdown around the settings path."
-  },
-  "admin.experimental.enableThemeSelection.title": {
-    "defaultMessage": "Enable Theme Selection:",
-    "description": "Admin console setting label (toggle) on the Experimental Features page letting users choose their theme."
-  },
-  "admin.experimental.enableTutorial.desc": {
-    "defaultMessage": "When true, users are prompted with a tutorial when they open Mattermost for the first time after account creation. When false, the tutorial is disabled, and users are placed in Town Square when they open Mattermost for the first time after account creation.",
-    "description": "Admin console help text for the tutorial toggle on the Experimental Features page; 'Town Square' is the default channel's name."
-  },
-  "admin.experimental.enableTutorial.title": {
-    "defaultMessage": "Enable Tutorial:",
-    "description": "Admin console setting label (toggle) on the Experimental Features page enabling the first-run tutorial."
-  },
   "admin.experimental.enableUserDeactivation.desc": {
     "defaultMessage": "When true, users may deactivate their own account from **Settings > Advanced**. If a user deactivates their own account, they will get an email notification confirming they were deactivated. When false, users may not deactivate their own account.",
     "description": "Admin console help text for the self-deactivation toggle on the Experimental Features page; ** marks bold Markdown around the settings path."
@@ -5274,14 +5410,6 @@
   "admin.experimental.enableUserDeactivation.title": {
     "defaultMessage": "Enable Account Deactivation:",
     "description": "Setting label (toggle) on the System Console > Experimental > Features page; controls whether users can deactivate their own accounts. Ends with a colon."
-  },
-  "admin.experimental.enableUserTypingMessages.desc": {
-    "defaultMessage": "This setting determines whether \"user is typing...\" messages are displayed below the message box. Disabling the setting in larger deployments may improve server performance.",
-    "description": "Admin console help text under the Enable User Typing Messages toggle on the Experimental Features page; audience is system admins."
-  },
-  "admin.experimental.enableUserTypingMessages.title": {
-    "defaultMessage": "Enable User Typing Messages:",
-    "description": "Setting label (toggle) on the Experimental Features admin page; ends with a colon."
   },
   "admin.experimental.enableWatermark.desc": {
     "defaultMessage": "When true, authenticated mobile sessions will display a watermark overlay showing the username, domain, date (YYYY-MM-DD), and time (HH:mm) for data loss prevention (DLP) purposes.",
@@ -5338,30 +5466,6 @@
   "admin.experimental.experimentalPrimaryTeam.title": {
     "defaultMessage": "Primary Team:",
     "description": "Setting label for a text field on the Experimental Features admin page; ends with a colon."
-  },
-  "admin.experimental.ldapSettingsLoginButtonBorderColor.desc": {
-    "defaultMessage": "Specify the color of the AD/LDAP login button border for white labeling purposes. Use a hex code with a #-sign before the code. This setting only applies to the mobile apps.",
-    "description": "Admin console help text under a color picker on the Experimental Features page; controls the AD/LDAP login button border color for mobile apps."
-  },
-  "admin.experimental.ldapSettingsLoginButtonBorderColor.title": {
-    "defaultMessage": "AD/LDAP Login Button Border Color:",
-    "description": "Setting label for a color picker on the Experimental Features admin page; ends with a colon."
-  },
-  "admin.experimental.ldapSettingsLoginButtonColor.desc": {
-    "defaultMessage": "Specify the color of the AD/LDAP login button for white labeling purposes. Use a hex code with a #-sign before the code. This setting only applies to the mobile apps.",
-    "description": "Admin console help text under a color picker on the Experimental Features page; controls the AD/LDAP login button background color for mobile apps."
-  },
-  "admin.experimental.ldapSettingsLoginButtonColor.title": {
-    "defaultMessage": "AD/LDAP Login Button Color:",
-    "description": "Setting label for a color picker on the Experimental Features admin page; ends with a colon."
-  },
-  "admin.experimental.ldapSettingsLoginButtonTextColor.desc": {
-    "defaultMessage": "Specify the color of the AD/LDAP login button text for white labeling purposes. Use a hex code with a #-sign before the code. This setting only applies to the mobile apps.",
-    "description": "Admin console help text under a color picker on the Experimental Features page; controls the AD/LDAP login button text color for mobile apps."
-  },
-  "admin.experimental.ldapSettingsLoginButtonTextColor.title": {
-    "defaultMessage": "AD/LDAP Login Button Text Color:",
-    "description": "Setting label for a color picker on the Experimental Features admin page; ends with a colon."
   },
   "admin.experimental.linkMetadataTimeoutMilliseconds.desc": {
     "defaultMessage": "The number of milliseconds to wait for metadata from a third-party link. Used with Post Metadata.",
@@ -5423,30 +5527,6 @@
     "defaultMessage": "Permitted Roles",
     "description": "Admin console setting label on the Move Threads (Wrangler) page choosing which roles may move threads."
   },
-  "admin.experimental.samlSettingsLoginButtonBorderColor.desc": {
-    "defaultMessage": "Specify the color of the SAML login button border for white labeling purposes. Use a hex code with a #-sign before the code. This setting only applies to the mobile apps.",
-    "description": "Admin console help text under a color picker on the Experimental Features page; controls the SAML login button border color for mobile apps."
-  },
-  "admin.experimental.samlSettingsLoginButtonBorderColor.title": {
-    "defaultMessage": "SAML Login Button Border Color:",
-    "description": "Setting label for a color picker on the Experimental Features admin page; ends with a colon."
-  },
-  "admin.experimental.samlSettingsLoginButtonColor.desc": {
-    "defaultMessage": "Specify the color of the SAML login button for white labeling purposes. Use a hex code with a #-sign before the code. This setting only applies to the mobile apps.",
-    "description": "Admin console help text under a color picker on the Experimental Features page; controls the SAML login button background color for mobile apps."
-  },
-  "admin.experimental.samlSettingsLoginButtonColor.title": {
-    "defaultMessage": "SAML Login Button Color:",
-    "description": "Setting label for a color picker on the Experimental Features admin page; ends with a colon."
-  },
-  "admin.experimental.samlSettingsLoginButtonTextColor.desc": {
-    "defaultMessage": "Specify the color of the SAML login button text for white labeling purposes. Use a hex code with a #-sign before the code. This setting only applies to the mobile apps.",
-    "description": "Admin console help text under a color picker on the Experimental Features page; controls the SAML login button text color for mobile apps."
-  },
-  "admin.experimental.samlSettingsLoginButtonTextColor.title": {
-    "defaultMessage": "SAML Login Button Text Color:",
-    "description": "Setting label for a color picker on the Experimental Features admin page; ends with a colon."
-  },
   "admin.experimental.threadAutoFollow.desc": {
     "defaultMessage": "This setting must be enabled in order to enable Threaded Discussions. When enabled, threads a user starts, participates in, or is mentioned in are automatically followed. A new `Threads` table is added in the database that tracks threads and thread participants, and a `ThreadMembership` table tracks followed threads for each user and the read or unread state of each followed thread. When false, all backend operations to support Threaded Discussions are disabled.",
     "description": "Admin console help text under the Automatically Follow Threads toggle on the Experimental Features page; Threads and ThreadMembership in backticks are literal database table names and must not be translated."
@@ -5454,18 +5534,6 @@
   "admin.experimental.threadAutoFollow.title": {
     "defaultMessage": "Automatically Follow Threads",
     "description": "Setting label (toggle) on the Experimental Features admin page; following a thread means subscribing to its notifications."
-  },
-  "admin.experimental.timeBetweenUserTypingUpdatesMilliseconds.desc": {
-    "defaultMessage": "The number of milliseconds to wait between emitting user typing websocket events.",
-    "description": "Admin console help text under the User Typing Timeout numeric field on the Experimental Features page; websocket events power the user-is-typing indicator."
-  },
-  "admin.experimental.timeBetweenUserTypingUpdatesMilliseconds.example": {
-    "defaultMessage": "E.g.: \"5000\"",
-    "description": "Placeholder text inside the User Typing Timeout numeric field showing an example millisecond value."
-  },
-  "admin.experimental.timeBetweenUserTypingUpdatesMilliseconds.title": {
-    "defaultMessage": "User Typing Timeout:",
-    "description": "Setting label for a numeric field (milliseconds) on the Experimental Features admin page; ends with a colon."
   },
   "admin.experimental.useChannelInEmailNotifications.desc": {
     "defaultMessage": "When true, channel and team name appears in email notification subject lines. Useful for servers using only one team. When false, only team name appears in email notification subject line.",
@@ -5478,6 +5546,10 @@
   "admin.experimental.UsersStatusAndProfileFetchingPollIntervalMilliseconds.desc": {
     "defaultMessage": "The number of milliseconds to wait between fetching user statuses and profiles periodically.",
     "description": "Admin console help text for the status/profile polling interval setting on the Experimental Features page."
+  },
+  "admin.experimental.UsersStatusAndProfileFetchingPollIntervalMilliseconds.example": {
+    "defaultMessage": "E.g.: \"5000\"",
+    "description": ""
   },
   "admin.experimental.UsersStatusAndProfileFetchingPollIntervalMilliseconds.title": {
     "defaultMessage": "User's Status and Profile Fetching Poll Interval:",
@@ -5502,22 +5574,6 @@
   "admin.experimental.youtubeReferrerPolicy.title": {
     "defaultMessage": "YouTube Referrer Policy:",
     "description": "Setting label (toggle) on the Experimental Features admin page controlling the referrer policy of embedded YouTube previews; ends with a colon."
-  },
-  "admin.exportStorage.dedicatedExportStore": {
-    "defaultMessage": "Enable Dedicated Export Store:",
-    "description": "Setting label (toggle) on the System Console > Environment > Export Storage page; enables a separate storage location for compliance exports. Ends with a colon."
-  },
-  "admin.exportStorage.dedicatedExportStoreDescription": {
-    "defaultMessage": "When enabled, Mattermost will use a dedicated export storage bucket for all export operations. This is required for Mattermost Cloud deployments.",
-    "description": "Help text for the dedicated export storage setting on the System Console file storage page."
-  },
-  "admin.exportStorage.exportDirectory": {
-    "defaultMessage": "Export Directory",
-    "description": "Setting label for a text field on the Export Storage admin page; the local directory where export files are written."
-  },
-  "admin.exportStorage.exportDriverName": {
-    "defaultMessage": "Export Storage Driver:",
-    "description": "Setting label for a dropdown on the Export Storage admin page choosing the storage backend (Amazon S3, local file system, etc.); ends with a colon."
   },
   "admin.false": {
     "defaultMessage": "False",
@@ -5727,9 +5783,441 @@
     "defaultMessage": "User API Endpoint:",
     "description": "Setting label for a text field in the GitLab OAuth admin settings; the API endpoint used to fetch the user profile. Ends with a colon."
   },
-  "admin.global_attributes.placeholder": {
-    "defaultMessage": "Global attributes will be here.",
-    "description": "Placeholder body text on the not-yet-implemented Manage Attributes admin page."
+  "admin.global_attributes.attribute_details.applies_to.add_resource_header": {
+    "defaultMessage": "Add resource",
+    "description": ""
+  },
+  "admin.global_attributes.attribute_details.applies_to.add_resource_inline": {
+    "defaultMessage": "Add another resource",
+    "description": ""
+  },
+  "admin.global_attributes.attribute_details.applies_to.empty_state.heading": {
+    "defaultMessage": "No resources yet",
+    "description": ""
+  },
+  "admin.global_attributes.attribute_details.applies_to.empty_state.helper_text": {
+    "defaultMessage": "Add a resource to apply this attribute to users, channels, or posts.",
+    "description": ""
+  },
+  "admin.global_attributes.attribute_details.applies_to.item.body_placeholder": {
+    "defaultMessage": "No additional settings for this resource yet.",
+    "description": ""
+  },
+  "admin.global_attributes.attribute_details.applies_to.item.collapse": {
+    "defaultMessage": "Collapse {label}",
+    "description": ""
+  },
+  "admin.global_attributes.attribute_details.applies_to.item.expand": {
+    "defaultMessage": "Expand {label}",
+    "description": ""
+  },
+  "admin.global_attributes.attribute_details.applies_to.item.remove": {
+    "defaultMessage": "Remove resource",
+    "description": ""
+  },
+  "admin.global_attributes.attribute_details.applies_to.resource_type.channel": {
+    "defaultMessage": "Channels",
+    "description": ""
+  },
+  "admin.global_attributes.attribute_details.applies_to.resource_type.post": {
+    "defaultMessage": "Posts",
+    "description": ""
+  },
+  "admin.global_attributes.attribute_details.applies_to.resource_type.user": {
+    "defaultMessage": "Users",
+    "description": ""
+  },
+  "admin.global_attributes.attribute_details.applies_to.subtitle": {
+    "defaultMessage": "Resources this attribute applies to, and who can set the value on each.",
+    "description": ""
+  },
+  "admin.global_attributes.attribute_details.applies_to.title": {
+    "defaultMessage": "Applies to",
+    "description": ""
+  },
+  "admin.global_attributes.attribute_details.back_link": {
+    "defaultMessage": "Back to Manage Attributes",
+    "description": ""
+  },
+  "admin.global_attributes.attribute_details.cancel": {
+    "defaultMessage": "Cancel",
+    "description": ""
+  },
+  "admin.global_attributes.attribute_details.definition.subtitle": {
+    "defaultMessage": "Display name, type, and options.",
+    "description": ""
+  },
+  "admin.global_attributes.attribute_details.definition.title": {
+    "defaultMessage": "Definition",
+    "description": ""
+  },
+  "admin.global_attributes.attribute_details.display_name.label": {
+    "defaultMessage": "Display name",
+    "description": ""
+  },
+  "admin.global_attributes.attribute_details.display_name.placeholder": {
+    "defaultMessage": "Add a display name",
+    "description": ""
+  },
+  "admin.global_attributes.attribute_details.external_source.chip_label": {
+    "defaultMessage": "{source}: {value}",
+    "description": ""
+  },
+  "admin.global_attributes.attribute_details.external_source.edit_link": {
+    "defaultMessage": "Edit {source} link",
+    "description": ""
+  },
+  "admin.global_attributes.attribute_details.external_source.ldap.help_text": {
+    "defaultMessage": "The attribute in your AD/LDAP directory to sync this value from.",
+    "description": ""
+  },
+  "admin.global_attributes.attribute_details.external_source.ldap.modal_title": {
+    "defaultMessage": "Link to AD/LDAP",
+    "description": ""
+  },
+  "admin.global_attributes.attribute_details.external_source.ldap.subtitle": {
+    "defaultMessage": "Sync with your directory of record",
+    "description": ""
+  },
+  "admin.global_attributes.attribute_details.external_source.ldap.title": {
+    "defaultMessage": "AD/LDAP",
+    "description": ""
+  },
+  "admin.global_attributes.attribute_details.external_source.links_removed": {
+    "defaultMessage": "{count, plural, one {External source link removed} other {External source links removed}}",
+    "description": ""
+  },
+  "admin.global_attributes.attribute_details.external_source.remove_link": {
+    "defaultMessage": "Remove {source} link",
+    "description": ""
+  },
+  "admin.global_attributes.attribute_details.external_source.saml.help_text": {
+    "defaultMessage": "The attribute in your SAML response to sync this value from.",
+    "description": ""
+  },
+  "admin.global_attributes.attribute_details.external_source.saml.modal_title": {
+    "defaultMessage": "Link to SAML",
+    "description": ""
+  },
+  "admin.global_attributes.attribute_details.external_source.saml.subtitle": {
+    "defaultMessage": "Map values from SAML at sign-in",
+    "description": ""
+  },
+  "admin.global_attributes.attribute_details.external_source.saml.title": {
+    "defaultMessage": "SAML",
+    "description": ""
+  },
+  "admin.global_attributes.attribute_details.external_source.synced_with": {
+    "defaultMessage": "Synced with",
+    "description": ""
+  },
+  "admin.global_attributes.attribute_details.external_source.trigger_label": {
+    "defaultMessage": "Link to external source",
+    "description": ""
+  },
+  "admin.global_attributes.attribute_details.name_error.invalid_charset": {
+    "defaultMessage": "Name must start with a letter or underscore, and contain only letters, numbers, and underscores.",
+    "description": ""
+  },
+  "admin.global_attributes.attribute_details.name_error.reserved_word": {
+    "defaultMessage": "\"{word}\" is a reserved word and cannot be used as a name.",
+    "description": ""
+  },
+  "admin.global_attributes.attribute_details.name_error.too_long": {
+    "defaultMessage": "Name must be {max} characters or fewer.",
+    "description": ""
+  },
+  "admin.global_attributes.attribute_details.options.add_placeholder": {
+    "defaultMessage": "Add values… (required)",
+    "description": ""
+  },
+  "admin.global_attributes.attribute_details.options.edit_option": {
+    "defaultMessage": "Edit option",
+    "description": ""
+  },
+  "admin.global_attributes.attribute_details.options.help": {
+    "defaultMessage": "Text attributes have no preset values — a value is typed in per resource.",
+    "description": ""
+  },
+  "admin.global_attributes.attribute_details.options.invalid": {
+    "defaultMessage": "There's a problem with one or more options — check for a duplicate or overly long name, or a missing/duplicate rank.",
+    "description": ""
+  },
+  "admin.global_attributes.attribute_details.options.label": {
+    "defaultMessage": "Options",
+    "description": ""
+  },
+  "admin.global_attributes.attribute_details.options.label_placeholder": {
+    "defaultMessage": "Option label",
+    "description": ""
+  },
+  "admin.global_attributes.attribute_details.options.position_menu_label": {
+    "defaultMessage": "Move to position",
+    "description": ""
+  },
+  "admin.global_attributes.attribute_details.options.rank_highest": {
+    "defaultMessage": "{rank} (Highest)",
+    "description": ""
+  },
+  "admin.global_attributes.attribute_details.options.rank_lowest": {
+    "defaultMessage": "{rank} (Lowest)",
+    "description": ""
+  },
+  "admin.global_attributes.attribute_details.options.rank_menu_label": {
+    "defaultMessage": "Rank",
+    "description": ""
+  },
+  "admin.global_attributes.attribute_details.options.remove_option": {
+    "defaultMessage": "Remove option",
+    "description": ""
+  },
+  "admin.global_attributes.attribute_details.options.required": {
+    "defaultMessage": "At least one option is required.",
+    "description": ""
+  },
+  "admin.global_attributes.attribute_details.options.values_unique": {
+    "defaultMessage": "Values must be unique.",
+    "description": ""
+  },
+  "admin.global_attributes.attribute_details.save": {
+    "defaultMessage": "Save",
+    "description": ""
+  },
+  "admin.global_attributes.attribute_details.save_error.applies_to_failed": {
+    "defaultMessage": "Couldn't apply this attribute to {resources}. Nothing was saved — please try again.",
+    "description": ""
+  },
+  "admin.global_attributes.attribute_details.save_error.applies_to_limit_reached": {
+    "defaultMessage": "The maximum number of User Attributes has been reached. Delete an existing one before applying this attribute to Users.",
+    "description": ""
+  },
+  "admin.global_attributes.attribute_details.save_error.applies_to_name_conflict": {
+    "defaultMessage": "This name is already used by a User Attribute. Please choose a different name.",
+    "description": ""
+  },
+  "admin.global_attributes.attribute_details.save_error.applies_to_rollback_failed": {
+    "defaultMessage": "\"{name}\" may have been partially created for {resources}. A retry under the same name will likely fail until those are cleaned up.",
+    "description": ""
+  },
+  "admin.global_attributes.attribute_details.save_error.applies_to_template_rollback_failed": {
+    "defaultMessage": "\"{name}\" was created but could not be cleaned up after a failed apply. A retry under the same name will likely fail until it is deleted.",
+    "description": ""
+  },
+  "admin.global_attributes.attribute_details.save_error.generic": {
+    "defaultMessage": "Something went wrong while saving this attribute. Please try again.",
+    "description": ""
+  },
+  "admin.global_attributes.attribute_details.save_error.invalid_charset": {
+    "defaultMessage": "Name must start with a letter or underscore, and contain only letters, numbers, and underscores.",
+    "description": ""
+  },
+  "admin.global_attributes.attribute_details.save_error.invalid_options": {
+    "defaultMessage": "There's a problem with one or more options — check for a duplicate or overly long name, or a missing/duplicate rank, then try again.",
+    "description": ""
+  },
+  "admin.global_attributes.attribute_details.save_error.limit_reached": {
+    "defaultMessage": "You have reached the maximum number of attributes for this server. Delete an existing attribute before creating a new one.",
+    "description": ""
+  },
+  "admin.global_attributes.attribute_details.save_error.name_conflict": {
+    "defaultMessage": "An attribute with this name already exists. Please choose a different name.",
+    "description": ""
+  },
+  "admin.global_attributes.attribute_details.save_error.reserved_word": {
+    "defaultMessage": "This name is a reserved word and cannot be used. Please choose a different name.",
+    "description": ""
+  },
+  "admin.global_attributes.attribute_details.subtitle": {
+    "defaultMessage": "Add a display name, choose a type, and pick where it applies.",
+    "description": ""
+  },
+  "admin.global_attributes.attribute_details.title": {
+    "defaultMessage": "New attribute",
+    "description": ""
+  },
+  "admin.global_attributes.attribute_details.type.field_aria_label": {
+    "defaultMessage": "Type: {value}",
+    "description": ""
+  },
+  "admin.global_attributes.attribute_details.type.field_locked_aria_label": {
+    "defaultMessage": "Type: Text. Locked while linked to an external source.",
+    "description": ""
+  },
+  "admin.global_attributes.attribute_details.type.label": {
+    "defaultMessage": "Type",
+    "description": ""
+  },
+  "admin.global_attributes.attribute_details.type.menu_label": {
+    "defaultMessage": "Select type",
+    "description": ""
+  },
+  "admin.global_attributes.attribute_details.unique_name.could_not_generate": {
+    "defaultMessage": "Couldn't generate a unique name from this display name. Click Edit to set one manually.",
+    "description": ""
+  },
+  "admin.global_attributes.attribute_details.unique_name.done": {
+    "defaultMessage": "Done",
+    "description": ""
+  },
+  "admin.global_attributes.attribute_details.unique_name.done_aria_label": {
+    "defaultMessage": "Done editing unique name",
+    "description": ""
+  },
+  "admin.global_attributes.attribute_details.unique_name.edit": {
+    "defaultMessage": "Edit",
+    "description": ""
+  },
+  "admin.global_attributes.attribute_details.unique_name.edit_aria_label": {
+    "defaultMessage": "Edit unique name",
+    "description": ""
+  },
+  "admin.global_attributes.attribute_details.unique_name.helper_text": {
+    "defaultMessage": "Name is the internal identifier for policies and integrations. Display name is what admins and users see.",
+    "description": ""
+  },
+  "admin.global_attributes.attribute_details.unique_name.prefix": {
+    "defaultMessage": "Unique name:",
+    "description": ""
+  },
+  "admin.global_attributes.confirm.delete.body": {
+    "defaultMessage": "Deleting this attribute will permanently remove its definition. This action cannot be undone.",
+    "description": ""
+  },
+  "admin.global_attributes.confirm.delete.error.generic": {
+    "defaultMessage": "An error occurred while deleting this attribute. Please try again.",
+    "description": ""
+  },
+  "admin.global_attributes.confirm.delete.error.has_dependents": {
+    "defaultMessage": "This attribute can't be deleted because other attributes are still linked to it. Remove those links first, then try again.",
+    "description": ""
+  },
+  "admin.global_attributes.confirm.delete.orphaned_body": {
+    "defaultMessage": "This attribute was created by the plugin \"{pluginId}\", which is no longer installed.",
+    "description": ""
+  },
+  "admin.global_attributes.confirm.delete.title": {
+    "defaultMessage": "Delete {name} attribute",
+    "description": ""
+  },
+  "admin.global_attributes.new_attribute": {
+    "defaultMessage": "New attribute",
+    "description": ""
+  },
+  "admin.global_attributes.subtitle": {
+    "defaultMessage": "Define an attribute once, then choose which resources can use it.",
+    "description": ""
+  },
+  "admin.global_attributes.table.actions.classification_link": {
+    "defaultMessage": "Open Classification Markings",
+    "description": ""
+  },
+  "admin.global_attributes.table.actions.coming_soon": {
+    "defaultMessage": "Coming soon",
+    "description": ""
+  },
+  "admin.global_attributes.table.actions.delete": {
+    "defaultMessage": "Delete attribute",
+    "description": ""
+  },
+  "admin.global_attributes.table.actions.duplicate": {
+    "defaultMessage": "Duplicate attribute",
+    "description": ""
+  },
+  "admin.global_attributes.table.actions.edit": {
+    "defaultMessage": "Edit attribute",
+    "description": ""
+  },
+  "admin.global_attributes.table.actions.menu_label": {
+    "defaultMessage": "Select an action",
+    "description": ""
+  },
+  "admin.global_attributes.table.actions.plugin_managed": {
+    "defaultMessage": "Plugin-managed",
+    "description": ""
+  },
+  "admin.global_attributes.table.actions.tooltip": {
+    "defaultMessage": "More actions",
+    "description": ""
+  },
+  "admin.global_attributes.table.applies_to": {
+    "defaultMessage": "Applies to",
+    "description": ""
+  },
+  "admin.global_attributes.table.attribute": {
+    "defaultMessage": "Attribute",
+    "description": ""
+  },
+  "admin.global_attributes.table.attribute.classification_subtitle": {
+    "defaultMessage": "Read-only",
+    "description": ""
+  },
+  "admin.global_attributes.table.empty": {
+    "defaultMessage": "No attributes yet. Click \"New attribute\" to create one.",
+    "description": ""
+  },
+  "admin.global_attributes.table.load_error": {
+    "defaultMessage": "There was an error while loading attributes.",
+    "description": ""
+  },
+  "admin.global_attributes.table.options": {
+    "defaultMessage": "Options",
+    "description": ""
+  },
+  "admin.global_attributes.table.options.count": {
+    "defaultMessage": "{count, plural, one {# option} other {# options}}",
+    "description": ""
+  },
+  "admin.global_attributes.table.options.free_text": {
+    "defaultMessage": "Free Text",
+    "description": ""
+  },
+  "admin.global_attributes.table.source": {
+    "defaultMessage": "Source",
+    "description": ""
+  },
+  "admin.global_attributes.table.source.classification_markings": {
+    "defaultMessage": "Classification Markings",
+    "description": ""
+  },
+  "admin.global_attributes.table.source.ldap": {
+    "defaultMessage": "AD/LDAP",
+    "description": ""
+  },
+  "admin.global_attributes.table.source.ldap_and_saml": {
+    "defaultMessage": "AD/LDAP, SAML",
+    "description": ""
+  },
+  "admin.global_attributes.table.source.managed": {
+    "defaultMessage": "Managed here",
+    "description": ""
+  },
+  "admin.global_attributes.table.source.saml": {
+    "defaultMessage": "SAML",
+    "description": ""
+  },
+  "admin.global_attributes.table.type": {
+    "defaultMessage": "Type",
+    "description": ""
+  },
+  "admin.global_attributes.table.type.fallback": {
+    "defaultMessage": "Other",
+    "description": ""
+  },
+  "admin.global_attributes.table.type.multiselect": {
+    "defaultMessage": "Multiselect",
+    "description": ""
+  },
+  "admin.global_attributes.table.type.rank": {
+    "defaultMessage": "Ranked",
+    "description": ""
+  },
+  "admin.global_attributes.table.type.select": {
+    "defaultMessage": "Select",
+    "description": ""
+  },
+  "admin.global_attributes.table.type.text": {
+    "defaultMessage": "Text",
+    "description": ""
   },
   "admin.global_attributes.title": {
     "defaultMessage": "Manage Attributes",
@@ -6127,10 +6615,6 @@
     "defaultMessage": "E.g.: \"mattermost-media\"",
     "description": "Placeholder text inside the Amazon S3 Bucket field showing an example bucket name."
   },
-  "admin.image.amazonS3BucketExampleExport": {
-    "defaultMessage": "E.g.: \"mattermost-export\"",
-    "description": "Placeholder example bucket name for the Amazon S3 bucket input in the export storage settings."
-  },
   "admin.image.amazonS3BucketTitle": {
     "defaultMessage": "Amazon S3 Bucket:",
     "description": "Setting label for a text field on the File Storage admin page; the S3 bucket name. Ends with a colon."
@@ -6194,14 +6678,6 @@
   "admin.image.amazonS3SecretTitle": {
     "defaultMessage": "Amazon S3 Secret Access Key:",
     "description": "Setting label for a text field on the File Storage admin page; the AWS secret access key credential. Ends with a colon."
-  },
-  "admin.image.amazonS3SignV2": {
-    "defaultMessage": "Enable Sign V2",
-    "description": "Setting label (toggle) on the File Storage admin page; Sign V2 refers to the AWS Signature Version 2 signing algorithm and should stay as a proper noun."
-  },
-  "admin.image.amazonS3SignV2Description": {
-    "defaultMessage": "When true, use Sign V2 for Amazon S3 connections",
-    "description": "Help text for the setting enabling AWS Signature Version 2 for S3 connections; 'Sign V2' is a technical protocol name."
   },
   "admin.image.amazonS3SSEDescription": {
     "defaultMessage": "When true, encrypt files in Amazon S3 using server-side encryption with Amazon S3-managed keys. See <link>documentation</link> to learn more.",
@@ -6303,14 +6779,6 @@
     "defaultMessage": "E.g.: \"mattermost-media\"",
     "description": "Placeholder text inside the Azure Container field showing an example container name."
   },
-  "admin.image.azureContainerExportDescription": {
-    "defaultMessage": "Name of the container in your Azure Storage account.",
-    "description": "Admin console help text under the Azure Container field on the Export Storage admin page; container is an Azure Blob Storage concept."
-  },
-  "admin.image.azureContainerExportExample": {
-    "defaultMessage": "E.g.: \"mattermost-export\"",
-    "description": "Placeholder text inside the Azure Container field on the Export Storage page showing an example container name."
-  },
   "admin.image.azureContainerTitle": {
     "defaultMessage": "Azure Container:",
     "description": "Setting label for a text field on the File Storage admin page; the Azure Blob Storage container name. Ends with a colon."
@@ -6379,10 +6847,6 @@
     "defaultMessage": "When true, enables an image proxy for loading all Markdown images.",
     "description": "Help text for the Enable Image Proxy setting on the System Console image proxy page."
   },
-  "admin.image.exportDirectoryDescription": {
-    "defaultMessage": "Directory to which files are written. If blank, defaults to ./data/.",
-    "description": "Admin console help text under the Export Directory field on the Export Storage page; ./data/ is a literal default path."
-  },
   "admin.image.extractContentDescription": {
     "defaultMessage": "When enabled, supported document types are searchable by their content. Search results for existing documents may be incomplete <link>until a data migration is executed</link>.",
     "description": "Admin console help text under the document-content search toggle on the File Storage page; <link> wraps the migration-related phrase and points to documentation."
@@ -6431,14 +6895,6 @@
     "defaultMessage": "Maximum File Size:",
     "description": "Setting label for a numeric field on the File Storage admin page; the maximum upload size for message attachments. Ends with a colon."
   },
-  "admin.image.proxyOptions": {
-    "defaultMessage": "Remote Image Proxy Options:",
-    "description": "Setting label for a text field in the image proxy admin settings; extra options passed to the remote image proxy. Ends with a colon."
-  },
-  "admin.image.proxyOptionsDescription": {
-    "defaultMessage": "Additional options such as the URL signing key. Refer to your image proxy documentation to learn more about what options are supported.",
-    "description": "Help text for the Image Proxy Options setting on the System Console image proxy page."
-  },
   "admin.image.proxyType": {
     "defaultMessage": "Image Proxy Type:",
     "description": "Setting label for a dropdown in the image proxy admin settings choosing the proxy implementation; ends with a colon."
@@ -6446,14 +6902,6 @@
   "admin.image.proxyTypeDescription": {
     "defaultMessage": "Configure an image proxy to load all Markdown images through a proxy. The image proxy prevents users from making insecure image requests, provides caching for increased performance, and automates image adjustments such as resizing. See <link>documentation</link> to learn more.",
     "description": "Help text for the Image Proxy Type setting; <link> wraps the word 'documentation'."
-  },
-  "admin.image.proxyURL": {
-    "defaultMessage": "Remote Image Proxy URL:",
-    "description": "Setting label for a text field in the image proxy admin settings; the URL of the remote image proxy server. Ends with a colon."
-  },
-  "admin.image.proxyURLDescription": {
-    "defaultMessage": "URL of your remote image proxy server.",
-    "description": "Help text for the Remote Image Proxy URL setting on the System Console image proxy page."
   },
   "admin.image.publicLinkDescription": {
     "defaultMessage": "32-character salt added to signing of public links. Randomly generated on install. Select \"Regenerate\" to create new salt.",
@@ -6886,6 +7334,10 @@
   "admin.jobTable.syncResults.userListTitle": {
     "defaultMessage": "Channel Membership Changes",
     "description": "Title of the modal listing users added/removed from a channel by a membership sync job."
+  },
+  "admin.jobTable.viewDetails": {
+    "defaultMessage": "View details",
+    "description": ""
   },
   "admin.ldap_feature_discovery_cloud.call_to_action.primary_sales": {
     "defaultMessage": "Contact sales",
@@ -7354,6 +7806,14 @@
   "admin.ldap.skipCertificateVerificationDescHover": {
     "defaultMessage": "Skipping certificate verification is not recommended for production environments where TLS is required.",
     "description": "Hover tooltip warning for the Skip Certificate Verification setting in the AD/LDAP wizard."
+  },
+  "admin.ldap.skipCertificateVerificationProductionWarning.text": {
+    "defaultMessage": "Mattermost will not validate the AD/LDAP server's TLS certificate, exposing the connection to man-in-the-middle attacks. Enable only while troubleshooting in non-production environments.",
+    "description": ""
+  },
+  "admin.ldap.skipCertificateVerificationProductionWarning.title": {
+    "defaultMessage": "Skipping certificate verification is not recommended for production environments",
+    "description": ""
   },
   "admin.ldap.sync_button": {
     "defaultMessage": "AD/LDAP Synchronize Now",
@@ -8223,9 +8683,21 @@
     "defaultMessage": "Cancel",
     "description": "Cancel button in modal footers; used in the manage roles modal and the full log event modal to close without action."
   },
+  "admin.manage_roles.delegatedAdminRolesDescription": {
+    "defaultMessage": "Grant targeted System Console access without full System Admin privileges using <link>granular administration roles</link>.",
+    "description": ""
+  },
+  "admin.manage_roles.delegatedAdminRolesTitle": {
+    "defaultMessage": "Delegated Administration Roles",
+    "description": ""
+  },
   "admin.manage_roles.manageRolesTitle": {
     "defaultMessage": "Manage Roles",
     "description": "Title of the Manage Roles modal, opened by admins from the System Console user list to change a user's system roles."
+  },
+  "admin.manage_roles.personalAccessTokensTitle": {
+    "defaultMessage": "Personal Access Tokens",
+    "description": ""
   },
   "admin.manage_roles.postAllPublicRole": {
     "defaultMessage": "Access to post to all Mattermost public channels.",
@@ -9551,14 +10023,6 @@
     "defaultMessage": "Edit Own Posts",
     "description": "Row label next to the checkbox for the permission letting users edit their own messages, in the System Console permission scheme editor."
   },
-  "admin.permissions.permission.import_team.description": {
-    "defaultMessage": "Import team",
-    "description": "Description text for the 'Import team' permission row in the System Console permission scheme editor; refers to importing team data."
-  },
-  "admin.permissions.permission.import_team.name": {
-    "defaultMessage": "Import team",
-    "description": "Row label for the permission to import team data, in the System Console permission scheme editor; 'Import' is a verb."
-  },
   "admin.permissions.permission.invite_guest.description": {
     "defaultMessage": "Invite guests to channels and send guest email invites.",
     "description": "Description text for the 'Invite guests' permission row in the System Console permission scheme editor; guests are limited external accounts."
@@ -10679,10 +11143,6 @@
     "defaultMessage": "Go back to the Plugins",
     "description": "Link on the plugin-not-found error page in the System Console; navigates back to the Plugin Management page."
   },
-  "admin.plugin.choose": {
-    "defaultMessage": "Choose File",
-    "description": "Button label in System Console > Plugin Management that opens the file picker to select a plugin bundle to upload."
-  },
   "admin.plugin.cluster_instance": {
     "defaultMessage": "Cluster Instance",
     "description": "Column header in the per-plugin status table in System Console > Plugin Management, listing each server node in a high-availability cluster."
@@ -10835,9 +11295,25 @@
     "defaultMessage": "Unknown",
     "description": "Plugin status label in System Console Plugin Management when the plugin's state cannot be determined; compact space."
   },
-  "admin.plugin.upload": {
-    "defaultMessage": "Upload",
-    "description": "Button label in System Console > Plugin Management that uploads the selected plugin file; 'Upload' is a verb."
+  "admin.plugin.upload.disabled_permission": {
+    "defaultMessage": "You need permission to manage plugins before uploading a plugin.",
+    "description": ""
+  },
+  "admin.plugin.upload.disabled_plugins": {
+    "defaultMessage": "Enable plugins before uploading a plugin.",
+    "description": ""
+  },
+  "admin.plugin.upload.disabled_signature_required": {
+    "defaultMessage": "Plugin signatures are required. Install plugins through Marketplace instead.",
+    "description": ""
+  },
+  "admin.plugin.upload.disabled_uploads": {
+    "defaultMessage": "Plugin uploads are disabled. Enable plugin uploads in config.json before uploading a plugin.",
+    "description": ""
+  },
+  "admin.plugin.upload.dropzone_title": {
+    "defaultMessage": "Click or drop plugin bundle to upload",
+    "description": ""
   },
   "admin.plugin.upload.overwrite_modal.desc": {
     "defaultMessage": "A plugin with this ID already exists. Would you like to overwrite it?",
@@ -10850,6 +11326,34 @@
   "admin.plugin.upload.overwrite_modal.title": {
     "defaultMessage": "Overwrite existing plugin?",
     "description": "Title of the confirmation modal shown when uploading a plugin whose ID already exists."
+  },
+  "admin.plugin.upload.progress": {
+    "defaultMessage": "Plugin upload progress",
+    "description": ""
+  },
+  "admin.plugin.upload.selected_file": {
+    "defaultMessage": "Selected: {fileName}",
+    "description": ""
+  },
+  "admin.plugin.upload.success": {
+    "defaultMessage": "Successfully uploaded plugin: {pluginName}",
+    "description": ""
+  },
+  "admin.plugin.upload.success_downgraded": {
+    "defaultMessage": "Successfully downgraded plugin: {pluginName} ({previousVersion} → {version})",
+    "description": ""
+  },
+  "admin.plugin.upload.success_same": {
+    "defaultMessage": "Successfully replaced plugin: {pluginName} (same version {version})",
+    "description": ""
+  },
+  "admin.plugin.upload.success_updated": {
+    "defaultMessage": "Successfully updated plugin: {pluginName}",
+    "description": ""
+  },
+  "admin.plugin.upload.success_upgraded": {
+    "defaultMessage": "Successfully upgraded plugin: {pluginName} ({previousVersion} → {version})",
+    "description": ""
   },
   "admin.plugin.uploadAndPluginDisabledDesc": {
     "defaultMessage": "To enable plugins, set <strong>Enable Plugins</strong> to true. See <link>documentation</link> to learn more.",
@@ -10866,6 +11370,10 @@
   "admin.plugin.uploading": {
     "defaultMessage": "Uploading...",
     "description": "Button label shown while a plugin file upload is in progress; ellipsis indicates ongoing action."
+  },
+  "admin.plugin.uploading_file": {
+    "defaultMessage": "Uploading {fileName}",
+    "description": ""
   },
   "admin.plugin.uploadTitle": {
     "defaultMessage": "Upload Plugin: ",
@@ -11007,6 +11515,14 @@
     "defaultMessage": "Maximum time to live for burn-on-read messages",
     "description": "Setting label for a dropdown on the Posts admin page; time to live is how long an unread burn-on-read message may exist before forced deletion."
   },
+  "admin.posts.enableUserTypingMessages.desc": {
+    "defaultMessage": "This setting determines whether \"user is typing...\" messages are displayed below the message box. Disabling the setting in larger deployments may improve server performance.",
+    "description": ""
+  },
+  "admin.posts.enableUserTypingMessages.title": {
+    "defaultMessage": "Enable User Typing Messages:",
+    "description": ""
+  },
   "admin.posts.persistentNotifications.desc": {
     "defaultMessage": "When enabled, users can trigger repeating notifications for the recipients of urgent messages. Learn more about message priority and persistent notifications in our <link>documentation</link>.",
     "description": "Admin console help text under the Persistent Notifications toggle on the Posts page; <link> wraps the word documentation."
@@ -11114,6 +11630,18 @@
   "admin.posts.sections.threads.title": {
     "defaultMessage": "Threads",
     "description": "Section heading on the System Console Posts settings page grouping threaded-discussion settings; 'Threads' refers to message threads (noun)."
+  },
+  "admin.posts.timeBetweenUserTypingUpdatesMilliseconds.desc": {
+    "defaultMessage": "The number of milliseconds to wait between emitting user typing websocket events.",
+    "description": ""
+  },
+  "admin.posts.timeBetweenUserTypingUpdatesMilliseconds.example": {
+    "defaultMessage": "E.g.: \"5000\"",
+    "description": ""
+  },
+  "admin.posts.timeBetweenUserTypingUpdatesMilliseconds.title": {
+    "defaultMessage": "User Typing Timeout (milliseconds):",
+    "description": ""
   },
   "admin.privacy.showEmailDescription": {
     "defaultMessage": "When false, hides the email address of members from everyone except System Administrators and the System Roles with read/write access to Compliance, Billing, or User Management.",
@@ -11759,6 +12287,14 @@
     "defaultMessage": "When false, Mattermost will not decrypt SAML Assertions encrypted with your Service Provider Public Certificate. Disabling encryption is not recommended for production environments.",
     "description": "Admin console help text for the SAML 'Enable Encryption' toggle, explaining behavior when disabled."
   },
+  "admin.saml.encryptProductionWarning.text": {
+    "defaultMessage": "Without encryption, SAML assertions are sent in plain text and may expose user attributes. Disable only while troubleshooting your SAML setup in non-production environments.",
+    "description": ""
+  },
+  "admin.saml.encryptProductionWarning.title": {
+    "defaultMessage": "Disabling encryption is not recommended for production environments",
+    "description": ""
+  },
   "admin.saml.encryptTitle": {
     "defaultMessage": "Enable Encryption:",
     "description": "Admin console label for a true/false setting enabling decryption of encrypted SAML assertions; ends with a colon before the radio buttons."
@@ -12046,6 +12582,14 @@
   "admin.saml.verifyDescription": {
     "defaultMessage": "When false, Mattermost will not verify that the signature sent from a SAML Response matches the Service Provider Login URL. Disabling verification is not recommended for production environments.",
     "description": "Admin console help text for the SAML 'Verify Signature' toggle, explaining behavior when disabled."
+  },
+  "admin.saml.verifyProductionWarning.text": {
+    "defaultMessage": "Without verification, forged SAML responses can authenticate as any user. Disable only while troubleshooting your SAML setup in non-production environments.",
+    "description": ""
+  },
+  "admin.saml.verifyProductionWarning.title": {
+    "defaultMessage": "Disabling verification is not recommended for production environments",
+    "description": ""
   },
   "admin.saml.verifyTitle": {
     "defaultMessage": "Verify Signature:",
@@ -12427,6 +12971,14 @@
     "defaultMessage": "X-My-Header",
     "description": "Placeholder text showing an example HTTP header name for the CORS exposed-headers input; a literal example, should not be translated."
   },
+  "admin.service.corsProductionWarning.text": {
+    "defaultMessage": "Setting allowed origins to a wildcard lets any website make cross-origin requests to your server. Specify explicit trusted origins instead.",
+    "description": ""
+  },
+  "admin.service.corsProductionWarning.title": {
+    "defaultMessage": "Allowing all origins is not recommended for production environments",
+    "description": ""
+  },
   "admin.service.corsTitle": {
     "defaultMessage": "Enable cross-origin requests from:",
     "description": "Admin console label for the text setting listing domains allowed to make cross-origin (CORS) requests; ends with a colon; the setting value completes the sentence."
@@ -12434,6 +12986,14 @@
   "admin.service.developerDesc": {
     "defaultMessage": "When true, JavaScript errors are shown in a purple bar at the top of the user interface. Not recommended for use in production. Changing this requires a server restart before taking effect.",
     "description": "Admin console help text for the 'Enable Developer Mode' toggle."
+  },
+  "admin.service.developerProductionWarning.text": {
+    "defaultMessage": "Developer mode surfaces JavaScript errors in the UI and relaxes web app restrictions. Enable only in development environments.",
+    "description": ""
+  },
+  "admin.service.developerProductionWarning.title": {
+    "defaultMessage": "Developer mode is not recommended for production environments",
+    "description": ""
   },
   "admin.service.developerTitle": {
     "defaultMessage": "Enable Developer Mode: ",
@@ -12454,6 +13014,14 @@
   "admin.service.enableBotTitle": {
     "defaultMessage": "Enable Bot Account Creation: ",
     "description": "Admin console label for a true/false setting allowing creation of bot accounts; ends with a colon and trailing space before the radio buttons."
+  },
+  "admin.service.enableChannelViewedMessages": {
+    "defaultMessage": "Enable Channel Viewed WebSocket Messages:",
+    "description": ""
+  },
+  "admin.service.enableChannelViewedMessagesDescription": {
+    "defaultMessage": "This setting determines whether `channel_viewed` WebSocket events are sent, which synchronize unread notifications across clients and devices. Disabling the setting in larger deployments may improve server performance.",
+    "description": ""
   },
   "admin.service.enforceMfaDesc": {
     "defaultMessage": "When true, <link>multi-factor authentication</link> is required for login. New users will be required to configure MFA on signup. Logged in users without MFA configured are redirected to the MFA setup page until configuration is complete.\n \nIf your system has users with login methods other than AD/LDAP and email, MFA must be enforced with the authentication provider outside of Mattermost.",
@@ -12506,6 +13074,14 @@
   "admin.service.insecureTlsDesc": {
     "defaultMessage": "When true, any outgoing HTTPS requests will accept unverified, self-signed certificates. For example, outgoing webhooks to a server with a self-signed TLS certificate, using any domain, will be allowed. Note that this makes these connections susceptible to man-in-the-middle attacks.",
     "description": "Admin console help text for the 'Enable Insecure Outgoing Connections' toggle; warns about man-in-the-middle attack risk."
+  },
+  "admin.service.insecureTlsProductionWarning.text": {
+    "defaultMessage": "Mattermost will not verify TLS certificates for outbound connections, exposing them to man-in-the-middle attacks. Enable only for testing.",
+    "description": ""
+  },
+  "admin.service.insecureTlsProductionWarning.title": {
+    "defaultMessage": "Insecure outgoing connections are not recommended for production environments",
+    "description": ""
   },
   "admin.service.insecureTlsTitle": {
     "defaultMessage": "Enable Insecure Outgoing Connections: ",
@@ -12751,13 +13327,17 @@
     "defaultMessage": "When true, the /test slash command is enabled to load test accounts, data, and text formatting. Use this setting only in isolated non-production environments and never in production. Changing this requires a server restart before taking effect.",
     "description": "Admin console help text for the 'Enable Testing Commands' toggle; '/test' is a literal slash command name."
   },
+  "admin.service.testingProductionWarning.text": {
+    "defaultMessage": "The /test command exposes load-testing and data-generation tools that can modify your data. Enable only in non-production environments.",
+    "description": ""
+  },
+  "admin.service.testingProductionWarning.title": {
+    "defaultMessage": "Testing commands are not recommended for production environments",
+    "description": ""
+  },
   "admin.service.testingTitle": {
     "defaultMessage": "Enable Testing Commands:",
     "description": "Admin console label for a true/false setting enabling the /test slash command; ends with a colon before the radio buttons."
-  },
-  "admin.service.testingWarning": {
-    "defaultMessage": "Warning: Testing commands are intended only for isolated non-production environments with test users and sample data. Never enable this setting in production.",
-    "description": "Warning banner text shown near the Enable Testing Commands setting, cautioning admins not to enable it in production."
   },
   "admin.service.testSiteURL": {
     "defaultMessage": "Test Live URL",
@@ -12955,6 +13535,10 @@
     "defaultMessage": "Server",
     "description": "Label shown in the session attributes table for attributes evaluated on the server rather than a client platform."
   },
+  "admin.session_attributes.table.server_label.tooltip": {
+    "defaultMessage": "This attribute is captured by the server for every request a user makes. It is not delivered by the client.",
+    "description": ""
+  },
   "admin.session_attributes.table.status": {
     "defaultMessage": "Status",
     "description": "Column header in the session attributes admin table for the enabled/disabled status."
@@ -13106,10 +13690,6 @@
   "admin.sidebar.experimentalFeatures": {
     "defaultMessage": "Features",
     "description": "Navigation item in the System Console left sidebar, under the Experimental section, linking to experimental feature settings; compact space."
-  },
-  "admin.sidebar.exportStorage": {
-    "defaultMessage": "Export Storage",
-    "description": "Navigation item in the System Console sidebar; opens the settings page for where compliance exports are stored; 'Export' is a noun; compact space."
   },
   "admin.sidebar.fileSharingDownloads": {
     "defaultMessage": "File Sharing and Downloads",
@@ -13818,6 +14398,10 @@
   "admin.system_properties.user_properties.dotmenu.label": {
     "defaultMessage": "Select an action",
     "description": "Accessibility label for the per-row '...' actions menu in the user attributes admin table."
+  },
+  "admin.system_properties.user_properties.dotmenu.linked.help": {
+    "defaultMessage": "Managed by a linked attribute template",
+    "description": ""
   },
   "admin.system_properties.user_properties.dotmenu.saml.edit_link.label": {
     "defaultMessage": "Edit SAML link",
@@ -14615,10 +15199,6 @@
     "defaultMessage": "Actions",
     "description": "Column header in the Membership policies list on the admin console team configuration page; the column holds action buttons (open, remove)."
   },
-  "admin.team_settings.team_detail.access_control_policy_auto_add": {
-    "defaultMessage": "Auto-add",
-    "description": "Column header in the Membership policies list on the admin console team configuration page; the column holds a checkbox that auto-adds qualifying members."
-  },
   "admin.team_settings.team_detail.access_control_policy_description": {
     "defaultMessage": "Manage attribute based membership policies applicable to this team",
     "description": "Subtitle of the Membership policies panel on the admin console team configuration page, shown when no policy is linked yet."
@@ -14646,10 +15226,6 @@
   "admin.team_settings.team_detail.archive_confirm.title": {
     "defaultMessage": "Save and Archive Team",
     "description": "Title of the confirmation modal shown before saving and archiving a team from the admin console."
-  },
-  "admin.team_settings.team_detail.auto_add.aria_label": {
-    "defaultMessage": "Auto-add members for {policyName}",
-    "description": "Accessibility label for the auto-add checkbox on a policy row in the team's Membership policies list; {policyName} is the policy's name."
   },
   "admin.team_settings.team_detail.go_to_policy.aria_label": {
     "defaultMessage": "Go to the policy",
@@ -14736,11 +15312,15 @@
     "description": "Subtitle of the Custom access rules panel on the admin console team configuration page (attribute-based membership)."
   },
   "admin.team_settings.team_detail.rules.title": {
-    "defaultMessage": "Custom access rules",
+    "defaultMessage": "Team-specific membership rules",
     "description": "Title of the panel on the admin console team configuration page where admins define attribute-based access rules for the team."
   },
+  "admin.team_settings.team_detail.save_confirm.add_body": {
+    "defaultMessage": "{count} qualifying {count, plural, one {user} other {users}} will be added at the next sync.",
+    "description": ""
+  },
   "admin.team_settings.team_detail.save_confirm.body": {
-    "defaultMessage": "{count} {count, plural, one {member does} other {members do}} not currently meet the criteria and will be affected at next sync.",
+    "defaultMessage": "{count} {count, plural, one {member does} other {members do}} not currently meet the criteria and will be removed at the next sync.",
     "description": "Body line in the confirmation modal when applying an attribute-based membership policy to a team; {count} is the number of current members who do not meet the criteria, with matching verb plural forms."
   },
   "admin.team_settings.team_detail.save_confirm.cancel": {
@@ -15963,6 +16543,10 @@
     "defaultMessage": "This is the last day of your free trial.",
     "description": "Compact variant of the last-day-of-trial announcement bar text used on narrow/mobile viewports."
   },
+  "announcement_bar.non_production_license.message": {
+    "defaultMessage": "Non-production license. Test or staging use only.",
+    "description": ""
+  },
   "announcement_bar.notification.email_verified": {
     "defaultMessage": "Email verified",
     "description": "Success text in the announcement bar confirming the user's email address was verified."
@@ -16378,10 +16962,6 @@
   "apps.suggestion.no_suggestion": {
     "defaultMessage": "No matching suggestions.",
     "description": "Hint row in the slash command autocomplete when nothing matches the typed command."
-  },
-  "atmos/camo": {
-    "defaultMessage": "atmos/camo",
-    "description": "Dropdown option for the Image Proxy Type admin setting; 'atmos/camo' is the proxy software's product name and must not be translated."
   },
   "attachment.footerIconAltText": {
     "defaultMessage": "Attachment footer icon",
@@ -16914,6 +17494,10 @@
   "bots.managed_by.plugin_named": {
     "defaultMessage": "Managed by {pluginName} plugin",
     "description": "Note on a bot's row in the bot accounts list indicating a plugin controls it; {pluginName} is the plugin's display name."
+  },
+  "bots.managed_by.system": {
+    "defaultMessage": "Managed by Mattermost",
+    "description": ""
   },
   "bots.managed_by.unknown_plugin": {
     "defaultMessage": "Managed by a plugin",
@@ -19763,6 +20347,18 @@
     "defaultMessage": "Generating report…",
     "description": "Button text shown while the flagged-message report file is being generated; ends with an ellipsis to indicate progress."
   },
+  "data_spillage_report.exposure_report.button_text": {
+    "defaultMessage": "Download exposure report",
+    "description": ""
+  },
+  "data_spillage_report.exposure_report.failed.button_text": {
+    "defaultMessage": "Generation failed. Try again.",
+    "description": ""
+  },
+  "data_spillage_report.exposure_report.generating.button_text": {
+    "defaultMessage": "Generating…",
+    "description": ""
+  },
   "data_spillage_report.keep_message.button_text": {
     "defaultMessage": "Keep message",
     "description": "Button in the flagged-message review card that keeps (restores) the reported message; shown to content reviewers."
@@ -19774,6 +20370,10 @@
   "data_spillage_report.row.actions.label": {
     "defaultMessage": "Actions",
     "description": "Row label in the flagged-message review card identifying the row that holds the Keep/Remove action buttons; shown to content reviewers."
+  },
+  "data_spillage_report.row.exposure_report.label": {
+    "defaultMessage": "Exposure report",
+    "description": ""
   },
   "data_spillage_report.row.report.label": {
     "defaultMessage": "Report",
@@ -21094,10 +21694,6 @@
   "general_tab.codeTitle": {
     "defaultMessage": "Invite Code",
     "description": "Title of the Invite Code section in team settings; the code is part of the team invitation link."
-  },
-  "general_tab.openInviteDesc": {
-    "defaultMessage": "When allowed, a link to this team will be included on the landing page allowing anyone with an account to join this team. Changing from 'Yes' to 'No' will regenerate the invitation code, create a new invitation link and invalidate the previous link.",
-    "description": "Description of the Discoverability setting in team settings explaining what allowing open joining does."
   },
   "general_tab.regenerate": {
     "defaultMessage": "Regenerate",
@@ -24047,6 +24643,14 @@
     "defaultMessage": "Discoverable private channel",
     "description": "Accessibility label for the indicator on a private channel in Browse Channels that is discoverable (users can request to join)."
   },
+  "more_channels.hide_archived": {
+    "defaultMessage": "Hide Archived",
+    "description": ""
+  },
+  "more_channels.hide_archived_channels": {
+    "defaultMessage": "Hide archived channels",
+    "description": ""
+  },
   "more_channels.hide_joined": {
     "defaultMessage": "Hide Joined",
     "description": "Checkbox label in the Browse Channels modal that hides channels the user has already joined."
@@ -26819,6 +27423,14 @@
     "defaultMessage": "{dmUserTime} for {dmUserName}",
     "description": "Line in the schedule-message modal for DMs showing the equivalent time for the recipient; {dmUserTime} is a time and {dmUserName} the recipient's name."
   },
+  "schedule_post.custom_time_modal.repeat_weekly": {
+    "defaultMessage": "Repeat weekly",
+    "description": ""
+  },
+  "schedule_post.custom_time_modal.repeat_weekly.attachments_tooltip": {
+    "defaultMessage": "Messages with attachments can't repeat",
+    "description": ""
+  },
   "schedule_post.custom_time_modal.title": {
     "defaultMessage": "Schedule message",
     "description": "Title of the modal where the user picks a custom date and time to schedule a message."
@@ -26930,6 +27542,10 @@
   "scheduled_post.panel.error_indicator.message": {
     "defaultMessage": "One of your scheduled drafts cannot be sent.",
     "description": "Danger alert banner at the top of the scheduled drafts list when at least one scheduled draft failed to send."
+  },
+  "scheduled_post.panel.header.repeats_weekly": {
+    "defaultMessage": "Repeats weekly",
+    "description": ""
   },
   "scheduled_post.panel.header.time": {
     "defaultMessage": "Send {isTodayOrTomorrow, select, true {} other {on}} {scheduledDateTime}",
@@ -28818,6 +29434,14 @@
   "team_settings.access_policies.title": {
     "defaultMessage": "Channel membership policies",
     "description": "Heading of the team settings tab listing attribute-based channel membership policies."
+  },
+  "team_settings.discoverability.description": {
+    "defaultMessage": "Public teams appear on the server landing page so anyone with an account can find and join them. Switching a team from Public to Private regenerates its invitation code, which creates a new invitation link and invalidates the old one.",
+    "description": ""
+  },
+  "team_settings.discoverability.group_constrained_description": {
+    "defaultMessage": "Public teams appear on the server landing page so anyone with an account can find and join them.",
+    "description": ""
   },
   "team_settings.discoverability.private_description": {
     "defaultMessage": "Only invited members can join",

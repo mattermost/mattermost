@@ -920,6 +920,11 @@
     "description": "API error returned when trying to give team roles to a guest account; the guest must first be promoted to a regular user."
   },
   {
+    "id": "api.channel.update_channel_member_roles.guest_and_admin.app_error",
+    "translation": "Invalid channel member update: A user must be a guest or an admin but not both.",
+    "description": ""
+  },
+  {
     "id": "api.channel.update_channel_member_roles.guest_and_user.app_error",
     "translation": "Invalid channel member update: A user must be a guest or a user but not both.",
     "description": "API error returned when a member role update assigns both the guest and regular user roles at once, which is invalid."
@@ -2701,6 +2706,11 @@
     "description": "API error when the data spillage (flagged content review/quarantine) feature is turned off; 'Data Spillage Handling' is a feature name."
   },
   {
+    "id": "api.data_spillage.error.invalid_channel_type",
+    "translation": "Data Spillage Handling is not available for direct and group message channels.",
+    "description": ""
+  },
+  {
     "id": "api.data_spillage.error.invalid_post_type",
     "translation": "Quarantining a post of type '{{.PostType}}' is not allowed.",
     "description": "API error when flagging a post whose type cannot be quarantined; {{.PostType}} is the post's internal type identifier (e.g. a system message type)."
@@ -2734,6 +2744,11 @@
     "id": "api.data_spillage.error.user_not_reviewer",
     "translation": "The user is not a content reviewer.",
     "description": "API error when someone who is not a designated content reviewer tries to act on flagged content; 'content reviewer' is a role in the feature."
+  },
+  {
+    "id": "api.data_spillage.exposure.write.app_error",
+    "translation": "Failed to write the post exposure report.",
+    "description": ""
   },
   {
     "id": "api.data_spillage.report.open.app_error",
@@ -3362,11 +3377,6 @@
     "id": "api.license.add_license.wrong_environment_test.app_error",
     "translation": "This is a test or development license, but this server is running in a production environment. Test or development licenses can only be used on test or development servers.",
     "description": "Error shown to system admins uploading a test/development Enterprise license to a server running in production mode."
-  },
-  {
-    "id": "api.license.client.old_format.app_error",
-    "translation": "New format for the client license is not supported yet. Please specify format=old in the query string.",
-    "description": "API error for developers requesting the client license in a new format; 'format=old' is a literal query string parameter and must not be translated."
   },
   {
     "id": "api.license.load_metric.app_error",
@@ -4560,116 +4570,6 @@
     "description": "API error when removing a remote (connected Mattermost server) from a shared channel fails; 'uninvite' means revoking the share."
   },
   {
-    "id": "api.slackimport.slack_add_bot_user.email",
-    "translation": "The Integration/Slack Bot user with email {{.Email}} has been imported.\r\n",
-    "description": "Line in the downloadable Slack import log file; {{.Email}} is the imported bot account's email address; keep the trailing line break characters."
-  },
-  {
-    "id": "api.slackimport.slack_add_bot_user.unable_import",
-    "translation": "Unable to import the Integration/Slack Bot user {{.Username}}.\r\n",
-    "description": "Line in the Slack import log file when a bot account fails to import; {{.Username}} is the bot's username; keep the trailing line break characters."
-  },
-  {
-    "id": "api.slackimport.slack_add_channels.added",
-    "translation": "\r\nChannels added:\r\n",
-    "description": "Section heading in the Slack import log file preceding the list of imported channels; keep the surrounding line break characters."
-  },
-  {
-    "id": "api.slackimport.slack_add_channels.failed_to_add_user",
-    "translation": "Unable to add Slack user {{.Username}} to channel.\r\n",
-    "description": "Line in the Slack import log file when a user could not be added to an imported channel; {{.Username}} is the Slack username; keep the trailing line break characters."
-  },
-  {
-    "id": "api.slackimport.slack_add_channels.import_failed",
-    "translation": "Unable to import Slack channel {{.DisplayName}}.\r\n",
-    "description": "Line in the Slack import log file when a channel fails to import; {{.DisplayName}} is the Slack channel's display name; keep the trailing line break characters."
-  },
-  {
-    "id": "api.slackimport.slack_add_channels.merge",
-    "translation": "The Slack channel {{.DisplayName}} already exists as an active Mattermost channel. Both channels have been merged.\r\n",
-    "description": "Line in the Slack import log file when an imported Slack channel is merged into an existing Mattermost channel; {{.DisplayName}} is the channel name; keep the trailing line break characters."
-  },
-  {
-    "id": "api.slackimport.slack_add_users.created",
-    "translation": "\r\nUsers created:\r\n",
-    "description": "Section heading in the Slack import log file preceding the list of created user accounts; keep the surrounding line break characters."
-  },
-  {
-    "id": "api.slackimport.slack_add_users.email",
-    "translation": "Slack user with email {{.Email}} has been imported.\r\n",
-    "description": "Line in the Slack import log file for each successfully imported user; {{.Email}} is the user's email address; keep the trailing line break characters."
-  },
-  {
-    "id": "api.slackimport.slack_add_users.merge_existing",
-    "translation": "Slack user merged with an existing Mattermost user with matching email {{.Email}} and username {{.Username}}.\r\n",
-    "description": "Line in the Slack import log file when a Slack user is merged into an existing Mattermost account; {{.Email}} and {{.Username}} identify the matched account; keep the trailing line break characters."
-  },
-  {
-    "id": "api.slackimport.slack_add_users.merge_existing_failed",
-    "translation": "Slack user merged with an existing Mattermost user with matching email {{.Email}} and username {{.Username}}, but was unable to add the user to their team.\r\n",
-    "description": "Line written to the Slack import results log when a Slack user matched an existing account but couldn't be added to the team; {{.Email}} and {{.Username}} identify the account. Read by admins; keep the trailing line break."
-  },
-  {
-    "id": "api.slackimport.slack_add_users.missing_email_address",
-    "translation": "User {{.Username}} does not have an email address in the Slack export. Used {{.Email}} as a placeholder. The user should update their email address once logged in to the system.\r\n",
-    "description": "Line in the Slack import log file; {{.Username}} is the Slack user and {{.Email}} is the generated placeholder address; keep the trailing line break characters."
-  },
-  {
-    "id": "api.slackimport.slack_add_users.send_reset_email_failed",
-    "translation": "Unable to send password reset email to {{.Username}} at {{.Email}}.\r\n",
-    "description": "Line in the Slack import log file when the password reset email for an imported user fails to send; {{.Username}} and {{.Email}} identify the user; keep the trailing line break characters."
-  },
-  {
-    "id": "api.slackimport.slack_add_users.unable_import",
-    "translation": "Unable to import Slack user: {{.Username}}.\r\n",
-    "description": "Line in the Slack import log file when a user fails to import; {{.Username}} is the Slack username; keep the trailing line break characters."
-  },
-  {
-    "id": "api.slackimport.slack_import.log",
-    "translation": "Mattermost Slack Import Log\r\n",
-    "description": "Title line at the top of the downloadable log file generated by a Slack import; keep the trailing line break characters."
-  },
-  {
-    "id": "api.slackimport.slack_import.note1",
-    "translation": "- Some messages may not have been imported because they were not supported by this importer.\r\n",
-    "description": "Bullet note in the closing section of the Slack import log file; keep the leading dash and trailing line break characters."
-  },
-  {
-    "id": "api.slackimport.slack_import.note2",
-    "translation": "- Slack bot messages are currently not supported.\r\n",
-    "description": "Bullet note in the closing section of the Slack import log file about bot messages; keep the leading dash and trailing line break characters."
-  },
-  {
-    "id": "api.slackimport.slack_import.note3",
-    "translation": "- Additional errors may be found in the server logs.\r\n",
-    "description": "Bullet note in the closing section of the Slack import log file pointing to the server logs; keep the leading dash and trailing line break characters."
-  },
-  {
-    "id": "api.slackimport.slack_import.notes",
-    "translation": "\r\nNotes:\r\n",
-    "description": "Section heading introducing the notes at the end of the Slack import log file; keep the surrounding line break characters."
-  },
-  {
-    "id": "api.slackimport.slack_import.open.app_error",
-    "translation": "Unable to open the file: {{.Filename}}.\r\n",
-    "description": "Line in the Slack import log file when a file inside the export archive cannot be opened; {{.Filename}} is the file's name; keep the trailing line break characters."
-  },
-  {
-    "id": "api.slackimport.slack_import.team_fail",
-    "translation": "Unable to get the team to import into.\r\n",
-    "description": "Line in the Slack import log file when the destination Mattermost team cannot be loaded; keep the trailing line break characters."
-  },
-  {
-    "id": "api.slackimport.slack_import.zip.app_error",
-    "translation": "Unable to open the Slack export zip file.\r\n",
-    "description": "Line in the Slack import log file when the uploaded Slack export zip archive cannot be opened; keep the trailing line break characters."
-  },
-  {
-    "id": "api.slackimport.slack_import.zip.file_too_large",
-    "translation": "{{.Filename}} in zip archive too large to process for Slack import\r\n",
-    "description": "Line in the Slack import log file when a file inside the zip archive exceeds the size limit; {{.Filename}} is the file's name; keep the trailing line break characters."
-  },
-  {
     "id": "api.status.user_not_found.app_error",
     "translation": "User not found.",
     "description": "API error when the user whose online/away status was requested does not exist."
@@ -4800,46 +4700,6 @@
     "description": "API error when reading the team icon image from file storage fails; 'team icon' is the team's avatar image."
   },
   {
-    "id": "api.team.import_team.array.app_error",
-    "translation": "Empty array under 'file' in request.",
-    "description": "API error during team import when the multipart form field named 'file' contains an empty array; 'file' is a literal field name."
-  },
-  {
-    "id": "api.team.import_team.integer.app_error",
-    "translation": "Filesize not an integer.",
-    "description": "API error during team import when the filesize form value is not a number; terse technical message."
-  },
-  {
-    "id": "api.team.import_team.no_file.app_error",
-    "translation": "No file under 'file' in request.",
-    "description": "API error during team import when no file was attached under the multipart form field named 'file'; 'file' is a literal field name."
-  },
-  {
-    "id": "api.team.import_team.no_import_from.app_error",
-    "translation": "Malformed request: importFrom field is not present.",
-    "description": "API error during team import when the request omits the importFrom field identifying the source tool; 'importFrom' is a literal field name."
-  },
-  {
-    "id": "api.team.import_team.open.app_error",
-    "translation": "Could not open file.",
-    "description": "API error during team import when the uploaded import file cannot be opened."
-  },
-  {
-    "id": "api.team.import_team.parse.app_error",
-    "translation": "Could not parse multipart form.",
-    "description": "API error during team import when the multipart form request cannot be parsed."
-  },
-  {
-    "id": "api.team.import_team.unavailable.app_error",
-    "translation": "Malformed request: filesize field is not present.",
-    "description": "API error during team import when the request omits the filesize field; 'filesize' is a literal field name."
-  },
-  {
-    "id": "api.team.import_team.unknown_import_from.app_error",
-    "translation": "Unknown import source.",
-    "description": "API error during team import when the importFrom value names an unsupported import source tool."
-  },
-  {
     "id": "api.team.invalidate_all_email_invites.app_error",
     "translation": "Error invalidating email invites.",
     "description": "API error shown to an admin when invalidating all pending email invitations fails."
@@ -4873,6 +4733,11 @@
     "id": "api.team.invite_guests_to_channels.license.error",
     "translation": "Your license does not support guest accounts",
     "description": "API error when guest invitations are attempted on a server whose license does not include guest accounts."
+  },
+  {
+    "id": "api.team.invite_members.account_deactivated.app_error",
+    "translation": "The account associated with {{.Addresses}} has been deactivated. Please contact your System Administrator for details.",
+    "description": ""
   },
   {
     "id": "api.team.invite_members.disabled.app_error",
@@ -5068,6 +4933,11 @@
     "id": "api.team.update_team_member_roles.guest.app_error",
     "translation": "Invalid team member update: A guest cannot be made team member or team admin, please promote as a user first.",
     "description": "API error when trying to grant member or admin roles to a guest account; guests must first be promoted to regular users."
+  },
+  {
+    "id": "api.team.update_team_member_roles.guest_and_admin.app_error",
+    "translation": "Invalid team member update: A user must be a guest or an admin but not both.",
+    "description": ""
   },
   {
     "id": "api.team.update_team_member_roles.guest_and_user.app_error",
@@ -6315,6 +6185,11 @@
     "description": "API error when switching from OAuth to email sign-in fails because the requesting user's ID doesn't match the target account; security check message."
   },
   {
+    "id": "api.user.oauth_to_email.integration_session.app_error",
+    "translation": "Unable to switch to email authentication using an integration session.",
+    "description": ""
+  },
+  {
     "id": "api.user.oauth_to_email.magic_link.app_error",
     "translation": "Magic Link is the only sign-in method available for this account.",
     "description": "API error when switching to email/password sign-in is blocked because the account only supports Magic Link (email link) sign-in; 'Magic Link' is a feature name."
@@ -6398,6 +6273,11 @@
     "id": "api.user.saml.not_available.app_error",
     "translation": "SAML 2.0 is not configured or supported on this server.",
     "description": "API error when a SAML login endpoint is used but SAML 2.0 is not configured or licensed on the server."
+  },
+  {
+    "id": "api.user.saml.relay_state_too_long.app_error",
+    "translation": "SAML relay state is too long.",
+    "description": ""
   },
   {
     "id": "api.user.send_cloud_welcome_email.error",
@@ -6785,6 +6665,46 @@
     "description": "API error when the caller lacks permission to manage an attribute-based access control policy; admin-facing."
   },
   {
+    "id": "app.access_control.plugin.evaluation_unavailable.app_error",
+    "translation": "Access control could not be evaluated for this resource.",
+    "description": ""
+  },
+  {
+    "id": "app.access_control.plugin.invalid_acting_user.app_error",
+    "translation": "The acting user is invalid or does not exist.",
+    "description": ""
+  },
+  {
+    "id": "app.access_control.plugin.invalid_action.app_error",
+    "translation": "The action is not a valid access control action.",
+    "description": ""
+  },
+  {
+    "id": "app.access_control.plugin.invalid_id.app_error",
+    "translation": "Invalid identifier supplied to the access control API.",
+    "description": ""
+  },
+  {
+    "id": "app.access_control.plugin.invalid_resource_type.app_error",
+    "translation": "The resource type is not a valid plugin access control resource type.",
+    "description": ""
+  },
+  {
+    "id": "app.access_control.plugin.policy_not_found.app_error",
+    "translation": "Access control policy not found.",
+    "description": ""
+  },
+  {
+    "id": "app.access_control.plugin.resource_type_forbidden.app_error",
+    "translation": "The calling plugin does not own this resource type.",
+    "description": ""
+  },
+  {
+    "id": "app.access_control.plugin.type_conflict.app_error",
+    "translation": "An access control policy of a different type already exists for this ID.",
+    "description": ""
+  },
+  {
     "id": "app.acknowledgement.batch_save.app_error",
     "translation": "Failed to save the batch of acknowledgement objects",
     "description": "Internal error when saving multiple post acknowledgement records at once fails."
@@ -6953,6 +6873,11 @@
     "id": "app.bot.update.internal_error",
     "translation": "Unable to update the bot.",
     "description": "Internal API error when saving changes to a bot account fails."
+  },
+  {
+    "id": "app.bot.update_bot_active.protected_bot.app_error",
+    "translation": "Cannot disable a system-owned bot.",
+    "description": ""
   },
   {
     "id": "app.burn_post.not_burn_on_read.app_error",
@@ -7780,6 +7705,141 @@
     "description": "Internal API error when saving the metadata (property values) attached to a newly flagged post fails."
   },
   {
+    "id": "app.data_spillage.exposure.column.email",
+    "translation": "Email",
+    "description": ""
+  },
+  {
+    "id": "app.data_spillage.exposure.column.is_deactivated",
+    "translation": "Deactivated",
+    "description": ""
+  },
+  {
+    "id": "app.data_spillage.exposure.column.is_guest",
+    "translation": "Guest",
+    "description": ""
+  },
+  {
+    "id": "app.data_spillage.exposure.column.is_remote",
+    "translation": "Remote user",
+    "description": ""
+  },
+  {
+    "id": "app.data_spillage.exposure.column.last_activity_at",
+    "translation": "User last activity time (YYYY-MM-DDTHH:MM:SSZ)",
+    "description": ""
+  },
+  {
+    "id": "app.data_spillage.exposure.column.last_viewed_at",
+    "translation": "Last viewed channel at (YYYY-MM-DDTHH:MM:SSZ)",
+    "description": ""
+  },
+  {
+    "id": "app.data_spillage.exposure.column.user_id",
+    "translation": "User ID",
+    "description": ""
+  },
+  {
+    "id": "app.data_spillage.exposure.column.username",
+    "translation": "Username",
+    "description": ""
+  },
+  {
+    "id": "app.data_spillage.exposure.column.was_channel_member",
+    "translation": "Was channel member",
+    "description": ""
+  },
+  {
+    "id": "app.data_spillage.exposure.edit_history_post.app_error",
+    "translation": "Cannot generate an exposure report for an edit history revision. Use the current post ID.",
+    "description": ""
+  },
+  {
+    "id": "app.data_spillage.exposure.get_channel_members.app_error",
+    "translation": "Failed to retrieve the channel membership history for the flagged post.",
+    "description": ""
+  },
+  {
+    "id": "app.data_spillage.exposure.get_last_activity.app_error",
+    "translation": "Failed to retrieve session activity for the flagged post.",
+    "description": ""
+  },
+  {
+    "id": "app.data_spillage.exposure.get_possible_viewers.app_error",
+    "translation": "Failed to retrieve channel read state for the flagged post.",
+    "description": ""
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.channel",
+    "translation": "Channel",
+    "description": ""
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.generated_at",
+    "translation": "Generated at",
+    "description": ""
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.post_id",
+    "translation": "Post ID",
+    "description": ""
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.report_version",
+    "translation": "Report version",
+    "description": ""
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.total_users",
+    "translation": "Total users",
+    "description": ""
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.window_end",
+    "translation": "Flagged at",
+    "description": ""
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.window_start",
+    "translation": "Post created at",
+    "description": ""
+  },
+  {
+    "id": "app.data_spillage.exposure.missing_reporting_time.app_error",
+    "translation": "The flagged post has no reporting time recorded, so the exposure window cannot be determined.",
+    "description": ""
+  },
+  {
+    "id": "app.data_spillage.exposure.unsupported_channel_type.app_error",
+    "translation": "Exposure reports are not supported for direct and group messages.",
+    "description": ""
+  },
+  {
+    "id": "app.data_spillage.exposure.value.never_viewed",
+    "translation": "N/A",
+    "description": ""
+  },
+  {
+    "id": "app.data_spillage.exposure.value.no",
+    "translation": "No",
+    "description": ""
+  },
+  {
+    "id": "app.data_spillage.exposure.value.no_sessions",
+    "translation": "No sessions found",
+    "description": ""
+  },
+  {
+    "id": "app.data_spillage.exposure.value.unknown",
+    "translation": "Unknown",
+    "description": ""
+  },
+  {
+    "id": "app.data_spillage.exposure.value.yes",
+    "translation": "Yes",
+    "description": ""
+  },
+  {
     "id": "app.data_spillage.flag_post.marshal_comment.app_error",
     "translation": "Failed to marshal flagging user's comment",
     "description": "Internal API error when serializing the comment entered by the user who flagged a post fails; 'marshal' means JSON-encode."
@@ -8091,6 +8151,11 @@
     "description": "Internal API error when writing an edit-history entry into the flagged-post report file fails; the report is YAML-formatted."
   },
   {
+    "id": "app.data_spillage.report.write_exposure_csv.app_error",
+    "translation": "Failed to write the exposure report to the flagged post report.",
+    "description": ""
+  },
+  {
     "id": "app.data_spillage.report.write_metadata_yaml.app_error",
     "translation": "Failed to write metadata to the flagged post report.",
     "description": "Internal API error when writing metadata into the flagged-post report file fails."
@@ -8301,36 +8366,6 @@
     "description": "API error returned when listing custom emojis fails."
   },
   {
-    "id": "app.eport.generate_presigned_url.config.app_error",
-    "translation": "This actions requires the use of a dedicated export store.",
-    "description": "Admin/CLI-facing API error when requesting a temporary download link for an export file, but no dedicated export file store is configured."
-  },
-  {
-    "id": "app.eport.generate_presigned_url.driver.app_error",
-    "translation": "Your export store driver does not support presign url generation.",
-    "description": "Admin/CLI-facing API error when the export file storage backend cannot create temporary (presigned) download links; 'presign' is an S3 term."
-  },
-  {
-    "id": "app.eport.generate_presigned_url.featureflag.app_error",
-    "translation": "This feature is restricted by a feature flag.",
-    "description": "Admin/CLI-facing API error when export download links are unavailable because the feature flag gating them is off."
-  },
-  {
-    "id": "app.eport.generate_presigned_url.fileexist.app_error",
-    "translation": "Unable to check if the file exists.",
-    "description": "Admin/CLI-facing API error when the server cannot verify whether the export file exists before generating a download link."
-  },
-  {
-    "id": "app.eport.generate_presigned_url.link.app_error",
-    "translation": "Unable to generate the presigned url.",
-    "description": "Admin/CLI-facing API error when generating the temporary (presigned) download URL for an export file fails."
-  },
-  {
-    "id": "app.eport.generate_presigned_url.notfound.app_error",
-    "translation": "The export file was not found.",
-    "description": "Admin/CLI-facing API error when the requested export file does not exist in the export store."
-  },
-  {
     "id": "app.export.export_attachment.copy_file.error",
     "translation": "Failed to copy file during export.",
     "description": "Error during a bulk data export when copying a file attachment into the export output fails."
@@ -8369,6 +8404,36 @@
     "id": "app.export.export_write_line.json_marshall.error",
     "translation": "An error occurred marshalling the JSON data for export.",
     "description": "Error during a bulk data export when converting a record to JSON fails; 'marshalling' means JSON encoding."
+  },
+  {
+    "id": "app.export.generate_presigned_url.config.app_error",
+    "translation": "This actions requires the use of a dedicated export store.",
+    "description": ""
+  },
+  {
+    "id": "app.export.generate_presigned_url.direct_download.app_error",
+    "translation": "Direct download of exports is only available in Mattermost Cloud.",
+    "description": ""
+  },
+  {
+    "id": "app.export.generate_presigned_url.driver.app_error",
+    "translation": "Your export store driver does not support presign url generation.",
+    "description": ""
+  },
+  {
+    "id": "app.export.generate_presigned_url.fileexist.app_error",
+    "translation": "Unable to check if the file exists.",
+    "description": ""
+  },
+  {
+    "id": "app.export.generate_presigned_url.link.app_error",
+    "translation": "Unable to generate the presigned url.",
+    "description": ""
+  },
+  {
+    "id": "app.export.generate_presigned_url.notfound.app_error",
+    "translation": "The export file was not found.",
+    "description": ""
   },
   {
     "id": "app.export.marshal.app_error",
@@ -9856,6 +9921,16 @@
     "description": "API error for admins when the server fails to hide (mask) restricted attribute values inside an access control policy expression."
   },
   {
+    "id": "app.pap.masking.ambiguous_sibling.app_error",
+    "translation": "Multiple user attributes link the same template, so channel-attribute visibility cannot be determined unambiguously.",
+    "description": ""
+  },
+  {
+    "id": "app.pap.masking.unknown_object_type.app_error",
+    "translation": "Cannot resolve attribute visibility for an unknown object type.",
+    "description": ""
+  },
+  {
     "id": "app.pap.merge_expression.app_error",
     "translation": "Could not merge policy expression with stored masked values.",
     "description": "API error for admins saving an access control policy when the edited expression cannot be recombined with previously masked (hidden) values."
@@ -9911,9 +9986,19 @@
     "description": "Validation error when an admin saves an access control policy using a name already taken by another policy."
   },
   {
+    "id": "app.pap.save_policy.parent_resource_attributes_team_assigned",
+    "translation": "This access rule uses channel attributes, which teams do not have. Remove the teams assigned to this policy before saving.",
+    "description": ""
+  },
+  {
     "id": "app.pap.save_policy.resolver_error",
     "translation": "Could not initialise attribute resolver for policy save.",
     "description": "Internal error when initializing the attribute resolver component fails while saving an access control policy; technical, admin-facing."
+  },
+  {
+    "id": "app.pap.save_policy.resource_attributes_disabled",
+    "translation": "Access rules cannot use channel attributes on this server. This capability is not enabled.",
+    "description": ""
   },
   {
     "id": "app.pap.save_policy.rule_name_unique.app_error",
@@ -9926,6 +10011,11 @@
     "description": "API error when saving an access control policy would lock the saving admin out because they do not satisfy the policy's conditions."
   },
   {
+    "id": "app.pap.save_policy.team_resource_attributes",
+    "translation": "This access rule uses channel attributes, which teams do not have. Access rules with channel attributes can only be applied to channels.",
+    "description": ""
+  },
+  {
     "id": "app.pap.search_access_control_policies.app_error",
     "translation": "Could not search access control policies.",
     "description": "API error when searching attribute-based access control policies fails; admin-facing."
@@ -9934,6 +10024,11 @@
     "id": "app.pap.simulate.attribute_refresh",
     "translation": "Failed to refresh attributes for the simulation.",
     "description": "Error in the access control policy simulator (admin tool for testing policies) when reloading user attribute values fails."
+  },
+  {
+    "id": "app.pap.simulate.channel_required_for_resource",
+    "translation": "A channel is required to simulate a policy that references channel attributes.",
+    "description": ""
   },
   {
     "id": "app.pap.simulate.compile_failed",
@@ -11325,6 +11420,11 @@
     "id": "app.scheduled_post.private_channel",
     "translation": "Private channel",
     "description": "Placeholder used instead of the real channel name in the failed-scheduled-post notification when the channel is private, to avoid leaking its name."
+  },
+  {
+    "id": "app.scheduled_post.recurring_disabled.app_error",
+    "translation": "Recurring scheduled posts are disabled on this server.",
+    "description": ""
   },
   {
     "id": "app.scheduled_post.save.rejected_by_plugin",
@@ -12882,6 +12982,11 @@
     "description": "Error status for the search index aggregation job; {{.Backend}} is 'Elasticsearch' or 'OpenSearch'; its child indexing job failed."
   },
   {
+    "id": "ent.elasticsearch.analysis_icu_required",
+    "translation": "Mattermost requires the analysis-icu plugin on every {{.Backend}} node. Install it on all nodes, then restart {{.Backend}}.",
+    "description": ""
+  },
+  {
     "id": "ent.elasticsearch.backfill_posts_channel_type.error",
     "translation": "{{.Backend}} failed to backfill channel type on posts",
     "description": "Error status for a maintenance job; {{.Backend}} is 'Elasticsearch' or 'OpenSearch'; it failed to fill in the channel type field on indexed posts."
@@ -13075,16 +13180,6 @@
     "id": "ent.elasticsearch.indexer.index_batch.nothing_left_to_index.error",
     "translation": "Trying to index a new batch when all the entities are completed",
     "description": "Internal error status for the search indexing job when it is asked to index another batch although every entity type has finished."
-  },
-  {
-    "id": "ent.elasticsearch.max_version.app_error",
-    "translation": "{{.Backend}} version {{.Version}} is higher than max supported version of {{.MaxVersion}}",
-    "description": "Admin-facing error on startup/connection test; {{.Backend}} is 'Elasticsearch' or 'OpenSearch', {{.Version}} the server's version, {{.MaxVersion}} the highest supported version."
-  },
-  {
-    "id": "ent.elasticsearch.min_version.app_error",
-    "translation": "{{.Backend}} version {{.Version}} is lower than min supported version of {{.MinVersion}}",
-    "description": "Admin-facing error on startup/connection test; {{.Backend}} is 'Elasticsearch', {{.Version}} the server's version, {{.MinVersion}} the lowest supported version."
   },
   {
     "id": "ent.elasticsearch.not_started.error",
@@ -13962,6 +14057,11 @@
     "description": "Validation error when an access control policy's name is missing or invalid."
   },
   {
+    "id": "model.access_policy.is_valid.plugin_type.app_error",
+    "translation": "Invalid access control policy: type is not a valid plugin resource type.",
+    "description": ""
+  },
+  {
     "id": "model.access_policy.is_valid.revision.app_error",
     "translation": "Invalid policy revision.",
     "description": "Validation error when an access control policy's revision number is invalid; 'revision' is a version counter."
@@ -14662,6 +14762,16 @@
     "description": "Validation error when a system admin creates a compliance export job with an end date before the start date; 'To' and 'From' are the date-range field labels."
   },
   {
+    "id": "model.config.is_valid.access_control_attribute_refresh_interval.app_error",
+    "translation": "Invalid access control attribute refresh interval. Must be greater than or equal to 0.",
+    "description": ""
+  },
+  {
+    "id": "model.config.is_valid.access_control_sync_interval.app_error",
+    "translation": "Invalid access control sync job interval. Must be at least 60 seconds.",
+    "description": ""
+  },
+  {
     "id": "model.config.is_valid.ai_recap.cooldown_minutes.app_error",
     "translation": "Invalid AI recap cooldown minutes. Must be greater than or equal to 0.",
     "description": "Config validation error shown to system admins saving AI Recap settings; the cooldown between recaps, in minutes, must be zero or more."
@@ -14707,19 +14817,9 @@
     "description": "Config validation error shown to system admins for the Amazon S3 file storage request timeout setting; {{.Value}} is the rejected timeout value."
   },
   {
-    "id": "model.config.is_valid.atmos_camo_image_proxy_options.app_error",
-    "translation": "Invalid RemoteImageProxyOptions for atmos/camo. Must be set to your shared key.",
-    "description": "Config validation error shown to system admins; 'RemoteImageProxyOptions' is a config setting name and 'atmos/camo' is a literal image proxy type identifier."
-  },
-  {
-    "id": "model.config.is_valid.atmos_camo_image_proxy_options_length.app_error",
-    "translation": "Invalid RemoteImageProxyOptions for atmos/camo: HMAC key must be at least {{.MinLength}} bytes for FIPS compliance.",
-    "description": "Config validation error shown to system admins for the atmos/camo image proxy shared key; {{.MinLength}} is the minimum key length in bytes required for FIPS mode."
-  },
-  {
-    "id": "model.config.is_valid.atmos_camo_image_proxy_url.app_error",
-    "translation": "Invalid RemoteImageProxyURL for atmos/camo. Must be set to your shared key.",
-    "description": "Config validation error shown to system admins; 'RemoteImageProxyURL' is a config setting name and 'atmos/camo' is a literal image proxy type identifier."
+    "id": "model.config.is_valid.atmos_camo_image_proxy_removed.app_error",
+    "translation": "The 'atmos/camo' image proxy type was removed in Mattermost v12.0. Set ImageProxySettings.ImageProxyType to 'local', or set ImageProxySettings.Enable to false to disable the image proxy.",
+    "description": ""
   },
   {
     "id": "model.config.is_valid.autotranslation.agents.llm_service_id.app_error",
@@ -15022,6 +15122,16 @@
     "description": "Config validation error shown to system admins for the document content extraction (file search indexing) timeout setting, in whole seconds."
   },
   {
+    "id": "model.config.is_valid.feature_flags.apps_enabled.app_error",
+    "translation": "The AppsEnabled feature flag is no longer supported and must be disabled.",
+    "description": ""
+  },
+  {
+    "id": "model.config.is_valid.feature_flags.move_threads_enabled.app_error",
+    "translation": "The MoveThreadsEnabled feature flag is no longer supported and must be disabled.",
+    "description": ""
+  },
+  {
     "id": "model.config.is_valid.file_driver.app_error",
     "translation": "Invalid driver name for file settings. Must be 'local', 'amazons3', or 'azureblob'.",
     "description": "Config validation error shown to system admins; 'local', 'amazons3', and 'azureblob' are literal file storage driver option values and must not be translated."
@@ -15048,7 +15158,7 @@
   },
   {
     "id": "model.config.is_valid.image_proxy_type.app_error",
-    "translation": "Invalid image proxy type. Must be 'local' or 'atmos/camo'.",
+    "translation": "Invalid image proxy type. Must be 'local'.",
     "description": "Config validation error shown to system admins; 'local' and 'atmos/camo' are literal image proxy type option values and must not be translated."
   },
   {
@@ -15265,6 +15375,26 @@
     "id": "model.config.is_valid.message_export.global_relay.config_missing.app_error",
     "translation": "Message export job ExportFormat is set to 'globalrelay', but GlobalRelaySettings are missing.",
     "description": "Config validation error shown to system admins; 'globalrelay' is a literal export format value and 'GlobalRelaySettings' is the missing config section name."
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.custom_header_incomplete.app_error",
+    "translation": "Message export GlobalRelaySettings.CustomHeaderName and CustomHeaderValue must both be set, or both left empty.",
+    "description": ""
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.custom_header_name.app_error",
+    "translation": "Message export GlobalRelaySettings.CustomHeaderName must be a valid header name with no spaces, colons, separators, or line breaks.",
+    "description": ""
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.custom_header_reserved.app_error",
+    "translation": "Message export GlobalRelaySettings.CustomHeaderName must not reuse a header that the Global Relay export already writes.",
+    "description": ""
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.custom_header_value.app_error",
+    "translation": "Message export GlobalRelaySettings.CustomHeaderValue must not contain control characters or line breaks.",
+    "description": ""
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.customer_type.app_error",
@@ -15942,6 +16072,16 @@
     "description": "API error returned when a link preview metadata URL is too long; {{.Length}} is the actual character count and {{.MaxLength}} the allowed maximum."
   },
   {
+    "id": "model.log_filter.is_valid.date_from.app_error",
+    "translation": "Invalid date_from filter. Expected the format \"{{.Layout}}\".",
+    "description": ""
+  },
+  {
+    "id": "model.log_filter.is_valid.date_to.app_error",
+    "translation": "Invalid date_to filter. Expected the format \"{{.Layout}}\".",
+    "description": ""
+  },
+  {
     "id": "model.member.is_valid.channel.app_error",
     "translation": "Channel name is not valid",
     "description": "API error returned when a member invitation includes a channel ID with an invalid format; 'Channel name' refers to a chat channel identifier."
@@ -16460,6 +16600,26 @@
     "id": "model.scheduled_post.is_valid.processed_at.app_error",
     "translation": "Invalid processed at time.",
     "description": "API error when a scheduled post's processed-at timestamp (when it was actually sent) is negative."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.repeat_files.app_error",
+    "translation": "Recurring scheduled posts cannot have file attachments.",
+    "description": ""
+  },
+  {
+    "id": "model.scheduled_post.is_valid.repeat_timezone.app_error",
+    "translation": "Repeat weekly scheduled posts require a valid timezone.",
+    "description": ""
+  },
+  {
+    "id": "model.scheduled_post.is_valid.repeat_timezone_invalid.app_error",
+    "translation": "Invalid timezone for recurring scheduled post.",
+    "description": ""
+  },
+  {
+    "id": "model.scheduled_post.is_valid.repeat_type.app_error",
+    "translation": "Invalid repeat type for scheduled post.",
+    "description": ""
   },
   {
     "id": "model.scheduled_post.is_valid.scheduled_at.app_error",
