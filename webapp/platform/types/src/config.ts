@@ -974,6 +974,8 @@ export type MessageExportSettings = {
         SMTPServerTimeout: number;
         CustomSMTPServerName: string;
         CustomSMTPPort: string;
+        CustomHeaderName: string;
+        CustomHeaderValue: string;
     };
 };
 

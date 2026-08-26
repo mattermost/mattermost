@@ -717,6 +717,8 @@ const defaultServerConfig: AdminConfig = {
             SMTPServerTimeout: 1800,
             CustomSMTPServerName: '',
             CustomSMTPPort: '25',
+            CustomHeaderName: '',
+            CustomHeaderValue: '',
         },
     },
     JobSettings: {
