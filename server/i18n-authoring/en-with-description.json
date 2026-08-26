@@ -8407,7 +8407,7 @@
   },
   {
     "id": "app.export.generate_presigned_url.config.app_error",
-    "translation": "This actions requires the use of a dedicated export store.",
+    "translation": "This action requires the use of a dedicated export store.",
     "description": "API error (500) shown to a system admin requesting a direct download link for an export, when the server is not configured with a dedicated export file store. Note the source text's \"This actions\" typo — translate it as correct grammar in the target language."
   },
   {

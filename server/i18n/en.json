@@ -6730,7 +6730,7 @@
   },
   {
     "id": "app.export.generate_presigned_url.config.app_error",
-    "translation": "This actions requires the use of a dedicated export store."
+    "translation": "This action requires the use of a dedicated export store."
   },
   {
     "id": "app.export.generate_presigned_url.direct_download.app_error",
