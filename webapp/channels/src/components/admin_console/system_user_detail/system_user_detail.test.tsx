@@ -646,7 +646,7 @@ describe('SystemUserDetail', () => {
             await waitForLoadingToFinish();
 
             const fieldContainer = screen.getByTestId('user-detail-custom-attribute-label-cpa-1');
-            expect(fieldContainer).toHaveTextContent('opt-1, opt-2');
+            expect(fieldContainer.querySelector('input')).toHaveValue('opt-1, opt-2');
             expect(fieldContainer).toHaveTextContent('This field has too many options to be edited here.');
             expect(within(fieldContainer).queryByRole('combobox')).not.toBeInTheDocument();
             expect(fieldContainer.querySelector('input')).toBeDisabled();
