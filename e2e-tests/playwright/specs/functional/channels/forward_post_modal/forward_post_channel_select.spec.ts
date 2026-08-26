@@ -20,6 +20,7 @@ test('forward post channel selector searches and selects a destination channel',
 
     // # Open the Forward message modal from the posted message
     const post = await channelsPage.getLastPost();
+    const postId = await post.getId();
     await post.hover();
     await post.postMenu.toBeVisible();
     await post.postMenu.openDotMenu();
@@ -48,5 +49,9 @@ test('forward post channel selector searches and selects a destination channel',
 
     await channelsPage.goto(team.name, target.name);
     await channelsPage.toBeVisible();
-    await channelsPage.centerView.waitUntilLastPostContains(message);
+
+    // * Verify the forwarded post links back to the original. Assert on the permalink rather than the
+    // * original message because the permalink preview that renders the message is only generated when the
+    // * link matches the server's SiteURL, which isn't the origin the browser uses in every environment.
+    await channelsPage.centerView.waitUntilLastPostContains(`/pl/${postId}`);
 });
