@@ -236,7 +236,11 @@ jobs:
       - name: ci/dispatch-begin
         uses: mattermost/mattermost-test-system-io/.github/actions/test-system-io-dispatch-begin@1631d8fcea24f4545a0b3b7f77e41c2fe0be4418 # 2026-07-28
         with:
-          use-staging: ${{ vars.E2E_USE_STAGING_TEST_IO_URL != 'false' }}
+          # DEMO (AI triage verification): route this PR's runs to the staging
+          # TSIO so the new /api/v1/triage endpoints (mattermost-test-system-io#101,
+          # deployed to staging) are exercised. Revert to
+          # ${{ vars.E2E_USE_STAGING_TEST_IO_URL != 'false' }} before merge.
+          use-staging: true
           framework: playwright
           repo-dir: ${{ github.workspace }}
           composite-identity: ${{ needs.prepare-run.outputs.composite-identity-json }}
@@ -264,10 +268,11 @@ jobs:
       COMPOSITE_IDENTITY: ${{ needs.prepare-run.outputs.composite-identity-json }}
       MM_LICENSE: "${{ secrets.MM_LICENSE }}"
       TEST: playwright
-      # Arms the E2E triage demo spec (specs/functional/ai_triage_demo.spec.ts).
-      # Empty in normal runs; set the repo variable to `fail` to produce a
-      # deterministic red check for demoing the triage annotation + override path.
-      E2E_TRIAGE_DEMO: ${{ vars.E2E_TRIAGE_DEMO }}
+      # DEMO (AI triage verification): hardcoded `fail` arms the demo spec
+      # (specs/functional/ai_triage_demo.spec.ts) for this PR's E2E run so the
+      # ai-triage job has a failure to classify. Revert to
+      # ${{ vars.E2E_TRIAGE_DEMO }} before merge.
+      E2E_TRIAGE_DEMO: fail
       BRANCH: "${{ inputs.branch }}"
       BUILD_ID: "${{ inputs.build_id }}"
       CI_BASE_URL: "full-test-${{ matrix.worker_index }}"
@@ -328,7 +333,7 @@ jobs:
       - name: ci/dispatch-run
         uses: mattermost/mattermost-test-system-io/.github/actions/test-system-io-dispatch-run@1631d8fcea24f4545a0b3b7f77e41c2fe0be4418 # 2026-07-28
         with:
-          use-staging: ${{ vars.E2E_USE_STAGING_TEST_IO_URL != 'false' }}
+          use-staging: true # DEMO (AI triage verification): see dispatch-begin note
           framework: playwright
           composite-identity: ${{ needs.prepare-run.outputs.composite-identity-json }}
           repo-dir: ${{ github.workspace }}
@@ -370,7 +375,7 @@ jobs:
         continue-on-error: true
         uses: mattermost/mattermost-test-system-io/.github/actions/test-system-io-summary@1631d8fcea24f4545a0b3b7f77e41c2fe0be4418 # 2026-07-28
         with:
-          use-staging: ${{ vars.E2E_USE_STAGING_TEST_IO_URL != 'false' }}
+          use-staging: true # DEMO (AI triage verification): see dispatch-begin note
           composite-identity: ${{ needs.prepare-run.outputs.composite-identity-json }}
           framework: playwright
           report-type: ${{ inputs.report_type }}
@@ -412,7 +417,9 @@ jobs:
       - name: ci/ai-flake-triage
         uses: mattermost/mattermost-test-system-io/.github/actions/test-system-io-ai-triage@765d3e6679b7e95c2cbfff333487fa4598ca101e # 2026-08-27, mattermost-test-system-io#101
         with:
-          use-staging: ${{ vars.E2E_USE_STAGING_TEST_IO_URL != 'false' }}
+          # DEMO (AI triage verification): routed to staging — see the
+          # dispatch-begin note in this template.
+          use-staging: true
           composite-identity: ${{ needs.prepare-run.outputs.composite-identity-json }}
           # History is measured on the real default branch, not the synthetic
           # `pr-N` / `commit-*` dashboard branch this run reported under.
