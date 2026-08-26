@@ -99,13 +99,27 @@ export class QuickSwitchModal extends React.PureComponent<Props, State> {
 
     private focusPostTextbox = (): void => {
         if (!UserAgent.isMobile()) {
-            setTimeout(() => {
-                const textbox = document.querySelector('#post_textbox') as HTMLElement;
-                if (textbox) {
-                    textbox.focus();
-                }
-            });
+            // The channel view is mounted asynchronously after the route change,
+            // so the post textbox might not exist yet. Keep retrying briefly
+            // instead of giving up after a single attempt (MM-43331).
+            this.focusPostTextboxWhenAvailable(10);
         }
+    };
+
+    private focusPostTextboxWhenAvailable = (remainingAttempts: number): void => {
+        // Retry on the next animation frame rather than with a zero-delay
+        // timeout: a chained setTimeout can exhaust its attempts before the
+        // (asynchronously mounted) channel view has rendered, which would
+        // still drop focus. requestAnimationFrame lines up with the render
+        // loop instead (MM-43331).
+        requestAnimationFrame(() => {
+            const textbox = document.querySelector('#post_textbox') as HTMLElement;
+            if (textbox) {
+                textbox.focus();
+            } else if (remainingAttempts > 1) {
+                this.focusPostTextboxWhenAvailable(remainingAttempts - 1);
+            }
+        });
     };
 
     private hideOnCancel = () => {
