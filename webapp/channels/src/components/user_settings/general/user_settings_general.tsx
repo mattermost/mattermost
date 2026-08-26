@@ -469,7 +469,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                 }
             }
         }
-        if (attributeField.type === 'multiselect' && !attributeValue) {
+        if ((attributeField.type === 'multiselect' || attributeField.type === 'graph') && !attributeValue) {
             attributeValue = [];
         }
 

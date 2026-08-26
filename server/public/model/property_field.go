@@ -284,10 +284,16 @@ func (pf *PropertyField) OptionParentLinks() (add []*PropertyOptionEdge, replaci
 		replacing = append(replacing, optionID)
 
 		named, _ := option["name"].(string)
+		if len(parents) > PropertyGraphMaxParentsPerOption {
+			return nil, nil, fmt.Errorf("the option at index %d would have %d options directly above it, and no option may have more than %d", i, len(parents), PropertyGraphMaxParentsPerOption)
+		}
+		seen := make(map[string]bool, len(parents))
 		for _, parent := range parents {
 			switch {
 			case parent == "":
 				return nil, nil, fmt.Errorf("the option at index %d is put under an option with no name", i)
+			case seen[parent]:
+				return nil, nil, fmt.Errorf("the option at index %d names %q as a parent more than once", i, parent)
 			case ambiguous[parent]:
 				return nil, nil, fmt.Errorf("the option at index %d is put under %q, and two of the field's options are called that", i, parent)
 			case idsByName[parent] == "":
@@ -295,6 +301,7 @@ func (pf *PropertyField) OptionParentLinks() (add []*PropertyOptionEdge, replaci
 			case idsByName[parent] == optionID:
 				return nil, nil, fmt.Errorf("the option at index %d, %q, is put under itself", i, named)
 			}
+			seen[parent] = true
 			add = append(add, &PropertyOptionEdge{
 				FieldID:        pf.ID,
 				ChildOptionID:  optionID,

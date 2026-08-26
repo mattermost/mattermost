@@ -859,6 +859,49 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
         expect(props.actions.saveCustomProfileAttribute).toHaveBeenCalledWith('user_id', 'field1', ['opt1', 'opt2']);
     });
 
+    test('updateSelectAttribute() should clear a graph attribute as an empty array', async () => {
+        const saveCustomProfileAttribute = jest.fn().mockResolvedValue({});
+        const graphAttribute: UserPropertyField = {
+            ...customProfileAttribute,
+            type: 'graph',
+            attrs: {
+                value_type: '',
+                visibility: 'when_set',
+                sort_order: 0,
+                options: [
+                    {id: 'opt1', name: 'Option 1', color: ''},
+                    {id: 'opt2', name: 'Option 2', color: ''},
+                ],
+            },
+        };
+
+        const testUser = {...user, custom_profile_attributes: {field1: ['opt1']}};
+        const props = {
+            ...requiredProps,
+            enableCustomProfileAttributes: true,
+            customProfileAttributeFields: [graphAttribute],
+            user: testUser,
+            activeSection: 'customAttribute_field1',
+            actions: {
+                ...requiredProps.actions,
+                saveCustomProfileAttribute,
+            },
+        };
+
+        const {container} = renderWithContext(<UserSettingsGeneral {...props}/>);
+
+        const clearIndicator = container.querySelector('.react-select__clear-indicator');
+        expect(clearIndicator).toBeInTheDocument();
+
+        await userEvent.click(clearIndicator!);
+        await screen.findByText('Select');
+
+        const saveButton = screen.getByRole('button', {name: 'Save'});
+        await userEvent.click(saveButton);
+
+        expect(props.actions.saveCustomProfileAttribute).toHaveBeenCalledWith('user_id', 'field1', []);
+    });
+
     test('should not show custom attribute input field when LDAP attribute is set', async () => {
         const props = {
             ...requiredProps,

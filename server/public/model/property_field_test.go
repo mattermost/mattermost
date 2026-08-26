@@ -2145,6 +2145,11 @@ func TestPropertyField_OptionParentLinks(t *testing.T) {
 				reason: "two of the field's options are called that",
 			},
 			{
+				name:    "the same parent named twice",
+				options: []map[string]any{{"id": NewId(), "name": "Air"}, {"id": NewId(), "name": "Sea", "parents": []any{"Air", "Air"}}},
+				reason:  `names "Air" as a parent more than once`,
+			},
+			{
 				name:    "a parent with no name",
 				options: []map[string]any{{"id": NewId(), "name": "Air", "parents": []any{""}}},
 				reason:  "under an option with no name",
