@@ -7,14 +7,15 @@ import {useIntl} from 'react-intl';
 
 import {CheckIcon, ChevronDownIcon, CloseIcon} from '@mattermost/compass-icons/components';
 import type {PropertyFieldOption} from '@mattermost/types/properties';
+import type {UserPropertyField} from '@mattermost/types/properties_user';
 
 import * as Menu from 'components/menu';
 
 import './selector_menus.scss';
 
+import {channelAttributeMenuItems, SelectedChannelAttributeLabel} from './channel_attribute_target';
 import MaskedChip from './masked_chip';
 
-// MultiValueSelector handles selection of multiple values (operator 'in')
 const MultiValueSelector = ({
     values,
     disabled,
@@ -23,6 +24,9 @@ const MultiValueSelector = ({
     allowCreateValue = false,
     placeholder,
     hasMaskedValues = false,
+    channelFields = [],
+    targetAttribute,
+    onSelectTarget,
 }: {
     values: string[];
     disabled: boolean;
@@ -31,11 +35,17 @@ const MultiValueSelector = ({
     allowCreateValue?: boolean;
     placeholder?: string;
     hasMaskedValues?: boolean;
+    channelFields?: UserPropertyField[];
+    targetAttribute?: string;
+    onSelectTarget?: (name: string) => void;
 }) => {
     const {formatMessage} = useIntl();
     const [filter, setFilter] = useState('');
 
     const hasOptions = options.length > 0;
+    const hasChannelFields = channelFields.length > 0;
+    const inTargetMode = Boolean(targetAttribute);
+    const selectedTarget = inTargetMode ? channelFields.find((cf) => cf.name === targetAttribute) : undefined;
     const actualAllowCreateForMenu = hasOptions ? allowCreateValue : true;
 
     // Filter logic for options
@@ -159,7 +169,14 @@ const MultiValueSelector = ({
                     }),
                     children: (
                         <span className='value-selector-menu-button__inner-wrapper'>
-                            {cellContents}
+                            {inTargetMode ? (
+                                <SelectedChannelAttributeLabel
+                                    field={selectedTarget}
+                                    fallbackName={targetAttribute || ''}
+                                />
+                            ) : (
+                                cellContents
+                            )}
                             <ChevronDownIcon
                                 size={18}
                                 color='rgba(var(--center-channel-color-rgb), 0.5)'
@@ -191,6 +208,14 @@ const MultiValueSelector = ({
                     onChange={onFilterChange}
                     onKeyDown={handleInputKeyDownForMenu}
                 />
+                {hasChannelFields && (
+                    <Menu.Title role='presentation'>
+                        {formatMessage({
+                            id: 'admin.access_control.table_editor.rhs.values_section',
+                            defaultMessage: 'Values',
+                        })}
+                    </Menu.Title>
+                )}
                 {filteredOptions.map((option) => {
                     const name = option.name || '';
                     const id = option.id || name;
@@ -224,6 +249,7 @@ const MultiValueSelector = ({
                         </span>}
                     />
                 )}
+                {onSelectTarget && channelAttributeMenuItems(channelFields, targetAttribute, onSelectTarget, formatMessage)}
             </Menu.Container>
         </div>
     );

@@ -1341,10 +1341,9 @@ func (h *AccessControlHook) filterSharedOnlyScalarValue(field *model.PropertyFie
 // applyFieldReadAccessControl applies read access control to a single field.
 // Returns the field with options filtered based on the caller's access permissions.
 // - Public fields: returned as-is
-// - User-editable fields (PermissionValues=member): returned as-is so users can see all choices
-// - Source-only fields: returned with empty options if caller is not the source plugin
+// - Any access mode when the caller is the field's source plugin: returned as-is
 // - Shared-only fields: returned with options filtered using filterSharedOnlyFieldOptions
-// - Unknown access modes: treated as source-only (secure default)
+// - Source-only or unknown access modes: returned with empty options (secure default)
 func (h *AccessControlHook) applyFieldReadAccessControl(field *model.PropertyField, callerID string) *model.PropertyField {
 	if h.hasUnrestrictedFieldReadAccess(field, callerID) {
 		return field
