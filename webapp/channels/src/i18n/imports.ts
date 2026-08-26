@@ -27,10 +27,6 @@ import vi from './vi.json';
 import zhCN from './zh-CN.json';
 import zhTW from './zh-TW.json';
 
-export const langIDs = ["bg","de","en-AU","es","fa","fr","hu","it","ja","ko","nl","pl","pt-BR","ro","ru","sv","tr","uk","vi","zh-CN","zh-TW"];
-
-export const langLabels = {"bg":"Български","de":"Deutsch","en-AU":"English (Australia)","es":"Español","fa":"فارسی","fr":"Français","hu":"Magyar","it":"Italiano","ja":"日本語","ko":"한국어","nl":"Nederlands","pl":"Polski","pt-BR":"Português (Brasil)","ro":"Română","ru":"Русский","sv":"Svenska","tr":"Türkçe","uk":"Українська","vi":"Tiếng Việt","zh-CN":"中文（中国大陆）","zh-TW":"中文（台灣）"};
-
 // TypeScript thinks it's importing these language files' contents directly, but Webpack rewrites the above imports
 // to the URL the file for lazy loading. That's the reason for the ugly type assertions below.
 export const langFiles: {

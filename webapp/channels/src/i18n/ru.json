@@ -1419,8 +1419,6 @@
   "admin.general.localization.availableLocalesTitle": "Доступные языки:",
   "admin.general.localization.clientLocaleDescription": "Язык по умолчанию для новых пользователей и страниц, на которых пользователь не выполнил вход.",
   "admin.general.localization.clientLocaleTitle": "Язык клиента по умолчанию:",
-  "admin.general.localization.enableExperimentalLocalesDescription": "При значении \"да\" позволяет пользователям выбирать экспериментальные (например, находящиеся в процессе разработки) языки.",
-  "admin.general.localization.enableExperimentalLocalesTitle": "Включить экспериментальные локали:",
   "admin.general.localization.serverLocaleDescription": "Язык по умолчанию для системных сообщений.",
   "admin.general.localization.serverLocaleTitle": "Язык сервера по умолчанию:",
   "admin.general.log": "Ведение журнала",

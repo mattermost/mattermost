@@ -1419,8 +1419,6 @@
   "admin.general.localization.availableLocalesTitle": "Налични езици:",
   "admin.general.localization.clientLocaleDescription": "Език по подразбиране за новосъздадени потребители и страници, на които потребителят не е влязъл.",
   "admin.general.localization.clientLocaleTitle": "Език на клиента по подразбиране:",
-  "admin.general.localization.enableExperimentalLocalesDescription": "Когато е true, позволява на потребителите да избират експериментални (напр. в процес на разработка) езици.",
-  "admin.general.localization.enableExperimentalLocalesTitle": "Разреши експериментални локализации:",
   "admin.general.localization.serverLocaleDescription": "Език по подразбиране за системни съобщения.",
   "admin.general.localization.serverLocaleTitle": "Език на сървъра по подразбиране:",
   "admin.general.log": "Водене на дневници",

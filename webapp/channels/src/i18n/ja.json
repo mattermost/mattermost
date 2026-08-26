@@ -1419,8 +1419,6 @@
   "admin.general.localization.availableLocalesTitle": "利用可能な言語:",
   "admin.general.localization.clientLocaleDescription": "新規作成ユーザーやログインしていない時に使用するデフォルト言語を選択してください。",
   "admin.general.localization.clientLocaleTitle": "デフォルトのクライアント言語:",
-  "admin.general.localization.enableExperimentalLocalesDescription": "有効な場合、実験的な(例えば in progress な)言語を選択できるようになります。",
-  "admin.general.localization.enableExperimentalLocalesTitle": "実験的な言語を有効にする:",
   "admin.general.localization.serverLocaleDescription": "システムメッセージで使用するデフォルト言語を選択してください。",
   "admin.general.localization.serverLocaleTitle": "デフォルトのサーバー言語:",
   "admin.general.log": "ログ",

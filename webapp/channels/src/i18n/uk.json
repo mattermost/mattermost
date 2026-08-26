@@ -1419,8 +1419,6 @@
   "admin.general.localization.availableLocalesTitle": "Доступні мови:",
   "admin.general.localization.clientLocaleDescription": "Мова за замовчуванням для новостворених користувачів і сторінок, на яких користувач не ввійшов у систему.",
   "admin.general.localization.clientLocaleTitle": "Мова клієнта за замовчуванням:",
-  "admin.general.localization.enableExperimentalLocalesDescription": "Якщо параметр увімкнено, користувачі можуть вибирати експериментальні мови (наприклад, ті, що перебувають на стадії розробки).",
-  "admin.general.localization.enableExperimentalLocalesTitle": "Увімкнути експериментальні мови:",
   "admin.general.localization.serverLocaleDescription": "Мова за замовчуванням для системних повідомлень.",
   "admin.general.localization.serverLocaleTitle": "Мова сервера за замовчуванням:",
   "admin.general.log": "Ведення журналу",

@@ -5651,14 +5651,6 @@
     "defaultMessage": "Default Client Language:",
     "description": "Label of the Default Client Language dropdown setting in System Console > Localization; trailing colon intentional."
   },
-  "admin.general.localization.enableExperimentalLocalesDescription": {
-    "defaultMessage": "When true, it allows users to select experimental (e.g., in progress) languages.",
-    "description": "Help text for the Enable Experimental Locales true/false setting in System Console > Localization."
-  },
-  "admin.general.localization.enableExperimentalLocalesTitle": {
-    "defaultMessage": "Enable Experimental Locales:",
-    "description": "Label of the Enable Experimental Locales toggle setting in System Console > Localization; trailing colon intentional."
-  },
   "admin.general.localization.serverLocaleDescription": {
     "defaultMessage": "Default language for system messages.",
     "description": "Help text for the Default Server Language setting in System Console > Localization; system messages are server-generated messages."

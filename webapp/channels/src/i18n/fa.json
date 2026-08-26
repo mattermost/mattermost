@@ -1419,8 +1419,6 @@
   "admin.general.localization.availableLocalesTitle": "زبان‌های موجود:",
   "admin.general.localization.clientLocaleDescription": "زبان پیش‌فرض برای کاربران تازه ایجاد شده و صفحاتی که کاربر در آنها وارد نشده است.",
   "admin.general.localization.clientLocaleTitle": "زبان پیش‌فرض کلاینت:",
-  "admin.general.localization.enableExperimentalLocalesDescription": "وقتی فعال باشد، به کاربران اجازه می‌دهد زبان‌های آزمایشی (مثلاً در حال تکمیل) را انتخاب کنند.",
-  "admin.general.localization.enableExperimentalLocalesTitle": "فعال کردن زبان‌های آزمایشی:",
   "admin.general.localization.serverLocaleDescription": "زبان پیش‌فرض برای پیام‌های سیستم.",
   "admin.general.localization.serverLocaleTitle": "زبان پیش‌فرض سرور:",
   "admin.general.log": "ثبت رویدادها",

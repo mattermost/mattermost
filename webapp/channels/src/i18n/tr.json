@@ -1419,8 +1419,6 @@
   "admin.general.localization.availableLocalesTitle": "Kullanılabilecek diller:",
   "admin.general.localization.clientLocaleDescription": "Yeni oluşturulan kullanıcılar ve kullanıcının oturum açmadığı sayfalar için kullanılacak varsayılan dil.",
   "admin.general.localization.clientLocaleTitle": "Varsayılan istemci dili:",
-  "admin.general.localization.enableExperimentalLocalesDescription": "Açıldığında, kullanıcılar deneysel (geliştirilmekte olan gibi) dilleri seçebilir.",
-  "admin.general.localization.enableExperimentalLocalesTitle": "Deneysel diller kullanılsın:",
   "admin.general.localization.serverLocaleDescription": "Sistem iletileri için kullanılacak varsayılan dil.",
   "admin.general.localization.serverLocaleTitle": "Varsayılan sunucu dili:",
   "admin.general.log": "Günlük kaydı",

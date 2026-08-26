@@ -1419,8 +1419,6 @@
   "admin.general.localization.availableLocalesTitle": "Tillgängliga språk:",
   "admin.general.localization.clientLocaleDescription": "Standardspråk för nyligen skapade användarkonton och sidor där användaren inte loggat in.",
   "admin.general.localization.clientLocaleTitle": "Förvalt klientspråk:",
-  "admin.general.localization.enableExperimentalLocalesDescription": "När aktiverad kan användarna välja experimentella (t.ex. ej färdigöversatta) språk.",
-  "admin.general.localization.enableExperimentalLocalesTitle": "Aktivera experimentella språkversioner:",
   "admin.general.localization.serverLocaleDescription": "Standardspråk för systemmeddelanden.",
   "admin.general.localization.serverLocaleTitle": "Förvalt serverspråk:",
   "admin.general.log": "Loggning",

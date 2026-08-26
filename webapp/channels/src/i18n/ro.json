@@ -1419,8 +1419,6 @@
   "admin.general.localization.availableLocalesTitle": "Limbi disponibile:",
   "admin.general.localization.clientLocaleDescription": "Limba implicită pentru utilizatorii nou creați și pentru paginile în care utilizatorul nu s-a conectat.",
   "admin.general.localization.clientLocaleTitle": "Limba implicită a clientului:",
-  "admin.general.localization.enableExperimentalLocalesDescription": "Când este adevărat, le permite utilizatorilor să selecteze limbi experimentale (de exemplu, în curs de traducere).",
-  "admin.general.localization.enableExperimentalLocalesTitle": "Activați limbile experimentale:",
   "admin.general.localization.serverLocaleDescription": "Limba implicită pentru mesajele de sistem.",
   "admin.general.localization.serverLocaleTitle": "Limba implicită a serverului:",
   "admin.general.log": "Jurnalizare (loguri)",

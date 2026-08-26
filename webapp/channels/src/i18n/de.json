@@ -1419,8 +1419,6 @@
   "admin.general.localization.availableLocalesTitle": "Verfügbare Sprachen:",
   "admin.general.localization.clientLocaleDescription": "Standardsprache für neu angelegte Benutzer und Seiten, auf denen sich der Benutzer noch nicht angemeldet hat.",
   "admin.general.localization.clientLocaleTitle": "Standardsprache Client:",
-  "admin.general.localization.enableExperimentalLocalesDescription": "Wenn \"true\", können Benutzer experimentelle (z.B. in Arbeit befindliche) Sprachen auswählen.",
-  "admin.general.localization.enableExperimentalLocalesTitle": "Experimentelle Sprachen einschalten:",
   "admin.general.localization.serverLocaleDescription": "Standardsprache für Systemnachrichten.",
   "admin.general.localization.serverLocaleTitle": "Standardsprache Server:",
   "admin.general.log": "Protokollierung",

@@ -1419,8 +1419,6 @@
   "admin.general.localization.availableLocalesTitle": "Elérhető nyelvek:",
   "admin.general.localization.clientLocaleDescription": "Alapértelmezett nyelv az újonnan létrehozott felhasználók számára, valamint azokhoz az oldalakhoz, ahol a felhasználó nincs bejelentkezve.",
   "admin.general.localization.clientLocaleTitle": "Alapértelmezett kliensnyelv:",
-  "admin.general.localization.enableExperimentalLocalesDescription": "Ha igaz, lehetővé teszi a felhasználók számára a kísérleti (pl. folyamatban lévő) nyelvek kiválasztását.",
-  "admin.general.localization.enableExperimentalLocalesTitle": "Kísérleti nyelvek engedélyezése:",
   "admin.general.localization.serverLocaleDescription": "Alapértelmezett nyelv a rendszerüzenetekhez.",
   "admin.general.localization.serverLocaleTitle": "Alapértelmezett szervernyelv:",
   "admin.general.log": "Naplózás",

@@ -1419,8 +1419,6 @@
   "admin.general.localization.availableLocalesTitle": "Dostępne języki:",
   "admin.general.localization.clientLocaleDescription": "Domyślny język dla nowo utworzonych użytkowników i stron, na których użytkownik się nie zalogował.",
   "admin.general.localization.clientLocaleTitle": "Domyślny język klienta:",
-  "admin.general.localization.enableExperimentalLocalesDescription": "Gdy włączone, pozwala użytkownikom wybrać języki eksperymentalne (np. w toku).",
-  "admin.general.localization.enableExperimentalLocalesTitle": "Włącz języki eksperymentalne:",
   "admin.general.localization.serverLocaleDescription": "Domyślny język komunikatów systemowych.",
   "admin.general.localization.serverLocaleTitle": "Domyślny język serwera:",
   "admin.general.log": "Logowanie",

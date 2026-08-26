@@ -1419,8 +1419,6 @@
   "admin.general.localization.availableLocalesTitle": "Các ngôn ngữ có sẵn:",
   "admin.general.localization.clientLocaleDescription": "Ngôn ngữ mặc định cho người dùng mới được tạo và các trang mà người dùng chưa đăng nhập.",
   "admin.general.localization.clientLocaleTitle": "Ngôn ngữ ứng dụng khách mặc định:",
-  "admin.general.localization.enableExperimentalLocalesDescription": "Khi đúng, cho phép người dùng chọn các ngôn ngữ thử nghiệm (ví dụ: đang trong quá trình hoàn thiện).",
-  "admin.general.localization.enableExperimentalLocalesTitle": "Bật ngôn ngữ thử nghiệm:",
   "admin.general.localization.serverLocaleDescription": "Ngôn ngữ mặc định cho các thông báo hệ thống.",
   "admin.general.localization.serverLocaleTitle": "Ngôn ngữ Máy chủ Mặc định:",
   "admin.general.log": "Ghi nhật ký",

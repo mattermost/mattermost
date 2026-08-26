@@ -1419,8 +1419,6 @@
   "admin.general.localization.availableLocalesTitle": "Beschikbare talen:",
   "admin.general.localization.clientLocaleDescription": "Standaardtaal voor nieuw aangemaakte gebruikers en pagina's waar de gebruiker niet is ingelogd.",
   "admin.general.localization.clientLocaleTitle": "Standaard client taal:",
-  "admin.general.localization.enableExperimentalLocalesDescription": "Als dit ingeschakeld is, kunnen gebruikers experimentele (bijv. nog niet volledig vertaalde) talen selecteren.",
-  "admin.general.localization.enableExperimentalLocalesTitle": "Experimentele talen inschakelen:",
   "admin.general.localization.serverLocaleDescription": "Standaard taal voor systeemberichten.",
   "admin.general.localization.serverLocaleTitle": "Standaard server taal:",
   "admin.general.log": "Log-instellingen",

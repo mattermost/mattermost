@@ -1419,8 +1419,6 @@
   "admin.general.localization.availableLocalesTitle": "사용 가능한 언어:",
   "admin.general.localization.clientLocaleDescription": "새로 추가되거나 로그인하지 않은 사용자들이 기본으로 사용할 언어입니다.",
   "admin.general.localization.clientLocaleTitle": "클라이언트 기본 언어:",
-  "admin.general.localization.enableExperimentalLocalesDescription": "true이면 사용자가 실험적(예: 진행 중) 언어를 선택할 수 있습니다.",
-  "admin.general.localization.enableExperimentalLocalesTitle": "실험적 로캘 활성화:",
   "admin.general.localization.serverLocaleDescription": "시스템 메시지의 기본 언어입니다.",
   "admin.general.localization.serverLocaleTitle": "서버 기본 언어:",
   "admin.general.log": "로그",

@@ -1419,8 +1419,6 @@
   "admin.general.localization.availableLocalesTitle": "可用的语言：",
   "admin.general.localization.clientLocaleDescription": "新创建的用户以及未登录的用户的默认语言。",
   "admin.general.localization.clientLocaleTitle": "默认客户端语言：",
-  "admin.general.localization.enableExperimentalLocalesDescription": "启用后，允许用户选择实验性（例如，正在开发中的）语言。",
-  "admin.general.localization.enableExperimentalLocalesTitle": "启用实验性语言：",
   "admin.general.localization.serverLocaleDescription": "系统消息的默认语言。",
   "admin.general.localization.serverLocaleTitle": "默认服务器语言：",
   "admin.general.log": "日志",

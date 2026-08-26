@@ -1419,8 +1419,6 @@
   "admin.general.localization.availableLocalesTitle": "Langues disponibles :",
   "admin.general.localization.clientLocaleDescription": "La langue par défaut utilisée pour les utilisateurs nouvellement créés et les pages où l'utilisateur ne s'est pas encore connecté.",
   "admin.general.localization.clientLocaleTitle": "Langue par défaut du client :",
-  "admin.general.localization.enableExperimentalLocalesDescription": "Si activé, les utilisateurs peuvent sélectionner des langues expérimentales (c'est-à-dire en cours de traduction).",
-  "admin.general.localization.enableExperimentalLocalesTitle": "Activer les langues expérimentales :",
   "admin.general.localization.serverLocaleDescription": "La langue par défaut utilisée pour les messages système.",
   "admin.general.localization.serverLocaleTitle": "Langue par défaut du serveur :",
   "admin.general.log": "Journalisation",

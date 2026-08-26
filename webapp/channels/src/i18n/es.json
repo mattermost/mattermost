@@ -1419,8 +1419,6 @@
   "admin.general.localization.availableLocalesTitle": "Idiomas disponibles:",
   "admin.general.localization.clientLocaleDescription": "Idioma predeterminado para nuevos usuarios y páginas donde el usuario no ha iniciado sesión.",
   "admin.general.localization.clientLocaleTitle": "Idioma predeterminado para el Cliente:",
-  "admin.general.localization.enableExperimentalLocalesDescription": "Cuando es verdadero, permite a los usuarios seleccionar idiomas experimentales (p. ej., en progreso).",
-  "admin.general.localization.enableExperimentalLocalesTitle": "Habilitar Idiomas Experimentales:",
   "admin.general.localization.serverLocaleDescription": "Idioma predeterminado para los mensajes del sistema.",
   "admin.general.localization.serverLocaleTitle": "Idioma predeterminado para el Servidor:",
   "admin.general.log": "Registros",

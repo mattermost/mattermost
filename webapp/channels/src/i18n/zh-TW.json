@@ -1419,8 +1419,6 @@
   "admin.general.localization.availableLocalesTitle": "可用語言：",
   "admin.general.localization.clientLocaleDescription": "新使用者及未登入頁面的預設語言。",
   "admin.general.localization.clientLocaleTitle": "預設客戶端語言：",
-  "admin.general.localization.enableExperimentalLocalesDescription": "啟用時，允許使用者選擇實驗性（例如仍在翻譯中）的語言。",
-  "admin.general.localization.enableExperimentalLocalesTitle": "啟用實驗性語言：",
   "admin.general.localization.serverLocaleDescription": "系統訊息的預設語言。",
   "admin.general.localization.serverLocaleTitle": "預設伺服器語言：",
   "admin.general.log": "記錄",
