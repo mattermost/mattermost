@@ -682,7 +682,8 @@ func TestPropertyFieldOptions(t *testing.T) {
 					// Reading is not gated on the options permission: a field's
 					// options are part of its definition, which is readable at the
 					// field's own scope.
-					listed, resp, err := client.GetPropertyFieldOptions(context.Background(), group.Name, template, fields.template.ID, 0, "", 100)
+					var listed []*model.PropertyFieldOption
+					listed, resp, err = client.GetPropertyFieldOptions(context.Background(), group.Name, template, fields.template.ID, 0, "", 100)
 					require.NoError(t, err)
 					CheckOKStatus(t, resp)
 					seeded := optionByName(t, listed, "Seeded Program")

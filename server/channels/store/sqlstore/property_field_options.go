@@ -86,9 +86,7 @@ func (r *propertyOptionRow) insertValues() []any {
 // wireOption rebuilds the option object the caller originally wrote.
 func (r *propertyOptionRow) wireOption() map[string]any {
 	opt := make(map[string]any, len(r.Attrs)+4)
-	for key, value := range r.Attrs {
-		opt[key] = value
-	}
+	maps.Copy(opt, r.Attrs)
 	opt[optionKeyID] = r.ID
 	if r.Name != nil {
 		opt[optionKeyName] = *r.Name
