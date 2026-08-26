@@ -261,4 +261,11 @@ func TestCompleteSamlUserCreatedAudit(t *testing.T) {
 	res = postCompleteSaml(t, th, "dummy-encoded-xml", relayState)
 	assert.Equal(t, http.StatusFound, res.Code)
 	assert.Equal(t, false, lastUserCreated())
+
+	// Post-create failure (e.g. FirstLoginSync) still records user_created on the FAIL audit.
+	fakeSaml.On("DoLogin", mock.Anything, mock.Anything, mock.Anything).
+		Return(th.BasicUser, (*saml2.AssertionInfo)(nil), true, model.NewAppError("DoLogin", "ent.ldap.syncronize.populate_syncables", nil, "", http.StatusInternalServerError)).Once()
+	res = postCompleteSaml(t, th, "dummy-encoded-xml", relayState)
+	assert.Equal(t, http.StatusFound, res.Code)
+	assert.Equal(t, true, lastUserCreated())
 }
