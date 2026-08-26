@@ -4017,6 +4017,7 @@
   "admin.userManagement.userDetail.cpaField": "{fieldName}",
   "admin.userManagement.userDetail.customProfileAttributes": "User Attributes",
   "admin.userManagement.userDetail.email": "Email",
+  "admin.userManagement.userDetail.field_options_omitted": "This field has too many options to be edited here.",
   "admin.userManagement.userDetail.firstName": "First Name",
   "admin.userManagement.userDetail.firstName.input": "Enter first name",
   "admin.userManagement.userDetail.lastName": "Last Name",

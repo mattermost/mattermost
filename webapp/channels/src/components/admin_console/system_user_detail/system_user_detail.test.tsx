@@ -628,6 +628,29 @@ describe('SystemUserDetail', () => {
             expect(changesList).not.toHaveTextContent('opt-2');
             expect(changesList).not.toHaveTextContent('opt-3');
         });
+
+        test('should render a graph field with omitted options as read-only stored values', async () => {
+            const graphField = {
+                ...buildCPAField({options_omitted: true}),
+                type: 'graph',
+            } as UserPropertyField;
+            const props = {
+                ...defaultProps,
+                customProfileAttributeFields: [graphField],
+                getCustomProfileAttributeFields: jest.fn().mockResolvedValue({data: [graphField]}),
+                getCustomProfileAttributeValues: jest.fn().mockResolvedValue({data: {[graphField.id]: ['opt-1', 'opt-2']}}),
+            };
+
+            renderWithContext(<SystemUserDetail {...props}/>);
+
+            await waitForLoadingToFinish();
+
+            const fieldContainer = screen.getByTestId('user-detail-custom-attribute-label-cpa-1');
+            expect(fieldContainer).toHaveTextContent('opt-1, opt-2');
+            expect(fieldContainer).toHaveTextContent('This field has too many options to be edited here.');
+            expect(within(fieldContainer).queryByRole('combobox')).not.toBeInTheDocument();
+            expect(fieldContainer.querySelector('input')).toBeDisabled();
+        });
     });
 });
 

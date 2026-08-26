@@ -288,6 +288,17 @@ const CpaFieldManagementIndicator: React.FC<CpaFieldManagementIndicatorProps> = 
         );
     }
 
+    if (field.attrs?.options_omitted) {
+        return (
+            <div className='user-property-field-values__sync-indicator'>
+                <FormattedMessage
+                    id='admin.userManagement.userDetail.field_options_omitted'
+                    defaultMessage='This field has too many options to be edited here.'
+                />
+            </div>
+        );
+    }
+
     return null;
 };
 
@@ -756,10 +767,29 @@ export class SystemUserDetail extends PureComponent<Props, State> {
         const isSynced = Boolean(field.attrs?.ldap || field.attrs?.saml);
         const isOwnerManaged = Boolean(field.attrs?.owners?.length);
         const isProtected = Boolean(field.attrs?.protected);
-        const isLockedFromEditing = isSynced || isProtected || isOwnerManaged;
+        const optionsOmitted = Boolean(field.attrs?.options_omitted);
+        const isLockedFromEditing = isSynced || isProtected || isOwnerManaged || optionsOmitted;
         const isDisabled = this.state.isSaving || this.state.isLoading || isLockedFromEditing;
 
         const fieldContent = (() => {
+            if (optionsOmitted && valueRefersToOptions(field)) {
+                const display = Array.isArray(value) ?
+                    value.join(this.props.intl.formatMessage({
+                        id: 'admin.userManagement.userDetail.arrayValueSeparator',
+                        defaultMessage: ', ',
+                    })) :
+                    String(value);
+                return (
+                    <input
+                        className='form-control'
+                        type='text'
+                        value={display}
+                        disabled={true}
+                        readOnly={true}
+                    />
+                );
+            }
+
             switch (field.type) {
             case 'select': {
                 const options = field.attrs?.options || [];
