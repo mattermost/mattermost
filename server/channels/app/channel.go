@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"slices"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
@@ -142,11 +143,11 @@ func (a *App) postJoinMessageForDefaultChannel(rctx request.CTX, user *model.Use
 		}
 	} else {
 		if requestor == nil {
-			if err := a.postJoinChannelMessage(rctx, user, channel); err != nil {
+			if _, err := a.postJoinChannelMessage(rctx, user, channel); err != nil {
 				return err
 			}
 		} else {
-			if err := a.PostAddToChannelMessage(rctx, requestor, user, channel, ""); err != nil {
+			if _, err := a.PostAddToChannelMessage(rctx, requestor, user, channel, ""); err != nil {
 				return err
 			}
 		}
@@ -196,7 +197,7 @@ func (a *App) CreateChannelWithUser(rctx request.CTX, channel *model.Channel, us
 		return nil, err
 	}
 
-	if err = a.postJoinChannelMessage(rctx, user, channel); err != nil {
+	if _, err = a.postJoinChannelMessage(rctx, user, channel); err != nil {
 		return nil, err
 	}
 
@@ -1845,7 +1846,7 @@ func (a *App) DeleteChannel(rctx request.CTX, channel *model.Channel, userID str
 }
 
 func (a *App) addUserToChannel(rctx request.CTX, user *model.User, channel *model.Channel) (*model.ChannelMember, *model.AppError) {
-	if channel.Type != model.ChannelTypeOpen && channel.Type != model.ChannelTypePrivate && !channel.IsSpace() {
+	if channel.Type != model.ChannelTypeOpen && channel.Type != model.ChannelTypePrivate && channel.Type != model.ChannelTypeGroup && !channel.IsSpace() {
 		return nil, model.NewAppError("AddUserToChannel", "api.channel.add_user_to_channel.type.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -2002,6 +2003,14 @@ type ChannelMemberOpts struct {
 
 // AddChannelMember adds a user to a channel. It is a wrapper over AddUserToChannel.
 func (a *App) AddChannelMember(rctx request.CTX, userID string, channel *model.Channel, opts ChannelMemberOpts) (*model.ChannelMember, *model.AppError) {
+	if channel.Type == model.ChannelTypeGroup {
+		members, err := a.AddGroupChannelMembers(rctx, channel, []string{userID}, opts)
+		if err != nil {
+			return nil, err
+		}
+		return members[0], nil
+	}
+
 	if member, err := a.Srv().Store().Channel().GetMember(rctx, channel.Id, userID); err != nil {
 		var nfErr *store.ErrNotFound
 		if !errors.As(err, &nfErr) {
@@ -2047,18 +2056,384 @@ func (a *App) AddChannelMember(rctx request.CTX, userID string, channel *model.C
 	})
 
 	if opts.UserRequestorID == "" || userID == opts.UserRequestorID {
-		if err := a.postJoinChannelMessage(rctx, user, channel); err != nil {
+		if _, err := a.postJoinChannelMessage(rctx, user, channel); err != nil {
 			return nil, err
 		}
 	} else {
 		a.Srv().Go(func() {
-			if err := a.PostAddToChannelMessage(rctx, userRequestor, user, channel, opts.PostRootID); err != nil {
+			if _, err := a.PostAddToChannelMessage(rctx, userRequestor, user, channel, opts.PostRootID); err != nil {
 				rctx.Logger().Error("Failed to post AddToChannel message", mlog.Err(err))
 			}
 		})
 	}
 
 	return cm, nil
+}
+
+// groupChannelMemberLock tracks waiters/holders so unused per-channel entries
+// can be removed from the process-local lock map.
+type groupChannelMemberLock struct {
+	mu   sync.Mutex
+	refs int
+}
+
+func (a *App) lockGroupChannelMembers(channelID string) func() {
+	a.ch.groupChannelMemberLocksMut.Lock()
+	entry, ok := a.ch.groupChannelMemberLocks[channelID]
+	if !ok {
+		entry = &groupChannelMemberLock{}
+		a.ch.groupChannelMemberLocks[channelID] = entry
+	}
+	entry.refs++
+	a.ch.groupChannelMemberLocksMut.Unlock()
+
+	entry.mu.Lock()
+	return func() {
+		entry.mu.Unlock()
+
+		a.ch.groupChannelMemberLocksMut.Lock()
+		entry.refs--
+		if entry.refs == 0 {
+			delete(a.ch.groupChannelMemberLocks, channelID)
+		}
+		a.ch.groupChannelMemberLocksMut.Unlock()
+	}
+}
+
+// AddGroupChannelMembers validates and persists GM membership changes atomically
+// under a per-channel lock, then recomputes identity from the committed member set.
+// On any failure after mutation, newly added members from this call are removed so
+// callers never observe a partial add.
+func (a *App) AddGroupChannelMembers(rctx request.CTX, channel *model.Channel, userIDs []string, opts ChannelMemberOpts) ([]*model.ChannelMember, *model.AppError) {
+	if channel.Type != model.ChannelTypeGroup {
+		return nil, model.NewAppError("AddGroupChannelMembers", "api.channel.add_user_to_channel.type.app_error", nil, "", http.StatusBadRequest)
+	}
+	if !a.Config().FeatureFlags.EnableMutableGroupMessages {
+		return nil, model.NewAppError("AddGroupChannelMembers", "api.channel.add_user_to_channel.type.app_error", nil, "", http.StatusBadRequest)
+	}
+	if channel.IsShared() {
+		return nil, model.NewAppError("AddGroupChannelMembers", "api.channel.add_user_to_group.shared.app_error", nil, "", http.StatusBadRequest)
+	}
+	if len(userIDs) == 0 {
+		return []*model.ChannelMember{}, nil
+	}
+
+	unlock := a.lockGroupChannelMembers(channel.Id)
+	defer unlock()
+
+	opts.SkipTeamMemberIntegrityCheck = true
+
+	currentMembers, appErr := a.GetChannelMembersPage(rctx, channel.Id, 0, model.ChannelGroupMaxUsers)
+	if appErr != nil {
+		return nil, appErr
+	}
+	currentByUser := make(map[string]*model.ChannelMember, len(currentMembers))
+	for i := range currentMembers {
+		currentByUser[currentMembers[i].UserId] = &currentMembers[i]
+	}
+
+	seen := make(map[string]bool, len(userIDs))
+	var toAdd []string
+	var already []*model.ChannelMember
+	for _, userID := range userIDs {
+		if seen[userID] {
+			continue
+		}
+		seen[userID] = true
+		if member, ok := currentByUser[userID]; ok {
+			already = append(already, member)
+			continue
+		}
+		toAdd = append(toAdd, userID)
+	}
+
+	if len(toAdd) > 0 {
+		if appErr := a.validateGroupChannelMembersAdd(rctx, channel, currentMembers, toAdd); appErr != nil {
+			return nil, appErr
+		}
+	}
+
+	persisted, getErr := a.GetChannel(rctx, channel.Id)
+	if getErr != nil {
+		return nil, getErr
+	}
+	identityOK, matchErr := a.groupChannelIdentityMatchesMembership(rctx, persisted)
+	if matchErr != nil {
+		return nil, matchErr
+	}
+
+	var userRequestor *model.User
+	var err *model.AppError
+	if opts.UserRequestorID != "" {
+		if userRequestor, err = a.GetUser(opts.UserRequestorID); err != nil {
+			return nil, err
+		}
+	}
+
+	result := make([]*model.ChannelMember, 0, len(already)+len(toAdd))
+	result = append(result, already...)
+
+	var newlyAdded []string
+	var createdPostIDs []string
+	compensate := func() {
+		a.compensateMutableGroupChannelMemberAdds(rctx, newlyAdded, createdPostIDs, opts.UserRequestorID, channel)
+	}
+
+	// Persist every membership before creating any join/add system posts so a
+	// later post failure can roll back the whole call without leaving a partial
+	// visible history for members that were never successfully completed.
+	for _, userID := range toAdd {
+		user, userErr := a.GetUser(userID)
+		if userErr != nil {
+			compensate()
+			return nil, userErr
+		}
+		if user.DeleteAt > 0 {
+			compensate()
+			return nil, model.NewAppError("AddGroupChannelMembers", "app.channel.add_member.deleted_user.app_error", nil, "", http.StatusForbidden)
+		}
+
+		cm, addErr := a.AddUserToChannel(rctx, user, channel, opts.SkipTeamMemberIntegrityCheck)
+		if addErr != nil {
+			compensate()
+			return nil, addErr
+		}
+		newlyAdded = append(newlyAdded, userID)
+		result = append(result, cm)
+
+		addedMember := cm
+		a.Srv().Go(func() {
+			pluginContext := pluginContext(rctx)
+			a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
+				hooks.UserHasJoinedChannel(pluginContext, addedMember, userRequestor)
+				return true
+			}, plugin.UserHasJoinedChannelID)
+		})
+	}
+
+	// System posts are tied to membership completion for this call, not to
+	// identity drift. Newly added members always get a join/add post; already
+	// present requested members only get one when a prior partial failure left
+	// that row without its system post.
+	for _, userID := range newlyAdded {
+		user, userErr := a.GetUser(userID)
+		if userErr != nil {
+			compensate()
+			return nil, userErr
+		}
+		var post *model.Post
+		var postErr *model.AppError
+		if opts.UserRequestorID == "" || userID == opts.UserRequestorID {
+			post, postErr = a.postJoinChannelMessage(rctx, user, channel)
+		} else {
+			post, postErr = a.PostAddToChannelMessage(rctx, userRequestor, user, channel, opts.PostRootID)
+		}
+		if postErr != nil {
+			compensate()
+			return nil, postErr
+		}
+		if post != nil {
+			createdPostIDs = append(createdPostIDs, post.Id)
+		}
+	}
+
+	for _, member := range already {
+		hasPost, postCheckErr := a.groupChannelMemberHasSystemPost(rctx, channel.Id, member.UserId)
+		if postCheckErr != nil {
+			compensate()
+			return nil, postCheckErr
+		}
+		if hasPost {
+			continue
+		}
+
+		user, userErr := a.GetUser(member.UserId)
+		if userErr != nil {
+			compensate()
+			return nil, userErr
+		}
+		var post *model.Post
+		var postErr *model.AppError
+		if opts.UserRequestorID == "" || member.UserId == opts.UserRequestorID {
+			post, postErr = a.postJoinChannelMessage(rctx, user, persisted)
+		} else if userRequestor != nil {
+			post, postErr = a.PostAddToChannelMessage(rctx, userRequestor, user, persisted, opts.PostRootID)
+		}
+		if postErr != nil {
+			compensate()
+			return nil, postErr
+		}
+		if post != nil {
+			createdPostIDs = append(createdPostIDs, post.Id)
+		}
+	}
+
+	// Stale Name/DisplayName is repaired independently of system posts.
+	if len(newlyAdded) == 0 && identityOK {
+		return result, nil
+	}
+
+	if _, syncErr := a.syncGroupChannelIdentity(rctx, persisted); syncErr != nil {
+		compensate()
+		return nil, syncErr
+	}
+
+	return result, nil
+}
+
+// groupChannelMemberHasSystemPost reports whether a join/add system message already
+// exists for userID in the group channel (used to avoid duplicate repair posts).
+func (a *App) groupChannelMemberHasSystemPost(rctx request.CTX, channelID, userID string) (bool, *model.AppError) {
+	const perPage = 100
+	for page := 0; ; page++ {
+		postList, nErr := a.Srv().Store().Post().GetPosts(rctx, model.GetPostsOptions{
+			ChannelId:        channelID,
+			Page:             page,
+			PerPage:          perPage,
+			SkipFetchThreads: true,
+		}, false, map[string]bool{})
+		if nErr != nil {
+			return false, model.NewAppError("groupChannelMemberHasSystemPost", "app.post.get.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+		}
+
+		for _, postID := range postList.Order {
+			post := postList.Posts[postID]
+			switch post.Type {
+			case model.PostTypeAddToChannel, model.PostTypeAddGuestToChannel:
+				if post.GetProp(model.PostPropsAddedUserId) == userID {
+					return true, nil
+				}
+			case model.PostTypeJoinChannel, model.PostTypeGuestJoinChannel:
+				if post.UserId == userID {
+					return true, nil
+				}
+			}
+		}
+
+		if len(postList.Order) < perPage {
+			return false, nil
+		}
+	}
+}
+
+func (a *App) compensateMutableGroupChannelMemberAdds(rctx request.CTX, userIDs, postIDs []string, removerUserID string, channel *model.Channel) {
+	for _, postID := range postIDs {
+		if delErr := a.PermanentDeletePost(rctx, postID, removerUserID); delErr != nil {
+			rctx.Logger().Error(
+				"Failed to compensate group channel system post after add failure",
+				mlog.String("channel_id", channel.Id),
+				mlog.String("post_id", postID),
+				mlog.Err(delErr),
+			)
+		}
+	}
+	for _, userID := range userIDs {
+		if remErr := a.removeUserFromChannel(rctx, userID, removerUserID, channel); remErr != nil {
+			rctx.Logger().Error(
+				"Failed to compensate group channel membership after add failure",
+				mlog.String("channel_id", channel.Id),
+				mlog.String("user_id", userID),
+				mlog.Err(remErr),
+			)
+		}
+	}
+}
+
+// groupChannelIdentityMatchesMembership reports whether Name/DisplayName already
+// reflect the channel's current members.
+func (a *App) groupChannelIdentityMatchesMembership(rctx request.CTX, channel *model.Channel) (bool, *model.AppError) {
+	if channel.Type != model.ChannelTypeGroup {
+		return true, nil
+	}
+
+	members, appErr := a.GetChannelMembersPage(rctx, channel.Id, 0, model.ChannelGroupMaxUsers)
+	if appErr != nil {
+		return false, appErr
+	}
+
+	userIDs := make([]string, 0, len(members))
+	for _, member := range members {
+		userIDs = append(userIDs, member.UserId)
+	}
+
+	users, nErr := a.Srv().Store().User().GetProfileByIds(rctx, userIDs, nil, true)
+	if nErr != nil {
+		return false, model.NewAppError("groupChannelIdentityMatchesMembership", "app.user.get_profiles.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+	}
+
+	return channel.Name == model.GetGroupNameFromUserIds(userIDs) &&
+		channel.DisplayName == model.GetGroupDisplayNameFromUsers(users, true), nil
+}
+
+// validateGroupChannelMembersAdd checks that adding userIDs to the current member
+// set stays within ChannelGroupMaxUsers and does not collide with another GM.
+// currentMembers must be the committed membership at validation time.
+func (a *App) validateGroupChannelMembersAdd(rctx request.CTX, channel *model.Channel, currentMembers model.ChannelMembers, userIDs []string) *model.AppError {
+	proposed := make([]string, 0, len(currentMembers)+len(userIDs))
+	for _, member := range currentMembers {
+		proposed = append(proposed, member.UserId)
+	}
+	proposed = append(proposed, userIDs...)
+
+	if len(proposed) > model.ChannelGroupMaxUsers {
+		return model.NewAppError("AddGroupChannelMembers", "api.channel.add_user_to_group.max_members.app_error", map[string]any{"MaxUsers": model.ChannelGroupMaxUsers}, "", http.StatusBadRequest)
+	}
+
+	existing, err := a.GetChannelByName(rctx, model.GetGroupNameFromUserIds(proposed), "", true)
+	if err != nil {
+		if err.StatusCode == http.StatusNotFound {
+			return nil
+		}
+		return err
+	}
+	if existing.Id != channel.Id {
+		return model.NewAppError("AddGroupChannelMembers", "api.channel.add_user_to_group.already_exists.app_error", nil, "existing_channel_id="+existing.Id, http.StatusBadRequest)
+	}
+
+	return nil
+}
+
+// syncGroupChannelIdentity recomputes the hash-based Name and DisplayName for a
+// group channel after membership changes.
+func (a *App) syncGroupChannelIdentity(rctx request.CTX, channel *model.Channel) (*model.Channel, *model.AppError) {
+	if channel.Type != model.ChannelTypeGroup {
+		return channel, nil
+	}
+
+	members, appErr := a.GetChannelMembersPage(rctx, channel.Id, 0, model.ChannelGroupMaxUsers)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	userIDs := make([]string, 0, len(members))
+	for _, member := range members {
+		userIDs = append(userIDs, member.UserId)
+	}
+
+	users, nErr := a.Srv().Store().User().GetProfileByIds(rctx, userIDs, nil, true)
+	if nErr != nil {
+		return nil, model.NewAppError("syncGroupChannelIdentity", "app.user.get_profiles.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+	}
+
+	newName := model.GetGroupNameFromUserIds(userIDs)
+	newDisplayName := model.GetGroupDisplayNameFromUsers(users, true)
+	if channel.Name == newName && channel.DisplayName == newDisplayName {
+		return channel, nil
+	}
+
+	originalChannel := channel.DeepCopy()
+	toUpdate := channel.DeepCopy()
+	toUpdate.Name = newName
+	toUpdate.DisplayName = newDisplayName
+
+	updatedChannel, appErr := a.UpdateChannel(rctx, toUpdate)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	a.Srv().Platform().InvalidateCacheForChannel(originalChannel)
+
+	return updatedChannel, nil
 }
 
 func (a *App) AddDirectChannels(rctx request.CTX, teamID string, user *model.User) *model.AppError {
@@ -2766,14 +3141,14 @@ func (a *App) JoinChannel(rctx request.CTX, channel *model.Channel, userID strin
 		}, plugin.UserHasJoinedChannelID)
 	})
 
-	if err := a.postJoinChannelMessage(rctx, user, channel); err != nil {
+	if _, err := a.postJoinChannelMessage(rctx, user, channel); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (a *App) postJoinChannelMessage(rctx request.CTX, user *model.User, channel *model.Channel) *model.AppError {
+func (a *App) postJoinChannelMessage(rctx request.CTX, user *model.User, channel *model.Channel) (*model.Post, *model.AppError) {
 	message := fmt.Sprintf(i18n.T("api.channel.join_channel.post_and_forget"), user.Username)
 	postType := model.PostTypeJoinChannel
 
@@ -2792,11 +3167,12 @@ func (a *App) postJoinChannelMessage(rctx request.CTX, user *model.User, channel
 		},
 	}
 
-	if _, _, err := a.CreatePost(rctx, post, channel, model.CreatePostFlags{SetOnline: true}); err != nil {
-		return model.NewAppError("postJoinChannelMessage", "api.channel.post_user_add_remove_message_and_forget.error", nil, "", http.StatusInternalServerError).Wrap(err)
+	savedPost, _, err := a.CreatePost(rctx, post, channel, model.CreatePostFlags{SetOnline: true})
+	if err != nil {
+		return nil, model.NewAppError("postJoinChannelMessage", "api.channel.post_user_add_remove_message_and_forget.error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	return nil
+	return savedPost, nil
 }
 
 func (a *App) postJoinTeamMessage(rctx request.CTX, user *model.User, channel *model.Channel) *model.AppError {
@@ -2900,7 +3276,7 @@ func (a *App) postLeaveChannelMessage(rctx request.CTX, user *model.User, channe
 	return nil
 }
 
-func (a *App) PostAddToChannelMessage(rctx request.CTX, user *model.User, addedUser *model.User, channel *model.Channel, postRootId string) *model.AppError {
+func (a *App) PostAddToChannelMessage(rctx request.CTX, user *model.User, addedUser *model.User, channel *model.Channel, postRootId string) (*model.Post, *model.AppError) {
 	message := fmt.Sprintf(i18n.T("api.channel.add_member.added"), addedUser.Username, user.Username)
 	postType := model.PostTypeAddToChannel
 
@@ -2922,11 +3298,12 @@ func (a *App) PostAddToChannelMessage(rctx request.CTX, user *model.User, addedU
 		},
 	}
 
-	if _, _, err := a.CreatePost(rctx, post, channel, model.CreatePostFlags{SetOnline: true}); err != nil {
-		return model.NewAppError("postAddToChannelMessage", "api.channel.post_user_add_remove_message_and_forget.error", nil, "", http.StatusInternalServerError).Wrap(err)
+	savedPost, _, err := a.CreatePost(rctx, post, channel, model.CreatePostFlags{SetOnline: true})
+	if err != nil {
+		return nil, model.NewAppError("postAddToChannelMessage", "api.channel.post_user_add_remove_message_and_forget.error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	return nil
+	return savedPost, nil
 }
 
 func (a *App) postAddToTeamMessage(rctx request.CTX, user *model.User, addedUser *model.User, channel *model.Channel, postRootId string) *model.AppError {

@@ -5702,6 +5702,92 @@ func TestAddChannelMember(t *testing.T) {
 	})
 }
 
+func TestAddChannelMemberToGroupChannel(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	t.Run("rejected when feature flag is off", func(t *testing.T) {
+		th := SetupConfig(t, func(cfg *model.Config) {
+			cfg.FeatureFlags.EnableMutableGroupMessages = false
+		}).InitBasic(t)
+		client := th.Client
+
+		user3 := th.CreateUser(t)
+		user4 := th.CreateUser(t)
+
+		groupChannel, _, err := client.CreateGroupChannel(context.Background(), []string{th.BasicUser.Id, th.BasicUser2.Id, user3.Id})
+		require.NoError(t, err)
+
+		_, resp, err := client.AddChannelMember(context.Background(), groupChannel.Id, user4.Id)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.EnableMutableGroupMessages = true
+	}).InitBasic(t)
+	client := th.Client
+
+	user3 := th.CreateUser(t)
+	user4 := th.CreateUser(t)
+
+	t.Run("adds member to existing group channel", func(t *testing.T) {
+		groupChannel, _, err := client.CreateGroupChannel(context.Background(), []string{th.BasicUser.Id, th.BasicUser2.Id, user3.Id})
+		require.NoError(t, err)
+
+		cm, resp, err := client.AddChannelMember(context.Background(), groupChannel.Id, user4.Id)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+		require.Equal(t, groupChannel.Id, cm.ChannelId)
+		require.Equal(t, user4.Id, cm.UserId)
+
+		updated, _, err := client.GetChannel(context.Background(), groupChannel.Id)
+		require.NoError(t, err)
+		require.Equal(t, model.GetGroupNameFromUserIds([]string{th.BasicUser.Id, th.BasicUser2.Id, user3.Id, user4.Id}), updated.Name)
+	})
+
+	t.Run("rejects non-member", func(t *testing.T) {
+		groupChannel, _, err := client.CreateGroupChannel(context.Background(), []string{th.BasicUser.Id, th.BasicUser2.Id, user3.Id})
+		require.NoError(t, err)
+
+		_, err = client.Logout(context.Background())
+		require.NoError(t, err)
+		_, _, err = client.Login(context.Background(), user4.Email, user4.Password)
+		require.NoError(t, err)
+
+		extra := th.CreateUser(t)
+		_, resp, err := client.AddChannelMember(context.Background(), groupChannel.Id, extra.Id)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("batch add fails without partial membership", func(t *testing.T) {
+		_, err := client.Logout(context.Background())
+		require.NoError(t, err)
+		th.LoginBasic(t)
+
+		users := []string{th.BasicUser.Id, th.BasicUser2.Id, user3.Id}
+		for len(users) < model.ChannelGroupMaxUsers-1 {
+			u := th.CreateUser(t)
+			users = append(users, u.Id)
+		}
+		groupChannel, _, err := client.CreateGroupChannel(context.Background(), users)
+		require.NoError(t, err)
+
+		extra1 := th.CreateUser(t)
+		extra2 := th.CreateUser(t)
+		_, resp, err := client.AddChannelMembers(context.Background(), groupChannel.Id, "", []string{extra1.Id, extra2.Id})
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+
+		_, resp, err = client.GetChannelMember(context.Background(), groupChannel.Id, extra1.Id, "")
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+		_, resp, err = client.GetChannelMember(context.Background(), groupChannel.Id, extra2.Id, "")
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+	})
+}
+
 func TestAddChannelMembers(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)

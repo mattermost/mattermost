@@ -92,6 +92,12 @@ type Channels struct {
 	uploadLockMapMut sync.Mutex
 	uploadLockMap    map[string]bool
 
+	// Process-local per-channel locks for mutable GM membership changes. These
+	// serialize validate+persist only within this server process (not cluster-wide)
+	// so concurrent local adds cannot bypass max-member or identity-collision checks.
+	groupChannelMemberLocksMut sync.Mutex
+	groupChannelMemberLocks    map[string]*groupChannelMemberLock
+
 	imgDecoder *imaging.Decoder
 	imgEncoder *imaging.Encoder
 
@@ -108,13 +114,14 @@ type Channels struct {
 
 func NewChannels(s *Server) (*Channels, error) {
 	ch := &Channels{
-		srv:               s,
-		imageProxy:        imageproxy.MakeImageProxy(s.platform, s.httpService, s.Log()),
-		uploadLockMap:     map[string]bool{},
-		filestore:         s.FileBackend(),
-		exportFilestore:   s.ExportFileBackend(),
-		cfgSvc:            s.Platform(),
-		interruptQuitChan: make(chan struct{}),
+		srv:                     s,
+		imageProxy:              imageproxy.MakeImageProxy(s.platform, s.httpService, s.Log()),
+		uploadLockMap:           map[string]bool{},
+		groupChannelMemberLocks: map[string]*groupChannelMemberLock{},
+		filestore:               s.FileBackend(),
+		exportFilestore:         s.ExportFileBackend(),
+		cfgSvc:                  s.Platform(),
+		interruptQuitChan:       make(chan struct{}),
 	}
 	ch.guardCache.Store(&sync.Map{})
 
