@@ -5,7 +5,7 @@ import React from 'react';
 
 import SizeAwareImage from 'components/size_aware_image';
 
-import {renderWithContext, act, screen} from 'tests/react_testing_utils';
+import {renderWithContext, act, screen, fireEvent} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 function simulateImageLoad(img: HTMLImageElement, naturalWidth: number, naturalHeight: number) {
@@ -298,5 +298,45 @@ describe('components/SizeAwareImage', () => {
 
         const {container} = renderWithContext(<SizeAwareImage {...props}/>, state);
         expect(container.querySelector('button.size-aware-image__copy_link')).toBeNull();
+    });
+    test('should not call onClick when clicking the container outside the image', async () => {
+        const onClick = jest.fn();
+
+        const props = {
+            ...baseProps,
+            onClick,
+        };
+
+        const {container} = renderWithContext(<SizeAwareImage {...props}/>, state);
+
+        const img = screen.getByRole('img', {hidden: true}) as HTMLImageElement;
+        await simulateImageLoad(img, 300, 200);
+
+        const filePreviewButton = container.querySelector('.file-preview__button') as HTMLElement;
+
+        fireEvent.click(filePreviewButton);
+
+        expect(onClick).not.toHaveBeenCalled();
+    });
+
+    test('should not call onClick when clicking the download button', async () => {
+        const onClick = jest.fn();
+
+        const props = {
+            ...baseProps,
+            fileURL: 'https://example.com/image.png',
+            onClick,
+        };
+
+        const {container} = renderWithContext(<SizeAwareImage {...props}/>, state);
+
+        const img = screen.getByRole('img', {hidden: true}) as HTMLImageElement;
+        await simulateImageLoad(img, 300, 200);
+
+        const download = container.querySelector('.size-aware-image__download') as HTMLAnchorElement;
+
+        fireEvent.click(download);
+
+        expect(onClick).not.toHaveBeenCalled();
     });
 });
