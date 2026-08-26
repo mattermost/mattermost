@@ -12,10 +12,10 @@ permissions:
 # authored in-repo and land in the same PR as the English string, so the job
 # is to check them instead of to block them.
 #
-# Missing keys are reported as warnings rather than errors for now: the gate
-# is only fair once contributors have a documented way to generate the other
-# 21 locales for a string they are adding, which does not exist yet. Every
-# other check here is a hard failure.
+# Key parity is a hard failure, like everything else here. That is only fair
+# because i18n/AGENTS.md documents how to produce the other 21 locales for a
+# string you are adding; a PR that adds a string without them will fail, and
+# the guide is the way to fix it.
 jobs:
   verify-webapp:
     name: Verify webapp translation files
@@ -37,7 +37,7 @@ jobs:
       - name: ci/i18n-verify-translations
         working-directory: webapp/channels
         run: |
-          npm run i18n-verify-translations -- --warn-missing-keys
+          npm run i18n-verify-translations
 
       # en.json lives under the paths that trigger this workflow, so an edit
       # that puts the authoring catalog out of lockstep is caught here.
@@ -63,7 +63,7 @@ jobs:
       - name: ci/i18n-verify
         working-directory: tools/mmgotool
         run: |
-          go run . i18n verify --server-dir=../../server --warn-missing-ids
+          go run . i18n verify --server-dir=../../server
 
       - name: ci/i18n-extract-authoring
         working-directory: tools/mmgotool
