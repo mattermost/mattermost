@@ -471,9 +471,36 @@ describe('TableEditor - injected searchUsers', () => {
         await userEvent.click(screen.getByRole('button', {name: /test access rule/i}));
 
         await waitFor(() => {
-            expect(mockSearch).toHaveBeenCalledWith(expression, '', '', 50);
+            expect(mockSearch).toHaveBeenCalledWith(expression, '', '', 50, undefined);
         });
         expect(searchUsersForExpression).not.toHaveBeenCalled();
+    });
+
+    test('should thread the editor channel into the injected searchUsers', async () => {
+        // A resource.attributes.* rule can only be tested against a concrete
+        // channel, so the channel (the editor's own scope here, or one picked in
+        // the modal) has to reach the searchUsers override. Without it the server
+        // cannot resolve the resource side and the test reports no users.
+        const mockSearch = jest.fn().mockResolvedValue({data: {users: [], total: 0}});
+
+        renderWithContext(
+            <TableEditor
+                {...baseProps}
+                channelId='channel1'
+                actions={{getVisualAST, searchUsers: mockSearch}}
+            />,
+            {},
+        );
+
+        await waitFor(() => {
+            expect(screen.getByRole('button', {name: /test access rule/i})).not.toBeDisabled();
+        });
+
+        await userEvent.click(screen.getByRole('button', {name: /test access rule/i}));
+
+        await waitFor(() => {
+            expect(mockSearch).toHaveBeenCalledWith(expression, '', '', 50, 'channel1');
+        });
     });
 
     test('should fall back to the redux thunk when searchUsers is not injected', async () => {
