@@ -9,10 +9,4 @@ Visit the [Plugins](/developers/integrate/plugins) section to learn more about [
 
 ***
 
-
-<Note title="Generated content (migrating)">
-
-This section was rendered by the Hugo `plugingodocs` shortcode from the upstream plugin reference. Migration follow-up — see PLAN.md §11.2.
-
-</Note>
-
+<PluginGoDocs />

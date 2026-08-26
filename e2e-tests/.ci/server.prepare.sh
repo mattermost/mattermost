@@ -55,14 +55,14 @@ for SERVICE in $ENABLED_DOCKER_SERVICES; do
   openldap)
     LDIF_FILE=../../server/tests/test-data.ldif
     LDIF_CANARY=$(sed -n -E 's/^dn:[[:space:]]*(.*)$/\1/p' ${LDIF_FILE} | tail -n1)
-    if ${MME2E_DC_SERVER} exec -T -- openldap bash -c "ldapsearch -x -D \"cn=admin,dc=mm,dc=test,dc=com\" -w mostest -b \"$LDIF_CANARY\" >/dev/null"; then
+    if ${MME2E_DC_SERVER} exec -T -- openldap bash -c "ldapsearch -x -D \"cn=admin,dc=mm,dc=test,dc=com\" -w mostest_password -b \"$LDIF_CANARY\" >/dev/null"; then
       mme2e_log "Skipping configuration for the $SERVICE container: already initialized"
       continue
     fi
     mme2e_log "Configuring the $SERVICE container"
-    ${MME2E_DC_SERVER} exec -T openldap bash -c 'ldapadd -Y EXTERNAL -H ldapi:/// -w mostest || true' <../../server/tests/custom-schema-objectID.ldif
-    ${MME2E_DC_SERVER} exec -T -- openldap bash -c 'ldapadd -Y EXTERNAL -H ldapi:/// -w mostest || true' <../../server/tests/custom-schema-cpa.ldif
-    ${MME2E_DC_SERVER} exec -T -- openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest' <../../server/tests/test-data.ldif
+    ${MME2E_DC_SERVER} exec -T openldap bash -c 'ldapadd -Y EXTERNAL -H ldapi:/// -w mostest_password || true' <../../server/tests/custom-schema-objectID.ldif
+    ${MME2E_DC_SERVER} exec -T -- openldap bash -c 'ldapadd -Y EXTERNAL -H ldapi:/// -w mostest_password || true' <../../server/tests/custom-schema-cpa.ldif
+    ${MME2E_DC_SERVER} exec -T -- openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest_password' <../../server/tests/test-data.ldif
     ;;
   minio)
     mme2e_log "Configuring the $SERVICE container"
