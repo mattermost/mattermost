@@ -1515,6 +1515,68 @@ func TestHookOnCloudLimitsUpdated(t *testing.T) {
 	require.True(t, hookCalled)
 }
 
+func TestHookOnLicenseChanged(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t, StartMetrics)
+
+	tearDown, pluginIDs, activationErrors := SetAppEnvironmentWithPlugins(t,
+		[]string{
+			`
+		package main
+
+		import (
+			"github.com/mattermost/mattermost/server/public/model"
+			"github.com/mattermost/mattermost/server/public/plugin"
+		)
+
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+		}
+
+		func (p *MyPlugin) OnLicenseChanged(oldLicense, newLicense *model.License) {
+			oldID := "nil"
+			if oldLicense != nil {
+				oldID = oldLicense.Id
+			}
+			newID := "nil"
+			if newLicense != nil {
+				newID = newLicense.Id
+			}
+			p.API.KVSet("old_license_id", []byte(oldID))
+			p.API.KVSet("new_license_id", []byte(newID))
+		}
+
+		func main() {
+			plugin.ClientMain(&MyPlugin{})
+		}
+	`,
+		}, th.App, th.NewPluginAPI)
+	defer tearDown()
+
+	require.Len(t, pluginIDs, 1)
+	require.NoError(t, activationErrors[0])
+	pluginID := pluginIDs[0]
+	require.True(t, th.App.GetPluginsEnvironment().IsActive(pluginID))
+
+	oldLicense := model.NewTestLicense()
+	oldLicense.Id = model.NewId()
+	require.True(t, th.App.Srv().SetLicense(oldLicense))
+
+	newLicense := model.NewTestLicense()
+	newLicense.Id = model.NewId()
+	require.True(t, th.App.Srv().SetLicense(newLicense))
+
+	oldID, appErr := th.App.GetPluginKey(pluginID, "old_license_id")
+	require.Nil(t, appErr)
+	require.Equal(t, []byte(oldLicense.Id), oldID)
+
+	newID, appErr := th.App.GetPluginKey(pluginID, "new_license_id")
+	require.Nil(t, appErr)
+	require.Equal(t, []byte(newLicense.Id), newID)
+
+	require.True(t, th.App.GetPluginsEnvironment().IsActive(pluginID))
+}
+
 //go:embed test_templates/hook_notification_will_be_pushed.tmpl
 var hookNotificationWillBePushedTmpl string
 
