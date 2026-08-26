@@ -169,7 +169,7 @@ describe('System Console > Site Statistics', () => {
             cy.uiOpenSettingsModal('Display').then(() => {
                 cy.findByText('Language').click();
                 cy.get('#displayLanguage').click();
-                cy.findByText('Français (Beta)').click();
+                cy.findByText('Français').click();
                 cy.uiSave();
             });
 

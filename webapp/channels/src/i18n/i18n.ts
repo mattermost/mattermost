@@ -40,25 +40,25 @@ export const languages = {
     },
     es: {
         value: 'es',
-        name: 'Español (Alpha)',
+        name: 'Español',
         order: 3,
         url: langFiles.es,
     },
     fr: {
         value: 'fr',
-        name: 'Français (Alpha)',
+        name: 'Français',
         order: 4,
         url: langFiles.fr,
     },
     it: {
         value: 'it',
-        name: 'Italiano (Alpha)',
+        name: 'Italiano',
         order: 5,
         url: langFiles.it,
     },
     hu: {
         value: 'hu',
-        name: 'Magyar (Alpha)',
+        name: 'Magyar',
         order: 6,
         url: langFiles.hu,
     },
@@ -76,13 +76,13 @@ export const languages = {
     },
     'pt-BR': {
         value: 'pt-BR',
-        name: 'Português (Brasil) (Alpha)',
+        name: 'Português (Brasil)',
         order: 9,
         url: langFiles['pt-BR'],
     },
     ro: {
         value: 'ro',
-        name: 'Română (Alpha)',
+        name: 'Română',
         order: 10,
         url: langFiles.ro,
     },
@@ -94,7 +94,7 @@ export const languages = {
     },
     vi: {
         value: 'vi',
-        name: 'Tiếng Việt (Beta)',
+        name: 'Tiếng Việt',
         order: 12,
         url: langFiles.vi,
     },
@@ -106,7 +106,7 @@ export const languages = {
     },
     bg: {
         value: 'bg',
-        name: 'Български (Alpha)',
+        name: 'Български',
         order: 14,
         url: langFiles.bg,
     },
@@ -124,7 +124,7 @@ export const languages = {
     },
     fa: {
         value: 'fa',
-        name: 'فارسی (Alpha)',
+        name: 'فارسی',
         order: 17,
         url: langFiles.fa,
     },
@@ -136,13 +136,13 @@ export const languages = {
     },
     'zh-CN': {
         value: 'zh-CN',
-        name: '中文 (简体) (Beta)',
+        name: '中文 (简体)',
         order: 19,
         url: langFiles['zh-CN'],
     },
     'zh-TW': {
         value: 'zh-TW',
-        name: '中文 (繁體) (Beta)',
+        name: '中文 (繁體)',
         order: 20,
         url: langFiles['zh-TW'],
     },
