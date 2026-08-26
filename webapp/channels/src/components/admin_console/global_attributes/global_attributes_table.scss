@@ -1,0 +1,153 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+@use 'utils/variables';
+
+.GlobalAttributesTable__type,
+.GlobalAttributesTable__source {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.GlobalAttributesTable__source {
+    color: rgba(var(--center-channel-color-rgb), 0.72);
+}
+
+// Per design (Figma node 6207:13241): the label is full-opacity
+// center-channel-color, only the leading icon is faded to 0.64.
+.GlobalAttributesTable__type {
+    color: var(--center-channel-color);
+
+    svg {
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+    }
+}
+
+.GlobalAttributesTable__attribute {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+// Ellipsis-truncation lives here (not on the shared td rule in list_table.scss) so it applies
+// only to the name line — leaving every ordinary row's truncation behavior unchanged — while
+// the classification-only subtitle below is free to wrap onto its own line(s).
+.GlobalAttributesTable__name {
+    overflow: hidden;
+    color: var(--center-channel-color);
+    font-weight: variables.$font-weight--semibold;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.GlobalAttributesTable__name--classification {
+    color: rgba(var(--center-channel-color-rgb), 0.56);
+}
+
+.GlobalAttributesTable__subtitle {
+    color: rgba(var(--center-channel-color-rgb), 0.64);
+    font-size: 12px;
+    white-space: normal;
+}
+
+.GlobalAttributesTable__subtitle--classification {
+    color: rgba(var(--center-channel-color-rgb), 0.56);
+}
+
+.GlobalAttributesTable__link--classification {
+    display: inline-flex;
+    width: 32px;
+    height: 32px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    color: rgba(var(--center-channel-color-rgb), 0.64);
+    text-decoration: none;
+
+    &:hover {
+        background-color: rgba(var(--center-channel-color-rgb), 0.08);
+        color: var(--center-channel-color);
+    }
+
+    &:focus-visible {
+        background-color: rgba(var(--center-channel-color-rgb), 0.08);
+        color: var(--center-channel-color);
+        outline: 2px solid var(--button-bg);
+        outline-offset: 2px;
+    }
+}
+
+.GlobalAttributesTable__empty {
+    padding: 24px;
+    color: rgba(var(--center-channel-color-rgb), 0.64);
+    text-align: center;
+}
+
+.GlobalAttributesTable__wrapper {
+    // The shared .adminConsoleListTableContainer rule (list_table.scss) sets
+    // overflow: auto unconditionally, which clips the table into its own
+    // scrollable box. On this page that box ends up a pixel or two shorter
+    // than the table's actual content, so a scrollbar renders even though
+    // nothing is really cut off. Let it grow naturally; the page itself
+    // (.admin-console__wrapper) already scrolls when content overflows.
+    .adminConsoleListTableContainer {
+        overflow: visible;
+    }
+
+    td.actions,
+    th.actions {
+        text-align: right;
+    }
+
+    // table-layout is auto (never overridden), so max-width here is what
+    // actually caps this column -- the inner .GlobalAttributesTable__name
+    // span's own ellipsis-truncation rule only kicks in once the column
+    // itself is this narrow.
+    td.attribute,
+    th.attribute {
+        max-width: 65ch;
+    }
+
+    table.adminConsoleListTable thead tr th {
+        border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
+        background-color: rgba(var(--center-channel-color-rgb), 0.04);
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+        letter-spacing: 0.02em;
+        text-transform: uppercase;
+    }
+
+    // 12px top/bottom (vs. the shared 16px) so the row's total height matches
+    // the 32px Actions button: 32 + 12 + 12 = 56px.
+    table.adminConsoleListTable tbody tr td {
+        padding-block-end: 12px;
+        padding-block-start: 12px;
+    }
+}
+
+// .btn.btn-transparent's shared :hover/:active rule (_buttons.scss) paints both states
+// identically with a solid var(--button-bg) fill + var(--button-color) icon (designed
+// for high-contrast solid buttons), which both makes "hovering" and "menu is open" look
+// the same AND turns the icon white against our much lighter fill. Overriding both
+// background and color here. Matching .btn-transparent in this selector too (not just
+// our own class) so specificity ties with the rule it overrides, rather than losing to it.
+.btn-transparent.GlobalAttributesTable__actionsButton {
+    width: 32px;
+    min-width: 32px;
+    height: 32px;
+    padding: 0;
+
+    &:hover {
+        background: rgba(var(--center-channel-color-rgb), 0.08);
+        color: inherit;
+    }
+
+    // Only [aria-expanded="true"] drives the "open" background, not :focus alone —
+    // MUI restores DOM focus to the trigger when the menu closes (e.g. clicking
+    // outside), so :focus persists after close and would otherwise leave the
+    // button looking permanently "active" even once the popover is gone.
+    &[aria-expanded='true'] {
+        background: rgba(var(--button-bg-rgb), 0.08);
+        color: inherit;
+    }
+}

@@ -357,6 +357,43 @@ func TestCreateAccessControlPolicy(t *testing.T) {
 		CheckOKStatus(t, resp)
 	})
 
+	t.Run("system admin is allowed for every policy type", func(t *testing.T) {
+		// Guards the hoisted ManageSystem check: a system admin must be
+		// accepted in every case of the policy-type switch. Parent and Team
+		// types are only exercised as sysadmin here; Channel and Permission
+		// sysadmin paths are covered by the sibling subtests above.
+		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		require.True(t, ok, "SetLicense should return true")
+
+		updateTestFeatureFlags(t, th, func(cfg *model.Config) {
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(true)
+		})
+
+		for _, policyType := range []string{model.AccessControlPolicyTypeParent, model.AccessControlPolicyTypeTeam} {
+			policy := &model.AccessControlPolicy{
+				ID:       model.NewId(),
+				Type:     policyType,
+				Name:     "sysadmin-" + policyType,
+				Version:  model.AccessControlPolicyVersionV0_3,
+				Revision: 1,
+				Rules: []model.AccessControlPolicyRule{
+					{
+						Expression: "user.attributes.department == 'engineering'",
+						Actions:    []string{model.AccessControlPolicyActionMembership},
+					},
+				},
+			}
+
+			mockAccessControlService := &mocks.AccessControlServiceInterface{}
+			th.App.Srv().Channels().AccessControl = mockAccessControlService
+			mockAccessControlService.On("SavePolicy", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("*model.AccessControlPolicy")).Return(policy, nil).Times(1)
+
+			_, resp, err := th.SystemAdminClient.CreateAccessControlPolicy(context.Background(), policy)
+			require.NoError(t, err, "system admin should create a %s policy", policyType)
+			CheckOKStatus(t, resp)
+		}
+	})
+
 	t.Run("CreateChannelPolicy with permission rules rejected when ChannelPermissionPolicies sub-flag is off", func(t *testing.T) {
 		// Channel-scope policies that ONLY have membership rules
 		// stay available even when the permission-rule sub-flag is
@@ -3117,6 +3154,237 @@ func TestSimulatePolicyForUsers(t *testing.T) {
 		defer resp.Body.Close()
 		require.Equal(t, http.StatusForbidden, resp.StatusCode)
 		mockACS.AssertNotCalled(t, "SimulatePolicyForUsers", mock.Anything, mock.Anything)
+	})
+
+	t.Run("channel admin response strips evaluation trees", func(t *testing.T) {
+		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		require.True(t, ok)
+
+		updateTestFeatureFlags(t, th, func(cfg *model.Config) {
+			cfg.FeatureFlags.PermissionPolicies = true
+			cfg.FeatureFlags.PolicySimulation = true
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+		})
+		defer updateTestFeatureFlags(t, th, restoreABACFeatureFlagDefaults)
+
+		th.AddPermissionToRole(t, model.PermissionManageChannelAccessRules.Id, model.ChannelAdminRoleId)
+
+		privateChannel := th.CreatePrivateChannel(t)
+		channelAdmin := th.CreateUser(t)
+		th.LinkUserToTeam(t, channelAdmin, th.BasicTeam)
+		th.AddUserToChannel(t, channelAdmin, privateChannel)
+		th.MakeUserChannelAdmin(t, channelAdmin, privateChannel)
+		channelAdminClient := th.CreateClient()
+		th.LoginBasicWithClient(t, channelAdminClient)
+		_, _, err := channelAdminClient.Login(context.Background(), channelAdmin.Email, channelAdmin.Password)
+		require.NoError(t, err)
+
+		evalTree := &model.PolicySimulationEvaluationNode{
+			Kind:    model.PolicySimulationEvaluationKindAnd,
+			Outcome: model.PolicySimulationEvaluationOutcomeFalse,
+		}
+		mockACS := &mocks.AccessControlServiceInterface{}
+		mockACS.On("SimulatePolicyForUsers", mock.Anything, mock.Anything).Return(
+			&model.PolicySimulationResponse{
+				Results: []model.PolicySimulationUserResult{{
+					User: th.BasicUser,
+					Decisions: map[string]model.PolicySimulationActionDecision{
+						model.AccessControlPolicyActionUploadFileAttachment: {
+							Decision: false,
+							Blame: []model.PolicySimulationBlame{{
+								Source:         model.PolicySimulationBlameSourceThisRule,
+								RuleName:       "rule1",
+								Expression:     "user.attributes.clearance == 'il5'",
+								EvaluationTree: evalTree,
+							}},
+						},
+					},
+				}},
+				Total: 1,
+			},
+			(*model.AppError)(nil),
+		)
+		th.App.Srv().Channels().AccessControl = mockACS
+
+		th.AddUserToChannel(t, th.BasicUser, privateChannel)
+
+		body := mustMarshal(t, model.PolicySimulationByUsersParams{
+			Policy:    &model.AccessControlPolicy{ID: privateChannel.Id, Type: model.AccessControlPolicyTypeChannel, Version: model.AccessControlPolicyVersionV0_4},
+			Actions:   []string{model.AccessControlPolicyActionUploadFileAttachment},
+			Users:     []model.PolicySimulationUserOverride{{UserID: th.BasicUser.Id}},
+			ChannelID: privateChannel.Id,
+		})
+		resp, err := channelAdminClient.DoAPIPost(context.Background(), "/access_control_policies/cel/simulate_users", string(body))
+		require.NoError(t, err)
+		defer resp.Body.Close()
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+
+		var out model.PolicySimulationResponse
+		require.NoError(t, json.NewDecoder(resp.Body).Decode(&out))
+		require.Len(t, out.Results, 1)
+		blame := out.Results[0].Decisions[model.AccessControlPolicyActionUploadFileAttachment].Blame[0]
+		require.Nil(t, blame.EvaluationTree)
+		require.Equal(t, "user.attributes.clearance == 'il5'", blame.Expression)
+	})
+
+	t.Run("system admin response keeps evaluation trees", func(t *testing.T) {
+		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		require.True(t, ok)
+
+		updateTestFeatureFlags(t, th, func(cfg *model.Config) {
+			cfg.FeatureFlags.PermissionPolicies = true
+			cfg.FeatureFlags.PolicySimulation = true
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+		})
+		defer updateTestFeatureFlags(t, th, restoreABACFeatureFlagDefaults)
+
+		evalTree := &model.PolicySimulationEvaluationNode{
+			Kind:    model.PolicySimulationEvaluationKindAnd,
+			Outcome: model.PolicySimulationEvaluationOutcomeFalse,
+		}
+		mockACS := &mocks.AccessControlServiceInterface{}
+		mockACS.On("SimulatePolicyForUsers", mock.Anything, mock.Anything).Return(
+			&model.PolicySimulationResponse{
+				Results: []model.PolicySimulationUserResult{{
+					User: th.BasicUser,
+					Decisions: map[string]model.PolicySimulationActionDecision{
+						model.AccessControlPolicyActionUploadFileAttachment: {
+							Decision: false,
+							Blame: []model.PolicySimulationBlame{{
+								Source:         model.PolicySimulationBlameSourceThisRule,
+								RuleName:       "rule1",
+								Expression:     "user.attributes.clearance == 'il5'",
+								EvaluationTree: evalTree,
+							}},
+						},
+					},
+				}},
+				Total: 1,
+			},
+			(*model.AppError)(nil),
+		)
+		th.App.Srv().Channels().AccessControl = mockACS
+
+		body := mustMarshal(t, model.PolicySimulationByUsersParams{
+			Policy:  &model.AccessControlPolicy{ID: model.NewId(), Type: model.AccessControlPolicyTypeChannel, Version: model.AccessControlPolicyVersionV0_4},
+			Actions: []string{model.AccessControlPolicyActionUploadFileAttachment},
+			Users:   []model.PolicySimulationUserOverride{{UserID: th.BasicUser.Id}},
+		})
+		resp, err := th.SystemAdminClient.DoAPIPost(context.Background(), "/access_control_policies/cel/simulate_users", string(body))
+		require.NoError(t, err)
+		defer resp.Body.Close()
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+
+		var out model.PolicySimulationResponse
+		require.NoError(t, json.NewDecoder(resp.Body).Decode(&out))
+		require.Len(t, out.Results, 1)
+		blame := out.Results[0].Decisions[model.AccessControlPolicyActionUploadFileAttachment].Blame[0]
+		require.NotNil(t, blame.EvaluationTree)
+		require.Equal(t, model.PolicySimulationEvaluationKindAnd, blame.EvaluationTree.Kind)
+	})
+}
+
+// TestGetFieldsAutocompleteResourceFields exercises the HTTP boundary of
+// GET /cel/autocomplete/fields for channel-object-type (resource.attributes.*)
+// fields: a channel scope or the include_resource_fields flag surfaces them
+// (tagged with their ObjectType), neither excludes them, and the permission
+// gating holds. This endpoint resolves fields from the property store directly
+// and does not go through the mocked AccessControl engine.
+func TestGetFieldsAutocompleteResourceFields(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+	// Setup() only clears the read-only guard on feature flags when it is handed a
+	// config updater, so do it explicitly before flipping one.
+	th.ConfigStore.SetReadOnlyFF(false)
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.FeatureFlags.ResourceAttributesInPolicies = true
+	})
+
+	group, appErr := th.App.GetPropertyGroup(th.Context, model.AccessControlPropertyGroupName)
+	require.Nil(t, appErr)
+
+	mkField := func(objectType string) *model.PropertyField {
+		f, appErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "region" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: objectType,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+		}, false, "")
+		require.Nil(t, appErr)
+		return f
+	}
+	userField := mkField(model.PropertyFieldObjectTypeUser)
+	channelField := mkField(model.PropertyFieldObjectTypeChannel)
+
+	const base = "/access_control_policies/cel/autocomplete/fields"
+
+	get := func(t *testing.T, client *model.Client4, query string) []*model.PropertyField {
+		t.Helper()
+		resp, err := client.DoAPIGet(context.Background(), base+query, "")
+		require.NoError(t, err)
+		defer resp.Body.Close()
+		var fields []*model.PropertyField
+		require.NoError(t, json.NewDecoder(resp.Body).Decode(&fields))
+		return fields
+	}
+
+	find := func(fields []*model.PropertyField, id string) *model.PropertyField {
+		for _, f := range fields {
+			if f.ID == id {
+				return f
+			}
+		}
+		return nil
+	}
+
+	t.Run("channel scope surfaces channel fields tagged by object type", func(t *testing.T) {
+		fields := get(t, th.SystemAdminClient, "?limit=100&channelId="+th.BasicChannel.Id)
+		require.NotNil(t, find(fields, userField.ID), "user field must be present when channel-scoped")
+		ch := find(fields, channelField.ID)
+		require.NotNil(t, ch, "channel field must be present when channel-scoped")
+		require.Equal(t, model.PropertyFieldObjectTypeChannel, ch.ObjectType, "channel field must carry its ObjectType")
+	})
+
+	t.Run("include_resource_fields surfaces channel fields with no channel scope", func(t *testing.T) {
+		fields := get(t, th.SystemAdminClient, "?limit=100&include_resource_fields=true")
+		require.NotNil(t, find(fields, channelField.ID), "channel field must be present when include_resource_fields=true")
+	})
+
+	t.Run("channel fields excluded without a channel scope or the flag", func(t *testing.T) {
+		fields := get(t, th.SystemAdminClient, "?limit=100")
+		require.NotNil(t, find(fields, userField.ID), "user field must still be present")
+		require.Nil(t, find(fields, channelField.ID), "channel field must be excluded when neither channelId nor the flag is set")
+	})
+
+	t.Run("channel fields excluded on both paths while the feature is off", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.ResourceAttributesInPolicies = false
+		})
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.ResourceAttributesInPolicies = true
+		})
+
+		scoped := get(t, th.SystemAdminClient, "?limit=100&channelId="+th.BasicChannel.Id)
+		require.Nil(t, find(scoped, channelField.ID), "channel scope must not surface a channel field while off")
+		require.NotNil(t, find(scoped, userField.ID), "user fields must keep working while off")
+
+		asked := get(t, th.SystemAdminClient, "?limit=100&include_resource_fields=true")
+		require.Nil(t, find(asked, channelField.ID), "include_resource_fields must not surface a channel field while off")
+	})
+
+	t.Run("regular user without manage-system is denied when unscoped", func(t *testing.T) {
+		resp, err := th.Client.DoAPIGet(context.Background(), base+"?limit=100", "")
+		require.Error(t, err)
+		defer resp.Body.Close()
+		require.Equal(t, http.StatusForbidden, resp.StatusCode)
+	})
+
+	t.Run("regular user without channel-manage-access-rules is denied for a channel", func(t *testing.T) {
+		resp, err := th.Client.DoAPIGet(context.Background(), base+"?limit=100&channelId="+th.BasicChannel.Id, "")
+		require.Error(t, err)
+		defer resp.Body.Close()
+		require.Equal(t, http.StatusForbidden, resp.StatusCode)
 	})
 }
 

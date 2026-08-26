@@ -321,10 +321,6 @@ func GenerateLimitedClientConfig(c *model.Config, telemetryID string, license *m
 	props["EnableSignInWithEmail"] = strconv.FormatBool(*c.EmailSettings.EnableSignInWithEmail)
 	props["EnableSignInWithUsername"] = strconv.FormatBool(*c.EmailSettings.EnableSignInWithUsername)
 
-	props["EmailLoginButtonColor"] = *c.EmailSettings.LoginButtonColor
-	props["EmailLoginButtonBorderColor"] = *c.EmailSettings.LoginButtonBorderColor
-	props["EmailLoginButtonTextColor"] = *c.EmailSettings.LoginButtonTextColor
-
 	props["TermsOfServiceLink"] = *c.SupportSettings.TermsOfServiceLink
 	props["PrivacyPolicyLink"] = *c.SupportSettings.PrivacyPolicyLink
 	props["AboutLink"] = *c.SupportSettings.AboutLink
@@ -368,14 +364,8 @@ func GenerateLimitedClientConfig(c *model.Config, telemetryID string, license *m
 	props["CustomDescriptionText"] = ""
 	props["EnableLdap"] = "false"
 	props["LdapLoginFieldName"] = ""
-	props["LdapLoginButtonColor"] = ""
-	props["LdapLoginButtonBorderColor"] = ""
-	props["LdapLoginButtonTextColor"] = ""
 	props["EnableSaml"] = "false"
 	props["SamlLoginButtonText"] = ""
-	props["SamlLoginButtonColor"] = ""
-	props["SamlLoginButtonBorderColor"] = ""
-	props["SamlLoginButtonTextColor"] = ""
 	props["EnableSignUpWithGoogle"] = "false"
 	props["EnableSignUpWithOffice365"] = "false"
 	props["EnableSignUpWithOpenId"] = "false"
@@ -396,17 +386,11 @@ func GenerateLimitedClientConfig(c *model.Config, telemetryID string, license *m
 		if *license.Features.LDAP {
 			props["EnableLdap"] = strconv.FormatBool(*c.LdapSettings.Enable)
 			props["LdapLoginFieldName"] = *c.LdapSettings.LoginFieldName
-			props["LdapLoginButtonColor"] = *c.LdapSettings.LoginButtonColor
-			props["LdapLoginButtonBorderColor"] = *c.LdapSettings.LoginButtonBorderColor
-			props["LdapLoginButtonTextColor"] = *c.LdapSettings.LoginButtonTextColor
 		}
 
 		if *license.Features.SAML {
 			props["EnableSaml"] = strconv.FormatBool(*c.SamlSettings.Enable)
 			props["SamlLoginButtonText"] = *c.SamlSettings.LoginButtonText
-			props["SamlLoginButtonColor"] = *c.SamlSettings.LoginButtonColor
-			props["SamlLoginButtonBorderColor"] = *c.SamlSettings.LoginButtonBorderColor
-			props["SamlLoginButtonTextColor"] = *c.SamlSettings.LoginButtonTextColor
 		}
 
 		if *license.Features.CustomTermsOfService {

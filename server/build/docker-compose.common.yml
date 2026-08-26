@@ -5,14 +5,14 @@ x-logging: &default-logging
 
 services:
   postgres:
-    image: "postgres:14"
+    image: "postgres:15"
     logging: *default-logging
     restart: always
     networks:
       - mm-test
     environment:
       POSTGRES_USER: mmuser
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-mostest}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-mostest_password}
       POSTGRES_DB: mattermost_test
       POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256 --auth-local=scram-sha-256"
     command: postgres -c 'config_file=/etc/postgresql/postgresql.conf'
@@ -60,7 +60,7 @@ services:
       LDAP_TLS_VERIFY_CLIENT: "never"
       LDAP_ORGANISATION: "Mattermost Test"
       LDAP_DOMAIN: "mm.test.com"
-      LDAP_ADMIN_PASSWORD: "mostest"
+      LDAP_ADMIN_PASSWORD: "mostest_password"
   elasticsearch:
     build:
       context: .

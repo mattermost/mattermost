@@ -3,6 +3,7 @@
 
 import React from 'react';
 
+import type {AccessControlPolicy} from '@mattermost/types/access_control';
 import type {ChannelWithTeamData} from '@mattermost/types/channels';
 
 import {useChannelAccessControlActions} from 'hooks/useChannelAccessControlActions';
@@ -248,6 +249,105 @@ describe('components/admin_console/access_control/policy_details/PolicyDetails',
         expect(passedNames).not.toContain('network_name');
     });
 
+    test('never hands the editor the stored marker form of a rank rule', async () => {
+        // Regression guard. The `policy` prop is the copy the policies list left
+        // in the store, and the list is filled by the search endpoint, which
+        // returns rules in their stored form: a rank comparison is stored
+        // desugared as `_rank_ge(...)`. /cel/visual_ast rejects that marker call,
+        // so seeding the editor with it fired a doomed parse whose failure flipped
+        // the editor into Advanced mode. Only fetchPolicy's rehydrated expression
+        // may reach the editor.
+        const storedForm = '_rank_ge(user.attributes.clearance, "Secret", "sxrgeknhajds3qdt5hhrm4fy3h")';
+        const rehydratedForm = 'user.attributes.clearance >= "Secret"';
+
+        MockedTableEditor.mockClear();
+        const props = {
+            ...defaultProps,
+            policy: {
+                id: 'policy1',
+                name: 'Policy 1',
+                type: 'parent',
+                rules: [{actions: ['membership'], expression: storedForm}],
+            } as unknown as AccessControlPolicy,
+            actions: {
+                ...defaultProps.actions,
+                fetchPolicy: jest.fn().mockResolvedValue({
+                    data: {
+                        id: 'policy1',
+                        name: 'Policy 1',
+                        rules: [{actions: ['membership'], expression: rehydratedForm}],
+                    },
+                }),
+            },
+        };
+
+        renderWithContext(<PolicyDetails {...props}/>);
+
+        await waitFor(() => {
+            const values = MockedTableEditor.mock.calls.map((call) => call[0].value);
+            expect(values).toContain(rehydratedForm);
+        });
+
+        const values = MockedTableEditor.mock.calls.map((call) => call[0].value);
+        expect(values).not.toContain(storedForm);
+    });
+
+    describe('channel attribute warning notice', () => {
+        const NOTICE_TITLE = 'Channels without this attribute lose all members';
+
+        // A channel with no value for a referenced channel attribute denies every
+        // member, so the notice fires as soon as the rule references a channel
+        // attribute — before any channel is assigned, without inspecting values.
+        const renderWithPolicy = (expression: string) => {
+            const props = {
+                ...defaultProps,
+                actions: {
+                    ...defaultProps.actions,
+                    fetchPolicy: jest.fn().mockResolvedValue({
+                        data: {
+                            id: 'policy1',
+                            name: 'Policy 1',
+                            rules: [{actions: ['membership'], expression}],
+                        },
+                    }),
+                    searchChannels: jest.fn().mockResolvedValue({
+                        data: {
+                            channels: [],
+                            total_count: 0,
+                        },
+                    }),
+                },
+            };
+            return renderWithContext(<PolicyDetails {...props}/>);
+        };
+
+        test('shows as soon as a channel attribute is referenced, before any channel is assigned', async () => {
+            renderWithPolicy('user.attributes.clearance == resource.attributes.minClearance');
+
+            expect(await screen.findByText(NOTICE_TITLE)).toBeInTheDocument();
+        });
+
+        test('stays hidden when the rule only references user attributes', async () => {
+            renderWithPolicy('user.attributes.clearance == "Secret"');
+
+            await waitFor(() => {
+                expect(screen.getByTestId('table-editor')).toBeInTheDocument();
+            });
+            expect(screen.queryByText(NOTICE_TITLE)).not.toBeInTheDocument();
+        });
+
+        test('stays hidden when resource.attributes appears only inside a string literal', async () => {
+            // referencesResourceAttributes strips quoted literals first, so a value
+            // that happens to spell an attribute path is not a reference.
+            renderWithPolicy('user.attributes.name == "resource.attributes.minClearance"');
+
+            await waitFor(() => {
+                expect(screen.getByTestId('table-editor')).toBeInTheDocument();
+            });
+            expect(screen.queryByText(NOTICE_TITLE)).not.toBeInTheDocument();
+        });
+    });
+
     test('hasMaskedRows derivation survives Simple → Advanced → Simple mode toggles', async () => {
         // Regression guard: hasMaskedRows must come from the expression itself,
         // not from a TableEditor lifecycle callback. Toggling editor modes
@@ -444,6 +544,62 @@ describe('components/admin_console/access_control/policy_details/PolicyDetails',
 
         await waitFor(() => {
             expect(mockSetNavigationBlocked).toHaveBeenCalledWith(false);
+        });
+    });
+
+    // MM-64357: a value containing a quote character (e.g. the apostrophe in
+    // "Matt's Department") must still classify as a simple expression. These
+    // tests exercise the rendered component state Matty flagged as uncovered:
+    // whether the "Switch to Simple Mode" toggle is actually enabled/disabled,
+    // rather than calling isSimpleExpression directly.
+    describe('MM-64357 apostrophe values keep the mode toggle switchable', () => {
+        const renderWithLoadedExpression = (expression: string, attributeName: string) => {
+            // A single usable (LDAP-synced) attribute clears the no-usable-attributes
+            // gate so the toggle reflects the expression, not the attributes state.
+            mockGetAccessControlFields.mockResolvedValue({data: [{name: attributeName, attrs: {ldap: true}}]});
+            const props = {
+                ...defaultProps,
+                actions: {
+                    ...defaultProps.actions,
+                    fetchPolicy: jest.fn().mockResolvedValue({
+                        data: {
+                            id: 'policy1',
+                            name: 'Policy 1',
+                            rules: [{actions: ['*'], expression}],
+                        },
+                    }),
+                },
+            };
+            return renderWithContext(<PolicyDetails {...props}/>);
+        };
+
+        test('a double-quoted apostrophe value stays switchable back to Simple Mode', async () => {
+            renderWithLoadedExpression('user.attributes.department == "Matt\'s Department"', 'department');
+
+            // The editor opens in Simple mode; switch to Advanced to reach the
+            // "Switch to Simple Mode" toggle whose disabled state is the bug.
+            await userEvent.click(await screen.findByText('Switch to Advanced Mode'));
+
+            expect(screen.getByText('Switch to Simple Mode').closest('button')).toBeEnabled();
+        });
+
+        test('an apostrophe multiselect "has any of" group stays switchable back to Simple Mode', async () => {
+            renderWithLoadedExpression(
+                '("Matt\'s" in user.attributes.program || "Phoenix" in user.attributes.program)',
+                'program',
+            );
+
+            await userEvent.click(await screen.findByText('Switch to Advanced Mode'));
+
+            expect(screen.getByText('Switch to Simple Mode').closest('button')).toBeEnabled();
+        });
+
+        test('a genuinely complex expression still disables the toggle (negative control)', async () => {
+            renderWithLoadedExpression('size(user.attributes.roles) > 0', 'roles');
+
+            await userEvent.click(await screen.findByText('Switch to Advanced Mode'));
+
+            expect(screen.getByText('Switch to Simple Mode').closest('button')).toBeDisabled();
         });
     });
 });

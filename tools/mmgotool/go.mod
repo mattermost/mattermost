@@ -1,6 +1,6 @@
 module github.com/mattermost/mattermost/tools/mmgotool
 
-go 1.26.4
+go 1.26.7
 
 require (
 	github.com/mattermost/go-i18n v1.11.1-0.20211013152124-5c415071e404

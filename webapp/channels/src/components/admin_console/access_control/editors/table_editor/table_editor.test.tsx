@@ -6,7 +6,7 @@ import type {FieldType} from '@mattermost/types/properties';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
 
 import {isSimpleExpression, isSimpleCondition, isMultiselectOrGroup} from 'components/admin_console/access_control/editors/shared';
-import {parseExpression, findFirstAvailableAttributeFromList, rowToCEL, celStringLiteral, isRowValueValid} from 'components/admin_console/access_control/editors/table_editor/table_editor';
+import {parseExpression, findFirstAvailableAttributeFromList, rowToCEL, celStringLiteral, isRowValueValid, isOperatorValidForType} from 'components/admin_console/access_control/editors/table_editor/table_editor';
 import type {TableRow} from 'components/admin_console/access_control/editors/table_editor/value_selector_menu';
 
 describe('parseExpression', () => {
@@ -62,6 +62,59 @@ describe('parseExpression', () => {
                 operator: label,
                 values: ['Secret'],
                 attribute_type: 'rank',
+                hasMaskedValues: false,
+            },
+        ]);
+    });
+
+    test('maps a resource-attribute RHS to a targetAttribute row', () => {
+        const ast: AccessControlVisualAST = {
+            conditions: [
+                {
+                    attribute: 'user.attributes.clearance',
+                    operator: '>=',
+                    value: 'resource.attributes.minClearance',
+                    value_type: 1, // attribute reference, not a literal
+                    attribute_type: 'rank',
+                },
+            ],
+        };
+
+        expect(parseExpression(ast)).toEqual([
+            {
+                attribute: 'clearance',
+                attribute_object_type: 'user',
+                operator: 'is at least',
+                values: [],
+                attribute_type: 'rank',
+                hasMaskedValues: false,
+                targetAttribute: 'minClearance',
+            },
+        ]);
+    });
+
+    test('a literal RHS that looks like a path stays a literal value', () => {
+        // value_type 0 (literal) must not be treated as a resource target even
+        // if the string happens to start with resource.attributes.
+        const ast: AccessControlVisualAST = {
+            conditions: [
+                {
+                    attribute: 'user.attributes.note',
+                    operator: '==',
+                    value: 'resource.attributes.minClearance',
+                    value_type: 0,
+                    attribute_type: 'text',
+                },
+            ],
+        };
+
+        expect(parseExpression(ast)).toEqual([
+            {
+                attribute: 'note',
+                attribute_object_type: 'user',
+                operator: 'is',
+                values: ['resource.attributes.minClearance'],
+                attribute_type: 'text',
                 hasMaskedValues: false,
             },
         ]);
@@ -327,6 +380,61 @@ describe('parseExpression with multiselect attributes', () => {
             },
         ]);
     });
+
+    test('maps a hasAnyOf channel-attribute target to a targetAttribute row', () => {
+        // A multiselect list-vs-list comparison is stored as a member call, so
+        // the visual AST surfaces its RHS as an attribute reference (value_type
+        // 1) pointing at resource.attributes.* rather than a literal list.
+        const ast: AccessControlVisualAST = {
+            conditions: [
+                {
+                    attribute: 'user.attributes.programs',
+                    operator: 'hasAnyOf',
+                    value: 'resource.attributes.channelPrograms',
+                    value_type: 1,
+                    attribute_type: 'multiselect',
+                },
+            ],
+        };
+
+        expect(parseExpression(ast)).toEqual([
+            {
+                attribute: 'programs',
+                attribute_object_type: 'user',
+                operator: 'has any of',
+                values: [],
+                attribute_type: 'multiselect',
+                hasMaskedValues: false,
+                targetAttribute: 'channelPrograms',
+            },
+        ]);
+    });
+
+    test('maps a hasAllOf channel-attribute target to a targetAttribute row', () => {
+        const ast: AccessControlVisualAST = {
+            conditions: [
+                {
+                    attribute: 'user.attributes.skills',
+                    operator: 'hasAllOf',
+                    value: 'resource.attributes.requiredSkills',
+                    value_type: 1,
+                    attribute_type: 'multiselect',
+                },
+            ],
+        };
+
+        expect(parseExpression(ast)).toEqual([
+            {
+                attribute: 'skills',
+                attribute_object_type: 'user',
+                operator: 'has all of',
+                values: [],
+                attribute_type: 'multiselect',
+                hasMaskedValues: false,
+                targetAttribute: 'requiredSkills',
+            },
+        ]);
+    });
 });
 
 describe('parseExpression with session attributes', () => {
@@ -486,6 +594,13 @@ describe('celStringLiteral', () => {
         expect(celStringLiteral('say "hi"')).toBe('"say \\"hi\\""');
     });
 
+    test('leaves apostrophes unescaped inside the double-quoted literal', () => {
+        // Characterization: an apostrophe is valid inside a CEL double-quoted
+        // string, so it must be emitted verbatim (not escaped). Guards against a
+        // future over-eager escape that would break MM-64357 round-tripping.
+        expect(celStringLiteral('Matt\'s Department')).toBe('"Matt\'s Department"');
+    });
+
     test('escapes backslashes before double quotes', () => {
         expect(celStringLiteral('path\\to\\"file')).toBe('"path\\\\to\\\\\\"file"');
     });
@@ -560,6 +675,81 @@ describe('rowToCEL', () => {
             hasMaskedValues: false,
         });
         expect(cel).toBe('user.attributes.clearance == "TopSecret"');
+    });
+
+    test('resource target on "is" compares user attr to the channel attr', () => {
+        const cel = rowToCEL({
+            attribute: 'team',
+            operator: 'is',
+            values: [],
+            attribute_type: 'select',
+            hasMaskedValues: false,
+            targetAttribute: 'owningTeam',
+        });
+        expect(cel).toBe('user.attributes.team == resource.attributes.owningTeam');
+    });
+
+    test('resource target on a ranked operator preserves the ordinal comparison', () => {
+        const cel = rowToCEL({
+            attribute: 'clearance',
+            operator: 'is at least',
+            values: [],
+            attribute_type: 'rank',
+            hasMaskedValues: false,
+            targetAttribute: 'minClearance',
+        });
+        expect(cel).toBe('user.attributes.clearance >= resource.attributes.minClearance');
+    });
+
+    test('resource target is ignored for non-comparison operators', () => {
+        // "in" is a list operator; a resource target has no meaning there, so
+        // the literal-value path is used instead.
+        const cel = rowToCEL({
+            attribute: 'department',
+            operator: 'in',
+            values: ['Eng'],
+            attribute_type: 'select',
+            hasMaskedValues: false,
+            targetAttribute: 'shouldBeIgnored',
+        });
+        expect(cel).toBe('user.attributes.department in ["Eng"]');
+    });
+
+    test('has_any_of with a channel-attribute target emits the member-function form', () => {
+        const cel = rowToCEL({
+            attribute: 'programs',
+            operator: 'has any of',
+            values: [],
+            attribute_type: 'multiselect',
+            hasMaskedValues: false,
+            targetAttribute: 'channelPrograms',
+        });
+        expect(cel).toBe('user.attributes.programs.hasAnyOf(resource.attributes.channelPrograms)');
+    });
+
+    test('has_all_of with a channel-attribute target emits the member-function form', () => {
+        const cel = rowToCEL({
+            attribute: 'skills',
+            operator: 'has all of',
+            values: [],
+            attribute_type: 'multiselect',
+            hasMaskedValues: false,
+            targetAttribute: 'requiredSkills',
+        });
+        expect(cel).toBe('user.attributes.skills.hasAllOf(resource.attributes.requiredSkills)');
+    });
+
+    test('has_any_of keeps the literal in-chain when there is no target', () => {
+        // The channel-attribute-target form and the literal-value form share the
+        // same operator; only the presence of targetAttribute selects between them.
+        const cel = rowToCEL({
+            attribute: 'programs',
+            operator: 'has any of',
+            values: ['Dragon', 'Phoenix'],
+            attribute_type: 'multiselect',
+            hasMaskedValues: false,
+        });
+        expect(cel).toBe('("Dragon" in user.attributes.programs || "Phoenix" in user.attributes.programs)');
     });
 
     test('"contains" operator produces method call', () => {
@@ -709,6 +899,53 @@ describe('rowToCEL', () => {
     });
 });
 
+describe('multiselect target round-trips (parseExpression -> rowToCEL)', () => {
+    // A multiselect user attribute may be compared against a channel attribute
+    // (the member-function form) or against literal option values (the in-chain
+    // form). Both operators must survive a full AST -> row -> CEL round-trip in
+    // each form so a saved rule re-renders and re-serializes identically.
+    test.each(['hasAnyOf', 'hasAllOf'])('%s against a channel-attribute target', (celFn) => {
+        const ast: AccessControlVisualAST = {
+            conditions: [
+                {
+                    attribute: 'user.attributes.programs',
+                    operator: celFn,
+                    value: 'resource.attributes.channelPrograms',
+                    value_type: 1,
+                    attribute_type: 'multiselect',
+                },
+            ],
+        };
+
+        const rows = parseExpression(ast);
+        expect(rows[0].targetAttribute).toBe('channelPrograms');
+        expect(rows[0].values).toEqual([]);
+        expect(rowToCEL(rows[0])).toBe(`user.attributes.programs.${celFn}(resource.attributes.channelPrograms)`);
+    });
+
+    test.each([
+        ['hasAnyOf', '("Dragon" in user.attributes.programs || "Phoenix" in user.attributes.programs)'],
+        ['hasAllOf', '"Dragon" in user.attributes.programs && "Phoenix" in user.attributes.programs'],
+    ])('%s against literal values keeps the in-chain form', (celFn, expected) => {
+        const ast: AccessControlVisualAST = {
+            conditions: [
+                {
+                    attribute: 'user.attributes.programs',
+                    operator: celFn,
+                    value: ['Dragon', 'Phoenix'],
+                    value_type: 0,
+                    attribute_type: 'multiselect',
+                },
+            ],
+        };
+
+        const rows = parseExpression(ast);
+        expect(rows[0].targetAttribute).toBeUndefined();
+        expect(rows[0].values).toEqual(['Dragon', 'Phoenix']);
+        expect(rowToCEL(rows[0])).toBe(expected);
+    });
+});
+
 describe('parseExpression with native user attributes', () => {
     test('parses native string attribute (user.email)', () => {
         const ast: AccessControlVisualAST = {
@@ -787,6 +1024,69 @@ describe('parseExpression with native user attributes', () => {
                 isNative: true,
             },
         ]);
+    });
+
+    test('parses session inCIDR helper', () => {
+        const ast: AccessControlVisualAST = {
+            conditions: [
+                {
+                    attribute: 'user.session.ip_address',
+                    operator: 'inCIDR',
+                    value: '10.0.0.0/8',
+                    value_type: 0,
+                    attribute_type: 'text',
+                },
+            ],
+        };
+
+        expect(parseExpression(ast)).toEqual([
+            {
+                attribute: 'ip_address',
+                attribute_object_type: 'session',
+                operator: 'in IP range',
+                values: ['10.0.0.0/8'],
+                attribute_type: 'text',
+                hasMaskedValues: false,
+            },
+        ]);
+    });
+});
+
+describe('rowToCEL with session attribute helpers', () => {
+    test('inCIDR emits a member call on user.session.<name>', () => {
+        const cel = rowToCEL({
+            attribute: 'ip_address',
+            attribute_object_type: 'session',
+            operator: 'in IP range',
+            values: ['10.0.0.0/8'],
+            attribute_type: 'text',
+            hasMaskedValues: false,
+        });
+        expect(cel).toBe('user.session.ip_address.inCIDR("10.0.0.0/8")');
+    });
+
+    test('versionGTE emits a member call on user.session.<name>', () => {
+        const cel = rowToCEL({
+            attribute: 'os_version',
+            attribute_object_type: 'session',
+            operator: 'version is at least',
+            values: ['6.0.0'],
+            attribute_type: 'text',
+            hasMaskedValues: false,
+        });
+        expect(cel).toBe('user.session.os_version.versionGTE("6.0.0")');
+    });
+});
+
+describe('isOperatorValidForType', () => {
+    test('rejects field-advertised operators for generic text attributes', () => {
+        expect(isOperatorValidForType('in IP range', 'text')).toBe(false);
+        expect(isOperatorValidForType('version is at least', 'text')).toBe(false);
+    });
+
+    test('still accepts standard text operators', () => {
+        expect(isOperatorValidForType('is', 'text')).toBe(true);
+        expect(isOperatorValidForType('starts with', 'text')).toBe(true);
     });
 });
 
@@ -1016,6 +1316,25 @@ describe('isSimpleCondition', () => {
         expect(isSimpleCondition(`user.attributes.clearance ${op} "Secret"`)).toBe(true);
     });
 
+    test.each(['==', '!=', '>=', '>', '<=', '<'])('comparison %s against a resource attribute is simple', (op) => {
+        expect(isSimpleCondition(`user.attributes.clearance ${op} resource.attributes.minClearance`)).toBe(true);
+    });
+
+    test.each(['hasAnyOf', 'hasAllOf'])('%s against a resource attribute is simple', (fn) => {
+        expect(isSimpleCondition(`user.attributes.programs.${fn}(resource.attributes.channelPrograms)`)).toBe(true);
+    });
+
+    test('rejects hasAnyOf/hasAllOf with a literal (non-resource) argument', () => {
+        // The engine only ever produces the resource-target form; a literal
+        // argument is not a shape the table editor round-trips.
+        expect(isSimpleCondition('user.attributes.programs.hasAnyOf("Dragon")')).toBe(false);
+    });
+
+    test('rejects a resource attribute on the left side', () => {
+        // The left side must always be the requesting user's attribute.
+        expect(isSimpleCondition('resource.attributes.minClearance == "Secret"')).toBe(false);
+    });
+
     test('rejects function calls', () => {
         expect(isSimpleCondition('size(user.attributes.roles) > 0')).toBe(false);
     });
@@ -1040,6 +1359,11 @@ describe('isSimpleCondition', () => {
         expect(isSimpleCondition('user.createat.youngerThanDays(7)')).toBe(true);
     });
 
+    test('session inCIDR and version helpers', () => {
+        expect(isSimpleCondition('user.session.ip_address.inCIDR("10.0.0.0/8")')).toBe(true);
+        expect(isSimpleCondition('user.session.os_version.versionGTE("6.0.0")')).toBe(true);
+    });
+
     test('unsupported native field/operator pairings are not simple', () => {
         // Boolean fields only support true/false equality, not quoted strings or methods.
         expect(isSimpleCondition('user.verified == "true"')).toBe(false);
@@ -1054,5 +1378,118 @@ describe('isSimpleCondition', () => {
 
         // Unknown native names do not round-trip through the table editor.
         expect(isSimpleCondition('user.id == "abc"')).toBe(false);
+    });
+});
+
+// MM-64357: a value containing a quote character (e.g. the apostrophe in
+// "Matt's Department") must still be recognized as a simple expression so the
+// editor stays switchable back to the table editor. Previously the quoted-value
+// matcher forbade any quote inside the value, trapping the user in advanced mode.
+describe('simple-expression detection with quote characters in values', () => {
+    test('equality against a double-quoted value containing an apostrophe is simple', () => {
+        expect(isSimpleCondition('user.attributes.department == "Matt\'s Department"')).toBe(true);
+        expect(isSimpleExpression('user.attributes.department == "Matt\'s Department"')).toBe(true);
+    });
+
+    test('the CEL emitted for an apostrophe value round-trips as a simple expression', () => {
+        // Ties serialization (rowToCEL/celStringLiteral) to detection: whatever
+        // the table editor produces for a value must be classified as simple so
+        // "Switch to Simple Mode" is not disabled for a value it just created.
+        const cel = rowToCEL({
+            attribute: 'department',
+            operator: 'is',
+            values: ['Matt\'s Department'],
+            attribute_type: 'text',
+            hasMaskedValues: false,
+        });
+        expect(cel).toBe('user.attributes.department == "Matt\'s Department"');
+        expect(isSimpleExpression(cel)).toBe(true);
+    });
+
+    test('a value mixing apostrophes and escaped double quotes round-trips as simple', () => {
+        const cel = rowToCEL({
+            attribute: 'team',
+            operator: 'is',
+            values: ['O\'Brien\'s "Team"'],
+            attribute_type: 'text',
+            hasMaskedValues: false,
+        });
+        expect(cel).toBe('user.attributes.team == "O\'Brien\'s \\"Team\\""');
+        expect(isSimpleExpression(cel)).toBe(true);
+    });
+
+    test('the CEL emitted for an apostrophe "has any of" value round-trips as simple', () => {
+        // "has any of" serializes to a multiselect OR group; its emitted CEL must
+        // still classify as simple so the editor can round-trip apostrophe values.
+        const cel = rowToCEL({
+            attribute: 'programs',
+            operator: 'has any of',
+            values: ['Matt\'s', 'Phoenix'],
+            attribute_type: 'multiselect',
+            hasMaskedValues: false,
+        });
+        expect(cel).toBe('("Matt\'s" in user.attributes.programs || "Phoenix" in user.attributes.programs)');
+        expect(isMultiselectOrGroup(cel)).toBe(true);
+        expect(isSimpleExpression(cel)).toBe(true);
+    });
+
+    test('ranked comparison operators accept an apostrophe in the value', () => {
+        expect(isSimpleCondition('user.attributes.clearance >= "L\'2"')).toBe(true);
+        expect(isSimpleCondition('user.attributes.clearance < "L\'2"')).toBe(true);
+    });
+
+    test('scalar-in against an attribute accepts an apostrophe', () => {
+        expect(isSimpleCondition('"O\'Brien" in user.attributes.names')).toBe(true);
+    });
+
+    test('session attribute equality accepts an apostrophe in the value', () => {
+        expect(isSimpleCondition('user.session.city == "O\'Hare"')).toBe(true);
+    });
+
+    test('native email equality accepts an apostrophe in the value', () => {
+        expect(isSimpleCondition('user.email == "o\'brien@example.com"')).toBe(true);
+    });
+
+    test('string operators accept apostrophes in their argument', () => {
+        expect(isSimpleCondition('user.attributes.name.startsWith("O\'B")')).toBe(true);
+        expect(isSimpleCondition('user.attributes.desc.contains("Matt\'s")')).toBe(true);
+        expect(isSimpleCondition('user.attributes.name.endsWith("s\'")')).toBe(true);
+    });
+
+    test('an in-list with apostrophe values is simple', () => {
+        expect(isSimpleCondition('user.attributes.dept in ["Matt\'s", "Eng"]')).toBe(true);
+        expect(isSimpleCondition('user.email in ["o\'brien@example.com", "a@b.com"]')).toBe(true);
+    });
+
+    test('a single-quoted value containing a double quote is simple', () => {
+        // Detection-only: the table editor always emits double-quoted values, but
+        // a hand-written advanced-mode expression may use single quotes.
+        expect(isSimpleCondition('user.attributes.dept == \'say "hi"\'')).toBe(true);
+    });
+
+    test('an unterminated quoted value is still not simple', () => {
+        // Guards against over-broadening: the matcher must require a balanced
+        // closing quote rather than accepting any run of characters.
+        expect(isSimpleCondition('user.attributes.dept == "Matt\'s')).toBe(false);
+    });
+
+    test('an unescaped embedded double quote is still not simple', () => {
+        // A double-quoted literal with an unescaped inner double quote is invalid
+        // CEL and must not be misclassified as a simple equality.
+        expect(isSimpleCondition('user.attributes.dept == "say "hi""')).toBe(false);
+    });
+
+    test('an unterminated string in an in-list is still not simple', () => {
+        // Previously `\[.*?\]` accepted any content between brackets, so an
+        // unterminated list literal was misclassified as simple.
+        expect(isSimpleCondition('user.attributes.dept in ["Matt\'s]')).toBe(false);
+        expect(isSimpleCondition('user.email in ["foo]')).toBe(false);
+        expect(isSimpleCondition('["Matt\'s] in user.attributes.dept')).toBe(false);
+    });
+
+    test('an unescaped embedded double quote in an in-list is still not simple', () => {
+        expect(isSimpleCondition('user.attributes.dept in ["say "hi""]')).toBe(false);
+        expect(isSimpleCondition('user.email in ["say "hi""]')).toBe(false);
+        expect(isSimpleCondition('["say "hi""] in user.attributes.dept')).toBe(false);
     });
 });
