@@ -112,7 +112,12 @@ describe('getTimestampFormatProps', () => {
             jest.setSystemTime(new Date('2021-01-10T10:00:00.000Z'));
 
             const value = new Date('2020-12-31T18:00:00.000Z');
-            const useDate = props(TimestampFormat.DATE_AND_TIME, 'metadata').useDate!;
+            const useDate = props(TimestampFormat.DATE_AND_TIME, 'metadata').useDate;
+
+            expect(useDate).toBeInstanceOf(Function);
+            if (typeof useDate !== 'function') {
+                throw new Error('expected useDate to be a function');
+            }
 
             // In UTC the value is still calendar year 2020.
             expect(useDate({value}, {timeZone: 'UTC'})).toEqual({
