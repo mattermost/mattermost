@@ -150,11 +150,18 @@ func (ps *PropertyService) clampToCoverage(rctx request.CTX, field *model.Proper
 		if err != nil {
 			return nil, err
 		}
+		if batch != nil {
+			batch.covered = covered
+		}
 	}
 
 	below := map[string][]string{}
 	if batch != nil {
-		below = batch.below
+		if batch.below == nil {
+			batch.below = below
+		} else {
+			below = batch.below
+		}
 	}
 
 	visible := map[string]bool{}

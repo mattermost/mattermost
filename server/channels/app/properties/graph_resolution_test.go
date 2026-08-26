@@ -150,6 +150,24 @@ func TestGraphClampToCoverage(t *testing.T) {
 		require.Equal(t, []string{"F-18"}, graph.named(visible))
 	})
 
+	t.Run("a batch shares coverage and descents across calls", func(t *testing.T) {
+		graph := setupGraph(t, th, []string{"Air", "Fighter Jet", "F-18"}, map[string][]string{
+			"Fighter Jet": {"Air"},
+			"F-18":        {"Fighter Jet"},
+		})
+
+		batch := &graphClampBatch{}
+		first, err := th.service.clampToCoverage(th.Context, graph.field, graph.of("Fighter Jet"), graph.of("F-18"), batch)
+		require.NoError(t, err)
+		require.Equal(t, []string{"F-18"}, graph.named(first))
+		require.NotNil(t, batch.covered)
+		require.NotNil(t, batch.below)
+
+		second, err := th.service.clampToCoverage(th.Context, graph.field, graph.of("Fighter Jet"), graph.of("F-18"), batch)
+		require.NoError(t, err)
+		require.Equal(t, []string{"F-18"}, graph.named(second))
+	})
+
 	t.Run("options are clamped one at a time", func(t *testing.T) {
 		graph := setupGraph(t, th, []string{"Air", "Fighter Jet", "F-18", "Sea"}, map[string][]string{
 			"Fighter Jet": {"Air"},
