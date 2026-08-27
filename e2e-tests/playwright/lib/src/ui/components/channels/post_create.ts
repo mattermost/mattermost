@@ -72,6 +72,21 @@ export default class ChannelsPostCreate {
     }
 
     /**
+     * Types the message into the input one keystroke at a time, the way a user does, without sending it.
+     * Prefer this over writeMessage when the behaviour under test depends on the input changing more than
+     * once, such as the autocomplete, which debounces each change before searching the server.
+     * @param message : Message to be typed into the input
+     * @param options.delay : Milliseconds to wait between keystrokes. Use a delay longer than the
+     * autocomplete's debounce when a search per keystroke is wanted.
+     */
+    async typeMessage(message: string, options?: {delay?: number}) {
+        await this.input.waitFor();
+        await expect(this.input).toBeVisible();
+
+        await this.input.pressSequentially(message, options);
+    }
+
+    /**
      * Returns the value of the message input
      */
     async getInputValue() {
