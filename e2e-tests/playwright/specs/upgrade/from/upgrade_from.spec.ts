@@ -1,11 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import path from 'node:path';
-
-import type {UserProfile} from '@mattermost/types/users';
-
-import {assetPath, expect, test, testConfig} from '@mattermost/playwright-lib';
+import {expect, test, testConfig} from '@mattermost/playwright-lib';
 
 import {
     UPGRADE_ADMIN_ATTACHMENT_MESSAGE,
@@ -21,7 +17,6 @@ import {
     UPGRADE_GM_MESSAGE,
     UPGRADE_MINIO_ATTACHMENT_FILE,
     UPGRADE_PEER_USERS,
-    UPGRADE_PLUGIN_ID,
     UPGRADE_PRIVATE_CHANNEL_NAME,
     UPGRADE_PRIVATE_MESSAGE,
     UPGRADE_PROFILE_PHOTO_FILE,
@@ -29,17 +24,27 @@ import {
     UPGRADE_PUBLIC_MESSAGE,
     UPGRADE_SEARCH_MESSAGE,
     UPGRADE_USER,
-    ensurePluginBundleDownloaded,
+    assertLicensed,
+    assertProfileImageFetchable,
+    ensureDirectChannel,
+    ensureGroupChannel,
     ensureUpgradeChannel,
+    ensureUpgradePluginActive,
     ensureUpgradeTeam,
     ensureUpgradeUser,
+    postMessage,
+    postWithAttachment,
+    readServerIdentity,
+    uploadUpgradeProfileImage,
+    verifyPostAttachmentDownloadable,
     writeUpgradeBaseline,
 } from '../upgrade_fixtures';
 
 /**
- * @objective Creates the upgrade test's actors and content through the UI on the from-image.
+ * @objective Seeds upgrade actors and content via Client4 / PlaywrightClient4 on the from-image.
+ * Binary downloads use Playwright `request`; no browser/POM interaction.
  */
-test('upgrade-from: create actors and content', {tag: ['@upgrade-from']}, async ({pw}) => {
+test('upgrade-from: create actors and content', {tag: ['@upgrade-from']}, async ({pw, request}) => {
     test.setTimeout(300000);
 
     const {adminClient} = await pw.getAdminClient();
@@ -68,152 +73,94 @@ test('upgrade-from: create actors and content', {tag: ['@upgrade-from']}, async 
     await adminClient.addToChannel(adminMe.id, publicChannel.id);
     await adminClient.addToChannel(adminMe.id, privateChannel.id);
 
-    const {channelsPage} = await pw.testBrowser.login(user);
+    const {client: userClient} = await pw.makeClient(user);
+    expect(userClient).toBeTruthy();
 
-    await channelsPage.goto(team.name, publicChannel.name);
-    await channelsPage.toBeVisible();
-    await channelsPage.postMessage(UPGRADE_PUBLIC_MESSAGE);
-    await channelsPage.postMessage(UPGRADE_SEARCH_MESSAGE);
+    await postMessage(userClient!, publicChannel.id, UPGRADE_PUBLIC_MESSAGE);
+    await postMessage(userClient!, publicChannel.id, UPGRADE_SEARCH_MESSAGE);
+    await postMessage(userClient!, privateChannel.id, UPGRADE_PRIVATE_MESSAGE);
 
-    await channelsPage.goto(team.name, privateChannel.name);
-    await channelsPage.toBeVisible();
-    await channelsPage.postMessage(UPGRADE_PRIVATE_MESSAGE);
+    const userDmChannel = await ensureDirectChannel(userClient!, user.id, peers[0].id);
+    await postMessage(userClient!, userDmChannel.id, UPGRADE_DM_MESSAGE);
 
-    const dmModal = await channelsPage.openDirectChannelsModal();
-    await dmModal.selectUser(peers[0]);
-    await dmModal.goToChannel();
-    await channelsPage.toBeVisible();
-    await channelsPage.postMessage(UPGRADE_DM_MESSAGE);
+    const userGmChannel = await ensureGroupChannel(userClient!, [user.id, peers[1].id, peers[2].id]);
+    await postMessage(userClient!, userGmChannel.id, UPGRADE_GM_MESSAGE);
 
-    const gmModal = await channelsPage.openDirectChannelsModal();
-    await gmModal.selectUser(peers[1]);
-    await gmModal.selectUser(peers[2]);
-    await gmModal.goToChannel();
-    await channelsPage.toBeVisible();
-    await channelsPage.postMessage(UPGRADE_GM_MESSAGE);
+    const attachmentPost = await postWithAttachment(
+        userClient!,
+        publicChannel.id,
+        'upgrade-check attachment message',
+        UPGRADE_ATTACHMENT_FILE,
+    );
+    await verifyPostAttachmentDownloadable(request, userClient!, attachmentPost.id, UPGRADE_ATTACHMENT_FILE);
 
-    await channelsPage.goto(team.name, publicChannel.name);
-    await channelsPage.postMessage('upgrade-check attachment message', [UPGRADE_ATTACHMENT_FILE]);
-    const attachmentPost = await channelsPage.getLastPost();
-    await expect(attachmentPost.getFileAttachmentThumbnail(UPGRADE_ATTACHMENT_FILE)).toBeVisible();
-    const attachmentPostId = await attachmentPost.getId();
+    await uploadUpgradeProfileImage(userClient!, user.id, UPGRADE_PROFILE_PHOTO_FILE);
+    await assertProfileImageFetchable(request, userClient!, user.id);
 
-    const profileModal = await channelsPage.openProfileModal();
-    await profileModal.uploadProfilePhoto(path.join(assetPath, UPGRADE_PROFILE_PHOTO_FILE));
-    await profileModal.closeModal();
+    // Separate authors so avatar posts are distinct from system/user continuity.
+    await postMessage(adminClient, publicChannel.id, 'upgrade-check avatar separator');
+    const avatarPost = await postMessage(userClient!, publicChannel.id, 'upgrade-check avatar message');
+    await postMessage(adminClient, publicChannel.id, 'upgrade-check thread reply for avatar footer', avatarPost.id);
 
-    // Separate authors so the post header shows the profile icon.
-    await adminClient.createPost({
-        channel_id: publicChannel.id,
-        message: 'upgrade-check avatar separator',
-    });
-    await channelsPage.goto(team.name, publicChannel.name);
-    await channelsPage.toBeVisible();
-    await channelsPage.postMessage('upgrade-check avatar message');
-    const avatarPost = await channelsPage.getLastPost();
-    const avatarPostId = await avatarPost.getId();
-    expect(await avatarPost.hasLoadedAvatar()).toBe(true);
+    const fromIdentity = await readServerIdentity(adminClient);
+    await assertLicensed(adminClient);
 
-    const profilePopover = await channelsPage.openProfilePopover(avatarPost);
-    expect(await profilePopover.hasLoadedAvatar()).toBe(true);
-    await profilePopover.close();
+    await postMessage(adminClient, publicChannel.id, UPGRADE_ADMIN_PUBLIC_MESSAGE);
+    await postMessage(adminClient, publicChannel.id, UPGRADE_ADMIN_SEARCH_MESSAGE);
+    await postMessage(adminClient, privateChannel.id, UPGRADE_ADMIN_PRIVATE_MESSAGE);
 
-    // Thread reply so the footer lists participant avatars.
-    await adminClient.createPost({
-        channel_id: publicChannel.id,
-        message: 'upgrade-check thread reply for avatar footer',
-        root_id: avatarPostId,
-    });
-    await channelsPage.goto(team.name, publicChannel.name);
-    await channelsPage.toBeVisible();
-    const avatarRootPost = await channelsPage.centerView.getPostById(avatarPostId);
-    await avatarRootPost.threadFooter.toBeVisible();
-    expect(await avatarRootPost.threadFooter.hasLoadedAvatars()).toBe(true);
+    const adminDmChannel = await ensureDirectChannel(adminClient, adminMe.id, peers[0].id);
+    await postMessage(adminClient, adminDmChannel.id, UPGRADE_ADMIN_DM_MESSAGE);
 
-    const aboutModal = await channelsPage.globalHeader.openAbout();
-    const serverVersion = await aboutModal.getServerVersion();
-    const buildNumber = await aboutModal.getBuildNumber();
-    await aboutModal.close();
+    const adminGmChannel = await ensureGroupChannel(adminClient, [adminMe.id, peers[1].id, peers[2].id]);
+    await postMessage(adminClient, adminGmChannel.id, UPGRADE_ADMIN_GM_MESSAGE);
 
-    const admin = {username: testConfig.adminUsername, password: testConfig.adminPassword} as UserProfile;
-    const {channelsPage: adminChannelsPage, systemConsolePage} = await pw.testBrowser.login(admin);
+    const adminAttachmentPost = await postWithAttachment(
+        adminClient,
+        publicChannel.id,
+        UPGRADE_ADMIN_ATTACHMENT_MESSAGE,
+        UPGRADE_ATTACHMENT_FILE,
+    );
+    await verifyPostAttachmentDownloadable(request, adminClient, adminAttachmentPost.id, UPGRADE_ATTACHMENT_FILE);
 
-    await adminChannelsPage.goto(team.name, publicChannel.name);
-    await adminChannelsPage.toBeVisible();
-    await adminChannelsPage.postMessage(UPGRADE_ADMIN_PUBLIC_MESSAGE);
-    await adminChannelsPage.postMessage(UPGRADE_ADMIN_SEARCH_MESSAGE);
+    await postMessage(userClient!, publicChannel.id, 'upgrade-check admin avatar separator');
+    await postMessage(adminClient, publicChannel.id, UPGRADE_ADMIN_AVATAR_MESSAGE);
 
-    await adminChannelsPage.goto(team.name, privateChannel.name);
-    await adminChannelsPage.toBeVisible();
-    await adminChannelsPage.postMessage(UPGRADE_ADMIN_PRIVATE_MESSAGE);
-
-    const adminDmModal = await adminChannelsPage.openDirectChannelsModal();
-    await adminDmModal.selectUser(peers[0]);
-    await adminDmModal.goToChannel();
-    await adminChannelsPage.toBeVisible();
-    await adminChannelsPage.postMessage(UPGRADE_ADMIN_DM_MESSAGE);
-
-    const adminGmModal = await adminChannelsPage.openDirectChannelsModal();
-    await adminGmModal.selectUser(peers[1]);
-    await adminGmModal.selectUser(peers[2]);
-    await adminGmModal.goToChannel();
-    await adminChannelsPage.toBeVisible();
-    await adminChannelsPage.postMessage(UPGRADE_ADMIN_GM_MESSAGE);
-
-    await adminChannelsPage.goto(team.name, publicChannel.name);
-    await adminChannelsPage.postMessage(UPGRADE_ADMIN_ATTACHMENT_MESSAGE, [UPGRADE_ATTACHMENT_FILE]);
-    const adminAttachmentPost = await adminChannelsPage.getLastPost();
-    await expect(adminAttachmentPost.getFileAttachmentThumbnail(UPGRADE_ATTACHMENT_FILE)).toBeVisible();
-    const adminAttachmentPostId = await adminAttachmentPost.getId();
-
-    const {client: upgradeUserClient} = await pw.makeClient(user);
-    await upgradeUserClient.createPost({
-        channel_id: publicChannel.id,
-        message: 'upgrade-check admin avatar separator',
-    });
-    await adminChannelsPage.goto(team.name, publicChannel.name);
-    await adminChannelsPage.toBeVisible();
-    await adminChannelsPage.postMessage(UPGRADE_ADMIN_AVATAR_MESSAGE);
-    const adminAvatarPost = await adminChannelsPage.getLastPost();
-    expect(await adminAvatarPost.hasLoadedAvatar()).toBe(true);
-
-    const adminAboutModal = await adminChannelsPage.globalHeader.openAbout();
-    await adminAboutModal.toBeVisible();
-    expect(await adminAboutModal.getServerVersion()).toBe(serverVersion);
-    await adminAboutModal.close();
-
-    await systemConsolePage.gotoEditionAndLicense();
-    await systemConsolePage.editionAndLicense.toHaveLicensePanel();
-
-    const pluginBundlePath = await ensurePluginBundleDownloaded();
-    await systemConsolePage.gotoPluginManagement();
-    await systemConsolePage.pluginManagement.toBeVisible();
-    await systemConsolePage.pluginManagement.uploadPlugin(pluginBundlePath);
-    await systemConsolePage.pluginManagement.enablePlugin(UPGRADE_PLUGIN_ID);
-    await systemConsolePage.pluginManagement.toBeEnabled(UPGRADE_PLUGIN_ID);
+    await ensureUpgradePluginActive(request, adminClient);
 
     let minioAttachmentPostId: string | undefined;
     if (testConfig.testcontainersServices.includes('minio')) {
         await pw.ensureMinio();
-        const {channelsPage: minioChannelsPage} = await pw.testBrowser.login(user);
-        await minioChannelsPage.goto(team.name, publicChannel.name);
-        await minioChannelsPage.toBeVisible();
-        await minioChannelsPage.postMessage('upgrade-check minio attachment', [UPGRADE_MINIO_ATTACHMENT_FILE]);
-        const minioPost = await minioChannelsPage.getLastPost();
-        await expect(minioPost.getFileAttachmentThumbnail(UPGRADE_MINIO_ATTACHMENT_FILE)).toBeVisible();
-        minioAttachmentPostId = await minioPost.getId();
+        const {client: minioUserClient} = await pw.makeClient(user, {useCache: false});
+        expect(minioUserClient).toBeTruthy();
+        const minioPost = await postWithAttachment(
+            minioUserClient!,
+            publicChannel.id,
+            'upgrade-check minio attachment',
+            UPGRADE_MINIO_ATTACHMENT_FILE,
+        );
+        await verifyPostAttachmentDownloadable(request, minioUserClient!, minioPost.id, UPGRADE_MINIO_ATTACHMENT_FILE);
+        minioAttachmentPostId = minioPost.id;
     }
 
     let azuriteAttachmentPostId: string | undefined;
     if (testConfig.testcontainersServices.includes('azurite')) {
         await pw.ensureAzurite();
-        const {channelsPage: azuriteChannelsPage} = await pw.testBrowser.login(user);
-        await azuriteChannelsPage.goto(team.name, publicChannel.name);
-        await azuriteChannelsPage.toBeVisible();
-        await azuriteChannelsPage.postMessage('upgrade-check azurite attachment', [UPGRADE_AZURITE_ATTACHMENT_FILE]);
-        const azuritePost = await azuriteChannelsPage.getLastPost();
-        await expect(azuritePost.getFileAttachmentThumbnail(UPGRADE_AZURITE_ATTACHMENT_FILE)).toBeVisible();
-        azuriteAttachmentPostId = await azuritePost.getId();
+        const {client: azuriteUserClient} = await pw.makeClient(user, {useCache: false});
+        expect(azuriteUserClient).toBeTruthy();
+        const azuritePost = await postWithAttachment(
+            azuriteUserClient!,
+            publicChannel.id,
+            'upgrade-check azurite attachment',
+            UPGRADE_AZURITE_ATTACHMENT_FILE,
+        );
+        await verifyPostAttachmentDownloadable(
+            request,
+            azuriteUserClient!,
+            azuritePost.id,
+            UPGRADE_AZURITE_ATTACHMENT_FILE,
+        );
+        azuriteAttachmentPostId = azuritePost.id;
     }
 
     if (testConfig.testcontainersServices.includes('minio') || testConfig.testcontainersServices.includes('azurite')) {
@@ -221,11 +168,19 @@ test('upgrade-from: create actors and content', {tag: ['@upgrade-from']}, async 
     }
 
     writeUpgradeBaseline({
-        serverVersion,
-        buildNumber,
-        attachmentPostId,
-        avatarPostId,
-        adminAttachmentPostId,
+        serverVersion: fromIdentity.serverVersion,
+        buildNumber: fromIdentity.buildNumber,
+        userId: user.id,
+        adminUserId: adminMe.id,
+        publicChannelId: publicChannel.id,
+        privateChannelId: privateChannel.id,
+        userDmChannelId: userDmChannel.id,
+        userGmChannelId: userGmChannel.id,
+        adminDmChannelId: adminDmChannel.id,
+        adminGmChannelId: adminGmChannel.id,
+        attachmentPostId: attachmentPost.id,
+        avatarPostId: avatarPost.id,
+        adminAttachmentPostId: adminAttachmentPost.id,
         minioAttachmentPostId,
         azuriteAttachmentPostId,
     });

@@ -10,7 +10,7 @@ import {test} from '@mattermost/playwright-lib';
  */
 test(
     'MM-T5654_1 should be able to add attachments while editing a post',
-    {tag: ['@smoke', '@upgrade']},
+    {tag: ['@smoke']},
     async ({pw}) => {
         const originalMessage = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit';
 

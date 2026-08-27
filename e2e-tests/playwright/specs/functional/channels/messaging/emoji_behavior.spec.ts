@@ -8,7 +8,6 @@ import {expect, test} from '@mattermost/playwright-lib';
  */
 test(
     'MM-T95 Selecting an emoji from emoji picker should insert it at the cursor position',
-    {tag: ['@upgrade']},
     async ({pw}) => {
         const {user, team} = await pw.initSetup();
 

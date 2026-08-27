@@ -13,7 +13,7 @@ export {
 } from './upgrade_env';
 export {baseGlobalSetup} from './global_setup';
 export {TestBrowser} from './browser_context';
-export {assetPath, getBlobFromAsset, getFileFromAsset} from './file';
+export {assetPath, getBlobFromAsset, getFileFromAsset, getFileData, getBlobData} from './file';
 export {setupFileServer} from './file_server';
 export {decomposeKorean, koreanTestPhrase, typeHangulCharacterWithIme, typeHangulWithIme} from './ime';
 export {type SizeObservation, type SizeWatcher, watchElementSize} from './layout_shift';
@@ -54,6 +54,9 @@ export {
     runMmctl,
     ensureMmctl,
     upgradeServerImage,
+    installAndEnablePlugin,
+    getPluginStatus,
+    isPluginActive,
 } from './server';
 export type {InbucketEmail, LdapUser, KeycloakUser, MmctlResult} from './server';
 

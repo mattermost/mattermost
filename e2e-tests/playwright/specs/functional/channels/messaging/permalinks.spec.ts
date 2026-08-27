@@ -8,7 +8,7 @@ import {expect, test} from '@mattermost/playwright-lib';
  */
 test(
     'MM-T176 highlights the center post when its timestamp is clicked',
-    {tag: ['@messaging', '@upgrade']},
+    {tag: ['@messaging']},
     async ({pw}) => {
         // # Create and log in as a test user
         const {user, team} = await pw.initSetup();

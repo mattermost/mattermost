@@ -89,9 +89,7 @@ export default defineConfig({
         {
             name: 'upgrade-from',
             testDir: 'specs',
-            // `@upgrade(?!-)` so bare `@upgrade` does not also match `@upgrade-from` / `@upgrade-to`
-            // (`\b` alone treats `-` as a word boundary).
-            grep: /@upgrade-from\b|@upgrade(?!-)/,
+            grep: /@upgrade-from\b/,
             dependencies: ['upgrade-swap-from'],
             fullyParallel: false,
             workers: 1,
@@ -100,7 +98,7 @@ export default defineConfig({
         {
             name: 'upgrade-to',
             testDir: 'specs',
-            grep: /@upgrade-to\b|@upgrade(?!-)/,
+            grep: /@upgrade-to\b/,
             dependencies: ['upgrade-swap-to'],
             fullyParallel: false,
             workers: 1,
