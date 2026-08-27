@@ -8,40 +8,44 @@ import {test} from '@mattermost/playwright-lib';
 /**
  * @objective Verify that users can edit a post and modify its content
  */
-test('MM-T5654_1 should be able to add attachments while editing a post', {tag: ['@smoke', '@upgrade']}, async ({pw}) => {
-    const originalMessage = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit';
+test(
+    'MM-T5654_1 should be able to add attachments while editing a post',
+    {tag: ['@smoke', '@upgrade']},
+    async ({pw}) => {
+        const originalMessage = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit';
 
-    // # Initialize user and login
-    const {user} = await pw.initSetup();
-    const {channelsPage, page} = await pw.testBrowser.login(user);
+        // # Initialize user and login
+        const {user} = await pw.initSetup();
+        const {channelsPage, page} = await pw.testBrowser.login(user);
 
-    // # Navigate to channels page and post a message
-    await channelsPage.goto();
-    await channelsPage.toBeVisible();
-    await channelsPage.postMessage(originalMessage);
+        // # Navigate to channels page and post a message
+        await channelsPage.goto();
+        await channelsPage.toBeVisible();
+        await channelsPage.postMessage(originalMessage);
 
-    // # Hover over the last post to reveal the post menu
-    const post = await channelsPage.getLastPost();
-    await post.toBeVisible();
-    await post.hover();
-    await post.postMenu.toBeVisible();
+        // # Hover over the last post to reveal the post menu
+        const post = await channelsPage.getLastPost();
+        await post.toBeVisible();
+        await post.hover();
+        await post.postMenu.toBeVisible();
 
-    // # Open the dot menu and click edit
-    await post.postMenu.dotMenuButton.click();
-    await moveMouseAway(page);
-    await channelsPage.postDotMenu.toBeVisible();
-    await channelsPage.postDotMenu.editMenuItem.click();
+        // # Open the dot menu and click edit
+        await post.postMenu.dotMenuButton.click();
+        await moveMouseAway(page);
+        await channelsPage.postDotMenu.toBeVisible();
+        await channelsPage.postDotMenu.editMenuItem.click();
 
-    // # Edit the message and send
-    await channelsPage.centerView.postEdit.toBeVisible();
-    await channelsPage.centerView.postEdit.writeMessage('Edited message');
-    await channelsPage.centerView.postEdit.sendMessage();
+        // # Edit the message and send
+        await channelsPage.centerView.postEdit.toBeVisible();
+        await channelsPage.centerView.postEdit.writeMessage('Edited message');
+        await channelsPage.centerView.postEdit.sendMessage();
 
-    // * Verify the post was updated with the edited message
-    const updatedPost = await channelsPage.getLastPost();
-    await updatedPost.toBeVisible();
-    await updatedPost.toContainText('Edited message');
-});
+        // * Verify the post was updated with the edited message
+        const updatedPost = await channelsPage.getLastPost();
+        await updatedPost.toBeVisible();
+        await updatedPost.toContainText('Edited message');
+    },
+);
 
 test('MM-T5654_2 should be able to add attachments while editing a threaded post', async ({pw}) => {
     const originalMessage = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit';

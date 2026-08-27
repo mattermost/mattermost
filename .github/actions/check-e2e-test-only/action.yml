@@ -86,7 +86,8 @@ runs:
           [ -z "$file" ] && continue
           if [[ ! "$file" =~ ^e2e-tests/ ]] && \
              [[ ! "$file" =~ ^\.github/workflows/e2e- ]] && \
-             [[ ! "$file" =~ ^\.github/actions/ ]]; then
+             [[ ! "$file" =~ ^\.github/actions/ ]] && \
+             [[ ! "$file" =~ ^webapp/platform/client/ ]]; then
             echo "Non-E2E file found: $file"
             E2E_TEST_ONLY="false"
             break

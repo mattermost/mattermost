@@ -5,4 +5,5 @@ import {getUpgradeFromServerImage, test as setup} from '@mattermost/playwright-l
 
 setup('swap to from-image', async ({pw}) => {
     await pw.upgradeServerImage(getUpgradeFromServerImage());
+    await pw.ensureLocalFile();
 });

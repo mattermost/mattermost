@@ -7,4 +7,5 @@ setup('swap to to-image', async ({pw}) => {
     // Read fresh from testConfig (ultimately SERVER_IMAGE) in THIS process — never a value
     // captured by upgrade_swap_from.ts, which may have run in a different OS process entirely.
     await pw.upgradeServerImage(testConfig.serverImage);
+    await pw.ensureLocalFile();
 });

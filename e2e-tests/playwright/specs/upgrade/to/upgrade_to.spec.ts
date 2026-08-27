@@ -6,7 +6,6 @@ import type {UserProfile} from '@mattermost/types/users';
 import {expect, test, testConfig} from '@mattermost/playwright-lib';
 
 import {
-    UPGRADE_ADMIN_ATTACHMENT_MESSAGE,
     UPGRADE_ADMIN_AVATAR_MESSAGE,
     UPGRADE_ADMIN_DM_MESSAGE,
     UPGRADE_ADMIN_GM_MESSAGE,
@@ -30,6 +29,7 @@ import {
     ensureUpgradeTeam,
     ensureUpgradeUser,
     readUpgradeBaseline,
+    verifyPostAttachmentDownloadable,
 } from '../upgrade_fixtures';
 
 /**
@@ -52,6 +52,7 @@ test('upgrade-to: verify actors and content survived', {tag: ['@upgrade-to']}, a
     await pw.ensureLocalFile();
 
     const {channelsPage} = await pw.testBrowser.login(user);
+    const {client: upgradeUserClient} = await pw.makeClient(user);
 
     // U1: public channel
     await channelsPage.goto(team.name, publicChannel.name);
@@ -83,7 +84,7 @@ test('upgrade-to: verify actors and content survived', {tag: ['@upgrade-to']}, a
     await channelsPage.toBeVisible();
     const attachmentPost = await channelsPage.centerView.getPostById(baseline.attachmentPostId);
     await expect(attachmentPost.getFileAttachmentThumbnail(UPGRADE_ATTACHMENT_FILE)).toBeVisible();
-    await attachmentPost.downloadAttachment(UPGRADE_ATTACHMENT_FILE);
+    await verifyPostAttachmentDownloadable(upgradeUserClient, baseline.attachmentPostId, UPGRADE_ATTACHMENT_FILE);
 
     // U5: avatar still renders on post header, profile popover, and thread footer
     const avatarPost = await channelsPage.centerView.getPostById(baseline.avatarPostId);
@@ -137,7 +138,12 @@ test('upgrade-to: verify actors and content survived', {tag: ['@upgrade-to']}, a
     await adminChannelsPage.toBeVisible();
     const adminAttachmentPost = await adminChannelsPage.centerView.getPostById(baseline.adminAttachmentPostId);
     await expect(adminAttachmentPost.getFileAttachmentThumbnail(UPGRADE_ATTACHMENT_FILE)).toBeVisible();
-    await adminAttachmentPost.downloadAttachment(UPGRADE_ATTACHMENT_FILE);
+    const {client: adminClientForFiles} = await pw.makeClient(admin);
+    await verifyPostAttachmentDownloadable(
+        adminClientForFiles,
+        baseline.adminAttachmentPostId,
+        UPGRADE_ATTACHMENT_FILE,
+    );
 
     await adminChannelsPage.searchFor(UPGRADE_ADMIN_SEARCH_MESSAGE);
     await adminChannelsPage.searchResultsPanel.toContainText(UPGRADE_ADMIN_SEARCH_MESSAGE);
@@ -152,9 +158,16 @@ test('upgrade-to: verify actors and content survived', {tag: ['@upgrade-to']}, a
     await systemConsolePage.gotoEditionAndLicense();
     await systemConsolePage.editionAndLicense.toHaveLicensePanel();
 
-    // A2: plugin still enabled
+    // A2: plugin install survived; re-enable if the upgrade auto-disabled it
     await systemConsolePage.gotoPluginManagement();
     await systemConsolePage.pluginManagement.toBeVisible();
+    await expect(systemConsolePage.pluginManagement.pluginRow(UPGRADE_PLUGIN_ID)).toBeVisible();
+    const enablePluginButton = systemConsolePage.pluginManagement
+        .pluginRow(UPGRADE_PLUGIN_ID)
+        .getByText('Enable', {exact: true});
+    if (await enablePluginButton.isVisible().catch(() => false)) {
+        await systemConsolePage.pluginManagement.enablePlugin(UPGRADE_PLUGIN_ID);
+    }
     await systemConsolePage.pluginManagement.toBeEnabled(UPGRADE_PLUGIN_ID);
 
     // A5: no product UI shows DB/schema health — mmctl is the closest admin-facing check that
@@ -169,21 +182,31 @@ test('upgrade-to: verify actors and content survived', {tag: ['@upgrade-to']}, a
     if (baseline.minioAttachmentPostId) {
         await pw.ensureMinio();
         const {channelsPage: minioChannelsPage} = await pw.testBrowser.login(user);
+        const {client: minioUserClient} = await pw.makeClient(user);
         await minioChannelsPage.goto(team.name, publicChannel.name);
         await minioChannelsPage.toBeVisible();
         const minioPost = await minioChannelsPage.centerView.getPostById(baseline.minioAttachmentPostId);
         await expect(minioPost.getFileAttachmentThumbnail(UPGRADE_MINIO_ATTACHMENT_FILE)).toBeVisible();
-        await minioPost.downloadAttachment(UPGRADE_MINIO_ATTACHMENT_FILE);
+        await verifyPostAttachmentDownloadable(
+            minioUserClient,
+            baseline.minioAttachmentPostId,
+            UPGRADE_MINIO_ATTACHMENT_FILE,
+        );
     }
 
     // U6 (Azurite): same for the opt-in Azurite backend
     if (baseline.azuriteAttachmentPostId) {
         await pw.ensureAzurite();
         const {channelsPage: azuriteChannelsPage} = await pw.testBrowser.login(user);
+        const {client: azuriteUserClient} = await pw.makeClient(user);
         await azuriteChannelsPage.goto(team.name, publicChannel.name);
         await azuriteChannelsPage.toBeVisible();
         const azuritePost = await azuriteChannelsPage.centerView.getPostById(baseline.azuriteAttachmentPostId);
         await expect(azuritePost.getFileAttachmentThumbnail(UPGRADE_AZURITE_ATTACHMENT_FILE)).toBeVisible();
-        await azuritePost.downloadAttachment(UPGRADE_AZURITE_ATTACHMENT_FILE);
+        await verifyPostAttachmentDownloadable(
+            azuriteUserClient,
+            baseline.azuriteAttachmentPostId,
+            UPGRADE_AZURITE_ATTACHMENT_FILE,
+        );
     }
 });

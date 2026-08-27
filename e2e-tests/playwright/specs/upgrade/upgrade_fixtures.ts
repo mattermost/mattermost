@@ -11,6 +11,8 @@ import path from 'node:path';
 import type {Client4} from '@mattermost/client';
 import type {UserProfile} from '@mattermost/types/users';
 
+import {expect} from '@mattermost/playwright-lib';
+
 const BASELINE_PATH = path.resolve(process.cwd(), '.upgrade_baseline.json');
 
 export const UPGRADE_TEAM_NAME = 'upgrade-test';
@@ -69,14 +71,24 @@ export async function ensureUpgradeTeam(adminClient: Client4) {
 
 /** Looks up a shared upgrade-test user by username, creating (and adding to the team) if new. */
 export async function ensureUpgradeUser(adminClient: Client4, teamId: string, spec: UserProfile) {
+    let user: UserProfile;
     try {
         const existing = await adminClient.getUserByUsername(spec.username);
-        return {...existing, password: spec.password} as UserProfile;
+        user = {...existing, password: spec.password} as UserProfile;
     } catch {
         const created = await adminClient.createUser(spec, '', '');
         await adminClient.addToTeam(teamId, created.id);
-        return {...created, password: spec.password} as UserProfile;
+        user = {...created, password: spec.password} as UserProfile;
     }
+
+    await adminClient.savePreferences(user.id, [
+        {user_id: user.id, category: 'tutorial_step', name: user.id, value: '999'},
+        {user_id: user.id, category: 'crt_thread_pane_step', name: user.id, value: '999'},
+        {user_id: user.id, category: 'onboarding_task_list', name: 'onboarding_task_list_show', value: 'false'},
+        {user_id: user.id, category: 'onboarding_task_list', name: 'onboarding_task_list_open', value: 'false'},
+    ]);
+
+    return user;
 }
 
 /** Looks up a shared upgrade-test channel by name, creating it under the team if new. */
@@ -127,4 +139,24 @@ export function readUpgradeBaseline(): UpgradeBaseline {
         throw new Error(`${BASELINE_PATH} not found — did the upgrade-from project run first?`);
     }
     return JSON.parse(fs.readFileSync(BASELINE_PATH, 'utf-8'));
+}
+
+/** Confirms a post's attachment is served by the active file backend (API round-trip). */
+export async function verifyPostAttachmentDownloadable(
+    client: Client4,
+    postId: string,
+    fileName: string,
+): Promise<void> {
+    const post = await client.getPost(postId);
+    expect(post.file_ids?.length).toBeGreaterThan(0);
+
+    const fileInfos = await Promise.all(post.file_ids!.map((fileId) => client.getFileInfo(fileId)));
+    const fileInfo = fileInfos.find((info) => info.name === fileName);
+    expect(fileInfo).toBeDefined();
+
+    const downloadResponse = await fetch(client.getFileUrl(fileInfo!.id, 0), {
+        headers: {Authorization: `Bearer ${client.getToken()}`},
+    });
+    expect(downloadResponse.ok).toBe(true);
+    expect((await downloadResponse.arrayBuffer()).byteLength).toBeGreaterThan(0);
 }

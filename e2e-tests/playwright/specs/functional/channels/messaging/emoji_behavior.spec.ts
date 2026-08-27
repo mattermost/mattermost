@@ -6,29 +6,33 @@ import {expect, test} from '@mattermost/playwright-lib';
 /**
  * @objective Verify selecting an emoji from the picker inserts it at the current caret position.
  */
-test('MM-T95 Selecting an emoji from emoji picker should insert it at the cursor position', {tag: ['@upgrade']}, async ({pw}) => {
-    const {user, team} = await pw.initSetup();
+test(
+    'MM-T95 Selecting an emoji from emoji picker should insert it at the cursor position',
+    {tag: ['@upgrade']},
+    async ({pw}) => {
+        const {user, team} = await pw.initSetup();
 
-    // # Log in and place the caret between "Hello" and "World"
-    const {channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, 'off-topic');
-    await channelsPage.toBeVisible();
-    await channelsPage.centerView.postCreate.writeMessage('HelloWorld!');
-    for (let i = 0; i < 'World!'.length; i++) {
-        await channelsPage.centerView.postCreate.input.press('ArrowLeft');
-    }
+        // # Log in and place the caret between "Hello" and "World"
+        const {channelsPage} = await pw.testBrowser.login(user);
+        await channelsPage.goto(team.name, 'off-topic');
+        await channelsPage.toBeVisible();
+        await channelsPage.centerView.postCreate.writeMessage('HelloWorld!');
+        for (let i = 0; i < 'World!'.length; i++) {
+            await channelsPage.centerView.postCreate.input.press('ArrowLeft');
+        }
 
-    // # Select the grinning emoji from the picker
-    await channelsPage.centerView.postCreate.openEmojiPicker();
-    await channelsPage.emojiGifPickerPopup.toBeVisible();
-    await channelsPage.emojiGifPickerPopup.clickEmoji('grinning');
+        // # Select the grinning emoji from the picker
+        await channelsPage.centerView.postCreate.openEmojiPicker();
+        await channelsPage.emojiGifPickerPopup.toBeVisible();
+        await channelsPage.emojiGifPickerPopup.clickEmoji('grinning');
 
-    // * Verify the emoji was inserted at the caret and can be posted
-    await expect(channelsPage.centerView.postCreate.input).toHaveValue('Hello 😀 World!');
-    await channelsPage.centerView.postCreate.sendMessage();
-    const lastPost = await channelsPage.getLastPost();
-    await lastPost.toContainText('Hello 😀 World!');
-});
+        // * Verify the emoji was inserted at the caret and can be posted
+        await expect(channelsPage.centerView.postCreate.input).toHaveValue('Hello 😀 World!');
+        await channelsPage.centerView.postCreate.sendMessage();
+        const lastPost = await channelsPage.getLastPost();
+        await lastPost.toContainText('Hello 😀 World!');
+    },
+);
 
 /**
  * @objective Verify an emoji followed by punctuation renders as an emoji without separating the punctuation.

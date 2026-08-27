@@ -56,6 +56,10 @@ test('upgrade-from: create actors and content', {tag: ['@upgrade-from']}, async 
         // From-images predating ABAC won't expose this config section.
     }
 
+    // Local-disk attachments are created early in this spec; reset the driver in case a prior
+    // ensureMinio()/ensureAzurite() left bootEnvOverrides on S3/Azure from an earlier run.
+    await pw.ensureLocalFile();
+
     const team = await ensureUpgradeTeam(adminClient);
     const user = await ensureUpgradeUser(adminClient, team.id, UPGRADE_USER);
     const peers = await Promise.all(UPGRADE_PEER_USERS.map((peer) => ensureUpgradeUser(adminClient, team.id, peer)));
@@ -230,10 +234,7 @@ test('upgrade-from: create actors and content', {tag: ['@upgrade-from']}, async 
     }
 
     // Restore local disk so the next process's default expectations match a fresh boot's backend
-    if (
-        testConfig.testcontainersServices.includes('minio') ||
-        testConfig.testcontainersServices.includes('azurite')
-    ) {
+    if (testConfig.testcontainersServices.includes('minio') || testConfig.testcontainersServices.includes('azurite')) {
         await pw.ensureLocalFile();
     }
 

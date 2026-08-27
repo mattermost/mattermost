@@ -3,7 +3,12 @@
 
 import {defineConfig, devices} from '@playwright/test';
 
-import {duration, getUpgradeFromServerImage, isUpgradeFromProjectSelected, testConfig} from '@mattermost/playwright-lib';
+import {
+    duration,
+    getUpgradeFromServerImage,
+    isUpgradeFromProjectSelected,
+    testConfig,
+} from '@mattermost/playwright-lib';
 
 if (isUpgradeFromProjectSelected()) {
     getUpgradeFromServerImage();
