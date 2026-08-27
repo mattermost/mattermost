@@ -423,7 +423,7 @@ func TestCreateScheduledPost(t *testing.T) {
 					require.NotNil(t, created)
 					require.Equal(t, testCase.postType, created.Type)
 
-					fetched, storeErr := th.App.Srv().Store().ScheduledPost().Get(th.Context, created.Id)
+					fetched, storeErr := th.App.Srv().Store().ScheduledPost().Get(created.Id)
 					require.NoError(t, storeErr)
 					require.Equal(t, testCase.postType, fetched.Type)
 					return
