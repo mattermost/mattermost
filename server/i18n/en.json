@@ -4888,7 +4888,7 @@
   },
   {
     "id": "api.user.login.remote_users.login.error",
-    "translation": "Login failed because remote users are not allow to log in."
+    "translation": "Login failed because remote users are not allowed to log in."
   },
   {
     "id": "api.user.login.use_auth_service.app_error",
@@ -6730,7 +6730,7 @@
   },
   {
     "id": "app.export.generate_presigned_url.config.app_error",
-    "translation": "This actions requires the use of a dedicated export store."
+    "translation": "This action requires the use of a dedicated export store."
   },
   {
     "id": "app.export.generate_presigned_url.direct_download.app_error",
@@ -7538,7 +7538,7 @@
   },
   {
     "id": "app.import.validate_user_import_data.username_missing.error",
-    "translation": "Missing require user property: username."
+    "translation": "Missing required user property: username."
   },
   {
     "id": "app.import.validate_user_teams_import_data.invalid_auth_service.error",
@@ -9768,7 +9768,7 @@
   },
   {
     "id": "app.user.get_known_users.get_users.app_error",
-    "translation": "Unable to get know users from the database."
+    "translation": "Unable to get known users from the database."
   },
   {
     "id": "app.user.get_new_users.app_error",
