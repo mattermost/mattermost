@@ -41,7 +41,6 @@ export async function complete({model, system, user, maxTokens = 4096, temperatu
   return {text, usage: res.usage, stopReason: res.stop_reason};
 }
 
-/** Parse JSON out of a model response, even when it's wrapped in a fence. */
 export function parseJson(text) {
   const fenced = text.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
   const candidate = fenced ? fenced[1] : text;
@@ -60,18 +59,22 @@ export function usageLine(usage) {
   return `in=${usage.input_tokens} out=${usage.output_tokens} cached=${cached}`;
 }
 
-async function withRetry(fn, attempts = 3) {
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+/** `sleep` is injectable so tests can exercise the retry path without waiting. */
+export async function withRetry(fn, {attempts = 3, wait = sleep} = {}) {
   let lastErr;
   for (let i = 0; i < attempts; i++) {
     try {
       return await fn();
     } catch (e) {
       lastErr = e;
-      const transient = e.status === 429 || e.status === 529 || (e.status >= 500 && e.status <= 599);
+      const status = e?.status;
+      const transient = status === 429 || status === 529 || (status >= 500 && status <= 599);
       if (!transient || i === attempts - 1) throw e;
       const backoff = 2 ** i * 1000 + Math.random() * 500;
-      console.warn(`[anthropic] transient ${e.status}; retry in ${Math.round(backoff)}ms`);
-      await new Promise((r) => setTimeout(r, backoff));
+      console.warn(`[anthropic] transient ${status}; retry in ${Math.round(backoff)}ms`);
+      await wait(backoff);
     }
   }
   throw lastErr;
