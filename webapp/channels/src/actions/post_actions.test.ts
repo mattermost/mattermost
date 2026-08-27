@@ -9,11 +9,13 @@ import * as PostActions from 'mattermost-redux/actions/posts';
 import {Posts} from 'mattermost-redux/constants';
 
 import * as Actions from 'actions/post_actions';
+import {getSuppressOutOfChannelEphemeralKey} from 'actions/views/out_of_channel_mention';
 
 import test_helper from 'packages/mattermost-redux/test/test_helper';
 import mockStore from 'tests/test_store';
 import {Constants, ActionTypes, RHSStates} from 'utils/constants';
 import * as PostUtils from 'utils/post_utils';
+import {TestHelper} from 'utils/test_helper';
 
 import type {GlobalState} from 'types/store';
 
@@ -272,6 +274,134 @@ describe('Actions.Posts', () => {
             },
         ]);
         expect(mockedSendDesktopNotification).toHaveBeenCalled();
+    });
+
+    describe('handleNewPost out-of-channel ephemeral suppression', () => {
+        const ephemeralPost = TestHelper.getPostMock({
+            id: 'ephemeral_post_id',
+            channel_id: 'current_channel_id',
+            root_id: '',
+            message: '@alice did not get notified by this mention because they are not in the channel.',
+            type: Posts.POST_TYPES.EPHEMERAL,
+            user_id: 'current_user_id',
+            create_at: POST_CREATED_TIME,
+            props: {
+                add_channel_member: {
+                    post_id: 'ephemeral_post_id',
+                    not_in_channel_user_ids: ['user1'],
+                    not_in_channel_usernames: ['alice'],
+                    not_in_groups_usernames: [],
+                },
+            },
+        });
+
+        function getStateWithSuppress(overrides: {channelId?: string; rootId?: string; expireAt?: number} = {}) {
+            const channelId = overrides.channelId ?? 'current_channel_id';
+            const rootId = overrides.rootId ?? '';
+            const expireAt = overrides.expireAt ?? (POST_CREATED_TIME + 10000);
+
+            return {
+                ...initialState,
+                views: {
+                    ...initialState.views,
+                    posts: {
+                        ...initialState.views.posts,
+                        suppressOutOfChannelEphemeral: {
+                            [getSuppressOutOfChannelEphemeralKey(channelId, rootId)]: {
+                                expireAt,
+                            },
+                        },
+                    },
+                },
+            } as unknown as GlobalState;
+        }
+
+        test('drops matching ephemeral post when suppress flag is active', async () => {
+            const testStore = mockStore(getStateWithSuppress());
+
+            await testStore.dispatch(Actions.handleNewPost(ephemeralPost));
+
+            expect(testStore.getActions()).toEqual([]);
+            expect(mockedSendDesktopNotification).not.toHaveBeenCalled();
+        });
+
+        test('receives ephemeral post when suppress flag is for a different channel', async () => {
+            const testStore = mockStore(getStateWithSuppress({channelId: 'other_channel_id'}));
+
+            await testStore.dispatch(Actions.handleNewPost(ephemeralPost));
+
+            const actions = testStore.getActions();
+            expect(actions).toHaveLength(1);
+            expect(actions[0].payload).toEqual(expect.arrayContaining([
+                PostActions.receivedNewPost(ephemeralPost, false),
+            ]));
+            expect(mockedSendDesktopNotification).toHaveBeenCalled();
+        });
+
+        test('receives ephemeral post when suppress flag is for a different thread', async () => {
+            const testStore = mockStore(getStateWithSuppress({rootId: 'root_post_id'}));
+
+            await testStore.dispatch(Actions.handleNewPost(ephemeralPost));
+
+            const actions = testStore.getActions();
+            expect(actions).toHaveLength(1);
+            expect(actions[0].payload).toEqual(expect.arrayContaining([
+                PostActions.receivedNewPost(ephemeralPost, false),
+            ]));
+        });
+
+        test('receives ephemeral post when suppress flag has expired', async () => {
+            const testStore = mockStore(getStateWithSuppress({expireAt: POST_CREATED_TIME - 1}));
+
+            await testStore.dispatch(Actions.handleNewPost(ephemeralPost));
+
+            const actions = testStore.getActions();
+            expect(actions).toHaveLength(1);
+            expect(actions[0].payload).toEqual(expect.arrayContaining([
+                PostActions.receivedNewPost(ephemeralPost, false),
+            ]));
+        });
+
+        test('does not suppress unrelated ephemerals when suppress flag is active', async () => {
+            const testStore = mockStore(getStateWithSuppress());
+            const unrelatedEphemeral = TestHelper.getPostMock({
+                id: 'slash_ephemeral_id',
+                channel_id: 'current_channel_id',
+                root_id: '',
+                message: 'Available commands: /away',
+                type: Posts.POST_TYPES.EPHEMERAL,
+                user_id: 'current_user_id',
+                create_at: POST_CREATED_TIME,
+            });
+
+            await testStore.dispatch(Actions.handleNewPost(unrelatedEphemeral));
+
+            const actions = testStore.getActions();
+            expect(actions).toHaveLength(1);
+            expect(actions[0].payload).toEqual(expect.arrayContaining([
+                PostActions.receivedNewPost(unrelatedEphemeral, false),
+            ]));
+        });
+
+        test('does not suppress non-ephemeral posts when suppress flag is active', async () => {
+            const testStore = mockStore(getStateWithSuppress());
+            const regularPost = {
+                id: 'regular_post_id',
+                channel_id: 'current_channel_id',
+                message: 'regular message',
+                type: '',
+                user_id: 'other_user_id',
+                create_at: POST_CREATED_TIME,
+            } as Post;
+
+            await testStore.dispatch(Actions.handleNewPost(regularPost));
+
+            const actions = testStore.getActions();
+            expect(actions).toHaveLength(1);
+            expect(actions[0].payload).toEqual(expect.arrayContaining([
+                PostActions.receivedNewPost(regularPost, false),
+            ]));
+        });
     });
 
     test('unsetEditingPost', async () => {
