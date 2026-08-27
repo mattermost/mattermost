@@ -319,15 +319,16 @@ jobs:
       - name: ci/prepare-playwright
         working-directory: e2e-tests/playwright
         run: npx playwright test --project=setup
-      # Rolling-upgrade coverage. Single-worker gated to avoid N× duplicated container churn
-      # across the matrix.
+      # Rolling-upgrade coverage. Gated to worker 1 (matrix is 1..N) to avoid
+      # N× duplicated container churn across the matrix.
       - name: ci/resolve-upgrade-matrix
         id: upgrade-matrix
-        if: matrix.worker_index == 0
+        # workers-matrix is 1..N (see prepare-run); run upgrade coverage once on worker 1.
+        if: matrix.worker_index == 1
         working-directory: e2e-tests/playwright
         run: echo "versions=$(node script/resolve_upgrade_matrix.mjs)" >> "$GITHUB_OUTPUT"
       - name: ci/upgrade-tests
-        if: matrix.worker_index == 0
+        if: matrix.worker_index == 1
         working-directory: e2e-tests/playwright
         run: |
           # Same repo/edition SERVER_IMAGE already resolved to (see this workflow's top-level env),
