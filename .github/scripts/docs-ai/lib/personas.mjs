@@ -25,7 +25,7 @@ export function registry() {
     throw new Error(`No persona files found in ${PERSONAS_DIR}`);
   }
 
-  cache = files.map((file) => parsePersona(file));
+  cache = files.map((file) => parsePersona(file, readFileSync(join(PERSONAS_DIR, file), 'utf8')));
   return cache;
 }
 
@@ -42,10 +42,12 @@ function splitFrontmatter(raw) {
   };
 }
 
-function parsePersona(file) {
-  const path = join(PERSONAS_DIR, file);
-  const raw = readFileSync(path, 'utf8');
-
+/**
+ * Validate one persona file's contents. Takes the text rather than reading it,
+ * so the rules can be tested without adding fixture files to the personas
+ * directory — that directory is the live registry, so anything in it is real.
+ */
+export function parsePersona(file, raw) {
   const split = splitFrontmatter(raw);
   if (!split) {
     throw new Error(`${file}: missing YAML frontmatter delimited by --- lines`);
@@ -80,9 +82,6 @@ function parsePersona(file) {
   // being selected for the content it owns. Fail instead of losing coverage.
   const docsPaths = requireStringArray(file, 'docs_paths', meta.docs_paths, {onDisk: true});
 
-  // Only the impact analysis reads these, so they are required there and
-  // validated but optional elsewhere. Code paths are not checked on disk: they
-  // are matched as prefixes and move far more often than docs directories.
   let codeSignals = [];
   if (meta.scope.includes('impact') || meta.code_signals !== undefined) {
     codeSignals = requireStringArray(file, 'code_signals', meta.code_signals);
