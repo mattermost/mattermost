@@ -199,7 +199,7 @@ const ConfirmModal = ({
             <Button
                 type='button'
                 data-testid='cancel-button'
-                emphasis='Tertiary'
+                emphasis='tertiary'
                 onClick={handleCancel}
                 id='cancelModalButton'
             >
@@ -235,7 +235,7 @@ const ConfirmModal = ({
                     {!hideConfirm && (
                         <Button
                             type='button'
-                            emphasis='Primary'
+                            emphasis='primary'
                             destructive={confirmButtonVariant === 'destructive'}
                             onClick={handleConfirm}
                             id='confirmModalButton'
