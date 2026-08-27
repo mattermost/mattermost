@@ -31,6 +31,7 @@ jest.mock('@tiptap/react', () => {
                     blur: () => undefined,
                     insertContent: () => undefined,
                 },
+
                 // Mirrors the real library: an update is emitted unless the caller opts out.
                 setEditable: (_editable: boolean, emitUpdate = true) => {
                     if (emitUpdate) {
@@ -564,6 +565,30 @@ describe('WysiwygEditor', () => {
 
             rerender(<WysiwygEditor {...baseProps}/>);
             expect(queryByTestId('suggestion-list')).not.toBeNull();
+        });
+
+        test('readOnly holds against insertText, which a handle holder can still reach for', () => {
+            jest.useFakeTimers();
+            const onChange = jest.fn();
+            const ref = React.createRef<React.ComponentRef<typeof WysiwygEditor>>();
+
+            renderWithContext(
+                <WysiwygEditor
+                    {...baseProps}
+                    ref={ref}
+                    onChange={onChange}
+                    readOnly={true}
+                />,
+            );
+
+            mockChainCalls.current = [];
+            ref.current!.insertText(':smile:');
+            jest.runAllTimers();
+
+            expect(mockChainCalls.current).toHaveLength(0);
+            expect(onChange).not.toHaveBeenCalled();
+
+            jest.useRealTimers();
         });
 
         test('switching in and out of readOnly is not an edit', () => {

@@ -488,7 +488,7 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
         getEditor: () => editorRef.current,
         insertText: (text: string) => {
             const ed = editorRef.current;
-            if (ed && !ed.isDestroyed) {
+            if (ed && !ed.isDestroyed && !readOnlyRef.current) {
                 const {state} = ed;
                 const {from} = state.selection;
                 const charBefore = from > 0 ? state.doc.textBetween(from - 1, from) : '';
