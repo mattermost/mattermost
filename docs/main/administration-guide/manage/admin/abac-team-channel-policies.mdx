@@ -114,7 +114,7 @@ If a System Admin adds a channel from another team to a policy that was previous
 
 ## Synchronization
 
-When you save a policy or modify channel assignments, Mattermost creates a membership synchronization job. Changes are applied as soon as the job completes. Synchronization also runs automatically on a schedule to handle attribute changes from external systems such as LDAP or SAML. The interval is set by `AccessControlSettings.SyncJobIntervalSeconds` and defaults to 3600 seconds (60 minutes).
+When you save a policy or modify channel assignments, Mattermost creates a membership synchronization job. Changes are applied as soon as the job completes. Synchronization also runs automatically on a schedule to handle attribute changes from external systems such as LDAP or SAML. The interval is set by `AccessControlSettings.SyncJobIntervalSeconds` and defaults to 3600 seconds (60 minutes). User attributes used for access control evaluation are refreshed on a separate schedule controlled by `AccessControlSettings.AttributeRefreshIntervalSeconds`, which defaults to 30 seconds.
 
 ## Troubleshooting and FAQs
 
