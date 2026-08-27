@@ -137,8 +137,6 @@ export function trimResults(results: SuggestionResults, max: number) {
             groups: [...results.groups],
         };
 
-        // trimmed = JSON.parse(JSON.stringify(results));
-
         let i = 0;
         while (i < trimmed.groups.length && remaining > 0) {
             const group = trimmed.groups[i];
