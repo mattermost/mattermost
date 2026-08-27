@@ -98,7 +98,7 @@ exports[`components/integrations/AbstractOutgoingOAuthConnection should match sn
               autocomplete="off"
               class="form-control"
               id="client_secret"
-              type="text"
+              type="password"
               value=""
             />
             <div
@@ -305,7 +305,7 @@ exports[`components/integrations/AbstractOutgoingOAuthConnection should match sn
               autocomplete="off"
               class="form-control"
               id="client_secret"
-              type="text"
+              type="password"
               value=""
             />
             <div

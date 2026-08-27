@@ -98,7 +98,7 @@ exports[`components/integrations/EditOutgoingOAuthConnection should match snapsh
               autocomplete="off"
               class="form-control"
               id="client_secret"
-              type="text"
+              type="password"
               value=""
             />
             <div
@@ -303,7 +303,7 @@ exports[`components/integrations/EditOutgoingOAuthConnection should match snapsh
               autocomplete="off"
               class="form-control"
               id="client_secret"
-              type="text"
+              type="password"
               value=""
             />
             <div
@@ -508,7 +508,7 @@ exports[`components/integrations/EditOutgoingOAuthConnection should match snapsh
               autocomplete="off"
               class="form-control"
               id="client_secret"
-              type="text"
+              type="password"
               value=""
             />
             <div

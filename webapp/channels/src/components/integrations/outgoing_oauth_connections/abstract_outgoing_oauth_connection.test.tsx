@@ -133,6 +133,6 @@ describe('components/integrations/AbstractOutgoingOAuthConnection', () => {
             (document.querySelector('#confirmModalButton') as HTMLButtonElement)?.click();
         });
 
-        expect(submitAction).toHaveBeenCalled();
+        expect(submitAction).toHaveBeenCalledWith(expect.objectContaining({client_secret: 'secret'}));
     });
 });
