@@ -4,13 +4,14 @@ on:
   # Argo Events Trigger (automated):
   #   - Triggered by: Enterprise CI/docker-image status check (success)
   #   - Payload: { ref: "<branch>", inputs: { commit_sha: "<sha>" } }
-  #   - Uses commit-specific docker image
+  #   - Uses commit-specific docker image when the PR is not E2E-only
   #   - Checks for relevant file changes before running tests
   #
-  # Manual Trigger:
+  # Manual / E2E-only Trigger:
   #   - Enter PR number only - commit SHA is resolved automatically from PR head
-  #   - Uses commit-specific docker image
-  #   - E2E tests always run (no file change check)
+  #   - E2E-only PRs targeting master/release-* use the base-branch image (e.g. master)
+  #   - Mixed PRs use the commit-SHA image (expects Enterprise docker-image to exist)
+  #   - Manual triggers always run E2E tests (no file change check)
   #
   workflow_dispatch:
     inputs:
@@ -37,12 +38,10 @@ jobs:
       SERVER_IMAGE_TAG: "${{ steps.e2e-check.outputs.image_tag }}"
       HEAD_REF: "${{ steps.resolve.outputs.HEAD_REF }}"
     steps:
-      - name: ci/checkout-repo
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-        with:
-          persist-credentials: false
-          fetch-depth: 0
-
+      # Resolve PR via API first (no checkout). Then check out the PR head so
+      # check-e2e-test-only uses the PR's allowlist — workflow_dispatch otherwise
+      # defaults to the base branch and mis-tags E2E-only PRs that touch
+      # paths only allowed in the PR's action (e.g. webapp/platform/client/).
       - name: ci/resolve-pr-and-commit
         id: resolve
         env:
@@ -114,6 +113,14 @@ jobs:
           # Neither provided
           echo "::error::Either pr_number or commit_sha must be provided"
           exit 1
+
+      - name: ci/checkout-pr-head
+        if: steps.resolve.outputs.PR_NUMBER != '' && steps.resolve.outputs.COMMIT_SHA != ''
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+          ref: ${{ steps.resolve.outputs.COMMIT_SHA }}
+          fetch-depth: 0
 
       - name: ci/check-e2e-test-only
         if: steps.resolve.outputs.PR_NUMBER != ''
