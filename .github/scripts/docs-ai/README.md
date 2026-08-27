@@ -27,6 +27,10 @@ You are a senior Mattermost system administrator…
 Every key is required except `code_signals`, which is required only with `impact` scope.
 `docs_paths` entries must exist on disk.
 
+Everything below the closing `---` is the persona's system prompt, sent verbatim. Write
+it as the brief you would give a human reviewer: who they are, what they are accountable
+for, what to look for and in what order.
+
 | Scope | Used by |
 | --- | --- |
 | `review` | Reviewing a docs PR |

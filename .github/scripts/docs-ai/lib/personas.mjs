@@ -1,4 +1,4 @@
-import {readFileSync, readdirSync} from 'node:fs';
+import {existsSync, readFileSync, readdirSync} from 'node:fs';
 import {basename, dirname, join} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import yaml from 'js-yaml';
@@ -76,9 +76,18 @@ function parsePersona(file) {
       throw new Error(`${file}: unknown scope "${s}" (expected ${VALID_SCOPES.join(', ')})`);
     }
   }
-  if (!Array.isArray(meta.docs_paths) || meta.docs_paths.length === 0) {
-    throw new Error(`${file}: docs_paths must be a non-empty array`);
+  // A path that no longer exists matches nothing, so the persona quietly stops
+  // being selected for the content it owns. Fail instead of losing coverage.
+  const docsPaths = requireStringArray(file, 'docs_paths', meta.docs_paths, {onDisk: true});
+
+  // Only the impact analysis reads these, so they are required there and
+  // validated but optional elsewhere. Code paths are not checked on disk: they
+  // are matched as prefixes and move far more often than docs directories.
+  let codeSignals = [];
+  if (meta.scope.includes('impact') || meta.code_signals !== undefined) {
+    codeSignals = requireStringArray(file, 'code_signals', meta.code_signals);
   }
+
   if (typeof meta.router_hints !== 'string' || !meta.router_hints.trim()) {
     throw new Error(`${file}: router_hints is required`);
   }
@@ -87,12 +96,29 @@ function parsePersona(file) {
     id: meta.id,
     label: meta.label,
     scope: meta.scope,
-    docsPaths: meta.docs_paths,
-    codeSignals: meta.code_signals ?? [],
+    docsPaths,
+    codeSignals,
     routerHints: meta.router_hints.trim(),
     prompt,
     file,
   };
+}
+
+function requireStringArray(file, key, value, {onDisk = false} = {}) {
+  if (!Array.isArray(value) || value.length === 0) {
+    throw new Error(`${file}: ${key} must be a non-empty array`);
+  }
+
+  for (const entry of value) {
+    if (typeof entry !== 'string' || !entry.trim()) {
+      throw new Error(`${file}: every ${key} entry must be a non-empty string`);
+    }
+    if (onDisk && !existsSync(join(REPO_ROOT, entry))) {
+      throw new Error(`${file}: ${key} entry "${entry}" does not exist in the repository`);
+    }
+  }
+
+  return value;
 }
 
 export function personaIds() {
