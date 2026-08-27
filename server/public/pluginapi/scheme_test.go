@@ -11,7 +11,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/pluginapi"
 )
 
-func TestSchemeGetOrCreateChannelScheme(t *testing.T) {
+func TestSchemeGetOrCreatePluginChannelScheme(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
@@ -22,7 +22,7 @@ func TestSchemeGetOrCreateChannelScheme(t *testing.T) {
 		guest := []string{model.PermissionReadChannel.Id}
 		api.On("GetOrCreatePluginChannelScheme", user, admin, guest).Return(&model.Scheme{Id: "1"}, nil)
 
-		scheme, err := client.Scheme.GetOrCreateChannelScheme(user, admin, guest)
+		scheme, err := client.Scheme.GetOrCreatePluginChannelScheme(user, admin, guest)
 		require.NoError(t, err)
 		require.Equal(t, "1", scheme.Id)
 	})
@@ -35,7 +35,7 @@ func TestSchemeGetOrCreateChannelScheme(t *testing.T) {
 		appErr := model.NewAppError("here", "id", nil, "boom", http.StatusInternalServerError)
 		api.On("GetOrCreatePluginChannelScheme", []string(nil), []string(nil), []string(nil)).Return(nil, appErr)
 
-		scheme, err := client.Scheme.GetOrCreateChannelScheme(nil, nil, nil)
+		scheme, err := client.Scheme.GetOrCreatePluginChannelScheme(nil, nil, nil)
 		require.Equal(t, appErr, err)
 		require.Zero(t, scheme)
 	})
@@ -47,7 +47,7 @@ func TestSchemeGetOrCreateChannelScheme(t *testing.T) {
 
 		api.On("GetOrCreatePluginChannelScheme", []string(nil), []string(nil), []string(nil)).Return(nil, (*model.AppError)(nil))
 
-		scheme, err := client.Scheme.GetOrCreateChannelScheme(nil, nil, nil)
+		scheme, err := client.Scheme.GetOrCreatePluginChannelScheme(nil, nil, nil)
 		require.ErrorIs(t, err, pluginapi.ErrNotSupported)
 		require.Nil(t, scheme)
 	})

@@ -34,10 +34,10 @@ func (s *SchemeService) GetByName(name string) (*model.Scheme, error) {
 	return scheme, nil
 }
 
-// GetOrCreateChannelScheme resolves the channel scheme whose generated user,
-// admin and guest roles grant exactly the given permission sets, creating it on
-// first use. Identical normalized sets share a deterministic pool entry instead
-// of creating one scheme per channel.
+// GetOrCreatePluginChannelScheme resolves the plugin-owned channel scheme whose
+// generated user, admin and guest roles grant exactly the given permission sets,
+// creating it on first use. Identical normalized sets share a deterministic pool
+// entry instead of creating one scheme per channel.
 //
 // The scheme is complete when returned: its roles are written in the creation
 // transaction. Normal role-write APIs reject later changes; request another
@@ -53,7 +53,7 @@ func (s *SchemeService) GetByName(name string) (*model.Scheme, error) {
 // It returns ErrNotSupported when the server predates this method.
 //
 // Minimum server version: 11.11
-func (s *SchemeService) GetOrCreateChannelScheme(user, admin, guest []string) (*model.Scheme, error) {
+func (s *SchemeService) GetOrCreatePluginChannelScheme(user, admin, guest []string) (*model.Scheme, error) {
 	scheme, appErr := s.api.GetOrCreatePluginChannelScheme(user, admin, guest)
 	if appErr != nil {
 		return nil, normalizeAppErr(appErr)
