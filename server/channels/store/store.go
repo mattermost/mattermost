@@ -6,7 +6,6 @@
 package store
 
 import (
-	"context"
 	"database/sql"
 	"time"
 
@@ -249,6 +248,7 @@ type ChannelStore interface {
 	GetMembers(opts model.ChannelMembersGetOptions) (model.ChannelMembers, error)
 	GetMember(rctx request.CTX, channelID string, userID string) (*model.ChannelMember, error)
 	GetMemberLastViewedAt(rctx request.CTX, channelID string, userID string) (int64, error)
+	GetMembersWithLastViewedAtSince(rctx request.CTX, channelID string, since int64, afterUserID string, limit int) ([]*model.ChannelMemberLastViewed, error)
 	GetChannelMembersTimezones(channelID string) ([]model.StringMap, error)
 	GetAllChannelMembersForUser(rctx request.CTX, userID string, allowFromCache bool, includeDeleted bool) (map[string]string, error)
 	GetChannelsMemberCount(channelIDs []string) (map[string]int64, error)
@@ -340,7 +340,7 @@ type ChannelStore interface {
 
 type ChannelMemberHistoryStore interface {
 	LogJoinEvent(userID string, channelID string, joinTime int64) error
-	LogLeaveEvent(userID string, channelID string, leaveTime int64) error
+	LogLeaveEvent(rctx request.CTX, userID string, channelID string, leaveTime int64) error
 	GetEverMembersInChannel(channelID string, userIDs []string) ([]string, error)
 	GetUsersInChannelDuring(startTime int64, endTime int64, channelID []string) ([]*model.ChannelMemberHistoryResult, error)
 	GetChannelsWithActivityDuring(startTime int64, endTime int64) ([]string, error)
@@ -815,12 +815,12 @@ type ReactionStore interface {
 	GetForPostSince(postID string, since int64, excludeRemoteID string, inclDeleted bool) ([]*model.Reaction, error)
 	GetUniqueCountForPost(postID string) (int, error)
 	ExistsOnPost(postID string, emojiName string) (bool, error)
-	DeleteAllWithEmojiName(emojiName string) error
+	DeleteAllWithEmojiName(rctx request.CTX, emojiName string) error
 	BulkGetForPosts(postIds []string) ([]*model.Reaction, error)
 	GetSingle(userID, postID, remoteID, emojiName string) (*model.Reaction, error)
 	DeleteOrphanedRowsByIds(r *model.RetentionIdsForDeletion) (int64, error)
 	PermanentDeleteBatch(endTime int64, limit int64) (int64, error)
-	PermanentDeleteByUser(userID string) error
+	PermanentDeleteByUser(rctx request.CTX, userID string) error
 }
 
 type JobStore interface {
@@ -1169,14 +1169,14 @@ type ViewStore interface {
 
 type ScheduledPostStore interface {
 	GetMaxMessageSize() int
-	CreateScheduledPost(scheduledPost *model.ScheduledPost) (*model.ScheduledPost, error)
-	GetScheduledPostsForUser(userId, teamId string) ([]*model.ScheduledPost, error)
-	GetPendingScheduledPosts(beforeTime, afterTime int64, lastScheduledPostId string, perPage uint64) ([]*model.ScheduledPost, error)
+	CreateScheduledPost(rctx request.CTX, scheduledPost *model.ScheduledPost) (*model.ScheduledPost, error)
+	GetScheduledPostsForUser(rctx request.CTX, userId, teamId string) ([]*model.ScheduledPost, error)
+	GetPendingScheduledPosts(rctx request.CTX, beforeTime, afterTime int64, lastScheduledPostId string, perPage uint64) ([]*model.ScheduledPost, error)
 	PermanentlyDeleteScheduledPosts(scheduledPostIDs []string) error
-	UpdatedScheduledPost(scheduledPost *model.ScheduledPost) error
-	UpdateRecurringScheduledPosts(scheduledPosts []*model.ScheduledPost) error
-	Get(scheduledPostId string) (*model.ScheduledPost, error)
-	UpdateOldScheduledPosts(beforeTime int64) error
+	UpdatedScheduledPost(rctx request.CTX, scheduledPost *model.ScheduledPost) error
+	UpdateRecurringScheduledPosts(rctx request.CTX, scheduledPosts []*model.ScheduledPost) error
+	Get(rctx request.CTX, scheduledPostId string) (*model.ScheduledPost, error)
+	UpdateOldScheduledPosts(rctx request.CTX, beforeTime int64) error
 	PermanentDeleteByUser(userId string) error
 }
 
@@ -1189,11 +1189,11 @@ type PropertyGroupStore interface {
 
 type PropertyFieldStore interface {
 	Create(field *model.PropertyField) (*model.PropertyField, error)
-	Get(ctx context.Context, groupID, id string) (*model.PropertyField, error)
-	GetMany(ctx context.Context, groupID string, ids []string) ([]*model.PropertyField, error)
-	GetFieldByName(ctx context.Context, groupID, targetID, name string) (*model.PropertyField, error)
-	GetFieldByNameForObjectType(ctx context.Context, groupID, targetID, objectType, name string) (*model.PropertyField, error)
-	GetForGroup(ctx context.Context, groupID string) ([]*model.PropertyField, error)
+	Get(rctx request.CTX, groupID, id string) (*model.PropertyField, error)
+	GetMany(rctx request.CTX, groupID string, ids []string) ([]*model.PropertyField, error)
+	GetFieldByName(rctx request.CTX, groupID, targetID, name string) (*model.PropertyField, error)
+	GetFieldByNameForObjectType(rctx request.CTX, groupID, targetID, objectType, name string) (*model.PropertyField, error)
+	GetForGroup(rctx request.CTX, groupID string) ([]*model.PropertyField, error)
 	CountForGroup(groupID string, includeDeleted bool) (int64, error)
 	CountForGroupObjectType(groupID, objectType string, includeDeleted bool) (int64, error)
 	CountForTarget(groupID, targetType, targetID string, includeDeleted bool) (int64, error)
@@ -1243,7 +1243,7 @@ type AccessControlPolicyStore interface {
 
 type AttributesStore interface {
 	RefreshAttributes() error
-	GetSubject(rctx request.CTX, ID, groupID string) (*model.Subject, error)
+	GetSubject(rctx request.CTX, ID, groupID, objectType string) (*model.Subject, error)
 	SearchUsers(rctx request.CTX, opts model.SubjectSearchOptions) ([]*model.User, int64, error)
 	GetChannelMembersToRemove(rctx request.CTX, channelID string, opts model.SubjectSearchOptions) ([]*model.ChannelMember, error)
 	GetTeamMembersToRemove(rctx request.CTX, teamID string, opts model.SubjectSearchOptions) ([]*model.TeamMember, error)

@@ -8,7 +8,6 @@ import {FormattedMessage, useIntl} from 'react-intl';
 import type {AccessControlTestResult, CELExpressionError} from '@mattermost/types/access_control';
 import {SESSION_ATTRIBUTES_OBJECT_TYPE, USER_OBJECT_TYPE} from '@mattermost/types/properties_user';
 
-import {searchUsersForExpression} from 'mattermost-redux/actions/access_control';
 import {debounce} from 'mattermost-redux/actions/helpers';
 import {Client4} from 'mattermost-redux/client';
 import type {ActionResult} from 'mattermost-redux/types/actions';
@@ -16,8 +15,7 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 import {MonacoLanguageProvider} from './language_provider';
 
 import CELHelpModal from '../../modals/cel_help/cel_help_modal';
-import TestResultsModal from '../../modals/policy_test/test_modal';
-import {TestButton, HelpText} from '../shared';
+import {TestButton, TestResults, HelpText} from '../shared';
 
 import './editor.scss';
 
@@ -116,8 +114,9 @@ export interface CELEditorActions {
     /** Overrides Client4.checkAccessControlExpression. */
     checkExpression?: (expression: string) => Promise<CELExpressionError[]>;
 
-    /** Overrides the searchUsersForExpression thunk backing the built-in TestResultsModal. */
-    searchUsers?: (expression: string, term: string, after: string, limit: number) => Promise<ActionResult<AccessControlTestResult>>;
+    /** Overrides the searchUsersForExpression thunk backing the built-in TestResultsModal.
+     *  Receives the test modal's chosen channel id as the trailing arg. */
+    searchUsers?: (expression: string, term: string, after: string, limit: number, channelId?: string) => Promise<ActionResult<AccessControlTestResult>>;
 }
 
 export interface CELEditorProps {
@@ -130,6 +129,17 @@ export interface CELEditorProps {
     teamId?: string;
     disabled?: boolean;
     userAttributes: CELUserAttribute[];
+
+    /**
+     * Channel-object-type attributes exposed as the resource.attributes.*
+     * autocomplete root, letting a policy compare the requesting user against
+     * the accessed channel (e.g. user.attributes.clearance >=
+     * resource.attributes.minClearance). Empty for editors with no channel
+     * fields in scope (e.g. team policies), which then get no resource root.
+     */
+    resourceAttributes?: Array<{
+        attribute: string;
+    }>;
 
     /**
      * When provided, the built-in expression-only TestResultsModal is
@@ -161,6 +171,7 @@ function CELEditor({
     teamId,
     disabled = false,
     userAttributes,
+    resourceAttributes = [],
     onTestClick,
     testButtonLabel,
     hasMaskedRows = false,
@@ -180,6 +191,15 @@ function CELEditor({
     });
 
     const schemas = buildCELSchemas(userAttributes);
+
+    // Only declare the resource.attributes.* root when channel fields are in
+    // scope, so editors that can't reference a resource (e.g. team policies)
+    // don't offer an empty root.
+    if (resourceAttributes.length > 0) {
+        const validName = (attr: string) => !attr.includes(' ') && attr.trim() !== '';
+        schemas.resource = ['attributes'];
+        schemas['resource.attributes'] = resourceAttributes.map((attr) => attr.attribute).filter(validName);
+    }
 
     const injectedCheckExpression = actions?.checkExpression;
 
@@ -478,39 +498,34 @@ function CELEditor({
                         />
                     </div>
                 </div>
-                <TestButton
-                    onClick={onTestClick ?? (() => setEditorState((prev) => ({...prev, showTestResults: true})))}
-                    label={testButtonLabel}
-                    disabled={disabled || hasMaskedRows || !editorState.expression || !editorState.isValid || editorState.isValidating}
-                    disabledTooltip={
-                        hasMaskedRows ?
-                            intl.formatMessage({
+                <div className='access-control-test-controls'>
+                    <TestButton
+                        onClick={onTestClick ?? (() => setEditorState((prev) => ({...prev, showTestResults: true})))}
+                        label={testButtonLabel}
+                        disabled={disabled || hasMaskedRows || !editorState.expression || !editorState.isValid || editorState.isValidating}
+                        disabledTooltip={
+                            hasMaskedRows ? intl.formatMessage({
                                 id: 'admin.access_control.cel_editor.masked_values_tooltip',
                                 defaultMessage: 'Test is unavailable because this policy contains restricted attribute values.',
-                            }) :
-                            undefined
-                    }
-                />
+                            }) : undefined
+                        }
+                    />
+                </div>
             </div>
             {/* Built-in expression-only modal. Suppressed when the
               * parent provided an `onTestClick` override (used by the
               * permission-rule editor, which renders its own dual-lane
-              * SimulateAccessModal). */}
+              * SimulateAccessModal). With no channelId, a resource.attributes.*
+              * rule gets a channel-picker step inside the modal before the
+              * members list. */}
             {!onTestClick && editorState.showTestResults && (
-                <TestResultsModal
-                    onExited={() => setEditorState((prev) => ({...prev, showTestResults: false}))}
+                <TestResults
+                    expression={editorState.expression}
+                    channelId={channelId}
+                    teamId={teamId}
                     isStacked={true}
-                    actions={{
-                        openModal: () => {},
-                        searchUsers: (term: string, after: string, limit: number) => {
-                            if (actions?.searchUsers) {
-                                // Wrap in a thunk so TestResultsModal can dispatch it unchanged.
-                                const search = actions.searchUsers;
-                                return () => search(editorState.expression, term, after, limit);
-                            }
-                            return searchUsersForExpression(editorState.expression, term, after, limit, channelId, teamId);
-                        },
-                    }}
+                    onExited={() => setEditorState((prev) => ({...prev, showTestResults: false}))}
+                    searchUsers={actions?.searchUsers}
                 />
             )}
             {showHelpModal && (

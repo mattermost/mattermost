@@ -996,6 +996,10 @@ func TestCreatePostWithOutgoingHook_no_content_type(t *testing.T) {
 }
 
 func TestMoveThread(t *testing.T) {
+	// Skipped: MoveThreadsEnabled is retired and rejected by Config.IsValid (MM-69646).
+	// This test requires the flag and cannot run while the server refuses to enable it.
+	t.Skip("MoveThreadsEnabled feature flag is retired (MM-69646)")
+
 	th := SetupEnterprise(t).InitBasic(t)
 
 	// Enable MoveThreads feature flag
@@ -6672,7 +6676,7 @@ func TestPostGetInfo(t *testing.T) {
 		})
 	}
 
-	t.Run("Open post - Current team - Non-member denied when compliance is enabled", func(t *testing.T) {
+	t.Run("Open post - Current team - Non-member can get join metadata when compliance is enabled", func(t *testing.T) {
 		info, resp, err := otherTeamMemberClient.GetPostInfo(context.Background(), openPost.Id)
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
@@ -6690,12 +6694,20 @@ func TestPostGetInfo(t *testing.T) {
 			})
 		})
 
-		_, resp, err = otherTeamMemberClient.GetPostInfo(context.Background(), openPost.Id)
+		info, resp, err = otherTeamMemberClient.GetPostInfo(context.Background(), openPost.Id)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Equal(t, openChannel.Id, info.ChannelId)
+		require.Equal(t, openChannel.Type, info.ChannelType)
+		require.True(t, info.HasJoinedTeam)
+		require.False(t, info.HasJoinedChannel)
+
+		_, resp, err = otherTeamMemberClient.GetPost(context.Background(), openPost.Id, "")
 		require.Error(t, err)
-		CheckNotFoundStatus(t, resp)
+		CheckForbiddenStatus(t, resp)
 	})
 
-	t.Run("Open post - Open team - Non-member denied when compliance is enabled", func(t *testing.T) {
+	t.Run("Open post - Open team - Non-member can get join metadata when compliance is enabled", func(t *testing.T) {
 		_, appErr := th.App.GetTeamMember(th.Context, openTeam.Id, th.BasicUser.Id)
 		require.NotNil(t, appErr)
 
@@ -6719,7 +6731,41 @@ func TestPostGetInfo(t *testing.T) {
 			})
 		})
 
-		_, resp, err = client.GetPostInfo(context.Background(), openTeamOpenPost.Id)
+		info, resp, err = client.GetPostInfo(context.Background(), openTeamOpenPost.Id)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Equal(t, openTeamOpenChannel.Id, info.ChannelId)
+		require.Equal(t, openTeamOpenChannel.Type, info.ChannelType)
+		require.False(t, info.HasJoinedTeam)
+		require.False(t, info.HasJoinedChannel)
+
+		_, resp, err = client.GetPost(context.Background(), openTeamOpenPost.Id, "")
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("Open post - Current team - Guest outside channel is denied when compliance is enabled", func(t *testing.T) {
+		_, appErr := th.App.GetTeamMember(th.Context, th.BasicTeam.Id, guestUser.Id)
+		require.Nil(t, appErr)
+
+		_, appErr = th.App.GetChannelMember(th.Context, openChannel.Id, guestUser.Id)
+		require.NotNil(t, appErr)
+
+		_, resp, err := guestClient.GetPostInfo(context.Background(), openPost.Id)
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+
+		originalComplianceEnabled := *th.App.Config().ComplianceSettings.Enable
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ComplianceSettings.Enable = true
+		})
+		t.Cleanup(func() {
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				*cfg.ComplianceSettings.Enable = originalComplianceEnabled
+			})
+		})
+
+		_, resp, err = guestClient.GetPostInfo(context.Background(), openPost.Id)
 		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
 	})

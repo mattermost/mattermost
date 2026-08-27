@@ -9,6 +9,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
 )
@@ -85,7 +86,7 @@ func (s *SqlScheduledPostStore) scheduledPostToSlice(scheduledPost *model.Schedu
 	}
 }
 
-func (s *SqlScheduledPostStore) CreateScheduledPost(scheduledPost *model.ScheduledPost) (*model.ScheduledPost, error) {
+func (s *SqlScheduledPostStore) CreateScheduledPost(rctx request.CTX, scheduledPost *model.ScheduledPost) (*model.ScheduledPost, error) {
 	scheduledPost.PreSave()
 
 	builder := s.getQueryBuilder().
@@ -95,19 +96,19 @@ func (s *SqlScheduledPostStore) CreateScheduledPost(scheduledPost *model.Schedul
 
 	query, args, err := builder.ToSql()
 	if err != nil {
-		mlog.Error("SqlScheduledPostStore.CreateScheduledPost failed to generate SQL from query builder", mlog.Err(err))
+		rctx.Logger().Error("SqlScheduledPostStore.CreateScheduledPost failed to generate SQL from query builder", mlog.Err(err))
 		return nil, errors.Wrap(err, "SqlScheduledPostStore.CreateScheduledPost failed to generate SQL from query builder")
 	}
 
 	if _, err := s.GetMaster().Exec(query, args...); err != nil {
-		mlog.Error("SqlScheduledPostStore.CreateScheduledPost failed to insert scheduled post", mlog.Err(err))
+		rctx.Logger().Error("SqlScheduledPostStore.CreateScheduledPost failed to insert scheduled post", mlog.Err(err))
 		return nil, errors.Wrap(err, "SqlScheduledPostStore.CreateScheduledPost failed to insert scheduled post")
 	}
 
 	return scheduledPost, nil
 }
 
-func (s *SqlScheduledPostStore) GetScheduledPostsForUser(userId, teamId string) ([]*model.ScheduledPost, error) {
+func (s *SqlScheduledPostStore) GetScheduledPostsForUser(rctx request.CTX, userId, teamId string) ([]*model.ScheduledPost, error) {
 	// return scheduled posts for this user for
 	// specified team.
 	//
@@ -133,7 +134,7 @@ func (s *SqlScheduledPostStore) GetScheduledPostsForUser(userId, teamId string) 
 	var scheduledPosts []*model.ScheduledPost
 
 	if err := s.GetReplica().SelectBuilder(&scheduledPosts, query); err != nil {
-		mlog.Error("SqlScheduledPostStore.GetScheduledPostsForUser: failed to fetch scheduled posts for user", mlog.String("user_id", userId), mlog.String("team_id", teamId), mlog.Err(err))
+		rctx.Logger().Error("SqlScheduledPostStore.GetScheduledPostsForUser: failed to fetch scheduled posts for user", mlog.String("user_id", userId), mlog.String("team_id", teamId), mlog.Err(err))
 
 		return nil, errors.Wrapf(err, "SqlScheduledPostStore.GetScheduledPostsForUser: failed to fetch scheduled posts for user, userId: %s, teamID: %s", userId, teamId)
 	}
@@ -154,7 +155,7 @@ func (s *SqlScheduledPostStore) GetMaxMessageSize() int {
 	return s.maxMessageSizeCached
 }
 
-func (s *SqlScheduledPostStore) GetPendingScheduledPosts(beforeTime, afterTime int64, lastScheduledPostId string, perPage uint64) ([]*model.ScheduledPost, error) {
+func (s *SqlScheduledPostStore) GetPendingScheduledPosts(rctx request.CTX, beforeTime, afterTime int64, lastScheduledPostId string, perPage uint64) ([]*model.ScheduledPost, error) {
 	// The ScheduledAt <= beforeTime bound stays outside the keyset tie-break so Postgres can
 	// use it as the boundary of idx_scheduledposts_pending_scheduled_at_id; the equivalent
 	// pure OR form would force scanning the index from the top on every page.
@@ -183,7 +184,7 @@ func (s *SqlScheduledPostStore) GetPendingScheduledPosts(beforeTime, afterTime i
 	// replica can return stale data, causing already-processed posts to reappear on later pages.
 	var scheduledPosts []*model.ScheduledPost
 	if err := s.GetMaster().SelectBuilder(&scheduledPosts, query); err != nil {
-		mlog.Error(
+		rctx.Logger().Error(
 			"SqlScheduledPostStore.GetPendingScheduledPosts: failed to fetch pending scheduled posts for processing",
 			mlog.Int("before_time", beforeTime),
 			mlog.String("last_scheduled_post_id", lastScheduledPostId),
@@ -227,7 +228,7 @@ func (s *SqlScheduledPostStore) PermanentlyDeleteScheduledPosts(scheduledPostIDs
 
 // UpdatedScheduledPost persists the scheduled post as given; ProcessedAt and ErrorCode are
 // caller-owned and stored verbatim.
-func (s *SqlScheduledPostStore) UpdatedScheduledPost(scheduledPost *model.ScheduledPost) error {
+func (s *SqlScheduledPostStore) UpdatedScheduledPost(rctx request.CTX, scheduledPost *model.ScheduledPost) error {
 	scheduledPost.PreUpdate()
 
 	builder := s.getQueryBuilder().
@@ -237,13 +238,13 @@ func (s *SqlScheduledPostStore) UpdatedScheduledPost(scheduledPost *model.Schedu
 
 	query, args, err := builder.ToSql()
 	if err != nil {
-		mlog.Error("SqlScheduledPostStore.UpdatedScheduledPost failed to generate SQL from updating scheduled posts", mlog.String("scheduled_post_id", scheduledPost.Id), mlog.Err(err))
+		rctx.Logger().Error("SqlScheduledPostStore.UpdatedScheduledPost failed to generate SQL from updating scheduled posts", mlog.String("scheduled_post_id", scheduledPost.Id), mlog.Err(err))
 		return errors.Wrap(err, "SqlScheduledPostStore.UpdatedScheduledPost failed to generate SQL from bulk updating scheduled posts")
 	}
 
 	_, err = s.GetMaster().Exec(query, args...)
 	if err != nil {
-		mlog.Error("SqlScheduledPostStore.UpdatedScheduledPost failed to update scheduled post", mlog.String("scheduled_post_id", scheduledPost.Id), mlog.Err(err))
+		rctx.Logger().Error("SqlScheduledPostStore.UpdatedScheduledPost failed to update scheduled post", mlog.String("scheduled_post_id", scheduledPost.Id), mlog.Err(err))
 		return errors.Wrap(err, "SqlScheduledPostStore.UpdatedScheduledPost failed to update scheduled post")
 	}
 
@@ -253,7 +254,7 @@ func (s *SqlScheduledPostStore) UpdatedScheduledPost(scheduledPost *model.Schedu
 // UpdateRecurringScheduledPosts advances recurring scheduled posts to their next occurrence in a
 // single query, persisting each post's ScheduledAt and resetting ErrorCode/ProcessedAt so the posts
 // are pending again. It also stamps UpdateAt on the given posts.
-func (s *SqlScheduledPostStore) UpdateRecurringScheduledPosts(scheduledPosts []*model.ScheduledPost) error {
+func (s *SqlScheduledPostStore) UpdateRecurringScheduledPosts(rctx request.CTX, scheduledPosts []*model.ScheduledPost) error {
 	if len(scheduledPosts) == 0 {
 		return nil
 	}
@@ -279,12 +280,12 @@ func (s *SqlScheduledPostStore) UpdateRecurringScheduledPosts(scheduledPosts []*
 
 	query, args, err := builder.ToSql()
 	if err != nil {
-		mlog.Error("SqlScheduledPostStore.UpdateRecurringScheduledPosts failed to generate SQL from updating scheduled posts", mlog.Err(err))
+		rctx.Logger().Error("SqlScheduledPostStore.UpdateRecurringScheduledPosts failed to generate SQL from updating scheduled posts", mlog.Err(err))
 		return errors.Wrap(err, "SqlScheduledPostStore.UpdateRecurringScheduledPosts failed to generate SQL from updating scheduled posts")
 	}
 
 	if _, err := s.GetMaster().Exec(query, args...); err != nil {
-		mlog.Error("SqlScheduledPostStore.UpdateRecurringScheduledPosts failed to update scheduled posts", mlog.Int("scheduled_post_count", len(scheduledPosts)), mlog.Err(err))
+		rctx.Logger().Error("SqlScheduledPostStore.UpdateRecurringScheduledPosts failed to update scheduled posts", mlog.Int("scheduled_post_count", len(scheduledPosts)), mlog.Err(err))
 		return errors.Wrap(err, "SqlScheduledPostStore.UpdateRecurringScheduledPosts failed to update scheduled posts")
 	}
 
@@ -307,7 +308,7 @@ func (s *SqlScheduledPostStore) toUpdateMap(scheduledPost *model.ScheduledPost) 
 	}
 }
 
-func (s *SqlScheduledPostStore) Get(scheduledPostId string) (*model.ScheduledPost, error) {
+func (s *SqlScheduledPostStore) Get(rctx request.CTX, scheduledPostId string) (*model.ScheduledPost, error) {
 	query := s.getQueryBuilder().
 		Select(s.columnsForRead("")...).
 		From("ScheduledPosts").
@@ -318,7 +319,7 @@ func (s *SqlScheduledPostStore) Get(scheduledPostId string) (*model.ScheduledPos
 	scheduledPost := &model.ScheduledPost{}
 
 	if err := s.GetReplica().GetBuilder(scheduledPost, query); err != nil {
-		mlog.Error("SqlScheduledPostStore.Get: failed to get single scheduled post by ID from database", mlog.String("scheduled_post_id", scheduledPostId), mlog.Err(err))
+		rctx.Logger().Error("SqlScheduledPostStore.Get: failed to get single scheduled post by ID from database", mlog.String("scheduled_post_id", scheduledPostId), mlog.Err(err))
 
 		return nil, errors.Wrapf(err, "SqlScheduledPostStore.Get: failed to get single scheduled post by ID from database, scheduledPostId: %s", scheduledPostId)
 	}
@@ -326,7 +327,7 @@ func (s *SqlScheduledPostStore) Get(scheduledPostId string) (*model.ScheduledPos
 	return scheduledPost, nil
 }
 
-func (s *SqlScheduledPostStore) UpdateOldScheduledPosts(beforeTime int64) error {
+func (s *SqlScheduledPostStore) UpdateOldScheduledPosts(rctx request.CTX, beforeTime int64) error {
 	builder := s.getQueryBuilder().
 		Update("ScheduledPosts").
 		Set("ErrorCode", model.ScheduledPostErrorUnableToSend).
@@ -339,13 +340,13 @@ func (s *SqlScheduledPostStore) UpdateOldScheduledPosts(beforeTime int64) error 
 
 	query, args, err := builder.ToSql()
 	if err != nil {
-		mlog.Error("SqlScheduledPostStore.UpdateOldScheduledPosts failed to generate SQL from updating old scheduled posts", mlog.Err(err))
+		rctx.Logger().Error("SqlScheduledPostStore.UpdateOldScheduledPosts failed to generate SQL from updating old scheduled posts", mlog.Err(err))
 		return errors.Wrap(err, "SqlScheduledPostStore.UpdateOldScheduledPosts failed to generate SQL from updating old scheduled posts")
 	}
 
 	_, err = s.GetMaster().Exec(query, args...)
 	if err != nil {
-		mlog.Error("SqlScheduledPostStore.UpdateOldScheduledPosts failed to update old scheduled posts", mlog.Err(err))
+		rctx.Logger().Error("SqlScheduledPostStore.UpdateOldScheduledPosts failed to update old scheduled posts", mlog.Err(err))
 		return errors.Wrap(err, "SqlScheduledPostStore.UpdateOldScheduledPosts failed to update old scheduled posts")
 	}
 

@@ -1035,9 +1035,7 @@ func TestPreparePostForClientWithImageProxy(t *testing.T) {
 			*cfg.ServiceSettings.SiteURL = "http://mymattermost.com"
 			*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
 			*cfg.ImageProxySettings.Enable = true
-			*cfg.ImageProxySettings.ImageProxyType = "atmos/camo"
-			*cfg.ImageProxySettings.RemoteImageProxyURL = "https://127.0.0.1"
-			*cfg.ImageProxySettings.RemoteImageProxyOptions = model.NewTestPassword()
+			*cfg.ImageProxySettings.ImageProxyType = "local"
 		})
 
 		th.App.ch.imageProxy = imageproxy.MakeImageProxy(th.Server.platform, th.Server.HTTPService(), th.Server.Log())
@@ -3507,6 +3505,82 @@ func TestSanitizePostMetadataForUser(t *testing.T) {
 		previewData, ok := sanitizedPost.Metadata.Embeds[0].Data.(*model.PreviewPost)
 		require.True(t, ok)
 		assert.NotNil(t, previewData.Post.Metadata.Files, "embed files should not be stripped without ABAC")
+	})
+
+	t.Run("strips public permalink embed for non-member when compliance is enabled", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.ComplianceSettings.Enable = model.NewPointer(true)
+		})
+
+		ch := th.CreateChannel(t, th.BasicTeam)
+		post := &model.Post{
+			Id:     model.NewId(),
+			UserId: th.BasicUser.Id,
+			Metadata: &model.PostMetadata{
+				Embeds: []*model.PostEmbed{
+					{
+						Type: model.PostEmbedPermalink,
+						Data: &model.PreviewPost{
+							PostID: "permalink_post_id",
+							Post: &model.Post{
+								Id:        "permalink_post_id",
+								Message:   "secret permalink message",
+								ChannelId: ch.Id,
+							},
+						},
+					},
+					{
+						Type: model.PostEmbedLink,
+						URL:  "https://mattermost.com",
+					},
+				},
+			},
+		}
+
+		sanitizedPost, _, err := th.App.SanitizePostMetadataForUser(th.Context, post, th.BasicUser2.Id)
+		require.Nil(t, err)
+		require.NotNil(t, sanitizedPost)
+		require.Len(t, sanitizedPost.Metadata.Embeds, 1)
+		require.Equal(t, model.PostEmbedLink, sanitizedPost.Metadata.Embeds[0].Type)
+	})
+
+	t.Run("keeps public permalink embed for non-member when compliance is disabled", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.ComplianceSettings.Enable = model.NewPointer(false)
+		})
+
+		ch := th.CreateChannel(t, th.BasicTeam)
+		post := &model.Post{
+			Id:     model.NewId(),
+			UserId: th.BasicUser.Id,
+			Metadata: &model.PostMetadata{
+				Embeds: []*model.PostEmbed{
+					{
+						Type: model.PostEmbedPermalink,
+						Data: &model.PreviewPost{
+							PostID: "permalink_post_id",
+							Post: &model.Post{
+								Id:        "permalink_post_id",
+								Message:   "secret permalink message",
+								ChannelId: ch.Id,
+							},
+						},
+					},
+					{
+						Type: model.PostEmbedLink,
+						URL:  "https://mattermost.com",
+					},
+				},
+			},
+		}
+
+		sanitizedPost, _, err := th.App.SanitizePostMetadataForUser(th.Context, post, th.BasicUser2.Id)
+		require.Nil(t, err)
+		require.NotNil(t, sanitizedPost)
+		require.Len(t, sanitizedPost.Metadata.Embeds, 2)
+		require.Equal(t, model.PostEmbedPermalink, sanitizedPost.Metadata.Embeds[0].Type)
 	})
 }
 
