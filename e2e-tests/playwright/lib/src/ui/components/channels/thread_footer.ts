@@ -34,12 +34,10 @@ export default class ThreadFooter {
         await expect(this.avatarImages.first()).toBeVisible();
         const count = await this.avatarImages.count();
         for (let i = 0; i < count; i++) {
-            const loaded = await this.avatarImages
-                .nth(i)
-                .evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth > 0);
-            if (!loaded) {
-                return false;
-            }
+            const avatar = this.avatarImages.nth(i);
+            await expect
+                .poll(async () => avatar.evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth > 0))
+                .toBe(true);
         }
         return true;
     }

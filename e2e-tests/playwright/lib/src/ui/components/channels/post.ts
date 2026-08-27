@@ -86,7 +86,12 @@ export default class ChannelsPost {
      */
     async hasLoadedAvatar(): Promise<boolean> {
         await expect(this.avatarImage).toBeVisible();
-        return this.avatarImage.evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth > 0);
+        await expect
+            .poll(async () =>
+                this.avatarImage.evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth > 0),
+            )
+            .toBe(true);
+        return true;
     }
 
     /**

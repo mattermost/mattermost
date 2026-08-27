@@ -5,6 +5,7 @@ import type {Locator} from '@playwright/test';
 import {expect} from '@playwright/test';
 
 import {ConfirmModal} from '@/ui/components/system_console/base_modal';
+import {duration} from '@/util';
 
 /**
  * System Console -> Plugins -> Plugin Management
@@ -63,9 +64,12 @@ export default class PluginManagement {
         await this.uploadButton.click();
 
         const overwriteDialog = this.container.page().getByRole('dialog', {name: 'Overwrite existing plugin?'});
-        if (await overwriteDialog.isVisible().catch(() => false)) {
-            const confirmModal = new ConfirmModal(overwriteDialog);
-            await confirmModal.confirm();
+        const sawOverwriteDialog = await overwriteDialog
+            .waitFor({state: 'visible', timeout: duration.ten_sec})
+            .then(() => true)
+            .catch(() => false);
+        if (sawOverwriteDialog) {
+            await new ConfirmModal(overwriteDialog).confirm();
         }
     }
 
