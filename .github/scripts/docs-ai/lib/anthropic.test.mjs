@@ -9,7 +9,7 @@
 
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {parseJson, withRetry} from './lib/anthropic.mjs';
+import {parseJson, withRetry} from './anthropic.mjs';
 
 const VERDICT = {verdict: 'APPROVE', summary: 'Fine.', feedback: []};
 

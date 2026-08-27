@@ -1,6 +1,6 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {DATA_NOTICE, block, escape} from './lib/untrusted.mjs';
+import {DATA_NOTICE, block, escape} from './untrusted.mjs';
 
 const inner = (wrapped, tag = 'diff') =>
   wrapped.slice(`<${tag}>\n`.length, -`\n</${tag}>`.length);
