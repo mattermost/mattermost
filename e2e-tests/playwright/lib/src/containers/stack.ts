@@ -106,11 +106,7 @@ export async function startStack(): Promise<void> {
     // setting is already active and skip a restart it actually needs.
     testConfig.bootEnvOverrides = defaultBootEnv();
 
-    // Same reasoning for local-disk file storage: a fixed, repo-relative bind-mount directory
-    // (see LOCAL_STORAGE_DIR) persists across genuinely unrelated runs, unlike a fresh container's
-    // own storage, which always starts empty. Only reset on a real fresh boot — never on adoption
-    // (reuseExistingStack() already returned above in that case) — so an upgrade test's from-phase
-    // data survives into its to-phase.
+    // Bind-mounted local storage persists across container restarts; reset only on a fresh boot.
     fs.rmSync(LOCAL_STORAGE_DIR, {recursive: true, force: true});
     fs.mkdirSync(LOCAL_STORAGE_DIR);
     fs.chmodSync(LOCAL_STORAGE_DIR, 0o777);
@@ -359,7 +355,8 @@ export async function restartMattermostContainer(env: Record<string, string>): P
 
     appendEnvFile(`restart requested by ${describeCurrentTest()} — env ${JSON.stringify(env)}`);
 
-    logTestcontainers(`restarted server with ${JSON.stringify(env)}.`);
+    logTestcontainers(`restarted server (${testConfig.serverImage}) with ${JSON.stringify(env)}.`);
+    await logServerImageAge(testConfig.serverImage);
 }
 
 // Identifies whichever spec/test is currently driving a restart, so .env.testcontainers's history

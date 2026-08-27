@@ -5,13 +5,13 @@ import {defineConfig, devices} from '@playwright/test';
 
 import {
     duration,
-    getUpgradeFromServerImage,
     isUpgradeFromProjectSelected,
+    logUpgradeFromServerImage,
     testConfig,
 } from '@mattermost/playwright-lib';
 
 if (isUpgradeFromProjectSelected()) {
-    getUpgradeFromServerImage();
+    logUpgradeFromServerImage();
 }
 
 const chromeUse = {
@@ -84,12 +84,7 @@ export default defineConfig({
             },
             dependencies: ['setup'],
         },
-        // Upgrade-path testing: each phase is a "swap" project (changes the server version)
-        // followed by a "run" project (runs that phase's tagged tests). Both swap projects depend
-        // only on 'setup', so upgrade-from/upgrade-to stay independently runnable.
-        //
-        // setup intentionally boots SERVER_IMAGE (the to-image) first, then upgrade-swap-from
-        // downgrades to PW_UPGRADE_FROM_SERVER_IMAGE — see README "Upgrade-path testing".
+        // Swap projects depend only on setup so upgrade-from and upgrade-to run independently.
         {name: 'upgrade-swap-from', testMatch: /upgrade_swap_from\.ts/, dependencies: ['setup']},
         {
             name: 'upgrade-from',

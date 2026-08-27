@@ -1,9 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-// Shared actors/content for the upgrade-from / upgrade-to specs. Fixed (not random) names, since
-// upgrade-from and upgrade-to run in separate processes and must find the same team/users/channels
-// created earlier rather than random ones.
+// Fixed actor names shared across separate upgrade-from and upgrade-to processes.
 
 import fs from 'node:fs';
 import path from 'node:path';

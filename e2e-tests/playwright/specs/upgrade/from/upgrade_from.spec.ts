@@ -44,8 +44,6 @@ test('upgrade-from: create actors and content', {tag: ['@upgrade-from']}, async 
 
     const {adminClient} = await pw.getAdminClient();
 
-    // test_setup enables ABAC on the initial to-image; the setting persists in Postgres across the
-    // version swap and can default-deny file uploads on channels the upgrade user joins.
     try {
         await adminClient.patchConfig({
             AccessControlSettings: {
@@ -53,11 +51,9 @@ test('upgrade-from: create actors and content', {tag: ['@upgrade-from']}, async 
             },
         } as any);
     } catch {
-        // From-images predating ABAC won't expose this config section.
+        // Older server images omit ABAC config.
     }
 
-    // Local-disk attachments are created early in this spec; reset the driver in case a prior
-    // ensureMinio()/ensureAzurite() left bootEnvOverrides on S3/Azure from an earlier run.
     await pw.ensureLocalFile();
 
     const team = await ensureUpgradeTeam(adminClient);
@@ -74,25 +70,21 @@ test('upgrade-from: create actors and content', {tag: ['@upgrade-from']}, async 
 
     const {channelsPage} = await pw.testBrowser.login(user);
 
-    // U1: public channel
     await channelsPage.goto(team.name, publicChannel.name);
     await channelsPage.toBeVisible();
     await channelsPage.postMessage(UPGRADE_PUBLIC_MESSAGE);
     await channelsPage.postMessage(UPGRADE_SEARCH_MESSAGE);
 
-    // U2: private channel
     await channelsPage.goto(team.name, privateChannel.name);
     await channelsPage.toBeVisible();
     await channelsPage.postMessage(UPGRADE_PRIVATE_MESSAGE);
 
-    // U3: DM
     const dmModal = await channelsPage.openDirectChannelsModal();
     await dmModal.selectUser(peers[0]);
     await dmModal.goToChannel();
     await channelsPage.toBeVisible();
     await channelsPage.postMessage(UPGRADE_DM_MESSAGE);
 
-    // U4: GM
     const gmModal = await channelsPage.openDirectChannelsModal();
     await gmModal.selectUser(peers[1]);
     await gmModal.selectUser(peers[2]);
@@ -100,19 +92,17 @@ test('upgrade-from: create actors and content', {tag: ['@upgrade-from']}, async 
     await channelsPage.toBeVisible();
     await channelsPage.postMessage(UPGRADE_GM_MESSAGE);
 
-    // U6: sent file attachment (local-disk backend — the default)
     await channelsPage.goto(team.name, publicChannel.name);
     await channelsPage.postMessage('upgrade-check attachment message', [UPGRADE_ATTACHMENT_FILE]);
     const attachmentPost = await channelsPage.getLastPost();
     await expect(attachmentPost.getFileAttachmentThumbnail(UPGRADE_ATTACHMENT_FILE)).toBeVisible();
     const attachmentPostId = await attachmentPost.getId();
 
-    // U5: profile photo, then verify avatar on post header, profile popover, and thread footer
     const profileModal = await channelsPage.openProfileModal();
     await profileModal.uploadProfilePhoto(path.join(assetPath, UPGRADE_PROFILE_PHOTO_FILE));
     await profileModal.closeModal();
 
-    // Break consecutive posts from the same author so the post header renders the profile icon.
+    // Separate authors so the post header shows the profile icon.
     await adminClient.createPost({
         channel_id: publicChannel.id,
         message: 'upgrade-check avatar separator',
@@ -128,7 +118,7 @@ test('upgrade-from: create actors and content', {tag: ['@upgrade-from']}, async 
     expect(await profilePopover.hasLoadedAvatar()).toBe(true);
     await profilePopover.close();
 
-    // Peer reply so the thread footer renders participant avatars including the upgraded photo
+    // Thread reply so the footer lists participant avatars.
     await adminClient.createPost({
         channel_id: publicChannel.id,
         message: 'upgrade-check thread reply for avatar footer',
@@ -140,13 +130,11 @@ test('upgrade-from: create actors and content', {tag: ['@upgrade-from']}, async 
     await avatarRootPost.threadFooter.toBeVisible();
     expect(await avatarRootPost.threadFooter.hasLoadedAvatars()).toBe(true);
 
-    // U8: About modal baseline, to compare against after the swap
     const aboutModal = await channelsPage.globalHeader.openAbout();
     const serverVersion = await aboutModal.getServerVersion();
     const buildNumber = await aboutModal.getBuildNumber();
     await aboutModal.close();
 
-    // A3: admin's own U1–U7 content (distinct messages so they don't collide with the user journey)
     const admin = {username: testConfig.adminUsername, password: testConfig.adminPassword} as UserProfile;
     const {channelsPage: adminChannelsPage, systemConsolePage} = await pw.testBrowser.login(admin);
 
@@ -189,8 +177,6 @@ test('upgrade-from: create actors and content', {tag: ['@upgrade-from']}, async 
     const adminAvatarPost = await adminChannelsPage.getLastPost();
     expect(await adminAvatarPost.hasLoadedAvatar()).toBe(true);
 
-    // A1: admin About modal + System Console Edition and License page
-    // (Edition and License has no server-version string — About modal is the version source)
     const adminAboutModal = await adminChannelsPage.globalHeader.openAbout();
     await adminAboutModal.toBeVisible();
     expect(await adminAboutModal.getServerVersion()).toBe(serverVersion);
@@ -199,7 +185,6 @@ test('upgrade-from: create actors and content', {tag: ['@upgrade-from']}, async 
     await systemConsolePage.gotoEditionAndLicense();
     await systemConsolePage.editionAndLicense.toHaveLicensePanel();
 
-    // A2: plugin upload + enable, via System Console
     const pluginBundlePath = await ensurePluginBundleDownloaded();
     await systemConsolePage.gotoPluginManagement();
     await systemConsolePage.pluginManagement.toBeVisible();
@@ -207,7 +192,6 @@ test('upgrade-from: create actors and content', {tag: ['@upgrade-from']}, async 
     await systemConsolePage.pluginManagement.enablePlugin(UPGRADE_PLUGIN_ID);
     await systemConsolePage.pluginManagement.toBeEnabled(UPGRADE_PLUGIN_ID);
 
-    // U6 (Minio): switch file backend, re-login, post an attachment that lands in Minio
     let minioAttachmentPostId: string | undefined;
     if (testConfig.testcontainersServices.includes('minio')) {
         await pw.ensureMinio();
@@ -220,7 +204,6 @@ test('upgrade-from: create actors and content', {tag: ['@upgrade-from']}, async 
         minioAttachmentPostId = await minioPost.getId();
     }
 
-    // U6 (Azurite): same pattern when Azurite was started for this run (opt-in service)
     let azuriteAttachmentPostId: string | undefined;
     if (testConfig.testcontainersServices.includes('azurite')) {
         await pw.ensureAzurite();
@@ -233,7 +216,6 @@ test('upgrade-from: create actors and content', {tag: ['@upgrade-from']}, async 
         azuriteAttachmentPostId = await azuritePost.getId();
     }
 
-    // Restore local disk so the next process's default expectations match a fresh boot's backend
     if (testConfig.testcontainersServices.includes('minio') || testConfig.testcontainersServices.includes('azurite')) {
         await pw.ensureLocalFile();
     }

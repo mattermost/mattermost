@@ -47,31 +47,25 @@ test('upgrade-to: verify actors and content survived', {tag: ['@upgrade-to']}, a
     const privateChannel = await ensureUpgradeChannel(adminClient, team.id, UPGRADE_PRIVATE_CHANNEL_NAME, 'P');
     const baseline = readUpgradeBaseline();
 
-    // Local-disk backend first — from-phase restores it at the end, but be explicit in case a
-    // prior ensureMinio/ensureAzurite left bootEnvOverrides on a different driver.
     await pw.ensureLocalFile();
 
     const {channelsPage} = await pw.testBrowser.login(user);
     const {client: upgradeUserClient} = await pw.makeClient(user);
 
-    // U1: public channel
     await channelsPage.goto(team.name, publicChannel.name);
     await channelsPage.toBeVisible();
     await expect(channelsPage.centerView.container).toContainText(UPGRADE_PUBLIC_MESSAGE);
 
-    // U2: private channel
     await channelsPage.goto(team.name, privateChannel.name);
     await channelsPage.toBeVisible();
     await expect(channelsPage.centerView.container).toContainText(UPGRADE_PRIVATE_MESSAGE);
 
-    // U3: DM — re-selecting the same peer opens the existing DM channel, not a new one
     const dmModal = await channelsPage.openDirectChannelsModal();
     await dmModal.selectUser(peers[0]);
     await dmModal.goToChannel();
     await channelsPage.toBeVisible();
     await expect(channelsPage.centerView.container).toContainText(UPGRADE_DM_MESSAGE);
 
-    // U4: GM — same for the same member set
     const gmModal = await channelsPage.openDirectChannelsModal();
     await gmModal.selectUser(peers[1]);
     await gmModal.selectUser(peers[2]);
@@ -79,14 +73,12 @@ test('upgrade-to: verify actors and content survived', {tag: ['@upgrade-to']}, a
     await channelsPage.toBeVisible();
     await expect(channelsPage.centerView.container).toContainText(UPGRADE_GM_MESSAGE);
 
-    // U6: local-disk sent file attachment still renders and downloads
     await channelsPage.goto(team.name, publicChannel.name);
     await channelsPage.toBeVisible();
     const attachmentPost = await channelsPage.centerView.getPostById(baseline.attachmentPostId);
     await expect(attachmentPost.getFileAttachmentThumbnail(UPGRADE_ATTACHMENT_FILE)).toBeVisible();
     await verifyPostAttachmentDownloadable(upgradeUserClient, baseline.attachmentPostId, UPGRADE_ATTACHMENT_FILE);
 
-    // U5: avatar still renders on post header, profile popover, and thread footer
     const avatarPost = await channelsPage.centerView.getPostById(baseline.avatarPostId);
     expect(await avatarPost.hasLoadedAvatar()).toBe(true);
 
@@ -97,18 +89,15 @@ test('upgrade-to: verify actors and content survived', {tag: ['@upgrade-to']}, a
     await avatarPost.threadFooter.toBeVisible();
     expect(await avatarPost.threadFooter.hasLoadedAvatars()).toBe(true);
 
-    // U7: search still finds the pre-upgrade message
     await channelsPage.searchFor(UPGRADE_SEARCH_MESSAGE);
     await channelsPage.searchResultsPanel.toContainText(UPGRADE_SEARCH_MESSAGE);
 
-    // U8: About modal now shows the to-version, not the from-phase baseline
     const aboutModal = await channelsPage.globalHeader.openAbout();
     const serverVersion = await aboutModal.getServerVersion();
     const buildNumber = await aboutModal.getBuildNumber();
     await aboutModal.close();
     expect(`${serverVersion}+${buildNumber}`).not.toBe(`${baseline.serverVersion}+${baseline.buildNumber}`);
 
-    // A3: admin's own U1–U7 content survived
     const admin = {username: testConfig.adminUsername, password: testConfig.adminPassword} as UserProfile;
     const {channelsPage: adminChannelsPage, systemConsolePage} = await pw.testBrowser.login(admin);
 
@@ -148,7 +137,6 @@ test('upgrade-to: verify actors and content survived', {tag: ['@upgrade-to']}, a
     await adminChannelsPage.searchFor(UPGRADE_ADMIN_SEARCH_MESSAGE);
     await adminChannelsPage.searchResultsPanel.toContainText(UPGRADE_ADMIN_SEARCH_MESSAGE);
 
-    // A1: admin About shows to-version; Edition and License page still loads
     const adminAboutModal = await adminChannelsPage.globalHeader.openAbout();
     await adminAboutModal.toBeVisible();
     expect(await adminAboutModal.getServerVersion()).toBe(serverVersion);
@@ -158,7 +146,6 @@ test('upgrade-to: verify actors and content survived', {tag: ['@upgrade-to']}, a
     await systemConsolePage.gotoEditionAndLicense();
     await systemConsolePage.editionAndLicense.toHaveLicensePanel();
 
-    // A2: plugin install survived; re-enable if the upgrade auto-disabled it
     await systemConsolePage.gotoPluginManagement();
     await systemConsolePage.pluginManagement.toBeVisible();
     await expect(systemConsolePage.pluginManagement.pluginRow(UPGRADE_PLUGIN_ID)).toBeVisible();
@@ -170,15 +157,9 @@ test('upgrade-to: verify actors and content survived', {tag: ['@upgrade-to']}, a
     }
     await systemConsolePage.pluginManagement.toBeEnabled(UPGRADE_PLUGIN_ID);
 
-    // A5: no product UI shows DB/schema health — mmctl is the closest admin-facing check that
-    // ordinary data commands still work post-upgrade.
     const mmctlResult = await pw.runMmctl(['version']);
     expect(mmctlResult.exitCode).toBe(0);
 
-    // A4: migration completion is already exercised by upgradeServerImage()'s boot wait strategy
-    // (Wait.forLogMessage) — this test getting this far already proves it.
-
-    // U6 (Minio): switch back onto Minio and confirm the pre-upgrade attachment still renders
     if (baseline.minioAttachmentPostId) {
         await pw.ensureMinio();
         const {channelsPage: minioChannelsPage} = await pw.testBrowser.login(user);
@@ -194,7 +175,6 @@ test('upgrade-to: verify actors and content survived', {tag: ['@upgrade-to']}, a
         );
     }
 
-    // U6 (Azurite): same for the opt-in Azurite backend
     if (baseline.azuriteAttachmentPostId) {
         await pw.ensureAzurite();
         const {channelsPage: azuriteChannelsPage} = await pw.testBrowser.login(user);

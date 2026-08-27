@@ -29,7 +29,7 @@ export default class AboutBuildModal {
         await expect(this.versionInfo).toBeVisible();
     }
 
-    /** Reads the "Server Version:" line — the value that should change across an upgrade. */
+    /** Reads the "Server Version:" line. */
     async getServerVersion(): Promise<string> {
         const text = await this.versionInfo.innerText();
         const match = text.match(/Server Version:\s*(\S+)/);

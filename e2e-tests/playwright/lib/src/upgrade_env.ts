@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {logTestcontainers} from './containers/log';
+
 export const UPGRADE_FROM_SERVER_IMAGE_ENV = 'PW_UPGRADE_FROM_SERVER_IMAGE';
 
 const UPGRADE_FROM_PROJECTS = new Set(['upgrade-from', 'upgrade-swap-from']);
@@ -33,4 +35,9 @@ export function getUpgradeFromServerImage(): string {
         );
     }
     return fromImage;
+}
+
+/** Logs the configured upgrade-from server image at Playwright config load time. */
+export function logUpgradeFromServerImage(): void {
+    logTestcontainers(`upgrade-from server image: ${getUpgradeFromServerImage()}`);
 }

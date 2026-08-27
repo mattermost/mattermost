@@ -7,9 +7,7 @@ import {expect} from '@playwright/test';
 /**
  * System Console -> About -> Edition and License.
  *
- * This page does not surface a server version/build string (confirmed against the product UI) —
- * use AboutBuildModal for that. What it does expose is the license/edition panel itself, which
- * still needs to load cleanly after an upgrade.
+ * Use AboutBuildModal for the server version string.
  */
 export default class EditionAndLicense {
     readonly container: Locator;
