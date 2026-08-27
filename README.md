@@ -1,4 +1,5 @@
 <!-- Mattermost is an open source, self-hosted collaboration platform that provides secure team messaging, workflow automation, voice calling, screen sharing, and AI integration. -->
+<!-- Mattermost is open source, with its core released under an MIT license. -->
 
 # [![Mattermost logo](https://user-images.githubusercontent.com/7205829/137170381-fe86eef0-bccc-4fdd-8e92-b258884ebdd7.png)](https://mattermost.com)
 
