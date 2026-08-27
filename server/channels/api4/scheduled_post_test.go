@@ -433,7 +433,7 @@ func TestCreateScheduledPost(t *testing.T) {
 				CheckBadRequestStatus(t, resp)
 				require.Nil(t, created)
 
-				storedScheduledPosts, storeErr := th.App.Srv().Store().ScheduledPost().GetScheduledPostsForUser(th.Context, th.BasicUser.Id, th.BasicTeam.Id)
+				storedScheduledPosts, storeErr := th.App.Srv().Store().ScheduledPost().GetScheduledPostsForUser(th.BasicUser.Id, th.BasicTeam.Id)
 				require.NoError(t, storeErr)
 				for _, storedScheduledPost := range storedScheduledPosts {
 					require.NotEqual(t, scheduledPost.Message, storedScheduledPost.Message, "a rejected scheduled post must not be stored")
