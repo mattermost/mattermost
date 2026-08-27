@@ -127,6 +127,10 @@ export default class ConfigurationSettings {
         return this.container.getByTestId(`bannerTextEditorChip-${name}`);
     }
 
+    bannerTokenChipRemove(name: string) {
+        return this.container.getByTestId(`bannerTextEditorChipRemove-${name}`);
+    }
+
     /**
      * Types literal banner text at the end of the chip editor, leaving existing chips.
      */

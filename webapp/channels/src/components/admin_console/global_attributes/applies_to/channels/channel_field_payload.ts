@@ -16,7 +16,7 @@ import {CHANNEL_DISPLAY_LOCATIONS} from './types';
  * "member", which would let any channel member change a marking. Dropping this
  * loosens access; it is not a tidy-up.
  */
-const CHANNEL_VALUE_SETTER: PropertyPermissionLevel = 'admin';
+export const CHANNEL_VALUE_SETTER: PropertyPermissionLevel = 'admin';
 
 /**
  * The attrs a channel resource's configuration contributes to its linked field.

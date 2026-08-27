@@ -5,7 +5,7 @@ import {useEffect, useMemo} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
 import type {ChannelBanner} from '@mattermost/types/channels';
-import type {PropertyField, PropertyFieldOption, PropertyValue} from '@mattermost/types/properties';
+import type {PropertyField, PropertyValue} from '@mattermost/types/properties';
 import type {GlobalState} from '@mattermost/types/store';
 
 import {PropertyTypes} from 'mattermost-redux/action_types';
@@ -21,7 +21,8 @@ import {
 } from 'mattermost-redux/constants/properties';
 import {getChannelBanner} from 'mattermost-redux/selectors/entities/channels';
 import {getFeatureFlagValue, getLicense} from 'mattermost-redux/selectors/entities/general';
-import {getChannelAttributeFields, getPropertyValueForTargetField, makeGetResolvedChannelAttributes} from 'mattermost-redux/selectors/entities/properties';
+import type {ResolvedChannelAttribute} from 'mattermost-redux/selectors/entities/properties';
+import {getChannelAttributeFields, getChannelBannerFields, getPropertyValueForTargetField, makeGetResolvedChannelAttributes} from 'mattermost-redux/selectors/entities/properties';
 
 import {CLASSIFICATIONS_CHANNEL_OBJECT_TYPE} from 'components/admin_console/classification_markings/utils';
 import {renderBannerTemplate} from 'components/channel_attributes/banner_template';
@@ -31,6 +32,12 @@ import {isMinimumEnterpriseAdvancedLicense} from 'utils/license_utils';
 import useClassificationMarkings from './useClassificationMarkings';
 
 export type ChannelBannerPosition = typeof DISPLAY_BANNER_TOP | typeof DISPLAY_BANNER_BOTTOM;
+
+// Text and multiselect attributes have no option to take a colour from, and a
+// banner with no background is a strip of unreadable page.
+const DEFAULT_BANNER_COLOR = '#DDDDDD';
+
+const EMPTY_FIELDS: PropertyField[] = [];
 
 // The classification* names predate the generic path; they now mean "whichever
 // attribute designates a banner".
@@ -75,14 +82,20 @@ export default function useChannelClassificationBanner(channelId: string): Chann
     const hasAdvancedLicense = isMinimumEnterpriseAdvancedLicense(useSelector(getLicense));
     const channelFields = useSelector(getChannelAttributeFields);
 
-    // First by sort_order, so which attribute wins is configuration rather than
-    // field creation order.
-    const designated = useMemo(() => {
+    // All of them, in sort_order: designation is the admin saying an attribute must
+    // be on screen, so several designated attributes share one banner. Order is
+    // configuration rather than field creation order.
+    const bannerFields = useSelector(getChannelBannerFields);
+    const designatedFields = useMemo(() => {
         if (!attributesEnabled || !hasAdvancedLicense) {
-            return undefined;
+            return EMPTY_FIELDS;
         }
-        return channelFields.find((field) => bannerAction(field) !== undefined);
-    }, [attributesEnabled, hasAdvancedLicense, channelFields]);
+        return bannerFields;
+    }, [attributesEnabled, hasAdvancedLicense, bannerFields]);
+
+    // Position and any authored colour come from the first, since one banner cannot
+    // sit in two places.
+    const designated = designatedFields[0];
 
     // Only while the channel field carries no display locations at all, which is how
     // a field predating any configuration keeps today's banner. Once an admin has
@@ -163,59 +176,81 @@ export default function useChannelClassificationBanner(channelId: string): Chann
             position,
         };
 
+        // Designated path: every banner attribute that has a value, in field order.
+        // Composed plain, because the same values render plain once the channel
+        // authors a template out of the chips in Channel Settings.
+        if (designatedFields.length > 0) {
+            const byId = new Map(resolvedAttributes.map((attribute) => [attribute.field.id, attribute]));
+            const parts = designatedFields.
+                map((field) => byId.get(field.id)).
+                filter((attribute) => Boolean(attribute?.displayValue)) as ResolvedChannelAttribute[];
+
+            if (parts.length === 0) {
+                return noBanner;
+            }
+
+            const composed = parts.map((attribute) => attribute.displayValue).join(' · ');
+            const bannerText = channelBannerInfo?.text ? renderBannerTemplate(channelBannerInfo.text, resolvedAttributes) : composed;
+
+            if (!bannerText) {
+                return noBanner;
+            }
+
+            // An option colour only speaks for the banner while it is the only thing in
+            // it. Two attributes, or a text one, have no single colour to take.
+            const optionColor = parts.length === 1 ? parts[0].option?.color : undefined;
+
+            // The banner is authored per channel, so a colour chosen in Channel Settings
+            // wins over the option's.
+            const authoredColor = channelBannerInfo?.background_color;
+
+            const single = parts.length === 1 ? parts[0].value?.value : undefined;
+
+            return {
+                hasClassification: true,
+                classificationBanner: {
+                    enabled: true,
+                    text: bannerText,
+                    background_color: authoredColor || optionColor || DEFAULT_BANNER_COLOR,
+                },
+                classificationId: typeof single === 'string' ? single : undefined,
+                bannerText,
+                position,
+            };
+        }
+
+        // Classification fallback: a channel field predating any display configuration.
+        // Bold, and coloured from the level, is how it renders today.
         if (!propertyValue || !propertyValue.value) {
             return noBanner;
         }
 
-        const optionId = propertyValue.value;
-        if (typeof optionId !== 'string') {
+        const raw = propertyValue.value;
+        if (typeof raw !== 'string') {
             return noBanner;
         }
 
-        // Both branches read the same definition — levels are
-        // optionsToLevels(field.attrs.options) — but the level lookup stays because
-        // that is where the shipped banner's colours come from today.
-        let name: string | undefined;
-        let color: string | undefined;
-
-        const level = classification.levels.find((l) => l.id === optionId);
-        if (level) {
-            name = level.name;
-            color = level.color;
-        } else if (designated) {
-            const options = (designated.attrs?.options as PropertyFieldOption[] | undefined) ?? [];
-            const option = options.find((candidate) => candidate.id === optionId);
-            if (option) {
-                name = option.name;
-                color = option.color;
-            }
-        }
-
-        // A deleted option renders nothing rather than an unresolvable banner.
-        if (!name) {
+        const level = classification.levels.find((l) => l.id === raw);
+        if (!level) {
             return noBanner;
         }
 
         // A literal with no tokens passes through untouched, keeping pre-existing
         // banners byte-identical.
-        const bannerText = channelBannerInfo?.text ? renderBannerTemplate(channelBannerInfo.text, resolvedAttributes) : `**${name}**`;
-
-        // An attribute-designated banner is authored per channel, so a colour chosen
-        // in Channel Settings wins over the option's. Only for the designated path:
-        // a classification banner keeps taking its colour from the level, whatever
-        // stale value banner_info may still carry.
-        const authoredColor = designated ? channelBannerInfo?.background_color : undefined;
+        const bannerText = channelBannerInfo?.text ? renderBannerTemplate(channelBannerInfo.text, resolvedAttributes) : `**${level.name}**`;
 
         return {
             hasClassification: true,
             classificationBanner: {
                 enabled: true,
+
+                // The level's colour wins over whatever stale value banner_info carries.
                 text: bannerText,
-                background_color: authoredColor || color || '',
+                background_color: level.color || DEFAULT_BANNER_COLOR,
             },
-            classificationId: optionId,
+            classificationId: raw,
             bannerText,
             position,
         };
-    }, [propertyValue, classification.levels, channelBannerInfo, designated, position, resolvedAttributes]);
+    }, [propertyValue, classification.levels, channelBannerInfo, designatedFields, position, resolvedAttributes]);
 }

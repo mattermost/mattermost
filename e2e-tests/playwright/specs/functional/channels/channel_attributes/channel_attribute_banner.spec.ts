@@ -72,6 +72,64 @@ test.describe('Channel attribute banner composition', {tag: ['@channel_attribute
     });
 
     /**
+     * @objective Verify every banner-designated attribute shares one banner, and that
+     * Channel Settings shows them as chips the channel cannot remove.
+     */
+    test('composes one banner from every designated attribute and locks their chips', async ({pw}) => {
+        await pw.skipIfNoLicense();
+        await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
+
+        const {adminClient, adminUser, team} = await pw.initSetup();
+        const suffix = pw.random.id();
+        const created: PropertyField[] = [];
+
+        try {
+            await purgeAttributes(adminClient);
+
+            const marking = await createAttribute(adminClient, attributeName('multi_marking', suffix), {
+                options: ['SECRET'],
+                actions: [DISPLAY_BANNER_TOP],
+                optionColors: {SECRET: BANNER_COLOR},
+                sortOrder: 1,
+            });
+            const programme = await createAttribute(adminClient, attributeName('multi_programme', suffix), {
+                type: 'text',
+                actions: [DISPLAY_BANNER_TOP],
+                sortOrder: 2,
+            });
+            created.push(marking, programme);
+
+            const channel = await createChannelForAttributes(adminClient, team, `banner-multi-${suffix}`);
+            await adminClient.addToChannel(adminUser.id, channel.id);
+            await setChannelValue(adminClient, channel.id, marking, optionId(marking, 'SECRET'));
+            await setChannelValue(adminClient, channel.id, programme, 'AURORA');
+
+            const {channelsPage} = await pw.testBrowser.login(adminUser);
+            await channelsPage.goto(team.name, channel.name);
+            await channelsPage.toBeVisible();
+
+            // * Both designated attributes share the one banner, in sort order
+            await expect(channelsPage.page.getByTestId('channel_banner_text')).toHaveText('SECRET · AURORA');
+
+            const settings = await channelsPage.openChannelSettings();
+            const configuration = await settings.openConfigurationTab();
+
+            // * The composer opens showing what the banner is made of
+            await expect(configuration.bannerTokenChip(marking.name)).toBeVisible();
+            await expect(configuration.bannerTokenChip(programme.name)).toBeVisible();
+
+            // * Designated attributes cannot be taken out of the banner
+            await expect(configuration.bannerTokenChipRemove(marking.name)).toHaveCount(0);
+            await expect(configuration.bannerTokenChipRemove(programme.name)).toHaveCount(0);
+
+            // * Seeding those chips is not an edit, so the tab opens clean
+            await expect(configuration.container.getByTestId('SaveChangesPanel__save-btn')).toHaveCount(0);
+        } finally {
+            await deleteAttributes(adminClient, created);
+        }
+    });
+
+    /**
      * @objective Verify the banner section reads as enabled when an attribute drives the
      * banner, even though banner_info stays disabled for that channel.
      */

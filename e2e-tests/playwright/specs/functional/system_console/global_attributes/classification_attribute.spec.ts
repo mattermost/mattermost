@@ -111,15 +111,15 @@ test.describe('System Console - the classification attribute page', {tag: ['@sys
         } as Parameters<typeof adminClient.createChannel>[0]);
         await adminClient.addToChannel(user.id, channel.id);
         await adminClient.patchPropertyValues('access_control', 'channel', channel.id, [
-            {field_id: channelField!.id, value: JSON.stringify(levels[0].id)},
+            {field_id: channelField!.id, value: levels[0].id},
         ] as Parameters<typeof adminClient.patchPropertyValues>[3]);
 
-        const {page, channelsPage} = await pw.testBrowser.login(user);
+        const {channelsPage} = await pw.testBrowser.login(user);
         await channelsPage.goto(team.name, channel.name);
         await channelsPage.toBeVisible();
 
         // * The header carries the chip the console asked for
-        await expect(page.getByTestId('channelAttributeLabel-classification')).toHaveText(levels[0].name);
+        await expect(channelsPage.centerView.header.attributes.chip(levels[0].name)).toBeVisible();
     });
 
     /**
@@ -191,7 +191,7 @@ test.describe('System Console - the classification attribute page', {tag: ['@sys
         } as Parameters<typeof adminClient.createChannel>[0]);
         await adminClient.addToChannel(user.id, channel.id);
         await adminClient.patchPropertyValues('access_control', 'channel', channel.id, [
-            {field_id: channelFieldBefore!.id, value: JSON.stringify(levels[0].id)},
+            {field_id: channelFieldBefore!.id, value: levels[0].id},
         ] as Parameters<typeof adminClient.patchPropertyValues>[3]);
 
         // # Configure Channel Info only — deliberately not the banner
@@ -243,8 +243,16 @@ test.describe('System Console - the classification attribute page', {tag: ['@sys
         // * Saving the Classification Markings page does not reinstate it: the field is
         // * created on the transition into enabled, not on every save
         await page.goto('/admin_console/site_config/classification_markings');
+
+        // Save only enables once something changes, so the save under test needs an
+        // edit -- one with nothing to do with the Channels resource. The cell keeps the
+        // typing local and only reports it on blur, so the edit has to be committed.
+        const levelName = page.getByRole('textbox', {name: 'Classification level name'}).first();
+        await levelName.fill('UNCLASSIFIED EDITED');
+        await levelName.blur();
+
         await page.getByTestId('saveSetting').click();
-        await expect(page.getByTestId('saveSetting')).toBeEnabled();
+        await expect(page.getByTestId('saveSetting')).toBeDisabled();
 
         expect(await findChannelField(adminClient, 'classification')).toBeUndefined();
     });

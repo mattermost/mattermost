@@ -7,6 +7,8 @@ import type {GlobalState} from '@mattermost/types/store';
 import {
     ACCESS_CONTROL_PROPERTY_GROUP,
     CHANNEL_OBJECT_TYPE,
+    DISPLAY_BANNER_BOTTOM,
+    DISPLAY_BANNER_TOP,
     DISPLAY_LABEL_HEADER,
     DISPLAY_LABEL_INFO,
 } from 'mattermost-redux/constants/properties';
@@ -166,6 +168,23 @@ export const getChannelLabelFields: (state: GlobalState) => PropertyField[] = cr
             return Array.isArray(actions) && actions.some((action) => action === DISPLAY_LABEL_HEADER || action === DISPLAY_LABEL_INFO);
         });
         return labels.length === 0 ? EMPTY_FIELDS : labels;
+    },
+);
+
+/**
+ * The subset designated for the channel banner, in display order. Every one of them
+ * belongs in the same banner: designation is the admin saying this must be on screen,
+ * so a second designated attribute adds to the banner rather than losing to the first.
+ */
+export const getChannelBannerFields: (state: GlobalState) => PropertyField[] = createSelector(
+    'getChannelBannerFields',
+    getChannelAttributeFields,
+    (fields) => {
+        const banners = fields.filter((field) => {
+            const actions = field.attrs?.actions;
+            return Array.isArray(actions) && actions.some((action) => action === DISPLAY_BANNER_TOP || action === DISPLAY_BANNER_BOTTOM);
+        });
+        return banners.length === 0 ? EMPTY_FIELDS : banners;
     },
 );
 

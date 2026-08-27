@@ -97,6 +97,30 @@ function tidySeparators(text: string): string {
         replace(/\s{2,}/g, ' ');
 }
 
+/**
+ * Guarantees a token for every attribute the admin designated for the banner.
+ *
+ * Designation is not a suggestion: an author may add to the banner and reorder what
+ * is there, but may not drop a designated attribute. A missing one is appended rather
+ * than the edit refused, so the composer never has to explain itself.
+ */
+export function withRequiredTokens(template: string, fieldNames: string[]): string {
+    if (fieldNames.length === 0) {
+        return template;
+    }
+
+    const present = referencedFieldNames(template);
+    const missing = fieldNames.filter((name) => !present.includes(name));
+    if (missing.length === 0) {
+        return template;
+    }
+
+    const additions = missing.map(attributeToken).join(' · ');
+    const existing = template.trim();
+
+    return existing ? `${existing} · ${additions}` : additions;
+}
+
 // Token name plus the label to show for it. Callers decide which attributes to offer.
 export function tokenSuggestions(attributes: ResolvedChannelAttribute[]): Array<{name: string; label: string}> {
     return attributes.map((attribute) => ({

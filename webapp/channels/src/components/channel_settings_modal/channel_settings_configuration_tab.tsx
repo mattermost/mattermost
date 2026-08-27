@@ -15,6 +15,7 @@ import {Client4} from 'mattermost-redux/client';
 import {Permissions} from 'mattermost-redux/constants';
 import {ACCESS_CONTROL_PROPERTY_GROUP} from 'mattermost-redux/constants/properties';
 import {isChannelAutotranslated as isChannelAutotranslatedSelector} from 'mattermost-redux/selectors/entities/channels';
+import {getChannelBannerFields} from 'mattermost-redux/selectors/entities/properties';
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getRemotesForChannel} from 'mattermost-redux/selectors/entities/shared_channels';
 
@@ -22,6 +23,7 @@ import {ColorSwatch, LevelOptionLabel} from 'components/admin_console/classifica
 import {CLASSIFICATIONS_CHANNEL_OBJECT_TYPE} from 'components/admin_console/classification_markings/utils';
 import {classificationPresetDropdownStyles} from 'components/admin_console/classification_markings/utils/preset_dropdown_styles';
 import BannerPreview from 'components/channel_attributes/banner_preview';
+import {withRequiredTokens} from 'components/channel_attributes/banner_template';
 import BannerTextEditor from 'components/channel_attributes/banner_text_editor';
 import ColorInput from 'components/color_input';
 import useChannelAttributes from 'components/common/hooks/useChannelAttributes';
@@ -119,11 +121,39 @@ function ChannelSettingsConfigurationTab({
     const bannerTextPlaceholder = formatMessage({id: 'channel_banner.banner_text.placeholder', defaultMessage: 'Channel banner text'});
     const bannerPreviewSettingTitle = formatMessage({id: 'channel_banner.banner_preview.label', defaultMessage: 'Preview'});
 
-    const initialBannerInfo = channel.banner_info || DEFAULT_CHANNEL_BANNER;
+    const {enabled: channelAttributesEnabled} = useChannelAttributes();
+
+    // Every attribute the admin designated for the banner.
+    const bannerFields = useSelector(getChannelBannerFields);
+    const lockedTokens = useMemo(() => bannerFields.map((field) => field.name), [bannerFields]);
+
+    const rawBannerInfo = channel.banner_info || DEFAULT_CHANNEL_BANNER;
+
+    // Normalised on both sides of the comparison, so the tokens seeded below are not
+    // read as an edit the moment the tab opens.
+    const initialBannerInfo = useMemo(() => {
+        if (!channelAttributesEnabled || lockedTokens.length === 0) {
+            return rawBannerInfo;
+        }
+        return {...rawBannerInfo, text: withRequiredTokens(rawBannerInfo.text ?? '', lockedTokens)};
+    }, [channelAttributesEnabled, lockedTokens, rawBannerInfo]);
+
     const [showBannerTextPreview, setShowBannerTextPreview] = useState(false);
     const [updatedChannelBanner, setUpdatedChannelBanner] = useState(initialBannerInfo);
     const [characterLimitExceeded, setCharacterLimitExceeded] = useState(false);
     const hasBannerChanges = bannerHasChanges(initialBannerInfo, updatedChannelBanner);
+
+    // The fields load after mount, so the initial state above may have been built
+    // before there were any tokens to seed. Once only: after that the text is the
+    // author's, and re-seeding would fight their edits.
+    const seededTokensRef = useRef(false);
+    useEffect(() => {
+        if (seededTokensRef.current || !channelAttributesEnabled || lockedTokens.length === 0) {
+            return;
+        }
+        seededTokensRef.current = true;
+        setUpdatedChannelBanner((prev) => ({...prev, text: withRequiredTokens(prev.text ?? '', lockedTokens)}));
+    }, [channelAttributesEnabled, lockedTokens]);
 
     const classificationBanner = useChannelClassificationBanner(channel.id);
 
@@ -133,8 +163,6 @@ function ChannelSettingsConfigurationTab({
     );
     const [classificationEnabled, setClassificationEnabled] = useState(classificationBanner.hasClassification);
     const [selectedClassificationId, setSelectedClassificationId] = useState(classificationBanner.classificationId || '');
-
-    const {enabled: channelAttributesEnabled} = useChannelAttributes();
 
     // Assignment moves to Channel Info once the flag is on; two controls for one
     // value would disagree the moment either changed.
@@ -459,7 +487,11 @@ function ChannelSettingsConfigurationTab({
 
         if (bannerHasChanges(initialBannerInfo, updatedChannelBanner)) {
             updated.banner_info = {
-                text: updatedChannelBanner.text?.trim() || '',
+
+                // A locked chip has no remove control, but backspace reaches it. The
+                // designated attributes are restored here rather than policed keystroke
+                // by keystroke.
+                text: withRequiredTokens(updatedChannelBanner.text?.trim() || '', channelAttributesEnabled ? lockedTokens : []),
                 background_color: updatedChannelBanner.background_color?.trim() || '',
                 enabled: updatedChannelBanner.enabled,
             };
@@ -570,9 +602,11 @@ function ChannelSettingsConfigurationTab({
     }, [
         canManageSharedChannels,
         channel,
+        channelAttributesEnabled,
         classification.channelField,
         classificationEnabled,
         dispatch,
+        lockedTokens,
         formatMessage,
         handleServerError,
         hasAutoTranslationChanges,
@@ -830,6 +864,7 @@ function ChannelSettingsConfigurationTab({
                                         <BannerTextEditor
                                             value={updatedChannelBanner.text ?? ''}
                                             attributes={resolvedAttributes}
+                                            lockedTokens={lockedTokens}
                                             onChange={handleBannerTextChange}
                                             disabled={bannerLockedByClassification}
                                             hasError={characterLimitExceeded}

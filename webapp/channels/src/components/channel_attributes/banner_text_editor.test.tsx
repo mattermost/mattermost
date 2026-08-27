@@ -260,6 +260,22 @@ describe('BannerTextEditor', () => {
         expect(screen.getByTestId('bannerTextEditor')).toHaveAttribute('contenteditable', 'false');
     });
 
+    test('offers no remove control for a locked token, but still one for the rest', () => {
+        renderWithContext(
+            <BannerTextEditor
+                value='{{classification}} · {{program}}'
+                attributes={ATTRIBUTES}
+                lockedTokens={['classification']}
+                onChange={jest.fn()}
+            />,
+        );
+
+        // Designation is the admin's call, so the channel may add to the banner but
+        // not drop what was mandated.
+        expect(screen.queryByTestId('bannerTextEditorChipRemove-classification')).not.toBeInTheDocument();
+        expect(screen.getByTestId('bannerTextEditorChipRemove-program')).toBeInTheDocument();
+    });
+
     test('keeps the banner to one line', () => {
         const onChange = jest.fn();
         renderWithContext(

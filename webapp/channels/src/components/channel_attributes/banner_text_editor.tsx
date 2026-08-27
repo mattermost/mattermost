@@ -117,6 +117,10 @@ type Props = {
 
     onChange: (next: string) => void;
 
+    // Attributes the admin designated for the banner. Their chips carry no remove
+    // control: the channel may add to the banner, not drop what was mandated.
+    lockedTokens?: string[];
+
     disabled?: boolean;
     maxLength?: number;
     hasError?: boolean;
@@ -131,7 +135,7 @@ type Props = {
  * chips with free text in a single caret flow; everything below exists to keep that
  * DOM and the template string in agreement.
  */
-const BannerTextEditor = ({value, attributes, onChange, disabled, maxLength, hasError}: Props) => {
+const BannerTextEditor = ({value, attributes, onChange, lockedTokens, disabled, maxLength, hasError}: Props) => {
     const {formatMessage} = useIntl();
     const editorRef = useRef<HTMLDivElement>(null);
 
@@ -154,6 +158,8 @@ const BannerTextEditor = ({value, attributes, onChange, disabled, maxLength, has
     // document.body, where the app's type-anywhere handler diverts keystrokes into the
     // message box.
     const restoreRef = useRef<{focused: boolean; caret: number | null}>({focused: false, caret: null});
+
+    const locked = useMemo(() => new Set(lockedTokens ?? []), [lockedTokens]);
 
     const labels = useMemo(() => {
         const byName = new Map<string, string>();
@@ -350,17 +356,20 @@ const BannerTextEditor = ({value, attributes, onChange, disabled, maxLength, has
                         }
 
                         const label = labels.get(segment.name) ?? segment.name;
+                        const isLocked = locked.has(segment.name);
 
                         return (
                             <span
                                 key={chipKeys[index]}
-                                className='BannerTextEditor__chip'
+                                className={classNames('BannerTextEditor__chip', {
+                                    'BannerTextEditor__chip--locked': isLocked,
+                                })}
                                 contentEditable={false}
                                 data-token={segment.name}
                                 data-testid={`bannerTextEditorChip-${segment.name}`}
                             >
                                 {label}
-                                {!disabled && (
+                                {!disabled && !isLocked && (
                                     <button
                                         type='button'
                                         className='BannerTextEditor__chipRemove'

@@ -328,7 +328,13 @@ describe('useChannelClassificationBanner', () => {
         const DESIGNATED_FIELD_ID = 'designated_field_1';
         const OPTION_ID = 'option_1';
 
-        function designatedState(bannerInfo?: {enabled?: boolean; text?: string; background_color?: string}): PartialState {
+        const SECOND_OPTION_ID = 'option_2';
+
+        function designatedState(
+            bannerInfo?: {enabled?: boolean; text?: string; background_color?: string},
+            fieldOverrides?: Partial<PropertyField>,
+            value: unknown = OPTION_ID,
+        ): PartialState {
             const field: PropertyField = {
                 ...makeChannelField(),
                 id: DESIGNATED_FIELD_ID,
@@ -336,8 +342,13 @@ describe('useChannelClassificationBanner', () => {
                 name: 'marking',
                 attrs: {
                     actions: ['display_banner_top'],
-                    options: [{id: OPTION_ID, name: 'RESTRICTED', color: '#1E325C'}],
+                    sort_order: 1,
+                    options: [
+                        {id: OPTION_ID, name: 'RESTRICTED', color: '#1E325C'},
+                        {id: SECOND_OPTION_ID, name: 'VALUE 2'},
+                    ],
                 },
+                ...fieldOverrides,
             };
 
             return {
@@ -358,7 +369,7 @@ describe('useChannelClassificationBanner', () => {
                             byTargetId: {
                                 [CHANNEL_ID]: {
                                     [DESIGNATED_FIELD_ID]: {
-                                        ...makePropertyValue(OPTION_ID),
+                                        ...makePropertyValue(value as string),
                                         field_id: DESIGNATED_FIELD_ID,
                                     },
                                 },
@@ -379,7 +390,68 @@ describe('useChannelClassificationBanner', () => {
 
             expect(result.current.hasClassification).toBe(true);
             expect(result.current.classificationBanner?.background_color).toBe('#1E325C');
-            expect(result.current.bannerText).toBe('**RESTRICTED**');
+
+            // Plain, because these same values render plain once the channel authors a
+            // template out of the chips in Channel Settings.
+            expect(result.current.bannerText).toBe('RESTRICTED');
+        });
+
+        test('banners a multiselect, joining the selected options', () => {
+            mockClassification({available: false, channelField: null, levels: []});
+
+            const {result} = renderHookWithContext(
+                () => useChannelClassificationBanner(CHANNEL_ID),
+                designatedState(undefined, {type: 'multiselect'}, [OPTION_ID, SECOND_OPTION_ID]),
+            );
+
+            expect(result.current.hasClassification).toBe(true);
+            expect(result.current.bannerText).toBe('RESTRICTED, VALUE 2');
+
+            // The selections may each carry a different colour, so none of them wins.
+            expect(result.current.classificationBanner?.background_color).toBe('#DDDDDD');
+        });
+
+        test('banners a text attribute, which stores its display string directly', () => {
+            mockClassification({available: false, channelField: null, levels: []});
+
+            const {result} = renderHookWithContext(
+                () => useChannelClassificationBanner(CHANNEL_ID),
+                designatedState(undefined, {type: 'text', attrs: {actions: ['display_banner_top']}}, 'MY TEXT ATTR'),
+            );
+
+            expect(result.current.hasClassification).toBe(true);
+            expect(result.current.bannerText).toBe('MY TEXT ATTR');
+        });
+
+        test('puts every designated attribute in the same banner', () => {
+            mockClassification({available: false, channelField: null, levels: []});
+
+            const SECOND_FIELD_ID = 'designated_field_2';
+            const state = designatedState();
+            const entities = (state as {entities: {properties: {fields: {byObjectType: Record<string, Record<string, Record<string, unknown>>>}; values: {byTargetId: Record<string, Record<string, unknown>>}}}}).entities;
+
+            entities.properties.fields.byObjectType.channel[GROUP_ID][SECOND_FIELD_ID] = {
+                ...makeChannelField(),
+                id: SECOND_FIELD_ID,
+                group_id: GROUP_ID,
+                name: 'programme',
+                type: 'text',
+                attrs: {actions: ['display_banner_top'], sort_order: 2},
+            };
+            entities.properties.values.byTargetId[CHANNEL_ID][SECOND_FIELD_ID] = {
+                ...makePropertyValue('AURORA'),
+                field_id: SECOND_FIELD_ID,
+            };
+
+            const {result} = renderHookWithContext(
+                () => useChannelClassificationBanner(CHANNEL_ID),
+                state,
+            );
+
+            expect(result.current.bannerText).toBe('RESTRICTED · AURORA');
+
+            // One attribute's colour does not speak for a banner it shares.
+            expect(result.current.classificationBanner?.background_color).toBe('#DDDDDD');
         });
 
         test('lets a colour authored in Channel Settings win over the option colour', () => {

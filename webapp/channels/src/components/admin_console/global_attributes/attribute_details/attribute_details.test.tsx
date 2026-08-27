@@ -569,6 +569,24 @@ describe('AttributeDetails', () => {
             expect(Object.keys(channelCall.attrs)).toEqual(['display_name']);
         });
 
+        it('pins who may set the value, since the server would otherwise let any member', async () => {
+            const createPropertyField = jest.spyOn(Client4, 'createPropertyField').mockResolvedValue(template);
+
+            renderComponent();
+            await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'My Attribute');
+            await addChannels();
+            await userEvent.click(screen.getByTestId('saveSetting'));
+
+            await waitFor(() => expect(mockHistoryPush).toHaveBeenCalled());
+
+            expect(createPropertyField).toHaveBeenNthCalledWith(2, 'access_control', 'channel', expect.objectContaining({
+                permission_values: 'admin',
+            }));
+
+            // Only Channels pins it; the template must keep the server's default.
+            expect(createPropertyField.mock.calls[0][2]).not.toHaveProperty('permission_values');
+        });
+
         it('keeps the settings when Channels is removed and added back', async () => {
             const createPropertyField = jest.spyOn(Client4, 'createPropertyField').mockResolvedValue(template);
 

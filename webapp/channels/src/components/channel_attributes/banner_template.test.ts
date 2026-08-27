@@ -11,6 +11,7 @@ import {
     referencedFieldNames,
     renderBannerTemplate,
     tokenSuggestions,
+    withRequiredTokens,
 } from './banner_template';
 
 function attribute(name: string, displayValue: string, displayName?: string): ResolvedChannelAttribute {
@@ -135,5 +136,29 @@ describe('tokenSuggestions', () => {
 
     test('falls back to the machine name when there is no display name', () => {
         expect(tokenSuggestions([attribute('program', 'AURORA')])).toEqual([{name: 'program', label: 'program'}]);
+    });
+});
+
+describe('withRequiredTokens', () => {
+    test('seeds an empty template with every designated attribute', () => {
+        expect(withRequiredTokens('', ['classification', 'program'])).toBe('{{classification}} · {{program}}');
+    });
+
+    test('leaves a template that already references them untouched', () => {
+        const template = '{{program}} handle via {{classification}}';
+        expect(withRequiredTokens(template, ['classification', 'program'])).toBe(template);
+    });
+
+    test('appends only the ones missing, keeping what the author wrote', () => {
+        expect(withRequiredTokens('{{classification}}', ['classification', 'program'])).
+            toBe('{{classification}} · {{program}}');
+    });
+
+    test('appends after literal text rather than replacing it', () => {
+        expect(withRequiredTokens('Handle with care', ['program'])).toBe('Handle with care · {{program}}');
+    });
+
+    test('is a no-op when nothing is designated', () => {
+        expect(withRequiredTokens('Handle with care', [])).toBe('Handle with care');
     });
 });

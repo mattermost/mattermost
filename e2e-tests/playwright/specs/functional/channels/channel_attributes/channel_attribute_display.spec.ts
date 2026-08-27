@@ -316,6 +316,98 @@ test.describe('Channel attribute display and editing', {tag: ['@channel_attribut
     });
 
     /**
+     * @objective Verify a multiselect banner attribute set at channel creation banners the new channel immediately.
+     */
+    test('banners a multiselect attribute filled while creating the channel', async ({pw}) => {
+        await pw.skipIfNoLicense();
+        await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
+
+        const {adminClient, user, team} = await pw.initSetup();
+        const suffix = pw.random.id();
+        const created: PropertyField[] = [];
+
+        try {
+            await purgeAttributes(adminClient);
+            await assertNoForeignRequiredAttributes(adminClient);
+
+            // Required so the create dialog asks for it, which is how a channel gets
+            // a banner value before anyone has opened Channel Settings.
+            const caveats = await createAttribute(adminClient, attributeName('bannermulti', suffix), {
+                type: 'multiselect',
+                options: ['NOFORN', 'ORCON'],
+                required: true,
+                actions: [DISPLAY_BANNER_TOP, DISPLAY_LABEL_HEADER],
+            });
+            created.push(caveats);
+
+            const {page, channelsPage} = await pw.testBrowser.login(user);
+            await channelsPage.goto(team.name);
+            await channelsPage.toBeVisible();
+
+            const modal = await channelsPage.openNewChannelModal();
+            await modal.fillDisplayName(`Attr Banner Multi ${suffix}`);
+
+            // The menu closes on each pick, so the second value needs it reopened.
+            await page.getByTestId(`channelAttribute-${caveats.name}`).click();
+            await page.getByText('NOFORN', {exact: true}).click();
+            await page.getByTestId(`channelAttribute-${caveats.name}`).click();
+            await page.getByText('ORCON', {exact: true}).click();
+
+            await modal.create();
+            await expect(modal.container).not.toBeVisible();
+
+            // No reload, no Channel Settings visit: creation alone has to banner it.
+            await expect(page.getByTestId('channel_banner_text')).toContainText('NOFORN, ORCON');
+
+            // Selections may each carry a different colour, so none of them wins and
+            // the banner falls back rather than rendering transparent.
+            await expect(page.getByTestId('channel_banner_container')).toHaveCSS('background-color', 'rgb(221, 221, 221)');
+        } finally {
+            await deleteAttributes(adminClient, created);
+        }
+    });
+
+    /**
+     * @objective Verify a text banner attribute banners the channel with the string it stores.
+     */
+    test('banners a text attribute filled while creating the channel', async ({pw}) => {
+        await pw.skipIfNoLicense();
+        await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
+
+        const {adminClient, user, team} = await pw.initSetup();
+        const suffix = pw.random.id();
+        const created: PropertyField[] = [];
+
+        try {
+            await purgeAttributes(adminClient);
+            await assertNoForeignRequiredAttributes(adminClient);
+
+            const note = await createAttribute(adminClient, attributeName('bannertext', suffix), {
+                type: 'text',
+                required: true,
+                actions: [DISPLAY_BANNER_TOP],
+            });
+            created.push(note);
+
+            const {page, channelsPage} = await pw.testBrowser.login(user);
+            await channelsPage.goto(team.name);
+            await channelsPage.toBeVisible();
+
+            const modal = await channelsPage.openNewChannelModal();
+            await modal.fillDisplayName(`Attr Banner Text ${suffix}`);
+            await page.getByLabel(note.name, {exact: true}).fill('HANDLE WITH CARE');
+
+            await modal.create();
+            await expect(modal.container).not.toBeVisible();
+
+            // A text attribute has no options, so the stored string is the banner.
+            await expect(page.getByTestId('channel_banner_text')).toContainText('HANDLE WITH CARE');
+        } finally {
+            await deleteAttributes(adminClient, created);
+        }
+    });
+
+    /**
      * @objective Verify a user without the setter tier sees values but no editing affordance.
      */
     test('hides editing from a user without the setter tier', async ({pw}) => {

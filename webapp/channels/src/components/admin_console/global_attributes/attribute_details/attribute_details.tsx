@@ -39,7 +39,7 @@ import type {ExternalSource} from './attribute_external_source';
 import AttributeOptionsRankValues from './attribute_options_rank_values';
 import AttributeOptionsValues from './attribute_options_values';
 
-import {DEFAULT_CHANNEL_RESOURCE_CONFIG, buildChannelFieldAttrs, isOrderedChangePolicy} from '../applies_to/channels';
+import {CHANNEL_VALUE_SETTER, DEFAULT_CHANNEL_RESOURCE_CONFIG, buildChannelFieldAttrs, isOrderedChangePolicy} from '../applies_to/channels';
 import type {ChannelResourceConfig} from '../applies_to/channels';
 import {GLOBAL_ATTRIBUTES_LIST_ROUTE} from '../constants';
 import {getTypeIcon, getTypeLabel, typeLabels} from '../global_attributes_table';
@@ -602,6 +602,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                     displayName,
                     templateField.id,
                     type === 'channel' ? buildChannelFieldAttrs(channelResource) : undefined,
+                    type === 'channel' ? CHANNEL_VALUE_SETTER : undefined,
                 );
                 createdLinkedFields.push({type, field: linkedField});
             } catch (error) {
