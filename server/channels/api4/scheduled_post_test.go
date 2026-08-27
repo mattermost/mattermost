@@ -229,7 +229,7 @@ func TestUpdateScheduledPost(t *testing.T) {
 				require.Error(t, err)
 				CheckBadRequestStatus(t, resp)
 
-				fetched, storeErr := th.App.Srv().Store().ScheduledPost().Get(th.Context, created.Id)
+				fetched, storeErr := th.App.Srv().Store().ScheduledPost().Get(created.Id)
 				require.NoError(t, storeErr)
 				require.NotEqual(t, testCase.postType, fetched.Type, "a scheduled post must not keep a reserved system post type")
 			})

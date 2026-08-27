@@ -580,7 +580,7 @@ func TestProcessScheduledPostsWithSystemPostType(t *testing.T) {
 				RepeatType:     testCase.repeatType,
 				RepeatTimezone: testCase.repeatTimezone,
 			}
-			created, err := th.Server.Store().ScheduledPost().CreateScheduledPost(th.Context, scheduledPost)
+			created, err := th.Server.Store().ScheduledPost().CreateScheduledPost(scheduledPost)
 			require.NoError(t, err)
 			require.NotNil(t, created)
 
@@ -597,7 +597,7 @@ func TestProcessScheduledPostsWithSystemPostType(t *testing.T) {
 
 			assert.Nil(t, publishedPost, "a scheduled post with a reserved system post type must not be published")
 
-			updated, err := th.Server.Store().ScheduledPost().Get(th.Context, created.Id)
+			updated, err := th.Server.Store().ScheduledPost().Get(created.Id)
 			if assert.NoError(t, err, "the scheduled post should have been kept with an error code instead of being published") {
 				assert.Equal(t, testCase.errorCode, updated.ErrorCode)
 				if testCase.repeatType != "" {
