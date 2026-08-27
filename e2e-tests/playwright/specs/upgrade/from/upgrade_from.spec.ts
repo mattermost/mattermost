@@ -42,7 +42,8 @@ import {
 
 /**
  * @objective Seeds upgrade actors and content via Client4 / PlaywrightClient4 on the from-image.
- * Binary downloads use Playwright `request`; no browser/POM interaction.
+ * Prefer API clients for all setup/verify. Use Playwright `request` for authenticated binary
+ * downloads; browser login only via Playwright API (`loginByAPI`) if a session is required.
  */
 test('upgrade-from: create actors and content', {tag: ['@upgrade-from']}, async ({pw, request}) => {
     test.setTimeout(300000);

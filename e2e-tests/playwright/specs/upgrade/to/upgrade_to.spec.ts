@@ -37,7 +37,8 @@ import {
 
 /**
  * @objective Re-verifies upgrade actors and content via Client4 / PlaywrightClient4 after swap to the to-image.
- * Binary downloads use Playwright `request`; no browser/POM interaction.
+ * Prefer API clients for all setup/verify. Use Playwright `request` for authenticated binary
+ * downloads; browser login only via Playwright API (`loginByAPI`) if a session is required.
  */
 test('upgrade-to: verify actors and content survived', {tag: ['@upgrade-to']}, async ({pw, request}) => {
     test.setTimeout(300000);
