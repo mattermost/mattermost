@@ -345,7 +345,7 @@ func TestProcessScheduledPostsWithSystemPostType(t *testing.T) {
 				},
 				ScheduledAt: scheduledAt,
 			}
-			created, err := th.Server.Store().ScheduledPost().CreateScheduledPost(th.Context, scheduledPost)
+			created, err := th.Server.Store().ScheduledPost().CreateScheduledPost(scheduledPost)
 			require.NoError(t, err)
 			require.NotNil(t, created)
 
