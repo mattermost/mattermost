@@ -3,8 +3,7 @@
  * Persona router.
  *
  * Runs one cheap call to pick which personas a diff actually warrants, so the
- * expensive per-persona reviews only run where they have something to say. A
- * config-reference change should not spend tokens on an economic-buyer review.
+ * expensive per-persona reviews only run where they have something to say.
  *
  * Emits a JSON array of persona ids on stdout, for the workflow's matrix.
  * Fails open to every review persona: a router outage should degrade cost,

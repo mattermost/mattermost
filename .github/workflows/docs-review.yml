@@ -2,11 +2,6 @@ name: Docs AI Review
 
 # Reviews documentation changes through the persona registry in
 # .github/prompts/personas/ and posts one sticky comment per PR.
-#
-# Advisory only: no verdict here blocks a merge, and the review is a no-op when
-# ANTHROPIC_API_KEY is unset. Fork PRs get registry validation but no review —
-# they have neither secrets nor a writable token. Review a fork PR locally with
-# .github/scripts/docs-ai/dry-run.mjs.
 
 on:
   pull_request:
@@ -22,17 +17,11 @@ on:
 permissions:
   contents: read
 
-# A new push supersedes the review in flight; the sticky comment should
-# reflect the head commit, not whichever run happened to finish last.
 concurrency:
   group: docs-review-${{ github.event.pull_request.number }}
   cancel-in-progress: true
 
 jobs:
-  # Runs on every PR that touches the pipeline or the docs, including forks.
-  # The registry is resolved from disk by relative path at runtime, so a moved
-  # directory or bad frontmatter would otherwise surface as a mid-run crash
-  # after the API key has already been spent.
   validate:
     name: Validate persona registry
     runs-on: ubuntu-24.04
@@ -51,9 +40,6 @@ jobs:
 
       - name: Install dependencies
         working-directory: .github/scripts/docs-ai
-        # No dependency here needs an install script, so refuse to run any.
-        # This job executes PR-authored code by design; that removes one way
-        # for a dependency to run code before the tests do.
         run: npm ci --ignore-scripts
 
       - name: Test
@@ -74,8 +60,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
-          # HEAD is the merge commit, so HEAD^1 is the base branch tip and
-          # `git diff HEAD^1 HEAD` is exactly what this PR introduces.
           fetch-depth: 2
           persist-credentials: false
 
@@ -173,27 +157,18 @@ jobs:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           DOCS_AI_REVIEW_MODEL: ${{ vars.DOCS_AI_REVIEW_MODEL }}
           PERSONA: ${{ matrix.persona }}
-          MILESTONE: ${{ github.event.pull_request.milestone.title }}
-          # Title and body reach the script through the environment, never
-          # interpolated into the script body: both are author-controlled.
           PR_TITLE: ${{ github.event.pull_request.title }}
           PR_BODY: ${{ github.event.pull_request.body }}
         run: |
           set -euo pipefail
           printf '%s' "$PR_BODY" > .docs-ai/pr-body.txt
 
-          ARGS=(
-            --persona "$PERSONA"
-            --diff .docs-ai/pr.diff
-            --pr-title "$PR_TITLE"
-            --pr-body-file .docs-ai/pr-body.txt
+          node .github/scripts/docs-ai/persona-review.mjs \
+            --persona "$PERSONA" \
+            --diff .docs-ai/pr.diff \
+            --pr-title "$PR_TITLE" \
+            --pr-body-file .docs-ai/pr-body.txt \
             --out ".docs-ai/results/${PERSONA}.json"
-          )
-          if [ -n "${MILESTONE}" ]; then
-            ARGS+=(--milestone "$MILESTONE")
-          fi
-
-          node .github/scripts/docs-ai/persona-review.mjs "${ARGS[@]}"
 
       - name: Upload verdict
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
@@ -231,7 +206,6 @@ jobs:
           merge-multiple: true
           path: .docs-ai/results
 
-      # report.mjs has no npm dependencies, so there is nothing to install.
       - name: Post comment
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

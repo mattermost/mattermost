@@ -1,11 +1,5 @@
 /*
  * Wrapping for untrusted input.
- *
- * Diffs, PR bodies and issue bodies are attacker-controlled. Escaping < > &
- * before wrapping in XML-ish tags means a crafted closing tag in the content
- * (e.g. "</diff>") cannot terminate its data section and inject instructions.
- *
- * Ported from the escape_xml helper in .github/workflows/docs-needed.yml.
  */
 
 const MAX_DEFAULT = 80_000;

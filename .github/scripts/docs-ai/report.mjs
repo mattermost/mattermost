@@ -2,21 +2,14 @@
 /*
  * Compose the persona verdicts into one sticky PR comment.
  *
- * One comment, updated in place on every push, rather than a new comment per
- * run — a docs PR with eight pushes should not carry eight stale reviews. The
- * HTML marker is how we find our own comment again.
- *
  *   node report.mjs --results-dir out [--sha SHA] [--dry-run]
  *
- * Reads GITHUB_TOKEN, GITHUB_REPOSITORY and PR_NUMBER from the environment.
  */
 
 import {readFileSync, readdirSync, existsSync, appendFileSync} from 'node:fs';
 import {join} from 'node:path';
 
 const MARKER = '<!-- docs-ai-review:v1 -->';
-const DOCS_URL =
-  'https://github.com/mattermost/mattermost/blob/master/.github/scripts/docs-ai/README.md';
 
 const ICON = {REQUEST_CHANGES: '⚠️', COMMENT: '💬', APPROVE: '✅', ERROR: '❗'};
 const HEADING = {
@@ -86,9 +79,7 @@ function buildComment({results, sha}) {
   }
 
   const model = results[0]?.model ?? 'unknown';
-  const meta = [sha ? `Reviewed \`${sha.slice(0, 7)}\`` : null, model, `[how this works](${DOCS_URL})`]
-    .filter(Boolean)
-    .join(' · ');
+  const meta = [sha ? `Reviewed \`${sha.slice(0, 7)}\`` : null, model].filter(Boolean).join(' · ');
 
   body.push('---', `<sub>Advisory only — nothing here blocks merge. ${meta}</sub>`);
   return body.join('\n');
