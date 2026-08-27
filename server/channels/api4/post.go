@@ -83,6 +83,11 @@ func createPostChecks(where string, c *Context, post *model.Post) {
 		return
 	}
 
+	if model.IsSystemMessagePostType(post.Type) {
+		c.SetInvalidParam("post.type")
+		return
+	}
+
 	if len(post.FileIds) > 0 {
 		if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), post.ChannelId, model.PermissionUploadFile); !ok {
 			c.SetPermissionError(model.PermissionUploadFile)
