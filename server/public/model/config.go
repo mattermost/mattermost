@@ -2536,7 +2536,7 @@ type TeamSettings struct {
 	EnableJoinLeaveMessageByDefault *bool   `access:"site_users_and_teams"`
 	EnableUserCreation              *bool   `access:"authentication_signup"`
 	EnableOpenServer                *bool   `access:"authentication_signup"`
-	EnableUserDeactivation          *bool   `access:"experimental_features"`
+	EnableUserDeactivation          *bool   `access:"site_users_and_teams"`
 	RestrictCreationToDomains       *string `access:"authentication_signup"` // telemetry: none
 	EnableCustomUserStatuses        *bool   `access:"site_users_and_teams"`
 	EnableCustomBrand               *bool   `access:"site_customization"`
@@ -2545,7 +2545,7 @@ type TeamSettings struct {
 	RestrictDirectMessage           *string `access:"site_users_and_teams"`
 	EnableLastActiveTime            *bool   `access:"site_users_and_teams"`
 	// In seconds.
-	UserStatusAwayTimeout               *int64   `access:"experimental_features"`
+	UserStatusAwayTimeout               *int64   `access:"site_users_and_teams"`
 	MaxChannelsPerTeam                  *int64   `access:"site_users_and_teams"`
 	EnableChannelCategorySorting        *bool    `access:"site_users_and_teams"`
 	MaxNotificationsPerChannel          *int64   `access:"environment_push_notification_server"`
