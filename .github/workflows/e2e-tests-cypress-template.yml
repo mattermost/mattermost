@@ -423,9 +423,12 @@ jobs:
       contents: read
       id-token: write
       statuses: write
+    outputs:
+      fixable_clusters: ${{ steps.triage.outputs.fixable_clusters }}
     steps:
       - name: ci/ai-flake-triage
-        uses: mattermost/mattermost-test-system-io/.github/actions/test-system-io-ai-triage@7a0a06e9cd1111c1a1e3b1b1878bd52e2082e292 # 2026-08-27, mattermost-test-system-io#101
+        id: triage
+        uses: mattermost/mattermost-test-system-io/.github/actions/test-system-io-ai-triage@a66ed883836b10e55a5c2c62535c1a6bc8a4566c # 2026-08-27, mattermost-test-system-io#101 (autofix)
         with:
           # DEMO (AI triage verification): routed to staging — see the
           # dispatch-begin note in this template.
@@ -441,4 +444,37 @@ jobs:
           original-commit-status-contexts: ${{ inputs.context_name }}
           commit-status-context: e2e-test/ai-triage
           github-token: ${{ secrets.GITHUB_TOKEN }}
+          anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
+
+  # AI test autofix (see e2e-tests-playwright-template.yml for the rationale):
+  # repairs test-bug clusters, pushes to the PR branch with a PAT so the
+  # standard pipeline validates the fix. Off unless E2E_AI_TEST_AUTOFIX=push.
+  ai-autofix:
+    runs-on: ubuntu-24.04
+    needs: [prepare-run, ai-triage]
+    if: >-
+      always() && !cancelled() &&
+      vars.E2E_AI_TEST_AUTOFIX == 'push' &&
+      needs.ai-triage.outputs.fixable_clusters != '' &&
+      needs.ai-triage.outputs.fixable_clusters != '[]'
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: ci/checkout-for-autofix
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+          ref: ${{ inputs.commit_sha }}
+          fetch-depth: 0
+      - name: ci/ai-test-autofix
+        uses: mattermost/mattermost-test-system-io/.github/actions/test-system-io-ai-triage@a66ed883836b10e55a5c2c62535c1a6bc8a4566c # 2026-08-27, mattermost-test-system-io#101 (autofix)
+        with:
+          use-staging: true
+          composite-identity: ${{ needs.prepare-run.outputs.composite-identity-json }}
+          fix-clusters: ${{ needs.ai-triage.outputs.fixable_clusters }}
+          pr-branch: ${{ inputs.branch }}
+          # A PAT, not GITHUB_TOKEN: GITHUB_TOKEN pushes do not trigger new
+          # workflow runs, and the follow-up E2E run IS the fix's validation.
+          github-token: ${{ secrets.GH_TOKEN || github.token }}
           anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
