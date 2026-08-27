@@ -17,3 +17,8 @@ dist
 
 # testcontainers ("full" mode) — generated per-run, see docs/testcontainers/testcontainers_plan.md
 .env.testcontainers
+
+# upgrade-path tests
+local_storage
+.upgrade_baseline.json
+.upgrade_plugin_bundle.tar.gz
