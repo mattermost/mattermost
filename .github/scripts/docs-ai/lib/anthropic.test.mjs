@@ -1,12 +1,3 @@
-/*
- * Guards the two branchy parts of the Anthropic wrapper.
- *
- * parseJson stands between model output and a posted comment: models wrap JSON
- * in fences and prose whatever the prompt says, so the salvage paths run in
- * production and their behaviour needs pinning. withRetry decides whether a
- * failure costs one API call or three.
- */
-
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {parseJson, withRetry} from './anthropic.mjs';

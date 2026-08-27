@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import {readFileSync, readdirSync, existsSync, appendFileSync} from 'node:fs';
 import {join} from 'node:path';
+import {upsertStickyComment} from './lib/github.mjs';
 
 const MARKER = '<!-- docs-ai-review:v1 -->';
 
@@ -78,38 +79,6 @@ function buildComment({results, sha}) {
   return body.join('\n');
 }
 
-async function gh(path, {method = 'GET', body} = {}) {
-  const res = await fetch(`https://api.github.com${path}`, {
-    method,
-    headers: {
-      authorization: `Bearer ${process.env.GITHUB_TOKEN}`,
-      accept: 'application/vnd.github+json',
-      'x-github-api-version': '2022-11-28',
-      'content-type': 'application/json',
-    },
-    body: body ? JSON.stringify(body) : undefined,
-  });
-  if (!res.ok) {
-    throw new Error(`GitHub ${method} ${path} -> ${res.status}: ${await res.text()}`);
-  }
-  return res.json();
-}
-
-async function upsertComment(repo, pr, body) {
-  const existing = await gh(`/repos/${repo}/issues/${pr}/comments?per_page=100`);
-  // The marker renders invisibly, so anyone able to comment could plant it and
-  // have the review overwrite their post. Only ever adopt a bot's comment.
-  const mine = existing.find((c) => c.body?.includes(MARKER) && c.user?.type === 'Bot');
-
-  if (mine) {
-    await gh(`/repos/${repo}/issues/comments/${mine.id}`, {method: 'PATCH', body: {body}});
-    console.error(`[report] updated comment ${mine.id}`);
-  } else {
-    await gh(`/repos/${repo}/issues/${pr}/comments`, {method: 'POST', body: {body}});
-    console.error('[report] created comment');
-  }
-}
-
 async function main() {
   const results = loadResults(arg('results-dir') ?? 'out');
   if (results.length === 0) {
@@ -131,7 +100,9 @@ async function main() {
   const repo = process.env.GITHUB_REPOSITORY;
   const pr = process.env.PR_NUMBER;
   if (!repo || !pr) throw new Error('GITHUB_REPOSITORY and PR_NUMBER are required');
-  await upsertComment(repo, pr, comment);
+
+  const {action, id} = await upsertStickyComment(repo, pr, {marker: MARKER, body: comment});
+  console.error(`[report] ${action} comment ${id}`);
 }
 
 main().catch((e) => {

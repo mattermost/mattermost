@@ -11,14 +11,7 @@ function getClient() {
   return client;
 }
 
-/**
- * One-shot completion. Returns the assistant's full text output.
- *
- * `system` accepts either a string or an array of pre-built blocks. A plain
- * string is wrapped in a single cached block; pass an array when you want
- * cache boundaries you control (see reviewSystemBlocks in personas.mjs).
- */
-export async function complete({model, system, user, maxTokens = 4096, temperature = 0.2}) {
+export async function complete({model, system, userPrompt, maxTokens = 4096, temperature = 0.2}) {
   const systemBlocks = Array.isArray(system)
     ? system
     : [{type: 'text', text: system, cache_control: {type: 'ephemeral'}}];
@@ -29,7 +22,7 @@ export async function complete({model, system, user, maxTokens = 4096, temperatu
       max_tokens: maxTokens,
       temperature,
       system: systemBlocks,
-      messages: [{role: 'user', content: user}],
+      messages: [{role: 'user', content: userPrompt}],
     }),
   );
 
@@ -61,7 +54,6 @@ export function usageLine(usage) {
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-/** `sleep` is injectable so tests can exercise the retry path without waiting. */
 export async function withRetry(fn, {attempts = 3, wait = sleep} = {}) {
   let lastErr;
   for (let i = 0; i < attempts; i++) {

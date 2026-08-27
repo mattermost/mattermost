@@ -1,7 +1,8 @@
 # Docs AI review
 
-Advisory persona review of changes under `docs/main`, `docs/develop` and `docs/api`. No
-verdict blocks a merge.
+Advisory persona review of changes under `docs/main` and `docs/develop`. No verdict blocks
+a merge. `docs/api` is out of scope — its reference pages are generated from the OpenAPI
+spec, so corrections belong in `api/v4/source/`.
 
 ## Adding or changing a persona
 
