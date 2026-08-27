@@ -132,6 +132,69 @@ func TestCreateRoleSpacePermissionGuard(t *testing.T) {
 	mockRoleStore.AssertNotCalled(t, "Save", mock.Anything)
 }
 
+// Generated roles are definitions shared by every channel on their scheme. They are changed by
+// selecting another preset or resolving another plugin scheme, never by editing the shared row.
+// Exercise both public application write paths against all three role classes and both generated
+// scheme families; checking the store afterward makes the rejection, not merely its error, the
+// invariant under test.
+func TestGeneratedSpaceSchemeRolesAreImmutable(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+	require.NoError(t, th.App.SetPhase2PermissionsMigrationStatus(true))
+
+	pluginScheme, appErr := th.App.GetOrCreatePluginChannelScheme(
+		testPluginID+"."+model.NewId(),
+		[]string{model.PermissionReadPage.Id},
+		[]string{model.PermissionAdminSpace.Id},
+		[]string{model.PermissionReadPage.Id},
+	)
+	require.Nil(t, appErr)
+	presetScheme := getSeededSpaceScheme(t, th, model.SchemeNameSpaceContribute)
+
+	for _, schemeCase := range []struct {
+		name    string
+		scheme  *model.Scheme
+		errorID string
+	}{
+		{name: "plugin pool", scheme: pluginScheme, errorID: "app.role.save.plugin_scheme_role.app_error"},
+		{name: "space preset", scheme: presetScheme, errorID: "app.role.save.space_preset_role.app_error"},
+	} {
+		for _, roleCase := range []struct {
+			name     string
+			roleName string
+		}{
+			{name: "guest", roleName: schemeCase.scheme.DefaultChannelGuestRole},
+			{name: "user", roleName: schemeCase.scheme.DefaultChannelUserRole},
+			{name: "admin", roleName: schemeCase.scheme.DefaultChannelAdminRole},
+		} {
+			t.Run(schemeCase.name+"/"+roleCase.name, func(t *testing.T) {
+				role, err := th.App.Srv().Store().Role().GetByName(th.Context, roleCase.roleName)
+				require.NoError(t, err)
+				original := append([]string(nil), role.Permissions...)
+				require.NotContains(t, original, model.PermissionCreatePost.Id)
+				changed := append(append([]string(nil), original...), model.PermissionCreatePost.Id)
+
+				_, appErr := th.App.PatchRole(role, &model.RolePatch{Permissions: &changed})
+				require.NotNil(t, appErr)
+				assert.Equal(t, schemeCase.errorID, appErr.Id)
+
+				stored, err := th.App.Srv().Store().Role().GetByName(th.Context, roleCase.roleName)
+				require.NoError(t, err)
+				assert.ElementsMatch(t, original, stored.Permissions)
+
+				stored.Permissions = changed
+				_, appErr = th.App.UpdateRole(stored)
+				require.NotNil(t, appErr)
+				assert.Equal(t, schemeCase.errorID, appErr.Id)
+
+				stored, err = th.App.Srv().Store().Role().GetByName(th.Context, roleCase.roleName)
+				require.NoError(t, err)
+				assert.ElementsMatch(t, original, stored.Permissions)
+			})
+		}
+	}
+}
+
 func TestSpaceSchemeAssignmentPolicy(t *testing.T) {
 	t.Run("ordinary channel with no scheme is accepted", func(t *testing.T) {
 		mainHelper.Parallel(t)

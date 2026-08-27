@@ -227,10 +227,24 @@ func TestGetOrCreatePluginChannelScheme(t *testing.T) {
 			noRoles bool
 		}{
 			{
-				name:   "wrong permissions on a role",
+				name:   "wrong permissions on the user role",
 				scheme: func() *model.Scheme { return pluginScheme(name) },
 				roles: func(s *model.Scheme) []*model.Role {
 					return pluginSchemeRoles(s, []string{model.PermissionDeletePage.Id}, admin, guest)
+				},
+			},
+			{
+				name:   "wrong permissions on the admin role",
+				scheme: func() *model.Scheme { return pluginScheme(name) },
+				roles: func(s *model.Scheme) []*model.Role {
+					return pluginSchemeRoles(s, user, []string{model.PermissionCreatePost.Id}, guest)
+				},
+			},
+			{
+				name:   "wrong permissions on the guest role",
+				scheme: func() *model.Scheme { return pluginScheme(name) },
+				roles: func(s *model.Scheme) []*model.Role {
+					return pluginSchemeRoles(s, user, admin, []string{model.PermissionCreatePost.Id})
 				},
 			},
 			{
@@ -505,4 +519,100 @@ func TestGetOrCreatePluginChannelScheme(t *testing.T) {
 		assert.Equal(t, ourName, scheme.Name)
 		assert.NotEqual(t, theirs.Id, scheme.Id)
 	})
+}
+
+// The application guard is the supported immutability boundary, but pool adoption also validates
+// the primary store so corruption below that boundary cannot silently become canonical. Exercise
+// each generated role independently against the real store; the mock conflict table above then
+// remains the cheap exhaustive shape test while this pins the actual persistence/read path.
+func TestPluginChannelSchemeRejectsStoreCorruption(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	for _, roleKind := range []string{"guest", "user", "admin"} {
+		t.Run(roleKind, func(t *testing.T) {
+			th := Setup(t)
+			require.NoError(t, th.App.SetPhase2PermissionsMigrationStatus(true))
+
+			pluginID := testPluginID + ".corruption." + roleKind + "." + model.NewId()
+			user := []string{model.PermissionReadPage.Id}
+			admin := []string{model.PermissionAdminSpace.Id}
+			guest := []string{model.PermissionReadPage.Id}
+			scheme, appErr := th.App.GetOrCreatePluginChannelScheme(pluginID, user, admin, guest)
+			require.Nil(t, appErr)
+
+			roleName := scheme.DefaultChannelGuestRole
+			switch roleKind {
+			case "user":
+				roleName = scheme.DefaultChannelUserRole
+			case "admin":
+				roleName = scheme.DefaultChannelAdminRole
+			}
+
+			role, err := th.App.Srv().Store().Role().GetByName(th.Context, roleName)
+			require.NoError(t, err)
+			role.Permissions = append(role.Permissions, model.PermissionCreatePost.Id)
+			_, err = th.App.Srv().Store().Role().Save(role)
+			require.NoError(t, err)
+
+			_, appErr = th.App.GetOrCreatePluginChannelScheme(pluginID, user, admin, guest)
+			require.NotNil(t, appErr)
+			assert.Equal(t, "app.scheme.plugin_scheme.conflict.app_error", appErr.Id)
+		})
+	}
+}
+
+// A definition change allocates another pooled scheme. Repointing one space to it must not rewrite
+// either the old scheme or another space that still uses it; otherwise pooling would make a local
+// permission change retroactive across unrelated spaces.
+func TestPluginChannelSchemeDefinitionChangeLeavesExistingSpaceUnchanged(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	require.NoError(t, th.App.SetPhase2PermissionsMigrationStatus(true))
+
+	pluginID := testPluginID + ".two-spaces." + model.NewId()
+	readOnlyUser := []string{model.PermissionReadPage.Id}
+	contributeUser := []string{model.PermissionReadPage.Id, model.PermissionCreatePage.Id}
+	admin := []string{model.PermissionAdminSpace.Id}
+	guest := []string{model.PermissionReadPage.Id}
+
+	readOnlyScheme, appErr := th.App.GetOrCreatePluginChannelScheme(pluginID, readOnlyUser, admin, guest)
+	require.Nil(t, appErr)
+	spaceOne := saveSpaceChannelWithScheme(t, th, readOnlyScheme.Id)
+	spaceTwo := saveSpaceChannelWithScheme(t, th, readOnlyScheme.Id)
+	saveSpaceChannelMember(t, th, spaceOne.Id, th.BasicUser.Id, false, false)
+	saveSpaceChannelMember(t, th, spaceTwo.Id, th.BasicUser.Id, false, false)
+
+	canCreate, _ := th.App.HasPermissionToChannel(th.Context, th.BasicUser.Id, spaceOne.Id, model.PermissionCreatePage)
+	assert.False(t, canCreate)
+	canCreate, _ = th.App.HasPermissionToChannel(th.Context, th.BasicUser.Id, spaceTwo.Id, model.PermissionCreatePage)
+	assert.False(t, canCreate)
+
+	contributeScheme, appErr := th.App.GetOrCreatePluginChannelScheme(pluginID, contributeUser, admin, guest)
+	require.Nil(t, appErr)
+	require.NotEqual(t, readOnlyScheme.Id, contributeScheme.Id)
+
+	spaceTwo.SchemeId = &contributeScheme.Id
+	_, appErr = th.App.UpdateChannel(th.Context, spaceTwo)
+	require.Nil(t, appErr)
+
+	storedOne, err := th.App.Srv().Store().Channel().GetChannelOfType(th.Context, spaceOne.Id, model.ChannelTypeSpace)
+	require.NoError(t, err)
+	require.NotNil(t, storedOne.SchemeId)
+	assert.Equal(t, readOnlyScheme.Id, *storedOne.SchemeId)
+	storedTwo, err := th.App.Srv().Store().Channel().GetChannelOfType(th.Context, spaceTwo.Id, model.ChannelTypeSpace)
+	require.NoError(t, err)
+	require.NotNil(t, storedTwo.SchemeId)
+	assert.Equal(t, contributeScheme.Id, *storedTwo.SchemeId)
+
+	oldRole, err := th.App.Srv().Store().Role().GetByName(th.Context, readOnlyScheme.DefaultChannelUserRole)
+	require.NoError(t, err)
+	assert.ElementsMatch(t, readOnlyUser, oldRole.Permissions)
+	newRole, err := th.App.Srv().Store().Role().GetByName(th.Context, contributeScheme.DefaultChannelUserRole)
+	require.NoError(t, err)
+	assert.ElementsMatch(t, contributeUser, newRole.Permissions)
+
+	canCreate, _ = th.App.HasPermissionToChannel(th.Context, th.BasicUser.Id, spaceOne.Id, model.PermissionCreatePage)
+	assert.False(t, canCreate)
+	canCreate, _ = th.App.HasPermissionToChannel(th.Context, th.BasicUser.Id, spaceTwo.Id, model.PermissionCreatePage)
+	assert.True(t, canCreate)
 }
