@@ -425,7 +425,7 @@ jobs:
       statuses: write
     steps:
       - name: ci/ai-flake-triage
-        uses: mattermost/mattermost-test-system-io/.github/actions/test-system-io-ai-triage@74f4f935c25fb4ccf80ada5b171dbdc85d4d17d8 # 2026-08-27, mattermost-test-system-io#101
+        uses: mattermost/mattermost-test-system-io/.github/actions/test-system-io-ai-triage@068bca0582473e3a97a7417bdb19ed3962e8ddf9 # 2026-08-27, mattermost-test-system-io#101
         with:
           # DEMO (AI triage verification): routed to staging — see the
           # dispatch-begin note in this template.
