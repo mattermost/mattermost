@@ -10,7 +10,7 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import yaml from 'js-yaml';
-import {parsePersona} from './lib/personas.mjs';
+import {parsePersona} from './personas.mjs';
 
 const VALID = {
   id: 'fixture',
