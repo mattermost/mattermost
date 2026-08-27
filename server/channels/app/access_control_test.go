@@ -3479,9 +3479,14 @@ func TestCPAFieldIsProtectedForChannelAdmin(t *testing.T) {
 func TestRedactProtectedActualValuesInTree(t *testing.T) {
 	mainHelper.Parallel(t)
 
-	protected := map[string]struct{}{
-		"Clearance":   {},
-		"NetworkZone": {},
+	protected := protectedCPAAttributes{
+		user: map[string]struct{}{
+			"Clearance":   {},
+			"NetworkZone": {},
+		},
+		resource: map[string]struct{}{
+			"Sensitivity": {},
+		},
 	}
 
 	t.Run("redacts ActualValue on protected leaves at every depth", func(t *testing.T) {
@@ -3507,6 +3512,19 @@ func TestRedactProtectedActualValuesInTree(t *testing.T) {
 							Kind:        model.PolicySimulationEvaluationKindCompare,
 							Attribute:   "user.attributes.Region",
 							ActualValue: "us",
+						},
+						// Protected channel attribute: blanked against the
+						// resource set, not the user set.
+						{
+							Kind:        model.PolicySimulationEvaluationKindCompare,
+							Attribute:   "resource.attributes.Sensitivity",
+							ActualValue: "secret",
+						},
+						// Public channel attribute: preserved.
+						{
+							Kind:        model.PolicySimulationEvaluationKindCompare,
+							Attribute:   "resource.attributes.Region",
+							ActualValue: "us-east",
 						},
 					},
 				},
@@ -3534,6 +3552,10 @@ func TestRedactProtectedActualValuesInTree(t *testing.T) {
 		assert.Empty(t, tree.Children[1].Children[0].ActualValue, "NetworkZone leaf must be blanked")
 		assert.Equal(t, "us", tree.Children[1].Children[1].ActualValue, "Region leaf must be preserved")
 
+		// Protected channel attribute blanked; public channel attribute preserved.
+		assert.Empty(t, tree.Children[1].Children[2].ActualValue, "resource Sensitivity leaf must be blanked")
+		assert.Equal(t, "us-east", tree.Children[1].Children[3].ActualValue, "resource Region leaf must be preserved")
+
 		// Function leaf with no attribute path is left alone.
 		assert.Equal(t, "some-internal-value", tree.Children[2].ActualValue, "non-user-attribute leaf must be preserved")
 	})
@@ -3550,7 +3572,7 @@ func TestRedactProtectedActualValuesInTree(t *testing.T) {
 			Attribute:   "user.attributes.Clearance",
 			ActualValue: "il5",
 		}
-		redactProtectedActualValuesInTree(tree, nil)
+		redactProtectedActualValuesInTree(tree, protectedCPAAttributes{})
 
 		// Helper itself is unconditional but the public entry point
 		// short-circuits before calling it with an empty set —
@@ -3564,16 +3586,32 @@ func TestRedactProtectedActualValuesInTree(t *testing.T) {
 // paths, empty paths, and empty protected sets.
 func TestIsProtectedAttributePath(t *testing.T) {
 	mainHelper.Parallel(t)
-	protected := map[string]struct{}{"Clearance": {}}
+	// Clearance is protected only on the user side, Sensitivity only on the
+	// resource side — so a leaf must match the set for its own root.
+	protected := protectedCPAAttributes{
+		user:     map[string]struct{}{"Clearance": {}},
+		resource: map[string]struct{}{"Sensitivity": {}},
+	}
 
 	t.Run("returns true for the canonical user.attributes.<name> form", func(t *testing.T) {
 		assert.True(t, isProtectedAttributePath("user.attributes.Clearance", protected))
 	})
 
-	t.Run("returns false for non-user-attribute paths", func(t *testing.T) {
-		// Resource / session / channel paths must not collide with
-		// the user-attributes namespace — only `user.attributes.*`
-		// is in scope for the CPA visibility filter.
+	t.Run("returns true for the canonical resource.attributes.<name> form", func(t *testing.T) {
+		assert.True(t, isProtectedAttributePath("resource.attributes.Sensitivity", protected))
+	})
+
+	t.Run("matches each root against its own set, not the other's", func(t *testing.T) {
+		// Clearance is protected user-side but not resource-side, and
+		// vice versa for Sensitivity — the sets must not cross.
+		assert.False(t, isProtectedAttributePath("resource.attributes.Clearance", protected))
+		assert.False(t, isProtectedAttributePath("user.attributes.Sensitivity", protected))
+	})
+
+	t.Run("returns false for non-CPA paths", func(t *testing.T) {
+		// Session / native / bare resource selectors carry no
+		// `.attributes.` segment — only `user.attributes.*` and
+		// `resource.attributes.*` are in scope for the CPA filter.
 		assert.False(t, isProtectedAttributePath("session.network_status", protected))
 		assert.False(t, isProtectedAttributePath("resource.id", protected))
 		assert.False(t, isProtectedAttributePath("channel.member_count", protected))
@@ -3581,12 +3619,15 @@ func TestIsProtectedAttributePath(t *testing.T) {
 
 	t.Run("returns false for paths whose suffix is not in the protected set", func(t *testing.T) {
 		assert.False(t, isProtectedAttributePath("user.attributes.Region", protected))
+		assert.False(t, isProtectedAttributePath("resource.attributes.Region", protected))
 	})
 
 	t.Run("returns false for empty inputs", func(t *testing.T) {
 		assert.False(t, isProtectedAttributePath("", protected))
-		assert.False(t, isProtectedAttributePath("user.attributes.Clearance", nil))
+		assert.False(t, isProtectedAttributePath("user.attributes.Clearance", protectedCPAAttributes{}))
 		assert.False(t, isProtectedAttributePath("user.attributes.", protected),
+			"empty suffix must not match — that's a malformed path, not a protected reference")
+		assert.False(t, isProtectedAttributePath("resource.attributes.", protected),
 			"empty suffix must not match — that's a malformed path, not a protected reference")
 	})
 }
@@ -5494,7 +5535,7 @@ func TestGetAccessControlFieldsAutocomplete_ExcludesNonUserFields(t *testing.T) 
 		require.NoError(t, err)
 	}
 
-	fields, appErr := th.App.GetAccessControlFieldsAutocomplete(rctx, strings.Repeat("0", 26), 100, th.BasicUser.Id)
+	fields, appErr := th.App.GetAccessControlFieldsAutocomplete(rctx, "", false, strings.Repeat("0", 26), 100, th.BasicUser.Id)
 	require.Nil(t, appErr)
 
 	for _, f := range fields {
@@ -5507,6 +5548,116 @@ func TestGetAccessControlFieldsAutocomplete_ExcludesNonUserFields(t *testing.T) 
 		fieldIDs[i] = f.ID
 	}
 	assert.Contains(t, fieldIDs, userField.ID, "user CPA field must appear in autocomplete results")
+}
+
+// When scoped to a channel, autocomplete additionally returns channel-object-type
+// CPA fields (resource.attributes.*), each tagged with its ObjectType, alongside
+// the user fields.
+func TestGetAccessControlFieldsAutocomplete_IncludesChannelFieldsWhenScoped(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+	th.ConfigStore.SetReadOnlyFF(false)
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.FeatureFlags.ResourceAttributesInPolicies = true
+	})
+
+	rctx := request.TestContext(t)
+
+	cpaGroup, cErr := th.App.GetPropertyGroup(rctx, model.AccessControlPropertyGroupName)
+	require.Nil(t, cErr)
+
+	userField, appErr := th.App.CreatePropertyField(rctx, &model.PropertyField{
+		GroupID:    cpaGroup.ID,
+		Name:       celSafeName(),
+		Type:       model.PropertyFieldTypeSelect,
+		ObjectType: model.PropertyFieldObjectTypeUser,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
+	}, false, "")
+	require.Nil(t, appErr)
+
+	channelField, appErr := th.App.CreatePropertyField(rctx, &model.PropertyField{
+		GroupID:    cpaGroup.ID,
+		Name:       celSafeName(),
+		Type:       model.PropertyFieldTypeSelect,
+		ObjectType: model.PropertyFieldObjectTypeChannel,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
+	}, false, "")
+	require.Nil(t, appErr)
+
+	fields, appErr := th.App.GetAccessControlFieldsAutocomplete(rctx, th.BasicChannel.Id, false, strings.Repeat("0", 26), 100, th.BasicUser.Id)
+	require.Nil(t, appErr)
+
+	byID := make(map[string]*model.PropertyField, len(fields))
+	for _, f := range fields {
+		byID[f.ID] = f
+	}
+	require.Contains(t, byID, userField.ID, "user CPA field must appear when scoped to a channel")
+	require.Contains(t, byID, channelField.ID, "channel CPA field must appear when scoped to a channel")
+	assert.Equal(t, model.PropertyFieldObjectTypeChannel, byID[channelField.ID].ObjectType,
+		"channel field must be tagged with its ObjectType")
+}
+
+// includeResourceFields=true is how a caller with no channel to scope by asks
+// for channel-object-type fields anyway. Verify the flag alone (channelID="")
+// surfaces channel fields, and that without it channel fields are excluded.
+func TestGetAccessControlFieldsAutocomplete_IncludeResourceFieldsFlag(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+	th.ConfigStore.SetReadOnlyFF(false)
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.FeatureFlags.ResourceAttributesInPolicies = true
+	})
+
+	rctx := request.TestContext(t)
+
+	cpaGroup, cErr := th.App.GetPropertyGroup(rctx, model.AccessControlPropertyGroupName)
+	require.Nil(t, cErr)
+
+	channelField, appErr := th.App.CreatePropertyField(rctx, &model.PropertyField{
+		GroupID:    cpaGroup.ID,
+		Name:       celSafeName(),
+		Type:       model.PropertyFieldTypeSelect,
+		ObjectType: model.PropertyFieldObjectTypeChannel,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
+	}, false, "")
+	require.Nil(t, appErr)
+
+	contains := func(fields []*model.PropertyField, id string) bool {
+		for _, f := range fields {
+			if f.ID == id {
+				return true
+			}
+		}
+		return false
+	}
+
+	withFlag, appErr := th.App.GetAccessControlFieldsAutocomplete(rctx, "", true, strings.Repeat("0", 26), 100, th.BasicUser.Id)
+	require.Nil(t, appErr)
+	assert.True(t, contains(withFlag, channelField.ID),
+		"channel field must appear when includeResourceFields=true even with no channel scope")
+
+	withoutFlag, appErr := th.App.GetAccessControlFieldsAutocomplete(rctx, "", false, strings.Repeat("0", 26), 100, th.BasicUser.Id)
+	require.Nil(t, appErr)
+	assert.False(t, contains(withoutFlag, channelField.ID),
+		"channel field must not appear without a channel scope or the flag")
+
+	// With the feature off, neither entry path offers a channel field. This is what
+	// keeps every editor from being able to author a resource rule, so assert both
+	// the request flag and a channel scope are powerless on their own.
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.FeatureFlags.ResourceAttributesInPolicies = false
+	})
+
+	gatedByRequestFlag, appErr := th.App.GetAccessControlFieldsAutocomplete(rctx, "", true, strings.Repeat("0", 26), 100, th.BasicUser.Id)
+	require.Nil(t, appErr)
+	assert.False(t, contains(gatedByRequestFlag, channelField.ID),
+		"channel field must not appear via includeResourceFields while the feature is off")
+	assert.NotEmpty(t, gatedByRequestFlag, "user attributes must still be returned while the feature is off")
+
+	gatedByScope, appErr := th.App.GetAccessControlFieldsAutocomplete(rctx, th.BasicChannel.Id, false, strings.Repeat("0", 26), 100, th.BasicUser.Id)
+	require.Nil(t, appErr)
+	assert.False(t, contains(gatedByScope, channelField.ID),
+		"channel field must not appear via a channel scope while the feature is off")
 }
 
 // Verify that the team join path (channelID="") produces a subject with no
@@ -5557,7 +5708,7 @@ func TestGetAccessControlFieldsAutocompleteNativeAttributes(t *testing.T) {
 
 	t.Run("first page prepends native attributes", func(t *testing.T) {
 		// The API maps an empty first page to a 26-zero sentinel cursor.
-		fields, appErr := th.App.GetAccessControlFieldsAutocomplete(rctx, strings.Repeat("0", 26), 50, anonymousCallerId)
+		fields, appErr := th.App.GetAccessControlFieldsAutocomplete(rctx, "", false, strings.Repeat("0", 26), 50, anonymousCallerId)
 		require.Nil(t, appErr)
 
 		seen := map[string]bool{}
@@ -5575,7 +5726,7 @@ func TestGetAccessControlFieldsAutocompleteNativeAttributes(t *testing.T) {
 	})
 
 	t.Run("subsequent pages omit native attributes", func(t *testing.T) {
-		fields, appErr := th.App.GetAccessControlFieldsAutocomplete(rctx, cpaField.ID, 50, anonymousCallerId)
+		fields, appErr := th.App.GetAccessControlFieldsAutocomplete(rctx, "", false, cpaField.ID, 50, anonymousCallerId)
 		require.Nil(t, appErr)
 		for _, f := range fields {
 			isNative, _ := f.Attrs[model.NativeAttributeAttrMarker].(bool)

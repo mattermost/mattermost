@@ -427,7 +427,9 @@ func (a *App) GetPluginAccessControlFieldsAutocomplete(rctx request.CTX, pluginI
 		after = strings.Repeat("0", 26)
 	}
 
-	return a.GetAccessControlFieldsAutocomplete(rctx, after, limit, actingUserID)
+	// No channel scope and no opt-in to resource fields: a plugin policy is not
+	// evaluated against a channel, so only user attributes are offered.
+	return a.GetAccessControlFieldsAutocomplete(rctx, "", false, after, limit, actingUserID)
 }
 
 // GetPluginAccessControlVisualAST converts a CEL expression to the visual

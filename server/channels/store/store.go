@@ -1257,7 +1257,7 @@ type AccessControlPolicyStore interface {
 
 type AttributesStore interface {
 	RefreshAttributes() error
-	GetSubject(rctx request.CTX, ID, groupID string) (*model.Subject, error)
+	GetSubject(rctx request.CTX, ID, groupID, objectType string) (*model.Subject, error)
 	SearchUsers(rctx request.CTX, opts model.SubjectSearchOptions) ([]*model.User, int64, error)
 	GetChannelMembersToRemove(rctx request.CTX, channelID string, opts model.SubjectSearchOptions) ([]*model.ChannelMember, error)
 	// GetUserPropertyValuesEpoch returns the per-user epoch for ABAC-aware post-list ETags.
