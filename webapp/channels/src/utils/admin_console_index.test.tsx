@@ -37,6 +37,9 @@ describe('AdminConsoleIndex.generateIndex', () => {
         expect(idx.search('channel_viewed')).toEqual([
             'environment/web_server',
         ]);
+        expect(idx.search('hardened')).toEqual([
+            'environment/web_server',
+        ]);
         expect(idx.search('characters')).toEqual([
             'site_config/customization',
             'authentication/password',
