@@ -7,6 +7,8 @@ import type {
     SuggestionResults,
 } from '@mattermost/shared/types/global';
 
+import deepFreezeAndThrowOnMutation from 'mattermost-redux/utils/deep_freeze';
+
 export type {
     Loading,
     ProviderResults,
@@ -20,12 +22,12 @@ export function isItemLoaded<Item>(item: Item | Loading): item is Item {
 }
 
 export function emptyResults<Item>(): SuggestionResults<Item> {
-    return {
+    return deepFreezeAndThrowOnMutation({
         matchedPretext: '',
         terms: [],
         items: [],
         components: [],
-    };
+    });
 }
 
 export function hasResults(results: SuggestionResults): boolean {
@@ -92,11 +94,11 @@ export function hasSuggestionWithComponent(results: SuggestionResults, component
 
 export function normalizeResultsFromProvider<Item>(providerResults: ProviderResults<Item>): SuggestionResults<Item> {
     if ('components' in providerResults) {
-        return providerResults;
+        return deepFreezeAndThrowOnMutation(providerResults);
     }
 
     if ('groups' in providerResults) {
-        return {
+        return deepFreezeAndThrowOnMutation({
             matchedPretext: providerResults.matchedPretext,
             groups: providerResults.groups.map((group) => {
                 if ('components' in group) {
@@ -110,48 +112,60 @@ export function normalizeResultsFromProvider<Item>(providerResults: ProviderResu
                     components: new Array(group.terms.length).fill(component),
                 };
             }),
-        };
+        });
     }
 
     const {component, ...otherFields} = providerResults;
 
-    return {
+    return deepFreezeAndThrowOnMutation({
         ...otherFields,
         components: new Array(providerResults.terms.length).fill(component),
-    };
+    });
 }
 
 /**
  * Trims a list of results so that there are at most a maximum number of suggestions in it. If the results are grouped,
  * empty groups are also removed.
- *
- * This function modifies the provided results.
  */
 export function trimResults(results: SuggestionResults, max: number) {
+    let trimmed: SuggestionResults;
     if ('groups' in results) {
         let remaining = max;
 
-        let i = 0;
-        while (i < results.groups.length && remaining > 0) {
-            const group = results.groups[i];
+        trimmed = {
+            ...results,
+            groups: [...results.groups],
+        };
 
-            group.items = group.items.slice(0, remaining);
-            group.terms = group.terms.slice(0, remaining);
-            group.components = group.components.slice(0, remaining);
+        // trimmed = JSON.parse(JSON.stringify(results));
+
+        let i = 0;
+        while (i < trimmed.groups.length && remaining > 0) {
+            const group = trimmed.groups[i];
+
+            trimmed.groups[i] = {
+                ...group,
+                items: group.items.slice(0, remaining),
+                terms: group.terms.slice(0, remaining),
+                components: group.components.slice(0, remaining),
+            };
 
             remaining -= group.items.length;
 
             i += 1;
         }
 
-        if (i < results.groups.length) {
-            results.groups = results.groups.slice(0, i);
+        if (i < trimmed.groups.length) {
+            trimmed.groups = trimmed.groups.slice(0, i);
         }
     } else {
-        results.items = results.items.slice(0, max);
-        results.terms = results.terms.slice(0, max);
-        results.components = results.components.slice(0, max);
+        trimmed = {
+            ...results,
+            items: results.items.slice(0, max),
+            terms: results.terms.slice(0, max),
+            components: results.components.slice(0, max),
+        };
     }
 
-    return results;
+    return deepFreezeAndThrowOnMutation(trimmed);
 }
