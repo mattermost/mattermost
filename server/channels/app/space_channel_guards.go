@@ -11,13 +11,31 @@ import (
 )
 
 // checkChannelSchemeAssignment restricts space backing channels to the fixed presets and the
-// immutable plugin scheme pool. Ordinary channels keep their existing scheme behavior; space
-// permissions are meaningful only after the caller has established that the channel is a space.
+// immutable plugin scheme pool, and prevents either reserved scheme kind from being attached to
+// an ordinary channel.
 func (a *App) checkChannelSchemeAssignment(where string, channelType model.ChannelType, schemeId *string) *model.AppError {
-	if channelType != model.ChannelTypeSpace {
+	if channelType == model.ChannelTypeSpace {
+		return a.checkSchemeAssignmentToSpace(where, schemeId)
+	}
+	if schemeId == nil || *schemeId == "" {
 		return nil
 	}
-	return a.checkSchemeAssignmentToSpace(where, schemeId)
+
+	isPreset, appErr := a.isSeededSpaceScheme(*schemeId)
+	if appErr != nil {
+		return appErr
+	}
+	if isPreset {
+		return model.NewAppError(where, "app.channel.update_channel_scheme.space_scheme_reserved.app_error", nil, "", http.StatusBadRequest)
+	}
+	isPlugin, appErr := a.isPluginChannelScheme(*schemeId)
+	if appErr != nil {
+		return appErr
+	}
+	if isPlugin {
+		return model.NewAppError(where, "app.channel.update_channel_scheme.space_scheme_reserved.app_error", nil, "", http.StatusBadRequest)
+	}
+	return nil
 }
 
 // checkSchemeAssignmentToSpace accepts only a live seeded preset or immutable plugin scheme.

@@ -5967,6 +5967,10 @@
     "translation": "Spaces cannot have their privacy changed through this endpoint."
   },
   {
+    "id": "app.channel.update_channel_scheme.space_scheme_reserved.app_error",
+    "translation": "Space preset and plugin channel schemes can only be applied to spaces."
+  },
+  {
     "id": "app.channel.update_channel_scheme.space_scheme_unusable.app_error",
     "translation": "This scheme cannot be applied to a space. Use one of the space presets, or a channel scheme that is not already in use by other channels."
   },
@@ -9932,7 +9936,7 @@
   },
   {
     "id": "app.user.revoke_space_capability_roles.app_error",
-    "translation": "Failed to revoke the user's space permissions. No changes were made."
+    "translation": "Failed to revoke all of the user's space permissions. Some permissions may already have been revoked."
   },
   {
     "id": "app.user.save.app_error",

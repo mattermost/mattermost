@@ -110,11 +110,16 @@ func (s *Server) doSpaceRolesCreationMigration() error {
 	roles := model.MakeDefaultRoles()
 
 	for _, roleID := range model.SpaceCapabilityRoles {
+		defaultRole, ok := roles[roleID]
+		if !ok || defaultRole == nil {
+			return fmt.Errorf("default space capability role %q is undefined", roleID)
+		}
+
 		if stored, err := s.Store().Role().GetByName(request.EmptyContext(s.Log()), roleID); err == nil {
 			// A row already under the reserved name is only this migration's own
 			// earlier work if its permissions match the built-in definition. The
 			// lost-insert-race branch below refuses the same way.
-			if vErr := validateAdoptableSpaceRole(roleID, stored, roles[roleID]); vErr != nil {
+			if vErr := validateAdoptableSpaceRole(roleID, stored, defaultRole); vErr != nil {
 				return vErr
 			}
 			continue
@@ -122,7 +127,7 @@ func (s *Server) doSpaceRolesCreationMigration() error {
 			return fmt.Errorf("could not query role %q: %w", roleID, err)
 		}
 
-		if _, err := s.Store().Role().Save(roles[roleID]); err != nil {
+		if _, err := s.Store().Role().Save(defaultRole); err != nil {
 			mlog.Warn("Couldn't save the space capability role, this can be an expected case; another node likely won the insert race, re-reading on the primary", mlog.String("role_name", roleID), mlog.Err(err))
 
 			// The store wraps the raw duplicate-key error, so a lost HA insert race is
@@ -140,7 +145,7 @@ func (s *Server) doSpaceRolesCreationMigration() error {
 
 			// A row under the reserved name is only proof the race was lost if it is
 			// the row this migration would have written.
-			if err := validateAdoptableSpaceRole(roleID, stored, roles[roleID]); err != nil {
+			if err := validateAdoptableSpaceRole(roleID, stored, defaultRole); err != nil {
 				return err
 			}
 		}

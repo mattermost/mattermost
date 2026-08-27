@@ -45,7 +45,10 @@ func (a *App) GetSchemeForChannel(rctx request.CTX, channelID string) (scheme *m
 		return
 	}
 
-	roles, nErr := a.Srv().Store().Role().GetByNamesFromMaster([]string{
+	// The scheme association is read from the primary above so a recent channel update is visible.
+	// Its generated roles use the ordinary cached path: role mutations already invalidate that
+	// cache, and plugin-created scheme roles are immutable.
+	roles, nErr := a.Srv().Store().Role().GetByNames([]string{
 		scheme.DefaultChannelGuestRole,
 		scheme.DefaultChannelUserRole,
 		scheme.DefaultChannelAdminRole,

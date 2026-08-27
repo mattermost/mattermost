@@ -133,11 +133,10 @@ func TestCreateRoleSpacePermissionGuard(t *testing.T) {
 }
 
 func TestSpaceSchemeAssignmentPolicy(t *testing.T) {
-	t.Run("ordinary channels retain existing scheme behavior", func(t *testing.T) {
+	t.Run("ordinary channel with no scheme is accepted", func(t *testing.T) {
 		mainHelper.Parallel(t)
 		th := setupSpaceRBACMock(t)
-		schemeID := model.NewId()
-		require.Nil(t, th.App.checkChannelSchemeAssignment("CreateChannel", model.ChannelTypeOpen, &schemeID))
+		require.Nil(t, th.App.checkChannelSchemeAssignment("CreateChannel", model.ChannelTypeOpen, nil))
 	})
 
 	t.Run("space with no scheme is accepted", func(t *testing.T) {
@@ -192,6 +191,53 @@ func TestSpaceSchemeAssignmentPolicy(t *testing.T) {
 			} else {
 				require.NotNil(t, appErr)
 				assert.Equal(t, "app.channel.update_channel_scheme.space_scheme_unusable.app_error", appErr.Id)
+			}
+		})
+	}
+
+	for _, tc := range []struct {
+		name      string
+		scheme    *model.Scheme
+		accepted  bool
+		readCount int
+	}{
+		{
+			name: "ordinary custom scheme on ordinary channel",
+			scheme: &model.Scheme{
+				Id: model.NewId(), Name: model.NewId(), Scope: model.SchemeScopeChannel,
+			},
+			accepted:  true,
+			readCount: 2,
+		},
+		{
+			name: "seeded preset on ordinary channel",
+			scheme: &model.Scheme{
+				Id: model.NewId(), Name: model.SchemeNameSpaceContribute, Scope: model.SchemeScopeChannel,
+			},
+			readCount: 1,
+		},
+		{
+			name: "plugin pool scheme on ordinary channel",
+			scheme: &model.Scheme{
+				Id: model.NewId(), Name: model.PluginChannelSchemeName("com.example.plugin", nil, nil, nil), Scope: model.SchemeScopeChannel,
+			},
+			readCount: 2,
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			mainHelper.Parallel(t)
+			th := setupSpaceRBACMock(t)
+			mockStore := th.App.Srv().Store().(*mocks.Store)
+			mockSchemeStore := mocks.SchemeStore{}
+			mockSchemeStore.On("GetFromMaster", tc.scheme.Id).Return(tc.scheme, nil).Times(tc.readCount)
+			mockStore.On("Scheme").Return(&mockSchemeStore)
+
+			appErr := th.App.checkChannelSchemeAssignment("CreateChannel", model.ChannelTypeOpen, &tc.scheme.Id)
+			if tc.accepted {
+				require.Nil(t, appErr)
+			} else {
+				require.NotNil(t, appErr)
+				assert.Equal(t, "app.channel.update_channel_scheme.space_scheme_reserved.app_error", appErr.Id)
 			}
 		})
 	}

@@ -106,6 +106,8 @@ func (a *App) checkFrozenSchemeRole(role *model.Role) *model.AppError {
 // are excluded from GetChannelMembersForUser, so they are listed per team instead.
 // A team listing failure ends the revocation rather than being logged past: the
 // roles are stripped per team, so an unlisted team leaves its grants in place.
+// Failures are reported as potentially partial because earlier teams or channels
+// may already have been updated.
 func (a *App) revokeSpaceCapabilityRolesForUser(rctx request.CTX, userID string) *model.AppError {
 	teamMembers, appErr := a.GetTeamMembersForUser(rctx, userID, "", true)
 	if appErr != nil {

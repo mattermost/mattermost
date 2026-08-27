@@ -50,6 +50,34 @@ func pluginScheme(name string) *model.Scheme {
 	}
 }
 
+func TestGetSchemeForChannelUsesCachedRoleLookup(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := SetupWithStoreMock(t)
+	channelID := model.NewId()
+	scheme := pluginScheme(model.PluginChannelSchemeName(testPluginID, nil, nil, nil))
+	roles := pluginSchemeRoles(scheme, nil, nil, nil)
+
+	mockStore := th.App.Srv().Store().(*mocks.Store)
+	mockSchemeStore := mocks.SchemeStore{}
+	mockSchemeStore.On("GetForChannelFromMaster", channelID).Return(scheme, nil)
+	mockStore.On("Scheme").Return(&mockSchemeStore)
+	mockRoleStore := mocks.RoleStore{}
+	mockRoleStore.On("GetByNames", []string{
+		scheme.DefaultChannelGuestRole,
+		scheme.DefaultChannelUserRole,
+		scheme.DefaultChannelAdminRole,
+	}).Return(roles, nil)
+	mockStore.On("Role").Return(&mockRoleStore)
+
+	gotScheme, guestRole, userRole, adminRole, appErr := th.App.GetSchemeForChannel(th.Context, channelID)
+	require.Nil(t, appErr)
+	assert.Equal(t, scheme, gotScheme)
+	assert.Equal(t, scheme.DefaultChannelGuestRole, guestRole.Name)
+	assert.Equal(t, scheme.DefaultChannelUserRole, userRole.Name)
+	assert.Equal(t, scheme.DefaultChannelAdminRole, adminRole.Name)
+	mockRoleStore.AssertNotCalled(t, "GetByNamesFromMaster", mock.Anything)
+}
+
 func TestGetOrCreatePluginChannelScheme(t *testing.T) {
 	user := []string{model.PermissionReadPage.Id}
 	admin := []string{model.PermissionAdminSpace.Id}

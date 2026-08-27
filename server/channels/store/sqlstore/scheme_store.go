@@ -173,7 +173,7 @@ func (s *SqlSchemeStore) createScheme(scheme *model.Scheme, rolePermissions *cha
 		model.RunMemberRoleId,
 	}
 	defaultRoles := make(map[string]*model.Role)
-	roles, err := s.SqlStore.Role().GetByNames(defaultRoleNames)
+	roles, err := s.SqlStore.Role().GetByNamesFromMaster(defaultRoleNames)
 	if err != nil {
 		return nil, err
 	}
