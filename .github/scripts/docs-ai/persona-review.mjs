@@ -8,7 +8,7 @@
  * the whole report.
  *
  *   node persona-review.mjs --persona brand-voice --diff pr.diff --out out/brand-voice.json \
- *     [--pr-title T] [--pr-body-file F] [--milestone v11.6]
+ *     [--pr-title T] [--pr-body-file F]
  */
 
 import {readFileSync, writeFileSync, mkdirSync, existsSync} from 'node:fs';
@@ -32,18 +32,11 @@ function readIfSet(name) {
   return path && existsSync(path) ? readFileSync(path, 'utf8') : null;
 }
 
-function buildUser({diff, prTitle, prBody, milestone}) {
+function buildUser({diff, prTitle, prBody}) {
   const parts = [DATA_NOTICE, ''];
 
   if (prTitle) parts.push(block('pull-request-title', prTitle, {maxChars: 500}), '');
   if (prBody) parts.push(block('pull-request-description', prBody, {maxChars: 6000}), '');
-
-  parts.push(
-    milestone
-      ? `<milestone>${milestone}</milestone>\n\nThe milestone above is the authoritative release for version anchors in this\nchange. Any "From Mattermost vX.Y" must match it. Do not accept a different\nversion, and do not supply one yourself.`
-      : `<milestone>none</milestone>\n\nThis change has no milestone, so there is no authoritative release for a\nversion anchor. If the change documents new or changed capability and needs\none, say that the milestone is missing rather than proposing a version.`,
-    '',
-  );
 
   parts.push(
     block('diff', diff),
@@ -90,7 +83,6 @@ async function main() {
         diff: readFileSync(diffPath, 'utf8'),
         prTitle: arg('pr-title'),
         prBody: readIfSet('pr-body-file'),
-        milestone: arg('milestone'),
       }),
       maxTokens: 2048,
       temperature: 0.2,

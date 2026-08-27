@@ -12,16 +12,19 @@ to, in this form:
 
 > From Mattermost v11.5, auto-translation automatically translates channel messages…
 
-Rules:
+**Authoring.** Never invent a version or infer one from a branch name or date; a wrong
+version is worse than none, because readers believe it. Take it from the PR or issue
+milestone. With no milestone, write `[NOT PRESENT — REQUIRES HUMAN JUDGMENT]` and leave
+it for a human.
 
-- The version comes from the PR or issue milestone. Never infer one from a branch name,
-  a date, or prior knowledge. A wrong version reference is worse than a missing one,
-  because a reader believes it.
-- When no milestone is available, write `[NOT PRESENT — REQUIRES HUMAN JUDGMENT]` in
-  place of the version rather than guessing.
-- Deprecations follow the same rule and additionally never delete content: mark it
-  deprecated from a specific release forward.
-- Pure copy edits, restructures, and typo fixes do not need a version anchor.
+**Reviewing.** Check the anchor, never supply one.
+
+- Missing on new capability — ask which release applies. Never propose one: the author
+  knows when their own work ships and you do not.
+- Present — accept it. You have no release schedule to check it against, so a version is
+  not suspect merely because you cannot verify it.
+- `[NOT PRESENT — REQUIRES HUMAN JUDGMENT]` still in the content — always a finding, and
+  one only a human can clear. Report it; never try to resolve it by supplying a version.
 
 ## Frontmatter
 

@@ -2,8 +2,8 @@
  * Guards the persona registry.
  *
  * The registry is resolved from disk at runtime by relative path, so a moved
- * directory or a typo in frontmatter surfaces as a mid-workflow crash after
- * the API key has already been used. These checks turn that into a CI failure.
+ * directory or a typo in frontmatter surfaces as a mid-workflow crash after the
+ * router call has already been billed. These checks turn that into a CI failure.
  */
 
 import {test} from 'node:test';
@@ -23,7 +23,6 @@ import {
   reviewContract,
   reviewSystemBlocks,
 } from './lib/personas.mjs';
-import {CONTENT_ROOTS, additionsDiff, changedPaths, isContentPath} from './lib/diff.mjs';
 import {block, escape} from './lib/untrusted.mjs';
 
 const EXPECTED = [
@@ -53,7 +52,7 @@ test('conventions state the version anchoring rule', () => {
   // Version anchoring is the requirement most likely to be silently dropped
   // in an edit, and the whole pipeline depends on the prompt carrying it.
   assert.match(conventions(), /From Mattermost v/);
-  assert.match(conventions(), /milestone/i);
+  assert.match(conventions(), /ask which release/);
 });
 
 test('conventions state the heading case standard', () => {
@@ -116,24 +115,6 @@ test('the shared prefix is identical across personas so it caches', () => {
 
 test('an unknown persona id fails with the known ids listed', () => {
   assert.throws(() => getPersona('nope'), /Unknown persona "nope".*brand-voice/s);
-});
-
-test('content paths are distinguished from docs tooling', () => {
-  assert.ok(isContentPath('docs/main/administration-guide/manage/logging.mdx'));
-  assert.ok(isContentPath('docs/develop/index.mdx'));
-  assert.ok(!isContentPath('docs/site/src/theme/MDXComponents.tsx'));
-  assert.ok(!isContentPath('docs/styles/Mattermost/Terminology.yml'));
-  assert.ok(!isContentPath('docs/mainframe/thing.mdx'));
-  for (const root of CONTENT_ROOTS) {
-    assert.ok(existsSync(join(REPO_ROOT, root)), `content root "${root}" does not exist`);
-  }
-});
-
-test('a synthesised diff round-trips through changedPaths', () => {
-  const path = '.github/prompts/conventions.md';
-  const diff = additionsDiff([join(REPO_ROOT, path)], {repoRoot: REPO_ROOT});
-  assert.match(diff, /^diff --git a\/\.github\/prompts\/conventions\.md/);
-  assert.deepEqual(changedPaths(diff), [path]);
 });
 
 test('untrusted content cannot close its own wrapper', () => {

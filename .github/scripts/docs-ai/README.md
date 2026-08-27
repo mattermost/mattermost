@@ -18,7 +18,6 @@ say so on the PR and merge anyway — then fix the prompt.
 4. **report** — folds the verdicts into one sticky comment, updated in place on each push.
 
 Fork PRs stop after `validate`: they have no access to secrets or a writable token.
-Review a fork PR locally with `dry-run.mjs`.
 
 ## The persona registry
 
@@ -75,26 +74,18 @@ substitutions dropped, the `Headings` exceptions extended, and the remaining hea
 debt worked down — at which point it should go in as a required check rather than an
 advisory one.
 
-## Running it locally
-
-You need `ANTHROPIC_API_KEY` in your environment.
 
 ```bash
 cd .github/scripts/docs-ai
 npm ci
 
-# Review your working branch against master, and print the comment CI would post.
-node dry-run.mjs
+git diff origin/master -- docs/ > /tmp/pr.diff
 
-node dry-run.mjs --base HEAD~3                    # a different base
-node dry-run.mjs --files docs/main/foo.mdx        # whole files, not a diff
-node dry-run.mjs --personas brand-voice           # skip the router
-node dry-run.mjs --milestone v11.6                # supply the version anchor
-node dry-run.mjs --keep                           # leave the JSON artifacts behind
+node router.mjs --diff /tmp/pr.diff                       # prints a JSON persona list
+node persona-review.mjs --persona brand-voice \
+  --diff /tmp/pr.diff --out /tmp/results/brand-voice.json
+node report.mjs --results-dir /tmp/results --dry-run      # prints the comment
 ```
-
-`dry-run.mjs` shells out to the same scripts the workflow calls, in the same order, so a
-verdict reproduced here is the verdict CI produces. Use it when tuning a prompt.
 
 ## Tests
 

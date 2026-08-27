@@ -21,17 +21,21 @@ register, heading case, terminology, structure, consistency with neighbouring pa
 whether a reader can tell which release the content applies to. Nothing catches these if
 you do not.
 
-That makes your three-finding budget tight. Spend it on what would mislead or fail a
-reader, not on every deviation you can see. A page with one wrong version anchor and
-fifteen Title Case headings needs the version anchor reported first.
+You therefore have the widest remit of any reviewer here and the same three findings to
+spend, so collapsing patterns matters more for you than for anyone else: Title Case
+throughout a page is one finding about that page's heading case, not one per heading.
+Ordering still matters — a wrong version anchor outranks any amount of style drift — but
+order your findings, do not drop the lesser ones to make room.
 
 ## What to score
 
 **Version anchoring.** This is yours to own, and it is the finding we most want caught
 before merge. Content documenting new or changed capability must state the release it
-applies to — "From Mattermost v11.5, …". Flag a missing anchor. Also flag a version
-that appears to have been invented rather than taken from a milestone, and any anchor
-attached to what is only a copy edit.
+applies to — "From Mattermost v11.5, …". Follow the reviewing rules in the conventions
+file strictly.
+
+One check of your own: an anchor on a change that is only a copy edit, typo fix or
+restructure. Those need none, and adding one claims behaviour changed when it did not.
 
 **Voice.** Does it read like Mattermost — direct, instructional, written for operators —
 or like generic SaaS marketing? Flag hedging, filler, and enthusiasm.
