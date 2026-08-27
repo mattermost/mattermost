@@ -18,11 +18,12 @@ import {
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
+
 import type {ResolvedChannelAttribute} from 'mattermost-redux/selectors/entities/properties';
 import {getPropertyFieldLabel} from 'mattermost-redux/utils/property_utils';
 
 import useChannelLabels from 'components/common/hooks/useChannelLabels';
-import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import {OverlaysTimings, OverlayTransitionStyles, RootHtmlPortalId} from 'utils/constants';
 

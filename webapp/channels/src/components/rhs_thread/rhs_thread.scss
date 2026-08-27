@@ -1,0 +1,16 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.RhsThread__attributes {
+    display: flex;
+    padding: 6px 16px;
+    border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+
+    // ChannelAttributeLabels is flex: 0 1 auto, sized to fill the available row.
+    // In the thread panel it should grow to the full row width so overflow
+    // calculation sees the correct available space.
+    .ChannelAttributeLabels {
+        flex: 1 1 auto;
+        min-width: 0;
+    }
+}

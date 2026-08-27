@@ -2,7 +2,7 @@
     display: inline-flex;
     max-width: 160px;
     align-items: center;
-    padding: 0 6px;
+    padding: 2px 4px;
     border-radius: 4px;
 
     // A marking is a fact about the channel, not a control. Nothing here may
@@ -10,9 +10,10 @@
     cursor: default;
     font-family: 'Open Sans', sans-serif;
     font-size: 10px;
+    font-style: normal;
     font-weight: 600;
     letter-spacing: 0.02em;
-    line-height: 16px;
+    line-height: 12px;
     text-transform: uppercase;
     white-space: nowrap;
 

@@ -150,6 +150,7 @@ export function useLabelsOverflow(ids: string[]) {
             observerRef.current?.observe(element);
         } else {
             chipRefs.current.delete(id);
+
             // Width cache is intentionally kept — see chipWidthCache comment above.
         }
     }, []);

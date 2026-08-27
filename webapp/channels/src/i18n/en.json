@@ -1470,6 +1470,7 @@
   "admin.global_attributes.attribute_details.applies_to.add_resource_inline": "Add another resource",
   "admin.global_attributes.attribute_details.applies_to.empty_state.heading": "No resources yet",
   "admin.global_attributes.attribute_details.applies_to.empty_state.helper_text": "Add a resource to apply this attribute to users, channels, or posts.",
+  "admin.global_attributes.attribute_details.applies_to.item.body_placeholder": "No additional settings for this resource yet.",
   "admin.global_attributes.attribute_details.applies_to.item.collapse": "Collapse {label}",
   "admin.global_attributes.attribute_details.applies_to.item.expand": "Expand {label}",
   "admin.global_attributes.attribute_details.applies_to.item.remove": "Remove resource",
