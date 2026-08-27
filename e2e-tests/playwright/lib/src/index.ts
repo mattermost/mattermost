@@ -7,6 +7,7 @@ export {testConfig, TESTCONTAINERS_SERVICE_NAMES} from './test_config';
 export type {TestContainersServiceName} from './test_config';
 export {
     getUpgradeFromServerImage,
+    getUpgradeToServerImage,
     isUpgradeFromProjectSelected,
     logUpgradeFromServerImage,
     UPGRADE_FROM_SERVER_IMAGE_ENV,

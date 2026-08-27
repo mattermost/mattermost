@@ -8,7 +8,15 @@ import {MATTERMOST_SERVER_IMAGE} from './containers/default_images';
 import {SERVER_ENV_BASELINE} from './containers/env_baseline';
 
 dotenv.config({quiet: true});
+// Capture before .env.testcontainers override — that file persists the *running* image under
+// PW_TESTCONTAINERS_SERVER_IMAGE and must not clobber the process/CI SERVER_IMAGE (to-image).
+const configuredServerImage = process.env.SERVER_IMAGE;
 dotenv.config({path: '.env.testcontainers', quiet: true, override: true});
+if (configuredServerImage !== undefined) {
+    process.env.SERVER_IMAGE = configuredServerImage;
+} else {
+    delete process.env.SERVER_IMAGE;
+}
 
 // The set of additional services `testcontainers` mode knows how to start.
 // Single source of truth for `requirements.ts` and for validating PW_TESTCONTAINERS_SERVICES.
@@ -165,9 +173,10 @@ export class TestConfig {
             ? `http://${WEBHOOK_ALIAS}:${WEBHOOK_PORT}`
             : this.webhookBaseUrl;
         this.testcontainersNetworkGatewayIp = process.env.PW_TESTCONTAINERS_NETWORK_GATEWAY_IP || '';
-        // Prefer SERVER_IMAGE from .env.testcontainers when reusing a stack (e.g. after
-        // upgradeServerImage), so worker restarts keep the image that is actually running.
-        this.serverImage = process.env.SERVER_IMAGE || MATTERMOST_SERVER_IMAGE;
+        // Prefer the persisted running image after upgradeServerImage so worker restarts
+        // (ensureMinio, etc.) keep that tag; fall back to process/CI SERVER_IMAGE.
+        this.serverImage =
+            process.env.PW_TESTCONTAINERS_SERVER_IMAGE || process.env.SERVER_IMAGE || MATTERMOST_SERVER_IMAGE;
         this.serverEnv = parseKeyValueList(process.env.MM_ENV);
         this.testcontainersServices = parseTestContainersServices(process.env.PW_TESTCONTAINERS_SERVICES);
         // Defaults to true so a local Ctrl+C (or just finishing a run) doesn't throw away the

@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {MATTERMOST_SERVER_IMAGE} from './containers/default_images';
 import {logTestcontainers} from './containers/log';
 
 export const UPGRADE_FROM_SERVER_IMAGE_ENV = 'PW_UPGRADE_FROM_SERVER_IMAGE';
@@ -35,6 +36,14 @@ export function getUpgradeFromServerImage(): string {
         );
     }
     return fromImage;
+}
+
+/**
+ * Target image for upgrade-swap-to — the process/CI `SERVER_IMAGE`, not the currently
+ * running from-image persisted in `.env.testcontainers`.
+ */
+export function getUpgradeToServerImage(): string {
+    return process.env.SERVER_IMAGE?.trim() || MATTERMOST_SERVER_IMAGE;
 }
 
 /** Logs the configured upgrade-from server image at Playwright config load time. */
