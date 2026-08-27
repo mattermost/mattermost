@@ -5,7 +5,7 @@ prose before or after, no markdown fence.
 
 ```json
 {
-  "verdict": "APPROVE" | "REQUEST_CHANGES" | "COMMENT",
+  "verdict": "<APPROVE | REQUEST_CHANGES | COMMENT>",
   "summary": "<one sentence>",
   "feedback": [
     "<finding 1>",

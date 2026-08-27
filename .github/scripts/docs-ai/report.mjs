@@ -1,11 +1,4 @@
 #!/usr/bin/env node
-/*
- * Compose the persona verdicts into one sticky PR comment.
- *
- *   node report.mjs --results-dir out [--sha SHA] [--dry-run]
- *
- */
-
 import {readFileSync, readdirSync, existsSync, appendFileSync} from 'node:fs';
 import {join} from 'node:path';
 
@@ -104,7 +97,9 @@ async function gh(path, {method = 'GET', body} = {}) {
 
 async function upsertComment(repo, pr, body) {
   const existing = await gh(`/repos/${repo}/issues/${pr}/comments?per_page=100`);
-  const mine = existing.find((c) => c.body?.includes(MARKER));
+  // The marker renders invisibly, so anyone able to comment could plant it and
+  // have the review overwrite their post. Only ever adopt a bot's comment.
+  const mine = existing.find((c) => c.body?.includes(MARKER) && c.user?.type === 'Bot');
 
   if (mine) {
     await gh(`/repos/${repo}/issues/comments/${mine.id}`, {method: 'PATCH', body: {body}});

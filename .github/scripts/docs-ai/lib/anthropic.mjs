@@ -1,10 +1,3 @@
-/*
- * Anthropic SDK wrapper.
- *
- * One place for client setup, prompt caching, retry on transient errors, and
- * tolerant JSON parsing, so the scripts don't each reimplement them.
- */
-
 import Anthropic from '@anthropic-ai/sdk';
 
 let client = null;

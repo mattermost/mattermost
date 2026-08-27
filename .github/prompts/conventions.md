@@ -140,7 +140,7 @@ Prefer the right-hand form:
 
 Sentence case: capitalise the first word and proper nouns only.
 
-```
+```text
 Configure the retention policy        not  Configure the Retention Policy
 Enable OpenID Connect with Google     proper nouns keep their casing
 mmctl token                           command names and code identifiers keep theirs
