@@ -165,6 +165,8 @@ export class TestConfig {
             ? `http://${WEBHOOK_ALIAS}:${WEBHOOK_PORT}`
             : this.webhookBaseUrl;
         this.testcontainersNetworkGatewayIp = process.env.PW_TESTCONTAINERS_NETWORK_GATEWAY_IP || '';
+        // Prefer SERVER_IMAGE from .env.testcontainers when reusing a stack (e.g. after
+        // upgradeServerImage), so worker restarts keep the image that is actually running.
         this.serverImage = process.env.SERVER_IMAGE || MATTERMOST_SERVER_IMAGE;
         this.serverEnv = parseKeyValueList(process.env.MM_ENV);
         this.testcontainersServices = parseTestContainersServices(process.env.PW_TESTCONTAINERS_SERVICES);

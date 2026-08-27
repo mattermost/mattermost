@@ -613,6 +613,9 @@ function envFileLines(label: string): string[] {
         `PW_AZURITE_URL=${testConfig.azuriteUrl}`,
         `PW_TESTCONTAINERS_NETWORK_NAME=${testConfig.testcontainersNetworkName}`,
         `PW_TESTCONTAINERS_MATTERMOST_CONTAINER_ID=${testConfig.mattermostContainerId}`,
+        // Persist the image currently running so a later worker's restartMattermostContainer()
+        // (e.g. ensureMinio during upgrade-from) recreates the same tag, not process.env.SERVER_IMAGE.
+        `SERVER_IMAGE=${testConfig.serverImage}`,
         `PW_TESTCONTAINERS_BOOT_ENV='${JSON.stringify(testConfig.bootEnvOverrides)}'`,
         '',
     ];
