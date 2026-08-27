@@ -96,19 +96,11 @@ exports[`components/integrations/AbstractOutgoingOAuthConnection should match sn
           >
             <input
               autocomplete="off"
-              class="form-control disabled"
-              disabled=""
+              class="form-control"
               id="client_secret"
               type="text"
-              value="••••••••••••••••••••••••••••••••••••••••"
+              value=""
             />
-            <span
-              class="outgoing-oauth-connections-edit-secret"
-            >
-              <i
-                class="icon icon-pencil-outline"
-              />
-            </span>
             <div
               class="form__help"
             >
@@ -311,19 +303,11 @@ exports[`components/integrations/AbstractOutgoingOAuthConnection should match sn
           >
             <input
               autocomplete="off"
-              class="form-control disabled"
-              disabled=""
+              class="form-control"
               id="client_secret"
               type="text"
-              value="••••••••••••••••••••••••••••••••••••••••"
+              value=""
             />
-            <span
-              class="outgoing-oauth-connections-edit-secret"
-            >
-              <i
-                class="icon icon-pencil-outline"
-              />
-            </span>
             <div
               class="form__help"
             >
@@ -400,7 +384,7 @@ exports[`components/integrations/AbstractOutgoingOAuthConnection should match sn
             <label
               class="control-label"
             >
-              One or more audience URLs are required.
+              Client Secret for the OAuth connection is required.
             </label>
           </div>
           <a
