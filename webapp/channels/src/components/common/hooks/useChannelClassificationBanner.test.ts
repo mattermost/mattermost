@@ -464,5 +464,121 @@ describe('useChannelClassificationBanner', () => {
 
             expect(result.current.classificationBanner?.background_color).toBe('#ED1010');
         });
+
+        test('classificationIsBannerDesignated is false when a non-classification attribute drives the banner', () => {
+            mockClassification({available: false, channelField: null, levels: []});
+
+            const {result} = renderHookWithContext(
+                () => useChannelClassificationBanner(CHANNEL_ID),
+                designatedState(),
+            );
+
+            expect(result.current.classificationIsBannerDesignated).toBe(false);
+        });
+
+        describe('when classification is the designated banner attribute', () => {
+            test('sets classificationIsBannerDesignated true and uses the level color', () => {
+                mockClassification({available: false, channelField: null, levels: []});
+
+                const {result} = renderHookWithContext(
+                    () => useChannelClassificationBanner(CHANNEL_ID),
+                    designatedState(undefined, {name: CLASSIFICATIONS_CHANNEL_FIELD_NAME}),
+                );
+
+                expect(result.current.classificationIsBannerDesignated).toBe(true);
+                expect(result.current.classificationBanner?.background_color).toBe('#1E325C');
+            });
+
+            test('ignores an authored background_color — the level color wins', () => {
+                mockClassification({available: false, channelField: null, levels: []});
+
+                const {result} = renderHookWithContext(
+                    () => useChannelClassificationBanner(CHANNEL_ID),
+                    designatedState(
+                        {enabled: true, text: '', background_color: '#ED1010'},
+                        {name: CLASSIFICATIONS_CHANNEL_FIELD_NAME},
+                    ),
+                );
+
+                expect(result.current.classificationIsBannerDesignated).toBe(true);
+
+                // Authored color must not win: classification color is authoritative.
+                expect(result.current.classificationBanner?.background_color).toBe('#1E325C');
+            });
+
+            test('uses DEFAULT_BANNER_COLOR when no classification value is set', () => {
+                mockClassification({available: false, channelField: null, levels: []});
+
+                const SECOND_FIELD_ID = 'designated_field_2';
+
+                // Build a state where classification is designated but has no value;
+                // another attribute does have a value so the banner itself still shows.
+                const state = designatedState(
+                    undefined,
+                    {name: CLASSIFICATIONS_CHANNEL_FIELD_NAME},
+                    OPTION_ID,
+                );
+
+                // Remove the value for the classification field so only the second field has one.
+                const entities = (state as {entities: {properties: {fields: {byObjectType: Record<string, Record<string, Record<string, unknown>>>}; values: {byTargetId: Record<string, Record<string, unknown>>}}}}).entities;
+                delete entities.properties.values.byTargetId[CHANNEL_ID][DESIGNATED_FIELD_ID];
+
+                entities.properties.fields.byObjectType.channel[GROUP_ID][SECOND_FIELD_ID] = {
+                    ...makeChannelField(),
+                    id: SECOND_FIELD_ID,
+                    group_id: GROUP_ID,
+                    name: 'programme',
+                    type: 'text',
+                    attrs: {actions: ['display_banner_top'], sort_order: 2},
+                };
+                entities.properties.values.byTargetId[CHANNEL_ID][SECOND_FIELD_ID] = {
+                    ...makePropertyValue('AURORA'),
+                    field_id: SECOND_FIELD_ID,
+                };
+
+                const {result} = renderHookWithContext(
+                    () => useChannelClassificationBanner(CHANNEL_ID),
+                    state,
+                );
+
+                expect(result.current.classificationIsBannerDesignated).toBe(true);
+                expect(result.current.classificationBanner?.background_color).toBe('#DDDDDD');
+            });
+
+            test('uses the classification level color even when other attributes share the banner', () => {
+                mockClassification({available: false, channelField: null, levels: []});
+
+                const SECOND_FIELD_ID = 'designated_field_2';
+                const state = designatedState(
+                    undefined,
+                    {name: CLASSIFICATIONS_CHANNEL_FIELD_NAME},
+                );
+                const entities = (state as {entities: {properties: {fields: {byObjectType: Record<string, Record<string, Record<string, unknown>>>}; values: {byTargetId: Record<string, Record<string, unknown>>}}}}).entities;
+
+                entities.properties.fields.byObjectType.channel[GROUP_ID][SECOND_FIELD_ID] = {
+                    ...makeChannelField(),
+                    id: SECOND_FIELD_ID,
+                    group_id: GROUP_ID,
+                    name: 'programme',
+                    type: 'text',
+                    attrs: {actions: ['display_banner_top'], sort_order: 2},
+                };
+                entities.properties.values.byTargetId[CHANNEL_ID][SECOND_FIELD_ID] = {
+                    ...makePropertyValue('AURORA'),
+                    field_id: SECOND_FIELD_ID,
+                };
+
+                const {result} = renderHookWithContext(
+                    () => useChannelClassificationBanner(CHANNEL_ID),
+                    state,
+                );
+
+                expect(result.current.classificationIsBannerDesignated).toBe(true);
+
+                // With multiple designated attributes, the normal rule gives no color.
+                // Classification overrides this: its level color wins.
+                expect(result.current.classificationBanner?.background_color).toBe('#1E325C');
+            });
+        });
     });
 });

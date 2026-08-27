@@ -8,6 +8,7 @@ import {expect, test} from '@mattermost/playwright-lib';
 import {
     DISPLAY_BANNER_TOP,
     DISPLAY_LABEL_INFO,
+    assertNoForeignRequiredAttributes,
     attributeName,
     attributeToken,
     createAttribute,
@@ -17,6 +18,7 @@ import {
     purgeAttributes,
     setChannelValue,
 } from './helpers';
+import {findChannelField} from '../../system_console/global_attributes/applies_to_helpers';
 
 const BANNER_COLOR = '#1e325c';
 
@@ -436,6 +438,161 @@ test.describe('Channel attribute banner composition', {tag: ['@channel_attribute
             await configuration.enableChannelBanner();
             await configuration.bannerTokenButton.click();
             await expect(page.getByTestId(`bannerAttributeToken-${classification.name}`)).toBeVisible();
+        } finally {
+            await deleteAttributes(adminClient, created);
+        }
+    });
+
+    /**
+     * @objective Verify that a non-classification banner attribute leaves the color picker
+     * editable and the banner toggle unlocked.
+     */
+    test('color picker is editable and toggle is unlocked when a non-classification attribute drives the banner', async ({pw}) => {
+        await pw.skipIfNoLicense();
+        await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
+
+        const {adminClient, adminUser, team} = await pw.initSetup();
+        const suffix = pw.random.id();
+        const created: PropertyField[] = [];
+
+        try {
+            await purgeAttributes(adminClient);
+
+            const marking = await createAttribute(adminClient, attributeName('colour_editable', suffix), {
+                options: ['ORCON'],
+                actions: [DISPLAY_BANNER_TOP],
+                optionColors: {ORCON: BANNER_COLOR},
+            });
+            created.push(marking);
+
+            const channel = await createChannelForAttributes(adminClient, team, `colour-editable-${suffix}`);
+            await adminClient.addToChannel(adminUser.id, channel.id);
+            await setChannelValue(adminClient, channel.id, marking, optionId(marking, 'ORCON'));
+
+            const {channelsPage} = await pw.testBrowser.login(adminUser);
+            await channelsPage.goto(team.name, channel.name);
+            await channelsPage.toBeVisible();
+
+            const settings = await channelsPage.openChannelSettings();
+            const configuration = await settings.openConfigurationTab();
+
+            // * Color picker is editable — no classification in the banner
+            await expect(configuration.container.locator(
+                '#channel_banner_banner_background_color_picker-inputColorValue',
+            )).toBeEnabled();
+
+            // * Toggle is also not locked
+            await expect(configuration.container.getByTestId('channelBannerToggle-button')).not.toBeDisabled();
+        } finally {
+            await deleteAttributes(adminClient, created);
+        }
+    });
+
+    /**
+     * @objective Verify that when classification is banner-designated, Channel Settings
+     * locks the color picker to the selected level's color and the user cannot override it.
+     */
+    test('color picker is locked to the classification level color when classification is banner-designated', async ({pw}) => {
+        await pw.skipIfNoLicense();
+        await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
+
+        const {adminClient, adminUser, team} = await pw.initSetup();
+        const suffix = pw.random.id();
+
+        const classificationField = await findChannelField(adminClient, 'classification');
+        if (!classificationField) {
+            test.skip();
+            return;
+        }
+
+        const originalAttrs = classificationField.attrs;
+
+        try {
+            // Designate classification for the banner
+            await adminClient.patchPropertyField('access_control', 'channel', classificationField.id, {
+                attrs: {...originalAttrs, actions: ['display_banner_top']},
+            } as never);
+
+            // Pick the first level that carries a colour
+            const options = (originalAttrs?.options ?? []) as Array<{id: string; name: string; color: string}>;
+            const level = options.find((o) => o.color);
+            if (!level) {
+                test.skip();
+                return;
+            }
+
+            const channel = await createChannelForAttributes(adminClient, team, `class-banner-${suffix}`);
+            await adminClient.addToChannel(adminUser.id, channel.id);
+            await adminClient.patchPropertyValues('access_control', 'channel', channel.id, [
+                {field_id: classificationField.id, value: level.id},
+            ] as never);
+
+            const {channelsPage} = await pw.testBrowser.login(adminUser);
+            await channelsPage.goto(team.name, channel.name);
+            await channelsPage.toBeVisible();
+
+            const settings = await channelsPage.openChannelSettings();
+            const configuration = await settings.openConfigurationTab();
+
+            const colorInput = configuration.container.locator(
+                '#channel_banner_banner_background_color_picker-inputColorValue',
+            );
+
+            // * Color picker is disabled — the level colour is authoritative
+            await expect(colorInput).toBeDisabled();
+
+            // * It shows the classification level's colour
+            await expect(colorInput).toHaveValue(level.color.toUpperCase());
+        } finally {
+            await adminClient.patchPropertyField('access_control', 'channel', classificationField.id, {
+                attrs: originalAttrs,
+            } as never);
+        }
+    });
+
+    /**
+     * @objective Verify that when a required attribute is banner-designated, the banner
+     * toggle in Channel Settings is locked and cannot be turned off.
+     */
+    test('banner toggle is disabled when a required attribute designates the banner', async ({pw}) => {
+        await pw.skipIfNoLicense();
+        await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
+
+        const {adminClient, adminUser, team} = await pw.initSetup();
+        const suffix = pw.random.id();
+        const created: PropertyField[] = [];
+
+        try {
+            await purgeAttributes(adminClient);
+            await assertNoForeignRequiredAttributes(adminClient);
+
+            const marker = await createAttribute(adminClient, attributeName('req_banner', suffix), {
+                options: ['RESTRICTED'],
+                required: true,
+                actions: [DISPLAY_BANNER_TOP],
+                optionColors: {RESTRICTED: BANNER_COLOR},
+            });
+            created.push(marker);
+
+            // Required attributes must be seeded at channel creation time
+            const channel = await createChannelForAttributes(
+                adminClient,
+                team,
+                `req-banner-${suffix}`,
+                undefined,
+                [{field_id: marker.id, value: optionId(marker, 'RESTRICTED')}],
+            );
+            await adminClient.addToChannel(adminUser.id, channel.id);
+
+            const {channelsPage} = await pw.testBrowser.login(adminUser);
+            await channelsPage.goto(team.name, channel.name);
+            await channelsPage.toBeVisible();
+
+            const settings = await channelsPage.openChannelSettings();
+            const configuration = await settings.openConfigurationTab();
+
+            // * Toggle is locked — a required attribute mandates the banner
+            await expect(configuration.container.getByTestId('channelBannerToggle-button')).toBeDisabled();
         } finally {
             await deleteAttributes(adminClient, created);
         }

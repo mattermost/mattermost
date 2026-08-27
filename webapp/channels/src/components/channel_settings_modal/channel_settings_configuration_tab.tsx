@@ -174,10 +174,18 @@ function ChannelSettingsConfigurationTab({
     // it. Flag off keeps the shipped lock.
     const bannerLockedByClassification = !channelAttributesEnabled && classificationEnabled && Boolean(selectedClassificationId);
 
+    // When classification is banner-designated its level colour is authoritative:
+    // the picker is locked so the channel cannot override it.
+    const classificationIsBannerDesignated = classificationBanner.classificationIsBannerDesignated;
+
     // An attribute-designated banner renders off the property value, so banner_info
     // stays disabled by design. The section still has to read as on, or the toggle
     // contradicts the banner the channel is visibly showing.
     const bannerDrivenByAttribute = channelAttributesEnabled && classificationBanner.hasClassification;
+
+    // Required banner attributes mandate the banner: the channel has no say.
+    const bannerRequiredByAttribute = channelAttributesEnabled &&
+        bannerFields.some((f) => Boolean(f.attrs?.required));
 
     // Shown rather than stored: seeding it into form state would open the tab dirty.
     const attributeBannerColor = bannerDrivenByAttribute ? classificationBanner.classificationBanner?.background_color : undefined;
@@ -838,9 +846,9 @@ function ChannelSettingsConfigurationTab({
                                 id='channelBannerToggle'
                                 ariaLabel={bannerHeading}
                                 size='btn-md'
-                                disabled={bannerLockedByClassification}
+                                disabled={bannerLockedByClassification || bannerRequiredByAttribute}
                                 onToggle={handleBannerToggle}
-                                toggled={bannerLockedByClassification || bannerDrivenByAttribute || updatedChannelBanner.enabled}
+                                toggled={bannerLockedByClassification || bannerDrivenByAttribute || bannerRequiredByAttribute || updatedChannelBanner.enabled}
                                 tabIndex={0}
                                 toggleClassName='btn-toggle-primary'
                             />
@@ -903,8 +911,12 @@ function ChannelSettingsConfigurationTab({
                                     <ColorInput
                                         id='channel_banner_banner_background_color_picker'
                                         onChange={handleBannerColorChange}
-                                        value={bannerLockedByClassification ? selectedClassificationColor : (updatedChannelBanner.background_color || attributeBannerColor || '')}
-                                        isDisabled={bannerLockedByClassification}
+                                        value={
+                                            bannerLockedByClassification ? selectedClassificationColor :
+                                                classificationIsBannerDesignated ? (classificationBanner.classificationBanner?.background_color || '') :
+                                                    (updatedChannelBanner.background_color || attributeBannerColor || '')
+                                        }
+                                        isDisabled={bannerLockedByClassification || classificationIsBannerDesignated}
                                     />
                                 </div>
                             </div>
