@@ -31,11 +31,23 @@ export function useLabelsOverflow(ids: string[]) {
     }, []);
 
     const chipRefs = useRef<Map<string, HTMLElement>>(new Map());
+
+    // Last measured content width per chip id. Populated when a chip is in the
+    // DOM; retained after unmount so overflow chips can still be measured in
+    // calculateOverflow without oscillating between "all fit" (no DOM → width 0)
+    // and "some overflow" (DOM present → real width).
+    const chipWidthCache = useRef<Map<string, number>>(new Map());
+
     const overflowElRef = useRef<HTMLElement | null>(null);
     const observerRef = useRef<ResizeObserver | null>(null);
 
     const idsRef = useLatest(ids);
     const [overflowStartIndex, setOverflowStartIndex] = useState(ids.length);
+
+    // False until calculateOverflow has run at least once with real measurements.
+    // The caller can use this to hide the container until the correct split is
+    // known, avoiding a flash where all chips are briefly visible before collapsing.
+    const [measured, setMeasured] = useState(false);
 
     const calculateOverflow = useCallback(() => {
         const currentIds = idsRef.current;
@@ -73,11 +85,26 @@ export function useLabelsOverflow(ids: string[]) {
 
         for (let i = 0; i < currentIds.length; i++) {
             const chipEl = chipRefs.current.get(currentIds[i]);
-            if (!chipEl) {
-                continue;
+
+            // Use live width when the chip is in the DOM; fall back to the cached
+            // width from the last time it was visible. A chip with no width data
+            // at all (never rendered) is treated as too wide to fit — this stops
+            // the loop and avoids a "show all → measure → hide → no width → show
+            // all" oscillation that would otherwise blink indefinitely.
+            let contentWidth: number;
+            if (chipEl) {
+                contentWidth = chipEl.getBoundingClientRect().width;
+                chipWidthCache.current.set(currentIds[i], contentWidth);
+            } else {
+                const cached = chipWidthCache.current.get(currentIds[i]);
+                if (cached === undefined) {
+                    nextIndex = Math.max(1, i);
+                    break;
+                }
+                contentWidth = cached;
             }
 
-            const chipWidth = chipEl.getBoundingClientRect().width + (i === 0 ? 0 : CHIP_GAP);
+            const chipWidth = contentWidth + (i === 0 ? 0 : CHIP_GAP);
 
             // Measured from the rendered button where there is one: a constant that
             // undershoots its real width clips the last chip by the difference.
@@ -97,6 +124,7 @@ export function useLabelsOverflow(ids: string[]) {
         }
 
         setOverflowStartIndex(nextIndex);
+        setMeasured(true);
     }, [containerEl, idsRef]);
 
     const debouncedCalculateOverflow = useDebounce(calculateOverflow, RECALC_DEBOUNCE_MS);
@@ -122,6 +150,7 @@ export function useLabelsOverflow(ids: string[]) {
             observerRef.current?.observe(element);
         } else {
             chipRefs.current.delete(id);
+            // Width cache is intentionally kept — see chipWidthCache comment above.
         }
     }, []);
 
@@ -134,7 +163,16 @@ export function useLabelsOverflow(ids: string[]) {
 
     // Show everything when the set changes, then measure and shrink. Labels arrive
     // after mount, so a stale index from the empty set would render a +N alone.
+    // Drop cache entries for IDs that are no longer in the set — a new chip that
+    // happens to reuse an old ID should be measured fresh, not sized by stale data.
     useEffect(() => {
+        const live = new Set(ids);
+        for (const id of chipWidthCache.current.keys()) {
+            if (!live.has(id)) {
+                chipWidthCache.current.delete(id);
+            }
+        }
+        setMeasured(false);
         setOverflowStartIndex(ids.length);
         debouncedCalculateOverflow();
         return () => debouncedCalculateOverflow.cancel();
@@ -149,5 +187,5 @@ export function useLabelsOverflow(ids: string[]) {
         overflowElRef.current = element;
     }, []);
 
-    return {containerRef, registerChipRef, overflowRef, visibleIds, overflowIds};
+    return {containerRef, registerChipRef, overflowRef, visibleIds, overflowIds, measured};
 }

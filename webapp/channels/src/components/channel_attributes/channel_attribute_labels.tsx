@@ -22,6 +22,7 @@ import type {ResolvedChannelAttribute} from 'mattermost-redux/selectors/entities
 import {getPropertyFieldLabel} from 'mattermost-redux/utils/property_utils';
 
 import useChannelLabels from 'components/common/hooks/useChannelLabels';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import {OverlaysTimings, OverlayTransitionStyles, RootHtmlPortalId} from 'utils/constants';
 
@@ -54,20 +55,47 @@ type Props = {
  * Labels are informational — nothing here enforces access, and no string may
  * suggest otherwise.
  */
+type ChipSpec = {
+    chipId: string;
+    fieldLabel: string;
+    value: string;
+    color?: string;
+};
+
 const ChannelAttributeLabels = ({channelId}: Props) => {
     const {formatMessage} = useIntl();
     const labels = useChannelLabels(channelId, 'header');
 
-    const ids = useMemo(() => labels.map((attribute) => attribute.field.id), [labels]);
-    const {containerRef, registerChipRef, overflowRef, visibleIds, overflowIds} = useLabelsOverflow(ids);
-
-    const byId = useMemo(() => {
-        const map = new Map<string, ResolvedChannelAttribute>();
+    // Expand each attribute into one ChipSpec per value (multiselect → N chips).
+    const chipSpecs = useMemo((): ChipSpec[] => {
+        const specs: ChipSpec[] = [];
         for (const attribute of labels) {
-            map.set(attribute.field.id, attribute);
+            if (!attribute.displayValue) {
+                continue;
+            }
+            const fieldLabel = getPropertyFieldLabel(attribute.field);
+            const values = attribute.displayValues.length > 0 ? attribute.displayValues : [attribute.displayValue];
+            if (values.length === 1) {
+                specs.push({chipId: attribute.field.id, fieldLabel, value: values[0], color: optionColor(attribute)});
+            } else {
+                for (let i = 0; i < values.length; i++) {
+                    specs.push({chipId: `${attribute.field.id}:${i}`, fieldLabel, value: values[i]});
+                }
+            }
+        }
+        return specs;
+    }, [labels]);
+
+    const ids = useMemo(() => chipSpecs.map((s) => s.chipId), [chipSpecs]);
+    const {containerRef, registerChipRef, overflowRef, visibleIds, overflowIds, measured} = useLabelsOverflow(ids);
+
+    const byChipId = useMemo(() => {
+        const map = new Map<string, ChipSpec>();
+        for (const spec of chipSpecs) {
+            map.set(spec.chipId, spec);
         }
         return map;
-    }, [labels]);
+    }, [chipSpecs]);
 
     // Stable per chip. An inline arrow is a new function each render, so React
     // detaches and reattaches the node, and the observer refires on every render.
@@ -114,13 +142,13 @@ const ChannelAttributeLabels = ({channelId}: Props) => {
 
     const {getReferenceProps, getFloatingProps} = useInteractions([hover, focus, click, dismiss, role]);
 
-    if (labels.length === 0) {
+    if (chipSpecs.length === 0) {
         return null;
     }
 
     const renderChip = (id: string) => {
-        const attribute = byId.get(id);
-        if (!attribute) {
+        const spec = byChipId.get(id);
+        if (!spec) {
             return null;
         }
 
@@ -130,11 +158,15 @@ const ChannelAttributeLabels = ({channelId}: Props) => {
                 ref={chipRef(id)}
                 className='ChannelAttributeLabels__item'
             >
-                <AttributeChip
-                    label={getPropertyFieldLabel(attribute.field)}
-                    value={attribute.displayValue}
-                    color={optionColor(attribute)}
-                />
+                <WithTooltip title={spec.fieldLabel}>
+                    <span>
+                        <AttributeChip
+                            label={spec.fieldLabel}
+                            value={spec.value}
+                            color={spec.color}
+                        />
+                    </span>
+                </WithTooltip>
             </span>
         );
     };
@@ -144,6 +176,7 @@ const ChannelAttributeLabels = ({channelId}: Props) => {
             ref={containerRef}
             className='ChannelAttributeLabels'
             data-testid='channelAttributeLabels'
+            style={measured ? undefined : {visibility: 'hidden'}}
         >
             <div className='ChannelAttributeLabels__visible'>
                 {visibleIds.map(renderChip)}
@@ -182,8 +215,8 @@ const ChannelAttributeLabels = ({channelId}: Props) => {
                         {...getFloatingProps()}
                     >
                         {overflowIds.map((id) => {
-                            const attribute = byId.get(id);
-                            if (!attribute) {
+                            const spec = byChipId.get(id);
+                            if (!spec) {
                                 return null;
                             }
 
@@ -193,12 +226,12 @@ const ChannelAttributeLabels = ({channelId}: Props) => {
                                     className='ChannelAttributeLabels__popoverRow'
                                 >
                                     <span className='ChannelAttributeLabels__popoverLabel'>
-                                        {getPropertyFieldLabel(attribute.field)}
+                                        {spec.fieldLabel}
                                     </span>
                                     <AttributeChip
-                                        label={getPropertyFieldLabel(attribute.field)}
-                                        value={attribute.displayValue}
-                                        color={optionColor(attribute)}
+                                        label={spec.fieldLabel}
+                                        value={spec.value}
+                                        color={spec.color}
                                         announceLabel={false}
                                     />
                                 </div>

@@ -190,9 +190,12 @@ function ChannelSettingsConfigurationTab({
     // Shown rather than stored: seeding it into form state would open the tab dirty.
     const attributeBannerColor = bannerDrivenByAttribute ? classificationBanner.classificationBanner?.background_color : undefined;
 
-    // Follows the colour picker as it changes, falling back to the option's colour
-    // for a banner the channel has not authored one for.
-    const previewBackgroundColor = updatedChannelBanner.background_color || attributeBannerColor || undefined;
+    // Mirrors the colour picker value exactly so the preview is always honest.
+    const previewBackgroundColor = (
+        bannerLockedByClassification ? selectedClassificationColor :
+            classificationIsBannerDesignated ? (classificationBanner.classificationBanner?.background_color || '') :
+                (updatedChannelBanner.background_color || attributeBannerColor || '')
+    ) || undefined;
 
     const classificationOptions = useMemo(() => {
         return classification.levels.
@@ -696,7 +699,7 @@ function ChannelSettingsConfigurationTab({
         setRequireConfirm(false);
     }, []);
 
-    const classificationFormInvalid = classificationEnabled && !selectedClassificationId;
+    const classificationFormInvalid = canManageClassification && classificationEnabled && !selectedClassificationId;
     const hasErrors = Boolean(formError) ||
         characterLimitExceeded ||
         classificationFormInvalid ||

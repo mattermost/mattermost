@@ -200,13 +200,18 @@ export type ResolvedChannelAttribute = {
     // value counts as unset: the server keeps a null-valued row after a
     // user-initiated clear rather than deleting it.
     displayValue: string;
+
+    // Individual display strings — one entry per value. Multiselect fields
+    // produce one entry per selected option; all other types produce a
+    // single-element array matching displayValue. Empty when the attribute is unset.
+    displayValues: string[];
 };
 
 const EMPTY_RESOLVED: ResolvedChannelAttribute[] = [];
 
-function resolveDisplayValue(field: PropertyField, raw: unknown): {option?: PropertyFieldOption; displayValue: string} {
+function resolveDisplayValue(field: PropertyField, raw: unknown): {option?: PropertyFieldOption; displayValue: string; displayValues: string[]} {
     if (!isPropertyValueSet(raw)) {
-        return {displayValue: ''};
+        return {displayValue: '', displayValues: []};
     }
 
     const options = (field.attrs?.options as PropertyFieldOption[] | undefined) ?? [];
@@ -214,22 +219,23 @@ function resolveDisplayValue(field: PropertyField, raw: unknown): {option?: Prop
     if (Array.isArray(raw)) {
         const names = raw.
             map((id) => options.find((option) => option.id === id)?.name ?? String(id));
-        return {displayValue: names.join(', ')};
+        return {displayValue: names.join(', '), displayValues: names};
     }
 
     if (typeof raw !== 'string') {
-        return {displayValue: String(raw)};
+        const s = String(raw);
+        return {displayValue: s, displayValues: [s]};
     }
 
     const option = options.find((candidate) => candidate.id === raw);
     if (option) {
-        return {option, displayValue: option.name};
+        return {option, displayValue: option.name, displayValues: [option.name]};
     }
 
     // Text fields store the display string directly. A select field whose option
     // was deleted lands here too and renders the raw id, which is wrong but
     // visible — better than silently dropping a marking.
-    return {displayValue: raw};
+    return {displayValue: raw, displayValues: [raw]};
 }
 
 /**
