@@ -58,8 +58,6 @@ async function main() {
 
   const reviewers = personasWithScope('review');
   const alwaysOn = alwaysOnPersonaIds();
-  // Never offered to the model: they run regardless, so asking wastes tokens
-  // and invites the model to drop them.
   const candidates = reviewers.filter((p) => !alwaysOn.includes(p.id));
   const validIds = new Set(candidates.map((p) => p.id));
 

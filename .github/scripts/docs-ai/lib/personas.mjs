@@ -1,15 +1,3 @@
-/*
- * Persona registry.
- *
- * The registry is the set of files in .github/prompts/personas/. Each file
- * carries its own metadata in YAML frontmatter, so adding a persona means
- * adding one file — there is no array here to keep in sync.
- *
- * Everything downstream reads from this module: the router (which personas
- * exist and when they apply), the reviewer (the prompt), and later the gap
- * analysis (code_signals / docs_paths) and the writer (authoring lens).
- */
-
 import {readFileSync, readdirSync} from 'node:fs';
 import {basename, dirname, join} from 'node:path';
 import {fileURLToPath} from 'node:url';
@@ -22,11 +10,10 @@ const PROMPTS_DIR = join(GITHUB_DIR, 'prompts');
 const PERSONAS_DIR = join(PROMPTS_DIR, 'personas');
 
 const VALID_SCOPES = ['author', 'review', 'impact'];
-const FRONTMATTER = /^---\r?\n([\s\S]*?)\r?\n---\r?\n([\s\S]*)$/;
+const DELIMITER = '---';
 
 let cache = null;
 
-/** Every persona, sorted by id. Throws on a malformed or inconsistent file. */
 export function registry() {
   if (cache) return cache;
 
@@ -42,17 +29,30 @@ export function registry() {
   return cache;
 }
 
+function splitFrontmatter(raw) {
+  const lines = raw.split(/\r?\n/);
+  if (lines[0] !== DELIMITER) return null;
+
+  const close = lines.indexOf(DELIMITER, 1);
+  if (close === -1) return null;
+
+  return {
+    frontmatter: lines.slice(1, close).join('\n'),
+    body: lines.slice(close + 1).join('\n'),
+  };
+}
+
 function parsePersona(file) {
   const path = join(PERSONAS_DIR, file);
   const raw = readFileSync(path, 'utf8');
 
-  const match = raw.match(FRONTMATTER);
-  if (!match) {
+  const split = splitFrontmatter(raw);
+  if (!split) {
     throw new Error(`${file}: missing YAML frontmatter delimited by --- lines`);
   }
 
-  const meta = yaml.load(match[1]);
-  const prompt = match[2].trim();
+  const meta = yaml.load(split.frontmatter);
+  const prompt = split.body.trim();
 
   if (!meta || typeof meta !== 'object') {
     throw new Error(`${file}: frontmatter did not parse to an object`);
@@ -111,11 +111,6 @@ export function getPersona(id) {
   return persona;
 }
 
-/**
- * Personas the router is not allowed to exclude. brand-voice owns style and
- * version anchoring, which apply to every page regardless of audience, so it
- * runs unconditionally rather than being selected.
- */
 export function alwaysOnPersonaIds() {
   return personasWithScope('review')
     .filter((p) => /always applies/i.test(p.routerHints))
@@ -130,13 +125,6 @@ export function reviewContract() {
   return readFileSync(join(PROMPTS_DIR, 'review-contract.md'), 'utf8').trim();
 }
 
-/**
- * System prompt blocks for a review call.
- *
- * Returned as three separate blocks so the shared prefix (conventions +
- * contract) is byte-identical across every persona in a run and hits the
- * prompt cache; only the third block differs per persona.
- */
 export function reviewSystemBlocks(id) {
   const persona = getPersona(id);
   return [
