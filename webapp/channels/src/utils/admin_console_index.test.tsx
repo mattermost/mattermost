@@ -41,6 +41,13 @@ describe('AdminConsoleIndex.generateIndex', () => {
             'site_config/customization',
             'authentication/password',
         ]);
+        expect(idx.search('deactivation')).toEqual([
+            'authentication/saml',
+            'site_config/users_and_teams',
+        ]);
+        expect(idx.search('away')).toEqual([
+            'site_config/users_and_teams',
+        ]);
         expect(idx.search('typing')).toEqual([
             'experimental/features',
             'site_config/posts',

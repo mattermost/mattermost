@@ -4,7 +4,7 @@
 // Single place to check and bump every image.
 // The Mattermost server's default is overridable via the SERVER_IMAGE env var (testConfig.serverImage).
 export const MATTERMOST_SERVER_IMAGE = 'mattermostdevelopment/mattermost-enterprise-edition:master';
-export const POSTGRES_IMAGE = 'postgres:14';
+export const POSTGRES_IMAGE = 'postgres:15';
 export const INBUCKET_IMAGE = 'inbucket/inbucket:3.1.1';
 export const OPENLDAP_IMAGE = 'osixia/openldap:1.4.0';
 export const KEYCLOAK_IMAGE = 'quay.io/keycloak/keycloak:23.0.7';
