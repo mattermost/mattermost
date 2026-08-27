@@ -5,9 +5,10 @@ export {test, expect, PlaywrightExtended} from './test_fixture';
 export type {ExtendedFixtures} from './test_fixture';
 export {testConfig, TESTCONTAINERS_SERVICE_NAMES} from './test_config';
 export type {TestContainersServiceName} from './test_config';
+export {getUpgradeFromServerImage, isUpgradeFromProjectSelected, UPGRADE_FROM_SERVER_IMAGE_ENV} from './upgrade_env';
 export {baseGlobalSetup} from './global_setup';
 export {TestBrowser} from './browser_context';
-export {getBlobFromAsset, getFileFromAsset} from './file';
+export {assetPath, getBlobFromAsset, getFileFromAsset} from './file';
 export {setupFileServer} from './file_server';
 export {decomposeKorean, koreanTestPhrase, typeHangulCharacterWithIme, typeHangulWithIme} from './ime';
 export {type SizeObservation, type SizeWatcher, watchElementSize} from './layout_shift';
@@ -42,10 +43,12 @@ export {
     ensureAzurite,
     listAzuriteBlobNames,
     ensureLocalFile,
+    listLocalStorageFiles,
     ensurePostgresSearch,
     ensureFeatureFlag,
     runMmctl,
     ensureMmctl,
+    upgradeServerImage,
 } from './server';
 export type {InbucketEmail, LdapUser, KeycloakUser, MmctlResult} from './server';
 
@@ -65,6 +68,7 @@ export {
 
 export {
     components,
+    AboutBuildModal,
     GlobalHeader,
     SearchBox,
     ChannelsCenterView,

@@ -54,7 +54,7 @@ test('MM-T94 RHS fetches messages on reconnect while a different channel is in c
 /**
  * @objective Verify channel short-linking still works when the channel reference is surrounded by brackets.
  */
-test('MM-T175 Channel short-linking still works when placed in brackets', async ({pw}) => {
+test('MM-T175 Channel short-linking still works when placed in brackets', {tag: ['@upgrade']}, async ({pw}) => {
     const {adminClient, team, user} = await pw.initSetup();
     const linkedChannel = await adminClient.createPublicChannel(team.id, 'Shortlink Target');
     await adminClient.addToChannel(user.id, linkedChannel.id);

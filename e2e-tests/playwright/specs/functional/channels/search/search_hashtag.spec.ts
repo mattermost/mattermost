@@ -6,7 +6,7 @@ import {expect, test} from '@mattermost/playwright-lib';
 /**
  * @objective Verify that hashtag search is not case sensitive and returns all case variants of a hashtag.
  */
-test('MM-T359 returns all case variants when searching a hashtag', {tag: '@search'}, async ({pw}) => {
+test('MM-T359 returns all case variants when searching a hashtag', {tag: ['@search', '@upgrade']}, async ({pw}) => {
     // # Create and log in as a test user
     const {user, team} = await pw.initSetup();
     const {channelsPage} = await pw.testBrowser.login(user);

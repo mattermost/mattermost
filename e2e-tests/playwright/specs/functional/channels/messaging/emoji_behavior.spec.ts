@@ -6,7 +6,7 @@ import {expect, test} from '@mattermost/playwright-lib';
 /**
  * @objective Verify selecting an emoji from the picker inserts it at the current caret position.
  */
-test('MM-T95 Selecting an emoji from emoji picker should insert it at the cursor position', async ({pw}) => {
+test('MM-T95 Selecting an emoji from emoji picker should insert it at the cursor position', {tag: ['@upgrade']}, async ({pw}) => {
     const {user, team} = await pw.initSetup();
 
     // # Log in and place the caret between "Hello" and "World"

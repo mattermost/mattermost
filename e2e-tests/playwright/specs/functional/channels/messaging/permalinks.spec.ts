@@ -6,7 +6,7 @@ import {expect, test} from '@mattermost/playwright-lib';
 /**
  * @objective Verify that clicking a post timestamp in the RHS or center channel highlights the post in the center channel.
  */
-test('MM-T176 highlights the center post when its timestamp is clicked', {tag: '@messaging'}, async ({pw}) => {
+test('MM-T176 highlights the center post when its timestamp is clicked', {tag: ['@messaging', '@upgrade']}, async ({pw}) => {
     // # Create and log in as a test user
     const {user, team} = await pw.initSetup();
     const {channelsPage, page} = await pw.testBrowser.login(user);

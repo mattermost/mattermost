@@ -7,6 +7,7 @@ import type {StartedTestContainer} from 'testcontainers';
 import {
     INBUCKET_ALIAS,
     INBUCKET_SMTP_PORT,
+    LOCAL_STORAGE_DIR,
     MATTERMOST_ALIAS,
     MATTERMOST_PORT,
     POSTGRES_ALIAS,
@@ -89,6 +90,12 @@ export async function startMattermostContainer(
             .withExtraHosts([{host: 'host.docker.internal', ipAddress: 'host-gateway'}])
             .withExposedPorts(MATTERMOST_PORT)
             .withEnvironment(env)
+            // Bind-mounted unconditionally so local-disk FileSettings data (server/build/Dockerfile's
+            // VOLUME ["/mattermost/data", ...]) survives restartMattermostContainer()'s docker rm -f
+            // instead of being discarded with the anonymous volume Docker would otherwise create.
+            // Harmless — just an unused empty directory — when a different FileSettings backend
+            // (Minio/Azurite) is active.
+            .withBindMounts([{source: LOCAL_STORAGE_DIR, target: '/mattermost/data', mode: 'rw'}])
             .withStartupTimeout(5 * 60_000)
             .withWaitStrategy(
                 Wait.forAll([

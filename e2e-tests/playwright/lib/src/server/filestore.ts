@@ -1,10 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import fs from 'node:fs';
+
 import {test} from '@playwright/test';
 import type {Client4} from '@mattermost/client';
 import type {UserProfile} from '@mattermost/types/users';
 
+import {LOCAL_STORAGE_DIR} from '../containers/constants';
 import {bootEnvMatches, restartMattermostContainer} from '../containers/stack';
 
 import {getAdminClient} from './init';
@@ -47,4 +50,17 @@ export async function ensureLocalFile(): Promise<void> {
     } catch (error) {
         test.skip(true, `Skipping test - local file storage check failed: ${String(error)}`);
     }
+}
+
+/**
+ * Lists every file under the bind-mounted local storage directory (see LOCAL_STORAGE_DIR),
+ * confirming the server actually wrote to disk — the same "check the backend itself, not just
+ * that the API says so" signal listMinioObjectKeys()/listAzuriteBlobNames() already provide for
+ * their own backends.
+ */
+export function listLocalStorageFiles(): string[] {
+    if (!fs.existsSync(LOCAL_STORAGE_DIR)) {
+        return [];
+    }
+    return fs.readdirSync(LOCAL_STORAGE_DIR, {recursive: true}) as string[];
 }

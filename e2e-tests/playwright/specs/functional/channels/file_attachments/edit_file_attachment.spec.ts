@@ -8,7 +8,7 @@ import {test} from '@mattermost/playwright-lib';
 /**
  * @objective Verify that users can edit a post and modify its content
  */
-test('MM-T5654_1 should be able to add attachments while editing a post', {tag: '@smoke'}, async ({pw}) => {
+test('MM-T5654_1 should be able to add attachments while editing a post', {tag: ['@smoke', '@upgrade']}, async ({pw}) => {
     const originalMessage = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit';
 
     // # Initialize user and login

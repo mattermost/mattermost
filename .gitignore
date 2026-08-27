@@ -40,6 +40,9 @@ e2e-tests/playwright/playwright-report
 e2e-tests/playwright/storage_state
 e2e-tests/playwright/test-results
 e2e-tests/playwright/results
+e2e-tests/playwright/local_storage
+e2e-tests/playwright/.upgrade_baseline.json
+e2e-tests/playwright/.upgrade_plugin_bundle.tar.gz
 e2e-tests/playwright/specs/**/*-darwin.png
 e2e-tests/playwright/specs/**/*-window.png
 e2e-tests/playwright/specs/accessibility/**/*-snapshots

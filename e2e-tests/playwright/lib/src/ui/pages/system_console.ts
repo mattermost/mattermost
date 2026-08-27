@@ -120,4 +120,10 @@ export default class SystemConsolePage {
         await this.page.goto('/admin_console/plugins/plugin_management');
         await this.page.waitForLoadState('networkidle');
     }
+
+    async gotoEditionAndLicense() {
+        await this.page.goto('/admin_console/about/license');
+        await this.page.waitForLoadState('networkidle');
+        await this.editionAndLicense.toBeVisible();
+    }
 }

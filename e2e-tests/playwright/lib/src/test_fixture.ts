@@ -38,6 +38,7 @@ import {
     ensureAzurite,
     listAzuriteBlobNames,
     ensureLocalFile,
+    listLocalStorageFiles,
     ensurePostgresSearch,
     ensureFeatureFlag,
     generateLdapUser,
@@ -63,6 +64,7 @@ import {
     runMmctl,
     ensureMmctl,
     updateLdapUser,
+    upgradeServerImage,
 } from './server';
 import {
     toBeFocusedWithFocusVisible,
@@ -159,11 +161,15 @@ export class PlaywrightExtended {
     readonly ensureMinio;
     readonly ensureAzurite;
     readonly ensureLocalFile;
+    readonly listLocalStorageFiles;
     readonly ensurePostgresSearch;
     readonly ensureFeatureFlag;
     readonly listAzuriteBlobNames;
     readonly runMmctl;
     readonly ensureMmctl;
+
+    // ./server/version
+    readonly upgradeServerImage;
 
     // ./test_action
     readonly toBeFocusedWithFocusVisible;
@@ -259,11 +265,15 @@ export class PlaywrightExtended {
         this.ensureMinio = ensureMinio;
         this.ensureAzurite = ensureAzurite;
         this.ensureLocalFile = ensureLocalFile;
+        this.listLocalStorageFiles = listLocalStorageFiles;
         this.ensurePostgresSearch = ensurePostgresSearch;
         this.ensureFeatureFlag = ensureFeatureFlag;
         this.listAzuriteBlobNames = listAzuriteBlobNames;
         this.runMmctl = runMmctl;
         this.ensureMmctl = ensureMmctl;
+
+        // ./server/version
+        this.upgradeServerImage = upgradeServerImage;
 
         // ./test_action
         this.toBeFocusedWithFocusVisible = toBeFocusedWithFocusVisible;

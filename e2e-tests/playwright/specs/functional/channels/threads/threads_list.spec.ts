@@ -6,7 +6,7 @@ import {test} from '@mattermost/playwright-lib';
 /**
  * @objective Verify that users can navigate through threads list using keyboard arrow keys
  */
-test('Should be able to change threads with arrow keys', {tag: '@smoke'}, async ({pw}, testInfo) => {
+test('Should be able to change threads with arrow keys', {tag: ['@smoke', '@upgrade']}, async ({pw}, testInfo) => {
     test.skip(testInfo.project.name === 'ipad');
 
     const {team, user} = await pw.initSetup();

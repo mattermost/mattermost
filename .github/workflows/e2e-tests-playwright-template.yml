@@ -319,6 +319,27 @@ jobs:
       - name: ci/prepare-playwright
         working-directory: e2e-tests/playwright
         run: npx playwright test --project=setup
+      # Rolling-upgrade coverage. Single-worker gated to avoid N× duplicated container churn
+      # across the matrix.
+      - name: ci/resolve-upgrade-matrix
+        id: upgrade-matrix
+        if: matrix.worker_index == 0
+        working-directory: e2e-tests/playwright
+        run: echo "versions=$(node script/resolve_upgrade_matrix.mjs)" >> "$GITHUB_OUTPUT"
+      - name: ci/upgrade-tests
+        if: matrix.worker_index == 0
+        working-directory: e2e-tests/playwright
+        run: |
+          # Same repo/edition SERVER_IMAGE already resolved to (see this workflow's top-level env),
+          # just swapped to each resolved from-version's patch tag.
+          IMAGE_REPO="${SERVER_IMAGE%:*}"
+          for FROM_VERSION in $(echo '${{ steps.upgrade-matrix.outputs.versions }}' | jq -r '.[]'); do
+            echo "::group::Upgrade from ${FROM_VERSION}"
+            PW_UPGRADE_FROM_SERVER_IMAGE="${IMAGE_REPO}:${FROM_VERSION}" \
+              npx playwright test --project=upgrade-from
+            npx playwright test --project=upgrade-to
+            echo "::endgroup::"
+          done
       - name: ci/dispatch-run
         uses: mattermost/mattermost-test-system-io/.github/actions/test-system-io-dispatch-run@1631d8fcea24f4545a0b3b7f77e41c2fe0be4418 # 2026-07-28
         with:

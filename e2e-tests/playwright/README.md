@@ -83,6 +83,69 @@ npm run playwright-ui
 >
 > The "setup" project runs the initial configuration tests in `specs/test_setup.ts` (ensuring plugins are loaded and server deployment is correct). These setup tests are typically run only once before other tests and may be unchecked for subsequent runs, though they can remain checked if needed.
 
+## Upgrade-path testing
+
+Boots an older server version against a real database, swaps the running server to a newer image in place (same network, same Postgres), and re-checks that everything still works: migrations completed, prior data survived, core functionality still works. Only supported in `testcontainers` mode, since "upgrade" means recreating the Mattermost container with a different image while leaving Postgres running.
+
+### How it works
+
+- **The swap.** `pw.upgradeServerImage(image)` (`lib/src/server/version.ts`) points `testConfig.serverImage` at a different image and calls the same `restartMattermostContainer()` used by `pw.ensureMinio()`/`pw.ensureFeatureFlag()`/etc. — stop the current Mattermost container, start a fresh one on the same network. Postgres, and anything else, is never touched, so its data survives the swap untouched.
+- **Two phases, each two projects** (`playwright.config.ts`): a tiny "swap" project that performs the version change, followed by a "run" project that executes that phase's tests.
+    - `upgrade-swap-from` → `upgrade-from`: swaps down to `PW_UPGRADE_FROM_SERVER_IMAGE`, then runs the from-phase tests.
+    - `upgrade-swap-to` → `upgrade-to`: swaps back up to `SERVER_IMAGE` (the same image every other project already tests against), then runs the to-phase tests.
+    - The two swap projects each depend only on `setup`, never on each other, so `upgrade-from` and `upgrade-to` stay independently runnable — running one never drags the other along.
+- **Test selection is tag-driven, not folder-driven.** Playwright's `--grep` only filters titles within whatever `testDir` already discovered, so `upgrade-from`/`upgrade-to`'s `testDir` stays the full `specs/` tree and tags do the actual filtering:
+    - `@upgrade-from` — specs only meaningful against the older version (`specs/upgrade/from/**`).
+    - `@upgrade-to` — specs only meaningful against the newer version (`specs/upgrade/to/**`).
+    - `@upgrade` — existing functional specs elsewhere in `specs/` that should run in _both_ phases. Currently tagged (core smoke across post/edit/search/threads/mentions/unreads/emoji/links):
+        - `message_priority/standard_priority.spec.ts`
+        - `mentions/multiple_mentions.spec.ts`
+        - `unreads_filter/unreads_filter.spec.ts`
+        - `threads/threads_list.spec.ts`
+        - `file_attachments/edit_file_attachment.spec.ts` (`MM-T5654_1`)
+        - `messaging/permalinks.spec.ts` (`MM-T176`)
+        - `search/search_hashtag.spec.ts` (`MM-T359`)
+        - `search/search_from_user.spec.ts` (`MM-T377`)
+        - `messaging/emoji_behavior.spec.ts` (`MM-T95`)
+        - `messaging/message_delivery_and_links.spec.ts` (`MM-T175`)
+    - A spec placed under `specs/upgrade/from/` or `specs/upgrade/to/` still needs its own tag — folder placement alone doesn't select it.
+- **Shared actors across phases.** `upgrade-from` and `upgrade-to` run as separate processes (separate `npx playwright test` invocations, locally or in CI), so they can't pass state to each other directly. `specs/upgrade/upgrade_fixtures.ts` uses fixed (non-random) team/user/channel names that both phases look up idempotently, plus a small `.upgrade_baseline.json` file (written by `upgrade-from`, read by `upgrade-to`) to compare the About modal's version string and locate a specific post by ID across the swap.
+- **Local file storage survives the swap too.** The Mattermost container's `/mattermost/data` is bind-mounted to a fixed `local_storage/` directory (`lib/src/containers/constants.ts`'s `LOCAL_STORAGE_DIR`) instead of Docker's default anonymous volume, which would otherwise be discarded along with the old container on every swap. Cleared only on a genuinely fresh boot, left alone when a later process adopts an already-running stack.
+
+### Run locally
+
+Leaves the stack up between the two commands so you can inspect it:
+
+```bash
+# First: boots fresh on SERVER_IMAGE (the to-image), then swaps down to the from-image.
+# Use a release-* tag (e.g. release-11.9) — patch tags like 11.9.1 are not published on Docker Hub.
+# Run `node script/resolve_upgrade_matrix.mjs` to see which tags CI uses.
+PW_UPGRADE_FROM_SERVER_IMAGE=mattermostdevelopment/mattermost-enterprise-edition:release-11.9 npm run test:upgrade:from
+
+# Second, in a separate terminal: adopts the still-running stack, swaps back up to SERVER_IMAGE
+npm run test:upgrade:to
+
+# Clean up when done
+npm run testcontainers:down
+```
+
+Both env vars can also be set once in a local `.env` file instead of on the command line.
+
+### CI
+
+CI doesn't test one fixed older version — it tests a rolling matrix: the last 3 minor releases, plus any release still within its Extended Support (ESR) window. `script/resolve_upgrade_matrix.mjs` resolves this at run time instead of it being hardcoded anywhere:
+
+- The current version and last-3-minors come from this checkout's own `server/public/model/version.go`.
+- Support-end dates and ESR status are fetched live from the published releases table on `master`, since those lapse as calendar time passes and a stale branch checkout shouldn't be trusted to reflect that.
+
+Run it standalone to see what it resolves to:
+
+```bash
+node script/resolve_upgrade_matrix.mjs
+```
+
+In `e2e-tests-playwright-template.yml`, the `ci/resolve-upgrade-matrix` + `ci/upgrade-tests` steps loop the swap/run sequence once per resolved version, right after the existing `ci/prepare-playwright` step and before `ci/dispatch-run` — so the same worker that finishes the last swap-up immediately continues into the full test suite against that now-upgraded server. Gated to a single matrix worker (`matrix.worker_index == 0`) to avoid every worker duplicating the same container churn for identical coverage.
+
 ## Visual Testing
 
 All visual tests must be placed in the `specs/visual/` directory and tagged with `@visual` in the test tags array. This organization ensures proper test discovery and execution patterns.

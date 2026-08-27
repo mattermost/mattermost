@@ -6,7 +6,7 @@ import {expect, test} from '@mattermost/playwright-lib';
 /**
  * @objective Verify that the "from:" search modifier autocompletes a username and returns that user's posts.
  */
-test('MM-T377 completes a from: user search from the autocomplete', {tag: '@search'}, async ({pw}) => {
+test('MM-T377 completes a from: user search from the autocomplete', {tag: ['@search', '@upgrade']}, async ({pw}) => {
     // # Create the test user plus another user who authors a post
     const {user, team, adminClient} = await pw.initSetup();
     const [author] = await adminClient.createUsers(team.id, 1, 'author');

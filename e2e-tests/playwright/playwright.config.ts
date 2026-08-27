@@ -3,7 +3,11 @@
 
 import {defineConfig, devices} from '@playwright/test';
 
-import {duration, testConfig} from '@mattermost/playwright-lib';
+import {duration, getUpgradeFromServerImage, isUpgradeFromProjectSelected, testConfig} from '@mattermost/playwright-lib';
+
+if (isUpgradeFromProjectSelected()) {
+    getUpgradeFromServerImage();
+}
 
 const chromeUse = {
     browserName: 'chromium' as const,
@@ -74,6 +78,29 @@ export default defineConfig({
                 viewport: {width: 1280, height: 1024},
             },
             dependencies: ['setup'],
+        },
+        // Upgrade-path testing: each phase is a "swap" project (changes the server version)
+        // followed by a "run" project (runs that phase's tagged tests). Both swap projects depend
+        // only on 'setup', so upgrade-from/upgrade-to stay independently runnable.
+        {name: 'upgrade-swap-from', testMatch: /upgrade_swap_from\.ts/, dependencies: ['setup']},
+        {
+            name: 'upgrade-from',
+            testDir: 'specs',
+            // `@upgrade(?!-)` so bare `@upgrade` does not also match `@upgrade-from` / `@upgrade-to`
+            // (`\b` alone treats `-` as a word boundary).
+            grep: /@upgrade-from\b|@upgrade(?!-)/,
+            dependencies: ['upgrade-swap-from'],
+            fullyParallel: false,
+            workers: 1,
+        },
+        {name: 'upgrade-swap-to', testMatch: /upgrade_swap_to\.ts/, dependencies: ['setup']},
+        {
+            name: 'upgrade-to',
+            testDir: 'specs',
+            grep: /@upgrade-to\b|@upgrade(?!-)/,
+            dependencies: ['upgrade-swap-to'],
+            fullyParallel: false,
+            workers: 1,
         },
     ],
     reporter: [

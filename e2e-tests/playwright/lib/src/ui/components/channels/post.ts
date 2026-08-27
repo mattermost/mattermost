@@ -15,6 +15,8 @@ export default class ChannelsPost {
 
     readonly body;
     readonly profileIcon;
+    readonly avatarImage;
+    readonly fileAttachmentList;
     readonly emoticon;
     readonly messageText;
     readonly editedIndicator;
@@ -35,6 +37,8 @@ export default class ChannelsPost {
         this.body = container.getByTestId('post-body');
 
         this.profileIcon = container.getByTestId('profile-icon');
+        this.avatarImage = this.profileIcon.locator('img.Avatar, img').first();
+        this.fileAttachmentList = container.getByTestId('fileAttachmentList');
         this.emoticon = container.locator('.emoticon');
         this.messageText = container.locator('.post-message__text p');
         this.editedIndicator = container.getByRole('button', {name: 'Edited'});
@@ -74,6 +78,49 @@ export default class ChannelsPost {
 
     async getProfileImage(username: string) {
         return this.profileIcon.getByAltText(`${username} profile image`);
+    }
+
+    /**
+     * True if the post header's avatar <img> actually loaded a real image (not broken/blank) —
+     * confirms a profile photo renders correctly, not just that the element exists in the DOM.
+     */
+    async hasLoadedAvatar(): Promise<boolean> {
+        await expect(this.avatarImage).toBeVisible();
+        return this.avatarImage.evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth > 0);
+    }
+
+    /**
+     * Locates a SENT post's rendered file-attachment thumbnail/link by filename — distinct from
+     * ChannelsPostCreate.waitUntilFilePreviewContains(), which only confirms the compose-time
+     * preview before the post is sent.
+     */
+    getFileAttachmentThumbnail(fileName: string): Locator {
+        const thumbnailName = `file thumbnail ${fileName}`;
+        // Newer builds wrap the thumbnail in a link; older builds render a plain img/figure.
+        return this.container
+            .getByRole('link', {name: thumbnailName})
+            .or(this.container.getByRole('img', {name: thumbnailName}));
+    }
+
+    /**
+     * Downloads a sent post's file attachment via its rendered download link, returning the local
+     * path the browser saved it to — confirms the file backend actually serves real content, not
+     * just that a download-looking link is present in the DOM.
+     */
+    async downloadAttachment(fileName: string): Promise<string> {
+        await expect(this.getFileAttachmentThumbnail(fileName)).toBeVisible();
+
+        const attachment = this.container.filter({hasText: fileName});
+        const downloadLink = attachment.getByRole('link', {name: 'download'});
+
+        const page = this.container.page();
+        const [download] = await Promise.all([page.waitForEvent('download'), downloadLink.click()]);
+
+        const downloadPath = await download.path();
+        if (!downloadPath) {
+            throw new Error(`Download of "${fileName}" failed — no local path returned.`);
+        }
+        return downloadPath;
     }
 
     /**

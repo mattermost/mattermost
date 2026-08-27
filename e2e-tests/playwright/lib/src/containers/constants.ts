@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import path from 'node:path';
+
 // Single source of truth for the fixed values every container/helper needs to agree on.
 // Kept separate from test_config.ts because these are not overridable — they're either
 // Testcontainers network aliases (only meaningful inside the Testcontainers network) or
@@ -66,3 +68,10 @@ export const OPENSEARCH_ADMIN_PASSWORD = 'Test@dmin_123';
 export const TESTCONTAINERS_LABEL_KEY = 'mm-playwright-testcontainers';
 export const TESTCONTAINERS_LABEL_VALUE = 'true';
 export const TESTCONTAINERS_LABELS = {[TESTCONTAINERS_LABEL_KEY]: TESTCONTAINERS_LABEL_VALUE};
+
+// Bind-mounted into every Mattermost container at /mattermost/data (mattermost_container.ts) so
+// local-disk file storage survives restartMattermostContainer()'s docker rm -f, which would
+// otherwise discard the anonymous VOLUME Docker creates for it. Fixed and repo-relative (not an
+// os.tmpdir()) so every process — including a later npm-script invocation or CI loop iteration —
+// resolves the same path independently, with nothing to persist through .env.testcontainers.
+export const LOCAL_STORAGE_DIR = path.resolve(process.cwd(), 'local_storage');

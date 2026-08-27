@@ -20,6 +20,7 @@ import {
     INBUCKET_WEB_PORT,
     KEYCLOAK_ALIAS,
     KEYCLOAK_PORT,
+    LOCAL_STORAGE_DIR,
     MATTERMOST_ALIAS,
     MATTERMOST_PORT,
     MINIO_ALIAS,
@@ -104,6 +105,15 @@ export async function startStack(): Promise<void> {
     // created will actually boot with, or a later restart could wrongly believe some stale
     // setting is already active and skip a restart it actually needs.
     testConfig.bootEnvOverrides = defaultBootEnv();
+
+    // Same reasoning for local-disk file storage: a fixed, repo-relative bind-mount directory
+    // (see LOCAL_STORAGE_DIR) persists across genuinely unrelated runs, unlike a fresh container's
+    // own storage, which always starts empty. Only reset on a real fresh boot — never on adoption
+    // (reuseExistingStack() already returned above in that case) — so an upgrade test's from-phase
+    // data survives into its to-phase.
+    fs.rmSync(LOCAL_STORAGE_DIR, {recursive: true, force: true});
+    fs.mkdirSync(LOCAL_STORAGE_DIR);
+    fs.chmodSync(LOCAL_STORAGE_DIR, 0o777);
 
     const network = await getNetwork();
 
