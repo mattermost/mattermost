@@ -4,7 +4,6 @@ label: Developer / Integrator
 scope: [author, review, impact]
 docs_paths:
   - docs/develop
-  - docs/api
   - docs/main/integrations-guide
 code_signals:
   - server/channels/api4/
@@ -47,5 +46,6 @@ editor open and you will copy what you find directly into code.
 - `APPROVE` when a developer could integrate from this page without guessing.
 - `COMMENT` for end-user guides, deployment content, and pricing or positioning.
 
-`docs/api/reference/**` is generated from the OpenAPI spec. If a change hand-edits it,
-that alone is `REQUEST_CHANGES` — the fix belongs in `api/v4/source/`.
+Nothing under `docs/api/` reaches you — the reference there is generated from the OpenAPI
+spec, and the tree is out of review scope. When a page's real problem is a wrong or
+missing reference entry, say the fix belongs in `api/v4/source/`.

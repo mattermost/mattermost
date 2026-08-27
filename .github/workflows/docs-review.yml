@@ -13,7 +13,7 @@ on:
     paths:
       - "docs/main/**"
       - "docs/develop/**"
-      - "docs/api/**"
+      - "!docs/main/agents/docs/**"
       - ".github/prompts/**"
       - ".github/scripts/docs-ai/**"
       - ".github/workflows/docs-review.yml"
@@ -22,7 +22,7 @@ on:
     paths:
       - "docs/main/**"
       - "docs/develop/**"
-      - "docs/api/**"
+      - "!docs/main/agents/docs/**"
       - ".github/prompts/**"
       - ".github/scripts/docs-ai/**"
       - ".github/workflows/docs-review.yml"
@@ -86,9 +86,14 @@ jobs:
           set -euo pipefail
           mkdir -p .docs-ai
 
-          git diff --name-only HEAD^1 HEAD -- docs/main docs/develop docs/api \
+          PATHSPEC=(
+            docs/main docs/develop
+            ':(exclude)docs/main/agents/docs'
+          )
+
+          git diff --name-only HEAD^1 HEAD -- "${PATHSPEC[@]}" \
             | grep -E '\.(mdx|md)$' > .docs-ai/files.txt || true
-          git diff HEAD^1 HEAD -- docs/main docs/develop docs/api > .docs-ai/pr.diff
+          git diff HEAD^1 HEAD -- "${PATHSPEC[@]}" > .docs-ai/pr.diff
 
           COUNT=$(wc -l < .docs-ai/files.txt | tr -d ' ')
           echo "Changed documentation pages: ${COUNT}"

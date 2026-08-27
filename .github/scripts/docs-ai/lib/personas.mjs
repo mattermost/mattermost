@@ -3,7 +3,6 @@ import {basename, dirname, join} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import yaml from 'js-yaml';
 
-// lib -> docs-ai -> scripts -> .github -> repo root
 const GITHUB_DIR = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..');
 const REPO_ROOT = join(GITHUB_DIR, '..');
 const PROMPTS_DIR = join(GITHUB_DIR, 'prompts');
@@ -42,11 +41,6 @@ function splitFrontmatter(raw) {
   };
 }
 
-/**
- * Validate one persona file's contents. Takes the text rather than reading it,
- * so the rules can be tested without adding fixture files to the personas
- * directory — that directory is the live registry, so anything in it is real.
- */
 export function parsePersona(file, raw) {
   const split = splitFrontmatter(raw);
   if (!split) {

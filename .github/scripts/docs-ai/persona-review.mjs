@@ -1,16 +1,4 @@
 #!/usr/bin/env node
-/*
- * Review a diff through one persona's lens and write a JSON verdict artifact.
- *
- * One persona per process so the workflow can fan them out in a matrix and a
- * single reviewer failing cannot take the others down. A failure here writes
- * an ERROR artifact and exits 0 — losing one reviewer is better than losing
- * the whole report.
- *
- *   node persona-review.mjs --persona brand-voice --diff pr.diff --out out/brand-voice.json \
- *     [--pr-title T] [--pr-body-file F]
- */
-
 import {readFileSync, writeFileSync, mkdirSync, existsSync} from 'node:fs';
 import {dirname} from 'node:path';
 import {complete, parseJson, usageLine} from './lib/anthropic.mjs';
@@ -26,13 +14,12 @@ function arg(name) {
   return i === -1 ? null : process.argv[i + 1];
 }
 
-/* Optional input: a missing PR body is not a reason to fail. */
 function readIfSet(name) {
   const path = arg(name);
   return path && existsSync(path) ? readFileSync(path, 'utf8') : null;
 }
 
-function buildUser({diff, prTitle, prBody}) {
+function buildUserPrompt({diff, prTitle, prBody}) {
   const parts = [DATA_NOTICE, ''];
 
   if (prTitle) parts.push(block('pull-request-title', prTitle, {maxChars: 500}), '');
@@ -47,7 +34,6 @@ function buildUser({diff, prTitle, prBody}) {
   return parts.join('\n');
 }
 
-/* Model output is untrusted: clamp it to the contract before it reaches a comment. */
 function normalize(parsed, persona) {
   const verdict = VERDICTS.includes(parsed?.verdict) ? parsed.verdict : 'COMMENT';
 
@@ -79,7 +65,7 @@ async function main() {
     const {text, usage} = await complete({
       model: MODEL,
       system: reviewSystemBlocks(id),
-      user: buildUser({
+      userPrompt: buildUserPrompt({
         diff: readFileSync(diffPath, 'utf8'),
         prTitle: arg('pr-title'),
         prBody: readIfSet('pr-body-file'),

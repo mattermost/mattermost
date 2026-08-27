@@ -1,16 +1,19 @@
-/*
- * Guards the persona frontmatter rules.
- *
- * registry.test.mjs checks the personas we ship; these check the rules those
- * personas are held to, by feeding parsePersona text directly. Fixture files
- * cannot go in the personas directory — that directory is the registry, so a
- * fixture in it would be a reviewer.
- */
-
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
+import {existsSync} from 'node:fs';
 import yaml from 'js-yaml';
-import {parsePersona} from './personas.mjs';
+import {
+  PERSONAS_DIR,
+  PROMPTS_DIR,
+  alwaysOnPersonaIds,
+  conventions,
+  getPersona,
+  parsePersona,
+  personaIds,
+  personasWithScope,
+  reviewContract,
+  reviewSystemBlocks,
+} from './personas.mjs';
 
 const VALID = {
   id: 'fixture',
@@ -151,4 +154,57 @@ test('a body containing a --- rule is not mistaken for frontmatter', () => {
   const persona = parsePersona('fixture.md', file(VALID, body));
 
   assert.equal(persona.prompt, body);
+});
+
+const EXPECTED = [
+  'brand-voice',
+  'developer-dx',
+  'economic-buyer',
+  'end-user',
+  'security-compliance',
+  'system-admin',
+];
+
+test('prompt directories resolve from this module', () => {
+  assert.ok(existsSync(PROMPTS_DIR), `${PROMPTS_DIR} does not exist`);
+  assert.ok(existsSync(PERSONAS_DIR), `${PERSONAS_DIR} does not exist`);
+});
+
+test('every persona file parses and validates', () => {
+  assert.deepEqual(personaIds(), EXPECTED);
+});
+
+test('all personas can review; a subset can author', () => {
+  assert.deepEqual(personasWithScope('review').map((p) => p.id), EXPECTED);
+
+  const authors = personasWithScope('author').map((p) => p.id);
+  assert.deepEqual(authors, ['developer-dx', 'end-user', 'security-compliance', 'system-admin']);
+});
+
+test('brand-voice is the only always-on persona', () => {
+  assert.deepEqual(alwaysOnPersonaIds(), ['brand-voice']);
+});
+
+test('review system prompt is three cacheable blocks ending with the persona', () => {
+  const blocks = reviewSystemBlocks('brand-voice');
+  assert.equal(blocks.length, 3);
+  for (const b of blocks) {
+    assert.equal(b.type, 'text');
+    assert.deepEqual(b.cache_control, {type: 'ephemeral'});
+  }
+  assert.equal(blocks[0].text, conventions());
+  assert.equal(blocks[1].text, reviewContract());
+  assert.equal(blocks[2].text, getPersona('brand-voice').prompt);
+});
+
+test('the shared prefix is identical across personas so it caches', () => {
+  const a = reviewSystemBlocks('end-user');
+  const b = reviewSystemBlocks('system-admin');
+  assert.equal(a[0].text, b[0].text);
+  assert.equal(a[1].text, b[1].text);
+  assert.notEqual(a[2].text, b[2].text);
+});
+
+test('an unknown persona id fails with the known ids listed', () => {
+  assert.throws(() => getPersona('nope'), /Unknown persona "nope".*brand-voice/s);
 });

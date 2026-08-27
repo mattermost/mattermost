@@ -70,7 +70,7 @@ async function main() {
       const {text, usage} = await complete({
         model: MODEL,
         system: buildSystem(candidates),
-        user: `${block('diff', diff)}\n\nWhich reviewers apply?`,
+        userPrompt: `${block('diff', diff)}\n\nWhich reviewers apply?`,
         maxTokens: 512,
         temperature: 0,
       });

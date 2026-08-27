@@ -5,7 +5,6 @@ scope: [review]
 docs_paths:
   - docs/main
   - docs/develop
-  - docs/api
 router_hints: >
   Always applies. Selected automatically for every documentation change and never
   excluded, because style, structure and version anchoring apply regardless of audience.
