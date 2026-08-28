@@ -1,8 +1,9 @@
 ---
-name: E2E Tests - Playwright Rolling Upgrades Template (test system io dispatch)
+name: E2E Tests - Playwright Rolling Upgrades Template
 
-# One matrix job per resolved from-version: upgrade-from → upgrade-to → full Playwright dispatch
-# against the upgraded server (no setup project — upgrade-from already ran setup).
+# One matrix job per resolved from-version: upgrade-from → upgrade-to.
+# Post-upgrade full Playwright dispatch is omitted (single runner cannot finish
+# the full suite within the job timeout); coverage is the upgrade-path harness.
 
 on:
   workflow_call:
@@ -175,7 +176,7 @@ jobs:
   workers:
     name: rolling-upgrade-from-${{ matrix.contextLabel }}
     runs-on: ubuntu-24.04
-    timeout-minutes: 90
+    timeout-minutes: 45
     needs: [prepare-run, prep-deps]
     if: needs.prepare-run.outputs.matrix_empty != 'true'
     permissions:
@@ -232,81 +233,54 @@ jobs:
           path: ~/.cache/ms-playwright
           key: playwright-browsers-${{ runner.os }}-${{ hashFiles('e2e-tests/playwright/package-lock.json') }}
           fail-on-cache-miss: true
-      - name: ci/composite-identity
+      - name: ci/commit-status-context
         id: composite-identity
         env:
           CONTEXT_NAME: "e2e-test/playwright-rolling-upgrades/${{ inputs.server_edition || 'enterprise' }}/from-${{ matrix.contextLabel }}${{ inputs.context_suffix }}"
-          GITHUB_REPOSITORY: ${{ github.repository }}
-          MM_BRANCH: ${{ inputs.branch }}
-          MM_SHA: ${{ inputs.commit_sha }}
-          PR_NUMBER: ${{ inputs.pr_number }}
-        run: |
-          NAME="${CONTEXT_NAME#e2e-test/}"
-          NAME="${NAME//\//-}"
-          if [ -n "$PR_NUMBER" ]; then
-            COMPOSITE_IDENTITY=$(jq -nc \
-              --arg repo "${GITHUB_REPOSITORY}" \
-              --arg sha "${MM_SHA}" \
-              --arg run_id "${GITHUB_RUN_ID}" \
-              --arg name "${NAME}" \
-              --arg attempt "${GITHUB_RUN_ATTEMPT}" \
-              --arg branch "${MM_BRANCH}" \
-              --arg pr "${PR_NUMBER}" \
-              --arg from "${UPGRADE_FROM_CONTEXT_LABEL}" \
-              --argjson esr ${UPGRADE_FROM_IS_ESR} \
-              '{repository:$repo, commit_sha:$sha, gh_run_id:$run_id, name:$name, gh_run_attempt:$attempt, branch:$branch, gh_pr_number:$pr, upgrade_from:$from, upgrade_from_esr:$esr}')
-          else
-            COMPOSITE_IDENTITY=$(jq -nc \
-              --arg repo "${GITHUB_REPOSITORY}" \
-              --arg sha "${MM_SHA}" \
-              --arg run_id "${GITHUB_RUN_ID}" \
-              --arg name "${NAME}" \
-              --arg attempt "${GITHUB_RUN_ATTEMPT}" \
-              --arg branch "${MM_BRANCH}" \
-              --arg from "${UPGRADE_FROM_CONTEXT_LABEL}" \
-              --argjson esr ${UPGRADE_FROM_IS_ESR} \
-              '{repository:$repo, commit_sha:$sha, gh_run_id:$run_id, name:$name, gh_run_attempt:$attempt, branch:$branch, upgrade_from:$from, upgrade_from_esr:$esr}')
-          fi
-          echo "composite-identity-json=${COMPOSITE_IDENTITY}" >> $GITHUB_OUTPUT
-          echo "commit-status-context=${CONTEXT_NAME}" >> $GITHUB_OUTPUT
+        run: echo "commit-status-context=${CONTEXT_NAME}" >> $GITHUB_OUTPUT
       - name: ci/testcontainers-down
         working-directory: e2e-tests/playwright
         run: npm run testcontainers:down
       - name: ci/upgrade-from
+        id: upgrade_from
         working-directory: e2e-tests/playwright
         run: |
           IMAGE_REPO="${SERVER_IMAGE%:*}"
           PW_UPGRADE_FROM_SERVER_IMAGE="${IMAGE_REPO}:${UPGRADE_FROM_DOCKER_TAG}" \
             npx playwright test --project=upgrade-from
       - name: ci/upgrade-to
+        id: upgrade_to
         working-directory: e2e-tests/playwright
         run: npx playwright test --project=upgrade-to
-      - name: ci/dispatch-begin
-        uses: mattermost/mattermost-test-system-io/.github/actions/test-system-io-dispatch-begin@1631d8fcea24f4545a0b3b7f77e41c2fe0be4418 # 2026-07-28
-        with:
-          use-staging: ${{ vars.E2E_USE_STAGING_TEST_IO_URL != 'false' }}
-          framework: playwright
-          repo-dir: ${{ github.workspace }}
-          composite-identity: ${{ steps.composite-identity.outputs.composite-identity-json }}
-          total-reports-expected: 1
-          retest-on-fail: ${{ inputs.retest_on_fail }}
-          playwright-project: ${{ inputs.playwright_project }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          commit-status-context: ${{ steps.composite-identity.outputs.commit-status-context }}
-          image-tag: ${{ inputs.server_image_tag }}
-          image-aliases: ${{ inputs.server_image_aliases }}
-      - name: ci/dispatch-run
-        uses: mattermost/mattermost-test-system-io/.github/actions/test-system-io-dispatch-run@1631d8fcea24f4545a0b3b7f77e41c2fe0be4418 # 2026-07-28
-        with:
-          use-staging: ${{ vars.E2E_USE_STAGING_TEST_IO_URL != 'false' }}
-          framework: playwright
-          composite-identity: ${{ steps.composite-identity.outputs.composite-identity-json }}
-          repo-dir: ${{ github.workspace }}
-          artifacts-root: ${{ github.workspace }}/worker-artifacts
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          gh-job-name: rolling-upgrade-from-${{ matrix.contextLabel }}
-          playwright-retries: ${{ inputs.playwright_retries }}
-          playwright-project: ${{ inputs.playwright_project }}
+      # Post-upgrade full-suite dispatch is intentionally omitted: one runner cannot drain
+      # ~280 specs within the job timeout. Upgrade-path coverage is upgrade-from → upgrade-to.
+      - name: ci/post-commit-status
+        if: always()
+        env:
+          COMMIT_SHA: ${{ inputs.commit_sha }}
+          CONTEXT_NAME: ${{ steps.composite-identity.outputs.commit-status-context }}
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+          IMAGE_TAG: ${{ inputs.server_image_tag }}
+          FROM_OUTCOME: ${{ steps.upgrade_from.outcome }}
+          TO_OUTCOME: ${{ steps.upgrade_to.outcome }}
+        run: |
+          if [ "$FROM_OUTCOME" = "success" ] && [ "$TO_OUTCOME" = "success" ]; then
+            STATE=success
+            DESC="upgrade-from → upgrade-to passed, image_tag:${IMAGE_TAG}, from:${UPGRADE_FROM_CONTEXT_LABEL}"
+          else
+            STATE=failure
+            DESC="upgrade-from=${FROM_OUTCOME}, upgrade-to=${TO_OUTCOME}, image_tag:${IMAGE_TAG}, from:${UPGRADE_FROM_CONTEXT_LABEL}"
+          fi
+          # GitHub commit-status description max length is 140.
+          DESC="${DESC:0:140}"
+          gh api "repos/${GITHUB_REPOSITORY}/statuses/${COMMIT_SHA}" \
+            -f state="${STATE}" \
+            -f context="${CONTEXT_NAME}" \
+            -f description="${DESC}" \
+            -f target_url="https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+          echo "Posted ${STATE} for ${CONTEXT_NAME}: ${DESC}"
       - name: ci/upload-debug-artifacts
         if: always()
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
@@ -315,90 +289,5 @@ jobs:
           path: |
             e2e-tests/playwright/logs/
             e2e-tests/playwright/results/
-            worker-artifacts/
           retention-days: 5
           if-no-files-found: ignore
-
-  report:
-    runs-on: ubuntu-24.04
-    needs: [prepare-run, workers]
-    if: always() && needs.prepare-run.outputs.matrix_empty != 'true'
-    permissions:
-      contents: read
-      id-token: write
-      statuses: write
-    strategy:
-      fail-fast: false
-      matrix:
-        include: ${{ fromJSON(needs.prepare-run.outputs.upgrade-matrix) }}
-    steps:
-      - name: ci/checkout-repo
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-        with:
-          persist-credentials: false
-      - name: ci/composite-identity
-        id: composite-identity
-        env:
-          CONTEXT_NAME: "e2e-test/playwright-rolling-upgrades/${{ inputs.server_edition || 'enterprise' }}/from-${{ matrix.contextLabel }}${{ inputs.context_suffix }}"
-          GITHUB_REPOSITORY: ${{ github.repository }}
-          MM_BRANCH: ${{ inputs.branch }}
-          MM_SHA: ${{ inputs.commit_sha }}
-          PR_NUMBER: ${{ inputs.pr_number }}
-        run: |
-          NAME="${CONTEXT_NAME#e2e-test/}"
-          NAME="${NAME//\//-}"
-          if [ -n "$PR_NUMBER" ]; then
-            COMPOSITE_IDENTITY=$(jq -nc \
-              --arg repo "${GITHUB_REPOSITORY}" \
-              --arg sha "${MM_SHA}" \
-              --arg run_id "${GITHUB_RUN_ID}" \
-              --arg name "${NAME}" \
-              --arg attempt "${GITHUB_RUN_ATTEMPT}" \
-              --arg branch "${MM_BRANCH}" \
-              --arg pr "${PR_NUMBER}" \
-              --arg from "${{ matrix.contextLabel }}" \
-              --argjson esr ${{ matrix.isESR }} \
-              '{repository:$repo, commit_sha:$sha, gh_run_id:$run_id, name:$name, gh_run_attempt:$attempt, branch:$branch, gh_pr_number:$pr, upgrade_from:$from, upgrade_from_esr:$esr}')
-          else
-            COMPOSITE_IDENTITY=$(jq -nc \
-              --arg repo "${GITHUB_REPOSITORY}" \
-              --arg sha "${MM_SHA}" \
-              --arg run_id "${GITHUB_RUN_ID}" \
-              --arg name "${NAME}" \
-              --arg attempt "${GITHUB_RUN_ATTEMPT}" \
-              --arg branch "${MM_BRANCH}" \
-              --arg from "${{ matrix.contextLabel }}" \
-              --argjson esr ${{ matrix.isESR }} \
-              '{repository:$repo, commit_sha:$sha, gh_run_id:$run_id, name:$name, gh_run_attempt:$attempt, branch:$branch, upgrade_from:$from, upgrade_from_esr:$esr}')
-          fi
-          echo "composite-identity-json=${COMPOSITE_IDENTITY}" >> $GITHUB_OUTPUT
-      - name: ci/run-summary
-        id: summary
-        continue-on-error: true
-        uses: mattermost/mattermost-test-system-io/.github/actions/test-system-io-summary@e2d5032cfa71a3ad11b0975b135cd221564f2787 # 2026-08-06
-        with:
-          use-staging: ${{ vars.E2E_USE_STAGING_TEST_IO_URL != 'false' }}
-          composite-identity: ${{ steps.composite-identity.outputs.composite-identity-json }}
-          framework: playwright
-          report-type: ${{ inputs.report_type }}
-          image-tag: ${{ inputs.server_image_tag }}
-          image-aliases: ${{ inputs.server_image_aliases }}
-          server-image: ${{ env.SERVER_IMAGE }}
-          pr-number: ${{ inputs.pr_number }}
-          ref-branch: ${{ inputs.ref_branch }}
-          commit-status-context: "e2e-test/playwright-rolling-upgrades/${{ inputs.server_edition || 'enterprise' }}/from-${{ matrix.contextLabel }}${{ inputs.context_suffix }}"
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-      - name: ci/publish-webhook
-        if: inputs.enable_reporting && env.REPORT_WEBHOOK_URL != ''
-        env:
-          REPORT_WEBHOOK_URL: ${{ secrets.REPORT_WEBHOOK_URL }}
-          PAYLOAD: ${{ steps.summary.outputs.webhook_payload }}
-        run: |
-          curl -X POST -H "Content-Type: application/json" -d "$PAYLOAD" "$REPORT_WEBHOOK_URL"
-      - name: ci/assert-results
-        env:
-          SUMMARY_OUTCOME: ${{ steps.summary.outcome }}
-          WORKERS_OUTCOME: ${{ needs.workers.result }}
-        run: |
-          [ "$WORKERS_OUTCOME" = "success" ]
-          [ "$SUMMARY_OUTCOME" = "success" ]

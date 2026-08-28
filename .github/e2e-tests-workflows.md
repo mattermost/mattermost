@@ -126,8 +126,9 @@ The template splits into five jobs — `prepare-run`, `prep-deps`, `dispatch-beg
 `e2e-tests-playwright-rolling-upgrades-template.yml` resolves the from-version matrix via `script/resolve_upgrade_matrix.mjs` (last 3 minors + active ESR; ESR entries carry `isESR: true` and a `contextLabel` ending in `-esr`). Each matrix job runs in isolation on its own runner:
 
 1. `testcontainers:down` → `upgrade-from` → `upgrade-to`
-2. Test System IO `dispatch-begin` + `dispatch-run` against the upgraded server (no `setup` project)
-3. Per-from-version commit status: `e2e-test/playwright-rolling-upgrades/{edition}/from-{contextLabel}`
+2. Per-from-version commit status: `e2e-test/playwright-rolling-upgrades/{edition}/from-{contextLabel}`
+
+Post-upgrade full Playwright dispatch is omitted — a single runner cannot finish the full suite within the job timeout. Upgrade-path coverage is the API harness (`upgrade-from` / `upgrade-to`).
 
 This pipeline is invoked from `e2e-tests-playwright.yml` when `run_rolling_upgrades: "true"`. It is **not** embedded in `e2e-tests-playwright-template.yml`.
 

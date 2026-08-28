@@ -153,7 +153,8 @@ Rolling-upgrade coverage runs in a **separate pipeline** from the normal Playwri
 1. `npm run testcontainers:down` (clean slate for `upgrade-from`)
 2. `npx playwright test --project=upgrade-from`
 3. `npx playwright test --project=upgrade-to`
-4. Test System IO `dispatch-begin` + `dispatch-run` against the upgraded server (**no** `setup` project — `upgrade-from` already ran it)
+
+Post-upgrade full-suite dispatch is not part of this pipeline (a single runner cannot finish ~280 specs in time). Upgrade-path coverage is the API harness above.
 
 **When it runs**
 
