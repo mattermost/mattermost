@@ -1338,7 +1338,7 @@ export async function getPolicyIdByName(
 /**
  * Create a permission policy using the CEL (Advanced) editor.
  * Caller must already be on the Permission Policies list page.
- * Available permissions: 'download_file_attachment' | 'upload_file_attachment'
+ * Available permissions: 'download_file_attachment' | 'upload_file_attachment' | 'view_channel'
  * Available roles: 'system_guest' | 'system_user' | 'system_admin'
  */
 export async function createPermissionPolicy(
@@ -1346,7 +1346,7 @@ export async function createPermissionPolicy(
     options: {
         name: string;
         celExpression: string;
-        permissions: Array<'Download Files' | 'Upload Files'>;
+        permissions: Array<'Download Files' | 'Upload Files' | 'View Channel'>;
         role?: 'system_guest' | 'system_user' | 'system_admin';
         adminClient?: Client4;
     },
@@ -1414,6 +1414,7 @@ export async function createPermissionPolicy(
     const permissionIdMap: Record<string, string> = {
         'Download Files': 'pp-add-permission-download_file_attachment',
         'Upload Files': 'pp-add-permission-upload_file_attachment',
+        'View Channel': 'pp-add-permission-view_channel',
     };
     for (const permission of options.permissions) {
         await page.getByRole('button', {name: 'Add permission'}).click();
@@ -1421,6 +1422,15 @@ export async function createPermissionPolicy(
     }
 
     await page.getByRole('button', {name: 'Save'}).last().click();
+
+    // A policy with View Channel shows a confirmation dialog before saving.
+    // File-only policies save straight through, so the dialog is optional.
+    if (options.permissions.includes('View Channel')) {
+        const confirmModal = page.locator('#view-channel-confirm-modal');
+        await confirmModal.waitFor({state: 'visible'});
+        await confirmModal.getByRole('button', {name: 'Save policy'}).click();
+    }
+
     await page.waitForLoadState('networkidle');
 }
 

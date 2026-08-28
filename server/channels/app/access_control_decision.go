@@ -19,6 +19,10 @@ type renderableActionConfig struct {
 	// FailClosedOnError returns denied+evaluated on subject-build or PDP errors
 	// rather than falling back to DefaultWhenInactive. Set for security-sensitive actions.
 	FailClosedOnError bool
+	// Enabled gates the action behind a feature flag. When it returns false
+	// the action is left out of discovery mode and rejected with 400 if asked
+	// for by name. A nil func means the action is always available.
+	Enabled func(*model.Config) bool
 }
 
 // renderableABACActions is the allowlist of ABAC actions that may be queried
@@ -36,6 +40,24 @@ var renderableABACActions = map[string]renderableActionConfig{
 		DefaultWhenInactive: true,
 		FailClosedOnError:   true,
 	},
+	model.AccessControlPolicyActionViewChannel: {
+		ResourceType:        model.AccessControlPolicyTypeChannel,
+		DefaultWhenInactive: true,
+		FailClosedOnError:   true,
+		Enabled: func(cfg *model.Config) bool {
+			return cfg.FeatureFlags.IsViewChannelABACPermissionEnabled()
+		},
+	},
+}
+
+// renderableActionEnabled reports whether the action is available right now.
+// Unregistered actions never are.
+func renderableActionEnabled(action string, cfg *model.Config) bool {
+	c, ok := renderableABACActions[action]
+	if !ok {
+		return false
+	}
+	return c.Enabled == nil || c.Enabled(cfg)
 }
 
 // SearchAllowedActionsForCurrentUser computes non-authoritative, render-time ABAC
@@ -67,10 +89,11 @@ func (a *App) SearchAllowedActionsForCurrentUser(rctx request.CTX, req model.Act
 	// Discovery mode: collect registry entries for the resource type, then sort for
 	// deterministic wire output — Go map iteration is non-deterministic.
 	// Targeted mode: validate each requested action against the registry.
+	appCfg := a.Config()
 	var candidates []string
 	if len(req.Actions) == 0 {
 		for action, cfg := range renderableABACActions {
-			if cfg.ResourceType == req.Resource.Type {
+			if cfg.ResourceType == req.Resource.Type && renderableActionEnabled(action, appCfg) {
 				candidates = append(candidates, action)
 			}
 		}
@@ -78,7 +101,7 @@ func (a *App) SearchAllowedActionsForCurrentUser(rctx request.CTX, req model.Act
 	} else {
 		for _, action := range req.Actions {
 			cfg, ok := renderableABACActions[action]
-			if !ok || cfg.ResourceType != req.Resource.Type {
+			if !ok || cfg.ResourceType != req.Resource.Type || !renderableActionEnabled(action, appCfg) {
 				return nil, model.NewAppError("SearchAllowedActionsForCurrentUser", "app.access_control_decision.unsupported_action.app_error", map[string]any{"Action": action}, "", http.StatusBadRequest)
 			}
 		}

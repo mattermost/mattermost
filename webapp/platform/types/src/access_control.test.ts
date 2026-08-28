@@ -1,7 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {getMembershipRule, buildRulesWithMembership, combineMembershipExpressions} from './access_control';
+import {
+    ACCESS_CONTROL_ACTION_DOWNLOAD_FILE,
+    ACCESS_CONTROL_ACTION_MEMBERSHIP,
+    ACCESS_CONTROL_ACTION_UPLOAD_FILE,
+    ACCESS_CONTROL_ACTION_VIEW_CHANNEL,
+    ACCESS_CONTROL_PERMISSION_ACTIONS,
+    buildRulesWithMembership,
+    buildRulesWithPermissionRules,
+    combineMembershipExpressions,
+    getMembershipRule,
+    getPermissionRules,
+    hasOverlappingPermissionRules,
+} from './access_control';
 import type {AccessControlPolicyRule} from './access_control';
 
 describe('combineMembershipExpressions', () => {
@@ -112,5 +124,73 @@ describe('buildRulesWithMembership', () => {
         expect(result).toEqual([
             {actions: ['membership'], expression: 'expr'},
         ]);
+    });
+});
+
+describe('view_channel as a permission action', () => {
+    test('is part of the permission action set', () => {
+        expect(ACCESS_CONTROL_PERMISSION_ACTIONS).toContain(ACCESS_CONTROL_ACTION_VIEW_CHANNEL);
+        expect(ACCESS_CONTROL_ACTION_VIEW_CHANNEL).toBe('view_channel');
+    });
+
+    test('getPermissionRules picks up view_channel rules', () => {
+        const rules: AccessControlPolicyRule[] = [
+            {actions: [ACCESS_CONTROL_ACTION_MEMBERSHIP], expression: 'membership_expr'},
+            {name: 'View', role: 'channel_user', actions: [ACCESS_CONTROL_ACTION_VIEW_CHANNEL], expression: 'view_expr'},
+        ];
+        expect(getPermissionRules(rules)).toEqual([
+            {name: 'View', role: 'channel_user', actions: [ACCESS_CONTROL_ACTION_VIEW_CHANNEL], expression: 'view_expr'},
+        ]);
+    });
+
+    test('hasOverlappingPermissionRules detects two view_channel rules for the same role', () => {
+        const overlapping: AccessControlPolicyRule[] = [
+            {name: 'A', role: 'channel_user', actions: [ACCESS_CONTROL_ACTION_VIEW_CHANNEL], expression: 'a'},
+            {name: 'B', role: 'channel_user', actions: [ACCESS_CONTROL_ACTION_VIEW_CHANNEL], expression: 'b'},
+        ];
+        expect(hasOverlappingPermissionRules(overlapping)).toBe(true);
+
+        const distinct: AccessControlPolicyRule[] = [
+            {name: 'A', role: 'channel_user', actions: [ACCESS_CONTROL_ACTION_VIEW_CHANNEL], expression: 'a'},
+            {name: 'B', role: 'channel_guest', actions: [ACCESS_CONTROL_ACTION_VIEW_CHANNEL], expression: 'b'},
+        ];
+        expect(hasOverlappingPermissionRules(distinct)).toBe(false);
+    });
+
+    test('buildRulesWithPermissionRules replaces view_channel rules and keeps membership', () => {
+        const existing: AccessControlPolicyRule[] = [
+            {actions: [ACCESS_CONTROL_ACTION_MEMBERSHIP], expression: 'membership_expr'},
+            {name: 'Old view', role: 'channel_user', actions: [ACCESS_CONTROL_ACTION_VIEW_CHANNEL], expression: 'old'},
+            {name: 'Old upload', role: 'channel_user', actions: [ACCESS_CONTROL_ACTION_UPLOAD_FILE], expression: 'old'},
+        ];
+        const replacement: AccessControlPolicyRule[] = [
+            {name: 'New view', role: 'channel_admin', actions: [ACCESS_CONTROL_ACTION_VIEW_CHANNEL], expression: 'new'},
+        ];
+        expect(buildRulesWithPermissionRules(existing, replacement)).toEqual([
+            {actions: [ACCESS_CONTROL_ACTION_MEMBERSHIP], expression: 'membership_expr'},
+            {name: 'New view', role: 'channel_admin', actions: [ACCESS_CONTROL_ACTION_VIEW_CHANNEL], expression: 'new'},
+        ]);
+    });
+
+    test('buildRulesWithMembership preserves a view_channel rule', () => {
+        const existing: AccessControlPolicyRule[] = [
+            {actions: [ACCESS_CONTROL_ACTION_MEMBERSHIP], expression: 'old_membership'},
+            {name: 'View', role: 'channel_user', actions: [ACCESS_CONTROL_ACTION_VIEW_CHANNEL], expression: 'view_expr'},
+        ];
+        expect(buildRulesWithMembership(existing, 'new_membership')).toEqual([
+            {actions: [ACCESS_CONTROL_ACTION_MEMBERSHIP], expression: 'new_membership'},
+            {name: 'View', role: 'channel_user', actions: [ACCESS_CONTROL_ACTION_VIEW_CHANNEL], expression: 'view_expr'},
+        ]);
+    });
+
+    test('a rule mixing view_channel with a file action counts once per action', () => {
+        const rules: AccessControlPolicyRule[] = [{
+            name: 'Managed devices',
+            role: 'channel_user',
+            actions: [ACCESS_CONTROL_ACTION_VIEW_CHANNEL, ACCESS_CONTROL_ACTION_DOWNLOAD_FILE],
+            expression: 'expr',
+        }];
+        expect(getPermissionRules(rules)).toHaveLength(1);
+        expect(hasOverlappingPermissionRules(rules)).toBe(false);
     });
 });

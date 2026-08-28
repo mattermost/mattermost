@@ -35,6 +35,7 @@ const ROLE_LABELS: Record<string, string> = {
 const ACTION_LABELS: Record<string, string> = {
     download_file_attachment: 'Download Files',
     upload_file_attachment: 'Upload Files',
+    view_channel: 'View Channel',
 };
 
 function getActionsLabel(policy: AccessControlPolicy): string {
@@ -319,7 +320,7 @@ export default function PermissionPolicyList(props: Props): JSX.Element {
                     <p>
                         <FormattedMessage
                             id='admin.permission_policies.description'
-                            defaultMessage='Create policies to control file upload and download permissions based on user attributes.'
+                            defaultMessage='Create policies to control what users can do, based on their attributes.'
                         />
                     </p>
                 </div>
