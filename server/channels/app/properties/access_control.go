@@ -769,11 +769,15 @@ func (h *AccessControlHook) getAccessMode(field *model.PropertyField) string {
 }
 
 // hasUnrestrictedFieldReadAccess checks if the given caller can read a PropertyField without restrictions.
-// Returns true if the caller has unrestricted read access (public field or source plugin).
+// Returns true if the caller has unrestricted read access (public field, source plugin, or access control sync job).
 func (h *AccessControlHook) hasUnrestrictedFieldReadAccess(field *model.PropertyField, callerID string) bool {
 	accessMode := h.getAccessMode(field)
 
 	if accessMode == model.PropertyAccessModePublic {
+		return true
+	}
+
+	if callerID == model.CallerIDAccessControlSync {
 		return true
 	}
 

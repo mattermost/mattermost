@@ -16,8 +16,8 @@ const AccessControlCallerIDContextKey AccessControlContextKey = "access_control_
 // SCIM plugin) can subdivide its access per external system (e.g. "entra").
 const AccessControlScopeContextKey AccessControlContextKey = "access_control_scope"
 
-// Well-known caller IDs for internal services that need to write property
-// values on synced fields. These are set on the request context by the
+// Well-known caller IDs for internal services that need privileged access to
+// property values on synced fields. These are set on the request context by the
 // respective sync services so that the access control hook can identify them.
 //
 // The "system:" prefix contains a colon, which is not a valid character in a
@@ -30,9 +30,10 @@ const AccessControlScopeContextKey AccessControlContextKey = "access_control_sco
 // Session().IsUnrestricted() is true, so the attribute validation hook's
 // permission checker can grant admin privileges without a user lookup.
 const (
-	CallerIDLDAPSync   = "system:ldap_sync"
-	CallerIDSAMLSync   = "system:saml_sync"
-	CallerIDLocalAdmin = "system:local_admin"
+	CallerIDLDAPSync          = "system:ldap_sync"
+	CallerIDSAMLSync          = "system:saml_sync"
+	CallerIDAccessControlSync = "system:access_control_sync"
+	CallerIDLocalAdmin        = "system:local_admin"
 )
 
 // WithCallerID adds the caller ID to a context.Context for access control purposes.
