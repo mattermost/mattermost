@@ -20,6 +20,7 @@ import {
     listAzuriteBlobNames,
     listLocalStorageFiles,
     listMinioObjectKeys,
+    mergeWithOnPremServerConfig,
     testConfig,
 } from '@mattermost/playwright-lib';
 
@@ -345,15 +346,40 @@ export async function assertLicensed(client: Client4): Promise<void> {
 
 /** Installs (if needed) and enables the upgrade demo plugin; asserts it is active. */
 export async function ensureUpgradePluginActive(request: APIRequestContext, client: Client4): Promise<void> {
-    // Demo plugin refuses to activate unless public links are enabled.
+    // Demo plugin activation needs SiteURL and plugin settings — upgrade-from uses getAdminClient()
+    // (not initSetup), so on-prem defaults are not applied unless we patch them here.
+    const merged = mergeWithOnPremServerConfig({
+        FileSettings: {EnablePublicLink: true},
+        ServiceSettings: {EnableGifPicker: true},
+        PluginSettings: {
+            Enable: true,
+            EnableUploads: true,
+            AllowInsecureDownloadURL: true,
+            Plugins: {
+                [UPGRADE_PLUGIN_ID]: {
+                    username: 'demouser',
+                    channelname: 'demo_plugin',
+                    lastname: 'User',
+                },
+            },
+            PluginStates: {
+                [UPGRADE_PLUGIN_ID]: {Enable: true},
+            },
+        },
+    } as Parameters<typeof mergeWithOnPremServerConfig>[0]);
+
     try {
         await client.patchConfig({
-            FileSettings: {
-                EnablePublicLink: true,
-            },
-        } as any);
+            FileSettings: merged.FileSettings,
+            ServiceSettings: merged.ServiceSettings,
+            PluginSettings: merged.PluginSettings,
+        });
     } catch {
-        // Older images may reject unknown file settings keys.
+        // Older from-images may reject unknown config keys — SiteURL + public links are the minimum.
+        await client.patchConfig({
+            FileSettings: {EnablePublicLink: true},
+            ServiceSettings: {SiteURL: testConfig.internalBaseURL},
+        } as Parameters<typeof client.patchConfig>[0]);
     }
 
     const bundlePath = await ensurePluginBundleDownloaded(request);
@@ -364,7 +390,7 @@ export async function ensureUpgradePluginActive(request: APIRequestContext, clie
         await client.uploadPlugin(fileData, true);
     }
 
-    const deadline = Date.now() + 30000;
+    const deadline = Date.now() + 90000;
     while (Date.now() < deadline) {
         const current = await getPluginStatus(client, UPGRADE_PLUGIN_ID);
         if (current.isActive) {
