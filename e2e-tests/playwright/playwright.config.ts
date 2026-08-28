@@ -30,9 +30,6 @@ const chromeUse = {
     viewport: {width: 1280, height: 1024},
 };
 
-/** Full-suite browser projects must not run upgrade-path specs (those use dedicated projects). */
-const upgradeWorkflowTestIgnore = /\/upgrade\//;
-
 export default defineConfig({
     globalSetup: './global_setup.ts',
     forbidOnly: testConfig.isCI,
@@ -82,13 +79,11 @@ export default defineConfig({
                 permissions: ['notifications', 'clipboard-read', 'clipboard-write'],
             },
             dependencies: ['setup'],
-            testIgnore: upgradeWorkflowTestIgnore,
         },
         {
             name: 'chrome',
             use: chromeUse,
             dependencies: ['setup'],
-            testIgnore: upgradeWorkflowTestIgnore,
         },
         {
             name: 'firefox',
@@ -98,21 +93,21 @@ export default defineConfig({
                 viewport: {width: 1280, height: 1024},
             },
             dependencies: ['setup'],
-            testIgnore: upgradeWorkflowTestIgnore,
         },
-        // upgrade-from runs setup once; upgrade-to adopts that stack and skips setup.
+        // Upgrade-path specs live under upgrade-specs/ (outside testDir) so Test System IO
+        // dispatch-begin does not register them in the full Playwright queue.
         {
             name: 'upgrade-from',
-            testDir: 'specs',
+            testDir: 'upgrade-specs',
             grep: /@upgrade-from\b/,
             dependencies: ['setup'],
             fullyParallel: false,
             workers: 1,
         },
-        {name: 'upgrade-swap-to', testMatch: /upgrade_swap_to\.ts/},
+        {name: 'upgrade-swap-to', testDir: 'upgrade-specs', testMatch: /upgrade_swap_to\.ts/},
         {
             name: 'upgrade-to',
-            testDir: 'specs',
+            testDir: 'upgrade-specs',
             grep: /@upgrade-to\b/,
             dependencies: ['upgrade-swap-to'],
             fullyParallel: false,
