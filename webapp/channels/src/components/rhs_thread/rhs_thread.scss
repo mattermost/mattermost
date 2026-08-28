@@ -10,7 +10,7 @@
     // In the thread panel it should grow to the full row width so overflow
     // calculation sees the correct available space.
     .ChannelAttributeLabels {
-        flex: 1 1 auto;
         min-width: 0;
+        flex: 1 1 auto;
     }
 }

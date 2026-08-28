@@ -31,9 +31,9 @@ $chip-gap: 4px; // keep in sync with CHIP_GAP in use_labels_overflow.ts
 
     &__overflow {
         display: inline-flex;
+        height: 16px;
         flex: 0 0 auto;
         align-items: center;
-        height: 16px;
         padding: 2px 6px;
         border: none;
         border-radius: 4px;

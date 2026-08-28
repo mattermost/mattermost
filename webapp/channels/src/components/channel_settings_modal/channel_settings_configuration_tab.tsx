@@ -190,12 +190,20 @@ function ChannelSettingsConfigurationTab({
     // Shown rather than stored: seeding it into form state would open the tab dirty.
     const attributeBannerColor = bannerDrivenByAttribute ? classificationBanner.classificationBanner?.background_color : undefined;
 
+    const selectedClassificationColor = useMemo((): string => {
+        const level = classification.levels.find((l) => l.id === selectedClassificationId);
+        return level?.color || '';
+    }, [classification.levels, selectedClassificationId]);
+
     // Mirrors the colour picker value exactly so the preview is always honest.
-    const previewBackgroundColor = (
-        bannerLockedByClassification ? selectedClassificationColor :
-            classificationIsBannerDesignated ? (classificationBanner.classificationBanner?.background_color || '') :
-                (updatedChannelBanner.background_color || attributeBannerColor || '')
-    ) || undefined;
+    let previewBackgroundColor: string | undefined;
+    if (bannerLockedByClassification) {
+        previewBackgroundColor = selectedClassificationColor || undefined;
+    } else if (classificationIsBannerDesignated) {
+        previewBackgroundColor = classificationBanner.classificationBanner?.background_color || undefined;
+    } else {
+        previewBackgroundColor = updatedChannelBanner.background_color || attributeBannerColor || undefined;
+    }
 
     const classificationOptions = useMemo(() => {
         return classification.levels.
@@ -216,11 +224,6 @@ function ChannelSettingsConfigurationTab({
             </LevelOptionLabel>
         );
     }, []);
-
-    const selectedClassificationColor = useMemo((): string => {
-        const level = classification.levels.find((l) => l.id === selectedClassificationId);
-        return level?.color || '';
-    }, [classification.levels, selectedClassificationId]);
 
     const initialClassificationState = useMemo(() => ({
         enabled: classificationBanner.hasClassification,
@@ -914,11 +917,7 @@ function ChannelSettingsConfigurationTab({
                                     <ColorInput
                                         id='channel_banner_banner_background_color_picker'
                                         onChange={handleBannerColorChange}
-                                        value={
-                                            bannerLockedByClassification ? selectedClassificationColor :
-                                                classificationIsBannerDesignated ? (classificationBanner.classificationBanner?.background_color || '') :
-                                                    (updatedChannelBanner.background_color || attributeBannerColor || '')
-                                        }
+                                        value={previewBackgroundColor ?? ''}
                                         isDisabled={bannerLockedByClassification || classificationIsBannerDesignated}
                                     />
                                 </div>
