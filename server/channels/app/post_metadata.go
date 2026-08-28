@@ -51,7 +51,11 @@ func (s *Server) initPostMetadata() {
 	})
 }
 
-func (a *App) PreparePostListForClient(rctx request.CTX, originalList *model.PostList) *model.PostList {
+func (a *App) PreparePostListForClient(rctx request.CTX, originalList *model.PostList, opts *model.PreparePostForClientOpts) *model.PostList {
+	if opts == nil {
+		opts = &model.PreparePostForClientOpts{}
+	}
+
 	list := &model.PostList{
 		Posts:                     make(map[string]*model.Post, len(originalList.Posts)),
 		Order:                     originalList.Order,
@@ -61,10 +65,13 @@ func (a *App) PreparePostListForClient(rctx request.CTX, originalList *model.Pos
 		FirstInaccessiblePostTime: originalList.FirstInaccessiblePostTime,
 	}
 
+	withheld := make(map[string]bool)
 	for id, originalPost := range originalList.Posts {
-		post := a.PreparePostForClientWithEmbedsAndImages(rctx, originalPost, &model.PreparePostForClientOpts{})
-
+		post, blanked := a.preparePostForClientWithEmbedsAndImages(rctx, originalPost, &model.PreparePostForClientOpts{})
 		list.Posts[id] = post
+		if blanked {
+			withheld[id] = true
+		}
 	}
 
 	if a.IsPostPriorityEnabled() {
@@ -82,6 +89,16 @@ func (a *App) PreparePostListForClient(rctx request.CTX, originalList *model.Pos
 	}
 
 	a.populatePostListTranslations(rctx, list)
+
+	if opts.PropertyGroupID != "" {
+		ordered := make([]*model.Post, 0, len(list.Order))
+		for _, id := range list.Order {
+			if p := list.Posts[id]; p != nil && !withheld[id] {
+				ordered = append(ordered, p)
+			}
+		}
+		a.hydratePropertyValues(rctx, ordered, opts.PropertyGroupID)
+	}
 
 	return list
 }

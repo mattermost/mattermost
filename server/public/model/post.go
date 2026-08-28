@@ -485,6 +485,9 @@ type GetPostsOptions struct {
 	// the app layer when the burn-on-read feature is enabled, so it adds no query
 	// overhead otherwise.
 	ExcludeExpiredBurnOnReadPosts bool
+	// IncludePropertyGroups names a single PSAv2 property group whose values should be hydrated
+	// onto each post's metadata. Empty means no hydration.
+	IncludePropertyGroups string
 }
 
 type PostCountOptions struct {

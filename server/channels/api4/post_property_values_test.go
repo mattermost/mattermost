@@ -180,3 +180,69 @@ func TestGetPostWithPropertyGroups(t *testing.T) {
 		assert.Empty(t, post.Metadata.PropertyValues)
 	})
 }
+
+func TestGetPostListWithPropertyGroups(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	// getPostsForChannel hydrates.
+	t.Run("returns values on channel posts", func(t *testing.T) {
+		th := setupPostPropertyTest(t)
+		field := th.createField(t, th.groupID, "priority")
+		th.setValue(t, th.groupID, th.BasicPost.Id, field.ID, `"high"`)
+
+		list, resp, err := th.Client.GetPostsForChannelWithOpts(context.Background(), th.BasicChannel.Id, "",
+			model.GetPostsOptions{Page: 0, PerPage: 60, IncludePropertyGroups: model.PostAttributesPropertyGroupName})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		post, ok := list.Posts[th.BasicPost.Id]
+		require.True(t, ok, "BasicPost should be in the page")
+		require.NotNil(t, post.Metadata)
+		require.Len(t, post.Metadata.PropertyValues, 1)
+		assert.Equal(t, field.ID, post.Metadata.PropertyValues[0].FieldID)
+	})
+
+	// getPostThread hydrates.
+	t.Run("returns values on post thread", func(t *testing.T) {
+		th := setupPostPropertyTest(t)
+		field := th.createField(t, th.groupID, "label")
+		th.setValue(t, th.groupID, th.BasicPost.Id, field.ID, `"urgent"`)
+
+		list, resp, err := th.Client.GetPostThreadWithOpts(context.Background(), th.BasicPost.Id, "",
+			model.GetPostsOptions{IncludePropertyGroups: model.PostAttributesPropertyGroupName})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		post, ok := list.Posts[th.BasicPost.Id]
+		require.True(t, ok, "root post should be in the thread")
+		require.NotNil(t, post.Metadata)
+		require.Len(t, post.Metadata.PropertyValues, 1)
+		assert.Equal(t, field.ID, post.Metadata.PropertyValues[0].FieldID)
+	})
+
+	// Parameter validation on list endpoints mirrors the single-post endpoint.
+	t.Run("parameter validation on list endpoint", func(t *testing.T) {
+		th := setupPostPropertyTest(t)
+
+		t.Run("more than one group is rejected", func(t *testing.T) {
+			_, resp, err := th.Client.GetPostsForChannelWithOpts(context.Background(), th.BasicChannel.Id, "",
+				model.GetPostsOptions{Page: 0, PerPage: 10, IncludePropertyGroups: model.PostAttributesPropertyGroupName + "," + model.BoardsPropertyGroupName})
+			require.Error(t, err)
+			CheckBadRequestStatus(t, resp)
+		})
+
+		t.Run("unknown group is a 404", func(t *testing.T) {
+			_, resp, err := th.Client.GetPostsForChannelWithOpts(context.Background(), th.BasicChannel.Id, "",
+				model.GetPostsOptions{Page: 0, PerPage: 10, IncludePropertyGroups: "nope"})
+			require.Error(t, err)
+			CheckNotFoundStatus(t, resp)
+		})
+
+		t.Run("a V1 group is rejected rather than returning nothing", func(t *testing.T) {
+			_, resp, err := th.Client.GetPostsForChannelWithOpts(context.Background(), th.BasicChannel.Id, "",
+				model.GetPostsOptions{Page: 0, PerPage: 10, IncludePropertyGroups: model.ContentFlaggingGroupName})
+			require.Error(t, err)
+			CheckNotFoundStatus(t, resp)
+		})
+	})
+}

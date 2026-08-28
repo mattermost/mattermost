@@ -3707,7 +3707,38 @@ func (c *Client4) GetPostThreadWithOpts(ctx context.Context, postID string, etag
 	if opts.Direction != "" {
 		values.Set("direction", opts.Direction)
 	}
+	if opts.IncludePropertyGroups != "" {
+		values.Set("include_property_groups", opts.IncludePropertyGroups)
+	}
 	r, err := c.doAPIGetWithQuery(ctx, c.postRoute(postID).Join("thread"), values, etag)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*PostList](r)
+}
+
+// GetPostsForChannelWithOpts gets a page of posts for a channel, applying every option the endpoint supports.
+func (c *Client4) GetPostsForChannelWithOpts(ctx context.Context, channelId, etag string, opts GetPostsOptions) (*PostList, *Response, error) {
+	values := url.Values{}
+	values.Set("page", strconv.Itoa(opts.Page))
+	values.Set("per_page", strconv.Itoa(opts.PerPage))
+	if opts.CollapsedThreads {
+		values.Set("collapsedThreads", "true")
+	}
+	if opts.SkipFetchThreads {
+		values.Set("skipFetchThreads", "true")
+	}
+	if opts.CollapsedThreadsExtended {
+		values.Set("collapsedThreadsExtended", "true")
+	}
+	if opts.IncludeDeleted {
+		values.Set("include_deleted", "true")
+	}
+	if opts.IncludePropertyGroups != "" {
+		values.Set("include_property_groups", opts.IncludePropertyGroups)
+	}
+	r, err := c.doAPIGetWithQuery(ctx, c.channelRoute(channelId).Join("posts"), values, etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}

@@ -737,6 +737,32 @@
           description: Filter posts by type.
           schema:
             type: string
+        - name: skipFetchThreads
+          in: query
+          description: Whether to skip fetching threads or not.
+          schema:
+            type: boolean
+            default: false
+        - name: collapsedThreads
+          in: query
+          description: Whether the client uses CRT or not.
+          schema:
+            type: boolean
+            default: false
+        - name: collapsedThreadsExtended
+          in: query
+          description: Whether to return the associated users as part of the response or not.
+          schema:
+            type: boolean
+            default: false
+        - name: include_property_groups
+          in: query
+          description: >
+            Comma-separated list of PSAv2 property group names whose values should be
+            hydrated onto each post's metadata. Currently only a single group name is
+            supported per request.
+          schema:
+            type: string
       responses:
         "200":
           description: Post list retrieval successful

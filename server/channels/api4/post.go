@@ -325,6 +325,11 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	propertyGroupID := resolvePropertyGroupParam(c, r)
+	if c.Err != nil {
+		return
+	}
+
 	var list *model.PostList
 	etag := ""
 
@@ -365,7 +370,7 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		w.Header().Set(model.HeaderEtagServer, etag)
 	}
 
-	clientPostList := c.App.PreparePostListForClient(c.AppContext, list)
+	clientPostList := c.App.PreparePostListForClient(c.AppContext, list, &model.PreparePostForClientOpts{PropertyGroupID: propertyGroupID})
 
 	// Calculate NextPostId and PrevPostId AFTER filtering (including BoR filtering)
 	// to ensure they only reference posts that are actually in the response
@@ -425,6 +430,11 @@ func getPostsForChannelAroundLastUnread(c *Context, w http.ResponseWriter, r *ht
 	collapsedThreads := r.URL.Query().Get("collapsedThreads") == "true"
 	collapsedThreadsExtended := r.URL.Query().Get("collapsedThreadsExtended") == "true"
 
+	propertyGroupID := resolvePropertyGroupParam(c, r)
+	if c.Err != nil {
+		return
+	}
+
 	postList, err := c.App.GetPostsForChannelAroundLastUnread(c.AppContext, channelId, userId, c.Params.LimitBefore, c.Params.LimitAfter, skipFetchThreads, collapsedThreads, collapsedThreadsExtended)
 	if err != nil {
 		c.Err = err
@@ -446,7 +456,7 @@ func getPostsForChannelAroundLastUnread(c *Context, w http.ResponseWriter, r *ht
 		}
 	}
 
-	clientPostList := c.App.PreparePostListForClient(c.AppContext, postList)
+	clientPostList := c.App.PreparePostListForClient(c.AppContext, postList, &model.PreparePostForClientOpts{PropertyGroupID: propertyGroupID})
 
 	// Calculate NextPostId and PrevPostId AFTER filtering (including BoR filtering)
 	// to ensure they only reference posts that are actually in the response
@@ -553,7 +563,7 @@ func getFlaggedPostsForUser(c *Context, w http.ResponseWriter, r *http.Request) 
 	}
 
 	pl.SortByCreateAt()
-	clientPostList := c.App.PreparePostListForClient(c.AppContext, pl)
+	clientPostList := c.App.PreparePostListForClient(c.AppContext, pl, nil)
 	clientPostList, isMemberForAllPreviews, err := c.App.SanitizePostListMetadataForUser(c.AppContext, clientPostList, c.AppContext.Session().UserId)
 	if err != nil {
 		c.Err = err
@@ -894,6 +904,11 @@ func getPostThread(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	propertyGroupID := resolvePropertyGroupParam(c, r)
+	if c.Err != nil {
+		return
+	}
+
 	opts := model.GetPostsOptions{
 		SkipFetchThreads:         r.URL.Query().Get("skipFetchThreads") == "true",
 		CollapsedThreads:         r.URL.Query().Get("collapsedThreads") == "true",
@@ -939,7 +954,7 @@ func getPostThread(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	clientPostList := c.App.PreparePostListForClient(c.AppContext, list)
+	clientPostList := c.App.PreparePostListForClient(c.AppContext, list, &model.PreparePostForClientOpts{PropertyGroupID: propertyGroupID})
 	clientPostList, isMemberForAllPreviews, err := c.App.SanitizePostListMetadataForUser(c.AppContext, clientPostList, c.AppContext.Session().UserId)
 	if err != nil {
 		c.Err = err
@@ -1040,7 +1055,7 @@ func searchPosts(c *Context, w http.ResponseWriter, r *http.Request, teamId stri
 		return
 	}
 
-	clientPostList := c.App.PreparePostListForClient(c.AppContext, results.PostList)
+	clientPostList := c.App.PreparePostListForClient(c.AppContext, results.PostList, nil)
 	clientPostList, isMemberForAllPreviews, err := c.App.SanitizePostListMetadataForUser(c.AppContext, clientPostList, c.AppContext.Session().UserId)
 	if err != nil {
 		c.Err = err
