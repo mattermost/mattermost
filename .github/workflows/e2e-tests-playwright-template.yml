@@ -424,7 +424,7 @@ jobs:
     steps:
       - name: ci/ai-flake-triage
         id: triage
-        uses: mattermost/mattermost-test-system-io/.github/actions/test-system-io-ai-triage@0a3d6a9bb5827d746252398cabee4621cb11aac5 # 2026-08-27, mattermost-test-system-io#101 (autofix)
+        uses: mattermost/mattermost-test-system-io/.github/actions/test-system-io-ai-triage@06d14861b423a97392500b7afe84248f6b5bf77b # 2026-08-27, mattermost-test-system-io#101 (autofix)
         with:
           # DEMO (AI triage verification): routed to staging — see the
           # dispatch-begin note in this template.
@@ -469,7 +469,7 @@ jobs:
           ref: ${{ inputs.commit_sha }}
           fetch-depth: 0
       - name: ci/ai-test-autofix
-        uses: mattermost/mattermost-test-system-io/.github/actions/test-system-io-ai-triage@0a3d6a9bb5827d746252398cabee4621cb11aac5 # 2026-08-27, mattermost-test-system-io#101 (autofix)
+        uses: mattermost/mattermost-test-system-io/.github/actions/test-system-io-ai-triage@06d14861b423a97392500b7afe84248f6b5bf77b # 2026-08-27, mattermost-test-system-io#101 (autofix)
         with:
           use-staging: true
           composite-identity: ${{ needs.prepare-run.outputs.composite-identity-json }}
