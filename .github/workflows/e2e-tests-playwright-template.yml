@@ -452,9 +452,11 @@ jobs:
       vars.E2E_AI_TEST_AUTOFIX == 'push' &&
       needs.ai-triage.outputs.fixable_clusters != '' &&
       needs.ai-triage.outputs.fixable_clusters != '[]'
+    # The fixer pushes and comments with the GH_TOKEN PAT — a job in a reusable
+    # workflow cannot request more than the caller grants (contents: read), and
+    # GITHUB_TOKEN pushes would not trigger the validating CI run anyway.
     permissions:
-      contents: write
-      pull-requests: write
+      contents: read
     steps:
       - name: ci/checkout-for-autofix
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
