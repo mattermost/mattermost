@@ -1,14 +1,7 @@
-/* Branded callouts, styled to match the Docusaurus admonitions used
- * elsewhere in the docs: a tinted panel with a left accent bar and a
- * small icon + label header, rather than a separate visual language.
- *
- * The previous treatment set the label in Archivo Black 900 at 12px with
- * 0.14em tracking beside a 3.25rem denim slab. That display face is built
- * for headlines — at label size the heavy strokes and wide tracking made
- * short words like "IMPORTANT" hard to read, and the slab made a
- * one-sentence note as tall as a paragraph. Label now uses the body sans
- * at a size that can actually be read, and the accent colour carries the
- * kind instead of a full-height bar. */
+/* Branded callouts, styled to match the compact Docusaurus admonitions used
+ * elsewhere in the docs: a tinted panel with a left accent bar and a small
+ * icon + label header, instead of the previous 12px Archivo Black label
+ * next to a full-height denim slab. */
 
 .callout {
   margin: 1.5rem 0;
@@ -57,10 +50,8 @@
 .content > :last-child  { margin-bottom: 0; }
 .content p              { margin: 0.5rem 0; line-height: 1.6; }
 
-/* Kind variants. Each sets the accent (border, icon, label) plus a tint
- * of the same hue for the panel; light-mode tints are pale enough to keep
- * body copy at full contrast, dark-mode fills are a real step up from the
- * page background so the panel edge stays visible. */
+/* Kind variants: each sets an accent color plus a tint of the same hue for
+ * the panel background. */
 
 .note {
   --callout-accent: #2E4B87;
@@ -84,7 +75,6 @@
   --callout-border: #2C7A4F;
 }
 
-/* Important = stronger emphasis than Note, softer than Warning. */
 .important {
   --callout-accent: #8A6200;
   --callout-bg: var(--mm-marigold-100);
@@ -96,7 +86,6 @@
   --callout-border: #7A6220;
 }
 
-/* Warning = stop sign. Bark treatment via the brand secondary palette. */
 .warning {
   --callout-accent: #6B4F2E;
   --callout-bg: #F6F1E9;

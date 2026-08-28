@@ -25,10 +25,8 @@ type Card = {
  */
 export default function CardGrid({cards, columns = 3}: {cards: Card[]; columns?: 2 | 3 | 4}) {
   return (
-    // The wrapper exists purely to establish a query container: how much
-    // room the grid has depends on the sidebar and TOC, not the viewport,
-    // so the column-count breakpoints in styles.module.css can't be
-    // expressed as media queries.
+    // Wrapper establishes a size query container for the column-count
+    // breakpoints in styles.module.css.
     <div className={styles.gridContainer}>
       <div className={`${styles.grid} ${styles[`cols${columns}`]}`}>
         {cards.map((c, i) => (

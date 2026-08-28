@@ -890,28 +890,21 @@ const ADMIN_SCALE_HIDDEN = new Set([]);
 // Guide roots — hub pages and top-level ordering.
 // ---------------------------------------------------------------------------
 //
-// Sphinx-era hub pages sit at a guide's root and summarize the sibling
-// directory next to them, so buildCategory emitted both: a standalone
-// "Compliance with Mattermost" doc AND a "Comply" category holding the very
-// pages it links to. Each entry below removes that standalone doc and makes
-// it the category's landing page instead, which is what a reader clicking
-// the category header expects to land on. Match the target category either
-// by the content directory it was built from (`dir`) or, for a category
-// created by a manual grouping override rather than the filesystem, by its
-// label (`label`).
+// Sphinx-era hub pages sit at a guide's root and duplicate the category for
+// the sibling directory they summarize (e.g. "Compliance with Mattermost"
+// next to "Comply"). Each entry folds the hub doc into its category as the
+// landing page instead. Match by content directory (`dir`) or, for a
+// category from a manual grouping override, by `label`.
 
 const ADMIN_HUB_PAGES = [
   {doc: 'administration-guide/compliance-with-mattermost', dir: 'comply'},
   {doc: 'administration-guide/upgrade-mattermost',         dir: 'upgrade'},
-  // Lives under Manage, not at the Administration Guide root — see
-  // ADMIN_MANAGE_GROUPS.cloudWorkspace.
+  // Nested under Manage — see ADMIN_MANAGE_GROUPS.cloudWorkspace.
   {doc: 'administration-guide/cloud-workspace-management', label: 'Cloud Workspace Management'},
 ];
 
 // Administration Guide top level, in order of operations rather than the
-// alphabetical order the filesystem gives: you configure a server, meet the
-// compliance bar, onboard users onto it, run it day to day, upgrade it, then
-// scale it.
+// filesystem's alphabetical order.
 const ADMIN_ROOT_ORDER = ['configure', 'comply', 'onboard', 'manage', 'upgrade', 'scale'];
 
 const ENDUSER_HUB_PAGES = [
@@ -1099,20 +1092,15 @@ function buildCategory(absDir, docsRelDir) {
   return {type: 'category', label, collapsed: true, ...(categoryLink ? {link: categoryLink} : {}), items};
 }
 
-// The content sub-directory an auto-generated category was built from
-// (e.g. 'comply' for administration-guide/comply/). Read off the category's
-// landing page when it has one, otherwise off its first doc — either way
-// the second path segment is the directory name.
-//
-// Only meaningful before attachHubPages runs: a hub page's id doesn't share
-// the directory it becomes the landing page for.
+// The content sub-directory a category was built from (e.g. 'comply' for
+// administration-guide/comply/), read off its landing page or first doc.
+// Must run before attachHubPages, which overwrites `link`.
 function categoryDirName(cat) {
   if (cat.link && cat.link.id) return cat.link.id.split('/')[1];
   const items = cat.items || [];
   const firstDoc = items.find((c) => c.type === 'doc' && c.id);
   if (firstDoc) return firstDoc.id.split('/')[1];
-  // A regrouped category (e.g. Onboard) holds nothing but sub-groups at its
-  // top level, so the directory name is only reachable further down.
+  // Regrouped categories (e.g. Onboard) hold only sub-groups at the top level.
   for (const it of items) {
     if (it.type !== 'category') continue;
     const nested = categoryDirName(it);
@@ -1131,10 +1119,8 @@ function findCategoryByLabel(items, label) {
   return null;
 }
 
-// Reorder a guide's top-level categories by the content directories they
-// were built from. Anything not named in `order` keeps its relative
-// position at the end, so a new directory shows up in the sidebar (and in
-// the warning below) instead of vanishing.
+// Reorder a guide's top-level categories by content directory. Anything not
+// named in `order` keeps its relative position at the end.
 function orderRootCategories(sectionCat, order, sectionLabel) {
   const rank = new Map(order.map((dir, i) => [dir, i]));
   const listed = [];
@@ -1160,10 +1146,8 @@ function orderRootCategories(sectionCat, order, sectionLabel) {
   return sectionCat;
 }
 
-// Drop each hub page's standalone entry from the guide root and hang it off
-// the category it duplicates as that category's landing page. Must run
-// after any reordering, since it overwrites the `link` that
-// categoryDirName reads.
+// Drop each hub page's standalone root entry and set it as the landing page
+// of the category it duplicates. Run after any reordering.
 function attachHubPages(sectionCat, hubs, sectionLabel) {
   for (const hub of hubs) {
     const target = hub.dir ?
@@ -1757,10 +1741,8 @@ function buildIntegrationsSidebar(autoCat) {
 //      groups defined in COLLABORATE_GROUPS above, the same
 //      manual-grouping-override pattern used for Administration Guide's
 //      Configure/Manage/Onboard/Scale sections.
-//   3. Folds the four root hub pages (Messaging Collaboration, Customize
-//      your preferences, Project and Task Management, Workflow Automation)
-//      into the landing pages of the categories they duplicate — see
-//      ENDUSER_HUB_PAGES.
+//   3. Folds the four root hub pages into the landing pages of the
+//      categories they duplicate — see ENDUSER_HUB_PAGES.
 // ---------------------------------------------------------------------------
 
 // Finds the {type: 'doc', id: docId} leaf anywhere in `items` and replaces

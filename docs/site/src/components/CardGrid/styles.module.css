@@ -8,12 +8,9 @@
   margin: 1.5rem 0 2.5rem;
 }
 
-/* The article column is only ~850px wide on a laptop once the sidebar and
- * TOC take their share, which left `repeat(auto-fit, minmax(200px, 1fr))`
- * squeezing four cards into one row of very tall, very narrow boxes — and
- * three-across for a four-card grid orphans the last card. Step the count
- * down explicitly instead, halving 4 to 2x2 and 3 to 2 before dropping to
- * a single column. */
+/* `repeat(auto-fit, minmax(200px, 1fr))` packed 4 cards into one tall, narrow
+ * row at typical article widths. Step the column count down explicitly
+ * instead, halving 4 to 2x2 and 3 to 2 before dropping to a single column. */
 .cols2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .cols3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .cols4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
@@ -30,9 +27,8 @@
   .cols4 { grid-template-columns: minmax(0, 1fr); }
 }
 
-/* Without container query support there's no way to read the grid's own
- * width, but the doc sidebar collapses below 997px so the viewport is a
- * close enough stand-in at the sizes that matter. */
+/* Fallback for browsers without container query support — viewport width is
+ * a reasonable stand-in since the doc sidebar collapses below 997px. */
 @supports not (container-type: inline-size) {
   @media (max-width: 996px) {
     .cols3,
