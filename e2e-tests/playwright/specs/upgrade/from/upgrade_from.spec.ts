@@ -1,188 +1,136 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test, testConfig} from '@mattermost/playwright-lib';
+import {test} from '@mattermost/playwright-lib';
 
 import {
-    UPGRADE_ADMIN_ATTACHMENT_MESSAGE,
     UPGRADE_ADMIN_AVATAR_MESSAGE,
     UPGRADE_ADMIN_DM_MESSAGE,
     UPGRADE_ADMIN_GM_MESSAGE,
     UPGRADE_ADMIN_PRIVATE_MESSAGE,
     UPGRADE_ADMIN_PUBLIC_MESSAGE,
     UPGRADE_ADMIN_SEARCH_MESSAGE,
-    UPGRADE_ATTACHMENT_FILE,
-    UPGRADE_AZURITE_ATTACHMENT_FILE,
     UPGRADE_DM_MESSAGE,
     UPGRADE_GM_MESSAGE,
-    UPGRADE_MINIO_ATTACHMENT_FILE,
-    UPGRADE_PEER_USERS,
-    UPGRADE_PRIVATE_CHANNEL_NAME,
     UPGRADE_PRIVATE_MESSAGE,
     UPGRADE_PROFILE_PHOTO_FILE,
-    UPGRADE_PUBLIC_CHANNEL_NAME,
     UPGRADE_PUBLIC_MESSAGE,
     UPGRADE_SEARCH_MESSAGE,
-    UPGRADE_USER,
-    assertLicensed,
     assertProfileImageFetchable,
+    clearUpgradeBaseline,
     ensureDirectChannel,
     ensureGroupChannel,
-    ensureUpgradeChannel,
     ensureUpgradePluginActive,
-    ensureUpgradeTeam,
-    ensureUpgradeUser,
+    loadUpgradeFromContext,
+    mergeUpgradeBaseline,
+    persistUpgradeLicenseFromEnv,
     postMessage,
-    postWithAttachment,
+    readFileDriverName,
     readServerIdentity,
+    readUpgradeBaseline,
+    readUpgradeLicenseBaseline,
+    seedUpgradeAttachments,
     uploadUpgradeProfileImage,
-    verifyPostAttachmentDownloadable,
-    writeUpgradeBaseline,
 } from '../upgrade_fixtures';
 
 /**
  * @objective Seeds upgrade actors and content via Client4 / PlaywrightClient4 on the from-image.
- * Prefer API clients for all setup/verify. Use Playwright `request` for authenticated binary
- * downloads; browser login only via Playwright API (`loginByAPI`) if a session is required.
+ * Each test writes a slice of `.upgrade_baseline.json` so the captured state maps clearly to
+ * what upgrade-to re-verifies. Prefer API clients for all setup/verify.
  */
-test('upgrade-from: create actors and content', {tag: ['@upgrade-from']}, async ({pw, request}) => {
-    test.setTimeout(300000);
+test.describe.serial('upgrade-from baseline', {tag: ['@upgrade-from']}, () => {
+    test('server identity, actors, and channel ids', async ({pw}) => {
+        clearUpgradeBaseline();
 
-    const {adminClient} = await pw.getAdminClient();
+        const {adminClient, user, adminMe, publicChannel, privateChannel} = await loadUpgradeFromContext(pw);
+        await persistUpgradeLicenseFromEnv(adminClient);
+        const fromIdentity = await readServerIdentity(adminClient);
+        const license = await readUpgradeLicenseBaseline(adminClient);
 
-    try {
-        await adminClient.patchConfig({
-            AccessControlSettings: {
-                EnableAttributeBasedAccessControl: false,
-            },
-        } as any);
-    } catch {
-        // Older server images omit ABAC config.
-    }
+        mergeUpgradeBaseline({
+            serverVersion: fromIdentity.serverVersion,
+            buildNumber: fromIdentity.buildNumber,
+            fileDriverName: await readFileDriverName(adminClient),
+            license,
+            userId: user.id,
+            adminUserId: adminMe.id,
+            publicChannelId: publicChannel.id,
+            privateChannelId: privateChannel.id,
+        });
+    });
 
-    await pw.ensureLocalFile();
+    test('user channel messages and dm/gm channel ids', async ({pw}) => {
+        const {userClient, user, peers, publicChannel, privateChannel} = await loadUpgradeFromContext(pw);
 
-    const team = await ensureUpgradeTeam(adminClient);
-    const user = await ensureUpgradeUser(adminClient, team.id, UPGRADE_USER);
-    const peers = await Promise.all(UPGRADE_PEER_USERS.map((peer) => ensureUpgradeUser(adminClient, team.id, peer)));
-    const publicChannel = await ensureUpgradeChannel(adminClient, team.id, UPGRADE_PUBLIC_CHANNEL_NAME, 'O');
-    const privateChannel = await ensureUpgradeChannel(adminClient, team.id, UPGRADE_PRIVATE_CHANNEL_NAME, 'P');
-    await adminClient.addToChannel(user.id, publicChannel.id);
-    await adminClient.addToChannel(user.id, privateChannel.id);
+        await postMessage(userClient, publicChannel.id, UPGRADE_PUBLIC_MESSAGE);
+        await postMessage(userClient, publicChannel.id, UPGRADE_SEARCH_MESSAGE);
+        await postMessage(userClient, privateChannel.id, UPGRADE_PRIVATE_MESSAGE);
 
-    const adminMe = await adminClient.getMe();
-    await adminClient.addToChannel(adminMe.id, publicChannel.id);
-    await adminClient.addToChannel(adminMe.id, privateChannel.id);
+        const userDmChannel = await ensureDirectChannel(userClient, user.id, peers[0].id);
+        await postMessage(userClient, userDmChannel.id, UPGRADE_DM_MESSAGE);
 
-    const {client: userClient} = await pw.makeClient(user);
-    expect(userClient).toBeTruthy();
+        const userGmChannel = await ensureGroupChannel(userClient, [user.id, peers[1].id, peers[2].id]);
+        await postMessage(userClient, userGmChannel.id, UPGRADE_GM_MESSAGE);
 
-    await postMessage(userClient!, publicChannel.id, UPGRADE_PUBLIC_MESSAGE);
-    await postMessage(userClient!, publicChannel.id, UPGRADE_SEARCH_MESSAGE);
-    await postMessage(userClient!, privateChannel.id, UPGRADE_PRIVATE_MESSAGE);
+        mergeUpgradeBaseline({
+            userDmChannelId: userDmChannel.id,
+            userGmChannelId: userGmChannel.id,
+        });
+    });
 
-    const userDmChannel = await ensureDirectChannel(userClient!, user.id, peers[0].id);
-    await postMessage(userClient!, userDmChannel.id, UPGRADE_DM_MESSAGE);
+    test('attachments across channel types', async ({pw, request}) => {
+        const {adminClient, userClient, user, peers, publicChannel, privateChannel} = await loadUpgradeFromContext(pw);
+        const userDmChannel = await ensureDirectChannel(userClient, user.id, peers[0].id);
 
-    const userGmChannel = await ensureGroupChannel(userClient!, [user.id, peers[1].id, peers[2].id]);
-    await postMessage(userClient!, userGmChannel.id, UPGRADE_GM_MESSAGE);
+        const attachments = await seedUpgradeAttachments(request, userClient, adminClient, {
+            publicId: publicChannel.id,
+            privateId: privateChannel.id,
+            userDmId: userDmChannel.id,
+        });
 
-    const attachmentPost = await postWithAttachment(
-        userClient!,
-        publicChannel.id,
-        'upgrade-check attachment message',
-        UPGRADE_ATTACHMENT_FILE,
-    );
-    await verifyPostAttachmentDownloadable(request, userClient!, attachmentPost.id, UPGRADE_ATTACHMENT_FILE);
+        mergeUpgradeBaseline({attachments});
+    });
 
-    await uploadUpgradeProfileImage(userClient!, user.id, UPGRADE_PROFILE_PHOTO_FILE);
-    await assertProfileImageFetchable(request, userClient!, user.id);
+    test('profile image and avatar thread post id', async ({pw, request}) => {
+        const {adminClient, userClient, user, publicChannel} = await loadUpgradeFromContext(pw);
 
-    // Separate authors so avatar posts are distinct from system/user continuity.
-    await postMessage(adminClient, publicChannel.id, 'upgrade-check avatar separator');
-    const avatarPost = await postMessage(userClient!, publicChannel.id, 'upgrade-check avatar message');
-    await postMessage(adminClient, publicChannel.id, 'upgrade-check thread reply for avatar footer', avatarPost.id);
+        await uploadUpgradeProfileImage(userClient, user.id, UPGRADE_PROFILE_PHOTO_FILE);
+        await assertProfileImageFetchable(request, userClient, user.id);
 
-    const fromIdentity = await readServerIdentity(adminClient);
-    await assertLicensed(adminClient);
+        await postMessage(adminClient, publicChannel.id, 'upgrade-check avatar separator');
+        const avatarPost = await postMessage(userClient, publicChannel.id, 'upgrade-check avatar message');
+        await postMessage(adminClient, publicChannel.id, 'upgrade-check thread reply for avatar footer', avatarPost.id);
 
-    await postMessage(adminClient, publicChannel.id, UPGRADE_ADMIN_PUBLIC_MESSAGE);
-    await postMessage(adminClient, publicChannel.id, UPGRADE_ADMIN_SEARCH_MESSAGE);
-    await postMessage(adminClient, privateChannel.id, UPGRADE_ADMIN_PRIVATE_MESSAGE);
+        mergeUpgradeBaseline({avatarPostId: avatarPost.id});
+    });
 
-    const adminDmChannel = await ensureDirectChannel(adminClient, adminMe.id, peers[0].id);
-    await postMessage(adminClient, adminDmChannel.id, UPGRADE_ADMIN_DM_MESSAGE);
+    test('admin channel messages and dm/gm channel ids', async ({pw}) => {
+        const {adminClient, userClient, adminMe, peers, publicChannel, privateChannel} = await loadUpgradeFromContext(pw);
 
-    const adminGmChannel = await ensureGroupChannel(adminClient, [adminMe.id, peers[1].id, peers[2].id]);
-    await postMessage(adminClient, adminGmChannel.id, UPGRADE_ADMIN_GM_MESSAGE);
+        await postMessage(adminClient, publicChannel.id, UPGRADE_ADMIN_PUBLIC_MESSAGE);
+        await postMessage(adminClient, publicChannel.id, UPGRADE_ADMIN_SEARCH_MESSAGE);
+        await postMessage(adminClient, privateChannel.id, UPGRADE_ADMIN_PRIVATE_MESSAGE);
 
-    const adminAttachmentPost = await postWithAttachment(
-        adminClient,
-        publicChannel.id,
-        UPGRADE_ADMIN_ATTACHMENT_MESSAGE,
-        UPGRADE_ATTACHMENT_FILE,
-    );
-    await verifyPostAttachmentDownloadable(request, adminClient, adminAttachmentPost.id, UPGRADE_ATTACHMENT_FILE);
+        const adminDmChannel = await ensureDirectChannel(adminClient, adminMe.id, peers[0].id);
+        await postMessage(adminClient, adminDmChannel.id, UPGRADE_ADMIN_DM_MESSAGE);
 
-    await postMessage(userClient!, publicChannel.id, 'upgrade-check admin avatar separator');
-    await postMessage(adminClient, publicChannel.id, UPGRADE_ADMIN_AVATAR_MESSAGE);
+        const adminGmChannel = await ensureGroupChannel(adminClient, [adminMe.id, peers[1].id, peers[2].id]);
+        await postMessage(adminClient, adminGmChannel.id, UPGRADE_ADMIN_GM_MESSAGE);
 
-    await ensureUpgradePluginActive(request, adminClient);
+        await postMessage(userClient, publicChannel.id, 'upgrade-check admin avatar separator');
+        await postMessage(adminClient, publicChannel.id, UPGRADE_ADMIN_AVATAR_MESSAGE);
 
-    let minioAttachmentPostId: string | undefined;
-    if (testConfig.testcontainersServices.includes('minio')) {
-        await pw.ensureMinio();
-        const {client: minioUserClient} = await pw.makeClient(user, {useCache: false});
-        expect(minioUserClient).toBeTruthy();
-        const minioPost = await postWithAttachment(
-            minioUserClient!,
-            publicChannel.id,
-            'upgrade-check minio attachment',
-            UPGRADE_MINIO_ATTACHMENT_FILE,
-        );
-        await verifyPostAttachmentDownloadable(request, minioUserClient!, minioPost.id, UPGRADE_MINIO_ATTACHMENT_FILE);
-        minioAttachmentPostId = minioPost.id;
-    }
+        mergeUpgradeBaseline({
+            adminDmChannelId: adminDmChannel.id,
+            adminGmChannelId: adminGmChannel.id,
+        });
+    });
 
-    let azuriteAttachmentPostId: string | undefined;
-    if (testConfig.testcontainersServices.includes('azurite')) {
-        await pw.ensureAzurite();
-        const {client: azuriteUserClient} = await pw.makeClient(user, {useCache: false});
-        expect(azuriteUserClient).toBeTruthy();
-        const azuritePost = await postWithAttachment(
-            azuriteUserClient!,
-            publicChannel.id,
-            'upgrade-check azurite attachment',
-            UPGRADE_AZURITE_ATTACHMENT_FILE,
-        );
-        await verifyPostAttachmentDownloadable(
-            request,
-            azuriteUserClient!,
-            azuritePost.id,
-            UPGRADE_AZURITE_ATTACHMENT_FILE,
-        );
-        azuriteAttachmentPostId = azuritePost.id;
-    }
+    test('demo plugin active', async ({pw, request}) => {
+        const baseline = readUpgradeBaseline();
+        test.skip(!baseline.license?.isLicensed, 'Demo plugin requires an enterprise license');
 
-    if (testConfig.testcontainersServices.includes('minio') || testConfig.testcontainersServices.includes('azurite')) {
-        await pw.ensureLocalFile();
-    }
-
-    writeUpgradeBaseline({
-        serverVersion: fromIdentity.serverVersion,
-        buildNumber: fromIdentity.buildNumber,
-        userId: user.id,
-        adminUserId: adminMe.id,
-        publicChannelId: publicChannel.id,
-        privateChannelId: privateChannel.id,
-        userDmChannelId: userDmChannel.id,
-        userGmChannelId: userGmChannel.id,
-        adminDmChannelId: adminDmChannel.id,
-        adminGmChannelId: adminGmChannel.id,
-        attachmentPostId: attachmentPost.id,
-        avatarPostId: avatarPost.id,
-        adminAttachmentPostId: adminAttachmentPost.id,
-        minioAttachmentPostId,
-        azuriteAttachmentPostId,
+        const {adminClient} = await loadUpgradeFromContext(pw);
+        await ensureUpgradePluginActive(request, adminClient);
     });
 });

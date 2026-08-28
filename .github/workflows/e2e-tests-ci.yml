@@ -9,6 +9,7 @@ on:
   #
   # Manual / E2E-only Trigger:
   #   - Enter PR number only - commit SHA is resolved automatically from PR head
+  #   - Optionally enable "Run rolling upgrades" for Playwright upgrade-path coverage
   #   - E2E-only PRs targeting master/release-* use the base-branch image (e.g. master)
   #   - Mixed PRs use the commit-SHA image (expects Enterprise docker-image to exist)
   #   - Manual triggers always run E2E tests (no file change check)
@@ -23,6 +24,11 @@ on:
         description: "Commit SHA to test (for Argo Events)"
         type: string
         required: false
+      run_rolling_upgrades:
+        description: "Also run Playwright rolling-upgrade coverage (upgrade-from/to matrix + full dispatch per from-version)"
+        type: boolean
+        required: false
+        default: false
 
 permissions: {}
 
@@ -266,6 +272,7 @@ jobs:
       report_type: "PR"
       pr_number: "${{ needs.resolve-pr.outputs.PR_NUMBER }}"
       should_run: "${{ needs.check-changes.outputs.should_run }}"
+      run_rolling_upgrades: "${{ inputs.run_rolling_upgrades == true && 'true' || 'false' }}"
     secrets:
       MM_LICENSE: "${{ secrets.MM_E2E_TEST_LICENSE_ONPREM_ENT }}"
       REPORT_WEBHOOK_URL: "${{ secrets.MM_E2E_REPORT_WEBHOOK_URL }}"
@@ -318,6 +325,7 @@ jobs:
       enable_reporting: true
       report_type: "PR"
       pr_number: "${{ needs.resolve-pr.outputs.PR_NUMBER }}"
+      run_rolling_upgrades: "${{ inputs.run_rolling_upgrades == true && 'true' || 'false' }}"
     secrets:
       MM_LICENSE: "${{ secrets.MM_E2E_TEST_LICENSE_ONPREM_ENT }}"
       REPORT_WEBHOOK_URL: "${{ secrets.MM_E2E_REPORT_WEBHOOK_URL }}"

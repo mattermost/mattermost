@@ -3,8 +3,9 @@
 // See LICENSE.txt for license information.
 
 // Resolves the rolling-upgrade matrix for CI: last 3 minor releases + any active Extended
-// Support release. Prints Docker image tags as JSON, e.g.
-// ["release-11.9","release-11.8","release-11.7","release-10.11"].
+// Support release. Prints JSON objects with docker tags and ESR metadata, e.g.
+// [{"dockerTag":"release-11.9",...}] — or `[]` when no supported from-versions remain (CI posts
+// e2e-test/playwright-rolling-upgrades/none and skips workers).
 //
 // Current version + last-3 come from this local checkout's version.go. Support-end dates and ESR
 // status are fetched live from master, since those lapse with calendar time.
@@ -32,6 +33,11 @@ function toMinor(version) {
 function toDockerImageTag(patchVersion) {
     const [major, minor] = patchVersion.split('.');
     return `release-${major}.${minor}`;
+}
+
+/** GitHub commit-status / dashboard label for a matrix entry. */
+export function upgradeMatrixContextLabel(entry) {
+    return entry.isESR ? `${entry.dockerTag}-esr` : entry.dockerTag;
 }
 
 /** Reads current + last-3-minor versions from the local checkout's version.go. */
@@ -101,24 +107,28 @@ export async function resolveUpgradeMatrix(now = new Date()) {
     const matrix = active.filter((row) => lastThree.includes(row.minor) || row.isESR);
 
     const seenMinors = new Set();
-    const imageTags = [];
+    const entries = [];
     for (const row of matrix) {
         if (seenMinors.has(row.minor)) {
             continue;
         }
         seenMinors.add(row.minor);
-        imageTags.push(toDockerImageTag(row.patch));
+        const dockerTag = toDockerImageTag(row.patch);
+        entries.push({
+            dockerTag,
+            minor: row.minor,
+            patch: row.patch,
+            isESR: row.isESR,
+            contextLabel: upgradeMatrixContextLabel({dockerTag, isESR: row.isESR}),
+        });
     }
-    return imageTags;
+    return entries;
 }
 
 async function main() {
-    const imageTags = await resolveUpgradeMatrix();
-    if (imageTags.length === 0) {
-        throw new Error('Resolved rolling-upgrade matrix is empty — refusing to silently skip upgrade coverage.');
-    }
+    const entries = await resolveUpgradeMatrix();
     // eslint-disable-next-line no-console
-    console.log(JSON.stringify(imageTags));
+    console.log(JSON.stringify(entries));
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {

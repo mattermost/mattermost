@@ -21,8 +21,10 @@ All pipelines follow the **smoke-then-full** pattern: smoke tests run first, ful
 ├── e2e-tests-on-release.yml               # Release cut orchestrator
 ├── e2e-tests-cypress.yml                  # Shared wrapper: calls the cypress template
 ├── e2e-tests-playwright.yml               # Shared wrapper: calls the playwright template
+├── e2e-tests-playwright-rolling-upgrades.yml
 ├── e2e-tests-cypress-template.yml         # cypress + test-system-io dispatch
-└── e2e-tests-playwright-template.yml      # playwright + test-system-io dispatch
+├── e2e-tests-playwright-template.yml      # playwright + test-system-io dispatch
+└── e2e-tests-playwright-rolling-upgrades-template.yml  # rolling upgrade-from/to + dispatch per from-version
 ```
 
 ### Call hierarchy
@@ -31,6 +33,8 @@ All pipelines follow the **smoke-then-full** pattern: smoke tests run first, ful
 e2e-tests-ci.yml ─────────────────┐
 e2e-tests-on-merge.yml ───────────┤──► e2e-tests-cypress.yml ────► e2e-tests-cypress-template.yml
 e2e-tests-on-release.yml ─────────┘    e2e-tests-playwright.yml ─► e2e-tests-playwright-template.yml
+                                       │                          └► e2e-tests-playwright-rolling-upgrades.yml
+                                       │                               └► e2e-tests-playwright-rolling-upgrades-template.yml
 ```
 
 ---
@@ -116,6 +120,25 @@ The template splits into five jobs — `prepare-run`, `prep-deps`, `dispatch-beg
 - **Playwright slim slice.** Playwright only consumes `@mattermost/client` and `@mattermost/types` from webapp, so prep-deps caches just those two packages' built `lib/` and `node_modules` (~10–30 MB) instead of the full `webapp/node_modules` tree (~1–2 GB).
 - **Browser/binary caches.** Cypress caches `~/.cache/Cypress` (cypress binary lives outside node_modules); playwright caches `~/.cache/ms-playwright` (chromium only). Both keyed on the framework's lockfile so they invalidate on version bumps.
 - **No retry plumbing in the template.** Test System IO handles per-spec retries; the workflow only sees aggregated results.
+
+### Playwright rolling upgrades (separate from full suite)
+
+`e2e-tests-playwright-rolling-upgrades-template.yml` resolves the from-version matrix via `script/resolve_upgrade_matrix.mjs` (last 3 minors + active ESR; ESR entries carry `isESR: true` and a `contextLabel` ending in `-esr`). Each matrix job runs in isolation on its own runner:
+
+1. `testcontainers:down` → `upgrade-from` → `upgrade-to`
+2. Test System IO `dispatch-begin` + `dispatch-run` against the upgraded server (no `setup` project)
+3. Per-from-version commit status: `e2e-test/playwright-rolling-upgrades/{edition}/from-{contextLabel}`
+
+This pipeline is invoked from `e2e-tests-playwright.yml` when `run_rolling_upgrades: "true"`. It is **not** embedded in `e2e-tests-playwright-template.yml`.
+
+| Trigger | `run_rolling_upgrades` |
+|---------|------------------------|
+| PR (Argo / automated) | `false` (default) |
+| PR (`workflow_dispatch`, manual) | Opt-in: **Run rolling upgrades** on `e2e-tests-ci.yml` |
+| Merge to `master` / `release-*` | `true` |
+| Release cut | `true` |
+
+When `resolve_upgrade_matrix.mjs` returns `[]` (no supported from-versions), the template posts success on `e2e-test/playwright-rolling-upgrades/none` and skips `workers` / `report`.
 
 ---
 

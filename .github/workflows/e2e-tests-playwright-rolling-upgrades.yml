@@ -1,5 +1,5 @@
 ---
-name: E2E Tests - Playwright
+name: E2E Tests - Playwright Rolling Upgrades
 on:
   workflow_call:
     inputs:
@@ -46,11 +46,6 @@ on:
         required: false
         default: "true"
         description: "Set to 'false' to skip tests and post a success status without running E2E"
-      run_rolling_upgrades:
-        type: string
-        required: false
-        default: "false"
-        description: "Set to 'true' to run playwright rolling-upgrade coverage (off by default on PR)"
     secrets:
       MM_LICENSE:
         required: false
@@ -83,26 +78,18 @@ jobs:
           RUN_ATTEMPT: ${{ github.run_attempt }}
           RUN_ID: ${{ github.run_id }}
         run: |
-          # Use provided server_image_tag or derive from commit SHA
           if [ -n "$INPUT_SERVER_IMAGE_TAG" ]; then
             SERVER_IMAGE_TAG="$INPUT_SERVER_IMAGE_TAG"
           else
             SERVER_IMAGE_TAG="${COMMIT_SHA::7}"
           fi
 
-          # Validate server_image_tag format (alphanumeric, dots, hyphens, underscores)
           if ! [[ "$SERVER_IMAGE_TAG" =~ ^[a-zA-Z0-9._-]+$ ]]; then
             echo "::error::Invalid server_image_tag format: ${SERVER_IMAGE_TAG}"
             exit 1
           fi
           echo "server_image_tag=${SERVER_IMAGE_TAG}" >> $GITHUB_OUTPUT
 
-          # Generate branch name. For master/release runs we pass the real
-          # ref_branch through verbatim (`master`, `release-11.7`) so the
-          # dashboard's /reports/{repo}/{branch} grouping aggregates every
-          # build on that branch instead of treating each image tag as its
-          # own "branch". PR and commit-only fallback paths keep their
-          # synthetic prefix because there's no real branch to use.
           REF_BRANCH="${INPUT_REF_BRANCH}"
           if [ -n "$PR_NUMBER" ]; then
             echo "branch=pr-${PR_NUMBER}" >> $GITHUB_OUTPUT
@@ -112,7 +99,6 @@ jobs:
             echo "branch=commit-${COMMIT_SHA::7}" >> $GITHUB_OUTPUT
           fi
 
-          # Determine server image name
           EDITION="${INPUT_SERVER_EDITION}"
           REPO="${INPUT_SERVER_IMAGE_REPO}"
           REPO="${REPO:-mattermostdevelopment}"
@@ -124,21 +110,18 @@ jobs:
           SERVER_IMAGE="${REPO}/${IMAGE_NAME}:${SERVER_IMAGE_TAG}"
           echo "server_image=${SERVER_IMAGE}" >> $GITHUB_OUTPUT
 
-          # Validate server_image_aliases format if provided
           ALIASES="${INPUT_SERVER_IMAGE_ALIASES}"
           if [ -n "$ALIASES" ] && ! [[ "$ALIASES" =~ ^[a-zA-Z0-9._,\ -]+$ ]]; then
             echo "::error::Invalid server_image_aliases format: ${ALIASES}"
             exit 1
           fi
 
-          # Generate build ID
           if [ -n "$EDITION" ] && [ "$EDITION" != "enterprise" ]; then
-            echo "build_id=${RUN_ID}_${RUN_ATTEMPT}-${SERVER_IMAGE_TAG}-playwright-onprem-${EDITION}" >> $GITHUB_OUTPUT
+            echo "build_id=${RUN_ID}_${RUN_ATTEMPT}-${SERVER_IMAGE_TAG}-playwright-rolling-upgrades-onprem-${EDITION}" >> $GITHUB_OUTPUT
           else
-            echo "build_id=${RUN_ID}_${RUN_ATTEMPT}-${SERVER_IMAGE_TAG}-playwright-onprem-ent" >> $GITHUB_OUTPUT
+            echo "build_id=${RUN_ID}_${RUN_ATTEMPT}-${SERVER_IMAGE_TAG}-playwright-rolling-upgrades-onprem-ent" >> $GITHUB_OUTPUT
           fi
 
-          # Generate context name suffix based on report type
           REPORT_TYPE="${INPUT_REPORT_TYPE}"
           case "$REPORT_TYPE" in
             MASTER) echo "context_suffix=/master" >> $GITHUB_OUTPUT ;;
@@ -159,19 +142,21 @@ jobs:
       - name: ci/post-skip-status
         env:
           COMMIT_SHA: ${{ inputs.commit_sha }}
-          CONTEXT_NAME: "e2e-test/playwright-full/${{ inputs.server_edition || 'enterprise' }}${{ needs.generate-build-variables.outputs.context_suffix }}"
+          CONTEXT_PREFIX: "e2e-test/playwright-rolling-upgrades/${{ inputs.server_edition || 'enterprise' }}"
+          CONTEXT_SUFFIX: "${{ needs.generate-build-variables.outputs.context_suffix }}"
           GH_TOKEN: ${{ github.token }}
           GITHUB_REPOSITORY: ${{ github.repository }}
           GITHUB_RUN_ID: ${{ github.run_id }}
         run: |
+          # Rolling-upgrade matrix is resolved at runtime; post a generic skip status for the suite.
           gh api "repos/${GITHUB_REPOSITORY}/statuses/${COMMIT_SHA}" \
             -f state=success \
-            -f context="${CONTEXT_NAME}" \
+            -f context="${CONTEXT_PREFIX}${CONTEXT_SUFFIX}" \
             -f description="No E2E-relevant changes - skipped" \
             -f target_url="https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
-          echo "Posted success for ${CONTEXT_NAME}"
+          echo "Posted success for ${CONTEXT_PREFIX}${CONTEXT_SUFFIX}"
 
-  playwright-full:
+  playwright-rolling-upgrades:
     needs:
       - generate-build-variables
     if: inputs.should_run != 'false'
@@ -180,10 +165,8 @@ jobs:
       statuses: write
       id-token: write
       pull-requests: write
-    uses: ./.github/workflows/e2e-tests-playwright-template.yml
+    uses: ./.github/workflows/e2e-tests-playwright-rolling-upgrades-template.yml
     with:
-      workers: 20
-      enabled_docker_services: "postgres inbucket"
       commit_sha: ${{ inputs.commit_sha }}
       branch: ${{ needs.generate-build-variables.outputs.branch }}
       build_id: ${{ needs.generate-build-variables.outputs.build_id }}
@@ -191,38 +174,11 @@ jobs:
       server_edition: ${{ inputs.server_edition }}
       server_image_repo: ${{ inputs.server_image_repo }}
       server_image_aliases: ${{ inputs.server_image_aliases }}
-      server: ${{ inputs.server }}
       enable_reporting: ${{ inputs.enable_reporting }}
       report_type: ${{ inputs.report_type }}
       ref_branch: ${{ inputs.ref_branch }}
       pr_number: ${{ inputs.pr_number }}
-      context_name: "e2e-test/playwright-full/${{ inputs.server_edition || 'enterprise' }}${{ needs.generate-build-variables.outputs.context_suffix }}"
-    secrets:
-      MM_LICENSE: ${{ secrets.MM_LICENSE }}
-      REPORT_WEBHOOK_URL: ${{ secrets.REPORT_WEBHOOK_URL }}
-
-  playwright-rolling-upgrades:
-    needs:
-      - generate-build-variables
-    if: inputs.should_run != 'false' && inputs.run_rolling_upgrades == 'true'
-    permissions:
-      contents: read
-      statuses: write
-      id-token: write
-      pull-requests: write
-    uses: ./.github/workflows/e2e-tests-playwright-rolling-upgrades.yml
-    with:
-      commit_sha: ${{ inputs.commit_sha }}
-      server: ${{ inputs.server }}
-      server_image_tag: ${{ needs.generate-build-variables.outputs.server_image_tag }}
-      server_edition: ${{ inputs.server_edition }}
-      server_image_repo: ${{ inputs.server_image_repo }}
-      server_image_aliases: ${{ inputs.server_image_aliases }}
-      enable_reporting: ${{ inputs.enable_reporting }}
-      report_type: ${{ inputs.report_type }}
-      ref_branch: ${{ inputs.ref_branch }}
-      pr_number: ${{ inputs.pr_number }}
-      should_run: ${{ inputs.should_run }}
+      context_suffix: ${{ needs.generate-build-variables.outputs.context_suffix }}
     secrets:
       MM_LICENSE: ${{ secrets.MM_LICENSE }}
       REPORT_WEBHOOK_URL: ${{ secrets.REPORT_WEBHOOK_URL }}

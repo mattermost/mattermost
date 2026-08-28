@@ -58,6 +58,7 @@ import {startWebhookContainer} from './webhook_container';
 import {clearClientCache} from '@/server/client';
 import {defaultBootEnv, testConfig} from '@/test_config';
 import type {TestContainersServiceName} from '@/test_config';
+import {isUpgradeToPhaseProjectSelected, upgradeToStackNotRunningError} from '@/upgrade_env';
 import {duration} from '@/util';
 
 const execFileAsync = promisify(execFile);
@@ -97,6 +98,10 @@ export async function startStack(): Promise<void> {
 
     if (await reuseExistingStack()) {
         return;
+    }
+
+    if (isUpgradeToPhaseProjectSelected()) {
+        throw upgradeToStackNotRunningError();
     }
 
     // reuseExistingStack() found nothing live to reuse — any bootEnvOverrides read from a stale

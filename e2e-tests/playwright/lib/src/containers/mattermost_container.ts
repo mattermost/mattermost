@@ -19,6 +19,7 @@ import {
 } from './constants';
 import {SERVER_ENV_BASELINE} from './env_baseline';
 import {startWithRetry} from './retry';
+import {isUpgradeFromProjectSelected, isUpgradeToPhaseProjectSelected} from '../upgrade_env';
 
 import {testConfig} from '@/test_config';
 
@@ -33,12 +34,16 @@ import {testConfig} from '@/test_config';
 // (platform.LoadLicense), so it boots already licensed instead of needing an authenticated upload
 // call after the fact.
 export function resolveMattermostBootEnv(extraEnv: Record<string, string> = {}): Record<string, string> {
-    return {
+    const env = {
         ...SERVER_ENV_BASELINE,
         ...testConfig.serverEnv,
         ...extraEnv,
         ...structuralEnv(),
     };
+    if (testConfig.omitProcessEnvLicense) {
+        delete env.MM_LICENSE;
+    }
+    return env;
 }
 
 function structuralEnv(): Record<string, string> {
@@ -70,6 +75,16 @@ function structuralEnv(): Record<string, string> {
 // Requires MM_LOGSETTINGS_CONSOLELEVEL=DEBUG (env_baseline.ts) since the scheduler logs that line
 // at Debug. Only paid on a genuinely fresh boot — a reused/adopted stack skips this entirely.
 //
+// upgrade-from and upgrade-swap-to skip the log wait for the same reason: API-only upgrade
+// harnesses, and restarts/reuse can miss the log line after the old container is removed.
+function mattermostWaitStrategy() {
+    const ping = Wait.forHttp('/api/v4/system/ping', MATTERMOST_PORT).forStatusCode(200);
+    if (isUpgradeFromProjectSelected() || isUpgradeToPhaseProjectSelected()) {
+        return ping;
+    }
+    return Wait.forAll([ping, Wait.forLogMessage(/All migrations are complete\./, 1)]);
+}
+
 // Joins the network by name (withNetworkMode) rather than a StartedNetwork object: also called
 // from restartMattermostContainer(), which runs in a worker process that never holds the actual
 // StartedNetwork handle — only the network's name (threaded through testConfig) is available
@@ -97,14 +112,15 @@ export async function startMattermostContainer(
             // (Minio/Azurite) is active.
             .withBindMounts([{source: LOCAL_STORAGE_DIR, target: '/mattermost/data', mode: 'rw'}])
             .withStartupTimeout(5 * 60_000)
-            .withWaitStrategy(
-                Wait.forAll([
-                    Wait.forHttp('/api/v4/system/ping', MATTERMOST_PORT).forStatusCode(200),
-                    Wait.forLogMessage(/All migrations are complete\./, 1),
-                ]),
-            );
+            .withWaitStrategy(mattermostWaitStrategy());
 
-        if (testConfig.testcontainersReuse) {
+        // Upgrade-swap-to skips reuse: the old container was rm -f'd and reuse can reattach to an
+        // unrelated leftover on the same image tag.
+        //
+        // upgrade-from must still use withReuse() when PW_TESTCONTAINERS_REUSE=true — otherwise
+        // Ryuk reaps the server when the from-phase process exits and upgrade-to cannot adopt the
+        // stack. assertUpgradeFromFreshStart() already requires testcontainers:down before from.
+        if (testConfig.testcontainersReuse && !isUpgradeToPhaseProjectSelected() && !testConfig.omitProcessEnvLicense) {
             builder = builder.withReuse();
         }
 

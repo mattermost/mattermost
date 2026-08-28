@@ -6,10 +6,14 @@ export type {ExtendedFixtures} from './test_fixture';
 export {testConfig, TESTCONTAINERS_SERVICE_NAMES} from './test_config';
 export type {TestContainersServiceName} from './test_config';
 export {
+    assertUpgradeFromFreshStart,
+    assertUpgradeToRequiresPriorFromRun,
     getUpgradeFromServerImage,
     getUpgradeToServerImage,
     isUpgradeFromProjectSelected,
+    isUpgradeToPhaseProjectSelected,
     logUpgradeFromServerImage,
+    logUpgradeToServerImage,
     UPGRADE_FROM_SERVER_IMAGE_ENV,
 } from './upgrade_env';
 export {baseGlobalSetup} from './global_setup';

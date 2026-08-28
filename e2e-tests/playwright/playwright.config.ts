@@ -4,14 +4,24 @@
 import {defineConfig, devices} from '@playwright/test';
 
 import {
+    assertUpgradeFromFreshStart,
+    assertUpgradeToRequiresPriorFromRun,
     duration,
     isUpgradeFromProjectSelected,
+    isUpgradeToPhaseProjectSelected,
     logUpgradeFromServerImage,
+    logUpgradeToServerImage,
     testConfig,
 } from '@mattermost/playwright-lib';
 
 if (isUpgradeFromProjectSelected()) {
+    assertUpgradeFromFreshStart();
     logUpgradeFromServerImage();
+}
+
+if (isUpgradeToPhaseProjectSelected()) {
+    assertUpgradeToRequiresPriorFromRun();
+    logUpgradeToServerImage();
 }
 
 const chromeUse = {
@@ -84,17 +94,16 @@ export default defineConfig({
             },
             dependencies: ['setup'],
         },
-        // Swap projects depend only on setup so upgrade-from and upgrade-to run independently.
-        {name: 'upgrade-swap-from', testMatch: /upgrade_swap_from\.ts/, dependencies: ['setup']},
+        // upgrade-from runs setup once; upgrade-to adopts that stack and skips setup.
         {
             name: 'upgrade-from',
             testDir: 'specs',
             grep: /@upgrade-from\b/,
-            dependencies: ['upgrade-swap-from'],
+            dependencies: ['setup'],
             fullyParallel: false,
             workers: 1,
         },
-        {name: 'upgrade-swap-to', testMatch: /upgrade_swap_to\.ts/, dependencies: ['setup']},
+        {name: 'upgrade-swap-to', testMatch: /upgrade_swap_to\.ts/},
         {
             name: 'upgrade-to',
             testDir: 'specs',
