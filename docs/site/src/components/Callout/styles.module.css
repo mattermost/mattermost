@@ -1,92 +1,120 @@
-/* Branded callouts. Denim-tinted surface with a colored left bar
- * that signals the kind. Title in Trade Gothic Heavy uppercase. */
+/* Branded callouts, styled to match the Docusaurus admonitions used
+ * elsewhere in the docs: a tinted panel with a left accent bar and a
+ * small icon + label header, rather than a separate visual language.
+ *
+ * The previous treatment set the label in Archivo Black 900 at 12px with
+ * 0.14em tracking beside a 3.25rem denim slab. That display face is built
+ * for headlines — at label size the heavy strokes and wide tracking made
+ * short words like "IMPORTANT" hard to read, and the slab made a
+ * one-sentence note as tall as a paragraph. Label now uses the body sans
+ * at a size that can actually be read, and the accent colour carries the
+ * kind instead of a full-height bar. */
 
 .callout {
-  display: grid;
-  grid-template-columns: 3.25rem 1fr;
-  gap: 0;
   margin: 1.5rem 0;
-  border: 1px solid var(--mm-border-subtle);
+  padding: 0.9rem 1.1rem 1rem;
+  border: 1px solid var(--callout-border);
+  border-left: 4px solid var(--callout-accent);
   border-radius: 4px;
-  background: var(--mm-bg-surface);
-  overflow: hidden;
-  box-shadow: 0 1px 2px rgba(30, 50, 92, 0.04);
+  background: var(--callout-bg);
+  color: var(--mm-text-primary);
 }
 
-/* The base rule's --mm-border-subtle resolves to denim-700 in dark mode —
- * ~1:1 contrast from the page background (#0E1525), so the box had no
- * visible edge. --mm-border-strong (denim-500) is a real step up. Fill
- * needs no override: --mm-bg-surface above already resolves to a
- * theme-appropriate value per mode. */
-[data-theme='dark'] .callout {
-  border-color: var(--mm-border-strong);
-}
-
-.bar {
+.header {
   display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  padding-top: 0.95rem;
-  background: var(--mm-color-denim);
-  color: var(--mm-color-white);
+  align-items: center;
+  gap: 0.45rem;
+  margin-bottom: 0.5rem;
 }
 
 .icon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 1.6rem;
-  height: 1.6rem;
-  font-family: var(--mm-font-heading);
-  font-weight: 900;
-  font-size: 1rem;
-  border: 2px solid currentColor;
-  border-radius: 50%;
+  flex: 0 0 auto;
+  width: 1.05rem;
+  height: 1.05rem;
+  font-family: var(--mm-font-sans);
+  font-weight: 700;
+  font-size: 0.7rem;
   line-height: 1;
-}
-
-.body {
-  padding: 0.85rem 1.1rem 0.95rem;
+  color: var(--callout-accent);
+  border: 1.5px solid currentColor;
+  border-radius: 50%;
 }
 
 .label {
-  font-family: var(--mm-font-heading);
-  font-size: 0.75rem;
-  font-weight: 900;
-  letter-spacing: 0.14em;
+  font-family: var(--mm-font-sans);
+  font-weight: 700;
+  font-size: 0.8125rem;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
-  color: var(--mm-text-secondary);
-  margin-bottom: 0.35rem;
+  line-height: 1.2;
+  color: var(--callout-accent);
 }
 
 .content > :first-child { margin-top: 0; }
 .content > :last-child  { margin-bottom: 0; }
-.content p              { margin: 0.4rem 0; line-height: 1.6; }
+.content p              { margin: 0.5rem 0; line-height: 1.6; }
 
-/* Kind variants */
-.note    .bar { background: var(--mm-color-denim); }
-.note    .label { color: var(--mm-denim-600); }
-/* Every other kind below pairs its light-mode label color with a
- * dark-mode override — "note" was missing one, so it fell back to this
- * light-mode-only denim-600 in dark mode too: dark navy text on a dark
- * navy background. */
-[data-theme='dark'] .note .label { color: var(--mm-denim-200); }
+/* Kind variants. Each sets the accent (border, icon, label) plus a tint
+ * of the same hue for the panel; light-mode tints are pale enough to keep
+ * body copy at full contrast, dark-mode fills are a real step up from the
+ * page background so the panel edge stays visible. */
 
-.tip     .bar { background: #2C7A4F; }            /* operational green */
-.tip     .label { color: #1F5A39; }
-[data-theme='dark'] .tip .label { color: #6FBF8E; }
+.note {
+  --callout-accent: #2E4B87;
+  --callout-bg: var(--mm-denim-50);
+  --callout-border: var(--mm-denim-100);
+}
+[data-theme='dark'] .note {
+  --callout-accent: var(--mm-denim-200);
+  --callout-bg: var(--mm-denim-700);
+  --callout-border: var(--mm-denim-400);
+}
 
-/* Important = stronger emphasis than Note, softer than Warning. Marigold accent. */
-.important .bar { background: var(--mm-color-marigold); color: var(--mm-color-black); }
-.important .icon { border-color: var(--mm-color-black); }
-.important .label { color: var(--mm-marigold-700); }
-[data-theme='dark'] .important .label { color: var(--mm-marigold-300); }
+.tip {
+  --callout-accent: #1F5A39;
+  --callout-bg: #EAF5EE;
+  --callout-border: #C3E0CE;
+}
+[data-theme='dark'] .tip {
+  --callout-accent: #7FCC9E;
+  --callout-bg: #14442C;
+  --callout-border: #2C7A4F;
+}
 
-/* Warning = stop sign. Bark/red treatment via custom token. */
-.warning .bar { background: var(--mm-color-bark); color: var(--mm-color-white); }
-.warning .label { color: var(--mm-color-bark); }
-[data-theme='dark'] .warning .label { color: var(--mm-color-sand); }
+/* Important = stronger emphasis than Note, softer than Warning. */
+.important {
+  --callout-accent: #8A6200;
+  --callout-bg: var(--mm-marigold-100);
+  --callout-border: var(--mm-marigold-300);
+}
+[data-theme='dark'] .important {
+  --callout-accent: var(--mm-marigold-300);
+  --callout-bg: #4A3A10;
+  --callout-border: #7A6220;
+}
 
-.security .bar { background: #8B1F1F; }           /* sec red */
-.security .label { color: #8B1F1F; }
-[data-theme='dark'] .security .label { color: #E9A0A0; }
+/* Warning = stop sign. Bark treatment via the brand secondary palette. */
+.warning {
+  --callout-accent: #6B4F2E;
+  --callout-bg: #F6F1E9;
+  --callout-border: #E0D5C1;
+}
+[data-theme='dark'] .warning {
+  --callout-accent: var(--mm-color-sand);
+  --callout-bg: #3A2F22;
+  --callout-border: var(--mm-color-bark);
+}
+
+.security {
+  --callout-accent: #8B1F1F;
+  --callout-bg: #FBEDED;
+  --callout-border: #EFCFCF;
+}
+[data-theme='dark'] .security {
+  --callout-accent: #E9A0A0;
+  --callout-bg: #4A1F1F;
+  --callout-border: #7A3535;
+}

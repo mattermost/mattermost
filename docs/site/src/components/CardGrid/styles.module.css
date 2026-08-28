@@ -1,12 +1,49 @@
+.gridContainer {
+  container-type: inline-size;
+}
+
 .grid {
   display: grid;
   gap: 1rem;
   margin: 1.5rem 0 2.5rem;
 }
 
-.cols2 { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
-.cols3 { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
-.cols4 { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+/* The article column is only ~850px wide on a laptop once the sidebar and
+ * TOC take their share, which left `repeat(auto-fit, minmax(200px, 1fr))`
+ * squeezing four cards into one row of very tall, very narrow boxes — and
+ * three-across for a four-card grid orphans the last card. Step the count
+ * down explicitly instead, halving 4 to 2x2 and 3 to 2 before dropping to
+ * a single column. */
+.cols2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.cols3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.cols4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
+@container (max-width: 1080px) {
+  .cols4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@container (max-width: 820px) {
+  .cols3 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@container (max-width: 540px) {
+  .cols2,
+  .cols3,
+  .cols4 { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* Without container query support there's no way to read the grid's own
+ * width, but the doc sidebar collapses below 997px so the viewport is a
+ * close enough stand-in at the sizes that matter. */
+@supports not (container-type: inline-size) {
+  @media (max-width: 996px) {
+    .cols3,
+    .cols4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+  @media (max-width: 600px) {
+    .cols2,
+    .cols3,
+    .cols4 { grid-template-columns: minmax(0, 1fr); }
+  }
+}
 
 .card {
   position: relative;

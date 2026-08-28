@@ -23,13 +23,11 @@ export default function Callout({
   const meta = COPY[kind];
   return (
     <aside className={`${styles.callout} ${styles[kind]}`} role="note">
-      <div className={styles.bar} aria-hidden>
-        <span className={styles.icon}>{meta.icon}</span>
+      <div className={styles.header}>
+        <span className={styles.icon} aria-hidden>{meta.icon}</span>
+        <span className={styles.label}>{title ?? meta.label}</span>
       </div>
-      <div className={styles.body}>
-        <div className={styles.label}>{title ?? meta.label}</div>
-        <div className={styles.content}>{children}</div>
-      </div>
+      <div className={styles.content}>{children}</div>
     </aside>
   );
 }

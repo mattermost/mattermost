@@ -562,6 +562,31 @@ blockquote {
   background: var(--mm-bg-surface);
 }
 
+/* === Content images ===
+ * Diagrams and screenshots are committed at capture resolution (up to
+ * 1024px wide, and some are portrait at 770x1024). Infima only caps them
+ * at 100% of the column, and the article column is wider than that on a
+ * large display — so they rendered at full source size, towering over the
+ * prose around them (e.g. the Calls deployment architecture diagrams).
+ *
+ * Cap them to the reading measure, and to a height that keeps a portrait
+ * diagram on screen alongside the text explaining it. `width`/`height:
+ * auto` with both maxes set means the browser scales proportionally
+ * against whichever constraint binds first.
+ *
+ * `:not([class])` scopes this to authored content — markdown `![]()` and
+ * bare `<img>` in MDX — leaving component-rendered images (which always
+ * carry a CSS-module class) to their own sizing. An author who needs a
+ * specific size can opt out with an explicit `width` attribute. */
+.markdown img:not([class]):not([width]) {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: min(100%, 720px);
+  max-height: 640px;
+  margin-inline: auto;
+}
+
 /* === Footer === */
 
 .footer {

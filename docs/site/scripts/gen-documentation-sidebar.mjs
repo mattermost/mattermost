@@ -887,6 +887,41 @@ const ADMIN_SCALE_ORDER = [
 const ADMIN_SCALE_HIDDEN = new Set([]);
 
 // ---------------------------------------------------------------------------
+// Guide roots — hub pages and top-level ordering.
+// ---------------------------------------------------------------------------
+//
+// Sphinx-era hub pages sit at a guide's root and summarize the sibling
+// directory next to them, so buildCategory emitted both: a standalone
+// "Compliance with Mattermost" doc AND a "Comply" category holding the very
+// pages it links to. Each entry below removes that standalone doc and makes
+// it the category's landing page instead, which is what a reader clicking
+// the category header expects to land on. Match the target category either
+// by the content directory it was built from (`dir`) or, for a category
+// created by a manual grouping override rather than the filesystem, by its
+// label (`label`).
+
+const ADMIN_HUB_PAGES = [
+  {doc: 'administration-guide/compliance-with-mattermost', dir: 'comply'},
+  {doc: 'administration-guide/upgrade-mattermost',         dir: 'upgrade'},
+  // Lives under Manage, not at the Administration Guide root — see
+  // ADMIN_MANAGE_GROUPS.cloudWorkspace.
+  {doc: 'administration-guide/cloud-workspace-management', label: 'Cloud Workspace Management'},
+];
+
+// Administration Guide top level, in order of operations rather than the
+// alphabetical order the filesystem gives: you configure a server, meet the
+// compliance bar, onboard users onto it, run it day to day, upgrade it, then
+// scale it.
+const ADMIN_ROOT_ORDER = ['configure', 'comply', 'onboard', 'manage', 'upgrade', 'scale'];
+
+const ENDUSER_HUB_PAGES = [
+  {doc: 'end-user-guide/messaging-collaboration', dir: 'collaborate'},
+  {doc: 'end-user-guide/preferences',             dir: 'preferences'},
+  {doc: 'end-user-guide/project-task-management', dir: 'project-management'},
+  {doc: 'end-user-guide/workflow-automation',     dir: 'workflow-automation'},
+];
+
+// ---------------------------------------------------------------------------
 // Integrations Guide — manual grouping override.
 // ---------------------------------------------------------------------------
 //
@@ -1062,6 +1097,92 @@ function buildCategory(absDir, docsRelDir) {
   if (!categoryLink && items.length === 0) return null;
 
   return {type: 'category', label, collapsed: true, ...(categoryLink ? {link: categoryLink} : {}), items};
+}
+
+// The content sub-directory an auto-generated category was built from
+// (e.g. 'comply' for administration-guide/comply/). Read off the category's
+// landing page when it has one, otherwise off its first doc — either way
+// the second path segment is the directory name.
+//
+// Only meaningful before attachHubPages runs: a hub page's id doesn't share
+// the directory it becomes the landing page for.
+function categoryDirName(cat) {
+  if (cat.link && cat.link.id) return cat.link.id.split('/')[1];
+  const items = cat.items || [];
+  const firstDoc = items.find((c) => c.type === 'doc' && c.id);
+  if (firstDoc) return firstDoc.id.split('/')[1];
+  // A regrouped category (e.g. Onboard) holds nothing but sub-groups at its
+  // top level, so the directory name is only reachable further down.
+  for (const it of items) {
+    if (it.type !== 'category') continue;
+    const nested = categoryDirName(it);
+    if (nested) return nested;
+  }
+  return null;
+}
+
+function findCategoryByLabel(items, label) {
+  for (const it of items) {
+    if (it.type !== 'category') continue;
+    if (it.label === label) return it;
+    const nested = it.items && findCategoryByLabel(it.items, label);
+    if (nested) return nested;
+  }
+  return null;
+}
+
+// Reorder a guide's top-level categories by the content directories they
+// were built from. Anything not named in `order` keeps its relative
+// position at the end, so a new directory shows up in the sidebar (and in
+// the warning below) instead of vanishing.
+function orderRootCategories(sectionCat, order, sectionLabel) {
+  const rank = new Map(order.map((dir, i) => [dir, i]));
+  const listed = [];
+  const rest = [];
+  const found = new Set();
+  for (const it of sectionCat.items) {
+    const dir = it.type === 'category' ? categoryDirName(it) : null;
+    if (dir !== null && rank.has(dir)) {
+      listed.push([rank.get(dir), it]);
+      found.add(dir);
+    } else {
+      rest.push(it);
+    }
+  }
+  listed.sort((a, b) => a[0] - b[0]);
+
+  const missing = order.filter((dir) => !found.has(dir));
+  if (missing.length > 0) {
+    console.warn(`[sidebar] WARN: ${sectionLabel} root order names categor(y/ies) that don't exist: ${missing.join(', ')}`);
+  }
+
+  sectionCat.items = [...listed.map(([, it]) => it), ...rest];
+  return sectionCat;
+}
+
+// Drop each hub page's standalone entry from the guide root and hang it off
+// the category it duplicates as that category's landing page. Must run
+// after any reordering, since it overwrites the `link` that
+// categoryDirName reads.
+function attachHubPages(sectionCat, hubs, sectionLabel) {
+  for (const hub of hubs) {
+    const target = hub.dir ?
+      sectionCat.items.find((it) => it.type === 'category' && categoryDirName(it) === hub.dir) :
+      findCategoryByLabel(sectionCat.items, hub.label);
+    if (!target) {
+      console.warn(`[sidebar] WARN: ${sectionLabel} hub page ${hub.doc} — target category "${hub.dir ?? hub.label}" not found; leaving the duplicate entry in place.`);
+      continue;
+    }
+
+    const idx = sectionCat.items.findIndex((it) => it.type === 'doc' && it.id === hub.doc);
+    if (idx === -1) {
+      console.warn(`[sidebar] WARN: ${sectionLabel} hub page ${hub.doc} not found at the guide root; category landing link not set.`);
+      continue;
+    }
+    sectionCat.items.splice(idx, 1);
+    target.link = {type: 'doc', id: hub.doc};
+  }
+  return sectionCat;
 }
 
 // Pull every doc label from an auto-generated category so a manual ordering
@@ -1473,14 +1594,7 @@ function buildAdminGuideSidebar(autoCat) {
   let foundScale = false;
   for (const it of autoCat.items) {
     if (it.type !== 'category') continue;
-    let dirName = null;
-    if (it.link && it.link.id) {
-      dirName = it.link.id.split('/')[1];
-    }
-    if (!dirName && it.items) {
-      const firstDoc = it.items.find((c) => c.type === 'doc' && c.id);
-      if (firstDoc) dirName = firstDoc.id.split('/')[1];
-    }
+    const dirName = categoryDirName(it);
     if (dirName === 'configure') {
       regroupAdminConfigure(it);
       foundConfigure = true;
@@ -1507,6 +1621,9 @@ function buildAdminGuideSidebar(autoCat) {
   if (!foundScale) {
     console.warn('[sidebar] WARN: Administration Guide "Scale" sub-category not found — ADMIN_SCALE_GROUPS override was not applied.');
   }
+
+  orderRootCategories(autoCat, ADMIN_ROOT_ORDER, 'Administration Guide');
+  attachHubPages(autoCat, ADMIN_HUB_PAGES, 'Administration Guide');
   return autoCat;
 }
 
@@ -1630,7 +1747,7 @@ function buildIntegrationsSidebar(autoCat) {
 }
 
 // ---------------------------------------------------------------------------
-// End User Guide — builder. Two independent overrides on top of the
+// End User Guide — builder. Three independent overrides on top of the
 // otherwise filesystem-driven auto-generated sidebar:
 //   1. Nests the Agents plugin's usage-tips page under the existing "AI
 //      Agents" doc, the same way Configure nests Agents' admin-side pages
@@ -1640,6 +1757,10 @@ function buildIntegrationsSidebar(autoCat) {
 //      groups defined in COLLABORATE_GROUPS above, the same
 //      manual-grouping-override pattern used for Administration Guide's
 //      Configure/Manage/Onboard/Scale sections.
+//   3. Folds the four root hub pages (Messaging Collaboration, Customize
+//      your preferences, Project and Task Management, Workflow Automation)
+//      into the landing pages of the categories they duplicate — see
+//      ENDUSER_HUB_PAGES.
 // ---------------------------------------------------------------------------
 
 // Finds the {type: 'doc', id: docId} leaf anywhere in `items` and replaces
@@ -1675,15 +1796,7 @@ function buildEndUserGuideSidebar(autoCat) {
   let foundCollaborate = false;
   for (const it of autoCat.items) {
     if (it.type !== 'category') continue;
-    let dirName = null;
-    if (it.link && it.link.id) {
-      dirName = it.link.id.split('/')[1];
-    }
-    if (!dirName && it.items) {
-      const firstDoc = it.items.find((c) => c.type === 'doc' && c.id);
-      if (firstDoc) dirName = firstDoc.id.split('/')[1];
-    }
-    if (dirName === 'collaborate') {
+    if (categoryDirName(it) === 'collaborate') {
       regroupCollaborate(it);
       foundCollaborate = true;
     }
@@ -1692,6 +1805,7 @@ function buildEndUserGuideSidebar(autoCat) {
     console.warn('[sidebar] WARN: End User Guide "Collaborate" sub-category not found — COLLABORATE_GROUPS override was not applied.');
   }
 
+  attachHubPages(autoCat, ENDUSER_HUB_PAGES, 'End User Guide');
   return autoCat;
 }
 
