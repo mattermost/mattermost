@@ -205,10 +205,7 @@ export async function assertLicensed(client: Client4): Promise<void> {
 }
 
 /** Installs (if needed) and enables the upgrade demo plugin; asserts it is active. */
-export async function ensureUpgradePluginActive(
-    request: APIRequestContext,
-    client: Client4,
-): Promise<void> {
+export async function ensureUpgradePluginActive(request: APIRequestContext, client: Client4): Promise<void> {
     // Demo plugin refuses to activate unless public links are enabled.
     try {
         await client.patchConfig({
