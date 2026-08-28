@@ -434,7 +434,7 @@ jobs:
     steps:
       - name: ci/ai-flake-triage
         id: triage
-        uses: mattermost/mattermost-test-system-io/.github/actions/test-system-io-ai-triage@e101f7858d8a7c87cadf7995ded28b74504376ec # 2026-08-27, mattermost-test-system-io#101 (autofix)
+        uses: mattermost/mattermost-test-system-io/.github/actions/test-system-io-ai-triage@276a1a9bb108b754b4115972ddd96808fd3f6c0f # 2026-08-27, mattermost-test-system-io#101 (autofix)
         with:
           # DEMO (AI triage verification): routed to staging — see the
           # dispatch-begin note in this template.
@@ -450,6 +450,7 @@ jobs:
           original-commit-status-contexts: ${{ inputs.context_name }}
           commit-status-context: e2e-test/ai-triage
           github-token: ${{ secrets.GITHUB_TOKEN }}
+          pr-token: ${{ secrets.GH_TOKEN }}
           anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
 
   # AI test autofix (see e2e-tests-playwright-template.yml for the rationale):
@@ -475,7 +476,7 @@ jobs:
           ref: ${{ inputs.commit_sha }}
           fetch-depth: 0
       - name: ci/ai-test-autofix
-        uses: mattermost/mattermost-test-system-io/.github/actions/test-system-io-ai-triage@e101f7858d8a7c87cadf7995ded28b74504376ec # 2026-08-27, mattermost-test-system-io#101 (autofix)
+        uses: mattermost/mattermost-test-system-io/.github/actions/test-system-io-ai-triage@276a1a9bb108b754b4115972ddd96808fd3f6c0f # 2026-08-27, mattermost-test-system-io#101 (autofix)
         with:
           use-staging: true
           composite-identity: ${{ needs.prepare-run.outputs.composite-identity-json }}
