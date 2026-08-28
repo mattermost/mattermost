@@ -36,7 +36,6 @@ require (
 	github.com/jaytaylor/html2text v0.0.0-20230321000545-74c2419ad056
 	github.com/jmoiron/sqlx v1.4.0
 	github.com/klauspost/compress v1.18.0
-	github.com/ledongthuc/pdf v0.0.0-20250511090121-5959a4027728
 	github.com/lib/pq v1.10.9
 	github.com/mattermost/go-i18n v1.11.1-0.20211013152124-5c415071e404
 	github.com/mattermost/gosaml2 v0.10.0
@@ -44,6 +43,7 @@ require (
 	github.com/mattermost/logr/v2 v2.0.22
 	github.com/mattermost/mattermost/server/public v0.1.12
 	github.com/mattermost/morph v1.1.0
+	github.com/mattermost/pdf v0.0.0-20260828123129-5b7509a6ca01
 	github.com/mattermost/rsc v0.0.0-20160330161541-bbaefb05eaa0
 	github.com/mattermost/squirrel v0.5.0
 	github.com/mholt/archives v0.1.5
@@ -255,6 +255,3 @@ replace github.com/olekukonko/tablewriter => github.com/olekukonko/tablewriter v
 
 // See MM-66167, MM-68222 for more details.
 replace github.com/vmihailenco/msgpack/v5 => github.com/mattermost/msgpack/v5 v5.0.0-20260408165622-cadfad56a815
-
-// See MM-63434 for more details.
-replace github.com/ledongthuc/pdf => github.com/jgheithcock/pdf v0.0.0-20260404175814-28cd6530c1fe
