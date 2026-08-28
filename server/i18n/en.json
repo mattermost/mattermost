@@ -84,6 +84,10 @@
     "translation": "Team membership access control feature is not enabled."
   },
   {
+    "id": "api.access_control_policy.view_channel.feature_disabled",
+    "translation": "View Channel permission policies feature is not enabled."
+  },
+  {
     "id": "api.acknowledgement.delete.archived_channel.app_error",
     "translation": "You cannot remove an acknowledgment in an archived channel."
   },
@@ -11269,6 +11273,10 @@
   {
     "id": "model.access_policy.is_valid.actions.permission_type.app_error",
     "translation": "Permission action rules are only allowed on channel policies."
+  },
+  {
+    "id": "model.access_policy.is_valid.actions.view_channel_type.app_error",
+    "translation": "The View Channel action is only allowed on permission and channel policies."
   },
   {
     "id": "model.access_policy.is_valid.id.app_error",

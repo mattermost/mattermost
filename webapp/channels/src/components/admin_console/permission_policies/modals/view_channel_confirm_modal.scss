@@ -1,0 +1,21 @@
+.ViewChannelConfirmModal {
+    .ViewChannelConfirmModal__body {
+        color: rgba(var(--center-channel-color-rgb), 0.75);
+        font-size: 14px;
+        line-height: 20px;
+
+        p {
+            margin: 0 0 12px;
+
+            &:last-child {
+                margin-bottom: 0;
+            }
+        }
+    }
+
+    .ViewChannelConfirmModal__buttons {
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+    }
+}

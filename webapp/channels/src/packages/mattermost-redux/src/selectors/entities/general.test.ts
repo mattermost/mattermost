@@ -446,6 +446,41 @@ describe('Selectors.General', () => {
             expect(Selectors.isChannelPermissionPoliciesEnabled(state)).toBe(true);
             expect(Selectors.isPolicySimulationEnabled(state)).toBe(false);
         });
+
+        test('isViewChannelABACPermissionEnabled returns false when umbrella is off', () => {
+            const state = buildState({
+                FeatureFlagPermissionPolicies: 'false',
+                FeatureFlagViewChannelABACPermission: 'true',
+            });
+            expect(Selectors.isViewChannelABACPermissionEnabled(state)).toBe(false);
+        });
+
+        test('isViewChannelABACPermissionEnabled returns false when sub-flag is off', () => {
+            const state = buildState({
+                FeatureFlagPermissionPolicies: 'true',
+                FeatureFlagViewChannelABACPermission: 'false',
+            });
+            expect(Selectors.isViewChannelABACPermissionEnabled(state)).toBe(false);
+        });
+
+        test('isViewChannelABACPermissionEnabled returns true only when both flags are on', () => {
+            const state = buildState({
+                FeatureFlagPermissionPolicies: 'true',
+                FeatureFlagViewChannelABACPermission: 'true',
+            });
+            expect(Selectors.isViewChannelABACPermissionEnabled(state)).toBe(true);
+        });
+
+        test('view channel is independent of the file-action sub-flag', () => {
+            // The two flags are independent, so neither may imply the other.
+            const state = buildState({
+                FeatureFlagPermissionPolicies: 'true',
+                FeatureFlagChannelPermissionPolicies: 'false',
+                FeatureFlagViewChannelABACPermission: 'true',
+            });
+            expect(Selectors.isChannelPermissionPoliciesEnabled(state)).toBe(false);
+            expect(Selectors.isViewChannelABACPermissionEnabled(state)).toBe(true);
+        });
     });
 
     describe('isPostAttributesEnabled', () => {

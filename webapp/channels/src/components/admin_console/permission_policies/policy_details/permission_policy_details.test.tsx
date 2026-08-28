@@ -318,3 +318,185 @@ describe('components/admin_console/permission_policies/policy_details/Permission
         expect(toggle.closest('button')).toBeEnabled();
     });
 });
+
+describe('components/admin_console/permission_policies/policy_details/PermissionPolicyDetails — View Channel', () => {
+    const mockFetchPolicy = jest.fn();
+    const mockCreatePolicy = jest.fn();
+    const mockGetAccessControlFields = jest.fn();
+
+    const accessControlSettings: AccessControlSettings = {
+        EnableAttributeBasedAccessControl: true,
+        EnableUserManagedAttributes: false,
+        EnableChannelPolicyIndicators: true,
+        TrustProxyDeviceIdentityHeader: false,
+        EnforceDeviceIDConsistency: false,
+        EnableAccessControlAuditLogging: false,
+        SyncJobIntervalSeconds: 3600,
+        AttributeRefreshIntervalSeconds: 30,
+    };
+
+    const baseProps = {
+        policyId: 'policy1',
+        accessControlSettings,
+        sessionAttributesEnabled: true,
+        actions: {
+            fetchPolicy: mockFetchPolicy,
+            createPolicy: mockCreatePolicy,
+            deletePolicy: jest.fn(),
+            setNavigationBlocked: jest.fn(),
+        },
+    };
+
+    const stateWithFlag = (enabled: boolean) => ({
+        entities: {
+            general: {
+                config: {
+                    FeatureFlagPermissionPolicies: 'true',
+                    FeatureFlagViewChannelABACPermission: enabled ? 'true' : 'false',
+                },
+            },
+        },
+    });
+
+    beforeEach(() => {
+        mockFetchPolicy.mockReset();
+        mockCreatePolicy.mockReset();
+        mockGetAccessControlFields.mockReset();
+
+        mockCreatePolicy.mockResolvedValue({data: {id: 'policy1'}});
+
+        // Seed a saved file-only policy so the editor loads with a name, an
+        // expression and one permission already selected.
+        mockFetchPolicy.mockResolvedValue({
+            data: {
+                id: 'policy1',
+                name: 'Policy 1',
+                roles: ['system_user'],
+                rules: [{
+                    actions: ['download_file_attachment'],
+                    expression: 'user.attributes.teams == "engineering"',
+                }],
+            },
+        });
+
+        mockUseEnabledSessionAttributeFields.mockReturnValue([]);
+        mockUseChannelAccessControlActions.mockReturnValue({
+            getAccessControlFields: mockGetAccessControlFields,
+            getVisualAST: jest.fn(),
+            searchUsers: jest.fn(),
+            getChannelPolicy: jest.fn(),
+            saveChannelPolicy: jest.fn(),
+            deleteChannelPolicy: jest.fn(),
+            getChannelMembers: jest.fn(),
+            createJob: jest.fn(),
+            createAccessControlSyncJob: jest.fn(),
+            validateExpressionAgainstRequester: jest.fn(),
+            simulatePolicyForUsers: jest.fn(),
+            updateAccessControlPoliciesActive: jest.fn(),
+        });
+        mockGetAccessControlFields.mockResolvedValue({
+            data: [{id: 'u1', name: 'teams', attrs: {ldap: true}}],
+        });
+    });
+
+    afterEach(() => {
+        jest.clearAllMocks();
+    });
+
+    const renderAndOpenMenu = async (flagEnabled: boolean) => {
+        renderWithContext(<PermissionPolicyDetails {...baseProps}/>, stateWithFlag(flagEnabled));
+        await screen.findByText('Add permission');
+        await userEvent.click(document.getElementById('pp-add-permission-btn')!);
+    };
+
+    // Menu.Item runs its onClick only after the menu's close animation
+    // finishes (see addOnClosedListener in menu_item.tsx), so the permission
+    // lands in state a tick after the click. Wait for Save to enable.
+    const pickPermission = async (label: string) => {
+        await userEvent.click(screen.getByRole('menuitem', {name: new RegExp(label)}));
+        await waitFor(() => {
+            expect(screen.getByText('Save').closest('button')).toBeEnabled();
+        });
+    };
+
+    test('does not offer View Channel when the flag is off', async () => {
+        await renderAndOpenMenu(false);
+
+        expect(document.getElementById('pp-add-permission-view_channel')).toBeNull();
+        expect(document.getElementById('pp-add-permission-upload_file_attachment')).not.toBeNull();
+    });
+
+    test('offers View Channel when the flag is on', async () => {
+        await renderAndOpenMenu(true);
+
+        expect(document.getElementById('pp-add-permission-view_channel')).not.toBeNull();
+    });
+
+    test('confirms before saving a policy that carries view_channel', async () => {
+        await renderAndOpenMenu(true);
+        await pickPermission('View Channel');
+
+        await userEvent.click(screen.getByText('Save'));
+
+        expect(await screen.findByText('Save this policy?')).toBeInTheDocument();
+        expect(mockCreatePolicy).not.toHaveBeenCalled();
+
+        await userEvent.click(screen.getByRole('button', {name: 'Save policy'}));
+
+        await waitFor(() => {
+            expect(mockCreatePolicy).toHaveBeenCalledTimes(1);
+        });
+        expect(mockCreatePolicy.mock.calls[0][0].rules[0].actions).toEqual(
+            expect.arrayContaining(['download_file_attachment', 'view_channel']),
+        );
+    });
+
+    test('cancelling the confirmation leaves the policy unsaved', async () => {
+        await renderAndOpenMenu(true);
+        await pickPermission('View Channel');
+
+        await userEvent.click(screen.getByText('Save'));
+        await screen.findByText('Save this policy?');
+        await userEvent.click(screen.getByRole('button', {name: 'Cancel'}));
+
+        expect(mockCreatePolicy).not.toHaveBeenCalled();
+    });
+
+    test('does not confirm when the flag is off, even for a stored view_channel policy', async () => {
+        // The server would 501 the save, so the dialog would only be a scary
+        // prompt in front of an error.
+        mockFetchPolicy.mockResolvedValue({
+            data: {
+                id: 'policy1',
+                name: 'Policy 1',
+                roles: ['system_user'],
+                rules: [{
+                    actions: ['download_file_attachment', 'view_channel'],
+                    expression: 'user.attributes.teams == "engineering"',
+                }],
+            },
+        });
+
+        await renderAndOpenMenu(false);
+        await pickPermission('Upload Files');
+
+        await userEvent.click(screen.getByText('Save'));
+
+        await waitFor(() => {
+            expect(mockCreatePolicy).toHaveBeenCalledTimes(1);
+        });
+        expect(screen.queryByText('Save this policy?')).not.toBeInTheDocument();
+    });
+
+    test('a file-only policy saves without the confirmation', async () => {
+        await renderAndOpenMenu(true);
+        await pickPermission('Upload Files');
+
+        await userEvent.click(screen.getByText('Save'));
+
+        await waitFor(() => {
+            expect(mockCreatePolicy).toHaveBeenCalledTimes(1);
+        });
+        expect(screen.queryByText('Save this policy?')).not.toBeInTheDocument();
+    });
+});

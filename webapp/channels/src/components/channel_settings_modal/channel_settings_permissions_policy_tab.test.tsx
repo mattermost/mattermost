@@ -6,6 +6,7 @@ import React from 'react';
 import {
     ACCESS_CONTROL_ACTION_DOWNLOAD_FILE,
     ACCESS_CONTROL_ACTION_UPLOAD_FILE,
+    ACCESS_CONTROL_ACTION_VIEW_CHANNEL,
     ACCESS_CONTROL_CHANNEL_ROLE_ADMIN,
     ACCESS_CONTROL_CHANNEL_ROLE_USER,
 } from '@mattermost/types/access_control';
@@ -609,5 +610,154 @@ describe('components/channel_settings_modal/ChannelSettingsPermissionsPolicyTab'
         expect(screen.getByTestId('permissions-policy-editor')).toBeInTheDocument();
         expect(screen.getByTestId('table-editor-value')).toHaveTextContent(newExpression);
         expect(screen.getByTestId(`permissions-policy-editor-action-${ACCESS_CONTROL_ACTION_UPLOAD_FILE}`)).toBeInTheDocument();
+    });
+});
+
+describe('components/channel_settings_modal/ChannelSettingsPermissionsPolicyTab — View Channel', () => {
+    const baseProps = {
+        channel: TestHelper.getChannelMock({
+            id: 'channel_id',
+            name: 'test-channel',
+            display_name: 'Test Channel',
+            type: 'P',
+        }),
+        setAreThereUnsavedChanges: jest.fn(),
+        showTabSwitchError: false,
+    };
+
+    const stateWithFlag = (enabled: boolean) => ({
+        entities: {
+            general: {
+                config: {
+                    FeatureFlagPermissionPolicies: 'true',
+                    FeatureFlagViewChannelABACPermission: enabled ? 'true' : 'false',
+                },
+            },
+            users: {
+                currentUserId: 'current_user_id',
+                profiles: {
+                    current_user_id: TestHelper.getUserMock({id: 'current_user_id', roles: 'system_admin'}),
+                },
+            },
+        },
+    });
+
+    const mockActions = {
+        getAccessControlFields: jest.fn(),
+        getVisualAST: jest.fn(),
+        searchUsers: jest.fn(),
+        getChannelPolicy: jest.fn(),
+        saveChannelPolicy: jest.fn(),
+        deleteChannelPolicy: jest.fn(),
+        getChannelMembers: jest.fn(),
+        createJob: jest.fn(),
+        createAccessControlSyncJob: jest.fn(),
+        validateExpressionAgainstRequester: jest.fn(),
+        simulatePolicyForUsers: jest.fn(),
+        updateAccessControlPoliciesActive: jest.fn(),
+    };
+
+    beforeEach(() => {
+        jest.clearAllMocks();
+        (useChannelAccessControlActions as jest.Mock).mockReturnValue(mockActions);
+        (useChannelSystemPolicies as jest.Mock).mockReturnValue({policies: [], loading: false, error: null});
+        (useEnabledSessionAttributeFields as jest.Mock).mockReturnValue([]);
+        mockActions.getAccessControlFields.mockResolvedValue({
+            data: [{id: 'u1', name: 'department', group_id: 'custom_profile_attributes', object_type: 'user', attrs: {managed: 'admin'}}],
+        });
+        mockActions.getChannelPolicy.mockResolvedValue({error: {status_code: 404}});
+        mockActions.saveChannelPolicy.mockResolvedValue({data: {rules: []}});
+
+        console.error = jest.fn();
+        console.warn = jest.fn();
+    });
+
+    afterEach(() => {
+        jest.restoreAllMocks();
+    });
+
+    const openEditor = async (flagEnabled: boolean) => {
+        renderWithContext(<ChannelSettingsPermissionsPolicyTab {...baseProps}/>, stateWithFlag(flagEnabled));
+        const addRuleButton = await screen.findByTestId('permissions-policy-add-rule');
+        await waitFor(() => expect(addRuleButton).toBeEnabled());
+        await userEvent.click(addRuleButton);
+        await screen.findByTestId('permissions-policy-editor');
+        await screen.findByTestId('table-editor');
+    };
+
+    test('does not offer the View Channel row when the flag is off', async () => {
+        await openEditor(false);
+
+        expect(screen.queryByTestId(`cpp-add-permission-${ACCESS_CONTROL_ACTION_VIEW_CHANNEL}`)).not.toBeInTheDocument();
+        expect(screen.getByTestId(`cpp-add-permission-${ACCESS_CONTROL_ACTION_UPLOAD_FILE}`)).toBeInTheDocument();
+    });
+
+    test('offers the View Channel row when the flag is on', async () => {
+        await openEditor(true);
+
+        expect(screen.getByTestId(`cpp-add-permission-${ACCESS_CONTROL_ACTION_VIEW_CHANNEL}`)).toBeInTheDocument();
+    });
+
+    test('a view_channel rule requires confirmation before saving', async () => {
+        await openEditor(true);
+
+        act(() => {
+            const {calls} = (TableEditor as unknown as jest.Mock).mock;
+            calls[calls.length - 1][0].onChange('user.attributes.department == "eng"');
+        });
+        await userEvent.click(screen.getByTestId(`cpp-add-permission-${ACCESS_CONTROL_ACTION_VIEW_CHANNEL}`));
+        await userEvent.type(screen.getByTestId('permissions-policy-editor-name'), 'Managed devices only');
+        await userEvent.click(screen.getByTestId('permissions-policy-editor-save'));
+
+        await userEvent.click(await screen.findByTestId('SaveChangesPanel__save-btn'));
+
+        // Nothing is persisted until the dialog is confirmed.
+        expect(await screen.findByText('Save this policy?')).toBeInTheDocument();
+        expect(mockActions.saveChannelPolicy).not.toHaveBeenCalled();
+
+        await userEvent.click(screen.getByRole('button', {name: 'Save policy'}));
+
+        await waitFor(() => {
+            expect(mockActions.saveChannelPolicy).toHaveBeenCalledTimes(1);
+        });
+        const saved = mockActions.saveChannelPolicy.mock.calls[0][0];
+        expect(saved.rules[0].actions).toContain(ACCESS_CONTROL_ACTION_VIEW_CHANNEL);
+    });
+
+    test('cancelling the confirmation leaves the policy unsaved', async () => {
+        await openEditor(true);
+
+        act(() => {
+            const {calls} = (TableEditor as unknown as jest.Mock).mock;
+            calls[calls.length - 1][0].onChange('user.attributes.department == "eng"');
+        });
+        await userEvent.click(screen.getByTestId(`cpp-add-permission-${ACCESS_CONTROL_ACTION_VIEW_CHANNEL}`));
+        await userEvent.type(screen.getByTestId('permissions-policy-editor-name'), 'Managed devices only');
+        await userEvent.click(screen.getByTestId('permissions-policy-editor-save'));
+
+        await userEvent.click(await screen.findByTestId('SaveChangesPanel__save-btn'));
+        await screen.findByText('Save this policy?');
+        await userEvent.click(screen.getByRole('button', {name: 'Cancel'}));
+
+        expect(mockActions.saveChannelPolicy).not.toHaveBeenCalled();
+    });
+
+    test('a file-only rule saves without the confirmation', async () => {
+        await openEditor(true);
+
+        act(() => {
+            const {calls} = (TableEditor as unknown as jest.Mock).mock;
+            calls[calls.length - 1][0].onChange('user.attributes.department == "eng"');
+        });
+        await userEvent.click(screen.getByTestId(`cpp-add-permission-${ACCESS_CONTROL_ACTION_DOWNLOAD_FILE}`));
+        await userEvent.type(screen.getByTestId('permissions-policy-editor-name'), 'Downloads');
+        await userEvent.click(screen.getByTestId('permissions-policy-editor-save'));
+
+        await userEvent.click(await screen.findByTestId('SaveChangesPanel__save-btn'));
+
+        await waitFor(() => {
+            expect(mockActions.saveChannelPolicy).toHaveBeenCalledTimes(1);
+        });
+        expect(screen.queryByText('Save this policy?')).not.toBeInTheDocument();
     });
 });
