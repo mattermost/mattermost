@@ -390,6 +390,7 @@ generate_env_files() {
 	BROWSER
         HEADLESS
         REPO
+        CYPRESS_failOnPageError
         CYPRESS_pushNotificationServer
 	EOF
     # Adding service-specific cypress variables

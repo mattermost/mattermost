@@ -36,6 +36,9 @@ export default defineConfig({
         dbClient: 'postgres',
         dbConnection: 'postgres://mmuser:mostest_password@localhost/mattermost_test?sslmode=disable&connect_timeout=10',
         elasticsearchConnectionURL: 'http://localhost:9200',
+
+        // 'off', 'strict-mode' or 'all'; see tests/support/page_error.ts
+        failOnPageError: process.env.CYPRESS_failOnPageError || 'off',
         firstTest: false,
         keycloakAppName: 'mattermost',
         keycloakBaseUrl: 'http://localhost:8484',
