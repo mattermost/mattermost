@@ -8,6 +8,7 @@ import {renderWithContext, waitFor} from 'tests/react_testing_utils';
 import {RHSStates} from 'utils/constants';
 
 import {LhsItemType, LhsPage} from 'types/store/lhs';
+import type {RhsState} from 'types/store/rhs';
 
 import Recaps from './recaps';
 
@@ -17,7 +18,7 @@ const mockGetRecaps = jest.fn((page: number, perPage: number) => ({type: 'GET_RE
 const mockGetScheduledRecaps = jest.fn((page: number, perPage: number) => ({type: 'GET_SCHEDULED_RECAPS', meta: {page, perPage}}));
 const mockFetchRecapLimitStatus = jest.fn(() => ({type: 'GET_RECAP_LIMIT_STATUS'}));
 const mockMarkRecapsAsViewed = jest.fn(() => ({type: 'MARK_RECAPS_VIEWED'}));
-const mockGetRhsState = jest.fn(() => null);
+const mockGetRhsState = jest.fn((): RhsState => null);
 const mockSelectLhsItem = jest.fn((type: string, id?: string) => {
     return {type: 'SELECT_LHS_ITEM', meta: {lhsType: type, id}};
 });
