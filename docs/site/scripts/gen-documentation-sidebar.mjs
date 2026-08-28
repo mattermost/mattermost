@@ -890,9 +890,9 @@ const ADMIN_SCALE_HIDDEN = new Set([]);
 // Guide roots — hub pages and top-level ordering.
 // ---------------------------------------------------------------------------
 //
-// Sphinx-era hub pages sit at a guide's root and duplicate the category for
-// the sibling directory they summarize (e.g. "Compliance with Mattermost"
-// next to "Comply"). Each entry folds the hub doc into its category as the
+// Some hub pages sit at a guide's root and duplicate the category for the
+// sibling directory they summarize (e.g. "Compliance with Mattermost" next
+// to "Comply"). Each entry folds the hub doc into its category as the
 // landing page instead. Match by content directory (`dir`) or, for a
 // category from a manual grouping override, by `label`.
 
