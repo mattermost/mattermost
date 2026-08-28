@@ -852,11 +852,11 @@ func (s *RetryLayerAttributesStore) GetChannelMembersToRemove(rctx request.CTX, 
 
 }
 
-func (s *RetryLayerAttributesStore) GetSubject(rctx request.CTX, ID string, groupID string) (*model.Subject, error) {
+func (s *RetryLayerAttributesStore) GetSubject(rctx request.CTX, ID string, groupID string, objectType string) (*model.Subject, error) {
 
 	tries := 0
 	for {
-		result, err := s.AttributesStore.GetSubject(rctx, ID, groupID)
+		result, err := s.AttributesStore.GetSubject(rctx, ID, groupID, objectType)
 		if err == nil {
 			return result, nil
 		}

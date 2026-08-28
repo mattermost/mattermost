@@ -973,6 +973,21 @@ Access the following configuration settings in the System Console by going to **
 </tbody>
 </table>
 
+### User status away timeout
+
+<table>
+<colgroup>
+<col style={{width: '53%'}} />
+<col style={{width: '46%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>The number of seconds of inactivity after which a user's status indicator changes to <strong>Away</strong>.</p><p>Numerical input in seconds. Default is <strong>300</strong> (5 minutes).</p></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Users and Teams</strong></li><li><code>config.json</code> setting: <code>TeamSettings</code> &gt; <code>UserStatusAwayTimeout</code> &gt; <code>300</code></li><li>Environment variable: <code>MM_TEAMSETTINGS_USERSTATUSAWAYTIMEOUT</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
 ### Enable custom user groups
 
 <table>
@@ -999,6 +1014,21 @@ Access the following configuration settings in the System Console by going to **
 <tr>
 <td><p>Set the server time for updating the user post statistics, including each user's total message count, and the timestamp of each user's most recently sent message.</p><p>Must be a 24-hour time stamp in the form <code>HH:MM</code> based on the local time of the server. Default is <strong>00:00</strong>.</p></td>
 <td><ul><li>System Config path: <strong>Site Configuration &gt; Users and Teams</strong></li><li><code>config.json</code> setting: <code>ServiceSettings</code> &gt; <code>RefreshPostStatsRunTime</code> &gt; <code>00:00</code></li><li>Environment variable: <code>MM_SERVICESETTINGS_REFRESHPOSTSTATSRUNTIME</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Enable account deactivation
+
+<table>
+<colgroup>
+<col style={{width: '53%'}} />
+<col style={{width: '46%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><ul><li><strong>true</strong>: Users can deactivate their own account from <strong>Settings &gt; Advanced &gt; Deactivate Account</strong>. When a user deactivates their own account, they receive an email notification confirming the deactivation.</li><li><strong>false</strong>: <strong>(Default)</strong> Users can't deactivate their own account.</li></ul><p>Available only when authentication is set to use email and password. Not available when authentication uses SAML or AD/LDAP.</p></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Users and Teams</strong></li><li><code>config.json</code> setting: <code>TeamSettings</code> &gt; <code>EnableUserDeactivation</code> &gt; <code>false</code></li><li>Environment variable: <code>MM_TEAMSETTINGS_ENABLEUSERDEACTIVATION</code></li></ul></td>
 </tr>
 </tbody>
 </table>
