@@ -11,6 +11,7 @@ import type {WrappedComponentProps} from 'react-intl';
 
 import {DownloadOutlineIcon, LinkVariantIcon, CheckIcon} from '@mattermost/compass-icons/components';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
+import {captureStillFrame} from '@mattermost/shared/utils/animated_image';
 import type {FileInfo} from '@mattermost/types/files';
 import type {PostImage} from '@mattermost/types/posts';
 
@@ -113,7 +114,25 @@ type State = {
     linkCopyInProgress: boolean;
     error: boolean;
     imageWidth: number;
+    isWindowActive: boolean;
+    stillFrameSrc: string | null;
 };
+
+function isWindowActiveNow(): boolean {
+    return document.hasFocus() && document.visibilityState === 'visible';
+}
+
+// Animated GIFs/WebPs can't be paused by the browser, so we detect them heuristically (by file
+// extension) to decide whether it's worth freezing them to a static frame while the window is
+// inactive. False negatives just mean the image keeps animating in the background; false
+// positives just mean the image is needlessly copied onto a canvas.
+function isLikelyAnimatedImage(src: string, fileInfo?: FileInfo): boolean {
+    const extension = fileInfo?.extension?.toLowerCase();
+    if (extension === 'gif' || extension === 'webp') {
+        return true;
+    }
+    return /\.(gif|webp)(\?|#|$)/i.test(src);
+}
 
 // SizeAwareImage is a component used for rendering images where the dimensions of the image are important for
 // ensuring that the page is laid out correctly.
@@ -121,6 +140,7 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
     public heightTimeout = 0;
     public mounted = false;
     public timeout: NodeJS.Timeout | null = null;
+    private capturedStillFrameForSrc: string | null = null;
 
     constructor(props: Props) {
         super(props);
@@ -134,6 +154,8 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
             linkCopyInProgress: false,
             error: false,
             imageWidth: dimensions?.width ?? 0,
+            isWindowActive: isWindowActiveNow(),
+            stillFrameSrc: null,
         };
 
         this.heightTimeout = 0;
@@ -141,11 +163,46 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
 
     componentDidMount() {
         this.mounted = true;
+        window.addEventListener('focus', this.updateWindowActive);
+        window.addEventListener('blur', this.updateWindowActive);
+        document.addEventListener('visibilitychange', this.updateWindowActive);
+    }
+
+    componentDidUpdate(prevProps: Props) {
+        if (prevProps.src !== this.props.src) {
+            this.capturedStillFrameForSrc = null;
+            if (this.state.stillFrameSrc !== null) {
+                this.setState({stillFrameSrc: null});
+            }
+        }
     }
 
     componentWillUnmount() {
         this.mounted = false;
+        window.removeEventListener('focus', this.updateWindowActive);
+        window.removeEventListener('blur', this.updateWindowActive);
+        document.removeEventListener('visibilitychange', this.updateWindowActive);
     }
+
+    // Animated GIFs/WebPs can't be paused by the browser, so once the window goes inactive we
+    // capture a static frame and swap the <img> to it, then swap back on the way to active again.
+    updateWindowActive = () => {
+        const isWindowActive = isWindowActiveNow();
+        if (isWindowActive === this.state.isWindowActive) {
+            return;
+        }
+        this.setState({isWindowActive});
+
+        if (!isWindowActive && this.state.loaded && isLikelyAnimatedImage(this.props.src, this.props.fileInfo) &&
+            this.capturedStillFrameForSrc !== this.props.src) {
+            this.capturedStillFrameForSrc = this.props.src;
+            captureStillFrame(this.props.src).then((dataUrl) => {
+                if (dataUrl && this.mounted && this.capturedStillFrameForSrc === this.props.src) {
+                    this.setState({stillFrameSrc: dataUrl});
+                }
+            });
+        }
+    };
 
     dimensionsAvailable = (dimensions?: Partial<PostImage>) => {
         return dimensions && dimensions.width && dimensions.height;
@@ -256,6 +313,8 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
             mergedImgStyle = {...conditionalSVGStyleAttribute, ...this.props.style};
         }
 
+        const displaySrc = (!this.state.isWindowActive && this.state.stillFrameSrc) ? this.state.stillFrameSrc : src;
+
         const image = (
             <img
                 {...props}
@@ -267,7 +326,7 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
                     this.props.className +
                     (this.props.handleSmallImageContainer &&
                         this.state.isSmallImage ? ' small-image--inside-container' : '')}
-                src={src}
+                src={displaySrc}
                 onError={this.handleError}
                 onLoad={this.handleLoad}
                 style={mergedImgStyle}
