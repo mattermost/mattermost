@@ -892,26 +892,25 @@ const ADMIN_SCALE_HIDDEN = new Set([]);
 //
 // Some hub pages sit at a guide's root and duplicate the category for the
 // sibling directory they summarize (e.g. "Compliance with Mattermost" next
-// to "Comply"). Each entry folds the hub doc into its category as the
-// landing page instead. Match by content directory (`dir`) or, for a
-// category from a manual grouping override, by `label`.
+// to "Comply"). Each entry folds the hub doc into its category, by label,
+// as that category's landing page instead.
 
 const ADMIN_HUB_PAGES = [
-  {doc: 'administration-guide/compliance-with-mattermost', dir: 'comply'},
-  {doc: 'administration-guide/upgrade-mattermost',         dir: 'upgrade'},
+  {doc: 'administration-guide/compliance-with-mattermost', label: 'Comply'},
+  {doc: 'administration-guide/upgrade-mattermost',         label: 'Upgrade'},
   // Nested under Manage — see ADMIN_MANAGE_GROUPS.cloudWorkspace.
   {doc: 'administration-guide/cloud-workspace-management', label: 'Cloud Workspace Management'},
 ];
 
 // Administration Guide top level, in order of operations rather than the
 // filesystem's alphabetical order.
-const ADMIN_ROOT_ORDER = ['configure', 'comply', 'onboard', 'manage', 'upgrade', 'scale'];
+const ADMIN_ROOT_ORDER = ['Configure', 'Comply', 'Onboard', 'Manage', 'Upgrade', 'Scale'];
 
 const ENDUSER_HUB_PAGES = [
-  {doc: 'end-user-guide/messaging-collaboration', dir: 'collaborate'},
-  {doc: 'end-user-guide/preferences',             dir: 'preferences'},
-  {doc: 'end-user-guide/project-task-management', dir: 'project-management'},
-  {doc: 'end-user-guide/workflow-automation',     dir: 'workflow-automation'},
+  {doc: 'end-user-guide/messaging-collaboration', label: 'Collaborate'},
+  {doc: 'end-user-guide/preferences',             label: 'Preferences'},
+  {doc: 'end-user-guide/project-task-management', label: 'Project Management'},
+  {doc: 'end-user-guide/workflow-automation',     label: 'Workflow Automation'},
 ];
 
 // ---------------------------------------------------------------------------
@@ -1094,7 +1093,9 @@ function buildCategory(absDir, docsRelDir) {
 
 // The content sub-directory a category was built from (e.g. 'comply' for
 // administration-guide/comply/), read off its landing page or first doc.
-// Must run before attachHubPages, which overwrites `link`.
+// Used by buildAdminGuideSidebar/buildEndUserGuideSidebar below to find the
+// Configure/Manage/Onboard/Scale/Collaborate sub-category to regroup,
+// independent of its (label-based) display text.
 function categoryDirName(cat) {
   if (cat.link && cat.link.id) return cat.link.id.split('/')[1];
   const items = cat.items || [];
@@ -1119,42 +1120,34 @@ function findCategoryByLabel(items, label) {
   return null;
 }
 
-// Reorder a guide's top-level categories by content directory. Anything not
-// named in `order` keeps its relative position at the end.
+// Reorder a guide's top-level categories by label. Anything not named in
+// `order` keeps its relative position at the end.
 function orderRootCategories(sectionCat, order, sectionLabel) {
-  const rank = new Map(order.map((dir, i) => [dir, i]));
+  const rank = new Map(order.map((label, i) => [label, i]));
   const listed = [];
   const rest = [];
-  const found = new Set();
   for (const it of sectionCat.items) {
-    const dir = it.type === 'category' ? categoryDirName(it) : null;
-    if (dir !== null && rank.has(dir)) {
-      listed.push([rank.get(dir), it]);
-      found.add(dir);
-    } else {
-      rest.push(it);
-    }
+    if (it.type === 'category' && rank.has(it.label)) listed.push(it);
+    else rest.push(it);
   }
-  listed.sort((a, b) => a[0] - b[0]);
+  listed.sort((a, b) => rank.get(a.label) - rank.get(b.label));
 
-  const missing = order.filter((dir) => !found.has(dir));
+  const missing = order.filter((label) => !listed.some((it) => it.label === label));
   if (missing.length > 0) {
     console.warn(`[sidebar] WARN: ${sectionLabel} root order names categor(y/ies) that don't exist: ${missing.join(', ')}`);
   }
 
-  sectionCat.items = [...listed.map(([, it]) => it), ...rest];
+  sectionCat.items = [...listed, ...rest];
   return sectionCat;
 }
 
 // Drop each hub page's standalone root entry and set it as the landing page
-// of the category it duplicates. Run after any reordering.
+// of the category it duplicates (matched by label). Run after any reordering.
 function attachHubPages(sectionCat, hubs, sectionLabel) {
   for (const hub of hubs) {
-    const target = hub.dir ?
-      sectionCat.items.find((it) => it.type === 'category' && categoryDirName(it) === hub.dir) :
-      findCategoryByLabel(sectionCat.items, hub.label);
+    const target = findCategoryByLabel(sectionCat.items, hub.label);
     if (!target) {
-      console.warn(`[sidebar] WARN: ${sectionLabel} hub page ${hub.doc} — target category "${hub.dir ?? hub.label}" not found; leaving the duplicate entry in place.`);
+      console.warn(`[sidebar] WARN: ${sectionLabel} hub page ${hub.doc} — target category "${hub.label}" not found; leaving the duplicate entry in place.`);
       continue;
     }
 
