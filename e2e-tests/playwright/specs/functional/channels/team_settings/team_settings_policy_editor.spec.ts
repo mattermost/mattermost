@@ -17,6 +17,7 @@ import {
     createPrivateChannel,
     createTeamAdmin,
     setUserAttribute,
+    waitForAttributeViewToInclude,
     addAttributeRule,
     addChannelToPolicy,
 } from './helpers';
@@ -514,13 +515,18 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         const channel = await createPrivateChannel(adminClient, team.id);
         await setUserAttribute(adminClient, adminUser.id, 'Department', 'Engineering');
 
+        // # Wait for the UserAttributeView (materialized view) to refresh so the server's
+        // self-inclusion check sees the admin's Department=Engineering value. Without this
+        // wait the view is stale and the server incorrectly fires the self-lockout guard,
+        // preventing the confirmation modal from appearing.
+        await waitForAttributeViewToInclude(adminClient, 'user.attributes.Department == "Engineering"', [
+            adminUser.id,
+        ]);
+
         const {page} = await pw.testBrowser.login(adminUser);
         const channelsPage = new ChannelsPage(page);
-        // # Navigate and wait for all API calls to settle (custom profile attributes
-        // must be fetched before the self-inclusion check can validate the admin's Department)
         await channelsPage.goto(team.name);
         await channelsPage.toBeVisible();
-        await page.waitForLoadState('networkidle');
 
         const teamSettings = await channelsPage.openTeamSettings();
         await teamSettings.openAccessPoliciesTab();
