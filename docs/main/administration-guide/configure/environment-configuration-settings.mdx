@@ -2587,7 +2587,7 @@ See the [Telemetry](/administration-guide/manage/telemetry#security-update-check
 
 With self-hosted deployments, you can configure Mattermost as a [high availability cluster-based deployment](/deployment-guide/reference-architecture/scale/high-availability-cluster-based-deployment) by going to **System Console \> Environment \> High Availability**, or by editing the `config.json` file as described in the following tables. Changes to configuration settings in this section require a server restart before taking effect.
 
-In a Mattermost high availability cluster-based deployment, the System Console is set to read-only, and settings can only be changed by editing the `config.json` file directly. However, to test a high availability cluster-based environment, you can disable `ClusterSettings.ReadOnlyConfig` in the `config.json` file by setting it to `false`. This allows changes applied using the System Console to be saved back to the configuration file.
+When a Mattermost high availability cluster-based deployment uses `config.json` for configuration, the System Console is set to read-only by default, and settings can only be changed by editing the `config.json` file directly. However, to test a high availability cluster-based environment, you can disable `ClusterSettings.ReadOnlyConfig` in the `config.json` file by setting it to `false`. This allows changes applied using the System Console to be saved back to the configuration file. When configuration is stored in the database, `ClusterSettings.ReadOnlyConfig` is ignored and the System Console remains fully editable. See [Store configuration in your database](/administration-guide/configure/configuration-in-your-database) for details.
 
 ### Enable high availability mode
 
