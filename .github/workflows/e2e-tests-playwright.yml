@@ -6,6 +6,10 @@ on:
       commit_sha:
         type: string
         required: true
+      autofix_mode:
+        type: string
+        required: false
+        default: ""
       enable_reporting:
         type: boolean
         required: false
@@ -184,6 +188,7 @@ jobs:
       workers: 20
       enabled_docker_services: "postgres inbucket"
       commit_sha: ${{ inputs.commit_sha }}
+      autofix_mode: ${{ inputs.autofix_mode }}
       branch: ${{ needs.generate-build-variables.outputs.branch }}
       build_id: ${{ needs.generate-build-variables.outputs.build_id }}
       server_image_tag: ${{ needs.generate-build-variables.outputs.server_image_tag }}

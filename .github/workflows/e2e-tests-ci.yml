@@ -230,6 +230,7 @@ jobs:
       enable_reporting: true
       report_type: "PR"
       pr_number: "${{ needs.resolve-pr.outputs.PR_NUMBER }}"
+      autofix_mode: "${{ vars.E2E_AI_TEST_AUTOFIX }}"
       should_run: "${{ needs.check-changes.outputs.should_run }}"
     secrets:
       MM_LICENSE: "${{ secrets.MM_E2E_TEST_LICENSE_ONPREM_ENT }}"
@@ -260,6 +261,7 @@ jobs:
       enable_reporting: true
       report_type: "PR"
       pr_number: "${{ needs.resolve-pr.outputs.PR_NUMBER }}"
+      autofix_mode: "${{ vars.E2E_AI_TEST_AUTOFIX }}"
       should_run: "${{ needs.check-changes.outputs.should_run }}"
     secrets:
       MM_LICENSE: "${{ secrets.MM_E2E_TEST_LICENSE_ONPREM_ENT }}"
@@ -287,6 +289,7 @@ jobs:
       enable_reporting: true
       report_type: "PR"
       pr_number: "${{ needs.resolve-pr.outputs.PR_NUMBER }}"
+      autofix_mode: "${{ vars.E2E_AI_TEST_AUTOFIX }}"
     secrets:
       MM_LICENSE: "${{ secrets.MM_E2E_TEST_LICENSE_ONPREM_ENT }}"
       ANTHROPIC_API_KEY: "${{ secrets.ANTHROPIC_API_KEY }}"
@@ -317,6 +320,7 @@ jobs:
       enable_reporting: true
       report_type: "PR"
       pr_number: "${{ needs.resolve-pr.outputs.PR_NUMBER }}"
+      autofix_mode: "${{ vars.E2E_AI_TEST_AUTOFIX }}"
     secrets:
       MM_LICENSE: "${{ secrets.MM_E2E_TEST_LICENSE_ONPREM_ENT }}"
       ANTHROPIC_API_KEY: "${{ secrets.ANTHROPIC_API_KEY }}"

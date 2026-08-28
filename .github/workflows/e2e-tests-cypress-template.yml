@@ -26,6 +26,10 @@ on:
       commit_sha:
         type: string
         required: true
+      autofix_mode:
+        type: string
+        required: false
+        default: ""
       branch:
         type: string
         required: true
@@ -456,7 +460,7 @@ jobs:
     needs: [prepare-run, ai-triage]
     if: >-
       always() && !cancelled() &&
-      vars.E2E_AI_TEST_AUTOFIX == 'push' &&
+      inputs.autofix_mode == 'push' &&
       needs.ai-triage.outputs.fixable_clusters != '' &&
       needs.ai-triage.outputs.fixable_clusters != '[]'
     # The fixer pushes and comments with the GH_TOKEN PAT — see the playwright
