@@ -204,3 +204,4 @@ api/v4/html/static/mattermost-openapi-v4.yaml
 api/v4/html/index.html
 api/node_modules/
 test-results/
+actionlint
