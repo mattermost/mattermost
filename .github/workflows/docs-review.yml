@@ -3,22 +3,15 @@ name: Docs AI Review
 # Reviews documentation changes through the persona registry in
 # .github/prompts/personas/ and posts one sticky comment per PR.
 #
-# On push only `validate` runs. The registry resolves paths under docs/, so a
-# rename landing between a PR's last run and its merge can break master with
-# neither PR going red.
+# Pull requests only: every job here exists to produce that comment. `validate`
+# resolves the registry against the working tree, so a rename that strands a
+# persona's docs_paths surfaces on the next docs PR rather than on the merge
+# that caused it. Accepted, because the failure names the offending path and
+# nothing here gates a release.
 
 on:
   pull_request:
     types: [opened, synchronize, reopened]
-    paths:
-      - "docs/main/**"
-      - "docs/develop/**"
-      - "!docs/main/agents/docs/**"
-      - ".github/prompts/**"
-      - ".github/scripts/docs-ai/**"
-      - ".github/workflows/docs-review.yml"
-  push:
-    branches: [master]
     paths:
       - "docs/main/**"
       - "docs/develop/**"
@@ -31,7 +24,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: docs-review-${{ github.event.pull_request.number || github.ref }}
+  group: docs-review-${{ github.event.pull_request.number }}
   cancel-in-progress: true
 
 jobs:
@@ -63,11 +56,10 @@ jobs:
     name: Diff, lint and route
     needs: validate
     runs-on: ubuntu-24.04
-    # Reviewing needs a PR to comment on. Skipping here skips the rest: review
-    # and report both gate on the personas this job outputs.
-    if: >-
-      github.event_name == 'pull_request' &&
-      github.event.pull_request.head.repo.full_name == github.repository
+    # Forks have neither secrets nor a writable token, so the whole model path
+    # sits behind this one condition: review and report both gate on the
+    # personas this job outputs.
+    if: github.event.pull_request.head.repo.full_name == github.repository
     outputs:
       personas: ${{ steps.route.outputs.personas }}
       reviewable: ${{ steps.diff.outputs.reviewable }}
