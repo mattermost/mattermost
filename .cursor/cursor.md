@@ -81,6 +81,23 @@ The Mattermost server is expected at `http://localhost:8065`. The webapp dev ser
 - Playwright dependencies are installed with `cd e2e-tests/playwright && npm ci`.
 - For full Playwright compose flows, use the existing `e2e-tests` Makefile and scripts. Docker Compose is available in the Cloud Agent image.
 
+### Playwright upgrade-path tests (branch `e2e/playwright-upgrade-path-tests`)
+
+Rolling-upgrade coverage lives in a **separate CI pipeline** (not inside `e2e-tests-playwright-template.yml`). Locally:
+
+```bash
+cd e2e-tests/playwright
+npm run testcontainers:down
+MM_LICENSE=<key> PW_UPGRADE_FROM_SERVER_IMAGE=mattermostdevelopment/mattermost-enterprise-edition:release-11.9 npm run test:upgrade:from
+SERVER_IMAGE=mattermostdevelopment/mattermost-enterprise-edition:master npm run test:upgrade:to
+npm run testcontainers:down
+```
+
+- `script/resolve_upgrade_matrix.mjs` — outputs JSON with `dockerTag`, `isESR`, `contextLabel`; prints `[]` when no supported from-versions (CI posts `e2e-test/playwright-rolling-upgrades/none`).
+- CI rolling upgrades run on merge/release automatically; PR runs only when `run_rolling_upgrades` is enabled on manual `e2e-tests-ci.yml` dispatch.
+- Pulling `release-*` server images requires Docker Hub login (`DOCKERHUB_USERNAME` / `DOCKERHUB_TOKEN`). Set `MM_LICENSE` for licensed upgrade-from scenarios.
+- Before opening/updating the PR: run `npm run check` in `e2e-tests/playwright` and fix any eslint errors; then verify a full `upgrade-from` → `upgrade-to` run is green.
+
 ## Browser Verification
 
 Use the `computerUse` subagent's desktop (Chrome is preinstalled) for browser automation and screenshots. Prefer verifying UI changes against the running local Mattermost instance before opening or updating a PR.
