@@ -27,6 +27,9 @@ import {PRESET_CUSTOM, presets} from './presets';
 // endpoint and use the sentinel target_id 'system'.
 // ---------------------------------------------------------------------------
 
+// Property-field group for all classification-markings entities.
+export const CLASSIFICATIONS_GROUP_NAME = 'access_control';
+
 // Field-level target attributes shared by template, system, and channel fields.
 // `target_type` is always 'system'; `target_id` is empty for system-scoped
 // field definitions (the server canonicalizes both).
