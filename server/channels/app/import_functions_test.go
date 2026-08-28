@@ -827,6 +827,18 @@ func TestImportImportUser(t *testing.T) {
 		assert.Equal(t, userCount, userCountCurrent, "the refused user must not have been created")
 	})
 
+	t.Run("import a new user carrying a space capability role in dry-run", func(t *testing.T) {
+		roles := model.SpacePageEditorRoleId
+		data := imports.UserImportData{
+			Username: new(model.NewUsername()),
+			Email:    new(model.NewId() + "@example.com"),
+			Roles:    &roles,
+		}
+		appErr := th.App.importUser(th.Context, &data, true)
+		require.NotNil(t, appErr, "a dry run must report the refused role")
+		assert.Equal(t, "api.user.update_user_roles.space_role.app_error", appErr.Id)
+	})
+
 	t.Run("import a valid user in apply mode", func(t *testing.T) {
 		username := "A" + model.NewUsername()[1:]
 		testsDir, _ := fileutils.FindDir("tests")
@@ -2170,6 +2182,43 @@ func TestImportUserChannels(t *testing.T) {
 					}
 				}
 			}
+		})
+	}
+}
+
+// The team and channel entries of an import file set explicit roles through the
+// internal member-role updaters, where the space capability roles are refused.
+// The channel lookup resolves message channels only, so a space backing channel,
+// the one place a capability role is accepted, cannot be named in an import file.
+func TestImportUserTeamsAndChannelsRefuseSpaceCapabilityRoles(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	for _, roleName := range model.SpaceCapabilityRoles {
+		t.Run(roleName, func(t *testing.T) {
+			user := th.CreateUser(t)
+
+			appErr := th.App.importUserTeams(th.Context, user, &[]imports.UserTeamImportData{{
+				Name:  &th.BasicTeam.Name,
+				Roles: model.NewPointer(model.TeamUserRoleId + " " + roleName),
+			}})
+			require.NotNil(t, appErr)
+			assert.Equal(t, "api.team.update_team_member_roles.space_role.app_error", appErr.Id)
+
+			teamMember, appErr := th.App.GetTeamMember(th.Context, th.BasicTeam.Id, user.Id)
+			require.Nil(t, appErr)
+			assert.Empty(t, teamMember.ExplicitRoles)
+
+			appErr = th.App.importUserChannels(th.Context, user, th.BasicTeam, &[]imports.UserChannelImportData{{
+				Name:  &th.BasicChannel.Name,
+				Roles: model.NewPointer(model.ChannelUserRoleId + " " + roleName),
+			}})
+			require.NotNil(t, appErr)
+			assert.Equal(t, "api.channel.update_channel_member_roles.space_role.app_error", appErr.Id)
+
+			channelMember, appErr := th.App.GetChannelMember(th.Context, th.BasicChannel.Id, user.Id)
+			require.Nil(t, appErr)
+			assert.Empty(t, channelMember.ExplicitRoles)
 		})
 	}
 }
