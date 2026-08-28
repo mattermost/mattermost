@@ -134,11 +134,11 @@ Each resolved entry includes ESR metadata for commit-status context:
 
 ```json
 {
-  "dockerTag": "release-10.11",
-  "minor": "10.11",
-  "patch": "10.11.22",
-  "isESR": true,
-  "contextLabel": "release-10.11-esr"
+    "dockerTag": "release-10.11",
+    "minor": "10.11",
+    "patch": "10.11.22",
+    "isESR": true,
+    "contextLabel": "release-10.11-esr"
 }
 ```
 
@@ -157,12 +157,12 @@ Rolling-upgrade coverage runs in a **separate pipeline** from the normal Playwri
 
 **When it runs**
 
-| Pipeline | Rolling upgrades |
-|----------|------------------|
-| PR (automated) | Off |
+| Pipeline                        | Rolling upgrades                             |
+| ------------------------------- | -------------------------------------------- |
+| PR (automated)                  | Off                                          |
 | PR (manual `workflow_dispatch`) | Opt-in via **Run rolling upgrades** checkbox |
-| Merge to `master` / `release-*` | On automatically |
-| Release cut | On automatically |
+| Merge to `master` / `release-*` | On automatically                             |
+| Release cut                     | On automatically                             |
 
 When the resolver returns an empty matrix (no supported from-versions left), CI posts a success commit status at `e2e-test/playwright-rolling-upgrades/none` and skips upgrade workers.
 

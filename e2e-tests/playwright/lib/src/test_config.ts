@@ -6,7 +6,12 @@ import * as dotenv from 'dotenv';
 import {MATTERMOST_ALIAS, MATTERMOST_PORT, WEBHOOK_ALIAS, WEBHOOK_PORT} from './containers/constants';
 import {MATTERMOST_SERVER_IMAGE} from './containers/default_images';
 import {SERVER_ENV_BASELINE} from './containers/env_baseline';
-import {getUpgradeFromServerImage, getUpgradeToServerImage, isUpgradeFromProjectSelected, isUpgradeToPhaseProjectSelected} from './upgrade_env';
+import {
+    getUpgradeFromServerImage,
+    getUpgradeToServerImage,
+    isUpgradeFromProjectSelected,
+    isUpgradeToPhaseProjectSelected,
+} from './upgrade_env';
 
 dotenv.config({quiet: true});
 // Capture before .env.testcontainers override — that file persists the *running* image under

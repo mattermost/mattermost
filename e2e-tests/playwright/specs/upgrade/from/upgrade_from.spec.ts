@@ -105,7 +105,8 @@ test.describe.serial('upgrade-from baseline', {tag: ['@upgrade-from']}, () => {
     });
 
     test('admin channel messages and dm/gm channel ids', async ({pw}) => {
-        const {adminClient, userClient, adminMe, peers, publicChannel, privateChannel} = await loadUpgradeFromContext(pw);
+        const {adminClient, userClient, adminMe, peers, publicChannel, privateChannel} =
+            await loadUpgradeFromContext(pw);
 
         await postMessage(adminClient, publicChannel.id, UPGRADE_ADMIN_PUBLIC_MESSAGE);
         await postMessage(adminClient, publicChannel.id, UPGRADE_ADMIN_SEARCH_MESSAGE);

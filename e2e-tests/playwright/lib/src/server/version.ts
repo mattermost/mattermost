@@ -71,7 +71,9 @@ async function assertRunningContainerImage(expectedImage: string): Promise<void>
         '{{.Config.Image}}',
     ]);
     const runningImage = stdout.trim();
-    const expectedTag = expectedImage.includes(':') ? expectedImage.slice(expectedImage.lastIndexOf(':') + 1) : expectedImage;
+    const expectedTag = expectedImage.includes(':')
+        ? expectedImage.slice(expectedImage.lastIndexOf(':') + 1)
+        : expectedImage;
 
     if (!runningImage.includes(expectedTag) && runningImage !== expectedImage) {
         throw new Error(

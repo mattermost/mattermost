@@ -12,7 +12,16 @@ import type {Post} from '@mattermost/types/posts';
 import type {UserProfile} from '@mattermost/types/users';
 import type {APIRequestContext} from '@playwright/test';
 
-import {expect, getFileData, getFileFromAsset, getPluginStatus, listAzuriteBlobNames, listLocalStorageFiles, listMinioObjectKeys, testConfig} from '@mattermost/playwright-lib';
+import {
+    expect,
+    getFileData,
+    getFileFromAsset,
+    getPluginStatus,
+    listAzuriteBlobNames,
+    listLocalStorageFiles,
+    listMinioObjectKeys,
+    testConfig,
+} from '@mattermost/playwright-lib';
 
 const BASELINE_PATH = path.resolve(process.cwd(), '.upgrade_baseline.json');
 
@@ -531,9 +540,7 @@ export async function assertUpgradeFileBackendMatches(
         expect(currentDriver).toBe(baseline.fileDriverName);
     }
 
-    const attachments =
-        baseline.attachments ??
-        ([] as UpgradeAttachmentBaseline[]);
+    const attachments = baseline.attachments ?? ([] as UpgradeAttachmentBaseline[]);
 
     for (const {postId, fileName, author} of attachments) {
         const client = author === 'user' ? userClient : adminClient;
