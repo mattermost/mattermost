@@ -63,16 +63,10 @@ const ChannelNameFormField = (props: Props): JSX.Element => {
     // Track if the field has been interacted with
     const [hasInteracted, setHasInteracted] = useState(false);
     const [displayNameError, setDisplayNameError] = useState<string>('');
-    const displayName = useRef<string>('');
     const urlModified = useRef<boolean>(false);
     const [url, setURL] = useState<string>(props.currentUrl || '');
     const [urlError, setURLError] = useState<string>('');
     const [inputCustomMessage, setInputCustomMessage] = useState<CustomMessageInputType | null>(null);
-
-    // Initialize displayName.current with props.value when component mounts
-    useEffect(() => {
-        displayName.current = props.value;
-    }, [props.value]);
 
     const currentTeamName = useSelector(getCurrentTeam)?.name;
     const teamName = props.team ? props.team.name : currentTeamName;
@@ -102,7 +96,6 @@ const ChannelNameFormField = (props: Props): JSX.Element => {
             }
         }
 
-        displayName.current = updatedDisplayName;
         props.onDisplayNameChange(updatedDisplayName);
 
         if (!urlModified.current && !props.isEditingExistingChannel) {
@@ -119,7 +112,7 @@ const ChannelNameFormField = (props: Props): JSX.Element => {
         setHasInteracted(true);
 
         // Validate on blur - always show errors on blur regardless of interaction state
-        const displayNameErrors = validateDisplayName(intl, displayName.current);
+        const displayNameErrors = validateDisplayName(intl, props.value);
         setDisplayNameError(displayNameErrors.length ? displayNameErrors[displayNameErrors.length - 1] : '');
 
         if (displayNameErrors.length) {
@@ -132,12 +125,12 @@ const ChannelNameFormField = (props: Props): JSX.Element => {
         }
 
         // Handle URL generation if needed
-        if (displayName.current && !url) {
+        if (props.value && !url) {
             const url = generateSlug();
             setURL(url);
             props.onURLChange(url);
         }
-    }, [props.onURLChange, displayName.current, url, intl]);
+    }, [props.onURLChange, props.value, url, intl]);
 
     const handleOnURLChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         e.preventDefault();
