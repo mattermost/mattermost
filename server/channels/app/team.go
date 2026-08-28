@@ -1370,6 +1370,7 @@ func (a *App) leaveTeam(rctx request.CTX, team *model.Team, user *model.User, re
 	// leave records nothing here.
 	policyDriven := team.PolicyEnforced && requestorId == ""
 	var removalAudit accessControlTeamRemovalAudit
+	removalStatus := model.AuditStatusFail
 	if policyDriven {
 		removalAudit = accessControlTeamRemovalAudit{
 			teamID:  team.Id,
@@ -1385,6 +1386,15 @@ func (a *App) leaveTeam(rctx request.CTX, team *model.Team, user *model.User, re
 		case a.accessControlAuditLoggingEnabled():
 			removalAudit.policyRevision = a.accessControlPolicyRevision(rctx, team.Id)
 		}
+
+		// Every cascade record below points at this one through parent_event_id,
+		// and the removal can still be abandoned at any of the failure exits in
+		// between. Defer the parent so it is written on all of them, leaving no
+		// cascade referencing a record that was never emitted. It stays a failure
+		// until the team membership is actually gone.
+		defer func() {
+			a.logAccessControlTeamRemoval(rctx, removalAudit, removalStatus)
+		}()
 	}
 
 	for _, channel := range channelList {
@@ -1440,16 +1450,10 @@ func (a *App) leaveTeam(rctx request.CTX, team *model.Team, user *model.User, re
 	}
 
 	removeErr := a.ch.srv.teamService.RemoveTeamMember(rctx, teamMember)
-	if policyDriven {
-		auditStatus := model.AuditStatusSuccess
-		if removeErr != nil {
-			auditStatus = model.AuditStatusFail
-		}
-		a.logAccessControlTeamRemoval(rctx, removalAudit, auditStatus)
-	}
 	if removeErr != nil {
 		return model.NewAppError("RemoveTeamMemberFromTeam", "app.team.save_member.save.app_error", nil, "", http.StatusInternalServerError).Wrap(removeErr)
 	}
+	removalStatus = model.AuditStatusSuccess
 
 	if err := a.postProcessTeamMemberLeave(rctx, teamMember, requestorId); err != nil {
 		return err

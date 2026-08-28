@@ -33,12 +33,13 @@ import (
 // next sync sees the user in their final state and would never retry them, a
 // dropped record would be lost for good.
 //
-// On error each method therefore re-reads the membership and records the change
-// if the user ended up in the state the sync was driving them towards. Errors
-// raised before the mutation leave the user on the near side of that check, so
-// they still record nothing. This reads the end state rather than proving which
-// call produced it, which is sound because the sync only asks to remove users it
-// just enumerated as members and to add users it just found missing.
+// On error each method therefore re-reads the membership and proceeds if the
+// user ended up in the state the sync was driving them towards — recording the
+// change, and for teams sending the DM. Errors raised before the mutation leave
+// the user on the near side of that check, so those still do nothing. This reads
+// the end state rather than proving which call produced it, which is sound
+// because the sync only asks to remove users it just enumerated as members and
+// to add users it just found missing.
 
 // AddChannelMemberByAccessPolicy adds a user to a channel because they satisfy
 // its access policy, then records the decision.
@@ -117,18 +118,21 @@ func (a *App) AddTeamMemberByAccessPolicy(rctx request.CTX, team *model.Team, sy
 // per-channel cascade audit records via logAccessControlTeamRemoval /
 // logAccessControlTeamCascadedChannelRemoval (defined below). LeaveTeam owns
 // those triggers because only it enumerates the cascaded channels. The "you were
-// removed" DM is best-effort. systemBot may be pre-resolved by the caller (nil
+// removed" DM is best-effort, and follows the same end-state rule as the audits:
+// a removal that lands but fails afterwards still notifies the user, because no
+// later sync will revisit them. systemBot may be pre-resolved by the caller (nil
 // resolves it lazily).
 func (a *App) RemoveTeamMemberByAccessPolicy(rctx request.CTX, team *model.Team, systemBot *model.Bot, userID, jobID string, policyRevision int) *model.AppError {
 	syncCtx := &accessControlSyncContext{jobID: jobID, policyRevision: policyRevision}
-	if appErr := a.removeUserFromTeam(rctx, team.Id, userID, "", syncCtx); appErr != nil {
+	appErr := a.removeUserFromTeam(rctx, team.Id, userID, "", syncCtx)
+	if appErr != nil && a.teamMembershipExists(rctx, team.Id, userID) {
 		return appErr
 	}
 
-	if appErr := a.SendTeamAccessControlRemovalNotification(rctx, systemBot, userID, team); appErr != nil {
-		rctx.Logger().Warn("Failed to send team removal notification", mlog.String("team_id", team.Id), mlog.String("user_id", userID), mlog.Err(appErr))
+	if dmErr := a.SendTeamAccessControlRemovalNotification(rctx, systemBot, userID, team); dmErr != nil {
+		rctx.Logger().Warn("Failed to send team removal notification", mlog.String("team_id", team.Id), mlog.String("user_id", userID), mlog.Err(dmErr))
 	}
-	return nil
+	return appErr
 }
 
 // accessControlSyncContext carries the membership sync's per-resource audit
