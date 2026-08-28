@@ -954,7 +954,7 @@ func (a *App) importBot(rctx request.CTX, data *imports.BotImportData, dryRun bo
 	// so Bot().Update() alone doesn't persist it. Update the user record
 	// if the DisplayName has diverged.
 	if data.DisplayName != nil && savedBot.UserId != "" {
-		botUser, userErr := a.Srv().Store().User().Get(rctx.Context(), savedBot.UserId)
+		botUser, userErr := a.Srv().Store().User().Get(rctx, savedBot.UserId)
 		if userErr != nil {
 			rctx.Logger().Warn("Failed to fetch bot user for DisplayName update",
 				mlog.String("user_id", savedBot.UserId),
@@ -1113,7 +1113,7 @@ func (a *App) importUserTeams(rctx request.CTX, user *model.User, data *[]import
 			if appErr != nil {
 				return appErr
 			}
-			member.SchemeAdmin = userShouldBeAdmin
+			member.SchemeAdmin = member.SchemeAdmin || userShouldBeAdmin
 		}
 
 		if tdata.Channels != nil {
@@ -1170,7 +1170,7 @@ func (a *App) importUserTeams(rctx request.CTX, user *model.User, data *[]import
 			}
 		}
 
-		if _, appErr := a.UpdateTeamMemberSchemeRoles(rctx, member.TeamId, user.Id, isGuestByTeamID[member.TeamId], isUserByTeamId[member.TeamId], isAdminByTeamID[member.TeamId]); appErr != nil {
+		if _, appErr := a.UpdateTeamMemberSchemeRoles(rctx, member.TeamId, user.Id, isGuestByTeamID[member.TeamId], isUserByTeamId[member.TeamId], member.SchemeAdmin || isAdminByTeamID[member.TeamId]); appErr != nil {
 			rctx.Logger().Warn("Error updating team member scheme roles", mlog.String("team_id", member.TeamId), mlog.String("user_id", user.Id), mlog.Err(appErr))
 		}
 	}

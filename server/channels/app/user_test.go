@@ -1618,11 +1618,11 @@ func TestPermanentDeleteUser(t *testing.T) {
 	require.False(t, exists, "Profile image wasn't deleted. err=%v", err)
 
 	// verify scheduled posts have been deleted
-	fetchedScheduledPost, scheduledPostErr := th.App.Srv().Store().ScheduledPost().Get(createdScheduledPost1.Id)
+	fetchedScheduledPost, scheduledPostErr := th.App.Srv().Store().ScheduledPost().Get(th.Context, createdScheduledPost1.Id)
 	require.ErrorIs(t, scheduledPostErr, sql.ErrNoRows)
 	require.Nil(t, fetchedScheduledPost)
 
-	fetchedScheduledPost, scheduledPostErr = th.App.Srv().Store().ScheduledPost().Get(createdScheduledPost2.Id)
+	fetchedScheduledPost, scheduledPostErr = th.App.Srv().Store().ScheduledPost().Get(th.Context, createdScheduledPost2.Id)
 	require.ErrorIs(t, scheduledPostErr, sql.ErrNoRows)
 	require.Nil(t, fetchedScheduledPost)
 }
@@ -2533,6 +2533,94 @@ func TestUpdateThreadReadForUser(t *testing.T) {
 
 		_, appErr = th.App.UpdateThreadReadForUser(th.Context, "currentSessionId", th.BasicUser.Id, th.BasicChannel.TeamId, rootPost.Id, replyPost.CreateAt)
 		require.Nil(t, appErr)
+	})
+}
+
+func TestGetThreadsForUserSanitizesRootPost(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.ThreadAutoFollow = true
+		*cfg.ServiceSettings.CollapsedThreads = model.CollapsedThreadsDefaultOn
+	})
+
+	appErr := th.App.JoinChannel(th.Context, th.BasicChannel, th.BasicUser.Id)
+	require.Nil(t, appErr)
+	appErr = th.App.JoinChannel(th.Context, th.BasicChannel, th.BasicUser2.Id)
+	require.Nil(t, appErr)
+
+	assertSanitized := func(t *testing.T, post *model.Post) {
+		t.Helper()
+
+		require.NotNil(t, post)
+		attachments := post.Attachments()
+		require.Len(t, attachments, 1)
+		require.Len(t, attachments[0].Actions, 1)
+		assert.Equal(t, "action", attachments[0].Actions[0].Name, "non-secret attachment data must be preserved")
+		assert.Nil(t, attachments[0].Actions[0].Integration)
+		assert.Nil(t, post.GetProp(model.PostPropsMmBlocksActions))
+
+		postJSON, err := json.Marshal(post)
+		require.NoError(t, err)
+		assert.NotContains(t, string(postJSON), "secret-endpoint")
+		assert.NotContains(t, string(postJSON), "secret_marker")
+	}
+
+	rootPost, _, appErr := th.App.CreatePost(th.Context, &model.Post{
+		UserId:    th.BasicUser.Id,
+		ChannelId: th.BasicChannel.Id,
+		Message:   "interactive root",
+		Props: model.StringInterface{
+			model.PostPropsAttachments: []*model.MessageAttachment{
+				{
+					Text: "hello",
+					Actions: []*model.PostAction{
+						{
+							Type: model.PostActionTypeButton,
+							Name: "action",
+							Integration: &model.PostActionIntegration{
+								URL:     "http://localhost:8065/secret-endpoint",
+								Context: map[string]any{"secret_marker": "s3cr3t"},
+							},
+						},
+					},
+				},
+			},
+			model.PostPropsMmBlocksActions: map[string]any{
+				"mm_blocks_act": map[string]any{
+					"type":    model.MmBlocksActionTypeExternal,
+					"url":     "http://localhost:8065/secret-endpoint",
+					"context": map[string]any{"secret_marker": "s3cr3t"},
+				},
+			},
+		},
+	}, th.BasicChannel, model.CreatePostFlags{AllowMmBlocksActions: true})
+	require.Nil(t, appErr)
+	require.NotNil(t, rootPost.GetProp(model.PostPropsMmBlocksActions))
+
+	_, _, appErr = th.App.CreatePost(th.Context, &model.Post{
+		UserId:    th.BasicUser2.Id,
+		ChannelId: th.BasicChannel.Id,
+		RootId:    rootPost.Id,
+		Message:   "reply",
+	}, th.BasicChannel, model.CreatePostFlags{})
+	require.Nil(t, appErr)
+
+	t.Run("GetThreadForUser strips action integrations from the root post", func(t *testing.T) {
+		threadMembership, appErr := th.App.GetThreadMembershipForUser(th.BasicUser2.Id, rootPost.Id)
+		require.Nil(t, appErr)
+
+		thread, appErr := th.App.GetThreadForUser(th.Context, threadMembership, false)
+		require.Nil(t, appErr)
+		assertSanitized(t, thread.Post)
+	})
+
+	t.Run("GetThreadsForUser strips action integrations from the root post", func(t *testing.T) {
+		threads, appErr := th.App.GetThreadsForUser(th.Context, th.BasicUser2.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{PageSize: 10})
+		require.Nil(t, appErr)
+		require.Len(t, threads.Threads, 1)
+		assertSanitized(t, threads.Threads[0].Post)
 	})
 }
 

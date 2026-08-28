@@ -130,7 +130,7 @@ describe('CELEditor', () => {
         await userEvent.click(screen.getByRole('button', {name: /test access rule/i}));
 
         await waitFor(() => {
-            expect(mockSearch).toHaveBeenCalledWith(expression, '', '', 50);
+            expect(mockSearch).toHaveBeenCalledWith(expression, '', '', 50, undefined);
         });
         expect(searchUsersForExpression).not.toHaveBeenCalled();
     });

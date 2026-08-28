@@ -46,7 +46,7 @@ const AttributeLabel = ({displayName, name}: AttributeLabelProps) => (
 );
 
 // Define AttributeIcon outside the main component
-const AttributeIcon = (props: IconProps & {attribute?: UserPropertyField}) => {
+export const AttributeIcon = (props: IconProps & {attribute?: UserPropertyField}) => {
     const {attribute, ...iconProps} = props;
     if (attribute) {
         const valueType = attribute.attrs?.value_type;
@@ -291,7 +291,9 @@ const AttributeSelectorMenu = ({currentAttribute, currentAttributeObjectType, av
                 children: (
                     <>
                         <AttributeIcon attribute={selectedAttributeObject}/>
-                        <span className='field-selector-menu-button__label'>{selectedAttributeLabel}</span>
+                        <WithTooltip title={selectedAttributeLabel}>
+                            <span className='field-selector-menu-button__label'>{selectedAttributeLabel}</span>
+                        </WithTooltip>
                     </>
                 ),
                 dataTestId: 'attributeSelectorMenuButton',

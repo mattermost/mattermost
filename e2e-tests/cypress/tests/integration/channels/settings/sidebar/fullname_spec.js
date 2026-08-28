@@ -64,6 +64,10 @@ describe('Settings > Sidebar > General', () => {
         // * Verify that after enter user's username match
         cy.uiGetPostTextBox().should('have.value', `@${username} `);
 
+        // * Wait for the autocomplete list to close so that pressing enter posts the
+        //   message instead of being captured to complete a suggestion
+        cy.get('#suggestionList').should('not.exist');
+
         // # Click enter in post textbox
         cy.uiGetPostTextBox().type('{enter}');
 

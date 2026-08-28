@@ -30,6 +30,8 @@ If there's no translation layer, Mattermost won't understand the data you're sen
 
 When "attachments" are mentioned in the integrations documentation, it refers to Slack's Message Attachments. These "attachments" can be optionally added as an array in the data sent by an integration, and are used to customize the formatting of the message.
 
+For new interactive content — buttons, menus, and structured layouts — use [Mattermost Blocks](/developers/integrate/reference/mm-blocks) instead of attachment `actions`. Legacy attachments remain supported and are translated into Mattermost Blocks at render time.
+
 We currently don't support the ability to attach files to a post made by an integration.
 
 ### Where can I find existing integrations?

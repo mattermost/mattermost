@@ -4,8 +4,8 @@
 package localcachelayer
 
 import (
-	"context"
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/mock"
@@ -56,7 +56,7 @@ func getMockStore(t *testing.T) *mocks.Store {
 	mockRolesStore.On("Save", &fakeRole).Return(&model.Role{}, nil)
 	mockRolesStore.On("SavePreservingUnknownPermissions", &fakeRole).Return(&model.Role{}, nil)
 	mockRolesStore.On("Delete", "123").Return(&fakeRole, nil)
-	mockRolesStore.On("GetByName", context.Background(), "role-name").Return(&fakeRole, nil)
+	mockRolesStore.On("GetByName", mock.Anything, "role-name").Return(&fakeRole, nil)
 	mockRolesStore.On("GetByNames", []string{"role-name"}).Return([]*model.Role{&fakeRole}, nil)
 	mockRolesStore.On("GetByNames", []string{"role-name2"}).Return([]*model.Role{&fakeRole2}, nil)
 	mockRolesStore.On("PermanentDeleteAll").Return(nil)
@@ -95,6 +95,17 @@ func getMockStore(t *testing.T) *mocks.Store {
 	mockEmojiStore.On("GetByName", mock.Anything, "name123", false).Return(&fakeEmoji, nil)
 	mockEmojiStore.On("GetMultipleByName", mock.IsType(&request.Context{}), []string{"name123"}).Return([]*model.Emoji{&fakeEmoji}, nil)
 	mockEmojiStore.On("GetMultipleByName", mock.IsType(&request.Context{}), []string{"name123", "name321"}).Return([]*model.Emoji{&fakeEmoji, &fakeEmoji2}, nil)
+	missingEmoji := model.Emoji{Id: "456", Name: "missing"}
+	// Master-routed lookups find the emoji, replica ones don't; registered
+	// first so it wins over the IsType matcher below.
+	mockEmojiStore.On("GetMultipleByName", mock.MatchedBy(func(rctx request.CTX) bool {
+		return sqlstore.HasMaster(rctx.Context())
+	}), []string{"missing"}).Return([]*model.Emoji{&missingEmoji}, nil)
+	mockEmojiStore.On("GetMultipleByName", mock.IsType(&request.Context{}), []string{"missing"}).Return([]*model.Emoji{}, nil)
+	mockEmojiStore.On("GetMultipleByName", mock.IsType(&request.Context{}), []string{"name123", "missing"}).Return([]*model.Emoji{&fakeEmoji}, nil)
+	mockEmojiStore.On("GetMultipleByName", mock.IsType(&request.Context{}), []string{strings.Repeat("z", model.EmojiNameMaxLength+1)}).Return([]*model.Emoji{}, nil)
+	mockEmojiStore.On("GetByName", mock.Anything, "missing", true).Return(&missingEmoji, nil)
+	mockEmojiStore.On("Save", &missingEmoji).Return(&missingEmoji, nil)
 	mockEmojiStore.On("GetByName", mock.IsType(&request.Context{}), "master", true).Return(&ctxEmoji, nil)
 	mockEmojiStore.On("GetByName", sqlstore.RequestContextWithMaster(request.TestContext(t)), "master", false).Return(&ctxEmoji, nil)
 	mockEmojiStore.On("Delete", &fakeEmoji, int64(0)).Return(nil)
@@ -210,7 +221,7 @@ func getMockStore(t *testing.T) *mocks.Store {
 
 	fakeField := model.PropertyField{ID: "field-id", GroupID: "group-id", Name: "field-name"}
 	mockPropertyFieldStore := mocks.PropertyFieldStore{}
-	mockPropertyFieldStore.On("GetForGroup", context.Background(), "group-id").Return([]*model.PropertyField{&fakeField}, nil)
+	mockPropertyFieldStore.On("GetForGroup", mock.Anything, "group-id").Return([]*model.PropertyField{&fakeField}, nil)
 	mockPropertyFieldStore.On("Create", &fakeField).Return(&fakeField, nil)
 	mockPropertyFieldStore.On("Update", "group-id", []*model.PropertyField{&fakeField}, map[string]int64(nil)).Return([]*model.PropertyField{&fakeField}, nil)
 	mockPropertyFieldStore.On("Delete", "group-id", "field-id").Return(nil)

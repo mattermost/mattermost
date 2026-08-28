@@ -10,7 +10,68 @@ This changelog summarizes updates to Mattermost desktop app releases for [Matter
 <Inc0_common_esr_support />
 
 </Important>
+## Release v6.3 \{#release-v6-3}
+
+**v6.3.0 Release Day: 2026-08-14**
+
+**Download Binaries:** [Mattermost Desktop on GitHub](https://github.com/mattermost/desktop/releases/latest)
+
+### Compatibility
+
+- Desktop App is supported on any currently supported [Mattermost server version](https://docs.mattermost.com/product-overview/mattermost-desktop-releases.html#latest-releases).
+- Updated Chromium minimum supported version to 150+.
+
+### Improvements
+
+#### All Platforms
+
+- Added koffi native module, and added connectors for macOS and Windows native session attributes.
+- Added support for explicitly trusted embedded media origins for media permission requests.
+- Updated onboarding and server connection welcome messaging.
+- Added an advanced setting to enable or disable session attributes. Some resources may be inaccessible when disabled.
+- Enabled client-collected **Session Attributes** to be sent to enabled servers.
+- Added ``F12`` to open **Developer Tools** for current tab.
+- Improved how network requests and embedded content from connected servers are handled, keeping requests scoped to configured servers.
+- Improved handling of page redirects and embedded content navigation across Desktop App windows.
+
+### Architectural Changes
+
+- Major version upgrade of Electron to v43.0.0. Electron is the underlying technology used to build the Desktop App.
+
+### Bug Fixes
+
+#### macOS
+- Fixed an issue where a ``mattermost://`` deep link could open the **Add Server** dialog.
+
+#### Linux
+- Fixed download URL construction in "Download Options" for Linux releases.
+- Fixed the association to the desktop launcher and the wrong icon being shown in Ubuntu.
+
+#### All Platforms
+
+- Fixed an issue where other views could end an active call.
+- Fixed a rare crash where closing a server tab or window while it was still loading could throw "Object has been destroyed" in the main process.
+
+### Open Source Components
+
+- Added ``joi`` and ``fast-xml-parser`` to https://github.com/mattermost/desktop/.
+
+### Known Issues
+
+- Sometimes during installation you may see this message: ``Warning 1946. Property 'System.AppUserModel.ID' for shortcut 'Mattermost.Ink' could not be set``. This message can be safely ignored.
+- Users seeing an endless "Loading..." screen when attempting to log in to the app may need to manually clear cached data. The Mattermost data directory is `/Users/<username>/Library/Containers/Mattermost/Data/Library/Application Support/Mattermost` on macOS, `Users/<username>/AppData/Roaming/Mattermost` on Windows, and `~/.config/Mattermost` on Linux. Delete only the `Cache`, `Code Cache`, and `GPUCache` subdirectories. Deleting the full Mattermost data directory also resets desktop configuration and session data.
+- On Linux, a left-click on the Mattermost tray icon doesn't open the app window but opens the tray menu.
+- Crashes might be experienced in some Linux desktop clients due to an upstream bug in the `libnotifyapp` library. A recommended workaround is to disable the Mattermost system tray icon via Desktop Settings.
+
 ## Release v6.2 (Extended Support Release) \{#release-v6-2}
+
+- **v6.2.3, released 2026-08-17**
+
+  - Mattermost Desktop App v6.2.3 contains low to medium severity level security fixes. Upgrading is recommended. Details will be posted on our [security updates page](https://mattermost.com/security-updates/) 30 days after release as per the [Mattermost Responsible Disclosure Policy](https://mattermost.com/security-vulnerability-report/).
+  - Major version upgrade of Electron to v43.3.0. Electron is the underlying technology used to build the Desktop App.
+  - Fixed an issue where other views could end an active call.
+  - Fixed an issue in the Desktop App's internal URL validation.
+  - Improved how network requests and embedded content from connected servers are handled, keeping requests scoped to your configured servers.
 
 - **v6.2.2, released 2026-06-23**
 
@@ -25,12 +86,12 @@ This changelog summarizes updates to Mattermost desktop app releases for [Matter
 
   - Original v6.2.0 release
 
-**Download Binaries:** [Mattermost Desktop on GitHub](https://github.com/mattermost/desktop/releases/v6.2.2)
+**Download Binaries:** [Mattermost Desktop on GitHub](https://github.com/mattermost/desktop/releases/v6.2.3)
 
 ### Compatibility
 
 - Desktop App is supported on any currently supported [Mattermost server version](https://docs.mattermost.com/product-overview/mattermost-desktop-releases.html#latest-releases).
-- Updated Chromium minimum supported version to 146+.
+- Updated Chromium minimum supported version to 150+.
 
 ### Improvements
 
@@ -76,7 +137,7 @@ This changelog summarizes updates to Mattermost desktop app releases for [Matter
 ### Known Issues
 
 - Sometimes during installation you may see this message: ``Warning 1946. Property 'System.AppUserModel.ID' for shortcut 'Mattermost.Ink' could not be set``. This message can be safely ignored.
-- Users seeing an endless "Loading..." screen when attempting to log in to the app may need to manually delete their cache directory. For macOS it is located in `/Users/<username>/Library/Containers/Mattermost/Data/Library/Application Support/Mattermost`, for Windows in `Users/<username>/AppData/Roaming/Mattermost` and for Linux in `~/config/Mattermost` (where `~` is the home directory).
+- Users seeing an endless "Loading..." screen when attempting to log in to the app may need to manually clear cached data. The Mattermost data directory is `/Users/<username>/Library/Containers/Mattermost/Data/Library/Application Support/Mattermost` on macOS, `Users/<username>/AppData/Roaming/Mattermost` on Windows, and `~/.config/Mattermost` on Linux. Delete only the `Cache`, `Code Cache`, and `GPUCache` subdirectories. Deleting the full Mattermost data directory also resets desktop configuration and session data.
 - On Linux, a left-click on the Mattermost tray icon doesn't open the app window but opens the tray menu.
 - Crashes might be experienced in some Linux desktop clients due to an upstream bug in the `libnotifyapp` library. A recommended workaround is to disable the Mattermost system tray icon via Desktop Settings.
 

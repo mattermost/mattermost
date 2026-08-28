@@ -9,76 +9,73 @@ exports[`components/delete_post_modal should match snapshot for delete_post_moda
     aria-hidden="true"
   />
   <div
-    role="none"
+    class="fade modal-backdrop in"
+  />
+  <div
+    aria-labelledby="deletePostModalLabel"
+    aria-modal="true"
+    class="fade in modal"
+    id="deletePostModal"
+    role="dialog"
+    style="display: block; padding-right: 0px;"
+    tabindex="-1"
   >
     <div
-      class="fade modal-backdrop in"
-    />
-    <div
-      aria-labelledby="deletePostModalLabel"
-      class="fade in modal"
-      id="deletePostModal"
-      role="dialog"
-      style="display: block; padding-right: 0px;"
-      tabindex="-1"
+      class="a11y__modal modal-dialog"
     >
       <div
-        class="a11y__modal modal-dialog"
+        class="modal-content"
+        role="document"
       >
         <div
-          class="modal-content"
-          role="document"
+          class="modal-header"
         >
-          <div
-            class="modal-header"
+          <button
+            aria-label="Close"
+            class="close"
+            type="button"
           >
-            <button
-              aria-label="Close"
-              class="close"
-              type="button"
+            <span
+              aria-hidden="true"
             >
-              <span
-                aria-hidden="true"
-              >
-                ×
-              </span>
-              <span
-                class="sr-only"
-              >
-                Close
-              </span>
-            </button>
-            <h1
-              class="modal-title"
-              id="deletePostModalLabel"
+              ×
+            </span>
+            <span
+              class="sr-only"
             >
-              Confirm Post Delete
-            </h1>
-          </div>
-          <div
-            class="modal-body"
+              Close
+            </span>
+          </button>
+          <h1
+            class="modal-title"
+            id="deletePostModalLabel"
           >
-            <p>
-              Are you sure you want to delete this message?
-            </p>
-          </div>
-          <div
-            class="modal-footer"
+            Confirm Post Delete
+          </h1>
+        </div>
+        <div
+          class="modal-body"
+        >
+          <p>
+            Are you sure you want to delete this message?
+          </p>
+        </div>
+        <div
+          class="modal-footer"
+        >
+          <button
+            class="btn btn-tertiary"
+            type="button"
           >
-            <button
-              class="btn btn-tertiary"
-              type="button"
-            >
-              Cancel
-            </button>
-            <button
-              class="btn btn-danger"
-              id="deletePostModalButton"
-              type="button"
-            >
-              Delete
-            </button>
-          </div>
+            Cancel
+          </button>
+          <button
+            class="btn btn-danger"
+            id="deletePostModalButton"
+            type="button"
+          >
+            Delete
+          </button>
         </div>
       </div>
     </div>
@@ -95,79 +92,76 @@ exports[`components/delete_post_modal should match snapshot for delete_post_moda
     aria-hidden="true"
   />
   <div
-    role="none"
+    class="fade modal-backdrop in"
+  />
+  <div
+    aria-labelledby="deletePostModalLabel"
+    aria-modal="true"
+    class="fade in modal"
+    id="deletePostModal"
+    role="dialog"
+    style="display: block; padding-right: 0px;"
+    tabindex="-1"
   >
     <div
-      class="fade modal-backdrop in"
-    />
-    <div
-      aria-labelledby="deletePostModalLabel"
-      class="fade in modal"
-      id="deletePostModal"
-      role="dialog"
-      style="display: block; padding-right: 0px;"
-      tabindex="-1"
+      class="a11y__modal modal-dialog"
     >
       <div
-        class="a11y__modal modal-dialog"
+        class="modal-content"
+        role="document"
       >
         <div
-          class="modal-content"
-          role="document"
+          class="modal-header"
         >
-          <div
-            class="modal-header"
+          <button
+            aria-label="Close"
+            class="close"
+            type="button"
           >
-            <button
-              aria-label="Close"
-              class="close"
-              type="button"
+            <span
+              aria-hidden="true"
             >
-              <span
-                aria-hidden="true"
-              >
-                ×
-              </span>
-              <span
-                class="sr-only"
-              >
-                Close
-              </span>
-            </button>
-            <h1
-              class="modal-title"
-              id="deletePostModalLabel"
+              ×
+            </span>
+            <span
+              class="sr-only"
             >
-              Confirm Post Delete
-            </h1>
-          </div>
-          <div
-            class="modal-body"
+              Close
+            </span>
+          </button>
+          <h1
+            class="modal-title"
+            id="deletePostModalLabel"
           >
-            <p>
-              Are you sure you want to delete this message?
-            </p>
-            <p>
-              This message has 1 comment on it.
-            </p>
-          </div>
-          <div
-            class="modal-footer"
+            Confirm Post Delete
+          </h1>
+        </div>
+        <div
+          class="modal-body"
+        >
+          <p>
+            Are you sure you want to delete this message?
+          </p>
+          <p>
+            This message has 1 comment on it.
+          </p>
+        </div>
+        <div
+          class="modal-footer"
+        >
+          <button
+            class="btn btn-tertiary"
+            type="button"
           >
-            <button
-              class="btn btn-tertiary"
-              type="button"
-            >
-              Cancel
-            </button>
-            <button
-              class="btn btn-danger"
-              id="deletePostModalButton"
-              type="button"
-            >
-              Delete
-            </button>
-          </div>
+            Cancel
+          </button>
+          <button
+            class="btn btn-danger"
+            id="deletePostModalButton"
+            type="button"
+          >
+            Delete
+          </button>
         </div>
       </div>
     </div>
@@ -184,76 +178,73 @@ exports[`components/delete_post_modal should match snapshot for post with 1 comm
     aria-hidden="true"
   />
   <div
-    role="none"
+    class="fade modal-backdrop in"
+  />
+  <div
+    aria-labelledby="deletePostModalLabel"
+    aria-modal="true"
+    class="fade in modal"
+    id="deletePostModal"
+    role="dialog"
+    style="display: block; padding-right: 0px;"
+    tabindex="-1"
   >
     <div
-      class="fade modal-backdrop in"
-    />
-    <div
-      aria-labelledby="deletePostModalLabel"
-      class="fade in modal"
-      id="deletePostModal"
-      role="dialog"
-      style="display: block; padding-right: 0px;"
-      tabindex="-1"
+      class="a11y__modal modal-dialog"
     >
       <div
-        class="a11y__modal modal-dialog"
+        class="modal-content"
+        role="document"
       >
         <div
-          class="modal-content"
-          role="document"
+          class="modal-header"
         >
-          <div
-            class="modal-header"
+          <button
+            aria-label="Close"
+            class="close"
+            type="button"
           >
-            <button
-              aria-label="Close"
-              class="close"
-              type="button"
+            <span
+              aria-hidden="true"
             >
-              <span
-                aria-hidden="true"
-              >
-                ×
-              </span>
-              <span
-                class="sr-only"
-              >
-                Close
-              </span>
-            </button>
-            <h1
-              class="modal-title"
-              id="deletePostModalLabel"
+              ×
+            </span>
+            <span
+              class="sr-only"
             >
-              Confirm Comment Delete
-            </h1>
-          </div>
-          <div
-            class="modal-body"
+              Close
+            </span>
+          </button>
+          <h1
+            class="modal-title"
+            id="deletePostModalLabel"
           >
-            <p>
-              Are you sure you want to delete this comment?
-            </p>
-          </div>
-          <div
-            class="modal-footer"
+            Confirm Comment Delete
+          </h1>
+        </div>
+        <div
+          class="modal-body"
+        >
+          <p>
+            Are you sure you want to delete this comment?
+          </p>
+        </div>
+        <div
+          class="modal-footer"
+        >
+          <button
+            class="btn btn-tertiary"
+            type="button"
           >
-            <button
-              class="btn btn-tertiary"
-              type="button"
-            >
-              Cancel
-            </button>
-            <button
-              class="btn btn-danger"
-              id="deletePostModalButton"
-              type="button"
-            >
-              Delete
-            </button>
-          </div>
+            Cancel
+          </button>
+          <button
+            class="btn btn-danger"
+            id="deletePostModalButton"
+            type="button"
+          >
+            Delete
+          </button>
         </div>
       </div>
     </div>

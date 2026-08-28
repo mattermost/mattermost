@@ -243,9 +243,13 @@ components:
         roles:
           type: string
         last_viewed_at:
-          description: The time in milliseconds the channel was last viewed by the user
+          description: >-
+            The time in milliseconds the channel was last viewed by the user.
+            This field is omitted when the membership belongs to a user other
+            than the requester, as the value is private to that user.
           type: integer
           format: int64
+          nullable: true
         msg_count:
           type: integer
         mention_count:
@@ -253,9 +257,13 @@ components:
         notify_props:
           $ref: "#/components/schemas/ChannelNotifyProps"
         last_update_at:
-          description: The time in milliseconds the channel member was last updated
+          description: >-
+            The time in milliseconds the channel member was last updated. This
+            field is omitted when the membership belongs to a user other than
+            the requester, as the value is private to that user.
           type: integer
           format: int64
+          nullable: true
     ChannelMemberWithTeamData:
       allOf:
         - $ref: "#/components/schemas/ChannelMember"
@@ -4732,6 +4740,14 @@ components:
         error_code:
           type: string
           description: Explains the error behind why a scheduled post could not have been sent
+        repeat_type:
+          type: string
+          description: >
+            Empty for a one-time schedule, or `weekly` for a recurring weekly schedule in `repeat_timezone`.
+        repeat_timezone:
+          type: string
+          description: >
+            IANA timezone name (for example `America/New_York`) used to interpret weekly recurrence; required when `repeat_type` is `weekly`.
         metadata:
           $ref: "#/components/schemas/PostMetadata"
     AccessControlFieldsAutocompleteResponse:

@@ -49,6 +49,7 @@ func condenseSiteURL(siteURL string) string {
 type Service struct {
 	config  func() *model.Config
 	license func() *model.License
+	logger  mlog.LoggerIFace
 
 	userService *users.UserService
 	store       store.Store
@@ -66,6 +67,7 @@ type ServiceConfig struct {
 	TemplatesContainer *templates.Container
 	UserService        *users.UserService
 	Store              store.Store
+	Logger             mlog.LoggerIFace
 }
 
 func NewService(config ServiceConfig) (*Service, error) {
@@ -76,6 +78,7 @@ func NewService(config ServiceConfig) (*Service, error) {
 		config:             config.ConfigFn,
 		templatesContainer: config.TemplatesContainer,
 		license:            config.LicenseFn,
+		logger:             config.Logger,
 		store:              config.Store,
 		userService:        config.UserService,
 	}

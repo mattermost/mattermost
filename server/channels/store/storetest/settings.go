@@ -19,7 +19,7 @@ import (
 )
 
 const (
-	defaultPostgresqlDSN = "postgres://mmuser:mostest@localhost:5432/mattermost_test?sslmode=disable&connect_timeout=10"
+	defaultPostgresqlDSN = "postgres://mmuser:mostest_password@localhost:5432/mattermost_test?sslmode=disable&connect_timeout=10"
 )
 
 func getDefaultPostgresqlDSN() string {
@@ -88,7 +88,6 @@ func databaseSettings(driver, dataSource string) *model.SqlSettings {
 		ConnMaxIdleTimeMilliseconds:       new(int),
 		MaxOpenConns:                      new(int),
 		Trace:                             new(false),
-		AtRestEncryptKey:                  new(model.NewRandomString(32)),
 		QueryTimeout:                      new(int),
 		AnalyticsQueryTimeout:             new(int),
 		MigrationsStatementTimeoutSeconds: new(int),

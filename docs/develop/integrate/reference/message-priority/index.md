@@ -1,5 +1,7 @@
 ---
-title: "Message priority"
+title: "Use message priority"
+description: "Set message priority levels so users can identify important messages and optionally request acknowledgments or persistent notifications."
+sidebar_label: "Message priority"
 sidebar_position: 50
 ---
 
@@ -13,7 +15,7 @@ When sending a message, you can use any of the following to format how you want 
 
 `requested_ack`: If set to `true`, the message will be marked as requiring an acknowledgment from the users by displaying a checkmark icon next to the message. Keep in mind that this requires the message priority to be set to _Important_ or _Urgent_.
 
-`persistent_notifications`: Only for _Urgent_ messages. If set to `true` recipients will receive a persistent notification every five minutes until they acknowledge the message.
+`persistent_notifications`: Only for _Urgent_ messages. If set to `true` recipients will receive a persistent notification every five minutes until they acknowledge the message. Mutually exclusive with the [`silent`](/developers/integrate/webhooks/incoming#parameters) field on incoming webhooks — a post cannot be both persistent and silent.
 
 ## Example of post priority
 

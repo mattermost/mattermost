@@ -175,7 +175,6 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 		"team_admin": {
 			model.PermissionRemoveUserFromTeam.Id,
 			model.PermissionManageTeam.Id,
-			model.PermissionImportTeam.Id,
 			model.PermissionManageTeamRoles.Id,
 			model.PermissionManageTeamAccessRules.Id,
 			model.PermissionManageChannelRoles.Id,

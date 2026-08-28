@@ -42,13 +42,15 @@ type Channels struct {
 	filestore       filestore.FileBackend
 	exportFilestore filestore.FileBackend
 
-	postActionCookieSecret []byte
+	postActionCookieSecret   []byte
+	samlRelayStateSigningKey []byte
 
 	pluginCommandsLock            sync.RWMutex
 	pluginCommands                []*PluginCommand
 	pluginsLock                   sync.RWMutex
 	pluginsEnvironment            *plugin.Environment
 	pluginConfigListenerID        string
+	pluginLicenseListenerID       string
 	pluginClusterLeaderListenerID string
 
 	// guardCache caches ChannelGuards rows by ChannelId -> []*store.ChannelGuard.
@@ -311,6 +313,10 @@ func (ch *Channels) Start() error {
 
 	if err := ch.ensurePostActionCookieSecret(); err != nil {
 		return errors.Wrapf(err, "unable to ensure PostAction cookie secret")
+	}
+
+	if err := ch.ensureSamlRelayStateSigningKey(); err != nil {
+		return errors.Wrapf(err, "unable to ensure SAML RelayState signing key")
 	}
 
 	return nil

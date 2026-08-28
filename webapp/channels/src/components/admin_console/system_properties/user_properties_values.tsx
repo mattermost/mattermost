@@ -16,16 +16,18 @@ import {type UserPropertyField} from '@mattermost/types/properties_user';
 
 import {getPluginDisplayName} from 'selectors/plugins';
 
+import {useIsFieldOrphaned} from 'components/common/hooks/use_field_orphaned';
+
 import Constants from 'utils/constants';
 import {isKeyPressed} from 'utils/keyboard';
 
 import type {GlobalState} from 'types/store';
 
 import {DangerText} from './controls';
-import {useIsFieldOrphaned} from './orphaned_fields_utils';
 import './user_properties_values.scss';
 import {useAttributeLinkModal} from './user_properties_dot_menu';
 import UserPropertyRankValues from './user_properties_rank_values';
+import {isLinkedField} from './user_properties_utils';
 
 type Props = {
     field: UserPropertyField;
@@ -135,20 +137,29 @@ const UserPropertyValues = ({
             );
         });
 
+        // Editing an LDAP/SAML link rewrites the field as `text`, which the
+        // server refuses on a linked field (its type comes from the template).
+        // The dot menu already disables the same action when linked; render the
+        // chip as plain text here so this cell doesn't offer it either.
+        const editable = !isLinkedField(field);
+        const editProps = (onEdit: () => void) => (editable ? {
+            onClick: onEdit,
+            onKeyDown: (e: React.KeyboardEvent) => {
+                if (isKeyPressed(e, Constants.KeyCodes.ENTER) || isKeyPressed(e, Constants.KeyCodes.SPACE)) {
+                    onEdit();
+                }
+            },
+            role: 'button',
+            tabIndex: 0,
+        } : {});
+
         const syncedProperties = [
             field.attrs.ldap && (
                 <a
                     className='user-property-field-values__chip-link'
                     key={`${field.name}-ldap`}
                     data-testid={`user-property-field-values__ldap-${field.name}`}
-                    onClick={() => promptEditLdapLink()}
-                    onKeyDown={(e) => {
-                        if (isKeyPressed(e, Constants.KeyCodes.ENTER) || isKeyPressed(e, Constants.KeyCodes.SPACE)) {
-                            promptEditLdapLink();
-                        }
-                    }}
-                    role='button'
-                    tabIndex={0}
+                    {...editProps(promptEditLdapLink)}
                 >
                     <FormattedMessage
                         id='admin.system_properties.user_properties.table.values.synced_with.ldap'
@@ -162,14 +173,7 @@ const UserPropertyValues = ({
                     className='user-property-field-values__chip-link'
                     key={`${field.name}-saml`}
                     data-testid={`user-property-field-values__saml-${field.name}`}
-                    onClick={() => promptEditSamlLink()}
-                    onKeyDown={(e) => {
-                        if (isKeyPressed(e, Constants.KeyCodes.ENTER) || isKeyPressed(e, Constants.KeyCodes.SPACE)) {
-                            promptEditSamlLink();
-                        }
-                    }}
-                    role='button'
-                    tabIndex={0}
+                    {...editProps(promptEditSamlLink)}
                 >
                     <FormattedMessage
                         id='admin.system_properties.user_properties.table.values.synced_with.saml'
@@ -234,7 +238,9 @@ const UserPropertyValues = ({
         );
     }
 
-    const isDisabled = field.delete_at !== 0 || isProtected;
+    // Linked fields inherit their options from the template they link to; the
+    // server rejects an options change on them.
+    const isDisabled = field.delete_at !== 0 || isProtected || isLinkedField(field);
 
     // Ranked fields render numbered chips with a per-chip rank/label/remove
     // popover instead of the plain creatable value list.

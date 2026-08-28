@@ -1753,7 +1753,6 @@ func TestPluginAPIGetConfig(t *testing.T) {
 	}
 
 	assert.Equal(t, *config.SqlSettings.DataSource, model.FakeSetting)
-	assert.Equal(t, *config.SqlSettings.AtRestEncryptKey, model.FakeSetting)
 	assert.Equal(t, *config.ElasticsearchSettings.Password, model.FakeSetting)
 
 	for i := range config.SqlSettings.DataSourceReplicas {
@@ -1791,7 +1790,6 @@ func TestPluginAPIGetUnsanitizedConfig(t *testing.T) {
 	}
 
 	assert.NotEqual(t, *config.SqlSettings.DataSource, model.FakeSetting)
-	assert.NotEqual(t, *config.SqlSettings.AtRestEncryptKey, model.FakeSetting)
 	assert.NotEqual(t, *config.ElasticsearchSettings.Password, model.FakeSetting)
 
 	for i := range config.SqlSettings.DataSourceReplicas {

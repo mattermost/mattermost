@@ -6,6 +6,7 @@ package mocks
 
 import (
 	model "github.com/mattermost/mattermost/server/public/model"
+	request "github.com/mattermost/mattermost/server/public/shared/request"
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -74,17 +75,17 @@ func (_m *ReactionStore) Delete(reaction *model.Reaction) (*model.Reaction, erro
 	return r0, r1
 }
 
-// DeleteAllWithEmojiName provides a mock function with given fields: emojiName
-func (_m *ReactionStore) DeleteAllWithEmojiName(emojiName string) error {
-	ret := _m.Called(emojiName)
+// DeleteAllWithEmojiName provides a mock function with given fields: rctx, emojiName
+func (_m *ReactionStore) DeleteAllWithEmojiName(rctx request.CTX, emojiName string) error {
+	ret := _m.Called(rctx, emojiName)
 
 	if len(ret) == 0 {
 		panic("no return value specified for DeleteAllWithEmojiName")
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(string) error); ok {
-		r0 = rf(emojiName)
+	if rf, ok := ret.Get(0).(func(request.CTX, string) error); ok {
+		r0 = rf(rctx, emojiName)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -294,17 +295,17 @@ func (_m *ReactionStore) PermanentDeleteBatch(endTime int64, limit int64) (int64
 	return r0, r1
 }
 
-// PermanentDeleteByUser provides a mock function with given fields: userID
-func (_m *ReactionStore) PermanentDeleteByUser(userID string) error {
-	ret := _m.Called(userID)
+// PermanentDeleteByUser provides a mock function with given fields: rctx, userID
+func (_m *ReactionStore) PermanentDeleteByUser(rctx request.CTX, userID string) error {
+	ret := _m.Called(rctx, userID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for PermanentDeleteByUser")
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(string) error); ok {
-		r0 = rf(userID)
+	if rf, ok := ret.Get(0).(func(request.CTX, string) error); ok {
+		r0 = rf(rctx, userID)
 	} else {
 		r0 = ret.Error(0)
 	}

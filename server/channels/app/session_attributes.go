@@ -4,7 +4,6 @@
 package app
 
 import (
-	"context"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
@@ -28,13 +27,13 @@ func (a *App) sessionAttributesEnabled() bool {
 	return model.MinimumEnterpriseAdvancedLicense(a.License())
 }
 
-func (a *App) getSessionAttributeFieldsByName() (map[string]*model.PropertyField, *model.AppError) {
+func (a *App) getSessionAttributeFieldsByName(rctx request.CTX) (map[string]*model.PropertyField, *model.AppError) {
 	group, err := a.Srv().propertyService.Group(model.SessionAttributesPropertyGroupName)
 	if err != nil {
 		return nil, model.NewAppError("getSessionAttributeFieldsByName", "app.property_group.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	fields, err := a.Srv().Store().PropertyField().GetForGroup(context.Background(), group.ID)
+	fields, err := a.Srv().Store().PropertyField().GetForGroup(rctx, group.ID)
 	if err != nil {
 		return nil, model.NewAppError("getSessionAttributeFieldsByName", "app.property_field.get_for_group.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -97,7 +96,7 @@ func (a *App) ProcessSessionAttributesRequest(rctx request.CTX, r *http.Request)
 		return
 	}
 
-	fieldsByName, appErr := a.getSessionAttributeFieldsByName()
+	fieldsByName, appErr := a.getSessionAttributeFieldsByName(rctx)
 	if appErr != nil {
 		rctx.Logger().Warn("Failed to load session attribute schema", mlog.Err(appErr))
 		return
@@ -240,7 +239,7 @@ func (a *App) GetSessionAttributesManifest(rctx request.CTX, r *http.Request) ([
 		return nil, model.NewAppError("GetSessionAttributesManifest", "api.user.session_attributes.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	fieldsByName, appErr := a.getSessionAttributeFieldsByName()
+	fieldsByName, appErr := a.getSessionAttributeFieldsByName(rctx)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -268,7 +267,7 @@ func (a *App) GetSessionAttributesManifest(rctx request.CTX, r *http.Request) ([
 	return manifest, nil
 }
 
-func (a *App) GetSessionAttributes(sessionID string) (map[string]any, *model.AppError) {
+func (a *App) GetSessionAttributes(rctx request.CTX, sessionID string) (map[string]any, *model.AppError) {
 	if !a.sessionAttributesEnabled() {
 		return nil, nil
 	}
@@ -281,7 +280,7 @@ func (a *App) GetSessionAttributes(sessionID string) (map[string]any, *model.App
 		return nil, model.NewAppError("GetSessionAttributes", "app.access_control.get_session_attributes.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	fieldsByName, appErr := a.getSessionAttributeFieldsByName()
+	fieldsByName, appErr := a.getSessionAttributeFieldsByName(rctx)
 	if appErr != nil {
 		return nil, appErr
 	}

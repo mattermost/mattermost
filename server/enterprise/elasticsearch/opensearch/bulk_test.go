@@ -5,14 +5,20 @@ package opensearch
 
 import (
 	"fmt"
+	"net/http"
+	"net/http/httptest"
 	"os"
+	"sync"
 	"testing"
 	"time"
 
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/api4"
 	"github.com/mattermost/mattermost/server/v8/enterprise/elasticsearch/common"
+	"github.com/opensearch-project/opensearch-go/v4"
+	"github.com/opensearch-project/opensearch-go/v4/opensearchapi"
 	"github.com/stretchr/testify/require"
 )
 
@@ -410,6 +416,118 @@ func TestStop(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, 0, bulk.pendingRequests)
 	})
+}
+
+func TestStopShutsDownPeriodicFlusher(t *testing.T) {
+	tests := []struct {
+		name            string
+		status          int
+		wantErr         bool
+		pendingRequests int
+	}{
+		{name: "successful pending flush", status: http.StatusOK},
+		{name: "failed pending flush", status: http.StatusInternalServerError, wantErr: true, pendingRequests: 1},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			const flushInterval = 50 * time.Millisecond
+			requestStarted := make(chan struct{}, 1)
+			releaseRequest := make(chan struct{})
+			var releaseOnce sync.Once
+			release := func() {
+				releaseOnce.Do(func() { close(releaseRequest) })
+			}
+			t.Cleanup(release)
+
+			bulk := setupBulkClientWithHandler(t, flushInterval, http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+				select {
+				case requestStarted <- struct{}{}:
+				default:
+				}
+				<-releaseRequest
+
+				w.Header().Set("Content-Type", "application/json")
+				w.WriteHeader(tt.status)
+				if tt.status == http.StatusOK {
+					_, _ = w.Write([]byte(`{"errors":false,"items":[]}`))
+					return
+				}
+				_, _ = w.Write([]byte(`{"error":{"type":"test_error","reason":"bulk request failed"},"status":500}`))
+			}))
+
+			post := createTestPost(t, "test message")
+			err := bulk.IndexOp(&types.IndexOperation{
+				Index_: new("testindex"),
+				Id_:    new(post.Id),
+			}, post)
+			require.NoError(t, err)
+
+			stopDone := make(chan error, 1)
+			go func() {
+				stopDone <- bulk.Stop()
+			}()
+
+			select {
+			case <-requestStarted:
+			case <-time.After(2 * time.Second):
+				require.FailNow(t, "timed out waiting for final flush to start")
+			}
+
+			// Stop still holds mut while the final flush is blocked. Waiting for a
+			// timer interval forces the periodic flusher to contend for that mutex.
+			time.Sleep(2 * flushInterval)
+			release()
+
+			select {
+			case err = <-stopDone:
+			case <-time.After(2 * time.Second):
+				require.FailNow(t, "Stop deadlocked while waiting for the periodic flusher")
+			}
+
+			if tt.wantErr {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+			}
+			require.Equal(t, tt.pendingRequests, bulk.pendingRequests)
+			assertFlusherStopped(t, bulk)
+		})
+	}
+}
+
+func setupBulkClientWithHandler(t *testing.T, flushInterval time.Duration, handler http.Handler) *Bulk {
+	t.Helper()
+
+	server := httptest.NewServer(handler)
+	t.Cleanup(server.Close)
+	client, err := opensearchapi.NewClient(opensearchapi.Config{
+		Client: opensearch.Config{
+			Addresses:    []string{server.URL},
+			DisableRetry: true,
+		},
+	})
+	require.NoError(t, err)
+
+	return NewBulk(
+		common.BulkSettings{
+			FlushInterval: flushInterval,
+			FlushNumReqs:  10,
+		},
+		client,
+		time.Second,
+		mlog.CreateConsoleTestLogger(t),
+	)
+}
+
+func assertFlusherStopped(t *testing.T, bulk *Bulk) {
+	t.Helper()
+
+	select {
+	case <-bulk.quitFlusher:
+	default:
+		require.Fail(t, "periodic flusher was not stopped")
+	}
 }
 
 func TestFlushThresholds(t *testing.T) {
