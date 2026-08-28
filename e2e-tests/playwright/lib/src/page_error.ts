@@ -8,10 +8,13 @@ import type {Page} from '@playwright/test';
  * if a locator times out or an assertion fails, so a component that throws in the background looks
  * fine as long as the UI it produced is still usable.
  *
- * When PW_FAIL_ON_PAGE_ERROR is set, every page opened by the harness is watched for uncaught
- * exceptions and the test fails at teardown with the exceptions it saw. This is what makes the web
- * app's React strict mode diagnostics (webapp/channels/src/utils/react_strict_mode.ts) visible in
- * CI, since those are reported as uncaught exceptions.
+ * PW_FAIL_ON_PAGE_ERROR makes those exceptions fail the test at teardown:
+ *
+ *   strict-mode  only React strict mode violations, which is what a web app built with
+ *                MM_REACT_STRICT_MODE reports (webapp/channels/src/utils/react_strict_mode.ts)
+ *   all          every uncaught exception, including ones from plugins and from the server being
+ *                unreachable
+ *   unset        off
  */
 
 export type PageError = {
@@ -19,10 +22,25 @@ export type PageError = {
     stack?: string;
 };
 
+type FailureMode = 'off' | 'strict-mode' | 'all';
+
+const STRICT_MODE_VIOLATION = 'React strict mode violation:';
+
 let collected: PageError[] = [];
 
+function failureMode(): FailureMode {
+    switch (process.env.PW_FAIL_ON_PAGE_ERROR) {
+        case 'all':
+            return 'all';
+        case 'strict-mode':
+            return 'strict-mode';
+        default:
+            return 'off';
+    }
+}
+
 export function shouldFailOnPageError(): boolean {
-    return process.env.PW_FAIL_ON_PAGE_ERROR === 'true';
+    return failureMode() !== 'off';
 }
 
 export function resetPageErrors(): void {
@@ -30,11 +48,17 @@ export function resetPageErrors(): void {
 }
 
 export function watchForPageErrors(page: Page): void {
-    if (!shouldFailOnPageError()) {
+    const mode = failureMode();
+
+    if (mode === 'off') {
         return;
     }
 
     page.on('pageerror', (error) => {
+        if (mode === 'strict-mode' && !error.message.includes(STRICT_MODE_VIOLATION)) {
+            return;
+        }
+
         collected.push({message: error.message, stack: error.stack});
     });
 }
@@ -51,7 +75,7 @@ export function formatPageErrors(errors: PageError[]): string {
 
 /** Throws if any watched page reported an uncaught exception. Call after the test body has run. */
 export function assertNoPageErrors(): void {
-    if (!shouldFailOnPageError() || collected.length === 0) {
+    if (collected.length === 0) {
         return;
     }
 
