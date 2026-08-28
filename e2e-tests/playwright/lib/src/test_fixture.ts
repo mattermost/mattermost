@@ -18,6 +18,7 @@ import {
     skipIfNoLicense,
 } from './flag';
 import {getBlobFromAsset, getFileFromAsset} from './file';
+import {assertNoPageErrors, resetPageErrors, watchForPageErrors} from './page_error';
 import {
     configureAIBridgeMock,
     createKeycloakUser,
@@ -102,9 +103,14 @@ export const test = base.extend<ExtendedFixtures>({
         await use(ab);
     },
     pw: async ({browser, page, isMobile}, use) => {
+        resetPageErrors();
+        watchForPageErrors(page);
+
         const pw = new PlaywrightExtended(browser, page, isMobile);
         await use(pw);
         await pw.testBrowser.close();
+
+        assertNoPageErrors();
     },
 });
 
