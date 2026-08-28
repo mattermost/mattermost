@@ -283,13 +283,13 @@ func TestCreatePost(t *testing.T) {
 	})
 
 	t.Run("err with integrations-reserved props", func(t *testing.T) {
-		originalHardenedModeSetting := *th.App.Config().ServiceSettings.ExperimentalEnableHardenedMode
+		originalHardenedModeSetting := *th.App.Config().ServiceSettings.EnableHardenedMode
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.ServiceSettings.ExperimentalEnableHardenedMode = true
+			*cfg.ServiceSettings.EnableHardenedMode = true
 		})
 
 		defer th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.ServiceSettings.ExperimentalEnableHardenedMode = originalHardenedModeSetting
+			*cfg.ServiceSettings.EnableHardenedMode = originalHardenedModeSetting
 		})
 
 		rpost, postResp, postErr := client.CreatePost(context.Background(), &model.Post{
@@ -712,13 +712,13 @@ func TestCreatePostWithOAuthClient(t *testing.T) {
 	assert.Contains(t, post.GetProps(), model.PostPropsFromOAuthApp, fmt.Sprintf("missing %s prop when using OAuth client", model.PostPropsOverrideUsername))
 
 	t.Run("allow username and icon overrides", func(t *testing.T) {
-		originalHardenedModeSetting := *th.App.Config().ServiceSettings.ExperimentalEnableHardenedMode
+		originalHardenedModeSetting := *th.App.Config().ServiceSettings.EnableHardenedMode
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.ServiceSettings.ExperimentalEnableHardenedMode = true
+			*cfg.ServiceSettings.EnableHardenedMode = true
 		})
 
 		defer th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.ServiceSettings.ExperimentalEnableHardenedMode = originalHardenedModeSetting
+			*cfg.ServiceSettings.EnableHardenedMode = originalHardenedModeSetting
 		})
 
 		post, _, err = client.CreatePost(context.Background(), &model.Post{
@@ -1976,13 +1976,13 @@ func TestUpdatePost(t *testing.T) {
 	})
 
 	t.Run("err with integrations-reserved props", func(t *testing.T) {
-		originalHardenedModeSetting := *th.App.Config().ServiceSettings.ExperimentalEnableHardenedMode
+		originalHardenedModeSetting := *th.App.Config().ServiceSettings.EnableHardenedMode
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.ServiceSettings.ExperimentalEnableHardenedMode = true
+			*cfg.ServiceSettings.EnableHardenedMode = true
 		})
 
 		defer th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.ServiceSettings.ExperimentalEnableHardenedMode = originalHardenedModeSetting
+			*cfg.ServiceSettings.EnableHardenedMode = originalHardenedModeSetting
 		})
 
 		_, resp, err := client.UpdatePost(context.Background(), rpost.Id, &model.Post{
@@ -2917,13 +2917,13 @@ func TestPatchPost(t *testing.T) {
 	})
 
 	t.Run("err with integrations-reserved props", func(t *testing.T) {
-		originalHardenedModeSetting := *th.App.Config().ServiceSettings.ExperimentalEnableHardenedMode
+		originalHardenedModeSetting := *th.App.Config().ServiceSettings.EnableHardenedMode
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.ServiceSettings.ExperimentalEnableHardenedMode = true
+			*cfg.ServiceSettings.EnableHardenedMode = true
 		})
 
 		defer th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.ServiceSettings.ExperimentalEnableHardenedMode = originalHardenedModeSetting
+			*cfg.ServiceSettings.EnableHardenedMode = originalHardenedModeSetting
 		})
 
 		post := &model.Post{
