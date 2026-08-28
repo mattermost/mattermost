@@ -512,6 +512,12 @@ type OpenDialogRequest struct {
 	TriggerId string `json:"trigger_id"`
 	URL       string `json:"url"`
 	Dialog    Dialog `json:"dialog"`
+
+	// ChannelId is the channel the dialog belongs to, and is what the client sends
+	// back on submit. Integrations may set it to target a specific channel; when left
+	// empty the server fills it from the trigger, so a dialog is bound to the channel
+	// its trigger was created in rather than to whichever channel the user is viewing.
+	ChannelId string `json:"channel_id,omitempty"`
 }
 
 type SubmitDialogRequest struct {
@@ -602,9 +608,24 @@ func signForGenerateTriggerId(s crypto.Signer, digest []byte, opts crypto.Signer
 	return s.Sign(rand.Reader, digest, opts)
 }
 
-func GenerateTriggerId(userId string, s crypto.Signer) (string, string, *AppError) {
+// GenerateTriggerId signs the context an interactive dialog will need when it is
+// submitted. channelId is the channel the trigger originates in; it is carried here
+// because a dialog submission has no other way to recover it — the submit request
+// arrives without a trigger, so the client would otherwise have to guess.
+//
+// Adding the channel makes this a five-field trigger where the previous release
+// emitted four. Compatibility runs one way only: DecodeAndVerifyTriggerId here
+// accepts both formats, but a node still running the previous release checks for
+// exactly four fields and rejects anything this function mints. During a rolling
+// upgrade, a trigger minted on an upgraded node and opened via a node that has not
+// yet been upgraded therefore fails with a 400.
+//
+// ServiceSettings.OutgoingIntegrationRequestsTimeout bounds how long any one trigger
+// stays valid, not the exposure: dialogs can fail this way for as long as the cluster
+// runs mixed versions, so the operator-visible window is the whole rolling upgrade.
+func GenerateTriggerId(userId, channelId string, s crypto.Signer) (string, string, *AppError) {
 	clientTriggerId := NewId()
-	triggerData := strings.Join([]string{clientTriggerId, userId, strconv.FormatInt(GetMillis(), 10)}, ":") + ":"
+	triggerData := strings.Join([]string{clientTriggerId, userId, strconv.FormatInt(GetMillis(), 10), channelId}, ":") + ":"
 
 	h := crypto.SHA256
 	sum := h.New()
@@ -621,7 +642,7 @@ func GenerateTriggerId(userId string, s crypto.Signer) (string, string, *AppErro
 }
 
 func (r *PostActionIntegrationRequest) GenerateTriggerId(s crypto.Signer) (string, string, *AppError) {
-	clientTriggerId, triggerId, appErr := GenerateTriggerId(r.UserId, s)
+	clientTriggerId, triggerId, appErr := GenerateTriggerId(r.UserId, r.ChannelId, s)
 	if appErr != nil {
 		return "", "", appErr
 	}
@@ -630,15 +651,21 @@ func (r *PostActionIntegrationRequest) GenerateTriggerId(s crypto.Signer) (strin
 	return clientTriggerId, triggerId, nil
 }
 
-func DecodeAndVerifyTriggerId(triggerId string, s *ecdsa.PrivateKey, timeout time.Duration) (string, string, *AppError) {
+// DecodeAndVerifyTriggerId returns the client trigger ID, the user the trigger was
+// minted for, and the channel it originated in.
+//
+// Triggers minted before the channel was added carry four fields instead of five and
+// are still accepted, with an empty channel — during a rolling upgrade a node running
+// this code can be handed a trigger minted by a node running the previous format.
+func DecodeAndVerifyTriggerId(triggerId string, s *ecdsa.PrivateKey, timeout time.Duration) (string, string, string, *AppError) {
 	triggerIdBytes, err := base64.StdEncoding.DecodeString(triggerId)
 	if err != nil {
-		return "", "", NewAppError("DecodeAndVerifyTriggerId", "interactive_message.decode_trigger_id.base64_decode_failed", nil, "", http.StatusBadRequest).Wrap(err)
+		return "", "", "", NewAppError("DecodeAndVerifyTriggerId", "interactive_message.decode_trigger_id.base64_decode_failed", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
 	split := strings.Split(string(triggerIdBytes), ":")
-	if len(split) != 4 {
-		return "", "", NewAppError("DecodeAndVerifyTriggerId", "interactive_message.decode_trigger_id.missing_data", nil, "", http.StatusBadRequest)
+	if len(split) != 4 && len(split) != 5 {
+		return "", "", "", NewAppError("DecodeAndVerifyTriggerId", "interactive_message.decode_trigger_id.missing_data", nil, "", http.StatusBadRequest)
 	}
 
 	clientTriggerId := split[0]
@@ -646,13 +673,22 @@ func DecodeAndVerifyTriggerId(triggerId string, s *ecdsa.PrivateKey, timeout tim
 	timestampStr := split[2]
 	timestamp, _ := strconv.ParseInt(timestampStr, 10, 64)
 
-	if time.Since(time.UnixMilli(timestamp)) > timeout {
-		return "", "", NewAppError("DecodeAndVerifyTriggerId", "interactive_message.decode_trigger_id.expired", map[string]any{"Duration": timeout.String()}, "", http.StatusBadRequest)
+	// The signature is always the final field; the channel sits between the timestamp
+	// and the signature in the five-field format.
+	channelId := ""
+	signatureStr := split[3]
+	if len(split) == 5 {
+		channelId = split[3]
+		signatureStr = split[4]
 	}
 
-	signature, err := base64.StdEncoding.DecodeString(split[3])
+	if time.Since(time.UnixMilli(timestamp)) > timeout {
+		return "", "", "", NewAppError("DecodeAndVerifyTriggerId", "interactive_message.decode_trigger_id.expired", map[string]any{"Duration": timeout.String()}, "", http.StatusBadRequest)
+	}
+
+	signature, err := base64.StdEncoding.DecodeString(signatureStr)
 	if err != nil {
-		return "", "", NewAppError("DecodeAndVerifyTriggerId", "interactive_message.decode_trigger_id.base64_decode_failed_signature", nil, "", http.StatusBadRequest).Wrap(err)
+		return "", "", "", NewAppError("DecodeAndVerifyTriggerId", "interactive_message.decode_trigger_id.base64_decode_failed_signature", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
 	var esig struct {
@@ -660,23 +696,29 @@ func DecodeAndVerifyTriggerId(triggerId string, s *ecdsa.PrivateKey, timeout tim
 	}
 
 	if _, err := asn1.Unmarshal(signature, &esig); err != nil {
-		return "", "", NewAppError("DecodeAndVerifyTriggerId", "interactive_message.decode_trigger_id.signature_decode_failed", nil, "", http.StatusBadRequest).Wrap(err)
+		return "", "", "", NewAppError("DecodeAndVerifyTriggerId", "interactive_message.decode_trigger_id.signature_decode_failed", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
-	triggerData := strings.Join([]string{clientTriggerId, userId, timestampStr}, ":") + ":"
+	// Rebuild exactly the field set that was signed, so a four-field trigger verifies
+	// against its original digest rather than one with an empty channel spliced in.
+	signedFields := []string{clientTriggerId, userId, timestampStr}
+	if len(split) == 5 {
+		signedFields = append(signedFields, channelId)
+	}
+	triggerData := strings.Join(signedFields, ":") + ":"
 
 	h := crypto.SHA256
 	sum := h.New()
 	sum.Write([]byte(triggerData))
 
 	if !ecdsa.Verify(&s.PublicKey, sum.Sum(nil), esig.R, esig.S) {
-		return "", "", NewAppError("DecodeAndVerifyTriggerId", "interactive_message.decode_trigger_id.verify_signature_failed", nil, "", http.StatusBadRequest)
+		return "", "", "", NewAppError("DecodeAndVerifyTriggerId", "interactive_message.decode_trigger_id.verify_signature_failed", nil, "", http.StatusBadRequest)
 	}
 
-	return clientTriggerId, userId, nil
+	return clientTriggerId, userId, channelId, nil
 }
 
-func (r *OpenDialogRequest) DecodeAndVerifyTriggerId(s *ecdsa.PrivateKey, timeout time.Duration) (string, string, *AppError) {
+func (r *OpenDialogRequest) DecodeAndVerifyTriggerId(s *ecdsa.PrivateKey, timeout time.Duration) (string, string, string, *AppError) {
 	return DecodeAndVerifyTriggerId(r.TriggerId, s, timeout)
 }
 

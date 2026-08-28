@@ -39,7 +39,25 @@ describe('AppsFormActionButton', () => {
         expect(screen.getByRole('button', {name: label})).toBeVisible();
     });
 
-    it('invokes executeDialogAction with (url, context) when clicked', async () => {
+    it('invokes executeDialogAction with (url, context, channelId) when clicked', async () => {
+        mockExecuteDialogAction.mockReturnValue(() => Promise.resolve({data: {}}));
+
+        renderWithContext(
+            <AppsFormActionButton
+                label={label}
+                url={url}
+                context={context}
+                channelId='dialog_channel_id'
+            />,
+        );
+
+        await userEvent.click(screen.getByRole('button', {name: label}));
+
+        expect(mockExecuteDialogAction).toHaveBeenCalledTimes(1);
+        expect(mockExecuteDialogAction).toHaveBeenCalledWith(url, context, 'dialog_channel_id');
+    });
+
+    it('passes an undefined channel through so the action falls back to the current channel', async () => {
         mockExecuteDialogAction.mockReturnValue(() => Promise.resolve({data: {}}));
 
         renderWithContext(
@@ -52,8 +70,7 @@ describe('AppsFormActionButton', () => {
 
         await userEvent.click(screen.getByRole('button', {name: label}));
 
-        expect(mockExecuteDialogAction).toHaveBeenCalledTimes(1);
-        expect(mockExecuteDialogAction).toHaveBeenCalledWith(url, context);
+        expect(mockExecuteDialogAction).toHaveBeenCalledWith(url, context, undefined);
     });
 
     it('shows loading state (disabled, aria-busy, loading label) while the dispatch is pending', async () => {

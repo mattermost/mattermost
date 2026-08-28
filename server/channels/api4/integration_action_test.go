@@ -439,7 +439,7 @@ func TestOpenDialog(t *testing.T) {
 		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
 	})
 
-	_, triggerId, appErr := model.GenerateTriggerId(th.BasicUser.Id, th.App.AsymmetricSigningKey())
+	_, triggerId, appErr := model.GenerateTriggerId(th.BasicUser.Id, th.BasicChannel.Id, th.App.AsymmetricSigningKey())
 	require.Nil(t, appErr)
 
 	request := model.OpenDialogRequest{
@@ -564,6 +564,87 @@ func TestOpenDialog(t *testing.T) {
 		_, err := client.OpenInteractiveDialog(context.Background(), request)
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "Trigger ID for interactive dialog is expired.")
+	})
+}
+
+// MM-70251: the dialog must carry the channel its trigger was minted in, so the client
+// submits against that channel instead of guessing from whatever it is displaying.
+func TestOpenDialogPublishesChannel(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
+	})
+
+	openDialogAndCaptureChannel := func(t *testing.T, request model.OpenDialogRequest) string {
+		t.Helper()
+
+		wsClient := th.CreateConnectedWebSocketClient(t)
+
+		_, err := th.Client.OpenInteractiveDialog(context.Background(), request)
+		require.NoError(t, err)
+
+		// One deadline for the whole wait, not one per event, so unrelated traffic on
+		// the socket cannot keep extending it.
+		deadline := time.After(5 * time.Second)
+
+		for {
+			select {
+			case ev := <-wsClient.EventChannel:
+				if ev.EventType() != model.WebsocketEventOpenDialog {
+					continue
+				}
+				raw, ok := ev.GetData()["dialog"].(string)
+				require.True(t, ok, "open_dialog event should carry a dialog payload")
+
+				var published model.OpenDialogRequest
+				require.NoError(t, json.Unmarshal([]byte(raw), &published))
+				return published.ChannelId
+			case <-deadline:
+				require.FailNow(t, "timed out waiting for open_dialog event")
+			}
+		}
+	}
+
+	baseRequest := func(triggerId string) model.OpenDialogRequest {
+		return model.OpenDialogRequest{
+			TriggerId: triggerId,
+			URL:       "http://localhost:8065",
+			Dialog: model.Dialog{
+				CallbackId: "callbackid",
+				Title:      "Some Title",
+			},
+		}
+	}
+
+	t.Run("fills the channel from the trigger", func(t *testing.T) {
+		_, triggerId, appErr := model.GenerateTriggerId(th.BasicUser.Id, th.BasicChannel.Id, th.App.AsymmetricSigningKey())
+		require.Nil(t, appErr)
+
+		assert.Equal(t, th.BasicChannel.Id, openDialogAndCaptureChannel(t, baseRequest(triggerId)))
+	})
+
+	t.Run("keeps a channel the integration set explicitly", func(t *testing.T) {
+		_, triggerId, appErr := model.GenerateTriggerId(th.BasicUser.Id, th.BasicChannel.Id, th.App.AsymmetricSigningKey())
+		require.Nil(t, appErr)
+
+		request := baseRequest(triggerId)
+		request.ChannelId = th.BasicChannel2.Id
+
+		assert.Equal(t, th.BasicChannel2.Id, openDialogAndCaptureChannel(t, request))
+	})
+
+	// The integration's channel isn't signed, so a malformed one must not be forwarded —
+	// it would come back on submit and fail the channel lookup as a permission error.
+	t.Run("falls back to the trigger when the integration's channel is malformed", func(t *testing.T) {
+		_, triggerId, appErr := model.GenerateTriggerId(th.BasicUser.Id, th.BasicChannel.Id, th.App.AsymmetricSigningKey())
+		require.Nil(t, appErr)
+
+		request := baseRequest(triggerId)
+		request.ChannelId = "not-a-channel-id"
+
+		assert.Equal(t, th.BasicChannel.Id, openDialogAndCaptureChannel(t, request))
 	})
 }
 
