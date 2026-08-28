@@ -33,7 +33,10 @@ const DEV = targetIsRun || targetIsStats || targetIsDevServer;
 // whole production pipeline (minification, chunking, real source maps) but links against React's
 // development runtime so those checks run. See src/utils/react_strict_mode.ts for what the web app
 // then does with the warnings.
-const REACT_STRICT_MODE = process.env.MM_REACT_STRICT_MODE === 'true';
+//
+// DO NOT MERGE: defaulted on so that the release image CI builds for this branch runs the E2E
+// suite under strict mode. Restore `=== 'true'` before this branch is merged.
+const REACT_STRICT_MODE = process.env.MM_REACT_STRICT_MODE !== 'false';
 
 const STANDARD_EXCLUDE = [
     /node_modules/,

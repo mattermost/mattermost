@@ -817,7 +817,8 @@ const defaultServerConfig: AdminConfig = {
         MmBlocksEnabled: true,
         ClusterGracefulDrain: true,
         ChannelBookmarks: true,
-        EnableConcurrentReact: false,
+        // DO NOT MERGE: see server/public/model/feature_flags.go.
+        EnableConcurrentReact: true,
         EnableMFIPluginSignaturePublicKey: true,
         RecurringScheduledPosts: false,
     },

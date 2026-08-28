@@ -276,6 +276,9 @@ jobs:
       # stop the server that ci/dispatch-run needs next. ci/testcontainers-teardown does the final
       # teardown once the whole queue is done.
       PW_TESTCONTAINERS_REUSE: "true"
+      # DO NOT MERGE: fails a test when the web app reports a React strict mode violation, so this
+      # branch's run maps out the components that aren't safe under concurrent rendering.
+      PW_FAIL_ON_PAGE_ERROR: "strict-mode"
     steps:
       - name: ci/checkout-actions
         # Sparse-checkout just .github/actions from the triggering ref (master)

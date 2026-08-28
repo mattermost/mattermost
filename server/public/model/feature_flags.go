@@ -229,7 +229,9 @@ func (f *FeatureFlags) SetDefaults() {
 
 	f.ChannelBookmarks = true
 
-	f.EnableConcurrentReact = false
+	// DO NOT MERGE: forced on so that every E2E run on this branch exercises concurrent
+	// rendering. Restore `false` before this branch is merged.
+	f.EnableConcurrentReact = true
 
 	f.EnableMFIPluginSignaturePublicKey = true
 
