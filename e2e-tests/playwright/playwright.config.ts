@@ -30,6 +30,9 @@ const chromeUse = {
     viewport: {width: 1280, height: 1024},
 };
 
+/** Full-suite browser projects must not run upgrade-path specs (those use dedicated projects). */
+const upgradeWorkflowTestIgnore = /\/upgrade\//;
+
 export default defineConfig({
     globalSetup: './global_setup.ts',
     forbidOnly: testConfig.isCI,
@@ -79,11 +82,13 @@ export default defineConfig({
                 permissions: ['notifications', 'clipboard-read', 'clipboard-write'],
             },
             dependencies: ['setup'],
+            testIgnore: upgradeWorkflowTestIgnore,
         },
         {
             name: 'chrome',
             use: chromeUse,
             dependencies: ['setup'],
+            testIgnore: upgradeWorkflowTestIgnore,
         },
         {
             name: 'firefox',
@@ -93,6 +98,7 @@ export default defineConfig({
                 viewport: {width: 1280, height: 1024},
             },
             dependencies: ['setup'],
+            testIgnore: upgradeWorkflowTestIgnore,
         },
         // upgrade-from runs setup once; upgrade-to adopts that stack and skips setup.
         {
