@@ -4788,6 +4788,27 @@ func TestPluginAPIGetOrCreatePluginChannelSchemeSchemeLicenseGate(t *testing.T) 
 		assert.ElementsMatch(t, spaceUser, role.Permissions)
 	})
 
+	// The Professional SKU carries custom permission schemes without the feature flag, the same
+	// clause the REST scheme handlers apply.
+	t.Run("the Professional SKU allows creation without the feature flag", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+		api := th.SetupPluginAPI()
+		markPhase2MigrationComplete(t, th)
+
+		license := model.NewTestLicenseWithFalseDefaults("custom_permissions_schemes")
+		license.SkuShortName = model.LicenseShortSkuProfessional
+		require.False(t, *license.Features.CustomPermissionsSchemes)
+		th.App.Srv().SetLicense(license)
+		defer func() {
+			appErr := th.App.Srv().RemoveLicense()
+			require.Nil(t, appErr)
+		}()
+
+		scheme, appErr := api.GetOrCreatePluginChannelScheme(spaceUser, spaceAdmin, nil)
+		require.Nil(t, appErr)
+		require.NotNil(t, scheme)
+	})
+
 	t.Run("an existing pooled scheme still requires the license", func(t *testing.T) {
 		th := Setup(t).InitBasic(t)
 		api := th.SetupPluginAPI()

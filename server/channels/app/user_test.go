@@ -3337,3 +3337,32 @@ func TestConsumeTokenOnce(t *testing.T) {
 		assert.Equal(t, http.StatusNotFound, appErr.StatusCode)
 	})
 }
+
+// Turning a user into a guest through a plain role update skips DemoteUserToGuest, so the
+// capability roles held in a space membership's explicit roles are revoked on this path too.
+func TestUpdateUserRolesToGuestRevokesSpaceCapabilityRoles(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	require.NoError(t, th.App.SetPhase2PermissionsMigrationStatus(true))
+
+	user := th.CreateUser(t)
+	th.LinkUserToTeam(t, user, th.BasicTeam)
+	space := saveSpaceChannelWithScheme(t, th, "")
+	_, err := th.App.Srv().Store().Channel().SaveMember(th.Context, &model.ChannelMember{
+		ChannelId:     space.Id,
+		UserId:        user.Id,
+		NotifyProps:   model.GetDefaultChannelNotifyProps(),
+		SchemeUser:    true,
+		ExplicitRoles: model.SpacePageEditorRoleId,
+	})
+	require.NoError(t, err)
+	th.App.Srv().Store().Channel().InvalidateAllChannelMembersForUser(user.Id)
+
+	updated, appErr := th.App.UpdateUserRoles(th.Context, user.Id, model.SystemGuestRoleId, false)
+	require.Nil(t, appErr)
+	require.True(t, updated.IsGuest())
+
+	member, appErr := th.App.GetChannelMember(th.Context, space.Id, user.Id)
+	require.Nil(t, appErr)
+	assert.NotContains(t, member.ExplicitRoles, model.SpacePageEditorRoleId)
+}

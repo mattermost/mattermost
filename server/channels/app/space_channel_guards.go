@@ -21,18 +21,11 @@ func (a *App) checkChannelSchemeAssignment(where string, channelType model.Chann
 		return nil
 	}
 
-	isPreset, appErr := a.isSeededSpaceScheme(*schemeId)
+	kind, appErr := a.reservedSchemeKindByID(where, *schemeId)
 	if appErr != nil {
 		return appErr
 	}
-	if isPreset {
-		return model.NewAppError(where, "app.channel.update_channel_scheme.space_scheme_reserved.app_error", nil, "", http.StatusBadRequest)
-	}
-	isPlugin, appErr := a.isPluginChannelScheme(*schemeId)
-	if appErr != nil {
-		return appErr
-	}
-	if isPlugin {
+	if kind != nil {
 		return model.NewAppError(where, "app.channel.update_channel_scheme.space_scheme_reserved.app_error", nil, "", http.StatusBadRequest)
 	}
 	return nil
@@ -44,23 +37,14 @@ func (a *App) checkSchemeAssignmentToSpace(where string, schemeId *string) *mode
 		return nil
 	}
 
-	isPreset, appErr := a.isSeededSpaceScheme(*schemeId)
+	kind, appErr := a.reservedSchemeKindByID(where, *schemeId)
 	if appErr != nil {
 		return appErr
 	}
-	if isPreset {
-		return nil
+	if kind == nil {
+		return model.NewAppError(where, "app.channel.update_channel_scheme.space_scheme_unusable.app_error", nil, "", http.StatusBadRequest)
 	}
-
-	isPlugin, appErr := a.isPluginChannelScheme(*schemeId)
-	if appErr != nil {
-		return appErr
-	}
-	if isPlugin {
-		return nil
-	}
-
-	return model.NewAppError(where, "app.channel.update_channel_scheme.space_scheme_unusable.app_error", nil, "", http.StatusBadRequest)
+	return nil
 }
 
 // isSpaceChannelByID reports whether channelID is a space backing channel. It reads

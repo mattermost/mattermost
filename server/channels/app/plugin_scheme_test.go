@@ -33,9 +33,9 @@ func setupPluginSchemeMock(t *testing.T) *TestHelper {
 // case that is not about role contents does not have to spell them out.
 func pluginSchemeRoles(scheme *model.Scheme, user, admin, guest []string) []*model.Role {
 	return []*model.Role{
-		{Name: scheme.DefaultChannelUserRole, Permissions: user},
-		{Name: scheme.DefaultChannelAdminRole, Permissions: admin},
-		{Name: scheme.DefaultChannelGuestRole, Permissions: guest},
+		{Name: scheme.DefaultChannelUserRole, Permissions: user, SchemeManaged: true, SchemeId: &scheme.Id},
+		{Name: scheme.DefaultChannelAdminRole, Permissions: admin, SchemeManaged: true, SchemeId: &scheme.Id},
+		{Name: scheme.DefaultChannelGuestRole, Permissions: guest, SchemeManaged: true, SchemeId: &scheme.Id},
 	}
 }
 
@@ -67,6 +67,18 @@ func TestGetSchemeForChannelUsesCachedRoleLookup(t *testing.T) {
 		scheme.DefaultChannelUserRole,
 		scheme.DefaultChannelAdminRole,
 	}).Return(roles, nil)
+	// The roles are scheme-managed, so the cached read runs the higher-scope merge and the caller
+	// receives effective permissions: a non-moderated permission the higher scope grants reaches
+	// the returned user role even though the stored role never carried it.
+	mockRoleStore.On("ChannelHigherScopedPermissions", mock.MatchedBy(func(names []string) bool {
+		return assert.ElementsMatch(t, []string{
+			scheme.DefaultChannelGuestRole,
+			scheme.DefaultChannelUserRole,
+			scheme.DefaultChannelAdminRole,
+		}, names)
+	})).Return(map[string]*model.RolePermissions{
+		scheme.DefaultChannelUserRole: {RoleID: model.ChannelUserRoleId, Permissions: []string{model.PermissionReadChannel.Id}},
+	}, nil)
 	mockStore.On("Role").Return(&mockRoleStore)
 
 	gotScheme, guestRole, userRole, adminRole, appErr := th.App.GetSchemeForChannel(th.Context, channelID)
@@ -75,6 +87,8 @@ func TestGetSchemeForChannelUsesCachedRoleLookup(t *testing.T) {
 	assert.Equal(t, scheme.DefaultChannelGuestRole, guestRole.Name)
 	assert.Equal(t, scheme.DefaultChannelUserRole, userRole.Name)
 	assert.Equal(t, scheme.DefaultChannelAdminRole, adminRole.Name)
+	assert.Contains(t, userRole.Permissions, model.PermissionReadChannel.Id, "the returned roles carry the higher-scope merge")
+	assert.Empty(t, guestRole.Permissions, "a role with no higher-scope entry is returned as stored")
 	mockRoleStore.AssertNotCalled(t, "GetByNamesFromMaster", mock.Anything)
 }
 
@@ -301,6 +315,13 @@ func TestGetOrCreatePluginChannelScheme(t *testing.T) {
 				_, appErr := th.App.GetOrCreatePluginChannelScheme(testPluginID, user, admin, guest)
 				require.NotNil(t, appErr)
 				assert.Equal(t, "app.scheme.plugin_scheme.conflict.app_error", appErr.Id)
+				assert.Equal(t, http.StatusInternalServerError, appErr.StatusCode)
+				assert.Contains(t, appErr.Message, name, "the operator must be told which Schemes row blocks this permission set")
+				assert.Contains(t, appErr.Message, "Roles rows", "the operator must be told to inspect the generated roles too")
+				assert.Contains(t, appErr.Message, occupant.DefaultChannelUserRole)
+				assert.Contains(t, appErr.Message, occupant.DefaultChannelAdminRole)
+				assert.Contains(t, appErr.Message, occupant.DefaultChannelGuestRole)
+				assert.Contains(t, appErr.Message, "administrative database tooling", "store-only corruption needs a store-level repair instruction")
 				mockSchemeStore.AssertNotCalled(t, "SaveChannelSchemeWithRoles", mock.Anything, mock.Anything, mock.Anything, mock.Anything)
 
 				if tc.noRoles {

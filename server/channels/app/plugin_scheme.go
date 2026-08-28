@@ -5,6 +5,7 @@ package app
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"slices"
 
@@ -164,42 +165,80 @@ func (a *App) getPluginChannelScheme(name string, user, admin, guest []string) (
 	// A soft-deleted row still occupies the name — the read carries no DeleteAt
 	// filter and Schemes.Name is unique across deleted rows — so it can neither be
 	// returned nor replaced.
+	conflictParams := map[string]any{
+		"SchemeName":    name,
+		"UserRoleName":  scheme.DefaultChannelUserRole,
+		"AdminRoleName": scheme.DefaultChannelAdminRole,
+		"GuestRoleName": scheme.DefaultChannelGuestRole,
+	}
 	if scheme.DeleteAt != 0 || scheme.Scope != model.SchemeScopeChannel {
 		return nil, model.NewAppError("getPluginChannelScheme", "app.scheme.plugin_scheme.conflict.app_error",
-			map[string]any{"SchemeName": name}, "", http.StatusInternalServerError)
+			conflictParams, "", http.StatusInternalServerError)
 	}
 
-	// Read directly from the store and on the primary. The comparison below needs
-	// the exact stored permissions; GetRolesByNames returns effective permissions
-	// after applying higher-scope inheritance. The primary read also lets a caller
-	// that lost the create race see the row another node wrote moments ago.
-	roles, nErr := a.Srv().Store().Role().GetByNamesFromMaster([]string{
+	if err := a.Srv().validateSchemeRoles(scheme, user, admin, guest); err != nil {
+		var conflict *errSchemeRoleConflict
+		if errors.As(err, &conflict) {
+			return nil, model.NewAppError("getPluginChannelScheme", "app.scheme.plugin_scheme.conflict.app_error",
+				conflictParams, "", http.StatusInternalServerError).Wrap(err)
+		}
+		return nil, model.NewAppError("getPluginChannelScheme", "app.role.get_by_names.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	return scheme, nil
+}
+
+// errSchemeRoleConflict reports a generated role that is not the row its scheme's name implies,
+// as distinct from a failed read.
+type errSchemeRoleConflict struct {
+	roleName string
+	reason   string
+}
+
+func (e *errSchemeRoleConflict) Error() string {
+	return fmt.Sprintf("generated role %q %s", e.roleName, e.reason)
+}
+
+// validateSchemeRoles reads scheme's three generated roles on the primary and returns an
+// *errSchemeRoleConflict for the first that has no row, is deleted, is not scheme-managed, is not
+// owned by scheme, or grants a permission set other than user, admin or guest respectively. Both
+// adoption paths apply it to a row found under a derived name — the seeding migration after a lost
+// insert and the plugin pool on every lookup — since whatever sits at such a name is unverified
+// input. The read is store-direct and on the primary: the comparison needs the exact stored
+// permissions, where GetRolesByNames applies higher-scope inheritance, and a caller that lost the
+// create race must see the row another node wrote moments ago.
+func (s *Server) validateSchemeRoles(scheme *model.Scheme, user, admin, guest []string) error {
+	roles, err := s.Store().Role().GetByNamesFromMaster([]string{
 		scheme.DefaultChannelUserRole,
 		scheme.DefaultChannelAdminRole,
 		scheme.DefaultChannelGuestRole,
 	})
-	if nErr != nil {
-		return nil, model.NewAppError("getPluginChannelScheme", "app.role.get_by_names.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+	if err != nil {
+		return err
 	}
-	byName := make(map[string][]string, len(roles))
+	rolesByName := make(map[string]*model.Role, len(roles))
 	for _, role := range roles {
-		byName[role.Name] = role.Permissions
+		rolesByName[role.Name] = role
 	}
 
-	for _, want := range []struct {
-		roleName    string
+	for _, expected := range []struct {
+		name        string
 		permissions []string
 	}{
 		{scheme.DefaultChannelUserRole, user},
 		{scheme.DefaultChannelAdminRole, admin},
 		{scheme.DefaultChannelGuestRole, guest},
 	} {
-		stored, ok := byName[want.roleName]
-		if !ok || !slices.Equal(model.NormalizePermissions(stored), model.NormalizePermissions(want.permissions)) {
-			return nil, model.NewAppError("getPluginChannelScheme", "app.scheme.plugin_scheme.conflict.app_error",
-				map[string]any{"SchemeName": name}, "", http.StatusInternalServerError)
+		role := rolesByName[expected.name]
+		if role == nil {
+			return &errSchemeRoleConflict{roleName: expected.name, reason: "has no row on the primary"}
+		}
+		if role.DeleteAt != 0 || !role.SchemeManaged || role.SchemeId == nil || *role.SchemeId != scheme.Id {
+			return &errSchemeRoleConflict{roleName: expected.name, reason: "is deleted, not scheme-managed, or not owned by the scheme"}
+		}
+		if !slices.Equal(model.NormalizePermissions(role.Permissions), model.NormalizePermissions(expected.permissions)) {
+			return &errSchemeRoleConflict{roleName: expected.name, reason: "has a different permission set"}
 		}
 	}
-
-	return scheme, nil
+	return nil
 }

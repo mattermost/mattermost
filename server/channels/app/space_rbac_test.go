@@ -259,32 +259,28 @@ func TestSpaceSchemeAssignmentPolicy(t *testing.T) {
 	}
 
 	for _, tc := range []struct {
-		name      string
-		scheme    *model.Scheme
-		accepted  bool
-		readCount int
+		name     string
+		scheme   *model.Scheme
+		accepted bool
 	}{
 		{
 			name: "ordinary custom scheme on ordinary channel",
 			scheme: &model.Scheme{
 				Id: model.NewId(), Name: model.NewId(), Scope: model.SchemeScopeChannel,
 			},
-			accepted:  true,
-			readCount: 2,
+			accepted: true,
 		},
 		{
 			name: "seeded preset on ordinary channel",
 			scheme: &model.Scheme{
 				Id: model.NewId(), Name: model.SchemeNameSpaceContribute, Scope: model.SchemeScopeChannel,
 			},
-			readCount: 1,
 		},
 		{
 			name: "plugin pool scheme on ordinary channel",
 			scheme: &model.Scheme{
 				Id: model.NewId(), Name: model.PluginChannelSchemeName("com.example.plugin", nil, nil, nil), Scope: model.SchemeScopeChannel,
 			},
-			readCount: 2,
 		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
@@ -292,7 +288,8 @@ func TestSpaceSchemeAssignmentPolicy(t *testing.T) {
 			th := setupSpaceRBACMock(t)
 			mockStore := th.App.Srv().Store().(*mocks.Store)
 			mockSchemeStore := mocks.SchemeStore{}
-			mockSchemeStore.On("GetFromMaster", tc.scheme.Id).Return(tc.scheme, nil).Times(tc.readCount)
+			// Both reserved kinds are classified from one primary read of the scheme.
+			mockSchemeStore.On("GetFromMaster", tc.scheme.Id).Return(tc.scheme, nil).Once()
 			mockStore.On("Scheme").Return(&mockSchemeStore)
 
 			appErr := th.App.checkChannelSchemeAssignment("CreateChannel", model.ChannelTypeOpen, &tc.scheme.Id)
@@ -571,4 +568,215 @@ func TestSpaceSchemeLookupErrorsFailClosed(t *testing.T) {
 	appErr := th.App.checkSchemeAssignmentToSpace("CreateChannel", &schemeID)
 	require.NotNil(t, appErr)
 	assert.Equal(t, "app.channel.update_channel_scheme.space_scheme_unusable.app_error", appErr.Id)
+}
+
+// A guest reads a space and nothing more. Both refusals sit after the role loop, because
+// SchemeGuest is only settled once the scheme-managed guest role has been seen, whatever order
+// the caller listed the roles in.
+func TestSpaceGuestMemberRoleRefusals(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	require.NoError(t, th.App.SetPhase2PermissionsMigrationStatus(true))
+	contribute := getSeededSpaceScheme(t, th, model.SchemeNameSpaceContribute)
+	space := saveSpaceChannelWithScheme(t, th, contribute.Id)
+	saveSpaceChannelMember(t, th, space.Id, th.BasicUser.Id, false, true)
+
+	t.Run("a capability role is refused for a guest", func(t *testing.T) {
+		for _, roles := range []string{
+			contribute.DefaultChannelGuestRole + " " + model.SpacePageCreatorRoleId,
+			model.SpacePageCreatorRoleId + " " + contribute.DefaultChannelGuestRole,
+		} {
+			_, appErr := th.App.UpdateChannelMemberRoles(th.Context, space.Id, th.BasicUser.Id, roles)
+			require.NotNil(t, appErr, roles)
+			assert.Equal(t, "api.channel.update_channel_member_roles.space_guest_role.app_error", appErr.Id)
+		}
+	})
+
+	t.Run("a guest cannot be made a space admin", func(t *testing.T) {
+		_, appErr := th.App.UpdateChannelMemberRoles(th.Context, space.Id, th.BasicUser.Id,
+			contribute.DefaultChannelGuestRole+" "+contribute.DefaultChannelAdminRole)
+		require.NotNil(t, appErr)
+		assert.Equal(t, "api.channel.update_channel_member_roles.space_guest_admin.app_error", appErr.Id)
+	})
+
+	t.Run("the guest role alone is accepted", func(t *testing.T) {
+		member, appErr := th.App.UpdateChannelMemberRoles(th.Context, space.Id, th.BasicUser.Id, contribute.DefaultChannelGuestRole)
+		require.Nil(t, appErr)
+		assert.True(t, member.SchemeGuest)
+		assert.Empty(t, member.ExplicitRoles)
+	})
+}
+
+// Renaming a reserved scheme away from its name would unfreeze its roles while every channel on
+// it kept resolving them, so the rename is refused for presets and plugin pool schemes alike.
+func TestSpaceSchemeRenameAwayRefused(t *testing.T) {
+	mainHelper.Parallel(t)
+	for _, tc := range []struct {
+		name    string
+		errorID string
+	}{
+		{model.SchemeNameSpaceContribute, "app.scheme.save.space_scheme_rename.app_error"},
+		{model.PluginChannelSchemeName("com.example.plugin", nil, nil, nil), "app.scheme.save.plugin_scheme_rename.app_error"},
+	} {
+		th := setupSpaceRBACMock(t)
+		stored := &model.Scheme{
+			Id:                      model.NewId(),
+			Name:                    tc.name,
+			Scope:                   model.SchemeScopeChannel,
+			DefaultChannelAdminRole: model.NewId(),
+			DefaultChannelUserRole:  model.NewId(),
+			DefaultChannelGuestRole: model.NewId(),
+		}
+		renamed := *stored
+		renamed.Name = model.NewId()
+
+		mockStore := th.App.Srv().Store().(*mocks.Store)
+		mockSchemeStore := mocks.SchemeStore{}
+		mockSchemeStore.On("Get", stored.Id).Return(stored, nil)
+		mockStore.On("Scheme").Return(&mockSchemeStore)
+
+		appErr := th.App.checkSpaceSchemeUpdate(&renamed)
+		require.NotNil(t, appErr, tc.name)
+		assert.Equal(t, tc.errorID, appErr.Id)
+
+		// The operator-facing display name is not part of the identity and stays editable.
+		relabelled := *stored
+		relabelled.DisplayName = "Renamed for operators"
+		require.Nil(t, th.App.checkSpaceSchemeUpdate(&relabelled))
+	}
+}
+
+// Every refusal in validateAdoptableSpaceRole: a row found under a reserved capability role name
+// is adopted only when it is the row the migration would have written.
+func TestValidateAdoptableSpaceRoleRefusals(t *testing.T) {
+	mainHelper.Parallel(t)
+	want := model.MakeDefaultRoles()[model.SpacePageCreatorRoleId]
+	sameRole := func() *model.Role {
+		return &model.Role{Name: want.Name, Permissions: append([]string{}, want.Permissions...)}
+	}
+	schemeID := model.NewId()
+
+	for _, tc := range []struct {
+		name   string
+		mutate func(*model.Role)
+		reason string
+	}{
+		{"deleted", func(r *model.Role) { r.DeleteAt = 1 }, "is deleted"},
+		{"scheme-managed", func(r *model.Role) { r.SchemeManaged = true }, "scheme-managed"},
+		{"owned by a scheme", func(r *model.Role) { r.SchemeId = &schemeID }, "owned by scheme"},
+		{"different permissions", func(r *model.Role) { r.Permissions = append(r.Permissions, model.PermissionAdminSpace.Id) }, "different permission set"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			stored := sameRole()
+			tc.mutate(stored)
+			err := validateAdoptableSpaceRole(want.Name, stored, want)
+			require.Error(t, err)
+			assert.Contains(t, err.Error(), tc.reason)
+			assert.Contains(t, err.Error(), want.Name)
+		})
+	}
+
+	t.Run("the migration's own row is adopted", func(t *testing.T) {
+		stored := sameRole()
+		stored.Permissions = []string{stored.Permissions[1], stored.Permissions[0]}
+		require.NoError(t, validateAdoptableSpaceRole(want.Name, stored, want))
+	})
+}
+
+// Every refusal in validateAdoptableSpaceScheme beyond the permission mismatch the seeding test
+// covers. The first four are decided from the scheme row alone; the rest need its generated roles.
+func TestValidateAdoptableSpaceSchemeRefusals(t *testing.T) {
+	mainHelper.Parallel(t)
+	user := model.PermissionIDs(model.SpaceDefaultContributePermissions)
+	admin := model.PermissionIDs(model.SpaceAdminRolePermissions)
+	guest := model.PermissionIDs(model.SpaceDefaultReadOnlyPermissions)
+	newScheme := func() *model.Scheme {
+		return &model.Scheme{
+			Id:                      model.NewId(),
+			Name:                    model.SchemeNameSpaceContribute,
+			Scope:                   model.SchemeScopeChannel,
+			DefaultChannelUserRole:  "user",
+			DefaultChannelAdminRole: "admin",
+			DefaultChannelGuestRole: "guest",
+		}
+	}
+
+	t.Run("decided from the scheme row", func(t *testing.T) {
+		th := setupSpaceRBACMock(t)
+		for _, tc := range []struct {
+			name   string
+			mutate func(*model.Scheme)
+			reason string
+		}{
+			{"deleted", func(s *model.Scheme) { s.DeleteAt = 1 }, "is deleted"},
+			{"wrong scope", func(s *model.Scheme) { s.Scope = model.SchemeScopeTeam }, "with scope"},
+			{"missing a generated role", func(s *model.Scheme) { s.DefaultChannelGuestRole = "" }, "complete set of generated channel roles"},
+			{"roles not distinct", func(s *model.Scheme) { s.DefaultChannelGuestRole = s.DefaultChannelUserRole }, "not distinct"},
+		} {
+			t.Run(tc.name, func(t *testing.T) {
+				scheme := newScheme()
+				tc.mutate(scheme)
+				err := th.Server.validateAdoptableSpaceScheme(scheme, user, admin, guest)
+				require.Error(t, err)
+				assert.Contains(t, err.Error(), tc.reason)
+			})
+		}
+	})
+
+	t.Run("decided from the generated roles", func(t *testing.T) {
+		for _, tc := range []struct {
+			name   string
+			roles  func(schemeID string) []*model.Role
+			reason string
+		}{
+			{"a role row is missing", func(schemeID string) []*model.Role {
+				return []*model.Role{
+					{Name: "user", Permissions: user, SchemeManaged: true, SchemeId: &schemeID},
+					{Name: "admin", Permissions: admin, SchemeManaged: true, SchemeId: &schemeID},
+				}
+			}, "has no row on the primary"},
+			{"a role is deleted", func(schemeID string) []*model.Role {
+				return []*model.Role{
+					{Name: "user", Permissions: user, SchemeManaged: true, SchemeId: &schemeID, DeleteAt: 1},
+					{Name: "admin", Permissions: admin, SchemeManaged: true, SchemeId: &schemeID},
+					{Name: "guest", Permissions: guest, SchemeManaged: true, SchemeId: &schemeID},
+				}
+			}, "deleted, not scheme-managed, or not owned"},
+			{"a role is not scheme-managed", func(schemeID string) []*model.Role {
+				return []*model.Role{
+					{Name: "user", Permissions: user, SchemeManaged: false, SchemeId: &schemeID},
+					{Name: "admin", Permissions: admin, SchemeManaged: true, SchemeId: &schemeID},
+					{Name: "guest", Permissions: guest, SchemeManaged: true, SchemeId: &schemeID},
+				}
+			}, "deleted, not scheme-managed, or not owned"},
+			{"a role belongs to another scheme", func(schemeID string) []*model.Role {
+				other := model.NewId()
+				return []*model.Role{
+					{Name: "user", Permissions: user, SchemeManaged: true, SchemeId: &schemeID},
+					{Name: "admin", Permissions: admin, SchemeManaged: true, SchemeId: &other},
+					{Name: "guest", Permissions: guest, SchemeManaged: true, SchemeId: &schemeID},
+				}
+			}, "deleted, not scheme-managed, or not owned"},
+			{"the guest role grants more than read", func(schemeID string) []*model.Role {
+				return []*model.Role{
+					{Name: "user", Permissions: user, SchemeManaged: true, SchemeId: &schemeID},
+					{Name: "admin", Permissions: admin, SchemeManaged: true, SchemeId: &schemeID},
+					{Name: "guest", Permissions: append(append([]string{}, guest...), model.PermissionCreatePage.Id), SchemeManaged: true, SchemeId: &schemeID},
+				}
+			}, "different permission set"},
+		} {
+			t.Run(tc.name, func(t *testing.T) {
+				th := setupSpaceRBACMock(t)
+				scheme := newScheme()
+				mockStore := th.App.Srv().Store().(*mocks.Store)
+				mockRoleStore := mocks.RoleStore{}
+				mockRoleStore.On("GetByNamesFromMaster", []string{"user", "admin", "guest"}).Return(tc.roles(scheme.Id), nil)
+				mockStore.On("Role").Return(&mockRoleStore)
+
+				err := th.Server.validateAdoptableSpaceScheme(scheme, user, admin, guest)
+				require.Error(t, err)
+				assert.Contains(t, err.Error(), tc.reason)
+			})
+		}
+	})
 }

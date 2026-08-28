@@ -46,33 +46,69 @@ func (a *App) getSchemeWithMasterFallback(where, schemeId string) (*model.Scheme
 	return a.getSchemeFromMaster(where, schemeId)
 }
 
-// isSeededSpaceScheme reports whether schemeId is a live seeded space preset. Identity is channel
-// scope plus a reserved name, not the id. A lookup failure other than not-found fails closed.
-func (a *App) isSeededSpaceScheme(schemeId string) (bool, *model.AppError) {
-	scheme, appErr := a.getSchemeFromMaster("isSeededSpaceScheme", schemeId)
-	if appErr != nil {
-		return false, appErr
-	}
-	if scheme == nil {
-		return false, nil
-	}
-	// Scope is part of the identity: a scheme of another scope carrying a reserved
-	// name is a conflicting row the seeding migration refuses to adopt, and deleting
-	// it is the operator's remedy.
-	return scheme.DeleteAt == 0 && scheme.Scope == model.SchemeScopeChannel && model.IsSpaceSchemeName(scheme.Name), nil
+// reservedSchemeKind is one of the two channel scheme shapes the guards below protect: a seeded
+// space preset, or the shape GetOrCreatePluginChannelScheme creates. Identity is channel scope
+// plus the name, not the id, and it identifies protected shape, not provenance. Each kind carries
+// the error ids its refusals report.
+type reservedSchemeKind struct {
+	renameErrorID string
+	rolesErrorID  string
+	deleteErrorID string
 }
 
-// isPluginChannelScheme reports whether schemeId has the channel scope and reserved name shape
-// used by GetOrCreatePluginChannelScheme. It identifies protected shape, not provenance.
-func (a *App) isPluginChannelScheme(schemeId string) (bool, *model.AppError) {
-	scheme, appErr := a.getSchemeFromMaster("isPluginChannelScheme", schemeId)
+var (
+	seededSpaceSchemeKind = &reservedSchemeKind{
+		renameErrorID: "app.scheme.save.space_scheme_rename.app_error",
+		rolesErrorID:  "app.scheme.save.space_scheme_roles.app_error",
+		deleteErrorID: "app.scheme.delete.space_scheme.app_error",
+	}
+
+	// A plugin channel scheme is identified by its name and nothing else: the role
+	// freeze, the delete refusal and the get-or-create's own lookup all key off it.
+	// Renaming one away unfreezes its roles while every channel already pointing at it
+	// keeps resolving them, and leaves the next get-or-create for the same permission
+	// set creating a second scheme beside it. Deleting one is refused whether or not
+	// anything references it today: Schemes.Name is unique across deleted rows, so a
+	// deleted one leaves the next get-or-create for that permission set resolving to a
+	// row it must refuse rather than creating a replacement. The delete refusal is
+	// reported separately from the preset's: an operator looking at a plugin channel
+	// scheme has no space to detach to make the delete succeed, so the space wording
+	// would send them looking for one.
+	pluginChannelSchemeKind = &reservedSchemeKind{
+		renameErrorID: "app.scheme.save.plugin_scheme_rename.app_error",
+		rolesErrorID:  "app.scheme.save.plugin_scheme_roles.app_error",
+		deleteErrorID: "app.scheme.delete.plugin_scheme.app_error",
+	}
+)
+
+// reservedSchemeKindOf classifies scheme by scope and name; nil means it is not reserved.
+// Scope is part of the identity: a scheme of another scope carrying a reserved name is a
+// conflicting row the seeding migration refuses to adopt, and renaming or deleting it is
+// the operator's remedy — refusing that too would leave the boot permanently blocked.
+func reservedSchemeKindOf(scheme *model.Scheme) *reservedSchemeKind {
+	if scheme.Scope != model.SchemeScopeChannel {
+		return nil
+	}
+	if model.IsSpaceSchemeName(scheme.Name) {
+		return seededSpaceSchemeKind
+	}
+	if model.IsPluginChannelSchemeName(scheme.Name) {
+		return pluginChannelSchemeKind
+	}
+	return nil
+}
+
+// reservedSchemeKindByID classifies the scheme stored under schemeId with one primary read. A
+// missing or deleted row is not reserved. A lookup failure other than not-found fails closed.
+func (a *App) reservedSchemeKindByID(where, schemeId string) (*reservedSchemeKind, *model.AppError) {
+	scheme, appErr := a.getSchemeFromMaster(where, schemeId)
 	if appErr != nil {
-		return false, appErr
+		return nil, appErr
 	}
-	if scheme == nil {
-		return false, nil
+	if scheme == nil || scheme.DeleteAt != 0 {
+		return nil, nil
 	}
-	return scheme.DeleteAt == 0 && scheme.Scope == model.SchemeScopeChannel && model.IsPluginChannelSchemeName(scheme.Name), nil
+	return reservedSchemeKindOf(scheme), nil
 }
 
 // checkSpaceSchemeName rejects creating or renaming a scheme into a reserved name:
@@ -108,38 +144,15 @@ func (a *App) checkSpaceSchemeUpdate(scheme *model.Scheme) *model.AppError {
 	if stored == nil {
 		return model.NewAppError("UpdateScheme", "app.scheme.get.app_error", nil, "", http.StatusNotFound)
 	}
-	// Only a channel-scoped scheme can actually be a space scheme, so the
-	// rename refusal is scoped to that case. A scheme of any other scope
-	// carrying a reserved name is a conflicting row that the seeding migration
-	// refuses to adopt — renaming it away is the operator's remedy, and
-	// refusing that rename too would leave the boot permanently blocked.
-	if stored.Scope == model.SchemeScopeChannel && model.IsSpaceSchemeName(stored.Name) {
+	if kind := reservedSchemeKindOf(stored); kind != nil {
 		if stored.Name != scheme.Name {
-			return model.NewAppError("UpdateScheme", "app.scheme.save.space_scheme_rename.app_error",
+			return model.NewAppError("UpdateScheme", kind.renameErrorID,
 				map[string]any{"SchemeName": stored.Name}, "", http.StatusBadRequest)
 		}
 		if stored.DefaultChannelAdminRole != scheme.DefaultChannelAdminRole ||
 			stored.DefaultChannelUserRole != scheme.DefaultChannelUserRole ||
 			stored.DefaultChannelGuestRole != scheme.DefaultChannelGuestRole {
-			return model.NewAppError("UpdateScheme", "app.scheme.save.space_scheme_roles.app_error",
-				map[string]any{"SchemeName": stored.Name}, "", http.StatusBadRequest)
-		}
-		return nil
-	}
-	// A plugin channel scheme is identified by its name and nothing else: the role
-	// freeze, the delete refusal and the get-or-create's own lookup all key off it.
-	// Renaming one away unfreezes its roles while every channel already pointing at it
-	// keeps resolving them, and leaves the next get-or-create for the same permission
-	// set creating a second scheme beside it.
-	if stored.Scope == model.SchemeScopeChannel && model.IsPluginChannelSchemeName(stored.Name) {
-		if stored.Name != scheme.Name {
-			return model.NewAppError("UpdateScheme", "app.scheme.save.plugin_scheme_rename.app_error",
-				map[string]any{"SchemeName": stored.Name}, "", http.StatusBadRequest)
-		}
-		if stored.DefaultChannelAdminRole != scheme.DefaultChannelAdminRole ||
-			stored.DefaultChannelUserRole != scheme.DefaultChannelUserRole ||
-			stored.DefaultChannelGuestRole != scheme.DefaultChannelGuestRole {
-			return model.NewAppError("UpdateScheme", "app.scheme.save.plugin_scheme_roles.app_error",
+			return model.NewAppError("UpdateScheme", kind.rolesErrorID,
 				map[string]any{"SchemeName": stored.Name}, "", http.StatusBadRequest)
 		}
 		return nil
@@ -152,26 +165,12 @@ func (a *App) checkSpaceSchemeUpdate(scheme *model.Scheme) *model.AppError {
 
 // checkSpaceSchemeDelete refuses deleting the fixed presets and immutable plugin pool schemes.
 func (a *App) checkSpaceSchemeDelete(schemeId string) *model.AppError {
-	isPreset, appErr := a.isSeededSpaceScheme(schemeId)
+	kind, appErr := a.reservedSchemeKindByID("DeleteScheme", schemeId)
 	if appErr != nil {
 		return appErr
 	}
-	if isPreset {
-		return model.NewAppError("DeleteScheme", "app.scheme.delete.space_scheme.app_error", nil, "", http.StatusBadRequest)
-	}
-
-	// A plugin channel scheme is refused whether or not anything references it today:
-	// Schemes.Name is unique across deleted rows, so a deleted one leaves the next
-	// get-or-create for that permission set resolving to a row it must refuse rather
-	// than creating a replacement. Reported separately from the space-scheme refusal
-	// below: an operator looking at a plugin channel scheme has no space to detach to
-	// make the delete succeed, so the space wording would send them looking for one.
-	isPluginScheme, pErr := a.isPluginChannelScheme(schemeId)
-	if pErr != nil {
-		return pErr
-	}
-	if isPluginScheme {
-		return model.NewAppError("DeleteScheme", "app.scheme.delete.plugin_scheme.app_error", nil, "", http.StatusBadRequest)
+	if kind != nil {
+		return model.NewAppError("DeleteScheme", kind.deleteErrorID, nil, "", http.StatusBadRequest)
 	}
 	return nil
 }

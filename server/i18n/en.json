@@ -9280,7 +9280,7 @@
   },
   {
     "id": "app.scheme.plugin_scheme.conflict.app_error",
-    "translation": "A scheme already exists under the name reserved for this plugin scheme, and it does not grant what that name implies. Rename or remove the conflicting scheme to proceed."
+    "translation": "The pooled plugin scheme row with Schemes.Name=\"{{.SchemeName}}\" has an incompatible scope, is soft-deleted, or does not match its generated roles. Inspect that Schemes row and the Roles rows referenced by DefaultChannelUserRole=\"{{.UserRoleName}}\", DefaultChannelAdminRole=\"{{.AdminRoleName}}\", and DefaultChannelGuestRole=\"{{.GuestRoleName}}\". Repair those rows in place to restore the expected plugin-managed definition. If the occupant is unrelated and no channel references it, use administrative database tooling to rename it or permanently remove it and its generated roles, then retry."
   },
   {
     "id": "app.scheme.plugin_scheme.guest_license.app_error",

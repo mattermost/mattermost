@@ -62,38 +62,12 @@ func (s *Server) validateAdoptableSpaceScheme(existing *model.Scheme, user, admi
 		return fmt.Errorf("scheme %q already exists with generated channel roles that are not distinct"+seedingConflictSuffix, existing.Name)
 	}
 
-	roleNames := []string{
-		existing.DefaultChannelUserRole,
-		existing.DefaultChannelAdminRole,
-		existing.DefaultChannelGuestRole,
-	}
-	roles, err := s.Store().Role().GetByNamesFromMaster(roleNames)
-	if err != nil {
+	if err := s.validateSchemeRoles(existing, user, admin, guest); err != nil {
+		var conflict *errSchemeRoleConflict
+		if errors.As(err, &conflict) {
+			return fmt.Errorf("scheme %q already exists and its %w"+seedingConflictSuffix, existing.Name, err)
+		}
 		return fmt.Errorf("could not query generated roles for scheme %q: %w", existing.Name, err)
-	}
-	rolesByName := make(map[string]*model.Role, len(roles))
-	for _, role := range roles {
-		rolesByName[role.Name] = role
-	}
-
-	for _, expected := range []struct {
-		name        string
-		permissions []string
-	}{
-		{existing.DefaultChannelUserRole, user},
-		{existing.DefaultChannelAdminRole, admin},
-		{existing.DefaultChannelGuestRole, guest},
-	} {
-		role := rolesByName[expected.name]
-		if role == nil {
-			return fmt.Errorf("scheme role %q for scheme %q has no row on the primary"+seedingConflictSuffix, expected.name, existing.Name)
-		}
-		if role.DeleteAt != 0 || !role.SchemeManaged || role.SchemeId == nil || *role.SchemeId != existing.Id {
-			return fmt.Errorf("scheme %q already exists and its generated role %q is deleted, not scheme-managed, or not owned by it"+seedingConflictSuffix, existing.Name, expected.name)
-		}
-		if !slices.Equal(model.NormalizePermissions(role.Permissions), model.NormalizePermissions(expected.permissions)) {
-			return fmt.Errorf("scheme %q already exists and its generated role %q has a different permission set"+seedingConflictSuffix, existing.Name, expected.name)
-		}
 	}
 	return nil
 }
