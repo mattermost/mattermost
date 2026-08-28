@@ -28,6 +28,13 @@ const targetIsEsLint = !targetIsBuild && !targetIsRun && !targetIsDevServer;
 
 const DEV = targetIsRun || targetIsStats || targetIsDevServer;
 
+// React's StrictMode checks, and the warnings it logs when a component isn't safe to render
+// concurrently, only exist in a development build of React. Setting MM_REACT_STRICT_MODE keeps the
+// whole production pipeline (minification, chunking, real source maps) but links against React's
+// development runtime so those checks run. See src/utils/react_strict_mode.ts for what the web app
+// then does with the warnings.
+const REACT_STRICT_MODE = process.env.MM_REACT_STRICT_MODE === 'true';
+
 const STANDARD_EXCLUDE = [
     /node_modules/,
 ];
@@ -464,12 +471,21 @@ if (DEV) {
 const env = {};
 if (DEV) {
     env.PUBLIC_PATH = JSON.stringify(publicPath);
+} else if (REACT_STRICT_MODE) {
+    console.log('Enabling React strict mode: building against the React development runtime');
+
+    env.NODE_ENV = JSON.stringify('development');
+
+    // Webpack's production mode defines process.env.NODE_ENV as 'production' on its own, which
+    // would conflict with the definition above.
+    config.optimization.nodeEnv = false;
 } else {
     env.NODE_ENV = JSON.stringify('production');
 }
 
 config.plugins.push(new webpack.DefinePlugin({
     'process.env': env,
+    REACT_STRICT_MODE: JSON.stringify(REACT_STRICT_MODE),
 }));
 
 if (targetIsDevServer) {
