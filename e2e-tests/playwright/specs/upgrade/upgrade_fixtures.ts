@@ -62,6 +62,24 @@ export const UPGRADE_ATTACHMENT_SEEDS: UpgradeAttachmentSeed[] = [
     {fileName: 'image-400x40.jpg', message: 'upgrade-check dm jpeg attachment', author: 'user', channel: 'dm'},
 ];
 
+export function channelIdForAttachmentSeed(
+    channel: UpgradeAttachmentSeed['channel'],
+    channels: {publicId: string; privateId: string; userDmId: string},
+): string {
+    switch (channel) {
+        case 'public':
+            return channels.publicId;
+        case 'private':
+            return channels.privateId;
+        case 'dm':
+            return channels.userDmId;
+        default: {
+            const exhaustive: never = channel;
+            throw new Error(`Unknown attachment seed channel: ${exhaustive}`);
+        }
+    }
+}
+
 export const UPGRADE_ADMIN_PUBLIC_MESSAGE = 'upgrade-check admin public channel message';
 export const UPGRADE_ADMIN_PRIVATE_MESSAGE = 'upgrade-check admin private channel message';
 export const UPGRADE_ADMIN_DM_MESSAGE = 'upgrade-check admin direct message';
@@ -176,21 +194,16 @@ export async function seedUpgradeAttachments(
     channels: {publicId: string; privateId: string; userDmId: string},
 ): Promise<UpgradeAttachmentBaseline[]> {
     const clientFor = (author: 'user' | 'admin') => (author === 'user' ? userClient : adminClient);
-    const channelFor = (channel: UpgradeAttachmentSeed['channel']) => {
-        switch (channel) {
-            case 'public':
-                return channels.publicId;
-            case 'private':
-                return channels.privateId;
-            case 'dm':
-                return channels.userDmId;
-        }
-    };
 
     const baseline: UpgradeAttachmentBaseline[] = [];
     for (const seed of UPGRADE_ATTACHMENT_SEEDS) {
         const client = clientFor(seed.author);
-        const post = await postWithAttachment(client, channelFor(seed.channel), seed.message, seed.fileName);
+        const post = await postWithAttachment(
+            client,
+            channelIdForAttachmentSeed(seed.channel, channels),
+            seed.message,
+            seed.fileName,
+        );
         await verifyPostAttachmentDownloadable(request, client, post.id, seed.fileName);
         baseline.push({postId: post.id, fileName: seed.fileName, author: seed.author});
     }

@@ -4,6 +4,8 @@
 import {GenericContainer, Wait} from 'testcontainers';
 import type {StartedTestContainer} from 'testcontainers';
 
+import {isUpgradeFromProjectSelected, isUpgradeToPhaseProjectSelected} from '../upgrade_env';
+
 import {
     INBUCKET_ALIAS,
     INBUCKET_SMTP_PORT,
@@ -19,7 +21,6 @@ import {
 } from './constants';
 import {SERVER_ENV_BASELINE} from './env_baseline';
 import {startWithRetry} from './retry';
-import {isUpgradeFromProjectSelected, isUpgradeToPhaseProjectSelected} from '../upgrade_env';
 
 import {testConfig} from '@/test_config';
 

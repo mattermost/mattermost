@@ -20,6 +20,7 @@ import {
     assertSearchFinds,
     assertUpgradeFileBackendMatches,
     assertUpgradeLicenseMatches,
+    channelIdForAttachmentSeed,
     ensureUpgradePluginActive,
     ensureUpgradeTeam,
     loadUpgradeToContext,
@@ -56,12 +57,11 @@ test.describe.serial('upgrade-to baseline', {tag: ['@upgrade-to']}, () => {
         const {adminClient, userClient, baseline, publicChannelId, privateChannelId} = await loadUpgradeToContext(pw);
 
         for (const seed of UPGRADE_ATTACHMENT_SEEDS) {
-            const channelId =
-                seed.channel === 'public'
-                    ? publicChannelId
-                    : seed.channel === 'private'
-                      ? privateChannelId
-                      : baseline.userDmChannelId;
+            const channelId = channelIdForAttachmentSeed(seed.channel, {
+                publicId: publicChannelId,
+                privateId: privateChannelId,
+                userDmId: baseline.userDmChannelId,
+            });
             const client = seed.author === 'user' ? userClient : adminClient;
             await assertChannelContainsMessage(client, channelId, seed.message);
         }

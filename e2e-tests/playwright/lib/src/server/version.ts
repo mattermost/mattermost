@@ -6,6 +6,7 @@ import {promisify} from 'node:util';
 
 import {restartMattermostContainer} from '../containers/stack';
 import {logTestcontainers} from '../containers/log';
+
 import {getAdminClient} from './init';
 
 import {testConfig} from '@/test_config';
@@ -42,7 +43,8 @@ export async function upgradeServerImage(
     const previousOmitLicense = testConfig.omitProcessEnvLicense;
     if (options.omitProcessEnvLicense) {
         testConfig.omitProcessEnvLicense = true;
-        const {MM_LICENSE: _license, ...bootEnvWithoutLicense} = testConfig.bootEnvOverrides;
+        const bootEnvWithoutLicense = {...testConfig.bootEnvOverrides};
+        delete bootEnvWithoutLicense.MM_LICENSE;
         testConfig.bootEnvOverrides = bootEnvWithoutLicense;
     }
 

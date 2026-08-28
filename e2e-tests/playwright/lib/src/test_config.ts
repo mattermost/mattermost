@@ -181,11 +181,14 @@ export class TestConfig {
         this.testcontainersNetworkGatewayIp = process.env.PW_TESTCONTAINERS_NETWORK_GATEWAY_IP || '';
         // upgrade-from → PW_UPGRADE_FROM_SERVER_IMAGE; upgrade-to/swap-to → SERVER_IMAGE (never the
         // from-image persisted as PW_TESTCONTAINERS_SERVER_IMAGE); otherwise prefer persisted image.
-        this.serverImage = isUpgradeFromProjectSelected()
-            ? getUpgradeFromServerImage()
-            : isUpgradeToPhaseProjectSelected()
-              ? getUpgradeToServerImage()
-              : process.env.PW_TESTCONTAINERS_SERVER_IMAGE || process.env.SERVER_IMAGE || MATTERMOST_SERVER_IMAGE;
+        if (isUpgradeFromProjectSelected()) {
+            this.serverImage = getUpgradeFromServerImage();
+        } else if (isUpgradeToPhaseProjectSelected()) {
+            this.serverImage = getUpgradeToServerImage();
+        } else {
+            this.serverImage =
+                process.env.PW_TESTCONTAINERS_SERVER_IMAGE || process.env.SERVER_IMAGE || MATTERMOST_SERVER_IMAGE;
+        }
         this.serverEnv = parseKeyValueList(process.env.MM_ENV);
         this.testcontainersServices = parseTestContainersServices(process.env.PW_TESTCONTAINERS_SERVICES);
         // Defaults to true so a local Ctrl+C (or just finishing a run) doesn't throw away the
