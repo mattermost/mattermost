@@ -570,8 +570,8 @@ blockquote {
  *
  * `:not([class])` scopes this to authored MDX images, leaving
  * component-rendered images (always CSS-module-classed) alone. An author
- * can opt out with an explicit `width` attribute. */
-.markdown img:not([class]):not([width]) {
+ * can opt out with an explicit `width` or `height` attribute. */
+.markdown img:not([class]):not([width]):not([height]) {
   display: block;
   width: auto;
   height: auto;
