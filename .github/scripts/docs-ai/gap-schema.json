@@ -1,0 +1,40 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["assessment", "summary", "confidence", "impacts", "actions"],
+  "properties": {
+    "assessment": {
+      "type": "string",
+      "enum": ["required", "recommended", "none"]
+    },
+    "summary": {
+      "type": "string",
+      "description": "One to three sentences on what this PR does from a documentation perspective."
+    },
+    "confidence": {
+      "type": "string",
+      "enum": ["high", "medium", "low"]
+    },
+    "impacts": {
+      "type": "array",
+      "description": "One entry per documentation-relevant change. Empty when the assessment is none.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["change", "files", "audiences", "action", "docs_location"],
+        "properties": {
+          "change": {"type": "string"},
+          "files": {"type": "string"},
+          "audiences": {"type": "string"},
+          "action": {"type": "string"},
+          "docs_location": {"type": "string"}
+        }
+      }
+    },
+    "actions": {
+      "type": "array",
+      "description": "Concrete actions, each naming an exact docs/main path. Empty when the assessment is none.",
+      "items": {"type": "string"}
+    }
+  }
+}
