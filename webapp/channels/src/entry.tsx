@@ -12,6 +12,7 @@ import store from 'stores/redux_store';
 import App from 'components/app';
 
 import {AnnouncementBarTypes} from 'utils/constants';
+import {installReactStrictModeDiagnostics} from 'utils/react_strict_mode';
 import {setCSRFFromCookie} from 'utils/utils';
 
 // Import our styles
@@ -59,17 +60,27 @@ function preRenderSetup(onPreRenderSetupReady: () => void) {
 function renderReactRootComponent() {
     const container = document.getElementById('root')!;
 
+    let app = <App/>;
+
+    if (REACT_STRICT_MODE) {
+        // eslint-disable-next-line no-console
+        console.log('Enabling React strict mode diagnostics due to the REACT_STRICT_MODE build flag');
+
+        installReactStrictModeDiagnostics();
+        app = <React.StrictMode>{app}</React.StrictMode>;
+    }
+
     if (window.enableConcurrentReact) {
         // eslint-disable-next-line no-console
         console.log('Enabling concurrent React 18 due to server-wide feature flag');
 
         // Enable this experimentally since it may cause other issues
-        ReactDOMClient.createRoot(container).render(<App/>);
+        ReactDOMClient.createRoot(container).render(app);
     } else {
         // We're using React 18, but we're using the deprecated way of starting React because ReactDOM.createRoot enables
         // new features such as automatic batching which breaks some components. This will need to be changed in the future
         // because this method of starting the app will be removed in React 19.
-        ReactDOM.render(<App/>, container);
+        ReactDOM.render(app, container);
     }
 }
 
