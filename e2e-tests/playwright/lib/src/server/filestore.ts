@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {execFileSync} from 'node:child_process';
 import fs from 'node:fs';
 
 import {test} from '@playwright/test';
@@ -8,6 +9,7 @@ import type {Client4} from '@mattermost/client';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {LOCAL_STORAGE_DIR} from '../containers/constants';
+import {POSTGRES_IMAGE} from '../containers/default_images';
 import {bootEnvMatches, restartMattermostContainer} from '../containers/stack';
 
 import {getAdminClient} from './init';
@@ -53,6 +55,19 @@ export async function ensureLocalFile(): Promise<void> {
 }
 
 /**
+ * Mattermost runs as UID 2000 and creates dated storage dirs mode 0750 (localstore.go). The host
+ * runner cannot scandir those on Linux CI. Distroless server images have no chmod, so open the
+ * bind mount via a one-shot helper container (postgres is always pulled with the stack).
+ */
+function makeLocalStorageHostReadable(): void {
+    execFileSync(
+        'docker',
+        ['run', '--rm', '--user', '0', '-v', `${LOCAL_STORAGE_DIR}:/data`, POSTGRES_IMAGE, 'chmod', '-R', 'a+rX', '/data'],
+        {stdio: 'pipe'},
+    );
+}
+
+/**
  * Lists every file under the bind-mounted local storage directory (see LOCAL_STORAGE_DIR),
  * confirming the server actually wrote to disk — the same "check the backend itself, not just
  * that the API says so" signal listMinioObjectKeys()/listAzuriteBlobNames() already provide for
@@ -62,5 +77,13 @@ export function listLocalStorageFiles(): string[] {
     if (!fs.existsSync(LOCAL_STORAGE_DIR)) {
         return [];
     }
-    return fs.readdirSync(LOCAL_STORAGE_DIR, {recursive: true}) as string[];
+    try {
+        return fs.readdirSync(LOCAL_STORAGE_DIR, {recursive: true}) as string[];
+    } catch (error) {
+        if ((error as NodeJS.ErrnoException).code !== 'EACCES') {
+            throw error;
+        }
+        makeLocalStorageHostReadable();
+        return fs.readdirSync(LOCAL_STORAGE_DIR, {recursive: true}) as string[];
+    }
 }
