@@ -88,7 +88,6 @@ func databaseSettings(driver, dataSource string) *model.SqlSettings {
 		ConnMaxIdleTimeMilliseconds:       new(int),
 		MaxOpenConns:                      new(int),
 		Trace:                             new(false),
-		AtRestEncryptKey:                  new(model.NewRandomString(32)),
 		QueryTimeout:                      new(int),
 		AnalyticsQueryTimeout:             new(int),
 		MigrationsStatementTimeoutSeconds: new(int),
