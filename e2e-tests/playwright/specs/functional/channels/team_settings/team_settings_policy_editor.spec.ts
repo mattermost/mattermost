@@ -875,6 +875,14 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         await adminClient.addToTeam(team.id, targetUser.id);
         await setUserAttribute(adminClient, targetUser.id, 'Department', 'Engineering');
 
+        // # Wait for the UserAttributeView (materialized view) to refresh so the server's
+        // self-inclusion check sees the teamAdmin's Department=Engineering value. Without this
+        // wait the view is stale and the server incorrectly fires the self-lockout guard,
+        // preventing the confirmation modal from appearing.
+        await waitForAttributeViewToInclude(adminClient, 'user.attributes.Department == "Engineering"', [
+            teamAdmin.id,
+        ]);
+
         // # Log in as team admin and open policy editor
         const {page} = await pw.testBrowser.login(teamAdmin);
         const channelsPage = new ChannelsPage(page);
