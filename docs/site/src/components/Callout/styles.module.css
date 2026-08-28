@@ -1,7 +1,6 @@
 /* Branded callouts, styled to match the compact Docusaurus admonitions used
  * elsewhere in the docs: a tinted panel with a left accent bar and a small
- * icon + label header, instead of the previous 12px Archivo Black label
- * next to a full-height denim slab. */
+ * icon + label header. */
 
 .callout {
   margin: 1.5rem 0;

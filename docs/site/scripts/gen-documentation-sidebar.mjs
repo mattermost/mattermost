@@ -888,11 +888,6 @@ const ADMIN_SCALE_ORDER = [
 // ADMIN_SCALE_ORDER) rather than nested inside a sub-group.
 const ADMIN_SCALE_HIDDEN = new Set([]);
 
-// ---------------------------------------------------------------------------
-// Administration Guide top-level ordering.
-// ---------------------------------------------------------------------------
-//
-// In order of operations rather than the filesystem's alphabetical order.
 const ADMIN_ROOT_ORDER = ['Configure', 'Comply', 'Onboard', 'Manage', 'Upgrade', 'Scale'];
 
 // ---------------------------------------------------------------------------
