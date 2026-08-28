@@ -48,20 +48,14 @@ func (a *App) getSchemeWithMasterFallback(where, schemeId string) (*model.Scheme
 
 // reservedSchemeKind is one of the two channel scheme shapes the guards below protect: a seeded
 // space preset, or the shape GetOrCreatePluginChannelScheme creates. Identity is channel scope
-// plus the name, not the id, and it identifies protected shape, not provenance. Each kind carries
-// the error ids its refusals report.
+// plus the name, not the id, and it identifies protected shape, not provenance. Each kind reports
+// its refusals under its own error ids.
 type reservedSchemeKind struct {
-	renameErrorID string
-	rolesErrorID  string
-	deleteErrorID string
+	plugin bool
 }
 
 var (
-	seededSpaceSchemeKind = &reservedSchemeKind{
-		renameErrorID: "app.scheme.save.space_scheme_rename.app_error",
-		rolesErrorID:  "app.scheme.save.space_scheme_roles.app_error",
-		deleteErrorID: "app.scheme.delete.space_scheme.app_error",
-	}
+	seededSpaceSchemeKind = &reservedSchemeKind{}
 
 	// A plugin channel scheme is identified by its name and nothing else: the role
 	// freeze, the delete refusal and the get-or-create's own lookup all key off it.
@@ -74,12 +68,31 @@ var (
 	// reported separately from the preset's: an operator looking at a plugin channel
 	// scheme has no space to detach to make the delete succeed, so the space wording
 	// would send them looking for one.
-	pluginChannelSchemeKind = &reservedSchemeKind{
-		renameErrorID: "app.scheme.save.plugin_scheme_rename.app_error",
-		rolesErrorID:  "app.scheme.save.plugin_scheme_roles.app_error",
-		deleteErrorID: "app.scheme.delete.plugin_scheme.app_error",
-	}
+	pluginChannelSchemeKind = &reservedSchemeKind{plugin: true}
 )
+
+func (k *reservedSchemeKind) renameError(schemeName string) *model.AppError {
+	params := map[string]any{"SchemeName": schemeName}
+	if k.plugin {
+		return model.NewAppError("UpdateScheme", "app.scheme.save.plugin_scheme_rename.app_error", params, "", http.StatusBadRequest)
+	}
+	return model.NewAppError("UpdateScheme", "app.scheme.save.space_scheme_rename.app_error", params, "", http.StatusBadRequest)
+}
+
+func (k *reservedSchemeKind) rolesError(schemeName string) *model.AppError {
+	params := map[string]any{"SchemeName": schemeName}
+	if k.plugin {
+		return model.NewAppError("UpdateScheme", "app.scheme.save.plugin_scheme_roles.app_error", params, "", http.StatusBadRequest)
+	}
+	return model.NewAppError("UpdateScheme", "app.scheme.save.space_scheme_roles.app_error", params, "", http.StatusBadRequest)
+}
+
+func (k *reservedSchemeKind) deleteError() *model.AppError {
+	if k.plugin {
+		return model.NewAppError("DeleteScheme", "app.scheme.delete.plugin_scheme.app_error", nil, "", http.StatusBadRequest)
+	}
+	return model.NewAppError("DeleteScheme", "app.scheme.delete.space_scheme.app_error", nil, "", http.StatusBadRequest)
+}
 
 // reservedSchemeKindOf classifies scheme by scope and name; nil means it is not reserved.
 // Scope is part of the identity: a scheme of another scope carrying a reserved name is a
@@ -146,14 +159,12 @@ func (a *App) checkSpaceSchemeUpdate(scheme *model.Scheme) *model.AppError {
 	}
 	if kind := reservedSchemeKindOf(stored); kind != nil {
 		if stored.Name != scheme.Name {
-			return model.NewAppError("UpdateScheme", kind.renameErrorID,
-				map[string]any{"SchemeName": stored.Name}, "", http.StatusBadRequest)
+			return kind.renameError(stored.Name)
 		}
 		if stored.DefaultChannelAdminRole != scheme.DefaultChannelAdminRole ||
 			stored.DefaultChannelUserRole != scheme.DefaultChannelUserRole ||
 			stored.DefaultChannelGuestRole != scheme.DefaultChannelGuestRole {
-			return model.NewAppError("UpdateScheme", kind.rolesErrorID,
-				map[string]any{"SchemeName": stored.Name}, "", http.StatusBadRequest)
+			return kind.rolesError(stored.Name)
 		}
 		return nil
 	}
@@ -170,7 +181,7 @@ func (a *App) checkSpaceSchemeDelete(schemeId string) *model.AppError {
 		return appErr
 	}
 	if kind != nil {
-		return model.NewAppError("DeleteScheme", kind.deleteErrorID, nil, "", http.StatusBadRequest)
+		return kind.deleteError()
 	}
 	return nil
 }
