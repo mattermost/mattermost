@@ -74,6 +74,7 @@ const (
 	ScheduledPostWillBeCreatedID              = 54
 	DraftWillBeUpsertedID                     = 55
 	MessagesWillBeConsumedWithContextID       = 56
+	OnLicenseChangedID                        = 57
 	TotalHooksID                              = iota
 )
 
@@ -372,6 +373,17 @@ type Hooks interface {
 	//
 	// Minimum server version: 7.0
 	OnCloudLimitsUpdated(limits *model.ProductLimits)
+
+	// OnLicenseChanged is invoked when the server license changes, including
+	// upload, removal, expiry, and cluster-driven reloads. Either license may
+	// be nil (unlicensed ↔ licensed transitions).
+	//
+	// This hook is not invoked for the initial license load at startup. Plugins
+	// that need the current license when activated should call API.GetLicense()
+	// from OnActivate.
+	//
+	// Minimum server version: 12.0
+	OnLicenseChanged(oldLicense, newLicense *model.License)
 
 	// ConfigurationWillBeSaved is invoked before saving the configuration to the
 	// backing store.

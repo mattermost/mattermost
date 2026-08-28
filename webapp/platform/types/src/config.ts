@@ -407,7 +407,7 @@ export type ServiceSettings = {
     EnableAPITeamDeletion: boolean;
     EnableAPITriggerAdminNotifications: boolean;
     EnableAPIUserDeletion: boolean;
-    ExperimentalEnableHardenedMode: boolean;
+    EnableHardenedMode: boolean;
     ExperimentalStrictCSRFEnforcement: boolean;
     EnableEmailInvitations: boolean;
     DisableBotsWhenOwnerIsDeactivated: boolean;
@@ -495,7 +495,6 @@ export type SqlSettings = {
     ConnMaxIdleTimeMilliseconds: number;
     MaxOpenConns: number;
     Trace: boolean;
-    AtRestEncryptKey: string;
     QueryTimeout: number;
     AnalyticsQueryTimeout: number;
     DisableDatabaseSearch: boolean;
@@ -844,7 +843,6 @@ export type NativeAppSettings = {
     MobileJailbreakProtection: boolean;
     MobileEnableSecureFilePreview: boolean;
     MobileAllowPdfLinkNavigation: boolean;
-    EnableIntuneMAM: boolean;
 };
 
 export type IntuneSettings = {
@@ -1015,7 +1013,6 @@ export type DisplaySettings = {
 export type GuestAccountsSettings = {
     Enable: boolean;
     HideTags: boolean;
-    AllowEmailAccounts: boolean;
     EnforceMultifactorAuthentication: boolean;
     RestrictCreationToDomains: string;
     EnableGuestMagicLink: boolean;
@@ -1053,6 +1050,8 @@ export type AccessControlSettings = {
     TrustProxyDeviceIdentityHeader: boolean;
     EnforceDeviceIDConsistency: boolean;
     EnableAccessControlAuditLogging: boolean;
+    SyncJobIntervalSeconds: number;
+    AttributeRefreshIntervalSeconds: number;
 };
 
 export type ContentFlaggingNotificationSettings = {

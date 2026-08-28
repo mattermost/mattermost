@@ -36,6 +36,31 @@ func TestElasticsearchBuildPostIndexName(t *testing.T) {
 	assert.Equal(t, eightName, "postsmonth_2017_08")
 }
 
+func TestHasAnalysisPlugin(t *testing.T) {
+	installed := []string{"analysis-icu", "analysis-kuromoji", "opensearch-analysis-nori"}
+
+	testCases := []struct {
+		Name     string
+		Plugins  []string
+		Lookup   string
+		Expected bool
+	}{
+		{"bundled name", installed, "analysis-kuromoji", true},
+		{"opensearch prefixed name", installed, "analysis-nori", true},
+		{"not installed", installed, "analysis-stempel", false},
+		{"no plugins reported", nil, "analysis-nori", false},
+		{"unrelated prefix is not accepted", []string{"vendor-analysis-nori"}, "analysis-nori", false},
+		{"elasticsearch prefix is not accepted", []string{"elasticsearch-analysis-nori"}, "analysis-nori", false},
+		{"a longer name is not a match", []string{"analysis-noris"}, "analysis-nori", false},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			assert.Equal(t, tc.Expected, HasAnalysisPlugin(tc.Plugins, tc.Lookup))
+		})
+	}
+}
+
 func TestESPostFromPostForIndexing(t *testing.T) {
 	t.Run("any form with text only", func(t *testing.T) {
 		post := model.PostForIndexing{

@@ -2107,7 +2107,7 @@ func sendPasswordReset(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	sent, err := c.App.SendPasswordReset(c.AppContext, email, c.App.GetSiteURL())
 	if err != nil {
-		if *c.App.Config().ServiceSettings.ExperimentalEnableHardenedMode {
+		if *c.App.Config().ServiceSettings.EnableHardenedMode {
 			ReturnStatusOK(w)
 		} else {
 			c.Err = err
