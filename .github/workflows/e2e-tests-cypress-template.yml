@@ -466,7 +466,7 @@ jobs:
         run: |
           pr="$(printf '%s' '${{ needs.prepare-run.outputs.composite-identity-json }}' | jq -r '.gh_pr_number')"
           [ -n "$pr" ] && [ "$pr" != "null" ] || { echo "no pr number; skip bisect"; exit 0; }
-          gh workflow run e2e-tests-bisect.yml -f clusters="$BISECT_CLUSTERS" -f pr_number="$pr" --repo "$GITHUB_REPOSITORY"
+          gh workflow run e2e-tests-bisect.yml -f clusters="$BISECT_CLUSTERS" -f pr_number="$pr" --repo "$GITHUB_REPOSITORY" --ref "${{ github.ref }}"
 
 
   # AI test autofix (see e2e-tests-playwright-template.yml for the rationale):
