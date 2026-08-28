@@ -5,7 +5,6 @@ package docextractor
 
 import (
 	"bytes"
-	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -63,7 +62,7 @@ func (pe *pdfExtractor) Extract(filename string, r io.ReadSeeker, maxFileSize in
 	}
 
 	var buf bytes.Buffer
-	b, err := reader.GetPlainText(context.Background())
+	b, err := reader.GetPlainText()
 	if err != nil {
 		return "", err
 	}
