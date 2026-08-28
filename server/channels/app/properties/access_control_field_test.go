@@ -29,6 +29,7 @@ func TestGetPropertyFieldReadAccess(t *testing.T) {
 	rctx2 := RequestContextWithCallerID(th.Context, pluginID2)
 	rctxUser := RequestContextWithCallerID(th.Context, userID)
 	rctxTestPlugin := RequestContextWithCallerID(th.Context, "test-plugin")
+	rctxSync := RequestContextWithCallerID(th.Context, model.CallerIDAccessControlSync)
 
 	t.Run("public field - any caller can read without filtering", func(t *testing.T) {
 		field := &model.PropertyField{
@@ -175,6 +176,63 @@ func TestGetPropertyFieldReadAccess(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, created.ID, retrieved.ID)
 		assert.Empty(t, retrieved.Attrs[model.PropertyFieldAttributeOptions].([]any))
+	})
+
+	t.Run("source_only field - access control sync caller gets all options", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID:    th.CPAGroupID,
+			Name:       "source-only-field-5",
+			Type:       model.PropertyFieldTypeRank,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Attrs: model.StringInterface{
+				model.PropertyAttrsAccessMode: model.PropertyAccessModeSourceOnly,
+				model.PropertyAttrsProtected:  true,
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{"id": "opt1", "value": "Secret Option 1", "rank": 1},
+					map[string]any{"id": "opt2", "value": "Secret Option 2", "rank": 2},
+				},
+			},
+		}
+		created, err := th.service.CreatePropertyField(rctx1, field)
+		require.NoError(t, err)
+
+		// The membership sync jobs evaluate policy rules on behalf of the
+		// server and hold no values of their own, so they must read the field
+		// unfiltered — an empty options list makes a rule referencing this
+		// field fail closed and evict every member it governs.
+		retrieved, err := th.service.GetPropertyField(rctxSync, th.CPAGroupID, created.ID)
+		require.NoError(t, err)
+		assert.Equal(t, created.ID, retrieved.ID)
+		assert.Len(t, retrieved.Attrs[model.PropertyFieldAttributeOptions].([]any), 2)
+	})
+
+	t.Run("shared_only field - access control sync caller gets all options", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID:    th.CPAGroupID,
+			Name:       "shared-only-field-sync",
+			Type:       model.PropertyFieldTypeRank,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Attrs: model.StringInterface{
+				model.PropertyAttrsAccessMode: model.PropertyAccessModeSharedOnly,
+				model.PropertyAttrsProtected:  true,
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{"id": "opt1", "value": "Secret Option 1", "rank": 1},
+					map[string]any{"id": "opt2", "value": "Secret Option 2", "rank": 2},
+				},
+			},
+		}
+		created, err := th.service.CreatePropertyField(rctx1, field)
+		require.NoError(t, err)
+
+		// shared_only normally filters options down to the ones the caller
+		// holds. The sync caller holds none, so without the exemption it would
+		// see an empty list rather than every option.
+		retrieved, err := th.service.GetPropertyField(rctxSync, th.CPAGroupID, created.ID)
+		require.NoError(t, err)
+		assert.Equal(t, created.ID, retrieved.ID)
+		assert.Len(t, retrieved.Attrs[model.PropertyFieldAttributeOptions].([]any), 2)
 	})
 
 	t.Run("shared_only field - caller with values sees filtered options", func(t *testing.T) {
