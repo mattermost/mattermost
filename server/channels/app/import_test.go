@@ -122,37 +122,51 @@ func TestStopOnError(t *testing.T) {
 	assert.True(t, stopOnError(th.Context, imports.LineImportWorkerError{
 		Error:      model.NewAppError("test", "app.import.attachment.bad_file.error", nil, "", http.StatusBadRequest),
 		LineNumber: 1,
-	}))
+	}, false))
 
 	assert.True(t, stopOnError(th.Context, imports.LineImportWorkerError{
 		Error:      model.NewAppError("test", "app.import.attachment.file_upload.error", nil, "", http.StatusBadRequest),
 		LineNumber: 1,
-	}))
+	}, false))
 
 	assert.False(t, stopOnError(th.Context, imports.LineImportWorkerError{
 		Error:      model.NewAppError("test", "api.file.upload_file.large_image.app_error", nil, "", http.StatusBadRequest),
 		LineNumber: 1,
-	}))
+	}, false))
 
 	assert.False(t, stopOnError(th.Context, imports.LineImportWorkerError{
 		Error:      model.NewAppError("test", "app.import.validate_direct_channel_import_data.members_too_few.error", nil, "", http.StatusBadRequest),
 		LineNumber: 1,
-	}))
+	}, false))
 
 	assert.False(t, stopOnError(th.Context, imports.LineImportWorkerError{
 		Error:      model.NewAppError("test", "app.import.validate_direct_channel_import_data.members_too_many.error", nil, "", http.StatusBadRequest),
 		LineNumber: 1,
-	}))
+	}, false))
 
+	// Scoped migration (deactivateMissingUsers=true): email/username conflicts are non-fatal —
+	// the existing account on the destination will be linked when posts reference the username.
 	assert.False(t, stopOnError(th.Context, imports.LineImportWorkerError{
 		Error:      model.NewAppError("test", "app.user.save.email_exists.app_error", nil, "", http.StatusBadRequest),
 		LineNumber: 1,
-	}))
+	}, true))
 
 	assert.False(t, stopOnError(th.Context, imports.LineImportWorkerError{
 		Error:      model.NewAppError("test", "app.user.save.username_exists.app_error", nil, "", http.StatusBadRequest),
 		LineNumber: 1,
-	}))
+	}, true))
+
+	// Non-scoped import (deactivateMissingUsers=false): email/username conflicts are fatal —
+	// a duplicate user in a backup/restore import signals a genuine data conflict.
+	assert.True(t, stopOnError(th.Context, imports.LineImportWorkerError{
+		Error:      model.NewAppError("test", "app.user.save.email_exists.app_error", nil, "", http.StatusBadRequest),
+		LineNumber: 1,
+	}, false))
+
+	assert.True(t, stopOnError(th.Context, imports.LineImportWorkerError{
+		Error:      model.NewAppError("test", "app.user.save.username_exists.app_error", nil, "", http.StatusBadRequest),
+		LineNumber: 1,
+	}, false))
 }
 
 func TestImportBulkImport(t *testing.T) {

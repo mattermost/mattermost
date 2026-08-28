@@ -31,7 +31,7 @@ const (
 	statusUpdateAfterLines       = 8192
 )
 
-func stopOnError(rctx request.CTX, err imports.LineImportWorkerError) bool {
+func stopOnError(rctx request.CTX, err imports.LineImportWorkerError, deactivateMissingUsers bool) bool {
 	switch err.Error.Id {
 	case "api.file.upload_file.large_image.app_error":
 		rctx.Logger().Warn("Large image import error", mlog.Err(err.Error))
@@ -40,9 +40,14 @@ func stopOnError(rctx request.CTX, err imports.LineImportWorkerError) bool {
 		rctx.Logger().Warn("Invalid direct channel import data", mlog.Err(err.Error))
 		return false
 	case "app.user.save.email_exists.app_error", "app.user.save.username_exists.app_error":
-		// A user with this email/username already exists on the destination — skip and continue.
-		rctx.Logger().Warn("Skipping user that already exists on destination", mlog.Err(err.Error))
-		return false
+		if deactivateMissingUsers {
+			// Scoped migration: a shell account couldn't be created because the email/username
+			// is already taken by a different account on the destination. Skip and continue —
+			// the existing account will be linked when posts reference this username.
+			rctx.Logger().Warn("Skipping user that already exists on destination", mlog.Err(err.Error))
+			return false
+		}
+		return true
 	default:
 		return true
 	}
@@ -352,7 +357,7 @@ func (a *App) bulkImport(rctx request.CTX, jsonlReader io.Reader, attachmentsRea
 				// Check no errors occurred while waiting for the queue to empty.
 				for len(errorsChan) != 0 {
 					err := <-errorsChan
-					if stopOnError(rctx, err) {
+					if stopOnError(rctx, err, deactivateMissingUsers) {
 						return err.LineNumber, err.Error
 					}
 				}
@@ -396,7 +401,7 @@ func (a *App) bulkImport(rctx request.CTX, jsonlReader io.Reader, attachmentsRea
 		select {
 		case linesChan <- imports.LineImportWorkerData{LineImportData: line, LineNumber: lineNumber}:
 		case err := <-errorsChan:
-			if stopOnError(rctx, err) {
+			if stopOnError(rctx, err, deactivateMissingUsers) {
 				close(linesChan)
 				wg.Wait()
 				return err.LineNumber, err.Error
@@ -413,7 +418,7 @@ func (a *App) bulkImport(rctx request.CTX, jsonlReader io.Reader, attachmentsRea
 	// Check no errors occurred while waiting for the queue to empty.
 	for len(errorsChan) != 0 {
 		err := <-errorsChan
-		if stopOnError(rctx, err) {
+		if stopOnError(rctx, err, deactivateMissingUsers) {
 			return err.LineNumber, err.Error
 		}
 	}
