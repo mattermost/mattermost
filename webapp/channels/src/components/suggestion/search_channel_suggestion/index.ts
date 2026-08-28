@@ -25,8 +25,4 @@ const mapStateToProps = (state: GlobalState, ownProps: OwnProps) => {
     };
 };
 
-// A null mapDispatchToProps makes react-redux inject `dispatch`, which this component forwards
-// into the rest props that SuggestionContainer spreads onto its <li>.
-const mapDispatchToProps = () => ({});
-
-export default connect(mapStateToProps, mapDispatchToProps, null, {forwardRef: true})(SearchChannelSuggestion);
+export default connect(mapStateToProps, null, null, {forwardRef: true})(SearchChannelSuggestion);
