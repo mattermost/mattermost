@@ -50,7 +50,7 @@ func pluginScheme(name string) *model.Scheme {
 	}
 }
 
-func TestGetSchemeForChannelUsesCachedRoleLookup(t *testing.T) {
+func TestGetSchemeForChannelReadsRolesFromMaster(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
 	channelID := model.NewId()
@@ -62,12 +62,14 @@ func TestGetSchemeForChannelUsesCachedRoleLookup(t *testing.T) {
 	mockSchemeStore.On("GetForChannelFromMaster", channelID).Return(scheme, nil)
 	mockStore.On("Scheme").Return(&mockSchemeStore)
 	mockRoleStore := mocks.RoleStore{}
-	mockRoleStore.On("GetByNames", []string{
+	// Roles created with the scheme moments earlier may be absent from a replica or a cold role
+	// cache, so the read goes to the primary.
+	mockRoleStore.On("GetByNamesFromMaster", []string{
 		scheme.DefaultChannelGuestRole,
 		scheme.DefaultChannelUserRole,
 		scheme.DefaultChannelAdminRole,
 	}).Return(roles, nil)
-	// The roles are scheme-managed, so the cached read runs the higher-scope merge and the caller
+	// The roles are scheme-managed, so the read runs the higher-scope merge and the caller
 	// receives effective permissions: a non-moderated permission the higher scope grants reaches
 	// the returned user role even though the stored role never carried it.
 	mockRoleStore.On("ChannelHigherScopedPermissions", mock.MatchedBy(func(names []string) bool {
@@ -89,7 +91,7 @@ func TestGetSchemeForChannelUsesCachedRoleLookup(t *testing.T) {
 	assert.Equal(t, scheme.DefaultChannelAdminRole, adminRole.Name)
 	assert.Contains(t, userRole.Permissions, model.PermissionReadChannel.Id, "the returned roles carry the higher-scope merge")
 	assert.Empty(t, guestRole.Permissions, "a role with no higher-scope entry is returned as stored")
-	mockRoleStore.AssertNotCalled(t, "GetByNamesFromMaster", mock.Anything)
+	mockRoleStore.AssertNotCalled(t, "GetByNames", mock.Anything)
 }
 
 func TestGetOrCreatePluginChannelScheme(t *testing.T) {
@@ -123,8 +125,8 @@ func TestGetOrCreatePluginChannelScheme(t *testing.T) {
 
 	// A generated channel role resolves only where its scheme is attached, so a
 	// permission of another scope is refused rather than dropped — the caller
-	// otherwise gets a scheme back and no sign that part of its request did not
-	// land.
+	// otherwise gets a scheme back and no sign that part of its request was not
+	// applied.
 	t.Run("a permission outside channel scope is refused before any store read", func(t *testing.T) {
 		mainHelper.Parallel(t)
 
@@ -173,9 +175,8 @@ func TestGetOrCreatePluginChannelScheme(t *testing.T) {
 		mockSchemeStore.AssertCalled(t, "SaveChannelSchemeWithRoles", mock.Anything, user, admin, requestedGuest)
 	})
 
-	// The second caller asking for the same sets gets the first caller's scheme.
-	// This is the whole point of the pooling: one scheme per distinct
-	// configuration, not one per object configured.
+	// The second caller asking for the same sets gets the first caller's scheme:
+	// one scheme per distinct configuration, not one per object configured.
 	t.Run("an existing conforming scheme is returned without a save", func(t *testing.T) {
 		mainHelper.Parallel(t)
 		th := setupPluginSchemeMock(t)
@@ -200,7 +201,7 @@ func TestGetOrCreatePluginChannelScheme(t *testing.T) {
 
 	// Order and repetition are the caller's, not the scheme's: the name is derived
 	// from the canonical form of the sets, so a caller passing the same permissions
-	// differently must land on the same scheme rather than create a second one.
+	// differently must resolve to the same scheme rather than create a second one.
 	t.Run("reordered and repeated permissions resolve the same scheme", func(t *testing.T) {
 		mainHelper.Parallel(t)
 		th := setupPluginSchemeMock(t)
@@ -225,7 +226,7 @@ func TestGetOrCreatePluginChannelScheme(t *testing.T) {
 		assert.Equal(t, existing.Id, scheme.Id)
 	})
 
-	// The name is derived, not allocated, so whatever sits at it is unverified
+	// The name is derived, not allocated, so whatever is stored under it is unverified
 	// input. Payload equality is the test, not the name — and a mismatch is
 	// refused rather than repaired, since these roles govern every channel already
 	// pointing at the scheme.
@@ -359,9 +360,9 @@ func TestGetOrCreatePluginChannelScheme(t *testing.T) {
 		assert.Empty(t, saved.Id, "the store assigns the id")
 	})
 
-	// The loser of a concurrent first use adopts the winner's scheme instead of
-	// failing: the name is unique, so the losing insert is the expected outcome,
-	// and the winner's scheme is complete by the time it is visible.
+	// The insert that loses a concurrent first use adopts the scheme the other
+	// insert created instead of failing: the name is unique, so the losing insert
+	// is the expected outcome, and the scheme is complete by the time it is visible.
 	t.Run("a lost create race adopts the winner's scheme", func(t *testing.T) {
 		mainHelper.Parallel(t)
 		th := setupPluginSchemeMock(t)
@@ -513,7 +514,7 @@ func TestGetOrCreatePluginChannelScheme(t *testing.T) {
 		assert.Equal(t, "app.role.get_by_names.app_error", appErr.Id)
 	})
 
-	// Ownership rides in the name's first digest, so one plugin cannot resolve or
+	// Ownership is part of the name's first digest, so one plugin cannot resolve or
 	// displace another's scheme even when both ask for identical permission sets.
 	t.Run("two plugins asking for the same sets resolve different schemes", func(t *testing.T) {
 		mainHelper.Parallel(t)
@@ -542,10 +543,12 @@ func TestGetOrCreatePluginChannelScheme(t *testing.T) {
 	})
 }
 
-// The application guard is the supported immutability boundary, but pool adoption also validates
-// the primary store so corruption below that boundary cannot silently become canonical. Exercise
-// each generated role independently against the real store; the mock conflict table above then
-// remains the cheap exhaustive shape test while this pins the actual persistence/read path.
+// checkFrozenSchemeRole is the supported way to block edits to a plugin scheme's generated roles,
+// but pool adoption (getPluginChannelScheme) also validates those roles against the primary store,
+// so a role changed by bypassing that guard, such as by a direct store write, is refused rather
+// than adopted. Exercise each generated role independently against the real store; the mock
+// conflict table above then remains the cheap exhaustive shape test while this pins the actual
+// persistence/read path.
 func TestPluginChannelSchemeRejectsStoreCorruption(t *testing.T) {
 	mainHelper.Parallel(t)
 

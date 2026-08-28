@@ -125,10 +125,9 @@ export default class PermissionsSystemScheme {
 
     /**
      * Saves the scheme and waits for the save to settle. The button is disabled until the form is
-     * dirty, so it is asserted enabled first: without an edit the click would otherwise wait out
-     * its timeout on a permanently disabled button, and the settle assertion below would pass on
-     * the initial state rather than on a completed save. It returns to disabled only once the role
-     * writes have come back, so waiting on that is what makes a later API read see the result.
+     * dirty, so it is asserted enabled first: the click must target a pending edit. The button
+     * re-disables only once the role writes complete, so an API read after this returns the saved
+     * roles.
      */
     async save() {
         const saveButton = this.container.page().getByTestId('saveSetting');

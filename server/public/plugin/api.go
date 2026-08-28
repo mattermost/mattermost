@@ -1028,6 +1028,16 @@ type API interface {
 	// Minimum server version: 5.3
 	HasPermissionToTeam(userID, teamID string, permission *model.Permission) bool
 
+	// FilterUsersWithTeamPermission returns the subset of userIDs holding the permission at team
+	// scope, resolved for each user exactly as HasPermissionToTeam resolves it: an active team
+	// membership whose roles grant it, or a system role that grants it. Input order is kept and a
+	// repeated id is returned once.
+	//
+	// @tag User
+	// @tag Team
+	// Minimum server version: 11.11
+	FilterUsersWithTeamPermission(teamID string, userIDs []string, permission *model.Permission) ([]string, *model.AppError)
+
 	// HasPermissionToChannel check if the user has the permission at channel scope.
 	//
 	// @tag User
@@ -1051,9 +1061,9 @@ type API interface {
 	// creating it on first use. Identical normalized sets share a deterministic
 	// pool entry instead of creating one scheme per channel.
 	//
-	// The scheme is complete when returned: its roles are written in the creation
-	// transaction. Normal role-write APIs reject later changes; request another
-	// permission set to resolve a different scheme.
+	// The scheme and its three roles are created atomically, so the scheme is
+	// complete when returned. Normal role-write APIs reject later changes; request
+	// another permission set to resolve a different scheme.
 	//
 	// The pool namespace derives from the calling plugin identity carried by the request, not from
 	// an argument. Only channel-scoped permissions are accepted.

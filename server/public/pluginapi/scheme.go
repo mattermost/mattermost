@@ -19,7 +19,8 @@ type ChannelScheme struct {
 }
 
 // GetByName gets a scheme by its unique name.
-// It returns ErrNotSupported when the server predates this method.
+// It returns ErrNotFound when no scheme has that name, and ErrNotSupported when
+// the server predates this method.
 //
 // Minimum server version: 11.11
 func (s *SchemeService) GetByName(name string) (*model.Scheme, error) {
@@ -34,17 +35,9 @@ func (s *SchemeService) GetByName(name string) (*model.Scheme, error) {
 	return scheme, nil
 }
 
-// GetOrCreatePluginChannelScheme resolves the plugin-owned channel scheme whose
-// generated user, admin and guest roles grant exactly the given permission sets,
-// creating it on first use. Identical normalized sets share a deterministic pool
-// entry instead of creating one scheme per channel.
-//
-// The scheme is complete when returned: its roles are written in the creation
-// transaction. Normal role-write APIs reject later changes; request another
-// permission set to resolve a different scheme.
-//
-// The pool namespace derives from the calling plugin identity carried by the request, not from an
-// argument. Only channel-scoped permissions are accepted.
+// GetOrCreatePluginChannelScheme gets the plugin's channel scheme whose generated
+// user, admin and guest roles grant exactly the given permission sets, creating it
+// on first use. See plugin.API.GetOrCreatePluginChannelScheme for the contract.
 //
 // Calling this method requires the custom permissions schemes entitlement,
 // regardless of which permissions the scheme contains. Core-provided schemes can

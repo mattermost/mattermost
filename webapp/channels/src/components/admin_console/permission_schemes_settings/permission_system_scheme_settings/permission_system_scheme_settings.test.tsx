@@ -188,9 +188,8 @@ describe('components/admin_console/permission_schemes_settings/permission_system
         // permission missing (or misclassified) in that map would be silently
         // dropped from -- or leaked into -- a role the admin never touched.
         // team_admin is saved from state unfiltered (handleSubmit passes it straight
-        // through to editRole), so it is deliberately excluded here: asserting on it
-        // would pass even if PermissionsScope had no entry at all for these
-        // permissions.
+        // through to editRole), so it never exercises PermissionsScope and is
+        // excluded here.
         const editRole = jest.fn().mockImplementation(() => Promise.resolve({data: {}}));
         const ref = React.createRef<InstanceType<typeof PermissionSystemSchemeSettings>>();
         renderWithContext(
@@ -213,10 +212,9 @@ describe('components/admin_console/permission_schemes_settings/permission_system
 
         const savedRole = (name: string) => editRole.mock.calls.map((call) => call[0]).find((role) => role.name === name);
 
-        // Every space permission is team_scope, so all four must survive the
-        // all_users -> team_user filter. If any of them were missing from
-        // PermissionsScope, PermissionsScope[p] would be undefined, fail the
-        // === 'team_scope' check, and get filtered out here.
+        // Every space permission is team_scope, so all four must pass the
+        // all_users -> team_user filter, which keeps only permissions whose
+        // PermissionsScope entry is 'team_scope'.
         expect(savedRole('team_user').permissions).toEqual(expect.arrayContaining([
             Permissions.READ_SPACE,
             Permissions.CREATE_SPACE,
@@ -230,9 +228,10 @@ describe('components/admin_console/permission_schemes_settings/permission_system
         // value rather than merely by presence in the map.
         expect(savedRole('channel_user').permissions).not.toEqual(expect.arrayContaining([Permissions.READ_SPACE]));
 
-        // Exactly once: the guest branch re-adds permissions the guest tree does not
-        // manage, so read_space being both scope-mapped and tree-managed is what keeps
-        // it from being appended a second time on every save.
+        // Exactly once: the guest branch re-adds every stored guest permission absent
+        // from GUEST_INCLUDED_PERMISSIONS (guest_permissions_tree/index.tsx, the list
+        // the guest tree renders). read_space has a PermissionsScope entry and is in
+        // that list, so the scope split places it and the re-add skips it.
         const guestPermissions = savedRole('team_guest').permissions;
         expect(guestPermissions.filter((p: string) => p === Permissions.READ_SPACE)).toHaveLength(1);
     });
@@ -388,9 +387,10 @@ describe('components/admin_console/permission_schemes_settings/permission_system
     test('should restore the space permissions the server grants by default', () => {
         // resetDefaults replaces each role's permissions wholesale, so anything
         // missing from DefaultRolePermissions is revoked on the next save. These
-        // mirror MakeDefaultRoles: team_user gains read/create, team_admin gains
-        // manage/delete, and team_guest gains read. Asserted by content rather
-        // than against the constant itself, which would hold however it drifts.
+        // mirror model.MakeDefaultRoles in server/public/model/role.go: all_users
+        // gains read/create, team_admin gains manage/delete, and guests gains
+        // read. Asserted by content: a comparison against the constant itself
+        // holds however the constant drifts.
         const ref = React.createRef<InstanceType<typeof PermissionSystemSchemeSettings>>();
         renderWithContext(
             <PermissionSystemSchemeSettings

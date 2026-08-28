@@ -262,6 +262,19 @@ func TestPluginChannelSchemeName(t *testing.T) {
 		assert.NotEqual(t, name, other)
 	})
 
+	t.Run("separates: each generated-role set alone changes the name", func(t *testing.T) {
+		diffUser := PluginChannelSchemeName(pluginID, []string{PermissionEditPage.Id}, admin, guest)
+		diffAdmin := PluginChannelSchemeName(pluginID, user, []string{PermissionManageSpace.Id}, guest)
+		diffGuest := PluginChannelSchemeName(pluginID, user, admin, []string{})
+
+		assert.NotEqual(t, name, diffUser)
+		assert.NotEqual(t, name, diffAdmin)
+		assert.NotEqual(t, name, diffGuest)
+		assert.NotEqual(t, diffUser, diffAdmin)
+		assert.NotEqual(t, diffUser, diffGuest)
+		assert.NotEqual(t, diffAdmin, diffGuest)
+	})
+
 	t.Run("an ordinary scheme name is not in the namespace", func(t *testing.T) {
 		assert.False(t, IsPluginChannelSchemeName("some_customer_scheme"))
 		assert.False(t, IsPluginChannelSchemeName(SchemeNameSpaceContribute))

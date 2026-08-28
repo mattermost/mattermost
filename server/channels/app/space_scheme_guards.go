@@ -57,8 +57,9 @@ type reservedSchemeKind struct {
 var (
 	seededSpaceSchemeKind = &reservedSchemeKind{}
 
-	// A plugin channel scheme is identified by its name and nothing else: the role
-	// freeze, the delete refusal and the get-or-create's own lookup all key off it.
+	// A plugin channel scheme is identified by its name and nothing else: the write
+	// refusal on its generated roles (checkFrozenSchemeRole), the delete refusal
+	// (checkSpaceSchemeDelete) and the get-or-create's own lookup all key off it.
 	// Renaming one away unfreezes its roles while every channel already pointing at it
 	// keeps resolving them, and leaves the next get-or-create for the same permission
 	// set creating a second scheme beside it. Deleting one is refused whether or not

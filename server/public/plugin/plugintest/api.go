@@ -1385,6 +1385,38 @@ func (_m *API) ExtendSessionExpiry(sessionID string, newExpiry int64) *model.App
 	return r0
 }
 
+// FilterUsersWithTeamPermission provides a mock function with given fields: teamID, userIDs, permission
+func (_m *API) FilterUsersWithTeamPermission(teamID string, userIDs []string, permission *model.Permission) ([]string, *model.AppError) {
+	ret := _m.Called(teamID, userIDs, permission)
+
+	if len(ret) == 0 {
+		panic("no return value specified for FilterUsersWithTeamPermission")
+	}
+
+	var r0 []string
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func(string, []string, *model.Permission) ([]string, *model.AppError)); ok {
+		return rf(teamID, userIDs, permission)
+	}
+	if rf, ok := ret.Get(0).(func(string, []string, *model.Permission) []string); ok {
+		r0 = rf(teamID, userIDs, permission)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]string)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, []string, *model.Permission) *model.AppError); ok {
+		r1 = rf(teamID, userIDs, permission)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // GetAccessControlFieldsAutocomplete provides a mock function with given fields: actingUserID, after, limit
 func (_m *API) GetAccessControlFieldsAutocomplete(actingUserID string, after string, limit int) ([]*model.PropertyField, *model.AppError) {
 	ret := _m.Called(actingUserID, after, limit)

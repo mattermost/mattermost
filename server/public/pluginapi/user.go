@@ -207,6 +207,22 @@ func (u *UserService) HasPermissionToTeam(userID, teamID string, permission *mod
 	return u.api.HasPermissionToTeam(userID, teamID, permission)
 }
 
+// FilterWithTeamPermission returns the subset of userIDs holding the permission at team scope,
+// resolved for each user as HasPermissionToTeam resolves it. Input order is kept and a repeated
+// id is returned once.
+//
+// Minimum server version: 11.11
+func (u *UserService) FilterWithTeamPermission(teamID string, userIDs []string, permission *model.Permission) ([]string, error) {
+	granted, appErr := u.api.FilterUsersWithTeamPermission(teamID, userIDs, permission)
+	if appErr != nil {
+		return nil, normalizeAppErr(appErr)
+	}
+	if granted == nil {
+		granted = []string{}
+	}
+	return granted, nil
+}
+
 // HasPermissionToChannel check if the user has the permission at channel scope.
 //
 // Minimum server version: 5.3

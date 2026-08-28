@@ -914,11 +914,10 @@ type RoleStore interface {
 
 type SchemeStore interface {
 	Save(scheme *model.Scheme) (*model.Scheme, error)
-	// SaveChannelSchemeWithRoles creates a channel scheme whose three generated
-	// roles carry exactly the given permission sets, in the transaction that
-	// creates the scheme. Creating and then patching the roles would leave the
-	// scheme resolving with the wrong permissions in between, and leave residue
-	// behind on a partial failure.
+	// SaveChannelSchemeWithRoles creates a channel scheme and its three generated
+	// roles, carrying exactly the given permission sets, in one transaction: the
+	// scheme is never visible with other permissions, and a failure leaves no
+	// partial rows behind.
 	SaveChannelSchemeWithRoles(scheme *model.Scheme, user, admin, guest []string) (*model.Scheme, error)
 	Get(schemeID string) (*model.Scheme, error)
 	// GetFromMaster reads on the primary, so a scheme created moments earlier cannot
@@ -929,8 +928,8 @@ type SchemeStore interface {
 	GetForChannelFromMaster(channelID string) (*model.Scheme, error)
 	GetByName(schemeName string) (*model.Scheme, error)
 	// GetByNameFromMaster is GetByName on the primary. A plugin that loses a race to
-	// create a scheme adopts the winner's row by name, which on a lagging replica
-	// would read as absent and fail instead of adopting.
+	// create a scheme adopts, by name, the row the other insert created, which on a
+	// lagging replica would read as absent and fail instead of adopting.
 	GetByNameFromMaster(schemeName string) (*model.Scheme, error)
 	GetAllPage(scope string, offset int, limit int) ([]*model.Scheme, error)
 	Delete(schemeID string) (*model.Scheme, error)

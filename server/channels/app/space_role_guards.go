@@ -13,8 +13,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
-// hasSpaceChannelScopedPermission reports whether any of the permissions is one
-// of the channel-scoped space permissions.
 func hasSpaceChannelScopedPermission(permissions []string) bool {
 	return slices.ContainsFunc(permissions, model.IsSpaceChannelScopedPermissionID)
 }
@@ -37,8 +35,9 @@ func logRefusedSpaceCapabilityRole(rctx request.CTX, where, roleName string) {
 // PatchRole; migration seeding writes below it through the store.
 //
 // Deliberately not gated on the docs feature flag: the permissions, roles and preset
-// schemes are seeded unconditionally at boot, so a grant planted while the flag was
-// off would survive the flip, and nothing re-validates stored rows at enable time.
+// schemes are seeded unconditionally at boot, so a grant added while the flag was
+// off remains in place after the flip, and nothing re-validates stored rows at
+// enable time.
 func (a *App) checkSpacePermissionScope(role *model.Role) *model.AppError {
 	if model.IsSpaceCapabilityRole(role.Name) {
 		return model.NewAppError("checkSpacePermissionScope", "app.role.save.space_capability_role.app_error",
@@ -65,10 +64,11 @@ func (a *App) checkSpacePermissionScope(role *model.Role) *model.AppError {
 }
 
 // checkFrozenSchemeRole refuses a write to a role generated for a seeded space
-// preset or for a plugin scheme. Both are frozen in both directions, so this is
-// resolved ahead of the add diff: waiting for the diff would accept a write that
-// only removes a grant, or one that changes nothing the diff watches, such as
-// clearing SchemeManaged.
+// preset or for a plugin scheme. Both are frozen in both directions, so
+// checkSpacePermissionScope runs this before its permission check: that check
+// inspects only the permissions being written, so on its own it accepts a write
+// that strips the role's space permissions, or one that changes no permission at
+// all, such as clearing SchemeManaged.
 //
 // PatchRole starts from the stored role and preserves SchemeId, so generated-role updates reach
 // this lookup. Direct UpdateRole callers must likewise supply the role's scheme association.
@@ -91,9 +91,9 @@ func (a *App) checkFrozenSchemeRole(role *model.Role) *model.AppError {
 			map[string]any{"RoleName": role.Name}, "", http.StatusBadRequest)
 	}
 	// A plugin scheme is shared by every channel its owner configured the same way,
-	// so a later write would change what it grants for all of them at once. The owner
-	// re-resolves to get a different set, which lands on a different scheme, so there
-	// is no legitimate writer.
+	// so a later write would change what it grants for all of them at once. An owner
+	// that needs a different set requests it, which resolves to a different scheme,
+	// so there is no legitimate writer.
 	if model.IsPluginChannelSchemeName(scheme.Name) {
 		return model.NewAppError("checkSpacePermissionScope", "app.role.save.plugin_scheme_role.app_error",
 			map[string]any{"RoleName": role.Name}, "", http.StatusBadRequest)
@@ -132,8 +132,8 @@ func (a *App) revokeSpaceCapabilityRolesForUser(rctx request.CTX, userID string)
 
 // stripSpaceCapabilityRolesFromMember removes every space capability role from the
 // member's explicit roles on channelID. The member is read from the primary: the
-// read is followed by a write of the whole membership, so a lagging replica could
-// clobber a concurrent role change with the state it returned.
+// read is followed by a write of the whole membership, so a lagging replica's stale
+// state could overwrite a concurrent role change.
 func (a *App) stripSpaceCapabilityRolesFromMember(rctx request.CTX, channelID, userID string) *model.AppError {
 	member, appErr := a.GetChannelMember(RequestContextWithMaster(rctx), channelID, userID)
 	if appErr != nil {

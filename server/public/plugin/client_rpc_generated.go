@@ -6732,6 +6732,37 @@ func (s *apiRPCServer) HasPermissionToTeam(args *Z_HasPermissionToTeamArgs, retu
 	return nil
 }
 
+type Z_FilterUsersWithTeamPermissionArgs struct {
+	A string
+	B []string
+	C *model.Permission
+}
+
+type Z_FilterUsersWithTeamPermissionReturns struct {
+	A []string
+	B *model.AppError
+}
+
+func (g *apiRPCClient) FilterUsersWithTeamPermission(teamID string, userIDs []string, permission *model.Permission) ([]string, *model.AppError) {
+	_args := &Z_FilterUsersWithTeamPermissionArgs{teamID, userIDs, permission}
+	_returns := &Z_FilterUsersWithTeamPermissionReturns{}
+	if err := g.client.Call("Plugin.FilterUsersWithTeamPermission", _args, _returns); err != nil {
+		log.Printf("RPC call to FilterUsersWithTeamPermission API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) FilterUsersWithTeamPermission(args *Z_FilterUsersWithTeamPermissionArgs, returns *Z_FilterUsersWithTeamPermissionReturns) error {
+	if hook, ok := s.impl.(interface {
+		FilterUsersWithTeamPermission(teamID string, userIDs []string, permission *model.Permission) ([]string, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.FilterUsersWithTeamPermission(args.A, args.B, args.C)
+	} else {
+		return encodableError(fmt.Errorf("API FilterUsersWithTeamPermission called but not implemented."))
+	}
+	return nil
+}
+
 type Z_HasPermissionToChannelArgs struct {
 	A string
 	B string

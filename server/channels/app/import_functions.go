@@ -357,7 +357,7 @@ func (a *App) importUser(rctx request.CTX, data *imports.UserImportData, dryRun 
 	// does not: it writes Roles straight through on the FromImport path, skipping
 	// CreateUser's usual role defaulting and validation. A
 	// system role is consulted as the fallback for every channel on the server,
-	// so one landed here would resolve its page permissions everywhere.
+	// so one assigned here would resolve its page permissions everywhere.
 	//
 	// Checked ahead of the dry-run return so a dry run reports it too: bulk
 	// import is not atomic, so a rejection found only on the apply run leaves

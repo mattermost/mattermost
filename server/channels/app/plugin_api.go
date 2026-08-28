@@ -53,9 +53,9 @@ func (api *PluginAPI) checkCustomPermissionsSchemesLicense() error {
 }
 
 // checkPluginChannelSchemeGuestPermissionsLicense requires the guest-permissions
-// entitlement when the requested guest role grants any permission. The scheme's
-// roles are written directly in the creation transaction, so this check must run
-// before they are stored.
+// entitlement when the requested guest role grants any permission. It must run
+// before the scheme is saved: the guest role is stored together with the scheme,
+// and stored generated roles are immutable.
 func checkPluginChannelSchemeGuestPermissionsLicense(license *model.License, guest []string) *model.AppError {
 	if len(guest) == 0 {
 		return nil
@@ -767,8 +767,11 @@ func (api *PluginAPI) UpdateChannelMemberRoles(channelID, userID, newRoles strin
 	}
 	ctx := api.ctx
 	if channel.IsSpace() {
-		// The role update re-reads the member before writing, and the space flows
-		// promote a member added an instant earlier.
+		// The role update re-reads the member before writing. The Docs plugin's
+		// add-member paths add a member and then update their roles in the same
+		// request (space creation promotes the creator right after adding them),
+		// so the re-read must find that just-written membership on a lagging
+		// replica.
 		ctx = RequestContextWithMaster(api.ctx)
 	}
 	return api.app.UpdateChannelMemberRoles(ctx, channelID, userID, newRoles)
@@ -1300,6 +1303,10 @@ func (api *PluginAPI) HasPermissionToChannel(userID, channelID string, permissio
 
 func (api *PluginAPI) RolesGrantPermission(roleNames []string, permissionId string) bool {
 	return api.app.RolesGrantPermission(roleNames, permissionId)
+}
+
+func (api *PluginAPI) FilterUsersWithTeamPermission(teamID string, userIDs []string, permission *model.Permission) ([]string, *model.AppError) {
+	return api.app.FilterUsersWithTeamPermission(teamID, userIDs, permission)
 }
 
 func (api *PluginAPI) GetSchemeByName(name string) (*model.Scheme, *model.AppError) {

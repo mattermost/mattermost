@@ -20,10 +20,13 @@ func TestSchemeStore(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("Save", func(t *testing.T) { testSchemeStoreSave(t, rctx, ss) })
 	t.Run("SaveChannelSchemeWithRoles", func(t *testing.T) { testSchemeStoreSaveChannelSchemeWithRoles(t, rctx, ss) })
 	t.Run("Get", func(t *testing.T) { testSchemeStoreGet(t, rctx, ss) })
+	t.Run("GetFromMaster", func(t *testing.T) { testSchemeStoreGetFromMaster(t, rctx, ss) })
 	t.Run("GetAllPage", func(t *testing.T) { testSchemeStoreGetAllPage(t, rctx, ss) })
 	t.Run("Delete", func(t *testing.T) { testSchemeStoreDelete(t, rctx, ss) })
 	t.Run("PermanentDeleteAll", func(t *testing.T) { testSchemeStorePermanentDeleteAll(t, rctx, ss) })
 	t.Run("GetByName", func(t *testing.T) { testSchemeStoreGetByName(t, rctx, ss) })
+	t.Run("GetByNameFromMaster", func(t *testing.T) { testSchemeStoreGetByNameFromMaster(t, rctx, ss) })
+	t.Run("GetForChannelFromMaster", func(t *testing.T) { testSchemeStoreGetForChannelFromMaster(t, rctx, ss) })
 	t.Run("CountByScope", func(t *testing.T) { testSchemeStoreCountByScope(t, rctx, ss) })
 	t.Run("CountWithoutPermission", func(t *testing.T) { testCountWithoutPermission(t, rctx, ss) })
 }
@@ -389,6 +392,38 @@ func testSchemeStoreGet(t *testing.T, rctx request.CTX, ss store.Store) {
 	assert.Error(t, err)
 }
 
+func testSchemeStoreGetFromMaster(t *testing.T, rctx request.CTX, ss store.Store) {
+	// Save a scheme to test with.
+	s1 := &model.Scheme{
+		DisplayName: model.NewId(),
+		Name:        model.NewId(),
+		Description: model.NewId(),
+		Scope:       model.SchemeScopeTeam,
+	}
+
+	d1, err := ss.Scheme().Save(s1)
+	assert.NoError(t, err)
+	assert.Len(t, d1.Id, 26)
+
+	// Get a valid scheme from the primary.
+	d2, err := ss.Scheme().GetFromMaster(d1.Id)
+	assert.NoError(t, err)
+	assert.Equal(t, d1.Id, d2.Id)
+	assert.Equal(t, s1.DisplayName, d2.DisplayName)
+	assert.Equal(t, s1.Name, d2.Name)
+	assert.Equal(t, d1.DefaultTeamAdminRole, d2.DefaultTeamAdminRole)
+	assert.Equal(t, d1.DefaultTeamUserRole, d2.DefaultTeamUserRole)
+	assert.Equal(t, d1.DefaultTeamGuestRole, d2.DefaultTeamGuestRole)
+	assert.Equal(t, d1.DefaultChannelAdminRole, d2.DefaultChannelAdminRole)
+	assert.Equal(t, d1.DefaultChannelUserRole, d2.DefaultChannelUserRole)
+	assert.Equal(t, d1.DefaultChannelGuestRole, d2.DefaultChannelGuestRole)
+
+	// Get an invalid scheme
+	_, err = ss.Scheme().GetFromMaster(model.NewId())
+	var nfErr *store.ErrNotFound
+	require.ErrorAs(t, err, &nfErr)
+}
+
 func testSchemeStoreGetByName(t *testing.T, rctx request.CTX, ss store.Store) {
 	// Save a scheme to test with.
 	s1 := &model.Scheme{
@@ -423,6 +458,81 @@ func testSchemeStoreGetByName(t *testing.T, rctx request.CTX, ss store.Store) {
 	// Get an invalid scheme
 	_, err = ss.Scheme().GetByName(model.NewId())
 	assert.Error(t, err)
+}
+
+func testSchemeStoreGetByNameFromMaster(t *testing.T, rctx request.CTX, ss store.Store) {
+	// Save a scheme to test with.
+	s1 := &model.Scheme{
+		DisplayName: model.NewId(),
+		Name:        model.NewId(),
+		Description: model.NewId(),
+		Scope:       model.SchemeScopeTeam,
+	}
+
+	d1, err := ss.Scheme().Save(s1)
+	assert.NoError(t, err)
+	assert.Len(t, d1.Id, 26)
+
+	// Get a valid scheme from the primary.
+	d2, err := ss.Scheme().GetByNameFromMaster(d1.Name)
+	assert.NoError(t, err)
+	assert.Equal(t, d1.Id, d2.Id)
+	assert.Equal(t, s1.DisplayName, d2.DisplayName)
+	assert.Equal(t, s1.Name, d2.Name)
+	assert.Equal(t, d1.DefaultTeamAdminRole, d2.DefaultTeamAdminRole)
+	assert.Equal(t, d1.DefaultTeamUserRole, d2.DefaultTeamUserRole)
+	assert.Equal(t, d1.DefaultTeamGuestRole, d2.DefaultTeamGuestRole)
+	assert.Equal(t, d1.DefaultChannelAdminRole, d2.DefaultChannelAdminRole)
+	assert.Equal(t, d1.DefaultChannelUserRole, d2.DefaultChannelUserRole)
+	assert.Equal(t, d1.DefaultChannelGuestRole, d2.DefaultChannelGuestRole)
+
+	// Get an invalid scheme
+	_, err = ss.Scheme().GetByNameFromMaster(model.NewId())
+	var nfErr *store.ErrNotFound
+	require.ErrorAs(t, err, &nfErr)
+}
+
+func testSchemeStoreGetForChannelFromMaster(t *testing.T, rctx request.CTX, ss store.Store) {
+	s1 := &model.Scheme{
+		DisplayName: model.NewId(),
+		Name:        model.NewId(),
+		Description: model.NewId(),
+		Scope:       model.SchemeScopeChannel,
+	}
+	d1, err := ss.Scheme().Save(s1)
+	require.NoError(t, err)
+
+	channel := &model.Channel{
+		TeamId:      model.NewId(),
+		DisplayName: "Name",
+		Name:        model.NewId(),
+		Type:        model.ChannelTypeOpen,
+		SchemeId:    &d1.Id,
+	}
+	channel, chErr := ss.Channel().Save(rctx, channel, -1)
+	require.NoError(t, chErr)
+
+	// A channel with a SchemeId returns the scheme it points to.
+	d2, err := ss.Scheme().GetForChannelFromMaster(channel.Id)
+	require.NoError(t, err)
+	assert.Equal(t, d1.Id, d2.Id)
+
+	// A channel without a SchemeId has no scheme to return.
+	noScheme := &model.Channel{
+		TeamId:      model.NewId(),
+		DisplayName: "Name",
+		Name:        model.NewId(),
+		Type:        model.ChannelTypeOpen,
+	}
+	noScheme, chErr = ss.Channel().Save(rctx, noScheme, -1)
+	require.NoError(t, chErr)
+	var nfErr *store.ErrNotFound
+	_, err = ss.Scheme().GetForChannelFromMaster(noScheme.Id)
+	require.ErrorAs(t, err, &nfErr)
+
+	// An unknown channel id has no scheme to return either.
+	_, err = ss.Scheme().GetForChannelFromMaster(model.NewId())
+	require.ErrorAs(t, err, &nfErr)
 }
 
 func testSchemeStoreGetAllPage(t *testing.T, rctx request.CTX, ss store.Store) {

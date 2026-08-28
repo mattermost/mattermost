@@ -105,9 +105,7 @@ func (s *Server) doSpaceRolesCreationMigration() error {
 			mlog.Warn("Couldn't save the space capability role, this can be an expected case; another node likely won the insert race, re-reading on the primary", mlog.String("role_name", roleID), mlog.Err(err))
 
 			// The store wraps the raw duplicate-key error, so a lost HA insert race is
-			// detected by re-reading the row on the primary. GetByNamesFromMaster is
-			// the uncached primary read; GetByName is answered from the role cache
-			// before its context is consulted.
+			// detected by re-reading the row on the primary.
 			matched, rErr := s.Store().Role().GetByNamesFromMaster([]string{roleID})
 			if rErr != nil {
 				return fmt.Errorf("failed to create space capability role %q: %w (re-read on the primary also failed: %v)", roleID, err, rErr)

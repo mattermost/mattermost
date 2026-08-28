@@ -24,9 +24,11 @@ export const GUEST_INCLUDED_PERMISSIONS = [
     Permissions.CREATE_POST,
 
     // Rendered only while the Docs feature flag is on, but listed
-    // unconditionally: this list is what the save path treats as
-    // tree-managed, and a flag-dependent membership would make a guest's
-    // existing grant survive or vanish depending on the flag.
+    // unconditionally. Membership here must not depend on the flag:
+    // PermissionSystemSchemeSettings.handleSubmit splits the aggregated
+    // guest permissions by scope, then re-adds every stored guest permission
+    // absent from this list, so a permission that has a PermissionsScope
+    // entry but is missing from this list is written to the saved role twice.
     Permissions.READ_SPACE,
 ];
 

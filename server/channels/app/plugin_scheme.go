@@ -46,10 +46,10 @@ func (a *App) GetSchemeForChannel(rctx request.CTX, channelID string) (scheme *m
 		return
 	}
 
-	// The scheme association is read from the primary above so a recent channel update is visible.
-	// Its generated roles use the ordinary cached path: role mutations already invalidate that
-	// cache, and plugin-created scheme roles are immutable.
-	roles, nErr := a.Srv().Store().Role().GetByNames([]string{
+	// Both reads use the primary. The scheme association must show a recent channel update, and
+	// the generated roles may have been created by SaveChannelSchemeWithRoles moments earlier, so a
+	// replica or a cold role cache can miss them.
+	roles, nErr := a.Srv().Store().Role().GetByNamesFromMaster([]string{
 		scheme.DefaultChannelGuestRole,
 		scheme.DefaultChannelUserRole,
 		scheme.DefaultChannelAdminRole,
@@ -97,8 +97,8 @@ func (a *App) GetOrCreatePluginChannelScheme(pluginID string, user, admin, guest
 	for _, set := range [][]string{user, admin, guest} {
 		for _, id := range set {
 			// A generated channel role only resolves on a channel, so a permission of
-			// any other scope would be inert. Refused rather than dropped, so a
-			// caller that asks for one learns it did not land.
+			// any other scope would be inert. Refused rather than dropped, so the
+			// caller is told the request was rejected.
 			if !model.IsChannelScopedPermissionID(id) {
 				return nil, model.NewAppError("GetOrCreatePluginChannelScheme", "app.scheme.plugin_scheme.permission_scope.app_error",
 					map[string]any{"PermissionId": id}, "", http.StatusBadRequest)
@@ -126,7 +126,8 @@ func (a *App) GetOrCreatePluginChannelScheme(pluginID string, user, admin, guest
 	}
 
 	// The name is unique, so a concurrent first use of the same sets loses this
-	// insert and adopts the winner's scheme rather than failing the caller.
+	// insert and adopts the scheme the other insert created rather than failing
+	// the caller.
 	adopted, adoptErr := a.getPluginChannelScheme(name, user, admin, guest)
 	if adoptErr != nil {
 		return nil, adoptErr
@@ -149,9 +150,9 @@ func (a *App) GetOrCreatePluginChannelScheme(pluginID string, user, admin, guest
 
 // getPluginChannelScheme returns the scheme stored under name when it grants what
 // name implies, nil when nothing is stored there, and an error when something else
-// occupies it. The name is derived rather than allocated, so whatever sits at it is
-// unverified input; a mismatch is refused rather than repaired, since these roles
-// govern every channel already pointing at the scheme.
+// occupies it. The name is derived rather than allocated, so whatever is stored under
+// it is unverified input; a mismatch is refused rather than repaired, since these
+// roles govern every channel already pointing at the scheme.
 func (a *App) getPluginChannelScheme(name string, user, admin, guest []string) (*model.Scheme, *model.AppError) {
 	scheme, err := a.Srv().Store().Scheme().GetByNameFromMaster(name)
 	if err != nil {
@@ -203,10 +204,10 @@ func (e *errSchemeRoleConflict) Error() string {
 // *errSchemeRoleConflict for the first that has no row, is deleted, is not scheme-managed, is not
 // owned by scheme, or grants a permission set other than user, admin or guest respectively. Both
 // adoption paths apply it to a row found under a derived name — the seeding migration after a lost
-// insert and the plugin pool on every lookup — since whatever sits at such a name is unverified
-// input. The read is store-direct and on the primary: the comparison needs the exact stored
-// permissions, where GetRolesByNames applies higher-scope inheritance, and a caller that lost the
-// create race must see the row another node wrote moments ago.
+// insert and the plugin pool on every lookup — since whatever is stored under such a name is
+// unverified input. The read is store-direct and on the primary: the comparison needs the exact
+// stored permissions, where GetRolesByNames applies higher-scope inheritance, and a caller that
+// lost the create race must see the row another node wrote moments ago.
 func (s *Server) validateSchemeRoles(scheme *model.Scheme, user, admin, guest []string) error {
 	roles, err := s.Store().Role().GetByNamesFromMaster([]string{
 		scheme.DefaultChannelUserRole,

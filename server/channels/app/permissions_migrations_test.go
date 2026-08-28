@@ -192,8 +192,9 @@ func TestAddSpacePermissionsMigration(t *testing.T) {
 	}, teamAdminRole.Permissions)
 
 	// system_admin takes the team-scoped lifecycle grants plus every
-	// channel-scoped space permission, so its override resolves on an upgraded
-	// install exactly as it does on a fresh one.
+	// channel-scoped space permission, so an upgraded install's stored row holds
+	// the same grants a fresh install's MakeDefaultRoles seeds through its
+	// AllPermissions loop.
 	assert.ElementsMatch(t, append([]string{
 		model.PermissionManageSystem.Id,
 		model.PermissionReadSpace.Id,

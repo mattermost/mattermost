@@ -107,11 +107,9 @@ type channelSchemeRolePermissions struct {
 	Guest []string
 }
 
-// SaveChannelSchemeWithRoles creates a channel scheme whose three generated roles
-// carry exactly user, admin and guest, in the transaction that creates the scheme
-// itself. The alternative — create, then patch each role — leaves a window in
-// which the scheme resolves with the wrong permissions, and leaves residue behind
-// when it fails partway.
+// SaveChannelSchemeWithRoles creates a channel scheme and its three generated roles,
+// carrying exactly user, admin and guest, in one transaction: the scheme is never
+// visible with other permissions, and a failure leaves no partial rows behind.
 //
 // This path only creates: the scheme must carry no Id.
 func (s *SqlSchemeStore) SaveChannelSchemeWithRoles(scheme *model.Scheme, user, admin, guest []string) (_ *model.Scheme, err error) {
@@ -147,11 +145,12 @@ func (s *SqlSchemeStore) SaveChannelSchemeWithRoles(scheme *model.Scheme, user, 
 
 // createScheme writes a scheme and all of its generated roles in one transaction.
 //
-// rolePermissions is optional. When nil, a channel scheme's generated roles are
-// derived from the global channel roles as they always have been. When supplied,
-// those three sets are written verbatim instead — replacing the derived
-// permissions rather than adding to them, so none of the moderated channel
-// permissions the global roles carry survive onto the new roles.
+// rolePermissions is optional. When nil, a channel scheme's generated user and
+// guest roles are derived from the global channel roles, and its admin role is
+// written with an empty permission set. When supplied, those three sets are
+// written verbatim instead — replacing the derived permissions rather than adding
+// to them, so none of the moderated channel permissions the global roles carry
+// remain on the new roles.
 func (s *SqlSchemeStore) createScheme(scheme *model.Scheme, rolePermissions *channelSchemeRolePermissions, transaction *sqlxTxWrapper) (*model.Scheme, error) {
 	// Generate the scheme ID up front so it can be recorded on each created role.
 	scheme.Id = model.NewId()

@@ -27,18 +27,18 @@ const REWRITTEN_ROLES = [
 
 type AdminClient = Awaited<ReturnType<typeof getAdminClient>>['adminClient'];
 
-// Serial, because every test in the block writes the server-wide default roles and the afterAll
-// restores them from a snapshot the first test records — parallel execution would interleave those
-// writes and restore a set nobody ran with. The snapshot state lives in the block rather than at
-// module scope for the same reason: only these ordered tests and their afterAll share it.
+// Serial: every test in the block writes the server-wide default roles, and afterAll restores them
+// from a snapshot the first test records, so the tests must run in order around that shared
+// write-then-restore. The snapshot state lives in the block rather than at module scope for the
+// same reason: only these ordered tests and their afterAll share it.
 test.describe('Space permissions in the System Scheme', () => {
     test.describe.configure({mode: 'serial'});
 
     // Saving the scheme rewrites every default role including the guests, and afterAll patches the
     // guest roles back — both write guest-role permissions, which requires the guest-accounts
-    // license; without it PatchRole answers 501 and the cleanup would corrupt the shared roles for
-    // sibling specs. skipIfNoLicense stops the test where a trial cannot be issued (dev) rather than
-    // failing it, matching the other licensed system-console specs.
+    // license. Without it PatchRole answers 501, afterAll's restore fails, and sibling specs run
+    // against the rewritten roles. skipIfNoLicense stops the test where a trial cannot be issued
+    // (dev) rather than failing it, matching the other licensed system-console specs.
     test.beforeEach(async ({pw}) => {
         await pw.ensureLicense();
         await pw.skipIfNoLicense();
@@ -50,9 +50,8 @@ test.describe('Space permissions in the System Scheme', () => {
 
     // Records the baseline at most once for the whole spec. Every test that saves the scheme needs a
     // snapshot, but only the first one sees the pristine server: a save rebuilds the default roles
-    // from the aggregated trees and is not guaranteed to be net-zero, so re-snapshotting in a later
-    // test would record a rewritten set as the baseline and afterAll would restore the rewrite
-    // instead of undoing it.
+    // from the aggregated trees and is not guaranteed to be net-zero. The snapshot must be taken
+    // before that first save, so afterAll restores the original roles.
     const snapshotRewrittenRoles = async (adminClient: AdminClient) => {
         if (rolesBeforeSave.length) {
             return;
@@ -77,12 +76,14 @@ test.describe('Space permissions in the System Scheme', () => {
      * @objective Verify the team-scoped Docs space permissions are administrable in the System Scheme
      * editor, and that saving the scheme preserves them on the roles that hold them.
      *
-     * The save half is the one that matters. The editor does not persist a role's stored permission
-     * list: it rebuilds the aggregated All Members / Guests roles and re-splits them by the webapp's
-     * PermissionsScope map. A permission missing from that map is dropped from every role on save, so
-     * an admin saving the scheme for an unrelated reason would silently revoke it — and the seeding
-     * migration never restores it, because its key is already recorded. A component test can assert
-     * the save path in isolation; only this asserts it through the editor an admin actually uses.
+     * The editor does not persist a role's stored permission list: it rebuilds the aggregated All
+     * Members / Guests roles and re-splits them by the webapp's PermissionsScope map. A permission
+     * missing from that map is dropped from every role on save, so an admin saving the scheme for an
+     * unrelated reason silently revokes it. The server seeds the space grants once, through the
+     * permissions migration keyed add_space_permissions (server/channels/app/permissions_migrations.go),
+     * which does not run again once its key is recorded in the System table, so a revoked grant is
+     * not re-seeded. A component test can assert the save path in isolation; only this asserts it
+     * through the editor an admin actually uses.
      *
      * @precondition
      * A server built from the paired core branch, booted with EnableDocs on — flags are read only at
@@ -105,7 +106,8 @@ test.describe('Space permissions in the System Scheme', () => {
                 'EnableDocs must be on — boot the server with MM_FEATUREFLAGS_ENABLEDOCS=true',
             ).toBe('true');
 
-            // The grants the seeding migration leaves behind — the state a save must not disturb.
+            // The grants seeded by the add_space_permissions migration named above — the state a save
+            // must not disturb.
             const before = await adminClient.getRolesByNames(['team_user', 'team_guest', 'team_admin']);
             const permissionsOf = (roles: typeof before, name: string) =>
                 roles.find((role) => role.name === name)?.permissions ?? [];
@@ -149,14 +151,15 @@ test.describe('Space permissions in the System Scheme', () => {
                 expect.arrayContaining(['manage_space', 'delete_space']),
             );
 
-            // Exactly once for the guest role: it is restored by a different path from the other two
-            // (the guest tree re-adds permissions it does not manage), so a permission that is both
-            // scope-mapped and tree-managed would otherwise accumulate a duplicate on every save.
+            // Exactly once for the guest role: it is saved by a different path from the other two —
+            // after the scope split, the editor re-adds every stored guest permission absent from the
+            // webapp's GUEST_INCLUDED_PERMISSIONS list. read_space is in that list and in
+            // PermissionsScope, so the split places it and the re-add skips it.
             const guestReadSpace = permissionsOf(after, 'team_guest').filter((p) => p === 'read_space');
             expect(guestReadSpace).toHaveLength(1);
 
             // No space permission may leak onto a role that never held one: the four are team-scoped,
-            // and the re-split is exactly where a mis-scoped entry would deposit them elsewhere.
+            // and the re-split routes each permission by its scope, so none belongs on system_user.
             const systemUser = await adminClient.getRoleByName('system_user');
             for (const permission of SPACE_PERMISSIONS) {
                 expect(systemUser.permissions).not.toContain(permission);

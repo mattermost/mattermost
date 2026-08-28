@@ -4550,6 +4550,19 @@ func markPhase2MigrationComplete(t *testing.T, th *TestHelper) {
 	})
 }
 
+// The plugin API answers FilterUsersWithTeamPermission with the App's resolution: an active
+// member of the team is kept and a channel-only member with no team row is dropped.
+func TestPluginAPIFilterUsersWithTeamPermission(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	api := th.SetupPluginAPI()
+
+	stranger := th.CreateUser(t)
+	granted, appErr := api.FilterUsersWithTeamPermission(th.BasicTeam.Id, []string{stranger.Id, th.BasicUser.Id}, model.PermissionReadSpace)
+	require.Nil(t, appErr)
+	require.Equal(t, []string{th.BasicUser.Id}, granted)
+}
+
 func TestPluginAPIGetSchemeByNameUsesPrimaryWithoutChangingAppLookup(t *testing.T) {
 	mainHelper.Parallel(t)
 

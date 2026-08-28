@@ -1363,8 +1363,9 @@ func (a *App) getAddSpacePermissionsMigration() (permissionsMap, error) {
 	}
 	// A persisted system_admin role row receives new permissions only through
 	// explicit migration additions, so the seven channel-scoped space
-	// permissions are added here too — without them the sysadmin override would
-	// resolve nothing on upgraded installs while working on fresh ones.
+	// permissions are added here too. A freshly seeded system_admin role receives
+	// every permission through the AllPermissions loop in MakeDefaultRoles; on an
+	// upgraded install this migration gives the stored row the same grants.
 	for _, p := range model.SpaceChannelScopedPermissions {
 		systemAdminPerms = append(systemAdminPerms, p.Id)
 	}

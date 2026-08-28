@@ -780,3 +780,169 @@ func TestValidateAdoptableSpaceSchemeRefusals(t *testing.T) {
 		}
 	})
 }
+
+// The scheme-assignment and scheme-identity guards are reached through the App entry points,
+// not only by direct call: every refusal below is produced by CreateChannel, UpdateChannel, or
+// UpdateScheme against a real store, and the accepted case passes through the same entry point.
+func TestSpaceSchemeGuardsEnforcedThroughApp(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := SetupConfig(t, func(cfg *model.Config) { cfg.FeatureFlags.EnableDocs = true }).InitBasic(t)
+	require.NoError(t, th.App.SetPhase2PermissionsMigrationStatus(true))
+
+	preset := getSeededSpaceScheme(t, th, model.SchemeNameSpaceContribute)
+	custom, appErr := th.App.CreateScheme(&model.Scheme{Name: model.NewId(), DisplayName: "Custom", Scope: model.SchemeScopeChannel})
+	require.Nil(t, appErr)
+
+	newChannel := func(channelType model.ChannelType, schemeID string) *model.Channel {
+		channel := &model.Channel{
+			TeamId:      th.BasicTeam.Id,
+			DisplayName: "Guarded",
+			Name:        "guarded-" + model.NewId(),
+			Type:        channelType,
+		}
+		if schemeID != "" {
+			channel.SchemeId = &schemeID
+		}
+		return channel
+	}
+	createChannel := func(t *testing.T, channel *model.Channel) *model.Channel {
+		t.Helper()
+		created, appErr := th.App.CreateChannel(th.Context, channel, false)
+		require.Nil(t, appErr)
+		t.Cleanup(func() {
+			require.NoError(t, th.App.Srv().Store().Channel().PermanentDelete(th.Context, created.Id))
+		})
+		return created
+	}
+
+	t.Run("CreateChannel refuses a custom scheme on a space and a preset on an ordinary channel", func(t *testing.T) {
+		_, appErr := th.App.CreateChannel(th.Context, newChannel(model.ChannelTypeSpace, custom.Id), false)
+		require.NotNil(t, appErr)
+		assert.Equal(t, "app.channel.update_channel_scheme.space_scheme_unusable.app_error", appErr.Id)
+
+		_, appErr = th.App.CreateChannel(th.Context, newChannel(model.ChannelTypeOpen, preset.Id), false)
+		require.NotNil(t, appErr)
+		assert.Equal(t, "app.channel.update_channel_scheme.space_scheme_reserved.app_error", appErr.Id)
+	})
+
+	t.Run("CreateChannel accepts a preset on a space", func(t *testing.T) {
+		space := createChannel(t, newChannel(model.ChannelTypeSpace, preset.Id))
+		require.NotNil(t, space.SchemeId)
+		assert.Equal(t, preset.Id, *space.SchemeId)
+	})
+
+	t.Run("UpdateChannel refuses the same repoints and leaves the stored scheme alone", func(t *testing.T) {
+		space := createChannel(t, newChannel(model.ChannelTypeSpace, ""))
+		repointedSpace := *space
+		repointedSpace.SchemeId = &custom.Id
+		_, appErr := th.App.UpdateChannel(th.Context, &repointedSpace)
+		require.NotNil(t, appErr)
+		assert.Equal(t, "app.channel.update_channel_scheme.space_scheme_unusable.app_error", appErr.Id)
+		storedSpace, appErr := th.App.GetChannelOfType(th.Context, space.Id, model.ChannelTypeSpace)
+		require.Nil(t, appErr)
+		assert.Nil(t, storedSpace.SchemeId)
+
+		ordinary := createChannel(t, newChannel(model.ChannelTypeOpen, ""))
+		repointedOrdinary := *ordinary
+		repointedOrdinary.SchemeId = &preset.Id
+		_, appErr = th.App.UpdateChannel(th.Context, &repointedOrdinary)
+		require.NotNil(t, appErr)
+		assert.Equal(t, "app.channel.update_channel_scheme.space_scheme_reserved.app_error", appErr.Id)
+		storedOrdinary, appErr := th.App.GetChannel(th.Context, ordinary.Id)
+		require.Nil(t, appErr)
+		assert.Nil(t, storedOrdinary.SchemeId)
+	})
+
+	t.Run("UpdateScheme refuses renaming into a reserved name and away from one", func(t *testing.T) {
+		for _, reserved := range []struct {
+			name    string
+			errorID string
+		}{
+			{model.SchemeNameSpaceContribute, "app.scheme.save.space_scheme_name.app_error"},
+			{model.PluginChannelSchemeName("com.example.plugin", nil, nil, nil), "app.scheme.save.plugin_scheme_name.app_error"},
+		} {
+			renamed := *custom
+			renamed.Name = reserved.name
+			_, appErr := th.App.UpdateScheme(&renamed)
+			require.NotNil(t, appErr, reserved.name)
+			assert.Equal(t, reserved.errorID, appErr.Id)
+		}
+		stored, err := th.App.Srv().Store().Scheme().Get(custom.Id)
+		require.NoError(t, err)
+		assert.Equal(t, custom.Name, stored.Name)
+
+		renamedPreset := *preset
+		renamedPreset.Name = model.NewId()
+		_, appErr := th.App.UpdateScheme(&renamedPreset)
+		require.NotNil(t, appErr)
+		assert.Equal(t, "app.scheme.save.space_scheme_rename.app_error", appErr.Id)
+
+		// A rename that keeps the name is an ordinary metadata update and is accepted.
+		relabelled := *custom
+		relabelled.DisplayName = "Relabelled"
+		updated, appErr := th.App.UpdateScheme(&relabelled)
+		require.Nil(t, appErr)
+		assert.Equal(t, "Relabelled", updated.DisplayName)
+	})
+}
+
+// Both seeding migrations refuse a pre-existing row under a reserved name that is not the row
+// they would have written, and leave their completion marker unwritten so the next start retries
+// the seeding. Runs sequentially: it edits the seeded role and preset rows the parallel tests read,
+// and restores them before finishing.
+func TestSpaceSeedingMigrationsRefuseConflictingRows(t *testing.T) {
+	th := Setup(t)
+	ss := th.App.Srv().Store()
+
+	requireMarkerAbsent := func(t *testing.T, key string) {
+		t.Helper()
+		_, err := ss.System().GetByName(key)
+		var nfErr *store.ErrNotFound
+		require.ErrorAs(t, err, &nfErr, "a refused migration must leave no completion marker")
+	}
+	setRolePermissions := func(t *testing.T, role *model.Role, permissions []string) {
+		t.Helper()
+		role.Permissions = permissions
+		_, err := ss.Role().Save(role)
+		require.NoError(t, err)
+	}
+
+	t.Run("a capability role with a different permission set", func(t *testing.T) {
+		_, err := ss.System().PermanentDeleteByName(SpaceRolesCreationMigrationKey)
+		require.NoError(t, err)
+		role, err := ss.Role().GetByName(th.Context, model.SpacePageEditorRoleId)
+		require.NoError(t, err)
+		original := append([]string{}, role.Permissions...)
+		t.Cleanup(func() {
+			setRolePermissions(t, role, original)
+			require.NoError(t, th.Server.doSpaceRolesCreationMigration())
+		})
+		setRolePermissions(t, role, append(append([]string{}, original...), model.PermissionAdminSpace.Id))
+
+		err = th.Server.doSpaceRolesCreationMigration()
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), model.SpacePageEditorRoleId)
+		assert.Contains(t, err.Error(), "different permission set")
+		requireMarkerAbsent(t, SpaceRolesCreationMigrationKey)
+	})
+
+	t.Run("a preset whose generated user role grants a different set", func(t *testing.T) {
+		_, err := ss.System().PermanentDeleteByName(SpaceSchemesCreationMigrationKey)
+		require.NoError(t, err)
+		scheme := getSeededSpaceScheme(t, th, model.SchemeNameSpaceReadOnly)
+		userRole, err := ss.Role().GetByName(th.Context, scheme.DefaultChannelUserRole)
+		require.NoError(t, err)
+		original := append([]string{}, userRole.Permissions...)
+		t.Cleanup(func() {
+			setRolePermissions(t, userRole, original)
+			require.NoError(t, th.Server.doSpaceSchemesCreationMigration())
+		})
+		setRolePermissions(t, userRole, append(append([]string{}, original...), model.PermissionDeletePage.Id))
+
+		err = th.Server.doSpaceSchemesCreationMigration()
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), model.SchemeNameSpaceReadOnly)
+		assert.Contains(t, err.Error(), "different permission set")
+		requireMarkerAbsent(t, SpaceSchemesCreationMigrationKey)
+	})
+}

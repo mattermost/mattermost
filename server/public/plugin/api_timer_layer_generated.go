@@ -1090,6 +1090,13 @@ func (api *apiTimerLayer) HasPermissionToTeam(userID, teamID string, permission 
 	return _returnsA
 }
 
+func (api *apiTimerLayer) FilterUsersWithTeamPermission(teamID string, userIDs []string, permission *model.Permission) ([]string, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.FilterUsersWithTeamPermission(teamID, userIDs, permission)
+	api.recordTime(startTime, "FilterUsersWithTeamPermission", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
 func (api *apiTimerLayer) HasPermissionToChannel(userID, channelId string, permission *model.Permission) bool {
 	startTime := timePkg.Now()
 	_returnsA := api.apiImpl.HasPermissionToChannel(userID, channelId, permission)

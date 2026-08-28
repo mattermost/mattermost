@@ -200,9 +200,8 @@ export default class PermissionsTree extends React.PureComponent<Props, State> {
                 ],
             },
 
-            // Appended rather than placed next to the channel groups: updateGroups
-            // reaches the groups above by array index, so inserting ahead of them
-            // would rewire those lookups.
+            // Appended after the groups above, not placed among them: updateGroups
+            // looks those groups up by array index, so this entry must stay last.
             {
                 id: 'spaces',
                 permissions: [

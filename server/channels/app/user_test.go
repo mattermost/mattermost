@@ -3366,3 +3366,55 @@ func TestUpdateUserRolesToGuestRevokesSpaceCapabilityRoles(t *testing.T) {
 	require.Nil(t, appErr)
 	assert.NotContains(t, member.ExplicitRoles, model.SpacePageEditorRoleId)
 }
+
+// The revocation walks every team the user belongs to and every space membership
+// within each team, so a user holding capability roles on several spaces — two in
+// one team and one in another — loses all of them, not only the first membership
+// the walk reaches.
+func TestDemoteUserToGuestRevokesEverySpaceMembership(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	require.NoError(t, th.App.SetPhase2PermissionsMigrationStatus(true))
+
+	user := th.CreateUser(t)
+	th.LinkUserToTeam(t, user, th.BasicTeam)
+	otherTeam := th.CreateTeam(t)
+	th.LinkUserToTeam(t, user, otherTeam)
+
+	otherTeamSpace, err := th.App.Srv().Store().Channel().Save(th.Context, &model.Channel{
+		TeamId:      otherTeam.Id,
+		DisplayName: "Space",
+		Name:        "space-" + model.NewId(),
+		Type:        model.ChannelTypeSpace,
+	}, -1)
+	require.NoError(t, err)
+
+	memberships := []struct {
+		space *model.Channel
+		role  string
+	}{
+		{saveSpaceChannelWithScheme(t, th, ""), model.SpacePageEditorRoleId},
+		{saveSpaceChannelWithScheme(t, th, ""), model.SpacePageCreatorRoleId},
+		{otherTeamSpace, model.SpacePageCommenterRoleId},
+	}
+	for _, m := range memberships {
+		_, err := th.App.Srv().Store().Channel().SaveMember(th.Context, &model.ChannelMember{
+			ChannelId:     m.space.Id,
+			UserId:        user.Id,
+			NotifyProps:   model.GetDefaultChannelNotifyProps(),
+			SchemeUser:    true,
+			ExplicitRoles: m.role,
+		})
+		require.NoError(t, err)
+	}
+	th.App.Srv().Store().Channel().InvalidateAllChannelMembersForUser(user.Id)
+
+	require.Nil(t, th.App.DemoteUserToGuest(th.Context, user))
+
+	for _, m := range memberships {
+		member, appErr := th.App.GetChannelMember(th.Context, m.space.Id, user.Id)
+		require.Nil(t, appErr)
+		assert.NotContains(t, member.ExplicitRoles, m.role, "space %s kept %s", m.space.Id, m.role)
+		assert.True(t, member.SchemeGuest)
+	}
+}

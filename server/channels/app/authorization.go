@@ -316,6 +316,41 @@ func (a *App) HasPermissionToTeam(rctx request.CTX, askingUserId string, teamID 
 	return a.HasPermissionTo(askingUserId, permission)
 }
 
+// FilterUsersWithTeamPermission returns the subset of userIDs holding permission in teamID,
+// resolved for each user the way HasPermissionToTeam resolves it: an active team membership
+// whose roles grant it, or a system role that grants it. The team memberships are read in one
+// query so the answer for a whole audience does not cost one lookup per user. Input order is
+// kept and a repeated id is returned once.
+func (a *App) FilterUsersWithTeamPermission(teamID string, userIDs []string, permission *model.Permission) ([]string, *model.AppError) {
+	granted := make([]string, 0, len(userIDs))
+	if teamID == "" || len(userIDs) == 0 {
+		return granted, nil
+	}
+
+	members, appErr := a.GetTeamMembersByIds(teamID, userIDs, nil)
+	if appErr != nil {
+		return nil, appErr
+	}
+	grantedByTeam := make(map[string]bool, len(members))
+	for _, member := range members {
+		if a.RolesGrantPermission(member.GetRoles(), permission.Id) {
+			grantedByTeam[member.UserId] = true
+		}
+	}
+
+	seen := make(map[string]bool, len(userIDs))
+	for _, userID := range userIDs {
+		if userID == "" || seen[userID] {
+			continue
+		}
+		seen[userID] = true
+		if grantedByTeam[userID] || a.HasPermissionTo(userID, permission) {
+			granted = append(granted, userID)
+		}
+	}
+	return granted, nil
+}
+
 // HasPermissionToChannel determines if the specified user has the given permission on the provided channel.
 //
 // Returns:

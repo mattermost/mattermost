@@ -1061,7 +1061,7 @@ func MakeDefaultRoles() map[string]*Role {
 			DisplayName: fmt.Sprintf("authentication.roles.%s.name", roleID),
 			Description: fmt.Sprintf("authentication.roles.%s.description", roleID),
 			Permissions: PermissionIDs(permissions),
-			// Not scheme-managed: these ride in a member's ExplicitRoles on a
+			// Not scheme-managed: these are part of a member's ExplicitRoles on a
 			// space's backing channel rather than being resolved from a scheme.
 			SchemeManaged: false,
 			BuiltIn:       true,
