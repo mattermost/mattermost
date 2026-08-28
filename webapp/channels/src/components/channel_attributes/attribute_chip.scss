@@ -19,7 +19,7 @@
 
     &--neutral {
         background: rgba(var(--center-channel-color-rgb), 0.08);
-        color: rgba(var(--center-channel-color-rgb), 0.75);
+        color: rgb(var(--center-channel-color-rgb));
     }
 
     &__value {

@@ -1,5 +1,6 @@
 .channel-attributes-form {
     padding-top: 24px;
+    margin-top: 24px;
     border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
 
     &__title {
@@ -26,6 +27,10 @@
 
         &:last-child {
             margin-bottom: 0;
+        }
+
+        .DropdownInput.Input_container {
+            margin-top: 0;
         }
     }
 
@@ -54,7 +59,7 @@
         // Bootstrap's .form-control carries its own border, which paints a second
         // box inside the fieldset's. Same override the purpose textarea needs.
         .Input_wrapper input.form-control {
-            border: none;
+            border: none !important;
         }
     }
 }

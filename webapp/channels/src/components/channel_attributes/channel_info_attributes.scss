@@ -5,8 +5,8 @@
     // reads as a sibling of CHANNEL PURPOSE rather than a new kind of section.
     &__heading {
         padding: 4px 0;
-        color: rgba(var(--center-channel-color-rgb), 0.75);
-        font-size: 11px;
+        color: rgb(var(--center-channel-color-rgb));
+        font-size: 12px;
         font-weight: 600;
         letter-spacing: 0.24px;
         line-height: 16px;
@@ -30,7 +30,8 @@
     &__label {
         display: inline-flex;
         align-items: center;
-        color: rgba(var(--center-channel-color-rgb), 0.9);
+        color: rgba(var(--center-channel-color-rgb), 1);
+        font-weight: 600;
         gap: 4px;
 
         svg {
@@ -43,6 +44,10 @@
         min-width: 0;
         align-items: center;
         gap: 4px;
+
+        .DropdownInput {
+            min-width: 140px;
+        }
     }
 
     &__empty {

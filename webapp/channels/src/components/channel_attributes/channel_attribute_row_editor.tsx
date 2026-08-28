@@ -11,12 +11,25 @@ import {supportsOptions} from '@mattermost/types/properties';
 import {PROPERTY_TEXT_VALUE_MAX_LENGTH} from 'mattermost-redux/constants/properties';
 import {canMoveToOption, getPropertyFieldChangePolicy, isPropertyValueSet} from 'mattermost-redux/utils/property_utils';
 
+import {ColorSwatch, LevelOptionLabel} from 'components/admin_console/classification_markings/classification_markings_styled';
 import DropdownInput from 'components/dropdown_input';
 import Input from 'components/widgets/inputs/input/input';
 
 import type {ChannelAttributeValue} from './set_channel_attribute_value';
 
-type Option = {label: string; value: string};
+type Option = {label: string; value: string; color?: string};
+
+function formatColorOptionLabel(option: Option) {
+    if (!option.color) {
+        return <span>{option.label}</span>;
+    }
+    return (
+        <LevelOptionLabel>
+            <ColorSwatch style={{backgroundColor: option.color}}/>
+            <span>{option.label}</span>
+        </LevelOptionLabel>
+    );
+}
 
 // Portalled to the body to escape the RHS's overflow, matching the create-modal
 // form's reasoning.
@@ -27,7 +40,7 @@ const dropdownStyles = {
 
 function toOptions(field: PropertyField): Option[] {
     const options = (field.attrs?.options as PropertyFieldOption[] | undefined) ?? [];
-    return options.map((option) => ({label: option.name, value: option.id}));
+    return options.map((option) => ({label: option.name, value: option.id, color: option.color}));
 }
 
 function currentSelection(field: PropertyField, raw: unknown): Option | undefined {
@@ -70,6 +83,8 @@ const ChannelAttributeRowEditor = ({field, rawValue, onSubmit, onCancel, saving}
         () => toOptions(field).filter((option) => canMoveToOption(field, rawValue, option.value)),
         [field, rawValue],
     );
+
+    const hasColoredOptions = useMemo(() => options.some((o) => Boolean(o.color)), [options]);
 
     // Clearing is a change like any other, so every policy but "any" forbids it
     // once a value exists.
@@ -137,6 +152,7 @@ const ChannelAttributeRowEditor = ({field, rawValue, onSubmit, onCancel, saving}
             placeholder={formatMessage({id: 'channel_attributes.select_value', defaultMessage: 'Select a value'})}
             styles={dropdownStyles}
             menuPortalTarget={document.body}
+            formatOptionLabel={hasColoredOptions ? formatColorOptionLabel : undefined}
         />
     );
 };
