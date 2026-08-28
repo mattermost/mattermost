@@ -890,6 +890,8 @@ const ADMIN_SCALE_HIDDEN = new Set([]);
 
 const ADMIN_ROOT_ORDER = ['Configure', 'Comply', 'Onboard', 'Manage', 'Upgrade', 'Scale'];
 
+const ENDUSER_ROOT_ORDER = ['Access', 'Collaborate', 'Workflow Automation', 'Project Management', 'AI Agents', 'Preferences'];
+
 // ---------------------------------------------------------------------------
 // Integrations Guide — manual grouping override.
 // ---------------------------------------------------------------------------
@@ -1723,6 +1725,7 @@ function buildEndUserGuideSidebar(autoCat) {
     console.warn('[sidebar] WARN: End User Guide "Collaborate" sub-category not found — COLLABORATE_GROUPS override was not applied.');
   }
 
+  orderRootCategories(autoCat, ENDUSER_ROOT_ORDER, 'End User Guide');
   return autoCat;
 }
 
