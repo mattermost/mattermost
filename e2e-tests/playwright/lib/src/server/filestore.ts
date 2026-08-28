@@ -62,7 +62,19 @@ export async function ensureLocalFile(): Promise<void> {
 function makeLocalStorageHostReadable(): void {
     execFileSync(
         'docker',
-        ['run', '--rm', '--user', '0', '-v', `${LOCAL_STORAGE_DIR}:/data`, POSTGRES_IMAGE, 'chmod', '-R', 'a+rX', '/data'],
+        [
+            'run',
+            '--rm',
+            '--user',
+            '0',
+            '-v',
+            `${LOCAL_STORAGE_DIR}:/data`,
+            POSTGRES_IMAGE,
+            'chmod',
+            '-R',
+            'a+rX',
+            '/data',
+        ],
         {stdio: 'pipe'},
     );
 }
