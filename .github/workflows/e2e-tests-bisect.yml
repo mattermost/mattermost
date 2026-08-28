@@ -1,0 +1,273 @@
+# Bisect a MAIN_REGRESSION failure back to the master commit that introduced
+# it (MVP #2). The AI triage already proved this failure is NOT caused by the
+# current PR; this workflow finds the culprit commit on master, root-causes it
+# with AI, and tags the responsible author on the PR.
+#
+# Design:
+#   - window = master commits of the last 7 days that have a built enterprise
+#     docker image (i.e. `Enterprise CI/docker-image` status success), capped
+#     at 24 — bisect steps reuse prebuilt images, no rebuilds.
+#   - the spec/test code stays pinned at the oldest window SHA; only the
+#     mattermost server image varies per step (image bisect, self-consistent).
+#   - each step runs the single failing spec with retries=0 against its image
+#     in a fresh testcontainers stack (same harness as the E2E workers).
+#   - fail-closed: if the bug doesn't reproduce at the newest image, we report
+#     "not reproducible (flaky/environment)" instead of bisecting a ghost.
+#
+# Caps: gate on repo var E2E_AI_BISECT, one cluster per dispatch, max 2
+# dispatches/day, and queue concurrent dispatches instead of stampeding.
+name: E2E AI Bisect
+
+on:
+  workflow_dispatch:
+    inputs:
+      clusters:
+        description: "JSON array of bisect targets: [{signature, file, external_test_id, full_title, error_message, confidence}]"
+        required: true
+      pr_number:
+        description: "PR number to report the culprit on"
+        required: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: e2e-bisect
+  cancel-in-progress: false
+
+env:
+  IMAGE_REPO: mattermostdevelopment/mattermost-enterprise-edition
+  BISECT_WINDOW_DAYS: 7
+  BISECT_MAX_CANDIDATES: 24
+  BISECT_MAX_PER_DAY: 2
+
+jobs:
+  bisect:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 150
+    if: vars.E2E_AI_BISECT != 'false'
+    env:
+      GH_TOKEN: ${{ secrets.GH_TOKEN }}
+      MM_LICENSE: ${{ secrets.MM_LICENSE }}
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+    steps:
+      - name: ci/daily-cap-check
+        id: cap
+        run: |
+          set -euo pipefail
+          since="$(date -u -d '-1 day' +%Y-%m-%dT%H:%M:%SZ)"
+          runs=$(gh run list --workflow=e2e-tests-bisect.yml --created=">$since" --limit 20 --json status --jq 'length')
+          if [ "${runs:-0}" -ge "$BISECT_MAX_PER_DAY" ]; then
+            echo "bisect: daily cap reached ($runs >= $BISECT_MAX_PER_DAY) — skipping"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: ci/resolve-bisect-window
+        id: window
+        if: steps.cap.outputs.skip != 'true'
+        run: |
+          set -euo pipefail
+          since="$(date -u -d "-$BISECT_WINDOW_DAYS days" +%Y-%m-%dT%H:%M:%SZ)"
+          # Master commits newest→oldest within the window that have a built image
+          # (Enterprise CI/docker-image success). No image ⇒ can't run ⇒ excluded.
+          mapfile -t SHAS < <(
+            gh api "repos/${GITHUB_REPOSITORY}/commits?sha=master&since=$since&per_page=60" --jq '.[].sha' |
+            while read -r sha; do
+              st="$(gh api "repos/${GITHUB_REPOSITORY}/commits/$sha/status" --jq '[.statuses[] | select(.context=="Enterprise CI/docker-image")][0].state // empty')"
+              [ "$st" = "success" ] && echo "$sha"
+            done | head -n "$BISECT_MAX_CANDIDATES"
+          )
+          n=${#SHAS[@]}
+          if [ "$n" -lt 2 ]; then
+            echo "bisect: fewer than 2 imaged master commits in window ($n) — insufficient"
+            echo "ok=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          BAD="${SHAS[0]}"      # newest => expected red
+          GOOD="${SHAS[n-1]}"   # oldest  => expected green
+          printf 'bad=%s\ngood=%s\n' "$BAD" "$GOOD" >> "$GITHUB_OUTPUT"
+          {
+            echo "# Bisect candidates: $n"
+            for s in "${SHAS[@]}"; do echo "- $s"; done
+          } >> "$GITHUB_STEP_SUMMARY"
+          # candidates JSON newest→oldest for later steps
+          printf 'candidates=%s\n' "$(printf '%s\n' "${SHAS[@]}" | jq -R . | jq -s -c .)" >> "$GITHUB_OUTPUT"
+
+      - name: ci/checkout-spec-pin
+        if: steps.window.outputs.ok != 'false'
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+          # Test code pinned at the OLDEST window SHA — constant across steps;
+          # only the product image varies per step.
+          ref: ${{ steps.window.outputs.good }}
+          fetch-depth: 1
+
+      - name: ci/setup-playwright-e2e
+        if: steps.window.outputs.ok != 'false'
+        working-directory: e2e-tests/playwright
+        run: npm ci
+
+      # Runs ONE spec against ONE image: exit 0 = green, else red. A helper
+      # function file so the reproduce/bisect steps share it verbatim.
+      - name: ci/write-runner
+        if: steps.window.outputs.ok != 'false'
+        run: |
+          set -euo pipefail
+          cat > "$RUNNER_TEMP/run_spec.sh" <<'EOF'
+          #!/usr/bin/env bash
+          # $1 = full-ish image ref; $2 = spec path (repo-relative)
+          set -uo pipefail
+          cd e2e-tests/playwright
+          SERVER_IMAGE="$1" \
+          PW_USE_TESTCONTAINERS=true \
+          PW_TESTCONTAINERS_REUSE=false \
+          MM_LICENSE="${MM_LICENSE:-}" \
+          npx playwright test "$2" --project=chrome --retries=0 --workers=1 --reporter=line
+          EOF
+          chmod +x "$RUNNER_TEMP/run_spec.sh"
+
+      - name: ci/bisect
+        id: bisect
+        if: steps.window.outputs.ok != 'false'
+        env:
+          CLUSTERS: ${{ inputs.clusters }}
+          PR_NUMBER: ${{ inputs.pr_number }}
+          CANDIDATES: ${{ steps.window.outputs.candidates }}
+        run: |
+          set -euo pipefail
+          target="$(printf '%s' "$CLUSTERS" | jq -c '.[0]')"
+          spec_repo="$(printf '%s' "$target" | jq -r '.file')"
+          # run_spec.sh cd's into e2e-tests/playwright — strip the repo prefix
+          spec="${spec_repo#e2e-tests/playwright/}"
+          title="$(printf '%s' "$target" | jq -r '.full_title')"
+          sig="$(printf '%s' "$target" | jq -r '.signature')"
+          echo "bisect: spec=$spec title=$title signature=$sig" | tee -a "$GITHUB_STEP_SUMMARY"
+
+          run_img() {
+            local sha="$1"
+            local tag="${sha:0:7}"
+            echo "::group::bisect step @ $tag"
+            if "$RUNNER_TEMP/run_spec.sh" "docker.io/${IMAGE_REPO}:$tag" "$spec"; then
+              echo bisect-step-result=green
+            else
+              echo bisect-step-result=red
+            fi
+            echo "::endgroup::"
+          }
+
+          mapfile -t SHAS < <(printf '%s' "$CANDIDATES" | jq -r '.[]')  # newest→oldest
+          n=${#SHAS[@]}
+          # 1) reproduce at newest image?
+          head_state="$(run_img "${SHAS[0]}" | tail -n 1 | cut -d= -f2)"
+          echo "bisect: head @ ${SHAS[0]:0:7} -> $head_state"
+          if [ "$head_state" = "green" ]; then
+            echo "verdict=flaky" >> "$GITHUB_OUTPUT"
+            echo "### Bisect: GREEN at the newest master image — not a master bug (flake/environment)" >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          # 2) sanity: oldest must be green, else window is too small
+          old_state="$(run_img "${SHAS[n-1]}" | tail -n 1 | cut -d= -f2)"
+          echo "bisect: oldest @ ${SHAS[n-1]:0:7} -> $old_state"
+          if [ "$old_state" != "green" ]; then
+            echo "verdict=window_too_small" >> "$GITHUB_OUTPUT"
+            echo "### Bisect: fails across the whole window" >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          # 3) binary search newest→oldest for the red|green boundary
+          lo=0; hi=$((n-1))
+          while [ $((hi - lo)) -gt 1 ]; do
+            mid=$(((lo + hi) / 2))
+            state="$(run_img "${SHAS[$mid]}" | tail -n 1 | cut -d= -f2)"
+            echo "bisect: step -> $state (lo=$lo hi=$hi)" | tee -a bisect_progress.log
+            if [ "$state" = "red" ]; then lo=$mid; else hi=$mid; fi
+          done
+          culprit="${SHAS[$lo]}"
+          echo "culprit=$culprit" >> "$GITHUB_OUTPUT"
+          echo "verdict=culprit" >> "$GITHUB_OUTPUT"
+
+      - name: ci/bisect-report
+        if: steps.window.outputs.ok != 'false'
+        env:
+          CLUSTERS: ${{ inputs.clusters }}
+          PR_NUMBER: ${{ inputs.pr_number }}
+        run: |
+          set -euo pipefail
+          state="${{ steps.bisect.outputs.verdict }}"
+          culprit="${{ steps.bisect.outputs.culprit }}"
+          marker="<!-- tsio:bisect -->"
+          tgt="$(printf '%s' "$CLUSTERS" | jq -c '.[0]')"
+          spec="$(printf '%s' "$tgt" | jq -r '.file')"
+          title="$(printf '%s' "$tgt" | jq -r '.full_title')"
+          reason_line="🤷 unclear — needs a human"
+          ai_line="(AI root cause unavailable)"
+          author_line=""
+          if [ "$state" = "flaky" ]; then
+            body="$marker
+          ## 🤖 Bisect — not a master bug
+
+          \`${title}\` (\`$spec\`) **passed against the newest master image** in this run.
+          The failure is not reproducible as a consistent regression — consistent with an
+          environmental/flaky failure, not a product bug introduced by another PR.
+
+          Maintainers may \`/e2e-triage-override\` to unblock this PR."
+          elif [ "$state" = "window_too_small" ]; then
+            body="$marker
+          ## 🤖 Bisect — window too small
+
+          \`${title}\` fails across the entire $BISECT_WINDOW_DAYS-day window — the culprit
+          commit is older than the window, or the E2E pipeline never imaged enough
+          intermediate commits to bisect. Needs human root-cause; see the triage report."
+          else
+            commit_json="$(gh api "repos/${GITHUB_REPOSITORY}/commits/$culprit")"
+            msg="$(printf '%s' "$commit_json" | jq -r '.commit.message' | head -n 1)"
+            login="$(printf '%s' "$commit_json" | jq -r '.author.login // empty')"
+            email="$(printf '%s' "$commit_json" | jq -r '.commit.author.email // empty')"
+            if [ -n "$login" ]; then
+              author_line="@${login}"
+            else
+              author_line="${email:-unknown author}"
+            fi
+            diff="$(printf '%s' "$commit_json" | jq -r '[.files[] | {filename, patch}] | map(select(.patch)) | .[0:8] | map("\(.filename):\n\(.patch)") | join("\n\n")' | head -c 8000)"
+            # AI root cause (fail-open)
+            payload="$(jq -n --arg diff "$diff" --arg err "$(printf '%s' "$tgt" | jq -r '.error_message // ""' | head -c 2000)" --arg title "$title" '{
+              model: "claude-sonnet-4-6",
+              max_tokens: 700,
+              messages: [{role:"user", content:("You are a senior Mattermost product engineer. A single commit likely broke this E2E test. Test: "+$title+"\n\nCommit diff:\n"+$diff+"\n\nTest failure: "+$err+"\n\nIn <=3 sentences: what product behavior changed and why it likely broke the test. If the diff clearly cannot break it, say so plainly.")}] }')"
+            ai="$(curl -sS https://api.anthropic.com/v1/messages -H "x-api-key: $ANTHROPIC_API_KEY" -H "anthropic-version: 2023-06-01" -H "content-type: application/json" -d "$payload" | jq -r '.content[0].text // empty' | head -c 900)"
+            [ -n "$ai" ] && ai_line="$ai"
+            reason_line="🟰 **Culprit commit:** \`$culprit\` — _${msg}_ by **${author_line}**"
+            body="$marker
+          ## 🤖 Bisect — culprit found for \`$title\`
+
+          ${reason_line}
+
+          **Why this commit likely broke the test (AI root cause):**
+
+          ${ai_line}
+
+          Spec: \`$spec\` — the failing check is not caused by this PR; kindly take a look here, ${author_line}."
+          fi
+          printf '%s' "$body" > /tmp/bisect_body.md
+          # upsert the single bisect comment on the PR
+          comments="$(gh api "repos/${GITHUB_REPOSITORY}/issues/${PR_NUMBER}/comments?per_page=100" --paginate --jq '.[] | select(.body | contains("'"$marker"'")) | .id' | head -n 1 || true)"
+          if [ -n "${comments:-}" ]; then
+            gh api -X PATCH "repos/${GITHUB_REPOSITORY}/issues/comments/${comments}" -F body=@/tmp/bisect_body.md --jq '.html_url'
+          else
+            gh api -X POST "repos/${GITHUB_REPOSITORY}/issues/${PR_NUMBER}/comments" -F body=@/tmp/bisect_body.md --jq '.html_url'
+          fi
+          printf '%s' "$body" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: ci/upload-bisect-logs
+        if: always() && steps.window.outputs.ok != 'false'
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        with:
+          name: bisect-logs
+          path: |
+            bisect_progress.log
+            e2e-tests/playwright/results/
+            e2e-tests/playwright/test-results/
+          if-no-files-found: ignore
+          retention-days: 5
