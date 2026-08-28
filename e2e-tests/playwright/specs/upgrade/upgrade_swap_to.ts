@@ -5,7 +5,9 @@ import {duration, expect, getUpgradeToServerImage, test as setup} from '@matterm
 
 import {readServerIdentity, readUpgradeBaseline} from './upgrade_fixtures';
 
-setup('swap to to-image without MM_LICENSE env', {timeout: duration.four_min}, async ({pw}) => {
+setup('swap to to-image without MM_LICENSE env', async ({pw}) => {
+    setup.setTimeout(duration.four_min);
+
     const toImage = getUpgradeToServerImage();
     const baseline = readUpgradeBaseline();
 
