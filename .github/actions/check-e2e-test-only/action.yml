@@ -87,6 +87,7 @@ runs:
           if [[ ! "$file" =~ ^e2e-tests/ ]] && \
              [[ ! "$file" =~ ^\.github/workflows/e2e- ]] && \
              [[ ! "$file" =~ ^\.github/actions/ ]] && \
+             [[ ! "$file" =~ ^\.cursor/ ]] && \
              [[ ! "$file" =~ ^webapp/platform/client/ ]] && \
              [[ ! "$file" =~ ^\.gitignore$ ]]; then
             echo "Non-E2E file found: $file"
