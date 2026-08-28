@@ -366,7 +366,7 @@ export async function ensureUpgradePluginActive(request: APIRequestContext, clie
                 [UPGRADE_PLUGIN_ID]: {Enable: true},
             },
         },
-    } as Parameters<typeof mergeWithOnPremServerConfig>[0]);
+    } as unknown as Parameters<typeof mergeWithOnPremServerConfig>[0]);
 
     try {
         await client.patchConfig({
