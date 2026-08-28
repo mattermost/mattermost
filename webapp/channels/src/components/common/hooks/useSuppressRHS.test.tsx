@@ -10,14 +10,27 @@ import type {RhsState} from 'types/store/rhs';
 
 import useSuppressRHS from './useSuppressRHS';
 
-function Harness({preserveGlobalViews}: {preserveGlobalViews?: boolean}) {
-    useSuppressRHS({preserveGlobalViews});
+function Harness({
+    preserveGlobalViews,
+    preservePluginViews,
+}: {
+    preserveGlobalViews?: boolean;
+    preservePluginViews?: boolean;
+}) {
+    useSuppressRHS({preserveGlobalViews, preservePluginViews});
     return null;
 }
 
-function renderHarness(preserveGlobalViews = false, rhsState: RhsState = null) {
+function renderHarness(
+    preserveGlobalViews = false,
+    rhsState: RhsState = null,
+    preservePluginViews = false,
+) {
     return renderWithContext(
-        <Harness preserveGlobalViews={preserveGlobalViews}/>,
+        <Harness
+            preserveGlobalViews={preserveGlobalViews}
+            preservePluginViews={preservePluginViews}
+        />,
         {
             views: {
                 rhs: {rhsState},
@@ -56,5 +69,15 @@ describe('useSuppressRHS', () => {
         const {store} = renderHarness(true, RHSStates.PLUGIN);
 
         expect(store.getState().views.rhsSuppressed).toBe(true);
+    });
+
+    test('does not suppress plugin RHS when preservePluginViews is set', () => {
+        const {store, unmount} = renderHarness(true, RHSStates.PLUGIN, true);
+
+        expect(store.getState().views.rhsSuppressed).toBe(false);
+
+        unmount();
+
+        expect(store.getState().views.rhsSuppressed).toBe(false);
     });
 });

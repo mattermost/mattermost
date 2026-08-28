@@ -11,20 +11,26 @@ import {RHSStates} from 'utils/constants';
 
 type Options = {
     preserveGlobalViews?: boolean;
+    preservePluginViews?: boolean;
 };
 
 // Suppress channel-scoped RHS on static pages (Threads, Drafts, Recaps).
-// When preserveGlobalViews is set, mentions, search, and saved posts stay open.
-export default function useSuppressRHS({preserveGlobalViews = false}: Options = {}) {
+// preserveGlobalViews keeps mentions, search, and saved posts open.
+// preservePluginViews keeps plugin RHS open (Threads; Recaps still hides Playbooks).
+export default function useSuppressRHS({
+    preserveGlobalViews = false,
+    preservePluginViews = false,
+}: Options = {}) {
     const dispatch = useDispatch();
     const rhsState = useSelector(getRhsState);
 
     useEffect(() => {
         const preserve =
-            preserveGlobalViews &&
-            (rhsState === RHSStates.MENTION ||
-                rhsState === RHSStates.SEARCH ||
-                rhsState === RHSStates.FLAG);
+            (preserveGlobalViews &&
+                (rhsState === RHSStates.MENTION ||
+                    rhsState === RHSStates.SEARCH ||
+                    rhsState === RHSStates.FLAG)) ||
+            (preservePluginViews && rhsState === RHSStates.PLUGIN);
 
         if (!preserve) {
             dispatch(suppressRHS);
@@ -33,5 +39,5 @@ export default function useSuppressRHS({preserveGlobalViews = false}: Options = 
         return () => {
             dispatch(unsuppressRHS);
         };
-    }, [dispatch, preserveGlobalViews, rhsState]);
+    }, [dispatch, preserveGlobalViews, preservePluginViews, rhsState]);
 }

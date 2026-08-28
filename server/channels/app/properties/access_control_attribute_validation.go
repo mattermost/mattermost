@@ -475,7 +475,7 @@ func (h *AccessControlAttributeValidationHook) PreUpdatePropertyField(rctx reque
 	// Lenient grandfather: only validate Name against CEL rules when it
 	// actually changes, so pre-existing fields whose names predate this
 	// validation remain editable on all other attrs.
-	existing, err := h.propertyService.getPropertyField(groupID, field.ID)
+	existing, err := h.propertyService.getPropertyField(rctx, groupID, field.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -503,7 +503,7 @@ func (h *AccessControlAttributeValidationHook) PreUpdatePropertyFields(rctx requ
 	for i, f := range fields {
 		fieldIDs[i] = f.ID
 	}
-	existingFields, err := h.propertyService.getPropertyFields(groupID, fieldIDs)
+	existingFields, err := h.propertyService.getPropertyFields(rctx, groupID, fieldIDs)
 	if err != nil {
 		return nil, err
 	}
@@ -654,7 +654,7 @@ func (h *AccessControlAttributeValidationHook) validateValueAgainstField(field *
 	return nil
 }
 
-func (h *AccessControlAttributeValidationHook) validateValues(values []*model.PropertyValue) error {
+func (h *AccessControlAttributeValidationHook) validateValues(rctx request.CTX, values []*model.PropertyValue) error {
 	if len(values) == 0 {
 		return nil
 	}
@@ -674,7 +674,7 @@ func (h *AccessControlAttributeValidationHook) validateValues(values []*model.Pr
 		fieldIDs = append(fieldIDs, id)
 	}
 
-	fields, err := h.propertyService.getPropertyFields(groupID, fieldIDs)
+	fields, err := h.propertyService.getPropertyFields(rctx, groupID, fieldIDs)
 	if err != nil {
 		return fmt.Errorf("failed to fetch fields for validation: %w", err)
 	}
@@ -697,43 +697,43 @@ func (h *AccessControlAttributeValidationHook) validateValues(values []*model.Pr
 	return nil
 }
 
-func (h *AccessControlAttributeValidationHook) PreUpsertPropertyValue(_ request.CTX, value *model.PropertyValue) (*model.PropertyValue, error) {
-	if err := h.validateValues([]*model.PropertyValue{value}); err != nil {
+func (h *AccessControlAttributeValidationHook) PreUpsertPropertyValue(rctx request.CTX, value *model.PropertyValue) (*model.PropertyValue, error) {
+	if err := h.validateValues(rctx, []*model.PropertyValue{value}); err != nil {
 		return nil, err
 	}
 	return value, nil
 }
 
-func (h *AccessControlAttributeValidationHook) PreUpsertPropertyValues(_ request.CTX, values []*model.PropertyValue) ([]*model.PropertyValue, error) {
-	if err := h.validateValues(values); err != nil {
+func (h *AccessControlAttributeValidationHook) PreUpsertPropertyValues(rctx request.CTX, values []*model.PropertyValue) ([]*model.PropertyValue, error) {
+	if err := h.validateValues(rctx, values); err != nil {
 		return nil, err
 	}
 	return values, nil
 }
 
-func (h *AccessControlAttributeValidationHook) PreCreatePropertyValue(_ request.CTX, value *model.PropertyValue) (*model.PropertyValue, error) {
-	if err := h.validateValues([]*model.PropertyValue{value}); err != nil {
+func (h *AccessControlAttributeValidationHook) PreCreatePropertyValue(rctx request.CTX, value *model.PropertyValue) (*model.PropertyValue, error) {
+	if err := h.validateValues(rctx, []*model.PropertyValue{value}); err != nil {
 		return nil, err
 	}
 	return value, nil
 }
 
-func (h *AccessControlAttributeValidationHook) PreCreatePropertyValues(_ request.CTX, values []*model.PropertyValue) ([]*model.PropertyValue, error) {
-	if err := h.validateValues(values); err != nil {
+func (h *AccessControlAttributeValidationHook) PreCreatePropertyValues(rctx request.CTX, values []*model.PropertyValue) ([]*model.PropertyValue, error) {
+	if err := h.validateValues(rctx, values); err != nil {
 		return nil, err
 	}
 	return values, nil
 }
 
-func (h *AccessControlAttributeValidationHook) PreUpdatePropertyValue(_ request.CTX, _ string, value *model.PropertyValue) (*model.PropertyValue, error) {
-	if err := h.validateValues([]*model.PropertyValue{value}); err != nil {
+func (h *AccessControlAttributeValidationHook) PreUpdatePropertyValue(rctx request.CTX, _ string, value *model.PropertyValue) (*model.PropertyValue, error) {
+	if err := h.validateValues(rctx, []*model.PropertyValue{value}); err != nil {
 		return nil, err
 	}
 	return value, nil
 }
 
-func (h *AccessControlAttributeValidationHook) PreUpdatePropertyValues(_ request.CTX, _ string, values []*model.PropertyValue) ([]*model.PropertyValue, error) {
-	if err := h.validateValues(values); err != nil {
+func (h *AccessControlAttributeValidationHook) PreUpdatePropertyValues(rctx request.CTX, _ string, values []*model.PropertyValue) ([]*model.PropertyValue, error) {
+	if err := h.validateValues(rctx, values); err != nil {
 		return nil, err
 	}
 	return values, nil

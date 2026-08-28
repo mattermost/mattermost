@@ -41,7 +41,7 @@ func (a *App) ComputePostExposure(rctx request.CTX, postID string) (*model.PostE
 		return nil, model.NewAppError("ComputePostExposure", "app.data_spillage.exposure.unsupported_channel_type.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	windowEnd, appErr := a.getPostFlagTime(post.Id)
+	windowEnd, appErr := a.getPostFlagTime(rctx, post.Id)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -131,8 +131,8 @@ func (a *App) ComputePostExposure(rctx request.CTX, postID string) (*model.PostE
 	return report, nil
 }
 
-func (a *App) getPostFlagTime(postID string) (int64, *model.AppError) {
-	value, appErr := a.GetPostContentFlaggingPropertyValue(postID, contentFlaggingPropertyNameReportingTime)
+func (a *App) getPostFlagTime(rctx request.CTX, postID string) (int64, *model.AppError) {
+	value, appErr := a.GetPostContentFlaggingPropertyValue(rctx, postID, contentFlaggingPropertyNameReportingTime)
 	if appErr != nil {
 		if appErr.StatusCode == http.StatusNotFound {
 			return 0, model.NewAppError("getPostFlagTime", "app.data_spillage.exposure.missing_reporting_time.app_error", nil, "", http.StatusInternalServerError)
