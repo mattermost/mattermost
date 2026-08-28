@@ -9,7 +9,7 @@ import type {GlobalState} from '@mattermost/types/store';
 import {getCustomProfileAttributeFields} from 'mattermost-redux/actions/general';
 import {getUserPreferences} from 'mattermost-redux/actions/preferences';
 import {addUserToTeam} from 'mattermost-redux/actions/teams';
-import {updateUserActive, updateUserAuth, getUser, patchUser, updateUserMfa, getCustomProfileAttributeValues, saveCustomProfileAttribute} from 'mattermost-redux/actions/users';
+import {updateUserActive, updateUserAuth, getUser, patchUser, updateUserMfa, getCustomProfileAttributeValues, saveCustomProfileAttribute, uploadProfileImage, setDefaultProfileImage} from 'mattermost-redux/actions/users';
 import {getConfig, getCustomProfileAttributes, getLicense} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
@@ -33,6 +33,8 @@ function mapStateToProps(state: GlobalState) {
     return {
         currentUserId: getCurrentUserId(state),
         mfaEnabled: config?.EnableMultifactorAuthentication === 'true' || false,
+        maxFileSize: parseInt(config?.MaxFileSize || '', 10),
+        ldapPictureAttributeSet: config?.LdapPictureAttributeSet === 'true',
         customProfileAttributeEnabled,
         customProfileAttributeFields,
         showManageUserSettings,
@@ -53,6 +55,8 @@ const mapDispatchToProps = {
     getCustomProfileAttributeFields,
     getCustomProfileAttributeValues,
     saveCustomProfileAttribute,
+    uploadProfileImage,
+    setDefaultProfileImage,
 };
 const connector = connect(mapStateToProps, mapDispatchToProps);
 

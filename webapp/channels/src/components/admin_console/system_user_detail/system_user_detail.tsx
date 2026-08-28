@@ -45,10 +45,10 @@ import EmailIcon from 'components/widgets/icons/email_icon';
 import ShieldOutlineIcon from 'components/widgets/icons/shield_outline_icon';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
-import {Constants, ModalIdentifiers} from 'utils/constants';
+import {AcceptedProfileImageTypes, Constants, ModalIdentifiers} from 'utils/constants';
 import {getUserPropertyFieldLabel} from 'utils/properties';
 import {validHttpUrl} from 'utils/url';
-import {toTitleCase} from 'utils/utils';
+import {fileSizeToString, toTitleCase} from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
 
@@ -316,6 +316,8 @@ export type State = {
     isLoading: boolean;
     error: string | null;
     isSaving: boolean;
+    isUploadingPicture: boolean;
+    pictureError: string | null;
     teams: TeamMembership[];
     teamIds: Array<Team['id']>;
     refreshTeams: boolean;
@@ -346,6 +348,8 @@ export class SystemUserDetail extends PureComponent<Props, State> {
             isLoading: false,
             error: null,
             isSaving: false,
+            isUploadingPicture: false,
+            pictureError: null,
             teams: [],
             teamIds: [],
             refreshTeams: true,
@@ -476,6 +480,20 @@ export class SystemUserDetail extends PureComponent<Props, State> {
             }
         }
         return false;
+    };
+
+    private canEditPicture = (state: State = this.state): boolean => {
+        if (!state.user) {
+            return false;
+        }
+
+        // Profile pictures synced from a login provider cannot be changed here;
+        // they would be overwritten on the next sync.
+        const authService = state.user.auth_service;
+        const isManagedByProvider = (authService === Constants.LDAP_SERVICE || authService === Constants.SAML_SERVICE) &&
+            this.props.ldapPictureAttributeSet;
+
+        return !isManagedByProvider;
     };
 
     private isEditingOwnEmail = (state: State = this.state): boolean => {
@@ -714,6 +732,66 @@ export class SystemUserDetail extends PureComponent<Props, State> {
             lastNameField: event.target.value,
             error: null, // Clear any errors when user starts editing
         });
+    };
+
+    handleUploadPicture = async (file: File) => {
+        if (!this.state.user || this.state.isUploadingPicture) {
+            return;
+        }
+
+        const {formatMessage} = this.props.intl;
+
+        if (!AcceptedProfileImageTypes.includes(file.type)) {
+            this.setState({pictureError: formatMessage({
+                id: 'admin.userManagement.userDetail.picture.wrongType',
+                defaultMessage: 'Only BMP, JPG, JPEG, or PNG images are supported.',
+            })});
+            return;
+        }
+
+        if (this.props.maxFileSize && file.size > this.props.maxFileSize) {
+            this.setState({pictureError: formatMessage({
+                id: 'admin.userManagement.userDetail.picture.tooLarge',
+                defaultMessage: 'Unable to upload profile image. File is too large. Maximum file size: {max}',
+            }, {max: fileSizeToString(this.props.maxFileSize)})});
+            return;
+        }
+
+        const userId = this.state.user.id;
+        this.setState({isUploadingPicture: true, pictureError: null});
+
+        const {error} = await this.props.uploadProfileImage(userId, file);
+        if (error) {
+            this.setState({isUploadingPicture: false, pictureError: error.message});
+            return;
+        }
+
+        this.setState((prevState) => ({
+            isUploadingPicture: false,
+            pictureError: null,
+            user: prevState.user ? {...prevState.user, last_picture_update: Date.now()} : prevState.user,
+        }));
+    };
+
+    handleRemovePicture = async () => {
+        if (!this.state.user || this.state.isUploadingPicture || this.state.user.last_picture_update <= 0) {
+            return;
+        }
+
+        const userId = this.state.user.id;
+        this.setState({isUploadingPicture: true, pictureError: null});
+
+        const {error} = await this.props.setDefaultProfileImage(userId);
+        if (error) {
+            this.setState({isUploadingPicture: false, pictureError: error.message});
+            return;
+        }
+
+        this.setState((prevState) => ({
+            isUploadingPicture: false,
+            pictureError: null,
+            user: prevState.user ? {...prevState.user, last_picture_update: 0} : prevState.user,
+        }));
     };
 
     handleAuthDataChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -1689,8 +1767,20 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                         <AdminUserCard
                             user={this.state.user}
                             isLoading={this.state.isLoading}
+                            onUploadPicture={this.canEditPicture() ? this.handleUploadPicture : undefined}
+                            onRemovePicture={this.handleRemovePicture}
+                            canRemovePicture={(this.state.user?.last_picture_update ?? 0) > 0}
+                            isUploadingPicture={this.state.isUploadingPicture}
                             body={
                                 <>
+                                    {this.state.pictureError && (
+                                        <div
+                                            className='SystemUserDetail__pictureError'
+                                            role='alert'
+                                        >
+                                            <FormError error={this.state.pictureError}/>
+                                        </div>
+                                    )}
                                     <span>{this.state.user?.position ?? ''}</span>
                                     {this.renderTwoColumnLayout()}
                                 </>
