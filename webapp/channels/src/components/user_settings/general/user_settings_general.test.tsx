@@ -786,6 +786,175 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
         expect(saveCustomProfileAttribute).toHaveBeenCalledWith('user_id', 'field1', ['opt1', 'opt3']);
     });
 
+    test('should still show a select value when options are omitted', async () => {
+        const selectAttribute: UserPropertyField = {
+            ...customProfileAttribute,
+            type: 'select',
+            attrs: {
+                value_type: '',
+                visibility: 'when_set',
+                sort_order: 0,
+                options_omitted: true,
+            },
+        };
+
+        const testUser = {...user, custom_profile_attributes: {field1: 'opt1'}};
+        const props = {
+            ...requiredProps,
+            enableCustomProfileAttributes: true,
+            customProfileAttributeFields: [selectAttribute],
+            user: testUser,
+        };
+
+        renderWithContext(<UserSettingsGeneral {...props}/>);
+
+        expect(await screen.findByText('opt1')).toBeInTheDocument();
+    });
+
+    test('should not let a graph field with omitted options be edited', async () => {
+        const graphAttribute: UserPropertyField = {
+            ...customProfileAttribute,
+            type: 'graph',
+            attrs: {
+                value_type: '',
+                visibility: 'when_set',
+                sort_order: 0,
+                options_omitted: true,
+            },
+        };
+
+        const testUser = {...user, custom_profile_attributes: {field1: ['opt1', 'opt2']}};
+        const props = {
+            ...requiredProps,
+            enableCustomProfileAttributes: true,
+            customProfileAttributeFields: [graphAttribute],
+            user: testUser,
+            activeSection: 'customAttribute_field1',
+        };
+
+        renderWithContext(<UserSettingsGeneral {...props}/>);
+
+        expect(screen.queryByRole('button', {name: 'Save'})).not.toBeInTheDocument();
+        expect(screen.queryByText('Select')).not.toBeInTheDocument();
+        expect(await screen.findByText('This field has too many options to be edited here.')).toBeInTheDocument();
+    });
+
+    test('should show admin-managed graph Custom Attribute Field option names read-only', async () => {
+        const graphAttribute: UserPropertyField = {
+            ...customProfileAttribute,
+            type: 'graph',
+            attrs: {
+                value_type: '',
+                visibility: 'when_set',
+                sort_order: 0,
+                managed: 'admin',
+                options: [
+                    {id: 'opt1', name: 'Option 1', color: ''},
+                    {id: 'opt2', name: 'Option 2', color: ''},
+                ],
+            },
+        };
+
+        const testUser = {...user, custom_profile_attributes: {field1: ['opt1']}};
+        const props = {
+            ...requiredProps,
+            enableCustomProfileAttributes: true,
+            customProfileAttributeFields: [graphAttribute],
+            user: testUser,
+        };
+
+        renderWithContext(<UserSettingsGeneral {...props}/>);
+
+        expect(await screen.findByText('Option 1')).toBeInTheDocument();
+        expect(screen.queryByText('opt1')).not.toBeInTheDocument();
+    });
+
+    test('updateSelectAttribute() should handle multi-select changes for a graph attribute', async () => {
+        const saveCustomProfileAttribute = jest.fn().mockResolvedValue({});
+        const graphAttribute: UserPropertyField = {
+            ...customProfileAttribute,
+            type: 'graph',
+            attrs: {
+                value_type: '',
+                visibility: 'when_set',
+                sort_order: 0,
+                options: [
+                    {id: 'opt1', name: 'Option 1', color: ''},
+                    {id: 'opt2', name: 'Option 2', color: ''},
+                ],
+            },
+        };
+
+        const props = {
+            ...requiredProps,
+            enableCustomProfileAttributes: true,
+            customProfileAttributeFields: [graphAttribute],
+            user: {...user},
+            activeSection: 'customAttribute_field1',
+            actions: {
+                ...requiredProps.actions,
+                saveCustomProfileAttribute,
+            },
+        };
+
+        renderWithContext(<UserSettingsGeneral {...props}/>);
+
+        const select = await screen.findByText('Select');
+        await userEvent.click(select);
+        await userEvent.click(await screen.findByText('Option 1'));
+
+        await userEvent.click(await screen.findByText('Option 1'));
+        await userEvent.click(await screen.findByText('Option 2'));
+
+        const saveButton = screen.getByRole('button', {name: 'Save'});
+        await userEvent.click(saveButton);
+
+        expect(props.actions.saveCustomProfileAttribute).toHaveBeenCalledWith('user_id', 'field1', ['opt1', 'opt2']);
+    });
+
+    test('updateSelectAttribute() should clear a graph attribute as an empty array', async () => {
+        const saveCustomProfileAttribute = jest.fn().mockResolvedValue({});
+        const graphAttribute: UserPropertyField = {
+            ...customProfileAttribute,
+            type: 'graph',
+            attrs: {
+                value_type: '',
+                visibility: 'when_set',
+                sort_order: 0,
+                options: [
+                    {id: 'opt1', name: 'Option 1', color: ''},
+                    {id: 'opt2', name: 'Option 2', color: ''},
+                ],
+            },
+        };
+
+        const testUser = {...user, custom_profile_attributes: {field1: ['opt1']}};
+        const props = {
+            ...requiredProps,
+            enableCustomProfileAttributes: true,
+            customProfileAttributeFields: [graphAttribute],
+            user: testUser,
+            activeSection: 'customAttribute_field1',
+            actions: {
+                ...requiredProps.actions,
+                saveCustomProfileAttribute,
+            },
+        };
+
+        const {container} = renderWithContext(<UserSettingsGeneral {...props}/>);
+
+        const clearIndicator = container.querySelector('.react-select__clear-indicator');
+        expect(clearIndicator).toBeInTheDocument();
+
+        await userEvent.click(clearIndicator!);
+        await screen.findByText('Select');
+
+        const saveButton = screen.getByRole('button', {name: 'Save'});
+        await userEvent.click(saveButton);
+
+        expect(props.actions.saveCustomProfileAttribute).toHaveBeenCalledWith('user_id', 'field1', []);
+    });
+
     test('should not show custom attribute input field when LDAP attribute is set', async () => {
         const props = {
             ...requiredProps,

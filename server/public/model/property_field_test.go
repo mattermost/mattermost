@@ -910,6 +910,43 @@ func TestPropertyField_IsValid(t *testing.T) {
 			pf.Type = PropertyFieldTypeMultiselect
 			require.NoError(t, pf.IsValid())
 		})
+
+		t.Run("rejects two options answering to one name", func(t *testing.T) {
+			pf := graphField(
+				map[string]any{"id": NewId(), "name": "Air Program"},
+				map[string]any{"id": NewId(), "name": "F-18 Program"},
+				map[string]any{"id": NewId(), "name": "F-18 Program"},
+			)
+			err := pf.IsValid()
+			require.Error(t, err)
+
+			var appErr *AppError
+			require.ErrorAs(t, err, &appErr)
+			// The second of the two is reported, not the first: the first is the one
+			// the name already belonged to.
+			require.Equal(t, "attrs.options[2].name", appErr.params["FieldName"])
+			require.Contains(t, appErr.params["Reason"], `"F-18 Program"`)
+		})
+
+		t.Run("options with no name are not two answers to one name", func(t *testing.T) {
+			pf := graphField(
+				map[string]any{"id": NewId()},
+				map[string]any{"id": NewId(), "name": ""},
+				map[string]any{"id": NewId(), "name": "Air Program"},
+			)
+			require.NoError(t, pf.IsValid())
+		})
+
+		t.Run("a type whose options form no hierarchy keeps its repeated names", func(t *testing.T) {
+			// A field already holding two options of one name has to stay
+			// writable for the name to be fixable.
+			pf := graphField(
+				map[string]any{"id": NewId(), "name": "Air Program"},
+				map[string]any{"id": NewId(), "name": "Air Program"},
+			)
+			pf.Type = PropertyFieldTypeMultiselect
+			require.NoError(t, pf.IsValid())
+		})
 	})
 }
 
@@ -2106,6 +2143,11 @@ func TestPropertyField_OptionParentLinks(t *testing.T) {
 					{"id": NewId(), "name": "Sea", "parents": []any{"Air"}},
 				},
 				reason: "two of the field's options are called that",
+			},
+			{
+				name:    "the same parent named twice",
+				options: []map[string]any{{"id": NewId(), "name": "Air"}, {"id": NewId(), "name": "Sea", "parents": []any{"Air", "Air"}}},
+				reason:  `names "Air" as a parent more than once`,
 			},
 			{
 				name:    "a parent with no name",

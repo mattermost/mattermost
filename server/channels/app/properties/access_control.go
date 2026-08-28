@@ -125,7 +125,7 @@ func (h *AccessControlHook) PreCreatePropertyField(rctx request.CTX, field *mode
 	}
 
 	if field.LinkedFieldID != nil && *field.LinkedFieldID != "" {
-		if err := h.validateAndInheritLinkedFieldSecurity(callerID, field); err != nil {
+		if err := h.validateAndInheritLinkedFieldSecurity(rctx, callerID, field); err != nil {
 			return nil, fmt.Errorf("PreCreatePropertyField: %w", err)
 		}
 	}
@@ -141,8 +141,8 @@ func (h *AccessControlHook) PreCreatePropertyField(rctx request.CTX, field *mode
 // the source template's security posture. If the source is protected, only
 // the source plugin may create linked fields. Security attrs (protected,
 // source_plugin_id, access_mode) are copied from the source onto the field.
-func (h *AccessControlHook) validateAndInheritLinkedFieldSecurity(callerID string, field *model.PropertyField) error {
-	source, err := h.propertyService.getPropertyFieldFromMaster("", *field.LinkedFieldID)
+func (h *AccessControlHook) validateAndInheritLinkedFieldSecurity(rctx request.CTX, callerID string, field *model.PropertyField) error {
+	source, err := h.propertyService.getPropertyFieldFromMaster(rctx, "", *field.LinkedFieldID)
 	if err != nil {
 		if store.IsErrNotFound(err) {
 			return model.NewAppError(
@@ -193,7 +193,7 @@ func (h *AccessControlHook) PreUpdatePropertyField(rctx request.CTX, groupID str
 
 	callerID := h.extractCallerID(rctx)
 
-	existingField, err := h.propertyService.getPropertyField(groupID, field.ID)
+	existingField, err := h.propertyService.getPropertyField(rctx, groupID, field.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -232,7 +232,7 @@ func (h *AccessControlHook) PreUpdatePropertyFields(rctx request.CTX, groupID st
 		fieldIDs[i] = field.ID
 	}
 
-	existingFields, err := h.propertyService.getPropertyFields(groupID, fieldIDs)
+	existingFields, err := h.propertyService.getPropertyFields(rctx, groupID, fieldIDs)
 	if err != nil {
 		return nil, err
 	}
@@ -282,7 +282,7 @@ func (h *AccessControlHook) PreDeletePropertyField(rctx request.CTX, groupID str
 
 	callerID := h.extractCallerID(rctx)
 
-	existingField, err := h.propertyService.getPropertyField(groupID, id)
+	existingField, err := h.propertyService.getPropertyField(rctx, groupID, id)
 	if err != nil {
 		return err
 	}
@@ -324,7 +324,7 @@ func (h *AccessControlHook) PreChangePropertyFieldOptions(rctx request.CTX, fiel
 // inline.
 //
 // A shared_only graph field's page is filtered to the options the caller covers,
-// which is the same rule filterSharedOnlyGraphValue applies to that field's
+// which is the same rule filterSharedOnlyGraphValueBatch applies to that field's
 // values. It is the one type whose options this can be answered for from the rows
 // alone: covering is a relation between options, so a page of them can be judged
 // without knowing anything about the caller beyond what they hold.
@@ -386,7 +386,7 @@ func (h *AccessControlHook) filterSharedOnlyGraphOptionPage(rctx request.CTX, fi
 		pageIDs = append(pageIDs, option.ID)
 	}
 
-	covered, err := h.propertyService.coveredBy(rctx, field, pageIDs, slices.Collect(maps.Keys(held)))
+	covered, err := h.propertyService.CoveredBy(rctx, field, pageIDs, slices.Collect(maps.Keys(held)))
 	if err != nil {
 		return nil, fmt.Errorf("failed to establish which of graph field %s's options the caller may see: %w", field.ID, err)
 	}
@@ -411,6 +411,39 @@ func (h *AccessControlHook) filterSharedOnlyGraphOptionPage(rctx request.CTX, fi
 		shown = append(shown, &visible)
 	}
 	return shown, nil
+}
+
+// MayShowAnyPropertyFieldOptions answers, without paging through a field's
+// option rows, whether the caller may ever see anything from its listing. It
+// shares hasUnrestrictedFieldReadAccess and getAccessMode with
+// PostGetPropertyFieldOptions rather than restating them, so the two cannot
+// drift into disagreeing about the same caller: false here means exactly what
+// that method would hand back an empty page for, on every page rather than
+// only the one asked.
+//
+// A shared_only graph field is the one case answerable without a page:
+// covering is a relation between the caller's own options and the field's, so
+// whether the caller covers anything does not depend on which page of the
+// hierarchy is asked. Every other caller without unrestricted read access --
+// a source_only field's non-source caller, or a shared_only field of a flat
+// type -- is served nothing regardless of holdings, which
+// PostGetPropertyFieldOptions already answers unconditionally.
+func (h *AccessControlHook) MayShowAnyPropertyFieldOptions(rctx request.CTX, field *model.PropertyField) (bool, error) {
+	if field == nil || !h.isGroupManaged(field.GroupID) {
+		return true, nil
+	}
+	callerID := h.extractCallerID(rctx)
+	if h.hasUnrestrictedFieldReadAccess(field, callerID) {
+		return true, nil
+	}
+	if field.Type != model.PropertyFieldTypeGraph || h.getAccessMode(field) != model.PropertyAccessModeSharedOnly {
+		return false, nil
+	}
+	held, err := h.getCallerOptionIDsForField(field.GroupID, field.ID, callerID, field.Type)
+	if err != nil {
+		return false, fmt.Errorf("failed to read the caller's own options of graph field %s: %w", field.ID, err)
+	}
+	return len(held) > 0, nil
 }
 
 // PostGetPropertyField applies read access control to a single field.
@@ -448,7 +481,7 @@ func (h *AccessControlHook) PreCreatePropertyValue(rctx request.CTX, value *mode
 
 	callerID := h.extractCallerID(rctx)
 
-	field, err := h.propertyService.getPropertyField(value.GroupID, value.FieldID)
+	field, err := h.propertyService.getPropertyField(rctx, value.GroupID, value.FieldID)
 	if err != nil {
 		return nil, err
 	}
@@ -469,7 +502,7 @@ func (h *AccessControlHook) PreCreatePropertyValues(rctx request.CTX, values []*
 
 	callerID := h.extractCallerID(rctx)
 
-	fieldMap, err := h.getFieldsForValues(values)
+	fieldMap, err := h.getFieldsForValues(rctx, values)
 	if err != nil {
 		return nil, err
 	}
@@ -495,7 +528,7 @@ func (h *AccessControlHook) PreUpdatePropertyValue(rctx request.CTX, groupID str
 
 	callerID := h.extractCallerID(rctx)
 
-	field, err := h.propertyService.getPropertyField(groupID, value.FieldID)
+	field, err := h.propertyService.getPropertyField(rctx, groupID, value.FieldID)
 	if err != nil {
 		return nil, err
 	}
@@ -516,7 +549,7 @@ func (h *AccessControlHook) PreUpdatePropertyValues(rctx request.CTX, groupID st
 
 	callerID := h.extractCallerID(rctx)
 
-	fieldMap, err := h.getFieldsForValues(values)
+	fieldMap, err := h.getFieldsForValues(rctx, values)
 	if err != nil {
 		return nil, err
 	}
@@ -542,7 +575,7 @@ func (h *AccessControlHook) PreUpsertPropertyValue(rctx request.CTX, value *mode
 
 	callerID := h.extractCallerID(rctx)
 
-	field, err := h.propertyService.getPropertyField(value.GroupID, value.FieldID)
+	field, err := h.propertyService.getPropertyField(rctx, value.GroupID, value.FieldID)
 	if err != nil {
 		return nil, err
 	}
@@ -563,7 +596,7 @@ func (h *AccessControlHook) PreUpsertPropertyValues(rctx request.CTX, values []*
 
 	callerID := h.extractCallerID(rctx)
 
-	fieldMap, err := h.getFieldsForValues(values)
+	fieldMap, err := h.getFieldsForValues(rctx, values)
 	if err != nil {
 		return nil, err
 	}
@@ -594,7 +627,7 @@ func (h *AccessControlHook) PreDeletePropertyValue(rctx request.CTX, groupID str
 		return err
 	}
 
-	field, err := h.propertyService.getPropertyField(groupID, value.FieldID)
+	field, err := h.propertyService.getPropertyField(rctx, groupID, value.FieldID)
 	if err != nil {
 		return err
 	}
@@ -661,7 +694,7 @@ func (h *AccessControlHook) PreDeletePropertyValuesForTarget(rctx request.CTX, g
 		fieldIDSlice = append(fieldIDSlice, fieldID)
 	}
 
-	fields, err := h.propertyService.getPropertyFields(groupID, fieldIDSlice)
+	fields, err := h.propertyService.getPropertyFields(rctx, groupID, fieldIDSlice)
 	if err != nil {
 		return err
 	}
@@ -683,7 +716,7 @@ func (h *AccessControlHook) PreDeletePropertyValuesForField(rctx request.CTX, gr
 
 	callerID := h.extractCallerID(rctx)
 
-	field, err := h.propertyService.getPropertyField(groupID, fieldID)
+	field, err := h.propertyService.getPropertyField(rctx, groupID, fieldID)
 	if err != nil {
 		return err
 	}
@@ -1128,6 +1161,22 @@ func (h *AccessControlHook) copyPropertyField(field *model.PropertyField) *model
 	return &copied
 }
 
+// maskedFieldCopy copies and masks a field the way every read-path masking
+// branch does, except it restores the withheld-options marker HideOptions
+// deletes. The store's option reconciliation keys on that marker to tell "no
+// options" from "options too many to inline", so a masked field that lost it
+// could never be written back — a read-modify-write would look identical to a
+// caller asserting the field has no options. options_count stays deleted: on a
+// shared_only field the count is controlled information too.
+func (h *AccessControlHook) maskedFieldCopy(field *model.PropertyField) *model.PropertyField {
+	masked := h.copyPropertyField(field)
+	masked.HideOptions()
+	if model.PropertyFieldOptionsOmitted(field.Attrs) {
+		masked.Attrs[model.PropertyFieldAttributeOptionsOmitted] = true
+	}
+	return masked
+}
+
 // getCallerOptionIDsForField retrieves the caller's values for a field and extracts all option IDs.
 func (h *AccessControlHook) getCallerOptionIDsForField(groupID, fieldID, callerID string, fieldType model.PropertyFieldType) (map[string]struct{}, error) {
 	callerValues, err := h.getCallerValuesForField(groupID, fieldID, callerID)
@@ -1162,7 +1211,7 @@ func (h *AccessControlHook) getCallerOptionIDsForField(groupID, fieldID, callerI
 //     full ladder up to their level. See filterSharedOnlyRankFieldOptions.
 //   - A graph field exposes every option the caller covers -- one of the caller's
 //     own options is at-or-above it -- which is the rule
-//     filterSharedOnlyGraphValue applies to the same field's values.
+//     filterSharedOnlyGraphValueBatch applies to the same field's values.
 //
 // This is the option list a field read carries inline, which a field with more
 // than model.PropertyFieldMaxHydratedOptions options does not have at all; a
@@ -1184,16 +1233,12 @@ func (h *AccessControlHook) filterSharedOnlyFieldOptions(rctx request.CTX, field
 	// as-is would hand an unentitled caller the option count, which on a
 	// shared_only field is itself controlled information.
 	if model.PropertyFieldOptionsOmitted(field.Attrs) {
-		filteredField := h.copyPropertyField(field)
-		filteredField.HideOptions()
-		return filteredField
+		return h.maskedFieldCopy(field)
 	}
 
 	callerOptionIDs, err := h.getCallerOptionIDsForField(field.GroupID, field.ID, callerID, field.Type)
 	if err != nil || len(callerOptionIDs) == 0 {
-		filteredField := h.copyPropertyField(field)
-		filteredField.HideOptions()
-		return filteredField
+		return h.maskedFieldCopy(field)
 	}
 
 	if field.Attrs == nil {
@@ -1213,7 +1258,7 @@ func (h *AccessControlHook) filterSharedOnlyFieldOptions(rctx request.CTX, field
 	// hierarchy; every other type asks whether the caller holds the option itself.
 	var visible map[string]bool
 	if field.Type == model.PropertyFieldTypeGraph {
-		covered, err := h.propertyService.coveredBy(rctx, field,
+		covered, err := h.propertyService.CoveredBy(rctx, field,
 			extractOptionIDList(optionsSlice), slices.Collect(maps.Keys(callerOptionIDs)))
 		if err != nil {
 			rctx.Logger().Error(
@@ -1221,9 +1266,7 @@ func (h *AccessControlHook) filterSharedOnlyFieldOptions(rctx request.CTX, field
 				mlog.String("field_id", field.ID),
 				mlog.Err(err),
 			)
-			filteredField := h.copyPropertyField(field)
-			filteredField.HideOptions()
-			return filteredField
+			return h.maskedFieldCopy(field)
 		}
 		visible = covered
 	} else {
@@ -1263,9 +1306,7 @@ func (h *AccessControlHook) filterSharedOnlyRankFieldOptions(field *model.Proper
 	// clearance" and hides every option anyway — but it would leave the option
 	// count on the field, so hide explicitly instead.
 	if model.PropertyFieldOptionsOmitted(field.Attrs) {
-		filteredField := h.copyPropertyField(field)
-		filteredField.HideOptions()
-		return filteredField
+		return h.maskedFieldCopy(field)
 	}
 
 	// Bail out before building the rank map or the caller-rank store lookup when
@@ -1372,13 +1413,12 @@ func buildOptionRankMap(field *model.PropertyField) map[string]int {
 }
 
 // filterSharedOnlyValue computes the intersection of caller and target values for shared_only fields.
-// Returns the filtered value or nil if there's no intersection.
+// Returns the filtered value or nil if there's no intersection. Graph values do
+// not come through here: applyValueReadAccessControl masks a field's whole
+// batch of them at once, in filterSharedOnlyGraphValueBatch.
 //   - rank: clearance-style. The caller sees the option at the highest rank they share with the
 //     target — the target's own value when its rank is at or below the caller's, otherwise the
 //     value clamped down to the option at the caller's own rank. See filterSharedOnlyRankValue.
-//   - graph: hierarchy-style. Each option the caller covers shows as it stands, and each one
-//     they do not is replaced by the options below it that they do cover. See
-//     filterSharedOnlyGraphValue.
 //   - select / multiselect: per-value intersection (a multi-value field may return a subset).
 //   - text / date / user / any other primitive type: binary — visible only if the caller's
 //     stored value equals the target's value exactly. Otherwise nil.
@@ -1386,13 +1426,9 @@ func buildOptionRankMap(field *model.PropertyField) map[string]int {
 // The binary path is what protects scenarios like LDAP/SAML-synced text codenames whose
 // existence is itself controlled information: a caller who doesn't hold the same value
 // must not see the target's value through any read endpoint.
-func (h *AccessControlHook) filterSharedOnlyValue(rctx request.CTX, field *model.PropertyField, value *model.PropertyValue, callerID string) *model.PropertyValue {
+func (h *AccessControlHook) filterSharedOnlyValue(field *model.PropertyField, value *model.PropertyValue, callerID string) *model.PropertyValue {
 	if field.Type == model.PropertyFieldTypeRank {
 		return h.filterSharedOnlyRankValue(field, value, callerID)
-	}
-
-	if field.Type == model.PropertyFieldTypeGraph {
-		return h.filterSharedOnlyGraphValue(rctx, field, value, callerID)
 	}
 
 	if field.Type != model.PropertyFieldTypeSelect && field.Type != model.PropertyFieldTypeMultiselect {
@@ -1508,66 +1544,6 @@ func (h *AccessControlHook) clampRankValueToRank(value *model.PropertyValue, ran
 	return &clamped
 }
 
-// filterSharedOnlyGraphValue returns what the caller may see of a graph value:
-// every option the caller covers — one of their own options is at-or-above it —
-// as it stands, and every option they do not cover replaced by the options below
-// it that they do cover. An option with nothing covered below it is left out, and
-// a value left with no options at all is hidden entirely.
-//
-// So a caller holding one program in a family sees a target marked with the whole
-// family as marked with their own part of it: enough to know they have something
-// in common, and nothing about the parts of the family they hold no claim to.
-// That is more than the exact-match intersection select/multiselect use, neither
-// of which has a hierarchy to consult. It is not rank's ladder either: ranks are
-// a total order, so a caller with any rank at all shares a rung with every target,
-// whereas two options here can be unrelated — and then there is nothing to show
-// and the value is hidden. A caller holding nothing for the field sees nothing.
-//
-// The option list inlined into the field is not consulted, so a field with more
-// options than a read inlines (model.PropertyFieldMaxHydratedOptions) masks
-// exactly like any other: the hierarchy is read from the option rows, and a graph
-// field is expected to be well past that cap. The other shared_only paths have to
-// hide in that case for want of anything to check against.
-func (h *AccessControlHook) filterSharedOnlyGraphValue(rctx request.CTX, field *model.PropertyField, value *model.PropertyValue, callerID string) *model.PropertyValue {
-	callerOptionIDs, err := h.getCallerOptionIDsForField(field.GroupID, field.ID, callerID, field.Type)
-	if err != nil {
-		logHiddenGraphValue(rctx, field, value, err)
-		return nil
-	}
-	if len(callerOptionIDs) == 0 {
-		return nil
-	}
-
-	targetOptionIDs, err := h.extractOptionIDsFromValue(field.Type, value.Value)
-	if err != nil {
-		logHiddenGraphValue(rctx, field, value, err)
-		return nil
-	}
-	if len(targetOptionIDs) == 0 {
-		return nil
-	}
-
-	visible, err := h.propertyService.clampToCoverage(rctx, field,
-		slices.Collect(maps.Keys(targetOptionIDs)), slices.Collect(maps.Keys(callerOptionIDs)))
-	if err != nil {
-		logHiddenGraphValue(rctx, field, value, err)
-		return nil
-	}
-	if len(visible) == 0 {
-		return nil
-	}
-
-	jsonValue, err := json.Marshal(visible)
-	if err != nil {
-		logHiddenGraphValue(rctx, field, value, err)
-		return nil
-	}
-
-	filtered := *value
-	filtered.Value = jsonValue
-	return &filtered
-}
-
 // logHiddenGraphValue records a value that was hidden because what the caller may
 // see of it could not be worked out. Hiding is the only safe answer, and it is
 // also the answer for a caller who genuinely shares nothing with the target — so
@@ -1623,11 +1599,10 @@ func (h *AccessControlHook) applyFieldReadAccessControl(rctx request.CTX, field 
 	}
 
 	// Source-only or unknown: return with empty options (secure default)
-	filteredField := h.copyPropertyField(field)
 	if field.Type.SupportsOptions() {
-		filteredField.HideOptions()
+		return h.maskedFieldCopy(field)
 	}
-	return filteredField
+	return h.copyPropertyField(field)
 }
 
 // applyFieldReadAccessControlToList applies read access control to a list of fields.
@@ -1645,7 +1620,7 @@ func (h *AccessControlHook) applyFieldReadAccessControlToList(rctx request.CTX, 
 }
 
 // getFieldsForValues fetches all unique fields associated with the given values.
-func (h *AccessControlHook) getFieldsForValues(values []*model.PropertyValue) (map[string]*model.PropertyField, error) {
+func (h *AccessControlHook) getFieldsForValues(rctx request.CTX, values []*model.PropertyValue) (map[string]*model.PropertyField, error) {
 	if len(values) == 0 {
 		return make(map[string]*model.PropertyField), nil
 	}
@@ -1665,7 +1640,7 @@ func (h *AccessControlHook) getFieldsForValues(values []*model.PropertyValue) (m
 			fieldIDSlice = append(fieldIDSlice, fieldID)
 		}
 
-		fields, err := h.propertyService.getPropertyFields(groupID, fieldIDSlice)
+		fields, err := h.propertyService.getPropertyFields(rctx, groupID, fieldIDSlice)
 		if err != nil {
 			return nil, fmt.Errorf("failed to fetch fields for values: %w", err)
 		}
@@ -1684,24 +1659,49 @@ func (h *AccessControlHook) applyValueReadAccessControl(rctx request.CTX, values
 		return values, nil
 	}
 
-	fieldMap, err := h.getFieldsForValues(values)
+	fieldMap, err := h.getFieldsForValues(rctx, values)
 	if err != nil {
 		return nil, fmt.Errorf("applyValueReadAccessControl: %w", err)
 	}
 
-	filtered := make([]*model.PropertyValue, 0, len(values))
+	// Graph values needing shared_only masking are grouped by field and masked
+	// together: the caller's own holdings for the field, and the coverage
+	// question over the union of every value's options, are the same regardless
+	// of how many of the field's values are in this batch. See
+	// filterSharedOnlyGraphValueBatch.
+	graphValuesByField := make(map[string][]*model.PropertyValue)
 	for _, value := range values {
 		field, exists := fieldMap[value.FieldID]
 		if !exists {
 			return nil, fmt.Errorf("applyValueReadAccessControl: field not found for value %s", value.ID)
 		}
+		if field.Type == model.PropertyFieldTypeGraph &&
+			h.getAccessMode(field) == model.PropertyAccessModeSharedOnly &&
+			!h.hasUnrestrictedFieldReadAccess(field, callerID) {
+			graphValuesByField[field.ID] = append(graphValuesByField[field.ID], value)
+		}
+	}
 
+	maskedGraphValues := make(map[string]*model.PropertyValue, len(values))
+	for fieldID, fieldValues := range graphValuesByField {
+		masked := h.filterSharedOnlyGraphValueBatch(rctx, fieldMap[fieldID], fieldValues, callerID)
+		maps.Copy(maskedGraphValues, masked)
+	}
+
+	filtered := make([]*model.PropertyValue, 0, len(values))
+	for _, value := range values {
+		field := fieldMap[value.FieldID]
 		accessMode := h.getAccessMode(field)
 
 		if h.hasUnrestrictedFieldReadAccess(field, callerID) {
 			filtered = append(filtered, value)
 		} else if accessMode == model.PropertyAccessModeSharedOnly {
-			filteredValue := h.filterSharedOnlyValue(rctx, field, value, callerID)
+			var filteredValue *model.PropertyValue
+			if field.Type == model.PropertyFieldTypeGraph {
+				filteredValue = maskedGraphValues[value.ID] // absent means masked away entirely
+			} else {
+				filteredValue = h.filterSharedOnlyValue(field, value, callerID)
+			}
 			if filteredValue != nil {
 				filtered = append(filtered, filteredValue)
 			}
@@ -1710,4 +1710,107 @@ func (h *AccessControlHook) applyValueReadAccessControl(rctx request.CTX, values
 	}
 
 	return filtered, nil
+}
+
+// filterSharedOnlyGraphValueBatch masks a batch of shared_only graph values that
+// all belong to the same field, by running each through clampToCoverage: every
+// option the caller covers -- one of their own options is at-or-above it --
+// shows as it stands, and every option they do not cover is replaced by the
+// options below it that they do cover. An option with nothing covered below it
+// is left out, and a value left with no options at all is left out of the
+// returned map entirely.
+//
+// So a caller holding one program in a family sees a target marked with the
+// whole family as marked with their own part of it: enough to know they have
+// something in common, and nothing about the parts of the family they hold no
+// claim to. A caller holding nothing for the field sees nothing.
+//
+// The caller's own held options are read once and reused for every value in the
+// batch, and the coverage question is asked once over the union of every
+// value's option identifiers rather than once per value, through the
+// graphClampBatch every clampToCoverage call below shares. Each value is still
+// answered on its own -- an option one value holds is never used to decide what
+// is visible in another.
+//
+// A value that fails to mask -- an unreadable target, a lookup that errors -- is
+// logged and left out of the returned map rather than treated as an error of the
+// batch: hiding the value is the answer, as it is everywhere else in this file.
+//
+// The option list inlined into the field is not consulted, so a field with more
+// options than a read inlines (model.PropertyFieldMaxHydratedOptions) masks
+// exactly like any other: the hierarchy is read from the option rows, and a
+// graph field is expected to be well past that cap.
+func (h *AccessControlHook) filterSharedOnlyGraphValueBatch(rctx request.CTX, field *model.PropertyField, values []*model.PropertyValue, callerID string) map[string]*model.PropertyValue {
+	callerOptionIDs, err := h.getCallerOptionIDsForField(field.GroupID, field.ID, callerID, field.Type)
+	if err != nil {
+		for _, value := range values {
+			logHiddenGraphValue(rctx, field, value, err)
+		}
+		return nil
+	}
+	if len(callerOptionIDs) == 0 {
+		return nil
+	}
+	heldOptionIDs := slices.Collect(maps.Keys(callerOptionIDs))
+
+	targetOptionIDsByValue := make(map[string]map[string]struct{}, len(values))
+	union := map[string]struct{}{}
+	for _, value := range values {
+		targetOptionIDs, extractErr := h.extractOptionIDsFromValue(field.Type, value.Value)
+		if extractErr != nil {
+			logHiddenGraphValue(rctx, field, value, extractErr)
+			continue
+		}
+		if len(targetOptionIDs) == 0 {
+			continue
+		}
+		targetOptionIDsByValue[value.ID] = targetOptionIDs
+		for optionID := range targetOptionIDs {
+			union[optionID] = struct{}{}
+		}
+	}
+	if len(union) == 0 {
+		return nil
+	}
+
+	covered, err := h.propertyService.CoveredBy(rctx, field, slices.Collect(maps.Keys(union)), heldOptionIDs)
+	if err != nil {
+		for _, value := range values {
+			logHiddenGraphValue(rctx, field, value, err)
+		}
+		return nil
+	}
+	batch := &graphClampBatch{covered: covered, below: map[string][]string{}}
+
+	masked := make(map[string]*model.PropertyValue, len(values))
+	for _, value := range values {
+		targetOptionIDs, ok := targetOptionIDsByValue[value.ID]
+		if !ok {
+			continue
+		}
+
+		visible, err := h.propertyService.clampToCoverage(rctx, field, slices.Collect(maps.Keys(targetOptionIDs)), heldOptionIDs, batch)
+		if err != nil {
+			logHiddenGraphValue(rctx, field, value, err)
+			continue
+		}
+		if len(visible) == 0 {
+			continue
+		}
+
+		// visible is already sorted, by the same rule clampToCoverage gives: the
+		// same holdings must mask the same value to the same answer every time it
+		// is read.
+		jsonValue, err := json.Marshal(visible)
+		if err != nil {
+			logHiddenGraphValue(rctx, field, value, err)
+			continue
+		}
+
+		filtered := *value
+		filtered.Value = jsonValue
+		masked[value.ID] = &filtered
+	}
+
+	return masked
 }

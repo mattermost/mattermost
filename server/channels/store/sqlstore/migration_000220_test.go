@@ -239,7 +239,7 @@ func TestMigration000220(t *testing.T) {
 			"%s: a multiselect value must resolve to names in value order", stage)
 	}
 
-	// New() applies all migrations, so 000216 is already in effect.
+	// New() applies all migrations, so 000220 is already in effect.
 	require.NoError(t, store.Attributes().RefreshAttributes())
 
 	t.Run("a graph value projects the identifiers it holds", func(t *testing.T) {

@@ -16,6 +16,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/public/utils"
+	"github.com/mattermost/mattermost/server/v8/channels/app/properties"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
@@ -645,10 +646,11 @@ func (s *Server) doSetupContentFlaggingProperties() error {
 	if err != nil {
 		return fmt.Errorf("failed to register Content Flagging group: %w", err)
 	}
+	rctx := properties.SystemCallerContext(request.EmptyContext(s.Log()))
 
 	// Using page size of 100 and not iterating through all pages because the
 	// number of fields are static and defined here and not expected to be more than 100 for now.
-	existingProperties, err := s.propertyService.SearchPropertyFields(nil, group.ID, model.PropertyFieldSearchOpts{PerPage: 100})
+	existingProperties, err := s.propertyService.SearchPropertyFields(rctx, group.ID, model.PropertyFieldSearchOpts{PerPage: 100})
 	if err != nil {
 		return fmt.Errorf("failed to search for existing content flagging properties: %w", err)
 	}
@@ -742,18 +744,18 @@ func (s *Server) doSetupContentFlaggingProperties() error {
 	}
 
 	for _, property := range propertiesToCreate {
-		if _, err := s.propertyService.CreatePropertyField(nil, property); err != nil {
+		if _, err := s.propertyService.CreatePropertyField(rctx, property); err != nil {
 			// Another server may have won the race and created this field
 			// concurrently (e.g. parallel tests sharing a database pool).
 			// Tolerate that but propagate any other error.
-			if _, retryErr := s.propertyService.GetPropertyFieldByNameForObjectType(nil, group.ID, "", property.ObjectType, property.Name); retryErr != nil {
+			if _, retryErr := s.propertyService.GetPropertyFieldByNameForObjectType(rctx, group.ID, "", property.ObjectType, property.Name); retryErr != nil {
 				return fmt.Errorf("failed to create content flagging property: %q, error: %w", property.Name, err)
 			}
 		}
 	}
 
 	if len(propertiesToUpdate) > 0 {
-		if _, _, _, err := s.propertyService.UpdatePropertyFields(nil, group.ID, propertiesToUpdate); err != nil {
+		if _, _, _, err := s.propertyService.UpdatePropertyFields(rctx, group.ID, propertiesToUpdate); err != nil {
 			// Another server may have won the race and updated these fields
 			// concurrently (e.g. parallel tests sharing a database pool).
 			// Both servers write the same expected values, so tolerate the
@@ -787,8 +789,9 @@ func (s *Server) doSetupBoardsProperties() error {
 	if err != nil {
 		return fmt.Errorf("failed to register boards property group: %w", err)
 	}
+	rctx := properties.SystemCallerContext(request.EmptyContext(s.Log()))
 
-	existingProperties, err := s.propertyService.SearchPropertyFields(nil, group.ID, model.PropertyFieldSearchOpts{PerPage: 100})
+	existingProperties, err := s.propertyService.SearchPropertyFields(rctx, group.ID, model.PropertyFieldSearchOpts{PerPage: 100})
 	if err != nil {
 		return fmt.Errorf("failed to search for existing boards properties: %w", err)
 	}
@@ -864,18 +867,18 @@ func (s *Server) doSetupBoardsProperties() error {
 	}
 
 	for _, property := range propertiesToCreate {
-		if _, err := s.propertyService.CreatePropertyField(nil, property); err != nil {
+		if _, err := s.propertyService.CreatePropertyField(rctx, property); err != nil {
 			// Another server may have won the race and created this field
 			// concurrently (e.g. parallel tests sharing a database pool).
 			// Tolerate that but propagate any other error.
-			if _, retryErr := s.propertyService.GetPropertyFieldByNameForObjectType(nil, group.ID, "", property.ObjectType, property.Name); retryErr != nil {
+			if _, retryErr := s.propertyService.GetPropertyFieldByNameForObjectType(rctx, group.ID, "", property.ObjectType, property.Name); retryErr != nil {
 				return fmt.Errorf("failed to create boards property: %q, error: %w", property.Name, err)
 			}
 		}
 	}
 
 	if len(propertiesToUpdate) > 0 {
-		if _, _, _, err := s.propertyService.UpdatePropertyFields(nil, group.ID, propertiesToUpdate); err != nil {
+		if _, _, _, err := s.propertyService.UpdatePropertyFields(rctx, group.ID, propertiesToUpdate); err != nil {
 			// Another server may have won the race and updated these fields
 			// concurrently (e.g. parallel tests sharing a database pool).
 			// Both servers write the same expected values, so tolerate the
@@ -991,7 +994,8 @@ func syncSessionAttributeOptions(current, expected *model.PropertyField) error {
 
 // seedSessionAttributeFields idempotently seeds the built-in session attribute property fields.
 func (s *Server) seedSessionAttributeFields(groupID string) error {
-	existing, err := s.propertyService.SearchPropertyFields(nil, groupID, model.PropertyFieldSearchOpts{PerPage: 100})
+	rctx := properties.SystemCallerContext(request.EmptyContext(s.Log()))
+	existing, err := s.propertyService.SearchPropertyFields(rctx, groupID, model.PropertyFieldSearchOpts{PerPage: 100})
 	if err != nil {
 		return fmt.Errorf("failed to search for existing session attribute fields: %w", err)
 	}
@@ -1030,15 +1034,15 @@ func (s *Server) seedSessionAttributeFields(groupID string) error {
 	}
 
 	for _, field := range fieldsToCreate {
-		if _, err := s.propertyService.CreatePropertyField(nil, field); err != nil {
-			if _, retryErr := s.propertyService.GetPropertyFieldByNameForObjectType(nil, groupID, "", field.ObjectType, field.Name); retryErr != nil {
+		if _, err := s.propertyService.CreatePropertyField(rctx, field); err != nil {
+			if _, retryErr := s.propertyService.GetPropertyFieldByNameForObjectType(rctx, groupID, "", field.ObjectType, field.Name); retryErr != nil {
 				return fmt.Errorf("failed to create session attribute field: %q, error: %w", field.Name, err)
 			}
 		}
 	}
 
 	if len(fieldsToUpdate) > 0 {
-		if _, _, _, err := s.propertyService.UpdatePropertyFields(nil, groupID, fieldsToUpdate); err != nil {
+		if _, _, _, err := s.propertyService.UpdatePropertyFields(rctx, groupID, fieldsToUpdate); err != nil {
 			var conflictErr *store.ErrConflict
 			if !errors.As(err, &conflictErr) {
 				return fmt.Errorf("failed to update session attribute fields: %w", err)
@@ -1089,8 +1093,9 @@ func (s *Server) doSetupManagedCategoryProperties() error {
 	if err != nil {
 		return fmt.Errorf("failed to register managed category group: %w", err)
 	}
+	rctx := properties.SystemCallerContext(request.EmptyContext(s.Log()))
 
-	_, err = s.propertyService.GetPropertyFieldByNameForObjectType(nil, group.ID, "", model.PropertyValueTargetTypeChannel, model.ManagedCategoryPropertyFieldName)
+	_, err = s.propertyService.GetPropertyFieldByNameForObjectType(rctx, group.ID, "", model.PropertyValueTargetTypeChannel, model.ManagedCategoryPropertyFieldName)
 	if err != nil {
 		field := &model.PropertyField{
 			GroupID:           group.ID,
@@ -1105,8 +1110,8 @@ func (s *Server) doSetupManagedCategoryProperties() error {
 			PermissionOptions: model.NewPointer(model.PermissionLevelMember),
 		}
 
-		if _, err := s.propertyService.CreatePropertyField(nil, field); err != nil {
-			if _, retryErr := s.propertyService.GetPropertyFieldByNameForObjectType(nil, group.ID, "", field.ObjectType, model.ManagedCategoryPropertyFieldName); retryErr != nil {
+		if _, err := s.propertyService.CreatePropertyField(rctx, field); err != nil {
+			if _, retryErr := s.propertyService.GetPropertyFieldByNameForObjectType(rctx, group.ID, "", field.ObjectType, model.ManagedCategoryPropertyFieldName); retryErr != nil {
 				return fmt.Errorf("failed to create managed category field: %w", err)
 			}
 		}
@@ -1161,8 +1166,9 @@ func (s *Server) cacheManagedCategoryIDs() error {
 	if err != nil {
 		return fmt.Errorf("failed to get managed category group: %w", err)
 	}
+	rctx := properties.SystemCallerContext(request.EmptyContext(s.Log()))
 
-	field, err := s.propertyService.GetPropertyFieldByNameForObjectType(nil, group.ID, "", model.PropertyValueTargetTypeChannel, model.ManagedCategoryPropertyFieldName)
+	field, err := s.propertyService.GetPropertyFieldByNameForObjectType(rctx, group.ID, "", model.PropertyValueTargetTypeChannel, model.ManagedCategoryPropertyFieldName)
 	if err != nil {
 		return fmt.Errorf("failed to get managed category field: %w", err)
 	}
@@ -1341,6 +1347,12 @@ func (a *App) DoAppMigrations() {
 
 func (s *Server) doAppMigrations() {
 	rctx := request.EmptyContext(s.Log())
+
+	// Migrations read back rows they have just written. Routing those reads to a
+	// replica that has not caught up yet returns no rows, which the mlog.Fatal
+	// calls below turn into an aborted startup.
+	s.Store().LockToMaster()
+	defer s.Store().UnlockFromMaster()
 
 	type migration struct {
 		name    string

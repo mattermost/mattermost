@@ -188,7 +188,7 @@ func (f *SAField) EnabledForPlatform(platform string) bool {
 // would be wrong for a field whose list was withheld for exceeding
 // PropertyFieldMaxHydratedOptions. No session attribute field can be in that
 // state: the schema is the fixed set SessionAttributeSystemFields declares,
-// whose largest option list has six entries, nothing but the seeding code writes
+// whose largest option list has 19 entries, nothing but the seeding code writes
 // those lists, and an API caller may only change enabled, ttl_seconds, and
 // grace_period_seconds on a seeded field.
 func IsValidSessionAttributeValue(field *PropertyField, value any) bool {
@@ -307,6 +307,7 @@ func SessionAttributeSystemFields(groupID string) []*PropertyField {
 				{"name": "Windows"},
 				{"name": "Macintosh"},
 				{"name": "Linux"},
+				{"name": "Android"},
 				{"name": "iPad"},
 				{"name": "iPhone"},
 				{"name": "iPod"},

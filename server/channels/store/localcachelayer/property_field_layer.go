@@ -5,10 +5,10 @@ package localcachelayer
 
 import (
 	"bytes"
-	"context"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
@@ -44,15 +44,6 @@ func (s LocalCachePropertyFieldStore) Update(groupID string, fields []*model.Pro
 
 func (s LocalCachePropertyFieldStore) MutateOptions(groupID, fieldID string, expectedUpdateAt int64, upsert []*model.PropertyFieldOption, add, remove []*model.PropertyOptionEdge) error {
 	if err := s.PropertyFieldStore.MutateOptions(groupID, fieldID, expectedUpdateAt, upsert, add, remove); err != nil {
-		return err
-	}
-
-	s.invalidateForOptionChange(groupID)
-	return nil
-}
-
-func (s LocalCachePropertyFieldStore) MutateOptionEdges(groupID, fieldID string, expectedUpdateAt int64, add, remove []*model.PropertyOptionEdge) error {
-	if err := s.PropertyFieldStore.MutateOptionEdges(groupID, fieldID, expectedUpdateAt, add, remove); err != nil {
 		return err
 	}
 
@@ -120,12 +111,12 @@ func (s *LocalCachePropertyFieldStore) getFieldsForGroupFromCache(groupID string
 	return nil, false
 }
 
-func (s LocalCachePropertyFieldStore) GetForGroup(ctx context.Context, groupID string) ([]*model.PropertyField, error) {
+func (s LocalCachePropertyFieldStore) GetForGroup(rctx request.CTX, groupID string) ([]*model.PropertyField, error) {
 	if fields, ok := s.getFieldsForGroupFromCache(groupID); ok {
 		return fields, nil
 	}
 
-	fields, err := s.PropertyFieldStore.GetForGroup(ctx, groupID)
+	fields, err := s.PropertyFieldStore.GetForGroup(rctx, groupID)
 	if err != nil {
 		return nil, err
 	}

@@ -72,7 +72,7 @@ func setupGraph(t *testing.T, th *TestHelper, names []string, parents map[string
 			})
 		}
 	}
-	require.NoError(t, th.dbStore.PropertyField().MutateOptionEdges(fixture.field.GroupID, fixture.field.ID, fixture.field.UpdateAt, edges, nil))
+	require.NoError(t, th.dbStore.PropertyField().MutateOptions(fixture.field.GroupID, fixture.field.ID, fixture.field.UpdateAt, nil, edges, nil))
 
 	return fixture
 }
@@ -89,19 +89,15 @@ func setupWorkedExample(t *testing.T, th *TestHelper) *graphFixture {
 	})
 }
 
-func TestGraphAncestorsAndDescendants(t *testing.T) {
+func TestGraphAncestors(t *testing.T) {
 	th := Setup(t)
 	graph := setupWorkedExample(t, th)
 
-	t.Run("options above and below, keyed by the option asked about", func(t *testing.T) {
+	t.Run("options above, keyed by the option asked about", func(t *testing.T) {
 		above, err := th.service.AncestorsOrSelf(th.Context, graph.field, graph.of("C", "D"))
 		require.NoError(t, err)
 		require.ElementsMatch(t, []string{"C", "B", "A"}, graph.named(above[graph.ids["C"]]))
 		require.ElementsMatch(t, []string{"D", "A"}, graph.named(above[graph.ids["D"]]))
-
-		below, err := th.service.DescendantsOrSelf(th.Context, graph.field, graph.of("A"))
-		require.NoError(t, err)
-		require.ElementsMatch(t, []string{"A", "B", "C", "D"}, graph.named(below[graph.ids["A"]]))
 	})
 
 	t.Run("an option the field does not have is left out rather than reported alone", func(t *testing.T) {
@@ -124,179 +120,6 @@ func TestGraphAncestorsAndDescendants(t *testing.T) {
 
 		_, err := th.service.AncestorsOrSelf(th.Context, multiselect, []string{model.NewId()})
 		require.Error(t, err)
-
-		// And the predicates over it refuse rather than answering by exact
-		// equality, which is what walking an unlinked option set would amount to.
-		covers, err := th.service.CoversAll(th.Context, multiselect, []string{"a"}, []string{"a"})
-		require.Error(t, err)
-		require.False(t, covers)
-	})
-}
-
-func TestGraphCoversAndWithin(t *testing.T) {
-	th := Setup(t)
-
-	t.Run("the worked example: a channel marked with C and D", func(t *testing.T) {
-		graph := setupWorkedExample(t, th)
-		channel := graph.of("C", "D")
-
-		for _, tc := range []struct {
-			name    string
-			held    []string
-			covers  bool
-			coversA bool
-		}{
-			// A is above both, so one option accounts for the whole channel.
-			{name: "the root above both", held: graph.of("A"), covers: true, coversA: true},
-			// B is above C and D is itself: different options cover different
-			// values, which is enough.
-			{name: "one option per value", held: graph.of("B", "D"), covers: true, coversA: true},
-			// D accounts for D and nothing accounts for C.
-			{name: "only one of the two", held: graph.of("D"), covers: false, coversA: true},
-			// C's own branch does not reach D's.
-			{name: "below one, unrelated to the other", held: graph.of("C"), covers: false, coversA: true},
-		} {
-			t.Run(tc.name, func(t *testing.T) {
-				all, err := th.service.CoversAll(th.Context, graph.field, tc.held, channel)
-				require.NoError(t, err)
-				require.Equal(t, tc.covers, all)
-
-				some, err := th.service.CoversAny(th.Context, graph.field, tc.held, channel)
-				require.NoError(t, err)
-				require.Equal(t, tc.coversA, some)
-			})
-		}
-	})
-
-	t.Run("unrelated branches are an ordinary no", func(t *testing.T) {
-		graph := setupGraph(t, th, []string{"Air", "Sea"}, nil)
-
-		covers, err := th.service.CoversAny(th.Context, graph.field, graph.of("Air"), graph.of("Sea"))
-		require.NoError(t, err)
-		require.False(t, covers)
-
-		within, err := th.service.WithinAny(th.Context, graph.field, graph.of("Air"), graph.of("Sea"))
-		require.NoError(t, err)
-		require.False(t, within)
-	})
-
-	t.Run("within: all of the holder's options, or any of them", func(t *testing.T) {
-		// Air ── Fighter Jet ── F-18, with Navy a root of its own.
-		graph := setupGraph(t, th, []string{"Air", "Fighter Jet", "F-18", "Navy"}, map[string][]string{
-			"Fighter Jet": {"Air"},
-			"F-18":        {"Fighter Jet"},
-		})
-		target := graph.of("Fighter Jet")
-
-		// F-18 is inside the target's subtree, Navy is not: holding both is
-		// entirely inside nothing, which is the case the two quantifiers differ on
-		// and the reason the direction exists at all.
-		all, err := th.service.WithinAll(th.Context, graph.field, graph.of("F-18", "Navy"), target)
-		require.NoError(t, err)
-		require.False(t, all)
-
-		some, err := th.service.WithinAny(th.Context, graph.field, graph.of("F-18", "Navy"), target)
-		require.NoError(t, err)
-		require.True(t, some)
-
-		// F-18 alone passes both, and the target itself passes: being within is
-		// reflexive, like covering.
-		for _, held := range [][]string{graph.of("F-18"), graph.of("Fighter Jet")} {
-			all, err = th.service.WithinAll(th.Context, graph.field, held, target)
-			require.NoError(t, err)
-			require.True(t, all)
-		}
-
-		// Air is above the target, so it is not within it -- covering would say
-		// yes, which is the whole point of having both directions.
-		all, err = th.service.WithinAll(th.Context, graph.field, graph.of("Air"), target)
-		require.NoError(t, err)
-		require.False(t, all)
-
-		covers, err := th.service.CoversAll(th.Context, graph.field, graph.of("Air"), target)
-		require.NoError(t, err)
-		require.True(t, covers)
-	})
-
-	t.Run("within admits a role and everything under it, and nothing above", func(t *testing.T) {
-		// Executives ── Managers ── Users: the rule that keeps leadership out of an
-		// individual-contributor channel.
-		graph := setupGraph(t, th, []string{"Executives", "Managers", "Users"}, map[string][]string{
-			"Managers": {"Executives"},
-			"Users":    {"Managers"},
-		})
-		target := graph.of("Managers")
-
-		for name, admitted := range map[string]bool{"Managers": true, "Users": true, "Executives": false} {
-			within, err := th.service.WithinAll(th.Context, graph.field, graph.of(name), target)
-			require.NoError(t, err)
-			require.Equal(t, admitted, within, name)
-		}
-	})
-
-	t.Run("multiple parents and multiple roots", func(t *testing.T) {
-		// F-18 hangs under a program and under a clearance level, which is how a
-		// second dimension is represented.
-		graph := setupGraph(t, th, []string{"Air", "Secret", "F-18"}, map[string][]string{
-			"F-18": {"Air", "Secret"},
-		})
-
-		for _, root := range []string{"Air", "Secret"} {
-			covers, err := th.service.CoversAll(th.Context, graph.field, graph.of(root), graph.of("F-18"))
-			require.NoError(t, err)
-			require.True(t, covers, root)
-		}
-
-		// Neither root is above the other, so holding one does not account for a
-		// channel marked with both.
-		covers, err := th.service.CoversAll(th.Context, graph.field, graph.of("Air"), graph.of("Air", "Secret"))
-		require.NoError(t, err)
-		require.False(t, covers)
-	})
-
-	t.Run("an empty side is a no, in both directions", func(t *testing.T) {
-		graph := setupWorkedExample(t, th)
-
-		for name, check := range map[string]func(held, targets []string) (bool, error){
-			"CoversAll": func(held, targets []string) (bool, error) {
-				return th.service.CoversAll(th.Context, graph.field, held, targets)
-			},
-			"CoversAny": func(held, targets []string) (bool, error) {
-				return th.service.CoversAny(th.Context, graph.field, held, targets)
-			},
-			"WithinAll": func(held, targets []string) (bool, error) {
-				return th.service.WithinAll(th.Context, graph.field, held, targets)
-			},
-			"WithinAny": func(held, targets []string) (bool, error) {
-				return th.service.WithinAny(th.Context, graph.field, held, targets)
-			},
-		} {
-			t.Run(name, func(t *testing.T) {
-				held, err := check(nil, graph.of("A"))
-				require.NoError(t, err)
-				require.False(t, held, "holding nothing is not being cleared for everything")
-
-				targets, err := check(graph.of("A"), nil)
-				require.NoError(t, err)
-				require.False(t, targets, "a target set that resolved to nothing is not open to everyone")
-			})
-		}
-	})
-
-	t.Run("an option that no longer exists is answered no", func(t *testing.T) {
-		graph := setupGraph(t, th, []string{"Air", "Fighter Jet"}, map[string][]string{"Fighter Jet": {"Air"}})
-
-		// The channel is marked with an option the field has not got -- a value
-		// left behind by a deletion. Nothing covers it, including the option above
-		// where it used to be.
-		covers, err := th.service.CoversAll(th.Context, graph.field, graph.of("Air"), []string{model.NewId()})
-		require.NoError(t, err)
-		require.False(t, covers)
-
-		// And a holder of a deleted option covers nothing.
-		covers, err = th.service.CoversAny(th.Context, graph.field, []string{model.NewId()}, graph.of("Fighter Jet"))
-		require.NoError(t, err)
-		require.False(t, covers)
 	})
 }
 
@@ -312,19 +135,37 @@ func TestGraphClampToCoverage(t *testing.T) {
 		// Alice holds F-18 and is being told about an object marked Fighter Jet.
 		// She has no claim to the rest of the Fighter Jet program, so what she is
 		// told is her own part of it.
-		visible, err := th.service.clampToCoverage(th.Context, graph.field, graph.of("Fighter Jet"), graph.of("F-18"))
+		visible, err := th.service.clampToCoverage(th.Context, graph.field, graph.of("Fighter Jet"), graph.of("F-18"), nil)
 		require.NoError(t, err)
 		require.Equal(t, []string{"F-18"}, graph.named(visible))
 
 		// The other way round she covers it outright and it stands as it is.
-		visible, err = th.service.clampToCoverage(th.Context, graph.field, graph.of("F-18"), graph.of("Fighter Jet"))
+		visible, err = th.service.clampToCoverage(th.Context, graph.field, graph.of("F-18"), graph.of("Fighter Jet"), nil)
 		require.NoError(t, err)
 		require.Equal(t, []string{"F-18"}, graph.named(visible))
 
 		// Including when it is exactly what she holds.
-		visible, err = th.service.clampToCoverage(th.Context, graph.field, graph.of("F-18"), graph.of("F-18"))
+		visible, err = th.service.clampToCoverage(th.Context, graph.field, graph.of("F-18"), graph.of("F-18"), nil)
 		require.NoError(t, err)
 		require.Equal(t, []string{"F-18"}, graph.named(visible))
+	})
+
+	t.Run("a batch shares coverage and descents across calls", func(t *testing.T) {
+		graph := setupGraph(t, th, []string{"Air", "Fighter Jet", "F-18"}, map[string][]string{
+			"Fighter Jet": {"Air"},
+			"F-18":        {"Fighter Jet"},
+		})
+
+		batch := &graphClampBatch{}
+		first, err := th.service.clampToCoverage(th.Context, graph.field, graph.of("Fighter Jet"), graph.of("F-18"), batch)
+		require.NoError(t, err)
+		require.Equal(t, []string{"F-18"}, graph.named(first))
+		require.NotNil(t, batch.covered)
+		require.NotNil(t, batch.below)
+
+		second, err := th.service.clampToCoverage(th.Context, graph.field, graph.of("Fighter Jet"), graph.of("F-18"), batch)
+		require.NoError(t, err)
+		require.Equal(t, []string{"F-18"}, graph.named(second))
 	})
 
 	t.Run("options are clamped one at a time", func(t *testing.T) {
@@ -337,7 +178,7 @@ func TestGraphClampToCoverage(t *testing.T) {
 		// it, and one with nothing covered below it at all -- which contributes
 		// nothing rather than hiding the other two.
 		visible, err := th.service.clampToCoverage(th.Context, graph.field,
-			graph.of("F-18", "Air", "Sea"), graph.of("Fighter Jet"))
+			graph.of("F-18", "Air", "Sea"), graph.of("Fighter Jet"), nil)
 		require.NoError(t, err)
 		require.ElementsMatch(t, []string{"F-18", "Fighter Jet"}, graph.named(visible))
 	})
@@ -349,17 +190,17 @@ func TestGraphClampToCoverage(t *testing.T) {
 
 		// A holder on a separate branch covers no part of the Air program, and the
 		// answer is nothing at all rather than the option they hold.
-		visible, err := th.service.clampToCoverage(th.Context, graph.field, graph.of("Fighter Jet"), graph.of("Sea"))
+		visible, err := th.service.clampToCoverage(th.Context, graph.field, graph.of("Fighter Jet"), graph.of("Sea"), nil)
 		require.NoError(t, err)
 		require.Empty(t, visible)
 
 		// A holder of nothing is the same case, as is an object marked with
 		// nothing.
-		visible, err = th.service.clampToCoverage(th.Context, graph.field, graph.of("Air"), nil)
+		visible, err = th.service.clampToCoverage(th.Context, graph.field, graph.of("Air"), nil, nil)
 		require.NoError(t, err)
 		require.Empty(t, visible)
 
-		visible, err = th.service.clampToCoverage(th.Context, graph.field, nil, graph.of("Air"))
+		visible, err = th.service.clampToCoverage(th.Context, graph.field, nil, graph.of("Air"), nil)
 		require.NoError(t, err)
 		require.Empty(t, visible)
 	})
@@ -372,12 +213,12 @@ func TestGraphClampToCoverage(t *testing.T) {
 		// A value naming an option that has since been deleted covers nothing and
 		// has nothing below it, so a holder of the root is told nothing about it
 		// -- the one holder who is told everything else.
-		visible, err := th.service.clampToCoverage(th.Context, graph.field, []string{model.NewId()}, graph.of("Air"))
+		visible, err := th.service.clampToCoverage(th.Context, graph.field, []string{model.NewId()}, graph.of("Air"), nil)
 		require.NoError(t, err)
 		require.Empty(t, visible)
 
 		// And a holder of an option the field does not have covers nothing.
-		visible, err = th.service.clampToCoverage(th.Context, graph.field, graph.of("Air"), []string{model.NewId()})
+		visible, err = th.service.clampToCoverage(th.Context, graph.field, graph.of("Air"), []string{model.NewId()}, nil)
 		require.NoError(t, err)
 		require.Empty(t, visible)
 	})
@@ -392,7 +233,7 @@ func TestGraphClampToCoverage(t *testing.T) {
 			"F-18":        {"Fighter Jet", "Carrier Air"},
 		})
 
-		visible, err := th.service.clampToCoverage(th.Context, graph.field, graph.of("Air"), graph.of("F-18"))
+		visible, err := th.service.clampToCoverage(th.Context, graph.field, graph.of("Air"), graph.of("F-18"), nil)
 		require.NoError(t, err)
 		require.Equal(t, []string{"F-18"}, graph.named(visible))
 	})
@@ -409,7 +250,7 @@ func TestGraphClampToCoverage(t *testing.T) {
 			"F-18":        {"Air", "Fighter Jet"},
 		})
 
-		visible, err := th.service.clampToCoverage(th.Context, graph.field, graph.of("Air"), graph.of("Fighter Jet", "F-18"))
+		visible, err := th.service.clampToCoverage(th.Context, graph.field, graph.of("Air"), graph.of("Fighter Jet", "F-18"), nil)
 		require.NoError(t, err)
 		require.Equal(t, []string{"Fighter Jet"}, graph.named(visible))
 	})
@@ -424,104 +265,9 @@ func TestGraphClampToCoverage(t *testing.T) {
 			Attrs:      model.StringInterface{"options": []any{map[string]any{"id": model.NewId(), "name": "Air"}}},
 		})
 
-		visible, err := th.service.clampToCoverage(th.Context, multiselect, []string{"a"}, []string{"a"})
+		visible, err := th.service.clampToCoverage(th.Context, multiselect, []string{"a"}, []string{"a"}, nil)
 		require.Error(t, err)
 		require.Empty(t, visible, "a refusal shows nothing, not the options it was asked about")
-	})
-}
-
-func TestGraphCommonGround(t *testing.T) {
-	th := Setup(t)
-
-	t.Run("the most specific options every participant covers", func(t *testing.T) {
-		graph := setupWorkedExample(t, th)
-
-		// Bob is above C and holds D; Alice is above all four. Everything Bob
-		// reaches is shared, and the two options at the top of it are B and D --
-		// C is below B and so implied by it.
-		shared, err := th.service.CommonGround(th.Context, graph.field, [][]string{graph.of("B", "D"), graph.of("A")})
-		require.NoError(t, err)
-		require.ElementsMatch(t, []string{"B", "D"}, graph.named(shared))
-
-		// Order of participants does not change the answer, though only the first
-		// one's options are walked down from.
-		shared, err = th.service.CommonGround(th.Context, graph.field, [][]string{graph.of("A"), graph.of("B", "D")})
-		require.NoError(t, err)
-		require.ElementsMatch(t, []string{"B", "D"}, graph.named(shared))
-	})
-
-	t.Run("one participant's option lies below the other's", func(t *testing.T) {
-		graph := setupGraph(t, th, []string{"Air", "Fighter Jet", "F-18"}, map[string][]string{
-			"Fighter Jet": {"Air"},
-			"F-18":        {"Fighter Jet"},
-		})
-
-		// Bob covers Fighter Jet and F-18, Alice only F-18: one label.
-		shared, err := th.service.CommonGround(th.Context, graph.field, [][]string{graph.of("Fighter Jet"), graph.of("F-18")})
-		require.NoError(t, err)
-		require.Equal(t, []string{"F-18"}, graph.named(shared))
-	})
-
-	t.Run("participants on unrelated branches share nothing", func(t *testing.T) {
-		graph := setupGraph(t, th, []string{"Air", "Sea"}, nil)
-
-		shared, err := th.service.CommonGround(th.Context, graph.field, [][]string{graph.of("Air"), graph.of("Sea")})
-		require.NoError(t, err)
-		require.Empty(t, shared)
-	})
-
-	t.Run("a participant holding nothing leaves nothing in common", func(t *testing.T) {
-		graph := setupWorkedExample(t, th)
-
-		shared, err := th.service.CommonGround(th.Context, graph.field, [][]string{graph.of("A"), nil})
-		require.NoError(t, err)
-		require.Empty(t, shared)
-
-		// A participant holding an option that no longer exists is the same case:
-		// they cover nothing.
-		shared, err = th.service.CommonGround(th.Context, graph.field, [][]string{graph.of("A"), {model.NewId()}})
-		require.NoError(t, err)
-		require.Empty(t, shared)
-	})
-
-	t.Run("one participant shares everything they reach", func(t *testing.T) {
-		graph := setupWorkedExample(t, th)
-
-		// Nobody else has to cover anything, so the participant's own options are
-		// the most specific shared ones -- not their whole subtree.
-		shared, err := th.service.CommonGround(th.Context, graph.field, [][]string{graph.of("B", "D")})
-		require.NoError(t, err)
-		require.ElementsMatch(t, []string{"B", "D"}, graph.named(shared))
-
-		// Including when there is nobody to disagree, an option the field does not
-		// have is not something to report as shared.
-		shared, err = th.service.CommonGround(th.Context, graph.field, [][]string{{model.NewId()}})
-		require.NoError(t, err)
-		require.Empty(t, shared)
-	})
-
-	t.Run("the same option held twice is reported once", func(t *testing.T) {
-		graph := setupWorkedExample(t, th)
-
-		shared, err := th.service.CommonGround(th.Context, graph.field, [][]string{graph.of("B", "B"), graph.of("A")})
-		require.NoError(t, err)
-		require.Equal(t, []string{"B"}, graph.named(shared))
-	})
-
-	t.Run("branches that stop at related options report only the top one", func(t *testing.T) {
-		// Air ─┬─ Fighter Jet ── F-18
-		//      └─ F-18
-		// Descending from Air reaches F-18 both directly and through Fighter Jet,
-		// so a walk that stopped at each without comparing them would report an
-		// option that another reported option is above.
-		graph := setupGraph(t, th, []string{"Air", "Fighter Jet", "F-18"}, map[string][]string{
-			"Fighter Jet": {"Air"},
-			"F-18":        {"Air", "Fighter Jet"},
-		})
-
-		shared, err := th.service.CommonGround(th.Context, graph.field, [][]string{graph.of("Air"), graph.of("Fighter Jet", "F-18")})
-		require.NoError(t, err)
-		require.Equal(t, []string{"Fighter Jet"}, graph.named(shared))
 	})
 }
 
@@ -759,7 +505,7 @@ func TestGraphDepthAfterAdding(t *testing.T) {
 		// The store enforces nothing about the shape of a hierarchy -- the checks
 		// that do sit above it -- so a cycle can be stored. Asked for a depth over
 		// one, this reports it rather than walking it forever or picking a number.
-		require.NoError(t, th.dbStore.PropertyField().MutateOptionEdges(graph.field.GroupID, graph.field.ID, 0, []*model.PropertyOptionEdge{
+		require.NoError(t, th.dbStore.PropertyField().MutateOptions(graph.field.GroupID, graph.field.ID, 0, nil, []*model.PropertyOptionEdge{
 			edge(graph, "Air", "Fighter Jet"),
 		}, nil))
 
@@ -793,15 +539,18 @@ func TestGraphResolutionThroughLinkedField(t *testing.T) {
 	})
 	derived := &graphFixture{field: linked, ids: graph.ids}
 
-	covers, err := th.service.CoversAll(th.Context, derived.field, derived.of("Air"), derived.of("F-18"))
+	// A holder of Air is told about F-18 unchanged, since Air is above it.
+	visible, err := th.service.clampToCoverage(th.Context, derived.field, derived.of("F-18"), derived.of("Air"), nil)
 	require.NoError(t, err)
-	require.True(t, covers)
+	require.Equal(t, []string{"F-18"}, derived.named(visible))
 
-	within, err := th.service.WithinAll(th.Context, derived.field, derived.of("F-18"), derived.of("Air"))
+	// The other way round, a holder of F-18 is told only their own part of Air.
+	visible, err = th.service.clampToCoverage(th.Context, derived.field, derived.of("Air"), derived.of("F-18"), nil)
 	require.NoError(t, err)
-	require.True(t, within)
+	require.Equal(t, []string{"F-18"}, derived.named(visible))
 
-	shared, err := th.service.CommonGround(th.Context, derived.field, [][]string{derived.of("Air"), derived.of("Fighter Jet")})
+	// And a holder of Fighter Jet, one level up, sees their own part instead.
+	visible, err = th.service.clampToCoverage(th.Context, derived.field, derived.of("Air"), derived.of("Fighter Jet"), nil)
 	require.NoError(t, err)
-	require.Equal(t, []string{"Fighter Jet"}, derived.named(shared))
+	require.Equal(t, []string{"Fighter Jet"}, derived.named(visible))
 }

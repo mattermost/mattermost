@@ -118,6 +118,11 @@ func getPropertyFieldOptions(c *Context, w http.ResponseWriter, r *http.Request)
 		return
 	}
 
+	auditRec := c.MakeAuditRecord(model.AuditEventGetPropertyFieldOptions, model.AuditStatusFail)
+	defer c.LogAuditRec(auditRec)
+	model.AddEventParameterToAuditRec(auditRec, "group_name", c.Params.GroupName)
+	model.AddEventParameterToAuditRec(auditRec, "field_id", field.ID)
+
 	// A field's options are part of its definition, so seeing them is seeing the
 	// field: the same scope check the field listing runs, against this field's own
 	// scope rather than one from the query string.
@@ -143,17 +148,14 @@ func getPropertyFieldOptions(c *Context, w http.ResponseWriter, r *http.Request)
 	// Both halves or neither: the page continues after one particular option, and
 	// an option is placed in the order by its creation time as well as its ID. A
 	// cursor missing the time would silently start from the beginning.
-	if (cursorID == "") != (cursorCreateAt == 0) {
+	if cursorCreateAt < 0 || (cursorID == "") != (cursorCreateAt == 0) {
 		c.Err = model.NewAppError("getPropertyFieldOptions", "api.property_field.options.invalid_cursor.app_error", nil, "", http.StatusBadRequest)
 		return
 	}
 
-	auditRec := c.MakeAuditRecord(model.AuditEventGetPropertyFieldOptions, model.AuditStatusFail)
-	defer c.LogAuditRec(auditRec)
-	model.AddEventParameterToAuditRec(auditRec, "group_name", c.Params.GroupName)
-	model.AddEventParameterToAuditRec(auditRec, "field_id", field.ID)
+	perPage := min(c.Params.PerPage, maxPropertyFieldOptionItems)
 
-	options, appErr := c.App.GetPropertyFieldOptions(rctx, field, cursorCreateAt, cursorID, c.Params.PerPage)
+	options, appErr := c.App.GetPropertyFieldOptions(rctx, field, cursorCreateAt, cursorID, perPage)
 	if appErr != nil {
 		c.Err = appErr
 		return

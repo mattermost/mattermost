@@ -109,6 +109,74 @@ Access the following configuration settings in the System Console by going to **
 </tbody>
 </table>
 
+### Enable theme selection
+
+<PlanAvailability slug="pro-plus" />
+
+<table>
+<colgroup>
+<col style={{width: '49%'}} />
+<col style={{width: '50%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><ul><li><strong>true</strong>: <strong>(Default)</strong> Enables the <strong>Display &gt; Theme</strong> tab in <strong>Settings</strong> so users can select their theme.</li><li><strong>false</strong>: Users can't select a different theme. The <strong>Display &gt; Theme</strong> tab is hidden in <strong>Settings</strong>.</li></ul></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Customization</strong></li><li><code>config.json</code> setting: <code>ThemeSettings</code> &gt; <code>EnableThemeSelection</code> &gt; <code>true</code></li><li>Environment variable: <code>MM_THEMESETTINGS_ENABLETHEMESELECTION</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Allow custom themes
+
+<PlanAvailability slug="pro-plus" />
+
+<table>
+<colgroup>
+<col style={{width: '49%'}} />
+<col style={{width: '50%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><ul><li><strong>true</strong>: <strong>(Default)</strong> Enables the <strong>Display &gt; Theme &gt; Custom Theme</strong> section in <strong>Settings</strong>.</li><li><strong>false</strong>: Users can't use a custom theme. The <strong>Display &gt; Theme &gt; Custom Theme</strong> section is hidden in <strong>Settings</strong>.</li></ul></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Customization</strong></li><li><code>config.json</code> setting: <code>ThemeSettings</code> &gt; <code>AllowCustomThemes</code> &gt; <code>true</code></li><li>Environment variable: <code>MM_THEMESETTINGS_ALLOWCUSTOMTHEMES</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Allowed themes
+
+<PlanAvailability slug="pro-plus" />
+
+<table>
+<colgroup>
+<col style={{width: '49%'}} />
+<col style={{width: '50%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>Restrict the themes users can select in <strong>Display &gt; Theme</strong> to a comma-separated list of theme names. Requires <a href="#enable-theme-selection">Enable theme selection</a> to be set to <strong>true</strong>.</p><p>String array input consisting of the options <code>denim</code>, <code>sapphire</code>, <code>quartz</code>, <code>indigo</code>, and <code>onyx</code>. Default is an empty array, which allows all themes.</p></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Customization</strong></li><li><code>config.json</code> setting: <code>ThemeSettings</code> &gt; <code>AllowedThemes</code> &gt; <code>[]</code></li><li>Environment variable: <code>MM_THEMESETTINGS_ALLOWEDTHEMES</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Default theme
+
+<PlanAvailability slug="pro-plus" />
+
+<table>
+<colgroup>
+<col style={{width: '49%'}} />
+<col style={{width: '50%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>Set a default theme that applies to all new users on the system.</p><p>String input. One of <code>denim</code>, <code>sapphire</code>, <code>quartz</code>, <code>indigo</code>, or <code>onyx</code>. Default is <code>default</code>, which resolves to the Denim theme.</p></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Customization</strong></li><li><code>config.json</code> setting: <code>ThemeSettings</code> &gt; <code>DefaultTheme</code> &gt; <code>default</code></li><li>Environment variable: <code>MM_THEMESETTINGS_DEFAULTTHEME</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
 ### Enable Ask Community link
 
 <table>
@@ -363,6 +431,36 @@ This setting is applicable to self-hosted deployments only.
 This setting is applicable to self-hosted deployments only.
 
 </Note>
+
+### Enable tutorial
+
+<table>
+<colgroup>
+<col style={{width: '49%'}} />
+<col style={{width: '50%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><ul><li><strong>true</strong>: <strong>(Default)</strong> Users are prompted with a tutorial when they open Mattermost for the first time after account creation.</li><li><strong>false</strong>: The tutorial is disabled. Users are placed in Town Square when they open Mattermost for the first time after account creation.</li></ul></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Customization</strong></li><li><code>config.json</code> setting: <code>ServiceSettings</code> &gt; <code>EnableTutorial</code> &gt; <code>true</code></li><li>Environment variable: <code>MM_SERVICESETTINGS_ENABLETUTORIAL</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Enable onboarding
+
+<table>
+<colgroup>
+<col style={{width: '49%'}} />
+<col style={{width: '50%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><ul><li><strong>true</strong>: <strong>(Default)</strong> New users are shown key tasks to complete as part of initial onboarding.</li><li><strong>false</strong>: User onboarding tasks are disabled.</li></ul></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Customization</strong></li><li><code>config.json</code> setting: <code>ServiceSettings</code> &gt; <code>EnableOnboardingFlow</code> &gt; <code>true</code></li><li>Environment variable: <code>MM_SERVICESETTINGS_ENABLEONBOARDINGFLOW</code></li></ul></td>
+</tr>
+</tbody>
+</table>
 
 ### Enable desktop app landing page
 

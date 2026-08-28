@@ -142,15 +142,16 @@ const (
 
 // Configuration
 const (
-	AuditEventConfigReload         = "configReload"         // reload server configuration
-	AuditEventGetConfig            = "getConfig"            // get current server configuration
-	AuditEventLocalGetClientConfig = "localGetClientConfig" // get client configuration locally
-	AuditEventLocalGetConfig       = "localGetConfig"       // get server configuration locally
-	AuditEventLocalPatchConfig     = "localPatchConfig"     // update server configuration locally
-	AuditEventLocalUpdateConfig    = "localUpdateConfig"    // update server configuration locally
-	AuditEventMigrateConfig        = "migrateConfig"        // migrate configs with file values from one store to another
-	AuditEventPatchConfig          = "patchConfig"          // update server configuration
-	AuditEventUpdateConfig         = "updateConfig"         // update server configuration
+	AuditEventAutoSelectPushNotificationServer = "autoSelectPushNotificationServer" // automatically switch push notification server based on license entitlement
+	AuditEventConfigReload                     = "configReload"                     // reload server configuration
+	AuditEventGetConfig                        = "getConfig"                        // get current server configuration
+	AuditEventLocalGetClientConfig             = "localGetClientConfig"             // get client configuration locally
+	AuditEventLocalGetConfig                   = "localGetConfig"                   // get server configuration locally
+	AuditEventLocalPatchConfig                 = "localPatchConfig"                 // update server configuration locally
+	AuditEventLocalUpdateConfig                = "localUpdateConfig"                // update server configuration locally
+	AuditEventMigrateConfig                    = "migrateConfig"                    // migrate configs with file values from one store to another
+	AuditEventPatchConfig                      = "patchConfig"                      // update server configuration
+	AuditEventUpdateConfig                     = "updateConfig"                     // update server configuration
 )
 
 // Custom Profile Attributes

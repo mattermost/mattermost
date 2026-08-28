@@ -1,8 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test} from '@playwright/test';
-import type {Page} from '@playwright/test';
+import {expect, test, type Page} from '@playwright/test';
 import type {Client4} from '@mattermost/client';
 
 /**
@@ -470,7 +469,8 @@ export async function expectAssignTeamsDenied(
 
 /**
  * Assert a policy save is refused because its expression still carries the
- * masked-value sentinel, which has its own error id.
+ * masked-value sentinel. That rejection has its own error id, distinguishing
+ * it from other save failures rather than reporting only the general one.
  */
 export async function expectMaskedTokenRejected(adminClient: Client4, opts: ParentPolicyOptions): Promise<void> {
     await expectRejection(

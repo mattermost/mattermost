@@ -60,9 +60,23 @@ We highly recommend that you set up Elasticsearch server on a dedicated machine 
 10. Create an Elasticsearch directory and give it the proper permissions.
 11. Install the [icu-analyzer plugin](https://www.elastic.co/guide/en/elasticsearch/plugins/current/analysis-icu.html) to the `/usr/share/elasticsearch/plugins` directory by running the following command:
 
+> <Important>
+>
+> The `analysis-icu` plugin is **required on every node in the cluster**, not optional. Mattermost's post and file index templates depend on it. Without the plugin, Mattermost cannot create these templates.
+>
+> </Important>
+>
 > ``` sh
 > sudo /usr/share/elasticsearch/bin/elasticsearch-plugin install analysis-icu
 > ```
+>
+> Restart Elasticsearch on each node to load the newly installed plugin before verifying it; `_cat/plugins` only reports active plugins, so a restart is required first. For production clusters, restart nodes one at a time (rolling restart) rather than all at once. Confirm the plugin is installed and active on every node before continuing. Replace `<your-elasticsearch-host>` and `<password>`, and update the CA path if needed:
+>
+> ``` sh
+> curl --silent --show-error --fail-with-body --cacert /etc/elasticsearch/certs/http_ca.crt --user 'elastic:<password>' 'https://<your-elasticsearch-host>:9200/_cat/plugins?v&h=name,component,version&s=name,component'
+> ```
+>
+> Running this command should show `analysis-icu` once per node in the cluster. If the `analysis-icu` line is missing for any node, the plugin is not installed there. Use plain HTTP without credentials only for a cluster where Elasticsearch security has been explicitly disabled.
 >
 > **(Optional) CJK language analyzer plugins**: To improve search for Korean, Japanese, or Chinese content, install one or more of the following language-specific analyzer plugins: `analysis-nori` (Korean), `analysis-kuromoji` (Japanese), and `analysis-smartcn` (Chinese).
 >

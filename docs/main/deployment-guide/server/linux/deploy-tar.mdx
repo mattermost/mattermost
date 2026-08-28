@@ -48,14 +48,14 @@ SSH onto the target host and download the release. Replace `amd64` with `arm64` 
 <TabItem value="latest" label="Latest release" default>
 
 ```sh
-wget https://releases.mattermost.com/11.9.0/mattermost-11.9.0-linux-amd64.tar.gz
+wget https://releases.mattermost.com/11.10.0/mattermost-11.10.0-linux-amd64.tar.gz
 ```
 
 </TabItem>
 <TabItem value="esr" label="Current ESR">
 
 ```sh
-wget https://releases.mattermost.com/11.7.7/mattermost-11.7.7-linux-amd64.tar.gz
+wget https://releases.mattermost.com/11.7.9/mattermost-11.7.9-linux-amd64.tar.gz
 ```
 
 </TabItem>
@@ -91,7 +91,13 @@ If you use a path other than `/opt/mattermost` or a user/group name other than `
 
 </Note>
 
-Create the systemd unit file at `/lib/systemd/system/mattermost.service`:
+Create the systemd unit file at `/etc/systemd/system/mattermost.service`:
+
+<Note>
+
+Earlier versions of this guide had you create the unit file under `/lib/systemd/system/`, which is reserved for unit files installed and owned by a package manager.
+
+</Note>
 
 ```ini
 [Unit]

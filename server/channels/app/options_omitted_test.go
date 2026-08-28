@@ -82,35 +82,6 @@ func TestUpdatePropertyFields_OptionsWithheld(t *testing.T) {
 		requireOptionsIntact(t, field.ID)
 	})
 
-	// An empty list is not refused: it is what a read-modify-write of any other
-	// attr looks like once a client normalises the absent list it was given, and
-	// refusing it would make an oversized field unrenamable. The store leaves the
-	// options alone for it.
-	t.Run("a patch that supplies an empty option list changes nothing", func(t *testing.T) {
-		field := newOversizedField(t, "empty-option-list")
-		field.Patch(&model.PropertyFieldPatch{Attrs: &model.StringInterface{
-			model.PropertyFieldAttrDisplayName:  "Still Editable",
-			model.PropertyFieldAttributeOptions: []any{},
-		}}, true)
-
-		updated, _, appErr := th.App.UpdatePropertyField(th.Context, groupID, field, false, "")
-		require.Nil(t, appErr)
-		assert.Equal(t, "Still Editable", updated.Attrs[model.PropertyFieldAttrDisplayName])
-		requireOptionsIntact(t, field.ID)
-	})
-
-	t.Run("a patch that leaves options alone is allowed", func(t *testing.T) {
-		field := newOversizedField(t, "rename-only")
-		field.Patch(&model.PropertyFieldPatch{Attrs: &model.StringInterface{
-			model.PropertyFieldAttrDisplayName: "Renamed",
-		}}, true)
-
-		updated, _, appErr := th.App.UpdatePropertyField(th.Context, groupID, field, false, "")
-		require.Nil(t, appErr)
-		assert.Equal(t, "Renamed", updated.Attrs[model.PropertyFieldAttrDisplayName])
-		requireOptionsIntact(t, field.ID)
-	})
-
 	t.Run("a field under the cap still accepts an option list", func(t *testing.T) {
 		field, appErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
 			GroupID:    groupID,

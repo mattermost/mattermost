@@ -294,6 +294,36 @@ describe('ChannelSettingsInfoTab', () => {
         expect(screen.getByTestId('channel_settings_header_textbox')).toHaveValue('Header with whitespace');
     });
 
+    it('detects removing stored whitespace and saves the trimmed value', async () => {
+        const {patchChannel} = require('mattermost-redux/actions/channels');
+        patchChannel.mockReturnValue({type: 'MOCK_ACTION', data: {}});
+
+        const paddedHeaderChannel = {...mockChannel, header: 'Initial header   '};
+        renderWithContext(
+            <ChannelSettingsInfoTab
+                channel={paddedHeaderChannel}
+                setAreThereUnsavedChanges={jest.fn()}
+            />,
+        );
+
+        // The untidy stored text opens the form cleanly.
+        const headerInput = screen.getByTestId('channel_settings_header_textbox');
+        expect(headerInput).toHaveValue('Initial header   ');
+        expect(screen.queryByRole('button', {name: 'Save'})).not.toBeInTheDocument();
+
+        // Removing the stored trailing whitespace is a real edit the user can save.
+        await userEvent.clear(headerInput);
+        await userEvent.type(headerInput, 'Initial header');
+
+        expect(screen.getByRole('button', {name: 'Save'})).toBeInTheDocument();
+
+        await userEvent.click(screen.getByRole('button', {name: 'Save'}));
+
+        expect(patchChannel).toHaveBeenCalledWith('channel1', {
+            header: 'Initial header',
+        });
+    });
+
     it('should hide SaveChangesPanel after successful save', async () => {
         // Mock the patchChannel function to return a successful response
         const {patchChannel} = require('mattermost-redux/actions/channels');
@@ -783,6 +813,145 @@ describe('ChannelSettingsInfoTab', () => {
             const calls = patchChannel.mock.calls;
             const lastPatch = calls[calls.length - 1][1];
             expect(lastPatch).not.toHaveProperty('discoverable');
+        });
+    });
+
+    describe('opening the tab on a channel with untidy stored text', () => {
+        // Channels populated outside this form can carry surrounding whitespace.
+        const paddedChannel = TestHelper.getChannelMock({
+            id: 'channel1',
+            team_id: 'team1',
+            display_name: 'Padded Channel',
+            name: 'padded-channel',
+            purpose: '  Small annoyances that add up  ',
+            header: 'Runbook: [Ops guide](http://example.com)\nEscalate to @admin\n',
+            type: 'O',
+        });
+
+        it('reports no unsaved changes when purpose and header have surrounding whitespace', () => {
+            const setAreThereUnsavedChanges = jest.fn();
+            renderWithContext(
+                <ChannelSettingsInfoTab
+                    channel={paddedChannel}
+                    setAreThereUnsavedChanges={setAreThereUnsavedChanges}
+                />,
+            );
+
+            expect(screen.queryByText('You have unsaved changes')).not.toBeInTheDocument();
+            expect(setAreThereUnsavedChanges).toHaveBeenCalledWith(false);
+            expect(setAreThereUnsavedChanges).not.toHaveBeenCalledWith(true);
+        });
+
+        it('reports no unsaved changes when the channel has no purpose or header at all', () => {
+            const bareChannel = TestHelper.getChannelMock({
+                id: 'channel1',
+                team_id: 'team1',
+                display_name: 'Bare Channel',
+                name: 'bare-channel',
+                purpose: undefined as unknown as string,
+                header: undefined as unknown as string,
+                type: 'O',
+            });
+
+            const setAreThereUnsavedChanges = jest.fn();
+            renderWithContext(
+                <ChannelSettingsInfoTab
+                    channel={bareChannel}
+                    setAreThereUnsavedChanges={setAreThereUnsavedChanges}
+                />,
+            );
+
+            expect(screen.queryByText('You have unsaved changes')).not.toBeInTheDocument();
+            expect(setAreThereUnsavedChanges).toHaveBeenCalledWith(false);
+            expect(setAreThereUnsavedChanges).not.toHaveBeenCalledWith(true);
+        });
+
+        it('reports no unsaved changes on a DM whose header ends in a newline', () => {
+            const paddedDmChannel = {...mockDirectMessageChannel, header: 'DM initial header\n'};
+
+            const setAreThereUnsavedChanges = jest.fn();
+            renderWithContext(
+                <ChannelSettingsInfoTab
+                    channel={paddedDmChannel}
+                    setAreThereUnsavedChanges={setAreThereUnsavedChanges}
+                />,
+            );
+
+            expect(screen.queryByText('You have unsaved changes')).not.toBeInTheDocument();
+            expect(setAreThereUnsavedChanges).toHaveBeenCalledWith(false);
+            expect(setAreThereUnsavedChanges).not.toHaveBeenCalledWith(true);
+        });
+
+        it('stays clean when focus leaves the untouched name field', async () => {
+            renderWithContext(
+                <ChannelSettingsInfoTab
+                    channel={paddedChannel}
+                    setAreThereUnsavedChanges={jest.fn()}
+                />,
+            );
+
+            const nameInput = screen.getByRole('textbox', {name: 'Channel name'});
+            await userEvent.click(nameInput);
+            await userEvent.tab();
+
+            expect(screen.queryByText('Channel names must have at least 1 character.')).not.toBeInTheDocument();
+            expect(nameInput).toHaveValue('Padded Channel');
+            expect(screen.queryByText('You have unsaved changes')).not.toBeInTheDocument();
+        });
+
+        it('restores the stored text and clears the panel when Reset is clicked', async () => {
+            renderWithContext(
+                <ChannelSettingsInfoTab
+                    channel={paddedChannel}
+                    setAreThereUnsavedChanges={jest.fn()}
+                />,
+            );
+
+            const purposeInput = screen.getByTestId('channel_settings_purpose_textbox');
+            await userEvent.clear(purposeInput);
+            await userEvent.type(purposeInput, 'A brand new purpose');
+
+            await userEvent.click(screen.getByRole('button', {name: 'Reset'}));
+
+            expect(purposeInput).toHaveValue('  Small annoyances that add up  ');
+            expect(screen.queryByText('You have unsaved changes')).not.toBeInTheDocument();
+        });
+
+        it('detects and saves an edit made on untidy stored text', async () => {
+            const {patchChannel} = require('mattermost-redux/actions/channels');
+            patchChannel.mockReturnValue({type: 'MOCK_ACTION', data: {}});
+
+            const setAreThereUnsavedChanges = jest.fn();
+            const {rerender} = renderWithContext(
+                <ChannelSettingsInfoTab
+                    channel={paddedChannel}
+                    setAreThereUnsavedChanges={setAreThereUnsavedChanges}
+                />,
+            );
+
+            const purposeInput = screen.getByTestId('channel_settings_purpose_textbox');
+            await userEvent.clear(purposeInput);
+            await userEvent.type(purposeInput, 'A brand new purpose');
+
+            expect(screen.getByText('You have unsaved changes')).toBeInTheDocument();
+            expect(setAreThereUnsavedChanges).toHaveBeenLastCalledWith(true);
+
+            await userEvent.click(screen.getByRole('button', {name: 'Save'}));
+
+            // The untouched header keeps its stored whitespace.
+            expect(patchChannel).toHaveBeenCalledWith('channel1', {
+                purpose: 'A brand new purpose',
+            });
+
+            // Simulate the patched channel arriving back through the store.
+            rerender(
+                <ChannelSettingsInfoTab
+                    channel={{...paddedChannel, purpose: 'A brand new purpose'}}
+                    setAreThereUnsavedChanges={setAreThereUnsavedChanges}
+                />,
+            );
+            expect(setAreThereUnsavedChanges).toHaveBeenLastCalledWith(false);
+            expect(screen.queryByText('You have unsaved changes')).not.toBeInTheDocument();
         });
     });
 });

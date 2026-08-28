@@ -1563,6 +1563,12 @@ export const getSettingValue = (
         return setting.dynamic_value(state[setting.key], config, state);
     }
 
+    // A multiple text setting is typed as a comma-separated list, so discard the whitespace and
+    // empty entries that separating the values leaves behind before saving.
+    if (setting.type === Constants.SettingsTypes.TYPE_TEXT && setting.multiple && Array.isArray(state[setting.key])) {
+        return state[setting.key].map((value: string) => value.trim()).filter((value: string) => value !== '');
+    }
+
     return state[setting.key];
 };
 

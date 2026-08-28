@@ -348,11 +348,11 @@ export async function saveDeleteChannelLinkedField(fieldId: string): Promise<voi
 
 export const CLASSIFICATIONS_USER_OBJECT_TYPE = 'user';
 
-// Default name/label for the clearance field created from this page. Hardcoded
-// for now; a future change may let admins name/map it. The name is the CEL
-// identifier an author writes as user.attributes.clearance, so it is lowercase
-// like CLASSIFICATIONS_CHANNEL_FIELD_NAME; the display name is the label the
-// System Console and profile popovers show.
+// Default name/label for the clearance field created from this page. The name
+// is fixed: CEL rule authors write it directly as user.attributes.clearance, so
+// renaming it would break existing rules. It is lowercase like
+// CLASSIFICATIONS_CHANNEL_FIELD_NAME; the display name is the label the System
+// Console and profile popovers show.
 export const CLEARANCE_FIELD_NAME = 'clearance';
 export const CLEARANCE_FIELD_DISPLAY_NAME = 'Clearance';
 

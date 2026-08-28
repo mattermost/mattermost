@@ -237,6 +237,14 @@ func TestFieldOptionsAccessControl(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, options)
 		require.Empty(t, options)
+
+		// The gate is decided from the stored field, not from whatever the caller
+		// hands in: a copy carrying none of the field's access attributes must be
+		// refused exactly as the full field is.
+		options, err = th.service.GetFieldOptions(other, &model.PropertyField{ID: field.ID, GroupID: field.GroupID, Type: field.Type}, 0, "", 100)
+		require.NoError(t, err)
+		require.NotNil(t, options)
+		require.Empty(t, options)
 	})
 
 	t.Run("a public field's options are readable and writable as before", func(t *testing.T) {

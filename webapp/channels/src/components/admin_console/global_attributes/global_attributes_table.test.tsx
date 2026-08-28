@@ -404,6 +404,14 @@ describe('GlobalAttributesTable', () => {
             expect(cell.textContent).toBe('1,500 options');
             expect(cell).not.toHaveTextContent('Free Text');
         });
+
+        it('renders a zero count for a graph field with no options loaded', async () => {
+            getPropertyFields.mockResolvedValueOnce([makeField({type: 'graph', attrs: {}})]).mockResolvedValue([]);
+
+            renderWithContext(<GlobalAttributesTable/>, getBaseState());
+
+            expect(await screen.findByTestId('global-attribute-options')).toHaveTextContent('0 options');
+        });
     });
 
     describe('Source column', () => {

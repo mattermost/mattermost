@@ -134,7 +134,11 @@ test.describe('ABAC resource.attributes - graph hierarchy sync', {tag: ['@abac',
             // attribute being missing for that user, both fail closed.
             expect(await verifyUserInChannel(adminClient, untaggedInChannel.id, channel.id)).toBe(false);
 
-            // Runtime PDP lane agrees with the sync verdict on the same fixtures.
+            // Runtime PDP lane agrees with the sync verdict on the same fixtures. Remove
+            // the covering user first: adding someone who is already a member returns the
+            // existing membership without consulting the policy, so the add has to be a
+            // real join for the grant to be under test at all.
+            await adminClient.removeFromChannel(exactTeamOnly.id, channel.id);
             await adminClient.addToChannel(exactTeamOnly.id, channel.id);
             expect(await verifyUserInChannel(adminClient, exactTeamOnly.id, channel.id)).toBe(true);
 

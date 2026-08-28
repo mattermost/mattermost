@@ -583,8 +583,8 @@ function TableEditor({
         };
         const newRows = [...rows, newRow];
         setRows(newRows);
-        setAutoOpenAttributeMenuForRow(newRows.length - 1); // Set for the new row
-        updateExpression(newRows); // Ensure expression is updated immediately
+        setAutoOpenAttributeMenuForRow(newRows.length - 1);
+        updateExpression(newRows);
     }, [userFields, updateExpression, findFirstAvailableAttribute, rows]);
 
     const removeRow = useCallback((index: number) => {
@@ -657,10 +657,8 @@ function TableEditor({
         const isMulti = isMultiValueOperator(newOperator);
 
         if (isMulti && !wasMulti) {
-            // Transitioning TO a multi-value operator FROM a single-value operator:
             newValues = newValues.map((v) => v.trim()).filter((v) => v !== '');
         } else if (!isMulti && wasMulti) {
-            // Transitioning TO a single-value operator FROM a multi-value operator:
             if (newValues.length > 1) {
                 newValues = [newValues[0]];
             }
@@ -878,10 +876,10 @@ function TableEditor({
                             // already chose what the user should see and why),
                             // then the user-excluded message, then any other
                             // testButtonTooltip the parent passed alongside
-                            // other disable reasons. The earlier
-                            // `userWouldBeExcluded ? … : tooltip` ternary
-                            // silenced parent hints whenever the self-exclusion
-                            // check happened to also be true.
+                            // other disable reasons. `testButtonDisabled` must be
+                            // checked first, or the self-exclusion tooltip would
+                            // override an explicit parent tooltip whenever both
+                            // conditions are true.
                             (testButtonDisabled && testButtonTooltip) ||
                             (userWouldBeExcluded ? formatMessage({
                                 id: 'admin.access_control.table_editor.user_excluded_tooltip',

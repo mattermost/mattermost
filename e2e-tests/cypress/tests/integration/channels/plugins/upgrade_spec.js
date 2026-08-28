@@ -53,15 +53,8 @@ describe('Plugin remains enabled when upgraded', () => {
                 cy.get('input[type=file]').attachFile({fileContent, fileName: demoPluginOld.filename, mimeType});
             });
 
-        cy.get('#uploadPlugin').scrollIntoView().should('be.visible').click().wait(TIMEOUTS.HALF_SEC);
-
-        // * Verify that the button shows correct text while uploading
-        cy.findByText('Uploading...', {timeout: TIMEOUTS.ONE_MIN}).should('be.visible');
-
-        // * Verify that the button shows correct text and is disabled after upload
+        // * Verify the old demo plugin is installed after selecting the file
         waitForServerStatus(demoPluginOld.id, demoPluginOld.version, {isInstalled: true});
-        cy.findByText('Upload', {timeout: TIMEOUTS.ONE_MIN}).should('be.visible');
-        cy.get('#uploadPlugin', {timeout: TIMEOUTS.ONE_MIN}).should('be.disabled');
 
         // * Verify that the old demo plugin is successfully uploaded
         cy.findByText(`Successfully uploaded plugin from ${demoPluginOld.filename}`);
@@ -80,7 +73,7 @@ describe('Plugin remains enabled when upgraded', () => {
         // * Verify older version of demo plugin
         cy.findByText(new RegExp(`${demoPluginOld.id} - ${demoPluginOld.version}`)).scrollIntoView().should('be.visible');
 
-        cy.get('#uploadPlugin').scrollIntoView().should('be.visible');
+        cy.findByText('Click or drop plugin bundle to upload').scrollIntoView().should('be.visible');
 
         // # Upgrade plugin
         cy.fixture(demoPlugin.filename, 'binary').
@@ -89,16 +82,11 @@ describe('Plugin remains enabled when upgraded', () => {
                 cy.get('input[type=file]').attachFile({fileContent, fileName: demoPlugin.filename, mimeType});
             });
 
-        // * Verify that the button shows correct text while uploading
-        cy.get('#uploadPlugin').should('be.visible').click().wait(TIMEOUTS.HALF_SEC);
-
         // # Confirm overwrite of plugin with same name
         cy.get('#confirmModalButton').should('be.visible').click();
 
-        // * Verify that the button shows correct text and is disabled after upload
+        // * Verify that the latest demo plugin is uploaded and remains active after overwrite
         waitForServerStatus(demoPlugin.id, demoPlugin.version, {isActive: true});
-        cy.findByText('Upload', {timeout: TIMEOUTS.ONE_MIN}).should('be.visible');
-        cy.get('#uploadPlugin', {timeout: TIMEOUTS.ONE_MIN}).should('be.disabled');
 
         // * Verify that the latest demo plugin is successfully uploaded
         cy.findByText(`Successfully updated plugin from ${demoPlugin.filename}`);

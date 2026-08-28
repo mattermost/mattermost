@@ -506,6 +506,7 @@ const ADMIN_MANAGE_GROUPS = {
       {label: 'Attribute-Based Access Control', landing: 'admin/attribute-based-access-control', items: [
         'admin/abac-system-wide-policies',
         'admin/abac-team-channel-policies',
+        'admin/abac-team-membership',
         'admin/abac-channel-access-rules',
       ]},
     ],
@@ -594,7 +595,7 @@ const ADMIN_MANAGE_ORDER = [
 const ADMIN_MANAGE_HIDDEN = new Set([
   'admin/user-management', 'admin/user-provisioning', 'admin/user-attributes', 'team-channel-members',
   'admin/attribute-based-access-control', 'admin/abac-system-wide-policies',
-  'admin/abac-team-channel-policies', 'admin/abac-channel-access-rules',
+  'admin/abac-team-channel-policies', 'admin/abac-team-membership', 'admin/abac-channel-access-rules',
   'admin/server-configuration', 'admin/server-maintenance', 'code-signing-custom-builds',
   'command-line-tools', 'mmctl-command-line-tool',
   'admin/monitoring-and-performance', 'statistics', 'telemetry',
@@ -809,6 +810,7 @@ const ADMIN_ONBOARD_GROUPS = {
     landing: 'migrating-to-mattermost',
     items: [
       'migrate-from-slack',
+      'migrate-from-rocketchat',
       'migrate-gitlab-omnibus',
       'migration-announcement-email',
     ],
@@ -840,7 +842,7 @@ const ADMIN_ONBOARD_HIDDEN = new Set([
   'guest-accounts', 'delegated-granular-administration', 'advanced-permissions',
   'advanced-permissions-backend-infrastructure',
   'user-provisioning-workflows', 'bulk-loading-data', 'connected-workspaces',
-  'migrating-to-mattermost', 'migrate-from-slack', 'migrate-gitlab-omnibus',
+  'migrating-to-mattermost', 'migrate-from-slack', 'migrate-from-rocketchat', 'migrate-gitlab-omnibus',
   'migration-announcement-email',
 ]);
 

@@ -1552,7 +1552,7 @@ func TestPropertyFieldGraphGate(t *testing.T) {
 		updated, _, appErr := th.App.UpdatePropertyField(th.Context, groupID, created, false, "")
 		require.NotNil(t, appErr)
 		assert.Nil(t, updated)
-		assert.Equal(t, "app.property_field.graph_disabled.app_error", appErr.Id)
+		assert.Equal(t, "app.property_field.update.graph_type_change.app_error", appErr.Id)
 		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
 	})
 

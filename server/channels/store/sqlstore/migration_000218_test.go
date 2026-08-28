@@ -11,10 +11,9 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
-// propertyFieldTypeHasValue reports whether the property_field_type enum accepts
-// the given label.
 func propertyFieldTypeHasValue(t *testing.T, s *SqlStore, label string) bool {
 	t.Helper()
 	var count int
@@ -43,7 +42,7 @@ func TestMigration000218(t *testing.T) {
 	require.NoError(t, err)
 	defer store.Close()
 
-	// New() applies all migrations, so 000214 is already in effect.
+	// New() applies all migrations, so 000218 is already in effect.
 	require.True(t, propertyFieldTypeHasValue(t, store, "graph"))
 
 	group, err := store.PropertyGroup().Register(&model.PropertyGroup{Name: model.NewId(), Version: model.PropertyGroupVersionV1})
@@ -65,7 +64,7 @@ func TestMigration000218(t *testing.T) {
 		})
 		require.NoError(t, cErr)
 
-		read, gErr := store.PropertyField().Get(t.Context(), group.ID, field.ID)
+		read, gErr := store.PropertyField().Get(request.TestContext(t), group.ID, field.ID)
 		require.NoError(t, gErr)
 		assert.Equal(t, model.PropertyFieldTypeGraph, read.Type)
 

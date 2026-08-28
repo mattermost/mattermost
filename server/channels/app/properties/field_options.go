@@ -104,7 +104,7 @@ func (ps *PropertyService) writableField(rctx request.CTX, field *model.Property
 		return nil, optionsChangeRefused("no property field to change the options of")
 	}
 
-	current, err := ps.getPropertyFieldFromMaster(field.GroupID, field.ID)
+	current, err := ps.getPropertyFieldFromMaster(rctx, field.GroupID, field.ID)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to read the property field an option change is aimed at")
 	}
@@ -141,14 +141,13 @@ func requireWritableOptions(field *model.PropertyField) error {
 		return optionsChangeRefused("field %s has been deleted", field.ID)
 	}
 
-	// A rank field's options are the one kind this cannot write. Every option on
-	// one has to carry a positive rank unique within the field, which
-	// PropertyFieldOption does not model and this seam has no way to choose: an
-	// option created here would have none, and the field would be left in the state
-	// the rank validation exists to keep it out of -- unwritable through its own
-	// option list, and read as covering nothing where a policy clamps against it.
-	// A rank field's options are authored as the field's option list, where the
-	// ranks are validated together.
+	// A rank field's options are the one kind this cannot write; they are authored
+	// instead as the field's option list, where the ranks are validated together.
+	// Every option on one has to carry a positive rank unique within the field,
+	// which PropertyFieldOption does not model and this seam has no way to choose:
+	// an option created here would have none, and the field would be left in the
+	// state the rank validation exists to keep it out of -- unwritable through its
+	// own option list, and read as covering nothing where a policy clamps against it.
 	if field.Type == model.PropertyFieldTypeRank {
 		return optionsChangeRefused("the options of a rank field carry an order that is set by writing them as the field's option list")
 	}
@@ -242,31 +241,43 @@ func (ps *PropertyService) GetFieldOptions(rctx request.CTX, field *model.Proper
 	if field == nil {
 		return nil, optionsChangeRefused("no property field to list the options of")
 	}
+
+	// Re-read rather than trust the caller's copy: which rows the store pages,
+	// whether they may be listed at all, and what the post-hook judges all have to
+	// agree with each other, and the only way to guarantee that is to decide all
+	// three from the same field.
+	field, err := ps.getPropertyField(rctx, field.GroupID, field.ID)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to read the property field a listing is aimed at")
+	}
 	if err := requireOptionsAddressable(field); err != nil {
 		return nil, err
+	}
+
+	// Asked once for the whole listing, before the loop pays for a single row: a
+	// caller of a source_only field but its source plugin, and a caller of a
+	// shared_only field who holds nothing for it, will see nothing on any page,
+	// and a hook can say so without reading one. An empty page answers them
+	// exactly as the scan below would have, at the cost of one call instead of a
+	// scan of the whole field.
+	if may, err := ps.runMayShowAnyPropertyFieldOptions(rctx, field); err != nil {
+		return nil, err
+	} else if !may {
+		return []*model.PropertyFieldOption{}, nil
 	}
 
 	// A page a caller may see only part of is filled from the rows behind it, not
 	// answered short. A caller pages until a page comes back shorter than the size
 	// it asked for, so a page that lost most of its options to the hooks would end
-	// the listing early and one that lost all of them would end it immediately --
-	// and the options the caller may see further down would never be reached. Read
-	// on until the page is full or the rows run out, so a short page means what a
-	// caller reads it as.
+	// the listing early -- and the options the caller may see further down would
+	// never be reached. Read on until the page is full or the rows run out, so a
+	// short page means what a caller reads it as.
 	//
 	// The cost of that is a scan of the whole field whenever little of it is
-	// visible. A caller who may see a handful of a large field's options pays for
-	// the rows in between to find them -- and a caller who may see *none* of them
-	// pays for all of them to establish it, which is the common case rather than
-	// the exotic one: it is every caller of a source_only field but its source
-	// plugin, and every caller of a shared_only field who holds nothing for it,
-	// both of which used to cost a single page. Stopping early for them needs a
-	// hook able to say "nothing here, ever" as distinct from "nothing on this
-	// page", which none of them can express -- and the difference matters, because
-	// "nothing on this page" is exactly what the loop exists to read past. The scan
-	// goes away entirely by asking the rows for the options the caller may see
-	// rather than filtering them afterwards, which for a hierarchy means paging the
-	// options below the ones the caller holds.
+	// visible. A caller who may see a handful of a large field's options still
+	// pays for the rows in between to find them -- the hook above only answers
+	// "nothing, ever", not "not much", and the loop below is what handles the case
+	// it cannot.
 	//
 	// An empty page and no page are not the same answer: a hook building its result
 	// by appending returns nil when it keeps nothing, and nil serializes as null
@@ -546,12 +557,12 @@ func (ps *PropertyService) DeleteFieldOptions(rctx request.CTX, field *model.Pro
 // The two are kept apart rather than returned as one list because they are not
 // interchangeable to a caller: the field is the one the request named, and the
 // dependents are fields the requester may not even know exist.
-func (ps *PropertyService) FieldWithDependents(field *model.PropertyField) (*model.PropertyField, []*model.PropertyField, error) {
+func (ps *PropertyService) FieldWithDependents(rctx request.CTX, field *model.PropertyField) (*model.PropertyField, []*model.PropertyField, error) {
 	if field == nil {
 		return nil, nil, errors.New("no property field to read the dependents of")
 	}
 
-	current, err := ps.getPropertyFieldFromMaster(field.GroupID, field.ID)
+	current, err := ps.getPropertyFieldFromMaster(rctx, field.GroupID, field.ID)
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "failed to re-read a property field whose options changed")
 	}
@@ -753,22 +764,6 @@ func inPayloadOrder(payload, stored []*model.PropertyFieldOption) []*model.Prope
 	return ordered
 }
 
-// The option list a field is written with states its hierarchy too: an inline
-// option carries the options directly above it by name, under "parents". That is
-// the only way to create a hierarchy in one call, and it is the reason the checks
-// below exist twice over -- what they check is what the endpoints above check,
-// asked of an open-shaped option list instead of a payload of options.
-//
-// The links themselves are written by the store, inside the same transaction as
-// the option rows they join, so an option never exists without the links the same
-// write gave it. Everything here only decides whether that write may proceed.
-//
-// What is checked against the stored hierarchy stays true when the write lands
-// for the same reason it does at the endpoints: the field write swaps on the
-// UpdateAt of a master read taken before any of this, and every change to a
-// field's options or hierarchy moves that UpdateAt. A field being created has
-// nothing to race with.
-
 // blockingChildBelow reports the first of the given options that cannot be
 // removed, as its position in the list and the identifier of the option still
 // below it. The position is -1 when the whole set can go.
@@ -884,6 +879,22 @@ func (ps *PropertyService) requireDroppedOptionsAreLeaves(submitted, stored *mod
 // validateOptionBlobLinks checks the hierarchy a field's inline option list asks
 // for. stored is the field as the store has it, and is nil for a field being
 // created.
+//
+// The option list a field is written with states its hierarchy too: an inline
+// option carries the options directly above it by name, under "parents". That is
+// the only way to create a hierarchy in one call, and it is the reason this checks
+// what the endpoints above check, asked of an open-shaped option list instead of a
+// payload of options.
+//
+// The links themselves are written by the store, inside the same transaction as
+// the option rows they join, so an option never exists without the links the same
+// write gave it. This only decides whether that write may proceed.
+//
+// What is checked against the stored hierarchy stays true when the write lands
+// for the same reason it does at the endpoints: the field write swaps on the
+// UpdateAt of a master read taken before any of this, and every change to a
+// field's options or hierarchy moves that UpdateAt. A field being created has
+// nothing to race with.
 func (ps *PropertyService) validateOptionBlobLinks(submitted, stored *model.PropertyField) error {
 	// Assigns an identifier to every option that arrived without one, which is what
 	// the links are between. The store runs it again before writing the rows and

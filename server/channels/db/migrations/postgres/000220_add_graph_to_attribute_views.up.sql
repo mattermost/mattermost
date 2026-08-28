@@ -23,7 +23,7 @@
 -- deleted, as select, multiselect, and rank all do, and always project an array,
 -- so a rule can apply an array operator to it without testing its type first.
 --
--- Every other type's projection is byte-identical to 000213's.
+-- Every other type's projection is byte-identical to 000217's.
 
 DROP MATERIALIZED VIEW IF EXISTS UserAttributeView;
 DROP MATERIALIZED VIEW IF EXISTS ChannelAttributeView;

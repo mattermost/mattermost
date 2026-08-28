@@ -12,15 +12,17 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
 // A shared_only field's masking is computed against what the *caller* holds, so
-// every read of one has to say who is asking. The properties REST routes did
-// not: they passed the untagged request context straight to the service, the
-// access control hook read no caller ID, and every caller -- the owner of the
-// values included -- was answered as someone who holds nothing and shown an
-// empty list. Nothing distinguished that from masking working, because "you
-// share nothing" is a legitimate answer.
+// every read of one has to say who is asking. The properties REST routes tag
+// the request context with the caller's ID before it reaches the service, which
+// the access control hook reads to compute the masking; a route that instead
+// passed an untagged context would answer every caller -- the owner of the
+// values included -- as someone who holds nothing, shown an empty list. Nothing
+// distinguishes that from masking working, because "you share nothing" is a
+// legitimate answer.
 //
 // These tests read one target's values back through
 // GET /properties/groups/{group}/{object_type}/values/{target_id} as four
@@ -211,14 +213,12 @@ func (f *sharedOnlyReadFixture) userByKey(t *testing.T, key string) *model.User 
 
 // makeSharedOnly flips the field to the posture a plugin would have authored it
 // with, in the store, since neither the REST API nor the service will accept it
-// from a session. PermissionValues goes to sysadmin because shared_only and
-// member-writable are a rejected combination -- a member who can self-assign any
-// option can read anyone's.
+// from a session.
 func (f *sharedOnlyReadFixture) makeSharedOnly(t *testing.T) {
 	t.Helper()
 
 	store := f.th.App.Srv().Store().PropertyField()
-	field, err := store.Get(context.Background(), f.groupID, f.fieldID)
+	field, err := store.Get(request.TestContext(t), f.groupID, f.fieldID)
 	require.NoError(t, err)
 
 	// A protected field's definition is the source plugin's alone
@@ -247,7 +247,7 @@ func (f *sharedOnlyReadFixture) makeSharedOnly(t *testing.T) {
 //
 // The public field is asserted on every read: it is what tells "the caller was
 // shown nothing of this field" apart from "the read returned nothing at all",
-// which is the distinction the original bug hid behind.
+// a distinction an untagged request context would otherwise erase.
 func (f *sharedOnlyReadFixture) readTargetValue(t *testing.T, client *model.Client4) []string {
 	t.Helper()
 
@@ -295,7 +295,7 @@ func namesOf(t *testing.T, optionIDs map[string]string, ids []string) []string {
 func (f *sharedOnlyReadFixture) optionIDs(t *testing.T) map[string]string {
 	t.Helper()
 
-	field, err := f.th.App.Srv().Store().PropertyField().Get(context.Background(), f.groupID, f.fieldID)
+	field, err := f.th.App.Srv().Store().PropertyField().Get(request.TestContext(t), f.groupID, f.fieldID)
 	require.NoError(t, err)
 	return optionIDsByName(t, field)
 }
@@ -367,10 +367,10 @@ func TestSharedOnlyValuesOverPropertiesRoute_Graph(t *testing.T) {
 		assert.Equal(t, []string{fruitBasket}, namesOf(t, ids, f.readTargetValue(t, f.ownerClient)))
 	})
 
-	// The distinguishing case for the graph branch, and the one the reported
-	// symptom named: the target holds an option above the caller's, so the value
-	// is clamped down to the caller's own part of the hierarchy rather than
-	// hidden. A flat type would have shown nothing here.
+	// The distinguishing case for the graph branch: the target holds an option
+	// above the caller's, so the value is clamped down to the caller's own part
+	// of the hierarchy rather than hidden. A flat type would have shown nothing
+	// here.
 	t.Run("a caller below the target's option sees the value clamped to their own", func(t *testing.T) {
 		assert.Equal(t, []string{redFruit}, namesOf(t, ids, f.readTargetValue(t, f.sharerClient)))
 	})
@@ -384,10 +384,9 @@ func TestSharedOnlyValuesOverPropertiesRoute_Graph(t *testing.T) {
 	})
 }
 
-// TestSharedOnlyFieldOptionsOverPropertiesRoute covers the other read the
-// properties route serves untagged: the field listing, whose inlined option list
-// is filtered by the same rule as the values. It emptied that list for every
-// caller for the same reason.
+// TestSharedOnlyFieldOptionsOverPropertiesRoute covers the field listing route,
+// whose inlined option list is filtered by the same shared_only rule as the
+// values: an untagged caller would see that list emptied for the same reason.
 func TestSharedOnlyFieldOptionsOverPropertiesRoute(t *testing.T) {
 	mainHelper.Parallel(t)
 

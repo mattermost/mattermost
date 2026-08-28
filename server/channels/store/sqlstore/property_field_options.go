@@ -86,9 +86,7 @@ func (r *propertyOptionRow) insertValues() []any {
 // wireOption rebuilds the option object the caller originally wrote.
 func (r *propertyOptionRow) wireOption() map[string]any {
 	opt := make(map[string]any, len(r.Attrs)+4)
-	for key, value := range r.Attrs {
-		opt[key] = value
-	}
+	maps.Copy(opt, r.Attrs)
 	opt[optionKeyID] = r.ID
 	if r.Name != nil {
 		opt[optionKeyName] = *r.Name
@@ -317,8 +315,9 @@ func (s *SqlPropertyFieldStore) GetFieldOptions(field *model.PropertyField, curs
 		})
 	}
 
+	replica := s.GetReplica()
 	rows := []*propertyOptionRow{}
-	if err := s.GetMaster().SelectBuilder(&rows, builder); err != nil {
+	if err := replica.SelectBuilder(&rows, builder); err != nil {
 		return nil, errors.Wrap(err, "property_options_page_query")
 	}
 
@@ -330,7 +329,7 @@ func (s *SqlPropertyFieldStore) GetFieldOptions(field *model.PropertyField, curs
 	if field.Type != model.PropertyFieldTypeGraph {
 		return options, nil
 	}
-	if err := s.attachOptionParentNames(field, options); err != nil {
+	if err := s.attachOptionParentNames(replica, field, options); err != nil {
 		return nil, err
 	}
 	return options, nil
@@ -340,14 +339,14 @@ func (s *SqlPropertyFieldStore) GetFieldOptions(field *model.PropertyField, curs
 // name. Every option comes back with a parent list even when it is empty: a
 // root option having nothing above it is the answer, and a caller writing the
 // option back has to be able to tell that from having left the key out.
-func (s *SqlPropertyFieldStore) attachOptionParentNames(field *model.PropertyField, options []*model.PropertyFieldOption) error {
+func (s *SqlPropertyFieldStore) attachOptionParentNames(db sqlxExecutor, field *model.PropertyField, options []*model.PropertyFieldOption) error {
 	optionIDs := make([]string, 0, len(options))
 	for _, option := range options {
 		optionIDs = append(optionIDs, option.ID)
 	}
 
 	ownerID := graphOptionOwnerID(field)
-	edges, err := s.GetOptionParentEdges(ownerID, optionIDs)
+	edges, err := s.optionParentEdges(db, ownerID, optionIDs)
 	if err != nil {
 		return err
 	}
@@ -356,7 +355,7 @@ func (s *SqlPropertyFieldStore) attachOptionParentNames(field *model.PropertyFie
 	for _, edge := range edges {
 		parentIDs = append(parentIDs, edge.ParentOptionID)
 	}
-	names, err := s.getOptionNames(s.GetMaster(), ownerID, utils.RemoveDuplicatesFromStringArray(parentIDs))
+	names, err := s.getOptionNames(db, ownerID, utils.RemoveDuplicatesFromStringArray(parentIDs))
 	if err != nil {
 		return err
 	}
@@ -428,7 +427,7 @@ func (s *SqlPropertyFieldStore) GetOptionsByID(field *model.PropertyField, optio
 	if err != nil || len(options) == 0 || field.Type != model.PropertyFieldTypeGraph {
 		return options, err
 	}
-	if err := s.attachOptionParentNames(field, options); err != nil {
+	if err := s.attachOptionParentNames(s.GetMaster(), field, options); err != nil {
 		return nil, err
 	}
 	return options, nil
@@ -588,7 +587,7 @@ func (s *SqlPropertyFieldStore) CountOptions(fieldID string) (int, error) {
 // numbers of parents and edges -- is not checked here and cannot be: every one of
 // those is a property of the whole hierarchy rather than of the rows in front of
 // it. A caller puts its change through PropertyService.ValidateOptionEdges
-// first, which is what ApplyOptionEdges and the options endpoints do.
+// first, which is what CreateFieldOptions and UpdateFieldOptions do.
 func (s *SqlPropertyFieldStore) MutateOptions(groupID, fieldID string, expectedUpdateAt int64, upsert []*model.PropertyFieldOption, add, remove []*model.PropertyOptionEdge) (err error) {
 	if len(upsert) == 0 && len(add) == 0 && len(remove) == 0 {
 		return nil
@@ -666,9 +665,12 @@ func (s *SqlPropertyFieldStore) MutateOptions(groupID, fieldID string, expectedU
 		return err
 	}
 
-	if len(remove) > 0 {
+	// Batched for the same reason applyOptionParentLinks batches: one change may
+	// carry a whole hierarchy's worth of edges, and a statement has a hard ceiling
+	// on how many parameters it may take (see maxOptionIDsPerQuery).
+	for batch := range slices.Chunk(remove, maxOptionIDsPerQuery) {
 		matches := sq.Or{}
-		for _, edge := range remove {
+		for _, edge := range batch {
 			matches = append(matches, sq.Eq{
 				"ChildOptionID":  edge.ChildOptionID,
 				"ParentOptionID": edge.ParentOptionID,
@@ -684,11 +686,11 @@ func (s *SqlPropertyFieldStore) MutateOptions(groupID, fieldID string, expectedU
 		}
 	}
 
-	if len(add) > 0 {
+	for batch := range slices.Chunk(add, maxOptionIDsPerQuery) {
 		builder := s.getQueryBuilder().
 			Insert("PropertyOptionEdges").
 			Columns(propertyOptionEdgeColumns...)
-		for _, edge := range add {
+		for _, edge := range batch {
 			builder = builder.Values(edge.FieldID, edge.ChildOptionID, edge.ParentOptionID, now)
 		}
 		// DO NOTHING rather than DO UPDATE: an edge has nothing to update, and the
@@ -900,13 +902,6 @@ func storedFieldAttrs(field *model.PropertyField) model.StringInterface {
 	return stored
 }
 
-// optionsWithheld reports whether a field's attrs came from a read that left the
-// option list out because the field has too many. Writing such a field back must
-// not be read as "this field now has no options".
-func optionsWithheld(field *model.PropertyField) bool {
-	return model.PropertyFieldOptionsOmitted(field.Attrs)
-}
-
 // hydratePropertyFieldOptions inlines each field's effective option set into
 // Attrs["options"], in the order the options were last written in. Fields whose
 // type carries no options are left untouched.
@@ -1116,16 +1111,20 @@ func (s *SqlPropertyFieldStore) getExistingOptionIDs(db sqlxExecutor, ownerIDs [
 		return nil, nil
 	}
 
-	builder := s.getQueryBuilder().
-		Select("ID").
-		From("PropertyOptions").
-		Where(sq.Eq{"FieldID": ownerIDs}).
-		Where(sq.Eq{"ID": optionIDs}).
-		Where(sq.Eq{"DeleteAt": 0})
-
 	ids := []string{}
-	if err := db.SelectBuilder(&ids, builder); err != nil {
-		return nil, errors.Wrap(err, "property_options_exist_query")
+	for batch := range slices.Chunk(optionIDs, maxOptionIDsPerQuery) {
+		builder := s.getQueryBuilder().
+			Select("ID").
+			From("PropertyOptions").
+			Where(sq.Eq{"FieldID": ownerIDs}).
+			Where(sq.Eq{"ID": batch}).
+			Where(sq.Eq{"DeleteAt": 0})
+
+		batchIDs := []string{}
+		if err := db.SelectBuilder(&batchIDs, builder); err != nil {
+			return nil, errors.Wrap(err, "property_options_exist_query")
+		}
+		ids = append(ids, batchIDs...)
 	}
 	return ids, nil
 }
@@ -1191,7 +1190,10 @@ func (s *SqlPropertyFieldStore) getPropertyOptions(db sqlxExecutor, fieldIDs []s
 func (s *SqlPropertyFieldStore) syncPropertyFieldOptions(transaction *sqlxTxWrapper, fields []*model.PropertyField, now int64) ([]string, error) {
 	var ownerIDs []string
 	for _, field := range fields {
-		if !field.Type.SupportsOptions() || optionsWithheld(field) {
+		// A field whose attrs came from a read that left the option list out because
+		// the field has too many is skipped: writing such a field back must not be
+		// read as "this field now has no options".
+		if !field.Type.SupportsOptions() || model.PropertyFieldOptionsOmitted(field.Attrs) {
 			continue
 		}
 		for _, ownerID := range optionOwnerIDs(field) {
@@ -1231,7 +1233,7 @@ func (s *SqlPropertyFieldStore) syncPropertyFieldOptions(transaction *sqlxTxWrap
 		// its rows removed: the store cannot tell a type conversion from a
 		// field that never had options, and dropping rows on the guess would
 		// lose the option list of a field converted away and back again.
-		if !field.Type.SupportsOptions() || optionsWithheld(field) {
+		if !field.Type.SupportsOptions() || model.PropertyFieldOptionsOmitted(field.Attrs) {
 			continue
 		}
 

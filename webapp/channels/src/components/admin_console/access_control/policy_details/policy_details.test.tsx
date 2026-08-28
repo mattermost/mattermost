@@ -293,12 +293,12 @@ describe('components/admin_console/access_control/policy_details/PolicyDetails',
     });
 
     describe('channel attribute warning notice', () => {
-        const NOTICE_TITLE = 'Potential for denied access';
+        const NOTICE_TITLE = 'Channels without this attribute lose all members';
 
         // A channel with no value for a referenced channel attribute denies every
         // member, so the notice fires as soon as the rule references a channel
         // attribute — before any channel is assigned, without inspecting values.
-        const renderWithPolicy = (expression: string, totalChannels: number) => {
+        const renderWithPolicy = (expression: string) => {
             const props = {
                 ...defaultProps,
                 actions: {
@@ -312,8 +312,8 @@ describe('components/admin_console/access_control/policy_details/PolicyDetails',
                     }),
                     searchChannels: jest.fn().mockResolvedValue({
                         data: {
-                            channels: totalChannels > 0 ? [{id: 'channel1', name: 'channel1', display_name: 'Channel 1', team_display_name: 'Team 1', type: 'P'}] : [],
-                            total_count: totalChannels,
+                            channels: [],
+                            total_count: 0,
                         },
                     }),
                 },
@@ -322,13 +322,13 @@ describe('components/admin_console/access_control/policy_details/PolicyDetails',
         };
 
         test('shows as soon as a channel attribute is referenced, before any channel is assigned', async () => {
-            renderWithPolicy('user.attributes.clearance == resource.attributes.minClearance', 0);
+            renderWithPolicy('user.attributes.clearance == resource.attributes.minClearance');
 
             expect(await screen.findByText(NOTICE_TITLE)).toBeInTheDocument();
         });
 
         test('stays hidden when the rule only references user attributes', async () => {
-            renderWithPolicy('user.attributes.clearance == "Secret"', 1);
+            renderWithPolicy('user.attributes.clearance == "Secret"');
 
             await waitFor(() => {
                 expect(screen.getByTestId('table-editor')).toBeInTheDocument();
@@ -339,7 +339,7 @@ describe('components/admin_console/access_control/policy_details/PolicyDetails',
         test('stays hidden when resource.attributes appears only inside a string literal', async () => {
             // referencesResourceAttributes strips quoted literals first, so a value
             // that happens to spell an attribute path is not a reference.
-            renderWithPolicy('user.attributes.name == "resource.attributes.minClearance"', 1);
+            renderWithPolicy('user.attributes.name == "resource.attributes.minClearance"');
 
             await waitFor(() => {
                 expect(screen.getByTestId('table-editor')).toBeInTheDocument();

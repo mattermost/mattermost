@@ -89,6 +89,45 @@ func optionByName(t *testing.T, options []*model.PropertyFieldOption, name strin
 	return nil
 }
 
+// announcedField pairs a websocket event with the field already parsed out of it,
+// so callers don't unmarshal the same payload twice.
+type announcedField struct {
+	event *model.WebSocketEvent
+	field model.PropertyField
+}
+
+// collectFieldEvents drains client's event channel until n property-field-updated
+// events have arrived, one per field ID. Other events may arrive in between, so it
+// collects rather than reading a fixed number. require.Eventually runs its condition
+// on a separate goroutine, where require.FailNow would strand the test rather than
+// fail it, so an unmarshal error is recorded and only asserted after Eventually
+// returns, on the test goroutine.
+func collectFieldEvents(t *testing.T, client *model.WebSocketClient, n int) map[string]announcedField {
+	t.Helper()
+
+	announced := map[string]announcedField{}
+	var unmarshalErr error
+	require.Eventually(t, func() bool {
+		select {
+		case event := <-client.EventChannel:
+			if event.EventType() != model.WebsocketEventPropertyFieldUpdated {
+				return false
+			}
+			var received model.PropertyField
+			if err := json.Unmarshal([]byte(event.GetData()["property_field"].(string)), &received); err != nil {
+				unmarshalErr = err
+				return true
+			}
+			announced[received.ID] = announcedField{event: event, field: received}
+		default:
+		}
+		return len(announced) == n
+	}, 5*time.Second, 100*time.Millisecond)
+	require.NoError(t, unmarshalErr)
+
+	return announced
+}
+
 func TestPropertyFieldOptions(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupConfig(t, func(cfg *model.Config) {
@@ -164,22 +203,7 @@ func TestPropertyFieldOptions(t *testing.T) {
 		})
 		require.NoError(t, err)
 
-		// One event per field, keyed by the field each one carries. Other events may
-		// arrive in between, so this collects rather than reading a fixed number.
-		announced := map[string]*model.WebSocketEvent{}
-		require.Eventually(t, func() bool {
-			select {
-			case event := <-webSocketClient.EventChannel:
-				if event.EventType() != model.WebsocketEventPropertyFieldUpdated {
-					return false
-				}
-				var received model.PropertyField
-				require.NoError(t, json.Unmarshal([]byte(event.GetData()["property_field"].(string)), &received))
-				announced[received.ID] = event
-			default:
-			}
-			return len(announced) == 2
-		}, 5*time.Second, 100*time.Millisecond)
+		announced := collectFieldEvents(t, webSocketClient, 2)
 
 		for _, tc := range []struct {
 			fieldID    string
@@ -188,20 +212,91 @@ func TestPropertyFieldOptions(t *testing.T) {
 			{fields.template.ID, template},
 			{fields.linked.ID, userObject},
 		} {
-			event := announced[tc.fieldID]
-			require.NotNil(t, event, "no event for field %s", tc.fieldID)
-			require.Equal(t, tc.objectType, event.GetData()["object_type"])
-
-			var received model.PropertyField
-			require.NoError(t, json.Unmarshal([]byte(event.GetData()["property_field"].(string)), &received))
+			announcement := announced[tc.fieldID]
+			require.NotNil(t, announcement.event, "no event for field %s", tc.fieldID)
+			require.Equal(t, tc.objectType, announcement.event.GetData()["object_type"])
 
 			// The renamed option, as this field serves it: the template owns it and
 			// the linked field derives it, and both carry the new name.
-			options, ok := received.Attrs[model.PropertyFieldAttributeOptions].([]any)
+			options, ok := announcement.field.Attrs[model.PropertyFieldAttributeOptions].([]any)
 			require.True(t, ok, "field %s should carry its option list", tc.fieldID)
 			require.Len(t, options, 1)
 			assert.Equal(t, "Aerial Program", options[0].(map[string]any)["name"])
 		}
+	})
+
+	t.Run("an access-controlled field's option list is withheld from the websocket broadcast", func(t *testing.T) {
+		// A broadcast has no recipient to filter options against, so a shared_only
+		// field must go out with none at all -- unlike the public fields above,
+		// which still carry theirs. A client that needs the list reads the field
+		// back, and that read is filtered per caller.
+		none := model.PermissionLevelNone
+		sysadmin := model.PermissionLevelSysadmin
+		sharedTemplate, appErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+			Name:       model.NewId(),
+			Type:       graph,
+			GroupID:    group.ID,
+			ObjectType: template,
+			TargetType: "system",
+			Attrs: model.StringInterface{
+				model.PropertyAttrsProtected:  true,
+				model.PropertyAttrsAccessMode: model.PropertyAccessModeSharedOnly,
+			},
+			Protected:         true,
+			PermissionField:   &none,
+			PermissionValues:  &sysadmin,
+			PermissionOptions: &memberLevel,
+		}, true, "")
+		require.Nil(t, appErr)
+
+		sharedLinked, appErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+			Name:          model.NewId(),
+			GroupID:       group.ID,
+			ObjectType:    userObject,
+			TargetType:    "system",
+			LinkedFieldID: &sharedTemplate.ID,
+			Attrs: model.StringInterface{
+				model.PropertyAttrsProtected:  true,
+				model.PropertyAttrsAccessMode: model.PropertyAccessModeSharedOnly,
+			},
+			Protected:       true,
+			PermissionField: &none,
+		}, true, "")
+		require.Nil(t, appErr)
+
+		created, resp, err := th.SystemAdminClient.CreatePropertyFieldOptions(context.Background(), group.Name, template, sharedTemplate.ID, []*model.PropertyFieldOption{
+			namedOption("Air Program"),
+		})
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		th.LoginBasic(t)
+		webSocketClient := th.CreateConnectedWebSocketClient(t)
+
+		_, _, err = th.SystemAdminClient.PatchPropertyFieldOptions(context.Background(), group.Name, template, sharedTemplate.ID, []*model.PropertyFieldOption{
+			{ID: created[0].ID, Name: "Aerial Program"},
+		})
+		require.NoError(t, err)
+
+		announced := collectFieldEvents(t, webSocketClient, 2)
+
+		for _, fieldID := range []string{sharedTemplate.ID, sharedLinked.ID} {
+			announcement := announced[fieldID]
+			require.NotNil(t, announcement.event, "no event for field %s", fieldID)
+
+			options, ok := announcement.field.Attrs[model.PropertyFieldAttributeOptions].([]any)
+			require.True(t, ok, "field %s should still carry an options key", fieldID)
+			require.Empty(t, options)
+			_, hasCount := announcement.field.Attrs[model.PropertyFieldAttributeOptionsCount]
+			require.False(t, hasCount, "field %s should carry no options_count", fieldID)
+			_, hasOmitted := announcement.field.Attrs[model.PropertyFieldAttributeOptionsOmitted]
+			require.False(t, hasOmitted, "field %s should carry no options_omitted", fieldID)
+		}
+
+		// The rename landed -- the broadcast was masked, not the write rejected.
+		listed, _, err := th.SystemAdminClient.GetPropertyFieldOptions(context.Background(), group.Name, template, sharedTemplate.ID, 0, "", 100)
+		require.NoError(t, err)
+		require.Equal(t, []string{"Aerial Program"}, optionNames(listed))
 	})
 
 	t.Run("the effective set is listed, with inherited options read-only", func(t *testing.T) {
@@ -266,6 +361,30 @@ func TestPropertyFieldOptions(t *testing.T) {
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 		CheckErrorID(t, err, "api.property_field.options.invalid_cursor.app_error")
+	})
+
+	t.Run("a negative cursor timestamp is refused", func(t *testing.T) {
+		fields := setupOptionFields(t, th, group.ID, graph, memberLevel, nil)
+
+		path := fmt.Sprintf("/properties/groups/%s/%s/fields/%s/options?cursor_id=%s&cursor_create_at=-1", group.Name, template, fields.template.ID, model.NewId())
+		resp, err := th.SystemAdminClient.DoAPIGet(context.Background(), path, "")
+		require.Error(t, err)
+		require.Equal(t, 400, resp.StatusCode)
+		CheckErrorID(t, err, "api.property_field.options.invalid_cursor.app_error")
+	})
+
+	t.Run("a page size above the bound is clamped, not refused", func(t *testing.T) {
+		fields := setupOptionFields(t, th, group.ID, graph, memberLevel, nil)
+
+		_, _, err := th.SystemAdminClient.CreatePropertyFieldOptions(context.Background(), group.Name, template, fields.template.ID, []*model.PropertyFieldOption{
+			namedOption("Air Program"),
+		})
+		require.NoError(t, err)
+
+		listed, resp, err := th.SystemAdminClient.GetPropertyFieldOptions(context.Background(), group.Name, template, fields.template.ID, 0, "", model.PropertyFieldOptionsMaxPerRequest*2)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.LessOrEqual(t, len(listed), model.PropertyFieldOptionsMaxPerRequest)
 	})
 
 	t.Run("a change names the first item it cannot accept", func(t *testing.T) {
@@ -554,7 +673,9 @@ func TestPropertyFieldOptions(t *testing.T) {
 			{name: "no level lets nobody through", level: noneLevel, admin: true, allow: false},
 		} {
 			t.Run(tc.name, func(t *testing.T) {
-				fields := setupOptionFields(t, th, group.ID, graph, tc.level, nil)
+				fields := setupOptionFields(t, th, group.ID, graph, tc.level, []map[string]any{
+					{"id": model.NewId(), "name": "Seeded Program"},
+				})
 				client := th.Client
 				if tc.admin {
 					client = th.SystemAdminClient
@@ -571,9 +692,23 @@ func TestPropertyFieldOptions(t *testing.T) {
 					// Reading is not gated on the options permission: a field's
 					// options are part of its definition, which is readable at the
 					// field's own scope.
-					_, resp, err = client.GetPropertyFieldOptions(context.Background(), group.Name, template, fields.template.ID, 0, "", 100)
+					var listed []*model.PropertyFieldOption
+					listed, resp, err = client.GetPropertyFieldOptions(context.Background(), group.Name, template, fields.template.ID, 0, "", 100)
 					require.NoError(t, err)
 					CheckOKStatus(t, resp)
+					seeded := optionByName(t, listed, "Seeded Program")
+
+					_, resp, err = client.PatchPropertyFieldOptions(context.Background(), group.Name, template, fields.template.ID, []*model.PropertyFieldOption{
+						{ID: seeded.ID, Name: "Renamed Program"},
+					})
+					require.Error(t, err)
+					CheckForbiddenStatus(t, resp)
+					CheckErrorID(t, err, "api.property_field.options.no_permission.app_error")
+
+					resp, err = client.DeletePropertyFieldOptions(context.Background(), group.Name, template, fields.template.ID, []string{seeded.ID})
+					require.Error(t, err)
+					CheckForbiddenStatus(t, resp)
+					CheckErrorID(t, err, "api.property_field.options.no_permission.app_error")
 					return
 				}
 				require.NoError(t, err)

@@ -15,7 +15,7 @@ import {ChevronDownCircleOutlineIcon, ContentCopyIcon, DotsHorizontalIcon, Forma
 import type IconProps from '@mattermost/compass-icons/components/props';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {FieldType, PropertyField, PropertyFieldOption} from '@mattermost/types/properties';
-import {supportsHierarchy, supportsOptions} from '@mattermost/types/properties';
+import {valueRefersToOptions} from '@mattermost/types/properties';
 
 import PropertyTypes from 'mattermost-redux/action_types/properties';
 import {getPluginStatuses} from 'mattermost-redux/actions/admin';
@@ -172,27 +172,15 @@ function SourceCell({field, isClassificationRow}: ClassificationAwareCellProps) 
 }
 
 function OptionsCell({field}: {field: PropertyField}) {
-    const attrs = field.attrs;
-
-    if (supportsHierarchy(field)) {
-        const omitted = Boolean(attrs?.options_omitted);
-        const count = omitted ?
-            ((attrs?.options_count as number | undefined) ?? 0) :
-            ((attrs?.options as PropertyFieldOption[] | undefined)?.length ?? 0);
-
-        return (
-            <FormattedMessage
-                {...optionsLabels.count}
-                values={{count}}
-            />
-        );
-    }
-
-    if (!supportsOptions(field)) {
+    if (!valueRefersToOptions(field)) {
         return <FormattedMessage {...optionsLabels.freeText}/>;
     }
 
-    const count = (attrs?.options as PropertyFieldOption[] | undefined)?.length ?? 0;
+    const attrs = field.attrs;
+    const omitted = Boolean(attrs?.options_omitted);
+    const count = omitted ?
+        ((attrs?.options_count as number | undefined) ?? 0) :
+        ((attrs?.options as PropertyFieldOption[] | undefined)?.length ?? 0);
 
     return (
         <FormattedMessage

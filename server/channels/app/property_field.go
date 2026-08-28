@@ -5,6 +5,7 @@ package app
 
 import (
 	"encoding/json"
+	"maps"
 	"net/http"
 	"reflect"
 	"strings"
@@ -58,6 +59,16 @@ func (a *App) publishPropertyFieldEvent(rctx request.CTX, eventType model.Websoc
 	if !ok {
 		return
 	}
+	// A broadcast has no recipient to filter options against, so any
+	// non-public field must go out with none at all — a caller reads the
+	// field back afterward to get the copy filtered for them.
+	if field.GetAccessMode() != model.PropertyAccessModePublic && field.Type.SupportsOptions() {
+		masked := *field
+		masked.Attrs = make(model.StringInterface, len(field.Attrs))
+		maps.Copy(masked.Attrs, field.Attrs)
+		masked.HideOptions()
+		field = &masked
+	}
 	fieldJSON, err := json.Marshal(field)
 	if err != nil {
 		rctx.Logger().Warn("Failed to encode property field to JSON", mlog.Err(err))
@@ -102,40 +113,36 @@ func (a *App) rankPropertyFieldGate(where string, field *model.PropertyField) *m
 	)
 }
 
-// graphPropertyFieldGate blocks the "graph" property field type while the
-// PropertyFieldGraph feature flag is disabled. existing is the field's current
-// stored state, or nil when the field is being created.
+// graphPropertyFieldGate blocks creating a "graph" property field while the
+// PropertyFieldGraph feature flag is disabled. It runs only on the create
+// path — nothing on the update path reads the flag, because
+// PropertyService.updatePropertyFields already rejects any conversion to or
+// from the graph type unconditionally, so a create-only gate loses no
+// coverage.
 //
-// Two operations are blocked and no others: creating a graph field, and
-// converting a field of another type to graph. A graph field that already exists
-// stays fully operable with the flag off — nothing but this gate acts on the
-// flag, and it runs only on field create and field update, so an existing graph
-// field's definition and options stay editable and every path that merely reads
-// one is untouched.
-//
-// That half is the one a reader will not assume, and it is deliberate: the flag
-// exists to stop new graph fields appearing, not to freeze the ones already in
-// use. A flag switched off underneath a field somebody is halfway through
-// populating would leave that field uncorrectable, with no way out but deleting
-// it — a worse outcome than the type shipping with no flag at all.
+// A graph field that already exists therefore stays fully operable with the
+// flag off — its definition and options stay editable, and every path that
+// merely reads one is untouched. That half is the one a reader will not
+// assume, and it is deliberate: the flag exists to stop new graph fields
+// appearing, not to freeze the ones already in use. A flag switched off
+// underneath a field somebody is halfway through populating would leave that
+// field uncorrectable, with no way out but deleting it — a worse outcome than
+// the type shipping with no flag at all.
 //
 // Unlike rankPropertyFieldGate this is not narrowed to user-object fields.
 // Nothing shipped uses the graph type yet, so there is no existing feature to
 // exempt, and a hierarchy is normally defined on a template field that user and
 // channel fields link to — narrowing to user objects would leave the definition
 // itself ungated.
-func (a *App) graphPropertyFieldGate(where string, existing, field *model.PropertyField) *model.AppError {
+func (a *App) graphPropertyFieldGate(field *model.PropertyField) *model.AppError {
 	if field == nil || field.Type != model.PropertyFieldTypeGraph {
-		return nil
-	}
-	if existing != nil && existing.Type == model.PropertyFieldTypeGraph {
 		return nil
 	}
 	if a.Config().FeatureFlags.PropertyFieldGraph {
 		return nil
 	}
 	return model.NewAppError(
-		where,
+		"CreatePropertyField",
 		"app.property_field.graph_disabled.app_error",
 		nil,
 		"graph property fields are not enabled",
@@ -157,7 +164,7 @@ func (a *App) CreatePropertyField(rctx request.CTX, field *model.PropertyField, 
 		return nil, appErr
 	}
 
-	if appErr := a.graphPropertyFieldGate("CreatePropertyField", nil, field); appErr != nil {
+	if appErr := a.graphPropertyFieldGate(field); appErr != nil {
 		return nil, appErr
 	}
 
@@ -165,8 +172,9 @@ func (a *App) CreatePropertyField(rctx request.CTX, field *model.PropertyField, 
 	// links to — the property service copies the source's type over whatever the
 	// request said — so the check above cannot see what is about to be created.
 	// Gate on the source's type as well, or a graph template hands out new graph
-	// fields while the flag is off. Skipped entirely when the flag is on, so the
-	// usual path pays no extra read.
+	// fields while the flag is off. Skipped once the flag is on: the gate below
+	// is then a no-op regardless of source, so the read would only fetch an
+	// argument nothing needs.
 	if field.LinkedFieldID != nil && *field.LinkedFieldID != "" && !a.Config().FeatureFlags.PropertyFieldGraph {
 		source, appErr := a.GetPropertyField(rctx, field.GroupID, *field.LinkedFieldID)
 		switch {
@@ -176,7 +184,7 @@ func (a *App) CreatePropertyField(rctx request.CTX, field *model.PropertyField, 
 		case appErr != nil:
 			return nil, appErr
 		default:
-			if appErr := a.graphPropertyFieldGate("CreatePropertyField", nil, source); appErr != nil {
+			if appErr := a.graphPropertyFieldGate(source); appErr != nil {
 				return nil, appErr
 			}
 		}
@@ -384,13 +392,6 @@ func (a *App) UpdatePropertyFields(rctx request.CTX, groupID string, fields []*m
 			return nil, nil, appErr
 		}
 
-		// Graph-type gate: block converting a field to graph while the feature
-		// flag is off. A field that is already graph-typed passes, so its
-		// definition and options stay editable with the flag off.
-		if appErr := a.graphPropertyFieldGate("UpdatePropertyFields", existing, f); appErr != nil {
-			return nil, nil, appErr
-		}
-
 		// Linked-field diff invariants. "Linked" = LinkedFieldID != nil &&
 		// *LinkedFieldID != "". Unlink (nil or "") is always allowed when
 		// existing was linked.
@@ -463,19 +464,14 @@ func (a *App) UpdatePropertyFields(rctx request.CTX, groupID string, fields []*m
 		return nil, nil, model.NewAppError("UpdatePropertyFields", "app.property_field.update.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	// Notify the access control service so any per-field metadata it
-	// caches (e.g. the rank-by-name lookup used by the live evaluator)
-	// and any compiled-policy cache entries that depend on this field
-	// are dropped. This runs before the websocket broadcast so a client
-	// reacting to the event never re-reads stale cached metadata (mirrors
-	// the ordering in DeletePropertyField).
-	if acs := a.Srv().ch.AccessControl; acs != nil {
-		for _, field := range updated {
-			acs.OnPropertyFieldOptionsChanged(rctx, field.ID)
-		}
-		for _, field := range propagated {
-			acs.OnPropertyFieldOptionsChanged(rctx, field.ID)
-		}
+	// This runs before the websocket broadcast so a client reacting to the
+	// event never re-reads stale cached metadata (mirrors the ordering in
+	// DeletePropertyField).
+	for _, field := range updated {
+		a.invalidatePolicyCachesForOptionChange(rctx, field.ID)
+	}
+	for _, field := range propagated {
+		a.invalidatePolicyCachesForOptionChange(rctx, field.ID)
 	}
 
 	// Broadcast websocket events for the requested fields and for the linked
@@ -531,14 +527,9 @@ func (a *App) DeletePropertyField(rctx request.CTX, groupID, id string, bypassPr
 		return model.NewAppError("DeletePropertyField", "app.property_field.delete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	// Notify the access control service so any per-field metadata it caches
-	// (e.g. the rank-by-name lookup used by the live evaluator) and any
-	// compiled-policy cache entries that depend on this field are dropped
-	// cluster-wide. Without this a deleted rank field's stale options would
-	// linger in the per-node cache until restart.
-	if acs := a.Srv().ch.AccessControl; acs != nil {
-		acs.OnPropertyFieldOptionsChanged(rctx, existing.ID)
-	}
+	// Without this a deleted rank field's stale options would linger in the
+	// per-node cache until restart.
+	a.invalidatePolicyCachesForOptionChange(rctx, existing.ID)
 
 	if existing.IsPSAv2() {
 		teamID, channelID, ok := propertyFieldBroadcastParams(rctx, existing)

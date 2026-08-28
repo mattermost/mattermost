@@ -10,6 +10,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
 // tableExists reports whether a table of the given name exists in the current
@@ -46,7 +47,7 @@ func TestMigration000217(t *testing.T) {
 	require.NoError(t, err)
 	defer store.Close()
 
-	// New() applies all migrations, so 000213 is already in effect.
+	// New() applies all migrations, so 000217 is already in effect.
 	require.True(t, tableExists(t, store, "PropertyOptions"), "PropertyOptions should exist after migration")
 
 	group, err := store.PropertyGroup().Register(&model.PropertyGroup{Name: model.NewId(), Version: model.PropertyGroupVersionV1})
@@ -213,7 +214,7 @@ func TestMigration000217(t *testing.T) {
 	assertProjections(t, "after up migration")
 
 	// The option list a field reads back survives the round trip.
-	readLinked, err := store.PropertyField().Get(t.Context(), groupID, linkedSelect.ID)
+	readLinked, err := store.PropertyField().Get(request.TestContext(t), groupID, linkedSelect.ID)
 	require.NoError(t, err)
 	options, ok := readLinked.Attrs["options"].([]any)
 	require.True(t, ok)

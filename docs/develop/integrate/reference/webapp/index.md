@@ -89,12 +89,7 @@ This will add a custom `UserPopularity` component to the profile popover, render
 An instance of the plugin registry is passed to each plugin via the `initialize` callback.
 
 
-<Note title="Generated content (migrating)">
-
-This section was rendered by the Hugo `pluginjsdocs` shortcode from the upstream plugin reference. Migration follow-up — see PLAN.md §11.2.
-
-</Note>
-
+<PluginJsDocs />
 
 ### Theme
 

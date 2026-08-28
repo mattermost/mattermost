@@ -568,10 +568,10 @@ func TestNotifyReviewersOfPostExposureReportGeneration(t *testing.T) {
 		groupID, appErr := th.App.ContentFlaggingGroupId()
 		require.Nil(t, appErr)
 
-		mappedFields, appErr := th.App.GetContentFlaggingMappedFields(groupID)
+		mappedFields, appErr := th.App.GetContentFlaggingMappedFields(th.Context, groupID)
 		require.Nil(t, appErr)
 
-		rootPostIDs, appErr := th.App.getReviewerPostsForFlaggedPost(groupID, postID, mappedFields[contentFlaggingPropertyNameFlaggedPostId].ID)
+		rootPostIDs, appErr := th.App.getReviewerPostsForFlaggedPost(th.Context, groupID, postID, mappedFields[contentFlaggingPropertyNameFlaggedPostId].ID)
 		require.Nil(t, appErr)
 		require.NotEmpty(t, rootPostIDs)
 

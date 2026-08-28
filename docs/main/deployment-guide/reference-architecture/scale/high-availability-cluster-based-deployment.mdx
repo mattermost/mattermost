@@ -702,7 +702,13 @@ Amazon Aurora PostgreSQL provides managed database service with built-in high av
    mmctl config set SqlSettings.MaxIdleConns 50
    ```
 
-   The recommended ratio is 2:1 (MaxOpenConns:MaxIdleConns). These settings apply **per data source**, so with one primary and two read replicas, the total maximum connections would be 300.
+   The recommended ratio is 2:1 (MaxOpenConns:MaxIdleConns). These settings apply **per data source, per Mattermost server node**, not as a cluster-wide total: each node opens its own connection pool, sized to `MaxOpenConns`, for the primary database and for each read replica and search replica.
+
+   To size `max_connections` on the database (or any connection-pooling proxy in front of it), first count the data sources per node—the primary counts as 1, then add the number of read replicas and the number of search replicas. Multiply that count by `MaxOpenConns`, then multiply again by the number of app server nodes:
+
+   `MaxOpenConns` x (data sources per node) x (number of app nodes)
+
+   For example, with one primary and two read replicas, each node has 3 data sources. Across a 3-node cluster, at the default `MaxOpenConns` of 100, that's 3 x 3 x 100 = 900 possible connections.
 
 4. **Verify database configuration:** Restart Mattermost and check that database connections are healthy:
 

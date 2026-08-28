@@ -116,6 +116,15 @@ export const supportsOptions = (field: PropertyField) => {
 
 export const supportsHierarchy = (field: PropertyField): boolean => field.type === 'graph';
 
+// Whether a field's stored value is a list of option ids that has to be resolved
+// against attrs.options before it is shown. supportsOptions answers a narrower
+// question -- whether the plain option-list editor can write this field's options
+// -- and excludes graph on purpose: a graph field's options carry parent links
+// that editor has no way to send back.
+export const valueRefersToOptions = (field: PropertyField) => {
+    return supportsOptions(field) || supportsHierarchy(field);
+};
+
 // PSA v2 state types
 
 export type PropertiesState = {

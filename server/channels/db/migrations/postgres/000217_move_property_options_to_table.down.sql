@@ -38,7 +38,7 @@ UPDATE PropertyFields pf
   FROM effective e
  WHERE pf.ID = e.fieldid;
 
--- Restore the 000212 view bodies verbatim: option names come back out of the
+-- Restore the 000216 view bodies verbatim: option names come back out of the
 -- blob, and the effective-set scoping is unnecessary again because a linked
 -- field's blob carries its own copy of the options.
 DROP MATERIALIZED VIEW IF EXISTS UserAttributeView;
