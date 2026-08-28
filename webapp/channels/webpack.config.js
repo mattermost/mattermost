@@ -12,6 +12,7 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 const ImageMinimizerPlugin = require('image-minimizer-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const MonacoWebpackPlugin = require('monaco-editor-webpack-plugin');
+const TerserPlugin = require('terser-webpack-plugin');
 const webpack = require('webpack');
 const {ModuleFederationPlugin} = require('webpack').container;
 const WebpackPwaManifest = require('webpack-pwa-manifest');
@@ -451,7 +452,15 @@ if (DEV) {
     config.optimization = {
         ...config.optimization,
         minimizer: [
-            '...',
+
+            // React derives component names from function and class names, so mangling them would
+            // leave every strict mode violation pointing at a one-letter component.
+            REACT_STRICT_MODE ? new TerserPlugin({
+                terserOptions: {
+                    keep_classnames: true,
+                    keep_fnames: true,
+                },
+            }) : '...',
             new ImageMinimizerPlugin({
                 minimizer: {
                     implementation: ImageMinimizerPlugin.sharpMinify,
@@ -471,16 +480,39 @@ if (DEV) {
 const env = {};
 if (DEV) {
     env.PUBLIC_PATH = JSON.stringify(publicPath);
-} else if (REACT_STRICT_MODE) {
-    console.log('Enabling React strict mode: building against the React development runtime');
-
-    env.NODE_ENV = JSON.stringify('development');
-
-    // Webpack's production mode defines process.env.NODE_ENV as 'production' on its own, which
-    // would conflict with the definition above.
-    config.optimization.nodeEnv = false;
 } else {
     env.NODE_ENV = JSON.stringify('production');
+}
+
+if (!DEV && REACT_STRICT_MODE) {
+    console.log('Enabling React strict mode: linking against the React development runtime');
+
+    // NODE_ENV deliberately stays at production above. Flipping it for the whole bundle would also
+    // switch every other library into its development mode, and some of those are far from free:
+    // mattermost-redux deep freezes the entire store on every action when NODE_ENV isn't
+    // production, which on its own is slow enough to make the E2E suite time out. Point React (and
+    // the packages it shares its internals with) at their development builds instead.
+    //
+    // These have to be absolute paths: the cjs directory isn't listed in each package's exports
+    // field, so webpack can't resolve it from a bare request.
+    const reactBuild = (packageName, file) => path.join(path.dirname(require.resolve(`${packageName}/package.json`)), 'cjs', file);
+
+    config.resolve.alias = {
+        ...config.resolve.alias,
+        react$: reactBuild('react', 'react.development.js'),
+        'react/jsx-runtime$': reactBuild('react', 'react-jsx-runtime.development.js'),
+        'react/jsx-dev-runtime$': reactBuild('react', 'react-jsx-dev-runtime.development.js'),
+        'react-dom$': reactBuild('react-dom', 'react-dom.development.js'),
+        scheduler$: reactBuild('scheduler', 'scheduler.development.js'),
+    };
+
+    config.module.rules.push({
+        test: [
+            /[\\/]node_modules[\\/](react|react-dom|scheduler)[\\/]cjs[\\/][\w-]+\.development\.js$/,
+            /[\\/]node_modules[\\/]react-dom[\\/]client\.js$/,
+        ],
+        loader: path.resolve(__dirname, 'scripts/react_development_build_loader.js'),
+    });
 }
 
 config.plugins.push(new webpack.DefinePlugin({
