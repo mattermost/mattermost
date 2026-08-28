@@ -165,9 +165,9 @@ Post-upgrade full-suite dispatch is not part of this pipeline (a single runner c
 | Merge to `master` / `release-*` | On automatically                             |
 | Release cut                     | On automatically                             |
 
-When the resolver returns an empty matrix (no supported from-versions left), CI posts a success commit status at `e2e-test/playwright-rolling-upgrades/none` and skips upgrade workers.
+When the resolver returns an empty matrix (no supported from-versions left), CI posts a success commit status at `e2e-test/playwright-full/enterprise/upgrade-from-none` and skips upgrade workers.
 
-Commit status context per from-version: `e2e-test/playwright-rolling-upgrades/enterprise/from-release-11.9` (ESR entries append `-esr`, e.g. `from-release-10.11-esr`). The normal full suite continues to use `e2e-test/playwright-full/...` unchanged.
+Commit status context per from-version: `e2e-test/playwright-full/enterprise/upgrade-from-release-11.9` (ESR entries append `-esr`, e.g. `upgrade-from-release-10.11-esr`). The normal full suite continues to use `e2e-test/playwright-full/enterprise` (no `/upgrade-from-…` suffix).
 
 ## Visual Testing
 

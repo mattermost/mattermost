@@ -5,7 +5,7 @@
 // Resolves the rolling-upgrade matrix for CI: last 3 minor releases + any active Extended
 // Support release. Prints JSON objects with docker tags and ESR metadata, e.g.
 // [{"dockerTag":"release-11.9",...}] — or `[]` when no supported from-versions remain (CI posts
-// e2e-test/playwright-rolling-upgrades/none and skips workers).
+// e2e-test/playwright-full/{edition}/upgrade-from-none and skips workers).
 //
 // Current version + last-3 come from this local checkout's version.go. Support-end dates and ESR
 // status are fetched live from master, since those lapse with calendar time.

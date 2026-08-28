@@ -117,7 +117,7 @@ jobs:
         if: steps.upgrade-matrix.outputs.matrix_empty == 'true'
         env:
           COMMIT_SHA: ${{ inputs.commit_sha }}
-          CONTEXT_NAME: "e2e-test/playwright-rolling-upgrades/none${{ inputs.context_suffix }}"
+          CONTEXT_NAME: "e2e-test/playwright-full/${{ inputs.server_edition || 'enterprise' }}/upgrade-from-none${{ inputs.context_suffix }}"
           GH_TOKEN: ${{ github.token }}
           GITHUB_REPOSITORY: ${{ github.repository }}
           GITHUB_RUN_ID: ${{ github.run_id }}
@@ -236,7 +236,7 @@ jobs:
       - name: ci/commit-status-context
         id: composite-identity
         env:
-          CONTEXT_NAME: "e2e-test/playwright-rolling-upgrades/${{ inputs.server_edition || 'enterprise' }}/from-${{ matrix.contextLabel }}${{ inputs.context_suffix }}"
+          CONTEXT_NAME: "e2e-test/playwright-full/${{ inputs.server_edition || 'enterprise' }}/upgrade-from-${{ matrix.contextLabel }}${{ inputs.context_suffix }}"
         run: echo "commit-status-context=${CONTEXT_NAME}" >> $GITHUB_OUTPUT
       - name: ci/testcontainers-down
         working-directory: e2e-tests/playwright
@@ -248,10 +248,26 @@ jobs:
           IMAGE_REPO="${SERVER_IMAGE%:*}"
           PW_UPGRADE_FROM_SERVER_IMAGE="${IMAGE_REPO}:${UPGRADE_FROM_DOCKER_TAG}" \
             npx playwright test --project=upgrade-from
+      - name: ci/save-upgrade-from-results
+        if: always()
+        working-directory: e2e-tests/playwright
+        run: |
+          mkdir -p /tmp/upgrade-results
+          if [ -f results/reporter/results.json ]; then
+            cp results/reporter/results.json /tmp/upgrade-results/from.json
+          fi
       - name: ci/upgrade-to
         id: upgrade_to
         working-directory: e2e-tests/playwright
         run: npx playwright test --project=upgrade-to
+      - name: ci/save-upgrade-to-results
+        if: always()
+        working-directory: e2e-tests/playwright
+        run: |
+          mkdir -p /tmp/upgrade-results
+          if [ -f results/reporter/results.json ]; then
+            cp results/reporter/results.json /tmp/upgrade-results/to.json
+          fi
       # Post-upgrade full-suite dispatch is intentionally omitted: one runner cannot drain
       # ~280 specs within the job timeout. Upgrade-path coverage is upgrade-from → upgrade-to.
       - name: ci/post-commit-status
@@ -263,16 +279,67 @@ jobs:
           GITHUB_REPOSITORY: ${{ github.repository }}
           GITHUB_RUN_ID: ${{ github.run_id }}
           IMAGE_TAG: ${{ inputs.server_image_tag }}
+          IMAGE_ALIASES: ${{ inputs.server_image_aliases }}
           FROM_OUTCOME: ${{ steps.upgrade_from.outcome }}
           TO_OUTCOME: ${{ steps.upgrade_to.outcome }}
         run: |
-          if [ "$FROM_OUTCOME" = "success" ] && [ "$TO_OUTCOME" = "success" ]; then
+          # Same shape as Test System IO summaries, plus from:<contextLabel>.
+          # Examples:
+          #   100% passed (12), 2 specs, image_tag:master, from:release-11.9
+          #   91.7% passed (11/12), 1 failed, 2 specs, image_tag:abc1234, from:release-11.7-esr
+          #   100% passed (12), 2 specs, image_tag:11.4.0 (release-11.4, release-11), from:release-11.9
+          parse_pw_stats() {
+            local file="$1"
+            if [ ! -f "$file" ]; then
+              echo "0 0 0"
+              return
+            fi
+            jq -r '
+              def spec_files:
+                [.. | objects | select(has("file") and (.file | type == "string") and (.file | length > 0)) | .file]
+                | unique | length;
+              [
+                ((.stats.expected // 0) + (.stats.flaky // 0)),
+                (.stats.unexpected // 0),
+                spec_files
+              ] | @tsv
+            ' "$file" | tr '\t' ' '
+          }
+
+          PASSED=0
+          FAILED=0
+          SPECS=0
+          for RESULT_FILE in /tmp/upgrade-results/from.json /tmp/upgrade-results/to.json; do
+            read -r P F S <<< "$(parse_pw_stats "$RESULT_FILE")"
+            PASSED=$((PASSED + P))
+            FAILED=$((FAILED + F))
+            SPECS=$((SPECS + S))
+          done
+          TOTAL=$((PASSED + FAILED))
+
+          IMAGE_PART="image_tag:${IMAGE_TAG}"
+          if [ -n "${IMAGE_ALIASES:-}" ]; then
+            IMAGE_PART="${IMAGE_PART} (${IMAGE_ALIASES//,/, })"
+          fi
+          FROM_PART="from:${UPGRADE_FROM_CONTEXT_LABEL}"
+
+          if [ "$TOTAL" -gt 0 ] && [ "$FAILED" -eq 0 ]; then
+            DESC="100% passed (${PASSED}), ${SPECS} specs, ${IMAGE_PART}, ${FROM_PART}"
+          elif [ "$TOTAL" -gt 0 ]; then
+            RATE=$(awk -v p="$PASSED" -v t="$TOTAL" 'BEGIN { printf "%.1f", 100.0 * p / t }')
+            DESC="${RATE}% passed (${PASSED}/${TOTAL}), ${FAILED} failed, ${SPECS} specs, ${IMAGE_PART}, ${FROM_PART}"
+          elif [ "$FROM_OUTCOME" = "success" ] && [ "$TO_OUTCOME" = "success" ]; then
+            DESC="100% passed, ${IMAGE_PART}, ${FROM_PART}"
+          else
+            DESC="0% passed, ${IMAGE_PART}, ${FROM_PART}"
+          fi
+
+          if [ "$FROM_OUTCOME" = "success" ] && [ "$TO_OUTCOME" = "success" ] && [ "$FAILED" -eq 0 ]; then
             STATE=success
-            DESC="upgrade-from → upgrade-to passed, image_tag:${IMAGE_TAG}, from:${UPGRADE_FROM_CONTEXT_LABEL}"
           else
             STATE=failure
-            DESC="upgrade-from=${FROM_OUTCOME}, upgrade-to=${TO_OUTCOME}, image_tag:${IMAGE_TAG}, from:${UPGRADE_FROM_CONTEXT_LABEL}"
           fi
+
           # GitHub commit-status description max length is 140.
           DESC="${DESC:0:140}"
           gh api "repos/${GITHUB_REPOSITORY}/statuses/${COMMIT_SHA}" \

@@ -142,8 +142,7 @@ jobs:
       - name: ci/post-skip-status
         env:
           COMMIT_SHA: ${{ inputs.commit_sha }}
-          CONTEXT_PREFIX: "e2e-test/playwright-rolling-upgrades/${{ inputs.server_edition || 'enterprise' }}"
-          CONTEXT_SUFFIX: "${{ needs.generate-build-variables.outputs.context_suffix }}"
+          CONTEXT_NAME: "e2e-test/playwright-full/${{ inputs.server_edition || 'enterprise' }}/upgrade-from-skipped${{ needs.generate-build-variables.outputs.context_suffix }}"
           GH_TOKEN: ${{ github.token }}
           GITHUB_REPOSITORY: ${{ github.repository }}
           GITHUB_RUN_ID: ${{ github.run_id }}
@@ -151,10 +150,10 @@ jobs:
           # Rolling-upgrade matrix is resolved at runtime; post a generic skip status for the suite.
           gh api "repos/${GITHUB_REPOSITORY}/statuses/${COMMIT_SHA}" \
             -f state=success \
-            -f context="${CONTEXT_PREFIX}${CONTEXT_SUFFIX}" \
+            -f context="${CONTEXT_NAME}" \
             -f description="No E2E-relevant changes - skipped" \
             -f target_url="https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
-          echo "Posted success for ${CONTEXT_PREFIX}${CONTEXT_SUFFIX}"
+          echo "Posted success for ${CONTEXT_NAME}"
 
   playwright-rolling-upgrades:
     needs:

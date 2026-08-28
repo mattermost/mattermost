@@ -93,7 +93,7 @@ SERVER_IMAGE=mattermostdevelopment/mattermost-enterprise-edition:master npm run 
 npm run testcontainers:down
 ```
 
-- `script/resolve_upgrade_matrix.mjs` — outputs JSON with `dockerTag`, `isESR`, `contextLabel`; prints `[]` when no supported from-versions (CI posts `e2e-test/playwright-rolling-upgrades/none`).
+- `script/resolve_upgrade_matrix.mjs` — outputs JSON with `dockerTag`, `isESR`, `contextLabel`; prints `[]` when no supported from-versions (CI posts `e2e-test/playwright-full/{edition}/upgrade-from-none`).
 - CI rolling upgrades run on merge/release automatically; PR runs only when `run_rolling_upgrades` is enabled on manual `e2e-tests-ci.yml` dispatch.
 - Pulling `release-*` server images requires Docker Hub login (`DOCKERHUB_USERNAME` / `DOCKERHUB_TOKEN`). Set `MM_LICENSE` for licensed upgrade-from scenarios.
 - Before opening/updating the PR: run `npm run check` in `e2e-tests/playwright` and fix any eslint errors; then verify a full `upgrade-from` → `upgrade-to` run is green.

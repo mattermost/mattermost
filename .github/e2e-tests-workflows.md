@@ -126,9 +126,21 @@ The template splits into five jobs — `prepare-run`, `prep-deps`, `dispatch-beg
 `e2e-tests-playwright-rolling-upgrades-template.yml` resolves the from-version matrix via `script/resolve_upgrade_matrix.mjs` (last 3 minors + active ESR; ESR entries carry `isESR: true` and a `contextLabel` ending in `-esr`). Each matrix job runs in isolation on its own runner:
 
 1. `testcontainers:down` → `upgrade-from` → `upgrade-to`
-2. Per-from-version commit status: `e2e-test/playwright-rolling-upgrades/{edition}/from-{contextLabel}`
+2. Per-from-version commit status: `e2e-test/playwright-full/{edition}/upgrade-from-{contextLabel}`
 
 Post-upgrade full Playwright dispatch is omitted — a single runner cannot finish the full suite within the job timeout. Upgrade-path coverage is the API harness (`upgrade-from` / `upgrade-to`).
+
+**Commit status description** (same shape as Test System IO against `server_image`, plus `from:`):
+
+| Example | Description |
+|---------|-------------|
+| All passed | `100% passed (12), 2 specs, image_tag:master, from:release-11.9` |
+| With failures | `91.7% passed (11/12), 1 failed, 2 specs, image_tag:abc1234, from:release-11.7-esr` |
+| With aliases (release cuts) | `100% passed (12), 2 specs, image_tag:11.4.0 (release-11.4, release-11), from:release-11.9` |
+
+Keep `image_tag:` (target/to image) and `from:` (resolved from-version `contextLabel`) on every result status.
+
+Failed rolling-upgrade contexts are included when applying **E2E Tests/verified** or the override-status workflow (discovered by pattern `e2e-test/playwright-full/{edition}/upgrade-from-*`, same principle as full-suite contexts).
 
 This pipeline is invoked from `e2e-tests-playwright.yml` when `run_rolling_upgrades: "true"`. It is **not** embedded in `e2e-tests-playwright-template.yml`.
 
@@ -139,7 +151,7 @@ This pipeline is invoked from `e2e-tests-playwright.yml` when `run_rolling_upgra
 | Merge to `master` / `release-*` | `true` |
 | Release cut | `true` |
 
-When `resolve_upgrade_matrix.mjs` returns `[]` (no supported from-versions), the template posts success on `e2e-test/playwright-rolling-upgrades/none` and skips `workers` / `report`.
+When `resolve_upgrade_matrix.mjs` returns `[]` (no supported from-versions), the template posts success on `e2e-test/playwright-full/{edition}/upgrade-from-none` and skips `workers` / `report`.
 
 ---
 
@@ -308,9 +320,13 @@ Where `<phase>` is `cypress-smoke`, `cypress-full`, `playwright-smoke`, or `play
 - All passed: `100% passed (<count>), <specs> specs, image_tag:<tag>[ (<aliases>)]`
 - With failures: `<rate>% passed (<passed>/<total>), <failed> failed, <specs> specs, image_tag:<tag>[ (<aliases>)]`
 - Pending: `tests running, image_tag:<tag>[ (<aliases>)]`
+- Rolling upgrades (per from-version): same as above, plus `, from:<contextLabel>`
+  - e.g. `100% passed (12), 2 specs, image_tag:master, from:release-11.9`
+  - e.g. `91.7% passed (11/12), 1 failed, 2 specs, image_tag:abc1234, from:release-11.7-esr`
 
 - Pass rate: `100%` if all pass, otherwise one decimal (e.g., `99.5%`)
 - Aliases only present for release cuts
+- `image_tag:` is the target/to server image; rolling upgrades also keep `from:` for the from-version label
 
 ### Failure behavior
 
