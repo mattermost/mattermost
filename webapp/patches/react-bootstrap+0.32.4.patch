@@ -1,0 +1,106 @@
+diff --git a/node_modules/react-bootstrap/es/Dropdown.js b/node_modules/react-bootstrap/es/Dropdown.js
+index c9e0eb0..6c72d32 100644
+--- a/node_modules/react-bootstrap/es/Dropdown.js
++++ b/node_modules/react-bootstrap/es/Dropdown.js
+@@ -132,10 +132,14 @@ function (_React$Component) {
+     this.focusNextOnOpen();
+   };
+ 
+-  _proto.UNSAFE_componentWillUpdate = function UNSAFE_componentWillUpdate(nextProps) {
+-    if (!nextProps.open && this.props.open) {
++  _proto.getSnapshotBeforeUpdate = function getSnapshotBeforeUpdate(prevProps) {
++    // Record where focus was while the menu is still in the DOM, so that
++    // componentDidUpdate can decide whether to return it to the toggle.
++    if (!this.props.open && prevProps.open) {
+       this._focusInDropdown = contains(this.containerRef.current.querySelector('[role=menu]'), activeElement(document));
+     }
++
++    return null;
+   };
+ 
+   _proto.componentDidUpdate = function componentDidUpdate(prevProps) {
+diff --git a/node_modules/react-bootstrap/es/TabContent.js b/node_modules/react-bootstrap/es/TabContent.js
+index 5c04258..fc0cd9b 100644
+--- a/node_modules/react-bootstrap/es/TabContent.js
++++ b/node_modules/react-bootstrap/es/TabContent.js
+@@ -57,17 +57,21 @@ function (_React$Component) {
+     return _this;
+   }
+ 
+-  var _proto = TabContent.prototype;
+-
+-  _proto.UNSAFE_componentWillReceiveProps = function UNSAFE_componentWillReceiveProps(nextProps) {
+-    if (!nextProps.animation && this.state.activeChild) {
+-      this.setState({
++  TabContent.getDerivedStateFromProps = function getDerivedStateFromProps(props, state) {
++    // An active child is only ever recorded while animating, so once animation
++    // is turned off there is nothing left for it to track.
++    if (!props.animation && state.activeChild) {
++      return {
+         activeKey: null,
+         activeChild: null
+-      });
++      };
+     }
++
++    return null;
+   };
+ 
++  var _proto = TabContent.prototype;
++
+   _proto.componentWillUnmount = function componentWillUnmount() {
+     this.isUnmounted = true;
+   };
+diff --git a/node_modules/react-bootstrap/lib/Dropdown.js b/node_modules/react-bootstrap/lib/Dropdown.js
+index c684ce9..c63c98a 100644
+--- a/node_modules/react-bootstrap/lib/Dropdown.js
++++ b/node_modules/react-bootstrap/lib/Dropdown.js
+@@ -162,10 +162,14 @@ function (_React$Component) {
+     this.focusNextOnOpen();
+   };
+ 
+-  _proto.UNSAFE_componentWillUpdate = function UNSAFE_componentWillUpdate(nextProps) {
+-    if (!nextProps.open && this.props.open) {
++  _proto.getSnapshotBeforeUpdate = function getSnapshotBeforeUpdate(prevProps) {
++    // Record where focus was while the menu is still in the DOM, so that
++    // componentDidUpdate can decide whether to return it to the toggle.
++    if (!this.props.open && prevProps.open) {
+       this._focusInDropdown = (0, _contains.default)(this.containerRef.current.querySelector('[role=menu]'), (0, _activeElement.default)(document));
+     }
++
++    return null;
+   };
+ 
+   _proto.componentDidUpdate = function componentDidUpdate(prevProps) {
+diff --git a/node_modules/react-bootstrap/lib/TabContent.js b/node_modules/react-bootstrap/lib/TabContent.js
+index 120472a..e58844c 100644
+--- a/node_modules/react-bootstrap/lib/TabContent.js
++++ b/node_modules/react-bootstrap/lib/TabContent.js
+@@ -75,17 +75,21 @@ function (_React$Component) {
+     return _this;
+   }
+ 
+-  var _proto = TabContent.prototype;
+-
+-  _proto.UNSAFE_componentWillReceiveProps = function UNSAFE_componentWillReceiveProps(nextProps) {
+-    if (!nextProps.animation && this.state.activeChild) {
+-      this.setState({
++  TabContent.getDerivedStateFromProps = function getDerivedStateFromProps(props, state) {
++    // An active child is only ever recorded while animating, so once animation
++    // is turned off there is nothing left for it to track.
++    if (!props.animation && state.activeChild) {
++      return {
+         activeKey: null,
+         activeChild: null
+-      });
++      };
+     }
++
++    return null;
+   };
+ 
++  var _proto = TabContent.prototype;
++
+   _proto.componentWillUnmount = function componentWillUnmount() {
+     this.isUnmounted = true;
+   };
