@@ -11,7 +11,7 @@ import type {WrappedComponentProps} from 'react-intl';
 
 import {DownloadOutlineIcon, LinkVariantIcon, CheckIcon} from '@mattermost/compass-icons/components';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
-import {captureStillFrame} from '@mattermost/shared/utils/animated_image';
+import {captureStillFrame} from '@mattermost/shared/utils/capture_still_frame';
 import type {FileInfo} from '@mattermost/types/files';
 import type {PostImage} from '@mattermost/types/posts';
 
@@ -131,7 +131,7 @@ function isLikelyAnimatedImage(src: string, fileInfo?: FileInfo): boolean {
     if (extension === 'gif' || extension === 'webp') {
         return true;
     }
-    return /\.(gif|webp)(\?|#|$)/i.test(src);
+    return (/\.(gif|webp)(\?|#|$)/i).test(src);
 }
 
 // SizeAwareImage is a component used for rendering images where the dimensions of the image are important for
@@ -193,15 +193,26 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
         }
         this.setState({isWindowActive});
 
-        if (!isWindowActive && this.state.loaded && isLikelyAnimatedImage(this.props.src, this.props.fileInfo) &&
-            this.capturedStillFrameForSrc !== this.props.src) {
-            this.capturedStillFrameForSrc = this.props.src;
-            captureStillFrame(this.props.src).then((dataUrl) => {
-                if (dataUrl && this.mounted && this.capturedStillFrameForSrc === this.props.src) {
-                    this.setState({stillFrameSrc: dataUrl});
-                }
-            });
+        if (!isWindowActive) {
+            this.maybeCaptureStillFrame();
         }
+    };
+
+    // Captures a still frame for the current image if it's loaded, likely animated, and hasn't
+    // already been captured. Safe to call speculatively (e.g. on mount or on load) since it's a
+    // no-op when those conditions aren't met.
+    maybeCaptureStillFrame = () => {
+        if (!this.state.loaded || !isLikelyAnimatedImage(this.props.src, this.props.fileInfo) ||
+            this.capturedStillFrameForSrc === this.props.src) {
+            return;
+        }
+
+        this.capturedStillFrameForSrc = this.props.src;
+        captureStillFrame(this.props.src).then((dataUrl) => {
+            if (dataUrl && this.mounted && this.capturedStillFrameForSrc === this.props.src) {
+                this.setState({stillFrameSrc: dataUrl});
+            }
+        });
     };
 
     dimensionsAvailable = (dimensions?: Partial<PostImage>) => {
@@ -224,6 +235,9 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
             }, () => { // Call onImageLoaded prop only after state has already been set
                 if (this.props.onImageLoaded && image.naturalHeight) {
                     this.props.onImageLoaded({height: image.naturalHeight, width: image.naturalWidth});
+                }
+                if (!this.state.isWindowActive) {
+                    this.maybeCaptureStillFrame();
                 }
             });
         }
