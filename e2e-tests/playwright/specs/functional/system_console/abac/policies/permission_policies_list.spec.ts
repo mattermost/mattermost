@@ -61,18 +61,21 @@ test.describe('Permission Policies - List Page', () => {
         await expect(systemConsolePage.page.getByPlaceholder('Search')).toBeVisible();
     });
 
-    test('MM-T5803 Permission Policies list page subtitle describes file permission scope', async ({pw}) => {
+    test('MM-T5803 Permission Policies list page subtitle describes the attribute-based scope', async ({pw}) => {
         await pw.skipIfNoLicense();
         const {adminUser, adminClient} = await pw.initSetup();
         await ensureUserAttributes(adminClient);
         const {systemConsolePage} = await pw.testBrowser.login(adminUser);
 
+        // # Open the Permission Policies list page
         await enableABAC(systemConsolePage.page);
         await navigateToPermissionPoliciesPage(systemConsolePage.page);
 
+        // * Subtitle is action-agnostic — it must not enumerate the individual
+        // permissions, which grow over time (upload, download, view channel...)
         await expect(
             systemConsolePage.page.getByText(
-                'Create policies to control file upload and download permissions based on user attributes',
+                'Create policies to control what users can do, based on their attributes',
                 {exact: false},
             ),
         ).toBeVisible();
