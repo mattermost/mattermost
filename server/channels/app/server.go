@@ -863,7 +863,7 @@ func (s *Server) Shutdown() {
 	timeoutCtx, timeoutCancel := context.WithTimeout(context.Background(), time.Second*15)
 	defer timeoutCancel()
 	if err = s.Log().ShutdownWithTimeout(timeoutCtx); err != nil {
-		fmt.Fprintf(os.Stderr, "Error shutting down main logger: %v", err)
+		fmt.Fprintf(os.Stderr, "Error shutting down main logger (this can happen if a log target, e.g. a remote TCP endpoint, is unreachable; check preceding connection error logs for the affected target): %v\n", err)
 	}
 }
 

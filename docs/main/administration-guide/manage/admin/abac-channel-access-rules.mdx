@@ -303,7 +303,7 @@ The auto-sync toggle is automatically disabled when:
 
 #### How quickly are membership changes applied?
 
-When you save access rules, membership sync job is created and changes are applied as soon as the job is completed. Additionally, Mattermost runs synchronization jobs on a schedule to handle attribute changes from external systems (LDAP, SAML). The interval is set by `AccessControlSettings.SyncJobIntervalSeconds` and defaults to 3600 seconds (60 minutes).
+When you save access rules, membership sync job is created and changes are applied as soon as the job is completed. Additionally, Mattermost runs synchronization jobs on a schedule to handle attribute changes from external systems (LDAP, SAML). The interval is set by `AccessControlSettings.SyncJobIntervalSeconds` and defaults to 3600 seconds (60 minutes). User attributes used for access control evaluation are refreshed on a separate schedule controlled by `AccessControlSettings.AttributeRefreshIntervalSeconds`, which defaults to 30 seconds.
 
 #### Will users be notified when they're removed from a channel?
 
