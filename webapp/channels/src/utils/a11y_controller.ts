@@ -949,6 +949,7 @@ export default class A11yController {
     handleWindowBlur = (event: Event) => {
         if (event.target === window) {
             this.windowIsFocused = false;
+            this.spaceKeyClickTriggered = false;
         }
     };
 
