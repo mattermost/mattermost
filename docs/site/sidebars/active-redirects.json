@@ -149,7 +149,11 @@
     },
     {
       "from": "/about/on-prem-skype-for-business-replacement",
-      "to": "/use-case-guide/on-prem-skype-for-business-replacement"
+      "to": "/use-case-guide/use-cases-index"
+    },
+    {
+      "from": "/use-case-guide/on-prem-skype-for-business-replacement",
+      "to": "/use-case-guide/use-cases-index"
     },
     {
       "from": "/about/out-of-band-incident-response",

@@ -35,6 +35,9 @@ const (
 
 	EmojiCacheSize = 5000
 	EmojiCacheSec  = 30 * 60
+	// Kept short so that a lost cluster invalidation or a stale replica read
+	// cannot hide a newly created emoji for longer than this.
+	EmojiNotFoundCacheSec = 60
 
 	ChannelPinnedPostsCountsCacheSize     = model.ChannelCacheSize
 	ChannelPinnedPostsCountsCacheSec      = 30 * 60
@@ -636,6 +639,13 @@ func (s *LocalCacheStore) doMultiInvalidateCacheCluster(cache cache.Cache, keys 
 
 func (s *LocalCacheStore) doStandardAddToCache(cache cache.Cache, key string, value any) {
 	err := cache.SetWithDefaultExpiry(key, value)
+	if err != nil {
+		s.logger.Warn("Error while setting cache entry", mlog.Err(err), mlog.String("cache_name", cache.Name()))
+	}
+}
+
+func (s *LocalCacheStore) doStandardAddToCacheWithExpiry(cache cache.Cache, key string, value any, ttl time.Duration) {
+	err := cache.SetWithExpiry(key, value, ttl)
 	if err != nil {
 		s.logger.Warn("Error while setting cache entry", mlog.Err(err), mlog.String("cache_name", cache.Name()))
 	}
