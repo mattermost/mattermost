@@ -80,7 +80,7 @@
         "EnableAPITeamDeletion": true,
         "EnableAPITriggerAdminNotifications": false,
         "EnableAPIUserDeletion": false,
-        "ExperimentalEnableHardenedMode": false,
+        "EnableHardenedMode": false,
         "ExperimentalStrictCSRFEnforcement": false,
         "EnableEmailInvitations": true,
         "DisableBotsWhenOwnerIsDeactivated": true,

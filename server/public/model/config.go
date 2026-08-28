@@ -485,7 +485,8 @@ type ServiceSettings struct {
 	EnableAPIPostDeletion                             *bool
 	EnableDesktopLandingPage                          *bool
 	MinimumDesktopAppVersion                          *string `access:"environment_web_server,write_restrictable,cloud_restrictable"`
-	ExperimentalEnableHardenedMode                    *bool   `access:"experimental_features"`
+	EnableHardenedMode                                *bool   `access:"environment_web_server"`
+	ExperimentalEnableHardenedMode                    *bool   `json:",omitempty"` // Deprecated: use `EnableHardenedMode`.
 	ExperimentalStrictCSRFEnforcement                 *bool   `access:"experimental_features,write_restrictable,cloud_restrictable"`
 	EnableEmailInvitations                            *bool   `access:"authentication_signup"`
 	DisableBotsWhenOwnerIsDeactivated                 *bool   `access:"integrations_bot_accounts"`
@@ -934,6 +935,9 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if s.ExperimentalEnableHardenedMode == nil {
 		s.ExperimentalEnableHardenedMode = new(false)
+	}
+	if s.EnableHardenedMode == nil {
+		s.EnableHardenedMode = new(*s.ExperimentalEnableHardenedMode)
 	}
 
 	if s.ExperimentalStrictCSRFEnforcement == nil {
@@ -2536,7 +2540,7 @@ type TeamSettings struct {
 	EnableJoinLeaveMessageByDefault *bool   `access:"site_users_and_teams"`
 	EnableUserCreation              *bool   `access:"authentication_signup"`
 	EnableOpenServer                *bool   `access:"authentication_signup"`
-	EnableUserDeactivation          *bool   `access:"experimental_features"`
+	EnableUserDeactivation          *bool   `access:"site_users_and_teams"`
 	RestrictCreationToDomains       *string `access:"authentication_signup"` // telemetry: none
 	EnableCustomUserStatuses        *bool   `access:"site_users_and_teams"`
 	EnableCustomBrand               *bool   `access:"site_customization"`
@@ -2545,7 +2549,7 @@ type TeamSettings struct {
 	RestrictDirectMessage           *string `access:"site_users_and_teams"`
 	EnableLastActiveTime            *bool   `access:"site_users_and_teams"`
 	// In seconds.
-	UserStatusAwayTimeout               *int64   `access:"experimental_features"`
+	UserStatusAwayTimeout               *int64   `access:"site_users_and_teams"`
 	MaxChannelsPerTeam                  *int64   `access:"site_users_and_teams"`
 	EnableChannelCategorySorting        *bool    `access:"site_users_and_teams"`
 	MaxNotificationsPerChannel          *int64   `access:"environment_push_notification_server"`

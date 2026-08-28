@@ -406,7 +406,7 @@ export type ServiceSettings = {
     EnableAPITeamDeletion: boolean;
     EnableAPITriggerAdminNotifications: boolean;
     EnableAPIUserDeletion: boolean;
-    ExperimentalEnableHardenedMode: boolean;
+    EnableHardenedMode: boolean;
     ExperimentalStrictCSRFEnforcement: boolean;
     EnableEmailInvitations: boolean;
     DisableBotsWhenOwnerIsDeactivated: boolean;

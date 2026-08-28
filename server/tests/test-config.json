@@ -62,7 +62,7 @@
         "ExperimentalGroupUnreadChannels": "disabled",
         "EnableAPITeamDeletion": false,
         "EnableAPITriggerAdminNotifications": false,
-        "ExperimentalEnableHardenedMode": false
+        "EnableHardenedMode": false
     },
     "TeamSettings": {
         "SiteName": "Mattermost",
