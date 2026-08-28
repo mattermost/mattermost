@@ -12,10 +12,10 @@ dotenv.config({quiet: true});
 // PW_TESTCONTAINERS_SERVER_IMAGE and must not clobber the process/CI SERVER_IMAGE (to-image).
 const configuredServerImage = process.env.SERVER_IMAGE;
 dotenv.config({path: '.env.testcontainers', quiet: true, override: true});
-if (configuredServerImage !== undefined) {
-    process.env.SERVER_IMAGE = configuredServerImage;
-} else {
+if (configuredServerImage === undefined) {
     delete process.env.SERVER_IMAGE;
+} else {
+    process.env.SERVER_IMAGE = configuredServerImage;
 }
 
 // The set of additional services `testcontainers` mode knows how to start.
