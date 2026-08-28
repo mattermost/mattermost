@@ -53,6 +53,8 @@ on:
         required: false
       REPORT_WEBHOOK_URL:
         required: false
+      GH_TOKEN:
+        required: false
 
 permissions: {}
 
@@ -198,3 +200,4 @@ jobs:
       MM_LICENSE: ${{ secrets.MM_LICENSE }}
       ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
       REPORT_WEBHOOK_URL: ${{ secrets.REPORT_WEBHOOK_URL }}
+      GH_TOKEN: ${{ secrets.GH_TOKEN }}

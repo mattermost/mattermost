@@ -63,6 +63,8 @@ on:
         required: false
       CWS_EXTRA_HTTP_HEADERS:
         required: false
+      GH_TOKEN:
+        required: false
 
 permissions: {}
 
@@ -212,3 +214,4 @@ jobs:
       REPORT_WEBHOOK_URL: ${{ secrets.REPORT_WEBHOOK_URL }}
       CWS_URL: ${{ secrets.CWS_URL }}
       CWS_EXTRA_HTTP_HEADERS: ${{ secrets.CWS_EXTRA_HTTP_HEADERS }}
+      GH_TOKEN: ${{ secrets.GH_TOKEN }}

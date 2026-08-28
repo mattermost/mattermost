@@ -126,6 +126,8 @@ on:
         required: false
       CWS_EXTRA_HTTP_HEADERS:
         required: false
+      GH_TOKEN:
+        required: false
 
 # Callers must grant: contents: read, statuses: write, id-token: write
 permissions:

@@ -92,6 +92,8 @@ on:
         required: false
       REPORT_WEBHOOK_URL:
         required: false
+      GH_TOKEN:
+        required: false
 
 # Callers must grant: contents: read, statuses: write, id-token: write
 permissions:

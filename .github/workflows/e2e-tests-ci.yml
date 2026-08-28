@@ -240,6 +240,7 @@ jobs:
       REPORT_WEBHOOK_URL: "${{ secrets.MM_E2E_REPORT_WEBHOOK_URL }}"
       CWS_URL: "${{ secrets.MM_E2E_CWS_URL }}"
       CWS_EXTRA_HTTP_HEADERS: "${{ secrets.MM_E2E_CWS_EXTRA_HTTP_HEADERS }}"
+      GH_TOKEN: "${{ secrets.GH_TOKEN }}"
 
   e2e-playwright:
     needs:
@@ -264,6 +265,7 @@ jobs:
       MM_LICENSE: "${{ secrets.MM_E2E_TEST_LICENSE_ONPREM_ENT }}"
       ANTHROPIC_API_KEY: "${{ secrets.ANTHROPIC_API_KEY }}"
       REPORT_WEBHOOK_URL: "${{ secrets.MM_E2E_REPORT_WEBHOOK_URL }}"
+      GH_TOKEN: "${{ secrets.GH_TOKEN }}"
 
   # Enterprise FIPS Edition
   e2e-cypress-fips:
@@ -294,6 +296,7 @@ jobs:
       REPORT_WEBHOOK_URL: "${{ secrets.MM_E2E_REPORT_WEBHOOK_URL }}"
       CWS_URL: "${{ secrets.MM_E2E_CWS_URL }}"
       CWS_EXTRA_HTTP_HEADERS: "${{ secrets.MM_E2E_CWS_EXTRA_HTTP_HEADERS }}"
+      GH_TOKEN: "${{ secrets.GH_TOKEN }}"
 
   e2e-playwright-fips:
     needs:
@@ -318,3 +321,4 @@ jobs:
       MM_LICENSE: "${{ secrets.MM_E2E_TEST_LICENSE_ONPREM_ENT }}"
       ANTHROPIC_API_KEY: "${{ secrets.ANTHROPIC_API_KEY }}"
       REPORT_WEBHOOK_URL: "${{ secrets.MM_E2E_REPORT_WEBHOOK_URL }}"
+      GH_TOKEN: "${{ secrets.GH_TOKEN }}"
