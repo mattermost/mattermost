@@ -519,9 +519,7 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         // self-inclusion check sees the admin's Department=Engineering value. Without this
         // wait the view is stale and the server incorrectly fires the self-lockout guard,
         // preventing the confirmation modal from appearing.
-        await waitForAttributeViewToInclude(adminClient, 'user.attributes.Department == "Engineering"', [
-            adminUser.id,
-        ]);
+        await waitForAttributeViewToInclude(adminClient, 'user.attributes.Department == "Engineering"', [adminUser.id]);
 
         const {page} = await pw.testBrowser.login(adminUser);
         const channelsPage = new ChannelsPage(page);
@@ -879,9 +877,7 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         // self-inclusion check sees the teamAdmin's Department=Engineering value. Without this
         // wait the view is stale and the server incorrectly fires the self-lockout guard,
         // preventing the confirmation modal from appearing.
-        await waitForAttributeViewToInclude(adminClient, 'user.attributes.Department == "Engineering"', [
-            teamAdmin.id,
-        ]);
+        await waitForAttributeViewToInclude(adminClient, 'user.attributes.Department == "Engineering"', [teamAdmin.id]);
 
         // # Log in as team admin and open policy editor
         const {page} = await pw.testBrowser.login(teamAdmin);
