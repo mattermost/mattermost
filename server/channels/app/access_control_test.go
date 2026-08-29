@@ -5194,6 +5194,7 @@ func TestUpdateAccessControlPoliciesActive_MaskingGuard(t *testing.T) {
 		mockChannelStore.On("Get", channelID, true).Return(&model.Channel{Id: channelID, Type: model.ChannelTypePrivate}, nil).Maybe()
 
 		mockACS := &mocks.AccessControlServiceInterface{}
+		mockACS.On("InvalidatePolicyCache", mock.Anything, mock.Anything).Return().Once()
 		thMock.App.Srv().ch.AccessControl = mockACS
 
 		_, appErr := thMock.App.UpdateAccessControlPoliciesActive(thMock.Context, []model.AccessControlPolicyActiveUpdate{
@@ -5202,6 +5203,7 @@ func TestUpdateAccessControlPoliciesActive_MaskingGuard(t *testing.T) {
 
 		require.Nil(t, appErr)
 		mockACPStore.AssertExpectations(t)
+		mockACS.AssertExpectations(t)
 		mockACS.AssertNotCalled(t, "GetPolicy", mock.Anything, mock.Anything)
 	})
 
@@ -5226,6 +5228,7 @@ func TestUpdateAccessControlPoliciesActive_MaskingGuard(t *testing.T) {
 		mockChannelStore.On("Get", channelID, true).Return(&model.Channel{Id: channelID, Type: model.ChannelTypePrivate}, nil).Maybe()
 
 		mockACS := &mocks.AccessControlServiceInterface{}
+		mockACS.On("InvalidatePolicyCache", mock.Anything, mock.Anything).Return().Once()
 		thMock.App.Srv().ch.AccessControl = mockACS
 
 		_, appErr := thMock.App.UpdateAccessControlPoliciesActive(thMock.Context, []model.AccessControlPolicyActiveUpdate{
@@ -5236,6 +5239,45 @@ func TestUpdateAccessControlPoliciesActive_MaskingGuard(t *testing.T) {
 		// GetPolicy must never be called when masking is off.
 		mockACS.AssertNotCalled(t, "GetPolicy", mock.Anything, mock.Anything)
 		mockACPStore.AssertExpectations(t)
+		mockACS.AssertExpectations(t)
+	})
+}
+
+// TestUpdateAccessControlPoliciesActive_InvalidatesCache verifies that updating a
+// policy's active status invalidates the ACS cache with the exact policies returned
+// by the store. This write path bypasses SavePolicy (which does its own
+// invalidation), so it needs this call wired in explicitly.
+func TestUpdateAccessControlPoliciesActive_InvalidatesCache(t *testing.T) {
+	t.Run("invalidates cache for every policy returned by the store, keyed by ID", func(t *testing.T) {
+		thMock := SetupWithStoreMock(t)
+		thMock.Context = thMock.Context.WithSession(&model.Session{UserId: model.NewId(), Id: model.NewId()}).(*request.Context)
+
+		permissionPolicy := &model.AccessControlPolicy{ID: model.NewId(), Type: model.AccessControlPolicyTypePermission}
+		channelPolicy := &model.AccessControlPolicy{ID: model.NewId(), Type: model.AccessControlPolicyTypeChannel}
+
+		mockStore := thMock.App.Srv().Store().(*storemocks.Store)
+		mockACPStore := storemocks.AccessControlPolicyStore{}
+		mockStore.On("AccessControlPolicy").Return(&mockACPStore)
+		mockACPStore.On("SetActiveStatusMultiple", thMock.Context, mock.Anything).
+			Return([]*model.AccessControlPolicy{permissionPolicy, channelPolicy}, nil).Once()
+
+		mockChannelStore := storemocks.ChannelStore{}
+		mockStore.On("Channel").Return(&mockChannelStore).Maybe()
+		mockChannelStore.On("InvalidateChannel", channelPolicy.ID).Maybe()
+		mockChannelStore.On("Get", channelPolicy.ID, true).Return(&model.Channel{Id: channelPolicy.ID, Type: model.ChannelTypePrivate}, nil).Maybe()
+
+		mockACS := &mocks.AccessControlServiceInterface{}
+		mockACS.On("InvalidatePolicyCache", thMock.Context, []*model.AccessControlPolicy{permissionPolicy, channelPolicy}).Return().Once()
+		thMock.App.Srv().ch.AccessControl = mockACS
+
+		_, appErr := thMock.App.UpdateAccessControlPoliciesActive(thMock.Context, []model.AccessControlPolicyActiveUpdate{
+			{ID: permissionPolicy.ID, Active: true},
+			{ID: channelPolicy.ID, Active: true},
+		})
+
+		require.Nil(t, appErr)
+		mockACPStore.AssertExpectations(t)
+		mockACS.AssertExpectations(t)
 	})
 }
 
@@ -5263,6 +5305,7 @@ func TestUpdateAccessControlPoliciesActive_BroadcastsWebsocketEvents(t *testing.
 		mockChannelStore.On("Get", channelID, true).Return(&model.Channel{Id: channelID, Type: model.ChannelTypePrivate}, nil).Once()
 
 		mockACS := &mocks.AccessControlServiceInterface{}
+		mockACS.On("InvalidatePolicyCache", mock.Anything, mock.Anything).Return().Once()
 		thMock.App.Srv().ch.AccessControl = mockACS
 
 		_, appErr := thMock.App.UpdateAccessControlPoliciesActive(thMock.Context, []model.AccessControlPolicyActiveUpdate{
@@ -5271,6 +5314,7 @@ func TestUpdateAccessControlPoliciesActive_BroadcastsWebsocketEvents(t *testing.
 
 		require.Nil(t, appErr)
 		mockChannelStore.AssertExpectations(t)
+		mockACS.AssertExpectations(t)
 	})
 
 	t.Run("parent policy fans out to both channel and team children", func(t *testing.T) {
@@ -5299,6 +5343,7 @@ func TestUpdateAccessControlPoliciesActive_BroadcastsWebsocketEvents(t *testing.
 		})).Return([]*model.AccessControlPolicy{}, int64(0), nil).Once()
 
 		mockACS := &mocks.AccessControlServiceInterface{}
+		mockACS.On("InvalidatePolicyCache", mock.Anything, mock.Anything).Return().Once()
 		thMock.App.Srv().ch.AccessControl = mockACS
 
 		_, appErr := thMock.App.UpdateAccessControlPoliciesActive(thMock.Context, []model.AccessControlPolicyActiveUpdate{
@@ -5308,6 +5353,7 @@ func TestUpdateAccessControlPoliciesActive_BroadcastsWebsocketEvents(t *testing.
 		require.Nil(t, appErr)
 		// The team import search proves the team fan-out is wired (previously absent).
 		mockACPStore.AssertExpectations(t)
+		mockACS.AssertExpectations(t)
 	})
 }
 
