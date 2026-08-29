@@ -2,12 +2,22 @@
 // See LICENSE.txt for license information.
 
 import {DropIndicator} from '@atlaskit/pragmatic-drag-and-drop-react-drop-indicator/border';
+import classNames from 'classnames';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {flushSync} from 'react-dom';
 import {defineMessages, FormattedMessage, useIntl} from 'react-intl';
 
-import {DotsVerticalIcon, DragVerticalIcon, PlusIcon, SitemapIcon} from '@mattermost/compass-icons/components';
+import {
+    ChevronDownIcon,
+    ChevronRightIcon,
+    DragVerticalIcon,
+    LinkVariantIcon,
+    PlusIcon,
+    SitemapIcon,
+    TrashCanOutlineIcon,
+} from '@mattermost/compass-icons/components';
 import {Button} from '@mattermost/shared/components/button';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {PropertyFieldOption} from '@mattermost/types/properties';
 
 import * as Menu from 'components/menu';
@@ -27,6 +37,7 @@ import {
     getChildren,
     getRoots,
     isNameUnique,
+    oxfordJoinNames,
     renameOption,
     wouldExceedMaxEdges,
     wouldExceedMaxOptions,
@@ -68,25 +79,22 @@ type AddTopLevelFormProps = {
     onCommit: () => void;
 };
 
+type GraphPaneView = 'main' | 'parents' | 'children';
+
 type GraphRowProps = {
     occurrence: GraphOccurrence;
     index: number;
     disabled: boolean;
     atMax: boolean;
-    isRenaming: boolean;
-    renameDraft: string;
-    renameIsDuplicate: boolean;
-    parentsOpen: boolean;
     menuOpen: boolean;
+    menuInitialView: GraphPaneView;
+    expanded: boolean;
+    onToggleCollapse: (occurrenceKey: string) => void;
     onOpenMenuAddChild: (occurrence: GraphOccurrence) => void;
-    onOpenMenu: (occurrenceKey: string) => void;
-    onCloseMenu: (occurrenceKey: string) => void;
-    onOpenParents: (occurrenceKey: string) => void;
-    onCloseParents: () => void;
-    onStartRename: (occurrenceKey: string, currentName: string) => void;
-    onRenameDraftChange: (value: string) => void;
-    onCommitRename: () => void;
-    onCancelRename: () => void;
+    onOpenMenu: (occurrenceKey: string, view: GraphPaneView) => void;
+    onCloseMenu: () => void;
+    onRename: (currentName: string, nextName: string) => 'applied' | 'duplicate' | 'noop';
+    onExpandOccurrence: (occurrenceKey: string) => void;
     onDelete: (optionName: string) => void;
     options: PropertyFieldOption[];
     onOptionsChange: (options: PropertyFieldOption[]) => void;
@@ -98,6 +106,7 @@ const DROP_ALERT_TIMEOUT_MS = 4000;
 
 type ChildDraftRowProps = {
     depth: number;
+    parentName: string;
     draftName: string;
     onDraftNameChange: (value: string) => void;
     isDuplicate: boolean;
@@ -106,6 +115,7 @@ type ChildDraftRowProps = {
     disabled: boolean;
     atMax: boolean;
     onCommit: () => void;
+    onCancel: () => void;
 };
 
 function flattenOccurrences(options: PropertyFieldOption[]): GraphOccurrence[] {
@@ -141,6 +151,23 @@ function pathStartsWith(path: string[], prefix: string[]): boolean {
     return prefix.every((name, i) => path[i] === name);
 }
 
+function isHiddenByCollapsedAncestor(path: string[], collapsedKeys: Set<string>): boolean {
+    for (let i = 1; i < path.length; i++) {
+        if (collapsedKeys.has(path.slice(0, i).join('\0'))) {
+            return true;
+        }
+    }
+    return false;
+}
+
+function occurrenceHasChildren(options: PropertyFieldOption[], occurrence: GraphOccurrence): boolean {
+    return getChildren(options, occurrence.option.name).some((child) => !occurrence.path.includes(child.name));
+}
+
+function remapOccurrenceKey(key: string, oldName: string, newName: string): string {
+    return key.split('\0').map((part) => (part === oldName ? newName : part)).join('\0');
+}
+
 function subtreeInsertAfterIndex(occurrences: GraphOccurrence[], occurrence: GraphOccurrence, index: number): number {
     let insertAfterIndex = index;
     for (let j = index; j < occurrences.length; j++) {
@@ -166,6 +193,7 @@ const AddTopLevelForm = ({
 }: AddTopLevelFormProps) => {
     const {formatMessage} = useIntl();
     const isEmptyCanvas = testIdPrefix === 'attributeOptionsGraphEmpty';
+    const placeholder = formatMessage(isEmptyCanvas ? messages.namePlaceholder : messages.addTopLevel);
 
     return (
         <div className={isEmptyCanvas ? 'attribute-options-graph-values__empty-form' : 'attribute-options-graph-values__add-top'}>
@@ -173,8 +201,9 @@ const AddTopLevelForm = ({
                 name={isEmptyCanvas ? 'graph_empty_option_name' : 'graph_add_top_option_name'}
                 type='text'
                 useLegend={false}
-                placeholder={formatMessage(messages.namePlaceholder)}
-                aria-label={isEmptyCanvas ? undefined : formatMessage(messages.addTopLevel)}
+                label={placeholder}
+                placeholder={placeholder}
+                aria-label={formatMessage(messages.addTopLevel)}
                 value={draftName}
                 onChange={(e) => onDraftNameChange(e.target.value)}
                 onKeyDown={(e) => {
@@ -195,10 +224,9 @@ const AddTopLevelForm = ({
             />
             <Button
                 type='button'
-                emphasis='primary'
+                emphasis={isEmptyCanvas ? 'primary' : 'secondary'}
                 onClick={onCommit}
                 disabled={!canAdd}
-                aria-label={isEmptyCanvas ? undefined : formatMessage(messages.addTopLevel)}
                 data-testid={`${testIdPrefix}__addButton`}
             >
                 <PlusIcon size={16}/>
@@ -210,6 +238,7 @@ const AddTopLevelForm = ({
 
 function ChildDraftRow({
     depth,
+    parentName,
     draftName,
     onDraftNameChange,
     isDuplicate,
@@ -218,23 +247,40 @@ function ChildDraftRow({
     disabled,
     atMax,
     onCommit,
+    onCancel,
 }: ChildDraftRowProps) {
     const {formatMessage} = useIntl();
+    const childNamePlaceholder = formatMessage(messages.childNamePlaceholder);
 
     return (
         <li
             className='attribute-options-graph-values__row attribute-options-graph-values__row--draft'
             style={{['--attribute-options-graph-values-indent' as string]: depth}}
             data-testid='attributeOptionsGraphRow__childDraft'
+            data-depth={String(depth)}
         >
+            <span
+                className='attribute-options-graph-values__gutter'
+                aria-hidden={true}
+            >
+                <span className='attribute-options-graph-values__collapse-spacer'/>
+                <span className='attribute-options-graph-values__draft-handle-spacer'/>
+            </span>
             <Input
                 name='graph_child_option_name'
                 type='text'
                 useLegend={false}
-                placeholder={formatMessage(messages.namePlaceholder)}
+                label={childNamePlaceholder}
+                placeholder={childNamePlaceholder}
+                aria-label={formatMessage(messages.childNameAria, {name: parentName})}
                 value={draftName}
                 onChange={(e) => onDraftNameChange(e.target.value)}
                 onKeyDown={(e) => {
+                    if (e.key === 'Escape') {
+                        e.preventDefault();
+                        onCancel();
+                        return;
+                    }
                     if (e.key === 'Enter') {
                         e.preventDefault();
                         if (canAdd) {
@@ -253,13 +299,22 @@ function ChildDraftRow({
             />
             <Button
                 type='button'
-                emphasis='primary'
+                emphasis='secondary'
+                size='sm'
                 onClick={onCommit}
                 disabled={!canAdd}
                 data-testid='attributeOptionsGraphRow__childAddButton'
             >
-                <PlusIcon size={16}/>
-                <FormattedMessage {...messages.addValue}/>
+                <FormattedMessage {...messages.add}/>
+            </Button>
+            <Button
+                type='button'
+                emphasis='tertiary'
+                size='sm'
+                onClick={onCancel}
+                data-testid='attributeOptionsGraphRow__childCancelButton'
+            >
+                <FormattedMessage {...messages.cancel}/>
             </Button>
         </li>
     );
@@ -270,20 +325,15 @@ const GraphRow = React.memo(({
     index,
     disabled,
     atMax,
-    isRenaming,
-    renameDraft,
-    renameIsDuplicate,
-    parentsOpen,
     menuOpen,
+    menuInitialView,
+    expanded,
+    onToggleCollapse,
     onOpenMenuAddChild,
     onOpenMenu,
     onCloseMenu,
-    onOpenParents,
-    onCloseParents,
-    onStartRename,
-    onRenameDraftChange,
-    onCommitRename,
-    onCancelRename,
+    onRename,
+    onExpandOccurrence,
     onDelete,
     options,
     onOptionsChange,
@@ -291,8 +341,11 @@ const GraphRow = React.memo(({
     onDropResult,
 }: GraphRowProps) => {
     const {formatMessage} = useIntl();
-    const skipBlurCommitRef = useRef(false);
-    const parentCount = (occurrence.option.parents ?? []).length;
+    const editValueLabel = formatMessage(messages.editValue, {name: occurrence.option.name});
+    const addChildLabel = formatMessage(messages.addChildAria, {name: occurrence.option.name});
+    const parentNames = occurrence.option.parents ?? [];
+    const parentCount = parentNames.length;
+    const hasChildren = occurrenceHasChildren(options, occurrence);
     const [rowElement, setRowElement] = useState<HTMLLIElement | null>(null);
     const [handleElement, setHandleElement] = useState<HTMLSpanElement | null>(null);
 
@@ -308,148 +361,166 @@ const GraphRow = React.memo(({
         onDropResult,
     });
 
+    const toggleMenu = (view: GraphPaneView) => {
+        if (menuOpen && menuInitialView === view) {
+            onCloseMenu();
+            return;
+        }
+        onOpenMenu(occurrence.occurrenceKey, view);
+    };
+
+    const parentsBadge = parentCount >= 2 && (
+        <button
+            type='button'
+            className={classNames('attribute-options-graph-values__parents-badge', {
+                'attribute-options-graph-values__parents-badge--static': disabled,
+            })}
+            onClick={() => toggleMenu('parents')}
+            disabled={disabled}
+            data-testid='attributeOptionsGraphRow__parentsBadge'
+        >
+            <LinkVariantIcon
+                size={12}
+                aria-hidden={true}
+            />
+            <FormattedMessage
+                {...messages.parentsBadge}
+                values={{n: parentCount}}
+            />
+        </button>
+    );
+
     return (
         <li
             ref={setRowElement}
-            className='attribute-options-graph-values__row'
+            className={classNames('attribute-options-graph-values__row', {
+                'attribute-options-graph-values__row--active': menuOpen,
+            })}
             style={{['--attribute-options-graph-values-indent' as string]: occurrence.depth}}
             data-testid='attributeOptionsGraphRow'
             data-option-name={occurrence.option.name}
             data-parent-name={occurrence.parentName ?? ''}
             data-depth={String(occurrence.depth)}
+            aria-expanded={hasChildren ? expanded : undefined}
             tabIndex={-1}
         >
-            <span
-                ref={setHandleElement}
-                className={'attribute-options-graph-values__drag-handle' + (disabled ? ' attribute-options-graph-values__drag-handle--disabled' : '')}
-                tabIndex={-1}
-                aria-hidden={true}
-                data-testid='attributeOptionsGraphRow__dragHandle'
-            >
-                <DragVerticalIcon size={18}/>
+            <span className='attribute-options-graph-values__gutter'>
+                {hasChildren ? (
+                    <button
+                        type='button'
+                        className='attribute-options-graph-values__collapse'
+                        aria-label={formatMessage(expanded ? messages.collapse : messages.expand, {name: occurrence.option.name})}
+                        aria-expanded={expanded}
+                        onClick={() => onToggleCollapse(occurrence.occurrenceKey)}
+                        data-testid='attributeOptionsGraphRow__collapse'
+                    >
+                        {expanded ? <ChevronDownIcon size={16}/> : <ChevronRightIcon size={16}/>}
+                    </button>
+                ) : (
+                    <span
+                        className='attribute-options-graph-values__collapse-spacer'
+                        aria-hidden={true}
+                    />
+                )}
+                <span
+                    ref={setHandleElement}
+                    className={classNames('attribute-options-graph-values__drag-handle', {
+                        'attribute-options-graph-values__drag-handle--disabled': disabled,
+                    })}
+                    tabIndex={-1}
+                    aria-hidden={true}
+                    data-testid='attributeOptionsGraphRow__dragHandle'
+                >
+                    <DragVerticalIcon size={16}/>
+                </span>
             </span>
 
-            {isRenaming ? (
-                <Input
-                    name={`graph_rename_${index}`}
-                    type='text'
-                    useLegend={false}
-                    value={renameDraft}
-                    onChange={(e) => onRenameDraftChange(e.target.value)}
-                    onKeyDown={(e) => {
-                        if (e.key === 'Escape') {
-                            e.preventDefault();
-                            skipBlurCommitRef.current = true;
-                            onCancelRename();
-                            return;
-                        }
-                        if (e.key === 'Enter') {
-                            e.preventDefault();
-                            skipBlurCommitRef.current = true;
-                            onCommitRename();
-                        }
-                    }}
-                    onBlur={() => {
-                        if (skipBlurCommitRef.current) {
-                            skipBlurCommitRef.current = false;
-                            return;
-                        }
-                        onCommitRename();
-                    }}
-                    disabled={disabled}
-                    maxLength={Constants.MAX_CUSTOM_ATTRIBUTE_LENGTH}
-                    hasError={renameIsDuplicate}
-                    customMessage={renameIsDuplicate ?
-                        {type: 'error', value: formatMessage(messages.duplicateName, {name: renameDraft.trim()})} :
-                        null}
-                    data-testid='attributeOptionsGraphRow__renameInput'
-                    autoFocus={true}
-                />
-            ) : (
+            {disabled ? (
                 <span
-                    className='attribute-options-graph-values__name'
+                    className='attribute-options-graph-values__name attribute-options-graph-values__name--static'
                     data-testid='attributeOptionsGraphRow__name'
                 >
                     {occurrence.option.name}
                 </span>
-            )}
-
-            {parentCount >= 2 && (
-                <span
-                    className='attribute-options-graph-values__parents-badge'
-                    data-testid='attributeOptionsGraphRow__parentsBadge'
+            ) : (
+                <button
+                    type='button'
+                    className='attribute-options-graph-values__name'
+                    onClick={() => toggleMenu('main')}
+                    data-testid='attributeOptionsGraphRow__name'
                 >
-                    <FormattedMessage
-                        {...messages.parentsBadge}
-                        values={{n: parentCount}}
-                    />
-                </span>
+                    {occurrence.option.name}
+                </button>
             )}
 
-            <Menu.Container
-                menuButton={{
-                    id: `attribute-options-graph-row-menu-${index}`,
-                    class: 'btn btn-transparent attribute-options-graph-values__menu-button',
-                    'aria-label': formatMessage(messages.rowMenuAria),
-                    dataTestId: 'attributeOptionsGraphRow__menu',
-                    children: <DotsVerticalIcon size={18}/>,
-                    disabled,
-                    onMouseDown: () => onOpenMenu(occurrence.occurrenceKey),
-                }}
-                menu={{
-                    id: `attribute-options-graph-row-menu-list-${index}`,
-                    'aria-label': formatMessage(messages.rowMenuAria),
-                    isMenuOpen: menuOpen,
-                    onToggle: (open) => {
-                        if (open) {
-                            onOpenMenu(occurrence.occurrenceKey);
-                        } else {
-                            onCloseMenu(occurrence.occurrenceKey);
-                        }
-                    },
-                }}
-            >
-                <Menu.Item
-                    disabled={disabled || atMax}
-                    onClick={() => onOpenMenuAddChild(occurrence)}
-                    labels={<span><FormattedMessage {...messages.addChild}/></span>}
-                />
-                <Menu.Item
-                    onClick={() => onOpenParents(occurrence.occurrenceKey)}
-                    labels={<span><FormattedMessage {...messages.parents}/></span>}
-                />
-                <Menu.Item
-                    disabled={disabled}
-                    onClick={() => onStartRename(occurrence.occurrenceKey, occurrence.option.name)}
-                    labels={<span><FormattedMessage {...messages.rename}/></span>}
-                />
-                <Menu.Separator/>
-                <Menu.Item
-                    isDestructive={true}
-                    disabled={disabled}
-                    onClick={() => onDelete(occurrence.option.name)}
-                    labels={<span><FormattedMessage {...messages.deleteThisValue}/></span>}
-                />
-            </Menu.Container>
+            {parentsBadge && (disabled ? parentsBadge : (
+                <WithTooltip
+                    title={formatMessage(messages.parentsBadgeTooltip, {names: oxfordJoinNames(parentNames)})}
+                >
+                    {parentsBadge}
+                </WithTooltip>
+            ))}
 
-            {parentsOpen && (
+            <span className='attribute-options-graph-values__spacer'/>
+
+            {!disabled && (
+                <div className='attribute-options-graph-values__actions'>
+                    <WithTooltip title={addChildLabel}>
+                        <button
+                            type='button'
+                            className='btn btn-icon btn-xs attribute-options-graph-values__action'
+                            aria-label={addChildLabel}
+                            disabled={atMax}
+                            onClick={() => onOpenMenuAddChild(occurrence)}
+                            data-testid='attributeOptionsGraphRow__addChild'
+                        >
+                            <PlusIcon size={16}/>
+                        </button>
+                    </WithTooltip>
+                    <WithTooltip title={formatMessage(messages.parentsActionTooltip)}>
+                        <button
+                            type='button'
+                            className='btn btn-icon btn-xs attribute-options-graph-values__action'
+                            aria-label={formatMessage(messages.parentsAria, {name: occurrence.option.name})}
+                            onClick={() => toggleMenu('parents')}
+                            data-testid='attributeOptionsGraphRow__parents'
+                        >
+                            <SitemapIcon size={16}/>
+                        </button>
+                    </WithTooltip>
+                    <WithTooltip title={formatMessage(messages.deleteThisValue)}>
+                        <button
+                            type='button'
+                            className='btn btn-icon btn-xs attribute-options-graph-values__action attribute-options-graph-values__action--danger'
+                            aria-label={formatMessage(messages.deleteAria, {name: occurrence.option.name})}
+                            onClick={() => onDelete(occurrence.option.name)}
+                            data-testid='attributeOptionsGraphRow__delete'
+                        >
+                            <TrashCanOutlineIcon size={16}/>
+                        </button>
+                    </WithTooltip>
+                </div>
+            )}
+
+            {menuOpen && (
                 <Menu.Container
                     menuButton={{
                         id: `attribute-options-graph-row-parents-${index}`,
+                        as: 'div',
                         class: 'attribute-options-graph-values__parents-anchor',
-                        'aria-label': formatMessage(messages.parents),
+                        'aria-label': editValueLabel,
                         dataTestId: 'attributeOptionsGraphRow__parentsAnchor',
-                        children: <span className='sr-only'>{formatMessage(messages.parents)}</span>,
+                        children: <span className='sr-only'>{editValueLabel}</span>,
                     }}
                     menu={{
                         id: `attribute-options-graph-row-parents-menu-${index}`,
                         className: 'attribute-graph-parents-pane',
                         width: '368px',
-                        'aria-label': formatMessage(messages.parents),
+                        'aria-label': editValueLabel,
                         isMenuOpen: true,
                         onToggle: (open) => {
                             if (!open) {
-                                onCloseParents();
+                                onCloseMenu();
                             }
                         },
                     }}
@@ -457,13 +528,17 @@ const GraphRow = React.memo(({
                     transformOrigin={{vertical: 'top', horizontal: 'right'}}
                 >
                     <AttributeGraphParentsPane
+                        key={`${occurrence.occurrenceKey}:${menuInitialView}`}
                         options={options}
                         optionName={occurrence.option.name}
                         onOptionsChange={onOptionsChange}
                         onDelete={onDelete}
+                        onRename={onRename}
+                        onChildAdded={() => onExpandOccurrence(occurrence.occurrenceKey)}
                         disabled={disabled}
                         atMax={atMax}
                         confirmGrant={confirmGrant}
+                        initialView={menuInitialView}
                     />
                 </Menu.Container>
             )}
@@ -511,10 +586,8 @@ function dropAlertValues(alert: GraphDropAlert): Record<string, string | number>
 const AttributeOptionsGraphValues = ({options, onOptionsChange, disabled = false}: Props) => {
     const confirmGrant = useGrantConfirm();
     const [draftName, setDraftName] = useState('');
-    const [openParentsFor, setOpenParentsFor] = useState<string | null>(null);
-    const [openMenuFor, setOpenMenuFor] = useState<string | null>(null);
-    const [renamingKey, setRenamingKey] = useState<string | null>(null);
-    const [renameDraft, setRenameDraft] = useState('');
+    const [openPane, setOpenPane] = useState<{occurrenceKey: string; view: GraphPaneView} | null>(null);
+    const [collapsedKeys, setCollapsedKeys] = useState<Set<string>>(() => new Set());
     const [childDraft, setChildDraft] = useState<ChildDraft | null>(null);
     const [childDraftName, setChildDraftName] = useState('');
     const [dropAlert, setDropAlert] = useState<GraphDropAlert | null>(null);
@@ -581,8 +654,7 @@ const AttributeOptionsGraphValues = ({options, onOptionsChange, disabled = false
     const handleGoToOrphan = useCallback((optionName: string) => {
         // Close overlays first; focusing on confirm loses to GenericModal restoreFocus.
         flushSync(() => {
-            setOpenParentsFor(null);
-            setOpenMenuFor(null);
+            setOpenPane(null);
         });
         const el = document.querySelector(
             `[data-testid="attributeOptionsGraphRow"][data-option-name="${CSS.escape(optionName)}"]`,
@@ -596,6 +668,17 @@ const AttributeOptionsGraphValues = ({options, onOptionsChange, disabled = false
 
     const promptDelete = useGraphNodeDelete(options, onOptionsChange, handleGoToOrphan);
 
+    const handleExpandOccurrence = useCallback((occurrenceKey: string) => {
+        setCollapsedKeys((current) => {
+            if (!current.has(occurrenceKey)) {
+                return current;
+            }
+            const next = new Set(current);
+            next.delete(occurrenceKey);
+            return next;
+        });
+    }, []);
+
     const handleOpenMenuAddChild = useCallback((occurrence: GraphOccurrence) => {
         const nextOccurrences = flattenOccurrences(options);
         const i = nextOccurrences.findIndex((item) => item.occurrenceKey === occurrence.occurrenceKey);
@@ -608,59 +691,64 @@ const AttributeOptionsGraphValues = ({options, onOptionsChange, disabled = false
             depth: occurrence.depth + 1,
         });
         setChildDraftName('');
-        setRenamingKey(null);
-    }, [options]);
+        setOpenPane(null);
+        handleExpandOccurrence(occurrence.occurrenceKey);
+    }, [handleExpandOccurrence, options]);
 
-    const handleOpenMenu = useCallback((occurrenceKey: string) => {
-        setOpenParentsFor(null);
-        setOpenMenuFor(occurrenceKey);
+    const handleToggleCollapse = useCallback((occurrenceKey: string) => {
+        setCollapsedKeys((current) => {
+            const next = new Set(current);
+            if (next.has(occurrenceKey)) {
+                next.delete(occurrenceKey);
+            } else {
+                next.add(occurrenceKey);
+            }
+            return next;
+        });
     }, []);
 
-    const handleCloseMenu = useCallback((occurrenceKey: string) => {
-        setOpenMenuFor((current) => (current === occurrenceKey ? null : current));
-    }, []);
-
-    const handleOpenParents = useCallback((occurrenceKey: string) => {
-        setOpenMenuFor(null);
-        setOpenParentsFor(occurrenceKey);
-    }, []);
-
-    const handleCloseParents = useCallback(() => {
-        setOpenParentsFor(null);
-    }, []);
-
-    const handleStartRename = useCallback((occurrenceKey: string, currentName: string) => {
-        setRenamingKey(occurrenceKey);
-        setRenameDraft(currentName);
+    const handleOpenMenu = useCallback((occurrenceKey: string, view: GraphPaneView) => {
+        setOpenPane({occurrenceKey, view});
         setChildDraft(null);
     }, []);
 
-    const handleCancelRename = useCallback(() => {
-        setRenamingKey(null);
-        setRenameDraft('');
+    const handleCloseMenu = useCallback(() => {
+        setOpenPane(null);
     }, []);
 
-    const handleCommitRename = useCallback(() => {
-        if (renamingKey === null) {
-            return;
+    const handleRename = useCallback((currentName: string, nextName: string): 'applied' | 'duplicate' | 'noop' => {
+        const trimmed = nextName.trim();
+        if (trimmed === '' || trimmed === currentName) {
+            return 'noop';
         }
-        const occurrence = occurrences.find((item) => item.occurrenceKey === renamingKey);
-        if (!occurrence) {
-            handleCancelRename();
-            return;
+        if (!isNameUnique(options, trimmed, currentName)) {
+            return 'duplicate';
         }
-        const currentName = occurrence.option.name;
-        const nextName = renameDraft.trim();
-        if (nextName === '' || nextName === currentName) {
-            handleCancelRename();
-            return;
-        }
-        if (!isNameUnique(options, nextName, currentName)) {
-            return;
-        }
-        onOptionsChange(renameOption(options, currentName, nextName));
-        handleCancelRename();
-    }, [handleCancelRename, occurrences, options, onOptionsChange, renameDraft, renamingKey]);
+        onOptionsChange(renameOption(options, currentName, trimmed));
+        setOpenPane((current) => {
+            if (!current) {
+                return current;
+            }
+            return {
+                ...current,
+                occurrenceKey: remapOccurrenceKey(current.occurrenceKey, currentName, trimmed),
+            };
+        });
+        setCollapsedKeys((current) => {
+            const next = new Set<string>();
+            for (const key of current) {
+                next.add(remapOccurrenceKey(key, currentName, trimmed));
+            }
+            return next;
+        });
+        setChildDraft((current) => {
+            if (!current || current.parentName !== currentName) {
+                return current;
+            }
+            return {...current, parentName: trimmed};
+        });
+        return 'applied';
+    }, [onOptionsChange, options]);
 
     const commitChild = useCallback(() => {
         if (!childDraft) {
@@ -674,6 +762,11 @@ const AttributeOptionsGraphValues = ({options, onOptionsChange, disabled = false
         setChildDraft(null);
         setChildDraftName('');
     }, [atMax, childDraft, childDraftName, disabled, onOptionsChange, options]);
+
+    const cancelChild = useCallback(() => {
+        setChildDraft(null);
+        setChildDraftName('');
+    }, []);
 
     const addForm = (
         <AddTopLevelForm
@@ -691,6 +784,9 @@ const AttributeOptionsGraphValues = ({options, onOptionsChange, disabled = false
 
     const listItems: React.ReactNode[] = [];
     occurrences.forEach((occurrence, index) => {
+        if (isHiddenByCollapsedAncestor(occurrence.path, collapsedKeys)) {
+            return;
+        }
         listItems.push(
             <GraphRow
                 key={occurrence.occurrenceKey}
@@ -698,20 +794,15 @@ const AttributeOptionsGraphValues = ({options, onOptionsChange, disabled = false
                 index={index}
                 disabled={disabled}
                 atMax={atMax}
-                isRenaming={renamingKey === occurrence.occurrenceKey}
-                renameDraft={renameDraft}
-                renameIsDuplicate={renamingKey === occurrence.occurrenceKey && Boolean(renameDraft.trim()) && !isNameUnique(options, renameDraft.trim(), occurrence.option.name)}
-                parentsOpen={openParentsFor === occurrence.occurrenceKey}
-                menuOpen={openMenuFor === occurrence.occurrenceKey}
+                menuOpen={openPane?.occurrenceKey === occurrence.occurrenceKey}
+                menuInitialView={openPane?.view ?? 'main'}
+                expanded={!collapsedKeys.has(occurrence.occurrenceKey)}
+                onToggleCollapse={handleToggleCollapse}
                 onOpenMenuAddChild={handleOpenMenuAddChild}
                 onOpenMenu={handleOpenMenu}
                 onCloseMenu={handleCloseMenu}
-                onOpenParents={handleOpenParents}
-                onCloseParents={handleCloseParents}
-                onStartRename={handleStartRename}
-                onRenameDraftChange={setRenameDraft}
-                onCommitRename={handleCommitRename}
-                onCancelRename={handleCancelRename}
+                onRename={handleRename}
+                onExpandOccurrence={handleExpandOccurrence}
                 onDelete={promptDelete}
                 options={options}
                 onOptionsChange={onOptionsChange}
@@ -724,6 +815,7 @@ const AttributeOptionsGraphValues = ({options, onOptionsChange, disabled = false
                 <ChildDraftRow
                     key='attribute-options-graph-child-draft'
                     depth={childDraft.depth}
+                    parentName={childDraft.parentName}
                     draftName={childDraftName}
                     onDraftNameChange={setChildDraftName}
                     isDuplicate={childIsDuplicate}
@@ -732,6 +824,7 @@ const AttributeOptionsGraphValues = ({options, onOptionsChange, disabled = false
                     disabled={disabled}
                     atMax={atMax}
                     onCommit={commitChild}
+                    onCancel={cancelChild}
                 />,
             );
         }
@@ -813,13 +906,29 @@ const messages = defineMessages({
         id: 'admin.global_attributes.attribute_details.options.graph.name_placeholder',
         defaultMessage: 'Value name',
     },
+    childNamePlaceholder: {
+        id: 'admin.global_attributes.attribute_details.options.graph.child_name_placeholder',
+        defaultMessage: 'Name the new value',
+    },
+    childNameAria: {
+        id: 'admin.global_attributes.attribute_details.options.graph.child_name_aria',
+        defaultMessage: 'New value granted by {name}',
+    },
+    add: {
+        id: 'admin.global_attributes.attribute_details.options.graph.add',
+        defaultMessage: 'Add',
+    },
     addValue: {
         id: 'admin.global_attributes.attribute_details.options.graph.add_value',
         defaultMessage: 'Add value',
     },
+    cancel: {
+        id: 'admin.global_attributes.attribute_details.options.graph.cancel',
+        defaultMessage: 'Cancel',
+    },
     addTopLevel: {
         id: 'admin.global_attributes.attribute_details.options.graph.add_top_level',
-        defaultMessage: 'Add top-level value',
+        defaultMessage: 'Add a top-level value',
     },
     footer: {
         id: 'admin.global_attributes.attribute_details.options.graph.footer',
@@ -833,21 +942,37 @@ const messages = defineMessages({
         id: 'admin.global_attributes.attribute_details.options.graph.parents_badge',
         defaultMessage: '{n} parents',
     },
-    rowMenuAria: {
-        id: 'admin.global_attributes.attribute_details.options.graph.row_menu',
-        defaultMessage: 'Row actions',
+    addChildAria: {
+        id: 'admin.global_attributes.attribute_details.options.graph.add_child_aria',
+        defaultMessage: 'Add a value under {name}',
     },
-    addChild: {
-        id: 'admin.global_attributes.attribute_details.options.graph.add_child',
-        defaultMessage: 'Add child',
+    editValue: {
+        id: 'admin.global_attributes.attribute_details.options.graph.edit_value',
+        defaultMessage: 'Edit {name}',
     },
-    parents: {
-        id: 'admin.global_attributes.attribute_details.options.graph.parents',
-        defaultMessage: 'Parents',
+    parentsAria: {
+        id: 'admin.global_attributes.attribute_details.options.graph.parents_aria',
+        defaultMessage: 'Parents of {name}',
     },
-    rename: {
-        id: 'admin.global_attributes.attribute_details.options.graph.rename',
-        defaultMessage: 'Rename',
+    parentsActionTooltip: {
+        id: 'admin.global_attributes.attribute_details.options.graph.parents_action_tooltip',
+        defaultMessage: 'Parents — who this value is granted by',
+    },
+    parentsBadgeTooltip: {
+        id: 'admin.global_attributes.attribute_details.options.graph.parents_badge_tooltip',
+        defaultMessage: 'Under {names}',
+    },
+    collapse: {
+        id: 'admin.global_attributes.attribute_details.options.graph.collapse',
+        defaultMessage: 'Collapse {name}',
+    },
+    expand: {
+        id: 'admin.global_attributes.attribute_details.options.graph.expand',
+        defaultMessage: 'Expand {name}',
+    },
+    deleteAria: {
+        id: 'admin.global_attributes.attribute_details.options.graph.delete_aria',
+        defaultMessage: 'Delete {name}',
     },
     deleteThisValue: {
         id: 'admin.global_attributes.attribute_details.options.graph.delete_this_value',

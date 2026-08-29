@@ -1,22 +1,37 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {defineMessages, FormattedMessage, useIntl} from 'react-intl';
-import {components} from 'react-select';
 
-import {ChevronLeftIcon, ChevronRightIcon} from '@mattermost/compass-icons/components';
+import {
+    ChevronLeftIcon,
+    ChevronRightIcon,
+    CloseIcon,
+    PlusIcon,
+    SitemapIcon,
+    SourceBranchIcon,
+    TrashCanOutlineIcon,
+} from '@mattermost/compass-icons/components';
 import type {PropertyFieldOption} from '@mattermost/types/properties';
 
 import * as Menu from 'components/menu';
+import Input from 'components/widgets/inputs/input/input';
 
-import {proposeAddParent, type ConfirmGrant} from './graph_parent_ops';
+import Constants from 'utils/constants';
+
+import {proposeAddParent, type ConfirmGrant, type ProposeParentResult} from './graph_parent_ops';
 import {
+    addChildOption,
+    addTopLevelOption,
     checkParentEdge,
     cycleErrorValues,
     depthErrorValues,
     getChildren,
+    isNameUnique,
     removeParentEdge,
+    wouldExceedMaxEdges,
+    wouldExceedMaxOptions,
     type CheckParentEdgeResult,
 } from './graph_utils';
 
@@ -32,6 +47,9 @@ export type AttributeGraphParentsPaneProps = {
     disabled?: boolean;
     atMax?: boolean;
     confirmGrant?: ConfirmGrant;
+    initialView?: 'main' | 'parents' | 'children';
+    onRename?: (currentName: string, nextName: string) => 'applied' | 'duplicate' | 'noop';
+    onChildAdded?: () => void;
 };
 
 export type ParentCandidateClass =
@@ -41,9 +59,9 @@ export type ParentCandidateClass =
 
 type EdgeAlert = Extract<CheckParentEdgeResult, {ok: false}>;
 
-type PickerRow =
-    | {option: PropertyFieldOption; kind: 'enabled'} |
-    {option: PropertyFieldOption; kind: 'disabled'; reason: 'self' | 'depth' | 'max-parents'};
+type Suggestion =
+    {kind: 'existing'; name: string} |
+    {kind: 'create'; name: string};
 
 export function classifyParentCandidate(
     options: PropertyFieldOption[],
@@ -72,6 +90,14 @@ export function classifyParentCandidate(
         }
     }
     return {kind: 'enabled'};
+}
+
+export function classifyChildCandidate(
+    options: PropertyFieldOption[],
+    parentName: string,
+    candidateName: string,
+): ParentCandidateClass {
+    return classifyParentCandidate(options, candidateName, parentName);
 }
 
 export function GraphParentEdgeAlert({result, childName, parentName}: {
@@ -109,21 +135,6 @@ export function GraphParentEdgeAlert({result, childName, parentName}: {
     );
 }
 
-function pickerSecondaryMessage(reason: 'self' | 'depth' | 'max-parents') {
-    switch (reason) {
-    case 'self':
-        return messages.pickerSelf;
-    case 'depth':
-        return messages.pickerDepth;
-    case 'max-parents':
-        return messages.pickerMaxParents;
-    default: {
-        const exhaustive: never = reason;
-        return exhaustive;
-    }
-    }
-}
-
 function AttributeGraphParentsPane({
     options,
     optionName,
@@ -132,42 +143,63 @@ function AttributeGraphParentsPane({
     disabled = false,
     atMax = false,
     confirmGrant,
+    initialView = 'main',
+    onRename,
+    onChildAdded,
 }: AttributeGraphParentsPaneProps) {
     const {formatMessage} = useIntl();
-    const [view, setView] = useState<'main' | 'parents'>('main');
+    const [view, setView] = useState<'main' | 'parents' | 'children'>(initialView);
     const [query, setQuery] = useState('');
+    const [searchOpen, setSearchOpen] = useState(false);
     const [edgeAlert, setEdgeAlert] = useState<EdgeAlert | null>(null);
-    const [alertParentName, setAlertParentName] = useState('');
+    const [alertRelatedName, setAlertRelatedName] = useState('');
+    const [nameDraft, setNameDraft] = useState(optionName);
+    const skipBlurCommitRef = useRef(false);
+
+    useEffect(() => {
+        setNameDraft(optionName);
+    }, [optionName]);
 
     const option = options.find((item) => item.name === optionName);
     const parentNames = option?.parents ?? [];
     const childOptions = useMemo(() => getChildren(options, optionName), [options, optionName]);
+    const trimmedName = nameDraft.trim();
+    const renameIsDuplicate = Boolean(trimmedName) && trimmedName !== optionName && !isNameUnique(options, trimmedName, optionName);
 
-    const pickerRows = useMemo<PickerRow[]>(() => {
-        const q = query.trim().toLowerCase();
-        const rows: PickerRow[] = [];
+    const goToView = useCallback((next: 'main' | 'parents' | 'children') => {
+        setView(next);
+        setQuery('');
+        setSearchOpen(false);
+        setEdgeAlert(null);
+    }, []);
+
+    const suggestions = useMemo<Suggestion[]>(() => {
+        const q = query.trim();
+        const qLower = q.toLowerCase();
+        const items: Suggestion[] = [];
         for (const candidate of options) {
-            if (q && !candidate.name.toLowerCase().includes(q)) {
+            if (q && !candidate.name.toLowerCase().includes(qLower)) {
                 continue;
             }
-            const cls = classifyParentCandidate(options, optionName, candidate.name);
-            if (cls.kind === 'omit') {
+            const classification = view === 'children' ?
+                classifyChildCandidate(options, optionName, candidate.name) :
+                classifyParentCandidate(options, optionName, candidate.name);
+            if (classification.kind !== 'enabled') {
                 continue;
             }
-            if (cls.kind === 'disabled') {
-                rows.push({option: candidate, kind: 'disabled', reason: cls.reason});
-            } else {
-                rows.push({option: candidate, kind: 'enabled'});
-            }
+            items.push({kind: 'existing', name: candidate.name});
         }
-        return rows;
-    }, [options, optionName, query]);
+        if (q && isNameUnique(options, q) && !disabled && !atMax && !wouldExceedMaxOptions(options) && !wouldExceedMaxEdges(options)) {
+            items.push({kind: 'create', name: q});
+        }
+        return items;
+    }, [atMax, disabled, optionName, options, query, view]);
 
-    const handleAdd = useCallback(async (parentName: string) => {
-        const result = await proposeAddParent(options, optionName, parentName, confirmGrant);
+    const applyProposeResult = useCallback((result: ProposeParentResult, relatedName: string, onApplied?: () => void) => {
         switch (result.status) {
         case 'applied':
             onOptionsChange(result.options);
+            onApplied?.();
             setEdgeAlert(null);
             setQuery('');
             break;
@@ -181,14 +213,39 @@ function AttributeGraphParentsPane({
             break;
         case 'invalid':
             setEdgeAlert(result.check);
-            setAlertParentName(parentName);
+            setAlertRelatedName(relatedName);
             break;
         default: {
             const exhaustive: never = result;
             throw exhaustive;
         }
         }
-    }, [options, optionName, confirmGrant, onOptionsChange]);
+    }, [onOptionsChange]);
+
+    const handleAdd = useCallback(async (parentName: string, fromOptions = options) => {
+        applyProposeResult(await proposeAddParent(fromOptions, optionName, parentName, confirmGrant), parentName);
+    }, [applyProposeResult, confirmGrant, optionName, options]);
+
+    const handleCreate = useCallback(async (name: string) => {
+        if (!isNameUnique(options, name) || wouldExceedMaxOptions(options) || wouldExceedMaxEdges(options) || disabled || atMax) {
+            return;
+        }
+        await handleAdd(name, addTopLevelOption(options, name));
+    }, [atMax, disabled, handleAdd, options]);
+
+    const handleAddChild = useCallback(async (childName: string) => {
+        applyProposeResult(await proposeAddParent(options, childName, optionName, confirmGrant), childName, onChildAdded);
+    }, [applyProposeResult, confirmGrant, onChildAdded, optionName, options]);
+
+    const handleCreateChild = useCallback((name: string) => {
+        if (!isNameUnique(options, name) || wouldExceedMaxOptions(options) || wouldExceedMaxEdges(options) || disabled || atMax) {
+            return;
+        }
+        onOptionsChange(addChildOption(options, name, optionName));
+        onChildAdded?.();
+        setEdgeAlert(null);
+        setQuery('');
+    }, [atMax, disabled, onChildAdded, onOptionsChange, optionName, options]);
 
     const handleSearchKeyDown = useCallback((event: React.KeyboardEvent<HTMLInputElement>) => {
         event.stopPropagation();
@@ -199,151 +256,289 @@ function AttributeGraphParentsPane({
         if (disabled || atMax) {
             return;
         }
-        const enabled = pickerRows.filter((row) => row.kind === 'enabled');
-        if (enabled.length === 1) {
-            handleAdd(enabled[0].option.name);
+        const existing = suggestions.filter((row) => row.kind === 'existing');
+        const create = suggestions.find((row) => row.kind === 'create');
+        const addExisting = view === 'children' ? handleAddChild : handleAdd;
+        const createNew = view === 'children' ? handleCreateChild : handleCreate;
+        if (existing.length === 1 && !create) {
+            addExisting(existing[0].name);
+            return;
         }
-    }, [atMax, disabled, handleAdd, pickerRows]);
+        if (existing.length === 0 && create) {
+            createNew(create.name);
+        }
+    }, [atMax, disabled, handleAdd, handleAddChild, handleCreate, handleCreateChild, suggestions, view]);
 
-    if (view === 'parents') {
+    const commitRename = useCallback(() => {
+        if (!onRename) {
+            setNameDraft(optionName);
+            return;
+        }
+        const result = onRename(optionName, nameDraft);
+        if (result === 'noop') {
+            setNameDraft(optionName);
+        }
+    }, [nameDraft, onRename, optionName]);
+
+    if (view === 'parents' || view === 'children') {
+        const isChildren = view === 'children';
+        const relatedNames = isChildren ? childOptions.map((child) => child.name) : parentNames;
+        const showSuggestions = searchOpen && suggestions.length > 0 && !disabled;
+        const addExisting = isChildren ? handleAddChild : handleAdd;
+        const createNew = isChildren ? handleCreateChild : handleCreate;
+
         return (
             <>
                 <button
                     type='button'
                     className='attribute-graph-parents-pane__back'
                     data-testid='attributeGraphParentsPane__back'
-                    onClick={() => setView('main')}
+                    onClick={() => goToView('main')}
                 >
                     <ChevronLeftIcon size={16}/>
-                    <FormattedMessage {...messages.back}/>
+                    <FormattedMessage
+                        {...(isChildren ? messages.childrenOf : messages.parentsOf)}
+                        values={{name: optionName}}
+                    />
                 </button>
-                <div className='attribute-graph-parents-pane__chips'>
-                    {parentNames.map((parentName) => (
-                        <span
-                            key={parentName}
-                            className='attribute-graph-parents-pane__chip'
-                            data-testid='attributeGraphParentsPane__chip'
+                <div className='attribute-graph-parents-pane__rows'>
+                    {relatedNames.length === 0 && (
+                        <p
+                            className='attribute-graph-parents-pane__empty'
+                            data-testid={isChildren ? 'attributeGraphParentsPane__childrenEmpty' : 'attributeGraphParentsPane__empty'}
                         >
-                            <span className='attribute-graph-parents-pane__chip-label'>{parentName}</span>
+                            <FormattedMessage {...(isChildren ? messages.noChildrenYet : messages.noParentsYet)}/>
+                        </p>
+                    )}
+                    {relatedNames.map((relatedName) => (
+                        <div
+                            key={relatedName}
+                            className='attribute-graph-parents-pane__row'
+                            data-testid={isChildren ? 'attributeGraphParentsPane__childRow' : 'attributeGraphParentsPane__parentRow'}
+                        >
+                            <span className='attribute-graph-parents-pane__row-label'>{relatedName}</span>
                             <button
                                 type='button'
-                                className='attribute-graph-parents-pane__chip-remove'
-                                data-testid='attributeGraphParentsPane__chipRemove'
-                                aria-label={formatMessage(messages.removeParent, {name: parentName})}
+                                className='attribute-graph-parents-pane__row-remove'
+                                data-testid={isChildren ? 'attributeGraphParentsPane__childRemove' : 'attributeGraphParentsPane__parentRemove'}
+                                aria-label={isChildren ?
+                                    formatMessage(messages.removeChild, {parent: optionName, child: relatedName}) :
+                                    formatMessage(messages.removeParent, {parent: relatedName, child: optionName})}
                                 disabled={disabled}
                                 onClick={() => {
-                                    onOptionsChange(removeParentEdge(options, optionName, parentName));
+                                    onOptionsChange(isChildren ?
+                                        removeParentEdge(options, relatedName, optionName) :
+                                        removeParentEdge(options, optionName, relatedName));
                                 }}
                             >
-                                <components.CrossIcon size={14}/>
+                                <CloseIcon
+                                    size={12}
+                                    aria-hidden={true}
+                                />
                             </button>
-                        </span>
+                        </div>
                     ))}
                 </div>
-                <Menu.InputItem
-                    key='filter-parents'
-                    id='attributeGraphParentsPane__search'
-                    type='text'
-                    placeholder={formatMessage(messages.addParent)}
-                    value={query}
-                    onChange={(event) => setQuery(event.target.value)}
-                    onKeyDown={handleSearchKeyDown}
-                    disabled={disabled || atMax}
-                    data-testid='attributeGraphParentsPane__search'
-                />
-                {pickerRows.map((row) => {
-                    if (row.kind === 'disabled') {
-                        return (
-                            <Menu.Item
-                                key={row.option.name}
-                                id={`attributeGraphParentsPane__candidate-${row.option.name}`}
-                                data-testid={`attributeGraphParentsPane__candidate-${row.option.name}`}
-                                disabled={true}
-                                labels={(
-                                    <>
-                                        <span>{row.option.name}</span>
-                                        <span>{formatMessage(pickerSecondaryMessage(row.reason))}</span>
-                                    </>
-                                )}
-                            />
-                        );
-                    }
-                    return (
-                        <Menu.Item
-                            key={row.option.name}
-                            id={`attributeGraphParentsPane__candidate-${row.option.name}`}
-                            data-testid={`attributeGraphParentsPane__candidate-${row.option.name}`}
-                            disabled={disabled || atMax}
-                            disableCloseOnSelect={true}
-                            onClick={() => {
-                                handleAdd(row.option.name);
-                            }}
-                            labels={<span>{row.option.name}</span>}
-                        />
-                    );
-                })}
-                <p
-                    className='attribute-graph-parents-pane__helper'
-                    data-testid='attributeGraphParentsPane__helper'
-                >
-                    <FormattedMessage {...messages.descendantsOmittedHelper}/>
-                </p>
                 {edgeAlert && (
                     <GraphParentEdgeAlert
                         result={edgeAlert}
-                        childName={optionName}
-                        parentName={alertParentName}
+                        childName={isChildren ? alertRelatedName : optionName}
+                        parentName={isChildren ? optionName : alertRelatedName}
                     />
                 )}
+                <Menu.Separator/>
+                <div className='attribute-graph-parents-pane__combobox'>
+                    <Input
+                        name={isChildren ? 'attributeGraphParentsPane__childSearch' : 'attributeGraphParentsPane__search'}
+                        type='text'
+                        useLegend={false}
+                        placeholder={formatMessage(isChildren ? messages.addChildPlaceholder : messages.addParentPlaceholder)}
+                        aria-label={formatMessage(isChildren ? messages.addChildAria : messages.addParentAria, {name: optionName})}
+                        value={query}
+                        onChange={(event) => {
+                            setQuery(event.target.value);
+                            setSearchOpen(true);
+                        }}
+                        onFocus={() => setSearchOpen(true)}
+                        onKeyDown={handleSearchKeyDown}
+                        onKeyUp={(event) => event.stopPropagation()}
+                        disabled={disabled || atMax}
+                        autoComplete='off'
+                        data-testid={isChildren ? 'attributeGraphParentsPane__childSearch' : 'attributeGraphParentsPane__search'}
+                    />
+                    {showSuggestions && (
+                        <ul
+                            className='attribute-graph-parents-pane__suggestions'
+                            role='listbox'
+                            data-testid={isChildren ? 'attributeGraphParentsPane__childSuggestions' : 'attributeGraphParentsPane__suggestions'}
+                        >
+                            {suggestions.map((row) => {
+                                if (row.kind === 'create') {
+                                    return (
+                                        <li
+                                            key='__create'
+                                            role='option'
+                                        >
+                                            <button
+                                                type='button'
+                                                className='attribute-graph-parents-pane__suggestion attribute-graph-parents-pane__suggestion--create'
+                                                data-testid={isChildren ? 'attributeGraphParentsPane__createChild' : 'attributeGraphParentsPane__create'}
+                                                disabled={disabled || atMax}
+                                                onMouseDown={(event) => event.preventDefault()}
+                                                onClick={() => createNew(row.name)}
+                                            >
+                                                <PlusIcon
+                                                    size={16}
+                                                    aria-hidden={true}
+                                                />
+                                                <FormattedMessage
+                                                    {...messages.createParent}
+                                                    values={{name: row.name}}
+                                                />
+                                            </button>
+                                        </li>
+                                    );
+                                }
+                                return (
+                                    <li
+                                        key={row.name}
+                                        role='option'
+                                    >
+                                        <button
+                                            type='button'
+                                            className='attribute-graph-parents-pane__suggestion'
+                                            data-testid={`attributeGraphParentsPane__candidate-${row.name}`}
+                                            disabled={disabled || atMax}
+                                            onMouseDown={(event) => event.preventDefault()}
+                                            onClick={() => addExisting(row.name)}
+                                        >
+                                            {row.name}
+                                        </button>
+                                    </li>
+                                );
+                            })}
+                        </ul>
+                    )}
+                </div>
             </>
         );
     }
 
     return (
         <>
-            <div
-                className='attribute-graph-parents-pane__name'
-                data-testid='attributeGraphParentsPane__name'
-            >
-                {optionName}
-            </div>
+            {disabled ? (
+                <div
+                    className='attribute-graph-parents-pane__name'
+                    data-testid='attributeGraphParentsPane__name'
+                >
+                    {optionName}
+                </div>
+            ) : (
+                <div className='attribute-graph-parents-pane__name-field'>
+                    <Input
+                        name='attributeGraphParentsPane__nameInput'
+                        type='text'
+                        useLegend={false}
+                        value={nameDraft}
+                        aria-label={formatMessage(messages.valueName)}
+                        onChange={(event) => setNameDraft(event.target.value)}
+                        onKeyDown={(event) => {
+                            event.stopPropagation();
+                            if (event.key === 'Escape') {
+                                event.preventDefault();
+                                skipBlurCommitRef.current = true;
+                                setNameDraft(optionName);
+                                return;
+                            }
+                            if (event.key === 'Enter') {
+                                event.preventDefault();
+                                skipBlurCommitRef.current = true;
+                                commitRename();
+                            }
+                        }}
+                        onKeyUp={(event) => event.stopPropagation()}
+                        onBlur={() => {
+                            if (skipBlurCommitRef.current) {
+                                skipBlurCommitRef.current = false;
+                                return;
+                            }
+                            commitRename();
+                        }}
+                        maxLength={Constants.MAX_CUSTOM_ATTRIBUTE_LENGTH}
+                        hasError={renameIsDuplicate}
+                        customMessage={renameIsDuplicate ?
+                            {type: 'error', value: formatMessage(messages.duplicateName, {name: trimmedName})} :
+                            null}
+                        data-testid='attributeGraphParentsPane__nameInput'
+                        autoFocus={true}
+                    />
+                </div>
+            )}
             <Menu.Item
                 id='attributeGraphParentsPane__openParents'
                 data-testid='attributeGraphParentsPane__openParents'
                 disableCloseOnSelect={true}
-                onClick={() => setView('parents')}
+                onClick={() => goToView('parents')}
+                leadingElement={
+                    <SitemapIcon
+                        size={16}
+                        aria-hidden={true}
+                    />
+                }
                 labels={<span><FormattedMessage {...messages.parents}/></span>}
                 trailingElements={(
                     <>
-                        {parentNames.length}
+                        <span className='attribute-graph-parents-pane__nav-value'>
+                            {parentNames.length === 0 ? (
+                                <FormattedMessage {...messages.topLevel}/>
+                            ) : (
+                                <FormattedMessage
+                                    {...messages.parentCount}
+                                    values={{n: parentNames.length}}
+                                />
+                            )}
+                        </span>
                         <ChevronRightIcon size={16}/>
                     </>
                 )}
             />
-            {childOptions.length > 0 && (
-                <div
-                    className='attribute-graph-parents-pane__children'
-                    data-testid='attributeGraphParentsPane__children'
-                >
-                    <div className='attribute-graph-parents-pane__children-label'>
-                        <FormattedMessage {...messages.children}/>
-                    </div>
-                    {childOptions.map((child) => (
-                        <div
-                            key={child.name}
-                            className='attribute-graph-parents-pane__child'
-                        >
-                            {child.name}
-                        </div>
-                    ))}
-                </div>
-            )}
+            <Menu.Item
+                id='attributeGraphParentsPane__openChildren'
+                data-testid='attributeGraphParentsPane__openChildren'
+                disableCloseOnSelect={true}
+                onClick={() => goToView('children')}
+                leadingElement={
+                    <SourceBranchIcon
+                        size={16}
+                        aria-hidden={true}
+                    />
+                }
+                labels={<span><FormattedMessage {...messages.children}/></span>}
+                trailingElements={(
+                    <>
+                        <span className='attribute-graph-parents-pane__nav-value'>
+                            {childOptions.length === 0 ? (
+                                <FormattedMessage {...messages.none}/>
+                            ) : (
+                                childOptions.length
+                            )}
+                        </span>
+                        <ChevronRightIcon size={16}/>
+                    </>
+                )}
+            />
             <Menu.Separator/>
             <Menu.Item
                 isDestructive={true}
                 disabled={disabled}
                 disableCloseOnSelect={true}
                 onClick={() => onDelete(optionName)}
+                leadingElement={
+                    <TrashCanOutlineIcon
+                        size={16}
+                        aria-hidden={true}
+                    />
+                }
                 labels={<span><FormattedMessage {...messages.deleteThisValue}/></span>}
             />
         </>
@@ -361,33 +556,69 @@ const messages = defineMessages({
         id: 'admin.global_attributes.attribute_details.options.graph.parents_pane.children',
         defaultMessage: 'Children',
     },
-    addParent: {
+    childrenOf: {
+        id: 'admin.global_attributes.attribute_details.options.graph.parents_pane.children_back',
+        defaultMessage: 'Children of {name}',
+    },
+    parentsOf: {
+        id: 'admin.global_attributes.attribute_details.options.graph.parents_pane.back',
+        defaultMessage: 'Parents of {name}',
+    },
+    noParentsYet: {
+        id: 'admin.global_attributes.attribute_details.options.graph.parents_pane.no_parents',
+        defaultMessage: 'No parents yet.',
+    },
+    noChildrenYet: {
+        id: 'admin.global_attributes.attribute_details.options.graph.parents_pane.no_children',
+        defaultMessage: 'No children yet.',
+    },
+    addChildPlaceholder: {
+        id: 'admin.global_attributes.attribute_details.options.graph.parents_pane.add_child',
+        defaultMessage: 'Grant another value, or type a new name…',
+    },
+    addChildAria: {
+        id: 'admin.global_attributes.attribute_details.options.graph.parents_pane.add_child_aria',
+        defaultMessage: 'Add a value granted by {name}',
+    },
+    removeChild: {
+        id: 'admin.global_attributes.attribute_details.options.graph.parents_pane.remove_child',
+        defaultMessage: 'Remove {child} as a child of {parent}',
+    },
+    topLevel: {
+        id: 'admin.global_attributes.attribute_details.options.graph.parents_pane.top_level',
+        defaultMessage: 'Top level',
+    },
+    none: {
+        id: 'admin.global_attributes.attribute_details.options.graph.parents_pane.none',
+        defaultMessage: 'None',
+    },
+    parentCount: {
+        id: 'admin.global_attributes.attribute_details.options.graph.parents_pane.parent_count',
+        defaultMessage: '{n, plural, one {# parent} other {# parents}}',
+    },
+    valueName: {
+        id: 'admin.global_attributes.attribute_details.options.graph.parents_pane.value_name',
+        defaultMessage: 'Value name',
+    },
+    duplicateName: {
+        id: 'admin.global_attributes.attribute_details.options.graph.duplicate_name',
+        defaultMessage: '"{name}" already exists in this field.',
+    },
+    addParentPlaceholder: {
         id: 'admin.global_attributes.attribute_details.options.graph.parents_pane.add_parent',
-        defaultMessage: 'Add parent',
+        defaultMessage: 'Add a parent, or type a new name…',
+    },
+    addParentAria: {
+        id: 'admin.global_attributes.attribute_details.options.graph.parents_pane.add_parent_aria',
+        defaultMessage: 'Add a parent of {name}',
+    },
+    createParent: {
+        id: 'admin.global_attributes.attribute_details.options.graph.parents_pane.create_parent',
+        defaultMessage: 'Create "{name}"',
     },
     removeParent: {
         id: 'admin.global_attributes.attribute_details.options.graph.parents_pane.remove_parent',
-        defaultMessage: 'Remove parent {name}',
-    },
-    back: {
-        id: 'admin.global_attributes.attribute_details.options.graph.parents_pane.back',
-        defaultMessage: 'Back',
-    },
-    descendantsOmittedHelper: {
-        id: 'admin.global_attributes.attribute_details.options.graph.parents_pane.descendants_helper',
-        defaultMessage: 'Options below this one aren\'t listed — a parent can\'t be one of its own descendants.',
-    },
-    pickerSelf: {
-        id: 'admin.global_attributes.attribute_details.options.graph.parents_pane.picker_self',
-        defaultMessage: 'same value — an option can\'t be its own parent',
-    },
-    pickerDepth: {
-        id: 'admin.global_attributes.attribute_details.options.graph.parents_pane.picker_depth',
-        defaultMessage: 'Exceeds depth 100',
-    },
-    pickerMaxParents: {
-        id: 'admin.global_attributes.attribute_details.options.graph.parents_pane.picker_max_parents',
-        defaultMessage: 'Parent limit reached',
+        defaultMessage: 'Remove {parent} as a parent of {child}',
     },
     cycleError: {
         id: 'admin.global_attributes.attribute_details.options.graph.parent_edge.cycle',

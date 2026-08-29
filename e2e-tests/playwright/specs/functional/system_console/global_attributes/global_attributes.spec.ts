@@ -10,8 +10,9 @@
  * Professional-only licenses hide this admin route (React Router redirects away).
  */
 
-import {expect, test, getAdminClient} from '@mattermost/playwright-lib';
 import type {Page} from '@playwright/test';
+
+import {expect, test, getAdminClient} from '@mattermost/playwright-lib';
 
 import {
     CLASSIFICATION_MARKINGS_ADMIN_PATH,
@@ -1454,8 +1455,7 @@ test.describe('System Console - Global Attributes', {tag: '@system_console'}, ()
                 await expect(graphRow(page, 'Air')).toBeVisible();
                 await expect(page.getByTestId('saveSetting')).toBeEnabled();
 
-                await openGraphRowMenu(page, 'Air');
-                await page.getByRole('menuitem', {name: 'Add child'}).click();
+                await openGraphRowAddChild(page, 'Air');
                 await page.getByTestId('attributeOptionsGraphRow__childNameInput').fill('Fighter');
                 await page.getByTestId('attributeOptionsGraphRow__childAddButton').click();
 
@@ -1517,7 +1517,10 @@ test.describe('System Console - Global Attributes', {tag: '@system_console'}, ()
 
             // * Duplicate is refused; the unique-name alert is shown; Save stays enabled
             await expect(page.getByRole('alert')).toContainText('"engineering" already exists in this field.');
-            await expect(page.getByTestId('attributeOptionsGraphAddTop__nameInput')).toHaveAttribute('aria-invalid', 'true');
+            await expect(page.getByTestId('attributeOptionsGraphAddTop__nameInput')).toHaveAttribute(
+                'aria-invalid',
+                'true',
+            );
             await expect(graphRow(page, 'Engineering')).toHaveCount(1);
             await expect(page.getByTestId('saveSetting')).toBeEnabled();
         });
@@ -1582,25 +1585,22 @@ test.describe('System Console - Global Attributes', {tag: '@system_console'}, ()
                 await page.getByTestId('attributeOptionsGraphEmpty__addButton').click();
                 await page.getByTestId('attributeOptionsGraphAddTop__nameInput').fill('Air');
                 await page.getByTestId('attributeOptionsGraphAddTop__addButton').click();
-                await openGraphRowMenu(page, 'Air');
-                await page.getByRole('menuitem', {name: 'Add child'}).click();
+                await openGraphRowAddChild(page, 'Air');
                 await page.getByTestId('attributeOptionsGraphRow__childNameInput').fill('Fighter');
                 await page.getByTestId('attributeOptionsGraphRow__childAddButton').click();
 
                 // # Open Air's Parents pane and grant Maritime as a parent (newly reaches Fighter)
-                await openGraphRowMenu(page, 'Air');
-                await page.getByRole('menuitem', {name: 'Parents'}).click();
-                await expect(page.getByTestId('attributeGraphParentsPane__name')).toHaveText('Air');
-                await page.getByTestId('attributeGraphParentsPane__openParents').click();
+                await openGraphRowParents(page, 'Air');
+                await expect(page.getByTestId('attributeGraphParentsPane__back')).toHaveText('Parents of Air');
+                await page.getByTestId('attributeGraphParentsPane__search').click();
                 await page.getByTestId('attributeGraphParentsPane__candidate-Maritime').click();
 
                 await expect(page.getByRole('heading', {name: 'Confirm this grant'})).toBeVisible();
                 await expect(page.getByTestId('attributeGraphGrantConfirm__newlyReachable')).toContainText('Fighter');
 
-                // The Parents picker keeps the menu open (disableCloseOnSelect) and sits
-                // above the modal, so dismiss it before confirming.
+                // The row menu sits above the grant modal; dismiss it before confirming.
                 await page.keyboard.press('Escape');
-                await expect(page.getByRole('menu', {name: 'Parents'})).toHaveCount(0);
+                await expect(page.getByRole('menu', {name: 'Edit Air'})).toHaveCount(0);
 
                 await page.getByRole('button', {name: /^add the parent$/i}).click();
 
@@ -1646,14 +1646,12 @@ test.describe('System Console - Global Attributes', {tag: '@system_console'}, ()
 
                 await page.getByTestId('attributeOptionsGraphEmpty__nameInput').fill('Air');
                 await page.getByTestId('attributeOptionsGraphEmpty__addButton').click();
-                await openGraphRowMenu(page, 'Air');
-                await page.getByRole('menuitem', {name: 'Add child'}).click();
+                await openGraphRowAddChild(page, 'Air');
                 await page.getByTestId('attributeOptionsGraphRow__childNameInput').fill('Fighter');
                 await page.getByTestId('attributeOptionsGraphRow__childAddButton').click();
 
                 // # Delete Air — blocked because Fighter would be orphaned
-                await openGraphRowMenu(page, 'Air');
-                await page.getByRole('menuitem', {name: 'Delete this value'}).click();
+                await openGraphRowDelete(page, 'Air');
                 await expect(page.getByRole('heading', {name: 'Move one value first'})).toBeVisible();
                 await expect(page.getByText(/would leave "Fighter" with no parent/)).toBeVisible();
                 await page.getByRole('button', {name: 'Go to "Fighter"'}).click();
@@ -1663,8 +1661,7 @@ test.describe('System Console - Global Attributes', {tag: '@system_console'}, ()
                 await expect(graphRow(page, 'Fighter', 'Air')).toBeVisible();
 
                 // # Delete the leaf instead
-                await openGraphRowMenu(page, 'Fighter', 'Air');
-                await page.getByRole('menuitem', {name: 'Delete this value'}).click();
+                await openGraphRowDelete(page, 'Fighter', 'Air');
                 await expect(page.getByRole('heading', {name: 'Delete "Fighter"?'})).toBeVisible();
                 await page.getByRole('button', {name: 'Delete the value'}).click();
 
@@ -1849,6 +1846,20 @@ function graphRow(page: Page, optionName: string, parentName = '') {
     );
 }
 
-async function openGraphRowMenu(page: Page, optionName: string, parentName = '') {
-    await graphRow(page, optionName, parentName).getByTestId('attributeOptionsGraphRow__menu').click();
+async function openGraphRowAddChild(page: Page, optionName: string, parentName = '') {
+    const row = graphRow(page, optionName, parentName);
+    await row.hover();
+    await row.getByTestId('attributeOptionsGraphRow__addChild').click();
+}
+
+async function openGraphRowParents(page: Page, optionName: string, parentName = '') {
+    const row = graphRow(page, optionName, parentName);
+    await row.hover();
+    await row.getByTestId('attributeOptionsGraphRow__parents').click();
+}
+
+async function openGraphRowDelete(page: Page, optionName: string, parentName = '') {
+    const row = graphRow(page, optionName, parentName);
+    await row.hover();
+    await row.getByTestId('attributeOptionsGraphRow__delete').click();
 }

@@ -3,6 +3,8 @@
 
 import {combine} from '@atlaskit/pragmatic-drag-and-drop/combine';
 import {draggable, dropTargetForElements} from '@atlaskit/pragmatic-drag-and-drop/element/adapter';
+import {preserveOffsetOnSource} from '@atlaskit/pragmatic-drag-and-drop/element/preserve-offset-on-source';
+import {setCustomNativeDragPreview} from '@atlaskit/pragmatic-drag-and-drop/element/set-custom-native-drag-preview';
 import {useEffect, useState} from 'react';
 
 import type {PropertyFieldOption} from '@mattermost/types/properties';
@@ -111,6 +113,34 @@ export function dropAlertFromProposeResult(
 const GRAPH_ROW_TEST_ID = 'attributeOptionsGraphRow';
 const HONEY_POT_ATTR = 'data-pdnd-honey-pot';
 
+const DRAG_PREVIEW_HOST_CLASS = 'attribute-options-graph-values--drag-preview-host';
+
+// Native setDragImage clips paint outside the snapshot box. Keep the lift
+// shadow inside that box, then shift the pointer offset by the same pad.
+export const GRAPH_ROW_DRAG_PREVIEW_PAD_PX = 16;
+
+// Clone the full row for the native drag image. A handle-sized source (or a
+// row inside overflow:hidden) otherwise ghosts as a clipped icon.
+export function createGraphRowDragPreview(rowElement: HTMLElement): HTMLElement {
+    const {width} = rowElement.getBoundingClientRect();
+    const host = document.createElement('div');
+    host.className = `attribute-options-graph-values ${DRAG_PREVIEW_HOST_CLASS}`;
+    host.setAttribute('aria-hidden', 'true');
+    host.style.padding = `${GRAPH_ROW_DRAG_PREVIEW_PAD_PX}px`;
+
+    const preview = rowElement.cloneNode(true) as HTMLElement;
+    preview.removeAttribute('data-testid');
+    preview.removeAttribute('tabindex');
+    preview.setAttribute('aria-hidden', 'true');
+    preview.classList.add('attribute-options-graph-values__row--active');
+    preview.style.width = `${width}px`;
+    preview.style.boxSizing = 'border-box';
+    preview.querySelectorAll('.attribute-options-graph-values__parents-anchor').forEach((node) => node.remove());
+
+    host.appendChild(preview);
+    return host;
+}
+
 export function graphRowDragDataAtPoint(clientX: number, clientY: number): GraphRowDragData | null {
     const stack = document.elementsFromPoint(clientX, clientY);
     for (const node of stack) {
@@ -154,6 +184,7 @@ export async function handleMissedNativeGraphRowDrop(args: {
     if (!canDropOnGraphRow(args.sourceData, target, args.options)) {
         return;
     }
+
     // Legal reparents require a native drop so Escape/cancel cannot mutate.
     if (canReparentGraphRow(args.sourceData, target, args.options)) {
         return;
@@ -216,27 +247,47 @@ export function useGraphRowDnd({
 
         return combine(
             draggable({
-                element: handleElement,
+                element: rowElement,
+                dragHandle: handleElement,
                 canDrag: () => !disabled,
                 getInitialData: (): GraphRowDragData => ({
                     kind: GRAPH_ROW_DRAG_KIND,
                     optionName,
                     parentName,
                 }),
+                onGenerateDragPreview: ({nativeSetDragImage, location}) => {
+                    const getSourceOffset = preserveOffsetOnSource({
+                        element: rowElement,
+                        input: location.current.input,
+                    });
+                    setCustomNativeDragPreview({
+                        nativeSetDragImage,
+                        getOffset: ({container}) => {
+                            const offset = getSourceOffset({container});
+                            return {
+                                x: offset.x + GRAPH_ROW_DRAG_PREVIEW_PAD_PX,
+                                y: offset.y + GRAPH_ROW_DRAG_PREVIEW_PAD_PX,
+                            };
+                        },
+                        render: ({container}) => {
+                            container.appendChild(createGraphRowDragPreview(rowElement));
+                        },
+                    });
+                },
                 onDrop: ({source, location}) => {
                     // Native `drop` notifies the row target. dragend-without-drop
                     // goes through PDND cancel() which has already cleared dropTargets.
                     if (location.current.dropTargets.length > 0) {
                         return;
                     }
-                    void handleMissedNativeGraphRowDrop({
+                    handleMissedNativeGraphRowDrop({
                         sourceData: source.data,
                         input: location.current.input,
                         options: optionsRef.current,
                         confirmGrant: confirmGrantRef.current,
                         onOptionsChange: onOptionsChangeRef.current,
                         onDropResult: onDropResultRef.current,
-                    });
+                    }).catch(() => undefined);
                 },
             }),
             dropTargetForElements({
@@ -253,14 +304,14 @@ export function useGraphRowDnd({
                 onDragLeave: () => setIsOver(false),
                 onDrop: ({source}) => {
                     setIsOver(false);
-                    void handleGraphRowDrop({
+                    handleGraphRowDrop({
                         sourceData: source.data,
                         target,
                         options: optionsRef.current,
                         confirmGrant: confirmGrantRef.current,
                         onOptionsChange: onOptionsChangeRef.current,
                         onDropResult: onDropResultRef.current,
-                    });
+                    }).catch(() => undefined);
                 },
             }),
         );
