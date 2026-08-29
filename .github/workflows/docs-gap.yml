@@ -1,0 +1,159 @@
+name: Docs Gap Analysis
+
+# Decides whether a pull request changes product behaviour without documenting
+# it, and owns the Docs/Needed label.
+#
+# Unlike docs-review.yml this carries no paths: filter, deliberately. It has to
+# run on every push to a pull request, because a docs-only push is exactly what
+# closes a gap and clears the label.
+#
+# Two jobs so the model run and the label write are separated: analyze holds the
+# API key and a read-only token with a Read,Glob,Grep tool grant; report is
+# deterministic and is the only writer of the label and the comment.
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    branches:
+      - master
+
+permissions:
+  contents: read
+
+concurrency:
+  group: docs-gap-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  analyze:
+    name: Analyze documentation impact
+    # Forks have neither the API key nor a writable token, so there is nothing
+    # for them to run. Docs/Not Needed and Docs/Done are the human opt-outs.
+    if: >-
+      github.event.pull_request.draft == false &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      !startsWith(github.event.pull_request.user.login, 'unified-ci-app') &&
+      !contains(github.event.pull_request.labels.*.name, 'Docs/Not Needed') &&
+      !contains(github.event.pull_request.labels.*.name, 'Docs/Done')
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      pull-requests: read
+      id-token: write
+    outputs:
+      analyzable: ${{ steps.diff.outputs.analyzable }}
+      result: ${{ steps.gap.outputs.structured_output }}
+      outcome: ${{ steps.gap.outcome }}
+    env:
+      HAS_ANTHROPIC_KEY: ${{ secrets.ANTHROPIC_API_KEY != '' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: 2
+          persist-credentials: false
+
+      # analyzable folds in the key check, so an unconfigured checkout degrades
+      # to a no-op: report gates on this output too, and a job-level if cannot
+      # read the secrets context.
+      - name: Collect both sides of the diff
+        id: diff
+        run: |
+          set -euo pipefail
+          mkdir -p .docs-ai/gap
+
+          DOCS_PATHSPEC=(
+            docs/main docs/develop
+            ':(exclude)docs/main/agents/docs'
+          )
+
+          git diff --name-only HEAD^1 HEAD > .docs-ai/gap/files.raw
+          git diff HEAD^1 HEAD -- . ':(exclude)docs' > .docs-ai/gap/code.raw
+          git diff HEAD^1 HEAD -- "${DOCS_PATHSPEC[@]}" > .docs-ai/gap/docs.raw
+
+          COUNT=$(wc -l < .docs-ai/gap/files.raw | tr -d ' ')
+          echo "Changed files: ${COUNT}"
+
+          if [ "${COUNT}" -eq 0 ]; then
+            echo "Nothing changed; skipping gap analysis." >> "$GITHUB_STEP_SUMMARY"
+            echo "analyzable=false" >> "$GITHUB_OUTPUT"
+          elif [ "$HAS_ANTHROPIC_KEY" != "true" ]; then
+            echo "ANTHROPIC_API_KEY is not configured; skipping gap analysis." >> "$GITHUB_STEP_SUMMARY"
+            echo "analyzable=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "analyzable=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Set up Node
+        if: steps.diff.outputs.analyzable == 'true'
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
+        with:
+          node-version-file: .nvmrc
+          cache: "npm"
+          cache-dependency-path: .github/scripts/docs-ai/package-lock.json
+
+      - name: Install dependencies
+        if: steps.diff.outputs.analyzable == 'true'
+        working-directory: .github/scripts/docs-ai
+        run: npm ci --ignore-scripts
+
+      # Escapes and wraps both diffs, then renders the prompt from
+      # docs-gap-analysis.md with the audience personas taken from the same
+      # frontmatter the review router reads.
+      - name: Build the prompt
+        id: prompt
+        if: steps.diff.outputs.analyzable == 'true'
+        run: |
+          node .github/scripts/docs-ai/gap-prepare.mjs \
+            --files .docs-ai/gap/files.raw \
+            --code-diff .docs-ai/gap/code.raw \
+            --docs-diff .docs-ai/gap/docs.raw \
+            --out-dir .docs-ai/gap
+
+      # continue-on-error so the outcome reaches report rather than failing the
+      # job: an outage should leave the label untouched, not turn every check in
+      # the repository red.
+      - name: Assess the gap
+        id: gap
+        if: steps.diff.outputs.analyzable == 'true'
+        continue-on-error: true
+        uses: anthropics/claude-code-action@26ec041249acb0a944c0a47b6c0c13f05dbc5b44 # v1.0.70
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          allowed_bots: "cursor,claude"
+          prompt: ${{ steps.prompt.outputs.prompt }}
+          claude_args: |
+            --model ${{ vars.DOCS_AI_GAP_MODEL || 'claude-sonnet-4-6' }}
+            --max-turns 30
+            --allowedTools "Read,Glob,Grep"
+            --json-schema '${{ steps.prompt.outputs.schema }}'
+
+  report:
+    name: Post comment and manage label
+    needs: analyze
+    if: always() && needs.analyze.outputs.analyzable == 'true'
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Set up Node
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
+        with:
+          node-version-file: .nvmrc
+
+      - name: Report
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          GAP_RESULT: ${{ needs.analyze.outputs.result }}
+          GAP_OUTCOME: ${{ needs.analyze.outputs.outcome }}
+        run: node .github/scripts/docs-ai/gap-report.mjs
