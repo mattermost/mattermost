@@ -300,42 +300,48 @@
         content:
           application/json:
             schema:
-              type: array
-              items:
-                type: object
-                properties:
-                  id:
-                    type: string
-                  value:
-                    oneOf:
-                      - type: string
-                      - type: array
-                        items:
-                          type: string
+              type: object
+              description: |
+                Object keyed by Custom Profile Attribute field ID. Each value is
+                a string, an array of strings for `multiselect` and `multiuser`
+                fields, or `null` to clear the value.
+              additionalProperties:
+                nullable: true
+                oneOf:
+                  - type: string
+                  - type: array
+                    items:
+                      type: string
+              example:
+                eqyzt9guiibnxreinsnyruep6r: dxgbcfk9jpgmzb3dc9gtkzxm6o
       responses:
         "200":
           description: Custom Profile Attribute values patch successful
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    id:
-                      type: string
-                    value:
-                      oneOf:
-                        - type: string
-                        - type: array
-                          items:
-                            type: string
+                type: object
+                description: |
+                  Object keyed by Custom Profile Attribute field ID. Each value is
+                  a string, an array of strings for `multiselect` and `multiuser`
+                  fields, or `null` for a value that was cleared.
+                additionalProperties:
+                  nullable: true
+                  oneOf:
+                    - type: string
+                    - type: array
+                      items:
+                        type: string
+                example:
+                  eqyzt9guiibnxreinsnyruep6r: dxgbcfk9jpgmzb3dc9gtkzxm6o
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
   "/api/v4/custom_profile_attributes/group":
     get:
       tags:
@@ -390,15 +396,21 @@
           description: Custom Profile Attribute values fetch successful. Result may be empty.
           content:
             application/json:
-            schema:
-              type: array
-              items:
+              schema:
                 type: object
-                properties:
-                  field_id:
-                    type: string
-                  value:
-                    type: string
+                description: |
+                  Object keyed by Custom Profile Attribute field ID. Each value is
+                  a string, an array of strings for `multiselect` and `multiuser`
+                  fields, or `null` for a value that was cleared.
+                additionalProperties:
+                  nullable: true
+                  oneOf:
+                    - type: string
+                    - type: array
+                      items:
+                        type: string
+                example:
+                  eqyzt9guiibnxreinsnyruep6r: dxgbcfk9jpgmzb3dc9gtkzxm6o
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -433,38 +445,44 @@
         content:
           application/json:
             schema:
-              type: array
-              items:
-                type: object
-                properties:
-                  id:
-                    type: string
-                  value:
-                    oneOf:
-                      - type: string
-                      - type: array
-                        items:
-                          type: string
+              type: object
+              description: |
+                Object keyed by Custom Profile Attribute field ID. Each value is
+                a string, an array of strings for `multiselect` and `multiuser`
+                fields, or `null` to clear the value.
+              additionalProperties:
+                nullable: true
+                oneOf:
+                  - type: string
+                  - type: array
+                    items:
+                      type: string
+              example:
+                eqyzt9guiibnxreinsnyruep6r: dxgbcfk9jpgmzb3dc9gtkzxm6o
       responses:
         '200':
           description: Custom profile attribute values updated successfully
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    id:
-                      type: string
-                    value:
-                      oneOf:
-                        - type: string
-                        - type: array
-                          items:
-                            type: string
+                type: object
+                description: |
+                  Object keyed by Custom Profile Attribute field ID. Each value is
+                  a string, an array of strings for `multiselect` and `multiuser`
+                  fields, or `null` for a value that was cleared.
+                additionalProperties:
+                  nullable: true
+                  oneOf:
+                    - type: string
+                    - type: array
+                      items:
+                        type: string
+                example:
+                  eqyzt9guiibnxreinsnyruep6r: dxgbcfk9jpgmzb3dc9gtkzxm6o
         '400':
           $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
         '403':
           $ref: '#/components/responses/Forbidden'
         '404':
