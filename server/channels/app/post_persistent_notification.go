@@ -6,7 +6,6 @@ package app
 import (
 	"maps"
 	"net/http"
-	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -104,18 +103,15 @@ func (a *App) DeletePersistentNotification(rctx request.CTX, post *model.Post) *
 
 func (a *App) SendPersistentNotifications() error {
 	rctx := request.EmptyContext(a.Log())
-	notificationInterval := time.Duration(*a.Config().ServiceSettings.PersistentNotificationIntervalMinutes) * time.Minute
 	notificationMaxCount := int16(*a.Config().ServiceSettings.PersistentNotificationMaxCount)
-
-	// fetch posts for which the "notificationInterval duration" has passed
-	maxTime := time.Now().Add(-notificationInterval).UnixMilli()
+	defaultIntervalMinutes := *a.Config().ServiceSettings.PersistentNotificationIntervalMinutes
 
 	// Pagination loop
 	for {
 		notificationPosts, err := a.Srv().Store().PostPersistentNotification().Get(model.GetPersistentNotificationsPostsParams{
-			MaxTime:      maxTime,
-			MaxSentCount: notificationMaxCount,
-			PerPage:      500,
+			DefaultIntervalMinutes: defaultIntervalMinutes,
+			MaxSentCount:           notificationMaxCount,
+			PerPage:                500,
 		})
 		if err != nil {
 			return errors.Wrap(err, "failed to get posts for persistent notifications")

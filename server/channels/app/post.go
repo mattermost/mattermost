@@ -225,6 +225,13 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 		}
 	}
 
+	if post.Metadata != nil && post.Metadata.Priority != nil && post.Metadata.Priority.PersistentNotificationInterval != nil {
+		validIntervals := map[int]bool{1: true, 2: true, 5: true, 10: true, 15: true}
+		if !validIntervals[*post.Metadata.Priority.PersistentNotificationInterval] {
+			return nil, false, model.NewAppError("CreatePost", "api.post.post_priority.invalid_persistent_notification_interval.request_error", nil, "", http.StatusBadRequest)
+		}
+	}
+
 	// Validate recipients counts in case it's not DM
 	if persistentNotification := post.GetPersistentNotification(); persistentNotification != nil && *persistentNotification && channel.Type != model.ChannelTypeDirect {
 		err := a.forEachPersistentNotificationPost(rctx, []*model.Post{post}, func(_ *model.Post, _ *model.Channel, _ *model.Team, mentions *MentionResults, _ model.UserMap, _ map[string]map[string]model.StringMap) error {
