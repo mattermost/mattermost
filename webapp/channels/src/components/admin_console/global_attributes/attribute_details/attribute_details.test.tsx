@@ -894,8 +894,7 @@ describe('AttributeDetails', () => {
             await userEvent.type(screen.getByTestId('attributeOptionsGraphEmpty__nameInput'), 'Root');
             await userEvent.click(screen.getByTestId('attributeOptionsGraphEmpty__addButton'));
 
-            await userEvent.click(within(getGraphRow('Root')).getByTestId('attributeOptionsGraphRow__menu'));
-            await userEvent.click(screen.getByRole('menuitem', {name: 'Add child'}));
+            await userEvent.click(within(getGraphRow('Root')).getByTestId('attributeOptionsGraphRow__addChild'));
             await userEvent.type(await screen.findByTestId('attributeOptionsGraphRow__childNameInput'), 'Child');
             await userEvent.click(screen.getByTestId('attributeOptionsGraphRow__childAddButton'));
 

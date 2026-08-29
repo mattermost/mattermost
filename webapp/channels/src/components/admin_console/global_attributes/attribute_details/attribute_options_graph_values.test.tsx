@@ -28,8 +28,20 @@ function getRow(optionName: string, parentName = '') {
     return row;
 }
 
-async function openRowMenu(optionName: string, parentName = '') {
-    await userEvent.click(within(getRow(optionName, parentName)).getByTestId('attributeOptionsGraphRow__menu'));
+async function clickRowAddChild(optionName: string, parentName = '') {
+    await userEvent.click(within(getRow(optionName, parentName)).getByTestId('attributeOptionsGraphRow__addChild'));
+}
+
+async function clickRowParents(optionName: string, parentName = '') {
+    await userEvent.click(within(getRow(optionName, parentName)).getByTestId('attributeOptionsGraphRow__parents'));
+}
+
+async function clickRowDelete(optionName: string, parentName = '') {
+    await userEvent.click(within(getRow(optionName, parentName)).getByTestId('attributeOptionsGraphRow__delete'));
+}
+
+async function openItemMenu(optionName: string, parentName = '') {
+    await userEvent.click(within(getRow(optionName, parentName)).getByTestId('attributeOptionsGraphRow__name'));
 }
 
 describe('AttributeOptionsGraphValues', () => {
@@ -58,6 +70,8 @@ describe('AttributeOptionsGraphValues', () => {
         expect(screen.getByText('Start with a top-level value. You can add parents and children from its row.')).toBeInTheDocument();
         expect(screen.getByText('Up to 100 parents per value, 100 levels deep.')).toBeInTheDocument();
         expect(screen.getByTestId('attributeOptionsGraphEmpty__addButton')).toBeDisabled();
+        expect(screen.getByTestId('attributeOptionsGraphEmpty__addButton')).toHaveClass('btn-primary');
+        expect(screen.getByTestId('attributeOptionsGraphEmpty__nameInput')).toHaveAttribute('placeholder', 'Value name');
         expect(screen.queryByTestId('attributeOptionsGraphList')).not.toBeInTheDocument();
     });
 
@@ -131,6 +145,9 @@ describe('AttributeOptionsGraphValues', () => {
 
         expect(screen.queryByTestId('attributeOptionsGraphEmpty')).not.toBeInTheDocument();
         expect(screen.getByTestId('attributeOptionsGraphList')).toBeInTheDocument();
+        expect(screen.getByTestId('attributeOptionsGraphAddTop__nameInput')).toHaveAttribute('placeholder', 'Add a top-level value');
+        expect(screen.getByTestId('attributeOptionsGraphAddTop__addButton')).toHaveClass('btn-secondary');
+        expect(screen.getByTestId('attributeOptionsGraphAddTop__addButton')).toBeDisabled();
 
         const row = getRow('Root');
         expect(row).toHaveAttribute('data-depth', '0');
@@ -139,6 +156,21 @@ describe('AttributeOptionsGraphValues', () => {
         expect(handle).toHaveAttribute('tabindex', '-1');
         expect(handle).not.toHaveAttribute('tabindex', '0');
         expect(handle.tagName).toBe('SPAN');
+    });
+
+    it('keeps Add value secondary after a name is entered', async () => {
+        renderWithContext(
+            <AttributeOptionsGraphValues
+                options={[{id: '', name: 'Root', parents: []}]}
+                onOptionsChange={jest.fn()}
+            />,
+        );
+
+        await userEvent.type(screen.getByTestId('attributeOptionsGraphAddTop__nameInput'), 'Trunk');
+
+        expect(screen.getByTestId('attributeOptionsGraphAddTop__addButton')).not.toBeDisabled();
+        expect(screen.getByTestId('attributeOptionsGraphAddTop__addButton')).toHaveClass('btn-secondary');
+        expect(screen.getByTestId('attributeOptionsGraphAddTop__addButton')).not.toHaveClass('btn-primary');
     });
 
     it('adds a trimmed child from the overflow menu as an indented sibling row', async () => {
@@ -151,8 +183,7 @@ describe('AttributeOptionsGraphValues', () => {
             />,
         );
 
-        await openRowMenu('Root');
-        await userEvent.click(screen.getByRole('menuitem', {name: 'Add child'}));
+        await clickRowAddChild('Root');
         const draftInput = await screen.findByTestId('attributeOptionsGraphRow__childNameInput');
 
         expect(screen.getByTestId('attributeOptionsGraphRow__childAddButton')).toBeDisabled();
@@ -165,6 +196,47 @@ describe('AttributeOptionsGraphValues', () => {
         await userEvent.click(screen.getByTestId('attributeOptionsGraphRow__childAddButton'));
 
         expect(onOptionsChange).toHaveBeenCalledWith(addChildOption(options, 'Child', 'Root'));
+    });
+
+    it('cancels the child draft without adding a value', async () => {
+        const onOptionsChange = jest.fn();
+        const options: PropertyFieldOption[] = [{id: '', name: 'Root', parents: []}];
+        renderWithContext(
+            <AttributeOptionsGraphValues
+                options={options}
+                onOptionsChange={onOptionsChange}
+            />,
+        );
+
+        await clickRowAddChild('Root');
+        const draft = await screen.findByTestId('attributeOptionsGraphRow__childDraft');
+        expect(draft).toHaveAttribute('data-depth', '1');
+        expect(screen.getByTestId('attributeOptionsGraphRow__childNameInput')).toHaveAttribute('placeholder', 'Name the new value');
+        expect(screen.getByTestId('attributeOptionsGraphRow__childAddButton')).toBeDisabled();
+        expect(screen.getByTestId('attributeOptionsGraphRow__childCancelButton')).toBeEnabled();
+
+        await userEvent.type(screen.getByTestId('attributeOptionsGraphRow__childNameInput'), 'Child');
+        await userEvent.click(screen.getByTestId('attributeOptionsGraphRow__childCancelButton'));
+
+        expect(onOptionsChange).not.toHaveBeenCalled();
+        expect(screen.queryByTestId('attributeOptionsGraphRow__childDraft')).not.toBeInTheDocument();
+    });
+
+    it('dismisses the child draft on Escape', async () => {
+        const onOptionsChange = jest.fn();
+        renderWithContext(
+            <AttributeOptionsGraphValues
+                options={[{id: '', name: 'Root', parents: []}]}
+                onOptionsChange={onOptionsChange}
+            />,
+        );
+
+        await clickRowAddChild('Root');
+        const draftInput = await screen.findByTestId('attributeOptionsGraphRow__childNameInput');
+        await userEvent.type(draftInput, 'Child{Escape}');
+
+        expect(onOptionsChange).not.toHaveBeenCalled();
+        expect(screen.queryByTestId('attributeOptionsGraphRow__childDraft')).not.toBeInTheDocument();
     });
 
     it('renders the new child occurrence under its parent after add', () => {
@@ -196,8 +268,7 @@ describe('AttributeOptionsGraphValues', () => {
             />,
         );
 
-        await openRowMenu('Root');
-        await userEvent.click(screen.getByRole('menuitem', {name: 'Add child'}));
+        await clickRowAddChild('Root');
         const draftInput = await screen.findByTestId('attributeOptionsGraphRow__childNameInput');
         await userEvent.type(draftInput, 'child{Enter}');
 
@@ -219,9 +290,8 @@ describe('AttributeOptionsGraphValues', () => {
             />,
         );
 
-        await openRowMenu('Root');
-        await userEvent.click(screen.getByRole('menuitem', {name: 'Rename'}));
-        const input = await screen.findByTestId('attributeOptionsGraphRow__renameInput');
+        await openItemMenu('Root');
+        const input = await screen.findByTestId('attributeGraphParentsPane__nameInput');
 
         await userEvent.clear(input);
         await userEvent.type(input, 'Child{Enter}');
@@ -243,9 +313,8 @@ describe('AttributeOptionsGraphValues', () => {
             />,
         );
 
-        await openRowMenu('Root');
-        await userEvent.click(screen.getByRole('menuitem', {name: 'Rename'}));
-        const input = await screen.findByTestId('attributeOptionsGraphRow__renameInput');
+        await openItemMenu('Root');
+        const input = await screen.findByTestId('attributeGraphParentsPane__nameInput');
         await userEvent.clear(input);
         await userEvent.type(input, '{Enter}');
 
@@ -275,6 +344,50 @@ describe('AttributeOptionsGraphValues', () => {
         expect(badges[0]).toHaveTextContent('2 parents');
         expect(badges[1]).toHaveTextContent('2 parents');
         expect(within(getRow('Falcon', 'Air')).queryByTestId('attributeOptionsGraphRow__parentsBadge')).not.toBeInTheDocument();
+        const dualRow = getRow('Deepwater', 'Falcon');
+        expect(within(dualRow).getByTestId('attributeOptionsGraphRow__name').nextElementSibling).toBe(
+            within(dualRow).getByTestId('attributeOptionsGraphRow__parentsBadge'),
+        );
+    });
+
+    it('collapses descendants of that occurrence without hiding the same value under another parent', async () => {
+        renderWithContext(
+            <AttributeOptionsGraphValues
+                options={tree()}
+                onOptionsChange={jest.fn()}
+            />,
+        );
+
+        expect(within(getRow('Air')).getByTestId('attributeOptionsGraphRow__collapse')).toHaveAttribute('aria-expanded', 'true');
+        expect(within(getRow('Maritime')).queryByTestId('attributeOptionsGraphRow__collapse')).toBeInTheDocument();
+        expect(within(getRow('Deepwater', 'Falcon')).queryByTestId('attributeOptionsGraphRow__collapse')).not.toBeInTheDocument();
+
+        await userEvent.click(within(getRow('Air')).getByTestId('attributeOptionsGraphRow__collapse'));
+
+        expect(screen.queryAllByTestId('attributeOptionsGraphRow').find(
+            (el) => el.getAttribute('data-option-name') === 'Falcon',
+        )).toBeUndefined();
+        expect(getRow('Deepwater', 'Trident')).toBeInTheDocument();
+        expect(getRow('Trident', 'Maritime')).toBeInTheDocument();
+        expect(getRow('Air')).toHaveAttribute('aria-expanded', 'false');
+
+        await userEvent.click(within(getRow('Air')).getByTestId('attributeOptionsGraphRow__collapse'));
+        expect(getRow('Falcon', 'Air')).toBeInTheDocument();
+        expect(getRow('Deepwater', 'Falcon')).toBeInTheDocument();
+    });
+
+    it('opens the Parents pane from the parents badge', async () => {
+        renderWithContext(
+            <AttributeOptionsGraphValues
+                options={tree()}
+                onOptionsChange={jest.fn()}
+            />,
+        );
+
+        await userEvent.click(within(getRow('Deepwater', 'Falcon')).getByTestId('attributeOptionsGraphRow__parentsBadge'));
+        expect(await screen.findByTestId('attributeGraphParentsPane__back')).toHaveTextContent('Parents of Deepwater');
+        expect(screen.queryByText(/sits under/i)).not.toBeInTheDocument();
+        expect(screen.getByTestId('attributeOptionsGraphRow__parentsAnchor').tagName).toBe('DIV');
     });
 
     it('indents dual occurrences by their own path depth, not maxDepth', () => {
@@ -296,7 +409,7 @@ describe('AttributeOptionsGraphValues', () => {
         expect(getRow('D', 'C')).toHaveAttribute('data-depth', '2');
     });
 
-    it('shows Add child, Parents, Rename, and Delete this value, and Delete does not mutate', async () => {
+    it('shows hover actions for add child, parents, and delete; clicking the name opens the item submenu', async () => {
         const onOptionsChange = jest.fn();
         renderWithContext(
             <AttributeOptionsGraphValues
@@ -305,18 +418,42 @@ describe('AttributeOptionsGraphValues', () => {
             />,
         );
 
-        await openRowMenu('Root');
-        expect(screen.getByRole('menuitem', {name: 'Add child'})).toBeInTheDocument();
-        expect(screen.getByRole('menuitem', {name: 'Parents'})).toBeInTheDocument();
-        expect(screen.getByRole('menuitem', {name: 'Rename'})).toBeInTheDocument();
-        expect(screen.getByRole('menuitem', {name: 'Delete this value'})).toBeInTheDocument();
-        expect(screen.queryByRole('menuitem', {name: /deactivate|move up|move down|move to top|replace/i})).not.toBeInTheDocument();
+        const row = getRow('Root');
+        expect(within(row).getByTestId('attributeOptionsGraphRow__addChild')).toBeInTheDocument();
+        expect(within(row).getByTestId('attributeOptionsGraphRow__parents')).toBeInTheDocument();
+        expect(within(row).getByTestId('attributeOptionsGraphRow__delete')).toBeInTheDocument();
+        expect(within(row).queryByTestId('attributeOptionsGraphRow__menu')).not.toBeInTheDocument();
+        expect(within(row).queryByTestId('attributeOptionsGraphRow__collapse')).not.toBeInTheDocument();
 
-        await userEvent.click(screen.getByRole('menuitem', {name: 'Delete this value'}));
-        await waitFor(() => {
-            expect(screen.queryByRole('menuitem', {name: 'Delete this value'})).not.toBeInTheDocument();
-        });
+        await openItemMenu('Root');
+        expect(await screen.findByTestId('attributeGraphParentsPane__nameInput')).toHaveValue('Root');
+        expect(screen.getByTestId('attributeGraphParentsPane__openParents')).toHaveTextContent('Top level');
+        expect(screen.getByTestId('attributeGraphParentsPane__openChildren')).toHaveTextContent('None');
+        expect(screen.getByRole('menuitem', {name: 'Delete this value'})).toBeInTheDocument();
+
+        await clickRowDelete('Root');
         expect(onOptionsChange).not.toHaveBeenCalled();
+    });
+
+    it('opens the children submenu from the item menu and grants a new child', async () => {
+        const onOptionsChange = jest.fn();
+        const options: PropertyFieldOption[] = [{id: '', name: 'Root', parents: []}];
+        renderWithContext(
+            <AttributeOptionsGraphValues
+                options={options}
+                onOptionsChange={onOptionsChange}
+            />,
+        );
+
+        await openItemMenu('Root');
+        await userEvent.click(await screen.findByTestId('attributeGraphParentsPane__openChildren'));
+        expect(screen.getByTestId('attributeGraphParentsPane__back')).toHaveTextContent('Children of Root');
+        expect(screen.getByTestId('attributeGraphParentsPane__childrenEmpty')).toHaveTextContent('No children yet.');
+
+        await userEvent.type(screen.getByTestId('attributeGraphParentsPane__childSearch'), 'Wing');
+        await userEvent.click(screen.getByTestId('attributeGraphParentsPane__createChild'));
+
+        expect(onOptionsChange).toHaveBeenCalledWith(addChildOption(options, 'Wing', 'Root'));
     });
 
     it('keeps occurrence rows as a flat list with no nested lists', () => {
@@ -348,7 +485,7 @@ describe('AttributeOptionsGraphValues delete wiring', () => {
         HTMLElement.prototype.scrollIntoView = jest.fn();
     });
 
-    it('keeps overflow Delete this value enabled on a node with an exclusive child', async () => {
+    it('keeps the row Delete action enabled on a node with an exclusive child', async () => {
         renderWithContext(
             <AttributeOptionsGraphValues
                 options={blockedOptions()}
@@ -356,11 +493,10 @@ describe('AttributeOptionsGraphValues delete wiring', () => {
             />,
         );
 
-        await openRowMenu('X');
-        expect(screen.getByRole('menuitem', {name: 'Delete this value'})).not.toBeDisabled();
+        expect(within(getRow('X')).getByTestId('attributeOptionsGraphRow__delete')).not.toBeDisabled();
     });
 
-    it('opens GRAPH_NODE_DELETE from overflow Delete this value', async () => {
+    it('opens GRAPH_NODE_DELETE from the row Delete action', async () => {
         const options = blockedOptions();
         renderWithContext(
             <AttributeOptionsGraphValues
@@ -369,8 +505,7 @@ describe('AttributeOptionsGraphValues delete wiring', () => {
             />,
         );
 
-        await openRowMenu('X');
-        await userEvent.click(screen.getByRole('menuitem', {name: 'Delete this value'}));
+        await clickRowDelete('X');
 
         await waitFor(() => {
             expect(openModal).toHaveBeenCalledWith({
@@ -395,8 +530,8 @@ describe('AttributeOptionsGraphValues delete wiring', () => {
             />,
         );
 
-        await openRowMenu('X');
-        await userEvent.click(screen.getByRole('menuitem', {name: 'Parents'}));
+        await clickRowParents('X');
+        await userEvent.click(await screen.findByTestId('attributeGraphParentsPane__back'));
         const paneDelete = await screen.findByRole('menuitem', {name: 'Delete this value'});
         await userEvent.click(paneDelete);
 
@@ -421,8 +556,7 @@ describe('AttributeOptionsGraphValues delete wiring', () => {
             />,
         );
 
-        await openRowMenu('X');
-        await userEvent.click(screen.getByRole('menuitem', {name: 'Delete this value'}));
+        await clickRowDelete('X');
         await waitFor(() => {
             expect(openModal).toHaveBeenCalled();
         });
@@ -444,9 +578,10 @@ describe('AttributeOptionsGraphValues delete wiring', () => {
             />,
         );
 
-        await openRowMenu('X');
-        await userEvent.click(screen.getByRole('menuitem', {name: 'Parents'}));
-        expect(await screen.findByTestId('attributeGraphParentsPane__name')).toHaveTextContent('X');
+        await clickRowParents('X');
+        expect(await screen.findByTestId('attributeGraphParentsPane__back')).toHaveTextContent('Parents of X');
+        await userEvent.click(screen.getByTestId('attributeGraphParentsPane__back'));
+        expect(await screen.findByTestId('attributeGraphParentsPane__nameInput')).toHaveValue('X');
 
         await userEvent.click(screen.getByRole('menuitem', {name: 'Delete this value'}));
         await waitFor(() => {
@@ -458,16 +593,16 @@ describe('AttributeOptionsGraphValues delete wiring', () => {
             dialogProps().onConfirm();
         });
         expect(document.activeElement).not.toBe(orphanRow);
-        expect(screen.getByTestId('attributeGraphParentsPane__name')).toBeInTheDocument();
+        expect(screen.getByTestId('attributeGraphParentsPane__nameInput')).toBeInTheDocument();
 
         act(() => {
             dialogProps().onExited();
         });
         expect(orphanRow).toHaveFocus();
-        expect(screen.queryByTestId('attributeGraphParentsPane__name')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('attributeGraphParentsPane__nameInput')).not.toBeInTheDocument();
     });
 
-    it('closes the Parents pane when another row overflow menu opens', async () => {
+    it('closes the Parents pane when another row add-child action opens', async () => {
         renderWithContext(
             <AttributeOptionsGraphValues
                 options={blockedOptions()}
@@ -475,14 +610,13 @@ describe('AttributeOptionsGraphValues delete wiring', () => {
             />,
         );
 
-        await openRowMenu('X');
-        await userEvent.click(screen.getByRole('menuitem', {name: 'Parents'}));
-        expect(await screen.findByTestId('attributeGraphParentsPane__name')).toHaveTextContent('X');
+        await clickRowParents('X');
+        expect(await screen.findByTestId('attributeGraphParentsPane__back')).toHaveTextContent('Parents of X');
 
-        await openRowMenu('Orphan', 'X');
+        await clickRowAddChild('Orphan', 'X');
 
-        expect(screen.queryByTestId('attributeGraphParentsPane__name')).not.toBeInTheDocument();
-        expect(screen.getByRole('menuitem', {name: 'Delete this value'})).not.toBeDisabled();
-        expect(screen.getByRole('menuitem', {name: 'Add child'})).toBeInTheDocument();
+        expect(screen.queryByTestId('attributeGraphParentsPane__back')).not.toBeInTheDocument();
+        expect(within(getRow('Orphan', 'X')).getByTestId('attributeOptionsGraphRow__delete')).not.toBeDisabled();
+        expect(screen.getByTestId('attributeOptionsGraphRow__childNameInput')).toBeInTheDocument();
     });
 });

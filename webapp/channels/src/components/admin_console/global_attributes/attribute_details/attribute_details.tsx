@@ -648,7 +648,9 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                 )}
             </>
         );
-    } else if (!hasExternalSource) {
+    } else if (hasExternalSource) {
+        optionsEditor = null;
+    } else {
         optionsEditor = (
             <p
                 className='AttributeDetails__optionsHelp'
@@ -657,8 +659,6 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                 <FormattedMessage {...messages.optionsHelp}/>
             </p>
         );
-    } else {
-        optionsEditor = null;
     }
 
     // The two applies_to_* kinds below that interpolate resource names need
