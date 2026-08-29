@@ -154,6 +154,12 @@ func TestMessageAttachment_IsValid(t *testing.T) {
 			},
 			wantErr: "",
 		},
+		"valid timestamp float64 from JSON": {
+			attachment: &MessageAttachment{
+				Timestamp: float64(1234567890),
+			},
+			wantErr: "",
+		},
 	}
 
 	for name, tc := range tests {
