@@ -19,6 +19,7 @@ type Props = {
     specialMentions?: {[key: string]: boolean};
     onRemove?: () => void;
     persistentNotifications?: PostPriorityMetadata['persistent_notifications'];
+    persistentNotificationInterval?: PostPriorityMetadata['persistent_notification_interval'];
     priority?: PostPriorityMetadata['priority'];
     requestedAck?: PostPriorityMetadata['requested_ack'];
 };
@@ -29,6 +30,7 @@ function PriorityLabels({
     specialMentions,
     onRemove,
     persistentNotifications,
+    persistentNotificationInterval,
     priority,
     requestedAck,
 }: Props) {
@@ -49,7 +51,20 @@ function PriorityLabels({
                         defaultMessage: 'Persistent notifications will be sent',
                     })}
                 >
-                    <span className='icon icon-bell-ring-outline'/>
+                    <span className='priorityLabelsInterval'>
+                        <span className='icon icon-bell-ring-outline'/>
+                        {persistentNotificationInterval && (
+                            <span className='priorityLabelsIntervalText'>
+                                {intl.formatMessage(
+                                    {
+                                        id: 'post_priority.persistent_notification_interval.label_short',
+                                        defaultMessage: '{n, plural, one {· every 1 min} other {· every {n} mins}}',
+                                    },
+                                    {n: persistentNotificationInterval},
+                                )}
+                            </span>
+                        )}
+                    </span>
                 </WithTooltip>
             )}
             {requestedAck && (
