@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"strings"
 	"testing"
+	"unicode/utf8"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
@@ -1042,6 +1043,59 @@ func TestAccessControlAttributeValidationHook(t *testing.T) {
 			Value:      json.RawMessage(`"` + string(longValue) + `"`),
 		}
 		_, upsertErr := th.service.UpsertPropertyValue(th.Context, value)
+		require.Error(t, upsertErr)
+		assert.Contains(t, upsertErr.Error(), "maximum length")
+	})
+
+	t.Run("text — max length is counted in characters, not bytes", func(t *testing.T) {
+		field := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "text_field_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+			ObjectType: "user",
+		})
+
+		// Multibyte value that fits the documented 64-character limit but
+		// exceeds it when the limit is applied to bytes: LDAP/SAML sync of
+		// non-Latin attributes hits this. See issue #36849.
+		multibyte := "Развитие и оценка компетенций по работе с клиентами"
+		require.LessOrEqual(t, utf8.RuneCountInString(multibyte), model.PropertyFieldValueTypeTextMaxLength)
+		require.Greater(t, len(multibyte), model.PropertyFieldValueTypeTextMaxLength)
+
+		value := &model.PropertyValue{
+			GroupID:    group.ID,
+			FieldID:    field.ID,
+			TargetID:   model.NewId(),
+			TargetType: "user",
+			Value:      json.RawMessage(`"` + multibyte + `"`),
+		}
+		_, upsertErr := th.service.UpsertPropertyValue(th.Context, value)
+		require.NoError(t, upsertErr)
+
+		// Exactly at the limit is still accepted, so the fix cannot be an
+		// off-by-one that trades one wrong boundary for another.
+		atLimit := &model.PropertyValue{
+			GroupID:    group.ID,
+			FieldID:    field.ID,
+			TargetID:   model.NewId(),
+			TargetType: "user",
+			Value:      json.RawMessage(`"` + strings.Repeat("я", model.PropertyFieldValueTypeTextMaxLength) + `"`),
+		}
+		_, upsertErr = th.service.UpsertPropertyValue(th.Context, atLimit)
+		require.NoError(t, upsertErr)
+
+		// The limit still applies: the same script over the character limit
+		// must be rejected, so the fix cannot be "drop the check".
+		tooLong := strings.Repeat("я", model.PropertyFieldValueTypeTextMaxLength+1)
+		overLimit := &model.PropertyValue{
+			GroupID:    group.ID,
+			FieldID:    field.ID,
+			TargetID:   model.NewId(),
+			TargetType: "user",
+			Value:      json.RawMessage(`"` + tooLong + `"`),
+		}
+		_, upsertErr = th.service.UpsertPropertyValue(th.Context, overLimit)
 		require.Error(t, upsertErr)
 		assert.Contains(t, upsertErr.Error(), "maximum length")
 	})
