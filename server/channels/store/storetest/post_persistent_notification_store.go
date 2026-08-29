@@ -110,7 +110,7 @@ func testPostPersistentNotificationStoreGet(t *testing.T, rctx request.CTX, ss s
 		require.Zero(t, pn)
 	})
 
-	t.Run("Get all before MaxTime", func(t *testing.T) {
+	t.Run("Get all due by interval", func(t *testing.T) {
 		validIDs := []string{p1.Id, p2.Id, p5.Id}
 		getIDs := func(posts []*model.PostPersistentNotifications) (ids []string) {
 			for _, p := range posts {
@@ -119,22 +119,38 @@ func testPostPersistentNotificationStoreGet(t *testing.T, rctx request.CTX, ss s
 			return
 		}
 
-		// p5 is filtered by maxTime
+		// All valid posts have LastSentAt=0 so they are always due regardless of DefaultIntervalMinutes.
 		pn, err := ss.PostPersistentNotification().Get(model.GetPersistentNotificationsPostsParams{
-			MaxTime:      45,
-			MaxSentCount: 60,
-			PerPage:      20,
+			DefaultIntervalMinutes: 60,
+			MaxSentCount:           60,
+			PerPage:                20,
+		})
+		require.NoError(t, err)
+		require.Len(t, pn, 3)
+		assert.ElementsMatch(t, validIDs, getIDs(pn))
+
+		// After UpdateLastActivity on p1, its LastSentAt is set to ~now.
+		// With a large DefaultIntervalMinutes (60), p1 is not yet due again.
+		// p2 and p5 still have LastSentAt=0 so they remain due.
+		err = ss.PostPersistentNotification().UpdateLastActivity([]string{p1.Id})
+		require.NoError(t, err)
+
+		pn, err = ss.PostPersistentNotification().Get(model.GetPersistentNotificationsPostsParams{
+			DefaultIntervalMinutes: 60,
+			MaxSentCount:           60,
+			PerPage:                20,
 		})
 		require.NoError(t, err)
 		require.Len(t, pn, 2)
-		assert.Contains(t, getIDs(pn), p1.Id)
 		assert.Contains(t, getIDs(pn), p2.Id)
+		assert.Contains(t, getIDs(pn), p5.Id)
 
-		// nothing is filtered out
+		// With DefaultIntervalMinutes=0, the threshold is NOW_MS - 0 = NOW_MS,
+		// so LastSentAt <= NOW_MS is always true — all valid posts are returned.
 		pn, err = ss.PostPersistentNotification().Get(model.GetPersistentNotificationsPostsParams{
-			MaxTime:      100,
-			MaxSentCount: 60,
-			PerPage:      20,
+			DefaultIntervalMinutes: 0,
+			MaxSentCount:           60,
+			PerPage:                20,
 		})
 		require.NoError(t, err)
 		require.Len(t, pn, 3)
@@ -163,31 +179,42 @@ func testPostPersistentNotificationStoreUpdateLastSentAt(t *testing.T, rctx requ
 	defer ss.Post().PermanentDeleteByChannel(rctx, p1.ChannelId)
 	defer ss.PostPersistentNotification().Delete([]string{p1.Id})
 
-	// Update from 0 value
+	// Update from 0 value: LastSentAt starts at 0, so p1 is due immediately.
+	// After UpdateLastActivity, LastSentAt is set to ~now.
 	now := model.GetTimeForMillis(model.GetMillis())
 	delta := 2 * time.Second
 	err = ss.PostPersistentNotification().UpdateLastActivity([]string{p1.Id})
 	require.NoError(t, err)
 
+	// With DefaultIntervalMinutes=0, threshold is NOW_MS so p1 is always due — confirm LastSentAt was updated.
 	pn, err := ss.PostPersistentNotification().Get(model.GetPersistentNotificationsPostsParams{
-		MaxTime:      model.GetMillisForTime(now.Add(delta)),
-		MaxSentCount: 60,
+		DefaultIntervalMinutes: 0,
+		MaxSentCount:           60,
 	})
 	require.NoError(t, err)
 	require.Len(t, pn, 1)
 	assert.WithinDuration(t, now, model.GetTimeForMillis(pn[0].LastSentAt), delta)
 
+	// With a large DefaultIntervalMinutes (60), p1 was just sent so it is not yet due again.
+	pn, err = ss.PostPersistentNotification().Get(model.GetPersistentNotificationsPostsParams{
+		DefaultIntervalMinutes: 60,
+		MaxSentCount:           60,
+	})
+	require.NoError(t, err)
+	require.Len(t, pn, 0)
+
 	time.Sleep(time.Second)
 
-	// Update from non-zero value
+	// Update from non-zero value: LastSentAt advances to the new current time.
 	now = model.GetTimeForMillis(model.GetMillis())
 	delta = 2 * time.Second
 	err = ss.PostPersistentNotification().UpdateLastActivity([]string{p1.Id})
 	require.NoError(t, err)
 
+	// Confirm LastSentAt was updated again using DefaultIntervalMinutes=0 so p1 is always due.
 	pn, err = ss.PostPersistentNotification().Get(model.GetPersistentNotificationsPostsParams{
-		MaxTime:      model.GetMillisForTime(now.Add(delta)),
-		MaxSentCount: 60,
+		DefaultIntervalMinutes: 0,
+		MaxSentCount:           60,
 	})
 	require.NoError(t, err)
 	require.Len(t, pn, 1)
@@ -246,7 +273,7 @@ func testPostPersistentNotificationStoreDelete(t *testing.T, rctx request.CTX, s
 		require.NoError(t, err)
 
 		pn, err := ss.PostPersistentNotification().Get(model.GetPersistentNotificationsPostsParams{
-			MaxTime:      100,
+			DefaultIntervalMinutes: 1,
 			MaxSentCount: 6,
 			PerPage:      20,
 		})
@@ -333,7 +360,7 @@ func testPostPersistentNotificationStoreDelete(t *testing.T, rctx request.CTX, s
 		require.NoError(t, err)
 
 		pn, err := ss.PostPersistentNotification().Get(model.GetPersistentNotificationsPostsParams{
-			MaxTime:      100,
+			DefaultIntervalMinutes: 1,
 			MaxSentCount: 6,
 			PerPage:      20,
 		})
@@ -442,7 +469,7 @@ func testPostPersistentNotificationStoreDelete(t *testing.T, rctx request.CTX, s
 		require.NoError(t, err)
 
 		pn, err := ss.PostPersistentNotification().Get(model.GetPersistentNotificationsPostsParams{
-			MaxTime:      100,
+			DefaultIntervalMinutes: 1,
 			MaxSentCount: 6,
 			PerPage:      20,
 		})

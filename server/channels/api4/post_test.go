@@ -663,6 +663,59 @@ func TestCreatePostForPriority(t *testing.T) {
 		require.NoError(t, err)
 		CheckCreatedStatus(t, resp)
 	})
+
+	t.Run("should create persistent notification post with valid interval", func(t *testing.T) {
+		validIntervals := []int{1, 2, 5, 10, 15}
+		for _, interval := range validIntervals {
+			interval := interval
+			t.Run(fmt.Sprintf("interval=%d", interval), func(t *testing.T) {
+				post := &model.Post{ChannelId: th.BasicChannel.Id, Message: "test @" + th.BasicUser2.Username, Metadata: &model.PostMetadata{
+					Priority: &model.PostPriority{
+						Priority:                       model.NewPointer(model.PostPriorityUrgent),
+						PersistentNotifications:        model.NewPointer(true),
+						PersistentNotificationInterval: model.NewPointer(interval),
+					},
+				}}
+				created, resp, err := client.CreatePost(context.Background(), post)
+				require.NoError(t, err)
+				CheckCreatedStatus(t, resp)
+				require.NotNil(t, created.Metadata.Priority.PersistentNotificationInterval)
+				require.Equal(t, interval, *created.Metadata.Priority.PersistentNotificationInterval)
+			})
+		}
+	})
+
+	t.Run("should reject persistent notification post with invalid interval", func(t *testing.T) {
+		invalidIntervals := []int{0, 3, 4, 6, 7, 100}
+		for _, interval := range invalidIntervals {
+			interval := interval
+			t.Run(fmt.Sprintf("interval=%d", interval), func(t *testing.T) {
+				post := &model.Post{ChannelId: th.BasicChannel.Id, Message: "test @" + th.BasicUser2.Username, Metadata: &model.PostMetadata{
+					Priority: &model.PostPriority{
+						Priority:                       model.NewPointer(model.PostPriorityUrgent),
+						PersistentNotifications:        model.NewPointer(true),
+						PersistentNotificationInterval: model.NewPointer(interval),
+					},
+				}}
+				_, resp, err := client.CreatePost(context.Background(), post)
+				require.Error(t, err)
+				CheckBadRequestStatus(t, resp)
+			})
+		}
+	})
+
+	t.Run("should create persistent notification post with nil interval using global default", func(t *testing.T) {
+		post := &model.Post{ChannelId: th.BasicChannel.Id, Message: "test @" + th.BasicUser2.Username, Metadata: &model.PostMetadata{
+			Priority: &model.PostPriority{
+				Priority:                model.NewPointer(model.PostPriorityUrgent),
+				PersistentNotifications: model.NewPointer(true),
+			},
+		}}
+		created, resp, err := client.CreatePost(context.Background(), post)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+		require.Nil(t, created.Metadata.Priority.PersistentNotificationInterval)
+	})
 }
 
 func TestCreatePostWithOAuthClient(t *testing.T) {
