@@ -52,12 +52,7 @@ export class ColumnToggleMenu {
 }
 
 type RoleFilter =
-    | 'Any'
-    | 'System Admin'
-    | 'Member'
-    | 'Guests (all)'
-    | 'Guests in a single channel'
-    | 'Guests in multiple channels';
+    'Any' | 'System Admin' | 'Member' | 'Guests (all)' | 'Guests in a single channel' | 'Guests in multiple channels';
 type StatusFilter = 'Any' | 'Activated users' | 'Deactivated users';
 
 /**
