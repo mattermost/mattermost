@@ -104,7 +104,7 @@ func TestMessageAttachment_IsValid(t *testing.T) {
 			attachment: &MessageAttachment{
 				Timestamp: []string{"invalid"},
 			},
-			wantErr: "timestamp must be either a string or int64",
+			wantErr: "timestamp must be either a string, int64, or float64",
 		},
 		"valid timestamp string": {
 			attachment: &MessageAttachment{
