@@ -28,7 +28,7 @@ func (s *SqlPostPriorityStore) GetForPost(postId string) (*model.PostPriority, e
 
 func (s *SqlPostPriorityStore) GetForPostWithContext(rctx request.CTX, postId string) (*model.PostPriority, error) {
 	query := s.getQueryBuilder().
-		Select("PostId", "ChannelId", "Priority", "RequestedAck", "PersistentNotifications").
+		Select("PostId", "ChannelId", "Priority", "RequestedAck", "PersistentNotifications", "interval").
 		From("PostsPriority").
 		Where(sq.Eq{"PostId": postId})
 
@@ -50,7 +50,7 @@ func (s *SqlPostPriorityStore) GetForPosts(postIds []string) ([]*model.PostPrior
 		j := min(len(postIds), i+perPage)
 
 		query := s.getQueryBuilder().
-			Select("PostId", "ChannelId", "Priority", "RequestedAck", "PersistentNotifications").
+			Select("PostId", "ChannelId", "Priority", "RequestedAck", "PersistentNotifications", "interval").
 			From("PostsPriority").
 			Where(sq.Eq{"PostId": postIds[i:j]})
 
@@ -86,8 +86,8 @@ func (s *SqlPostPriorityStore) Save(priority *model.PostPriority) (*model.PostPr
 	// Insert new priority
 	insertQuery := s.getQueryBuilder().
 		Insert("PostsPriority").
-		Columns("PostId", "ChannelId", "Priority", "RequestedAck", "PersistentNotifications").
-		Values(priority.PostId, priority.ChannelId, priority.Priority, priority.RequestedAck, priority.PersistentNotifications)
+		Columns("PostId", "ChannelId", "Priority", "RequestedAck", "PersistentNotifications", "interval").
+		Values(priority.PostId, priority.ChannelId, priority.Priority, priority.RequestedAck, priority.PersistentNotifications, priority.PersistentNotificationInterval)
 
 	if _, err := tx.ExecBuilder(insertQuery); err != nil {
 		return nil, errors.Wrap(err, "insert_priority")
@@ -105,8 +105,8 @@ func (s *SqlPostPriorityStore) Save(priority *model.PostPriority) (*model.PostPr
 	if priority.PersistentNotifications != nil && *priority.PersistentNotifications {
 		insertPersistentQuery := s.getQueryBuilder().
 			Insert("PersistentNotifications").
-			Columns("PostId", "CreateAt", "LastSentAt", "DeleteAt", "SentCount").
-			Values(priority.PostId, model.GetMillis(), 0, 0, 0)
+			Columns("PostId", "CreateAt", "LastSentAt", "DeleteAt", "SentCount", "interval").
+			Values(priority.PostId, model.GetMillis(), 0, 0, 0, priority.PersistentNotificationInterval)
 
 		if _, err := tx.ExecBuilder(insertPersistentQuery); err != nil {
 			return nil, errors.Wrap(err, "insert_persistent_notification")

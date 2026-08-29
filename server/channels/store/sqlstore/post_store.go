@@ -3116,13 +3116,14 @@ func (s *SqlPostStore) savePostsPriority(transaction *sqlxTxWrapper, posts []*mo
 	for _, post := range posts {
 		if post.GetPriority() != nil {
 			postPriority := &model.PostPriority{
-				PostId:                  post.Id,
-				ChannelId:               post.ChannelId,
-				Priority:                post.Metadata.Priority.Priority,
-				RequestedAck:            post.Metadata.Priority.RequestedAck,
-				PersistentNotifications: post.Metadata.Priority.PersistentNotifications,
+				PostId:                         post.Id,
+				ChannelId:                      post.ChannelId,
+				Priority:                       post.Metadata.Priority.Priority,
+				RequestedAck:                   post.Metadata.Priority.RequestedAck,
+				PersistentNotifications:        post.Metadata.Priority.PersistentNotifications,
+				PersistentNotificationInterval: post.Metadata.Priority.PersistentNotificationInterval,
 			}
-			if _, err := transaction.NamedExec(`INSERT INTO PostsPriority (PostId, ChannelId, Priority, RequestedAck, PersistentNotifications) VALUES (:PostId, :ChannelId, :Priority, :RequestedAck, :PersistentNotifications)`, postPriority); err != nil {
+			if _, err := transaction.NamedExec(`INSERT INTO PostsPriority (PostId, ChannelId, Priority, RequestedAck, PersistentNotifications, interval) VALUES (:PostId, :ChannelId, :Priority, :RequestedAck, :PersistentNotifications, :PersistentNotificationInterval)`, postPriority); err != nil {
 				return err
 			}
 		}
@@ -3133,9 +3134,10 @@ func (s *SqlPostStore) savePostsPriority(transaction *sqlxTxWrapper, posts []*mo
 func (s *SqlPostStore) savePostsPersistentNotifications(transaction *sqlxTxWrapper, posts []*model.Post) error {
 	for _, post := range posts {
 		if priority := post.GetPriority(); priority != nil && priority.PersistentNotifications != nil && *priority.PersistentNotifications {
-			if _, err := transaction.NamedExec(`INSERT INTO PersistentNotifications (PostId, CreateAt, LastSentAt, DeleteAt, SentCount) VALUES (:PostId, :CreateAt, :LastSentAt, :DeleteAt, :SentCount)`, &model.PostPersistentNotifications{
+			if _, err := transaction.NamedExec(`INSERT INTO PersistentNotifications (PostId, CreateAt, LastSentAt, DeleteAt, SentCount, interval) VALUES (:PostId, :CreateAt, :LastSentAt, :DeleteAt, :SentCount, :Interval)`, &model.PostPersistentNotifications{
 				PostId:   post.Id,
 				CreateAt: post.CreateAt,
+				Interval: priority.PersistentNotificationInterval,
 			}); err != nil {
 				return err
 			}
