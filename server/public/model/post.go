@@ -228,9 +228,10 @@ type PostReminder struct {
 }
 
 type PostPriority struct {
-	Priority                *string `json:"priority"`
-	RequestedAck            *bool   `json:"requested_ack"`
-	PersistentNotifications *bool   `json:"persistent_notifications"`
+	Priority                       *string `json:"priority"`
+	RequestedAck                   *bool   `json:"requested_ack"`
+	PersistentNotifications        *bool   `json:"persistent_notifications"`
+	PersistentNotificationInterval *int    `json:"persistent_notification_interval,omitempty"`
 	// These fields are only used internally for interacting with DB.
 	PostId    string `json:",omitempty"`
 	ChannelId string `json:",omitempty"`
@@ -242,12 +243,13 @@ type PostPersistentNotifications struct {
 	LastSentAt int64
 	DeleteAt   int64
 	SentCount  int16
+	Interval   *int
 }
 
 type GetPersistentNotificationsPostsParams struct {
-	MaxTime      int64
-	MaxSentCount int16
-	PerPage      int
+	DefaultIntervalMinutes int
+	MaxSentCount           int16
+	PerPage                int
 }
 
 type MoveThreadParams struct {

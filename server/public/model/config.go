@@ -5011,7 +5011,7 @@ func (s *ServiceSettings) isValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.collapsed_threads.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if *s.PersistentNotificationIntervalMinutes < 2 {
+	if *s.PersistentNotificationIntervalMinutes < 1 {
 		return NewAppError("Config.IsValid", "model.config.is_valid.persistent_notifications_interval.app_error", nil, "", http.StatusBadRequest)
 	}
 	if *s.PersistentNotificationMaxCount <= 0 {
