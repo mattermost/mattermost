@@ -63,6 +63,7 @@ export type PostPriorityMetadata = {
     priority: PostPriority | '';
     requested_ack?: boolean;
     persistent_notifications?: boolean;
+    persistent_notification_interval?: number;
 };
 
 export type PostTranslation = {

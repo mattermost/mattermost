@@ -24,6 +24,8 @@ import {Header, MenuItem, StyledCheckIcon, ToggleItem, StandardIcon, ImportantIc
 
 import './post_priority_picker.scss';
 
+const intervalOptions = [1, 2, 5, 10, 15];
+
 type Props = {
     settings?: PostPriorityMetadata;
     onClose: () => void;
@@ -47,7 +49,8 @@ function PostPriorityPicker({
     const theme = useSelector(getTheme);
     const postAcknowledgementsEnabled = useSelector(isPostAcknowledgementsEnabled);
     const persistentNotificationsEnabled = useSelector(isPersistentNotificationsEnabled) && postAcknowledgementsEnabled;
-    const interval = useSelector(getPersistentNotificationIntervalMinutes);
+    const adminInterval = useSelector(getPersistentNotificationIntervalMinutes);
+    const [notificationInterval, setNotificationInterval] = useState<number>(Number(settings?.persistent_notification_interval ?? adminInterval) || 5);
 
     const messagePriority = formatMessage({id: 'shortcuts.msgs.formatting_bar.post_priority', defaultMessage: 'Message priority'});
 
@@ -79,17 +82,22 @@ function PostPriorityPicker({
     }, [requestedAck]);
 
     const handlePersistentNotifications = useCallback(() => {
-        setPersistentNotifications(!persistentNotifications);
-    }, [persistentNotifications]);
+        const next = !persistentNotifications;
+        setPersistentNotifications(next);
+        if (!next) {
+            setNotificationInterval(Number(adminInterval));
+        }
+    }, [persistentNotifications, adminInterval]);
 
     const handleApply = useCallback(() => {
         onApply({
             priority,
             requested_ack: requestedAck,
             persistent_notifications: persistentNotifications,
+            persistent_notification_interval: persistentNotifications ? notificationInterval : undefined,
         });
         handleClose();
-    }, [onApply, handleClose, persistentNotifications, priority, requestedAck]);
+    }, [onApply, handleClose, persistentNotifications, notificationInterval, priority, requestedAck]);
 
     const handleFooterButtonAction = useCallback((e: React.KeyboardEvent<HTMLButtonElement>, actionFn: () => void) => {
         if (Keyboard.isKeyPressed(e, Constants.KeyCodes.ENTER)) {
@@ -191,11 +199,40 @@ function PostPriorityPicker({
                         id: 'post_priority.persistent_notifications.description',
                         defaultMessage: 'Recipients will be notified every {interval, plural, one {1 minute} other {{interval} minutes}} until they acknowledge or reply',
                     }, {
-                        interval,
+                        interval: notificationInterval,
                     },
                 )}
-            />) : null,
-    ] : []), [formatMessage, handleAck, handlePersistentNotifications, interval, persistentNotifications, persistentNotificationsEnabled, postAcknowledgementsEnabled, priority, requestedAck]);
+            />
+        ) : null,
+        ...(priority === PostPriority.URGENT && persistentNotificationsEnabled && persistentNotifications ? [
+            <Menu.Separator
+                key='menu-item-interval-separator'
+                component='li'
+            />,
+            ...intervalOptions.map((opt) => (
+                <MenuItem
+                    key={`menu-item-interval-${opt}`}
+                    id={`menu-item-interval-${opt}`}
+                    role='menuitemradio'
+                    aria-checked={notificationInterval === opt}
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        setNotificationInterval(opt);
+                    }}
+                    trailingElements={notificationInterval === opt && <StyledCheckIcon size={18}/>}
+                    labels={
+                        <span>{formatMessage(
+                            {
+                                id: 'post_priority.persistent_notification_interval.option',
+                                defaultMessage: '{n, plural, one {Every 1 min} other {Every {n} mins}}',
+                            },
+                            {n: opt},
+                        )}</span>
+                    }
+                />
+            )),
+        ] : []),
+    ] : []), [formatMessage, handleAck, handlePersistentNotifications, notificationInterval, persistentNotifications, persistentNotificationsEnabled, postAcknowledgementsEnabled, priority, requestedAck]);
 
     const footer = useMemo(() => postAcknowledgementsEnabled &&
         <div>
@@ -231,8 +268,9 @@ function PostPriorityPicker({
             setPriority(settings?.priority || '');
             setPersistentNotifications(settings?.persistent_notifications || false);
             setRequestedAck(settings?.requested_ack || false);
+            setNotificationInterval(Number(settings?.persistent_notification_interval ?? adminInterval));
         }
-    }, [pickerOpen, settings]);
+    }, [pickerOpen, settings, adminInterval]);
 
     return (<CompassDesignProvider theme={theme}>
         <Menu.Container
