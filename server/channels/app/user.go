@@ -2070,14 +2070,13 @@ func (a *App) UpdateUserRolesWithUser(rctx request.CTX, user *model.User, newRol
 
 	// The space capability roles are excluded from
 	// BuiltInSchemeManagedRoleIDs so they can be part of ExplicitRoles on a space's
-	// backing channel, which also means CheckRolesExist accepts them here. A
+	// backing channel. CheckRolesExist only checks that a role row exists, so it
+	// does not reject them here either — this check is the refusal. A
 	// system role is consulted as the fallback for every channel on the server,
 	// so one assigned here would resolve its page permissions everywhere.
-	for roleName := range strings.FieldsSeq(newRoles) {
-		if model.IsSpaceCapabilityRole(roleName) {
-			logRefusedSpaceCapabilityRole(rctx, "UpdateUserRoles", roleName)
-			return nil, model.NewAppError("UpdateUserRoles", "api.user.update_user_roles.space_role.app_error", nil, "role_name="+roleName, http.StatusBadRequest)
-		}
+	if roleName := firstSpaceCapabilityRole(newRoles); roleName != "" {
+		logRefusedSpaceCapabilityRole(rctx, "UpdateUserRoles", roleName)
+		return nil, model.NewAppError("UpdateUserRoles", "api.user.update_user_roles.space_role.app_error", nil, "role_name="+roleName, http.StatusBadRequest)
 	}
 
 	if user.IsSystemAdmin() && !strings.Contains(newRoles, model.SystemAdminRoleId) {
@@ -2877,10 +2876,8 @@ func (a *App) DemoteUserToGuest(rctx request.CTX, user *model.User) *model.AppEr
 
 	// A space capability role is part of the membership's explicit roles on a space
 	// backing channel, which the demotion below leaves untouched. Revoke it before
-	// the user becomes a guest: a failure here leaves a regular user who has lost
-	// space capabilities, while a failure after the demotion would leave a guest
-	// still holding them and no way to retry, since demoting a user who is already
-	// a guest is refused.
+	// the user becomes a guest: re-demoting an already-guest user is refused, so a
+	// revoke that fails afterward could never be retried.
 	if appErr := a.revokeSpaceCapabilityRolesForUser(rctx, user.Id); appErr != nil {
 		return appErr
 	}

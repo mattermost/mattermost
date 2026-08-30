@@ -13,7 +13,7 @@ import (
 
 // getSchemeFromMaster resolves a scheme on the primary only. Every guard checking
 // a scheme's space permissions uses this rather than the replica-first
-// fallback below: a replica that has not yet seen a delete answers DeleteAt == 0 for
+// fallback below: a replica that has not yet seen a delete returns DeleteAt == 0 for
 // a row the primary has already soft-deleted, and the deleted-scheme refusals have
 // to trust that field.
 //
@@ -88,6 +88,14 @@ func (k *reservedSchemeKind) rolesError(schemeName string) *model.AppError {
 	return model.NewAppError("UpdateScheme", "app.scheme.save.space_scheme_roles.app_error", params, "", http.StatusBadRequest)
 }
 
+func (k *reservedSchemeKind) scopeError(schemeName string) *model.AppError {
+	params := map[string]any{"SchemeName": schemeName}
+	if k.plugin {
+		return model.NewAppError("UpdateScheme", "app.scheme.save.plugin_scheme_scope.app_error", params, "", http.StatusBadRequest)
+	}
+	return model.NewAppError("UpdateScheme", "app.scheme.save.space_scheme_scope.app_error", params, "", http.StatusBadRequest)
+}
+
 func (k *reservedSchemeKind) deleteError() *model.AppError {
 	if k.plugin {
 		return model.NewAppError("DeleteScheme", "app.scheme.delete.plugin_scheme.app_error", nil, "", http.StatusBadRequest)
@@ -127,8 +135,10 @@ func (a *App) reservedSchemeKindByID(where, schemeId string) (*reservedSchemeKin
 
 // checkSpaceSchemeName rejects creating or renaming a scheme into a reserved name:
 // a seeded space preset, or a name of the shape GetOrCreatePluginChannelScheme
-// creates. An incompatible preset row blocks seeding, while a plugin-shaped row blocks its
-// deterministic pool key until operator repair. Not gated on
+// creates. An incompatible preset row blocks seeding, while a plugin-shaped row
+// occupies the exact name GetOrCreatePluginChannelScheme derives for that
+// plugin/permission combination, so that combination cannot get its real scheme
+// until an operator clears the row. Not gated on
 // the docs feature flag, for the same reason as checkSpacePermissionScope.
 func (a *App) checkSpaceSchemeName(where, name string) *model.AppError {
 	if model.IsSpaceSchemeName(name) {
@@ -144,13 +154,14 @@ func (a *App) checkSpaceSchemeName(where, name string) *model.AppError {
 
 // checkSpaceSchemeUpdate guards a scheme update in both directions: renaming a
 // seeded preset away from its reserved name, and renaming any scheme into one. It
-// also freezes a seeded preset's generated-role references while allowing safe
-// metadata updates. A name-keyed delete refusal alone would be defeated by renaming
-// the scheme first.
+// also freezes a reserved scheme's scope and generated-role references while
+// allowing safe metadata updates. A name-keyed delete refusal alone would be
+// defeated by renaming the scheme first.
 func (a *App) checkSpaceSchemeUpdate(scheme *model.Scheme) *model.AppError {
-	// The import path relies on the primary fallback: GetSchemeByName re-reads on the
-	// primary when the replica has no row yet, then passes the id straight to
-	// UpdateScheme, so the stored-row read here has to reach it the same way.
+	// The import path (importScheme) resolves the existing scheme by a plain
+	// replica read (GetSchemeByName), so a scheme this same request just created
+	// could still be missing there; this guard's own read tolerates that by
+	// falling back to the primary.
 	stored, appErr := a.getSchemeWithMasterFallback("UpdateScheme", scheme.Id)
 	if appErr != nil {
 		return appErr
@@ -161,6 +172,12 @@ func (a *App) checkSpaceSchemeUpdate(scheme *model.Scheme) *model.AppError {
 	if kind := reservedSchemeKindOf(stored); kind != nil {
 		if stored.Name != scheme.Name {
 			return kind.renameError(stored.Name)
+		}
+		// Scope is part of the reserved identity: a scope flip would make
+		// reservedSchemeKindOf stop classifying the row as reserved, unfreezing
+		// its name and generated roles on every later write.
+		if stored.Scope != scheme.Scope {
+			return kind.scopeError(stored.Name)
 		}
 		if stored.DefaultChannelAdminRole != scheme.DefaultChannelAdminRole ||
 			stored.DefaultChannelUserRole != scheme.DefaultChannelUserRole ||

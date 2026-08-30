@@ -1306,7 +1306,7 @@ func (api *PluginAPI) RolesGrantPermission(roleNames []string, permissionId stri
 }
 
 func (api *PluginAPI) FilterUsersWithTeamPermission(teamID string, userIDs []string, permission *model.Permission) ([]string, *model.AppError) {
-	return api.app.FilterUsersWithTeamPermission(teamID, userIDs, permission)
+	return api.app.FilterUsersWithTeamPermission(api.ctx, teamID, userIDs, permission)
 }
 
 func (api *PluginAPI) GetSchemeByName(name string) (*model.Scheme, *model.AppError) {

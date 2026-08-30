@@ -79,12 +79,12 @@ func TestCheckSpacePermissionScope(t *testing.T) {
 
 	t.Run("ordinary role is unchanged", func(t *testing.T) {
 		role := &model.Role{Name: model.NewId(), Permissions: []string{model.PermissionCreatePost.Id}}
-		require.Nil(t, th.App.checkSpacePermissionScope(role))
+		require.Nil(t, th.App.checkSpacePermissionScope("CreateRole", role))
 	})
 
 	t.Run("space permission is rejected outside system admin", func(t *testing.T) {
 		role := &model.Role{Name: model.SystemUserRoleId, Permissions: []string{model.PermissionReadPage.Id}}
-		appErr := th.App.checkSpacePermissionScope(role)
+		appErr := th.App.checkSpacePermissionScope("CreateRole", role)
 		require.NotNil(t, appErr)
 		assert.Equal(t, "app.role.save.space_permission_scope.app_error", appErr.Id)
 		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
@@ -92,7 +92,7 @@ func TestCheckSpacePermissionScope(t *testing.T) {
 
 	t.Run("system admin may carry space permissions", func(t *testing.T) {
 		role := &model.Role{Name: model.SystemAdminRoleId, Permissions: model.PermissionIDs(model.SpaceChannelScopedPermissions)}
-		require.Nil(t, th.App.checkSpacePermissionScope(role))
+		require.Nil(t, th.App.checkSpacePermissionScope("CreateRole", role))
 	})
 
 	t.Run("capability role is immutable", func(t *testing.T) {
@@ -100,7 +100,7 @@ func TestCheckSpacePermissionScope(t *testing.T) {
 			Name:        model.SpacePageCommenterRoleId,
 			Permissions: model.PermissionIDs(model.SpaceCapabilityRolePermissions[model.SpacePageCommenterRoleId]),
 		}
-		appErr := th.App.checkSpacePermissionScope(role)
+		appErr := th.App.checkSpacePermissionScope("CreateRole", role)
 		require.NotNil(t, appErr)
 		assert.Equal(t, "app.role.save.space_capability_role.app_error", appErr.Id)
 	})
@@ -431,7 +431,7 @@ func TestSpaceSeedingMigrations(t *testing.T) {
 	require.NoError(t, err)
 	_, err = th.App.Srv().Store().System().PermanentDeleteByName(SpaceSchemesCreationMigrationKey)
 	require.NoError(t, err)
-	require.NoError(t, th.Server.doSpaceRolesCreationMigration())
+	require.NoError(t, th.Server.doSpaceRolesCreationMigration(th.Context))
 	require.NoError(t, th.Server.doSpaceSchemesCreationMigration())
 }
 
@@ -884,6 +884,98 @@ func TestSpaceSchemeGuardsEnforcedThroughApp(t *testing.T) {
 		require.Nil(t, appErr)
 		assert.Equal(t, "Relabelled", updated.DisplayName)
 	})
+
+	t.Run("UpdateScheme refuses a scope flip on a preset", func(t *testing.T) {
+		rescopedPreset := *preset
+		rescopedPreset.Scope = model.SchemeScopeTeam
+		_, appErr := th.App.UpdateScheme(&rescopedPreset)
+		require.NotNil(t, appErr)
+		assert.Equal(t, "app.scheme.save.space_scheme_scope.app_error", appErr.Id)
+
+		stored, err := th.App.Srv().Store().Scheme().Get(preset.Id)
+		require.NoError(t, err)
+		assert.Equal(t, model.SchemeScopeChannel, stored.Scope)
+	})
+}
+
+// GetSchemeRolesForChannel resolves a space's scheme through getChannelWithSpaceFallback and then
+// schemeRolesForChannel. A scheme not yet visible on the replica falls back to a primary read, and
+// a scheme absent there too surfaces the original not-found error rather than a fresh one.
+func TestGetSchemeRolesForChannelSpaceSchemeMasterFallback(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	newSpaceChannel := func(schemeID string) *model.Channel {
+		return &model.Channel{
+			Id:       model.NewId(),
+			Type:     model.ChannelTypeSpace,
+			SchemeId: &schemeID,
+		}
+	}
+
+	t.Run("scheme missing on the replica resolves from the primary", func(t *testing.T) {
+		th := setupSpaceRBACMock(t)
+		require.NoError(t, th.App.SetPhase2PermissionsMigrationStatus(true))
+		schemeID := model.NewId()
+		space := newSpaceChannel(schemeID)
+		scheme := &model.Scheme{
+			Id:                      schemeID,
+			DefaultChannelGuestRole: "space-guest-role",
+			DefaultChannelUserRole:  "space-user-role",
+			DefaultChannelAdminRole: "space-admin-role",
+		}
+
+		mockStore := th.App.Srv().Store().(*mocks.Store)
+		mockChannelStore := mocks.ChannelStore{}
+		mockChannelStore.On("Get", space.Id, true).Return(space, nil)
+		mockStore.On("Channel").Return(&mockChannelStore)
+		mockSchemeStore := mocks.SchemeStore{}
+		mockSchemeStore.On("Get", schemeID).Return(nil, store.NewErrNotFound("Scheme", schemeID))
+		mockSchemeStore.On("GetFromMaster", schemeID).Return(scheme, nil)
+		mockStore.On("Scheme").Return(&mockSchemeStore)
+
+		guestRoleName, userRoleName, adminRoleName, appErr := th.App.GetSchemeRolesForChannel(th.Context, space.Id)
+		require.Nil(t, appErr)
+		assert.Equal(t, scheme.DefaultChannelGuestRole, guestRoleName)
+		assert.Equal(t, scheme.DefaultChannelUserRole, userRoleName)
+		assert.Equal(t, scheme.DefaultChannelAdminRole, adminRoleName)
+	})
+
+	t.Run("scheme missing on the primary too fails closed with the original not-found", func(t *testing.T) {
+		th := setupSpaceRBACMock(t)
+		require.NoError(t, th.App.SetPhase2PermissionsMigrationStatus(true))
+		schemeID := model.NewId()
+		space := newSpaceChannel(schemeID)
+
+		mockStore := th.App.Srv().Store().(*mocks.Store)
+		mockChannelStore := mocks.ChannelStore{}
+		mockChannelStore.On("Get", space.Id, true).Return(space, nil)
+		mockStore.On("Channel").Return(&mockChannelStore)
+		mockSchemeStore := mocks.SchemeStore{}
+		mockSchemeStore.On("Get", schemeID).Return(nil, store.NewErrNotFound("Scheme", schemeID))
+		mockSchemeStore.On("GetFromMaster", schemeID).Return(nil, store.NewErrNotFound("Scheme", schemeID))
+		mockStore.On("Scheme").Return(&mockSchemeStore)
+
+		_, _, _, appErr := th.App.GetSchemeRolesForChannel(th.Context, space.Id)
+		require.NotNil(t, appErr)
+		assert.Equal(t, "app.scheme.get.app_error", appErr.Id)
+		assert.Equal(t, http.StatusNotFound, appErr.StatusCode)
+	})
+}
+
+// On the bulk-import path (allowSchemeUserUnset=true), a member stored as a guest is refused a
+// capability role even though this call's roles carry no scheme role at all: the guest status is
+// read from the stored membership rather than from the roles passed to this call.
+func TestUpdateChannelMemberRolesInternalImportGuestCapabilityRole(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	require.NoError(t, th.App.SetPhase2PermissionsMigrationStatus(true))
+	contribute := getSeededSpaceScheme(t, th, model.SchemeNameSpaceContribute)
+	space := saveSpaceChannelWithScheme(t, th, contribute.Id)
+	saveSpaceChannelMember(t, th, space.Id, th.BasicUser.Id, false, true)
+
+	_, appErr := th.App.updateChannelMemberRolesInternal(th.Context, space.Id, th.BasicUser.Id, model.SpacePageEditorRoleId, true)
+	require.NotNil(t, appErr)
+	assert.Equal(t, "api.channel.update_channel_member_roles.space_guest_role.app_error", appErr.Id)
 }
 
 // Both seeding migrations refuse a pre-existing row under a reserved name that is not the row
@@ -915,11 +1007,11 @@ func TestSpaceSeedingMigrationsRefuseConflictingRows(t *testing.T) {
 		original := append([]string{}, role.Permissions...)
 		t.Cleanup(func() {
 			setRolePermissions(t, role, original)
-			require.NoError(t, th.Server.doSpaceRolesCreationMigration())
+			require.NoError(t, th.Server.doSpaceRolesCreationMigration(th.Context))
 		})
 		setRolePermissions(t, role, append(append([]string{}, original...), model.PermissionAdminSpace.Id))
 
-		err = th.Server.doSpaceRolesCreationMigration()
+		err = th.Server.doSpaceRolesCreationMigration(th.Context)
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), model.SpacePageEditorRoleId)
 		assert.Contains(t, err.Error(), "different permission set")

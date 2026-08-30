@@ -4548,7 +4548,7 @@ func markPhase2MigrationComplete(t *testing.T, th *TestHelper) {
 	})
 }
 
-// The plugin API answers FilterUsersWithTeamPermission with the App's resolution: an active
+// FilterUsersWithTeamPermission uses the App's own resolution: an active
 // member of the team is kept and a channel-only member with no team row is dropped.
 func TestPluginAPIFilterUsersWithTeamPermission(t *testing.T) {
 	mainHelper.Parallel(t)

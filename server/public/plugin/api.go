@@ -1058,15 +1058,18 @@ type API interface {
 
 	// GetOrCreatePluginChannelScheme resolves the channel scheme whose generated
 	// user, admin and guest roles grant exactly the given permission sets,
-	// creating it on first use. Identical normalized sets share a deterministic
-	// pool entry instead of creating one scheme per channel.
+	// creating it on first use. Two calls with the same normalized permission
+	// sets return the same scheme rather than creating one scheme per channel —
+	// but only when made by the same plugin: the scheme's name is derived from
+	// both the calling plugin's identity (carried by the request, not an
+	// argument) and the permission sets, so two plugins requesting identical
+	// permissions still get separate schemes.
 	//
 	// The scheme and its three roles are created atomically, so the scheme is
 	// complete when returned. Normal role-write APIs reject later changes; request
 	// another permission set to resolve a different scheme.
 	//
-	// The pool namespace derives from the calling plugin identity carried by the request, not from
-	// an argument. Only channel-scoped permissions are accepted.
+	// Only channel-scoped permissions are accepted.
 	//
 	// @tag Scheme
 	// Minimum server version: 11.11

@@ -36,7 +36,7 @@ test.describe('Space permissions in the System Scheme', () => {
 
     // Saving the scheme rewrites every default role including the guests, and afterAll patches the
     // guest roles back — both write guest-role permissions, which requires the guest-accounts
-    // license. Without it PatchRole answers 501, afterAll's restore fails, and sibling specs run
+    // license. Without it PatchRole returns 501, afterAll's restore fails, and sibling specs run
     // against the rewritten roles. skipIfNoLicense stops the test where a trial cannot be issued
     // (dev) rather than failing it, matching the other licensed system-console specs.
     test.beforeEach(async ({pw}) => {
@@ -67,9 +67,21 @@ test.describe('Space permissions in the System Scheme', () => {
             return;
         }
         const {adminClient} = await getAdminClient({skipLog: true});
-        for (const role of rolesBeforeSave) {
-            await adminClient.patchRole(role.id, {permissions: role.permissions});
-        }
+
+        // Restore every role even if one patch fails: a sequential loop would abandon
+        // the roles after the first failure, leaving the shared server's defaults
+        // rewritten for every sibling spec.
+        const results = await Promise.allSettled(
+            rolesBeforeSave.map((role) => adminClient.patchRole(role.id, {permissions: role.permissions})),
+        );
+        results.forEach((result, i) => {
+            if (result.status === 'rejected') {
+                // eslint-disable-next-line no-console
+                console.error(
+                    `space_permissions afterAll: failed to restore role ${rolesBeforeSave[i].id}: ${result.reason}`,
+                );
+            }
+        });
     });
 
     /**
@@ -168,7 +180,11 @@ test.describe('Space permissions in the System Scheme', () => {
             // The unrelated permission is back where it started, confirming the save carried a
             // net-zero edit — so anything that did change came from the save path, not from the test.
             const channelUser = await adminClient.getRoleByName('channel_user');
-            expect(channelUser.permissions).toContain('use_channel_mentions');
+            if (unrelatedWasChecked) {
+                expect(channelUser.permissions).toContain('use_channel_mentions');
+            } else {
+                expect(channelUser.permissions).not.toContain('use_channel_mentions');
+            }
         },
     );
 

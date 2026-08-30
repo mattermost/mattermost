@@ -170,7 +170,7 @@ func (a *App) CreateRole(role *model.Role) (*model.Role, *model.AppError) {
 	role.BuiltIn = false
 	role.SchemeManaged = false
 
-	if appErr := a.checkSpacePermissionScope(role); appErr != nil {
+	if appErr := a.checkSpacePermissionScope("CreateRole", role); appErr != nil {
 		return nil, appErr
 	}
 
@@ -190,7 +190,7 @@ func (a *App) CreateRole(role *model.Role) (*model.Role, *model.AppError) {
 }
 
 func (a *App) UpdateRole(role *model.Role) (*model.Role, *model.AppError) {
-	if appErr := a.checkSpacePermissionScope(role); appErr != nil {
+	if appErr := a.checkSpacePermissionScope("UpdateRole", role); appErr != nil {
 		return nil, appErr
 	}
 

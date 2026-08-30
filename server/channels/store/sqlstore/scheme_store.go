@@ -172,7 +172,16 @@ func (s *SqlSchemeStore) createScheme(scheme *model.Scheme, rolePermissions *cha
 		model.RunMemberRoleId,
 	}
 	defaultRoles := make(map[string]*model.Role)
-	roles, err := s.SqlStore.Role().GetByNamesFromMaster(defaultRoleNames)
+	// Only the verbatim-permissions path reads the primary: it runs during boot
+	// seeding and HA insert races, where a replica may not have the default role
+	// rows yet. Ordinary scheme creation keeps the cached replica read.
+	var roles []*model.Role
+	var err error
+	if rolePermissions != nil {
+		roles, err = s.SqlStore.Role().GetByNamesFromMaster(defaultRoleNames)
+	} else {
+		roles, err = s.SqlStore.Role().GetByNames(defaultRoleNames)
+	}
 	if err != nil {
 		return nil, err
 	}

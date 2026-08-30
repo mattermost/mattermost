@@ -13,6 +13,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
 func (a *App) SessionHasPermissionTo(session model.Session, permission *model.Permission) bool {
@@ -318,10 +319,10 @@ func (a *App) HasPermissionToTeam(rctx request.CTX, askingUserId string, teamID 
 
 // FilterUsersWithTeamPermission returns the subset of userIDs holding permission in teamID,
 // resolved for each user the way HasPermissionToTeam resolves it: an active team membership
-// whose roles grant it, or a system role that grants it. The team memberships are read in one
-// query so the answer for a whole audience does not cost one lookup per user. Input order is
-// kept and a repeated id is returned once.
-func (a *App) FilterUsersWithTeamPermission(teamID string, userIDs []string, permission *model.Permission) ([]string, *model.AppError) {
+// whose roles grant it, or a system role that grants it. The team memberships and the
+// system-role fallback users are each read in one query, so the answer for a whole audience
+// does not cost one lookup per user. Input order is kept and a repeated id is returned once.
+func (a *App) FilterUsersWithTeamPermission(rctx request.CTX, teamID string, userIDs []string, permission *model.Permission) ([]string, *model.AppError) {
 	granted := make([]string, 0, len(userIDs))
 	if teamID == "" || len(userIDs) == 0 {
 		return granted, nil
@@ -338,13 +339,35 @@ func (a *App) FilterUsersWithTeamPermission(teamID string, userIDs []string, per
 		}
 	}
 
+	ordered := make([]string, 0, len(userIDs))
+	remaining := make([]string, 0, len(userIDs))
 	seen := make(map[string]bool, len(userIDs))
 	for _, userID := range userIDs {
 		if userID == "" || seen[userID] {
 			continue
 		}
 		seen[userID] = true
-		if grantedByTeam[userID] || a.HasPermissionTo(userID, permission) {
+		ordered = append(ordered, userID)
+		if !grantedByTeam[userID] {
+			remaining = append(remaining, userID)
+		}
+	}
+
+	grantedBySystem := make(map[string]bool, len(remaining))
+	if len(remaining) > 0 {
+		users, err := a.GetUsersByIds(rctx, remaining, &store.UserGetByIdsOpts{})
+		if err != nil {
+			return nil, err
+		}
+		for _, user := range users {
+			if a.RolesGrantPermission(user.GetRoles(), permission.Id) {
+				grantedBySystem[user.Id] = true
+			}
+		}
+	}
+
+	for _, userID := range ordered {
+		if grantedByTeam[userID] || grantedBySystem[userID] {
 			granted = append(granted, userID)
 		}
 	}

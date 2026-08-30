@@ -1407,6 +1407,32 @@ func TestExportSchemes(t *testing.T) {
 		assert.NotContains(t, b.String(), scheme.DefaultChannelGuestRole)
 	})
 
+	t.Run("skip space presets and capability roles", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		err := th.App.Srv().Store().System().Save(&model.System{Name: model.MigrationKeyAdvancedPermissionsPhase2, Value: "true"})
+		require.NoError(t, err)
+
+		var b bytes.Buffer
+		appErr := th.App.BulkExport(th.Context, &b, "", nil, model.BulkExportOpts{
+			IncludeRolesAndSchemes: true,
+		})
+		require.Nil(t, appErr)
+
+		output := b.String()
+		for _, name := range model.SpaceSchemeNames {
+			scheme, appErr := th.App.GetSchemeByName(name)
+			require.Nil(t, appErr, name)
+			assert.NotContains(t, output, name)
+			assert.NotContains(t, output, scheme.DefaultChannelUserRole)
+			assert.NotContains(t, output, scheme.DefaultChannelAdminRole)
+			assert.NotContains(t, output, scheme.DefaultChannelGuestRole)
+		}
+		for _, roleName := range model.SpaceCapabilityRoles {
+			assert.NotContains(t, output, roleName)
+		}
+	})
+
 	t.Run("export channel scheme", func(t *testing.T) {
 		th1 := Setup(t).InitBasic(t)
 

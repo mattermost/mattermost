@@ -193,7 +193,7 @@ func TestFilterUsersWithTeamPermission(t *testing.T) {
 
 	t.Run("default team scheme", func(t *testing.T) {
 		ids := []string{member.Id, removed.Id, stranger.Id, th.SystemAdminUser.Id, member.Id, model.NewId()}
-		granted, appErr := th.App.FilterUsersWithTeamPermission(th.BasicTeam.Id, ids, model.PermissionReadSpace)
+		granted, appErr := th.App.FilterUsersWithTeamPermission(th.Context, th.BasicTeam.Id, ids, model.PermissionReadSpace)
 		require.Nil(t, appErr)
 		assert.Equal(t, []string{member.Id, th.SystemAdminUser.Id}, granted)
 		for _, id := range ids {
@@ -204,17 +204,24 @@ func TestFilterUsersWithTeamPermission(t *testing.T) {
 	t.Run("team scheme without read_space", func(t *testing.T) {
 		require.True(t, th.App.HasPermissionToTeam(th.Context, restricted.Id, restrictedTeam.Id, model.PermissionViewTeam),
 			"the membership itself is active")
-		granted, appErr := th.App.FilterUsersWithTeamPermission(restrictedTeam.Id, []string{restricted.Id, th.SystemAdminUser.Id}, model.PermissionReadSpace)
+		granted, appErr := th.App.FilterUsersWithTeamPermission(th.Context, restrictedTeam.Id, []string{restricted.Id, th.SystemAdminUser.Id}, model.PermissionReadSpace)
 		require.Nil(t, appErr)
 		assert.Equal(t, []string{th.SystemAdminUser.Id}, granted)
 		assert.False(t, th.App.HasPermissionToTeam(th.Context, restricted.Id, restrictedTeam.Id, model.PermissionReadSpace))
 	})
 
+	t.Run("duplicate granted id is returned once, order preserved", func(t *testing.T) {
+		granted, appErr := th.App.FilterUsersWithTeamPermission(th.Context, th.BasicTeam.Id,
+			[]string{member.Id, member.Id, stranger.Id}, model.PermissionReadSpace)
+		require.Nil(t, appErr)
+		assert.Equal(t, []string{member.Id}, granted)
+	})
+
 	t.Run("nothing to filter", func(t *testing.T) {
-		granted, appErr := th.App.FilterUsersWithTeamPermission(th.BasicTeam.Id, nil, model.PermissionReadSpace)
+		granted, appErr := th.App.FilterUsersWithTeamPermission(th.Context, th.BasicTeam.Id, nil, model.PermissionReadSpace)
 		require.Nil(t, appErr)
 		assert.Equal(t, []string{}, granted)
-		granted, appErr = th.App.FilterUsersWithTeamPermission("", []string{member.Id}, model.PermissionReadSpace)
+		granted, appErr = th.App.FilterUsersWithTeamPermission(th.Context, "", []string{member.Id}, model.PermissionReadSpace)
 		require.Nil(t, appErr)
 		assert.Equal(t, []string{}, granted)
 	})

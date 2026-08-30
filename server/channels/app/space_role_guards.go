@@ -17,8 +17,8 @@ func hasSpaceChannelScopedPermission(permissions []string) bool {
 	return slices.ContainsFunc(permissions, model.IsSpaceChannelScopedPermissionID)
 }
 
-// logRefusedSpaceCapabilityRole records a refused space grant, which is a scope
-// violation worth an operator trail rather than just an error to the caller.
+// logRefusedSpaceCapabilityRole logs a refused space-capability grant so operators
+// have a record beyond the caller's error.
 // Callers build their own AppError, because the i18n extractor only collects
 // message IDs written as literals at the model.NewAppError call site.
 func logRefusedSpaceCapabilityRole(rctx request.CTX, where, roleName string) {
@@ -26,6 +26,51 @@ func logRefusedSpaceCapabilityRole(rctx request.CTX, where, roleName string) {
 		mlog.String("where", where),
 		mlog.String("role_name", roleName),
 	)
+}
+
+// firstSpaceCapabilityRole returns the first space capability role in roles, or
+// "" when there is none. Callers refuse the write with their own AppError, for
+// the same extractor reason as logRefusedSpaceCapabilityRole.
+func firstSpaceCapabilityRole(roles string) string {
+	for roleName := range strings.FieldsSeq(roles) {
+		if model.IsSpaceCapabilityRole(roleName) {
+			return roleName
+		}
+	}
+	return ""
+}
+
+// checkSpaceCapabilityRoleOnChannel reports whether roleName is a space
+// capability role, refusing it anywhere but a space backing channel. The
+// capability roles sit outside the built-in role check, so they reach the
+// member's explicit roles; on any other channel they would give the member
+// space permissions.
+func checkSpaceCapabilityRoleOnChannel(rctx request.CTX, channel *model.Channel, roleName string) (bool, *model.AppError) {
+	if !model.IsSpaceCapabilityRole(roleName) {
+		return false, nil
+	}
+	if !channel.IsSpace() {
+		logRefusedSpaceCapabilityRole(rctx, "UpdateChannelMemberRoles", roleName)
+		return false, model.NewAppError("UpdateChannelMemberRoles", "api.channel.update_channel_member_roles.space_role.app_error", nil, "role_name="+roleName, http.StatusBadRequest)
+	}
+	return true, nil
+}
+
+// checkSpaceGuestMemberRoles refuses the member-role combinations a guest may
+// not hold: any capability role — a guest reads a space and nothing more — and
+// the guest+admin pairing on a space, which gets a space-specific error where an
+// ordinary channel keeps the generic one.
+func checkSpaceGuestMemberRoles(channel *model.Channel, memberIsGuest, memberIsAdmin bool, capabilityRoleName string) *model.AppError {
+	if !memberIsGuest {
+		return nil
+	}
+	if capabilityRoleName != "" {
+		return model.NewAppError("UpdateChannelMemberRoles", "api.channel.update_channel_member_roles.space_guest_role.app_error", nil, "role_name="+capabilityRoleName, http.StatusBadRequest)
+	}
+	if memberIsAdmin && channel.IsSpace() {
+		return model.NewAppError("UpdateChannelMemberRoles", "api.channel.update_channel_member_roles.space_guest_admin.app_error", nil, "", http.StatusBadRequest)
+	}
+	return nil
 }
 
 // checkSpacePermissionScope rejects any runtime role write carrying a channel-scoped
@@ -38,13 +83,13 @@ func logRefusedSpaceCapabilityRole(rctx request.CTX, where, roleName string) {
 // schemes are seeded unconditionally at boot, so a grant added while the flag was
 // off remains in place after the flip, and nothing re-validates stored rows at
 // enable time.
-func (a *App) checkSpacePermissionScope(role *model.Role) *model.AppError {
+func (a *App) checkSpacePermissionScope(where string, role *model.Role) *model.AppError {
 	if model.IsSpaceCapabilityRole(role.Name) {
-		return model.NewAppError("checkSpacePermissionScope", "app.role.save.space_capability_role.app_error",
+		return model.NewAppError(where, "app.role.save.space_capability_role.app_error",
 			map[string]any{"RoleName": role.Name}, "", http.StatusBadRequest)
 	}
 
-	if appErr := a.checkFrozenSchemeRole(role); appErr != nil {
+	if appErr := a.checkFrozenSchemeRole(where, role); appErr != nil {
 		return appErr
 	}
 
@@ -59,7 +104,7 @@ func (a *App) checkSpacePermissionScope(role *model.Role) *model.AppError {
 
 	// Everything else is refused. Legitimate preset, capability, and plugin roles
 	// are created below this guard and are immutable at runtime.
-	return model.NewAppError("checkSpacePermissionScope", "app.role.save.space_permission_scope.app_error",
+	return model.NewAppError(where, "app.role.save.space_permission_scope.app_error",
 		map[string]any{"RoleName": role.Name}, "permissions="+strings.Join(role.Permissions, ","), http.StatusBadRequest)
 }
 
@@ -72,13 +117,13 @@ func (a *App) checkSpacePermissionScope(role *model.Role) *model.AppError {
 //
 // PatchRole starts from the stored role and preserves SchemeId, so generated-role updates reach
 // this lookup. Direct UpdateRole callers must likewise supply the role's scheme association.
-func (a *App) checkFrozenSchemeRole(role *model.Role) *model.AppError {
+func (a *App) checkFrozenSchemeRole(where string, role *model.Role) *model.AppError {
 	if role.SchemeId == nil || *role.SchemeId == "" {
 		return nil
 	}
 
 	// A store failure is not a scope violation, but both outcomes refuse the write.
-	scheme, appErr := a.getSchemeFromMaster("checkSpacePermissionScope", *role.SchemeId)
+	scheme, appErr := a.getSchemeFromMaster(where, *role.SchemeId)
 	if appErr != nil {
 		return appErr
 	}
@@ -87,7 +132,7 @@ func (a *App) checkFrozenSchemeRole(role *model.Role) *model.AppError {
 	}
 
 	if scheme.DeleteAt == 0 && scheme.Scope == model.SchemeScopeChannel && model.IsSpaceSchemeName(scheme.Name) {
-		return model.NewAppError("checkSpacePermissionScope", "app.role.save.space_preset_role.app_error",
+		return model.NewAppError(where, "app.role.save.space_preset_role.app_error",
 			map[string]any{"RoleName": role.Name}, "", http.StatusBadRequest)
 	}
 	// A plugin scheme is shared by every channel its owner configured the same way,
@@ -95,7 +140,7 @@ func (a *App) checkFrozenSchemeRole(role *model.Role) *model.AppError {
 	// that needs a different set requests it, which resolves to a different scheme,
 	// so there is no legitimate writer.
 	if model.IsPluginChannelSchemeName(scheme.Name) {
-		return model.NewAppError("checkSpacePermissionScope", "app.role.save.plugin_scheme_role.app_error",
+		return model.NewAppError(where, "app.role.save.plugin_scheme_role.app_error",
 			map[string]any{"RoleName": role.Name}, "", http.StatusBadRequest)
 	}
 	return nil

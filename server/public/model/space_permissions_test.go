@@ -118,7 +118,7 @@ func TestMergeChannelHigherScopedPermissionsSpaceExemption(t *testing.T) {
 			assert.NotContains(t, role.Permissions, p.Id,
 				"resolution must not inject %q into a role that never stored it", p.Id)
 		}
-		// The ordinary permissions still resolve exactly as before.
+		// The ordinary permissions still resolve normally, unaffected by the exemption.
 		assert.Contains(t, role.Permissions, PermissionEditPost.Id)
 		assert.Contains(t, role.Permissions, PermissionCreatePost.Id)
 	})

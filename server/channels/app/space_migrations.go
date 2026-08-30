@@ -72,7 +72,7 @@ func (s *Server) validateAdoptableSpaceScheme(existing *model.Scheme, user, admi
 	return nil
 }
 
-func (s *Server) doSpaceRolesCreationMigration() error {
+func (s *Server) doSpaceRolesCreationMigration(rctx request.CTX) error {
 	// If the migration is already marked as completed, don't do it again.
 	var nfErr *store.ErrNotFound
 	if _, err := s.Store().System().GetByName(SpaceRolesCreationMigrationKey); err == nil {
@@ -89,7 +89,7 @@ func (s *Server) doSpaceRolesCreationMigration() error {
 			return fmt.Errorf("default space capability role %q is undefined", roleID)
 		}
 
-		if stored, err := s.Store().Role().GetByName(request.EmptyContext(s.Log()), roleID); err == nil {
+		if stored, err := s.Store().Role().GetByName(rctx, roleID); err == nil {
 			// A row already under the reserved name is only this migration's own
 			// earlier work if its permissions match the built-in definition. The
 			// lost-insert-race branch below refuses the same way.
@@ -137,11 +137,11 @@ func (s *Server) doSpaceRolesCreationMigration() error {
 
 // doSpaceSchemesCreationMigration seeds the space preset schemes.
 //
-// Deliberately ungated, where App.CreateScheme is gated on the custom permissions
-// schemes license: the presets are the unlicensed tier of space permissions. They
-// are core-provided and fixed, and attaching one is an ordinary channel update
-// carrying its SchemeId that never reaches CreateScheme. What the license buys is a
-// per-space custom scheme.
+// Deliberately ungated, where scheme creation through the REST API is gated on the
+// custom permissions schemes license (api4/scheme.go): the presets are the
+// unlicensed tier of space permissions. They are core-provided and fixed, and
+// attaching one is an ordinary channel update carrying its SchemeId that never
+// reaches scheme creation. What the license buys is a per-space custom scheme.
 //
 // Writing store-direct also puts this below the App guards, which is what lets it
 // create schemes under names checkSpaceSchemeName reserves against callers.

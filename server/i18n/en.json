@@ -8034,7 +8034,7 @@
   },
   {
     "id": "app.pap.save_policy.parent_resource_attributes_team_assigned",
-    "translation": "Cannot save a parent that references resource.attributes.* while a team policy imports it because a team has no attributes."
+    "translation": "This access rule uses channel attributes, which teams do not have. Remove the teams assigned to this policy before saving."
   },
   {
     "id": "app.pap.save_policy.resolver_error",
@@ -8042,7 +8042,7 @@
   },
   {
     "id": "app.pap.save_policy.resource_attributes_disabled",
-    "translation": "Access rules cannot reference resource.attributes.* on this server because the feature is not enabled."
+    "translation": "Access rules cannot use channel attributes on this server. This capability is not enabled."
   },
   {
     "id": "app.pap.save_policy.rule_name_unique.app_error",
@@ -8054,7 +8054,7 @@
   },
   {
     "id": "app.pap.save_policy.team_resource_attributes",
-    "translation": "A team policy cannot reference or import resource.attributes.* because a team has no attributes."
+    "translation": "This access rule uses channel attributes, which teams do not have. Access rules with channel attributes can only be applied to channels."
   },
   {
     "id": "app.pap.search_access_control_policies.app_error",
@@ -9331,6 +9331,10 @@
     "translation": "The generated roles of plugin scheme \"{{.SchemeName}}\" cannot be reassigned."
   },
   {
+    "id": "app.scheme.save.plugin_scheme_scope.app_error",
+    "translation": "The scope of the plugin scheme \"{{.SchemeName}}\" cannot be changed."
+  },
+  {
     "id": "app.scheme.save.space_scheme_name.app_error",
     "translation": "The scheme name \"{{.SchemeName}}\" is reserved for spaces."
   },
@@ -9341,6 +9345,10 @@
   {
     "id": "app.scheme.save.space_scheme_roles.app_error",
     "translation": "The roles of the space scheme \"{{.SchemeName}}\" cannot be changed."
+  },
+  {
+    "id": "app.scheme.save.space_scheme_scope.app_error",
+    "translation": "The scope of the space scheme \"{{.SchemeName}}\" cannot be changed."
   },
   {
     "id": "app.schemes.is_phase_2_migration_completed.not_completed.app_error",

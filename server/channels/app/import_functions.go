@@ -365,11 +365,9 @@ func (a *App) importUser(rctx request.CTX, data *imports.UserImportData, dryRun 
 	// rather than the diff against the stored user, because a file naming a
 	// capability role is wrong whether or not it changes anything.
 	if data.Roles != nil {
-		for roleName := range strings.FieldsSeq(*data.Roles) {
-			if model.IsSpaceCapabilityRole(roleName) {
-				logRefusedSpaceCapabilityRole(rctx, "BulkImport", roleName)
-				return model.NewAppError("BulkImport", "api.user.update_user_roles.space_role.app_error", nil, "role_name="+roleName, http.StatusBadRequest)
-			}
+		if roleName := firstSpaceCapabilityRole(*data.Roles); roleName != "" {
+			logRefusedSpaceCapabilityRole(rctx, "BulkImport", roleName)
+			return model.NewAppError("BulkImport", "api.user.update_user_roles.space_role.app_error", nil, "role_name="+roleName, http.StatusBadRequest)
 		}
 	}
 

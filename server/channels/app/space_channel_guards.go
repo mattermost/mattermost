@@ -47,16 +47,18 @@ func (a *App) checkSchemeAssignmentToSpace(where string, schemeId *string) *mode
 	return nil
 }
 
-// isSpaceChannelByID reports whether channelID is a space backing channel. It reads
-// from the primary so a freshly created space cannot be missed on replica lag, and
-// returns the lookup error on anything other than not-found so callers can fail closed.
-func (a *App) isSpaceChannelByID(rctx request.CTX, channelID string) (bool, *model.AppError) {
-	_, err := a.GetChannelOfType(RequestContextWithMaster(rctx), channelID, model.ChannelTypeSpace)
+// getChannelWithSpaceFallback resolves channelID like GetChannel, and retries a
+// not-found as an exact-type read for a space backing channel, which the generic
+// get excludes. Spaces are uncached, so the fallback reads from the primary and a
+// freshly created space cannot be missed on replica lag. Any error other than
+// not-found is returned so callers can fail closed.
+func (a *App) getChannelWithSpaceFallback(rctx request.CTX, channelID string) (*model.Channel, *model.AppError) {
+	channel, err := a.GetChannel(rctx, channelID)
 	if err == nil {
-		return true, nil
+		return channel, nil
 	}
 	if err.StatusCode != http.StatusNotFound {
-		return false, err
+		return nil, err
 	}
-	return false, nil
+	return a.GetChannelOfType(RequestContextWithMaster(rctx), channelID, model.ChannelTypeSpace)
 }

@@ -1360,7 +1360,7 @@ func (s *Server) doAppMigrations() {
 		{"System Console Roles Creation Migration", func() error { return s.doSystemConsoleRolesCreationMigration(rctx) }},
 		{"Custom Group Admin Role Creation Migration", func() error { return s.doCustomGroupAdminRoleCreationMigration(rctx) }},
 		{"Shared Channel Manager Role Creation Migration", func() error { return s.doSharedChannelManagerRoleCreationMigration(rctx) }},
-		{"Space Roles Creation Migration", s.doSpaceRolesCreationMigration},
+		{"Space Roles Creation Migration", func() error { return s.doSpaceRolesCreationMigration(rctx) }},
 		// This migration always run after dependent migrations such as the guest roles migration.
 		{"Permissions Migrations", s.doPermissionsMigrations},
 		{"Content Extraction Config Default True Migration", s.doContentExtractionConfigDefaultTrueMigration},

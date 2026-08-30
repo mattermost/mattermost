@@ -268,9 +268,9 @@ func testSchemeStoreSaveChannelSchemeWithRoles(t *testing.T, rctx request.CTX, s
 		}
 	})
 
-	// Channel scope only: the team and playbook role fields belong to a scope this
-	// never mints into, and a caller reading them would find role names that grant
-	// nothing it asked for.
+	// Channel scope only: SaveChannelSchemeWithRoles never generates team or
+	// playbook roles, so those fields are left empty rather than populated with
+	// role names that would grant nothing for that scope.
 	t.Run("only channel roles are generated", func(t *testing.T) {
 		name := model.NewId()
 		saved, err := ss.Scheme().SaveChannelSchemeWithRoles(&model.Scheme{
@@ -311,7 +311,7 @@ func testSchemeStoreSaveChannelSchemeWithRoles(t *testing.T, rctx request.CTX, s
 
 	// The roles are created in the transaction that creates the scheme precisely so
 	// a failure partway leaves nothing behind. The name collision is the failure the
-	// get-or-create path actually meets: two callers racing on one permission set.
+	// get-or-create path actually produces: two callers racing on one permission set.
 	t.Run("a failed save leaves no scheme and no orphan roles", func(t *testing.T) {
 		name := model.NewId()
 		first, err := ss.Scheme().SaveChannelSchemeWithRoles(&model.Scheme{

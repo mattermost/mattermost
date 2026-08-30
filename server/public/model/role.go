@@ -928,8 +928,8 @@ func IsChannelScopedBuiltInRole(roleName string) bool {
 	return roleName == ChannelGuestRoleId || roleName == ChannelUserRoleId || roleName == ChannelAdminRoleId
 }
 
-// SpaceCapabilityRoles enumerates the space capability roles in a stable order,
-// which the seeding migration depends on.
+// SpaceCapabilityRoles enumerates the space capability roles for the seeding
+// migration to iterate deterministically.
 var SpaceCapabilityRoles = []string{
 	SpacePageCreatorRoleId,
 	SpacePageCommenterRoleId,
