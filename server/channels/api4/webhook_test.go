@@ -261,6 +261,128 @@ func TestIncomingWebhookValidateUser(t *testing.T) {
 	})
 }
 
+func TestOutgoingWebhookValidateUser(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOutgoingWebhooks = true })
+
+	defaultRolePermissions := th.SaveDefaultRolePermissions(t)
+	defer th.RestoreDefaultRolePermissions(t, defaultRolePermissions)
+	th.AddPermissionToRole(t, model.PermissionManageOwnOutgoingWebhooks.Id, model.TeamAdminRoleId)
+	th.AddPermissionToRole(t, model.PermissionManageOthersOutgoingWebhooks.Id, model.TeamAdminRoleId)
+	th.RemovePermissionFromRole(t, model.PermissionManageOwnOutgoingWebhooks.Id, model.TeamUserRoleId)
+
+	th.LoginTeamAdmin(t)
+
+	t.Run("cannot assign a user who is not a member of the team or channel", func(t *testing.T) {
+		nonMember := th.CreateUser(t)
+
+		hook := &model.OutgoingWebhook{
+			ChannelId:    th.BasicChannel.Id,
+			TeamId:       th.BasicTeam.Id,
+			CallbackURLs: []string{"http://nowhere.com"},
+			CreatorId:    nonMember.Id,
+		}
+		_, resp, err := th.Client.CreateOutgoingWebhook(context.Background(), hook)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("cannot assign a user with higher privileges than the requester", func(t *testing.T) {
+		th.LinkUserToTeam(t, th.SystemAdminUser, th.BasicTeam)
+		_, appErr := th.App.AddUserToChannel(th.Context, th.SystemAdminUser, th.BasicChannel, false)
+		require.Nil(t, appErr)
+
+		hook := &model.OutgoingWebhook{
+			ChannelId:    th.BasicChannel.Id,
+			TeamId:       th.BasicTeam.Id,
+			CallbackURLs: []string{"http://nowhere.com"},
+			CreatorId:    th.SystemAdminUser.Id,
+		}
+		_, resp, err := th.Client.CreateOutgoingWebhook(context.Background(), hook)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("cannot assign a user with higher privileges than the requester without a channel", func(t *testing.T) {
+		th.LinkUserToTeam(t, th.SystemAdminUser, th.BasicTeam)
+
+		hook := &model.OutgoingWebhook{
+			TeamId:       th.BasicTeam.Id,
+			CallbackURLs: []string{"http://nowhere.com"},
+			TriggerWords: []string{"validate-user"},
+			CreatorId:    th.SystemAdminUser.Id,
+		}
+		_, resp, err := th.Client.CreateOutgoingWebhook(context.Background(), hook)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("can assign a user who is a member of the channel", func(t *testing.T) {
+		hook := &model.OutgoingWebhook{
+			ChannelId:    th.BasicChannel.Id,
+			TeamId:       th.BasicTeam.Id,
+			CallbackURLs: []string{"http://nowhere.com"},
+			CreatorId:    th.BasicUser2.Id,
+		}
+		created, _, err := th.Client.CreateOutgoingWebhook(context.Background(), hook)
+		require.NoError(t, err)
+		require.Equal(t, th.BasicUser2.Id, created.CreatorId)
+	})
+
+	t.Run("cannot assign a user who is not a member of the team without a channel", func(t *testing.T) {
+		nonMember := th.CreateUser(t)
+
+		hook := &model.OutgoingWebhook{
+			TeamId:       th.BasicTeam.Id,
+			CallbackURLs: []string{"http://nowhere.com"},
+			TriggerWords: []string{"team-membership"},
+			CreatorId:    nonMember.Id,
+		}
+		_, resp, err := th.Client.CreateOutgoingWebhook(context.Background(), hook)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("update cannot move another user's hook to a channel they cannot access", func(t *testing.T) {
+		hook := &model.OutgoingWebhook{
+			ChannelId:    th.BasicChannel.Id,
+			TeamId:       th.BasicTeam.Id,
+			CallbackURLs: []string{"http://nowhere.com"},
+			CreatorId:    th.BasicUser2.Id,
+		}
+		created, _, err := th.Client.CreateOutgoingWebhook(context.Background(), hook)
+		require.NoError(t, err)
+
+		otherChannel := th.CreatePublicChannel(t)
+		created.ChannelId = otherChannel.Id
+
+		_, resp, err := th.Client.UpdateOutgoingWebhook(context.Background(), created)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("update validates the retained owner even when the payload also changes the owner", func(t *testing.T) {
+		hook := &model.OutgoingWebhook{
+			ChannelId:    th.BasicChannel.Id,
+			TeamId:       th.BasicTeam.Id,
+			CallbackURLs: []string{"http://nowhere.com"},
+			CreatorId:    th.BasicUser2.Id,
+		}
+		created, _, err := th.Client.CreateOutgoingWebhook(context.Background(), hook)
+		require.NoError(t, err)
+
+		otherChannel := th.CreatePublicChannel(t)
+		created.ChannelId = otherChannel.Id
+		created.CreatorId = th.TeamAdminUser.Id
+
+		_, resp, err := th.Client.UpdateOutgoingWebhook(context.Background(), created)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+}
+
 func TestGetIncomingWebhooks(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
