@@ -78,7 +78,7 @@ func TestNotifyExpiredAccessTokensDeleted(t *testing.T) {
 		require.Equal(t, bot.UserId, posts[0].UserId)
 	})
 
-	t.Run("bot-owned token is skipped", func(t *testing.T) {
+	t.Run("user-owned bot token notifies the bot owner", func(t *testing.T) {
 		th := Setup(t).InitBasic(t)
 
 		systemBot, appErr := th.App.GetSystemBot(th.Context)
@@ -88,6 +88,27 @@ func TestNotifyExpiredAccessTokensDeleted(t *testing.T) {
 
 		th.App.NotifyExpiredAccessTokensDeleted(th.Context, []*model.UserAccessToken{
 			{Id: model.NewId(), UserId: bot.UserId, Description: "bot-token"},
+		})
+
+		posts := notificationPostsFor(t, th, systemBot.UserId, bot.OwnerId, "bot-token")
+		require.Len(t, posts, 1)
+		require.Contains(t, posts[0].Message, bot.Username)
+		require.Empty(t, dmPostsFromSystemBot(t, th, systemBot.UserId, bot.UserId))
+	})
+
+	t.Run("plugin-owned bot token is skipped", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		systemBot, appErr := th.App.GetSystemBot(th.Context)
+		require.Nil(t, appErr)
+		bot, appErr := th.App.CreateBot(th.Context, &model.Bot{
+			Username: "plugin_expired_bot",
+			OwnerId:  "com.mattermost.test",
+		})
+		require.Nil(t, appErr)
+
+		th.App.NotifyExpiredAccessTokensDeleted(th.Context, []*model.UserAccessToken{
+			{Id: model.NewId(), UserId: bot.UserId, Description: "plugin-bot-token"},
 		})
 
 		require.Empty(t, dmPostsFromSystemBot(t, th, systemBot.UserId, bot.UserId))

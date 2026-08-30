@@ -235,14 +235,15 @@ func (s SqlUserAccessTokenStore) UpdateTokenDisable(tokenId string) (err error) 
 
 // GetExpiredBefore returns active tokens whose non-zero ExpiresAt is less than
 // or equal to the provided cutoff (Unix milliseconds), up to the given limit.
-// The secret Token column is intentionally NOT selected — callers use the
-// returned rows for metadata (audit logging, deletion) only.
+// When includeAllTokens is false, only bots owned by a user are returned. The
+// secret Token column is intentionally NOT selected — callers use the returned
+// rows for metadata (audit logging, deletion) only.
 //
 // A non-positive limit returns an empty slice without hitting the DB rather
 // than relying on the int -> uint64 cast (which would otherwise wrap a
 // negative value into an enormous unsigned limit and effectively disable the
 // bound).
-func (s SqlUserAccessTokenStore) GetExpiredBefore(cutoff int64, limit int) ([]*model.UserAccessToken, error) {
+func (s SqlUserAccessTokenStore) GetExpiredBefore(cutoff int64, limit int, includeAllTokens bool) ([]*model.UserAccessToken, error) {
 	tokens := []*model.UserAccessToken{}
 
 	if limit <= 0 {
@@ -264,6 +265,14 @@ func (s SqlUserAccessTokenStore) GetExpiredBefore(cutoff int64, limit int) ([]*m
 		OrderBy("UserAccessTokens.ExpiresAt ASC").
 		Limit(uint64(limit))
 
+	if !includeAllTokens {
+		query = query.
+			InnerJoin("Bots ON Bots.UserId = UserAccessTokens.UserId").
+			InnerJoin("Users BotOwners ON BotOwners.Id = Bots.OwnerId").
+			InnerJoin("Users BotUsers ON BotUsers.Id = Bots.UserId").
+			Where(sq.NotEq{"BotUsers.Username": model.BotSystemBotUsername})
+	}
+
 	if err := s.GetReplica().SelectBuilder(&tokens, query); err != nil {
 		return nil, errors.Wrap(err, "failed to find expired UserAccessTokens")
 	}
@@ -271,11 +280,11 @@ func (s SqlUserAccessTokenStore) GetExpiredBefore(cutoff int64, limit int) ([]*m
 	return tokens, nil
 }
 
-// GetExpiringTokens returns active, non-bot tokens belonging to non-deactivated
-// users that need a pre-expiry warning for one of the given day thresholds
-// (e.g. 7/3/1), ordered most-urgent first, up to the given limit. Bot tokens are
-// excluded because bot accounts are exempt from the expiry policy and have no
-// human inbox to notify.
+// GetExpiringTokens returns active tokens with an active human notification
+// recipient that need a pre-expiry warning for one of the given day thresholds
+// (e.g. 7/3/1), ordered most-urgent first, up to the given limit. User-owned bot
+// tokens notify the bot owner. Plugin-owned bot tokens are excluded. When
+// includeAllTokens is false, non-bot tokens are also excluded.
 //
 // Only *actionable* rows are returned: for each threshold T a token qualifies
 // when it has entered the T-day bucket (ExpiresAt <= now + T days) and has not
@@ -295,7 +304,7 @@ func (s SqlUserAccessTokenStore) GetExpiredBefore(cutoff int64, limit int) ([]*m
 // hitting the DB rather than relying on the int -> uint64 cast (which would
 // otherwise wrap a negative value into an enormous unsigned limit and
 // effectively disable the bound).
-func (s SqlUserAccessTokenStore) GetExpiringTokens(now int64, thresholds []int, limit int) ([]*model.UserAccessToken, error) {
+func (s SqlUserAccessTokenStore) GetExpiringTokens(now int64, thresholds []int, limit int, includeAllTokens bool) ([]*model.UserAccessToken, error) {
 	tokens := []*model.UserAccessToken{}
 
 	if limit <= 0 || len(thresholds) == 0 {
@@ -326,13 +335,30 @@ func (s SqlUserAccessTokenStore) GetExpiringTokens(now int64, thresholds []int, 
 		From("UserAccessTokens").
 		InnerJoin("Users ON Users.Id = UserAccessTokens.UserId").
 		LeftJoin("Bots ON Bots.UserId = UserAccessTokens.UserId").
+		LeftJoin("Users BotOwners ON BotOwners.Id = Bots.OwnerId").
 		Where(sq.Eq{"UserAccessTokens.IsActive": true}).
 		Where(sq.Gt{"UserAccessTokens.ExpiresAt": now}).
-		Where(sq.Eq{"Users.DeleteAt": 0}).
-		Where(sq.Eq{"Bots.UserId": nil}).
 		Where(actionable).
 		OrderBy("UserAccessTokens.ExpiresAt ASC").
 		Limit(uint64(limit))
+
+	userOwnedBot := sq.And{
+		sq.NotEq{"Bots.UserId": nil},
+		sq.NotEq{"Users.Username": model.BotSystemBotUsername},
+		sq.NotEq{"BotOwners.Id": nil},
+		sq.Eq{"BotOwners.DeleteAt": 0},
+	}
+	if includeAllTokens {
+		query = query.Where(sq.Or{
+			sq.And{
+				sq.Eq{"Bots.UserId": nil},
+				sq.Eq{"Users.DeleteAt": 0},
+			},
+			userOwnedBot,
+		})
+	} else {
+		query = query.Where(userOwnedBot)
+	}
 
 	// Read from master: this dedups against LastNotifiedAt (written to master),
 	// so a lagging replica could re-surface an already-warned token and send a
@@ -354,19 +380,28 @@ func (s SqlUserAccessTokenStore) UpdateLastNotifiedAt(tokenId string, notifiedAt
 	return nil
 }
 
-// CountNonCompliantExpiry returns the number of active, non-bot tokens that
-// violate the maximum lifetime policy implied by maxExpiresAt. It is used to
-// preview the blast radius before revoking.
+// CountNonCompliantExpiry returns the number of active user and user-owned bot
+// tokens that violate the maximum lifetime policy implied by maxExpiresAt.
+// Plugin-owned bot tokens are excluded.
 func (s SqlUserAccessTokenStore) CountNonCompliantExpiry(maxExpiresAt int64) (int64, error) {
 	query := s.getQueryBuilder().
 		Select("COUNT(*)").
 		From("UserAccessTokens").
+		LeftJoin("Bots ON Bots.UserId = UserAccessTokens.UserId").
+		LeftJoin("Users BotOwners ON BotOwners.Id = Bots.OwnerId").
+		LeftJoin("Users BotUsers ON BotUsers.Id = Bots.UserId").
 		Where(sq.Or{
 			sq.Eq{"UserAccessTokens.ExpiresAt": 0},
 			sq.Gt{"UserAccessTokens.ExpiresAt": maxExpiresAt},
 		}).
 		Where(sq.Eq{"UserAccessTokens.IsActive": true}).
-		Where(sq.Expr("UserAccessTokens.UserId NOT IN (SELECT UserId FROM Bots)"))
+		Where(sq.Or{
+			sq.Eq{"Bots.UserId": nil},
+			sq.And{
+				sq.NotEq{"BotOwners.Id": nil},
+				sq.NotEq{"BotUsers.Username": model.BotSystemBotUsername},
+			},
+		})
 
 	var count int64
 	if err := s.GetReplica().GetBuilder(&count, query); err != nil {
@@ -387,11 +422,14 @@ func (s SqlUserAccessTokenStore) DeleteNonCompliantExpiry(maxExpiresAt int64, li
 
 	sql := `
 WITH to_delete AS (
-    SELECT Id, Token, UserId
+    SELECT UserAccessTokens.Id, UserAccessTokens.Token, UserAccessTokens.UserId
     FROM UserAccessTokens
-    WHERE (ExpiresAt = 0 OR ExpiresAt > $1)
-      AND IsActive = true
-      AND UserId NOT IN (SELECT UserId FROM Bots)
+    LEFT JOIN Bots ON Bots.UserId = UserAccessTokens.UserId
+    LEFT JOIN Users BotOwners ON BotOwners.Id = Bots.OwnerId
+    LEFT JOIN Users BotUsers ON BotUsers.Id = Bots.UserId
+    WHERE (UserAccessTokens.ExpiresAt = 0 OR UserAccessTokens.ExpiresAt > $1)
+      AND UserAccessTokens.IsActive = true
+      AND (Bots.UserId IS NULL OR (BotOwners.Id IS NOT NULL AND BotUsers.Username != $3))
     LIMIT $2
 ),
 deleted_sessions AS (
@@ -406,7 +444,7 @@ deleted_tokens AS (
 SELECT UserId FROM deleted_tokens`
 
 	var userIDs []string
-	if err := s.GetMaster().Select(&userIDs, sql, maxExpiresAt, limit); err != nil {
+	if err := s.GetMaster().Select(&userIDs, sql, maxExpiresAt, limit, model.BotSystemBotUsername); err != nil {
 		return nil, errors.Wrap(err, "failed to delete non-compliant UserAccessTokens")
 	}
 
