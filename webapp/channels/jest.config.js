@@ -22,6 +22,12 @@ const config = {
         '^@mattermost/(client)$': '<rootDir>/../platform/$1/src',
         '^@mattermost/(types)/(.*)$': '<rootDir>/../platform/$1/src/$2',
         '^@mattermost/shared/(.*)$': '<rootDir>/../platform/shared/src/$1',
+        '^@mattermost/compass-ui/hooks/(.*)$':
+            '<rootDir>/../node_modules/@mattermost/compass-ui/dist/hooks/$1.cjs',
+        '^@mattermost/compass-ui/utils/string$':
+            '<rootDir>/../node_modules/@mattermost/compass-ui/dist/utils/string.cjs',
+        '^@mattermost/compass-ui/(.*)$':
+            '<rootDir>/../node_modules/@mattermost/compass-ui/dist/$1/index.cjs',
         '^mattermost-redux/test/(.*)$':
             '<rootDir>/src/packages/mattermost-redux/test/$1',
         '^mattermost-redux/(.*)$': '<rootDir>/src/packages/mattermost-redux/src/$1',

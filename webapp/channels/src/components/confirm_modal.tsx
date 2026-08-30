@@ -4,7 +4,7 @@
 import React, {memo, useCallback, useState} from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {Button} from '@mattermost/compass-ui';
+import {Button} from '@mattermost/compass-ui/components/button';
 import {GenericModal} from '@mattermost/components';
 import type {ButtonVariant} from '@mattermost/shared/components/button';
 
