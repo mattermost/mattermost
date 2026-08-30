@@ -83,6 +83,7 @@ import {
     fetchSystemPropertyValues,
 } from 'mattermost-redux/actions/properties';
 import {getRecap} from 'mattermost-redux/actions/recaps';
+import {invalidateRenderDecisionsForChannel, clearRenderDecisions} from 'mattermost-redux/actions/render_permissions';
 import {loadRolesIfNeeded} from 'mattermost-redux/actions/roles';
 import {fetchTeamScheduledPosts} from 'mattermost-redux/actions/scheduled_posts';
 import {fetchChannelRemotes} from 'mattermost-redux/actions/shared_channels';
@@ -117,7 +118,7 @@ import {
     hasAutotranslationBecomeEnabled,
 } from 'mattermost-redux/selectors/entities/channels';
 import {getIsUserStatusesConfigEnabled} from 'mattermost-redux/selectors/entities/common';
-import {getConfig, getFeatureFlagValue, getLicense} from 'mattermost-redux/selectors/entities/general';
+import {getConfig, getFeatureFlagValue, getLicense, isPermissionPoliciesEnabled} from 'mattermost-redux/selectors/entities/general';
 import {getGroup} from 'mattermost-redux/selectors/entities/groups';
 import {getPost, getMostRecentPostIdInChannel, getTeamIdFromPost} from 'mattermost-redux/selectors/entities/posts';
 import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
@@ -148,7 +149,7 @@ import {handleNewPost} from 'actions/post_actions';
 import * as StatusActions from 'actions/status_actions';
 import {setGlobalItem} from 'actions/storage';
 import {loadProfilesForDM, loadProfilesForGM, loadProfilesForSidebar} from 'actions/user_actions';
-import {syncPostsInChannel} from 'actions/views/channel';
+import {loadUnreads, syncPostsInChannel} from 'actions/views/channel';
 import {setGlobalDraft, transformServerDraft} from 'actions/views/drafts';
 import {openModal, closeModal} from 'actions/views/modals';
 import {closeRightHandSide} from 'actions/views/rhs';
@@ -565,6 +566,10 @@ export function handleEvent(msg: WebSocketMessage) {
         dispatch(handleChannelAccessControlUpdatedEvent(msg));
         break;
 
+    case WebSocketEvents.PermissionPolicyUpdated:
+        dispatch(handlePermissionPolicyUpdatedEvent());
+        break;
+
     case WebSocketEvents.TeamAccessControlUpdated:
         dispatch(handleTeamAccessControlUpdatedEvent(msg));
         break;
@@ -885,7 +890,7 @@ export function handleChannelUpdatedEvent(msg: WebSocketMessages.ChannelUpdated)
 }
 
 export function handleChannelAccessControlUpdatedEvent(msg: WebSocketMessages.ChannelAccessControlUpdated): ThunkActionFunc<void> {
-    return (doDispatch) => {
+    return (doDispatch, doGetState) => {
         if (!msg.data.channel) {
             return;
         }
@@ -900,6 +905,44 @@ export function handleChannelAccessControlUpdatedEvent(msg: WebSocketMessages.Ch
         // consumers (e.g. the channel invite modal banner) refetch the
         // latest attribute set after a policy change.
         invalidateAccessControlAttributesCache(EntityType.Channel, channel.id);
+
+        // Nothing sanitizes posts or gates affordances without the feature, so no stale render
+        // state to drop. Matches the CPA and role handlers.
+        if (!isPermissionPoliciesEnabled(doGetState())) {
+            return;
+        }
+
+        doDispatch(invalidateRenderDecisionsForChannel(channel.id));
+        doDispatch(refreshPostsAfterPolicyChange(channel.id));
+    };
+}
+
+// Posts already loaded were sanitized under the old policy. Off-screen channels just lose their
+// chunks and reload on next visit; the channel in view is refetched explicitly, rather than via
+// resetReloadPostsInChannel's deselect/reselect, which does not reliably remount PostList.
+//
+// loadUnreads and not loadLatestPosts: the unread endpoint carries no ETag, so it cannot 304 onto
+// the metadata the old policy produced.
+function refreshPostsAfterPolicyChange(channelId?: string): ThunkActionFunc<void> {
+    return (doDispatch, doGetState) => {
+        doDispatch({type: PostTypes.RESET_POSTS_IN_CHANNEL, channelId});
+
+        const currentChannelId = getCurrentChannelId(doGetState());
+        if (currentChannelId && (!channelId || channelId === currentChannelId)) {
+            doDispatch(loadUnreads(currentChannelId));
+        }
+    };
+}
+
+// Permission policies are system-scoped, hence no resource ID on the event and no narrower reset.
+export function handlePermissionPolicyUpdatedEvent(): ThunkActionFunc<void> {
+    return (doDispatch, doGetState) => {
+        if (!isPermissionPoliciesEnabled(doGetState())) {
+            return;
+        }
+
+        doDispatch(clearRenderDecisions());
+        doDispatch(refreshPostsAfterPolicyChange());
     };
 }
 
@@ -1805,6 +1848,12 @@ function handleUserRoleUpdated(msg: WebSocketMessages.UserRoleUpdated) {
         store.dispatch({type: UserTypes.RECEIVED_PROFILE, data: {...user, roles}});
         dispatch(loadRolesIfNeeded(newRoles));
 
+        if (msg.data.user_id === getCurrentUserId(store.getState()) &&
+                isPermissionPoliciesEnabled(store.getState())) {
+            store.dispatch(clearRenderDecisions());
+            store.dispatch(refreshPostsAfterPolicyChange());
+        }
+
         if (demoted && global.location.pathname.startsWith('/admin_console')) {
             redirectUserToDefaultTeam();
         }
@@ -1824,11 +1873,21 @@ function handleConfigChanged(msg: WebSocketMessages.ConfigChanged) {
         dispatch(resetReloadPostsInTranslatedChannels());
     }
 
+    // If the permission-policies feature availability changed, cached render
+    // decisions may no longer be valid; clear them so they are recomputed.
+    if (currentConfig?.FeatureFlagPermissionPolicies !== newConfig?.FeatureFlagPermissionPolicies) {
+        store.dispatch(clearRenderDecisions());
+    }
+
     store.dispatch({type: GeneralTypes.CLIENT_CONFIG_RECEIVED, data: newConfig});
 }
 
 function handleLicenseChanged(msg: WebSocketMessages.LicenseChanged) {
     store.dispatch({type: GeneralTypes.CLIENT_LICENSE_RECEIVED, data: msg.data.license});
+
+    // A license change can flip ABAC availability, so clear cached render
+    // decisions; they will be recomputed on demand.
+    store.dispatch(clearRenderDecisions());
 
     // Refresh server limits when license changes since limits may have changed
     dispatch(getServerLimits());
@@ -2353,10 +2412,21 @@ function handleChannelBookmarkSorted(msg: WebSocketMessages.ChannelBookmarkSorte
     };
 }
 
-export function handleCustomAttributeValuesUpdated(msg: WebSocketMessages.CPAValuesUpdated) {
-    return {
-        type: UserTypes.RECEIVED_CPA_VALUES,
-        data: {userID: msg.data.user_id, customAttributeValues: msg.data.values},
+export function handleCustomAttributeValuesUpdated(msg: WebSocketMessages.CPAValuesUpdated): ThunkActionFunc<void> {
+    return (doDispatch, doGetState) => {
+        doDispatch({
+            type: UserTypes.RECEIVED_CPA_VALUES,
+            data: {userID: msg.data.user_id, customAttributeValues: msg.data.values},
+        });
+
+        // The current user's attribute values are an input to ABAC evaluation, so
+        // their render decisions are now stale. Other users' updates do not affect
+        // the current user's own decisions.
+        if (msg.data.user_id === getCurrentUserId(doGetState()) &&
+                isPermissionPoliciesEnabled(doGetState())) {
+            doDispatch(clearRenderDecisions());
+            doDispatch(refreshPostsAfterPolicyChange());
+        }
     };
 }
 
