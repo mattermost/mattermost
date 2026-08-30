@@ -68,7 +68,7 @@ type ChildDraft = {
 };
 
 type AddTopLevelFormProps = {
-    testIdPrefix: 'attributeOptionsGraphEmpty' | 'attributeOptionsGraphAddTop';
+    isEmptyCanvas: boolean;
     draftName: string;
     onDraftNameChange: (value: string) => void;
     isDuplicate: boolean;
@@ -181,7 +181,7 @@ function subtreeInsertAfterIndex(occurrences: GraphOccurrence[], occurrence: Gra
 }
 
 const AddTopLevelForm = ({
-    testIdPrefix,
+    isEmptyCanvas,
     draftName,
     onDraftNameChange,
     isDuplicate,
@@ -192,8 +192,8 @@ const AddTopLevelForm = ({
     onCommit,
 }: AddTopLevelFormProps) => {
     const {formatMessage} = useIntl();
-    const isEmptyCanvas = testIdPrefix === 'attributeOptionsGraphEmpty';
     const placeholder = formatMessage(isEmptyCanvas ? messages.namePlaceholder : messages.addTopLevel);
+    const testIdPrefix = isEmptyCanvas ? 'attributeOptionsGraphEmpty' : 'attributeOptionsGraphAddTop';
 
     return (
         <div className={isEmptyCanvas ? 'attribute-options-graph-values__empty-form' : 'attribute-options-graph-values__add-top'}>
@@ -770,7 +770,7 @@ const AttributeOptionsGraphValues = ({options, onOptionsChange, disabled = false
 
     const addForm = (
         <AddTopLevelForm
-            testIdPrefix={options.length === 0 ? 'attributeOptionsGraphEmpty' : 'attributeOptionsGraphAddTop'}
+            isEmptyCanvas={options.length === 0}
             draftName={draftName}
             onDraftNameChange={setDraftName}
             isDuplicate={isDuplicate}

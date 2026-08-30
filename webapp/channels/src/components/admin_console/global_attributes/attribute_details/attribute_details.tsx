@@ -531,20 +531,15 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
     }, [typeSupportsOptions, options, fieldType]);
 
     const isHierarchical = supportsHierarchy({type: fieldType} as PropertyField);
-    const graphEmpty = isHierarchical && options.length === 0;
-    const graphOptionsIssue = useMemo(() => {
+    const graphOptionsValid = useMemo(() => {
         if (!isHierarchical) {
-            return null;
+            return true;
         }
-        if (hasBlankTrimmedOptionName(options)) {
-            return 'empty' as const;
-        }
-        if (hasCaseInsensitiveDuplicateNames(options)) {
-            return 'duplicate' as const;
-        }
-        return null;
+        return options.length > 0 &&
+            !hasBlankTrimmedOptionName(options) &&
+            !hasCaseInsensitiveDuplicateNames(options);
     }, [isHierarchical, options]);
-    const canSave = !disabled && Boolean(displayName.trim()) && Boolean(currentName) && !nameValidationError && !saving && optionsIssue === null && !graphEmpty && graphOptionsIssue === null;
+    const canSave = !disabled && Boolean(displayName.trim()) && Boolean(currentName) && !nameValidationError && !saving && optionsIssue === null && graphOptionsValid;
 
     // Applies the fully-settled outcome of a save attempt -- the ONLY place in
     // handleSave that reads isMountedRef, checked once after the entire
