@@ -266,8 +266,21 @@ func useCustomPushNotificationServer(cfg *model.Config) {
 }
 
 func SetupWithStoreMock(tb testing.TB) *TestHelper {
+	return SetupConfigWithStoreMock(tb, nil)
+}
+
+// SetupConfigWithStoreMock applies updateConfig before Server.Start() wires the config listeners
+// that read from the store. Set the starting config here rather than via a later
+// th.App.UpdateConfig, which fires those listeners against the store mock.
+func SetupConfigWithStoreMock(tb testing.TB, updateConfig func(*model.Config)) *TestHelper {
 	mockStore := testlib.GetMockStoreForSetupFunctions()
-	th := setupTestHelper(mockStore, mainHelper.GetSQLStore(), mainHelper.GetSQLSettings(), mainHelper.GetSearchEngine(), false, false, useCustomPushNotificationServer, nil, tb)
+	setupConfig := func(cfg *model.Config) {
+		useCustomPushNotificationServer(cfg)
+		if updateConfig != nil {
+			updateConfig(cfg)
+		}
+	}
+	th := setupTestHelper(mockStore, mainHelper.GetSQLStore(), mainHelper.GetSQLSettings(), mainHelper.GetSearchEngine(), false, false, setupConfig, nil, tb)
 	statusMock := mocks.StatusStore{}
 	statusMock.On("UpdateExpiredDNDStatuses").Return([]*model.Status{}, nil)
 	statusMock.On("Get", "user1").Return(&model.Status{UserId: "user1", Status: model.StatusOnline}, nil)
