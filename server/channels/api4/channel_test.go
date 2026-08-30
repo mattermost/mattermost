@@ -248,7 +248,6 @@ func TestCreateChannel(t *testing.T) {
 	t.Run("Guest users", func(t *testing.T) {
 		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = true })
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.AllowEmailAccounts = true })
 
 		guestUser := th.CreateUser(t)
 		appErr := th.App.VerifyUserEmail(guestUser.Id, guestUser.Email)
@@ -2758,7 +2757,6 @@ func TestGetPublicChannelsByIdsForTeam(t *testing.T) {
 	t.Run("guest users should not be able to get channels", func(t *testing.T) {
 		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = true })
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.AllowEmailAccounts = true })
 
 		id := model.NewId()
 		guestPassword := model.NewTestPassword()
