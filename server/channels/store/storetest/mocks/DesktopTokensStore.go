@@ -11,6 +11,36 @@ type DesktopTokensStore struct {
 	mock.Mock
 }
 
+// ConsumeToken provides a mock function with given fields: token, minCreateAt
+func (_m *DesktopTokensStore) ConsumeToken(token string, minCreateAt int64) (*string, error) {
+	ret := _m.Called(token, minCreateAt)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ConsumeToken")
+	}
+
+	var r0 *string
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, int64) (*string, error)); ok {
+		return rf(token, minCreateAt)
+	}
+	if rf, ok := ret.Get(0).(func(string, int64) *string); ok {
+		r0 = rf(token, minCreateAt)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*string)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, int64) error); ok {
+		r1 = rf(token, minCreateAt)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // Delete provides a mock function with given fields: token
 func (_m *DesktopTokensStore) Delete(token string) error {
 	ret := _m.Called(token)
