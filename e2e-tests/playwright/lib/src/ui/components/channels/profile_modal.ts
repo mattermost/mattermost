@@ -4,7 +4,7 @@
 import type {Locator} from '@playwright/test';
 import {expect} from '@playwright/test';
 
-export type ProfileSection = 'name' | 'username';
+export type ProfileSection = 'name' | 'username' | 'picture';
 
 export default class ProfileModal {
     readonly container: Locator;
@@ -24,6 +24,10 @@ export default class ProfileModal {
     readonly lastNameInput;
     readonly usernameInput;
     readonly sectionHeadings;
+
+    readonly pictureFileInput;
+    readonly pictureSaveButton;
+    readonly pictureRemoveButton;
 
     constructor(container: Locator) {
         this.container = container;
@@ -45,6 +49,10 @@ export default class ProfileModal {
         this.lastNameInput = container.getByRole('textbox', {name: 'Last Name'});
         this.usernameInput = container.getByRole('textbox', {name: 'Username'});
         this.sectionHeadings = this.profileSettingsTab.container.getByTestId('section-min').getByRole('heading');
+
+        this.pictureFileInput = container.getByTestId('uploadPicture');
+        this.pictureSaveButton = container.getByTestId('saveSettingPicture');
+        this.pictureRemoveButton = container.getByTestId('removeSettingPicture');
     }
 
     async toBeVisible() {
@@ -106,6 +114,20 @@ export default class ProfileModal {
 
     getAttributeInput(label: string) {
         return this.profileSettingsTab.container.getByRole('textbox', {name: label, exact: true});
+    }
+
+    /**
+     * Opens the "Profile Picture" section, uploads `filePath` directly to the file input
+     * (a real <input type="file">, no OS file-chooser dialog involved), and saves.
+     */
+    async uploadProfilePhoto(filePath: string) {
+        await this.openSection('picture');
+
+        await this.pictureFileInput.setInputFiles(filePath);
+        await expect(this.pictureSaveButton).toBeEnabled();
+        await this.pictureSaveButton.click();
+
+        await expect(this.getSectionEditButton('picture')).toBeVisible();
     }
 }
 

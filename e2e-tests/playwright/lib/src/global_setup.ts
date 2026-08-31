@@ -6,8 +6,16 @@ import type {PluginManifest} from '@mattermost/types/plugins';
 import type {PreferenceType} from '@mattermost/types/preferences';
 import type {UserProfile} from '@mattermost/types/users';
 
-import {createNewTeam, getAdminClient, getDefaultAdminUser, makeClient} from './server';
+import {
+    createNewTeam,
+    disableUnexpectedPlugins,
+    getAdminClient,
+    getDefaultAdminUser,
+    makeClient,
+    runMmctlLocal,
+} from './server';
 import {testConfig} from './test_config';
+import {isUpgradePathProjectSelected} from './upgrade_env';
 import {defaultTeam} from './util';
 
 export async function baseGlobalSetup() {
@@ -16,6 +24,8 @@ export async function baseGlobalSetup() {
     ({adminClient, adminUser} = await getAdminClient({skipLog: true}));
 
     if (!adminUser) {
+        await enableEmailNotifications();
+
         const firstClient = new Client4();
         firstClient.setUrl(testConfig.baseURL);
         const defaultAdmin = getDefaultAdminUser();
@@ -28,6 +38,32 @@ export async function baseGlobalSetup() {
     printPlaywrightTestConfig();
 
     await sysadminSetup(adminClient, adminUser);
+}
+
+// SendEmailNotifications is off in the server's own defaults, so creating the very first sysadmin
+// logs "Failed to send welcome email on create user from signup". No admin exists yet to
+// authenticate patchConfig with, so this goes through mmctl's --local socket rather than boot env —
+// the server's env surface stays the same as any other run.
+async function enableEmailNotifications(): Promise<void> {
+    if (!testConfig.useTestContainers) {
+        return;
+    }
+
+    try {
+        const {exitCode, output} = await runMmctlLocal([
+            'config',
+            'set',
+            'EmailSettings.SendEmailNotifications',
+            'true',
+        ]);
+        if (exitCode !== 0) {
+            throw new Error(`mmctl exited with code ${exitCode}: ${output}`);
+        }
+    } catch (error) {
+        // Costs only a warn-level log line during first-user creation — never worth failing setup over.
+        // eslint-disable-next-line no-console
+        console.log('Could not enable email notifications before creating the first user', error);
+    }
 }
 
 async function sysadminSetup(client: Client4, user: UserProfile | null) {
@@ -68,8 +104,29 @@ async function sysadminSetup(client: Client4, user: UserProfile | null) {
     // Set default preferences
     await savePreferences(client, user?.id ?? '');
 
-    // Log plugin details
+    await resetPluginState(client);
     await printPluginDetails(client);
+}
+
+/**
+ * Deactivates plugins a previous run left enabled, so they cannot alter the webapp for the specs
+ * that follow. Skipped for the upgrade-path projects, where surviving plugin state is under test.
+ */
+async function resetPluginState(client: Client4) {
+    if (isUpgradePathProjectSelected()) {
+        return;
+    }
+
+    try {
+        const disabled = await disableUnexpectedPlugins(client, testConfig.ensurePluginsInstalled);
+        if (disabled.length) {
+            // eslint-disable-next-line no-console
+            console.log(`Disabled plugins left active by an earlier run: ${disabled.join(', ')}`);
+        }
+    } catch (error) {
+        // eslint-disable-next-line no-console
+        console.log('Could not reset plugin state', error);
+    }
 }
 
 function printPlaywrightTestConfig() {
