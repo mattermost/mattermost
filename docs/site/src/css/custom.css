@@ -580,7 +580,30 @@ blockquote {
   margin-inline: auto;
 }
 
-/* === Footer === */
+/* === Inline UI icons (product menu, checkmarks, keyboard glyphs, etc.) ===
+ * `<img className="theme-icon">` is used throughout the docs to inline small
+ * UI icons (e.g. the product-switcher waffle icon) next to text. Nothing
+ * previously styled this class, so icons rendered at their raw SVG size
+ * (baseline-aligned, often 24px) and — since they're flat single-color
+ * PNGs/SVGs baked black with no `fill` attribute an <img> could recolor —
+ * were nearly invisible against a dark background in dark mode. */
+.theme-icon {
+  width: 1.1em;
+  height: 1.1em;
+  vertical-align: text-bottom;
+  margin: 0 0.05em;
+}
+[data-theme='dark'] .theme-icon {
+  filter: invert(1);
+}
+/* A few icons carry their own brand color (green checkmark, colored
+ * presence dots/badges) rather than being flat black glyphs — inverting
+ * those would shift their hue instead of fixing contrast, so exempt them. */
+[data-theme='dark'] .theme-icon[src*="checkmark.svg"],
+[data-theme='dark'] .theme-icon[src*="Ack-Button"],
+[data-theme='dark'] .theme-icon[src$=".png"] {
+  filter: none;
+}
 
 .footer {
   background-color: var(--ifm-footer-background-color);
