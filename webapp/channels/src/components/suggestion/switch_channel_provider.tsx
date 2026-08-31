@@ -487,8 +487,8 @@ export const ConnectedSwitchChannelSuggestion = connect(
 
 let prefix = '';
 
-// The prefix is compared against lower cased display names and usernames, and the leading @ of a
-// user mention is not part of either, so both need to be stripped before comparing.
+// The prefix is compared against lower cased display names and usernames, neither of which carries
+// the leading @ of a mention
 function normalizePrefix(channelPrefix: string) {
     const lowerCasedPrefix = channelPrefix.toLowerCase();
 
@@ -571,9 +571,8 @@ export function quickSwitchSorter(wrappedA: WrappedChannel, wrappedB: WrappedCha
         return -1;
     }
 
-    // A group message matches a username only because one of its members happens to be named that,
-    // and its display name is just those members listed alphabetically, so the direct message with
-    // the person is the stronger match even when the group message was read more recently
+    // A group message only matches a username because one of its members is named that, so the
+    // direct message with the person is the stronger match
     if (a.type === Constants.DM_CHANNEL && b.type === Constants.GM_CHANNEL) {
         return -1;
     } else if (a.type === Constants.GM_CHANNEL && b.type === Constants.DM_CHANNEL) {
@@ -759,9 +758,8 @@ export default class SwitchChannelProvider extends Provider {
         });
         const remoteOnlyItems = remoteFormattedData.items.filter((item) => !localFormattedData.terms.includes(getWrappedChannelTerm(item)));
 
-        // Ranking has to be applied across both sets, otherwise a result only the server knows about
-        // (such as the DM with a user the current user has never messaged) is stuck below every local
-        // match no matter how well it matches the search term.
+        // Ranking has to span both sets, otherwise a result only the server knows about is stuck
+        // below every local match however well it matches the search term
         const combinedItems = [...localFormattedData.items, ...remoteOnlyItems].sort(quickSwitchSorter);
         const combinedTerms = combinedItems.map(getWrappedChannelTerm);
 

@@ -1506,9 +1506,9 @@ describe('components/SwitchChannelProvider', () => {
             });
             const state = makeState({
                 existingDmLastViewedAt: 1,
+                extraProfiles: [containsTerm],
 
                 // The DM with the user who merely contains the term was read much more recently
-                extraProfiles: [containsTerm],
                 extraDmChannels: [{userId: containsTerm.id, lastViewedAt: 9000}],
             });
 
