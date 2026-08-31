@@ -146,7 +146,10 @@ export function installReactStrictModeDiagnostics() {
         const error = new Error(`React strict mode violation: ${violation.message}`);
         error.name = 'ReactStrictModeViolation';
         if (violation.componentStack) {
-            error.stack = `${error.name}: ${violation.message}\n${violation.componentStack}`;
+            // Appended rather than assigned. An Error whose stack holds no recognisable frames
+            // reaches Playwright's pageerror event as an empty string, which drops the component
+            // stack exactly when there is one worth reading.
+            error.stack = `${error.stack}\n${violation.componentStack}`;
         }
 
         if (window.reactStrictModeThrowSynchronously) {
