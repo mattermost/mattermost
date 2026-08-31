@@ -8,16 +8,17 @@ import (
 	"net/http"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
-func (a *App) CreateTermsOfService(text, userID string) (*model.TermsOfService, *model.AppError) {
+func (a *App) CreateTermsOfService(rctx request.CTX, text, userID string) (*model.TermsOfService, *model.AppError) {
 	termsOfService := &model.TermsOfService{
 		Text:   text,
 		UserId: userID,
 	}
 
-	if _, appErr := a.GetUser(userID); appErr != nil {
+	if _, appErr := a.GetUser(rctx, userID); appErr != nil {
 		return nil, appErr
 	}
 

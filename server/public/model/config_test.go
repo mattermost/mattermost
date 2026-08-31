@@ -270,6 +270,45 @@ func TestServiceSettingsIsValid(t *testing.T) {
 	}
 }
 
+func TestServiceSettingsHardenedModeMigration(t *testing.T) {
+	t.Run("defaults to disabled without the deprecated setting", func(t *testing.T) {
+		ss := ServiceSettings{}
+		ss.SetDefaults(false)
+
+		require.False(t, *ss.EnableHardenedMode)
+		require.False(t, *ss.ExperimentalEnableHardenedMode)
+		assert.Nil(t, ss.isValid())
+	})
+
+	t.Run("accepts the renamed setting", func(t *testing.T) {
+		ss := ServiceSettings{EnableHardenedMode: new(true)}
+		ss.SetDefaults(false)
+
+		assert.Nil(t, ss.isValid())
+	})
+
+	t.Run("migrates the deprecated setting to the renamed setting", func(t *testing.T) {
+		ss := ServiceSettings{ExperimentalEnableHardenedMode: new(true)}
+		ss.SetDefaults(false)
+
+		require.True(t, *ss.EnableHardenedMode)
+		require.True(t, *ss.ExperimentalEnableHardenedMode)
+		assert.Nil(t, ss.isValid())
+	})
+
+	t.Run("explicit new key wins over deprecated key", func(t *testing.T) {
+		ss := ServiceSettings{
+			EnableHardenedMode:             new(false),
+			ExperimentalEnableHardenedMode: new(true),
+		}
+		ss.SetDefaults(false)
+
+		require.False(t, *ss.EnableHardenedMode)
+		require.True(t, *ss.ExperimentalEnableHardenedMode)
+		assert.Nil(t, ss.isValid())
+	})
+}
+
 func TestConfigEnableDeveloper(t *testing.T) {
 	testCases := []struct {
 		Description     string
