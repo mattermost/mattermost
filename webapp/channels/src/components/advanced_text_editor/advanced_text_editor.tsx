@@ -242,7 +242,10 @@ const AdvancedTextEditor = ({
     const codeBlockOnCtrlEnter = useSelector((state: GlobalState) => getBool(state, Preferences.CATEGORY_ADVANCED_SETTINGS, 'code_block_ctrl_enter', true));
     const isDMOrGMRemote = isChannelShared && (channelType === Constants.DM_CHANNEL || channelType === Constants.GM_CHANNEL);
 
-    if (draft.channelId !== channelId || draft.rootId !== rootId) {
+    // Compared against draftFromStore rather than the props because it is the value being
+    // assigned, so the condition is always false on the next pass. Comparing the raw props
+    // re-renders forever if a caller omits rootId, since the selector stores it as ''.
+    if (draft.channelId !== draftFromStore.channelId || draft.rootId !== draftFromStore.rootId) {
         setDraft(draftFromStore);
     }
 

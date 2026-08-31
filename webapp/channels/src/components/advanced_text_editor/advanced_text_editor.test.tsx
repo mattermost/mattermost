@@ -299,6 +299,30 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
         expect(screen.getByPlaceholderText('Write to Other Channel')).toHaveValue('a different draft');
     });
 
+    it('should mount when rootId is omitted, as plugins may do via window.Components', () => {
+        // Plugins reach AdvancedTextEditor through the untyped window.Components bridge, so
+        // TypeScript cannot enforce the required rootId prop. Omitting it used to compare
+        // draft.rootId ('') against undefined forever and throw React error #301.
+        const {rootId: _unusedRootId, ...propsWithoutRootId} = baseProps;
+
+        renderWithContext(
+            <AdvancedTextEditor
+                {...(propsWithoutRootId as unknown as Props)}
+            />,
+            mergeObjects(initialState, {
+                entities: {
+                    roles: {
+                        roles: {
+                            user_roles: {permissions: [Permissions.CREATE_POST]},
+                        },
+                    },
+                },
+            }),
+        );
+
+        expect(screen.getByTestId('post_textbox')).toBeInTheDocument();
+    });
+
     it('should submit a destination-owned draft while the textbox still holds the previous channel value', async () => {
         const sourceDraft = 'stale draft from the source channel';
         const destinationMessage = 'new message composed for the destination channel';
