@@ -1068,3 +1068,64 @@ func TestSpaceSeedingMigrationsRefuseConflictingRows(t *testing.T) {
 		requireMarkerAbsent(t, SpaceSchemesCreationMigrationKey)
 	})
 }
+
+// HasPermissionToChannel answers a channel-scoped space permission from the caller's channel
+// membership alone. A space's backing channel is invisible to GetChannel, so the team fallback is
+// already lost and the system-role fallback is what remains: it would grant on every space in the
+// installation, to non-members included. Both kinds of system role that reach it are covered here
+// — system_admin, which carries every space permission by default, and a space scheme's generated
+// role, which UpdateUserRoles accepts on a user.
+func TestHasPermissionToChannelSpacePermissionIgnoresSystemRoles(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := SetupConfig(t, func(cfg *model.Config) { cfg.FeatureFlags.EnableDocs = true }).InitBasic(t)
+	require.NoError(t, th.App.SetPhase2PermissionsMigrationStatus(true))
+
+	preset := getSeededSpaceScheme(t, th, model.SchemeNameSpaceContribute)
+	space, appErr := th.App.CreateChannel(th.Context, &model.Channel{
+		TeamId:      th.BasicTeam.Id,
+		DisplayName: "Space",
+		Name:        "space-" + model.NewId(),
+		Type:        model.ChannelTypeSpace,
+		SchemeId:    &preset.Id,
+	}, false)
+	require.Nil(t, appErr)
+	t.Cleanup(func() {
+		require.NoError(t, th.App.Srv().Store().Channel().PermanentDelete(th.Context, space.Id))
+	})
+
+	t.Run("a space scheme role held as a system role", func(t *testing.T) {
+		// Assigned through the app rather than the store: the capability-role refusal in
+		// UpdateUserRoles does not reach a scheme's generated role, and the api4 handler
+		// above it validates the name's format only, so this is a reachable assignment.
+		_, appErr := th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.SystemUserRoleId+" "+preset.DefaultChannelUserRole, false)
+		require.Nil(t, appErr)
+		t.Cleanup(func() {
+			_, appErr := th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.SystemUserRoleId, false)
+			require.Nil(t, appErr)
+		})
+
+		carried := storedRolePermissionSet(t, th, preset.DefaultChannelUserRole)
+		asserted := 0
+		for _, permission := range model.SpaceChannelScopedPermissions {
+			if !carried[permission.Id] {
+				continue
+			}
+			asserted++
+			ok, isMember := th.App.HasPermissionToChannel(th.Context, th.BasicUser.Id, space.Id, permission)
+			assert.False(t, ok, "the system role granted %s on a space the caller is not a member of", permission.Id)
+			assert.False(t, isMember)
+		}
+		require.NotZero(t, asserted, "the preset's generated role carries no space permission to assert on")
+	})
+
+	t.Run("system_admin", func(t *testing.T) {
+		ok, isMember := th.App.HasPermissionToChannel(th.Context, th.SystemAdminUser.Id, space.Id, model.PermissionAdminSpace)
+		assert.False(t, ok, "system_admin held a space permission on a space it is not a member of")
+		assert.False(t, isMember)
+
+		// The same caller on the same space, for a permission that is not space-scoped: the
+		// denial above is the permission's, not the channel's.
+		ok, _ = th.App.HasPermissionToChannel(th.Context, th.SystemAdminUser.Id, space.Id, model.PermissionReadChannel)
+		assert.True(t, ok, "the system-role fall-through stays live for permissions that are not space-scoped")
+	})
+}

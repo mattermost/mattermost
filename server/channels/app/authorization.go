@@ -408,6 +408,10 @@ func (a *App) FilterUsersWithTeamPermission(rctx request.CTX, teamID string, use
 //
 // hasPermission: true if the user has the specified permission for the channel, otherwise false.
 // isMember: used for auditing access without membership. True if the user is a member of the channel, otherwise false.
+//
+// A channel-scoped space permission is answered from the caller's channel membership alone. No
+// system role grants one, system_admin included, so a caller who is not a member of the space is
+// denied. A caller that admits a system admin unconditionally resolves that itself.
 func (a *App) HasPermissionToChannel(rctx request.CTX, askingUserId string, channelID string, permission *model.Permission) (hasPermission bool, isMember bool) {
 	if channelID == "" || askingUserId == "" {
 		return false, false
@@ -428,6 +432,15 @@ func (a *App) HasPermissionToChannel(rctx request.CTX, askingUserId string, chan
 				return true, isMember
 			}
 		}
+	}
+
+	// A space's backing channel is invisible to GetChannel, so the fallbacks below would answer
+	// from the caller's system roles — which carry these permissions on system_admin, and on any
+	// space scheme role assigned as a system role — and grant on every space at once, to
+	// non-members. Membership is the whole answer for these. SessionHasPermissionToChannel
+	// already answers false for a space.
+	if model.IsSpaceChannelScopedPermissionID(permission.Id) {
+		return false, isMember
 	}
 
 	channel, appErr := a.GetChannel(rctx, channelID)
