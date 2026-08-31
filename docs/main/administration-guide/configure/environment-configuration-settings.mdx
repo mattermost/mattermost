@@ -257,6 +257,34 @@ See the [setting up TLS for Mattermost](/deployment-guide/server/setup-tls) for 
 </tbody>
 </table>
 
+### Enable channel viewed WebSocket messages
+
+<table>
+<colgroup>
+<col style={{width: '38%'}} />
+<col style={{width: '61%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>Determine whether <code>channel_viewed</code> WebSocket events are sent. These events synchronize unread notifications across a user's clients and devices.</p><ul><li><strong>true</strong>: <strong>(Default)</strong> <code>channel_viewed</code> WebSocket events are sent.</li><li><strong>false</strong>: <code>channel_viewed</code> WebSocket events aren't sent.</li></ul></td>
+<td><ul><li>System Config path: <strong>Environment &gt; Web Server</strong></li><li><code>config.json</code> setting: <code>ServiceSettings</code> &gt; <code>EnableChannelViewedMessages</code> &gt; <code>true</code></li><li>Environment variable: <code>MM_SERVICESETTINGS_ENABLECHANNELVIEWEDMESSAGES</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+<Note>
+
+Disabling this configuration setting in larger deployments may improve server performance in the following areas:
+
+- Reduced database load: When `channel_viewed` events are disabled, the server no longer needs to log these events in the database. This reduces the number of write and update operations, which can be substantial in a busy server with many users frequently switching channels.
+- Decreased network traffic: Disabling these events means there are fewer messages sent between the server and clients. This reduction in network traffic can lower latency and improve the overall responsiveness of the server, especially for users with slower connections.
+- Lower server CPU usage: Processing `channel_viewed` events requires CPU resources to handle database transactions and network communication. Without these events, the server's CPU can be utilized more efficiently for other tasks, improving the overall performance.
+- Improved user experience: With reduced server load and network traffic, users may experience faster loading times and a more fluid interaction with the application.
+
+However, disabling this configuration setting affects some functionality, such as accurate tracking of read and unread messages in channels. It's important to balance performance improvements with the needs of your organization and users.
+
+</Note>
+
 ### Enable insecure outgoing connections
 
 <table>
@@ -277,6 +305,35 @@ See the [setting up TLS for Mattermost](/deployment-guide/server/setup-tls) for 
 Enabling this feature makes these connections susceptible to man-in-the-middle attacks.
 
 </Warning>
+
+### Enable hardened mode
+
+<table>
+<colgroup>
+<col style={{width: '38%'}} />
+<col style={{width: '61%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>Configure Mattermost to run in a hardened mode that makes user experience trade-offs in the interest of security.</p><ul><li><strong>true</strong>: Hardened mode is enabled.</li><li><strong>false</strong>: <strong>(Default)</strong> Hardened mode is disabled.</li></ul></td>
+<td><ul><li>System Config path: <strong>Environment &gt; Web Server</strong></li><li><code>config.json</code> setting: <code>ServiceSettings</code> &gt; <code>EnableHardenedMode</code> &gt; <code>false</code></li><li>Environment variable: <code>MM_SERVICESETTINGS_ENABLEHARDENEDMODE</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+<Note>
+
+This setting was called `ServiceSettings.ExperimentalEnableHardenedMode` until Mattermost v11.11. On first start after upgrading, the server automatically migrates the old key to `ServiceSettings.EnableHardenedMode` and removes it from `config.json`.
+
+Changes made when hardened mode is enabled:
+
+- Failed login returns a generic error message instead of a specific message for username and password.
+- If [multi-factor authentication (MFA)](/administration-guide/onboard/multi-factor-authentication) is enabled, the route to check if a user has MFA enabled always returns true. This causes the MFA input screen to appear even if the user does not have MFA enabled. The user may enter any value to pass the screen. Note that hardened mode does not affect user experience when MFA is enforced.
+- Password reset does not inform the user that they can not reset their SSO account through Mattermost and instead claims to have sent the password reset email.
+- Mattermost sanitizes all 500 errors before returned to the client. Use the supplied `request_id` to match user-facing errors with the server logs.
+- Standard users authenticated via username and password can't use post props reserved for integrations, such as `override_username` or `override_icon_url`.
+
+</Note>
 
 ### Managed resource paths
 
@@ -714,6 +771,18 @@ For an AWS High Availability RDS cluster deployment, point this configuration se
 </tbody>
 </table>
 
+<Note>
+
+This limit applies **per data source, per Mattermost server node** - not as a cluster-wide total. Each server node opens its own connection pool, sized to this value, for the master database (`DataSource`) and separately for each entry configured under [read replicas](#read-replicas) and [search replicas](#search-replicas).
+
+To size `max_connections` on the database (or any connection-pooling proxy in front of it), first count the data sources per node - the master database counts as 1, then add the number of read replicas and the number of search replicas. Multiply that count by `MaxOpenConns`, then multiply again by the number of app server nodes (when deployed as a high availability cluster):
+
+`MaxOpenConns` x (data sources per node) x (number of app nodes)
+
+For example, in a 3-node HA cluster where each node is configured with 1 read replica and 1 search replica, at the default `MaxOpenConns` of 100, each node has 3 data sources, so that's 3 x 3 x 100 = 900 possible connections across the cluster.
+
+</Note>
+
 ### Maximum idle connections
 
 <table>
@@ -888,6 +957,7 @@ Read-only display of the currently active backend used for search. Values can in
 
 - Each database connection string in the array must be in the same form used for the [Data source](#data-source) setting.
 - Space separate multiple read replicas in the array to allow Mattermost to load balance read queries across multiple database instances. For example, `MM_SQLSETTINGS_DATASOURCEREPLICAS=dc-1 dc-2`
+- Each entry added here opens its own connection pool, sized to [MaxOpenConns](#maximum-open-connections), on every Mattermost server node - it does not share a pool with the other entries. See that setting's note for the full cluster-wide sizing calculation before adding replicas.
 
 </Note>
 
@@ -912,7 +982,8 @@ For an AWS High Availability RDS cluster deployment, point this configuration se
 
 <Note>
 
-Each database connection string in the array must be in the same form used for the [Data source](#data-source) setting.
+- Each database connection string in the array must be in the same form used for the [Data source](#data-source) setting.
+- Each entry added here opens its own connection pool, sized to [MaxOpenConns](#maximum-open-connections), on every Mattermost server node - it does not share a pool with the other entries. See that setting's note for the full cluster-wide sizing calculation before adding search replicas.
 
 </Note>
 
@@ -2516,7 +2587,7 @@ See the [Telemetry](/administration-guide/manage/telemetry#security-update-check
 
 With self-hosted deployments, you can configure Mattermost as a [high availability cluster-based deployment](/deployment-guide/reference-architecture/scale/high-availability-cluster-based-deployment) by going to **System Console \> Environment \> High Availability**, or by editing the `config.json` file as described in the following tables. Changes to configuration settings in this section require a server restart before taking effect.
 
-In a Mattermost high availability cluster-based deployment, the System Console is set to read-only, and settings can only be changed by editing the `config.json` file directly. However, to test a high availability cluster-based environment, you can disable `ClusterSettings.ReadOnlyConfig` in the `config.json` file by setting it to `false`. This allows changes applied using the System Console to be saved back to the configuration file.
+When a Mattermost high availability cluster-based deployment uses `config.json` for configuration, the System Console is set to read-only by default, and settings can only be changed by editing the `config.json` file directly. However, to test a high availability cluster-based environment, you can disable `ClusterSettings.ReadOnlyConfig` in the `config.json` file by setting it to `false`. This allows changes applied using the System Console to be saved back to the configuration file. When configuration is stored in the database, `ClusterSettings.ReadOnlyConfig` is ignored and the System Console remains fully editable. See [Store configuration in your database](/administration-guide/configure/configuration-in-your-database) for details.
 
 ### Enable high availability mode
 

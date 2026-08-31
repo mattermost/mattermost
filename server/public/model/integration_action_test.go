@@ -1391,9 +1391,11 @@ func TestDialogElementDateTimeValidation(t *testing.T) {
 			DisplayName: "Test Date",
 			Name:        "test_date",
 			Type:        "date",
-			MinDate:     "2025-01-01",
-			MaxDate:     "2025-12-31",
-			Optional:    false,
+			DateTimeConfig: &DialogDateTimeConfig{
+				MinDate: "2025-01-01",
+				MaxDate: "2025-12-31",
+			},
+			Optional: false,
 		}
 		err := element.IsValid()
 		assert.NoError(t, err)
@@ -1401,13 +1403,15 @@ func TestDialogElementDateTimeValidation(t *testing.T) {
 
 	t.Run("should validate DialogElement with datetime type and time properties", func(t *testing.T) {
 		element := DialogElement{
-			DisplayName:  "Test DateTime",
-			Name:         "test_datetime",
-			Type:         "datetime",
-			MinDate:      "2025-01-01T00:00:00Z",
-			MaxDate:      "2025-12-31T23:59:59Z",
-			TimeInterval: 30,
-			Optional:     false,
+			DisplayName: "Test DateTime",
+			Name:        "test_datetime",
+			Type:        "datetime",
+			DateTimeConfig: &DialogDateTimeConfig{
+				MinDate:      "2025-01-01T00:00:00Z",
+				MaxDate:      "2025-12-31T23:59:59Z",
+				TimeInterval: 30,
+			},
+			Optional: false,
 		}
 		err := element.IsValid()
 		assert.NoError(t, err)
@@ -1415,13 +1419,15 @@ func TestDialogElementDateTimeValidation(t *testing.T) {
 
 	t.Run("should validate DialogElement with datetime type and relative min/max", func(t *testing.T) {
 		element := DialogElement{
-			DisplayName:  "Test DateTime",
-			Name:         "test_datetime",
-			Type:         "datetime",
-			MinDate:      "+2H",
-			MaxDate:      "+7d",
-			TimeInterval: 30,
-			Optional:     false,
+			DisplayName: "Test DateTime",
+			Name:        "test_datetime",
+			Type:        "datetime",
+			DateTimeConfig: &DialogDateTimeConfig{
+				MinDate:      "+2H",
+				MaxDate:      "+7d",
+				TimeInterval: 30,
+			},
+			Optional: false,
 		}
 		err := element.IsValid()
 		assert.NoError(t, err)
@@ -1429,13 +1435,15 @@ func TestDialogElementDateTimeValidation(t *testing.T) {
 
 	t.Run("should accept datetime DialogElement with date-only min/max for backward compatibility", func(t *testing.T) {
 		element := DialogElement{
-			DisplayName:  "Test DateTime",
-			Name:         "test_datetime",
-			Type:         "datetime",
-			MinDate:      "2025-01-01",
-			MaxDate:      "2025-12-31",
-			TimeInterval: 30,
-			Optional:     false,
+			DisplayName: "Test DateTime",
+			Name:        "test_datetime",
+			Type:        "datetime",
+			DateTimeConfig: &DialogDateTimeConfig{
+				MinDate:      "2025-01-01",
+				MaxDate:      "2025-12-31",
+				TimeInterval: 30,
+			},
+			Optional: false,
 		}
 		err := element.IsValid()
 		assert.NoError(t, err)
@@ -1446,8 +1454,10 @@ func TestDialogElementDateTimeValidation(t *testing.T) {
 			DisplayName: "Test Date",
 			Name:        "test_date",
 			Type:        "date",
-			MinDate:     "invalid-date",
-			Optional:    false,
+			DateTimeConfig: &DialogDateTimeConfig{
+				MinDate: "invalid-date",
+			},
+			Optional: false,
 		}
 		err := element.IsValid()
 		assert.Error(t, err)
@@ -1456,11 +1466,13 @@ func TestDialogElementDateTimeValidation(t *testing.T) {
 
 	t.Run("should reject DialogElement with invalid time_interval", func(t *testing.T) {
 		element := DialogElement{
-			DisplayName:  "Test DateTime",
-			Name:         "test_datetime",
-			Type:         "datetime",
-			TimeInterval: -1, // Invalid
-			Optional:     false,
+			DisplayName: "Test DateTime",
+			Name:        "test_datetime",
+			Type:        "datetime",
+			DateTimeConfig: &DialogDateTimeConfig{
+				TimeInterval: -1, // Invalid
+			},
+			Optional: false,
 		}
 		err := element.IsValid()
 		assert.Error(t, err)
@@ -1469,11 +1481,13 @@ func TestDialogElementDateTimeValidation(t *testing.T) {
 
 	t.Run("should reject DialogElement with time_interval that is not a divisor of 1440", func(t *testing.T) {
 		element := DialogElement{
-			DisplayName:  "Test DateTime",
-			Name:         "test_datetime",
-			Type:         "datetime",
-			TimeInterval: 729, // Invalid - not a divisor of 1440
-			Optional:     false,
+			DisplayName: "Test DateTime",
+			Name:        "test_datetime",
+			Type:        "datetime",
+			DateTimeConfig: &DialogDateTimeConfig{
+				TimeInterval: 729, // Invalid - not a divisor of 1440
+			},
+			Optional: false,
 		}
 		err := element.IsValid()
 		assert.Error(t, err)
@@ -1485,11 +1499,13 @@ func TestDialogElementDateTimeValidation(t *testing.T) {
 
 		for _, interval := range validIntervals {
 			element := DialogElement{
-				DisplayName:  "Test DateTime",
-				Name:         "test_datetime",
-				Type:         "datetime",
-				TimeInterval: interval,
-				Optional:     false,
+				DisplayName: "Test DateTime",
+				Name:        "test_datetime",
+				Type:        "datetime",
+				DateTimeConfig: &DialogDateTimeConfig{
+					TimeInterval: interval,
+				},
+				Optional: false,
 			}
 			err := element.IsValid()
 			assert.NoError(t, err, "time_interval %d should be valid", interval)
@@ -1501,11 +1517,13 @@ func TestDialogElementDateTimeValidation(t *testing.T) {
 
 		for _, interval := range invalidIntervals {
 			element := DialogElement{
-				DisplayName:  "Test DateTime",
-				Name:         "test_datetime",
-				Type:         "datetime",
-				TimeInterval: interval,
-				Optional:     false,
+				DisplayName: "Test DateTime",
+				Name:        "test_datetime",
+				Type:        "datetime",
+				DateTimeConfig: &DialogDateTimeConfig{
+					TimeInterval: interval,
+				},
+				Optional: false,
 			}
 			err := element.IsValid()
 			assert.Error(t, err, "time_interval %d should be invalid", interval)
@@ -1516,22 +1534,26 @@ func TestDialogElementDateTimeValidation(t *testing.T) {
 	t.Run("should use default time_interval of 60 minutes when zero", func(t *testing.T) {
 		// Valid with explicit 60-minute interval
 		element := DialogElement{
-			DisplayName:  "Test DateTime",
-			Name:         "test_datetime",
-			Type:         "datetime",
-			TimeInterval: DefaultTimeIntervalMinutes,
-			Optional:     false,
+			DisplayName: "Test DateTime",
+			Name:        "test_datetime",
+			Type:        "datetime",
+			DateTimeConfig: &DialogDateTimeConfig{
+				TimeInterval: DefaultTimeIntervalMinutes,
+			},
+			Optional: false,
 		}
 		err := element.IsValid()
 		assert.NoError(t, err)
 
 		// time_interval=0 means omitted — treated as default, should pass validation
 		element = DialogElement{
-			DisplayName:  "Test DateTime",
-			Name:         "test_datetime",
-			Type:         "datetime",
-			TimeInterval: 0,
-			Optional:     false,
+			DisplayName: "Test DateTime",
+			Name:        "test_datetime",
+			Type:        "datetime",
+			DateTimeConfig: &DialogDateTimeConfig{
+				TimeInterval: 0,
+			},
+			Optional: false,
 		}
 		err = element.IsValid()
 		assert.NoError(t, err)
@@ -1594,64 +1616,6 @@ func TestDialogElementDateTimeValidation(t *testing.T) {
 		assert.Contains(t, err.Error(), "divisor of 1440")
 	})
 
-	t.Run("DateTimeConfig should take precedence over legacy fields", func(t *testing.T) {
-		element := DialogElement{
-			DisplayName: "Test Date",
-			Name:        "test_date",
-			Type:        "date",
-			MinDate:     "invalid-date",
-			DateTimeConfig: &DialogDateTimeConfig{
-				MinDate: "2025-01-01",
-			},
-		}
-		cfg := element.EffectiveDateTimeConfig()
-		assert.Equal(t, "2025-01-01", cfg.MinDate)
-	})
-
-	t.Run("legacy fields used when DateTimeConfig not provided", func(t *testing.T) {
-		element := DialogElement{
-			DisplayName:  "Test DateTime",
-			Name:         "test_datetime",
-			Type:         "datetime",
-			MinDate:      "2025-01-01T00:00:00Z",
-			MaxDate:      "2025-12-31T23:59:59Z",
-			TimeInterval: 30,
-		}
-		cfg := element.EffectiveDateTimeConfig()
-		assert.Equal(t, "2025-01-01T00:00:00Z", cfg.MinDate)
-		assert.Equal(t, "2025-12-31T23:59:59Z", cfg.MaxDate)
-		assert.Equal(t, 30, cfg.TimeInterval)
-	})
-
-	t.Run("ManualTimeEntry resolves via OR across new and deprecated fields", func(t *testing.T) {
-		cases := []struct {
-			name     string
-			newField bool
-			oldField bool
-			expected bool
-		}{
-			{"both false", false, false, false},
-			{"only new true", true, false, true},
-			{"only deprecated true", false, true, true},
-			{"both true", true, true, true},
-		}
-		for _, tc := range cases {
-			t.Run(tc.name, func(t *testing.T) {
-				element := DialogElement{
-					DisplayName: "Test DateTime",
-					Name:        "test_datetime",
-					Type:        "datetime",
-					DateTimeConfig: &DialogDateTimeConfig{
-						ManualTimeEntry:      tc.newField,
-						AllowManualTimeEntry: tc.oldField,
-					},
-				}
-				cfg := element.EffectiveDateTimeConfig()
-				assert.Equal(t, tc.expected, cfg.ManualTimeEntry)
-			})
-		}
-	})
-
 	t.Run("ManualTimeEntry marshals under manual_time_entry JSON key", func(t *testing.T) {
 		cfg := DialogDateTimeConfig{ManualTimeEntry: true}
 		b, err := json.Marshal(cfg)
@@ -1659,22 +1623,31 @@ func TestDialogElementDateTimeValidation(t *testing.T) {
 		assert.Contains(t, string(b), `"manual_time_entry":true`)
 	})
 
-	t.Run("deprecated allow_manual_time_entry payload still enables manual entry end-to-end", func(t *testing.T) {
-		// Simulate a legacy integrator sending only the deprecated field.
-		payload := []byte(`{"allow_manual_time_entry":true}`)
+	t.Run("removed legacy top-level fields are silently ignored on unmarshal", func(t *testing.T) {
+		// MM-68396: min_date, max_date, and time_interval are no longer DialogElement
+		// fields (moved to DateTimeConfig). This documents the intended breaking-change
+		// behavior for integrations still sending them at the top level: encoding/json
+		// drops unrecognized keys, so the element ends up with no date/datetime config
+		// and IsValid() no longer applies constraints derived from them.
+		payload := []byte(`{
+			"display_name": "Test Date",
+			"name": "test_date",
+			"type": "date",
+			"min_date": "invalid-date",
+			"max_date": "2025-12-31"
+		}`)
+		var element DialogElement
+		require.NoError(t, json.Unmarshal(payload, &element))
+
+		assert.Nil(t, element.DateTimeConfig, "legacy top-level fields must not populate DateTimeConfig")
+		assert.NoError(t, element.IsValid(), "an invalid legacy min_date must no longer fail validation since the field is unrecognized")
+	})
+
+	t.Run("removed deprecated AllowManualTimeEntry is silently ignored on unmarshal", func(t *testing.T) {
+		payload := []byte(`{"allow_manual_time_entry": true}`)
 		var cfg DialogDateTimeConfig
 		require.NoError(t, json.Unmarshal(payload, &cfg))
-		require.False(t, cfg.ManualTimeEntry, "new field should remain zero-value after unmarshal")
-		require.True(t, cfg.AllowManualTimeEntry, "deprecated field should unmarshal under its legacy tag")
-
-		element := DialogElement{
-			DisplayName:    "Test",
-			Name:           "t",
-			Type:           "datetime",
-			DateTimeConfig: &cfg,
-		}
-		effective := element.EffectiveDateTimeConfig()
-		assert.True(t, effective.ManualTimeEntry, "deprecated field alone should enable manual entry after EffectiveDateTimeConfig")
+		assert.False(t, cfg.ManualTimeEntry, "the deprecated key must no longer populate ManualTimeEntry")
 	})
 }
 

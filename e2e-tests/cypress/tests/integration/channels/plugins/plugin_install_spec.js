@@ -41,9 +41,6 @@ describe('Plugins Management', () => {
                 cy.get('input[type=file]').attachFile({fileContent, fileName: demoPlugin.filename, mimeType});
             });
 
-        // # Upload plugin
-        cy.get('#uploadPlugin').scrollIntoView().should('be.visible').click().wait(TIMEOUTS.HALF_SEC);
-
         // * Verify initial disabled state after upload
         cy.findByTestId(demoPlugin.id, {timeout: TIMEOUTS.FIVE_MIN}).scrollIntoView().should('be.visible').within(() => {
             cy.findByText('Enable').should('be.visible');

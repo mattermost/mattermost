@@ -34,6 +34,8 @@ interface State extends BaseState {
     globalRelayCustomSMTPServerName: AdminConfig['MessageExportSettings']['GlobalRelaySettings']['CustomSMTPServerName'];
     globalRelayCustomSMTPPort: AdminConfig['MessageExportSettings']['GlobalRelaySettings']['CustomSMTPPort'];
     globalRelaySMTPServerTimeout: AdminConfig['MessageExportSettings']['GlobalRelaySettings']['SMTPServerTimeout'];
+    globalRelayCustomHeaderName: AdminConfig['MessageExportSettings']['GlobalRelaySettings']['CustomHeaderName'];
+    globalRelayCustomHeaderValue: AdminConfig['MessageExportSettings']['GlobalRelaySettings']['CustomHeaderValue'];
 }
 
 const messages = defineMessages({
@@ -97,6 +99,8 @@ export class MessageExportSettings extends OLDAdminSettings<BaseProps & WrappedC
                 CustomSMTPServerName: this.state.globalRelayCustomSMTPServerName,
                 CustomSMTPPort: this.state.globalRelayCustomSMTPPort,
                 SMTPServerTimeout: this.state.globalRelaySMTPServerTimeout,
+                CustomHeaderName: this.state.globalRelayCustomHeaderName,
+                CustomHeaderValue: this.state.globalRelayCustomHeaderValue,
             };
         }
         return config;
@@ -114,6 +118,8 @@ export class MessageExportSettings extends OLDAdminSettings<BaseProps & WrappedC
             globalRelaySMTPServerTimeout: 0,
             globalRelayCustomSMTPServerName: '',
             globalRelayCustomSMTPPort: '',
+            globalRelayCustomHeaderName: '',
+            globalRelayCustomHeaderValue: '',
             saveNeeded: false,
             saving: false,
             serverError: null,
@@ -125,6 +131,8 @@ export class MessageExportSettings extends OLDAdminSettings<BaseProps & WrappedC
             state.globalRelayEmailAddress = config.MessageExportSettings.GlobalRelaySettings.EmailAddress;
             state.globalRelayCustomSMTPServerName = config.MessageExportSettings.GlobalRelaySettings.CustomSMTPServerName;
             state.globalRelayCustomSMTPPort = config.MessageExportSettings.GlobalRelaySettings.CustomSMTPPort;
+            state.globalRelayCustomHeaderName = config.MessageExportSettings.GlobalRelaySettings.CustomHeaderName;
+            state.globalRelayCustomHeaderValue = config.MessageExportSettings.GlobalRelaySettings.CustomHeaderValue;
         }
         return state;
     }
@@ -211,7 +219,7 @@ export class MessageExportSettings extends OLDAdminSettings<BaseProps & WrappedC
                     helpText={<FormattedMessage {...messages.globalRelayCustomerType_description}/>}
                     value={this.state.globalRelayCustomerType ? this.state.globalRelayCustomerType : ''}
                     onChange={this.handleChange}
-                    setByEnv={this.isSetByEnv('DataRetentionSettings.GlobalRelaySettings.CustomerType')}
+                    setByEnv={this.isSetByEnv('MessageExportSettings.GlobalRelaySettings.CustomerType')}
                     disabled={this.props.isDisabled || !this.state.enableComplianceExport}
                 />
             );
@@ -224,7 +232,7 @@ export class MessageExportSettings extends OLDAdminSettings<BaseProps & WrappedC
                     helpText={<FormattedMessage {...messages.globalRelaySMTPUsername_description}/>}
                     value={this.state.globalRelaySMTPUsername ? this.state.globalRelaySMTPUsername : ''}
                     onChange={this.handleChange}
-                    setByEnv={this.isSetByEnv('DataRetentionSettings.GlobalRelaySettings.SMTPUsername')}
+                    setByEnv={this.isSetByEnv('MessageExportSettings.GlobalRelaySettings.SMTPUsername')}
                     disabled={this.props.isDisabled || !this.state.enableComplianceExport}
                 />
             );
@@ -237,7 +245,7 @@ export class MessageExportSettings extends OLDAdminSettings<BaseProps & WrappedC
                     helpText={<FormattedMessage {...messages.globalRelaySMTPPassword_description}/>}
                     value={this.state.globalRelaySMTPPassword ? this.state.globalRelaySMTPPassword : ''}
                     onChange={this.handleChange}
-                    setByEnv={this.isSetByEnv('DataRetentionSettings.GlobalRelaySettings.SMTPPassword')}
+                    setByEnv={this.isSetByEnv('MessageExportSettings.GlobalRelaySettings.SMTPPassword')}
                     disabled={this.props.isDisabled || !this.state.enableComplianceExport}
                 />
             );
@@ -250,7 +258,7 @@ export class MessageExportSettings extends OLDAdminSettings<BaseProps & WrappedC
                     helpText={<FormattedMessage {...messages.globalRelayEmailAddress_description}/>}
                     value={this.state.globalRelayEmailAddress ? this.state.globalRelayEmailAddress : ''}
                     onChange={this.handleChange}
-                    setByEnv={this.isSetByEnv('DataRetentionSettings.GlobalRelaySettings.EmailAddress')}
+                    setByEnv={this.isSetByEnv('MessageExportSettings.GlobalRelaySettings.EmailAddress')}
                     disabled={this.props.isDisabled || !this.state.enableComplianceExport}
                 />
             );
@@ -273,7 +281,7 @@ export class MessageExportSettings extends OLDAdminSettings<BaseProps & WrappedC
                     }
                     value={this.state.globalRelayCustomSMTPServerName ? this.state.globalRelayCustomSMTPServerName : ''}
                     onChange={this.handleChange}
-                    setByEnv={this.isSetByEnv('DataRetentionSettings.GlobalRelaySettings.CustomSMTPServerName')}
+                    setByEnv={this.isSetByEnv('MessageExportSettings.GlobalRelaySettings.CustomSMTPServerName')}
                     disabled={this.props.isDisabled || !this.state.enableComplianceExport}
                 />
             );
@@ -296,7 +304,53 @@ export class MessageExportSettings extends OLDAdminSettings<BaseProps & WrappedC
                     }
                     value={this.state.globalRelayCustomSMTPPort ? this.state.globalRelayCustomSMTPPort : ''}
                     onChange={this.handleChange}
-                    setByEnv={this.isSetByEnv('DataRetentionSettings.GlobalRelaySettings.CustomSMTPPort')}
+                    setByEnv={this.isSetByEnv('MessageExportSettings.GlobalRelaySettings.CustomSMTPPort')}
+                    disabled={this.props.isDisabled || !this.state.enableComplianceExport}
+                />
+            );
+
+            const globalRelayCustomHeaderName = (
+                <TextSetting
+                    id='globalRelayCustomHeaderName'
+                    label={
+                        <FormattedMessage
+                            id='admin.complianceExport.globalRelayCustomHeaderName.title'
+                            defaultMessage='Custom Header Name:'
+                        />
+                    }
+                    placeholder={defineMessage({id: 'admin.complianceExport.globalRelayCustomHeaderName.example', defaultMessage: 'E.g.: "X-ProofpointArchiveMediaType"'})}
+                    helpText={
+                        <FormattedMessage
+                            id='admin.complianceExport.globalRelayCustomHeaderName.description'
+                            defaultMessage='An optional custom header added to each exported EML. Both the name and value must be set, or both left blank to omit.'
+                        />
+                    }
+                    value={this.state.globalRelayCustomHeaderName ? this.state.globalRelayCustomHeaderName : ''}
+                    onChange={this.handleChange}
+                    setByEnv={this.isSetByEnv('MessageExportSettings.GlobalRelaySettings.CustomHeaderName')}
+                    disabled={this.props.isDisabled || !this.state.enableComplianceExport}
+                />
+            );
+
+            const globalRelayCustomHeaderValue = (
+                <TextSetting
+                    id='globalRelayCustomHeaderValue'
+                    label={
+                        <FormattedMessage
+                            id='admin.complianceExport.globalRelayCustomHeaderValue.title'
+                            defaultMessage='Custom Header Value:'
+                        />
+                    }
+                    placeholder={defineMessage({id: 'admin.complianceExport.globalRelayCustomHeaderValue.example', defaultMessage: 'E.g.: "Message"'})}
+                    helpText={
+                        <FormattedMessage
+                            id='admin.complianceExport.globalRelayCustomHeaderValue.description'
+                            defaultMessage='The value sent with the custom header. Both the name and value must be set, or both left blank to omit.'
+                        />
+                    }
+                    value={this.state.globalRelayCustomHeaderValue ? this.state.globalRelayCustomHeaderValue : ''}
+                    onChange={this.handleChange}
+                    setByEnv={this.isSetByEnv('MessageExportSettings.GlobalRelaySettings.CustomHeaderValue')}
                     disabled={this.props.isDisabled || !this.state.enableComplianceExport}
                 />
             );
@@ -314,6 +368,14 @@ export class MessageExportSettings extends OLDAdminSettings<BaseProps & WrappedC
                     {
                         this.state.globalRelayCustomerType === 'CUSTOM' &&
                         globalRelaySMTPPort
+                    }
+                    {
+                        this.state.globalRelayCustomerType === 'CUSTOM' &&
+                        globalRelayCustomHeaderName
+                    }
+                    {
+                        this.state.globalRelayCustomerType === 'CUSTOM' &&
+                        globalRelayCustomHeaderValue
                     }
                 </SettingsGroup>
             );
@@ -363,7 +425,7 @@ export class MessageExportSettings extends OLDAdminSettings<BaseProps & WrappedC
                     }
                     value={this.state.enableComplianceExport}
                     onChange={this.handleChange}
-                    setByEnv={this.isSetByEnv('DataRetentionSettings.EnableExport')}
+                    setByEnv={this.isSetByEnv('MessageExportSettings.EnableExport')}
                     disabled={this.props.isDisabled}
                 />
 
@@ -374,7 +436,7 @@ export class MessageExportSettings extends OLDAdminSettings<BaseProps & WrappedC
                     helpText={<FormattedMessage {...messages.exportJobStartTime_description}/>}
                     value={this.state.exportJobStartTime}
                     onChange={this.handleChange}
-                    setByEnv={this.isSetByEnv('DataRetentionSettings.DailyRunTime')}
+                    setByEnv={this.isSetByEnv('MessageExportSettings.DailyRunTime')}
                     disabled={this.props.isDisabled || !this.state.enableComplianceExport}
                 />
 
@@ -385,7 +447,7 @@ export class MessageExportSettings extends OLDAdminSettings<BaseProps & WrappedC
                     helpText={dropdownHelpText}
                     value={this.state.exportFormat}
                     onChange={this.handleChange}
-                    setByEnv={this.isSetByEnv('DataRetentionSettings.ExportFormat')}
+                    setByEnv={this.isSetByEnv('MessageExportSettings.ExportFormat')}
                     disabled={this.props.isDisabled || !this.state.enableComplianceExport}
                 />
 

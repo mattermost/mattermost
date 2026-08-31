@@ -99,7 +99,7 @@ const onPremServerConfig = (): Partial<TestAdminConfig> => {
 };
 
 // Should be based only from the generated default config from ./server via "make config-reset"
-// Based on v11.9 server
+// Based on v11.11 server
 const defaultServerConfig: AdminConfig = {
     ServiceSettings: {
         SiteURL: '',
@@ -190,7 +190,7 @@ const defaultServerConfig: AdminConfig = {
         EnableAPIPostDeletion: false,
         EnableDesktopLandingPage: true,
         MinimumDesktopAppVersion: '',
-        ExperimentalEnableHardenedMode: false,
+        EnableHardenedMode: false,
         ExperimentalStrictCSRFEnforcement: false,
         EnableEmailInvitations: false,
         DisableBotsWhenOwnerIsDeactivated: true,
@@ -265,7 +265,7 @@ const defaultServerConfig: AdminConfig = {
     SqlSettings: {
         DriverName: 'postgres',
         DataSource:
-            'postgres://mmuser:mostest@localhost/mattermost_test?sslmode=disable\u0026connect_timeout=10\u0026binary_parameters=yes',
+            'postgres://mmuser:mostest_password@localhost/mattermost_test?sslmode=disable\u0026connect_timeout=10\u0026binary_parameters=yes',
         DataSourceReplicas: [],
         DataSourceSearchReplicas: [],
         MaxIdleConns: 50,
@@ -273,7 +273,6 @@ const defaultServerConfig: AdminConfig = {
         ConnMaxIdleTimeMilliseconds: 300000,
         MaxOpenConns: 100,
         Trace: false,
-        AtRestEncryptKey: '',
         QueryTimeout: 30,
         AnalyticsQueryTimeout: 300,
         DisableDatabaseSearch: false,
@@ -405,9 +404,6 @@ const defaultServerConfig: AdminConfig = {
         EnablePreviewModeBanner: true,
         SkipServerCertificateVerification: false,
         EmailNotificationContentsType: 'full',
-        LoginButtonColor: '#0000',
-        LoginButtonBorderColor: '#2389D7',
-        LoginButtonTextColor: '#2389D7',
     },
     RateLimitSettings: {
         Enable: false,
@@ -599,7 +595,6 @@ const defaultServerConfig: AdminConfig = {
         MobileJailbreakProtection: false,
         MobileEnableSecureFilePreview: false,
         MobileAllowPdfLinkNavigation: false,
-        EnableIntuneMAM: false,
     },
     IntuneSettings: {
         Enable: false,
@@ -722,6 +717,8 @@ const defaultServerConfig: AdminConfig = {
             SMTPServerTimeout: 1800,
             CustomSMTPServerName: '',
             CustomSMTPPort: '25',
+            CustomHeaderName: '',
+            CustomHeaderValue: '',
         },
     },
     JobSettings: {
@@ -767,7 +764,6 @@ const defaultServerConfig: AdminConfig = {
     GuestAccountsSettings: {
         Enable: false,
         HideTags: false,
-        AllowEmailAccounts: true,
         EnforceMultifactorAuthentication: false,
         RestrictCreationToDomains: '',
         EnableGuestMagicLink: false,
@@ -775,8 +771,6 @@ const defaultServerConfig: AdminConfig = {
     ImageProxySettings: {
         Enable: false,
         ImageProxyType: 'local',
-        RemoteImageProxyURL: '',
-        RemoteImageProxyOptions: '',
     },
     CloudSettings: {
         CWSURL: 'https://customers.mattermost.com',
@@ -788,39 +782,44 @@ const defaultServerConfig: AdminConfig = {
     FeatureFlags: {
         TestFeature: 'off',
         TestBoolFeature: false,
-        EnableRemoteClusterService: false,
         EnableSharedChannelsDMs: false,
-        EnableSharedChannelsPlugins: true,
-        EnableSharedChannelsMemberSync: false,
         EnableSyncAllUsersForRemoteCluster: false,
         AppsEnabled: false,
         NormalizeLdapDNs: false,
         WysiwygEditor: false,
         MoveThreadsEnabled: false,
         NotificationMonitoring: true,
-        AttributeValueMasking: false,
-        PermissionPolicies: false,
-        ChannelPermissionPolicies: false,
-        PolicySimulation: false,
+        AttributeValueMasking: true,
+        PermissionPolicies: true,
+        ChannelPermissionPolicies: true,
+        PolicySimulation: true,
         ContentFlagging: true,
         EnableMattermostEntry: true,
         MobileSSOCodeExchange: false,
         EnableShiftEscapeToMarkAllRead: false,
         AutoTranslation: true,
         ClassificationMarkings: true,
+        GlobalAttributes: false,
         BurnOnRead: true,
         EnableAIPluginBridge: false,
         EnableAIRecaps: false,
-        IntegratedBoards: true,
+        IntegratedBoards: false,
+        EnableDocs: false,
         CJKSearch: true,
         AggregatePluginMetrics: false,
         ManagedChannelCategories: false,
         SessionAttributes: false,
+        PostAttributes: false,
         DiscoverableChannels: false,
         MobileEphemeralMode: false,
-        PropertyFieldRank: false,
+        PropertyFieldRank: true,
         TeamMembershipAccessControl: true,
         MmBlocksEnabled: true,
+        ClusterGracefulDrain: true,
+        ChannelBookmarks: true,
+        EnableConcurrentReact: false,
+        EnableMFIPluginSignaturePublicKey: true,
+        RecurringScheduledPosts: false,
     },
     ImportSettings: {
         Directory: './import',
@@ -855,6 +854,8 @@ const defaultServerConfig: AdminConfig = {
         TrustProxyDeviceIdentityHeader: false,
         EnforceDeviceIDConsistency: false,
         EnableAccessControlAuditLogging: false,
+        SyncJobIntervalSeconds: 3600,
+        AttributeRefreshIntervalSeconds: 30,
     },
     ContentFlaggingSettings: {
         EnableContentFlagging: false,

@@ -9,6 +9,8 @@ import useBaseUrl from '@docusaurus/useBaseUrl';
 
 Send or receive real-time data from external tools. Webhooks require minimal coding and are easy to set up with virtually any tool or platform because they use lightweight HTTP POST requests with JSON payloads.
 
+For richly formatted interactive posts with buttons and menus, see [What are Mattermost Blocks?](/integrations-guide/faq#what-are-mattermost-blocks).
+
 Using incoming webhooks in Mattermost requires only basic setup. You generate a webhook URL using the Mattermost interface, then point another service to send data to that address. No coding is required if your external service triggering the events is able to send data via webhooks or HTTP POST requests, which most modern applications and platforms support. Setting this up usually involves pasting the Mattermost webhook URL into the service’s settings and selecting what type of events you want it to send.
 
 ## Example Use Cases
@@ -95,7 +97,7 @@ The JSON payload can contain the following parameters:
 <tbody>
 <tr>
 <td><code>text</code></td>
-<td>Yes (if <code>attachments</code> is not set)</td>
+<td>Yes (if <code>props.mm_blocks</code> is not set)</td>
 <td><a href="/end-user-guide/collaborate/format-messages">Markdown-formatted</a> message. Use <code>@&lt;username&gt;</code>, <code>@channel</code>, and <code>@here</code> for notifications.</td>
 </tr>
 <tr>
@@ -119,11 +121,6 @@ The JSON payload can contain the following parameters:
 <td>Overrides the <code>icon_url</code> with an emoji. Use the emoji name (e.g., <code>:tada:</code>). The <a href="/administration-guide/configure/integrations-configuration-settings#enable-integrations-to-override-profile-picture-icons">Enable integrations to override profile picture icons</a> setting must be enabled.</td>
 </tr>
 <tr>
-<td><code>attachments</code></td>
-<td>Yes (if <code>text</code> is not set)</td>
-<td>An array of <a href="https://developers.mattermost.com/integrate/reference/message-attachments/">message attachment</a> objects for richer formatting.</td>
-</tr>
-<tr>
 <td><code>type</code></td>
 <td>No</td>
 <td>Sets the post type, mainly for use by plugins. If set, must begin with <code>custom_</code>.</td>
@@ -131,7 +128,7 @@ The JSON payload can contain the following parameters:
 <tr>
 <td><code>props</code></td>
 <td>No</td>
-<td>A JSON object for storing metadata. The <code>card</code> property can be used to display extra Markdown-formatted text in the post's info panel (RHS). This is available in Mattermost v5.14 and later, and is not yet supported on mobile.</td>
+<td>A JSON object for storing metadata. Use <a href="https://developers.mattermost.com/integrate/reference/mm-blocks/">Mattermost Blocks</a> for rich, interactive content. The <code>card</code> property can be used to display extra Markdown-formatted text in the post's info panel (RHS). This is available in Mattermost v5.14 and later, and is not yet supported on mobile.</td>
 </tr>
 <tr>
 <td><code>priority</code></td>
@@ -220,8 +217,7 @@ If your integration posts the JSON payload as plain text instead of a rendered m
 
 Transform basic message posts into rich, interactive notifications by including buttons, menus, and other interactive elements in your webhook messages, making them more engaging and useful for your team.
 
-- [Message Attachments](https://developers.mattermost.com/integrate/reference/message-attachments/): Present rich, structured summaries such as status, priority, fields, links, or images for faster triage and comprehension. (Slack‑compatible schema.)
-- [Interactive Messages](https://developers.mattermost.com/integrate/plugins/interactive-messages): Make notifications actionable with buttons or menus such as Acknowledge, Assign, or Escalate that enable an immediate user response without switching tools or context.
+- [Mattermost Blocks](https://developers.mattermost.com/integrate/reference/mm-blocks/): Create structured, interactive posts with text, images, buttons, and menus.
 - [Interactive Dialogs](https://developers.mattermost.com/integrate/plugins/interactive-dialogs/): Guide users to successful outcomes when interactions need structured input or confirmation (for example, “Acknowledge with note” or “Assign to user”). Improve data quality with required fields, minimum/maximum input lengths, server‑driven user/channel pickers, validated defaults, inline field errors, placeholders, and help text that help users enter the right data the first time.
 - [Message Priority](https://developers.mattermost.com/integrate/reference/message-priority/): Set `priority` to elevate critical posts and optionally request acknowledgements or persistent notifications.
 

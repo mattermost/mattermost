@@ -19,6 +19,7 @@ import type {OpenDialogRequest} from '@mattermost/types/integrations';
 import type {Job} from '@mattermost/types/jobs';
 import type {Post, PostAcknowledgement} from '@mattermost/types/posts';
 import type {PreferenceType} from '@mattermost/types/preferences';
+import type {PropertyValue} from '@mattermost/types/properties';
 import {SESSION_ATTRIBUTES_OBJECT_TYPE} from '@mattermost/types/properties_user';
 import type {Reaction} from '@mattermost/types/reactions';
 import type {Role} from '@mattermost/types/roles';
@@ -83,6 +84,7 @@ import {
     fetchSystemPropertyValues,
 } from 'mattermost-redux/actions/properties';
 import {getRecap} from 'mattermost-redux/actions/recaps';
+import {invalidateRenderDecisionsForChannel, clearRenderDecisions} from 'mattermost-redux/actions/render_permissions';
 import {loadRolesIfNeeded} from 'mattermost-redux/actions/roles';
 import {fetchTeamScheduledPosts} from 'mattermost-redux/actions/scheduled_posts';
 import {fetchChannelRemotes} from 'mattermost-redux/actions/shared_channels';
@@ -106,6 +108,7 @@ import {
 import {removeNotVisibleUsers} from 'mattermost-redux/actions/websocket';
 import {Client4} from 'mattermost-redux/client';
 import {General, Permissions} from 'mattermost-redux/constants';
+import {ACCESS_CONTROL_PROPERTY_GROUP} from 'mattermost-redux/constants/properties';
 import {appsEnabled} from 'mattermost-redux/selectors/entities/apps';
 import {
     getChannel,
@@ -117,7 +120,7 @@ import {
     hasAutotranslationBecomeEnabled,
 } from 'mattermost-redux/selectors/entities/channels';
 import {getIsUserStatusesConfigEnabled} from 'mattermost-redux/selectors/entities/common';
-import {getConfig, getFeatureFlagValue, getLicense} from 'mattermost-redux/selectors/entities/general';
+import {getConfig, getFeatureFlagValue, getLicense, isPermissionPoliciesEnabled} from 'mattermost-redux/selectors/entities/general';
 import {getGroup} from 'mattermost-redux/selectors/entities/groups';
 import {getPost, getMostRecentPostIdInChannel, getTeamIdFromPost} from 'mattermost-redux/selectors/entities/posts';
 import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
@@ -149,7 +152,7 @@ import {handleNewPost} from 'actions/post_actions';
 import * as StatusActions from 'actions/status_actions';
 import {setGlobalItem} from 'actions/storage';
 import {loadProfilesForDM, loadProfilesForGM, loadProfilesForSidebar} from 'actions/user_actions';
-import {syncPostsInChannel} from 'actions/views/channel';
+import {loadUnreads, syncPostsInChannel} from 'actions/views/channel';
 import {setGlobalDraft, transformServerDraft} from 'actions/views/drafts';
 import {openModal, closeModal} from 'actions/views/modals';
 import {closeRightHandSide} from 'actions/views/rhs';
@@ -161,7 +164,6 @@ import {isThreadOpen, isThreadManuallyUnread} from 'selectors/views/threads';
 import store from 'stores/redux_store';
 
 import {
-    CLASSIFICATIONS_GROUP_NAME,
     CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE,
     CLASSIFICATIONS_SYSTEM_OBJECT_TYPE,
     CLASSIFICATIONS_FIELD_TARGET_TYPE,
@@ -353,7 +355,7 @@ export function reconnect() {
     if (getFeatureFlagValue(state, 'ClassificationMarkings') === 'true') {
         dispatch(
             fetchPropertyFields(
-                CLASSIFICATIONS_GROUP_NAME,
+                ACCESS_CONTROL_PROPERTY_GROUP,
                 CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE,
                 CLASSIFICATIONS_FIELD_TARGET_TYPE,
                 CLASSIFICATIONS_FIELD_TARGET_ID,
@@ -361,13 +363,13 @@ export function reconnect() {
         );
         dispatch(
             fetchPropertyFields(
-                CLASSIFICATIONS_GROUP_NAME,
+                ACCESS_CONTROL_PROPERTY_GROUP,
                 CLASSIFICATIONS_SYSTEM_OBJECT_TYPE,
                 CLASSIFICATIONS_FIELD_TARGET_TYPE,
                 CLASSIFICATIONS_FIELD_TARGET_ID,
             ),
         );
-        dispatch(fetchSystemPropertyValues(CLASSIFICATIONS_GROUP_NAME));
+        dispatch(fetchSystemPropertyValues(ACCESS_CONTROL_PROPERTY_GROUP));
     }
 
     if (state.websocket.lastDisconnectAt) {
@@ -564,6 +566,10 @@ export function handleEvent(msg: WebSocketMessage) {
 
     case WebSocketEvents.ChannelAccessControlUpdated:
         dispatch(handleChannelAccessControlUpdatedEvent(msg));
+        break;
+
+    case WebSocketEvents.PermissionPolicyUpdated:
+        dispatch(handlePermissionPolicyUpdatedEvent());
         break;
 
     case WebSocketEvents.TeamAccessControlUpdated:
@@ -886,7 +892,7 @@ export function handleChannelUpdatedEvent(msg: WebSocketMessages.ChannelUpdated)
 }
 
 export function handleChannelAccessControlUpdatedEvent(msg: WebSocketMessages.ChannelAccessControlUpdated): ThunkActionFunc<void> {
-    return (doDispatch) => {
+    return (doDispatch, doGetState) => {
         if (!msg.data.channel) {
             return;
         }
@@ -901,6 +907,44 @@ export function handleChannelAccessControlUpdatedEvent(msg: WebSocketMessages.Ch
         // consumers (e.g. the channel invite modal banner) refetch the
         // latest attribute set after a policy change.
         invalidateAccessControlAttributesCache(EntityType.Channel, channel.id);
+
+        // Nothing sanitizes posts or gates affordances without the feature, so no stale render
+        // state to drop. Matches the CPA and role handlers.
+        if (!isPermissionPoliciesEnabled(doGetState())) {
+            return;
+        }
+
+        doDispatch(invalidateRenderDecisionsForChannel(channel.id));
+        doDispatch(refreshPostsAfterPolicyChange(channel.id));
+    };
+}
+
+// Posts already loaded were sanitized under the old policy. Off-screen channels just lose their
+// chunks and reload on next visit; the channel in view is refetched explicitly, rather than via
+// resetReloadPostsInChannel's deselect/reselect, which does not reliably remount PostList.
+//
+// loadUnreads and not loadLatestPosts: the unread endpoint carries no ETag, so it cannot 304 onto
+// the metadata the old policy produced.
+function refreshPostsAfterPolicyChange(channelId?: string): ThunkActionFunc<void> {
+    return (doDispatch, doGetState) => {
+        doDispatch({type: PostTypes.RESET_POSTS_IN_CHANNEL, channelId});
+
+        const currentChannelId = getCurrentChannelId(doGetState());
+        if (currentChannelId && (!channelId || channelId === currentChannelId)) {
+            doDispatch(loadUnreads(currentChannelId));
+        }
+    };
+}
+
+// Permission policies are system-scoped, hence no resource ID on the event and no narrower reset.
+export function handlePermissionPolicyUpdatedEvent(): ThunkActionFunc<void> {
+    return (doDispatch, doGetState) => {
+        if (!isPermissionPoliciesEnabled(doGetState())) {
+            return;
+        }
+
+        doDispatch(clearRenderDecisions());
+        doDispatch(refreshPostsAfterPolicyChange());
     };
 }
 
@@ -1461,7 +1505,20 @@ function handlePropertyFieldDeleted(
     };
 }
 
-function handlePropertyValuesUpdated(msg: WebSocketMessages.PropertyValuesUpdated): ThunkActionFunc<void> {
+// The server emits four distinct payloads under one event, distinguished only by
+// which keys are present (see TestPropertyValuesUpdatedPayloadShapes):
+//
+//   upsert            object_type + target_id + the target's full values array
+//   single delete     same keys, but one synthesized row with an empty id
+//   delete for target same keys, values "[]"
+//   delete for field  field_id, no object_type/target_id, values "[]"
+//
+// A delete tombstone carries no value, and a nil RawMessage marshals to null, so
+// it is byte-identical to a user-initiated `PATCH value: null` apart from the
+// empty id. Treating either of the empty-array shapes as an upsert is a no-op,
+// and treating a tombstone as one leaves a blank row in place of the deleted
+// value — so each shape has to be routed to its own reducer action.
+export function handlePropertyValuesUpdated(msg: WebSocketMessages.PropertyValuesUpdated): ThunkActionFunc<void> {
     return (doDispatch) => {
         let values;
         try {
@@ -1478,13 +1535,35 @@ function handlePropertyValuesUpdated(msg: WebSocketMessages.PropertyValuesUpdate
             values,
         };
 
-        // Populate the Redux property values store so any component that reads
-        // from entities.properties.values (e.g. GlobalClassificationBanner) gets
-        // real-time updates without an extra network round-trip.
-        doDispatch({
-            type: PropertyTypes.RECEIVED_PROPERTY_VALUES,
-            data: {values},
-        });
+        const {object_type: objectType, target_id: targetId, field_id: fieldId} = msg.data;
+        const isTargetScoped = objectType !== undefined && targetId !== undefined;
+
+        if (!isTargetScoped && fieldId) {
+            doDispatch({
+                type: PropertyTypes.PROPERTY_VALUES_DELETED_FOR_FIELD,
+                data: {fieldId},
+            });
+        } else if (isTargetScoped && values.length === 0) {
+            doDispatch({
+                type: PropertyTypes.PROPERTY_VALUES_DELETED_FOR_TARGET,
+                data: {targetId},
+            });
+        } else if (isTargetScoped && values.every((value: PropertyValue<unknown>) => !value.id)) {
+            for (const value of values) {
+                doDispatch({
+                    type: PropertyTypes.PROPERTY_VALUE_DELETED,
+                    data: {targetId: value.target_id ?? targetId, fieldId: value.field_id},
+                });
+            }
+        } else {
+            // Populate the Redux property values store so any component that reads
+            // from entities.properties.values (e.g. GlobalClassificationBanner) gets
+            // real-time updates without an extra network round-trip.
+            doDispatch({
+                type: PropertyTypes.RECEIVED_PROPERTY_VALUES,
+                data: {values},
+            });
+        }
 
         doDispatch(handleManagedCategoryPropertyValuesUpdated(parsedPropertyValuesUpdated));
     };
@@ -1806,6 +1885,12 @@ function handleUserRoleUpdated(msg: WebSocketMessages.UserRoleUpdated) {
         store.dispatch({type: UserTypes.RECEIVED_PROFILE, data: {...user, roles}});
         dispatch(loadRolesIfNeeded(newRoles));
 
+        if (msg.data.user_id === getCurrentUserId(store.getState()) &&
+                isPermissionPoliciesEnabled(store.getState())) {
+            store.dispatch(clearRenderDecisions());
+            store.dispatch(refreshPostsAfterPolicyChange());
+        }
+
         if (demoted && global.location.pathname.startsWith('/admin_console')) {
             redirectUserToDefaultTeam();
         }
@@ -1825,11 +1910,21 @@ function handleConfigChanged(msg: WebSocketMessages.ConfigChanged) {
         dispatch(resetReloadPostsInTranslatedChannels());
     }
 
+    // If the permission-policies feature availability changed, cached render
+    // decisions may no longer be valid; clear them so they are recomputed.
+    if (currentConfig?.FeatureFlagPermissionPolicies !== newConfig?.FeatureFlagPermissionPolicies) {
+        store.dispatch(clearRenderDecisions());
+    }
+
     store.dispatch({type: GeneralTypes.CLIENT_CONFIG_RECEIVED, data: newConfig});
 }
 
 function handleLicenseChanged(msg: WebSocketMessages.LicenseChanged) {
     store.dispatch({type: GeneralTypes.CLIENT_LICENSE_RECEIVED, data: msg.data.license});
+
+    // A license change can flip ABAC availability, so clear cached render
+    // decisions; they will be recomputed on demand.
+    store.dispatch(clearRenderDecisions());
 
     // Refresh server limits when license changes since limits may have changed
     dispatch(getServerLimits());
@@ -2361,10 +2456,21 @@ function handleChannelBookmarkSorted(msg: WebSocketMessages.ChannelBookmarkSorte
     };
 }
 
-export function handleCustomAttributeValuesUpdated(msg: WebSocketMessages.CPAValuesUpdated) {
-    return {
-        type: UserTypes.RECEIVED_CPA_VALUES,
-        data: {userID: msg.data.user_id, customAttributeValues: msg.data.values},
+export function handleCustomAttributeValuesUpdated(msg: WebSocketMessages.CPAValuesUpdated): ThunkActionFunc<void> {
+    return (doDispatch, doGetState) => {
+        doDispatch({
+            type: UserTypes.RECEIVED_CPA_VALUES,
+            data: {userID: msg.data.user_id, customAttributeValues: msg.data.values},
+        });
+
+        // The current user's attribute values are an input to ABAC evaluation, so
+        // their render decisions are now stale. Other users' updates do not affect
+        // the current user's own decisions.
+        if (msg.data.user_id === getCurrentUserId(doGetState()) &&
+                isPermissionPoliciesEnabled(doGetState())) {
+            doDispatch(clearRenderDecisions());
+            doDispatch(refreshPostsAfterPolicyChange());
+        }
     };
 }
 

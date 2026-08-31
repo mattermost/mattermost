@@ -18,6 +18,10 @@ import StatStrip from '@site/src/components/StatStrip';
 import MethodLegend from '@site/src/components/MethodLegend';
 import CardGrid from '@site/src/components/CardGrid';
 import UpgradeNotesFilter from '@site/src/components/UpgradeNotesFilter';
+import PluginGoDocs from '@site/src/components/PluginGoDocs';
+import PluginGoExample from '@site/src/components/PluginGoExample';
+import PluginJsDocs from '@site/src/components/PluginJsDocs';
+import PluginManifestDocs from '@site/src/components/PluginManifestDocs';
 // Globally available so migrated developer docs (Hugo `tabs` shortcode)
 // can use them without imports.
 import Tabs from '@theme/Tabs';
@@ -45,6 +49,10 @@ export default {
   MethodLegend,
   CardGrid,
   UpgradeNotesFilter,
+  PluginGoDocs,
+  PluginGoExample,
+  PluginJsDocs,
+  PluginManifestDocs,
   Tabs,
   TabItem,
 };

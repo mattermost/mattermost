@@ -67,4 +67,42 @@ describe('AdminConsolePluginsIndex.getPluginEntries', () => {
         expect(entries['plugin_plugin-without-settings']).toContain('Enable Plugin: ');
         expect(entries['plugin_plugin-without-settings']).toContain('PluginSettings.PluginStates.plugin-without-settings.Enable');
     });
+
+    it('should index plugin section content and nested settings', () => {
+        const plugin = {
+            ...samplePlugin4,
+            settings_schema: {
+                ...samplePlugin4.settings_schema,
+                sections: [{
+                    key: 'connection',
+                    title: 'Connection Settings',
+                    subtitle: 'Configure the service connection',
+                    header: 'Read the [connection guide](https://example.com/header)',
+                    footer: 'Restart after [saving](https://example.com/footer)',
+                    settings: [{
+                        key: 'ServiceURL',
+                        display_name: 'Service URL',
+                        type: 'text',
+                        help_text: 'Address of the [external service](https://example.com/service)',
+                        placeholder: '',
+                        default: '',
+                    }],
+                }],
+            },
+        };
+
+        const entries = getPluginEntries({[plugin.id]: plugin}, intl)[`plugin_${plugin.id}`];
+
+        expect(entries).toEqual(expect.arrayContaining([
+            'connection',
+            'Connection Settings',
+            'Configure the service connection',
+            'Read the connection guide',
+            'Restart after saving',
+            'ServiceURL',
+            'Service URL',
+            'Address of the external service',
+        ]));
+        expect(entries.join(' ')).not.toContain('https://example.com');
+    });
 });

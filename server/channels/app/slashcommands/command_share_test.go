@@ -243,7 +243,7 @@ func TestShareProviderGetAutoCompleteListItemsPermission(t *testing.T) {
 	t.Run("invite without manage_shared_channels permission returns no remote cluster data", func(t *testing.T) {
 		th := setupForSharedChannels(t).initBasic(t)
 
-		require.False(t, th.App.HasPermissionTo(th.BasicUser.Id, model.PermissionManageSharedChannels),
+		require.False(t, th.App.HasPermissionTo(th.Context, th.BasicUser.Id, model.PermissionManageSharedChannels),
 			"precondition: BasicUser must not have manage_shared_channels for this subtest")
 
 		rc := seedRemote(t, th)
@@ -270,7 +270,7 @@ func TestShareProviderGetAutoCompleteListItemsPermission(t *testing.T) {
 	t.Run("uninvite without manage_shared_channels permission returns no remote cluster data", func(t *testing.T) {
 		th := setupForSharedChannels(t).initBasic(t)
 
-		require.False(t, th.App.HasPermissionTo(th.BasicUser.Id, model.PermissionManageSharedChannels),
+		require.False(t, th.App.HasPermissionTo(th.Context, th.BasicUser.Id, model.PermissionManageSharedChannels),
 			"precondition: BasicUser must not have manage_shared_channels for this subtest")
 
 		rc := seedRemote(t, th)
@@ -393,7 +393,7 @@ func TestShareProviderGetAutoCompleteListItemsAdjacentRoles(t *testing.T) {
 		th := setupForSharedChannels(t).initBasic(t)
 
 		guest := th.createGuest(t)
-		require.False(t, th.App.HasPermissionTo(guest.Id, model.PermissionManageSharedChannels),
+		require.False(t, th.App.HasPermissionTo(th.Context, guest.Id, model.PermissionManageSharedChannels),
 			"precondition: a freshly-created guest must not have manage_shared_channels")
 
 		rc := seedRemote(t, th)
@@ -420,7 +420,7 @@ func TestShareProviderGetAutoCompleteListItemsAdjacentRoles(t *testing.T) {
 		th := setupForSharedChannels(t).initBasic(t)
 
 		guest := th.createGuest(t)
-		require.False(t, th.App.HasPermissionTo(guest.Id, model.PermissionManageSharedChannels),
+		require.False(t, th.App.HasPermissionTo(th.Context, guest.Id, model.PermissionManageSharedChannels),
 			"precondition: a freshly-created guest must not have manage_shared_channels")
 
 		rc := seedRemote(t, th)
@@ -446,7 +446,7 @@ func TestShareProviderGetAutoCompleteListItemsAdjacentRoles(t *testing.T) {
 	t.Run("system admin receives remote cluster data on invite", func(t *testing.T) {
 		th := setupForSharedChannels(t).initBasic(t)
 
-		require.True(t, th.App.HasPermissionTo(th.SystemAdminUser.Id, model.PermissionManageSharedChannels),
+		require.True(t, th.App.HasPermissionTo(th.Context, th.SystemAdminUser.Id, model.PermissionManageSharedChannels),
 			"precondition: SystemAdminUser must have manage_shared_channels via inherited permissions")
 
 		rc := seedRemote(t, th)
@@ -479,7 +479,7 @@ func TestShareProviderGetAutoCompleteListItemsAdjacentRoles(t *testing.T) {
 	t.Run("system admin receives remote cluster data on uninvite", func(t *testing.T) {
 		th := setupForSharedChannels(t).initBasic(t)
 
-		require.True(t, th.App.HasPermissionTo(th.SystemAdminUser.Id, model.PermissionManageSharedChannels),
+		require.True(t, th.App.HasPermissionTo(th.Context, th.SystemAdminUser.Id, model.PermissionManageSharedChannels),
 			"precondition: SystemAdminUser must have manage_shared_channels via inherited permissions")
 
 		rc := seedRemote(t, th)
