@@ -19,7 +19,33 @@ import (
 )
 
 const attributeViewRefreshInterval = 30 * time.Second
+
 const accessControlChildPolicySearchLimit = 1000
+
+// attributeBasedAccessControlEnabled must stay the exact predicate the enforcement paths use, with
+// no license check, so the render-ETag and cache-invalidation gates can never be narrower than the
+// sanitization they keep in step with.
+func attributeBasedAccessControlEnabled(cfg *model.Config) bool {
+	return cfg.FeatureFlags.PermissionPolicies &&
+		cfg.AccessControlSettings.EnableAttributeBasedAccessControl != nil &&
+		*cfg.AccessControlSettings.EnableAttributeBasedAccessControl
+}
+
+func (a *App) attributeBasedAccessControlEnabled() bool {
+	return attributeBasedAccessControlEnabled(a.Config())
+}
+
+// clearABACRenderCachesOnFlip drops both render-ETag epoch caches when ABAC is toggled: they are
+// only invalidated while ABAC is active, so a change made while it was off would leave a stale
+// epoch for the switch back on to serve.
+func (ch *Channels) clearABACRenderCachesOnFlip(prevCfg, cfg *model.Config) {
+	if attributeBasedAccessControlEnabled(prevCfg) == attributeBasedAccessControlEnabled(cfg) {
+		return
+	}
+
+	ch.srv.Store().AccessControlPolicy().ClearEtagCache()
+	ch.srv.Store().Attributes().ClearUserPropertyValuesEpochCache()
+}
 
 // ResourceAttributesInPoliciesEnabled reports whether access rules may compare a
 // user's attributes against the accessed channel's. It gates authoring only: the
@@ -137,7 +163,7 @@ func (a *App) CreateOrUpdateAccessControlPolicy(rctx request.CTX, policy *model.
 	// callers may intentionally set rules they don't match, mirroring the
 	// masking self-inclusion exemption below.
 	if policy.Type == model.AccessControlPolicyTypeTeam {
-		if session := rctx.Session(); session != nil && session.UserId != "" && !a.HasPermissionTo(session.UserId, model.PermissionManageSystem) {
+		if session := rctx.Session(); session != nil && session.UserId != "" && !a.HasPermissionTo(rctx, session.UserId, model.PermissionManageSystem) {
 			for _, rule := range policy.Rules {
 				if appErr := a.ValidateTeamAdminSelfInclusion(rctx, session.UserId, rule.Expression); appErr != nil {
 					return nil, appErr
@@ -186,7 +212,7 @@ func (a *App) CreateOrUpdateAccessControlPolicy(rctx request.CTX, policy *model.
 		// (e.g., creating a "Clearance == Top Secret" rule without holding that
 		// clearance themselves). Masking and write-path value validation still
 		// apply to system admins above.
-		if !a.HasPermissionTo(callerID, model.PermissionManageSystem) {
+		if !a.HasPermissionTo(rctx, callerID, model.PermissionManageSystem) {
 			if appErr := a.checkSelfInclusion(rctx, policy, callerID, mergedHidden); appErr != nil {
 				return nil, appErr
 			}
@@ -207,6 +233,8 @@ func (a *App) CreateOrUpdateAccessControlPolicy(rctx request.CTX, policy *model.
 	case model.AccessControlPolicyTypeParent:
 		a.publishChannelPolicyEnforcedForChannelPoliciesWithImport(rctx, policy.ID)
 		a.publishTeamPolicyEnforcedForTeamPoliciesWithImport(rctx, policy.ID)
+	case model.AccessControlPolicyTypePermission:
+		a.publishPermissionPolicyUpdate(rctx)
 	}
 
 	return policy, nil
@@ -500,6 +528,8 @@ func (a *App) DeleteAccessControlPolicy(rctx request.CTX, id string) *model.AppE
 	case policy.Type == model.AccessControlPolicyTypeParent:
 		a.publishChannelPolicyEnforcedUpdatesForChannels(rctx, affectedChannelIDs)
 		a.publishTeamPolicyEnforcedUpdatesForTeams(rctx, affectedTeamIDs)
+	case policy.Type == model.AccessControlPolicyTypePermission:
+		a.publishPermissionPolicyUpdate(rctx)
 	}
 
 	return nil
@@ -1877,6 +1907,7 @@ func (a *App) UpdateAccessControlPoliciesActive(rctx request.CTX, updates []mode
 		return nil, model.NewAppError("UpdateAccessControlPoliciesActive", "app.pap.update_access_control_policies_active.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
+	permissionPolicyChanged := false
 	for _, policy := range policies {
 		switch policy.Type {
 		case model.AccessControlPolicyTypeChannel:
@@ -1886,7 +1917,12 @@ func (a *App) UpdateAccessControlPoliciesActive(rctx request.CTX, updates []mode
 		case model.AccessControlPolicyTypeParent:
 			a.publishChannelPolicyEnforcedForChannelPoliciesWithImport(rctx, policy.ID)
 			a.publishTeamPolicyEnforcedForTeamPoliciesWithImport(rctx, policy.ID)
+		case model.AccessControlPolicyTypePermission:
+			permissionPolicyChanged = true
 		}
+	}
+	if permissionPolicyChanged {
+		a.publishPermissionPolicyUpdate(rctx)
 	}
 
 	return policies, nil
@@ -2172,6 +2208,7 @@ func (a *App) HydrateTeamsPolicyActions(rctx request.CTX, teams []*model.Team) *
 // only need to refresh access control state — not run the full
 // channel_updated reducer/router pipeline.
 func (a *App) publishChannelPolicyEnforcedUpdate(rctx request.CTX, channelID string) {
+	a.Srv().Store().AccessControlPolicy().InvalidateEtagForChannel(channelID)
 	a.Srv().Store().Channel().InvalidateChannel(channelID)
 
 	channel, appErr := a.GetChannel(rctx, channelID)
@@ -2207,6 +2244,16 @@ func (a *App) publishChannelPolicyEnforcedUpdate(rctx request.CTX, channelID str
 
 	messageWs := model.NewWebSocketEvent(model.WebsocketEventChannelAccessControlUpdated, "", channel.Id, "", nil, "")
 	messageWs.Add("channel", string(channelJSON))
+	a.Publish(messageWs)
+}
+
+// publishPermissionPolicyUpdate broadcasts a system-scoped permission policy change.
+// TypePermission policies are global, so no channel ID is included in the event.
+func (a *App) publishPermissionPolicyUpdate(rctx request.CTX) {
+	// Permission policies are system-scoped, so every channel's render-ETag epoch folds them in.
+	// Clear the whole epoch cache rather than a single channel key.
+	a.Srv().Store().AccessControlPolicy().ClearEtagCache()
+	messageWs := model.NewWebSocketEvent(model.WebsocketEventPermissionPolicyUpdated, "", "", "", nil, "")
 	a.Publish(messageWs)
 }
 
@@ -2334,7 +2381,7 @@ type ValidateAccessControlPolicyPermissionOptions struct {
 
 func (a *App) ValidateAccessControlPolicyPermissionWithOptions(rctx request.CTX, userID, policyID string, opts ValidateAccessControlPolicyPermissionOptions) *model.AppError {
 	// System admins can manage any policy
-	if a.HasPermissionTo(userID, model.PermissionManageSystem) {
+	if a.HasPermissionTo(rctx, userID, model.PermissionManageSystem) {
 		return nil
 	}
 
@@ -2413,7 +2460,7 @@ func (a *App) isSystemPolicyAppliedToChannel(rctx request.CTX, policyID, channel
 // ValidateChannelAccessControlPolicyCreation validates if a user can create a channel-specific access control policy
 func (a *App) ValidateChannelAccessControlPolicyCreation(rctx request.CTX, userID string, policy *model.AccessControlPolicy) *model.AppError {
 	// System admins can create any type of policy
-	if a.HasPermissionTo(userID, model.PermissionManageSystem) {
+	if a.HasPermissionTo(rctx, userID, model.PermissionManageSystem) {
 		return nil
 	}
 
@@ -2567,7 +2614,7 @@ func (a *App) BuildAccessControlSubject(rctx request.CTX, userID string, roles s
 	// user.isbot / user.createat) for runtime PDP evaluation. a.GetUser is the
 	// cached user read and already resolves IsBot via the Bots join, so this is
 	// a single (usually cache-hit) lookup per subject build.
-	user, appErr := a.GetUser(userID)
+	user, appErr := a.GetUser(rctx, userID)
 	if appErr != nil {
 		// Fail closed: a native-attribute policy must not silently evaluate
 		// against zero-valued natives if the user read fails. The caller
@@ -2739,6 +2786,27 @@ func ResolveSystemRole(roles string) string {
 	return model.SystemUserRoleId
 }
 
+// invalidateAttributeViewCache forces the next refreshAttributeViewIfStale call to refresh.
+//
+// Deliberately not rate-limited: the REFRESH happens on the read side, so a bulk writer with no
+// evaluations in between still costs one refresh, while deferring a write loses it — a client asks
+// for a render decision once per change event and never re-asks.
+//
+// The marker is node-local and the matview shared, so in HA only the writing node gets live
+// visibility; elsewhere the bound stays the periodic one until this grows a cluster message.
+func (a *App) invalidateAttributeViewCache() {
+	ch := a.Srv().Channels()
+
+	if ch.attributeViewRefreshMut.TryLock() {
+		ch.attributeViewRefreshLast = time.Time{}
+		ch.attributeViewRefreshMut.Unlock()
+	} else {
+		// The in-flight refresh may have read the DB before this write landed, and it will
+		// overwrite the timer on completion, so flag a follow-up for the next caller.
+		ch.attributeViewNeedsRefresh.Store(true)
+	}
+}
+
 // refreshAttributeViewIfStale refreshes the attribute materialized views if the
 // last refresh was more than attributeViewRefreshInterval ago. The refresh is
 // non-blocking: if another goroutine is already refreshing, this call returns
@@ -2751,7 +2819,8 @@ func (a *App) refreshAttributeViewIfStale(rctx request.CTX) {
 	}
 	defer ch.attributeViewRefreshMut.Unlock()
 
-	if time.Since(ch.attributeViewRefreshLast) < attributeViewRefreshInterval {
+	needsRefresh := ch.attributeViewNeedsRefresh.Swap(false)
+	if !needsRefresh && time.Since(ch.attributeViewRefreshLast) < attributeViewRefreshInterval {
 		return
 	}
 

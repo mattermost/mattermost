@@ -331,7 +331,7 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	if since > 0 {
 		list, err = c.App.GetPostsSince(c.AppContext, model.GetPostsSinceOptions{ChannelId: channelId, Time: since, SkipFetchThreads: skipFetchThreads, CollapsedThreads: collapsedThreads, CollapsedThreadsExtended: collapsedThreadsExtended, UserId: c.AppContext.Session().UserId})
 	} else if afterPost != "" {
-		etag = c.App.GetPostsEtag(channelId, collapsedThreads)
+		etag = c.App.GetPostsEtag(channelId, c.AppContext.Session().UserId, collapsedThreads)
 
 		if c.HandleEtag(etag, "Get Posts After", w, r) {
 			return
@@ -339,7 +339,7 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		list, err = c.App.GetPostsAfterPost(c.AppContext, model.GetPostsOptions{ChannelId: channelId, PostId: afterPost, Page: page, PerPage: perPage, SkipFetchThreads: skipFetchThreads, CollapsedThreads: collapsedThreads, UserId: c.AppContext.Session().UserId, IncludeDeleted: includeDeleted})
 	} else if beforePost != "" {
-		etag = c.App.GetPostsEtag(channelId, collapsedThreads)
+		etag = c.App.GetPostsEtag(channelId, c.AppContext.Session().UserId, collapsedThreads)
 
 		if c.HandleEtag(etag, "Get Posts Before", w, r) {
 			return
@@ -347,7 +347,7 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		list, err = c.App.GetPostsBeforePost(c.AppContext, model.GetPostsOptions{ChannelId: channelId, PostId: beforePost, Page: page, PerPage: perPage, SkipFetchThreads: skipFetchThreads, CollapsedThreads: collapsedThreads, CollapsedThreadsExtended: collapsedThreadsExtended, UserId: c.AppContext.Session().UserId, IncludeDeleted: includeDeleted})
 	} else {
-		etag = c.App.GetPostsEtag(channelId, collapsedThreads)
+		etag = c.App.GetPostsEtag(channelId, c.AppContext.Session().UserId, collapsedThreads)
 
 		if c.HandleEtag(etag, "Get Posts", w, r) {
 			return
@@ -399,7 +399,7 @@ func getPostsForChannelAroundLastUnread(c *Context, w http.ResponseWriter, r *ht
 	}
 
 	userId := c.Params.UserId
-	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), userId) {
+	if !c.App.SessionHasPermissionToUser(c.AppContext, *c.AppContext.Session(), userId) {
 		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
@@ -433,7 +433,7 @@ func getPostsForChannelAroundLastUnread(c *Context, w http.ResponseWriter, r *ht
 
 	etag := ""
 	if len(postList.Order) == 0 {
-		etag = c.App.GetPostsEtag(channelId, collapsedThreads)
+		etag = c.App.GetPostsEtag(channelId, c.AppContext.Session().UserId, collapsedThreads)
 
 		if c.HandleEtag(etag, "Get Posts", w, r) {
 			return
@@ -483,7 +483,7 @@ func getFlaggedPostsForUser(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
+	if !c.App.SessionHasPermissionToUser(c.AppContext, *c.AppContext.Session(), c.Params.UserId) {
 		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
@@ -608,11 +608,12 @@ func getPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if c.HandleEtag(post.Etag(), "Get Post", w, r) {
+	postEtag := c.App.AppendABACEtag(post.Etag(), c.AppContext.Session().UserId, post.ChannelId)
+	if c.HandleEtag(postEtag, "Get Post", w, r) {
 		return
 	}
 
-	w.Header().Set(model.HeaderEtagServer, post.Etag())
+	w.Header().Set(model.HeaderEtagServer, postEtag)
 	if err := post.EncodeJSON(w); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
@@ -925,7 +926,8 @@ func getPostThread(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if c.HandleEtag(list.Etag(), "Get Post Thread", w, r) {
+	threadEtag := c.App.AppendABACEtag(list.Etag(), c.AppContext.Session().UserId, post.ChannelId)
+	if c.HandleEtag(threadEtag, "Get Post Thread", w, r) {
 		return
 	}
 
@@ -936,7 +938,7 @@ func getPostThread(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Set(model.HeaderEtagServer, clientPostList.Etag())
+	w.Header().Set(model.HeaderEtagServer, threadEtag)
 
 	if err := clientPostList.EncodeJSON(w); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
@@ -1306,7 +1308,7 @@ func setPostUnread(c *Context, w http.ResponseWriter, r *http.Request) {
 	props := model.MapBoolFromJSON(r.Body)
 	collapsedThreadsSupported := props["collapsed_threads_supported"]
 
-	if c.AppContext.Session().UserId != c.Params.UserId && !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
+	if c.AppContext.Session().UserId != c.Params.UserId && !c.App.SessionHasPermissionToUser(c.AppContext, *c.AppContext.Session(), c.Params.UserId) {
 		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
@@ -1331,7 +1333,7 @@ func setPostReminder(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if c.AppContext.Session().UserId != c.Params.UserId && !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
+	if c.AppContext.Session().UserId != c.Params.UserId && !c.App.SessionHasPermissionToUser(c.AppContext, *c.AppContext.Session(), c.Params.UserId) {
 		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
@@ -1441,7 +1443,7 @@ func acknowledgePost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
+	if !c.App.SessionHasPermissionToUser(c.AppContext, *c.AppContext.Session(), c.Params.UserId) {
 		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
@@ -1480,7 +1482,7 @@ func unacknowledgePost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
+	if !c.App.SessionHasPermissionToUser(c.AppContext, *c.AppContext.Session(), c.Params.UserId) {
 		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
@@ -1527,7 +1529,7 @@ func moveThread(c *Context, w http.ResponseWriter, r *http.Request) {
 	model.AddEventParameterToAuditRec(auditRec, "original_post_id", c.Params.PostId)
 	model.AddEventParameterToAuditRec(auditRec, "to_channel_id", moveThreadParams.ChannelId)
 
-	user, err := c.App.GetUser(c.AppContext.Session().UserId)
+	user, err := c.App.GetUser(c.AppContext, c.AppContext.Session().UserId)
 	if err != nil {
 		c.Err = err
 		return
