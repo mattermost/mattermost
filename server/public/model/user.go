@@ -636,14 +636,7 @@ func MentionKeysExceedLimits(raw string) bool {
 	if len(keys) > MentionKeysMaxCount {
 		return true
 	}
-	total := 0
-	for i, k := range keys {
-		if i > 0 {
-			total++
-		}
-		total += len(k)
-	}
-	return total > MentionKeysMaxLength
+	return len(joinMentionKeys(keys)) > MentionKeysMaxLength
 }
 
 // joinMentionKeys joins keys with commas, the inverse of parseMentionKeys.
