@@ -7,10 +7,16 @@ on:
 permissions:
   contents: read
 
-# Translations used to arrive exclusively through Weblate, so this job failed
-# any PR that touched a non-English file unless it came from the weblate
-# account. Translations may now be authored in-repo and land in the same PR as
-# the English string, so the change is reported instead of rejected.
+# Translations used to arrive exclusively through Weblate, so this workflow's
+# only job failed any PR that touched a non-English file unless it came from the
+# weblate account. Translations may now be authored in-repo and land in the same
+# PR as the English string, so the change is reported instead of rejected -- and,
+# below, actually checked.
+#
+# Missing keys are reported as warnings rather than errors: the catalogs are tens
+# of thousands of entries short of parity, and a hard gate is only fair once a
+# contributor adding a string has a documented way to produce the other 21
+# locales. Everything else here is a hard failure.
 jobs:
   check-files:
     name: Report non-English translation file changes
@@ -35,3 +41,44 @@ jobs:
         if: steps.changed-files.outputs.any_changed == 'true'
         run: |
           echo "::warning title=Non-English i18n files changed::This PR modifies non-English translation files directly. Ensure the changes are intentional and will not be overwritten by Weblate."
+
+  verify-webapp:
+    name: Verify webapp translation files
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: webapp
+    steps:
+      - name: ci/checkout-repo
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: ci/setup
+        uses: ./.github/actions/webapp-setup
+        with:
+          read-only: "true"
+
+      - name: ci/i18n-verify-translations
+        working-directory: webapp/channels
+        run: |
+          npm run i18n-verify-translations -- --warn-missing-keys
+
+  verify-server:
+    name: Verify server translation files
+    runs-on: ubuntu-24.04
+    steps:
+      - name: ci/checkout-repo
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: ci/setup-go
+        uses: actions/setup-go@4b73464bb391d4059bd26b0524d20df3927bd417 # v6.3.0
+        with:
+          go-version-file: tools/mmgotool/go.mod
+
+      - name: ci/i18n-verify
+        working-directory: tools/mmgotool
+        run: |
+          go run . i18n verify --server-dir=../../server --warn-missing-ids
