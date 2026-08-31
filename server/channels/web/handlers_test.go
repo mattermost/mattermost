@@ -5,7 +5,6 @@ package web
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -1261,7 +1260,7 @@ func TestHandleContextErrorZeroStatusCode(t *testing.T) {
 	})
 }
 
-func TestHandleContextErrorExposeDetailedError(t *testing.T) {
+func TestHandleContextErrorProps(t *testing.T) {
 	respondWith := func(t *testing.T, th *TestHelper, appErr *model.AppError) *model.AppError {
 		t.Helper()
 
@@ -1284,47 +1283,21 @@ func TestHandleContextErrorExposeDetailedError(t *testing.T) {
 		return &responded
 	}
 
-	t.Run("should wipe detailed error by default", func(t *testing.T) {
+	t.Run("should wipe detailed error but keep props when developer mode is off", func(t *testing.T) {
 		th := Setup(t)
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.EnableDeveloper = false
 		})
 
 		appErr := model.NewAppError("TestFunction", "test.error", nil, "test details", http.StatusBadRequest)
+		appErr.Props = model.StringMap{"plugin_id": "com.example"}
 
 		responded := respondWith(t, th, appErr)
-		assert.Empty(t, responded.DetailedError)
+		assert.Empty(t, responded.DetailedError, "developer mode off must still wipe the detailed error")
+		assert.Equal(t, model.StringMap{"plugin_id": "com.example"}, responded.Props)
 	})
 
-	t.Run("should keep detailed error when explicitly exposed", func(t *testing.T) {
-		th := Setup(t)
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.ServiceSettings.EnableDeveloper = false
-		})
-
-		appErr := model.NewAppError("TestFunction", "test.error", nil, "test details", http.StatusBadRequest)
-		appErr.ExposeDetailedError = true
-
-		responded := respondWith(t, th, appErr)
-		assert.Equal(t, "test details", responded.DetailedError)
-	})
-
-	t.Run("should not expose the wrapped error when explicitly exposed", func(t *testing.T) {
-		th := Setup(t)
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.ServiceSettings.EnableDeveloper = false
-		})
-
-		appErr := model.NewAppError("TestFunction", "test.error", nil, "test details", http.StatusBadRequest).
-			Wrap(errors.New("internal failure"))
-		appErr.ExposeDetailedError = true
-
-		responded := respondWith(t, th, appErr)
-		assert.Equal(t, "test details", responded.DetailedError)
-		assert.NotContains(t, responded.DetailedError, "internal failure")
-	})
-
-	t.Run("hardened mode should sanitize a 5xx even when explicitly exposed", func(t *testing.T) {
+	t.Run("hardened mode should sanitize a 5xx including props", func(t *testing.T) {
 		th := Setup(t)
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.EnableDeveloper = false
@@ -1332,10 +1305,11 @@ func TestHandleContextErrorExposeDetailedError(t *testing.T) {
 		})
 
 		appErr := model.NewAppError("TestFunction", "test.error", nil, "test details", http.StatusInternalServerError)
-		appErr.ExposeDetailedError = true
+		appErr.Props = model.StringMap{"plugin_id": "com.example"}
 
 		responded := respondWith(t, th, appErr)
-		assert.Empty(t, responded.DetailedError, "opting in must not defeat hardened mode")
+		assert.Empty(t, responded.DetailedError)
+		assert.Empty(t, responded.Props, "hardened mode must scrub props on a sanitized 5xx")
 		assert.Equal(t, "Internal Server Error", responded.Message)
 		assert.Empty(t, responded.Id)
 	})

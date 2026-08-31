@@ -186,14 +186,10 @@ func TestInstallPluginLocally(t *testing.T) {
 			require.Equal(t, "app.plugin.install_id.app_error", appErr.Id, appErr.Error())
 			require.Nil(t, manifest)
 
-			var conflict model.PluginInstallConflict
-			require.NoError(t, json.Unmarshal([]byte(appErr.DetailedError), &conflict))
-			require.Equal(t, existingManifest.Id, conflict.PluginID)
-			require.Equal(t, existingManifest.Version, conflict.ExistingVersion)
-			require.Equal(t, existingManifest.Version, conflict.UploadedVersion)
-			require.Equal(t, model.PluginInstallConflictVersionDirectionSame, conflict.VersionDirection)
-
-			require.True(t, appErr.ExposeDetailedError)
+			require.Equal(t, existingManifest.Id, appErr.Props[model.PluginInstallConflictPropPluginID])
+			require.Equal(t, existingManifest.Version, appErr.Props[model.PluginInstallConflictPropExistingVersion])
+			require.Equal(t, existingManifest.Version, appErr.Props[model.PluginInstallConflictPropUploadedVersion])
+			require.Equal(t, model.PluginInstallConflictVersionDirectionSame, appErr.Props[model.PluginInstallConflictPropVersionDirection])
 
 			assertBundleInfoManifests(t, th, []*model.Manifest{existingManifest})
 		})
@@ -239,12 +235,10 @@ func TestInstallPluginLocally(t *testing.T) {
 					require.Equal(t, "app.plugin.install_id.app_error", appErr.Id, appErr.Error())
 					require.Nil(t, manifest)
 
-					var conflict model.PluginInstallConflict
-					require.NoError(t, json.Unmarshal([]byte(appErr.DetailedError), &conflict))
-					require.Equal(t, existingManifest.Id, conflict.PluginID)
-					require.Equal(t, tc.existingVersion, conflict.ExistingVersion)
-					require.Equal(t, tc.uploadedVersion, conflict.UploadedVersion)
-					require.Equal(t, tc.versionDirection, conflict.VersionDirection)
+					require.Equal(t, existingManifest.Id, appErr.Props[model.PluginInstallConflictPropPluginID])
+					require.Equal(t, tc.existingVersion, appErr.Props[model.PluginInstallConflictPropExistingVersion])
+					require.Equal(t, tc.uploadedVersion, appErr.Props[model.PluginInstallConflictPropUploadedVersion])
+					require.Equal(t, tc.versionDirection, appErr.Props[model.PluginInstallConflictPropVersionDirection])
 
 					assertBundleInfoManifests(t, th, []*model.Manifest{existingManifest})
 				})

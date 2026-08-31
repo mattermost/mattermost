@@ -10,7 +10,7 @@ import PluginMetadataPanel, {formatPluginVersion} from '../plugin_metadata_panel
 
 export type PluginInstallVersionDirection = 'upgrade' | 'downgrade' | 'same' | 'unknown';
 
-// Mirrors model.PluginInstallConflict on the server, delivered in AppError.detailed_error.
+// Built from the plugin conflict keys in AppError.props returned on a plugin upload id conflict.
 export type PluginInstallConflict = {
     plugin_id?: string;
     plugin_name?: string;

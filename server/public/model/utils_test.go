@@ -224,50 +224,18 @@ func TestAppErrorSerialize(t *testing.T) {
 		require.EqualError(t, berr, aerr.Error())
 	})
 
-	t.Run("Wipe Detailed, but detailed error is exposed", func(t *testing.T) {
-		aerr := NewAppError("", "message", nil, "detail", http.StatusTeapot)
-		aerr.ExposeDetailedError = true
-		aerr.WipeDetailed()
-		js := aerr.ToJSON()
-		err := AppErrorFromJSON(strings.NewReader(js))
-		berr, ok := err.(*AppError)
-		require.True(t, ok)
-		require.Equal(t, "message", berr.Id)
-		require.Equal(t, "detail", berr.DetailedError)
-		require.Equal(t, http.StatusTeapot, berr.StatusCode)
-
-		require.EqualError(t, berr, aerr.Error())
-	})
-
-	t.Run("Wipe Detailed + Wrapped, but detailed error is exposed", func(t *testing.T) {
+	t.Run("Props survive WipeDetailed and round-trip to clients", func(t *testing.T) {
 		aerr := NewAppError("", "message", nil, "detail", http.StatusTeapot).Wrap(errors.New("wrapped"))
-		aerr.ExposeDetailedError = true
+		aerr.Props = StringMap{"plugin_id": "com.example", "version_direction": "downgrade"}
 		aerr.WipeDetailed()
 		js := aerr.ToJSON()
 		err := AppErrorFromJSON(strings.NewReader(js))
 		berr, ok := err.(*AppError)
 		require.True(t, ok)
 		require.Equal(t, "message", berr.Id)
-		require.Equal(t, "detail", berr.DetailedError)
-		require.NotContains(t, berr.DetailedError, "wrapped")
+		require.Empty(t, berr.DetailedError, "WipeDetailed must still discard the detailed error")
+		require.Equal(t, StringMap{"plugin_id": "com.example", "version_direction": "downgrade"}, berr.Props)
 		require.Equal(t, http.StatusTeapot, berr.StatusCode)
-
-		require.EqualError(t, berr, aerr.Error())
-	})
-
-	t.Run("Wipe Wrapped, but detailed error is exposed", func(t *testing.T) {
-		aerr := NewAppError("", "message", nil, "", http.StatusTeapot).Wrap(errors.New("wrapped"))
-		aerr.ExposeDetailedError = true
-		aerr.WipeDetailed()
-		js := aerr.ToJSON()
-		err := AppErrorFromJSON(strings.NewReader(js))
-		berr, ok := err.(*AppError)
-		require.True(t, ok)
-		require.Equal(t, "message", berr.Id)
-		require.Empty(t, berr.DetailedError)
-		require.Equal(t, http.StatusTeapot, berr.StatusCode)
-
-		require.EqualError(t, berr, aerr.Error())
 	})
 
 	t.Run("Where", func(t *testing.T) {

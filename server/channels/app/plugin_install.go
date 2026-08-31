@@ -75,7 +75,6 @@ package app
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -254,31 +253,35 @@ func (ch *Channels) installPluginToFilestore(manifest *model.Manifest, bundle, s
 }
 
 func newPluginInstallConflictAppError(existingManifest, uploadedManifest *model.Manifest) *model.AppError {
-	conflict := model.PluginInstallConflict{
-		PluginID:         uploadedManifest.Id,
-		PluginName:       uploadedManifest.Name,
-		HomepageURL:      uploadedManifest.HomepageURL,
-		ExistingVersion:  existingManifest.Version,
-		UploadedVersion:  uploadedManifest.Version,
-		VersionDirection: model.PluginInstallConflictVersionDirection(existingManifest, uploadedManifest),
+	// Installing only validates the plugin id, so the uploaded name and homepage may be missing.
+	// Fall back to the installed plugin's metadata to keep the plugin identifiable.
+	name := uploadedManifest.Name
+	if name == "" {
+		name = existingManifest.Name
+	}
+	homepageURL := uploadedManifest.HomepageURL
+	if homepageURL == "" {
+		homepageURL = existingManifest.HomepageURL
 	}
 
-	// Installing only validates the plugin id, so the name and homepage may be missing. Fall back to
-	// the installed plugin's metadata to keep the plugin identifiable.
-	if conflict.PluginName == "" {
-		conflict.PluginName = existingManifest.Name
-	}
-	if conflict.HomepageURL == "" {
-		conflict.HomepageURL = existingManifest.HomepageURL
+	direction := model.PluginInstallConflictVersionDirection(existingManifest, uploadedManifest)
+
+	// The confirmation dialog reads this from AppError.Props, which is returned to clients even when
+	// developer mode is off. Keep it to plugin metadata that is safe for any admin client to see.
+	props := model.StringMap{
+		model.PluginInstallConflictPropPluginID:         uploadedManifest.Id,
+		model.PluginInstallConflictPropPluginName:       name,
+		model.PluginInstallConflictPropHomepageURL:      homepageURL,
+		model.PluginInstallConflictPropExistingVersion:  existingManifest.Version,
+		model.PluginInstallConflictPropUploadedVersion:  uploadedManifest.Version,
+		model.PluginInstallConflictPropVersionDirection: direction,
 	}
 
-	details := ""
-	if data, err := json.Marshal(conflict); err == nil {
-		details = string(data)
-	}
+	// DetailedError is only for the server log; the client reads Props instead.
+	details := fmt.Sprintf("plugin %q conflict: existing version %q, uploaded version %q (%s)", uploadedManifest.Id, existingManifest.Version, uploadedManifest.Version, direction)
 
 	appErr := model.NewAppError("installExtractedPlugin", "app.plugin.install_id.app_error", nil, details, http.StatusBadRequest)
-	appErr.ExposeDetailedError = true
+	appErr.Props = props
 
 	return appErr
 }

@@ -106,7 +106,7 @@ describe('components/PluginManagement', () => {
         },
     };
 
-    const makeConflictDetails = (versionDirection: string, existingVersion = '1.0.0', uploadedVersion = '2.0.0') => JSON.stringify({
+    const makeConflictProps = (versionDirection: string, existingVersion = '1.0.0', uploadedVersion = '2.0.0'): Record<string, string> => ({
         plugin_id: 'com.mattermost.test-plugin',
         plugin_name: 'Test Plugin',
         existing_version: existingVersion,
@@ -114,11 +114,11 @@ describe('components/PluginManagement', () => {
         version_direction: versionDirection,
     });
 
-    const renderWithUploadConflict = async (details: string) => {
+    const renderWithUploadConflict = async (conflictProps: Record<string, string>) => {
         const uploadPlugin = jest.fn().mockResolvedValueOnce({
             error: {
                 server_error_id: 'app.plugin.install_id.app_error',
-                detailed_error: details,
+                props: conflictProps,
                 message: 'A plugin with this ID already exists.',
             },
         });
@@ -623,7 +623,7 @@ describe('components/PluginManagement', () => {
         ['downgrade', '2.0.0', '1.0.0', 'This upload downgrades the existing plugin. Downgrades can remove fixes or features.'],
         ['unknown', '1.0.0', 'not-semver', 'Review the uploaded plugin before overwriting the existing installation. The server could not compare these plugin versions.'],
     ])('should render overwrite review panel for %s uploads', async (direction, existingVersion, uploadedVersion, message) => {
-        await renderWithUploadConflict(makeConflictDetails(direction, existingVersion, uploadedVersion));
+        await renderWithUploadConflict(makeConflictProps(direction, existingVersion, uploadedVersion));
 
         expect(screen.getByTestId('plugin-upload-overwrite-review')).toHaveClass(`PluginUploadOverwriteReview--${direction}`);
         expect(screen.getByText('Review plugin overwrite')).toBeInTheDocument();
@@ -638,7 +638,7 @@ describe('components/PluginManagement', () => {
             mockResolvedValueOnce({
                 error: {
                     server_error_id: 'app.plugin.install_id.app_error',
-                    detailed_error: makeConflictDetails('upgrade'),
+                    props: makeConflictProps('upgrade'),
                     message: 'A plugin with this ID already exists.',
                 },
             }).
@@ -674,7 +674,7 @@ describe('components/PluginManagement', () => {
     });
 
     test('should clear overwrite review when upload overwrite is cancelled', async () => {
-        const {uploadPlugin} = await renderWithUploadConflict(makeConflictDetails('downgrade', '2.0.0', '1.0.0'));
+        const {uploadPlugin} = await renderWithUploadConflict(makeConflictProps('downgrade', '2.0.0', '1.0.0'));
 
         await userEvent.click(document.getElementById('cancelModalButton')!);
 

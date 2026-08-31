@@ -441,9 +441,9 @@ func (h Handler) handleContextError(c *Context, w http.ResponseWriter, r *http.R
 	if *c.App.Config().ServiceSettings.ExperimentalEnableHardenedMode && c.Err.StatusCode >= 500 {
 		c.Err.Id = ""
 		c.Err.Message = "Internal Server Error"
-		// Hardened mode overrides any opt-in from the caller.
-		c.Err.ExposeDetailedError = false
 		c.Err.WipeDetailed()
+		// Props is always exposed to clients, so scrub it along with the rest of the sanitized 5xx.
+		c.Err.Props = nil
 		c.Err.StatusCode = 500
 		c.Err.Where = ""
 	}

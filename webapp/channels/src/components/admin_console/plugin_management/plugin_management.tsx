@@ -640,20 +640,15 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
         Utils.clearFileInput(element);
     };
 
-    parsePluginInstallConflict = (details?: string): PluginInstallConflict => {
-        if (!details) {
-            return {version_direction: 'unknown'};
-        }
-
-        try {
-            const conflict = JSON.parse(details) as PluginInstallConflict;
-            return {
-                ...conflict,
-                version_direction: conflict.version_direction || 'unknown',
-            };
-        } catch {
-            return {version_direction: 'unknown'};
-        }
+    pluginInstallConflictFromProps = (props?: Record<string, string>): PluginInstallConflict => {
+        return {
+            plugin_id: props?.plugin_id,
+            plugin_name: props?.plugin_name,
+            homepage_url: props?.homepage_url,
+            existing_version: props?.existing_version,
+            uploaded_version: props?.uploaded_version,
+            version_direction: (props?.version_direction as PluginInstallConflict['version_direction']) || 'unknown',
+        };
     };
 
     handleUploadDragEnter = (e: React.DragEvent) => {
@@ -720,7 +715,7 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
             if (error.server_error_id === 'app.plugin.install_id.app_error' && !force) {
                 this.setState({
                     confirmOverwriteUploadModal: true,
-                    overwriteUploadConflict: this.parsePluginInstallConflict(error.detailed_error),
+                    overwriteUploadConflict: this.pluginInstallConflictFromProps(error.props),
                     uploading: false,
                     overwritingUpload: false,
                 });
