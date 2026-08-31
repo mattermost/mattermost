@@ -10,6 +10,7 @@ import {PlusIcon} from '@mattermost/compass-icons/components';
 import type {PropertyField} from '@mattermost/types/properties';
 
 import PropertyTypes from 'mattermost-redux/action_types/properties';
+import {getAccessControlSettings} from 'mattermost-redux/selectors/entities/access_control';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import {setNavigationBlocked} from 'actions/admin_actions';
@@ -23,6 +24,8 @@ import LoadingScreen from 'components/loading_screen';
 import SectionNotice from 'components/section_notice';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 
+import {getHistory} from 'utils/browser_history';
+
 import {
     AddLevelButton,
     AddLevelButtonRow,
@@ -34,6 +37,8 @@ import ClassificationLevelsTable from './components/classification_levels_table'
 import GlobalClassificationIndicators from './components/global_classification_indicators';
 import type {GlobalBannerConfig} from './utils';
 import {
+    CLEARANCE_FIELD_DISPLAY_NAME,
+    CLEARANCE_FIELD_NAME,
     DEFAULT_GLOBAL_BANNER,
     DISPLAY_BANNER_TOP,
     actionsToGlobalBanner,
@@ -41,13 +46,16 @@ import {
     fetchClassificationField,
     fetchLinkedClassificationField,
     fetchSystemClassificationValue,
+    fetchUserLinkedFields,
     processClassificationField,
     saveCreateChannelLinkedField,
     saveCreateField,
     saveCreateLinkedField,
+    saveCreateUserLinkedField,
     saveDeleteChannelLinkedField,
     saveDeleteField,
     saveDeleteLinkedField,
+    saveDeleteUserLinkedField,
     savePatchField,
     savePatchLinkedField,
     saveUpsertSystemValue,
@@ -59,12 +67,17 @@ import {PENDING_LEVEL_PREFIX, PRESET_CUSTOM, PRESET_EMPTY, presets} from './util
 import SaveChangesPanel from '../save_changes_panel';
 import {AdminSection, AdminWrapper, SectionHeader, SectionHeading} from '../system_properties/controls';
 
+const MEMBERSHIP_POLICIES_URL = '/admin_console/system_attributes/membership_policies';
+
 const msg = defineMessages({
     pageTitle: {id: 'admin.sidebar.classificationMarkings', defaultMessage: 'Classification Markings'},
     enableTitle: {id: 'admin.classification_markings.enable.title', defaultMessage: 'Enable classification markings'},
     enableDescription: {id: 'admin.classification_markings.enable.description', defaultMessage: 'Use this to enable classification markings as banners at the system and channel level. You can pre-select text and colors for your banner, as well as set a default option for consistency.'},
     presetTitle: {id: 'admin.classification_markings.preset.title', defaultMessage: 'Classification preset'},
     presetDescription: {id: 'admin.classification_markings.preset.description', defaultMessage: 'Select a classification preset from the dropdown menu based on your country affiliation. This will help tailor the options to your specific needs. You can also create custom classification levels.'},
+    clearanceTitle: {id: 'admin.classification_markings.enforcement.clearance.title', defaultMessage: 'Clearance attribute'},
+    clearanceCheckbox: {id: 'admin.classification_markings.enforcement.clearance.checkbox', defaultMessage: 'Enable clearance attribute'},
+    clearanceHelp: {id: 'admin.classification_markings.enforcement.clearance.help', defaultMessage: 'Creates a ranked "Clearance" user attribute linked to these classification levels. Channel membership can then be managed with a corresponding <link>membership policy</link>.'},
     levelsTitle: {id: 'admin.classification_markings.levels.title', defaultMessage: 'Classification levels'},
     levelsDescription: {id: 'admin.classification_markings.levels.description', defaultMessage: 'Text and colors for different classification levels that will be used in the system'},
     informationalNoticeTitle: {id: 'admin.classification_markings.notice.title', defaultMessage: 'Classification markings are informational only'},
@@ -93,6 +106,7 @@ export default function ClassificationMarkings({disabled}: Props) {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
     const currentUserId = useSelector(getCurrentUserId);
+    const abacEnabled = Boolean(useSelector(getAccessControlSettings)?.EnableAttributeBasedAccessControl);
 
     const [loading, setLoading] = useState(true);
     const [loadError, setLoadError] = useState<string>();
@@ -102,6 +116,8 @@ export default function ClassificationMarkings({disabled}: Props) {
     const [existingLinkedField, setExistingLinkedField] = useState<PropertyField | null>(null);
 
     const [enabled, setEnabled] = useState(false);
+    const [clearanceEnabled, setClearanceEnabled] = useState(false);
+    const [initialClearanceEnabled, setInitialClearanceEnabled] = useState(false);
     const [presetId, setPresetId] = useState<string>(PRESET_EMPTY);
     const [levels, setLevels] = useState<ClassificationLevel[]>([]);
     const [globalBanner, setGlobalBanner] = useState<GlobalBannerConfig>({...DEFAULT_GLOBAL_BANNER});
@@ -120,6 +136,9 @@ export default function ClassificationMarkings({disabled}: Props) {
         if (!enabled) {
             return false;
         }
+        if (clearanceEnabled !== initialClearanceEnabled) {
+            return true;
+        }
         if (
             globalBanner.enabled !== initialGlobalBanner.enabled ||
             globalBanner.placement !== initialGlobalBanner.placement ||
@@ -134,7 +153,7 @@ export default function ClassificationMarkings({disabled}: Props) {
             const initial = initialLevels[i];
             return level.name !== initial.name || level.color !== initial.color || level.id !== initial.id || level.rank !== initial.rank;
         });
-    }, [enabled, initialEnabled, levels, initialLevels, globalBanner, initialGlobalBanner]);
+    }, [enabled, initialEnabled, clearanceEnabled, initialClearanceEnabled, levels, initialLevels, globalBanner, initialGlobalBanner]);
 
     useEffect(() => {
         dispatch(setNavigationBlocked(hasChanges));
@@ -176,8 +195,21 @@ export default function ClassificationMarkings({disabled}: Props) {
                         banner = actionsToGlobalBanner(actions, levelId);
                     }
 
+                    // Clearance is an ABAC-only concept; only probe for it when
+                    // ABAC is on (keeps the load path untouched otherwise).
+                    let hasClearance = false;
+                    if (abacEnabled) {
+                        const clearanceFields = await fetchUserLinkedFields(field.id);
+                        if (cancelled) {
+                            return;
+                        }
+                        hasClearance = clearanceFields.length > 0;
+                    }
+
                     setExistingField(field);
                     setExistingLinkedField(linkedField ?? null);
+                    setClearanceEnabled(hasClearance);
+                    setInitialClearanceEnabled(hasClearance);
                     setEnabled(true);
                     setInitialEnabled(true);
                     setLevels(result.levels);
@@ -205,11 +237,27 @@ export default function ClassificationMarkings({disabled}: Props) {
         return () => {
             cancelled = true;
         };
-    }, [currentUserId]);
+    }, [currentUserId, abacEnabled]);
 
     const handleClassificationEnabledChange = useCallback((_id: string, value: boolean) => {
         setEnabled(value);
     }, []);
+
+    const handleClearanceChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+        setClearanceEnabled(e.target.checked);
+    }, []);
+
+    const membershipPolicyLink = useCallback((chunks: React.ReactNode) => (
+        <a
+            href={MEMBERSHIP_POLICIES_URL}
+            onClick={(e) => {
+                e.preventDefault();
+                getHistory().push(MEMBERSHIP_POLICIES_URL);
+            }}
+        >
+            {chunks}
+        </a>
+    ), []);
 
     const applyPreset = useCallback((newPresetId: string) => {
         if (newPresetId === PRESET_CUSTOM) {
@@ -422,8 +470,30 @@ export default function ClassificationMarkings({disabled}: Props) {
                 dispatch({type: PropertyTypes.RECEIVED_PROPERTY_FIELDS, data: {fields: [savedTemplate, savedLinked, savedChannelField]}});
             }
 
+            // Clearance user field: create or delete to match the checkbox. The
+            // template exists now (savedTemplate), which the linked field
+            // requires — this is why creation is deferred to save. Re-fetch to
+            // avoid duplicating if the initial load missed it. ABAC-gated to
+            // match the section's visibility.
+            if (abacEnabled) {
+                // Delete every match, not just the first: this UI creates one, but a
+                // second linked field made another way would otherwise survive and
+                // reappear on reload while enforcement records itself as disabled.
+                const currentClearance = await fetchUserLinkedFields(savedTemplate.id);
+                if (clearanceEnabled && currentClearance.length === 0) {
+                    const savedClearance = await saveCreateUserLinkedField(savedTemplate.id, CLEARANCE_FIELD_NAME, CLEARANCE_FIELD_DISPLAY_NAME);
+                    dispatch({type: PropertyTypes.RECEIVED_PROPERTY_FIELDS, data: {fields: [savedClearance]}});
+                } else if (!clearanceEnabled) {
+                    for (const cf of currentClearance) {
+                        await saveDeleteUserLinkedField(cf.id); // eslint-disable-line no-await-in-loop
+                        dispatch({type: PropertyTypes.PROPERTY_FIELD_DELETED, data: {fieldId: cf.id}});
+                    }
+                }
+            }
+
             setExistingField(savedTemplate);
             setExistingLinkedField(savedLinked);
+            setInitialClearanceEnabled(clearanceEnabled);
             setLevels(result.levels);
             setInitialLevels(result.levels);
             setPresetId(result.presetId);
@@ -432,11 +502,20 @@ export default function ClassificationMarkings({disabled}: Props) {
             setInitialEnabled(true);
         } else if (templateField) {
             // Linked fields must be deleted before the template (deletion protection).
-            // Order: channel field -> system field -> template.
+            // Order: channel field -> clearance user field -> system field -> template.
             const channelField = await fetchChannelClassificationField();
             if (channelField) {
                 await saveDeleteChannelLinkedField(channelField.id);
                 dispatch({type: PropertyTypes.PROPERTY_FIELD_DELETED, data: {fieldId: channelField.id}});
+            }
+
+            // Not ABAC-gated, unlike the create path: a clearance field created
+            // while ABAC was on outlives the setting, and leaving it behind makes
+            // the template delete below fail on its dependents.
+            const clearanceFields = await fetchUserLinkedFields(templateField.id);
+            for (const cf of clearanceFields) {
+                await saveDeleteUserLinkedField(cf.id); // eslint-disable-line no-await-in-loop
+                dispatch({type: PropertyTypes.PROPERTY_FIELD_DELETED, data: {fieldId: cf.id}});
             }
             if (linkedField) {
                 await saveDeleteLinkedField(linkedField.id);
@@ -447,6 +526,8 @@ export default function ClassificationMarkings({disabled}: Props) {
 
             setExistingField(null);
             setExistingLinkedField(null);
+            setClearanceEnabled(false);
+            setInitialClearanceEnabled(false);
             setInitialEnabled(false);
             setInitialLevels([]);
             setLevels([]);
@@ -455,7 +536,7 @@ export default function ClassificationMarkings({disabled}: Props) {
             setGlobalBanner({...DEFAULT_GLOBAL_BANNER});
             setInitialGlobalBanner({...DEFAULT_GLOBAL_BANNER});
         }
-    }, [enabled, existingField, existingLinkedField, levels, globalBanner, dispatch]);
+    }, [enabled, abacEnabled, clearanceEnabled, existingField, existingLinkedField, levels, globalBanner, dispatch]);
 
     const handleSave = useCallback(async () => {
         setSaveError(undefined);
@@ -521,14 +602,19 @@ export default function ClassificationMarkings({disabled}: Props) {
                 <FormattedMessage {...msg.pageTitle}/>
             </AdminHeader>
             <AdminWrapper>
-                <InformationNoticeWrapper>
-                    <SectionNotice
-                        type='warning'
-                        iconOverride='icon-information-outline'
-                        title={<FormattedMessage {...msg.informationalNoticeTitle}/>}
-                        text={formatMessage(msg.informationalNoticeBody)}
-                    />
-                </InformationNoticeWrapper>
+                {/* Only true while nothing enforces the levels. The clearance attribute
+                    feeds a membership policy, so once it is on the markings do decide
+                    access and this notice would contradict the section below. */}
+                {!clearanceEnabled && (
+                    <InformationNoticeWrapper>
+                        <SectionNotice
+                            type='warning'
+                            iconOverride='icon-information-outline'
+                            title={<FormattedMessage {...msg.informationalNoticeTitle}/>}
+                            text={formatMessage(msg.informationalNoticeBody)}
+                        />
+                    </InformationNoticeWrapper>
+                )}
                 <form
                     className='form-horizontal'
                     onSubmit={(e) => e.preventDefault()}
@@ -575,6 +661,30 @@ export default function ClassificationMarkings({disabled}: Props) {
                                     styles={classificationPresetDropdownStyles}
                                 />
                             </PresetDropdownWrapper>
+                        </Setting>
+                    )}
+                    {enabled && abacEnabled && (
+                        <Setting
+                            inputId='clearanceAttribute'
+                            label={<FormattedMessage {...msg.clearanceTitle}/>}
+                            helpText={
+                                <FormattedMessage
+                                    {...msg.clearanceHelp}
+                                    values={{link: membershipPolicyLink}}
+                                />
+                            }
+                            setByEnv={false}
+                        >
+                            <label className='checkbox-inline'>
+                                <input
+                                    data-testid='clearanceAttributeCheckbox'
+                                    type='checkbox'
+                                    checked={clearanceEnabled}
+                                    onChange={handleClearanceChange}
+                                    disabled={disabled}
+                                />
+                                <FormattedMessage {...msg.clearanceCheckbox}/>
+                            </label>
                         </Setting>
                     )}
                 </form>
