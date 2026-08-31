@@ -10,21 +10,6 @@ import {
     test,
 } from '@mattermost/playwright-lib';
 
-/**
- * @objective Verify that a React strict mode violation in the web app reaches the E2E run as an
- * uncaught browser exception, so PW_FAIL_ON_PAGE_ERROR has something real to fail on.
- *
- * Every other spec covers this only by accident: it reports a violation when the app happens to have
- * one, and says nothing when it doesn't. That makes "the app is clean" and "detection is broken"
- * produce identical runs, which is exactly the guesswork this test removes.
- *
- * The warning is injected through console.error rather than caused by a real component. React only
- * emits these from its own internals, so the alternative is keeping a deliberately broken component
- * in the app, and the coverage would disappear the moment someone fixed it. Everything downstream of
- * console.error is the real thing: the pattern matching, the printf-style formatting, the component
- * stack split, the rethrow, and the harness that collects it.
- */
-
 type StrictModeViolation = {
     message: string;
     componentStack?: string;
@@ -51,6 +36,20 @@ test.afterEach(() => {
     resetPageErrors();
 });
 
+/**
+ * @objective Verify that a React strict mode violation in the web app reaches the E2E run as an
+ * uncaught browser exception, so PW_FAIL_ON_PAGE_ERROR has something real to fail on.
+ *
+ * Every other spec covers this only by accident: it reports a violation when the app happens to have
+ * one, and says nothing when it doesn't. That makes "the app is clean" and "detection is broken"
+ * produce identical runs, which is exactly the guesswork this test removes.
+ *
+ * The warning is injected through console.error rather than caused by a real component. React only
+ * emits these from its own internals, so the alternative is keeping a deliberately broken component
+ * in the app, and the coverage would disappear the moment someone fixed it. Everything downstream of
+ * console.error is the real thing: the pattern matching, the printf-style formatting, the component
+ * stack split, the rethrow, and the harness that collects it.
+ */
 test(
     'a React strict mode violation surfaces as an uncaught browser exception',
     {tag: '@react_strict_mode'},
@@ -63,8 +62,8 @@ test(
 
         // The diagnostics are only installed in a build made with MM_REACT_STRICT_MODE, which is not
         // how the web app ships. There is nothing to detect in any other build.
-        const diagnosticsInstalled = await page.evaluate(
-            () => Array.isArray((window as StrictModeWindow).reactStrictModeViolations),
+        const diagnosticsInstalled = await page.evaluate(() =>
+            Array.isArray((window as StrictModeWindow).reactStrictModeViolations),
         );
         test.skip(!diagnosticsInstalled, 'Web app was not built with MM_REACT_STRICT_MODE');
 
@@ -80,9 +79,7 @@ test(
         }, REACT_WARNING_ARGS);
 
         // * The warning should be rethrown as an uncaught exception
-        await expect
-            .poll(() => uncaught.map((error) => error.name))
-            .toContain('ReactStrictModeViolation');
+        await expect.poll(() => uncaught.map((error) => error.name)).toContain('ReactStrictModeViolation');
 
         const violation = uncaught.find((error) => error.name === 'ReactStrictModeViolation')!;
 
@@ -101,9 +98,7 @@ test(
         expect(violation.stack).toContain('in CSSTransition (created by MenuWrapperAnimation)');
 
         // * The app should record it for anyone reading the page afterwards
-        const recorded = await page.evaluate(
-            () => (window as StrictModeWindow).reactStrictModeViolations ?? [],
-        );
+        const recorded = await page.evaluate(() => (window as StrictModeWindow).reactStrictModeViolations ?? []);
         expect(recorded).toContainEqual(
             expect.objectContaining({
                 componentStack: expect.stringContaining('in Transition (created by CSSTransition)'),
