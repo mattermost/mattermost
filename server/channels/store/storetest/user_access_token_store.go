@@ -18,7 +18,11 @@ func TestUserAccessTokenStore(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("UserAccessTokenDisableEnable", func(t *testing.T) { testUserAccessTokenDisableEnable(t, rctx, ss) })
 	t.Run("UserAccessTokenSearch", func(t *testing.T) { testUserAccessTokenSearch(t, rctx, ss) })
 	t.Run("UserAccessTokenPagination", func(t *testing.T) { testUserAccessTokenPagination(t, rctx, ss) })
+	t.Run("UserAccessTokenNonCompliant", func(t *testing.T) { testUserAccessTokenNonCompliant(t, rctx, ss) })
 	t.Run("UserAccessTokenExpiry", func(t *testing.T) { testUserAccessTokenExpiry(t, rctx, ss) })
+	t.Run("UserAccessTokenRotate", func(t *testing.T) { testUserAccessTokenRotate(t, rctx, ss) })
+	t.Run("UserAccessTokenGetExpiring", func(t *testing.T) { testUserAccessTokenGetExpiring(t, rctx, ss) })
+	t.Run("UserAccessTokenUpdateLastNotifiedAt", func(t *testing.T) { testUserAccessTokenUpdateLastNotifiedAt(t, rctx, ss) })
 }
 
 func testUserAccessTokenSaveGetDelete(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -355,4 +359,350 @@ func testUserAccessTokenExpiry(t *testing.T, rctx request.CTX, ss store.Store) {
 	deleted, err = ss.UserAccessToken().DeleteByIds([]string{model.NewId()})
 	require.NoError(t, err)
 	require.Equal(t, int64(0), deleted)
+}
+
+func testUserAccessTokenRotate(t *testing.T, rctx request.CTX, ss store.Store) {
+	oldSecret := model.NewId()
+	uat := &model.UserAccessToken{
+		Token:       oldSecret,
+		UserId:      model.NewId(),
+		Description: "rotate-test",
+		ExpiresAt:   model.GetMillis() + 24*60*60*1000, // 1 day from now
+	}
+
+	session := &model.Session{UserId: uat.UserId, Token: uat.Token}
+	_, err := ss.Session().Save(rctx, session)
+	require.NoError(t, err)
+
+	_, nErr := ss.UserAccessToken().Save(uat)
+	require.NoError(t, nErr)
+
+	newSecret := model.NewId()
+	newExpiry := model.GetMillis() + 48*60*60*1000
+	nErr = ss.UserAccessToken().UpdateTokenRotate(uat.Id, newSecret, newExpiry)
+	require.NoError(t, nErr)
+
+	// Token row should reflect the new secret and expiry.
+	updated, nErr := ss.UserAccessToken().Get(uat.Id)
+	require.NoError(t, nErr)
+	require.Equal(t, newSecret, updated.Token, "token secret should be updated")
+	require.Equal(t, newExpiry, updated.ExpiresAt, "token expiry should be updated")
+	require.NotEqual(t, oldSecret, updated.Token, "old secret must be replaced")
+
+	// Session keyed to the old secret must be deleted.
+	_, err = ss.Session().Get(rctx, session.Token)
+	require.Error(t, err, "session for old secret should be deleted after rotate")
+
+	// Clean up.
+	_ = ss.UserAccessToken().Delete(uat.Id)
+}
+
+func testUserAccessTokenGetExpiring(t *testing.T, rctx request.CTX, ss store.Store) {
+	now := model.GetMillis()
+	thresholds := []int{1, 3, 7}
+
+	activeUser, err := ss.User().Save(rctx, &model.User{Email: MakeEmail(), Username: model.NewUsername()})
+	require.NoError(t, err)
+
+	// Token expiring inside the 7-day window, never notified.
+	inWindow := &model.UserAccessToken{Token: model.NewId(), UserId: activeUser.Id, Description: "in-window", ExpiresAt: now + 5*dayMillisTest}
+	_, err = ss.UserAccessToken().Save(inWindow)
+	require.NoError(t, err)
+
+	// Token expiring beyond the horizon.
+	beyond := &model.UserAccessToken{Token: model.NewId(), UserId: activeUser.Id, Description: "beyond", ExpiresAt: now + 30*dayMillisTest}
+	_, err = ss.UserAccessToken().Save(beyond)
+	require.NoError(t, err)
+
+	// Already-expired token.
+	past := &model.UserAccessToken{Token: model.NewId(), UserId: activeUser.Id, Description: "past", ExpiresAt: now - 60*1000}
+	_, err = ss.UserAccessToken().Save(past)
+	require.NoError(t, err)
+
+	// Non-expiring token.
+	nonExpiring := &model.UserAccessToken{Token: model.NewId(), UserId: activeUser.Id, Description: "non-expiring"}
+	_, err = ss.UserAccessToken().Save(nonExpiring)
+	require.NoError(t, err)
+
+	// Token with 12h left that was already warned within the last day (i.e. at the
+	// terminal 1-day bucket): excluded.
+	terminal := &model.UserAccessToken{Token: model.NewId(), UserId: activeUser.Id, Description: "terminal", ExpiresAt: now + 12*60*60*1000}
+	_, err = ss.UserAccessToken().Save(terminal)
+	require.NoError(t, err)
+	require.NoError(t, ss.UserAccessToken().UpdateLastNotifiedAt(terminal.Id, now))
+
+	// Token warned at the 7-day mark (when 7 days remained) but now inside the
+	// 3-day window: still returned, because the 3-day bucket hasn't been covered.
+	stillNotify := &model.UserAccessToken{Token: model.NewId(), UserId: activeUser.Id, Description: "still-notify", ExpiresAt: now + 2*dayMillisTest}
+	_, err = ss.UserAccessToken().Save(stillNotify)
+	require.NoError(t, err)
+	stillNotifyAt := stillNotify.ExpiresAt - 7*dayMillisTest
+	require.NoError(t, ss.UserAccessToken().UpdateLastNotifiedAt(stillNotify.Id, stillNotifyAt))
+
+	// Deactivated user with an in-window token: excluded.
+	deletedUser := &model.User{Email: MakeEmail(), Username: model.NewUsername()}
+	_, err = ss.User().Save(rctx, deletedUser)
+	require.NoError(t, err)
+	deletedUser.DeleteAt = model.GetMillis()
+	_, err = ss.User().Update(rctx, deletedUser, true)
+	require.NoError(t, err)
+	deactivatedToken := &model.UserAccessToken{Token: model.NewId(), UserId: deletedUser.Id, Description: "deactivated", ExpiresAt: now + 5*dayMillisTest}
+	_, err = ss.UserAccessToken().Save(deactivatedToken)
+	require.NoError(t, err)
+
+	// Bot with an in-window token: excluded.
+	botUser, err := ss.User().Save(rctx, model.UserFromBot(&model.Bot{Username: model.NewUsername(), OwnerId: activeUser.Id}))
+	require.NoError(t, err)
+	_, nErr := ss.Bot().Save(&model.Bot{UserId: botUser.Id, Username: botUser.Username, OwnerId: activeUser.Id})
+	require.NoError(t, nErr)
+	botToken := &model.UserAccessToken{Token: model.NewId(), UserId: botUser.Id, Description: "bot", ExpiresAt: now + 5*dayMillisTest}
+	_, err = ss.UserAccessToken().Save(botToken)
+	require.NoError(t, err)
+
+	t.Cleanup(func() {
+		for _, id := range []string{inWindow.Id, beyond.Id, past.Id, nonExpiring.Id, terminal.Id, stillNotify.Id, deactivatedToken.Id, botToken.Id} {
+			_ = ss.UserAccessToken().Delete(id)
+		}
+		_ = ss.Bot().PermanentDelete(botUser.Id)
+		_ = ss.User().PermanentDelete(rctx, botUser.Id)
+		_ = ss.User().PermanentDelete(rctx, activeUser.Id)
+		_ = ss.User().PermanentDelete(rctx, deletedUser.Id)
+	})
+
+	rows, err := ss.UserAccessToken().GetExpiringTokens(now, thresholds, 100)
+	require.NoError(t, err)
+
+	got := make(map[string]*model.UserAccessToken)
+	for _, row := range rows {
+		got[row.Id] = row
+		require.Empty(t, row.Token, "GetExpiringTokens must never return the secret Token value")
+	}
+
+	require.Contains(t, got, inWindow.Id, "in-window token should be returned")
+	require.Contains(t, got, stillNotify.Id, "token warned at 7 days but now inside the 3-day window should still be returned")
+	require.NotContains(t, got, beyond.Id, "token beyond the horizon must not be returned")
+	require.NotContains(t, got, past.Id, "already-expired token must not be returned")
+	require.NotContains(t, got, nonExpiring.Id, "non-expiring token must not be returned")
+	require.NotContains(t, got, terminal.Id, "token already warned within the terminal bucket must not be returned")
+	require.NotContains(t, got, deactivatedToken.Id, "token owned by a deactivated user must not be returned")
+	require.NotContains(t, got, botToken.Id, "bot token must not be returned")
+
+	require.Nil(t, got[inWindow.Id].LastNotifiedAt)
+	require.NotNil(t, got[stillNotify.Id].LastNotifiedAt)
+	require.Equal(t, stillNotifyAt, *got[stillNotify.Id].LastNotifiedAt)
+
+	// Results must be ordered by ExpiresAt ascending (most urgent first); the
+	// worker relies on this to drain a batch in expiry order. stillNotify (2d)
+	// must come before inWindow (5d), and the slice must be non-decreasing.
+	var prev int64
+	for i, row := range rows {
+		if i > 0 {
+			require.GreaterOrEqual(t, row.ExpiresAt, prev, "GetExpiringTokens must return rows in ExpiresAt ascending order")
+		}
+		prev = row.ExpiresAt
+	}
+	require.Less(t, indexOfToken(rows, stillNotify.Id), indexOfToken(rows, inWindow.Id), "sooner-expiring token must be returned first")
+
+	// Non-positive limit and empty thresholds short-circuit.
+	zero, err := ss.UserAccessToken().GetExpiringTokens(now, thresholds, 0)
+	require.NoError(t, err)
+	require.Empty(t, zero)
+	neg, err := ss.UserAccessToken().GetExpiringTokens(now, thresholds, -3)
+	require.NoError(t, err)
+	require.Empty(t, neg)
+	none, err := ss.UserAccessToken().GetExpiringTokens(now, nil, 100)
+	require.NoError(t, err)
+	require.Empty(t, none)
+}
+
+func indexOfToken(tokens []*model.UserAccessToken, id string) int {
+	for i, token := range tokens {
+		if token.Id == id {
+			return i
+		}
+	}
+	return -1
+}
+
+func testUserAccessTokenUpdateLastNotifiedAt(t *testing.T, rctx request.CTX, ss store.Store) {
+	token := &model.UserAccessToken{
+		Token:       model.NewId(),
+		UserId:      model.NewId(),
+		Description: "notified-at",
+		ExpiresAt:   model.GetMillis() + dayMillisTest,
+	}
+	_, err := ss.UserAccessToken().Save(token)
+	require.NoError(t, err)
+	t.Cleanup(func() { _ = ss.UserAccessToken().Delete(token.Id) })
+
+	// A freshly saved token has no last-notified time set (NULL -> nil).
+	stored, err := ss.UserAccessToken().Get(token.Id)
+	require.NoError(t, err)
+	require.Nil(t, stored.LastNotifiedAt)
+
+	first := model.GetMillis()
+	require.NoError(t, ss.UserAccessToken().UpdateLastNotifiedAt(token.Id, first))
+	stored, err = ss.UserAccessToken().Get(token.Id)
+	require.NoError(t, err)
+	require.NotNil(t, stored.LastNotifiedAt)
+	require.Equal(t, first, *stored.LastNotifiedAt)
+
+	// A later warning advances the timestamp.
+	second := first + dayMillisTest
+	require.NoError(t, ss.UserAccessToken().UpdateLastNotifiedAt(token.Id, second))
+	stored, err = ss.UserAccessToken().Get(token.Id)
+	require.NoError(t, err)
+	require.NotNil(t, stored.LastNotifiedAt)
+	require.Equal(t, second, *stored.LastNotifiedAt)
+}
+
+const dayMillisTest = int64(24 * 60 * 60 * 1000)
+
+func testUserAccessTokenNonCompliant(t *testing.T, rctx request.CTX, ss store.Store) {
+	now := model.GetMillis()
+	day := int64(24 * 60 * 60 * 1000)
+	// maxExpiresAt is the latest expiry a 30-day policy permits.
+	maxExpiresAt := now + 30*day
+	// farCap is a much larger cap: only never-expiring tokens violate it.
+	farCap := now + 1000*day
+
+	// The store counts non-compliant tokens DB-wide and other suite fixtures may
+	// linger, so assert deltas against a baseline rather than absolute totals.
+	baseline30, err := ss.UserAccessToken().CountNonCompliantExpiry(maxExpiresAt)
+	require.NoError(t, err)
+	baselineFar, err := ss.UserAccessToken().CountNonCompliantExpiry(farCap)
+	require.NoError(t, err)
+
+	// Never-expiring active token — non-compliant.
+	noExpiry := &model.UserAccessToken{Token: model.NewId(), UserId: model.NewId(), Description: "no expiry"}
+	_, err = ss.UserAccessToken().Save(noExpiry)
+	require.NoError(t, err)
+
+	// Active token expiring beyond the cap — non-compliant.
+	farFuture := &model.UserAccessToken{Token: model.NewId(), UserId: model.NewId(), Description: "far future", ExpiresAt: now + 60*day}
+	_, err = ss.UserAccessToken().Save(farFuture)
+	require.NoError(t, err)
+
+	// Active token expiring within the cap — compliant.
+	compliant := &model.UserAccessToken{Token: model.NewId(), UserId: model.NewId(), Description: "compliant", ExpiresAt: now + 10*day}
+	_, err = ss.UserAccessToken().Save(compliant)
+	require.NoError(t, err)
+
+	// Disabled never-expiring token — non-compliant by expiry, but inactive
+	// tokens cannot authenticate and are excluded.
+	inactive := &model.UserAccessToken{Token: model.NewId(), UserId: model.NewId(), Description: "inactive"}
+	_, err = ss.UserAccessToken().Save(inactive)
+	require.NoError(t, err)
+	require.NoError(t, ss.UserAccessToken().UpdateTokenDisable(inactive.Id))
+
+	// Never-expiring token owned by a bot — bots are exempt and excluded.
+	botUser, err := ss.User().Save(rctx, model.UserFromBot(&model.Bot{Username: "noncompliant_bot", OwnerId: model.NewId()}))
+	require.NoError(t, err)
+	_, nErr := ss.Bot().Save(&model.Bot{UserId: botUser.Id, Username: botUser.Username, OwnerId: model.NewId()})
+	require.NoError(t, nErr)
+	botToken := &model.UserAccessToken{Token: model.NewId(), UserId: botUser.Id, Description: "bot token"}
+	_, err = ss.UserAccessToken().Save(botToken)
+	require.NoError(t, err)
+
+	// Two non-compliant tokens owned by the same user — verifies that the
+	// returned slice has one entry per deleted token row, not one per user.
+	sharedUserID := model.NewId()
+	multiA := &model.UserAccessToken{Token: model.NewId(), UserId: sharedUserID, Description: "multi A"}
+	_, err = ss.UserAccessToken().Save(multiA)
+	require.NoError(t, err)
+	multiB := &model.UserAccessToken{Token: model.NewId(), UserId: sharedUserID, Description: "multi B", ExpiresAt: now + 60*day}
+	_, err = ss.UserAccessToken().Save(multiB)
+	require.NoError(t, err)
+
+	// Sessions minted from the non-compliant tokens — DeleteNonCompliantExpiry
+	// must remove these along with the tokens.
+	noExpirySession, nErr := ss.Session().Save(rctx, &model.Session{Token: noExpiry.Token, UserId: noExpiry.UserId})
+	require.NoError(t, nErr)
+	farFutureSession, nErr := ss.Session().Save(rctx, &model.Session{Token: farFuture.Token, UserId: farFuture.UserId})
+	require.NoError(t, nErr)
+
+	t.Cleanup(func() {
+		// noExpiry, farFuture, multiA, multiB are deleted by DeleteNonCompliantExpiry;
+		// only surviving tokens need explicit cleanup.
+		_ = ss.UserAccessToken().Delete(compliant.Id)
+		_ = ss.UserAccessToken().Delete(inactive.Id)
+		_ = ss.UserAccessToken().Delete(botToken.Id)
+		_ = ss.Bot().PermanentDelete(botUser.Id)
+		_ = ss.User().PermanentDelete(rctx, botUser.Id)
+	})
+
+	// Against the 30-day cap, at least our four active non-bot violators are counted.
+	// Use GreaterOrEqual to avoid flakiness from concurrent tests that may also
+	// hold non-compliant tokens when this test runs.
+	count, err := ss.UserAccessToken().CountNonCompliantExpiry(maxExpiresAt)
+	require.NoError(t, err)
+	require.GreaterOrEqual(t, count, baseline30+4)
+
+	// A non-positive limit is a no-op.
+	noop, err := ss.UserAccessToken().DeleteNonCompliantExpiry(maxExpiresAt, 0)
+	require.NoError(t, err)
+	require.Empty(t, noop)
+
+	// DeleteNonCompliantExpiry deletes all violators and their sessions, returns
+	// one UserId per deleted token row (not per user), and leaves
+	// compliant/inactive/bot tokens untouched.
+	// Use GreaterOrEqual for the same reason as the count check above.
+	userIDs, err := ss.UserAccessToken().DeleteNonCompliantExpiry(maxExpiresAt, 10000)
+	require.NoError(t, err)
+	require.GreaterOrEqual(t, len(userIDs), 4, "should return at least our four deleted tokens")
+	// Verify sharedUserID appears exactly twice — once per token, not once per user.
+	// This specifically guards against a SELECT DISTINCT regression.
+	sharedOccurrences := 0
+	gotUserIDs := map[string]bool{}
+	for _, id := range userIDs {
+		gotUserIDs[id] = true
+		if id == sharedUserID {
+			sharedOccurrences++
+		}
+	}
+	require.Equal(t, 2, sharedOccurrences, "sharedUserID should appear once per deleted token, not once per user")
+	require.True(t, gotUserIDs[noExpiry.UserId], "user of never-expiring token should be returned")
+	require.True(t, gotUserIDs[farFuture.UserId], "user of far-future token should be returned")
+	require.True(t, gotUserIDs[sharedUserID], "shared user with multiple tokens should be returned")
+	require.False(t, gotUserIDs[compliant.UserId], "compliant token user must not be returned")
+	require.False(t, gotUserIDs[inactive.UserId], "inactive token user must not be returned")
+	require.False(t, gotUserIDs[botToken.UserId], "bot token user must not be returned")
+
+	// Token rows are gone.
+	_, err = ss.UserAccessToken().Get(noExpiry.Id)
+	require.Error(t, err, "never-expiring token should be deleted")
+	_, err = ss.UserAccessToken().Get(farFuture.Id)
+	require.Error(t, err, "far-future token should be deleted")
+	_, err = ss.UserAccessToken().Get(multiA.Id)
+	require.Error(t, err, "shared-user token A should be deleted")
+	_, err = ss.UserAccessToken().Get(multiB.Id)
+	require.Error(t, err, "shared-user token B should be deleted")
+
+	// Sessions for deleted tokens are gone.
+	_, nErr = ss.Session().Get(rctx, noExpirySession.Token)
+	require.Error(t, nErr, "session for never-expiring token should be deleted")
+	_, nErr = ss.Session().Get(rctx, farFutureSession.Token)
+	require.Error(t, nErr, "session for far-future token should be deleted")
+
+	// Surviving tokens are untouched.
+	_, err = ss.UserAccessToken().Get(compliant.Id)
+	require.NoError(t, err, "compliant token must survive")
+	_, err = ss.UserAccessToken().Get(inactive.Id)
+	require.NoError(t, err, "inactive token must survive")
+	_, err = ss.UserAccessToken().Get(botToken.Id)
+	require.NoError(t, err, "bot token must survive")
+
+	// Count is back to at most baseline after deletion (could be lower if our
+	// delete swept up tokens from other concurrent tests; could equal baseline if
+	// no concurrent tests hold non-compliant tokens right now).
+	count, err = ss.UserAccessToken().CountNonCompliantExpiry(maxExpiresAt)
+	require.NoError(t, err)
+	require.LessOrEqual(t, count, baseline30)
+
+	// Against the much larger cap, the never-expiring tokens were the only
+	// violators among our fixtures; after deletion the count should not exceed
+	// the baseline measured before we created anything.
+	count, err = ss.UserAccessToken().CountNonCompliantExpiry(farCap)
+	require.NoError(t, err)
+	require.LessOrEqual(t, count, baselineFar, "count under large cap must not exceed pre-test baseline")
 }

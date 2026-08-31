@@ -14,7 +14,7 @@ export default class SystemConsoleHeader {
 
     constructor(container: Locator) {
         this.container = container;
-        this.title = container.locator('.admin-console__header');
+        this.title = container.getByTestId('admin-console-header');
     }
 
     async toBeVisible() {

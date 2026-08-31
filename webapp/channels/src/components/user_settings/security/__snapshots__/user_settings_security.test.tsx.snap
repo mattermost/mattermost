@@ -25,14 +25,14 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <h4
         class="modal-title"
       >
-        <div
-          class="modal-back"
+        <button
+          class="style--none modal-back"
         >
           <i
             aria-label="Collapse Icon"
             class="fa fa-angle-left"
           />
-        </div>
+        </button>
         Security Settings
       </h4>
     </div>
@@ -53,6 +53,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
       <div
         class="section-min"
+        data-testid="section-min"
       >
         <div
           class="section-min__header"
@@ -107,6 +108,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
       <div
         class="section-min"
+        data-testid="section-min"
       >
         <div
           class="section-min__header"
@@ -194,14 +196,14 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <h4
         class="modal-title"
       >
-        <div
-          class="modal-back"
+        <button
+          class="style--none modal-back"
         >
           <i
             aria-label="Collapse Icon"
             class="fa fa-angle-left"
           />
-        </div>
+        </button>
         Security Settings
       </h4>
     </div>
@@ -222,6 +224,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
       <div
         class="section-min"
+        data-testid="section-min"
       >
         <div
           class="section-min__header"
@@ -276,6 +279,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
       <div
         class="section-min"
+        data-testid="section-min"
       >
         <div
           class="section-min__header"
@@ -363,14 +367,14 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <h4
         class="modal-title"
       >
-        <div
-          class="modal-back"
+        <button
+          class="style--none modal-back"
         >
           <i
             aria-label="Collapse Icon"
             class="fa fa-angle-left"
           />
-        </div>
+        </button>
         Security Settings
       </h4>
     </div>
@@ -391,6 +395,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
       <div
         class="section-min"
+        data-testid="section-min"
       >
         <div
           class="section-min__header"
@@ -445,6 +450,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
       <div
         class="section-min"
+        data-testid="section-min"
       >
         <div
           class="section-min__header"
@@ -532,14 +538,14 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <h4
         class="modal-title"
       >
-        <div
-          class="modal-back"
+        <button
+          class="style--none modal-back"
         >
           <i
             aria-label="Collapse Icon"
             class="fa fa-angle-left"
           />
-        </div>
+        </button>
         Security Settings
       </h4>
     </div>
@@ -560,6 +566,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
       <div
         class="section-min"
+        data-testid="section-min"
       >
         <div
           class="section-min__header"
@@ -614,6 +621,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
       <div
         class="section-min"
+        data-testid="section-min"
       >
         <div
           class="section-min__header"
@@ -701,14 +709,14 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <h4
         class="modal-title"
       >
-        <div
-          class="modal-back"
+        <button
+          class="style--none modal-back"
         >
           <i
             aria-label="Collapse Icon"
             class="fa fa-angle-left"
           />
-        </div>
+        </button>
         Security Settings
       </h4>
     </div>
@@ -729,6 +737,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
       <div
         class="section-min"
+        data-testid="section-min"
       >
         <div
           class="section-min__header"
@@ -778,6 +787,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
       <div
         class="section-min"
+        data-testid="section-min"
       >
         <div
           class="section-min__header"

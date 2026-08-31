@@ -21,7 +21,7 @@ export type Props<T extends Value> = {
         option: T,
         isSelected: boolean,
         add: (value: T) => void,
-        select: (value: T) => void
+        select: (value: T) => void,
     ) => React.ReactNode;
     query?: string;
     selectedItemRef?: React.RefObject<HTMLDivElement>;
@@ -209,7 +209,10 @@ export default class MultiSelectList<T extends Value> extends React.PureComponen
             const ariaLabel = this.props.ariaLabelRenderer(selectedOption);
 
             renderOutput = (
-                <div className='more-modal__list'>
+                <div
+                    data-testid='more-modal-list'
+                    className='more-modal__list'
+                >
                     <div
                         className='sr-only'
                         aria-live='polite'

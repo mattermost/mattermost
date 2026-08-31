@@ -125,7 +125,7 @@ export function checkCWSAvailability(): ActionFuncAsync {
             const status = response.status;
             dispatch({type: GeneralTypes.CWS_AVAILABILITY_CHECK_SUCCESS, data: status});
             return {data: status};
-        } catch (error) {
+        } catch {
             dispatch({type: GeneralTypes.CWS_AVAILABILITY_CHECK_FAILURE});
             return {data: 'unavailable'};
         }

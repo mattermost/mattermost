@@ -4,13 +4,11 @@
 package app
 
 import (
-	"context"
 	"encoding/json"
 	"errors"
 	"net/http"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/public/plugin"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
@@ -62,7 +60,7 @@ func (a *App) UpsertDraft(rctx request.CTX, draft *model.Draft, connectionID str
 		return nil, err
 	}
 
-	_, nErr := a.Srv().Store().User().Get(context.Background(), draft.UserId)
+	_, nErr := a.Srv().Store().User().Get(rctx, draft.UserId)
 	if nErr != nil {
 		return nil, model.NewAppError("CreateDraft", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
@@ -77,21 +75,10 @@ func (a *App) UpsertDraft(rctx request.CTX, draft *model.Draft, connectionID str
 		return nil, nil
 	}
 
-	var rejectionReason string
-	pluginContext := pluginContext(rctx)
-	a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
-		replacement, reason := hooks.DraftWillBeUpserted(pluginContext, draft)
-		if reason != "" {
-			rejectionReason = reason
-			return false
-		}
-		if replacement != nil {
-			draft = replacement
-		}
-		return true
-	}, plugin.DraftWillBeUpsertedID)
-	if rejectionReason != "" {
-		return nil, model.NewAppError("UpsertDraft", "app.draft.upsert.rejected_by_plugin", map[string]any{"Reason": rejectionReason}, "", http.StatusBadRequest)
+	var guardErr *model.AppError
+	draft, guardErr = a.runGuardedDraftWillBeUpserted(rctx, draft)
+	if guardErr != nil {
+		return nil, guardErr
 	}
 
 	dt, nErr := a.Srv().Store().Draft().Upsert(draft)

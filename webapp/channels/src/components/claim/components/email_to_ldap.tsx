@@ -8,7 +8,7 @@ import {FormattedMessage, useIntl} from 'react-intl';
 import {Button} from '@mattermost/shared/components/button';
 import type {AuthChangeResponse} from '@mattermost/types/users';
 
-import {emailToLdap} from 'actions/admin_actions.jsx';
+import {emailToLdap} from 'actions/admin_actions';
 
 import LoginMfa from 'components/login/login_mfa';
 

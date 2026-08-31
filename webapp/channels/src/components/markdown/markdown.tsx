@@ -3,6 +3,7 @@
 
 import React from 'react';
 
+import type {PostActionIntegrationFormat} from '@mattermost/types/integration_actions';
 import type {PostImage, PostType} from '@mattermost/types/posts';
 
 import type {HighlightWithoutNotificationKey} from 'mattermost-redux/selectors/entities/users';
@@ -76,6 +77,15 @@ export type OwnProps = {
      * Defaults to false.
      */
     allowInlineActions?: boolean;
+
+    /**
+     * Encrypted mm_blocks_actions cookie from post.props (ephemeral and client wire format).
+     * When set, mmaction:// clicks use doPostActionWithCookie.
+     */
+    mmBlocksActionCookie?: string;
+
+    /** integration_format for doPostActionWithCookie when mmBlocksActionCookie is set. */
+    integrationFormat?: PostActionIntegrationFormat;
 };
 
 function Markdown({
@@ -93,6 +103,8 @@ function Markdown({
     postType,
     emojiMap,
     allowInlineActions,
+    mmBlocksActionCookie,
+    integrationFormat,
     enableFormatting,
     siteURL,
     team,
@@ -137,6 +149,8 @@ function Markdown({
         disableGroupHighlight: options?.disableGroupHighlight,
         editedAt,
         allowInlineActions,
+        mmBlocksActionCookie,
+        integrationFormat,
     });
 }
 

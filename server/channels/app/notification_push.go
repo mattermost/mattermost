@@ -92,15 +92,50 @@ func (a *App) sendPushNotificationSync(rctx request.CTX, post *model.Post, user 
 
 func (a *App) sendPushNotificationToAllSessions(rctx request.CTX, msg *model.PushNotification, userID string, skipSessionId string) *model.AppError {
 	rejectionReason := ""
-	a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
+
+	if msg == nil {
+		a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypePush, model.NotificationReasonParseError, model.NotificationNoPlatform)
+		rctx.Logger().LogM(mlog.MlvlNotificationError, "Failed to parse push notification",
+			mlog.String("type", model.NotificationTypePush),
+			mlog.String("status", model.NotificationStatusError),
+			mlog.String("reason", model.NotificationReasonParseError),
+			mlog.String("user_id", userID),
+		)
+		return model.NewAppError(
+			"pushNotification",
+			"api.push_notifications.message.parse.app_error",
+			nil,
+			"",
+			http.StatusBadRequest,
+		)
+	}
+
+	originalTransportType := msg.Transport
+	a.ch.RunMultiHook(func(hooks plugin.Hooks, manifest *model.Manifest) bool {
 		var replacementNotification *model.PushNotification
 		replacementNotification, rejectionReason = hooks.NotificationWillBePushed(msg, userID)
 		if rejectionReason != "" {
-			rctx.Logger().Info("Notification cancelled by plugin.", mlog.String("rejection reason", rejectionReason))
+			rctx.Logger().Info("Notification cancelled by plugin.",
+				mlog.String("rejection_reason", rejectionReason),
+				mlog.String("plugin_id", manifest.Id),
+				mlog.String("user_id", userID),
+				mlog.String("channel_id", msg.ChannelId))
 			return false
 		}
 		if replacementNotification != nil {
 			msg = replacementNotification
+
+			if msg.Transport != originalTransportType {
+				// Plugins that don't know about the updated model.PushNotification struct will incorrectly zero the Transport field,
+				// triggering a standard transport by mistake. For now, we disallow plugins touching the transport type.
+				rctx.Logger().Debug("Notification transport type changed by plugin, resetting original value", mlog.String("original_transport_type", originalTransportType), mlog.String("transport_type", msg.Transport))
+				msg.Transport = originalTransportType
+			}
+
+			rctx.Logger().Info("Notification modified by plugin.",
+				mlog.String("plugin_id", manifest.Id),
+				mlog.String("user_id", userID),
+				mlog.String("channel_id", msg.ChannelId))
 		}
 		return true
 	}, plugin.NotificationWillBePushedID)
@@ -131,23 +166,6 @@ func (a *App) sendPushNotificationToAllSessions(rctx request.CTX, msg *model.Pus
 		return appErr
 	}
 
-	if msg == nil {
-		a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypePush, model.NotificationReasonParseError, model.NotificationNoPlatform)
-		rctx.Logger().LogM(mlog.MlvlNotificationError, "Failed to parse push notification",
-			mlog.String("type", model.NotificationTypePush),
-			mlog.String("status", model.NotificationStatusError),
-			mlog.String("reason", model.NotificationReasonParseError),
-			mlog.String("user_id", userID),
-		)
-		return model.NewAppError(
-			"pushNotification",
-			"api.push_notifications.message.parse.app_error",
-			nil,
-			"",
-			http.StatusBadRequest,
-		)
-	}
-
 	for _, session := range sessions {
 		// Don't send notifications to this session if it's expired or we want to skip it
 		if session.IsExpired() || (skipSessionId != "" && skipSessionId == session.Id) {
@@ -158,7 +176,7 @@ func (a *App) sendPushNotificationToAllSessions(rctx request.CTX, msg *model.Pus
 				mlog.String("reason", model.NotificationReasonSessionExpired),
 				mlog.String("user_id", session.UserId),
 				mlog.String("session_id", session.Id),
-				mlog.String("deviceId", model.RedactDeviceId(session.DeviceId)),
+				mlog.String("device_id", model.RedactDeviceId(session.DeviceId)),
 			)
 			continue
 		}
@@ -201,13 +219,13 @@ func (a *App) sendPushNotificationToAllSessions(rctx request.CTX, msg *model.Pus
 		}).SignedString(a.AsymmetricSigningKey())
 		if err != nil {
 			rctx.Logger().LogM(mlog.MlvlNotificationError, "Notification error",
-				mlog.String("ackId", tmpMessage.AckId),
+				mlog.String("ack_id", tmpMessage.AckId),
 				mlog.String("type", tmpMessage.Type),
-				mlog.String("userId", session.UserId),
-				mlog.String("postId", tmpMessage.PostId),
-				mlog.String("channelId", tmpMessage.ChannelId),
+				mlog.String("user_id", session.UserId),
+				mlog.String("post_id", tmpMessage.PostId),
+				mlog.String("channel_id", tmpMessage.ChannelId),
 				mlog.String("session_id", session.Id),
-				mlog.String("deviceId", model.RedactDeviceId(tmpMessage.DeviceId)),
+				mlog.String("device_id", model.RedactDeviceId(tmpMessage.DeviceId)),
 				mlog.String("status", err.Error()),
 			)
 			continue
@@ -227,9 +245,11 @@ func (a *App) sendPushNotificationToAllSessions(rctx request.CTX, msg *model.Pus
 				mlog.String("reason", reason),
 				mlog.String("ack_id", tmpMessage.AckId),
 				mlog.String("push_type", tmpMessage.Type),
+				mlog.String("transport", string(tmpMessage.Transport)),
+				mlog.String("sub_type", string(tmpMessage.SubType)),
 				mlog.String("user_id", session.UserId),
 				mlog.String("session_id", session.Id),
-				mlog.String("deviceId", model.RedactDeviceId(tmpMessage.DeviceId)),
+				mlog.String("device_id", model.RedactDeviceId(tmpMessage.DeviceId)),
 				mlog.Err(err),
 			)
 			continue
@@ -239,9 +259,11 @@ func (a *App) sendPushNotificationToAllSessions(rctx request.CTX, msg *model.Pus
 			mlog.String("type", model.NotificationTypePush),
 			mlog.String("ack_id", tmpMessage.AckId),
 			mlog.String("push_type", tmpMessage.Type),
+			mlog.String("transport", string(tmpMessage.Transport)),
+			mlog.String("sub_type", string(tmpMessage.SubType)),
 			mlog.String("user_id", session.UserId),
 			mlog.String("session_id", session.Id),
-			mlog.String("deviceId", model.RedactDeviceId(tmpMessage.DeviceId)),
+			mlog.String("device_id", model.RedactDeviceId(tmpMessage.DeviceId)),
 			mlog.String("status", model.PushSendSuccess),
 		)
 
@@ -711,6 +733,12 @@ func doesNotifyPropsAllowPushNotification(user *model.User, channelNotifyProps m
 	// If the channel is muted do not send push notifications
 	if channelNotifyProps[model.MarkUnreadNotifyProp] == model.ChannelMarkUnreadMention {
 		return model.NotificationReasonChannelMuted
+	}
+
+	// Use HasSilentNotification instead of IsNotificationSuppressed so push metrics get
+	// NotificationReasonSilent distinct from NotificationReasonSystemMessage.
+	if post.HasSilentNotification() && !post.HasForceNotification() {
+		return model.NotificationReasonSilent
 	}
 
 	if post.IsSystemMessage() {

@@ -7,6 +7,7 @@ exports[`components/ProfilePicture should match snapshot, no user specified, def
   >
     <span
       class="profile-icon "
+      data-testid="profile-icon"
     >
       <img
         alt="user profile image"
@@ -43,6 +44,7 @@ exports[`components/ProfilePicture should match snapshot, no user specified, ove
   >
     <span
       class="profile-icon "
+      data-testid="profile-icon"
     >
       <img
         alt="user profile image"
@@ -79,9 +81,11 @@ exports[`components/ProfilePicture should match snapshot, profile and src, defau
     aria-haspopup="dialog"
     class="status-wrapper style--none"
     style="border-radius: 50%; width: 32px; height: 32px;"
+    type="button"
   >
     <span
       class="profile-icon "
+      data-testid="profile-icon"
     >
       <img
         alt="user profile image"
@@ -118,6 +122,7 @@ exports[`components/ProfilePicture should match snapshot, user specified 1`] = `
   >
     <span
       class="profile-icon "
+      data-testid="profile-icon"
     >
       <img
         alt="user profile image"
@@ -154,6 +159,7 @@ exports[`components/ProfilePicture should match snapshot, user specified, overri
   >
     <span
       class="profile-icon "
+      data-testid="profile-icon"
     >
       <img
         alt="user profile image"

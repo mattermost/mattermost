@@ -9,83 +9,80 @@ exports[`components/unarchive_channel_modal should match snapshot for unarchive_
     aria-hidden="true"
   />
   <div
-    role="none"
+    class="fade modal-backdrop in"
+  />
+  <div
+    aria-labelledby="unarchiveChannelModalLabel"
+    aria-modal="true"
+    class="fade in modal"
+    id="unarchiveChannelModal"
+    role="dialog"
+    style="display: block; padding-right: 0px;"
+    tabindex="-1"
   >
     <div
-      class="fade modal-backdrop in"
-    />
-    <div
-      aria-labelledby="unarchiveChannelModalLabel"
-      class="fade in modal"
-      id="unarchiveChannelModal"
-      role="dialog"
-      style="display: block; padding-right: 0px;"
-      tabindex="-1"
+      class="a11y__modal modal-dialog"
     >
       <div
-        class="a11y__modal modal-dialog"
+        class="modal-content"
+        role="document"
       >
         <div
-          class="modal-content"
-          role="document"
+          class="modal-header"
+        >
+          <button
+            aria-label="Close"
+            class="close"
+            type="button"
+          >
+            <span
+              aria-hidden="true"
+            >
+              ×
+            </span>
+            <span
+              class="sr-only"
+            >
+              Close
+            </span>
+          </button>
+          <h1
+            class="modal-title"
+            id="unarchiveChannelModalLabel"
+          >
+            Confirm UNARCHIVE Channel
+          </h1>
+        </div>
+        <div
+          class="modal-body"
         >
           <div
-            class="modal-header"
+            class="alert alert-danger"
           >
-            <button
-              aria-label="Close"
-              class="close"
-              type="button"
-            >
-              <span
-                aria-hidden="true"
-              >
-                ×
-              </span>
-              <span
-                class="sr-only"
-              >
-                Close
-              </span>
-            </button>
-            <h1
-              class="modal-title"
-              id="unarchiveChannelModalLabel"
-            >
-              Confirm UNARCHIVE Channel
-            </h1>
+            Are you sure you wish to unarchive the 
+            <b>
+              testing
+            </b>
+             channel?
           </div>
-          <div
-            class="modal-body"
+        </div>
+        <div
+          class="modal-footer"
+        >
+          <button
+            class="btn btn-tertiary"
+            type="button"
           >
-            <div
-              class="alert alert-danger"
-            >
-              Are you sure you wish to unarchive the 
-              <b>
-                testing
-              </b>
-               channel?
-            </div>
-          </div>
-          <div
-            class="modal-footer"
+            Cancel
+          </button>
+          <button
+            class="btn btn-danger"
+            data-dismiss="modal"
+            id="unarchiveChannelModalDeleteButton"
+            type="button"
           >
-            <button
-              class="btn btn-tertiary"
-              type="button"
-            >
-              Cancel
-            </button>
-            <button
-              class="btn btn-danger"
-              data-dismiss="modal"
-              id="unarchiveChannelModalDeleteButton"
-              type="button"
-            >
-              Unarchive
-            </button>
-          </div>
+            Unarchive
+          </button>
         </div>
       </div>
     </div>

@@ -7,6 +7,13 @@ import (
 	"net/http"
 )
 
+// NonCompliantUserAccessTokenResult is the response payload for the endpoints
+// that count or revoke personal access tokens violating the maximum lifetime
+// policy. Count carries the number of tokens previewed or actually revoked.
+type NonCompliantUserAccessTokenResult struct {
+	Count int64 `json:"count"`
+}
+
 type UserAccessToken struct {
 	Id          string `json:"id"`
 	Token       string `json:"token,omitempty"`
@@ -18,6 +25,15 @@ type UserAccessToken struct {
 	// ExpiresAt is non-zero and in the past are considered expired and
 	// MUST be rejected at validation time.
 	ExpiresAt int64 `json:"expires_at"`
+	// LastNotifiedAt is the Unix timestamp in milliseconds at which the token
+	// owner was last warned that the token is approaching expiry. It is nil until
+	// the first warning is sent. The notify_expiring_access_tokens job uses it to dedup: the
+	// warning bucket already covered is recovered from (ExpiresAt - LastNotifiedAt),
+	// so the same (or a less urgent) warning is not re-sent every run. Storing the
+	// moment rather than the bucket keeps the column independent of the day cascade
+	// and correct if the buckets are later changed. It is internal server
+	// bookkeeping that is never exposed over the API.
+	LastNotifiedAt *int64 `json:"-"`
 }
 
 func (t *UserAccessToken) IsValid() *AppError {

@@ -8234,10 +8234,6 @@
     "translation": "Parametrarna OnlyThreads och OnlyTotals för getThreadsForUser utesluter varandra"
   },
   {
-    "id": "api.file.test_connection_s3_settings_nil.app_error",
-    "translation": "Inställningarna för lagring av filer har odefinierade värden."
-  },
-  {
     "id": "api.file.test_connection_email_settings_nil.app_error",
     "translation": "Inställningarna för e-post har odefinierade värden."
   },
@@ -10994,5 +10990,21 @@
   {
     "id": "model.view.is_valid.id.app_error",
     "translation": "Ogiltigt ID för visningen."
+  },
+  {
+    "id": "api.access_control_policy.policy_simulation.feature_disabled",
+    "translation": "Funktionen för simulering av policy är inte aktiverad."
+  },
+  {
+    "id": "api.channel.discoverable_join_request.already_member.app_error",
+    "translation": "Du är redan medlem i denna kanal."
+  },
+  {
+    "id": "api.channel.discoverable_join_request.archived.app_error",
+    "translation": "Du kan inte önska bli medlem i en arkiverad kanal."
+  },
+  {
+    "id": "api.channel.discoverable_join_request.duplicate.app_error",
+    "translation": "Du har redan en väntande förfrågan att bli medlem i denna kanal."
   }
 ]

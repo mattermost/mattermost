@@ -8208,10 +8208,6 @@
     "translation": "Параметры OnlyThreads і OnlyTotals для getThreadsForUser узаемавыключальныя"
   },
   {
-    "id": "api.file.test_connection_s3_settings_nil.app_error",
-    "translation": "Налады сховішча файлаў маюць не зададзеныя значэнні."
-  },
-  {
     "id": "api.file.test_connection_email_settings_nil.app_error",
     "translation": "Налады электроннай пошты маюць не зададзеныя значэнні."
   },

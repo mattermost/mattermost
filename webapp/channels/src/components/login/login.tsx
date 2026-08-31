@@ -968,6 +968,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
                     {!isMobileView && getAlternateLink()}
                     <div className={classNames('login-body-card', {'custom-branding': enableCustomBrand, 'with-error': hasError})}>
                         <div
+                            data-testid='login-body-card'
                             className='login-body-card-content'
                         >
                             {magicLinkSuccessful ? (

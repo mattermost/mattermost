@@ -18,6 +18,7 @@ import type {ModalData} from 'types/actions';
 import type {RhsState} from 'types/store/rhs';
 
 import ChannelNavigator from './channel_navigator';
+import SidebarJoinRequestCountsSync from './sidebar_join_request_counts_sync';
 import SidebarList from './sidebar_list';
 
 const MobileSidebarHeader = makeAsyncComponent('MobileSidebarHeader', lazy(() => import('./mobile_sidebar_header')));
@@ -263,6 +264,7 @@ export default class Sidebar extends React.PureComponent<Props, State> {
                     onDragEnd={this.onDragEnd}
                 />
                 <DataPrefetch/>
+                <SidebarJoinRequestCountsSync/>
                 {this.renderModals()}
             </ResizableLhs>
         );

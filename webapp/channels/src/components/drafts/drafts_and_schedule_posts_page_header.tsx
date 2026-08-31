@@ -20,6 +20,7 @@ export default function DraftsAndSchedulePostsPageHeader(props: Props) {
             <Header
                 level={2}
                 className='Drafts__header'
+                data-testid='drafts-header'
                 heading={
                     <FormattedMessage
                         id='drafts.heading'

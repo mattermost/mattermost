@@ -60,6 +60,7 @@ describe('Verify Accessibility Support in different sections in Settings and Pro
         ],
         advanced: [
             {key: 'advancedCtrlSend', label: `Send Messages on ${isMac() ? '⌘+ENTER' : 'CTRL+ENTER'}`, type: 'radio'},
+            {key: 'wysiwygEditor', label: 'Rich text editing (Beta)', type: 'radio', optional: true},
             {key: 'formatting', label: 'Enable Post Formatting', type: 'radio'},
             {key: 'joinLeave', label: 'Enable Join/Leave Messages', type: 'radio'},
         ],
@@ -292,6 +293,17 @@ describe('Verify Accessibility Support in different sections in Settings and Pro
 
 function verifySettings(settings) {
     settings.forEach((setting) => {
+        if (setting.optional) {
+            cy.get('body').then(($body) => {
+                if ($body.find(`#${setting.key}Edit`).length === 0) {
+                    return;
+                }
+                cy.focused().should('have.id', `${setting.key}Edit`);
+                cy.findByText(setting.label);
+                cy.focused().tab();
+            });
+            return;
+        }
         cy.focused().should('have.id', `${setting.key}Edit`);
         cy.findByText(setting.label);
         cy.focused().tab();

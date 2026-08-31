@@ -27,11 +27,11 @@ export default class ContentReviewPage {
 
     constructor(page: Page) {
         this.page = page;
-        this.cards = page.locator('[data-testid="property-card-view"]');
+        this.cards = page.getByTestId('property-card-view');
         this.rhsCard = page.getByTestId('rhsPostView').getByTestId('property-card-view');
         this.keepMessageButton = this.rhsCard.getByTestId('data-spillage-action-keep-message');
         this.removeMessageButton = this.rhsCard.getByTestId('data-spillage-action-remove-message');
-        this.postActionConformationModal = page.locator('div.GenericModal__wrapper');
+        this.postActionConformationModal = page.getByTestId('keep-remove-flagged-message-confirmation-modal');
         this.cancelButton = this.postActionConformationModal.getByRole('button', {name: 'Cancel'});
         this.confirmRemoveMessageButton = this.postActionConformationModal.getByRole('button', {
             name: 'Remove message',
@@ -54,10 +54,10 @@ export default class ContentReviewPage {
 
     async setReportCardByPostID(postID: string) {
         this.reportCard = this.page
-            .locator('div.DataSpillageReport')
+            .getByTestId('data-spillage-report')
             .filter({has: this.page.locator(`#postMessageText_${postID}`)});
         if ((await this.reportCard.count()) === 0) {
-            this.reportCard = this.page.locator('div.DataSpillageReport').first();
+            this.reportCard = this.page.getByTestId('data-spillage-report').first();
         }
     }
 
@@ -69,7 +69,7 @@ export default class ContentReviewPage {
 
     async openViewDetails() {
         this.ensureReportCardSet();
-        const button = this.reportCard!.locator('button:has-text("View Details")');
+        const button = this.reportCard!.getByRole('button', {name: 'View details'});
         await button.scrollIntoViewIfNeeded();
         await button.click();
     }
@@ -89,16 +89,14 @@ export default class ContentReviewPage {
     }
 
     async openCardByMessage(message: string) {
-        const targetCard = this.page
-            .locator('div.DataSpillageReport')
-            .filter({has: this.page.locator(`.row:has-text("${message}")`)});
+        const targetCard = this.page.getByTestId('data-spillage-report').filter({
+            has: this.page.getByTestId('property-card-row').filter({hasText: message}),
+        });
         await targetCard.first().click();
     }
 
     private field(fieldName: string): Locator {
-        return this.rhsCard.locator('.row', {
-            has: this.rhsCard.locator(`.field:has-text("${fieldName}")`),
-        });
+        return this.rhsCard.getByTestId('property-card-row').filter({hasText: fieldName});
     }
 
     /**
@@ -106,7 +104,8 @@ export default class ContentReviewPage {
      */
     async getValueForField(fieldName: string): Promise<string> {
         await expect(this.rhsCard).toBeVisible({timeout: 10000});
-        const valueLocator = this.rhsCard.locator(`.row:has(.field:has-text("${fieldName}")) .value`);
+        const row = this.rhsCard.getByTestId('property-card-row').filter({hasText: fieldName});
+        const valueLocator = row.getByTestId('property-card-field-value');
         await expect(valueLocator).toBeVisible({timeout: 5000});
         return valueLocator.innerText();
     }
@@ -120,30 +119,31 @@ export default class ContentReviewPage {
     }
 
     async expectTextProperty(fieldName: string, expected: string) {
-        await expect(this.field(fieldName).locator('.TextProperty')).toHaveText(expected);
+        await expect(this.field(fieldName).getByTestId('text-property')).toHaveText(expected);
     }
 
     async expectUser(fieldName: string, expected: string) {
         await expect(this.rhsCard).toBeVisible({timeout: 10000});
 
-        const userButton = this.rhsCard.locator(`.row:has(.field:has-text("${fieldName}")) .user-popover`);
+        const row = this.rhsCard.getByTestId('property-card-row').filter({hasText: fieldName});
+        const userProperty = row.getByTestId('user-property');
 
         // Wait for either visible or attached then read text
-        await userButton.waitFor({state: 'attached', timeout: 10000});
-        const text = (await userButton.innerText()).trim();
+        await userProperty.waitFor({state: 'attached', timeout: 10000});
+        const text = (await userProperty.innerText()).trim();
         expect(text).toBe(expected);
     }
 
     async expectTeam(expected: string) {
-        await expect(this.rhsCard.locator('.TeamPropertyRenderer')).toContainText(expected);
+        await expect(this.rhsCard.getByTestId('team-property')).toContainText(expected);
     }
 
     async expectChannel(expected: string) {
-        await expect(this.rhsCard.locator('.ChannelPropertyRenderer')).toContainText(expected);
+        await expect(this.rhsCard.getByTestId('channel-property')).toContainText(expected);
     }
 
     async expectMessageContains(expected: string) {
-        await expect(this.rhsCard.locator('.post-message__text')).toContainText(expected);
+        await expect(this.rhsCard.getByTestId('post-message-text')).toContainText(expected);
     }
 
     async waitForRHSVisible() {
@@ -156,29 +156,34 @@ export default class ContentReviewPage {
 
     async verifyFlaggedPostStatus(expected: string) {
         this.ensureReportCardSet();
-        await expect(this.reportCard!.locator('.row:has-text("Status") .SelectProperty')).toHaveText(expected);
+        const statusRow = this.reportCard!.getByTestId('property-card-row').filter({hasText: 'Status'});
+        await expect(statusRow.getByTestId('select-property')).toHaveText(expected);
     }
 
     async verifyFlaggedPostReason(expected: string) {
         this.ensureReportCardSet();
-        await expect(this.reportCard!.locator('.row:has-text("Reason") .SelectProperty')).toHaveText(expected);
+        const reasonRow = this.reportCard!.getByTestId('property-card-row').filter({hasText: 'Reason'});
+        await expect(reasonRow.getByTestId('select-property')).toHaveText(expected);
     }
 
     async verifyFlaggedPostMessage(expected: string) {
         this.ensureReportCardSet();
-        await expect(this.reportCard!.locator('.row:has-text("Message") .post-message__text')).toHaveText(expected);
+        const messageRow = this.reportCard!.getByTestId('property-card-row').filter({hasText: 'Message'});
+        await expect(messageRow.getByTestId('post-message-text')).toHaveText(expected);
     }
 
     async verifyFlaggedPostMessageInRHS(expected: string) {
-        await expect(this.rhsCard.locator('.row:has-text("Message") .post-message__text')).toHaveText(expected);
+        const messageRow = this.rhsCard.getByTestId('property-card-row').filter({hasText: 'Message'});
+        await expect(messageRow.getByTestId('post-message-text')).toHaveText(expected);
     }
 
     async verifyFlaggedPostMessageInCenter(postID: string, expected: string) {
         const centerCard = this.page
             .getByTestId('channel_view')
-            .locator('div.DataSpillageReport')
+            .getByTestId('data-spillage-report')
             .filter({has: this.page.locator(`#postMessageText_${postID}`)});
-        await expect(centerCard.locator('.row:has-text("Message") .post-message__text')).toHaveText(expected);
+        const messageRow = centerCard.getByTestId('property-card-row').filter({hasText: 'Message'});
+        await expect(messageRow.getByTestId('post-message-text')).toHaveText(expected);
     }
 
     async clickKeepMessage() {

@@ -4,8 +4,6 @@
 package api4
 
 import (
-	"bytes"
-	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -19,9 +17,8 @@ import (
 )
 
 const (
-	MaxAddMembersBatch    = 256
-	MaximumBulkImportSize = 10 * 1024 * 1024
-	groupIDsParamPattern  = "[^a-zA-Z0-9,]*"
+	MaxAddMembersBatch   = 256
+	groupIDsParamPattern = "[^a-zA-Z0-9,]*"
 )
 
 var groupIDsQueryParamRegex *regexp.Regexp
@@ -46,6 +43,8 @@ func (api *API) InitTeam() {
 	api.BaseRoutes.Team.Handle("/privacy", api.APISessionRequired(updateTeamPrivacy)).Methods(http.MethodPut)
 	api.BaseRoutes.Team.Handle("/stats", api.APISessionRequired(getTeamStats)).Methods(http.MethodGet)
 	api.BaseRoutes.Team.Handle("/regenerate_invite_id", api.APISessionRequired(regenerateTeamInviteId)).Methods(http.MethodPost)
+	api.BaseRoutes.Team.Handle("/access_control/policy", api.APISessionRequired(getTeamAccessControlPolicy)).Methods(http.MethodGet)
+	api.BaseRoutes.Team.Handle("/access_control/attributes", api.APISessionRequired(getTeamAccessControlAttributes)).Methods(http.MethodGet)
 
 	api.BaseRoutes.Team.Handle("/image", api.APISessionRequiredTrustRequester(getTeamIcon)).Methods(http.MethodGet)
 	api.BaseRoutes.Team.Handle("/image", api.APISessionRequired(setTeamIcon, handlerParamFileAPI)).Methods(http.MethodPost)
@@ -66,7 +65,6 @@ func (api *API) InitTeam() {
 	api.BaseRoutes.TeamByName.Handle("/exists", api.APISessionRequired(teamExists)).Methods(http.MethodGet)
 	api.BaseRoutes.TeamMember.Handle("/roles", api.APISessionRequired(updateTeamMemberRoles)).Methods(http.MethodPut)
 	api.BaseRoutes.TeamMember.Handle("/schemeRoles", api.APISessionRequired(updateTeamMemberSchemeRoles)).Methods(http.MethodPut)
-	api.BaseRoutes.Team.Handle("/import", api.APISessionRequired(importTeam)).Methods(http.MethodPost)
 	api.BaseRoutes.Team.Handle("/invite/email", api.APISessionRequired(inviteUsersToTeam)).Methods(http.MethodPost)
 	api.BaseRoutes.Team.Handle("/invite-guests/email", api.APISessionRequired(inviteGuestsToChannels)).Methods(http.MethodPost)
 	api.BaseRoutes.Teams.Handle("/invites/email", api.APISessionRequired(invalidateAllEmailInvites)).Methods(http.MethodDelete)
@@ -176,6 +174,128 @@ func creatorCanInviteUsersOnTeam(c *Context, team *model.Team) bool {
 	return c.App.RolesGrantPermission([]string{model.TeamUserRoleId, model.TeamAdminRoleId}, model.PermissionInviteUser.Id)
 }
 
+func getTeamAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireTeamId()
+	if c.Err != nil {
+		return
+	}
+	teamID := c.Params.TeamId
+
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) &&
+		!c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), teamID, model.PermissionManageTeamAccessRules) {
+		c.SetPermissionError(model.PermissionManageTeamAccessRules)
+		return
+	}
+
+	if !c.App.TeamMembershipAccessControlEnabled() {
+		resp := struct {
+			Policy   *model.AccessControlPolicy `json:"policy"`
+			Enforced bool                       `json:"enforced"`
+		}{}
+		if js, err := json.Marshal(resp); err != nil {
+			c.Err = model.NewAppError("getTeamAccessControlPolicy", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		} else if _, err := w.Write(js); err != nil {
+			c.Logger.Warn("Error while writing response", mlog.Err(err))
+		}
+		return
+	}
+
+	enforced, appErr := c.App.TeamAccessControlled(c.AppContext, teamID)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	// A team child policy shares the team's id. Absence (404) means no policy is
+	// assigned; NotImplemented means ABAC is unavailable on this server. Either way
+	// there's nothing to enforce, so report a nil policy rather than erroring.
+	var policy *model.AccessControlPolicy
+	p, appErr := c.App.GetAccessControlPolicy(c.AppContext, teamID)
+	if appErr != nil {
+		if appErr.StatusCode != http.StatusNotFound && appErr.StatusCode != http.StatusNotImplemented {
+			c.Err = appErr
+			return
+		}
+	} else {
+		policy = p
+		if shouldRedactExpressions(c) {
+			c.App.MaskPolicyExpressions(c.AppContext, policy, c.AppContext.Session().UserId)
+		}
+	}
+
+	// Team admins can read this route but cannot fetch a parent policy directly.
+	// Resolve the parents this team imports so the tab can name them in the
+	// system-policy banner and AND their rules into its member counts. Project to
+	// id/name/rules only: the parents' assignment metadata (scope, child_ids) spans
+	// other teams and must not leak. Expressions are masked as elsewhere.
+	var parentPolicies []*model.AccessControlPolicy
+	if policy != nil {
+		redact := shouldRedactExpressions(c)
+		for _, importID := range policy.Imports {
+			parent, parentErr := c.App.GetAccessControlPolicy(c.AppContext, importID)
+			if parentErr != nil {
+				c.Logger.Warn("Skipping unresolved imported parent policy", mlog.String("policy_id", importID), mlog.Err(parentErr))
+				continue
+			}
+			if redact {
+				c.App.MaskPolicyExpressions(c.AppContext, parent, c.AppContext.Session().UserId)
+			}
+			parentPolicies = append(parentPolicies, &model.AccessControlPolicy{
+				ID:    parent.ID,
+				Name:  parent.Name,
+				Rules: parent.Rules,
+			})
+		}
+	}
+
+	resp := struct {
+		Policy         *model.AccessControlPolicy   `json:"policy"`
+		Enforced       bool                         `json:"enforced"`
+		ParentPolicies []*model.AccessControlPolicy `json:"parent_policies,omitempty"`
+	}{
+		Policy:         policy,
+		Enforced:       enforced,
+		ParentPolicies: parentPolicies,
+	}
+
+	js, err := json.Marshal(resp)
+	if err != nil {
+		c.Err = model.NewAppError("getTeamAccessControlPolicy", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
+
+	if _, err := w.Write(js); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+func getTeamAccessControlAttributes(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireTeamId()
+	if c.Err != nil {
+		return
+	}
+
+	// Members may see which attributes govern their team so the invite and
+	// members surfaces can explain the requirement. source_only/shared_only
+	// values are stripped by the app layer, so no sensitive value leaks.
+	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), c.Params.TeamId, model.PermissionViewTeam) {
+		c.SetPermissionError(model.PermissionViewTeam)
+		return
+	}
+
+	// A team child policy shares the team's id. Ask for the membership action
+	// explicitly so only the rule that governs who can be a member is surfaced.
+	attributes, appErr := c.App.GetAccessControlPolicyAttributes(c.AppContext, c.Params.TeamId, model.AccessControlPolicyActionMembership)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	if err := json.NewEncoder(w).Encode(attributes); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
 func getTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequireTeamId()
 	if c.Err != nil {
@@ -202,8 +322,8 @@ func getTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 
 		flaggedPostId := r.URL.Query().Get("flagged_post_id")
-		requireFlaggedPost(c, flaggedPostId)
-		if c.Err != nil {
+		if flaggedPostId == "" {
+			c.SetInvalidParam("flagged_post_id")
 			return
 		}
 
@@ -219,8 +339,18 @@ func getTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		checkChannelFlaggable(c, channel)
+		if c.Err != nil {
+			return
+		}
+
 		if channel.TeamId != team.Id {
 			c.Err = model.NewAppError("getTeam", "api.team.get_team.flagged_post_mismatch.app_error", nil, "", http.StatusBadRequest)
+			return
+		}
+
+		requireFlaggedPost(c, flaggedPostId)
+		if c.Err != nil {
 			return
 		}
 
@@ -573,7 +703,7 @@ func deleteTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		if *c.App.Config().ServiceSettings.EnableAPITeamDeletion {
 			err = c.App.PermanentDeleteTeamId(c.AppContext, c.Params.TeamId)
 		} else {
-			user, usrErr := c.App.GetUser(c.AppContext.Session().UserId)
+			user, usrErr := c.App.GetUser(c.AppContext, c.AppContext.Session().UserId)
 			if usrErr == nil && user != nil && user.IsSystemAdmin() {
 				// More verbose error message for system admins
 				err = model.NewAppError("deleteTeam", "api.user.delete_team.not_enabled.for_admin.app_error", nil, "teamId="+c.Params.TeamId, http.StatusUnauthorized)
@@ -749,7 +879,7 @@ func getTeamMembersForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) && !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionReadOtherUsersTeams) {
+	if !c.App.SessionHasPermissionToUser(c.AppContext, *c.AppContext.Session(), c.Params.UserId) && !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionReadOtherUsersTeams) {
 		c.SetPermissionError(model.PermissionReadOtherUsersTeams)
 		return
 	}
@@ -872,13 +1002,23 @@ func addTeamMember(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if team.AllowOpenInvite && !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionJoinPublicTeams) {
-			c.SetPermissionError(model.PermissionJoinPublicTeams)
-			return
-		}
-		if !team.AllowOpenInvite && !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionJoinPrivateTeams) {
-			c.SetPermissionError(model.PermissionJoinPrivateTeams)
-			return
+		if team.AllowOpenInvite {
+			if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionJoinPublicTeams) {
+				c.SetPermissionError(model.PermissionJoinPublicTeams)
+				return
+			}
+		} else {
+			// ABAC-governed teams authorize membership by attribute in
+			// JoinUserToTeam, not by the join_private_teams role.
+			controlled, appErr := c.App.TeamAccessControlled(c.AppContext, team.Id)
+			if appErr != nil {
+				c.Err = appErr
+				return
+			}
+			if !controlled && !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionJoinPrivateTeams) {
+				c.SetPermissionError(model.PermissionJoinPrivateTeams)
+				return
+			}
 		}
 	} else {
 		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), member.TeamId, model.PermissionAddUserToTeam) {
@@ -888,7 +1028,7 @@ func addTeamMember(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		canInviteGuests := c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), c.Params.TeamId, model.PermissionInviteGuest)
 		if !canInviteGuests {
-			user, err := c.App.GetUser(member.UserId)
+			user, err := c.App.GetUser(c.AppContext, member.UserId)
 			if err != nil {
 				c.Err = model.NewAppError("addTeamMembers", "api.team.user.missing_account", nil, "", http.StatusNotFound).Wrap(err)
 				return
@@ -1063,7 +1203,7 @@ func addTeamMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		// if user cannot invite guests, check if any users are guest users.
 		if !canInviteGuests {
-			user, err := c.App.GetUser(member.UserId)
+			user, err := c.App.GetUser(c.AppContext, member.UserId)
 			if err != nil {
 				c.Err = model.NewAppError("addTeamMembers", "api.team.user.missing_account", nil, "", http.StatusNotFound).Wrap(err)
 				return
@@ -1150,7 +1290,7 @@ func removeTeamMember(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	model.AddEventParameterAuditableToAuditRec(auditRec, "team", team)
 
-	user, err := c.App.GetUser(c.Params.UserId)
+	user, err := c.App.GetUser(c.AppContext, c.Params.UserId)
 	if err != nil {
 		c.Err = err
 		return
@@ -1177,7 +1317,7 @@ func getTeamUnread(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
+	if !c.App.SessionHasPermissionToUser(c.AppContext, *c.AppContext.Session(), c.Params.UserId) {
 		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
@@ -1322,6 +1462,12 @@ func getAllTeams(c *Context, w http.ResponseWriter, r *http.Request) {
 		opts.AllowOpenInvite = new(false)
 	} else if listPublic {
 		opts.AllowOpenInvite = new(true)
+		if c.App.TeamMembershipAccessControlEnabled() {
+			// Governed teams the user might qualify for must enter the candidate
+			// list so the directory filter below can evaluate them; ungoverned
+			// private teams stay excluded by the open-invite filter.
+			opts.IncludePolicyEnforced = new(true)
+		}
 	} else {
 		// The user doesn't have permissions to list private as well as public teams.
 		c.Err = model.NewAppError("getAllTeams", "api.team.get_all_teams.insufficient_permissions", nil, "", http.StatusForbidden)
@@ -1336,6 +1482,33 @@ func getAllTeams(c *Context, w http.ResponseWriter, r *http.Request) {
 	if appErr != nil {
 		c.Err = appErr
 		return
+	}
+
+	// Hide policy-governed teams from non-qualifying users browsing the directory.
+	// System admins are normally exempt so the System Console team list stays
+	// complete; both surfaces share this endpoint, so the directory opts in via
+	// for_directory to be filtered like any other user (non-admins are filtered
+	// regardless). Hiding from admins here is discovery UX, not a boundary — the
+	// join gate still denies them.
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) || c.Params.ForDirectory {
+		userID := c.AppContext.Session().UserId
+		if c.Params.IncludeTotalCount {
+			var dropped int
+			teamsWithCount.Teams, dropped, appErr = c.App.FilterNonQualifyingTeamsForUser(c.AppContext, teamsWithCount.Teams, userID)
+			if appErr != nil {
+				c.Err = appErr
+				return
+			}
+			teamsWithCount.TotalCount -= int64(dropped)
+			c.App.AnnotateRecommendedTeamsForUser(c.AppContext, teamsWithCount.Teams, userID)
+		} else {
+			teams, _, appErr = c.App.FilterNonQualifyingTeamsForUser(c.AppContext, teams, userID)
+			if appErr != nil {
+				c.Err = appErr
+				return
+			}
+			c.App.AnnotateRecommendedTeamsForUser(c.AppContext, teams, userID)
+		}
 	}
 
 	var (
@@ -1395,6 +1568,12 @@ func searchTeams(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = model.NewAppError("searchTeams", "api.team.search_teams.pagination_not_implemented.public_team_search", nil, "", http.StatusNotImplemented)
 			return
 		}
+		if c.App.TeamMembershipAccessControlEnabled() {
+			// Surface governed teams alongside public ones so the directory filter
+			// below can show the ones this user qualifies for; ungoverned private
+			// teams stay excluded.
+			props.IncludePolicyEnforced = new(true)
+		}
 		teams, appErr = c.App.SearchPublicTeams(&props)
 	} else {
 		teams = []*model.Team{}
@@ -1403,6 +1582,19 @@ func searchTeams(c *Context, w http.ResponseWriter, r *http.Request) {
 	if appErr != nil {
 		c.Err = appErr
 		return
+	}
+
+	// Hide policy-governed teams from non-qualifying users searching the directory.
+	// System admins are exempt so the System Console team search stays complete.
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		var dropped int
+		teams, dropped, appErr = c.App.FilterNonQualifyingTeamsForUser(c.AppContext, teams, c.AppContext.Session().UserId)
+		if appErr != nil {
+			c.Err = appErr
+			return
+		}
+		totalCount -= int64(dropped)
+		c.App.AnnotateRecommendedTeamsForUser(c.AppContext, teams, c.AppContext.Session().UserId)
 	}
 
 	c.App.SanitizeTeams(*c.AppContext.Session(), teams)
@@ -1461,97 +1653,6 @@ func teamExists(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func importTeam(c *Context, w http.ResponseWriter, r *http.Request) {
-	if c.App.Channels().License().IsCloud() {
-		c.Err = model.NewAppError("importTeam", "api.restricted_system_admin", nil, "", http.StatusForbidden)
-		return
-	}
-
-	c.RequireTeamId()
-	if c.Err != nil {
-		return
-	}
-
-	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), c.Params.TeamId, model.PermissionImportTeam) {
-		c.SetPermissionError(model.PermissionImportTeam)
-		return
-	}
-
-	if err := r.ParseMultipartForm(MaximumBulkImportSize); err != nil {
-		c.Err = model.NewAppError("importTeam", "api.team.import_team.parse.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-		return
-	}
-
-	importFromArray, ok := r.MultipartForm.Value["importFrom"]
-	if !ok || len(importFromArray) < 1 {
-		c.Err = model.NewAppError("importTeam", "api.team.import_team.no_import_from.app_error", nil, "", http.StatusBadRequest)
-		return
-	}
-	importFrom := importFromArray[0]
-
-	fileSizeStr, ok := r.MultipartForm.Value["filesize"]
-	if !ok || len(fileSizeStr) < 1 {
-		c.Err = model.NewAppError("importTeam", "api.team.import_team.unavailable.app_error", nil, "", http.StatusBadRequest)
-		return
-	}
-
-	fileSize, err := strconv.ParseInt(fileSizeStr[0], 10, 64)
-	if err != nil {
-		c.Err = model.NewAppError("importTeam", "api.team.import_team.integer.app_error", nil, "", http.StatusBadRequest)
-		return
-	}
-
-	fileInfoArray, ok := r.MultipartForm.File["file"]
-	if !ok {
-		c.Err = model.NewAppError("importTeam", "api.team.import_team.no_file.app_error", nil, "", http.StatusBadRequest)
-		return
-	}
-
-	if len(fileInfoArray) <= 0 {
-		c.Err = model.NewAppError("importTeam", "api.team.import_team.array.app_error", nil, "", http.StatusBadRequest)
-		return
-	}
-
-	auditRec := c.MakeAuditRecord(model.AuditEventImportTeam, model.AuditStatusFail)
-	defer c.LogAuditRec(auditRec)
-	model.AddEventParameterToAuditRec(auditRec, "team_id", c.Params.TeamId)
-
-	fileInfo := fileInfoArray[0]
-
-	fileData, err := fileInfo.Open()
-	if err != nil {
-		c.Err = model.NewAppError("importTeam", "api.team.import_team.open.app_error", nil, "", http.StatusBadRequest).Wrap(err)
-		return
-	}
-	defer fileData.Close()
-	model.AddEventParameterToAuditRec(auditRec, "filename", fileInfo.Filename)
-	model.AddEventParameterToAuditRec(auditRec, "filesize", fileSize)
-	model.AddEventParameterToAuditRec(auditRec, "from", importFrom)
-
-	var log *bytes.Buffer
-	data := map[string]string{}
-	switch importFrom {
-	case "slack":
-		var err *model.AppError
-		if err, log = c.App.SlackImport(c.AppContext, fileData, fileSize, c.Params.TeamId); err != nil {
-			c.Err = err
-			c.Err.StatusCode = http.StatusBadRequest
-		}
-		data["results"] = base64.StdEncoding.EncodeToString(log.Bytes())
-	default:
-		c.Err = model.NewAppError("importTeam", "api.team.import_team.unknown_import_from.app_error", nil, "", http.StatusBadRequest)
-	}
-
-	if c.Err != nil {
-		w.WriteHeader(c.Err.StatusCode)
-		return
-	}
-	auditRec.Success()
-	if _, err := w.Write([]byte(model.MapToJSON(data))); err != nil {
-		c.Logger.Warn("Error while writing response", mlog.Err(err))
-	}
-}
-
 func inviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	graceful := r.URL.Query().Get("graceful") != ""
 
@@ -1585,7 +1686,12 @@ func inviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	for i := range emailList {
-		emailList[i] = strings.ToLower(emailList[i])
+		emailList[i] = model.NormalizeEmail(emailList[i])
+	}
+
+	if !graceful && len(memberInvite.Profiles) > 0 {
+		c.Err = model.NewAppError("Api4.inviteUsersToTeam", "api.team.invite_members.profiles_graceful.app_error", nil, "", http.StatusBadRequest)
+		return
 	}
 
 	auditRec := c.MakeAuditRecord(model.AuditEventInviteUsersToTeam, model.AuditStatusFail)
@@ -1624,24 +1730,33 @@ func inviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		// we get the emailList after it has finished checks like the emails over the list
-		scheduledAt := model.GetMillis()
-		jobData := map[string]string{
-			"emailList":   model.ArrayToJSON(emailList),
-			"teamID":      c.Params.TeamId,
-			"senderID":    c.AppContext.Session().UserId,
-			"scheduledAt": strconv.FormatInt(scheduledAt, 10),
-		}
+		if len(emailList) > 0 {
+			scheduledAt := model.GetMillis()
+			jobData := map[string]string{
+				"emailList":   model.ArrayToJSON(emailList),
+				"teamID":      c.Params.TeamId,
+				"senderID":    c.AppContext.Session().UserId,
+				"scheduledAt": strconv.FormatInt(scheduledAt, 10),
+			}
 
-		if len(memberInvite.ChannelIds) > 0 {
-			jobData["channelList"] = model.ArrayToJSON(memberInvite.ChannelIds)
-		}
+			if len(memberInvite.ChannelIds) > 0 {
+				jobData["channelList"] = model.ArrayToJSON(memberInvite.ChannelIds)
+			}
 
-		// we then manually schedule the job to send another invite after 48 hours
-		_, appErr = c.App.Srv().Jobs.CreateJob(c.AppContext, model.JobTypeResendInvitationEmail, jobData)
-		if appErr != nil {
-			c.Err = model.NewAppError("Api4.inviteUsersToTeam", appErr.Id, nil, "", appErr.StatusCode).Wrap(appErr)
-			return
+			if len(memberInvite.Profiles) > 0 {
+				profilesJSON, jsonErr := json.Marshal(memberInvite.Profiles)
+				if jsonErr != nil {
+					c.Err = model.NewAppError("Api4.inviteUsersToTeam", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
+					return
+				}
+				jobData["profilesList"] = string(profilesJSON)
+			}
+
+			_, appErr = c.App.Srv().Jobs.CreateJob(c.AppContext, model.JobTypeResendInvitationEmail, jobData)
+			if appErr != nil {
+				c.Err = model.NewAppError("Api4.inviteUsersToTeam", appErr.Id, nil, "", appErr.StatusCode).Wrap(appErr)
+				return
+			}
 		}
 
 		// in graceful mode we return both the successful ones and the failed ones

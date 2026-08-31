@@ -7,6 +7,7 @@ exports[`components/admin_console/license_settings/LicenseSettings load screen a
   >
     <div
       class="admin-console__header"
+      data-testid="admin-console-header"
     >
       Edition and License
     </div>
@@ -486,6 +487,7 @@ exports[`components/admin_console/license_settings/LicenseSettings load screen w
   >
     <div
       class="admin-console__header"
+      data-testid="admin-console-header"
     >
       Edition and License
     </div>
@@ -987,6 +989,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
   >
     <div
       class="admin-console__header"
+      data-testid="admin-console-header"
     >
       Edition and License
     </div>
@@ -1649,6 +1652,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
   >
     <div
       class="admin-console__header"
+      data-testid="admin-console-header"
     >
       Edition and License
     </div>
@@ -2297,6 +2301,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
   >
     <div
       class="admin-console__header"
+      data-testid="admin-console-header"
     >
       Edition and License
     </div>
@@ -2961,6 +2966,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
   >
     <div
       class="admin-console__header"
+      data-testid="admin-console-header"
     >
       Edition and License
     </div>
@@ -3609,6 +3615,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
   >
     <div
       class="admin-console__header"
+      data-testid="admin-console-header"
     >
       Edition and License
     </div>
@@ -4258,6 +4265,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
   >
     <div
       class="admin-console__header"
+      data-testid="admin-console-header"
     >
       Edition and License
     </div>
@@ -4912,6 +4920,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
   >
     <div
       class="admin-console__header"
+      data-testid="admin-console-header"
     >
       Edition and License
     </div>
@@ -5493,6 +5502,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
   >
     <div
       class="admin-console__header"
+      data-testid="admin-console-header"
     >
       Edition and License
     </div>
@@ -6033,6 +6043,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
   >
     <div
       class="admin-console__header"
+      data-testid="admin-console-header"
     >
       Edition and License
     </div>
@@ -6579,6 +6590,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
   >
     <div
       class="admin-console__header"
+      data-testid="admin-console-header"
     >
       Edition and License
     </div>
@@ -7070,6 +7082,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
   >
     <div
       class="admin-console__header"
+      data-testid="admin-console-header"
     >
       Edition and License
     </div>
@@ -7585,6 +7598,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
   >
     <div
       class="admin-console__header"
+      data-testid="admin-console-header"
     >
       Edition and License
     </div>
@@ -8049,6 +8063,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
   >
     <div
       class="admin-console__header"
+      data-testid="admin-console-header"
     >
       Edition and License
     </div>
@@ -8620,6 +8635,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
   >
     <div
       class="admin-console__header"
+      data-testid="admin-console-header"
     >
       Edition and License
     </div>

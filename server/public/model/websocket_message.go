@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"io"
 	"maps"
+	"slices"
 	"strconv"
 )
 
@@ -88,6 +89,8 @@ const (
 	WebsocketEventChannelBookmarkDeleted              WebsocketEventType = "channel_bookmark_deleted"
 	WebsocketEventChannelBookmarkSorted               WebsocketEventType = "channel_bookmark_sorted"
 	WebsocketEventChannelAccessControlUpdated         WebsocketEventType = "channel_access_control_updated"
+	WebsocketEventPermissionPolicyUpdated             WebsocketEventType = "permission_policy_updated"
+	WebsocketEventTeamAccessControlUpdated            WebsocketEventType = "team_access_control_updated"
 	WebsocketPresenceIndicator                        WebsocketEventType = "presence"
 	WebsocketPostedNotifyAck                          WebsocketEventType = "posted_notify_ack"
 	WebsocketScheduledPostCreated                     WebsocketEventType = "scheduled_post_created"
@@ -98,6 +101,7 @@ const (
 	WebsocketEventCPAFieldDeleted                     WebsocketEventType = "custom_profile_attributes_field_deleted"
 	WebsocketEventCPAValuesUpdated                    WebsocketEventType = "custom_profile_attributes_values_updated"
 	WebsocketContentFlaggingReportValueUpdated        WebsocketEventType = "content_flagging_report_value_updated"
+	WebsocketEventJobUpdated                          WebsocketEventType = "job_updated"
 	WebsocketEventRecapUpdated                        WebsocketEventType = "recap_updated"
 	WebsocketEventPostTranslationUpdated              WebsocketEventType = "post_translation_updated"
 	WebsocketEventPostRevealed                        WebsocketEventType = "post_revealed"
@@ -151,6 +155,7 @@ type WebsocketBroadcast struct {
 	OmitConnectionId      string          `json:"omit_connection_id"`                // broadcast is omitted for this connection
 	ContainsSanitizedData bool            `json:"contains_sanitized_data,omitempty"` // broadcast only occurs for non-sysadmins
 	ContainsSensitiveData bool            `json:"contains_sensitive_data,omitempty"` // broadcast only occurs for sysadmins
+	RequiredPermissions   []string        `json:"required_permissions,omitempty"`    // broadcast only occurs for sessions with all permissions
 	// ReliableClusterSend indicates whether or not the message should
 	// be sent through the cluster using the reliable, TCP backed channel.
 	ReliableClusterSend bool `json:"-"`
@@ -183,6 +188,7 @@ func (wb *WebsocketBroadcast) copy() *WebsocketBroadcast {
 	c.OmitConnectionId = wb.OmitConnectionId
 	c.ContainsSanitizedData = wb.ContainsSanitizedData
 	c.ContainsSensitiveData = wb.ContainsSensitiveData
+	c.RequiredPermissions = slices.Clone(wb.RequiredPermissions)
 	c.BroadcastHooks = wb.BroadcastHooks
 	c.BroadcastHookArgs = wb.BroadcastHookArgs
 

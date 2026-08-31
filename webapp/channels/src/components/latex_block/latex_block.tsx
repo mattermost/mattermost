@@ -35,25 +35,18 @@ const LatexBlock = ({
         );
     }
 
+    const katexOptions: KatexOptions = {
+        throwOnError: false,
+        displayMode: true,
+        maxSize: 200,
+        maxExpand: 100,
+        fleqn: true,
+    };
+
+    let html;
     try {
-        const katexOptions: KatexOptions = {
-            throwOnError: false,
-            displayMode: true,
-            maxSize: 200,
-            maxExpand: 100,
-            fleqn: true,
-        };
-
-        const html = katex.renderToString(content, katexOptions);
-
-        return (
-            <div
-                className='post-body--code tex'
-                dangerouslySetInnerHTML={{__html: html}}
-                data-testid='latex-enabled'
-            />
-        );
-    } catch (e) {
+        html = katex.renderToString(content, katexOptions);
+    } catch {
         // This is never run because throwOnError is false
         return (
             <div
@@ -67,6 +60,14 @@ const LatexBlock = ({
             </div>
         );
     }
+
+    return (
+        <div
+            className='post-body--code tex'
+            dangerouslySetInnerHTML={{__html: html}}
+            data-testid='latex-enabled'
+        />
+    );
 };
 
 export default React.memo(LatexBlock);

@@ -64,7 +64,7 @@ export default class GetLinkModal extends React.PureComponent<Props, State> {
                 this.resetTimeout = setTimeout(() => {
                     this.setState({copiedLink: false});
                 }, 1000);
-            } catch (err) {
+            } catch {
                 this.setState({copiedLink: false});
             }
         }

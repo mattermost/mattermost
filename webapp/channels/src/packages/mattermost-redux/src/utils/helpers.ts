@@ -7,7 +7,7 @@ import type {FieldValueType} from '@mattermost/types/properties';
 
 import {createSelectorCreator, defaultMemoize} from 'mattermost-redux/selectors/create_selector';
 
-// eslint-disable-next-line @typescript-eslint/ban-types
+// eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
 export function memoizeResult<F extends Function>(func: F, measure: Function | undefined = undefined): F {
     let lastArgs: IArguments | null = null;
     let lastResult: any = null;
@@ -15,7 +15,6 @@ export function memoizeResult<F extends Function>(func: F, measure: Function | u
     // we reference arguments instead of spreading them for performance reasons
     return function memoizedFunc() {
         if (!shallowEqual(lastArgs, arguments)) { //eslint-disable-line prefer-rest-params
-            //eslint-disable-line prefer-rest-params
             // apply arguments instead of spreading for performance.
             const result = Reflect.apply(func, null, arguments); //eslint-disable-line prefer-rest-params
             if (!shallowEqual(lastResult, result)) {

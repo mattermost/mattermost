@@ -89,7 +89,7 @@ export function useChannelSystemPolicies(channel: Channel | null): UseChannelSys
                 } else {
                     setPolicies([]);
                 }
-            } catch (err) {
+            } catch {
                 setError('Failed to fetch policies');
                 setPolicies([]);
             } finally {

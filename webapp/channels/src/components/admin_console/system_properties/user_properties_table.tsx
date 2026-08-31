@@ -9,17 +9,18 @@ import styled, {css} from 'styled-components';
 
 import {AlertOutlineIcon, InformationOutlineIcon, PlusIcon} from '@mattermost/compass-icons/components';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
-import {supportsOptions, type UserPropertyField} from '@mattermost/types/properties';
+import {supportsOptions} from '@mattermost/types/properties';
+import {type UserPropertyField} from '@mattermost/types/properties_user';
 import {collectionToArray} from '@mattermost/types/utilities';
 
 import AlertBanner from 'components/alert_banner';
+import {useIsFieldOrphaned} from 'components/common/hooks/use_field_orphaned';
 import LoadingScreen from 'components/loading_screen';
 
 import Constants from 'utils/constants';
 import {CPA_FIELD_NAME_RESERVED_WORDS, filterCELIdentifier, slugifyForCEL} from 'utils/properties';
 
 import {BorderlessInput, LinkButton} from './controls';
-import {useIsFieldOrphaned} from './orphaned_fields_utils';
 import type {SectionHook} from './section_utils';
 import DotMenu from './user_properties_dot_menu';
 import OrphanedFieldDeleteButton from './user_properties_orphaned_delete_button';
@@ -684,6 +685,7 @@ export const ValidationBanners = ({warnings}: ValidationBannersProps) => {
             {presentTypes.map((id) => (
                 <AlertBanner
                     key={id}
+                    id={id}
                     mode='warning'
                     title={<FormattedMessage {...nameBannerTitles[id]}/>}
                     message={

@@ -57,7 +57,10 @@ const BurnOnReadLabel = ({canRemove, onRemove, durationMinutes}: Props) => {
     };
 
     return (
-        <div className='BurnOnReadLabel'>
+        <div
+            className='BurnOnReadLabel'
+            data-testid='burn-on-read-label'
+        >
             <div className='BurnOnReadLabel__badge'>
                 <FireIcon
                     size={10}

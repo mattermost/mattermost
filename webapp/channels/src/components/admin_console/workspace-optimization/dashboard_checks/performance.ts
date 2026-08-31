@@ -33,7 +33,7 @@ const search = async (
                 check = ItemStatus.OK;
             }
         };
-        await elasticsearchTest(config, onSuccess);
+        await elasticsearchTest(config as AdminConfig, onSuccess);
         return check;
     };
 

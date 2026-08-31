@@ -35,6 +35,7 @@ jest.mock('components/admin_console/team_channel_settings/convert_confirm_modal'
 let mockChannelPropertiesPermission = true;
 let mockConvertToPublicPermission = true;
 let mockConvertToPrivatePermission = true;
+let mockDiscoverabilityPermission = true;
 
 jest.mock('mattermost-redux/selectors/entities/roles', () => ({
     haveITeamPermission: jest.fn().mockReturnValue(true),
@@ -47,6 +48,9 @@ jest.mock('mattermost-redux/selectors/entities/roles', () => ({
         }
         if (permission === 'convert_private_channel_to_public') {
             return mockConvertToPublicPermission;
+        }
+        if (permission === 'manage_private_channel_discoverability') {
+            return mockDiscoverabilityPermission;
         }
         return true;
     }),
@@ -139,6 +143,7 @@ describe('ChannelSettingsInfoTab', () => {
         mockChannelPropertiesPermission = true;
         mockConvertToPublicPermission = true;
         mockConvertToPrivatePermission = true;
+        mockDiscoverabilityPermission = true;
     });
 
     it('should render with the correct initial values', () => {
@@ -287,6 +292,36 @@ describe('ChannelSettingsInfoTab', () => {
         expect(screen.getByRole('textbox', {name: 'Channel name'})).toHaveValue('Channel Name With Whitespace');
         expect(screen.getByTestId('channel_settings_purpose_textbox')).toHaveValue('Purpose with whitespace');
         expect(screen.getByTestId('channel_settings_header_textbox')).toHaveValue('Header with whitespace');
+    });
+
+    it('detects removing stored whitespace and saves the trimmed value', async () => {
+        const {patchChannel} = require('mattermost-redux/actions/channels');
+        patchChannel.mockReturnValue({type: 'MOCK_ACTION', data: {}});
+
+        const paddedHeaderChannel = {...mockChannel, header: 'Initial header   '};
+        renderWithContext(
+            <ChannelSettingsInfoTab
+                channel={paddedHeaderChannel}
+                setAreThereUnsavedChanges={jest.fn()}
+            />,
+        );
+
+        // The untidy stored text opens the form cleanly.
+        const headerInput = screen.getByTestId('channel_settings_header_textbox');
+        expect(headerInput).toHaveValue('Initial header   ');
+        expect(screen.queryByRole('button', {name: 'Save'})).not.toBeInTheDocument();
+
+        // Removing the stored trailing whitespace is a real edit the user can save.
+        await userEvent.clear(headerInput);
+        await userEvent.type(headerInput, 'Initial header');
+
+        expect(screen.getByRole('button', {name: 'Save'})).toBeInTheDocument();
+
+        await userEvent.click(screen.getByRole('button', {name: 'Save'}));
+
+        expect(patchChannel).toHaveBeenCalledWith('channel1', {
+            header: 'Initial header',
+        });
     });
 
     it('should hide SaveChangesPanel after successful save', async () => {
@@ -645,5 +680,278 @@ describe('ChannelSettingsInfoTab', () => {
 
         // Verify error state is shown
         expect(screen.getByText(/There are errors in the form above/)).toBeInTheDocument();
+    });
+
+    // ---------------------------------------------------------------
+    // Discoverable Private Channels — toggle visibility, gating, save
+    // ---------------------------------------------------------------
+
+    const privateChannel = TestHelper.getChannelMock({
+        id: 'channel1',
+        team_id: 'team1',
+        display_name: 'Private Channel',
+        name: 'private-channel',
+        purpose: 'For private things',
+        header: 'Private header',
+        type: 'P',
+    });
+
+    // Feature-flag-enabled state. The selector reads
+    // config.FeatureFlagDiscoverableChannels === 'true'.
+    const stateWithDiscoverableFlag = {
+        entities: {
+            general: {
+                config: {
+                    FeatureFlagDiscoverableChannels: 'true',
+                },
+            },
+        },
+    };
+
+    describe('Discoverable toggle', () => {
+        it('does not render on a public channel even when the feature flag is on', () => {
+            renderWithContext(<ChannelSettingsInfoTab {...baseProps}/>, stateWithDiscoverableFlag);
+            expect(screen.queryByTestId('channel-settings-discoverable-toggle')).not.toBeInTheDocument();
+        });
+
+        it('does not render when the feature flag is off, even on a private channel', () => {
+            renderWithContext(
+                <ChannelSettingsInfoTab
+                    channel={privateChannel}
+                    setAreThereUnsavedChanges={jest.fn()}
+                />,
+            );
+            expect(screen.queryByTestId('channel-settings-discoverable-toggle')).not.toBeInTheDocument();
+        });
+
+        it('renders on a private channel when the feature flag is on', () => {
+            renderWithContext(
+                <ChannelSettingsInfoTab
+                    channel={privateChannel}
+                    setAreThereUnsavedChanges={jest.fn()}
+                />,
+                stateWithDiscoverableFlag,
+            );
+            expect(screen.getByTestId('channel-settings-discoverable-toggle')).toBeInTheDocument();
+            expect(screen.getByTestId('channel-settings-discoverable-toggle')).toHaveAttribute('aria-pressed', 'false');
+        });
+
+        it('reflects the channel\'s existing discoverable value on mount', () => {
+            const alreadyDiscoverable = {...privateChannel, discoverable: true};
+            renderWithContext(
+                <ChannelSettingsInfoTab
+                    channel={alreadyDiscoverable}
+                    setAreThereUnsavedChanges={jest.fn()}
+                />,
+                stateWithDiscoverableFlag,
+            );
+            expect(screen.getByTestId('channel-settings-discoverable-toggle')).toHaveAttribute('aria-pressed', 'true');
+        });
+
+        it('disables the toggle when the user lacks manage_private_channel_discoverability', () => {
+            mockDiscoverabilityPermission = false;
+            renderWithContext(
+                <ChannelSettingsInfoTab
+                    channel={privateChannel}
+                    setAreThereUnsavedChanges={jest.fn()}
+                />,
+                stateWithDiscoverableFlag,
+            );
+            expect(screen.getByTestId('channel-settings-discoverable-toggle')).toBeDisabled();
+            expect(screen.getByText(/Only channel admins can change this/)).toBeInTheDocument();
+        });
+
+        it('includes discoverable: true in the patchChannel payload when toggled on and saved', async () => {
+            const {patchChannel} = require('mattermost-redux/actions/channels');
+            patchChannel.mockReturnValue({type: 'MOCK_ACTION', data: {discoverable: true}});
+
+            renderWithContext(
+                <ChannelSettingsInfoTab
+                    channel={privateChannel}
+                    setAreThereUnsavedChanges={jest.fn()}
+                />,
+                stateWithDiscoverableFlag,
+            );
+
+            await act(async () => {
+                await userEvent.click(screen.getByTestId('channel-settings-discoverable-toggle'));
+            });
+            await new Promise((resolve) => setTimeout(resolve, 0));
+
+            // SaveChangesPanel becomes visible only when there are unsaved changes
+            const saveButton = screen.getByRole('button', {name: 'Save'});
+            await userEvent.click(saveButton);
+
+            expect(patchChannel).toHaveBeenCalledWith('channel1', {discoverable: true});
+        });
+
+        it('omits the discoverable field from the patch when the toggle is unchanged', async () => {
+            const {patchChannel} = require('mattermost-redux/actions/channels');
+            patchChannel.mockReturnValue({type: 'MOCK_ACTION', data: {}});
+
+            renderWithContext(
+                <ChannelSettingsInfoTab
+                    channel={privateChannel}
+                    setAreThereUnsavedChanges={jest.fn()}
+                />,
+                stateWithDiscoverableFlag,
+            );
+
+            // Touch a different field so SaveChangesPanel renders, but leave
+            // the discoverable toggle alone. The patch should NOT include
+            // discoverable — only fields that changed.
+            await act(async () => {
+                const headerInput = screen.getByTestId('channel_settings_header_textbox');
+                await userEvent.clear(headerInput);
+                await userEvent.type(headerInput, 'New header text');
+            });
+            await new Promise((resolve) => setTimeout(resolve, 0));
+
+            await userEvent.click(screen.getByRole('button', {name: 'Save'}));
+
+            expect(patchChannel).toHaveBeenCalledWith('channel1', {header: 'New header text'});
+            const calls = patchChannel.mock.calls;
+            const lastPatch = calls[calls.length - 1][1];
+            expect(lastPatch).not.toHaveProperty('discoverable');
+        });
+    });
+
+    describe('opening the tab on a channel with untidy stored text', () => {
+        // Channels populated outside this form can carry surrounding whitespace.
+        const paddedChannel = TestHelper.getChannelMock({
+            id: 'channel1',
+            team_id: 'team1',
+            display_name: 'Padded Channel',
+            name: 'padded-channel',
+            purpose: '  Small annoyances that add up  ',
+            header: 'Runbook: [Ops guide](http://example.com)\nEscalate to @admin\n',
+            type: 'O',
+        });
+
+        it('reports no unsaved changes when purpose and header have surrounding whitespace', () => {
+            const setAreThereUnsavedChanges = jest.fn();
+            renderWithContext(
+                <ChannelSettingsInfoTab
+                    channel={paddedChannel}
+                    setAreThereUnsavedChanges={setAreThereUnsavedChanges}
+                />,
+            );
+
+            expect(screen.queryByText('You have unsaved changes')).not.toBeInTheDocument();
+            expect(setAreThereUnsavedChanges).toHaveBeenCalledWith(false);
+            expect(setAreThereUnsavedChanges).not.toHaveBeenCalledWith(true);
+        });
+
+        it('reports no unsaved changes when the channel has no purpose or header at all', () => {
+            const bareChannel = TestHelper.getChannelMock({
+                id: 'channel1',
+                team_id: 'team1',
+                display_name: 'Bare Channel',
+                name: 'bare-channel',
+                purpose: undefined as unknown as string,
+                header: undefined as unknown as string,
+                type: 'O',
+            });
+
+            const setAreThereUnsavedChanges = jest.fn();
+            renderWithContext(
+                <ChannelSettingsInfoTab
+                    channel={bareChannel}
+                    setAreThereUnsavedChanges={setAreThereUnsavedChanges}
+                />,
+            );
+
+            expect(screen.queryByText('You have unsaved changes')).not.toBeInTheDocument();
+            expect(setAreThereUnsavedChanges).toHaveBeenCalledWith(false);
+            expect(setAreThereUnsavedChanges).not.toHaveBeenCalledWith(true);
+        });
+
+        it('reports no unsaved changes on a DM whose header ends in a newline', () => {
+            const paddedDmChannel = {...mockDirectMessageChannel, header: 'DM initial header\n'};
+
+            const setAreThereUnsavedChanges = jest.fn();
+            renderWithContext(
+                <ChannelSettingsInfoTab
+                    channel={paddedDmChannel}
+                    setAreThereUnsavedChanges={setAreThereUnsavedChanges}
+                />,
+            );
+
+            expect(screen.queryByText('You have unsaved changes')).not.toBeInTheDocument();
+            expect(setAreThereUnsavedChanges).toHaveBeenCalledWith(false);
+            expect(setAreThereUnsavedChanges).not.toHaveBeenCalledWith(true);
+        });
+
+        it('stays clean when focus leaves the untouched name field', async () => {
+            renderWithContext(
+                <ChannelSettingsInfoTab
+                    channel={paddedChannel}
+                    setAreThereUnsavedChanges={jest.fn()}
+                />,
+            );
+
+            const nameInput = screen.getByRole('textbox', {name: 'Channel name'});
+            await userEvent.click(nameInput);
+            await userEvent.tab();
+
+            expect(screen.queryByText('Channel names must have at least 1 character.')).not.toBeInTheDocument();
+            expect(nameInput).toHaveValue('Padded Channel');
+            expect(screen.queryByText('You have unsaved changes')).not.toBeInTheDocument();
+        });
+
+        it('restores the stored text and clears the panel when Reset is clicked', async () => {
+            renderWithContext(
+                <ChannelSettingsInfoTab
+                    channel={paddedChannel}
+                    setAreThereUnsavedChanges={jest.fn()}
+                />,
+            );
+
+            const purposeInput = screen.getByTestId('channel_settings_purpose_textbox');
+            await userEvent.clear(purposeInput);
+            await userEvent.type(purposeInput, 'A brand new purpose');
+
+            await userEvent.click(screen.getByRole('button', {name: 'Reset'}));
+
+            expect(purposeInput).toHaveValue('  Small annoyances that add up  ');
+            expect(screen.queryByText('You have unsaved changes')).not.toBeInTheDocument();
+        });
+
+        it('detects and saves an edit made on untidy stored text', async () => {
+            const {patchChannel} = require('mattermost-redux/actions/channels');
+            patchChannel.mockReturnValue({type: 'MOCK_ACTION', data: {}});
+
+            const setAreThereUnsavedChanges = jest.fn();
+            const {rerender} = renderWithContext(
+                <ChannelSettingsInfoTab
+                    channel={paddedChannel}
+                    setAreThereUnsavedChanges={setAreThereUnsavedChanges}
+                />,
+            );
+
+            const purposeInput = screen.getByTestId('channel_settings_purpose_textbox');
+            await userEvent.clear(purposeInput);
+            await userEvent.type(purposeInput, 'A brand new purpose');
+
+            expect(screen.getByText('You have unsaved changes')).toBeInTheDocument();
+            expect(setAreThereUnsavedChanges).toHaveBeenLastCalledWith(true);
+
+            await userEvent.click(screen.getByRole('button', {name: 'Save'}));
+
+            // The untouched header keeps its stored whitespace.
+            expect(patchChannel).toHaveBeenCalledWith('channel1', {
+                purpose: 'A brand new purpose',
+            });
+
+            // Simulate the patched channel arriving back through the store.
+            rerender(
+                <ChannelSettingsInfoTab
+                    channel={{...paddedChannel, purpose: 'A brand new purpose'}}
+                    setAreThereUnsavedChanges={setAreThereUnsavedChanges}
+                />,
+            );
+            expect(setAreThereUnsavedChanges).toHaveBeenLastCalledWith(false);
+            expect(screen.queryByText('You have unsaved changes')).not.toBeInTheDocument();
+        });
     });
 });

@@ -111,6 +111,36 @@ describe('Client4', () => {
         });
     });
 
+    describe('access control field autocomplete', () => {
+        let client: Client4;
+
+        beforeEach(() => {
+            client = new Client4();
+            client.setUrl('http://mattermost.example.com');
+        });
+
+        test('getAccessControlFields sends include_resource_fields when requested', async () => {
+            const fields = [{id: 'f1', name: 'classification'}];
+            nock(client.getBaseRoute()).
+                get('/access_control_policies/cel/autocomplete/fields').
+                query({after: '', limit: '100', include_resource_fields: 'true'}).
+                reply(200, fields);
+
+            const result = await client.getAccessControlFields('', 100, undefined, undefined, true);
+            expect(result).toEqual(fields);
+        });
+
+        test('getAccessControlFields omits include_resource_fields by default', async () => {
+            nock(client.getBaseRoute()).
+                get('/access_control_policies/cel/autocomplete/fields').
+                query((q) => q.include_resource_fields === undefined && q.after === '' && q.limit === '100').
+                reply(200, []);
+
+            const result = await client.getAccessControlFields('', 100);
+            expect(result).toEqual([]);
+        });
+    });
+
     describe('content flagging routes', () => {
         let client: Client4;
 
@@ -201,6 +231,145 @@ describe('Client4', () => {
             await client.keepFlaggedPost('post123', '');
 
             expect(receivedBody).toEqual({comment: ''});
+        });
+
+        test('getPostExposureReportUrl should build correct URL', () => {
+            expect(client.getPostExposureReportUrl('post123')).toBe(
+                'http://mattermost.example.com/api/v4/content_flagging/post/post123/exposure_report',
+            );
+        });
+
+        test('generatePostExposureReport should return the CSV blob and the filename from Content-Disposition', async () => {
+            nock(client.getBaseRoute()).
+                post('/content_flagging/post/post123/exposure_report').
+                reply(200, '#Post ID,post123\nUser ID,Username\nuid1,alice\n', {
+                    'Content-Type': 'text/csv; charset=utf-8',
+                    'Content-Disposition': 'attachment; filename="post-exposure-post123-1700000000000.csv"',
+                });
+
+            const result = await client.generatePostExposureReport('post123');
+
+            expect(result.filename).toEqual('post-exposure-post123-1700000000000.csv');
+            expect(typeof result.blob.text).toBe('function');
+            expect(await result.blob.text()).toContain('uid1,alice');
+        });
+
+        test('generatePostExposureReport should fall back to a generated filename when the header is absent', async () => {
+            nock(client.getBaseRoute()).
+                post('/content_flagging/post/post123/exposure_report').
+                reply(200, 'User ID,Username\n', {'Content-Type': 'text/csv; charset=utf-8'});
+
+            const result = await client.generatePostExposureReport('post123');
+
+            expect(result.filename).toMatch(/^post-exposure-post123-\d+\.csv$/);
+        });
+
+        test('generatePostExposureReport should surface server errors as ClientError', async () => {
+            nock(client.getBaseRoute()).
+                post('/content_flagging/post/post123/exposure_report').
+                reply(400, {
+                    id: 'api.data_spillage.error.post_not_in_progress',
+                    message: 'The review of this post is already closed.',
+                    status_code: 400,
+                }, {'Content-Type': 'application/json'});
+
+            await expect(client.generatePostExposureReport('post123')).rejects.toMatchObject({
+                server_error_id: 'api.data_spillage.error.post_not_in_progress',
+                status_code: 400,
+            });
+        });
+    });
+
+    describe('team access control routes', () => {
+        let client: Client4;
+
+        beforeEach(() => {
+            client = new Client4();
+            client.setUrl('http://mattermost.example.com');
+        });
+
+        test('assignTeamsToAccessControlPolicy POSTs team_ids to the assign route', async () => {
+            let receivedBody: any;
+            nock(client.getBaseRoute()).
+                post('/access_control_policies/pol1/assign', (body) => {
+                    receivedBody = body;
+                    return true;
+                }).
+                reply(200, {status: 'OK'});
+
+            const result = await client.assignTeamsToAccessControlPolicy('pol1', ['team1', 'team2']);
+
+            expect(receivedBody).toEqual({team_ids: ['team1', 'team2']});
+            expect(result).toEqual({status: 'OK'});
+        });
+
+        test('unassignTeamsFromAccessControlPolicy DELETEs team_ids to the unassign route', async () => {
+            let receivedBody: any;
+            nock(client.getBaseRoute()).
+                delete('/access_control_policies/pol1/unassign', (body) => {
+                    receivedBody = body;
+                    return true;
+                }).
+                reply(200, {status: 'OK'});
+
+            const result = await client.unassignTeamsFromAccessControlPolicy('pol1', ['team1']);
+
+            expect(receivedBody).toEqual({team_ids: ['team1']});
+            expect(result).toEqual({status: 'OK'});
+        });
+
+        test('getTeamAccessControlPolicy GETs the per-team policy route', async () => {
+            const response = {policy: null, enforced: false};
+            nock(client.getBaseRoute()).
+                get('/teams/team1/access_control/policy').
+                reply(200, response);
+
+            const result = await client.getTeamAccessControlPolicy('team1');
+            expect(result).toEqual(response);
+        });
+
+        test('getProfilesMatchingTeamPolicy GETs users with not_in_team + abac_match_only', async () => {
+            const profiles = [{id: 'u1'}];
+            nock(client.getBaseRoute()).
+                get('/users').
+                query({not_in_team: 'team1', per_page: '60', abac_match_only: 'true'}).
+                reply(200, profiles);
+
+            const result = await client.getProfilesMatchingTeamPolicy('team1');
+            expect(result).toEqual(profiles);
+        });
+
+        test('getProfilesMatchingTeamPolicy includes cursor_id when provided', async () => {
+            const profiles: any[] = [];
+            nock(client.getBaseRoute()).
+                get('/users').
+                query({not_in_team: 'team1', per_page: '60', abac_match_only: 'true', cursor_id: 'u9'}).
+                reply(200, profiles);
+
+            const result = await client.getProfilesMatchingTeamPolicy('team1', 60, 'u9');
+            expect(result).toEqual(profiles);
+        });
+
+        test('getTeams sends for_directory=true so admins are filtered on the directory listing', async () => {
+            const teams = [{id: 't1'}];
+            nock(client.getBaseRoute()).
+                get('/teams').
+                query({page: '0', per_page: '60', include_total_count: 'true', exclude_policy_constrained: 'false', for_directory: 'true'}).
+                reply(200, teams);
+
+            const result = await client.getTeams(0, 60, true, false, true);
+            expect(result).toEqual(teams);
+        });
+
+        test('getTeams defaults for_directory to false so the management listing stays complete', async () => {
+            const teams = [{id: 't1'}];
+            nock(client.getBaseRoute()).
+                get('/teams').
+                query({page: '0', per_page: '60', include_total_count: 'false', exclude_policy_constrained: 'false', for_directory: 'false'}).
+                reply(200, teams);
+
+            const result = await client.getTeams(0, 60);
+            expect(result).toEqual(teams);
         });
     });
 

@@ -11,7 +11,7 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 export interface RevokeTokenButtonProps {
     actions: {
         revokeUserAccessToken: (
-            tokenId: string
+            tokenId: string,
         ) => Promise<ActionResult>;
     };
     tokenId: string;

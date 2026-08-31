@@ -16,7 +16,7 @@ export default class BaseModal {
 
     constructor(container: Locator) {
         this.container = container;
-        this.title = container.locator('.modal-title');
+        this.title = container.getByRole('heading');
         this.closeButton = container.getByRole('button', {name: 'Close'});
         this.cancelButton = container.getByRole('button', {name: 'Cancel'});
     }

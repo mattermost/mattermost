@@ -4,7 +4,6 @@
 import React, {useCallback, useMemo} from 'react';
 import {useSelector} from 'react-redux';
 
-import {usePluginVisibilityInSharedChannel} from 'components/common/hooks/usePluginVisibilityInSharedChannel';
 import type TextboxClass from 'components/textbox/textbox';
 
 import PluggableErrorBoundary from 'plugins/pluggable/error_boundary';
@@ -16,10 +15,8 @@ const usePluginItems = (
     draft: PostDraft,
     textboxRef: React.RefObject<TextboxClass>,
     handleDraftChange: (draft: PostDraft) => void,
-    channelId?: string,
 ) => {
     const postEditorActions = useSelector((state: GlobalState) => state.plugins.components.PostEditorAction);
-    const pluginItemsVisible = usePluginVisibilityInSharedChannel(channelId);
 
     const getSelectedText = useCallback(() => {
         const input = textboxRef.current?.getInputBox();
@@ -40,10 +37,6 @@ const usePluginItems = (
     }, [handleDraftChange, draft]);
 
     const items = useMemo(() => {
-        if (!pluginItemsVisible) {
-            return [];
-        }
-
         return postEditorActions?.map((item) => {
             if (!item.component) {
                 return null;
@@ -63,7 +56,7 @@ const usePluginItems = (
                 </PluggableErrorBoundary>
             );
         });
-    }, [postEditorActions, draft, getSelectedText, updateText, pluginItemsVisible]);
+    }, [postEditorActions, draft, getSelectedText, updateText]);
 
     return items;
 };

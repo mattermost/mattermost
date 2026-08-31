@@ -7,6 +7,7 @@ exports[`components/admin_console/team_channel_settings/group/UsersToRemove shou
   >
     <div
       class="DataGrid"
+      data-testid="dataGrid"
     >
       <div
         class="DataGrid_search"
@@ -153,9 +154,11 @@ exports[`components/admin_console/team_channel_settings/group/UsersToRemove shou
       </div>
       <div
         class="DataGrid_header"
+        data-testid="dataGrid-header"
       />
       <div
         class="DataGrid_rows"
+        data-testid="dataGrid-rows"
       >
         <div
           class="DataGrid_loading"
@@ -175,11 +178,16 @@ exports[`components/admin_console/team_channel_settings/group/UsersToRemove shou
       </div>
       <div
         class="DataGrid_footer"
+        data-testid="dataGrid-footer"
       >
         <div
           class="DataGrid_cell"
         >
-          1 - 2 of 2
+          <span
+            data-testid="dataGrid-footer-paginationInfo"
+          >
+            1 - 2 of 2
+          </span>
           <button
             aria-label="Previous page"
             class="btn btn-quaternary btn-icon btn-sm ml-2 prev disabled"
@@ -216,6 +224,7 @@ exports[`components/admin_console/team_channel_settings/group/UsersToRemove shou
   >
     <div
       class="DataGrid"
+      data-testid="dataGrid"
     >
       <div
         class="DataGrid_search"
@@ -362,6 +371,7 @@ exports[`components/admin_console/team_channel_settings/group/UsersToRemove shou
       </div>
       <div
         class="DataGrid_header"
+        data-testid="dataGrid-header"
       >
         <div
           class="DataGrid_cell"
@@ -384,12 +394,15 @@ exports[`components/admin_console/team_channel_settings/group/UsersToRemove shou
       </div>
       <div
         class="DataGrid_rows"
+        data-testid="dataGrid-rows"
       >
         <div
           class="DataGrid_row"
+          data-testid="dataGrid-row"
         >
           <div
             class="DataGrid_cell"
+            data-testid="dataGrid-cell"
             style="flex-grow: 5;"
           >
             <div
@@ -400,6 +413,7 @@ exports[`components/admin_console/team_channel_settings/group/UsersToRemove shou
               >
                 <span
                   class="profile-icon "
+                  data-testid="profile-icon"
                 >
                   <img
                     alt="user profile image"
@@ -411,18 +425,23 @@ exports[`components/admin_console/team_channel_settings/group/UsersToRemove shou
               </span>
               <div
                 class="UserGrid_name"
+                data-testid="userGrid-name"
               >
-                <span>
+                <span
+                  data-testid="userGrid-displayName"
+                >
                   user-1 -  
                 </span>
                 <span
                   class="ug-email"
+                  data-testid="userGrid-email"
                 />
               </div>
             </div>
           </div>
           <div
             class="DataGrid_cell"
+            data-testid="dataGrid-cell"
             style="flex-grow: 2;"
           >
             <div
@@ -433,6 +452,7 @@ exports[`components/admin_console/team_channel_settings/group/UsersToRemove shou
           </div>
           <div
             class="DataGrid_cell"
+            data-testid="dataGrid-cell"
             style="flex-grow: 3;"
           >
             <div
@@ -444,9 +464,11 @@ exports[`components/admin_console/team_channel_settings/group/UsersToRemove shou
         </div>
         <div
           class="DataGrid_row"
+          data-testid="dataGrid-row"
         >
           <div
             class="DataGrid_cell"
+            data-testid="dataGrid-cell"
             style="flex-grow: 5;"
           >
             <div
@@ -457,6 +479,7 @@ exports[`components/admin_console/team_channel_settings/group/UsersToRemove shou
               >
                 <span
                   class="profile-icon "
+                  data-testid="profile-icon"
                 >
                   <img
                     alt="user profile image"
@@ -468,18 +491,23 @@ exports[`components/admin_console/team_channel_settings/group/UsersToRemove shou
               </span>
               <div
                 class="UserGrid_name"
+                data-testid="userGrid-name"
               >
-                <span>
+                <span
+                  data-testid="userGrid-displayName"
+                >
                   user-2 -  
                 </span>
                 <span
                   class="ug-email"
+                  data-testid="userGrid-email"
                 />
               </div>
             </div>
           </div>
           <div
             class="DataGrid_cell"
+            data-testid="dataGrid-cell"
             style="flex-grow: 2;"
           >
             <div
@@ -490,6 +518,7 @@ exports[`components/admin_console/team_channel_settings/group/UsersToRemove shou
           </div>
           <div
             class="DataGrid_cell"
+            data-testid="dataGrid-cell"
             style="flex-grow: 3;"
           >
             <div
@@ -502,11 +531,16 @@ exports[`components/admin_console/team_channel_settings/group/UsersToRemove shou
       </div>
       <div
         class="DataGrid_footer"
+        data-testid="dataGrid-footer"
       >
         <div
           class="DataGrid_cell"
         >
-          1 - 2 of 2
+          <span
+            data-testid="dataGrid-footer-paginationInfo"
+          >
+            1 - 2 of 2
+          </span>
           <button
             aria-label="Previous page"
             class="btn btn-quaternary btn-icon btn-sm ml-2 prev disabled"
@@ -543,6 +577,7 @@ exports[`components/admin_console/team_channel_settings/group/UsersToRemove shou
   >
     <div
       class="DataGrid"
+      data-testid="dataGrid"
     >
       <div
         class="DataGrid_search"
@@ -673,6 +708,7 @@ exports[`components/admin_console/team_channel_settings/group/UsersToRemove shou
       </div>
       <div
         class="DataGrid_header"
+        data-testid="dataGrid-header"
       >
         <div
           class="DataGrid_cell"
@@ -695,12 +731,15 @@ exports[`components/admin_console/team_channel_settings/group/UsersToRemove shou
       </div>
       <div
         class="DataGrid_rows"
+        data-testid="dataGrid-rows"
       >
         <div
           class="DataGrid_row"
+          data-testid="dataGrid-row"
         >
           <div
             class="DataGrid_cell"
+            data-testid="dataGrid-cell"
             style="flex-grow: 5;"
           >
             <div
@@ -711,6 +750,7 @@ exports[`components/admin_console/team_channel_settings/group/UsersToRemove shou
               >
                 <span
                   class="profile-icon "
+                  data-testid="profile-icon"
                 >
                   <img
                     alt="user profile image"
@@ -722,18 +762,23 @@ exports[`components/admin_console/team_channel_settings/group/UsersToRemove shou
               </span>
               <div
                 class="UserGrid_name"
+                data-testid="userGrid-name"
               >
-                <span>
+                <span
+                  data-testid="userGrid-displayName"
+                >
                   user-1 -  
                 </span>
                 <span
                   class="ug-email"
+                  data-testid="userGrid-email"
                 />
               </div>
             </div>
           </div>
           <div
             class="DataGrid_cell"
+            data-testid="dataGrid-cell"
             style="flex-grow: 2;"
           >
             <div
@@ -744,6 +789,7 @@ exports[`components/admin_console/team_channel_settings/group/UsersToRemove shou
           </div>
           <div
             class="DataGrid_cell"
+            data-testid="dataGrid-cell"
             style="flex-grow: 3;"
           >
             <div
@@ -755,9 +801,11 @@ exports[`components/admin_console/team_channel_settings/group/UsersToRemove shou
         </div>
         <div
           class="DataGrid_row"
+          data-testid="dataGrid-row"
         >
           <div
             class="DataGrid_cell"
+            data-testid="dataGrid-cell"
             style="flex-grow: 5;"
           >
             <div
@@ -768,6 +816,7 @@ exports[`components/admin_console/team_channel_settings/group/UsersToRemove shou
               >
                 <span
                   class="profile-icon "
+                  data-testid="profile-icon"
                 >
                   <img
                     alt="user profile image"
@@ -779,18 +828,23 @@ exports[`components/admin_console/team_channel_settings/group/UsersToRemove shou
               </span>
               <div
                 class="UserGrid_name"
+                data-testid="userGrid-name"
               >
-                <span>
+                <span
+                  data-testid="userGrid-displayName"
+                >
                   user-2 -  
                 </span>
                 <span
                   class="ug-email"
+                  data-testid="userGrid-email"
                 />
               </div>
             </div>
           </div>
           <div
             class="DataGrid_cell"
+            data-testid="dataGrid-cell"
             style="flex-grow: 2;"
           >
             <div
@@ -801,6 +855,7 @@ exports[`components/admin_console/team_channel_settings/group/UsersToRemove shou
           </div>
           <div
             class="DataGrid_cell"
+            data-testid="dataGrid-cell"
             style="flex-grow: 3;"
           >
             <div
@@ -813,11 +868,16 @@ exports[`components/admin_console/team_channel_settings/group/UsersToRemove shou
       </div>
       <div
         class="DataGrid_footer"
+        data-testid="dataGrid-footer"
       >
         <div
           class="DataGrid_cell"
         >
-          1 - 2 of 2
+          <span
+            data-testid="dataGrid-footer-paginationInfo"
+          >
+            1 - 2 of 2
+          </span>
           <button
             aria-label="Previous page"
             class="btn btn-quaternary btn-icon btn-sm ml-2 prev disabled"

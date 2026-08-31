@@ -9,106 +9,102 @@ exports[`components/ResetStatusModal should match snapshot 1`] = `
     aria-hidden="true"
   />
   <div
-    role="none"
+    class="fade modal-backdrop in"
+  />
+  <div
+    aria-labelledby="genericModalLabel"
+    aria-modal="true"
+    class="fade in modal"
+    id="confirmModal"
+    role="dialog"
+    style="display: block; padding-right: 0px;"
+    tabindex="-1"
   >
     <div
-      class="fade modal-backdrop in"
-    />
-    <div
-      aria-labelledby="confirmModalLabel"
-      aria-modal="true"
-      class="fade in modal"
-      id="confirmModal"
-      role="dialog"
-      style="display: block; padding-right: 0px;"
-      tabindex="-1"
+      class="GenericModal__location--center a11y__modal GenericModal GenericModal__compassDesign ConfirmModal a11y__modal  modal-dialog"
     >
       <div
-        class="GenericModal__location--center a11y__modal GenericModal GenericModal__compassDesign ConfirmModal a11y__modal  modal-dialog"
+        class="modal-content"
+        role="document"
       >
         <div
-          class="modal-content"
-          role="document"
+          class="GenericModal__wrapper GenericModal__wrapper-enter-key-press-catcher"
         >
           <div
-            class="GenericModal__wrapper GenericModal__wrapper-enter-key-press-catcher"
+            class="modal-header"
           >
             <div
-              class="modal-header"
+              class="GenericModal__header__text_container"
             >
               <div
-                class="GenericModal__header__text_container"
+                class="GenericModal__header"
               >
-                <div
-                  class="GenericModal__header"
+                <h1
+                  class="modal-title"
+                  id="genericModalLabel"
                 >
-                  <h1
-                    class="modal-title"
-                    id="genericModalLabel"
-                  >
-                    Your status is set to "Away"
-                  </h1>
-                </div>
+                  Your status is set to "Away"
+                </h1>
               </div>
-              <button
-                aria-label="Close"
-                class="close"
-                type="button"
-              >
-                <span
-                  aria-hidden="true"
-                >
-                  ×
-                </span>
-                <span
-                  class="sr-only"
-                >
-                  Close
-                </span>
-              </button>
             </div>
-            <div
-              class="modal-body"
+            <button
+              aria-label="Close"
+              class="close"
+              type="button"
             >
-              <div
-                class="GenericModal__body padding"
+              <span
+                aria-hidden="true"
               >
-                <div>
+                ×
+              </span>
+              <span
+                class="sr-only"
+              >
+                Close
+              </span>
+            </button>
+          </div>
+          <div
+            class="modal-body"
+          >
+            <div
+              class="GenericModal__body padding"
+            >
+              <div>
+                <div
+                  class="ConfirmModal__body"
+                  id="confirmModalBody"
+                >
+                  Would you like to switch your status to "Online"?
                   <div
-                    class="ConfirmModal__body"
-                    id="confirmModalBody"
+                    class="checkbox text-right mb-0"
                   >
-                    Would you like to switch your status to "Online"?
-                    <div
-                      class="checkbox text-right mb-0"
-                    >
-                      <label>
-                        <input
-                          type="checkbox"
-                        />
-                        Do not ask me again
-                      </label>
-                    </div>
+                    <label>
+                      <input
+                        type="checkbox"
+                      />
+                      Do not ask me again
+                    </label>
                   </div>
-                  <div
-                    class="ConfirmModal__footer"
+                </div>
+                <div
+                  class="ConfirmModal__footer"
+                >
+                  <button
+                    class="btn btn-tertiary"
+                    data-testid="cancel-button"
+                    id="cancelModalButton"
+                    type="button"
                   >
-                    <button
-                      class="btn btn-tertiary"
-                      data-testid="cancel-button"
-                      id="cancelModalButton"
-                      type="button"
-                    >
-                      Stay as "Away"
-                    </button>
-                    <button
-                      class="btn btn-primary"
-                      id="confirmModalButton"
-                      type="button"
-                    >
-                      Set status to "Online"
-                    </button>
-                  </div>
+                    Stay as "Away"
+                  </button>
+                  <button
+                    class="btn btn-primary"
+                    id="confirmModalButton"
+                    type="button"
+                  >
+                    Set status to "Online"
+                  </button>
                 </div>
               </div>
             </div>
@@ -129,96 +125,92 @@ exports[`components/ResetStatusModal should match snapshot, render modal for OOF
     aria-hidden="true"
   />
   <div
-    role="none"
+    class="fade modal-backdrop in"
+  />
+  <div
+    aria-labelledby="genericModalLabel"
+    aria-modal="true"
+    class="fade in modal"
+    id="confirmModal"
+    role="dialog"
+    style="display: block; padding-right: 0px;"
+    tabindex="-1"
   >
     <div
-      class="fade modal-backdrop in"
-    />
-    <div
-      aria-labelledby="confirmModalLabel"
-      aria-modal="true"
-      class="fade in modal"
-      id="confirmModal"
-      role="dialog"
-      style="display: block; padding-right: 0px;"
-      tabindex="-1"
+      class="GenericModal__location--center a11y__modal GenericModal GenericModal__compassDesign ConfirmModal a11y__modal  modal-dialog"
     >
       <div
-        class="GenericModal__location--center a11y__modal GenericModal GenericModal__compassDesign ConfirmModal a11y__modal  modal-dialog"
+        class="modal-content"
+        role="document"
       >
         <div
-          class="modal-content"
-          role="document"
+          class="GenericModal__wrapper GenericModal__wrapper-enter-key-press-catcher"
         >
           <div
-            class="GenericModal__wrapper GenericModal__wrapper-enter-key-press-catcher"
+            class="modal-header"
           >
             <div
-              class="modal-header"
+              class="GenericModal__header__text_container"
             >
               <div
-                class="GenericModal__header__text_container"
+                class="GenericModal__header"
               >
-                <div
-                  class="GenericModal__header"
+                <h1
+                  class="modal-title"
+                  id="genericModalLabel"
                 >
-                  <h1
-                    class="modal-title"
-                    id="genericModalLabel"
-                  >
-                    Your status is set to "Out of office"
-                  </h1>
-                </div>
+                  Your status is set to "Out of office"
+                </h1>
               </div>
-              <button
-                aria-label="Close"
-                class="close"
-                type="button"
-              >
-                <span
-                  aria-hidden="true"
-                >
-                  ×
-                </span>
-                <span
-                  class="sr-only"
-                >
-                  Close
-                </span>
-              </button>
             </div>
-            <div
-              class="modal-body"
+            <button
+              aria-label="Close"
+              class="close"
+              type="button"
             >
-              <div
-                class="GenericModal__body padding"
+              <span
+                aria-hidden="true"
               >
-                <div>
-                  <div
-                    class="ConfirmModal__body"
-                    id="confirmModalBody"
+                ×
+              </span>
+              <span
+                class="sr-only"
+              >
+                Close
+              </span>
+            </button>
+          </div>
+          <div
+            class="modal-body"
+          >
+            <div
+              class="GenericModal__body padding"
+            >
+              <div>
+                <div
+                  class="ConfirmModal__body"
+                  id="confirmModalBody"
+                >
+                  Would you like to switch your status to "Online" and disable automatic replies?
+                </div>
+                <div
+                  class="ConfirmModal__footer"
+                >
+                  <button
+                    class="btn btn-tertiary"
+                    data-testid="cancel-button"
+                    id="cancelModalButton"
+                    type="button"
                   >
-                    Would you like to switch your status to "Online" and disable automatic replies?
-                  </div>
-                  <div
-                    class="ConfirmModal__footer"
+                    Stay "Out of office"
+                  </button>
+                  <button
+                    class="btn btn-primary"
+                    id="confirmModalButton"
+                    type="button"
                   >
-                    <button
-                      class="btn btn-tertiary"
-                      data-testid="cancel-button"
-                      id="cancelModalButton"
-                      type="button"
-                    >
-                      Stay "Out of office"
-                    </button>
-                    <button
-                      class="btn btn-primary"
-                      id="confirmModalButton"
-                      type="button"
-                    >
-                      Set status to "Online"
-                    </button>
-                  </div>
+                    Set status to "Online"
+                  </button>
                 </div>
               </div>
             </div>

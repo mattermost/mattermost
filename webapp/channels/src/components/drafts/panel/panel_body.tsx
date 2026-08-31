@@ -64,8 +64,14 @@ function PanelBody({
     }, [currentRelativeTeamUrl]);
 
     return (
-        <div className='DraftPanelBody post'>
-            <div className='DraftPanelBody__left post__img'>
+        <div
+            className='DraftPanelBody post'
+            data-testid='draft-panel-body'
+        >
+            <div
+                className='DraftPanelBody__left post__img'
+                data-testid='draft-post-img'
+            >
                 <ProfilePicture
                     status={status}
                     channelId={channelId}
@@ -84,7 +90,10 @@ function PanelBody({
                         className='post__content'
                     >
                         <div className='DraftPanelBody__right'>
-                            <div className='post__header'>
+                            <div
+                                className='post__header'
+                                data-testid='draft-post-header'
+                            >
                                 <strong>{displayName}</strong>
                                 {priority && (
                                     <PriorityLabels
@@ -103,7 +112,10 @@ function PanelBody({
                                     />
                                 )}
                             </div>
-                            <div className='post__body'>
+                            <div
+                                className='post__body'
+                                data-testid='draft-post-body'
+                            >
                                 <Markdown
                                     options={OPTIONS}
                                     message={message}

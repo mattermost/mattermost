@@ -261,9 +261,26 @@ func SetupWithoutPreloadMigrations(tb testing.TB) *TestHelper {
 	return setupTestHelper(dbStore, mainHelper.GetSQLStore(), mainHelper.GetSQLSettings(), mainHelper.GetSearchEngine(), false, true, nil, nil, tb)
 }
 
+func useCustomPushNotificationServer(cfg *model.Config) {
+	*cfg.EmailSettings.PushNotificationServer = "https://push.example.com"
+}
+
 func SetupWithStoreMock(tb testing.TB) *TestHelper {
+	return SetupConfigWithStoreMock(tb, nil)
+}
+
+// SetupConfigWithStoreMock applies updateConfig before Server.Start() wires the config listeners
+// that read from the store. Set the starting config here rather than via a later
+// th.App.UpdateConfig, which fires those listeners against the store mock.
+func SetupConfigWithStoreMock(tb testing.TB, updateConfig func(*model.Config)) *TestHelper {
 	mockStore := testlib.GetMockStoreForSetupFunctions()
-	th := setupTestHelper(mockStore, mainHelper.GetSQLStore(), mainHelper.GetSQLSettings(), mainHelper.GetSearchEngine(), false, false, nil, nil, tb)
+	setupConfig := func(cfg *model.Config) {
+		useCustomPushNotificationServer(cfg)
+		if updateConfig != nil {
+			updateConfig(cfg)
+		}
+	}
+	th := setupTestHelper(mockStore, mainHelper.GetSQLStore(), mainHelper.GetSQLSettings(), mainHelper.GetSearchEngine(), false, false, setupConfig, nil, tb)
 	statusMock := mocks.StatusStore{}
 	statusMock.On("UpdateExpiredDNDStatuses").Return([]*model.Status{}, nil)
 	statusMock.On("Get", "user1").Return(&model.Status{UserId: "user1", Status: model.StatusOnline}, nil)
@@ -284,7 +301,7 @@ func SetupWithStoreMock(tb testing.TB) *TestHelper {
 
 func SetupEnterpriseWithStoreMock(tb testing.TB) *TestHelper {
 	mockStore := testlib.GetMockStoreForSetupFunctions()
-	th := setupTestHelper(mockStore, mainHelper.GetSQLStore(), mainHelper.GetSQLSettings(), mainHelper.GetSearchEngine(), true, false, nil, nil, tb)
+	th := setupTestHelper(mockStore, mainHelper.GetSQLStore(), mainHelper.GetSQLSettings(), mainHelper.GetSearchEngine(), true, false, useCustomPushNotificationServer, nil, tb)
 	statusMock := mocks.StatusStore{}
 	statusMock.On("UpdateExpiredDNDStatuses").Return([]*model.Status{}, nil)
 	statusMock.On("Get", "user1").Return(&model.Status{UserId: "user1", Status: model.StatusOnline}, nil)
@@ -311,15 +328,15 @@ func (th *TestHelper) InitBasic(tb testing.TB) *TestHelper {
 	th.SystemAdminUser = th.CreateUser(tb)
 	_, appErr := th.App.UpdateUserRoles(th.Context, th.SystemAdminUser.Id, model.SystemUserRoleId+" "+model.SystemAdminRoleId, false)
 	require.Nil(tb, appErr)
-	th.SystemAdminUser, appErr = th.App.GetUser(th.SystemAdminUser.Id)
+	th.SystemAdminUser, appErr = th.App.GetUser(th.Context, th.SystemAdminUser.Id)
 	require.Nil(tb, appErr)
 
 	th.BasicUser = th.CreateUser(tb)
-	th.BasicUser, appErr = th.App.GetUser(th.BasicUser.Id)
+	th.BasicUser, appErr = th.App.GetUser(th.Context, th.BasicUser.Id)
 	require.Nil(tb, appErr)
 
 	th.BasicUser2 = th.CreateUser(tb)
-	th.BasicUser2, appErr = th.App.GetUser(th.BasicUser2.Id)
+	th.BasicUser2, appErr = th.App.GetUser(th.Context, th.BasicUser2.Id)
 	require.Nil(tb, appErr)
 
 	th.BasicTeam = th.CreateTeam(tb)
@@ -829,7 +846,7 @@ func (th *TestHelper) SetUserRemoteID(tb testing.TB, userID, remoteID string) *m
 	require.NoError(tb, err)
 
 	th.App.InvalidateCacheForUser(userID)
-	user, appErr := th.App.GetUser(userID)
+	user, appErr := th.App.GetUser(th.Context, userID)
 	require.Nil(tb, appErr)
 	return user
 }

@@ -2611,6 +2611,82 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
+  /api/v4/users/tokens/non_compliant/count:
+    get:
+      tags:
+        - users
+      summary: Count non-compliant personal access tokens
+      description: >
+        Count the active personal access tokens that violate the configured
+        `ServiceSettings.MaximumPersonalAccessTokenLifetimeDays` policy (tokens
+        that never expire or expire beyond the cap). Bot account tokens are
+        exempt and never counted. Returns 0 when no maximum lifetime is
+        configured.
+
+
+        __Minimum server version__: 11.1
+
+
+        ##### Permissions
+
+        Must have `manage_system` permission.
+      operationId: GetNonCompliantUserAccessTokenCount
+      responses:
+        "200":
+          description: Count retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  count:
+                    description: The number of non-compliant personal access tokens
+                    type: integer
+                    format: int64
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /api/v4/users/tokens/non_compliant/revoke:
+    post:
+      tags:
+        - users
+      summary: Revoke non-compliant personal access tokens
+      description: >
+        Revoke (hard-delete) every active personal access token that violates
+        the configured `ServiceSettings.MaximumPersonalAccessTokenLifetimeDays`
+        policy, along with any sessions created from them, and return the number
+        of tokens revoked. Bot account tokens are exempt. The request is
+        rejected with 400 when no maximum lifetime is configured, since there is
+        nothing to revoke. This is irreversible; use
+        `/users/tokens/non_compliant/count` first to preview the blast radius.
+
+
+        __Minimum server version__: 11.1
+
+
+        ##### Permissions
+
+        Must have `manage_system` permission.
+      operationId: RevokeNonCompliantUserAccessTokens
+      responses:
+        "200":
+          description: Non-compliant tokens revoked successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  count:
+                    description: The number of personal access tokens revoked
+                    type: integer
+                    format: int64
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
   "/api/v4/users/tokens/{token_id}":
     get:
       tags:
@@ -2733,6 +2809,60 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
+  /api/v4/users/tokens/rotate:
+    post:
+      tags:
+        - users
+      summary: Rotate a personal access token
+      description: >
+        Generate a new secret for an existing personal access token, immediately
+        invalidating the old secret and any sessions that used it. The response
+        includes the new token secret (shown once, like token creation).
+
+
+        __Minimum server version__: 10.10
+
+
+        ##### Permissions
+
+        Must have `create_user_access_token` permission. For non-self requests,
+        must also have the `edit_other_users` permission. To rotate a token
+        belonging to a system admin, must also have the `manage_system`
+        permission. OAuth sessions cannot use this endpoint.
+      operationId: RotateUserAccessToken
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - token_id
+              properties:
+                token_id:
+                  description: The personal access token GUID to rotate
+                  type: string
+                expires_at:
+                  description: >
+                    New expiry for the token as a Unix timestamp in milliseconds.
+                    Use 0 for no expiry (subject to server policy).
+                  type: integer
+                  format: int64
+        required: true
+      responses:
+        "200":
+          description: Personal access token rotation successful; response includes the new secret
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserAccessToken"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
   /api/v4/users/tokens/search:
     post:
       tags:

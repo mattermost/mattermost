@@ -1,0 +1,174 @@
+---
+title: "Configure SAML with OneLogin"
+---
+import Inc0_sso_saml_before_you_begin from './sso-saml-before-you-begin.mdx';
+import Inc1_sso_saml_ldapsync from './sso-saml-ldapsync.mdx';
+import Inc2_sso_saml_faq from './sso-saml-faq.mdx';
+
+<PlanAvailability slug="all-commercial" />
+
+The following process provides steps to configure SAML 2.0 with OneLogin for Mattermost.
+
+See the encryption options documentation for details on what [encryption methods](/deployment-guide/encryption-options#saml-encryption-support) Mattermost supports for SAML.
+
+<Inc0_sso_saml_before_you_begin />
+
+## Create a OneLogin connection app for Mattermost SSO
+
+1.  Add a SAML test connector app.
+
+> 1.  Log in to OneLogin as an administrator.
+> 2.  Go to **Apps \> Add Apps**.
+> 3.  Search for "SAML Test Connector", then select **SAML Test Connector (Advanced)**.
+>
+> ![In OneLogin, go to Apps \> Add Apps, search for SAML Test Connector, then select the matching result in the list](/images/onelogin_1_new_app.png)
+>
+> 4.  In the **Display Name** field, enter a name for the application, then optionally upload an app icon. You can use the Mattermost logo for the icon, which you can download from [Branding Guidelines](https://handbook.mattermost.com/operations/operations/publishing/publishing-guidelines/brand-and-visual-design-guidelines) page.
+>
+> ![Enter a display name for the application in the Display Name field. You can optionally upload an app icon. Ensure the Visible in portal option is enabled, and save your OneLogin changes.](/images/onelogin_2_basic_configuration.png)
+>
+> 5.  Make sure that the **Visible in portal** option is enabled.
+> 6.  Select **Save**.
+
+2.  Configure the app.
+
+> 1.  Select the **Configuration** tab, then enter the following values:
+>
+> > - **RelayState**: leave blank
+> > - **Audience**: leave blank
+> > - **Recipient**: `https://&lt;your-mattermost-url&gt;/login/sso/saml` where `https://&lt;your-mattermost-url&gt;` should typically match the [Mattermost Site URL](/administration-guide/configure/environment-configuration-settings#site-url).
+> > - **ACS (Consumer) URL Validator**: `https:\/\/&lt;your-mattermost-url&gt;\/login\/sso\/saml`
+> > - **ACS (Consumer) URL**: `https://&lt;your-mattermost-url&gt;/login/sso/saml`
+>
+> ![In OneLogin, select the Configuration tab to configure the SSO integration with required values.](/images/onelogin_3_configuration_1.png)
+>
+> 2.  In System Console, [enable encryption](/administration-guide/configure/authentication-configuration-settings#enable-encryption), then select **Save**. You're redirected to the **Info** tab. From there, select the **Configuration** tab to access the **SAML Encryption** field.
+> 3.  Paste the Public Key that you generated earlier into the **SAML Encryption** field at the bottom of the page. This field displays in OneLogin only when encryption is enabled in Mattermost.
+>
+> ![In the Mattermost System Console, enable encryption and save your changes. When you return to OneLogin, return to the Configuration tab, access the SAML Encryption field, and paste the generated Public Key into the SAML Encryption field. This field isn't visible in OneLogin until encryption is enabled in Mattermost. Save your OneLogin changes.](/images/onelogin_4_configuration_2.png)
+>
+> 4.  Select **Save**.
+
+3.  Enter the attribute parameters. The following attributes are recommended:
+
+<table style={{width: '26%'}}>
+<colgroup>
+<col style={{width: '14%'}} />
+<col style={{width: '11%'}} />
+</colgroup>
+<thead>
+<tr>
+<th>Name</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ID</td>
+<td>UUID</td>
+</tr>
+<tr>
+<td>Email</td>
+<td>Email</td>
+</tr>
+<tr>
+<td>FirstName</td>
+<td>First Name</td>
+</tr>
+<tr>
+<td>LastName</td>
+<td>Last Name</td>
+</tr>
+<tr>
+<td>Name ID value</td>
+<td>Email</td>
+</tr>
+<tr>
+<td>Username</td>
+<td>Username</td>
+</tr>
+</tbody>
+</table>
+
+> Attribute parameters map attributes between OneLogin and Mattermost. For more information on which attributes are configurable, see our [documentation on SAML configuration settings](/administration-guide/configure/authentication-configuration-settings#saml-20).
+>
+> *Email* attributes are required.
+>
+> 1.  Select the **Parameters** tab.
+> 2.  Select **Add Parameter**.
+>
+> ![In OneLogin, select the Parameters tab, then select Add parameter. Map attribute parameters between OneLogin and Mattermost. Email attributes are required.](/images/onelogin_5_parameters_add.png)
+>
+> 3.  In the **Field name** field, enter an attribute parameter such as `Email`.
+> 4.  Select the **Include in SAML assertion** checkbox.
+> 5.  Select **Save**.
+>
+> ![For each field you map in OneLogin, ensure the Include in SAML assertion flag is enabled.](/images/onelogin_6_parameters_add_2.png)
+>
+> 6.  Select **Edit**.
+> 7.  In the **Value** field, select the OneLogin value that corresponds to the attribute parameter.
+>
+> ![For each field you map in OneLogin, select the OneLogin value that corresponds to the attribute parameter.](/images/onelogin_7_parameters_add_3.png)
+>
+> 8.  Repeat the steps above to add any other attributes that you need. After you've added all the attributes you want to use, the parameter list should look similar to the following image:
+>
+> > ![Example of attribute parameters mapped between OneLogin and Mattermost.](/images/onelogin_8_parameters_add_4.png)
+
+4.  Copy the SSO information.
+
+> 1.  Select the **SSO** tab.
+> 2.  Copy the values in the **Issuer URL** and **SAML 2.0 Endpoint (HTTP)** fields, then save them for later use.
+>
+> ![In OneLogin, select the SSO tab, copy the Issuer URL and SAML 2.0 Endpoint (HTTP) values to a convenient location.](/images/onelogin_9_sso.png)
+>
+> 3.  Select **View Details** to view the X.509 certificate.
+> 4.  Make sure that the **X.509 PEM** option is selected in the drop-down.
+>
+> ![On the SSO tab in OneLogin, select View Details to access the X.509 certificate. Ensure that the X.509 PEM option is selected. Select Download and save the file in a convenient location.](/images/onelogin_10_sso_certificate.png)
+>
+> 5.  Select **DOWNLOAD**, then save the file in a convenient location for later use.
+
+5.  Save all your changes.
+
+## Configure SAML Sign-On for Mattermost
+
+1.  Start the Mattermost server, then log in to Mattermost as a system admin. Go to **System Console \> Authentication \> SAML**.
+
+> 1.  Enter the **OneLogin Issuer URL** into the **Identity Provider Metadata URL** field.
+> 2.  Select **Get SAML Metadata from IdP** to download the metadata.
+
+2.  Configure Mattermost to verify the signature.
+
+> 1.  In the **Verify Signature** field, select **True**.
+> 2.  In the **Service Provider Login URL**, enter `https//&lt;your-mattermost-url&gt;/login/sso/saml`.
+>
+> ![On the System Console SAML page, enable the Verify Signature option by setting it to true, then enter your specific Service Provider Login URL based on your Mattermost URL](/images/okta_11_mattermost_verification.png)
+
+3.  Configure Mattermost to sign SAML requests using the Service Provider Private Key.
+4.  Enable encryption.
+
+> 1.  In the **Enable Encryption** field, select **True**.
+> 2.  In the **Service Provider Private Key** field, upload the private key that you generated earlier.
+> 3.  In the **Service Provider Public Certificate** field, upload the public key that you generated earlier.
+>
+> ![On the System Console SAML page, enable encryption, then upload both the private and public generated keys.](/images/okta_12_mattermost_encryption.png)
+
+5.  Set attributes for the SAML Assertions, which are used for updating user information in Mattermost.
+
+> The **Email Atttribute** field and the **Username Attribute** field are required, and should match the values that you entered earlier when you configured the SAML Test Connector on OneLogin.
+>
+> ![On the System Console SAML page, set attributes for the SAML Assertions used to update user information in Mattermost. Both Email Attribute and Username Attribute are required, and should match the values entered when configuring the SAML Test Connector in OneLogin.](/images/okta_13_mattermost_attributes.png)
+
+6.  (Optional) Customize the login button text.
+7.  Select **Save**.
+8.  (Optional) If you configured `First Name` Attribute and `Last Name` Attribute, go to **System Console \> Site Configuration \> Users and Teams**, then set **Teammate Name Display** to **Show first and last name**. This is recommended for a better user experience.
+
+To confirm that SAML SSO is successfully enabled, switch your system admin account from email to SAML-based authentication from your profile picture via **Profile \> Security \> Sign-in Method \> Switch to SAML SSO**, then log in with your SAML credentials to complete the switch.
+
+We also recommend that you post an announcement to your users detailing how the migration will work.
+
+You can also configure SAML for OneLogin by editing the `config.json` file to enable SAML based on [SAML configuration settings](/administration-guide/configure/authentication-configuration-settings#saml-20). You must restart the Mattermost server for the changes to take effect.
+
+<Inc1_sso_saml_ldapsync />
+
+<Inc2_sso_saml_faq />

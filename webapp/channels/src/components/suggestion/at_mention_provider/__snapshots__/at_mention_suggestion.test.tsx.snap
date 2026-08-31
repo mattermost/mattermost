@@ -30,6 +30,7 @@ exports[`at mention suggestion should display nick name of non signed in user 1`
     >
       <span
         class="suggestion-list__main"
+        data-testid="suggestion-list__main"
         id="test-suggestion-1-atMention"
       >
         @user2
@@ -77,6 +78,7 @@ exports[`at mention suggestion should not display nick name of the signed in use
     >
       <span
         class="suggestion-list__main"
+        data-testid="suggestion-list__main"
         id="test-suggestion-1-atMention"
       >
         @user

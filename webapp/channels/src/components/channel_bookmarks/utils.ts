@@ -11,7 +11,7 @@ import type {GlobalState} from '@mattermost/types/store';
 import {Permissions} from 'mattermost-redux/constants';
 import {getChannelBookmarks} from 'mattermost-redux/selectors/entities/channel_bookmarks';
 import {getChannel, getMyChannelMember} from 'mattermost-redux/selectors/entities/channels';
-import {getConfig, getFeatureFlagValue, getLicense} from 'mattermost-redux/selectors/entities/general';
+import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 import {insertWithoutDuplicates} from 'mattermost-redux/utils/array_utils';
 import {getFileDownloadUrl} from 'mattermost-redux/utils/file_utils';
@@ -118,12 +118,6 @@ export const useCanGetLinkPreviews = () => {
 };
 
 export const getIsChannelBookmarksEnabled = (state: GlobalState) => {
-    const isEnabled = getFeatureFlagValue(state, 'ChannelBookmarks') === 'true';
-
-    if (!isEnabled) {
-        return false;
-    }
-
     const license = getLicense(state);
 
     return license?.IsLicensed === 'true';

@@ -128,6 +128,12 @@ function ResizableDivider({
         if (disabled || !containerRef.current) {
             return;
         }
+
+        // Only resize with the left mouse button
+        if (e.button !== 0) {
+            return;
+        }
+
         previousClientX.current = e.clientX;
 
         const currentWidth = containerRef.current.getBoundingClientRect().width;

@@ -8212,10 +8212,6 @@
     "translation": " "
   },
   {
-    "id": "api.file.test_connection_s3_settings_nil.app_error",
-    "translation": "Los ajustes de almacenamiento de archivos tienen valores sin asignar."
-  },
-  {
     "id": "api.elasticsearch.test_elasticsearch_settings_nil.app_error",
     "translation": "Los ajustes de Búsqueda Elástica tienen valores no establecidos."
   },

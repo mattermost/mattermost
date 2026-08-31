@@ -105,6 +105,12 @@ func deauthorizeOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if c.AppContext.Session().IsOAuth {
+		c.SetPermissionError(model.PermissionEditOtherUsers)
+		c.Err.DetailedError += ", attempted access by oauth app"
+		return
+	}
+
 	auditRec := c.MakeAuditRecord(model.AuditEventDeauthorizeOAuthApp, model.AuditStatusFail)
 	auditRec.AddMeta("client_id", clientId)
 	defer c.LogAuditRec(auditRec)
@@ -565,6 +571,18 @@ func signupWithOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, authURL, http.StatusFound)
 }
 
+// pathWithinPrefix reports whether target is at or under prefix, comparing on
+// path segments so /mmfoo is not treated as under /mm. An empty or "/" prefix
+// (root SiteURL) matches the root and any absolute path.
+func pathWithinPrefix(target, prefix string) bool {
+	target = path.Clean(target)
+	prefix = path.Clean(prefix)
+	if prefix == "." || prefix == "/" {
+		return target == "." || strings.HasPrefix(target, "/")
+	}
+	return target == prefix || strings.HasPrefix(target, prefix+"/")
+}
+
 func fullyQualifiedRedirectURL(siteURLPrefix, targetURL string, otherValidSchemes []string) string {
 	parsed, err := url.Parse(targetURL)
 	if err != nil {
@@ -585,7 +603,7 @@ func fullyQualifiedRedirectURL(siteURLPrefix, targetURL string, otherValidScheme
 	// Check if the targetURL is valid and within the siteURLPrefix, excluding native app schemes like mmauth://
 	sameScheme := parsed.Scheme == prefixParsed.Scheme
 	sameHost := parsed.Host == prefixParsed.Host
-	safePath := strings.HasPrefix(path.Clean(parsed.Path), path.Clean(prefixParsed.Path))
+	safePath := pathWithinPrefix(parsed.Path, prefixParsed.Path)
 
 	if sameScheme && sameHost && safePath {
 		return targetURL
@@ -612,7 +630,7 @@ func fullyQualifiedRedirectURL(siteURLPrefix, targetURL string, otherValidScheme
 		return siteURLPrefix
 	}
 
-	if !strings.HasPrefix(path.Clean(parsed.Path), path.Clean(prefixParsed.Path)) {
+	if !pathWithinPrefix(parsed.Path, prefixParsed.Path) {
 		return siteURLPrefix
 	}
 

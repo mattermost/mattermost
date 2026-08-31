@@ -25,6 +25,7 @@ jest.mock('./performance_reporter_controller', () => () => <div/>);
 
 jest.mock('utils/utils', () => ({
     applyTheme: jest.fn(),
+    makeIsEligibleForClick: jest.fn(),
 }));
 
 jest.mock('utils/browser_utils', () => ({

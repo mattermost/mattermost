@@ -7,14 +7,17 @@ exports[`components/analytics/line_chart.tsx should match snapshot, loaded with 
   >
     <div
       class="total-count by-day"
+      data-testid="testChart"
     >
       <div
         class="title"
+        data-testid="testTitle"
       >
         Test
       </div>
       <div
         class="content"
+        data-testid="testContent"
       >
         <canvas
           data-labels="test1,test2,test3"
@@ -36,14 +39,17 @@ exports[`components/analytics/line_chart.tsx should match snapshot, loaded witho
   >
     <div
       class="total-count by-day"
+      data-testid="testChart"
     >
       <div
         class="title"
+        data-testid="testTitle"
       >
         Test
       </div>
       <div
         class="content"
+        data-testid="testContent"
       >
         <h5>
           Not enough data for a meaningful representation.
@@ -61,14 +67,17 @@ exports[`components/analytics/line_chart.tsx should match snapshot, on loading 1
   >
     <div
       class="total-count by-day"
+      data-testid="testChart"
     >
       <div
         class="title"
+        data-testid="testTitle"
       >
         Test
       </div>
       <div
         class="content"
+        data-testid="testContent"
       >
         Loading...
       </div>

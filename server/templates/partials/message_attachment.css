@@ -1,5 +1,5 @@
 .messageAttachments * {
-    font-family: Open Sans, sans-serif !important;
+    font-family: sans-serif !important;
 }
 
 .messageAttachmentContent {
@@ -10,7 +10,7 @@
 }
 
 .messageAttachmentContent > table, .attachment__body {
-    font-family: Open Sans, sans-serif;
+    font-family: sans-serif;
     text-align: left;
     font-size: 14px;
     line-height: 20px;

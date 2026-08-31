@@ -12,21 +12,26 @@ import {SyncedUserList} from './synced_user_list';
 
 import './user_sync_modal.scss';
 
-// Types for sync results
 export type ChannelMembersSyncResults = {
     MembersAdded: string[];
     MembersRemoved: string[];
 };
 
-// Modal for showing detailed user lists
+export type TeamMembersSyncResults = {
+    MembersAdded: string[];
+    MembersRemoved: string[];
+    MassRemovalWarning: boolean;
+};
+
 type UserListModalProps = {
     channelId: string;
     channelName: string;
-    syncResults: ChannelMembersSyncResults;
+    syncResults: ChannelMembersSyncResults | TeamMembersSyncResults;
+    resourceType?: 'channel' | 'team';
     onClose: () => void;
 };
 
-export const UserListModal = ({channelId, channelName, syncResults, onClose}: UserListModalProps): JSX.Element => {
+export const UserListModal = ({channelId, channelName, syncResults, resourceType = 'channel', onClose}: UserListModalProps): JSX.Element => {
     const [activeTab, setActiveTab] = useState<'added' | 'removed'>('added');
 
     const handleTabChange = (tab: 'added' | 'removed') => {
@@ -34,6 +39,18 @@ export const UserListModal = ({channelId, channelName, syncResults, onClose}: Us
     };
 
     const displayName = channelName || channelId;
+
+    const title = resourceType === 'team' ? (
+        <FormattedMessage
+            id='admin.jobTable.syncResults.teamUserListTitle'
+            defaultMessage='Team Membership Changes'
+        />
+    ) : (
+        <FormattedMessage
+            id='admin.jobTable.syncResults.userListTitle'
+            defaultMessage='Channel Membership Changes'
+        />
+    );
 
     return (
         <GenericModal
@@ -44,12 +61,7 @@ export const UserListModal = ({channelId, channelName, syncResults, onClose}: Us
             onHide={onClose}
             compassDesign={true}
             bodyPadding={false}
-            modalHeaderText={
-                <FormattedMessage
-                    id='admin.jobTable.syncResults.userListTitle'
-                    defaultMessage='Channel Membership Changes'
-                />
-            }
+            modalHeaderText={title}
             modalSubheaderText={`${displayName} - (${channelId})`}
         >
             <div className='tabs'>

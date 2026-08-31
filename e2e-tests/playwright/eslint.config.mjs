@@ -7,7 +7,14 @@ import eslintPlugin from '@mattermost/eslint-plugin';
 
 export default [
     {
-        ignores: ['**/node_modules', '**/dist', '**/playwright-report', '**/test-results', '**/results'],
+        ignores: [
+            '**/node_modules',
+            '**/dist',
+            '**/playwright-report',
+            '**/test-results',
+            '**/results',
+            'lib/src/containers/assets/webhook/tests/**',
+        ],
     },
     ...eslintPlugin.configs.base,
     {
@@ -36,11 +43,12 @@ export default [
             '@stylistic/wrap-regex': 'off', // Covered by Prettier
             '@typescript-eslint/explicit-module-boundary-types': 'off',
             '@typescript-eslint/no-explicit-any': 'off',
-            '@typescript-eslint/no-var-requires': 'off',
+            '@typescript-eslint/no-require-imports': 'off',
             'func-names': 'off',
             'max-lines': ['warn', {max: 800, skipBlankLines: true, skipComments: true}],
             'no-await-in-loop': 'off',
             'no-console': 'error',
+            'no-empty-pattern': ['error', {allowObjectPatternsAsParameters: true}],
             'no-loop-func': 0,
             'no-process-env': 0,
             'no-process-exit': 0,

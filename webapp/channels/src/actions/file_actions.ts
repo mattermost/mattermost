@@ -111,8 +111,8 @@ export function uploadFile({file, name, type, rootId, channelId, clientId, onPro
                         // file_upload_rejected websocket event, so suppress the inline composer error.
                         pluginRejected = errorResponse?.id === 'app.upload.run_plugins_hook.rejected';
                         errorMessage =
-                        (errorResponse?.id && errorResponse?.message) ? localizeMessage({id: errorResponse.id, defaultMessage: errorResponse.message}) : localizeMessage({id: 'file_upload.generic_error', defaultMessage: 'There was a problem uploading your files.'});
-                    } catch (e) {
+                            (errorResponse?.id && errorResponse?.message) ? localizeMessage({id: errorResponse.id, defaultMessage: errorResponse.message}) : localizeMessage({id: 'file_upload.generic_error', defaultMessage: 'There was a problem uploading your files.'});
+                    } catch {
                         errorMessage = localizeMessage({id: 'file_upload.generic_error', defaultMessage: 'There was a problem uploading your files.'});
                     }
 

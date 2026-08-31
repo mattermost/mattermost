@@ -7622,10 +7622,6 @@
     "translation": "평가판을 시작할 수 있는지 확인할 수 없습니다"
   },
   {
-    "id": "api.file.test_connection_s3_settings_nil.app_error",
-    "translation": "파일 저장소 설정에 설정되지 않은 값이 있습니다."
-  },
-  {
     "id": "api.error_set_first_admin_visit_marketplace_status",
     "translation": "스토어에 초기 관리자 마켓플레이스 방문 상태를 저장하는 동안 오류가 발생했습니다."
   },

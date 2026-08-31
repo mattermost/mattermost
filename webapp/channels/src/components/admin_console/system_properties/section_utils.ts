@@ -57,6 +57,8 @@ export interface CollectionIO<T extends {id: string}> {
     reorder?: (item: T, nextOrder: number) => void;
 }
 
+export type PendingOps<T extends {id: string}> = {[op: string]: T[]};
+
 /**
  * Monitored async operation with stateful error and loading status handling.
  * @param initialStatus Provide default loading status. e.g. `true` if operation starts immediately or `false` if manually triggered.

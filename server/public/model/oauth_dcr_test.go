@@ -104,8 +104,19 @@ func TestRedirectURIMatchesGlob(t *testing.T) {
 
 	t.Run("host wildcard", func(t *testing.T) {
 		require.True(t, RedirectURIMatchesGlob("https://app.example.com/cb", "https://*.example.com/cb"))
+		require.True(t, RedirectURIMatchesGlob("https://app.example.com/cb", "https://*.example.com/**"))
 		require.True(t, RedirectURIMatchesGlob("https://foo.example.com/path", "https://*.example.com/*"))
 		require.False(t, RedirectURIMatchesGlob("https://example.com.evil/cb", "https://*.example.com/cb"))
+	})
+
+	t.Run("wildcards do not cross URL component boundaries", func(t *testing.T) {
+		require.False(t, RedirectURIMatchesGlob("https://attacker.example.net?x=.example.com/cb", "https://*.example.com/**"))
+		require.False(t, RedirectURIMatchesGlob("https://app.example.com/callback?x=/admin", "https://app.example.com/callback/admin"))
+	})
+
+	t.Run("query string must be explicitly allowed", func(t *testing.T) {
+		require.False(t, RedirectURIMatchesGlob("https://app.example.com/callback?tenant=foo", "https://app.example.com/callback"))
+		require.True(t, RedirectURIMatchesGlob("https://app.example.com/callback?tenant=foo", "https://app.example.com/callback?tenant=*"))
 	})
 
 	t.Run("port wildcard", func(t *testing.T) {

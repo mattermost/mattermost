@@ -57,6 +57,7 @@ const PermissionRow = ({
             className={classNames('permission-row', {'read-only': readOnly, selected: selected === id})}
             onClick={toggleSelect}
             id={uniqId}
+            data-testid='permissionRow'
         >
             <PermissionCheckbox
                 value={value}

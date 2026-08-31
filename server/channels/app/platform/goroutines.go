@@ -88,9 +88,9 @@ drain:
 
 // GoExtraction submits f to the bounded document extraction worker pool. It
 // never blocks the caller: if every worker is busy and the queue is full it
-// returns false without running f. Skipped files stay unextracted until an
-// admin runs a content extraction job (e.g. mmctl extract); there is no
-// scheduler that picks them up automatically. This keeps expensive extractions
+// returns false without running f. Skipped files stay unextracted until the
+// scheduled ExtractContent catch-up job or an admin runs a content extraction job
+// (e.g. mmctl extract). This keeps expensive extractions from stalling the
 // from stalling the request goroutines that dispatch them.
 func (ps *PlatformService) GoExtraction(f func()) bool {
 	select {

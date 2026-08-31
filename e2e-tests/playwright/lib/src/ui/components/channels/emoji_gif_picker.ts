@@ -10,17 +10,34 @@ export default class EmojiGifPicker {
     readonly gifTab: Locator;
     readonly gifSearchInput: Locator;
     readonly gifPickerItems: Locator;
+    readonly emojiSearchInput: Locator;
 
     constructor(container: Locator) {
         this.container = container;
 
         this.gifTab = container.getByText('GIFs');
         this.gifSearchInput = container.getByPlaceholder('Search GIPHY');
-        this.gifPickerItems = container.locator('.gif-picker__items');
+        this.gifPickerItems = container.getByTestId('gif-picker-items');
+        this.emojiSearchInput = container.getByPlaceholder('Search emojis');
     }
 
     async toBeVisible() {
         await expect(this.container).toBeVisible();
+    }
+
+    /**
+     * Types into the emoji picker search field to filter emojis.
+     */
+    async searchEmoji(text: string) {
+        await expect(this.emojiSearchInput).toBeVisible();
+        await this.emojiSearchInput.fill(text);
+    }
+
+    /**
+     * Returns the picker button for an emoji by its name, e.g. "taxi".
+     */
+    getEmoji(emojiName: string) {
+        return this.container.getByRole('button', {name: `${emojiName} emoji`, exact: true});
     }
 
     async notToBeVisible() {
@@ -28,7 +45,7 @@ export default class EmojiGifPicker {
     }
 
     async clickEmoji(emojiName: string) {
-        await this.container.getByRole('button', {name: `${emojiName} emoji`}).click();
+        await this.getEmoji(emojiName).click();
     }
 
     async openGifTab() {
@@ -48,8 +65,8 @@ export default class EmojiGifPicker {
     async getNthGif(n: number) {
         await expect(this.gifPickerItems).toBeVisible();
 
-        await this.gifPickerItems.locator('img').nth(n).waitFor();
-        const nthGif = this.gifPickerItems.locator('img').nth(n);
+        await this.gifPickerItems.getByRole('img').nth(n).waitFor();
+        const nthGif = this.gifPickerItems.getByRole('img').nth(n);
         await expect(nthGif).toBeVisible();
 
         const nthGifSrc = await nthGif.getAttribute('src');

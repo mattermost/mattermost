@@ -1348,9 +1348,11 @@ describe('AppsFormComponent', () => {
                         type: 'datetime',
                         is_required: true,
                         label: 'Meeting Time',
-                        time_interval: 30,
-                        min_date: 'today',
-                        max_date: '+30d',
+                        datetime_config: {
+                            time_interval: 30,
+                            min_date: 'today',
+                            max_date: '+30d',
+                        },
                     },
                 ],
             };
@@ -1374,8 +1376,10 @@ describe('AppsFormComponent', () => {
                     {
                         name: 'invalid_field',
                         type: 'datetime',
-                        time_interval: -1, // Invalid interval
-                        min_date: 'invalid-date', // Invalid date format
+                        datetime_config: {
+                            time_interval: -1, // Invalid interval
+                            min_date: 'invalid-date', // Invalid date format
+                        },
                         label: 'Invalid Field',
                     },
                 ],
@@ -1429,7 +1433,7 @@ describe('AppsFormComponent', () => {
                         {
                             name: 'valid_datetime',
                             type: 'datetime',
-                            time_interval: interval,
+                            datetime_config: {time_interval: interval},
                             label: `DateTime with ${interval}min interval`,
                         },
                     ],
@@ -1456,7 +1460,7 @@ describe('AppsFormComponent', () => {
                         {
                             name: 'invalid_datetime',
                             type: 'datetime',
-                            time_interval: interval,
+                            datetime_config: {time_interval: interval},
                             label: `DateTime with ${interval}min interval`,
                         },
                     ],
@@ -1494,7 +1498,7 @@ describe('AppsFormComponent', () => {
                         {
                             name: 'out_of_range_datetime',
                             type: 'datetime',
-                            time_interval: interval,
+                            datetime_config: {time_interval: interval},
                             label: `DateTime with ${interval}min interval`,
                         },
                     ],
@@ -1532,7 +1536,7 @@ describe('AppsFormComponent', () => {
                         {
                             name: 'non_numeric_datetime',
                             type: 'datetime',
-                            time_interval: interval as any,
+                            datetime_config: {time_interval: interval as any},
                             label: `DateTime with ${interval} interval`,
                         },
                     ],
@@ -1570,13 +1574,13 @@ describe('AppsFormComponent', () => {
                     {
                         name: 'text_with_interval',
                         type: 'text',
-                        time_interval: 729, // Invalid but should be ignored for text fields
+                        datetime_config: {time_interval: 729}, // Invalid but should be ignored for text fields
                         label: 'Text Field',
                     },
                     {
                         name: 'date_with_interval',
                         type: 'date',
-                        time_interval: 729, // Invalid but should be ignored for date fields
+                        datetime_config: {time_interval: 729}, // Invalid but should be ignored for date fields
                         label: 'Date Field',
                     },
                 ],
@@ -1594,78 +1598,9 @@ describe('AppsFormComponent', () => {
 
             consoleSpy.mockRestore();
         });
-
-        it('should validate min_date and max_date formats for date and datetime fields', () => {
-            const consoleSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
-
-            const formWithInvalidDates = {
-                ...baseProps.form,
-                fields: [
-                    {
-                        name: 'invalid_dates',
-                        type: 'datetime',
-                        min_date: 'invalid-date-format',
-                        max_date: '2025/01/01', // Wrong format
-                        label: 'DateTime with Invalid Dates',
-                    },
-                ],
-            };
-
-            const props = {
-                ...baseProps,
-                form: formWithInvalidDates,
-            };
-
-            renderWithContext(<AppsForm {...props}/>);
-
-            // Should log warnings for invalid date formats
-            expect(consoleSpy).toHaveBeenCalledWith(
-                'AppForm field validation errors:',
-                expect.arrayContaining([
-                    expect.stringContaining('min_date "invalid-date-format" is not a valid date format'),
-                    expect.stringContaining('max_date "2025/01/01" is not a valid date format'),
-                ]),
-            );
-
-            consoleSpy.mockRestore();
-        });
-
-        it('should validate date range when min_date is after max_date', () => {
-            const consoleSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
-
-            const formWithInvalidDateRange = {
-                ...baseProps.form,
-                fields: [
-                    {
-                        name: 'invalid_range',
-                        type: 'date',
-                        min_date: '2025-12-31',
-                        max_date: '2025-01-01', // Before min_date
-                        label: 'Date with Invalid Range',
-                    },
-                ],
-            };
-
-            const props = {
-                ...baseProps,
-                form: formWithInvalidDateRange,
-            };
-
-            renderWithContext(<AppsForm {...props}/>);
-
-            // Should log warning for invalid date range
-            expect(consoleSpy).toHaveBeenCalledWith(
-                'AppForm field validation errors:',
-                expect.arrayContaining([
-                    expect.stringContaining('min_date cannot be after max_date'),
-                ]),
-            );
-
-            consoleSpy.mockRestore();
-        });
     });
 
-    describe('DateTime Field Validation - datetime_config precedence', () => {
+    describe('DateTime Field Validation - datetime_config', () => {
         it('should validate invalid datetime_config.time_interval', () => {
             const consoleSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
 
@@ -1748,76 +1683,6 @@ describe('AppsFormComponent', () => {
                 'AppForm field validation errors:',
                 expect.arrayContaining([
                     expect.stringContaining('min_date cannot be after max_date'),
-                ]),
-            );
-
-            consoleSpy.mockRestore();
-        });
-
-        it('should use datetime_config values over legacy fields for validation', () => {
-            const consoleSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
-
-            // Legacy values are valid, datetime_config values are invalid.
-            // If precedence works, validation should flag the datetime_config values.
-            const form = {
-                ...baseProps.form,
-                fields: [
-                    {
-                        name: 'precedence_test',
-                        type: 'datetime',
-                        time_interval: 30, // Valid legacy
-                        min_date: '2025-01-01', // Valid legacy
-                        max_date: '2025-12-31', // Valid legacy
-                        datetime_config: {
-                            time_interval: 729, // Invalid
-                            min_date: 'not-a-date', // Invalid
-                            max_date: '2025/13/45', // Invalid
-                        },
-                        label: 'Precedence Test',
-                    },
-                ],
-            };
-
-            renderWithContext(<AppsForm {...{...baseProps, form}}/>);
-
-            expect(consoleSpy).toHaveBeenCalledWith(
-                'AppForm field validation errors:',
-                expect.arrayContaining([
-                    expect.stringContaining('time_interval must be a divisor of 1440 (24 hours * 60 minutes) to create valid time intervals, got 729'),
-                    expect.stringContaining('min_date "not-a-date" is not a valid date format'),
-                ]),
-            );
-
-            // Legacy values are valid, so they should NOT appear in error messages.
-            const errorCalls = consoleSpy.mock.calls.flat().flat();
-            const errorStr = JSON.stringify(errorCalls);
-            expect(errorStr).not.toContain('got 30');
-            expect(errorStr).not.toContain('"2025-01-01"');
-
-            consoleSpy.mockRestore();
-        });
-
-        it('should fall back to legacy fields when datetime_config is absent', () => {
-            const consoleSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
-
-            const form = {
-                ...baseProps.form,
-                fields: [
-                    {
-                        name: 'legacy_only',
-                        type: 'datetime',
-                        time_interval: 729, // Invalid legacy
-                        label: 'Legacy Only',
-                    },
-                ],
-            };
-
-            renderWithContext(<AppsForm {...{...baseProps, form}}/>);
-
-            expect(consoleSpy).toHaveBeenCalledWith(
-                'AppForm field validation errors:',
-                expect.arrayContaining([
-                    expect.stringContaining('time_interval must be a divisor of 1440 (24 hours * 60 minutes) to create valid time intervals, got 729'),
                 ]),
             );
 

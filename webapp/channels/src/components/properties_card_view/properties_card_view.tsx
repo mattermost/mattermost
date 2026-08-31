@@ -6,11 +6,7 @@ import {defineMessages, FormattedMessage} from 'react-intl';
 
 import type {Channel} from '@mattermost/types/channels';
 import type {Post} from '@mattermost/types/posts';
-import type {
-    NameMappedPropertyFields,
-    PropertyField,
-    PropertyValue,
-} from '@mattermost/types/properties';
+import type {NameMappedPropertyFields, PropertyField, PropertyValue} from '@mattermost/types/properties';
 import type {Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 
@@ -205,12 +201,19 @@ export default function PropertiesCardView({title, propertyFields, fieldOrder, s
                                 key={field.id}
                                 className='row'
                                 data-testid='property-card-row'
+                                data-field-name={field.name}
                             >
-                                <div className='field'>
+                                <div
+                                    className='field'
+                                    data-testid='property-card-field-label'
+                                >
                                     {translation ? <FormattedMessage {...translation}/> : field.name}
                                 </div>
 
-                                <div className='value'>
+                                <div
+                                    className='value'
+                                    data-testid='property-card-field-value'
+                                >
                                     <PropertyValueRenderer
                                         field={field}
                                         value={value}

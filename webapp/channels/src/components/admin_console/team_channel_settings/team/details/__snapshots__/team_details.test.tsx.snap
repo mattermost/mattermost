@@ -7,6 +7,7 @@ exports[`admin_console/team_channel_settings/team/TeamDetails should match snaps
   >
     <div
       class="admin-console__header with-back"
+      data-testid="admin-console-header"
     >
       <div>
         <a
@@ -23,7 +24,18 @@ exports[`admin_console/team_channel_settings/team/TeamDetails should match snaps
         class="admin-console__content"
       >
         <div>
-          TeamProfile
+          <input
+            aria-label="Team Name"
+            value="team"
+          />
+          <textarea
+            aria-label="Team Description"
+          />
+          <button
+            type="button"
+          >
+            Archive Team
+          </button>
         </div>
         <div
           class="AdminPanel clearfix "
@@ -180,6 +192,7 @@ exports[`admin_console/team_channel_settings/team/TeamDetails should match snaps
       </a>
       <div
         class="error-message"
+        data-testid="saveChangesPanel-errorMessage"
       />
     </div>
   </div>
@@ -193,6 +206,7 @@ exports[`admin_console/team_channel_settings/team/TeamDetails should match snaps
   >
     <div
       class="admin-console__header with-back"
+      data-testid="admin-console-header"
     >
       <div>
         <a
@@ -209,7 +223,18 @@ exports[`admin_console/team_channel_settings/team/TeamDetails should match snaps
         class="admin-console__content"
       >
         <div>
-          TeamProfile
+          <input
+            aria-label="Team Name"
+            value="team"
+          />
+          <textarea
+            aria-label="Team Description"
+          />
+          <button
+            type="button"
+          >
+            Unarchive Team
+          </button>
         </div>
       </div>
     </div>
@@ -236,6 +261,7 @@ exports[`admin_console/team_channel_settings/team/TeamDetails should match snaps
       </a>
       <div
         class="error-message"
+        data-testid="saveChangesPanel-errorMessage"
       />
     </div>
   </div>

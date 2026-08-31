@@ -8198,10 +8198,6 @@
     "translation": "Kann die Dateianzahl für den Kanal nicht holen"
   },
   {
-    "id": "api.file.test_connection_s3_settings_nil.app_error",
-    "translation": "Dateispeicher-Einstellungen haben ungesetzte Werte."
-  },
-  {
     "id": "api.file.test_connection_email_settings_nil.app_error",
     "translation": "E-Mail Einstellungen haben ungesetzte Werte."
   },
@@ -11910,5 +11906,9 @@
   {
     "id": "api.oauth.get_access_token.client_id_mismatch.app_error",
     "translation": "invalid_grant: Die Token-Gewährung wurde nicht für diesen Kunden ausgestellt."
+  },
+  {
+    "id": "shared_channel.system_message.no_longer_shared_unknown",
+    "translation": "Dieser Kanal wird nicht mehr mit einem anderen Arbeitsbereich geteilt."
   }
 ]

@@ -31,27 +31,21 @@ const StatusIcon = ({
         iconClassName = className || '';
     }
 
-    const Icon = getIcon(status);
+    const iconProps = {
+        id,
+        className: iconClassName,
+    };
 
-    return (
-        <Icon
-            id={id}
-            className={iconClassName}
-        />
-    );
-};
-
-function getIcon(status?: string) {
     switch (status) {
     case 'online':
-        return StatusOnlineIcon;
+        return <StatusOnlineIcon {...iconProps}/>;
     case 'away':
-        return StatusAwayIcon;
+        return <StatusAwayIcon {...iconProps}/>;
     case 'dnd':
-        return StatusDndIcon;
+        return <StatusDndIcon {...iconProps}/>;
     default:
-        return StatusOfflineIcon;
+        return <StatusOfflineIcon {...iconProps}/>;
     }
-}
+};
 
 export default memo(StatusIcon);

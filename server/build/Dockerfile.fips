@@ -1,5 +1,5 @@
 # First stage - FIPS dev image with dependencies for building
-FROM cgr.dev/mattermost.com/glibc-openssl-fips:15-dev@sha256:ab5285209fff77fbe56e58aeed6d7f557cf74c6f90d1d8ee26053003f039b419 AS builder
+FROM cgr.dev/mattermost.com/glibc-openssl-fips:16-dev@sha256:e971e3eb6b5ffd227e17d0fa7944e3430d3e8e24e9587d5488a833139629ab0f AS builder
 # Setting bash as our shell, and enabling pipefail option
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
@@ -37,7 +37,7 @@ RUN mkdir -p /var/tmp \
   && chmod 755 /var/tmp
 
 # Final stage using FIPS runtime image
-FROM cgr.dev/mattermost.com/glibc-openssl-fips:15@sha256:7947eecc0d82fa3bc661aaca039bcd86d55fdf3ee581c8ecdef1b3c6f63fa83a
+FROM cgr.dev/mattermost.com/glibc-openssl-fips:16@sha256:a636adba740bb6a53e55c14f7deb979802bcff2203f4aaecfe6f1d159cdfe3a1
 
 # Some ENV variables
 ENV PATH="/mattermost/bin:${PATH}"
@@ -85,7 +85,7 @@ HEALTHCHECK --interval=30s --timeout=10s \
 WORKDIR /mattermost
 CMD ["/mattermost/bin/mattermost"]
 
-EXPOSE 8065 8067 8074 8075
+EXPOSE 8065 8067 8074
 
 # Declare volumes for mount point directories
 VOLUME ["/mattermost/data", "/mattermost/logs", "/mattermost/config", "/mattermost/plugins", "/mattermost/client/plugins"]

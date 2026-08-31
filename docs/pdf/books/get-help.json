@@ -1,0 +1,12 @@
+{
+  "title": "Mattermost Get Help",
+  "subtitle": "Channels for help, escalation, and feedback.",
+  "eyebrow": "SUPPORT",
+  "version": "unreleased",
+  "spine": [
+    "/get-help/community-chat",
+    "/get-help/community-for-mattermost",
+    "/get-help/contribute-to-documentation",
+    "/get-help/get-help-index"
+  ]
+}

@@ -5,8 +5,10 @@ package docextractor
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"io"
+	"runtime"
 	"strings"
 	"sync/atomic"
 	"testing"
@@ -174,7 +176,7 @@ func (te *customTestPdfExtractor) Match(filename string) bool {
 	return strings.HasSuffix(filename, ".pdf")
 }
 
-func (te *customTestPdfExtractor) Extract(filename string, r io.ReadSeeker, _ int64) (string, error) {
+func (te *customTestPdfExtractor) Extract(_ context.Context, filename string, r io.ReadSeeker, _ int64) (string, error) {
 	return "this is a text generated content", nil
 }
 
@@ -188,7 +190,7 @@ func (te *failingExtractor) Match(filename string) bool {
 	return true
 }
 
-func (te *failingExtractor) Extract(filename string, r io.ReadSeeker, _ int64) (string, error) {
+func (te *failingExtractor) Extract(_ context.Context, filename string, r io.ReadSeeker, _ int64) (string, error) {
 	return "", errors.New("this always fail")
 }
 
@@ -213,17 +215,61 @@ func TestExtractWithExtraExtractors(t *testing.T) {
 		assert.Contains(t, text, "document")
 		assert.Contains(t, text, "contains")
 	})
+
+	t.Run("cancelled context aborts extraction", func(t *testing.T) {
+		ctx, cancel := context.WithCancel(context.Background())
+		cancel()
+
+		text, err := ExtractWithExtraExtractors(
+			logger,
+			"file.txt",
+			bytes.NewReader([]byte("hello world")),
+			ExtractSettings{
+				Ctx:     ctx,
+				Timeout: time.Second,
+			},
+			[]Extractor{&slowExtractor{delay: 10 * time.Second}})
+		require.Error(t, err)
+		require.Empty(t, text)
+		require.Contains(t, err.Error(), "cancelled")
+	})
+
+	// Without context propagation a cancelled context would reach documentExtractor
+	// (which uses docconv and ignores the context), extract successfully, and return
+	// no error, silently swallowing the cancellation.
+	t.Run("cancelled context propagates through combineExtractor", func(t *testing.T) {
+		data, err := testutils.ReadTestFile("sample-doc.pdf")
+		require.NoError(t, err)
+
+		ctx, cancel := context.WithCancel(context.Background())
+		cancel()
+
+		// Inject pdfExtractor first so it runs before the system documentExtractor.
+		text, err := ExtractWithExtraExtractors(
+			logger,
+			"sample-doc.pdf",
+			bytes.NewReader(data),
+			ExtractSettings{Ctx: ctx}, []Extractor{&pdfExtractor{}})
+		require.ErrorIs(t, err, context.Canceled)
+		require.Empty(t, text)
+	})
 }
 
 type slowExtractor struct {
 	delay time.Duration
+	done  chan struct{}
 }
 
 func (se *slowExtractor) Name() string { return "slowExtractor" }
 
 func (se *slowExtractor) Match(filename string) bool { return true }
 
-func (se *slowExtractor) Extract(filename string, r io.ReadSeeker, _ int64) (string, error) {
+func (se *slowExtractor) Extract(_ context.Context, filename string, r io.ReadSeeker, _ int64) (string, error) {
+	defer func() {
+		if se.done != nil {
+			close(se.done)
+		}
+	}()
 	time.Sleep(se.delay)
 	return "done", nil
 }
@@ -233,14 +279,21 @@ func TestExtractTimeout(t *testing.T) {
 	data := []byte("hello world")
 
 	t.Run("aborts a slow extraction once the timeout elapses", func(t *testing.T) {
+		extractDone := make(chan struct{})
 		start := time.Now()
-		text, err := ExtractWithExtraExtractors(logger, "file.txt", bytes.NewReader(data), ExtractSettings{Timeout: 50 * time.Millisecond}, []Extractor{&slowExtractor{delay: 10 * time.Second}})
+		text, err := ExtractWithExtraExtractors(logger, "file.txt", bytes.NewReader(data), ExtractSettings{Timeout: 50 * time.Millisecond}, []Extractor{&slowExtractor{delay: 500 * time.Millisecond, done: extractDone}})
 		elapsed := time.Since(start)
 
 		require.Error(t, err)
 		require.Empty(t, text)
 		assert.Contains(t, err.Error(), "timed out")
-		assert.Less(t, elapsed, 5*time.Second, "should return shortly after the timeout, not wait for the extraction")
+		assert.Less(t, elapsed, 200*time.Millisecond, "should return shortly after the timeout, not wait for the extraction")
+
+		select {
+		case <-extractDone:
+		case <-time.After(2 * time.Second):
+			require.FailNow(t, "detached extraction did not finish within the deadline")
+		}
 	})
 
 	t.Run("returns the result when extraction finishes within the timeout", func(t *testing.T) {
@@ -269,7 +322,7 @@ func (pe *panickingExtractor) Name() string { return "panickingExtractor" }
 
 func (pe *panickingExtractor) Match(filename string) bool { return true }
 
-func (pe *panickingExtractor) Extract(filename string, r io.ReadSeeker, _ int64) (string, error) {
+func (pe *panickingExtractor) Extract(_ context.Context, filename string, r io.ReadSeeker, _ int64) (string, error) {
 	panic("boom")
 }
 
@@ -287,16 +340,42 @@ func (c *recordingCloser) Close() error {
 type blockingExtractor struct {
 	started chan struct{}
 	release chan struct{}
+	done    chan struct{}
 }
 
 func (be *blockingExtractor) Name() string { return "blockingExtractor" }
 
 func (be *blockingExtractor) Match(filename string) bool { return true }
 
-func (be *blockingExtractor) Extract(filename string, r io.ReadSeeker, _ int64) (string, error) {
+func (be *blockingExtractor) Extract(_ context.Context, filename string, r io.ReadSeeker, _ int64) (string, error) {
 	close(be.started)
 	<-be.release
+	if be.done != nil {
+		close(be.done)
+	}
 	return "done", nil
+}
+
+// waitForExtractionSlotsIdle polls until every extraction slot has been
+// released. be.done only signals that the extractor finished; the detached
+// goroutine may still be running defers that release its slot.
+func waitForExtractionSlotsIdle(t *testing.T, limit int) {
+	t.Helper()
+	require.Eventually(t, func() bool {
+		acquired := 0
+		ok := true
+		for range limit {
+			if !tryAcquireExtractionSlot() {
+				ok = false
+				break
+			}
+			acquired++
+		}
+		for range acquired {
+			releaseExtractionSlot()
+		}
+		return ok
+	}, 2*time.Second, 10*time.Millisecond, "extraction slots did not become idle")
 }
 
 func TestExtractReaderCloserOwnership(t *testing.T) {
@@ -331,6 +410,45 @@ func TestExtractReaderCloserOwnership(t *testing.T) {
 		_, err := ExtractWithExtraExtractors(logger, "file.txt", bytes.NewReader([]byte("hi")), ExtractSettings{ReaderCloser: closer}, []Extractor{&slowExtractor{delay: 0}})
 		require.NoError(t, err)
 		require.True(t, closer.closed.Load(), "reader should be closed after synchronous extraction")
+	})
+}
+
+func TestExtractWithTimeout(t *testing.T) {
+	content, err := testutils.ReadTestFile("sample-doc.pdf")
+	require.NoError(t, err)
+
+	t.Run("no-timeout path propagates cancelled context", func(t *testing.T) {
+		ctx, cancel := context.WithCancel(context.Background())
+		cancel()
+
+		text, err := extractWithTimeout(
+			&pdfExtractor{},
+			"sample-doc.pdf",
+			bytes.NewReader(content),
+			ExtractSettings{Ctx: ctx})
+		require.ErrorIs(t, err, context.Canceled)
+		require.Empty(t, text)
+	})
+
+	// context.WithTimeout is derived from the (already cancelled) ExtractSettings.Ctx,
+	// so ctx.Done() fires immediately and the select returns a cancellation error
+	// before extraction can complete.
+	t.Run("goroutine/select path returns cancellation error", func(t *testing.T) {
+		ctx, cancel := context.WithCancel(context.Background())
+		cancel()
+
+		text, err := extractWithTimeout(&pdfExtractor{},
+			"sample-doc.pdf",
+			bytes.NewReader(content),
+			ExtractSettings{
+				Ctx:     ctx,
+				Timeout: time.Second,
+			})
+		require.Error(t, err)
+		require.Empty(t, text)
+		// Error comes from either the select's ctx.Done() branch ("cancelled") or
+		// directly from pdfExtractor propagating the cancelled context ("canceled").
+		require.Contains(t, strings.ToLower(err.Error()), "cancel")
 	})
 }
 
@@ -420,4 +538,71 @@ func TestArchiveMaxFileSize(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestExtractConcurrency(t *testing.T) {
+	t.Skip("Skipped due to flakiness — tracked in https://mattermost.atlassian.net/browse/MM-70109")
+	logger := mlog.CreateConsoleTestLogger(t)
+	resetExtractionConcurrencyForTest(1)
+	t.Cleanup(func() {
+		waitForExtractionSlotsIdle(t, 1)
+		resetExtractionConcurrencyForTest(runtime.NumCPU())
+	})
+
+	data := []byte("hello world")
+
+	t.Run("rejects new extractions while the concurrency limit is reached", func(t *testing.T) {
+		be := &blockingExtractor{started: make(chan struct{}), release: make(chan struct{}), done: make(chan struct{})}
+		settings := ExtractSettings{Timeout: 50 * time.Millisecond, ReaderCloser: &recordingCloser{}}
+
+		go func() {
+			_, _ = ExtractWithExtraExtractors(logger, "file.txt", bytes.NewReader(data), settings, []Extractor{be})
+		}()
+
+		select {
+		case <-be.started:
+		case <-time.After(2 * time.Second):
+			require.FailNow(t, "first extraction did not start within the deadline")
+		}
+
+		text, err := ExtractWithExtraExtractors(logger, "file.txt", bytes.NewReader(data), ExtractSettings{Timeout: time.Second}, []Extractor{&slowExtractor{delay: 0}})
+		require.Error(t, err)
+		require.Empty(t, text)
+		require.Contains(t, err.Error(), "capacity exhausted")
+
+		close(be.release)
+		select {
+		case <-be.done:
+		case <-time.After(2 * time.Second):
+			require.FailNow(t, "detached extraction did not finish within the deadline")
+		}
+		waitForExtractionSlotsIdle(t, 1)
+	})
+
+	t.Run("a timed-out extraction keeps its slot until the detached goroutine finishes", func(t *testing.T) {
+		be := &blockingExtractor{started: make(chan struct{}), release: make(chan struct{}), done: make(chan struct{})}
+		settings := ExtractSettings{Timeout: 50 * time.Millisecond, ReaderCloser: &recordingCloser{}}
+
+		_, err := ExtractWithExtraExtractors(logger, "file.txt", bytes.NewReader(data), settings, []Extractor{be})
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "timed out")
+
+		select {
+		case <-be.started:
+		case <-time.After(2 * time.Second):
+			require.FailNow(t, "detached extraction did not start within the deadline")
+		}
+
+		_, err = ExtractWithExtraExtractors(logger, "file.txt", bytes.NewReader(data), ExtractSettings{Timeout: time.Second}, []Extractor{&slowExtractor{delay: 0}})
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "capacity exhausted")
+
+		close(be.release)
+		select {
+		case <-be.done:
+		case <-time.After(2 * time.Second):
+			require.FailNow(t, "detached extraction did not finish within the deadline")
+		}
+		waitForExtractionSlotsIdle(t, 1)
+	})
 }

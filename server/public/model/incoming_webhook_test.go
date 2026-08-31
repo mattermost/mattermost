@@ -77,6 +77,76 @@ func TestIncomingWebhookPreUpdate(t *testing.T) {
 	o.PreUpdate()
 }
 
+func TestIncomingWebhookRequestHasInteractiveMessageProps(t *testing.T) {
+	t.Run("nil request", func(t *testing.T) {
+		var req *IncomingWebhookRequest
+		require.False(t, req.HasInteractiveMessageProps(true))
+	})
+
+	t.Run("empty props", func(t *testing.T) {
+		req := &IncomingWebhookRequest{}
+		require.False(t, req.HasInteractiveMessageProps(true))
+	})
+
+	t.Run("empty interactive arrays", func(t *testing.T) {
+		req := &IncomingWebhookRequest{
+			Props: StringInterface{
+				PostPropsMmBlocks:       []any{},
+				PostPropsBlockKitBlocks: []any{},
+				PostPropsAdaptiveCards:  []any{},
+				PostPropsAttachments:    []any{},
+			},
+		}
+		require.False(t, req.HasInteractiveMessageProps(true))
+	})
+
+	t.Run("mm_blocks when feature flag enabled", func(t *testing.T) {
+		req := &IncomingWebhookRequest{
+			Props: StringInterface{
+				PostPropsMmBlocks: []any{map[string]any{"type": "text", "text": "hello"}},
+			},
+		}
+		require.True(t, req.HasInteractiveMessageProps(true))
+	})
+
+	t.Run("mm_blocks ignored when feature flag disabled", func(t *testing.T) {
+		req := &IncomingWebhookRequest{
+			Props: StringInterface{
+				PostPropsMmBlocks: []any{map[string]any{"type": "text", "text": "hello"}},
+			},
+		}
+		require.False(t, req.HasInteractiveMessageProps(false))
+	})
+
+	t.Run("blocks when feature flag enabled", func(t *testing.T) {
+		req := &IncomingWebhookRequest{
+			Props: StringInterface{
+				PostPropsBlockKitBlocks: []any{map[string]any{"type": "section"}},
+			},
+		}
+		require.True(t, req.HasInteractiveMessageProps(true))
+	})
+
+	t.Run("cards when feature flag enabled", func(t *testing.T) {
+		req := &IncomingWebhookRequest{
+			Props: StringInterface{
+				PostPropsAdaptiveCards: []any{map[string]any{"type": "AdaptiveCard"}},
+			},
+		}
+		require.True(t, req.HasInteractiveMessageProps(true))
+	})
+
+	t.Run("attachments in props regardless of feature flag", func(t *testing.T) {
+		req := &IncomingWebhookRequest{
+			Props: StringInterface{
+				PostPropsAttachments: []any{map[string]any{"text": "attachment"}},
+			},
+		}
+		require.True(t, req.HasInteractiveMessageProps(true))
+		require.True(t, req.HasInteractiveMessageProps(false))
+	})
+}
+
 func TestIncomingWebhookRequestFromJSON(t *testing.T) {
 	texts := []string{
 		`this is a test`,

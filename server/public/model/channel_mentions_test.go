@@ -75,6 +75,46 @@ func TestChannelMentions(t *testing.T) {
 	}
 }
 
+func TestChannelMentionsFromStrings(t *testing.T) {
+	t.Run("nil slice", func(t *testing.T) {
+		assert.Nil(t, ChannelMentionsFromStrings(nil))
+	})
+
+	t.Run("empty slice", func(t *testing.T) {
+		assert.Nil(t, ChannelMentionsFromStrings([]string{}))
+	})
+
+	t.Run("single segment with mention", func(t *testing.T) {
+		assert.Equal(t, []string{"engineering"}, ChannelMentionsFromStrings([]string{"Check out ~engineering"}))
+	})
+
+	t.Run("multiple segments order", func(t *testing.T) {
+		assert.Equal(t, []string{"engineering", "qa-team"}, ChannelMentionsFromStrings([]string{
+			"Check ~engineering",
+			"Deploy to ~qa-team",
+		}))
+	})
+
+	t.Run("deduplicates across segments", func(t *testing.T) {
+		assert.Equal(t, []string{"engineering"}, ChannelMentionsFromStrings([]string{
+			"~engineering",
+			"~engineering again",
+		}))
+	})
+
+	t.Run("skips segments without tilde", func(t *testing.T) {
+		assert.Equal(t, []string{"eng"}, ChannelMentionsFromStrings([]string{"plain", "see ~eng"}))
+	})
+
+	t.Run("numeric segment without tilde", func(t *testing.T) {
+		assert.Nil(t, ChannelMentionsFromStrings([]string{"123"}))
+	})
+
+	t.Run("numeric segment with mention in another segment", func(t *testing.T) {
+		assert.Equal(t, []string{"engineering"}, ChannelMentionsFromStrings([]string{"123", "ref ~engineering"}))
+	})
+}
+
 func TestChannelMentionsFromAttachments(t *testing.T) {
 	t.Run("nil attachments", func(t *testing.T) {
 		result := ChannelMentionsFromAttachments(nil)
@@ -290,6 +330,101 @@ func TestPostChannelMentionsAll(t *testing.T) {
 		post.AddProp("attachments", "not an array")
 		result := post.ChannelMentionsAll()
 		assert.Equal(t, []string{"engineering"}, result)
+	})
+
+	t.Run("interactive mm_blocks, blocks, and cards collect mentions from every block", func(t *testing.T) {
+		post := &Post{
+			Message: "hello ~from-message",
+			Props: StringInterface{
+				PostPropsMmBlocks: []any{
+					map[string]any{"type": "text", "text": "mm block one ~mm-a"},
+					map[string]any{"type": "text", "text": "mm block two ~mm-b"},
+					map[string]any{
+						"type": "container",
+						"content": []any{
+							map[string]any{"type": "text", "text": "nested ~mm-c"},
+							map[string]any{"type": "text", "text": "nested ~mm-d"},
+						},
+					},
+				},
+				PostPropsBlockKitBlocks: []any{
+					map[string]any{
+						"type": "section",
+						"text": map[string]any{
+							"type": "mrkdwn",
+							"text": "bk first ~bk-a",
+						},
+					},
+					map[string]any{
+						"type": "section",
+						"text": map[string]any{
+							"type": "mrkdwn",
+							"text": "bk second ~bk-b",
+						},
+					},
+					map[string]any{
+						"type": "section",
+						"text": map[string]any{
+							"type": "plain_text",
+							"text": "bk plain ~bk-c",
+						},
+					},
+				},
+				PostPropsAdaptiveCards: []any{
+					map[string]any{
+						"type": "AdaptiveCard",
+						"body": []any{
+							map[string]any{"type": "TextBlock", "text": "card1 ~ac-a"},
+							map[string]any{"type": "TextBlock", "text": "card1b ~ac-b"},
+						},
+					},
+					map[string]any{
+						"type": "AdaptiveCard",
+						"body": []any{
+							map[string]any{"type": "TextBlock", "text": "card2 ~ac-c"},
+						},
+					},
+				},
+			},
+		}
+		result := post.ChannelMentionsAll()
+		assert.Equal(t, []string{
+			"from-message",
+			"mm-a", "mm-b", "mm-c", "mm-d",
+			"bk-a", "bk-b", "bk-c",
+			"ac-a", "ac-b", "ac-c",
+		}, result)
+	})
+
+	t.Run("deduplicates channel mentions across message, mm_blocks, blocks, and cards", func(t *testing.T) {
+		post := &Post{
+			Message: "root ~shared-name",
+			Props: StringInterface{
+				PostPropsMmBlocks: []any{
+					map[string]any{"type": "text", "text": "again ~shared-name"},
+					map[string]any{"type": "text", "text": "other ~mm-only"},
+				},
+				PostPropsBlockKitBlocks: []any{
+					map[string]any{
+						"type": "section",
+						"text": map[string]any{
+							"type": "mrkdwn",
+							"text": "~shared-name and ~bk-only",
+						},
+					},
+				},
+				PostPropsAdaptiveCards: []any{
+					map[string]any{
+						"type": "AdaptiveCard",
+						"body": []any{
+							map[string]any{"type": "TextBlock", "text": "~shared-name ~ac-only"},
+						},
+					},
+				},
+			},
+		}
+		result := post.ChannelMentionsAll()
+		assert.Equal(t, []string{"shared-name", "mm-only", "bk-only", "ac-only"}, result)
 	})
 }
 

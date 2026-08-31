@@ -1,8 +1,26 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {getMembershipRule, buildRulesWithMembership} from './access_control';
+import {getMembershipRule, buildRulesWithMembership, combineMembershipExpressions} from './access_control';
 import type {AccessControlPolicyRule} from './access_control';
+
+describe('combineMembershipExpressions', () => {
+    test('returns empty string when no expressions', () => {
+        expect(combineMembershipExpressions([])).toBe('');
+        expect(combineMembershipExpressions([undefined, '', '   '])).toBe('');
+    });
+
+    test('returns a single expression as-is (trimmed)', () => {
+        expect(combineMembershipExpressions(['  a == 1  '])).toBe('a == 1');
+        expect(combineMembershipExpressions([undefined, 'a == 1', ''])).toBe('a == 1');
+    });
+
+    test('ANDs multiple expressions, each wrapped in parentheses', () => {
+        expect(combineMembershipExpressions(['a == 1', 'b == 2'])).toBe('(a == 1) && (b == 2)');
+        expect(combineMembershipExpressions(['a == 1', undefined, 'b == 2', 'c == 3'])).
+            toBe('(a == 1) && (b == 2) && (c == 3)');
+    });
+});
 
 describe('getMembershipRule', () => {
     test('returns the membership rule when present', () => {

@@ -41,13 +41,13 @@ export type Props = {
             perPage: number,
             teamId: string,
             channelId: string,
-            options?: any
+            options?: any,
         ) => Promise<ActionResult>;
         loadStatusesForProfilesList: (users: UserProfile[]) => void;
         loadTeamMembersAndChannelMembersForProfilesList: (
             profiles: UserProfile[],
             teamId: string,
-            channelId: string
+            channelId: string,
         ) => Promise<ActionResult>;
     };
 };

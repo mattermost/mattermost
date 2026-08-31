@@ -14,11 +14,12 @@ import (
 )
 
 func (api *API) InitAction() {
-	api.BaseRoutes.Post.Handle("/actions/{action_id:[A-Za-z0-9]+}", api.APISessionRequired(doPostAction)).Methods(http.MethodPost)
+	api.BaseRoutes.Post.Handle("/actions/{action_id:[A-Za-z0-9_-]+}", api.APISessionRequired(doPostAction)).Methods(http.MethodPost)
 
 	api.BaseRoutes.APIRoot.Handle("/actions/dialogs/open", api.APIHandler(openDialog)).Methods(http.MethodPost)
 	api.BaseRoutes.APIRoot.Handle("/actions/dialogs/submit", api.APISessionRequired(submitDialog)).Methods(http.MethodPost)
 	api.BaseRoutes.APIRoot.Handle("/actions/dialogs/lookup", api.APISessionRequired(lookupDialog)).Methods(http.MethodPost)
+	api.BaseRoutes.APIRoot.Handle("/actions/dialogs/execute", api.APISessionRequired(executeDialogAction)).Methods(http.MethodPost)
 }
 
 func doPostAction(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -50,27 +51,43 @@ func doPostAction(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	var cookie *model.PostActionCookie
+	var legacyCookie *model.PostActionCookie
+	var mmBlocksCookie *model.MmBlocksActionCookie
 	if actionRequest.Cookie != "" {
-		cookie = &model.PostActionCookie{}
-		cookieStr := ""
-		cookieStr, err = model.DecryptPostActionCookie(actionRequest.Cookie, c.App.PostActionCookieSecret())
-		if err != nil {
-			c.Err = model.NewAppError("DoPostAction", "api.post.do_action.action_integration.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+		cookieStr, decErr := model.DecryptPostActionCookie(actionRequest.Cookie, c.App.PostActionCookieSecret())
+		if decErr != nil {
+			c.Err = model.NewAppError("DoPostAction", "api.post.do_action.action_integration.app_error", nil, "", http.StatusBadRequest).Wrap(decErr)
 			return
 		}
-		err = json.Unmarshal([]byte(cookieStr), &cookie)
-		if err != nil {
-			c.Err = model.NewAppError("DoPostAction", "api.post.do_action.action_integration.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+		var parseErr error
+		legacyCookie, mmBlocksCookie, parseErr = model.ParseDecryptedActionCookiePayload(cookieStr)
+		if parseErr != nil {
+			c.Err = model.NewAppError("DoPostAction", "api.post.do_action.action_integration.app_error", nil, "", http.StatusBadRequest).Wrap(parseErr)
 			return
 		}
-		if cookie.PostId != c.Params.PostId {
+		if !c.App.Config().FeatureFlags.MmBlocksEnabled && mmBlocksCookie != nil {
+			c.Err = model.NewAppError("DoPostAction", "api.post.do_action.action_integration.app_error", nil, "", http.StatusBadRequest).Wrap(errors.New("mm_blocks are not enabled"))
+			return
+		}
+
+		var cookiePostId string
+		var channelID string
+		if legacyCookie != nil {
+			cookiePostId = legacyCookie.PostId
+			channelID = legacyCookie.ChannelId
+		} else if mmBlocksCookie != nil {
+			cookiePostId = mmBlocksCookie.PostId
+			channelID = mmBlocksCookie.ChannelId
+		}
+
+		if cookiePostId != c.Params.PostId {
 			c.SetPermissionError(model.PermissionReadChannelContent)
 			return
 		}
-		channel, err := c.App.GetChannel(c.AppContext, cookie.ChannelId)
-		if err != nil {
-			c.Err = err
+
+		channel, appErr := c.App.GetChannel(c.AppContext, channelID)
+		if appErr != nil {
+			c.Err = appErr
 			return
 		}
 		if ok, _ := c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel); !ok {
@@ -87,8 +104,8 @@ func doPostAction(c *Context, w http.ResponseWriter, r *http.Request) {
 	var appErr *model.AppError
 	resp := &model.PostActionAPIResponse{Status: "OK"}
 
-	resp.TriggerId, appErr = c.App.DoPostActionWithCookie(c.AppContext, c.Params.PostId, c.Params.ActionId, c.AppContext.Session().UserId,
-		actionRequest.SelectedOption, cookie, actionRequest.Query)
+	resp.TriggerId, resp.GotoLocation, appErr = c.App.DoPostActionWithCookie(c.AppContext, c.Params.PostId, c.Params.ActionId, c.AppContext.Session().UserId,
+		actionRequest.SelectedOption, legacyCookie, mmBlocksCookie, actionRequest.Query, actionRequest.IntegrationFormat)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -147,10 +164,20 @@ func submitDialog(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), submit.TeamId, model.PermissionViewTeam) {
-		c.SetPermissionError(model.PermissionViewTeam)
-		return
+	// Derive the team from the server-loaded channel, not the client-supplied
+	// TeamId — otherwise a client could omit TeamId on a team channel and skip
+	// the PermissionViewTeam check. channel.TeamId is empty for DM/GM channels.
+	if channel.TeamId != "" {
+		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), channel.TeamId, model.PermissionViewTeam) {
+			c.SetPermissionError(model.PermissionViewTeam)
+			return
+		}
 	}
+
+	// The client-supplied TeamId is not trusted for the permission check above, so
+	// don't forward it to the integration either — use the channel's authoritative
+	// team (empty for DM/GM).
+	submit.TeamId = channel.TeamId
 
 	resp, err := c.App.SubmitInteractiveDialog(c.AppContext, submit)
 	if err != nil {
@@ -162,6 +189,62 @@ func submitDialog(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if _, err := w.Write(b); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+func executeDialogAction(c *Context, w http.ResponseWriter, r *http.Request) {
+	var request model.ExecuteDialogActionRequest
+
+	jsonErr := json.NewDecoder(r.Body).Decode(&request)
+	if jsonErr != nil {
+		c.SetInvalidParamWithErr("dialog_action", jsonErr)
+		return
+	}
+
+	if request.URL == "" {
+		c.SetInvalidParam("url")
+		return
+	}
+
+	if !model.IsValidLookupURL(request.URL) {
+		c.SetInvalidParam("url")
+		return
+	}
+
+	channel, err := c.App.GetChannel(c.AppContext, request.ChannelId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+	if ok, _ := c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel); !ok {
+		c.SetPermissionError(model.PermissionReadChannelContent)
+		return
+	}
+
+	// Derive the team from the server-loaded channel, not the client-supplied
+	// TeamId — otherwise a client could omit TeamId on a team channel and skip
+	// the PermissionViewTeam check. channel.TeamId is empty for DM/GM channels.
+	if channel.TeamId != "" {
+		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), channel.TeamId, model.PermissionViewTeam) {
+			c.SetPermissionError(model.PermissionViewTeam)
+			return
+		}
+	}
+
+	// The client-supplied TeamId is not trusted for the permission check above,
+	// so don't trust it for the downstream team lookup / integration payload either.
+	// Use the channel's authoritative team (empty for DM/GM, which skips the lookup).
+	request.TeamId = channel.TeamId
+
+	triggerId, err := c.App.ExecuteDialogAction(c.AppContext, c.AppContext.Session().UserId, request)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	resp := &model.ExecuteDialogActionResponse{TriggerId: triggerId}
+	if encErr := json.NewEncoder(w).Encode(resp); encErr != nil {
+		c.Logger.Warn("Error writing response", mlog.Err(encErr))
 	}
 }
 
@@ -200,10 +283,20 @@ func lookupDialog(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), lookup.TeamId, model.PermissionViewTeam) {
-		c.SetPermissionError(model.PermissionViewTeam)
-		return
+	// Derive the team from the server-loaded channel, not the client-supplied
+	// TeamId — otherwise a client could omit TeamId on a team channel and skip
+	// the PermissionViewTeam check. channel.TeamId is empty for DM/GM channels.
+	if channel.TeamId != "" {
+		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), channel.TeamId, model.PermissionViewTeam) {
+			c.SetPermissionError(model.PermissionViewTeam)
+			return
+		}
 	}
+
+	// The client-supplied TeamId is not trusted for the permission check above, so
+	// don't forward it to the integration either — use the channel's authoritative
+	// team (empty for DM/GM). Set before logging so the trace reflects the real team.
+	lookup.TeamId = channel.TeamId
 
 	c.Logger.Debug("Performing lookup dialog request",
 		mlog.String("url", lookup.URL),

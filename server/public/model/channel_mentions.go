@@ -11,11 +11,21 @@ import (
 var channelMentionRegexp = regexp.MustCompile(`\B~[a-zA-Z0-9\-_]+`)
 
 func ChannelMentions(message string) []string {
+	return ChannelMentionsFromStrings([]string{message})
+}
+
+// ChannelMentionsFromStrings extracts ~channel-name mentions from each string, deduplicating across
+// all inputs. Callers typically pass post.AllStrings() so mentions are found in the message, message
+// attachments, and interactive payloads (mm_blocks, blocks, cards) consistently with other post text.
+func ChannelMentionsFromStrings(strs []string) []string {
+	alreadyMentioned := make(map[string]bool)
 	var names []string
 
-	if strings.Contains(message, "~") {
-		alreadyMentioned := make(map[string]bool)
-		for _, match := range channelMentionRegexp.FindAllString(message, -1) {
+	for _, s := range strs {
+		if !strings.Contains(s, "~") {
+			continue
+		}
+		for _, match := range channelMentionRegexp.FindAllString(s, -1) {
 			name := match[1:]
 			if !alreadyMentioned[name] {
 				names = append(names, name)

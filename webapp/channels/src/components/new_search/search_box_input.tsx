@@ -121,6 +121,7 @@ const SearchInput = forwardRef<HTMLInputElement, Props>(({searchTerms, searchTyp
             />
             {searchTerms.length > 0 && (
                 <ClearButton
+                    data-testid='input-clear'
                     className='btn btn-sm input-clear-x'
                     onClick={clearSearch}
                 >

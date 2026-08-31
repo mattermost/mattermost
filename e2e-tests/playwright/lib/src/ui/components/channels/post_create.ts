@@ -20,7 +20,11 @@ export default class ChannelsPostCreate {
     readonly scheduleMessageButton;
     readonly priorityButton;
     readonly suggestionList;
+    readonly suggestionOptions;
+    readonly selectedSuggestion;
     readonly filePreview;
+    readonly previewButton;
+    readonly previewArea;
 
     // Burn-on-Read elements
     readonly burnOnReadButton;
@@ -41,12 +45,16 @@ export default class ChannelsPostCreate {
         this.scheduleMessageButton = container.getByLabel('Schedule message');
         this.priorityButton = container.getByLabel('Message priority');
         this.suggestionList = container.getByRole('listbox', {name: 'Suggestions'});
-        this.filePreview = container.locator('.file-preview__container');
+        this.suggestionOptions = this.suggestionList.getByRole('option');
+        this.selectedSuggestion = this.suggestionList.getByTestId('suggestion-selected');
+        this.filePreview = container.getByTestId('file-preview-container');
+        this.previewButton = container.getByRole('button', {name: 'preview'});
+        this.previewArea = container.locator('.textbox-preview-area');
 
         // Burn-on-Read elements
         // Use a flexible locator that matches the aria-label pattern
         this.burnOnReadButton = container.getByRole('button', {name: /Burn-on-read/i});
-        this.burnOnReadLabel = container.locator('.BurnOnReadLabel');
+        this.burnOnReadLabel = container.getByTestId('burn-on-read-label');
     }
 
     async toBeVisible() {
@@ -65,6 +73,21 @@ export default class ChannelsPostCreate {
         await expect(this.input).toBeVisible();
 
         await this.input.fill(message);
+    }
+
+    /**
+     * Types the message into the input one keystroke at a time, the way a user does, without sending it.
+     * Prefer this over writeMessage when the behaviour under test depends on the input changing more than
+     * once, such as the autocomplete, which debounces each change before searching the server.
+     * @param message : Message to be typed into the input
+     * @param options.delay : Milliseconds to wait between keystrokes. Use a delay longer than the
+     * autocomplete's debounce when a search per keystroke is wanted.
+     */
+    async typeMessage(message: string, options?: {delay?: number}) {
+        await this.input.waitFor();
+        await expect(this.input).toBeVisible();
+
+        await this.input.pressSequentially(message, options);
     }
 
     /**
@@ -162,16 +185,47 @@ export default class ChannelsPostCreate {
         await suggestion.click();
     }
 
+    /**
+     * Types the given keystrokes to trigger the autocomplete suggestion list,
+     * optionally moves the highlight down with ArrowDown, then completes the
+     * highlighted suggestion by pressing Tab.
+     * @param keystrokes - Partial text that triggers autocomplete (e.g. "@jo", ":tomato")
+     * @param options.arrowDown - Number of ArrowDown presses before selecting
+     */
+    async selectFromAutocompleteWithTab(keystrokes: string, {arrowDown = 0}: {arrowDown?: number} = {}) {
+        await this.input.waitFor();
+        await expect(this.input).toBeVisible();
+
+        await this.input.fill(keystrokes);
+        await expect(this.suggestionList).toBeVisible();
+
+        for (let i = 0; i < arrowDown; i++) {
+            await this.input.press('ArrowDown');
+        }
+
+        await this.input.press('Tab');
+    }
+
     async openEmojiPicker() {
         await expect(this.emojiButton).toBeVisible();
         await this.emojiButton.click();
     }
 
+    async togglePreview() {
+        await expect(this.previewButton).toBeVisible();
+        await this.previewButton.click();
+    }
+
+    async clickMentionInPreview() {
+        await expect(this.previewArea).toBeVisible();
+        await this.previewArea.locator('.mention-link').click();
+    }
+
     async waitUntilFilePreviewContains(files: string[], timeout = duration.ten_sec) {
         await waitUntil(
             async () => {
-                const previews = this.filePreview.locator('.file-preview');
-                const details = this.filePreview.locator('.post-image__details');
+                const previews = this.filePreview.getByTestId('file-preview-item');
+                const details = this.filePreview.getByTestId('post-image-details');
 
                 const [previewsCount, detailsCount] = await Promise.all([previews.count(), details.count()]);
 
@@ -195,5 +249,56 @@ export default class ChannelsPostCreate {
      */
     async isBurnOnReadEnabled(): Promise<boolean> {
         return this.burnOnReadLabel.isVisible();
+    }
+
+    /**
+     * Simulates pasting HTML (with a plain-text fallback) into the input, exercising Mattermost's
+     * own paste-formatting logic (e.g. an HTML table auto-converting to a markdown table) rather
+     * than just typing raw text.
+     *
+     * Dispatches a synthetic ClipboardEvent directly on the input: Playwright/CDP can't write
+     * arbitrary HTML to the real OS clipboard and have a genuinely OS-triggered paste read it back
+     * deterministically in CI, so this mirrors the technique this codebase's own unit tests use
+     * (`utils/paste.test.tsx`), just exercised through the real running app instead of a mock.
+     *
+     * When `withoutFormatting` is true, a Ctrl+Shift+V keydown is dispatched first to set the
+     * app's internal `isNonFormattedPaste` flag (see `advanced_text_editor/use_key_handler.tsx`),
+     * which makes the app's paste handler step aside instead of auto-converting the HTML.
+     *
+     * A synthetic (untrusted) paste event never triggers the browser's own default paste, so when
+     * the app steps aside (doesn't call `preventDefault`) the plain-text fallback is inserted here
+     * to mirror what a real, OS-triggered paste would do.
+     */
+    async pasteHtml(html: string, plainText: string, {withoutFormatting = false}: {withoutFormatting?: boolean} = {}) {
+        await expect(this.input).toBeVisible();
+        await this.input.focus();
+
+        await this.input.evaluate(
+            (el, {html, plainText, withoutFormatting}) => {
+                if (withoutFormatting) {
+                    el.dispatchEvent(
+                        new KeyboardEvent('keydown', {
+                            key: 'v',
+                            ctrlKey: true,
+                            shiftKey: true,
+                            bubbles: true,
+                            cancelable: true,
+                        }),
+                    );
+                }
+
+                const dataTransfer = new DataTransfer();
+                dataTransfer.setData('text/html', html);
+                dataTransfer.setData('text/plain', plainText);
+                const notCancelled = el.dispatchEvent(
+                    new ClipboardEvent('paste', {clipboardData: dataTransfer, bubbles: true, cancelable: true}),
+                );
+
+                if (notCancelled) {
+                    document.execCommand('insertText', false, plainText);
+                }
+            },
+            {html, plainText, withoutFormatting},
+        );
     }
 }

@@ -19,6 +19,7 @@ describe('components/drafts/draft_actions', () => {
         canEdit: true,
         onSchedule: jest.fn(),
         channelId: '',
+        allowRecurring: true,
     };
 
     it('should match snapshot', () => {

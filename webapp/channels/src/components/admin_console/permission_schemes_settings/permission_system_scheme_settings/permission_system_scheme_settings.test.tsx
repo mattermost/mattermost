@@ -11,7 +11,7 @@ import Permissions from 'mattermost-redux/constants/permissions';
 import {PermissionSystemSchemeSettings} from 'components/admin_console/permission_schemes_settings/permission_system_scheme_settings/permission_system_scheme_settings';
 
 import {defaultIntl} from 'tests/helpers/intl-test-helper';
-import {renderWithContext} from 'tests/react_testing_utils';
+import {renderWithContext, screen} from 'tests/react_testing_utils';
 import {DefaultRolePermissions} from 'utils/constants';
 
 describe('components/admin_console/permission_schemes_settings/permission_system_scheme_settings/permission_system_scheme_settings', () => {
@@ -144,6 +144,23 @@ describe('components/admin_console/permission_schemes_settings/permission_system
             expect(ref.current!.state).toMatchSnapshot();
             done();
         });
+    });
+
+    test('should render the Playbook Administrators role heading as plural', () => {
+        renderWithContext(
+            <PermissionSystemSchemeSettings
+                {...defaultProps}
+            />,
+        );
+
+        // Regression test for MM-60599: the Playbook role heading must be plural
+        // ("Playbook Administrators") to stay consistent with the other role headings.
+        expect(screen.getByRole('heading', {name: 'Playbook Administrators'})).toBeInTheDocument();
+        expect(screen.queryByRole('heading', {name: 'Playbook Administrator'})).not.toBeInTheDocument();
+
+        for (const roleName of ['Channel Administrators', 'Team Administrators', 'System Administrators']) {
+            expect(screen.getByRole('heading', {name: roleName})).toBeInTheDocument();
+        }
     });
 
     test('should save each role on handleSubmit except system_admin role', async () => {

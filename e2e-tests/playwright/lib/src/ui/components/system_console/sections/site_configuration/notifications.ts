@@ -57,37 +57,44 @@ export default class Notifications {
         );
 
         this.emailNotificationContents = new DropdownSetting(
-            container.locator('.form-group').filter({hasText: 'Email Notification Contents:'}),
+            container.getByTestId('EmailSettings.EmailNotificationContentsType'),
             'Email Notification Contents:',
+            'EmailSettings.EmailNotificationContentsType',
         );
         this.pushNotificationContents = new DropdownSetting(
-            container.locator('.form-group').filter({hasText: 'Push Notification Contents:'}),
+            container.getByTestId('EmailSettings.PushNotificationContents'),
             'Push Notification Contents:',
+            'EmailSettings.PushNotificationContents',
         );
 
         this.notificationDisplayName = new TextInputSetting(
-            container.locator('.form-group').filter({hasText: 'Notification Display Name:'}),
+            container.getByTestId('EmailSettings.FeedbackName'),
             'Notification Display Name:',
+            'EmailSettings.FeedbackName',
         );
         this.notificationFromAddress = new TextInputSetting(
-            container.locator('.form-group').filter({hasText: 'Notification From Address:'}),
+            container.getByTestId('EmailSettings.FeedbackEmail'),
             'Notification From Address:',
+            'EmailSettings.FeedbackEmail',
         );
         this.supportEmailAddress = new TextInputSetting(
-            container.locator('.form-group').filter({hasText: 'Support Email Address:'}),
+            container.getByTestId('SupportSettings.SupportEmail'),
             'Support Email Address:',
+            'SupportSettings.SupportEmail',
         );
         this.notificationReplyToAddress = new TextInputSetting(
-            container.locator('.form-group').filter({hasText: 'Notification Reply-To Address:'}),
+            container.getByTestId('EmailSettings.ReplyToAddress'),
             'Notification Reply-To Address:',
+            'EmailSettings.ReplyToAddress',
         );
         this.notificationFooterMailingAddress = new TextInputSetting(
-            container.locator('.form-group').filter({hasText: 'Notification Footer Mailing Address:'}),
+            container.getByTestId('EmailSettings.FeedbackOrganization'),
             'Notification Footer Mailing Address:',
+            'EmailSettings.FeedbackOrganization',
         );
 
         this.saveButton = container.getByRole('button', {name: 'Save'});
-        this.errorMessage = container.locator('.has-error');
+        this.errorMessage = container.getByTestId('errorMessage');
     }
 
     async toBeVisible() {

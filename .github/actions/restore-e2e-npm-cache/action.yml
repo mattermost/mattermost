@@ -1,0 +1,13 @@
+name: "Restore E2E npm registry cache"
+description: "Restore ~/.npm for cypress/playwright/api jobs (keyed on all E2E lockfiles)"
+
+runs:
+  using: "composite"
+  steps:
+    - name: ci/restore-npm-cache
+      uses: actions/cache/restore@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
+      with:
+        path: ~/.npm
+        key: e2e-npm-registry-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('e2e-tests/cypress/package-lock.json', 'e2e-tests/playwright/package-lock.json', 'api/package-lock.json') }}
+        restore-keys: |
+          e2e-npm-registry-${{ runner.os }}-${{ runner.arch }}-

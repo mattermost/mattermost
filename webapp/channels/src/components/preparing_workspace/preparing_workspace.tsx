@@ -113,7 +113,7 @@ const PreparingWorkspace = ({
 
     const [[mostRecentStep, currentStep], setStepHistory] = useState<[WizardStep, WizardStep]>([stepOrder[0], stepOrder[0]]);
     const [submissionState, setSubmissionState] = useState<SubmissionState>(SubmissionStates.Presubmit);
-    const browserSiteUrl = useMemo(getSiteURL, []);
+    const browserSiteUrl = useMemo(() => getSiteURL(), []);
     const [form, setForm] = useState({
         ...emptyForm,
     });
@@ -214,7 +214,7 @@ const PreparingWorkspace = ({
                     redirectWithError(WizardSteps.InviteMembers, genericSubmitError);
                     return;
                 }
-            } catch (e) {
+            } catch {
                 redirectWithError(WizardSteps.InviteMembers, genericSubmitError);
                 return;
             }
@@ -240,7 +240,7 @@ const PreparingWorkspace = ({
         try {
             await Client4.completeSetup(completeSetupRequest);
             dispatch({type: GeneralTypes.FIRST_ADMIN_COMPLETE_SETUP_RECEIVED, data: true});
-        } catch (e) {
+        } catch {
             redirectWithError(WizardSteps.Plugins, genericSubmitError);
             return;
         }

@@ -37,6 +37,7 @@ const DataGridCell = ({row, column}: DataGridCellProps) => {
         <div
             key={column.field}
             className={classNames('DataGrid_cell', column.className)}
+            data-testid='dataGrid-cell'
             style={style}
         >
             {row.cells[column.field]}
@@ -55,6 +56,7 @@ const DataGridRow = ({row, columns}: DataGridRowProps) => {
     return (
         <div
             className='DataGrid_row'
+            data-testid='dataGrid-row'
             onClick={row.onClick}
         >
             {cells}

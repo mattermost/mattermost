@@ -238,12 +238,8 @@
 
             .file-preview__button {
                 display: block;
-
-                &,
-                .small-image-utility-buttons-wrapper {
-                    max-width: 100%;
-                    max-height: $max-image-height;
-                }
+                max-width: 100%;
+                max-height: $max-image-height;
             }
 
             .image-permalink {
@@ -257,7 +253,8 @@
                 overflow: hidden;
                 max-height: $max-image-height;
                 align-self: center;
-                border-radius: 4px;
+                border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+                border-radius: 8px;
                 cursor: pointer;
                 transition: all 0.1s linear;
 
@@ -646,7 +643,10 @@
             transition: opacity 0.15s ease;
 
             &:hover {
+                border-color: var(--button-bg);
+                background: var(--button-bg);
                 opacity: 1;
+                stroke: var(--button-color);
             }
         }
 
@@ -759,8 +759,13 @@
 
 .image-loading__container {
     position: relative;
-    overflow: hidden;
+    display: inline-block;
+    overflow: clip;
     max-height: inherit;
+
+    .image-loading__placeholder {
+        box-sizing: content-box;
+    }
 }
 
 .file-preview__button {

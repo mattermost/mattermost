@@ -169,7 +169,10 @@ export type NewChannelFormState = {
     url: string;
     purpose: string;
     type: string;
+    defaultCategoryName?: string;
     managedCategoryName?: string;
+    classificationId?: string;
+    bannerText?: string;
 };
 
 /**
@@ -179,6 +182,6 @@ export type NewChannelFormState = {
  * - `error`: plugin encountered an error; the modal displays `message`.
  */
 export type NewChannelFormResult =
-    | {status: 'created'; channel: Channel}
-    | {status: 'deferred'}
-    | {status: 'error'; message: string};
+    {status: 'created'; channel: Channel} |
+    {status: 'deferred'} |
+    {status: 'error'; message: string};

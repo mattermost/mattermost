@@ -252,8 +252,9 @@ export default class SystemRole extends React.PureComponent<Props, State> {
                         <BlockableLink
                             to='/admin_console/user_management/system_roles'
                             className='fa fa-angle-left back'
+                            data-testid='adminHeader-backLink'
                         />
-                        {name}
+                        <span data-testid='adminHeader-roleName'>{name}</span>
                     </div>
                 </AdminHeader>
                 <div className='admin-console__wrapper'>

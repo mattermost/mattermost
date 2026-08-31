@@ -7578,10 +7578,6 @@
     "translation": "既有安全連線的 ID。請參見 `secure-connection`命令以新增一個安全連線。"
   },
   {
-    "id": "api.file.test_connection_s3_settings_nil.app_error",
-    "translation": "檔案儲存空間設定有未設的選項。"
-  },
-  {
     "id": "api.getUsersForReporting.invalid_team_filter",
     "translation": "提供了無效的團隊 ID。"
   },

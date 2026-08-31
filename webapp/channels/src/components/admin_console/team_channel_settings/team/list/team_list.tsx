@@ -190,7 +190,14 @@ export default class TeamList extends React.PureComponent<Props, State> {
     };
 
     renderManagementMethodText = (team: Team) => {
-        if (team.group_constrained) {
+        if (team.policy_enforced) {
+            return (
+                <FormattedMessage
+                    id='admin.team_settings.team_row.managementMethod.attribute_based'
+                    defaultMessage='Attribute Based'
+                />
+            );
+        } else if (team.group_constrained) {
             return (
                 <FormattedMessage
                     id='admin.team_settings.team_row.managementMethod.groupSync'

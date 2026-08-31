@@ -33,7 +33,7 @@ type Props = {
         getLogs: (logFilter: LogFilter) => Promise<unknown>;
         getPlainLogs: (
             page?: number | undefined,
-            perPage?: number | undefined
+            perPage?: number | undefined,
         ) => Promise<unknown>;
     };
 };

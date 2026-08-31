@@ -19,6 +19,7 @@ function LoadingScreen({message, position = 'relative', style, className = '', c
 
     return (
         <div
+            data-testid='loading-screen'
             className={classNames('loading-screen', className, {
                 'loading-screen--in-middle': centered,
             })}

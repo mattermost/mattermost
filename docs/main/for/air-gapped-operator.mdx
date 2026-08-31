@@ -1,0 +1,41 @@
+---
+title: "For Air-Gapped Operators"
+description: "Start here if you deploy and operate Mattermost in network-isolated enclaves."
+slug: /for/air-gapped-operator
+hide_table_of_contents: true
+---
+
+<Eyebrow>Persona landing</Eyebrow>
+
+# For Air-Gapped Operators
+
+You deploy and operate Mattermost in network-isolated enclaves — air-gapped classified networks, sovereign-cloud enclaves, DoD IL4/IL5 environments, or tactical edges with DDIL connectivity. This page is a curated entry point — every link goes to the canonical guide.
+
+:::important[No internet egress]
+Every page linked from here works without internet access. Stage artifacts on an operator workstation, transfer across your approved boundary, and operate offline.
+:::
+
+## Start here
+
+<CardGrid columns={3} cards={[
+  {title: 'Deployment Overview', to: '/deployment-guide/air-gapped-operations/quick-start-runbook', description: 'High-level steps to deploy Mattermost in an air-gapped enclave.'},
+  {title: 'Bill of Materials and Registry Mirroring', to: '/deployment-guide/air-gapped-operations/mirror-package-repositories', description: 'Internal package mirror + container registry.'},
+  {title: 'FIPS / STIG container builds', to: '/deployment-guide/server/containers/fips-stig', description: 'Deploy the FIPS-compliant, STIG-hardened container image.'},
+]} />
+
+## Common tasks
+
+<CardGrid columns={3} cards={[
+  {title: 'Configure for Air-Gapped Operation', to: '/deployment-guide/air-gapped-operations/disable-phone-home-features', description: 'Server settings that depend on internet access.'},
+  {title: 'DoD IL4 / IL5', to: '/security-guide/compliance-frameworks/dod-il-4-5', description: 'CC SRG impact level posture.'},
+  {title: 'DISA STIG', to: '/security-guide/compliance-frameworks/disa-stig', description: 'Application Security and Development SRG mapping.'},
+  {title: 'Reference architecture', to: '/deployment-guide/reference-architecture/reference-architecture-index', description: 'Application + scaling for sovereign deployments.'},
+]} />
+
+## Other personas
+
+<CardGrid columns={3} cards={[
+  {title: 'For SREs / platform operators', to: '/for/sre', description: 'General deployment, scaling, operations.'},
+  {title: 'For security architects', to: '/for/security-architect', description: 'Authorization, control mappings, FIPS posture.'},
+  {title: 'For compliance officers', to: '/for/compliance-officer', description: 'Audit evidence and regulatory mapping.'},
+]} />

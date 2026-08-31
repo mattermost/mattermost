@@ -619,7 +619,9 @@ func (s *SqlAccessControlPolicyStore) GetAll(_ request.CTX, opts model.GetAccess
 func (s *SqlAccessControlPolicyStore) SearchPolicies(rctx request.CTX, opts model.AccessControlPolicySearch) ([]*model.AccessControlPolicy, int64, error) {
 	type wrapper struct {
 		storeAccessControlPolicy
-		ChildIDs json.RawMessage
+		ChildIDs     json.RawMessage
+		ChannelCount int
+		TeamCount    int
 	}
 
 	p := []wrapper{}
@@ -630,7 +632,15 @@ func (s *SqlAccessControlPolicyStore) SearchPolicies(rctx request.CTX, opts mode
      FROM AccessControlPolicies c
 	 WHERE c.Type != 'parent'
      AND c.Data->'imports' @> JSONB_BUILD_ARRAY(p.ID)), '[]'::json) AS ChildIDs`
-		columns = append(columns, childIDs)
+		channelCount := `COALESCE((SELECT COUNT(*)
+     FROM AccessControlPolicies c
+	 WHERE c.Type = 'channel'
+     AND c.Data->'imports' @> JSONB_BUILD_ARRAY(p.ID)), 0) AS ChannelCount`
+		teamCount := `COALESCE((SELECT COUNT(*)
+     FROM AccessControlPolicies c
+	 WHERE c.Type = 'team'
+     AND c.Data->'imports' @> JSONB_BUILD_ARRAY(p.ID)), 0) AS TeamCount`
+		columns = append(columns, childIDs, channelCount, teamCount)
 		query = s.getQueryBuilder().Select(columns...).From("AccessControlPolicies p")
 	} else {
 		query = s.selectQueryBuilder
@@ -764,6 +774,8 @@ func (s *SqlAccessControlPolicyStore) SearchPolicies(rctx request.CTX, opts mode
 				return nil, 0, errors.Wrapf(err, "failed to unmarshal child IDs for policy with id=%s", p[i].ID)
 			}
 			m.Props["child_ids"] = childIDs
+			m.Props["channel_count"] = p[i].ChannelCount
+			m.Props["team_count"] = p[i].TeamCount
 		}
 		policies[i] = m
 	}
@@ -929,3 +941,40 @@ func (s *SqlAccessControlPolicyStore) GetPoliciesByFieldID(_ request.CTX, fieldI
 
 	return policies, nil
 }
+
+// GetEtagEpoch covers the system-scoped permission policies plus the given channel's own policy
+// row (a channel policy's ID equals the channel ID); an empty channelID covers only the former.
+//
+// MAX(CreateAt), because the table has no UpdateAt and saves are delete-and-reinsert. The count is
+// folded in to catch deletes: dropping a policy that isn't the newest leaves the max untouched, so
+// the ETag would still match and clients would keep a differently-sanitized cached copy.
+//
+// Matching the channel by primary key instead of scanning every policy's rules JSON costs a benign
+// false positive: a membership-only change to this channel's policy also advances the epoch.
+func (s *SqlAccessControlPolicyStore) GetEtagEpoch(rctx request.CTX, channelID string) (string, error) {
+	query, args, err := s.getQueryBuilder().
+		Select("COALESCE(MAX(CreateAt), 0) AS MaxCreateAt", "COUNT(*) AS Total").
+		From("AccessControlPolicies").
+		Where(sq.Or{
+			sq.Eq{"Type": model.AccessControlPolicyTypePermission},
+			sq.Eq{"Id": channelID},
+		}).
+		ToSql()
+	if err != nil {
+		return "", errors.Wrap(err, "GetEtagEpoch: failed to build query")
+	}
+
+	var epoch struct {
+		MaxCreateAt int64
+		Total       int64
+	}
+	// Master, not replica — see the note on SqlAttributesStore.GetUserPropertyValuesEpoch.
+	if err := s.GetMaster().Get(&epoch, query, args...); err != nil {
+		return "", errors.Wrap(err, "GetEtagEpoch: query failed")
+	}
+	return fmt.Sprintf("%d-%d", epoch.MaxCreateAt, epoch.Total), nil
+}
+
+// No-op at the SQL layer; the render-ETag epoch is cached in and invalidated by the local cache layer.
+func (s *SqlAccessControlPolicyStore) InvalidateEtagForChannel(channelID string) {}
+func (s *SqlAccessControlPolicyStore) ClearEtagCache()                           {}

@@ -27,23 +27,29 @@ export default class ChannelsCenterView {
     readonly channelBanner;
     readonly autotranslationBadge;
     readonly flagPostConfirmationDialog;
+    readonly notificationSeparator;
+    readonly postViews;
+    readonly channelIntro;
 
     constructor(container: Locator, page: Page) {
         this.container = container;
         this.page = page;
 
-        this.header = new ChannelsHeader(this.container.locator('.channel-header'));
+        this.header = new ChannelsHeader(this.container.locator('#channel-header'));
         this.postCreate = new ChannelsPostCreate(container.getByTestId('post-create'));
         this.scheduledDraftOptions = new ChannelsPostCreate(container.locator('#dropdown_send_post_options'));
-        this.postEdit = new ChannelsPostEdit(container.locator('.post-edit__container'));
+        this.postEdit = new ChannelsPostEdit(container.getByTestId('post-edit-container'));
         this.scheduledPostIndicator = new ScheduledPostIndicator(container.getByTestId('scheduledPostIndicator'));
         this.editedPostIcon = (postID: string) => container.locator(`#postEdited_${postID}`);
         this.channelBanner = container.getByTestId('channel_banner_container');
         this.autotranslationBadge = container.getByTestId('autotranslation-badge');
         this.flagPostConfirmationDialog = new FlagPostConfirmationDialog(
-            page.locator('#FlagPostModal div.modal-content'),
+            page.getByRole('dialog', {name: 'Quarantine for Review'}),
             page,
         );
+        this.notificationSeparator = container.locator('.NotificationSeparator');
+        this.postViews = container.getByTestId('postView');
+        this.channelIntro = container.locator('#channelIntro');
     }
 
     async toBeVisible() {
@@ -71,6 +77,16 @@ export default class ChannelsCenterView {
         const lastPost = this.container.getByTestId('postView').last();
         await lastPost.waitFor();
         return new ChannelsPost(lastPost);
+    }
+
+    /**
+     * Return the Center post whose body contains the given text. Prefer this over getLastPost:
+     * adding a member appends a join system message, so the post under test is often not last.
+     */
+    async getPostByText(text: string) {
+        const post = this.container.getByTestId('postView').filter({hasText: text}).last();
+        await post.waitFor();
+        return new ChannelsPost(post);
     }
 
     /**
@@ -185,7 +201,7 @@ export default class ChannelsCenterView {
     }
 
     async assertChannelBannerHasEmoticon() {
-        const emoji = this.channelBanner.locator('.emoticon:not(.emoticon--unicode)').first();
+        const emoji = this.channelBanner.getByTestId(/^postEmoji\./).first();
         await expect(emoji).toBeVisible();
 
         const backgroundImage = await emoji.evaluate((el) => {
@@ -196,7 +212,7 @@ export default class ChannelsCenterView {
     }
 
     async assertChannelBannerImageEmojiSize(expectedSizePx: number) {
-        const emoji = this.channelBanner.locator('.emoticon:not(.emoticon--unicode)').first();
+        const emoji = this.channelBanner.getByTestId(/^postEmoji\./).first();
         await expect(emoji).toBeVisible();
 
         const {width, height} = await emoji.evaluate((el) => {
@@ -214,7 +230,7 @@ export default class ChannelsCenterView {
     }
 
     async assertChannelBannerUnicodeEmojiSize(expectedSizePx: number) {
-        const emoji = this.channelBanner.locator('.emoticon--unicode').first();
+        const emoji = this.channelBanner.getByTestId('channel-banner-unicode-emoji').first();
         await expect(emoji).toBeVisible();
 
         const fontSize = await emoji.evaluate((el) => {

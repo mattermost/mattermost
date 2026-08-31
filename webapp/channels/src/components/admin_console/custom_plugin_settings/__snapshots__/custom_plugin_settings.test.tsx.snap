@@ -8,6 +8,7 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
   >
     <div
       class="admin-console__header"
+      data-testid="admin-console-header"
     >
       testplugin
     </div>
@@ -385,6 +386,7 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
   >
     <div
       class="admin-console__header"
+      data-testid="admin-console-header"
     >
       testplugin
     </div>
@@ -431,6 +433,7 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
   >
     <div
       class="admin-console__header"
+      data-testid="admin-console-header"
     >
       testplugin
     </div>

@@ -27,6 +27,7 @@ Options
 
 ::
 
+      --active         If supplied, only users which are active will be fetched
       --all            Fetch all users. --page flag will be ignored if provided
   -h, --help           help for list
       --inactive       If supplied, only users which are inactive will be fetched

@@ -28,7 +28,7 @@ export function isIPAddressInRanges(ipAddress: string, allowedIPRanges: AllowedI
 export function validateCIDR(cidr: string) {
     try {
         ipaddr.parseCIDR(cidr);
-    } catch (e) {
+    } catch {
         return false;
     }
 

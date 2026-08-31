@@ -50,20 +50,35 @@ const AdminUserCard = ({isLoading = false, ...props}: Props) => {
     }
 
     return (
-        <div className='AdminUserCard'>
-            <div className='AdminUserCard__header'>
+        <div
+            className='AdminUserCard'
+            data-testid='adminUserCard'
+        >
+            <div
+                className='AdminUserCard__header'
+                data-testid='adminUserCard-header'
+            >
                 <ProfilePicture
                     src={Client4.getProfilePictureUrl(props.user.id, props.user.last_picture_update)}
                     size='xxl'
                     wrapperClass='admin-user-card'
                     userId={props.user.id}
                 />
-                <div className='AdminUserCard__user-info'>
+                <div
+                    className='AdminUserCard__user-info'
+                    data-testid='adminUserCard-userInfo'
+                >
                     <span>{props.user.first_name} {props.user.last_name}</span>
                     <Bullet user={props.user}/>
-                    <span className='AdminUserCard__user-nickname'>{props.user.nickname}</span>
+                    <span
+                        className='AdminUserCard__user-nickname'
+                        data-testid='adminUserCard-userNickname'
+                    >{props.user.nickname}</span>
                 </div>
-                <div className='AdminUserCard__user-id'>
+                <div
+                    className='AdminUserCard__user-id'
+                    data-testid='adminUserCard-userId'
+                >
                     <FormattedMessage
                         id='admin.userManagement.userDetail.userId'
                         defaultMessage='User ID: {userId}'
@@ -73,10 +88,16 @@ const AdminUserCard = ({isLoading = false, ...props}: Props) => {
                     />
                 </div>
             </div>
-            <div className='AdminUserCard__body'>
+            <div
+                className='AdminUserCard__body'
+                data-testid='adminUserCard-body'
+            >
                 {props.body}
             </div>
-            <div className='AdminUserCard__footer'>
+            <div
+                className='AdminUserCard__footer'
+                data-testid='adminUserCard-footer'
+            >
                 {props.footer}
             </div>
         </div>);

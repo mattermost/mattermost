@@ -18,8 +18,8 @@ export default class NewChannelModal {
     constructor(container: Locator) {
         this.container = container;
 
-        this.displayNameInput = container.locator('[name="new-channel-modal-name"]');
-        this.urlSection = container.locator('.new-channel-modal__url');
+        this.displayNameInput = container.getByLabel('Channel name');
+        this.urlSection = container.getByTestId('urlInputLabel');
         this.purposeInput = container.locator('#new-channel-modal-purpose');
         this.publicTypeButton = container.locator('#public-private-selector-button-O');
         this.privateTypeButton = container.locator('#public-private-selector-button-P');

@@ -322,16 +322,16 @@ export function getVisibleDmGmLimit(state: GlobalState, userPreferences?: Prefer
     return getInt(state, Preferences.CATEGORY_SIDEBAR_SETTINGS, Preferences.LIMIT_VISIBLE_DMS_GMS, defaultLimit, userPreferences);
 }
 
-export function onboardingTourTipsEnabled(state: GlobalState): boolean {
-    return getFeatureFlagValue(state, 'OnboardingTourTips') === 'true';
-}
-
 export function moveThreadsEnabled(state: GlobalState): boolean {
     return getFeatureFlagValue(state, 'MoveThreadsEnabled') === 'true' && getLicense(state).IsLicensed === 'true';
 }
 
-export function streamlinedMarketplaceEnabled(state: GlobalState): boolean {
-    return getFeatureFlagValue(state, 'StreamlinedMarketplace') === 'true';
+export function getWysiwygEditorPreference(state: GlobalState): boolean {
+    const featureEnabled = getFeatureFlagValue(state, 'WysiwygEditor') === 'true';
+    if (!featureEnabled) {
+        return false;
+    }
+    return getBool(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.WYSIWYG_EDITOR, Preferences.WYSIWYG_EDITOR_DEFAULT === 'true');
 }
 
 export const getOverageBannerPreferences = makeGetCategory('getOverageBannerPreferences', Preferences.CATEGORY_OVERAGE_USERS_BANNER);

@@ -157,12 +157,16 @@ export const GenericModal: React.FC<Props> = ({
         delayMs: delayFocusTrap ? 500 : undefined,
     });
 
-    // Use stacked modal hook to manage backdrop and z-index
-    // Only pass isStacked=true when it's explicitly set to true
+    // Use stacked modal hook to manage backdrop and z-index. Pass the
+    // portal container (when it resolves to a DOM element) so backdrop
+    // discovery stays scoped to this modal's own stack rather than every
+    // backdrop in the document.
+    const stackedModalContainer = container instanceof HTMLElement ? container : undefined;
     const {
         shouldRenderBackdrop,
         modalStyle,
-    } = useStackedModal(Boolean(isStacked), showState);
+        backdropStyle,
+    } = useStackedModal(Boolean(isStacked), showState, stackedModalContainer);
 
     useEffect(() => {
         setShowState(show);
@@ -300,7 +304,7 @@ export const GenericModal: React.FC<Props> = ({
             onHide={onHideCallback}
             onExited={onExited}
             backdrop={shouldRenderBackdrop ? backdrop : false}
-            backdropStyle={isStacked ? {zIndex: 1051} : undefined}
+            backdropStyle={backdropStyle}
             backdropClassName={backdropClassName}
             container={container}
             keyboard={keyboardEscape}

@@ -31,7 +31,7 @@ type Props = {
      */
     requestAction: (
         success: () => void,
-        error: (error: {message: string; detailed_error?: string}) => void
+        error: (error: {message: string; detailed_error?: string}) => void,
     ) => void;
 
     /**

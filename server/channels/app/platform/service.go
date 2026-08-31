@@ -17,6 +17,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin"
+	"github.com/mattermost/mattermost/server/public/shared/markdown"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/app/featureflag"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs"
@@ -332,6 +333,10 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 		return nil, fmt.Errorf("cannot create store: %w", err)
 	}
 
+	// The markdown package needs to know what the maximum post size is, so we
+	// let it know once the store is created.
+	markdown.SetMaxPostRunes(ps.MaxPostSize())
+
 	// Step 7: initialize status and session cache.
 	// We need to do this because ps.LoadLicense() called in step 8, could
 	// end up calling InvalidateAllCaches, so the status and session caches
@@ -379,7 +384,8 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 	// Step 9: Initialize filestore
 	if ps.filestore == nil {
 		insecure := ps.Config().ServiceSettings.EnableInsecureOutgoingConnections
-		backend, err2 := filestore.NewFileBackend(filestore.NewFileBackendSettingsFromConfig(&ps.Config().FileSettings, license != nil && *license.Features.Compliance, insecure != nil && *insecure))
+		allowedUntrustedInternalConnections := model.SafeDereference(ps.Config().ServiceSettings.AllowedUntrustedInternalConnections)
+		backend, err2 := filestore.NewFileBackend(filestore.NewFileBackendSettingsFromConfig(&ps.Config().FileSettings, license != nil && *license.Features.Compliance, insecure != nil && *insecure, allowedUntrustedInternalConnections))
 		if err2 != nil {
 			return nil, fmt.Errorf("failed to initialize filebackend: %w", err2)
 		}
@@ -391,7 +397,8 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 		ps.exportFilestore = ps.filestore
 		if *ps.Config().FileSettings.DedicatedExportStore {
 			mlog.Info("Setting up dedicated export filestore", mlog.String("driver_name", *ps.Config().FileSettings.ExportDriverName))
-			backend, errFileBack := filestore.NewExportFileBackend(filestore.NewExportFileBackendSettingsFromConfig(&ps.Config().FileSettings, license != nil && *license.Features.Compliance, false))
+			allowedUntrustedInternalConnections := model.SafeDereference(ps.Config().ServiceSettings.AllowedUntrustedInternalConnections)
+			backend, errFileBack := filestore.NewExportFileBackend(filestore.NewExportFileBackendSettingsFromConfig(&ps.Config().FileSettings, license != nil && *license.Features.Compliance, false, allowedUntrustedInternalConnections))
 			if errFileBack != nil {
 				return nil, fmt.Errorf("failed to initialize export filebackend: %w", errFileBack)
 			}
@@ -571,6 +578,16 @@ func (ps *PlatformService) TotalWebsocketConnections() int {
 }
 
 func (ps *PlatformService) Shutdown() error {
+	// Deferred so it still runs even if a later step below returns early
+	// (e.g. cacheProvider.Close failing). Must run last: every other step
+	// below (notably HubStop) is a candidate to still attempt a cluster send
+	// after StopInterNodeCommunication has already run, so the cluster
+	// interface's own shutdown accounting needs everything below to have
+	// already happened, which defer guarantees regardless of the early return.
+	if ps.clusterIFace != nil {
+		defer ps.clusterIFace.Shutdown()
+	}
+
 	ps.HubStop()
 
 	// Shutdown status processor.

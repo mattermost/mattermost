@@ -4,7 +4,6 @@
 package localcachelayer
 
 import (
-	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -184,6 +183,7 @@ func TestUserStoreGetAllProfiles(t *testing.T) {
 }
 
 func TestUserStoreProfilesInChannelCache(t *testing.T) {
+	rctx := request.TestContext(t)
 	fakeChannelId := "123"
 	fakeUserId := "456"
 	fakeMap := map[string]*model.User{
@@ -197,12 +197,12 @@ func TestUserStoreProfilesInChannelCache(t *testing.T) {
 		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider, logger)
 		require.NoError(t, err)
 
-		gotMap, err := cachedStore.User().GetAllProfilesInChannel(context.Background(), fakeChannelId, true)
+		gotMap, err := cachedStore.User().GetAllProfilesInChannel(rctx, fakeChannelId, true)
 		require.NoError(t, err)
 		assert.Equal(t, fakeMap, gotMap)
 		mockStore.User().(*mocks.UserStore).AssertNumberOfCalls(t, "GetAllProfilesInChannel", 1)
 
-		_, _ = cachedStore.User().GetAllProfilesInChannel(context.Background(), fakeChannelId, true)
+		_, _ = cachedStore.User().GetAllProfilesInChannel(rctx, fakeChannelId, true)
 		mockStore.User().(*mocks.UserStore).AssertNumberOfCalls(t, "GetAllProfilesInChannel", 1)
 	})
 
@@ -212,12 +212,12 @@ func TestUserStoreProfilesInChannelCache(t *testing.T) {
 		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider, logger)
 		require.NoError(t, err)
 
-		gotMap, err := cachedStore.User().GetAllProfilesInChannel(context.Background(), fakeChannelId, true)
+		gotMap, err := cachedStore.User().GetAllProfilesInChannel(rctx, fakeChannelId, true)
 		require.NoError(t, err)
 		assert.Equal(t, fakeMap, gotMap)
 		mockStore.User().(*mocks.UserStore).AssertNumberOfCalls(t, "GetAllProfilesInChannel", 1)
 
-		_, _ = cachedStore.User().GetAllProfilesInChannel(context.Background(), fakeChannelId, false)
+		_, _ = cachedStore.User().GetAllProfilesInChannel(rctx, fakeChannelId, false)
 		mockStore.User().(*mocks.UserStore).AssertNumberOfCalls(t, "GetAllProfilesInChannel", 2)
 	})
 
@@ -227,14 +227,14 @@ func TestUserStoreProfilesInChannelCache(t *testing.T) {
 		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider, logger)
 		require.NoError(t, err)
 
-		gotMap, err := cachedStore.User().GetAllProfilesInChannel(context.Background(), fakeChannelId, true)
+		gotMap, err := cachedStore.User().GetAllProfilesInChannel(rctx, fakeChannelId, true)
 		require.NoError(t, err)
 		assert.Equal(t, fakeMap, gotMap)
 		mockStore.User().(*mocks.UserStore).AssertNumberOfCalls(t, "GetAllProfilesInChannel", 1)
 
 		cachedStore.User().InvalidateProfilesInChannelCache("123")
 
-		_, _ = cachedStore.User().GetAllProfilesInChannel(context.Background(), fakeChannelId, true)
+		_, _ = cachedStore.User().GetAllProfilesInChannel(rctx, fakeChannelId, true)
 		mockStore.User().(*mocks.UserStore).AssertNumberOfCalls(t, "GetAllProfilesInChannel", 2)
 	})
 
@@ -244,19 +244,21 @@ func TestUserStoreProfilesInChannelCache(t *testing.T) {
 		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider, logger)
 		require.NoError(t, err)
 
-		gotMap, err := cachedStore.User().GetAllProfilesInChannel(context.Background(), fakeChannelId, true)
+		gotMap, err := cachedStore.User().GetAllProfilesInChannel(rctx, fakeChannelId, true)
 		require.NoError(t, err)
 		assert.Equal(t, fakeMap, gotMap)
 		mockStore.User().(*mocks.UserStore).AssertNumberOfCalls(t, "GetAllProfilesInChannel", 1)
 
 		cachedStore.User().InvalidateProfilesInChannelCacheByUser("456")
 
-		_, _ = cachedStore.User().GetAllProfilesInChannel(context.Background(), fakeChannelId, true)
+		_, _ = cachedStore.User().GetAllProfilesInChannel(rctx, fakeChannelId, true)
 		mockStore.User().(*mocks.UserStore).AssertNumberOfCalls(t, "GetAllProfilesInChannel", 2)
 	})
 }
 
 func TestUserStoreGetCache(t *testing.T) {
+	rctx := request.TestContext(t)
+
 	fakeUserId := "123"
 	fakeUser := &model.User{
 		Id:          "123",
@@ -270,12 +272,12 @@ func TestUserStoreGetCache(t *testing.T) {
 		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider, logger)
 		require.NoError(t, err)
 
-		gotUser, err := cachedStore.User().Get(context.Background(), fakeUserId)
+		gotUser, err := cachedStore.User().Get(rctx, fakeUserId)
 		require.NoError(t, err)
 		assert.Equal(t, fakeUser, gotUser)
 		mockStore.User().(*mocks.UserStore).AssertNumberOfCalls(t, "Get", 1)
 
-		_, _ = cachedStore.User().Get(context.Background(), fakeUserId)
+		_, _ = cachedStore.User().Get(rctx, fakeUserId)
 		mockStore.User().(*mocks.UserStore).AssertNumberOfCalls(t, "Get", 1)
 	})
 
@@ -285,14 +287,14 @@ func TestUserStoreGetCache(t *testing.T) {
 		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider, logger)
 		require.NoError(t, err)
 
-		gotUser, err := cachedStore.User().Get(context.Background(), fakeUserId)
+		gotUser, err := cachedStore.User().Get(rctx, fakeUserId)
 		require.NoError(t, err)
 		assert.Equal(t, fakeUser, gotUser)
 		mockStore.User().(*mocks.UserStore).AssertNumberOfCalls(t, "Get", 1)
 
 		cachedStore.User().InvalidateProfileCacheForUser("123")
 
-		_, _ = cachedStore.User().Get(context.Background(), fakeUserId)
+		_, _ = cachedStore.User().Get(rctx, fakeUserId)
 		mockStore.User().(*mocks.UserStore).AssertNumberOfCalls(t, "Get", 2)
 	})
 
@@ -302,20 +304,20 @@ func TestUserStoreGetCache(t *testing.T) {
 		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider, logger)
 		require.NoError(t, err)
 
-		storedUser, err := mockStore.User().Get(context.Background(), fakeUserId)
+		storedUser, err := mockStore.User().Get(rctx, fakeUserId)
 		require.NoError(t, err)
 		originalProps := storedUser.NotifyProps
 
 		storedUser.NotifyProps = map[string]string{}
 		storedUser.NotifyProps["key"] = "somevalue"
 
-		cachedUser, err := cachedStore.User().Get(context.Background(), fakeUserId)
+		cachedUser, err := cachedStore.User().Get(rctx, fakeUserId)
 		require.NoError(t, err)
 		assert.Equal(t, storedUser, cachedUser)
 
 		storedUser.Props = model.StringMap{}
 		storedUser.Timezone = model.StringMap{}
-		cachedUser, err = cachedStore.User().Get(context.Background(), fakeUserId)
+		cachedUser, err = cachedStore.User().Get(rctx, fakeUserId)
 		require.NoError(t, err)
 		assert.Equal(t, storedUser, cachedUser)
 		if storedUser == cachedUser {
@@ -338,7 +340,7 @@ func TestUserStoreGetCache(t *testing.T) {
 
 		cachedStore.user.rootStore.userProfileByIdsCache = cmock
 
-		_, err = cachedStore.User().Get(context.Background(), fakeUserId)
+		_, err = cachedStore.User().Get(rctx, fakeUserId)
 		require.NoError(t, err)
 	})
 }

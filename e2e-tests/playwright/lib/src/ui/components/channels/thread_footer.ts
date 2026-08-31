@@ -12,11 +12,17 @@ export default class ThreadFooter {
     constructor(container: Locator) {
         this.container = container;
 
-        this.replyButton = container.locator('.ReplyButton');
+        this.replyButton = container.getByTestId('thread-footer-reply-button');
     }
 
     async toBeVisible() {
         await expect(this.container).toBeVisible();
+    }
+
+    async toHaveNReplies(n: number) {
+        const text = n === 1 ? '1 reply' : `${n} replies`;
+
+        await expect(this.replyButton).toContainText(text);
     }
 
     /**

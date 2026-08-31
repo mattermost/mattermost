@@ -68,8 +68,21 @@ const BookmarkIcon = ({
         );
     }
 
+    let iconKind = `${type}-fallback`;
+    if (emojiName) {
+        iconKind = 'emoji';
+    } else if (imageUrl) {
+        iconKind = 'favicon';
+    } else if (fileInfo) {
+        iconKind = 'file-thumbnail';
+    }
+
     return (
-        <Icon $size={size}>
+        <Icon
+            $size={size}
+            data-testid='bookmark-icon'
+            data-icon-kind={iconKind}
+        >
             {icon}
         </Icon>
     );

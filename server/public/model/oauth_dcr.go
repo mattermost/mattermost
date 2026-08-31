@@ -5,6 +5,7 @@ package model
 
 import (
 	"net/http"
+	"net/url"
 	"strings"
 )
 
@@ -36,6 +37,13 @@ const (
 type DCRError struct {
 	Error            string `json:"error"`
 	ErrorDescription string `json:"error_description,omitempty"`
+}
+
+type dcrRedirectURIPattern struct {
+	scheme   string
+	host     string
+	path     string
+	rawQuery string
 }
 
 func (r *ClientRegistrationRequest) IsValid() *AppError {
@@ -122,9 +130,74 @@ func IsValidDCRRedirectURIPattern(pattern string) bool {
 }
 
 // RedirectURIMatchesGlob returns true if uri matches the glob pattern.
-// * matches any chars except /, ** matches any chars including /, full-string anchored.
+// Matching is URL-component aware, so host, path, and query wildcards cannot
+// satisfy requirements from another component.
 func RedirectURIMatchesGlob(uri, pattern string) bool {
-	return redirectURIMatchesGlobRecur(uri, pattern, 0, 0)
+	candidate, err := url.ParseRequestURI(uri)
+	if err != nil || candidate.Scheme == "" || candidate.Host == "" {
+		return false
+	}
+
+	if !IsValidDCRRedirectURIPattern(pattern) {
+		return false
+	}
+
+	parsedPattern, ok := parseDCRRedirectURIPattern(pattern)
+	if !ok {
+		return false
+	}
+
+	if candidate.Scheme != parsedPattern.scheme {
+		return false
+	}
+	if !redirectURIMatchesGlobRecur(candidate.Host, parsedPattern.host, 0, 0) {
+		return false
+	}
+	if !redirectURIMatchesGlobRecur(candidate.EscapedPath(), parsedPattern.path, 0, 0) {
+		return false
+	}
+	if parsedPattern.rawQuery == "" {
+		return candidate.RawQuery == ""
+	}
+	if candidate.RawQuery == "" {
+		return false
+	}
+	return redirectURIMatchesGlobRecur(candidate.RawQuery, parsedPattern.rawQuery, 0, 0)
+}
+
+func parseDCRRedirectURIPattern(pattern string) (dcrRedirectURIPattern, bool) {
+	scheme, rest, ok := strings.Cut(pattern, "://")
+	if !ok {
+		return dcrRedirectURIPattern{}, false
+	}
+
+	hostEnd := len(rest)
+	for _, separator := range []string{"/", "?"} {
+		if i := strings.Index(rest, separator); i >= 0 && i < hostEnd {
+			hostEnd = i
+		}
+	}
+
+	host := rest[:hostEnd]
+	if host == "" {
+		return dcrRedirectURIPattern{}, false
+	}
+
+	remainder := rest[hostEnd:]
+	path := ""
+	rawQuery := ""
+	if strings.HasPrefix(remainder, "/") {
+		path, rawQuery, _ = strings.Cut(remainder, "?")
+	} else if strings.HasPrefix(remainder, "?") {
+		rawQuery = remainder[1:]
+	}
+
+	return dcrRedirectURIPattern{
+		scheme:   scheme,
+		host:     host,
+		path:     path,
+		rawQuery: rawQuery,
+	}, true
 }
 
 func redirectURIMatchesGlobRecur(uri, pattern string, ui, pi int) bool {

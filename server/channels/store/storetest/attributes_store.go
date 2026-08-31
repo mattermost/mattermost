@@ -32,9 +32,12 @@ var (
 
 func TestAttributesStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	t.Run("RefreshAndGet", func(t *testing.T) { testAttributesStoreRefresh(t, rctx, ss) })
+	t.Run("GetChannelSubject", func(t *testing.T) { testAttributesStoreGetChannelSubject(t, rctx, ss) })
+	t.Run("EmptyMultiselect", func(t *testing.T) { testAttributesStoreEmptyMultiselect(t, rctx, ss) })
 	t.Run("SearchUsers", func(t *testing.T) { testAttributesStoreSearchUsers(t, rctx, ss, s) })
 	t.Run("SearchUsersBySubjectID", func(t *testing.T) { testAttributesStoreSearchUsersBySubjectID(t, rctx, ss, s) })
 	t.Run("GetChannelMembersToRemove", func(t *testing.T) { testAttributesStoreGetChannelMembersToRemove(t, rctx, ss, s) })
+	t.Run("GetTeamMembersToRemove", func(t *testing.T) { testAttributesStoreGetTeamMembersToRemove(t, rctx, ss, s) })
 }
 
 // To help mental model of the test users created by this function:
@@ -210,7 +213,7 @@ func testAttributesStoreRefresh(t *testing.T, rctx request.CTX, ss store.Store) 
 
 		// Check if the attributes are set correctly
 		for _, user := range users {
-			subject, err := ss.Attributes().GetSubject(rctx, user.Id, groupID)
+			subject, err := ss.Attributes().GetSubject(rctx, user.Id, groupID, model.PropertyFieldObjectTypeUser)
 			require.NoError(t, err, "couldn't get subject")
 
 			require.Equal(t, user.Id, subject.ID)
@@ -219,10 +222,138 @@ func testAttributesStoreRefresh(t *testing.T, rctx request.CTX, ss store.Store) 
 	})
 
 	t.Run("Get non-existing subject", func(t *testing.T) {
-		subject, err := ss.Attributes().GetSubject(rctx, "non-existing-id", groupID)
+		subject, err := ss.Attributes().GetSubject(rctx, "non-existing-id", groupID, model.PropertyFieldObjectTypeUser)
 		require.Error(t, err, "expected error when getting non-existing subject")
 		require.IsType(t, &store.ErrNotFound{}, err, "expected not found error")
 		require.Nil(t, subject, "expected nil subject for non-existing ID")
+	})
+}
+
+// testAttributesStoreGetChannelSubject verifies the per-object-type view split
+// (migration 000216): a channel-scoped attribute is readable via
+// GetSubject(..., "channel") from ChannelAttributeView, and is *not* visible
+// through the user view — proving the two views filter by ObjectType.
+func testAttributesStoreGetChannelSubject(t *testing.T, rctx request.CTX, ss store.Store) {
+	group, err := ss.PropertyGroup().Register(&model.PropertyGroup{Name: model.NewId(), Version: model.PropertyGroupVersionV1})
+	require.NoError(t, err)
+	groupID := group.ID
+
+	field, err := ss.PropertyField().Create(&model.PropertyField{
+		GroupID:    groupID,
+		Name:       "channel_prop",
+		Type:       model.PropertyFieldTypeText,
+		ObjectType: model.PropertyFieldObjectTypeChannel,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
+	})
+	require.NoError(t, err)
+
+	channelID := model.NewId()
+	val, err := json.Marshal("channel_value")
+	require.NoError(t, err)
+	pv, err := ss.PropertyValue().Create(&model.PropertyValue{
+		TargetID:   channelID,
+		TargetType: model.PropertyValueTargetTypeChannel,
+		GroupID:    groupID,
+		FieldID:    field.ID,
+		Value:      val,
+	})
+	require.NoError(t, err)
+
+	t.Cleanup(func() {
+		require.NoError(t, ss.PropertyValue().Delete(groupID, pv.ID))
+		require.NoError(t, ss.PropertyField().Delete(groupID, field.ID))
+	})
+
+	require.NoError(t, ss.Attributes().RefreshAttributes())
+
+	t.Run("channel view returns channel attributes", func(t *testing.T) {
+		subject, err := ss.Attributes().GetSubject(rctx, channelID, groupID, model.PropertyFieldObjectTypeChannel)
+		require.NoError(t, err)
+		require.Equal(t, channelID, subject.ID)
+		require.Equal(t, model.PropertyValueTargetTypeChannel, subject.Type)
+		require.Equal(t, "channel_value", subject.Attributes["channel_prop"])
+	})
+
+	t.Run("user view does not see the channel row", func(t *testing.T) {
+		subject, err := ss.Attributes().GetSubject(rctx, channelID, groupID, model.PropertyFieldObjectTypeUser)
+		require.Error(t, err)
+		require.IsType(t, &store.ErrNotFound{}, err)
+		require.Nil(t, subject)
+	})
+}
+
+// testAttributesStoreEmptyMultiselect pins the fail-closed contract for
+// multiselect attributes (migration 000216): an empty multiselect resolves to
+// NULL in the matview, never an empty array. The view builds the value with
+// jsonb_agg over the joined option rows, and jsonb_agg over zero rows yields
+// NULL — there is no NULLIF/COALESCE. A refactor that wrapped it in
+// COALESCE(..., '[]') would silently flip fail-closed to fail-open (an empty tag
+// set would start satisfying an "in"/membership rule) with the rest of the suite
+// still green, so assert the NULL directly.
+func testAttributesStoreEmptyMultiselect(t *testing.T, rctx request.CTX, ss store.Store) {
+	group, err := ss.PropertyGroup().Register(&model.PropertyGroup{Name: model.NewId(), Version: model.PropertyGroupVersionV1})
+	require.NoError(t, err)
+	groupID := group.ID
+
+	optID1, optID2 := model.NewId(), model.NewId()
+	field, err := ss.PropertyField().Create(&model.PropertyField{
+		GroupID: groupID,
+		Name:    "tags",
+		Type:    model.PropertyFieldTypeMultiselect,
+		Attrs: map[string]any{"options": []any{
+			map[string]any{"id": optID1, "name": "blue", "color": ""},
+			map[string]any{"id": optID2, "name": "green", "color": ""},
+		}},
+		ObjectType: model.PropertyFieldObjectTypeChannel,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
+	})
+	require.NoError(t, err)
+
+	emptyChannelID := model.NewId()
+	fullChannelID := model.NewId()
+
+	emptyVal, err := json.Marshal([]string{})
+	require.NoError(t, err)
+	fullVal, err := json.Marshal([]string{optID1, optID2})
+	require.NoError(t, err)
+
+	pvEmpty, err := ss.PropertyValue().Create(&model.PropertyValue{
+		TargetID:   emptyChannelID,
+		TargetType: model.PropertyValueTargetTypeChannel,
+		GroupID:    groupID,
+		FieldID:    field.ID,
+		Value:      emptyVal,
+	})
+	require.NoError(t, err)
+	pvFull, err := ss.PropertyValue().Create(&model.PropertyValue{
+		TargetID:   fullChannelID,
+		TargetType: model.PropertyValueTargetTypeChannel,
+		GroupID:    groupID,
+		FieldID:    field.ID,
+		Value:      fullVal,
+	})
+	require.NoError(t, err)
+
+	t.Cleanup(func() {
+		require.NoError(t, ss.PropertyValue().Delete(groupID, pvEmpty.ID))
+		require.NoError(t, ss.PropertyValue().Delete(groupID, pvFull.ID))
+		require.NoError(t, ss.PropertyField().Delete(groupID, field.ID))
+	})
+
+	require.NoError(t, ss.Attributes().RefreshAttributes())
+
+	t.Run("empty multiselect resolves to NULL, not []", func(t *testing.T) {
+		subject, err := ss.Attributes().GetSubject(rctx, emptyChannelID, groupID, model.PropertyFieldObjectTypeChannel)
+		require.NoError(t, err)
+		// nil (JSON null), never []any{} — an empty slice would satisfy a
+		// membership rule and open the fail-open hole this test guards.
+		require.Nil(t, subject.Attributes["tags"])
+	})
+
+	t.Run("populated multiselect resolves to option names", func(t *testing.T) {
+		subject, err := ss.Attributes().GetSubject(rctx, fullChannelID, groupID, model.PropertyFieldObjectTypeChannel)
+		require.NoError(t, err)
+		require.ElementsMatch(t, []any{"blue", "green"}, subject.Attributes["tags"])
 	})
 }
 
@@ -312,6 +443,38 @@ func testAttributesStoreSearchUsers(t *testing.T, rctx request.CTX, ss store.Sto
 			require.Equal(t, int64(2), count, "expected count 2 user with the query")
 		}
 	})
+
+	// Regression test: pagination must page on Users.Id, not the LEFT-JOINed
+	// UserAttributeView.TargetID. A user with no custom-attribute row has a NULL
+	// TargetID, so a "TargetID > cursor" predicate silently drops them from
+	// every page. Native-only policies (e.g. user.verified) match exactly such
+	// users, and the membership sync always seeds a cursor, so this manifested
+	// as the sync adding zero members while the Test modal (no cursor) showed
+	// the full set.
+	t.Run("Search paginates users with no attribute row", func(t *testing.T) {
+		// A fresh user with no custom attributes => no UserAttributeView row.
+		u := model.User{Email: MakeEmail(), Username: model.NewUsername()}
+		_, err := ss.User().Save(rctx, &u)
+		require.NoError(t, err, "couldn't save attribute-less user")
+		t.Cleanup(func() {
+			require.NoError(t, ss.User().PermanentDelete(rctx, u.Id), "couldn't delete attribute-less user")
+		})
+
+		require.NoError(t, ss.Attributes().RefreshAttributes(), "couldn't refresh attributes")
+
+		// Native-style predicate against the Users table; matches the user above
+		// despite the missing UserAttributeView row.
+		subjects, _, err := ss.Attributes().SearchUsers(rctx, model.SubjectSearchOptions{
+			Query: "Users.Email = $1::text",
+			Args:  []any{u.Email},
+			Cursor: model.SubjectCursor{
+				TargetID: strings.Repeat("0", 26),
+			},
+		})
+		require.NoError(t, err, "couldn't search attribute-less user with cursor")
+		require.Len(t, subjects, 1, "attribute-less user must be returned despite the pagination cursor")
+		require.Equal(t, u.Id, subjects[0].Id, "expected the attribute-less user")
+	})
 }
 
 func testAttributesStoreGetChannelMembersToRemove(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
@@ -397,6 +560,155 @@ func testAttributesStoreGetChannelMembersToRemove(t *testing.T, rctx request.CTX
 		})
 		require.NoError(t, err, "couldn't get channel members to remove")
 		require.Len(t, members, 2, "expected 2 channel member to remove")
+	})
+
+	// Regression test: a native-attribute policy resolves against the Users
+	// table (the query is joined to Users), and a member with no UserAttributeView
+	// row who satisfies it must NOT be removed. Before the fix, native columns
+	// failed to resolve (no Users join) and the "OR UserAttributeView.TargetID IS
+	// NULL" clause removed attribute-less members outright.
+	t.Run("native policy keeps members with no attribute row", func(t *testing.T) {
+		extra := model.User{Email: MakeEmail(), Username: model.NewUsername()}
+		_, err := ss.User().Save(rctx, &extra)
+		require.NoError(t, err, "couldn't save attribute-less member")
+		_, err = ss.Channel().SaveMember(rctx, &model.ChannelMember{
+			ChannelId:   ch.Id,
+			UserId:      extra.Id,
+			NotifyProps: defaultNotifyProps,
+		})
+		require.NoError(t, err, "couldn't add attribute-less member")
+		t.Cleanup(func() {
+			require.NoError(t, ss.Channel().RemoveMember(rctx, ch.Id, extra.Id), "couldn't remove attribute-less member")
+			require.NoError(t, ss.User().PermanentDelete(rctx, extra.Id), "couldn't delete attribute-less member")
+		})
+
+		require.NoError(t, ss.Attributes().RefreshAttributes(), "couldn't refresh attributes")
+
+		// Native-style predicate satisfied by every active user, including the
+		// attribute-less member.
+		members, err := ss.Attributes().GetChannelMembersToRemove(rctx, ch.Id, model.SubjectSearchOptions{
+			Query: "Users.DeleteAt = $1::bigint",
+			Args:  []any{int64(0)},
+		})
+		require.NoError(t, err, "native removal query must not error")
+		require.Empty(t, members, "members satisfying a native policy must not be removed, even without an attribute row")
+	})
+}
+
+func testAttributesStoreGetTeamMembersToRemove(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
+	users, _, cleanup := createTestUsers(t, rctx, ss)
+	t.Cleanup(cleanup)
+	require.Len(t, users, 3, "expected 3 users")
+
+	err := ss.Attributes().RefreshAttributes()
+	require.NoError(t, err, "couldn't refresh attributes")
+
+	// Use a fresh team so membership is exactly the three users below,
+	// independent of createTestUsers seeding members into testTeamID.
+	teamID := model.NewId()
+	for _, u := range users {
+		_, nErr := ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamID, UserId: u.Id}, 1000)
+		require.NoError(t, nErr, "couldn't save team member")
+	}
+	t.Cleanup(func() {
+		for _, u := range users {
+			dErr := ss.Team().RemoveMember(rctx, teamID, u.Id)
+			require.NoError(t, dErr, "couldn't delete team member")
+		}
+	})
+
+	t.Run("Get team members to remove single attribute", func(t *testing.T) {
+		query := "Attributes ->> '" + testPropertyA + "' = $1::text"
+		members, err := ss.Attributes().GetTeamMembersToRemove(rctx, teamID, model.SubjectSearchOptions{
+			Query: query,
+			Args:  []any{testPropertyValueA1},
+		})
+		require.NoError(t, err, "couldn't get team members to remove")
+		require.Len(t, members, 1, "expected 1 team member to remove")
+	})
+
+	t.Run("Get team members to remove multiple attribute", func(t *testing.T) {
+		query := "Attributes ->> '" + testPropertyA + "' = $1::text AND Attributes ->> '" + testPropertyB + "' = $2::text"
+		members, err := ss.Attributes().GetTeamMembersToRemove(rctx, teamID, model.SubjectSearchOptions{
+			Query: query,
+			Args:  []any{testPropertyValueA1, testPropertyValueB1},
+		})
+		require.NoError(t, err, "couldn't get team members to remove")
+		require.Len(t, members, 2, "expected 2 team members to remove")
+	})
+
+	t.Run("Get team members to remove with empty query", func(t *testing.T) {
+		members, err := ss.Attributes().GetTeamMembersToRemove(rctx, teamID, model.SubjectSearchOptions{
+			Query: "",
+		})
+		require.NoError(t, err, "couldn't get team members to remove")
+		require.Len(t, members, 3, "expected all 3 team members to remove")
+	})
+
+	t.Run("Get team members to remove honors limit and cursor", func(t *testing.T) {
+		first, err := ss.Attributes().GetTeamMembersToRemove(rctx, teamID, model.SubjectSearchOptions{
+			Limit: 1,
+		})
+		require.NoError(t, err, "couldn't get team members to remove")
+		require.Len(t, first, 1, "expected the limit to cap results at 1")
+
+		second, err := ss.Attributes().GetTeamMembersToRemove(rctx, teamID, model.SubjectSearchOptions{
+			Limit: 10,
+			Cursor: model.SubjectCursor{
+				TargetID: first[0].UserId,
+			},
+		})
+		require.NoError(t, err, "couldn't get team members to remove")
+		require.Len(t, second, 2, "expected the remaining 2 members after the cursor")
+		for _, m := range second {
+			require.Greater(t, m.UserId, first[0].UserId, "cursor must exclude already-seen members")
+		}
+	})
+
+	t.Run("Get team members to remove excludes soft-deleted members", func(t *testing.T) {
+		// TeamMembers are soft-deleted, so a former member keeps a row with
+		// DeleteAt != 0. Such rows must never be returned as removal candidates.
+		removed := users[0]
+		require.NoError(t, ss.Team().RemoveMember(rctx, teamID, removed.Id), "couldn't soft-delete team member")
+		t.Cleanup(func() {
+			_, nErr := ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamID, UserId: removed.Id}, 1000)
+			require.NoError(t, nErr, "couldn't restore team member")
+		})
+
+		members, err := ss.Attributes().GetTeamMembersToRemove(rctx, teamID, model.SubjectSearchOptions{})
+		require.NoError(t, err, "couldn't get team members to remove")
+		require.Len(t, members, 2, "soft-deleted member must be excluded")
+		for _, m := range members {
+			require.NotEqual(t, removed.Id, m.UserId, "soft-deleted member must not appear")
+		}
+	})
+
+	// Regression test: a native-attribute policy resolves against the Users
+	// table (the query is joined to Users), and a member with no UserAttributeView
+	// row who satisfies it must NOT be removed. Before the fix, native columns
+	// failed to resolve (no Users join) and the "OR UserAttributeView.TargetID IS
+	// NULL" clause removed attribute-less members outright.
+	t.Run("native policy keeps members with no attribute row", func(t *testing.T) {
+		extra := model.User{Email: MakeEmail(), Username: model.NewUsername()}
+		_, err := ss.User().Save(rctx, &extra)
+		require.NoError(t, err, "couldn't save attribute-less member")
+		_, nErr := ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamID, UserId: extra.Id}, 1000)
+		require.NoError(t, nErr, "couldn't add attribute-less member")
+		t.Cleanup(func() {
+			require.NoError(t, ss.Team().RemoveMember(rctx, teamID, extra.Id), "couldn't remove attribute-less member")
+			require.NoError(t, ss.User().PermanentDelete(rctx, extra.Id), "couldn't delete attribute-less member")
+		})
+
+		require.NoError(t, ss.Attributes().RefreshAttributes(), "couldn't refresh attributes")
+
+		// Native-style predicate satisfied by every active user, including the
+		// attribute-less member.
+		members, err := ss.Attributes().GetTeamMembersToRemove(rctx, teamID, model.SubjectSearchOptions{
+			Query: "Users.DeleteAt = $1::bigint",
+			Args:  []any{int64(0)},
+		})
+		require.NoError(t, err, "native removal query must not error")
+		require.Empty(t, members, "members satisfying a native policy must not be removed, even without an attribute row")
 	})
 }
 

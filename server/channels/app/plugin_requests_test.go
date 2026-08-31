@@ -327,9 +327,15 @@ func TestServePluginRequest(t *testing.T) {
 	})
 
 	t.Run("invalid token - treats as unauthenticated", func(t *testing.T) {
+		const invalidToken = "notarealtoken-abc123"
+
+		buffer := &mlog.Buffer{}
+		err := mlog.AddWriterTarget(th.TestLogger, buffer, true, mlog.StdAll...)
+		require.NoError(t, err)
+
 		req := httptest.NewRequest(http.MethodGet, "/plugins/testplugin/endpoint", nil)
 		req = mux.SetURLVars(req, map[string]string{"plugin_id": "testplugin"})
-		req.Header.Set(model.HeaderAuth, model.HeaderBearer+" invalidtoken")
+		req.Header.Set(model.HeaderAuth, model.HeaderBearer+" "+invalidToken)
 		rr := httptest.NewRecorder()
 
 		handlerCalled := false
@@ -341,6 +347,22 @@ func TestServePluginRequest(t *testing.T) {
 
 		th.App.ch.servePluginRequest(rr, req, mockHandler)
 		require.True(t, handlerCalled)
+
+		err = th.TestLogger.Flush()
+		require.NoError(t, err)
+
+		logOutput := buffer.String()
+		assert.NotContains(t, logOutput, invalidToken)
+
+		foundInvalidTokenLog := false
+		for _, e := range testlib.ParseLogEntries(t, strings.NewReader(logOutput)) {
+			if e.Msg == "Token in plugin request is invalid. Treating request as unauthenticated" {
+				foundInvalidTokenLog = true
+				break
+			}
+		}
+		require.True(t, foundInvalidTokenLog, "expected invalid-token debug log")
+		assert.Contains(t, logOutput, "<redacted>")
 	})
 
 	t.Run("MFA required - treats as unauthenticated", func(t *testing.T) {

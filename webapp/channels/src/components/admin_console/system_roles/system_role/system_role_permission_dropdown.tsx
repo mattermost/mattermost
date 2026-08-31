@@ -129,7 +129,10 @@ export default class SystemRolePermissionDropdown extends React.PureComponent<Pr
                     type='button'
                     aria-expanded='true'
                 >
-                    <div className='PermissionSectionDropdownButton_text'>
+                    <div
+                        className='PermissionSectionDropdownButton_text'
+                        data-testid='permissionDropdownButton-text'
+                    >
                         {currentAccess}
                     </div>
                     <div className='PermissionSectionDropdownButton_icon'>

@@ -165,7 +165,7 @@ func TestUpdateSessionsIsGuest(t *testing.T) {
 
 		session, _ = th.Service.CreateSession(th.Context, session)
 
-		demotedUser, err := th.Service.Store.User().DemoteUserToGuest(user.Id)
+		demotedUser, err := th.Service.Store.User().DemoteUserToGuest(th.Context, user.Id)
 		require.NoError(t, err)
 		require.Equal(t, model.SystemGuestRoleId, demotedUser.Roles)
 
@@ -190,10 +190,10 @@ func TestUpdateSessionsIsGuest(t *testing.T) {
 
 		session, _ = th.Service.CreateSession(th.Context, session)
 
-		err := th.Service.Store.User().PromoteGuestToUser(user.Id)
+		err := th.Service.Store.User().PromoteGuestToUser(th.Context, user.Id)
 		require.NoError(t, err)
 
-		promotedUser, err := th.Service.Store.User().Get(th.Context.Context(), user.Id)
+		promotedUser, err := th.Service.Store.User().Get(th.Context, user.Id)
 		require.NoError(t, err)
 		err = th.Service.UpdateSessionsIsGuest(th.Context, promotedUser, false)
 		require.NoError(t, err)
@@ -307,4 +307,26 @@ func TestRevokeSessionsForDeviceTokens(t *testing.T) {
 			})
 		})
 	}
+}
+
+func TestRevokeAllSessionsReturnsRevokedSessions(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	userId := model.NewId()
+
+	s1 := &model.Session{UserId: userId, ExpiresAt: model.GetMillis() + dayInMillis, DeviceId: model.NewId()}
+	s1, _ = th.Service.CreateSession(th.Context, s1)
+
+	s2 := &model.Session{UserId: userId, ExpiresAt: model.GetMillis() + dayInMillis}
+	s2, _ = th.Service.CreateSession(th.Context, s2)
+
+	sessions, err := th.Service.RevokeAllSessions(th.Context, userId)
+	require.NoError(t, err)
+	require.Len(t, sessions, 2)
+	require.ElementsMatch(t, []string{s1.Id, s2.Id}, []string{sessions[0].Id, sessions[1].Id})
+
+	remaining, err := th.Service.Store.Session().GetSessions(th.Context, userId)
+	require.NoError(t, err)
+	require.Empty(t, remaining)
 }

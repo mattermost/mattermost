@@ -13,8 +13,8 @@ export default class BurnOnReadConcealedPlaceholder {
         this.container = container;
 
         // The container itself is the button - no need for nested locator
-        this.icon = container.locator('.BurnOnReadConcealedPlaceholder__icon');
-        this.text = container.locator('.BurnOnReadConcealedPlaceholder__text');
+        this.icon = container.locator('svg');
+        this.text = container.getByText('View message');
     }
 
     async toBeVisible() {

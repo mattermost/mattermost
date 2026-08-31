@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/hashicorp/go-multierror"
 	"github.com/mattermost/mattermost/server/public/model"
@@ -33,7 +34,7 @@ func (s *MmctlE2ETestSuite) TestUserActivateCmd() {
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
 
-		ruser, err := s.th.App.GetUser(user.Id)
+		ruser, err := s.th.App.GetUser(s.th.Context, user.Id)
 		s.Require().Nil(err)
 		s.Require().Zero(ruser.DeleteAt)
 	})
@@ -50,7 +51,7 @@ func (s *MmctlE2ETestSuite) TestUserActivateCmd() {
 		s.Require().Len(printer.GetErrorLines(), 1)
 		s.Require().Equal(printer.GetErrorLines()[0], "unable to change activation status of user "+user.Id+": You do not have the appropriate permissions.")
 
-		ruser, err := s.th.App.GetUser(user.Id)
+		ruser, err := s.th.App.GetUser(s.th.Context, user.Id)
 		s.Require().Nil(err)
 		s.Require().NotZero(ruser.DeleteAt)
 	})
@@ -83,7 +84,7 @@ func (s *MmctlE2ETestSuite) TestUserDeactivateCmd() {
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
 
-		ruser, err := s.th.App.GetUser(user.Id)
+		ruser, err := s.th.App.GetUser(s.th.Context, user.Id)
 		s.Require().Nil(err)
 		s.Require().NotZero(ruser.DeleteAt)
 	})
@@ -100,7 +101,7 @@ func (s *MmctlE2ETestSuite) TestUserDeactivateCmd() {
 		s.Require().Len(printer.GetErrorLines(), 1)
 		s.Require().Equal(printer.GetErrorLines()[0], "unable to change activation status of user "+user.Id+": You do not have the appropriate permissions.")
 
-		ruser, err := s.th.App.GetUser(user.Id)
+		ruser, err := s.th.App.GetUser(s.th.Context, user.Id)
 		s.Require().Nil(err)
 		s.Require().Zero(ruser.DeleteAt)
 	})
@@ -293,6 +294,26 @@ func (s *MmctlE2ETestSuite) TestListUserCmd() {
 		}
 	})
 
+	s.RunForAllClients("Get list of active users", func(c client.Client) {
+		printer.Clean()
+
+		cmd := ResetListUsersCmd(s.T())
+		s.Require().NoError(cmd.Flags().Set("per-page", "12"))
+		s.Require().NoError(cmd.Flags().Set("all", "true"))
+		s.Require().NoError(cmd.Flags().Set("active", "true"))
+
+		err := listUsersCmdF(c, cmd, []string{})
+		s.Require().Nil(err)
+		s.Require().GreaterOrEqual(len(printer.GetLines()), 2)
+		s.Len(printer.GetErrorLines(), 0)
+		for _, each := range printer.GetLines() {
+			user := each.(*model.User)
+			s.Require().Contains(userPool, user.Username)
+			s.Require().NotContains(inactivePool, user.Username)
+			s.Require().Equal(int64(0), user.DeleteAt)
+		}
+	})
+
 	// create users with team
 	for range 10 {
 		userData := model.User{
@@ -466,7 +487,7 @@ func (s *MmctlE2ETestSuite) TestResetUserMfaCmd() {
 		s.Require().Len(printer.GetErrorLines(), 0)
 
 		// make sure user is updated after reset mfa
-		ruser, err := s.th.App.GetUser(user.Id)
+		ruser, err := s.th.App.GetUser(s.th.Context, user.Id)
 		s.Require().Nil(err)
 		s.Require().NotEqual(ruser.UpdateAt, user.UpdateAt)
 	})
@@ -709,7 +730,7 @@ func (s *MmctlE2ETestSuite) TestDeleteUsersCmd() {
 		s.Require().Equal(newUser.Username, deletedUser.Username)
 
 		// expect user deleted
-		_, err = s.th.App.GetUser(newUser.Id)
+		_, err = s.th.App.GetUser(s.th.Context, newUser.Id)
 		s.Require().NotNil(err)
 		s.Require().Equal("GetUser: Unable to find the user., resource \"User\" not found, id: "+newUser.Id, err.Error())
 	})
@@ -760,7 +781,7 @@ func (s *MmctlE2ETestSuite) TestDeleteUsersCmd() {
 		s.Require().EqualError(err, expectedErr.Error())
 
 		// expect user not deleted
-		user, err := s.th.App.GetUser(newUser.Id)
+		user, err := s.th.App.GetUser(s.th.Context, newUser.Id)
 		s.Require().Nil(err)
 		s.Require().Equal(newUser.Username, user.Username)
 	})
@@ -789,7 +810,7 @@ func (s *MmctlE2ETestSuite) TestDeleteUsersCmd() {
 		s.Require().EqualError(err, expectedErr.Error())
 
 		// expect user not deleted
-		user, err := s.th.App.GetUser(newUser.Id)
+		user, err := s.th.App.GetUser(s.th.Context, newUser.Id)
 		s.Require().Nil(err)
 		s.Require().Equal(newUser.Username, user.Username)
 	})
@@ -817,7 +838,7 @@ func (s *MmctlE2ETestSuite) TestDeleteUsersCmd() {
 		s.Require().Equal(newUser.Username, deletedUser.Username)
 
 		// expect user deleted
-		_, err = s.th.App.GetUser(newUser.Id)
+		_, err = s.th.App.GetUser(s.th.Context, newUser.Id)
 		s.Require().NotNil(err)
 		s.Require().EqualError(err, "GetUser: Unable to find the user., resource \"User\" not found, id: "+newUser.Id)
 	})
@@ -916,86 +937,6 @@ func (s *MmctlE2ETestSuite) TestUserConvertCmdF() {
 		s.EqualError(err, "You do not have the appropriate permissions.")
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
-	})
-}
-
-func (s *MmctlE2ETestSuite) TestDeleteAllUserCmd() {
-	s.SetupTestHelper().InitBasic(s.T())
-
-	s.Run("Delete all user as unpriviliged user should not work", func() {
-		printer.Clean()
-
-		cmd := &cobra.Command{}
-		confirm := true
-		cmd.Flags().BoolVar(&confirm, "confirm", confirm, "confirm")
-
-		err := deleteAllUsersCmdF(s.th.Client, cmd, []string{})
-		s.Require().NotNil(err)
-		s.Len(printer.GetLines(), 0)
-		s.Len(printer.GetErrorLines(), 0)
-
-		// expect users not deleted
-		users, err := s.th.App.GetUsersPage(&model.UserGetOptions{
-			Page:    0,
-			PerPage: 10,
-		}, true)
-		s.Require().Nil(err)
-		s.Require().NotZero(len(users))
-	})
-
-	s.Run("Delete all user as system admin through the port API should not work", func() {
-		printer.Clean()
-
-		cmd := &cobra.Command{}
-		confirm := true
-		cmd.Flags().BoolVar(&confirm, "confirm", confirm, "confirm")
-
-		err := deleteAllUsersCmdF(s.th.SystemAdminClient, cmd, []string{})
-		s.Require().NotNil(err)
-		s.Len(printer.GetLines(), 0)
-		s.Len(printer.GetErrorLines(), 0)
-
-		// expect users not deleted
-		users, err := s.th.App.GetUsersPage(&model.UserGetOptions{
-			Page:    0,
-			PerPage: 10,
-		}, true)
-		s.Require().Nil(err)
-		s.Require().NotZero(len(users))
-	})
-
-	s.Run("Delete all users through local mode should work correctly", func() {
-		printer.Clean()
-
-		// populate with some user
-		for range 10 {
-			userData := model.User{
-				Username: "fakeuser" + model.NewRandomString(10),
-				Password: model.NewTestPassword(),
-				Email:    s.th.GenerateTestEmail(),
-			}
-			_, err := s.th.App.CreateUser(s.th.Context, &userData)
-			s.Require().Nil(err)
-		}
-
-		cmd := &cobra.Command{}
-		confirm := true
-		cmd.Flags().BoolVar(&confirm, "confirm", confirm, "confirm")
-
-		// delete all users only works on local mode
-		err := deleteAllUsersCmdF(s.th.LocalClient, cmd, []string{})
-		s.Require().Nil(err)
-		s.Len(printer.GetLines(), 1)
-		s.Len(printer.GetErrorLines(), 0)
-		s.Require().Equal(printer.GetLines()[0], "All users successfully deleted")
-
-		// expect users deleted
-		users, err := s.th.App.GetUsersPage(&model.UserGetOptions{
-			Page:    0,
-			PerPage: 10,
-		}, true)
-		s.Require().Nil(err)
-		s.Require().Zero(len(users))
 	})
 }
 
@@ -1120,7 +1061,7 @@ func (s *MmctlE2ETestSuite) TestMigrateAuthCmd() {
 		s.Require().Equal("Successfully migrated accounts.", printer.GetLines()[0])
 		s.Require().Empty(printer.GetErrorLines())
 
-		updatedUser, appErr := s.th.App.GetUser(ldapUser.Id)
+		updatedUser, appErr := s.th.App.GetUser(s.th.Context, ldapUser.Id)
 		s.Require().Nil(appErr)
 		s.Require().Equal(model.UserAuthServiceSaml, updatedUser.AuthService)
 	})
@@ -1149,7 +1090,7 @@ func (s *MmctlE2ETestSuite) TestMigrateAuthCmd() {
 		s.Require().Equal("Successfully migrated accounts.", printer.GetLines()[0])
 		s.Require().Empty(printer.GetErrorLines())
 
-		updatedUser, appErr := s.th.App.GetUser(samlUser.Id)
+		updatedUser, appErr := s.th.App.GetUser(s.th.Context, samlUser.Id)
 		s.Require().Nil(appErr)
 		s.Require().Equal(model.UserAuthServiceLdap, updatedUser.AuthService)
 	})
@@ -1664,7 +1605,7 @@ func (s *MmctlE2ETestSuite) TestUserEditUsernameCmd() {
 		s.Require().Len(printer.GetErrorLines(), 0)
 
 		// Verify username was updated
-		updatedUser, appErr := s.th.App.GetUser(user.Id)
+		updatedUser, appErr := s.th.App.GetUser(s.th.Context, user.Id)
 		s.Require().Nil(appErr)
 		s.Require().Equal(newUsername, updatedUser.Username)
 
@@ -1685,7 +1626,7 @@ func (s *MmctlE2ETestSuite) TestUserEditUsernameCmd() {
 		s.Require().Len(printer.GetErrorLines(), 0)
 
 		// Verify username was not changed
-		unchangedUser, appErr := s.th.App.GetUser(user.Id)
+		unchangedUser, appErr := s.th.App.GetUser(s.th.Context, user.Id)
 		s.Require().Nil(appErr)
 		s.Require().Equal(user.Username, unchangedUser.Username)
 	})
@@ -1702,7 +1643,7 @@ func (s *MmctlE2ETestSuite) TestUserEditUsernameCmd() {
 		s.Require().Len(printer.GetErrorLines(), 0)
 
 		// Verify username was not changed
-		unchangedUser, appErr := s.th.App.GetUser(user.Id)
+		unchangedUser, appErr := s.th.App.GetUser(s.th.Context, user.Id)
 		s.Require().Nil(appErr)
 		s.Require().Equal(user.Username, unchangedUser.Username)
 	})
@@ -1743,7 +1684,7 @@ func (s *MmctlE2ETestSuite) TestUserEditEmailCmd() {
 		s.Require().Len(printer.GetErrorLines(), 0)
 
 		// Verify email was updated
-		updatedUser, appErr := s.th.App.GetUser(user.Id)
+		updatedUser, appErr := s.th.App.GetUser(s.th.Context, user.Id)
 		s.Require().Nil(appErr)
 		s.Require().Equal(newEmail, updatedUser.Email)
 
@@ -1764,7 +1705,7 @@ func (s *MmctlE2ETestSuite) TestUserEditEmailCmd() {
 		s.Require().Len(printer.GetErrorLines(), 0)
 
 		// Verify email was not changed
-		unchangedUser, appErr := s.th.App.GetUser(user.Id)
+		unchangedUser, appErr := s.th.App.GetUser(s.th.Context, user.Id)
 		s.Require().Nil(appErr)
 		s.Require().Equal(user.Email, unchangedUser.Email)
 	})
@@ -1781,7 +1722,7 @@ func (s *MmctlE2ETestSuite) TestUserEditEmailCmd() {
 		s.Require().Len(printer.GetErrorLines(), 0)
 
 		// Verify email was not changed
-		unchangedUser, appErr := s.th.App.GetUser(user.Id)
+		unchangedUser, appErr := s.th.App.GetUser(s.th.Context, user.Id)
 		s.Require().Nil(appErr)
 		s.Require().Equal(user.Email, unchangedUser.Email)
 	})
@@ -1822,7 +1763,7 @@ func (s *MmctlE2ETestSuite) TestUserEditAuthdataCmd() {
 		s.Require().Len(printer.GetErrorLines(), 0)
 
 		// Verify authdata was not changed
-		unchangedUser, appErr := s.th.App.GetUser(user.Id)
+		unchangedUser, appErr := s.th.App.GetUser(s.th.Context, user.Id)
 		s.Require().Nil(appErr)
 		s.Require().NotNil(unchangedUser.AuthData)
 		s.Require().Equal("existingauthdata", *unchangedUser.AuthData)
@@ -1838,7 +1779,7 @@ func (s *MmctlE2ETestSuite) TestUserEditAuthdataCmd() {
 		s.Require().Len(printer.GetErrorLines(), 0)
 
 		// Verify authdata was not changed
-		unchangedUser, appErr := s.th.App.GetUser(user.Id)
+		unchangedUser, appErr := s.th.App.GetUser(s.th.Context, user.Id)
 		s.Require().Nil(appErr)
 		s.Require().NotNil(unchangedUser.AuthData)
 		s.Require().Equal("existingauthdata", *unchangedUser.AuthData)
@@ -1860,7 +1801,7 @@ func (s *MmctlE2ETestSuite) TestUserEditAuthdataCmd() {
 		s.Require().Len(printer.GetErrorLines(), 0)
 
 		// Verify authdata was not changed
-		unchangedUser, appErr := s.th.App.GetUser(user.Id)
+		unchangedUser, appErr := s.th.App.GetUser(s.th.Context, user.Id)
 		s.Require().Nil(appErr)
 		s.Require().NotNil(unchangedUser.AuthData)
 		s.Require().Equal("existingauthdata", *unchangedUser.AuthData)
@@ -1886,9 +1827,179 @@ func (s *MmctlE2ETestSuite) TestUserEditAuthdataCmd() {
 		s.Require().Len(printer.GetErrorLines(), 0)
 
 		// Verify authdata was updated
-		updatedUser, appErr := s.th.App.GetUser(user.Id)
+		updatedUser, appErr := s.th.App.GetUser(s.th.Context, user.Id)
 		s.Require().Nil(appErr)
 		s.Require().NotNil(updatedUser.AuthData)
 		s.Require().Equal(newAuthdata, *updatedUser.AuthData)
+	})
+}
+
+func (s *MmctlE2ETestSuite) TestUserStatusGetCmd() {
+	s.SetupTestHelper().InitBasic(s.T())
+
+	s.RunForSystemAdminAndLocal("Get the status of a specific user", func(c client.Client) {
+		printer.Clean()
+
+		s.th.App.SaveAndBroadcastStatus(&model.Status{UserId: s.th.BasicUser.Id, Status: model.StatusOnline, Manual: true})
+
+		cmd := newUserStatusCmd()
+		s.Require().NoError(cmd.Flags().Set("user", s.th.BasicUser.Email))
+
+		err := userStatusGetCmdF(c, cmd, []string{})
+		s.Require().NoError(err)
+		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().Len(printer.GetLines(), 1)
+
+		status, ok := printer.GetLines()[0].(*model.Status)
+		s.Require().True(ok)
+		s.Require().Equal(s.th.BasicUser.Id, status.UserId)
+		s.Require().Equal(model.StatusOnline, status.Status)
+	})
+
+	s.Run("Get the status of the authenticated user when --user is omitted", func() {
+		printer.Clean()
+
+		s.th.App.SaveAndBroadcastStatus(&model.Status{UserId: s.th.SystemAdminUser.Id, Status: model.StatusOnline, Manual: true})
+
+		err := userStatusGetCmdF(s.th.SystemAdminClient, newUserStatusCmd(), []string{})
+		s.Require().NoError(err)
+		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().Len(printer.GetLines(), 1)
+
+		status, ok := printer.GetLines()[0].(*model.Status)
+		s.Require().True(ok)
+		s.Require().Equal(s.th.SystemAdminUser.Id, status.UserId)
+		s.Require().Equal(model.StatusOnline, status.Status)
+	})
+
+	s.Run("A regular user can read another user's status", func() {
+		printer.Clean()
+
+		s.th.App.SaveAndBroadcastStatus(&model.Status{UserId: s.th.BasicUser2.Id, Status: model.StatusOnline, Manual: true})
+
+		cmd := newUserStatusCmd()
+		s.Require().NoError(cmd.Flags().Set("user", s.th.BasicUser2.Email))
+
+		err := userStatusGetCmdF(s.th.Client, cmd, []string{})
+		s.Require().NoError(err)
+		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().Len(printer.GetLines(), 1)
+
+		status, ok := printer.GetLines()[0].(*model.Status)
+		s.Require().True(ok)
+		s.Require().Equal(s.th.BasicUser2.Id, status.UserId)
+		s.Require().Equal(model.StatusOnline, status.Status)
+	})
+
+	s.RunForAllClients("Get the status of a nonexistent user", func(c client.Client) {
+		printer.Clean()
+
+		cmd := newUserStatusCmd()
+		s.Require().NoError(cmd.Flags().Set("user", "nonexistent@example.com"))
+
+		err := userStatusGetCmdF(c, cmd, []string{})
+		s.Require().EqualError(err, "user nonexistent@example.com not found")
+		s.Require().Len(printer.GetLines(), 0)
+	})
+}
+
+func (s *MmctlE2ETestSuite) TestUserStatusSetCmd() {
+	s.SetupTestHelper().InitBasic(s.T())
+
+	s.RunForSystemAdminAndLocal("Set the status of a specific user", func(c client.Client) {
+		printer.Clean()
+
+		cmd := newUserStatusSetCmd()
+		s.Require().NoError(cmd.Flags().Set("user", s.th.BasicUser.Email))
+
+		err := userStatusSetCmdF(c, cmd, []string{model.StatusDnd})
+		s.Require().NoError(err)
+		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().Len(printer.GetLines(), 1)
+
+		status, ok := printer.GetLines()[0].(*model.Status)
+		s.Require().True(ok)
+		s.Require().Equal(model.StatusDnd, status.Status)
+
+		stored, appErr := s.th.App.GetStatus(s.th.BasicUser.Id)
+		s.Require().Nil(appErr)
+		s.Require().Equal(model.StatusDnd, stored.Status)
+	})
+
+	s.RunForSystemAdminAndLocal("Set a dnd status with an end time", func(c client.Client) {
+		printer.Clean()
+
+		endTimeArg := time.Now().Add(2 * time.Hour).Format(ISO8601Layout)
+		endTime, err := time.Parse(ISO8601Layout, endTimeArg)
+		s.Require().NoError(err)
+
+		cmd := newUserStatusSetCmd()
+		s.Require().NoError(cmd.Flags().Set("user", s.th.BasicUser.Email))
+		s.Require().NoError(cmd.Flags().Set("dnd-end-time", endTimeArg))
+
+		err = userStatusSetCmdF(c, cmd, []string{model.StatusDnd})
+		s.Require().NoError(err)
+		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().Len(printer.GetLines(), 1)
+
+		stored, appErr := s.th.App.GetStatus(s.th.BasicUser.Id)
+		s.Require().Nil(appErr)
+		s.Require().Equal(model.StatusDnd, stored.Status)
+		// The server truncates the DND end time to the minute to align with the expiry job.
+		s.Require().Equal(endTime.Truncate(model.DNDExpiryInterval).Unix(), stored.DNDEndTime)
+	})
+
+	s.Run("Set the status of the authenticated user when --user is omitted", func() {
+		printer.Clean()
+
+		err := userStatusSetCmdF(s.th.SystemAdminClient, newUserStatusSetCmd(), []string{model.StatusAway})
+		s.Require().NoError(err)
+		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().Len(printer.GetLines(), 1)
+
+		stored, appErr := s.th.App.GetStatus(s.th.SystemAdminUser.Id)
+		s.Require().Nil(appErr)
+		s.Require().Equal(model.StatusAway, stored.Status)
+	})
+
+	s.Run("A regular user can set their own status when --user is omitted", func() {
+		printer.Clean()
+
+		// Seed a distinct starting status so the read-back proves the write happened
+		// rather than passing on leftover state from earlier subtests.
+		s.th.App.SaveAndBroadcastStatus(&model.Status{UserId: s.th.BasicUser.Id, Status: model.StatusDnd, Manual: true})
+
+		err := userStatusSetCmdF(s.th.Client, newUserStatusSetCmd(), []string{model.StatusAway})
+		s.Require().NoError(err)
+		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().Len(printer.GetLines(), 1)
+
+		status, ok := printer.GetLines()[0].(*model.Status)
+		s.Require().True(ok)
+		s.Require().Equal(model.StatusAway, status.Status)
+
+		stored, appErr := s.th.App.GetStatus(s.th.BasicUser.Id)
+		s.Require().Nil(appErr)
+		s.Require().Equal(model.StatusAway, stored.Status)
+	})
+
+	s.Run("A regular user cannot set another user's status", func() {
+		printer.Clean()
+
+		cmd := newUserStatusSetCmd()
+		s.Require().NoError(cmd.Flags().Set("user", s.th.SystemAdminUser.Email))
+
+		err := userStatusSetCmdF(s.th.Client, cmd, []string{model.StatusOnline})
+		s.Require().Error(err)
+		s.CheckErrorID(err, "api.context.permissions.app_error")
+		s.Require().Len(printer.GetLines(), 0)
+	})
+
+	s.Run("Reject an invalid status value", func() {
+		printer.Clean()
+
+		err := userStatusSetCmdF(s.th.SystemAdminClient, newUserStatusSetCmd(), []string{"busy"})
+		s.Require().EqualError(err, "invalid status \"busy\", must be one of: online, away, dnd, offline")
+		s.Require().Len(printer.GetLines(), 0)
 	})
 }

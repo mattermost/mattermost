@@ -184,6 +184,7 @@ class DataGrid extends React.PureComponent<Props, State> {
         return (
             <div
                 className='DataGrid_rows'
+                data-testid='dataGrid-rows'
                 style={rowsContainerStyles || {}}
             >
                 {rowsToRender}
@@ -251,17 +252,22 @@ class DataGrid extends React.PureComponent<Props, State> {
             }
 
             footer = (
-                <div className='DataGrid_footer'>
+                <div
+                    className='DataGrid_footer'
+                    data-testid='dataGrid-footer'
+                >
                     <div className='DataGrid_cell'>
-                        <FormattedMessage
-                            id='admin.data_grid.paginatorCount'
-                            defaultMessage='{startCount, number} - {endCount, number} of {total, number}'
-                            values={{
-                                startCount,
-                                endCount,
-                                total,
-                            }}
-                        />
+                        <span data-testid='dataGrid-footer-paginationInfo'>
+                            <FormattedMessage
+                                id='admin.data_grid.paginatorCount'
+                                defaultMessage='{startCount, number} - {endCount, number} of {total, number}'
+                                values={{
+                                    startCount,
+                                    endCount,
+                                    total,
+                                }}
+                            />
+                        </span>
                         <button
                             aria-label='Previous page'
                             type='button'
@@ -292,6 +298,7 @@ class DataGrid extends React.PureComponent<Props, State> {
         return (
             <div
                 className={classNames('DataGrid', this.props.className)}
+                data-testid='dataGrid'
                 ref={this.ref}
             >
                 {this.renderSearch()}

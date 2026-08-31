@@ -1,20 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import path from 'path';
-import {fileURLToPath} from 'url';
-
-import {FlatCompat} from '@eslint/eslintrc';
 import jsxA11yPlugin from 'eslint-plugin-jsx-a11y';
+import reactPlugin from 'eslint-plugin-react';
+import reactHooksPlugin from 'eslint-plugin-react-hooks';
 
 import base from './base.js';
-
-const filename = fileURLToPath(import.meta.url);
-const dirname = path.dirname(filename);
-
-const compat = new FlatCompat({
-    baseDirectory: dirname,
-});
 
 const react = {
     files: ['**/*.jsx', '**/*.tsx'],
@@ -36,10 +27,6 @@ const react = {
         '@stylistic/jsx-first-prop-new-line': [
             2,
             'multiline',
-        ],
-        '@stylistic/jsx-indent': [
-            2,
-            4,
         ],
         '@stylistic/jsx-indent-props': [
             2,
@@ -156,7 +143,12 @@ const react = {
         'react/no-set-state': 0,
         'react/no-string-refs': 2,
         'react/no-unescaped-entities': 2,
-        'react/no-unknown-property': 2,
+        'react/no-unknown-property': [
+            2,
+            {
+                ignore: ['mask-type'],
+            },
+        ],
         'react/no-unused-prop-types': [
             1,
             {
@@ -178,9 +170,25 @@ const react = {
 export default [
     ...base,
     jsxA11yPlugin.flatConfigs.recommended,
-    ...compat.extends('plugin:react/recommended'),
-    ...compat.extends('plugin:react-hooks/recommended'),
+    reactPlugin.configs.flat.recommended,
+    reactHooksPlugin.configs.flat.recommended,
     react,
+    {
+
+        // Disable new rules that are primarily needed to enable React Compiler because we're not using that yet
+        rules: {
+            'react-hooks/immutability': 0,
+            'react-hooks/preserve-manual-memoization': 0,
+            'react-hooks/purity': 0,
+            'react-hooks/refs': 0,
+            'react-hooks/set-state-in-effect': 0,
+
+            // This rule can be enabled once https://github.com/mattermost/mattermost/pull/36575 is merged because it
+            // should be done by converting getChannelIconComponent and getArchiveIconComponent to proper components
+            // instead of functions that return component constructors.
+            'react-hooks/static-components': 0,
+        },
+    },
     {
         settings: {
             react: {

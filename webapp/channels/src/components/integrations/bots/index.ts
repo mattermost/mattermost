@@ -6,7 +6,6 @@ import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
 import type {Bot as BotType} from '@mattermost/types/bots';
-import type {GlobalState} from '@mattermost/types/store';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {loadBots, disableBot, enableBot} from 'mattermost-redux/actions/bots';
@@ -17,6 +16,10 @@ import {getExternalBotAccounts} from 'mattermost-redux/selectors/entities/bots';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getAppsBotIDs} from 'mattermost-redux/selectors/entities/integrations';
 import * as UserSelectors from 'mattermost-redux/selectors/entities/users';
+
+import {getPluginDisplayName} from 'selectors/plugins';
+
+import type {GlobalState} from 'types/store';
 
 import Bots from './bots';
 
@@ -35,6 +38,11 @@ function mapStateToProps(state: GlobalState) {
             result[bot.user_id] = UserSelectors.getUser(state, bot.user_id);
             return result;
         }, {});
+    const pluginDisplayNames = botValues.
+        reduce((result: Record<string, string>, bot: BotType) => {
+            result[bot.user_id] = getPluginDisplayName(state, bot.owner_id);
+            return result;
+        }, {});
 
     return {
         createBots,
@@ -42,6 +50,7 @@ function mapStateToProps(state: GlobalState) {
         accessTokens: state.entities.admin.userAccessTokensByUser,
         owners,
         users,
+        pluginDisplayNames,
         appsBotIDs: getAppsBotIDs(state),
         appsEnabled: appsEnabled(state),
     };

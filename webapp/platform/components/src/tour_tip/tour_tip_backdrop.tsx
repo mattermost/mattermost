@@ -16,7 +16,7 @@ type Props = {
     transparent?: boolean;
 };
 
-const TourTipRootPortal = ({children, show, element}: {children: React.ReactNode ; show: boolean; element: Element}) =>
+const TourTipRootPortal = ({children, show, element}: {children: React.ReactNode; show: boolean; element: Element}) =>
     (show ? ReactDOM.createPortal(
         children,
         element,

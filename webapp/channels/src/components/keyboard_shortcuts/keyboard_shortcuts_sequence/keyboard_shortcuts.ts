@@ -4,8 +4,8 @@
 import {defineMessage, defineMessages, type MessageDescriptor} from 'react-intl';
 
 export type KeyboardShortcutDescriptor =
-	| MessageDescriptor
-	| {default: MessageDescriptor; mac?: MessageDescriptor};
+	MessageDescriptor |
+	{default: MessageDescriptor; mac?: MessageDescriptor};
 
 const callsKBShortcuts = {
     global: {

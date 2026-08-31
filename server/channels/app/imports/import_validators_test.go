@@ -1465,16 +1465,20 @@ func TestImportValidateDirectPostImportData(t *testing.T) {
 	require.Nil(t, err, "Validation should succeed with post flagged by members")
 
 	// Test with valid all optional parameters.
+	postCreateAt := model.GetMillis()
+	repliesCreateAt := postCreateAt + 1
+	reactionsCreateAt := postCreateAt + 2
+
 	reactions := []ReactionImportData{{
 		User:      new("username"),
 		EmojiName: new("emoji"),
-		CreateAt:  new(model.GetMillis()),
+		CreateAt:  new(reactionsCreateAt),
 	}}
 
 	replies := []ReplyImportData{{
 		User:     new("username"),
 		Message:  new("message"),
-		CreateAt: new(model.GetMillis()),
+		CreateAt: new(repliesCreateAt),
 	}}
 
 	data = DirectPostImportData{
@@ -1488,7 +1492,7 @@ func TestImportValidateDirectPostImportData(t *testing.T) {
 		},
 		User:      new("username"),
 		Message:   new("message"),
-		CreateAt:  new(model.GetMillis()),
+		CreateAt:  new(postCreateAt),
 		Reactions: &reactions,
 		Replies:   &replies,
 	}

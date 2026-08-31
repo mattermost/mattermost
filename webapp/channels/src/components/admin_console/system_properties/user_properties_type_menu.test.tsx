@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-import type {UserPropertyField} from '@mattermost/types/properties';
+import type {UserPropertyField} from '@mattermost/types/properties_user';
 
 import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
@@ -32,12 +32,21 @@ describe('UserPropertyTypeMenu', () => {
 
     const updateField = jest.fn();
 
-    const renderComponent = (field: UserPropertyField = baseField) => {
+    const renderComponent = (field: UserPropertyField = baseField, rankEnabled = false) => {
         return renderWithContext(
             <SelectType
                 field={field}
                 updateField={updateField}
             />,
+            {
+                entities: {
+                    general: {
+                        config: {
+                            FeatureFlagPropertyFieldRank: rankEnabled ? 'true' : 'false',
+                        },
+                    },
+                },
+            },
         );
     };
 
@@ -74,6 +83,12 @@ describe('UserPropertyTypeMenu', () => {
         // Find button and verify it's disabled
         const menuButton = screen.getByTestId('fieldTypeSelectorMenuButton');
         expect(menuButton).toBeDisabled();
+    });
+
+    it('disables menu button when the field is linked to a template', () => {
+        renderComponent({...baseField, linked_field_id: 'template-field-id'});
+
+        expect(screen.getByTestId('fieldTypeSelectorMenuButton')).toBeDisabled();
     });
 
     it('changes field type when a new type is selected', async () => {
@@ -158,5 +173,25 @@ describe('UserPropertyTypeMenu', () => {
         // All options should be visible, but Select should have a check
         expect(screen.getByRole('menuitemradio', {name: 'Select'})).toHaveAttribute('aria-checked', 'true');
         expect(screen.getByRole('menuitemradio', {name: 'Text'})).toHaveAttribute('aria-checked', 'false');
+    });
+
+    it('hides the Rank type when the PropertyFieldRank feature flag is off', async () => {
+        renderComponent(baseField, false);
+
+        // Open the menu
+        await userEvent.click(screen.getByText('Text'));
+
+        // Other types remain available, but Rank is gated out
+        expect(screen.getByRole('menuitemradio', {name: 'Select'})).toBeInTheDocument();
+        expect(screen.queryByRole('menuitemradio', {name: 'Rank'})).not.toBeInTheDocument();
+    });
+
+    it('shows the Rank type when the PropertyFieldRank feature flag is on', async () => {
+        renderComponent(baseField, true);
+
+        // Open the menu
+        await userEvent.click(screen.getByText('Text'));
+
+        expect(screen.getByRole('menuitemradio', {name: 'Rank'})).toBeInTheDocument();
     });
 });

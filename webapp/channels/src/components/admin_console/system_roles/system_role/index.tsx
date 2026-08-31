@@ -10,7 +10,7 @@ import {updateUserRoles} from 'mattermost-redux/actions/users';
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
 import {getRolesById} from 'mattermost-redux/selectors/entities/roles';
 
-import {setNavigationBlocked} from 'actions/admin_actions.jsx';
+import {setNavigationBlocked} from 'actions/admin_actions';
 
 import type {GlobalState} from 'types/store';
 

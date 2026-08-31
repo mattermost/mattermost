@@ -105,7 +105,7 @@ const CodePreview = ({
                 }
                 const text = await data.text();
                 handleReceivedCode(text);
-            } catch (e) {
+            } catch {
                 handleReceivedError();
             }
         };

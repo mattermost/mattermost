@@ -77,11 +77,33 @@ var SystemSupportPacketCmd = &cobra.Command{
 	RunE:    withClient(systemSupportPacketCmdF),
 }
 
+var SystemNukeCmd = &cobra.Command{
+	Use:   "nuke",
+	Short: "Destructive operations that permanently delete data",
+	Long:  "Destructive operations that permanently and irreversibly delete server data. Use with extreme caution.",
+}
+
+var SystemNukeUsersCmd = &cobra.Command{
+	Use:     "users",
+	Short:   "Delete all users and all posts. Local command only.",
+	Long:    "Permanently delete all users and all related information including posts. This command can only be run in local mode.",
+	Example: "  system nuke users",
+	Args:    cobra.NoArgs,
+	PreRun:  localOnlyPrecheck,
+	RunE:    withClient(nukeUsersCmdF),
+}
+
 func init() {
 	SystemSetBusyCmd.Flags().UintP("seconds", "s", 3600, "Number of seconds until server is automatically marked as not busy.")
 	_ = SystemSetBusyCmd.MarkFlagRequired("seconds")
 
 	SystemSupportPacketCmd.Flags().StringP("output-file", "o", "", "Define the output file name")
+
+	SystemNukeUsersCmd.Flags().Bool("confirm", false, "Confirm you really want to permanently delete all users, posts, and related data, and that a DB backup has been performed")
+
+	SystemNukeCmd.AddCommand(
+		SystemNukeUsersCmd,
+	)
 
 	SystemCmd.AddCommand(
 		SystemGetBusyCmd,
@@ -90,6 +112,7 @@ func init() {
 		SystemVersionCmd,
 		SystemStatusCmd,
 		SystemSupportPacketCmd,
+		SystemNukeCmd,
 	)
 	RootCmd.AddCommand(SystemCmd)
 }
@@ -213,5 +236,22 @@ func systemSupportPacketCmdF(c client.Client, cmd *cobra.Command, _ []string) er
 	}
 
 	printer.PrintT("Downloaded Support Packet to {{ .filename }}", map[string]string{"filename": filename})
+	return nil
+}
+
+func nukeUsersCmdF(c client.Client, cmd *cobra.Command, args []string) error {
+	confirmFlag, _ := cmd.Flags().GetBool("confirm")
+	if !confirmFlag {
+		if err := getConfirmation("Are you sure you want to permanently delete all users, posts, and related data?", true); err != nil {
+			return err
+		}
+	}
+
+	if _, err := c.PermanentDeleteAllUsers(context.TODO()); err != nil {
+		return err
+	}
+
+	defer printer.Print("All users successfully deleted")
+
 	return nil
 }

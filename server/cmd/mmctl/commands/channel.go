@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/client"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
@@ -112,7 +113,7 @@ var MoveChannelCmd = &cobra.Command{
 	Use:   "move [team] [channels]",
 	Short: "Moves channels to the specified team",
 	Long: `Moves the provided channels to the specified team.
-Validates that all users in the channel belong to the target team. Incoming/Outgoing webhooks are moved along with the channel.
+Validates that all users in the channel belong to the target team. If some users are not members of the target team, the move fails and the missing users are listed; use --auto-add-users to add them to the target team automatically, or --force to remove them from the channel. Incoming/Outgoing webhooks are moved along with the channel.
 Channels can be specified by [team]:[channel]. ie. myteam:mychannel or by channel ID.`,
 	Example: "  channel move newteam oldteam:mychannel",
 	Args:    cobra.MinimumNArgs(2),
@@ -133,9 +134,12 @@ func init() {
 	ChannelRenameCmd.Flags().String("name", "", "Channel Name")
 	ChannelRenameCmd.Flags().String("display-name", "", "Channel Display Name")
 
+	ListChannelsCmd.Flags().BoolP("show-ids", "i", false, "Show channel IDs")
+
 	SearchChannelCmd.Flags().String("team", "", "Team name or ID")
 
 	MoveChannelCmd.Flags().Bool("force", false, "Remove users that are not members of target team before moving the channel.")
+	MoveChannelCmd.Flags().Bool("auto-add-users", false, "Add users that are not members of the target team to it before moving the channel.")
 
 	DeleteChannelsCmd.Flags().Bool("confirm", false, "Confirm you really want to delete the channel and a DB backup has been performed.")
 
@@ -270,6 +274,12 @@ func getAllDeletedChannelsForTeam(c client.Client, teamID string) ([]*model.Chan
 func listChannelsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	teams := getTeamsFromTeamArgs(c, args)
 
+	showIds, _ := cmd.Flags().GetBool("show-ids")
+	namePrefix := "{{.Name}}"
+	if showIds {
+		namePrefix = "{{.Id}}: {{.Name}}"
+	}
+
 	var multierr *multierror.Error
 	for i, team := range teams {
 		if team == nil {
@@ -285,7 +295,7 @@ func listChannelsCmdF(c client.Client, cmd *cobra.Command, args []string) error 
 			multierr = multierror.Append(multierr, err)
 		}
 		for _, channel := range publicChannels {
-			printer.PrintT("{{.Name}}", channel)
+			printer.PrintT(namePrefix, channel)
 		}
 
 		deletedChannels, err := getAllDeletedChannelsForTeam(c, team.Id)
@@ -294,7 +304,7 @@ func listChannelsCmdF(c client.Client, cmd *cobra.Command, args []string) error 
 			multierr = multierror.Append(multierr, err)
 		}
 		for _, channel := range deletedChannels {
-			printer.PrintT("{{.Name}} (archived)", channel)
+			printer.PrintT(namePrefix+" (archived)", channel)
 		}
 
 		privateChannels, appErr := getPrivateChannels(c, team.Id)
@@ -303,7 +313,7 @@ func listChannelsCmdF(c client.Client, cmd *cobra.Command, args []string) error 
 			multierr = multierror.Append(multierr, appErr)
 		}
 		for _, channel := range privateChannels {
-			printer.PrintT("{{.Name}} (private)", channel)
+			printer.PrintT(namePrefix+" (private)", channel)
 		}
 	}
 
@@ -454,6 +464,7 @@ func searchChannelCmdF(c client.Client, cmd *cobra.Command, args []string) error
 
 func moveChannelCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	force, _ := cmd.Flags().GetBool("force")
+	autoAddUsers, _ := cmd.Flags().GetBool("auto-add-users")
 
 	team := getTeamFromTeamArg(c, args[0])
 	if team == nil {
@@ -473,6 +484,29 @@ func moveChannelCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 			continue
 		}
 
+		// When users are not being forcibly removed, the server rejects the move
+		// if any channel member is missing from the destination team. Surface
+		// those users to the operator, adding them to the team first if requested.
+		if !force {
+			missingUsers, err := getChannelMembersNotInTeam(c, channel.Id, team.Id)
+			if err != nil {
+				result = multierror.Append(result, fmt.Errorf("unable to determine missing team members for channel %q: %w", channel.Name, err))
+				continue
+			}
+
+			if len(missingUsers) > 0 {
+				if !autoAddUsers {
+					result = multierror.Append(result, fmt.Errorf("unable to move channel %q: the following users are not members of team %q: %s. Re-run with --auto-add-users to add them automatically, or with --force to remove them from the channel", channel.Name, team.Name, strings.Join(usernamesOf(missingUsers), ", ")))
+					continue
+				}
+
+				if err := addUsersToTeam(c, team, missingUsers); err != nil {
+					result = multierror.Append(result, err)
+					continue
+				}
+			}
+		}
+
 		newChannel, _, err := c.MoveChannel(context.TODO(), channel.Id, team.Id, force)
 		if err != nil {
 			result = multierror.Append(result, fmt.Errorf("unable to move channel %q: %w", channel.Name, err))
@@ -481,6 +515,121 @@ func moveChannelCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		printer.PrintT(fmt.Sprintf("Moved channel {{.Name}} to %q ({{.TeamId}}) from %s.", team.Name, channel.TeamId), newChannel)
 	}
 	return result.ErrorOrNil()
+}
+
+// getChannelMembersNotInTeam returns the users that are members of the channel
+// but are not members of the given team.
+func getChannelMembersNotInTeam(c client.Client, channelID, teamID string) ([]*model.User, error) {
+	channelMemberUserIDs, err := getAllChannelMemberUserIDs(c, channelID)
+	if err != nil {
+		return nil, fmt.Errorf("unable to get channel members: %w", err)
+	}
+
+	if len(channelMemberUserIDs) == 0 {
+		return []*model.User{}, nil
+	}
+
+	teamMembers, err := getTeamMembersByUserIDs(c, teamID, channelMemberUserIDs)
+	if err != nil {
+		return nil, fmt.Errorf("unable to get team members: %w", err)
+	}
+
+	teamMemberUserIDs := make(map[string]bool, len(teamMembers))
+	for _, member := range teamMembers {
+		teamMemberUserIDs[member.UserId] = true
+	}
+
+	missingUserIDs := []string{}
+	for _, userID := range channelMemberUserIDs {
+		if !teamMemberUserIDs[userID] {
+			missingUserIDs = append(missingUserIDs, userID)
+		}
+	}
+
+	if len(missingUserIDs) == 0 {
+		return []*model.User{}, nil
+	}
+
+	users, _, err := c.GetUsersByIds(context.TODO(), missingUserIDs)
+	if err != nil {
+		return nil, fmt.Errorf("unable to get users for missing channel members: %w", err)
+	}
+
+	usersByID := make(map[string]*model.User, len(users))
+	for _, user := range users {
+		usersByID[user.Id] = user
+	}
+
+	missingUsers := make([]*model.User, 0, len(missingUserIDs))
+	for _, userID := range missingUserIDs {
+		if user, ok := usersByID[userID]; ok {
+			missingUsers = append(missingUsers, user)
+			continue
+		}
+		missingUsers = append(missingUsers, &model.User{Id: userID, Username: userID})
+	}
+
+	return missingUsers, nil
+}
+
+func getAllChannelMemberUserIDs(c client.Client, channelID string) ([]string, error) {
+	userIDs := []string{}
+	page := 0
+
+	for {
+		membersPage, _, err := c.GetChannelMembers(context.TODO(), channelID, page, DefaultPageSize, "")
+		if err != nil {
+			return nil, err
+		}
+
+		if len(membersPage) == 0 {
+			break
+		}
+
+		for _, member := range membersPage {
+			userIDs = append(userIDs, member.UserId)
+		}
+		page++
+	}
+
+	return userIDs, nil
+}
+
+func getTeamMembersByUserIDs(c client.Client, teamID string, userIDs []string) ([]*model.TeamMember, error) {
+	teamMembers := []*model.TeamMember{}
+
+	for i := 0; i < len(userIDs); i += DefaultPageSize {
+		end := min(i+DefaultPageSize, len(userIDs))
+
+		members, _, err := c.GetTeamMembersByIds(context.TODO(), teamID, userIDs[i:end])
+		if err != nil {
+			return nil, err
+		}
+
+		teamMembers = append(teamMembers, members...)
+	}
+
+	return teamMembers, nil
+}
+
+func addUsersToTeam(c client.Client, team *model.Team, users []*model.User) error {
+	var result *multierror.Error
+	for _, user := range users {
+		if _, _, err := c.AddTeamMember(context.TODO(), team.Id, user.Id); err != nil {
+			result = multierror.Append(result, fmt.Errorf("unable to add user %q to team %q: %w", user.Username, team.Name, err))
+			continue
+		}
+		printer.PrintT(fmt.Sprintf("Added user {{.Username}} to team %q.", team.Name), user)
+	}
+	return result.ErrorOrNil()
+}
+
+func usernamesOf(users []*model.User) []string {
+	names := make([]string, len(users))
+	for i, user := range users {
+		names[i] = user.Username
+	}
+	return names
 }
 
 func getPrivateChannels(c client.Client, teamID string) ([]*model.Channel, error) {

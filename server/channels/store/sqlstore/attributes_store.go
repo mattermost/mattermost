@@ -24,6 +24,27 @@ type SqlAttributesStore struct {
 	selectQueryBuilder sq.SelectBuilder
 }
 
+// attributeViewsByObjectType is the single source of truth for the
+// object-type-to-materialized-view mapping: both the per-type lookup and the
+// refresh sweep read it, so adding an object type cannot leave a new view
+// perpetually stale.
+var attributeViewsByObjectType = map[string]string{
+	model.PropertyFieldObjectTypeChannel: "ChannelAttributeView",
+	model.PropertyFieldObjectTypeUser:    "UserAttributeView",
+}
+
+// attributeViewFor maps a property-field object type to its materialized view.
+// An unrecognized type is an error rather than a fallback to the user view: a
+// silent coercion would surface a future miswire as a wrong-but-successful user
+// lookup.
+func attributeViewFor(objectType string) (string, error) {
+	view, ok := attributeViewsByObjectType[objectType]
+	if !ok {
+		return "", errors.Errorf("unknown object type %q for attribute view", objectType)
+	}
+	return view, nil
+}
+
 func attributesSliceColumns(prefix ...string) []string {
 	var p string
 	if len(prefix) == 1 {
@@ -39,27 +60,55 @@ func attributesSliceColumns(prefix ...string) []string {
 	}
 }
 
+// qualify prefixes each column with the given table name. The members-to-remove
+// queries join Users, whose columns (Roles, DeleteAt, CreateAt) collide with the
+// member columns, so the member SELECT must be table-qualified to stay unambiguous.
+func qualify(table string, columns []string) []string {
+	qualified := make([]string, len(columns))
+	for i, c := range columns {
+		qualified[i] = table + "." + c
+	}
+	return qualified
+}
+
 func newSqlAttributesStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface) store.AttributesStore {
 	s := &SqlAttributesStore{
 		SqlStore: sqlStore,
 		metrics:  metrics,
 	}
 
-	s.selectQueryBuilder = s.getQueryBuilder().Select(attributesSliceColumns()...).From("AttributeView")
+	// The From clause is chosen per call by object type (GetSubject), so the
+	// shared builder carries only the Select.
+	s.selectQueryBuilder = s.getQueryBuilder().Select(attributesSliceColumns()...)
 
 	return s
 }
 
 func (s *SqlAttributesStore) RefreshAttributes() error {
-	if _, err := s.GetMaster().Exec("REFRESH MATERIALIZED VIEW AttributeView"); err != nil {
-		return errors.Wrap(err, "error refreshing materialized view AttributeView")
+	// Both per-object-type views (migration 000216) refresh on one cadence, so a
+	// caller does not have to know which object types it is about to read. They
+	// refresh in separate statements, though, so this is not an atomic snapshot:
+	// a read straddling a refresh can see the two views a generation apart. Every
+	// consumer tolerates that — values are eventually consistent and the
+	// membership sync re-runs on cadence and converges. Refreshing only the view
+	// whose attributes actually changed is a scale follow-up. Refresh order is
+	// unspecified (map iteration) and does not matter: each REFRESH is its own
+	// independent statement.
+	for _, view := range attributeViewsByObjectType {
+		if _, err := s.GetMaster().Exec("REFRESH MATERIALIZED VIEW " + view); err != nil {
+			return errors.Wrapf(err, "error refreshing materialized view %s", view)
+		}
 	}
 
 	return nil
 }
 
-func (s *SqlAttributesStore) GetSubject(rctx request.CTX, ID, groupID string) (*model.Subject, error) {
-	query := s.selectQueryBuilder.Where(sq.And{sq.Eq{"TargetID": ID}, sq.Eq{"GroupID": groupID}})
+func (s *SqlAttributesStore) GetSubject(rctx request.CTX, ID, groupID, objectType string) (*model.Subject, error) {
+	view, err := attributeViewFor(objectType)
+	if err != nil {
+		return nil, err
+	}
+	query := s.selectQueryBuilder.From(view).Where(sq.And{sq.Eq{"TargetID": ID}, sq.Eq{"GroupID": groupID}})
 
 	q, args, err := query.ToSql()
 	if err != nil {
@@ -87,10 +136,10 @@ func (s *SqlAttributesStore) GetSubject(rctx request.CTX, ID, groupID string) (*
 
 func (s *SqlAttributesStore) SearchUsers(rctx request.CTX, opts model.SubjectSearchOptions) ([]*model.User, int64, error) {
 	query := s.getQueryBuilder().
-		Select(getUsersColumns()...).From("Users").LeftJoin("AttributeView ON Users.Id = AttributeView.TargetID").
+		Select(getUsersColumns()...).From("Users").LeftJoin("UserAttributeView ON Users.Id = UserAttributeView.TargetID").
 		OrderBy("Users.Id ASC")
 
-	count := s.getQueryBuilder().Select("COUNT(*)").From("Users").LeftJoin("AttributeView ON Users.Id = AttributeView.TargetID")
+	count := s.getQueryBuilder().Select("COUNT(*)").From("Users").LeftJoin("UserAttributeView ON Users.Id = UserAttributeView.TargetID")
 
 	if opts.Query != "" {
 		// Wrap the CEL-derived expression in parentheses so that any top-level
@@ -136,11 +185,19 @@ func (s *SqlAttributesStore) SearchUsers(rctx request.CTX, opts model.SubjectSea
 
 	if opts.Cursor.TargetID != "" {
 		argCount++
-		query = query.Where(sq.Expr(fmt.Sprintf("TargetID > $%d", argCount), opts.Cursor.TargetID))
+		// Paginate on Users.Id (the ORDER BY column), not UserAttributeView.TargetID.
+		// The cursor value is a user id, and TargetID comes from a LEFT JOIN so it
+		// is NULL for users with no custom-attribute row — comparing against it
+		// silently drops those users (e.g. matches of a native-only policy).
+		query = query.Where(sq.Expr(fmt.Sprintf("Users.Id > $%d", argCount), opts.Cursor.TargetID))
 	}
 
-	searchFields := make([]string, 0, len(UserSearchTypeNames))
-	for _, field := range UserSearchTypeNames {
+	termFields := UserSearchTypeNames
+	if opts.ExcludeFullNames {
+		termFields = UserSearchTypeNamesNoFullName
+	}
+	searchFields := make([]string, 0, len(termFields))
+	for _, field := range termFields {
 		searchFields = append(searchFields, strings.Join([]string{"Users", field}, "."))
 	}
 
@@ -177,11 +234,20 @@ func (s *SqlAttributesStore) SearchUsers(rctx request.CTX, opts model.SubjectSea
 
 func (s *SqlAttributesStore) GetChannelMembersToRemove(rctx request.CTX, channelID string, opts model.SubjectSearchOptions) ([]*model.ChannelMember, error) {
 	query := s.getQueryBuilder().
-		Select(channelMemberSliceColumns()...).From("ChannelMembers").LeftJoin("AttributeView ON ChannelMembers.UserId = AttributeView.TargetID").
+		Select(qualify("ChannelMembers", channelMemberSliceColumns())...).From("ChannelMembers").
+		// Join Users so native-attribute expressions (e.g. Users.EmailVerified)
+		// resolve here, mirroring SearchUsers on the add path.
+		LeftJoin("Users ON Users.Id = ChannelMembers.UserId").
+		LeftJoin("UserAttributeView ON ChannelMembers.UserId = UserAttributeView.TargetID").
 		OrderBy("ChannelMembers.UserId ASC")
 
 	if opts.Query != "" {
-		query = query.Where(sq.Expr(fmt.Sprintf("(NOT COALESCE((%s), FALSE) OR AttributeView.TargetID IS NULL)", opts.Query), opts.Args...))
+		// A member is removed when they do NOT satisfy the policy; a NULL result
+		// (e.g. a missing custom attribute) counts as "does not satisfy" via
+		// COALESCE. We must not additionally remove members just because they
+		// lack a UserAttributeView row — a native-only policy matches against the
+		// Users table, so a user with zero custom attributes can still satisfy it.
+		query = query.Where(sq.Expr(fmt.Sprintf("NOT COALESCE((%s), FALSE)", opts.Query), opts.Args...))
 	}
 
 	argCount := len(opts.Args)
@@ -208,6 +274,88 @@ func (s *SqlAttributesStore) GetChannelMembersToRemove(rctx request.CTX, channel
 	members := []*model.ChannelMember{}
 	if err := s.GetReplica().Select(&members, q, args...); err != nil {
 		return nil, errors.Wrapf(err, "failed to find channel members with for channel id=%s", channelID)
+	}
+
+	return members, nil
+}
+
+// Count folded in alongside the max to catch soft deletes: dropping a value that isn't the most
+// recently updated leaves MAX(UpdateAt) unchanged, and the stale ETag would keep matching.
+func (s *SqlAttributesStore) GetUserPropertyValuesEpoch(rctx request.CTX, userID string) (string, error) {
+	query, args, err := s.getQueryBuilder().
+		Select("COALESCE(MAX(UpdateAt), 0) AS MaxUpdateAt", "COUNT(*) AS Total").
+		From("PropertyValues").
+		Where(sq.Eq{"TargetID": userID}).
+		Where("DeleteAt = 0").
+		ToSql()
+	if err != nil {
+		return "", errors.Wrap(err, "GetUserPropertyValuesEpoch: failed to build query")
+	}
+
+	var epoch struct {
+		MaxUpdateAt int64
+		Total       int64
+	}
+	// Master, not replica: the caller invalidates this key right after the write commits, so a
+	// lagging replica would re-cache the pre-write epoch and the client would keep 304ing onto
+	// content sanitized under the old attributes until the entry expires.
+	if err := s.GetMaster().Get(&epoch, query, args...); err != nil {
+		return "", errors.Wrap(err, "GetUserPropertyValuesEpoch: query failed")
+	}
+	return fmt.Sprintf("%d-%d", epoch.MaxUpdateAt, epoch.Total), nil
+}
+
+// No-op at the SQL layer; the per-user epoch is cached in and invalidated by the local cache layer.
+func (s *SqlAttributesStore) InvalidateUserPropertyValuesEpoch(userID string) {}
+func (s *SqlAttributesStore) ClearUserPropertyValuesEpochCache()              {}
+
+func (s *SqlAttributesStore) GetTeamMembersToRemove(rctx request.CTX, teamID string, opts model.SubjectSearchOptions) ([]*model.TeamMember, error) {
+	query := s.getQueryBuilder().
+		Select(qualify("TeamMembers", teamMemberSliceColumns())...).From("TeamMembers").
+		// Join Users so native-attribute expressions (e.g. Users.EmailVerified)
+		// resolve here, mirroring SearchUsers on the add path.
+		LeftJoin("Users ON Users.Id = TeamMembers.UserId").
+		LeftJoin("UserAttributeView ON TeamMembers.UserId = UserAttributeView.TargetID").
+		Where("TeamMembers.DeleteAt = 0").
+		OrderBy("TeamMembers.UserId ASC")
+
+	if opts.Query != "" {
+		// A member is removed when they do NOT satisfy the policy; a NULL result
+		// (e.g. a missing custom attribute) counts as "does not satisfy" via
+		// COALESCE. We must not additionally remove members just because they
+		// lack a UserAttributeView row — a native-only policy matches against the
+		// Users table, so a user with zero custom attributes can still satisfy it.
+		query = query.Where(sq.Expr(fmt.Sprintf("NOT COALESCE((%s), FALSE)", opts.Query), opts.Args...))
+	}
+
+	argCount := len(opts.Args)
+
+	argCount++
+	query = query.Where(sq.Expr(fmt.Sprintf("TeamMembers.TeamId = $%d", argCount), teamID))
+
+	// An explicit limit is capped at MaxPerPage; an unset limit (0) intentionally
+	// returns every removal candidate for the team. The membership-sync caller
+	// consumes the full set in one pass, so capping an unset limit here would
+	// permanently leave members beyond the cap in a team they no longer qualify
+	// for. The result is naturally bounded by the team's membership.
+	if opts.Limit > 0 {
+		limit := min(opts.Limit, MaxPerPage)
+		query = query.Limit(uint64(limit))
+	}
+
+	if opts.Cursor.TargetID != "" {
+		argCount++
+		query = query.Where(sq.Expr(fmt.Sprintf("TeamMembers.UserId > $%d", argCount), opts.Cursor.TargetID))
+	}
+
+	q, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to build query for subjects")
+	}
+
+	members := []*model.TeamMember{}
+	if err := s.GetReplica().Select(&members, q, args...); err != nil {
+		return nil, errors.Wrapf(err, "failed to find team members for team id=%s", teamID)
 	}
 
 	return members, nil

@@ -122,6 +122,13 @@ func (hooks *hooksTimerLayer) MessagesWillBeConsumed(posts []*model.Post) []*mod
 	return _returnsA
 }
 
+func (hooks *hooksTimerLayer) MessagesWillBeConsumedWithContext(c *Context, posts []*model.Post) []*model.Post {
+	startTime := timePkg.Now()
+	_returnsA := hooks.hooksImpl.MessagesWillBeConsumedWithContext(c, posts)
+	hooks.recordTime(startTime, "MessagesWillBeConsumedWithContext", true)
+	return _returnsA
+}
+
 func (hooks *hooksTimerLayer) MessageHasBeenDeleted(c *Context, post *model.Post) {
 	startTime := timePkg.Now()
 	hooks.hooksImpl.MessageHasBeenDeleted(c, post)
@@ -253,6 +260,12 @@ func (hooks *hooksTimerLayer) OnCloudLimitsUpdated(limits *model.ProductLimits) 
 	startTime := timePkg.Now()
 	hooks.hooksImpl.OnCloudLimitsUpdated(limits)
 	hooks.recordTime(startTime, "OnCloudLimitsUpdated", true)
+}
+
+func (hooks *hooksTimerLayer) OnLicenseChanged(oldLicense, newLicense *model.License) {
+	startTime := timePkg.Now()
+	hooks.hooksImpl.OnLicenseChanged(oldLicense, newLicense)
+	hooks.recordTime(startTime, "OnLicenseChanged", true)
 }
 
 func (hooks *hooksTimerLayer) ConfigurationWillBeSaved(newCfg *model.Config) (*model.Config, error) {
@@ -543,6 +556,13 @@ func (hooks *hooksTimerLayer) OnCloudLimitsUpdatedWithRPCErr(limits *model.Produ
 	startTime := timePkg.Now()
 	_returnsRPCErr := hooks.hooksWithRPCErrImpl.OnCloudLimitsUpdatedWithRPCErr(limits)
 	hooks.recordTime(startTime, "OnCloudLimitsUpdatedWithRPCErr", _returnsRPCErr == nil)
+	return _returnsRPCErr
+}
+
+func (hooks *hooksTimerLayer) OnLicenseChangedWithRPCErr(oldLicense, newLicense *model.License) error {
+	startTime := timePkg.Now()
+	_returnsRPCErr := hooks.hooksWithRPCErrImpl.OnLicenseChangedWithRPCErr(oldLicense, newLicense)
+	hooks.recordTime(startTime, "OnLicenseChangedWithRPCErr", _returnsRPCErr == nil)
 	return _returnsRPCErr
 }
 

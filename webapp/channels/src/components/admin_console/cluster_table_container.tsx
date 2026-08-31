@@ -6,7 +6,7 @@ import type {MouseEvent} from 'react';
 
 import type {ClusterInfo} from '@mattermost/types/admin';
 
-import {getClusterStatus} from 'actions/admin_actions.jsx';
+import {getClusterStatus} from 'actions/admin_actions';
 
 import ClusterTable from './cluster_table';
 

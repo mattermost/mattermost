@@ -15,6 +15,11 @@ type AttributesStore struct {
 	mock.Mock
 }
 
+// ClearUserPropertyValuesEpochCache provides a mock function with no fields
+func (_m *AttributesStore) ClearUserPropertyValuesEpochCache() {
+	_m.Called()
+}
+
 // GetChannelMembersToRemove provides a mock function with given fields: rctx, channelID, opts
 func (_m *AttributesStore) GetChannelMembersToRemove(rctx request.CTX, channelID string, opts model.SubjectSearchOptions) ([]*model.ChannelMember, error) {
 	ret := _m.Called(rctx, channelID, opts)
@@ -45,9 +50,9 @@ func (_m *AttributesStore) GetChannelMembersToRemove(rctx request.CTX, channelID
 	return r0, r1
 }
 
-// GetSubject provides a mock function with given fields: rctx, ID, groupID
-func (_m *AttributesStore) GetSubject(rctx request.CTX, ID string, groupID string) (*model.Subject, error) {
-	ret := _m.Called(rctx, ID, groupID)
+// GetSubject provides a mock function with given fields: rctx, ID, groupID, objectType
+func (_m *AttributesStore) GetSubject(rctx request.CTX, ID string, groupID string, objectType string) (*model.Subject, error) {
+	ret := _m.Called(rctx, ID, groupID, objectType)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetSubject")
@@ -55,24 +60,87 @@ func (_m *AttributesStore) GetSubject(rctx request.CTX, ID string, groupID strin
 
 	var r0 *model.Subject
 	var r1 error
-	if rf, ok := ret.Get(0).(func(request.CTX, string, string) (*model.Subject, error)); ok {
-		return rf(rctx, ID, groupID)
+	if rf, ok := ret.Get(0).(func(request.CTX, string, string, string) (*model.Subject, error)); ok {
+		return rf(rctx, ID, groupID, objectType)
 	}
-	if rf, ok := ret.Get(0).(func(request.CTX, string, string) *model.Subject); ok {
-		r0 = rf(rctx, ID, groupID)
+	if rf, ok := ret.Get(0).(func(request.CTX, string, string, string) *model.Subject); ok {
+		r0 = rf(rctx, ID, groupID, objectType)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.Subject)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(request.CTX, string, string) error); ok {
-		r1 = rf(rctx, ID, groupID)
+	if rf, ok := ret.Get(1).(func(request.CTX, string, string, string) error); ok {
+		r1 = rf(rctx, ID, groupID, objectType)
 	} else {
 		r1 = ret.Error(1)
 	}
 
 	return r0, r1
+}
+
+// GetTeamMembersToRemove provides a mock function with given fields: rctx, teamID, opts
+func (_m *AttributesStore) GetTeamMembersToRemove(rctx request.CTX, teamID string, opts model.SubjectSearchOptions) ([]*model.TeamMember, error) {
+	ret := _m.Called(rctx, teamID, opts)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetTeamMembersToRemove")
+	}
+
+	var r0 []*model.TeamMember
+	var r1 error
+	if rf, ok := ret.Get(0).(func(request.CTX, string, model.SubjectSearchOptions) ([]*model.TeamMember, error)); ok {
+		return rf(rctx, teamID, opts)
+	}
+	if rf, ok := ret.Get(0).(func(request.CTX, string, model.SubjectSearchOptions) []*model.TeamMember); ok {
+		r0 = rf(rctx, teamID, opts)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.TeamMember)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(request.CTX, string, model.SubjectSearchOptions) error); ok {
+		r1 = rf(rctx, teamID, opts)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetUserPropertyValuesEpoch provides a mock function with given fields: rctx, userID
+func (_m *AttributesStore) GetUserPropertyValuesEpoch(rctx request.CTX, userID string) (string, error) {
+	ret := _m.Called(rctx, userID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetUserPropertyValuesEpoch")
+	}
+
+	var r0 string
+	var r1 error
+	if rf, ok := ret.Get(0).(func(request.CTX, string) (string, error)); ok {
+		return rf(rctx, userID)
+	}
+	if rf, ok := ret.Get(0).(func(request.CTX, string) string); ok {
+		r0 = rf(rctx, userID)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	if rf, ok := ret.Get(1).(func(request.CTX, string) error); ok {
+		r1 = rf(rctx, userID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// InvalidateUserPropertyValuesEpoch provides a mock function with given fields: userID
+func (_m *AttributesStore) InvalidateUserPropertyValuesEpoch(userID string) {
+	_m.Called(userID)
 }
 
 // RefreshAttributes provides a mock function with no fields

@@ -7,6 +7,7 @@ exports[`admin_console/team_channel_settings/team/TeamSettings should match snap
   >
     <div
       class="admin-console__header"
+      data-testid="admin-console-header"
     >
       site Teams
     </div>

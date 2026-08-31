@@ -26,6 +26,7 @@ func TestFileInfoStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStor
 	t.Run("FileInfoGetForPost", func(t *testing.T) { testFileInfoGetForPost(t, rctx, ss) })
 	t.Run("FileInfoGetForUser", func(t *testing.T) { testFileInfoGetForUser(t, rctx, ss) })
 	t.Run("FileInfoGetWithOptions", func(t *testing.T) { testFileInfoGetWithOptions(t, rctx, ss) })
+	t.Run("FileInfoGetWithOptionsOnlyEmptyContent", func(t *testing.T) { testFileInfoGetWithOptionsOnlyEmptyContent(t, rctx, ss) })
 	t.Run("FileInfoAttachToPost", func(t *testing.T) { testFileInfoAttachToPost(t, rctx, ss) })
 	t.Run("FileInfoDeleteForPost", func(t *testing.T) { testFileInfoDeleteForPost(t, rctx, ss) })
 	t.Run("FileInfoPermanentDelete", func(t *testing.T) { testFileInfoPermanentDelete(t, rctx, ss) })
@@ -419,6 +420,52 @@ func testFileInfoGetWithOptions(t *testing.T, rctx request.CTX, ss store.Store) 
 			}
 		})
 	}
+}
+
+func testFileInfoGetWithOptionsOnlyEmptyContent(t *testing.T, rctx request.CTX, ss store.Store) {
+	post := &model.Post{
+		ChannelId: model.NewId(),
+		UserId:    model.NewId(),
+	}
+	_, err := ss.Post().Save(rctx, post)
+	require.NoError(t, err)
+
+	createAt := model.GetMillis()
+	emptyFile := &model.FileInfo{
+		Id:        model.NewId(),
+		CreatorId: post.UserId,
+		PostId:    post.Id,
+		ChannelId: post.ChannelId,
+		Path:      "empty.txt",
+		Name:      "empty.txt",
+		Extension: "txt",
+		CreateAt:  createAt,
+	}
+	_, err = ss.FileInfo().Save(rctx, emptyFile)
+	require.NoError(t, err)
+
+	indexedFile := &model.FileInfo{
+		Id:        model.NewId(),
+		CreatorId: post.UserId,
+		PostId:    post.Id,
+		ChannelId: post.ChannelId,
+		Path:      "indexed.txt",
+		Name:      "indexed.txt",
+		Extension: "txt",
+		CreateAt:  createAt + 1,
+	}
+	_, err = ss.FileInfo().Save(rctx, indexedFile)
+	require.NoError(t, err)
+	err = ss.FileInfo().SetContent(rctx, indexedFile.Id, "already indexed")
+	require.NoError(t, err)
+
+	fileInfos, err := ss.FileInfo().GetWithOptions(0, 10, &model.GetFileInfosOptions{
+		Since:            createAt - 1,
+		OnlyEmptyContent: true,
+	})
+	require.NoError(t, err)
+	require.Len(t, fileInfos, 1)
+	assert.Equal(t, emptyFile.Id, fileInfos[0].Id)
 }
 
 func testFileInfoAttachToPost(t *testing.T, rctx request.CTX, ss store.Store) {

@@ -27,6 +27,7 @@ func TestBuildAzureServiceURL(t *testing.T) {
 		name     string
 		cloud    string
 		scheme   string
+		account  string // defaults to the package-level account const when empty
 		endpoint string
 		expected string
 		wantErr  bool
@@ -36,6 +37,27 @@ func TestBuildAzureServiceURL(t *testing.T) {
 			cloud:    model.AzureCloudCommercial,
 			scheme:   "https",
 			expected: "https://acmemattermost.blob.core.windows.net/",
+		},
+		{
+			name:    "commercial cloud rejects an account name with a hash character",
+			cloud:   model.AzureCloudCommercial,
+			scheme:  "https",
+			account: "account#",
+			wantErr: true,
+		},
+		{
+			name:    "commercial cloud rejects an account name with a slash character",
+			cloud:   model.AzureCloudCommercial,
+			scheme:  "https",
+			account: "account/",
+			wantErr: true,
+		},
+		{
+			name:    "government cloud rejects a malformed account name",
+			cloud:   model.AzureCloudGovernment,
+			scheme:  "https",
+			account: "account#",
+			wantErr: true,
 		},
 		{
 			name:     "empty cloud falls back to commercial for legacy configs",
@@ -107,7 +129,11 @@ func TestBuildAzureServiceURL(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := buildAzureServiceURL(tt.cloud, tt.scheme, account, tt.endpoint)
+			acct := account
+			if tt.account != "" {
+				acct = tt.account
+			}
+			got, err := buildAzureServiceURL(tt.cloud, tt.scheme, acct, tt.endpoint)
 			if tt.wantErr {
 				require.Error(t, err)
 				return
@@ -225,14 +251,16 @@ func azuriteSettings(t *testing.T) FileBackendSettings {
 		port = "10000"
 	}
 	return FileBackendSettings{
-		DriverName:                      driverAzure,
-		AzureStorageAccount:             azuriteWellKnownAccount,
-		AzureAuthMode:                   model.AzureAuthModeSharedKey,
-		AzureAccessKey:                  azuriteWellKnownKey,
-		AzureContainer:                  "mattermost-test",
-		AzureCloud:                      model.AzureCloudCustom,
-		AzureEndpoint:                   "http://" + net.JoinHostPort(host, port) + "/" + azuriteWellKnownAccount + "/",
-		AzureRequestTimeoutMilliseconds: 30000,
+		DriverName:          driverAzure,
+		AzureStorageAccount: azuriteWellKnownAccount,
+		AzureAuthMode:       model.AzureAuthModeSharedKey,
+		AzureAccessKey:      azuriteWellKnownKey,
+		AzureContainer:      "mattermost-test",
+		AzureCloud:          model.AzureCloudCustom,
+		AzureEndpoint:       "http://" + net.JoinHostPort(host, port) + "/" + azuriteWellKnownAccount + "/",
+		// The emulator runs on an internal address, so its host must be allowed.
+		AllowedUntrustedInternalConnections: host,
+		AzureRequestTimeoutMilliseconds:     30000,
 	}
 }
 

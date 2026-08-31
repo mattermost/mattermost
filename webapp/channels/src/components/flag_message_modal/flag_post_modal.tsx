@@ -164,6 +164,7 @@ export default function FlagPostModal({postId, onExited}: Props) {
     return (
         <GenericModal
             id='FlagPostModal'
+            className='flag-post-modal'
             ariaLabel={label}
             modalHeaderText={label}
             modalSubheaderText={subHeading}
@@ -249,7 +250,7 @@ export default function FlagPostModal({postId, onExited}: Props) {
                 {requestError &&
                     <div className='FlagPostModal__request-error'>
                         <i className='icon icon-alert-outline'/>
-                        <span>{requestError}</span>
+                        <span data-testid='flag-post-request-error-text'>{requestError}</span>
                     </div>
                 }
             </div>

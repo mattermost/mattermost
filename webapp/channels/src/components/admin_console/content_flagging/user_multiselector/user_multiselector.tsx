@@ -135,7 +135,7 @@ export function UserSelector({id, isMulti, className, multiSelectOnChange, multi
         }
     }, [dispatch, initialValue, isMulti, multiSelectInitialValue, singleSelectInitialValue, isGroupsEnabled, enableTeams]);
 
-    const getUsersByIds = useMemo(makeGetUsersByIds, []);
+    const getUsersByIds = useMemo(() => makeGetUsersByIds(), []);
     const initialUsers = useSelector((state: GlobalState) => getUsersByIds(state, initialValue || []));
     const allGroups = useSelector(getAllGroups);
     const allTeams = useSelector(getTeams);

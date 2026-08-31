@@ -21,11 +21,11 @@ export default class ScheduledPostsPage {
     constructor(page: Page) {
         this.page = page;
 
-        this.draftsHeader = page.locator('.Drafts__header');
+        this.draftsHeader = page.getByTestId('drafts-header');
         this.tab = page.getByRole('tab', {name: 'Scheduled'});
-        this.badge = this.tab.locator('span.MuiBadge-badge');
+        this.badge = this.tab.getByTestId('scheduled-posts-tab-counter-badge');
 
-        this.noScheduledDrafts = page.locator('.no-results__wrapper');
+        this.noScheduledDrafts = page.getByTestId('no-results-wrapper');
 
         this.scheduleMessageModal = new components.ScheduleMessageModal(
             page.getByRole('dialog', {name: 'Schedule message'}),
@@ -46,7 +46,7 @@ export default class ScheduledPostsPage {
 
     async getBadgeCountOnTab() {
         await expect(this.tab).toBeVisible();
-        const badge = this.tab.locator('span.MuiBadge-badge');
+        const badge = this.tab.getByTestId('scheduled-posts-tab-counter-badge');
         await expect(badge).toBeVisible();
         return badge.textContent();
     }
@@ -67,12 +67,18 @@ export default class ScheduledPostsPage {
         return new components.ScheduledPost(nthPost);
     }
 
-    async rescheduleMessage(post: ScheduledPost, dayFromToday: number = 0, timeOptionIndex: number = 0) {
+    async openRescheduleMessageModal(post: ScheduledPost) {
         await post.hover();
         await expect(post.rescheduleButton).toBeVisible();
         await post.rescheduleButton.click();
+        await this.scheduleMessageModal.toBeVisible();
 
-        return this.scheduleMessageModal.scheduleMessage(dayFromToday, timeOptionIndex);
+        return this.scheduleMessageModal;
+    }
+
+    async rescheduleMessage(post: ScheduledPost, dayFromToday: number = 0, timeOptionIndex: number = 0) {
+        const scheduleMessageModal = await this.openRescheduleMessageModal(post);
+        return scheduleMessageModal.scheduleMessage(dayFromToday, timeOptionIndex);
     }
 
     async goto(teamName: string) {

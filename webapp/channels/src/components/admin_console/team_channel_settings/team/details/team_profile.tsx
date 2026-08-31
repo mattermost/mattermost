@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {useEffect, useState} from 'react';
+import type {ChangeEvent} from 'react';
 import {FormattedMessage, defineMessage, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
@@ -15,19 +16,26 @@ import useGetUsage from 'components/common/hooks/useGetUsage';
 import useGetUsageDeltas from 'components/common/hooks/useGetUsageDeltas';
 import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
 import AdminPanel from 'components/widgets/admin_console/admin_panel';
+import Input from 'components/widgets/inputs/input/input';
 import TeamIcon from 'components/widgets/team_icon/team_icon';
 
+import Constants from 'utils/constants';
 import {imageURLForTeam} from 'utils/utils';
 
 type Props = {
     team: Team;
+    name: string;
+    description: string;
+    onNameChange: (name: string) => void;
+    onDescriptionChange: (description: string) => void;
+    nameError?: React.ReactNode;
     isArchived: boolean;
     onToggleArchive: () => void;
     isDisabled?: boolean;
     saveNeeded?: boolean;
 };
 
-export function TeamProfile({team, isArchived, onToggleArchive, isDisabled, saveNeeded}: Props) {
+export function TeamProfile({team, name, description, onNameChange, onDescriptionChange, nameError, isArchived, onToggleArchive, isDisabled, saveNeeded}: Props) {
     const teamIconUrl = imageURLForTeam(team);
     const usageDeltas = useGetUsageDeltas();
     const usage = useGetUsage();
@@ -44,7 +52,7 @@ export function TeamProfile({team, isArchived, onToggleArchive, isDisabled, save
 
     // If in a cloud context and the teams usage hasn't loaded, don't render anything to prevent weird flashes on the screen
     if (license.Cloud === 'true' && !usage.teams.teamsLoaded) {
-        return null;//
+        return null;
     }
 
     const archiveBtn = isArchived ?
@@ -109,33 +117,36 @@ export function TeamProfile({team, isArchived, onToggleArchive, isDisabled, save
                     <div className='d-flex'>
                         <div className='large-team-image-col'>
                             <TeamIcon
-                                content={team.display_name}
+                                content={name || team.display_name}
                                 size='lg'
                                 url={teamIconUrl}
                             />
                         </div>
-                        <div className='team-desc-col'>
+                        <div className='team-desc-col team-desc-col--edit'>
                             <div className='row row-bottom-padding'>
-                                <FormattedMessage
-                                    id='admin.teamSettings.teamDetail.teamName'
-                                    defaultMessage='<b>Team Name</b>:'
-                                    values={{
-                                        b: (chunks) => <b>{chunks}</b>,
-                                    }}
+                                <Input
+                                    id='teamName'
+                                    data-testid='teamNameInput'
+                                    type='text'
+                                    maxLength={Constants.MAX_TEAMNAME_LENGTH}
+                                    value={name}
+                                    onChange={(e: ChangeEvent<HTMLInputElement>) => onNameChange(e.target.value)}
+                                    label={intl.formatMessage({id: 'admin.team_settings.team_detail.teamNameLabel', defaultMessage: 'Team Name'})}
+                                    disabled={isDisabled}
+                                    customMessage={nameError ? {type: 'error', value: nameError} : null}
                                 />
-                                <br/>
-                                {team.display_name}
                             </div>
                             <div className='row'>
-                                <FormattedMessage
-                                    id='admin.teamSettings.teamDetail.teamDescription'
-                                    defaultMessage='<b>Team Description</b>:'
-                                    values={{
-                                        b: (chunks) => <b>{chunks}</b>,
-                                    }}
+                                <Input
+                                    id='teamDescription'
+                                    data-testid='teamDescriptionInput'
+                                    type='textarea'
+                                    maxLength={Constants.MAX_TEAMDESCRIPTION_LENGTH}
+                                    value={description}
+                                    onChange={(e: ChangeEvent<HTMLTextAreaElement>) => onDescriptionChange(e.target.value)}
+                                    label={intl.formatMessage({id: 'admin.team_settings.team_detail.teamDescriptionLabel', defaultMessage: 'Team Description'})}
+                                    disabled={isDisabled}
                                 />
-                                <br/>
-                                {team.description || <span className='greyed-out'>{intl.formatMessage({id: 'admin.team_settings.team_detail.profileNoDescription', defaultMessage: 'No team description added.'})}</span>}
                             </div>
                         </div>
                     </div>

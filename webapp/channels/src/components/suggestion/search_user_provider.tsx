@@ -53,7 +53,10 @@ export const SearchUserSuggestion = React.forwardRef<HTMLLIElement, SuggestionPr
                 alt=''
             />
             <div className='suggestion-list__ellipsis'>
-                <span className='suggestion-list__main'>
+                <span
+                    data-testid='suggestion-list__main'
+                    className='suggestion-list__main'
+                >
                     {'@'}{username}
                 </span>
                 {item.is_bot && <BotTag/>}
