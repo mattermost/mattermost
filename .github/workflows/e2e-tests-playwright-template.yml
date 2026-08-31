@@ -421,10 +421,11 @@ jobs:
       statuses: write
     outputs:
       fixable_clusters: ${{ steps.triage.outputs.fixable_clusters }}
+      bisect_clusters: ${{ steps.triage.outputs.bisect_clusters }}
     steps:
       - name: ci/ai-flake-triage
         id: triage
-        uses: mattermost/mattermost-test-system-io/.github/actions/test-system-io-ai-triage@a19e069e8611f9afd553ba4ddfa8267c27b79609 # 2026-08-27, mattermost-test-system-io#101 (autofix)
+        uses: mattermost/mattermost-test-system-io/.github/actions/test-system-io-ai-triage@53876c5efae76e0eb07934c606c222a98860b787 # 2026-08-29, mattermost-test-system-io#101 (gist comment + gist parse)
         with:
           # DEMO (AI triage verification): routed to staging — see the
           # dispatch-begin note in this template.
@@ -443,20 +444,22 @@ jobs:
           pr-token: ${{ secrets.GH_TOKEN }}
           anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
 
-      # MVP #2: committed master regressions (MAIN_REGRESSION, conf >= 0.85)
-      # go to the bisect pipeline — find the culprit master commit, root-cause
-      # it, tag its author on this PR. Capped and kill-switched in the target
-      # workflow; dispatch is best-effort (failures must not fail triage).
-      - name: ci/dispatch-bisect
-        if: steps.triage.outputs.bisect_clusters != ''
-        env:
-          BISECT_CLUSTERS: ${{ steps.triage.outputs.bisect_clusters }}
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
-        continue-on-error: true
-        run: |
-          pr="$(printf '%s' '${{ needs.prepare-run.outputs.composite-identity-json }}' | jq -r '.gh_pr_number')"
-          [ -n "$pr" ] && [ "$pr" != "null" ] || { echo "no pr number; skip bisect"; exit 0; }
-          gh workflow run e2e-tests-bisect.yml -f clusters="$BISECT_CLUSTERS" -f pr_number="$pr" --repo "$GITHUB_REPOSITORY" --ref "${{ github.ref }}"
+  # MVP #2: committed master regressions (MAIN_REGRESSION, conf >= 0.85) go to
+  # the bisect pipeline — find the culprit master commit, root-cause it, tag
+  # its author on this PR. Capped and kill-switched in the target workflow.
+  # Same-ref `uses:` call: `gh workflow run` can only resolve workflows on the
+  # default branch, so a dispatch of this PR-only file always 404'd.
+  ai-bisect:
+    needs: [prepare-run, ai-triage]
+    if: >-
+      always() && !cancelled() &&
+      needs.ai-triage.outputs.bisect_clusters != '' &&
+      needs.ai-triage.outputs.bisect_clusters != '[]'
+    uses: ./.github/workflows/e2e-tests-bisect.yml
+    with:
+      clusters: ${{ needs.ai-triage.outputs.bisect_clusters }}
+      pr_number: ${{ fromJSON(needs.prepare-run.outputs.composite-identity-json).gh_pr_number }}
+    secrets: inherit
 
 
   # AI test autofix: repair test-bug clusters triage proved are NOT product
@@ -486,7 +489,7 @@ jobs:
           ref: ${{ inputs.commit_sha }}
           fetch-depth: 0
       - name: ci/ai-test-autofix
-        uses: mattermost/mattermost-test-system-io/.github/actions/test-system-io-ai-triage@a19e069e8611f9afd553ba4ddfa8267c27b79609 # 2026-08-27, mattermost-test-system-io#101 (autofix)
+        uses: mattermost/mattermost-test-system-io/.github/actions/test-system-io-ai-triage@53876c5efae76e0eb07934c606c222a98860b787 # 2026-08-29, mattermost-test-system-io#101 (gist comment + gist parse)
         with:
           use-staging: true
           composite-identity: ${{ needs.prepare-run.outputs.composite-identity-json }}

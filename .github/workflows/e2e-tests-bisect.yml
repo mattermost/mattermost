@@ -14,8 +14,9 @@
 #   - fail-closed: if the bug doesn't reproduce at the newest image, we report
 #     "not reproducible (flaky/environment)" instead of bisecting a ghost.
 #
-# Caps: gate on repo var E2E_AI_BISECT, one cluster per dispatch, max 2
-# dispatches/day, and queue concurrent dispatches instead of stampeding.
+# Caps: gate on repo var E2E_AI_BISECT, one cluster per run, max 2 bisects
+# per PR per day (marker-comment age check), and queue concurrent runs
+# instead of stampeding.
 name: E2E AI Bisect
 
 on:
@@ -27,6 +28,20 @@ on:
       pr_number:
         description: "PR number to report the culprit on"
         required: true
+  # In-run invocation from the e2e templates (same-ref `uses:` — `gh workflow
+  # run` can only resolve workflows that exist on the DEFAULT branch, so the
+  # dispatch step could never find this PR-only file; the caller calls us
+  # directly now).
+  workflow_call:
+    inputs:
+      clusters:
+        description: "JSON array of bisect targets: [{signature, file, external_test_id, full_title, error_message, confidence}]"
+        required: true
+        type: string
+      pr_number:
+        description: "PR number to report the culprit on"
+        required: true
+        type: string
 
 permissions:
   contents: read
@@ -53,12 +68,17 @@ jobs:
     steps:
       - name: ci/daily-cap-check
         id: cap
+        env:
+          PR_NUMBER: ${{ inputs.pr_number }}
         run: |
           set -euo pipefail
+          # Cap PER PR (not global): count bisect reports updated on this PR in
+          # the last 24h. Works for both workflow_dispatch and in-run callers.
           since="$(date -u -d '-1 day' +%Y-%m-%dT%H:%M:%SZ)"
-          runs=$(gh run list --workflow=e2e-tests-bisect.yml --created=">$since" --limit 20 --json status --jq 'length')
+          runs=$(gh api "repos/${GITHUB_REPOSITORY}/issues/${PR_NUMBER}/comments?per_page=100" \
+            --jq '[.[] | select(.body | contains("<!-- tsio:bisect -->")) | select(.updated_at > "'"$since"'")] | length')
           if [ "${runs:-0}" -ge "$BISECT_MAX_PER_DAY" ]; then
-            echo "bisect: daily cap reached ($runs >= $BISECT_MAX_PER_DAY) — skipping"
+            echo "bisect: per-PR cap reached ($runs >= $BISECT_MAX_PER_DAY in 24h) — skipping"
             echo "skip=true" >> "$GITHUB_OUTPUT"
           else
             echo "skip=false" >> "$GITHUB_OUTPUT"
