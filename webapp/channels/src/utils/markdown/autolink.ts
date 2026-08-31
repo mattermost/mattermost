@@ -102,13 +102,19 @@ function looksLikeHtmlTagAt(src: string, position: number): boolean {
     if (src[i] === '/') {
         return i + 1 < src.length && src[i + 1] === '>';
     }
-    if (src[i] === ' ' || src[i] === '\t') {
+    if (src[i] === ' ' || src[i] === '\t' || src[i] === '\n' || src[i] === '\r') {
+        if (src[i] === '\n' || src[i] === '\r') {
+            return true;
+        }
         for (i++; i < src.length; i++) {
             if (src[i] === '>') {
                 return true;
             }
-            if (src[i] === '<' || src[i] === '\n' || src[i] === '\r') {
+            if (src[i] === '<') {
                 return false;
+            }
+            if (src[i] === '\n' || src[i] === '\r') {
+                return true;
             }
         }
     }

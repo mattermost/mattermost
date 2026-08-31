@@ -226,13 +226,18 @@ func looksLikeHTMLTagAt(data string, position int) bool {
 		return true
 	case '/':
 		return i+1 < len(data) && data[i+1] == '>'
-	case ' ', '\t':
+	case ' ', '\t', '\n', '\r':
+		if data[i] == '\n' || data[i] == '\r' {
+			return true
+		}
 		for i++; i < len(data); i++ {
 			switch data[i] {
 			case '>':
 				return true
-			case '<', '\n', '\r':
+			case '<':
 				return false
+			case '\n', '\r':
+				return true
 			}
 		}
 	}

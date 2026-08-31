@@ -146,6 +146,15 @@ describe('matchGFMUrl', () => {
         );
     });
 
+    test('stops at HTML tag when attributes start after a newline', () => {
+        expect(matchGFMUrl('https://example.com/path<b\nclass="x">')?.[0]).toBe(
+            'https://example.com/path',
+        );
+        expect(matchGFMUrl('https://example.com/path<b\rclass="x">')?.[0]).toBe(
+            'https://example.com/path',
+        );
+    });
+
     test('keeps angle brackets in URL path with godbolt context', () => {
         expect(matchGFMUrl('https://godbolt.org/#include+<meta> rest')?.[0]).toBe(
             'https://godbolt.org/#include+<meta>',
