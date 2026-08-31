@@ -35,8 +35,9 @@ export async function initSetup({
             );
         }
 
-        // Narrow on-prem overrides only — a full defaultServerConfig patch would also send
-        // restart-required keys (SqlSettings, FeatureFlags, …) that PlaywrightClient4 rejects.
+        // The on-prem overrides only. Sending the full defaultServerConfig snapshot instead would
+        // 403 on PluginSettings.EnableUploads and replace the PluginStates map of concurrent specs.
+        // Settings outside this patch keep their current value, so specs patch what they depend on.
         const adminConfig = await adminClient.patchConfig(getOnPremServerConfigPatch() as any);
 
         // Create new team

@@ -27,10 +27,10 @@ on:
         type: string
         required: true
       workers:
-        description: "Number of parallel test system io dispatch workers for this from-version. Each one upgrades its own server first, so this trades runner count against how long the suite takes to drain."
+        description: "Number of parallel test system io dispatch workers"
         type: number
         required: false
-        default: 10
+        default: 20
 
       commit_sha:
         type: string

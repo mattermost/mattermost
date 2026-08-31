@@ -36,7 +36,13 @@ export {
     verifyUserNotInChannel,
     updateUserAttributes,
 } from './abac_helpers';
-export {installAndEnablePlugin, isPluginActive, getPluginStatus} from './plugin';
+export {
+    defaultEnabledPluginIds,
+    disableUnexpectedPlugins,
+    installAndEnablePlugin,
+    isPluginActive,
+    getPluginStatus,
+} from './plugin';
 export {isWebhookTestServerReachable, setupWebhookTestServer} from './webhook_server';
 export {
     generateLdapUser,

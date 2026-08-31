@@ -6,8 +6,16 @@ import type {PluginManifest} from '@mattermost/types/plugins';
 import type {PreferenceType} from '@mattermost/types/preferences';
 import type {UserProfile} from '@mattermost/types/users';
 
-import {createNewTeam, getAdminClient, getDefaultAdminUser, makeClient, runMmctlLocal} from './server';
+import {
+    createNewTeam,
+    disableUnexpectedPlugins,
+    getAdminClient,
+    getDefaultAdminUser,
+    makeClient,
+    runMmctlLocal,
+} from './server';
 import {testConfig} from './test_config';
+import {isUpgradePathProjectSelected} from './upgrade_env';
 import {defaultTeam} from './util';
 
 export async function baseGlobalSetup() {
@@ -96,8 +104,29 @@ async function sysadminSetup(client: Client4, user: UserProfile | null) {
     // Set default preferences
     await savePreferences(client, user?.id ?? '');
 
-    // Log plugin details
+    await resetPluginState(client);
     await printPluginDetails(client);
+}
+
+/**
+ * Deactivates plugins a previous run left enabled, so they cannot alter the webapp for the specs
+ * that follow. Skipped for the upgrade-path projects, where surviving plugin state is under test.
+ */
+async function resetPluginState(client: Client4) {
+    if (isUpgradePathProjectSelected()) {
+        return;
+    }
+
+    try {
+        const disabled = await disableUnexpectedPlugins(client, testConfig.ensurePluginsInstalled);
+        if (disabled.length) {
+            // eslint-disable-next-line no-console
+            console.log(`Disabled plugins left active by an earlier run: ${disabled.join(', ')}`);
+        }
+    } catch (error) {
+        // eslint-disable-next-line no-console
+        console.log('Could not reset plugin state', error);
+    }
 }
 
 function printPlaywrightTestConfig() {

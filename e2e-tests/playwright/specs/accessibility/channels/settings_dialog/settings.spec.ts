@@ -96,17 +96,23 @@ test('navigates between settings tabs using arrow keys', {tag: ['@accessibility'
     await pw.toBeFocusedWithFocusVisible(settingsModal.advancedTab);
     await expect(settingsModal.advancedSettings.container).toBeVisible();
 
+    // # Press arrow down through the tabs plugins add after Advanced, Calls among them
+    const builtInTabs = 4;
+    const lastTab = settingsModal.tabs.last();
+    for (let i = 0; i < (await settingsModal.tabs.count()) - builtInTabs; i++) {
+        await page.keyboard.press('ArrowDown');
+    }
+    await pw.toBeFocusedWithFocusVisible(lastTab);
+
     // # Press arrow down key and verify focus is back on Notifications tab and Notifications Settings panel is visible
     await page.keyboard.press('ArrowDown');
     await expect(settingsModal.notificationsTab).toBeVisible();
     await pw.toBeFocusedWithFocusVisible(settingsModal.notificationsTab);
     await expect(settingsModal.notificationsSettings.container).toBeVisible();
 
-    // # Press arrow up key and verify focus is on Advanced tab and Advanced Settings panel is visible
+    // # Press arrow up key and verify focus wraps to the last tab
     await page.keyboard.press('ArrowUp');
-    await expect(settingsModal.advancedTab).toBeVisible();
-    await pw.toBeFocusedWithFocusVisible(settingsModal.advancedTab);
-    await expect(settingsModal.advancedSettings.container).toBeVisible();
+    await pw.toBeFocusedWithFocusVisible(lastTab);
 });
 
 /**

@@ -25,10 +25,10 @@ on:
         type: string
         required: false
       workers:
-        description: "Dispatch workers per from-version"
+        description: "Dispatch workers"
         type: number
         required: false
-        default: 10
+        default: 20
 
   workflow_call:
     inputs:
@@ -73,8 +73,8 @@ on:
       workers:
         type: number
         required: false
-        default: 10
-        description: "Dispatch workers per from-version. Each one upgrades its own server first, so this trades runner count against how long the suite takes to drain."
+        default: 20
+        description: "Dispatch workers"
     secrets:
       MM_LICENSE:
         required: false

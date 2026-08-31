@@ -5,6 +5,7 @@ import merge from 'deepmerge';
 import type {
     AccessControlSettings,
     AdminConfig,
+    AnnouncementSettings,
     ClusterSettings,
     EmailSettings,
     ExperimentalSettings,
@@ -28,6 +29,7 @@ export function getOnPremServerConfigPatch(): Partial<AdminConfig> {
 
 type TestAdminConfig = {
     AccessControlSettings: Partial<AccessControlSettings>;
+    AnnouncementSettings: Partial<AnnouncementSettings>;
     ClusterSettings: Partial<ClusterSettings>;
     EmailSettings: Partial<EmailSettings>;
     ExperimentalSettings: Partial<ExperimentalSettings>;
@@ -39,15 +41,18 @@ type TestAdminConfig = {
 
 // On-prem setting that is different from the default.
 //
-// Deliberately carries no PluginSettings: patchConfig replaces the PluginStates map wholesale
-// (SetDefaults then refills the missing prepackaged ids), so patching it here would clobber
-// whatever plugin a running spec just enabled. Specs own their plugins through enablePlugin /
-// disablePlugin, which the server applies per id.
+// Carries no PluginSettings: patchConfig replaces the PluginStates map wholesale, which would
+// clobber the plugins a running spec enabled. Specs enable and disable plugins per id instead.
 const onPremServerConfig = (): Partial<TestAdminConfig> => {
     return {
         AccessControlSettings: {
             EnableAttributeBasedAccessControl: true,
             EnableUserManagedAttributes: true,
+        },
+        AnnouncementSettings: {
+            // An in-product notice opens a modal over the channel view and swallows clicks near it.
+            AdminNoticesEnabled: false,
+            UserNoticesEnabled: false,
         },
         ClusterSettings: {
             Enable: testConfig.haClusterEnabled,

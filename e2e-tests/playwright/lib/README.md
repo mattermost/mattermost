@@ -84,6 +84,12 @@ Helper functions for common testing needs:
 - Visual testing
 - And more...
 
+Global setup leaves only the plugins a fresh install has active (Calls, Playbooks, Agents, NPS) and
+deactivates the rest, so a plugin one spec enabled cannot alter the webapp for the next one — the
+demo plugin, for instance, replaces the attachment button with its own upload menu. A spec needing
+another plugin enables it itself with `pw.installAndEnablePlugin()` or `pw.ensurePluginsLoaded()`.
+`PW_ENSURE_PLUGINS_INSTALLED` is honoured and left active.
+
 ## Configuration
 
 The library can be configured via optional environment variables:
