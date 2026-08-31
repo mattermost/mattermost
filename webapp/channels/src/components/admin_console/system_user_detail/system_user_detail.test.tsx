@@ -1072,6 +1072,55 @@ describe('SystemUserDetail', () => {
                 expect(changesList).toHaveTextContent('ghost-2');
                 expect(changesList).not.toHaveTextContent('Value unavailable');
             });
+
+            // The two field kinds that share resolveOptionNames' array branch
+            // without ever mounting a picker. For them an empty name map means
+            // "nobody was ever going to write one", not "the read failed", so
+            // the unavailable wording would be a lie -- and both printed the id
+            // before the graph picker existed, which is what flag-off has to
+            // keep doing.
+            const staleOptions = [
+                {id: 'opt-1', name: 'Alpha'},
+                {id: 'opt-3', name: 'Gamma'},
+            ];
+
+            const addGammaAndSave = async () => {
+                const picker = within(fieldContainer()).getByRole('combobox');
+                await userEvent.click(picker);
+                await userEvent.click(await screen.findByText('Gamma'));
+                await userEvent.click(screen.getByRole('button', {name: 'Save'}));
+                return screen.findByTestId('changesList');
+            };
+
+            test('G22: prints the id for a stale multiselect value, with no picker in sight', async () => {
+                const field = {
+                    ...buildCPAField({options: staleOptions}),
+                    type: 'multiselect',
+                } as UserPropertyField;
+
+                renderDetail(field, ['opt-1', 'ghost-1']);
+                await waitForLoadingToFinish();
+
+                const changesList = await addGammaAndSave();
+                expect(changesList).toHaveTextContent('ghost-1');
+                expect(changesList).not.toHaveTextContent('Value unavailable');
+
+                // Not a graph field, so nothing should have gone looking.
+                expect(mockPageAll).not.toHaveBeenCalled();
+            });
+
+            test('G23: prints the id for a stale graph value when the flag is off', async () => {
+                // Definition of Done, line 2: with the flag off this file must
+                // behave exactly as it did before Phase 5, and before Phase 5
+                // this summary printed the id.
+                renderDetail(buildGraphField({options: staleOptions}), ['opt-1', 'ghost-1'], {flagOn: false});
+                await waitForLoadingToFinish();
+
+                const changesList = await addGammaAndSave();
+                expect(changesList).toHaveTextContent('ghost-1');
+                expect(changesList).not.toHaveTextContent('Value unavailable');
+                expect(mockPageAll).not.toHaveBeenCalled();
+            });
         });
     });
 });

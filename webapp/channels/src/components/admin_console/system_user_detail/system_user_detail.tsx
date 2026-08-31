@@ -575,17 +575,24 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                     return name;
                 }
 
-                // Two different reasons an id has no name, and the picker shows
-                // them differently, so this summary has to as well or it
+                // Two different reasons a graph id has no name, and the picker
+                // shows them differently, so this summary has to as well or it
                 // contradicts the chips a few pixels away.
                 //
-                // No entry for the field at all means no read ever succeeded --
-                // the picker reports an empty map on success precisely so this
-                // case is distinguishable -- and nothing whatever is known about
-                // the id. The chip reads "Value unavailable"; so does this, from
-                // the widget's own descriptor rather than a second copy of the
+                // No entry for the field means no read succeeded -- the picker
+                // reports an empty map on success precisely so this case is
+                // distinguishable -- and nothing whatever is known about the id.
+                // The chip reads "Value unavailable"; so does this, from the
+                // widget's own descriptor rather than a second copy of the
                 // string, because two literals for one message drift.
-                if (!resolved) {
+                //
+                // Gated on the field being a mounted graph picker, because a
+                // missing entry only means a failed read where something was
+                // supposed to write one. This branch is shared with multiselect
+                // and rank, and with graph itself when the flag is off, and in
+                // all of those no picker ever mounts: the absence means "no read
+                // was attempted", which is the stale case below, not a failure.
+                if (!resolved && field.type === 'graph' && this.props.isGraphPickerEnabled) {
                     return this.props.intl.formatMessage(unavailableValueMessage);
                 }
 
