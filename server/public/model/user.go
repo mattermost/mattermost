@@ -628,40 +628,25 @@ func parseMentionKeys(raw string) []string {
 	return keys
 }
 
-// MentionKeysExceedLimits reports whether raw, after normalization, exceeds
-// MentionKeysMaxCount keys or MentionKeysMaxLength total bytes.
-// Normalisation matches PreUpdate: split on commas, trim whitespace, drop blanks.
+// MentionKeysExceedLimits reports whether raw exceeds the mention key limits,
+// either as given or once normalized.
 func MentionKeysExceedLimits(raw string) bool {
+	if len(raw) > MentionKeysMaxLength {
+		return true
+	}
+
 	keys := parseMentionKeys(raw)
 	if len(keys) > MentionKeysMaxCount {
 		return true
 	}
+
+	// Lowercasing can grow a key, so raw within the limit can normalize past it.
 	return len(joinMentionKeys(keys)) > MentionKeysMaxLength
 }
 
 // joinMentionKeys joins keys with commas, the inverse of parseMentionKeys.
 func joinMentionKeys(keys []string) string {
 	return strings.Join(keys, ",")
-}
-
-// capMentionKeys returns a sub-slice of keys capped to at most
-// MentionKeysMaxCount entries and MentionKeysMaxLength total bytes when joined
-// with commas. It never truncates mid-key.
-func capMentionKeys(keys []string) []string {
-	if len(keys) > MentionKeysMaxCount {
-		keys = keys[:MentionKeysMaxCount]
-	}
-	totalLen := 0
-	for i, k := range keys {
-		if i > 0 {
-			totalLen++ // comma separator
-		}
-		totalLen += len(k)
-		if totalLen > MentionKeysMaxLength {
-			return keys[:i]
-		}
-	}
-	return keys
 }
 
 func (u *User) UpdateMentionKeysFromUsername(oldUsername string) {
@@ -678,8 +663,33 @@ func (u *User) UpdateMentionKeysFromUsername(oldUsername string) {
 	}
 }
 
+// GetMentionKeys returns the user's mention keys, normalized and truncated to
+// the mention key limits.
 func (u *User) GetMentionKeys() []string {
-	return capMentionKeys(parseMentionKeys(u.NotifyProps[MentionKeysNotifyProp]))
+	var keys []string
+	total := 0
+
+	for k := range strings.SplitSeq(u.NotifyProps[MentionKeysNotifyProp], ",") {
+		if len(keys) == MentionKeysMaxCount {
+			break
+		}
+
+		key := strings.ToLower(strings.TrimSpace(k))
+		if key == "" {
+			continue
+		}
+
+		if total > 0 {
+			total++ // comma separator
+		}
+		if total += len(key); total > MentionKeysMaxLength {
+			break
+		}
+
+		keys = append(keys, key)
+	}
+
+	return keys
 }
 
 func (u *User) Patch(patch *UserPatch) {

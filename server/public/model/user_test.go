@@ -296,6 +296,19 @@ func TestUserMentionKeysLimits(t *testing.T) {
 		totalLen += len(k)
 	}
 	assert.LessOrEqual(t, totalLen, MentionKeysMaxLength)
+
+	// A value that normalizes away to nothing is still rejected on raw length,
+	// otherwise it would be accepted and stored at any size.
+	assert.True(t, MentionKeysExceedLimits(strings.Repeat(",", MentionKeysMaxLength+1)))
+	assert.True(t, MentionKeysExceedLimits(strings.Repeat(" , ", MentionKeysMaxLength)))
+	u5 := User{NotifyProps: map[string]string{
+		MentionKeysNotifyProp: strings.Repeat(",", MentionKeysMaxLength+1),
+	}}
+	assert.Empty(t, u5.GetMentionKeys())
+
+	// A raw value at the limit that normalizes within it is still accepted.
+	assert.False(t, MentionKeysExceedLimits(strings.Repeat("a", MentionKeysMaxLength)))
+	assert.False(t, MentionKeysExceedLimits(""))
 }
 
 func TestUserUpdateMentionKeysFromUsername(t *testing.T) {
@@ -399,11 +412,18 @@ func TestUserIsValid(t *testing.T) {
 	appErr = user.IsValid()
 	require.True(t, HasExpectedUserIsValidError(appErr, "mention_keys", user.Id, ""), "expected mention_keys error: %s", appErr.Error())
 
-	// blank padding must not trigger the limit
+	// blank padding within the raw limit must not trigger the limit
+	user.NotifyProps = map[string]string{
+		MentionKeysNotifyProp: strings.Repeat(",", MentionKeysMaxLength),
+	}
+	require.Nil(t, user.IsValid())
+
+	// blank padding beyond the raw limit is rejected on length alone
 	user.NotifyProps = map[string]string{
 		MentionKeysNotifyProp: strings.Repeat(",", MentionKeysMaxLength+1),
 	}
-	require.Nil(t, user.IsValid())
+	appErr = user.IsValid()
+	require.True(t, HasExpectedUserIsValidError(appErr, "mention_keys", user.Id, ""), "expected mention_keys error: %s", appErr.Error())
 
 	// over the key-count limit
 	keys := make([]string, MentionKeysMaxCount+1)
