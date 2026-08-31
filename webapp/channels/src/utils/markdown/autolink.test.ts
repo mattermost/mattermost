@@ -128,6 +128,24 @@ describe('matchGFMUrl', () => {
         );
     });
 
+    test('stops at self-closing HTML tag after URL path', () => {
+        expect(matchGFMUrl('www.example.com/path<br/>')?.[0]).toBe(
+            'www.example.com/path',
+        );
+        expect(matchGFMUrl('www.example.com/path<br />')?.[0]).toBe(
+            'www.example.com/path',
+        );
+        expect(matchGFMUrl('https://example.com/foo<img src="x"/>')?.[0]).toBe(
+            'https://example.com/foo',
+        );
+    });
+
+    test('stops at HTML tag with attributes after URL path', () => {
+        expect(matchGFMUrl('www.example.com/path<b class="x">bold</b>')?.[0]).toBe(
+            'www.example.com/path',
+        );
+    });
+
     test('keeps angle brackets in URL path with godbolt context', () => {
         expect(matchGFMUrl('https://godbolt.org/#include+<meta> rest')?.[0]).toBe(
             'https://godbolt.org/#include+<meta>',

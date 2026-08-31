@@ -197,7 +197,8 @@ func isValidHostCharacter(link string) bool {
 	return !unicode.IsSpace(c) && !unicode.IsPunct(c)
 }
 
-// Returns true if data[position] looks like the start of an HTML tag (<tag> or </).
+// Returns true if data[position] looks like the start of an HTML tag
+// (<tag>, <tag/>, <tag ...>, or </).
 func looksLikeHTMLTagAt(data string, position int) bool {
 	if position >= len(data) || data[position] != '<' || position+1 >= len(data) {
 		return false
@@ -216,7 +217,27 @@ func looksLikeHTMLTagAt(data string, position int) bool {
 		i++
 	}
 
-	return i < len(data) && data[i] == '>'
+	if i >= len(data) {
+		return false
+	}
+
+	switch data[i] {
+	case '>':
+		return true
+	case '/':
+		return i+1 < len(data) && data[i+1] == '>'
+	case ' ', '\t':
+		for i++; i < len(data); i++ {
+			switch data[i] {
+			case '>':
+				return true
+			case '<', '\n', '\r':
+				return false
+			}
+		}
+	}
+
+	return false
 }
 
 // Returns true if c is an ASCII letter.

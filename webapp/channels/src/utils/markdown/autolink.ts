@@ -7,6 +7,7 @@ import marked from 'marked';
 
 const URL_PREFIX = /^(?:[A-Za-z][A-Za-z\d.+-]*:(?:\/{1,3}|[\p{L}\d%])|www\d{0,3}\.|[\p{L}\d.-]+[.]\p{L}{2,4}\/)/u;
 
+// Returns true if c is ASCII whitespace.
 function isWhitespace(c: string): boolean {
     return c === ' ' || c === '\t' || c === '\n' || c === '\u000b' || c === '\u000c' || c === '\r';
 }
@@ -40,6 +41,7 @@ function isFullWidthOrCjkUrlTerminator(c: string): boolean {
     return c === '\u00AB' || c === '\u00BB' || c === '\u201C' || c === '\u201D' || c === '\u2018' || c === '\u2019';
 }
 
+// Returns false for trailing punctuation that should be trimmed from an autolink.
 function canEndAutolink(c: string): boolean {
     switch (c) {
     case '?':
@@ -58,6 +60,7 @@ function canEndAutolink(c: string): boolean {
     }
 }
 
+// Returns true if a trailing '>' should be trimmed (no earlier '<' in the link).
 function shouldTrimTrailingAngleBracket(runes: string[], linkEnd: number): boolean {
     for (let i = 0; i < linkEnd - 1; i++) {
         if (runes[i] === '<') {
@@ -68,6 +71,8 @@ function shouldTrimTrailingAngleBracket(runes: string[], linkEnd: number): boole
     return true;
 }
 
+// Returns true if src[position] looks like the start of an HTML tag
+// (<tag>, <tag/>, <tag ...>, or </).
 function looksLikeHtmlTagAt(src: string, position: number): boolean {
     if (src[position] !== '<' || position + 1 >= src.length) {
         return false;
@@ -87,7 +92,28 @@ function looksLikeHtmlTagAt(src: string, position: number): boolean {
         i++;
     }
 
-    return i < src.length && src[i] === '>';
+    if (i >= src.length) {
+        return false;
+    }
+
+    if (src[i] === '>') {
+        return true;
+    }
+    if (src[i] === '/') {
+        return i + 1 < src.length && src[i + 1] === '>';
+    }
+    if (src[i] === ' ' || src[i] === '\t') {
+        for (i++; i < src.length; i++) {
+            if (src[i] === '>') {
+                return true;
+            }
+            if (src[i] === '<' || src[i] === '\n' || src[i] === '\r') {
+                return false;
+            }
+        }
+    }
+
+    return false;
 }
 
 // Stop at </ or at an opening HTML tag glued to the host (www.example.com<b>),
@@ -130,6 +156,7 @@ function shouldStopAtAngleBracket(src: string, position: number, urlStart: numbe
     return true;
 }
 
+// Removes trailing punctuation, entities, and unmatched brackets from an autolink URL.
 export function trimTrailingCharactersFromLink(url: string): string {
     const runes = [...url];
     let linkEnd = runes.length;
@@ -181,6 +208,7 @@ export function trimTrailingCharactersFromLink(url: string): string {
     return runes.slice(0, linkEnd).join('');
 }
 
+// Extends a URL match past its scheme/www prefix until a terminator, then trims the end.
 function extendUrl(src: string, prefixLength: number, urlStart = 0): string {
     let end = prefixLength;
 
@@ -205,6 +233,7 @@ function extendUrl(src: string, prefixLength: number, urlStart = 0): string {
     return trimTrailingCharactersFromLink(src.substring(0, end));
 }
 
+// Matches a GFM-style autolink at the start of src, returning a RegExpExecArray-like result.
 export function matchGFMUrl(src: string): RegExpExecArray | null {
     const prefix = URL_PREFIX.exec(src);
     if (!prefix) {
@@ -226,6 +255,7 @@ type MatcherRule = {exec: (src: string) => RegExpExecArray | null};
 
 let installed = false;
 
+// Installs matchGFMUrl as marked's inline URL matcher for GFM/breaks/normal/pedantic rules.
 export function installCustomUrlMatcher(): void {
     if (installed) {
         return;
