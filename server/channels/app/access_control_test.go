@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
@@ -63,6 +64,13 @@ func storeMockWithMaskingOff(tb testing.TB) *TestHelper {
 	// listeners that call Store.Post(), which the mock store lacks.
 	th.App.Config().FeatureFlags.AttributeValueMasking = false
 	return th
+}
+
+// stubACPEtagInvalidation stubs the render-ETag cache invalidation calls the policy publish paths
+// make through the store, so mock-store tests that mutate a policy don't panic on them.
+func stubACPEtagInvalidation(m *storemocks.AccessControlPolicyStore) {
+	m.On("InvalidateEtagForChannel", mock.Anything).Return().Maybe()
+	m.On("ClearEtagCache").Return().Maybe()
 }
 
 func TestCreateOrUpdateAccessControlPolicy(t *testing.T) {
@@ -171,6 +179,9 @@ func TestCreateOrUpdateAccessControlPolicy(t *testing.T) {
 		mockStore := thMock.App.Srv().Store().(*storemocks.Store)
 		mockChannelStore := storemocks.ChannelStore{}
 		mockStore.On("Channel").Return(&mockChannelStore)
+		mockACPStore := storemocks.AccessControlPolicyStore{}
+		stubACPEtagInvalidation(&mockACPStore)
+		mockStore.On("AccessControlPolicy").Return(&mockACPStore)
 		// publishChannelPolicyEnforcedUpdate is expected to invalidate the
 		// channel cache and reload the channel for the WS payload.
 		mockChannelStore.On("InvalidateChannel", channelID).Once()
@@ -222,6 +233,7 @@ func TestCreateOrUpdateAccessControlPolicy(t *testing.T) {
 		// A parent save fans out to both its channel and team children;
 		// with no children of either kind, neither search yields a broadcast.
 		mockACPStore := storemocks.AccessControlPolicyStore{}
+		stubACPEtagInvalidation(&mockACPStore)
 		mockStore.On("AccessControlPolicy").Return(&mockACPStore)
 		expectNoStoredPolicy(&mockACPStore, thMock.Context, parentID)
 		mockACPStore.On("SearchPolicies", thMock.Context, mock.MatchedBy(func(s model.AccessControlPolicySearch) bool {
@@ -435,6 +447,7 @@ func TestDeleteAccessControlPolicy(t *testing.T) {
 
 		// channel-type policies must NOT trigger a parent fan-out search.
 		mockACPStore := storemocks.AccessControlPolicyStore{}
+		stubACPEtagInvalidation(&mockACPStore)
 		mockStore.On("AccessControlPolicy").Return(&mockACPStore).Maybe()
 
 		mockAccessControl := &mocks.AccessControlServiceInterface{}
@@ -472,6 +485,7 @@ func TestDeleteAccessControlPolicy(t *testing.T) {
 		mockChannelStore.On("Get", childChannelID, true).Return(&model.Channel{Id: childChannelID, Type: model.ChannelTypePrivate}, nil).Once()
 
 		mockACPStore := storemocks.AccessControlPolicyStore{}
+		stubACPEtagInvalidation(&mockACPStore)
 		mockStore.On("AccessControlPolicy").Return(&mockACPStore)
 		// channelPolicyIDsWithImport (called pre-delete) returns one child.
 		mockACPStore.On("SearchPolicies", thMock.Context, mock.MatchedBy(func(s model.AccessControlPolicySearch) bool {
@@ -579,6 +593,9 @@ func TestDeleteAccessControlPolicy(t *testing.T) {
 		mockStore := thMock.App.Srv().Store().(*storemocks.Store)
 		mockChannelStore := storemocks.ChannelStore{}
 		mockStore.On("Channel").Return(&mockChannelStore)
+		mockACPStore := storemocks.AccessControlPolicyStore{}
+		stubACPEtagInvalidation(&mockACPStore)
+		mockStore.On("AccessControlPolicy").Return(&mockACPStore)
 		mockChannelStore.On("InvalidateChannel", channelID).Once()
 		mockChannelStore.On("Get", channelID, true).Return(&model.Channel{Id: channelID, Type: model.ChannelTypePrivate}, nil).Once()
 
@@ -1529,6 +1546,7 @@ func TestUnassignPoliciesFromChannels(t *testing.T) {
 		mockStore := thMock.App.Srv().Store().(*storemocks.Store)
 
 		mockAccessControlPolicyStore := storemocks.AccessControlPolicyStore{}
+		stubACPEtagInvalidation(&mockAccessControlPolicyStore)
 		mockStore.On("AccessControlPolicy").Return(&mockAccessControlPolicyStore)
 		// Mock SearchPolicies to return the child policy as a child of the parent
 		mockAccessControlPolicyStore.On("SearchPolicies", thMock.Context, model.AccessControlPolicySearch{
@@ -2405,6 +2423,43 @@ func TestHasPermissionToFileAction(t *testing.T) {
 
 		result := th.App.HasPermissionToFileAction(th.Context, th.BasicUser.Id, th.BasicUser.Roles, th.BasicChannel.Id, model.AccessControlPolicyActionDownloadFileAttachment)
 		assert.True(t, result)
+	})
+
+	// Above are the allow short-circuits; below are the two paths that actually withhold access.
+	t.Run("should deny when the policy denies the action", func(t *testing.T) {
+		mockAccessControl := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().ch.AccessControl = mockAccessControl
+
+		th.ConfigStore.SetReadOnlyFF(false)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(true)
+			cfg.FeatureFlags.PermissionPolicies = true
+		})
+
+		mockAccessControl.On("AccessEvaluation", mock.Anything, mock.MatchedBy(func(req model.AccessRequest) bool {
+			return req.Resource.ID == th.BasicChannel.Id &&
+				req.Action == model.AccessControlPolicyActionDownloadFileAttachment
+		})).Return(model.AccessDecision{Decision: false}, (*model.AppError)(nil))
+
+		result := th.App.HasPermissionToFileAction(th.Context, th.BasicUser.Id, th.BasicUser.Roles, th.BasicChannel.Id, model.AccessControlPolicyActionDownloadFileAttachment)
+		assert.False(t, result)
+	})
+
+	t.Run("should deny when the evaluation errors (fail-secure)", func(t *testing.T) {
+		mockAccessControl := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().ch.AccessControl = mockAccessControl
+
+		th.ConfigStore.SetReadOnlyFF(false)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(true)
+			cfg.FeatureFlags.PermissionPolicies = true
+		})
+
+		mockAccessControl.On("AccessEvaluation", mock.Anything, mock.Anything).
+			Return(model.AccessDecision{}, model.NewAppError("AccessEvaluation", "app.pdp.access_evaluation.app_error", nil, "", http.StatusInternalServerError))
+
+		result := th.App.HasPermissionToFileAction(th.Context, th.BasicUser.Id, th.BasicUser.Roles, th.BasicChannel.Id, model.AccessControlPolicyActionDownloadFileAttachment)
+		assert.False(t, result)
 	})
 }
 
@@ -3628,9 +3683,14 @@ func TestCPAFieldIsProtectedForChannelAdmin(t *testing.T) {
 func TestRedactProtectedActualValuesInTree(t *testing.T) {
 	mainHelper.Parallel(t)
 
-	protected := map[string]struct{}{
-		"Clearance":   {},
-		"NetworkZone": {},
+	protected := protectedCPAAttributes{
+		user: map[string]struct{}{
+			"Clearance":   {},
+			"NetworkZone": {},
+		},
+		resource: map[string]struct{}{
+			"Sensitivity": {},
+		},
 	}
 
 	t.Run("redacts ActualValue on protected leaves at every depth", func(t *testing.T) {
@@ -3656,6 +3716,19 @@ func TestRedactProtectedActualValuesInTree(t *testing.T) {
 							Kind:        model.PolicySimulationEvaluationKindCompare,
 							Attribute:   "user.attributes.Region",
 							ActualValue: "us",
+						},
+						// Protected channel attribute: blanked against the
+						// resource set, not the user set.
+						{
+							Kind:        model.PolicySimulationEvaluationKindCompare,
+							Attribute:   "resource.attributes.Sensitivity",
+							ActualValue: "secret",
+						},
+						// Public channel attribute: preserved.
+						{
+							Kind:        model.PolicySimulationEvaluationKindCompare,
+							Attribute:   "resource.attributes.Region",
+							ActualValue: "us-east",
 						},
 					},
 				},
@@ -3683,6 +3756,10 @@ func TestRedactProtectedActualValuesInTree(t *testing.T) {
 		assert.Empty(t, tree.Children[1].Children[0].ActualValue, "NetworkZone leaf must be blanked")
 		assert.Equal(t, "us", tree.Children[1].Children[1].ActualValue, "Region leaf must be preserved")
 
+		// Protected channel attribute blanked; public channel attribute preserved.
+		assert.Empty(t, tree.Children[1].Children[2].ActualValue, "resource Sensitivity leaf must be blanked")
+		assert.Equal(t, "us-east", tree.Children[1].Children[3].ActualValue, "resource Region leaf must be preserved")
+
 		// Function leaf with no attribute path is left alone.
 		assert.Equal(t, "some-internal-value", tree.Children[2].ActualValue, "non-user-attribute leaf must be preserved")
 	})
@@ -3699,7 +3776,7 @@ func TestRedactProtectedActualValuesInTree(t *testing.T) {
 			Attribute:   "user.attributes.Clearance",
 			ActualValue: "il5",
 		}
-		redactProtectedActualValuesInTree(tree, nil)
+		redactProtectedActualValuesInTree(tree, protectedCPAAttributes{})
 
 		// Helper itself is unconditional but the public entry point
 		// short-circuits before calling it with an empty set —
@@ -3713,16 +3790,32 @@ func TestRedactProtectedActualValuesInTree(t *testing.T) {
 // paths, empty paths, and empty protected sets.
 func TestIsProtectedAttributePath(t *testing.T) {
 	mainHelper.Parallel(t)
-	protected := map[string]struct{}{"Clearance": {}}
+	// Clearance is protected only on the user side, Sensitivity only on the
+	// resource side — so a leaf must match the set for its own root.
+	protected := protectedCPAAttributes{
+		user:     map[string]struct{}{"Clearance": {}},
+		resource: map[string]struct{}{"Sensitivity": {}},
+	}
 
 	t.Run("returns true for the canonical user.attributes.<name> form", func(t *testing.T) {
 		assert.True(t, isProtectedAttributePath("user.attributes.Clearance", protected))
 	})
 
-	t.Run("returns false for non-user-attribute paths", func(t *testing.T) {
-		// Resource / session / channel paths must not collide with
-		// the user-attributes namespace — only `user.attributes.*`
-		// is in scope for the CPA visibility filter.
+	t.Run("returns true for the canonical resource.attributes.<name> form", func(t *testing.T) {
+		assert.True(t, isProtectedAttributePath("resource.attributes.Sensitivity", protected))
+	})
+
+	t.Run("matches each root against its own set, not the other's", func(t *testing.T) {
+		// Clearance is protected user-side but not resource-side, and
+		// vice versa for Sensitivity — the sets must not cross.
+		assert.False(t, isProtectedAttributePath("resource.attributes.Clearance", protected))
+		assert.False(t, isProtectedAttributePath("user.attributes.Sensitivity", protected))
+	})
+
+	t.Run("returns false for non-CPA paths", func(t *testing.T) {
+		// Session / native / bare resource selectors carry no
+		// `.attributes.` segment — only `user.attributes.*` and
+		// `resource.attributes.*` are in scope for the CPA filter.
 		assert.False(t, isProtectedAttributePath("session.network_status", protected))
 		assert.False(t, isProtectedAttributePath("resource.id", protected))
 		assert.False(t, isProtectedAttributePath("channel.member_count", protected))
@@ -3730,12 +3823,15 @@ func TestIsProtectedAttributePath(t *testing.T) {
 
 	t.Run("returns false for paths whose suffix is not in the protected set", func(t *testing.T) {
 		assert.False(t, isProtectedAttributePath("user.attributes.Region", protected))
+		assert.False(t, isProtectedAttributePath("resource.attributes.Region", protected))
 	})
 
 	t.Run("returns false for empty inputs", func(t *testing.T) {
 		assert.False(t, isProtectedAttributePath("", protected))
-		assert.False(t, isProtectedAttributePath("user.attributes.Clearance", nil))
+		assert.False(t, isProtectedAttributePath("user.attributes.Clearance", protectedCPAAttributes{}))
 		assert.False(t, isProtectedAttributePath("user.attributes.", protected),
+			"empty suffix must not match — that's a malformed path, not a protected reference")
+		assert.False(t, isProtectedAttributePath("resource.attributes.", protected),
 			"empty suffix must not match — that's a malformed path, not a protected reference")
 	})
 }
@@ -4319,6 +4415,7 @@ func TestHydrateChannelPolicyActions(t *testing.T) {
 		thMock := SetupWithStoreMock(t)
 		mockStore := thMock.App.Srv().Store().(*storemocks.Store)
 		mockACPStore := storemocks.AccessControlPolicyStore{}
+		stubACPEtagInvalidation(&mockACPStore)
 		// We register the AccessControlPolicy() accessor in case any other
 		// path touches it, but `GetActionsForPolicy` MUST NOT be called
 		// when PolicyEnforced is false — that's the whole point of the
@@ -4342,6 +4439,7 @@ func TestHydrateChannelPolicyActions(t *testing.T) {
 		thMock := SetupWithStoreMock(t)
 		mockStore := thMock.App.Srv().Store().(*storemocks.Store)
 		mockACPStore := storemocks.AccessControlPolicyStore{}
+		stubACPEtagInvalidation(&mockACPStore)
 		mockStore.On("AccessControlPolicy").Return(&mockACPStore)
 
 		channelID := model.NewId()
@@ -4360,6 +4458,7 @@ func TestHydrateChannelPolicyActions(t *testing.T) {
 		thMock := SetupWithStoreMock(t)
 		mockStore := thMock.App.Srv().Store().(*storemocks.Store)
 		mockACPStore := storemocks.AccessControlPolicyStore{}
+		stubACPEtagInvalidation(&mockACPStore)
 		mockStore.On("AccessControlPolicy").Return(&mockACPStore)
 
 		channelID := model.NewId()
@@ -4377,6 +4476,7 @@ func TestHydrateChannelPolicyActions(t *testing.T) {
 		thMock := SetupWithStoreMock(t)
 		mockStore := thMock.App.Srv().Store().(*storemocks.Store)
 		mockACPStore := storemocks.AccessControlPolicyStore{}
+		stubACPEtagInvalidation(&mockACPStore)
 		mockStore.On("AccessControlPolicy").Return(&mockACPStore)
 
 		channelID := model.NewId()
@@ -4394,6 +4494,7 @@ func TestHydrateChannelPolicyActions(t *testing.T) {
 		thMock := SetupWithStoreMock(t)
 		mockStore := thMock.App.Srv().Store().(*storemocks.Store)
 		mockACPStore := storemocks.AccessControlPolicyStore{}
+		stubACPEtagInvalidation(&mockACPStore)
 		mockStore.On("AccessControlPolicy").Return(&mockACPStore)
 
 		channelID := model.NewId()
@@ -4413,6 +4514,7 @@ func TestHydrateChannelsPolicyActions(t *testing.T) {
 		thMock := SetupWithStoreMock(t)
 		mockStore := thMock.App.Srv().Store().(*storemocks.Store)
 		mockACPStore := storemocks.AccessControlPolicyStore{}
+		stubACPEtagInvalidation(&mockACPStore)
 		mockStore.On("AccessControlPolicy").Return(&mockACPStore).Maybe()
 
 		appErr := thMock.App.HydrateChannelsPolicyActions(thMock.Context, nil)
@@ -4426,6 +4528,7 @@ func TestHydrateChannelsPolicyActions(t *testing.T) {
 		thMock := SetupWithStoreMock(t)
 		mockStore := thMock.App.Srv().Store().(*storemocks.Store)
 		mockACPStore := storemocks.AccessControlPolicyStore{}
+		stubACPEtagInvalidation(&mockACPStore)
 		mockStore.On("AccessControlPolicy").Return(&mockACPStore).Maybe()
 
 		channels := []*model.Channel{
@@ -4444,6 +4547,7 @@ func TestHydrateChannelsPolicyActions(t *testing.T) {
 		thMock := SetupWithStoreMock(t)
 		mockStore := thMock.App.Srv().Store().(*storemocks.Store)
 		mockACPStore := storemocks.AccessControlPolicyStore{}
+		stubACPEtagInvalidation(&mockACPStore)
 		mockStore.On("AccessControlPolicy").Return(&mockACPStore)
 
 		enforced1 := model.NewId()
@@ -4484,6 +4588,7 @@ func TestHydrateChannelsPolicyActions(t *testing.T) {
 		thMock := SetupWithStoreMock(t)
 		mockStore := thMock.App.Srv().Store().(*storemocks.Store)
 		mockACPStore := storemocks.AccessControlPolicyStore{}
+		stubACPEtagInvalidation(&mockACPStore)
 		mockStore.On("AccessControlPolicy").Return(&mockACPStore)
 
 		enforced := model.NewId()
@@ -4506,6 +4611,7 @@ func TestHydrateChannelsPolicyActions(t *testing.T) {
 		thMock := SetupWithStoreMock(t)
 		mockStore := thMock.App.Srv().Store().(*storemocks.Store)
 		mockACPStore := storemocks.AccessControlPolicyStore{}
+		stubACPEtagInvalidation(&mockACPStore)
 		mockStore.On("AccessControlPolicy").Return(&mockACPStore)
 
 		channels := []*model.Channel{{Id: model.NewId(), PolicyEnforced: true}}
@@ -4535,6 +4641,7 @@ func TestGetChannelHydratesPolicyActions(t *testing.T) {
 			Return(&model.Channel{Id: channelID, Type: model.ChannelTypePrivate, PolicyEnforced: true}, nil).Once()
 
 		mockACPStore := storemocks.AccessControlPolicyStore{}
+		stubACPEtagInvalidation(&mockACPStore)
 		mockStore.On("AccessControlPolicy").Return(&mockACPStore)
 		mockACPStore.On("GetActionsForPolicy", thMock.Context, channelID).
 			Return(map[string]bool{model.AccessControlPolicyActionMembership: true}, nil).Once()
@@ -4557,6 +4664,7 @@ func TestGetChannelHydratesPolicyActions(t *testing.T) {
 			Return(&model.Channel{Id: channelID, Type: model.ChannelTypePrivate, PolicyEnforced: false}, nil).Once()
 
 		mockACPStore := storemocks.AccessControlPolicyStore{}
+		stubACPEtagInvalidation(&mockACPStore)
 		mockStore.On("AccessControlPolicy").Return(&mockACPStore).Maybe()
 
 		channel, appErr := thMock.App.GetChannel(thMock.Context, channelID)
@@ -4592,6 +4700,7 @@ func TestGetChannelsForTeamForUserHydratesPolicyActions(t *testing.T) {
 			}, nil).Once()
 
 		mockACPStore := storemocks.AccessControlPolicyStore{}
+		stubACPEtagInvalidation(&mockACPStore)
 		mockStore.On("AccessControlPolicy").Return(&mockACPStore)
 		mockACPStore.On("GetActionsForPolicies", thMock.Context, []string{permChannelID}).
 			Return(map[string]map[string]bool{
@@ -4636,6 +4745,7 @@ func TestGetChannelsForTeamForUserHydratesPolicyActions(t *testing.T) {
 			Return(model.ChannelList{{Id: channelID, TeamId: teamID, PolicyEnforced: true}}, nil).Once()
 
 		mockACPStore := storemocks.AccessControlPolicyStore{}
+		stubACPEtagInvalidation(&mockACPStore)
 		mockStore.On("AccessControlPolicy").Return(&mockACPStore)
 		mockACPStore.On("GetActionsForPolicies", thMock.Context, []string{channelID}).
 			Return(map[string]map[string]bool{
@@ -4664,6 +4774,7 @@ func TestGetChannelsForTeamForUserHydratesPolicyActions(t *testing.T) {
 			Return(model.ChannelList{{Id: channelID, TeamId: teamID, PolicyEnforced: true}}, nil).Once()
 
 		mockACPStore := storemocks.AccessControlPolicyStore{}
+		stubACPEtagInvalidation(&mockACPStore)
 		mockStore.On("AccessControlPolicy").Return(&mockACPStore)
 		mockACPStore.On("GetActionsForPolicies", thMock.Context, []string{channelID}).
 			Return(nil, errors.New("boom")).Once()
@@ -4699,6 +4810,7 @@ func TestSearchChannelsHydratePolicyActions(t *testing.T) {
 			}, nil).Once()
 
 		mockACPStore := storemocks.AccessControlPolicyStore{}
+		stubACPEtagInvalidation(&mockACPStore)
 		mockStore.On("AccessControlPolicy").Return(&mockACPStore)
 		mockACPStore.On("GetActionsForPolicies", thMock.Context, []string{channelID}).
 			Return(map[string]map[string]bool{
@@ -4741,6 +4853,7 @@ func TestSearchChannelsHydratePolicyActions(t *testing.T) {
 			Return(model.ChannelList{{Id: channelID, TeamId: teamID, PolicyEnforced: true}}, nil).Once()
 
 		mockACPStore := storemocks.AccessControlPolicyStore{}
+		stubACPEtagInvalidation(&mockACPStore)
 		mockStore.On("AccessControlPolicy").Return(&mockACPStore)
 		mockACPStore.On("GetActionsForPolicies", thMock.Context, []string{channelID}).
 			Return(map[string]map[string]bool{
@@ -4769,6 +4882,7 @@ func TestSearchChannelsHydratePolicyActions(t *testing.T) {
 			Return(model.ChannelList{{Id: channelID, TeamId: teamID, PolicyEnforced: true}}, nil).Once()
 
 		mockACPStore := storemocks.AccessControlPolicyStore{}
+		stubACPEtagInvalidation(&mockACPStore)
 		mockStore.On("AccessControlPolicy").Return(&mockACPStore)
 		mockACPStore.On("GetActionsForPolicies", thMock.Context, []string{channelID}).
 			Return(nil, errors.New("boom")).Once()
@@ -4877,6 +4991,7 @@ func TestPublishChannelPolicyEnforcedUpdateHydratesBroadcastPayload(t *testing.T
 		Return(&model.Channel{Id: channelID, Type: model.ChannelTypePrivate, PolicyEnforced: true}, nil).Twice()
 
 	mockACPStore := storemocks.AccessControlPolicyStore{}
+	stubACPEtagInvalidation(&mockACPStore)
 	mockStore.On("AccessControlPolicy").Return(&mockACPStore)
 	// Permission-only policy: hydrator must return an action set WITHOUT
 	// the membership key. This is the bug-fix invariant the broadcast
@@ -5348,6 +5463,7 @@ func TestUpdateAccessControlPoliciesAutoAdd_MaskingGuard(t *testing.T) {
 
 		mockStore := thMock.App.Srv().Store().(*storemocks.Store)
 		mockACPStore := storemocks.AccessControlPolicyStore{}
+		stubACPEtagInvalidation(&mockACPStore)
 		mockStore.On("AccessControlPolicy").Return(&mockACPStore)
 		mockACPStore.On("SetMembershipAutoAdd", thMock.Context, mock.Anything).Return([]*model.AccessControlPolicy{policy}, nil).Once()
 
@@ -5381,6 +5497,7 @@ func TestUpdateAccessControlPoliciesAutoAdd_MaskingGuard(t *testing.T) {
 
 		mockStore := thMock.App.Srv().Store().(*storemocks.Store)
 		mockACPStore := storemocks.AccessControlPolicyStore{}
+		stubACPEtagInvalidation(&mockACPStore)
 		mockStore.On("AccessControlPolicy").Return(&mockACPStore)
 		mockACPStore.On("SetMembershipAutoAdd", thMock.Context, mock.Anything).Return([]*model.AccessControlPolicy{policy}, nil).Once()
 
@@ -5501,6 +5618,7 @@ func TestUpdateAccessControlPoliciesAutoAdd_BroadcastsWebsocketEvents(t *testing
 
 		mockStore := thMock.App.Srv().Store().(*storemocks.Store)
 		mockACPStore := storemocks.AccessControlPolicyStore{}
+		stubACPEtagInvalidation(&mockACPStore)
 		mockStore.On("AccessControlPolicy").Return(&mockACPStore)
 		mockACPStore.On("SetMembershipAutoAdd", thMock.Context, mock.Anything).Return([]*model.AccessControlPolicy{policy}, nil).Once()
 
@@ -5532,6 +5650,7 @@ func TestUpdateAccessControlPoliciesAutoAdd_BroadcastsWebsocketEvents(t *testing
 
 		mockStore := thMock.App.Srv().Store().(*storemocks.Store)
 		mockACPStore := storemocks.AccessControlPolicyStore{}
+		stubACPEtagInvalidation(&mockACPStore)
 		mockStore.On("AccessControlPolicy").Return(&mockACPStore)
 		mockACPStore.On("SetMembershipAutoAdd", thMock.Context, mock.Anything).Return([]*model.AccessControlPolicy{policy}, nil).Once()
 
@@ -5704,7 +5823,7 @@ func TestGetAccessControlFieldsAutocomplete_ExcludesNonUserFields(t *testing.T) 
 		require.NoError(t, err)
 	}
 
-	fields, appErr := th.App.GetAccessControlFieldsAutocomplete(rctx, strings.Repeat("0", 26), 100, th.BasicUser.Id)
+	fields, appErr := th.App.GetAccessControlFieldsAutocomplete(rctx, "", false, strings.Repeat("0", 26), 100, th.BasicUser.Id)
 	require.Nil(t, appErr)
 
 	for _, f := range fields {
@@ -5717,6 +5836,116 @@ func TestGetAccessControlFieldsAutocomplete_ExcludesNonUserFields(t *testing.T) 
 		fieldIDs[i] = f.ID
 	}
 	assert.Contains(t, fieldIDs, userField.ID, "user CPA field must appear in autocomplete results")
+}
+
+// When scoped to a channel, autocomplete additionally returns channel-object-type
+// CPA fields (resource.attributes.*), each tagged with its ObjectType, alongside
+// the user fields.
+func TestGetAccessControlFieldsAutocomplete_IncludesChannelFieldsWhenScoped(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+	th.ConfigStore.SetReadOnlyFF(false)
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.FeatureFlags.ResourceAttributesInPolicies = true
+	})
+
+	rctx := request.TestContext(t)
+
+	cpaGroup, cErr := th.App.GetPropertyGroup(rctx, model.AccessControlPropertyGroupName)
+	require.Nil(t, cErr)
+
+	userField, appErr := th.App.CreatePropertyField(rctx, &model.PropertyField{
+		GroupID:    cpaGroup.ID,
+		Name:       celSafeName(),
+		Type:       model.PropertyFieldTypeSelect,
+		ObjectType: model.PropertyFieldObjectTypeUser,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
+	}, false, "")
+	require.Nil(t, appErr)
+
+	channelField, appErr := th.App.CreatePropertyField(rctx, &model.PropertyField{
+		GroupID:    cpaGroup.ID,
+		Name:       celSafeName(),
+		Type:       model.PropertyFieldTypeSelect,
+		ObjectType: model.PropertyFieldObjectTypeChannel,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
+	}, false, "")
+	require.Nil(t, appErr)
+
+	fields, appErr := th.App.GetAccessControlFieldsAutocomplete(rctx, th.BasicChannel.Id, false, strings.Repeat("0", 26), 100, th.BasicUser.Id)
+	require.Nil(t, appErr)
+
+	byID := make(map[string]*model.PropertyField, len(fields))
+	for _, f := range fields {
+		byID[f.ID] = f
+	}
+	require.Contains(t, byID, userField.ID, "user CPA field must appear when scoped to a channel")
+	require.Contains(t, byID, channelField.ID, "channel CPA field must appear when scoped to a channel")
+	assert.Equal(t, model.PropertyFieldObjectTypeChannel, byID[channelField.ID].ObjectType,
+		"channel field must be tagged with its ObjectType")
+}
+
+// includeResourceFields=true is how a caller with no channel to scope by asks
+// for channel-object-type fields anyway. Verify the flag alone (channelID="")
+// surfaces channel fields, and that without it channel fields are excluded.
+func TestGetAccessControlFieldsAutocomplete_IncludeResourceFieldsFlag(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+	th.ConfigStore.SetReadOnlyFF(false)
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.FeatureFlags.ResourceAttributesInPolicies = true
+	})
+
+	rctx := request.TestContext(t)
+
+	cpaGroup, cErr := th.App.GetPropertyGroup(rctx, model.AccessControlPropertyGroupName)
+	require.Nil(t, cErr)
+
+	channelField, appErr := th.App.CreatePropertyField(rctx, &model.PropertyField{
+		GroupID:    cpaGroup.ID,
+		Name:       celSafeName(),
+		Type:       model.PropertyFieldTypeSelect,
+		ObjectType: model.PropertyFieldObjectTypeChannel,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
+	}, false, "")
+	require.Nil(t, appErr)
+
+	contains := func(fields []*model.PropertyField, id string) bool {
+		for _, f := range fields {
+			if f.ID == id {
+				return true
+			}
+		}
+		return false
+	}
+
+	withFlag, appErr := th.App.GetAccessControlFieldsAutocomplete(rctx, "", true, strings.Repeat("0", 26), 100, th.BasicUser.Id)
+	require.Nil(t, appErr)
+	assert.True(t, contains(withFlag, channelField.ID),
+		"channel field must appear when includeResourceFields=true even with no channel scope")
+
+	withoutFlag, appErr := th.App.GetAccessControlFieldsAutocomplete(rctx, "", false, strings.Repeat("0", 26), 100, th.BasicUser.Id)
+	require.Nil(t, appErr)
+	assert.False(t, contains(withoutFlag, channelField.ID),
+		"channel field must not appear without a channel scope or the flag")
+
+	// With the feature off, neither entry path offers a channel field. This is what
+	// keeps every editor from being able to author a resource rule, so assert both
+	// the request flag and a channel scope are powerless on their own.
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.FeatureFlags.ResourceAttributesInPolicies = false
+	})
+
+	gatedByRequestFlag, appErr := th.App.GetAccessControlFieldsAutocomplete(rctx, "", true, strings.Repeat("0", 26), 100, th.BasicUser.Id)
+	require.Nil(t, appErr)
+	assert.False(t, contains(gatedByRequestFlag, channelField.ID),
+		"channel field must not appear via includeResourceFields while the feature is off")
+	assert.NotEmpty(t, gatedByRequestFlag, "user attributes must still be returned while the feature is off")
+
+	gatedByScope, appErr := th.App.GetAccessControlFieldsAutocomplete(rctx, th.BasicChannel.Id, false, strings.Repeat("0", 26), 100, th.BasicUser.Id)
+	require.Nil(t, appErr)
+	assert.False(t, contains(gatedByScope, channelField.ID),
+		"channel field must not appear via a channel scope while the feature is off")
 }
 
 // Verify that the team join path (channelID="") produces a subject with no
@@ -5767,7 +5996,7 @@ func TestGetAccessControlFieldsAutocompleteNativeAttributes(t *testing.T) {
 
 	t.Run("first page prepends native attributes", func(t *testing.T) {
 		// The API maps an empty first page to a 26-zero sentinel cursor.
-		fields, appErr := th.App.GetAccessControlFieldsAutocomplete(rctx, strings.Repeat("0", 26), 50, anonymousCallerId)
+		fields, appErr := th.App.GetAccessControlFieldsAutocomplete(rctx, "", false, strings.Repeat("0", 26), 50, anonymousCallerId)
 		require.Nil(t, appErr)
 
 		seen := map[string]bool{}
@@ -5785,11 +6014,108 @@ func TestGetAccessControlFieldsAutocompleteNativeAttributes(t *testing.T) {
 	})
 
 	t.Run("subsequent pages omit native attributes", func(t *testing.T) {
-		fields, appErr := th.App.GetAccessControlFieldsAutocomplete(rctx, cpaField.ID, 50, anonymousCallerId)
+		fields, appErr := th.App.GetAccessControlFieldsAutocomplete(rctx, "", false, cpaField.ID, 50, anonymousCallerId)
 		require.Nil(t, appErr)
 		for _, f := range fields {
 			isNative, _ := f.Attrs[model.NativeAttributeAttrMarker].(bool)
 			assert.False(t, isNative, "native attribute %q must not repeat on later pages", f.Name)
 		}
+	})
+}
+
+func TestInvalidateAttributeViewCache(t *testing.T) {
+	th := SetupWithStoreMock(t)
+	ch := th.App.Srv().Channels()
+
+	th.App.invalidateAttributeViewCache()
+	require.True(t, ch.attributeViewRefreshLast.IsZero(), "a write should mark the view stale")
+
+	// No rate limit: a deferred write is a lost one, because a client asks for a render decision
+	// once per change event and never re-asks.
+	ch.attributeViewRefreshLast = time.Now()
+	for range 100 {
+		th.App.invalidateAttributeViewCache()
+	}
+	require.True(t, ch.attributeViewRefreshLast.IsZero(), "later writes should still mark the view stale")
+
+	// A write landing during an in-flight refresh cannot reset the timer, so it flags a follow-up.
+	ch.attributeViewRefreshLast = time.Now()
+	ch.attributeViewRefreshMut.Lock()
+	th.App.invalidateAttributeViewCache()
+	ch.attributeViewRefreshMut.Unlock()
+	require.False(t, ch.attributeViewRefreshLast.IsZero())
+	require.True(t, ch.attributeViewNeedsRefresh.Load(), "a write during a refresh should flag a follow-up")
+}
+
+func TestAttributeBasedAccessControlEnabled(t *testing.T) {
+	newConfig := func(flag bool, abac *bool) *model.Config {
+		cfg := &model.Config{}
+		cfg.SetDefaults()
+		cfg.FeatureFlags.PermissionPolicies = flag
+		cfg.AccessControlSettings.EnableAttributeBasedAccessControl = abac
+		return cfg
+	}
+
+	assert.False(t, attributeBasedAccessControlEnabled(newConfig(false, model.NewPointer(true))), "flag off")
+	assert.False(t, attributeBasedAccessControlEnabled(newConfig(true, model.NewPointer(false))), "ABAC off")
+	assert.False(t, attributeBasedAccessControlEnabled(newConfig(true, nil)), "ABAC unset")
+	assert.True(t, attributeBasedAccessControlEnabled(newConfig(true, model.NewPointer(true))), "both on")
+}
+
+func TestClearABACRenderCachesOnFlip(t *testing.T) {
+	newConfig := func(abac bool) *model.Config {
+		cfg := &model.Config{}
+		cfg.SetDefaults()
+		cfg.FeatureFlags.PermissionPolicies = true
+		cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(abac)
+		return cfg
+	}
+
+	setup := func(t *testing.T) (*Channels, *storemocks.AccessControlPolicyStore, *storemocks.AttributesStore) {
+		th := SetupWithStoreMock(t)
+		mockStore := th.App.Srv().Store().(*storemocks.Store)
+
+		mockACP := &storemocks.AccessControlPolicyStore{}
+		mockStore.On("AccessControlPolicy").Return(mockACP).Maybe()
+
+		mockAttributes := &storemocks.AttributesStore{}
+		mockStore.On("Attributes").Return(mockAttributes).Maybe()
+
+		return th.App.Srv().Channels(), mockACP, mockAttributes
+	}
+
+	t.Run("clears both caches when ABAC is switched on", func(t *testing.T) {
+		ch, mockACP, mockAttributes := setup(t)
+		mockACP.On("ClearEtagCache").Once()
+		mockAttributes.On("ClearUserPropertyValuesEpochCache").Once()
+
+		ch.clearABACRenderCachesOnFlip(newConfig(false), newConfig(true))
+
+		mockACP.AssertExpectations(t)
+		mockAttributes.AssertExpectations(t)
+	})
+
+	t.Run("clears both caches when ABAC is switched off", func(t *testing.T) {
+		ch, mockACP, mockAttributes := setup(t)
+		mockACP.On("ClearEtagCache").Once()
+		mockAttributes.On("ClearUserPropertyValuesEpochCache").Once()
+
+		ch.clearABACRenderCachesOnFlip(newConfig(true), newConfig(false))
+
+		mockACP.AssertExpectations(t)
+		mockAttributes.AssertExpectations(t)
+	})
+
+	t.Run("does nothing for an unrelated config change", func(t *testing.T) {
+		ch, mockACP, mockAttributes := setup(t)
+
+		prev := newConfig(true)
+		next := newConfig(true)
+		next.ServiceSettings.SiteURL = model.NewPointer("http://localhost:8065")
+
+		ch.clearABACRenderCachesOnFlip(prev, next)
+
+		mockACP.AssertNotCalled(t, "ClearEtagCache")
+		mockAttributes.AssertNotCalled(t, "ClearUserPropertyValuesEpochCache")
 	})
 }

@@ -165,7 +165,7 @@ export async function setUserAttribute(adminClient: Client4, userId: string, fie
  *
  * Why this exists: ABAC queries (validateExpressionAgainstRequester,
  * calculateMembershipChanges) read from a Postgres materialized view
- * (`AttributeView`). The enterprise access-control service refreshes that view
+ * (`UserAttributeView`). The enterprise access-control service refreshes that view
  * at most once every 30 seconds — so freshly-written CPA values are not visible
  * until the next refresh tick. A test that writes a brand-new CPA value and
  * then immediately clicks "Save" on a rule referencing that value will hit
@@ -206,7 +206,7 @@ export async function waitForAttributeViewToInclude(
     }
     const missing = expectedUserIds.filter((id) => !lastSeen.has(id));
     throw new Error(
-        `AttributeView did not include users [${missing.join(', ')}] for expression "${expression}" within ${timeoutMs}ms`,
+        `UserAttributeView did not include users [${missing.join(', ')}] for expression "${expression}" within ${timeoutMs}ms`,
     );
 }
 
@@ -240,7 +240,7 @@ export async function waitForAttributeViewToExclude(
     }
     const stillPresent = excludedUserIds.filter((id) => lastSeen.has(id));
     throw new Error(
-        `AttributeView still includes users [${stillPresent.join(', ')}] for expression "${expression}" after ${timeoutMs}ms`,
+        `UserAttributeView still includes users [${stillPresent.join(', ')}] for expression "${expression}" after ${timeoutMs}ms`,
     );
 }
 

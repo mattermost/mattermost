@@ -359,7 +359,7 @@ func (a *App) ValidateTeamAdminSelfInclusion(rctx request.CTX, userID, expressio
 // nil to have it resolved here.
 func (a *App) SendTeamAccessControlRemovalNotification(rctx request.CTX, systemBot *model.Bot, userID string, team *model.Team) *model.AppError {
 	locale := ""
-	if user, err := a.GetUser(userID); err == nil {
+	if user, err := a.GetUser(rctx, userID); err == nil {
 		locale = user.Locale
 	}
 	T := i18n.GetUserTranslations(locale)
@@ -378,7 +378,7 @@ func (a *App) SendTeamAccessControlAdditionNotification(rctx request.CTX, system
 	a.LogAuditRec(rctx, rec, nil)
 
 	locale := ""
-	if user, err := a.GetUser(userID); err == nil {
+	if user, err := a.GetUser(rctx, userID); err == nil {
 		locale = user.Locale
 	}
 	T := i18n.GetUserTranslations(locale)
