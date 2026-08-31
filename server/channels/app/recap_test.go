@@ -663,11 +663,11 @@ func TestProcessRecapChannel(t *testing.T) {
 	})
 
 	t.Run("superseded post revisions are excluded from the summarization input", func(t *testing.T) {
-		var capturedPrompt string
+		var capturedPrompt strings.Builder
 		bridge := &testAgentsBridge{
 			completeFn: func(sessionUserID, agentID string, req BridgeCompletionRequest) (string, error) {
 				for _, message := range req.Messages {
-					capturedPrompt += message.Message
+					capturedPrompt.WriteString(message.Message)
 				}
 				return `{"highlights":["A deterministic highlight"],"action_items":[]}`, nil
 			},
@@ -709,9 +709,9 @@ func TestProcessRecapChannel(t *testing.T) {
 		assert.Equal(t, 1, result.MessageCount)
 		require.Len(t, bridge.completeCalls, 1)
 
-		assert.Contains(t, capturedPrompt, "final-revision-content")
-		assert.NotContains(t, capturedPrompt, "original-revision-content")
-		assert.NotContains(t, capturedPrompt, "second-revision-content")
+		assert.Contains(t, capturedPrompt.String(), "final-revision-content")
+		assert.NotContains(t, capturedPrompt.String(), "original-revision-content")
+		assert.NotContains(t, capturedPrompt.String(), "second-revision-content")
 
 		recapChannels, storeErr := th.App.Srv().Store().Recap().GetRecapChannelsByRecapId(recapID)
 		require.NoError(t, storeErr)
@@ -720,11 +720,11 @@ func TestProcessRecapChannel(t *testing.T) {
 	})
 
 	t.Run("deleted posts are excluded from the summarization input", func(t *testing.T) {
-		var capturedPrompt string
+		var capturedPrompt strings.Builder
 		bridge := &testAgentsBridge{
 			completeFn: func(sessionUserID, agentID string, req BridgeCompletionRequest) (string, error) {
 				for _, message := range req.Messages {
-					capturedPrompt += message.Message
+					capturedPrompt.WriteString(message.Message)
 				}
 				return `{"highlights":["A deterministic highlight"],"action_items":[]}`, nil
 			},
@@ -759,8 +759,8 @@ func TestProcessRecapChannel(t *testing.T) {
 		require.True(t, result.Success)
 		assert.Equal(t, 1, result.MessageCount)
 
-		assert.Contains(t, capturedPrompt, "kept-post-content")
-		assert.NotContains(t, capturedPrompt, "removed-post-content")
+		assert.Contains(t, capturedPrompt.String(), "kept-post-content")
+		assert.NotContains(t, capturedPrompt.String(), "removed-post-content")
 
 		recapChannels, storeErr := th.App.Srv().Store().Recap().GetRecapChannelsByRecapId(recapID)
 		require.NoError(t, storeErr)
