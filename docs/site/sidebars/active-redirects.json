@@ -57,7 +57,7 @@
     },
     {
       "from": "/about/corporate-directory-integration",
-      "to": "/product-overview/corporate-directory-integration"
+      "to": "/administration-guide/onboard/corporate-directory-integration"
     },
     {
       "from": "/about/deprecated-features",
@@ -150,6 +150,10 @@
     {
       "from": "/about/on-prem-skype-for-business-replacement",
       "to": "/use-case-guide/use-cases-index"
+    },
+    {
+      "from": "/product-overview/corporate-directory-integration",
+      "to": "/administration-guide/onboard/corporate-directory-integration"
     },
     {
       "from": "/use-case-guide/on-prem-skype-for-business-replacement",
@@ -2233,7 +2237,7 @@
     },
     {
       "from": "/overview/auth",
-      "to": "/product-overview/corporate-directory-integration"
+      "to": "/administration-guide/onboard/corporate-directory-integration"
     },
     {
       "from": "/overview/authentication",

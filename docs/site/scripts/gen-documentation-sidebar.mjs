@@ -99,7 +99,6 @@ const OVERVIEW_GROUPS = {
         'cloud-dedicated',
         'cloud-shared',
         'cloud-vpc-private-connectivity',
-        'corporate-directory-integration',
       ]},
       'non-profit-subscriptions',
     ],
@@ -754,6 +753,7 @@ const COLLABORATE_HIDDEN = new Set([
 const ADMIN_ONBOARD_GROUPS = {
   sso: {
     label: 'SSO & Identity',
+    landing: 'corporate-directory-integration',
     items: [
       {
         label: 'SAML Single Sign-On',
@@ -776,7 +776,6 @@ const ADMIN_ONBOARD_GROUPS = {
       'sso-gitlab',
       'sso-entraid',
       'convert-oauth20-service-providers-to-openidconnect',
-      'common-converting-oauth-to-openidconnect',
       'ad-ldap',
       'ad-ldap-groups-synchronization',
       'managing-team-channel-membership-using-ad-ldap-sync-groups',
