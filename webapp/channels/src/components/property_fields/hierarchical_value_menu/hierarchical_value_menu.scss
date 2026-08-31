@@ -1,0 +1,184 @@
+@use 'utils/mixins';
+
+// Self-contained on purpose: Account Settings renders this widget and must not
+// depend on the admin ABAC stylesheets. The chip rules mirror
+// table_editor/selector_menus.scss rather than importing it.
+.hierarchical-value-menu {
+    width: 100%;
+
+    &__button {
+        display: flex;
+        width: 100%;
+
+        // A floor, not a height: chips wrap onto new lines and the trigger grows
+        // to fit them rather than clipping.
+        min-height: 40px;
+        align-items: center;
+        justify-content: start;
+        border: none;
+        background: transparent;
+        font-weight: normal;
+
+        @include mixins.button-focus;
+
+        &:hover {
+            background: rgba(var(--center-channel-color-rgb), 0.04);
+            color: inherit;
+        }
+
+        &[aria-expanded='true'] {
+            background: rgba(var(--center-channel-color-rgb), 0.08);
+        }
+
+        &.disabled {
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+    }
+
+    &__button-inner {
+        display: flex;
+        width: 100%;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    &__placeholder {
+        overflow: hidden;
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+        padding-inline-start: 10px;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    // Every chip, wrapping. No "+N" and no cap: chip overflow is a known
+    // residual for this widget.
+    &__chips {
+        display: flex;
+        flex-grow: 1;
+        flex-wrap: wrap;
+        gap: 2px;
+    }
+
+    &__chip {
+        display: flex;
+        height: 24px;
+        align-items: center;
+        border-radius: 4px;
+        margin: 2px;
+        background-color: rgba(var(--center-channel-color-rgb), 0.08);
+    }
+
+    &__chip-label {
+        padding: 0 4px 0 8px;
+        font-size: 12px;
+    }
+
+    &__chip--pending &__chip-label {
+        width: 64px;
+        height: 12px;
+        border-radius: 2px;
+        background: rgba(var(--center-channel-color-rgb), 0.16);
+    }
+
+    &__chip-remove {
+        display: flex;
+        align-items: center;
+        padding: 0 4px;
+        cursor: pointer;
+
+        &:hover {
+            background-color: rgba(var(--center-channel-color-rgb), 0.16);
+        }
+    }
+
+    &__menu {
+        max-height: 400px;
+        overflow-y: auto;
+    }
+
+    &__search {
+        padding: 10px;
+    }
+
+    &__row {
+        // padding-inline-start is set inline, from the row's depth.
+        align-items: center;
+    }
+
+    // Fills MUI's 18px .leading-element slot so the whole checkbox column is the
+    // select hit target rather than just the glyph.
+    &__checkbox {
+        display: inline-flex;
+        width: 100%;
+        height: 100%;
+        align-items: center;
+        justify-content: center;
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+    }
+
+    &__labels {
+        display: flex;
+        min-width: 0;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 2px;
+    }
+
+    &__label {
+        overflow: hidden;
+        color: var(--center-channel-color);
+        font-size: 14px;
+        line-height: 20px;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    &__hint {
+        color: rgba(var(--center-channel-color-rgb), 0.75);
+        font-size: 12px;
+        line-height: 16px;
+    }
+
+    &__trailing {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    &__count {
+        color: rgba(var(--center-channel-color-rgb), 0.75);
+        font-size: 12px;
+        line-height: 16px;
+        white-space: nowrap;
+    }
+
+    &__chevron {
+        display: inline-flex;
+        align-items: center;
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+    }
+
+    &__status {
+        color: rgba(var(--center-channel-color-rgb), 0.75);
+        cursor: default;
+
+        &:hover {
+            background: transparent;
+        }
+    }
+
+    &__status-inner {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    &__retry {
+        border: none;
+        background: transparent;
+        color: var(--link-color);
+        font-size: 12px;
+        font-weight: 600;
+    }
+}

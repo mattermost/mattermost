@@ -1,0 +1,537 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+import React from 'react';
+
+import type {PropertyFieldOption} from '@mattermost/types/properties';
+
+import {act, renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
+
+import AssignmentHierarchicalValues, {
+    assignmentFallbackLabels,
+    computeAssignmentPrefetch,
+} from './assignment_adapter';
+import type {AssignmentHierarchicalValuesProps} from './assignment_adapter';
+import PolicyHierarchicalValues, {
+    emitPolicyIdsToNames,
+    hydratePolicyNamesToIds,
+} from './policy_adapter';
+import type {PolicyHierarchicalValuesProps} from './policy_adapter';
+
+import {joinGraphOptions} from '../graph_option_tree';
+import {clearPropertyFieldOptionWalks, pageAllPropertyFieldOptions} from '../page_all_property_field_options';
+
+jest.mock('../page_all_property_field_options', () => ({
+    ...jest.requireActual('../page_all_property_field_options'),
+    pageAllPropertyFieldOptions: jest.fn(),
+}));
+
+const mockPageAll = jest.mocked(pageAllPropertyFieldOptions);
+
+const opt = (id: string, name: string, parents: string[] = []): PropertyFieldOption => ({
+    id, name, parents, create_at: 1,
+});
+
+// Air Program ─ Fighter Jet ─ F-18 Program
+//             └ Rotary
+const hierarchy = () => [
+    opt('opt-air', 'Air Program'),
+    opt('opt-jet', 'Fighter Jet', ['Air Program']),
+    opt('opt-f18', 'F-18 Program', ['Fighter Jet']),
+    opt('opt-rotary', 'Rotary', ['Air Program']),
+];
+
+const duplicateNames = () => [
+    opt('a', 'Same'),
+    opt('b', 'Same'),
+];
+
+const deferred = <T, >() => {
+    let resolve!: (value: T) => void;
+    let reject!: (reason?: unknown) => void;
+    const promise = new Promise<T>((res, rej) => {
+        resolve = res;
+        reject = rej;
+    });
+    return {promise, resolve, reject};
+};
+
+const chrome = {
+    menuId: 'value-selector-menu-0',
+    buttonId: 'value-selector-button-0',
+    buttonDataTestId: 'valueSelectorMenuButton',
+};
+
+const trigger = () => screen.getByTestId('valueSelectorMenuButton');
+const openMenu = async () => {
+    await userEvent.click(trigger());
+};
+const row = (name: string) => screen.getByRole('menuitemcheckbox', {name});
+const checkboxOf = (name: string) => row(name).querySelector('.hierarchical-value-menu__checkbox') as HTMLElement;
+const labelOf = (name: string) => row(name).querySelector('.hierarchical-value-menu__label') as HTMLElement;
+
+const lastSignal = () => {
+    const call = mockPageAll.mock.calls[mockPageAll.mock.calls.length - 1];
+    return call[1]!.signal!;
+};
+
+const settle = async () => {
+    await act(async () => {
+        await Promise.resolve();
+    });
+};
+
+const renderPolicy = (overrides: Partial<PolicyHierarchicalValuesProps> = {}) => {
+    const props: PolicyHierarchicalValuesProps = {
+        field: {id: 'field-1', object_type: 'user', attrs: {}},
+        names: [],
+        onNamesChange: jest.fn(),
+        ...chrome,
+        ...overrides,
+    };
+    const rendered = renderWithContext(<PolicyHierarchicalValues {...props}/>);
+    return {
+        ...rendered,
+        props,
+        rerenderSame: () => rendered.rerender(<PolicyHierarchicalValues {...props}/>),
+    };
+};
+
+const renderAssignment = (overrides: Partial<AssignmentHierarchicalValuesProps> = {}) => {
+    const props: AssignmentHierarchicalValuesProps = {
+        field: {id: 'field-1', object_type: 'user', attrs: {}},
+        ids: [],
+        onIdsChange: jest.fn(),
+        ...chrome,
+        ...overrides,
+    };
+    const rendered = renderWithContext(<AssignmentHierarchicalValues {...props}/>);
+    return {...rendered, props};
+};
+
+describe('hierarchical value menu adapters', () => {
+    beforeEach(() => {
+        clearPropertyFieldOptionWalks();
+        mockPageAll.mockResolvedValue([]);
+    });
+
+    describe('hydratePolicyNamesToIds', () => {
+        const join = () => joinGraphOptions(hierarchy());
+
+        test('resolves a name to its option id', () => {
+            expect(hydratePolicyNamesToIds(['F-18 Program'], join().byExactName)).toEqual({
+                ids: ['opt-f18'],
+                fallbackLabels: {'opt-f18': 'F-18 Program'},
+            });
+        });
+
+        test('resolves several names in order', () => {
+            expect(hydratePolicyNamesToIds(['Air Program', 'Rotary'], join().byExactName).ids).toEqual([
+                'opt-air',
+                'opt-rotary',
+            ]);
+        });
+
+        test('is case-sensitive', () => {
+            expect(hydratePolicyNamesToIds(['f-18 program'], join().byExactName).ids).toEqual(['f-18 program']);
+        });
+
+        test('keeps an unresolved name as its own id', () => {
+            expect(hydratePolicyNamesToIds(['Retired'], join().byExactName)).toEqual({
+                ids: ['Retired'],
+                fallbackLabels: {Retired: 'Retired'},
+            });
+        });
+
+        test('mixes resolved and unresolved names', () => {
+            expect(hydratePolicyNamesToIds(['Air Program', 'Retired'], join().byExactName).ids).toEqual([
+                'opt-air',
+                'Retired',
+            ]);
+        });
+
+        test('records the last known name for every id', () => {
+            expect(hydratePolicyNamesToIds(['Air Program', 'Retired'], join().byExactName).fallbackLabels).toEqual({
+                'opt-air': 'Air Program',
+                Retired: 'Retired',
+            });
+        });
+
+        test('dedupes two names that resolve to the same id', () => {
+            const byExactName = joinGraphOptions(duplicateNames()).byExactName;
+
+            expect(hydratePolicyNamesToIds(['Same', 'Same'], byExactName).ids).toHaveLength(1);
+        });
+
+        test('returns empty for no names', () => {
+            expect(hydratePolicyNamesToIds([], join().byExactName)).toEqual({ids: [], fallbackLabels: {}});
+        });
+
+        test('hydrates against an empty join without throwing', () => {
+            expect(hydratePolicyNamesToIds(['Air Program'], joinGraphOptions([]).byExactName).ids).toEqual([
+                'Air Program',
+            ]);
+        });
+    });
+
+    describe('emitPolicyIdsToNames', () => {
+        const byId = () => joinGraphOptions(hierarchy()).byId;
+
+        test('emits the option name for a known id', () => {
+            expect(emitPolicyIdsToNames(['opt-f18'], byId(), {})).toEqual(['F-18 Program']);
+        });
+
+        test('preserves id order', () => {
+            expect(emitPolicyIdsToNames(['opt-rotary', 'opt-air'], byId(), {})).toEqual(['Rotary', 'Air Program']);
+        });
+
+        test('falls back to the last known name for an unknown id', () => {
+            expect(emitPolicyIdsToNames(['ghost'], byId(), {ghost: 'Retired Program'})).toEqual(['Retired Program']);
+        });
+
+        test('falls back to the id itself with no label', () => {
+            expect(emitPolicyIdsToNames(['ghost'], byId(), {})).toEqual(['ghost']);
+        });
+
+        test('prefers the fetched name over the fallback', () => {
+            expect(emitPolicyIdsToNames(['opt-f18'], byId(), {'opt-f18': 'Old Name'})).toEqual(['F-18 Program']);
+        });
+
+        test('still emits a stale selection', () => {
+            expect(emitPolicyIdsToNames(['opt-air', 'Retired'], byId(), {Retired: 'Retired'})).toEqual([
+                'Air Program',
+                'Retired',
+            ]);
+        });
+
+        test('dedupes two ids that emit the same name', () => {
+            expect(emitPolicyIdsToNames(['a', 'b'], joinGraphOptions(duplicateNames()).byId, {})).toEqual(['Same']);
+        });
+
+        test('emits an empty array for no ids', () => {
+            expect(emitPolicyIdsToNames([], byId(), {})).toEqual([]);
+        });
+    });
+
+    describe('PolicyHierarchicalValues', () => {
+        test('does not fetch by itself', async () => {
+            renderPolicy();
+
+            await settle();
+
+            expect(mockPageAll).not.toHaveBeenCalled();
+        });
+
+        test('never passes prefetchOnMount', async () => {
+            renderPolicy({
+                field: {id: 'field-1', object_type: 'user', attrs: {options_omitted: true}},
+                names: ['Anything'],
+            });
+
+            await settle();
+
+            expect(mockPageAll).not.toHaveBeenCalled();
+        });
+
+        test('hydrates row names to checked rows from the field payload', async () => {
+            mockPageAll.mockResolvedValue(hierarchy());
+            renderPolicy({
+                field: {id: 'field-1', object_type: 'user', attrs: {options: [opt('opt-f18', 'F-18 Program')]}},
+                names: ['F-18 Program'],
+            });
+
+            await openMenu();
+
+            expect(await screen.findByRole('menuitemcheckbox', {name: 'F-18 Program'})).toHaveAttribute('aria-checked', 'true');
+        });
+
+        test('hydrates from the fetched options when the payload omitted them', async () => {
+            mockPageAll.mockResolvedValue(hierarchy());
+            renderPolicy({
+                field: {id: 'field-1', object_type: 'user', attrs: {options_omitted: true, options: []}},
+                names: ['F-18 Program'],
+            });
+
+            await openMenu();
+
+            expect(await screen.findByRole('menuitemcheckbox', {name: 'F-18 Program'})).toHaveAttribute('aria-checked', 'true');
+        });
+
+        test('emits names when a row is selected', async () => {
+            mockPageAll.mockResolvedValue(hierarchy());
+            const onNamesChange = jest.fn();
+            renderPolicy({onNamesChange});
+
+            await openMenu();
+            await screen.findByRole('menuitemcheckbox', {name: 'Air Program'});
+            await userEvent.click(checkboxOf('Air Program'));
+
+            expect(onNamesChange).toHaveBeenCalledWith(['Air Program']);
+        });
+
+        test('emits names in id order after a second selection', async () => {
+            mockPageAll.mockResolvedValue(hierarchy());
+            const onNamesChange = jest.fn();
+            renderPolicy({onNamesChange, names: ['Air Program']});
+
+            await openMenu();
+            await screen.findByRole('menuitemcheckbox', {name: 'Air Program'});
+
+            // A selected branch is not opened for its own sake, so Rotary has to
+            // be revealed before it can be checked.
+            await userEvent.click(labelOf('Air Program'));
+            await userEvent.click(checkboxOf('Rotary'));
+
+            expect(onNamesChange).toHaveBeenCalledWith(['Air Program', 'Rotary']);
+        });
+
+        test('emits an empty array on the last uncheck', async () => {
+            mockPageAll.mockResolvedValue(hierarchy());
+            const onNamesChange = jest.fn();
+            renderPolicy({onNamesChange, names: ['Air Program']});
+
+            await openMenu();
+            await screen.findByRole('menuitemcheckbox', {name: 'Air Program'});
+            await userEvent.click(checkboxOf('Air Program'));
+
+            expect(onNamesChange).toHaveBeenCalledWith([]);
+        });
+
+        test('unmounting after the last uncheck aborts the walk', async () => {
+            const walk = deferred<PropertyFieldOption[]>();
+            mockPageAll.mockReturnValue(walk.promise);
+            const {unmount} = renderPolicy({names: ['Air Program']});
+
+            await openMenu();
+            const signal = lastSignal();
+            unmount();
+
+            expect(signal.aborted).toBe(true);
+        });
+
+        test('keeps and re-emits a stale name', async () => {
+            mockPageAll.mockResolvedValue(hierarchy());
+            const onNamesChange = jest.fn();
+            renderPolicy({onNamesChange, names: ['Air Program', 'Retired']});
+
+            await openMenu();
+            await screen.findByRole('menuitemcheckbox', {name: 'Air Program'});
+            await userEvent.click(labelOf('Air Program'));
+            await userEvent.click(checkboxOf('Rotary'));
+
+            expect(onNamesChange).toHaveBeenCalledWith(['Air Program', 'Retired', 'Rotary']);
+        });
+
+        test('shows a stale name as a chip', async () => {
+            mockPageAll.mockResolvedValue(hierarchy());
+            renderPolicy({names: ['Air Program', 'Retired']});
+
+            await openMenu();
+            await screen.findByRole('menuitemcheckbox', {name: 'Air Program'});
+
+            expect(trigger()).toHaveTextContent('Retired');
+        });
+
+        test('unchecking a stale name drops only it', async () => {
+            mockPageAll.mockResolvedValue(hierarchy());
+            const onNamesChange = jest.fn();
+            renderPolicy({onNamesChange, names: ['Air Program', 'Retired']});
+
+            await settle();
+
+            // A stale name has no row in the tree, so its chip is the only way to
+            // drop it.
+            await userEvent.click(screen.getByRole('button', {name: 'Remove Retired'}));
+
+            expect(onNamesChange).toHaveBeenCalledWith(['Air Program']);
+        });
+
+        test('forwards the host chrome props', async () => {
+            mockPageAll.mockResolvedValue(hierarchy());
+            renderPolicy();
+
+            expect(screen.getByTestId('valueSelectorMenuButton')).toBeInTheDocument();
+            await openMenu();
+
+            expect(screen.getByRole('menu')).toHaveAttribute('id', 'value-selector-menu-0');
+        });
+
+        test('does not refetch on every render', async () => {
+            mockPageAll.mockResolvedValue(hierarchy());
+            const {rerenderSame} = renderPolicy();
+
+            await openMenu();
+            await screen.findByRole('menuitemcheckbox', {name: 'Air Program'});
+            rerenderSame();
+            rerenderSame();
+            await settle();
+
+            expect(mockPageAll).toHaveBeenCalledTimes(1);
+        });
+    });
+
+    describe('computeAssignmentPrefetch', () => {
+        test('is true when options_omitted', () => {
+            expect(computeAssignmentPrefetch({attrs: {options_omitted: true}}, [])).toBe(true);
+        });
+
+        test('is true when a selected id is not named by the payload', () => {
+            expect(computeAssignmentPrefetch({attrs: {options: [opt('a', 'A')]}}, ['b'])).toBe(true);
+        });
+
+        test('is false when the payload names every selected id', () => {
+            expect(computeAssignmentPrefetch({attrs: {options: [opt('a', 'A')]}}, ['a'])).toBe(false);
+        });
+
+        test('is false with no selection and no omission', () => {
+            expect(computeAssignmentPrefetch({attrs: {options: []}}, [])).toBe(false);
+        });
+
+        test('is true when the payload has no options and something is selected', () => {
+            expect(computeAssignmentPrefetch({attrs: {}}, ['a'])).toBe(true);
+        });
+    });
+
+    describe('assignmentFallbackLabels', () => {
+        test('maps every payload option id to its name', () => {
+            expect(assignmentFallbackLabels({attrs: {options: [opt('a', 'A'), opt('b', 'B')]}})).toEqual({
+                a: 'A',
+                b: 'B',
+            });
+        });
+
+        test('skips an option with an empty id', () => {
+            expect(assignmentFallbackLabels({attrs: {options: [opt('', 'Legacy')]}})).toEqual({});
+        });
+
+        test('is empty for a field with no options', () => {
+            expect(assignmentFallbackLabels({})).toEqual({});
+        });
+    });
+
+    describe('AssignmentHierarchicalValues', () => {
+        test('does not fetch by itself', async () => {
+            renderAssignment({prefetchOnMount: false});
+
+            await settle();
+
+            expect(mockPageAll).not.toHaveBeenCalled();
+        });
+
+        test('passes ids straight through on selection', async () => {
+            mockPageAll.mockResolvedValue(hierarchy());
+            const onIdsChange = jest.fn();
+            renderAssignment({onIdsChange});
+
+            await openMenu();
+            await screen.findByRole('menuitemcheckbox', {name: 'Air Program'});
+            await userEvent.click(checkboxOf('Air Program'));
+
+            expect(onIdsChange).toHaveBeenCalledWith(['opt-air']);
+        });
+
+        test('receives ids unchanged as the selection', async () => {
+            mockPageAll.mockResolvedValue(hierarchy());
+            renderAssignment({ids: ['opt-f18']});
+
+            await openMenu();
+
+            expect(await screen.findByRole('menuitemcheckbox', {name: 'F-18 Program'})).toHaveAttribute('aria-checked', 'true');
+        });
+
+        test('emits an empty array on the last uncheck', async () => {
+            mockPageAll.mockResolvedValue(hierarchy());
+            const onIdsChange = jest.fn();
+            renderAssignment({onIdsChange, ids: ['opt-air']});
+
+            await openMenu();
+            await screen.findByRole('menuitemcheckbox', {name: 'Air Program'});
+            await userEvent.click(checkboxOf('Air Program'));
+
+            expect(onIdsChange).toHaveBeenCalledWith([]);
+        });
+
+        test('prefetches on mount when options are omitted', async () => {
+            mockPageAll.mockResolvedValue(hierarchy());
+            renderAssignment({field: {id: 'field-1', object_type: 'user', attrs: {options_omitted: true}}});
+
+            await settle();
+
+            expect(mockPageAll).toHaveBeenCalledTimes(1);
+        });
+
+        test('prefetches on mount when a selected id lacks a payload name', async () => {
+            mockPageAll.mockResolvedValue(hierarchy());
+            renderAssignment({
+                field: {id: 'field-1', object_type: 'user', attrs: {options: []}},
+                ids: ['opt-f18'],
+            });
+
+            await settle();
+
+            expect(mockPageAll).toHaveBeenCalledTimes(1);
+        });
+
+        test('does not prefetch when the payload names every selected id', async () => {
+            renderAssignment({
+                field: {id: 'field-1', object_type: 'user', attrs: {options: [opt('opt-f18', 'F-18 Program')]}},
+                ids: ['opt-f18'],
+            });
+
+            await settle();
+
+            expect(mockPageAll).not.toHaveBeenCalled();
+        });
+
+        test('an explicit prefetchOnMount prop overrides the computed value', async () => {
+            mockPageAll.mockResolvedValue(hierarchy());
+            renderAssignment({
+                field: {id: 'field-1', object_type: 'user', attrs: {options: [opt('opt-f18', 'F-18 Program')]}},
+                ids: ['opt-f18'],
+                prefetchOnMount: true,
+            });
+
+            await settle();
+
+            expect(mockPageAll).toHaveBeenCalledTimes(1);
+        });
+
+        test('an explicit false prefetchOnMount suppresses a computed true', async () => {
+            renderAssignment({
+                field: {id: 'field-1', object_type: 'user', attrs: {options_omitted: true}},
+                ids: ['opt-f18'],
+                prefetchOnMount: false,
+            });
+
+            await settle();
+
+            expect(mockPageAll).not.toHaveBeenCalled();
+        });
+
+        test('shows payload names as chips without fetching', async () => {
+            renderAssignment({
+                field: {id: 'field-1', object_type: 'user', attrs: {options: [opt('opt-f18', 'F-18 Program')]}},
+                ids: ['opt-f18'],
+            });
+
+            await settle();
+
+            expect(trigger()).toHaveTextContent('F-18 Program');
+            expect(mockPageAll).not.toHaveBeenCalled();
+        });
+
+        test('shows a pending chip rather than an id while prefetching', async () => {
+            const walk = deferred<PropertyFieldOption[]>();
+            mockPageAll.mockReturnValue(walk.promise);
+            renderAssignment({
+                field: {id: 'field-1', object_type: 'user', attrs: {options_omitted: true}},
+                ids: ['opt-f18'],
+            });
+
+            await settle();
+
+            expect(trigger()).not.toHaveTextContent('opt-f18');
+            expect(document.querySelector('.hierarchical-value-menu__chip--pending')).not.toBeNull();
+        });
+    });
+});
