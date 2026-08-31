@@ -8560,22 +8560,6 @@ func (s *TimerLayerPropertyValueStore) Upsert(values []*model.PropertyValue) ([]
 	return result, err
 }
 
-func (s *TimerLayerReactionStore) BulkGetForPosts(postIds []string) ([]*model.Reaction, error) {
-	start := time.Now()
-
-	result, err := s.ReactionStore.BulkGetForPosts(postIds)
-
-	elapsed := float64(time.Since(start)) / float64(time.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("ReactionStore.BulkGetForPosts", success, elapsed)
-	}
-	return result, err
-}
-
 func (s *TimerLayerReactionStore) Delete(reaction *model.Reaction) (*model.Reaction, error) {
 	start := time.Now()
 
