@@ -154,6 +154,17 @@ const findOcc = (nodes: GraphOccurrence[], occKey: string): GraphOccurrence => {
     return found;
 };
 
+// Two roots whose children arrays hold the very same child object. The join
+// never produces this -- it seats a fresh occurrence per node -- but a caller
+// that memoises occurrences by occKey or by value id would, and then the second
+// parent must still learn it holds a selected value.
+const sharedChildObject = (): GraphOccurrence[] => {
+    const shared: GraphOccurrence = {occKey: 'p1::shared', valueId: 'shared', parentId: 'p1', label: 'Shared', alsoUnder: ['P2'], children: []};
+    const p1: GraphOccurrence = {occKey: '::p1', valueId: 'p1', parentId: null, label: 'P1', alsoUnder: [], children: [shared]};
+    const p2: GraphOccurrence = {occKey: '::p2', valueId: 'p2', parentId: null, label: 'P2', alsoUnder: [], children: [shared]};
+    return [p1, p2];
+};
+
 // Two occurrences whose children point at each other. joinGraphOptions cannot
 // produce this, but expandToSelected and selectedDescendantCount take a tree
 // from any caller, so both have to survive it.
@@ -851,6 +862,13 @@ describe('expandToSelected', () => {
         const open = expandToSelected(cyclicOccurrences(), new Set(['x']));
 
         expect(open.size).toBe(0);
+    });
+
+    test('opens both parent paths when two parents share one child object', () => {
+        // The guard cannot key on the node alone: it has to remember the
+        // per-node answer, or the second parent to reach a shared object gets
+        // told "already seen" and stays collapsed over a checked value.
+        expect(expandToSelected(sharedChildObject(), new Set(['shared']))).toEqual(new Set(['::p1', '::p2']));
     });
 });
 

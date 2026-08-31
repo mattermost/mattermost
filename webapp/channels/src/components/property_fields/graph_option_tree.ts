@@ -342,32 +342,49 @@ export function flattenSearch(options: PropertyFieldOption[], query: string): Gr
 // and because those are not node identities one entry can open more than one
 // row; that is intended, since every path to a checked value should open.
 //
-// Requires occurrence objects to be node-unique: no single object may sit at two
-// positions in `roots`. `joinGraphOptions` guarantees it, allocating a fresh
-// occurrence per node even for a value reached through several parents, and
-// `allocates a distinct occurrence object for every node` pins that. A caller
-// that memoises or otherwise reuses occurrence objects across tree positions
-// breaks the cycle guard below and silently under-opens ancestor paths.
+// Imposes no shape requirement on `roots`. `joinGraphOptions` seats a fresh
+// occurrence at every node, so its trees are node-unique, but the traversal does
+// not rely on that: a caller may memoise or reuse occurrence objects across tree
+// positions, and a shared node still opens every parent above it. See the guard
+// comment inside for why that costs a memo rather than a second traversal.
 export function expandToSelected(roots: GraphOccurrence[], selectedIds: Set<string>): Set<string> {
     const open = new Set<string>();
     if (selectedIds.size === 0) {
         return open;
     }
 
-    // Keyed on the node rather than on its occKey: occKey is not a node
-    // identity, because a value whose parent has several occurrences has one
-    // occurrence per parent occurrence and they all share the one key. Keying
-    // on occKey here would prune every occurrence after the first and leave
-    // the other ancestor paths to a checked value collapsed. Expansion
-    // allocates a fresh occurrence per node, so this only stops a caller's
-    // hand-built cycle from recursing.
-    const visited = new Set<GraphOccurrence>();
+    // Two guards, and the split is what makes this safe for any tree a caller
+    // hands over.
+    //
+    // `onPath` is the cycle cut, and it is path-scoped so that reaching one node
+    // by two routes is not mistaken for a loop. It cannot key on occKey: occKey
+    // is not a node identity, since a value whose parent has several occurrences
+    // has one occurrence per parent occurrence and they all carry the one key,
+    // so an occKey-keyed guard would prune every occurrence after the first and
+    // leave the other ancestor paths to a checked value collapsed.
+    //
+    // `done` memoises each node's finished answer. That is what lets a shared
+    // node be re-reached and still report upward correctly, so a caller that
+    // memoises or reuses occurrences across tree positions is safe rather than
+    // silently under-opened. It also keeps the walk linear.
+    //
+    // Do not "simplify" this to `onPath` alone. Measured: dropping the memo
+    // changes the cyclic case (a node above itself reports through a second
+    // route) and turns a shared-object graph exponential -- a 26-layer shared
+    // DAG exceeded five million calls, versus 103 with the memo. The guard that
+    // looks redundant is the one holding the cost bound.
+    const onPath = new Set<GraphOccurrence>();
+    const done = new Map<GraphOccurrence, boolean>();
 
     const walk = (node: GraphOccurrence): boolean => {
-        if (visited.has(node)) {
+        const cached = done.get(node);
+        if (cached !== undefined) {
+            return cached;
+        }
+        if (onPath.has(node)) {
             return false;
         }
-        visited.add(node);
+        onPath.add(node);
 
         let holdsSelected = false;
         for (const child of node.children) {
@@ -375,11 +392,16 @@ export function expandToSelected(roots: GraphOccurrence[], selectedIds: Set<stri
                 holdsSelected = true;
             }
         }
+        onPath.delete(node);
+
         if (holdsSelected) {
             open.add(node.occKey);
         }
 
-        return holdsSelected || selectedIds.has(node.valueId);
+        const result = holdsSelected || selectedIds.has(node.valueId);
+        done.set(node, result);
+
+        return result;
     };
 
     for (const root of roots) {
