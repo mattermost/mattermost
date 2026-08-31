@@ -66,6 +66,13 @@ func getPropertyAPIGroup(c *Context, callerName string) *model.PropertyGroup {
 	return group
 }
 
+// servesV3 reports whether group's payload should carry the shaped
+// Permissions object -- both the group's own version and the rollout flag
+// have to agree, so a v3 group with the flag off still serves the v2 shape.
+func servesV3(c *Context, group *model.PropertyGroup) bool {
+	return group.IsPSAv3() && c.App.Config().FeatureFlags.PropertyFieldPermissionsV3
+}
+
 func createPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequireGroupName().RequireObjectType()
 	if c.Err != nil {
@@ -183,8 +190,10 @@ func createPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddEventResultState(createdField)
 	auditRec.AddEventObjectType("property_field")
 
+	shapedField := c.App.ShapePropertyFieldForCaller(rctx, *c.AppContext.Session(), createdField, servesV3(c, group))
+
 	w.WriteHeader(http.StatusCreated)
-	if err := json.NewEncoder(w).Encode(createdField); err != nil {
+	if err := json.NewEncoder(w).Encode(shapedField); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
@@ -361,7 +370,9 @@ func searchPropertyFieldsCore(c *Context, w http.ResponseWriter, group *model.Pr
 
 	auditRec.Success()
 
-	if err := json.NewEncoder(w).Encode(fields); err != nil {
+	shapedFields := c.App.ShapePropertyFieldsForCaller(rctx, *c.AppContext.Session(), fields, servesV3(c, group))
+
+	if err := json.NewEncoder(w).Encode(shapedFields); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
@@ -545,7 +556,9 @@ func patchPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddEventResultState(updatedField)
 	auditRec.AddEventObjectType("property_field")
 
-	if err := json.NewEncoder(w).Encode(updatedField); err != nil {
+	shapedField := c.App.ShapePropertyFieldForCaller(rctx, *c.AppContext.Session(), updatedField, servesV3(c, group))
+
+	if err := json.NewEncoder(w).Encode(shapedField); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
