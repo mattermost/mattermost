@@ -12,14 +12,6 @@
       "to": "/product-overview/accessibility-compliance-policy"
     },
     {
-      "from": "/about/cloud-supported-integrations",
-      "to": "/product-overview/cloud-supported-integrations"
-    },
-    {
-      "from": "/about/common-esr-support-rst",
-      "to": "/product-overview/common-esr-support-rst"
-    },
-    {
       "from": "/about/desktop",
       "to": "/product-overview/desktop"
     },
@@ -46,14 +38,6 @@
     {
       "from": "/about/cloud-vpc-private-connectivity",
       "to": "/product-overview/cloud-vpc-private-connectivity"
-    },
-    {
-      "from": "/about/common-esr-support-upgrade",
-      "to": "/product-overview/common-esr-support-upgrade"
-    },
-    {
-      "from": "/about/common-esr-support",
-      "to": "/product-overview/common-esr-support"
     },
     {
       "from": "/about/corporate-directory-integration",
@@ -2106,10 +2090,6 @@
     {
       "from": "/onboard/certificate-based-authentication",
       "to": "/administration-guide/onboard/certificate-based-authentication"
-    },
-    {
-      "from": "/onboard/common-converting-oauth-to-openidconnect",
-      "to": "/administration-guide/onboard/convert-oauth20-service-providers-to-openidconnect"
     },
     {
       "from": "/onboard/connected-workspaces",
