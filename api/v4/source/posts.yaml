@@ -755,7 +755,7 @@
           schema:
             type: boolean
             default: false
-        - name: include_property_groups
+        - name: includePropertyGroups
           in: query
           description: >
             Comma-separated list of PSAv2 property group names whose values should be

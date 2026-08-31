@@ -63,12 +63,12 @@ func getV2Group(c *Context, callerName string) *model.PropertyGroup {
 	return group
 }
 
-// resolvePropertyGroupParam reads the include_property_groups query parameter and resolves it to a
+// resolvePropertyGroupParam reads the includePropertyGroups query parameter and resolves it to a
 // property group ID. Returns "" when the parameter is absent, which callers pass straight through to
 // PreparePostForClientOpts as "do not hydrate". On any validation failure it sets c.Err, so callers
 // check that rather than the returned value.
 func resolvePropertyGroupParam(c *Context, r *http.Request) string {
-	raw := r.URL.Query().Get("include_property_groups")
+	raw := r.URL.Query().Get("includePropertyGroups")
 	if raw == "" {
 		return ""
 	}
