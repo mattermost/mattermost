@@ -136,7 +136,7 @@ func TestShapePropertyFieldForCaller(t *testing.T) {
 	t.Run("masking presence survives but its contents are withheld", func(t *testing.T) {
 		field := newField(&model.Permissions{
 			Restrictions: &model.Restrictions{Field: model.WriteOnly{Write: model.PermissionLevelSysadmin}},
-			Masking:      &model.Masking{MaskByFieldID: "holdings-field", Except: []model.Identity{{Type: model.PropertyOwnerTypeUser, ID: th.BasicUser2.Id}}},
+			Masking:      &model.Masking{Except: []model.Identity{{Type: model.PropertyOwnerTypeUser, ID: th.BasicUser2.Id}}},
 		})
 
 		session := model.Session{UserId: th.BasicUser.Id}
@@ -157,5 +157,85 @@ func TestShapePropertyFieldForCaller(t *testing.T) {
 		shaped := th.App.ShapePropertyFieldForCaller(th.Context, session, field, true)
 		require.NotNil(t, shaped.Permissions.Masking)
 		assert.False(t, shaped.Permissions.Filtered)
+	})
+
+	newTemplate := func(permissions *model.Permissions) *model.PropertyField {
+		tmpl, sErr := th.Store.PropertyField().Create(&model.PropertyField{
+			GroupID:     groupID,
+			Name:        celSafeName(),
+			Type:        model.PropertyFieldTypeText,
+			ObjectType:  model.PropertyFieldObjectTypeUser,
+			TargetType:  string(model.PropertyFieldTargetLevelSystem),
+			Permissions: permissions,
+		})
+		require.NoError(t, sErr)
+		return tmpl
+	}
+
+	newLinkedField := func(templateID string) *model.PropertyField {
+		field := newField(&model.Permissions{
+			Restrictions: &model.Restrictions{Field: model.WriteOnly{Write: model.PermissionLevelSysadmin}},
+		})
+		field.LinkedFieldID = model.NewPointer(templateID)
+		return field
+	}
+
+	t.Run("a linked field reports its masked template as masked with contents withheld, even to an editor", func(t *testing.T) {
+		template := newTemplate(&model.Permissions{
+			Restrictions: &model.Restrictions{Field: model.WriteOnly{Write: model.PermissionLevelSysadmin}},
+			Masking:      &model.Masking{Except: []model.Identity{{Type: model.PropertyOwnerTypeUser, ID: th.BasicUser2.Id}}},
+		})
+		field := newLinkedField(template.ID)
+
+		adminSession := model.Session{UserId: th.SystemAdminUser.Id, Roles: model.SystemAdminRoleId}
+		shaped := th.App.ShapePropertyFieldForCaller(th.Context, adminSession, field, true)
+		require.NotNil(t, shaped.Permissions.Masking)
+		assert.Empty(t, shaped.Permissions.Masking.MaskByFieldID)
+		assert.Empty(t, shaped.Permissions.Masking.Except)
+		assert.True(t, shaped.Permissions.Filtered)
+
+		memberSession := model.Session{UserId: th.BasicUser.Id}
+		shaped = th.App.ShapePropertyFieldForCaller(th.Context, memberSession, field, true)
+		require.NotNil(t, shaped.Permissions.Masking)
+		assert.True(t, shaped.Permissions.Filtered)
+	})
+
+	t.Run("a linked field whose template is not masked reports no masking", func(t *testing.T) {
+		template := newTemplate(&model.Permissions{
+			Restrictions: &model.Restrictions{Field: model.WriteOnly{Write: model.PermissionLevelSysadmin}},
+		})
+		field := newLinkedField(template.ID)
+
+		session := model.Session{UserId: th.BasicUser.Id}
+		shaped := th.App.ShapePropertyFieldForCaller(th.Context, session, field, true)
+		require.NotNil(t, shaped.Permissions)
+		assert.Nil(t, shaped.Permissions.Masking)
+		assert.False(t, shaped.Permissions.Filtered)
+	})
+
+	t.Run("a linked field whose template read fails is reported as masked with contents withheld", func(t *testing.T) {
+		field := newLinkedField(model.NewId())
+
+		session := model.Session{UserId: th.BasicUser.Id}
+		shaped := th.App.ShapePropertyFieldForCaller(th.Context, session, field, true)
+		require.NotNil(t, shaped.Permissions.Masking)
+		assert.True(t, shaped.Permissions.Filtered)
+	})
+
+	t.Run("a batch reads a shared template's masking once for every field linked to it", func(t *testing.T) {
+		template := newTemplate(&model.Permissions{
+			Restrictions: &model.Restrictions{Field: model.WriteOnly{Write: model.PermissionLevelSysadmin}},
+			Masking:      &model.Masking{Except: []model.Identity{{Type: model.PropertyOwnerTypeUser, ID: th.BasicUser2.Id}}},
+		})
+		fieldA := newLinkedField(template.ID)
+		fieldB := newLinkedField(template.ID)
+
+		session := model.Session{UserId: th.BasicUser.Id}
+		shaped := th.App.ShapePropertyFieldsForCaller(th.Context, session, []*model.PropertyField{fieldA, fieldB}, true)
+		require.Len(t, shaped, 2)
+		for _, f := range shaped {
+			require.NotNil(t, f.Permissions.Masking)
+			assert.True(t, f.Permissions.Filtered)
+		}
 	})
 }
