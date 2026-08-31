@@ -68,7 +68,9 @@ export function getPageErrors(): PageError[] {
 }
 
 export function formatPageErrors(errors: PageError[]): string {
-    const details = errors.map((error, index) => `${index + 1}. ${error.stack ?? error.message}`).join('\n\n');
+    // `||` rather than `??`: Playwright reports an empty stack for errors it could not read frames
+    // from, and an empty entry here would say nothing at all.
+    const details = errors.map((error, index) => `${index + 1}. ${error.stack || error.message}`).join('\n\n');
 
     return `${errors.length} uncaught browser exception(s) during this test:\n\n${details}`;
 }

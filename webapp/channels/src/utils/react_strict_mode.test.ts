@@ -65,6 +65,11 @@ describe('installReactStrictModeDiagnostics', () => {
 
         expect(thrown?.message).toBe('React strict mode violation: Warning: findDOMNode is deprecated in StrictMode.');
         expect(thrown?.stack).toContain('in Overlay (at tooltip.tsx:20)');
+
+        // The component stack has to be appended to the real one rather than replace it. Playwright
+        // rebuilds this error out of the browser and reports an empty stack for any error it can't
+        // read frames from, which would throw away the component stack on the way to a test report.
+        expect(thrown?.stack).toContain('\n    at ');
     });
 
     test('should record every distinct violation on the window', () => {
