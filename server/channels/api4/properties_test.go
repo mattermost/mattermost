@@ -537,6 +537,22 @@ func TestCreatePropertyField(t *testing.T) {
 		CheckBadRequestStatus(t, resp)
 	})
 
+	t.Run("v3 group should return 201", func(t *testing.T) {
+		v3Group, appErr := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_v3_create", Version: model.PropertyGroupVersionV3})
+		require.Nil(t, appErr)
+		require.NotNil(t, v3Group)
+
+		field := &model.PropertyField{
+			Name:       model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+		}
+
+		_, resp, err := th.Client.CreatePropertyField(context.Background(), v3Group.Name, "post", field)
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+	})
+
 	t.Run("v1 group should return 404", func(t *testing.T) {
 		v1Group, appErr := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_v1_create", Version: model.PropertyGroupVersionV1})
 		require.Nil(t, appErr)
@@ -779,6 +795,16 @@ func TestGetPropertyFields(t *testing.T) {
 		for _, f := range fields {
 			require.NotEqual(t, createdOtherField.ID, f.ID, "Field from other group should not be returned")
 		}
+	})
+
+	t.Run("v3 group should return 201", func(t *testing.T) {
+		v3Group, appErr := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_v3_get_fields", Version: model.PropertyGroupVersionV3})
+		require.Nil(t, appErr)
+		require.NotNil(t, v3Group)
+
+		_, resp, err := th.Client.GetPropertyFields(context.Background(), v3Group.Name, "post", model.PropertyFieldSearch{PerPage: 60})
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
 	})
 
 	t.Run("v1 group should return 404", func(t *testing.T) {
@@ -1693,6 +1719,19 @@ func TestSearchPropertyFields(t *testing.T) {
 		require.ElementsMatch(t, []string{postTeamAField.ID, chanTeamAField.ID}, fieldIDs(fields))
 	})
 
+	t.Run("v1 group returns 201", func(t *testing.T) {
+		v3Group, appErr := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_v3_search_fields", Version: model.PropertyGroupVersionV3})
+		require.Nil(t, appErr)
+		require.NotNil(t, v3Group)
+
+		_, resp, err := th.Client.SearchPropertyFields(context.Background(), v3Group.Name, model.PropertyFieldSearch{
+			ObjectTypes: []string{model.PropertyFieldObjectTypePost},
+			TeamID:      th.BasicTeam.Id,
+		})
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+	})
+
 	t.Run("v1 group returns 404", func(t *testing.T) {
 		v1Group, appErr := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_v1_search_fields", Version: model.PropertyGroupVersionV1})
 		require.Nil(t, appErr)
@@ -2464,6 +2503,19 @@ func TestPatchPropertyField(t *testing.T) {
 		require.NotNil(t, updatedField.Attrs["options"])
 	})
 
+	t.Run("v3 group should return 201", func(t *testing.T) {
+		v3Group, appErr := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_v3_patch_field", Version: model.PropertyGroupVersionV3})
+		require.Nil(t, appErr)
+		require.NotNil(t, v3Group)
+
+		newName := model.NewId()
+		patch := &model.PropertyFieldPatch{Name: &newName}
+
+		_, resp, err := th.Client.PatchPropertyField(context.Background(), v3Group.Name, "post", model.NewId(), patch)
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+	})
+
 	t.Run("v1 group should return 404", func(t *testing.T) {
 		v1Group, appErr := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_v1_patch_field", Version: model.PropertyGroupVersionV1})
 		require.Nil(t, appErr)
@@ -2646,6 +2698,16 @@ func TestDeletePropertyField(t *testing.T) {
 			}
 			return false
 		}, 5*time.Second, 100*time.Millisecond)
+	})
+
+	t.Run("v3 group should return 201", func(t *testing.T) {
+		v3Group, appErr := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_v3_delete_field", Version: model.PropertyGroupVersionV3})
+		require.Nil(t, appErr)
+		require.NotNil(t, v3Group)
+
+		resp, err := th.Client.DeletePropertyField(context.Background(), v3Group.Name, "post", model.NewId())
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
 	})
 
 	t.Run("v1 group should return 404", func(t *testing.T) {
@@ -2864,6 +2926,16 @@ func TestGetPropertyValues(t *testing.T) {
 		for _, v := range page1 {
 			require.False(t, page0IDs[v.ID], "Second page should not contain values from first page")
 		}
+	})
+
+	t.Run("v3 group should return 201", func(t *testing.T) {
+		v3Group, appErr := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_v3_get_values", Version: model.PropertyGroupVersionV3})
+		require.Nil(t, appErr)
+		require.NotNil(t, v3Group)
+
+		_, resp, err := th.Client.GetPropertyValues(context.Background(), v3Group.Name, "post", th.BasicPost.Id, model.PropertyValueSearch{PerPage: 60})
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
 	})
 
 	t.Run("v1 group should return 404", func(t *testing.T) {
@@ -3397,6 +3469,20 @@ func TestPatchPropertyValues(t *testing.T) {
 		_, resp, err := th.Client.PatchPropertyValues(context.Background(), group.Name, "post", targetID, items)
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("v3 group should return 201", func(t *testing.T) {
+		v3Group, appErr := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_v3_patch_values", Version: model.PropertyGroupVersionV3})
+		require.Nil(t, appErr)
+		require.NotNil(t, v3Group)
+
+		items := []model.PropertyValuePatchItem{
+			{FieldID: model.NewId(), Value: json.RawMessage(`"test"`)},
+		}
+
+		_, resp, err := th.Client.PatchPropertyValues(context.Background(), v3Group.Name, "post", th.BasicPost.Id, items)
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
 	})
 
 	t.Run("v1 group should return 404", func(t *testing.T) {

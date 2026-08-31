@@ -43,16 +43,16 @@ func (api *API) InitProperties() {
 	}
 }
 
-// getV2Group resolves c.Params.GroupName to a PSAv2 property group.
-// On any error (not found, or not a v2 group) it sets c.Err and returns nil.
-func getV2Group(c *Context, callerName string) *model.PropertyGroup {
+// getPropertyAPIGroup resolves c.Params.GroupName to a PSAv2/PSAv3 property group.
+// On any error (not found, or not a v2/v3 group) it sets c.Err and returns nil.
+func getPropertyAPIGroup(c *Context, callerName string) *model.PropertyGroup {
 	group, appErr := c.App.GetPropertyGroup(c.AppContext, c.Params.GroupName)
 	if appErr != nil {
 		c.Err = appErr
 		return nil
 	}
-	if !group.IsPSAv2() {
-		c.Err = model.NewAppError(callerName, "api.property.v2_group_not_found.app_error", nil, "", http.StatusNotFound)
+	if !group.IsPSAv2() && !group.IsPSAv3() {
+		c.Err = model.NewAppError(callerName, "api.property.v2_v3_group_not_found.app_error", nil, "", http.StatusNotFound)
 		return nil
 	}
 	// Session attributes require both the feature flag and Enterprise
@@ -72,7 +72,7 @@ func createPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	group := getV2Group(c, "createPropertyField")
+	group := getPropertyAPIGroup(c, "createPropertyField")
 	if c.Err != nil {
 		return
 	}
@@ -195,7 +195,7 @@ func getPropertyFields(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	group := getV2Group(c, "getPropertyFields")
+	group := getPropertyAPIGroup(c, "getPropertyFields")
 	if c.Err != nil {
 		return
 	}
@@ -260,7 +260,7 @@ func searchPropertyFields(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	group := getV2Group(c, "searchPropertyFields")
+	group := getPropertyAPIGroup(c, "searchPropertyFields")
 	if c.Err != nil {
 		return
 	}
@@ -441,7 +441,7 @@ func patchPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	group := getV2Group(c, "patchPropertyField")
+	group := getPropertyAPIGroup(c, "patchPropertyField")
 	if c.Err != nil {
 		return
 	}
@@ -556,7 +556,7 @@ func deletePropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	group := getV2Group(c, "deletePropertyField")
+	group := getPropertyAPIGroup(c, "deletePropertyField")
 	if c.Err != nil {
 		return
 	}
@@ -636,7 +636,7 @@ func getSystemPropertyValues(c *Context, w http.ResponseWriter, r *http.Request)
 }
 
 func getPropertyValuesCore(c *Context, w http.ResponseWriter, r *http.Request, objectType, targetID string) {
-	group := getV2Group(c, "getPropertyValues")
+	group := getPropertyAPIGroup(c, "getPropertyValues")
 	if c.Err != nil {
 		return
 	}
@@ -752,7 +752,7 @@ func patchSystemPropertyValues(c *Context, w http.ResponseWriter, r *http.Reques
 }
 
 func patchPropertyValuesCore(c *Context, w http.ResponseWriter, r *http.Request, objectType, targetID string) {
-	group := getV2Group(c, "patchPropertyValues")
+	group := getPropertyAPIGroup(c, "patchPropertyValues")
 	if c.Err != nil {
 		return
 	}

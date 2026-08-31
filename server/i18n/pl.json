@@ -12556,7 +12556,7 @@
     "translation": "Identyfikator zakresu nie może być ustawiony bez zakresu."
   },
   {
-    "id": "api.property.v2_group_not_found.app_error",
+    "id": "api.property.v2_v3_group_not_found.app_error",
     "translation": "Określona grupa właściwości nie została znaleziona."
   },
   {
