@@ -144,7 +144,11 @@ test(
     {tag: ['@accessibility', '@settings', '@notification_settings', '@snapshots']},
     async ({pw, axe}) => {
         // # Create and sign in a new user
-        const {user} = await pw.initSetup();
+        const {user, adminClient} = await pw.initSetup();
+
+        // # Send push notifications, without which the mobile settings in this section are replaced
+        // # by a "not enabled by your system administrator" message
+        await adminClient.patchConfig({EmailSettings: {SendPushNotifications: true}});
 
         // # Log in a user in new browser context
         const {page, channelsPage} = await pw.testBrowser.login(user);

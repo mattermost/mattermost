@@ -127,7 +127,6 @@ test(
 
 async function setLockConfig(adminClient: Client4, lockSetting: LockSetting) {
     await adminClient.patchConfig({
-        AnnouncementSettings: {AdminNoticesEnabled: false, UserNoticesEnabled: false},
         ServiceSettings: {EnableEmailInvitations: true},
         TeamSettings: {LockProfileFieldsForEmailUsers: lockSetting},
     });
