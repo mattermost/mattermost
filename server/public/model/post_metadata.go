@@ -46,7 +46,7 @@ type PostMetadata struct {
 	Recipients []string `json:"recipients,omitempty"`
 
 	// PropertyValues holds the post's property values for the group requested via
-	// include_property_groups. Transient: populated on read, never persisted on the post.
+	// includePropertyGroups. Transient: populated on read, never persisted on the post.
 	PropertyValues []*PropertyValue `json:"property_values,omitempty"`
 
 	// PropertyValuesUnavailable is set when hydration was requested for this post but the
