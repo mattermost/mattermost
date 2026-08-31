@@ -8,6 +8,7 @@ import {CollapsedThreads} from '@mattermost/types/config';
 import type {Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 
+import {Client4} from 'mattermost-redux/client';
 import {General, Preferences} from 'mattermost-redux/constants';
 
 import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
@@ -639,7 +640,7 @@ describe('components/SwitchChannelProvider', () => {
         expect(results.terms).toEqual(expectedOrder);
     });
 
-    it('should start with GM before channels and DM"s with last_viewed_at', async () => {
+    it('should start with the DM ahead of a GM that was viewed more recently', async () => {
         const modifiedState = {
             ...defaultState,
             entities: {
@@ -698,8 +699,8 @@ describe('components/SwitchChannelProvider', () => {
         switchProvider.startNewRequest('');
         await switchProvider.fetchUsersAndChannels(searchText, resultsCallback);
         const expectedOrder = [
-            'other_gm_channel',
             'other_user1',
+            'other_gm_channel',
             'channel_other_user1',
         ];
 
@@ -1329,6 +1330,183 @@ describe('components/SwitchChannelProvider', () => {
             results = switchProvider.formatGroup('domain1@', channels, users);
             expect(results.items.length).toBe(2); // formatGroup processes both channels and users separately
             expect(results.items.some((item) => item.channel.id === 'dm_channel_1')).toBe(true);
+        });
+    });
+
+    describe('ranking the person matching the search term above group messages containing them', () => {
+        const joram = TestHelper.getUserMock({
+            id: 'joram_user_id',
+            username: 'joram',
+            first_name: 'Joram',
+            last_name: 'Wilander',
+        });
+
+        // The alphabetically ordered display name of a GM starts with the searched username when
+        // that member happens to sort first, which is how a GM can look like a prefix match
+        const gmDisplayNames = [
+            'joram, pavel.zeman',
+            'chris.overton, joram',
+            'dschalla, jason.blais, joram',
+        ];
+
+        type Options = {
+            existingDmLastViewedAt?: number;
+            hiddenGmDisplayName?: string;
+            extraProfiles?: UserProfile[];
+            extraDmChannels?: Array<{userId: string; lastViewedAt: number}>;
+        };
+
+        function makeState({existingDmLastViewedAt, hiddenGmDisplayName, extraProfiles = [], extraDmChannels = []}: Options = {}) {
+            const channels: Record<string, any> = {};
+            const myMembers: Record<string, any> = {};
+            const myPreferences: Record<string, any> = {
+                'display_settings--name_format': {
+                    category: 'display_settings',
+                    name: 'name_format',
+                    user_id: 'current_user_id',
+                    value: 'username',
+                },
+            };
+
+            const addGm = (id: string, displayName: string, lastViewedAt: number, visibleInSidebar: boolean) => {
+                channels[id] = {
+                    id,
+                    type: 'G' as const,
+                    name: id,
+                    display_name: displayName,
+                    delete_at: 0,
+                    team_id: '',
+                };
+                myMembers[id] = {channel_id: id, last_viewed_at: lastViewedAt};
+                myPreferences[`group_channel_show--${id}`] = {
+                    category: 'group_channel_show',
+                    name: id,
+                    user_id: 'current_user_id',
+                    value: visibleInSidebar ? 'true' : 'false',
+                };
+            };
+
+            // Every GM was read more recently than the DM below
+            gmDisplayNames.forEach((displayName, i) => addGm(`gm_channel_${i}`, displayName, 1000 + i, true));
+
+            if (hiddenGmDisplayName) {
+                addGm('hidden_gm_channel', hiddenGmDisplayName, 5000, false);
+            }
+
+            const addDm = (userId: string, lastViewedAt: number) => {
+                const id = `dm_${userId}`;
+                channels[id] = {
+                    id,
+                    type: 'D' as const,
+                    name: `current_user_id__${userId}`,
+                    display_name: '',
+                    delete_at: 0,
+                    team_id: '',
+                };
+                myMembers[id] = {channel_id: id, last_viewed_at: lastViewedAt};
+            };
+
+            if (existingDmLastViewedAt) {
+                addDm(joram.id, existingDmLastViewedAt);
+            }
+            extraDmChannels.forEach(({userId, lastViewedAt}) => addDm(userId, lastViewedAt));
+
+            const profiles: Record<string, UserProfile> = {
+                current_user_id: TestHelper.getUserMock({id: 'current_user_id', username: 'current.user'}),
+                [joram.id]: joram,
+            };
+            extraProfiles.forEach((profile) => {
+                profiles[profile.id] = profile;
+            });
+
+            return {
+                ...defaultState,
+                entities: {
+                    ...defaultState.entities,
+                    channels: {
+                        ...defaultState.entities.channels,
+                        channels,
+                        myMembers,
+                        channelsInTeam: {'': new Set(Object.keys(channels))},
+                        messageCounts: {},
+                    },
+                    preferences: {myPreferences},
+                    users: {
+                        ...defaultState.entities.users,
+                        profiles,
+                        currentUserId: 'current_user_id',
+                        profilesInChannel: {},
+                    },
+                },
+                posts: {posts: {}, postsInChannel: {}, postsInThread: {}},
+            };
+        }
+
+        async function search(term: string, state: any, usersFromServer: UserProfile[] = [joram]) {
+            jest.mocked(Client4.autocompleteUsers).mockResolvedValue({users: usersFromServer} as any);
+
+            const switchProvider = new SwitchChannelProvider();
+            switchProvider.store = mockStore(state);
+
+            const resultsCallback = jest.fn();
+            switchProvider.handlePretextChanged(term, resultsCallback);
+
+            await waitFor(() => expect(resultsCallback).toHaveBeenCalledTimes(2));
+
+            return resultsCallback.mock.calls.map((call) => call[0].groups[0].terms);
+        }
+
+        it('ranks the person first once the server results arrive, even with no DM channel yet', async () => {
+            const [localTerms, mergedTerms] = await search('jora', makeState());
+
+            // The user has never messaged joram, so only the GMs are known locally
+            expect(localTerms).toEqual(['gm_channel_0', 'gm_channel_2', 'gm_channel_1']);
+
+            expect(mergedTerms).toEqual([joram.id, 'gm_channel_0', 'gm_channel_2', 'gm_channel_1']);
+        });
+
+        it('ranks an existing DM first even when every group message was read more recently', async () => {
+            const [, mergedTerms] = await search('jora', makeState({existingDmLastViewedAt: 1}));
+
+            expect(mergedTerms[0]).toEqual(joram.id);
+        });
+
+        it('ranks the DM first when the search term is capitalized', async () => {
+            const [, mergedTerms] = await search('Jora', makeState({existingDmLastViewedAt: 1}));
+
+            expect(mergedTerms[0]).toEqual(joram.id);
+        });
+
+        it('ranks the DM first when the search term matches only the last name', async () => {
+            const [, mergedTerms] = await search('wilander', makeState({existingDmLastViewedAt: 1}));
+
+            expect(mergedTerms[0]).toEqual(joram.id);
+        });
+
+        it('ranks the username starting with the search term first when the term is written as a mention', async () => {
+            const containsTerm = TestHelper.getUserMock({
+                id: 'contains_term_user_id',
+                username: 'ajoram',
+            });
+            const state = makeState({
+                existingDmLastViewedAt: 1,
+
+                // The DM with the user who merely contains the term was read much more recently
+                extraProfiles: [containsTerm],
+                extraDmChannels: [{userId: containsTerm.id, lastViewedAt: 9000}],
+            });
+
+            const [, mergedTerms] = await search('@jora', state, [joram, containsTerm]);
+
+            expect(mergedTerms).toEqual([joram.id, containsTerm.id]);
+        });
+
+        it('keeps a group message hidden from the sidebar below an equally relevant visible one', async () => {
+            const state = makeState({hiddenGmDisplayName: 'joram, zoe.zimmerman'});
+
+            const [, mergedTerms] = await search('jora', state);
+
+            expect(mergedTerms.indexOf('hidden_gm_channel')).toBeGreaterThan(mergedTerms.indexOf('gm_channel_0'));
         });
     });
 });

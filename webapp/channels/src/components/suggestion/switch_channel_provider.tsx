@@ -571,6 +571,15 @@ export function quickSwitchSorter(wrappedA: WrappedChannel, wrappedB: WrappedCha
         return -1;
     }
 
+    // A group message matches a username only because one of its members happens to be named that,
+    // and its display name is just those members listed alphabetically, so the direct message with
+    // the person is the stronger match even when the group message was read more recently
+    if (a.type === Constants.DM_CHANNEL && b.type === Constants.GM_CHANNEL) {
+        return -1;
+    } else if (a.type === Constants.GM_CHANNEL && b.type === Constants.DM_CHANNEL) {
+        return 1;
+    }
+
     return sortChannelsByRecencyAndTypeAndDisplayName(wrappedA, wrappedB);
 }
 
