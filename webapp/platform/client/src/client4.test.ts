@@ -105,7 +105,7 @@ describe('Client4', () => {
             expect(result).toEqual([]);
         });
 
-        test('getPropertyFieldOptions should send per_page only on the first page', async () => {
+        test('getPropertyFieldOptions should send per_page and omit both cursor keys on the first request', async () => {
             nock(client.getBaseRoute()).
                 get('/properties/groups/access_control/user/fields/field123/options').
                 query({per_page: '200'}).
