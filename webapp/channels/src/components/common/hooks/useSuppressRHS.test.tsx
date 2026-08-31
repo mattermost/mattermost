@@ -12,24 +12,20 @@ import useSuppressRHS from './useSuppressRHS';
 
 function Harness({
     preserveGlobalViews,
-    preservePluginViews,
 }: {
     preserveGlobalViews?: boolean;
-    preservePluginViews?: boolean;
 }) {
-    useSuppressRHS({preserveGlobalViews, preservePluginViews});
+    useSuppressRHS({preserveGlobalViews});
     return null;
 }
 
 function renderHarness(
     preserveGlobalViews = false,
     rhsState: RhsState = null,
-    preservePluginViews = false,
 ) {
     return renderWithContext(
         <Harness
             preserveGlobalViews={preserveGlobalViews}
-            preservePluginViews={preservePluginViews}
         />,
         {
             views: {
@@ -71,26 +67,18 @@ describe('useSuppressRHS', () => {
         expect(store.getState().views.rhsSuppressed).toBe(true);
     });
 
-    test('does not suppress plugin RHS when preservePluginViews is set', () => {
-        const {store, unmount} = renderHarness(true, RHSStates.PLUGIN, true);
-
-        expect(store.getState().views.rhsSuppressed).toBe(false);
-
-        unmount();
-
-        expect(store.getState().views.rhsSuppressed).toBe(false);
-    });
-
-    test('DEBUG: Threads options re-run when rhsState changes from PIN to PLUGIN', async () => {
-        const {store} = renderHarness(true, RHSStates.PIN, true);
+    test('does not re-suppress after mount when a plugin RHS is opened', async () => {
+        const {store} = renderHarness(true, RHSStates.PIN);
 
         expect(store.getState().views.rhsSuppressed).toBe(true);
 
         store.dispatch({
             type: ActionTypes.UPDATE_RHS_STATE,
             state: RHSStates.PLUGIN,
-            pluggableId: 'debug-plugin',
+            pluggableId: 'plugin',
         });
         await runPostRenderAct();
+
+        expect(store.getState().views.rhsSuppressed).toBe(false);
     });
 });

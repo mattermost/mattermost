@@ -6,7 +6,7 @@ import type {Store} from 'redux';
 
 import {getCurrentChannelId} from 'mattermost-redux/selectors/entities/common';
 
-import {suppressRHS, toggleRHSPlugin} from 'actions/views/rhs';
+import {toggleRHSPlugin} from 'actions/views/rhs';
 import {getIsRhsOpen, getPluggableId, getRhsState} from 'selectors/rhs';
 
 import AppBarPluginComponent from 'components/app_bar/app_bar_plugin_component';
@@ -120,7 +120,6 @@ describe('components/threading/global_threads', () => {
     });
 
     test.each([
-        RHSStates.PLUGIN,
         RHSStates.MENTION,
         RHSStates.SEARCH,
         RHSStates.FLAG,
@@ -132,6 +131,7 @@ describe('components/threading/global_threads', () => {
     });
 
     test.each([
+        RHSStates.PLUGIN,
         RHSStates.PIN,
         RHSStates.CHANNEL_INFO,
         RHSStates.CHANNEL_FILES,
@@ -178,7 +178,7 @@ describe('components/threading/global_threads', () => {
         expect(getPluggableId(store.getState())).toBe(rhsComponentId);
     });
 
-    test('DEBUG: leftover plugin RHS stays after Threads mount then App Bar toggles same plugin', async () => {
+    test('should reopen a leftover plugin RHS from the App Bar after Threads suppresses it', async () => {
         const channelHeaderButton: ChannelHeaderButtonAction = {
             id: 'the_channel_header_button_id',
             pluginId,
@@ -193,14 +193,13 @@ describe('components/threading/global_threads', () => {
             <AppBarPluginComponent component={channelHeaderButton}/>,
         );
 
+        expect(store.getState().views.rhsSuppressed).toBe(true);
+        expect(getIsRhsOpen(store.getState())).toBe(false);
+
         await userEvent.click(screen.getByRole('button'));
-    });
 
-    test('DEBUG: toggleRHSPlugin when leftover plugin is current but suppressed', async () => {
-        await renderGlobalThreads(RHSStates.PLUGIN);
-
-        store.dispatch(suppressRHS);
-        store.dispatch(toggleRHSPlugin(rhsComponentId));
-        await runPostRenderAct();
+        expect(getIsRhsOpen(store.getState())).toBe(true);
+        expect(getRhsState(store.getState())).toBe(RHSStates.PLUGIN);
+        expect(getPluggableId(store.getState())).toBe(rhsComponentId);
     });
 });
