@@ -592,14 +592,6 @@
     "translation": "@[ім'я_користувача1],@[ім'я_користувача2] 'повідомлення'"
   },
   {
-    "id": "api.command_groupmsg.invalid_user.app_error",
-    "translation": {
-      "few": "Не вдалося знайти користувачів: {{.Users}}",
-      "many": "Не вдалося знайти користувачів: {{.Users}}",
-      "one": "Не вдалося знайти користувача: {{.Users}}"
-    }
-  },
-  {
     "id": "api.command_groupmsg.max_users.app_error",
     "translation": "Групові повідомлення обмежені максимум {{.MaxUsers}} користувачами."
   },
@@ -670,14 +662,6 @@
   {
     "id": "api.command_invite.success",
     "translation": "{{.User}} додано в канал {{.Channel}}."
-  },
-  {
-    "id": "api.command_invite.user_already_in_channel.app_error",
-    "translation": {
-      "few": "{{.User}} вже знаходяться в каналі.",
-      "many": "{{.User}} вже знаходяться в каналі.",
-      "one": "{{.User}} вже знаходиться в каналі."
-    }
   },
   {
     "id": "api.command_invite_people.permission.app_error",
@@ -972,14 +956,6 @@
     "translation": "Масову розсилку електронної пошти відключено системним адміністратором."
   },
   {
-    "id": "api.email_batching.send_batched_email_notification.subject",
-    "translation": {
-      "few": "[{{.SiteName}}] Нові сповіщення для {{.Month}} {{.Day}}, {{.Year}}",
-      "many": "[{{.SiteName}}] Нові сповіщення для {{.Month}} {{.Day}}, {{.Year}}",
-      "one": "[{{.SiteName}}] Нове сповіщення для {{.Month}} {{.Day}}, {{.Year}}"
-    }
-  },
-  {
     "id": "api.emoji.create.duplicate.app_error",
     "translation": "Не вдалося створити емодзі. Інший емодзі з такою ж назвою вже існує."
   },
@@ -1160,10 +1136,6 @@
     "translation": "Ця ліцензія підтримує лише {{.Users}} користувачів, якщо у вашій системі є {{.Count}} унікальних користувачів. Унікальні користувачі підраховуються окремо за адресою електронної пошти. Ви можете побачити загальну кількість користувачів у Звітах сайту -> Переглянути статистику."
   },
   {
-    "id": "api.license.client.old_format.app_error",
-    "translation": "Новий формат ліцензії клієнта ще не підтримується. Будь ласка, вкажіть format=old у рядку запиту."
-  },
-  {
     "id": "api.marshal_error",
     "translation": "Не вдалося серіалізувати."
   },
@@ -1336,22 +1308,6 @@
     "translation": "Помилка інтеграції дій."
   },
   {
-    "id": "api.post.get_message_for_notification.files_sent",
-    "translation": {
-      "few": "{{.Count}} файлів відправлено: {{.Filenames}}",
-      "many": "{{.Count}} файлів відправлено: {{.Filenames}}",
-      "one": "{{.Count}} файл відправлено: {{.Filenames}}"
-    }
-  },
-  {
-    "id": "api.post.get_message_for_notification.images_sent",
-    "translation": {
-      "few": "{{.Count}} зображень надіслано: {{.Filenames}}",
-      "many": "{{.Count}} зображень надіслано: {{.Filenames}}",
-      "one": "{{.Count}} зображення надіслано: {{.Filenames}}"
-    }
-  },
-  {
     "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
     "translation": "Неможливо оновити допис у видаленому каналі."
   },
@@ -1484,78 +1440,6 @@
     "translation": "Помилка запуску сервера, err:%v"
   },
   {
-    "id": "api.slackimport.slack_add_bot_user.unable_import",
-    "translation": "Не вдалося імпортувати користувача Integration/Slack Bot {{.Username}}.\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_channels.added",
-    "translation": "\nКанали додано:\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_channels.failed_to_add_user",
-    "translation": "Не вдалося додати користувача Slack {{.Username}} до каналу.\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_channels.import_failed",
-    "translation": "Не вдалося імпортувати канал Slack {{.DisplayName}}.\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_channels.merge",
-    "translation": "Канал Slack {{.DisplayName}} вже існує як активний канал Mattermost. Обидва канали об'єднано.\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_users.created",
-    "translation": "\nСтворено користувачів:\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_users.merge_existing",
-    "translation": "Користувача Slack об'єднано з існуючим користувачем Mattermost з однаковими електронними адресами {{.Email}} та іменем користувача {{.Username}}.\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_users.merge_existing_failed",
-    "translation": "Користувач Slack об'єднаний з існуючим користувачем Mattermost з відповідною електронною поштою {{.Email}} та ім'ям користувача {{.Username}}, але не вдалося додати користувача до їхньої команди.\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_users.missing_email_address",
-    "translation": "Користувач {{.Username}} не має електронної пошти в експорті з Slack. Використано {{.Email}} як заповнювач. Користувач повинен оновити свою електронну пошту після входу в систему.\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_users.unable_import",
-    "translation": "Не вдалося імпортувати користувача Slack: {{.Username}}.\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.log",
-    "translation": "Лог імпорту Mattermost Slack\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.note1",
-    "translation": "- Деякі повідомлення могли не бути імпортовані, оскільки вони не підтримуються цим імпортером.\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.note2",
-    "translation": "- Повідомлення Slack-ботів наразі не підтримуються.\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.note3",
-    "translation": "- Додаткові помилки можна знайти в логах сервера.\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.notes",
-    "translation": "\nПримітки:\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.open.app_error",
-    "translation": "Не вдалося відкрити файл: {{.Filename}}.\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.team_fail",
-    "translation": "Не вдається отримати команду для імпорту.\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.zip.app_error",
-    "translation": "Не вдається відкрити zip-файл експорту даних зі Slack.\n"
-  },
-  {
     "id": "api.status.user_not_found.app_error",
     "translation": "Користувача не знайдено."
   },
@@ -1578,34 +1462,6 @@
   {
     "id": "api.team.get_team_icon.read_file.app_error",
     "translation": "Не вдається прочитати файл піктограми команди."
-  },
-  {
-    "id": "api.team.import_team.array.app_error",
-    "translation": "Порожній масив 'file' в запиті."
-  },
-  {
-    "id": "api.team.import_team.integer.app_error",
-    "translation": "Розмір файлу не ціле число."
-  },
-  {
-    "id": "api.team.import_team.no_file.app_error",
-    "translation": "У запиті відсутній файл 'file'."
-  },
-  {
-    "id": "api.team.import_team.no_import_from.app_error",
-    "translation": "Неправильний запит: відсутнє поле importFrom."
-  },
-  {
-    "id": "api.team.import_team.open.app_error",
-    "translation": "Не вдалося відкрити файл."
-  },
-  {
-    "id": "api.team.import_team.parse.app_error",
-    "translation": "Не вдалося розібрати складову форму."
-  },
-  {
-    "id": "api.team.import_team.unavailable.app_error",
-    "translation": "Неправильний запит: відсутнє поле filesize."
   },
   {
     "id": "api.team.invite_members.disabled.app_error",
@@ -3536,14 +3392,6 @@
     "translation": "Щоб дозволити файли cookie для субдоменів, потрібно встановити SiteURL."
   },
   {
-    "id": "model.config.is_valid.atmos_camo_image_proxy_options.app_error",
-    "translation": "Некоректний параметр RemoteImageProxyOptions для atmos/camo. Необхідно встановити спільний ключ."
-  },
-  {
-    "id": "model.config.is_valid.atmos_camo_image_proxy_url.app_error",
-    "translation": "Некоректний параметр RemoteImageProxyURL для atmos/camo. Необхідно встановити спільний ключ."
-  },
-  {
     "id": "model.config.is_valid.cluster_email_batching.app_error",
     "translation": "Неможливо увімкнути пакетну обробку електронних листів під час увімкненої кластеризації."
   },
@@ -3602,10 +3450,6 @@
   {
     "id": "model.config.is_valid.email_security.app_error",
     "translation": "Неправильний захист з'єднання для налаштувань електронної пошти. Має бути '', 'TLS' або 'STARTTLS'."
-  },
-  {
-    "id": "model.config.is_valid.encrypt_sql.app_error",
-    "translation": "Неправильний ключ шифрування для SQL-налаштувань. Повинен містити 32 або більше символів."
   },
   {
     "id": "model.config.is_valid.file_driver.app_error",
@@ -5492,10 +5336,6 @@
     "translation": "Не вдалося отримати всі реакції з цим іменем емодзі."
   },
   {
-    "id": "app.reaction.bulk_get_for_post_ids.app_error",
-    "translation": "Не вдалося отримати реакції на публікацію."
-  },
-  {
     "id": "app.audit.save.saving.app_error",
     "translation": "Ми зіткнулися з помилкою під час збереження аудитів."
   },
@@ -6346,10 +6186,6 @@
   {
     "id": "api.user.login_cws.license.error",
     "translation": "Вхід через CWS заборонено."
-  },
-  {
-    "id": "api.slackimport.slack_import.zip.file_too_large",
-    "translation": "{{.Filename}} у zip-архіві завеликий для обробки для імпорту із Slack\n"
   },
   {
     "id": "api.post.search_posts.invalid_body.app_error",
@@ -7916,10 +7752,6 @@
     "translation": "Mattermost не вдалося оновити до корпоративної версії. Системний користувач Mattermost {{.MattermostUsername}} не має прав запису до необхідного двійкового файлу. Системний адміністратор може оновити дозволи файлу, виконавши наступну команду на сервері, де встановлено Mattermost:\n\n```\nchmod +w \"{{.Path}}\"\n```\n\nПісля зміни дозволів файлу спробуйте знову оновити Mattermost. Після завершення оновлення та перезапуску системи не забудьте відновити початкові дозволи для двійкового файлу:\n\n```\nchmod -w \"{{.Path}}\"\n```"
   },
   {
-    "id": "api.team.import_team.unknown_import_from.app_error",
-    "translation": "Невідоме джерело імпорту."
-  },
-  {
     "id": "api.team.invite_guests_to_channels.disabled.error",
     "translation": "Гостьові облікові записи вимкнено"
   },
@@ -8280,10 +8112,6 @@
     "translation": "Не вдалося отримати файли для чернетки."
   },
   {
-    "id": "app.eport.generate_presigned_url.link.app_error",
-    "translation": "Не вдається згенерувати попередньо підписану URL-адресу."
-  },
-  {
     "id": "app.import.import_user_teams.save_members.max_accounts.app_error",
     "translation": "Неможливо імпортувати членів команди, оскільки в цій команді більше немає учасників"
   },
@@ -8386,10 +8214,6 @@
   {
     "id": "app.desktop_token.generateServerToken.invalid_or_expired",
     "translation": "Токен не існує або його термін дії закінчився"
-  },
-  {
-    "id": "app.eport.generate_presigned_url.notfound.app_error",
-    "translation": "Файл експорту не знайдено."
   },
   {
     "id": "app.file_info.get.gif.app_error",
@@ -8536,14 +8360,6 @@
     "translation": "Ми не змогли знайти емодзі."
   },
   {
-    "id": "app.eport.generate_presigned_url.driver.app_error",
-    "translation": "Драйвер вашого сховища для експорту не підтримує створення попередньо підписаних URL-адрес."
-  },
-  {
-    "id": "app.eport.generate_presigned_url.featureflag.app_error",
-    "translation": "Ця функція обмежена прапором функції."
-  },
-  {
     "id": "app.export.export_attachment.mkdirall.error",
     "translation": "Не вдалося створити каталог під час експорту."
   },
@@ -8670,14 +8486,6 @@
   {
     "id": "app.email.no_rate_limiter.app_error",
     "translation": "Обмежувач швидкості не налаштований."
-  },
-  {
-    "id": "app.eport.generate_presigned_url.config.app_error",
-    "translation": "Ця дія вимагає використання спеціального сховища для експорту."
-  },
-  {
-    "id": "app.eport.generate_presigned_url.fileexist.app_error",
-    "translation": "Неможливо перевірити, чи існує файл."
   },
   {
     "id": "app.cloud.upgrade_plan_bot_message_single",
@@ -9328,10 +9136,6 @@
     "translation": "Не вдалося отримати найстаріший об'єкт (користувача, канал або повідомлення) з бази даних"
   },
   {
-    "id": "ent.elasticsearch.max_version.app_error",
-    "translation": "Версія {{.Backend}} ({{.Version}}) перевищує максимальну підтримувану версію ({{.MaxVersion}})"
-  },
-  {
     "id": "ent.ldap_id_migrate.app_error",
     "translation": "не можуть мігрувати."
   },
@@ -9904,14 +9708,6 @@
     "translation": "Не є учасником каналу"
   },
   {
-    "id": "app.scheduled_post.failed_messages",
-    "translation": {
-      "few": "Не вдалося надіслати {{.Count}} запланованих повідомлень.",
-      "many": "Не вдалося надіслати {{.Count}} запланованих повідомлень.",
-      "one": "Не вдалося надіслати {{.Count}} заплановане повідомлення."
-    }
-  },
-  {
     "id": "app.scheduled_post.error_reason.no_channel_permission",
     "translation": "Немає дозволу на публікацію в каналі"
   },
@@ -9950,14 +9746,6 @@
   {
     "id": "model.config.is_valid.storage_class.app_error",
     "translation": "Неправильний клас сховища {{.Value}}."
-  },
-  {
-    "id": "app.scheduled_post.failed_message_detail",
-    "translation": {
-      "few": "- {{.Count}} у каналах {{.ChannelName}}. Причина: {{.ErrorReason}}",
-      "many": "- {{.Count}} у каналах {{.ChannelName}}. Причина: {{.ErrorReason}}",
-      "one": "- {{.Count}} у каналі {{.ChannelName}}. Причина: {{.ErrorReason}}"
-    }
   },
   {
     "id": "app.plugin.seek.app_error",

@@ -592,14 +592,6 @@
     "translation": "@[имя_пользователя1],@[имя_пользователя2] 'сообщение'"
   },
   {
-    "id": "api.command_groupmsg.invalid_user.app_error",
-    "translation": {
-      "few": "Не удалось найти пользователей: {{.Users}}",
-      "many": "Не удалось найти пользователей: {{.Users}}",
-      "one": "Не удалось найти пользователя: {{.Users}}"
-    }
-  },
-  {
     "id": "api.command_groupmsg.max_users.app_error",
     "translation": "Максимальное количество получателей групповых сообщений ограничено {{.MaxUsers}} пользователями."
   },
@@ -670,14 +662,6 @@
   {
     "id": "api.command_invite.success",
     "translation": "{{.User}} добавлен в канал {{.Channel}}."
-  },
-  {
-    "id": "api.command_invite.user_already_in_channel.app_error",
-    "translation": {
-      "few": "{{.User}} уже находятся в канале.",
-      "many": "{{.User}} уже находятся в канале.",
-      "one": "{{.User}} уже находится в канале."
-    }
   },
   {
     "id": "api.command_invite_people.permission.app_error",
@@ -972,14 +956,6 @@
     "translation": "Почтовые объединения отключены системным администратором."
   },
   {
-    "id": "api.email_batching.send_batched_email_notification.subject",
-    "translation": {
-      "few": "[{{.SiteName}}] Новые уведомления за {{.Day}} {{.Month}}, {{.Year}}",
-      "many": "[{{.SiteName}}] Новые уведомления за {{.Day}} {{.Month}}, {{.Year}}",
-      "one": "[{{.SiteName}}] Новое уведомление за {{.Day}} {{.Month}}, {{.Year}}"
-    }
-  },
-  {
     "id": "api.emoji.create.duplicate.app_error",
     "translation": "Не удалось создать смайлик. Уже существует другой смайлик с таким же именем."
   },
@@ -1160,10 +1136,6 @@
     "translation": "Эта лицензия поддерживает {{.Users}} пользователей, в то время как в вашей системе {{.Count}} уникальных пользователей. Уникальные пользователи подсчитываются явно по адресу электронной почты. Вы можете увидеть общее количество пользователей в пункте Отчеты сайта -> Просмотр статистики."
   },
   {
-    "id": "api.license.client.old_format.app_error",
-    "translation": "Новый формат пользовательской лицензии пока не поддерживается. Пожалуйста, укажите format=old в строке запроса."
-  },
-  {
     "id": "api.marshal_error",
     "translation": "Не удалось упорядочить."
   },
@@ -1336,22 +1308,6 @@
     "translation": "Ошибка в интеграции действия."
   },
   {
-    "id": "api.post.get_message_for_notification.files_sent",
-    "translation": {
-      "few": "{{.Count}} файла отправлено: {{.Filenames}}",
-      "many": "{{.Count}} файлов отправлено: {{.Filenames}}",
-      "one": "{{.Count}} файл отправлен: {{.Filenames}}"
-    }
-  },
-  {
-    "id": "api.post.get_message_for_notification.images_sent",
-    "translation": {
-      "few": "{{.Count}} изображения отправлено: {{.Filenames}}",
-      "many": "{{.Count}} изображений отправлено: {{.Filenames}}",
-      "one": "{{.Count}} изображение отправлено: {{.Filenames}}"
-    }
-  },
-  {
     "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
     "translation": "Нельзя обновить сообщение в удаленном канале."
   },
@@ -1484,78 +1440,6 @@
     "translation": "Ошибка запуска сервера, err:%v"
   },
   {
-    "id": "api.slackimport.slack_add_bot_user.unable_import",
-    "translation": "Не удалось импортировать пользователя Integration / Slack Bot {{.Username}}.\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_channels.added",
-    "translation": "\r\nКаналы добавлены:\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_channels.failed_to_add_user",
-    "translation": "Не удалось добавить пользователя Slack {{.Username}} в канал.\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_channels.import_failed",
-    "translation": "Не удалось импортировать Slack канал {{.DisplayName}}.\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_channels.merge",
-    "translation": "Slack канал {{.DisplayName}} уже существует в виде канала Mattermost. Произведено слияние.\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_users.created",
-    "translation": "\r\nПользователи созданы:\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_users.merge_existing",
-    "translation": "Slack пользователь слился с существующим пользователем Mattermost с соответствующим адресом электронной почты {{.Email}} и именем пользователя {{.Username}}.\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_users.merge_existing_failed",
-    "translation": "Пользователь Slack объединен с существующим пользователем Mattermost по совпадению email {{.Email}} и имени пользователя {{.Username}}, но было невозможно добавить пользователя в его команду.\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_users.missing_email_address",
-    "translation": "Пользователь {{.Username}} не имеет адреса электронной почты в экспорте из Slack. Используется {{.Email}} как заглушка. Пользователь должен обновить адрес электронной почты при входе в систему.\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_users.unable_import",
-    "translation": "Не удалось импортировать пользователя: {{.Username}}.\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.log",
-    "translation": "Лог импорта Mattermost Slack\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.note1",
-    "translation": "- Некоторые сообщения могли быть не импортированы, поскольку не поддерживаются этим ипортером.\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.note2",
-    "translation": "- Сообщения ботов Slack на данный момент не поддерживаются.\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.note3",
-    "translation": "- Дополнительные ошибки могут быть найдены в журналах сервера.\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.notes",
-    "translation": "\r\nЗаметки:\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.open.app_error",
-    "translation": "Невозможно открыть файл: {{.Filename}}.\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.team_fail",
-    "translation": "Не удалось получить команду, в которую необходимо импортировать.\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.zip.app_error",
-    "translation": "Невозможно открыть zip-архив экспортируемых из Slack данных.\r\n"
-  },
-  {
     "id": "api.status.user_not_found.app_error",
     "translation": "Пользователь не найден."
   },
@@ -1578,34 +1462,6 @@
   {
     "id": "api.team.get_team_icon.read_file.app_error",
     "translation": "Невозможно прочитать файл значка команды."
-  },
-  {
-    "id": "api.team.import_team.array.app_error",
-    "translation": "Пустой массив 'file' в запросе."
-  },
-  {
-    "id": "api.team.import_team.integer.app_error",
-    "translation": "Размер файла не является целым числом."
-  },
-  {
-    "id": "api.team.import_team.no_file.app_error",
-    "translation": "Нет файла 'file' в запросе."
-  },
-  {
-    "id": "api.team.import_team.no_import_from.app_error",
-    "translation": "Неправильный запрос: отсутствует поле \"importFrom\"."
-  },
-  {
-    "id": "api.team.import_team.open.app_error",
-    "translation": "Не могу открыть файл."
-  },
-  {
-    "id": "api.team.import_team.parse.app_error",
-    "translation": "Не удалось разобрать составную форму."
-  },
-  {
-    "id": "api.team.import_team.unavailable.app_error",
-    "translation": "Неправильный запрос: отсутствует поле \"filesize\"."
   },
   {
     "id": "api.team.invite_members.disabled.app_error",
@@ -3536,14 +3392,6 @@
     "translation": "Для разрешения файлов cookie для поддоменов необходимо установить SiteURL."
   },
   {
-    "id": "model.config.is_valid.atmos_camo_image_proxy_options.app_error",
-    "translation": "Недопустимые RemoteImageProxyOptions для atmos/camo. Должен быть установлен на ваш общий ключ."
-  },
-  {
-    "id": "model.config.is_valid.atmos_camo_image_proxy_url.app_error",
-    "translation": "Недопустимый RemoteImageProxyURL для atmos/camo. Должен быть установлен на ваш общий ключ."
-  },
-  {
     "id": "model.config.is_valid.cluster_email_batching.app_error",
     "translation": "Невозможно включить пакетную обработку почты при включенной кластеризации."
   },
@@ -3602,10 +3450,6 @@
   {
     "id": "model.config.is_valid.email_security.app_error",
     "translation": "Неверный тип безопасности соединения в настройках почты. Должно быть '', 'TLS', или 'STARTTLS'."
-  },
-  {
-    "id": "model.config.is_valid.encrypt_sql.app_error",
-    "translation": "Неправильный ключ шифрования в настройках SQL. Должен быть 32 символа или более."
   },
   {
     "id": "model.config.is_valid.file_driver.app_error",
@@ -4556,10 +4400,6 @@
     "translation": "Тип канала не может быть обновлен."
   },
   {
-    "id": "api.team.import_team.unknown_import_from.app_error",
-    "translation": "Неизвестный источник импорта."
-  },
-  {
     "id": "api.admin.saml.failure_get_metadata_from_idp.app_error",
     "translation": "Не удалось получить метаданные из URL-адреса поставщика удостоверений."
   },
@@ -5300,10 +5140,6 @@
     "translation": "Невозможно создать токен восстановления пароля"
   },
   {
-    "id": "api.slackimport.slack_import.zip.file_too_large",
-    "translation": "{{.Filename}} в zip архиве слишком велик для обработки импортером из Slack\r\n"
-  },
-  {
     "id": "api.team.add_members.error",
     "translation": "Ошибка при добавлении участника(ов) команды."
   },
@@ -5334,10 +5170,6 @@
   {
     "id": "api.templates.invite_guest_subject",
     "translation": "[{{ .SiteName }}] {{ .SenderName }} пригласил вас в команду {{ .TeamDisplayName }} в качестве гостя"
-  },
-  {
-    "id": "api.templates.remove_expired_license.subject",
-    "translation": "Корпоративная лицензия Mattermost была отключена."
   },
   {
     "id": "api.user.create_user.invalid_invitation_type.app_error",
@@ -5598,10 +5430,6 @@
   {
     "id": "app.reaction.delete_all_with_emoji_name.get_reactions.app_error",
     "translation": "Не удалось получить все реакции с данным именем смайла."
-  },
-  {
-    "id": "app.reaction.bulk_get_for_post_ids.app_error",
-    "translation": "Не удалось получить реакции для данного сообщения."
   },
   {
     "id": "api.license.request-trial.bad-request.terms-not-accepted",
@@ -7248,10 +7076,6 @@
     "translation": "Напишите нам в любое время на email "
   },
   {
-    "id": "api.templates.email_footer_v2",
-    "translation": "© 2022 Mattermost, Inc. 530 Lytton Avenue, Second floor, Palo Alto, CA, 94301"
-  },
-  {
     "id": "api.templates.cloud_welcome_email.title",
     "translation": "Ваше рабочее пространство готово к работе!"
   },
@@ -8024,14 +7848,6 @@
     "translation": "Ваша подписка Mattermost подлежит продлению"
   },
   {
-    "id": "api.templates.license_up_for_renewal_subtitle",
-    "translation": "{{.UserName}}, срок действия Вашей подписки истекает через {{.Days}} дней. Мы надеемся, что Вам нравится гибкое и безопасное командное сотрудничество, которое обеспечивает Mattermost. Продлите подписку в ближайшее время, чтобы Ваша команда могла продолжать пользоваться этими преимуществами."
-  },
-  {
-    "id": "api.templates.license_up_for_renewal_subject",
-    "translation": "Ваша лицензия подлежит продлению"
-  },
-  {
     "id": "api.templates.invite_body.title.reminder",
     "translation": "Напоминание"
   },
@@ -8572,10 +8388,6 @@
     "translation": "Недопустимое значение для байтов при загрузке лицензии."
   },
   {
-    "id": "ent.elasticsearch.max_version.app_error",
-    "translation": "Версия {{.Backend}} {{.Version}} выше максимально поддерживаемой версии {{.MaxVersion}}"
-  },
-  {
     "id": "api.user.invalidate_password_recovery_tokens.error",
     "translation": "Невозможно получить токены по типу при аннулировании токенов восстановления пароля"
   },
@@ -8656,14 +8468,6 @@
     "translation": "Невозможно обновить участника канала."
   },
   {
-    "id": "app.eport.generate_presigned_url.config.app_error",
-    "translation": "Эти действия требуют использования специализированного экспортного магазина."
-  },
-  {
-    "id": "app.eport.generate_presigned_url.driver.app_error",
-    "translation": "Драйвер вашего экспортного хранилища не поддерживает генерацию url-значений."
-  },
-  {
     "id": "api.error_no_organization_name_provided_for_self_hosted_onboarding",
     "translation": "Ошибка: не указано название организации для самостоятельной регистрации на сайте."
   },
@@ -8694,22 +8498,6 @@
   {
     "id": "app.channel.update_member.notify_props_limit_exceeded.app_error",
     "translation": "Не удалось обновить участника канала, превышено ограничения размера реквизита."
-  },
-  {
-    "id": "app.eport.generate_presigned_url.featureflag.app_error",
-    "translation": "Эта функция ограничена флагом функции."
-  },
-  {
-    "id": "app.eport.generate_presigned_url.fileexist.app_error",
-    "translation": "Не удалось проверить, существует ли файл."
-  },
-  {
-    "id": "app.eport.generate_presigned_url.link.app_error",
-    "translation": "Невозможно сгенерировать заданный url."
-  },
-  {
-    "id": "app.eport.generate_presigned_url.notfound.app_error",
-    "translation": "Файл экспорта не найден."
   },
   {
     "id": "app.file_info.get.gif.app_error",
@@ -9876,22 +9664,6 @@
     "translation": "Пользователь не существует"
   },
   {
-    "id": "app.scheduled_post.failed_message_detail",
-    "translation": {
-      "few": "- {{.Count}} в канале {{.ChannelName}}. Причина: {{.ErrorReason}}",
-      "many": "- {{.Count}} в канале {{.ChannelName}}. Причина: {{.ErrorReason}}",
-      "one": "- {{.Count}} в канале {{.ChannelName}}. Причина: {{.ErrorReason}}"
-    }
-  },
-  {
-    "id": "app.scheduled_post.failed_messages",
-    "translation": {
-      "few": "Не удалось отправить {{.Count}} запланированных сообщения.",
-      "many": "Не удалось отправить {{.Count}} запланированных сообщений.",
-      "one": "Не удалось отправить {{.Count}} запланированное сообщение."
-    }
-  },
-  {
     "id": "app.scheduled_post.permanent_delete_by_user.app_error",
     "translation": "Невозможно удалить запланированные сообщения для пользователя."
   },
@@ -10274,18 +10046,6 @@
   {
     "id": "api.remote_cluster.import_not_allowed.app_error",
     "translation": "Импорт удаленного кластера не разрешен"
-  },
-  {
-    "id": "api.slackimport.slack_add_bot_user.email",
-    "translation": "Пользователь Integration/Slack Bot с электронной почтой {{.Email}} был импортирован.\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_users.email",
-    "translation": "Пользователь Slack с электронной почтой {{.Email}} был импортирован.\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_users.send_reset_email_failed",
-    "translation": "Невозможно отправить письмо со сбросом пароля на {{.Username}} по адресу {{.Email}}.\n"
   },
   {
     "id": "api.team.get_team.flagged_post_mismatch.app_error",

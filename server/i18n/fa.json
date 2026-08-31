@@ -464,10 +464,6 @@
     "translation": "تجزیه و تحلیل داده های ورودی امکان پذیر نیست."
   },
   {
-    "id": "model.incoming_hook.id.app_error",
-    "translation": "شناسه نامعتبر است."
-  },
-  {
     "id": "model.incoming_hook.icon_url.app_error",
     "translation": "نماد پست نامعتبر است."
   },
@@ -856,14 +852,6 @@
     "translation": "مقدار نامعتبر برای RetentionDays. ارزش خیلی کم است."
   },
   {
-    "id": "model.config.is_valid.atmos_camo_image_proxy_url.app_error",
-    "translation": "URL پروکسی تصویر از راه دور برایatmos/camo نامعتبر است. باید روی کلید مشترک شما تنظیم شود."
-  },
-  {
-    "id": "model.config.is_valid.atmos_camo_image_proxy_options.app_error",
-    "translation": "گزینه های نامعتبر RemoteImageProxy برایatmos/camo. باید روی کلید مشترک شما تنظیم شود."
-  },
-  {
     "id": "model.config.is_valid.allow_cookies_for_subdomains.app_error",
     "translation": "اجازه دادن به کوکی ها برای زیر دامنه ها نیاز به تنظیم URL سایت دارد."
   },
@@ -1028,20 +1016,12 @@
     "translation": "شناسه کانال نامعتبر است."
   },
   {
-    "id": "web.incoming_webhook.user.app_error",
-    "translation": "کاربر یافت نشد."
-  },
-  {
     "id": "web.incoming_webhook.text.app_error",
     "translation": "هیچ متنی مشخص نشده است."
   },
   {
     "id": "web.incoming_webhook.split_props_length.app_error",
     "translation": "بخش های وب هوک قابل تقسیم به {{.Max}} نویسه نیست."
-  },
-  {
-    "id": "web.incoming_webhook.permissions.app_error",
-    "translation": "مجوزهای نامناسب کانال."
   },
   {
     "id": "web.incoming_webhook.parse.app_error",
@@ -1054,10 +1034,6 @@
   {
     "id": "web.incoming_webhook.disabled.app_error",
     "translation": "وب هوک های ورودی توسط مدیر سیستم غیرفعال شده اند."
-  },
-  {
-    "id": "web.incoming_webhook.channel_locked.app_error",
-    "translation": "ارسال این وب هوک به کانال درخواستی مجاز نیست."
   },
   {
     "id": "web.incoming_webhook.channel.app_error",
@@ -1164,14 +1140,6 @@
     "translation": "جدیدترین مرورگر Chrome را دریافت کنید"
   },
   {
-    "id": "web.command_webhook.parse.app_error",
-    "translation": "تجزیه و تحلیل داده های ورودی امکان پذیر نیست."
-  },
-  {
-    "id": "web.command_webhook.command.app_error",
-    "translation": "دستور پیدا نشد."
-  },
-  {
     "id": "system.message.name",
     "translation": "سیستم"
   },
@@ -1274,10 +1242,6 @@
   {
     "id": "plugin.api.get_users_in_channel",
     "translation": "معیارهای مرتب سازی نامعتبر است."
-  },
-  {
-    "id": "oauth.gitlab.tos.error",
-    "translation": "شرایط خدمات GitLab به روز شده است. لطفاً برای پذیرش آنها به gitlab.com بروید و دوباره سعی کنید وارد Mattermost شوید."
   },
   {
     "id": "model.websocket_client.connect_fail.app_error",
@@ -1564,10 +1528,6 @@
     "translation": "شناسه راه انداز ، داده های مورد نیاز برای گفتگوی تعاملی را از دست می دهد."
   },
   {
-    "id": "interactive_message.decode_trigger_id.expired",
-    "translation": "شناسه نگه دارنده برای گفتگوی تعاملی منقضی شده است. شناسه های نگه دارنده برای حداکثر {{.Seconds}} ثانیه موجودهستند."
-  },
-  {
     "id": "interactive_message.decode_trigger_id.base64_decode_failed_signature",
     "translation": "رمزگشایی امضای base64 شناسه نگه دارنده برای گفتگوی تعاملی ناموفق بود."
   },
@@ -1828,18 +1788,6 @@
     "translation": "مجوز شما از جستجوی الاستیک پشتیبانی نمی کند."
   },
   {
-    "id": "ent.elasticsearch.test_config.indexing_disabled.error",
-    "translation": "جستجوی الاستیک غیرفعال است."
-  },
-  {
-    "id": "ent.elasticsearch.start.parse_server_version.app_error",
-    "translation": "تجزیه نسخه سرور جستجوی الاستیک انجام نشد."
-  },
-  {
-    "id": "ent.elasticsearch.start.get_server_version.app_error",
-    "translation": "نسخه سرور جستجوی الاستیک دریافت نشد."
-  },
-  {
     "id": "ent.elasticsearch.search_users.unmarshall_user_failed",
     "translation": "رمزگشایی نتایج جستجو انجام نشد"
   },
@@ -1860,10 +1808,6 @@
     "translation": "تجزیه و تحلیل موارد نتیجه جستجو انجام نشد"
   },
   {
-    "id": "ent.elasticsearch.search_posts.disabled",
-    "translation": "جستجوی الاستیک در این سرور غیرفعال است"
-  },
-  {
     "id": "ent.elasticsearch.search_files.unmarshall_file_failed",
     "translation": "رمزگشایی نتایج جستجو انجام نشد"
   },
@@ -1872,20 +1816,12 @@
     "translation": "جستجو کامل نشد"
   },
   {
-    "id": "ent.elasticsearch.search_files.disabled",
-    "translation": "جستجوی فایل های Elasticsearch در این سرور غیرفعال است"
-  },
-  {
     "id": "ent.elasticsearch.search_channels.unmarshall_channel_failed",
     "translation": "رمزگشایی نتایج جستجو انجام نشد"
   },
   {
     "id": "ent.elasticsearch.search_channels.search_failed",
     "translation": "جستجو انجام نشد"
-  },
-  {
-    "id": "ent.elasticsearch.search_channels.disabled",
-    "translation": "جستجوی الاستیک در این سرور غیرفعال است"
   },
   {
     "id": "ent.elasticsearch.refresh_indexes.refresh_failed",
@@ -1900,20 +1836,8 @@
     "translation": "نمی توان دسته ای از فایل ها را برای ایندکس سازی دریافت کرد."
   },
   {
-    "id": "ent.elasticsearch.not_started.error",
-    "translation": "جستجوی الاستیک آغاز نشده است"
-  },
-  {
     "id": "ent.elasticsearch.indexer.index_batch.nothing_left_to_index.error",
     "translation": "سعی می شود وقتی تمام موجودیت ها کامل شد ، یک دسته جدید را ایندکس سازی کنید"
-  },
-  {
-    "id": "ent.elasticsearch.indexer.do_job.parse_start_time.error",
-    "translation": "کارگر ایندکس سازی الاستیک در تجزیه و تحلیل زمان شروع ناموفق بود"
-  },
-  {
-    "id": "ent.elasticsearch.indexer.do_job.parse_end_time.error",
-    "translation": "کارگر ایندکس سازی الاستیک در تجزیه زمان پایان موفق نشد"
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.get_oldest_entity.error",
@@ -2136,10 +2060,6 @@
     "translation": "مقدار دایرکتوری نباید خالی باشد."
   },
   {
-    "id": "model.config.is_valid.encrypt_sql.app_error",
-    "translation": "کلید رمزگذاری در حالت استراحت برای تنظیمات SQL نامعتبر است. باید 32 کاراکتر یا بیشتر باشد."
-  },
-  {
     "id": "model.config.is_valid.email_security.app_error",
     "translation": "امنیت اتصال برای تنظیمات ایمیل نامعتبر است. باید '', 'TLS', یا 'STARTTLS' باشد."
   },
@@ -2166,14 +2086,6 @@
   {
     "id": "model.config.is_valid.elastic_search.live_indexing_batch_size.app_error",
     "translation": "اندازه دسته بندی ایندکس سازی مستقیم جستجوی الاستیک باید حداقل 1 باشد."
-  },
-  {
-    "id": "model.config.is_valid.elastic_search.enable_searching.app_error",
-    "translation": "هنگامی که Elasticsearch EnableSearching بر روی true تنظیم می شود باید تنظیمات Indexing روی true تنظیم شود"
-  },
-  {
-    "id": "model.config.is_valid.elastic_search.enable_autocomplete.app_error",
-    "translation": "هنگامی که Elasticsearch EnableAutocomplete بر روی true تنظیم می شود باید تنظیمات ایندکس روی true تنظیم شود"
   },
   {
     "id": "model.config.is_valid.elastic_search.connection_url.app_error",
@@ -3060,10 +2972,6 @@
     "translation": "دریافت همه اعضای کانال انجام نشد"
   },
   {
-    "id": "ent.elasticsearch.generic.disabled",
-    "translation": "جستجوی الاستیک در این سرور فعال نیست"
-  },
-  {
     "id": "ent.elasticsearch.delete_user_posts.error",
     "translation": "پست های کاربر حذف نشد"
   },
@@ -3094,50 +3002,6 @@
   {
     "id": "ent.elasticsearch.delete_channel.error",
     "translation": "کانال حذف نشد"
-  },
-  {
-    "id": "ent.elasticsearch.data_retention_delete_indexes.get_indexes.error",
-    "translation": "ایندکس های جستجوی الاستیک دریافت نشد"
-  },
-  {
-    "id": "ent.elasticsearch.data_retention_delete_indexes.delete_index.error",
-    "translation": "ایندکس جستجوی الاستیک حذف نشد"
-  },
-  {
-    "id": "ent.elasticsearch.create_template_users_if_not_exists.template_create_failed",
-    "translation": "الگوی Elasticsearch برای کاربران ایجاد نشد"
-  },
-  {
-    "id": "ent.elasticsearch.create_template_posts_if_not_exists.template_create_failed",
-    "translation": "ایجاد الگوی جستجو برای پست ها ناموفق بود"
-  },
-  {
-    "id": "ent.elasticsearch.create_template_file_info_if_not_exists.template_create_failed",
-    "translation": "الگوی Elasticsearch برای فایل ها ایجاد نشد"
-  },
-  {
-    "id": "ent.elasticsearch.create_template_channels_if_not_exists.template_create_failed",
-    "translation": "الگوی Elasticsearch برای کانال ها ایجاد نشد"
-  },
-  {
-    "id": "ent.elasticsearch.create_client.connect_failed",
-    "translation": "راه اندازی مشتری جسجتوی الاستیک انجام نشد"
-  },
-  {
-    "id": "ent.elasticsearch.aggregator_worker.index_job_failed.error",
-    "translation": "کارگر جمع کننده الاستیک به دلیل از کار افتادن شغل ایندکس سازی ، از کار افتاد"
-  },
-  {
-    "id": "ent.elasticsearch.aggregator_worker.get_indexes.error",
-    "translation": "کارگر جمع کننده الاستیک موفق به دریافت ایندکس نشد"
-  },
-  {
-    "id": "ent.elasticsearch.aggregator_worker.delete_indexes.error",
-    "translation": "کارگر جمع کننده الاستیک در حذف ایندکس ها ناموفق بود"
-  },
-  {
-    "id": "ent.elasticsearch.aggregator_worker.create_index_job.error",
-    "translation": "کارگر جمع کننده الاستیک در ایجاد شغل ایندکس سازی ناموفق بود"
   },
   {
     "id": "ent.data_retention.run_failed.error",
@@ -3586,10 +3450,6 @@
   {
     "id": "app.reaction.delete_all_with_emoji_name.get_reactions.app_error",
     "translation": "دریافت همه واکنشها با این نام شکلک امکان پذیر نیست."
-  },
-  {
-    "id": "app.reaction.bulk_get_for_post_ids.app_error",
-    "translation": "واکنش برای ارسال امکان پذیر نیست."
   },
   {
     "id": "app.preference.save.updating.app_error",
@@ -4352,10 +4212,6 @@
     "translation": "بازیابی رمز عبور"
   },
   {
-    "id": "api.templates.remove_expired_license.subject",
-    "translation": "مجوز تجاری Mattermost غیرفعال شده است."
-  },
-  {
     "id": "api.templates.questions_footer.title",
     "translation": "سوالات؟"
   },
@@ -4402,14 +4258,6 @@
   {
     "id": "api.templates.license_up_for_renewal_title",
     "translation": "اشتراک Mattermost شما آماده تمدید است"
-  },
-  {
-    "id": "api.templates.license_up_for_renewal_subtitle",
-    "translation": "{{.UserName}}، اشتراک شما قرار است تا {{.Days}} روز دیگر منقضی شود. ما امیدواریم که همکاری تیمی منعطف و امنی را که Mattermost فعال می‌کند، تجربه کرده باشید. به زودی تمدید کنید تا مطمئن شوید که تیم شما همچنان از این مزایا بهره مند خواهد شد."
-  },
-  {
-    "id": "api.templates.license_up_for_renewal_subject",
-    "translation": "مجوز شما برای تمدید آماده شده است"
   },
   {
     "id": "api.templates.invite_subject",
@@ -4476,10 +4324,6 @@
     "translation": "در صورت داشتن هرگونه سوال ، هر زمان بخواهید برای ما ایمیل کنید: "
   },
   {
-    "id": "api.templates.email_footer_v2",
-    "translation": "© ۲۰۲۱ Mattermost, Inc. ۵۳۰ Lytton Avenue, طبقه دوم, Palo Alto, CA, ۹۴۳۰۱"
-  },
-  {
     "id": "api.templates.email_footer",
     "translation": "برای تغییر تنظیمات اعلان ، وارد سایت تیم خود شوید و به تنظیمات > اعلان ها بروید."
   },
@@ -4526,10 +4370,6 @@
   {
     "id": "api.templates.deactivate_body.info",
     "translation": "شما حساب خود را در {{ .SiteURL }} غیرفعال کردید."
-  },
-  {
-    "id": "api.templates.cloud_welcome_email.title",
-    "translation": "آزمایشی 14 روزه شما از فضای کاری {{.WorkSpace}} آماده راه اندازی است!"
   },
   {
     "id": "api.templates.cloud_welcome_email.subtitle_info",
@@ -4634,38 +4474,6 @@
   {
     "id": "api.team.invalidate_all_email_invites.app_error",
     "translation": "خطا در عدم اعتبار دعوت نامه های ایمیل."
-  },
-  {
-    "id": "api.team.import_team.unknown_import_from.app_error",
-    "translation": "منبع واردات ناشناخته."
-  },
-  {
-    "id": "api.team.import_team.unavailable.app_error",
-    "translation": "درخواست نادرست: قسمت اندازه پرونده وجود ندارد."
-  },
-  {
-    "id": "api.team.import_team.parse.app_error",
-    "translation": "فرم چند بخشی تجزیه نمی شود."
-  },
-  {
-    "id": "api.team.import_team.open.app_error",
-    "translation": "پرونده باز نشد."
-  },
-  {
-    "id": "api.team.import_team.no_import_from.app_error",
-    "translation": "درخواست نادرست: واردات از قسمت وجود ندارد."
-  },
-  {
-    "id": "api.team.import_team.no_file.app_error",
-    "translation": "هیچ پرونده ای تحت 'پرونده' درخواست نمی شود."
-  },
-  {
-    "id": "api.team.import_team.integer.app_error",
-    "translation": "اندازه فایل یک عدد صحیح نیست ."
-  },
-  {
-    "id": "api.team.import_team.array.app_error",
-    "translation": "آرایه خالی تحت 'پرونده' در درخواست."
   },
   {
     "id": "api.team.get_team_icon.read_file.app_error",
@@ -5036,14 +4844,6 @@
     "translation": "دریافت همه کانال ها امکان پذیر نیست."
   },
   {
-    "id": "app.channel.get.find.app_error",
-    "translation": "در یافتن کانال با خطایی روبرو شدیم."
-  },
-  {
-    "id": "app.channel.get.existing.app_error",
-    "translation": "یافتن کانال موجود امکان پذیر نیست."
-  },
-  {
     "id": "app.channel.delete.app_error",
     "translation": "حذف کانال امکان پذیر نیست."
   },
@@ -5198,10 +4998,6 @@
   {
     "id": "api.web_socket_router.bad_action.app_error",
     "translation": "اقدام ناشناخته وبسوکت."
-  },
-  {
-    "id": "api.web_socket.connect.upgrade.app_error",
-    "translation": "اتصال وب سوکت به روز نشد."
   },
   {
     "id": "api.user.verify_email.token_parse.error",
@@ -5468,82 +5264,6 @@
     "translation": "کاربر یافت نشد."
   },
   {
-    "id": "api.slackimport.slack_import.zip.file_too_large",
-    "translation": "{{.Filename}} در بایگانی zip برای پردازش Slack import بسیار بزرگ است\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.zip.app_error",
-    "translation": "پرونده zip صادرات Slack باز نمی شود.\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.team_fail",
-    "translation": "نمی توان تیم را وارد کرد.\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.open.app_error",
-    "translation": "باز کردن پرونده امکان پذیر نیست: {{.Filename}}.\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.notes",
-    "translation": "\nNotes:\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.note3",
-    "translation": "- ممکن است خطاهای اضافی در گزارش های سرور مشاهده شود.\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.note2",
-    "translation": "- پیام های ربات شل در حال حاضر پشتیبانی نمی شوند.\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.note1",
-    "translation": "- برخی از پیام ها ممکن است وارد نشده باشند زیرا توسط این وارد کننده پشتیبانی نمی شوند.\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.log",
-    "translation": "درون ریزی گزارش Mattermost Slack\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_users.unable_import",
-    "translation": "کاربر Slack وارد نمی شود: {{.Username}}.\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_users.missing_email_address",
-    "translation": "کاربر {{.Username}} در Slack export آدرس ایمیل ندارد. از {{.Email}} به عنوان حافظه مکان استفاده کرد. کاربر پس از ورود به سیستم باید آدرس ایمیل خود را به روز کند.\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_users.merge_existing_failed",
-    "translation": "کاربر Slack با یک کاربر موجود Mattermost با نامه الکترونیکی منطبق {{.Email}} و نام کاربری {{.Username}} ادغام شد ، اما نتوانست کاربر را به تیم خود اضافه کند.\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_users.merge_existing",
-    "translation": "کاربر Slack با یک کاربر موجود Mattermost با ایمیل منطبق {{.Email}} و نام کاربری {{.Username}} ادغام شد.\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_users.created",
-    "translation": "\nکاربران ایجاد کردند:\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_channels.merge",
-    "translation": "کانال Slack {{.DisplayName}} از قبل به عنوان یک کانال فعال Mattermost فعال است. هر دو کانال ادغام شده اند.\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_channels.import_failed",
-    "translation": "وارد کردن کانال Slack امکان پذیر نیست {{.DisplayName}}.\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_channels.failed_to_add_user",
-    "translation": "کاربر Slack {{.Username}} نمی تواند به کانال اضافه شود.\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_channels.added",
-    "translation": "\nکانال‌ها اضافه شدند:\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_bot_user.unable_import",
-    "translation": "وارد کردن کاربر یکپارچه سازی / Slack Bot {{.Username}} امکان پذیر نیست.\n"
-  },
-  {
     "id": "api.server.start_server.starting.critical",
     "translation": "خطا هنگام راه اندازی سرور ، خطا: %v"
   },
@@ -5658,10 +5378,6 @@
   {
     "id": "api.push_notifications_ack.forward.app_error",
     "translation": "هنگام ارسال تحویل رسید به سرویس پوش نوتیفیکیشن خطایی روی داد."
-  },
-  {
-    "id": "api.push_notifications.session.expired",
-    "translation": "جلسه منقضی شد: لطفاً برای ادامه دریافت اعلان وارد شوید. جلسات مربوط به {{.siteName}} توسط سرپرست سیستم شما پیکربندی شده است تا هر {{.daysCount}} روز منقضی شود."
   },
   {
     "id": "api.push_notifications.message.parse.app_error",
@@ -5976,10 +5692,6 @@
   {
     "id": "api.license.remove_expired_license.failed.error",
     "translation": "ارسال نامه مجوز غیرفعال با موفقیت انجام نشد."
-  },
-  {
-    "id": "api.license.client.old_format.app_error",
-    "translation": "قالب جدید برای مجوز مشتری هنوز پشتیبانی نمی شود. لطفا format=old را در رشته جستجو مشخص کنید."
   },
   {
     "id": "api.license.add_license.unique_users.app_error",
@@ -6757,10 +6469,6 @@
     "translation": "`{{.RemoteId}}` لغو دعوت نشد: {{.Error}}"
   },
   {
-    "id": "api.command_share.check_channel_exist.error",
-    "translation": "خطا هنگام بررسی وجود کانال مشترک: {{.Error}}"
-  },
-  {
     "id": "api.command_share.channel_status_id",
     "translation": "وضعیت شناسه کانال `{{.ChannelId}}`"
   },
@@ -6779,10 +6487,6 @@
   {
     "id": "api.command_share.channel_invite_not_home.error",
     "translation": "نمی توان اتصال ایمن را به کانال مشترکی که از جای دیگری سرچشمه می گیرد دعوت کرد."
-  },
-  {
-    "id": "api.command_share.channel_invite.error",
-    "translation": "خطا در دعوت از `{{.Name}}` به این کانال: {.Error}}"
   },
   {
     "id": "api.command_share.available_actions",
@@ -7023,10 +6727,6 @@
   {
     "id": "api.command_invite_people.permission.app_error",
     "translation": "شما اجازه دعوت کاربران جدید به این سرور را ندارید."
-  },
-  {
-    "id": "api.command_invite.user_not_in_team.app_error",
-    "translation": "@{{.Username}} عضو تیم نیست."
   },
   {
     "id": "api.command_invite.user_already_in_channel.app_error",
