@@ -299,11 +299,13 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
         expect(screen.getByPlaceholderText('Write to Other Channel')).toHaveValue('a different draft');
     });
 
-    it('should mount when rootId is omitted, as plugins may do via window.Components', () => {
+    it('should mount and send when rootId is omitted, as plugins may do via window.Components', async () => {
         // Plugins reach AdvancedTextEditor through the untyped window.Components bridge, so
-        // TypeScript cannot enforce the required rootId prop. Omitting it used to compare
-        // draft.rootId ('') against undefined forever and throw React error #301.
+        // TypeScript cannot enforce the required rootId prop. An undefined rootId used to
+        // mismatch the draft's '' on every render pass, throwing React error #301 on mount
+        // and, once mounted, leaving the post-submit draft reset silently dropped.
         const {rootId: _unusedRootId, ...propsWithoutRootId} = baseProps;
+        const message = 'a message sent from a composer without a rootId';
 
         renderWithContext(
             <AdvancedTextEditor
@@ -320,7 +322,24 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             }),
         );
 
-        expect(screen.getByTestId('post_textbox')).toBeInTheDocument();
+        const textbox = screen.getByTestId('post_textbox');
+
+        // SuggestionBox listens to onInput, not onChange.
+        fireEvent.input(textbox, {target: {value: message}});
+        expect(textbox).toHaveValue(message);
+
+        await act(async () => {
+            fireEvent.click(screen.getByTestId('SendMessageButton'));
+        });
+
+        expect(mockedOnSubmit).toHaveBeenCalledWith(
+            channelId,
+            '',
+            expect.objectContaining({message, channelId, rootId: ''}),
+            expect.anything(),
+            undefined,
+        );
+        expect(textbox).toHaveValue('');
     });
 
     it('should submit a destination-owned draft while the textbox still holds the previous channel value', async () => {

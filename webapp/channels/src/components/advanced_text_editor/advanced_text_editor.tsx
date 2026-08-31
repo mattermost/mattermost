@@ -125,7 +125,7 @@ export type Props = {
 const AdvancedTextEditor = ({
     location,
     channelId,
-    rootId,
+    rootId: rootIdProp,
     postId,
     isThreadView = false,
     placeholder,
@@ -133,6 +133,11 @@ const AdvancedTextEditor = ({
     afterSubmit,
     storageKey,
 }: Props) => {
+    // rootId is typed as required, but plugins reach this component through the untyped
+    // window.Components bridge and may omit it. Every draft carries '' rather than undefined
+    // for a non-thread composer, so an undefined prop desyncs the id comparisons below.
+    const rootId = rootIdProp ?? '';
+
     const {formatMessage} = useIntl();
 
     const dispatch = useDispatch();
@@ -242,10 +247,7 @@ const AdvancedTextEditor = ({
     const codeBlockOnCtrlEnter = useSelector((state: GlobalState) => getBool(state, Preferences.CATEGORY_ADVANCED_SETTINGS, 'code_block_ctrl_enter', true));
     const isDMOrGMRemote = isChannelShared && (channelType === Constants.DM_CHANNEL || channelType === Constants.GM_CHANNEL);
 
-    // Compared against draftFromStore rather than the props because it is the value being
-    // assigned, so the condition is always false on the next pass. Comparing the raw props
-    // re-renders forever if a caller omits rootId, since the selector stores it as ''.
-    if (draft.channelId !== draftFromStore.channelId || draft.rootId !== draftFromStore.rootId) {
+    if (draft.channelId !== channelId || draft.rootId !== rootId) {
         setDraft(draftFromStore);
     }
 
