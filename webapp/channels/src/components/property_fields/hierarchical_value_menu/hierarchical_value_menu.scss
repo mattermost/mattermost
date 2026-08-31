@@ -81,6 +81,13 @@
         background: rgba(var(--center-channel-color-rgb), 0.16);
     }
 
+    // A read that failed leaves nothing known about the id -- not even a stale
+    // name. The chip says so instead of printing the raw identifier.
+    &__chip--unavailable &__chip-label {
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+        font-style: italic;
+    }
+
     &__chip-remove {
         display: flex;
         align-items: center;
@@ -165,6 +172,17 @@
 
         &:hover {
             background: transparent;
+        }
+    }
+
+    // The retryable row is a real menu item -- focusable, hoverable and
+    // activatable -- so it must not look inert like the message rows do.
+    &__status--actionable {
+        cursor: pointer;
+
+        &:hover,
+        &.Mui-focusVisible {
+            background: rgba(var(--center-channel-color-rgb), 0.08);
         }
     }
 

@@ -116,7 +116,8 @@ export default function PolicyHierarchicalValues({
         onNamesChange(emitPolicyIdsToNames(nextIds, join.byId, fallbackLabels));
     }, [join, fallbackLabels, onNamesChange]);
 
-    // Memoised: the widget refetches whenever this identity changes.
+    // Memoised: an unstable identity makes the widget re-announce its join on
+    // every render, and each announce sets state here.
     const handleOptionsLoaded = useCallback((loaded: GraphOptionJoin) => {
         setFetchedJoin(loaded);
     }, []);

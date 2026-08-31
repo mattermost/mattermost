@@ -67,6 +67,7 @@ const openMenu = async () => {
     await userEvent.click(trigger());
 };
 const row = (name: string) => screen.getByRole('menuitemcheckbox', {name});
+const everyRow = () => screen.queryAllByRole('menuitemcheckbox');
 const checkboxOf = (name: string) => row(name).querySelector('.hierarchical-value-menu__checkbox') as HTMLElement;
 const labelOf = (name: string) => row(name).querySelector('.hierarchical-value-menu__label') as HTMLElement;
 
@@ -255,6 +256,30 @@ describe('hierarchical value menu adapters', () => {
             await openMenu();
 
             expect(await screen.findByRole('menuitemcheckbox', {name: 'F-18 Program'})).toHaveAttribute('aria-checked', 'true');
+        });
+
+        // The real user-visible consequence of hydrating in the same commit as the
+        // status flip, and the thing `hydrates from the fetched options...` above
+        // does not assert: the row opens *expanded* to its selected value. Seeding
+        // expand-to-selected happens once per open, off the first 'loaded' render,
+        // so if the join were announced a commit later this would seed from the
+        // pre-hydration selection and the tree would open collapsed.
+        test('opens expanded to a hydrated selection', async () => {
+            mockPageAll.mockResolvedValue(hierarchy());
+            renderPolicy({
+                field: {id: 'field-1', object_type: 'user', attrs: {options_omitted: true, options: []}},
+                names: ['F-18 Program'],
+            });
+
+            await openMenu();
+            await screen.findByRole('menuitemcheckbox', {name: 'F-18 Program'});
+
+            expect(everyRow().map((element) => element.getAttribute('aria-label'))).toEqual([
+                'Air Program',
+                'Fighter Jet',
+                'F-18 Program',
+                'Rotary',
+            ]);
         });
 
         test('emits names when a row is selected', async () => {

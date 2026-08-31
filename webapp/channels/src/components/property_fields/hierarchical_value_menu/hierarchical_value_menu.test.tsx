@@ -109,6 +109,7 @@ const allRows = (name: string) => screen.getAllByRole('menuitemcheckbox', {name}
 const maybeRow = (name: string) => screen.queryByRole('menuitemcheckbox', {name});
 const everyRow = () => screen.queryAllByRole('menuitemcheckbox');
 const searchBox = () => screen.getByRole('textbox', {name: COPY.searchLabel});
+const statusRow = () => screen.getByRole('menuitem');
 
 const partOf = (element: HTMLElement, className: string) =>
     element.querySelector(`.hierarchical-value-menu__${className}`) as HTMLElement;
@@ -306,7 +307,15 @@ describe('HierarchicalValueMenu', () => {
             expect(signalOfCall(1).aborted).toBe(false);
         });
 
-        test('does not abort on the mount-time onToggle(false)', async () => {
+        // Named for the outcome, not for the mechanism: this asserts that a
+        // prefetch survives mount, but it does NOT fence the `wasOpenRef` guard
+        // that makes it survive. Delete the guard and this stays green, because on
+        // mount the open/close effect runs before the prefetch effect -- so
+        // `abortRef` is still null when the unguarded abort() would fire, and the
+        // two resets it skips are already at their initial values. The guard is
+        // correct and worth keeping; it just has no reachable failure mode to
+        // assert while that effect order holds.
+        test('a prefetch survives the mount-time onToggle(false)', async () => {
             const walk = deferred<PropertyFieldOption[]>();
             mockPageAll.mockReturnValue(walk.promise);
             renderMenu({prefetchOnMount: true});
@@ -446,6 +455,79 @@ describe('HierarchicalValueMenu', () => {
             expect(screen.getByRole('menu')).toBeInTheDocument();
         });
 
+        // Tab closes the menu and the arrows skip anything aria-disabled, so the
+        // nested Retry button is pointer-only. The row itself carries the action
+        // instead: these four tests are the keyboard and AT route to recovery.
+        test('the error row takes focus from the search box', async () => {
+            mockPageAll.mockRejectedValue(httpErrorOf(403));
+            renderMenu();
+
+            await openMenu();
+            await screen.findByText(COPY.error);
+            await userEvent.keyboard('{ArrowDown}');
+
+            expect(statusRow()).toHaveFocus();
+        });
+
+        test('Enter on the error row retries exactly once', async () => {
+            mockPageAll.mockRejectedValueOnce(httpErrorOf(500));
+            mockPageAll.mockResolvedValue(hierarchy());
+            renderMenu();
+
+            await openMenu();
+            await screen.findByText(COPY.error);
+            await userEvent.keyboard('{ArrowDown}');
+            await userEvent.keyboard('{Enter}');
+
+            expect(await screen.findByRole('menuitemcheckbox', {name: 'Air Program'})).toBeInTheDocument();
+            expect(mockPageAll).toHaveBeenCalledTimes(2);
+        });
+
+        test('Enter on the error row does not close the menu', async () => {
+            mockPageAll.mockRejectedValueOnce(httpErrorOf(500));
+            mockPageAll.mockResolvedValue(hierarchy());
+            renderMenu();
+
+            await openMenu();
+            await screen.findByText(COPY.error);
+            await userEvent.keyboard('{ArrowDown}');
+            await userEvent.keyboard('{Enter}');
+            await screen.findByRole('menuitemcheckbox', {name: 'Air Program'});
+
+            expect(screen.getByRole('menu')).toBeInTheDocument();
+        });
+
+        test('ArrowUp on the error row returns focus to the search box', async () => {
+            mockPageAll.mockRejectedValue(httpErrorOf(403));
+            renderMenu();
+
+            await openMenu();
+            await screen.findByText(COPY.error);
+            await userEvent.keyboard('{ArrowDown}');
+            await userEvent.keyboard('{ArrowUp}');
+
+            expect(searchBox()).toHaveFocus();
+        });
+
+        test('a status row with nothing to do stays unfocusable', async () => {
+            mockPageAll.mockResolvedValue([]);
+            renderMenu();
+
+            await openMenu();
+            await screen.findByText(COPY.empty);
+
+            expect(statusRow()).toHaveAttribute('aria-disabled', 'true');
+        });
+
+        test('the missing-identity row stays unfocusable, having no retry', async () => {
+            renderMenu({field: {object_type: 'user', attrs: {}}});
+
+            await openMenu();
+            await screen.findByText(COPY.missingIdentity);
+
+            expect(statusRow()).toHaveAttribute('aria-disabled', 'true');
+        });
+
         test('keeps the chips through an error', async () => {
             mockPageAll.mockRejectedValue(httpErrorOf(403));
             renderMenu({selectedIds: ['opt-f18'], fallbackLabels: {'opt-f18': 'F-18 Program'}});
@@ -566,6 +648,37 @@ describe('HierarchicalValueMenu', () => {
             expect(await screen.findByText(COPY.empty)).toBeInTheDocument();
         });
 
+        // A parent cycle resolves to no roots from a non-empty option list, so the
+        // tree has nothing to show while the values themselves are real. The menu
+        // must not claim there are none -- Phase 2 guards cycles throughout, so it
+        // evidently considers them reachable.
+        test('a parent cycle does not claim the attribute has no values', async () => {
+            mockPageAll.mockResolvedValue([
+                opt('opt-a', 'Alpha', ['Bravo']),
+                opt('opt-b', 'Bravo', ['Alpha']),
+            ]);
+            renderMenu();
+
+            await openMenu();
+            await settle();
+
+            expect(screen.queryByText(COPY.empty)).toBeNull();
+            expect(screen.queryByText(COPY.withheld)).toBeNull();
+        });
+
+        test('a value inside a parent cycle is still reachable by search', async () => {
+            mockPageAll.mockResolvedValue([
+                opt('opt-a', 'Alpha', ['Bravo']),
+                opt('opt-b', 'Bravo', ['Alpha']),
+            ]);
+            renderMenu();
+
+            await openMenu();
+            await userEvent.type(searchBox(), 'alpha');
+
+            expect(await screen.findByRole('menuitemcheckbox', {name: 'Alpha'})).toBeInTheDocument();
+        });
+
         test('no search results shows the no-match copy, not the empty-graph copy', async () => {
             mockPageAll.mockResolvedValue(hierarchy());
             renderMenu();
@@ -601,7 +714,9 @@ describe('HierarchicalValueMenu', () => {
             expect(everyRow().map((element) => element.getAttribute('aria-label'))).toEqual(['Zulu', 'Alpha']);
         });
 
-        test('a shared_only flat list renders every option as a root', async () => {
+        // Nothing access-mode-specific here despite where this arrived from: the
+        // assertion is that options with no `parents` key all render as roots.
+        test('options with no parents key render as roots', async () => {
             mockPageAll.mockResolvedValue([
                 {id: 'a', name: 'Alpha', create_at: 1},
                 {id: 'b', name: 'Bravo', create_at: 2},
@@ -746,6 +861,11 @@ describe('HierarchicalValueMenu', () => {
             expect(onSelectedIdsChange).toHaveBeenCalledWith([]);
         });
 
+        // Both occurrences are findable by the label alone even though each one's
+        // hint text differs, which is what pins the accessible name to the label.
+        // The hint and "Also under" assertions this used to also carry live in
+        // `a root occurrence has no Also under line` and `each occurrence names
+        // its other parents in Also under`.
         test('a row is named by its label alone', async () => {
             mockPageAll.mockResolvedValue(diamond());
             renderMenu({selectedIds: ['opt-capsule']});
@@ -753,8 +873,6 @@ describe('HierarchicalValueMenu', () => {
             await openMenu();
 
             expect(await screen.findAllByRole('menuitemcheckbox', {name: 'Crew Capsule'})).toHaveLength(2);
-            expect(hintOf('Dragon')).toBeNull();
-            expect(allRows('Crew Capsule')[0]).toHaveTextContent('Also under Falcon');
         });
 
         test('aria-checked reflects the selection', async () => {
@@ -1129,34 +1247,26 @@ describe('HierarchicalValueMenu', () => {
             expect(allRows('Crew Capsule')[1]).toHaveTextContent('Also under Dragon');
         });
 
-        test('Also under Oxford-joins three or more other parents', async () => {
+        const openParentsOf = async (parents: string[]) => {
             mockPageAll.mockResolvedValue([
-                opt('p1', 'P1'),
-                opt('p2', 'P2'),
-                opt('p3', 'P3'),
-                opt('v', 'V', ['P1', 'P2', 'P3']),
-            ]);
-            const {unmount} = renderMenu();
-
-            await openMenu();
-            await screen.findByRole('menuitemcheckbox', {name: 'P1'});
-            await userEvent.click(labelOf('P1'));
-
-            expect(hintOf('V')).toHaveTextContent('Also under P2 and P3');
-            unmount();
-
-            mockPageAll.mockResolvedValue([
-                opt('p1', 'P1'),
-                opt('p2', 'P2'),
-                opt('p3', 'P3'),
-                opt('p4', 'P4'),
-                opt('v', 'V', ['P1', 'P2', 'P3', 'P4']),
+                ...parents.map((name) => opt(name.toLowerCase(), name)),
+                opt('v', 'V', parents),
             ]);
             renderMenu();
 
             await openMenu();
-            await screen.findByRole('menuitemcheckbox', {name: 'P1'});
-            await userEvent.click(labelOf('P1'));
+            await screen.findByRole('menuitemcheckbox', {name: parents[0]});
+            await userEvent.click(labelOf(parents[0]));
+        };
+
+        test('Also under joins two other parents with and', async () => {
+            await openParentsOf(['P1', 'P2', 'P3']);
+
+            expect(hintOf('V')).toHaveTextContent('Also under P2 and P3');
+        });
+
+        test('Also under Oxford-joins three or more other parents', async () => {
+            await openParentsOf(['P1', 'P2', 'P3', 'P4']);
 
             expect(hintOf('V')).toHaveTextContent('Also under P2, P3, and P4');
         });
@@ -1366,6 +1476,48 @@ describe('HierarchicalValueMenu', () => {
             expect(searchBox()).toHaveFocus();
         });
 
+        // A deliberate divergence from the prototype, which clamps at the ends:
+        // `Menu.Container` never sets MUI's `disableListWrap`. Asserted so that
+        // adding it later is a visible decision rather than a silent change to
+        // this widget's keyboard behaviour.
+        test('ArrowDown wraps from the last row back to the first', async () => {
+            await openTree(twoRoots());
+
+            await userEvent.keyboard('{ArrowDown}');
+            await userEvent.keyboard('{ArrowDown}');
+            await userEvent.keyboard('{ArrowDown}');
+
+            expect(row('Air Program')).toHaveFocus();
+        });
+
+        // Both focus tests above run in tree mode. Search rows are keyed by a
+        // `search::` occKey in the same ref map, and the search box is the reason
+        // the whole search mode exists, so the pair is worth having in both modes.
+        test('ArrowDown from the search box focuses the first search row', async () => {
+            await openTree();
+
+            await userEvent.type(searchBox(), 'program');
+            await userEvent.keyboard('{ArrowDown}');
+
+            expect(row('Air Program')).toHaveFocus();
+        });
+
+        test('ArrowUp on the first search row returns focus to the search box', async () => {
+            await openTree();
+
+            await userEvent.type(searchBox(), 'program');
+            await userEvent.keyboard('{ArrowDown}');
+            await userEvent.keyboard('{ArrowUp}');
+
+            expect(searchBox()).toHaveFocus();
+        });
+
+        // The call *count* matters as much as the argument in the three tests
+        // below. ButtonBase synthesises a click from an Enter keydown after the
+        // row's own onKeyDown has handled it, so without the keydown guard in
+        // `activate` the row acts twice per Enter -- and toHaveBeenCalledWith
+        // alone cannot see that, because it passes when any call matches and both
+        // calls carry the same argument.
         test('Space toggles the focused row', async () => {
             const onSelectedIdsChange = jest.fn();
             await openTree(twoRoots(), {onSelectedIdsChange});
@@ -1373,17 +1525,31 @@ describe('HierarchicalValueMenu', () => {
             await focusRow('Rotary');
             await userEvent.keyboard(' ');
 
+            expect(onSelectedIdsChange).toHaveBeenCalledTimes(1);
             expect(onSelectedIdsChange).toHaveBeenCalledWith(['opt-rotary']);
         });
 
-        test('Enter toggles the focused row', async () => {
+        test('Enter toggles the focused row exactly once', async () => {
             const onSelectedIdsChange = jest.fn();
             await openTree(twoRoots(), {onSelectedIdsChange});
 
             await focusRow('Rotary');
             await userEvent.keyboard('{Enter}');
 
+            expect(onSelectedIdsChange).toHaveBeenCalledTimes(1);
             expect(onSelectedIdsChange).toHaveBeenCalledWith(['opt-rotary']);
+        });
+
+        test('Enter on a branch row selects without expanding', async () => {
+            const onSelectedIdsChange = jest.fn();
+            await openTree(hierarchy(), {onSelectedIdsChange});
+
+            await focusRow('Air Program');
+            await userEvent.keyboard('{Enter}');
+
+            expect(onSelectedIdsChange).toHaveBeenCalledTimes(1);
+            expect(onSelectedIdsChange).toHaveBeenCalledWith(['opt-air']);
+            expect(maybeRow('Fighter Jet')).toBeNull();
         });
 
         test('Space on a branch row selects rather than expands', async () => {
@@ -1539,13 +1705,11 @@ describe('HierarchicalValueMenu', () => {
             expect(trigger().textContent).not.toMatch(/\+\d/);
         });
 
-        test('chips wrap rather than truncate', () => {
-            const ids = Array.from({length: 12}, (unused, index) => `opt-${index}`);
-            const fallbackLabels = Object.fromEntries(ids.map((id, index) => [id, `Option ${index}`]));
-            renderMenu({selectedIds: ids, fallbackLabels});
-
-            expect(trigger().querySelector('.hierarchical-value-menu__chips')).not.toBeNull();
-        });
+        // `chips wrap rather than truncate` was deleted here. It shared its whole
+        // fixture with the test above and asserted strictly less -- that the chips
+        // container exists, which is true whenever any chip renders. The wrapping
+        // itself is `flex-wrap: wrap` in the stylesheet and jsdom does not lay
+        // out, so it is visual-QA territory rather than something to fake here.
 
         test('the chip X removes the value', async () => {
             const onSelectedIdsChange = jest.fn();
@@ -1617,6 +1781,57 @@ describe('HierarchicalValueMenu', () => {
             expect(trigger()).toHaveTextContent('ghost');
         });
 
+        // The combination that matters: no fallbackLabels *and* a failed read.
+        // An omitted-options assignment field is exactly that -- it supplies no
+        // fallback labels and it prefetches -- so a 403 or 404 used to paint a
+        // 26-character option id into the closed control.
+        test('a failed read shows unavailable copy rather than a raw id', async () => {
+            mockPageAll.mockRejectedValue(httpErrorOf(403));
+            renderMenu({
+                field: {id: 'field-1', object_type: 'user', attrs: {options_omitted: true}},
+                prefetchOnMount: true,
+                selectedIds: ['bqx8ftgmbbn9jxxr4pcgz6h9zc'],
+            });
+
+            await settle();
+
+            expect(trigger()).not.toHaveTextContent('bqx8ftgmbbn9jxxr4pcgz6h9zc');
+            expect(trigger()).toHaveTextContent('Value unavailable');
+            expect(document.querySelector('.hierarchical-value-menu__chip--unavailable')).not.toBeNull();
+        });
+
+        test('a failed read does not leave the chip in a pending skeleton', async () => {
+            mockPageAll.mockRejectedValue(httpErrorOf(403));
+            renderMenu({prefetchOnMount: true, selectedIds: ['opt-f18']});
+
+            await settle();
+
+            expect(document.querySelector('.hierarchical-value-menu__chip--pending')).toBeNull();
+        });
+
+        test('a failed read still keeps a known fallback name', async () => {
+            mockPageAll.mockRejectedValue(httpErrorOf(403));
+            renderMenu({
+                prefetchOnMount: true,
+                selectedIds: ['opt-f18'],
+                fallbackLabels: {'opt-f18': 'F-18 Program'},
+            });
+
+            await settle();
+
+            expect(trigger()).toHaveTextContent('F-18 Program');
+            expect(trigger()).not.toHaveTextContent('Value unavailable');
+        });
+
+        test('the remove control on an unnamed chip is named for what it does', async () => {
+            mockPageAll.mockRejectedValue(httpErrorOf(403));
+            renderMenu({prefetchOnMount: true, selectedIds: ['opt-f18']});
+
+            await settle();
+
+            expect(screen.getByRole('button', {name: 'Remove value'})).toBeInTheDocument();
+        });
+
         test('a stale selected id stays in selectedIds', async () => {
             mockPageAll.mockResolvedValue(hierarchy());
             const onSelectedIdsChange = jest.fn();
@@ -1643,6 +1858,52 @@ describe('HierarchicalValueMenu', () => {
             expect(screen.getByTestId('masked-chip')).toBeInTheDocument();
             const chips = trigger().querySelector('.hierarchical-value-menu__chips') as HTMLElement;
             expect(chips.lastElementChild).toBe(screen.getByTestId('masked-chip'));
+        });
+
+        // onMenuOpenChange is handed to two downstream phases and its mount-time
+        // `false` is the surprising half of its contract, so it is worth a test
+        // here rather than being discovered by a caller.
+        test('onMenuOpenChange fires once with false on mount', () => {
+            const onMenuOpenChange = jest.fn();
+            renderMenu({onMenuOpenChange});
+
+            expect(onMenuOpenChange).toHaveBeenCalledTimes(1);
+            expect(onMenuOpenChange).toHaveBeenCalledWith(false);
+        });
+
+        test('onMenuOpenChange reports the open and the close', async () => {
+            mockPageAll.mockResolvedValue(hierarchy());
+            const onMenuOpenChange = jest.fn();
+            renderMenu({onMenuOpenChange});
+
+            await openMenu();
+            await screen.findByRole('menuitemcheckbox', {name: 'Air Program'});
+            await closeMenu();
+
+            await waitFor(() => expect(onMenuOpenChange).toHaveBeenLastCalledWith(false));
+            expect(onMenuOpenChange.mock.calls.map(([open]) => open)).toEqual([false, true, false]);
+        });
+
+        test('an explicit placeholder replaces the default', () => {
+            renderMenu({placeholder: 'Pick a program'});
+
+            expect(trigger()).toHaveTextContent('Pick a program');
+            expect(trigger()).not.toHaveTextContent(COPY.placeholder);
+        });
+
+        test('ariaLabel names the trigger, defaulting to the placeholder', () => {
+            const {rerenderWith} = renderMenu();
+            expect(trigger()).toHaveAccessibleName(COPY.placeholder);
+
+            rerenderWith({ariaLabel: 'Programs'});
+
+            expect(trigger()).toHaveAccessibleName('Programs');
+        });
+
+        test('buttonClassName lands on the trigger', () => {
+            renderMenu({buttonClassName: 'policy-row__value-trigger'});
+
+            expect(trigger()).toHaveClass('policy-row__value-trigger');
         });
 
         test('the trigger keeps its data-testid and the menu keeps its id', async () => {
@@ -1682,6 +1943,15 @@ describe('HierarchicalValueMenu', () => {
         beforeEach(() => {
             actual.clearPropertyFieldOptionWalks();
             mockPageAll.mockImplementation(actual.pageAllPropertyFieldOptions);
+
+            // The real pager runs in here, so an unmocked Client4 is a live
+            // keyset walk against node-fetch. A test added below without its own
+            // spy would not fail -- it would accumulate pages until the heap gave
+            // out and take this whole file's report down with it. Throwing by
+            // default turns that into one loud, local failure.
+            jest.spyOn(Client4, 'getPropertyFieldOptions').mockImplementation(() => {
+                throw new Error('Client4.getPropertyFieldOptions called without an explicit mock for this test');
+            });
         });
 
         test('wires the real page-all helper to Client4 with the access_control group', async () => {
