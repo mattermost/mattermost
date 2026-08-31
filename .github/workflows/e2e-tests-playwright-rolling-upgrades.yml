@@ -70,11 +70,6 @@ on:
         type: string
         required: false
         description: "Source branch name for webhook messages (e.g., 'master' or 'release-11.4')"
-      should_run:
-        type: string
-        required: false
-        default: "true"
-        description: "Set to 'false' to skip tests and post a success status without running E2E"
       workers:
         type: number
         required: false
@@ -180,38 +175,12 @@ jobs:
             *) echo "context_suffix=" >> $GITHUB_OUTPUT ;;
           esac
 
-  skip:
-    needs:
-      - generate-build-variables
-    if: inputs.should_run == 'false'
-    runs-on: ubuntu-24.04
-    permissions:
-      contents: read
-      statuses: write
-    steps:
-      - name: ci/post-skip-status
-        env:
-          COMMIT_SHA: ${{ needs.generate-build-variables.outputs.commit_sha }}
-          CONTEXT_NAME: "e2e-test/playwright-full/${{ inputs.server_edition || 'enterprise' }}/upgrade-from-skipped${{ needs.generate-build-variables.outputs.context_suffix }}"
-          GH_TOKEN: ${{ github.token }}
-          GITHUB_REPOSITORY: ${{ github.repository }}
-          GITHUB_RUN_ID: ${{ github.run_id }}
-        run: |
-          # Rolling-upgrade matrix is resolved at runtime; post a generic skip status for the suite.
-          gh api "repos/${GITHUB_REPOSITORY}/statuses/${COMMIT_SHA}" \
-            -f state=success \
-            -f context="${CONTEXT_NAME}" \
-            -f description="No E2E-relevant changes - skipped" \
-            -f target_url="https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
-          echo "Posted success for ${CONTEXT_NAME}"
-
   # Which older versions to upgrade FROM is a runtime question — the last 3 minors plus whatever
   # is still in an ESR window, both of which move with the calendar. Resolving it here rather than
   # in the template keeps the template a single-from-version workflow.
   resolve-matrix:
     needs:
       - generate-build-variables
-    if: inputs.should_run != 'false'
     runs-on: ubuntu-24.04
     permissions:
       contents: read
@@ -263,7 +232,7 @@ jobs:
     needs:
       - generate-build-variables
       - resolve-matrix
-    if: inputs.should_run != 'false' && needs.resolve-matrix.outputs.matrix_empty != 'true'
+    if: needs.resolve-matrix.outputs.matrix_empty != 'true'
     strategy:
       fail-fast: false
       matrix:

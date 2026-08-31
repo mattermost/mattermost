@@ -173,13 +173,13 @@ Step 3 is skipped when the harness fails, and there is no `testcontainers:down` 
 
 **When it runs**
 
-| Pipeline                        | Rolling upgrades                                              |
-| ------------------------------- | ------------------------------------------------------------- |
-| PR (automated)                  | Off                                                           |
-| PR (manual `workflow_dispatch`) | Opt-in via **Run rolling upgrades** checkbox                  |
-| Merge to `master` / `release-*` | On automatically                                              |
-| Release cut                     | On automatically                                              |
-| Ad-hoc                          | **Run workflow** on _E2E Tests - Playwright Rolling Upgrades_ |
+| Pipeline                        | Rolling upgrades                                                                                                                                                  |
+| ------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| PR (automated)                  | On when the diff touches `upgrade-specs/`, `lib/`, `playwright.config.ts`, `script/resolve_upgrade_matrix.mjs`, or either rolling-upgrade workflow; off otherwise |
+| PR (manual `workflow_dispatch`) | Opt-in via **Run rolling upgrades** checkbox                                                                                                                      |
+| Merge to `master` / `release-*` | On automatically                                                                                                                                                  |
+| Release cut                     | On automatically                                                                                                                                                  |
+| Ad-hoc                          | **Run workflow** on _E2E Tests - Playwright Rolling Upgrades_                                                                                                     |
 
 The ad-hoc path needs no PR: pick a ref, optionally a to-image tag (defaults to `master`), edition, and worker count, and it posts statuses on that ref's HEAD.
 
@@ -189,7 +189,8 @@ The ad-hoc path needs no PR: pick a ref, optionally a to-image tag (defaults to 
 | --------------------------- | ------------------------------------------------------------------------------ |
 | `upgrade-from-release-11.9` | that from-version's harness and post-upgrade suite (ESR entries append `-esr`) |
 | `upgrade-from-none`         | resolver returned an empty matrix; nothing ran                                 |
-| `upgrade-from-skipped`      | no E2E-relevant changes                                                        |
+
+There is no "skipped" context: when rolling upgrades are not requested, the job never starts and posts nothing. This pipeline is deliberately not gated on the generic `should_run` — its own trigger set already decides, and the `.mjs` resolver falls outside `should_run`'s `^e2e-tests/.*\.(ts|tsx|js|jsx)$` pattern, so deferring to it would drop runs that were asked for.
 
 The normal full suite continues to use `e2e-test/playwright-full/enterprise` (no `/upgrade-from-…` suffix).
 

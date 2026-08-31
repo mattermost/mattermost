@@ -201,10 +201,15 @@ jobs:
       MM_LICENSE: ${{ secrets.MM_LICENSE }}
       REPORT_WEBHOOK_URL: ${{ secrets.REPORT_WEBHOOK_URL }}
 
+  # Deliberately not gated on should_run: run_rolling_upgrades is already its own gate, decided from
+  # the files this pipeline depends on (see e2e-tests-ci.yml's check-changes). should_run tracks
+  # server/webapp/spec changes and does not match every one of those files — the matrix resolver is
+  # a .mjs, outside its `^e2e-tests/.*\.(ts|tsx|js|jsx)$` pattern — so honouring it here would
+  # silently drop runs this pipeline was asked for.
   playwright-rolling-upgrades:
     needs:
       - generate-build-variables
-    if: inputs.should_run != 'false' && inputs.run_rolling_upgrades == 'true'
+    if: inputs.run_rolling_upgrades == 'true'
     permissions:
       contents: read
       statuses: write
@@ -222,7 +227,6 @@ jobs:
       report_type: ${{ inputs.report_type }}
       ref_branch: ${{ inputs.ref_branch }}
       pr_number: ${{ inputs.pr_number }}
-      should_run: ${{ inputs.should_run }}
     secrets:
       MM_LICENSE: ${{ secrets.MM_LICENSE }}
       REPORT_WEBHOOK_URL: ${{ secrets.REPORT_WEBHOOK_URL }}

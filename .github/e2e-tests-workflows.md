@@ -146,6 +146,8 @@ There is deliberately no `testcontainers:down` first — the runner is fresh, so
 
 **Commit status description** — written by the Test System IO summary, same shape as the full suite (`image_tag:` is the target/to image). The from-version needs no description field of its own: it is already in the context name, one context per version.
 
+**When it runs.** `e2e-tests-ci.yml`'s `check-changes` turns it on for a PR whose diff touches `e2e-tests/playwright/{upgrade-specs/,lib/,playwright.config.ts,script/resolve_upgrade_matrix.mjs}` or either `e2e-tests-playwright-rolling-upgrades*` workflow, and the manual dispatch has an opt-in checkbox. That decision is the only gate: unlike the full suite, this pipeline does not also consult `should_run`, because `should_run` matches `^e2e-tests/.*\.(ts|tsx|js|jsx)$` and would veto a run whose only change is the `.mjs` matrix resolver. Consequently there is no "skipped" status — when it is not requested, nothing is posted.
+
 Failed rolling-upgrade contexts are included when applying **E2E Tests/verified** or the override-status workflow (discovered by pattern `e2e-test/playwright-full/{edition}/upgrade-from-*`, same principle as full-suite contexts).
 
 This pipeline is invoked from `e2e-tests-playwright.yml` when `run_rolling_upgrades: "true"`. It is **not** embedded in `e2e-tests-playwright-template.yml`.
