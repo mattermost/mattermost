@@ -265,4 +265,25 @@ describe('AssignmentGraphPicker', () => {
 
         expect(trigger()).toBeDisabled();
     });
+
+    test('P11: does not report at all when the walk names none of the held ids', async () => {
+        // The empty-report skip. Without it, a field whose held ids resolve to
+        // nothing pushes an empty map -- and so a setState and a re-render --
+        // on mount and again on every menu open. It cannot cause a refetch,
+        // since handleOptionsLoaded's identity is stable, so the cost is a
+        // wasted render rather than a walk.
+        mockPageAll.mockResolvedValue(REGIME_1);
+        const onNamesResolved = jest.fn();
+        renderPicker({
+            field: fieldOf({options_omitted: true}),
+            ids: ['ghost-1', 'ghost-2'],
+            onNamesResolved,
+        });
+
+        await waitFor(() => expect(mockPageAll).toHaveBeenCalledTimes(1));
+        await openMenu();
+        await screen.findByRole('menuitemcheckbox', {name: 'Option 1'});
+
+        expect(onNamesResolved).not.toHaveBeenCalled();
+    });
 });

@@ -577,7 +577,7 @@ describe('SystemUserDetail', () => {
             expect(input).toBeDisabled();
         });
 
-        test('should render a graph field\'s stored option ids as names in the picker', async () => {
+        test('should render a graph field\'s stored option ids as names in the flag-off multiselect', async () => {
             const graphField = {
                 ...buildCPAField({
                     options: [
@@ -939,6 +939,72 @@ describe('SystemUserDetail', () => {
                 expect(fieldContainer().querySelector('input')).toBeDisabled();
                 expect(fieldContainer()).toHaveTextContent(OMITTED_COPY);
                 expect(mockPageAll).not.toHaveBeenCalled();
+            });
+
+            test('G17: opens the menu when the field label is clicked', async () => {
+                // The trigger is a <button> inside <label class='cpa-field'>, so
+                // label activation opens an overlay where a multiselect in the
+                // same wrapper would only take focus. Nothing declares that --
+                // it follows from the trigger being the label's first labelable
+                // descendant -- so adding htmlFor, reordering the label's
+                // children, or moving the indicator out changes it silently.
+                mockPageAll.mockResolvedValue(REGIME_1);
+                renderDetail(buildGraphField({options_omitted: true}), ['opt-1']);
+
+                await waitForLoadingToFinish();
+                expect(screen.queryByRole('menu')).not.toBeInTheDocument();
+
+                await userEvent.click(fieldContainer());
+
+                expect(await screen.findByRole('menu')).toBeInTheDocument();
+            });
+
+            test('G18: names the picker trigger after the field, not the placeholder', async () => {
+                // A wrapping <label> forwards clicks to a <button> but does not
+                // contribute to its accessible name, so without the explicit
+                // ariaLabel every graph trigger on the page announces as
+                // "Select values...". Every other test addresses the trigger by
+                // test id, which would not notice the prop being dropped.
+                mockPageAll.mockResolvedValue(REGIME_1);
+                renderDetail(buildGraphField({options_omitted: true}), ['opt-1']);
+
+                await waitForLoadingToFinish();
+
+                expect(screen.getByRole('button', {name: 'department'})).toBe(trigger());
+            });
+
+            test('G19: prints ids in the confirm modal for a field whose walk failed', async () => {
+                // Pins today's behaviour rather than endorsing it. resolveOptionNames
+                // ends in `?? id`, so with no successful walk the change summary
+                // lists raw ids. That was accepted while the chips beside it showed
+                // the same ids, but Phase 3's 4831b76c3b now renders a failed read as
+                // "Value unavailable", so this modal is the only surface still
+                // printing one. Asserted as a divergence, and awaiting a decision:
+                // when the `?? id` tail changes, this test should fail loudly.
+                mockPageAll.mockRejectedValue(new Error('boom'));
+                renderDetail(buildGraphField({options_omitted: true}), ['opt-1', 'opt-2']);
+
+                await waitForLoadingToFinish();
+                await waitFor(() => expect(mockPageAll).toHaveBeenCalledTimes(1));
+
+                // The chip's remove control lives inside the trigger button and
+                // stays available in the error state, which is what makes the
+                // modal reachable with nothing resolved.
+                const removes = await screen.findAllByRole('button', {name: 'Remove value'});
+                expect(removes).toHaveLength(2);
+                await userEvent.click(removes[0]);
+
+                // Checked before Save: the confirm modal aria-hides the page
+                // behind it, so the chips stop being reachable by role once it
+                // is open. The surviving chip is on screen and does not name its
+                // id -- the other half of the divergence.
+                expect(screen.getAllByRole('button', {name: 'Remove value'})).toHaveLength(1);
+                expect(trigger()).not.toHaveTextContent('opt-2');
+
+                await userEvent.click(screen.getByRole('button', {name: 'Save'}));
+
+                const changesList = await screen.findByTestId('changesList');
+                expect(changesList).toHaveTextContent('opt-1');
             });
         });
     });

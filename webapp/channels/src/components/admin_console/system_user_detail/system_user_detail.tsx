@@ -192,12 +192,13 @@ const PluginDisplayName: React.FC<PluginDisplayNameProps> = ({pluginId}) => {
 type CpaFieldManagementIndicatorProps = {
     field: UserPropertyField;
 
-    // Mirrors renderCpaField's `omitLocksField`: the omitted-options line is
-    // only true while the field is actually locked for that reason.
-    isGraphPickerEnabled: boolean;
+    // renderCpaField's own `omitLocksField`, passed in rather than re-derived.
+    // Describing a lock and deciding one are different jobs, and two copies of
+    // the predicate is how the flag-off parity break got into the plan.
+    omitLocksField: boolean;
 };
 
-const CpaFieldManagementIndicator: React.FC<CpaFieldManagementIndicatorProps> = ({field, isGraphPickerEnabled}) => {
+const CpaFieldManagementIndicator: React.FC<CpaFieldManagementIndicatorProps> = ({field, omitLocksField}) => {
     const pluginsById = useSelector((state: GlobalState) => state.plugins?.plugins ?? {});
     const owners = field.attrs?.owners ?? [];
     const hasSyncedSources = Boolean(field.attrs?.ldap || field.attrs?.saml || owners.length > 0);
@@ -296,7 +297,7 @@ const CpaFieldManagementIndicator: React.FC<CpaFieldManagementIndicatorProps> = 
     // The graph picker pages the full option list itself, so an omitted graph
     // field is editable and must not claim otherwise. Every other option-backed
     // type still is not, and neither is a graph field with no picker to page it.
-    if (field.attrs?.options_omitted && !(field.type === 'graph' && isGraphPickerEnabled)) {
+    if (omitLocksField) {
         return (
             <div className='user-property-field-values__sync-indicator'>
                 <FormattedMessage
@@ -550,9 +551,11 @@ export class SystemUserDetail extends PureComponent<Props, State> {
             const resolved = this.state.graphOptionNames[field.id];
 
             if (!Array.isArray(value)) {
-                // Select: resolve single ID to its name
+                // Select: resolve single ID to its name. The name cache is not
+                // consulted -- only a graph picker writes it, and a graph value
+                // is always an array -- so a scalar can never be found there.
                 const option = options.find((opt) => opt.id === value);
-                return option ? option.name : (resolved?.[value] ?? value);
+                return option ? option.name : value;
             }
 
             // Multiselect: resolve each ID to its name
@@ -978,7 +981,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                 {fieldContent}
                 <CpaFieldManagementIndicator
                     field={field}
-                    isGraphPickerEnabled={this.props.isGraphPickerEnabled}
+                    omitLocksField={omitLocksField}
                 />
             </label>
         );

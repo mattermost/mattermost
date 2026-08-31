@@ -1447,6 +1447,10 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
         });
 
         test('A5: shows a count, not raw ids, in the collapsed row of an omitted graph field', async () => {
+            // Regime 3 on first paint: nothing is resolvable yet. This is the
+            // degenerate end of the all-or-nothing rule -- with no name
+            // resolved, every() and some() agree -- so it covers the
+            // first-paint state and A5b/A5c carry the rule itself.
             renderSettings(
                 [buildAttribute({options_omitted: true})],
                 {field1: ['opt1', 'opt2']},
@@ -1456,6 +1460,46 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
             expect(await screen.findByText('2 values selected')).toBeInTheDocument();
             expect(screen.queryByText('opt1')).not.toBeInTheDocument();
             expect(mockPageAll).not.toHaveBeenCalled();
+        });
+
+        test('A5b: shows a count when a stored id is stale and only some names resolve', async () => {
+            // The mixed resolution is the only input the all-or-nothing rule
+            // exists for: with nothing resolved, or everything resolved, every()
+            // and some() agree and cannot be told apart. Here opt1 resolves from
+            // the inline options and the stale id resolves from nowhere, so a
+            // some() rule would render "Option 1 and undefined" -- the literal
+            // word undefined, worse than the id the requirement forbids.
+            renderSettings(
+                [buildAttribute({options: REGIME_1})],
+                {field1: ['opt1', 'ktm3xq7f9nolongerexists']},
+                {activeSection: ''},
+            );
+
+            expect(await screen.findByText('2 values selected')).toBeInTheDocument();
+            expect(collapsedRow()).not.toHaveTextContent('Option 1');
+            expect(collapsedRow()).not.toHaveTextContent('undefined');
+            expect(collapsedRow()).not.toHaveTextContent('ktm3');
+            expect(mockPageAll).not.toHaveBeenCalled();
+        });
+
+        test('A5c: shows a count when the walk named only some of the held ids', async () => {
+            // The same rule against the other half of the name lookup: the cache
+            // rather than the inline options. A held id the walk no longer
+            // returns -- a deleted option -- is reported by nothing, so the row
+            // must still refuse to print a partial list.
+            mockPageAll.mockResolvedValue([graphOption('opt1', 'Option 1')]);
+            const {collapse} = renderSettings(
+                [buildAttribute({options_omitted: true})],
+                {field1: ['opt1', 'opt2']},
+            );
+
+            await waitFor(() => expect(trigger()).toHaveTextContent('Option 1'));
+            expect(mockPageAll).toHaveBeenCalledTimes(1);
+
+            collapse();
+
+            await waitFor(() => expect(collapsedRow()).toHaveTextContent('2 values selected'));
+            expect(collapsedRow()).not.toHaveTextContent('undefined');
         });
 
         test('A6: shows names in the collapsed row after the section has been expanded once', async () => {
@@ -1580,12 +1624,19 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
 
         test('A13: hides a source_only field', async () => {
             renderSettings(
-                [buildAttribute({options: REGIME_1, access_mode: 'source_only'})],
-                {field1: ['opt1']},
+                [
+                    buildAttribute({options: REGIME_1, access_mode: 'source_only'}),
+                    {...buildAttribute({options: REGIME_1}), id: 'field2', name: 'Visible Field'} as UserPropertyField,
+                ],
+                {field1: ['opt1'], field2: ['opt1']},
                 {activeSection: ''},
             );
 
-            await waitFor(() => expect(screen.queryByText(customProfileAttribute.name)).not.toBeInTheDocument());
+            // Anchored on a sibling that must render, so the absences below are
+            // the access-mode filter rather than the whole list failing to
+            // paint. A negative assertion on its own would pass either way.
+            expect(await screen.findByText('Visible Field')).toBeInTheDocument();
+            expect(screen.queryByText(customProfileAttribute.name)).not.toBeInTheDocument();
             expect(screen.queryByTestId('customProfileAttributeGraph_field1')).not.toBeInTheDocument();
         });
 
@@ -1633,6 +1684,24 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
 
             expect(screen.getByRole('button', {name: 'Save'})).toBeInTheDocument();
             expect(screen.queryByText(OMITTED_COPY)).not.toBeInTheDocument();
+        });
+
+        test('A19: shows a count, never ids, for a read-only omitted graph field', async () => {
+            // M3's cost, pinned rather than left implicit. A read-only field
+            // renders no control here, so no picker mounts, no walk runs, and
+            // graphOptionNames is never populated for it: this row is a count
+            // permanently, not just before first expand, where the same field on
+            // User Detail shows names. Still better than the flag-off path,
+            // which prints the ids themselves.
+            renderSettings(
+                [buildAttribute({options_omitted: true, managed: 'admin'})],
+                {field1: ['opt1', 'opt2']},
+                {activeSection: ''},
+            );
+
+            expect(await screen.findByText('2 values selected')).toBeInTheDocument();
+            expect(collapsedRow()).not.toHaveTextContent('opt1');
+            expect(mockPageAll).not.toHaveBeenCalled();
         });
 
         test('A17: renders today\'s ReactSelect for a graph field when the flag is off', async () => {
