@@ -368,7 +368,9 @@ export async function getTeamAccessControlPolicy(client: Client4, teamId: string
  */
 export async function getTeamAutoAddMode(client: Client4, teamId: string): Promise<string | undefined> {
     const response: any = await getTeamAccessControlPolicy(client, teamId);
-    const membershipRule = response?.policy?.rules?.find((rule: any) => rule.actions?.includes('membership') && !rule.name);
+    const membershipRule = response?.policy?.rules?.find(
+        (rule: any) => rule.actions?.includes('membership') && !rule.name,
+    );
     return membershipRule?.metadata?.auto_add;
 }
 
