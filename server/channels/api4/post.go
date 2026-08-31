@@ -83,6 +83,11 @@ func createPostChecks(where string, c *Context, post *model.Post) {
 		return
 	}
 
+	if model.IsSystemMessagePostType(post.Type) {
+		c.SetInvalidParam("post.type")
+		return
+	}
+
 	if len(post.FileIds) > 0 {
 		if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), post.ChannelId, model.PermissionUploadFile); !ok {
 			c.SetPermissionError(model.PermissionUploadFile)
@@ -326,7 +331,7 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	if since > 0 {
 		list, err = c.App.GetPostsSince(c.AppContext, model.GetPostsSinceOptions{ChannelId: channelId, Time: since, SkipFetchThreads: skipFetchThreads, CollapsedThreads: collapsedThreads, CollapsedThreadsExtended: collapsedThreadsExtended, UserId: c.AppContext.Session().UserId})
 	} else if afterPost != "" {
-		etag = c.App.GetPostsEtag(channelId, collapsedThreads)
+		etag = c.App.GetPostsEtag(channelId, c.AppContext.Session().UserId, collapsedThreads)
 
 		if c.HandleEtag(etag, "Get Posts After", w, r) {
 			return
@@ -334,7 +339,7 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		list, err = c.App.GetPostsAfterPost(c.AppContext, model.GetPostsOptions{ChannelId: channelId, PostId: afterPost, Page: page, PerPage: perPage, SkipFetchThreads: skipFetchThreads, CollapsedThreads: collapsedThreads, UserId: c.AppContext.Session().UserId, IncludeDeleted: includeDeleted})
 	} else if beforePost != "" {
-		etag = c.App.GetPostsEtag(channelId, collapsedThreads)
+		etag = c.App.GetPostsEtag(channelId, c.AppContext.Session().UserId, collapsedThreads)
 
 		if c.HandleEtag(etag, "Get Posts Before", w, r) {
 			return
@@ -342,7 +347,7 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		list, err = c.App.GetPostsBeforePost(c.AppContext, model.GetPostsOptions{ChannelId: channelId, PostId: beforePost, Page: page, PerPage: perPage, SkipFetchThreads: skipFetchThreads, CollapsedThreads: collapsedThreads, CollapsedThreadsExtended: collapsedThreadsExtended, UserId: c.AppContext.Session().UserId, IncludeDeleted: includeDeleted})
 	} else {
-		etag = c.App.GetPostsEtag(channelId, collapsedThreads)
+		etag = c.App.GetPostsEtag(channelId, c.AppContext.Session().UserId, collapsedThreads)
 
 		if c.HandleEtag(etag, "Get Posts", w, r) {
 			return
@@ -428,7 +433,7 @@ func getPostsForChannelAroundLastUnread(c *Context, w http.ResponseWriter, r *ht
 
 	etag := ""
 	if len(postList.Order) == 0 {
-		etag = c.App.GetPostsEtag(channelId, collapsedThreads)
+		etag = c.App.GetPostsEtag(channelId, c.AppContext.Session().UserId, collapsedThreads)
 
 		if c.HandleEtag(etag, "Get Posts", w, r) {
 			return
@@ -603,11 +608,12 @@ func getPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if c.HandleEtag(post.Etag(), "Get Post", w, r) {
+	postEtag := c.App.AppendABACEtag(post.Etag(), c.AppContext.Session().UserId, post.ChannelId)
+	if c.HandleEtag(postEtag, "Get Post", w, r) {
 		return
 	}
 
-	w.Header().Set(model.HeaderEtagServer, post.Etag())
+	w.Header().Set(model.HeaderEtagServer, postEtag)
 	if err := post.EncodeJSON(w); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
@@ -920,7 +926,8 @@ func getPostThread(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if c.HandleEtag(list.Etag(), "Get Post Thread", w, r) {
+	threadEtag := c.App.AppendABACEtag(list.Etag(), c.AppContext.Session().UserId, post.ChannelId)
+	if c.HandleEtag(threadEtag, "Get Post Thread", w, r) {
 		return
 	}
 
@@ -931,7 +938,7 @@ func getPostThread(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Set(model.HeaderEtagServer, clientPostList.Etag())
+	w.Header().Set(model.HeaderEtagServer, threadEtag)
 
 	if err := clientPostList.EncodeJSON(w); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
@@ -1705,7 +1712,11 @@ func getPostInfo(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	hasPermissionToAccessChannel, hasJoinedChannel := c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel)
 
-	if !hasPermissionToAccessChannel && channel.Type == model.ChannelTypeOpen && !*c.App.Config().ComplianceSettings.Enable {
+	// Join metadata is independent of ComplianceSettings. Compliance still blocks
+	// reading public-channel *content* for non-members (HasPermissionToReadChannel),
+	// including permalink previews. GetPostInfo returns only channel/team identifiers
+	// so the client can join, which creates the compliance trail, then load the post.
+	if !hasPermissionToAccessChannel && channel.Type == model.ChannelTypeOpen {
 		canJoinOpenChannel := c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), channel.TeamId, model.PermissionJoinPublicChannels)
 		canJoinOpenTeam := team != nil && team.AllowOpenInvite && c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionJoinPublicTeams)
 		hasPermissionToAccessChannel = canJoinOpenChannel || canJoinOpenTeam

@@ -133,6 +133,19 @@ type FeatureFlags struct {
 
 	TeamMembershipAccessControl bool
 
+	// Enable channel attributes (Smart Labels, banners) powered by the Properties API.
+	ChannelAttributes bool
+
+	// FEATURE_FLAG_REMOVAL: ResourceAttributesInPolicies - Remove this when the
+	// feature is GA. Gates access rules that compare a user's attributes against
+	// the accessed channel's (resource.attributes.*): when off, the autocomplete
+	// endpoint omits channel-object-type fields, so no editor offers them, and
+	// saving a policy that references one is rejected. It does NOT gate
+	// evaluation — a rule stored while the flag was on keeps being enforced,
+	// because such rules deny on a missing channel value and silently dropping
+	// enforcement would empty every channel the policy governs.
+	ResourceAttributesInPolicies bool
+
 	// Enable the new mm_blocks Interactive Messages framework
 	MmBlocksEnabled bool
 
@@ -173,6 +186,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.AttributeValueMasking = true
 	f.PermissionPolicies = true
 	f.TeamMembershipAccessControl = true
+	f.ResourceAttributesInPolicies = false
 	f.ChannelPermissionPolicies = true
 	f.PolicySimulation = true
 	f.ContentFlagging = true
@@ -212,6 +226,8 @@ func (f *FeatureFlags) SetDefaults() {
 	f.MobileEphemeralMode = false
 
 	f.PropertyFieldRank = true
+
+	f.ChannelAttributes = false
 
 	f.MmBlocksEnabled = true
 
