@@ -1778,16 +1778,7 @@ func (a *App) GetAccessControlPolicyAttributes(rctx request.CTX, resourceID stri
 		return map[string][]string{}, nil
 	}
 
-	// Native fields won't show up in the Property Store, since they are synthetic (generated in code).
-	// At the time of writing this comment, all native fields are public, so
-	// we could just check for each name and give it a pass without building the array, but this
-	// approach will make sure any potential future native fields can also support different AccessModes.
-
-	// We will check for attributes in the store first because there is a known potential for name collision
-	// (i.e. if an admin makes an access control property with the same name as a native attribute).
-	// The collision doesn't happen during storage since there are unqiue prefixes, but the attributes
-	// returned by GetPolicyRuleAttributes are stripped of those prefixes, leaving it ambiguous.
-	// While that should be addressed, for now we check for real properties first and then fall back to native fields.
+	// Generate a map of native fields, since they do not reside in the Property Store.
 	nativeFieldsByName := make(map[string]*model.PropertyField)
 	for _, f := range model.NativeUserAttributeFields(cpaGroup.ID) {
 		nativeFieldsByName[f.Name] = f
@@ -1807,7 +1798,7 @@ func (a *App) GetAccessControlPolicyAttributes(rctx request.CTX, resourceID stri
 				continue
 			}
 
-			//If property wasn't found, check if this is a native field.
+			//If property wasn't found, check if this is a Native Field.
 			field = nativeFieldsByName[fieldName]
 			if field == nil {
 				delete(attributes, fieldName)
