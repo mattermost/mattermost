@@ -49,7 +49,7 @@ require (
 	github.com/mattermost/mattermost-plugin-ai v1.14.0
 	github.com/mattermost/mattermost/server/public v0.4.0
 	github.com/mattermost/morph v1.1.0
-	github.com/mattermost/pdf v0.0.0-20260728101013-cd8a834041c4
+	github.com/mattermost/pdf v0.0.0-20260828123129-5b7509a6ca01
 	github.com/mattermost/rsc v0.0.0-20160330161541-bbaefb05eaa0
 	github.com/mattermost/squirrel v0.5.0
 	github.com/mholt/archives v0.1.5
