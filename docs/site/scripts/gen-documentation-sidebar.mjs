@@ -136,8 +136,9 @@ const OVERVIEW_GROUPS = {
       'faq-general',
       'faq-enterprise',
       'faq-federal-procurement',
-      'faq-license',
-      'faq-mattermost-source-available-license',
+      {label: 'Business & Licensing', landing: 'faq-license', items: [
+        'faq-mattermost-source-available-license',
+      ]},
     ],
   },
 };
