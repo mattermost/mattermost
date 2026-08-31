@@ -15,7 +15,15 @@ type Scheduler struct {
 }
 
 func (scheduler *Scheduler) NextScheduleTime(cfg *model.Config, _ time.Time, _ bool, _ *model.Job) *time.Time {
-	nextTime := time.Now().Add((time.Duration(*cfg.ServiceSettings.PersistentNotificationIntervalMinutes) * time.Minute) / 2)
+	interval := (time.Duration(*cfg.ServiceSettings.PersistentNotificationIntervalMinutes) * time.Minute) / 2
+	// Cap at 30s: half the minimum selectable per-post interval (1 min).
+	// Without this, a 5-min global default would make the scheduler wake every 2.5 min,
+	// causing posts with a 1-min per-post interval to fire late.
+	const maxInterval = 30 * time.Second
+	if interval > maxInterval {
+		interval = maxInterval
+	}
+	nextTime := time.Now().Add(interval)
 	return &nextTime
 }
 

@@ -24,7 +24,7 @@ func newSqlPostPersistentNotificationStore(sqlStore *SqlStore) store.PostPersist
 
 func (s *SqlPostPersistentNotificationStore) GetSingle(postID string) (*model.PostPersistentNotifications, error) {
 	builder := s.getQueryBuilder().
-		Select("PostId, CreateAt, LastSentAt, DeleteAt, SentCount").
+		Select("PostId, CreateAt, LastSentAt, DeleteAt, SentCount, interval").
 		From("PersistentNotifications").
 		Where(sq.And{
 			sq.Eq{"DeleteAt": 0},
@@ -48,14 +48,14 @@ func (s *SqlPostPersistentNotificationStore) Get(params model.GetPersistentNotif
 		params.PerPage = 1000
 	}
 
+	nowMs := model.GetMillis()
 	builder := s.getQueryBuilder().
-		Select("PostId, CreateAt, LastSentAt, DeleteAt, SentCount").
+		Select("PostId, CreateAt, LastSentAt, DeleteAt, SentCount, interval").
 		From("PersistentNotifications").
 		Where(sq.And{
 			sq.Eq{"DeleteAt": 0},
-			sq.LtOrEq{"CreateAt": params.MaxTime},
-			sq.LtOrEq{"LastSentAt": params.MaxTime},
 			sq.Lt{"SentCount": params.MaxSentCount},
+			sq.Expr("LastSentAt <= ? - COALESCE(interval, ?)::bigint * 60000", nowMs, params.DefaultIntervalMinutes),
 		}).
 		Limit(uint64(params.PerPage))
 

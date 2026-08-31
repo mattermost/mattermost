@@ -31,6 +31,7 @@ export type PostDraft = {
             priority: PostPriority | '';
             requested_ack?: boolean;
             persistent_notifications?: boolean;
+            persistent_notification_interval?: number;
         };
         files?: FileInfo[];
     };

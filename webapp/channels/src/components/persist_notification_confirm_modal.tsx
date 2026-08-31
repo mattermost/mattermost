@@ -23,6 +23,7 @@ type Props = {
     specialMentions: {[key: string]: boolean};
     channelType: Channel['type'];
     message: string;
+    intervalMinutes?: number;
     onConfirm: () => void;
     onExited: () => void;
 };
@@ -32,6 +33,7 @@ function PersistNotificationConfirmModal({
     currentChannelTeammateUsername,
     specialMentions,
     message,
+    intervalMinutes,
     onConfirm,
     onExited,
 }: Props) {
@@ -42,7 +44,8 @@ function PersistNotificationConfirmModal({
 
     const getMentionCount = useMemo(() => makeGetUserOrGroupMentionCountFromMessage(), []);
     const maxRecipients = useSelector(getPersistentNotificationMaxRecipients);
-    const interval = useSelector(getPersistentNotificationIntervalMinutes);
+    const globalInterval = useSelector(getPersistentNotificationIntervalMinutes);
+    const interval = intervalMinutes ?? globalInterval;
     const count = useSelector((state: GlobalState) => getMentionCount(state, message));
 
     if (channelType === Constants.DM_CHANNEL) {

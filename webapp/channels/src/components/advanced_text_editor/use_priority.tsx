@@ -9,8 +9,9 @@ import type {PostPriorityMetadata} from '@mattermost/types/posts';
 import {PostPriority} from '@mattermost/types/posts';
 
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
-import {isPostPriorityEnabled as isPostPriorityEnabledSelector} from 'mattermost-redux/selectors/entities/posts';
+import {getPersistentNotificationIntervalMinutes, isPostPriorityEnabled as isPostPriorityEnabledSelector} from 'mattermost-redux/selectors/entities/posts';
 import {getUser} from 'mattermost-redux/selectors/entities/users';
+
 
 import {openModal} from 'actions/views/modals';
 
@@ -37,6 +38,7 @@ const usePriority = (
     const channelId = draft.channelId;
 
     const isPostPriorityEnabled = useSelector(isPostPriorityEnabledSelector);
+    const globalInterval = useSelector(getPersistentNotificationIntervalMinutes);
     const channelType = useSelector((state: GlobalState) => getChannel(state, channelId)?.type || 'O');
     const channelTeammateUsername = useSelector((state: GlobalState) => {
         const channel = getChannel(state, channelId);
@@ -115,6 +117,13 @@ const usePriority = (
     }, [handlePostPriorityApply]);
 
     const showPersistNotificationModal = useCallback((message: string, specialMentions: {[key: string]: boolean}, channelType: Channel['type'], onConfirm: () => void) => {
+        const intervalMinutes = Number(draft.metadata?.priority?.persistent_notification_interval ?? globalInterval);
+
+        const trackedConfirm = () => {
+            // TODO: fire analytics event with intervalMinutes once trackEvent is available
+            onConfirm();
+        };
+
         dispatch(openModal({
             modalId: ModalIdentifiers.PERSIST_NOTIFICATION_CONFIRM_MODAL,
             dialogType: PersistNotificationConfirmModal,
@@ -123,10 +132,11 @@ const usePriority = (
                 specialMentions,
                 channelType,
                 message,
-                onConfirm,
+                intervalMinutes,
+                onConfirm: trackedConfirm,
             },
         }));
-    }, [channelTeammateUsername, dispatch]);
+    }, [channelTeammateUsername, dispatch, draft, globalInterval]);
 
     const onSubmitCheck = useCallback((onConfirm: () => void) => {
         if (
@@ -147,6 +157,7 @@ const usePriority = (
                 specialMentions={specialMentions}
                 onRemove={handleRemovePriority}
                 persistentNotifications={draft!.metadata!.priority?.persistent_notifications}
+                persistentNotificationInterval={draft!.metadata!.priority?.persistent_notification_interval}
                 priority={draft!.metadata!.priority?.priority}
                 requestedAck={draft!.metadata!.priority?.requested_ack}
             />
