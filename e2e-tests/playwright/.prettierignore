@@ -5,5 +5,10 @@ playwright-report
 storage_state
 test-results
 results
+local_storage
+logs
+.upgrade_baseline.json
+.upgrade_plugin_bundle.tar.gz
+.env.testcontainers
 specs/**/*.yml
 specs/**/*.yaml

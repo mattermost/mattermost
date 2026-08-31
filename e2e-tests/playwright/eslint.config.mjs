@@ -13,6 +13,7 @@ export default [
             '**/playwright-report',
             '**/test-results',
             '**/results',
+            'local_storage/**',
             'lib/src/containers/assets/webhook/tests/**',
         ],
     },
