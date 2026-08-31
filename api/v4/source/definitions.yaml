@@ -3464,12 +3464,6 @@ components:
           description: The time in milliseconds that this action was performed.
           type: integer
           format: int64
-    PostIdToReactionsMap:
-      type: object
-      additionalProperties:
-        type: array
-        items:
-          $ref: "#/components/schemas/Reaction"
     Product:
       type: object
       properties:
