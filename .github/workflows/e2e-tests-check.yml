@@ -82,6 +82,9 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
           IMAGE_TAG: ${{ steps.check.outputs.image_tag }}
+          HEAD_REF: ${{ github.event.pull_request.head.ref }}
         run: |
-          echo "Triggering E2E tests for PR #${PR_NUMBER} with mattermostdevelopment/mattermost-enterprise-edition:${IMAGE_TAG}"
-          gh workflow run e2e-tests-ci.yml --field pr_number="${PR_NUMBER}"
+          # Run the workflow from the PR head so resolve-pr uses this PR's
+          # check-e2e-test-only allowlist (master's copy may lag).
+          echo "Triggering E2E tests for PR #${PR_NUMBER} with mattermostdevelopment/mattermost-enterprise-edition:${IMAGE_TAG} (workflow ref: ${HEAD_REF})"
+          gh workflow run e2e-tests-ci.yml --ref "${HEAD_REF}" --field pr_number="${PR_NUMBER}"

@@ -41,8 +41,14 @@ jobs:
           COMMIT_SHA: ${{ github.event.pull_request.head.sha }}
           GITHUB_REPOSITORY: ${{ github.repository }}
         run: |
-          # Only full tests can be overridden (smoke tests must pass)
+          # Full suites + rolling-upgrade from-version contexts (smoke must still pass).
+          # Rolling contexts are dynamic (e.g. .../upgrade-from-release-11.9), so discover by pattern.
           FULL_TEST_CONTEXTS=("e2e-test/playwright-full/enterprise" "e2e-test/cypress-full/enterprise" "e2e-test/playwright-full/fips" "e2e-test/cypress-full/fips")
+          while IFS= read -r ROLLING_CTX; do
+            [ -n "$ROLLING_CTX" ] && FULL_TEST_CONTEXTS+=("$ROLLING_CTX")
+          done < <(gh api "repos/${GITHUB_REPOSITORY}/commits/${COMMIT_SHA}/statuses" --paginate \
+            --jq '[.[] | select(.context | test("^e2e-test/playwright-full/[^/]+/upgrade-from-"))] | group_by(.context) | map(.[0].context) | .[]')
+
           OVERRIDDEN=""
           WEBHOOK_DATA="[]"
 
@@ -70,12 +76,12 @@ jobs:
               continue
             fi
 
-          # Prefix existing description
-          if [ -n "$CURRENT_DESC" ]; then
-            NEW_MSG="(verified) ${CURRENT_DESC}"
-          else
-            NEW_MSG="(verified)"
-          fi
+            # Prefix existing description
+            if [ -n "$CURRENT_DESC" ]; then
+              NEW_MSG="(verified) ${CURRENT_DESC}"
+            else
+              NEW_MSG="(verified)"
+            fi
 
             echo "  New: $NEW_MSG"
 

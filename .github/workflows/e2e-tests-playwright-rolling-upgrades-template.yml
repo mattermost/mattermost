@@ -1,23 +1,36 @@
 ---
-name: E2E Tests - Playwright Template (test system io dispatch)
+name: E2E Tests - Playwright Rolling Upgrades Template
 
-# Delegates Playwright spec dispatch + reporting to test system io.
-# Authenticates via GitHub Actions OIDC; calling job MUST grant
-# `id-token: write`.
+# Tests ONE from-version, given the from-image (upgrade_from_server_image) and the to-image
+# (SERVER_IMAGE, built from server_image_* inputs). The caller resolves the from-version matrix
+# and invokes this workflow once per entry, so everything here — the test system io run, the
+# commit status, the workers — belongs to a single from-version.
+#
+# Shape mirrors e2e-tests-playwright-template.yml, with the upgrade harness prepended to each
+# worker: upgrade-from → upgrade-to leaves that worker's server on the to-image, and dispatch-run
+# then draws normal specs against it. The harness itself never goes through test system io —
+# upgrade-specs/ lives outside the Playwright testDir, so dispatch-begin cannot enqueue it.
 
 on:
   workflow_call:
     inputs:
+      upgrade_from_server_image:
+        description: "Full from-image reference to upgrade FROM (e.g. mattermostdevelopment/mattermost-enterprise-edition:release-11.9)"
+        type: string
+        required: true
+      upgrade_from_context_label:
+        description: "From-version label for job/artifact names (e.g. release-11.9, release-11.7-esr)"
+        type: string
+        required: true
+      context_name:
+        description: "GitHub commit status context name for this from-version"
+        type: string
+        required: true
       workers:
         description: "Number of parallel test system io dispatch workers"
         type: number
         required: false
-        default: 8
-      enabled_docker_services:
-        description: "Space-separated list of docker services to enable"
-        type: string
-        required: false
-        default: "postgres inbucket"
+        default: 20
 
       commit_sha:
         type: string
@@ -29,13 +42,9 @@ on:
         type: string
         required: true
       server_image_tag:
-        description: "Server image tag (e.g., master or short SHA)"
+        description: "Server image tag to upgrade TO (e.g., master or short SHA)"
         type: string
         required: true
-      server:
-        type: string
-        required: false
-        default: onprem
       server_edition:
         description: "Server edition: enterprise (default), fips, or team"
         type: string
@@ -64,10 +73,6 @@ on:
       pr_number:
         type: string
         required: false
-      context_name:
-        description: "GitHub commit status context name"
-        type: string
-        required: true
 
       playwright_project:
         description: "Playwright project name (passed to dispatch-begin metadata and dispatch-run --project=)."
@@ -127,11 +132,11 @@ jobs:
           MM_SHA: ${{ inputs.commit_sha }}
           PR_NUMBER: ${{ inputs.pr_number }}
         run: |
-          # Derive the test-system-io run name from the GitHub commit-status
-          # context: drop the `e2e-test/` prefix (the framework name already
-          # implies E2E in the dashboard) and swap remaining `/` for `-` so
-          # the dashboard URL is path-safe. The commit-status context itself
-          # stays unchanged elsewhere — branch protection rules depend on it.
+          # Same derivation as e2e-tests-playwright-template.yml: drop the `e2e-test/` prefix (the
+          # framework name already implies E2E in the dashboard) and swap remaining `/` for `-` so
+          # the dashboard URL is path-safe. The from-version is already part of the context, so it
+          # carries into the run name for free. The commit-status context itself stays unchanged —
+          # branch protection and the override workflows depend on it.
           NAME="${CONTEXT_NAME#e2e-test/}"
           NAME="${NAME//\//-}"
           if [ -n "$PR_NUMBER" ]; then
@@ -182,8 +187,6 @@ jobs:
       - name: ci/setup-webapp-node-modules
         uses: ./.github/actions/webapp-setup
       - name: ci/cache-playwright-deps
-        # Caches node_modules + the rolled-up @mattermost/playwright-lib dist
-        # so workers don't re-run rollup on every job.
         id: cache-playwright
         uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
         with:
@@ -193,18 +196,12 @@ jobs:
             e2e-tests/playwright/lib/node_modules
           key: e2e-playwright-deps-${{ runner.os }}-${{ hashFiles('e2e-tests/playwright/package-lock.json', 'e2e-tests/playwright/lib/src/**', 'e2e-tests/playwright/lib/package.json', 'e2e-tests/playwright/lib/rollup.config.js', 'e2e-tests/playwright/lib/tsconfig.json') }}
       - name: ci/install-playwright-deps
-        # `npm ci` creates symlinks at node_modules/@mattermost/{client,types}
-        # → webapp/platform/{client,types}; targets must already be built.
-        # The postinstall then builds lib/dist via rollup. Skip browser
-        # download here — chromium is cached separately below.
         if: steps.cache-playwright.outputs.cache-hit != 'true'
         working-directory: e2e-tests/playwright
         env:
           PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: "1"
         run: npm ci
       - name: ci/cache-playwright-browsers
-        # Cache chromium binary (~150MB) keyed on the playwright lockfile so a
-        # version bump invalidates. Restored by workers; no docker image needed.
         id: cache-pw-browsers
         uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
         with:
@@ -215,8 +212,9 @@ jobs:
         working-directory: e2e-tests/playwright
         run: npx playwright install chromium
 
-  # Register the Test System IO run AFTER prep-deps so workers reach
-  # dispatch-run within Test System IO's inactivity window.
+  # Register this from-version's run AFTER prep-deps so workers reach dispatch-run within test
+  # system io's inactivity window. Workers here have the upgrade harness to get through first, so
+  # the gap is wider than the full suite's — see the harness note on the workers job.
   dispatch-begin:
     runs-on: ubuntu-24.04
     needs: [prepare-run, prep-deps]
@@ -247,9 +245,11 @@ jobs:
           image-aliases: ${{ inputs.server_image_aliases }}
 
   workers:
-    name: dispatch-run-${{ matrix.worker_index }}
+    name: rolling-upgrade-${{ inputs.upgrade_from_context_label }}-${{ matrix.worker_index }}
     runs-on: ubuntu-24.04
-    timeout-minutes: 30
+    # Longer than the full suite's 30m workers: each one upgrades a server before it draws its
+    # first spec, which costs two image pulls plus the swap.
+    timeout-minutes: 60
     needs: [prepare-run, dispatch-begin]
     permissions:
       contents: read
@@ -264,17 +264,17 @@ jobs:
       TEST: playwright
       BRANCH: "${{ inputs.branch }}"
       BUILD_ID: "${{ inputs.build_id }}"
-      CI_BASE_URL: "full-test-${{ matrix.worker_index }}"
-      # testcontainers mode: global setup brings up Postgres, Inbucket, the Mattermost
-      # server, and these services itself. Every worker enables the same fixed set because
-      # dispatch pulls specs from a shared queue, so no worker knows in advance which
-      # service-tagged spec (e.g. @ldap, @saml, @elasticsearch) it will draw.
+      CI_BASE_URL: "rolling-upgrade-${{ inputs.upgrade_from_context_label }}-${{ matrix.worker_index }}"
+      # The from-image this worker boots on. The to-image it ends up on is SERVER_IMAGE, which
+      # testConfig picks up for the swap.
+      PW_UPGRADE_FROM_SERVER_IMAGE: "${{ inputs.upgrade_from_server_image }}"
       PW_USE_TESTCONTAINERS: "true"
+      # Same fixed set as the full suite's workers: dispatch pulls specs from a shared queue, so no
+      # worker knows in advance which service-tagged spec (e.g. @ldap, @saml) it will draw.
       PW_TESTCONTAINERS_SERVICES: "openldap,keycloak,elasticsearch,minio"
-      # Keeps the server alive across this worker's per-spec dispatch invocations instead of
-      # tearing down after each — otherwise ci/prepare-playwright's own global-teardown call would
-      # stop the server that ci/dispatch-run needs next. ci/testcontainers-teardown does the final
-      # teardown once the whole queue is done.
+      # Load-bearing three times over here: upgrade-to has to adopt the stack upgrade-from left
+      # running, the swap has to keep Postgres and file storage while only the server is replaced,
+      # and dispatch-run's per-spec invocations all have to land on that same upgraded server.
       PW_TESTCONTAINERS_REUSE: "true"
     steps:
       - name: ci/checkout-actions
@@ -313,12 +313,24 @@ jobs:
           path: ~/.cache/ms-playwright
           key: playwright-browsers-${{ runner.os }}-${{ hashFiles('e2e-tests/playwright/package-lock.json') }}
           fail-on-cache-miss: true
-      # Brings up the stack via Testcontainers in `testcontainers` mode (global setup). Also runs the
-      # `setup` project so per-spec dispatches can pass --no-deps and skip plugin-load +
-      # server-deployment checks. node_modules, lib/dist, and chromium are all restored from cache.
-      - name: ci/prepare-playwright
+      # Boots the stack on the from-image (global setup) and seeds the baseline. Runs the `setup`
+      # project as a project dependency. No testcontainers:down first — the runner is fresh, so
+      # upgrade-from's clean-slate guard has nothing to trip over.
+      - name: ci/upgrade-from
         working-directory: e2e-tests/playwright
-        run: npx playwright test --project=setup
+        run: npx playwright test --project=upgrade-from
+      # Swaps this worker's server to SERVER_IMAGE in place and re-verifies the baseline.
+      - name: ci/upgrade-to
+        working-directory: e2e-tests/playwright
+        run: npx playwright test --project=upgrade-to
+      # From here the server is the to-image, upgraded in place, and the rest of the job is the
+      # normal full suite against it. Nothing is re-prepared in between: an upgrade that needed the
+      # suite's setup re-run to be usable would not be a passing upgrade. The stack is already up
+      # and seeded from upgrade-from (whose own `setup` dependency ran there), and each dispatched
+      # spec brings its own config through pw.initSetup().
+      #
+      # Skipped automatically when the harness above failed, since a server that did not survive
+      # its own upgrade has nothing useful to say about the suite.
       - name: ci/dispatch-run
         uses: mattermost/mattermost-test-system-io/.github/actions/test-system-io-dispatch-run@1631d8fcea24f4545a0b3b7f77e41c2fe0be4418 # 2026-07-28
         with:
@@ -328,14 +340,16 @@ jobs:
           repo-dir: ${{ github.workspace }}
           artifacts-root: ${{ github.workspace }}/worker-artifacts
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          gh-job-name: dispatch-run-${{ matrix.worker_index }}
+          gh-job-name: rolling-upgrade-${{ inputs.upgrade_from_context_label }}-${{ matrix.worker_index }}
           playwright-retries: ${{ inputs.playwright_retries }}
           playwright-project: ${{ inputs.playwright_project }}
       - name: ci/upload-debug-artifacts
         if: always()
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
-          name: playwright-full-${{ inputs.server_edition }}-debug-${{ matrix.worker_index }}
+          # Includes logs/upgrade/{from,to}-mattermost.log (+ highlights, postgres, from-baseline.json)
+          # captured by saveUpgradePhaseLogs during upgrade-from / upgrade-swap-to / upgrade-to.
+          name: playwright-rolling-upgrades-${{ inputs.server_edition }}-from-${{ inputs.upgrade_from_context_label }}-debug-${{ matrix.worker_index }}
           path: |
             e2e-tests/playwright/logs/
             e2e-tests/playwright/results/

@@ -108,6 +108,7 @@ jobs:
       enable_reporting: true
       report_type: ${{ needs.generate-build-variables.outputs.report_type }}
       ref_branch: ${{ needs.generate-build-variables.outputs.ref_branch }}
+      run_rolling_upgrades: "true"
     secrets:
       MM_LICENSE: "${{ secrets.MM_E2E_TEST_LICENSE_ONPREM_ENT }}"
       REPORT_WEBHOOK_URL: "${{ secrets.MM_E2E_REPORT_WEBHOOK_URL }}"
@@ -157,6 +158,7 @@ jobs:
       enable_reporting: true
       report_type: ${{ needs.generate-build-variables.outputs.report_type }}
       ref_branch: ${{ needs.generate-build-variables.outputs.ref_branch }}
+      run_rolling_upgrades: "true"
     secrets:
       MM_LICENSE: "${{ secrets.MM_E2E_TEST_LICENSE_ONPREM_ENT }}"
       REPORT_WEBHOOK_URL: "${{ secrets.MM_E2E_REPORT_WEBHOOK_URL }}"

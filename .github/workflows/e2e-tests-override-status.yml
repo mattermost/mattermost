@@ -44,8 +44,13 @@ jobs:
           COMMIT_SHA: ${{ steps.pr-info.outputs.head_sha }}
           GITHUB_REPOSITORY: ${{ github.repository }}
         run: |
-          # Only full tests can be overridden (smoke tests must pass)
+          # Full suites + rolling-upgrade from-version contexts (smoke must still pass).
+          # Rolling contexts are dynamic (e.g. .../upgrade-from-release-11.9), so discover by pattern.
           FULL_TEST_CONTEXTS=("e2e-test/playwright-full/enterprise" "e2e-test/cypress-full/enterprise" "e2e-test/playwright-full/fips" "e2e-test/cypress-full/fips")
+          while IFS= read -r ROLLING_CTX; do
+            [ -n "$ROLLING_CTX" ] && FULL_TEST_CONTEXTS+=("$ROLLING_CTX")
+          done < <(gh api "repos/${GITHUB_REPOSITORY}/commits/${COMMIT_SHA}/statuses" --paginate \
+            --jq '[.[] | select(.context | test("^e2e-test/playwright-full/[^/]+/upgrade-from-"))] | group_by(.context) | map(.[0].context) | .[]')
 
           for CONTEXT_NAME in "${FULL_TEST_CONTEXTS[@]}"; do
             echo "Checking: $CONTEXT_NAME"
@@ -81,6 +86,7 @@ jobs:
               PASSED="${BASH_REMATCH[2]}"
               NEW_MSG="${FAILED} failed (verified), ${PASSED} passed"
             else
+              # Test System IO / rolling-upgrade style (image_tag:, from:, pass %)
               NEW_MSG="${CURRENT_DESC} (verified)"
             fi
 
