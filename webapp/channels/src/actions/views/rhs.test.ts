@@ -692,6 +692,15 @@ describe('rhs view actions', () => {
 
                 expect(store.getActions()).toEqual(compareStore.getActions());
             });
+
+            it('DEBUG: toggle when current pluggableId matches but rhs is suppressed', () => {
+                const suppressedPluginRhs = cloneDeep(stateWithPluginRhs);
+                set(suppressedPluginRhs, 'views.rhsSuppressed', true);
+                set(suppressedPluginRhs, 'views.rhs.isSidebarOpen', true);
+                store = mockStore(suppressedPluginRhs);
+
+                store.dispatch(toggleRHSPlugin(pluggableId));
+            });
         });
     });
 

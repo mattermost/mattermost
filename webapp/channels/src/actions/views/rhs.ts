@@ -310,8 +310,20 @@ export function hideRHSPlugin(pluggableId: string): ActionFunc<boolean> {
 export function toggleRHSPlugin(pluggableId: string): ActionFunc<boolean> {
     return (dispatch, getState) => {
         const state = getState();
+        const currentPluggableId = getPluggableId(state);
+        const rhsSuppressed = Boolean(state.views?.rhsSuppressed);
+        const isSidebarOpen = Boolean(state.views?.rhs?.isSidebarOpen);
+        const rhsState = getRhsState(state);
+        const match = currentPluggableId === pluggableId;
+        const isVisiblyOpen = isSidebarOpen && !rhsSuppressed;
 
-        if (getPluggableId(state) === pluggableId) {
+        // #region agent log
+        try {
+            require('fs').appendFileSync('/opt/cursor/logs/debug.log', JSON.stringify({hypothesisId: 'C', location: 'rhs.ts:toggleRHSPlugin', message: 'toggleRHSPlugin decision', data: {pluggableId, currentPluggableId, match, rhsState, rhsSuppressed, isSidebarOpen, isVisiblyOpen, branch: match ? 'hide' : 'show', wouldHideWhileSuppressed: match && rhsSuppressed}, timestamp: Date.now()}) + '\n');
+        } catch { /* debug log */ }
+        // #endregion
+
+        if (match) {
             dispatch(hideRHSPlugin(pluggableId));
             return {data: false};
         }

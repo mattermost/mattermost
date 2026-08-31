@@ -6,7 +6,7 @@ import type {Store} from 'redux';
 
 import {getCurrentChannelId} from 'mattermost-redux/selectors/entities/common';
 
-import {toggleRHSPlugin} from 'actions/views/rhs';
+import {suppressRHS, toggleRHSPlugin} from 'actions/views/rhs';
 import {getIsRhsOpen, getPluggableId, getRhsState} from 'selectors/rhs';
 
 import AppBarPluginComponent from 'components/app_bar/app_bar_plugin_component';
@@ -176,5 +176,31 @@ describe('components/threading/global_threads', () => {
         expect(getIsRhsOpen(store.getState())).toBe(true);
         expect(getRhsState(store.getState())).toBe(RHSStates.PLUGIN);
         expect(getPluggableId(store.getState())).toBe(rhsComponentId);
+    });
+
+    test('DEBUG: leftover plugin RHS stays after Threads mount then App Bar toggles same plugin', async () => {
+        const channelHeaderButton: ChannelHeaderButtonAction = {
+            id: 'the_channel_header_button_id',
+            pluginId,
+            icon: <i className='icon icon-test'/>,
+            dropdownText: 'Test Plugin',
+            tooltipText: 'Test Plugin',
+            action: () => store.dispatch(toggleRHSPlugin(rhsComponentId)),
+        };
+
+        await renderGlobalThreads(
+            RHSStates.PLUGIN,
+            <AppBarPluginComponent component={channelHeaderButton}/>,
+        );
+
+        await userEvent.click(screen.getByRole('button'));
+    });
+
+    test('DEBUG: toggleRHSPlugin when leftover plugin is current but suppressed', async () => {
+        await renderGlobalThreads(RHSStates.PLUGIN);
+
+        store.dispatch(suppressRHS);
+        store.dispatch(toggleRHSPlugin(rhsComponentId));
+        await runPostRenderAct();
     });
 });

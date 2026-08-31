@@ -3,8 +3,8 @@
 
 import React from 'react';
 
-import {renderWithContext} from 'tests/react_testing_utils';
-import {RHSStates} from 'utils/constants';
+import {renderWithContext, runPostRenderAct} from 'tests/react_testing_utils';
+import {ActionTypes, RHSStates} from 'utils/constants';
 
 import type {RhsState} from 'types/store/rhs';
 
@@ -79,5 +79,18 @@ describe('useSuppressRHS', () => {
         unmount();
 
         expect(store.getState().views.rhsSuppressed).toBe(false);
+    });
+
+    test('DEBUG: Threads options re-run when rhsState changes from PIN to PLUGIN', async () => {
+        const {store} = renderHarness(true, RHSStates.PIN, true);
+
+        expect(store.getState().views.rhsSuppressed).toBe(true);
+
+        store.dispatch({
+            type: ActionTypes.UPDATE_RHS_STATE,
+            state: RHSStates.PLUGIN,
+            pluggableId: 'debug-plugin',
+        });
+        await runPostRenderAct();
     });
 });

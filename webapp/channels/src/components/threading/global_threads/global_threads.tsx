@@ -9,6 +9,7 @@ import {useSelector, useDispatch, shallowEqual} from 'react-redux';
 import {Link, useRouteMatch} from 'react-router-dom';
 
 import {getThreadCounts, getThreadsForCurrentTeam} from 'mattermost-redux/actions/threads';
+import {getCurrentChannelId} from 'mattermost-redux/selectors/entities/common';
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
 import {
     getThreadOrderInCurrentTeam,
@@ -21,6 +22,7 @@ import {clearLastUnreadChannel} from 'actions/global_actions';
 import {loadProfilesForSidebar} from 'actions/user_actions';
 import {selectLhsItem} from 'actions/views/lhs';
 import {setSelectedThreadId} from 'actions/views/threads';
+import {getIsRhsOpen, getPluggableId, getRhsState} from 'selectors/rhs';
 import {getSelectedThreadIdInCurrentTeam} from 'selectors/views/threads';
 import {useGlobalState} from 'stores/hooks';
 import LocalStorageStore from 'stores/local_storage_store';
@@ -30,7 +32,7 @@ import ChatIllustration from 'components/common/svg_images_components/chat_illus
 import LoadingScreen from 'components/loading_screen';
 import NoResultsIndicator from 'components/no_results_indicator';
 
-import {PreviousViewedTypes} from 'utils/constants';
+import {PreviousViewedTypes, RHSStates} from 'utils/constants';
 import {Mark, Measure, measureAndReport} from 'utils/performance_telemetry';
 
 import type {GlobalState} from 'types/store/index';
@@ -59,6 +61,11 @@ const GlobalThreads = () => {
     const threadIds = useSelector((state: GlobalState) => getThreadOrderInCurrentTeam(state), shallowEqual);
     const unreadThreadIds = useSelector((state: GlobalState) => getUnreadThreadOrderInCurrentTeam(state), shallowEqual);
     const numUnread = counts?.total_unread_threads || 0;
+    const rhsState = useSelector(getRhsState);
+    const rhsSuppressed = useSelector((state: GlobalState) => state.views.rhsSuppressed);
+    const isRhsOpen = useSelector(getIsRhsOpen);
+    const pluggableId = useSelector(getPluggableId);
+    const currentChannelId = useSelector(getCurrentChannelId);
 
     useSuppressRHS({preserveGlobalViews: true, preservePluginViews: true});
 
@@ -74,6 +81,14 @@ const GlobalThreads = () => {
             LocalStorageStore.setPreviousViewedType(currentUserId, currentTeamId, PreviousViewedTypes.THREADS);
         }
     }, []);
+
+    useEffect(() => {
+        // #region agent log
+        try {
+            require('fs').appendFileSync('/opt/cursor/logs/debug.log', JSON.stringify({hypothesisId: rhsState === RHSStates.PLUGIN ? 'A' : 'D', location: 'global_threads.tsx:rhs-snapshot', message: 'Threads RHS/channel snapshot after render', data: {rhsState, rhsSuppressed, isRhsOpen, pluggableId, currentChannelId}, timestamp: Date.now()}) + '\n');
+        } catch { /* debug log */ }
+        // #endregion
+    }, [rhsState, rhsSuppressed, isRhsOpen, pluggableId, currentChannelId]);
 
     useEffect(() => {
         dispatch(getThreadCounts(currentUserId, currentTeamId));
