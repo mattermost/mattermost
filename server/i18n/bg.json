@@ -1,19 +1,11 @@
 [
   {
-    "id": "web.incoming_webhook.user.app_error",
-    "translation": "Потребителят не можа да бъде намерен."
-  },
-  {
     "id": "web.incoming_webhook.text.app_error",
     "translation": "Не е посочен текст."
   },
   {
     "id": "web.incoming_webhook.split_props_length.app_error",
     "translation": "Свойствата на webhook не могат да се разделят на {{.Max}} символни части."
-  },
-  {
-    "id": "web.incoming_webhook.permissions.app_error",
-    "translation": "Неподходящи права за канал."
   },
   {
     "id": "web.incoming_webhook.parse.app_error",
@@ -26,10 +18,6 @@
   {
     "id": "web.incoming_webhook.disabled.app_error",
     "translation": "Входящите webhook са забранени от системния администратор."
-  },
-  {
-    "id": "web.incoming_webhook.channel_locked.app_error",
-    "translation": "На тази webhook не е позволено да публикува в искания канал."
   },
   {
     "id": "web.incoming_webhook.channel.app_error",
@@ -136,14 +124,6 @@
     "translation": "Вземете най-новия браузър Chrome"
   },
   {
-    "id": "web.command_webhook.parse.app_error",
-    "translation": "Не може да се анализират входящите данни."
-  },
-  {
-    "id": "web.command_webhook.command.app_error",
-    "translation": "Не можах да намеря командата."
-  },
-  {
     "id": "system.message.name",
     "translation": "Система"
   },
@@ -234,10 +214,6 @@
   {
     "id": "plugin.api.get_users_in_channel",
     "translation": "Невъзможно е да се получат потребителите, невалидни критерии за сортиране."
-  },
-  {
-    "id": "oauth.gitlab.tos.error",
-    "translation": "Общите условия на GitLab са актуализирани. Моля, отидете на gitlab.com, за да ги приемете и след това опитайте да влезете в Mattermost отново."
   },
   {
     "id": "model.websocket_client.connect_fail.app_error",
@@ -410,10 +386,6 @@
   {
     "id": "model.incoming_hook.parse_data.app_error",
     "translation": "Неуспешно анализиране на входящите данни."
-  },
-  {
-    "id": "model.incoming_hook.id.app_error",
-    "translation": "Невалиден id."
   },
   {
     "id": "model.incoming_hook.icon_url.app_error",
@@ -820,10 +792,6 @@
     "translation": "Невалидно име на драйвер в настройките за файл. Трябва да e 'local' or 'amazons3'."
   },
   {
-    "id": "model.config.is_valid.encrypt_sql.app_error",
-    "translation": "Невалиден ключ за 'at rest' криптиране в настройки на SQL. Трябва да е 32 знака или повече."
-  },
-  {
     "id": "model.config.is_valid.email_security.app_error",
     "translation": "Невалидна защита на връзката в настройките за ел.поща. Трябва да е '', 'TLS' или 'STARTTLS'."
   },
@@ -850,14 +818,6 @@
   {
     "id": "model.config.is_valid.elastic_search.live_indexing_batch_size.app_error",
     "translation": "Размерът на партидата за индексиране на живо Elasticsearch трябва да бъде най-малко 1."
-  },
-  {
-    "id": "model.config.is_valid.elastic_search.enable_searching.app_error",
-    "translation": "Настройката Elasticsearch EnableIndexing трябва да бъде зададена на true, когато Elasticsearch EnableSearching е зададено на true"
-  },
-  {
-    "id": "model.config.is_valid.elastic_search.enable_autocomplete.app_error",
-    "translation": "Настройката Elasticsearch EnableIndexing трябва да бъде зададена на true, когато Elasticsearch EnableAutocomplete е зададено на true"
   },
   {
     "id": "model.config.is_valid.elastic_search.connection_url.app_error",
@@ -894,14 +854,6 @@
   {
     "id": "model.config.is_valid.cluster_email_batching.app_error",
     "translation": "Невъзможно е да се активира пакетирането по ел.поща, когато е активирано клъстеризирането."
-  },
-  {
-    "id": "model.config.is_valid.atmos_camo_image_proxy_url.app_error",
-    "translation": "Невалидно RemoteImageProxyURL за atmos/camo. Трябва да е настроен на вашия споделен ключ."
-  },
-  {
-    "id": "model.config.is_valid.atmos_camo_image_proxy_options.app_error",
-    "translation": "Невалидно RemoteImageProxyOptions за atmos/camo. Трябва да е настроен във вашия споделен ключ."
   },
   {
     "id": "model.config.is_valid.allow_cookies_for_subdomains.app_error",
@@ -1788,18 +1740,6 @@
     "translation": "Вашият лиценз не поддържа Elasticsearch."
   },
   {
-    "id": "ent.elasticsearch.test_config.indexing_disabled.error",
-    "translation": "Elasticsearch е забранен."
-  },
-  {
-    "id": "ent.elasticsearch.start.parse_server_version.app_error",
-    "translation": "Неуспешен анализ на версията на сървъра Elasticsearch."
-  },
-  {
-    "id": "ent.elasticsearch.start.get_server_version.app_error",
-    "translation": "Неуспешно получаване версията на сървъра Elasticsearch."
-  },
-  {
     "id": "ent.elasticsearch.search_users.unmarshall_user_failed",
     "translation": "Неуспешно декодиране на резултатите от търсенето"
   },
@@ -1820,20 +1760,12 @@
     "translation": "Неуспешно анализиране на съвпаденията в резултатите от търсенето"
   },
   {
-    "id": "ent.elasticsearch.search_posts.disabled",
-    "translation": "Търсенето elasticsearch е забранено на този сървър"
-  },
-  {
     "id": "ent.elasticsearch.search_channels.unmarshall_channel_failed",
     "translation": "Неуспешно декодиране на резултатите от търсенето"
   },
   {
     "id": "ent.elasticsearch.search_channels.search_failed",
     "translation": "Търсенето неуспешно"
-  },
-  {
-    "id": "ent.elasticsearch.search_channels.disabled",
-    "translation": "Търсенето elasticsearch е забранено на този сървър"
   },
   {
     "id": "ent.elasticsearch.refresh_indexes.refresh_failed",
@@ -1844,20 +1776,8 @@
     "translation": "Не можа да се получи пакета публикации за индексиране."
   },
   {
-    "id": "ent.elasticsearch.not_started.error",
-    "translation": "Elasticsearch не е стартиран"
-  },
-  {
     "id": "ent.elasticsearch.indexer.index_batch.nothing_left_to_index.error",
     "translation": "Опит за индексиране на нова партида, когато всички елементи са завършени"
-  },
-  {
-    "id": "ent.elasticsearch.indexer.do_job.parse_start_time.error",
-    "translation": "Работникът за индексиране на Elasticsearch не успя да анализира началното време"
-  },
-  {
-    "id": "ent.elasticsearch.indexer.do_job.parse_end_time.error",
-    "translation": "Работникът за индексиране на Elasticsearch не успя да анализира крайния час"
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.get_oldest_entity.error",
@@ -1880,10 +1800,6 @@
     "translation": "Неуспешно индексиране на канали"
   },
   {
-    "id": "ent.elasticsearch.generic.disabled",
-    "translation": "На този сървър не е активирано търсене elastsesearch"
-  },
-  {
     "id": "ent.elasticsearch.delete_user_posts.error",
     "translation": "Неуспешно изтриване публикации на потребител"
   },
@@ -1902,46 +1818,6 @@
   {
     "id": "ent.elasticsearch.delete_channel.error",
     "translation": "Неуспешно изтриване на канала"
-  },
-  {
-    "id": "ent.elasticsearch.data_retention_delete_indexes.get_indexes.error",
-    "translation": "Неуспешно получаване на индексите Elasticsearch"
-  },
-  {
-    "id": "ent.elasticsearch.data_retention_delete_indexes.delete_index.error",
-    "translation": "Изтриването на индекса на Elasticsearch не бе успешно"
-  },
-  {
-    "id": "ent.elasticsearch.create_template_users_if_not_exists.template_create_failed",
-    "translation": "Неуспешно създаване на шаблон на Elasticsearch за потребители"
-  },
-  {
-    "id": "ent.elasticsearch.create_template_posts_if_not_exists.template_create_failed",
-    "translation": "Неуспешно създаване на шаблон на Elasticsearch за публикации"
-  },
-  {
-    "id": "ent.elasticsearch.create_template_channels_if_not_exists.template_create_failed",
-    "translation": "Неуспешно създаване на шаблон на Elasticsearch за канали"
-  },
-  {
-    "id": "ent.elasticsearch.create_client.connect_failed",
-    "translation": "Конфигурирането на клиент Elasticsearch не бе успешно"
-  },
-  {
-    "id": "ent.elasticsearch.aggregator_worker.index_job_failed.error",
-    "translation": "Работникът в агрегатора на Elasticsearch се провали поради неуспешна задача по индексиране"
-  },
-  {
-    "id": "ent.elasticsearch.aggregator_worker.get_indexes.error",
-    "translation": "Работникът на агрегатора на Elasticsearch не успя да получи индекси"
-  },
-  {
-    "id": "ent.elasticsearch.aggregator_worker.delete_indexes.error",
-    "translation": "Работникът на агрегатора Elasticsearch не успя да изтрие индексите"
-  },
-  {
-    "id": "ent.elasticsearch.aggregator_worker.create_index_job.error",
-    "translation": "Работникът на агрегатора Elasticsearch не успя да създаде заданието за индексиране"
   },
   {
     "id": "ent.data_retention.generic.license.error",
@@ -2192,10 +2068,6 @@
     "translation": "В задействащо ID липсват необходимите данни за интерактивен диалог."
   },
   {
-    "id": "interactive_message.decode_trigger_id.expired",
-    "translation": "Задействащо ID на интерактивен диалог е изтекло. Задействащите ID са валидни максимум {{.Seconds}} секунди."
-  },
-  {
     "id": "interactive_message.decode_trigger_id.base64_decode_failed_signature",
     "translation": "Неуспешно декодиране base64 подпис за задействащо ID на интерактивен диалог."
   },
@@ -2290,10 +2162,6 @@
   {
     "id": "app.reaction.delete_all_with_emoji_name.get_reactions.app_error",
     "translation": "Не може да се получат всички реакции с това име на емотикон."
-  },
-  {
-    "id": "app.reaction.bulk_get_for_post_ids.app_error",
-    "translation": "Не може да се получат реакции за публикация."
   },
   {
     "id": "app.preference.save.updating.app_error",
@@ -3544,10 +3412,6 @@
     "translation": "Нулиране на парола"
   },
   {
-    "id": "api.templates.remove_expired_license.subject",
-    "translation": "Лицензът за Mattermost корпоративна е деактивиран."
-  },
-  {
     "id": "api.templates.post_body.button",
     "translation": "Преглед на съобщението"
   },
@@ -3808,38 +3672,6 @@
     "translation": "Грешка при анулиране на поканите по ел.поща."
   },
   {
-    "id": "api.team.import_team.unknown_import_from.app_error",
-    "translation": "Неизвестен източник за внасяне."
-  },
-  {
-    "id": "api.team.import_team.unavailable.app_error",
-    "translation": "Неправилна заявка: полето за размер на файла липсва."
-  },
-  {
-    "id": "api.team.import_team.parse.app_error",
-    "translation": "Съставната форма не можа да се анализира."
-  },
-  {
-    "id": "api.team.import_team.open.app_error",
-    "translation": "Файлът не може да бъде отворен."
-  },
-  {
-    "id": "api.team.import_team.no_import_from.app_error",
-    "translation": "Неправилна заявка: importFrom полето липсва."
-  },
-  {
-    "id": "api.team.import_team.no_file.app_error",
-    "translation": "Липсва файл под 'file' в заявката."
-  },
-  {
-    "id": "api.team.import_team.integer.app_error",
-    "translation": "Размерът на файла не е цяло число."
-  },
-  {
-    "id": "api.team.import_team.array.app_error",
-    "translation": "Заявката съдържа празен масив под 'file'."
-  },
-  {
     "id": "api.team.get_team_icon.read_file.app_error",
     "translation": "Файлът с иконата на екипа не може да се прочете."
   },
@@ -3914,10 +3746,6 @@
   {
     "id": "api.status.user_not_found.app_error",
     "translation": "Потребителят не е намерен."
-  },
-  {
-    "id": "api.slackimport.slack_import.zip.file_too_large",
-    "translation": "{{.Filename}} в zip архива е твърде голям, за да се обработи от Slack вноса\n"
   },
   {
     "id": "api.post.search_posts.invalid_body.app_error",
@@ -4262,14 +4090,6 @@
     "translation": "Не могат да се получат всички канали."
   },
   {
-    "id": "app.channel.get.find.app_error",
-    "translation": "Срещнахме грешка при намирането на канала."
-  },
-  {
-    "id": "app.channel.get.existing.app_error",
-    "translation": "Не можа да се намери съществуващият канал."
-  },
-  {
     "id": "app.channel.delete.app_error",
     "translation": "Каналът не можа да бъде изтрит."
   },
@@ -4420,10 +4240,6 @@
   {
     "id": "api.web_socket_router.bad_action.app_error",
     "translation": "Непознато действие на WebSocket."
-  },
-  {
-    "id": "api.web_socket.connect.upgrade.app_error",
-    "translation": "Неуспешно обновяване на връзката към websocket."
   },
   {
     "id": "api.user.verify_email.token_parse.error",
@@ -4864,10 +4680,6 @@
   {
     "id": "api.license.remove_expired_license.failed.error",
     "translation": "Неуспешно изпращането на ел.поща за деактивиране на лиценз."
-  },
-  {
-    "id": "api.license.client.old_format.app_error",
-    "translation": "Новия формат за клиентски лиценз все още не се поддържа. Моля, посочете format=old в низа на заявката."
   },
   {
     "id": "api.license.add_license.unique_users.app_error",
@@ -5461,10 +5273,6 @@
     "translation": "Нямате права да каните нови потребители в този сървър."
   },
   {
-    "id": "api.command_invite.user_not_in_team.app_error",
-    "translation": "@{{.Username}} не е член на екипа."
-  },
-  {
     "id": "api.command_invite.user_already_in_channel.app_error",
     "translation": {
       "one": "{{.User}} е вече в канала.",
@@ -5486,10 +5294,6 @@
   {
     "id": "api.command_invite.name",
     "translation": "покани"
-  },
-  {
-    "id": "api.command_invite.missing_user.app_error",
-    "translation": "Не намерихме потребителя. Може да е деактивиран от системния администратор."
   },
   {
     "id": "api.command_invite.missing_message.app_error",
@@ -6075,78 +5879,6 @@
     "translation": "Невъзможно е да се изредят командите на екипа."
   },
   {
-    "id": "api.slackimport.slack_import.zip.app_error",
-    "translation": "Не успя да се отвори Slack export zip файла.\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.team_fail",
-    "translation": "Не можа да се вземе екипът, в който да ще се импортира.\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.open.app_error",
-    "translation": "Не успя да се отвори файла: {{.Filename}}.\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.notes",
-    "translation": "\nБележки:\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.note3",
-    "translation": "- Във файловете с дневници на сървъра може да се намерят допълнителни грешки.\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.note2",
-    "translation": "- Понастоящем Slack бот съобщенията не се поддържат.\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.note1",
-    "translation": "- Някои съобщения може да не са внесени, защото не се поддържат от този вносител.\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.log",
-    "translation": "Mattermost Slack импорт дневник\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_users.unable_import",
-    "translation": "Неуспешно внасяне на Slack потребителя: {{.Username}}.\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_users.missing_email_address",
-    "translation": "Потребителя {{.Username}} няма адрес за ел.поща в Slack експорта. Използван е {{.Email}} като заместител. Потребителят трябва да актуализира адреса си за ел.поща, след като влезе в системата.\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_users.merge_existing_failed",
-    "translation": "Slack потребител е обединен с Mattermost потребител поради съвпадащи ел.поща {{.Email}} и потребителско име {{.Username}}., но потребителя не може да бъде добавен към екипа.\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_users.merge_existing",
-    "translation": "Slack потребител е обединен с Mattermost поради съвпадащи ел.поща {{.Email}} и потребителско име {{.Username}}.\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_users.created",
-    "translation": "\nСъздадени потребители:\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_channels.merge",
-    "translation": "Slack канала {{.DisplayName}} вече съществува като активен Mattermost канал. Двата канала са обединени.\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_channels.import_failed",
-    "translation": "Неуспешно внасяне на Slack канала {{.DisplayName}}.\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_channels.failed_to_add_user",
-    "translation": "Неуспешно добавяне на Slack потребителя {{.Username}} в канала.\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_channels.added",
-    "translation": "\nДобавени канали:\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_bot_user.unable_import",
-    "translation": "Не можа да се внесе интеграцията/Slack Bot потребителя {{.Username}}.\n"
-  },
-  {
     "id": "api.server.start_server.starting.critical",
     "translation": "Грешка при стартиране на сървъра, грешка:% v"
   },
@@ -6221,10 +5953,6 @@
   {
     "id": "api.push_notifications_ack.forward.app_error",
     "translation": "Възникна грешка при изпращане на разписка до услугата за изскачащи известия."
-  },
-  {
-    "id": "api.push_notifications.session.expired",
-    "translation": "Сесията изтече: Моля, влезте за да продължите да получавате известия. Сесиите за {{.siteName}} са конфигурирани от Вашия системен администратор, да изтичат на всеки {{.daysCount}} дни."
   },
   {
     "id": "api.push_notifications.message.parse.app_error",
@@ -7059,10 +6787,6 @@
     "translation": "Търсенето не успя да завърши"
   },
   {
-    "id": "ent.elasticsearch.search_files.disabled",
-    "translation": "Търсенето на файлове с elasticsearch е забранено на този сървър"
-  },
-  {
     "id": "ent.elasticsearch.index_file.error",
     "translation": "Неуспешно индексиране на файл"
   },
@@ -7077,10 +6801,6 @@
   {
     "id": "ent.elasticsearch.delete_file.error",
     "translation": "Неуспешно изтриване на файл"
-  },
-  {
-    "id": "ent.elasticsearch.create_template_file_info_if_not_exists.template_create_failed",
-    "translation": "Неуспешно създаване на Elasticsearch шаблон за файлове"
   },
   {
     "id": "api.job.unable_to_download_job.incorrect_job_type",
@@ -7243,10 +6963,6 @@
     "translation": "Пишете ни по всяко време на "
   },
   {
-    "id": "api.templates.email_footer_v2",
-    "translation": "© 2021 Mattermost, Inc. 530 Lytton Avenue, втори етаж, Пало Алто, Калифорния, 94301"
-  },
-  {
     "id": "api.post.search_files.invalid_body.app_error",
     "translation": "Не можа да се анализира тялото на заявката."
   },
@@ -7329,10 +7045,6 @@
   {
     "id": "api.templates.invite_body.subTitle",
     "translation": "Започнете да сътрудничите с екипа си в Mattermost"
-  },
-  {
-    "id": "api.templates.cloud_welcome_email.title",
-    "translation": "Вашата 14-дневна пробна версия на работното пространство {{.WorkSpace}} е готова за работа!"
   },
   {
     "id": "api.templates.cloud_welcome_email.subtitle_info",
@@ -7429,10 +7141,6 @@
   {
     "id": "api.command_share.could_not_uninvite.error",
     "translation": "Не може да се отзове `{{.RemoteId}}`: {{.Error}}"
-  },
-  {
-    "id": "api.command_share.check_channel_exist.error",
-    "translation": "Грешка при проверката за съществуване на споделен канал: {{.Error}}"
   },
   {
     "id": "api.command_share.channel_status_id",
@@ -7949,14 +7657,6 @@
   {
     "id": "api.templates.license_up_for_renewal_title",
     "translation": "Вашият абонамент за Mattermost подлежи на подновяване"
-  },
-  {
-    "id": "api.templates.license_up_for_renewal_subtitle",
-    "translation": "{{.UserName}}, абонаментът Ви изтича след {{.Days}} дни. Надяваме се, че ще се насладите на гъвкавото и сигурно екипно сътрудничество, което Mattermost позволява. Подновете абонамента си скоро, за да гарантирате, че екипът Ви ще продължи да се възползва от тези предимства."
-  },
-  {
-    "id": "api.templates.license_up_for_renewal_subject",
-    "translation": "Лицензът Ви подлежи на подновяване"
   },
   {
     "id": "api.server.license_up_for_renewal.error_sending_email",
