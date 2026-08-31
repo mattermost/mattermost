@@ -132,6 +132,7 @@ export type ClientConfig = {
     FeatureFlagPolicySimulation: string;
     FeatureFlagContentFlagging: string;
     FeatureFlagClassificationMarkings: string;
+    FeatureFlagChannelAttributes: string;
     FeatureFlagPropertyFieldRank: string;
     FeatureFlagManagedChannelCategories: string;
     FeatureFlagSessionAttributes: string;
@@ -406,7 +407,7 @@ export type ServiceSettings = {
     EnableAPITeamDeletion: boolean;
     EnableAPITriggerAdminNotifications: boolean;
     EnableAPIUserDeletion: boolean;
-    ExperimentalEnableHardenedMode: boolean;
+    EnableHardenedMode: boolean;
     ExperimentalStrictCSRFEnforcement: boolean;
     EnableEmailInvitations: boolean;
     DisableBotsWhenOwnerIsDeactivated: boolean;
