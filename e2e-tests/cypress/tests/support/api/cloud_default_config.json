@@ -78,7 +78,7 @@
         "EnableAPITeamDeletion": true,
         "EnableAPITriggerAdminNotifications": false,
         "EnableAPIUserDeletion": false,
-        "ExperimentalEnableHardenedMode": false,
+        "EnableHardenedMode": false,
         "ExperimentalStrictCSRFEnforcement": false,
         "EnableEmailInvitations": true,
         "DisableBotsWhenOwnerIsDeactivated": true,
@@ -383,7 +383,9 @@
             "EmailAddress": "",
             "SMTPServerTimeout": 1800,
             "CustomSMTPServerName": "",
-            "CustomSMTPPort": "25"
+            "CustomSMTPPort": "25",
+            "CustomHeaderName": "",
+            "CustomHeaderValue": ""
         }
     },
     "PluginSettings": {
@@ -420,7 +422,6 @@
     "GuestAccountsSettings": {
         "Enable": true,
         "HideTags": false,
-        "AllowEmailAccounts": true,
         "EnforceMultifactorAuthentication": false,
         "RestrictCreationToDomains": ""
     },

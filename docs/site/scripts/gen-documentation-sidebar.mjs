@@ -366,6 +366,7 @@ const DEPLOYMENT_HIDDEN = new Set([
   'server/docker-troubleshooting',                         // → troubleshooting
   'server/trouble_mysql',                                  // → troubleshooting
   'server/trouble-postgres',                               // → troubleshooting
+  'server/fips-migration',                                 // cross-linked only; sidebar home is the Migration hub (administration-guide/manage/admin/migration)
 ]);
 
 // ---------------------------------------------------------------------------

@@ -177,6 +177,8 @@ const SAML_SETTINGS_CANONICAL_ALGORITHM_C14N11 = 'Canonical1.1';
 //   - type: which define the widget type.
 //   - label (and label_default): which define the main text of the setting.
 //   - isDisabled: a function which receive current config, the state of the page and the license.
+//     Prefer depending on a parent bool setting (it.stateIsFalse('Parent.Key')) over repeating that
+//     parent's config/state checks; @mattermost/no-redundant-admin-config-deps enforces this.
 //   - isHidden: a function which receive current config, the state of the page and the license.
 //
 // Custom Widget (extends from Widget):
@@ -1159,6 +1161,24 @@ const AdminDefinition: AdminDefinitionType = {
                                 title: defineMessage({id: 'admin.service.insecureTlsProductionWarning.title', defaultMessage: 'Insecure outgoing connections are not recommended for production environments'}),
                                 text: defineMessage({id: 'admin.service.insecureTlsProductionWarning.text', defaultMessage: 'Mattermost will not verify TLS certificates for outbound connections, exposing them to man-in-the-middle attacks. Enable only for testing.'}),
                             },
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.WEB_SERVER)),
+                        },
+                        {
+                            type: 'bool',
+                            key: 'ServiceSettings.EnableHardenedMode',
+                            label: defineMessage({id: 'admin.service.hardenedModeTitle', defaultMessage: 'Enable Hardened Mode:'}),
+                            help_text: defineMessage({id: 'admin.service.hardenedModeDesc', defaultMessage: 'Enables a hardened mode for Mattermost that makes user experience trade-offs in the interest of security. See <link>documentation</link> to learn more.'}), // eslint-disable-line formatjs/enforce-placeholders -- placeholders provided
+                            help_text_values: {
+                                link: (msg: string) => (
+                                    <ExternalLink
+                                        location='admin_console'
+                                        href={DocLinks.ENABLE_HARDENED_MODE}
+                                    >
+                                        {msg}
+                                    </ExternalLink>
+                                ),
+                            },
+                            help_text_markdown: false,
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.WEB_SERVER)),
                         },
                         {
@@ -3085,6 +3105,14 @@ const AdminDefinition: AdminDefinitionType = {
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.USERS_AND_TEAMS)),
                         },
                         {
+                            type: 'number',
+                            key: 'TeamSettings.UserStatusAwayTimeout',
+                            label: defineMessage({id: 'admin.team.userStatusAwayTimeoutTitle', defaultMessage: 'User Status Away Timeout (seconds):'}),
+                            help_text: defineMessage({id: 'admin.team.userStatusAwayTimeoutDescription', defaultMessage: 'This setting defines the number of seconds of inactivity after which the user\'s status indicator changes to "Away".'}),
+                            placeholder: defineMessage({id: 'admin.team.userStatusAwayTimeoutExample', defaultMessage: 'E.g.: "300"'}),
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.USERS_AND_TEAMS)),
+                        },
+                        {
                             type: 'bool',
                             key: 'ServiceSettings.EnableCustomGroups',
                             label: defineMessage({id: 'admin.team.customUserGroupsTitle', defaultMessage: 'Enable Custom User Groups: '}),
@@ -3100,6 +3128,14 @@ const AdminDefinition: AdminDefinitionType = {
                             label: defineMessage({id: 'admin.team.refreshPostStatsRunTimeTitle', defaultMessage: 'User Statistics Update Time:'}),
                             help_text: defineMessage({id: 'admin.team.refreshPostStatsRunTimeDescription', defaultMessage: "Set the server time for updating the user post statistics, including each user's total post count and the timestamp of their most recent post. Must be a 24-hour time stamp in the form HH:MM based on the local time of the server."}),
                             placeholder: defineMessage({id: 'admin.team.refreshPostStatsRunTimeExample', defaultMessage: 'E.g.: "00:00"'}),
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.USERS_AND_TEAMS)),
+                        },
+                        {
+                            type: 'bool',
+                            key: 'TeamSettings.EnableUserDeactivation',
+                            label: defineMessage({id: 'admin.team.enableUserDeactivationTitle', defaultMessage: 'Enable Account Deactivation:'}),
+                            help_text: defineMessage({id: 'admin.team.enableUserDeactivationDescription', defaultMessage: 'When true, users may deactivate their own account from **Settings > Advanced**. If a user deactivates their own account, they will get an email notification confirming they were deactivated. When false, users may not deactivate their own account. Only available to users who sign in with an email address and password.'}),
+                            help_text_markdown: true,
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.USERS_AND_TEAMS)),
                         },
                         {
@@ -4585,7 +4621,6 @@ const AdminDefinition: AdminDefinitionType = {
                                 it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.SAML)),
                                 it.configIsFalse('GuestAccountsSettings', 'Enable'),
                                 it.stateIsFalse('SamlSettings.EnableSyncWithLdap'),
-                                it.stateIsFalse('SamlSettings.Enable'),
                             ),
                         },
                         {
@@ -4607,7 +4642,6 @@ const AdminDefinition: AdminDefinitionType = {
                             help_text_markdown: false,
                             isDisabled: it.any(
                                 it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.SAML)),
-                                it.stateIsFalse('SamlSettings.Enable'),
                                 it.stateIsFalse('SamlSettings.EnableSyncWithLdap'),
                             ),
                         },
@@ -4761,7 +4795,6 @@ const AdminDefinition: AdminDefinitionType = {
                             remove_action: removePrivateSamlCertificate,
                             isDisabled: it.any(
                                 it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.SAML)),
-                                it.stateIsFalse('SamlSettings.Enable'),
                                 it.stateIsFalse('SamlSettings.Encrypt'),
                             ),
                         },
@@ -4779,7 +4812,6 @@ const AdminDefinition: AdminDefinitionType = {
                             remove_action: removePublicSamlCertificate,
                             isDisabled: it.any(
                                 it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.SAML)),
-                                it.stateIsFalse('SamlSettings.Enable'),
                                 it.stateIsFalse('SamlSettings.Encrypt'),
                             ),
                         },
@@ -4801,7 +4833,6 @@ const AdminDefinition: AdminDefinitionType = {
                             label: defineMessage({id: 'admin.saml.signatureAlgorithmTitle', defaultMessage: 'Signature Algorithm'}),
                             isDisabled: it.any(
                                 it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.SAML)),
-                                it.stateIsFalse('SamlSettings.Encrypt'),
                                 it.stateIsFalse('SamlSettings.SignRequest'),
                             ),
                             options: [
@@ -4845,7 +4876,6 @@ const AdminDefinition: AdminDefinitionType = {
                             ],
                             isDisabled: it.any(
                                 it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.SAML)),
-                                it.stateIsFalse('SamlSettings.Encrypt'),
                                 it.stateIsFalse('SamlSettings.SignRequest'),
                             ),
                         },
@@ -4914,7 +4944,6 @@ const AdminDefinition: AdminDefinitionType = {
                             isDisabled: it.any(
                                 it.not(it.isSystemAdmin),
                                 it.stateIsFalse('SamlSettings.EnableAdminAttribute'),
-                                it.stateIsFalse('SamlSettings.Enable'),
                             ),
                         },
                         {
@@ -5544,7 +5573,7 @@ const AdminDefinition: AdminDefinitionType = {
                             type: 'text',
                             key: 'GitLabSettings.Id',
                             label: defineMessage({id: 'admin.openid.clientIdTitle', defaultMessage: 'Client ID:'}),
-                            help_text: defineMessage({id: 'admin.openid.clientIdDescription', defaultMessage: 'Obtaining the Client ID differs across providers. Please check you provider\'s documentation.'}),
+                            help_text: defineMessage({id: 'admin.openid.clientIdDescription', defaultMessage: 'Obtaining the Client ID differs across providers. Please check your provider\'s documentation.'}),
                             placeholder: defineMessage({id: 'admin.gitlab.clientIdExample', defaultMessage: 'E.g.: "jcuS8PuvcpGhpgHhlcpT1Mx42pnqMxQY"'}),
                             isHidden: it.not(it.stateEquals('openidType', Constants.GITLAB_SERVICE)),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.OPENID)),
@@ -5553,7 +5582,7 @@ const AdminDefinition: AdminDefinitionType = {
                             type: 'text',
                             key: 'GitLabSettings.Secret',
                             label: defineMessage({id: 'admin.openid.clientSecretTitle', defaultMessage: 'Client Secret:'}),
-                            help_text: defineMessage({id: 'admin.openid.clientSecretDescription', defaultMessage: 'Obtaining the Client Secret differs across providers. Please check you provider\'s documentation.'}),
+                            help_text: defineMessage({id: 'admin.openid.clientSecretDescription', defaultMessage: 'Obtaining the Client Secret differs across providers. Please check your provider\'s documentation.'}),
                             placeholder: defineMessage({id: 'admin.gitlab.clientSecretExample', defaultMessage: 'E.g.: "jcuS8PuvcpGhpgHhlcpT1Mx42pnqMxQY"'}),
                             isHidden: it.not(it.stateEquals('openidType', Constants.GITLAB_SERVICE)),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.OPENID)),
@@ -5572,7 +5601,7 @@ const AdminDefinition: AdminDefinitionType = {
                             type: 'text',
                             key: 'GoogleSettings.Id',
                             label: defineMessage({id: 'admin.openid.clientIdTitle', defaultMessage: 'Client ID:'}),
-                            help_text: defineMessage({id: 'admin.openid.clientIdDescription', defaultMessage: 'Obtaining the Client ID differs across providers. Please check you provider\'s documentation.'}),
+                            help_text: defineMessage({id: 'admin.openid.clientIdDescription', defaultMessage: 'Obtaining the Client ID differs across providers. Please check your provider\'s documentation.'}),
                             placeholder: defineMessage({id: 'admin.google.clientIdExample', defaultMessage: 'E.g.: "7602141235235-url0fhs1mayfasbmop5qlfns8dh4.apps.googleusercontent.com"'}),
                             isHidden: it.not(it.stateEquals('openidType', Constants.GOOGLE_SERVICE)),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.OPENID)),
@@ -5581,7 +5610,7 @@ const AdminDefinition: AdminDefinitionType = {
                             type: 'text',
                             key: 'GoogleSettings.Secret',
                             label: defineMessage({id: 'admin.openid.clientSecretTitle', defaultMessage: 'Client Secret:'}),
-                            help_text: defineMessage({id: 'admin.openid.clientSecretDescription', defaultMessage: 'Obtaining the Client Secret differs across providers. Please check you provider\'s documentation.'}),
+                            help_text: defineMessage({id: 'admin.openid.clientSecretDescription', defaultMessage: 'Obtaining the Client Secret differs across providers. Please check your provider\'s documentation.'}),
                             placeholder: defineMessage({id: 'admin.google.clientSecretExample', defaultMessage: 'E.g.: "H8sz0Az-dDs2p15-7QzD231"'}),
                             isHidden: it.not(it.stateEquals('openidType', Constants.GOOGLE_SERVICE)),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.OPENID)),
@@ -5614,7 +5643,7 @@ const AdminDefinition: AdminDefinitionType = {
                             type: 'text',
                             key: 'Office365Settings.Id',
                             label: defineMessage({id: 'admin.openid.clientIdTitle', defaultMessage: 'Client ID:'}),
-                            help_text: defineMessage({id: 'admin.openid.clientIdDescription', defaultMessage: 'Obtaining the Client ID differs across providers. Please check you provider\'s documentation.'}),
+                            help_text: defineMessage({id: 'admin.openid.clientIdDescription', defaultMessage: 'Obtaining the Client ID differs across providers. Please check your provider\'s documentation.'}),
                             placeholder: defineMessage({id: 'admin.office365.clientIdExample', defaultMessage: 'E.g.: "adf3sfa2-ag3f-sn4n-ids0-sh1hdax192qq"'}),
                             isHidden: it.not(it.stateEquals('openidType', Constants.OFFICE365_SERVICE)),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.OPENID)),
@@ -5623,7 +5652,7 @@ const AdminDefinition: AdminDefinitionType = {
                             type: 'text',
                             key: 'Office365Settings.Secret',
                             label: defineMessage({id: 'admin.openid.clientSecretTitle', defaultMessage: 'Client Secret:'}),
-                            help_text: defineMessage({id: 'admin.openid.clientSecretDescription', defaultMessage: 'Obtaining the Client Secret differs across providers. Please check you provider\'s documentation.'}),
+                            help_text: defineMessage({id: 'admin.openid.clientSecretDescription', defaultMessage: 'Obtaining the Client Secret differs across providers. Please check your provider\'s documentation.'}),
                             placeholder: defineMessage({id: 'admin.office365.clientSecretExample', defaultMessage: 'E.g.: "shAieM47sNBfgl20f8ci294"'}),
                             isHidden: it.not(it.stateEquals('openidType', Constants.OFFICE365_SERVICE)),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.OPENID)),
@@ -5661,7 +5690,7 @@ const AdminDefinition: AdminDefinitionType = {
                             type: 'text',
                             key: 'OpenIdSettings.Id',
                             label: defineMessage({id: 'admin.openid.clientIdTitle', defaultMessage: 'Client ID:'}),
-                            help_text: defineMessage({id: 'admin.openid.clientIdDescription', defaultMessage: 'Obtaining the Client ID differs across providers. Please check you provider\'s documentation.'}),
+                            help_text: defineMessage({id: 'admin.openid.clientIdDescription', defaultMessage: 'Obtaining the Client ID differs across providers. Please check your provider\'s documentation.'}),
                             placeholder: defineMessage({id: 'admin.openid.clientIdExample', defaultMessage: 'E.g.: "adf3sfa2-ag3f-sn4n-ids0-sh1hdax192qq"'}),
                             isHidden: it.any(it.not(it.stateEquals('openidType', Constants.OPENID_SERVICE)), it.licensedForCloudStarter),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.OPENID)),
@@ -5670,7 +5699,7 @@ const AdminDefinition: AdminDefinitionType = {
                             type: 'text',
                             key: 'OpenIdSettings.Secret',
                             label: defineMessage({id: 'admin.openid.clientSecretTitle', defaultMessage: 'Client Secret:'}),
-                            help_text: defineMessage({id: 'admin.openid.clientSecretDescription', defaultMessage: 'Obtaining the Client Secret differs across providers. Please check you provider\'s documentation.'}),
+                            help_text: defineMessage({id: 'admin.openid.clientSecretDescription', defaultMessage: 'Obtaining the Client Secret differs across providers. Please check your provider\'s documentation.'}),
                             placeholder: defineMessage({id: 'admin.openid.clientSecretExample', defaultMessage: 'E.g.: "H8sz0Az-dDs2p15-7QzD231"'}),
                             isHidden: it.any(it.not(it.stateEquals('openidType', Constants.OPENID_SERVICE)), it.licensedForCloudStarter),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.OPENID)),
@@ -6026,7 +6055,6 @@ const AdminDefinition: AdminDefinitionType = {
                             placeholder: defineMessage({id: 'admin.oauth.dcrRedirectURIAllowlistPlaceholder', defaultMessage: 'E.g.: https://*.example.com/**, https://app.example.com/callback'}),
                             isDisabled: it.any(
                                 it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.INTEGRATIONS.INTEGRATION_MANAGEMENT)),
-                                it.stateIsFalse('ServiceSettings.EnableOAuthServiceProvider'),
                                 it.stateIsFalse('ServiceSettings.EnableDynamicClientRegistration'),
                             ),
                             isHidden: it.licensedForFeature('Cloud'),
@@ -6652,14 +6680,6 @@ const AdminDefinition: AdminDefinitionType = {
                         },
                         {
                             type: 'bool',
-                            key: 'TeamSettings.EnableUserDeactivation',
-                            label: defineMessage({id: 'admin.experimental.enableUserDeactivation.title', defaultMessage: 'Enable Account Deactivation:'}),
-                            help_text: defineMessage({id: 'admin.experimental.enableUserDeactivation.desc', defaultMessage: 'When true, users may deactivate their own account from **Settings > Advanced**. If a user deactivates their own account, they will get an email notification confirming they were deactivated. When false, users may not deactivate their own account.'}),
-                            help_text_markdown: true,
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
-                        },
-                        {
-                            type: 'bool',
                             key: 'TeamSettings.ExperimentalEnableAutomaticReplies',
                             label: defineMessage({id: 'admin.experimental.experimentalEnableAutomaticReplies.title', defaultMessage: 'Enable Automatic Replies:'}),
                             help_text: defineMessage({id: 'admin.experimental.experimentalEnableAutomaticReplies.desc', defaultMessage: 'When true, users can enable Automatic Replies in **Settings > Notifications**. Users set a custom message that will be automatically sent in response to Direct Messages. When false, disables the Automatic Direct Message Replies feature and hides it from Settings.'}),
@@ -6671,24 +6691,6 @@ const AdminDefinition: AdminDefinitionType = {
                             key: 'ServiceSettings.ExperimentalEnableDefaultChannelLeaveJoinMessages',
                             label: defineMessage({id: 'admin.experimental.experimentalEnableDefaultChannelLeaveJoinMessages.title', defaultMessage: 'Enable Default Channel Leave/Join System Messages:'}),
                             help_text: defineMessage({id: 'admin.experimental.experimentalEnableDefaultChannelLeaveJoinMessages.desc', defaultMessage: 'This setting determines whether team leave/join system messages are posted in the default town-square channel.'}),
-                            help_text_markdown: false,
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
-                        },
-                        {
-                            type: 'bool',
-                            key: 'ServiceSettings.ExperimentalEnableHardenedMode',
-                            label: defineMessage({id: 'admin.experimental.experimentalEnableHardenedMode.title', defaultMessage: 'Enable Hardened Mode:'}),
-                            help_text: defineMessage({id: 'admin.experimental.experimentalEnableHardenedMode.desc', defaultMessage: 'Enables a hardened mode for Mattermost that makes user experience trade-offs in the interest of security. See <link>documentation</link> to learn more.'}), // eslint-disable-line formatjs/enforce-placeholders -- placeholders provided
-                            help_text_values: {
-                                link: (msg: string) => (
-                                    <ExternalLink
-                                        location='admin_console'
-                                        href={DocLinks.ENABLE_HARDENED_MODE}
-                                    >
-                                        {msg}
-                                    </ExternalLink>
-                                ),
-                            },
                             help_text_markdown: false,
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
                         },
@@ -6716,15 +6718,6 @@ const AdminDefinition: AdminDefinitionType = {
                             label: defineMessage({id: 'admin.experimental.useChannelInEmailNotifications.title', defaultMessage: 'Use Channel Name in Email Notifications:'}),
                             help_text: defineMessage({id: 'admin.experimental.useChannelInEmailNotifications.desc', defaultMessage: 'When true, channel and team name appears in email notification subject lines. Useful for servers using only one team. When false, only team name appears in email notification subject line.'}),
                             help_text_markdown: false,
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
-                        },
-                        {
-                            type: 'number',
-                            key: 'TeamSettings.UserStatusAwayTimeout',
-                            label: defineMessage({id: 'admin.experimental.userStatusAwayTimeout.title', defaultMessage: 'User Status Away Timeout:'}),
-                            help_text: defineMessage({id: 'admin.experimental.userStatusAwayTimeout.desc', defaultMessage: 'This setting defines the number of seconds after which the user\'s status indicator changes to "Away", when they are away from Mattermost.'}),
-                            help_text_markdown: false,
-                            placeholder: defineMessage({id: 'admin.experimental.userStatusAwayTimeout.example', defaultMessage: 'E.g.: "300"'}),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
                         },
                         {
