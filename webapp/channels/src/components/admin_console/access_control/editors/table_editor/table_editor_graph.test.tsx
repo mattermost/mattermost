@@ -3,16 +3,30 @@
 
 import React from 'react';
 
+import type {PropertyFieldOption} from '@mattermost/types/properties';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
 import {CHANNEL_ATTRIBUTES_OBJECT_TYPE} from '@mattermost/types/properties_user';
 
-import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
+import {pageAllPropertyFieldOptions} from 'components/property_fields/page_all_property_field_options';
+
+import {renderWithContext, screen, userEvent, waitFor, within} from 'tests/react_testing_utils';
 
 import TableEditor from './table_editor';
 
 jest.mock('mattermost-redux/actions/access_control', () => ({
     searchUsersForExpression: jest.fn(),
 }));
+
+// The widget calls the pager directly, so mocking the helper rather than
+// Client4 keeps Phase 1's dedupe/abort machinery out of these tests. spread
+// requireActual so the module's other exports survive for anything that reads
+// them.
+jest.mock('components/property_fields/page_all_property_field_options', () => ({
+    ...jest.requireActual('components/property_fields/page_all_property_field_options'),
+    pageAllPropertyFieldOptions: jest.fn(),
+}));
+
+const mockPageAll = jest.mocked(pageAllPropertyFieldOptions);
 
 // A graph attribute holds options drawn from a hierarchy. Both the user field
 // and the channel field below link to the same template field, which is what
@@ -305,5 +319,522 @@ describe('TableEditor - graph attributes', () => {
         await userEvent.click(screen.getByTestId('valueSelectorMenuButton'));
         expect(await screen.findByRole('menuitemcheckbox', {name: 'F-18 Program'})).toBeInTheDocument();
         expect(screen.queryByRole('menuitemradio', {name: /channelPrograms/})).not.toBeInTheDocument();
+    });
+});
+
+// Everything above runs with the flag OFF: renderWithContext builds its store
+// from {}, so entities.general.config is empty and useGetFeatureFlagValue
+// returns undefined. Those tests are the flat-picker regression suite and are
+// deliberately untouched. Everything below turns the flag on explicitly.
+const graphEnabledState = {
+    entities: {
+        general: {
+            config: {
+                FeatureFlagPropertyFieldGraph: 'true',
+            },
+        },
+    },
+};
+
+// Air Program ─ Fighter Jet Program ─ F-18 Program, matching the shape of the
+// Playwright fixture so Jest and e2e agree. `parents` holds option NAMES, which
+// is what the server sends and what indexOptions resolves against.
+const hierarchyOptions: PropertyFieldOption[] = [
+    {id: 'opt-air', name: 'Air Program', parents: [], create_at: 1},
+    {id: 'opt-jet', name: 'Fighter Jet Program', parents: ['Air Program'], create_at: 2},
+    {id: 'opt-f18', name: 'F-18 Program', parents: ['Fighter Jet Program'], create_at: 3},
+];
+
+// Regimes A/B: 1..1000 options, so the payload inlines the complete list and a
+// saved row can render checked before the menu is ever opened.
+const programsHydrated = makeField({
+    id: 'user-programs',
+    name: 'programs',
+    type: 'graph',
+    linked_field_id: graphTemplateId,
+    attrs: {
+        sort_order: 0,
+        visibility: 'when_set',
+        value_type: '',
+        options: hierarchyOptions,
+    },
+});
+
+// Regime C: above PropertyFieldMaxHydratedOptions the payload carries no option
+// list at all, only the markers.
+const programsOmitted = makeField({
+    id: 'user-programs',
+    name: 'programs',
+    type: 'graph',
+    linked_field_id: graphTemplateId,
+    attrs: {
+        sort_order: 0,
+        visibility: 'when_set',
+        value_type: '',
+        options_omitted: true,
+        options_count: 1500,
+    } as UserPropertyField['attrs'],
+});
+
+describe('TableEditor - graph attributes with the hierarchy picker', () => {
+    const actions = {getVisualAST: jest.fn()};
+    const onChange = jest.fn();
+
+    const propsFor = (programs: UserPropertyField) => ({
+        value: '',
+        onChange,
+        userAttributes: [programs, channelPrograms, userDepartment],
+        enableUserManagedAttributes: true,
+        onParseError: jest.fn(),
+        actions,
+    });
+
+    beforeEach(() => {
+        actions.getVisualAST.mockClear();
+        onChange.mockClear();
+        mockPageAll.mockReset();
+
+        // A fetch no test queued is a bug in the test or in the gate, and it has
+        // to fail loudly here. Left unimplemented the mock resolves to
+        // undefined, and `.then` on undefined throws a TypeError from inside a
+        // React effect, which reads as an unrelated render crash.
+        mockPageAll.mockImplementation(() => {
+            throw new Error('pageAllPropertyFieldOptions was called by a test that queued no response');
+        });
+    });
+
+    const addRow = async () => {
+        await userEvent.click(await screen.findByRole('button', {name: /add attribute/i}));
+        await waitFor(() => {
+            expect(screen.getByTestId('valueSelectorMenuButton')).toBeInTheDocument();
+        });
+    };
+
+    const openValues = async () => {
+        await userEvent.click(screen.getByTestId('valueSelectorMenuButton'));
+    };
+
+    const treeRow = (name: string) => screen.findByRole('menuitemcheckbox', {name});
+
+    // The checkbox is the leadingElement span carrying data-hit="select". It is
+    // aria-hidden, so it is not reachable by role — locate the row, then the
+    // checkbox inside it.
+    const clickCheckbox = async (name: string) => {
+        const row = await treeRow(name);
+        await userEvent.click(row.querySelector('[data-hit="select"]')!);
+    };
+
+    // A click on the label span, which is the row body: on a branch that
+    // expands, on a leaf it selects.
+    const clickBody = async (name: string) => {
+        const row = await treeRow(name);
+        await userEvent.click(within(row).getByText(name));
+    };
+
+    const searchFor = async (text: string) => {
+        await userEvent.type(screen.getByRole('textbox', {name: 'Search values'}), text);
+    };
+
+    test('renders the hierarchy picker instead of the flat option list', async () => {
+        // The field inlines all three options, so a broken gate falling back to
+        // the flat picker would render all three at once. The tree renders only
+        // the root until it is expanded.
+        actions.getVisualAST.mockResolvedValue({data: {conditions: []}});
+        mockPageAll.mockResolvedValue(hierarchyOptions);
+
+        renderWithContext(<TableEditor {...propsFor(programsHydrated)}/>, graphEnabledState);
+        await addRow();
+        await openValues();
+
+        expect((await treeRow('Air Program')).id).toMatch(/^value-selector-menu-0-row-/);
+        expect(screen.queryByRole('menuitemcheckbox', {name: 'Fighter Jet Program'})).not.toBeInTheDocument();
+        expect(screen.queryByRole('menuitemcheckbox', {name: 'F-18 Program'})).not.toBeInTheDocument();
+    });
+
+    test('preserves the value selector test id on the closed control', async () => {
+        actions.getVisualAST.mockResolvedValue({data: {conditions: []}});
+
+        renderWithContext(<TableEditor {...propsFor(programsHydrated)}/>, graphEnabledState);
+        await addRow();
+
+        expect(screen.getByTestId('valueSelectorMenuButton')).toBeInTheDocument();
+        expect(mockPageAll).not.toHaveBeenCalled();
+    });
+
+    test('gives the open menu an id the policy e2e selector matches', async () => {
+        actions.getVisualAST.mockResolvedValue({data: {conditions: []}});
+        mockPageAll.mockResolvedValue(hierarchyOptions);
+
+        renderWithContext(<TableEditor {...propsFor(programsHydrated)}/>, graphEnabledState);
+        await addRow();
+        await openValues();
+        await treeRow('Air Program');
+
+        // The Playwright policy specs locate the popup by this prefix.
+        const popup = document.querySelector('[id^="value-selector-menu"]');
+        expect(popup).not.toBeNull();
+        expect(popup!.id).toBe('value-selector-menu-0');
+    });
+
+    test('emits option names, not ids, when a value is checked', async () => {
+        actions.getVisualAST.mockResolvedValue({data: {conditions: []}});
+        mockPageAll.mockResolvedValue(hierarchyOptions);
+
+        renderWithContext(<TableEditor {...propsFor(programsOmitted)}/>, graphEnabledState);
+        await addRow();
+        await openValues();
+
+        await clickBody('Air Program');
+        await clickBody('Fighter Jet Program');
+        await clickCheckbox('F-18 Program');
+
+        expect(onChange).toHaveBeenLastCalledWith('user.attributes.programs.coversAll(["F-18 Program"])');
+    });
+
+    test('selects a leaf when its row body is clicked', async () => {
+        actions.getVisualAST.mockResolvedValue({data: {conditions: []}});
+        mockPageAll.mockResolvedValue(hierarchyOptions);
+
+        renderWithContext(<TableEditor {...propsFor(programsOmitted)}/>, graphEnabledState);
+        await addRow();
+        await openValues();
+
+        await clickBody('Air Program');
+        await clickBody('Fighter Jet Program');
+        await clickBody('F-18 Program');
+
+        expect(onChange).toHaveBeenLastCalledWith('user.attributes.programs.coversAll(["F-18 Program"])');
+    });
+
+    test('expanding a branch by its row body does not change the selection', async () => {
+        actions.getVisualAST.mockResolvedValue({data: {conditions: []}});
+        mockPageAll.mockResolvedValue(hierarchyOptions);
+
+        renderWithContext(<TableEditor {...propsFor(programsOmitted)}/>, graphEnabledState);
+        await addRow();
+        await openValues();
+        await treeRow('Air Program');
+
+        onChange.mockClear();
+        await clickBody('Air Program');
+
+        expect(await treeRow('Fighter Jet Program')).toBeInTheDocument();
+        expect(onChange).not.toHaveBeenCalled();
+    });
+
+    test('selects a branch when its checkbox is clicked', async () => {
+        actions.getVisualAST.mockResolvedValue({data: {conditions: []}});
+        mockPageAll.mockResolvedValue(hierarchyOptions);
+
+        renderWithContext(<TableEditor {...propsFor(programsOmitted)}/>, graphEnabledState);
+        await addRow();
+        await openValues();
+        await clickCheckbox('Air Program');
+
+        expect(onChange).toHaveBeenLastCalledWith('user.attributes.programs.coversAll(["Air Program"])');
+        expect(screen.queryByRole('menuitemcheckbox', {name: 'Fighter Jet Program'})).not.toBeInTheDocument();
+    });
+
+    test('finds a deep value through search without expanding', async () => {
+        // The Playwright fix rehearsed: a non-empty query flattens the tree to
+        // label matches, so a value three levels down needs no expansion.
+        actions.getVisualAST.mockResolvedValue({data: {conditions: []}});
+        mockPageAll.mockResolvedValue(hierarchyOptions);
+
+        renderWithContext(<TableEditor {...propsFor(programsOmitted)}/>, graphEnabledState);
+        await addRow();
+        await openValues();
+        await treeRow('Air Program');
+
+        await searchFor('F-18');
+        await clickBody('F-18 Program');
+
+        expect(onChange).toHaveBeenLastCalledWith('user.attributes.programs.coversAll(["F-18 Program"])');
+    });
+
+    test('omits the row when the last value is unchecked', async () => {
+        actions.getVisualAST.mockResolvedValue({
+            data: {
+                conditions: [
+                    {
+                        attribute: 'user.attributes.programs',
+                        operator: 'coversAll',
+                        value: ['F-18 Program'],
+                        value_type: 0,
+                        attribute_type: 'graph',
+                    },
+                ],
+            },
+        });
+        mockPageAll.mockResolvedValue(hierarchyOptions);
+
+        renderWithContext(
+            <TableEditor
+                {...propsFor(programsHydrated)}
+                value='user.attributes.programs.coversAll(["F-18 Program"])'
+            />,
+            graphEnabledState,
+        );
+
+        await waitFor(() => {
+            expect(screen.getByTestId('valueSelectorMenuButton')).toBeInTheDocument();
+        });
+        await openValues();
+
+        // Its ancestors open on the way in, because a selected value has to be
+        // visible when the menu is opened.
+        await clickCheckbox('F-18 Program');
+
+        expect(onChange).toHaveBeenLastCalledWith('');
+    });
+
+    test('renders a saved row checked from the inlined option payload without opening', async () => {
+        actions.getVisualAST.mockResolvedValue({
+            data: {
+                conditions: [
+                    {
+                        attribute: 'user.attributes.programs',
+                        operator: 'withinAny',
+                        value: ['Air Program'],
+                        value_type: 0,
+                        attribute_type: 'graph',
+                    },
+                ],
+            },
+        });
+
+        renderWithContext(
+            <TableEditor
+                {...propsFor(programsHydrated)}
+                value='user.attributes.programs.withinAny(["Air Program"])'
+            />,
+            graphEnabledState,
+        );
+
+        await waitFor(() => {
+            expect(screen.getByTestId('valueSelectorMenuButton')).toBeInTheDocument();
+        });
+        expect(screen.getByTestId('valueSelectorMenuButton')).toHaveTextContent('Air Program');
+        expect(mockPageAll).not.toHaveBeenCalled();
+    });
+
+    test('checks a saved row from the fetched options when the payload omitted them', async () => {
+        actions.getVisualAST.mockResolvedValue({
+            data: {
+                conditions: [
+                    {
+                        attribute: 'user.attributes.programs',
+                        operator: 'coversAll',
+                        value: ['F-18 Program'],
+                        value_type: 0,
+                        attribute_type: 'graph',
+                    },
+                ],
+            },
+        });
+        mockPageAll.mockResolvedValue(hierarchyOptions);
+
+        renderWithContext(
+            <TableEditor
+                {...propsFor(programsOmitted)}
+                value='user.attributes.programs.coversAll(["F-18 Program"])'
+            />,
+            graphEnabledState,
+        );
+
+        await waitFor(() => {
+            expect(screen.getByTestId('valueSelectorMenuButton')).toBeInTheDocument();
+        });
+        await openValues();
+        await treeRow('Air Program');
+        await searchFor('F-18');
+
+        // The name stood in as its own id until the walk landed; the adapter
+        // re-hydrated it to opt-f18 off onOptionsLoaded.
+        expect(await treeRow('F-18 Program')).toHaveAttribute('aria-checked', 'true');
+    });
+
+    test('keeps the CHANNEL ATTRIBUTES block below the tree', async () => {
+        actions.getVisualAST.mockResolvedValue({data: {conditions: []}});
+        mockPageAll.mockResolvedValue(hierarchyOptions);
+
+        renderWithContext(<TableEditor {...propsFor(programsHydrated)}/>, graphEnabledState);
+        await addRow();
+        await openValues();
+
+        expect(await treeRow('Air Program')).toBeInTheDocument();
+        expect(await screen.findByRole('menuitemradio', {name: /channelPrograms/})).toBeInTheDocument();
+    });
+
+    test('switches to a channel target from inside the tree menu', async () => {
+        actions.getVisualAST.mockResolvedValue({data: {conditions: []}});
+        mockPageAll.mockResolvedValue(hierarchyOptions);
+
+        renderWithContext(<TableEditor {...propsFor(programsHydrated)}/>, graphEnabledState);
+        await addRow();
+        await openValues();
+        await userEvent.click(await screen.findByRole('menuitemradio', {name: /channelPrograms/}));
+
+        expect(onChange).toHaveBeenLastCalledWith('user.attributes.programs.coversAll(resource.attributes.channelPrograms)');
+    });
+
+    test('returns to the flat control once the row targets a channel attribute', async () => {
+        actions.getVisualAST.mockResolvedValue({
+            data: {
+                conditions: [
+                    {
+                        attribute: 'user.attributes.programs',
+                        operator: 'coversAll',
+                        value: 'resource.attributes.channelPrograms',
+                        value_type: 1,
+                        attribute_type: 'graph',
+                    },
+                ],
+            },
+        });
+
+        renderWithContext(
+            <TableEditor
+                {...propsFor(programsHydrated)}
+                value='user.attributes.programs.coversAll(resource.attributes.channelPrograms)'
+            />,
+            graphEnabledState,
+        );
+
+        await waitFor(() => {
+            expect(screen.getByTestId('valueSelectorMenuButton')).toBeInTheDocument();
+        });
+        expect(screen.getByTestId('valueSelectorMenuButton')).toHaveTextContent(/Channel:\s*channelPrograms/);
+
+        await openValues();
+
+        // Both controls label their rows with the option name, so the row id is
+        // what tells them apart: the flat picker emits value-option-<id>, the
+        // tree emits <menuId>-row-<occKey>.
+        expect(await screen.findByRole('menuitemcheckbox', {name: 'Air Program'})).toHaveAttribute('id', 'value-option-opt-air');
+        expect(document.querySelector('[id^="value-selector-menu-0-row-"]')).toBeNull();
+        expect(mockPageAll).not.toHaveBeenCalled();
+    });
+
+    test('withdraws the channel target under a membership operator but keeps the tree', async () => {
+        actions.getVisualAST.mockResolvedValue({data: {conditions: []}});
+        mockPageAll.mockResolvedValue(hierarchyOptions);
+
+        renderWithContext(<TableEditor {...propsFor(programsHydrated)}/>, graphEnabledState);
+        await addRow();
+
+        await userEvent.click(screen.getByTestId('operatorSelectorMenuButton'));
+        await userEvent.click(await screen.findByRole('menuitemradio', {name: 'has all of'}));
+
+        await openValues();
+        expect(await treeRow('Air Program')).toBeInTheDocument();
+        expect(screen.queryByRole('menuitemradio', {name: /channelPrograms/})).not.toBeInTheDocument();
+    });
+
+    test('emits an in-chain under a membership operator', async () => {
+        actions.getVisualAST.mockResolvedValue({data: {conditions: []}});
+        mockPageAll.mockResolvedValue(hierarchyOptions);
+
+        renderWithContext(<TableEditor {...propsFor(programsHydrated)}/>, graphEnabledState);
+        await addRow();
+
+        await userEvent.click(screen.getByTestId('operatorSelectorMenuButton'));
+        await userEvent.click(await screen.findByRole('menuitemradio', {name: 'has all of'}));
+
+        await openValues();
+        await treeRow('Air Program');
+        await searchFor('F-18');
+        await clickBody('F-18 Program');
+
+        expect(onChange).toHaveBeenLastCalledWith('"F-18 Program" in user.attributes.programs');
+    });
+
+    test('offers no create item in the tree menu', async () => {
+        actions.getVisualAST.mockResolvedValue({data: {conditions: []}});
+        mockPageAll.mockResolvedValue(hierarchyOptions);
+
+        renderWithContext(<TableEditor {...propsFor(programsOmitted)}/>, graphEnabledState);
+        await addRow();
+        await openValues();
+        await treeRow('Air Program');
+
+        await searchFor('Skunkworks');
+
+        expect(screen.queryByText(/Create "Skunkworks"/)).not.toBeInTheDocument();
+        expect(await screen.findByText('No values match.')).toBeInTheDocument();
+    });
+
+    test('does not fetch for a non-graph attribute with the flag on', async () => {
+        actions.getVisualAST.mockResolvedValue({data: {conditions: []}});
+
+        renderWithContext(<TableEditor {...propsFor(programsHydrated)}/>, graphEnabledState);
+        await addRow();
+
+        await userEvent.click(screen.getByTestId('attributeSelectorMenuButton'));
+        await userEvent.click(await screen.findByRole('menuitemradio', {name: /department/}));
+
+        // A text attribute with no comparable channel field keeps its bare input.
+        expect(screen.getByRole('textbox')).toBeInTheDocument();
+        expect(mockPageAll).not.toHaveBeenCalled();
+    });
+
+    test('keeps the flat option list when the flag is off', async () => {
+        // The gate from the other side: without this, a gate that never renders
+        // the tree would still pass every test above if the flag state were wrong.
+        actions.getVisualAST.mockResolvedValue({data: {conditions: []}});
+
+        renderWithContext(<TableEditor {...propsFor(programsHydrated)}/>, {});
+        await addRow();
+        await openValues();
+
+        // Flat: every option is present at once, with nothing to expand.
+        expect(await screen.findByRole('menuitemcheckbox', {name: 'F-18 Program'})).toBeInTheDocument();
+        expect(screen.getByRole('menuitemcheckbox', {name: 'Fighter Jet Program'})).toBeInTheDocument();
+        expect(mockPageAll).not.toHaveBeenCalled();
+    });
+
+    test('shows the masked chip on a masked graph row', async () => {
+        actions.getVisualAST.mockResolvedValue({
+            data: {
+                conditions: [
+                    {
+                        attribute: 'user.attributes.programs',
+                        operator: 'coversAll',
+                        value: [],
+                        value_type: 0,
+                        attribute_type: 'graph',
+                        has_masked_values: true,
+                    },
+                ],
+            },
+        });
+
+        renderWithContext(
+            <TableEditor
+                {...propsFor(programsHydrated)}
+                value='user.attributes.programs.coversAll([])'
+            />,
+            graphEnabledState,
+        );
+
+        await waitFor(() => {
+            expect(screen.getByTestId('valueSelectorMenuButton')).toBeInTheDocument();
+        });
+
+        expect(screen.getByLabelText('Hidden values that you do not have permission to view')).toBeInTheDocument();
+        expect(screen.getByTestId('valueSelectorMenuButton')).toBeDisabled();
+        expect(mockPageAll).not.toHaveBeenCalled();
+    });
+
+    test('shows the placeholder on an empty unmasked graph row', async () => {
+        // Guards the conditional trailingChips: an unconditional MaskedChip
+        // would suppress the widget's placeholder on every empty graph row.
+        actions.getVisualAST.mockResolvedValue({data: {conditions: []}});
+
+        renderWithContext(<TableEditor {...propsFor(programsHydrated)}/>, graphEnabledState);
+        await addRow();
+
+        expect(screen.getByTestId('valueSelectorMenuButton')).toHaveTextContent('Select values...');
+        expect(screen.queryByLabelText('Hidden values that you do not have permission to view')).not.toBeInTheDocument();
     });
 });

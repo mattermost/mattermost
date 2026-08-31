@@ -242,4 +242,140 @@ describe('ValueSelectorMenu — consolidated value/channel-attribute dropdown', 
             expect(screen.queryByText('Values')).not.toBeInTheDocument();
         });
     });
+
+    // The flag is off in all of these -- renderWithContext builds its store from
+    // {}, so entities.general.config is empty and useGetFeatureFlagValue returns
+    // undefined. That is the point: these pin the flat picker's behaviour on a
+    // graph attribute, which is the path where create-value was being offered.
+    describe('graph attribute — create-value is never offered', () => {
+        function graphField(options?: PropertyFieldOption[]): UserPropertyField {
+            return {
+                id: 'user-programs',
+                name: 'programs',
+                type: 'graph',
+                group_id: 'custom_profile_attributes',
+                object_type: 'user',
+                target_id: '',
+                target_type: '',
+                attrs: {
+                    sort_order: 0,
+                    visibility: 'always',
+                    value_type: '',
+
+                    // No options and the omitted markers is the >1000 regime, and
+                    // it is the one that turned create on: an absent list is
+                    // indistinguishable from an option-less attribute.
+                    ...(options ? {options} : {options_omitted: true, options_count: 1500}),
+                },
+                create_at: 0,
+                update_at: 0,
+                delete_at: 0,
+                created_by: '',
+                updated_by: '',
+            } as unknown as UserPropertyField;
+        }
+
+        const graphRow = (overrides: Partial<TableRow> = {}) => baseRow({
+            attribute: 'programs',
+            operator: 'coversAll',
+            attribute_type: 'graph',
+            ...overrides,
+        });
+
+        function renderGraph(field: UserPropertyField, row: TableRow, extra: Partial<React.ComponentProps<typeof ValueSelectorMenu>> = {}) {
+            renderWithContext(
+                <ValueSelectorMenu
+                    row={row}
+                    disabled={false}
+                    updateValues={updateValues}
+                    options={field.attrs?.options ?? []}
+                    field={field}
+                    {...extra}
+                />,
+            );
+        }
+
+        function openAndFilter(text: string) {
+            fireEvent.click(screen.getByTestId('valueSelectorMenuButton'));
+            const input = screen.getByRole('textbox');
+            fireEvent.change(input, {target: {value: text}});
+            return input;
+        }
+
+        test('offers no create item for an omitted graph with the flag off', () => {
+            renderGraph(graphField(), graphRow());
+            openAndFilter('Skunkworks');
+
+            expect(screen.queryByText(/Create "Skunkworks"/)).not.toBeInTheDocument();
+        });
+
+        test('shows the search placeholder, not the create placeholder, for an omitted graph', () => {
+            renderGraph(graphField(), graphRow());
+            fireEvent.click(screen.getByTestId('valueSelectorMenuButton'));
+
+            // By accessible name rather than the placeholder attribute: Input
+            // moves the placeholder text into its legend once focused and drops
+            // the attribute, but keeps it on aria-label either way.
+            expect(screen.getByRole('textbox', {name: 'Search values...'})).toBeInTheDocument();
+            expect(screen.queryByRole('textbox', {name: /create/i})).not.toBeInTheDocument();
+        });
+
+        test('does not create a value on Enter in the filter for an omitted graph', () => {
+            renderGraph(graphField(), graphRow());
+            const input = openAndFilter('Skunkworks');
+
+            fireEvent.keyDown(input, {key: 'Enter'});
+
+            expect(updateValues).not.toHaveBeenCalled();
+        });
+
+        test('shows the select placeholder on the closed button for an omitted graph', () => {
+            renderGraph(graphField(), graphRow({values: []}));
+
+            const button = screen.getByTestId('valueSelectorMenuButton');
+            expect(button).toHaveTextContent('Select values...');
+            expect(button).not.toHaveTextContent('Type to create value');
+        });
+
+        test('still offers no create item for a hydrated graph', () => {
+            renderGraph(graphField([{id: 'opt-air', name: 'Air Program'} as PropertyFieldOption]), graphRow());
+
+            fireEvent.click(screen.getByTestId('valueSelectorMenuButton'));
+            expect(screen.getByText('Air Program')).toBeInTheDocument();
+
+            fireEvent.change(screen.getByRole('textbox'), {target: {value: 'Skunkworks'}});
+            expect(screen.queryByText(/Create "Skunkworks"/)).not.toBeInTheDocument();
+        });
+
+        test('still offers create for a non-graph attribute with no options', () => {
+            // The guard rail: without this, forbidCreate could be passed
+            // unconditionally and every test above would still pass.
+            renderWithContext(
+                <ValueSelectorMenu
+                    row={baseRow({operator: 'has any of', attribute_type: 'multiselect'})}
+                    disabled={false}
+                    updateValues={updateValues}
+                    options={[]}
+                />,
+            );
+            openAndFilter('Skunkworks');
+
+            expect(screen.getByText(/Create "Skunkworks"/)).toBeInTheDocument();
+        });
+
+        test('offers no create item for a graph row in channel-target mode', () => {
+            const programs = channelField('channelPrograms', 'graph', 'Channel programs');
+
+            renderGraph(
+                graphField(),
+                graphRow({targetAttribute: 'channelPrograms'}),
+                {channelFields: [programs], onSelectTarget},
+            );
+
+            expect(screen.getByTestId('valueSelectorMenuButton')).toHaveTextContent('Channel programs');
+
+            openAndFilter('Skunkworks');
+            expect(screen.queryByText(/Create "Skunkworks"/)).not.toBeInTheDocument();
+        });
+    });
 });

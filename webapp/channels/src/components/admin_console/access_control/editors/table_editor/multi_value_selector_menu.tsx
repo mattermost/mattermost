@@ -27,6 +27,7 @@ const MultiValueSelector = ({
     channelFields = [],
     targetAttribute,
     onSelectTarget,
+    forbidCreate = false,
 }: {
     values: string[];
     disabled: boolean;
@@ -38,6 +39,13 @@ const MultiValueSelector = ({
     channelFields?: UserPropertyField[];
     targetAttribute?: string;
     onSelectTarget?: (name: string) => void;
+
+    // Suppresses every create-value affordance regardless of the option list.
+    // A graph attribute's options come from a hierarchy the admin cannot extend
+    // from a policy, and above PropertyFieldMaxHydratedOptions the field reads
+    // back with no inlined list at all — which is indistinguishable from an
+    // option-less attribute and is what would otherwise turn create on below.
+    forbidCreate?: boolean;
 }) => {
     const {formatMessage} = useIntl();
     const [filter, setFilter] = useState('');
@@ -46,7 +54,7 @@ const MultiValueSelector = ({
     const hasChannelFields = channelFields.length > 0;
     const inTargetMode = Boolean(targetAttribute);
     const selectedTarget = inTargetMode ? channelFields.find((cf) => cf.name === targetAttribute) : undefined;
-    const actualAllowCreateForMenu = hasOptions ? allowCreateValue : true;
+    const actualAllowCreateForMenu = !forbidCreate && (hasOptions ? allowCreateValue : true);
 
     // Filter logic for options
     const onFilterChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {

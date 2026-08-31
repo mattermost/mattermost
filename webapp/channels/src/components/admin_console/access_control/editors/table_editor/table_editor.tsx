@@ -815,6 +815,8 @@ function TableEditor({
                                                 placeholder={valuePlaceholder ? formatMessage(valuePlaceholder) : undefined}
                                                 channelFields={supportsTarget ? targets : undefined}
                                                 onSelectTarget={(name: string) => updateRowTarget(index, name)}
+                                                field={field}
+                                                rowIndex={index}
                                             />
                                             {youngerThanInvalid && (
                                                 <div className='table-editor__value-error'>
