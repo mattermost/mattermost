@@ -266,12 +266,16 @@ describe('AssignmentGraphPicker', () => {
         expect(trigger()).toBeDisabled();
     });
 
-    test('P11: does not report at all when the walk names none of the held ids', async () => {
-        // The empty-report skip. Without it, a field whose held ids resolve to
-        // nothing pushes an empty map -- and so a setState and a re-render --
-        // on mount and again on every menu open. It cannot cause a refetch,
-        // since handleOptionsLoaded's identity is stable, so the cost is a
-        // wasted render rather than a walk.
+    test('P11: reports an empty map when the walk names none of the held ids', async () => {
+        // The empty report is the signal that a read succeeded, and it is the
+        // only one a host gets: the widget tells callers about success and says
+        // nothing about failure, so "was I called at all" is the only way a
+        // change summary can tell "nothing is known about this id" from "the
+        // read worked and this id was not in it". Those look identical in the
+        // map and must not look identical on screen.
+        //
+        // This replaces an earlier skip that suppressed the empty call to save a
+        // render. The render is the price of the distinction.
         mockPageAll.mockResolvedValue(REGIME_1);
         const onNamesResolved = jest.fn();
         renderPicker({
@@ -280,9 +284,30 @@ describe('AssignmentGraphPicker', () => {
             onNamesResolved,
         });
 
-        await waitFor(() => expect(mockPageAll).toHaveBeenCalledTimes(1));
-        await openMenu();
-        await screen.findByRole('menuitemcheckbox', {name: 'Option 1'});
+        await waitFor(() => expect(onNamesResolved).toHaveBeenCalledTimes(1));
+        expect(onNamesResolved).toHaveBeenCalledWith({});
+        expect(mockPageAll).toHaveBeenCalledTimes(1);
+    });
+
+    test('P12: does not report again when a selection change still names nothing', async () => {
+        // The half of the skip that survives. Once the read has been signalled,
+        // an empty report per checkbox click carries no new information, so the
+        // guard stays on the selection-change path: a wasted setState per click
+        // was the reason the skip existed.
+        mockPageAll.mockResolvedValue(REGIME_1);
+        const onNamesResolved = jest.fn();
+        renderPicker({
+            field: fieldOf({options_omitted: true}),
+            ids: ['ghost-1', 'ghost-2'],
+            onNamesResolved,
+        });
+
+        await waitFor(() => expect(onNamesResolved).toHaveBeenCalledTimes(1));
+        onNamesResolved.mockClear();
+
+        // Dropping one stale id leaves a selection that still names nothing, so
+        // there is nothing to say and nothing is said.
+        await userEvent.click(screen.getByRole('button', {name: 'Remove ghost-1'}));
 
         expect(onNamesResolved).not.toHaveBeenCalled();
     });

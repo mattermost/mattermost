@@ -973,18 +973,16 @@ describe('SystemUserDetail', () => {
                 expect(screen.getByRole('button', {name: 'department'})).toBe(trigger());
             });
 
-            test('G19: prints ids in the confirm modal for a field whose walk failed', async () => {
-                // Pins today's behaviour rather than endorsing it. resolveOptionNames
-                // ends in `?? id`, so with no successful walk the change summary
-                // lists raw ids. That was accepted while the chips beside it showed
-                // the same ids, but Phase 3's 4831b76c3b now renders a failed read as
-                // "Value unavailable", leaving this modal the only surface that
-                // prints a raw id on THIS path. Asserted as a divergence, and
-                // awaiting a decision: when the `?? id` tail changes, this test
-                // should fail loudly.
+            test('G19: says "Value unavailable" on both surfaces when the walk failed', async () => {
+                // The convergence, asserted from both ends. A failed read knows
+                // nothing about these ids, so neither the chip nor the change
+                // summary may print one, and both take their wording from the
+                // same message descriptor -- there is no second copy to drift.
                 //
-                // The tail's other caller is pinned by G20, and it is NOT
-                // divergent. Anything that changes the tail has to satisfy both.
+                // Both halves are asserted so this fails if either surface
+                // regresses: the chips going back to ids, or the summary doing so.
+                // G20 pins the OTHER path into the same fallback, where showing
+                // the id is correct, so a blanket rule cannot satisfy both.
                 mockPageAll.mockRejectedValue(new Error('boom'));
                 renderDetail(buildGraphField({options_omitted: true}), ['opt-1', 'opt-2']);
 
@@ -1000,15 +998,17 @@ describe('SystemUserDetail', () => {
 
                 // Checked before Save: the confirm modal aria-hides the page
                 // behind it, so the chips stop being reachable by role once it
-                // is open. The surviving chip is on screen and does not name its
-                // id -- the other half of the divergence.
+                // is open.
                 expect(screen.getAllByRole('button', {name: 'Remove value'})).toHaveLength(1);
+                expect(trigger()).toHaveTextContent('Value unavailable');
                 expect(trigger()).not.toHaveTextContent('opt-2');
 
                 await userEvent.click(screen.getByRole('button', {name: 'Save'}));
 
                 const changesList = await screen.findByTestId('changesList');
-                expect(changesList).toHaveTextContent('opt-1');
+                expect(changesList).toHaveTextContent('Value unavailable');
+                expect(changesList).not.toHaveTextContent('opt-1');
+                expect(changesList).not.toHaveTextContent('opt-2');
             });
 
             test('G20: prints the id on both surfaces for a stale id the walk succeeded without', async () => {
@@ -1044,6 +1044,32 @@ describe('SystemUserDetail', () => {
 
                 const changesList = await screen.findByTestId('changesList');
                 expect(changesList).toHaveTextContent('ghost-1');
+                expect(changesList).not.toHaveTextContent('Value unavailable');
+            });
+
+            test('G21: says the ids when a successful walk named none of them', async () => {
+                // The state that makes the picker's empty report load-bearing.
+                // Every held id here is stale, so a successful read names none of
+                // them and the name map arrives empty. That is G20's case, not
+                // G19's -- the read worked -- so both surfaces must show ids.
+                //
+                // Were the picker to skip reporting an empty map, this field
+                // would be indistinguishable from the failed read in G19 and the
+                // summary would say "Value unavailable" beside chips reading
+                // `ghost-1`. This test is what fails if that skip comes back.
+                mockPageAll.mockResolvedValue(REGIME_1);
+                renderDetail(buildGraphField({options_omitted: true}), ['ghost-1', 'ghost-2']);
+
+                await waitForLoadingToFinish();
+                await waitFor(() => expect(mockPageAll).toHaveBeenCalledTimes(1));
+                await waitFor(() => expect(trigger()).toHaveTextContent('ghost-1'));
+                expect(trigger()).not.toHaveTextContent('Value unavailable');
+
+                await userEvent.click(screen.getByRole('button', {name: 'Remove ghost-1'}));
+                await userEvent.click(screen.getByRole('button', {name: 'Save'}));
+
+                const changesList = await screen.findByTestId('changesList');
+                expect(changesList).toHaveTextContent('ghost-2');
                 expect(changesList).not.toHaveTextContent('Value unavailable');
             });
         });

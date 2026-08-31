@@ -27,9 +27,17 @@ export type AssignmentGraphPickerProps = {
 
     // id -> name for the ids in `ids` a fetch resolved, so a class parent can
     // print names where no picker is mounted: a collapsed row, a change
-    // summary. Fires only after a successful fetch, never on abort or error,
-    // and only for ids the fetch actually returned -- a stale id is simply
-    // absent, and the caller must not invent a label for it.
+    // summary. Never fires on abort or error, and carries only ids the fetch
+    // actually returned -- a stale id is simply absent, and the caller must not
+    // invent a label for it.
+    //
+    // A successful fetch always reports, even when it names none of the held
+    // ids, and the empty map is load-bearing: having been called at all is how
+    // a caller tells "the read failed, nothing is known about this id" from
+    // "the read succeeded and this id was not in it", which are the same
+    // absence in the map but different things on screen. Selection changes
+    // still skip an empty report, since a read has already been signalled by
+    // then and the only cost would be a wasted render per checkbox click.
     onNamesResolved?: (names: Record<string, string>) => void;
 } & Pick<
     HierarchicalValueMenuProps,
@@ -78,7 +86,7 @@ export default function AssignmentGraphPicker({
     // Reports names for the given ids only. Never the whole table: a
     // 1010-option field must not push its full name map into a class
     // component's state.
-    const reportNames = useCallback((reportFor: string[]) => {
+    const reportNames = useCallback((reportFor: string[], evenIfEmpty = false) => {
         const report = onNamesResolvedRef.current;
         const join = joinRef.current;
         if (!report || !join) {
@@ -93,14 +101,17 @@ export default function AssignmentGraphPicker({
             }
         }
 
-        if (Object.keys(names).length > 0) {
+        if (evenIfEmpty || Object.keys(names).length > 0) {
             report(names);
         }
     }, []);
 
     const handleOptionsLoaded = useCallback((join: GraphOptionJoin) => {
         joinRef.current = join;
-        reportNames(idsRef.current);
+
+        // Reports even when nothing resolved: this call is the only signal a
+        // host gets that a read succeeded at all.
+        reportNames(idsRef.current, true);
     }, [reportNames]);
 
     // A value checked after the fetch is not in `ids` yet when the fetch lands,

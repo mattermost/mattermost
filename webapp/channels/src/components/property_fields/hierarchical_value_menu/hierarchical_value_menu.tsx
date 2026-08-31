@@ -87,6 +87,8 @@ const messages = defineMessages({
     },
 });
 
+export const unavailableValueMessage = messages.unavailableValue;
+
 export type HierarchicalValueMenuField = {
     id?: string;
     object_type?: string;
