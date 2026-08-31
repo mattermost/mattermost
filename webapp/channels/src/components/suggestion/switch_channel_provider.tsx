@@ -118,6 +118,7 @@ export interface WrappedChannel {
     unread_mentions?: number;
     discoverableNonMember?: boolean;
     hasPendingJoinRequest?: boolean;
+    hiddenInSidebar?: boolean;
 }
 
 type Props = SuggestionProps<WrappedChannel> & {
@@ -486,6 +487,22 @@ export const ConnectedSwitchChannelSuggestion = connect(
 
 let prefix = '';
 
+// The prefix is compared against lower cased display names and usernames, and the leading @ of a
+// user mention is not part of either, so both need to be stripped before comparing.
+function normalizePrefix(channelPrefix: string) {
+    const lowerCasedPrefix = channelPrefix.toLowerCase();
+
+    return lowerCasedPrefix.startsWith('@') ? lowerCasedPrefix.substring(1) : lowerCasedPrefix;
+}
+
+function getWrappedChannelTerm(wrappedChannel: WrappedChannel) {
+    if (isFakeDirectChannel(wrappedChannel.channel) && wrappedChannel.channel.userId) {
+        return wrappedChannel.channel.userId;
+    }
+
+    return wrappedChannel.channel.id;
+}
+
 function sortChannelsByRecencyAndTypeAndDisplayName(wrappedA: WrappedChannel, wrappedB: WrappedChannel) {
     if (wrappedA.last_viewed_at && wrappedB.last_viewed_at) {
         return wrappedB.last_viewed_at - wrappedA.last_viewed_at;
@@ -545,6 +562,15 @@ export function quickSwitchSorter(wrappedA: WrappedChannel, wrappedB: WrappedCha
     } else if (!aStartsWith && bStartsWith) {
         return 1;
     }
+
+    // Conversations the user has hidden from their sidebar are a weaker match than equally
+    // relevant ones they kept
+    if (wrappedA.hiddenInSidebar && !wrappedB.hiddenInSidebar) {
+        return 1;
+    } else if (!wrappedA.hiddenInSidebar && wrappedB.hiddenInSidebar) {
+        return -1;
+    }
+
     return sortChannelsByRecencyAndTypeAndDisplayName(wrappedA, wrappedB);
 }
 
@@ -620,7 +646,7 @@ export default class SwitchChannelProvider extends Provider {
      */
     handlePretextChanged(channelPrefix: string, resultsCallback: ResultsCallback<WrappedChannel>) {
         if (channelPrefix) {
-            prefix = channelPrefix;
+            prefix = normalizePrefix(channelPrefix);
             this.startNewRequest(channelPrefix);
             if (this.shouldCancelDispatch(channelPrefix)) {
                 return false;
@@ -722,8 +748,13 @@ export default class SwitchChannelProvider extends Provider {
             type: UserTypes.RECEIVED_PROFILES_LIST,
             data: [...localUserData.filter((user) => user.id !== currentUserId), ...remoteUserData.filter((user) => user.id !== currentUserId)],
         });
-        const combinedTerms = [...localFormattedData.terms, ...remoteFormattedData.terms.filter((term) => !localFormattedData.terms.includes(term))];
-        const combinedItems = [...localFormattedData.items, ...remoteFormattedData.items.filter((item: any) => !localFormattedData.terms.includes((item.channel as FakeDirectChannel).userId || item.channel.id))];
+        const remoteOnlyItems = remoteFormattedData.items.filter((item) => !localFormattedData.terms.includes(getWrappedChannelTerm(item)));
+
+        // Ranking has to be applied across both sets, otherwise a result only the server knows about
+        // (such as the DM with a user the current user has never messaged) is stuck below every local
+        // match no matter how well it matches the search term.
+        const combinedItems = [...localFormattedData.items, ...remoteOnlyItems].sort(quickSwitchSorter);
+        const combinedTerms = combinedItems.map(getWrappedChannelTerm);
 
         resultsCallback({
             matchedPretext: channelPrefix,
@@ -828,6 +859,7 @@ export default class SwitchChannelProvider extends Provider {
                     if (!isGMVisible && skipNotMember) {
                         continue;
                     }
+                    wrappedChannel.hiddenInSidebar = !isGMVisible;
                 } else if (newChannel.type === Constants.DM_CHANNEL) {
                     const userId = Utils.getUserIdFromChannelId(newChannel.name);
                     const user = users.find((u) => u.id === userId);
@@ -889,13 +921,7 @@ export default class SwitchChannelProvider extends Provider {
 
         const channelNames = channels.
             sort(quickSwitchSorter).
-            map((wrappedChannel) => {
-                if (isFakeDirectChannel(wrappedChannel.channel) && wrappedChannel.channel.userId) {
-                    return wrappedChannel.channel.userId;
-                }
-
-                return wrappedChannel.channel.id;
-            });
+            map(getWrappedChannelTerm);
 
         return {
             items: channels,
