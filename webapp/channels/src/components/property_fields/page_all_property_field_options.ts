@@ -23,10 +23,15 @@ export type PageAllPropertyFieldOptionsOpts = {
     signal?: AbortSignal;
 };
 
-// One walk per field id, so two mounts of the same field share a single pass
-// over the keyset instead of racing each other through it. Entries are removed
-// when a walk settles: nothing here is a result cache, and a failed walk must
-// not stand in the way of the retry that follows it.
+// One walk per field, so two mounts of the same field share a single pass over
+// the keyset instead of racing each other through it. Entries are removed when a
+// walk settles: nothing here is a result cache, and a failed walk must not stand
+// in the way of the retry that follows it.
+//
+// Keyed on object_type and id together. The id alone would do -- PropertyFields.ID
+// is the primary key, so one id maps to one object_type server-side -- but keying
+// on both means a caller holding a malformed field cannot be served another
+// field's walk, and costs a template literal.
 const inFlightWalks = new Map<string, Promise<PropertyFieldOption[]>>();
 
 async function walkPages(fieldId: string, objectType: string): Promise<PropertyFieldOption[]> {
@@ -44,7 +49,19 @@ async function walkPages(fieldId: string, objectType: string): Promise<PropertyF
 
         all.push(...page);
 
-        if (page.length === 0 || page.length < PROPERTY_FIELD_OPTIONS_PER_PAGE) {
+        // A short page is the last page: the server refills a page filtered by
+        // access control before returning it, so it only comes up short when the
+        // rows ran out. An empty page is a legitimate answer, not an error --
+        // options withheld from this caller come back as 200 [].
+        //
+        // This reads a full page as "there may be more", so it is coupled to the
+        // server serving exactly what we asked for. We ask for
+        // PROPERTY_FIELD_OPTIONS_PER_PAGE, which is the server's own
+        // model.PropertyFieldOptionsMaxPerRequest. Were that constant to drop
+        // below ours, every page would look short and a hierarchy would truncate
+        // after one page. The guard for that belongs next to the constant,
+        // server-side; there is no cheap client-side equivalent.
+        if (page.length < PROPERTY_FIELD_OPTIONS_PER_PAGE) {
             return all;
         }
 
@@ -54,8 +71,9 @@ async function walkPages(fieldId: string, objectType: string): Promise<PropertyF
         // a create_at of zero is indistinguishable from an absent one both on the
         // wire and to that check. Stop rather than ask for the first page again.
         if (!last.id || !last.create_at) {
+            const missingHalf = last.id ? 'create_at' : 'id';
             throw new Error(
-                `pageAllPropertyFieldOptions: option ${last.id || '(no id)'} of field ${fieldId} has no create_at, so the page after it cannot be asked for`,
+                `pageAllPropertyFieldOptions: option ${last.id || '(no id)'} of field ${fieldId} has no ${missingHalf}, so the page after it cannot be asked for`,
             );
         }
 
@@ -65,7 +83,9 @@ async function walkPages(fieldId: string, objectType: string): Promise<PropertyF
 }
 
 function sharedWalk(fieldId: string, objectType: string): Promise<PropertyFieldOption[]> {
-    const existing = inFlightWalks.get(fieldId);
+    const key = `${objectType}:${fieldId}`;
+
+    const existing = inFlightWalks.get(key);
     if (existing) {
         return existing;
     }
@@ -73,12 +93,12 @@ function sharedWalk(fieldId: string, objectType: string): Promise<PropertyFieldO
     // Identity-guarded so a walk settling after the map has moved on cannot evict
     // whatever replaced it.
     const tracked = walkPages(fieldId, objectType).finally(() => {
-        if (inFlightWalks.get(fieldId) === tracked) {
-            inFlightWalks.delete(fieldId);
+        if (inFlightWalks.get(key) === tracked) {
+            inFlightWalks.delete(key);
         }
     });
 
-    inFlightWalks.set(fieldId, tracked);
+    inFlightWalks.set(key, tracked);
     return tracked;
 }
 
@@ -104,6 +124,13 @@ export function pageAllPropertyFieldOptions(
         return Promise.resolve([]);
     }
 
+    // Started before the signal is consulted, so a caller that is already aborted
+    // still kicks off a walk it will never see. That is deliberate: the walk has
+    // to exist for the wrapper below to attach a rejection handler to it, which is
+    // what keeps an already-aborted caller from turning a 403/404 into an
+    // unhandled rejection. Do not "optimize" this into an early return -- the
+    // ordering is what the test named `rejects immediately for a caller whose
+    // signal is already aborted` pins, via its no-unhandled-rejection assertion.
     const walk = sharedWalk(field.id, field.object_type);
     const signal = opts?.signal;
     if (!signal) {
