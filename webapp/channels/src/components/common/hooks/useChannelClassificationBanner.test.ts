@@ -6,12 +6,12 @@ import * as ReactRedux from 'react-redux';
 import type {PropertyField, PropertyValue} from '@mattermost/types/properties';
 
 import {Client4} from 'mattermost-redux/client';
+import {ACCESS_CONTROL_PROPERTY_GROUP} from 'mattermost-redux/constants/properties';
 
 import {
     CLASSIFICATIONS_CHANNEL_FIELD_NAME,
     CLASSIFICATIONS_CHANNEL_OBJECT_TYPE,
     CLASSIFICATIONS_FIELD_TARGET_TYPE,
-    CLASSIFICATIONS_GROUP_NAME,
 } from 'components/admin_console/classification_markings/utils';
 import type {ClassificationLevel} from 'components/admin_console/classification_markings/utils/presets';
 
@@ -31,7 +31,7 @@ const FIELD_ID = 'channel_field_1';
 function makeChannelField(overrides: Partial<PropertyField> = {}): PropertyField {
     return {
         id: FIELD_ID,
-        group_id: CLASSIFICATIONS_GROUP_NAME,
+        group_id: ACCESS_CONTROL_PROPERTY_GROUP,
         name: CLASSIFICATIONS_CHANNEL_FIELD_NAME,
         type: 'select',
         attrs: {},
@@ -53,7 +53,7 @@ function makePropertyValue(value: string | null): PropertyValue<string> {
         id: 'value1',
         target_id: CHANNEL_ID,
         target_type: CLASSIFICATIONS_CHANNEL_OBJECT_TYPE,
-        group_id: CLASSIFICATIONS_GROUP_NAME,
+        group_id: ACCESS_CONTROL_PROPERTY_GROUP,
         field_id: FIELD_ID,
         value: value as string,
         create_at: 2000,
@@ -211,7 +211,7 @@ describe('useChannelClassificationBanner', () => {
             id: 'value1',
             target_id: CHANNEL_ID,
             target_type: CLASSIFICATIONS_CHANNEL_OBJECT_TYPE,
-            group_id: CLASSIFICATIONS_GROUP_NAME,
+            group_id: ACCESS_CONTROL_PROPERTY_GROUP,
             field_id: FIELD_ID,
             value: {classification_id: 'lvl1', banner_text: 'test'} as unknown as string,
             create_at: 2000,
@@ -281,7 +281,7 @@ describe('useChannelClassificationBanner', () => {
         );
 
         await Promise.resolve();
-        expect(fetchSpy).toHaveBeenCalledWith(CLASSIFICATIONS_GROUP_NAME, CLASSIFICATIONS_CHANNEL_OBJECT_TYPE, CHANNEL_ID);
+        expect(fetchSpy).toHaveBeenCalledWith(ACCESS_CONTROL_PROPERTY_GROUP, CLASSIFICATIONS_CHANNEL_OBJECT_TYPE, CHANNEL_ID);
     });
 
     test('silently ignores fetch errors (channel may not have classification set)', async () => {

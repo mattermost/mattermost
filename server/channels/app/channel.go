@@ -192,7 +192,7 @@ func (a *App) CreateChannelWithUser(rctx request.CTX, channel *model.Channel, us
 	a.addChannelToDefaultCategory(rctx, userID, channel)
 
 	var user *model.User
-	if user, err = a.GetUser(userID); err != nil {
+	if user, err = a.GetUser(rctx, userID); err != nil {
 		return nil, err
 	}
 
@@ -2100,7 +2100,7 @@ func (a *App) AddChannelMember(rctx request.CTX, userID string, channel *model.C
 	var user *model.User
 	var err *model.AppError
 
-	if user, err = a.GetUser(userID); err != nil {
+	if user, err = a.GetUser(rctx, userID); err != nil {
 		return nil, err
 	}
 
@@ -2110,7 +2110,7 @@ func (a *App) AddChannelMember(rctx request.CTX, userID string, channel *model.C
 
 	var userRequestor *model.User
 	if opts.UserRequestorID != "" {
-		if userRequestor, err = a.GetUser(opts.UserRequestorID); err != nil {
+		if userRequestor, err = a.GetUser(rctx, opts.UserRequestorID); err != nil {
 			return nil, err
 		}
 	}
@@ -3164,7 +3164,7 @@ func (a *App) removeUserFromChannel(rctx request.CTX, userIDToRemove string, rem
 
 	var actorUser *model.User
 	if removerUserId != "" {
-		actorUser, _ = a.GetUser(removerUserId)
+		actorUser, _ = a.GetUser(rctx, removerUserId)
 	}
 
 	a.Srv().Go(func() {
@@ -3209,7 +3209,7 @@ func (a *App) RemoveUserFromChannel(rctx request.CTX, userIDToRemove string, rem
 	}
 
 	var user *model.User
-	if user, err = a.GetUser(userIDToRemove); err != nil {
+	if user, err = a.GetUser(rctx, userIDToRemove); err != nil {
 		return err
 	}
 
@@ -3322,7 +3322,7 @@ func (a *App) MarkChannelAsUnreadFromPost(rctx request.CTX, postID string, userI
 		return nil, err
 	}
 
-	user, err := a.GetUser(userID)
+	user, err := a.GetUser(rctx, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -3349,7 +3349,7 @@ func (a *App) markChannelAsUnreadFromPostCRTUnsupported(rctx request.CTX, postID
 		return nil, appErr
 	}
 
-	user, appErr := a.GetUser(userID)
+	user, appErr := a.GetUser(rctx, userID)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -3466,7 +3466,7 @@ func (a *App) AutocompleteChannels(rctx request.CTX, userID, term string) (model
 	includeDeleted := true
 	term = strings.TrimSpace(term)
 
-	user, appErr := a.GetUser(userID)
+	user, appErr := a.GetUser(rctx, userID)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -3487,7 +3487,7 @@ func (a *App) AutocompleteChannelsForTeam(rctx request.CTX, teamID, userID, term
 	includeDeleted := true
 	term = strings.TrimSpace(term)
 
-	user, appErr := a.GetUser(userID)
+	user, appErr := a.GetUser(rctx, userID)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -3504,7 +3504,7 @@ func (a *App) AutocompleteChannelsForTeamFiltered(rctx request.CTX, teamID, user
 	includeDeleted := true
 	term = strings.TrimSpace(term)
 
-	user, appErr := a.GetUser(userID)
+	user, appErr := a.GetUser(rctx, userID)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -4517,7 +4517,7 @@ func (a *App) validateForConvertGroupMessageToChannel(rctx request.CTX, converte
 }
 
 func (a *App) postMessageForConvertGroupMessageToChannel(rctx request.CTX, channelID, convertedByUserId string, channelUsers []*model.User) *model.AppError {
-	convertedByUser, appErr := a.GetUser(convertedByUserId)
+	convertedByUser, appErr := a.GetUser(rctx, convertedByUserId)
 	if appErr != nil {
 		return appErr
 	}
@@ -4719,7 +4719,7 @@ func (a *App) GetRecommendedPublicChannelsForUser(rctx request.CTX, userID, team
 		return model.ChannelList{}, nil
 	}
 
-	user, appErr := a.GetUser(userID)
+	user, appErr := a.GetUser(rctx, userID)
 	if appErr != nil {
 		return nil, appErr
 	}
