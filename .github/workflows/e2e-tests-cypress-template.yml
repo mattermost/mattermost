@@ -291,9 +291,6 @@ jobs:
       BRANCH: "${{ inputs.branch }}"
       BUILD_ID: "${{ inputs.build_id }}"
       CI_BASE_URL: "${{ inputs.test_type }}-test-${{ matrix.worker_index }}"
-      # DO NOT MERGE: fails a test when the web app reports a React strict mode violation, so this
-      # branch's run maps out the components that aren't safe under concurrent rendering.
-      CYPRESS_failOnPageError: "strict-mode"
       CYPRESS_pushNotificationServer: "${{ secrets.PUSH_NOTIFICATION_SERVER }}"
       CWS_URL: "${{ secrets.CWS_URL }}"
       CWS_EXTRA_HTTP_HEADERS: "${{ secrets.CWS_EXTRA_HTTP_HEADERS }}"
