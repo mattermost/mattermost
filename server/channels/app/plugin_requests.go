@@ -267,7 +267,8 @@ func (ch *Channels) servePluginRequest(w http.ResponseWriter, r *http.Request, h
 		return
 	}
 
-	if validateCSRFForPluginRequest(rctx, r, session, cookieAuth, *ch.cfgSvc.Config().ServiceSettings.ExperimentalStrictCSRFEnforcement) {
+	maxBodyBytes := *ch.cfgSvc.Config().ServiceSettings.MaximumPayloadSizeBytes + bytes.MinRead
+	if validateCSRFForPluginRequest(rctx, w, r, session, cookieAuth, *ch.cfgSvc.Config().ServiceSettings.ExperimentalStrictCSRFEnforcement, maxBodyBytes) {
 		r.Header.Set("Mattermost-User-Id", session.UserId)
 		context.SessionId = session.Id
 	} else {
@@ -278,7 +279,7 @@ func (ch *Channels) servePluginRequest(w http.ResponseWriter, r *http.Request, h
 }
 
 // validateCSRFForPluginRequest validates CSRF token for plugin requests
-func validateCSRFForPluginRequest(rctx request.CTX, r *http.Request, session *model.Session, cookieAuth bool, strictCSRFEnforcement bool) bool {
+func validateCSRFForPluginRequest(rctx request.CTX, w http.ResponseWriter, r *http.Request, session *model.Session, cookieAuth bool, strictCSRFEnforcement bool, maxBodyBytes int64) bool {
 	// Skip CSRF check for non-cookie auth or GET requests
 	if !cookieAuth || r.Method == http.MethodGet {
 		return true
@@ -287,6 +288,7 @@ func validateCSRFForPluginRequest(rctx request.CTX, r *http.Request, session *mo
 	csrfTokenFromClient := r.Header.Get(model.HeaderCsrfToken)
 
 	if csrfTokenFromClient == "" {
+		r.Body = http.MaxBytesReader(w, r.Body, maxBodyBytes)
 		bodyBytes, err := io.ReadAll(r.Body)
 		if err != nil {
 			rctx.Logger().Warn("Failed to read request body for plugin request", mlog.Err(err))

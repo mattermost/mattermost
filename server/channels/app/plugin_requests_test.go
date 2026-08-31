@@ -590,12 +590,14 @@ func TestServePluginRequest(t *testing.T) {
 func TestValidateCSRFForPluginRequest(t *testing.T) {
 	th := Setup(t)
 
+	const testMaxBodyBytes = 1024 * 1024
+
 	t.Run("skip CSRF for non-cookie auth", func(t *testing.T) {
 		session := &model.Session{Id: "sessionid", UserId: "userid", Token: "token"}
 		session.GenerateCSRF()
 		req := httptest.NewRequest(http.MethodPost, "/test", nil)
 
-		result := validateCSRFForPluginRequest(th.Context, req, session, false, false)
+		result := validateCSRFForPluginRequest(th.Context, httptest.NewRecorder(), req, session, false, false, testMaxBodyBytes)
 		assert.True(t, result)
 	})
 
@@ -604,7 +606,7 @@ func TestValidateCSRFForPluginRequest(t *testing.T) {
 		session.GenerateCSRF()
 		req := httptest.NewRequest(http.MethodGet, "/test", nil)
 
-		result := validateCSRFForPluginRequest(th.Context, req, session, true, false)
+		result := validateCSRFForPluginRequest(th.Context, httptest.NewRecorder(), req, session, true, false, testMaxBodyBytes)
 		assert.True(t, result)
 	})
 
@@ -614,7 +616,7 @@ func TestValidateCSRFForPluginRequest(t *testing.T) {
 		req := httptest.NewRequest(http.MethodPost, "/test", nil)
 		req.Header.Set(model.HeaderCsrfToken, expectedToken)
 
-		result := validateCSRFForPluginRequest(th.Context, req, session, true, false)
+		result := validateCSRFForPluginRequest(th.Context, httptest.NewRecorder(), req, session, true, false, testMaxBodyBytes)
 		assert.True(t, result)
 	})
 
@@ -624,7 +626,7 @@ func TestValidateCSRFForPluginRequest(t *testing.T) {
 		req := httptest.NewRequest(http.MethodPost, "/test", nil)
 		req.Header.Set(model.HeaderCsrfToken, "invalid-token")
 
-		result := validateCSRFForPluginRequest(th.Context, req, session, true, false)
+		result := validateCSRFForPluginRequest(th.Context, httptest.NewRecorder(), req, session, true, false, testMaxBodyBytes)
 		assert.False(t, result)
 	})
 
@@ -635,8 +637,22 @@ func TestValidateCSRFForPluginRequest(t *testing.T) {
 		req := httptest.NewRequest(http.MethodPost, "/test", strings.NewReader(formData))
 		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
-		result := validateCSRFForPluginRequest(th.Context, req, session, true, false)
+		result := validateCSRFForPluginRequest(th.Context, httptest.NewRecorder(), req, session, true, false, testMaxBodyBytes)
 		assert.True(t, result)
+	})
+
+	t.Run("oversized form body is bounded and CSRF fails", func(t *testing.T) {
+		const smallMaxBodyBytes = 128
+
+		session := &model.Session{Id: "sessionid", UserId: "userid", Token: "token"}
+		expectedToken := session.GenerateCSRF()
+		// Place the csrf field beyond the cap so the bounded read never reaches it.
+		formData := "filler=" + strings.Repeat("a", smallMaxBodyBytes) + "&csrf=" + expectedToken
+		req := httptest.NewRequest(http.MethodPost, "/test", strings.NewReader(formData))
+		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+		result := validateCSRFForPluginRequest(th.Context, httptest.NewRecorder(), req, session, true, false, smallMaxBodyBytes)
+		assert.False(t, result)
 	})
 
 	t.Run("XMLHttpRequest with strict enforcement disabled", func(t *testing.T) {
@@ -649,7 +665,7 @@ func TestValidateCSRFForPluginRequest(t *testing.T) {
 		req := httptest.NewRequest(http.MethodPost, "/test", nil)
 		req.Header.Set(model.HeaderRequestedWith, model.HeaderRequestedWithXML)
 
-		result := validateCSRFForPluginRequest(th.Context, req, session, true, false)
+		result := validateCSRFForPluginRequest(th.Context, httptest.NewRecorder(), req, session, true, false, testMaxBodyBytes)
 		assert.True(t, result)
 	})
 
@@ -663,7 +679,7 @@ func TestValidateCSRFForPluginRequest(t *testing.T) {
 		req := httptest.NewRequest(http.MethodPost, "/test", nil)
 		req.Header.Set(model.HeaderRequestedWith, model.HeaderRequestedWithXML)
 
-		result := validateCSRFForPluginRequest(th.Context, req, session, true, true)
+		result := validateCSRFForPluginRequest(th.Context, httptest.NewRecorder(), req, session, true, true, testMaxBodyBytes)
 		assert.False(t, result)
 	})
 }
