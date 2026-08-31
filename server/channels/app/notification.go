@@ -56,6 +56,16 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 		return []string{}, nil
 	}
 
+	// A post in a non-message backing channel (e.g. a Docs space comment) reaches no chat
+	// surface at all. The websocket payloads below are channel-scoped and carry the full post,
+	// so no read gate can filter them; email and push would deliver the body to a recipient who
+	// has no chat context for it; and mention parsing, thread autofollow, and mention-count
+	// updates would put unread state on a channel that no chat client lists. Notification
+	// delivery for these posts belongs to the owning feature, not to the chat pipeline.
+	if channel.Type.IsNonMessageBacking() {
+		return []string{}, nil
+	}
+
 	suppressNotifications := post.IsNotificationSuppressed()
 
 	isCRTAllowed := *a.Config().ServiceSettings.CollapsedThreads != model.CollapsedThreadsDisabled
@@ -688,15 +698,6 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 				mlog.String("post_id", post.Id),
 			)
 		}
-	}
-
-	// A post in a non-message backing channel (e.g. a Docs space comment) must not reach chat
-	// clients: the posted broadcast and the per-follower thread_updated events below carry the
-	// full post, and a channel-scoped payload cannot be filtered by any read gate. Push and
-	// email were dispatched above and stay; everything from here to the end of the function is
-	// websocket delivery.
-	if channel.Type.IsNonMessageBacking() {
-		return mentionedUsersList, nil
 	}
 
 	rctx.Logger().LogM(mlog.MlvlNotificationTrace, "Begin sending websocket notifications",

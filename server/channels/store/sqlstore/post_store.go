@@ -1066,6 +1066,23 @@ func (s *SqlPostStore) MoveThreadsToChannel(rctx request.CTX, rootIDs []string, 
 		return nil, store.NewErrInvalidInput("Post", "rootIds", strings.Join(nonRoots, ","))
 	}
 
+	// Lock every row the move statement will touch before any of them is read for counting. Two
+	// concurrent moves of the same thread to different targets would otherwise both derive their
+	// deltas from the source channel, then serialize on the update and each subtract the same
+	// posts from it, leaving the source counter short by one thread's worth. Locking first makes
+	// the second move read the ChannelId the first one committed. The order is by Id so two moves
+	// over overlapping sets cannot take the row locks in opposite orders.
+	lockQuery := s.getQueryBuilder().
+		Select("Id").
+		From("Posts").
+		Where(sq.Or{sq.Eq{"Id": rootIDs}, sq.Eq{"RootId": rootIDs}, sq.Eq{"OriginalId": rootIDs}}).
+		OrderBy("Id ASC").
+		Suffix("FOR UPDATE")
+	var lockedIDs []string
+	if err = transaction.SelectBuilder(&lockedIDs, lockQuery); err != nil {
+		return nil, errors.Wrap(err, "failed to lock posts for move")
+	}
+
 	// Counter deltas per source channel, over the rows that counted (OriginalId = ''). Rows
 	// already on the target contribute nothing, so a re-run cannot move a count twice.
 	var deltas []struct {

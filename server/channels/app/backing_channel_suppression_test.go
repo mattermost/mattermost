@@ -283,3 +283,104 @@ func TestPostsPageCommentPartialIndexCatalog(t *testing.T) {
 	require.NoError(t, err)
 	assert.Contains(t, expression, "page_id")
 }
+
+// TestBackingChannelNotificationSuppression pins that a mention in a backing-channel post reaches
+// no chat notification surface. Websocket delivery was already excluded; email, push, and the
+// mention-count and mention-driven autofollow writes are the halves that a channel-scoped payload
+// check further down the function could not cover, because they are dispatched before it.
+func TestBackingChannelNotificationSuppression(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := Setup(t).InitBasic(t)
+	api := th.SetupPluginAPI()
+	space := createSpaceChannelWithMember(t, th, th.BasicUser.Id)
+	_, nErr := th.App.Srv().Store().Channel().SaveMember(th.Context, &model.ChannelMember{
+		ChannelId:   space.Id,
+		UserId:      th.BasicUser2.Id,
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+		SchemeUser:  true,
+	})
+	require.NoError(t, nErr)
+	th.AddUserToChannel(t, th.BasicUser2, th.BasicChannel)
+
+	mention := "@" + th.BasicUser2.Username
+
+	t.Run("a mention in a backing channel notifies nobody and moves no mention state", func(t *testing.T) {
+		post, appErr := api.CreatePost(&model.Post{ChannelId: space.Id, UserId: th.BasicUser.Id, Message: mention})
+		require.Nil(t, appErr)
+
+		mentioned, err := th.App.SendNotifications(th.Context, post, th.BasicTeam, space, th.BasicUser, nil, true)
+		require.NoError(t, err)
+		assert.Empty(t, mentioned, "no recipient may be resolved for a backing-channel post")
+
+		member, err := th.App.Srv().Store().Channel().GetMember(th.Context, space.Id, th.BasicUser2.Id)
+		require.NoError(t, err)
+		assert.Zero(t, member.MentionCount, "a backing-channel mention must not raise a chat mention count")
+		assert.Zero(t, member.MentionCountRoot)
+	})
+
+	t.Run("the same mention in a chat channel still notifies", func(t *testing.T) {
+		post, appErr := api.CreatePost(&model.Post{ChannelId: th.BasicChannel.Id, UserId: th.BasicUser.Id, Message: mention})
+		require.Nil(t, appErr)
+
+		mentioned, err := th.App.SendNotifications(th.Context, post, th.BasicTeam, th.BasicChannel, th.BasicUser, nil, true)
+		require.NoError(t, err)
+		assert.Contains(t, mentioned, th.BasicUser2.Id, "the suppression must be scoped to backing channels only")
+	})
+}
+
+// TestMoveThreadsToChannelConcurrentCounters pins that two overlapping moves of the same threads
+// cannot corrupt the channel counters. Deriving the per-source deltas before locking the rows lets
+// both transactions count the posts in the same source, so both subtract it while only one target
+// ends up holding the rows. Two concurrent moves over one space's comments are reachable in
+// practice: a page move re-homes comments with a space-wide sweep, so two page moves in one space
+// cover overlapping sets.
+func TestMoveThreadsToChannelConcurrentCounters(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := Setup(t).InitBasic(t)
+	api := th.SetupPluginAPI()
+	source := createSpaceChannelWithMember(t, th, th.BasicUser.Id)
+	targetB := createSpaceChannelWithMember(t, th, th.BasicUser.Id)
+	targetC := createSpaceChannelWithMember(t, th, th.BasicUser.Id)
+
+	rootIDs := make([]string, 0, 3)
+	for range 3 {
+		root, appErr := api.CreatePost(&model.Post{ChannelId: source.Id, UserId: th.BasicUser.Id, Message: "root"})
+		require.Nil(t, appErr)
+		_, appErr = api.CreatePost(&model.Post{ChannelId: source.Id, RootId: root.Id, UserId: th.BasicUser.Id, Message: "reply"})
+		require.Nil(t, appErr)
+		rootIDs = append(rootIDs, root.Id)
+	}
+
+	postStore := th.App.Srv().Store().Post()
+	start := make(chan struct{})
+	results := make(chan error, 2)
+	for _, target := range []string{targetB.Id, targetC.Id} {
+		go func() {
+			<-start
+			_, err := postStore.MoveThreadsToChannel(th.Context, rootIDs, target, th.BasicTeam.Id)
+			results <- err
+		}()
+	}
+	close(start)
+	for range 2 {
+		require.NoError(t, <-results)
+	}
+
+	// Whichever move committed last holds every row. Each channel's counter must equal the rows
+	// it actually holds, so the six posts are counted exactly once rather than subtracted twice
+	// from the source. The counters are read with SQL because Channel().Get() filters space
+	// channels out by type.
+	db := th.GetSqlStore().GetMaster()
+	total := int64(0)
+	for _, id := range []string{source.Id, targetB.Id, targetC.Id} {
+		var counter, held int64
+		require.NoError(t, db.Get(&counter, `SELECT TotalMsgCount FROM Channels WHERE Id = $1`, id))
+		require.NoError(t, db.Get(&held,
+			`SELECT COUNT(*) FROM Posts WHERE ChannelId = $1 AND OriginalId = '' AND DeleteAt = 0`, id))
+		assert.Equal(t, held, counter, "channel %s counter must match the rows it holds", id)
+		total += counter
+	}
+	assert.Equal(t, int64(6), total, "the six posts must be counted exactly once across the three channels")
+}
