@@ -52,6 +52,21 @@ func TestPermissionsJSONRoundTrip(t *testing.T) {
 	assert.Equal(t, p, p2)
 }
 
+func TestPermissionsGrantsShape(t *testing.T) {
+	// A caller who matches no grant still sees the key, as "[]" rather than
+	// absent — every caller gets the same shape (§9.1).
+	out, err := json.Marshal(&Permissions{Grants: []Grant{}})
+	require.NoError(t, err)
+	assert.Contains(t, string(out), `"grants":[]`)
+
+	// A Permissions with no grants set at all marshals to null, not "[]" —
+	// the store's round trip (Scan unmarshals null back to a nil slice) is
+	// unaffected either way.
+	out, err = json.Marshal(&Permissions{})
+	require.NoError(t, err)
+	assert.Contains(t, string(out), `"grants":null`)
+}
+
 func TestRestrictionsLeafDefaulting(t *testing.T) {
 	p := &Permissions{Restrictions: &Restrictions{
 		Value: ReadWrite{Read: PermissionLevelEveryone},
@@ -126,6 +141,11 @@ func TestGrantsValidation(t *testing.T) {
 	t.Run("malformed scope rejected", func(t *testing.T) {
 		require.Error(t, grant(Grant{Identity: Identity{Type: PropertyOwnerTypePlugin, ID: "com.example"}, Scopes: []string{"a b"}, Allow: []string{PropertyActionValueWrite}}).IsValid(""))
 	})
+}
+
+func TestFilteredRejected(t *testing.T) {
+	require.Error(t, (&Permissions{Filtered: true}).IsValid(""))
+	require.NoError(t, (&Permissions{}).IsValid(""))
 }
 
 func TestMaskingValidation(t *testing.T) {

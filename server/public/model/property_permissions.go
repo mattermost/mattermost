@@ -44,12 +44,18 @@ var validPropertyActions = []string{
 //   - Masking — an optional read filter for fields whose option list is itself
 //     sensitive.
 //
-// All three are optional at the top level; an absent part means "unchanged"
-// on update, which is why each is a pointer or a nil-able slice rather than a value.
+// Restrictions and Masking are optional at the top level; an absent one means
+// "unchanged" on update, which is why each is a pointer rather than a value.
+// Grants keeps its zero value serializable ("[]", never absent) so every caller
+// sees the same keys regardless of privilege — Filtered says when that array was
+// shortened rather than empty by construction.
 type Permissions struct {
 	Restrictions *Restrictions `json:"restrictions,omitempty"`
-	Grants       []Grant       `json:"grants,omitempty"`
+	Grants       []Grant       `json:"grants"`
 	Masking      *Masking      `json:"masking,omitempty"`
+	// Filtered is set only on an outgoing copy the API strips for a caller who
+	// may not see everything on the field; it is never accepted on input.
+	Filtered bool `json:"filtered,omitempty"`
 }
 
 // Scan implements sql.Scanner so a jsonb column reads directly into a
@@ -142,6 +148,9 @@ type Identity struct {
 // objectType is the owning field's object type; masking's self-writable rule is
 // stated relative to it.
 func (p *Permissions) IsValid(objectType string) error {
+	if p.Filtered {
+		return fmt.Errorf("filtered is set by the API on read and cannot be submitted")
+	}
 	if p.Restrictions != nil {
 		if err := p.Restrictions.normalizeAndValidate(); err != nil {
 			return err
