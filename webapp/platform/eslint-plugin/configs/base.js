@@ -52,6 +52,7 @@ const base = {
     },
     rules: {
         '@mattermost/no-dispatch-getstate': 2,
+        '@mattermost/no-redundant-admin-config-deps': 2,
         '@mattermost/use-external-link': 2,
         '@stylistic/array-bracket-spacing': [
             2,

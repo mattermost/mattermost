@@ -593,7 +593,7 @@ func (a *App) importUser(rctx request.CTX, data *imports.UserImportData, dryRun 
 			if appErr = a.updateUserNotifyProps(user.Id, user.NotifyProps); appErr != nil {
 				return appErr
 			}
-			if savedUser, appErr = a.GetUser(user.Id); appErr != nil {
+			if savedUser, appErr = a.GetUser(rctx, user.Id); appErr != nil {
 				return appErr
 			}
 		}
@@ -616,7 +616,7 @@ func (a *App) importUser(rctx request.CTX, data *imports.UserImportData, dryRun 
 		}
 		if emailVerified {
 			if hasUserEmailVerifiedChanged {
-				if err := a.VerifyUserEmail(user.Id, user.Email); err != nil {
+				if err := a.VerifyUserEmail(rctx, user.Id, user.Email); err != nil {
 					return err
 				}
 			}
