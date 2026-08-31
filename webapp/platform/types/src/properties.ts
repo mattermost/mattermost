@@ -84,6 +84,15 @@ export type PropertyFieldOption = {
     // the key on a graph write is a server no-op (leaves existing parents
     // unchanged); create must therefore send [] for roots.
     parents?: string[];
+
+    // Reported by the options endpoints, never accepted on a write. True for an
+    // option a field inherits from the template it links to.
+    read_only?: boolean;
+
+    // Reported by the options endpoints, never accepted on a write. Half of the
+    // keyset cursor the options listing pages on, alongside the id. Absent when
+    // zero, and zero is not a usable cursor value.
+    create_at?: number;
 };
 
 export type SelectPropertyField = PropertyField & {

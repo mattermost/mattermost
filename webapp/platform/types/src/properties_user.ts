@@ -66,6 +66,7 @@ export type UserPropertyField = PropertyField & {
         value_type: FieldValueType;
         options?: PropertyFieldOption[];
         options_omitted?: boolean;
+        options_count?: number;
         ldap?: string;
         saml?: string;
         managed?: string;
