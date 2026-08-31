@@ -6,10 +6,33 @@ import React from 'react';
 import type {PropertyFieldOption} from '@mattermost/types/properties';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
 
+import {pageAllPropertyFieldOptions} from 'components/property_fields/page_all_property_field_options';
+
 import {renderWithContext, screen, fireEvent} from 'tests/react_testing_utils';
 
 import type {TableRow} from './value_selector_menu';
 import ValueSelectorMenu from './value_selector_menu';
+
+// Every test in this file renders with an empty store, so the graph flag is off
+// and the tree must never mount. That is an assumption about another module's
+// behaviour, though, and if it ever breaks the widget would call the real pager:
+// setup_jest.ts assigns globalThis.fetch = nodeFetch, so it becomes an outbound
+// request to localhost, and the widget swallows fetch failures into an error
+// status. The test then fails on a missing element with no network error in the
+// output -- a destroyed report rather than a named bug.
+jest.mock('components/property_fields/page_all_property_field_options', () => ({
+    ...jest.requireActual('components/property_fields/page_all_property_field_options'),
+    pageAllPropertyFieldOptions: jest.fn(),
+}));
+
+const mockPageAll = jest.mocked(pageAllPropertyFieldOptions);
+
+beforeEach(() => {
+    mockPageAll.mockReset();
+    mockPageAll.mockImplementation(() => {
+        throw new Error('the flat picker fetched options: the graph tree mounted with the flag off');
+    });
+});
 
 // A comparable channel attribute the row's user attribute can target instead of
 // a literal value. Same shape as a CPA field; object_type marks it a channel
@@ -248,6 +271,15 @@ describe('ValueSelectorMenu — consolidated value/channel-attribute dropdown', 
     // undefined. That is the point: these pin the flat picker's behaviour on a
     // graph attribute, which is the path where create-value was being offered.
     describe('graph attribute — create-value is never offered', () => {
+        // These are the only tests in the file that pass a graph field, so they
+        // are the only ones where the tree could mount. Asserted here rather
+        // than at file scope because the parent's jest.clearAllMocks() would
+        // wipe the call record first: an inner afterEach runs before an outer
+        // one, so this still sees the truth.
+        afterEach(() => {
+            expect(mockPageAll).not.toHaveBeenCalled();
+        });
+
         function graphField(options?: PropertyFieldOption[]): UserPropertyField {
             return {
                 id: 'user-programs',
@@ -361,6 +393,37 @@ describe('ValueSelectorMenu — consolidated value/channel-attribute dropdown', 
             openAndFilter('Skunkworks');
 
             expect(screen.getByText(/Create "Skunkworks"/)).toBeInTheDocument();
+        });
+
+        test('drops the create placeholder when a live row switches to a graph attribute', () => {
+            // The transition case. MultiValueSelector memoises its closed-button
+            // contents, and forbidCreate is read from inside that memo, so the
+            // suppression only holds if the memo recomputes when forbidCreate
+            // flips. The row object -- and therefore row.values -- is
+            // deliberately the same instance across both renders, so nothing in
+            // the memo's original key changes and a missing dependency shows up
+            // as a create affordance surviving on a graph attribute.
+            const row = graphRow({values: []});
+            const props = {
+                row,
+                disabled: false,
+                updateValues,
+                options: [] as PropertyFieldOption[],
+            };
+
+            const {rerender} = renderWithContext(<ValueSelectorMenu {...props}/>);
+            expect(screen.getByTestId('valueSelectorMenuButton')).toHaveTextContent('Type to create value');
+
+            rerender(
+                <ValueSelectorMenu
+                    {...props}
+                    field={graphField()}
+                />,
+            );
+
+            const button = screen.getByTestId('valueSelectorMenuButton');
+            expect(button).toHaveTextContent('Select values...');
+            expect(button).not.toHaveTextContent('Type to create value');
         });
 
         test('offers no create item for a graph row in channel-target mode', () => {

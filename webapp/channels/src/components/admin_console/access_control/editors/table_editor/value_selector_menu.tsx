@@ -100,6 +100,15 @@ const ValueSelectorMenu = ({
                     id: field.id,
                     object_type: field.object_type,
                     type: field.type,
+
+                    // attrs.options must reach the adapter as the same array
+                    // instance across renders: the adapter joins the inlined
+                    // name<->id map in a memo keyed on the array's identity, and
+                    // that join feeds the chip labels and the checked state. A
+                    // fresh object here is harmless, but normalising the array --
+                    // `options: field.attrs?.options ?? []` -- allocates a new
+                    // one every render and re-joins the whole hierarchy each
+                    // time. Pass it through untouched.
                     attrs: field.attrs,
                 }}
                 names={row.values}

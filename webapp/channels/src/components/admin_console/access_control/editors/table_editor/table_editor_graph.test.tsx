@@ -28,6 +28,19 @@ jest.mock('components/property_fields/page_all_property_field_options', () => ({
 
 const mockPageAll = jest.mocked(pageAllPropertyFieldOptions);
 
+// File scope, not inside the flag-on describe: the flag-off tests below must not
+// fetch either, and left unimplemented the mock resolves to undefined, so
+// `.then` on it throws a TypeError from inside a React effect. That reads as an
+// unrelated render crash rather than "the gate opened with the flag off", which
+// is the diagnosis the next engineer actually needs. clearMocks resets call
+// state but not implementations, so this is re-established every test.
+beforeEach(() => {
+    mockPageAll.mockReset();
+    mockPageAll.mockImplementation(() => {
+        throw new Error('pageAllPropertyFieldOptions was called by a test that queued no response');
+    });
+});
+
 // A graph attribute holds options drawn from a hierarchy. Both the user field
 // and the channel field below link to the same template field, which is what
 // makes their option identifiers comparable.
@@ -392,15 +405,6 @@ describe('TableEditor - graph attributes with the hierarchy picker', () => {
     beforeEach(() => {
         actions.getVisualAST.mockClear();
         onChange.mockClear();
-        mockPageAll.mockReset();
-
-        // A fetch no test queued is a bug in the test or in the gate, and it has
-        // to fail loudly here. Left unimplemented the mock resolves to
-        // undefined, and `.then` on undefined throws a TypeError from inside a
-        // React effect, which reads as an unrelated render crash.
-        mockPageAll.mockImplementation(() => {
-            throw new Error('pageAllPropertyFieldOptions was called by a test that queued no response');
-        });
     });
 
     const addRow = async () => {
@@ -457,8 +461,12 @@ describe('TableEditor - graph attributes with the hierarchy picker', () => {
         renderWithContext(<TableEditor {...propsFor(programsHydrated)}/>, graphEnabledState);
         await addRow();
 
-        expect(screen.getByTestId('valueSelectorMenuButton')).toBeInTheDocument();
-        expect(mockPageAll).not.toHaveBeenCalled();
+        // Presence alone would be tautological -- addRow() already waits on this
+        // testid, so a missing one fails inside the helper. The load-bearing part
+        // is whose button carries it: the tree suffixes the row index, the flat
+        // control's is the bare 'value-selector-button'. So this asserts the e2e
+        // handle survived onto the tree's trigger specifically.
+        expect(screen.getByTestId('valueSelectorMenuButton').id).toBe('value-selector-button-0');
     });
 
     test('gives the open menu an id the policy e2e selector matches', async () => {
@@ -470,10 +478,13 @@ describe('TableEditor - graph attributes with the hierarchy picker', () => {
         await openValues();
         await treeRow('Air Program');
 
-        // The Playwright policy specs locate the popup by this prefix.
-        const popup = document.querySelector('[id^="value-selector-menu"]');
-        expect(popup).not.toBeNull();
-        expect(popup!.id).toBe('value-selector-menu-0');
+        // By role rather than by the '[id^="value-selector-menu"]' prefix the
+        // Playwright specs use: that prefix now also matches every row, and a
+        // querySelector would only pick the menu because it precedes its own
+        // children. This asserts the id the e2e locator needs still exists; it
+        // does not and cannot cover the strict-mode violation the extra matches
+        // cause in Playwright, which is handed to Phase 6.
+        expect(screen.getByRole('menu').id).toBe('value-selector-menu-0');
     });
 
     test('emits option names, not ids, when a value is checked', async () => {
@@ -662,8 +673,13 @@ describe('TableEditor - graph attributes with the hierarchy picker', () => {
         await addRow();
         await openValues();
 
-        expect(await treeRow('Air Program')).toBeInTheDocument();
-        expect(await screen.findByRole('menuitemradio', {name: /channelPrograms/})).toBeInTheDocument();
+        const row = await treeRow('Air Program');
+        const channelTarget = await screen.findByRole('menuitemradio', {name: /channelPrograms/});
+
+        // Ordering, not just co-presence: the name says "below the tree", so
+        // assert it. DOCUMENT_POSITION_FOLLOWING means channelTarget comes after
+        // the tree row in document order.
+        expect(row.compareDocumentPosition(channelTarget) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     });
 
     test('switches to a channel target from inside the tree menu', async () => {
@@ -708,9 +724,13 @@ describe('TableEditor - graph attributes with the hierarchy picker', () => {
 
         await openValues();
 
-        // Both controls label their rows with the option name, so the row id is
-        // what tells them apart: the flat picker emits value-option-<id>, the
-        // tree emits <menuId>-row-<occKey>.
+        // The discriminators are behavioural and both sit above/below: only the
+        // flat control can render the 'Channel: X' button label, and the tree
+        // fetches on every open by design, so an unfetched menu cannot be the
+        // tree. The row-id assertions below are structural corroboration -- both
+        // controls label their rows with the option name, so the id is the only
+        // way to name which one rendered -- not the thing that catches a broken
+        // gate.
         expect(await screen.findByRole('menuitemcheckbox', {name: 'Air Program'})).toHaveAttribute('id', 'value-option-opt-air');
         expect(document.querySelector('[id^="value-selector-menu-0-row-"]')).toBeNull();
         expect(mockPageAll).not.toHaveBeenCalled();
@@ -761,7 +781,15 @@ describe('TableEditor - graph attributes with the hierarchy picker', () => {
         await searchFor('Skunkworks');
 
         expect(screen.queryByText(/Create "Skunkworks"/)).not.toBeInTheDocument();
-        expect(await screen.findByText('No values match.')).toBeInTheDocument();
+
+        // By the status row's id rather than its text: the copy belongs to
+        // Phase 3 and Phase 6 owns i18n extraction, so asserting the string here
+        // would couple this test to a message another phase is free to reword.
+        // What matters is that the empty search resolves to a status row instead
+        // of a create affordance.
+        await waitFor(() => {
+            expect(document.getElementById('value-selector-menu-0-status')).not.toBeNull();
+        });
     });
 
     test('does not fetch for a non-graph attribute with the flag on', async () => {

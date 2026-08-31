@@ -111,7 +111,15 @@ const MultiValueSelector = ({
         updateValues(newValues);
     }, [values, updateValues]);
 
-    // Memoize cell contents to prevent unnecessary re-renders
+    // Memoize cell contents to prevent unnecessary re-renders.
+    //
+    // The closed-button placeholder is one of the affordances forbidCreate has to
+    // suppress, so everything the empty-values branch reads has to be a
+    // dependency -- otherwise "no create-value on a graph attribute" would hold
+    // only for as long as an unrelated array in table_editor.tsx keeps changing
+    // identity whenever the attribute changes. handleRemoveValue is deliberately
+    // still omitted: its identity changes on every parent render, so listing it
+    // would defeat the memo outright.
     const cellContents = useMemo(() => {
         if (values.length === 0) {
             // When no visible values exist but the row has masked ones, show only the masked chip.
@@ -165,7 +173,7 @@ const MultiValueSelector = ({
                 {hasMaskedValues && <MaskedChip/>}
             </div>
         );
-    }, [values, disabled, hasMaskedValues]);
+    }, [values, disabled, hasMaskedValues, actualAllowCreateForMenu, options.length, placeholder, defaultMultiPlaceholder, defaultCreatePlaceholder]);
 
     return (
         <div className='values-editor'>
