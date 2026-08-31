@@ -5711,6 +5711,93 @@ func (s *apiRPCServer) UpdatePost(args *Z_UpdatePostArgs, returns *Z_UpdatePostR
 	return nil
 }
 
+type Z_MovePostsToChannelArgs struct {
+	A []string
+	B string
+}
+
+type Z_MovePostsToChannelReturns struct {
+	A *model.AppError
+}
+
+func (g *apiRPCClient) MovePostsToChannel(rootIds []string, channelId string) *model.AppError {
+	_args := &Z_MovePostsToChannelArgs{rootIds, channelId}
+	_returns := &Z_MovePostsToChannelReturns{}
+	if err := g.client.Call("Plugin.MovePostsToChannel", _args, _returns); err != nil {
+		log.Printf("RPC call to MovePostsToChannel API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) MovePostsToChannel(args *Z_MovePostsToChannelArgs, returns *Z_MovePostsToChannelReturns) error {
+	if hook, ok := s.impl.(interface {
+		MovePostsToChannel(rootIds []string, channelId string) *model.AppError
+	}); ok {
+		returns.A = hook.MovePostsToChannel(args.A, args.B)
+	} else {
+		return encodableError(fmt.Errorf("API MovePostsToChannel called but not implemented."))
+	}
+	return nil
+}
+
+type Z_AddChannelsToRetentionPolicyArgs struct {
+	A string
+	B []string
+}
+
+type Z_AddChannelsToRetentionPolicyReturns struct {
+	A *model.AppError
+}
+
+func (g *apiRPCClient) AddChannelsToRetentionPolicy(policyId string, channelIds []string) *model.AppError {
+	_args := &Z_AddChannelsToRetentionPolicyArgs{policyId, channelIds}
+	_returns := &Z_AddChannelsToRetentionPolicyReturns{}
+	if err := g.client.Call("Plugin.AddChannelsToRetentionPolicy", _args, _returns); err != nil {
+		log.Printf("RPC call to AddChannelsToRetentionPolicy API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) AddChannelsToRetentionPolicy(args *Z_AddChannelsToRetentionPolicyArgs, returns *Z_AddChannelsToRetentionPolicyReturns) error {
+	if hook, ok := s.impl.(interface {
+		AddChannelsToRetentionPolicy(policyId string, channelIds []string) *model.AppError
+	}); ok {
+		returns.A = hook.AddChannelsToRetentionPolicy(args.A, args.B)
+	} else {
+		return encodableError(fmt.Errorf("API AddChannelsToRetentionPolicy called but not implemented."))
+	}
+	return nil
+}
+
+type Z_RemoveChannelsFromRetentionPolicyArgs struct {
+	A string
+	B []string
+}
+
+type Z_RemoveChannelsFromRetentionPolicyReturns struct {
+	A *model.AppError
+}
+
+func (g *apiRPCClient) RemoveChannelsFromRetentionPolicy(policyId string, channelIds []string) *model.AppError {
+	_args := &Z_RemoveChannelsFromRetentionPolicyArgs{policyId, channelIds}
+	_returns := &Z_RemoveChannelsFromRetentionPolicyReturns{}
+	if err := g.client.Call("Plugin.RemoveChannelsFromRetentionPolicy", _args, _returns); err != nil {
+		log.Printf("RPC call to RemoveChannelsFromRetentionPolicy API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) RemoveChannelsFromRetentionPolicy(args *Z_RemoveChannelsFromRetentionPolicyArgs, returns *Z_RemoveChannelsFromRetentionPolicyReturns) error {
+	if hook, ok := s.impl.(interface {
+		RemoveChannelsFromRetentionPolicy(policyId string, channelIds []string) *model.AppError
+	}); ok {
+		returns.A = hook.RemoveChannelsFromRetentionPolicy(args.A, args.B)
+	} else {
+		return encodableError(fmt.Errorf("API RemoveChannelsFromRetentionPolicy called but not implemented."))
+	}
+	return nil
+}
+
 type Z_GetProfileImageArgs struct {
 	A string
 }

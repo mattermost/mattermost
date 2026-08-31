@@ -31,6 +31,7 @@ import {
     isPostEphemeral,
     isSystemMessage,
     shouldFilterJoinLeavePost,
+    shouldFilterBackingChannelPost,
     comparePosts,
     isPostPendingOrFailed,
     isPostCommentMention,
@@ -225,7 +226,7 @@ export const getPostsInCurrentChannel: (state: GlobalState) => Post[] | undefine
         for (let i = 0; i < postIds.length; i++) {
             const post = allPosts[postIds[i]];
 
-            if (!post || shouldFilterJoinLeavePost(post, showJoinLeave, currentUser ? currentUser.username : '')) {
+            if (!post || shouldFilterJoinLeavePost(post, showJoinLeave, currentUser ? currentUser.username : '') || shouldFilterBackingChannelPost(post)) {
                 continue;
             }
 
@@ -262,7 +263,7 @@ export function makeGetPostsForThread(): (state: GlobalState, rootId: string) =>
                         continue;
                     }
 
-                    const skip = shouldFilterJoinLeavePost(post, showJoinLeave, currentUser ? currentUser.username : '');
+                    const skip = shouldFilterJoinLeavePost(post, showJoinLeave, currentUser ? currentUser.username : '') || shouldFilterBackingChannelPost(post);
                     if (!skip) {
                         thread.push(post);
                     }

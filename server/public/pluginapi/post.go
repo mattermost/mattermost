@@ -77,6 +77,17 @@ func (p *PostService) DeletePost(postID string) error {
 	return normalizeAppErr(p.api.DeletePost(postID))
 }
 
+// MovePostsToChannel moves the given root posts — each with its full thread of replies and
+// edit history — into channelID, in place: ids, timestamps, and reactions are preserved. The
+// move is restricted to non-message backing channels (e.g. a Docs space) on both sides, and
+// every id must name a root post. Batches are capped server-side; callers drive larger sets a
+// batch at a time.
+//
+// Minimum server version: 11.11
+func (p *PostService) MovePostsToChannel(rootIDs []string, channelID string) error {
+	return normalizeAppErr(p.api.MovePostsToChannel(rootIDs, channelID))
+}
+
 // SendEphemeralPost creates an ephemeral post.
 //
 // Minimum server version: 5.2

@@ -894,7 +894,7 @@ func (api *PluginAPI) DeleteGroupSyncable(groupID string, syncableID string, syn
 }
 
 func (api *PluginAPI) CreatePost(post *model.Post) (*model.Post, *model.AppError) {
-	channel, appErr := api.app.GetChannel(api.ctx, post.ChannelId)
+	channel, appErr := api.resolveChannel(post.ChannelId)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -941,7 +941,19 @@ func (api *PluginAPI) DeleteEphemeralPost(userID, postID string) {
 }
 
 func (api *PluginAPI) DeletePost(postID string) *model.AppError {
-	_, err := api.app.DeletePost(api.ctx, postID, api.id)
+	// Best-effort pre-resolution through the backing-type fallback, so a post in a backing
+	// channel (which the generic channel lookup cannot resolve) is deletable through the plugin
+	// API. The store is read directly — GetSinglePost would fire the consume hooks on a write
+	// path — and from master, matching the helper's own read, so a freshly created post cannot
+	// miss on a lagging replica. Any failure here falls through with a nil channel, and the
+	// delete resolves — and errors — exactly as it always has.
+	var channel *model.Channel
+	if post, nErr := api.app.Srv().Store().Post().GetSingle(RequestContextWithMaster(api.ctx), postID, true); nErr == nil {
+		if resolved, resolveErr := api.resolveChannel(post.ChannelId); resolveErr == nil {
+			channel = resolved
+		}
+	}
+	_, err := api.app.deletePostWithChannel(api.ctx, postID, api.id, channel)
 	return err
 }
 
@@ -1006,11 +1018,31 @@ func (api *PluginAPI) UpdatePost(post *model.Post) (*model.Post, *model.AppError
 		}
 		allowMmBlocksActionsUpdate = true
 	}
-	post, _, appErr := api.app.UpdatePost(api.ctx, post, &model.UpdatePostOptions{SafeUpdate: false, AllowMmBlocksActionsUpdate: allowMmBlocksActionsUpdate})
+	// Best-effort pre-resolution through the backing-type fallback (see DeletePost); the stored
+	// post's ChannelId is used, matching the resolution UpdatePost itself performs.
+	var channel *model.Channel
+	if oldPost, nErr := api.app.Srv().Store().Post().GetSingle(RequestContextWithMaster(api.ctx), post.Id, true); nErr == nil {
+		if resolved, resolveErr := api.resolveChannel(oldPost.ChannelId); resolveErr == nil {
+			channel = resolved
+		}
+	}
+	post, _, appErr := api.app.updatePostWithChannel(api.ctx, post, &model.UpdatePostOptions{SafeUpdate: false, AllowMmBlocksActionsUpdate: allowMmBlocksActionsUpdate}, channel)
 	if post != nil {
 		post = post.ForPlugin()
 	}
 	return post, appErr
+}
+
+func (api *PluginAPI) MovePostsToChannel(rootIDs []string, channelID string) *model.AppError {
+	return api.app.MovePostsToChannel(api.ctx, rootIDs, channelID)
+}
+
+func (api *PluginAPI) AddChannelsToRetentionPolicy(policyID string, channelIDs []string) *model.AppError {
+	return api.app.AddChannelsToRetentionPolicy(policyID, channelIDs)
+}
+
+func (api *PluginAPI) RemoveChannelsFromRetentionPolicy(policyID string, channelIDs []string) *model.AppError {
+	return api.app.RemoveChannelsFromRetentionPolicy(policyID, channelIDs)
 }
 
 func (api *PluginAPI) GetProfileImage(userID string) ([]byte, *model.AppError) {

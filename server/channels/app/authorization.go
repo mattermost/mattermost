@@ -209,22 +209,41 @@ func (a *App) SessionHasPermissionToChannelByPost(session model.Session, postID 
 		return false
 	}
 
+	// A post in a non-message backing channel (e.g. a Docs space) is not reachable through
+	// chat authorization. The rejection comes before the membership question — membership in a
+	// backing channel grants no chat permission on its posts — and fails closed for post-id
+	// routes core has not written yet.
+	channel, channelErr := a.Srv().Store().Channel().GetForPost(postID)
+	if channelErr == nil && channel.Type.IsNonMessageBacking() {
+		return false
+	}
+
 	if channelMember, err := a.Srv().Store().Channel().GetMemberForPost(postID, session.UserId); err == nil {
 		if a.RolesGrantPermission(channelMember.GetRoles(), permission.Id) {
 			return true
 		}
 	}
 
-	if channel, err := a.Srv().Store().Channel().GetForPost(postID); err == nil {
-		if channel.TeamId != "" {
-			return a.SessionHasPermissionToTeam(session, channel.TeamId, permission)
-		}
+	if channelErr == nil && channel.TeamId != "" {
+		return a.SessionHasPermissionToTeam(session, channel.TeamId, permission)
 	}
 
 	return a.SessionHasPermissionTo(session, permission)
 }
 
-func (a *App) SessionHasPermissionToReadPost(rctx request.CTX, session model.Session, postID string) (hasPErmission bool, isMember bool) {
+func (a *App) SessionHasPermissionToReadPost(rctx request.CTX, session model.Session, postID string) (hasPermission bool, isMember bool) {
+	return a.sessionHasPermissionToReadPost(rctx, session, postID, false)
+}
+
+// SessionHasPermissionToReadPostAllowBacking is SessionHasPermissionToReadPost without the
+// non-message-backing-channel rejection. It exists for the thread unfollow route alone: a member
+// already following a backing-channel thread must be able to stop, and a membership written
+// before the rejection shipped would otherwise be permanently stranded.
+func (a *App) SessionHasPermissionToReadPostAllowBacking(rctx request.CTX, session model.Session, postID string) (hasPermission bool, isMember bool) {
+	return a.sessionHasPermissionToReadPost(rctx, session, postID, true)
+}
+
+func (a *App) sessionHasPermissionToReadPost(rctx request.CTX, session model.Session, postID string, allowBacking bool) (hasPermission bool, isMember bool) {
 	if postID == "" {
 		return false, false
 	}
@@ -234,6 +253,13 @@ func (a *App) SessionHasPermissionToReadPost(rctx request.CTX, session model.Ses
 		// Original implementation (SessionHasPermissionToChannelByPost) still checks for
 		// general permissions even if the channel is not found, and some tests rely on this behavior.
 		return a.SessionHasPermissionTo(session, model.PermissionReadChannelContent), false
+	}
+
+	// A post in a non-message backing channel (e.g. a Docs space) is not readable through chat
+	// authorization; the rejection comes before the membership question and fails closed for
+	// post-id routes core has not written yet.
+	if !allowBacking && channel.Type.IsNonMessageBacking() {
+		return false, false
 	}
 
 	return a.SessionHasPermissionToReadChannel(rctx, session, channel)

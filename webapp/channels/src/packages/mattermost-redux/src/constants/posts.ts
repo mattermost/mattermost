@@ -39,6 +39,8 @@ export const PostTypes = {
     GM_CONVERTED_TO_CHANNEL: 'system_gm_to_channel' as PostType,
     BURN_ON_READ: 'burn_on_read' as PostType,
     SHARED_CHANNEL_STATE: 'system_shared_chan_state' as PostType,
+
+    DOCS_PAGE_COMMENT: 'custom_page_comment' as PostType,
 };
 
 export default {
@@ -66,6 +68,14 @@ export default {
         PostTypes.LEAVE_TEAM,
         PostTypes.ADD_TO_TEAM,
         PostTypes.REMOVE_FROM_TEAM,
+    ],
+
+    // Post types written into a backing channel by a feature that renders them on its own
+    // surface. They are real posts, but the chat client must not show them in the channel
+    // feed or the Threads list. A type must be added here when a feature starts writing
+    // posts to a backing channel; otherwise its content appears in chat.
+    BACKING_CHANNEL_POST_TYPES: [
+        PostTypes.DOCS_PAGE_COMMENT,
     ],
     USER_ACTIVITY_POST_TYPES: [
         PostTypes.ADD_TO_CHANNEL,

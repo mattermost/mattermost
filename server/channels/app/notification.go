@@ -690,6 +690,15 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 		}
 	}
 
+	// A post in a non-message backing channel (e.g. a Docs space comment) must not reach chat
+	// clients: the posted broadcast and the per-follower thread_updated events below carry the
+	// full post, and a channel-scoped payload cannot be filtered by any read gate. Push and
+	// email were dispatched above and stay; everything from here to the end of the function is
+	// websocket delivery.
+	if channel.Type.IsNonMessageBacking() {
+		return mentionedUsersList, nil
+	}
+
 	rctx.Logger().LogM(mlog.MlvlNotificationTrace, "Begin sending websocket notifications",
 		mlog.String("type", model.NotificationTypeWebsocket),
 		mlog.String("sender_id", sender.Id),
@@ -1050,12 +1059,17 @@ func (a *App) RemoveNotifications(rctx request.CTX, post *model.Post, channel *m
 				}
 				auditRec.Success()
 
-				message := model.NewWebSocketEvent(model.WebsocketEventThreadUpdated, team.Id, "", userID, nil, "")
-				message.Add("thread", string(payload))
-				message.Add("previous_unread_mentions", previousUnreadMentions)
-				message.Add("previous_unread_replies", previousUnreadReplies)
+				// The thread_updated payload carries the root post; a non-message backing
+				// channel's thread must not reach chat clients. The membership updates above
+				// stand — only the broadcast is withheld.
+				if !channel.Type.IsNonMessageBacking() {
+					message := model.NewWebSocketEvent(model.WebsocketEventThreadUpdated, team.Id, "", userID, nil, "")
+					message.Add("thread", string(payload))
+					message.Add("previous_unread_mentions", previousUnreadMentions)
+					message.Add("previous_unread_replies", previousUnreadReplies)
 
-				a.Publish(message)
+					a.Publish(message)
+				}
 			}
 		}
 	}

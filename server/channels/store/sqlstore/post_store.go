@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"reflect"
 	"regexp"
+	"slices"
 	"strings"
 	"sync"
 	"time"
@@ -166,7 +167,15 @@ func (s *SqlPostStore) SaveMultiple(rctx request.CTX, posts []*model.Post) ([]*m
 	burnOnReadPosts := make(map[string]*model.TemporaryPost)
 	for idx, post := range posts {
 		if post.Id != "" && !post.IsRemote() {
-			return nil, idx, store.NewErrInvalidInput("Post", "id", post.Id)
+			// A non-message backing channel (e.g. a Docs space) accepts a caller-supplied id:
+			// its trusted feature callers allocate the id so a create that errors after the
+			// save has committed can be resolved by reading the row back. Chat channels keep
+			// the rejection, and the lookup runs only on this already-exceptional path.
+			var channelType model.ChannelType
+			chErr := s.GetMaster().Get(&channelType, "SELECT Type FROM Channels WHERE Id = ?", post.ChannelId)
+			if chErr != nil || !channelType.IsNonMessageBacking() {
+				return nil, idx, store.NewErrInvalidInput("Post", "id", post.Id)
+			}
 		}
 		post.PreSave()
 		maxPostSize := s.GetMaxPostSize()
@@ -1018,6 +1027,155 @@ func (s *SqlPostStore) Delete(rctx request.CTX, postID string, time int64, delet
 	}
 
 	return nil
+}
+
+// MoveThreadsToChannel moves the given root posts — each with its full thread: live and
+// soft-deleted replies plus edit-history rows — into targetChannelID in one transaction,
+// rewriting the Threads rows and both sides' message counters. Edit-history rows (OriginalId
+// set) move but are excluded from the counter deltas, since they never counted toward a
+// channel. An id that resolves to nothing is skipped, so a re-run over already-moved rows is a
+// no-op; an id naming a non-root post is invalid input, since moving a bare reply would split
+// its thread. The target and every source must be a non-message backing channel, verified
+// inside the transaction — that scope is also why LastPostAt is not recomputed: backing
+// channels carry no chat unread surfaces. Returns the distinct source channel ids so the
+// caller can invalidate their post caches.
+func (s *SqlPostStore) MoveThreadsToChannel(rctx request.CTX, rootIDs []string, targetChannelID, targetTeamID string) (_ []string, err error) {
+	if len(rootIDs) == 0 {
+		return nil, nil
+	}
+
+	transaction, err := s.GetMaster().Begin()
+	if err != nil {
+		return nil, errors.Wrap(err, "begin_transaction")
+	}
+	defer finalizeTransactionX(transaction, &err)
+
+	// Every id must name a current root post: a reply would split its thread, and an
+	// edit-history row (OriginalId set) is a snapshot, not a thread — it moves with its post,
+	// never on its own.
+	var nonRoots []string
+	nonRootQuery := s.getQueryBuilder().
+		Select("Id").
+		From("Posts").
+		Where(sq.Eq{"Id": rootIDs}).
+		Where(sq.Or{sq.NotEq{"RootId": ""}, sq.NotEq{"OriginalId": ""}})
+	if err = transaction.SelectBuilder(&nonRoots, nonRootQuery); err != nil {
+		return nil, errors.Wrap(err, "failed to check root posts for move")
+	}
+	if len(nonRoots) > 0 {
+		return nil, store.NewErrInvalidInput("Post", "rootIds", strings.Join(nonRoots, ","))
+	}
+
+	// Counter deltas per source channel, over the rows that counted (OriginalId = ''). Rows
+	// already on the target contribute nothing, so a re-run cannot move a count twice.
+	var deltas []struct {
+		ChannelId string
+		Count     int64
+		RootCount int64
+	}
+	deltaQuery := s.getQueryBuilder().
+		Select("ChannelId", "COUNT(*) AS Count", "SUM(CASE WHEN RootId = '' THEN 1 ELSE 0 END) AS RootCount").
+		From("Posts").
+		Where(sq.Or{sq.Eq{"Id": rootIDs}, sq.Eq{"RootId": rootIDs}}).
+		Where(sq.Eq{"OriginalId": ""}).
+		Where(sq.NotEq{"ChannelId": targetChannelID}).
+		GroupBy("ChannelId")
+	if err = transaction.SelectBuilder(&deltas, deltaQuery); err != nil {
+		return nil, errors.Wrap(err, "failed to count posts for move")
+	}
+
+	// The type gate covers every channel the move statement below can touch — derived from the
+	// full match set, not from the counter deltas, which exclude edit-history rows and rows
+	// already on the target. A channel reachable only through such a row must still be a
+	// backing channel.
+	var touchedChannelIDs []string
+	touchedQuery := s.getQueryBuilder().
+		Select("DISTINCT ChannelId").
+		From("Posts").
+		Where(sq.Or{sq.Eq{"Id": rootIDs}, sq.Eq{"RootId": rootIDs}, sq.Eq{"OriginalId": rootIDs}})
+	if err = transaction.SelectBuilder(&touchedChannelIDs, touchedQuery); err != nil {
+		return nil, errors.Wrap(err, "failed to list channels for move")
+	}
+	channelIDs := append([]string{targetChannelID}, touchedChannelIDs...)
+	var channelTypes []struct {
+		Id   string
+		Type model.ChannelType
+	}
+	typeQuery := s.getQueryBuilder().
+		Select("Id", "Type").
+		From("Channels").
+		Where(sq.Eq{"Id": channelIDs})
+	if err = transaction.SelectBuilder(&channelTypes, typeQuery); err != nil {
+		return nil, errors.Wrap(err, "failed to get channels for move")
+	}
+	targetFound := false
+	for _, channel := range channelTypes {
+		if !channel.Type.IsNonMessageBacking() {
+			return nil, store.NewErrInvalidInput("Channel", "Type", string(channel.Type))
+		}
+		if channel.Id == targetChannelID {
+			targetFound = true
+		}
+	}
+	if !targetFound {
+		return nil, store.NewErrNotFound("Channel", targetChannelID)
+	}
+
+	moveQuery := s.getQueryBuilder().
+		Update("Posts").
+		Set("ChannelId", targetChannelID).
+		Where(sq.Or{sq.Eq{"Id": rootIDs}, sq.Eq{"RootId": rootIDs}, sq.Eq{"OriginalId": rootIDs}})
+	if _, err = transaction.ExecBuilder(moveQuery); err != nil {
+		return nil, errors.Wrap(err, "failed to move Posts")
+	}
+
+	threadQuery := s.getQueryBuilder().
+		Update("Threads").
+		Set("ChannelId", targetChannelID).
+		Set("ThreadTeamId", targetTeamID).
+		Where(sq.Eq{"PostId": rootIDs})
+	if _, err = transaction.ExecBuilder(threadQuery); err != nil {
+		return nil, errors.Wrap(err, "failed to move Threads")
+	}
+
+	// One counter update per counted channel, applied in id order so two concurrent moves
+	// cannot take the Channels row locks in opposite orders.
+	counterDeltas := make(map[string][2]int64, len(deltas)+1)
+	for _, delta := range deltas {
+		counterDeltas[delta.ChannelId] = [2]int64{-delta.Count, -delta.RootCount}
+		target := counterDeltas[targetChannelID]
+		counterDeltas[targetChannelID] = [2]int64{target[0] + delta.Count, target[1] + delta.RootCount}
+	}
+	counterChannelIDs := make([]string, 0, len(counterDeltas))
+	for channelID := range counterDeltas {
+		counterChannelIDs = append(counterChannelIDs, channelID)
+	}
+	slices.Sort(counterChannelIDs)
+	for _, channelID := range counterChannelIDs {
+		delta := counterDeltas[channelID]
+		counterQuery := s.getQueryBuilder().
+			Update("Channels").
+			Set("TotalMsgCount", sq.Expr("TotalMsgCount + ?", delta[0])).
+			Set("TotalMsgCountRoot", sq.Expr("TotalMsgCountRoot + ?", delta[1])).
+			Where(sq.Eq{"Id": channelID})
+		if _, err = transaction.ExecBuilder(counterQuery); err != nil {
+			return nil, errors.Wrap(err, "failed to update channel message counts for move")
+		}
+	}
+
+	if err = transaction.Commit(); err != nil {
+		return nil, errors.Wrap(err, "commit_transaction")
+	}
+
+	// The sources come from the full touched set — not the counter deltas — so a caller's cache
+	// invalidation also reaches a channel whose only moved rows were already-uncounted ones.
+	sources := make([]string, 0, len(touchedChannelIDs))
+	for _, channelID := range touchedChannelIDs {
+		if channelID != targetChannelID {
+			sources = append(sources, channelID)
+		}
+	}
+	return sources, nil
 }
 
 func (s *SqlPostStore) PermanentDelete(rctx request.CTX, postID string) (err error) {

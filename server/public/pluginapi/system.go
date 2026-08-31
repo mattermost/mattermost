@@ -20,6 +20,23 @@ type SystemService struct {
 	api plugin.API
 }
 
+// AddChannelsToRetentionPolicy assigns the given channels to the granular data-retention
+// policy, so their content follows that policy's clock rather than the global or team one.
+// Requires a license with the data-retention feature.
+//
+// Minimum server version: 11.11
+func (s *SystemService) AddChannelsToRetentionPolicy(policyID string, channelIDs []string) error {
+	return normalizeAppErr(s.api.AddChannelsToRetentionPolicy(policyID, channelIDs))
+}
+
+// RemoveChannelsFromRetentionPolicy removes the given channels from the granular data-retention
+// policy. Requires a license with the data-retention feature.
+//
+// Minimum server version: 11.11
+func (s *SystemService) RemoveChannelsFromRetentionPolicy(policyID string, channelIDs []string) error {
+	return normalizeAppErr(s.api.RemoveChannelsFromRetentionPolicy(policyID, channelIDs))
+}
+
 // GetManifest returns the manifest from the plugin bundle.
 //
 // Minimum server version: 5.10

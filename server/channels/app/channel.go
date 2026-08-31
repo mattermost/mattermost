@@ -3344,7 +3344,10 @@ func (a *App) markChannelAsUnreadFromPostCRTUnsupported(rctx request.CTX, postID
 		}
 		a.sanitizeThreadResponse(thread)
 
-		if a.IsCRTEnabledForUser(rctx, userID) {
+		// The thread_updated payload carries the root post; a non-message backing channel's
+		// thread must not reach chat clients. The membership updates above stand — only the
+		// broadcast is withheld.
+		if a.IsCRTEnabledForUser(rctx, userID) && !channel.Type.IsNonMessageBacking() {
 			payload, jsonErr := json.Marshal(thread)
 			if jsonErr != nil {
 				return nil, model.NewAppError("MarkChannelAsUnreadFromPost", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)

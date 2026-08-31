@@ -853,6 +853,27 @@ func (api *apiTimerLayer) UpdatePost(post *model.Post) (*model.Post, *model.AppE
 	return _returnsA, _returnsB
 }
 
+func (api *apiTimerLayer) MovePostsToChannel(rootIds []string, channelId string) *model.AppError {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.MovePostsToChannel(rootIds, channelId)
+	api.recordTime(startTime, "MovePostsToChannel", _returnsA == nil)
+	return _returnsA
+}
+
+func (api *apiTimerLayer) AddChannelsToRetentionPolicy(policyId string, channelIds []string) *model.AppError {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.AddChannelsToRetentionPolicy(policyId, channelIds)
+	api.recordTime(startTime, "AddChannelsToRetentionPolicy", _returnsA == nil)
+	return _returnsA
+}
+
+func (api *apiTimerLayer) RemoveChannelsFromRetentionPolicy(policyId string, channelIds []string) *model.AppError {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.RemoveChannelsFromRetentionPolicy(policyId, channelIds)
+	api.recordTime(startTime, "RemoveChannelsFromRetentionPolicy", _returnsA == nil)
+	return _returnsA
+}
+
 func (api *apiTimerLayer) GetProfileImage(userID string) ([]byte, *model.AppError) {
 	startTime := timePkg.Now()
 	_returnsA, _returnsB := api.apiImpl.GetProfileImage(userID)
