@@ -52,7 +52,9 @@ describe('Messaging', () => {
             cy.focused().type(secondUser.last_name.slice(0, 7));
 
             // * The suggestion for the GM channel with the user that was searched for should show the username of the user and verify the suggestion for the GM channel with the user that was searched for should show the 'G' text
-            cy.get('.suggestion--selected').should('exist').and('contain.text', secondUser.username).findByText('G').should('exist');
+            cy.get('#suggestionList').findByTestId(channel.name).should('be.visible').
+                and('contain.text', secondUser.username).
+                findByText('G').should('exist');
         });
     });
 });

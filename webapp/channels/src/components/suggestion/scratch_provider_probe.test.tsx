@@ -12,7 +12,7 @@ import {waitFor} from 'tests/react_testing_utils';
 import mockStore from 'tests/test_store';
 import {TestHelper} from 'utils/test_helper';
 
-import SwitchChannelProvider from './switch_channel_provider';
+import SwitchChannelProvider, {quickSwitchSorter} from './switch_channel_provider';
 
 jest.mock('mattermost-redux/client', () => {
     const original = jest.requireActual('mattermost-redux/client');
@@ -127,30 +127,58 @@ function makeState(channelOrder: string[]) {
     };
 }
 
+const ORDER = ['dm_sam', 'gm_sam', 'sam_project'];
+
 describe('DM over GM guarantee with a public channel in the same relevance tier', () => {
     it.each([
         ['dm_sam', 'gm_sam', 'sam_project'],
+        ['dm_sam', 'sam_project', 'gm_sam'],
         ['gm_sam', 'dm_sam', 'sam_project'],
-        ['sam_project', 'gm_sam', 'dm_sam'],
         ['gm_sam', 'sam_project', 'dm_sam'],
-    ])('store key order %s, %s, %s', async (...order) => {
+        ['sam_project', 'dm_sam', 'gm_sam'],
+        ['sam_project', 'gm_sam', 'dm_sam'],
+    ])('channel list order %s, %s, %s', async (...order) => {
         jest.mocked(Client4.autocompleteUsers).mockResolvedValue({users: [sam]});
 
+        const state = makeState(ORDER);
         const switchProvider = new SwitchChannelProvider();
-        switchProvider.store = mockStore(makeState(order as string[]));
+        switchProvider.store = mockStore(state);
 
-        const resultsCallback = jest.fn();
-        switchProvider.handlePretextChanged('sam', resultsCallback);
+        // Set the module level prefix the way the real quick switcher does
+        switchProvider.handlePretextChanged('sam', jest.fn());
+        await waitFor(() => expect(Client4.autocompleteUsers).toHaveBeenCalled());
 
-        await waitFor(() => expect(resultsCallback).toHaveBeenCalledTimes(2));
-
-        const local = resultsCallback.mock.calls[0][0].groups[0];
-        const merged = resultsCallback.mock.calls[1][0].groups[0];
-
-        // eslint-disable-next-line no-console
-        console.log(`state key order [${(order as string[]).join(', ')}] -> local [${local.terms.join(', ')}] -> merged [${merged.terms.join(', ')}]`);
+        const channelList = (order as string[]).map((id) => state.entities.channels.channels[id]);
+        const results = switchProvider.formatGroup('sam', channelList, [sam]);
 
         // eslint-disable-next-line no-console
-        console.log('  last_viewed_at: ' + merged.items.map((i: any) => `${i.channel.id}:${i.channel.type}:${i.last_viewed_at}`).join(' '));
+        console.log(`input [${(order as string[]).join(', ')}] -> results [${results.terms.join(', ')}]`);
+
+        if ((order as string[])[0] !== 'dm_sam') {
+            return;
+        }
+
+        // Take the real wrapped items the provider produced and probe the comparator on them
+        const byId: Record<string, any> = {};
+        results.items.forEach((item: any) => {
+            byId[item.channel.id] = item;
+        });
+        const dm = byId.dm_sam;
+        const gm = byId.gm_sam;
+        const open = byId.sam_project;
+
+        // eslint-disable-next-line no-console
+        console.log(`PAIR dm/gm=${quickSwitchSorter(dm, gm)} gm/open=${quickSwitchSorter(gm, open)} dm/open=${quickSwitchSorter(dm, open)}`);
+
+        // eslint-disable-next-line no-console
+        console.log(`FLAGS dm=${JSON.stringify({t: dm.channel.type, lva: dm.last_viewed_at, h: dm.hiddenInSidebar, d: dm.channel.display_name})} gm=${JSON.stringify({t: gm.channel.type, lva: gm.last_viewed_at, h: gm.hiddenInSidebar, d: gm.channel.display_name})} open=${JSON.stringify({t: open.channel.type, lva: open.last_viewed_at, h: open.hiddenInSidebar, d: open.channel.display_name})}`);
+
+        for (const perm of [[dm, gm, open], [dm, open, gm], [gm, dm, open], [gm, open, dm], [open, dm, gm], [open, gm, dm]]) {
+            const before = perm.map((w: any) => w.channel.id).join(', ');
+            const after = [...perm].sort(quickSwitchSorter).map((w: any) => w.channel.id).join(', ');
+
+            // eslint-disable-next-line no-console
+            console.log(`  PERM [${before}] -> [${after}]`);
+        }
     });
 });
