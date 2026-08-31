@@ -238,5 +238,4 @@ require (
 // See MM-66167, MM-68222 for more details.
 replace github.com/vmihailenco/msgpack/v5 => github.com/mattermost/msgpack/v5 v5.0.0-20260408165622-cadfad56a815
 
-// See MM-63434 for more details.
 replace github.com/ledongthuc/pdf => github.com/mattermost/pdf v0.0.0-20260828123129-5b7509a6ca01
