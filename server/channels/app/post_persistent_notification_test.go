@@ -449,7 +449,7 @@ func TestSendPersistentNotificationsBotSender(t *testing.T) {
 		})
 		require.Nil(t, appErr)
 
-		botUser, appErr := th.App.GetUser(bot.UserId)
+		botUser, appErr := th.App.GetUser(th.Context, bot.UserId)
 		require.Nil(t, appErr)
 
 		_, _, appErr = th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, botUser.Id, "")
@@ -501,7 +501,7 @@ func TestSendPersistentNotificationsBotSenderNotInChannel(t *testing.T) {
 		})
 		require.Nil(t, appErr)
 
-		botUser, appErr := th.App.GetUser(bot.UserId)
+		botUser, appErr := th.App.GetUser(th.Context, bot.UserId)
 		require.Nil(t, appErr)
 
 		// Make the bot a system admin so it can post to channels it's not a member of
