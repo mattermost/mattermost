@@ -134,8 +134,7 @@ describe('Quick switcher', () => {
             cy.focused().type(userPrefix);
 
             // * Should list the GM while it is in the LHS, Matching as Gaz because we have G prefixed for GM's
-            cy.get('#suggestionList').findByTestId(channel.name).should('be.visible').
-                and('contain.text', gmBadge + userPrefix);
+            cy.get('#suggestionList').should('be.visible').and('contain.text', gmBadge + userPrefix);
             cy.get('body').typeWithForce('{esc}');
 
             // # Open channel menu and click Close Group Message

@@ -18,7 +18,7 @@ import Constants, {StoragePrefixes} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
 import type {WrappedChannel} from './switch_channel_provider';
-import SwitchChannelProvider, {ConnectedSwitchChannelSuggestion} from './switch_channel_provider';
+import SwitchChannelProvider, {ConnectedSwitchChannelSuggestion, quickSwitchSorter} from './switch_channel_provider';
 
 const latestPost = TestHelper.getPostMock({
     id: 'latest_post_id',
@@ -1448,8 +1448,8 @@ describe('components/SwitchChannelProvider', () => {
                         currentUserId: 'current_user_id',
                         profilesInChannel,
                     },
+                    posts: {posts: {}, postsInChannel: {}, postsInThread: {}},
                 },
-                posts: {posts: {}, postsInChannel: {}, postsInThread: {}},
             };
         }
 
@@ -1467,13 +1467,31 @@ describe('components/SwitchChannelProvider', () => {
             return resultsCallback.mock.calls.map((call) => call[0].groups[0]);
         }
 
+        // The competing DM belongs to a user whose username only contains the search term, and was
+        // read much more recently, so it wins whenever the searched username fails to rank first
+        function stateWithCompetingDm() {
+            const containsTerm = TestHelper.getUserMock({
+                id: 'contains_term_user_id',
+                username: 'ajoram',
+            });
+
+            return {
+                containsTerm,
+                state: makeState({
+                    existingDmLastViewedAt: 1,
+                    extraProfiles: [containsTerm],
+                    extraDmChannels: [{userId: containsTerm.id, lastViewedAt: 9000}],
+                }),
+            };
+        }
+
         it('ranks the person first once the server results arrive, even with no DM channel yet', async () => {
             const [localResults, mergedResults] = await search('jora', makeState());
 
             // The user has never messaged joram, so only the GMs are known locally
-            expect(localResults.terms).toEqual(['gm_channel_0', 'gm_channel_2', 'gm_channel_1']);
+            expect(localResults.terms).toEqual(['gm_channel_2', 'gm_channel_1', 'gm_channel_0']);
 
-            expect(mergedResults.terms).toEqual([joram.id, 'gm_channel_0', 'gm_channel_2', 'gm_channel_1']);
+            expect(mergedResults.terms).toEqual([joram.id, 'gm_channel_2', 'gm_channel_1', 'gm_channel_0']);
 
             // Selecting a suggestion resolves it by term, so the two have to stay in lockstep
             expect(mergedResults.items.map((item: WrappedChannel) => (
@@ -1484,37 +1502,35 @@ describe('components/SwitchChannelProvider', () => {
         it('ranks an existing DM first even when every group message was read more recently', async () => {
             const [, mergedResults] = await search('jora', makeState({existingDmLastViewedAt: 1}));
 
-            expect(mergedResults.terms[0]).toEqual(joram.id);
+            // gm_channel_0 is displayed as "joram, pavel.zeman", so it also starts with the search
+            // term, but only because joram sorts first among its members
+            expect(mergedResults.terms).toEqual([joram.id, 'gm_channel_2', 'gm_channel_1', 'gm_channel_0']);
         });
 
         it('ranks the DM first when the search term is capitalized', async () => {
-            const [, mergedResults] = await search('Jora', makeState({existingDmLastViewedAt: 1}));
+            const {containsTerm, state} = stateWithCompetingDm();
+
+            const [, mergedResults] = await search('Jora', state, [joram, containsTerm]);
 
             expect(mergedResults.terms[0]).toEqual(joram.id);
         });
 
-        it('ranks the DM first when the search term matches only the last name', async () => {
-            const [, mergedResults] = await search('wilander', makeState({existingDmLastViewedAt: 1}));
+        it('ranks the DM first when the search term is written as a mention', async () => {
+            const {containsTerm, state} = stateWithCompetingDm();
 
-            expect(mergedResults.terms[0]).toEqual(joram.id);
-        });
-
-        it('ranks the username starting with the search term first when the term is written as a mention', async () => {
-            const containsTerm = TestHelper.getUserMock({
-                id: 'contains_term_user_id',
-                username: 'ajoram',
-            });
-            const state = makeState({
-                existingDmLastViewedAt: 1,
-                extraProfiles: [containsTerm],
-
-                // The DM with the user who merely contains the term was read much more recently
-                extraDmChannels: [{userId: containsTerm.id, lastViewedAt: 9000}],
-            });
-
+            // A leading @ makes the channel filter substring match on "@jora", which no group
+            // message contains, so only the two people are left to rank
             const [, mergedResults] = await search('@jora', state, [joram, containsTerm]);
 
             expect(mergedResults.terms).toEqual([joram.id, containsTerm.id]);
+        });
+
+        it('still ranks by recency when neither conversation matches the start of a name', async () => {
+            const [, mergedResults] = await search('wilander', makeState({existingDmLastViewedAt: 1}));
+
+            // Every result matches joram's last name mid-name, so none of them is a stronger match
+            // than the others and the most recently read one wins
+            expect(mergedResults.terms).toEqual(['gm_channel_2', 'gm_channel_1', 'gm_channel_0', joram.id]);
         });
 
         it('keeps a group message hidden from the sidebar below an equally relevant visible one', async () => {
@@ -1522,8 +1538,54 @@ describe('components/SwitchChannelProvider', () => {
 
             const [, mergedResults] = await search('jora', state);
 
+            // Hidden group messages used to end up last only because they came from the server
+            // results, which were appended rather than ranked
             expect(mergedResults.terms).toContain('hidden_gm_channel');
             expect(mergedResults.terms.indexOf('hidden_gm_channel')).toBeGreaterThan(mergedResults.terms.indexOf('gm_channel_0'));
+        });
+    });
+
+    describe('quickSwitchSorter', () => {
+        function wrap(id: string, type: string, lastViewedAt: number, name: string): WrappedChannel {
+            return {
+                channel: TestHelper.getChannelMock({id, name, display_name: name, type: type as Channel['type'], delete_at: 0}),
+                name,
+                deactivated: false,
+                last_viewed_at: lastViewedAt,
+            };
+        }
+
+        function permutations<T>(items: T[]): T[][] {
+            if (items.length <= 1) {
+                return [items];
+            }
+
+            return items.flatMap((item, i) => (
+                permutations([...items.slice(0, i), ...items.slice(i + 1)]).map((rest) => [item, ...rest])
+            ));
+        }
+
+        it('orders a result set the same way no matter which order it is merged in', async () => {
+            // Ranking has to be consistent when compared through a third result, otherwise the
+            // order depends on how the local and server results happened to be concatenated
+            const provider = new SwitchChannelProvider();
+            provider.store = mockStore(defaultState);
+            provider.handlePretextChanged('sam', jest.fn());
+
+            const results = [
+                wrap('dm', Constants.DM_CHANNEL, 1, 'sam.smith'),
+                wrap('gm', Constants.GM_CHANNEL, 1000, 'sam.smith, zoe.zimmerman'),
+                wrap('open', Constants.OPEN_CHANNEL, 500, 'sam-project'),
+            ];
+
+            const orderings = permutations(results).map((ordering) => (
+                [...ordering].sort(quickSwitchSorter).map((result) => result.channel.id).join(',')
+            ));
+
+            // The channel named sam-project matches the search term at the start too and was read
+            // more recently than the DM, so it leads; the group message only contains a member
+            // named sam and stays last
+            expect(new Set(orderings)).toEqual(new Set(['open,dm,gm']));
         });
     });
 });

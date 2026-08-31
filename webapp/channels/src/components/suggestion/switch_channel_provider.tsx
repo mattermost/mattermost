@@ -516,67 +516,46 @@ function sortChannelsByRecencyAndTypeAndDisplayName(wrappedA: WrappedChannel, wr
     return sortChannelsByTypeAndDisplayName('en', wrappedA.channel as Channel, wrappedB.channel as Channel);
 }
 
+// A group message has no name of its own: its display name is its members listed alphabetically, so
+// it starts with a searched username only when that member happens to sort first
+function startsWithSearchTerm(wrapped: WrappedChannel) {
+    const channel = wrapped.channel;
+
+    if (channel.type === Constants.GM_CHANNEL) {
+        return false;
+    }
+
+    let displayName = channel.display_name.toLowerCase();
+    if (channel.type === Constants.DM_CHANNEL && displayName.startsWith('@')) {
+        displayName = displayName.substring(1);
+    }
+
+    return displayName.startsWith(prefix) || wrapped.name.toLowerCase().startsWith(prefix);
+}
+
+// Every result is ranked on the same scale so that comparing any two of them is consistent with
+// comparing them through a third. The weights order the reasons to demote a result, strongest first.
+function searchRank(wrapped: WrappedChannel) {
+    const channel = wrapped.channel;
+    const isArchived = Boolean(channel.delete_at);
+
+    // Open channels the user hasn't interacted with belong at the bottom of the list
+    const isUninteractedOpenChannel = channel.type === Constants.OPEN_CHANNEL && !wrapped.last_viewed_at;
+
+    return (
+        (isArchived ? 16 : 0) +
+        (wrapped.deactivated ? 8 : 0) +
+        (isUninteractedOpenChannel ? 4 : 0) +
+        (startsWithSearchTerm(wrapped) ? 0 : 2) +
+        (wrapped.hiddenInSidebar ? 1 : 0)
+    );
+}
+
 export function quickSwitchSorter(wrappedA: WrappedChannel, wrappedB: WrappedChannel) {
-    const aIsArchived = wrappedA.channel.delete_at ? wrappedA.channel.delete_at !== 0 : false;
-    const bIsArchived = wrappedB.channel.delete_at ? wrappedB.channel.delete_at !== 0 : false;
+    const rankDifference = searchRank(wrappedA) - searchRank(wrappedB);
 
-    if (aIsArchived && !bIsArchived) {
-        return 1;
-    } else if (!aIsArchived && bIsArchived) {
-        return -1;
-    }
-
-    if (wrappedA.deactivated && !wrappedB.deactivated) {
-        return 1;
-    } else if (wrappedB.deactivated && !wrappedA.deactivated) {
-        return -1;
-    }
-
-    const a = wrappedA.channel;
-    const b = wrappedB.channel;
-
-    let aDisplayName = a.display_name.toLowerCase();
-    let bDisplayName = b.display_name.toLowerCase();
-
-    if (a.type === Constants.DM_CHANNEL && aDisplayName.startsWith('@')) {
-        aDisplayName = aDisplayName.substring(1);
-    }
-
-    if (b.type === Constants.DM_CHANNEL && bDisplayName.startsWith('@')) {
-        bDisplayName = bDisplayName.substring(1);
-    }
-
-    const aStartsWith = aDisplayName.startsWith(prefix) || wrappedA.name.toLowerCase().startsWith(prefix);
-    const bStartsWith = bDisplayName.startsWith(prefix) || wrappedB.name.toLowerCase().startsWith(prefix);
-
-    // Open channels user haven't interacted should be at the  bottom of the list
-    if (a.type === Constants.OPEN_CHANNEL && !wrappedA.last_viewed_at && (b.type !== Constants.OPEN_CHANNEL || wrappedB.last_viewed_at)) {
-        return 1;
-    } else if (b.type === Constants.OPEN_CHANNEL && !wrappedB.last_viewed_at) {
-        return -1;
-    }
-
-    // Sort channels starting with the search term first
-    if (aStartsWith && !bStartsWith) {
-        return -1;
-    } else if (!aStartsWith && bStartsWith) {
-        return 1;
-    }
-
-    // Conversations the user has hidden from their sidebar are a weaker match than equally
-    // relevant ones they kept
-    if (wrappedA.hiddenInSidebar && !wrappedB.hiddenInSidebar) {
-        return 1;
-    } else if (!wrappedA.hiddenInSidebar && wrappedB.hiddenInSidebar) {
-        return -1;
-    }
-
-    // A group message only matches a username because one of its members is named that, so the
-    // direct message with the person is the stronger match
-    if (a.type === Constants.DM_CHANNEL && b.type === Constants.GM_CHANNEL) {
-        return -1;
-    } else if (a.type === Constants.GM_CHANNEL && b.type === Constants.DM_CHANNEL) {
-        return 1;
+    if (rankDifference !== 0) {
+        return rankDifference;
     }
 
     return sortChannelsByRecencyAndTypeAndDisplayName(wrappedA, wrappedB);
