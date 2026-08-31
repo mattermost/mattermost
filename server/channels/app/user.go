@@ -5,6 +5,7 @@ package app
 
 import (
 	"bytes"
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -3084,12 +3085,30 @@ func (a *App) GetThreadMembershipForUser(userId, threadId string) (*model.Thread
 	return threadMembership, nil
 }
 
+func (a *App) getPostChannelForChatGate(where, postID string) (*model.Channel, *model.AppError) {
+	channel, err := a.Srv().Store().Channel().GetForPost(postID)
+	if err == nil {
+		return channel, nil
+	}
+	status := http.StatusInternalServerError
+	messageID := "app.channel.get.app_error"
+	if errors.Is(err, sql.ErrNoRows) {
+		status = http.StatusNotFound
+		messageID = "app.user.get_threads_for_user.not_found"
+	}
+	return nil, model.NewAppError(where, messageID, nil, "failed to classify post channel", status).Wrap(err)
+}
+
 func (a *App) GetThreadForUser(rctx request.CTX, threadMembership *model.ThreadMembership, extended bool) (*model.ThreadResponse, *model.AppError) {
 	// A thread in a non-message backing channel (e.g. a Docs space comment thread) is not a
 	// chat thread: its membership row stays, but the chat read surfaces report not-found. The
 	// exclusion lives here rather than in the store because internal callers — the notification
 	// fan-out among them — read the store directly and must keep seeing the row.
-	if channel, chErr := a.Srv().Store().Channel().GetForPost(threadMembership.PostId); chErr == nil && channel.Type.IsNonMessageBacking() {
+	channel, appErr := a.getPostChannelForChatGate("GetThreadForUser", threadMembership.PostId)
+	if appErr != nil {
+		return nil, appErr
+	}
+	if channel.Type.IsNonMessageBacking() {
 		return nil, model.NewAppError("GetThreadForUser", "app.user.get_threads_for_user.not_found", nil, "backing channel thread", http.StatusNotFound)
 	}
 
@@ -3157,6 +3176,10 @@ func (a *App) UpdateThreadFollowForUser(userID, teamID, threadID string, state b
 }
 
 func (a *App) UpdateThreadFollowForUserFromChannelAdd(rctx request.CTX, userID, teamID, threadID string) *model.AppError {
+	backingChannel, appErr := a.getPostChannelForChatGate("UpdateThreadFollowForUserFromChannelAdd", threadID)
+	if appErr != nil {
+		return appErr
+	}
 	opts := store.ThreadMembershipOpts{
 		Following:             true,
 		IncrementMentions:     false,
@@ -3190,7 +3213,7 @@ func (a *App) UpdateThreadFollowForUserFromChannelAdd(rctx request.CTX, userID, 
 	// The thread_updated payload carries the root post; a non-message backing channel's thread
 	// must not reach chat clients. The membership written above stands — only the broadcast is
 	// withheld.
-	if backingChannel, chErr := a.Srv().Store().Channel().GetForPost(threadID); chErr == nil && backingChannel.Type.IsNonMessageBacking() {
+	if backingChannel.Type.IsNonMessageBacking() {
 		return nil
 	}
 
@@ -3246,6 +3269,13 @@ func (a *App) UpdateThreadReadForUserByPost(rctx request.CTX, currentSessionId, 
 }
 
 func (a *App) UpdateThreadReadForUser(rctx request.CTX, currentSessionId, userID, teamID, threadID string, timestamp int64) (*model.ThreadResponse, *model.AppError) {
+	channel, channelErr := a.getPostChannelForChatGate("UpdateThreadReadForUser", threadID)
+	if channelErr != nil {
+		return nil, channelErr
+	}
+	if channel.Type.IsNonMessageBacking() {
+		return nil, model.NewAppError("UpdateThreadReadForUser", "app.user.get_threads_for_user.not_found", nil, "backing channel thread", http.StatusNotFound)
+	}
 	user, err := a.GetUser(rctx, userID)
 	if err != nil {
 		return nil, err
@@ -3266,12 +3296,6 @@ func (a *App) UpdateThreadReadForUser(rctx request.CTX, currentSessionId, userID
 	post, err := a.GetSinglePost(rctx, threadID, false)
 	if err != nil {
 		return nil, err
-	}
-	// A thread in a non-message backing channel has no chat read state to move. The check runs
-	// ahead of every mutation below; the api4 route is already refused at the post-id gate, so
-	// this covers internal callers.
-	if channel, chErr := a.Srv().Store().Channel().GetForPost(threadID); chErr == nil && channel.Type.IsNonMessageBacking() {
-		return nil, model.NewAppError("UpdateThreadReadForUser", "app.user.get_threads_for_user.not_found", nil, "backing channel thread", http.StatusNotFound)
 	}
 	membership.UnreadMentions, err = a.countThreadMentions(rctx, user, post, teamID, timestamp)
 	if err != nil {

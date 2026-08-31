@@ -1318,7 +1318,7 @@ func TestSessionHasPermissionToReadPost(t *testing.T) {
 		assert.False(t, isMember)
 	})
 
-	t.Run("returns permission based on system level if postID is missing", func(t *testing.T) {
+	t.Run("fails closed if postID is missing", func(t *testing.T) {
 		// To simulate a missing post, use a postID that doesn't exist
 		session := model.Session{
 			UserId: th.SystemAdminUser.Id,
@@ -1326,7 +1326,7 @@ func TestSessionHasPermissionToReadPost(t *testing.T) {
 		}
 
 		ok, isMember := th.App.SessionHasPermissionToReadPost(th.Context, session, model.NewId())
-		assert.True(t, ok)
+		assert.False(t, ok)
 		assert.False(t, isMember)
 
 		// Basic user, should be false
@@ -1336,6 +1336,24 @@ func TestSessionHasPermissionToReadPost(t *testing.T) {
 		ok, isMember = th.App.SessionHasPermissionToReadPost(th.Context, session, model.NewId())
 		assert.False(t, ok)
 		assert.False(t, isMember)
+	})
+
+	t.Run("fails closed on an arbitrary channel classification error", func(t *testing.T) {
+		realStore := th.App.Srv().Store()
+		mockStore := mocks.Store{}
+		mockChannelStore := mocks.ChannelStore{}
+		postID := model.NewId()
+		mockChannelStore.On("GetForPost", postID).Return(nil, fmt.Errorf("classification backend unavailable"))
+		mockStore.On("Channel").Return(&mockChannelStore)
+		th.App.Srv().SetStore(&mockStore)
+		defer th.App.Srv().SetStore(realStore)
+
+		adminSession := model.Session{UserId: th.SystemAdminUser.Id, Roles: model.SystemAdminRoleId}
+		ok, isMember := th.App.SessionHasPermissionToReadPost(th.Context, adminSession, postID)
+		assert.False(t, ok)
+		assert.False(t, isMember)
+		assert.False(t, th.App.SessionHasPermissionToChannelByPost(adminSession, postID, model.PermissionReadChannel))
+		assert.False(t, th.App.HasPermissionToChannelByPost(th.Context, th.SystemAdminUser.Id, postID, model.PermissionReadChannel))
 	})
 }
 

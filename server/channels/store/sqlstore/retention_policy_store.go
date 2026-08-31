@@ -135,6 +135,7 @@ func (s *SqlRetentionPolicyStore) checkTeamsExist(teamIDs []string) error {
 			}
 		}
 	}
+
 	return nil
 }
 
@@ -510,7 +511,6 @@ func (s *SqlRetentionPolicyStore) AddChannels(policyId string, channelIds []stri
 			}
 		}
 	}
-
 	return nil
 }
 

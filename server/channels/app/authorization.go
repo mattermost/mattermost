@@ -214,7 +214,10 @@ func (a *App) SessionHasPermissionToChannelByPost(session model.Session, postID 
 	// backing channel grants no chat permission on its posts — and fails closed for post-id
 	// routes core has not written yet.
 	channel, channelErr := a.Srv().Store().Channel().GetForPost(postID)
-	if channelErr == nil && channel.Type.IsNonMessageBacking() {
+	if channelErr != nil {
+		return false
+	}
+	if channel.Type.IsNonMessageBacking() {
 		return false
 	}
 
@@ -224,7 +227,7 @@ func (a *App) SessionHasPermissionToChannelByPost(session model.Session, postID 
 		}
 	}
 
-	if channelErr == nil && channel.TeamId != "" {
+	if channel.TeamId != "" {
 		return a.SessionHasPermissionToTeam(session, channel.TeamId, permission)
 	}
 
@@ -250,9 +253,7 @@ func (a *App) sessionHasPermissionToReadPost(rctx request.CTX, session model.Ses
 
 	channel, err := a.Srv().Store().Channel().GetForPost(postID)
 	if err != nil {
-		// Original implementation (SessionHasPermissionToChannelByPost) still checks for
-		// general permissions even if the channel is not found, and some tests rely on this behavior.
-		return a.SessionHasPermissionTo(session, model.PermissionReadChannelContent), false
+		return false, false
 	}
 
 	// A post in a non-message backing channel (e.g. a Docs space) is not readable through chat
@@ -381,13 +382,17 @@ func (a *App) HasPermissionToChannel(rctx request.CTX, askingUserId string, chan
 }
 
 func (a *App) HasPermissionToChannelByPost(rctx request.CTX, askingUserId string, postID string, permission *model.Permission) bool {
+	channel, err := a.Srv().Store().Channel().GetForPost(postID)
+	if err != nil || channel.Type.IsNonMessageBacking() {
+		return false
+	}
 	if channelMember, err := a.Srv().Store().Channel().GetMemberForPost(postID, askingUserId); err == nil {
 		if a.RolesGrantPermission(channelMember.GetRoles(), permission.Id) {
 			return true
 		}
 	}
 
-	if channel, err := a.Srv().Store().Channel().GetForPost(postID); err == nil {
+	if channel.TeamId != "" {
 		return a.HasPermissionToTeam(rctx, askingUserId, channel.TeamId, permission)
 	}
 

@@ -249,7 +249,7 @@ func TestBackingChannelPostIDGateCoverage(t *testing.T) {
 		}
 	}
 
-	assert.Equal(t, 12, counts["SessionHasPermissionToReadPost("], "post-id routes behind the backing-channel rejection")
+	assert.Equal(t, 11, counts["SessionHasPermissionToReadPost("], "post-id routes behind the backing-channel rejection")
 	assert.Equal(t, 1, counts["SessionHasPermissionToReadPostAllowBacking("], "the unfollow carve-out is the only exemption")
 	assert.Equal(t, 2, counts["SessionHasPermissionToChannelByPost("], "the two reaction writes")
 }
@@ -272,7 +272,8 @@ func TestPostsPageCommentPartialIndexCatalog(t *testing.T) {
 		WHERE pg_class.relname = 'idx_posts_page_comment_page_id'`)
 	require.NoError(t, err, "the partial index must exist after migrations")
 	assert.Contains(t, predicate, "custom_page_comment")
-	assert.Contains(t, predicate, "deleteat = 0")
+	assert.Contains(t, predicate, "(rootid)::text = ''::text")
+	assert.Contains(t, predicate, "(originalid)::text = ''::text")
 
 	var expression string
 	err = sqlStore.GetMaster().Get(&expression, `
@@ -282,6 +283,15 @@ func TestPostsPageCommentPartialIndexCatalog(t *testing.T) {
 		WHERE pg_class.relname = 'idx_posts_page_comment_page_id'`)
 	require.NoError(t, err)
 	assert.Contains(t, expression, "page_id")
+
+	var definition string
+	err = sqlStore.GetMaster().Get(&definition, `
+		SELECT pg_get_indexdef(pg_class.oid)
+		FROM pg_class
+		WHERE pg_class.relname = 'idx_posts_page_comment_page_id'`)
+	require.NoError(t, err)
+	assert.Regexp(t, `(?i)page_id.*,[[:space:]]*id\)`, definition,
+		"Id must be the second index key so each bounded repair page can be read in keyset order")
 }
 
 // TestBackingChannelNotificationSuppression pins that a mention in a backing-channel post reaches
