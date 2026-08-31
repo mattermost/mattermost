@@ -42,10 +42,7 @@ func parseWWWAutolink(data string, position int) (Range, bool) {
 
 	end += position
 
-	// Grab all text until the end of the string or the next whitespace character
-	for end < len(data) && !isWhitespaceByte(data[end]) {
-		end += 1
-	}
+	end = extendAutolinkEnd(data, end, position)
 
 	// Trim trailing punctuation
 	end = trimTrailingCharactersFromLink(data, position, end)
@@ -95,10 +92,7 @@ func parseURLAutolink(data string, position int) (Range, bool) {
 
 	end += position
 
-	// Grab all text until the end of the string or the next whitespace character
-	for end < len(data) && !isWhitespaceByte(data[end]) {
-		end += 1
-	}
+	end = extendAutolinkEnd(data, end, start)
 
 	// Trim trailing punctuation
 	end = trimTrailingCharactersFromLink(data, start, end)
@@ -107,6 +101,37 @@ func parseURLAutolink(data string, position int) (Range, bool) {
 	}
 
 	return Range{start, end}, true
+}
+
+// Extends an autolink end position until whitespace, newline, HTML tag, or CJK/full-width punctuation.
+func extendAutolinkEnd(data string, end int, linkStart int) int {
+	if end < len(data) && data[end] == '/' && end > 0 && data[end-1] == '<' {
+		return end - 1
+	}
+
+	for end < len(data) {
+		c := data[end]
+
+		if c == '\n' || c == '\r' {
+			break
+		}
+
+		if shouldStopAtAngleBracket(data, end, linkStart) {
+			break
+		}
+
+		if isFullWidthOrCjkURLTerminator(data, end) {
+			break
+		}
+
+		if isWhitespaceByte(c) {
+			break
+		}
+
+		end++
+	}
+
+	return end
 }
 
 func isSchemeAllowed(scheme string) bool {
@@ -165,7 +190,118 @@ func isValidHostCharacter(link string) bool {
 		return false
 	}
 
+	if c == '<' || c == '>' {
+		return false
+	}
+
 	return !unicode.IsSpace(c) && !unicode.IsPunct(c)
+}
+
+// Returns true if data[position] looks like the start of an HTML tag (<tag> or </).
+func looksLikeHTMLTagAt(data string, position int) bool {
+	if position >= len(data) || data[position] != '<' || position+1 >= len(data) {
+		return false
+	}
+
+	if data[position+1] == '/' {
+		return true
+	}
+
+	if !isASCIILetter(data[position+1]) {
+		return false
+	}
+
+	i := position + 2
+	for i < len(data) && isAlphanumericByte(data[i]) {
+		i++
+	}
+
+	return i < len(data) && data[i] == '>'
+}
+
+// Returns true if c is an ASCII letter.
+func isASCIILetter(c byte) bool {
+	return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')
+}
+
+// Returns true if an angle bracket at position should terminate the autolink.
+// Stops at </ or a host-glued tag, but allows < in path/query/fragment when not a real tag boundary.
+func shouldStopAtAngleBracket(data string, position int, linkStart int) bool {
+	if position >= len(data) || data[position] != '<' {
+		return false
+	}
+
+	if position+1 < len(data) && data[position+1] == '/' {
+		return true
+	}
+
+	if position > 0 {
+		switch data[position-1] {
+		case '+', '#', '(', '\'', '%', '=':
+			return false
+		}
+	}
+
+	afterHost := linkStart
+	if idx := strings.Index(data[linkStart:], "://"); idx >= 0 {
+		afterHost = linkStart + idx + 3
+	}
+
+	for i := afterHost; i < position; i++ {
+		switch data[i] {
+		case '/', '#', '?':
+			if looksLikeHTMLTagAt(data, position) && position > 0 {
+				switch data[position-1] {
+				case '+', '#', '(', '\'', '%', '=':
+				default:
+					return true
+				}
+			}
+			return false
+		}
+	}
+
+	return true
+}
+
+// Returns true if the rune at position is full-width or CJK punctuation that ends a URL.
+func isFullWidthOrCjkURLTerminator(data string, position int) bool {
+	c, _ := utf8.DecodeRuneInString(data[position:])
+	if c == utf8.RuneError {
+		return false
+	}
+
+	if c >= 0xFF01 && c <= 0xFF0F {
+		return true
+	}
+	if c >= 0xFF1A && c <= 0xFF20 {
+		return true
+	}
+	if c >= 0xFF3B && c <= 0xFF40 {
+		return true
+	}
+	if c >= 0xFF5B && c <= 0xFF5E {
+		return true
+	}
+	if c == 0x3001 || c == 0x3002 {
+		return true
+	}
+	if c >= 0x300C && c <= 0x3011 {
+		return true
+	}
+
+	return c == '\u00AB' || c == '\u00BB' || c == '\u201C' || c == '\u201D' || c == '\u2018' || c == '\u2019'
+}
+
+// Returns true if a trailing '>' should be trimmed (no earlier '<' in the link).
+func shouldTrimTrailingAngleBracket(runes []rune, linkEnd int) bool {
+	for i := 0; i < linkEnd-1; i++ {
+		if runes[i] == '<' {
+			return false
+		}
+	}
+
+	return true
 }
 
 // Removes any trailing characters such as punctuation or stray brackets that shouldn't be part of the link.
@@ -174,41 +310,18 @@ func trimTrailingCharactersFromLink(markdown string, start int, end int) int {
 	runes := []rune(markdown[start:end])
 	linkEnd := len(runes)
 
-	// Cut off the link before an angle bracket if it contains one
-	for i, c := range runes {
-		if c == '<' || c == '>' {
-			linkEnd = i
-			break
-		}
-	}
-
-	numClosing := 0
-	numOpening := 0
-	for i := 0; i < linkEnd; i++ {
-		if runes[i] == '(' {
-			numOpening += 1
-		} else if runes[i] == ')' {
-			numClosing += 1
-		}
-	}
-
-	trimLinkEnd := func(newEnd int) {
-		for i := newEnd; i < linkEnd; i++ {
-			if runes[i] == '(' {
-				numOpening -= 1
-			} else if runes[i] == ')' {
-				numClosing -= 1
-			}
-		}
-		linkEnd = newEnd
-	}
-
 	for linkEnd > 0 {
 		c := runes[linkEnd-1]
 
 		if !canEndAutolink(c) {
 			// Trim trailing quotes, periods, etc
-			trimLinkEnd(linkEnd - 1)
+			linkEnd = linkEnd - 1
+		} else if c == '>' {
+			if shouldTrimTrailingAngleBracket(runes, linkEnd) {
+				linkEnd = linkEnd - 1
+			} else {
+				break
+			}
 		} else if c == ';' {
 			// Trim a trailing HTML entity
 			newEnd := linkEnd - 2
@@ -218,14 +331,17 @@ func trimTrailingCharactersFromLink(markdown string, start int, end int) int {
 			}
 
 			if newEnd < linkEnd-2 && runes[newEnd] == '&' {
-				trimLinkEnd(newEnd)
+				linkEnd = newEnd
 			} else {
 				// This isn't actually an HTML entity, so just trim the semicolon
-				trimLinkEnd(linkEnd - 1)
+				linkEnd = linkEnd - 1
 			}
 		} else if c == ')' {
 			// Only allow an autolink ending with a bracket if that bracket is part of a matching pair of brackets.
 			// If there are more closing brackets than opening ones, remove the extra bracket
+
+			numClosing := 0
+			numOpening := 0
 
 			// Examples (input text => output linked portion):
 			//
@@ -241,12 +357,20 @@ func trimTrailingCharactersFromLink(markdown string, start int, end int) int {
 			//  http://www.pokemon.com/Pikachu_((Electric))
 			//    => http://www.pokemon.com/Pikachu_((Electric))
 
+			for i := 0; i < linkEnd; i++ {
+				if runes[i] == '(' {
+					numOpening += 1
+				} else if runes[i] == ')' {
+					numClosing += 1
+				}
+			}
+
 			if numClosing <= numOpening {
 				// There's fewer or equal closing brackets, so we've found the end of the link
 				break
 			}
 
-			trimLinkEnd(linkEnd - 1)
+			linkEnd -= 1
 		} else {
 			// There's no special characters at the end of the link, so we're at the end
 			break
