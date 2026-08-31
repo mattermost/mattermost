@@ -85,6 +85,19 @@
   --callout-border: #7A6220;
 }
 
+/* Attention outranks Important: the reader loses something by skipping it.
+ * Brighter than Security's maroon so the two stay tellable apart. */
+.attention {
+  --callout-accent: #C8102E;
+  --callout-bg: #FDECEF;
+  --callout-border: #F5C6CE;
+}
+[data-theme='dark'] .attention {
+  --callout-accent: #F4A0AB;
+  --callout-bg: #4E0F1B;
+  --callout-border: #85202F;
+}
+
 .warning {
   --callout-accent: #6B4F2E;
   --callout-bg: #F6F1E9;
