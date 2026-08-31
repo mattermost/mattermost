@@ -35,6 +35,7 @@ import ConfirmManageUserSettingsModal from 'components/admin_console/system_user
 import ConfirmModal from 'components/confirm_modal';
 import FormError from 'components/form_error';
 import * as Menu from 'components/menu';
+import {AssignmentGraphPicker} from 'components/property_fields/hierarchical_value_menu';
 import SaveButton from 'components/save_button';
 import TeamSelectorModal from 'components/team_selector_modal';
 import UserSettingsModal from 'components/user_settings/modal';
@@ -190,9 +191,13 @@ const PluginDisplayName: React.FC<PluginDisplayNameProps> = ({pluginId}) => {
 
 type CpaFieldManagementIndicatorProps = {
     field: UserPropertyField;
+
+    // Mirrors renderCpaField's `omitLocksField`: the omitted-options line is
+    // only true while the field is actually locked for that reason.
+    isGraphPickerEnabled: boolean;
 };
 
-const CpaFieldManagementIndicator: React.FC<CpaFieldManagementIndicatorProps> = ({field}) => {
+const CpaFieldManagementIndicator: React.FC<CpaFieldManagementIndicatorProps> = ({field, isGraphPickerEnabled}) => {
     const pluginsById = useSelector((state: GlobalState) => state.plugins?.plugins ?? {});
     const owners = field.attrs?.owners ?? [];
     const hasSyncedSources = Boolean(field.attrs?.ldap || field.attrs?.saml || owners.length > 0);
@@ -288,7 +293,10 @@ const CpaFieldManagementIndicator: React.FC<CpaFieldManagementIndicatorProps> = 
         );
     }
 
-    if (field.attrs?.options_omitted) {
+    // The graph picker pages the full option list itself, so an omitted graph
+    // field is editable and must not claim otherwise. Every other option-backed
+    // type still is not, and neither is a graph field with no picker to page it.
+    if (field.attrs?.options_omitted && !(field.type === 'graph' && isGraphPickerEnabled)) {
         return (
             <div className='user-property-field-values__sync-indicator'>
                 <FormattedMessage
@@ -324,6 +332,11 @@ export type State = {
     customProfileAttributeValues: Record<string, string | string[]>;
     customProfileAttributeErrors: Record<string, string | undefined>;
     originalCpaValues: Record<string, string | string[]>;
+
+    // id -> name for graph option ids the picker's fetch resolved, keyed by
+    // field id. The only place a name for an omitted field's value exists
+    // outside the picker, and the reason the change summary can avoid ids.
+    graphOptionNames: Record<string, Record<string, string>>;
     isLoading: boolean;
     error: string | null;
     isSaving: boolean;
@@ -354,6 +367,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
             customProfileAttributeValues: {},
             customProfileAttributeErrors: {},
             originalCpaValues: {},
+            graphOptionNames: {},
             isLoading: false,
             error: null,
             isSaving: false,
@@ -512,6 +526,17 @@ export class SystemUserDetail extends PureComponent<Props, State> {
         });
     };
 
+    // Merge, never replace: a second fetch that resolves fewer ids must not
+    // erase names the first one found.
+    handleGraphNamesResolved = (fieldId: string, names: Record<string, string>) => {
+        this.setState((prev) => ({
+            graphOptionNames: {
+                ...prev.graphOptionNames,
+                [fieldId]: {...prev.graphOptionNames[fieldId], ...names},
+            },
+        }));
+    };
+
     // Resolves option IDs to display names for option-backed CPA fields.
     private resolveOptionNames = (field: UserPropertyField, value: string | string[] | undefined): string => {
         if (!value) {
@@ -520,10 +545,14 @@ export class SystemUserDetail extends PureComponent<Props, State> {
 
         const options = field.attrs?.options || [];
         if (valueRefersToOptions(field)) {
+            // An omitted field inlines no options, so the picker's fetch is the
+            // only source of a name for one of its values.
+            const resolved = this.state.graphOptionNames[field.id];
+
             if (!Array.isArray(value)) {
                 // Select: resolve single ID to its name
                 const option = options.find((opt) => opt.id === value);
-                return option ? option.name : value;
+                return option ? option.name : (resolved?.[value] ?? value);
             }
 
             // Multiselect: resolve each ID to its name
@@ -533,7 +562,10 @@ export class SystemUserDetail extends PureComponent<Props, State> {
 
             const names = value.map((id) => {
                 const option = options.find((opt) => opt.id === id);
-                return option ? option.name : id;
+                if (option) {
+                    return option.name;
+                }
+                return resolved?.[id] ?? id;
             });
             return names.join(this.props.intl.formatMessage({id: 'admin.userManagement.userDetail.arrayValueSeparator', defaultMessage: ', '}));
         }
@@ -768,11 +800,15 @@ export class SystemUserDetail extends PureComponent<Props, State> {
         const isOwnerManaged = Boolean(field.attrs?.owners?.length);
         const isProtected = Boolean(field.attrs?.protected);
         const optionsOmitted = Boolean(field.attrs?.options_omitted);
-        const isLockedFromEditing = isSynced || isProtected || isOwnerManaged || optionsOmitted;
+
+        // Only a graph field can page past an omitted option list, and only when
+        // the picker is actually available to do it.
+        const omitLocksField = optionsOmitted && !(field.type === 'graph' && this.props.isGraphPickerEnabled);
+        const isLockedFromEditing = isSynced || isProtected || isOwnerManaged || omitLocksField;
         const isDisabled = this.state.isSaving || this.state.isLoading || isLockedFromEditing;
 
         const fieldContent = (() => {
-            if (optionsOmitted && valueRefersToOptions(field)) {
+            if (omitLocksField && valueRefersToOptions(field)) {
                 const display = Array.isArray(value) ?
                     value.join(this.props.intl.formatMessage({
                         id: 'admin.userManagement.userDetail.arrayValueSeparator',
@@ -833,7 +869,44 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                     />
                 );
             }
-            case 'graph':
+            case 'graph': {
+                const options = field.attrs?.options || [];
+                const selectedValues = Array.isArray(value) ? value : [];
+
+                return (
+                    <AssignmentGraphPicker
+                        field={field}
+                        ids={selectedValues}
+                        onIdsChange={(values) => this.handleCpaValueChange(field.id, values)}
+                        disabled={isDisabled}
+                        menuId={`cpa-graph-menu-${field.id}`}
+                        buttonId={`cpa-graph-button-${field.id}`}
+                        buttonDataTestId={`cpa-graph-select-${field.id}`}
+                        placeholder={this.props.intl.formatMessage({
+                            id: 'admin.user.selectOptions',
+                            defaultMessage: 'Select options...',
+                        })}
+                        ariaLabel={getUserPropertyFieldLabel(field)}
+                        onNamesResolved={(names) => this.handleGraphNamesResolved(field.id, names)}
+                        fallback={() => (
+                            <CPAMultiSelect
+                                options={options}
+                                selectedValues={selectedValues}
+                                onChange={(values) => this.handleCpaValueChange(field.id, values)}
+                                disabled={isDisabled}
+                                placeholder={this.props.intl.formatMessage({
+                                    id: 'admin.user.selectOptions',
+                                    defaultMessage: 'Select options...',
+                                })}
+                                noOptionsMessage={this.props.intl.formatMessage({
+                                    id: 'admin.userManagement.userDetail.noOptions',
+                                    defaultMessage: 'No options available',
+                                })}
+                            />
+                        )}
+                    />
+                );
+            }
             case 'multiselect': {
                 const options = field.attrs?.options || [];
                 const selectedValues = Array.isArray(value) ? value : [];
@@ -903,7 +976,10 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                     values={{fieldName: getUserPropertyFieldLabel(field)}}
                 />
                 {fieldContent}
-                <CpaFieldManagementIndicator field={field}/>
+                <CpaFieldManagementIndicator
+                    field={field}
+                    isGraphPickerEnabled={this.props.isGraphPickerEnabled}
+                />
             </label>
         );
     };

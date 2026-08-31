@@ -6,11 +6,20 @@ import React from 'react';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
 import type {UserProfile} from '@mattermost/types/users';
 
+import {clearPropertyFieldOptionWalks, pageAllPropertyFieldOptions} from 'components/property_fields/page_all_property_field_options';
+
 import {defaultIntl} from 'tests/helpers/intl-test-helper';
 import {renderWithContext, screen, userEvent, act, fireEvent, waitFor} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import UserSettingsGeneral, {UserSettingsGeneralTab} from './user_settings_general';
+
+jest.mock('components/property_fields/page_all_property_field_options', () => ({
+    ...jest.requireActual('components/property_fields/page_all_property_field_options'),
+    pageAllPropertyFieldOptions: jest.fn(),
+}));
+
+const mockPageAll = jest.mocked(pageAllPropertyFieldOptions);
 
 jest.mock('@mattermost/client', () => ({
     ...jest.requireActual('@mattermost/client'),
@@ -1278,5 +1287,377 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
 
         expect(await screen.findByRole('textbox', {name: 'Friendly Display Name'})).toBeInTheDocument();
         expect(screen.queryByRole('textbox', {name: attributeWithDisplayName.name})).not.toBeInTheDocument();
+    });
+
+    describe('graph omit-unlock', () => {
+        const OMITTED_COPY = 'This field has too many options to be edited here.';
+        const SECTION = 'customAttribute_field1';
+
+        const graphOption = (id: string, name: string, parents: string[] = []) => ({
+            id, name, parents, create_at: 1,
+        });
+
+        // Regime 1: a small field that inlines every option.
+        const REGIME_1 = [
+            graphOption('opt1', 'Option 1'),
+            graphOption('opt2', 'Option 2'),
+            graphOption('opt3', 'Option 3'),
+        ];
+
+        const buildAttribute = (
+            attrs: Partial<UserPropertyField['attrs']> = {},
+            type = 'graph',
+        ): UserPropertyField => ({
+            ...customProfileAttribute,
+            type,
+
+            // Without this the picker short-circuits to its missing-identity
+            // error and makes no request, so "the field is editable" would pass
+            // for the wrong reason.
+            object_type: 'user',
+            attrs: {
+                value_type: '',
+                visibility: 'when_set',
+                sort_order: 0,
+                ...attrs,
+            },
+        } as UserPropertyField);
+
+        type RenderOptions = {
+            flagOn?: boolean;
+            activeSection?: string;
+            saveCustomProfileAttribute?: jest.Mock;
+        };
+
+        const renderSettings = (
+            attributes: UserPropertyField[],
+            values: Record<string, string | string[]> | undefined,
+            {flagOn = true, activeSection = SECTION, saveCustomProfileAttribute}: RenderOptions = {},
+        ) => {
+            const props = {
+                ...requiredProps,
+                enableCustomProfileAttributes: true,
+                isGraphPickerEnabled: flagOn,
+                customProfileAttributeFields: attributes,
+                user: values ? {...user, custom_profile_attributes: values} : {...user},
+                activeSection,
+                actions: {
+                    ...requiredProps.actions,
+                    ...(saveCustomProfileAttribute ? {saveCustomProfileAttribute} : {}),
+                },
+            };
+
+            const view = renderWithContext(<UserSettingsGeneral {...props}/>, {
+                entities: {general: {config: {FeatureFlagPropertyFieldGraph: flagOn ? 'true' : 'false'}}},
+            });
+
+            return {
+                ...view,
+                collapse: () => view.rerender(
+                    <UserSettingsGeneral
+                        {...props}
+                        activeSection=''
+                    />,
+                ),
+            };
+        };
+
+        const trigger = () => screen.getByTestId('customProfileAttributeGraph_field1');
+
+        // The collapsed row's `describe`, by SettingItem's own id. Read as an
+        // element rather than by text: FormattedList collapses to a single
+        // "A and B" node here, so the names are not addressable on their own.
+        const collapsedRow = () => document.getElementById(`${SECTION}Desc`);
+
+        const openMenu = async () => {
+            await userEvent.click(trigger());
+            await screen.findByRole('menu');
+        };
+
+        // The open popover is a MUI Modal, which aria-hides the rest of the
+        // page. Anything outside the menu has to wait for it to close.
+        const closeMenu = async () => {
+            await userEvent.keyboard('{Escape}');
+            await waitFor(() => expect(screen.queryByRole('menu')).not.toBeInTheDocument());
+        };
+
+        beforeEach(() => {
+            // The pager keeps its in-flight walks in module state.
+            clearPropertyFieldOptionWalks();
+
+            // A test that forgets to stub the walk must fail loudly rather than
+            // fall through to the real Client4 and node-fetch.
+            mockPageAll.mockImplementation(() => {
+                throw new Error('pageAllPropertyFieldOptions called without an explicit mock for this test');
+            });
+        });
+
+        test('A1: lets a graph field with omitted options be edited', async () => {
+            mockPageAll.mockResolvedValue(REGIME_1);
+            renderSettings([buildAttribute({options_omitted: true, options_count: 1010})], {field1: ['opt1', 'opt2']});
+
+            expect(await screen.findByTestId('customProfileAttributeGraph_field1')).toBeInTheDocument();
+            expect(screen.getByRole('button', {name: 'Save'})).toBeInTheDocument();
+            expect(screen.queryByText(OMITTED_COPY)).not.toBeInTheDocument();
+        });
+
+        test('A2: does not show the options-omitted extra info for a graph field', async () => {
+            mockPageAll.mockResolvedValue(REGIME_1);
+            renderSettings([buildAttribute({options_omitted: true})], {field1: ['opt1']});
+
+            await screen.findByTestId('customProfileAttributeGraph_field1');
+            expect(screen.queryByText(OMITTED_COPY)).not.toBeInTheDocument();
+
+            // The other extraInfo branches still fire for their own fixture.
+            expect(screen.getByText('This will be shown in your profile popover.')).toBeInTheDocument();
+        });
+
+        test('A3: prefetches once when an omitted graph section is expanded', async () => {
+            mockPageAll.mockResolvedValue(REGIME_1);
+            const collapsed = renderSettings(
+                [buildAttribute({options_omitted: true})],
+                {field1: ['opt1']},
+                {activeSection: ''},
+            );
+
+            await screen.findByText('1 value selected');
+            expect(mockPageAll).not.toHaveBeenCalled();
+            collapsed.unmount();
+
+            renderSettings([buildAttribute({options_omitted: true})], {field1: ['opt1']});
+
+            await waitFor(() => expect(mockPageAll).toHaveBeenCalledTimes(1));
+            expect(mockPageAll).toHaveBeenCalledWith(
+                {id: 'field1', object_type: 'user'},
+                expect.anything(),
+            );
+        });
+
+        test('A4: shows names in the collapsed row for a hydrated graph field', async () => {
+            renderSettings(
+                [buildAttribute({options: REGIME_1})],
+                {field1: ['opt1', 'opt2']},
+                {activeSection: ''},
+            );
+
+            await waitFor(() => expect(collapsedRow()).toHaveTextContent('Option 1'));
+            expect(collapsedRow()).toHaveTextContent('Option 2');
+            expect(collapsedRow()).not.toHaveTextContent('opt1');
+            expect(mockPageAll).not.toHaveBeenCalled();
+        });
+
+        test('A5: shows a count, not raw ids, in the collapsed row of an omitted graph field', async () => {
+            renderSettings(
+                [buildAttribute({options_omitted: true})],
+                {field1: ['opt1', 'opt2']},
+                {activeSection: ''},
+            );
+
+            expect(await screen.findByText('2 values selected')).toBeInTheDocument();
+            expect(screen.queryByText('opt1')).not.toBeInTheDocument();
+            expect(mockPageAll).not.toHaveBeenCalled();
+        });
+
+        test('A6: shows names in the collapsed row after the section has been expanded once', async () => {
+            mockPageAll.mockResolvedValue(REGIME_1);
+            const {collapse} = renderSettings(
+                [buildAttribute({options_omitted: true})],
+                {field1: ['opt1', 'opt2']},
+            );
+
+            await waitFor(() => expect(trigger()).toHaveTextContent('Option 1'));
+            expect(mockPageAll).toHaveBeenCalledTimes(1);
+
+            collapse();
+
+            await waitFor(() => expect(collapsedRow()).toHaveTextContent('Option 1'));
+            expect(collapsedRow()).toHaveTextContent('Option 2');
+            expect(collapsedRow()).not.toHaveTextContent('2 values selected');
+            expect(collapsedRow()).not.toHaveTextContent('opt1');
+            expect(mockPageAll).toHaveBeenCalledTimes(1);
+        });
+
+        test('A7: saves option ids, not names', async () => {
+            const saveCustomProfileAttribute = jest.fn().mockResolvedValue({data: {}});
+            mockPageAll.mockResolvedValue(REGIME_1);
+            renderSettings(
+                [buildAttribute({options: REGIME_1})],
+                {field1: ['opt1']},
+                {saveCustomProfileAttribute},
+            );
+
+            await openMenu();
+            await userEvent.click(await screen.findByRole('menuitemcheckbox', {name: 'Option 3'}));
+            await closeMenu();
+
+            await userEvent.click(screen.getByRole('button', {name: 'Save'}));
+
+            expect(saveCustomProfileAttribute).toHaveBeenCalledWith('user_id', 'field1', ['opt1', 'opt3']);
+        });
+
+        test('A8: saves an empty array when the last value is unchecked', async () => {
+            const saveCustomProfileAttribute = jest.fn().mockResolvedValue({data: {}});
+            mockPageAll.mockResolvedValue(REGIME_1);
+            renderSettings(
+                [buildAttribute({options: REGIME_1})],
+                {field1: ['opt1']},
+                {saveCustomProfileAttribute},
+            );
+
+            await openMenu();
+            const row = await screen.findByRole('menuitemcheckbox', {name: 'Option 1'});
+            expect(row).toHaveAttribute('aria-checked', 'true');
+            await userEvent.click(row);
+            await closeMenu();
+
+            await userEvent.click(screen.getByRole('button', {name: 'Save'}));
+
+            expect(saveCustomProfileAttribute).toHaveBeenCalledWith('user_id', 'field1', []);
+        });
+
+        test('A9: keeps an admin-managed graph field read-only', async () => {
+            renderSettings(
+                [buildAttribute({options_omitted: true, managed: 'admin'})],
+                {field1: ['opt1']},
+            );
+
+            expect(await screen.findByText('This field can only be changed by an administrator.')).toBeInTheDocument();
+            expect(screen.queryByTestId('customProfileAttributeGraph_field1')).not.toBeInTheDocument();
+            expect(screen.queryByRole('button', {name: 'Save'})).not.toBeInTheDocument();
+            expect(mockPageAll).not.toHaveBeenCalled();
+        });
+
+        test('A10: keeps synced, owner-managed and protected graph fields read-only', async () => {
+            const cases: Array<[Partial<UserPropertyField['attrs']>, string, Partial<UserProfile>]> = [
+                [{ldap: 'dept'}, 'This field is handled through your login provider. If you want to change it, you need to do so through your login provider.', {auth_service: 'ldap'}],
+                [{owners: [{id: 'plugin.x', type: 'plugin', scopes: []}]}, 'This field is managed by an external integration and cannot be edited here.', {}],
+                [{protected: true, access_mode: 'shared_only', source_plugin_id: 'plugin.x'}, 'This field is managed by a plugin and cannot be edited.', {}],
+            ];
+
+            for (const [attrs, copy, userOverrides] of cases) {
+                const props = {
+                    ...requiredProps,
+                    enableCustomProfileAttributes: true,
+                    isGraphPickerEnabled: true,
+                    customProfileAttributeFields: [buildAttribute({options_omitted: true, ...attrs})],
+                    user: {...user, ...userOverrides, custom_profile_attributes: {field1: ['opt1']}},
+                    activeSection: SECTION,
+                };
+
+                const view = renderWithContext(<UserSettingsGeneral {...props}/>, {
+                    entities: {general: {config: {FeatureFlagPropertyFieldGraph: 'true'}}},
+                });
+
+                // Substring: the protected copy is followed by a sibling
+                // "(pluginId)" node, so no element holds it exactly.
+                // eslint-disable-next-line no-await-in-loop
+                expect(await screen.findByText(copy, {exact: false})).toBeInTheDocument();
+                expect(screen.queryByTestId('customProfileAttributeGraph_field1')).not.toBeInTheDocument();
+                expect(screen.queryByRole('button', {name: 'Save'})).not.toBeInTheDocument();
+                expect(screen.queryByText(OMITTED_COPY)).not.toBeInTheDocument();
+
+                view.unmount();
+            }
+
+            expect(mockPageAll).not.toHaveBeenCalled();
+        });
+
+        test('A11: keeps a select field with omitted options read-only', async () => {
+            renderSettings([buildAttribute({options_omitted: true}, 'select')], {field1: 'opt1'});
+
+            expect(await screen.findByText(OMITTED_COPY)).toBeInTheDocument();
+            expect(screen.queryByRole('button', {name: 'Save'})).not.toBeInTheDocument();
+            expect(mockPageAll).not.toHaveBeenCalled();
+        });
+
+        test('A12: keeps a multiselect field with omitted options read-only', async () => {
+            renderSettings([buildAttribute({options_omitted: true}, 'multiselect')], {field1: ['opt1']});
+
+            expect(await screen.findByText(OMITTED_COPY)).toBeInTheDocument();
+            expect(screen.queryByRole('button', {name: 'Save'})).not.toBeInTheDocument();
+            expect(mockPageAll).not.toHaveBeenCalled();
+        });
+
+        test('A13: hides a source_only field', async () => {
+            renderSettings(
+                [buildAttribute({options: REGIME_1, access_mode: 'source_only'})],
+                {field1: ['opt1']},
+                {activeSection: ''},
+            );
+
+            await waitFor(() => expect(screen.queryByText(customProfileAttribute.name)).not.toBeInTheDocument());
+            expect(screen.queryByTestId('customProfileAttributeGraph_field1')).not.toBeInTheDocument();
+        });
+
+        test('A14: shows a shared_only graph field read-only rather than hiding it', async () => {
+            renderSettings(
+                [buildAttribute({protected: true, access_mode: 'shared_only', source_plugin_id: 'plugin.x'})],
+                {field1: ['opt1']},
+                {activeSection: ''},
+            );
+
+            expect(await screen.findByText(customProfileAttribute.name)).toBeInTheDocument();
+            expect(screen.queryByTestId('customProfileAttributeGraph_field1')).not.toBeInTheDocument();
+        });
+
+        test('A15: keeps a read_only option selectable', async () => {
+            const saveCustomProfileAttribute = jest.fn().mockResolvedValue({data: {}});
+            mockPageAll.mockResolvedValue(REGIME_1.map((option) => ({...option, read_only: true})));
+            renderSettings(
+                [buildAttribute({options_omitted: true})],
+                undefined,
+                {saveCustomProfileAttribute},
+            );
+
+            await openMenu();
+            const row = await screen.findByRole('menuitemcheckbox', {name: 'Option 2'});
+            expect(row).toHaveAttribute('aria-checked', 'false');
+            await userEvent.click(row);
+            expect(screen.getByRole('menuitemcheckbox', {name: 'Option 2'})).toHaveAttribute('aria-checked', 'true');
+            await closeMenu();
+
+            await userEvent.click(screen.getByRole('button', {name: 'Save'}));
+
+            expect(saveCustomProfileAttribute).toHaveBeenCalledWith('user_id', 'field1', ['opt2']);
+        });
+
+        test('A16: shows an error with Retry, not a locked field, when the walk fails', async () => {
+            mockPageAll.mockRejectedValue(new Error('boom'));
+            renderSettings([buildAttribute({options_omitted: true})], {field1: ['opt1']});
+
+            await openMenu();
+
+            expect(await screen.findByText('These values could not be loaded.')).toBeInTheDocument();
+            expect(screen.getByRole('button', {name: 'Retry'})).toBeInTheDocument();
+            await closeMenu();
+
+            expect(screen.getByRole('button', {name: 'Save'})).toBeInTheDocument();
+            expect(screen.queryByText(OMITTED_COPY)).not.toBeInTheDocument();
+        });
+
+        test('A17: renders today\'s ReactSelect for a graph field when the flag is off', async () => {
+            renderSettings(
+                [buildAttribute({options: REGIME_1})],
+                {field1: []},
+                {flagOn: false},
+            );
+
+            expect(await screen.findByText('Select')).toBeInTheDocument();
+            expect(screen.queryByTestId('customProfileAttributeGraph_field1')).not.toBeInTheDocument();
+            expect(mockPageAll).not.toHaveBeenCalled();
+        });
+
+        test('A18: keeps an omitted graph field read-only when the flag is off', async () => {
+            renderSettings(
+                [buildAttribute({options_omitted: true})],
+                {field1: ['opt1', 'opt2']},
+                {flagOn: false},
+            );
+
+            expect(await screen.findByText(OMITTED_COPY)).toBeInTheDocument();
+            expect(screen.queryByRole('button', {name: 'Save'})).not.toBeInTheDocument();
+            expect(screen.queryByTestId('customProfileAttributeGraph_field1')).not.toBeInTheDocument();
+            expect(mockPageAll).not.toHaveBeenCalled();
+        });
     });
 });

@@ -22,6 +22,7 @@ import {isEmail} from 'mattermost-redux/utils/helpers';
 
 import {getPluginDisplayName} from 'selectors/plugins';
 
+import {AssignmentGraphPicker} from 'components/property_fields/hierarchical_value_menu';
 import SettingItem from 'components/setting_item';
 import SettingItemMax from 'components/setting_item_max';
 import SettingPicture from 'components/setting_picture';
@@ -175,6 +176,10 @@ export type Props = {
     lockProfileFieldsForEmailUsers: LockProfileFieldsSetting;
     canEditOtherUsers: boolean;
     enableCustomProfileAttributes: boolean;
+
+    // Optional so an absent flag reads as "off", which is exactly the flag-off
+    // parity default. Tests here build props from a literal.
+    isGraphPickerEnabled?: boolean;
 };
 
 type State = {
@@ -196,6 +201,11 @@ type State = {
     serverError?: string;
     emailError?: string;
     customAttributeValues: Record<string, string | string[]>;
+
+    // id -> name per graph field, from the picker's fetch. The collapsed row has
+    // no picker mounted and an omitted field inlines no options, so this is the
+    // only place a name for such a value exists.
+    graphOptionNames: Record<string, Record<string, string>>;
 };
 
 // Private component to get plugin display name
@@ -213,8 +223,23 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
 
     constructor(props: Props) {
         super(props);
-        this.state = this.setupInitialState(props);
+
+        // graphOptionNames is deliberately not part of setupInitialState:
+        // updateSection() spreads that object back into setState on every
+        // expand/collapse, and this is fetch-derived cache, not form state.
+        this.state = {...this.setupInitialState(props), graphOptionNames: {}};
     }
+
+    // Merge, never replace: a second fetch that resolves fewer ids must not
+    // erase names the first one found.
+    handleGraphNamesResolved = (fieldId: string, names: Record<string, string>) => {
+        this.setState((prev) => ({
+            graphOptionNames: {
+                ...prev.graphOptionNames,
+                [fieldId]: {...prev.graphOptionNames[fieldId], ...names},
+            },
+        }));
+    };
 
     componentDidMount() {
         if (this.props.enableCustomProfileAttributes && !this.props.user.custom_profile_attributes) {
@@ -1576,7 +1601,11 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                 // writes, so render them read-only just like synced fields.
                 const isOwnerManaged = Boolean(attribute.attrs?.owners?.length);
                 const optionsOmitted = Boolean(attribute.attrs?.options_omitted);
-                const isReadOnly = isSynced || isOwnerManaged || isAdminManaged || isProtected || optionsOmitted;
+
+                // A graph field pages its own options, so an omitted list is not
+                // a reason to lock it -- but only when the picker exists.
+                const omitLocksField = optionsOmitted && !(attribute.type === 'graph' && this.props.isGraphPickerEnabled);
+                const isReadOnly = isSynced || isOwnerManaged || isAdminManaged || isProtected || omitLocksField;
 
                 if (isSynced) {
                     extraInfo = (
@@ -1616,7 +1645,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                             />
                         </span>
                     );
-                } else if (optionsOmitted) {
+                } else if (omitLocksField) {
                     extraInfo = (
                         <span>
                             <FormattedMessage
@@ -1641,7 +1670,10 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                         const opts = attribOptions.map((o) => {
                             return {label: o.name, value: o.id} as SelectOption;
                         });
-                        inputs.push(
+
+                        // Built identically for both branches, so the flag-off
+                        // path is character-for-character today's element.
+                        const legacySelect = (
                             <ReactSelect
                                 isMulti={attribute.type === 'multiselect' || attribute.type === 'graph' ? true : undefined}
                                 key={sectionName}
@@ -1660,8 +1692,39 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                                 styles={selectStyles}
                                 value={getDisplayValue(this.state.customAttributeValues[attribute.id]) as SelectOption}
                                 onChange={(v, a) => this.updateSelectAttribute(v, a, attribute.id)}
-                            />,
+                            />
                         );
+
+                        if (attribute.type === 'graph') {
+                            const storedIds = this.state.customAttributeValues[attribute.id];
+                            const selectedIds = Array.isArray(storedIds) ? storedIds : [];
+
+                            inputs.push(
+                                <AssignmentGraphPicker
+                                    key={sectionName}
+                                    field={attribute}
+                                    ids={selectedIds}
+                                    onIdsChange={(nextIds) => this.setState({
+                                        customAttributeValues: {
+                                            ...this.state.customAttributeValues,
+                                            [attribute.id]: nextIds,
+                                        },
+                                    })}
+                                    menuId={`customProfileAttributeGraph_${attribute.id}`}
+                                    buttonId={`customProfileAttributeGraphButton_${attribute.id}`}
+                                    buttonDataTestId={`customProfileAttributeGraph_${attribute.id}`}
+                                    placeholder={formatMessage({
+                                        id: 'user.settings.general.select',
+                                        defaultMessage: 'Select',
+                                    })}
+                                    ariaLabel={getUserPropertyFieldLabel(attribute)}
+                                    onNamesResolved={(names) => this.handleGraphNamesResolved(attribute.id, names)}
+                                    fallback={() => legacySelect}
+                                />,
+                            );
+                        } else {
+                            inputs.push(legacySelect);
+                        }
                     } else {
                         const inputType = attribute.type as string;
                         inputs.push(
@@ -1718,8 +1781,31 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                 );
             }
             let describe: JSX.Element | string = '';
-            if (this.props.user.custom_profile_attributes?.[attribute.id]) {
-                const attributeValue = getDisplayValue(this.props.user.custom_profile_attributes?.[attribute.id]);
+            const storedValue = this.props.user.custom_profile_attributes?.[attribute.id];
+
+            if (attribute.type === 'graph' && this.props.isGraphPickerEnabled && Array.isArray(storedValue) && storedValue.length > 0) {
+                // getDisplayValue falls back to the raw id for an omitted field.
+                // A collapsed row is chrome, not a chip: it prints names or it
+                // prints a count, never an id. All-or-nothing, so the row can
+                // never read "Engineering, ktm3..., Design".
+                const inlineOptions = attribute.attrs?.options ?? [];
+                const resolvedNames = this.state.graphOptionNames[attribute.id];
+                const names = storedValue.map((id) => {
+                    const option = inlineOptions.find((o) => o.id === id);
+                    return option?.name ?? resolvedNames?.[id];
+                });
+
+                describe = names.every((name) => Boolean(name)) ? (
+                    <FormattedList value={names as string[]}/>
+                ) : (
+                    <FormattedMessage
+                        id='user.settings.general.graphValuesSelected'
+                        defaultMessage='{count, plural, one {# value selected} other {# values selected}}'
+                        values={{count: storedValue.length}}
+                    />
+                );
+            } else if (storedValue) {
+                const attributeValue = getDisplayValue(storedValue);
                 if (attributeValue) {
                     if (typeof attributeValue === 'string') {
                         describe = attributeValue;

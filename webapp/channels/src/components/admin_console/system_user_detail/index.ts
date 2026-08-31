@@ -10,7 +10,7 @@ import {getCustomProfileAttributeFields} from 'mattermost-redux/actions/general'
 import {getUserPreferences} from 'mattermost-redux/actions/preferences';
 import {addUserToTeam} from 'mattermost-redux/actions/teams';
 import {updateUserActive, updateUserAuth, getUser, patchUser, updateUserMfa, getCustomProfileAttributeValues, saveCustomProfileAttribute} from 'mattermost-redux/actions/users';
-import {getConfig, getCustomProfileAttributes, getLicense} from 'mattermost-redux/selectors/entities/general';
+import {getConfig, getCustomProfileAttributes, getFeatureFlagValue, getLicense} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import {setNavigationBlocked} from 'actions/admin_actions';
@@ -37,6 +37,7 @@ function mapStateToProps(state: GlobalState) {
         customProfileAttributeFields,
         showManageUserSettings,
         showLockedManageUserSettings,
+        isGraphPickerEnabled: getFeatureFlagValue(state, 'PropertyFieldGraph') === 'true',
     };
 }
 
