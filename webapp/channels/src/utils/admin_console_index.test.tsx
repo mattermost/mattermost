@@ -37,6 +37,9 @@ describe('AdminConsoleIndex.generateIndex', () => {
         expect(idx.search('channel_viewed')).toEqual([
             'environment/web_server',
         ]);
+        expect(idx.search('hardened')).toEqual([
+            'environment/web_server',
+        ]);
         expect(idx.search('characters')).toEqual([
             'site_config/customization',
             'authentication/password',
@@ -49,6 +52,13 @@ describe('AdminConsoleIndex.generateIndex', () => {
         ]);
         expect(idx.search('subject lines')).toEqual([
             'environment/notifications',
+        ]);
+        expect(idx.search('deactivation')).toEqual([
+            'authentication/saml',
+            'site_config/users_and_teams',
+        ]);
+        expect(idx.search('away')).toEqual([
+            'site_config/users_and_teams',
         ]);
         expect(idx.search('typing')).toEqual([
             'experimental/features',

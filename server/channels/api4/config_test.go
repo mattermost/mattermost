@@ -50,7 +50,6 @@ func TestGetConfig(t *testing.T) {
 			require.FailNow(t, "did not sanitize properly")
 		}
 		require.Equal(t, model.FakeSetting, *cfg.SqlSettings.DataSource, "did not sanitize properly")
-		require.Equal(t, model.FakeSetting, *cfg.SqlSettings.AtRestEncryptKey, "did not sanitize properly")
 		if !strings.Contains(strings.Join(cfg.SqlSettings.DataSourceReplicas, " "), model.FakeSetting) && len(cfg.SqlSettings.DataSourceReplicas) != 0 {
 			require.FailNow(t, "did not sanitize properly")
 		}

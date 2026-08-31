@@ -279,7 +279,7 @@ func (a *App) GetOAuthAccessTokenForImplicitFlow(rctx request.CTX, userID string
 		return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.credentials.app_error", nil, "", http.StatusNotFound).Wrap(err)
 	}
 
-	user, err := a.GetUser(userID)
+	user, err := a.GetUser(rctx, userID)
 	if err != nil {
 		return nil, err
 	}
