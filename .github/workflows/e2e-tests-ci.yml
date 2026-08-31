@@ -4,13 +4,15 @@ on:
   # Argo Events Trigger (automated):
   #   - Triggered by: Enterprise CI/docker-image status check (success)
   #   - Payload: { ref: "<branch>", inputs: { commit_sha: "<sha>" } }
-  #   - Uses commit-specific docker image
+  #   - Uses commit-specific docker image when the PR is not E2E-only
   #   - Checks for relevant file changes before running tests
   #
-  # Manual Trigger:
+  # Manual / E2E-only Trigger:
   #   - Enter PR number only - commit SHA is resolved automatically from PR head
-  #   - Uses commit-specific docker image
-  #   - E2E tests always run (no file change check)
+  #   - Optionally enable "Run rolling upgrades" for Playwright upgrade-path coverage
+  #   - E2E-only PRs targeting master/release-* use the base-branch image (e.g. master)
+  #   - Mixed PRs use the commit-SHA image (expects Enterprise docker-image to exist)
+  #   - Manual triggers always run E2E tests (no file change check)
   #
   workflow_dispatch:
     inputs:
@@ -22,6 +24,11 @@ on:
         description: "Commit SHA to test (for Argo Events)"
         type: string
         required: false
+      run_rolling_upgrades:
+        description: "Also run Playwright rolling-upgrade coverage (upgrade-from/to matrix, then the full suite on each upgraded server)"
+        type: boolean
+        required: false
+        default: false
 
 permissions: {}
 
@@ -37,12 +44,10 @@ jobs:
       SERVER_IMAGE_TAG: "${{ steps.e2e-check.outputs.image_tag }}"
       HEAD_REF: "${{ steps.resolve.outputs.HEAD_REF }}"
     steps:
-      - name: ci/checkout-repo
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-        with:
-          persist-credentials: false
-          fetch-depth: 0
-
+      # Resolve PR via API first (no checkout). Then check out the PR head so
+      # check-e2e-test-only uses the PR's allowlist — workflow_dispatch otherwise
+      # defaults to the base branch and mis-tags E2E-only PRs that touch
+      # paths only allowed in the PR's action (e.g. webapp/platform/client/).
       - name: ci/resolve-pr-and-commit
         id: resolve
         env:
@@ -115,6 +120,14 @@ jobs:
           echo "::error::Either pr_number or commit_sha must be provided"
           exit 1
 
+      - name: ci/checkout-pr-head
+        if: steps.resolve.outputs.PR_NUMBER != '' && steps.resolve.outputs.COMMIT_SHA != ''
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+          ref: ${{ steps.resolve.outputs.COMMIT_SHA }}
+          fetch-depth: 0
+
       - name: ci/check-e2e-test-only
         if: steps.resolve.outputs.PR_NUMBER != ''
         id: e2e-check
@@ -133,6 +146,7 @@ jobs:
     outputs:
       should_run: "${{ steps.check.outputs.should_run }}"
       should_run_fips: "${{ steps.check.outputs.should_run_fips }}"
+      should_run_rolling_upgrades: "${{ steps.check.outputs.should_run_rolling_upgrades }}"
     steps:
       - name: ci/checkout-repo
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -149,6 +163,7 @@ jobs:
           COMMIT_SHA: ${{ needs.resolve-pr.outputs.COMMIT_SHA }}
           INPUT_PR_NUMBER: ${{ inputs.pr_number }}
           HEAD_REF: ${{ needs.resolve-pr.outputs.HEAD_REF }}
+          INPUT_RUN_ROLLING_UPGRADES: ${{ inputs.run_rolling_upgrades }}
         run: |
           # Get the base branch of the PR and changed files
           BASE_SHA=$(gh api "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}" --jq '.base.sha')
@@ -212,6 +227,22 @@ jobs:
           echo "should_run_fips=${SHOULD_RUN_FIPS}" >> $GITHUB_OUTPUT
           echo "Should run FIPS E2E tests: ${SHOULD_RUN_FIPS}"
 
+          # Rolling upgrades: opt-in on manual dispatch, or auto when PR touches upgrade harness/CI.
+          SHOULD_RUN_ROLLING_UPGRADES="false"
+          if [ "$INPUT_RUN_ROLLING_UPGRADES" = "true" ]; then
+            echo "Manual rolling-upgrades opt-in detected"
+            SHOULD_RUN_ROLLING_UPGRADES="true"
+          elif echo "$CHANGED_FILES" | grep -qE '^e2e-tests/playwright/(upgrade-specs/|lib/|script/resolve_upgrade_matrix\.mjs|playwright\.config\.ts)'; then
+            echo "Found Playwright upgrade-path harness changes"
+            SHOULD_RUN_ROLLING_UPGRADES="true"
+          elif echo "$CHANGED_FILES" | grep -qE '^\.github/workflows/e2e-tests-playwright-rolling-upgrades'; then
+            echo "Found Playwright rolling-upgrade workflow changes"
+            SHOULD_RUN_ROLLING_UPGRADES="true"
+          fi
+
+          echo "should_run_rolling_upgrades=${SHOULD_RUN_ROLLING_UPGRADES}" >> $GITHUB_OUTPUT
+          echo "Should run rolling upgrades: ${SHOULD_RUN_ROLLING_UPGRADES}"
+
   e2e-cypress:
     needs:
       - resolve-pr
@@ -259,6 +290,7 @@ jobs:
       report_type: "PR"
       pr_number: "${{ needs.resolve-pr.outputs.PR_NUMBER }}"
       should_run: "${{ needs.check-changes.outputs.should_run }}"
+      run_rolling_upgrades: "${{ needs.check-changes.outputs.should_run_rolling_upgrades }}"
     secrets:
       MM_LICENSE: "${{ secrets.MM_E2E_TEST_LICENSE_ONPREM_ENT }}"
       REPORT_WEBHOOK_URL: "${{ secrets.MM_E2E_REPORT_WEBHOOK_URL }}"
@@ -311,6 +343,7 @@ jobs:
       enable_reporting: true
       report_type: "PR"
       pr_number: "${{ needs.resolve-pr.outputs.PR_NUMBER }}"
+      run_rolling_upgrades: "${{ needs.check-changes.outputs.should_run_rolling_upgrades }}"
     secrets:
       MM_LICENSE: "${{ secrets.MM_E2E_TEST_LICENSE_ONPREM_ENT }}"
       REPORT_WEBHOOK_URL: "${{ secrets.MM_E2E_REPORT_WEBHOOK_URL }}"
