@@ -20,6 +20,7 @@ import {
     INBUCKET_WEB_PORT,
     KEYCLOAK_ALIAS,
     KEYCLOAK_PORT,
+    LOCAL_STORAGE_DIR,
     MATTERMOST_ALIAS,
     MATTERMOST_PORT,
     MINIO_ALIAS,
@@ -57,6 +58,7 @@ import {startWebhookContainer} from './webhook_container';
 import {clearClientCache} from '@/server/client';
 import {defaultBootEnv, testConfig} from '@/test_config';
 import type {TestContainersServiceName} from '@/test_config';
+import {isUpgradeToPhaseProjectSelected, upgradeToStackNotRunningError} from '@/upgrade_env';
 import {duration} from '@/util';
 
 const execFileAsync = promisify(execFile);
@@ -98,12 +100,21 @@ export async function startStack(): Promise<void> {
         return;
     }
 
+    if (isUpgradeToPhaseProjectSelected()) {
+        throw upgradeToStackNotRunningError();
+    }
+
     // reuseExistingStack() found nothing live to reuse — any bootEnvOverrides read from a stale
     // .env.testcontainers (e.g. left behind by a manual `docker rm` or a crashed prior process)
     // no longer describes anything real. Reset to the genuine defaults the container about to be
     // created will actually boot with, or a later restart could wrongly believe some stale
     // setting is already active and skip a restart it actually needs.
     testConfig.bootEnvOverrides = defaultBootEnv();
+
+    // Bind-mounted local storage persists across container restarts; reset only on a fresh boot.
+    fs.rmSync(LOCAL_STORAGE_DIR, {recursive: true, force: true});
+    fs.mkdirSync(LOCAL_STORAGE_DIR);
+    fs.chmodSync(LOCAL_STORAGE_DIR, 0o777);
 
     const network = await getNetwork();
 
@@ -349,7 +360,8 @@ export async function restartMattermostContainer(env: Record<string, string>): P
 
     appendEnvFile(`restart requested by ${describeCurrentTest()} — env ${JSON.stringify(env)}`);
 
-    logTestcontainers(`restarted server with ${JSON.stringify(env)}.`);
+    logTestcontainers(`restarted server (${testConfig.serverImage}) with ${JSON.stringify(env)}.`);
+    await logServerImageAge(testConfig.serverImage);
 }
 
 // Identifies whichever spec/test is currently driving a restart, so .env.testcontainers's history
@@ -498,7 +510,7 @@ async function logServerImageAge(image: string): Promise<void> {
     logTestcontainers(
         `server image "${image}" (built ${created.toISOString()}, ${age} ago).` +
             (looksStale
-                ? ` This is a moving tag and the cached copy may be outdated — run "docker pull ${image}" for the latest build.`
+                ? ` This is a moving tag and the cached copy may be outdated — run "docker pull --platform linux/amd64 ${image}" for the latest build.`
                 : ''),
     );
 }
@@ -606,6 +618,8 @@ function envFileLines(label: string): string[] {
         `PW_AZURITE_URL=${testConfig.azuriteUrl}`,
         `PW_TESTCONTAINERS_NETWORK_NAME=${testConfig.testcontainersNetworkName}`,
         `PW_TESTCONTAINERS_MATTERMOST_CONTAINER_ID=${testConfig.mattermostContainerId}`,
+        // Persist the image currently running (separate from process SERVER_IMAGE / to-image).
+        `PW_TESTCONTAINERS_SERVER_IMAGE=${testConfig.serverImage}`,
         `PW_TESTCONTAINERS_BOOT_ENV='${JSON.stringify(testConfig.bootEnvOverrides)}'`,
         '',
     ];
