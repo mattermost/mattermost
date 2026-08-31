@@ -537,7 +537,7 @@ func TestCreatePropertyField(t *testing.T) {
 		CheckBadRequestStatus(t, resp)
 	})
 
-	t.Run("v3 group should return 201", func(t *testing.T) {
+	t.Run("v3 group with flag off falls back to v2 and returns 201", func(t *testing.T) {
 		v3Group, appErr := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_v3_create", Version: model.PropertyGroupVersionV3})
 		require.Nil(t, appErr)
 		require.NotNil(t, v3Group)
@@ -548,9 +548,9 @@ func TestCreatePropertyField(t *testing.T) {
 			TargetType: "system",
 		}
 
-		_, resp, err := th.Client.CreatePropertyField(context.Background(), v3Group.Name, "post", field)
-		require.Error(t, err)
-		CheckNotFoundStatus(t, resp)
+		_, resp, err := th.SystemAdminClient.CreatePropertyField(context.Background(), v3Group.Name, "post", field)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
 	})
 
 	t.Run("v1 group should return 404", func(t *testing.T) {
@@ -797,14 +797,16 @@ func TestGetPropertyFields(t *testing.T) {
 		}
 	})
 
-	t.Run("v3 group should return 201", func(t *testing.T) {
+	t.Run("v3 group with flag off falls back to v2 and returns 200", func(t *testing.T) {
+		th.LoginBasic(t)
+
 		v3Group, appErr := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_v3_get_fields", Version: model.PropertyGroupVersionV3})
 		require.Nil(t, appErr)
 		require.NotNil(t, v3Group)
 
-		_, resp, err := th.Client.GetPropertyFields(context.Background(), v3Group.Name, "post", model.PropertyFieldSearch{PerPage: 60})
-		require.Error(t, err)
-		CheckNotFoundStatus(t, resp)
+		_, resp, err := th.Client.GetPropertyFields(context.Background(), v3Group.Name, "post", model.PropertyFieldSearch{PerPage: 60, TargetType: "system"})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
 	})
 
 	t.Run("v1 group should return 404", func(t *testing.T) {
@@ -1719,7 +1721,9 @@ func TestSearchPropertyFields(t *testing.T) {
 		require.ElementsMatch(t, []string{postTeamAField.ID, chanTeamAField.ID}, fieldIDs(fields))
 	})
 
-	t.Run("v1 group returns 201", func(t *testing.T) {
+	t.Run("v3 group with flag off falls back to v2 and returns 200", func(t *testing.T) {
+		th.LoginBasic(t)
+
 		v3Group, appErr := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_v3_search_fields", Version: model.PropertyGroupVersionV3})
 		require.Nil(t, appErr)
 		require.NotNil(t, v3Group)
@@ -1728,8 +1732,8 @@ func TestSearchPropertyFields(t *testing.T) {
 			ObjectTypes: []string{model.PropertyFieldObjectTypePost},
 			TeamID:      th.BasicTeam.Id,
 		})
-		require.Error(t, err)
-		CheckNotFoundStatus(t, resp)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
 	})
 
 	t.Run("v1 group returns 404", func(t *testing.T) {
@@ -2503,17 +2507,32 @@ func TestPatchPropertyField(t *testing.T) {
 		require.NotNil(t, updatedField.Attrs["options"])
 	})
 
-	t.Run("v3 group should return 201", func(t *testing.T) {
+	t.Run("v3 group with flag off falls back to v2 and returns 200", func(t *testing.T) {
 		v3Group, appErr := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_v3_patch_field", Version: model.PropertyGroupVersionV3})
 		require.Nil(t, appErr)
 		require.NotNil(t, v3Group)
 
+		field := &model.PropertyField{
+			Name:              model.NewId(),
+			Type:              model.PropertyFieldTypeText,
+			GroupID:           v3Group.ID,
+			ObjectType:        "post",
+			TargetType:        "system",
+			PermissionField:   &memberLevel,
+			PermissionValues:  &memberLevel,
+			PermissionOptions: &memberLevel,
+		}
+		createdField, appErr := th.App.CreatePropertyField(th.Context, field, false, "")
+		require.Nil(t, appErr)
+
+		th.LoginBasic(t)
 		newName := model.NewId()
 		patch := &model.PropertyFieldPatch{Name: &newName}
 
-		_, resp, err := th.Client.PatchPropertyField(context.Background(), v3Group.Name, "post", model.NewId(), patch)
-		require.Error(t, err)
-		CheckNotFoundStatus(t, resp)
+		updatedField, resp, err := th.Client.PatchPropertyField(context.Background(), v3Group.Name, "post", createdField.ID, patch)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Equal(t, newName, updatedField.Name)
 	})
 
 	t.Run("v1 group should return 404", func(t *testing.T) {
@@ -2700,14 +2719,28 @@ func TestDeletePropertyField(t *testing.T) {
 		}, 5*time.Second, 100*time.Millisecond)
 	})
 
-	t.Run("v3 group should return 201", func(t *testing.T) {
+	t.Run("v3 group with flag off falls back to v2 and returns 200", func(t *testing.T) {
 		v3Group, appErr := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_v3_delete_field", Version: model.PropertyGroupVersionV3})
 		require.Nil(t, appErr)
 		require.NotNil(t, v3Group)
 
-		resp, err := th.Client.DeletePropertyField(context.Background(), v3Group.Name, "post", model.NewId())
-		require.Error(t, err)
-		CheckNotFoundStatus(t, resp)
+		field := &model.PropertyField{
+			Name:              model.NewId(),
+			Type:              model.PropertyFieldTypeText,
+			GroupID:           v3Group.ID,
+			ObjectType:        "post",
+			TargetType:        "system",
+			PermissionField:   &memberLevel,
+			PermissionValues:  &memberLevel,
+			PermissionOptions: &memberLevel,
+		}
+		createdField, appErr := th.App.CreatePropertyField(th.Context, field, false, "")
+		require.Nil(t, appErr)
+
+		th.LoginBasic(t)
+		resp, err := th.Client.DeletePropertyField(context.Background(), v3Group.Name, "post", createdField.ID)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
 	})
 
 	t.Run("v1 group should return 404", func(t *testing.T) {
@@ -2928,14 +2961,16 @@ func TestGetPropertyValues(t *testing.T) {
 		}
 	})
 
-	t.Run("v3 group should return 201", func(t *testing.T) {
+	t.Run("v3 group with flag off falls back to v2 and returns 200", func(t *testing.T) {
+		th.LoginBasic(t)
+
 		v3Group, appErr := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_v3_get_values", Version: model.PropertyGroupVersionV3})
 		require.Nil(t, appErr)
 		require.NotNil(t, v3Group)
 
 		_, resp, err := th.Client.GetPropertyValues(context.Background(), v3Group.Name, "post", th.BasicPost.Id, model.PropertyValueSearch{PerPage: 60})
-		require.Error(t, err)
-		CheckNotFoundStatus(t, resp)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
 	})
 
 	t.Run("v1 group should return 404", func(t *testing.T) {
@@ -3471,18 +3506,33 @@ func TestPatchPropertyValues(t *testing.T) {
 		CheckBadRequestStatus(t, resp)
 	})
 
-	t.Run("v3 group should return 201", func(t *testing.T) {
+	t.Run("v3 group with flag off falls back to v2 and returns 200", func(t *testing.T) {
 		v3Group, appErr := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_v3_patch_values", Version: model.PropertyGroupVersionV3})
 		require.Nil(t, appErr)
 		require.NotNil(t, v3Group)
 
+		field := &model.PropertyField{
+			Name:              model.NewId(),
+			Type:              model.PropertyFieldTypeText,
+			GroupID:           v3Group.ID,
+			ObjectType:        "post",
+			TargetType:        "system",
+			PermissionField:   &memberLevel,
+			PermissionValues:  &memberLevel,
+			PermissionOptions: &memberLevel,
+		}
+		createdField, appErr := th.App.CreatePropertyField(th.Context, field, false, "")
+		require.Nil(t, appErr)
+
+		th.LoginBasic(t)
 		items := []model.PropertyValuePatchItem{
-			{FieldID: model.NewId(), Value: json.RawMessage(`"test"`)},
+			{FieldID: createdField.ID, Value: json.RawMessage(`"test"`)},
 		}
 
-		_, resp, err := th.Client.PatchPropertyValues(context.Background(), v3Group.Name, "post", th.BasicPost.Id, items)
-		require.Error(t, err)
-		CheckNotFoundStatus(t, resp)
+		values, resp, err := th.Client.PatchPropertyValues(context.Background(), v3Group.Name, "post", th.BasicPost.Id, items)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Len(t, values, 1)
 	})
 
 	t.Run("v1 group should return 404", func(t *testing.T) {

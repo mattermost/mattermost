@@ -12542,7 +12542,7 @@
     "translation": "无法向 {{.Username}}（{{.Email}}）发送密码重置邮件。\n"
   },
   {
-    "id": "api.property.v2_v3_group_not_found.app_error",
+    "id": "api.property.v2_group_not_found.app_error",
     "translation": "未找到指定的属性组。"
   },
   {

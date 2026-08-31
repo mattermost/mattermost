@@ -52,7 +52,7 @@ func getPropertyAPIGroup(c *Context, callerName string) *model.PropertyGroup {
 		return nil
 	}
 	if !group.IsPSAv2() && !group.IsPSAv3() {
-		c.Err = model.NewAppError(callerName, "api.property.v2_v3_group_not_found.app_error", nil, "", http.StatusNotFound)
+		c.Err = model.NewAppError(callerName, "api.property.v2_group_not_found.app_error", nil, "", http.StatusNotFound)
 		return nil
 	}
 	// Session attributes require both the feature flag and Enterprise

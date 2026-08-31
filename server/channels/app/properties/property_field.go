@@ -28,7 +28,7 @@ func (ps *PropertyService) enforceFieldGroupVersionMatch(caller string, groupID 
 	if group.IsPSAv1() && field.IsPSAv1() {
 		return nil
 	}
-	if group.IsPSAv2() && field.IsPSAv2() {
+	if (group.IsPSAv2() || group.IsPSAv3()) && field.IsPSAv2() {
 		return nil
 	}
 

@@ -3283,7 +3283,7 @@
     "translation": "Session attributes require an Enterprise Advanced license."
   },
   {
-    "id": "api.property.v2_v3_group_not_found.app_error",
+    "id": "api.property.v2_group_not_found.app_error",
     "translation": "The specified property group was not found."
   },
   {
