@@ -12,9 +12,10 @@ export type GraphOccurrence = {
     //
     // Unique among siblings but NOT a node identity: a value whose parent has
     // several occurrences has one occurrence per parent occurrence, and they
-    // all carry this same key. Safe as a sibling-list React key and as the
-    // expand/collapse key the tree already treats as shared -- opening one
-    // `s::t` opens every `s::t` -- but never as a tree-wide unique id.
+    // all carry this same key. Safe as a sibling-list React key, and safe as an
+    // expand/collapse key precisely because occurrences sharing a key should
+    // open together -- opening one `s::t` opens every `s::t` -- but never as a
+    // tree-wide unique id, and never to address one specific row.
     occKey: string;
 
     // Identity. Selection, `{n} inside` counts and expand-to-selected are all
@@ -340,6 +341,13 @@ export function flattenSearch(options: PropertyFieldOption[], query: string): Gr
 // `selectedIds` holds value ids, never occKeys. The returned set holds occKeys,
 // and because those are not node identities one entry can open more than one
 // row; that is intended, since every path to a checked value should open.
+//
+// Requires occurrence objects to be node-unique: no single object may sit at two
+// positions in `roots`. `joinGraphOptions` guarantees it, allocating a fresh
+// occurrence per node even for a value reached through several parents, and
+// `allocates a distinct occurrence object for every node` pins that. A caller
+// that memoises or otherwise reuses occurrence objects across tree positions
+// breaks the cycle guard below and silently under-opens ancestor paths.
 export function expandToSelected(roots: GraphOccurrence[], selectedIds: Set<string>): Set<string> {
     const open = new Set<string>();
     if (selectedIds.size === 0) {

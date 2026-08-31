@@ -104,6 +104,14 @@ const countOccurrences = (nodes: GraphOccurrence[]): number => {
     return total;
 };
 
+const allNodes = (nodes: GraphOccurrence[]): GraphOccurrence[] => {
+    const found: GraphOccurrence[] = [];
+    for (const node of nodes) {
+        found.push(node, ...allNodes(node.children));
+    }
+    return found;
+};
+
 // Distinct value ids reachable in the occurrence tree, which is what truncation
 // actually costs.
 const allValueIds = (nodes: GraphOccurrence[], acc = new Set<string>()): Set<string> => {
@@ -375,6 +383,24 @@ describe('joinGraphOptions — multi-parent occurrences', () => {
         const {roots} = joinGraphOptions(diamond());
 
         expect(roots[0].occKey).toBe('::a');
+    });
+
+    test('allocates a distinct occurrence object for every node', () => {
+        // expandToSelected guards on occurrence object identity, so the join
+        // must never seat one object at two positions. The risky case is a
+        // value reached through two parents: its occurrences share an occKey,
+        // and reusing one object for both would make that guard prune the
+        // second and leave an ancestor path collapsed.
+        const {roots} = joinGraphOptions(diamondWithChild());
+
+        const nodes = allNodes(roots);
+
+        expect(new Set(nodes).size).toBe(nodes.length);
+
+        const sharedKey = nodes.filter((node) => node.occKey === 'd::e');
+
+        expect(sharedKey).toHaveLength(2);
+        expect(sharedKey[0]).not.toBe(sharedKey[1]);
     });
 });
 
