@@ -5472,6 +5472,47 @@ func TestGetAccessControlFieldsAutocomplete_ExcludesNonUserFields(t *testing.T) 
 	assert.Contains(t, fieldIDs, userField.ID, "user CPA field must appear in autocomplete results")
 }
 
+// The autocomplete feeds policy authoring, which has no business seeing a
+// field's grants or masking configuration -- only stored fields carry them.
+func TestGetAccessControlFieldsAutocomplete_DropsPermissions(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+
+	rctx := request.TestContext(t)
+
+	cpaGroup, cErr := th.App.GetPropertyGroup(rctx, model.AccessControlPropertyGroupName)
+	require.Nil(t, cErr)
+
+	userField, appErr := th.App.CreatePropertyField(rctx, &model.PropertyField{
+		GroupID:    cpaGroup.ID,
+		Name:       celSafeName(),
+		Type:       model.PropertyFieldTypeSelect,
+		ObjectType: model.PropertyFieldObjectTypeUser,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
+		Permissions: &model.Permissions{
+			Grants: []model.Grant{
+				{Identity: model.Identity{Type: model.PropertyOwnerTypeUser, ID: th.BasicUser.Id}, Allow: []string{model.PropertyActionValueRead, model.PropertyActionValueWrite}},
+			},
+			Masking: &model.Masking{Except: []model.Identity{{Type: model.PropertyOwnerTypeUser, ID: th.BasicUser.Id}}},
+		},
+	}, false, "")
+	require.Nil(t, appErr)
+
+	fields, appErr := th.App.GetAccessControlFieldsAutocomplete(rctx, "", false, strings.Repeat("0", 26), 100, th.BasicUser.Id)
+	require.Nil(t, appErr)
+
+	byID := make(map[string]*model.PropertyField, len(fields))
+	for _, f := range fields {
+		byID[f.ID] = f
+	}
+	require.Contains(t, byID, userField.ID)
+	assert.Nil(t, byID[userField.ID].Permissions, "autocomplete must not leak a field's permissions")
+
+	stored, appErr := th.App.GetPropertyField(rctx, cpaGroup.ID, userField.ID)
+	require.Nil(t, appErr)
+	require.NotNil(t, stored.Permissions, "the stored field must still carry its permissions")
+}
+
 // When scoped to a channel, autocomplete additionally returns channel-object-type
 // CPA fields (resource.attributes.*), each tagged with its ObjectType, alongside
 // the user fields.

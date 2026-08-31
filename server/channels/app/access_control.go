@@ -1844,7 +1844,9 @@ func (a *App) GetAccessControlFieldsAutocomplete(rctx request.CTX, channelID str
 		fields = append(model.NativeUserAttributeFields(group.ID), fields...)
 	}
 
-	return fields, nil
+	// This endpoint feeds policy authoring, which has no use for a field's
+	// grants or masking configuration -- only the field shape itself.
+	return a.ShapePropertyFieldsForCaller(rctx, model.Session{UserId: callerID}, fields, false), nil
 }
 
 func (a *App) UpdateAccessControlPoliciesActive(rctx request.CTX, updates []model.AccessControlPolicyActiveUpdate) ([]*model.AccessControlPolicy, *model.AppError) {
