@@ -152,10 +152,6 @@
       "to": "/use-case-guide/use-cases-index"
     },
     {
-      "from": "/product-overview/corporate-directory-integration",
-      "to": "/administration-guide/onboard/corporate-directory-integration"
-    },
-    {
       "from": "/use-case-guide/on-prem-skype-for-business-replacement",
       "to": "/use-case-guide/use-cases-index"
     },
@@ -2113,7 +2109,7 @@
     },
     {
       "from": "/onboard/common-converting-oauth-to-openidconnect",
-      "to": "/administration-guide/onboard/common-converting-oauth-to-openidconnect"
+      "to": "/administration-guide/onboard/convert-oauth20-service-providers-to-openidconnect"
     },
     {
       "from": "/onboard/connected-workspaces",
