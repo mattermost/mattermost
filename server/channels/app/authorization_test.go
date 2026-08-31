@@ -225,6 +225,27 @@ func TestFilterUsersWithTeamPermission(t *testing.T) {
 		require.Nil(t, appErr)
 		assert.Equal(t, []string{}, granted)
 	})
+
+	t.Run("deactivated accounts are omitted even when their roles still grant", func(t *testing.T) {
+		deactivatedMember := th.CreateUser(t)
+		th.LinkUserToTeam(t, deactivatedMember, th.BasicTeam)
+		_, appErr := th.App.UpdateActive(th.Context, deactivatedMember, false)
+		require.Nil(t, appErr)
+
+		deactivatedAdmin := th.CreateUser(t)
+		_, appErr = th.App.UpdateUserRoles(th.Context, deactivatedAdmin.Id, model.SystemAdminRoleId, false)
+		require.Nil(t, appErr)
+		_, appErr = th.App.UpdateActive(th.Context, deactivatedAdmin, false)
+		require.Nil(t, appErr)
+
+		require.True(t, th.App.HasPermissionToTeam(th.Context, deactivatedMember.Id, th.BasicTeam.Id, model.PermissionReadSpace),
+			"HasPermissionToTeam does not consult account deactivation; the team membership still grants")
+
+		granted, appErr := th.App.FilterUsersWithTeamPermission(th.Context, th.BasicTeam.Id,
+			[]string{member.Id, deactivatedMember.Id, deactivatedAdmin.Id, th.SystemAdminUser.Id}, model.PermissionReadSpace)
+		require.Nil(t, appErr)
+		assert.Equal(t, []string{member.Id, th.SystemAdminUser.Id}, granted)
+	})
 }
 
 func TestSessionHasPermissionToTeams(t *testing.T) {

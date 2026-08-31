@@ -26,6 +26,14 @@ func (scs *Service) ShareChannel(sc *model.SharedChannel) (*model.SharedChannel,
 		return nil, errors.New("cannot share a direct or group channel")
 	}
 
+	// Refused here rather than at the App layer so that InviteRemoteToChannel's shareIfNotShared
+	// path, which reaches this method directly, is covered by the same check. A space's membership
+	// carries the access its plugin resolves permissions from, and remote membership arrives
+	// outside every path that maintains it.
+	if channel.IsSpace() {
+		return nil, errors.New("cannot share a space channel")
+	}
+
 	// check if channel is already shared
 	scExisting, err := scs.server.GetStore().SharedChannel().Get(sc.ChannelId)
 	if err == nil {

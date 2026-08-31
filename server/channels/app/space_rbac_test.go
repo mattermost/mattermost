@@ -36,6 +36,12 @@ func getSeededSpaceScheme(t *testing.T, th *TestHelper, name string) *model.Sche
 	return scheme
 }
 
+func attachSpacePresetScheme(t *testing.T, th *TestHelper, channel *model.Channel) {
+	t.Helper()
+	scheme := getSeededSpaceScheme(t, th, model.SchemeNameSpaceContribute)
+	channel.SchemeId = &scheme.Id
+}
+
 func storedRolePermissionSet(t *testing.T, th *TestHelper, roleName string) map[string]bool {
 	t.Helper()
 	role, err := th.App.Srv().Store().Role().GetByName(th.Context, roleName)
@@ -202,10 +208,17 @@ func TestSpaceSchemeAssignmentPolicy(t *testing.T) {
 		require.Nil(t, th.App.checkChannelSchemeAssignment("CreateChannel", model.ChannelTypeOpen, nil))
 	})
 
-	t.Run("space with no scheme is accepted", func(t *testing.T) {
+	t.Run("space with no scheme is refused", func(t *testing.T) {
 		mainHelper.Parallel(t)
 		th := setupSpaceRBACMock(t)
-		require.Nil(t, th.App.checkSchemeAssignmentToSpace("CreateChannel", nil))
+		appErr := th.App.checkSchemeAssignmentToSpace("CreateChannel", nil)
+		require.NotNil(t, appErr)
+		assert.Equal(t, "app.channel.update_channel_scheme.space_scheme_unusable.app_error", appErr.Id)
+
+		empty := ""
+		appErr = th.App.checkSchemeAssignmentToSpace("CreateChannel", &empty)
+		require.NotNil(t, appErr)
+		assert.Equal(t, "app.channel.update_channel_scheme.space_scheme_unusable.app_error", appErr.Id)
 	})
 
 	for _, tc := range []struct {
@@ -831,8 +844,14 @@ func TestSpaceSchemeGuardsEnforcedThroughApp(t *testing.T) {
 		assert.Equal(t, preset.Id, *space.SchemeId)
 	})
 
+	t.Run("CreateChannel refuses a space with no scheme", func(t *testing.T) {
+		_, appErr := th.App.CreateChannel(th.Context, newChannel(model.ChannelTypeSpace, ""), false)
+		require.NotNil(t, appErr)
+		assert.Equal(t, "app.channel.update_channel_scheme.space_scheme_unusable.app_error", appErr.Id)
+	})
+
 	t.Run("UpdateChannel refuses the same repoints and leaves the stored scheme alone", func(t *testing.T) {
-		space := createChannel(t, newChannel(model.ChannelTypeSpace, ""))
+		space := createChannel(t, newChannel(model.ChannelTypeSpace, preset.Id))
 		repointedSpace := *space
 		repointedSpace.SchemeId = &custom.Id
 		_, appErr := th.App.UpdateChannel(th.Context, &repointedSpace)
@@ -840,7 +859,18 @@ func TestSpaceSchemeGuardsEnforcedThroughApp(t *testing.T) {
 		assert.Equal(t, "app.channel.update_channel_scheme.space_scheme_unusable.app_error", appErr.Id)
 		storedSpace, appErr := th.App.GetChannelOfType(th.Context, space.Id, model.ChannelTypeSpace)
 		require.Nil(t, appErr)
-		assert.Nil(t, storedSpace.SchemeId)
+		require.NotNil(t, storedSpace.SchemeId)
+		assert.Equal(t, preset.Id, *storedSpace.SchemeId)
+
+		cleared := *space
+		cleared.SchemeId = nil
+		_, appErr = th.App.UpdateChannel(th.Context, &cleared)
+		require.NotNil(t, appErr)
+		assert.Equal(t, "app.channel.update_channel_scheme.space_scheme_unusable.app_error", appErr.Id)
+		storedSpace, appErr = th.App.GetChannelOfType(th.Context, space.Id, model.ChannelTypeSpace)
+		require.Nil(t, appErr)
+		require.NotNil(t, storedSpace.SchemeId)
+		assert.Equal(t, preset.Id, *storedSpace.SchemeId)
 
 		ordinary := createChannel(t, newChannel(model.ChannelTypeOpen, ""))
 		repointedOrdinary := *ordinary

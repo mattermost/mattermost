@@ -3939,7 +3939,9 @@ func TestPluginAPICreateSpaceRequiresEnableDocs(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.EnableDocs = true })
 		defer th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.EnableDocs = false })
 
-		space, appErr := api.CreateChannel(newSpace())
+		channel := newSpace()
+		attachSpacePresetScheme(t, th, channel)
+		space, appErr := api.CreateChannel(channel)
 		require.Nil(t, appErr)
 		require.Equal(t, model.ChannelTypeSpace, space.Type)
 		t.Cleanup(func() {
@@ -3970,6 +3972,7 @@ func TestPluginAPICreateSpaceAndAddMember(t *testing.T) {
 		Type:        model.ChannelTypeSpace,
 		CreatorId:   th.BasicUser.Id,
 	}
+	attachSpacePresetScheme(t, th, space)
 	created, appErr := api.CreateChannel(space)
 	require.Nil(t, appErr)
 	require.Equal(t, model.ChannelTypeSpace, created.Type)
@@ -4000,6 +4003,57 @@ func TestPluginAPICreateSpaceAndAddMember(t *testing.T) {
 	_, appErr = api.GetChannelMember(created.Id, th.BasicUser2.Id)
 	require.NotNil(t, appErr)
 	require.Equal(t, http.StatusNotFound, appErr.StatusCode)
+}
+
+// A system admin is a superuser, not a team member. CreateSpace adds the creator through
+// AddChannelMember; that add must succeed for manage_system even when the admin has no
+// TeamMembers row. An ordinary user outside the team is still refused.
+func TestPluginAPIAddChannelMemberToSpaceOutsideTeam(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := Setup(t).InitBasic(t)
+	th.ConfigStore.SetReadOnlyFF(false)
+	t.Cleanup(func() {
+		th.ConfigStore.SetReadOnlyFF(true)
+	})
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.EnableDocs = true })
+	defer th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.EnableDocs = false })
+
+	api := th.SetupPluginAPI()
+	otherTeam := th.CreateTeam(t)
+	space := &model.Channel{
+		TeamId:      otherTeam.Id,
+		DisplayName: "Space",
+		Name:        "space-" + model.NewId(),
+		Type:        model.ChannelTypeSpace,
+		CreatorId:   th.BasicUser.Id,
+	}
+	attachSpacePresetScheme(t, th, space)
+	created, appErr := api.CreateChannel(space)
+	require.Nil(t, appErr)
+	t.Cleanup(func() {
+		require.NoError(t, th.App.Srv().Store().Channel().PermanentDelete(th.Context, created.Id))
+	})
+
+	t.Run("sysadmin outside the team is added", func(t *testing.T) {
+		sysadmin := th.CreateUser(t)
+		_, appErr := th.App.UpdateUserRoles(th.Context, sysadmin.Id, model.SystemAdminRoleId, false)
+		require.Nil(t, appErr)
+
+		member, appErr := api.AddChannelMember(created.Id, sysadmin.Id)
+		require.Nil(t, appErr)
+		require.NotNil(t, member)
+		assert.Equal(t, created.Id, member.ChannelId)
+		assert.Equal(t, sysadmin.Id, member.UserId)
+	})
+
+	t.Run("ordinary user outside the team is refused", func(t *testing.T) {
+		outsider := th.CreateUser(t)
+		member, appErr := api.AddChannelMember(created.Id, outsider.Id)
+		require.NotNil(t, appErr)
+		assert.Nil(t, member)
+		assert.Equal(t, "app.team.get_member.missing.app_error", appErr.Id)
+	})
 }
 
 func TestPluginAPIChannelMemberNotificationsRejectSpace(t *testing.T) {
@@ -4125,6 +4179,7 @@ func TestPluginAPIUpdateSpaceBackingChannel(t *testing.T) {
 		Type:        model.ChannelTypeSpace,
 		CreatorId:   th.BasicUser.Id,
 	}
+	attachSpacePresetScheme(t, th, space)
 	created, appErr := api.CreateChannel(space)
 	require.Nil(t, appErr)
 
@@ -4164,6 +4219,7 @@ func TestPluginAPISpaceLifecycleSkipsChatSideEffects(t *testing.T) {
 		Type:        model.ChannelTypeSpace,
 		CreatorId:   th.BasicUser.Id,
 	}
+	attachSpacePresetScheme(t, th, space)
 	created, appErr := api.CreateChannel(space)
 	require.Nil(t, appErr)
 
@@ -4414,6 +4470,7 @@ func TestPluginAPICreateChannelAnonymousURLs(t *testing.T) {
 			Type:        model.ChannelTypeSpace,
 			TeamId:      th.BasicTeam.Id,
 		}
+		attachSpacePresetScheme(t, th, channel)
 
 		createdChannel, appErr := api.CreateChannel(channel)
 		require.Nil(t, appErr)
@@ -4714,6 +4771,32 @@ func TestPluginAPIGetOrCreatePluginChannelSchemeGuestLicenseGate(t *testing.T) {
 		role, appErr := th.App.GetRoleByName(th.Context, scheme.DefaultChannelGuestRole)
 		require.Nil(t, appErr)
 		assert.Empty(t, role.Permissions)
+	})
+
+	t.Run("Docs-shaped custom defaults require GuestAccountsPermissions even with custom schemes", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+		api := th.SetupPluginAPI()
+		markPhase2MigrationComplete(t, th)
+
+		// Custom schemes on, guest-permissions off: the combination a Docs non-preset
+		// default set hits, because Docs always supplies a non-empty guest role (read_page).
+		license := model.NewTestLicense("custom_permissions_schemes")
+		disabled := false
+		license.Features.GuestAccountsPermissions = &disabled
+		th.App.Srv().SetLicense(license)
+		defer func() {
+			appErr := th.App.Srv().RemoveLicense()
+			require.Nil(t, appErr)
+		}()
+
+		docsUser := model.PermissionIDs(model.SpaceDefaultContributePermissions)
+		docsAdmin := model.PermissionIDs(model.SpaceAdminRolePermissions)
+		docsGuest := []string{model.PermissionReadPage.Id}
+		scheme, appErr := api.GetOrCreatePluginChannelScheme(docsUser, docsAdmin, docsGuest)
+		require.NotNil(t, appErr)
+		assert.Nil(t, scheme)
+		assert.Equal(t, "app.scheme.plugin_scheme.guest_license.app_error", appErr.Id)
+		assert.Equal(t, http.StatusNotImplemented, appErr.StatusCode)
 	})
 }
 

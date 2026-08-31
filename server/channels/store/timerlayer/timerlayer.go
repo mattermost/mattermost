@@ -12125,6 +12125,22 @@ func (s *TimerLayerTeamStore) GetMembersByIds(teamID string, userIds []string, r
 	return result, err
 }
 
+func (s *TimerLayerTeamStore) GetMembersByIdsFromMaster(teamID string, userIds []string) ([]*model.TeamMember, error) {
+	start := time.Now()
+
+	result, err := s.TeamStore.GetMembersByIdsFromMaster(teamID, userIds)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("TeamStore.GetMembersByIdsFromMaster", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerTeamStore) GetTeamMembersForExport(userID string) ([]*model.TeamMemberForExport, error) {
 	start := time.Now()
 

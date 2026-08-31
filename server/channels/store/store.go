@@ -158,6 +158,11 @@ type TeamStore interface {
 	GetMember(rctx request.CTX, teamID string, userID string) (*model.TeamMember, error)
 	GetMembers(teamID string, offset int, limit int, teamMembersGetOptions *model.TeamMembersGetOptions) ([]*model.TeamMember, error)
 	GetMembersByIds(teamID string, userIds []string, restrictions *model.ViewUsersRestrictions) ([]*model.TeamMember, error)
+	// GetMembersByIdsFromMaster is GetMembersByIds on the primary, for a caller whose
+	// answer must agree with GetMember: a membership ended moments earlier still reads
+	// as active on a lagging replica, and a caller deciding authority from the batch
+	// would count a user the per-request gates already deny.
+	GetMembersByIdsFromMaster(teamID string, userIds []string) ([]*model.TeamMember, error)
 	GetTotalMemberCount(teamID string, restrictions *model.ViewUsersRestrictions) (int64, error)
 	GetActiveMemberCount(teamID string, restrictions *model.ViewUsersRestrictions) (int64, error)
 	GetTeamsForUser(rctx request.CTX, userID, excludeTeamID string, includeDeleted bool) ([]*model.TeamMember, error)

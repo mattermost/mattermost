@@ -319,16 +319,24 @@ func (a *App) HasPermissionToTeam(rctx request.CTX, askingUserId string, teamID 
 
 // FilterUsersWithTeamPermission returns the subset of userIDs holding permission in teamID,
 // resolved for each user the way HasPermissionToTeam resolves it: an active team membership
-// whose roles grant it, or a system role that grants it. The team memberships and the
-// system-role fallback users are each read in one query, so the answer for a whole audience
-// does not cost one lookup per user. Input order is kept and a repeated id is returned once.
+// whose roles grant it, or a system role that grants it — except that a deactivated account
+// is dropped even when those roles would still grant. Callers use this to decide who is still
+// reachable (the last holder of an authority, the recipients of an event); deactivation
+// revokes sessions but leaves TeamMembers and system roles in place, so matching
+// HasPermissionToTeam alone would keep counting a user who cannot authenticate.
+// The team memberships and the user rows are each read in one query, so the answer for a
+// whole audience does not cost one lookup per user. Input order is kept and a repeated id
+// is returned once.
+//
+// The membership read is primary-backed, as HasPermissionToTeam's is. A replica that has
+// yet to see a membership end would keep counting a user every per-request gate already denies.
 func (a *App) FilterUsersWithTeamPermission(rctx request.CTX, teamID string, userIDs []string, permission *model.Permission) ([]string, *model.AppError) {
 	granted := make([]string, 0, len(userIDs))
 	if teamID == "" || len(userIDs) == 0 {
 		return granted, nil
 	}
 
-	members, appErr := a.GetTeamMembersByIds(teamID, userIDs, nil)
+	members, appErr := a.GetTeamMembersByIdsFromMaster(teamID, userIDs)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -353,20 +361,38 @@ func (a *App) FilterUsersWithTeamPermission(rctx request.CTX, teamID string, use
 		}
 	}
 
-	grantedBySystem := make(map[string]bool, len(remaining))
-	if len(remaining) > 0 {
-		users, err := a.GetUsersByIds(rctx, remaining, &store.UserGetByIdsOpts{})
-		if err != nil {
-			return nil, err
+	if len(ordered) == 0 {
+		return granted, nil
+	}
+
+	// Every unique id is loaded, not only remaining: a deactivated team member is granted
+	// by the membership walk above and would otherwise skip the user read entirely.
+	users, err := a.GetUsersByIds(rctx, ordered, &store.UserGetByIdsOpts{})
+	if err != nil {
+		return nil, err
+	}
+	active := make(map[string]*model.User, len(users))
+	for _, user := range users {
+		if user.DeleteAt == 0 {
+			active[user.Id] = user
 		}
-		for _, user := range users {
-			if a.RolesGrantPermission(user.GetRoles(), permission.Id) {
-				grantedBySystem[user.Id] = true
-			}
+	}
+
+	grantedBySystem := make(map[string]bool, len(remaining))
+	for _, userID := range remaining {
+		user := active[userID]
+		if user == nil {
+			continue
+		}
+		if a.RolesGrantPermission(user.GetRoles(), permission.Id) {
+			grantedBySystem[user.Id] = true
 		}
 	}
 
 	for _, userID := range ordered {
+		if active[userID] == nil {
+			continue
+		}
 		if grantedByTeam[userID] || grantedBySystem[userID] {
 			granted = append(granted, userID)
 		}

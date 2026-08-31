@@ -146,27 +146,33 @@ func (a *App) checkFrozenSchemeRole(where string, role *model.Role) *model.AppEr
 	return nil
 }
 
-// revokeSpaceCapabilityRolesForUser removes every space capability role the user
-// holds on a space backing channel, across all of their teams. Backing channels
-// are excluded from GetChannelMembersForUser, so they are listed per team instead.
-// A team listing failure ends the revocation rather than being logged past: the
-// roles are stripped per team, so an unlisted team leaves its grants in place.
-// Failures are reported as potentially partial because earlier teams or channels
-// may already have been updated.
-func (a *App) revokeSpaceCapabilityRolesForUser(rctx request.CTX, userID string) *model.AppError {
-	teamMembers, appErr := a.GetTeamMembersForUser(rctx, userID, "", true)
+// revokeSpaceAuthorityForUser reduces the user to a guest on every space backing
+// channel they belong to, across all of their teams. Backing channels are excluded
+// from GetChannelMembersForUser, so they are listed per team instead. A team listing
+// failure ends the revocation rather than being logged past: the memberships are
+// rewritten per team, so an unlisted team leaves its authority in place. Failures
+// are reported as potentially partial because earlier teams or channels may already
+// have been updated.
+//
+// The team walk reads the primary, matching the space-channel listing it drives
+// (GetTeamSpaceChannelsForUser reads the primary for the same reason). A team joined
+// moments earlier that a replica has yet to see would drop every space membership in
+// it from the walk, and nothing revisits them — the user keeps space authority the
+// conversion was performed to remove.
+func (a *App) revokeSpaceAuthorityForUser(rctx request.CTX, userID string) *model.AppError {
+	teamMembers, appErr := a.GetTeamMembersForUser(RequestContextWithMaster(rctx), userID, "", true)
 	if appErr != nil {
-		return model.NewAppError("revokeSpaceCapabilityRolesForUser", "app.user.revoke_space_capability_roles.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
+		return model.NewAppError("revokeSpaceAuthorityForUser", "app.user.revoke_space_capability_roles.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
 	}
 
 	for _, teamMember := range teamMembers {
 		spaceChannels, sErr := a.Srv().Store().Channel().GetTeamSpaceChannelsForUser(teamMember.TeamId, userID)
 		if sErr != nil {
-			return model.NewAppError("revokeSpaceCapabilityRolesForUser", "app.user.revoke_space_capability_roles.app_error", nil, "", http.StatusInternalServerError).Wrap(sErr)
+			return model.NewAppError("revokeSpaceAuthorityForUser", "app.user.revoke_space_capability_roles.app_error", nil, "", http.StatusInternalServerError).Wrap(sErr)
 		}
 
 		for _, spaceChannel := range spaceChannels {
-			if appErr := a.stripSpaceCapabilityRolesFromMember(rctx, spaceChannel.Id, userID); appErr != nil {
+			if appErr := a.revokeSpaceAuthorityFromMember(rctx, spaceChannel.Id, userID); appErr != nil {
 				return appErr
 			}
 		}
@@ -175,30 +181,42 @@ func (a *App) revokeSpaceCapabilityRolesForUser(rctx request.CTX, userID string)
 	return nil
 }
 
-// stripSpaceCapabilityRolesFromMember removes every space capability role from the
-// member's explicit roles on channelID. The member is read from the primary: the
-// read is followed by a write of the whole membership, so a lagging replica's stale
-// state could overwrite a concurrent role change.
-func (a *App) stripSpaceCapabilityRolesFromMember(rctx request.CTX, channelID, userID string) *model.AppError {
+// revokeSpaceAuthorityFromMember rewrites the membership on channelID as a guest
+// membership: every space capability role leaves the explicit roles, and the scheme
+// flags become guest-only. Both halves are needed, and neither implies the other. A
+// capability role grants a page permission through the explicit roles; the space
+// admin tier is carried by SchemeAdmin alone, and the redaction that holds a guest to
+// reading is keyed on SchemeGuest, which is also what refuses them a later grant.
+//
+// The member is read from the primary: the read is followed by a write of the whole
+// membership, so a lagging replica's stale state could overwrite a concurrent role
+// change.
+func (a *App) revokeSpaceAuthorityFromMember(rctx request.CTX, channelID, userID string) *model.AppError {
 	member, appErr := a.GetChannelMember(RequestContextWithMaster(rctx), channelID, userID)
 	if appErr != nil {
 		return appErr
 	}
 
 	kept := make([]string, 0)
-	stripped := false
+	changed := false
 	for roleName := range strings.FieldsSeq(member.ExplicitRoles) {
 		if model.IsSpaceCapabilityRole(roleName) {
-			stripped = true
+			changed = true
 			continue
 		}
 		kept = append(kept, roleName)
 	}
-	if !stripped {
+	if member.SchemeAdmin || member.SchemeUser || !member.SchemeGuest {
+		changed = true
+	}
+	if !changed {
 		return nil
 	}
 
 	member.ExplicitRoles = strings.Join(kept, " ")
+	member.SchemeAdmin = false
+	member.SchemeUser = false
+	member.SchemeGuest = true
 	_, appErr = a.updateChannelMember(rctx, member)
 	return appErr
 }

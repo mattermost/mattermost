@@ -1150,6 +1150,18 @@ func (a *App) GetTeamMembersByIds(teamID string, userIDs []string, restrictions 
 	return teamMembers, nil
 }
 
+// GetTeamMembersByIdsFromMaster is GetTeamMembersByIds on the primary, for a caller that
+// resolves authority from the result and so must not see a membership a replica has yet to
+// catch up on.
+func (a *App) GetTeamMembersByIdsFromMaster(teamID string, userIDs []string) ([]*model.TeamMember, *model.AppError) {
+	teamMembers, err := a.Srv().Store().Team().GetMembersByIdsFromMaster(teamID, userIDs)
+	if err != nil {
+		return nil, model.NewAppError("GetTeamMembersByIdsFromMaster", "app.team.get_members_by_ids.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	return teamMembers, nil
+}
+
 func (a *App) GetCommonTeamIDsForTwoUsers(userID, otherUserID string) ([]string, *model.AppError) {
 	teamIDs, err := a.Srv().Store().Team().GetCommonTeamIDsForTwoUsers(userID, otherUserID)
 	if err != nil {

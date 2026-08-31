@@ -60,6 +60,7 @@ func TestTeamStore(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("SaveTeamMemberMaxMembers", func(t *testing.T) { testSaveTeamMemberMaxMembers(t, rctx, ss) })
 	t.Run("GetTeamMember", func(t *testing.T) { testGetTeamMember(t, rctx, ss) })
 	t.Run("GetTeamMembersByIds", func(t *testing.T) { testGetTeamMembersByIds(t, rctx, ss) })
+	t.Run("GetTeamMembersByIdsFromMaster", func(t *testing.T) { testGetTeamMembersByIdsFromMaster(t, rctx, ss) })
 	t.Run("MemberCount", func(t *testing.T) { testTeamStoreMemberCount(t, rctx, ss) })
 	t.Run("GetChannelUnreadsForAllTeams", func(t *testing.T) { testGetChannelUnreadsForAllTeams(t, rctx, ss) })
 	t.Run("GetChannelUnreadsForTeam", func(t *testing.T) { testGetChannelUnreadsForTeam(t, rctx, ss) })
@@ -3221,6 +3222,29 @@ func testGetTeamMembersByIds(t *testing.T, rctx request.CTX, ss store.Store) {
 	require.Len(t, rm, 2, "return wrong number of results")
 
 	_, err = ss.Team().GetMembersByIds(m1.TeamId, []string{}, nil)
+	require.Error(t, err, "empty user ids - should have failed")
+}
+
+func testGetTeamMembersByIdsFromMaster(t *testing.T, rctx request.CTX, ss store.Store) {
+	teamId := model.NewId()
+
+	active := &model.TeamMember{TeamId: teamId, UserId: model.NewId()}
+	_, nErr := ss.Team().SaveMember(rctx, active, -1)
+	require.NoError(t, nErr)
+
+	removed := &model.TeamMember{TeamId: teamId, UserId: model.NewId()}
+	_, nErr = ss.Team().SaveMember(rctx, removed, -1)
+	require.NoError(t, nErr)
+	require.NoError(t, ss.Team().RemoveMember(rctx, teamId, removed.UserId))
+
+	ids := []string{active.UserId, removed.UserId, model.NewId()}
+	members, err := ss.Team().GetMembersByIdsFromMaster(teamId, ids)
+	require.NoError(t, err)
+	require.Len(t, members, 1, "only the active membership is returned")
+	require.Equal(t, active.UserId, members[0].UserId)
+	require.Equal(t, teamId, members[0].TeamId)
+
+	_, err = ss.Team().GetMembersByIdsFromMaster(teamId, []string{})
 	require.Error(t, err, "empty user ids - should have failed")
 }
 

@@ -1154,18 +1154,12 @@ func (s SqlTeamStore) GetActiveMemberCount(teamId string, restrictions *model.Vi
 // GetMembersByIds returns a list of members from the database that matches the teamId and the list of userIds passed as parameters.
 // Expects a restrictions parameter of type ViewUsersRestrictions that defines a set of Teams and Channels that are visible to the caller of the query, and applies restrictions with a filtered result.
 func (s SqlTeamStore) GetMembersByIds(teamId string, userIds []string, restrictions *model.ViewUsersRestrictions) ([]*model.TeamMember, error) {
-	if len(userIds) == 0 {
-		return nil, errors.New("invalid list of user ids")
+	query, err := s.membersByIdsQuery(teamId, userIds)
+	if err != nil {
+		return nil, err
 	}
 
-	query := s.getTeamMembersWithSchemeSelectQuery().
-		Where(sq.Eq{"TeamMembers.TeamId": teamId}).
-		Where(sq.Eq{"TeamMembers.UserId": userIds}).
-		Where(sq.Eq{"TeamMembers.DeleteAt": 0})
-
-	query = applyTeamMemberViewRestrictionsFilter(query, restrictions)
-
-	queryString, args, err := query.ToSql()
+	queryString, args, err := applyTeamMemberViewRestrictionsFilter(query, restrictions).ToSql()
 	if err != nil {
 		return nil, errors.Wrap(err, "team_tosql")
 	}
@@ -1175,6 +1169,39 @@ func (s SqlTeamStore) GetMembersByIds(teamId string, userIds []string, restricti
 		return nil, errors.Wrap(err, "failed to find TeamMembers")
 	}
 	return dbMembers.ToModel(), nil
+}
+
+// GetMembersByIdsFromMaster is GetMembersByIds on the primary. It takes no view restrictions:
+// its callers ask about authority, which the restrictions — a filter on whose profiles the
+// caller may see — do not bear on.
+func (s SqlTeamStore) GetMembersByIdsFromMaster(teamId string, userIds []string) ([]*model.TeamMember, error) {
+	query, err := s.membersByIdsQuery(teamId, userIds)
+	if err != nil {
+		return nil, err
+	}
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "team_tosql")
+	}
+
+	dbMembers := teamMemberWithSchemeRolesList{}
+	if err = s.GetMaster().Select(&dbMembers, queryString, args...); err != nil {
+		return nil, errors.Wrap(err, "failed to find TeamMembers")
+	}
+	return dbMembers.ToModel(), nil
+}
+
+// membersByIdsQuery selects the active memberships of userIds in teamId, with their scheme roles.
+func (s SqlTeamStore) membersByIdsQuery(teamId string, userIds []string) (sq.SelectBuilder, error) {
+	if len(userIds) == 0 {
+		return sq.SelectBuilder{}, errors.New("invalid list of user ids")
+	}
+
+	return s.getTeamMembersWithSchemeSelectQuery().
+		Where(sq.Eq{"TeamMembers.TeamId": teamId}).
+		Where(sq.Eq{"TeamMembers.UserId": userIds}).
+		Where(sq.Eq{"TeamMembers.DeleteAt": 0}), nil
 }
 
 // GetTeamsForUser returns a list of teams that the user is a member of. Expects userId to be passed as a parameter. It can also negative the teamID passed.

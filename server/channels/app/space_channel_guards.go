@@ -32,9 +32,11 @@ func (a *App) checkChannelSchemeAssignment(where string, channelType model.Chann
 }
 
 // checkSchemeAssignmentToSpace accepts only a live seeded preset or immutable plugin scheme.
+// An empty SchemeId would leave the space on the global channel roles, which carry no page
+// permissions, so create and update both refuse it rather than brick the space.
 func (a *App) checkSchemeAssignmentToSpace(where string, schemeId *string) *model.AppError {
 	if schemeId == nil || *schemeId == "" {
-		return nil
+		return model.NewAppError(where, "app.channel.update_channel_scheme.space_scheme_unusable.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	kind, appErr := a.reservedSchemeKindByID(where, *schemeId)

@@ -2025,6 +2025,14 @@ func (a *App) addUserToChannel(rctx request.CTX, user *model.User, channel *mode
 
 // AddUserToChannel adds a user to a given channel.
 func (a *App) AddUserToChannel(rctx request.CTX, user *model.User, channel *model.Channel, skipTeamMemberIntegrityCheck bool) (*model.ChannelMember, *model.AppError) {
+	// A system admin is a superuser, not a team member. Space create and list already
+	// admit manage_system without a TeamMembers row; requiring one here made
+	// CreateSpace fail after the backing channel existed. Ordinary channels keep the
+	// team-membership check: a sysadmin still joins those through the normal team flow.
+	if channel.IsSpace() && a.RolesGrantPermission(user.GetRoles(), model.PermissionManageSystem.Id) {
+		skipTeamMemberIntegrityCheck = true
+	}
+
 	if !skipTeamMemberIntegrityCheck {
 		teamMember, nErr := a.Srv().Store().Team().GetMember(rctx, channel.TeamId, user.Id)
 		if nErr != nil {

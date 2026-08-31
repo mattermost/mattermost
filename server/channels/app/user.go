@@ -2094,13 +2094,14 @@ func (a *App) UpdateUserRolesWithUser(rctx request.CTX, user *model.User, newRol
 		}
 	}
 
-	// Turning a user into a guest here skips DemoteUserToGuest, which is what
-	// normally revokes the space capability roles held in a membership's explicit
-	// roles on a space backing channel. Nothing on this path resets those, so the
-	// new guest would keep resolving page permissions there. Revoked before the
-	// user row is written, so a failure leaves the user as they were.
+	// Turning a user into a guest here skips DemoteUserToGuest, which is what normally
+	// rewrites a space backing channel's membership as a guest membership. Nothing else
+	// on this path touches those memberships, so the new guest would keep both the page
+	// permissions their capability roles resolve and, where SchemeAdmin is set, the space
+	// admin tier — which is gated on that flag and not on the user's roles. Revoked before
+	// the user row is written, so a failure leaves the user as they were.
 	if !user.IsGuest() && model.IsInRole(newRoles, model.SystemGuestRoleId) {
-		if appErr := a.revokeSpaceCapabilityRolesForUser(rctx, user.Id); appErr != nil {
+		if appErr := a.revokeSpaceAuthorityForUser(rctx, user.Id); appErr != nil {
 			return nil, appErr
 		}
 	}
@@ -2878,7 +2879,7 @@ func (a *App) DemoteUserToGuest(rctx request.CTX, user *model.User) *model.AppEr
 	// backing channel, which the demotion below leaves untouched. Revoke it before
 	// the user becomes a guest: re-demoting an already-guest user is refused, so a
 	// revoke that fails afterward could never be retried.
-	if appErr := a.revokeSpaceCapabilityRolesForUser(rctx, user.Id); appErr != nil {
+	if appErr := a.revokeSpaceAuthorityForUser(rctx, user.Id); appErr != nil {
 		return appErr
 	}
 

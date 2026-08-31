@@ -532,7 +532,9 @@ func TestCreateChannelSpaceRequiresEnableDocs(t *testing.T) {
 			cfg.FeatureFlags.EnableDocs = true
 		}).InitBasic(t)
 
-		channel, appErr := th.App.CreateChannel(th.Context, newSpace(th.BasicTeam.Id), false)
+		space := newSpace(th.BasicTeam.Id)
+		attachSpacePresetScheme(t, th, space)
+		channel, appErr := th.App.CreateChannel(th.Context, space, false)
 		require.Nil(t, appErr)
 		defer func() {
 			require.NoError(t, th.App.Srv().Store().Channel().PermanentDelete(th.Context, channel.Id))
