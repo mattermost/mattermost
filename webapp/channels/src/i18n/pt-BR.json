@@ -1013,8 +1013,6 @@
   "admin.general.localization.availableLocalesTitle": "Idiomas Disponíveis:",
   "admin.general.localization.clientLocaleDescription": "Idioma padrão para os novos usuários criados e páginas onde o usuário não esteja logado.",
   "admin.general.localization.clientLocaleTitle": "Idioma Padrão do Cliente:",
-  "admin.general.localization.enableExperimentalLocalesDescription": "Se verdadeiro, permite que os usuários selecionem idiomas experimentais cujas traduções ainda estão em andamento, por exemplo",
-  "admin.general.localization.enableExperimentalLocalesTitle": "Ativar Localizações experimentais",
   "admin.general.localization.serverLocaleDescription": "Idioma padrão para o sistema de mensagens e logs. Alterando isto será necessário reiniciar o servidor antes que a alteração tenha efeito.",
   "admin.general.localization.serverLocaleTitle": "Idioma Padrão do Servidor:",
   "admin.general.log": "Logs",

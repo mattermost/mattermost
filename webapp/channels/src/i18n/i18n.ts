@@ -9,7 +9,7 @@ import {getConfig} from 'mattermost-redux/selectors/entities/general';
 
 import type {GlobalState} from 'types/store';
 
-import {langFiles, langIDs, langLabels} from './imports';
+import {langFiles} from './imports';
 
 export interface Language {
     value: string;
@@ -154,29 +154,14 @@ export const languages = {
     },
 };
 
-export function getAllLanguages(includeExperimental = false): Record<string, Language> {
-    if (includeExperimental) {
-        let order = Object.keys(languages).length;
-        return {
-            ...langIDs.reduce<Record<string, Language>>((out, id) => {
-                out[id] = {
-                    value: id,
-                    name: langLabels[id as keyof typeof langLabels] + ' (Experimental)',
-                    url: langFiles[id],
-                    order: order++,
-                };
-                return out;
-            }, {}),
-            ...languages,
-        };
-    }
+export function getAllLanguages(): Record<string, Language> {
     return languages;
 }
 
 export function getLanguages(state: GlobalState) {
     const config = getConfig(state);
     if (!config.AvailableLocales) {
-        return getAllLanguages(config.EnableExperimentalLocales === 'true');
+        return getAllLanguages();
     }
     return config.AvailableLocales.split(',').reduce<Record<string, Language>>((result, l) => {
         if (Object.hasOwn(languages, l)) {
@@ -187,7 +172,7 @@ export function getLanguages(state: GlobalState) {
 }
 
 export function getLanguageInfo(locale: string) {
-    return getAllLanguages(true)[locale];
+    return languages[locale as keyof typeof languages];
 }
 
 export function isLanguageAvailable(state: GlobalState, locale: string) {
