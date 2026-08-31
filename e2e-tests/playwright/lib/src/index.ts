@@ -11,6 +11,7 @@ export {
     getUpgradeFromServerImage,
     getUpgradeToServerImage,
     isUpgradeFromProjectSelected,
+    isUpgradePathProjectSelected,
     isUpgradeToPhaseProjectSelected,
     logUpgradeFromServerImage,
     logUpgradeToServerImage,
@@ -27,7 +28,6 @@ export {LicenseSkus, appsPluginId, callsPluginId, playbooksPluginId} from './con
 
 export {
     getAdminClient,
-    mergeWithOnPremServerConfig,
     getOnPremServerConfig,
     getRecentEmail,
     extractEmailLink,
@@ -59,11 +59,12 @@ export {
     runMmctl,
     ensureMmctl,
     upgradeServerImage,
+    saveUpgradePhaseLogs,
     installAndEnablePlugin,
     getPluginStatus,
     isPluginActive,
 } from './server';
-export type {InbucketEmail, LdapUser, KeycloakUser, MmctlResult} from './server';
+export type {InbucketEmail, LdapUser, KeycloakUser, MmctlResult, UpgradeLogPhase} from './server';
 
 export {startStack, stopStack} from './containers';
 

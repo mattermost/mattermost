@@ -35,24 +35,33 @@ import {testConfig} from '@/test_config';
 // (platform.LoadLicense), so it boots already licensed instead of needing an authenticated upload
 // call after the fact.
 export function resolveMattermostBootEnv(extraEnv: Record<string, string> = {}): Record<string, string> {
-    const env = {
+    return {
         ...SERVER_ENV_BASELINE,
         ...testConfig.serverEnv,
         ...extraEnv,
         ...structuralEnv(),
     };
-    if (testConfig.omitProcessEnvLicense) {
-        delete env.MM_LICENSE;
-    }
-    return env;
 }
+
+const POSTGRES_DSN = `postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_ALIAS}:${POSTGRES_PORT}/${POSTGRES_DB}?sslmode=disable&connect_timeout=10&binary_parameters=yes`;
 
 function structuralEnv(): Record<string, string> {
     return {
+        // Config lives in Postgres (config.NewStoreFromDSN's DatabaseStore) rather than
+        // /mattermost/config/config.json, which is how a production HA deployment runs and is what
+        // makes the config outlive the container. The Dockerfile declares /mattermost/config as a
+        // VOLUME, so each container Docker creates gets its own anonymous one seeded from the image
+        // — a file-backed config would be silently factory-reset by every
+        // restartMattermostContainer() and by the upgrade swap, leaving the to-image running its own
+        // shipped defaults instead of the config it inherited. In the database it is preserved and
+        // migrated across versions by the server itself, like the rest of the data.
+        MM_CONFIG: POSTGRES_DSN,
         MM_SQLSETTINGS_DRIVERNAME: 'postgres',
-        MM_SQLSETTINGS_DATASOURCE: `postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_ALIAS}:${POSTGRES_PORT}/${POSTGRES_DB}?sslmode=disable&connect_timeout=10&binary_parameters=yes`,
+        MM_SQLSETTINGS_DATASOURCE: POSTGRES_DSN,
         MM_EMAILSETTINGS_SMTPSERVER: INBUCKET_ALIAS,
         MM_EMAILSETTINGS_SMTPPORT: String(INBUCKET_SMTP_PORT),
+        // Required at boot so prepackaged plugins (Agents, etc.) can activate without waiting for a later patchConfig.
+        MM_SERVICESETTINGS_SITEURL: `http://${MATTERMOST_ALIAS}:${MATTERMOST_PORT}`,
         ...(process.env.MM_LICENSE ? {MM_LICENSE: process.env.MM_LICENSE} : {}),
         // Replaces the baseline for this key: appends mock file-server hosts (host.docker.internal
         // and the bridge gateway IP, set by startStack() once the network is up).
@@ -121,7 +130,7 @@ export async function startMattermostContainer(
         // upgrade-from must still use withReuse() when PW_TESTCONTAINERS_REUSE=true — otherwise
         // Ryuk reaps the server when the from-phase process exits and upgrade-to cannot adopt the
         // stack. assertUpgradeFromFreshStart() already requires testcontainers:down before from.
-        if (testConfig.testcontainersReuse && !isUpgradeToPhaseProjectSelected() && !testConfig.omitProcessEnvLicense) {
+        if (testConfig.testcontainersReuse && !isUpgradeToPhaseProjectSelected()) {
             builder = builder.withReuse();
         }
 

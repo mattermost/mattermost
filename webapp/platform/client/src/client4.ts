@@ -3067,9 +3067,8 @@ export default class Client4 {
     };
 
     getClientLicenseOld = () => {
-        // Keep format=old for compatibility with servers that default to the new license shape.
         return this.doFetch<ClientLicense>(
-            `${this.getBaseRoute()}/license/client?format=old`,
+            `${this.getBaseRoute()}/license/client`,
             {method: 'get'},
         );
     };

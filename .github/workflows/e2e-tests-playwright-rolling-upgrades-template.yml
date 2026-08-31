@@ -1,13 +1,37 @@
 ---
 name: E2E Tests - Playwright Rolling Upgrades Template
 
-# One matrix job per resolved from-version: upgrade-from → upgrade-to.
-# Post-upgrade full Playwright dispatch is omitted (single runner cannot finish
-# the full suite within the job timeout); coverage is the upgrade-path harness.
+# Tests ONE from-version, given the from-image (upgrade_from_server_image) and the to-image
+# (SERVER_IMAGE, built from server_image_* inputs). The caller resolves the from-version matrix
+# and invokes this workflow once per entry, so everything here — the test system io run, the
+# commit status, the workers — belongs to a single from-version.
+#
+# Shape mirrors e2e-tests-playwright-template.yml, with the upgrade harness prepended to each
+# worker: upgrade-from → upgrade-to leaves that worker's server on the to-image, and dispatch-run
+# then draws normal specs against it. The harness itself never goes through test system io —
+# upgrade-specs/ lives outside the Playwright testDir, so dispatch-begin cannot enqueue it.
 
 on:
   workflow_call:
     inputs:
+      upgrade_from_server_image:
+        description: "Full from-image reference to upgrade FROM (e.g. mattermostdevelopment/mattermost-enterprise-edition:release-11.9)"
+        type: string
+        required: true
+      upgrade_from_context_label:
+        description: "From-version label for job/artifact names (e.g. release-11.9, release-11.7-esr)"
+        type: string
+        required: true
+      context_name:
+        description: "GitHub commit status context name for this from-version"
+        type: string
+        required: true
+      workers:
+        description: "Number of parallel test system io dispatch workers for this from-version. Each one upgrades its own server first, so this trades runner count against how long the suite takes to drain."
+        type: number
+        required: false
+        default: 10
+
       commit_sha:
         type: string
         required: true
@@ -18,7 +42,7 @@ on:
         type: string
         required: true
       server_image_tag:
-        description: "Server image tag (e.g., master or short SHA)"
+        description: "Server image tag to upgrade TO (e.g., master or short SHA)"
         type: string
         required: true
       server_edition:
@@ -35,11 +59,6 @@ on:
         description: "Comma-separated alias tags for description"
         type: string
         required: false
-      context_suffix:
-        description: "Suffix appended to commit-status context (e.g. /master, /release)"
-        type: string
-        required: false
-        default: ""
 
       enable_reporting:
         type: boolean
@@ -56,7 +75,7 @@ on:
         required: false
 
       playwright_project:
-        description: "Playwright project name passed to dispatch-begin and dispatch-run."
+        description: "Playwright project name (passed to dispatch-begin metadata and dispatch-run --project=)."
         type: string
         required: false
         default: chrome
@@ -77,6 +96,7 @@ on:
       REPORT_WEBHOOK_URL:
         required: false
 
+# Callers must grant: contents: read, statuses: write, id-token: write
 permissions:
   contents: read
   statuses: write
@@ -90,10 +110,11 @@ jobs:
     runs-on: ubuntu-24.04
     permissions:
       contents: read
+      id-token: write
       statuses: write
     outputs:
-      upgrade-matrix: ${{ steps.upgrade-matrix.outputs.matrix }}
-      matrix_empty: ${{ steps.upgrade-matrix.outputs.matrix_empty }}
+      composite-identity-json: ${{ steps.composite-identity.outputs.composite-identity-json }}
+      workers-matrix: ${{ steps.matrix.outputs.workers }}
       start_time: ${{ steps.matrix.outputs.start_time }}
     steps:
       - name: ci/checkout-repo
@@ -102,36 +123,54 @@ jobs:
           persist-credentials: false
           ref: ${{ inputs.commit_sha }}
           fetch-depth: 1
-      - name: ci/resolve-upgrade-matrix
-        id: upgrade-matrix
-        working-directory: e2e-tests/playwright
-        run: |
-          MATRIX=$(node script/resolve_upgrade_matrix.mjs)
-          echo "matrix=${MATRIX}" >> "$GITHUB_OUTPUT"
-          if [ "$(echo "$MATRIX" | jq 'length')" -eq 0 ]; then
-            echo "matrix_empty=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "matrix_empty=false" >> "$GITHUB_OUTPUT"
-          fi
-      - name: ci/post-empty-matrix-status
-        if: steps.upgrade-matrix.outputs.matrix_empty == 'true'
+      - name: ci/composite-identity
+        id: composite-identity
         env:
-          COMMIT_SHA: ${{ inputs.commit_sha }}
-          CONTEXT_NAME: "e2e-test/playwright-full/${{ inputs.server_edition || 'enterprise' }}/upgrade-from-none${{ inputs.context_suffix }}"
-          GH_TOKEN: ${{ github.token }}
+          CONTEXT_NAME: ${{ inputs.context_name }}
           GITHUB_REPOSITORY: ${{ github.repository }}
-          GITHUB_RUN_ID: ${{ github.run_id }}
+          MM_BRANCH: ${{ inputs.branch }}
+          MM_SHA: ${{ inputs.commit_sha }}
+          PR_NUMBER: ${{ inputs.pr_number }}
         run: |
-          gh api "repos/${GITHUB_REPOSITORY}/statuses/${COMMIT_SHA}" \
-            -f state=success \
-            -f context="${CONTEXT_NAME}" \
-            -f description="No supported from-versions — rolling upgrade coverage skipped" \
-            -f target_url="https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
-          echo "Posted success for ${CONTEXT_NAME}"
+          # Same derivation as e2e-tests-playwright-template.yml: drop the `e2e-test/` prefix (the
+          # framework name already implies E2E in the dashboard) and swap remaining `/` for `-` so
+          # the dashboard URL is path-safe. The from-version is already part of the context, so it
+          # carries into the run name for free. The commit-status context itself stays unchanged —
+          # branch protection and the override workflows depend on it.
+          NAME="${CONTEXT_NAME#e2e-test/}"
+          NAME="${NAME//\//-}"
+          if [ -n "$PR_NUMBER" ]; then
+            COMPOSITE_IDENTITY=$(jq -nc \
+              --arg repo "${GITHUB_REPOSITORY}" \
+              --arg sha "${MM_SHA}" \
+              --arg run_id "${GITHUB_RUN_ID}" \
+              --arg name "${NAME}" \
+              --arg attempt "${GITHUB_RUN_ATTEMPT}" \
+              --arg branch "${MM_BRANCH}" \
+              --arg pr "${PR_NUMBER}" \
+              '{repository:$repo, commit_sha:$sha, gh_run_id:$run_id, name:$name, gh_run_attempt:$attempt, branch:$branch, gh_pr_number:$pr}')
+          else
+            COMPOSITE_IDENTITY=$(jq -nc \
+              --arg repo "${GITHUB_REPOSITORY}" \
+              --arg sha "${MM_SHA}" \
+              --arg run_id "${GITHUB_RUN_ID}" \
+              --arg name "${NAME}" \
+              --arg attempt "${GITHUB_RUN_ATTEMPT}" \
+              --arg branch "${MM_BRANCH}" \
+              '{repository:$repo, commit_sha:$sha, gh_run_id:$run_id, name:$name, gh_run_attempt:$attempt, branch:$branch}')
+          fi
+          echo "composite-identity-json=${COMPOSITE_IDENTITY}" >> $GITHUB_OUTPUT
       - name: ci/matrix
         id: matrix
-        run: echo "start_time=$(date +%s)" >> $GITHUB_OUTPUT
+        env:
+          INPUT_WORKERS: ${{ inputs.workers }}
+        run: |
+          echo "workers=$(jq -nc --argjson n "${INPUT_WORKERS}" '[range(1; $n+1)]')" >> $GITHUB_OUTPUT
+          echo "start_time=$(date +%s)" >> $GITHUB_OUTPUT
 
+  # Install webapp node_modules once via the shared webapp-setup action, then
+  # workers restore the same stable cache. The node_modules cache is keyed only
+  # on webapp/package-lock.json and is shared with webapp-ci.yml jobs.
   prep-deps:
     name: prep-deps
     runs-on: ubuntu-24.04
@@ -173,34 +212,75 @@ jobs:
         working-directory: e2e-tests/playwright
         run: npx playwright install chromium
 
-  workers:
-    name: rolling-upgrade-from-${{ matrix.contextLabel }}
+  # Register this from-version's run AFTER prep-deps so workers reach dispatch-run within test
+  # system io's inactivity window. Workers here have the upgrade harness to get through first, so
+  # the gap is wider than the full suite's — see the harness note on the workers job.
+  dispatch-begin:
     runs-on: ubuntu-24.04
-    timeout-minutes: 45
     needs: [prepare-run, prep-deps]
-    if: needs.prepare-run.outputs.matrix_empty != 'true'
     permissions:
       contents: read
       id-token: write
       statuses: write
+    steps:
+      - name: ci/checkout-repo
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+          ref: ${{ inputs.commit_sha }}
+          fetch-depth: 1
+      - name: ci/dispatch-begin
+        uses: mattermost/mattermost-test-system-io/.github/actions/test-system-io-dispatch-begin@1631d8fcea24f4545a0b3b7f77e41c2fe0be4418 # 2026-07-28
+        with:
+          use-staging: ${{ vars.E2E_USE_STAGING_TEST_IO_URL != 'false' }}
+          framework: playwright
+          repo-dir: ${{ github.workspace }}
+          composite-identity: ${{ needs.prepare-run.outputs.composite-identity-json }}
+          total-reports-expected: ${{ inputs.workers }}
+          retest-on-fail: ${{ inputs.retest_on_fail }}
+          playwright-project: ${{ inputs.playwright_project }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          commit-status-context: ${{ inputs.context_name }}
+          image-tag: ${{ inputs.server_image_tag }}
+          image-aliases: ${{ inputs.server_image_aliases }}
+
+  workers:
+    name: rolling-upgrade-${{ inputs.upgrade_from_context_label }}-${{ matrix.worker_index }}
+    runs-on: ubuntu-24.04
+    # Longer than the full suite's 30m workers: each one upgrades a server before it draws its
+    # first spec, which costs two image pulls plus the swap.
+    timeout-minutes: 60
+    needs: [prepare-run, dispatch-begin]
+    permissions:
+      contents: read
+      id-token: write
     strategy:
       fail-fast: false
       matrix:
-        include: ${{ fromJSON(needs.prepare-run.outputs.upgrade-matrix) }}
+        worker_index: ${{ fromJSON(needs.prepare-run.outputs.workers-matrix) }}
     env:
+      COMPOSITE_IDENTITY: ${{ needs.prepare-run.outputs.composite-identity-json }}
       MM_LICENSE: "${{ secrets.MM_LICENSE }}"
       TEST: playwright
       BRANCH: "${{ inputs.branch }}"
       BUILD_ID: "${{ inputs.build_id }}"
-      CI_BASE_URL: "rolling-upgrade-from-${{ matrix.contextLabel }}"
+      CI_BASE_URL: "rolling-upgrade-${{ inputs.upgrade_from_context_label }}-${{ matrix.worker_index }}"
+      # The from-image this worker boots on. The to-image it ends up on is SERVER_IMAGE, which
+      # testConfig picks up for the swap.
+      PW_UPGRADE_FROM_SERVER_IMAGE: "${{ inputs.upgrade_from_server_image }}"
       PW_USE_TESTCONTAINERS: "true"
+      # Same fixed set as the full suite's workers: dispatch pulls specs from a shared queue, so no
+      # worker knows in advance which service-tagged spec (e.g. @ldap, @saml) it will draw.
       PW_TESTCONTAINERS_SERVICES: "openldap,keycloak,elasticsearch,minio"
+      # Load-bearing three times over here: upgrade-to has to adopt the stack upgrade-from left
+      # running, the swap has to keep Postgres and file storage while only the server is replaced,
+      # and dispatch-run's per-spec invocations all have to land on that same upgraded server.
       PW_TESTCONTAINERS_REUSE: "true"
-      UPGRADE_FROM_DOCKER_TAG: "${{ matrix.dockerTag }}"
-      UPGRADE_FROM_CONTEXT_LABEL: "${{ matrix.contextLabel }}"
-      UPGRADE_FROM_IS_ESR: "${{ matrix.isESR }}"
     steps:
       - name: ci/checkout-actions
+        # Sparse-checkout just .github/actions from the triggering ref (master)
+        # so the composite action below is available before the full checkout
+        # overwrites the workspace with inputs.commit_sha.
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: false
@@ -233,128 +313,91 @@ jobs:
           path: ~/.cache/ms-playwright
           key: playwright-browsers-${{ runner.os }}-${{ hashFiles('e2e-tests/playwright/package-lock.json') }}
           fail-on-cache-miss: true
-      - name: ci/commit-status-context
-        id: composite-identity
-        env:
-          CONTEXT_NAME: "e2e-test/playwright-full/${{ inputs.server_edition || 'enterprise' }}/upgrade-from-${{ matrix.contextLabel }}${{ inputs.context_suffix }}"
-        run: echo "commit-status-context=${CONTEXT_NAME}" >> $GITHUB_OUTPUT
-      - name: ci/testcontainers-down
-        working-directory: e2e-tests/playwright
-        run: npm run testcontainers:down
+      # Boots the stack on the from-image (global setup) and seeds the baseline. Runs the `setup`
+      # project as a project dependency. No testcontainers:down first — the runner is fresh, so
+      # upgrade-from's clean-slate guard has nothing to trip over.
       - name: ci/upgrade-from
-        id: upgrade_from
         working-directory: e2e-tests/playwright
-        run: |
-          IMAGE_REPO="${SERVER_IMAGE%:*}"
-          PW_UPGRADE_FROM_SERVER_IMAGE="${IMAGE_REPO}:${UPGRADE_FROM_DOCKER_TAG}" \
-            npx playwright test --project=upgrade-from
-      - name: ci/save-upgrade-from-results
-        if: always()
-        working-directory: e2e-tests/playwright
-        run: |
-          mkdir -p /tmp/upgrade-results
-          if [ -f results/reporter/results.json ]; then
-            cp results/reporter/results.json /tmp/upgrade-results/from.json
-          fi
+        run: npx playwright test --project=upgrade-from
+      # Swaps this worker's server to SERVER_IMAGE in place and re-verifies the baseline.
       - name: ci/upgrade-to
-        id: upgrade_to
         working-directory: e2e-tests/playwright
         run: npx playwright test --project=upgrade-to
-      - name: ci/save-upgrade-to-results
-        if: always()
-        working-directory: e2e-tests/playwright
-        run: |
-          mkdir -p /tmp/upgrade-results
-          if [ -f results/reporter/results.json ]; then
-            cp results/reporter/results.json /tmp/upgrade-results/to.json
-          fi
-      # Post-upgrade full-suite dispatch is intentionally omitted: one runner cannot drain
-      # ~280 specs within the job timeout. Upgrade-path coverage is upgrade-from → upgrade-to.
-      - name: ci/post-commit-status
-        if: always()
-        env:
-          COMMIT_SHA: ${{ inputs.commit_sha }}
-          CONTEXT_NAME: ${{ steps.composite-identity.outputs.commit-status-context }}
-          GH_TOKEN: ${{ github.token }}
-          GITHUB_REPOSITORY: ${{ github.repository }}
-          GITHUB_RUN_ID: ${{ github.run_id }}
-          IMAGE_TAG: ${{ inputs.server_image_tag }}
-          IMAGE_ALIASES: ${{ inputs.server_image_aliases }}
-          FROM_OUTCOME: ${{ steps.upgrade_from.outcome }}
-          TO_OUTCOME: ${{ steps.upgrade_to.outcome }}
-        run: |
-          # Same shape as Test System IO summaries, plus from:<contextLabel>.
-          # Examples:
-          #   100% passed (12), 2 specs, image_tag:master, from:release-11.9
-          #   91.7% passed (11/12), 1 failed, 2 specs, image_tag:abc1234, from:release-11.7-esr
-          #   100% passed (12), 2 specs, image_tag:11.4.0 (release-11.4, release-11), from:release-11.9
-          parse_pw_stats() {
-            local file="$1"
-            if [ ! -f "$file" ]; then
-              echo "0 0 0"
-              return
-            fi
-            jq -r '
-              def spec_files:
-                [.. | objects | select(has("file") and (.file | type == "string") and (.file | length > 0)) | .file]
-                | unique | length;
-              [
-                ((.stats.expected // 0) + (.stats.flaky // 0)),
-                (.stats.unexpected // 0),
-                spec_files
-              ] | @tsv
-            ' "$file" | tr '\t' ' '
-          }
-
-          PASSED=0
-          FAILED=0
-          SPECS=0
-          for RESULT_FILE in /tmp/upgrade-results/from.json /tmp/upgrade-results/to.json; do
-            read -r P F S <<< "$(parse_pw_stats "$RESULT_FILE")"
-            PASSED=$((PASSED + P))
-            FAILED=$((FAILED + F))
-            SPECS=$((SPECS + S))
-          done
-          TOTAL=$((PASSED + FAILED))
-
-          IMAGE_PART="image_tag:${IMAGE_TAG}"
-          if [ -n "${IMAGE_ALIASES:-}" ]; then
-            IMAGE_PART="${IMAGE_PART} (${IMAGE_ALIASES//,/, })"
-          fi
-          FROM_PART="from:${UPGRADE_FROM_CONTEXT_LABEL}"
-
-          if [ "$TOTAL" -gt 0 ] && [ "$FAILED" -eq 0 ]; then
-            DESC="100% passed (${PASSED}), ${SPECS} specs, ${IMAGE_PART}, ${FROM_PART}"
-          elif [ "$TOTAL" -gt 0 ]; then
-            RATE=$(awk -v p="$PASSED" -v t="$TOTAL" 'BEGIN { printf "%.1f", 100.0 * p / t }')
-            DESC="${RATE}% passed (${PASSED}/${TOTAL}), ${FAILED} failed, ${SPECS} specs, ${IMAGE_PART}, ${FROM_PART}"
-          elif [ "$FROM_OUTCOME" = "success" ] && [ "$TO_OUTCOME" = "success" ]; then
-            DESC="100% passed, ${IMAGE_PART}, ${FROM_PART}"
-          else
-            DESC="0% passed, ${IMAGE_PART}, ${FROM_PART}"
-          fi
-
-          if [ "$FROM_OUTCOME" = "success" ] && [ "$TO_OUTCOME" = "success" ] && [ "$FAILED" -eq 0 ]; then
-            STATE=success
-          else
-            STATE=failure
-          fi
-
-          # GitHub commit-status description max length is 140.
-          DESC="${DESC:0:140}"
-          gh api "repos/${GITHUB_REPOSITORY}/statuses/${COMMIT_SHA}" \
-            -f state="${STATE}" \
-            -f context="${CONTEXT_NAME}" \
-            -f description="${DESC}" \
-            -f target_url="https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
-          echo "Posted ${STATE} for ${CONTEXT_NAME}: ${DESC}"
+      # From here the server is the to-image, upgraded in place, and the rest of the job is the
+      # normal full suite against it. Nothing is re-prepared in between: an upgrade that needed the
+      # suite's setup re-run to be usable would not be a passing upgrade. The stack is already up
+      # and seeded from upgrade-from (whose own `setup` dependency ran there), and each dispatched
+      # spec brings its own config through pw.initSetup().
+      #
+      # Skipped automatically when the harness above failed, since a server that did not survive
+      # its own upgrade has nothing useful to say about the suite.
+      - name: ci/dispatch-run
+        uses: mattermost/mattermost-test-system-io/.github/actions/test-system-io-dispatch-run@1631d8fcea24f4545a0b3b7f77e41c2fe0be4418 # 2026-07-28
+        with:
+          use-staging: ${{ vars.E2E_USE_STAGING_TEST_IO_URL != 'false' }}
+          framework: playwright
+          composite-identity: ${{ needs.prepare-run.outputs.composite-identity-json }}
+          repo-dir: ${{ github.workspace }}
+          artifacts-root: ${{ github.workspace }}/worker-artifacts
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          gh-job-name: rolling-upgrade-${{ inputs.upgrade_from_context_label }}-${{ matrix.worker_index }}
+          playwright-retries: ${{ inputs.playwright_retries }}
+          playwright-project: ${{ inputs.playwright_project }}
       - name: ci/upload-debug-artifacts
         if: always()
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
-          name: playwright-rolling-upgrades-${{ inputs.server_edition }}-from-${{ matrix.contextLabel }}-debug
+          # Includes logs/upgrade/{from,to}-mattermost.log (+ highlights, postgres, from-baseline.json)
+          # captured by saveUpgradePhaseLogs during upgrade-from / upgrade-swap-to / upgrade-to.
+          name: playwright-rolling-upgrades-${{ inputs.server_edition }}-from-${{ inputs.upgrade_from_context_label }}-debug-${{ matrix.worker_index }}
           path: |
             e2e-tests/playwright/logs/
             e2e-tests/playwright/results/
+            worker-artifacts/
           retention-days: 5
           if-no-files-found: ignore
+
+  report:
+    runs-on: ubuntu-24.04
+    needs: [prepare-run, dispatch-begin, workers]
+    if: always()
+    permissions:
+      contents: read
+      id-token: write
+      statuses: write
+    outputs:
+      commit_status_description: ${{ steps.summary.outputs.commit_status_description }}
+      webhook_payload: ${{ steps.summary.outputs.webhook_payload }}
+    steps:
+      - name: ci/checkout-repo
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+      - name: ci/run-summary
+        id: summary
+        continue-on-error: true
+        uses: mattermost/mattermost-test-system-io/.github/actions/test-system-io-summary@e2d5032cfa71a3ad11b0975b135cd221564f2787 # 2026-08-06
+        with:
+          use-staging: ${{ vars.E2E_USE_STAGING_TEST_IO_URL != 'false' }}
+          composite-identity: ${{ needs.prepare-run.outputs.composite-identity-json }}
+          framework: playwright
+          report-type: ${{ inputs.report_type }}
+          image-tag: ${{ inputs.server_image_tag }}
+          image-aliases: ${{ inputs.server_image_aliases }}
+          server-image: ${{ env.SERVER_IMAGE }}
+          pr-number: ${{ inputs.pr_number }}
+          ref-branch: ${{ inputs.ref_branch }}
+          commit-status-context: ${{ inputs.context_name }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: ci/publish-webhook
+        if: inputs.enable_reporting && env.REPORT_WEBHOOK_URL != ''
+        env:
+          REPORT_WEBHOOK_URL: ${{ secrets.REPORT_WEBHOOK_URL }}
+          PAYLOAD: ${{ steps.summary.outputs.webhook_payload }}
+        run: |
+          curl -X POST -H "Content-Type: application/json" -d "$PAYLOAD" "$REPORT_WEBHOOK_URL"
+      - name: ci/assert-results
+        env:
+          SUMMARY_OUTCOME: ${{ steps.summary.outcome }}
+        run: |
+          [ "$SUMMARY_OUTCOME" = "success" ]

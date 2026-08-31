@@ -98,8 +98,7 @@ export default defineConfig({
         // dispatch-begin does not register them in the full Playwright queue.
         {
             name: 'upgrade-from',
-            testDir: 'upgrade-specs',
-            grep: /@upgrade-from\b/,
+            testDir: 'upgrade-specs/from',
             dependencies: ['setup'],
             fullyParallel: false,
             workers: 1,
@@ -107,8 +106,7 @@ export default defineConfig({
         {name: 'upgrade-swap-to', testDir: 'upgrade-specs', testMatch: /upgrade_swap_to\.ts/},
         {
             name: 'upgrade-to',
-            testDir: 'upgrade-specs',
-            grep: /@upgrade-to\b/,
+            testDir: 'upgrade-specs/to',
             dependencies: ['upgrade-swap-to'],
             fullyParallel: false,
             workers: 1,

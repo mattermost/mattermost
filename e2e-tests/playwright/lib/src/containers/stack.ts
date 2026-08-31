@@ -510,7 +510,7 @@ async function logServerImageAge(image: string): Promise<void> {
     logTestcontainers(
         `server image "${image}" (built ${created.toISOString()}, ${age} ago).` +
             (looksStale
-                ? ` This is a moving tag and the cached copy may be outdated — run "docker pull ${image}" for the latest build.`
+                ? ` This is a moving tag and the cached copy may be outdated — run "docker pull --platform linux/amd64 ${image}" for the latest build.`
                 : ''),
     );
 }

@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import fs from 'fs';
-import path from 'path';
+import fs from 'node:fs';
+import path from 'node:path';
 
 import chalk from 'chalk';
 
@@ -42,6 +42,11 @@ export function isUpgradeFromProjectSelected(argv: string[] = process.argv): boo
 /** Returns true when `--project` selects upgrade-swap-to or upgrade-to. */
 export function isUpgradeToPhaseProjectSelected(argv: string[] = process.argv): boolean {
     return isProjectSelected(UPGRADE_TO_PHASE_PROJECTS, argv);
+}
+
+/** True for any upgrade-path Playwright project (from, swap-to, or to). */
+export function isUpgradePathProjectSelected(argv: string[] = process.argv): boolean {
+    return isUpgradeFromProjectSelected(argv) || isUpgradeToPhaseProjectSelected(argv);
 }
 
 /** Reads `PW_UPGRADE_FROM_SERVER_IMAGE`, failing fast when unset or blank. */

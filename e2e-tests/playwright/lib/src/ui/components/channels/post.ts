@@ -10,6 +10,11 @@ import BurnOnReadTimerChip from './burn_on_read_timer_chip';
 import PostMenu from './post_menu';
 import ThreadFooter from './thread_footer';
 
+import {duration, wait} from '@/util';
+
+/** A pending_post_id ("<userId>:<timestamp>"), which the webapp uses until the server acks the post. */
+const PENDING_POST_ID_RE = /^[a-z0-9]{26}:\d+$/;
+
 export default class ChannelsPost {
     readonly container: Locator;
 
@@ -67,13 +72,30 @@ export default class ChannelsPost {
         await this.container.hover();
     }
 
-    async getId() {
-        const id = await this.container.getAttribute('id');
-        expect(id, 'No post ID found.').toBeTruthy();
-        // Remove 'post_' prefix and any timestamp suffix (format: postId:timestamp for combined posts)
-        const postIdWithPossibleTimestamp = (id || '').substring('post_'.length);
-        // Return just the post ID (before any colon)
-        return postIdWithPossibleTimestamp.split(':')[0];
+    /**
+     * Returns the post's permanent ID.
+     *
+     * A just-sent post renders optimistically under its pending_post_id until the server acks it
+     * and swaps in the real one, and a pending_post_id parses to the author's ID rather than the
+     * post's. So retry briefly to give the ack time to land.
+     */
+    async getId(attempts = 3) {
+        let id: string | null = null;
+
+        for (let attempt = 0; attempt < attempts; attempt++) {
+            if (attempt > 0) {
+                await wait(duration.one_sec);
+            }
+
+            id = await this.container.getAttribute('id');
+            const postId = (id ?? '').substring('post_'.length);
+
+            if (postId && !PENDING_POST_ID_RE.test(postId)) {
+                return postId;
+            }
+        }
+
+        throw new Error(`No permanent post ID found after ${attempts} attempts, last saw id="${id}".`);
     }
 
     async getProfileImage(username: string) {

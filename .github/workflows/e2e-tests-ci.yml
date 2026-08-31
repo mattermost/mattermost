@@ -25,7 +25,7 @@ on:
         type: string
         required: false
       run_rolling_upgrades:
-        description: "Also run Playwright rolling-upgrade coverage (upgrade-from/to matrix + full dispatch per from-version)"
+        description: "Also run Playwright rolling-upgrade coverage (upgrade-from/to matrix, then the full suite on each upgraded server)"
         type: boolean
         required: false
         default: false

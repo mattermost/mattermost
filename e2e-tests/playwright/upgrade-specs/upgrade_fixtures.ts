@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-// Fixed actor names shared across separate upgrade-from and upgrade-to processes.
+// Fixed seed data shared across separate upgrade-from and upgrade-to processes (see `seeder`).
 
 import fs from 'node:fs';
 import path from 'node:path';
@@ -20,37 +20,11 @@ import {
     listAzuriteBlobNames,
     listLocalStorageFiles,
     listMinioObjectKeys,
-    mergeWithOnPremServerConfig,
+    playbooksPluginId,
     testConfig,
 } from '@mattermost/playwright-lib';
 
 const BASELINE_PATH = path.resolve(process.cwd(), '.upgrade_baseline.json');
-
-export const UPGRADE_TEAM_NAME = 'upgrade-test';
-export const UPGRADE_PUBLIC_CHANNEL_NAME = 'upgrade-public';
-export const UPGRADE_PRIVATE_CHANNEL_NAME = 'upgrade-private';
-
-export const UPGRADE_USER: UserProfile = {
-    username: 'upgradetestuser',
-    email: 'upgradetestuser@sample.mattermost.com',
-    password: 'Upgradetestuser123!',
-    first_name: 'Upgrade',
-    last_name: 'User',
-} as UserProfile;
-
-export const UPGRADE_PEER_USERS: UserProfile[] = [
-    {username: 'upgradetestpeer1', email: 'upgradetestpeer1@sample.mattermost.com', password: 'Upgradetestpeer123!'},
-    {username: 'upgradetestpeer2', email: 'upgradetestpeer2@sample.mattermost.com', password: 'Upgradetestpeer123!'},
-    {username: 'upgradetestpeer3', email: 'upgradetestpeer3@sample.mattermost.com', password: 'Upgradetestpeer123!'},
-].map((u) => u as UserProfile);
-
-export const UPGRADE_PUBLIC_MESSAGE = 'upgrade-check public channel message';
-export const UPGRADE_PRIVATE_MESSAGE = 'upgrade-check private channel message';
-export const UPGRADE_DM_MESSAGE = 'upgrade-check direct message';
-export const UPGRADE_GM_MESSAGE = 'upgrade-check group message';
-export const UPGRADE_SEARCH_MESSAGE = 'upgrade-check searchable-marker-abc123';
-export const UPGRADE_PROFILE_PHOTO_FILE = 'mattermost-icon_128x128.png';
-export const UPGRADE_ADMIN_ATTACHMENT_MESSAGE = 'upgrade-check admin attachment message';
 
 /** Attachment files from `asset/`, spread across channel types in upgrade-from. */
 export type UpgradeAttachmentSeed = {
@@ -60,17 +34,88 @@ export type UpgradeAttachmentSeed = {
     channel: 'public' | 'private' | 'dm';
 };
 
-export const UPGRADE_ATTACHMENT_SEEDS: UpgradeAttachmentSeed[] = [
-    {fileName: 'small-image.png', message: 'upgrade-check public png attachment', author: 'user', channel: 'public'},
-    {
-        fileName: 'sample_text_file.txt',
-        message: 'upgrade-check private text attachment',
-        author: 'user',
-        channel: 'private',
-    },
-    {fileName: 'mattermost.png', message: UPGRADE_ADMIN_ATTACHMENT_MESSAGE, author: 'admin', channel: 'public'},
-    {fileName: 'image-400x40.jpg', message: 'upgrade-check dm jpeg attachment', author: 'user', channel: 'dm'},
-];
+/** Fixed seed data shared across upgrade-from and upgrade-to processes. */
+export const seeder = {
+    UPGRADE_TEAM_NAME: 'upgrade-test',
+    UPGRADE_PUBLIC_CHANNEL_NAME: 'upgrade-public',
+    UPGRADE_PRIVATE_CHANNEL_NAME: 'upgrade-private',
+
+    UPGRADE_USER: {
+        username: 'upgradetestuser',
+        email: 'upgradetestuser@sample.mattermost.com',
+        password: 'Upgradetestuser123!',
+        first_name: 'Upgrade',
+        last_name: 'User',
+    } as UserProfile,
+
+    UPGRADE_PEER_USERS: [
+        {
+            username: 'upgradetestpeer1',
+            email: 'upgradetestpeer1@sample.mattermost.com',
+            password: 'Upgradetestpeer123!',
+        },
+        {
+            username: 'upgradetestpeer2',
+            email: 'upgradetestpeer2@sample.mattermost.com',
+            password: 'Upgradetestpeer123!',
+        },
+        {
+            username: 'upgradetestpeer3',
+            email: 'upgradetestpeer3@sample.mattermost.com',
+            password: 'Upgradetestpeer123!',
+        },
+    ].map((u) => u as UserProfile),
+
+    UPGRADE_PUBLIC_MESSAGE: 'upgrade-check public channel message',
+    UPGRADE_PRIVATE_MESSAGE: 'upgrade-check private channel message',
+    UPGRADE_DM_MESSAGE: 'upgrade-check direct message',
+    UPGRADE_GM_MESSAGE: 'upgrade-check group message',
+    UPGRADE_SEARCH_MESSAGE: 'upgrade-check searchable-marker-abc123',
+    UPGRADE_PROFILE_PHOTO_FILE: 'mattermost-icon_128x128.png',
+    UPGRADE_ADMIN_ATTACHMENT_MESSAGE: 'upgrade-check admin attachment message',
+
+    UPGRADE_ATTACHMENT_SEEDS: [
+        {
+            fileName: 'small-image.png',
+            message: 'upgrade-check public png attachment',
+            author: 'user',
+            channel: 'public',
+        },
+        {
+            fileName: 'sample_text_file.txt',
+            message: 'upgrade-check private text attachment',
+            author: 'user',
+            channel: 'private',
+        },
+        {
+            fileName: 'mattermost.png',
+            message: 'upgrade-check admin attachment message',
+            author: 'admin',
+            channel: 'public',
+        },
+        {
+            fileName: 'image-400x40.jpg',
+            message: 'upgrade-check dm jpeg attachment',
+            author: 'user',
+            channel: 'dm',
+        },
+    ] as UpgradeAttachmentSeed[],
+
+    UPGRADE_ADMIN_PUBLIC_MESSAGE: 'upgrade-check admin public channel message',
+    UPGRADE_ADMIN_PRIVATE_MESSAGE: 'upgrade-check admin private channel message',
+    UPGRADE_ADMIN_DM_MESSAGE: 'upgrade-check admin direct message',
+    UPGRADE_ADMIN_GM_MESSAGE: 'upgrade-check admin group message',
+    UPGRADE_ADMIN_SEARCH_MESSAGE: 'upgrade-check admin-searchable-marker-xyz789',
+    UPGRADE_ADMIN_AVATAR_MESSAGE: 'upgrade-check admin avatar message',
+
+    UPGRADE_PLUGIN_ID: 'com.mattermost.demo-plugin',
+    UPGRADE_PLUGIN_BUNDLE_URL:
+        'https://github.com/mattermost/mattermost-plugin-demo/releases/download/v0.11.0/mattermost-plugin-demo-v0.11.0.tar.gz',
+    UPGRADE_PLUGIN_BUNDLE_PATH: path.resolve(process.cwd(), '.upgrade_plugin_bundle.tar.gz'),
+};
+
+/** Prepackaged plugin exercised across upgrade-from → upgrade-to (enabled in the from-spec). */
+export const UPGRADE_PREPACKAGED_PLUGIN_ID = playbooksPluginId;
 
 export function channelIdForAttachmentSeed(
     channel: UpgradeAttachmentSeed['channel'],
@@ -90,25 +135,13 @@ export function channelIdForAttachmentSeed(
     }
 }
 
-export const UPGRADE_ADMIN_PUBLIC_MESSAGE = 'upgrade-check admin public channel message';
-export const UPGRADE_ADMIN_PRIVATE_MESSAGE = 'upgrade-check admin private channel message';
-export const UPGRADE_ADMIN_DM_MESSAGE = 'upgrade-check admin direct message';
-export const UPGRADE_ADMIN_GM_MESSAGE = 'upgrade-check admin group message';
-export const UPGRADE_ADMIN_SEARCH_MESSAGE = 'upgrade-check admin-searchable-marker-xyz789';
-export const UPGRADE_ADMIN_AVATAR_MESSAGE = 'upgrade-check admin avatar message';
-
-export const UPGRADE_PLUGIN_ID = 'com.mattermost.demo-plugin';
-export const UPGRADE_PLUGIN_BUNDLE_URL =
-    'https://github.com/mattermost/mattermost-plugin-demo/releases/download/v0.11.0/mattermost-plugin-demo-v0.11.0.tar.gz';
-export const UPGRADE_PLUGIN_BUNDLE_PATH = path.resolve(process.cwd(), '.upgrade_plugin_bundle.tar.gz');
-
 /** Looks up the shared upgrade-test team, creating it on first (from-phase) run. */
 export async function ensureUpgradeTeam(adminClient: Client4) {
     try {
-        return await adminClient.getTeamByName(UPGRADE_TEAM_NAME);
+        return await adminClient.getTeamByName(seeder.UPGRADE_TEAM_NAME);
     } catch {
         return adminClient.createTeam({
-            name: UPGRADE_TEAM_NAME,
+            name: seeder.UPGRADE_TEAM_NAME,
             display_name: 'Upgrade Test',
             type: 'O',
         } as any);
@@ -148,6 +181,15 @@ export async function ensureUpgradeChannel(adminClient: Client4, teamId: string,
             display_name: name,
             type,
         } as any);
+    }
+}
+
+/** Adds the user to the channel only when not already a member (avoids "already a member" warns). */
+export async function ensureChannelMember(adminClient: Client4, userId: string, channelId: string): Promise<void> {
+    try {
+        await adminClient.getChannelMember(channelId, userId);
+    } catch {
+        await adminClient.addToChannel(userId, channelId);
     }
 }
 
@@ -196,7 +238,7 @@ export type UpgradeAttachmentBaseline = {
     author: 'user' | 'admin';
 };
 
-/** Seeds attachment posts from `UPGRADE_ATTACHMENT_SEEDS` and verifies each upload on the active file backend. */
+/** Seeds attachment posts from `seeder.UPGRADE_ATTACHMENT_SEEDS` and verifies each upload on the active file backend. */
 export async function seedUpgradeAttachments(
     request: APIRequestContext,
     userClient: Client4,
@@ -206,7 +248,7 @@ export async function seedUpgradeAttachments(
     const clientFor = (author: 'user' | 'admin') => (author === 'user' ? userClient : adminClient);
 
     const baseline: UpgradeAttachmentBaseline[] = [];
-    for (const seed of UPGRADE_ATTACHMENT_SEEDS) {
+    for (const seed of seeder.UPGRADE_ATTACHMENT_SEEDS) {
         const client = clientFor(seed.author);
         const post = await postWithAttachment(
             client,
@@ -290,7 +332,8 @@ export type UpgradeLicenseBaseline = {
 
 /**
  * MM_LICENSE at container boot sets an in-memory license only (LoadLicense env path).
- * Persist it to Postgres so upgrade-to can reload it without MM_LICENSE env.
+ * Persist it to Postgres as well so license state is dual-sourced (env + DB) across the swap.
+ * upgrade-swap-to keeps the same host MM_LICENSE as upgrade-from; upgrade-to compares baseline.
  */
 export async function persistUpgradeLicenseFromEnv(client: Client4): Promise<void> {
     const licenseKey = process.env.MM_LICENSE?.trim();
@@ -338,88 +381,212 @@ export async function assertUpgradeLicenseMatches(client: Client4, baseline: Upg
     expect(current.users).toBe(baseline.license.users);
 }
 
+/** Schema migration snapshot from GET /api/v4/system/schema/version (db_migrations). */
+export type UpgradeSchemaBaseline = {
+    versionMax: number;
+    count: number;
+};
+
+/**
+ * Reads applied schema migrations. Returns undefined when the from-image lacks the endpoint
+ * or returns an empty list — upgrade-to then skips the schema assert.
+ */
+export async function readUpgradeSchemaBaseline(client: Client4): Promise<UpgradeSchemaBaseline | undefined> {
+    try {
+        const migrations = await client.getAppliedSchemaMigrations();
+        if (!migrations.length) {
+            return undefined;
+        }
+        return {
+            versionMax: Math.max(...migrations.map((m) => m.version)),
+            count: migrations.length,
+        };
+    } catch {
+        return undefined;
+    }
+}
+
+/**
+ * Asserts schema migrations did not regress after the to-image swap.
+ * Skips when the from-phase could not record a schema baseline.
+ * Returns the to-image snapshot for logging.
+ */
+export async function assertUpgradeSchemaMatches(
+    client: Client4,
+    baseline: UpgradeBaseline,
+): Promise<UpgradeSchemaBaseline | undefined> {
+    if (!baseline.schema) {
+        return undefined;
+    }
+
+    const current = await readUpgradeSchemaBaseline(client);
+    expect(current).toBeDefined();
+    expect(current!.count).toBeGreaterThan(0);
+    expect(current!.versionMax).toBeGreaterThanOrEqual(baseline.schema.versionMax);
+    expect(current!.count).toBeGreaterThanOrEqual(baseline.schema.count);
+    return current;
+}
+
 /** Asserts the server reports a licensed Enterprise deployment. */
 export async function assertLicensed(client: Client4): Promise<void> {
     const license = await readUpgradeLicenseBaseline(client);
     expect(license.isLicensed).toBe(true);
 }
 
-/** Installs (if needed) and enables the upgrade demo plugin; asserts it is active. */
-export async function ensureUpgradePluginActive(request: APIRequestContext, client: Client4): Promise<void> {
-    // Demo plugin activation needs SiteURL and plugin settings — upgrade-from uses getAdminClient()
-    // (not initSetup), so on-prem defaults are not applied unless we patch them here.
-    const merged = mergeWithOnPremServerConfig({
-        FileSettings: {EnablePublicLink: true},
-        ServiceSettings: {EnableGifPicker: true},
+/**
+ * Upgrade harness defaults via patchConfig (not MM_* boot env) so later tests can override
+ * without a container restart. Call before creating users / seeding files.
+ * Patches are applied in sections so a from-image rejection fails clearly on that section.
+ */
+export async function ensureUpgradeServerConfig(client: Client4): Promise<void> {
+    await client.patchConfig({
+        EmailSettings: {
+            SendEmailNotifications: true,
+        },
+        FileSettings: {
+            EnablePublicLink: true,
+        },
+        ServiceSettings: {
+            SiteURL: testConfig.internalBaseURL,
+        },
+    } as Parameters<typeof client.patchConfig>[0]);
+
+    await client.patchConfig({
+        AccessControlSettings: {
+            EnableAttributeBasedAccessControl: false,
+            EnableUserManagedAttributes: false,
+        },
+    } as Parameters<typeof client.patchConfig>[0]);
+
+    // No PluginStates here — patchConfig replaces that map wholesale, which would undo whatever
+    // the specs enabled. Plugin enablement is per-id via enablePlugin, and recorded in the
+    // baseline. EnableUploads is likewise absent: SERVER_ENV_BASELINE owns it and the API 403s.
+    await client.patchConfig({
         PluginSettings: {
             Enable: true,
-            EnableUploads: true,
             AllowInsecureDownloadURL: true,
+        },
+    } as Parameters<typeof client.patchConfig>[0]);
+}
+
+/** Installs (if needed) and enables the upgrade demo plugin; asserts it is active. */
+export async function ensureUpgradePluginActive(request: APIRequestContext, client: Client4): Promise<void> {
+    // Only the plugin's own settings — PluginStates is left alone so this does not undo the
+    // playbooks enablement the from-spec just recorded in the baseline.
+    await client.patchConfig({
+        PluginSettings: {
             Plugins: {
-                [UPGRADE_PLUGIN_ID]: {
+                [seeder.UPGRADE_PLUGIN_ID]: {
                     username: 'demouser',
                     channelname: 'demo_plugin',
                     lastname: 'User',
                 },
             },
-            PluginStates: {
-                [UPGRADE_PLUGIN_ID]: {Enable: true},
-            },
         },
-    } as unknown as Parameters<typeof mergeWithOnPremServerConfig>[0]);
-
-    try {
-        await client.patchConfig({
-            FileSettings: merged.FileSettings,
-            ServiceSettings: merged.ServiceSettings,
-            PluginSettings: merged.PluginSettings,
-        });
-    } catch {
-        // Older from-images may reject unknown config keys — SiteURL + public links are the minimum.
-        await client.patchConfig({
-            FileSettings: {EnablePublicLink: true},
-            ServiceSettings: {SiteURL: testConfig.internalBaseURL},
-        } as Parameters<typeof client.patchConfig>[0]);
-    }
+    } as Parameters<typeof client.patchConfig>[0]);
 
     const bundlePath = await ensurePluginBundleDownloaded(request);
-    const status = await getPluginStatus(client, UPGRADE_PLUGIN_ID);
+    const status = await getPluginStatus(client, seeder.UPGRADE_PLUGIN_ID);
 
     if (!status.isInstalled) {
         const fileData = getFileData(bundlePath);
         await client.uploadPlugin(fileData, true);
     }
+    if (!status.isActive) {
+        await client.enablePlugin(seeder.UPGRADE_PLUGIN_ID);
+    }
 
-    const deadline = Date.now() + 90000;
+    // Activation is asynchronous server-side, so poll rather than assert immediately.
+    await expect
+        .poll(() => getPluginStatus(client, seeder.UPGRADE_PLUGIN_ID), {timeout: 30000})
+        .toEqual({
+            isInstalled: true,
+            isActive: true,
+        });
+}
+
+/** Snapshot of a prepackaged plugin's config + runtime state for upgrade-to comparison. */
+export type UpgradePrepackagedPluginBaseline = {
+    pluginId: string;
+    configEnabled: boolean;
+    isInstalled: boolean;
+    isActive: boolean;
+    version: string;
+};
+
+/** Reads PluginStates + getPlugins for a prepackaged plugin id. */
+export async function readUpgradePrepackagedPluginBaseline(
+    client: Client4,
+    pluginId: string = UPGRADE_PREPACKAGED_PLUGIN_ID,
+): Promise<UpgradePrepackagedPluginBaseline> {
+    const config = await client.getConfig();
+    const plugins = await client.getPlugins();
+    const active = plugins.active.find((p) => p.id === pluginId);
+    const inactive = plugins.inactive.find((p) => p.id === pluginId);
+    const manifest = active || inactive;
+
+    return {
+        pluginId,
+        configEnabled: Boolean(config.PluginSettings?.PluginStates?.[pluginId]?.Enable),
+        isInstalled: Boolean(manifest),
+        isActive: Boolean(active),
+        version: manifest?.version || '',
+    };
+}
+
+/**
+ * Enables the upgrade prepackaged plugin (playbooks) via the enablePlugin API — not boot env.
+ * Returns the observed state for the upgrade baseline.
+ */
+export async function ensureUpgradePlaybooksEnabled(client: Client4): Promise<UpgradePrepackagedPluginBaseline> {
+    const initial = await getPluginStatus(client, UPGRADE_PREPACKAGED_PLUGIN_ID);
+    expect(initial.isInstalled).toBe(true);
+
+    if (!initial.isActive) {
+        await client.enablePlugin(UPGRADE_PREPACKAGED_PLUGIN_ID);
+    }
+
+    const deadline = Date.now() + 60000;
     while (Date.now() < deadline) {
-        const current = await getPluginStatus(client, UPGRADE_PLUGIN_ID);
+        const current = await getPluginStatus(client, UPGRADE_PREPACKAGED_PLUGIN_ID);
         if (current.isActive) {
-            return;
-        }
-        try {
-            await client.enablePlugin(UPGRADE_PLUGIN_ID);
-        } catch {
-            // Transient activation race — retry until deadline.
+            break;
         }
         await new Promise((r) => setTimeout(r, 1000));
     }
 
-    const finalStatus = await getPluginStatus(client, UPGRADE_PLUGIN_ID);
-    expect(finalStatus.isInstalled).toBe(true);
-    expect(finalStatus.isActive).toBe(true);
+    const baseline = await readUpgradePrepackagedPluginBaseline(client);
+    expect(baseline.isInstalled).toBe(true);
+    expect(baseline.isActive).toBe(true);
+    expect(baseline.configEnabled).toBe(true);
+    return baseline;
+}
+
+/**
+ * Asserts playbooks plugin state after upgrade matches the from-image baseline.
+ * Read-only — does not re-enable or patchConfig PluginStates.
+ */
+export async function assertUpgradePlaybooksMatches(client: Client4, baseline: UpgradeBaseline): Promise<void> {
+    expect(baseline.playbooks).toBeDefined();
+    const current = await readUpgradePrepackagedPluginBaseline(client, baseline.playbooks!.pluginId);
+
+    expect(current.pluginId).toBe(baseline.playbooks!.pluginId);
+    expect(current.isInstalled).toBe(baseline.playbooks!.isInstalled);
+    expect(current.isActive).toBe(baseline.playbooks!.isActive);
+    expect(current.configEnabled).toBe(baseline.playbooks!.configEnabled);
 }
 
 /** Downloads the demo plugin bundle via Playwright `request` (not raw fetch). */
 export async function ensurePluginBundleDownloaded(request: APIRequestContext): Promise<string> {
-    if (fs.existsSync(UPGRADE_PLUGIN_BUNDLE_PATH)) {
-        return UPGRADE_PLUGIN_BUNDLE_PATH;
+    if (fs.existsSync(seeder.UPGRADE_PLUGIN_BUNDLE_PATH)) {
+        return seeder.UPGRADE_PLUGIN_BUNDLE_PATH;
     }
-    const response = await request.get(UPGRADE_PLUGIN_BUNDLE_URL);
+    const response = await request.get(seeder.UPGRADE_PLUGIN_BUNDLE_URL);
     if (!response.ok()) {
         throw new Error(`Failed to download plugin bundle: ${response.status()} ${response.statusText()}`);
     }
-    fs.writeFileSync(UPGRADE_PLUGIN_BUNDLE_PATH, await response.body());
-    return UPGRADE_PLUGIN_BUNDLE_PATH;
+    fs.writeFileSync(seeder.UPGRADE_PLUGIN_BUNDLE_PATH, await response.body());
+    return seeder.UPGRADE_PLUGIN_BUNDLE_PATH;
 }
 
 export type UpgradeFromContext = {
@@ -432,37 +599,64 @@ export type UpgradeFromContext = {
     privateChannel: Channel;
 };
 
+/** Process-local cache so serial upgrade tests do not re-GET/re-add membership every time. */
+let upgradeFromContextCache: UpgradeFromContext | undefined;
+
+export function clearUpgradeFromContextCache(): void {
+    upgradeFromContextCache = undefined;
+}
+
 /** Idempotently ensures shared upgrade actors/channels and returns API clients for from-phase tests. */
 export async function loadUpgradeFromContext(pw: {
     getAdminClient: () => Promise<{adminClient: Client4}>;
     makeClient: (user: UserProfile) => Promise<{client: Client4 | undefined}>;
 }): Promise<UpgradeFromContext> {
-    const {adminClient} = await pw.getAdminClient();
-    const team = await ensureUpgradeTeam(adminClient);
-    const user = await ensureUpgradeUser(adminClient, team.id, UPGRADE_USER);
-    const peers = await Promise.all(UPGRADE_PEER_USERS.map((peer) => ensureUpgradeUser(adminClient, team.id, peer)));
-    const publicChannel = await ensureUpgradeChannel(adminClient, team.id, UPGRADE_PUBLIC_CHANNEL_NAME, 'O');
-    const privateChannel = await ensureUpgradeChannel(adminClient, team.id, UPGRADE_PRIVATE_CHANNEL_NAME, 'P');
+    if (upgradeFromContextCache) {
+        return upgradeFromContextCache;
+    }
 
-    await adminClient.addToChannel(user.id, publicChannel.id);
-    await adminClient.addToChannel(user.id, privateChannel.id);
+    const {adminClient} = await pw.getAdminClient();
+    await ensureUpgradeServerConfig(adminClient);
+
+    const team = await ensureUpgradeTeam(adminClient);
+    const user = await ensureUpgradeUser(adminClient, team.id, seeder.UPGRADE_USER);
+    const peers = await Promise.all(
+        seeder.UPGRADE_PEER_USERS.map((peer) => ensureUpgradeUser(adminClient, team.id, peer)),
+    );
+    const publicChannel = await ensureUpgradeChannel(adminClient, team.id, seeder.UPGRADE_PUBLIC_CHANNEL_NAME, 'O');
+    const privateChannel = await ensureUpgradeChannel(adminClient, team.id, seeder.UPGRADE_PRIVATE_CHANNEL_NAME, 'P');
+
+    // Membership only on first ensure — re-calling addToChannel every test logs "already a member".
+    await ensureChannelMember(adminClient, user.id, publicChannel.id);
+    await ensureChannelMember(adminClient, user.id, privateChannel.id);
 
     const adminMe = await adminClient.getMe();
-    await adminClient.addToChannel(adminMe.id, publicChannel.id);
-    await adminClient.addToChannel(adminMe.id, privateChannel.id);
+    await ensureChannelMember(adminClient, adminMe.id, publicChannel.id);
+    await ensureChannelMember(adminClient, adminMe.id, privateChannel.id);
 
     const {client: userClient} = await pw.makeClient(user);
     expect(userClient).toBeTruthy();
 
-    return {adminClient, userClient: userClient!, adminMe, user, peers, publicChannel, privateChannel};
+    upgradeFromContextCache = {
+        adminClient,
+        userClient: userClient!,
+        adminMe,
+        user,
+        peers,
+        publicChannel,
+        privateChannel,
+    };
+    return upgradeFromContextCache;
 }
 
 export type UpgradeBaseline = {
     serverVersion: string;
     buildNumber: string;
+    /** Highest db_migrations.Version (+ count) on the from-image; upgrade-to asserts it did not regress. */
+    schema?: UpgradeSchemaBaseline;
     /** FileSettings.DriverName active when from-phase seeded attachments/profile images. */
     fileDriverName: string;
-    /** License on the from-image; upgrade-to re-checks after swap without MM_LICENSE env. */
+    /** License on the from-image; upgrade-to asserts it still matches after swap (same env as from). */
     license: UpgradeLicenseBaseline;
     userId: string;
     adminUserId: string;
@@ -474,6 +668,8 @@ export type UpgradeBaseline = {
     adminGmChannelId: string;
     attachments: UpgradeAttachmentBaseline[];
     avatarPostId: string;
+    /** Prepackaged playbooks state from upgrade-from; upgrade-to asserts it without re-enabling. */
+    playbooks?: UpgradePrepackagedPluginBaseline;
 };
 
 export type UpgradeToContext = UpgradeFromContext & {
@@ -504,6 +700,7 @@ export function writeUpgradeBaseline(baseline: UpgradeBaseline): void {
 
 /** Removes any prior baseline before a fresh upgrade-from run. */
 export function clearUpgradeBaseline(): void {
+    clearUpgradeFromContextCache();
     if (fs.existsSync(BASELINE_PATH)) {
         fs.unlinkSync(BASELINE_PATH);
     }

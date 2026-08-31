@@ -94,7 +94,8 @@ npm run testcontainers:down
 ```
 
 - `script/resolve_upgrade_matrix.mjs` — outputs JSON with `dockerTag`, `isESR`, `contextLabel`; prints `[]` when no supported from-versions (CI posts `e2e-test/playwright-full/{edition}/upgrade-from-none`).
-- CI rolling upgrades run on merge/release automatically; PR runs only when `run_rolling_upgrades` is enabled on manual `e2e-tests-ci.yml` dispatch.
+- CI rolling upgrades run on merge/release automatically; PR runs only when `run_rolling_upgrades` is enabled on manual `e2e-tests-ci.yml` dispatch. `e2e-tests-playwright-rolling-upgrades.yml` also has its own **Run workflow** button for ad-hoc runs without a PR.
+- CI shape: the entry workflow resolves the matrix and calls `...-rolling-upgrades-template.yml` once per from-version (from-image + to-image). Each of that version's workers runs the harness then continues straight into the normal full suite (`dispatch-run`, with no re-preparation in between — the upgraded server must be usable as-is), so the suite runs against a server that got to the to-image by upgrading. One commit status per from-version, nothing aggregate. Locally only the harness runs.
 - Pulling `release-*` server images requires Docker Hub login (`DOCKERHUB_USERNAME` / `DOCKERHUB_TOKEN`). Set `MM_LICENSE` for licensed upgrade-from scenarios.
 - Before opening/updating the PR: run `npm run check` in `e2e-tests/playwright` and fix any eslint errors; then verify a full `upgrade-from` → `upgrade-to` run is green.
 

@@ -14,11 +14,6 @@ import {duration} from '@/util';
 
 const execFileAsync = promisify(execFile);
 
-export type UpgradeServerImageOptions = {
-    /** Skip host `MM_LICENSE` on the restarted container (license must survive from Postgres). */
-    omitProcessEnvLicense?: boolean;
-};
-
 /**
  * Swaps the running Testcontainers-managed Mattermost server to `image`, keeping the same
  * network and Postgres database — i.e. an in-place upgrade (or downgrade) test scenario.
@@ -28,11 +23,7 @@ export type UpgradeServerImageOptions = {
  * for an upgrade spec, the upgrade itself is the thing under test, so failure must fail the test,
  * not silently skip it.
  */
-export async function upgradeServerImage(
-    image: string,
-    extraEnv: Record<string, string> = {},
-    options: UpgradeServerImageOptions = {},
-): Promise<void> {
+export async function upgradeServerImage(image: string, extraEnv: Record<string, string> = {}): Promise<void> {
     if (!testConfig.useTestContainers) {
         throw new Error('upgradeServerImage requires PW_USE_TESTCONTAINERS=true.');
     }
@@ -40,23 +31,11 @@ export async function upgradeServerImage(
     const fromImage = testConfig.serverImage;
     logTestcontainers(`upgrade swap: ${fromImage} → ${image}`);
 
-    const previousOmitLicense = testConfig.omitProcessEnvLicense;
-    if (options.omitProcessEnvLicense) {
-        testConfig.omitProcessEnvLicense = true;
-        const bootEnvWithoutLicense = {...testConfig.bootEnvOverrides};
-        delete bootEnvWithoutLicense.MM_LICENSE;
-        testConfig.bootEnvOverrides = bootEnvWithoutLicense;
-    }
-
-    try {
-        testConfig.serverImage = image;
-        await restartMattermostContainer(extraEnv);
-        await assertRunningContainerImage(image);
-        await waitForServerApiReady();
-        logTestcontainers(`upgrade swap complete — server ready at ${testConfig.baseURL} (${image}).`);
-    } finally {
-        testConfig.omitProcessEnvLicense = previousOmitLicense;
-    }
+    testConfig.serverImage = image;
+    await restartMattermostContainer(extraEnv);
+    await assertRunningContainerImage(image);
+    await waitForServerApiReady();
+    logTestcontainers(`upgrade swap complete — server ready at ${testConfig.baseURL} (${image}).`);
 }
 
 async function assertRunningContainerImage(expectedImage: string): Promise<void> {

@@ -4,7 +4,7 @@
 export {makeClient} from './client';
 export {PlaywrightClient4} from './playwright_client';
 export {createRandomChannel} from './channel';
-export {getOnPremServerConfig, mergeWithOnPremServerConfig} from './default_config';
+export {getOnPremServerConfig} from './default_config';
 export {initSetup, getAdminClient} from './init';
 export {createRandomPost} from './post';
 export {createNewTeam, createRandomTeam} from './team';
@@ -56,6 +56,8 @@ export {ensureAzurite, listAzuriteBlobNames} from './azurite';
 export {ensureLocalFile, listLocalStorageFiles} from './filestore';
 export {ensurePostgresSearch} from './postgres_search';
 export {ensureFeatureFlag} from './feature_flags';
-export {runMmctl, ensureMmctl} from './mmctl';
+export {runMmctl, runMmctlLocal, ensureMmctl} from './mmctl';
 export type {MmctlResult} from './mmctl';
 export {upgradeServerImage} from './version';
+export {saveUpgradePhaseLogs} from './upgrade_logs';
+export type {UpgradeLogPhase} from './upgrade_logs';

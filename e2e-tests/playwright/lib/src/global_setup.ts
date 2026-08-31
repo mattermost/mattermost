@@ -6,7 +6,7 @@ import type {PluginManifest} from '@mattermost/types/plugins';
 import type {PreferenceType} from '@mattermost/types/preferences';
 import type {UserProfile} from '@mattermost/types/users';
 
-import {createNewTeam, getAdminClient, getDefaultAdminUser, makeClient} from './server';
+import {createNewTeam, getAdminClient, getDefaultAdminUser, makeClient, runMmctlLocal} from './server';
 import {testConfig} from './test_config';
 import {defaultTeam} from './util';
 
@@ -16,6 +16,8 @@ export async function baseGlobalSetup() {
     ({adminClient, adminUser} = await getAdminClient({skipLog: true}));
 
     if (!adminUser) {
+        await enableEmailNotifications();
+
         const firstClient = new Client4();
         firstClient.setUrl(testConfig.baseURL);
         const defaultAdmin = getDefaultAdminUser();
@@ -28,6 +30,32 @@ export async function baseGlobalSetup() {
     printPlaywrightTestConfig();
 
     await sysadminSetup(adminClient, adminUser);
+}
+
+// SendEmailNotifications is off in the server's own defaults, so creating the very first sysadmin
+// logs "Failed to send welcome email on create user from signup". No admin exists yet to
+// authenticate patchConfig with, so this goes through mmctl's --local socket rather than boot env —
+// the server's env surface stays the same as any other run.
+async function enableEmailNotifications(): Promise<void> {
+    if (!testConfig.useTestContainers) {
+        return;
+    }
+
+    try {
+        const {exitCode, output} = await runMmctlLocal([
+            'config',
+            'set',
+            'EmailSettings.SendEmailNotifications',
+            'true',
+        ]);
+        if (exitCode !== 0) {
+            throw new Error(`mmctl exited with code ${exitCode}: ${output}`);
+        }
+    } catch (error) {
+        // Costs only a warn-level log line during first-user creation — never worth failing setup over.
+        // eslint-disable-next-line no-console
+        console.log('Could not enable email notifications before creating the first user', error);
+    }
 }
 
 async function sysadminSetup(client: Client4, user: UserProfile | null) {

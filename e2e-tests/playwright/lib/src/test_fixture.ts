@@ -49,7 +49,6 @@ import {
     ldapServerConfig,
     ensureOpenldap,
     makeClient,
-    mergeWithOnPremServerConfig,
     recapCompletion,
     resetAIBridgeMock,
     rewriteCompletion,
@@ -65,6 +64,7 @@ import {
     ensureMmctl,
     updateLdapUser,
     upgradeServerImage,
+    saveUpgradePhaseLogs,
 } from './server';
 import {
     toBeFocusedWithFocusVisible,
@@ -130,7 +130,6 @@ export class PlaywrightExtended {
     // ./server
     readonly ensurePluginsLoaded;
     readonly getAdminClient;
-    readonly mergeWithOnPremServerConfig;
     readonly initSetup;
     readonly enableAIBridgeTestMode;
     readonly configureAIBridgeMock;
@@ -170,6 +169,8 @@ export class PlaywrightExtended {
 
     // ./server/version
     readonly upgradeServerImage;
+    // ./server/upgrade_logs
+    readonly saveUpgradePhaseLogs;
 
     // ./test_action
     readonly toBeFocusedWithFocusVisible;
@@ -234,7 +235,6 @@ export class PlaywrightExtended {
         this.ensurePluginsLoaded = ensurePluginsLoaded;
         this.initSetup = initSetup;
         this.getAdminClient = getAdminClient;
-        this.mergeWithOnPremServerConfig = mergeWithOnPremServerConfig;
         this.enableAIBridgeTestMode = enableAIBridgeTestMode;
         this.configureAIBridgeMock = configureAIBridgeMock;
         this.getAIBridgeMock = getAIBridgeMock;
@@ -274,6 +274,8 @@ export class PlaywrightExtended {
 
         // ./server/version
         this.upgradeServerImage = upgradeServerImage;
+        // ./server/upgrade_logs
+        this.saveUpgradePhaseLogs = saveUpgradePhaseLogs;
 
         // ./test_action
         this.toBeFocusedWithFocusVisible = toBeFocusedWithFocusVisible;

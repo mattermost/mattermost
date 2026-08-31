@@ -21,10 +21,10 @@ All pipelines follow the **smoke-then-full** pattern: smoke tests run first, ful
 ├── e2e-tests-on-release.yml               # Release cut orchestrator
 ├── e2e-tests-cypress.yml                  # Shared wrapper: calls the cypress template
 ├── e2e-tests-playwright.yml               # Shared wrapper: calls the playwright template
-├── e2e-tests-playwright-rolling-upgrades.yml
+├── e2e-tests-playwright-rolling-upgrades.yml           # resolves the from-version matrix, calls the template per version
 ├── e2e-tests-cypress-template.yml         # cypress + test-system-io dispatch
 ├── e2e-tests-playwright-template.yml      # playwright + test-system-io dispatch
-└── e2e-tests-playwright-rolling-upgrades-template.yml  # rolling upgrade-from/to + dispatch per from-version
+└── e2e-tests-playwright-rolling-upgrades-template.yml  # one from-version: upgrade-from/to, then dispatch on the upgraded server
 ```
 
 ### Call hierarchy
@@ -35,7 +35,10 @@ e2e-tests-on-merge.yml ───────────┤──► e2e-tests-c
 e2e-tests-on-release.yml ─────────┘    e2e-tests-playwright.yml ─► e2e-tests-playwright-template.yml
                                        │                          └► e2e-tests-playwright-rolling-upgrades.yml
                                        │                               └► e2e-tests-playwright-rolling-upgrades-template.yml
+                                       │                                  (once per resolved from-version)
 ```
+
+`e2e-tests-playwright-rolling-upgrades.yml` is also directly runnable from the Actions UI, so it has no caller in that case.
 
 ---
 
@@ -123,22 +126,25 @@ The template splits into five jobs — `prepare-run`, `prep-deps`, `dispatch-beg
 
 ### Playwright rolling upgrades (separate from full suite)
 
-`e2e-tests-playwright-rolling-upgrades-template.yml` resolves the from-version matrix via `script/resolve_upgrade_matrix.mjs` (last 3 minors + active ESR; ESR entries carry `isESR: true` and a `contextLabel` ending in `-esr`). Each matrix job runs in isolation on its own runner:
+Two workflows, split on the question each answers:
 
-1. `testcontainers:down` → `upgrade-from` → `upgrade-to`
-2. Per-from-version commit status: `e2e-test/playwright-full/{edition}/upgrade-from-{contextLabel}`
+- **`e2e-tests-playwright-rolling-upgrades.yml`** — *which* versions to upgrade from. Resolves the matrix via `script/resolve_upgrade_matrix.mjs` (last 3 minors + active ESR; ESR entries carry `isESR: true` and a `contextLabel` ending in `-esr`), then calls the template once per entry in a `strategy.matrix` of reusable-workflow invocations.
+- **`e2e-tests-playwright-rolling-upgrades-template.yml`** — *how* to test one version, given two images: `upgrade_from_server_image` (that entry's `dockerTag`) and `SERVER_IMAGE` (the to-image). Same job shape as `e2e-tests-playwright-template.yml` — `prepare-run` → `prep-deps` → `dispatch-begin` → `workers` → `report` — with the harness prepended to each worker.
 
-Post-upgrade full Playwright dispatch is omitted — a single runner cannot finish the full suite within the job timeout. Upgrade-path coverage is the API harness (`upgrade-from` / `upgrade-to`).
+Per worker, within one from-version:
 
-**Commit status description** (same shape as Test System IO against `server_image`, plus `from:`):
+1. `upgrade-from` → `upgrade-to`
+2. `dispatch-run` against the just-upgraded server
 
-| Example | Description |
-|---------|-------------|
-| All passed | `100% passed (12), 2 specs, image_tag:master, from:release-11.9` |
-| With failures | `91.7% passed (11/12), 1 failed, 2 specs, image_tag:abc1234, from:release-11.7-esr` |
-| With aliases (release cuts) | `100% passed (12), 2 specs, image_tag:11.4.0 (release-11.4, release-11), from:release-11.9` |
+So the upgraded server does not stop at the harness — it goes on to run the normal suite, which is the coverage this pipeline exists for. Nothing sits between the two: no `--project=setup`, no re-patching, no restart, since an upgrade that needed the suite's setup re-run before the server was usable would not be a passing upgrade. The upgrade specs never enter the queue themselves: `upgrade-specs/` sits outside the Playwright `testDir`, so `dispatch-begin` cannot enqueue them.
 
-Keep `image_tag:` (target/to image) and `from:` (resolved from-version `contextLabel`) on every result status.
+**Statuses are exactly the matrix.** A 4-entry matrix posts 4 contexts, `e2e-test/playwright-full/{edition}/upgrade-from-{contextLabel}`, each covering that version's harness *and* its post-upgrade suite — posted pending by its `dispatch-begin` and resolved by its `report`. There is no aggregate context.
+
+Each worker upgrades its own server (a server cannot be shared across runners), so the harness runs `workers` times per from-version and the pipeline costs `matrix size × workers` runners. `workers` defaults to 10 and is an input; workers get 60m (vs the full suite's 30m) to cover the harness's two image pulls and swap on top of their share of the suite.
+
+There is deliberately no `testcontainers:down` first — the runner is fresh, so `upgrade-from`'s clean-slate guard has nothing to trip over. `PW_TESTCONTAINERS_REUSE=true` is what lets `upgrade-to` adopt the stack, survive the swap, and keep every per-spec dispatch on the same upgraded server. Step 2 is skipped when the harness fails; that worker then never reports, the run closes short of `total-reports-expected`, and the version's context goes red.
+
+**Commit status description** — written by the Test System IO summary, same shape as the full suite (`image_tag:` is the target/to image). The from-version needs no description field of its own: it is already in the context name, one context per version.
 
 Failed rolling-upgrade contexts are included when applying **E2E Tests/verified** or the override-status workflow (discovered by pattern `e2e-test/playwright-full/{edition}/upgrade-from-*`, same principle as full-suite contexts).
 
@@ -150,8 +156,11 @@ This pipeline is invoked from `e2e-tests-playwright.yml` when `run_rolling_upgra
 | PR (`workflow_dispatch`, manual) | Opt-in: **Run rolling upgrades** on `e2e-tests-ci.yml` |
 | Merge to `master` / `release-*` | `true` |
 | Release cut | `true` |
+| Ad-hoc | n/a — **Run workflow** directly on `e2e-tests-playwright-rolling-upgrades.yml` |
 
-When `resolve_upgrade_matrix.mjs` returns `[]` (no supported from-versions), the template posts success on `e2e-test/playwright-full/{edition}/upgrade-from-none` and skips `workers` / `report`.
+`e2e-tests-playwright-rolling-upgrades.yml` carries its own `workflow_dispatch` so the coverage can be run from the Actions UI without a PR: `commit_sha` defaults to the selected ref's HEAD, `server_image_tag` to `master`, and the license / webhook secrets fall back to the repo secrets the calling workflows would have forwarded.
+
+When `resolve_upgrade_matrix.mjs` returns `[]` (no supported from-versions), the entry workflow posts success on `e2e-test/playwright-full/{edition}/upgrade-from-none` and never invokes the template.
 
 ---
 
@@ -320,9 +329,8 @@ Where `<phase>` is `cypress-smoke`, `cypress-full`, `playwright-smoke`, or `play
 - All passed: `100% passed (<count>), <specs> specs, image_tag:<tag>[ (<aliases>)]`
 - With failures: `<rate>% passed (<passed>/<total>), <failed> failed, <specs> specs, image_tag:<tag>[ (<aliases>)]`
 - Pending: `tests running, image_tag:<tag>[ (<aliases>)]`
-- Rolling upgrades (per from-version): same as above, plus `, from:<contextLabel>`
-  - e.g. `100% passed (12), 2 specs, image_tag:master, from:release-11.9`
-  - e.g. `91.7% passed (11/12), 1 failed, 2 specs, image_tag:abc1234, from:release-11.7-esr`
+- Rolling upgrades: identical shape — the from-version lives in the context
+  (`…/upgrade-from-release-11.9`), one per resolved version, not in the description
 
 - Pass rate: `100%` if all pass, otherwise one decimal (e.g., `99.5%`)
 - Aliases only present for release cuts

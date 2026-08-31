@@ -129,11 +129,6 @@ export class TestConfig {
      * must see the server's actual current state, not assume defaults.
      */
     bootEnvOverrides: Record<string, string>;
-    /**
-     * When true, `resolveMattermostBootEnv()` omits `MM_LICENSE` even if set on the host process.
-     * Used by upgrade-swap-to to verify the license stored in Postgres survives without re-injection.
-     */
-    omitProcessEnvLicense: boolean;
 
     /** Used in every mode; defaults match the fixed ports the Testcontainers stack publishes. */
     ldapHost: string;
@@ -208,7 +203,6 @@ export class TestConfig {
         // elsewhere, before a fresh container starts.
         this.bootEnvOverrides =
             parsePersistedBootEnv(process.env.PW_TESTCONTAINERS_BOOT_ENV) ?? computeDefaultBootEnv(this.serverEnv);
-        this.omitProcessEnvLicense = false;
         this.ldapHost = process.env.PW_LDAP_HOST || 'localhost';
         this.ldapPort = parseNumber(process.env.PW_LDAP_PORT, 389);
         this.keycloakUrl = process.env.PW_KEYCLOAK_URL || 'http://localhost:8484';

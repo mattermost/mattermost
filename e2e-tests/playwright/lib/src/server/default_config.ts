@@ -10,7 +10,6 @@ import type {
     ExperimentalSettings,
     LogSettings,
     PasswordSettings,
-    PluginSettings,
     ServiceSettings,
     TeamSettings,
 } from '@mattermost/types/config';
@@ -22,8 +21,9 @@ export function getOnPremServerConfig(): AdminConfig {
     return merge<AdminConfig>(defaultServerConfig, onPremServerConfig() as AdminConfig);
 }
 
-export function mergeWithOnPremServerConfig(overrides: Partial<AdminConfig>): AdminConfig {
-    return merge<AdminConfig>(getOnPremServerConfig(), overrides);
+/** Live-reloadable on-prem overrides only — safe for patchConfig (no restart-required keys). */
+export function getOnPremServerConfigPatch(): Partial<AdminConfig> {
+    return onPremServerConfig() as Partial<AdminConfig>;
 }
 
 type TestAdminConfig = {
@@ -33,12 +33,16 @@ type TestAdminConfig = {
     ExperimentalSettings: Partial<ExperimentalSettings>;
     LogSettings: Partial<LogSettings>;
     PasswordSettings: Partial<PasswordSettings>;
-    PluginSettings: Partial<PluginSettings>;
     ServiceSettings: Partial<ServiceSettings>;
     TeamSettings: Partial<TeamSettings>;
 };
 
-// On-prem setting that is different from the default
+// On-prem setting that is different from the default.
+//
+// Deliberately carries no PluginSettings: patchConfig replaces the PluginStates map wholesale
+// (SetDefaults then refills the missing prepackaged ids), so patching it here would clobber
+// whatever plugin a running spec just enabled. Specs own their plugins through enablePlugin /
+// disablePlugin, which the server applies per id.
 const onPremServerConfig = (): Partial<TestAdminConfig> => {
     return {
         AccessControlSettings: {
@@ -64,20 +68,6 @@ const onPremServerConfig = (): Partial<TestAdminConfig> => {
             Symbol: false,
             EnableForgotLink: true,
         },
-        PluginSettings: {
-            EnableUploads: true,
-            PluginStates: {
-                'com.mattermost.calls': {
-                    Enable: false,
-                },
-                'com.mattermost.nps': {
-                    Enable: false,
-                },
-                playbooks: {
-                    Enable: true,
-                },
-            },
-        },
         ServiceSettings: {
             // SiteURL is the server's own view of itself (e.g. for building plugin callback
             // URLs), so it must use an address the server can reach itself with. In `testcontainers` mode
@@ -88,8 +78,6 @@ const onPremServerConfig = (): Partial<TestAdminConfig> => {
             EnableOnboardingFlow: false,
             EnableSecurityFixAlert: false,
             GiphySdkKey: 's0glxvzVg9azvPipKxcPLpXV0q1x1fVP',
-            EnableTesting: true,
-            AllowedUntrustedInternalConnections: 'localhost 127.0.0.1',
         },
         TeamSettings: {
             EnableOpenServer: true,
