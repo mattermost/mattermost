@@ -8,15 +8,30 @@ import type {PropertyFieldOption} from '@mattermost/types/properties';
 // checking any occurrence checks them all.
 export type GraphOccurrence = {
 
-    // `${parentId ?? ''}::${valueId}` -- an empty parent segment for a root.
+    // `${parentId ?? ''}::${valueId}`, an empty parent segment for a root.
+    //
+    // Unique among siblings but NOT a node identity: a value whose parent has
+    // several occurrences has one occurrence per parent occurrence, and they
+    // all carry this same key. Safe as a sibling-list React key and as the
+    // expand/collapse key the tree already treats as shared -- opening one
+    // `s::t` opens every `s::t` -- but never as a tree-wide unique id.
     occKey: string;
+
+    // Identity. Selection, `{n} inside` counts and expand-to-selected are all
+    // keyed on this, never on occKey.
     valueId: string;
     parentId: string | null;
     label: string;
 
     // The names of this value's other parents, in the order the server reported
-    // them. Empty for a value with one parent or none.
+    // them. Empty for a value with one parent or none. Already server-ordered;
+    // do not sort.
     alsoUnder: string[];
+
+    // Empty for a leaf, and also empty for an occurrence whose expansion hit
+    // the occurrence budget -- a truncated row looks childless. Do not read
+    // emptiness as "this value has no children"; `flattenSearch` still finds
+    // and selects values whose occurrences were cut.
     children: GraphOccurrence[];
 };
 
@@ -25,8 +40,12 @@ export type GraphSearchRow = {
     valueId: string;
     label: string;
 
-    // The first parent path, `A > B > C`, plus ` . +N` when the value hangs
-    // under N further paths. Empty for a value with no parents.
+    // Pre-rendered, e.g. `A › B › C` or `A › B · +2` when the value hangs under
+    // two further paths. Empty for a value with no resolved parents. Do not
+    // append to it.
+    //
+    // This is the first-parent chain, not necessarily a path from a root: it
+    // stops early at a dangling parent or a cycle, so it can begin mid-graph.
     path: string;
 };
 
@@ -36,6 +55,11 @@ export type GraphOptionJoin = {
     // Exact and case-sensitive: `Engineering` and `engineering` are different
     // options. First wins on a duplicate name.
     byExactName: Map<string, PropertyFieldOption>;
+
+    // One occurrence per root option, in input order. Every root option is
+    // always seated, even when the occurrence budget is spent, so this is the
+    // complete set of top-level options. Truncation costs subtrees rather than
+    // rows: a root beyond the budget appears with empty `children`.
     roots: GraphOccurrence[];
 };
 
@@ -190,12 +214,13 @@ export function joinGraphOptions(options: PropertyFieldOption[]): GraphOptionJoi
         return occurrence;
     };
 
+    // Every root is seated even once the budget is spent: expand's own early
+    // return makes each further root a childless stub, so the budget bounds
+    // cost without ever dropping a top-level row. Overshoot is at most one
+    // occurrence per root.
     const roots: GraphOccurrence[] = [];
     for (const rootId of index.rootIds) {
         roots.push(expand(rootId, null, 1, new Set<string>()));
-        if (emitted >= budget) {
-            break;
-        }
     }
 
     return {byId: index.byId, byExactName: index.byExactName, roots};
@@ -311,21 +336,30 @@ export function flattenSearch(options: PropertyFieldOption[], query: string): Gr
 // and no others. A selected occurrence is not opened for its own sake -- it is
 // already visible once its ancestors are -- so only an occurrence holding a
 // selected value below it is returned.
+//
+// `selectedIds` holds value ids, never occKeys. The returned set holds occKeys,
+// and because those are not node identities one entry can open more than one
+// row; that is intended, since every path to a checked value should open.
 export function expandToSelected(roots: GraphOccurrence[], selectedIds: Set<string>): Set<string> {
     const open = new Set<string>();
     if (selectedIds.size === 0) {
         return open;
     }
 
-    // An occKey is unique within a well-formed tree, so this only ever stops a
+    // Keyed on the node rather than on its occKey: occKey is not a node
+    // identity, because a value whose parent has several occurrences has one
+    // occurrence per parent occurrence and they all share the one key. Keying
+    // on occKey here would prune every occurrence after the first and leave
+    // the other ancestor paths to a checked value collapsed. Expansion
+    // allocates a fresh occurrence per node, so this only stops a caller's
     // hand-built cycle from recursing.
-    const visited = new Set<string>();
+    const visited = new Set<GraphOccurrence>();
 
     const walk = (node: GraphOccurrence): boolean => {
-        if (visited.has(node.occKey)) {
+        if (visited.has(node)) {
             return false;
         }
-        visited.add(node.occKey);
+        visited.add(node);
 
         let holdsSelected = false;
         for (const child of node.children) {
@@ -351,6 +385,9 @@ export function expandToSelected(roots: GraphOccurrence[], selectedIds: Set<stri
 // reachable by two paths under the same ancestor counts once. Seeding the seen
 // set with the node itself both excludes it from its own count and stops a cycle,
 // and the same set is what keeps a diamond linear.
+//
+// `selectedIds` holds value ids, never occKeys. The count covers this
+// occurrence's own subtree only, so a truncated subtree undercounts.
 export function selectedDescendantCount(node: GraphOccurrence, selectedIds: Set<string>): number {
     if (selectedIds.size === 0) {
         return 0;

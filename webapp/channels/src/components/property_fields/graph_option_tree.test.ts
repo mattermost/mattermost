@@ -44,6 +44,22 @@ const chainABC = (): PropertyFieldOption[] => [
     opt('c', 'C', ['B']),
 ];
 
+// R1 → S, R2 → S, S → T. S has two occurrences, so T has two occurrences that
+// share the occKey 's::t': occKey is not a node identity.
+const sharedParent = (): PropertyFieldOption[] => [
+    opt('r1', 'R1'),
+    opt('r2', 'R2'),
+    opt('s', 'S', ['R1', 'R2']),
+    opt('t', 'T', ['S']),
+];
+
+// The diamond with one child hung under its floor, so the two occurrences of D
+// each carry an occurrence of E under the shared occKey 'd::e'.
+const diamondWithChild = (): PropertyFieldOption[] => [
+    ...diamond(),
+    opt('e', 'E', ['D']),
+];
+
 // Every option in a layer sits below both options of the layer above: 2 * layers
 // options, inside every server limit, 2^(layers-1) root-to-leaf paths.
 const ladder = (layers: number): PropertyFieldOption[] => {
@@ -86,6 +102,26 @@ const countOccurrences = (nodes: GraphOccurrence[]): number => {
         total += 1 + countOccurrences(node.children);
     }
     return total;
+};
+
+// Distinct value ids reachable in the occurrence tree, which is what truncation
+// actually costs.
+const allValueIds = (nodes: GraphOccurrence[], acc = new Set<string>()): Set<string> => {
+    for (const node of nodes) {
+        acc.add(node.valueId);
+        allValueIds(node.children, acc);
+    }
+    return acc;
+};
+
+// Matches graph_utils.test.ts:51. Nothing in this module may write to a
+// caller-owned array, and under strict mode a frozen target throws rather than
+// failing silently.
+const freezeGraph = (options: PropertyFieldOption[]): PropertyFieldOption[] => {
+    return Object.freeze(options.map((option) => Object.freeze({
+        ...option,
+        parents: option.parents ? Object.freeze([...option.parents]) : option.parents,
+    }))) as PropertyFieldOption[];
 };
 
 const findOccOrNothing = (nodes: GraphOccurrence[], occKey: string): GraphOccurrence | undefined => {
@@ -263,6 +299,27 @@ describe('joinGraphOptions — name join', () => {
         expect(byId.get('d')!.name).toBe('D');
         expect(byExactName.get('D')!.id).toBe('d');
     });
+
+    test('does not mutate a deep-frozen option list', () => {
+        const options = freezeGraph(diamond());
+
+        expect(() => joinGraphOptions(options)).not.toThrow();
+        expect(options[3].parents).toEqual(['B', 'C']);
+    });
+
+    test('ignores read_only entirely', () => {
+        // G8: read_only means "cannot author this option here", not "cannot
+        // select it". Almost every policy graph field is linked, so its options
+        // are all read_only — treating the flag as unselectable would empty the
+        // tree rather than degrade it.
+        const {roots} = joinGraphOptions([
+            {id: 'p', name: 'P', parents: [], read_only: true},
+            {id: 'c', name: 'C', parents: ['P'], read_only: true},
+        ]);
+
+        expect(occKeys(roots)).toEqual(['::p']);
+        expect(occKeys(roots[0].children)).toEqual(['p::c']);
+    });
 });
 
 describe('joinGraphOptions — multi-parent occurrences', () => {
@@ -322,13 +379,16 @@ describe('joinGraphOptions — multi-parent occurrences', () => {
 });
 
 describe('joinGraphOptions — cycle safety', () => {
-    test('a two-option cycle does not hang and cuts the back edge', () => {
+    // The next two graphs are a pure cycle with nothing above it, so every
+    // option resolves a parent, rootIds is empty and expansion never runs. They
+    // characterise the absent component rather than the ancestor guard.
+    test('a two-option cycle has no root and so is absent from the tree', () => {
         const {roots} = joinGraphOptions([opt('a', 'A', ['B']), opt('b', 'B', ['A'])]);
 
         expect(roots).toEqual([]);
     });
 
-    test('a three-option cycle does not hang', () => {
+    test('a three-option cycle has no root and so is absent from the tree', () => {
         const {roots} = joinGraphOptions([
             opt('a', 'A', ['C']),
             opt('b', 'B', ['A']),
@@ -375,6 +435,37 @@ describe('joinGraphOptions — cycle safety', () => {
         expect(findOcc(roots, 'b::d').valueId).toBe('d');
         expect(findOcc(roots, 'c::d').valueId).toBe('d');
     });
+
+    test('a cycle below a diamond is cut without collapsing either side', () => {
+        // R → B, R → C, B → D, C → D, D → E, E → F, and F back to D. The guard
+        // has to cut the back edge on each path while still emitting both
+        // occurrences of D, so guard shape and cycle safety are pinned together
+        // rather than one at a time.
+        const {roots} = joinGraphOptions([
+            opt('r', 'R'),
+            opt('b', 'B', ['R']),
+            opt('c', 'C', ['R']),
+            opt('d', 'D', ['B', 'C', 'F']),
+            opt('e', 'E', ['D']),
+            opt('f', 'F', ['E']),
+        ]);
+
+        expect(occKeys(roots)).toEqual(['::r']);
+
+        // Both diamond sides survive, each carrying the full chain below it, and
+        // the back edge F → D is cut on the path rather than re-descending.
+        for (const parentId of ['b', 'c']) {
+            const floor = findOcc(roots, `${parentId}::d`);
+            expect(floor.valueId).toBe('d');
+            expect(occKeys(floor.children)).toEqual(['d::e']);
+
+            const under = floor.children[0];
+            expect(occKeys(under.children)).toEqual(['e::f']);
+            expect(under.children[0].children).toEqual([]);
+        }
+
+        expect(allValueIds(roots).size).toBe(6);
+    });
 });
 
 describe('joinGraphOptions — occurrence budget', () => {
@@ -386,8 +477,32 @@ describe('joinGraphOptions — occurrence budget', () => {
         const {roots} = joinGraphOptions(options);
         const emitted = countOccurrences(roots);
 
-        expect(emitted).toBeGreaterThan(0);
-        expect(emitted).toBeLessThanOrEqual(5000);
+        // MIN_OCCURRENCE_BUDGET is 5000 and this graph has two roots, so the
+        // budget is spent inside the first root and the second is seated as a
+        // childless stub: one occurrence of overshoot per root beyond the first.
+        expect(emitted).toBe(5001);
+
+        // Truncation costs subtrees, never top-level rows.
+        expect(labels(roots)).toEqual(['L0a', 'L0b']);
+        expect(roots[1].children).toEqual([]);
+
+        // And it really did truncate: most of the field is unreachable in the
+        // tree, which is what makes the flat search path load-bearing.
+        expect(allValueIds(roots).size).toBe(113);
+        expect(allValueIds(roots).size).toBeLessThan(options.length);
+    });
+
+    test('seats every root even when the budget is spent', () => {
+        // ladder(12) exhausts the budget exactly, so an unrelated root appended
+        // after it is the case where a cost bound must not become a
+        // completeness bound: whether a top-level option renders has to be
+        // independent of unrelated options earlier in the array.
+        const options = [...ladder(12), opt('zz', 'ZZ')];
+
+        const {roots} = joinGraphOptions(options);
+
+        expect(labels(roots)).toEqual(['L0a', 'L0b', 'ZZ']);
+        expect(findOcc(roots, '::zz').valueId).toBe('zz');
     });
 
     test('a flat option list is never truncated', () => {
@@ -613,10 +728,16 @@ describe('flattenSearch', () => {
     });
 
     test('ignores read_only entirely', () => {
-        const readOnly = {id: 'a', name: 'A', parents: [], read_only: true} as PropertyFieldOption;
-        const rows = flattenSearch([readOnly], 'A');
+        const rows = flattenSearch([{id: 'a', name: 'A', parents: [], read_only: true}], 'A');
 
         expect(rows).toEqual([{valueId: 'a', label: 'A', path: ''}]);
+    });
+
+    test('does not mutate a deep-frozen option list', () => {
+        const options = freezeGraph(diamond());
+
+        expect(() => flattenSearch(options, 'D')).not.toThrow();
+        expect(options[3].parents).toEqual(['B', 'C']);
     });
 });
 
@@ -636,7 +757,15 @@ describe('expandToSelected', () => {
     test('opens a selected node that itself holds a selected descendant', () => {
         const {roots} = joinGraphOptions(chainABC());
 
-        expect(expandToSelected(roots, new Set(['b', 'c']))).toEqual(new Set(['::a', 'a::b']));
+        const open = expandToSelected(roots, new Set(['b', 'c']));
+
+        expect(open).toEqual(new Set(['::a', 'a::b']));
+
+        // 'a::b' is open because C is beneath it, not because B is checked: B
+        // being selected adds nothing of its own, which is what separates this
+        // from the {'c'} case above.
+        expect(open.has('b::c')).toBe(false);
+        expect(expandToSelected(roots, new Set(['c']))).toEqual(open);
     });
 
     test('leaves unrelated branches collapsed', () => {
@@ -672,6 +801,20 @@ describe('expandToSelected', () => {
         const {roots} = joinGraphOptions(diamond());
 
         expect(expandToSelected(roots, new Set(['ghost', 'd']))).toEqual(new Set(['::a', 'a::b', 'a::c']));
+    });
+
+    test('opens every ancestor path when a value\'s parent has two occurrences', () => {
+        const {roots} = joinGraphOptions(sharedParent());
+
+        // T's two occurrences share the occKey 's::t', so a guard keyed on
+        // occKey prunes the second and leaves the whole R2 branch collapsed.
+        expect(expandToSelected(roots, new Set(['t']))).toEqual(new Set(['::r1', 'r1::s', '::r2', 'r2::s']));
+    });
+
+    test('opens both sides of a diamond that has a child below the floor', () => {
+        const {roots} = joinGraphOptions(diamondWithChild());
+
+        expect(expandToSelected(roots, new Set(['e']))).toEqual(new Set(['::a', 'a::b', 'a::c', 'b::d', 'c::d']));
     });
 
     test('returns an empty set for an empty tree', () => {
