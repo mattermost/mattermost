@@ -3204,10 +3204,7 @@ const AdminDefinition: AdminDefinitionType = {
                             placeholder: defineMessage({id: 'admin.environment.notifications.emailBatchingBufferSize.placeholder', defaultMessage: 'E.g.: "256"'}),
                             isDisabled: it.any(
                                 it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.NOTIFICATIONS)),
-                                it.stateIsFalse('EmailSettings.SendEmailNotifications'),
                                 it.stateIsFalse('EmailSettings.EnableEmailBatching'),
-                                it.configIsTrue('ClusterSettings', 'Enable'),
-                                it.configIsFalse('ServiceSettings', 'SiteURL'),
                             ),
                             isHidden: it.licensedForFeature('Cloud'),
                         },
@@ -3219,10 +3216,7 @@ const AdminDefinition: AdminDefinitionType = {
                             placeholder: defineMessage({id: 'admin.environment.notifications.emailBatchingInterval.placeholder', defaultMessage: 'E.g.: "30"'}),
                             isDisabled: it.any(
                                 it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.NOTIFICATIONS)),
-                                it.stateIsFalse('EmailSettings.SendEmailNotifications'),
                                 it.stateIsFalse('EmailSettings.EnableEmailBatching'),
-                                it.configIsTrue('ClusterSettings', 'Enable'),
-                                it.configIsFalse('ServiceSettings', 'SiteURL'),
                             ),
                             isHidden: it.licensedForFeature('Cloud'),
                         },
