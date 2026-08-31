@@ -1031,6 +1031,88 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
         });
 
         /**
+         * @objective Regression test: a no-op Edit/Done round-trip on the Unique name must not
+         * unpin it, even when the loaded name happens to equal the current auto-slug of the
+         * Display name -- Done's "did the committed value change from the auto-slug" check
+         * previously mistook that coincidence for "not manually set" and re-enabled live
+         * derivation, so a later Display name edit silently changed the persisted Unique name.
+         */
+        test('does not unpin Unique name after a no-op Edit/Done round-trip, even when the loaded name matches the current auto-slug', async ({
+            pw,
+        }) => {
+            const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
+
+            const timestamp = Date.now();
+            const displayName = `Playwright Pin ${timestamp}`;
+
+            // Matches the auto-slug of displayName exactly -- the coincidence that triggered
+            // the regression (see slugifyForCEL: lowercase, spaces to underscores).
+            const name = `playwright_pin_${timestamp}`;
+
+            try {
+                const field = await createGlobalAttributeField(adminClient, name, {
+                    type: 'text',
+                    attrs: {display_name: displayName},
+                });
+
+                const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+                const {page} = systemConsolePage;
+                await page.goto(GLOBAL_ATTRIBUTES_ADMIN_PATH);
+
+                await page.getByTestId(`global-attribute-actions-${field.id}`).click();
+                await page.locator(`#global-attribute-actions-${field.id}-edit`).click();
+                await expect(page.getByTestId('attributeUniqueNameValue')).toHaveText(name);
+
+                // # No-op Edit/Done round-trip -- open Edit, change nothing, click Done
+                await page.getByTestId('attributeNameEditLink').click();
+                await page.getByTestId('attributeNameEditLink').click();
+                await expect(page.getByTestId('attributeUniqueNameValue')).toHaveText(name);
+
+                // * Changing Display name afterward must not re-slug the pinned Unique name
+                await page.getByTestId('attributeDisplayNameInput').fill(`${displayName} Updated`);
+                await expect(page.getByTestId('attributeUniqueNameValue')).toHaveText(name);
+            } finally {
+                await deleteGlobalAttributeFieldIfExists(adminClient, name);
+            }
+        });
+
+        /**
+         * @objective Same regression, via the Escape-only variant of a no-op edit session --
+         * confirms Escape (which never touches the pin) was never the problem, only Done was.
+         */
+        test('does not unpin Unique name after a no-op Edit/Escape round-trip', async ({pw}) => {
+            const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
+
+            const timestamp = Date.now();
+            const displayName = `Playwright Pin Escape ${timestamp}`;
+            const name = `playwright_pin_escape_${timestamp}`;
+
+            try {
+                const field = await createGlobalAttributeField(adminClient, name, {
+                    type: 'text',
+                    attrs: {display_name: displayName},
+                });
+
+                const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+                const {page} = systemConsolePage;
+                await page.goto(GLOBAL_ATTRIBUTES_ADMIN_PATH);
+
+                await page.getByTestId(`global-attribute-actions-${field.id}`).click();
+                await page.locator(`#global-attribute-actions-${field.id}-edit`).click();
+                await expect(page.getByTestId('attributeUniqueNameValue')).toHaveText(name);
+
+                await page.getByTestId('attributeNameEditLink').click();
+                await page.getByTestId('attributeNameInput').press('Escape');
+                await expect(page.getByTestId('attributeUniqueNameValue')).toHaveText(name);
+
+                await page.getByTestId('attributeDisplayNameInput').fill(`${displayName} Updated`);
+                await expect(page.getByTestId('attributeUniqueNameValue')).toHaveText(name);
+            } finally {
+                await deleteGlobalAttributeFieldIfExists(adminClient, name);
+            }
+        });
+
+        /**
          * @objective Type is locked while a persisted Applies-to resource is on the form.
          * Remove is local until Save, which DELETEs the linked field and leaves the template.
          */

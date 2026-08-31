@@ -1234,6 +1234,41 @@ describe('AttributeDetails', () => {
             expect(screen.getByTestId('attributeUniqueNameValue')).toHaveTextContent('department');
         });
 
+        it('does not unpin Unique name after a no-op Edit/Done round-trip, even when the loaded name matches the current auto-slug', async () => {
+            // 'department' is the auto-slug of 'Department' -- the loaded name and
+            // the auto-derived one coincide, which is exactly what triggered the
+            // regression: Done's "did the committed value change from the
+            // auto-slug" heuristic must not unpin an edit-mode name just because
+            // of that coincidence.
+            mockLoadedField(makeTemplate());
+            renderEdit();
+            await waitForForm();
+
+            await userEvent.click(screen.getByTestId('attributeNameEditLink'));
+            await userEvent.click(screen.getByTestId('attributeNameEditLink'));
+            expect(screen.getByTestId('attributeUniqueNameValue')).toHaveTextContent('department');
+
+            await userEvent.clear(screen.getByTestId('attributeDisplayNameInput'));
+            await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'Cost Centre');
+
+            expect(screen.getByTestId('attributeUniqueNameValue')).toHaveTextContent('department');
+        });
+
+        it('does not unpin Unique name after a no-op Edit/Escape round-trip', async () => {
+            mockLoadedField(makeTemplate());
+            renderEdit();
+            await waitForForm();
+
+            await userEvent.click(screen.getByTestId('attributeNameEditLink'));
+            await userEvent.keyboard('{Escape}');
+            expect(screen.getByTestId('attributeUniqueNameValue')).toHaveTextContent('department');
+
+            await userEvent.clear(screen.getByTestId('attributeDisplayNameInput'));
+            await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'Cost Centre');
+
+            expect(screen.getByTestId('attributeUniqueNameValue')).toHaveTextContent('department');
+        });
+
         it('skips name validation while Unique name is unchanged, then validates once it changes', async () => {
             mockLoadedField(makeTemplate({name: 'for', attrs: {display_name: 'For'}}));
             renderEdit();

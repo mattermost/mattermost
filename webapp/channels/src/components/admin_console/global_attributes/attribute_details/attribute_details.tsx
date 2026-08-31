@@ -581,10 +581,18 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                 setIsNameManuallyEdited(false);
             }
         } else {
-            setIsNameManuallyEdited(manualName !== (autoSlugDisplay ?? ''));
+            // In create mode, a committed value that happens to match the
+            // current auto-slug keeps live derivation on (see the "no-op
+            // keeps derivation" tests). In edit mode this must never flip
+            // isNameManuallyEdited to false: the loaded Name is a persisted
+            // identifier, not a derivation, and Done on an unchanged/no-op
+            // edit session must not silently unpin it just because it
+            // happens to coincide with what the current Display name would
+            // slugify to (see the "does not re-slug on edit" regression).
+            setIsNameManuallyEdited(isEditMode || manualName !== (autoSlugDisplay ?? ''));
         }
         setIsEditingName(false);
-    }, [hasNameError, manualName, isNameManuallyEdited, autoSlugDisplay]);
+    }, [hasNameError, manualName, isNameManuallyEdited, autoSlugDisplay, isEditMode]);
 
     const handleNameChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         setManualName(filterCELIdentifier(e.target.value));
