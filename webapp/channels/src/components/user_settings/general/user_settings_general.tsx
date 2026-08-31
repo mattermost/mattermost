@@ -1789,6 +1789,18 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                 // prints a count, never an id. All-or-nothing, so the row can
                 // never read "Engineering, ktm3..., Design".
                 const inlineOptions = attribute.attrs?.options ?? [];
+
+                // graphOptionNames is filled by a mounted picker reporting what
+                // its fetch named, so for an omitted field this row shows a count
+                // until the section has been expanded once -- and permanently for
+                // a read-only field, which renders no control to mount a picker
+                // into. That asymmetry with User Detail is known and accepted
+                // (A19 pins it): the alternative is fetching every omitted
+                // field's options on page load to caption a collapsed row, which
+                // is a request per field for text the user has not asked to see.
+                // Resolving names belongs on the server; until then the count is
+                // the honest answer, and it still beats the flag-off path, which
+                // prints the ids.
                 const resolvedNames = this.state.graphOptionNames[attribute.id];
                 const names = storedValue.map((id) => {
                     const option = inlineOptions.find((o) => o.id === id);

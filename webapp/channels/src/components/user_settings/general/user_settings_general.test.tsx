@@ -1687,17 +1687,30 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
         });
 
         test('A19: shows a count, never ids, for a read-only omitted graph field', async () => {
-            // M3's cost, pinned rather than left implicit. A read-only field
-            // renders no control here, so no picker mounts, no walk runs, and
-            // graphOptionNames is never populated for it: this row is a count
-            // permanently, not just before first expand, where the same field on
-            // User Detail shows names. Still better than the flag-off path,
-            // which prints the ids themselves.
-            renderSettings(
+            // M3's cost, pinned rather than left implicit. The section is
+            // EXPANDED first, which is the whole point: for an editable field
+            // that is when the picker mounts and names arrive, so a count here
+            // would be temporary. A read-only field renders no control, so no
+            // picker mounts, no walk runs, graphOptionNames stays empty for it,
+            // and the count is permanent -- where the same field on User Detail
+            // shows names. Still better than the flag-off path, which prints the
+            // ids themselves.
+            //
+            // Asserted through expansion deliberately. Pinned from the collapsed
+            // state alone this test passes whether or not the field is read-only,
+            // and so cannot fail if someone deletes the isReadOnly gate.
+            const {collapse} = renderSettings(
                 [buildAttribute({options_omitted: true, managed: 'admin'})],
                 {field1: ['opt1', 'opt2']},
-                {activeSection: ''},
             );
+
+            // Expanded, and expanded as a read-only field: the admin notice only
+            // renders in SettingItemMax, and no picker sits beside it.
+            expect(await screen.findByText('This field can only be changed by an administrator.')).toBeInTheDocument();
+            expect(screen.queryByTestId('customProfileAttributeGraph_field1')).not.toBeInTheDocument();
+            expect(mockPageAll).not.toHaveBeenCalled();
+
+            collapse();
 
             expect(await screen.findByText('2 values selected')).toBeInTheDocument();
             expect(collapsedRow()).not.toHaveTextContent('opt1');

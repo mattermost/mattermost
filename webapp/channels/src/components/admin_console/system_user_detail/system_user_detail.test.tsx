@@ -978,9 +978,13 @@ describe('SystemUserDetail', () => {
                 // ends in `?? id`, so with no successful walk the change summary
                 // lists raw ids. That was accepted while the chips beside it showed
                 // the same ids, but Phase 3's 4831b76c3b now renders a failed read as
-                // "Value unavailable", so this modal is the only surface still
-                // printing one. Asserted as a divergence, and awaiting a decision:
-                // when the `?? id` tail changes, this test should fail loudly.
+                // "Value unavailable", leaving this modal the only surface that
+                // prints a raw id on THIS path. Asserted as a divergence, and
+                // awaiting a decision: when the `?? id` tail changes, this test
+                // should fail loudly.
+                //
+                // The tail's other caller is pinned by G20, and it is NOT
+                // divergent. Anything that changes the tail has to satisfy both.
                 mockPageAll.mockRejectedValue(new Error('boom'));
                 renderDetail(buildGraphField({options_omitted: true}), ['opt-1', 'opt-2']);
 
@@ -1005,6 +1009,42 @@ describe('SystemUserDetail', () => {
 
                 const changesList = await screen.findByTestId('changesList');
                 expect(changesList).toHaveTextContent('opt-1');
+            });
+
+            test('G20: prints the id on both surfaces for a stale id the walk succeeded without', async () => {
+                // The second, quieter path into `?? id`, and the reason the tail
+                // cannot simply be swapped for "Value unavailable". Here the walk
+                // SUCCEEDS and just does not mention one held id -- a deleted
+                // option. The cache is populated, so a lookup miss is specific to
+                // that id rather than to the read.
+                //
+                // On this path the widget shows the raw id too, deliberately:
+                // Dara's labelForId keeps the id for a stale value because it is
+                // the only true thing left to say about a value that really is
+                // still assigned. So modal and chip already agree, and a blanket
+                // change to the tail would break that agreement in the other
+                // direction -- "Value unavailable" in the summary beside a chip
+                // reading `ghost-1`.
+                mockPageAll.mockResolvedValue(REGIME_1);
+                renderDetail(buildGraphField({options_omitted: true}), ['opt-1', 'ghost-1']);
+
+                await waitForLoadingToFinish();
+                await waitFor(() => expect(trigger()).toHaveTextContent('Alpha'));
+
+                // Checked before Save, as in G19: the modal aria-hides the page.
+                // The chip is 'named' with the id as its name, so the id reaches
+                // the accessible label too -- "Remove ghost-1", not the
+                // "Remove value" that an unavailable chip gets. That is the
+                // cheapest available proof of which branch produced this chip.
+                expect(trigger()).toHaveTextContent('ghost-1');
+                expect(await screen.findByRole('button', {name: 'Remove ghost-1'})).toBeInTheDocument();
+
+                await userEvent.click(screen.getByRole('button', {name: 'Remove Alpha'}));
+                await userEvent.click(screen.getByRole('button', {name: 'Save'}));
+
+                const changesList = await screen.findByTestId('changesList');
+                expect(changesList).toHaveTextContent('ghost-1');
+                expect(changesList).not.toHaveTextContent('Value unavailable');
             });
         });
     });
