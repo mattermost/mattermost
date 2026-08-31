@@ -29,9 +29,11 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/plugin/plugintest/mock"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/testutils"
+	"github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 )
 
 var testDir = ""
@@ -1877,5 +1879,79 @@ func TestHeadRequestsFileEndpoints(t *testing.T) {
 		defer resp.Body.Close()
 
 		require.Equal(t, http.StatusNotFound, resp.StatusCode)
+	})
+}
+
+func TestUploadFileABACEnforcement(t *testing.T) {
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.PermissionPolicies = true
+		cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+	}).InitBasic(t)
+
+	if *th.App.Config().FileSettings.DriverName == "" {
+		t.Skip("skipping because no file driver is enabled")
+	}
+
+	sent, err := testutils.ReadTestFile("test.png")
+	require.NoError(t, err)
+
+	// The channel permission check runs before ABAC, so the user must already be able to upload
+	// for this to reach the gate under test.
+	mockUploadDecision := func(t *testing.T, allowed bool) {
+		t.Helper()
+
+		mockACS := &mocks.AccessControlServiceInterface{}
+		mockACS.On("AccessEvaluation", mock.Anything, mock.MatchedBy(func(req model.AccessRequest) bool {
+			return req.Action == model.AccessControlPolicyActionUploadFileAttachment
+		})).Return(model.AccessDecision{Decision: allowed}, (*model.AppError)(nil))
+
+		original := th.App.Srv().Channels().AccessControl
+		th.App.Srv().Channels().AccessControl = mockACS
+		t.Cleanup(func() {
+			th.App.Srv().Channels().AccessControl = original
+		})
+	}
+
+	// UploadFileAsRequestBody drives uploadFileSimple, UploadFile drives uploadFileMultipart.
+	// Each carries its own copy of the gate.
+	t.Run("simple upload is rejected when the policy denies the upload action", func(t *testing.T) {
+		mockUploadDecision(t, false)
+
+		_, resp, err := th.Client.UploadFileAsRequestBody(context.Background(), sent, th.BasicChannel.Id, "test.png")
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("multipart upload is rejected when the policy denies the upload action", func(t *testing.T) {
+		mockUploadDecision(t, false)
+
+		_, resp, err := th.Client.UploadFile(context.Background(), sent, th.BasicChannel.Id, "test.png")
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("upload is accepted when the policy allows the upload action", func(t *testing.T) {
+		mockUploadDecision(t, true)
+
+		fileResp, _, err := th.Client.UploadFile(context.Background(), sent, th.BasicChannel.Id, "test.png")
+		require.NoError(t, err)
+		require.Len(t, fileResp.FileInfos, 1)
+	})
+
+	t.Run("upload is unaffected when ABAC is disabled", func(t *testing.T) {
+		mockUploadDecision(t, false)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(false)
+		})
+		t.Cleanup(func() {
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+			})
+		})
+
+		fileResp, _, err := th.Client.UploadFile(context.Background(), sent, th.BasicChannel.Id, "test.png")
+		require.NoError(t, err)
+		require.Len(t, fileResp.FileInfos, 1)
 	})
 }
