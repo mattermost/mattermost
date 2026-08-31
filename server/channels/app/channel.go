@@ -3344,6 +3344,7 @@ func (a *App) markChannelAsUnreadFromPostCRTUnsupported(rctx request.CTX, postID
 		}
 		a.sanitizeProfiles(thread.Participants, false)
 		thread.Post.SanitizeNonIdentityProps()
+		thread.Post.StripActionIntegrations()
 
 		if a.IsCRTEnabledForUser(rctx, userID) {
 			payload, jsonErr := json.Marshal(thread)

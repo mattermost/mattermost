@@ -3187,6 +3187,7 @@ func (a *App) UpdateThreadFollowForUserFromChannelAdd(rctx request.CTX, userID, 
 	}
 	a.sanitizeProfiles(userThread.Participants, false)
 	userThread.Post.SanitizeNonIdentityProps()
+	userThread.Post.StripActionIntegrations()
 	sanitizedPost, isMemberForPreviews, appErr := a.SanitizePostMetadataForUser(rctx, userThread.Post, userID)
 	if appErr != nil {
 		return appErr
