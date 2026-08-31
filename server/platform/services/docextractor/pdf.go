@@ -13,7 +13,7 @@ import (
 	"path"
 	"strings"
 
-	"github.com/ledongthuc/pdf"
+	"github.com/mattermost/pdf"
 
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
