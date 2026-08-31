@@ -182,6 +182,7 @@ func TestCreateOrUpdateAccessControlPolicy(t *testing.T) {
 		mockACPStore := storemocks.AccessControlPolicyStore{}
 		stubACPEtagInvalidation(&mockACPStore)
 		mockStore.On("AccessControlPolicy").Return(&mockACPStore)
+		expectNoStoredPolicy(&mockACPStore, thMock.Context, channelID)
 		// publishChannelPolicyEnforcedUpdate is expected to invalidate the
 		// channel cache and reload the channel for the WS payload.
 		mockChannelStore.On("InvalidateChannel", channelID).Once()
@@ -192,10 +193,6 @@ func TestCreateOrUpdateAccessControlPolicy(t *testing.T) {
 		//   2. publishChannelPolicyEnforcedUpdate reloads it after save to
 		//      build the WS payload.
 		mockChannelStore.On("Get", channelID, true).Return(&model.Channel{Id: channelID, Type: model.ChannelTypePrivate}, nil).Twice()
-
-		mockACPStore := storemocks.AccessControlPolicyStore{}
-		mockStore.On("AccessControlPolicy").Return(&mockACPStore)
-		expectNoStoredPolicy(&mockACPStore, thMock.Context, channelID)
 
 		mockAccessControl := &mocks.AccessControlServiceInterface{}
 		thMock.App.Srv().ch.AccessControl = mockAccessControl
