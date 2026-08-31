@@ -7,7 +7,6 @@
 package retrylayer
 
 import (
-	"context"
 	timepkg "time"
 
 	"github.com/lib/pq"
@@ -643,6 +642,12 @@ func isRepeatableError(err error) bool {
 	return false
 }
 
+func (s *RetryLayerAccessControlPolicyStore) ClearEtagCache() {
+
+	s.AccessControlPolicyStore.ClearEtagCache()
+
+}
+
 func (s *RetryLayerAccessControlPolicyStore) Delete(rctx request.CTX, id string) error {
 
 	tries := 0
@@ -727,6 +732,27 @@ func (s *RetryLayerAccessControlPolicyStore) GetActionsForPolicy(rctx request.CT
 
 }
 
+func (s *RetryLayerAccessControlPolicyStore) GetEtagEpoch(rctx request.CTX, channelID string) (string, error) {
+
+	tries := 0
+	for {
+		result, err := s.AccessControlPolicyStore.GetEtagEpoch(rctx, channelID)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerAccessControlPolicyStore) GetPoliciesByFieldID(rctx request.CTX, fieldID string) ([]*model.AccessControlPolicy, error) {
 
 	tries := 0
@@ -745,6 +771,12 @@ func (s *RetryLayerAccessControlPolicyStore) GetPoliciesByFieldID(rctx request.C
 		}
 		timepkg.Sleep(100 * timepkg.Millisecond)
 	}
+
+}
+
+func (s *RetryLayerAccessControlPolicyStore) InvalidateEtagForChannel(channelID string) {
+
+	s.AccessControlPolicyStore.InvalidateEtagForChannel(channelID)
 
 }
 
@@ -832,6 +864,12 @@ func (s *RetryLayerAccessControlPolicyStore) SetActiveStatusMultiple(rctx reques
 
 }
 
+func (s *RetryLayerAttributesStore) ClearUserPropertyValuesEpochCache() {
+
+	s.AttributesStore.ClearUserPropertyValuesEpochCache()
+
+}
+
 func (s *RetryLayerAttributesStore) GetChannelMembersToRemove(rctx request.CTX, channelID string, opts model.SubjectSearchOptions) ([]*model.ChannelMember, error) {
 
 	tries := 0
@@ -853,11 +891,11 @@ func (s *RetryLayerAttributesStore) GetChannelMembersToRemove(rctx request.CTX, 
 
 }
 
-func (s *RetryLayerAttributesStore) GetSubject(rctx request.CTX, ID string, groupID string) (*model.Subject, error) {
+func (s *RetryLayerAttributesStore) GetSubject(rctx request.CTX, ID string, groupID string, objectType string) (*model.Subject, error) {
 
 	tries := 0
 	for {
-		result, err := s.AttributesStore.GetSubject(rctx, ID, groupID)
+		result, err := s.AttributesStore.GetSubject(rctx, ID, groupID, objectType)
 		if err == nil {
 			return result, nil
 		}
@@ -892,6 +930,33 @@ func (s *RetryLayerAttributesStore) GetTeamMembersToRemove(rctx request.CTX, tea
 		}
 		timepkg.Sleep(100 * timepkg.Millisecond)
 	}
+
+}
+
+func (s *RetryLayerAttributesStore) GetUserPropertyValuesEpoch(rctx request.CTX, userID string) (string, error) {
+
+	tries := 0
+	for {
+		result, err := s.AttributesStore.GetUserPropertyValuesEpoch(rctx, userID)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerAttributesStore) InvalidateUserPropertyValuesEpoch(userID string) {
+
+	s.AttributesStore.InvalidateUserPropertyValuesEpoch(userID)
 
 }
 
@@ -10603,11 +10668,11 @@ func (s *RetryLayerPropertyFieldStore) Delete(groupID string, id string) error {
 
 }
 
-func (s *RetryLayerPropertyFieldStore) Get(ctx context.Context, groupID string, id string) (*model.PropertyField, error) {
+func (s *RetryLayerPropertyFieldStore) Get(rctx request.CTX, groupID string, id string) (*model.PropertyField, error) {
 
 	tries := 0
 	for {
-		result, err := s.PropertyFieldStore.Get(ctx, groupID, id)
+		result, err := s.PropertyFieldStore.Get(rctx, groupID, id)
 		if err == nil {
 			return result, nil
 		}
@@ -10624,11 +10689,11 @@ func (s *RetryLayerPropertyFieldStore) Get(ctx context.Context, groupID string, 
 
 }
 
-func (s *RetryLayerPropertyFieldStore) GetFieldByName(ctx context.Context, groupID string, targetID string, name string) (*model.PropertyField, error) {
+func (s *RetryLayerPropertyFieldStore) GetFieldByName(rctx request.CTX, groupID string, targetID string, name string) (*model.PropertyField, error) {
 
 	tries := 0
 	for {
-		result, err := s.PropertyFieldStore.GetFieldByName(ctx, groupID, targetID, name)
+		result, err := s.PropertyFieldStore.GetFieldByName(rctx, groupID, targetID, name)
 		if err == nil {
 			return result, nil
 		}
@@ -10645,11 +10710,11 @@ func (s *RetryLayerPropertyFieldStore) GetFieldByName(ctx context.Context, group
 
 }
 
-func (s *RetryLayerPropertyFieldStore) GetFieldByNameForObjectType(ctx context.Context, groupID string, targetID string, objectType string, name string) (*model.PropertyField, error) {
+func (s *RetryLayerPropertyFieldStore) GetFieldByNameForObjectType(rctx request.CTX, groupID string, targetID string, objectType string, name string) (*model.PropertyField, error) {
 
 	tries := 0
 	for {
-		result, err := s.PropertyFieldStore.GetFieldByNameForObjectType(ctx, groupID, targetID, objectType, name)
+		result, err := s.PropertyFieldStore.GetFieldByNameForObjectType(rctx, groupID, targetID, objectType, name)
 		if err == nil {
 			return result, nil
 		}
@@ -10666,11 +10731,11 @@ func (s *RetryLayerPropertyFieldStore) GetFieldByNameForObjectType(ctx context.C
 
 }
 
-func (s *RetryLayerPropertyFieldStore) GetForGroup(ctx context.Context, groupID string) ([]*model.PropertyField, error) {
+func (s *RetryLayerPropertyFieldStore) GetForGroup(rctx request.CTX, groupID string) ([]*model.PropertyField, error) {
 
 	tries := 0
 	for {
-		result, err := s.PropertyFieldStore.GetForGroup(ctx, groupID)
+		result, err := s.PropertyFieldStore.GetForGroup(rctx, groupID)
 		if err == nil {
 			return result, nil
 		}
@@ -10687,11 +10752,11 @@ func (s *RetryLayerPropertyFieldStore) GetForGroup(ctx context.Context, groupID 
 
 }
 
-func (s *RetryLayerPropertyFieldStore) GetMany(ctx context.Context, groupID string, ids []string) ([]*model.PropertyField, error) {
+func (s *RetryLayerPropertyFieldStore) GetMany(rctx request.CTX, groupID string, ids []string) ([]*model.PropertyField, error) {
 
 	tries := 0
 	for {
-		result, err := s.PropertyFieldStore.GetMany(ctx, groupID, ids)
+		result, err := s.PropertyFieldStore.GetMany(rctx, groupID, ids)
 		if err == nil {
 			return result, nil
 		}

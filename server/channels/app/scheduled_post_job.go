@@ -266,7 +266,7 @@ func (a *App) postScheduledPost(rctx request.CTX, scheduledPost *model.Scheduled
 
 // canPostScheduledPost checks whether the scheduled post be created based on permissions and other checks.
 func (a *App) canPostScheduledPost(rctx request.CTX, scheduledPost *model.ScheduledPost, channel *model.Channel) (string, error) {
-	user, appErr := a.GetUser(scheduledPost.UserId)
+	user, appErr := a.GetUser(rctx, scheduledPost.UserId)
 	if appErr != nil {
 		if appErr.Id == MissingAccountError {
 			rctx.Logger().Debug("canPostScheduledPost user not found for scheduled post", mlog.String("scheduled_post_id", scheduledPost.Id), mlog.String("user_id", scheduledPost.UserId), mlog.String("error_code", model.ScheduledPostErrorCodeUserDoesNotExist))
@@ -341,6 +341,17 @@ func (a *App) canPostScheduledPost(rctx request.CTX, scheduledPost *model.Schedu
 		return model.ScheduledPostErrorCodeNoChannelPermission, nil
 	}
 
+	if model.IsSystemMessagePostType(scheduledPost.Type) {
+		rctx.Logger().Debug(
+			"canPostScheduledPost post type is reserved for system messages",
+			mlog.String("scheduled_post_id", scheduledPost.Id),
+			mlog.String("user_id", scheduledPost.UserId),
+			mlog.String("channel_id", scheduledPost.ChannelId),
+			mlog.String("error_code", model.ScheduledPostErrorInvalidPost),
+		)
+		return model.ScheduledPostErrorInvalidPost, nil
+	}
+
 	if appErr := PostHardenedModeCheckWithApp(a, false, scheduledPost.GetProps()); appErr != nil {
 		rctx.Logger().Debug(
 			"canPostScheduledPost hardened mode enabled: post contains props prohibited in hardened mode",
@@ -353,7 +364,7 @@ func (a *App) canPostScheduledPost(rctx request.CTX, scheduledPost *model.Schedu
 		return model.ScheduledPostErrorInvalidPost, nil
 	}
 
-	if appErr := PostPriorityCheckWithApp("ScheduledPostJob.postChecks", a, scheduledPost.UserId, scheduledPost.GetPriority(), scheduledPost.RootId); appErr != nil {
+	if appErr := PostPriorityCheckWithApp("ScheduledPostJob.postChecks", a, rctx, scheduledPost.UserId, scheduledPost.GetPriority(), scheduledPost.RootId); appErr != nil {
 		rctx.Logger().Debug(
 			"canPostScheduledPost post priority check failed",
 			mlog.String("scheduled_post_id", scheduledPost.Id),
@@ -492,7 +503,7 @@ func (a *App) notifyUser(rctx request.CTX, userId string, userFailedMessages []*
 		return
 	}
 
-	user, err := a.GetUser(userId)
+	user, err := a.GetUser(rctx, userId)
 	if err != nil {
 		rctx.Logger().Error("Failed to get the user", mlog.Err(err))
 		return
