@@ -8249,6 +8249,22 @@
     "translation": "Failed to marshal post."
   },
   {
+    "id": "app.post.move_posts_to_channel.app_error",
+    "translation": "Unable to move the posts."
+  },
+  {
+    "id": "app.post.move_posts_to_channel.batch_too_large.app_error",
+    "translation": "Too many posts were requested in a single move; at most {{.MaxBatch}} root posts may be moved per call."
+  },
+  {
+    "id": "app.post.move_posts_to_channel.invalid_input.app_error",
+    "translation": "The posts could not be moved: every ID must name a root post, and every channel involved must be a backing channel."
+  },
+  {
+    "id": "app.post.move_posts_to_channel.not_found.app_error",
+    "translation": "The target channel for the move could not be found."
+  },
+  {
     "id": "app.post.move_thread.from_another_channel",
     "translation": "This thread was moved from another channel"
   },
@@ -8283,22 +8299,6 @@
   {
     "id": "app.post.permanent_delete_by_user.app_error",
     "translation": "Unable to select the posts to delete for the user."
-  },
-  {
-    "id": "app.post.move_posts_to_channel.app_error",
-    "translation": "Unable to move the posts."
-  },
-  {
-    "id": "app.post.move_posts_to_channel.batch_too_large.app_error",
-    "translation": "Too many posts were requested in a single move; at most {{.MaxBatch}} root posts may be moved per call."
-  },
-  {
-    "id": "app.post.move_posts_to_channel.invalid_input.app_error",
-    "translation": "The posts could not be moved: every ID must name a root post, and every channel involved must be a backing channel."
-  },
-  {
-    "id": "app.post.move_posts_to_channel.not_found.app_error",
-    "translation": "The target channel for the move could not be found."
   },
   {
     "id": "app.post.permanent_delete_post.error",
