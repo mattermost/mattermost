@@ -304,12 +304,12 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
         // TypeScript cannot enforce the required rootId prop. An undefined rootId used to
         // mismatch the draft's '' on every render pass, throwing React error #301 on mount
         // and, once mounted, leaving the post-submit draft reset silently dropped.
-        const {rootId: _unusedRootId, ...propsWithoutRootId} = baseProps;
         const message = 'a message sent from a composer without a rootId';
 
         renderWithContext(
             <AdvancedTextEditor
-                {...(propsWithoutRootId as unknown as Props)}
+                {...baseProps}
+                rootId={undefined as unknown as string}
             />,
             mergeObjects(initialState, {
                 entities: {
