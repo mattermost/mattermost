@@ -7,7 +7,7 @@ import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
-import {DotsHorizontalIcon, TrashCanOutlineIcon} from '@mattermost/compass-icons/components';
+import {DotsHorizontalIcon, OpenInNewIcon, TrashCanOutlineIcon} from '@mattermost/compass-icons/components';
 
 import {disablePlugin, enablePlugin, removePlugin} from 'mattermost-redux/actions/admin';
 import type {ActionResult} from 'mattermost-redux/types/actions';
@@ -26,6 +26,7 @@ type Props = {
         removePlugin: (pluginId: string) => Promise<ActionResult>;
     };
     disabled: boolean;
+    homepageUrl?: string;
     id: string;
     saveNeeded?: false | string;
     value: boolean;
@@ -42,7 +43,7 @@ export function getPluginIdFromEnableSettingId(settingId: string) {
     return settingId.slice(pluginStatePrefix.length, -pluginStateSuffix.length).replace(/\+/g, '.');
 }
 
-export function PluginEnableButton({actions, disabled, id, saveNeeded = false, value}: Props) {
+export function PluginEnableButton({actions, disabled, homepageUrl, id, saveNeeded = false, value}: Props) {
     const {formatMessage} = useIntl();
     const [submittingAction, setSubmittingAction] = useState<'toggle' | 'remove' | ''>('');
     const [showRemoveModal, setShowRemoveModal] = useState(false);
@@ -102,6 +103,14 @@ export function PluginEnableButton({actions, disabled, id, saveNeeded = false, v
     const handleRemovePluginCancel = useCallback(() => {
         setShowRemoveModal(false);
     }, []);
+
+    const handleMoreAboutPlugin = useCallback(() => {
+        if (!homepageUrl) {
+            return;
+        }
+
+        window.open(homepageUrl, '_blank', 'noopener,noreferrer');
+    }, [homepageUrl]);
 
     const handleRemovePlugin = useCallback(async () => {
         if (actionsDisabled) {
@@ -209,6 +218,19 @@ export function PluginEnableButton({actions, disabled, id, saveNeeded = false, v
                         'aria-label': formatMessage({id: 'admin.plugin.actions.menu.aria_label', defaultMessage: 'Plugin actions'}),
                     }}
                 >
+                    {homepageUrl && (
+                        <Menu.Item
+                            id={`plugin-actions-more-about-${pluginId}`}
+                            leadingElement={<OpenInNewIcon size={18}/>}
+                            labels={
+                                <FormattedMessage
+                                    id='admin.plugin.more_about.button'
+                                    defaultMessage='More about this plugin'
+                                />
+                            }
+                            onClick={handleMoreAboutPlugin}
+                        />
+                    )}
                     <Menu.Item
                         id={`plugin-actions-uninstall-${pluginId}`}
                         isDestructive={true}

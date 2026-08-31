@@ -115,8 +115,9 @@ describe('custom plugin sections and settings', () => {
         expect(screen.getByRole('button', {name: 'Disable plugin'})).toBeInTheDocument();
         expect(screen.getByRole('button', {name: 'Plugin actions'})).toBeInTheDocument();
         expectPluginActionsInMetadataPanel();
-        const runningBadge = screen.getByText('Running').closest('.PluginMetadataPanel__statusBadge--running');
-        expect(runningBadge).toBeInTheDocument();
+        const runningBadge = screen.getByTestId('plugin-metadata-status');
+        expect(runningBadge).toHaveTextContent('Running');
+        expect(runningBadge).toHaveClass('PluginMetadataPanel__statusBadge--running');
         expect(screen.getByTestId('admin-console-header')).toContainElement(runningBadge);
         expect(screen.queryByText('This is the header')).not.toBeInTheDocument();
         expect(screen.getByText('This is the footer')).toBeInTheDocument();

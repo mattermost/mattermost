@@ -92,6 +92,10 @@
     &__statusError {
         min-width: 0;
 
+        .sectionNoticeBody {
+            gap: 0;
+        }
+
         p {
             overflow-wrap: anywhere;
         }
@@ -106,8 +110,8 @@
 
     &__controls {
         display: flex;
-        flex-shrink: 0;
         flex-direction: column;
+        flex-shrink: 0;
         align-items: flex-end;
     }
 

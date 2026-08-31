@@ -19,6 +19,9 @@ function extractTextsFromPlugin(plugin: PluginRedux, intl: IntlShape) {
         intl.formatMessage({id: 'admin.plugin.enabled.toggle', defaultMessage: 'Enabled'}),
         intl.formatMessage({id: 'admin.plugin.disabled.toggle', defaultMessage: 'Disabled'}),
     );
+    if (plugin.homepage_url) {
+        texts.push(intl.formatMessage({id: 'admin.plugin.more_about.button', defaultMessage: 'More about this plugin'}));
+    }
     if (plugin.name) {
         texts.push(plugin.name);
     }

@@ -75,4 +75,18 @@ describe('AdminConsolePluginsIndex.getPluginEntries', () => {
         expect(entries['plugin_plugin-without-settings']).toContain('Disabled');
         expect(entries['plugin_plugin-without-settings']).toContain('PluginSettings.PluginStates.plugin-without-settings.Enable');
     });
+
+    it('should index More about this plugin when the plugin has a homepage URL', () => {
+        const pluginWithHomepage = {
+            ...samplePlugin4,
+            homepage_url: 'https://mattermost.com/marketplace/demo',
+        };
+        const entries = getPluginEntries({[pluginWithHomepage.id]: pluginWithHomepage}, intl);
+        expect(entries[`plugin_${pluginWithHomepage.id}`]).toContain('More about this plugin');
+    });
+
+    it('should not index More about this plugin when there is no homepage URL', () => {
+        const entries = getPluginEntries({[samplePlugin4.id]: samplePlugin4}, intl);
+        expect(entries[`plugin_${samplePlugin4.id}`]).not.toContain('More about this plugin');
+    });
 });

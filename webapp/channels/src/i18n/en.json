@@ -2776,6 +2776,7 @@
   "admin.plugin.installedDesc": "Installed plugins on your Mattermost server.",
   "admin.plugin.installedTitle": "Installed Plugins: ",
   "admin.plugin.management.title": "Plugin Management",
+  "admin.plugin.more_about.button": "More about this plugin",
   "admin.plugin.multiple_versions_warning": "There are multiple versions of this plugin installed across your cluster. Re-install this plugin to ensure it works consistently.",
   "admin.plugin.no_plugins": "No installed plugins.",
   "admin.plugin.remove": "Remove",

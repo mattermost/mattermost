@@ -58,6 +58,34 @@ describe('components/admin_console/custom_plugin_settings/PluginEnableButton', (
 
         await userEvent.click(screen.getByRole('button', {name: 'Plugin actions'}));
         expect(screen.getByRole('menuitem', {name: 'Uninstall plugin'})).toBeInTheDocument();
+        expect(screen.queryByRole('menuitem', {name: 'More about this plugin'})).not.toBeInTheDocument();
+    });
+
+    it('opens the plugin homepage from the actions menu', async () => {
+        const disablePlugin = jest.fn();
+        const enablePlugin = jest.fn();
+        const removePlugin = jest.fn();
+        const openSpy = jest.spyOn(window, 'open').mockImplementation(() => null);
+
+        renderWithContext(
+            <PluginEnableButton
+                id='PluginSettings.PluginStates.com+mattermost+calls.Enable'
+                disabled={false}
+                homepageUrl='https://mattermost.com/marketplace/calls'
+                value={true}
+                actions={{disablePlugin, enablePlugin, removePlugin}}
+            />,
+        );
+
+        await userEvent.click(screen.getByRole('button', {name: 'Plugin actions'}));
+        const menuItems = screen.getAllByRole('menuitem');
+        expect(menuItems[0]).toHaveAccessibleName('More about this plugin');
+        expect(menuItems[1]).toHaveAccessibleName('Uninstall plugin');
+
+        await userEvent.click(menuItems[0]);
+
+        expect(openSpy).toHaveBeenCalledWith('https://mattermost.com/marketplace/calls', '_blank', 'noopener,noreferrer');
+        openSpy.mockRestore();
     });
 
     it('shows a loading state while enabling', async () => {
