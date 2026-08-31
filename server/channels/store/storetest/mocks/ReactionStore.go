@@ -15,36 +15,6 @@ type ReactionStore struct {
 	mock.Mock
 }
 
-// BulkGetForPosts provides a mock function with given fields: postIds
-func (_m *ReactionStore) BulkGetForPosts(postIds []string) ([]*model.Reaction, error) {
-	ret := _m.Called(postIds)
-
-	if len(ret) == 0 {
-		panic("no return value specified for BulkGetForPosts")
-	}
-
-	var r0 []*model.Reaction
-	var r1 error
-	if rf, ok := ret.Get(0).(func([]string) ([]*model.Reaction, error)); ok {
-		return rf(postIds)
-	}
-	if rf, ok := ret.Get(0).(func([]string) []*model.Reaction); ok {
-		r0 = rf(postIds)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]*model.Reaction)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func([]string) error); ok {
-		r1 = rf(postIds)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
 // Delete provides a mock function with given fields: reaction
 func (_m *ReactionStore) Delete(reaction *model.Reaction) (*model.Reaction, error) {
 	ret := _m.Called(reaction)

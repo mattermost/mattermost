@@ -1526,7 +1526,7 @@ func TestCreatePost(t *testing.T) {
 		th := Setup(t).InitBasic(t)
 
 		bot := th.CreateBot(t)
-		botUser, appErr := th.App.GetUser(bot.UserId)
+		botUser, appErr := th.App.GetUser(th.Context, bot.UserId)
 		require.Nil(t, appErr)
 		th.LinkUserToTeam(t, botUser, th.BasicTeam)
 		_, appErr = th.App.AddUserToChannel(th.Context, botUser, th.BasicChannel, false)
@@ -1571,7 +1571,7 @@ func TestCreatePost(t *testing.T) {
 		th := Setup(t).InitBasic(t)
 
 		bot := th.CreateBot(t)
-		botUser, appErr := th.App.GetUser(bot.UserId)
+		botUser, appErr := th.App.GetUser(th.Context, bot.UserId)
 		require.Nil(t, appErr)
 		th.LinkUserToTeam(t, botUser, th.BasicTeam)
 		_, appErr = th.App.AddUserToChannel(th.Context, botUser, th.BasicChannel, false)
@@ -1709,7 +1709,7 @@ func TestCreatePost(t *testing.T) {
 		th := Setup(t).InitBasic(t)
 
 		bot := th.CreateBot(t)
-		botUser, appErr := th.App.GetUser(bot.UserId)
+		botUser, appErr := th.App.GetUser(th.Context, bot.UserId)
 		require.Nil(t, appErr)
 		th.LinkUserToTeam(t, botUser, th.BasicTeam)
 		_, appErr = th.App.AddUserToChannel(th.Context, botUser, th.BasicChannel, false)
@@ -1730,7 +1730,7 @@ func TestCreatePost(t *testing.T) {
 		th := Setup(t).InitBasic(t)
 
 		bot := th.CreateBot(t)
-		botUser, appErr := th.App.GetUser(bot.UserId)
+		botUser, appErr := th.App.GetUser(th.Context, bot.UserId)
 		require.Nil(t, appErr)
 		th.LinkUserToTeam(t, botUser, th.BasicTeam)
 		_, appErr = th.App.AddUserToChannel(th.Context, botUser, th.BasicChannel, false)
@@ -1757,7 +1757,7 @@ func TestCreatePost(t *testing.T) {
 		})
 
 		bot := th.CreateBot(t)
-		botUser, appErr := th.App.GetUser(bot.UserId)
+		botUser, appErr := th.App.GetUser(th.Context, bot.UserId)
 		require.Nil(t, appErr)
 		th.LinkUserToTeam(t, botUser, th.BasicTeam)
 		_, appErr = th.App.AddUserToChannel(th.Context, botUser, th.BasicChannel, false)
@@ -1785,7 +1785,7 @@ func TestCreatePost(t *testing.T) {
 		th := Setup(t).InitBasic(t)
 
 		bot := th.CreateBot(t)
-		botUser, appErr := th.App.GetUser(bot.UserId)
+		botUser, appErr := th.App.GetUser(th.Context, bot.UserId)
 		require.Nil(t, appErr)
 
 		dm, appErr := th.App.createDirectChannel(th.Context, botUser.Id, th.BasicUser2.Id)
@@ -1814,7 +1814,7 @@ func TestCreatePost(t *testing.T) {
 		th := Setup(t).InitBasic(t)
 
 		bot := th.CreateBot(t)
-		botUser, appErr := th.App.GetUser(bot.UserId)
+		botUser, appErr := th.App.GetUser(th.Context, bot.UserId)
 		require.Nil(t, appErr)
 		_, _, appErr = th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, botUser.Id, "")
 		require.Nil(t, appErr)
@@ -1846,7 +1846,7 @@ func TestCreatePost(t *testing.T) {
 
 		th.AddUserToChannel(t, th.BasicUser2, th.BasicChannel)
 		bot := th.CreateBot(t)
-		botUser, appErr := th.App.GetUser(bot.UserId)
+		botUser, appErr := th.App.GetUser(th.Context, bot.UserId)
 		require.Nil(t, appErr)
 		th.LinkUserToTeam(t, botUser, th.BasicTeam)
 		_, appErr = th.App.AddUserToChannel(th.Context, botUser, th.BasicChannel, false)
@@ -2182,7 +2182,7 @@ func TestCreatePostAsUser(t *testing.T) {
 
 		bot := th.CreateBot(t)
 
-		botUser, appErr := th.App.GetUser(bot.UserId)
+		botUser, appErr := th.App.GetUser(th.Context, bot.UserId)
 		require.Nil(t, appErr)
 
 		th.LinkUserToTeam(t, botUser, th.BasicTeam)
@@ -2213,7 +2213,7 @@ func TestCreatePostAsUser(t *testing.T) {
 
 		bot := th.CreateBot(t)
 
-		botUser, appErr := th.App.GetUser(bot.UserId)
+		botUser, appErr := th.App.GetUser(th.Context, bot.UserId)
 		require.Nil(t, appErr)
 
 		th.LinkUserToTeam(t, botUser, th.BasicTeam)
@@ -6410,7 +6410,7 @@ func TestBurnOnReadRestrictionsForDMsAndBots(t *testing.T) {
 		require.Nil(t, appErr)
 
 		// Get the bot user
-		botUser, appErr := th.App.GetUser(createdBot.UserId)
+		botUser, appErr := th.App.GetUser(th.Context, createdBot.UserId)
 		require.Nil(t, appErr)
 		require.True(t, botUser.IsBot)
 
@@ -6459,7 +6459,7 @@ func TestBurnOnReadRestrictionsForDMsAndBots(t *testing.T) {
 		require.Nil(t, appErr)
 
 		// Get the bot user
-		botUser, appErr := th.App.GetUser(createdBot.UserId)
+		botUser, appErr := th.App.GetUser(th.Context, createdBot.UserId)
 		require.Nil(t, appErr)
 		require.True(t, botUser.IsBot)
 
