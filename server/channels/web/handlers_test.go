@@ -1301,7 +1301,7 @@ func TestHandleContextErrorProps(t *testing.T) {
 		th := Setup(t)
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.EnableDeveloper = false
-			*cfg.ServiceSettings.ExperimentalEnableHardenedMode = true
+			*cfg.ServiceSettings.EnableHardenedMode = true
 		})
 
 		appErr := model.NewAppError("TestFunction", "test.error", nil, "test details", http.StatusInternalServerError)
