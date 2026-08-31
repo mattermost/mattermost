@@ -73,19 +73,18 @@ func TestMakeClientTimeout(t *testing.T) {
 	service := newTestHTTPService(RequestTimeout)
 
 	assert.Equal(t, RequestTimeout, service.MakeClient(false).Timeout)
-	assert.Equal(t, 5*time.Second, service.MakeClientWithTimeout(false, 5*time.Second).Timeout)
-	assert.Zero(t, service.MakeClientWithTimeout(false, 0).Timeout)
+	assert.Zero(t, service.MakeClientWithoutTimeout(false).Timeout)
 
-	// Whatever the timeout, requests still go through the transport applying the Mattermost user
-	// agent and the AllowedUntrustedInternalConnections checks.
+	// With or without a timeout, requests still go through the transport applying the Mattermost
+	// user agent and the AllowedUntrustedInternalConnections checks.
 	for _, trustURLs := range []bool{true, false} {
-		assert.IsType(t, &MattermostTransport{}, service.MakeClientWithTimeout(trustURLs, 0).Transport)
+		assert.IsType(t, &MattermostTransport{}, service.MakeClientWithoutTimeout(trustURLs).Transport)
 	}
 }
 
 // MM-68319 in miniature: a caller whose deadline is longer than the default request timeout only
 // reaches a slow endpoint if its client was built without a timeout of its own.
-func TestMakeClientWithTimeoutOutlivesDefaultTimeout(t *testing.T) {
+func TestMakeClientWithoutTimeoutOutlivesDefaultTimeout(t *testing.T) {
 	const defaultTimeout = 100 * time.Millisecond
 	const handlerDelay = 5 * defaultTimeout
 
@@ -98,14 +97,14 @@ func TestMakeClientWithTimeoutOutlivesDefaultTimeout(t *testing.T) {
 	})
 
 	t.Run("a client built without a timeout runs to the context deadline", func(t *testing.T) {
-		resp, err := doGet(t, service.MakeClientWithTimeout(false, 0), server.URL, 100*defaultTimeout)
+		resp, err := doGet(t, service.MakeClientWithoutTimeout(false), server.URL, 100*defaultTimeout)
 		require.NoError(t, err)
 		defer resp.Body.Close()
 		assert.Equal(t, http.StatusOK, resp.StatusCode)
 	})
 
 	t.Run("a client built without a timeout still honours a shorter context deadline", func(t *testing.T) {
-		_, err := doGet(t, service.MakeClientWithTimeout(false, 0), server.URL, defaultTimeout)
+		_, err := doGet(t, service.MakeClientWithoutTimeout(false), server.URL, defaultTimeout)
 		require.ErrorIs(t, err, context.DeadlineExceeded)
 	})
 }

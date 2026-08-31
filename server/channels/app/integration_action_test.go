@@ -1745,27 +1745,6 @@ func TestDoActionRequest(t *testing.T) {
 		require.NotNil(t, err)
 		assert.Nil(t, resp)
 	})
-
-	t.Run("should bound a request that arrives without a deadline", func(t *testing.T) {
-		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			select {
-			case <-time.After(30 * time.Second):
-			case <-r.Context().Done():
-			}
-		}))
-		defer ts.Close()
-
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.ServiceSettings.OutgoingIntegrationRequestsTimeout = new(int64(1))
-		})
-
-		start := time.Now()
-		requestBody := []byte(`{"test": "data"}`)
-		resp, err := th.App.DoActionRequest(th.Context, ts.URL, requestBody)
-		require.NotNil(t, err)
-		assert.Nil(t, resp)
-		assert.Less(t, time.Since(start), 10*time.Second, "the configured timeout should bound a request with no deadline")
-	})
 }
 
 func TestGetPostActionClient(t *testing.T) {
@@ -1867,9 +1846,8 @@ func TestGetPostActionClient(t *testing.T) {
 	}
 
 	// DoActionRequest's callers put OutgoingIntegrationRequestsTimeout on the request context, so
-	// the client must not add a timeout capping a value configured above
-	// httpservice.RequestTimeout. Without a deadline to inherit it falls back to the configured
-	// timeout rather than leaving the request unbounded.
+	// the client must not add a timeout of its own that would cap a value configured above
+	// httpservice.RequestTimeout.
 	t.Run("client timeout", func(t *testing.T) {
 		const configuredTimeout = 60 * time.Second
 
@@ -1895,7 +1873,7 @@ func TestGetPostActionClient(t *testing.T) {
 			assert.Zero(t, client.Timeout, "url: %s", rawURL)
 
 			client = th.App.getPostActionClient(th.Context, inURL, req)
-			assert.Equal(t, configuredTimeout, client.Timeout, "url: %s", rawURL)
+			assert.Zero(t, client.Timeout, "url: %s", rawURL)
 		}
 	})
 }
