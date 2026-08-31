@@ -178,7 +178,7 @@ const defaultServerConfig: AdminConfig = {
         EnableAPIPostDeletion: false,
         EnableDesktopLandingPage: true,
         MinimumDesktopAppVersion: '',
-        ExperimentalEnableHardenedMode: false,
+        EnableHardenedMode: false,
         ExperimentalStrictCSRFEnforcement: false,
         EnableEmailInvitations: false,
         DisableBotsWhenOwnerIsDeactivated: true,
@@ -261,7 +261,6 @@ const defaultServerConfig: AdminConfig = {
         ConnMaxIdleTimeMilliseconds: 300000,
         MaxOpenConns: 100,
         Trace: false,
-        AtRestEncryptKey: '',
         QueryTimeout: 30,
         AnalyticsQueryTimeout: 300,
         DisableDatabaseSearch: false,
@@ -584,7 +583,6 @@ const defaultServerConfig: AdminConfig = {
         MobileJailbreakProtection: false,
         MobileEnableSecureFilePreview: false,
         MobileAllowPdfLinkNavigation: false,
-        EnableIntuneMAM: false,
     },
     IntuneSettings: {
         Enable: false,
@@ -754,7 +752,6 @@ const defaultServerConfig: AdminConfig = {
     GuestAccountsSettings: {
         Enable: false,
         HideTags: false,
-        AllowEmailAccounts: true,
         EnforceMultifactorAuthentication: false,
         RestrictCreationToDomains: '',
         EnableGuestMagicLink: false,
