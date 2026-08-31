@@ -26,6 +26,14 @@ func TestFeatureFlagsSetDefaults(t *testing.T) {
 		require.Equal(t, "false", m["ClassificationMarkings"])
 	})
 
+	t.Run("ChannelAttributes should default to false and serialize correctly", func(t *testing.T) {
+		require.False(t, f.ChannelAttributes)
+		require.Equal(t, "false", f.ToMap()["ChannelAttributes"])
+
+		f.ChannelAttributes = true
+		require.Equal(t, "true", f.ToMap()["ChannelAttributes"])
+	})
+
 	t.Run("MmBlocksEnabled defaults to true", func(t *testing.T) {
 		require.True(t, f.MmBlocksEnabled)
 		require.Equal(t, "true", f.ToMap()["MmBlocksEnabled"])
