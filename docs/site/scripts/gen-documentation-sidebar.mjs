@@ -85,6 +85,7 @@ const OVERVIEW_HIDDEN = new Set([
   'common-esr-support',
   'common-esr-support-upgrade',
   'common-esr-support-rst',
+  'cloud-supported-integrations',
 ]);
 
 const OVERVIEW_GROUPS = {
@@ -98,7 +99,6 @@ const OVERVIEW_GROUPS = {
         'cloud-dedicated',
         'cloud-shared',
         'cloud-vpc-private-connectivity',
-        'cloud-supported-integrations',
         'corporate-directory-integration',
       ]},
       'non-profit-subscriptions',
