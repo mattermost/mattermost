@@ -1,6 +1,12 @@
 // Copyright (c) 2019-present Mattermost, Inc. All Rights Reserved.
 // See License for license information.
 
+// This package's own test files carry the "integration" build tag so they do not
+// run in the mattermost server's CI, which executes `go test` inside a Docker
+// container with no Docker socket — testcontainers-go panics there. They run in
+// plugin repos (and locally) on hosts with Docker available, via
+// `go test -tags=integration ./...`.
+
 //go:build integration
 
 package testhelper
