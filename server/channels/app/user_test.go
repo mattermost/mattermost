@@ -2544,6 +2544,10 @@ func TestPostChannelChatGateFailsClosed(t *testing.T) {
 	postID := model.NewId()
 	mockChannelStore.On("GetForPost", postID).Return(nil, errors.New("classification backend unavailable")).Times(3)
 	mockStore.On("Channel").Return(&mockChannelStore)
+	// The fixture's own CreatePost leaves an outgoing-webhook check running; an unstubbed
+	// subsystem reached from that goroutine panics outside the test goroutine and takes the
+	// whole binary down, so everything this test does not drive is forwarded to the real store.
+	mockStore.On("Webhook").Return(realStore.Webhook())
 	th.App.Srv().SetStore(&mockStore)
 	defer th.App.Srv().SetStore(realStore)
 

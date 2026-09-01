@@ -1053,8 +1053,10 @@ func (a *App) RemoveNotifications(rctx request.CTX, post *model.Post, channel *m
 				auditRec.Success()
 
 				// The thread_updated payload carries the root post; a non-message backing
-				// channel's thread must not reach chat clients. The membership updates above
-				// stand — only the broadcast is withheld.
+				// channel's thread must not reach chat clients. A backing channel does not
+				// reach this point today: SendNotifications returns early for one, so its
+				// threads never accrue the unread mentions this loop requires. Kept as a
+				// backstop so the broadcast stays withheld if that changes.
 				if !channel.IsSpace() {
 					message := model.NewWebSocketEvent(model.WebsocketEventThreadUpdated, team.Id, "", userID, nil, "")
 					message.Add("thread", string(payload))

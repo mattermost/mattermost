@@ -4,11 +4,13 @@
 package app
 
 import (
+	"encoding/json"
 	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -145,8 +147,9 @@ func TestBackingChannelPostIDGates(t *testing.T) {
 	})
 
 	t.Run("the same member passes on a chat post", func(t *testing.T) {
-		ok, _ := th.App.SessionHasPermissionToReadPost(th.Context, session, chatPost.Id)
+		ok, isMember := th.App.SessionHasPermissionToReadPost(th.Context, session, chatPost.Id)
 		assert.True(t, ok)
+		assert.True(t, isMember, "the rejection must not cost a chat post its membership signal")
 	})
 
 	t.Run("the unfollow variant skips the backing rejection", func(t *testing.T) {
@@ -160,6 +163,8 @@ func TestBackingChannelPostIDGates(t *testing.T) {
 // id and the props tying the post to its owning feature survive — while chat channels keep the
 // hook's full replacement power.
 func TestBackingChannelHookClamp(t *testing.T) {
+	mainHelper.Parallel(t)
+
 	th := Setup(t).InitBasic(t)
 	api := th.SetupPluginAPI()
 	space := createSpaceChannelWithMember(t, th, th.BasicUser.Id)
@@ -181,6 +186,13 @@ func TestBackingChannelHookClamp(t *testing.T) {
 		replacement.Id = ""
 		replacement.Message = post.Message + " [rewritten]"
 		replacement.AddProp("page_id", "hijacked")
+		// Re-homing is attempted only against a post that already belongs to a page: the same
+		// rewrite on a chat post would name a channel and a root that do not exist, so the
+		// create would fail on the ids rather than on the clamp.
+		if post.GetProp("page_id") != nil {
+			replacement.ChannelId = model.NewId()
+			replacement.RootId = model.NewId()
+		}
 		return replacement, ""
 	}
 
@@ -207,6 +219,13 @@ func TestBackingChannelHookClamp(t *testing.T) {
 		assert.Equal(t, post.Id, created.Id, "the caller-supplied id is load-bearing for the failure probe")
 		assert.Equal(t, "comment [rewritten]", created.Message, "the hook keeps its message rewrite")
 		assert.Equal(t, "the-real-page", created.GetProp("page_id"), "a hook cannot re-home the post")
+		assert.Equal(t, space.Id, created.ChannelId, "a hook cannot move the post to another channel")
+		assert.Empty(t, created.RootId, "a hook cannot re-parent the post into a thread")
+
+		stored, appErr := th.App.GetSinglePost(th.Context, created.Id, false)
+		require.Nil(t, appErr)
+		assert.Equal(t, space.Id, stored.ChannelId, "the clamp holds in the stored row, not just the return value")
+		assert.Empty(t, stored.RootId)
 	})
 
 	t.Run("a chat post keeps the hook's full replacement", func(t *testing.T) {
@@ -375,7 +394,12 @@ func TestMoveThreadsToChannelConcurrentCounters(t *testing.T) {
 	}
 	close(start)
 	for range 2 {
-		require.NoError(t, <-results)
+		select {
+		case err := <-results:
+			require.NoError(t, err)
+		case <-time.After(30 * time.Second):
+			require.FailNow(t, "a concurrent move did not finish: the row locks are taken in conflicting orders")
+		}
 	}
 
 	// Whichever move committed last holds every row. Each channel's counter must equal the rows
@@ -393,4 +417,75 @@ func TestMoveThreadsToChannelConcurrentCounters(t *testing.T) {
 		total += counter
 	}
 	assert.Equal(t, int64(6), total, "the six posts must be counted exactly once across the three channels")
+}
+
+// TestBackingChannelBroadcastSuppression pins the effect the backing-channel guards on the post
+// broadcast paths exist to produce: a space's posts never reach a chat client's websocket. Each
+// case drives the suppressed path first and the equivalent chat path second, then asserts the
+// first event off the wire carries the chat post. The chat event is a sentinel — it can only
+// arrive after a suppressed one would have, so a restored broadcast fails the assertion without
+// the test having to wait on a timeout. The listening user is a member of both channels, so
+// absence is a decision by the guard rather than a broadcast that had no recipient.
+func TestBackingChannelBroadcastSuppression(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := Setup(t).InitBasic(t)
+	api := th.SetupPluginAPI()
+	space := createSpaceChannelWithMember(t, th, th.BasicUser.Id)
+
+	newSpacePost := func(t *testing.T) *model.Post {
+		t.Helper()
+		post, appErr := api.CreatePost(&model.Post{
+			ChannelId: space.Id,
+			UserId:    th.BasicUser.Id,
+			Message:   "space comment",
+		})
+		require.Nil(t, appErr)
+		return post
+	}
+
+	receivedPostID := func(t *testing.T, event *model.WebSocketEvent) string {
+		t.Helper()
+		payload, ok := event.GetData()["post"].(string)
+		require.True(t, ok, "the event must carry a post payload")
+		var post model.Post
+		require.NoError(t, json.Unmarshal([]byte(payload), &post))
+		return post.Id
+	}
+
+	t.Run("editing a backing-channel post publishes no post_edited event", func(t *testing.T) {
+		messages, closeWS := connectFakeWebSocket(t, th, th.BasicUser.Id, "", []model.WebsocketEventType{model.WebsocketEventPostEdited})
+		defer closeWS()
+
+		spacePost := newSpacePost(t)
+		spacePost.Message = "edited space comment"
+		_, appErr := api.UpdatePost(spacePost)
+		require.Nil(t, appErr)
+
+		chatPost := th.CreatePost(t, th.BasicChannel)
+		chatPost.Message = "edited chat post"
+		_, _, appErr = th.App.UpdatePost(th.Context, chatPost, nil)
+		require.Nil(t, appErr)
+
+		received := <-messages
+		require.Equal(t, model.WebsocketEventPostEdited, received.EventType())
+		assert.Equal(t, chatPost.Id, receivedPostID(t, received), "the only post_edited event must be the chat one")
+	})
+
+	t.Run("deleting a backing-channel post publishes no post_deleted event", func(t *testing.T) {
+		messages, closeWS := connectFakeWebSocket(t, th, th.BasicUser.Id, "", []model.WebsocketEventType{model.WebsocketEventPostDeleted})
+		defer closeWS()
+
+		spacePost := newSpacePost(t)
+		require.Nil(t, api.DeletePost(spacePost.Id))
+
+		chatPost := th.CreatePost(t, th.BasicChannel)
+		_, appErr := th.App.DeletePost(th.Context, chatPost.Id, th.BasicUser.Id)
+		require.Nil(t, appErr)
+
+		received := <-messages
+		require.Equal(t, model.WebsocketEventPostDeleted, received.EventType())
+		assert.Equal(t, chatPost.Id, receivedPostID(t, received), "the only post_deleted event must be the chat one")
+	})
+
 }

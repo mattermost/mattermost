@@ -3196,8 +3196,10 @@ func (a *App) UpdateThreadFollowForUserFromChannelAdd(rctx request.CTX, userID, 
 	}
 
 	// The thread_updated payload carries the root post; a non-message backing channel's thread
-	// must not reach chat clients. The membership written above stands — only the broadcast is
-	// withheld.
+	// must not reach chat clients. A backing channel does not reach this point today:
+	// countThreadMentions above resolves its channel through GetChannel, which excludes backing
+	// types, so the call returns not-found first. Kept as a backstop so the broadcast stays
+	// withheld if that exclusion is ever relaxed.
 	if backingChannel.IsSpace() {
 		return nil
 	}

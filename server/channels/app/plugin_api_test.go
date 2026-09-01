@@ -4218,6 +4218,22 @@ func TestAppMovePostsToChannel(t *testing.T) {
 		appErr := th.App.MovePostsToChannel(th.Context, oversized, target.Id)
 		require.NotNil(t, appErr)
 		require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+		require.Equal(t, "app.post.move_posts_to_channel.batch_too_large.app_error", appErr.Id, "the cap must be what rejects, not another bad request")
+	})
+
+	t.Run("a batch at exactly the cap is accepted", func(t *testing.T) {
+		// Unknown ids are skipped, so the batch reaches the store and returns without moving
+		// anything: what is under test is that the cap rejects only what exceeds it.
+		atCap := make([]string, movePostsToChannelMaxBatch)
+		for i := range atCap {
+			atCap[i] = model.NewId()
+		}
+		require.Nil(t, th.App.MovePostsToChannel(th.Context, atCap, target.Id))
+	})
+
+	t.Run("an empty batch is a no-op", func(t *testing.T) {
+		require.Nil(t, th.App.MovePostsToChannel(th.Context, nil, target.Id))
+		require.Nil(t, th.App.MovePostsToChannel(th.Context, []string{}, target.Id))
 	})
 
 	t.Run("the plugin API surface reaches it", func(t *testing.T) {
@@ -4737,4 +4753,23 @@ func TestPluginAPIPropertyGroupDeprecatedName(t *testing.T) {
 		_, err := api.GetPropertyGroup("no_such_group")
 		require.Error(t, err)
 	})
+}
+
+// TestPluginAPIRetentionPolicyChannelWiring pins that each retention-policy plugin API reaches
+// its own app method. Without the data-retention service those methods refuse by name, so the
+// refusal identifies which one ran — a swapped or copy-pasted delegation moves the name.
+func TestPluginAPIRetentionPolicyChannelWiring(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := Setup(t)
+	api := th.SetupPluginAPI()
+	require.Nil(t, th.App.DataRetention(), "the refusal-by-name probe requires the service to be absent")
+
+	addErr := api.AddChannelsToRetentionPolicy(model.NewId(), []string{model.NewId()})
+	require.NotNil(t, addErr)
+	assert.Equal(t, "App.AddChannelsToRetentionPolicies", addErr.Where)
+
+	removeErr := api.RemoveChannelsFromRetentionPolicy(model.NewId(), []string{model.NewId()})
+	require.NotNil(t, removeErr)
+	assert.Equal(t, "App.RemoveChannelsFromRetentionPolicy", removeErr.Where)
 }
