@@ -209,6 +209,15 @@
           schema:
             type: boolean
             default: false
+        - name: includePropertyGroups
+          in: query
+          description: >
+            Comma-separated list of property group names whose values should be hydrated onto each
+            post's metadata. Only **PSAv2** groups are accepted; passing a legacy v1 group returns
+            404.
+          required: false
+          schema:
+            type: string
       responses:
         "200":
           description: Post retrieval successful
@@ -227,6 +236,8 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
     delete:
       tags:
         - posts
@@ -493,6 +504,15 @@
           schema:
             type: boolean
             default: false
+        - name: includePropertyGroups
+          in: query
+          description: >
+            Comma-separated list of property group names whose values should be hydrated onto each
+            post's metadata. Only **PSAv2** groups are accepted; passing a legacy v1 group returns
+            404.
+          required: false
+          schema:
+            type: string
       responses:
         "200":
           description: Post list retrieval successful
@@ -506,6 +526,8 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
   "/api/v4/users/{user_id}/posts/flagged":
     get:
       tags:
@@ -758,9 +780,10 @@
         - name: includePropertyGroups
           in: query
           description: >
-            Comma-separated list of PSAv2 property group names whose values should be
-            hydrated onto each post's metadata. Currently only a single group name is
-            supported per request.
+            Comma-separated list of property group names whose values should be hydrated onto each
+            post's metadata. Only **PSAv2** groups are accepted; passing a legacy v1 group returns
+            404.
+          required: false
           schema:
             type: string
       responses:
@@ -776,6 +799,8 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
   "/api/v4/users/{user_id}/channels/{channel_id}/posts/unread":
     get:
       tags:
@@ -841,6 +866,15 @@
           schema:
             type: boolean
             default: false
+        - name: includePropertyGroups
+          in: query
+          description: >
+            Comma-separated list of property group names whose values should be hydrated onto each
+            post's metadata. Only **PSAv2** groups are accepted; passing a legacy v1 group returns
+            404.
+          required: false
+          schema:
+            type: string
       responses:
         "200":
           description: Post list retrieval successful
@@ -854,6 +888,8 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
   "/api/v4/teams/{team_id}/posts/search":
     post:
       tags:
