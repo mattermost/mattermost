@@ -110,6 +110,7 @@
   },
   "devDependencies": {
     "@deanwhillier/jest-matchmedia-mock": "1.2.0",
+    "@formatjs/icu-messageformat-parser": "2.11.4",
     "@mattermost/calls-common": "0.27.0",
     "@mattermost/eslint-plugin": "*",
     "@stylistic/stylelint-plugin": "3.1.2",

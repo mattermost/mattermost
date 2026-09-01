@@ -12,7 +12,13 @@
  *
  *   - the file is valid JSON and every value is a string
  *   - every value parses with @formatjs/icu-messageformat-parser, the parser
- *     react-intl runs in production, so "parses here" implies "parses there"
+ *     react-intl runs in production, so "parses here" implies "parses there".
+ *     That only holds if the two agree on a version, so channels depends on the
+ *     parser explicitly, pinned to the version react-intl resolves. Three
+ *     versions of this package coexist in the tree -- babel-plugin-formatjs
+ *     pulls an older one that hoists to the root, eslint-plugin-formatjs a newer
+ *     one -- so a bare import without that pin silently lints against the wrong
+ *     grammar. Bump the pin whenever react-intl moves.
  *   - a translation never invents a variable the source does not have. An
  *     unknown variable throws MISSING_VALUE at format time.
  *   - a translation never invents a tag the source does not have. An unknown
