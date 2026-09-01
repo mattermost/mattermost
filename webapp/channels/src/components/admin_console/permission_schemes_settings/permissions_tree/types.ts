@@ -14,6 +14,7 @@ export type Group = {
     id: string;
     permissions: Array<Permission | string>;
     isVisible?: (license?: ClientLicense) => boolean;
+    fromPlugin?: boolean;
 };
 
 export type AdditionalValues = Record<string, Record<string, any>>;

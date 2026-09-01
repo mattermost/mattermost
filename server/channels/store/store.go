@@ -906,6 +906,19 @@ type RoleStore interface {
 	// ChannelRolesUnderTeamRole returns all of the non-deleted roles that are affected by updates to the
 	// given role.
 	ChannelRolesUnderTeamRole(roleName string) ([]*model.Role, error)
+
+	SavePluginPermission(permission *model.PluginPermission) error
+	GetPluginPermission(pluginID, localID string) (*model.PluginPermission, error)
+	GetPluginPermissions() ([]*model.PluginPermission, error)
+	GetPluginPermissionsByPlugin(pluginID string) ([]*model.PluginPermission, error)
+	SetPluginPermissionsActive(pluginID string, active bool) error
+	DeletePluginPermissions(pluginID string) error
+	MarkPluginPermissionDefaultsApplied(pluginID, localID string) error
+
+	SavePluginRoleOwnership(ownership *model.PluginRoleOwnership) error
+	GetPluginRoleOwnership(pluginID, localName string) (*model.PluginRoleOwnership, error)
+	GetPluginRoleOwnershipsByPlugin(pluginID string) ([]*model.PluginRoleOwnership, error)
+	DeletePluginRoleOwnerships(pluginID string) error
 }
 
 type SchemeStore interface {

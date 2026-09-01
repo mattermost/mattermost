@@ -111,6 +111,7 @@ import type {MfaSecret} from '@mattermost/types/mfa';
 import type {
     ClientPluginManifest,
     PluginManifest,
+    PluginPermission,
     PluginsResponse,
     PluginStatus,
 } from '@mattermost/types/plugins';
@@ -4818,6 +4819,13 @@ export default class Client4 {
         return this.doFetch<string[]>(
             `${this.getPermissionsRoute()}/ancillary`,
             {method: 'post', body: JSON.stringify(subsectionPermissions)},
+        );
+    };
+
+    getPluginPermissions = () => {
+        return this.doFetch<PluginPermission[]>(
+            `${this.getPermissionsRoute()}`,
+            {method: 'get'},
         );
     };
 

@@ -30,13 +30,17 @@ type PluginAPI struct {
 }
 
 func NewPluginAPI(a *App, rctx request.CTX, manifest *model.Manifest) *PluginAPI {
-	return &PluginAPI{
+	api := &PluginAPI{
 		id:       manifest.Id,
 		manifest: manifest,
 		ctx:      rctx,
 		app:      a,
 		logger:   a.Log().Sugar(mlog.String("plugin_id", manifest.Id)),
 	}
+	if appErr := a.RegisterManifestPluginRBAC(rctx, manifest); appErr != nil {
+		api.logger.Warn("Failed to register plugin permissions and roles from manifest", "error", appErr.Error())
+	}
+	return api
 }
 
 func (api *PluginAPI) checkLDAPLicense() error {
@@ -1258,6 +1262,26 @@ func (api *PluginAPI) HasPermissionToTeam(userID, teamID string, permission *mod
 func (api *PluginAPI) HasPermissionToChannel(userID, channelID string, permission *model.Permission) bool {
 	ok, _ := api.app.HasPermissionToChannel(api.ctx, userID, channelID, permission)
 	return ok
+}
+
+func (api *PluginAPI) RegisterPermission(permission *model.PluginPermission) *model.AppError {
+	return api.app.RegisterPluginPermission(api.ctx, api.id, permission)
+}
+
+func (api *PluginAPI) RegisterRole(role *model.PluginRole) (*model.Role, *model.AppError) {
+	return api.app.RegisterPluginRole(api.ctx, api.id, role)
+}
+
+func (api *PluginAPI) PatchPluginRole(name string, patch *model.RolePatch) (*model.Role, *model.AppError) {
+	return api.app.PatchPluginRole(api.ctx, api.id, name, patch)
+}
+
+func (api *PluginAPI) AssignPluginRole(userID, roleName string) (*model.User, *model.AppError) {
+	return api.app.AssignPluginRole(api.ctx, api.id, userID, roleName)
+}
+
+func (api *PluginAPI) RemovePluginRole(userID, roleName string) (*model.User, *model.AppError) {
+	return api.app.RemovePluginRole(api.ctx, api.id, userID, roleName)
 }
 
 func (api *PluginAPI) RolesGrantPermission(roleNames []string, permissionId string) bool {

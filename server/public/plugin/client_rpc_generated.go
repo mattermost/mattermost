@@ -6708,6 +6708,153 @@ func (s *apiRPCServer) HasPermissionToChannel(args *Z_HasPermissionToChannelArgs
 	return nil
 }
 
+type Z_RegisterPermissionArgs struct {
+	A *model.PluginPermission
+}
+
+type Z_RegisterPermissionReturns struct {
+	A *model.AppError
+}
+
+func (g *apiRPCClient) RegisterPermission(permission *model.PluginPermission) *model.AppError {
+	_args := &Z_RegisterPermissionArgs{permission}
+	_returns := &Z_RegisterPermissionReturns{}
+	if err := g.client.Call("Plugin.RegisterPermission", _args, _returns); err != nil {
+		log.Printf("RPC call to RegisterPermission API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) RegisterPermission(args *Z_RegisterPermissionArgs, returns *Z_RegisterPermissionReturns) error {
+	if hook, ok := s.impl.(interface {
+		RegisterPermission(permission *model.PluginPermission) *model.AppError
+	}); ok {
+		returns.A = hook.RegisterPermission(args.A)
+	} else {
+		return encodableError(fmt.Errorf("API RegisterPermission called but not implemented."))
+	}
+	return nil
+}
+
+type Z_RegisterRoleArgs struct {
+	A *model.PluginRole
+}
+
+type Z_RegisterRoleReturns struct {
+	A *model.Role
+	B *model.AppError
+}
+
+func (g *apiRPCClient) RegisterRole(role *model.PluginRole) (*model.Role, *model.AppError) {
+	_args := &Z_RegisterRoleArgs{role}
+	_returns := &Z_RegisterRoleReturns{}
+	if err := g.client.Call("Plugin.RegisterRole", _args, _returns); err != nil {
+		log.Printf("RPC call to RegisterRole API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) RegisterRole(args *Z_RegisterRoleArgs, returns *Z_RegisterRoleReturns) error {
+	if hook, ok := s.impl.(interface {
+		RegisterRole(role *model.PluginRole) (*model.Role, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.RegisterRole(args.A)
+	} else {
+		return encodableError(fmt.Errorf("API RegisterRole called but not implemented."))
+	}
+	return nil
+}
+
+type Z_PatchPluginRoleArgs struct {
+	A string
+	B *model.RolePatch
+}
+
+type Z_PatchPluginRoleReturns struct {
+	A *model.Role
+	B *model.AppError
+}
+
+func (g *apiRPCClient) PatchPluginRole(name string, patch *model.RolePatch) (*model.Role, *model.AppError) {
+	_args := &Z_PatchPluginRoleArgs{name, patch}
+	_returns := &Z_PatchPluginRoleReturns{}
+	if err := g.client.Call("Plugin.PatchPluginRole", _args, _returns); err != nil {
+		log.Printf("RPC call to PatchPluginRole API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) PatchPluginRole(args *Z_PatchPluginRoleArgs, returns *Z_PatchPluginRoleReturns) error {
+	if hook, ok := s.impl.(interface {
+		PatchPluginRole(name string, patch *model.RolePatch) (*model.Role, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.PatchPluginRole(args.A, args.B)
+	} else {
+		return encodableError(fmt.Errorf("API PatchPluginRole called but not implemented."))
+	}
+	return nil
+}
+
+type Z_AssignPluginRoleArgs struct {
+	A string
+	B string
+}
+
+type Z_AssignPluginRoleReturns struct {
+	A *model.User
+	B *model.AppError
+}
+
+func (g *apiRPCClient) AssignPluginRole(userID, roleName string) (*model.User, *model.AppError) {
+	_args := &Z_AssignPluginRoleArgs{userID, roleName}
+	_returns := &Z_AssignPluginRoleReturns{}
+	if err := g.client.Call("Plugin.AssignPluginRole", _args, _returns); err != nil {
+		log.Printf("RPC call to AssignPluginRole API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) AssignPluginRole(args *Z_AssignPluginRoleArgs, returns *Z_AssignPluginRoleReturns) error {
+	if hook, ok := s.impl.(interface {
+		AssignPluginRole(userID, roleName string) (*model.User, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.AssignPluginRole(args.A, args.B)
+	} else {
+		return encodableError(fmt.Errorf("API AssignPluginRole called but not implemented."))
+	}
+	return nil
+}
+
+type Z_RemovePluginRoleArgs struct {
+	A string
+	B string
+}
+
+type Z_RemovePluginRoleReturns struct {
+	A *model.User
+	B *model.AppError
+}
+
+func (g *apiRPCClient) RemovePluginRole(userID, roleName string) (*model.User, *model.AppError) {
+	_args := &Z_RemovePluginRoleArgs{userID, roleName}
+	_returns := &Z_RemovePluginRoleReturns{}
+	if err := g.client.Call("Plugin.RemovePluginRole", _args, _returns); err != nil {
+		log.Printf("RPC call to RemovePluginRole API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) RemovePluginRole(args *Z_RemovePluginRoleArgs, returns *Z_RemovePluginRoleReturns) error {
+	if hook, ok := s.impl.(interface {
+		RemovePluginRole(userID, roleName string) (*model.User, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.RemovePluginRole(args.A, args.B)
+	} else {
+		return encodableError(fmt.Errorf("API RemovePluginRole called but not implemented."))
+	}
+	return nil
+}
+
 type Z_RolesGrantPermissionArgs struct {
 	A []string
 	B string

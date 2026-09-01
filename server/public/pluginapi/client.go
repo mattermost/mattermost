@@ -24,6 +24,7 @@ type Client struct {
 	KV            KVService
 	Log           LogService
 	Mail          MailService
+	Permission    PermissionService
 	Plugin        PluginService
 	Post          PostService
 	Property      PropertyService
@@ -56,6 +57,7 @@ func NewClient(api plugin.API, driver plugin.Driver) *Client {
 		KV:            KVService{api: api},
 		Log:           LogService{api: api},
 		Mail:          MailService{api: api},
+		Permission:    PermissionService{api: api},
 		Plugin:        PluginService{api: api},
 		Post:          PostService{api: api},
 		Property:      PropertyService{api: api},

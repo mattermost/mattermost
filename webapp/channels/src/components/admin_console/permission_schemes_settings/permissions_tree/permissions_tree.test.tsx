@@ -3,6 +3,9 @@
 
 import React from 'react';
 
+import type {PluginPermission} from '@mattermost/types/plugins';
+
+import {Client4} from 'mattermost-redux/client';
 import GeneralConstants from 'mattermost-redux/constants/general';
 
 import PermissionsTree from 'components/admin_console/permission_schemes_settings/permissions_tree/permissions_tree';
@@ -11,6 +14,8 @@ import {renderWithContext} from 'tests/react_testing_utils';
 import {LicenseSkus} from 'utils/constants';
 
 import type {Group, Permission} from './types';
+
+import {setPluginPermissionCatalog} from '../plugin_permission_catalog';
 
 jest.mock('components/admin_console/permission_schemes_settings/permission_group', () => {
     return jest.fn(() => <div data-testid='permission-group'/>);
@@ -50,6 +55,13 @@ describe('components/admin_console/permission_schemes_settings/permission_tree',
 
     beforeEach(() => {
         PermissionGroup.mockClear();
+        setPluginPermissionCatalog([]);
+        jest.spyOn(Client4, 'getPluginPermissions').mockResolvedValue([]);
+    });
+
+    afterEach(() => {
+        jest.restoreAllMocks();
+        setPluginPermissionCatalog([]);
     });
 
     test('should match snapshot on default data', () => {
@@ -184,6 +196,42 @@ describe('components/admin_console/permission_schemes_settings/permission_tree',
         expect(groups[7].id).toStrictEqual('integrations');
         expect(groups[8].id).toStrictEqual('manage_shared_channels');
         expect(groups[9].id).toStrictEqual('custom_groups');
+    });
+
+    test('should append plugin permission groups for the current scope', () => {
+        const pluginPermissions: PluginPermission[] = [
+            {
+                plugin_id: 'com.example.plugin',
+                plugin_name: 'Example',
+                id: 'manage_thing',
+                permission_id: 'com.example.plugin:manage_thing',
+                name: 'Manage thing',
+                description: 'Allows managing things',
+                scope: 'channel_scope',
+                active: true,
+            },
+            {
+                plugin_id: 'com.example.plugin',
+                plugin_name: 'Example',
+                id: 'manage_system_thing',
+                permission_id: 'com.example.plugin:manage_system_thing',
+                name: 'Manage system thing',
+                description: 'Allows managing system things',
+                scope: 'system_scope',
+                active: true,
+            },
+        ];
+        jest.spyOn(Client4, 'getPluginPermissions').mockResolvedValue(pluginPermissions);
+        setPluginPermissionCatalog(pluginPermissions);
+
+        renderWithContext(
+            <PermissionsTree {...defaultProps}/>,
+        );
+
+        const groups = PermissionGroup.mock.calls[0][0].permissions as Array<Group | Permission>;
+        const pluginGroup = groups.find((group) => group.id === 'com.example.plugin');
+        expect(pluginGroup).toBeDefined();
+        expect(pluginGroup!.permissions).toEqual(['com.example.plugin:manage_thing']);
     });
 
     describe('should show playbook permissions', () => {

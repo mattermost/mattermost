@@ -13,6 +13,44 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 )
 
+func TestGetPluginPermissions(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	t.Cleanup(model.ResetPluginPermissionRegistryForTest)
+
+	pluginID := "com.example.api"
+	appErr := th.App.RegisterPluginPermission(th.Context, pluginID, &model.PluginPermission{
+		Id:          "manage_thing",
+		Name:        "Manage thing",
+		Description: "Allows managing things",
+		Scope:       model.PermissionScopeSystem,
+	})
+	require.Nil(t, appErr)
+
+	t.Run("forbidden for regular user", func(t *testing.T) {
+		_, resp, err := th.Client.GetPluginPermissions(context.Background())
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("system admin can list registered permissions", func(t *testing.T) {
+		permissions, _, err := th.SystemAdminClient.GetPluginPermissions(context.Background())
+		require.NoError(t, err)
+		require.NotEmpty(t, permissions)
+
+		var found *model.PluginPermission
+		for _, p := range permissions {
+			if p.PermissionId == model.PluginPermissionId(pluginID, "manage_thing") {
+				found = p
+				break
+			}
+		}
+		require.NotNil(t, found)
+		assert.Equal(t, "Manage thing", found.Name)
+		assert.Equal(t, model.PermissionScopeSystem, found.Scope)
+	})
+}
+
 func TestGetAncillaryPermissions(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)

@@ -122,6 +122,11 @@ func (ch *Channels) syncPluginsActiveState() {
 				defer wg.Done()
 
 				deactivated := pluginsEnvironment.Deactivate(plugin.Manifest.Id)
+				if deactivated {
+					if appErr := New(ServerConnector(ch)).SetPluginPermissionsActive(plugin.Manifest.Id, false); appErr != nil {
+						ch.srv.Log().Warn("Failed to deactivate plugin permissions", mlog.String("plugin_id", plugin.Manifest.Id), mlog.Err(appErr))
+					}
+				}
 				if deactivated && plugin.Manifest.HasClient() {
 					message := model.NewWebSocketEvent(model.WebsocketEventPluginDisabled, "", "", "", nil, "")
 					message.Add("manifest", plugin.Manifest.ClientManifest())
@@ -150,6 +155,12 @@ func (ch *Channels) syncPluginsActiveState() {
 					if err := ch.notifyPluginEnabled(updatedManifest); err != nil {
 						logger.Error("Failed to notify cluster on plugin enable", mlog.Err(err))
 					}
+					if appErr := New(ServerConnector(ch)).RegisterManifestPluginRBAC(request.EmptyContext(ch.srv.Log()), updatedManifest); appErr != nil {
+						logger.Warn("Failed to register plugin permissions and roles from manifest", mlog.Err(appErr))
+					}
+					if appErr := ch.setPluginPermissionsActive(pluginID, true); appErr != nil {
+						logger.Warn("Failed to activate plugin permissions", mlog.Err(appErr))
+					}
 				}
 			}(plugin)
 		}
@@ -170,6 +181,7 @@ func (a *App) InitPlugins(rctx request.CTX, pluginDir, webappPluginDir string) {
 }
 
 func (ch *Channels) initPlugins(rctx request.CTX, pluginDir, webappPluginDir string) {
+	ch.loadPluginPermissionCatalog()
 	// Acquiring lock manually, as plugins might be disabled. See GetPluginsEnvironment.
 	defer func() {
 		ch.srv.Platform().SetPluginsEnvironment(ch)
@@ -494,6 +506,9 @@ func (ch *Channels) disablePlugin(id string) *model.AppError {
 		cfg.PluginSettings.PluginStates[id] = &model.PluginState{Enable: false}
 	})
 	ch.unregisterPluginCommands(id)
+	if appErr := ch.setPluginPermissionsActive(id, false); appErr != nil {
+		ch.srv.Log().Warn("Failed to deactivate plugin permissions", mlog.String("plugin_id", id), mlog.Err(appErr))
+	}
 
 	// This call will implicitly invoke SyncPluginsActiveState which will deactivate disabled plugins.
 	if _, _, err := ch.cfgSvc.SaveConfig(ch.cfgSvc.Config(), true); err != nil {

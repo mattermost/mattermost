@@ -7791,6 +7791,15 @@ func (c *Client4) GetAncillaryPermissions(ctx context.Context, subsectionPermiss
 	return DecodeJSONFromResponse[[]string](r)
 }
 
+func (c *Client4) GetPluginPermissions(ctx context.Context) ([]*PluginPermission, *Response, error) {
+	r, err := c.doAPIGet(ctx, c.permissionsRoute(), "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[[]*PluginPermission](r)
+}
+
 func (c *Client4) GetUsersWithInvalidEmails(ctx context.Context, page, perPage int) ([]*User, *Response, error) {
 	values := url.Values{}
 	values.Set("page", strconv.Itoa(page))

@@ -522,3 +522,199 @@ func (s *SqlRoleStore) ChannelRolesUnderTeamRole(roleName string) ([]*model.Role
 
 	return roles, nil
 }
+
+type dbPluginPermission struct {
+	PluginId        string
+	LocalId         string
+	PermissionId    string
+	Name            string
+	Description     string
+	Scope           string
+	DefaultRoles    string
+	Active          bool
+	DefaultsApplied bool
+	CreateAt        int64
+	UpdateAt        int64
+}
+
+func (p dbPluginPermission) ToModel() *model.PluginPermission {
+	return &model.PluginPermission{
+		PluginId:        p.PluginId,
+		Id:              p.LocalId,
+		PermissionId:    p.PermissionId,
+		Name:            p.Name,
+		Description:     p.Description,
+		Scope:           p.Scope,
+		DefaultRoles:    strings.Fields(p.DefaultRoles),
+		Active:          p.Active,
+		DefaultsApplied: p.DefaultsApplied,
+		CreateAt:        p.CreateAt,
+		UpdateAt:        p.UpdateAt,
+	}
+}
+
+func (s *SqlRoleStore) SavePluginPermission(permission *model.PluginPermission) error {
+	now := model.GetMillis()
+	if permission.CreateAt == 0 {
+		permission.CreateAt = now
+	}
+	permission.UpdateAt = now
+
+	builder := s.getQueryBuilder().
+		Insert("PluginPermissions").
+		Columns("PluginId", "LocalId", "PermissionId", "Name", "Description", "Scope", "DefaultRoles", "Active", "DefaultsApplied", "CreateAt", "UpdateAt").
+		Values(
+			permission.PluginId,
+			permission.Id,
+			permission.PermissionId,
+			permission.Name,
+			permission.Description,
+			permission.Scope,
+			strings.Join(permission.DefaultRoles, " "),
+			permission.Active,
+			permission.DefaultsApplied,
+			permission.CreateAt,
+			permission.UpdateAt,
+		).
+		SuffixExpr(sq.Expr("ON CONFLICT (PluginId, LocalId) DO UPDATE SET Name = EXCLUDED.Name, Description = EXCLUDED.Description, Scope = EXCLUDED.Scope, DefaultRoles = EXCLUDED.DefaultRoles, Active = EXCLUDED.Active, UpdateAt = EXCLUDED.UpdateAt"))
+
+	if _, err := s.GetMaster().ExecBuilder(builder); err != nil {
+		return errors.Wrapf(err, "failed to save plugin permission plugin=%s id=%s", permission.PluginId, permission.Id)
+	}
+	return nil
+}
+
+func (s *SqlRoleStore) GetPluginPermission(pluginID, localID string) (*model.PluginPermission, error) {
+	query := s.getQueryBuilder().
+		Select("PluginId", "LocalId", "PermissionId", "Name", "Description", "Scope", "DefaultRoles", "Active", "DefaultsApplied", "CreateAt", "UpdateAt").
+		From("PluginPermissions").
+		Where(sq.Eq{"PluginId": pluginID, "LocalId": localID})
+
+	var dbPerm dbPluginPermission
+	if err := s.GetReplica().GetBuilder(&dbPerm, query); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, store.NewErrNotFound("PluginPermission", pluginID+":"+localID)
+		}
+		return nil, errors.Wrapf(err, "failed to get plugin permission plugin=%s id=%s", pluginID, localID)
+	}
+	return dbPerm.ToModel(), nil
+}
+
+func (s *SqlRoleStore) pluginPermissionsSelect() sq.SelectBuilder {
+	return s.getQueryBuilder().
+		Select("PluginId", "LocalId", "PermissionId", "Name", "Description", "Scope", "DefaultRoles", "Active", "DefaultsApplied", "CreateAt", "UpdateAt").
+		From("PluginPermissions")
+}
+
+func (s *SqlRoleStore) GetPluginPermissions() ([]*model.PluginPermission, error) {
+	var dbPerms []dbPluginPermission
+	if err := s.GetReplica().SelectBuilder(&dbPerms, s.pluginPermissionsSelect()); err != nil {
+		return nil, errors.Wrap(err, "failed to get plugin permissions")
+	}
+	out := make([]*model.PluginPermission, 0, len(dbPerms))
+	for _, p := range dbPerms {
+		out = append(out, p.ToModel())
+	}
+	return out, nil
+}
+
+func (s *SqlRoleStore) GetPluginPermissionsByPlugin(pluginID string) ([]*model.PluginPermission, error) {
+	query := s.pluginPermissionsSelect().Where(sq.Eq{"PluginId": pluginID})
+	var dbPerms []dbPluginPermission
+	if err := s.GetReplica().SelectBuilder(&dbPerms, query); err != nil {
+		return nil, errors.Wrapf(err, "failed to get plugin permissions plugin=%s", pluginID)
+	}
+	out := make([]*model.PluginPermission, 0, len(dbPerms))
+	for _, p := range dbPerms {
+		out = append(out, p.ToModel())
+	}
+	return out, nil
+}
+
+func (s *SqlRoleStore) SetPluginPermissionsActive(pluginID string, active bool) error {
+	builder := s.getQueryBuilder().
+		Update("PluginPermissions").
+		Set("Active", active).
+		Set("UpdateAt", model.GetMillis()).
+		Where(sq.Eq{"PluginId": pluginID})
+	if _, err := s.GetMaster().ExecBuilder(builder); err != nil {
+		return errors.Wrapf(err, "failed to set plugin permissions active plugin=%s", pluginID)
+	}
+	return nil
+}
+
+func (s *SqlRoleStore) DeletePluginPermissions(pluginID string) error {
+	builder := s.getQueryBuilder().
+		Delete("PluginPermissions").
+		Where(sq.Eq{"PluginId": pluginID})
+	if _, err := s.GetMaster().ExecBuilder(builder); err != nil {
+		return errors.Wrapf(err, "failed to delete plugin permissions plugin=%s", pluginID)
+	}
+	return nil
+}
+
+func (s *SqlRoleStore) MarkPluginPermissionDefaultsApplied(pluginID, localID string) error {
+	builder := s.getQueryBuilder().
+		Update("PluginPermissions").
+		Set("DefaultsApplied", true).
+		Set("UpdateAt", model.GetMillis()).
+		Where(sq.Eq{"PluginId": pluginID, "LocalId": localID})
+	if _, err := s.GetMaster().ExecBuilder(builder); err != nil {
+		return errors.Wrapf(err, "failed to mark plugin permission defaults applied plugin=%s id=%s", pluginID, localID)
+	}
+	return nil
+}
+
+func (s *SqlRoleStore) SavePluginRoleOwnership(ownership *model.PluginRoleOwnership) error {
+	if ownership.CreateAt == 0 {
+		ownership.CreateAt = model.GetMillis()
+	}
+	builder := s.getQueryBuilder().
+		Insert("PluginRoles").
+		Columns("PluginId", "LocalName", "RoleName", "CreateAt").
+		Values(ownership.PluginId, ownership.LocalName, ownership.RoleName, ownership.CreateAt).
+		SuffixExpr(sq.Expr("ON CONFLICT (PluginId, LocalName) DO NOTHING"))
+	if _, err := s.GetMaster().ExecBuilder(builder); err != nil {
+		return errors.Wrapf(err, "failed to save plugin role ownership plugin=%s name=%s", ownership.PluginId, ownership.LocalName)
+	}
+	return nil
+}
+
+func (s *SqlRoleStore) GetPluginRoleOwnership(pluginID, localName string) (*model.PluginRoleOwnership, error) {
+	query := s.getQueryBuilder().
+		Select("PluginId", "LocalName", "RoleName", "CreateAt").
+		From("PluginRoles").
+		Where(sq.Eq{"PluginId": pluginID, "LocalName": localName})
+
+	var ownership model.PluginRoleOwnership
+	if err := s.GetReplica().GetBuilder(&ownership, query); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, store.NewErrNotFound("PluginRole", pluginID+":"+localName)
+		}
+		return nil, errors.Wrapf(err, "failed to get plugin role ownership plugin=%s name=%s", pluginID, localName)
+	}
+	return &ownership, nil
+}
+
+func (s *SqlRoleStore) GetPluginRoleOwnershipsByPlugin(pluginID string) ([]*model.PluginRoleOwnership, error) {
+	query := s.getQueryBuilder().
+		Select("PluginId", "LocalName", "RoleName", "CreateAt").
+		From("PluginRoles").
+		Where(sq.Eq{"PluginId": pluginID})
+
+	var ownerships []*model.PluginRoleOwnership
+	if err := s.GetReplica().SelectBuilder(&ownerships, query); err != nil {
+		return nil, errors.Wrapf(err, "failed to get plugin role ownerships plugin=%s", pluginID)
+	}
+	return ownerships, nil
+}
+
+func (s *SqlRoleStore) DeletePluginRoleOwnerships(pluginID string) error {
+	builder := s.getQueryBuilder().
+		Delete("PluginRoles").
+		Where(sq.Eq{"PluginId": pluginID})
+	if _, err := s.GetMaster().ExecBuilder(builder); err != nil {
+		return errors.Wrapf(err, "failed to delete plugin role ownerships plugin=%s", pluginID)
+	}
+	return nil
+}

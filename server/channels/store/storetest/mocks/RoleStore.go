@@ -135,6 +135,42 @@ func (_m *RoleStore) Delete(roleID string) (*model.Role, error) {
 	return r0, r1
 }
 
+// DeletePluginPermissions provides a mock function with given fields: pluginID
+func (_m *RoleStore) DeletePluginPermissions(pluginID string) error {
+	ret := _m.Called(pluginID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeletePluginPermissions")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string) error); ok {
+		r0 = rf(pluginID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// DeletePluginRoleOwnerships provides a mock function with given fields: pluginID
+func (_m *RoleStore) DeletePluginRoleOwnerships(pluginID string) error {
+	ret := _m.Called(pluginID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeletePluginRoleOwnerships")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string) error); ok {
+		r0 = rf(pluginID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // Get provides a mock function with given fields: roleID
 func (_m *RoleStore) Get(roleID string) (*model.Role, error) {
 	ret := _m.Called(roleID)
@@ -255,6 +291,174 @@ func (_m *RoleStore) GetByNames(names []string) ([]*model.Role, error) {
 	return r0, r1
 }
 
+// GetPluginPermission provides a mock function with given fields: pluginID, localID
+func (_m *RoleStore) GetPluginPermission(pluginID string, localID string) (*model.PluginPermission, error) {
+	ret := _m.Called(pluginID, localID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetPluginPermission")
+	}
+
+	var r0 *model.PluginPermission
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, string) (*model.PluginPermission, error)); ok {
+		return rf(pluginID, localID)
+	}
+	if rf, ok := ret.Get(0).(func(string, string) *model.PluginPermission); ok {
+		r0 = rf(pluginID, localID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.PluginPermission)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, string) error); ok {
+		r1 = rf(pluginID, localID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetPluginPermissions provides a mock function with no fields
+func (_m *RoleStore) GetPluginPermissions() ([]*model.PluginPermission, error) {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetPluginPermissions")
+	}
+
+	var r0 []*model.PluginPermission
+	var r1 error
+	if rf, ok := ret.Get(0).(func() ([]*model.PluginPermission, error)); ok {
+		return rf()
+	}
+	if rf, ok := ret.Get(0).(func() []*model.PluginPermission); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.PluginPermission)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func() error); ok {
+		r1 = rf()
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetPluginPermissionsByPlugin provides a mock function with given fields: pluginID
+func (_m *RoleStore) GetPluginPermissionsByPlugin(pluginID string) ([]*model.PluginPermission, error) {
+	ret := _m.Called(pluginID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetPluginPermissionsByPlugin")
+	}
+
+	var r0 []*model.PluginPermission
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string) ([]*model.PluginPermission, error)); ok {
+		return rf(pluginID)
+	}
+	if rf, ok := ret.Get(0).(func(string) []*model.PluginPermission); ok {
+		r0 = rf(pluginID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.PluginPermission)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(pluginID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetPluginRoleOwnership provides a mock function with given fields: pluginID, localName
+func (_m *RoleStore) GetPluginRoleOwnership(pluginID string, localName string) (*model.PluginRoleOwnership, error) {
+	ret := _m.Called(pluginID, localName)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetPluginRoleOwnership")
+	}
+
+	var r0 *model.PluginRoleOwnership
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, string) (*model.PluginRoleOwnership, error)); ok {
+		return rf(pluginID, localName)
+	}
+	if rf, ok := ret.Get(0).(func(string, string) *model.PluginRoleOwnership); ok {
+		r0 = rf(pluginID, localName)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.PluginRoleOwnership)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, string) error); ok {
+		r1 = rf(pluginID, localName)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetPluginRoleOwnershipsByPlugin provides a mock function with given fields: pluginID
+func (_m *RoleStore) GetPluginRoleOwnershipsByPlugin(pluginID string) ([]*model.PluginRoleOwnership, error) {
+	ret := _m.Called(pluginID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetPluginRoleOwnershipsByPlugin")
+	}
+
+	var r0 []*model.PluginRoleOwnership
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string) ([]*model.PluginRoleOwnership, error)); ok {
+		return rf(pluginID)
+	}
+	if rf, ok := ret.Get(0).(func(string) []*model.PluginRoleOwnership); ok {
+		r0 = rf(pluginID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.PluginRoleOwnership)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(pluginID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MarkPluginPermissionDefaultsApplied provides a mock function with given fields: pluginID, localID
+func (_m *RoleStore) MarkPluginPermissionDefaultsApplied(pluginID string, localID string) error {
+	ret := _m.Called(pluginID, localID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for MarkPluginPermissionDefaultsApplied")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, string) error); ok {
+		r0 = rf(pluginID, localID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // PermanentDeleteAll provides a mock function with no fields
 func (_m *RoleStore) PermanentDeleteAll() error {
 	ret := _m.Called()
@@ -303,6 +507,42 @@ func (_m *RoleStore) Save(role *model.Role) (*model.Role, error) {
 	return r0, r1
 }
 
+// SavePluginPermission provides a mock function with given fields: permission
+func (_m *RoleStore) SavePluginPermission(permission *model.PluginPermission) error {
+	ret := _m.Called(permission)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SavePluginPermission")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*model.PluginPermission) error); ok {
+		r0 = rf(permission)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// SavePluginRoleOwnership provides a mock function with given fields: ownership
+func (_m *RoleStore) SavePluginRoleOwnership(ownership *model.PluginRoleOwnership) error {
+	ret := _m.Called(ownership)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SavePluginRoleOwnership")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*model.PluginRoleOwnership) error); ok {
+		r0 = rf(ownership)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // SavePreservingUnknownPermissions provides a mock function with given fields: role
 func (_m *RoleStore) SavePreservingUnknownPermissions(role *model.Role) (*model.Role, error) {
 	ret := _m.Called(role)
@@ -331,6 +571,24 @@ func (_m *RoleStore) SavePreservingUnknownPermissions(role *model.Role) (*model.
 	}
 
 	return r0, r1
+}
+
+// SetPluginPermissionsActive provides a mock function with given fields: pluginID, active
+func (_m *RoleStore) SetPluginPermissionsActive(pluginID string, active bool) error {
+	ret := _m.Called(pluginID, active)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SetPluginPermissionsActive")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, bool) error); ok {
+		r0 = rf(pluginID, active)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
 }
 
 // NewRoleStore creates a new instance of RoleStore. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

@@ -583,6 +583,10 @@ func (ch *Channels) removePluginLocally(id string) *model.AppError {
 	pluginsEnvironment.Deactivate(id)
 	pluginsEnvironment.RemovePlugin(id)
 	ch.unregisterPluginCommands(id)
+	if appErr := ch.purgePluginRBAC(id); appErr != nil {
+		logger := ch.srv.Log().With(mlog.String("plugin_id", id))
+		logger.Warn("Failed to purge plugin permissions and roles", mlog.Err(appErr))
+	}
 
 	if err := os.RemoveAll(unpackedBundlePath); err != nil {
 		return model.NewAppError("removePlugin", "app.plugin.remove.app_error", nil, "", http.StatusInternalServerError).Wrap(err)

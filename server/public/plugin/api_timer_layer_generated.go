@@ -1097,6 +1097,41 @@ func (api *apiTimerLayer) HasPermissionToChannel(userID, channelId string, permi
 	return _returnsA
 }
 
+func (api *apiTimerLayer) RegisterPermission(permission *model.PluginPermission) *model.AppError {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.RegisterPermission(permission)
+	api.recordTime(startTime, "RegisterPermission", _returnsA == nil)
+	return _returnsA
+}
+
+func (api *apiTimerLayer) RegisterRole(role *model.PluginRole) (*model.Role, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.RegisterRole(role)
+	api.recordTime(startTime, "RegisterRole", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) PatchPluginRole(name string, patch *model.RolePatch) (*model.Role, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.PatchPluginRole(name, patch)
+	api.recordTime(startTime, "PatchPluginRole", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) AssignPluginRole(userID, roleName string) (*model.User, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.AssignPluginRole(userID, roleName)
+	api.recordTime(startTime, "AssignPluginRole", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) RemovePluginRole(userID, roleName string) (*model.User, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.RemovePluginRole(userID, roleName)
+	api.recordTime(startTime, "RemovePluginRole", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
 func (api *apiTimerLayer) RolesGrantPermission(roleNames []string, permissionId string) bool {
 	startTime := timePkg.Now()
 	_returnsA := api.apiImpl.RolesGrantPermission(roleNames, permissionId)

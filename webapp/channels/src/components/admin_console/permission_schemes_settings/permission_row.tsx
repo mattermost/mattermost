@@ -9,6 +9,7 @@ import type {Role} from '@mattermost/types/roles';
 
 import PermissionCheckbox from './permission_checkbox';
 import PermissionDescription from './permission_description';
+import {getPluginPermission} from './plugin_permission_catalog';
 import {permissionRolesStrings} from './strings/permissions';
 
 type Props = {
@@ -41,13 +42,28 @@ const PermissionRow = ({
         onChange(id);
     }, [readOnly, onChange, id]);
 
-    const name = permissionRolesStrings[id] ? <FormattedMessage {...permissionRolesStrings[id].name}/> : id;
+    const pluginPermission = getPluginPermission(id);
+    const name = permissionRolesStrings[id] ? (
+        <FormattedMessage {...permissionRolesStrings[id].name}/>
+    ) : (
+        <FormattedMessage
+            id={`admin.permissions.permission.${id}.name`}
+            defaultMessage={pluginPermission?.name || id}
+        />
+    );
     let description: React.JSX.Element | string = '';
     if (permissionRolesStrings[id]) {
         description = (
             <FormattedMessage
                 {...permissionRolesStrings[id].description}
                 values={additionalValues}
+            />
+        );
+    } else if (pluginPermission?.description) {
+        description = (
+            <FormattedMessage
+                id={`admin.permissions.permission.${id}.description`}
+                defaultMessage={pluginPermission.description}
             />
         );
     }

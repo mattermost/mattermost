@@ -1,0 +1,2 @@
+DROP TABLE IF EXISTS PluginRoles;
+DROP TABLE IF EXISTS PluginPermissions;

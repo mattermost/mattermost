@@ -829,7 +829,7 @@ func (r *Role) IsValidWithoutId() error {
 }
 
 // UnknownPermissions returns the permissions on the role that are not present in
-// AllPermissions or DeprecatedPermissions (see MM-68830).
+// AllPermissions, DeprecatedPermissions, or the plugin permission catalog (see MM-68830).
 func (r *Role) UnknownPermissions() []string {
 	check := func(perms []*Permission, permission string) bool {
 		for _, p := range perms {
@@ -842,7 +842,7 @@ func (r *Role) UnknownPermissions() []string {
 
 	var unknown []string
 	for _, permission := range r.Permissions {
-		if !check(AllPermissions, permission) && !check(DeprecatedPermissions, permission) {
+		if !check(AllPermissions, permission) && !check(DeprecatedPermissions, permission) && !IsRegisteredPluginPermission(permission) {
 			unknown = append(unknown, permission)
 		}
 	}

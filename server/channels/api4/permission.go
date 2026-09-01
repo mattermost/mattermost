@@ -12,7 +12,28 @@ import (
 )
 
 func (api *API) InitPermissions() {
+	api.BaseRoutes.Permissions.Handle("", api.APISessionRequired(getPluginPermissions)).Methods(http.MethodGet)
 	api.BaseRoutes.Permissions.Handle("/ancillary", api.APISessionRequired(appendAncillaryPermissionsPost)).Methods(http.MethodPost)
+}
+
+func getPluginPermissions(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadUserManagementPermissions) {
+		c.SetPermissionError(model.PermissionSysconsoleReadUserManagementPermissions)
+		return
+	}
+
+	permissions, appErr := c.App.GetPluginPermissions()
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+	if permissions == nil {
+		permissions = []*model.PluginPermission{}
+	}
+
+	if err := json.NewEncoder(w).Encode(permissions); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func appendAncillaryPermissionsPost(c *Context, w http.ResponseWriter, r *http.Request) {

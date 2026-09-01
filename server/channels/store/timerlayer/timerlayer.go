@@ -9939,6 +9939,38 @@ func (s *TimerLayerRoleStore) Delete(roleID string) (*model.Role, error) {
 	return result, err
 }
 
+func (s *TimerLayerRoleStore) DeletePluginPermissions(pluginID string) error {
+	start := time.Now()
+
+	err := s.RoleStore.DeletePluginPermissions(pluginID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("RoleStore.DeletePluginPermissions", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerRoleStore) DeletePluginRoleOwnerships(pluginID string) error {
+	start := time.Now()
+
+	err := s.RoleStore.DeletePluginRoleOwnerships(pluginID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("RoleStore.DeletePluginRoleOwnerships", success, elapsed)
+	}
+	return err
+}
+
 func (s *TimerLayerRoleStore) Get(roleID string) (*model.Role, error) {
 	start := time.Now()
 
@@ -10003,6 +10035,102 @@ func (s *TimerLayerRoleStore) GetByNames(names []string) ([]*model.Role, error) 
 	return result, err
 }
 
+func (s *TimerLayerRoleStore) GetPluginPermission(pluginID string, localID string) (*model.PluginPermission, error) {
+	start := time.Now()
+
+	result, err := s.RoleStore.GetPluginPermission(pluginID, localID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("RoleStore.GetPluginPermission", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerRoleStore) GetPluginPermissions() ([]*model.PluginPermission, error) {
+	start := time.Now()
+
+	result, err := s.RoleStore.GetPluginPermissions()
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("RoleStore.GetPluginPermissions", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerRoleStore) GetPluginPermissionsByPlugin(pluginID string) ([]*model.PluginPermission, error) {
+	start := time.Now()
+
+	result, err := s.RoleStore.GetPluginPermissionsByPlugin(pluginID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("RoleStore.GetPluginPermissionsByPlugin", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerRoleStore) GetPluginRoleOwnership(pluginID string, localName string) (*model.PluginRoleOwnership, error) {
+	start := time.Now()
+
+	result, err := s.RoleStore.GetPluginRoleOwnership(pluginID, localName)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("RoleStore.GetPluginRoleOwnership", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerRoleStore) GetPluginRoleOwnershipsByPlugin(pluginID string) ([]*model.PluginRoleOwnership, error) {
+	start := time.Now()
+
+	result, err := s.RoleStore.GetPluginRoleOwnershipsByPlugin(pluginID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("RoleStore.GetPluginRoleOwnershipsByPlugin", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerRoleStore) MarkPluginPermissionDefaultsApplied(pluginID string, localID string) error {
+	start := time.Now()
+
+	err := s.RoleStore.MarkPluginPermissionDefaultsApplied(pluginID, localID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("RoleStore.MarkPluginPermissionDefaultsApplied", success, elapsed)
+	}
+	return err
+}
+
 func (s *TimerLayerRoleStore) PermanentDeleteAll() error {
 	start := time.Now()
 
@@ -10035,6 +10163,38 @@ func (s *TimerLayerRoleStore) Save(role *model.Role) (*model.Role, error) {
 	return result, err
 }
 
+func (s *TimerLayerRoleStore) SavePluginPermission(permission *model.PluginPermission) error {
+	start := time.Now()
+
+	err := s.RoleStore.SavePluginPermission(permission)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("RoleStore.SavePluginPermission", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerRoleStore) SavePluginRoleOwnership(ownership *model.PluginRoleOwnership) error {
+	start := time.Now()
+
+	err := s.RoleStore.SavePluginRoleOwnership(ownership)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("RoleStore.SavePluginRoleOwnership", success, elapsed)
+	}
+	return err
+}
+
 func (s *TimerLayerRoleStore) SavePreservingUnknownPermissions(role *model.Role) (*model.Role, error) {
 	start := time.Now()
 
@@ -10049,6 +10209,22 @@ func (s *TimerLayerRoleStore) SavePreservingUnknownPermissions(role *model.Role)
 		s.Root.Metrics.ObserveStoreMethodDuration("RoleStore.SavePreservingUnknownPermissions", success, elapsed)
 	}
 	return result, err
+}
+
+func (s *TimerLayerRoleStore) SetPluginPermissionsActive(pluginID string, active bool) error {
+	start := time.Now()
+
+	err := s.RoleStore.SetPluginPermissionsActive(pluginID, active)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("RoleStore.SetPluginPermissionsActive", success, elapsed)
+	}
+	return err
 }
 
 func (s *TimerLayerScheduledPostStore) CreateScheduledPost(rctx request.CTX, scheduledPost *model.ScheduledPost) (*model.ScheduledPost, error) {

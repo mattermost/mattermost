@@ -25,9 +25,39 @@ export type PluginManifest = {
     webapp?: PluginManifestWebapp;
     settings_schema?: PluginSettingsSchema;
     props?: Record<string, any>;
+    permissions?: PluginManifestPermission[];
+    roles?: PluginManifestRole[];
 };
 
 export type PluginRedux = PluginManifest & {active: boolean};
+
+export type PluginPermission = {
+    plugin_id: string;
+    plugin_name?: string;
+    id: string;
+    permission_id: string;
+    name: string;
+    description: string;
+    scope: string;
+    default_roles?: string[];
+    active: boolean;
+    create_at?: number;
+};
+
+export type PluginManifestPermission = {
+    id: string;
+    name: string;
+    description?: string;
+    scope: string;
+    default_roles?: string[];
+};
+
+export type PluginManifestRole = {
+    name: string;
+    display_name: string;
+    description?: string;
+    permissions?: string[];
+};
 
 export type PluginManifestServer = {
     executables?: {

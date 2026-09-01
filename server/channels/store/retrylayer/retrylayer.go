@@ -12541,6 +12541,48 @@ func (s *RetryLayerRoleStore) Delete(roleID string) (*model.Role, error) {
 
 }
 
+func (s *RetryLayerRoleStore) DeletePluginPermissions(pluginID string) error {
+
+	tries := 0
+	for {
+		err := s.RoleStore.DeletePluginPermissions(pluginID)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerRoleStore) DeletePluginRoleOwnerships(pluginID string) error {
+
+	tries := 0
+	for {
+		err := s.RoleStore.DeletePluginRoleOwnerships(pluginID)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerRoleStore) Get(roleID string) (*model.Role, error) {
 
 	tries := 0
@@ -12625,6 +12667,132 @@ func (s *RetryLayerRoleStore) GetByNames(names []string) ([]*model.Role, error) 
 
 }
 
+func (s *RetryLayerRoleStore) GetPluginPermission(pluginID string, localID string) (*model.PluginPermission, error) {
+
+	tries := 0
+	for {
+		result, err := s.RoleStore.GetPluginPermission(pluginID, localID)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerRoleStore) GetPluginPermissions() ([]*model.PluginPermission, error) {
+
+	tries := 0
+	for {
+		result, err := s.RoleStore.GetPluginPermissions()
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerRoleStore) GetPluginPermissionsByPlugin(pluginID string) ([]*model.PluginPermission, error) {
+
+	tries := 0
+	for {
+		result, err := s.RoleStore.GetPluginPermissionsByPlugin(pluginID)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerRoleStore) GetPluginRoleOwnership(pluginID string, localName string) (*model.PluginRoleOwnership, error) {
+
+	tries := 0
+	for {
+		result, err := s.RoleStore.GetPluginRoleOwnership(pluginID, localName)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerRoleStore) GetPluginRoleOwnershipsByPlugin(pluginID string) ([]*model.PluginRoleOwnership, error) {
+
+	tries := 0
+	for {
+		result, err := s.RoleStore.GetPluginRoleOwnershipsByPlugin(pluginID)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerRoleStore) MarkPluginPermissionDefaultsApplied(pluginID string, localID string) error {
+
+	tries := 0
+	for {
+		err := s.RoleStore.MarkPluginPermissionDefaultsApplied(pluginID, localID)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerRoleStore) PermanentDeleteAll() error {
 
 	tries := 0
@@ -12667,6 +12835,48 @@ func (s *RetryLayerRoleStore) Save(role *model.Role) (*model.Role, error) {
 
 }
 
+func (s *RetryLayerRoleStore) SavePluginPermission(permission *model.PluginPermission) error {
+
+	tries := 0
+	for {
+		err := s.RoleStore.SavePluginPermission(permission)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerRoleStore) SavePluginRoleOwnership(ownership *model.PluginRoleOwnership) error {
+
+	tries := 0
+	for {
+		err := s.RoleStore.SavePluginRoleOwnership(ownership)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerRoleStore) SavePreservingUnknownPermissions(role *model.Role) (*model.Role, error) {
 
 	tries := 0
@@ -12682,6 +12892,27 @@ func (s *RetryLayerRoleStore) SavePreservingUnknownPermissions(role *model.Role)
 		if tries >= 3 {
 			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
 			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerRoleStore) SetPluginPermissionsActive(pluginID string, active bool) error {
+
+	tries := 0
+	for {
+		err := s.RoleStore.SetPluginPermissionsActive(pluginID, active)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
 		}
 		timepkg.Sleep(100 * timepkg.Millisecond)
 	}

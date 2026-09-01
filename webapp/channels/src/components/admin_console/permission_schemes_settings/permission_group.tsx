@@ -12,6 +12,7 @@ import {PermissionsScope} from 'utils/constants';
 import PermissionCheckbox from './permission_checkbox';
 import PermissionDescription from './permission_description';
 import PermissionRow from './permission_row';
+import {getPluginPermissionGroup} from './plugin_permission_catalog';
 import type {AdditionalValues, Permission, Permissions} from './permissions_tree/types';
 import {groupRolesStrings} from './strings/groups';
 
@@ -281,7 +282,15 @@ export default class PermissionGroup extends React.PureComponent<Props, State> {
             classes += ' combined';
         }
         const additionalValuesProp = additionalValues?.[id] ? additionalValues[id] : undefined;
-        const name = groupRolesStrings[id] ? <FormattedMessage {...groupRolesStrings[id].name}/> : id;
+        const pluginGroup = getPluginPermissionGroup(id);
+        const name = groupRolesStrings[id] ? (
+            <FormattedMessage {...groupRolesStrings[id].name}/>
+        ) : (
+            <FormattedMessage
+                id={`admin.permissions.groups.${id}.name`}
+                defaultMessage={pluginGroup?.pluginName || id}
+            />
+        );
         let description: React.JSX.Element | string = '';
         if (groupRolesStrings[id]) {
             description = (

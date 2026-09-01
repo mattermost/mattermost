@@ -24,6 +24,7 @@ func TestRoleStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	t.Run("GetNames", func(t *testing.T) { testRoleStoreGetByNames(t, rctx, ss) })
 	t.Run("Delete", func(t *testing.T) { testRoleStoreDelete(t, rctx, ss) })
 	t.Run("PermanentDeleteAll", func(t *testing.T) { testRoleStorePermanentDeleteAll(t, rctx, ss) })
+	t.Run("PluginPermissions", func(t *testing.T) { testRoleStorePluginPermissions(t, rctx, ss) })
 	t.Run("LowerScopedChannelSchemeRoles_AllChannelSchemeRoles", func(t *testing.T) { testRoleStoreLowerScopedChannelSchemeRoles(t, rctx, ss) })
 	t.Run("ChannelHigherScopedPermissionsBlankTeamSchemeChannelGuest", func(t *testing.T) {
 		testRoleStoreChannelHigherScopedPermissionsBlankTeamSchemeChannelGuest(t, rctx, ss, s)
@@ -691,4 +692,60 @@ func testRoleStoreChannelHigherScopedPermissionsBlankTeamSchemeChannelGuest(t *t
 	require.NoError(t, err)
 
 	require.Equal(t, len(roleMapBefore), len(roleMapAfter))
+}
+
+func testRoleStorePluginPermissions(t *testing.T, rctx request.CTX, ss store.Store) {
+	pluginID := "com.example.store"
+	perm := &model.PluginPermission{
+		PluginId:     pluginID,
+		Id:           "manage_thing",
+		PermissionId: model.PluginPermissionId(pluginID, "manage_thing"),
+		Name:         "Manage thing",
+		Description:  "desc",
+		Scope:        model.PermissionScopeSystem,
+		DefaultRoles: []string{model.ChannelAdminRoleId},
+		Active:       true,
+	}
+
+	require.NoError(t, ss.Role().SavePluginPermission(perm))
+
+	got, err := ss.Role().GetPluginPermission(pluginID, "manage_thing")
+	require.NoError(t, err)
+	assert.Equal(t, perm.PermissionId, got.PermissionId)
+	assert.Equal(t, []string{model.ChannelAdminRoleId}, got.DefaultRoles)
+	assert.False(t, got.DefaultsApplied)
+
+	perm.Name = "Manage thing updated"
+	require.NoError(t, ss.Role().SavePluginPermission(perm))
+	got, err = ss.Role().GetPluginPermission(pluginID, "manage_thing")
+	require.NoError(t, err)
+	assert.Equal(t, "Manage thing updated", got.Name)
+
+	require.NoError(t, ss.Role().MarkPluginPermissionDefaultsApplied(pluginID, "manage_thing"))
+	got, err = ss.Role().GetPluginPermission(pluginID, "manage_thing")
+	require.NoError(t, err)
+	assert.True(t, got.DefaultsApplied)
+
+	require.NoError(t, ss.Role().SetPluginPermissionsActive(pluginID, false))
+	got, err = ss.Role().GetPluginPermission(pluginID, "manage_thing")
+	require.NoError(t, err)
+	assert.False(t, got.Active)
+
+	ownership := &model.PluginRoleOwnership{
+		PluginId:  pluginID,
+		LocalName: "admin",
+		RoleName:  model.PluginRoleName(pluginID, "admin"),
+	}
+	require.NoError(t, ss.Role().SavePluginRoleOwnership(ownership))
+	gotOwn, err := ss.Role().GetPluginRoleOwnership(pluginID, "admin")
+	require.NoError(t, err)
+	assert.Equal(t, ownership.RoleName, gotOwn.RoleName)
+
+	require.NoError(t, ss.Role().DeletePluginRoleOwnerships(pluginID))
+	_, err = ss.Role().GetPluginRoleOwnership(pluginID, "admin")
+	require.Error(t, err)
+
+	require.NoError(t, ss.Role().DeletePluginPermissions(pluginID))
+	_, err = ss.Role().GetPluginPermission(pluginID, "manage_thing")
+	require.Error(t, err)
 }

@@ -1035,6 +1035,44 @@ type API interface {
 	// Minimum server version: 5.3
 	HasPermissionToChannel(userID, channelId string, permission *model.Permission) bool
 
+	// RegisterPermission registers a permission owned by this plugin. Id is a local identifier
+	// (for example "manage_board"); the server namespaces it as "{pluginID}:{id}". Name and
+	// Description are English defaults used as translation fallbacks. DefaultRoles, if set, are
+	// applied only the first time the permission is registered.
+	//
+	// @tag Permission
+	// Minimum server version: 11.10
+	RegisterPermission(permission *model.PluginPermission) *model.AppError
+
+	// RegisterRole registers a custom role owned by this plugin. Name is a local identifier;
+	// the server stores a namespaced Roles.Name. Permissions must be this plugin's permissions
+	// (local ids or already-namespaced ids). Subsequent calls update display metadata and do
+	// not clobber admin-edited permissions.
+	//
+	// @tag Permission
+	// Minimum server version: 11.10
+	RegisterRole(role *model.PluginRole) (*model.Role, *model.AppError)
+
+	// PatchPluginRole updates a role previously registered by this plugin.
+	//
+	// @tag Permission
+	// Minimum server version: 11.10
+	PatchPluginRole(name string, patch *model.RolePatch) (*model.Role, *model.AppError)
+
+	// AssignPluginRole assigns a role owned by this plugin to a user.
+	//
+	// @tag Permission
+	// @tag User
+	// Minimum server version: 11.10
+	AssignPluginRole(userID, roleName string) (*model.User, *model.AppError)
+
+	// RemovePluginRole removes a role owned by this plugin from a user.
+	//
+	// @tag Permission
+	// @tag User
+	// Minimum server version: 11.10
+	RemovePluginRole(userID, roleName string) (*model.User, *model.AppError)
+
 	// RolesGrantPermission check if the specified roles grant the specified permission
 	//
 	// Minimum server version: 6.3

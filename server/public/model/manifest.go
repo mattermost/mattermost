@@ -219,6 +219,13 @@ type Manifest struct {
 	// provide your settings schema.
 	SettingsSchema *PluginSettingsSchema `json:"settings_schema,omitempty" yaml:"settings_schema,omitempty"`
 
+	// Permissions declared by the plugin. Registered on activate and granted onto default_roles
+	// the first time each permission is seen. IDs are namespaced as "{pluginID}:{id}".
+	Permissions []*ManifestPermission `json:"permissions,omitempty" yaml:"permissions,omitempty"`
+
+	// Roles declared by the plugin. Registered on activate as plugin-owned custom roles.
+	Roles []*ManifestRole `json:"roles,omitempty" yaml:"roles,omitempty"`
+
 	// Plugins can store any kind of data in Props to allow other plugins to use it.
 	Props map[string]any `json:"props,omitempty" yaml:"props,omitempty"`
 }
@@ -352,6 +359,67 @@ func (m *Manifest) IsValid() error {
 		}
 	}
 
+	if err := m.validatePermissions(); err != nil {
+		return err
+	}
+	if err := m.validateRoles(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *Manifest) validatePermissions() error {
+	if len(m.Permissions) > MaxPluginPermissionsPerPlugin {
+		return fmt.Errorf("plugin may register at most %d permissions", MaxPluginPermissionsPerPlugin)
+	}
+	seen := make(map[string]bool, len(m.Permissions))
+	for _, p := range m.Permissions {
+		if p == nil {
+			return errors.New("invalid empty permission")
+		}
+		if !IsValidPluginPermissionLocalID(p.Id) {
+			return fmt.Errorf("invalid permission id %q", p.Id)
+		}
+		if seen[p.Id] {
+			return fmt.Errorf("duplicate permission id %q", p.Id)
+		}
+		seen[p.Id] = true
+		if strings.TrimSpace(p.Name) == "" {
+			return fmt.Errorf("permission %q is missing a name", p.Id)
+		}
+		if !IsValidPluginPermissionScope(p.Scope) {
+			return fmt.Errorf("permission %q has invalid scope %q", p.Id, p.Scope)
+		}
+		for _, role := range p.DefaultRoles {
+			if !IsValidRoleName(role) || !IsBuiltInRole(role) {
+				return fmt.Errorf("permission %q has invalid default role %q", p.Id, role)
+			}
+		}
+	}
+	return nil
+}
+
+func (m *Manifest) validateRoles() error {
+	if len(m.Roles) > MaxPluginRolesPerPlugin {
+		return fmt.Errorf("plugin may register at most %d roles", MaxPluginRolesPerPlugin)
+	}
+	seen := make(map[string]bool, len(m.Roles))
+	for _, r := range m.Roles {
+		if r == nil {
+			return errors.New("invalid empty role")
+		}
+		if !IsValidPluginRoleLocalName(r.Name) {
+			return fmt.Errorf("invalid role name %q", r.Name)
+		}
+		if seen[r.Name] {
+			return fmt.Errorf("duplicate role name %q", r.Name)
+		}
+		seen[r.Name] = true
+		if strings.TrimSpace(r.DisplayName) == "" {
+			return fmt.Errorf("role %q is missing a display name", r.Name)
+		}
+	}
 	return nil
 }
 

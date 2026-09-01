@@ -7,6 +7,7 @@ import {FormattedMessage} from 'react-intl';
 import type {ClientConfig, ClientLicense} from '@mattermost/types/config';
 import type {Role} from '@mattermost/types/roles';
 
+import {Client4} from 'mattermost-redux/client';
 import GeneralConstants from 'mattermost-redux/constants/general';
 import Permissions from 'mattermost-redux/constants/permissions';
 
@@ -21,6 +22,7 @@ import type {AdditionalValues, Group} from './types';
 import EditPostTimeLimitButton from '../edit_post_time_limit_button';
 import EditPostTimeLimitModal from '../edit_post_time_limit_modal';
 import PermissionGroup from '../permission_group';
+import {getPluginPermissionGroups, setPluginPermissionCatalog} from '../plugin_permission_catalog';
 
 type Props = {
     scope: string;
@@ -206,6 +208,8 @@ export default class PermissionsTree extends React.PureComponent<Props, State> {
     updateGroups = () => {
         const {config, scope, license, role} = this.props;
 
+        this.groups = this.groups.filter((group) => !group.fromPlugin);
+
         const teamsGroup = this.groups[0];
         const publicChannelsGroup = this.groups[1];
         const privateChannelsGroup = this.groups[2];
@@ -345,6 +349,20 @@ export default class PermissionsTree extends React.PureComponent<Props, State> {
 
             return true;
         });
+
+        for (const pluginGroup of getPluginPermissionGroups()) {
+            const permissions = pluginGroup.permissions.
+                filter((permission) => permission.scope === scope).
+                map((permission) => permission.permission_id);
+            if (!permissions.length) {
+                continue;
+            }
+            this.groups.push({
+                id: pluginGroup.pluginId,
+                permissions,
+                fromPlugin: true,
+            });
+        }
     };
 
     openPostTimeLimitModal = () => {
@@ -355,11 +373,26 @@ export default class PermissionsTree extends React.PureComponent<Props, State> {
         this.setState({editTimeLimitModalIsVisible: false});
     };
 
+    componentDidMount() {
+        this.loadPluginPermissions();
+    }
+
     componentDidUpdate(prevProps: Props) {
         if (this.props.config !== prevProps.config || this.props.license !== prevProps.license) {
             this.updateGroups();
         }
     }
+
+    loadPluginPermissions = async () => {
+        try {
+            const permissions = await Client4.getPluginPermissions();
+            setPluginPermissionCatalog(permissions);
+            this.updateGroups();
+            this.forceUpdate();
+        } catch {
+            // Built-in permissions still render if the catalog cannot be loaded.
+        }
+    };
 
     toggleGroup = (ids: string[]) => {
         if (this.props.readOnly) {

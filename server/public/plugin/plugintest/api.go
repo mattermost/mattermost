@@ -114,6 +114,38 @@ func (_m *API) AddUserToChannel(channelId string, userID string, asUserId string
 	return r0, r1
 }
 
+// AssignPluginRole provides a mock function with given fields: userID, roleName
+func (_m *API) AssignPluginRole(userID string, roleName string) (*model.User, *model.AppError) {
+	ret := _m.Called(userID, roleName)
+
+	if len(ret) == 0 {
+		panic("no return value specified for AssignPluginRole")
+	}
+
+	var r0 *model.User
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func(string, string) (*model.User, *model.AppError)); ok {
+		return rf(userID, roleName)
+	}
+	if rf, ok := ret.Get(0).(func(string, string) *model.User); ok {
+		r0 = rf(userID, roleName)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.User)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, string) *model.AppError); ok {
+		r1 = rf(userID, roleName)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // CheckAccessControlExpression provides a mock function with given fields: actingUserID, resourceType, expression
 func (_m *API) CheckAccessControlExpression(actingUserID string, resourceType string, expression string) ([]model.CELExpressionError, *model.AppError) {
 	ret := _m.Called(actingUserID, resourceType, expression)
@@ -4748,6 +4780,38 @@ func (_m *API) PatchChannelMembersNotifications(members []*model.ChannelMemberId
 	return r0
 }
 
+// PatchPluginRole provides a mock function with given fields: name, patch
+func (_m *API) PatchPluginRole(name string, patch *model.RolePatch) (*model.Role, *model.AppError) {
+	ret := _m.Called(name, patch)
+
+	if len(ret) == 0 {
+		panic("no return value specified for PatchPluginRole")
+	}
+
+	var r0 *model.Role
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func(string, *model.RolePatch) (*model.Role, *model.AppError)); ok {
+		return rf(name, patch)
+	}
+	if rf, ok := ret.Get(0).(func(string, *model.RolePatch) *model.Role); ok {
+		r0 = rf(name, patch)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Role)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, *model.RolePatch) *model.AppError); ok {
+		r1 = rf(name, patch)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // PermanentDeleteBot provides a mock function with given fields: botUserId
 func (_m *API) PermanentDeleteBot(botUserId string) *model.AppError {
 	ret := _m.Called(botUserId)
@@ -5027,6 +5091,26 @@ func (_m *API) RegisterCommand(command *model.Command) error {
 	return r0
 }
 
+// RegisterPermission provides a mock function with given fields: permission
+func (_m *API) RegisterPermission(permission *model.PluginPermission) *model.AppError {
+	ret := _m.Called(permission)
+
+	if len(ret) == 0 {
+		panic("no return value specified for RegisterPermission")
+	}
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(*model.PluginPermission) *model.AppError); ok {
+		r0 = rf(permission)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
+}
+
 // RegisterPluginForSharedChannels provides a mock function with given fields: opts
 func (_m *API) RegisterPluginForSharedChannels(opts model.RegisterPluginOpts) (string, error) {
 	ret := _m.Called(opts)
@@ -5085,6 +5169,38 @@ func (_m *API) RegisterPropertyGroup(name string) (*model.PropertyGroup, error) 
 	return r0, r1
 }
 
+// RegisterRole provides a mock function with given fields: role
+func (_m *API) RegisterRole(role *model.PluginRole) (*model.Role, *model.AppError) {
+	ret := _m.Called(role)
+
+	if len(ret) == 0 {
+		panic("no return value specified for RegisterRole")
+	}
+
+	var r0 *model.Role
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func(*model.PluginRole) (*model.Role, *model.AppError)); ok {
+		return rf(role)
+	}
+	if rf, ok := ret.Get(0).(func(*model.PluginRole) *model.Role); ok {
+		r0 = rf(role)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Role)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(*model.PluginRole) *model.AppError); ok {
+		r1 = rf(role)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // RemovePlugin provides a mock function with given fields: id
 func (_m *API) RemovePlugin(id string) *model.AppError {
 	ret := _m.Called(id)
@@ -5103,6 +5219,38 @@ func (_m *API) RemovePlugin(id string) *model.AppError {
 	}
 
 	return r0
+}
+
+// RemovePluginRole provides a mock function with given fields: userID, roleName
+func (_m *API) RemovePluginRole(userID string, roleName string) (*model.User, *model.AppError) {
+	ret := _m.Called(userID, roleName)
+
+	if len(ret) == 0 {
+		panic("no return value specified for RemovePluginRole")
+	}
+
+	var r0 *model.User
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func(string, string) (*model.User, *model.AppError)); ok {
+		return rf(userID, roleName)
+	}
+	if rf, ok := ret.Get(0).(func(string, string) *model.User); ok {
+		r0 = rf(userID, roleName)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.User)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, string) *model.AppError); ok {
+		r1 = rf(userID, roleName)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // RemoveReaction provides a mock function with given fields: reaction

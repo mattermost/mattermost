@@ -8189,6 +8189,22 @@
     "translation": "Plugin is not installed."
   },
   {
+    "id": "app.plugin.permission.get.app_error",
+    "translation": "Unable to get plugin permissions."
+  },
+  {
+    "id": "app.plugin.permission.invalid.app_error",
+    "translation": "Invalid plugin permission."
+  },
+  {
+    "id": "app.plugin.permission.limit.app_error",
+    "translation": "Plugin has reached the maximum number of permissions."
+  },
+  {
+    "id": "app.plugin.permission.save.app_error",
+    "translation": "Unable to save plugin permission."
+  },
+  {
     "id": "app.plugin.reattach.app_error",
     "translation": "Failed to reattach plugin"
   },
@@ -8203,6 +8219,22 @@
   {
     "id": "app.plugin.restart.app_error",
     "translation": "Unable to restart plugin on upgrade."
+  },
+  {
+    "id": "app.plugin.role.invalid.app_error",
+    "translation": "Invalid plugin role."
+  },
+  {
+    "id": "app.plugin.role.limit.app_error",
+    "translation": "Plugin has reached the maximum number of roles."
+  },
+  {
+    "id": "app.plugin.role.not_found.app_error",
+    "translation": "Plugin role not found."
+  },
+  {
+    "id": "app.plugin.role.save.app_error",
+    "translation": "Unable to save plugin role."
   },
   {
     "id": "app.plugin.seek.app_error",
