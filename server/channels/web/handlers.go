@@ -451,6 +451,8 @@ func (h Handler) handleContextError(c *Context, w http.ResponseWriter, r *http.R
 		c.Err.Id = ""
 		c.Err.Message = "Internal Server Error"
 		c.Err.WipeDetailed()
+		// Props is always exposed to clients, so scrub it along with the rest of the sanitized 5xx.
+		c.Err.Props = nil
 		c.Err.StatusCode = 500
 		c.Err.Where = ""
 	}
