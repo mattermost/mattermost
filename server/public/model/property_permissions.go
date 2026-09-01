@@ -254,10 +254,11 @@ func (p *Permissions) IsValid(objectType string) error {
 // isValid checks the shape-only masking rules — the ones answerable without a
 // store: every except identity is a known type with a present, non-wildcard
 // id; mask_by_field_id is only ever set on a template; and a masked field that
-// isn't object_type:user must set it, since object_type:user is the only place
-// holdings can be read from today. Whether mask_by_field_id actually names a
-// live, linked field is checked separately, by the store's
-// ValidateMaskByFieldID.
+// isn't object_type:user or object_type:template must set it, since those are
+// the only two places holdings can come from today — a user field holds its
+// own values, and a template resolves the same way a field linked to it does.
+// Whether mask_by_field_id actually names a live, linked field is checked
+// separately, by the store's ValidateMaskByFieldID.
 func (m *Masking) isValid(objectType string) error {
 	for _, id := range m.Except {
 		if !IsValidPropertyOwnerType(id.Type) {
@@ -273,8 +274,8 @@ func (m *Masking) isValid(objectType string) error {
 	if m.MaskByFieldID != "" && objectType != PropertyFieldObjectTypeTemplate {
 		return fmt.Errorf("mask_by_field_id is only allowed on object_type:template")
 	}
-	if objectType != PropertyFieldObjectTypeUser && m.MaskByFieldID == "" {
-		return fmt.Errorf("masked field with no mask_by_field_id and object_type != user has no resolvable holdings")
+	if objectType != PropertyFieldObjectTypeUser && objectType != PropertyFieldObjectTypeTemplate && m.MaskByFieldID == "" {
+		return fmt.Errorf("masked field with no mask_by_field_id and object_type not user or template has no resolvable holdings")
 	}
 	return nil
 }

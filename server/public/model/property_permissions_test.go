@@ -173,9 +173,14 @@ func TestMaskingValidation(t *testing.T) {
 		require.Error(t, p.IsValid(PropertyFieldObjectTypeUser))
 	})
 
-	t.Run("masked non-user field with no mask_by_field_id has no resolvable holdings", func(t *testing.T) {
+	t.Run("masked non-user, non-template field with no mask_by_field_id has no resolvable holdings", func(t *testing.T) {
 		p := &Permissions{Masking: &Masking{}}
 		require.Error(t, p.IsValid(PropertyFieldObjectTypeChannel))
+	})
+
+	t.Run("masked template with no mask_by_field_id is valid", func(t *testing.T) {
+		p := &Permissions{Masking: &Masking{}}
+		require.NoError(t, p.IsValid(PropertyFieldObjectTypeTemplate))
 	})
 
 	t.Run("self-writable user field rejected", func(t *testing.T) {
