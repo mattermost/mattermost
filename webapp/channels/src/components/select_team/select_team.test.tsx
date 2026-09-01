@@ -137,6 +137,8 @@ describe('components/select_team/SelectTeam', () => {
             expect(screen.queryByText(noOpenTeamsCanCreate)).not.toBeInTheDocument();
         });
 
+        // Without canCreateTeams or canManageSystem the copy is rendered behind a SystemPermissionGate,
+        // which resolves CREATE_TEAM against the store rather than the props.
         test('tells a user who is on no team and cannot create one that no teams are available', () => {
             const props = {...baseProps, listableTeams: [], isMemberOfTeam: false, currentUserRoles: '', canManageSystem: false, canCreateTeams: false};
             renderWithContext(<SelectTeam {...props}/>);

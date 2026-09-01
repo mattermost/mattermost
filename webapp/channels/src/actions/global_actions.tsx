@@ -309,7 +309,7 @@ export function emitBrowserFocus(focus: boolean) {
     });
 }
 
-export async function getTeamRedirectChannelIfIsAccesible(user: UserProfile, team: Team) {
+export async function getTeamRedirectChannelIfIsAccesible(user: UserProfile, team: Team, joinRedirectChannel = false) {
     let state = getState();
     let channel = null;
 
@@ -353,10 +353,7 @@ export async function getTeamRedirectChannelIfIsAccesible(user: UserProfile, tea
         channel = teamChannels[redirectedChannelName];
         channelMember = getMyChannelMember(state, channel && channel.id);
 
-        if (!channelMember && haveITeamPermission(state, team.id, Permissions.JOIN_PUBLIC_CHANNELS)) {
-            // A team member with no membership in the redirect channel would otherwise be sent to
-            // /select_team with no way back in. Join it here, the same way opening the channel URL
-            // directly does.
+        if (!channelMember && joinRedirectChannel && haveITeamPermission(state, team.id, Permissions.JOIN_PUBLIC_CHANNELS)) {
             const joinResult = await dispatch(joinChannel(user.id, team.id, channel?.id ?? '', redirectedChannelName));
             if (joinResult.data) {
                 channel = joinResult.data.channel;
@@ -439,6 +436,21 @@ export async function redirectUserToDefaultTeam(searchParams?: URLSearchParams) 
     for (const myTeam of myTeams) {
         // This should execute async behavior in a pretty limited set of situations, so shouldn't be a problem
         const channel = await getTeamRedirectChannelIfIsAccesible(user, myTeam); // eslint-disable-line no-await-in-loop
+        if (channel) {
+            dispatch(selectChannel(channel.id));
+            historyPushWithQueryParams(`/${myTeam.name}/channels/${channel.name}`, searchParams);
+            return;
+        }
+    }
+
+    // No team has a channel the user is already in, so they would otherwise be dead-ended on
+    // /select_team. Join the redirect channel instead, the same way opening a channel URL directly
+    // does. This is a second pass so a team the user already has channels in always wins.
+    const lastVisitedTeam = team && team.delete_at === 0 ? team : undefined;
+    const recoverableTeams = lastVisitedTeam ? [lastVisitedTeam, ...myTeams.filter((myTeam) => myTeam.id !== lastVisitedTeam.id)] : myTeams;
+
+    for (const myTeam of recoverableTeams) {
+        const channel = await getTeamRedirectChannelIfIsAccesible(user, myTeam, true); // eslint-disable-line no-await-in-loop
         if (channel) {
             dispatch(selectChannel(channel.id));
             historyPushWithQueryParams(`/${myTeam.name}/channels/${channel.name}`, searchParams);
