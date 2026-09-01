@@ -13,8 +13,6 @@ import {getEmojiImageUrl, isSystemEmoji} from 'mattermost-redux/utils/emoji_util
 import {EMOJI_SCROLL_THROTTLE_DELAY} from 'components/emoji_picker/constants';
 import type {EmojiCursor} from 'components/emoji_picker/types';
 
-import imgTrans from 'images/img_trans.gif';
-
 interface Props {
     emoji: Emoji;
     rowIndex: number;
@@ -61,8 +59,9 @@ function EmojiPickerItem({emoji, rowIndex, isSelected, onClick, onMouseOver}: Pr
             <img
                 alt={`${emoji.name.toLocaleLowerCase()} emoji`}
                 data-testid={emoji.short_names}
-                src={imgTrans}
-                className={`emojisprite emoji-category-${emoji.category} emoji-${emojiUnified}`}
+                src={getEmojiImageUrl(emoji)}
+                loading='lazy'
+                className={'emoji-category emoji-category--system'}
                 id={`emoji-${emojiUnified}`}
             />
         );
@@ -72,7 +71,8 @@ function EmojiPickerItem({emoji, rowIndex, isSelected, onClick, onMouseOver}: Pr
                 alt={'custom emoji'}
                 data-testid={emoji.name}
                 src={getEmojiImageUrl(emoji)}
-                className={'emoji-category--custom'}
+                loading='lazy'
+                className={'emoji-category emoji-category--custom'}
             />
         );
     }

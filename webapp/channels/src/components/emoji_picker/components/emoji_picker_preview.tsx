@@ -8,8 +8,6 @@ import type {Emoji} from '@mattermost/types/emojis';
 
 import {getEmojiImageUrl, isSystemEmoji} from 'mattermost-redux/utils/emoji_utils';
 
-import imgTrans from 'images/img_trans.gif';
-
 interface Props {
     emoji?: Emoji;
 }
@@ -26,32 +24,15 @@ function EmojiPickerPreview({emoji}: Props) {
         );
     }
 
-    let aliases;
-    let previewImage;
-
-    if (isSystemEmoji(emoji)) {
-        aliases = emoji.short_names;
-        previewImage = (
-            <span className='sprite-preview'>
-                <img
-                    id='emojiPickerSpritePreview'
-                    alt={'emoji category image'}
-                    src={imgTrans}
-                    className={'emojisprite-preview emoji-category-' + emoji.category + ' emoji-' + emoji.unified.toLowerCase()}
-                />
-            </span>
-        );
-    } else {
-        aliases = [emoji.name];
-        previewImage = (
-            <img
-                id='emojiPickerSpritePreview'
-                alt={'emoji preview image'}
-                className='emoji-picker__preview-image'
-                src={getEmojiImageUrl(emoji)}
-            />
-        );
-    }
+    const aliases = isSystemEmoji(emoji) ? emoji.short_names : [emoji.name];
+    const previewImage = (
+        <img
+            id='emojiPickerSpritePreview'
+            alt=''
+            className='emoji-picker__preview-image'
+            src={getEmojiImageUrl(emoji)}
+        />
+    );
 
     return (
         <div className='emoji-picker__preview'>
