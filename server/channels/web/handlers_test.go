@@ -1260,6 +1260,61 @@ func TestHandleContextErrorZeroStatusCode(t *testing.T) {
 	})
 }
 
+func TestHandleContextErrorProps(t *testing.T) {
+	respondWith := func(t *testing.T, th *TestHelper, appErr *model.AppError) *model.AppError {
+		t.Helper()
+
+		c := &Context{
+			App:        th.App,
+			AppContext: th.Context,
+			Logger:     th.App.Log(),
+			Err:        appErr,
+		}
+
+		request := httptest.NewRequest("POST", "/api/v4/test", nil)
+		response := httptest.NewRecorder()
+
+		h := Handler{Srv: th.Server}
+		h.handleContextError(c, response, request)
+
+		var responded model.AppError
+		require.NoError(t, json.Unmarshal(response.Body.Bytes(), &responded))
+
+		return &responded
+	}
+
+	t.Run("should wipe detailed error but keep props when developer mode is off", func(t *testing.T) {
+		th := Setup(t)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.EnableDeveloper = false
+		})
+
+		appErr := model.NewAppError("TestFunction", "test.error", nil, "test details", http.StatusBadRequest)
+		appErr.Props = model.StringMap{"plugin_id": "com.example"}
+
+		responded := respondWith(t, th, appErr)
+		assert.Empty(t, responded.DetailedError, "developer mode off must still wipe the detailed error")
+		assert.Equal(t, model.StringMap{"plugin_id": "com.example"}, responded.Props)
+	})
+
+	t.Run("hardened mode should sanitize a 5xx including props", func(t *testing.T) {
+		th := Setup(t)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.EnableDeveloper = false
+			*cfg.ServiceSettings.EnableHardenedMode = true
+		})
+
+		appErr := model.NewAppError("TestFunction", "test.error", nil, "test details", http.StatusInternalServerError)
+		appErr.Props = model.StringMap{"plugin_id": "com.example"}
+
+		responded := respondWith(t, th, appErr)
+		assert.Empty(t, responded.DetailedError)
+		assert.Empty(t, responded.Props, "hardened mode must scrub props on a sanitized 5xx")
+		assert.Equal(t, "Internal Server Error", responded.Message)
+		assert.Empty(t, responded.Id)
+	})
+}
+
 func TestTokenDigest(t *testing.T) {
 	token := model.NewId()
 	digest := tokenDigest(token)
