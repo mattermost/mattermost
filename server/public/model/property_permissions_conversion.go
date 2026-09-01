@@ -20,11 +20,7 @@ type LegacyConversionOpts struct {
 
 // PermissionsFromLegacy converts a field's legacy permission columns, and (for
 // an access_control field) its Attrs-based protected/access_mode settings,
-// into a normalized Permissions object. The result is always complete:
-// Restrictions is non-nil with all five enforced leaves set, Grants is a
-// non-nil empty slice for a caller to append owner/source-plugin/sync grants
-// onto, and Masking is nil — shared_only becomes a Masking object in a later
-// step, once its holdings field is resolved.
+// into a normalized Permissions object: Restrictions, Grants, and Masking.
 func PermissionsFromLegacy(field *PropertyField, opts LegacyConversionOpts) *Permissions {
 	restrictions := &Restrictions{
 		Field:  WriteOnly{Write: permissionLevelOrNone(field.PermissionField)},
@@ -81,6 +77,8 @@ func PermissionsFromLegacy(field *PropertyField, opts LegacyConversionOpts) *Per
 		}
 	}
 
+	masking := maskingFromLegacy(field, restrictions, opts)
+
 	grants := []Grant{}
 	if opts.ConvertAttrs {
 		// Owners, the source plugin ID and the sync lock are all read from Attrs,
@@ -100,7 +98,58 @@ func PermissionsFromLegacy(field *PropertyField, opts LegacyConversionOpts) *Per
 	return &Permissions{
 		Restrictions: restrictions,
 		Grants:       grants,
+		Masking:      masking,
 	}
+}
+
+// maskingFromLegacy converts a shared_only access mode into a Masking object.
+// It returns nil for every other access mode, and for a linked field it never
+// returns one of the field's own — it either leaves the field to inherit the
+// template's object whole, or, if the template did not convert to masked,
+// narrows the field's own reads to none in restrictions instead.
+func maskingFromLegacy(field *PropertyField, restrictions *Restrictions, opts LegacyConversionOpts) *Masking {
+	if !opts.ConvertAttrs || field.GetAccessMode() != PropertyAccessModeSharedOnly {
+		return nil
+	}
+
+	if opts.Template != nil {
+		if opts.Template.Masking != nil {
+			// Inherits the template's object whole: the model refuses a linked field
+			// that declares its own, and the read path already resolves a linked
+			// field's masking from its template.
+			return nil
+		}
+		// Configured as filtered but linked to a template with nothing to filter by.
+		// Leaving reads at everyone (set above by the shared_only case) would unmask
+		// values that are filtered today, so fail closed instead.
+		restrictions.Value.Read = PermissionLevelNone
+		restrictions.Option.Read = PermissionLevelNone
+		return nil
+	}
+
+	masking := &Masking{}
+	if pluginID, _ := field.Attrs[PropertyAttrsSourcePluginID].(string); pluginID != "" {
+		// Replaces the source plugin's silent shared_only bypass with an explicit
+		// exemption.
+		masking.Except = append(masking.Except, Identity{Type: PropertyOwnerTypePlugin, ID: pluginID})
+	}
+	if syncSource := GetPropertyFieldSyncSource(field); syncSource != "" {
+		// A machine caller holds no values, so without this a masked synced field
+		// would accept only the first sync write and refuse every one after it.
+		masking.Except = append(masking.Except, Identity{Type: PropertyOwnerTypeService, ID: syncSource})
+	}
+
+	if field.ObjectType == PropertyFieldObjectTypeUser &&
+		(restrictions.Value.Write == PermissionLevelMember || restrictions.Value.Write == PermissionLevelEveryone) {
+		// A caller who can edit their own holdings on a masked user field could
+		// widen their own view by writing into it; validateMaskingForField refuses
+		// that combination outright, so raise the tier instead of producing an
+		// invalid object. A protected field's value.write was already zeroed above
+		// and never reaches here as member or everyone.
+		restrictions.Value.Write = PermissionLevelAdmin
+	}
+
+	return masking
 }
 
 // grantsFromLegacy converts a field's owners, source plugin and sync lock —

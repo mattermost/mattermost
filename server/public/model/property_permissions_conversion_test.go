@@ -278,6 +278,130 @@ func TestPermissionsFromLegacyGrantsLinkedFieldDropsOptionRead(t *testing.T) {
 	}, p.Grants[0].Allow)
 }
 
+func TestPermissionsFromLegacyMaskingSourcePlugin(t *testing.T) {
+	field := &PropertyField{
+		ObjectType: PropertyFieldObjectTypeChannel,
+		Attrs: StringInterface{
+			PropertyAttrsAccessMode:     PropertyAccessModeSharedOnly,
+			PropertyAttrsSourcePluginID: "plugin1",
+		},
+	}
+
+	p := PermissionsFromLegacy(field, LegacyConversionOpts{ConvertAttrs: true})
+
+	require.NotNil(t, p.Masking)
+	assert.Empty(t, p.Masking.MaskByFieldID)
+	assert.Equal(t, []Identity{{Type: PropertyOwnerTypePlugin, ID: "plugin1"}}, p.Masking.Except)
+}
+
+func TestPermissionsFromLegacyMaskingSourcePluginAndSync(t *testing.T) {
+	// A field can carry both a source plugin and a sync lock; both get their own
+	// exemption, since a grant confers no masking exemption.
+	field := &PropertyField{
+		ObjectType: PropertyFieldObjectTypeChannel,
+		Attrs: StringInterface{
+			PropertyAttrsAccessMode:     PropertyAccessModeSharedOnly,
+			PropertyAttrsSourcePluginID: "plugin1",
+			PropertyFieldAttrLDAP:       "ldap-sync-id",
+		},
+	}
+
+	p := PermissionsFromLegacy(field, LegacyConversionOpts{ConvertAttrs: true})
+
+	require.NotNil(t, p.Masking)
+	assert.Equal(t, []Identity{
+		{Type: PropertyOwnerTypePlugin, ID: "plugin1"},
+		{Type: PropertyOwnerTypeService, ID: "ldap"},
+	}, p.Masking.Except)
+}
+
+func TestPermissionsFromLegacyMaskingUserFieldClampsSelfWrite(t *testing.T) {
+	// A masked object_type:user field may not be self-writable, or a caller could
+	// widen their own view by editing their own holdings.
+	field := &PropertyField{
+		ObjectType:       PropertyFieldObjectTypeUser,
+		PermissionValues: new(PermissionLevelMember),
+		Attrs: StringInterface{
+			PropertyAttrsAccessMode: PropertyAccessModeSharedOnly,
+		},
+	}
+
+	p := PermissionsFromLegacy(field, LegacyConversionOpts{ConvertAttrs: true})
+
+	require.NotNil(t, p.Masking)
+	assert.Equal(t, PermissionLevelAdmin, p.Restrictions.TierFor(PropertyActionValueWrite))
+	assert.NoError(t, p.IsValid(PropertyFieldObjectTypeUser))
+}
+
+func TestPermissionsFromLegacyMaskingLinkedFieldTemplateMasked(t *testing.T) {
+	// A linked field carrying its own shared_only (copied at link time from a
+	// protected template) inherits the template's masking whole rather than
+	// declaring one of its own.
+	field := &PropertyField{
+		ObjectType: PropertyFieldObjectTypeChannel,
+		Attrs: StringInterface{
+			PropertyAttrsAccessMode: PropertyAccessModeSharedOnly,
+		},
+	}
+	template := &Permissions{
+		Restrictions: &Restrictions{Option: ReadWrite{Read: PermissionLevelEveryone}},
+		Masking:      &Masking{},
+	}
+
+	p := PermissionsFromLegacy(field, LegacyConversionOpts{ConvertAttrs: true, Template: template})
+
+	assert.Nil(t, p.Masking)
+	assert.Equal(t, PermissionLevelEveryone, p.Restrictions.TierFor(PropertyActionValueRead))
+	assert.Equal(t, PermissionLevelEveryone, p.Restrictions.TierFor(PropertyActionOptionRead))
+}
+
+func TestPermissionsFromLegacyMaskingLinkedFieldTemplateUnmasked(t *testing.T) {
+	// A linked field configured as filtered but linked to a template with
+	// nothing to filter by fails closed instead of inheriting nothing.
+	field := &PropertyField{
+		ObjectType: PropertyFieldObjectTypeChannel,
+		Attrs: StringInterface{
+			PropertyAttrsAccessMode: PropertyAccessModeSharedOnly,
+		},
+	}
+	template := &Permissions{Restrictions: &Restrictions{}}
+
+	p := PermissionsFromLegacy(field, LegacyConversionOpts{ConvertAttrs: true, Template: template})
+
+	assert.Nil(t, p.Masking)
+	assert.Equal(t, PermissionLevelNone, p.Restrictions.TierFor(PropertyActionValueRead))
+	assert.Equal(t, PermissionLevelNone, p.Restrictions.TierFor(PropertyActionOptionRead))
+}
+
+func TestPermissionsFromLegacyMaskingTemplate(t *testing.T) {
+	field := &PropertyField{
+		ObjectType: PropertyFieldObjectTypeTemplate,
+		Attrs: StringInterface{
+			PropertyAttrsAccessMode: PropertyAccessModeSharedOnly,
+		},
+	}
+
+	p := PermissionsFromLegacy(field, LegacyConversionOpts{ConvertAttrs: true})
+
+	require.NotNil(t, p.Masking)
+	assert.NoError(t, p.IsValid(PropertyFieldObjectTypeTemplate))
+}
+
+func TestPermissionsFromLegacyMaskingSourceOnlyAndPublic(t *testing.T) {
+	for _, mode := range []string{PropertyAccessModeSourceOnly, PropertyAccessModePublic} {
+		field := &PropertyField{
+			ObjectType: PropertyFieldObjectTypeChannel,
+			Attrs: StringInterface{
+				PropertyAttrsAccessMode: mode,
+			},
+		}
+
+		p := PermissionsFromLegacy(field, LegacyConversionOpts{ConvertAttrs: true})
+
+		assert.Nil(t, p.Masking)
+	}
+}
+
 func TestPermissionsFromLegacyGrantsConvertAttrsFalse(t *testing.T) {
 	// Owners in the attrs convert to nothing when ConvertAttrs is false —
 	// outside access_control, Attrs were never enforced.
