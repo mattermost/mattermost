@@ -6552,8 +6552,8 @@ func testPostStoreMoveThreadsToChannel(t *testing.T, rctx request.CTX, ss store.
 		assert.Equal(t, []string{source.Id}, sources, "the caller invalidates the source's post cache")
 
 		for _, id := range []string{root.Id, reply.Id, history[0].Id} {
-			moved, err := ss.Post().GetSingle(rctx, id, true)
-			require.NoError(t, err)
+			moved, getErr := ss.Post().GetSingle(rctx, id, true)
+			require.NoError(t, getErr)
 			assert.Equal(t, target.Id, moved.ChannelId, "every row of the thread moves")
 		}
 

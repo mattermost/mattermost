@@ -487,5 +487,4 @@ func TestBackingChannelBroadcastSuppression(t *testing.T) {
 		require.Equal(t, model.WebsocketEventPostDeleted, received.EventType())
 		assert.Equal(t, chatPost.Id, receivedPostID(t, received), "the only post_deleted event must be the chat one")
 	})
-
 }
