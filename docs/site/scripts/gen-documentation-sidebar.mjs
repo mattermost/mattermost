@@ -64,7 +64,7 @@ const TOP_LEVEL = [
   {dir: 'use-case-guide',       label: 'Use Case Guide'},
   {dir: 'deployment-guide',     label: 'Deployment Guide'},
   {dir: 'administration-guide', label: 'Administration Guide'},
-  {dir: 'security-guide',       label: 'Security & Compliance'},
+  {dir: 'security-guide',       label: 'Security Guide'},
   {dir: 'end-user-guide',       label: 'End User Guide'},
   {dir: 'integrations-guide',   label: 'Integrations Guide'},
   {dir: 'get-help',             label: 'Get Help'},
@@ -1021,6 +1021,42 @@ const INTEGRATIONS_HIDDEN = new Set([
   'restful-api', 'plugins',
 ]);
 
+// ---------------------------------------------------------------------------
+// Security Guide — manual grouping override.
+// ---------------------------------------------------------------------------
+//
+// Sphinx lists these flat in an arbitrary order, which put the regulatory
+// pages (CMMC/FINRA/HIPAA) ahead of the hardening guidance most readers
+// actually arrive for. Order here is by reader intent instead: harden the
+// deployment, then the architectural posture model, then the platform-
+// specific surface, then "prove it to an auditor" last.
+
+const SECURITY_GROUPS = {
+  frameworks: {
+    // The three industry-regulation pages. Grouped so the section reads as
+    // "secure it" then "certify it" rather than interleaving the two.
+    label: 'Compliance Frameworks',
+    items: [
+      'cmmc-compliance',
+      'finra-compliance',
+      'hipaa-compliance',
+    ],
+  },
+};
+
+// Strings are doc basenames relative to security-guide/; objects reference
+// SECURITY_GROUPS keys.
+const SECURITY_ROOT_ORDER = [
+  'secure-mattermost',
+  'zero-trust',
+  'mobile-security',
+  {group: 'frameworks'},
+];
+
+const SECURITY_HIDDEN = new Set([
+  'cmmc-compliance', 'finra-compliance', 'hipaa-compliance',
+]);
+
 // ===========================================================================
 // FUNCTIONS — generic helpers, per-section builders, main.
 // ===========================================================================
@@ -1731,6 +1767,61 @@ function buildIntegrationsSidebar(autoCat) {
 }
 
 // ---------------------------------------------------------------------------
+// Security Guide — builder.
+// ---------------------------------------------------------------------------
+
+function buildSecurityItem(spec, leafLabels) {
+  if (typeof spec === 'string') {
+    const id = `security-guide/${spec}`;
+    return {type: 'doc', id, label: leafLabels[id] || humanize(spec)};
+  }
+  if (spec.group) {
+    const g = SECURITY_GROUPS[spec.group];
+    if (!g) throw new Error(`unknown security group: ${spec.group}`);
+    return buildSecurityGroup(g, leafLabels);
+  }
+  return buildSecurityGroup(spec, leafLabels);
+}
+
+function buildSecurityGroup(g, leafLabels) {
+  const items = g.items.map((it) => buildSecurityItem(it, leafLabels));
+  const cat = {type: 'category', label: g.label, collapsed: true, items};
+  if (g.landing) cat.link = {type: 'doc', id: `security-guide/${g.landing}`};
+  return cat;
+}
+
+function buildSecuritySidebar(autoCat) {
+  const leafLabels = collectLeafLabels(autoCat);
+  const items = SECURITY_ROOT_ORDER.map((spec) => buildSecurityItem(spec, leafLabels));
+
+  const known = new Set();
+  (function walk(n) {
+    if (Array.isArray(n)) n.forEach(walk);
+    else if (n && typeof n === 'object') {
+      if (n.type === 'doc' && n.id) known.add(n.id);
+      if (n.link && n.link.id) known.add(n.link.id);
+      if (n.items) walk(n.items);
+    }
+  })(items);
+  const hiddenIds = new Set();
+  for (const h of SECURITY_HIDDEN) hiddenIds.add(`security-guide/${h}`);
+  const orphans = [];
+  for (const id of Object.keys(leafLabels)) {
+    if (!known.has(id) && !hiddenIds.has(id) && id !== 'security-guide/security-guide-index') {
+      orphans.push(id);
+    }
+  }
+  if (orphans.length > 0) {
+    console.warn(`[sidebar] WARN: ${orphans.length} Security Guide file(s) missing from SECURITY_ROOT_ORDER — falling through to root:`);
+    for (const id of orphans) console.warn(`  - ${id}`);
+    for (const id of orphans) items.push({type: 'doc', id, label: leafLabels[id]});
+  }
+
+  autoCat.items = items;
+  return autoCat;
+}
+
+// ---------------------------------------------------------------------------
 // End User Guide — builder. Two independent overrides on top of the
 // otherwise filesystem-driven auto-generated sidebar:
 //   1. Nests the Agents plugin's usage-tips page under the existing "AI
@@ -1814,8 +1905,8 @@ function main() {
       cat = buildEndUserGuideSidebar(cat);
     } else if (dir === 'integrations-guide') {
       cat = buildIntegrationsSidebar(cat);
-    } else if (dir === 'end-user-guide') {
-      cat = buildEndUserGuideSidebar(cat);
+    } else if (dir === 'security-guide') {
+      cat = buildSecuritySidebar(cat);
     }
     sidebar.push(cat);
   }

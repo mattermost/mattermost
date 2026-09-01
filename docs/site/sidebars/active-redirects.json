@@ -1,10 +1,8 @@
 {
   "_meta": {
-    "source": "docs-site/scripts/migrate-main-docs/redirects.json",
-    "active": 698,
-    "missing_target": 217,
-    "dropped_anchored_from": 1113,
-    "total_internal": 2021
+    "maintained": "by hand",
+    "note": "Legacy Sphinx URL redirects, originally bulk-extracted during the docs migration. Add new entries at the end of the array. `from` must be unique and must not contain an anchor; `to` should point at a page that exists, or the redirect silently dead-ends.",
+    "active": 713
   },
   "redirects": [
     {
@@ -165,7 +163,7 @@
     },
     {
       "from": "/about/security/dependency-vulnerability-analysis",
-      "to": "/security-guide/dependency-vulnerability-analysis"
+      "to": "/security-guide/security-guide-index"
     },
     {
       "from": "/about/security/mobile-security",
@@ -2842,6 +2840,22 @@
     {
       "from": "/deployment-guide/reference-architecture/reference-architecture-index",
       "to": "/deployment-guide/deployment-scenarios/deployment-scenarios-index"
+    },
+    {
+      "from": "/security-guide/dependency-vulnerability-analysis",
+      "to": "/security-guide/security-guide-index"
+    },
+    {
+      "from": "/security-guide/compliance-frameworks",
+      "to": "/security-guide/security-guide-index"
+    },
+    {
+      "from": "/security-guide/compliance-frameworks/disa-stig",
+      "to": "/security-guide/security-guide-index"
+    },
+    {
+      "from": "/security-guide/compliance-frameworks/dod-il-4-5",
+      "to": "/security-guide/security-guide-index"
     }
   ]
 }
