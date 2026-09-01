@@ -69,6 +69,7 @@ const MONACO_EDITOR_OPTIONS: monaco.editor.IStandaloneEditorConstructionOptions 
 };
 
 type CELUserAttribute = {
+
     // Plugins may pass incomplete proxy rows; the host helper
     // toCELEditorAttributes does not always run first.
     attribute?: string | null;
