@@ -43,6 +43,7 @@ const (
 	ClusterEventInvalidateCacheForPostsUsage                ClusterEvent = "inv_posts_usage"
 	ClusterEventInvalidateCacheForTeams                     ClusterEvent = "inv_teams"
 	ClusterEventInvalidateCacheForContentFlagging           ClusterEvent = "inv_content_flagging"
+	ClusterEventInvalidateCacheForDeliveryTracking          ClusterEvent = "inv_delivery_tracking"
 	ClusterEventInvalidateCacheForSessionAttributes         ClusterEvent = "inv_session_attributes"
 	ClusterEventUpdateSessionAttributes                     ClusterEvent = "update_session_attributes"
 	ClusterEventInvalidateCacheForPropertyFields            ClusterEvent = "inv_property_fields"

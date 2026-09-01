@@ -216,6 +216,9 @@ func getMockStore(t *testing.T) *mocks.Store {
 	mockContentFlaggingStore := mocks.ContentFlaggingStore{}
 	mockStore.On("ContentFlagging").Return(&mockContentFlaggingStore)
 
+	mockDeliveryTrackingStore := mocks.DeliveryTrackingStore{}
+	mockStore.On("DeliveryTracking").Return(&mockDeliveryTrackingStore)
+
 	mockSessionAttributeStore := mocks.SessionAttributeStore{}
 	mockStore.On("SessionAttribute").Return(&mockSessionAttributeStore)
 

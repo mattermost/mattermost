@@ -986,6 +986,7 @@ func (a *App) KeepFlaggedPost(rctx request.CTX, actionRequest *model.FlagContent
 
 	if postHiddenByContentFlagging {
 		message := model.NewWebSocketEvent(model.WebsocketEventPostEdited, "", flaggedPost.ChannelId, "", nil, "")
+		a.markPostDeliveryForBroadcast(rctx, message, flaggedPost)
 		appErr = a.publishWebsocketEventForPost(rctx, flaggedPost, message)
 		if appErr != nil {
 			rctx.Logger().Warn("Failed to publish websocket event for post edit while keeping flagged post", mlog.Err(appErr), mlog.String("post_id", flaggedPost.Id))

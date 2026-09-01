@@ -641,7 +641,9 @@ func (api *PluginAPI) SearchPostsInTeam(teamID string, paramsList []*model.Searc
 	if err != nil {
 		return nil, err
 	}
-	return postList.ForPlugin().ToSlice(), nil
+	pluginList := postList.ForPlugin()
+	api.app.RecordPostListDeliveryToPlugin(api.ctx, api.id, pluginList)
+	return pluginList.ToSlice(), nil
 }
 
 func (api *PluginAPI) SearchPostsInTeamForUser(teamID string, userID string, searchParams model.SearchParameter) (*model.PostSearchResults, *model.AppError) {
@@ -678,6 +680,7 @@ func (api *PluginAPI) SearchPostsInTeamForUser(teamID string, userID string, sea
 	results, _, appErr := api.app.SearchPostsForUser(api.ctx, terms, userID, teamID, isOrSearch, includeDeletedChannels, timeZoneOffset, page, perPage)
 	if results != nil {
 		results = results.ForPlugin()
+		api.app.RecordPostListDeliveryToPlugin(api.ctx, api.id, results.PostList)
 	}
 	return results, appErr
 }
@@ -949,6 +952,7 @@ func (api *PluginAPI) GetPostThread(postID string) (*model.PostList, *model.AppE
 	list, appErr := api.app.GetPostThread(api.ctx, postID, model.GetPostsOptions{}, "")
 	if list != nil {
 		list = list.ForPlugin()
+		api.app.RecordPostListDeliveryToPlugin(api.ctx, api.id, list)
 	}
 	return list, appErr
 }
@@ -957,6 +961,7 @@ func (api *PluginAPI) GetPost(postID string) (*model.Post, *model.AppError) {
 	post, appErr := api.app.GetSinglePost(api.ctx, postID, false)
 	if post != nil {
 		post = post.ForPlugin()
+		api.app.RecordPostDeliveryToPlugin(api.ctx, api.id, post)
 	}
 	return post, appErr
 }
@@ -965,6 +970,7 @@ func (api *PluginAPI) GetPostsSince(channelID string, time int64) (*model.PostLi
 	list, appErr := api.app.GetPostsSince(api.ctx, model.GetPostsSinceOptions{ChannelId: channelID, Time: time})
 	if list != nil {
 		list = list.ForPlugin()
+		api.app.RecordPostListDeliveryToPlugin(api.ctx, api.id, list)
 	}
 	return list, appErr
 }
@@ -973,6 +979,7 @@ func (api *PluginAPI) GetPostsAfter(channelID, postID string, page, perPage int)
 	list, appErr := api.app.GetPostsAfterPost(api.ctx, model.GetPostsOptions{ChannelId: channelID, PostId: postID, Page: page, PerPage: perPage})
 	if list != nil {
 		list = list.ForPlugin()
+		api.app.RecordPostListDeliveryToPlugin(api.ctx, api.id, list)
 	}
 	return list, appErr
 }
@@ -981,6 +988,7 @@ func (api *PluginAPI) GetPostsBefore(channelID, postID string, page, perPage int
 	list, appErr := api.app.GetPostsBeforePost(api.ctx, model.GetPostsOptions{ChannelId: channelID, PostId: postID, Page: page, PerPage: perPage})
 	if list != nil {
 		list = list.ForPlugin()
+		api.app.RecordPostListDeliveryToPlugin(api.ctx, api.id, list)
 	}
 	return list, appErr
 }
@@ -989,6 +997,7 @@ func (api *PluginAPI) GetPostsForChannel(channelID string, page, perPage int) (*
 	list, appErr := api.app.GetPostsPage(api.ctx, model.GetPostsOptions{ChannelId: channelID, Page: page, PerPage: perPage})
 	if list != nil {
 		list = list.ForPlugin()
+		api.app.RecordPostListDeliveryToPlugin(api.ctx, api.id, list)
 	}
 	return list, appErr
 }

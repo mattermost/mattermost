@@ -46,8 +46,10 @@ func (s *LocalCacheChannelStore) handleClusterInvalidateChannelGuestCounts(msg *
 func (s *LocalCacheChannelStore) handleClusterInvalidateChannelById(msg *model.ClusterMessage) {
 	if bytes.Equal(msg.Data, clearCacheMessageData) {
 		s.rootStore.channelByIdCache.Purge()
+		s.rootStore.deliveryTracking.purgeChannels()
 	} else {
 		s.rootStore.channelByIdCache.Remove(string(msg.Data))
+		s.rootStore.deliveryTracking.invalidateChannel(string(msg.Data))
 	}
 }
 
@@ -121,6 +123,7 @@ func (s LocalCacheChannelStore) InvalidateGuestCount(channelId string) {
 
 func (s LocalCacheChannelStore) InvalidateChannel(channelId string) {
 	s.rootStore.doInvalidateCacheCluster(s.rootStore.channelByIdCache, channelId, nil)
+	s.rootStore.deliveryTracking.invalidateChannel(channelId)
 	if s.rootStore.metrics != nil {
 		s.rootStore.metrics.IncrementMemCacheInvalidationCounter(s.rootStore.channelByIdCache.Name())
 	}
