@@ -126,7 +126,7 @@ func (ae *archiveExtractor) Extract(name string, r io.ReadSeeker, maxFileSize in
 				// exhaust the budget so the walk stops at the next iteration.
 				budget.Exhaust()
 			} else if err != nil {
-				return fmt.Errorf("error reading archive entry %s: %w", path, err)
+				return fmt.Errorf("error reading archive entry: %w", err)
 			}
 
 			subtext, extractErr := ae.SubExtractor.Extract(filename, bytes.NewReader(data), maxFileSize, budget)
