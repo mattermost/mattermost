@@ -58,7 +58,15 @@ func (a *App) publishPropertyFieldEvent(rctx request.CTX, eventType model.Websoc
 	if !ok {
 		return
 	}
-	fieldJSON, err := json.Marshal(field)
+	// A broadcast has no single caller to shape permissions for, and no target
+	// narrow enough to make a partial payload safe (a system-scoped field
+	// broadcasts to every connected client) -- so the event drops permissions
+	// entirely rather than shaping them, the same answer the CPA payload and
+	// the access-control autocomplete give. Copy first: field is the object the
+	// caller who triggered this event is about to get back themselves.
+	broadcastField := *field
+	broadcastField.Permissions = nil
+	fieldJSON, err := json.Marshal(&broadcastField)
 	if err != nil {
 		rctx.Logger().Warn("Failed to encode property field to JSON", mlog.Err(err))
 		return

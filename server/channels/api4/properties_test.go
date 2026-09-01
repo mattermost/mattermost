@@ -761,6 +761,54 @@ func TestServePropertyFieldPermissionsPayload(t *testing.T) {
 		require.NotNil(t, patched.Permissions)
 		require.False(t, patched.Permissions.Filtered)
 	})
+
+	t.Run("websocket event carries no permissions at all", func(t *testing.T) {
+		th.LoginBasic(t)
+		webSocketClient := th.CreateConnectedWebSocketClient(t)
+
+		field := &model.PropertyField{
+			Name:       model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			GroupID:    v3Group.ID,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: "system",
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{
+					Field: model.WriteOnly{Write: model.PermissionLevelSysadmin},
+				},
+				Grants: []model.Grant{
+					{Identity: model.Identity{Type: model.PropertyOwnerTypeUser, ID: model.NewId()}, Allow: []string{model.PropertyActionValueWrite}},
+				},
+				Masking: &model.Masking{
+					Except: []model.Identity{{Type: model.PropertyOwnerTypeUser, ID: model.NewId()}},
+				},
+			},
+		}
+
+		createdField, resp, err := th.SystemAdminClient.CreatePropertyField(context.Background(), v3Group.Name, model.PropertyFieldObjectTypeUser, field)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+		require.NotNil(t, createdField.Permissions)
+
+		var receivedField model.PropertyField
+		require.Eventually(t, func() bool {
+			select {
+			case event := <-webSocketClient.EventChannel:
+				if event.EventType() == model.WebsocketEventPropertyFieldCreated {
+					fieldData, ok := event.GetData()["property_field"].(string)
+					require.True(t, ok)
+					require.NoError(t, json.Unmarshal([]byte(fieldData), &receivedField))
+					return true
+				}
+			default:
+				return false
+			}
+			return false
+		}, 5*time.Second, 100*time.Millisecond)
+
+		require.Equal(t, createdField.ID, receivedField.ID)
+		require.Nil(t, receivedField.Permissions)
+	})
 }
 
 func findPropertyFieldByID(fields []*model.PropertyField, id string) *model.PropertyField {
