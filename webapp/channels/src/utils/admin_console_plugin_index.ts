@@ -34,6 +34,21 @@ function extractTextsFromPlugin(plugin: PluginRedux, intl: IntlShape) {
                 texts.push(...settingsTexts);
             }
         }
+
+        if (plugin.settings_schema.sections) {
+            for (const section of plugin.settings_schema.sections) {
+                pushString(texts, section.key, intl);
+                pushString(texts, section.title, intl);
+                pushString(texts, section.subtitle, intl);
+                pushString(texts, section.header, intl, true);
+                pushString(texts, section.footer, intl, true);
+
+                for (const setting of section.settings || []) {
+                    const settingsTexts = extractTextFromSetting(setting as Partial<AdminDefinitionSetting & PluginSetting>, intl);
+                    texts.push(...settingsTexts);
+                }
+            }
+        }
     }
     return texts;
 }

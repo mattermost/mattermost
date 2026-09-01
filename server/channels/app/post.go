@@ -4,7 +4,6 @@
 package app
 
 import (
-	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -48,9 +47,8 @@ func (a *App) CreatePostAsUserWithFlags(rctx request.CTX, post *model.Post, curr
 		return nil, false, err
 	}
 
-	if strings.HasPrefix(post.Type, model.PostSystemMessagePrefix) {
-		err := model.NewAppError("CreatePostAsUser", "api.context.invalid_param.app_error", map[string]any{"Name": "post.type"}, "", http.StatusBadRequest)
-		return nil, false, err
+	if post.IsSystemMessage() {
+		return nil, false, model.NewAppError("CreatePostAsUser", "api.context.invalid_param.app_error", map[string]any{"Name": "post.type"}, "", http.StatusBadRequest)
 	}
 
 	if channel.DeleteAt != 0 {
@@ -229,7 +227,7 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 
 	// Validate recipients counts in case it's not DM
 	if persistentNotification := post.GetPersistentNotification(); persistentNotification != nil && *persistentNotification && channel.Type != model.ChannelTypeDirect {
-		err := a.forEachPersistentNotificationPost([]*model.Post{post}, func(_ *model.Post, _ *model.Channel, _ *model.Team, mentions *MentionResults, _ model.UserMap, _ map[string]map[string]model.StringMap) error {
+		err := a.forEachPersistentNotificationPost(rctx, []*model.Post{post}, func(_ *model.Post, _ *model.Channel, _ *model.Team, mentions *MentionResults, _ model.UserMap, _ map[string]map[string]model.StringMap) error {
 			if maxRecipients := *a.Config().ServiceSettings.PersistentNotificationMaxRecipients; len(mentions.Mentions) > maxRecipients {
 				return model.NewAppError("CreatePost", "api.post.post_priority.max_recipients_persistent_notification_post.request_error", map[string]any{"MaxRecipients": maxRecipients}, "", http.StatusBadRequest)
 			} else if len(mentions.Mentions) == 0 {
@@ -256,7 +254,7 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 		}()
 	}
 
-	user, nErr := a.Srv().Store().User().Get(context.Background(), post.UserId)
+	user, nErr := a.Srv().Store().User().Get(rctx, post.UserId)
 	if nErr != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -637,7 +635,7 @@ func (a *App) FillInPostProps(rctx request.CTX, post *model.Post, channel *model
 
 	// Populate AI-generated username from provided user ID
 	if aiGenUserID, ok := post.GetProp(model.PostPropsAIGeneratedByUserID).(string); ok && aiGenUserID != "" {
-		user, err := a.GetUser(aiGenUserID)
+		user, err := a.GetUser(rctx, aiGenUserID)
 		if err != nil {
 			// If user doesn't exist, remove the ai_generated_by prop to avoid storing invalid data
 			rctx.Logger().Warn("Failed to get user for AI-generated post, removing ai_generated_by prop", mlog.String("user_id", aiGenUserID), mlog.Err(err))
@@ -924,20 +922,36 @@ func (a *App) UpdatePost(rctx request.CTX, receivedUpdatedPost *model.Post, upda
 		newPost.SetProps(receivedUpdatedPost.GetProps())
 		newPost.PreserveIdentityPropsFrom(oldPost)
 
-		// mm_blocks_actions can only be modified by trusted paths that have
-		// pre-validated the new value (AllowMmBlocksActionsUpdate). Session
-		// type is intentionally not a sufficient signal: a PAT/OAuth session
-		// from a regular user would otherwise bypass the freeze and inject
-		// mm_blocks_actions on edit, since from_bot on the original post is
-		// user-forgeable. All other callers keep whatever mm_blocks_actions
-		// the original post had (or none).
-		if !updatePostOptions.AllowMmBlocksActionsUpdate {
+		// mm_blocks_actions is a trusted, click-resolved prop. It may only be
+		// *changed* by a caller that is both permitted and actually supplying a
+		// new value. Permission comes either from an explicit flag
+		// (AllowMmBlocksActionsUpdate — the plugin API and post-action
+		// responses) or, for REST callers, from the same authority create
+		// requires plus an ownership check: an integration session (bot / user
+		// access token / OAuth) editing its OWN post. The ownership check is
+		// what makes session type safe here — a user access token cannot inject
+		// mm_blocks_actions onto someone else's post, and from_bot on the
+		// original post is never consulted (it is user-forgeable). An update
+		// that does not carry the prop (e.g. a message-only edit) keeps whatever
+		// the original post had, so buttons are never silently wiped.
+		allowMmBlocksChange := updatePostOptions.AllowMmBlocksActionsUpdate ||
+			(newPost.GetProp(model.PostPropsMmBlocksActions) != nil &&
+				a.sessionMayUpdateMmBlocksActions(rctx, oldPost))
+		if !allowMmBlocksChange {
 			if oldVal, ok := oldPost.GetProps()[model.PostPropsMmBlocksActions]; ok {
 				newPost.AddProp(model.PostPropsMmBlocksActions, oldVal)
 			} else {
 				newPost.DelProp(model.PostPropsMmBlocksActions)
 			}
 		}
+
+		// Prune mm_blocks_actions to only the actions still referenced by the
+		// post's content. Dispatch authorizes clicks from this registry, not
+		// from whether a button renders, so a preserved entry whose button was
+		// removed would stay callable by any reader. Update-only by design:
+		// only an edit can strand an entry (we preserve the old registry while
+		// content changes); create writes both together. Mirrors webhook.go.
+		model.RefreshInteractiveActionsOnPost(newPost, newPost.GetProp(model.PostPropsMmBlocksActions))
 
 		var fileIds []string
 		fileIds, appErr = a.processPostFileChanges(rctx, receivedUpdatedPost, oldPost, updatePostOptions)
@@ -1062,6 +1076,21 @@ func (a *App) UpdatePost(rctx request.CTX, receivedUpdatedPost *model.Post, upda
 	rpost = sanitizedPost
 
 	return rpost, isMemberForPreviews, nil
+}
+
+// sessionMayUpdateMmBlocksActions reports whether the current session is
+// allowed to add, remove, or modify the mm_blocks_actions prop on oldPost via a
+// REST update/patch. It mirrors the create-time authority — an integration
+// session (bot user, user access token, or OAuth) — and adds an ownership
+// check so a caller can only change buttons on its OWN post. The ownership
+// check is essential: without it a user access token with edit_others_posts
+// could inject action buttons onto another user's or bot's post.
+func (a *App) sessionMayUpdateMmBlocksActions(rctx request.CTX, oldPost *model.Post) bool {
+	session := rctx.Session()
+	if session == nil || session.UserId == "" {
+		return false
+	}
+	return session.UserId == oldPost.UserId && session.IsIntegration()
 }
 
 func (a *App) publishWebsocketEventForPost(rctx request.CTX, post *model.Post, message *model.WebSocketEvent) *model.AppError {
@@ -1388,18 +1417,62 @@ func (a *App) GetPosts(rctx request.CTX, channelID string, offset int, limit int
 	return postList, nil
 }
 
-func (a *App) GetPostsEtag(channelID string, collapsedThreads bool) string {
-	if a.AutoTranslation() == nil || !a.AutoTranslation().IsFeatureAvailable() {
-		return a.Srv().Store().Post().GetEtag(channelID, true, collapsedThreads, false)
+// Cannot collide with a real epoch, which always carries a row count. For when no user is in
+// scope and there is genuinely no attribute component to track.
+const unknownABACEtagEpoch = "unknown"
+
+// degradedABACEtagEpoch stands in for an epoch whose lookup failed, and must miss the cache.
+// Unique per call: a stable sentinel would let two failed lookups either side of a policy change
+// produce identical ETags, and the client would 304 onto the old sanitization.
+func degradedABACEtagEpoch() string {
+	return unknownABACEtagEpoch + "-" + strconv.FormatInt(time.Now().UnixNano(), 10)
+}
+
+// AppendABACEtag folds the policy and user-attribute epochs into a base ETag, so a policy or
+// attribute change misses the cache and SanitizePostListMetadataForUser runs instead of the
+// request 304ing onto differently-sanitized content. No-op when ABAC is inactive.
+//
+// Pass "" for channelID when no channel is in scope; the policy epoch then covers only the
+// system-scoped permission policies.
+func (a *App) AppendABACEtag(base string, userID string, channelID string) string {
+	if !a.attributeBasedAccessControlEnabled() {
+		return base
 	}
 
-	channelEnabled, err := a.AutoTranslation().IsChannelEnabled(channelID)
-	if err != nil || !channelEnabled {
-		return a.Srv().Store().Post().GetEtag(channelID, true, collapsedThreads, false)
+	rctx := request.EmptyContext(a.Log())
+
+	policyEpoch := degradedABACEtagEpoch()
+	if epoch, err := a.Srv().Store().AccessControlPolicy().GetEtagEpoch(rctx, channelID); err == nil {
+		policyEpoch = epoch
+	} else {
+		a.Log().Warn("ABAC ETag: failed to get access control policy epoch; policy component will be unknown",
+			mlog.Err(err))
 	}
 
-	// Channel has auto-translation enabled - include translation etag
-	return a.Srv().Store().Post().GetEtag(channelID, true, collapsedThreads, true)
+	cpaEpoch := unknownABACEtagEpoch
+	if userID != "" {
+		cpaEpoch = degradedABACEtagEpoch()
+		if epoch, err := a.Srv().Store().Attributes().GetUserPropertyValuesEpoch(rctx, userID); err == nil {
+			cpaEpoch = epoch
+		} else {
+			a.Log().Warn("ABAC ETag: failed to get user CPA epoch; attribute component will be unknown",
+				mlog.String("user_id", userID),
+				mlog.Err(err))
+		}
+	}
+
+	return fmt.Sprintf("%s.%s.%s", base, policyEpoch, cpaEpoch)
+}
+
+func (a *App) GetPostsEtag(channelID string, userID string, collapsedThreads bool) string {
+	includeTranslations := false
+	if a.AutoTranslation() != nil && a.AutoTranslation().IsFeatureAvailable() {
+		if enabled, err := a.AutoTranslation().IsChannelEnabled(channelID); err == nil && enabled {
+			includeTranslations = true
+		}
+	}
+	base := a.Srv().Store().Post().GetEtag(channelID, true, collapsedThreads, includeTranslations)
+	return a.AppendABACEtag(base, userID, channelID)
 }
 
 func (a *App) GetPostsSince(rctx request.CTX, options model.GetPostsSinceOptions) (*model.PostList, *model.AppError) {
@@ -2659,7 +2732,7 @@ func isCommentMention(user *model.User, post *model.Post, otherPosts map[string]
 	}
 
 	if _, ok := otherPosts[post.RootId]; !ok {
-		mlog.Warn("Can't determine the comment mentions as the rootPost is past the cloud plan's limit", mlog.String("rootPostID", post.RootId), mlog.String("commentID", post.Id))
+		mlog.Warn("Can't determine the comment mentions as the rootPost is past the cloud plan's limit", mlog.String("root_post_id", post.RootId), mlog.String("comment_id", post.Id))
 
 		return false
 	}
@@ -3340,8 +3413,13 @@ func (a *App) CleanUpAfterPostDeletion(rctx request.CTX, post *model.Post, delet
 		return model.NewAppError("DeletePost", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
+	sanitizedPostJSON, jsonErr := post.ToJSON()
+	if jsonErr != nil {
+		return model.NewAppError("DeletePost", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
+	}
+
 	userMessage := model.NewWebSocketEvent(model.WebsocketEventPostDeleted, "", post.ChannelId, "", nil, "")
-	userMessage.Add("post", string(postJSON))
+	userMessage.Add("post", sanitizedPostJSON)
 	userMessage.GetBroadcast().ContainsSanitizedData = true
 	a.Publish(userMessage)
 
@@ -3395,7 +3473,7 @@ func (a *App) SendTestMessage(rctx request.CTX, userID string) (*model.Post, *mo
 		return nil, model.NewAppError("SendTestMessage", "app.notifications.send_test_message.errors.no_channel", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	user, err := a.GetUser(userID)
+	user, err := a.GetUser(rctx, userID)
 	if err != nil {
 		return nil, model.NewAppError("SendTestMessage", "app.notifications.send_test_message.errors.no_user", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -3414,6 +3492,20 @@ func (a *App) SendTestMessage(rctx request.CTX, userID string) (*model.Post, *mo
 	}
 
 	return post, nil
+}
+
+// rewriteResponseJSONSchema is the structured output schema for the LLM rewrite response.
+// Defined at package level to avoid re-allocating on every call.
+var rewriteResponseJSONSchema = map[string]any{
+	"type": "object",
+	"properties": map[string]any{
+		"rewritten_text": map[string]any{
+			"type":        "string",
+			"description": "The rewritten version of the message",
+		},
+	},
+	"required":             []any{"rewritten_text"},
+	"additionalProperties": false,
 }
 
 // RewriteMessage rewrites a message using AI based on the specified action
@@ -3442,7 +3534,7 @@ func (a *App) RewriteMessage(
 
 	userLocale := ""
 	if session := rctx.Session(); session != nil && session.UserId != "" {
-		user, appErr := a.GetUser(session.UserId)
+		user, appErr := a.GetUser(rctx, session.UserId)
 		if appErr == nil {
 			userLocale = user.Locale
 		} else {
@@ -3464,6 +3556,7 @@ func (a *App) RewriteMessage(
 			{Role: "system", Message: systemPrompt},
 			{Role: "user", Message: userPrompt},
 		},
+		JSONOutputFormat: rewriteResponseJSONSchema,
 		OperationSubType: normalizeRewriteAction(action),
 		UserID:           sessionUserID,
 	}

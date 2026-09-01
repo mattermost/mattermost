@@ -4,6 +4,8 @@
 import type {Locator} from '@playwright/test';
 import {expect} from '@playwright/test';
 
+export type ProfileSection = 'name' | 'username';
+
 export default class ProfileModal {
     readonly container: Locator;
 
@@ -16,6 +18,11 @@ export default class ProfileModal {
     readonly closeButton;
     readonly saveButton;
     readonly cancelButton;
+    readonly managedByAdminMessage;
+
+    readonly firstNameInput;
+    readonly lastNameInput;
+    readonly usernameInput;
     readonly sectionHeadings;
 
     constructor(container: Locator) {
@@ -30,6 +37,13 @@ export default class ProfileModal {
         this.closeButton = container.getByRole('button', {name: 'Close'});
         this.saveButton = container.getByRole('button', {name: 'Save'});
         this.cancelButton = container.getByRole('button', {name: 'Cancel'});
+        this.managedByAdminMessage = container.getByText(
+            'This field is managed by your System Admin. Contact them to request a change.',
+        );
+
+        this.firstNameInput = container.getByRole('textbox', {name: 'First Name'});
+        this.lastNameInput = container.getByRole('textbox', {name: 'Last Name'});
+        this.usernameInput = container.getByRole('textbox', {name: 'Username'});
         this.sectionHeadings = this.profileSettingsTab.container.getByTestId('section-min').getByRole('heading');
     }
 
@@ -58,6 +72,21 @@ export default class ProfileModal {
     async closeModal() {
         await this.closeButton.click();
         await expect(this.container).not.toBeVisible();
+    }
+
+    getSectionEditButton(section: ProfileSection) {
+        return this.container.locator(`#${section}Edit`);
+    }
+
+    async openSection(section: ProfileSection) {
+        const editButton = this.getSectionEditButton(section);
+        await expect(editButton).toBeVisible();
+        await editButton.click();
+    }
+
+    async closeSection() {
+        await expect(this.cancelButton).toBeVisible();
+        await this.cancelButton.click();
     }
 
     getAttributeSection(label: string) {

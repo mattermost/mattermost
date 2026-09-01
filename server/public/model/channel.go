@@ -29,6 +29,7 @@ const (
 	ChannelTypePrivate      ChannelType = "P"
 	ChannelTypeDirect       ChannelType = "D"
 	ChannelTypeGroup        ChannelType = "G"
+	ChannelTypeSpace        ChannelType = "S"
 	ChannelTypeOpenBoard    ChannelType = "BO"
 	ChannelTypePrivateBoard ChannelType = "BP"
 
@@ -329,7 +330,7 @@ func (o *Channel) IsValid() *AppError {
 		return NewAppError("Channel.IsValid", "model.channel.is_valid.1_or_more.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
-	if !(o.Type == ChannelTypeOpen || o.Type == ChannelTypePrivate || o.Type == ChannelTypeDirect || o.Type == ChannelTypeGroup || o.Type == ChannelTypeOpenBoard || o.Type == ChannelTypePrivateBoard) {
+	if !(o.Type == ChannelTypeOpen || o.Type == ChannelTypePrivate || o.Type == ChannelTypeDirect || o.Type == ChannelTypeGroup || o.Type == ChannelTypeSpace || o.Type == ChannelTypeOpenBoard || o.Type == ChannelTypePrivateBoard) {
 		return NewAppError("Channel.IsValid", "model.channel.is_valid.type.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
@@ -437,6 +438,10 @@ func (o *Channel) IsOpen() bool {
 
 func (o *Channel) IsBoard() bool {
 	return o.Type == ChannelTypeOpenBoard || o.Type == ChannelTypePrivateBoard
+}
+
+func (o *Channel) IsSpace() bool {
+	return o.Type == ChannelTypeSpace
 }
 
 // IsMessageChannel reports whether the channel is one of the message-bearing

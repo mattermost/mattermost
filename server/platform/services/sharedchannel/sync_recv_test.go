@@ -355,11 +355,17 @@ func TestUpsertSyncPost(t *testing.T) {
 
 		scs, mockApp := setup(t, existing)
 		updated := &model.Post{Id: postID, ChannelId: channelID, Message: "updated"}
-		mockApp.On("UpdatePost", mock.Anything, mock.Anything, mock.Anything).Return(updated, false, (*model.AppError)(nil))
+		// A federated, remote-owned edit must be allowed to carry mm_blocks_actions
+		// changes through the UpdatePost freeze — the origin cluster is the trust
+		// boundary. Assert the option is set so a revert to nil options is caught.
+		allowsMmBlocks := mock.MatchedBy(func(opts *model.UpdatePostOptions) bool {
+			return opts != nil && opts.AllowMmBlocksActionsUpdate
+		})
+		mockApp.On("UpdatePost", mock.Anything, mock.Anything, allowsMmBlocks).Return(updated, false, (*model.AppError)(nil))
 
 		_, err := scs.upsertSyncPost(&model.Post{Id: postID, ChannelId: channelID, Message: "updated"}, channel, rc, nil)
 
 		require.NoError(t, err)
-		mockApp.AssertCalled(t, "UpdatePost", mock.Anything, mock.Anything, mock.Anything)
+		mockApp.AssertCalled(t, "UpdatePost", mock.Anything, mock.Anything, allowsMmBlocks)
 	})
 }

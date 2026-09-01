@@ -167,6 +167,10 @@ docker-compose.override.yaml
 **/CLAUDE.md
 .claude
 .cursorrules
+
+# Planning files (local only)
+.planning
+
 .cursor/*
 !.cursor/README.md
 !.cursor/cursor.md
@@ -188,6 +192,12 @@ docs/api/reference/
 docs/pdf/build/
 docs/pdf/node_modules/
 docs/site/openapi/
+
+# Agents docs, staged from the mattermost-plugin-agents submodule at build
+# time by docs/site/scripts/stage-agents-docs.mjs (see docs/vendor/) — never
+# tracked as source, regenerated on every prestart/prebuild.
+docs/main/agents/docs/
+docs/site/static/images/agents/
 
 # OpenAPI make build artifacts
 api/v4/html/static/mattermost-openapi-v4.yaml

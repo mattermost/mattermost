@@ -185,6 +185,19 @@ type SubjectSearchOptions struct {
 	// user.verified, user.isbot, user.createat[.youngerThanDays]) from the expression
 	// before building SQL, so self-inclusion validation checks only the CPA parts.
 	ExcludeNativeAttributes bool `json:"exclude_native_attributes,omitempty"`
+	// ExcludeFullNames drops FirstName/LastName from the Term search fields so a
+	// term query cannot probe users' real names when PrivacySettings.ShowFullName
+	// is off for a non-privileged caller. Mirrors the AllowFullNames gate in the
+	// normal user-search path. Zero value (false) preserves the full-name search
+	// used by privileged callers (e.g. the admin CEL tester).
+	ExcludeFullNames bool `json:"exclude_full_names,omitempty"`
+	// ResourceID is the channel whose custom attributes an ad-hoc expression test
+	// resolves resource.attributes.* against, so a resource-referencing expression
+	// can be previewed against one specific channel's values. Set from the
+	// channelId on a cel/test request. Unused when the expression references no
+	// resource attributes. Stored-policy search paths derive the resource from
+	// the policy itself and ignore this.
+	ResourceID string `json:"resource_id,omitempty"`
 }
 
 type SubjectCursor struct {
@@ -209,11 +222,49 @@ type AccessRequest struct {
 	Context  map[string]any `json:"context,omitempty"`
 }
 
-// The PDP evaluates the request and returns an AccessDecision.
-// The Decision field is a boolean indicating whether the request is allowed or not.
+// AccessDecisionContextKeyReason is the AuthZEN decision-context key under
+// which the PDP reports an AccessDecisionReason.
+const AccessDecisionContextKeyReason = "reason"
+
+// AccessDecisionReason enumerates the well-known reasons the PDP reports in
+// the decision context.
+type AccessDecisionReason string
+
+// AccessDecisionReasonNoPolicy marks an allow as vacuous: no policy governs
+// the request, so callers may apply their own defaults instead of treating the
+// allow as an explicit grant.
+const AccessDecisionReasonNoPolicy AccessDecisionReason = "no_policy"
+
+// AccessDecision is the PDP's answer to an AccessRequest. It follows the
+// OpenID AuthZEN evaluation response: a boolean Decision plus an optional
+// Context carrying additional detail.
 type AccessDecision struct {
 	Decision bool           `json:"decision"`
 	Context  map[string]any `json:"context,omitempty"`
+}
+
+// NewNoPolicyAccessDecision returns the vacuous allow for a request no policy
+// governs.
+func NewNoPolicyAccessDecision() AccessDecision {
+	return AccessDecision{
+		Decision: true,
+		Context:  map[string]any{AccessDecisionContextKeyReason: string(AccessDecisionReasonNoPolicy)},
+	}
+}
+
+// Reason returns the well-known reason recorded in the decision context, or
+// the empty reason when the context carries none.
+func (d AccessDecision) Reason() AccessDecisionReason {
+	reason, _ := d.Context[AccessDecisionContextKeyReason].(string)
+	return AccessDecisionReason(reason)
+}
+
+// IsNoPolicy reports whether the request is unregulated: no policy governs it,
+// so the caller may apply its own defaults. A denial is never treated as a
+// no-policy fallback, however it is labelled, so a contradictory response
+// (decision false carrying the no_policy reason) stays a deny.
+func (d AccessDecision) IsNoPolicy() bool {
+	return d.Decision && d.Reason() == AccessDecisionReasonNoPolicy
 }
 
 type QueryExpressionParams struct {
@@ -262,6 +313,13 @@ const (
 	// "Policy doesn't apply" pill from this entry. Never produced by
 	// production evaluation — simulation-only.
 	PolicySimulationBlameSourceNoApplicablePolicy = "no_applicable_policy"
+	// PolicySimulationBlameSourceNoSessionData is a synthetic blame source
+	// emitted by the simulator when a picked user has no cached session
+	// attributes (and no explicit session_overrides) but the action's
+	// contributing rules reference user.session.*. The decision is recorded
+	// as a vacuous ALLOW so the picker renders a neutral "No recent
+	// session" pill instead of a misleading deny. Simulation-only.
+	PolicySimulationBlameSourceNoSessionData = "no_session_data"
 	// PolicySimulationBlameSourceSiblingSaved is attached to an ALLOW
 	// decision when the rule the author is editing alone would have DENIED
 	// the subject, but a sibling rule (same role + action, OR-combined at

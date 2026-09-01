@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test} from '@mattermost/playwright-lib';
+import {expect, test, testConfig} from '@mattermost/playwright-lib';
 
 test('should be able to enable mobile security settings when licensed', async ({pw}) => {
     const {adminUser, adminClient} = await pw.initSetup();
@@ -379,7 +379,7 @@ test('should configure new IntuneSettings with SAML auth provider', async ({pw})
     }
 
     // # Set server URL for fetch calls
-    const serverUrl = process.env.MM_SERVER_URL || 'http://localhost:8065';
+    const serverUrl = testConfig.baseURL;
 
     // # Upload a valid SAML IdP certificate using fetch
     const idpCert =

@@ -162,11 +162,11 @@ The following additional plugin diagnostic data is included in the generated Sup
 </TabItem>
 <TabItem value="v10-10" label="v10.10">
 
-From Mattermost v10.10, Support Packets from [high availability](/administration-guide/scale/high-availability-cluster-based-deployment) deployments organize cluster-specific files (such as log files) in subdirectories named after each cluster node, while cluster-wide files remain in the root directory.
+From Mattermost v10.10, Support Packets from [high availability](/deployment-guide/reference-architecture/scale/high-availability-cluster-based-deployment) deployments organize cluster-specific files (such as log files) in subdirectories named after each cluster node, while cluster-wide files remain in the root directory.
 
 Support packet file organization has been improved to make it easier to identify cluster-wide versus cluster-specific files:
 
-- **Cluster-wide files** (identical across all nodes in a [high-availability cluster](/administration-guide/scale/high-availability-cluster-based-deployment)) remain in the root directory of the support packet.
+- **Cluster-wide files** (identical across all nodes in a [high-availability cluster](/deployment-guide/reference-architecture/scale/high-availability-cluster-based-deployment)) remain in the root directory of the support packet.
 - **Cluster-specific files** (unique per node) are now organized in subdirectories named after each cluster node.
 
 **Cluster-wide files (root directory):**

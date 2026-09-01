@@ -1,6 +1,8 @@
 ---
 title: "Desktop App custom dictionaries"
 ---
+import useBaseUrl from '@docusaurus/useBaseUrl';
+
 <PlanAvailability slug="all-commercial" />
 
 From Mattermost desktop app v4.7.1, custom dictionary definitions can be served through a URL on Windows and Linux. If custom dictionaries aren't specified, default dictionary definitions are obtained automatically from Chromium's CDNs (content delivery networks). On macOS, the Mattermost desktop app uses dictionary definitions provided by Apple that can't be customized.
@@ -18,7 +20,7 @@ To access a copy of these dictionary definitions:
 
 ## Configure the Desktop App
 
-1.  In the Mattermost Desktop App, go to Settings by selecting <img src="/img/ui/dots-vertical_F01D9.svg" alt="Use the More icon in the top left corner to access Mattermost desktop apps customization settings." className="theme-icon" /> **\> File \> Settings**.
+1.  In the Mattermost Desktop App, go to Settings by selecting <img src={useBaseUrl('/img/ui/dots-vertical_F01D9.svg')} alt="Use the More icon in the top left corner to access Mattermost desktop apps customization settings." className="theme-icon" /> **\> File \> Settings**.
 2.  Under **App Options**, ensure that the **Check spelling** option is enabled.
 3.  Select **Use an alternative dictionary URL** to specify the URL to the root folder of your custom dictionaries, then select **Save**.
 

@@ -9,7 +9,7 @@ Guest accounts in Mattermost are a way to collaborate with individuals, such as 
 
 - A system admin must [enable guest access](/administration-guide/configure/authentication-configuration-settings#guest-access) before guests can be invited.
 - Mattermost Enterprise and Professional customers can [control who can invite guests](/administration-guide/onboard/advanced-permissions) in their organization. By default, only system admins can invite guests.
-- Guest accounts don't all consume a licensed seat in the same way. Guests in exactly one channel are treated as single-channel guests and don't count toward the primary paid seat count. They're free up to a 1:1 ratio with licensed seats. Guests in multiple channels continue to count as paid active users. Direct messages and group messages don't affect whether a guest is counted as a single-channel guest.
+- Guest accounts don't all consume a licensed seat in the same way. Guests in exactly one active channel are treated as single-channel guests and don't count toward the primary paid seat count. They're free up to a 1:1 ratio with licensed seats. Guests in multiple active channels continue to count as activated users for billing purposes. Direct messages and group messages don't affect whether a guest is counted as a single-channel guest. Only active channels count toward guest channel access for billing. Archived channels are excluded.
 - You'll identify guest users in Mattermost based on their **GUEST** badge next to their name and profile picture. Channels that contain guests also display the message **\*This channel has guests** in the channel header.
 
 </Important>
@@ -140,9 +140,10 @@ Previous guest users will be activated with the next synchronization. If their c
 
 Guest billing depends on how many channels a guest can access:
 
-- Guests in exactly one channel are treated as single-channel guests. They don't count toward the primary paid seat count and are free up to a 1:1 ratio with your licensed seats.
-- Guests in multiple channels continue to count as regular paid active users.
+- Guests in exactly one active channel are treated as single-channel guests. They don't count toward the primary paid seat count and are free up to a 1:1 ratio with your licensed seats.
+- Guests in multiple active channels continue to count as activated users.
 - Direct messages and group messages don't change whether a guest is treated as a single-channel guest.
+- Only active channels count toward guest channel access for billing. Archived channels are excluded.
 
 If your single-channel guest count exceeds the 1:1 allowance, Mattermost shows soft warnings to system admins. Guest creation and guest access aren't blocked.
 
@@ -150,7 +151,7 @@ If your single-channel guest count exceeds the 1:1 allowance, Mattermost shows s
 
 Mattermost now supports single-channel guests.
 
-Guests who belong to exactly one channel are counted separately from your primary paid seat count and are free up to a 1:1 ratio with licensed seats. Guests who belong to multiple channels continue to count as paid active users. Direct messages and group messages don't change whether a guest is treated as a single-channel guest.
+Guests who belong to exactly one active channel are counted separately from your primary paid seat count and are free up to a 1:1 ratio with licensed seats. Guests who belong to multiple active channels continue to count as activated users. Direct messages and group messages don't change whether a guest is treated as a single-channel guest. Only active channels count toward guest channel access for billing. Archived channels are excluded.
 
 If the number of single-channel guests exceeds the 1:1 allowance, Mattermost shows dismissible warning indicators to system admins on the relevant reporting and license pages. Mattermost doesn't block adding guests or starting the server when this limit is exceeded.
 

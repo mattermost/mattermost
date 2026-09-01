@@ -7,7 +7,6 @@
 package retrylayer
 
 import (
-	"context"
 	timepkg "time"
 
 	"github.com/lib/pq"

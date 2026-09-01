@@ -456,6 +456,36 @@ func (_m *JobStore) SaveOnce(job *model.Job) (*model.Job, error) {
 	return r0, r1
 }
 
+// SaveOnceByTypeAndData provides a mock function with given fields: job, data
+func (_m *JobStore) SaveOnceByTypeAndData(job *model.Job, data map[string]string) (*model.Job, error) {
+	ret := _m.Called(job, data)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SaveOnceByTypeAndData")
+	}
+
+	var r0 *model.Job
+	var r1 error
+	if rf, ok := ret.Get(0).(func(*model.Job, map[string]string) (*model.Job, error)); ok {
+		return rf(job, data)
+	}
+	if rf, ok := ret.Get(0).(func(*model.Job, map[string]string) *model.Job); ok {
+		r0 = rf(job, data)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Job)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(*model.Job, map[string]string) error); ok {
+		r1 = rf(job, data)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // UpdateOptimistically provides a mock function with given fields: job, currentStatus
 func (_m *JobStore) UpdateOptimistically(job *model.Job, currentStatus string) (*model.Job, error) {
 	ret := _m.Called(job, currentStatus)

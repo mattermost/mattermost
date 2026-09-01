@@ -11,16 +11,6 @@ on:
       - master
       - release-*
   pull_request:
-    paths:
-      - "server/**"
-      - ".github/workflows/server-ci.yml"
-      - ".github/workflows/server-test-template.yml"
-      - ".github/workflows/server-test-merge-template.yml"
-      - ".github/workflows/mmctl-test-template.yml"
-      - "tools/mattermost-govet/**"
-      - "!server/**/*.md"
-      - "!server/NOTICE.txt"
-      - "!server/CHANGELOG.md"
 
 concurrency:
   group: ${{ github.event_name == 'pull_request' && format('{0}-{1}', github.workflow, github.ref) || github.run_id }}
@@ -41,6 +31,10 @@ jobs:
     outputs:
       version: ${{ steps.calculate.outputs.GO_VERSION }}
       gomod-changed: ${{ steps.changed-files.outputs.any_changed }}
+      # Individual jobs below use this to skip via `if:` rather
+      # than the workflow being skipped entirely,
+      # so required status checks always get reported.
+      relevant-changed: ${{ github.event_name != 'pull_request' || steps.changed-relevant.outputs.any_changed == 'true' }}
     steps:
       - name: Checkout mattermost project
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
@@ -56,6 +50,22 @@ jobs:
         with:
           files: |
             **/go.mod
+      - name: Check for relevant Server CI path changes
+        id: changed-relevant
+        if: github.event_name == 'pull_request'
+        uses: tj-actions/changed-files@22103cc46bda19c2b464ffe86db46df6922fd323  # v47.0.5
+        with:
+          files: |
+            server/**
+            .github/workflows/server-ci.yml
+            .github/workflows/server-test-template.yml
+            .github/workflows/server-test-merge-template.yml
+            .github/workflows/mmctl-test-template.yml
+            tools/mattermost-govet/**
+          files_ignore: |
+            server/**/*.md
+            server/NOTICE.txt
+            server/CHANGELOG.md
       - name: Setup build environment
         env:
           CHAINCTL_IDENTITY: ee399b4c72dd4e58e3d617f78fc47b74733c9557/922f2d48307d6f5f
@@ -67,14 +77,15 @@ jobs:
   check-generated:
     name: Check generated files
     needs: go
+    if: needs.go.outputs.relevant-changed == 'true'
     runs-on: ubuntu-22.04
     services:
       # make default-roles-permissions snapshots a live database.
       postgres:
-        image: postgres:14
+        image: postgres:15
         env:
           POSTGRES_USER: mmuser
-          POSTGRES_PASSWORD: mostest
+          POSTGRES_PASSWORD: mostest_password
           POSTGRES_DB: mattermost_test
         ports:
           - 5432:5432
@@ -92,7 +103,7 @@ jobs:
         with:
           run: |
             export IS_CI=true
-            export TEST_DATABASE_POSTGRESQL_DSN="postgres://mmuser:mostest@localhost:5432/mattermost_test?sslmode=disable&connect_timeout=10"
+            export TEST_DATABASE_POSTGRESQL_DSN="postgres://mmuser:mostest_password@localhost:5432/mattermost_test?sslmode=disable&connect_timeout=10"
             make generated
       - name: Check generated files
         run: |
@@ -106,7 +117,7 @@ jobs:
     name: Check backport migrations
     needs: go
     # Only backports (release-* base) must keep a migration's version+name; new master migrations are expected.
-    if: startsWith(github.base_ref, 'release-')
+    if: needs.go.outputs.relevant-changed == 'true' && startsWith(github.base_ref, 'release-')
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout mattermost project
@@ -124,6 +135,7 @@ jobs:
   check-style:
     name: check-style
     needs: go
+    if: needs.go.outputs.relevant-changed == 'true'
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout mattermost project
@@ -136,6 +148,7 @@ jobs:
   check-mattermost-vet-api:
     name: Vet API
     needs: go
+    if: needs.go.outputs.relevant-changed == 'true'
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout mattermost project
@@ -153,6 +166,7 @@ jobs:
   test-postgres-normal:
     name: Postgres (shard ${{ matrix.shard }})
     needs: go
+    if: needs.go.outputs.relevant-changed == 'true'
     strategy:
       fail-fast: false  # Let all shards complete so we get full test results
       matrix:
@@ -165,7 +179,7 @@ jobs:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
     with:
       name: "Postgres (shard ${{ matrix.shard }})"
-      datasource: postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
+      datasource: postgres://mmuser:mostest_password@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
       drivername: postgres
       # Each shard gets a unique artifact name so they don't collide
       logsartifact: "postgres-server-test-logs-shard-${{ matrix.shard }}"
@@ -178,7 +192,7 @@ jobs:
   merge-postgres-test-results:
     name: Merge Postgres Test Results
     needs: test-postgres-normal
-    if: always()
+    if: always() && needs.test-postgres-normal.result != 'skipped'
     permissions:
       contents: read
       actions: write
@@ -192,13 +206,14 @@ jobs:
   test-elasticsearch-v8:
     name: Elasticsearch v8 Compatibility
     needs: go
+    if: needs.go.outputs.relevant-changed == 'true'
     permissions:
       contents: read
       actions: write
     uses: ./.github/workflows/server-test-template.yml
     with:
       name: Elasticsearch v8 Compatibility
-      datasource: postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
+      datasource: postgres://mmuser:mostest_password@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
       drivername: postgres
       logsartifact: elasticsearch-v8-server-test-logs
       go-version: ${{ needs.go.outputs.version }}
@@ -209,13 +224,14 @@ jobs:
   test-opensearch-v2:
     name: OpenSearch v2 Compatibility
     needs: go
+    if: needs.go.outputs.relevant-changed == 'true'
     permissions:
       contents: read
       actions: write
     uses: ./.github/workflows/server-test-template.yml
     with:
       name: OpenSearch v2 Compatibility
-      datasource: postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
+      datasource: postgres://mmuser:mostest_password@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
       drivername: postgres
       logsartifact: opensearch-v2-server-test-logs
       go-version: ${{ needs.go.outputs.version }}
@@ -226,7 +242,9 @@ jobs:
   # FIPS tests: run on PRs when go.mod changed or branch name contains "fips".
   # Sharded for fast iteration. Weekly workflow provides regular full coverage.
   test-postgres-normal-fips:
-    if: contains(github.head_ref, 'fips') || needs.go.outputs.gomod-changed == 'true'
+    if: >-
+      needs.go.outputs.relevant-changed == 'true' &&
+      (contains(github.head_ref, 'fips') || needs.go.outputs.gomod-changed == 'true')
     name: "Postgres FIPS (shard ${{ matrix.shard }})"
     needs: go
     strategy:
@@ -242,7 +260,7 @@ jobs:
       DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
     with:
       name: "Postgres FIPS (shard ${{ matrix.shard }})"
-      datasource: postgres://mmuser:mostest-fips-test@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
+      datasource: postgres://mmuser:mostest_password@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
       drivername: postgres
       logsartifact: "postgres-server-fips-test-logs-shard-${{ matrix.shard }}"
       go-version: ${{ needs.go.outputs.version }}
@@ -264,6 +282,7 @@ jobs:
   test-mmctl:
     name: Run mmctl tests
     needs: go
+    if: needs.go.outputs.relevant-changed == 'true'
     permissions:
       contents: read
       actions: write
@@ -272,13 +291,15 @@ jobs:
       MM_E2E_ZEPHYR_API_KEY: ${{ secrets.MM_E2E_ZEPHYR_API_KEY }}
     with:
       name: mmctl
-      datasource: postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
+      datasource: postgres://mmuser:mostest_password@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
       drivername: postgres
       logsartifact: mmctl-test-logs
       go-version: ${{ needs.go.outputs.version }}
       fips-enabled: false
   test-mmctl-fips:
-    if: contains(github.head_ref, 'fips') || needs.go.outputs.gomod-changed == 'true'
+    if: >-
+      needs.go.outputs.relevant-changed == 'true' &&
+      (contains(github.head_ref, 'fips') || needs.go.outputs.gomod-changed == 'true')
     name: Run mmctl tests (FIPS)
     needs: go
     permissions:
@@ -291,7 +312,7 @@ jobs:
       MM_E2E_ZEPHYR_API_KEY: ${{ secrets.MM_E2E_ZEPHYR_API_KEY }}
     with:
       name: mmctl
-      datasource: postgres://mmuser:mostest-fips-test@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
+      datasource: postgres://mmuser:mostest_password@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
       drivername: postgres
       logsartifact: mmctl-fips-test-logs
       go-version: ${{ needs.go.outputs.version }}
@@ -300,6 +321,7 @@ jobs:
   build-mattermost-server:
     name: Build mattermost server app
     needs: go
+    if: needs.go.outputs.relevant-changed == 'true'
     permissions:
       contents: read
       actions: write
@@ -348,6 +370,7 @@ jobs:
     permissions: {}
     runs-on: ubuntu-22.04
     needs:
+      - go
       - merge-postgres-test-results
       - test-elasticsearch-v8
       - test-opensearch-v2
@@ -357,11 +380,20 @@ jobs:
       - merge-postgres-fips-test-results
     steps:
       - name: Server CI Complete
-        run: echo "Server CI Complete"
+        run: |
+          # Explicitly fail here rather than relying on `if:`, since a job
+          # skipped via `if:` is reported as "Success" by GitHub.
+          if [ "${{ needs.go.result }}" != "success" ]; then
+            echo "::error::'go' job did not succeed (result: ${{ needs.go.result }}); relevant-changed could not be computed reliably. Failing Server CI Complete."
+            exit 1
+          fi
+          echo "Server CI Complete"
 
   ci-report:
     name: Server CI Report
-    if: always()
+    # Skip cleanly (rather than fail) when no relevant Server CI paths
+    # changed, since none of the test jobs it reports on will have run.
+    if: always() && needs.go.outputs.relevant-changed == 'true'
     permissions:
       contents: read
       actions: read
@@ -369,6 +401,7 @@ jobs:
       pull-requests: write
       issues: write
     needs:
+      - go
       - ci-complete
     uses: ./.github/workflows/server-ci-report.yml
     secrets:
@@ -384,8 +417,11 @@ jobs:
 
   ci-artifacts:
     name: Server CI Artifacts
+    # Skip when no relevant Server CI paths changed, since build-mattermost-server
+    # (and thus server-dist-artifact) will not have run.
     if: >-
       success('ci-complete') &&
+      needs.go.outputs.relevant-changed == 'true' &&
       github.repository_owner == 'mattermost' &&
       github.event_name == 'pull_request' &&
       github.event.pull_request.head.repo.full_name == github.repository
@@ -394,6 +430,7 @@ jobs:
       actions: read
       statuses: write
     needs:
+      - go
       - ci-complete
     uses: ./.github/workflows/server-ci-artifacts.yml
     secrets:

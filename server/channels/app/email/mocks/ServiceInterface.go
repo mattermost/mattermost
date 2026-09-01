@@ -10,6 +10,7 @@ import (
 	model "github.com/mattermost/mattermost/server/public/model"
 	i18n "github.com/mattermost/mattermost/server/public/shared/i18n"
 	request "github.com/mattermost/mattermost/server/public/shared/request"
+	email "github.com/mattermost/mattermost/server/v8/channels/app/email"
 	store "github.com/mattermost/mattermost/server/v8/channels/store"
 	templates "github.com/mattermost/mattermost/server/v8/platform/shared/templates"
 	mock "github.com/stretchr/testify/mock"
@@ -265,17 +266,17 @@ func (_m *ServiceInterface) SendIPFiltersChangedEmail(_a0 string, userWhoChanged
 	return r0
 }
 
-// SendInviteEmails provides a mock function with given fields: rctx, team, senderName, senderUserId, invites, siteURL, reminderData, errorWhenNotSent, isSystemAdmin, isFirstAdmin
-func (_m *ServiceInterface) SendInviteEmails(rctx request.CTX, team *model.Team, senderName string, senderUserId string, invites []string, siteURL string, reminderData *model.TeamInviteReminderData, errorWhenNotSent bool, isSystemAdmin bool, isFirstAdmin bool) error {
-	ret := _m.Called(rctx, team, senderName, senderUserId, invites, siteURL, reminderData, errorWhenNotSent, isSystemAdmin, isFirstAdmin)
+// SendInviteEmails provides a mock function with given fields: rctx, inviteData
+func (_m *ServiceInterface) SendInviteEmails(rctx request.CTX, inviteData email.InviteEmailData) error {
+	ret := _m.Called(rctx, inviteData)
 
 	if len(ret) == 0 {
 		panic("no return value specified for SendInviteEmails")
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(request.CTX, *model.Team, string, string, []string, string, *model.TeamInviteReminderData, bool, bool, bool) error); ok {
-		r0 = rf(rctx, team, senderName, senderUserId, invites, siteURL, reminderData, errorWhenNotSent, isSystemAdmin, isFirstAdmin)
+	if rf, ok := ret.Get(0).(func(request.CTX, email.InviteEmailData) error); ok {
+		r0 = rf(rctx, inviteData)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -283,9 +284,9 @@ func (_m *ServiceInterface) SendInviteEmails(rctx request.CTX, team *model.Team,
 	return r0
 }
 
-// SendInviteEmailsToTeamAndChannels provides a mock function with given fields: rctx, team, channels, senderName, senderUserId, senderProfileImage, invites, siteURL, reminderData, message, errorWhenNotSent, isSystemAdmin, isFirstAdmin
-func (_m *ServiceInterface) SendInviteEmailsToTeamAndChannels(rctx request.CTX, team *model.Team, channels []*model.Channel, senderName string, senderUserId string, senderProfileImage []byte, invites []string, siteURL string, reminderData *model.TeamInviteReminderData, message string, errorWhenNotSent bool, isSystemAdmin bool, isFirstAdmin bool) ([]*model.EmailInviteWithError, error) {
-	ret := _m.Called(rctx, team, channels, senderName, senderUserId, senderProfileImage, invites, siteURL, reminderData, message, errorWhenNotSent, isSystemAdmin, isFirstAdmin)
+// SendInviteEmailsToTeamAndChannels provides a mock function with given fields: rctx, inviteData
+func (_m *ServiceInterface) SendInviteEmailsToTeamAndChannels(rctx request.CTX, inviteData email.InviteEmailData) ([]*model.EmailInviteWithError, error) {
+	ret := _m.Called(rctx, inviteData)
 
 	if len(ret) == 0 {
 		panic("no return value specified for SendInviteEmailsToTeamAndChannels")
@@ -293,19 +294,19 @@ func (_m *ServiceInterface) SendInviteEmailsToTeamAndChannels(rctx request.CTX, 
 
 	var r0 []*model.EmailInviteWithError
 	var r1 error
-	if rf, ok := ret.Get(0).(func(request.CTX, *model.Team, []*model.Channel, string, string, []byte, []string, string, *model.TeamInviteReminderData, string, bool, bool, bool) ([]*model.EmailInviteWithError, error)); ok {
-		return rf(rctx, team, channels, senderName, senderUserId, senderProfileImage, invites, siteURL, reminderData, message, errorWhenNotSent, isSystemAdmin, isFirstAdmin)
+	if rf, ok := ret.Get(0).(func(request.CTX, email.InviteEmailData) ([]*model.EmailInviteWithError, error)); ok {
+		return rf(rctx, inviteData)
 	}
-	if rf, ok := ret.Get(0).(func(request.CTX, *model.Team, []*model.Channel, string, string, []byte, []string, string, *model.TeamInviteReminderData, string, bool, bool, bool) []*model.EmailInviteWithError); ok {
-		r0 = rf(rctx, team, channels, senderName, senderUserId, senderProfileImage, invites, siteURL, reminderData, message, errorWhenNotSent, isSystemAdmin, isFirstAdmin)
+	if rf, ok := ret.Get(0).(func(request.CTX, email.InviteEmailData) []*model.EmailInviteWithError); ok {
+		r0 = rf(rctx, inviteData)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.EmailInviteWithError)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(request.CTX, *model.Team, []*model.Channel, string, string, []byte, []string, string, *model.TeamInviteReminderData, string, bool, bool, bool) error); ok {
-		r1 = rf(rctx, team, channels, senderName, senderUserId, senderProfileImage, invites, siteURL, reminderData, message, errorWhenNotSent, isSystemAdmin, isFirstAdmin)
+	if rf, ok := ret.Get(1).(func(request.CTX, email.InviteEmailData) error); ok {
+		r1 = rf(rctx, inviteData)
 	} else {
 		r1 = ret.Error(1)
 	}

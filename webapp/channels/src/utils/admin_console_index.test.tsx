@@ -21,7 +21,6 @@ describe('AdminConsoleIndex.generateIndex', () => {
             'environment/session_lengths',
             'authentication/mfa',
             'authentication/saml',
-            'experimental/features',
             'authentication/email',
             'authentication/ldap',
             'authentication/guest_access',
@@ -31,14 +30,39 @@ describe('AdminConsoleIndex.generateIndex', () => {
             'environment/session_lengths',
             'environment/mobile_security',
             'authentication/email',
-            'experimental/features',
         ]);
         expect(idx.search('nginx')).toEqual([
             'environment/rate_limiting',
         ]);
+        expect(idx.search('channel_viewed')).toEqual([
+            'environment/web_server',
+        ]);
+        expect(idx.search('hardened')).toEqual([
+            'environment/web_server',
+        ]);
         expect(idx.search('characters')).toEqual([
             'site_config/customization',
             'authentication/password',
+        ]);
+        expect(idx.search('batching')).toEqual([
+            'environment/notifications',
+        ]);
+        expect(idx.search('Email Batching Buffer Size')).toEqual([
+            'environment/notifications',
+        ]);
+        expect(idx.search('subject lines')).toEqual([
+            'environment/notifications',
+        ]);
+        expect(idx.search('deactivation')).toEqual([
+            'authentication/saml',
+            'site_config/users_and_teams',
+        ]);
+        expect(idx.search('away')).toEqual([
+            'site_config/users_and_teams',
+        ]);
+        expect(idx.search('typing')).toEqual([
+            'experimental/features',
+            'site_config/posts',
         ]);
         expect(idx.search('caracteres')).toEqual([]);
         expect(idx.search('notexistingword')).toEqual([]);
@@ -52,7 +76,6 @@ describe('AdminConsoleIndex.generateIndex', () => {
             'authentication/mfa',
             'authentication/ldap',
             'authentication/saml',
-            'experimental/features',
             'authentication/email',
             'environment/session_lengths',
             'authentication/guest_access',
@@ -61,7 +84,6 @@ describe('AdminConsoleIndex.generateIndex', () => {
             'authentication/saml',
             'environment/session_lengths',
             'authentication/email',
-            'experimental/features',
         ].sort());
         expect(idx.search('nginx')).toEqual([
             'environment/rate_limiting',

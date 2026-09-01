@@ -4,6 +4,7 @@
 package model
 
 import (
+	"encoding/json"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -15,9 +16,16 @@ func TestNativeUserAttributeFields(t *testing.T) {
 	require.Len(t, fields, 4)
 
 	byName := map[string]*PropertyField{}
+	seenIDs := map[string]bool{}
 	for _, f := range fields {
 		assert.Equal(t, "group-1", f.GroupID)
 		assert.Equal(t, PropertyFieldObjectTypeUser, f.ObjectType)
+
+		// The ABAC editors resolve the selected attribute by ID, so each
+		// synthetic native field must carry a unique, non-empty ID.
+		assert.NotEmpty(t, f.ID, "field %q must have a non-empty ID", f.Name)
+		assert.False(t, seenIDs[f.ID], "field %q has a duplicate ID %q", f.Name, f.ID)
+		seenIDs[f.ID] = true
 		assert.Equal(t, true, f.Attrs[NativeAttributeAttrMarker], "field %q must be marked native", f.Name)
 		assert.NotEmpty(t, f.Attrs[NativeAttributeAttrDisplayName], "field %q must carry a display name", f.Name)
 		assert.NotEmpty(t, f.Attrs[NativeAttributeAttrOperators], "field %q must advertise operators", f.Name)
@@ -40,7 +48,13 @@ func TestNativeUserAttributeFields(t *testing.T) {
 			require.NotNil(t, f)
 			assert.Equal(t, PropertyFieldTypeSelect, f.Type)
 			assert.Equal(t, []string{"==", "!="}, f.Attrs[NativeAttributeAttrOperators])
-			assert.Equal(t, []map[string]string{{"name": "true"}, {"name": "false"}}, f.Attrs[PropertyFieldAttributeOptions])
+			// []any/map[string]any so the field survives the plugin RPC
+			// boundary; the JSON shape is pinned below.
+			assert.Equal(t, []any{map[string]any{"name": "true"}, map[string]any{"name": "false"}}, f.Attrs[PropertyFieldAttributeOptions])
+
+			data, err := json.Marshal(f.Attrs[PropertyFieldAttributeOptions])
+			require.NoError(t, err)
+			assert.JSONEq(t, `[{"name":"true"},{"name":"false"}]`, string(data))
 		})
 	}
 

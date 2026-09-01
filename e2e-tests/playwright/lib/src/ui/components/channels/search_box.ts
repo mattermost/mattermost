@@ -4,6 +4,8 @@
 import type {Locator} from '@playwright/test';
 import {expect} from '@playwright/test';
 
+import SearchTeamSelector from './search_team_selector';
+
 export default class SearchBox {
     readonly container: Locator;
 
@@ -14,6 +16,7 @@ export default class SearchBox {
     readonly selectedSuggestion;
     readonly searchHints;
     readonly clearButton;
+    readonly teamSelector: SearchTeamSelector;
 
     constructor(container: Locator) {
         this.container = container;
@@ -25,6 +28,7 @@ export default class SearchBox {
         this.selectedSuggestion = container.getByTestId('suggestion-selected').getByTestId('suggestion-list__main');
         this.searchHints = container.locator('#searchHints');
         this.clearButton = container.getByTestId('input-clear');
+        this.teamSelector = new SearchTeamSelector(container.getByTestId('searchTeamSelector'));
     }
 
     // clearIfPossible clears the search input if the clear button is visible. Returns true if the clear button was clicked.

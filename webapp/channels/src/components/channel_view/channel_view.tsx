@@ -1,15 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {lazy} from 'react';
+import React from 'react';
 import {FormattedMessage} from 'react-intl';
 import type {RouteComponentProps} from 'react-router-dom';
 
 import {Button} from '@mattermost/shared/components/button';
 
-import {makeAsyncComponent} from 'components/async_load';
+import AdvancedCreatePost from 'components/advanced_create_post';
+import ChannelBanner from 'components/channel_banner/channel_banner';
+import ChannelBookmarks from 'components/channel_bookmarks';
+import ChannelHeader from 'components/channel_header';
 import deferComponentRender from 'components/deferComponentRender';
-import {DropOverlayIdCenterChannel} from 'components/file_upload_overlay/file_upload_overlay';
+import {DropOverlayIdCenterChannel, FileUploadOverlay} from 'components/file_upload_overlay/file_upload_overlay';
 import PostView from 'components/post_view';
 
 import WebSocketClient from 'client/web_websocket_client';
@@ -18,12 +21,6 @@ import {ChannelComposerBanner} from './channel_composer_banner';
 import InputLoading from './input_loading';
 
 import type {PropsFromRedux} from './index';
-
-const ChannelHeader = makeAsyncComponent('ChannelHeader', lazy(() => import('components/channel_header')));
-const FileUploadOverlay = makeAsyncComponent('FileUploadOverlay', lazy(() => import('components/file_upload_overlay')));
-const ChannelBookmarks = makeAsyncComponent('ChannelBookmarks', lazy(() => import('components/channel_bookmarks')));
-const AdvancedCreatePost = makeAsyncComponent('AdvancedCreatePost', lazy(() => import('components/advanced_create_post')));
-const ChannelBanner = makeAsyncComponent('ChannelBanner', lazy(() => import('components/channel_banner/channel_banner')));
 
 export type Props = PropsFromRedux & RouteComponentProps<{
     postid?: string;

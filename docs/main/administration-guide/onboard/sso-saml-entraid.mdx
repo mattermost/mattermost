@@ -23,48 +23,106 @@ This page provides guidance on configuring SAML with Microsoft Entra ID for Matt
 - A Microsoft Entra tenant containing applicable user data.
 - A verified custom domain for your tenant. See Microsoft's [Add your custom domain name to your tenant](https://learn.microsoft.com/en-us/entra/fundamentals/add-custom-domain) documentation for details.
 - A Microsoft Entra ID P1 or P2 license.
+- An account with at least the **Application Administrator** role in your Entra tenant.
 
 ## Set up an enterprise app for Mattermost SSO in Entra ID
 
-1.  Log into the Microsoft Azure portal and select the **Microsoft Entra ID** service.
-2.  In the left menu, select **Manage \> Enterprise applications**.
-3.  Select the **New application** button.
-4.  In the **Search application** field, search for **Microsoft Entra SAML Toolkit** and select **Microsoft Entra SAML Toolkit**.
-5.  In the **Name** field, enter **Mattermost SAML** then select the **Create** button.
-6.  In the **Mattermost SAML** enterprise application settings, select **Manage \> Users and Groups** to assign users and/or groups to the application **or** select **Manage \> Properties** then set **Assignment required?** to **No** then select **Save**.
-7.  In the **Mattermost SAML** enterprise application settings, select **Manage \> Single sign-on** then select **SAML** under **Select a single sign-on method**.
-8.  Select **Edit** in the **Basic SAML Configuration section** then set the below fields then select **Save**:
+1. Sign in to the [Microsoft Entra admin center](https://entra.microsoft.com) with an account that has at least the **Application Administrator** role.
+2. In the left navigation menu, select **Entra ID > Enterprise applications**.
+3. Select **+ New application**.
+4. Select **+ Create your own application**.
+5. In the **What's the name of your app?** field, enter **Mattermost**.
+6. Under **What are you looking to do with your application?**, select **Integrate any other application you don't find in the gallery (Non-gallery)**.
+7. Select **Create**. Entra provisions the application; this may take a few seconds.
+8. In the **Mattermost** enterprise application settings, select **Manage > Users and groups**, then assign the approved users and/or groups that should have access to Mattermost.
 
-> - **Identity (Entity ID)**: `https://&lt;your-mattermost-url&gt;`
-> - **Reply URL (Assertion Consumer Service URL)**: `https://&lt;your-mattermost-url&gt;/login/sso/saml`
-> - **Sign on URL**: `https://&lt;your-mattermost-url&gt;/login`
+   <Warning>
 
-9.  Select **Edit** in the **Attributes & Claims** section then set the below attributes:
+   Alternatively, you can select **Manage > Properties**, set **Assignment required?** to **No**, then select **Save**. This grants Mattermost access to **all users in your Entra tenant** — evaluate whether this aligns with your organization's access control requirements before proceeding.
 
-> 1.  Set the the **Unique User Identifier (Name ID)** required claim **Name identifier format** and **Source attribute** values as required for your environment. Setting the **Source attribute** to an immutable value such as `user.objectid` is recommended.
-> 2.  Edit claim names **and namespaces** under **Additional claims** to match SAML attribute settings you wish to set in Mattermost. Configurable settings are Email, Username, Id, Guest, Admin, First Name, Last Name, Nickname, Position, and Preferred Language.
+   </Warning>
 
-<Important>
+9. In the **Mattermost** enterprise application settings, select **Manage > Single sign-on**, then select **SAML** under **Select a single sign-on method**.
+10. Select **Edit** in the **Basic SAML Configuration** section, then set the fields below and select **Save**:
 
-Mattermost matches each attribute by its **full claim name**, including the namespace, exactly as it appears in the SAML assertion. By default, Entra ID emits its built-in claims under the namespace `http://schemas.xmlsoap.org/ws/2005/05/identity/claims/` — so the claim that appears in the **Claim name** column as `emailaddress` is actually sent in the assertion as `http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress`.
+    - **Identifier (Entity ID)**: `https://&lt;your-mattermost-url&gt;`
+    - **Reply URL (Assertion Consumer Service URL)**: `https://&lt;your-mattermost-url&gt;/login/sso/saml`
+    - **Sign on URL**: `https://&lt;your-mattermost-url&gt;/login`
 
-This means the value you enter in each Mattermost attribute field (step 15 of **Configure SAML Sign-On for Mattermost**, below) must be the **fully-qualified** claim name. Entering only the short name (for example, `email` or `name`) will **not** match, and login will fail with an error such as `SAML login was unsuccessful because one of the attributes is incorrect... <attribute> attribute is missing`.
+11. Select **Edit** in the **Attributes & Claims** section, then configure the required claim and additional claims as described below.
 
-You have two options:
+    **How Entra claims map to Mattermost**
 
-- **Clear the namespace** on each claim in Entra ID under **Additional claims** so the claim name becomes the short value (for example, `email`), then enter that same short value in Mattermost; **or**
-- **Leave the default namespace** in Entra ID and enter the fully-qualified claim name in Mattermost (for example, `http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress`).
+    The SAML assertion Entra sends to Mattermost contains a set of *claims* — name/value pairs describing the user. Mattermost reads these claims based on the attribute names you configure in **System Console > Authentication > SAML 2.0 > Attributes** (for example, **Email Attribute**, **Username Attribute**, **First Name Attribute**).
 
-Whichever option you choose, the value in Mattermost must match the assertion **character-for-character**. If a login fails, the safest way to confirm the exact claim names being sent is to capture and decode the SAML response from the browser (for example, with the [SAML-tracer](https://addons.mozilla.org/firefox/addon/saml-tracer/) browser extension) and read the `Name` attribute of each `<Attribute>` element.
+    The **Claim name** you set in Entra must match the value you enter in the corresponding Mattermost attribute field exactly, character for character. The **Value** (also called **Source attribute**) tells Entra which user property to send — for example, `user.mail` sends the user's email address.
 
-</Important>
+    a. **Required claim — Unique User Identifier (Name ID)**
 
-10. Select **Edit** in the **SAML Certificates** section. Select **Sign SAML response and assertion** for **Signing Option** and **SHA-256** for **Signing Algorithm** then select **Save**.
-11. Select the **Certificate (Base64)** Download link in the **SAML Certificates** section. This is the **Identity Provider Public Certificate** to be uploaded to Mattermost.
-12. In the **Mattermost SAML** enterprise application settings, select **Security \> Token encryption**. Select **Import Certificate** to import the Service Provider certificate. If you used the Bash script referenced in the **Before you begin** section, this is the `mattermost-x509.crt` file. The Import dialog says to upload a certificate with a file extension `.cer`, but `.crt` files are also accepted. Upload the file then select **Add**.
-13. Select the `...` to the right of the imported certificate details, select **Activate token encryption certificate**, then select **Yes** to activate.
-14. On the **Home** page for **Microsoft Entra ID**, select the **Overview** link in the left navigation menu and copy the **Tenant ID** value. The **Tenant ID** will be used in Mattermost **SAML 2.0** URL settings.
-15. In the left navigation menu, select **Manage \> Enterprise applications**. Select the **Mattermost SAML** application then copy the **Application ID**. The **Application ID** will be used in the **Identity Provider Metadata URL** setting in the Mattermost **SAML 2.0** settings.
+       Set the **Name identifier format** and **Source attribute** values as required for your environment. The Name ID is part of the SAML assertion, but Mattermost account binding is controlled by the **Id Attribute (SAML)** setting if you configure it, or by email otherwise. If you want immutable user binding in Mattermost, add a separate `Id` claim under **Additional claims** and set its **Value** (source attribute) to an immutable Entra attribute such as `user.objectid`. `user.userprincipalname` is also a common choice for Name ID when a human-readable identifier is preferred, with the trade-off that renames in Entra can orphan the corresponding Mattermost account if you rely on it for identity matching.
+
+    b. **Additional claims**
+
+       By default, Entra populates this section with four claims using the `http://schemas.xmlsoap.org/ws/2005/05/identity/claims/...` namespace. These work, but we recommend replacing them with short, readable names that match the attribute fields in Mattermost. To edit a claim, select it, update the **Name** field (and clear the **Namespace** field), then save.
+
+       <Important>
+
+       Mattermost matches each attribute by its **full claim name**, including the namespace, exactly as it appears in the SAML assertion. By default, Entra emits its built-in claims under the namespace `http://schemas.xmlsoap.org/ws/2005/05/identity/claims/` — so the claim that appears in the **Claim name** column as `emailaddress` is actually sent in the assertion as `http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress`.
+
+       Entering only the short name (for example, `email` or `name`) in a Mattermost attribute field will **not** match, and login will fail with an error such as `SAML login was unsuccessful because one of the attributes is incorrect... <attribute> attribute is missing`.
+
+       You have two options:
+
+       - **Clear the namespace** on each claim in Entra ID (the approach shown in the table below) so the claim name becomes the short value (for example, `email`), then enter that same short value in Mattermost; **or**
+       - **Leave the default namespace** in Entra ID and enter the fully-qualified claim name in Mattermost (for example, `http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress`).
+
+       If a login fails, the safest way to confirm the exact claim names being sent is to capture and decode the SAML response from the browser (for example, with the [SAML-tracer](https://addons.mozilla.org/firefox/addon/saml-tracer/) browser extension) and read the `Name` attribute of each `<Attribute>` element.
+
+       </Important>
+
+       The following claim configuration covers a typical Mattermost setup (using the clear-namespace option):
+
+       | Mattermost attribute field | Entra claim name | Entra source attribute |
+       |:---|:---|:---|
+       | Email Attribute | `email` | `user.mail` |
+       | Username Attribute | `username` | `user.mailnickname` |
+       | First Name Attribute | `firstname` | `user.givenname` |
+       | Last Name Attribute | `lastname` | `user.surname` |
+       | Position Attribute | `position` | `user.jobtitle` |
+
+       <Note>
+
+       Use `user.mailnickname` rather than `user.userprincipalname` as the source for the username claim. The user principal name is typically formatted as an email address (`user@domain.com`), but Mattermost usernames cannot contain the `@` character, so SAML logins using `user.userprincipalname` will fail. The mail nickname is the local part of the email address (the portion before `@`) and maps cleanly to a valid Mattermost username.
+
+       If your organization doesn't populate `mailnickname` consistently, another option is a custom Entra attribute or a transformation that strips the domain from the UPN.
+
+       </Note>
+
+       After editing, your **Attributes & Claims** page should look similar to the screenshot below:
+
+       ![Entra Attributes & Claims page showing simplified claim names](/images/entra-attributes-and-claims.png)
+
+       The **Guest**, **Admin**, **Nickname**, and **Preferred Language** attributes are also configurable in Mattermost if you want to drive them from Entra. Use the same pattern: pick a short claim name in Entra, set its source attribute, and enter the matching claim name in the corresponding Mattermost attribute field.
+
+12. Select **Edit** in the **SAML Certificates** section. Select **Sign SAML response and assertion** for **Signing Option** and **SHA-256** for **Signing Algorithm**, then select **Save**.
+13. Select the **Certificate (Base64)** Download link in the **SAML Certificates** section. This is the **Identity Provider Public Certificate** to be uploaded to Mattermost.
+14. In the **Mattermost** enterprise application settings, select **Security > Token encryption**. Select **Import Certificate** to import the Service Provider certificate. If you used the Bash script referenced in the **Before you begin** section, this is the `mattermost-x509.crt` file. The Import dialog says to upload a certificate with a file extension `.cer`, but `.crt` files are also accepted. Upload the file then select **Add**.
+15. Select the `...` to the right of the imported certificate details, select **Activate token encryption certificate**, then select **Yes** to activate.
+16. Copy the **Tenant ID** for use in the Mattermost **SAML 2.0** URL settings.
+
+    <Note>
+
+    Entra exposes three different GUIDs during this setup, and it's easy to confuse them. The **Tenant ID** identifies your entire Entra directory, while the **Application ID** and **Object ID** (visible on the enterprise application's **Properties** page) identify the Mattermost SAML application within that directory. Mattermost uses the Tenant ID and Application ID; the Object ID is not used.
+
+    </Note>
+
+    To find the Tenant ID, select **Entra ID** from the admin center home, then locate the **Tenant ID** value in the **Basic information** panel on the **Overview** page.
+
+    ![Where to find the Tenant ID](/images/entra-tenant-id.png)
+
+17. Copy the **Application ID** for use in the **Identity Provider Metadata URL** setting in the Mattermost **SAML 2.0** settings.
+
+    To find the Application ID, select **Entra ID > Enterprise applications** from the left navigation menu, select the **Mattermost** application, then copy the **Application ID** from the **Properties** page (shown alongside the Object ID, which is not needed).
 
 ## Configure SAML Sign-On for Mattermost
 
@@ -74,14 +132,14 @@ Whichever option you choose, the value in Mattermost must match the assertion **
 4.  Select **Get SAML Metadata From IdP** to verify that the SAML metadata can be retrieved successfully.
 5.  Set **SAML SSO URL**: `https://login.microsoftonline.com/&lt;your-tenant-id&gt;/saml2`
 6.  Set **Identity Provider Issuer URL** (trailing slash is required): `https://sts.windows.net/&lt;your-tenant-id&gt;/`
-7.  Choose the **Identity Provider Public Certificate** file from step 11 of **Set up an enterprise app for Mattermost SSO in Entra ID** then upload.
+7.  Choose the **Identity Provider Public Certificate** file from step 13 of **Set up an enterprise app for Mattermost SSO in Entra ID** then upload.
 8.  Set **Verify Signature** to **True**.
 9.  Set **Service Provider Login URL**: `https://&lt;your-mattermost-url&gt;/login/sso/saml`
 10. Set **Service Provider Identifier**: `https://&lt;your-mattermost-url&gt;`
-11. Set **Enable Encryption** to **True**
+11. Set **Enable Encryption** to **True**.
 12. Choose your **Service Provider Private Key** file then upload. If you used the Bash script referenced in the **Before you begin** section, this is the `mattermost-x509.key` file.
 13. Choose your **Service Provider Public Certificate** then upload. If you used the Bash script referenced in the **Before you begin** section, this is the `mattermost-x509.crt` file.
-14. Set **Sign Request** to suit your environment. The **Signature Algorithm** must match the algorithm set in Entra ID (**RSAwithSHA256** is recommended).
+14. Set **Sign Request** to **True** if you want Mattermost to sign outbound AuthnRequests sent to Entra ID — this is distinct from Entra signing its SAML responses and assertions (configured in step 12 of the Entra setup). If enabled, set **Signature Algorithm** to **RSAwithSHA256** (Entra ID requires RSA-SHA256 for signed requests) and upload Mattermost's public certificate to Entra ID for request verification: in the enterprise application, select **SAML Certificates**, then upload the `mattermost-x509.crt` file under **Verification certificates**.
 
 <Note>
 
@@ -89,11 +147,10 @@ The **Test single sign-on with Mattermost SAML** tool in Microsoft Entra ID does
 
 </Note>
 
-15. Set attribute settings to match attributes configured in step 9 of the **Set up an enterprise app for Mattermost SSO in Entra ID** section. Each value must match the **full claim name** sent in the assertion, including the namespace, exactly. See the **important** note under step 9 for details and a common failure mode.
+15. Set attribute settings to match the attributes configured in step 11 of the **Set up an enterprise app for Mattermost SSO in Entra ID** section. Each value must match the **full claim name** sent in the assertion, including the namespace, exactly. See the **important** note under step 11 for details and a common failure mode.
 16. Set the **Login Button Text** to suit your environment.
 17. Select the **Save** button.
 
 <Inc1_sso_saml_ldapsync />
 
 <Inc2_sso_saml_faq />
- :start-after: :nosearch:

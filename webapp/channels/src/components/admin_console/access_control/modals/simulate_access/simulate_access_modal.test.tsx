@@ -6,7 +6,6 @@ import React from 'react';
 import type {AccessControlPolicy} from '@mattermost/types/access_control';
 import {POLICY_SIMULATION_BLAME_SOURCES} from '@mattermost/types/access_control';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
-import {SESSION_ATTRIBUTES_GROUP_ID} from '@mattermost/types/properties_user';
 
 import {act, fireEvent, renderWithContext, screen, userEvent, waitFor, within} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
@@ -49,12 +48,12 @@ const draftPolicy: AccessControlPolicy = {
 // to render.
 const sessionAttribute: UserPropertyField = {
     id: 'sf1',
-    group_id: SESSION_ATTRIBUTES_GROUP_ID,
+    group_id: 'session_attributes',
     name: 'network',
     type: 'select',
     target_id: '',
-    target_type: 'user',
-    object_type: 'user',
+    target_type: 'system',
+    object_type: 'session',
     create_at: 0,
     update_at: 0,
     delete_at: 0,

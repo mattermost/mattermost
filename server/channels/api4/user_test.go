@@ -602,6 +602,36 @@ func TestCreateUserWithToken(t *testing.T) {
 		require.Equal(t, th.BasicTeam.Id, teams[0].Id, "The user joined team must be the team provided.")
 	})
 
+	t.Run("token profile overrides tampered request fields", func(t *testing.T) {
+		email := th.GenerateTestEmail()
+		tokenUsername := GenerateTestUsername()
+		token := model.NewToken(
+			model.TokenTypeTeamInvitation,
+			model.MapToJSON(map[string]string{
+				"teamId":     th.BasicTeam.Id,
+				"email":      email,
+				"username":   tokenUsername,
+				"first_name": "TokenFirst",
+				"last_name":  "TokenLast",
+			}),
+		)
+		require.NoError(t, th.App.Srv().Store().Token().Save(token))
+
+		user := &model.User{
+			Email:     email,
+			Password:  model.NewTestPassword(),
+			Username:  GenerateTestUsername(),
+			FirstName: "TamperedFirst",
+			LastName:  "TamperedLast",
+		}
+		createdUser, resp, err := th.Client.CreateUserWithToken(context.Background(), user, token.Token)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+		require.Equal(t, tokenUsername, createdUser.Username)
+		require.Equal(t, "TokenFirst", createdUser.FirstName)
+		require.Equal(t, "TokenLast", createdUser.LastName)
+	})
+
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		user := model.User{Email: th.GenerateTestEmail(), Nickname: "Corey Hulen", Password: model.NewTestPassword(), Username: GenerateTestUsername(), Roles: model.SystemAdminRoleId + " " + model.SystemUserRoleId}
 		token := model.NewToken(
@@ -839,7 +869,6 @@ func TestCreateUserWebSocketEvent(t *testing.T) {
 	t.Run("guest should not received new_user event but user should", func(t *testing.T) {
 		th.App.Srv().SetLicense(model.NewTestLicense("guests"))
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = true })
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.AllowEmailAccounts = true })
 
 		id := model.NewId()
 		guestPassword := model.NewTestPassword()
@@ -1144,7 +1173,7 @@ func TestGetUserWithAcceptedTermsOfServiceForOtherUser(t *testing.T) {
 
 	user := th.CreateUser(t)
 
-	tos, _ := th.App.CreateTermsOfService("Dummy TOS", user.Id)
+	tos, _ := th.App.CreateTermsOfService(th.Context, "Dummy TOS", user.Id)
 
 	_, appErr := th.App.UpdateUser(th.Context, user, false)
 	require.Nil(t, appErr)
@@ -1176,7 +1205,7 @@ func TestGetUserWithAcceptedTermsOfService(t *testing.T) {
 
 	user := th.BasicUser
 
-	tos, _ := th.App.CreateTermsOfService("Dummy TOS", user.Id)
+	tos, _ := th.App.CreateTermsOfService(th.Context, "Dummy TOS", user.Id)
 
 	ruser, _, err := th.Client.GetUser(context.Background(), user.Id, "")
 	require.NoError(t, err)
@@ -1206,7 +1235,7 @@ func TestGetUserWithAcceptedTermsOfServiceWithAdminUser(t *testing.T) {
 	th.LoginSystemAdmin(t)
 	user := th.BasicUser
 
-	tos, appErr := th.App.CreateTermsOfService("Dummy TOS", user.Id)
+	tos, appErr := th.App.CreateTermsOfService(th.Context, "Dummy TOS", user.Id)
 	require.Nil(t, appErr)
 
 	ruser, _, err := th.SystemAdminClient.GetUser(context.Background(), user.Id, "")
@@ -1328,7 +1357,7 @@ func TestGetUserByUsernameWithAcceptedTermsOfService(t *testing.T) {
 
 	require.Equal(t, user.Email, ruser.Email)
 
-	tos, appErr := th.App.CreateTermsOfService("Dummy TOS", user.Id)
+	tos, appErr := th.App.CreateTermsOfService(th.Context, "Dummy TOS", user.Id)
 	require.Nil(t, appErr)
 	appErr = th.App.SaveUserTermsOfService(ruser.Id, tos.Id, true)
 	require.Nil(t, appErr)
@@ -1527,7 +1556,7 @@ func TestGetUserByAuthData(t *testing.T) {
 	})
 
 	t.Run("returns accepted terms of service for system admin", func(t *testing.T) {
-		tos, appErr := th.App.CreateTermsOfService("Dummy TOS", user.Id)
+		tos, appErr := th.App.CreateTermsOfService(th.Context, "Dummy TOS", user.Id)
 		require.Nil(t, appErr)
 		appErr = th.App.SaveUserTermsOfService(user.Id, tos.Id, true)
 		require.Nil(t, appErr)
@@ -2504,7 +2533,7 @@ func TestUpdateUserRemoteIdIgnored(t *testing.T) {
 		require.Equal(t, "updated-nickname", ruser.Nickname)
 		require.Empty(t, model.SafeDereference(ruser.RemoteId), "remote_id should remain empty")
 
-		dbUser, appErr := th.App.GetUser(user.Id)
+		dbUser, appErr := th.App.GetUser(th.Context, user.Id)
 		require.Nil(t, appErr)
 		require.Empty(t, model.SafeDereference(dbUser.RemoteId), "remote_id should not be persisted")
 	})
@@ -2627,7 +2656,7 @@ func TestPatchUser(t *testing.T) {
 	require.NotNil(t, appErr, "Password should not match")
 
 	currentPassword := user.Password
-	user, appErr = th.App.GetUser(ruser.Id)
+	user, appErr = th.App.GetUser(th.Context, ruser.Id)
 	require.Nil(t, appErr)
 
 	appErr = th.App.CheckPasswordAndAllCriteria(th.Context, user.Id, currentPassword, "")
@@ -2708,7 +2737,7 @@ func TestPatchUserRemoteIdIgnored(t *testing.T) {
 		require.Equal(t, "new-nickname", ruser.Nickname)
 		require.Empty(t, model.SafeDereference(ruser.RemoteId), "remote_id should remain empty")
 
-		dbUser, appErr := th.App.GetUser(user.Id)
+		dbUser, appErr := th.App.GetUser(th.Context, user.Id)
 		require.Nil(t, appErr)
 		require.Empty(t, model.SafeDereference(dbUser.RemoteId), "remote_id should not be persisted")
 	})
@@ -2725,7 +2754,7 @@ func TestPatchUserRemoteIdIgnored(t *testing.T) {
 		require.Equal(t, "admin-patched", ruser.Nickname)
 		require.Empty(t, model.SafeDereference(ruser.RemoteId), "remote_id should remain empty even for admin")
 
-		dbUser, appErr := th.App.GetUser(user.Id)
+		dbUser, appErr := th.App.GetUser(th.Context, user.Id)
 		require.Nil(t, appErr)
 		require.Empty(t, model.SafeDereference(dbUser.RemoteId), "remote_id should not be persisted even for admin")
 	})
@@ -2890,7 +2919,7 @@ func TestUpdateUserAuth(t *testing.T) {
 	_, resp, err := th.SystemAdminClient.UpdateUserAuth(context.Background(), user.Id, userAuth)
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
-	storedUser, appErr := th.App.GetUser(user.Id)
+	storedUser, appErr := th.App.GetUser(th.Context, user.Id)
 	require.Nil(t, appErr)
 	require.Equal(t, model.UserAuthServiceSaml, storedUser.AuthService)
 	require.NotNil(t, storedUser.AuthData)
@@ -2901,7 +2930,7 @@ func TestUpdateUserAuth(t *testing.T) {
 	_, resp, err = th.SystemAdminClient.UpdateUserAuth(context.Background(), user.Id, userAuth)
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
-	storedUser, appErr = th.App.GetUser(user.Id)
+	storedUser, appErr = th.App.GetUser(th.Context, user.Id)
 	require.Nil(t, appErr)
 	require.Equal(t, model.UserAuthServiceSaml, storedUser.AuthService)
 	require.NotNil(t, storedUser.AuthData)
@@ -2914,7 +2943,7 @@ func TestUpdateUserAuth(t *testing.T) {
 	CheckOKStatus(t, resp)
 	require.Nil(t, ruser.AuthData)
 	require.Empty(t, ruser.AuthService)
-	storedUser, appErr = th.App.GetUser(user.Id)
+	storedUser, appErr = th.App.GetUser(th.Context, user.Id)
 	require.Nil(t, appErr)
 	require.Nil(t, storedUser.AuthData)
 	require.Empty(t, storedUser.AuthService)
@@ -4158,7 +4187,7 @@ func TestUserLoginMFAFlow(t *testing.T) {
 	})
 
 	t.Run("WithInvalidMFA", func(t *testing.T) {
-		secret, appErr := th.App.GenerateMfaSecret(th.BasicUser.Id)
+		secret, appErr := th.App.GenerateMfaSecret(th.Context, th.BasicUser.Id)
 		assert.Nil(t, appErr)
 
 		// Fake user has MFA enabled
@@ -4183,7 +4212,7 @@ func TestUserLoginMFAFlow(t *testing.T) {
 		CheckErrorID(t, err, "mfa.validate_token.authenticate.app_error")
 		assert.Nil(t, user)
 
-		secret2, appErr := th.App.GenerateMfaSecret(th.BasicUser2.Id)
+		secret2, appErr := th.App.GenerateMfaSecret(th.Context, th.BasicUser2.Id)
 		assert.Nil(t, appErr)
 		user, _, err = th.Client.LoginWithMFA(context.Background(), th.BasicUser.Email, th.BasicUser.Password, secret2.Secret)
 		CheckErrorID(t, err, "mfa.validate_token.authenticate.app_error")
@@ -4191,7 +4220,7 @@ func TestUserLoginMFAFlow(t *testing.T) {
 	})
 
 	t.Run("WithCorrectMFA", func(t *testing.T) {
-		secret, appErr := th.App.GenerateMfaSecret(th.BasicUser.Id)
+		secret, appErr := th.App.GenerateMfaSecret(th.Context, th.BasicUser.Id)
 		assert.Nil(t, appErr)
 
 		// Fake user has MFA enabled
@@ -5104,13 +5133,13 @@ func TestSetProfileImage(t *testing.T) {
 		require.Fail(t, "Should have failed either forbidden or unauthorized")
 	}
 
-	buser, appErr := th.App.GetUser(user.Id)
+	buser, appErr := th.App.GetUser(th.Context, user.Id)
 	require.Nil(t, appErr)
 
 	_, err = th.SystemAdminClient.SetProfileImage(context.Background(), user.Id, data)
 	require.NoError(t, err)
 
-	ruser, appErr := th.App.GetUser(user.Id)
+	ruser, appErr := th.App.GetUser(th.Context, user.Id)
 	require.Nil(t, appErr)
 	assert.True(t, buser.LastPictureUpdate == ruser.LastPictureUpdate, "Same picture should not have updated")
 
@@ -5120,7 +5149,7 @@ func TestSetProfileImage(t *testing.T) {
 	_, err = th.SystemAdminClient.SetProfileImage(context.Background(), user.Id, data2)
 	require.NoError(t, err)
 
-	ruser, appErr = th.App.GetUser(user.Id)
+	ruser, appErr = th.App.GetUser(th.Context, user.Id)
 	require.Nil(t, appErr)
 
 	assert.True(t, buser.LastPictureUpdate < ruser.LastPictureUpdate, "Picture should have updated for user")
@@ -5141,7 +5170,7 @@ func TestSetDefaultProfileImage(t *testing.T) {
 	_, err := th.Client.SetDefaultProfileImage(context.Background(), user.Id)
 	require.NoError(t, err)
 
-	iuser, getUserErr := th.App.GetUser(user.Id)
+	iuser, getUserErr := th.App.GetUser(th.Context, user.Id)
 	require.Nil(t, getUserErr)
 	assert.Less(t, iuser.LastPictureUpdate, -startTime, "LastPictureUpdate should be set to -(current time in milliseconds)")
 
@@ -5176,7 +5205,7 @@ func TestSetDefaultProfileImage(t *testing.T) {
 	_, err = th.SystemAdminClient.SetDefaultProfileImage(context.Background(), anotherAdmin.Id)
 	require.NoError(t, err)
 
-	ruser, appErr := th.App.GetUser(user.Id)
+	ruser, appErr := th.App.GetUser(th.Context, user.Id)
 	require.Nil(t, appErr)
 	assert.Less(t, ruser.LastPictureUpdate, iuser.LastPictureUpdate, "LastPictureUpdate should be updated to a lower negative number")
 
@@ -5244,7 +5273,7 @@ func TestLogin(t *testing.T) {
 	})
 
 	t.Run("login with terms_of_service set", func(t *testing.T) {
-		termsOfService, appErr := th.App.CreateTermsOfService("terms of service", th.BasicUser.Id)
+		termsOfService, appErr := th.App.CreateTermsOfService(th.Context, "terms of service", th.BasicUser.Id)
 		require.Nil(t, appErr)
 
 		_, err := th.Client.RegisterTermsOfServiceAction(context.Background(), th.BasicUser.Id, termsOfService.Id, true)
@@ -5534,7 +5563,7 @@ func TestSwitchAccount(t *testing.T) {
 		_, err := th.App.Srv().Store().User().UpdateAuthData(th.BasicUser.Id, "", nil, "", true)
 		require.NoError(t, err)
 
-		user, appErr := th.App.GetUser(th.BasicUser.Id)
+		user, appErr := th.App.GetUser(th.Context, th.BasicUser.Id)
 		require.Nil(t, appErr)
 		appErr = th.App.UpdatePassword(th.Context, user, th.BasicUser.Password)
 		require.Nil(t, appErr)
@@ -5663,6 +5692,35 @@ func TestSwitchAccount(t *testing.T) {
 			link, _, err := th.Client.SwitchAccountType(context.Background(), sr)
 			require.NoError(t, err)
 			require.Equal(t, "/login?extra=signin_change", link)
+		})
+
+		t.Run("OAuth app session cannot switch to email", func(t *testing.T) {
+			setupUserAuth(t, model.UserAuthServiceGitlab, true)
+
+			session, appErr := th.App.GetSession(th.Client.AuthToken)
+			require.Nil(t, appErr)
+			session.IsOAuth = true
+			th.App.AddSessionToCache(session)
+			t.Cleanup(func() {
+				th.Server.Platform().ClearUserSessionCacheLocal(th.BasicUser.Id)
+			})
+
+			sr := &model.SwitchRequest{
+				CurrentService: model.UserAuthServiceGitlab,
+				NewService:     model.UserAuthServiceEmail,
+				Email:          th.BasicUser.Email,
+				NewPassword:    model.NewTestPassword(),
+			}
+
+			_, resp, err := th.Client.SwitchAccountType(context.Background(), sr)
+			require.Error(t, err)
+			CheckForbiddenStatus(t, resp)
+
+			// The account must remain attached to its login provider
+			th.App.InvalidateCacheForUser(th.BasicUser.Id)
+			user, appErr := th.App.GetUser(th.Context, th.BasicUser.Id)
+			require.Nil(t, appErr)
+			require.Equal(t, model.UserAuthServiceGitlab, user.AuthService)
 		})
 
 		t.Run("Disabled if EnableSignUpWithEmail is false", func(t *testing.T) {
@@ -7590,13 +7648,13 @@ func TestRegisterTermsOfServiceAction(t *testing.T) {
 	_, err := th.Client.RegisterTermsOfServiceAction(context.Background(), th.BasicUser.Id, "st_1", true)
 	CheckErrorID(t, err, "app.terms_of_service.get.no_rows.app_error")
 
-	termsOfService, appErr := th.App.CreateTermsOfService("terms of service", th.BasicUser.Id)
+	termsOfService, appErr := th.App.CreateTermsOfService(th.Context, "terms of service", th.BasicUser.Id)
 	require.Nil(t, appErr)
 
 	_, err = th.Client.RegisterTermsOfServiceAction(context.Background(), th.BasicUser.Id, termsOfService.Id, true)
 	require.NoError(t, err)
 
-	_, appErr = th.App.GetUser(th.BasicUser.Id)
+	_, appErr = th.App.GetUser(th.Context, th.BasicUser.Id)
 	require.Nil(t, appErr)
 }
 
@@ -7608,7 +7666,7 @@ func TestGetUserTermsOfService(t *testing.T) {
 	_, _, err := th.Client.GetUserTermsOfService(context.Background(), th.BasicUser.Id, "")
 	CheckErrorID(t, err, "app.user_terms_of_service.get_by_user.no_rows.app_error")
 
-	termsOfService, appErr := th.App.CreateTermsOfService("terms of service", th.BasicUser.Id)
+	termsOfService, appErr := th.App.CreateTermsOfService(th.Context, "terms of service", th.BasicUser.Id)
 	require.Nil(t, appErr)
 
 	_, err = th.Client.RegisterTermsOfServiceAction(context.Background(), th.BasicUser.Id, termsOfService.Id, true)
@@ -7927,13 +7985,13 @@ func TestVerifyUserEmailWithoutToken(t *testing.T) {
 		require.Nil(t, appErr)
 
 		// Set up MFA secret for the user
-		secret, appErr := th.App.GenerateMfaSecret(ruser.Id)
+		secret, appErr := th.App.GenerateMfaSecret(th.Context, ruser.Id)
 		require.Nil(t, appErr)
 		err = th.Server.Store().User().UpdateMfaSecret(ruser.Id, secret.Secret)
 		require.NoError(t, err)
 
 		// Verify the user has a password hash and MFA secret in the database
-		dbUser, appErr := th.App.GetUser(ruser.Id)
+		dbUser, appErr := th.App.GetUser(th.Context, ruser.Id)
 		require.Nil(t, appErr)
 		require.NotEmpty(t, dbUser.Password, "User should have a password hash in database")
 		require.NotEmpty(t, dbUser.MfaSecret, "User should have MFA secret in database")
@@ -9891,6 +9949,195 @@ func TestSetProfileImageWithProviderAttributes(t *testing.T) {
 	})
 }
 
+func TestLockProfileFieldsForEmailUsers(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	setLock := func(value string) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.TeamSettings.LockProfileFieldsForEmailUsers = value
+		})
+	}
+	setNames := func(firstName, lastName string) {
+		_, _, err := th.SystemAdminClient.PatchUser(context.Background(), th.BasicUser.Id, &model.UserPatch{
+			FirstName: &firstName,
+			LastName:  &lastName,
+		})
+		require.NoError(t, err)
+	}
+
+	t.Run("setting off, email user can change all fields", func(t *testing.T) {
+		setLock(model.TeamSettingsLockProfileFieldsNone)
+		setNames("First", "Last")
+
+		_, _, err := th.Client.PatchUser(context.Background(), th.BasicUser.Id, &model.UserPatch{
+			Username:  new("un_" + model.NewId()),
+			FirstName: new("NewFirst"),
+			LastName:  new("NewLast"),
+			Nickname:  new("NewNick"),
+			Position:  new("NewPosition"),
+		})
+		require.NoError(t, err)
+	})
+
+	t.Run("setting on without Enterprise license is inert", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
+		setLock(model.TeamSettingsLockProfileFieldsAll)
+		setNames("First", "Last")
+
+		_, _, err := th.Client.PatchUser(context.Background(), th.BasicUser.Id, &model.UserPatch{
+			Username:  new("un_" + model.NewId()),
+			FirstName: new("NewFirst"),
+			Nickname:  new("NewNick"),
+		})
+		require.NoError(t, err)
+	})
+
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+
+	t.Run("name_and_username locks username and non-empty names", func(t *testing.T) {
+		setLock(model.TeamSettingsLockProfileFieldsNameAndUsername)
+		setNames("First", "Last")
+
+		for name, patch := range map[string]*model.UserPatch{
+			"username":   {Username: new("un_" + model.NewId())},
+			"first name": {FirstName: new("Changed")},
+			"last name":  {LastName: new("Changed")},
+		} {
+			_, resp, err := th.Client.PatchUser(context.Background(), th.BasicUser.Id, patch)
+			require.Error(t, err, "expected %s change to be rejected", name)
+			checkHTTPStatus(t, resp, http.StatusConflict)
+			CheckErrorID(t, err, "api.user.patch_user.profile_field_locked.app_error")
+		}
+
+		// Nickname and position stay editable.
+		_, _, err := th.Client.PatchUser(context.Background(), th.BasicUser.Id, &model.UserPatch{
+			Nickname: new("NewNick"),
+			Position: new("NewPosition"),
+		})
+		require.NoError(t, err)
+	})
+
+	t.Run("full PUT with unchanged locked fields does not conflict", func(t *testing.T) {
+		setLock(model.TeamSettingsLockProfileFieldsNameAndUsername)
+		setNames("First", "Last")
+
+		user, appErr := th.App.GetUser(th.Context, th.BasicUser.Id)
+		require.Nil(t, appErr)
+		user.Nickname = "UpdatedNick"
+		_, _, err := th.Client.UpdateUser(context.Background(), user)
+		require.NoError(t, err)
+
+		user.Username = "un_" + model.NewId()
+		_, resp, err := th.Client.UpdateUser(context.Background(), user)
+		require.Error(t, err)
+		checkHTTPStatus(t, resp, http.StatusConflict)
+		CheckErrorID(t, err, "api.user.update_user.profile_field_locked.app_error")
+	})
+
+	t.Run("empty names can be filled once", func(t *testing.T) {
+		setLock(model.TeamSettingsLockProfileFieldsNameAndUsername)
+		setNames("", "")
+
+		_, _, err := th.Client.PatchUser(context.Background(), th.BasicUser.Id, &model.UserPatch{
+			FirstName: new("FilledFirst"),
+			LastName:  new("FilledLast"),
+		})
+		require.NoError(t, err)
+
+		_, resp, err := th.Client.PatchUser(context.Background(), th.BasicUser.Id, &model.UserPatch{
+			FirstName: new("ChangedAgain"),
+		})
+		require.Error(t, err)
+		checkHTTPStatus(t, resp, http.StatusConflict)
+	})
+
+	t.Run("fill once applies independently to each name field", func(t *testing.T) {
+		setLock(model.TeamSettingsLockProfileFieldsNameAndUsername)
+		setNames("ExistingFirst", "")
+
+		_, _, err := th.Client.PatchUser(context.Background(), th.BasicUser.Id, &model.UserPatch{
+			LastName: new("FilledLast"),
+		})
+		require.NoError(t, err)
+
+		_, resp, err := th.Client.PatchUser(context.Background(), th.BasicUser.Id, &model.UserPatch{
+			FirstName: new("ChangedFirst"),
+		})
+		require.Error(t, err)
+		checkHTTPStatus(t, resp, http.StatusConflict)
+		CheckErrorID(t, err, "api.user.patch_user.profile_field_locked.app_error")
+	})
+
+	t.Run("all additionally locks nickname, position and profile image", func(t *testing.T) {
+		setLock(model.TeamSettingsLockProfileFieldsAll)
+
+		for name, patch := range map[string]*model.UserPatch{
+			"nickname": {Nickname: new("Changed")},
+			"position": {Position: new("Changed")},
+		} {
+			_, resp, err := th.Client.PatchUser(context.Background(), th.BasicUser.Id, patch)
+			require.Error(t, err, "expected %s change to be rejected", name)
+			checkHTTPStatus(t, resp, http.StatusConflict)
+		}
+
+		data, err := testutils.ReadTestFile("test.png")
+		require.NoError(t, err)
+		resp, err := th.Client.SetProfileImage(context.Background(), th.BasicUser.Id, data)
+		require.Error(t, err)
+		checkHTTPStatus(t, resp, http.StatusConflict)
+		CheckErrorID(t, err, "api.user.upload_profile_user.profile_field_locked.app_error")
+
+		resp, err = th.Client.SetDefaultProfileImage(context.Background(), th.BasicUser.Id)
+		require.Error(t, err)
+		checkHTTPStatus(t, resp, http.StatusConflict)
+	})
+
+	t.Run("system admin is exempt", func(t *testing.T) {
+		setLock(model.TeamSettingsLockProfileFieldsAll)
+
+		// Editing another user.
+		_, _, err := th.SystemAdminClient.PatchUser(context.Background(), th.BasicUser.Id, &model.UserPatch{
+			Username:  new("un_" + model.NewId()),
+			FirstName: new("AdminSetFirst"),
+			LastName:  new("AdminSetLast"),
+			Nickname:  new("AdminSetNick"),
+		})
+		require.NoError(t, err)
+
+		// Editing their own profile.
+		_, _, err = th.SystemAdminClient.PatchUser(context.Background(), th.SystemAdminUser.Id, &model.UserPatch{
+			FirstName: new("AdminOwnFirst"),
+		})
+		require.NoError(t, err)
+
+		data, err := testutils.ReadTestFile("test.png")
+		require.NoError(t, err)
+		_, err = th.SystemAdminClient.SetProfileImage(context.Background(), th.BasicUser.Id, data)
+		require.NoError(t, err)
+
+		info := &model.FileInfo{Path: "users/" + th.BasicUser.Id + "/profile.png"}
+		require.NoError(t, th.cleanupTestFile(info))
+	})
+
+	t.Run("users with a login provider are not affected", func(t *testing.T) {
+		setLock(model.TeamSettingsLockProfileFieldsAll)
+
+		ldapUser := th.CreateUserWithAuth(t, model.UserAuthServiceLdap)
+		require.Empty(t, th.App.CheckLockedProfileFields(*th.Context.Session(), ldapUser, &model.UserPatch{
+			Username:  new("un_" + model.NewId()),
+			FirstName: new("Changed"),
+			Nickname:  new("Changed"),
+		}))
+		require.False(t, th.App.IsProfileImageLockedForUser(*th.Context.Session(), ldapUser))
+
+		// The provider check still wins for provider-managed users.
+		require.Equal(t, "username", th.App.CheckProviderAttributes(th.Context, ldapUser, &model.UserPatch{
+			Username: new("un_" + model.NewId()),
+		}))
+	})
+}
+
 func TestGetUsersWithInvalidEmails(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
@@ -11091,7 +11338,7 @@ func TestSearchUsersWithMfaEnforced(t *testing.T) {
 
 	t.Run("user with MFA active can search users", func(t *testing.T) {
 		userWithMFAOK := th.BasicUser
-		secret, appErr := th.App.GenerateMfaSecret(userWithMFAOK.Id)
+		secret, appErr := th.App.GenerateMfaSecret(th.Context, userWithMFAOK.Id)
 		assert.Nil(t, appErr)
 
 		// Fake user has MFA enabled

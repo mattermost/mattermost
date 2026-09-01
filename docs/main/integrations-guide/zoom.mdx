@@ -1,6 +1,7 @@
 ---
 title: "Connect Zoom to Mattermost"
 ---
+import useBaseUrl from '@docusaurus/useBaseUrl';
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
@@ -83,7 +84,7 @@ We recommend making a copy of your webhook secret and encryption key, as it will
 
 </Note>
 
-1.  In Mattermost, from the Product menu <img src="/img/ui/products_E82F.svg" alt="Navigate between Channels, collaborative playbooks, and boards using the product menu icon." className="theme-icon" />, select **App Marketplace**.
+1.  In Mattermost, from the Product menu <img src={useBaseUrl('/img/ui/products_E82F.svg')} alt="Navigate between Channels, collaborative playbooks, and boards using the product menu icon." className="theme-icon" />, select **App Marketplace**.
 2.  Search for or scroll to Zoom, and select **Install**.
 3.  Once installed, select **Configure**. You'll be taken to the System Console.
 4.  On the Zoom configuration page, enable and configure Zoom interoperability as follows, and then select **Save**.

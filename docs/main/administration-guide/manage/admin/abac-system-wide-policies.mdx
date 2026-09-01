@@ -6,7 +6,7 @@ import TabItem from '@theme/TabItem';
 
 <PlanAvailability slug="entry-adv" />
 
-Use this guide to create and manage organization-wide attribute-based access policies in the System Console. For channel-level rules managed by Channel Admins, see [Channel-specific access rules](/administration-guide/manage/admin/abac-channel-access-rules).
+Use this guide to create and manage organization-wide attribute-based access policies in the System Console. Policies can be assigned to both channels and teams. For channel-level rules managed by Channel Admins, see [Channel-specific access rules](/administration-guide/manage/admin/abac-channel-access-rules). For team membership policies, see [Team membership access policies](/administration-guide/manage/admin/abac-team-membership).
 
 ## Prerequisites
 
@@ -47,6 +47,14 @@ Simple Mode is ideal for simple and straightforward access control scenarios. Ea
         > - **Starts with**: The attribute value must start with the specified value.
         > - **Ends with**: The attribute value must end with the specified value.
         > - **Contains**: The attribute value must exist somewhere with the specified value.
+        >
+        > When the selected attribute is a **Ranked** attribute (an ordered list of values, such as clearance or classification levels), the match options are ordered comparisons instead. These let you match everyone at or above a threshold rather than only an exact value:
+        >
+        > - **Is exactly** / **Is not**: The value must exactly match, or must not match, the specified value.
+        > - **Is at least**: The value must be equal to or higher than the specified value - for example, clearance *is at least* Secret matches Secret and every higher level.
+        > - **Is greater than**: The value must be higher than the specified value.
+        > - **Is at most**: The value must be equal to or lower than the specified value.
+        > - **Is less than**: The value must be lower than the specified value.
 
     3.  Specify the attribute values that users must have to be granted access to the channel.
 
@@ -114,9 +122,24 @@ Private channels with attribute-based access control policies can't have guest u
 
 </Note>
 
+### Assign policies to teams
+
+From Mattermost v11.10, system-wide policies can also be assigned to teams. Go to **System Console \> User Management \> Teams** and open the team you want to configure. In the **Team Management** section, enable **Manage membership with attribute based membership policies** — the **Membership policies** section only appears once this toggle is on. Then link an existing policy and select **Save**.
+
+Group-synced teams cannot use membership policies, so the toggle is unavailable on them.
+
+The policy behaves differently depending on the team's privacy mode:
+
+- **Private teams** — strict enforcement: join is gated, non-qualifying members are removed at sync, and the team is hidden from non-qualifying non-members in Browse Teams.
+- **Public teams** — advisory: the policy is never a gate. Qualifying non-members see a **Recommended** chip in Browse Teams; anyone can still join freely.
+
+For a full description of team assignment, custom rules, sync configuration, and end-user surfaces, see [Team membership access policies](/administration-guide/manage/admin/abac-team-membership).
+
 ### Delete policies
 
-To delete a policy, select the **Delete** button next to the policy you want to remove. You can only delete policies that are not currently assigned to any channels. If a policy is assigned to channels, you must first remove it from those channels before you can delete it.
+To delete a policy, select the **Delete** button next to the policy you want to remove. Policies that are still assigned to channels cannot be deleted — remove the policy from those channels first.
+
+Team assignments are not checked before deletion, so unlink the policy from every team that uses it before deleting it. Otherwise those teams keep a reference to a policy that no longer exists.
 
 ## Define access controls per channel
 
@@ -150,3 +173,21 @@ Permission policies can be used to restrict the following actions based on user 
 When a permission policy applies, users who don't match the configured attribute values can't perform the restricted action. Users may see file attachments as unavailable or redacted in messages they would otherwise have access to. See [Restricted file attachments](/end-user-guide/collaborate/share-files-in-messages#restricted-file-attachments) for the end-user-facing behavior.
 
 Permission policies follow the same unique-name requirement as access policies: each parent permission policy must have a unique name, and Mattermost surfaces a user-friendly error if a duplicate name is entered.
+
+## Attribute value masking
+
+From Mattermost v11.8, when a policy references attribute values that the editing admin doesn't personally hold, those values are hidden in the policy editor. This prevents admins from reading or copying sensitive attribute values they're not authorized to see, while still allowing the policy to enforce access control normally.
+
+Masking only applies to attributes configured with a `shared_only` or `source_only` access mode. Attributes with a `public` access mode are always visible to all admins. See [Attribute access modes](/administration-guide/manage/admin/user-attributes#attribute-access-modes) for details on how each mode controls value visibility.
+
+**What you'll see:**
+
+- Masked values appear as `--------` in the rule editor instead of the raw value.
+- Rows containing masked values are **read-only** and cannot be modified.
+- **Test rule** and **Delete** actions are disabled for rules that contain masked values.
+
+**Enforcement is unaffected:** masking applies to the editing UI only. The underlying rules continue to control channel access and permissions as configured.
+
+**To edit a masked rule**, ask the policy owner or another System Admin who holds the relevant attribute values to make the change.
+
+This behavior applies to both the table editor and the CEL editor, and also to Team Admin and Channel Admin policy editors in Team Settings and Channel Settings. Requires Enterprise Advanced license and the `AttributeValueMasking` feature flag.

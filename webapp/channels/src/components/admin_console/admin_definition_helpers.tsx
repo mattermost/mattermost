@@ -5,7 +5,11 @@ import React from 'react';
 import {defineMessage, type MessageDescriptor} from 'react-intl';
 
 import type {CloudState, Product} from '@mattermost/types/cloud';
-import type {AdminConfig, ClientLicense} from '@mattermost/types/config';
+import type {AdminConfig, ClientConfig, ClientLicense} from '@mattermost/types/config';
+
+import {getConfig as getClientConfig} from 'mattermost-redux/selectors/entities/general';
+
+import store from 'stores/redux_store';
 
 import RestrictedIndicator from 'components/widgets/menu/menu_items/restricted_indicator';
 
@@ -45,6 +49,8 @@ export const it = {
     stateIsFalse: (key: string) => (config: Partial<AdminConfig>, state: any) => !state[key],
     configIsTrue: (group: keyof Partial<AdminConfig>, setting: string) => (config: Partial<AdminConfig>) => Boolean((config[group] as any)?.[setting]),
     configIsFalse: (group: keyof Partial<AdminConfig>, setting: string) => (config: Partial<AdminConfig>) => !(config[group] as any)?.[setting],
+    clientConfigIsTrue: (setting: keyof ClientConfig) => () => getClientConfig(store.getState())[setting] === 'true',
+    clientConfigIsFalse: (setting: keyof ClientConfig) => () => getClientConfig(store.getState())[setting] !== 'true',
     configContains: (group: keyof Partial<AdminConfig>, setting: string, word: string) => (config: Partial<AdminConfig>) => Boolean((config[group] as any)?.[setting]?.includes(word)),
     enterpriseReady: (config: Partial<AdminConfig>, state: any, license?: ClientLicense, enterpriseReady?: boolean) => Boolean(enterpriseReady),
     licensed: (config: Partial<AdminConfig>, state: any, license?: ClientLicense) => license?.IsLicensed === 'true',

@@ -46,7 +46,7 @@ On the **Basics** tab, configure the following:
 
 On the **Application** tab, configure how the Mattermost application is sized and how administrators access the VMs.
 
-1. **Scaling tier:** Pick the user scale you are planning for. The wizard uses this to suggest sensible defaults for the **VMSS instance count**, **VM size**, and **PostgreSQL SKU**, and to determine whether **read replicas** are created for the database. The dropdown shows the recommended node count and VM SKU for each tier. For the underlying sizing rationale, see [available reference architectures](/administration-guide/scale/scaling-for-enterprise#available-reference-architectures).
+1. **Scaling tier:** Pick the user scale you are planning for. The wizard uses this to suggest sensible defaults for the **VMSS instance count**, **VM size**, and **PostgreSQL SKU**, and to determine whether **read replicas** are created for the database. The dropdown shows the recommended node count and VM SKU for each tier. For the underlying sizing rationale, see [available reference architectures](/deployment-guide/reference-architecture/scale/scaling-for-enterprise#available-reference-architectures).
 2. **VMSS instance count:** Number of Mattermost application nodes (1–5). Defaults to the suggested value for your scaling tier; adjust if needed.
 3. **Enterprise license file:** Required when the instance count is greater than 1 (multi-node high-availability clustering). Upload your Mattermost Enterprise license file. The license is optional for single-node deployments.
 4. **VM SKU:** Size of each VMSS instance. The wizard surfaces recommended Linux sizes first; you can select any supported Linux size available in your region.
@@ -111,7 +111,7 @@ Congratulations! You've successfully deployed a production-ready Mattermost stac
 
 ## Next steps
 
-- For sizing guidance and reference architectures, see [high-availability-cluster-based-deployment](/administration-guide/scale/high-availability-cluster-based-deployment) and [server architecture](/administration-guide/scale/server-architecture).
+- For sizing guidance and reference architectures, see [high-availability-cluster-based-deployment](/deployment-guide/reference-architecture/scale/high-availability-cluster-based-deployment) and [server architecture](/deployment-guide/reference-architecture/scale/server-architecture).
 - For ongoing operations (upgrades, backups, monitoring), follow the standard Mattermost server administration documentation.
 
 ## Runbooks

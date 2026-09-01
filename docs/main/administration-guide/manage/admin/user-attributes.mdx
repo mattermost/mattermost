@@ -1,6 +1,7 @@
 ---
 title: "User attributes"
 ---
+import useBaseUrl from '@docusaurus/useBaseUrl';
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
@@ -112,6 +113,7 @@ When you disable the **Editable by Users** option for an attribute, only admins 
     >   - **URL** for web site address-based profile attributes.
     >   - **Select** for a list of profile attribute values users can choose from. Specify each value followed by pressing **TAB** or **ENTER**. Values can be up to 64 characters long, and users can choose a single value.
     >   - **Multi-select** for a list of profile attribute values users can select from. Specify each value followed by pressing **TAB** or **ENTER**. Values can be up to 64 characters long, and users can choose multiple values.
+    >   - **Ranked** for an ordered list of values, where each value ranks higher or lower than the others - for example, clearance or classification levels such as *Public*, *Secret*, and *Top Secret*. Specify each value, then order the values from lowest to highest rank. Users can choose a single value. Because the values are ordered, [access control policies](/administration-guide/manage/admin/abac-system-wide-policies) can compare a ranked attribute against a threshold - for example, clearance *is at least* Secret - rather than only checking for an exact match.
 
 3.  Specify the attribute's visibility as one of the following:
 
@@ -130,13 +132,13 @@ If an attribute is created or updated without explicit visibility or sort order 
 
 <Tip>
 
-Duplicate existing attributes by selecting **More** <img src="/img/ui/dots-horizontal_F01D8.svg" alt="Use the More icon to access additional message options." className="theme-icon" /> and selecting **Duplicate attribute**. This creates a new attribute with the same name and type as the original attribute. You can then edit the new attribute to change its name, type, and visibility as needed.
+Duplicate existing attributes by selecting **More** <img src={useBaseUrl('/img/ui/dots-horizontal_F01D8.svg')} alt="Use the More icon to access additional message options." className="theme-icon" /> and selecting **Duplicate attribute**. This creates a new attribute with the same name and type as the original attribute. You can then edit the new attribute to change its name, type, and visibility as needed.
 
 </Tip>
 
 ## Manage attributes
 
-- **Modify**: Select the attribute fields to make inline changes to the attribute's name, type, or values. Select **More** <img src="/img/ui/dots-horizontal_F01D8.svg" alt="Use the More icon to access additional message options." className="theme-icon" /> to change a attribute's visibility.
+- **Modify**: Select the attribute fields to make inline changes to the attribute's name, type, or values. Select **More** <img src={useBaseUrl('/img/ui/dots-horizontal_F01D8.svg')} alt="Use the More icon to access additional message options." className="theme-icon" /> to change a attribute's visibility.
 
 <Note>
 
@@ -145,7 +147,7 @@ From Mattermost v11.8, existing user attributes are backfilled so the Display Na
 </Note>
 
 - **Order**: Control the order you want attributes to appear in user profiles by dragging and dropping them in the list.
-- **Delete**: Delete attributes you no longer need or want by selecting **More** <img src="/img/ui/dots-horizontal_F01D8.svg" alt="Use the More icon to access additional message options." className="theme-icon" /> and selecting **Delete property**.
+- **Delete**: Delete attributes you no longer need or want by selecting **More** <img src={useBaseUrl('/img/ui/dots-horizontal_F01D8.svg')} alt="Use the More icon to access additional message options." className="theme-icon" /> and selecting **Delete property**.
 
 <Note>
 
@@ -153,14 +155,26 @@ When updating user attributes via API or automation, the `attrs` object replaces
 
 </Note>
 
-- **User Edit Permissions**: From Mattermost v11, all user attributes are admin-managed by default for enhanced security. To allow user editing for specific attributes, administrators can enable this through the **More** <img src="/img/ui/dots-horizontal_F01D8.svg" alt="Use the More icon to access additional message options." className="theme-icon" /> menu and selecting **Allow user editing**. This should only be enabled for attributes that do not impact security access controls or organizational policies. Attributes used in ABAC policies should remain admin-managed unless there's a specific business need and the security implications are fully understood.
+- **User Edit Permissions**: From Mattermost v11, all user attributes are admin-managed by default for enhanced security. To allow user editing for specific attributes, administrators can enable this through the **More** <img src={useBaseUrl('/img/ui/dots-horizontal_F01D8.svg')} alt="Use the More icon to access additional message options." className="theme-icon" /> menu and selecting **Allow user editing**. This should only be enabled for attributes that do not impact security access controls or organizational policies. Attributes used in ABAC policies should remain admin-managed unless there's a specific business need and the security implications are fully understood.
 - **Edit User Attribute Values**: From Mattermost v11.1, you can view and update user attribute values for individual users through the System Console. See the [Manage user attributes](/administration-guide/configure/user-management-configuration-settings#manage-user-attributes) documentation for details.
 
 In cases where multiple system admins manage system attributes, refresh your web browser instance to see real-time updates to system attributes made by other admins.
 
+## Attribute access modes
+
+Each user attribute has an **access mode** that controls who can see its values when those values appear in access control policies. The access mode is set per attribute and determines whether an admin editing a policy can see the raw attribute values referenced in its rules.
+
+Access modes are not configurable through the System Console. They can only be set programmatically by a Mattermost plugin using the [Property Fields API](https://api.mattermost.com/#tag/properties). Attributes created by system admins through the System Console always use the `public` access mode. A plugin that needs to restrict attribute visibility must create the field with `protected: true` and set the desired `access_mode` — this is typically done by plugins that sync sensitive attributes from an external identity source and need to control which admins can read those values.
+
+- **Public** (default): The attribute value is visible to all admins editing policies that reference it. No masking is applied.
+- **Shared only**: The attribute value is only visible to admins who personally hold that same value. Admins who don't hold the value see it masked (`--------`) in the policy editor.
+- **Source only**: The attribute value is only visible to the system source that set it (for example, the identity provider). All admins see it masked in the policy editor regardless of their own attribute values.
+
+Masking in the policy editor only applies to attributes with `shared_only` or `source_only` access mode. See [Attribute value masking](/administration-guide/manage/admin/abac-system-wide-policies#attribute-value-masking) for the editor behavior when masked values are present.
+
 ## Sync attributes with your identity provider
 
-1.  Synchronize a attribute with AD/LDAP or SAML by selecting **More** <img src="/img/ui/dots-horizontal_F01D8.svg" alt="Use the More icon to access additional message options." className="theme-icon" /> and selecting **Link attribute to AD/LDAP** or **Link attribute to SAML**. Mattermost takes you directly to the **AD/LDAP** or **SAML 2.0** configuration settings page in the System Console where you can map the attributes you want to synchronize.
+1.  Synchronize a attribute with AD/LDAP or SAML by selecting **More** <img src={useBaseUrl('/img/ui/dots-horizontal_F01D8.svg')} alt="Use the More icon to access additional message options." className="theme-icon" /> and selecting **Link attribute to AD/LDAP** or **Link attribute to SAML**. Mattermost takes you directly to the **AD/LDAP** or **SAML 2.0** configuration settings page in the System Console where you can map the attributes you want to synchronize.
 2.  Scroll to the **User attributes sync** section to specify the attribute used to populate the attribute in user profiles.
 3.  Specify the attribute mapping for the attribute by entering the attribute name in the system attribute's **Attribute** field. The attribute name must match the attribute name in your identity provider.
 4.  Save your changes.

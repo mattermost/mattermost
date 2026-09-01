@@ -106,6 +106,9 @@ type Routes struct {
 
 	Recaps *mux.Router // 'api/v4/recaps'
 
+	ScheduledRecaps *mux.Router // 'api/v4/scheduled_recaps'
+	ScheduledRecap  *mux.Router // 'api/v4/scheduled_recaps/{scheduled_recap_id:[A-Za-z0-9]+}'
+
 	Preferences *mux.Router // 'api/v4/users/{user_id:[A-Za-z0-9]+}/preferences'
 
 	License *mux.Router // 'api/v4/license'
@@ -163,8 +166,9 @@ type Routes struct {
 
 	AuditLogs *mux.Router // 'api/v4/audit_logs'
 
-	AccessControlPolicies *mux.Router // 'api/v4/access_control_policies'
-	AccessControlPolicy   *mux.Router // 'api/v4/access_control_policies/{policy_id:[A-Za-z0-9]+}'
+	AccessControlPolicies  *mux.Router // 'api/v4/access_control_policies'
+	AccessControlPolicy    *mux.Router // 'api/v4/access_control_policies/{policy_id:[A-Za-z0-9]+}'
+	AccessControlDecisions *mux.Router // 'api/v4/access_control/decisions'
 
 	ContentFlagging *mux.Router // 'api/v4/content_flagging'
 
@@ -274,6 +278,8 @@ func Init(srv *app.Server) (*API, error) {
 	api.BaseRoutes.Reactions = api.BaseRoutes.APIRoot.PathPrefix("/reactions").Subrouter()
 	api.BaseRoutes.Jobs = api.BaseRoutes.APIRoot.PathPrefix("/jobs").Subrouter()
 	api.BaseRoutes.Recaps = api.BaseRoutes.APIRoot.PathPrefix("/recaps").Subrouter()
+	api.BaseRoutes.ScheduledRecaps = api.BaseRoutes.APIRoot.PathPrefix("/scheduled_recaps").Subrouter()
+	api.BaseRoutes.ScheduledRecap = api.BaseRoutes.ScheduledRecaps.PathPrefix("/{scheduled_recap_id:[A-Za-z0-9]+}").Subrouter()
 	api.BaseRoutes.Elasticsearch = api.BaseRoutes.APIRoot.PathPrefix("/elasticsearch").Subrouter()
 	api.BaseRoutes.DataRetention = api.BaseRoutes.APIRoot.PathPrefix("/data_retention").Subrouter()
 
@@ -329,6 +335,7 @@ func Init(srv *app.Server) (*API, error) {
 
 	api.BaseRoutes.AccessControlPolicies = api.BaseRoutes.APIRoot.PathPrefix("/access_control_policies").Subrouter()
 	api.BaseRoutes.AccessControlPolicy = api.BaseRoutes.APIRoot.PathPrefix("/access_control_policies/{policy_id:[A-Za-z0-9]+}").Subrouter()
+	api.BaseRoutes.AccessControlDecisions = api.BaseRoutes.APIRoot.PathPrefix("/access_control/decisions").Subrouter()
 
 	api.BaseRoutes.ContentFlagging = api.BaseRoutes.APIRoot.PathPrefix("/content_flagging").Subrouter()
 
@@ -366,6 +373,7 @@ func Init(srv *app.Server) (*API, error) {
 	api.InitBrand()
 	api.InitJob()
 	api.InitRecap()
+	api.InitScheduledRecap()
 	api.InitCommand()
 	api.InitStatus()
 	api.InitWebSocket()

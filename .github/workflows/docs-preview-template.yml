@@ -9,6 +9,12 @@ on:
       COMMIT_SHA:
         type: string
         required: true
+      # Commit status context shown on the PR. Details (⋯) links to the preview
+      # when status is success. Empty skips status updates.
+      STATUS_CONTEXT:
+        type: string
+        required: false
+        default: docs-preview
     secrets:
       AWS_DOCS_PR_PREVIEW_KEY_ID:
         required: true
@@ -23,10 +29,10 @@ concurrency:
 
 permissions:
   contents: read
+  statuses: write
 
 jobs:
-  preview:
-    name: Build and deploy preview
+  deploy:
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout
@@ -89,3 +95,42 @@ jobs:
             "s3://${BUCKET_NAME}/mattermost/pr-${PR_NUMBER}/" \
             --delete \
             --no-progress
+
+      - name: Set preview URL
+        id: preview
+        env:
+          BUCKET_NAME: ${{ vars.DOCS_PREVIEW_BUCKET_NAME }}
+          PR_NUMBER: ${{ inputs.PR_NUMBER }}
+        run: |
+          echo "url=http://${BUCKET_NAME}.s3-website-us-east-1.amazonaws.com/mattermost/pr-${PR_NUMBER}/" >> "$GITHUB_OUTPUT"
+
+      # Details (⋯) on this check links to the preview URL via target_url.
+      - name: Set success commit status
+        if: ${{ inputs.STATUS_CONTEXT != '' }}
+        env:
+          COMMIT_SHA: ${{ inputs.COMMIT_SHA }}
+          CONTEXT_NAME: ${{ inputs.STATUS_CONTEXT }}
+          PREVIEW_URL: ${{ steps.preview.outputs.url }}
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: |
+          gh api "repos/${GITHUB_REPOSITORY}/statuses/${COMMIT_SHA}" \
+            -f state=success \
+            -f context="${CONTEXT_NAME}" \
+            -f description="Docs preview build for ${COMMIT_SHA} succeeded" \
+            -f target_url="$PREVIEW_URL"
+
+      - name: Set failure commit status
+        if: ${{ always() && inputs.STATUS_CONTEXT != '' && (failure() || cancelled()) }}
+        env:
+          COMMIT_SHA: ${{ inputs.COMMIT_SHA }}
+          CONTEXT_NAME: ${{ inputs.STATUS_CONTEXT }}
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+        run: |
+          gh api "repos/${GITHUB_REPOSITORY}/statuses/${COMMIT_SHA}" \
+            -f state=failure \
+            -f context="${CONTEXT_NAME}" \
+            -f description="Docs preview build for ${COMMIT_SHA} failed" \
+            -f target_url="https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"

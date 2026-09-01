@@ -10,6 +10,17 @@ import {testConfig} from '@/test_config';
 // Variable to hold cache
 const clients: Record<string, ClientCache> = {};
 
+/**
+ * Drops every cached client, so the next makeClient()/getAdminClient() call logs in again instead
+ * of reusing a session pointed at a Mattermost container that no longer exists — needed after
+ * restartMattermostContainer() swaps in a fresh container (new base URL, new session).
+ */
+export function clearClientCache(): void {
+    for (const key of Object.keys(clients)) {
+        delete clients[key];
+    }
+}
+
 export async function makeClient(
     userRequest?: UserRequest,
     opts: {useCache?: boolean; skipLog?: boolean} = {useCache: true, skipLog: false},

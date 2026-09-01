@@ -1,6 +1,7 @@
 ---
 title: "Connected workspaces"
 ---
+import useBaseUrl from '@docusaurus/useBaseUrl';
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
@@ -138,7 +139,7 @@ Once a connection is established between two Mattermost servers, system admins o
 1.  Under **Shared Channels**, select **Add channels**.
 2.  Specify the channels you want to share between Mattermost servers.
 
-Shared channels and members of those shared channels display a shared <img src="/img/ui/circle-multiple-outline_F0695.svg" alt="Shared icon indicates channels and their members that are shared across connected Mattermost servers." /> icon to distinguish them from channels and channel members of the local server.
+Shared channels and members of those shared channels display a shared <img src={useBaseUrl('/img/ui/circle-multiple-outline_F0695.svg')} alt="Shared icon indicates channels and their members that are shared across connected Mattermost servers." /> icon to distinguish them from channels and channel members of the local server.
 
 </TabItem>
 <TabItem value="slash-commands" label="Slash Commands">
@@ -228,7 +229,7 @@ System admins can [edit](#edit-a-connected-workspace) or [delete](#delete-a-conn
 In the System Console, system admins can change the **Organization Name**, the **Destination Team** (which serves as the default location for organizing shared channels from this connected workspace), or channels shared with a remote Mattermost instance as well as channels shared with your local Mattermost instance.
 
 1.  Under **Connected Workspaces**, identify the connected workspace you want to change.
-2.  Select the **More** <img src="/img/ui/dots-horizontal_F01D8.svg" alt="Use the More icon to access additional message options." className="theme-icon" /> icon to the right of the connected workspace, and then select **Edit**.
+2.  Select the **More** <img src={useBaseUrl('/img/ui/dots-horizontal_F01D8.svg')} alt="Use the More icon to access additional message options." className="theme-icon" /> icon to the right of the connected workspace, and then select **Edit**.
 
 ### Remove all connections from the current channel
 
@@ -248,7 +249,7 @@ From Mattermost v10.10, removing a shared channel from a connected workspace rem
 <TabItem value="system-console" label="System Console">
 
 1.  Under **Connected Workspaces**, identify the connected workspace you want to remove.
-2.  Select the **More** <img src="/img/ui/dots-horizontal_F01D8.svg" alt="Use the More icon to access additional message options." className="theme-icon" /> icon to the right of the connected workspace, and then select **Delete**.
+2.  Select the **More** <img src={useBaseUrl('/img/ui/dots-horizontal_F01D8.svg')} alt="Use the More icon to access additional message options." className="theme-icon" /> icon to the right of the connected workspace, and then select **Delete**.
 
 </TabItem>
 <TabItem value="slash-commands" label="Slash Commands">
@@ -308,7 +309,7 @@ Status details include:
 When using the System Console to manage connected workspaces, system admins can re-generate invitation codes and passwords for pending connections.
 
 1.  Under **Connected Workspaces**, identify the pending connection whose invitation and password you want to regenerate.
-2.  Select the **More** <img src="/img/ui/dots-horizontal_F01D8.svg" alt="Use the More icon to access additional message options." className="theme-icon" /> icon to the right of the connected workspace, and then select **Regenerate invitation code**.
+2.  Select the **More** <img src={useBaseUrl('/img/ui/dots-horizontal_F01D8.svg')} alt="Use the More icon to access additional message options." className="theme-icon" /> icon to the right of the connected workspace, and then select **Regenerate invitation code**.
 
 <Note>
 
