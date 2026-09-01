@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
@@ -86,4 +87,133 @@ func (ps *PropertyService) MigrateBackfillCPADisplayName(rctx request.CTX) (back
 	}
 
 	return len(fieldsToUpdate), skipped, nil
+}
+
+// permissionsBackfill holds the state one backfill run carries across pages:
+// which group is access_control (the only one whose Attrs ever gated
+// anything, so the only one whose Attrs convert), and every linked field's
+// template Permissions resolved so far, so a scheme with many linked fields
+// reads and converts its template once rather than once per field.
+type permissionsBackfill struct {
+	service              *PropertyService
+	accessControlGroupID string
+	templates            map[string]*model.Permissions
+}
+
+func newPermissionsBackfill(service *PropertyService, accessControlGroupID string) *permissionsBackfill {
+	return &permissionsBackfill{
+		service:              service,
+		accessControlGroupID: accessControlGroupID,
+		templates:            map[string]*model.Permissions{},
+	}
+}
+
+// convertBatch sets Permissions in place on every field in fields that does
+// not already have one, and returns the subset it changed. A field already
+// carrying Permissions is left alone and excluded from the result, so the
+// backfill is idempotent at the field level and never reverts a field a v3
+// caller wrote mid-run.
+func (b *permissionsBackfill) convertBatch(rctx request.CTX, fields []*model.PropertyField) ([]*model.PropertyField, error) {
+	var converted []*model.PropertyField
+	for _, field := range fields {
+		if field.Permissions != nil {
+			continue
+		}
+
+		opts := model.LegacyConversionOpts{
+			// Only the access_control group's Attrs (protected, access_mode,
+			// owners, source plugin, sync lock) were ever enforced; everywhere
+			// else there is nothing in Attrs to preserve.
+			ConvertAttrs: field.GroupID == b.accessControlGroupID,
+		}
+
+		if field.LinkedFieldID != nil && *field.LinkedFieldID != "" {
+			template, err := b.resolveTemplate(rctx, field.GroupID, *field.LinkedFieldID, opts.ConvertAttrs)
+			if err != nil {
+				return nil, err
+			}
+			opts.Template = template
+
+			if opts.ConvertAttrs && template.Masking == nil && field.GetAccessMode() == model.PropertyAccessModeSharedOnly {
+				// PermissionsFromLegacy narrows this field's own reads to none
+				// below rather than emitting a masking object it is not allowed
+				// to carry (divergence: a linked field may not declare masking of
+				// its own). That is a real access change an operator needs to
+				// know about, unlike every other conversion here, which is like
+				// for like.
+				rctx.Logger().Warn("Converting a linked field's shared_only access mode to no read access because its template did not convert to masked",
+					mlog.String("field_id", field.ID),
+					mlog.String("template_id", *field.LinkedFieldID),
+				)
+			}
+		}
+
+		field.Permissions = model.PermissionsFromLegacy(field, opts)
+		converted = append(converted, field)
+	}
+	return converted, nil
+}
+
+// resolveTemplate returns templateID's converted Permissions, memoized so a
+// template linked from many fields is read and converted only once per
+// backfill run. Reads through the unexported accessor, same as the fields
+// this backfill converts, so the access-control layer never filters or strips
+// the template out from under it.
+func (b *permissionsBackfill) resolveTemplate(rctx request.CTX, groupID, templateID string, convertAttrs bool) (*model.Permissions, error) {
+	if permissions, ok := b.templates[templateID]; ok {
+		return permissions, nil
+	}
+
+	template, err := b.service.getPropertyField(groupID, templateID)
+	if err != nil {
+		return nil, fmt.Errorf("permissionsBackfill: failed to resolve template %q: %w", templateID, err)
+	}
+
+	permissions := template.Permissions
+	if permissions == nil {
+		// A template cannot itself be linked, so this conversion is one hop
+		// deep and needs no cycle guard. A linked field is always in the same
+		// group as its template, so convertAttrs carries over unchanged.
+		permissions = model.PermissionsFromLegacy(template, model.LegacyConversionOpts{ConvertAttrs: convertAttrs})
+	}
+	b.templates[templateID] = permissions
+
+	if permissions.Masking != nil {
+		b.warnIfMaskedTemplateHasNonUserSiblings(rctx, template)
+	}
+
+	return permissions, nil
+}
+
+// warnIfMaskedTemplateHasNonUserSiblings logs once when template converts to
+// masked and a field linked to it is not object_type: user. Such a field
+// shows nobody anything, before this conversion and after it, until an
+// operator sets the template's mask_by_field_id -- the conversion cannot pick
+// that field itself (§2.6 forbids inferring it), so this line is the only
+// thing that tells an operator the scheme is waiting on them.
+func (b *permissionsBackfill) warnIfMaskedTemplateHasNonUserSiblings(rctx request.CTX, template *model.PropertyField) {
+	linked, err := b.service.searchPropertyFields(template.GroupID, model.PropertyFieldSearchOpts{LinkedFieldID: template.ID})
+	if err != nil {
+		rctx.Logger().Warn("Failed to check a masked template's linked fields for non-user object types",
+			mlog.String("template_id", template.ID),
+			mlog.Err(err),
+		)
+		return
+	}
+
+	var nonUserFieldIDs []string
+	for _, field := range linked {
+		if field.ObjectType != model.PropertyFieldObjectTypeUser {
+			nonUserFieldIDs = append(nonUserFieldIDs, field.ID)
+		}
+	}
+	if len(nonUserFieldIDs) == 0 {
+		return
+	}
+
+	rctx.Logger().Warn("A masked template has fields linked to it that are not object_type user; those fields show nobody anything until the template's mask_by_field_id is set",
+		mlog.String("template_id", template.ID),
+		mlog.String("template_name", template.Name),
+		mlog.Array("non_user_field_ids", nonUserFieldIDs),
+	)
 }
