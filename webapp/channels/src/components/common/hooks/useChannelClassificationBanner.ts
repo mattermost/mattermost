@@ -10,13 +10,11 @@ import type {GlobalState} from '@mattermost/types/store';
 
 import {PropertyTypes} from 'mattermost-redux/action_types';
 import {Client4} from 'mattermost-redux/client';
+import {ACCESS_CONTROL_PROPERTY_GROUP} from 'mattermost-redux/constants/properties';
 import {getChannelBanner} from 'mattermost-redux/selectors/entities/channels';
 import {getPropertyValueForTargetField} from 'mattermost-redux/selectors/entities/properties';
 
-import {
-    CLASSIFICATIONS_CHANNEL_OBJECT_TYPE,
-    CLASSIFICATIONS_GROUP_NAME,
-} from 'components/admin_console/classification_markings/utils';
+import {CLASSIFICATIONS_CHANNEL_OBJECT_TYPE} from 'components/admin_console/classification_markings/utils';
 
 import useClassificationMarkings from './useClassificationMarkings';
 
@@ -59,7 +57,7 @@ export default function useChannelClassificationBanner(channelId: string): Chann
 
         if (!propertyValue) {
             Client4.getPropertyValues(
-                CLASSIFICATIONS_GROUP_NAME,
+                ACCESS_CONTROL_PROPERTY_GROUP,
                 CLASSIFICATIONS_CHANNEL_OBJECT_TYPE,
                 channelId,
             ).then((values) => {
