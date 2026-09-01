@@ -363,30 +363,6 @@ func TestTriggerIdDecodeAndVerification(t *testing.T) {
 		assert.Equal(t, actionReq.ChannelId, decodedChannelId)
 	})
 
-	// A node running the previous four-field format can hand this node a trigger during
-	// a rolling upgrade. It must still verify, reporting no channel.
-	t.Run("should accept a legacy trigger with no channel", func(t *testing.T) {
-		clientTriggerId := NewId()
-		userId := NewId()
-		legacyData := strings.Join([]string{clientTriggerId, userId, strconv.FormatInt(GetMillis(), 10)}, ":") + ":"
-
-		h := crypto.SHA256
-		sum := h.New()
-		sum.Write([]byte(legacyData))
-		signature, sigErr := key.Sign(rand.Reader, sum.Sum(nil), h)
-		require.NoError(t, sigErr)
-
-		legacyTriggerId := base64.StdEncoding.EncodeToString(
-			[]byte(legacyData + base64.StdEncoding.EncodeToString(signature)),
-		)
-
-		decodedClientTriggerId, decodedUserId, decodedChannelId, appErr := DecodeAndVerifyTriggerId(legacyTriggerId, key, OutgoingIntegrationRequestsDefaultTimeout*time.Second)
-		assert.Nil(t, appErr)
-		assert.Equal(t, clientTriggerId, decodedClientTriggerId)
-		assert.Equal(t, userId, decodedUserId)
-		assert.Empty(t, decodedChannelId)
-	})
-
 	t.Run("should reject a trigger whose channel was tampered with", func(t *testing.T) {
 		_, triggerId, appErr := GenerateTriggerId(NewId(), NewId(), key)
 		require.Nil(t, appErr)
@@ -416,19 +392,19 @@ func TestTriggerIdDecodeAndVerification(t *testing.T) {
 	})
 
 	t.Run("should fail on expired timestamp", func(t *testing.T) {
-		_, _, _, appErr := DecodeAndVerifyTriggerId(base64.StdEncoding.EncodeToString([]byte("some-trigger-id:some-user-id:1234567890:junksignature")), key, OutgoingIntegrationRequestsDefaultTimeout*time.Second)
+		_, _, _, appErr := DecodeAndVerifyTriggerId(base64.StdEncoding.EncodeToString([]byte("some-trigger-id:some-user-id:1234567890:some-channel-id:junksignature")), key, OutgoingIntegrationRequestsDefaultTimeout*time.Second)
 		require.NotNil(t, appErr)
 		assert.Equal(t, "interactive_message.decode_trigger_id.expired", appErr.Id)
 	})
 
 	t.Run("should fail on base64 decoding signature", func(t *testing.T) {
-		_, _, _, appErr := DecodeAndVerifyTriggerId(base64.StdEncoding.EncodeToString([]byte("some-trigger-id:some-user-id:12345678900000:junk!")), key, OutgoingIntegrationRequestsDefaultTimeout*time.Second)
+		_, _, _, appErr := DecodeAndVerifyTriggerId(base64.StdEncoding.EncodeToString([]byte("some-trigger-id:some-user-id:12345678900000:some-channel-id:junk!")), key, OutgoingIntegrationRequestsDefaultTimeout*time.Second)
 		require.NotNil(t, appErr)
 		assert.Equal(t, "interactive_message.decode_trigger_id.base64_decode_failed_signature", appErr.Id)
 	})
 
 	t.Run("should fail on bad signature", func(t *testing.T) {
-		_, _, _, appErr := DecodeAndVerifyTriggerId(base64.StdEncoding.EncodeToString([]byte("some-trigger-id:some-user-id:12345678900000:junk")), key, OutgoingIntegrationRequestsDefaultTimeout*time.Second)
+		_, _, _, appErr := DecodeAndVerifyTriggerId(base64.StdEncoding.EncodeToString([]byte("some-trigger-id:some-user-id:12345678900000:some-channel-id:junk")), key, OutgoingIntegrationRequestsDefaultTimeout*time.Second)
 		require.NotNil(t, appErr)
 		assert.Equal(t, "interactive_message.decode_trigger_id.signature_decode_failed", appErr.Id)
 	})

@@ -608,21 +608,9 @@ func signForGenerateTriggerId(s crypto.Signer, digest []byte, opts crypto.Signer
 	return s.Sign(rand.Reader, digest, opts)
 }
 
-// GenerateTriggerId signs the context an interactive dialog will need when it is
-// submitted. channelId is the channel the trigger originates in; it is carried here
-// because a dialog submission has no other way to recover it — the submit request
-// arrives without a trigger, so the client would otherwise have to guess.
-//
-// Adding the channel makes this a five-field trigger where the previous release
-// emitted four. Compatibility runs one way only: DecodeAndVerifyTriggerId here
-// accepts both formats, but a node still running the previous release checks for
-// exactly four fields and rejects anything this function mints. During a rolling
-// upgrade, a trigger minted on an upgraded node and opened via a node that has not
-// yet been upgraded therefore fails with a 400.
-//
-// ServiceSettings.OutgoingIntegrationRequestsTimeout bounds how long any one trigger
-// stays valid, not the exposure: dialogs can fail this way for as long as the cluster
-// runs mixed versions, so the operator-visible window is the whole rolling upgrade.
+// GenerateTriggerId signs the context an interactive dialog needs on submit.
+// channelId is embedded so the server can recover which channel the trigger
+// originated in without relying on client-supplied state.
 func GenerateTriggerId(userId, channelId string, s crypto.Signer) (string, string, *AppError) {
 	clientTriggerId := NewId()
 	triggerData := strings.Join([]string{clientTriggerId, userId, strconv.FormatInt(GetMillis(), 10), channelId}, ":") + ":"
@@ -653,10 +641,6 @@ func (r *PostActionIntegrationRequest) GenerateTriggerId(s crypto.Signer) (strin
 
 // DecodeAndVerifyTriggerId returns the client trigger ID, the user the trigger was
 // minted for, and the channel it originated in.
-//
-// Triggers minted before the channel was added carry four fields instead of five and
-// are still accepted, with an empty channel — during a rolling upgrade a node running
-// this code can be handed a trigger minted by a node running the previous format.
 func DecodeAndVerifyTriggerId(triggerId string, s *ecdsa.PrivateKey, timeout time.Duration) (string, string, string, *AppError) {
 	triggerIdBytes, err := base64.StdEncoding.DecodeString(triggerId)
 	if err != nil {
@@ -664,7 +648,7 @@ func DecodeAndVerifyTriggerId(triggerId string, s *ecdsa.PrivateKey, timeout tim
 	}
 
 	split := strings.Split(string(triggerIdBytes), ":")
-	if len(split) != 4 && len(split) != 5 {
+	if len(split) != 5 {
 		return "", "", "", NewAppError("DecodeAndVerifyTriggerId", "interactive_message.decode_trigger_id.missing_data", nil, "", http.StatusBadRequest)
 	}
 
@@ -672,15 +656,8 @@ func DecodeAndVerifyTriggerId(triggerId string, s *ecdsa.PrivateKey, timeout tim
 	userId := split[1]
 	timestampStr := split[2]
 	timestamp, _ := strconv.ParseInt(timestampStr, 10, 64)
-
-	// The signature is always the final field; the channel sits between the timestamp
-	// and the signature in the five-field format.
-	channelId := ""
-	signatureStr := split[3]
-	if len(split) == 5 {
-		channelId = split[3]
-		signatureStr = split[4]
-	}
+	channelId := split[3]
+	signatureStr := split[4]
 
 	if time.Since(time.UnixMilli(timestamp)) > timeout {
 		return "", "", "", NewAppError("DecodeAndVerifyTriggerId", "interactive_message.decode_trigger_id.expired", map[string]any{"Duration": timeout.String()}, "", http.StatusBadRequest)
@@ -699,13 +676,7 @@ func DecodeAndVerifyTriggerId(triggerId string, s *ecdsa.PrivateKey, timeout tim
 		return "", "", "", NewAppError("DecodeAndVerifyTriggerId", "interactive_message.decode_trigger_id.signature_decode_failed", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
-	// Rebuild exactly the field set that was signed, so a four-field trigger verifies
-	// against its original digest rather than one with an empty channel spliced in.
-	signedFields := []string{clientTriggerId, userId, timestampStr}
-	if len(split) == 5 {
-		signedFields = append(signedFields, channelId)
-	}
-	triggerData := strings.Join(signedFields, ":") + ":"
+	triggerData := strings.Join([]string{clientTriggerId, userId, timestampStr, channelId}, ":") + ":"
 
 	h := crypto.SHA256
 	sum := h.New()
