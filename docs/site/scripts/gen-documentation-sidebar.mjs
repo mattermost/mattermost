@@ -953,72 +953,74 @@ const ENDUSER_ROOT_ORDER = ['Access', 'Collaborate', 'Workflow Automation', 'Pro
 // ---------------------------------------------------------------------------
 //
 // Integrations Guide is a genuinely flat 20-item list (not just a migration
-// artifact — Sphinx has the same problem). Group by integration type so
-// related pages sit together instead of an alphabetical-ish flat dump.
+// artifact — Sphinx has the same problem).
+//
+// `plugins` opens the guide because it explains the delivery mechanism
+// (pre-built / Mattermost-built / custom) that the catalogue and every
+// vendor page below depend on. The vendor pages then nest under the
+// catalogue they belong to, split Microsoft / third-party to mirror the
+// tables on popular-integrations, alphabetical within each group so a
+// reader scanning for a vendor name can predict where to look. The
+// remaining entries follow the order the landing page introduces them.
 
 const INTEGRATIONS_GROUPS = {
-  chatInterop: {
-    label: 'Chat & Meeting Interop',
+  prebuilt: {
+    label: 'Popular Pre-Built Integrations',
+    landing: 'popular-integrations',
     items: [
-      'microsoft-teams-sync',
-      'microsoft-teams-meetings',
-      'microsoft-calendar',
-      'mattermost-mission-collaboration-for-m365',
-      'zoom',
-    ],
-  },
-  itsmDevTools: {
-    label: 'ITSM & Dev Tools',
-    items: [
-      'jira',
-      'servicenow',
-      'github',
-      'gitlab',
-    ],
-  },
-  noCode: {
-    label: 'No-Code Automation',
-    items: [
-      'no-code-automation',
-    ],
-  },
-  builtIn: {
-    label: 'Built-in Integrations',
-    items: [
-      {label: 'Webhooks', landing: 'webhook-integrations', items: [
-        'incoming-webhooks',
-        'outgoing-webhooks',
+      {label: 'Microsoft Integrations', items: [
+        'mattermost-mission-collaboration-for-m365',
+        'microsoft-calendar',
+        'microsoft-teams-meetings',
+        'microsoft-teams-sync',
       ]},
-      {label: 'Slash Commands', landing: 'slash-commands', items: [
-        'built-in-slash-commands',
-        'run-slash-commands',
+      {label: 'Third-Party Integrations', items: [
+        'github',
+        'gitlab',
+        'jira',
+        'servicenow',
+        'zoom',
       ]},
-      'restful-api',
-      'plugins',
+    ],
+  },
+  webhooks: {
+    label: 'Webhooks',
+    landing: 'webhook-integrations',
+    items: [
+      'incoming-webhooks',
+      'outgoing-webhooks',
+    ],
+  },
+  slashCommands: {
+    label: 'Slash Commands',
+    landing: 'slash-commands',
+    items: [
+      'run-slash-commands',
+      'built-in-slash-commands',
     ],
   },
 };
 
 // Top-level Integrations Guide order. Strings are doc basenames relative to
 // integrations-guide/; objects reference INTEGRATIONS_GROUPS keys or are
-// inline sub-groups (Webhooks, Slash Commands).
+// inline sub-groups (Microsoft Integrations, Third-Party Integrations).
 const INTEGRATIONS_ROOT_ORDER = [
-  'popular-integrations',
-  {group: 'chatInterop'},
-  {group: 'itsmDevTools'},
-  {group: 'noCode'},
-  {group: 'builtIn'},
+  'plugins',
+  {group: 'prebuilt'},
+  {group: 'webhooks'},
+  {group: 'slashCommands'},
+  'restful-api',
+  'no-code-automation',
   'faq',
 ];
 
 const INTEGRATIONS_HIDDEN = new Set([
-  'microsoft-teams-sync', 'microsoft-teams-meetings', 'microsoft-calendar',
-  'mattermost-mission-collaboration-for-m365', 'zoom',
-  'jira', 'servicenow', 'github', 'gitlab',
-  'no-code-automation',
+  'popular-integrations',
+  'mattermost-mission-collaboration-for-m365', 'microsoft-calendar',
+  'microsoft-teams-meetings', 'microsoft-teams-sync',
+  'github', 'gitlab', 'jira', 'servicenow', 'zoom',
   'webhook-integrations', 'incoming-webhooks', 'outgoing-webhooks',
-  'slash-commands', 'built-in-slash-commands', 'run-slash-commands',
-  'restful-api', 'plugins',
+  'slash-commands', 'run-slash-commands', 'built-in-slash-commands',
 ]);
 
 // ---------------------------------------------------------------------------
