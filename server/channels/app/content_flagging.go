@@ -1332,7 +1332,7 @@ func (a *App) postMessageToReporter(rctx request.CTX, contentFlaggingGroupId str
 // postReviewerMessage replies on the content review thread of every reviewer that has
 // one for flaggedPostId, or only on targetReviewerId's thread when that is non-empty.
 func (a *App) postReviewerMessage(rctx request.CTX, message, contentFlaggingGroupId, flaggedPostId string, report *model.PostDeletionReport, reportFileName, targetReviewerId string) ([]*model.Post, *model.AppError) {
-	mappedFields, appErr := a.GetContentFlaggingMappedFields(contentFlaggingGroupId)
+	mappedFields, appErr := a.GetContentFlaggingMappedFields(rctx, contentFlaggingGroupId)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -1380,7 +1380,7 @@ func (a *App) postReviewerMessage(rctx request.CTX, message, contentFlaggingGrou
 		if report != nil {
 			T := i18n.GetUserTranslations("")
 			// Fetch reviewer user to get their locale
-			reviewer, userErr := a.GetUser(reviewerUserId)
+			reviewer, userErr := a.GetUser(rctx, reviewerUserId)
 			if userErr != nil {
 				rctx.Logger().Error("Failed to get reviewer user for localization, falling back to default locale", mlog.Err(userErr), mlog.String("user_id", reviewerPost.UserId))
 			} else {

@@ -520,7 +520,7 @@ func (a *App) NotifyRequestingReviewerOfSkippedAttachments(rctx request.CTX, fla
 	}
 
 	var locale string
-	if reviewer, appErr := a.GetUser(requestingUserID); appErr != nil {
+	if reviewer, appErr := a.GetUser(rctx, requestingUserID); appErr != nil {
 		rctx.Logger().Warn("Failed to fetch requesting reviewer, using default locale", mlog.String("user_id", requestingUserID), mlog.Err(appErr))
 	} else {
 		locale = reviewer.Locale
