@@ -75,6 +75,85 @@ func (p *Permissions) Scan(value any) error {
 	}
 }
 
+// PermissionsPatch carries a partial update to a field's Permissions. Each of
+// its first three keys is raw JSON rather than the typed field it becomes,
+// because a whole-object write needs to tell "key absent" (leave the existing
+// setting alone) apart from an explicit "key present, value null" (clear it) —
+// a typed pointer decodes both cases to nil and cannot tell them apart, but
+// json.RawMessage decodes an absent key to a nil slice and a present null to
+// the four bytes "null".
+type PermissionsPatch struct {
+	Restrictions json.RawMessage `json:"restrictions,omitempty"`
+	Grants       json.RawMessage `json:"grants,omitempty"`
+	Masking      json.RawMessage `json:"masking,omitempty"`
+	// Filtered is copied onto the result as sent; Permissions.IsValid already
+	// rejects a true Filtered on every store write, so there is nothing else
+	// to check here.
+	Filtered bool `json:"filtered,omitempty"`
+}
+
+// isJSONNull reports whether raw is a present key whose value is the JSON
+// literal null, as opposed to an absent key (raw == nil).
+func isJSONNull(raw json.RawMessage) bool {
+	return string(raw) == "null"
+}
+
+// ApplyTo resolves the patch against existing — which may be nil, for a field
+// that has never carried permissions — and returns a new Permissions; existing
+// is never mutated. Restrictions, Grants and Masking are each resolved on
+// their own: an absent key keeps existing's value, a present null clears it,
+// and a present object or array replaces it outright. Replacement, not a
+// leaf-by-leaf merge: within a present restrictions object a leaf it omits
+// still means none once normalizeAndValidate runs, so merging leaves in from
+// the existing object would let a caller blank out one leaf without saying
+// so.
+func (pp *PermissionsPatch) ApplyTo(existing *Permissions) (*Permissions, error) {
+	result := &Permissions{Filtered: pp.Filtered}
+	if existing != nil {
+		result.Restrictions = existing.Restrictions
+		result.Grants = existing.Grants
+		result.Masking = existing.Masking
+	}
+
+	if pp.Restrictions != nil {
+		if isJSONNull(pp.Restrictions) {
+			result.Restrictions = nil
+		} else {
+			var r Restrictions
+			if err := json.Unmarshal(pp.Restrictions, &r); err != nil {
+				return nil, fmt.Errorf("restrictions: %w", err)
+			}
+			result.Restrictions = &r
+		}
+	}
+
+	if pp.Grants != nil {
+		if isJSONNull(pp.Grants) {
+			result.Grants = nil
+		} else {
+			var g []Grant
+			if err := json.Unmarshal(pp.Grants, &g); err != nil {
+				return nil, fmt.Errorf("grants: %w", err)
+			}
+			result.Grants = g
+		}
+	}
+
+	if pp.Masking != nil {
+		if isJSONNull(pp.Masking) {
+			result.Masking = nil
+		} else {
+			var m Masking
+			if err := json.Unmarshal(pp.Masking, &m); err != nil {
+				return nil, fmt.Errorf("masking: %w", err)
+			}
+			result.Masking = &m
+		}
+	}
+
+	return result, nil
+}
+
 // Restrictions holds the human permission ladder per aspect. A leaf omitted on input
 // means none; validation fills it in so a stored object always carries
 // all five enforced leaves. field carries no read leaf because field.read is not

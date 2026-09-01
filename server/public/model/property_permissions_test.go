@@ -249,6 +249,84 @@ func TestWorkedExamplesValidate(t *testing.T) {
 	}
 }
 
+func TestPermissionsPatchApplyTo(t *testing.T) {
+	existing := &Permissions{
+		Restrictions: &Restrictions{Value: ReadWrite{Read: PermissionLevelEveryone}},
+		Grants:       []Grant{{Identity: Identity{Type: PropertyOwnerTypeUser, ID: "u1"}, Allow: []string{PropertyActionValueWrite}}},
+		Masking:      &Masking{MaskByFieldID: "holdings"},
+	}
+
+	t.Run("absent keys keep existing's values", func(t *testing.T) {
+		result, err := (&PermissionsPatch{}).ApplyTo(existing)
+		require.NoError(t, err)
+		assert.Equal(t, existing.Restrictions, result.Restrictions)
+		assert.Equal(t, existing.Grants, result.Grants)
+		assert.Equal(t, existing.Masking, result.Masking)
+	})
+
+	t.Run("null clears each key independently", func(t *testing.T) {
+		result, err := (&PermissionsPatch{
+			Restrictions: json.RawMessage("null"),
+			Grants:       json.RawMessage("null"),
+			Masking:      json.RawMessage("null"),
+		}).ApplyTo(existing)
+		require.NoError(t, err)
+		assert.Nil(t, result.Restrictions)
+		assert.Nil(t, result.Grants)
+		assert.Nil(t, result.Masking)
+	})
+
+	t.Run("a present object or array replaces the existing value outright", func(t *testing.T) {
+		result, err := (&PermissionsPatch{
+			Restrictions: json.RawMessage(`{"value":{"write":"admin"}}`),
+			Grants:       json.RawMessage(`[{"type":"plugin","id":"com.example","allow":["value.read"]}]`),
+			Masking:      json.RawMessage(`{"mask_by_field_id":"other"}`),
+		}).ApplyTo(existing)
+		require.NoError(t, err)
+		require.NotNil(t, result.Restrictions)
+		// Only the leaf sent is set here - ApplyTo does not fill omitted
+		// leaves to none, IsValid/normalizeAndValidate does that later.
+		assert.Equal(t, PermissionLevelAdmin, result.Restrictions.Value.Write)
+		assert.Equal(t, PermissionLevel(""), result.Restrictions.Value.Read)
+		require.Len(t, result.Grants, 1)
+		assert.Equal(t, "com.example", result.Grants[0].ID)
+		require.NotNil(t, result.Masking)
+		assert.Equal(t, "other", result.Masking.MaskByFieldID)
+	})
+
+	t.Run("a decode failure is returned as an error", func(t *testing.T) {
+		_, err := (&PermissionsPatch{Restrictions: json.RawMessage(`{`)}).ApplyTo(existing)
+		require.Error(t, err)
+
+		_, err = (&PermissionsPatch{Grants: json.RawMessage(`{"not":"an array"}`)}).ApplyTo(existing)
+		require.Error(t, err)
+
+		_, err = (&PermissionsPatch{Masking: json.RawMessage(`[]`)}).ApplyTo(existing)
+		require.Error(t, err)
+	})
+
+	t.Run("nil existing is legal, built from the present keys alone", func(t *testing.T) {
+		result, err := (&PermissionsPatch{Grants: json.RawMessage(`[]`)}).ApplyTo(nil)
+		require.NoError(t, err)
+		assert.Nil(t, result.Restrictions)
+		assert.Empty(t, result.Grants)
+		assert.Nil(t, result.Masking)
+	})
+
+	t.Run("filtered is copied verbatim", func(t *testing.T) {
+		result, err := (&PermissionsPatch{Filtered: true}).ApplyTo(existing)
+		require.NoError(t, err)
+		assert.True(t, result.Filtered)
+	})
+
+	t.Run("existing is never mutated", func(t *testing.T) {
+		before := *existing.Restrictions
+		_, err := (&PermissionsPatch{Restrictions: json.RawMessage(`{"value":{"write":"admin"}}`)}).ApplyTo(existing)
+		require.NoError(t, err)
+		assert.Equal(t, before, *existing.Restrictions)
+	})
+}
+
 func TestRestrictionsTierFor(t *testing.T) {
 	r := &Restrictions{
 		Value:  ReadWrite{Read: PermissionLevelEveryone, Write: PermissionLevelAdmin},
