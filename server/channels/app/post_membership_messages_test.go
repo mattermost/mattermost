@@ -193,7 +193,7 @@ func TestMembershipSystemPostNotificationSuppression(t *testing.T) {
 			Type:      model.PostTypeAddToChannel,
 			Props: model.StringInterface{
 				model.PostPropsAddedUserId: th.BasicUser2.Id,
-				"username":                th.BasicUser2.Username,
+				"username":                 th.BasicUser2.Username,
 			},
 		}
 		require.False(t, th.App.shouldSuppressMembershipSystemPost(th.Context, ch, addPost),

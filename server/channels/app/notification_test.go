@@ -3552,7 +3552,7 @@ func TestSendNotifications_SuppressedAddToChannel_TargetedWS(t *testing.T) {
 		Type:      model.PostTypeAddToChannel,
 		Props: model.StringInterface{
 			model.PostPropsAddedUserId: th.BasicUser.Id,
-			"username":                th.BasicUser.Username,
+			"username":                 th.BasicUser.Username,
 		},
 	}
 
