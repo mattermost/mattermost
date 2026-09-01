@@ -123,12 +123,23 @@ func (a *App) propertyFieldOptionsChanged(rctx request.CTX, field *model.Propert
 			mlog.Err(err),
 		)
 		a.invalidatePolicyCachesForOptionChange(rctx, field.ID)
+		if field.ObjectType == model.PropertyFieldObjectTypeUser {
+			a.invalidateAllUserAttributeCaches()
+		}
 		return
 	}
 
 	a.invalidatePolicyCachesForOptionChange(rctx, current.ID)
 	for _, dependent := range dependents {
 		a.invalidatePolicyCachesForOptionChange(rctx, dependent.ID)
+	}
+
+	// The matview resolves an object's stored option IDs to names through
+	// PropertyOptions, so an option write changes what every subject resolves to
+	// without touching a single PropertyValues row -- which is what the per-user
+	// epoch is computed from, so it cannot see this on its own.
+	if current.ObjectType == model.PropertyFieldObjectTypeUser || anyUserObjectType(dependents) {
+		a.invalidateAllUserAttributeCaches()
 	}
 
 	a.publishPropertyFieldEvent(rctx, model.WebsocketEventPropertyFieldUpdated, current, connectionID)

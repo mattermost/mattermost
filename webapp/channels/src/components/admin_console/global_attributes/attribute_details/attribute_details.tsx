@@ -361,7 +361,13 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                 if (
                     !field ||
                     getSourceKind(field) === 'plugin' ||
-                    isClassificationMarkingsField(field, field.group_id)
+                    isClassificationMarkingsField(field, field.group_id) ||
+
+                    // A type this editor can't author (graph, whose options carry
+                    // parent links it has no way to send back). Every save sends
+                    // `type`, so editing one here would retype the field and drop
+                    // every value it holds.
+                    !isAttributeFieldType(field.type)
                 ) {
                     getHistory().push(LIST_ROUTE);
                     return;
@@ -375,13 +381,12 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                 const linkedByType = linkedFieldsByResourceType(linkedFields);
                 persistedLinkedFieldsRef.current = linkedByType;
                 originalNameRef.current = field.name;
-                const loadedFieldType = isAttributeFieldType(field.type) ? field.type : 'text';
-                originalFieldTypeRef.current = loadedFieldType;
+                originalFieldTypeRef.current = field.type;
 
                 setDisplayName((field.attrs?.display_name as string | undefined) || '');
                 setManualName(field.name);
                 setIsNameManuallyEdited(true);
-                setFieldType(loadedFieldType);
+                setFieldType(field.type);
                 setOptions(optionsFromField(field));
                 setLdapAttr(typeof field.attrs?.ldap === 'string' ? field.attrs.ldap : '');
                 setSamlAttr(typeof field.attrs?.saml === 'string' ? field.attrs.saml : '');
