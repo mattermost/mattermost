@@ -4,12 +4,17 @@
 package app
 
 import (
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/app/properties"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
+	storemocks "github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 )
 
 func TestShapePropertyFieldForCaller(t *testing.T) {
@@ -65,6 +70,20 @@ func TestShapePropertyFieldForCaller(t *testing.T) {
 		assert.Equal(t, "some-field-id", shaped.Permissions.Masking.MaskByFieldID)
 		// The stored field is untouched.
 		assert.Equal(t, "some-field-id", field.Permissions.Masking.MaskByFieldID)
+	})
+
+	t.Run("an editor's empty grants list serializes as an empty slice, never nil", func(t *testing.T) {
+		field := newField(&model.Permissions{
+			Restrictions: &model.Restrictions{Field: model.WriteOnly{Write: model.PermissionLevelSysadmin}},
+		})
+
+		session := model.Session{UserId: th.SystemAdminUser.Id, Roles: model.SystemAdminRoleId}
+		shaped := th.App.ShapePropertyFieldForCaller(th.Context, session, field, true)
+		require.NotNil(t, shaped.Permissions)
+		require.NotNil(t, shaped.Permissions.Grants)
+		assert.Empty(t, shaped.Permissions.Grants)
+		// The stored field's Grants stays nil.
+		assert.Nil(t, field.Permissions.Grants)
 	})
 
 	t.Run("a non-editing caller sees only their own grants", func(t *testing.T) {
@@ -230,6 +249,21 @@ func TestShapePropertyFieldForCaller(t *testing.T) {
 		fieldA := newLinkedField(template.ID)
 		fieldB := newLinkedField(template.ID)
 
+		// Swap in a property service whose field store counts Get calls, so
+		// the assertion below is on the number of store reads rather than
+		// just the shaped output every field already covers on its own.
+		counter := &countingPropertyFieldStore{PropertyFieldStore: th.Store.PropertyField()}
+		ps, err := properties.New(properties.ServiceConfig{
+			PropertyGroupStore: &storemocks.PropertyGroupStore{},
+			PropertyFieldStore: counter,
+			PropertyValueStore: &storemocks.PropertyValueStore{},
+			CallerIDExtractor:  func(rctx request.CTX) string { return "" },
+		})
+		require.NoError(t, err)
+		originalPS := th.App.Srv().propertyService
+		th.App.Srv().propertyService = ps
+		defer func() { th.App.Srv().propertyService = originalPS }()
+
 		session := model.Session{UserId: th.BasicUser.Id}
 		shaped := th.App.ShapePropertyFieldsForCaller(th.Context, session, []*model.PropertyField{fieldA, fieldB}, true)
 		require.Len(t, shaped, 2)
@@ -237,5 +271,19 @@ func TestShapePropertyFieldForCaller(t *testing.T) {
 			require.NotNil(t, f.Permissions.Masking)
 			assert.True(t, f.Permissions.Filtered)
 		}
+		assert.Equal(t, 1, counter.gets)
 	})
+}
+
+// countingPropertyFieldStore wraps a store.PropertyFieldStore and counts calls
+// to Get, so a test can assert a batch resolved a shared linked-field
+// template once rather than once per field that links to it.
+type countingPropertyFieldStore struct {
+	store.PropertyFieldStore
+	gets int
+}
+
+func (c *countingPropertyFieldStore) Get(ctx context.Context, groupID, id string) (*model.PropertyField, error) {
+	c.gets++
+	return c.PropertyFieldStore.Get(ctx, groupID, id)
 }

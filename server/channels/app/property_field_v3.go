@@ -5,6 +5,7 @@ package app
 
 import (
 	"slices"
+	"sync"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -16,22 +17,25 @@ import (
 // caller's group is still on the v2 payload, which has no place for
 // Permissions at all.
 func (a *App) ShapePropertyFieldForCaller(rctx request.CTX, session model.Session, field *model.PropertyField, serveV3 bool) *model.PropertyField {
-	return a.shapePropertyFieldForCaller(rctx, session, field, serveV3, make(map[string]*model.PropertyField))
+	roles := sync.OnceValue(func() []string { return a.propertyCallerRoles(session.UserId) })
+	return a.shapePropertyFieldForCaller(rctx, session, field, serveV3, make(map[string]*model.PropertyField), roles)
 }
 
 // ShapePropertyFieldsForCaller applies ShapePropertyFieldForCaller to every
 // field in the slice, resolving each linked field's masking template at most
-// once no matter how many of the fields link to it.
+// once no matter how many of the fields link to it, and the caller's roles at
+// most once no matter how many fields need them.
 func (a *App) ShapePropertyFieldsForCaller(rctx request.CTX, session model.Session, fields []*model.PropertyField, serveV3 bool) []*model.PropertyField {
 	templates := make(map[string]*model.PropertyField)
+	roles := sync.OnceValue(func() []string { return a.propertyCallerRoles(session.UserId) })
 	shaped := make([]*model.PropertyField, len(fields))
 	for i, field := range fields {
-		shaped[i] = a.shapePropertyFieldForCaller(rctx, session, field, serveV3, templates)
+		shaped[i] = a.shapePropertyFieldForCaller(rctx, session, field, serveV3, templates, roles)
 	}
 	return shaped
 }
 
-func (a *App) shapePropertyFieldForCaller(rctx request.CTX, session model.Session, field *model.PropertyField, serveV3 bool, templates map[string]*model.PropertyField) *model.PropertyField {
+func (a *App) shapePropertyFieldForCaller(rctx request.CTX, session model.Session, field *model.PropertyField, serveV3 bool, templates map[string]*model.PropertyField, roles func() []string) *model.PropertyField {
 	if field == nil || field.Permissions == nil {
 		return field
 	}
@@ -44,31 +48,26 @@ func (a *App) shapePropertyFieldForCaller(rctx request.CTX, session model.Sessio
 	}
 
 	isLinked := field.LinkedFieldID != nil && *field.LinkedFieldID != ""
-
-	var masking *model.Masking
-	var maskingFiltered bool
-	if isLinked {
-		masking, maskingFiltered = a.linkedFieldMaskingPresence(rctx, field, templates)
-	} else {
-		masking, maskingFiltered = maskingPresence(field.Permissions.Masking)
-	}
-
 	canEdit := a.SessionPropertyFieldEditBasis(rctx, session, field).Allowed
 
-	// A linked field's masking is never editable, so a field.write holder
-	// still only sees whether it is masked, never mask_by_field_id or except
-	// -- those belong to the template's administrator.
-	if canEdit && !isLinked {
-		return &copied
-	}
-
 	permissions := *field.Permissions
-	permissions.Masking = masking
-	filtered := maskingFiltered
+	filtered := false
+
+	// A caller who may edit an unlinked field sees masking in full; every
+	// other arm gets presence only. A linked field's masking is never
+	// editable, so a field.write holder still only sees whether it is
+	// masked, never mask_by_field_id or except -- those belong to the
+	// template's administrator.
+	if !canEdit || isLinked {
+		if isLinked {
+			permissions.Masking, filtered = a.linkedFieldMaskingPresence(rctx, field, templates)
+		} else {
+			permissions.Masking, filtered = maskingPresence(permissions.Masking)
+		}
+	}
 
 	if !canEdit {
 		grants := make([]model.Grant, 0, len(permissions.Grants))
-		roles := a.propertyCallerRoles(session.UserId)
 		for _, grant := range permissions.Grants {
 			switch grant.Type {
 			case model.PropertyOwnerTypeUser:
@@ -77,7 +76,7 @@ func (a *App) shapePropertyFieldForCaller(rctx request.CTX, session model.Sessio
 					continue
 				}
 			case model.PropertyOwnerTypeRole:
-				if slices.Contains(roles, grant.ID) {
+				if slices.Contains(roles(), grant.ID) {
 					grants = append(grants, grant)
 					continue
 				}
@@ -87,6 +86,12 @@ func (a *App) shapePropertyFieldForCaller(rctx request.CTX, session model.Sessio
 		permissions.Grants = grants
 	}
 
+	// A shorter grants array is fine; a different shape per caller is not --
+	// nil for an editor and [] for everyone else is exactly the branch a
+	// client checking permissions.grants.length would have to take.
+	if permissions.Grants == nil {
+		permissions.Grants = []model.Grant{}
+	}
 	permissions.Filtered = filtered
 	copied.Permissions = &permissions
 	return &copied
