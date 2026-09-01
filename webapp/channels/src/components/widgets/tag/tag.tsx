@@ -127,7 +127,7 @@ const TagText = styled.span`
     text-overflow: ellipsis;
 `;
 
-const Tag = React.forwardRef<HTMLDivElement, Props>(({
+const Tag = React.forwardRef<HTMLElement, Props>(({
     variant,
     onClick,
     className,
@@ -157,7 +157,10 @@ const Tag = React.forwardRef<HTMLDivElement, Props>(({
     return (
         <TagWrapper
             {...rest}
-            ref={ref}
+
+            // TagWrapper renders a div or a button, but styled-components types
+            // its ref as one or the other, never HTMLElement.
+            ref={ref as React.Ref<HTMLDivElement>}
             as={element}
             uppercase={uppercase}
             onClick={onClick}
