@@ -450,7 +450,7 @@ func (a *App) sanitizeFileAttachmentsForUser(rctx request.CTX, post *model.Post,
 		return
 	}
 
-	user, err := a.GetUser(userID)
+	user, err := a.GetUser(rctx, userID)
 	if err != nil {
 		rctx.Logger().Warn("Failed to get user for file attachment sanitization, stripping attachments",
 			mlog.String("user_id", userID),
