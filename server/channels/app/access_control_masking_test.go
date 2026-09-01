@@ -368,8 +368,9 @@ func TestMaskConditionValues(t *testing.T) {
 	}
 
 	// hold wraps a field as its own holdings source with its own access mode —
-	// the direct-field case these unit tests exercise (channel-sibling access-mode
-	// resolution is covered by the store-backed tests).
+	// the direct-field case these unit tests exercise (resolving a channel
+	// field's holdings through mask_by_field_id is covered by the store-backed
+	// tests).
 	hold := func(f *model.PropertyField) *maskingHoldings {
 		return &maskingHoldings{field: f, accessMode: f.GetAccessMode()}
 	}
@@ -522,8 +523,9 @@ func TestMaskConditionValues(t *testing.T) {
 			Value:     "secret",
 			ValueType: model.LiteralValue,
 		}
-		// The prefetched field is the holdings-bearing sibling; "secret" is not
-		// among the caller's visible options, so it masks.
+		// The prefetched field is the holdings-bearing field named by
+		// mask_by_field_id; "secret" is not among the caller's visible options,
+		// so it masks.
 		fields := map[string]*maskingHoldings{
 			"channel/Sensitivity": hold(makeField(model.PropertyAccessModeSharedOnly, model.PropertyFieldTypeSelect, options)),
 		}
@@ -1312,9 +1314,10 @@ func TestSplitCPAAttribute(t *testing.T) {
 
 // TestAppMaskingResolver_ChannelFieldUsesUserHoldings verifies the shared-template
 // bridge: a resource.attributes.<field> reference is masked by the caller's own
-// USER-side holdings for the linked template, since users never hold channel
-// values directly. A shared_only channel field whose user sibling the caller
-// partially holds must expose only the held option values.
+// USER-side holdings for the field the template names in mask_by_field_id,
+// since users never hold channel values directly. A shared_only channel field
+// whose named holdings field the caller partially holds must expose only the
+// held option values.
 //
 // Run over both option-bearing types the clearance/classification pairing uses.
 // Rank is the one that regresses if the resolver spells its type list out instead
@@ -1396,6 +1399,12 @@ func assertChannelFieldUsesUserHoldings(t *testing.T, fieldType model.PropertyFi
 	})
 	require.NoError(t, sErr)
 
+	// The template names the user field as where holdings live; nothing else
+	// makes userField the resolver's choice.
+	tmpl.Permissions = &model.Permissions{Masking: &model.Masking{MaskByFieldID: userField.ID}}
+	_, sErr = th.Store.PropertyField().Update(groupID, []*model.PropertyField{tmpl}, nil)
+	require.NoError(t, sErr)
+
 	// Caller holds option A on the USER field (users never hold channel values).
 	// Written store-level because the field is protected (app-layer writes to
 	// protected fields are plugin-only).
@@ -1418,12 +1427,14 @@ func assertChannelFieldUsesUserHoldings(t *testing.T, fieldType model.PropertyFi
 	assert.True(t, info.IsValueHidden("B"), "value the caller does not hold must be hidden on the channel field")
 }
 
-// TestAppMaskingResolver_AmbiguousUserSibling guards the fail-open hole where two
-// user fields link the same template. Nothing enforces LinkedFieldID uniqueness
-// at the DB level, so picking the "first" sibling would make channel-field
-// visibility depend on store order and could leak a value via the wrong sibling.
-// Resolution must error instead of guessing.
-func TestAppMaskingResolver_AmbiguousUserSibling(t *testing.T) {
+// TestAppMaskingResolver_NoMaskByFieldIDMasksEverything guards the fail-closed
+// default when a channel field's template names no mask_by_field_id: holdings
+// resolve to the channel field itself, which stores no values keyed to a
+// user, so the overlap is empty and every option masks. Nothing is inferred
+// from "the user field linked to this template" -- that guess stops working
+// the moment a template has two, and there is now a declaration to read
+// instead of one.
+func TestAppMaskingResolver_NoMaskByFieldIDMasksEverything(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
@@ -1448,28 +1459,24 @@ func TestAppMaskingResolver_AmbiguousUserSibling(t *testing.T) {
 	})
 	require.NoError(t, sErr)
 
-	linkedAttrs := func() model.StringInterface {
-		return model.StringInterface{
+	// A user field links the same template, but the template names no
+	// mask_by_field_id -- it must not be picked up as an implicit holdings
+	// source.
+	userField, sErr := th.Store.PropertyField().Create(&model.PropertyField{
+		GroupID:       groupID,
+		Name:          celSafeName(),
+		Type:          model.PropertyFieldTypeSelect,
+		ObjectType:    model.PropertyFieldObjectTypeUser,
+		TargetType:    string(model.PropertyFieldTargetLevelSystem),
+		LinkedFieldID: &tmpl.ID,
+		Attrs: model.StringInterface{
 			model.PropertyFieldAttributeOptions: options,
 			model.PropertyAttrsProtected:        true,
 			model.PropertyAttrsAccessMode:       model.PropertyAccessModeSharedOnly,
 			model.PropertyAttrsSourcePluginID:   "com.mattermost.uas-plugin",
-		}
-	}
-
-	// Two user fields link the same template — the ambiguity this test triggers.
-	for range 2 {
-		_, sErr = th.Store.PropertyField().Create(&model.PropertyField{
-			GroupID:       groupID,
-			Name:          celSafeName(),
-			Type:          model.PropertyFieldTypeSelect,
-			ObjectType:    model.PropertyFieldObjectTypeUser,
-			TargetType:    string(model.PropertyFieldTargetLevelSystem),
-			LinkedFieldID: &tmpl.ID,
-			Attrs:         linkedAttrs(),
-		})
-		require.NoError(t, sErr)
-	}
+		},
+	})
+	require.NoError(t, sErr)
 
 	channelFieldName := celSafeName()
 	_, sErr = th.Store.PropertyField().Create(&model.PropertyField{
@@ -1479,30 +1486,43 @@ func TestAppMaskingResolver_AmbiguousUserSibling(t *testing.T) {
 		ObjectType:    model.PropertyFieldObjectTypeChannel,
 		TargetType:    string(model.PropertyFieldTargetLevelSystem),
 		LinkedFieldID: &tmpl.ID,
-		Attrs:         linkedAttrs(),
+		Attrs: model.StringInterface{
+			model.PropertyFieldAttributeOptions: options,
+			model.PropertyAttrsProtected:        true,
+			model.PropertyAttrsAccessMode:       model.PropertyAccessModeSharedOnly,
+		},
 	})
 	require.NoError(t, sErr)
+
+	// Caller holds option A on the user field, but it is never consulted:
+	// the template names no mask_by_field_id, so holdings resolve to the
+	// channel field itself.
+	_, vErr := th.Store.PropertyValue().Create(&model.PropertyValue{
+		TargetID:   callerID,
+		TargetType: model.PropertyValueTargetTypeUser,
+		GroupID:    groupID,
+		FieldID:    userField.ID,
+		Value:      json.RawMessage(`"` + optA + `"`),
+	})
+	require.NoError(t, vErr)
 
 	resolver, rErr := newMaskingResolver(th.App, rctx, callerID)
 	require.Nil(t, rErr)
 
-	// The Resolve path propagates the ambiguity error rather than guessing a
-	// sibling (the batch precompute path instead logs and fails the field closed).
-	_, err := resolver.Resolve(model.PropertyFieldObjectTypeChannel, channelFieldName)
-	require.Error(t, err)
-	var appErr *model.AppError
-	require.ErrorAs(t, err, &appErr)
-	require.Equal(t, "app.pap.masking.ambiguous_sibling.app_error", appErr.Id)
+	info, err := resolver.Resolve(model.PropertyFieldObjectTypeChannel, channelFieldName)
+	require.NoError(t, err)
+	require.Equal(t, model.MaskingFieldAccessSharedOnly, info.Access)
+	assert.True(t, info.IsValueHidden("A"), "with no mask_by_field_id, holdings resolve to the channel field itself and every option masks")
 }
 
-// TestAppMaskingResolver_ChannelFieldProtectedSiblingPublic guards the fail-open
-// hole where the channel field is protected (shared_only) but its user-side
-// sibling is public (the default when access mode is unset — linked fields do
-// NOT inherit access mode at creation). The access mode must come from the
-// channel field, not the sibling, and because a public sibling's options are
-// not held-filtered, the select values fail closed (all hidden) rather than
-// leaking every option name.
-func TestAppMaskingResolver_ChannelFieldProtectedSiblingPublic(t *testing.T) {
+// TestAppMaskingResolver_ChannelFieldNamedHoldingsPublic guards the fail-open
+// hole where the channel field is protected (shared_only) but the user field
+// its template names as mask_by_field_id is public (linked fields do NOT
+// inherit access mode at creation). The access mode must come from the
+// channel field, not the named holdings field, and because a public holdings
+// field's options are not held-filtered, the select values fail closed (all
+// hidden) rather than leaking every option name.
+func TestAppMaskingResolver_ChannelFieldNamedHoldingsPublic(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
@@ -1531,9 +1551,9 @@ func TestAppMaskingResolver_ChannelFieldProtectedSiblingPublic(t *testing.T) {
 	})
 	require.NoError(t, sErr)
 
-	// User sibling: PUBLIC (access mode unset) — the misconfiguration the fix
-	// must not trust.
-	_, sErr = th.Store.PropertyField().Create(&model.PropertyField{
+	// Named holdings field: PUBLIC (access mode unset) — the misconfiguration
+	// the fix must not trust.
+	userField, sErr := th.Store.PropertyField().Create(&model.PropertyField{
 		GroupID:       groupID,
 		Name:          celSafeName(),
 		Type:          model.PropertyFieldTypeSelect,
@@ -1561,15 +1581,19 @@ func TestAppMaskingResolver_ChannelFieldProtectedSiblingPublic(t *testing.T) {
 	})
 	require.NoError(t, sErr)
 
+	tmpl.Permissions = &model.Permissions{Masking: &model.Masking{MaskByFieldID: userField.ID}}
+	_, sErr = th.Store.PropertyField().Update(groupID, []*model.PropertyField{tmpl}, nil)
+	require.NoError(t, sErr)
+
 	resolver, rErr := newMaskingResolver(th.App, rctx, callerID)
 	require.Nil(t, rErr)
 
 	info, err := resolver.Resolve(model.PropertyFieldObjectTypeChannel, channelFieldName)
 	require.NoError(t, err)
 	require.Equal(t, model.MaskingFieldAccessSharedOnly, info.Access,
-		"access mode must come from the protected channel field, not the public sibling")
-	assert.True(t, info.IsValueHidden("A"), "protected channel field with a public sibling must fail closed, not leak option names")
-	assert.True(t, info.IsValueHidden("B"), "protected channel field with a public sibling must fail closed, not leak option names")
+		"access mode must come from the protected channel field, not the public holdings field")
+	assert.True(t, info.IsValueHidden("A"), "protected channel field with a public named holdings field must fail closed, not leak option names")
+	assert.True(t, info.IsValueHidden("B"), "protected channel field with a public named holdings field must fail closed, not leak option names")
 }
 
 // TestAppMaskingResolver_HierarchyAndLadderUseOptionNames covers the two field

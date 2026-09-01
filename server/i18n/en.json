@@ -7917,10 +7917,6 @@
     "translation": "Could not mask policy expression."
   },
   {
-    "id": "app.pap.masking.ambiguous_sibling.app_error",
-    "translation": "Multiple user attributes link the same template, so channel-attribute visibility cannot be determined unambiguously."
-  },
-  {
     "id": "app.pap.masking.unknown_object_type.app_error",
     "translation": "Cannot resolve attribute visibility for an unknown object type."
   },

@@ -150,9 +150,32 @@ func IsPropertyFieldProtected(field *PropertyField) bool {
 	return ok && protected
 }
 
-// GetAccessMode returns the field's access mode. Returns the public mode (empty
-// string) when no access_mode is configured or the field has no attrs at all.
+// GetAccessMode returns the field's own access mode -- never a linked
+// field's template; a caller that must follow the template for a linked
+// field with no masking of its own needs the App layer, which alone can read
+// it.
+//
+// Computed from Permissions when non-nil: a set Masking means shared_only
+// (masking is what shared_only became); else either read tier resolving to
+// none means source_only; else public. Reads the tiers through
+// Restrictions.TierFor, which is nil-receiver safe, so a Permissions with no
+// Restrictions reports source_only rather than panicking.
+//
+// Falls back to the legacy Attrs["access_mode"] read only while Permissions
+// is nil -- a shim for a field the backfill has not converted yet.
 func (f *PropertyField) GetAccessMode() string {
+	if f.Permissions != nil {
+		switch {
+		case f.Permissions.Masking != nil:
+			return PropertyAccessModeSharedOnly
+		case f.Permissions.Restrictions.TierFor(PropertyActionValueRead) == PermissionLevelNone ||
+			f.Permissions.Restrictions.TierFor(PropertyActionOptionRead) == PermissionLevelNone:
+			return PropertyAccessModeSourceOnly
+		default:
+			return PropertyAccessModePublic
+		}
+	}
+
 	if f.Attrs == nil {
 		return PropertyAccessModePublic
 	}

@@ -1791,7 +1791,13 @@ func (a *App) GetAccessControlPolicyAttributes(rctx request.CTX, channelID strin
 			delete(attributes, fieldName)
 			continue
 		}
-		switch field.GetAccessMode() {
+		// Same store bypass for a linked field's template: a linked field's own
+		// Masking is always nil, so its effective mode must follow the template
+		// to see a masked scheme (effectiveAccessModeUsing).
+		mode := effectiveAccessModeUsing(field, func(id string) (*model.PropertyField, error) {
+			return a.Srv().Store().PropertyField().Get(rctx.Context(), cpaGroup.ID, id)
+		})
+		switch mode {
 		case model.PropertyAccessModeSourceOnly, model.PropertyAccessModeSharedOnly:
 			delete(attributes, fieldName)
 		}

@@ -159,25 +159,78 @@ func TestIsPropertyFieldProtected(t *testing.T) {
 }
 
 func TestPropertyFieldGetAccessMode(t *testing.T) {
-	t.Run("nil attrs returns public", func(t *testing.T) {
+	// Nil Permissions exercises the legacy Attrs shim -- a field the backfill
+	// has not converted yet.
+	t.Run("nil permissions, nil attrs returns public", func(t *testing.T) {
 		f := &PropertyField{Attrs: nil}
 		require.Equal(t, PropertyAccessModePublic, f.GetAccessMode())
 	})
-	t.Run("missing access_mode returns public", func(t *testing.T) {
+	t.Run("nil permissions, missing access_mode returns public", func(t *testing.T) {
 		f := &PropertyField{Attrs: StringInterface{}}
 		require.Equal(t, PropertyAccessModePublic, f.GetAccessMode())
 	})
-	t.Run("non-string access_mode returns public", func(t *testing.T) {
+	t.Run("nil permissions, non-string access_mode returns public", func(t *testing.T) {
 		f := &PropertyField{Attrs: StringInterface{PropertyAttrsAccessMode: 123}}
 		require.Equal(t, PropertyAccessModePublic, f.GetAccessMode())
 	})
-	t.Run("shared_only returned as-is", func(t *testing.T) {
+	t.Run("nil permissions, shared_only attrs returned as-is", func(t *testing.T) {
 		f := &PropertyField{Attrs: StringInterface{PropertyAttrsAccessMode: PropertyAccessModeSharedOnly}}
 		require.Equal(t, PropertyAccessModeSharedOnly, f.GetAccessMode())
 	})
-	t.Run("source_only returned as-is", func(t *testing.T) {
+	t.Run("nil permissions, source_only attrs returned as-is", func(t *testing.T) {
 		f := &PropertyField{Attrs: StringInterface{PropertyAttrsAccessMode: PropertyAccessModeSourceOnly}}
 		require.Equal(t, PropertyAccessModeSourceOnly, f.GetAccessMode())
+	})
+
+	// Non-nil Permissions ignores Attrs entirely -- it is the field's own
+	// state once the backfill has converted it.
+	t.Run("masking present reports shared_only regardless of tiers", func(t *testing.T) {
+		f := &PropertyField{
+			Attrs: StringInterface{PropertyAttrsAccessMode: PropertyAccessModePublic},
+			Permissions: &Permissions{
+				Restrictions: &Restrictions{
+					Value:  ReadWrite{Read: PermissionLevelEveryone},
+					Option: ReadWrite{Read: PermissionLevelEveryone},
+				},
+				Masking: &Masking{},
+			},
+		}
+		require.Equal(t, PropertyAccessModeSharedOnly, f.GetAccessMode())
+	})
+	t.Run("no masking, value.read none reports source_only", func(t *testing.T) {
+		f := &PropertyField{
+			Permissions: &Permissions{
+				Restrictions: &Restrictions{
+					Option: ReadWrite{Read: PermissionLevelEveryone},
+				},
+			},
+		}
+		require.Equal(t, PropertyAccessModeSourceOnly, f.GetAccessMode())
+	})
+	t.Run("no masking, option.read none reports source_only", func(t *testing.T) {
+		f := &PropertyField{
+			Permissions: &Permissions{
+				Restrictions: &Restrictions{
+					Value: ReadWrite{Read: PermissionLevelEveryone},
+				},
+			},
+		}
+		require.Equal(t, PropertyAccessModeSourceOnly, f.GetAccessMode())
+	})
+	t.Run("no masking, nil restrictions reports source_only", func(t *testing.T) {
+		f := &PropertyField{Permissions: &Permissions{}}
+		require.Equal(t, PropertyAccessModeSourceOnly, f.GetAccessMode())
+	})
+	t.Run("no masking, both read tiers set reports public", func(t *testing.T) {
+		f := &PropertyField{
+			Permissions: &Permissions{
+				Restrictions: &Restrictions{
+					Value:  ReadWrite{Read: PermissionLevelEveryone},
+					Option: ReadWrite{Read: PermissionLevelEveryone},
+				},
+			},
+		}
+		require.Equal(t, PropertyAccessModePublic, f.GetAccessMode())
 	})
 }
 

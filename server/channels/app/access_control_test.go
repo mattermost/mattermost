@@ -4837,6 +4837,66 @@ func TestGetAccessControlPolicyAttributes_PublicFieldsPassThrough(t *testing.T) 
 	mockACS.AssertExpectations(t)
 }
 
+// TestGetAccessControlPolicyAttributes_LinkedFieldFollowsTemplateMasking verifies
+// that a linked user field of a masked scheme is still stripped from the
+// policy-attribute allowlist even though its own Permissions carry no Masking
+// -- a linked field's own Masking is always nil by construction, so its
+// effective mode must follow the template (effectiveAccessModeUsing), not
+// GetAccessMode alone.
+func TestGetAccessControlPolicyAttributes_LinkedFieldFollowsTemplateMasking(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+
+	rctx := request.TestContext(t)
+
+	cpaGroup, cErr := th.App.GetPropertyGroup(rctx, model.AccessControlPropertyGroupName)
+	require.Nil(t, cErr)
+
+	tmpl, sErr := th.App.Srv().Store().PropertyField().Create(&model.PropertyField{
+		GroupID:    cpaGroup.ID,
+		Name:       "template_" + model.NewId()[:8],
+		Type:       model.PropertyFieldTypeSelect,
+		ObjectType: model.PropertyFieldObjectTypeTemplate,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
+		Permissions: &model.Permissions{
+			Masking: &model.Masking{},
+		},
+	})
+	require.NoError(t, sErr)
+
+	fieldName := "f_" + model.NewId()[:8]
+	_, sErr = th.App.Srv().Store().PropertyField().Create(&model.PropertyField{
+		GroupID:       cpaGroup.ID,
+		Name:          fieldName,
+		Type:          model.PropertyFieldTypeSelect,
+		ObjectType:    model.PropertyFieldObjectTypeUser,
+		TargetType:    string(model.PropertyFieldTargetLevelSystem),
+		LinkedFieldID: &tmpl.ID,
+		Permissions: &model.Permissions{
+			// Ordinary, unmasked-looking tiers -- the field's own Masking is nil
+			// (locked on a linked field), so GetAccessMode alone reports public.
+			Restrictions: &model.Restrictions{
+				Value:  model.ReadWrite{Read: model.PermissionLevelEveryone},
+				Option: model.ReadWrite{Read: model.PermissionLevelEveryone},
+			},
+		},
+	})
+	require.NoError(t, sErr)
+
+	channelID := model.NewId()
+	rawAttributes := map[string][]string{fieldName: {"Alpha", "Bravo"}}
+
+	mockACS := &mocks.AccessControlServiceInterface{}
+	th.App.Srv().ch.AccessControl = mockACS
+	mockACS.On("GetPolicyRuleAttributes", mock.Anything, channelID, model.AccessControlPolicyActionMembership).
+		Return(rawAttributes, nil).Once()
+
+	result, appErr := th.App.GetAccessControlPolicyAttributes(th.Context, channelID, model.AccessControlPolicyActionMembership)
+	require.Nil(t, appErr)
+	assert.NotContains(t, result, fieldName)
+	mockACS.AssertExpectations(t)
+}
+
 // TestMergeStoredPolicyExpressions_ActionsLocked verifies that a caller who
 // cannot see all values in a stored rule cannot change that rule's Actions.
 // The attack: submit a PUT with the same masked expression but a different
