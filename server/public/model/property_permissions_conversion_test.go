@@ -4,6 +4,7 @@
 package model
 
 import (
+	"maps"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -400,6 +401,136 @@ func TestPermissionsFromLegacyMaskingSourceOnlyAndPublic(t *testing.T) {
 
 		assert.Nil(t, p.Masking)
 	}
+}
+
+func TestProjectLegacyPermissionsNilReturnsFieldUnchanged(t *testing.T) {
+	field := &PropertyField{ID: "field1"}
+	assert.Same(t, field, ProjectLegacyPermissions(field))
+}
+
+func TestProjectLegacyPermissionsRoundTrip(t *testing.T) {
+	tests := []struct {
+		name  string
+		field *PropertyField
+		opts  LegacyConversionOpts
+	}{
+		{
+			name: "the three write levels",
+			field: &PropertyField{
+				PermissionField:   new(PermissionLevelSysadmin),
+				PermissionOptions: new(PermissionLevelAdmin),
+				PermissionValues:  new(PermissionLevelMember),
+			},
+			opts: LegacyConversionOpts{ConvertAttrs: false},
+		},
+		{
+			name: "a protected field",
+			field: &PropertyField{
+				Protected:        true,
+				PermissionField:  new(PermissionLevelNone),
+				PermissionValues: new(PermissionLevelMember),
+				Attrs: StringInterface{
+					PropertyAttrsProtected: true,
+				},
+			},
+			opts: LegacyConversionOpts{ConvertAttrs: true},
+		},
+		{
+			name: "public access mode",
+			field: &PropertyField{
+				PermissionField: new(PermissionLevelSysadmin),
+				Attrs: StringInterface{
+					PropertyAttrsAccessMode: PropertyAccessModePublic,
+				},
+			},
+			opts: LegacyConversionOpts{ConvertAttrs: true},
+		},
+		{
+			name: "source_only access mode",
+			field: &PropertyField{
+				Protected:       true,
+				PermissionField: new(PermissionLevelNone),
+				Attrs: StringInterface{
+					PropertyAttrsAccessMode: PropertyAccessModeSourceOnly,
+					PropertyAttrsProtected:  true,
+				},
+			},
+			opts: LegacyConversionOpts{ConvertAttrs: true},
+		},
+		{
+			name: "shared_only access mode",
+			field: &PropertyField{
+				ObjectType:      PropertyFieldObjectTypeChannel,
+				Protected:       true,
+				PermissionField: new(PermissionLevelNone),
+				Attrs: StringInterface{
+					PropertyAttrsAccessMode: PropertyAccessModeSharedOnly,
+					PropertyAttrsProtected:  true,
+				},
+			},
+			opts: LegacyConversionOpts{ConvertAttrs: true},
+		},
+		{
+			name: "a field with owners carrying scopes",
+			field: &PropertyField{
+				PermissionField: new(PermissionLevelAdmin),
+				Attrs: StringInterface{
+					PropertyAttrsOwners: []PropertyOwner{
+						{Type: PropertyOwnerTypeUser, ID: "user1", Scopes: []string{"scope-a"}},
+						{Type: PropertyOwnerTypeRole, ID: "role1", Scopes: []string{"scope-b", "scope-c"}},
+					},
+				},
+			},
+			opts: LegacyConversionOpts{ConvertAttrs: true},
+		},
+		{
+			name: "an ldap-synced shared_only field",
+			field: &PropertyField{
+				ObjectType:      PropertyFieldObjectTypeChannel,
+				Protected:       true,
+				PermissionField: new(PermissionLevelNone),
+				Attrs: StringInterface{
+					PropertyAttrsAccessMode: PropertyAccessModeSharedOnly,
+					PropertyAttrsProtected:  true,
+					PropertyFieldAttrLDAP:   "ldap-sync-id",
+				},
+			},
+			opts: LegacyConversionOpts{ConvertAttrs: true},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			want := PermissionsFromLegacy(tt.field, tt.opts)
+			tt.field.Permissions = want
+
+			projected := ProjectLegacyPermissions(tt.field)
+			got := PermissionsFromLegacy(projected, tt.opts)
+
+			assert.Equal(t, want, got)
+		})
+	}
+}
+
+func TestProjectLegacyPermissionsDoesNotMutateArgument(t *testing.T) {
+	field := &PropertyField{
+		PermissionField: new(PermissionLevelAdmin),
+		Attrs: StringInterface{
+			PropertyAttrsOwners: []PropertyOwner{
+				{Type: PropertyOwnerTypeUser, ID: "user1"},
+			},
+		},
+	}
+	field.Permissions = PermissionsFromLegacy(field, LegacyConversionOpts{ConvertAttrs: true})
+	before := maps.Clone(field.Attrs)
+
+	projected := ProjectLegacyPermissions(field)
+
+	assert.Equal(t, before, field.Attrs)
+	// The two Attrs maps must not share backing storage, or a later caller
+	// mutating the projected copy would corrupt the stored field.
+	delete(projected.Attrs, PropertyAttrsOwners)
+	assert.Contains(t, field.Attrs, PropertyAttrsOwners)
 }
 
 func TestPermissionsFromLegacyGrantsConvertAttrsFalse(t *testing.T) {

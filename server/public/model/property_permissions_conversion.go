@@ -3,6 +3,8 @@
 
 package model
 
+import "maps"
+
 // LegacyConversionOpts controls how PermissionsFromLegacy reads a field's
 // legacy permission columns and Attrs.
 type LegacyConversionOpts struct {
@@ -102,6 +104,77 @@ func PermissionsFromLegacy(field *PropertyField, opts LegacyConversionOpts) *Per
 	}
 }
 
+// ProjectLegacyPermissions is the inverse of PermissionsFromLegacy: it
+// returns a copy of field with its legacy permission columns and Attrs
+// populated from field.Permissions, so a v2 caller keeps reading a field
+// whose access is now decided from permissions alone. Returns field
+// unchanged when Permissions is nil — there is nothing to project. Never
+// mutates field or its Attrs map.
+func ProjectLegacyPermissions(field *PropertyField) *PropertyField {
+	if field.Permissions == nil {
+		return field
+	}
+
+	projected := *field
+	projected.Attrs = maps.Clone(field.Attrs)
+	if projected.Attrs == nil {
+		projected.Attrs = StringInterface{}
+	}
+
+	restrictions := field.Permissions.Restrictions
+	fieldWrite := restrictions.TierFor(PropertyActionFieldWrite)
+	valueWrite := restrictions.TierFor(PropertyActionValueWrite)
+	optionWrite := restrictions.TierFor(PropertyActionOptionWrite)
+	projected.PermissionField = &fieldWrite
+	projected.PermissionValues = &valueWrite
+	projected.PermissionOptions = &optionWrite
+
+	// The exact inverse of 7.2's conversion, which keeps IsValid's own
+	// protected/permission_field cross-validation satisfied on the result.
+	projected.Protected = fieldWrite == PermissionLevelNone
+	if projected.Protected {
+		projected.Attrs[PropertyAttrsProtected] = true
+	} else {
+		delete(projected.Attrs, PropertyAttrsProtected)
+	}
+
+	if owners := ownersFromGrants(field.Permissions.Grants); len(owners) > 0 {
+		projected.Attrs[PropertyAttrsOwners] = owners
+	} else {
+		// No owners at all, so the field looks exactly like a field that never
+		// had any, rather than one carrying an empty list.
+		delete(projected.Attrs, PropertyAttrsOwners)
+	}
+
+	if accessMode := field.GetAccessMode(); accessMode == PropertyAccessModePublic {
+		// An absent key already means public.
+		delete(projected.Attrs, PropertyAttrsAccessMode)
+	} else {
+		projected.Attrs[PropertyAttrsAccessMode] = accessMode
+	}
+
+	return &projected
+}
+
+// ownersFromGrants converts each grant into the PropertyOwner shape a v2
+// caller reads from Attrs, carrying the grant's own Allow list rather than
+// enumerating every action.
+func ownersFromGrants(grants []Grant) []PropertyOwner {
+	if len(grants) == 0 {
+		return nil
+	}
+	owners := make([]PropertyOwner, len(grants))
+	for i, grant := range grants {
+		owners[i] = PropertyOwner{
+			ID:     grant.ID,
+			Type:   grant.Type,
+			Scopes: grant.Scopes,
+			Allow:  grant.Allow,
+		}
+	}
+	return owners
+}
+
 // maskingFromLegacy converts a shared_only access mode into a Masking object.
 // It returns nil for every other access mode, and for a linked field it never
 // returns one of the field's own — it either leaves the field to inherit the
@@ -182,7 +255,15 @@ func grantsFromLegacy(field *PropertyField) []Grant {
 	}
 
 	for _, owner := range GetPropertyFieldOwners(field) {
-		addGrant(owner.Type, owner.ID, owner.Scopes, validPropertyActions)
+		allow := validPropertyActions
+		if len(owner.Allow) > 0 {
+			// An owner written by ProjectLegacyPermissions carries the exact list its
+			// grant was allowed; honoring it verbatim is what makes projecting a
+			// converted field and converting it back lossless. An owner with no Allow
+			// predates this field and keeps the legacy assumption of full access.
+			allow = owner.Allow
+		}
+		addGrant(owner.Type, owner.ID, owner.Scopes, allow)
 	}
 
 	if pluginID, _ := field.Attrs[PropertyAttrsSourcePluginID].(string); pluginID != "" {

@@ -70,6 +70,10 @@ type PropertyOwner struct {
 	ID     string   `json:"id"`
 	Type   string   `json:"type"`
 	Scopes []string `json:"scopes"`
+	// Allow lists the actions this owner may perform. Empty means every action
+	// enumerated in validPropertyActions — the legacy shape had no way to say
+	// less, so an owner written before this field existed keeps its full access.
+	Allow []string `json:"allow,omitempty"`
 }
 
 // IsValidPropertyOwnerType reports whether the given owner type is recognized.
