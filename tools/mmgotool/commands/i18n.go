@@ -20,7 +20,7 @@ import (
 	"strconv"
 	"strings"
 
-	goi18n "github.com/mattermost/go-i18n/i18n"
+	"github.com/mattermost/go-i18n/i18n/bundle"
 	"github.com/mattermost/go-i18n/i18n/language"
 	"github.com/spf13/cobra"
 )
@@ -856,7 +856,11 @@ func verifyLocaleFile(filename string, en map[string]Item, warnMissingIDs bool) 
 	// The strongest check available: the loader the server actually runs at
 	// startup. It rejects invalid JSON, plural categories the locale does not
 	// have, and any translation that fails to parse as a text/template.
-	if err := goi18n.LoadTranslationFile(filename); err != nil {
+	//
+	// A fresh bundle per file, rather than the package-global one, so that a
+	// locale cannot mask a defect in another and so the checks are order
+	// independent and safe to run in parallel.
+	if err := bundle.New().LoadTranslationFile(filename); err != nil {
 		return []string{fmt.Sprintf("%s: rejected by the runtime translation loader: %v", name, err)}, nil
 	}
 
