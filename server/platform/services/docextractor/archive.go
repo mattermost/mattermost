@@ -100,14 +100,14 @@ func (ae *archiveExtractor) Extract(ctx context.Context, name string, r io.ReadS
 
 			data, err := io.ReadAll(reader)
 			if err != nil {
-				return fmt.Errorf("error reading archive entry %s: %w", path, err)
+				return fmt.Errorf("error reading archive entry: %w", err)
 			}
 
 			subtext, extractErr := ae.SubExtractor.Extract(ctx, filename, bytes.NewReader(data), maxFileSize)
 			if extractErr == nil {
 				text.WriteString(subtext + " ")
 			} else if errors.Is(extractErr, context.Canceled) || errors.Is(extractErr, context.DeadlineExceeded) {
-				return fmt.Errorf("error extracting %q: %w", filename, extractErr)
+				return fmt.Errorf("error extracting archive entry: %w", extractErr)
 			}
 		}
 		return nil

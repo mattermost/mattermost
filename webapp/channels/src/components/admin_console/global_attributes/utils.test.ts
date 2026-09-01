@@ -5,7 +5,7 @@ import type {PropertyField} from '@mattermost/types/properties';
 
 import {Client4} from 'mattermost-redux/client';
 
-import {createAttributeField} from './utils';
+import {createAttributeField, createLinkedAttributeField, deleteAttributeField, deleteLinkedAttributeField} from './utils';
 
 describe('global_attributes/utils', () => {
     describe('createAttributeField', () => {
@@ -108,6 +108,20 @@ describe('global_attributes/utils', () => {
             await expect(createAttributeField('Name', 'name', 'text', [])).rejects.toThrow('boom');
         });
 
+        it('trims the display name and omits it when blank, same as createAttributeField', async () => {
+            const createPropertyField = jest.spyOn(Client4, 'createPropertyField').mockResolvedValue({} as PropertyField);
+
+            await createLinkedAttributeField('user', 'my_attribute', 'text', '  My Attribute  ', 'template-id');
+            expect(createPropertyField).toHaveBeenCalledWith('access_control', 'user', expect.objectContaining({
+                attrs: {display_name: 'My Attribute'},
+            }));
+
+            await createLinkedAttributeField('user', 'my_attribute', 'text', '   ', 'template-id');
+            expect(createPropertyField).toHaveBeenCalledWith('access_control', 'user', expect.objectContaining({
+                attrs: {display_name: undefined},
+            }));
+        });
+
         it('omits ldap/saml entirely when the links parameter is not passed', async () => {
             const createPropertyField = jest.spyOn(Client4, 'createPropertyField').mockResolvedValue({} as PropertyField);
 
@@ -164,6 +178,69 @@ describe('global_attributes/utils', () => {
             expect(createPropertyField).toHaveBeenCalledWith('access_control', 'template', expect.objectContaining({
                 attrs: {display_name: 'My Attribute', ldap: 'department', saml: 'dept'},
             }));
+        });
+    });
+
+    describe('deleteAttributeField', () => {
+        beforeEach(() => {
+            jest.restoreAllMocks();
+        });
+
+        it('calls Client4.deletePropertyField against the template object type', async () => {
+            const deletePropertyField = jest.spyOn(Client4, 'deletePropertyField').mockResolvedValue({status: 'OK'});
+
+            await deleteAttributeField('field-id');
+
+            expect(deletePropertyField).toHaveBeenCalledWith('access_control', 'template', 'field-id');
+        });
+    });
+
+    describe('createLinkedAttributeField', () => {
+        beforeEach(() => {
+            jest.restoreAllMocks();
+        });
+
+        it('calls Client4.createPropertyField against the given resource object type with linked_field_id set', async () => {
+            const createPropertyField = jest.spyOn(Client4, 'createPropertyField').mockResolvedValue({} as PropertyField);
+
+            await createLinkedAttributeField('channel', 'my_attribute', 'text', 'My Attribute', 'template-id');
+
+            expect(createPropertyField).toHaveBeenCalledWith('access_control', 'channel', {
+                name: 'my_attribute',
+                type: 'text',
+                target_type: 'system',
+                target_id: '',
+                linked_field_id: 'template-id',
+                attrs: {display_name: 'My Attribute'},
+            });
+        });
+
+        it.each((['user', 'channel', 'post'] as const))('sends %s as the object_type path segment', async (objectType) => {
+            const createPropertyField = jest.spyOn(Client4, 'createPropertyField').mockResolvedValue({} as PropertyField);
+
+            await createLinkedAttributeField(objectType, 'my_attribute', 'text', 'My Attribute', 'template-id');
+
+            expect(createPropertyField).toHaveBeenCalledWith('access_control', objectType, expect.anything());
+        });
+
+        it('propagates a rejection from Client4', async () => {
+            jest.spyOn(Client4, 'createPropertyField').mockRejectedValue(new Error('boom'));
+
+            await expect(createLinkedAttributeField('user', 'name', 'text', 'Name', 'template-id')).rejects.toThrow('boom');
+        });
+    });
+
+    describe('deleteLinkedAttributeField', () => {
+        beforeEach(() => {
+            jest.restoreAllMocks();
+        });
+
+        it('calls Client4.deletePropertyField against the given resource object type', async () => {
+            const deletePropertyField = jest.spyOn(Client4, 'deletePropertyField').mockResolvedValue({status: 'OK'});
+
+            await deleteLinkedAttributeField('post', 'field-id');
+
+            expect(deletePropertyField).toHaveBeenCalledWith('access_control', 'post', 'field-id');
         });
     });
 });

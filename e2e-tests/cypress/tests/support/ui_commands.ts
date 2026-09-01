@@ -323,13 +323,19 @@ function clickPostHeaderItem(postId: string, location: string, item: string) {
         idPrefix = 'post';
     }
 
+    const hoverPostAndClickItem = (id: string) => {
+        // # Hover over the post and then wait for the hovered class to apply to ensure the header items are visible
+        cy.get(`#${idPrefix}_${id}`).trigger('mouseover', {force: true}).should('have.class', 'post--hovered');
+
+        // # Ensure the header item is visible then click on it
+        cy.get(`#${location}_${item}_${id}`).scrollIntoView().trigger('mouseover', {force: true}).click({force: true});
+    };
+
     if (postId) {
-        cy.get(`#${idPrefix}_${postId}`).trigger('mouseover', {force: true}).
-            get(`#${location}_${item}_${postId}`).scrollIntoView().trigger('mouseover', {force: true}).click({force: true});
+        hoverPostAndClickItem(postId);
     } else {
         cy.getLastPostId().then((lastPostId) => {
-            cy.get(`#${idPrefix}_${lastPostId}`).trigger('mouseover', {force: true}).
-                get(`#${location}_${item}_${lastPostId}`).scrollIntoView().trigger('mouseover', {force: true}).click({force: true});
+            hoverPostAndClickItem(lastPostId);
         });
     }
 }

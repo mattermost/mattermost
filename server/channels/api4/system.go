@@ -367,6 +367,11 @@ func queryLogs(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if appErr := logFilter.IsValid(); appErr != nil {
+		c.Err = appErr
+		return
+	}
+
 	logs, appErr := c.App.QueryLogs(c.AppContext, c.Params.Page, c.Params.LogsPerPage, logFilter)
 	if appErr != nil {
 		c.Err = appErr

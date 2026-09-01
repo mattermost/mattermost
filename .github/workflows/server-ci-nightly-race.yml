@@ -45,7 +45,7 @@ jobs:
     uses: ./.github/workflows/server-test-template.yml
     with:
       name: Race Detector
-      datasource: postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
+      datasource: postgres://mmuser:mostest_password@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
       drivername: postgres
       logsartifact: race-detector-server-test-logs
       go-version: ${{ needs.buildenv.outputs.version }}

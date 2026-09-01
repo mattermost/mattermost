@@ -1088,12 +1088,6 @@ func checkNowhereNil(t *testing.T, name string, value any) bool {
 	v := reflect.ValueOf(value)
 	switch v.Type().Kind() {
 	case reflect.Pointer:
-		// Ignoring these 2 settings.
-		// TODO: remove them completely in v8.0.
-		if name == "config.ElasticsearchSettings.BulkIndexingTimeWindowSeconds" ||
-			name == "config.ClusterSettings.EnableExperimentalGossipEncryption" {
-			return true
-		}
 
 		if v.IsNil() {
 			t.Logf("%s was nil", name)

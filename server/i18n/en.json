@@ -52,6 +52,10 @@
     "translation": "A group-synced team cannot have a membership policy applied."
   },
   {
+    "id": "api.access_control.decision.unsupported_resource_type.app_error",
+    "translation": "Render-time access control decisions are not supported for resource type \"{{.Type}}\"."
+  },
+  {
     "id": "api.access_control_policy.channel_permission_policies.feature_disabled",
     "translation": "Channel-level permission policies feature is not enabled."
   },
@@ -2196,6 +2200,10 @@
   {
     "id": "api.data_spillage.error.user_not_reviewer",
     "translation": "The user is not a content reviewer."
+  },
+  {
+    "id": "api.data_spillage.exposure.write.app_error",
+    "translation": "Failed to write the post exposure report."
   },
   {
     "id": "api.data_spillage.report.open.app_error",
@@ -4884,7 +4892,7 @@
   },
   {
     "id": "api.user.login.remote_users.login.error",
-    "translation": "Login failed because remote users are not allow to log in."
+    "translation": "Login failed because remote users are not allowed to log in."
   },
   {
     "id": "api.user.login.use_auth_service.app_error",
@@ -5361,6 +5369,14 @@
   {
     "id": "app.access_control.plugin.type_conflict.app_error",
     "translation": "An access control policy of a different type already exists for this ID."
+  },
+  {
+    "id": "app.access_control_decision.subject_mismatch.app_error",
+    "translation": "Subject does not match the authenticated session user."
+  },
+  {
+    "id": "app.access_control_decision.unsupported_action.app_error",
+    "translation": "Unsupported action for render decisions: {{.Action}}"
   },
   {
     "id": "app.acknowledgement.batch_save.app_error",
@@ -6163,6 +6179,114 @@
     "translation": "Unable to save property values for the flagged post."
   },
   {
+    "id": "app.data_spillage.exposure.column.email",
+    "translation": "Email"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.is_deactivated",
+    "translation": "Deactivated"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.is_guest",
+    "translation": "Guest"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.is_remote",
+    "translation": "Remote user"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.last_activity_at",
+    "translation": "User last activity time (YYYY-MM-DDTHH:MM:SSZ)"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.last_viewed_at",
+    "translation": "Last viewed channel at (YYYY-MM-DDTHH:MM:SSZ)"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.user_id",
+    "translation": "User ID"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.username",
+    "translation": "Username"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.was_channel_member",
+    "translation": "Was channel member"
+  },
+  {
+    "id": "app.data_spillage.exposure.edit_history_post.app_error",
+    "translation": "Cannot generate an exposure report for an edit history revision. Use the current post ID."
+  },
+  {
+    "id": "app.data_spillage.exposure.get_channel_members.app_error",
+    "translation": "Failed to retrieve the channel membership history for the flagged post."
+  },
+  {
+    "id": "app.data_spillage.exposure.get_last_activity.app_error",
+    "translation": "Failed to retrieve session activity for the flagged post."
+  },
+  {
+    "id": "app.data_spillage.exposure.get_possible_viewers.app_error",
+    "translation": "Failed to retrieve channel read state for the flagged post."
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.channel",
+    "translation": "Channel"
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.generated_at",
+    "translation": "Generated at"
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.post_id",
+    "translation": "Post ID"
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.report_version",
+    "translation": "Report version"
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.total_users",
+    "translation": "Total users"
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.window_end",
+    "translation": "Flagged at"
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.window_start",
+    "translation": "Post created at"
+  },
+  {
+    "id": "app.data_spillage.exposure.missing_reporting_time.app_error",
+    "translation": "The flagged post has no reporting time recorded, so the exposure window cannot be determined."
+  },
+  {
+    "id": "app.data_spillage.exposure.unsupported_channel_type.app_error",
+    "translation": "Exposure reports are not supported for direct and group messages."
+  },
+  {
+    "id": "app.data_spillage.exposure.value.never_viewed",
+    "translation": "N/A"
+  },
+  {
+    "id": "app.data_spillage.exposure.value.no",
+    "translation": "No"
+  },
+  {
+    "id": "app.data_spillage.exposure.value.no_sessions",
+    "translation": "No sessions found"
+  },
+  {
+    "id": "app.data_spillage.exposure.value.unknown",
+    "translation": "Unknown"
+  },
+  {
+    "id": "app.data_spillage.exposure.value.yes",
+    "translation": "Yes"
+  },
+  {
     "id": "app.data_spillage.flag_post.marshal_comment.app_error",
     "translation": "Failed to marshal flagging user's comment"
   },
@@ -6413,6 +6537,10 @@
     "translation": "Failed to write edit history entry to the flagged post report."
   },
   {
+    "id": "app.data_spillage.report.write_exposure_csv.app_error",
+    "translation": "Failed to write the exposure report to the flagged post report."
+  },
+  {
     "id": "app.data_spillage.report.write_metadata_yaml.app_error",
     "translation": "Failed to write metadata to the flagged post report."
   },
@@ -6614,7 +6742,7 @@
   },
   {
     "id": "app.export.generate_presigned_url.config.app_error",
-    "translation": "This actions requires the use of a dedicated export store."
+    "translation": "This action requires the use of a dedicated export store."
   },
   {
     "id": "app.export.generate_presigned_url.direct_download.app_error",
@@ -7422,7 +7550,7 @@
   },
   {
     "id": "app.import.validate_user_import_data.username_missing.error",
-    "translation": "Missing require user property: username."
+    "translation": "Missing required user property: username."
   },
   {
     "id": "app.import.validate_user_teams_import_data.invalid_auth_service.error",
@@ -7825,6 +7953,14 @@
     "translation": "Could not mask policy expression."
   },
   {
+    "id": "app.pap.masking.ambiguous_sibling.app_error",
+    "translation": "Multiple user attributes link the same template, so channel-attribute visibility cannot be determined unambiguously."
+  },
+  {
+    "id": "app.pap.masking.unknown_object_type.app_error",
+    "translation": "Cannot resolve attribute visibility for an unknown object type."
+  },
+  {
     "id": "app.pap.merge_expression.app_error",
     "translation": "Could not merge policy expression with stored masked values."
   },
@@ -7869,8 +8005,16 @@
     "translation": "A policy with this name already exists. Please choose a different name."
   },
   {
+    "id": "app.pap.save_policy.parent_resource_attributes_team_assigned",
+    "translation": "This access rule uses channel attributes, which teams do not have. Remove the teams assigned to this policy before saving."
+  },
+  {
     "id": "app.pap.save_policy.resolver_error",
     "translation": "Could not initialise attribute resolver for policy save."
+  },
+  {
+    "id": "app.pap.save_policy.resource_attributes_disabled",
+    "translation": "Access rules cannot use channel attributes on this server. This capability is not enabled."
   },
   {
     "id": "app.pap.save_policy.rule_name_unique.app_error",
@@ -7881,12 +8025,20 @@
     "translation": "You do not satisfy one or more conditions in this policy."
   },
   {
+    "id": "app.pap.save_policy.team_resource_attributes",
+    "translation": "This access rule uses channel attributes, which teams do not have. Access rules with channel attributes can only be applied to channels."
+  },
+  {
     "id": "app.pap.search_access_control_policies.app_error",
     "translation": "Could not search access control policies."
   },
   {
     "id": "app.pap.simulate.attribute_refresh",
     "translation": "Failed to refresh attributes for the simulation."
+  },
+  {
+    "id": "app.pap.simulate.channel_required_for_resource",
+    "translation": "A channel is required to simulate a policy that references channel attributes."
   },
   {
     "id": "app.pap.simulate.compile_failed",
@@ -8671,10 +8823,6 @@
   {
     "id": "app.property_value.validate.app_error",
     "translation": "Property value failed validation."
-  },
-  {
-    "id": "app.reaction.bulk_get_for_post_ids.app_error",
-    "translation": "Unable to get reactions for post."
   },
   {
     "id": "app.reaction.delete_all_with_emoji_name.get_reactions.app_error",
@@ -9628,7 +9776,7 @@
   },
   {
     "id": "app.user.get_known_users.get_users.app_error",
-    "translation": "Unable to get know users from the database."
+    "translation": "Unable to get known users from the database."
   },
   {
     "id": "app.user.get_new_users.app_error",
@@ -11071,6 +11219,26 @@
     "translation": "Invalid user id."
   },
   {
+    "id": "model.access_control_decision.is_valid.action_empty.app_error",
+    "translation": "Action names cannot be empty."
+  },
+  {
+    "id": "model.access_control_decision.is_valid.actions_too_many.app_error",
+    "translation": "Too many actions requested."
+  },
+  {
+    "id": "model.access_control_decision.is_valid.resource_id.app_error",
+    "translation": "Invalid resource id."
+  },
+  {
+    "id": "model.access_control_decision.is_valid.resource_type.app_error",
+    "translation": "Resource type is required."
+  },
+  {
+    "id": "model.access_control_decision.is_valid.subject_id.app_error",
+    "translation": "Invalid subject id."
+  },
+  {
     "id": "model.access_policy.inherit.already_imported.app_error",
     "translation": "The parent is already imported."
   },
@@ -11719,16 +11887,8 @@
     "translation": "Invalid timeout value {{.Value}}. Should be a positive number."
   },
   {
-    "id": "model.config.is_valid.atmos_camo_image_proxy_options.app_error",
-    "translation": "Invalid RemoteImageProxyOptions for atmos/camo. Must be set to your shared key."
-  },
-  {
-    "id": "model.config.is_valid.atmos_camo_image_proxy_options_length.app_error",
-    "translation": "Invalid RemoteImageProxyOptions for atmos/camo: HMAC key must be at least {{.MinLength}} bytes for FIPS compliance."
-  },
-  {
-    "id": "model.config.is_valid.atmos_camo_image_proxy_url.app_error",
-    "translation": "Invalid RemoteImageProxyURL for atmos/camo. Must be set to your shared key."
+    "id": "model.config.is_valid.atmos_camo_image_proxy_removed.app_error",
+    "translation": "The 'atmos/camo' image proxy type was removed in Mattermost v12.0. Set ImageProxySettings.ImageProxyType to 'local', or set ImageProxySettings.Enable to false to disable the image proxy."
   },
   {
     "id": "model.config.is_valid.autotranslation.agents.llm_service_id.app_error",
@@ -11777,10 +11937,6 @@
   {
     "id": "model.config.is_valid.cache_type.app_error",
     "translation": "Cache type must be either lru or redis."
-  },
-  {
-    "id": "model.config.is_valid.client_side_cert_enable.app_error",
-    "translation": "Certificate-based authentication has been removed. Please disable ClientSideCertEnable to continue."
   },
   {
     "id": "model.config.is_valid.cluster_email_batching.app_error",
@@ -11935,20 +12091,12 @@
     "translation": "RedisAddress must be specified for redis cache type."
   },
   {
-    "id": "model.config.is_valid.encrypt_sql.app_error",
-    "translation": "Invalid at rest encrypt key for SQL settings. Must be 32 chars or more."
-  },
-  {
     "id": "model.config.is_valid.experimental_audit_settings.file_name_empty",
     "translation": "When audit file logging is enabled, a file name must be specified."
   },
   {
     "id": "model.config.is_valid.experimental_audit_settings.file_name_is_directory",
     "translation": "The file name must not be a directory."
-  },
-  {
-    "id": "model.config.is_valid.experimental_view_archived_channels.app_error",
-    "translation": "Hiding archived channels is no longer supported. Make these channels private and remove members instead."
   },
   {
     "id": "model.config.is_valid.export.directory.app_error",
@@ -11969,6 +12117,14 @@
   {
     "id": "model.config.is_valid.extract_content_timeout.app_error",
     "translation": "Invalid content extraction timeout for file settings. Must be a whole number of seconds greater than or equal to zero."
+  },
+  {
+    "id": "model.config.is_valid.feature_flags.apps_enabled.app_error",
+    "translation": "The AppsEnabled feature flag is no longer supported and must be disabled."
+  },
+  {
+    "id": "model.config.is_valid.feature_flags.move_threads_enabled.app_error",
+    "translation": "The MoveThreadsEnabled feature flag is no longer supported and must be disabled."
   },
   {
     "id": "model.config.is_valid.file_driver.app_error",
@@ -11992,7 +12148,7 @@
   },
   {
     "id": "model.config.is_valid.image_proxy_type.app_error",
-    "translation": "Invalid image proxy type. Must be 'local' or 'atmos/camo'."
+    "translation": "Invalid image proxy type. Must be 'local'."
   },
   {
     "id": "model.config.is_valid.import.directory.app_error",
@@ -12165,6 +12321,22 @@
   {
     "id": "model.config.is_valid.message_export.global_relay.config_missing.app_error",
     "translation": "Message export job ExportFormat is set to 'globalrelay', but GlobalRelaySettings are missing."
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.custom_header_incomplete.app_error",
+    "translation": "Message export GlobalRelaySettings.CustomHeaderName and CustomHeaderValue must both be set, or both left empty."
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.custom_header_name.app_error",
+    "translation": "Message export GlobalRelaySettings.CustomHeaderName must be a valid header name with no spaces, colons, separators, or line breaks."
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.custom_header_reserved.app_error",
+    "translation": "Message export GlobalRelaySettings.CustomHeaderName must not reuse a header that the Global Relay export already writes."
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.custom_header_value.app_error",
+    "translation": "Message export GlobalRelaySettings.CustomHeaderValue must not contain control characters or line breaks."
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.customer_type.app_error",
@@ -12705,6 +12877,14 @@
   {
     "id": "model.link_metadata.is_valid.url_length.app_error",
     "translation": "Length of link metadata URL is {{ .Length }} characters long, which exceeds the maximum limit of {{ .MaxLength }} characters."
+  },
+  {
+    "id": "model.log_filter.is_valid.date_from.app_error",
+    "translation": "Invalid date_from filter. Expected the format \"{{.Layout}}\"."
+  },
+  {
+    "id": "model.log_filter.is_valid.date_to.app_error",
+    "translation": "Invalid date_to filter. Expected the format \"{{.Layout}}\"."
   },
   {
     "id": "model.member.is_valid.channel.app_error",

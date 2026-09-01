@@ -75,7 +75,7 @@ func (a *App) JoinDefaultChannels(rctx request.CTX, teamID string, user *model.U
 	for _, channelName := range a.DefaultChannelNames(rctx) {
 		channel, channelErr := a.Srv().Store().Channel().GetByName(teamID, channelName, true)
 		if channelErr != nil {
-			rctx.Logger().Warn("No default channel with this name", mlog.String("channelName", channelName), mlog.String("teamID", teamID), mlog.Err(channelErr))
+			rctx.Logger().Warn("No default channel with this name", mlog.String("channel_name", channelName), mlog.String("team_id", teamID), mlog.Err(channelErr))
 			continue
 		}
 
@@ -192,7 +192,7 @@ func (a *App) CreateChannelWithUser(rctx request.CTX, channel *model.Channel, us
 	a.addChannelToDefaultCategory(rctx, userID, channel)
 
 	var user *model.User
-	if user, err = a.GetUser(userID); err != nil {
+	if user, err = a.GetUser(rctx, userID); err != nil {
 		return nil, err
 	}
 
@@ -2014,7 +2014,7 @@ func (a *App) AddChannelMember(rctx request.CTX, userID string, channel *model.C
 	var user *model.User
 	var err *model.AppError
 
-	if user, err = a.GetUser(userID); err != nil {
+	if user, err = a.GetUser(rctx, userID); err != nil {
 		return nil, err
 	}
 
@@ -2024,7 +2024,7 @@ func (a *App) AddChannelMember(rctx request.CTX, userID string, channel *model.C
 
 	var userRequestor *model.User
 	if opts.UserRequestorID != "" {
-		if userRequestor, err = a.GetUser(opts.UserRequestorID); err != nil {
+		if userRequestor, err = a.GetUser(rctx, opts.UserRequestorID); err != nil {
 			return nil, err
 		}
 	}
@@ -3033,7 +3033,7 @@ func (a *App) removeUserFromChannel(rctx request.CTX, userIDToRemove string, rem
 	if appErr := a.removeChannelMembership(rctx, userIDToRemove, channel.Id, "removeUserFromChannel"); appErr != nil {
 		return appErr
 	}
-	if err := a.Srv().Store().ChannelMemberHistory().LogLeaveEvent(userIDToRemove, channel.Id, model.GetMillis()); err != nil {
+	if err := a.Srv().Store().ChannelMemberHistory().LogLeaveEvent(rctx, userIDToRemove, channel.Id, model.GetMillis()); err != nil {
 		return model.NewAppError("removeUserFromChannel", "app.channel_member_history.log_leave_event.internal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
@@ -3078,7 +3078,7 @@ func (a *App) removeUserFromChannel(rctx request.CTX, userIDToRemove string, rem
 
 	var actorUser *model.User
 	if removerUserId != "" {
-		actorUser, _ = a.GetUser(removerUserId)
+		actorUser, _ = a.GetUser(rctx, removerUserId)
 	}
 
 	a.Srv().Go(func() {
@@ -3123,7 +3123,7 @@ func (a *App) RemoveUserFromChannel(rctx request.CTX, userIDToRemove string, rem
 	}
 
 	var user *model.User
-	if user, err = a.GetUser(userIDToRemove); err != nil {
+	if user, err = a.GetUser(rctx, userIDToRemove); err != nil {
 		return err
 	}
 
@@ -3236,7 +3236,7 @@ func (a *App) MarkChannelAsUnreadFromPost(rctx request.CTX, postID string, userI
 		return nil, err
 	}
 
-	user, err := a.GetUser(userID)
+	user, err := a.GetUser(rctx, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -3263,7 +3263,7 @@ func (a *App) markChannelAsUnreadFromPostCRTUnsupported(rctx request.CTX, postID
 		return nil, appErr
 	}
 
-	user, appErr := a.GetUser(userID)
+	user, appErr := a.GetUser(rctx, userID)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -3380,7 +3380,7 @@ func (a *App) AutocompleteChannels(rctx request.CTX, userID, term string) (model
 	includeDeleted := true
 	term = strings.TrimSpace(term)
 
-	user, appErr := a.GetUser(userID)
+	user, appErr := a.GetUser(rctx, userID)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -3401,7 +3401,7 @@ func (a *App) AutocompleteChannelsForTeam(rctx request.CTX, teamID, userID, term
 	includeDeleted := true
 	term = strings.TrimSpace(term)
 
-	user, appErr := a.GetUser(userID)
+	user, appErr := a.GetUser(rctx, userID)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -3418,7 +3418,7 @@ func (a *App) AutocompleteChannelsForTeamFiltered(rctx request.CTX, teamID, user
 	includeDeleted := true
 	term = strings.TrimSpace(term)
 
-	user, appErr := a.GetUser(userID)
+	user, appErr := a.GetUser(rctx, userID)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -3848,7 +3848,7 @@ func (a *App) MoveChannel(rctx request.CTX, team *model.Team, channel *model.Cha
 			}
 			for _, channelMember := range channelMembers {
 				if _, ok := teamMembersMap[channelMember.UserId]; !ok {
-					rctx.Logger().Warn("Not member of the target team", mlog.String("userId", channelMember.UserId))
+					rctx.Logger().Warn("Not member of the target team", mlog.String("user_id", channelMember.UserId))
 				}
 			}
 			return model.NewAppError("MoveChannel", "app.channel.move_channel.members_do_not_match.error", nil, "", http.StatusInternalServerError)
@@ -3895,7 +3895,7 @@ func (a *App) MoveChannel(rctx request.CTX, team *model.Team, channel *model.Cha
 			if webhook.ChannelId == channel.Id {
 				webhook.TeamId = team.Id
 				if _, err := a.Srv().Store().Webhook().UpdateIncoming(webhook); err != nil {
-					rctx.Logger().Warn("Failed to move incoming webhook to new team", mlog.String("webhook id", webhook.Id))
+					rctx.Logger().Warn("Failed to move incoming webhook to new team", mlog.String("webhook_id", webhook.Id))
 				}
 			}
 		}
@@ -3908,7 +3908,7 @@ func (a *App) MoveChannel(rctx request.CTX, team *model.Team, channel *model.Cha
 			if webhook.ChannelId == channel.Id {
 				webhook.TeamId = team.Id
 				if _, err := a.Srv().Store().Webhook().UpdateOutgoing(webhook); err != nil {
-					rctx.Logger().Warn("Failed to move outgoing webhook to new team.", mlog.String("webhook id", webhook.Id))
+					rctx.Logger().Warn("Failed to move outgoing webhook to new team.", mlog.String("webhook_id", webhook.Id))
 				}
 			}
 		}
@@ -4431,7 +4431,7 @@ func (a *App) validateForConvertGroupMessageToChannel(rctx request.CTX, converte
 }
 
 func (a *App) postMessageForConvertGroupMessageToChannel(rctx request.CTX, channelID, convertedByUserId string, channelUsers []*model.User) *model.AppError {
-	convertedByUser, appErr := a.GetUser(convertedByUserId)
+	convertedByUser, appErr := a.GetUser(rctx, convertedByUserId)
 	if appErr != nil {
 		return appErr
 	}
@@ -4590,6 +4590,13 @@ func (a *App) cleanupChannelAccessControlPolicy(rctx request.CTX, channel *model
 			)
 		}
 	}
+
+	// Drop the channel's cached render-ETag epoch: its policy row is gone, so a stale epoch
+	// would otherwise linger until the cache TTL. Gated, unlike the delete above: nothing can be
+	// cached for this channel if ABAC was off, and every archive would cost a cluster message.
+	if a.attributeBasedAccessControlEnabled() {
+		a.Srv().Store().AccessControlPolicy().InvalidateEtagForChannel(channel.Id)
+	}
 }
 
 // recommendedPublicChannelsScanPageSize is the per-page size used while
@@ -4626,7 +4633,7 @@ func (a *App) GetRecommendedPublicChannelsForUser(rctx request.CTX, userID, team
 		return model.ChannelList{}, nil
 	}
 
-	user, appErr := a.GetUser(userID)
+	user, appErr := a.GetUser(rctx, userID)
 	if appErr != nil {
 		return nil, appErr
 	}

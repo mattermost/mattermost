@@ -79,8 +79,7 @@ See our [configuration settings](/administration-guide/configure/site-configurat
 </colgroup>
 <tbody>
 <tr>
-<td><p>The physical location of the Mattermost Hosted Push Notification Service (HPNS) server.</p>
-<p>Select from <strong>US</strong> <strong>(Default)</strong> or <strong>Germany</strong> to automatically populate the <strong>Push Notification Server</strong> field server URL.</p></td>
+<td><p>The region of the Mattermost Hosted Push Notification Service (HPNS) server.</p><p>Select a region to automatically populate the <strong>Push Notification Server</strong> field with the corresponding URL:</p><ul><li><strong>Global</strong>: <code>https://global.push.mattermost.com</code> (load balances requests across the regional endpoints below)</li><li><strong>US</strong>: <code>https://us.push.mattermost.com</code></li><li><strong>EU (Germany)</strong>: <code>https://eu.push.mattermost.com</code></li><li><strong>AP (Japan)</strong>: <code>https://ap.push.mattermost.com</code></li></ul></td>
 <td><ul>
 <li>System Config path: <strong>Environment &gt; Push Notification Server</strong></li>
 <li><code>config.json</code> setting: <code>EmailSettings</code> &gt; <code>PushNotificationServer</code></li>
@@ -89,6 +88,12 @@ See our [configuration settings](/administration-guide/configure/site-configurat
 </tr>
 </tbody>
 </table>
+
+<Note>
+
+`https://us.push.mattermost.com` supersedes the legacy `https://push.mattermost.com` URL, and `https://eu.push.mattermost.com` supersedes the legacy `https://hpns-de.mattermost.com` URL. The legacy URLs still work, but are deprecated and now point to the same new infrastructure as their replacements above.
+
+</Note>
 
 # Maximum notifications per channel
 

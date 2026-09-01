@@ -63,9 +63,12 @@ function makeGetPluginSchema() {
                     } else if (setting.type === Constants.SettingsTypes.TYPE_CUSTOM) {
                         // Show a warning banner to enable the plugin in order to display the custom component.
                         type = Constants.SettingsTypes.TYPE_BANNER;
-                        displayName = defineMessage({id: 'admin.plugin.customSetting.pluginDisabledWarning', defaultMessage: 'In order to view this setting, enable the plugin.'});
+                        displayName = defineMessage({id: 'admin.plugin.customSetting.pluginDisabledWarning', defaultMessage: 'In order to view this setting, enable the plugin and click Save.'});
                         bannerType = 'warning';
-                        isDisabled = it.any(it.stateIsTrue(pluginEnabledConfigKey), it.not(it.userHasWritePermissionOnResource('plugins')));
+                        isDisabled = it.any(
+                            it.all(Boolean(plugin.active), it.stateIsTrue(pluginEnabledConfigKey)),
+                            it.not(it.userHasWritePermissionOnResource('plugins')),
+                        );
                     }
 
                     const isHidden = () => {
@@ -85,7 +88,7 @@ function makeGetPluginSchema() {
                         banner_type: bannerType,
                         component,
                         showTitle: customComponents[key] ? customComponents[key].options.showTitle : false,
-                    } as Partial<AdminDefinitionSetting>;
+                    } as AdminDefinitionSetting;
                 });
             };
 
@@ -93,7 +96,7 @@ function makeGetPluginSchema() {
                 return sections.map((section) => {
                     const key = section.key.toLowerCase();
                     let component;
-                    let settings: Array<Partial<AdminDefinitionSetting>> = [];
+                    let settings: AdminDefinitionSetting[] = [];
                     if (section.custom) {
                         if (customSections[key]) {
                             component = customSections[key]?.component;
@@ -107,7 +110,7 @@ function makeGetPluginSchema() {
                                 type: Constants.SettingsTypes.TYPE_BANNER,
                                 label: defineMessage({
                                     id: 'admin.plugin.customSection.pluginDisabledWarning',
-                                    defaultMessage: 'In order to view this section, enable the plugin.',
+                                    defaultMessage: 'In order to view this section, enable the plugin and click Save.',
                                 }),
                                 banner_type: 'warning',
                             }];
@@ -129,17 +132,18 @@ function makeGetPluginSchema() {
             };
 
             let sections: AdminDefinitionConfigSchemaSection[] = [];
-            let settings: Array<Partial<AdminDefinitionSetting>> = [];
-            if (plugin.settings_schema && plugin.settings_schema.sections) {
+            let settings: AdminDefinitionSetting[] = [];
+            if (plugin.settings_schema?.sections?.length) {
                 sections = parsePluginSettingSections(plugin.settings_schema.sections);
-            } else if (plugin.settings_schema && plugin.settings_schema.settings) {
+            }
+            if (plugin.settings_schema?.settings?.length) {
                 settings = parsePluginSettings(plugin.settings_schema.settings);
             }
 
             if (plugin.id !== appsPluginID || appsFeatureFlagIsEnabled) {
                 const pluginEnableSetting = getEnablePluginSetting(plugin) as AdminDefinitionSetting;
 
-                const hasAllCustomSectionsDisabled = plugin.settings_schema?.sections?.every((s) => s.custom && !customSections[s.key.toLowerCase()]);
+                const hasAllCustomSectionsDisabled = Boolean(plugin.settings_schema?.sections?.length) && plugin.settings_schema?.sections?.every((s) => s.custom && !customSections[s.key.toLowerCase()]);
                 const anyCustomSectionAllowsFallback = plugin.settings_schema?.sections?.some((s) => s.custom && s.fallback);
 
                 if (plugin.settings_schema && hasAllCustomSectionsDisabled && !anyCustomSectionAllowsFallback) {
@@ -147,22 +151,20 @@ function makeGetPluginSchema() {
                     const warningBanner = {
                         key: 'admin.plugin.customSections.pluginDisabledWarning',
                         type: Constants.SettingsTypes.TYPE_BANNER,
-                        label: defineMessage({id: 'admin.plugin.customSections.pluginDisabledWarning', defaultMessage: 'In order to view and configure plugin settings, enable the plugin.'}),
+                        label: defineMessage({id: 'admin.plugin.customSections.pluginDisabledWarning', defaultMessage: 'In order to view and configure plugin settings, enable the plugin and click Save.'}),
                         banner_type: 'warning' as const,
                     };
 
                     sections = [{
                         key: pluginEnabledConfigKey + '.Section',
-                        footer: plugin.settings_schema?.footer,
                         settings: [pluginEnableSetting, warningBanner],
                     }];
+                    settings = [];
                 } else if (sections.length > 0) {
-                    // Keep a lightweight top section only when the schema still has a footer to show.
-                    // Plugin description/header now lives in the metadata panel.
+                    // Keep a lightweight top section only when the schema still has a footer to show; the footer text itself renders generically for the whole sections list.
                     if (plugin.settings_schema?.footer) {
                         sections.unshift({
                             key: pluginEnabledConfigKey + '.Section',
-                            footer: plugin.settings_schema.footer,
                             settings: [pluginEnableSetting],
                         });
                     }
@@ -170,6 +172,14 @@ function makeGetPluginSchema() {
                     // Otherwise we retain existing behaviour and add the setting in front.
                     settings.unshift(pluginEnableSetting);
                 }
+            }
+
+            if (sections.length > 0 && settings.length > 0) {
+                sections.unshift({
+                    key: pluginEnabledConfigKey + '.Section',
+                    settings,
+                });
+                settings = [];
             }
 
             const checkDisableSetting = (s: Partial<AdminDefinitionSetting>) => {
