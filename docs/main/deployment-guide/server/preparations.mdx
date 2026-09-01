@@ -1,6 +1,5 @@
 ---
 title: "Prepare your Mattermost Server environment"
-sidebar_label: "Preparations"
 ---
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
@@ -10,13 +9,15 @@ This guide outlines the key preparation steps required before installing the Mat
 Before installing Mattermost Server, review the following preparation requirements:
 
 - [Review software and hardware requirements](/deployment-guide/software-hardware-requirements) - Ensure your system meets the minimum requirements for Mattermost deployment.
-- [Set up an NGINX proxy](/deployment-guide/server/setup-nginx-proxy) - Configure NGINX as a reverse proxy for enhanced security and performance.
+- [Set up an NGINX proxy](/deployment-guide/server/setup-nginx-proxy) - Configure NGINX as a reverse proxy for enhanced security and performance. Recommended for all production deployments.
 - [Set up TLS](/deployment-guide/server/setup-tls) - Enable secure communication with SSL/TLS encryption.
+- [Set up the Mattermost MySQL database](/deployment-guide/server/prepare-mattermost-mysql-database) - For existing MySQL deployments only; MySQL is deprecated from Mattermost v11.
 - [Use an image proxy](/deployment-guide/server/image-proxy) - Configure image proxy for enhanced privacy and security.
+- [Set pre-authentication secrets](/deployment-guide/server/pre-authentication-secrets) - Require a shared secret before clients can reach the server.
 
 ## Database preparation
 
-PostgreSQL v14+ is required for Mattermost server installations. [MySQL database support](/deployment-guide/server/prepare-mattermost-mysql-database) is being deprecated starting with Mattermost v11. See the [PostgreSQL migration](/deployment-guide/postgres-migration) documentation for guidance on migrating from MySQL to PostgreSQL.
+PostgreSQL v14+ is required for Mattermost server installations. [MySQL database support](/deployment-guide/server/prepare-mattermost-mysql-database) is being deprecated starting with Mattermost v11. See the [PostgreSQL migration](/administration-guide/manage/admin/postgres-migration) documentation for guidance on migrating from MySQL to PostgreSQL.
 
 1.  Create an PostgreSQL server instance. See the [PostgreSQL documentation](https://www.postgresql.org/download/) for details. When the installation is complete, the PostgreSQL server is running, and a Linux user account called postgres has been created.
 

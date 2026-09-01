@@ -5,8 +5,8 @@ title: "Migration guidelines from MySQL to PostgreSQL"
 
 From Mattermost v8.0, [PostgreSQL](/deployment-guide/software-hardware-requirements#database-software) is our database of choice for Mattermost to enhance the platform’s performance and capabilities. Recognizing the importance of supporting the community members who are interested in migrating from a MySQL database, we have taken proactive measures to provide guidance and best practices.
 
-- [Automated migration from MySQL to PostgreSQL](/deployment-guide/postgres-migration-assist-tool) - A comprehensive set of guidelines and a `migration-assist` tool to streamline the migration process, alleviate potential challenges, and faciliate a smooth transition.
-- [Manually migrate from MySQL to PostgreSQL](/deployment-guide/manual-postgres-migration) - A good option if your organization has database administrators to own the migration process, or if you want to learn what the `migration-assist` tool automates for you.
+- [Automated migration from MySQL to PostgreSQL](/administration-guide/manage/admin/postgres-migration-assist-tool) - A comprehensive set of guidelines and a `migration-assist` tool to streamline the migration process, alleviate potential challenges, and faciliate a smooth transition.
+- [Manually migrate from MySQL to PostgreSQL](/administration-guide/manage/admin/manual-postgres-migration) - A good option if your organization has database administrators to own the migration process, or if you want to learn what the `migration-assist` tool automates for you.
 
 ## Frequently asked questions
 
@@ -32,7 +32,7 @@ The tool itself is lightweight and does not require a large server. A server wit
 
 ### Do we/will Mattermost bundle pgloader or is that a separate install?
 
-Mattermost doesn't bundle pgloader with the Mattermost server. You will need to install pgloader separately. For more information, see the [install pgloader](/deployment-guide/manual-postgres-migration#install-pgloader) documentation.
+Mattermost doesn't bundle pgloader with the Mattermost server. You will need to install pgloader separately. For more information, see the [install pgloader](/administration-guide/manage/admin/manual-postgres-migration#install-pgloader) documentation.
 
 ### Are there any other migrations available for plugins, or just Boards, Playbooks, and Calls?
 
@@ -106,7 +106,7 @@ If you receive an error message similar to the following:
 ERROR mysql: 76 fell through ECASE expression.
 ```
 
-It is a [known issue](https://github.com/dimitri/pgloader/issues/1183) with pgloader. You can fix this issue by either compiling `pgloader` from source or simply avoid this by running `pgloader` with our docker image. See: [install pgloader](/deployment-guide/manual-postgres-migration#install-pgloader) for more information.
+It is a [known issue](https://github.com/dimitri/pgloader/issues/1183) with pgloader. You can fix this issue by either compiling `pgloader` from source or simply avoid this by running `pgloader` with our docker image. See: [install pgloader](/administration-guide/manage/admin/manual-postgres-migration#install-pgloader) for more information.
 
 <Note>
 

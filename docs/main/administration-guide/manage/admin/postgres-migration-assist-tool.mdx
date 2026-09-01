@@ -3,7 +3,7 @@ title: "Automated PostgreSQL migration"
 ---
 <PlanAvailability slug="all-commercial" />
 
-Migrating databases can be a daunting task, and it can be easy to overlook or misinterpret some of the required steps if you haven't performed a migration before. Our `migration-assist` tool provides an efficient, error-free migration experience that automates the [tasks to be executed](/deployment-guide/manual-postgres-migration), even in air-gapped deployment environments.
+Migrating databases can be a daunting task, and it can be easy to overlook or misinterpret some of the required steps if you haven't performed a migration before. Our `migration-assist` tool provides an efficient, error-free migration experience that automates the [tasks to be executed](/administration-guide/manage/admin/manual-postgres-migration), even in air-gapped deployment environments.
 
 Not sure this tool is right for your Mattermost deployment? Mattermost customers looking for tailored guidance based on their Mattermost deployment can contact a [Mattermost Expert](https://mattermost.com/contact-sales/).
 
@@ -13,7 +13,7 @@ Download the Mattermost `migration-assist` tool from the GitHub repository [rele
 
 While you can run the `migration-assist` tool on the same server as your Mattermost deployment, we recommend running the tool in a virtual machine on the same network as your Mattermost server instead. The tool itself is lightweight and does not require a large server. A server with 2 CPU cores and 16 GB of RAM should be sufficient. If preferred, you can download and [compile](#compile-the-migration-assist-tool) the `migration-assist` tool yourself.
 
-You'll also need to install the `pgloader` tool to migrate your data from MySQL to PostgreSQL. We recommend running `pgloader` in a virtual machine on the same network as your Mattermost server. You can use our official Mattermost Docker image for pgloader (`mattermost/pgloader:latest`); please note that it does **not** currently support MySQL’s `caching_sha2_password` authentication plugin. If you require `caching_sha2_password` support, you’ll need to build your own image and include the [qitab/qmynd](https://github.com/qitab/qmynd) library. See the [pgloader](/deployment-guide/manual-postgres-migration#install-pgloader) installation documentation for details.
+You'll also need to install the `pgloader` tool to migrate your data from MySQL to PostgreSQL. We recommend running `pgloader` in a virtual machine on the same network as your Mattermost server. You can use our official Mattermost Docker image for pgloader (`mattermost/pgloader:latest`); please note that it does **not** currently support MySQL’s `caching_sha2_password` authentication plugin. If you require `caching_sha2_password` support, you’ll need to build your own image and include the [qitab/qmynd](https://github.com/qitab/qmynd) library. See the [pgloader](/administration-guide/manage/admin/manual-postgres-migration#install-pgloader) installation documentation for details.
 
 ## Usage
 
@@ -21,7 +21,7 @@ You'll also need to install the `pgloader` tool to migrate your data from MySQL 
 
 - If you encounter heap exhaustion errors in `pgloader`, edit your generated `migration.load` and under the `WITH` block set: `prefetch rows = 1000` and consider reducing it if the issue persists.
 - Please make sure you have the necessary environment to perform the migration. Ensure that the MySQL and PostgreSQL databases are running and accessible. To set up a PostgreSQL instance, see the [prepare your Mattermost database](/deployment-guide/server/preparations) documentation for details.
-- If you were previously utilizing a database for handling the [Mattermost configuration](/administration-guide/configure/configuration-in-your-database), those tables will not be migrated from your MySQL database with the migration [script](#migrate-the-data). You will need to manually migrate those configuration settings to your PostgreSQL database after completing the migration process. See the [configuration in database](/deployment-guide/manual-postgres-migration#configuration-in-database) documentation for details.
+- If you were previously utilizing a database for handling the [Mattermost configuration](/administration-guide/configure/configuration-in-your-database), those tables will not be migrated from your MySQL database with the migration [script](#migrate-the-data). You will need to manually migrate those configuration settings to your PostgreSQL database after completing the migration process. See the [configuration in database](/administration-guide/manage/admin/manual-postgres-migration#configuration-in-database) documentation for details.
 
 </Important>
 
@@ -94,7 +94,7 @@ migration-assist pgloader \
 
 ### Step 4 - Run pgloader
 
-[Run pgloader](/deployment-guide/manual-postgres-migration#pgloader) with the generated configuration file:
+[Run pgloader](/administration-guide/manage/admin/manual-postgres-migration#pgloader) with the generated configuration file:
 
 ``` sh
 pgloader migration.load > migration.log
@@ -113,7 +113,7 @@ migration-assist postgres post-migrate --create-indexes "<POSTGRES_DSN>"
 - The `--create-indexes` flag rebuilds full-text indexes on `Posts` and `FileInfo`, plus all other Mattermost indexes.
 - Omitting that flag only restores full-text indexes for `Posts` and `FileInfo`.
 
-See the [Restore full-text indexes](/deployment-guide/manual-postgres-migration#restore-full-text-indexes) documentation for details.
+See the [Restore full-text indexes](/administration-guide/manage/admin/manual-postgres-migration#restore-full-text-indexes) documentation for details.
 
 ### Step 6 - Complete plugin migrations
 
@@ -139,7 +139,7 @@ pgloader playbooks.load        > playbooks_migration.log
 pgloader calls.load            > calls_migration.log
 ```
 
-Skip any plugin you don't use; check logs for JSON or missing-table errors. See the [Plugin migrations](/deployment-guide/manual-postgres-migration#plugin-migrations) guide for more.
+Skip any plugin you don't use; check logs for JSON or missing-table errors. See the [Plugin migrations](/administration-guide/manage/admin/manual-postgres-migration#plugin-migrations) guide for more.
 
 ### Step 7 - Configure Mattermost to use PostgreSQL
 
@@ -203,4 +203,4 @@ go install github.com/mattermost/migration-assist/cmd/migration-assist@latest
 
 ## Troubleshooting
 
-See [troubleshooting errors during migration from MySQL to PostgreSQL](/deployment-guide/postgres-migration#troubleshooting).
+See [troubleshooting errors during migration from MySQL to PostgreSQL](/administration-guide/manage/admin/postgres-migration#troubleshooting).

@@ -1,0 +1,43 @@
+---
+title: "Deploy in air-gapped environments"
+---
+## Overview
+
+An air-gapped environment is one that's physically or logically isolated from the public internet. Nothing inside it can reach an external package repository, container registry, app store, or SaaS API, and nothing outside it can initiate a connection in. Mattermost is deployed and operated entirely from resources that already exist inside the boundary.
+
+Organizations adopt this pattern when regulation or classification makes an internet connection unacceptable rather than merely undesirable — classified and cross-domain networks, defense and intelligence programs, and industrial or operational-technology networks where the collaboration platform must sit on the same isolated segment as the systems it supports.
+
+<Note>
+
+Consider [talking to a Mattermost expert](https://mattermost.com/contact-sales/) if your organization needs support deploying Mattermost and supporting services in an air-gapped environment.
+
+</Note>
+
+## How it differs from a connected deployment
+
+The Mattermost server itself is the same product, deployed with the same [Linux](/deployment-guide/server/deploy-linux), [Kubernetes](/deployment-guide/server/deploy-kubernetes), or [container](/deployment-guide/server/deploy-containers) methods used anywhere else. What changes is everything around it:
+
+- **Nothing is fetched at install time.** Packages, container images, Helm charts, plugin binaries, and desktop app installers must all be gathered on an internet-connected machine, staged into a private package mirror or container registry, and transferred across the air gap on approved media before the install begins.
+- **Upgrades are a planned transfer, not a download.** Because each upgrade repeats that staging and transfer cycle, air-gapped deployments commonly track an [Extended Support Release](/product-overview/release-policy#extended-support-releases) rather than the monthly cadence.
+- **Client apps are side-loaded.** Air-gapped devices can't reach the public app stores, so desktop and mobile apps are distributed through your own [desktop](/deployment-guide/desktop/desktop-app-deployment) and [mobile](/deployment-guide/mobile/mobile-app-deployment) deployment tooling.
+- **Documentation travels with the deployment.** Administrators inside the boundary can't reach docs.mattermost.com, so the documentation is built and served locally.
+
+## Constraints to plan for
+
+Several Mattermost capabilities depend on an outbound internet connection and are unavailable or must be replaced:
+
+- **Mobile push notifications** rely on the hosted push notification service. Either disable push notifications or run your own [push proxy](/deployment-guide/mobile/host-your-own-push-proxy-service) reachable from the isolated network.
+- **The Mattermost Marketplace** is unreachable, so plugins are downloaded in advance and uploaded through the System Console.
+- **Website link previews and the GIF picker** call third-party services and should be disabled.
+- **In-product notices and telemetry** phone home, generate log errors when they can't, and should be turned off.
+- **Email** requires an internal SMTP relay inside the boundary, or email invitations and verification must be disabled.
+- **AI agents** must run against a [self-hosted, OpenAI-compatible LLM](/administration-guide/configure/agents-admin-guide) rather than a hosted model provider.
+
+## Deploy an air-gapped environment
+
+[Air-Gapped Operations](/deployment-guide/air-gapped-operations/) covers the full procedure: the step-by-step deployment runbook, the bill of materials to gather before you cross the air gap, how to stand up a private package mirror or container registry, and the server settings to change once Mattermost is running.
+
+## Related deployment scenarios
+
+- [Enterprise to Edge DDIL Operations](/deployment-guide/deployment-scenarios/deploy-ddil-operations) — for networks that are intermittently rather than permanently disconnected.
+- [Out-of-Band Communications](/deployment-guide/deployment-scenarios/deploy-oob) — for an isolated, pre-provisioned system used during incident response.

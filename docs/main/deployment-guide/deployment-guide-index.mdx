@@ -1,31 +1,43 @@
 ---
 title: "Deployment Guide"
 ---
-Welcome to deployment guidance for Mattermost. This guide is organized into sections based on application types and deployment scenarios to help you achieve a successful deployment of Mattermost across various platforms.
+This guide takes you from evaluating Mattermost through to running it in production: planning a deployment, preparing its dependencies, installing the server, securing and scaling it, and rolling out the desktop and mobile apps.
 
-Whether you're deploying the server application, desktop application, or mobile application, or troubleshooting deployments, this guide has you covered. Use the navigation below to access detailed information about each topic.
+## Start here
 
-- [Quick Start Evaluation](/deployment-guide/quick-start-evaluation) - A quick start guide to help you get started with Mattermost.
-- [Reference Architecture](/deployment-guide/reference-architecture/reference-architecture-index) - Reference architectures for scaling Mattermost and specialized deployment scenarios.
-- [Server deployment](/deployment-guide/server/server-deployment-planning) - Pre-deployment checks, security considerations, hardware recommendations, software prerequisites, and step-by-step guidance to deploying Mattermost server.
-- [Calls Deployment Guide](/deployment-guide/calls/calls-deployment-guide) - Deploy and operate Mattermost Calls infrastructure, including RTCD, recording services, and supporting network configuration.
-- [Desktop deployment](/deployment-guide/desktop/desktop-app-deployment) - Installation procedures for Mattermost's desktop applications across Windows, macOS, and Linux, and large-scale, enterprise-wide deployments.
-- [Mobile deployment](/deployment-guide/mobile/mobile-app-deployment) - How to set up push notifications using Mattermost's notification service and troubleshooting tips.
-- [Deployment troubleshooting](/deployment-guide/deployment-troubleshooting) - Best practices for diagnosing and resolving common deployment issues.
+If you're new to Mattermost and want to see it working before planning anything, begin with [Quick start evaluation](/deployment-guide/quick-start-evaluation). If your environment has particular constraints — no internet egress, a coalition network, an intermittently connected edge — start with [Deployment scenarios](/deployment-guide/deployment-scenarios/deployment-scenarios-index) instead, because those constraints shape every decision that follows.
 
-## How to use this guide
+Otherwise, work through the sections below in order.
 
-Navigate through the sections using the headings above to find the deployment instructions and troubleshooting steps pertinent to your needs. Each section is designed to provide clear, actionable information to ensure a successful deployment and operation of Mattermost.
+## Deploy the server
 
-If you are new to Mattermost, we recommend starting with the Application Architecture section to understand the prerequisites and get started, or alternatively use the Try Mattermost section to explore Mattermost before planning your production deployment.
+- [Deployment scenarios](/deployment-guide/deployment-scenarios/deployment-scenarios-index) - Reference architectures for out-of-band communications, mission partner collaboration, DDIL operations, sovereign collaboration in Microsoft, and air-gapped environments.
+- [Plan](/deployment-guide/server/server-deployment-planning) - Understand the [components of a deployment](/deployment-guide/application-architecture), [size it for your user count](/deployment-guide/deployment-architecture), and check the [software and hardware requirements](/deployment-guide/software-hardware-requirements).
+- [Prepare](/deployment-guide/server/preparations) - Stand up the prerequisites before you install: the database, file storage, an [NGINX reverse proxy](/deployment-guide/server/setup-nginx-proxy), and [TLS](/deployment-guide/server/setup-tls).
+- Install the server - Choose your platform: [Linux](/deployment-guide/server/deploy-linux), [Kubernetes](/deployment-guide/server/deploy-kubernetes), or [containers](/deployment-guide/server/deploy-containers).
+- [Secure your deployment](/deployment-guide/encryption-options) - Encryption at rest and [in transit](/deployment-guide/transport-encryption).
+
+## Scale and operate
+
+- [Scale](/deployment-guide/scale/scaling-for-enterprise) - Validated reference architectures from 200 to 200,000 users, [high availability and clustering](/deployment-guide/scale/high-availability-cluster-based-deployment), storage sizing, [search infrastructure](/deployment-guide/scale/enterprise-search), and [caching with Redis](/deployment-guide/scale/redis).
+- [Back up and recover](/deployment-guide/backup-disaster-recovery) - Backup strategy and [active/passive disaster recovery on AWS](/deployment-guide/disaster-recovery-aws).
+- [Air-gapped operations](/deployment-guide/air-gapped-operations/) - The runbook, bill of materials, registry mirroring, and configuration changes for a deployment with no internet access.
+- [Calls deployment](/deployment-guide/calls/calls-deployment-guide) - Deploy and operate Calls infrastructure, including RTCD, the recording offloader, logging, and metrics.
+
+## Deploy the apps
+
+- [Desktop app deployment](/deployment-guide/desktop/desktop-app-deployment) - Distribution and management for Windows, macOS, and Linux, including MSI and group policy.
+- [Mobile app deployment](/deployment-guide/mobile/mobile-app-deployment) - EMM distribution, Microsoft Intune MAM, custom builds, and running your own push proxy.
+
+## When something goes wrong
+
+[Troubleshoot deployments](/deployment-guide/deployment-troubleshooting) collects the troubleshooting guides for the server, Docker, PostgreSQL and MySQL installs, and the desktop and mobile apps in one place.
 
 <Note>
 
 - If you encounter issues that aren't covered in this documentation:
   - Customers with a Mattermost subscription: See the [Mattermost Support Knowledge Base](https://support.mattermost.com/hc/en-us), or [contact Mattermost Support](https://support.mattermost.com/hc/en-us/requests/new) for assistance.
-  - Community deployments: Reference the [Mattermost community forums](https://forum.mattermost.com/)
+  - Community deployments: Reference the [Mattermost community forums](https://forum.mattermost.com/).
   - For advanced customization or integrations, refer to the [Open source components](/administration-guide/upgrade/open-source-components) documentation for details about extending Mattermost functionality.
 
 </Note>
-
-Enjoy deploying Mattermost with confidence!

@@ -160,119 +160,150 @@ const OVERVIEW_ROOT_ORDER = [
 // ---------------------------------------------------------------------------
 //
 // The Deployment Guide directory has loose top-level files mixed with sub-
-// directories (server/, desktop/, mobile/, air-gapped-operations/, reference-
-// architecture/). The auto-generated sidebar ends up as 16 mostly-alphabetical
-// items at the top level, with a 16-item kitchen-sink under Server.
+// directories (server/, desktop/, mobile/, air-gapped-operations/, scale/,
+// deployment-scenarios/). The auto-generated sidebar ends up as 16 mostly-
+// alphabetical items at the top level, with a 16-item kitchen-sink under Server.
 //
-// This override applies a progression-ordered grouping (Try → Plan → Install
-// → Operate → Security → Troubleshoot). Server's internal structure is also
-// restructured into Plan / Install-by-platform / Configure-at-install sub-
-// groups, and the four troubleshooting pages that live under server/ are
-// pulled up into the top-level "Deployment Troubleshooting" category.
+// This override applies a progression-ordered grouping: evaluate → choose a
+// scenario → Plan → Prepare → Install → Secure → Scale → Back up → operate.
+// The `server/` directory is dissolved into the Plan / Prepare / Install
+// groups, and the troubleshooting pages scattered across server/, desktop/,
+// and mobile/ are pulled up into the top-level "Troubleshoot deployments"
+// category, which is their single sidebar home.
 
 const DEPLOYMENT_GROUPS = {
-  // 'Deployment Scenarios' — promoted from inside Reference Architecture
-  // to a top-level group. DISC-relevant patterns (Air-Gapped, DDIL, Mission
-  // Partner, OOB, Sovereign-on-Microsoft) deserve prominence, not burial.
+  // 'Deployment Scenarios' — a top-level group at position 2. DISC-relevant
+  // patterns (OOB, Mission Partner, DDIL, Sovereign-on-Microsoft, Air-Gapped)
+  // deserve prominence, not burial.
   deploymentScenarios: {
-    label: 'Deployment Scenarios',
-    landing: 'reference-architecture/deployment-scenarios/deployment-scenarios-index',
+    label: 'Deployment scenarios',
+    landing: 'deployment-scenarios/deployment-scenarios-index',
     items: [
-      'reference-architecture/deployment-scenarios/air-gapped-deployment',
-      'reference-architecture/deployment-scenarios/deploy-ddil-operations',
-      'reference-architecture/deployment-scenarios/deploy-mission-partner',
-      'reference-architecture/deployment-scenarios/deploy-oob',
-      'reference-architecture/deployment-scenarios/deploy-sovereign-collaboration',
+      'deployment-scenarios/deploy-oob',
+      'deployment-scenarios/deploy-mission-partner',
+      'deployment-scenarios/deploy-ddil-operations',
+      'deployment-scenarios/deploy-sovereign-collaboration',
+      'deployment-scenarios/air-gapped-deployment',
     ],
   },
 
-  // Server — fully restructured. Reference Architecture's remaining pages
-  // (Application Architecture + Software & Hardware Requirements) fold in
-  // here as the "Plan" sub-group, alongside Preparations + Solution Programs.
-  // The standalone Reference Architecture top-level category is eliminated;
-  // its index page (reference-architecture-index) is hidden from the sidebar
-  // (URL still resolves directly).
-  server: {
-    label: 'Server',
+  // Plan — what you decide before touching a server: the component model,
+  // the sizing builder, the requirements matrix, and who can deploy for you.
+  plan: {
+    label: 'Plan',
     landing: 'server/server-deployment-planning',
     items: [
-      {label: 'Plan', items: [
-        'reference-architecture/application-architecture',
-        'software-hardware-requirements',
-        'server/preparations',
-        'server/orchestration',
-      ]},
-      // Install methods, each with their sub-pages.
-      {label: 'Install on Linux', landing: 'server/deploy-linux', items: [
+      'application-architecture',
+      'deployment-architecture',
+      'software-hardware-requirements',
+      'server/orchestration',
+    ],
+  },
+
+  // Prepare — prerequisites that must exist before the install runs. This
+  // group sits BEFORE Install deliberately: NGINX and TLS are prerequisites
+  // for a working deployment, so a reader following the sidebar top to bottom
+  // must not finish installing before reaching them. `server/preparations` is
+  // already a hub page linking to exactly these, so it's the landing page.
+  prepare: {
+    label: 'Prepare',
+    landing: 'server/preparations',
+    items: [
+      'server/setup-nginx-proxy',
+      'server/setup-tls',
+      'server/prepare-mattermost-mysql-database',
+      'server/image-proxy',
+      'server/pre-authentication-secrets',
+    ],
+  },
+
+  // Install the server — one sub-group per install method. No landing page;
+  // the choice between them is made in Plan.
+  install: {
+    label: 'Install the server',
+    items: [
+      {label: 'Linux', landing: 'server/deploy-linux', items: [
         'server/linux/deploy-ubuntu',
         'server/linux/deploy-rhel',
         'server/linux/deploy-tar',
         'server/linux/deploy-azure-native-vm',
       ]},
-      {label: 'Install on Kubernetes', landing: 'server/deploy-kubernetes', items: [
+      {label: 'Kubernetes', landing: 'server/deploy-kubernetes', items: [
         'server/kubernetes/deploy-k8s',
         'server/kubernetes/deploy-k8s-oke',
       ]},
-      {label: 'Install with Containers', landing: 'server/deploy-containers', items: [
+      {label: 'Containers', landing: 'server/deploy-containers', items: [
         'server/containers/fips-stig',
       ]},
-      // Configure at install time — install-blocking decisions like TLS,
-      // NGINX reverse proxy, image proxy, MySQL setup, pre-auth secrets.
-      {label: 'Configure at install time', items: [
-        'server/setup-nginx-proxy',
-        'server/setup-tls',
-        'server/pre-authentication-secrets',
-        'server/image-proxy',
-        'server/prepare-mattermost-mysql-database',
-      ]},
     ],
   },
 
-  // Scaling Architecture — moved here (physically, from
-  // administration-guide/scale/) to mirror Sphinx's live nav, where this
-  // whole cluster (capacity planning, HA/architecture, search infra, caching)
-  // sits under Reference Architecture as a sibling of Application
-  // Architecture. `scaling-for-enterprise` is the general entry point
-  // referencing the sub-groups below, so it's the group's landing page.
-  scaling: {
-    label: 'Scaling Architecture',
-    landing: 'reference-architecture/scale/scaling-for-enterprise',
+  // Secure your deployment — at-rest + in-transit encryption. These are
+  // install-time decisions, so this sits next to Install rather than after
+  // the day-2 topics below. The former one-child "Encryption" category is
+  // flattened into this group, with encryption-options as its landing page.
+  secure: {
+    label: 'Secure your deployment',
+    landing: 'encryption-options',
     items: [
-      {label: 'Capacity Planning', items: [
-        'reference-architecture/scale/scale-to-200-users',
-        'reference-architecture/scale/scale-to-2000-users',
-        'reference-architecture/scale/scale-to-15000-users',
-        'reference-architecture/scale/scale-to-30000-users',
-        'reference-architecture/scale/scale-to-50000-users',
-        'reference-architecture/scale/scale-to-80000-users',
-        'reference-architecture/scale/scale-to-90000-users',
-        'reference-architecture/scale/scale-to-100000-users',
-        'reference-architecture/scale/scale-to-200000-users',
-        'reference-architecture/scale/estimated-storage-per-user-per-month',
-        'reference-architecture/scale/backing-storage-benchmarks',
-        'reference-architecture/scale/lifetime-storage',
-        'reference-architecture/scale/additional-ha-considerations',
-      ]},
-      {label: 'High Availability & Architecture', items: [
-        'reference-architecture/scale/high-availability-cluster-based-deployment',
-        'reference-architecture/scale/server-architecture',
-      ]},
-      {label: 'Search Infrastructure', landing: 'reference-architecture/scale/enterprise-search', items: [
-        'reference-architecture/scale/elasticsearch-setup',
-        'reference-architecture/scale/opensearch-setup',
-        'reference-architecture/scale/common-configure-mattermost-for-enterprise-search',
-      ]},
-      {label: 'Caching', items: [
-        'reference-architecture/scale/redis',
-      ]},
+      'transport-encryption',
     ],
   },
 
-  // Calls Deployment & Configuration — moved here from Administration
-  // Guide → Configure. RTCD, Offloader, Kubernetes, logging, and metrics
-  // are deployment/operations concerns, not settings-reference material.
+  // Scale — capacity planning, HA, storage sizing, search, caching.
+  // `scaling-for-enterprise` is the general entry point referencing the
+  // sub-groups below, so it's the group's landing page.
+  scaling: {
+    label: 'Scale',
+    landing: 'scale/scaling-for-enterprise',
+    items: [
+      {label: 'Reference architectures by user count', items: [
+        'scale/scale-to-200-users',
+        'scale/scale-to-2000-users',
+        'scale/scale-to-15000-users',
+        'scale/scale-to-30000-users',
+        'scale/scale-to-50000-users',
+        'scale/scale-to-80000-users',
+        'scale/scale-to-90000-users',
+        'scale/scale-to-100000-users',
+        'scale/scale-to-200000-users',
+      ]},
+      {label: 'High availability and clustering', items: [
+        'scale/high-availability-cluster-based-deployment',
+        'scale/additional-ha-considerations',
+        'scale/server-architecture',
+      ]},
+      {label: 'Storage sizing', items: [
+        'scale/estimated-storage-per-user-per-month',
+        'scale/lifetime-storage',
+        'scale/backing-storage-benchmarks',
+      ]},
+      {label: 'Search infrastructure', landing: 'scale/enterprise-search', items: [
+        'scale/elasticsearch-setup',
+        'scale/opensearch-setup',
+        'scale/common-configure-mattermost-for-enterprise-search',
+      ]},
+      // Flattened from a category holding a single page.
+      {doc: 'scale/redis', label: 'Caching with Redis'},
+    ],
+  },
+
+  // Back up and recover — deployment-time architecture (HA-vs-DR,
+  // active/passive across two sites), not routine administration, so it sits
+  // next to Scale rather than down with the day-2 topics.
+  backupDr: {
+    label: 'Back up and recover',
+    landing: 'backup-disaster-recovery',
+    items: [
+      'disaster-recovery-aws',
+    ],
+  },
+
+  // Calls deployment — moved here from Administration Guide → Configure.
+  // RTCD, Offloader, Kubernetes, logging, and metrics are deployment and
+  // operations concerns, not settings-reference material.
   calls: {
-    label: 'Calls Deployment & Configuration',
+    label: 'Calls deployment',
     landing: 'calls/calls-deployment-guide',
     items: [
       'calls/calls-rtcd-setup',
@@ -283,91 +314,92 @@ const DEPLOYMENT_GROUPS = {
     ],
   },
 
-  // Backup & Disaster Recovery — group the two related pages.
-  backupDr: {
-    label: 'Backup & Disaster Recovery',
-    landing: 'backup-disaster-recovery',
+  // Desktop app deployment — explicit group rather than the auto-generated
+  // tree, so the section overview is the landing page (alphabetically it only
+  // happened to sort first) and the children run in procedural order instead
+  // of alphabetically. desktop-troubleshooting is deliberately absent: its
+  // sidebar home is the central troubleshooting hub below.
+  desktop: {
+    label: 'Desktop app deployment',
+    landing: 'desktop/desktop-app-deployment',
     items: [
-      'disaster-recovery-aws',
+      'desktop/linux-desktop-install',
+      'desktop/distribute-a-custom-desktop-app',
+      'desktop/silent-windows-desktop-distribution',
+      'desktop/desktop-msi-installer-and-group-policy-install',
+      'desktop/desktop-custom-dictionaries',
+      'desktop/desktop-app-managed-resources',
     ],
   },
 
-  // PostgreSQL Migration — group the three migration pages.
-  postgresMig: {
-    label: 'PostgreSQL Migration',
-    landing: 'postgres-migration',
+  // Mobile app deployment — same treatment as Desktop. Without this,
+  // mobile-app-deployment (the section overview) sorts 6th of 10 inside its
+  // own section. mobile-troubleshooting's sidebar home is the hub below.
+  mobile: {
+    label: 'Mobile app deployment',
+    landing: 'mobile/mobile-app-deployment',
     items: [
-      'postgres-migration-assist-tool',
-      'manual-postgres-migration',
+      'mobile/deploy-mobile-apps-using-emm-provider',
+      'mobile/configure-microsoft-intune-mam',
+      'mobile/distribute-custom-mobile-apps',
+      'mobile/host-your-own-push-proxy-service',
+      'mobile/consider-mobile-vpn-options',
+      'mobile/mobile-security-features',
+      'mobile/secure-mobile-file-storage',
+      'mobile/mobile-faq',
     ],
   },
 
-  // Encryption — at-rest + in-transit.
-  encryption: {
-    label: 'Encryption',
-    landing: 'encryption-options',
-    items: [
-      'transport-encryption',
-    ],
-  },
-
-  // Deployment Troubleshooting — pulls in the four troubleshooting pages
-  // currently scattered inside server/, plus the existing top-level page.
+  // Troubleshoot deployments — the single sidebar home for every deployment
+  // troubleshooting page, including the desktop and mobile ones that live
+  // under those directories on disk. Readers arrive at a troubleshooting hub
+  // in a failure state and are least likely to reason about which product
+  // surface owns the problem, so a hub that silently covered only the server
+  // would be worse than no hub. The desktop and mobile section landing pages
+  // link here rather than duplicating the entries, which would split
+  // prev/next pagination across two sidebar locations.
   troubleshooting: {
-    label: 'Deployment Troubleshooting',
+    label: 'Troubleshoot deployments',
     landing: 'deployment-troubleshooting',
     items: [
       'server/troubleshooting',
       'server/docker-troubleshooting',
-      'server/trouble_mysql',
       'server/trouble-postgres',
+      'server/trouble_mysql',
+      'desktop/desktop-troubleshooting',
+      'mobile/mobile-troubleshooting',
     ],
   },
 };
 
-// Top-level Deployment Guide order — Try → Plan → Install → Operate → Security
-// → Troubleshoot. Strings are paths relative to docs/deployment-guide/; objects
-// reference DEPLOYMENT_GROUPS keys or are inline sub-directories handled
-// by the auto-generator (Desktop, Mobile, Air-Gapped Operations).
+// Top-level Deployment Guide order — evaluate → choose a scenario → Plan →
+// Prepare → Install → Secure → Scale → Back up → operate → troubleshoot.
+// Strings are paths relative to docs/deployment-guide/; objects reference
+// DEPLOYMENT_GROUPS keys, or an auto-generated sub-directory tree.
 const DEPLOYMENT_ROOT_ORDER = [
   'quick-start-evaluation',
   {group: 'deploymentScenarios'},
-  'deployment-architecture',
-  {group: 'server'},
+  {group: 'plan'},
+  {group: 'prepare'},
+  {group: 'install'},
+  {group: 'secure'},
   {group: 'scaling'},
-  {group: 'calls'},
-  // Desktop, Mobile, Air-Gapped Operations keep their auto-generated trees
-  // (each has its own index file + sub-pages). Referenced by the `__auto__`
-  // sentinel so we slot them in here, in the order we want.
-  {auto: 'desktop'},
-  {auto: 'mobile'},
-  {auto: 'air-gapped-operations'},
   {group: 'backupDr'},
-  {group: 'postgresMig'},
-  {group: 'encryption'},
+  // Air-Gapped Operations keeps its auto-generated tree: it has its own
+  // index file and its children are already ordered by sidebar_position.
+  {auto: 'air-gapped-operations'},
+  {group: 'calls'},
+  {group: 'desktop'},
+  {group: 'mobile'},
   {group: 'troubleshooting'},
 ];
 
-// Files re-parented into other groups — exclude from the orphan check so they
-// don't get re-appended at root level.
-const DEPLOYMENT_HIDDEN = new Set([
-  'software-hardware-requirements',                       // → server Plan
-  'reference-architecture/application-architecture',      // → server Plan
-  'reference-architecture/reference-architecture-index',  // orphan after RA removal — URL still resolves directly
-  'backup-disaster-recovery',                             // → backupDr (as landing)
-  'disaster-recovery-aws',                                // → backupDr
-  'postgres-migration',                                   // → postgresMig (as landing)
-  'postgres-migration-assist-tool',                        // → postgresMig
-  'manual-postgres-migration',                             // → postgresMig
-  'encryption-options',                                    // → encryption (as landing)
-  'transport-encryption',                                  // → encryption
-  'deployment-troubleshooting',                            // → troubleshooting (as landing)
-  'server/troubleshooting',                                // → troubleshooting
-  'server/docker-troubleshooting',                         // → troubleshooting
-  'server/trouble_mysql',                                  // → troubleshooting
-  'server/trouble-postgres',                               // → troubleshooting
-  'server/fips-migration',                                 // cross-linked only; sidebar home is the Migration hub (administration-guide/manage/admin/migration)
-]);
+// Files re-parented into other groups — excluded from the orphan check so they
+// don't get re-appended at root level. Every Deployment Guide page is now
+// placed explicitly in DEPLOYMENT_ROOT_ORDER above, so this is empty. An empty
+// hidden list is the health signal that nothing in the section is unreachable
+// — keep it that way.
+const DEPLOYMENT_HIDDEN = new Set([]);
 
 // ---------------------------------------------------------------------------
 // Administration Guide — Configure — manual grouping override.
@@ -573,7 +605,16 @@ const ADMIN_MANAGE_GROUPS = {
     label: 'Data Export & Migration',
     items: [
       'bulk-export-tool',
-      'admin/migration',
+      // Mirrors Sphinx, where admin/migration is the only toctree that lists
+      // the PostgreSQL and FIPS migration pages. Those four files were moved
+      // here from deployment-guide/ so the URL matches the nav home.
+      {label: 'Migration', landing: 'admin/migration', items: [
+        {label: 'Migrate from MySQL to PostgreSQL', landing: 'admin/postgres-migration', items: [
+          'admin/postgres-migration-assist-tool',
+          'admin/manual-postgres-migration',
+        ]},
+        'admin/fips-migration',
+      ]},
     ],
   },
 };
@@ -607,7 +648,9 @@ const ADMIN_MANAGE_HIDDEN = new Set([
   'cloud-data-export', 'cloud-data-residency', 'cloud-ip-filtering',
   'in-product-notices', 'system-wide-notifications', 'user-satisfaction-surveys', 'feature-labels',
   'admin/content-flagging', 'admin/autotranslation', 'product-limits',
-  'bulk-export-tool', 'admin/migration',
+  'bulk-export-tool', 'admin/migration', 'admin/postgres-migration',
+  'admin/postgres-migration-assist-tool', 'admin/manual-postgres-migration',
+  'admin/fips-migration',
 ]);
 
 // ---------------------------------------------------------------------------
@@ -862,7 +905,7 @@ const ADMIN_ONBOARD_HIDDEN = new Set([
 // those files keep their `/administration-guide/scale/...` URLs there even
 // though they're navigated to from Deployment Guide). We mirror that split
 // here by physically moving those 21 files to
-// `deployment-guide/reference-architecture/scale/` (see the `scaling` group
+// `deployment-guide/scale/` (see the `scaling` group
 // in DEPLOYMENT_GROUPS), leaving only the 7 monitoring pages here. With just
 // one theme left, they're listed flat rather than wrapped in a redundant
 // "Observability & Monitoring" sub-category one level above itself.

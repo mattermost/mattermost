@@ -1,5 +1,5 @@
 ---
-title: "Scale Mattermost up to 15000 users"
+title: "Scale Mattermost up to 2,000 users"
 ---
 import Inc0_lifetime_storage from './lifetime-storage.mdx';
 import Inc1_estimated_storage_per_user_per_month from './estimated-storage-per-user-per-month.mdx';
@@ -7,7 +7,7 @@ import Inc2_additional_ha_considerations from './additional-ha-considerations.md
 
 <PlanAvailability slug="ent-plus" />
 
-This page describes the Mattermost reference architecture designed for the load of up to 15000 concurrent users. Unsure which reference architecture to use? See the [scaling for enterprise](/deployment-guide/reference-architecture/scale/scaling-for-enterprise) documentation for details.
+This page describes the Mattermost reference architecture designed for a minimum load of 100 concurrent users and up to 2000 concurrent users. Unsure which reference architecture to use? See the [scaling for enterprise](/deployment-guide/scale/scaling-for-enterprise) documentation for details.
 
 - **High Availability**: Required
 - **Database Configuration**: writer, reader
@@ -88,23 +88,23 @@ body:not([data-custom-theme="light"]) .scale-requirements-table td &#123;
 <tr>
 <td>Mattermost Application</td>
 <td>2</td>
-<td>4/8</td>
-<td>c7i.xlarge</td>
-<td>F4s v2</td>
+<td>2/4</td>
+<td>c7i.large</td>
+<td>F2s v2</td>
 </tr>
 <tr>
 <td>RDS Writer</td>
 <td>1</td>
-<td>4/32</td>
-<td>db.r7g.xlarge</td>
-<td>E4ds v5</td>
+<td>2/16</td>
+<td>db.r7g.large</td>
+<td>E2ds v5</td>
 </tr>
 <tr>
 <td>RDS Reader</td>
 <td>1</td>
-<td>4/32</td>
-<td>db.r7g.xlarge</td>
-<td>E4ds v5</td>
+<td>2/16</td>
+<td>db.r7g.large</td>
+<td>E2ds v5</td>
 </tr>
 <tr>
 <td>Elasticsearch Node</td>
@@ -133,11 +133,11 @@ body:not([data-custom-theme="light"]) .scale-requirements-table td &#123;
 
 ### Example
 
-A 15000-person team with medium usage (with a safety factor of 2x) would require between 1.8TB <sup>1</sup> and 9TB <sup>2</sup> of free space per annum.
+A 2000-person team with medium usage (with a safety factor of 2x) would require between 120GB <sup>1</sup> and 600GB <sup>2</sup> of free space per annum.
 
-<sup>1</sup> 15000 users \* 5 MB \* 12 months \* 2x safety factor
+<sup>1</sup> 2000 users \* 5 MB \* 12 months \* 2x safety factor
 
-<sup>2</sup> 15000 users \* 25 MB \* 12 months \* 2x safety factor
+<sup>2</sup> 2000 users \* 25 MB \* 12 months \* 2x safety factor
 
 We strongly recommend that you review storage utilization at least quarterly to ensure adequate free space is available.
 

@@ -913,7 +913,7 @@
     },
     {
       "from": "/deploy/manual-postgres-migration",
-      "to": "/deployment-guide/manual-postgres-migration"
+      "to": "/administration-guide/manage/admin/manual-postgres-migration"
     },
     {
       "from": "/deploy/mobile-appconfig",
@@ -977,11 +977,11 @@
     },
     {
       "from": "/deploy/postgres-migration-assist-tool",
-      "to": "/deployment-guide/postgres-migration-assist-tool"
+      "to": "/administration-guide/manage/admin/postgres-migration-assist-tool"
     },
     {
       "from": "/deploy/postgres-migration",
-      "to": "/deployment-guide/postgres-migration"
+      "to": "/administration-guide/manage/admin/postgres-migration"
     },
     {
       "from": "/deploy/quick-start-evaluation",
@@ -1137,11 +1137,11 @@
     },
     {
       "from": "/deployment/elasticsearch",
-      "to": "/deployment-guide/reference-architecture/scale/elasticsearch-setup"
+      "to": "/deployment-guide/scale/elasticsearch-setup"
     },
     {
       "from": "/deployment/enterprise-deployment-guide",
-      "to": "/deployment-guide/reference-architecture/scale/scaling-for-enterprise"
+      "to": "/deployment-guide/scale/scaling-for-enterprise"
     },
     {
       "from": "/deployment/guest-accounts",
@@ -1149,7 +1149,7 @@
     },
     {
       "from": "/deployment/ha",
-      "to": "/deployment-guide/reference-architecture/scale/high-availability-cluster-based-deployment"
+      "to": "/deployment-guide/scale/high-availability-cluster-based-deployment"
     },
     {
       "from": "/deployment/metrics",
@@ -1169,7 +1169,7 @@
     },
     {
       "from": "/deployment/scaling",
-      "to": "/deployment-guide/reference-architecture/scale/scaling-for-enterprise"
+      "to": "/deployment-guide/scale/scaling-for-enterprise"
     },
     {
       "from": "/deployment/sso-ldap",
@@ -2397,7 +2397,7 @@
     },
     {
       "from": "/scale/additional-ha-considerations",
-      "to": "/deployment-guide/reference-architecture/scale/additional-ha-considerations"
+      "to": "/deployment-guide/scale/additional-ha-considerations"
     },
     {
       "from": "/scale/collect-performance-metrics",
@@ -2405,7 +2405,7 @@
     },
     {
       "from": "/scale/common-configure-mattermost-for-enterprise-search",
-      "to": "/deployment-guide/reference-architecture/scale/common-configure-mattermost-for-enterprise-search"
+      "to": "/deployment-guide/scale/common-configure-mattermost-for-enterprise-search"
     },
     {
       "from": "/scale/deploy-prometheus-grafana-for-performance-monitoring",
@@ -2413,7 +2413,7 @@
     },
     {
       "from": "/scale/elasticsearch-setup",
-      "to": "/deployment-guide/reference-architecture/scale/elasticsearch-setup"
+      "to": "/deployment-guide/scale/elasticsearch-setup"
     },
     {
       "from": "/scale/ensuring-releases-perform-at-scale",
@@ -2421,23 +2421,23 @@
     },
     {
       "from": "/scale/enterprise-search",
-      "to": "/deployment-guide/reference-architecture/scale/enterprise-search"
+      "to": "/deployment-guide/scale/enterprise-search"
     },
     {
       "from": "/scale/estimated-storage-per-user-per-month",
-      "to": "/deployment-guide/reference-architecture/scale/estimated-storage-per-user-per-month"
+      "to": "/deployment-guide/scale/estimated-storage-per-user-per-month"
     },
     {
       "from": "/scale/high-availability-cluster-based-deployment",
-      "to": "/deployment-guide/reference-architecture/scale/high-availability-cluster-based-deployment"
+      "to": "/deployment-guide/scale/high-availability-cluster-based-deployment"
     },
     {
       "from": "/scale/lifetime-storage",
-      "to": "/deployment-guide/reference-architecture/scale/lifetime-storage"
+      "to": "/deployment-guide/scale/lifetime-storage"
     },
     {
       "from": "/scale/opensearch-setup",
-      "to": "/deployment-guide/reference-architecture/scale/opensearch-setup"
+      "to": "/deployment-guide/scale/opensearch-setup"
     },
     {
       "from": "/scale/performance-alerting",
@@ -2457,79 +2457,79 @@
     },
     {
       "from": "/scale/redis",
-      "to": "/deployment-guide/reference-architecture/scale/redis"
+      "to": "/deployment-guide/scale/redis"
     },
     {
       "from": "/scale/scale-to-100000-users",
-      "to": "/deployment-guide/reference-architecture/scale/scale-to-100000-users"
+      "to": "/deployment-guide/scale/scale-to-100000-users"
     },
     {
       "from": "/scale/scale-to-15000-users",
-      "to": "/deployment-guide/reference-architecture/scale/scale-to-15000-users"
+      "to": "/deployment-guide/scale/scale-to-15000-users"
     },
     {
       "from": "/scale/scale-to-200-users",
-      "to": "/deployment-guide/reference-architecture/scale/scale-to-200-users"
+      "to": "/deployment-guide/scale/scale-to-200-users"
     },
     {
       "from": "/scale/scale-to-2000-users",
-      "to": "/deployment-guide/reference-architecture/scale/scale-to-2000-users"
+      "to": "/deployment-guide/scale/scale-to-2000-users"
     },
     {
       "from": "/scale/scale-to-200000-users",
-      "to": "/deployment-guide/reference-architecture/scale/scale-to-200000-users"
+      "to": "/deployment-guide/scale/scale-to-200000-users"
     },
     {
       "from": "/scale/scale-to-30000-users",
-      "to": "/deployment-guide/reference-architecture/scale/scale-to-30000-users"
+      "to": "/deployment-guide/scale/scale-to-30000-users"
     },
     {
       "from": "/scale/scale-to-50000-users",
-      "to": "/deployment-guide/reference-architecture/scale/scale-to-50000-users"
+      "to": "/deployment-guide/scale/scale-to-50000-users"
     },
     {
       "from": "/scale/scale-to-80000-users",
-      "to": "/deployment-guide/reference-architecture/scale/scale-to-80000-users"
+      "to": "/deployment-guide/scale/scale-to-80000-users"
     },
     {
       "from": "/scale/scale-to-90000-users",
-      "to": "/deployment-guide/reference-architecture/scale/scale-to-90000-users"
+      "to": "/deployment-guide/scale/scale-to-90000-users"
     },
     {
       "from": "/scale/scaling-for-enterprise",
-      "to": "/deployment-guide/reference-architecture/scale/scaling-for-enterprise"
+      "to": "/deployment-guide/scale/scaling-for-enterprise"
     },
     {
       "from": "/scale/high-availability-cluster",
-      "to": "/deployment-guide/reference-architecture/scale/high-availability-cluster-based-deployment"
+      "to": "/deployment-guide/scale/high-availability-cluster-based-deployment"
     },
     {
       "from": "/scale/scale-to-100-users",
-      "to": "/deployment-guide/reference-architecture/scale/scale-to-200-users"
+      "to": "/deployment-guide/scale/scale-to-200-users"
     },
     {
       "from": "/scale/scale-to-1000-users",
-      "to": "/deployment-guide/reference-architecture/scale/scale-to-2000-users"
+      "to": "/deployment-guide/scale/scale-to-2000-users"
     },
     {
       "from": "/scale/scale-to-25000-users",
-      "to": "/deployment-guide/reference-architecture/scale/scale-to-30000-users"
+      "to": "/deployment-guide/scale/scale-to-30000-users"
     },
     {
       "from": "/scale/scale-to-70000-users",
-      "to": "/deployment-guide/reference-architecture/scale/scale-to-80000-users"
+      "to": "/deployment-guide/scale/scale-to-80000-users"
     },
     {
       "from": "/scale/scale-to-79000-users",
-      "to": "/deployment-guide/reference-architecture/scale/scale-to-80000-users"
+      "to": "/deployment-guide/scale/scale-to-80000-users"
     },
     {
       "from": "/scale/scale-to-88000-users",
-      "to": "/deployment-guide/reference-architecture/scale/scale-to-90000-users"
+      "to": "/deployment-guide/scale/scale-to-90000-users"
     },
     {
       "from": "/scale/elasticsearch",
-      "to": "/deployment-guide/reference-architecture/scale/elasticsearch-setup"
+      "to": "/deployment-guide/scale/elasticsearch-setup"
     },
     {
       "from": "/guides/agents",
@@ -2810,6 +2810,38 @@
     {
       "from": "/administration-guide/configure/calls-metrics-monitoring",
       "to": "/deployment-guide/calls/calls-metrics-monitoring"
+    },
+    {
+      "from": "/deployment-guide/reference-architecture/application-architecture",
+      "to": "/deployment-guide/application-architecture"
+    },
+    {
+      "from": "/deployment-guide/reference-architecture/deployment-scenarios/air-gapped-deployment",
+      "to": "/deployment-guide/deployment-scenarios/air-gapped-deployment"
+    },
+    {
+      "from": "/deployment-guide/reference-architecture/deployment-scenarios/deploy-ddil-operations",
+      "to": "/deployment-guide/deployment-scenarios/deploy-ddil-operations"
+    },
+    {
+      "from": "/deployment-guide/reference-architecture/deployment-scenarios/deploy-mission-partner",
+      "to": "/deployment-guide/deployment-scenarios/deploy-mission-partner"
+    },
+    {
+      "from": "/deployment-guide/reference-architecture/deployment-scenarios/deploy-oob",
+      "to": "/deployment-guide/deployment-scenarios/deploy-oob"
+    },
+    {
+      "from": "/deployment-guide/reference-architecture/deployment-scenarios/deploy-sovereign-collaboration",
+      "to": "/deployment-guide/deployment-scenarios/deploy-sovereign-collaboration"
+    },
+    {
+      "from": "/deployment-guide/reference-architecture/deployment-scenarios/deployment-scenarios-index",
+      "to": "/deployment-guide/deployment-scenarios/deployment-scenarios-index"
+    },
+    {
+      "from": "/deployment-guide/reference-architecture/reference-architecture-index",
+      "to": "/deployment-guide/deployment-scenarios/deployment-scenarios-index"
     }
   ]
 }
