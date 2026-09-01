@@ -2884,6 +2884,76 @@ func TestPatchPropertyField(t *testing.T) {
 			require.Error(t, err)
 			CheckBadRequestStatus(t, resp)
 		})
+
+		t.Run("a patch carrying both options and permissions is routed to field.write, not option.write", func(t *testing.T) {
+			newOptionsField := func(t *testing.T) *model.PropertyField {
+				t.Helper()
+				field := &model.PropertyField{
+					Name:       model.NewId(),
+					Type:       model.PropertyFieldTypeSelect,
+					GroupID:    v3PermissionsGroup.ID,
+					ObjectType: model.PropertyFieldObjectTypeUser,
+					TargetType: "system",
+					Attrs: model.StringInterface{
+						"options": []map[string]any{
+							{"id": model.NewId(), "name": "Option 1"},
+						},
+					},
+					Permissions: &model.Permissions{
+						Restrictions: &model.Restrictions{
+							Field:  model.WriteOnly{Write: model.PermissionLevelSysadmin},
+							Option: model.ReadWrite{Read: model.PermissionLevelMember, Write: model.PermissionLevelMember},
+							Value:  model.ReadWrite{Read: model.PermissionLevelMember, Write: model.PermissionLevelMember},
+						},
+					},
+				}
+				created, appErr := th.App.CreatePropertyField(th.Context, field, false, "")
+				require.Nil(t, appErr)
+				require.NotNil(t, created.Permissions)
+				return created
+			}
+
+			t.Run("options plus permissions is refused and the field is unchanged", func(t *testing.T) {
+				createdField := newOptionsField(t)
+
+				th.LoginBasic(t)
+				newOptionID := model.NewId()
+				patch := &model.PropertyFieldPatch{
+					Attrs: &model.StringInterface{
+						"options": []map[string]any{
+							{"id": newOptionID, "name": "New Option"},
+						},
+					},
+					Permissions: newGrantsPatch(t),
+				}
+				_, resp, err := th.Client.PatchPropertyField(context.Background(), v3PermissionsGroup.Name, model.PropertyFieldObjectTypeUser, createdField.ID, patch)
+				require.Error(t, err)
+				CheckForbiddenStatus(t, resp)
+
+				stored, appErr := th.App.GetPropertyField(th.Context, v3PermissionsGroup.ID, createdField.ID)
+				require.Nil(t, appErr)
+				require.Equal(t, createdField.Attrs, stored.Attrs)
+				require.Equal(t, createdField.Permissions, stored.Permissions)
+			})
+
+			t.Run("options alone is allowed and the new option list is stored", func(t *testing.T) {
+				createdField := newOptionsField(t)
+
+				th.LoginBasic(t)
+				newOptionID := model.NewId()
+				patch := &model.PropertyFieldPatch{
+					Attrs: &model.StringInterface{
+						"options": []map[string]any{
+							{"id": newOptionID, "name": "New Option"},
+						},
+					},
+				}
+				updated, resp, err := th.Client.PatchPropertyField(context.Background(), v3PermissionsGroup.Name, model.PropertyFieldObjectTypeUser, createdField.ID, patch)
+				require.NoError(t, err)
+				CheckOKStatus(t, resp)
+				require.NotNil(t, updated.Attrs["options"])
+			})
+		})
 	})
 
 	t.Run("v3 group with flag off falls back to v2 and returns 200", func(t *testing.T) {
