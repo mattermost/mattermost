@@ -45,7 +45,7 @@ func createBot(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if user, err := c.App.GetUser(c.AppContext.Session().UserId); err == nil {
+	if user, err := c.App.GetUser(c.AppContext, c.AppContext.Session().UserId); err == nil {
 		if user.IsBot {
 			c.SetPermissionError(model.PermissionCreateBot)
 			return
@@ -249,7 +249,7 @@ func assignBot(c *Context, w http.ResponseWriter, _ *http.Request) {
 		return
 	}
 
-	if user, err := c.App.GetUser(userId); err == nil {
+	if user, err := c.App.GetUser(c.AppContext, userId); err == nil {
 		if user.IsBot {
 			c.SetPermissionError(model.PermissionAssignBot)
 			return

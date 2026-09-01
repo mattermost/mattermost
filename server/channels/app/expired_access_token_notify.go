@@ -35,7 +35,7 @@ func (a *App) NotifyExpiredAccessTokensDeleted(rctx request.CTX, tokens []*model
 	}
 
 	for _, token := range tokens {
-		user, appErr := a.GetUser(token.UserId)
+		user, appErr := a.GetUser(rctx, token.UserId)
 		if appErr != nil {
 			rctx.Logger().Warn("Failed to get user for expired personal access token notification",
 				mlog.String("user_id", token.UserId),
