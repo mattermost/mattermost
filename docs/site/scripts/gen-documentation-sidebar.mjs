@@ -40,9 +40,8 @@ const OUT = join(SITE_ROOT, 'sidebars', 'documentation.generated.json');
 // strings for standalone docs, `{group: 'key'}` for a group from the map).
 // A `*_HIDDEN` set lists files that got re-parented into a group so the
 // orphan check below doesn't re-append them at the section root. (A page that
-// should not appear in the sidebar at all — an MDX snippet include — is not
-// listed here: it carries `unlisted: true` in its own frontmatter, which both
-// this generator and Docusaurus honour. See isHidden below.) A group's
+// belongs in no sidebar at all carries `unlisted: true` instead — see
+// isHidden.) A group's
 // `items` can itself contain nested `{label, items}` sub-groups (see e.g.
 // OVERVIEW_GROUPS.subscription's "Cloud" sub-group below) — that's what
 // gets you a 3rd level of TOC nesting (Guide > Group > Sub-group > page)
@@ -268,9 +267,6 @@ const DEPLOYMENT_GROUPS = {
         'scale/high-availability-cluster-based-deployment',
         'scale/server-architecture',
       ]},
-      // additional-ha-considerations, estimated-storage-per-user-per-month and
-      // lifetime-storage are `unlisted: true` snippet includes rendered inside
-      // the scale-to-* pages, so they are not listed here.
       {label: 'Storage Sizing', items: [
         'scale/backing-storage-benchmarks',
       ]},
@@ -402,26 +398,11 @@ const DEPLOYMENT_HIDDEN = new Set([]);
 //
 // Configure is a flat settings-reference dump. This override groups it by
 // task/subsystem so the ~13 "*-configuration-settings" reference pages don't
-// drown the task-oriented pages (Search, Email, Branding) sitting alongside
-// them at the same level.
-//
-// Every System Console settings page belongs in the settings reference group,
-// including the two billing/licensing ones and System attributes, which used
-// to sit outside it: a reader looking up a System Console section shouldn't
-// have to know which of three places in the nav it was filed under. Pages that
-// describe turning a capability on (Boards, plugins, auto-translation, content
-// flagging, connected workspaces) stay as top-level leaves rather than being
-// bundled into a catch-all, because a "misc" label predicts nothing.
-//
-// Three items live outside administration-guide/configure/ on disk and are
-// referenced with the `{doc: '<full id>'}` form: auto-translation and content
-// flagging (in manage/admin/, both System Console toggles) and connected
-// workspaces (in onboard/, but not an onboarding task).
+// drown the task-oriented pages sitting alongside them at the same level.
 
 const ADMIN_CONFIGURE_GROUPS = {
   settingsReference: {
-    // Ordered to follow the System Console's own left-hand nav, so the page a
-    // reader is looking at maps onto the entry they need.
+    // Ordered to follow the System Console's own left-hand nav.
     label: 'System Console settings reference',
     landing: 'configuration-settings',
     items: [
@@ -429,9 +410,6 @@ const ADMIN_CONFIGURE_GROUPS = {
       'authentication-configuration-settings',
       'user-management-configuration-settings',
       'system-attributes',
-      // rate-limiting-configuration-settings and
-      // push-notification-server-configuration-settings are `unlisted: true`
-      // snippet includes rendered inside Environment configuration settings.
       'environment-configuration-settings',
       'reporting-configuration-settings',
       'compliance-configuration-settings',
@@ -458,9 +436,6 @@ const ADMIN_CONFIGURE_GROUPS = {
     ],
   },
   branding: {
-    // Landing lives in manage/admin/ and is left there: it's a group landing,
-    // not a category landing, so its URL is far less prominent than the two
-    // hubs that were moved (configure-index, onboard-index).
     label: 'Branding and customization',
     landingDoc: 'administration-guide/manage/admin/customize-branding',
     items: [
@@ -490,9 +465,8 @@ const ADMIN_CONFIGURE_GROUPS = {
 
 // Top-level Configure order. Strings are doc basenames relative to
 // administration-guide/configure/; objects reference ADMIN_CONFIGURE_GROUPS
-// keys. The settings reference comes first (where most admins land), then the
-// subsystems you configure once at setup time, then the capabilities you turn
-// on afterwards.
+// keys. Settings reference first, then the subsystems you configure at setup
+// time, then the capabilities you turn on afterwards.
 const ADMIN_CONFIGURE_ORDER = [
   {group: 'settingsReference'},
   'configuration-in-your-database',
@@ -521,8 +495,7 @@ const ADMIN_CONFIGURE_HIDDEN = new Set([
   'bleve-search', 'enabling-chinese-japanese-korean-search',
   'smtp-email', 'email-templates',
   'custom-branding-tools', 'customize-mattermost',
-  // Listed elsewhere: workspace optimization is a health check (Monitor and
-  // troubleshoot), user surveys are an ongoing admin task (Manage).
+  // Listed under Monitor and troubleshoot / Manage.
   'optimize-your-workspace', 'manage-user-surveys',
 ]);
 
@@ -541,10 +514,6 @@ const ADMIN_CONFIGURE_HIDDEN = new Set([
 
 const ADMIN_MANAGE_GROUPS = {
   userAccess: {
-    // Access control was split across two sections: attribute-based access
-    // control and user attributes here, advanced permissions and delegated
-    // granular administration under Onboard. They are all day-2 tasks on a
-    // running server, so they are listed together, here.
     label: 'Users and access',
     landing: 'admin/user-management',
     items: [
@@ -597,9 +566,7 @@ const ADMIN_MANAGE_GROUPS = {
     ],
   },
   dataMigration: {
-    // Infrastructure migration only. Moving off Slack or Rocket.Chat is a
-    // day-0 onboarding project and lives under Onboard users; the two group
-    // landings cross-link.
+    // Infrastructure migration; platform migration is under Onboard users.
     label: 'Data export and infrastructure migration',
     landing: 'admin/migration',
     items: [
@@ -649,7 +616,7 @@ const ADMIN_MANAGE_HIDDEN = new Set([
   'admin/postgres-migration-assist-tool', 'admin/manual-postgres-migration',
   'admin/fips-migration',
   'product-limits', 'feature-labels',
-  // Listed under Configure: System Console toggles and branding.
+  // Listed under Configure.
   'admin/content-flagging', 'admin/autotranslation', 'admin/customize-branding',
   'code-signing-custom-builds',
   // Listed under Monitor and troubleshoot.
@@ -793,16 +760,10 @@ const COLLABORATE_HIDDEN = new Set([
 // ---------------------------------------------------------------------------
 //
 // Onboard is a flat 30-odd-file dump spanning SSO/identity setup, guest
-// accounts, user provisioning, and one-time migration tasks. Single sign-on
-// protocols (SAML, OIDC, Google, GitLab, Entra ID native, OAuth->OIDC
-// conversion) live under one group, with SAML nested as its own sub-category
-// since it alone accounts for 8 of those files (one per IdP plus the
-// technical reference). AD/LDAP is a sibling group rather than an SSO child:
-// it's directory synchronization, and an admin can run it without SSO.
-//
-// The section is scoped to getting users into a new workspace. Ongoing
-// access-control administration (advanced permissions, delegated granular
-// administration) is listed under Manage > Users and access instead.
+// accounts, user provisioning, and one-time migration tasks. SAML is nested
+// inside the single sign-on group since it alone accounts for 8 files.
+// AD/LDAP is a sibling group, not an SSO child — an admin can run directory
+// synchronization without SSO.
 
 const ADMIN_ONBOARD_GROUPS = {
   sso: {
@@ -810,10 +771,6 @@ const ADMIN_ONBOARD_GROUPS = {
     landing: 'corporate-directory-integration',
     items: [
       {
-        // sso-saml-before-you-begin, sso-saml-ldapsync and sso-saml-faq are
-        // `unlisted: true` snippet includes rendered inside each identity
-        // provider page below, so they are not listed separately. Matches the
-        // Sphinx sso-saml toctree.
         label: 'SAML',
         landing: 'sso-saml',
         items: [
@@ -850,8 +807,7 @@ const ADMIN_ONBOARD_GROUPS = {
     ],
   },
   migration: {
-    // Platform migration only — the infrastructure counterpart is
-    // Manage > Data export and infrastructure migration.
+    // Platform migration; infrastructure migration is under Manage.
     label: 'Migrate from another platform',
     landing: 'migrating-to-mattermost',
     items: [
@@ -889,10 +845,10 @@ const ADMIN_ONBOARD_HIDDEN = new Set([
   'multi-factor-authentication', 'certificate-based-authentication', 'ssl-client-certificate',
   'migrating-to-mattermost', 'migrate-from-slack', 'migrate-from-rocketchat', 'migrate-gitlab-omnibus',
   'migration-announcement-email',
-  // Listed under Manage > Users and access: ongoing administration, not onboarding.
+  // Listed under Manage > Users and access.
   'advanced-permissions', 'advanced-permissions-backend-infrastructure',
   'delegated-granular-administration',
-  // Listed under Configure: a System Console connection, not an onboarding task.
+  // Listed under Configure.
   'connected-workspaces',
 ]);
 
@@ -912,13 +868,10 @@ const ADMIN_ONBOARD_HIDDEN = new Set([
 // here by physically moving those 21 files to `deployment-guide/scale/` (see
 // the `scaling` group in DEPLOYMENT_GROUPS).
 //
-// What's left is monitoring, so the category is presented as "Monitor and
-// troubleshoot" — a name a reader searching for dashboards, health checks, or
-// a support packet can act on, where "Scale" told them nothing. The eight
-// monitoring and diagnostics pages that live in manage/ on disk are listed
-// here too, by full doc id: Sphinx grouped all of this under one
-// "Monitoring and performance" hub, which also becomes this category's
-// landing page. Files keep their existing URLs.
+// What's left is monitoring, so this category is re-labelled "Monitor and
+// troubleshoot" (see regroupAdminScale) and the eight monitoring pages that
+// live in manage/ on disk are listed here too, by full doc id. Files keep
+// their existing URLs.
 
 const ADMIN_SCALE_GROUPS = {
   metrics: {
@@ -962,11 +915,9 @@ const ADMIN_SCALE_HIDDEN = new Set([
 // Administration Guide — Comply and Upgrade — manual ordering overrides.
 // ---------------------------------------------------------------------------
 //
-// Neither section needs regrouping — they're small and single-themed — but
-// both read badly in filename order. Comply is ordered by how many
-// deployments use each capability, ending with the audit log schema, which is
-// reference material rather than a task. Upgrade follows the procedure:
-// what to know, prepare, upgrade, then the post-upgrade rollout tasks.
+// Both sections are small enough not to need groups, but read badly in
+// filename order: Comply is ordered by how widely each capability is used,
+// reference material last; Upgrade follows the upgrade procedure.
 
 const ADMIN_COMPLY_GROUPS = {};
 
@@ -1011,8 +962,7 @@ const ADMIN_UPGRADE_ORDER = [
 // exclude from the orphan check.
 const ADMIN_UPGRADE_HIDDEN = new Set([
   'admin-onboarding-tasks', 'enterprise-roll-out-checklist', 'welcome-email-to-end-users',
-  // Listed under Manage > Notices and surveys: it's an end-user request an
-  // admin fields at any time, not an upgrade step.
+  // Listed under Manage > Notices and surveys.
   'notify-admin',
 ]);
 
@@ -1156,10 +1106,9 @@ function readFm(filePath, key) {
   } catch { return null; }
 }
 
-// Pages excluded from the sidebar by their own frontmatter: `draft: true`
-// (not ready) and `unlisted: true` (MDX snippet includes imported by another
-// page — Docusaurus already drops these from the sidebar, search, and sitemap
-// in production, so the generator must agree or dev and prod disagree).
+// Docusaurus already drops `draft` and `unlisted` pages from the production
+// sidebar, so the generator has to agree or dev and prod disagree. MDX snippet
+// includes use `unlisted: true` to keep their URL while leaving the sidebar.
 function isHidden(filePath) {
   return readFm(filePath, 'draft') === 'true' || readFm(filePath, 'unlisted') === 'true';
 }
@@ -1665,8 +1614,8 @@ function buildAdminScaleGroup(g, leafLabels) {
 
 // Replace the auto-generated "Scale" sub-category's items (in place,
 // preserving its position among Administration Guide's other sub-categories)
-// with the manual grouping above, and re-label it: the eight monitoring pages
-// pulled in from manage/ make "Scale" an inaccurate name for what's here.
+// with the manual grouping above. Re-labelled because the directory name no
+// longer describes what's listed here.
 function regroupAdminScale(scaleCat) {
   const leafLabels = collectLeafLabels(scaleCat);
   const items = ADMIN_SCALE_ORDER.map((spec) => buildAdminScaleItem(spec, leafLabels));
@@ -1722,8 +1671,7 @@ function buildAdminComplyGroup(g, leafLabels) {
   return cat;
 }
 
-// Re-order the auto-generated "Comply" sub-category (in place) — no
-// regrouping, just the reading order from ADMIN_COMPLY_ORDER.
+// Re-order the auto-generated "Comply" sub-category (in place).
 function regroupAdminComply(complyCat) {
   const leafLabels = collectLeafLabels(complyCat);
   const items = ADMIN_COMPLY_ORDER.map((spec) => buildAdminComplyItem(spec, leafLabels));
@@ -1777,8 +1725,7 @@ function buildAdminUpgradeGroup(g, leafLabels) {
   return cat;
 }
 
-// Replace the auto-generated "Upgrade" sub-category's items (in place) with
-// the procedural order above.
+// Re-order the auto-generated "Upgrade" sub-category (in place).
 function regroupAdminUpgrade(upgradeCat) {
   const leafLabels = collectLeafLabels(upgradeCat);
   const items = ADMIN_UPGRADE_ORDER.map((spec) => buildAdminUpgradeItem(spec, leafLabels));
