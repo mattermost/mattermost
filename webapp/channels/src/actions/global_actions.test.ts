@@ -1,8 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import nock from 'nock';
+
 import type {Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
+
+import {Client4} from 'mattermost-redux/client';
+import {General} from 'mattermost-redux/constants';
 
 import {redirectUserToDefaultTeam, toggleSideBarRightMenuAction, getTeamRedirectChannelIfIsAccesible} from 'actions/global_actions';
 import {close as closeLhs} from 'actions/views/lhs';
@@ -573,6 +578,126 @@ describe('actions/global_actions', () => {
 
             await redirectUserToDefaultTeam();
             expect(getHistory().push).toHaveBeenCalledWith('/team1/channels/channel-in-team-1');
+        });
+    });
+
+    describe('getTeamRedirectChannelIfIsAccesible with no channel memberships in the team', () => {
+        const userId = 'user1';
+        const teamId = 'team1';
+        const townSquareId = 'town_square_id';
+
+        const townSquare = {
+            id: townSquareId,
+            team_id: teamId,
+            name: General.DEFAULT_CHANNEL,
+            display_name: 'Town Square',
+            type: General.OPEN_CHANNEL,
+        };
+
+        const member = {channel_id: townSquareId, user_id: userId, roles: 'channel_user'};
+
+        // A live team membership with zero channel memberships in that team, which is the state
+        // that used to dead-end the user on /select_team.
+        const stateWithTeamPermissions = (teamPermissions: string[]) => ({
+            entities: {
+                general: {
+                    config: {DefaultClientLocale: 'en'},
+                    license: {},
+                    serverVersion: '5.16.0',
+                },
+                preferences: {myPreferences: {}},
+                teams: {
+                    teams: {[teamId]: {id: teamId, display_name: 'Team 1', name: teamId, delete_at: 0}},
+                    myMembers: {[teamId]: {team_id: teamId, roles: 'team_user'}},
+                },
+                channels: {
+                    myMembers: {},
+                    channels: {[townSquareId]: townSquare},
+                    channelsInTeam: {[teamId]: new Set([townSquareId])},
+                },
+                channelCategories: {byId: {}, orderByTeam: {}},
+                users: {
+                    currentUserId: userId,
+                    profiles: {[userId]: {id: userId, roles: 'system_user'}},
+                },
+                roles: {
+                    roles: {
+                        system_user: {permissions: []},
+                        team_user: {permissions: teamPermissions},
+                        channel_user: {permissions: []},
+                    },
+                    pending: [],
+                },
+            },
+        });
+
+        function setUpStore(teamPermissions: string[]) {
+            const store = mockStore(stateWithTeamPermissions(teamPermissions));
+            getState.mockImplementation(store.getState);
+            jest.mocked(reduxStore.dispatch).mockImplementation(store.dispatch as typeof reduxStore.dispatch);
+
+            nock(Client4.getBaseRoute()).
+                get(`/teams/name/${teamId}/channels/name/${General.DEFAULT_CHANNEL}`).
+                query(true).
+                reply(200, townSquare);
+
+            return store;
+        }
+
+        beforeAll(() => {
+            Client4.setUrl('http://localhost:8065');
+        });
+
+        beforeEach(() => {
+            LocalStorageStore.setPreviousTeamId(userId, teamId);
+            LocalStorageStore.setPreviousChannelName(userId, teamId, General.DEFAULT_CHANNEL);
+        });
+
+        afterEach(() => {
+            nock.cleanAll();
+            jest.mocked(reduxStore.dispatch).mockReset();
+        });
+
+        it('should join the default channel and redirect into the team when the user can join public channels', async () => {
+            setUpStore(['join_public_channels']);
+
+            const joinRequest = nock(Client4.getBaseRoute()).
+                post(`/channels/${townSquareId}/members`, {user_id: userId, channel_id: townSquareId, post_root_id: ''}).
+                reply(201, member);
+            nock(Client4.getBaseRoute()).
+                get(`/channels/${townSquareId}`).
+                reply(200, townSquare);
+
+            await redirectUserToDefaultTeam();
+
+            expect(joinRequest.isDone()).toBe(true);
+            expect(getHistory().push).toHaveBeenCalledWith(`/${teamId}/channels/${General.DEFAULT_CHANNEL}`);
+        });
+
+        it('should not attempt to join anything when the user cannot join public channels', async () => {
+            setUpStore([]);
+
+            const joinRequest = nock(Client4.getBaseRoute()).
+                post(`/channels/${townSquareId}/members`).
+                reply(201, member);
+
+            await redirectUserToDefaultTeam();
+
+            expect(joinRequest.isDone()).toBe(false);
+            expect(getHistory().push).toHaveBeenCalledWith('/select_team');
+        });
+
+        it('should fall back to /select_team when the server refuses the join', async () => {
+            setUpStore(['join_public_channels']);
+
+            const joinRequest = nock(Client4.getBaseRoute()).
+                post(`/channels/${townSquareId}/members`).
+                reply(403, {id: 'api.context.permissions.app_error', status_code: 403});
+
+            await redirectUserToDefaultTeam();
+
+            expect(joinRequest.isDone()).toBe(true);
+            expect(getHistory().push).toHaveBeenCalledWith('/select_team');
         });
     });
 

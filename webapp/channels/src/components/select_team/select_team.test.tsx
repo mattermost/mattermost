@@ -115,6 +115,60 @@ describe('components/select_team/SelectTeam', () => {
         expect(container).toMatchSnapshot();
     });
 
+    describe('empty state copy when there are no joinable teams', () => {
+        const noOpenTeams = 'No teams are available to join. Please ask your administrator for an invite.';
+        const noOpenTeamsCanCreate = 'No teams are available to join. Please create a new team or ask your administrator for an invite.';
+        const noMoreTeams = 'There are no additional teams available to join. Please ask your administrator for an invite.';
+        const noMoreTeamsCanCreate = 'There are no additional teams available to join. Please create a new team or ask your administrator for an invite.';
+
+        test('tells a user who is on no team that no teams are available', () => {
+            const props = {...baseProps, listableTeams: [], isMemberOfTeam: false};
+            renderWithContext(<SelectTeam {...props}/>);
+
+            expect(screen.getByText(noOpenTeamsCanCreate)).toBeInTheDocument();
+            expect(screen.queryByText(noMoreTeamsCanCreate)).not.toBeInTheDocument();
+        });
+
+        test('tells an existing team member that no additional teams are available', () => {
+            const props = {...baseProps, listableTeams: [], isMemberOfTeam: true};
+            renderWithContext(<SelectTeam {...props}/>);
+
+            expect(screen.getByText(noMoreTeamsCanCreate)).toBeInTheDocument();
+            expect(screen.queryByText(noOpenTeamsCanCreate)).not.toBeInTheDocument();
+        });
+
+        test('tells a user who is on no team and cannot create one that no teams are available', () => {
+            const props = {...baseProps, listableTeams: [], isMemberOfTeam: false, currentUserRoles: '', canManageSystem: false, canCreateTeams: false};
+            renderWithContext(<SelectTeam {...props}/>);
+
+            expect(screen.getByText(noOpenTeams)).toBeInTheDocument();
+            expect(screen.queryByText(noMoreTeams)).not.toBeInTheDocument();
+        });
+
+        test('tells an existing team member who cannot create one that no additional teams are available', () => {
+            const props = {...baseProps, listableTeams: [], isMemberOfTeam: true, currentUserRoles: '', canManageSystem: false, canCreateTeams: false};
+            renderWithContext(<SelectTeam {...props}/>);
+
+            expect(screen.getByText(noMoreTeams)).toBeInTheDocument();
+            expect(screen.queryByText(noOpenTeams)).not.toBeInTheDocument();
+        });
+
+        test('drops the create-a-team suggestion for an existing team member who has hit the cloud team limit', () => {
+            const props = {
+                ...baseProps,
+                listableTeams: [],
+                isMemberOfTeam: true,
+                isCloud: true,
+                isFreeTrial: false,
+                usageDeltas: {teams: {active: 0}} as CloudUsage,
+            };
+            renderWithContext(<SelectTeam {...props}/>);
+
+            expect(screen.getByText(noMoreTeams)).toBeInTheDocument();
+            expect(screen.queryByText(noMoreTeamsCanCreate)).not.toBeInTheDocument();
+        });
+    });
+
     test('should match snapshot, on no joinable team and user is guest', () => {
         const props = {...baseProps, listableTeams: [], currentUserRoles: '', currentUserIsGuest: true, canManageSystem: false, canCreateTeams: false};
         const {container} = renderWithContext(<SelectTeam {...props}/>);
