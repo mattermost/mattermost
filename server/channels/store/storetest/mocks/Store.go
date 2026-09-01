@@ -345,6 +345,26 @@ func (_m *Store) ContentFlagging() store.ContentFlaggingStore {
 	return r0
 }
 
+// DeliveryTracking provides a mock function with no fields
+func (_m *Store) DeliveryTracking() store.DeliveryTrackingStore {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeliveryTracking")
+	}
+
+	var r0 store.DeliveryTrackingStore
+	if rf, ok := ret.Get(0).(func() store.DeliveryTrackingStore); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.DeliveryTrackingStore)
+		}
+	}
+
+	return r0
+}
+
 // DesktopTokens provides a mock function with no fields
 func (_m *Store) DesktopTokens() store.DesktopTokensStore {
 	ret := _m.Called()

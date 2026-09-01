@@ -172,6 +172,8 @@ type Routes struct {
 
 	ContentFlagging *mux.Router // 'api/v4/content_flagging'
 
+	DeliveryTracking *mux.Router // 'api/v4/delivery_tracking'
+
 	Agents      *mux.Router // 'api/v4/agents'
 	LLMServices *mux.Router // 'api/v4/llmservices'
 
@@ -339,6 +341,8 @@ func Init(srv *app.Server) (*API, error) {
 
 	api.BaseRoutes.ContentFlagging = api.BaseRoutes.APIRoot.PathPrefix("/content_flagging").Subrouter()
 
+	api.BaseRoutes.DeliveryTracking = api.BaseRoutes.APIRoot.PathPrefix("/delivery_tracking").Subrouter()
+
 	api.BaseRoutes.Agents = api.BaseRoutes.APIRoot.PathPrefix("/agents").Subrouter()
 	api.BaseRoutes.LLMServices = api.BaseRoutes.APIRoot.PathPrefix("/llmservices").Subrouter()
 
@@ -409,6 +413,7 @@ func Init(srv *app.Server) (*API, error) {
 	api.InitAuditLogging()
 	api.InitAccessControlPolicy()
 	api.InitContentFlagging()
+	api.InitDeliveryTracking()
 	api.InitAgents()
 	api.InitProperties()
 

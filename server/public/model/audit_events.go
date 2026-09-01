@@ -543,3 +543,8 @@ const (
 	AuditEventGenerateFlaggedPostReport    = "generateFlaggedPostReport"    // generate flagged post data report
 	AuditEventGeneratePostExposureReport   = "generatePostExposureReport"   // generate flagged post exposure report
 )
+
+// Post Delivery Tracking
+const (
+	AuditEventUpdateDeliveryTrackingConfig = "updateDeliveryTrackingConfig" // update post delivery tracking configuration
+)
