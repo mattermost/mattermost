@@ -648,7 +648,7 @@ func DecodeAndVerifyTriggerId(triggerId string, s *ecdsa.PrivateKey, timeout tim
 	}
 
 	split := strings.Split(string(triggerIdBytes), ":")
-	if len(split) != 5 {
+	if len(split) < 5 {
 		return "", "", "", NewAppError("DecodeAndVerifyTriggerId", "interactive_message.decode_trigger_id.missing_data", nil, "", http.StatusBadRequest)
 	}
 
@@ -657,7 +657,7 @@ func DecodeAndVerifyTriggerId(triggerId string, s *ecdsa.PrivateKey, timeout tim
 	timestampStr := split[2]
 	timestamp, _ := strconv.ParseInt(timestampStr, 10, 64)
 	channelId := split[3]
-	signatureStr := split[4]
+	signatureStr := split[len(split)-1]
 
 	if time.Since(time.UnixMilli(timestamp)) > timeout {
 		return "", "", "", NewAppError("DecodeAndVerifyTriggerId", "interactive_message.decode_trigger_id.expired", map[string]any{"Duration": timeout.String()}, "", http.StatusBadRequest)
