@@ -362,6 +362,76 @@ func TestCPADisplayNameBackfill_BackfillsProtectedSourceOnlyField(t *testing.T) 
 	require.Equal(t, "true", data.Value)
 }
 
+// clearPropertyPermissionsBackfillMarker removes the System-key marker for the
+// property permissions backfill, the same way clearCPABackfillMarker does for
+// the CPA display_name backfill: Setup(t) has already run this migration once,
+// so without clearing it the test would pass on the short-circuit rather than
+// on the conversion.
+func clearPropertyPermissionsBackfillMarker(t *testing.T, th *TestHelper) {
+	t.Helper()
+	_, err := th.Store.System().PermanentDeleteByName(propertyPermissionsBackfillKey)
+	require.NoError(t, err, "failed to clear property permissions backfill marker for test isolation")
+}
+
+func TestPropertyPermissionsBackfill_NoExistingFields(t *testing.T) {
+	th := Setup(t)
+
+	clearPropertyPermissionsBackfillMarker(t, th)
+
+	err := th.Server.doSetupPropertyPermissionsBackfill(th.Context)
+	require.NoError(t, err)
+
+	data, sysErr := th.Store.System().GetByName(propertyPermissionsBackfillKey)
+	require.NoError(t, sysErr)
+	require.NotNil(t, data)
+	require.Equal(t, "true", data.Value)
+}
+
+func TestPropertyPermissionsBackfill_Idempotent(t *testing.T) {
+	th := Setup(t)
+	// LicenseCheckHook gates writes to the access_control group on an
+	// Enterprise license; the seed CreatePropertyField call below would
+	// otherwise be rejected with app.property.license_error.
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+
+	clearPropertyPermissionsBackfillMarker(t, th)
+
+	group, appErr := th.App.GetPropertyGroup(th.Context, model.AccessControlPropertyGroupName)
+	require.Nil(t, appErr)
+
+	field, appErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+		GroupID:    group.ID,
+		Name:       "department",
+		Type:       model.PropertyFieldTypeText,
+		ObjectType: model.PropertyFieldObjectTypeUser,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
+	}, false, "")
+	require.Nil(t, appErr)
+	require.Nil(t, field.Permissions, "seed invariant: field must start with no permissions object")
+
+	err := th.Server.doSetupPropertyPermissionsBackfill(th.Context)
+	require.NoError(t, err)
+
+	data, sysErr := th.Store.System().GetByName(propertyPermissionsBackfillKey)
+	require.NoError(t, sysErr)
+	require.Equal(t, "true", data.Value)
+
+	converted, appErr := th.App.GetPropertyField(th.Context, group.ID, field.ID)
+	require.Nil(t, appErr)
+	require.NotNil(t, converted.Permissions, "field must carry a permissions object after the backfill runs")
+	firstUpdateAt := converted.UpdateAt
+
+	// Second run: the idempotency check fires immediately, so it must neither
+	// change the converted object nor rewrite the row.
+	err = th.Server.doSetupPropertyPermissionsBackfill(th.Context)
+	require.NoError(t, err)
+
+	unchanged, appErr := th.App.GetPropertyField(th.Context, group.ID, field.ID)
+	require.Nil(t, appErr)
+	require.Equal(t, converted.Permissions, unchanged.Permissions, "second run must not alter the converted permissions object")
+	require.Equal(t, firstUpdateAt, unchanged.UpdateAt, "second run must not re-write the field row")
+}
+
 func TestDoSetupSessionAttributesProperties(t *testing.T) {
 	expectedFieldCount := len(model.SessionAttributeSystemFields("group-id"))
 

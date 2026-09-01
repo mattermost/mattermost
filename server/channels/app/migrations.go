@@ -38,6 +38,7 @@ const (
 	boardsPropertySetupDoneKey                     = "boards_property_setup_done"
 	boardsPropertyMigrationVersion                 = "v2"
 	cpaDisplayNameBackfillKey                      = "cpa_display_name_backfill_done"
+	propertyPermissionsBackfillKey                 = "property_permissions_backfill_done"
 
 	contentFlaggingPropertyNameFlaggedPostId       = "flagged_post_id"
 	ContentFlaggingPropertyNameStatus              = "status"
@@ -1104,6 +1105,42 @@ func (s *Server) doSetupCPADisplayNameBackfill(rctx request.CTX) error {
 	return nil
 }
 
+// doSetupPropertyPermissionsBackfill converts every PropertyField's legacy
+// permission settings into the normalized permissions object once, across the
+// whole deployment. This is unconditional: it does not read
+// FeatureFlags.PropertyFieldPermissionsV3, which only gates whether the new
+// payload and API behaviour are served, not whether the data converts.
+func (s *Server) doSetupPropertyPermissionsBackfill(rctx request.CTX) error {
+	var nfErr *store.ErrNotFound
+	data, err := s.Store().System().GetByName(propertyPermissionsBackfillKey)
+	if err != nil && !errors.As(err, &nfErr) {
+		return fmt.Errorf("could not query property permissions backfill migration: %w", err)
+	}
+
+	if data != nil {
+		return nil
+	}
+
+	converted, skipped, err := s.propertyService.MigrateBackfillPropertyPermissions(rctx)
+	if err != nil {
+		return fmt.Errorf("failed to backfill property permissions: %w", err)
+	}
+
+	mlog.Info("Property permissions backfill migration completed",
+		mlog.Int("converted", converted),
+		mlog.Int("skipped", skipped),
+	)
+
+	if err := s.Store().System().SaveOrUpdate(&model.System{
+		Name:  propertyPermissionsBackfillKey,
+		Value: "true",
+	}); err != nil {
+		return fmt.Errorf("failed to mark property permissions backfill as complete: %w", err)
+	}
+
+	return nil
+}
+
 func (s *Server) cacheManagedCategoryIDs() error {
 	group, err := s.propertyService.GetPropertyGroup(model.ManagedCategoryPropertyGroupName)
 	if err != nil {
@@ -1333,6 +1370,7 @@ func (s *Server) doAppMigrations() {
 		{"Delete Invalid Dms Preferences Migration", s.doDeleteDmsPreferencesMigration},
 		{"Access Control Policy V0.3 Migration", s.doAccessControlPolicyV0_3Migration},
 		{"CPA DisplayName Backfill", s.doSetupCPADisplayNameBackfill},
+		{"Property Permissions Backfill", s.doSetupPropertyPermissionsBackfill},
 	}
 
 	rctx := request.EmptyContext(s.Log())

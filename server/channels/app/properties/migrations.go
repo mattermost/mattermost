@@ -112,11 +112,14 @@ func newPermissionsBackfill(service *PropertyService, accessControlGroupID strin
 // not already have one, and returns the subset it changed. A field already
 // carrying Permissions is left alone and excluded from the result, so the
 // backfill is idempotent at the field level and never reverts a field a v3
-// caller wrote mid-run.
+// caller wrote mid-run. A PSAv1 field (empty ObjectType, e.g. the content
+// flagging group's fields) is left alone too: PropertyField.IsValid refuses a
+// Permissions object on that schema, so there is nothing for this conversion
+// to give it.
 func (b *permissionsBackfill) convertBatch(rctx request.CTX, fields []*model.PropertyField) ([]*model.PropertyField, error) {
 	var converted []*model.PropertyField
 	for _, field := range fields {
-		if field.Permissions != nil {
+		if field.Permissions != nil || field.IsPSAv1() {
 			continue
 		}
 
@@ -177,8 +180,10 @@ var propertyPermissionsBackfillPageSize = 200
 // updatePropertyFields, one call per group per page, since that method takes
 // a single group ID.
 //
-// Returns the number of fields given a Permissions object and the number
-// left alone because they already carried one.
+// Returns the number of fields given a Permissions object and the number left
+// alone, either because they already carried one or because they are PSAv1
+// (the content flagging group's fields, which cannot carry Permissions at
+// all).
 func (ps *PropertyService) MigrateBackfillPropertyPermissions(rctx request.CTX) (converted int, skipped int, err error) {
 	accessControlGroup, err := ps.Group(model.AccessControlPropertyGroupName)
 	if err != nil {
