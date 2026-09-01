@@ -82,7 +82,7 @@ func TestShapePropertyFieldForCaller(t *testing.T) {
 		require.NotNil(t, shaped.Permissions)
 		require.NotNil(t, shaped.Permissions.Grants)
 		assert.Empty(t, shaped.Permissions.Grants)
-		// The stored field's Grants stays nil.
+		// Shaping returns a copy; the field passed in must come back unmutated.
 		assert.Nil(t, field.Permissions.Grants)
 	})
 
