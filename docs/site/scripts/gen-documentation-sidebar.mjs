@@ -176,7 +176,7 @@ const DEPLOYMENT_GROUPS = {
   // patterns (OOB, Mission Partner, DDIL, Sovereign-on-Microsoft, Air-Gapped)
   // deserve prominence, not burial.
   deploymentScenarios: {
-    label: 'Deployment scenarios',
+    label: 'Deployment Scenarios',
     landing: 'deployment-scenarios/deployment-scenarios-index',
     items: [
       'deployment-scenarios/deploy-oob',
