@@ -206,8 +206,8 @@ describe('buildCELSchemas', () => {
 
     test('skips null or undefined attribute names without throwing', () => {
         const schemas = buildCELSchemas([
-            {attribute: null as unknown as string, values: [], objectType: 'user'},
-            {attribute: undefined as unknown as string, values: [], isNative: true},
+            {attribute: null, values: [], objectType: 'user'},
+            {attribute: undefined, values: [], isNative: true},
             {attribute: 'department', values: [], objectType: 'user'},
         ]);
 

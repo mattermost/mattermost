@@ -69,11 +69,13 @@ const MONACO_EDITOR_OPTIONS: monaco.editor.IStandaloneEditorConstructionOptions 
 };
 
 type CELUserAttribute = {
-    attribute: string;
+    // Plugins may pass incomplete proxy rows; the host helper
+    // toCELEditorAttributes does not always run first.
+    attribute?: string | null;
     values: string[];
 
     // 'session' marks a user.session.* attribute; 'user' marks a user.* /
-    // user.attributes.* attribute. Always populated by toCELEditorAttributes.
+    // user.attributes.* attribute. Plugin proxies may omit this.
     objectType?: string;
 
     // Native user attributes (e.g. user.email) complete directly off `user.`
@@ -86,8 +88,9 @@ type CELUserAttribute = {
 // offered under user.session.* — the session bucket only appears when present.
 // Native attributes (isNative) complete directly off user.* (e.g. user.email).
 export function buildCELSchemas(userAttributes: CELUserAttribute[]): Record<string, string[]> {
-    // Skip null/undefined names — plugin proxies can surface incomplete
-    // PropertyField rows, and name.includes would throw during render.
+    // Skip null/undefined/invalid names. Plugin proxies may pass incomplete
+    // rows that never went through toCELEditorAttributes; name.includes would
+    // throw during render.
     const cleanNames = (attrs: CELUserAttribute[]) => attrs.
         map((attr) => attr.attribute).
         filter((name): name is string => typeof name === 'string' && !name.includes(' ') && name.trim() !== '');

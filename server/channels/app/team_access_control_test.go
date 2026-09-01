@@ -742,6 +742,59 @@ func TestCreateOrUpdateAccessControlPolicy_TeamSelfInclusion(t *testing.T) {
 		require.NotNil(t, result)
 	})
 
+	t.Run("team admin included by a non-true expression runs the shared guard and saves", func(t *testing.T) {
+		th := SetupConfig(t, func(cfg *model.Config) {
+			*cfg.AccessControlSettings.EnableAttributeBasedAccessControl = true
+			cfg.FeatureFlags.AttributeValueMasking = false
+		}).InitBasic(t)
+
+		callerID := th.BasicUser.Id
+		rctx := th.Context.WithSession(&model.Session{
+			UserId: callerID,
+			Id:     model.NewId(),
+			Roles:  model.SystemUserRoleId, // not a system admin
+		})
+
+		mockACS := &mocks.AccessControlServiceInterface{}
+		originalACS := th.App.Srv().ch.AccessControl
+		th.App.Srv().ch.AccessControl = mockACS
+		t.Cleanup(func() {
+			th.App.Srv().ch.AccessControl = originalACS
+			mockACS.AssertExpectations(t)
+		})
+
+		expression := `user.attributes.dept == "eng"`
+		savedPolicy := &model.AccessControlPolicy{
+			ID:   th.BasicTeam.Id,
+			Type: model.AccessControlPolicyTypeTeam,
+			Rules: []model.AccessControlPolicyRule{
+				{Actions: []string{"membership"}, Expression: expression},
+			},
+		}
+		// Non-"true" expression must go through checkSelfInclusion.
+		mockACS.On("QueryUsersForExpression",
+			mock.AnythingOfType("*request.Context"),
+			expression,
+			mock.MatchedBy(func(opts model.SubjectSearchOptions) bool {
+				return opts.SubjectID == callerID
+			}),
+		).Return([]*model.User{{Id: callerID}}, int64(1), nil).Once()
+		mockACS.On("SavePolicy", mock.AnythingOfType("*request.Context"), mock.Anything).
+			Return(savedPolicy, (*model.AppError)(nil)).Once()
+
+		teamPolicy := &model.AccessControlPolicy{
+			ID:   th.BasicTeam.Id,
+			Type: model.AccessControlPolicyTypeTeam,
+			Rules: []model.AccessControlPolicyRule{
+				{Actions: []string{"membership"}, Expression: expression},
+			},
+		}
+
+		result, appErr := th.App.CreateOrUpdateAccessControlPolicy(rctx, teamPolicy)
+		require.Nil(t, appErr)
+		require.NotNil(t, result)
+	})
+
 	t.Run("system admin bypasses the team self-inclusion guard", func(t *testing.T) {
 		th := SetupConfig(t, func(cfg *model.Config) {
 			*cfg.AccessControlSettings.EnableAttributeBasedAccessControl = true
