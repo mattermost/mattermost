@@ -1,7 +1,7 @@
 {
   "_meta": {
     "source": "docs-site/scripts/migrate-main-docs/redirects.json",
-    "active": 691,
+    "active": 698,
     "missing_target": 217,
     "dropped_anchored_from": 1113,
     "total_internal": 2021
@@ -1301,7 +1301,7 @@
     },
     {
       "from": "/guides/playbooks",
-      "to": "/end-user-guide/workflow-automation"
+      "to": "/end-user-guide/workflow-automation/workflow-automation-index"
     },
     {
       "from": "/guides/welcome-to-mattermost",
@@ -1409,7 +1409,7 @@
     },
     {
       "from": "/incident-collaboration/launching-playbooks",
-      "to": "/end-user-guide/workflow-automation"
+      "to": "/end-user-guide/workflow-automation/workflow-automation-index"
     },
     {
       "from": "/incident-collaboration/overview",
@@ -1417,7 +1417,7 @@
     },
     {
       "from": "/incident-collaboration/playbook-planning",
-      "to": "/end-user-guide/workflow-automation"
+      "to": "/end-user-guide/workflow-automation/workflow-automation-index"
     },
     {
       "from": "/incident-collaboration/review-and-refine",
@@ -1425,7 +1425,7 @@
     },
     {
       "from": "/incident-collaboration/running-playbooks",
-      "to": "/end-user-guide/workflow-automation"
+      "to": "/end-user-guide/workflow-automation/workflow-automation-index"
     },
     {
       "from": "/incident-collaboration/refining-and-improving",
@@ -1433,7 +1433,7 @@
     },
     {
       "from": "/incident-collaboration/setting-up-playbooks",
-      "to": "/end-user-guide/workflow-automation"
+      "to": "/end-user-guide/workflow-automation/workflow-automation-index"
     },
     {
       "from": "/install/desktop-app-managed-resources",
@@ -2253,11 +2253,11 @@
     },
     {
       "from": "/playbooks/setting-up-playbooks",
-      "to": "/end-user-guide/workflow-automation"
+      "to": "/end-user-guide/workflow-automation/workflow-automation-index"
     },
     {
       "from": "/playbooks/running-playbooks",
-      "to": "/end-user-guide/workflow-automation"
+      "to": "/end-user-guide/workflow-automation/workflow-automation-index"
     },
     {
       "from": "/playbooks/refining-and-improving",
@@ -2265,7 +2265,7 @@
     },
     {
       "from": "/playbooks/customize-a-playbook",
-      "to": "/end-user-guide/workflow-automation"
+      "to": "/end-user-guide/workflow-automation/workflow-automation-index"
     },
     {
       "from": "/playbooks/customize-a-run",
@@ -2313,7 +2313,7 @@
     },
     {
       "from": "/playbooks/get-started-with-playbooks",
-      "to": "/end-user-guide/workflow-automation"
+      "to": "/end-user-guide/workflow-automation/workflow-automation-index"
     },
     {
       "from": "/preferences/manage-your-calls-preferences",
@@ -2557,11 +2557,11 @@
     },
     {
       "from": "/guides/cloud-workspace-management",
-      "to": "/administration-guide/cloud-workspace-management"
+      "to": "/administration-guide/manage/cloud-workspace-management"
     },
     {
       "from": "/guides/compliance-with-mattermost",
-      "to": "/administration-guide/compliance-with-mattermost"
+      "to": "/administration-guide/comply/comply-index"
     },
     {
       "from": "/guides/deployment-troubleshooting",
@@ -2569,15 +2569,15 @@
     },
     {
       "from": "/guides/messaging-collaboration",
-      "to": "/end-user-guide/messaging-collaboration"
+      "to": "/end-user-guide/collaborate/collaborate-index"
     },
     {
       "from": "/guides/preferences",
-      "to": "/end-user-guide/preferences"
+      "to": "/end-user-guide/preferences/preferences-index"
     },
     {
       "from": "/guides/project-task-management",
-      "to": "/end-user-guide/project-task-management"
+      "to": "/end-user-guide/project-management/project-management-index"
     },
     {
       "from": "/guides/secure-mattermost",
@@ -2585,11 +2585,39 @@
     },
     {
       "from": "/guides/upgrade-mattermost",
-      "to": "/administration-guide/upgrade-mattermost"
+      "to": "/administration-guide/upgrade/upgrade-index"
     },
     {
       "from": "/guides/workflow-automation",
-      "to": "/end-user-guide/workflow-automation"
+      "to": "/end-user-guide/workflow-automation/workflow-automation-index"
+    },
+    {
+      "from": "/administration-guide/cloud-workspace-management",
+      "to": "/administration-guide/manage/cloud-workspace-management"
+    },
+    {
+      "from": "/administration-guide/compliance-with-mattermost",
+      "to": "/administration-guide/comply/comply-index"
+    },
+    {
+      "from": "/administration-guide/upgrade-mattermost",
+      "to": "/administration-guide/upgrade/upgrade-index"
+    },
+    {
+      "from": "/end-user-guide/messaging-collaboration",
+      "to": "/end-user-guide/collaborate/collaborate-index"
+    },
+    {
+      "from": "/end-user-guide/preferences",
+      "to": "/end-user-guide/preferences/preferences-index"
+    },
+    {
+      "from": "/end-user-guide/project-task-management",
+      "to": "/end-user-guide/project-management/project-management-index"
+    },
+    {
+      "from": "/end-user-guide/workflow-automation",
+      "to": "/end-user-guide/workflow-automation/workflow-automation-index"
     },
     {
       "from": "/guides/about-mattermost",
