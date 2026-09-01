@@ -154,6 +154,82 @@ func (b *permissionsBackfill) convertBatch(rctx request.CTX, fields []*model.Pro
 	return converted, nil
 }
 
+// propertyPermissionsBackfillPageSize bounds how many fields one page of
+// MigrateBackfillPropertyPermissions reads and writes. Unlike the CPA display
+// name backfill, this one runs over every group, some of which (boards,
+// content_flagging) can hold far more fields than a single page should carry.
+// A var, not a const, so a test can shrink it to make paging happen over a
+// handful of fields instead of hundreds.
+var propertyPermissionsBackfillPageSize = 200
+
+// MigrateBackfillPropertyPermissions gives every PropertyField across every
+// group a Permissions object converted from its legacy settings, so the
+// decision engine can eventually read Permissions alone. Same bypass
+// rationale as MigrateBackfillCPADisplayName: it reads and writes through the
+// unexported field accessors so the access-control layer never filters or
+// refuses a protected or plugin-owned field mid-conversion, and it is
+// idempotent at the field level so a partial run resumes cleanly. The
+// System-key wrapper that stops the whole migration running twice belongs to
+// its caller (app/migrations.go), as with the CPA backfill.
+//
+// Fields are read with no group filter and paged by (CreateAt, Id), which
+// walks every group with one cursor. Writes go through the unexported
+// updatePropertyFields, one call per group per page, since that method takes
+// a single group ID.
+//
+// Returns the number of fields given a Permissions object and the number
+// left alone because they already carried one.
+func (ps *PropertyService) MigrateBackfillPropertyPermissions(rctx request.CTX) (converted int, skipped int, err error) {
+	accessControlGroup, err := ps.Group(model.AccessControlPropertyGroupName)
+	if err != nil {
+		return 0, 0, fmt.Errorf("MigrateBackfillPropertyPermissions: failed to get access control property group: %w", err)
+	}
+
+	backfill := newPermissionsBackfill(ps, accessControlGroup.ID)
+
+	var cursor model.PropertyFieldSearchCursor
+	for {
+		fields, searchErr := ps.searchPropertyFields("", model.PropertyFieldSearchOpts{
+			PerPage: propertyPermissionsBackfillPageSize,
+			Cursor:  cursor,
+		})
+		if searchErr != nil {
+			return converted, skipped, fmt.Errorf("MigrateBackfillPropertyPermissions: failed to search property fields: %w", searchErr)
+		}
+		if len(fields) == 0 {
+			break
+		}
+
+		last := fields[len(fields)-1]
+		cursor = model.PropertyFieldSearchCursor{PropertyFieldID: last.ID, CreateAt: last.CreateAt}
+
+		convertedFields, convertErr := backfill.convertBatch(rctx, fields)
+		if convertErr != nil {
+			return converted, skipped, fmt.Errorf("MigrateBackfillPropertyPermissions: failed to convert fields: %w", convertErr)
+		}
+		skipped += len(fields) - len(convertedFields)
+
+		// updatePropertyFields takes one group ID, so a page spanning several
+		// groups needs one call per group.
+		byGroup := map[string][]*model.PropertyField{}
+		for _, field := range convertedFields {
+			byGroup[field.GroupID] = append(byGroup[field.GroupID], field)
+		}
+		for groupID, groupFields := range byGroup {
+			if _, _, _, updateErr := ps.updatePropertyFields(rctx, groupID, groupFields); updateErr != nil {
+				return converted, skipped, fmt.Errorf("MigrateBackfillPropertyPermissions: failed to update fields for group %q: %w", groupID, updateErr)
+			}
+		}
+		converted += len(convertedFields)
+
+		if len(fields) < propertyPermissionsBackfillPageSize {
+			break
+		}
+	}
+
+	return converted, skipped, nil
+}
+
 // resolveTemplate returns templateID's converted Permissions, memoized so a
 // template linked from many fields is read and converted only once per
 // backfill run. Reads through the unexported accessor, same as the fields
@@ -192,7 +268,7 @@ func (b *permissionsBackfill) resolveTemplate(rctx request.CTX, groupID, templat
 // that field itself (§2.6 forbids inferring it), so this line is the only
 // thing that tells an operator the scheme is waiting on them.
 func (b *permissionsBackfill) warnIfMaskedTemplateHasNonUserSiblings(rctx request.CTX, template *model.PropertyField) {
-	linked, err := b.service.searchPropertyFields(template.GroupID, model.PropertyFieldSearchOpts{LinkedFieldID: template.ID})
+	linked, err := b.service.fieldStore.GetLinkedFields([]string{template.ID}, nil)
 	if err != nil {
 		rctx.Logger().Warn("Failed to check a masked template's linked fields for non-user object types",
 			mlog.String("template_id", template.ID),

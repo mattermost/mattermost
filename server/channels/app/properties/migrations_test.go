@@ -204,3 +204,142 @@ func TestPermissionsBackfillConvertBatch(t *testing.T) {
 		requireWarnLogged(t, th, buffer, "shared_only access mode to no read access")
 	})
 }
+
+// TestMigrateBackfillPropertyPermissions_Paging covers the driver on top of
+// convertBatch: paging across groups with no group filter, and idempotency on
+// a second run.
+func TestMigrateBackfillPropertyPermissions_Paging(t *testing.T) {
+	th := Setup(t).RegisterCPAPropertyGroup(t)
+	otherGroup := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV2)
+
+	// Small enough that four fields need several pages, so a bug that only
+	// walks the first page would still fail this test.
+	orig := propertyPermissionsBackfillPageSize
+	propertyPermissionsBackfillPageSize = 1
+	t.Cleanup(func() { propertyPermissionsBackfillPageSize = orig })
+
+	newField := func(groupID, name string) *model.PropertyField {
+		field, err := th.service.CreatePropertyField(th.Context, &model.PropertyField{
+			GroupID:    groupID,
+			Name:       name,
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+		})
+		require.NoError(t, err)
+		return field
+	}
+
+	fields := []*model.PropertyField{
+		newField(th.CPAGroupID, "cpa-one"),
+		newField(th.CPAGroupID, "cpa-two"),
+		newField(otherGroup.ID, "other-one"),
+		newField(otherGroup.ID, "other-two"),
+	}
+
+	converted, skipped, err := th.service.MigrateBackfillPropertyPermissions(th.Context)
+	require.NoError(t, err)
+	assert.Equal(t, len(fields), converted)
+	assert.Equal(t, 0, skipped)
+
+	for _, field := range fields {
+		updated, getErr := th.service.GetPropertyField(th.Context, field.GroupID, field.ID)
+		require.NoError(t, getErr)
+		assert.NotNil(t, updated.Permissions)
+	}
+
+	// A re-run must find every field already converted rather than reverting
+	// or reconverting it.
+	converted, skipped, err = th.service.MigrateBackfillPropertyPermissions(th.Context)
+	require.NoError(t, err)
+	assert.Equal(t, 0, converted)
+	assert.Equal(t, len(fields), skipped)
+}
+
+// TestMigrateBackfillPropertyPermissions_OversizedOptions pins the same
+// regression as TestOptionsOmitted_DisplayNameBackfill for this backfill: it
+// writes every field it touches back to the store, so it is the one place a
+// lost withheld-options marker would show up as deleted options.
+func TestMigrateBackfillPropertyPermissions_OversizedOptions(t *testing.T) {
+	th := Setup(t).RegisterCPAPropertyGroup(t)
+
+	field, err := th.service.CreatePropertyField(th.Context, &model.PropertyField{
+		GroupID:    th.CPAGroupID,
+		Name:       "oversized_select",
+		Type:       model.PropertyFieldTypeSelect,
+		ObjectType: model.PropertyFieldObjectTypeUser,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
+		Attrs: model.StringInterface{
+			model.PropertyFieldAttributeOptions: oversizedOptions(false),
+		},
+	})
+	require.NoError(t, err)
+	requireStoredOptionsWithheld(t, th, th.CPAGroupID, field.ID)
+
+	converted, skipped, err := th.service.MigrateBackfillPropertyPermissions(th.Context)
+	require.NoError(t, err)
+	assert.Equal(t, 1, converted)
+	assert.Equal(t, 0, skipped)
+
+	// The hooked read now denies this unauthenticated context field.read on the
+	// field's new Permissions, which withholds the options for a different
+	// reason (HideOptions) than the one under test. Read under the store
+	// accessor the backfill itself uses, to see what was actually persisted.
+	updated, err := th.service.getPropertyField(th.CPAGroupID, field.ID)
+	require.NoError(t, err)
+	assert.NotNil(t, updated.Permissions)
+	requireOptionsWithheld(t, updated)
+}
+
+// TestMigrateBackfillPropertyPermissions_LinkedFieldInheritsTemplateMasking
+// converts a template and a field linked to it in the same run, which writes
+// both through one updatePropertyFields call for their shared group. That is
+// the path where a linked field's own row could be stomped by whatever the
+// store propagates from the template's row changing alongside it.
+func TestMigrateBackfillPropertyPermissions_LinkedFieldInheritsTemplateMasking(t *testing.T) {
+	th := Setup(t).RegisterCPAPropertyGroup(t)
+
+	th.service.setPluginCheckerForTests(func(pluginID string) bool { return pluginID == "test-plugin" })
+	t.Cleanup(func() { th.service.setPluginCheckerForTests(nil) })
+	rctxPlugin := RequestContextWithCallerID(th.Context, "test-plugin")
+
+	template, err := th.service.CreatePropertyField(rctxPlugin, &model.PropertyField{
+		GroupID:    th.CPAGroupID,
+		Name:       "masked-template",
+		Type:       model.PropertyFieldTypeSelect,
+		ObjectType: model.PropertyFieldObjectTypeTemplate,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
+		Attrs: model.StringInterface{
+			model.PropertyAttrsAccessMode: model.PropertyAccessModeSharedOnly,
+			model.PropertyAttrsProtected:  true,
+		},
+	})
+	require.NoError(t, err)
+
+	// Only the source plugin may link a field to a protected template, so the
+	// linked field is created by the same caller as the template.
+	linked, err := th.service.CreatePropertyField(rctxPlugin, &model.PropertyField{
+		GroupID:       th.CPAGroupID,
+		Name:          "linked-field",
+		Type:          model.PropertyFieldTypeText,
+		ObjectType:    model.PropertyFieldObjectTypeUser,
+		TargetType:    string(model.PropertyFieldTargetLevelSystem),
+		LinkedFieldID: &template.ID,
+	})
+	require.NoError(t, err)
+
+	converted, skipped, err := th.service.MigrateBackfillPropertyPermissions(th.Context)
+	require.NoError(t, err)
+	assert.Equal(t, 2, converted)
+	assert.Equal(t, 0, skipped)
+
+	updatedTemplate, err := th.service.GetPropertyField(th.Context, th.CPAGroupID, template.ID)
+	require.NoError(t, err)
+	require.NotNil(t, updatedTemplate.Permissions)
+	assert.NotNil(t, updatedTemplate.Permissions.Masking)
+
+	updatedLinked, err := th.service.GetPropertyField(th.Context, th.CPAGroupID, linked.ID)
+	require.NoError(t, err)
+	require.NotNil(t, updatedLinked.Permissions)
+	assert.Nil(t, updatedLinked.Permissions.Masking)
+}
