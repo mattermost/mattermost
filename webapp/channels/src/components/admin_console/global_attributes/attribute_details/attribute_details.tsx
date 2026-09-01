@@ -1097,7 +1097,11 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                                                 const nameLockTooltip = formatMessage(NAME_LOCK_MESSAGES[nameLockReason ?? 'appliesTo'].tooltip);
                                                 return nameLocked ? (
                                                     <WithTooltip title={nameLockTooltip}>
-                                                        <span data-testid='attributeNameEditLinkLockWrap'>
+                                                        <span
+                                                            // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- WithTooltip's useFocus only fires on its cloned child; without this the disabled button inside is unreachable by keyboard, so the tooltip explaining the lock is mouse-only
+                                                            tabIndex={0}
+                                                            data-testid='attributeNameEditLinkLockWrap'
+                                                        >
                                                             {editLinkButton}
                                                         </span>
                                                     </WithTooltip>
@@ -1141,6 +1145,8 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                                     {typeLocked ? (
                                         <WithTooltip title={typeLockTooltip}>
                                             <span
+                                                // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- WithTooltip's useFocus only fires on its cloned child; without this the disabled Type menu button is unreachable by keyboard, so the tooltip explaining the lock is mouse-only
+                                                tabIndex={0}
                                                 className='AttributeDetails__typeLockWrap'
                                                 data-testid='attributeTypeLockWrap'
                                             >

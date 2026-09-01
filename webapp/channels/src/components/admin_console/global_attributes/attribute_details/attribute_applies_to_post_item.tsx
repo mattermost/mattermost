@@ -59,7 +59,11 @@ function AttributeAppliesToPostItem({disabled = false, lockedTooltip, onRemove}:
             <div className='AttributeAppliesToItem__header'>
                 {lockedTooltip ? (
                     <WithTooltip title={lockedTooltip}>
-                        <span data-testid='attributeAppliesToRow-post-toggleLockWrap'>
+                        <span
+                            // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- WithTooltip's useFocus only fires on its cloned child; without this the disabled toggle is unreachable by keyboard, so the tooltip explaining the lock is mouse-only
+                            tabIndex={0}
+                            data-testid='attributeAppliesToRow-post-toggleLockWrap'
+                        >
                             {toggleButton}
                         </span>
                     </WithTooltip>
