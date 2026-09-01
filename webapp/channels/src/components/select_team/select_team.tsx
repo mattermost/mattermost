@@ -35,6 +35,36 @@ export const TEAMS_PER_PAGE = 30;
 const TEAM_MEMBERSHIP_DENIAL_ERROR_ID = 'api.team.add_members.user_denied';
 const MATTERMOST_ACADEMY_TEAM_TRAINING_LINK = 'https://mattermost.com/pl/mattermost-academy-team-training';
 
+// A user who is already on a team can reach this page looking for another one, so telling them that
+// no teams are available reads as "you have no teams", which is the opposite of the truth.
+const NoJoinableTeamsMessage = ({canCreateTeam, isMemberOfTeam}: {canCreateTeam: boolean; isMemberOfTeam: boolean}) => {
+    if (isMemberOfTeam) {
+        return canCreateTeam ? (
+            <FormattedMessage
+                id='signup_team.no_more_teams_canCreate'
+                defaultMessage='There are no additional teams available to join. Please create a new team or ask your administrator for an invite.'
+            />
+        ) : (
+            <FormattedMessage
+                id='signup_team.no_more_teams'
+                defaultMessage='There are no additional teams available to join. Please ask your administrator for an invite.'
+            />
+        );
+    }
+
+    return canCreateTeam ? (
+        <FormattedMessage
+            id='signup_team.no_open_teams_canCreate'
+            defaultMessage='No teams are available to join. Please create a new team or ask your administrator for an invite.'
+        />
+    ) : (
+        <FormattedMessage
+            id='signup_team.no_open_teams'
+            defaultMessage='No teams are available to join. Please ask your administrator for an invite.'
+        />
+    );
+};
+
 type Actions = {
     getTeams: (page?: number, perPage?: number, includeTotalCount?: boolean, excludePolicyConstrained?: boolean, forDirectory?: boolean) => Promise<ActionResult<unknown>>;
     loadRolesIfNeeded: (roles: Iterable<string>) => void;
@@ -245,17 +275,10 @@ export default class SelectTeam extends React.PureComponent<Props, State> {
                 joinableTeamContents = (
                     <div className='signup-team-dir-err'>
                         <div>
-                            {createTeamRestricted ? (
-                                <FormattedMessage
-                                    id='signup_team.no_open_teams'
-                                    defaultMessage='No teams are available to join. Please ask your administrator for an invite.'
-                                />
-                            ) : (
-                                <FormattedMessage
-                                    id='signup_team.no_open_teams_canCreate'
-                                    defaultMessage='No teams are available to join. Please create a new team or ask your administrator for an invite.'
-                                />
-                            )}
+                            <NoJoinableTeamsMessage
+                                canCreateTeam={!createTeamRestricted}
+                                isMemberOfTeam={isMemberOfTeam}
+                            />
                         </div>
                     </div>
                 );
@@ -264,18 +287,18 @@ export default class SelectTeam extends React.PureComponent<Props, State> {
                     <div className='signup-team-dir-err'>
                         <div>
                             <SystemPermissionGate permissions={[Permissions.CREATE_TEAM]}>
-                                <FormattedMessage
-                                    id='signup_team.no_open_teams_canCreate'
-                                    defaultMessage='No teams are available to join. Please create a new team or ask your administrator for an invite.'
+                                <NoJoinableTeamsMessage
+                                    canCreateTeam={true}
+                                    isMemberOfTeam={isMemberOfTeam}
                                 />
                             </SystemPermissionGate>
                             <SystemPermissionGate
                                 permissions={[Permissions.CREATE_TEAM]}
                                 invert={true}
                             >
-                                <FormattedMessage
-                                    id='signup_team.no_open_teams'
-                                    defaultMessage='No teams are available to join. Please ask your administrator for an invite.'
+                                <NoJoinableTeamsMessage
+                                    canCreateTeam={false}
+                                    isMemberOfTeam={isMemberOfTeam}
                                 />
                             </SystemPermissionGate>
                         </div>

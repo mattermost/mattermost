@@ -14,15 +14,17 @@ import {
     fetchChannelsAndMembers,
     getChannelByNameAndTeamName,
     getChannelStats,
+    joinChannel,
     selectChannel,
 } from 'mattermost-redux/actions/channels';
 import {fetchTeamScheduledPosts} from 'mattermost-redux/actions/scheduled_posts';
 import {logout, loadMe} from 'mattermost-redux/actions/users';
-import {Preferences} from 'mattermost-redux/constants';
+import {Permissions, Preferences} from 'mattermost-redux/constants';
 import {appsEnabled} from 'mattermost-redux/selectors/entities/apps';
 import {getCurrentChannelStats, getCurrentChannelId, getMyChannelMember, getRedirectChannelNameForTeam, getChannelsNameMapInTeam, getAllDirectChannels, getChannelMessageCount} from 'mattermost-redux/selectors/entities/channels';
 import {getConfig, isPerformanceDebuggingEnabled} from 'mattermost-redux/selectors/entities/general';
 import {getBool, getIsOnboardingFlowEnabled, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
+import {haveITeamPermission} from 'mattermost-redux/selectors/entities/roles';
 import {isScheduledPostsEnabled} from 'mattermost-redux/selectors/entities/scheduled_posts';
 import {getCurrentTeamId, getMyTeams, getTeam, getMyTeamMember, getTeamMemberships, getActiveTeamsList} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUser, getCurrentUserId, isFirstAdmin} from 'mattermost-redux/selectors/entities/users';
@@ -350,6 +352,17 @@ export async function getTeamRedirectChannelIfIsAccesible(user: UserProfile, tea
         const redirectedChannelName = getRedirectChannelNameForTeam(state, team.id);
         channel = teamChannels[redirectedChannelName];
         channelMember = getMyChannelMember(state, channel && channel.id);
+
+        if (!channelMember && haveITeamPermission(state, team.id, Permissions.JOIN_PUBLIC_CHANNELS)) {
+            // A team member with no membership in the redirect channel would otherwise be sent to
+            // /select_team with no way back in. Join it here, the same way opening the channel URL
+            // directly does.
+            const joinResult = await dispatch(joinChannel(user.id, team.id, channel?.id ?? '', redirectedChannelName));
+            if (joinResult.data) {
+                channel = joinResult.data.channel;
+                channelMember = joinResult.data.member;
+            }
+        }
     }
 
     if (channel && channelMember) {

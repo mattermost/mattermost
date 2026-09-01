@@ -7242,6 +7242,8 @@
   "signup_team_system_console": "Go to System Console",
   "signup_team.guest_without_channels": "Your guest account has no channels assigned. Please contact an administrator.",
   "signup_team.join_open": "Teams you can join: ",
+  "signup_team.no_more_teams": "There are no additional teams available to join. Please ask your administrator for an invite.",
+  "signup_team.no_more_teams_canCreate": "There are no additional teams available to join. Please create a new team or ask your administrator for an invite.",
   "signup_team.no_open_teams": "No teams are available to join. Please ask your administrator for an invite.",
   "signup_team.no_open_teams_canCreate": "No teams are available to join. Please create a new team or ask your administrator for an invite.",
   "signup_user_completed.cardtitle": "Create your account",
