@@ -592,13 +592,6 @@
     "translation": "@[nom utilisateur 1],@[nom utilisateur 2] 'message'"
   },
   {
-    "id": "api.command_groupmsg.invalid_user.app_error",
-    "translation": {
-      "one": "Impossible de trouver l'utilisateur : {{.Users}}",
-      "other": ""
-    }
-  },
-  {
     "id": "api.command_groupmsg.max_users.app_error",
     "translation": "Les messages de groupe sont limités à maximum {{.MaxUsers}} utilisateurs."
   },
@@ -657,13 +650,6 @@
   {
     "id": "api.command_invite.success",
     "translation": "{{.User}} a été ajouté dans {{.Channel}}."
-  },
-  {
-    "id": "api.command_invite.user_already_in_channel.app_error",
-    "translation": {
-      "one": "{{.User}} est déjà membre de ce canal.",
-      "other": ""
-    }
   },
   {
     "id": "api.command_invite_people.permission.app_error",
@@ -956,13 +942,6 @@
   {
     "id": "api.email_batching.add_notification_email_to_batch.disabled.app_error",
     "translation": "L'envoi d'e-mails par lot a été désactivé par l'administrateur système."
-  },
-  {
-    "id": "api.email_batching.send_batched_email_notification.subject",
-    "translation": {
-      "one": "[{{.SiteName}}] New Notification for {{.Day}} {{.Month}}, {{.Year}}",
-      "other": ""
-    }
   },
   {
     "id": "api.emoji.create.duplicate.app_error",
@@ -1315,20 +1294,6 @@
   {
     "id": "api.post.do_action.action_integration.app_error",
     "translation": "Une erreur s'est produite lors de l'action de l'intégration"
-  },
-  {
-    "id": "api.post.get_message_for_notification.files_sent",
-    "translation": {
-      "one": "{{.Count}} fichier envoyé : {{.Filenames}}",
-      "other": ""
-    }
-  },
-  {
-    "id": "api.post.get_message_for_notification.images_sent",
-    "translation": {
-      "one": "{{.Count}} image envoyée : {{.Filenames}}",
-      "other": ""
-    }
   },
   {
     "id": "api.post.patch_post.can_not_update_post_in_deleted.error",

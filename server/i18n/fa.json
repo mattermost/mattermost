@@ -6729,13 +6729,6 @@
     "translation": "شما اجازه دعوت کاربران جدید به این سرور را ندارید."
   },
   {
-    "id": "api.command_invite.user_already_in_channel.app_error",
-    "translation": {
-      "one": "{{.User}} از قبل در کانال است.",
-      "other": ""
-    }
-  },
-  {
     "id": "api.command_invite.success",
     "translation": "{{.User}} به کانال {{.Channel}} اضافه شد."
   },
