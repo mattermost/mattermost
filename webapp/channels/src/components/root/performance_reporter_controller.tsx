@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {useEffect, useRef} from 'react';
+import {useEffect} from 'react';
 import {useStore} from 'react-redux';
 
 import {Client4} from 'mattermost-redux/client';
@@ -14,16 +14,12 @@ import type {GlobalState} from 'types/store';
 export default function PerformanceReporterController() {
     const store = useStore<GlobalState>();
 
-    const reporter = useRef<PerformanceReporter>();
-
     useEffect(() => {
-        reporter.current = new PerformanceReporter(Client4, store, DesktopAppAPI);
-        reporter.current.observe();
+        const reporter = new PerformanceReporter(Client4, store, DesktopAppAPI);
+        reporter.observe();
 
-        // There's no way to clean up web-vitals, so continue to assume that this component won't ever be unmounted
         return () => {
-            // eslint-disable-next-line no-console
-            console.error('PerformanceReporterController - Component unmounted or store changed');
+            reporter.disconnect();
         };
     }, [store]);
 
