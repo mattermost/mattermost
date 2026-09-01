@@ -2220,7 +2220,7 @@ func TestBulkExportSingleTeam(t *testing.T) {
 		})
 		require.Nil(t, appErr)
 
-		botUser, appErr := th.App.GetUser(bot.UserId)
+		botUser, appErr := th.App.GetUser(th.Context, bot.UserId)
 		require.Nil(t, appErr)
 		th.LinkUserToTeam(t, botUser, th.BasicTeam)
 		th.AddUserToChannel(t, botUser, th.BasicChannel)

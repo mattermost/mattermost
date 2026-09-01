@@ -573,7 +573,7 @@ func TestExportBotPostsIncluded(t *testing.T) {
 	})
 	require.Nil(t, appErr)
 
-	botUser, appErr := th.App.GetUser(bot.UserId)
+	botUser, appErr := th.App.GetUser(th.Context, bot.UserId)
 	require.Nil(t, appErr)
 	th.LinkUserToTeam(t, botUser, th.BasicTeam)
 	th.AddUserToChannel(t, botUser, th.BasicChannel)
@@ -975,7 +975,7 @@ func TestChannelMigrationMembershipPreserved(t *testing.T) {
 	// Capture all member usernames so we can re-create them on dest.
 	memberUsernames := []string{}
 	for _, m := range srcMembers {
-		u, appErr := th.App.GetUser(m.UserId)
+		u, appErr := th.App.GetUser(th.Context, m.UserId)
 		if appErr == nil && !u.IsBot {
 			memberUsernames = append(memberUsernames, u.Username)
 		}
