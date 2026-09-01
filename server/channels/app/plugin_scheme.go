@@ -172,7 +172,15 @@ func (a *App) getPluginChannelScheme(name string, user, admin, guest []string) (
 		"AdminRoleName": scheme.DefaultChannelAdminRole,
 		"GuestRoleName": scheme.DefaultChannelGuestRole,
 	}
-	if scheme.DeleteAt != 0 || scheme.Scope != model.SchemeScopeChannel {
+	// The three role names must be present and distinct before validateSchemeRoles compares
+	// permissions: it maps the roles it reads by name, so a row that names one role for two
+	// capability levels validates whenever the two requested sets happen to be equal, and the
+	// pool would adopt a scheme where one stored role serves both.
+	if scheme.DeleteAt != 0 || scheme.Scope != model.SchemeScopeChannel ||
+		scheme.DefaultChannelUserRole == "" || scheme.DefaultChannelAdminRole == "" || scheme.DefaultChannelGuestRole == "" ||
+		scheme.DefaultChannelUserRole == scheme.DefaultChannelAdminRole ||
+		scheme.DefaultChannelUserRole == scheme.DefaultChannelGuestRole ||
+		scheme.DefaultChannelAdminRole == scheme.DefaultChannelGuestRole {
 		return nil, model.NewAppError("getPluginChannelScheme", "app.scheme.plugin_scheme.conflict.app_error",
 			conflictParams, "", http.StatusInternalServerError)
 	}

@@ -5984,7 +5984,7 @@
   },
   {
     "id": "app.channel.update_channel_scheme.space_scheme_unusable.app_error",
-    "translation": "This scheme cannot be applied to a space. Use one of the space presets, or a channel scheme that is not already in use by other channels."
+    "translation": "This scheme cannot be applied to a space. A space accepts only a space preset scheme or a plugin channel scheme."
   },
   {
     "id": "app.channel.update_last_viewed_at.app_error",

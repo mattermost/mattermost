@@ -298,6 +298,27 @@ func TestGetOrCreatePluginChannelScheme(t *testing.T) {
 				},
 				noRoles: true,
 			},
+			{
+				name: "a generated role name is blank",
+				scheme: func() *model.Scheme {
+					s := pluginScheme(name)
+					s.DefaultChannelGuestRole = ""
+					return s
+				},
+				noRoles: true,
+			},
+			{
+				// Two capability levels naming one role would pass the permission
+				// comparison whenever the two requested sets are equal, since the
+				// roles are matched by name.
+				name: "two generated role names collide",
+				scheme: func() *model.Scheme {
+					s := pluginScheme(name)
+					s.DefaultChannelGuestRole = s.DefaultChannelUserRole
+					return s
+				},
+				noRoles: true,
+			},
 		} {
 			t.Run(tc.name, func(t *testing.T) {
 				th := setupPluginSchemeMock(t)
