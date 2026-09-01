@@ -84,7 +84,9 @@ describe('components/admin_console/custom_plugin_settings/PluginEnableButton', (
 
         await userEvent.click(menuItems[0]);
 
-        expect(openSpy).toHaveBeenCalledWith('https://mattermost.com/marketplace/calls', '_blank', 'noopener,noreferrer');
+        await waitFor(() => {
+            expect(openSpy).toHaveBeenCalledWith('https://mattermost.com/marketplace/calls', '_blank', 'noopener,noreferrer');
+        });
         openSpy.mockRestore();
     });
 
