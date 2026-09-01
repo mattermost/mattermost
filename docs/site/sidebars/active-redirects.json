@@ -2,7 +2,7 @@
   "_meta": {
     "maintained": "by hand",
     "note": "Legacy Sphinx URL redirects, originally bulk-extracted during the docs migration. Add new entries at the end of the array. `from` must be unique and must not contain an anchor; `to` should point at a page that exists, or the redirect silently dead-ends.",
-    "active": 713
+    "active": 715
   },
   "redirects": [
     {
@@ -1839,7 +1839,7 @@
     },
     {
       "from": "/manage/admin/server-configuration",
-      "to": "/administration-guide/manage/admin/server-configuration"
+      "to": "/administration-guide/configure/configure-index"
     },
     {
       "from": "/manage/admin/server-maintenance",
@@ -1855,7 +1855,7 @@
     },
     {
       "from": "/manage/admin/user-provisioning",
-      "to": "/administration-guide/manage/admin/user-provisioning"
+      "to": "/administration-guide/onboard/onboard-index"
     },
     {
       "from": "/manage/cloud-byok",
@@ -2856,6 +2856,14 @@
     {
       "from": "/security-guide/compliance-frameworks/dod-il-4-5",
       "to": "/security-guide/security-guide-index"
+    },
+    {
+      "from": "/administration-guide/manage/admin/server-configuration",
+      "to": "/administration-guide/configure/configure-index"
+    },
+    {
+      "from": "/administration-guide/manage/admin/user-provisioning",
+      "to": "/administration-guide/onboard/onboard-index"
     }
   ]
 }

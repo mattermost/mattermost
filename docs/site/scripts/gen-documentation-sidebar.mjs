@@ -400,62 +400,73 @@ const DEPLOYMENT_HIDDEN = new Set([]);
 // Administration Guide — Configure — manual grouping override.
 // ---------------------------------------------------------------------------
 //
-// Configure is a flat 34-file settings-reference dump. This override groups
-// it by task/subsystem so the ~12 "*-configuration-settings" reference pages
-// don't drown the handful of task-oriented pages (Search, Email, Billing,
-// Branding) sitting alongside them at the same level.
+// Configure is a flat settings-reference dump. This override groups it by
+// task/subsystem so the ~13 "*-configuration-settings" reference pages don't
+// drown the task-oriented pages (Search, Email, Branding) sitting alongside
+// them at the same level.
 //
-// AI Agents Configuration is deliberately kept as its own standalone,
-// un-grouped top-level entry (not folded into a "misc/optional" bucket) —
-// Agents is a first-class platform capability, not an afterthought.
+// Every System Console settings page belongs in the settings reference group,
+// including the two billing/licensing ones and System attributes, which used
+// to sit outside it: a reader looking up a System Console section shouldn't
+// have to know which of three places in the nav it was filed under. Pages that
+// describe turning a capability on (Boards, plugins, auto-translation, content
+// flagging, connected workspaces) stay as top-level leaves rather than being
+// bundled into a catch-all, because a "misc" label predicts nothing.
+//
+// Three items live outside administration-guide/configure/ on disk and are
+// referenced with the `{doc: '<full id>'}` form: auto-translation and content
+// flagging (in manage/admin/, both System Console toggles) and connected
+// workspaces (in onboard/, but not an onboarding task).
 
 const ADMIN_CONFIGURE_GROUPS = {
   settingsReference: {
-    label: 'System Console Settings Reference',
+    // Ordered to follow the System Console's own left-hand nav, so the page a
+    // reader is looking at maps onto the entry they need.
+    label: 'System Console settings reference',
     landing: 'configuration-settings',
     items: [
       'site-configuration-settings',
       'authentication-configuration-settings',
-      'integrations-configuration-settings',
-      'plugins-configuration-settings',
-      'compliance-configuration-settings',
-      'reporting-configuration-settings',
       'user-management-configuration-settings',
+      'system-attributes',
       // rate-limiting-configuration-settings and
       // push-notification-server-configuration-settings are `unlisted: true`
       // snippet includes rendered inside Environment configuration settings.
       'environment-configuration-settings',
+      'reporting-configuration-settings',
+      'compliance-configuration-settings',
+      'integrations-configuration-settings',
+      'plugins-configuration-settings',
+      'self-hosted-account-settings',
+      'cloud-billing-account-settings',
       'experimental-configuration-settings',
       'deprecated-configuration-settings',
     ],
   },
   search: {
-    label: 'Search Configuration',
+    label: 'Search',
     items: [
       'bleve-search',
       'enabling-chinese-japanese-korean-search',
     ],
   },
   email: {
-    label: 'Email & Notifications',
+    label: 'Email',
     items: [
       'smtp-email',
       'email-templates',
     ],
   },
-  billing: {
-    label: 'Billing & Account',
-    items: [
-      'self-hosted-account-settings',
-      'cloud-billing-account-settings',
-    ],
-  },
   branding: {
-    label: 'Branding & Workspace Customization',
+    // Landing lives in manage/admin/ and is left there: it's a group landing,
+    // not a category landing, so its URL is far less prominent than the two
+    // hubs that were moved (configure-index, onboard-index).
+    label: 'Branding and customization',
+    landingDoc: 'administration-guide/manage/admin/customize-branding',
     items: [
-      'custom-branding-tools',
       'customize-mattermost',
-      'optimize-your-workspace',
+      'custom-branding-tools',
+      {doc: 'administration-guide/manage/code-signing-custom-builds'},
     ],
   },
   // Nests the Agents plugin's own provider/setup pages (vendored from the
@@ -467,7 +478,7 @@ const ADMIN_CONFIGURE_GROUPS = {
   // Items use the {doc: '<full id>'} form since they live outside
   // administration-guide/configure/.
   agents: {
-    label: 'AI Agents Configuration',
+    label: 'AI agents',
     landing: 'agents-admin-guide',
     items: [
       {doc: 'agents/docs/providers'},
@@ -479,35 +490,40 @@ const ADMIN_CONFIGURE_GROUPS = {
 
 // Top-level Configure order. Strings are doc basenames relative to
 // administration-guide/configure/; objects reference ADMIN_CONFIGURE_GROUPS
-// keys. System Console Settings and Search come first (the settings most
-// admins land on); AI Agents Configuration is 3rd, standalone.
+// keys. The settings reference comes first (where most admins land), then the
+// subsystems you configure once at setup time, then the capabilities you turn
+// on afterwards.
 const ADMIN_CONFIGURE_ORDER = [
   {group: 'settingsReference'},
-  {group: 'search'},
-  {group: 'agents'},
   'configuration-in-your-database',
   'environment-variables',
-  'azure-blob-storage',
+  {group: 'search'},
   {group: 'email'},
-  {group: 'billing'},
+  'azure-blob-storage',
   {group: 'branding'},
-  'install-boards',
+  {group: 'agents'},
   'manage-plugins',
-  'manage-user-surveys',
-  'system-attributes',
+  'install-boards',
+  {doc: 'administration-guide/manage/admin/autotranslation'},
+  {doc: 'administration-guide/manage/admin/content-flagging', label: 'Set up content flagging'},
+  {doc: 'administration-guide/onboard/connected-workspaces'},
 ];
 
-// Files re-parented into groups — exclude from the orphan check.
+// Files re-parented into groups, or listed under a different section —
+// exclude from the orphan check.
 const ADMIN_CONFIGURE_HIDDEN = new Set([
   'site-configuration-settings', 'authentication-configuration-settings',
   'integrations-configuration-settings', 'plugins-configuration-settings',
   'compliance-configuration-settings', 'reporting-configuration-settings',
   'user-management-configuration-settings', 'environment-configuration-settings',
   'experimental-configuration-settings', 'deprecated-configuration-settings',
+  'system-attributes', 'self-hosted-account-settings', 'cloud-billing-account-settings',
   'bleve-search', 'enabling-chinese-japanese-korean-search',
   'smtp-email', 'email-templates',
-  'self-hosted-account-settings', 'cloud-billing-account-settings',
-  'custom-branding-tools', 'customize-mattermost', 'optimize-your-workspace',
+  'custom-branding-tools', 'customize-mattermost',
+  // Listed elsewhere: workspace optimization is a health check (Monitor and
+  // troubleshoot), user surveys are an ongoing admin task (Manage).
+  'optimize-your-workspace', 'manage-user-surveys',
 ]);
 
 // ---------------------------------------------------------------------------
@@ -525,91 +541,81 @@ const ADMIN_CONFIGURE_HIDDEN = new Set([
 
 const ADMIN_MANAGE_GROUPS = {
   userAccess: {
-    label: 'User & Access Management',
+    // Access control was split across two sections: attribute-based access
+    // control and user attributes here, advanced permissions and delegated
+    // granular administration under Onboard. They are all day-2 tasks on a
+    // running server, so they are listed together, here.
+    label: 'Users and access',
+    landing: 'admin/user-management',
     items: [
-      'admin/user-management',
-      'admin/user-provisioning',
       'admin/user-attributes',
       'team-channel-members',
-      {label: 'Attribute-Based Access Control', landing: 'admin/attribute-based-access-control', items: [
+      {doc: 'administration-guide/onboard/advanced-permissions'},
+      {doc: 'administration-guide/onboard/advanced-permissions-backend-infrastructure'},
+      {doc: 'administration-guide/onboard/delegated-granular-administration'},
+      {label: 'Attribute-based access control', landing: 'admin/attribute-based-access-control', items: [
         'admin/abac-system-wide-policies',
-        'admin/abac-team-channel-policies',
         'admin/abac-team-membership',
+        'admin/abac-team-channel-policies',
         'admin/abac-channel-access-rules',
       ]},
     ],
   },
-  serverMaintenance: {
-    label: 'Server Configuration & Maintenance',
+  serverOps: {
+    label: 'Server operations',
     items: [
-      'admin/server-configuration',
-      'admin/server-maintenance',
-      'code-signing-custom-builds',
-      'command-line-tools',
       'mmctl-command-line-tool',
-    ],
-  },
-  monitoring: {
-    label: 'Monitoring & Diagnostics',
-    items: [
-      'admin/monitoring-and-performance',
-      'statistics',
-      'telemetry',
-      'configure-health-check-probes',
-      'request-server-health-check',
+      'command-line-tools',
       'logging',
-      'admin/error-codes',
-      'admin/generating-support-packet',
     ],
   },
-  billing: {
-    label: 'Billing & Licensing',
+  licensing: {
+    label: 'Licensing and billing',
     items: [
       'admin/self-hosted-billing',
-      'cloud-byok',
       'admin/installing-license-key',
     ],
   },
   cloudWorkspace: {
-    label: 'Cloud Workspace Management',
+    label: 'Cloud workspace management',
     landing: 'cloud-workspace-management',
     items: [
       'cloud-data-export',
       'cloud-data-residency',
       'cloud-ip-filtering',
+      'cloud-byok',
     ],
   },
-  notifications: {
-    label: 'Notifications & Surveys',
+  notices: {
+    label: 'Notices and surveys',
     items: [
-      'in-product-notices',
       'system-wide-notifications',
+      'in-product-notices',
+      {doc: 'administration-guide/upgrade/notify-admin'},
+      {doc: 'administration-guide/configure/manage-user-surveys'},
       'user-satisfaction-surveys',
-      'feature-labels',
-    ],
-  },
-  governance: {
-    label: 'Content & Product Governance',
-    items: [
-      'admin/content-flagging',
-      'admin/autotranslation',
-      'product-limits',
     ],
   },
   dataMigration: {
-    label: 'Data Export & Migration',
+    // Infrastructure migration only. Moving off Slack or Rocket.Chat is a
+    // day-0 onboarding project and lives under Onboard users; the two group
+    // landings cross-link.
+    label: 'Data export and infrastructure migration',
+    landing: 'admin/migration',
     items: [
       'bulk-export-tool',
-      // Mirrors Sphinx, where admin/migration is the only toctree that lists
-      // the PostgreSQL and FIPS migration pages. Those four files were moved
-      // here from deployment-guide/ so the URL matches the nav home.
-      {label: 'Migration', landing: 'admin/migration', items: [
-        {label: 'Migrate from MySQL to PostgreSQL', landing: 'admin/postgres-migration', items: [
-          'admin/postgres-migration-assist-tool',
-          'admin/manual-postgres-migration',
-        ]},
-        'admin/fips-migration',
+      {label: 'Migrate from MySQL to PostgreSQL', landing: 'admin/postgres-migration', items: [
+        'admin/postgres-migration-assist-tool',
+        'admin/manual-postgres-migration',
       ]},
+      'admin/fips-migration',
+    ],
+  },
+  reference: {
+    label: 'Reference',
+    items: [
+      'product-limits',
+      'feature-labels',
     ],
   },
 };
@@ -619,33 +625,37 @@ const ADMIN_MANAGE_GROUPS = {
 // sub-folder); objects reference ADMIN_MANAGE_GROUPS keys.
 const ADMIN_MANAGE_ORDER = [
   {group: 'userAccess'},
-  {group: 'serverMaintenance'},
-  {group: 'monitoring'},
-  {group: 'billing'},
+  {group: 'serverOps'},
+  {group: 'licensing'},
   {group: 'cloudWorkspace'},
-  {group: 'notifications'},
-  {group: 'governance'},
+  {group: 'notices'},
   {group: 'dataMigration'},
-  'admin/customize-branding',
+  {group: 'reference'},
 ];
 
-// Files re-parented into groups — exclude from the orphan check.
+// Files re-parented into groups, used as the section landing, or listed under
+// a different section — exclude from the orphan check.
 const ADMIN_MANAGE_HIDDEN = new Set([
-  'admin/user-management', 'admin/user-provisioning', 'admin/user-attributes', 'team-channel-members',
+  'admin/server-maintenance',
+  'admin/user-management', 'admin/user-attributes', 'team-channel-members',
   'admin/attribute-based-access-control', 'admin/abac-system-wide-policies',
   'admin/abac-team-channel-policies', 'admin/abac-team-membership', 'admin/abac-channel-access-rules',
-  'admin/server-configuration', 'admin/server-maintenance', 'code-signing-custom-builds',
-  'command-line-tools', 'mmctl-command-line-tool',
-  'admin/monitoring-and-performance', 'statistics', 'telemetry',
-  'configure-health-check-probes', 'request-server-health-check', 'logging',
-  'admin/error-codes', 'admin/generating-support-packet',
-  'admin/self-hosted-billing', 'cloud-byok', 'admin/installing-license-key',
-  'cloud-data-export', 'cloud-data-residency', 'cloud-ip-filtering',
-  'in-product-notices', 'system-wide-notifications', 'user-satisfaction-surveys', 'feature-labels',
-  'admin/content-flagging', 'admin/autotranslation', 'product-limits',
+  'command-line-tools', 'mmctl-command-line-tool', 'logging',
+  'admin/self-hosted-billing', 'admin/installing-license-key',
+  'cloud-workspace-management', 'cloud-data-export', 'cloud-data-residency', 'cloud-ip-filtering',
+  'cloud-byok',
+  'in-product-notices', 'system-wide-notifications', 'user-satisfaction-surveys',
   'bulk-export-tool', 'admin/migration', 'admin/postgres-migration',
   'admin/postgres-migration-assist-tool', 'admin/manual-postgres-migration',
   'admin/fips-migration',
+  'product-limits', 'feature-labels',
+  // Listed under Configure: System Console toggles and branding.
+  'admin/content-flagging', 'admin/autotranslation', 'admin/customize-branding',
+  'code-signing-custom-builds',
+  // Listed under Monitor and troubleshoot.
+  'admin/monitoring-and-performance', 'statistics', 'telemetry',
+  'configure-health-check-probes', 'request-server-health-check',
+  'admin/error-codes', 'admin/generating-support-packet',
 ]);
 
 // ---------------------------------------------------------------------------
@@ -782,16 +792,21 @@ const COLLABORATE_HIDDEN = new Set([
 // Administration Guide — Onboard — manual grouping override.
 // ---------------------------------------------------------------------------
 //
-// Onboard is a flat 34-file dump spanning SSO/identity setup, guest/admin
-// permissions, user provisioning, and one-time migration tasks. All SSO and
-// identity-provider protocols (SAML, OIDC, Google, GitLab, Entra ID native,
-// OAuth->OIDC conversion, AD/LDAP) live under one "SSO & Identity" group;
-// SAML is nested as its own sub-category within it since it alone accounts
-// for 11 of those files (one per IdP plus FAQ/technical docs).
+// Onboard is a flat 30-odd-file dump spanning SSO/identity setup, guest
+// accounts, user provisioning, and one-time migration tasks. Single sign-on
+// protocols (SAML, OIDC, Google, GitLab, Entra ID native, OAuth->OIDC
+// conversion) live under one group, with SAML nested as its own sub-category
+// since it alone accounts for 8 of those files (one per IdP plus the
+// technical reference). AD/LDAP is a sibling group rather than an SSO child:
+// it's directory synchronization, and an admin can run it without SSO.
+//
+// The section is scoped to getting users into a new workspace. Ongoing
+// access-control administration (advanced permissions, delegated granular
+// administration) is listed under Manage > Users and access instead.
 
 const ADMIN_ONBOARD_GROUPS = {
   sso: {
-    label: 'SSO & Identity',
+    label: 'Single sign-on',
     landing: 'corporate-directory-integration',
     items: [
       {
@@ -816,38 +831,28 @@ const ADMIN_ONBOARD_GROUPS = {
       'sso-gitlab',
       'sso-entraid',
       'convert-oauth20-service-providers-to-openidconnect',
+    ],
+  },
+  adldap: {
+    label: 'AD/LDAP',
+    items: [
       'ad-ldap',
       'ad-ldap-groups-synchronization',
       'managing-team-channel-membership-using-ad-ldap-sync-groups',
     ],
   },
   mfaCert: {
-    label: 'Multi-Factor & Certificate-Based Authentication',
+    label: 'Multi-factor and certificate authentication',
     items: [
       'multi-factor-authentication',
       'certificate-based-authentication',
       'ssl-client-certificate',
     ],
   },
-  userManagement: {
-    label: 'User Management',
-    items: [
-      'guest-accounts',
-      'delegated-granular-administration',
-      'advanced-permissions',
-      'advanced-permissions-backend-infrastructure',
-    ],
-  },
-  provisioning: {
-    label: 'User Provisioning & Bulk Data',
-    items: [
-      'user-provisioning-workflows',
-      'bulk-loading-data',
-      'connected-workspaces',
-    ],
-  },
   migration: {
-    label: 'Migrating to Mattermost',
+    // Platform migration only — the infrastructure counterpart is
+    // Manage > Data export and infrastructure migration.
+    label: 'Migrate from another platform',
     landing: 'migrating-to-mattermost',
     items: [
       'migrate-from-slack',
@@ -858,32 +863,37 @@ const ADMIN_ONBOARD_GROUPS = {
   },
 };
 
-// Top-level Onboard order. Identity/auth setup first (SSO, then MFA/cert),
-// then user management, then provisioning/bulk data, then the one-time
+// Top-level Onboard order. Identity setup first (SSO, AD/LDAP, then
+// MFA/certificates), then getting accounts in, then the one-time platform
 // migration tasks admins hit least often.
 const ADMIN_ONBOARD_ORDER = [
   {group: 'sso'},
+  {group: 'adldap'},
   {group: 'mfaCert'},
-  {group: 'userManagement'},
-  {group: 'provisioning'},
+  'user-provisioning-workflows',
+  'bulk-loading-data',
+  'guest-accounts',
   {group: 'migration'},
 ];
 
-// Files re-parented into groups — exclude from the orphan check. Every
-// listed Onboard file lives in a group (no standalone top-level docs).
+// Files re-parented into groups, used as the section landing, or listed under
+// a different section — exclude from the orphan check.
 const ADMIN_ONBOARD_HIDDEN = new Set([
   'sso-saml', 'sso-saml-adfs', 'sso-saml-adfs-msws2016',
   'sso-saml-entraid', 'sso-saml-keycloak', 'sso-saml-okta',
   'sso-saml-onelogin', 'sso-saml-technical',
   'sso-openidconnect', 'sso-google', 'sso-gitlab', 'sso-entraid',
   'convert-oauth20-service-providers-to-openidconnect',
+  'corporate-directory-integration',
   'ad-ldap', 'ad-ldap-groups-synchronization', 'managing-team-channel-membership-using-ad-ldap-sync-groups',
   'multi-factor-authentication', 'certificate-based-authentication', 'ssl-client-certificate',
-  'guest-accounts', 'delegated-granular-administration', 'advanced-permissions',
-  'advanced-permissions-backend-infrastructure',
-  'user-provisioning-workflows', 'bulk-loading-data', 'connected-workspaces',
   'migrating-to-mattermost', 'migrate-from-slack', 'migrate-from-rocketchat', 'migrate-gitlab-omnibus',
   'migration-announcement-email',
+  // Listed under Manage > Users and access: ongoing administration, not onboarding.
+  'advanced-permissions', 'advanced-permissions-backend-infrastructure',
+  'delegated-granular-administration',
+  // Listed under Configure: a System Console connection, not an onboarding task.
+  'connected-workspaces',
 ]);
 
 // ---------------------------------------------------------------------------
@@ -899,34 +909,116 @@ const ADMIN_ONBOARD_HIDDEN = new Set([
 // decouples toctree/nav placement from a page's physical file location, so
 // those files keep their `/administration-guide/scale/...` URLs there even
 // though they're navigated to from Deployment Guide). We mirror that split
-// here by physically moving those 21 files to
-// `deployment-guide/scale/` (see the `scaling` group
-// in DEPLOYMENT_GROUPS), leaving only the 7 monitoring pages here. With just
-// one theme left, they're listed flat rather than wrapped in a redundant
-// "Observability & Monitoring" sub-category one level above itself.
+// here by physically moving those 21 files to `deployment-guide/scale/` (see
+// the `scaling` group in DEPLOYMENT_GROUPS).
+//
+// What's left is monitoring, so the category is presented as "Monitor and
+// troubleshoot" — a name a reader searching for dashboards, health checks, or
+// a support packet can act on, where "Scale" told them nothing. The eight
+// monitoring and diagnostics pages that live in manage/ on disk are listed
+// here too, by full doc id: Sphinx grouped all of this under one
+// "Monitoring and performance" hub, which also becomes this category's
+// landing page. Files keep their existing URLs.
 
-// Empty for now — kept (rather than removed) so buildAdminScaleItem's
-// `{group: '...'}` branch still throws a clear "unknown admin scale group"
-// error instead of a raw ReferenceError if a themed sub-group is needed here
-// again in the future (e.g. if Scale grows past this one theme).
-const ADMIN_SCALE_GROUPS = {};
+const ADMIN_SCALE_GROUPS = {
+  metrics: {
+    label: 'Metrics and dashboards',
+    items: [
+      'collect-performance-metrics',
+      'deploy-prometheus-grafana-for-performance-monitoring',
+      'performance-monitoring-metrics',
+      'performance-alerting',
+      'push-notification-health-targets',
+    ],
+  },
+  health: {
+    label: 'Health and diagnostics',
+    items: [
+      {doc: 'administration-guide/configure/optimize-your-workspace'},
+      {doc: 'administration-guide/manage/statistics'},
+      {doc: 'administration-guide/manage/configure-health-check-probes'},
+      {doc: 'administration-guide/manage/request-server-health-check'},
+      {doc: 'administration-guide/manage/admin/generating-support-packet'},
+      {doc: 'administration-guide/manage/admin/error-codes'},
+    ],
+  },
+};
 
 const ADMIN_SCALE_ORDER = [
-  'deploy-prometheus-grafana-for-performance-monitoring',
-  'collect-performance-metrics',
-  'performance-monitoring-metrics',
-  'performance-alerting',
+  {group: 'metrics'},
   'deploy-grafana-loki-for-centralized-logging',
-  'push-notification-health-targets',
+  {group: 'health'},
+  {doc: 'administration-guide/manage/telemetry'},
   'ensuring-releases-perform-at-scale',
 ];
 
-// Files re-parented into groups — exclude from the orphan check. Empty now
-// that Scale's 7 remaining files are listed flat (directly known via
-// ADMIN_SCALE_ORDER) rather than nested inside a sub-group.
-const ADMIN_SCALE_HIDDEN = new Set([]);
+// Files re-parented into groups — exclude from the orphan check.
+const ADMIN_SCALE_HIDDEN = new Set([
+  'collect-performance-metrics', 'deploy-prometheus-grafana-for-performance-monitoring',
+  'performance-monitoring-metrics', 'performance-alerting', 'push-notification-health-targets',
+]);
 
-const ADMIN_ROOT_ORDER = ['Configure', 'Comply', 'Onboard', 'Manage', 'Upgrade', 'Scale'];
+// ---------------------------------------------------------------------------
+// Administration Guide — Comply and Upgrade — manual ordering overrides.
+// ---------------------------------------------------------------------------
+//
+// Neither section needs regrouping — they're small and single-themed — but
+// both read badly in filename order. Comply is ordered by how many
+// deployments use each capability, ending with the audit log schema, which is
+// reference material rather than a task. Upgrade follows the procedure:
+// what to know, prepare, upgrade, then the post-upgrade rollout tasks.
+
+const ADMIN_COMPLY_GROUPS = {};
+
+const ADMIN_COMPLY_ORDER = [
+  'compliance-export',
+  'compliance-monitoring',
+  'electronic-discovery',
+  'data-retention-policy',
+  'export-mattermost-channel-data',
+  'legal-hold',
+  'custom-terms-of-service',
+  'embedded-json-audit-log-schema',
+];
+
+const ADMIN_COMPLY_HIDDEN = new Set([]);
+
+const ADMIN_UPGRADE_GROUPS = {
+  afterUpgrade: {
+    label: 'After you upgrade',
+    items: [
+      'admin-onboarding-tasks',
+      'enterprise-roll-out-checklist',
+      'welcome-email-to-end-users',
+    ],
+  },
+};
+
+const ADMIN_UPGRADE_ORDER = [
+  'important-upgrade-notes',
+  'prepare-to-upgrade-mattermost',
+  'communicate-scheduled-maintenance',
+  'upgrading-mattermost-server',
+  'upgrade-mattermost-kubernetes-ha',
+  'upgrading-postgres',
+  'enterprise-install-upgrade',
+  'downgrading-mattermost-server',
+  {group: 'afterUpgrade'},
+  'open-source-components',
+];
+
+// Files re-parented into groups, or listed under a different section —
+// exclude from the orphan check.
+const ADMIN_UPGRADE_HIDDEN = new Set([
+  'admin-onboarding-tasks', 'enterprise-roll-out-checklist', 'welcome-email-to-end-users',
+  // Listed under Manage > Notices and surveys: it's an end-user request an
+  // admin fields at any time, not an upgrade step.
+  'notify-admin',
+]);
+
+const ADMIN_ROOT_ORDER = [
+  'Configure', 'Onboard users', 'Manage', 'Monitor and troubleshoot', 'Comply', 'Upgrade',
+];
 
 const ENDUSER_ROOT_ORDER = ['Access', 'Collaborate', 'Workflow Automation', 'Project Management', 'AI Agents', 'Preferences'];
 
@@ -1388,13 +1480,14 @@ function buildAdminConfigureItem(spec, leafLabels) {
     return {type: 'doc', id, label: leafLabels[id] || humanize(spec)};
   }
   if (spec.doc) {
-    return {type: 'doc', id: spec.doc, label: docLabelById(spec.doc)};
+    return {type: 'doc', id: spec.doc, label: spec.label || docLabelById(spec.doc)};
   }
   const g = ADMIN_CONFIGURE_GROUPS[spec.group];
   if (!g) throw new Error(`unknown admin configure group: ${spec.group}`);
   const items = g.items.map((it) => buildAdminConfigureItem(it, leafLabels));
   const cat = {type: 'category', label: g.label, collapsed: true, items};
-  if (g.landing) cat.link = {type: 'doc', id: `administration-guide/configure/${g.landing}`};
+  if (g.landingDoc) cat.link = {type: 'doc', id: g.landingDoc};
+  else if (g.landing) cat.link = {type: 'doc', id: `administration-guide/configure/${g.landing}`};
   return cat;
 }
 
@@ -1437,6 +1530,9 @@ function buildAdminManageItem(spec, leafLabels) {
     const id = `administration-guide/manage/${spec}`;
     return {type: 'doc', id, label: leafLabels[id] || humanize(spec.split('/').pop())};
   }
+  if (spec.doc) {
+    return {type: 'doc', id: spec.doc, label: spec.label || docLabelById(spec.doc)};
+  }
   if (spec.group) {
     const g = ADMIN_MANAGE_GROUPS[spec.group];
     if (!g) throw new Error(`unknown admin manage group: ${spec.group}`);
@@ -1448,7 +1544,8 @@ function buildAdminManageItem(spec, leafLabels) {
 function buildAdminManageGroup(g, leafLabels) {
   const items = g.items.map((it) => buildAdminManageItem(it, leafLabels));
   const cat = {type: 'category', label: g.label, collapsed: true, items};
-  if (g.landing) cat.link = {type: 'doc', id: `administration-guide/manage/${g.landing}`};
+  if (g.landingDoc) cat.link = {type: 'doc', id: g.landingDoc};
+  else if (g.landing) cat.link = {type: 'doc', id: `administration-guide/manage/${g.landing}`};
   return cat;
 }
 
@@ -1458,6 +1555,8 @@ function buildAdminManageGroup(g, leafLabels) {
 function regroupAdminManage(manageCat) {
   const leafLabels = collectLeafLabels(manageCat);
   const items = ADMIN_MANAGE_ORDER.map((spec) => buildAdminManageItem(spec, leafLabels));
+  // manage/ has no index file; server-maintenance is the hub Sphinx uses.
+  manageCat.link = {type: 'doc', id: 'administration-guide/manage/admin/server-maintenance'};
 
   const known = new Set();
   (function walk(n) {
@@ -1489,6 +1588,9 @@ function buildAdminOnboardItem(spec, leafLabels) {
     const id = `administration-guide/onboard/${spec}`;
     return {type: 'doc', id, label: leafLabels[id] || humanize(spec.split('/').pop())};
   }
+  if (spec.doc) {
+    return {type: 'doc', id: spec.doc, label: spec.label || docLabelById(spec.doc)};
+  }
   if (spec.group) {
     const g = ADMIN_ONBOARD_GROUPS[spec.group];
     if (!g) throw new Error(`unknown admin onboard group: ${spec.group}`);
@@ -1500,7 +1602,8 @@ function buildAdminOnboardItem(spec, leafLabels) {
 function buildAdminOnboardGroup(g, leafLabels) {
   const items = g.items.map((it) => buildAdminOnboardItem(it, leafLabels));
   const cat = {type: 'category', label: g.label, collapsed: true, items};
-  if (g.landing) cat.link = {type: 'doc', id: `administration-guide/onboard/${g.landing}`};
+  if (g.landingDoc) cat.link = {type: 'doc', id: g.landingDoc};
+  else if (g.landing) cat.link = {type: 'doc', id: `administration-guide/onboard/${g.landing}`};
   return cat;
 }
 
@@ -1541,6 +1644,9 @@ function buildAdminScaleItem(spec, leafLabels) {
     const id = `administration-guide/scale/${spec}`;
     return {type: 'doc', id, label: leafLabels[id] || humanize(spec.split('/').pop())};
   }
+  if (spec.doc) {
+    return {type: 'doc', id: spec.doc, label: spec.label || docLabelById(spec.doc)};
+  }
   if (spec.group) {
     const g = ADMIN_SCALE_GROUPS[spec.group];
     if (!g) throw new Error(`unknown admin scale group: ${spec.group}`);
@@ -1552,16 +1658,20 @@ function buildAdminScaleItem(spec, leafLabels) {
 function buildAdminScaleGroup(g, leafLabels) {
   const items = g.items.map((it) => buildAdminScaleItem(it, leafLabels));
   const cat = {type: 'category', label: g.label, collapsed: true, items};
-  if (g.landing) cat.link = {type: 'doc', id: `administration-guide/scale/${g.landing}`};
+  if (g.landingDoc) cat.link = {type: 'doc', id: g.landingDoc};
+  else if (g.landing) cat.link = {type: 'doc', id: `administration-guide/scale/${g.landing}`};
   return cat;
 }
 
 // Replace the auto-generated "Scale" sub-category's items (in place,
 // preserving its position among Administration Guide's other sub-categories)
-// with the manual grouping above.
+// with the manual grouping above, and re-label it: the eight monitoring pages
+// pulled in from manage/ make "Scale" an inaccurate name for what's here.
 function regroupAdminScale(scaleCat) {
   const leafLabels = collectLeafLabels(scaleCat);
   const items = ADMIN_SCALE_ORDER.map((spec) => buildAdminScaleItem(spec, leafLabels));
+  scaleCat.label = 'Monitor and troubleshoot';
+  scaleCat.link = {type: 'doc', id: 'administration-guide/manage/admin/monitoring-and-performance'};
 
   const known = new Set();
   (function walk(n) {
@@ -1588,39 +1698,138 @@ function regroupAdminScale(scaleCat) {
   return scaleCat;
 }
 
+function buildAdminComplyItem(spec, leafLabels) {
+  if (typeof spec === 'string') {
+    const id = `administration-guide/comply/${spec}`;
+    return {type: 'doc', id, label: leafLabels[id] || humanize(spec.split('/').pop())};
+  }
+  if (spec.doc) {
+    return {type: 'doc', id: spec.doc, label: spec.label || docLabelById(spec.doc)};
+  }
+  if (spec.group) {
+    const g = ADMIN_COMPLY_GROUPS[spec.group];
+    if (!g) throw new Error(`unknown admin comply group: ${spec.group}`);
+    return buildAdminComplyGroup(g, leafLabels);
+  }
+  return buildAdminComplyGroup(spec, leafLabels);
+}
+
+function buildAdminComplyGroup(g, leafLabels) {
+  const items = g.items.map((it) => buildAdminComplyItem(it, leafLabels));
+  const cat = {type: 'category', label: g.label, collapsed: true, items};
+  if (g.landingDoc) cat.link = {type: 'doc', id: g.landingDoc};
+  else if (g.landing) cat.link = {type: 'doc', id: `administration-guide/comply/${g.landing}`};
+  return cat;
+}
+
+// Re-order the auto-generated "Comply" sub-category (in place) — no
+// regrouping, just the reading order from ADMIN_COMPLY_ORDER.
+function regroupAdminComply(complyCat) {
+  const leafLabels = collectLeafLabels(complyCat);
+  const items = ADMIN_COMPLY_ORDER.map((spec) => buildAdminComplyItem(spec, leafLabels));
+
+  const known = new Set();
+  (function walk(n) {
+    if (Array.isArray(n)) n.forEach(walk);
+    else if (n && typeof n === 'object') {
+      if (n.type === 'doc' && n.id) known.add(n.id);
+      if (n.link && n.link.id) known.add(n.link.id);
+      if (n.items) walk(n.items);
+    }
+  })(items);
+  const hiddenIds = new Set();
+  for (const h of ADMIN_COMPLY_HIDDEN) hiddenIds.add(`administration-guide/comply/${h}`);
+  const orphans = [];
+  for (const id of Object.keys(leafLabels)) {
+    if (!known.has(id) && !hiddenIds.has(id)) orphans.push(id);
+  }
+  if (orphans.length > 0) {
+    console.warn(`[sidebar] WARN: ${orphans.length} Comply file(s) missing from ADMIN_COMPLY_ORDER — falling through to root:`);
+    for (const id of orphans) console.warn(`  - ${id}`);
+    for (const id of orphans) items.push({type: 'doc', id, label: leafLabels[id]});
+  }
+
+  complyCat.items = items;
+  return complyCat;
+}
+
+function buildAdminUpgradeItem(spec, leafLabels) {
+  if (typeof spec === 'string') {
+    const id = `administration-guide/upgrade/${spec}`;
+    return {type: 'doc', id, label: leafLabels[id] || humanize(spec.split('/').pop())};
+  }
+  if (spec.doc) {
+    return {type: 'doc', id: spec.doc, label: spec.label || docLabelById(spec.doc)};
+  }
+  if (spec.group) {
+    const g = ADMIN_UPGRADE_GROUPS[spec.group];
+    if (!g) throw new Error(`unknown admin upgrade group: ${spec.group}`);
+    return buildAdminUpgradeGroup(g, leafLabels);
+  }
+  return buildAdminUpgradeGroup(spec, leafLabels);
+}
+
+function buildAdminUpgradeGroup(g, leafLabels) {
+  const items = g.items.map((it) => buildAdminUpgradeItem(it, leafLabels));
+  const cat = {type: 'category', label: g.label, collapsed: true, items};
+  if (g.landingDoc) cat.link = {type: 'doc', id: g.landingDoc};
+  else if (g.landing) cat.link = {type: 'doc', id: `administration-guide/upgrade/${g.landing}`};
+  return cat;
+}
+
+// Replace the auto-generated "Upgrade" sub-category's items (in place) with
+// the procedural order above.
+function regroupAdminUpgrade(upgradeCat) {
+  const leafLabels = collectLeafLabels(upgradeCat);
+  const items = ADMIN_UPGRADE_ORDER.map((spec) => buildAdminUpgradeItem(spec, leafLabels));
+
+  const known = new Set();
+  (function walk(n) {
+    if (Array.isArray(n)) n.forEach(walk);
+    else if (n && typeof n === 'object') {
+      if (n.type === 'doc' && n.id) known.add(n.id);
+      if (n.link && n.link.id) known.add(n.link.id);
+      if (n.items) walk(n.items);
+    }
+  })(items);
+  const hiddenIds = new Set();
+  for (const h of ADMIN_UPGRADE_HIDDEN) hiddenIds.add(`administration-guide/upgrade/${h}`);
+  const orphans = [];
+  for (const id of Object.keys(leafLabels)) {
+    if (!known.has(id) && !hiddenIds.has(id)) orphans.push(id);
+  }
+  if (orphans.length > 0) {
+    console.warn(`[sidebar] WARN: ${orphans.length} Upgrade file(s) missing from ADMIN_UPGRADE_ORDER — falling through to root:`);
+    for (const id of orphans) console.warn(`  - ${id}`);
+    for (const id of orphans) items.push({type: 'doc', id, label: leafLabels[id]});
+  }
+
+  upgradeCat.items = items;
+  return upgradeCat;
+}
+
 function buildAdminGuideSidebar(autoCat) {
-  let foundConfigure = false;
-  let foundManage = false;
-  let foundOnboard = false;
-  let foundScale = false;
+  const regroupers = {
+    configure: regroupAdminConfigure,
+    manage: regroupAdminManage,
+    onboard: regroupAdminOnboard,
+    scale: regroupAdminScale,
+    comply: regroupAdminComply,
+    upgrade: regroupAdminUpgrade,
+  };
+  const found = new Set();
   for (const it of autoCat.items) {
     if (it.type !== 'category') continue;
     const dirName = categoryDirName(it);
-    if (dirName === 'configure') {
-      regroupAdminConfigure(it);
-      foundConfigure = true;
-    } else if (dirName === 'manage') {
-      regroupAdminManage(it);
-      foundManage = true;
-    } else if (dirName === 'onboard') {
-      regroupAdminOnboard(it);
-      foundOnboard = true;
-    } else if (dirName === 'scale') {
-      regroupAdminScale(it);
-      foundScale = true;
+    const regroup = regroupers[dirName];
+    if (!regroup) continue;
+    regroup(it);
+    found.add(dirName);
+  }
+  for (const dirName of Object.keys(regroupers)) {
+    if (!found.has(dirName)) {
+      console.warn(`[sidebar] WARN: Administration Guide "${dirName}" sub-category not found — its ordering override was not applied.`);
     }
-  }
-  if (!foundConfigure) {
-    console.warn('[sidebar] WARN: Administration Guide "Configure" sub-category not found — ADMIN_CONFIGURE_GROUPS override was not applied.');
-  }
-  if (!foundManage) {
-    console.warn('[sidebar] WARN: Administration Guide "Manage" sub-category not found — ADMIN_MANAGE_GROUPS override was not applied.');
-  }
-  if (!foundOnboard) {
-    console.warn('[sidebar] WARN: Administration Guide "Onboard" sub-category not found — ADMIN_ONBOARD_GROUPS override was not applied.');
-  }
-  if (!foundScale) {
-    console.warn('[sidebar] WARN: Administration Guide "Scale" sub-category not found — ADMIN_SCALE_GROUPS override was not applied.');
   }
 
   orderRootCategories(autoCat, ADMIN_ROOT_ORDER, 'Administration Guide');

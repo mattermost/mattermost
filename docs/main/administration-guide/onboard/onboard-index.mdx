@@ -1,0 +1,26 @@
+---
+title: "Onboard users"
+sidebar_label: "Onboard users"
+---
+Getting your organization into Mattermost: connect the identity provider your users already have, get their accounts in, and — if you're coming from another platform — bring your history with you.
+
+Access control for a workspace that's already running, including permissions and roles, is covered in [users and access](/administration-guide/manage/admin/user-management).
+
+## Authentication
+
+- [Single sign-on](/administration-guide/onboard/corporate-directory-integration) - Connect Mattermost to your identity provider using SAML, OpenID Connect, or OAuth 2.0.
+- [AD/LDAP](/administration-guide/onboard/ad-ldap) - Synchronize accounts and groups from Active Directory or LDAP.
+- [Multi-factor authentication](/administration-guide/onboard/multi-factor-authentication) - Require a second factor at sign-in.
+- [Certificate-based authentication](/administration-guide/onboard/certificate-based-authentication) - Authenticate users with client certificates.
+
+## Accounts
+
+- [Provisioning workflows](/administration-guide/onboard/user-provisioning-workflows) - Choose how accounts are created, updated, and deactivated.
+- [Bulk loading data](/administration-guide/onboard/bulk-loading-data) - Import users, teams, channels, and posts from a JSONL file.
+- [Guest accounts](/administration-guide/onboard/guest-accounts) - Give people outside your organization access to specific channels.
+
+## Migrate from another platform
+
+- [Migrating to Mattermost](/administration-guide/onboard/migrating-to-mattermost) - Move from Slack, Rocket.Chat, or GitLab Omnibus, and announce the change to your users.
+
+To move an existing Mattermost deployment to different infrastructure — a new database, or FIPS-compliant images — see [data export and infrastructure migration](/administration-guide/manage/admin/migration).
