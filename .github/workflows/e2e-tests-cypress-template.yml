@@ -198,14 +198,20 @@ jobs:
           echo "workers=$(jq -nc --argjson n "${INPUT_WORKERS}" '[range(1; $n+1)]')" >> $GITHUB_OUTPUT
           echo "start_time=$(date +%s)" >> $GITHUB_OUTPUT
 
-  # Build the Cypress deps once and hand them to the workers as a run-scoped
-  # artifact.
+  # Decide how the workers get their deps, and bridge the gap when they can't use
+  # the cache. On a hit this job is a checkout and a metadata lookup, and the
+  # workers restore the warmed entry directly. On a miss — a PR that changes the
+  # cypress lockfile, or a master commit that landed before the warm workflow ran
+  # — it builds the deps once and ships them as a run-scoped artifact, until the
+  # next warm populates the key.
   prep-deps:
     name: prep-deps
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     permissions:
       contents: read
+    outputs:
+      cache-hit: ${{ steps.probe.outputs.cache-hit }}
     steps:
       - name: ci/checkout-repo
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -213,20 +219,33 @@ jobs:
           persist-credentials: false
           ref: ${{ inputs.commit_sha }}
           fetch-depth: 1
+      # lookup-only: asking whether the key exists costs a metadata call rather
+      # than a ~275 MB download. The workers do the real restore.
+      - name: ci/probe-cypress-deps
+        id: probe
+        uses: ./.github/actions/restore-cypress-deps
+        with:
+          lookup-only: "true"
+      # Everything below is the cache-miss path.
+      #
       # Provides the @mattermost/eslint-plugin target the cypress install
       # symlinks to.
       - name: ci/setup-webapp-node-modules
+        if: steps.probe.outputs.cache-hit != 'true'
         uses: ./.github/actions/webapp-setup
       # Read-only restore of the registry cache warmed daily from master, so the
       # install below refetches as little as possible.
       - name: ci/restore-npm-cache
+        if: steps.probe.outputs.cache-hit != 'true'
         uses: ./.github/actions/restore-e2e-npm-cache
       # The postinstall downloads the Cypress binary to ~/.cache/Cypress rather
       # than into node_modules, which is why the artifact carries both.
       - name: ci/install-cypress-deps
+        if: steps.probe.outputs.cache-hit != 'true'
         working-directory: e2e-tests/cypress
         run: npm ci
       - name: ci/pack-cypress-deps
+        if: steps.probe.outputs.cache-hit != 'true'
         uses: ./.github/actions/pack-cypress-deps
         with:
           fips: ${{ inputs.server_edition == 'fips' }}
@@ -271,7 +290,9 @@ jobs:
     name: dispatch-run-${{ matrix.worker_index }}
     runs-on: ubuntu-24.04
     timeout-minutes: 30
-    needs: [prepare-run, dispatch-begin]
+    # prep-deps is already an ancestor via dispatch-begin; naming it directly
+    # makes its cache-hit output readable here.
+    needs: [prepare-run, prep-deps, dispatch-begin]
     permissions:
       contents: read
       id-token: write
@@ -316,9 +337,15 @@ jobs:
         uses: ./.github/actions/webapp-setup
         with:
           read-only: "true"
-      # prep-deps built these; it is an ancestor of this job via dispatch-begin,
-      # so the artifact is always present by now.
+      # Exactly one of the next two steps runs, per prep-deps' probe. The warmed
+      # cache is the normal path; the artifact exists only when the probe missed.
+      - name: ci/restore-cypress-deps
+        if: needs.prep-deps.outputs.cache-hit == 'true'
+        uses: ./.github/actions/restore-cypress-deps
+        with:
+          fail-on-cache-miss: "true"
       - name: ci/reuse-cypress-deps
+        if: needs.prep-deps.outputs.cache-hit != 'true'
         uses: ./.github/actions/unpack-cypress-deps
         with:
           fips: ${{ inputs.server_edition == 'fips' }}

@@ -1,0 +1,75 @@
+# Warms the Cypress deps cache (node_modules + the Cypress binary) from master.
+# This workflow is the only writer of the key, so PR and merge runs never write
+# to the Actions cache; they restore it read-only via
+# .github/actions/restore-cypress-deps.
+#
+# Until this workflow has warmed a given key, runs on that tree fall back to the
+# run-scoped artifact built by prep-deps in e2e-tests-cypress-template.yml.
+name: "E2E Cache Warm: Cypress deps"
+
+on:
+  schedule:
+    - cron: "0 3 * * *" # Daily 3am UTC — after the webapp node_modules and E2E npm registry caches warm at 1am
+  # Warm as soon as the key's only input lands on master, so the merge run and
+  # subsequent PRs hit the cache instead of paying for the artifact fallback all
+  # day. The schedule is the backstop.
+  push:
+    branches:
+      - master
+    paths:
+      - "e2e-tests/cypress/package-lock.json"
+  workflow_dispatch:
+
+# Keep manual, scheduled and push-triggered runs from racing to save the same key.
+concurrency:
+  group: e2e-ci-cache-warm-cypress-deps
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  actions: write # required to save the Actions cache
+
+jobs:
+  warm:
+    name: Warm Cypress deps cache
+    runs-on: ubuntu-24.04
+    # Bound a hung run so it can't hold the concurrency group for the default
+    # 6-hour timeout and block subsequent warm runs.
+    timeout-minutes: 30
+    steps:
+      - name: Checkout mattermost project
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+      - name: ci/probe-cypress-deps
+        id: deps
+        uses: ./.github/actions/restore-cypress-deps
+        with:
+          lookup-only: "true"
+      # Ahead of webapp-setup so its install benefits too, and so cache/restore
+      # never untars ~/.npm on top of entries npm has already written this job.
+      - name: ci/restore-npm-cache
+        if: steps.deps.outputs.cache-hit != 'true'
+        uses: ./.github/actions/restore-e2e-npm-cache
+      # Provides the @mattermost/eslint-plugin target the cypress install
+      # symlinks to.
+      - name: ci/setup-webapp-node-modules
+        if: steps.deps.outputs.cache-hit != 'true'
+        uses: ./.github/actions/webapp-setup
+        with:
+          read-only: "true"
+      # The postinstall downloads the Cypress binary to ~/.cache/Cypress rather
+      # than into node_modules, which is why the save below covers both.
+      - name: ci/install-cypress-deps
+        if: steps.deps.outputs.cache-hit != 'true'
+        working-directory: e2e-tests/cypress
+        run: npm ci
+      # Must stay in sync with restore-cypress-deps and pack-cypress-deps.
+      - name: ci/save-cypress-deps
+        if: steps.deps.outputs.cache-hit != 'true'
+        uses: actions/cache/save@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
+        with:
+          path: |
+            e2e-tests/cypress/node_modules
+            ~/.cache/Cypress
+          key: ${{ steps.deps.outputs.key }}

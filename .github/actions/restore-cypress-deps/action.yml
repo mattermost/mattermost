@@ -1,0 +1,45 @@
+name: "Restore Cypress deps cache"
+description: >
+  Restore everything a Cypress worker needs — node_modules plus the Cypress
+  binary — keyed on the cypress lockfile. Read-only: e2e-ci-cache-warm-cypress-deps.yml
+  is the only writer of this key, so PR runs never write to the Actions cache.
+  The payload must stay identical to pack/unpack-cypress-deps so the cache and
+  the artifact are interchangeable.
+
+inputs:
+  lookup-only:
+    description: "Probe whether the key exists without downloading the entry."
+    required: false
+    default: "false"
+  fail-on-cache-miss:
+    description: "Fail the step when the exact key is absent."
+    required: false
+    default: "false"
+
+outputs:
+  cache-hit:
+    description: "true on an exact-key hit"
+    value: ${{ steps.restore.outputs.cache-hit }}
+  key:
+    description: "The computed cache key"
+    value: ${{ steps.key.outputs.key }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: ci/compute-cypress-deps-key
+      id: key
+      shell: bash
+      run: echo "key=e2e-cypress-deps-${{ runner.os }}-${{ hashFiles('e2e-tests/cypress/package-lock.json') }}" >> "${GITHUB_OUTPUT}"
+    - name: ci/restore-cypress-deps
+      id: restore
+      uses: actions/cache/restore@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
+      # No restore-keys: an older node_modules is not a usable substitute for
+      # this lockfile, and a partial hit would silently diverge from `npm ci`.
+      with:
+        path: |
+          e2e-tests/cypress/node_modules
+          ~/.cache/Cypress
+        key: ${{ steps.key.outputs.key }}
+        lookup-only: ${{ inputs.lookup-only }}
+        fail-on-cache-miss: ${{ inputs.fail-on-cache-miss }}
