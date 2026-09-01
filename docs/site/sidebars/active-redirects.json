@@ -2,7 +2,7 @@
   "_meta": {
     "maintained": "by hand",
     "note": "Legacy Sphinx URL redirects, originally bulk-extracted during the docs migration. Add new entries at the end of the array. `from` must be unique and must not contain an anchor; `to` should point at a page that exists, or the redirect silently dead-ends.",
-    "active": 715
+    "active": 736
   },
   "redirects": [
     {
@@ -2864,6 +2864,90 @@
     {
       "from": "/administration-guide/manage/admin/user-provisioning",
       "to": "/administration-guide/onboard/onboard-index"
+    },
+    {
+      "from": "/administration-guide/scale/additional-ha-considerations",
+      "to": "/deployment-guide/scale/additional-ha-considerations"
+    },
+    {
+      "from": "/administration-guide/scale/backing-storage-benchmarks",
+      "to": "/deployment-guide/scale/backing-storage-benchmarks"
+    },
+    {
+      "from": "/administration-guide/scale/common-configure-mattermost-for-enterprise-search",
+      "to": "/deployment-guide/scale/common-configure-mattermost-for-enterprise-search"
+    },
+    {
+      "from": "/administration-guide/scale/elasticsearch-setup",
+      "to": "/deployment-guide/scale/elasticsearch-setup"
+    },
+    {
+      "from": "/administration-guide/scale/enterprise-search",
+      "to": "/deployment-guide/scale/enterprise-search"
+    },
+    {
+      "from": "/administration-guide/scale/estimated-storage-per-user-per-month",
+      "to": "/deployment-guide/scale/estimated-storage-per-user-per-month"
+    },
+    {
+      "from": "/administration-guide/scale/high-availability-cluster-based-deployment",
+      "to": "/deployment-guide/scale/high-availability-cluster-based-deployment"
+    },
+    {
+      "from": "/administration-guide/scale/lifetime-storage",
+      "to": "/deployment-guide/scale/lifetime-storage"
+    },
+    {
+      "from": "/administration-guide/scale/opensearch-setup",
+      "to": "/deployment-guide/scale/opensearch-setup"
+    },
+    {
+      "from": "/administration-guide/scale/redis",
+      "to": "/deployment-guide/scale/redis"
+    },
+    {
+      "from": "/administration-guide/scale/scale-to-100000-users",
+      "to": "/deployment-guide/scale/scale-to-100000-users"
+    },
+    {
+      "from": "/administration-guide/scale/scale-to-15000-users",
+      "to": "/deployment-guide/scale/scale-to-15000-users"
+    },
+    {
+      "from": "/administration-guide/scale/scale-to-200-users",
+      "to": "/deployment-guide/scale/scale-to-200-users"
+    },
+    {
+      "from": "/administration-guide/scale/scale-to-2000-users",
+      "to": "/deployment-guide/scale/scale-to-2000-users"
+    },
+    {
+      "from": "/administration-guide/scale/scale-to-200000-users",
+      "to": "/deployment-guide/scale/scale-to-200000-users"
+    },
+    {
+      "from": "/administration-guide/scale/scale-to-30000-users",
+      "to": "/deployment-guide/scale/scale-to-30000-users"
+    },
+    {
+      "from": "/administration-guide/scale/scale-to-50000-users",
+      "to": "/deployment-guide/scale/scale-to-50000-users"
+    },
+    {
+      "from": "/administration-guide/scale/scale-to-80000-users",
+      "to": "/deployment-guide/scale/scale-to-80000-users"
+    },
+    {
+      "from": "/administration-guide/scale/scale-to-90000-users",
+      "to": "/deployment-guide/scale/scale-to-90000-users"
+    },
+    {
+      "from": "/administration-guide/scale/scaling-for-enterprise",
+      "to": "/deployment-guide/scale/scaling-for-enterprise"
+    },
+    {
+      "from": "/administration-guide/scale/server-architecture",
+      "to": "/deployment-guide/scale/server-architecture"
     }
   ]
 }
