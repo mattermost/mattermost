@@ -299,6 +299,49 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
         expect(screen.getByPlaceholderText('Write to Other Channel')).toHaveValue('a different draft');
     });
 
+    it('should mount and send when rootId is omitted, as plugins may do via window.Components', async () => {
+        // Plugins reach AdvancedTextEditor through the untyped window.Components bridge, so
+        // TypeScript cannot enforce the required rootId prop. An undefined rootId used to
+        // mismatch the draft's '' on every render pass, throwing React error #301 on mount
+        // and, once mounted, leaving the post-submit draft reset silently dropped.
+        const message = 'a message sent from a composer without a rootId';
+
+        renderWithContext(
+            <AdvancedTextEditor
+                {...baseProps}
+                rootId={undefined as unknown as string}
+            />,
+            mergeObjects(initialState, {
+                entities: {
+                    roles: {
+                        roles: {
+                            user_roles: {permissions: [Permissions.CREATE_POST]},
+                        },
+                    },
+                },
+            }),
+        );
+
+        const textbox = screen.getByTestId('post_textbox');
+
+        // SuggestionBox listens to onInput, not onChange.
+        fireEvent.input(textbox, {target: {value: message}});
+        expect(textbox).toHaveValue(message);
+
+        await act(async () => {
+            fireEvent.click(screen.getByTestId('SendMessageButton'));
+        });
+
+        expect(mockedOnSubmit).toHaveBeenCalledWith(
+            channelId,
+            '',
+            expect.objectContaining({message, channelId, rootId: ''}),
+            expect.anything(),
+            undefined,
+        );
+        expect(textbox).toHaveValue('');
+    });
+
     it('should submit a destination-owned draft while the textbox still holds the previous channel value', async () => {
         const sourceDraft = 'stale draft from the source channel';
         const destinationMessage = 'new message composed for the destination channel';
