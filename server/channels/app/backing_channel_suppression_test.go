@@ -467,7 +467,12 @@ func TestBackingChannelBroadcastSuppression(t *testing.T) {
 		_, _, appErr = th.App.UpdatePost(th.Context, chatPost, nil)
 		require.Nil(t, appErr)
 
-		received := <-messages
+		var received *model.WebSocketEvent
+		select {
+		case received = <-messages:
+		case <-time.After(5 * time.Second):
+			require.FailNow(t, "timed out waiting for the chat post's websocket event")
+		}
 		require.Equal(t, model.WebsocketEventPostEdited, received.EventType())
 		assert.Equal(t, chatPost.Id, receivedPostID(t, received), "the only post_edited event must be the chat one")
 	})
@@ -483,7 +488,12 @@ func TestBackingChannelBroadcastSuppression(t *testing.T) {
 		_, appErr := th.App.DeletePost(th.Context, chatPost.Id, th.BasicUser.Id)
 		require.Nil(t, appErr)
 
-		received := <-messages
+		var received *model.WebSocketEvent
+		select {
+		case received = <-messages:
+		case <-time.After(5 * time.Second):
+			require.FailNow(t, "timed out waiting for the chat post's websocket event")
+		}
 		require.Equal(t, model.WebsocketEventPostDeleted, received.EventType())
 		assert.Equal(t, chatPost.Id, receivedPostID(t, received), "the only post_deleted event must be the chat one")
 	})

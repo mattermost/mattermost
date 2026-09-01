@@ -173,7 +173,10 @@ func (s *SqlPostStore) SaveMultiple(rctx request.CTX, posts []*model.Post) ([]*m
 			// the rejection, and the lookup runs only on this already-exceptional path.
 			var channelType model.ChannelType
 			chErr := s.GetMaster().Get(&channelType, "SELECT Type FROM Channels WHERE Id = ?", post.ChannelId)
-			if chErr != nil || channelType != model.ChannelTypeSpace {
+			if chErr != nil {
+				return nil, idx, errors.Wrapf(chErr, "failed to get channel type for channelId=%s", post.ChannelId)
+			}
+			if channelType != model.ChannelTypeSpace {
 				return nil, idx, store.NewErrInvalidInput("Post", "id", post.Id)
 			}
 		}

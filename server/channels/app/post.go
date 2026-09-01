@@ -858,7 +858,8 @@ func (a *App) UpdatePost(rctx request.CTX, receivedUpdatedPost *model.Post, upda
 // runGuardedPostHookForChannel applies a guarded create/update hook while preserving the owning
 // feature's identity fields on a non-message backing channel. Such a hook may replace the message
 // or reject the post, but cannot replace its caller-supplied id, channel, root, or ownership props.
-// Clone shares Props, so the snapshot detaches that map before an in-process hook can mutate it.
+// Clone shares the props map, the file ids, and the metadata, so the snapshot detaches all three
+// before an in-process hook can mutate them through the live post.
 func runGuardedPostHookForChannel(channel *model.Channel, post *model.Post, hook func(*model.Post) (*model.Post, *model.AppError)) (*model.Post, *model.AppError) {
 	if !channel.IsSpace() {
 		return hook(post)
@@ -866,6 +867,10 @@ func runGuardedPostHookForChannel(channel *model.Channel, post *model.Post, hook
 
 	preHookPost := post.Clone()
 	preHookPost.SetProps(maps.Clone(post.GetProps()))
+	preHookPost.FileIds = slices.Clone(post.FileIds)
+	if post.Metadata != nil {
+		preHookPost.Metadata = post.Metadata.Copy()
+	}
 	newPost, appErr := hook(post)
 	if appErr != nil {
 		return nil, appErr

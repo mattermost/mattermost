@@ -3180,8 +3180,10 @@ func (s SqlChannelStore) GetChannelsWithTeamDataByIds(channelIDs []string, inclu
 }
 
 // GetForPost is an authorization primitive: callers use the returned channel type to keep posts
-// in non-message backing channels out of chat. Read from master so replica lag cannot turn an
-// unknown classification into a permissive fallback.
+// in non-message backing channels out of chat. A channel's type never changes, so a replica hit
+// classifies correctly; only a miss is ambiguous — the row may exist on master and be unreplicated
+// — and re-reading that case from master keeps replica lag from turning an unknown classification
+// into a permissive fallback.
 func (s SqlChannelStore) GetForPost(postId string) (*model.Channel, error) {
 	query := s.getQueryBuilder().
 		Select(channelSliceColumns(true, "Channels")...).
@@ -3198,7 +3200,10 @@ func (s SqlChannelStore) GetForPost(postId string) (*model.Channel, error) {
 
 	channel := model.Channel{}
 
-	err = s.GetMaster().Get(&channel, queryString, argss...)
+	err = s.GetReplica().Get(&channel, queryString, argss...)
+	if errors.Is(err, sql.ErrNoRows) {
+		err = s.GetMaster().Get(&channel, queryString, argss...)
+	}
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to get Channel with postId=%s", postId)
 	}

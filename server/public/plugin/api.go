@@ -797,8 +797,9 @@ type API interface {
 	// MovePostsToChannel moves the given root posts — each with its full thread of replies and
 	// edit history — into the given channel, in place: ids, timestamps, and reactions are
 	// preserved. The move is restricted to non-message backing channels (e.g. a Docs space) on
-	// both sides, and every id must name a root post. Batches are capped server-side; callers
-	// drive larger sets a batch at a time.
+	// both sides, and an id that names an existing post must name a root post; an id that
+	// matches no post moves nothing and does not fail the call. Batches are capped server-side;
+	// callers drive larger sets a batch at a time.
 	//
 	// @tag Post
 	// @tag Channel
