@@ -122,13 +122,19 @@ func extractWithTimeout(e Extractor, filename string, r io.ReadSeeker, settings 
 		if settings.ReaderCloser != nil {
 			defer settings.ReaderCloser.Close()
 		}
-		return e.Extract(filename, r, settings.MaxFileSize, budget)
+		return e.Extract(context.Background(), filename, r, settings.MaxFileSize, budget)
 	}
 
 	ctx := settings.Ctx
 	if ctx == nil {
 		ctx = context.Background()
 	}
+
+	// Derive a child context so that when extractWithTimeout returns (due to
+	// timeout, parent cancellation, or completion), context-aware extractors
+	// (e.g. PDF) are signalled to stop their in-progress work.
+	extractCtx, cancelExtract := context.WithCancel(ctx)
+	defer cancelExtract()
 
 	type extractResult struct {
 		text string
@@ -153,7 +159,7 @@ func extractWithTimeout(e Extractor, filename string, r io.ReadSeeker, settings 
 				resultCh <- extractResult{err: fmt.Errorf("panic during document text extraction: %v", rec)}
 			}
 		}()
-		text, err := e.Extract(filename, r, settings.MaxFileSize, budget)
+		text, err := e.Extract(extractCtx, filename, r, settings.MaxFileSize, budget)
 		resultCh <- extractResult{text: text, err: err}
 	}()
 

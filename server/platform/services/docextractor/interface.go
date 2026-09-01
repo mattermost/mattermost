@@ -3,7 +3,10 @@
 
 package docextractor
 
-import "io"
+import (
+	"context"
+	"io"
+)
 
 // ExtractionBudget carries shared resource limits through the Extractor chain
 // so that nested archive extraction cannot exceed aggregate byte or depth bounds.
@@ -48,9 +51,10 @@ func (b *ExtractionBudget) Ascend() { b.depth-- }
 // Extractor defines the interface needed to extract file content.
 type Extractor interface {
 	Match(filename string) bool
-	// Extract returns the text content of the file. budget carries shared
-	// aggregate limits across recursive archive extraction; all extractors must
-	// pass it through to any sub-extraction they perform.
-	Extract(filename string, file io.ReadSeeker, maxFileSize int64, budget *ExtractionBudget) (string, error)
+	// Extract returns the text content of the file. ctx may be used by
+	// context-aware extractors (e.g. PDF) to stop early on cancellation.
+	// budget carries shared aggregate limits across recursive archive extraction;
+	// all extractors must pass both through to any sub-extraction they perform.
+	Extract(ctx context.Context, filename string, file io.ReadSeeker, maxFileSize int64, budget *ExtractionBudget) (string, error)
 	Name() string
 }

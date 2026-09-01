@@ -6,6 +6,7 @@ package docextractor
 import (
 	"archive/zip"
 	"bytes"
+	"context"
 	"fmt"
 	"io"
 	"strings"
@@ -37,7 +38,7 @@ func TestArchiveExtractorEntryLimit(t *testing.T) {
 	r := makeZip(t, entries)
 
 	ae := &archiveExtractor{}
-	result, err := ae.Extract("test.zip", r, 0, newExtractionBudget(maxArchiveExtractedText*10, defaultMaxArchiveDepth))
+	result, err := ae.Extract(context.Background(), "test.zip", r, 0, newExtractionBudget(maxArchiveExtractedText*10, defaultMaxArchiveDepth))
 	require.NoError(t, err)
 
 	// Count distinct "file" tokens in the output path list.
@@ -54,7 +55,7 @@ func TestArchiveExtractorBudgetLimit(t *testing.T) {
 	})
 
 	ae := &archiveExtractor{SubExtractor: &plainExtractor{}}
-	result, err := ae.Extract("test.zip", r, 0, newExtractionBudget(maxArchiveExtractedText, defaultMaxArchiveDepth))
+	result, err := ae.Extract(context.Background(), "test.zip", r, 0, newExtractionBudget(maxArchiveExtractedText, defaultMaxArchiveDepth))
 	require.NoError(t, err)
 
 	assert.NotContains(t, result, "shouldnotappear", "second entry should be skipped once budget is exhausted")
@@ -80,7 +81,7 @@ func TestArchiveExtractorDepthLimit(t *testing.T) {
 	ae.SubExtractor = ae
 
 	budget := newExtractionBudget(maxArchiveExtractedText, defaultMaxArchiveDepth)
-	result, err := ae.Extract("outer.zip", r, 0, budget)
+	result, err := ae.Extract(context.Background(), "outer.zip", r, 0, budget)
 	require.NoError(t, err)
 	assert.NotContains(t, result, marker, "content beyond max depth should not appear in output")
 }
@@ -91,7 +92,7 @@ func TestArchiveExtractorSkips7zip(t *testing.T) {
 	t.Run("7zip file with .7z extension returns empty string", func(t *testing.T) {
 		// Valid 7zip header (minimal)
 		sevenZipData := []byte{0x37, 0x7a, 0xbc, 0xaf, 0x27, 0x1c, 0x00, 0x00}
-		result, err := ae.Extract("test.7z", bytes.NewReader(sevenZipData), 0, testBudget())
+		result, err := ae.Extract(context.Background(), "test.7z", bytes.NewReader(sevenZipData), 0, testBudget())
 		require.NoError(t, err)
 		assert.Empty(t, result)
 	})
@@ -99,7 +100,7 @@ func TestArchiveExtractorSkips7zip(t *testing.T) {
 	t.Run("7zip content with wrong extension is still blocked", func(t *testing.T) {
 		// 7zip content disguised with .zip extension - should still be blocked via stream detection
 		sevenZipData := []byte{0x37, 0x7a, 0xbc, 0xaf, 0x27, 0x1c, 0x00, 0x00}
-		result, err := ae.Extract("malicious.zip", bytes.NewReader(sevenZipData), 0, testBudget())
+		result, err := ae.Extract(context.Background(), "malicious.zip", bytes.NewReader(sevenZipData), 0, testBudget())
 		require.NoError(t, err)
 		assert.Empty(t, result)
 	})
@@ -108,7 +109,7 @@ func TestArchiveExtractorSkips7zip(t *testing.T) {
 		junkPrefix := []byte{0x00, 0x00, 0x00, 0x00}
 		sevenZipSig := []byte{0x37, 0x7a, 0xbc, 0xaf, 0x27, 0x1c, 0x00, 0x00}
 		dataWithOffset := append(junkPrefix, sevenZipSig...)
-		result, err := ae.Extract("test.7z", bytes.NewReader(dataWithOffset), 0, testBudget())
+		result, err := ae.Extract(context.Background(), "test.7z", bytes.NewReader(dataWithOffset), 0, testBudget())
 		require.NoError(t, err)
 		assert.Empty(t, result)
 	})
@@ -120,8 +121,7 @@ func TestArchiveExtractorSkips7zip(t *testing.T) {
 		junkPrefix := []byte{0x00, 0x00, 0x00, 0x00}
 		sevenZipSig := []byte{0x37, 0x7a, 0xbc, 0xaf, 0x27, 0x1c, 0x00, 0x00}
 		dataWithOffset := append(junkPrefix, sevenZipSig...)
-		_, err := ae.Extract("malicious.zip", bytes.NewReader(dataWithOffset), 0, testBudget())
+		_, err := ae.Extract(context.Background(), "malicious.zip", bytes.NewReader(dataWithOffset), 0, testBudget())
 		assert.Error(t, err) // fails to extract as any valid archive format
 	})
 }
-

@@ -45,7 +45,7 @@ func getExtAlsoTarGz(name string) string {
 	return filepath.Ext(name)
 }
 
-func (ae *archiveExtractor) Extract(name string, r io.ReadSeeker, maxFileSize int64, budget *ExtractionBudget) (string, error) {
+func (ae *archiveExtractor) Extract(ctx context.Context, name string, r io.ReadSeeker, maxFileSize int64, budget *ExtractionBudget) (string, error) {
 	// Depth check: refuse to descend if the budget says we're too deep.
 	// This prevents stack overflow from pathologically nested archives.
 	if !budget.Descend() {
@@ -129,7 +129,7 @@ func (ae *archiveExtractor) Extract(name string, r io.ReadSeeker, maxFileSize in
 				return fmt.Errorf("error reading archive entry: %w", err)
 			}
 
-			subtext, extractErr := ae.SubExtractor.Extract(filename, bytes.NewReader(data), maxFileSize, budget)
+			subtext, extractErr := ae.SubExtractor.Extract(ctx, filename, bytes.NewReader(data), maxFileSize, budget)
 			if extractErr == nil && budget.Remaining() > 0 {
 				subtextEntry := subtext + " "
 				if int64(len(subtextEntry)) > budget.Remaining() {
