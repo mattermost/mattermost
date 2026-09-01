@@ -427,3 +427,5 @@ channels/db/migrations/postgres/000215_drop_channelmembers_autotranslation_colum
 channels/db/migrations/postgres/000215_drop_channelmembers_autotranslation_column.up.sql
 channels/db/migrations/postgres/000216_split_attribute_view_by_object_type.down.sql
 channels/db/migrations/postgres/000216_split_attribute_view_by_object_type.up.sql
+channels/db/migrations/postgres/000217_create_posts_page_comment_page_id_index.down.sql
+channels/db/migrations/postgres/000217_create_posts_page_comment_page_id_index.up.sql
