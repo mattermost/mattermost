@@ -7,6 +7,7 @@ import {defineMessages, FormattedMessage, useIntl} from 'react-intl';
 
 import {AccountOutlineIcon, ChevronDownIcon} from '@mattermost/compass-icons/components';
 import {Button} from '@mattermost/shared/components/button';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import {resourceTypeLabels} from './attribute_applies_to_constants';
 import type {AttributeAppliesToItemProps} from './attribute_applies_to_constants';
@@ -22,12 +23,33 @@ const BODY_ID = 'attribute-applies-to-user-panel';
 // index, which misattributes state when a row is removed from the middle of
 // the list). Remove is only reachable once expanded -- there is no
 // collapsed-row remove affordance.
-function AttributeAppliesToUserItem({disabled = false, onRemove}: AttributeAppliesToItemProps): JSX.Element {
+function AttributeAppliesToUserItem({disabled = false, lockedTooltip, onRemove}: AttributeAppliesToItemProps): JSX.Element {
     const {formatMessage} = useIntl();
     const [isOpen, setIsOpen] = useState(false);
 
     const label = formatMessage(resourceTypeLabels.user);
     const toggleLabel = formatMessage(isOpen ? messages.collapseLabel : messages.expandLabel, {label});
+
+    const toggleButton = (
+        <Button
+            type='button'
+            emphasis='quaternary'
+            className='AttributeAppliesToItem__toggle'
+            onClick={() => setIsOpen((prev) => !prev)}
+            disabled={disabled}
+            aria-expanded={isOpen}
+            aria-controls={BODY_ID}
+            aria-label={toggleLabel}
+            data-testid='attributeAppliesToRow-user-toggle'
+        >
+            <ChevronDownIcon
+                size={16}
+                className={classNames('AttributeAppliesToItem__chevron', {'AttributeAppliesToItem__chevron--open': isOpen})}
+            />
+            <AccountOutlineIcon size={18}/>
+            <span className='AttributeAppliesToItem__label'>{label}</span>
+        </Button>
+    );
 
     return (
         <div
@@ -35,24 +57,13 @@ function AttributeAppliesToUserItem({disabled = false, onRemove}: AttributeAppli
             data-testid='attributeAppliesToRow-user'
         >
             <div className='AttributeAppliesToItem__header'>
-                <Button
-                    type='button'
-                    emphasis='quaternary'
-                    className='AttributeAppliesToItem__toggle'
-                    onClick={() => setIsOpen((prev) => !prev)}
-                    disabled={disabled}
-                    aria-expanded={isOpen}
-                    aria-controls={BODY_ID}
-                    aria-label={toggleLabel}
-                    data-testid='attributeAppliesToRow-user-toggle'
-                >
-                    <ChevronDownIcon
-                        size={16}
-                        className={classNames('AttributeAppliesToItem__chevron', {'AttributeAppliesToItem__chevron--open': isOpen})}
-                    />
-                    <AccountOutlineIcon size={18}/>
-                    <span className='AttributeAppliesToItem__label'>{label}</span>
-                </Button>
+                {lockedTooltip ? (
+                    <WithTooltip title={lockedTooltip}>
+                        <span data-testid='attributeAppliesToRow-user-toggleLockWrap'>
+                            {toggleButton}
+                        </span>
+                    </WithTooltip>
+                ) : toggleButton}
                 {isOpen && (
                     <Button
                         type='button'

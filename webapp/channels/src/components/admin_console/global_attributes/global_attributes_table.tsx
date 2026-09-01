@@ -18,7 +18,6 @@ import type {FieldType, PropertyField, PropertyFieldOption} from '@mattermost/ty
 import {supportsOptions} from '@mattermost/types/properties';
 
 import PropertyTypes from 'mattermost-redux/action_types/properties';
-import {getPluginStatuses} from 'mattermost-redux/actions/admin';
 import {fetchPropertyFields} from 'mattermost-redux/actions/properties';
 import {getConfig as getAdminConfig} from 'mattermost-redux/selectors/entities/admin';
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
@@ -33,7 +32,7 @@ import {
     CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE,
 } from 'components/admin_console/classification_markings/utils';
 import AlertBanner from 'components/alert_banner';
-import {useIsFieldOrphaned} from 'components/common/hooks/use_field_orphaned';
+import {useIsFieldOrphaned, usePluginInventoryLoaded} from 'components/common/hooks/use_field_orphaned';
 import LoadingScreen from 'components/loading_screen';
 import * as Menu from 'components/menu';
 
@@ -292,19 +291,9 @@ function ActionsCell({field, isClassificationRow, isMobileView, pluginInventoryL
         >
             <Menu.Item
                 id={`${menuId}-edit`}
-                disabled={isPluginOwned}
                 leadingElement={<PencilOutlineIcon size={18}/>}
-                onClick={isPluginOwned ? undefined : () => getHistory().push(attributeDetailsRoute(field.id))}
-                labels={
-                    isPluginOwned ? (
-                        <>
-                            <span><FormattedMessage {...actionsLabels.edit}/></span>
-                            <span><FormattedMessage {...actionsLabels.comingSoon}/></span>
-                        </>
-                    ) : (
-                        <FormattedMessage {...actionsLabels.edit}/>
-                    )
-                }
+                onClick={() => getHistory().push(attributeDetailsRoute(field.id))}
+                labels={<FormattedMessage {...actionsLabels.edit}/>}
             />
             <Menu.Item
                 id={`${menuId}-duplicate`}
@@ -393,7 +382,6 @@ export default function GlobalAttributesTable() {
     // live in the admin plugin statuses, which nothing else on this page loads.
     // Fetched once, and only when a plugin-owned row is actually present.
     const hasPluginOwnedFields = useMemo(() => fields.some((field) => Boolean(field.attrs?.source_plugin_id)), [fields]);
-    const pluginStatusesRequested = useRef(false);
 
     // Whether the plugin inventory is known yet. This gates the orphan check
     // rather than the Source column, which degrades harmlessly to the plugin ID:
@@ -405,16 +393,7 @@ export default function GlobalAttributesTable() {
     // than resolved: a failed fetch still leaves the inventory as good as it will
     // get, and staying false forever would strand genuine leftovers as
     // undeletable.
-    const [pluginInventoryLoaded, setPluginInventoryLoaded] = useState(false);
-
-    useEffect(() => {
-        if (!hasPluginOwnedFields || pluginStatusesRequested.current) {
-            return;
-        }
-
-        pluginStatusesRequested.current = true;
-        dispatch(getPluginStatuses()).finally(() => setPluginInventoryLoaded(true));
-    }, [dispatch, hasPluginOwnedFields]);
+    const pluginInventoryLoaded = usePluginInventoryLoaded(hasPluginOwnedFields);
 
     const handleDeleteModalExited = useCallback(() => setDeleteModalExited(true), []);
 

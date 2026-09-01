@@ -3,7 +3,7 @@
 
 import classNames from 'classnames';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import type {IntlShape} from 'react-intl';
+import type {IntlShape, MessageDescriptor} from 'react-intl';
 import {defineMessages, FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 import {useParams} from 'react-router-dom';
@@ -19,6 +19,7 @@ import {setNavigationBlocked} from 'actions/admin_actions';
 import BlockableLink from 'components/admin_console/blockable_link';
 import {findRankCollision, isValidRank} from 'components/admin_console/system_properties/rank_utils';
 import Card from 'components/card/card';
+import {useIsFieldOrphaned, usePluginInventoryLoaded} from 'components/common/hooks/use_field_orphaned';
 import LoadingScreen from 'components/loading_screen';
 import * as Menu from 'components/menu';
 import SaveButton from 'components/save_button';
@@ -37,6 +38,7 @@ import AttributeExternalSource from './attribute_external_source';
 import type {ExternalSource} from './attribute_external_source';
 import AttributeOptionsRankValues from './attribute_options_rank_values';
 import AttributeOptionsValues from './attribute_options_values';
+import AttributePluginSource from './attribute_plugin_source';
 import {useConfirmRemoveAppliesTo} from './attribute_remove_applies_to_warning_modal';
 
 import {GLOBAL_ATTRIBUTES_LIST_ROUTE} from '../constants';
@@ -267,6 +269,22 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
 
     const [loading, setLoading] = useState(isEditMode);
     const [isDirty, setIsDirty] = useState(false);
+
+    // Set once from the loaded field's attrs and never re-derived afterward -- a
+    // plugin-owned field has nothing else on this page that can change it. Used
+    // as the single source of truth for the plugin-owned lock (see
+    // effectiveDisabled below) rather than recomputing getSourceKind(field) at
+    // every render site.
+    const [sourcePluginId, setSourcePluginId] = useState<string | undefined>(undefined);
+    const isPluginOwned = Boolean(sourcePluginId);
+
+    // Substituted for the bare `disabled` prop everywhere else on this page --
+    // one boolean, not a second parallel disabled path. Keeps the pre-existing
+    // non-sysadmin `disabled` prop (schema-wired via isDisabled: it.not
+    // (it.isSystemAdmin)) and the new plugin-owned lock behaving identically at
+    // every call site.
+    const effectiveDisabled = disabled || isPluginOwned;
+
     const [displayName, setDisplayName] = useState('');
     const [manualName, setManualName] = useState('');
 
@@ -345,6 +363,23 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
         isMountedRef.current = false;
     }, []);
 
+    // The Source column's plugin-name resolution degrades to a raw plugin ID for
+    // server-only plugins (no webapp bundle registered) until pluginStatuses has
+    // been fetched -- mirrors global_attributes_table.tsx's own fetch-once
+    // pattern (shared via usePluginInventoryLoaded) so a direct deep-link to
+    // this page resolves the same name the listing would show. Also needed to
+    // settle orphan detection below: an inventory that hasn't loaded yet reads
+    // identically to "nothing installed" (see useIsFieldOrphaned's own doc
+    // comment), so isOrphaned is only trusted once this is true.
+    const pluginInventoryLoaded = usePluginInventoryLoaded(isPluginOwned);
+
+    // protected: true is safe to hardcode here (rather than threaded from the
+    // loaded field) -- sourcePluginId is only ever set when getSourceKind(field)
+    // === 'plugin', which itself requires attrs.protected === true on the real
+    // field (see getSourceKind), so the invariant holds by construction.
+    const isOrphanedRaw = useIsFieldOrphaned({attrs: {source_plugin_id: sourcePluginId, protected: true}});
+    const isOrphaned = pluginInventoryLoaded && isOrphanedRaw;
+
     useEffect(() => {
         if (!fieldId) {
             return undefined;
@@ -360,7 +395,6 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                 }
                 if (
                     !field ||
-                    getSourceKind(field) === 'plugin' ||
                     isClassificationMarkingsField(field, field.group_id)
                 ) {
                     getHistory().push(LIST_ROUTE);
@@ -378,6 +412,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                 const loadedFieldType = isAttributeFieldType(field.type) ? field.type : 'text';
                 originalFieldTypeRef.current = loadedFieldType;
 
+                setSourcePluginId(getSourceKind(field) === 'plugin' ? (field.attrs?.source_plugin_id as string | undefined) : undefined);
                 setDisplayName((field.attrs?.display_name as string | undefined) || '');
                 setManualName(field.name);
                 setIsNameManuallyEdited(true);
@@ -620,7 +655,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
 
     const hasExternalSource = Boolean(ldapAttr || samlAttr);
     const typeLockedByAppliesTo = isEditMode && appliesTo.length > 0;
-    const typeLocked = hasExternalSource || typeLockedByAppliesTo;
+    const typeLocked = hasExternalSource || typeLockedByAppliesTo || isPluginOwned;
     const typeChanged = isEditMode && fieldType !== originalFieldTypeRef.current;
     const typeSupportsOptions = supportsOptions({type: fieldType} as PropertyField);
 
@@ -631,6 +666,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
     // persisted snapshot, not appliesTo, so a pending local remove doesn't
     // unlock a rename the dependents wouldn't receive.
     const nameLockedByAppliesTo = isEditMode && Object.keys(persistedLinkedFieldsRef.current).length > 0;
+    const nameLocked = nameLockedByAppliesTo || isPluginOwned;
 
     // Defensive re-check, not the primary guard: both options editors already
     // block duplicate names and invalid/duplicate ranks interactively at
@@ -657,7 +693,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
         return null;
     }, [typeSupportsOptions, options, fieldType]);
 
-    const canSave = !disabled && Boolean(displayName.trim()) && Boolean(currentName) && !nameValidationError && !saving && optionsIssue === null && (!isEditMode || isDirty);
+    const canSave = !effectiveDisabled && Boolean(displayName.trim()) && Boolean(currentName) && !nameValidationError && !saving && optionsIssue === null && (!isEditMode || isDirty);
 
     const confirmRemoveAppliesTo = useConfirmRemoveAppliesTo();
 
@@ -825,19 +861,29 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
     }, [canSave, isEditMode, fieldId, nameUnchanged, displayName, currentName, fieldType, typeChanged, options, ldapAttr, samlAttr, appliesTo, finalizeSave, confirmRemoveAppliesTo]);
 
     const TypeIcon = getTypeIcon(fieldType);
-    const typeLockTooltip = hasExternalSource ? formatMessage(messages.typeLockedExternalSourceTooltip) : formatMessage(messages.typeLockedAppliesToTooltip);
-    let typeButtonAriaLabel = formatMessage(messages.typeFieldAriaLabel, {value: formatMessage(getTypeLabel(fieldType))});
-    if (hasExternalSource) {
-        typeButtonAriaLabel = formatMessage(messages.typeFieldLockedAriaLabel);
+
+    // Reason derived once, then looked up for both the tooltip and the
+    // aria-label below -- isPluginOwned checked first: a plugin-owned field
+    // with zero applied resources has typeLockedByAppliesTo === false and
+    // hasExternalSource === false, so it must not fall through to the
+    // "applies to a resource" copy, which would be factually wrong when it
+    // applies to nothing.
+    let typeLockReason: 'plugin' | 'externalSource' | 'appliesTo' | null = null;
+    if (isPluginOwned) {
+        typeLockReason = 'plugin';
+    } else if (hasExternalSource) {
+        typeLockReason = 'externalSource';
     } else if (typeLockedByAppliesTo) {
-        typeButtonAriaLabel = formatMessage(messages.typeFieldLockedAppliesToAriaLabel, {value: formatMessage(getTypeLabel(fieldType))});
+        typeLockReason = 'appliesTo';
     }
+    const typeLockTooltip = formatMessage(TYPE_LOCK_MESSAGES[typeLockReason ?? 'appliesTo'].tooltip);
+    const typeButtonAriaLabel = typeLockReason ? formatMessage(TYPE_LOCK_MESSAGES[typeLockReason].ariaLabel, {value: formatMessage(getTypeLabel(fieldType))}) : formatMessage(messages.typeFieldAriaLabel, {value: formatMessage(getTypeLabel(fieldType))});
     const typeMenu = (
         <Menu.Container
             menuButton={{
                 id: 'attribute-type-menu-button',
                 class: 'AttributeDetails__typeButton',
-                disabled: saving || disabled || typeLocked,
+                disabled: saving || effectiveDisabled || typeLocked,
                 'aria-label': typeButtonAriaLabel,
                 children: (
                     <>
@@ -968,7 +1014,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                                         value={displayName}
                                         onChange={handleDisplayNameChange}
                                         autoFocus={true}
-                                        disabled={saving || disabled}
+                                        disabled={saving || effectiveDisabled}
                                         maxLength={Constants.MAX_CUSTOM_ATTRIBUTE_NAME_LENGTH}
                                         data-testid='attributeDisplayNameInput'
                                     />
@@ -995,7 +1041,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                                                     onKeyDown={handleNameKeyDown}
                                                     onBlur={handleDoneClick}
                                                     autoFocus={true}
-                                                    disabled={saving || disabled || nameLockedByAppliesTo}
+                                                    disabled={saving || effectiveDisabled || nameLockedByAppliesTo}
                                                     maxLength={CPA_FIELD_NAME_MAX_RUNES}
                                                     aria-labelledby='attribute-unique-name-prefix'
                                                     aria-describedby={nameDescribedBy}
@@ -1012,6 +1058,20 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                                                 </span>
                                             )}
                                             {(() => {
+                                                // Reason derived once, then looked up for both the aria-label
+                                                // and the tooltip below -- isPluginOwned checked first, same
+                                                // priority reasoning as typeLockReason above -- a plugin-owned
+                                                // field with zero applied resources has nameLockedByAppliesTo
+                                                // === false, so it must not fall through to the normal
+                                                // Edit/Done label or render with no explanatory tooltip at all.
+                                                let nameLockReason: 'plugin' | 'appliesTo' | null = null;
+                                                if (isPluginOwned) {
+                                                    nameLockReason = 'plugin';
+                                                } else if (nameLockedByAppliesTo) {
+                                                    nameLockReason = 'appliesTo';
+                                                }
+                                                const nameEditLinkAriaLabel = nameLockReason ? formatMessage(NAME_LOCK_MESSAGES[nameLockReason].ariaLabel) : formatMessage(isEditingName ? messages.doneLinkAriaLabel : messages.editLinkAriaLabel);
+
                                                 const editLinkButton = (
                                                     <button
                                                         type='button'
@@ -1024,17 +1084,19 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                                                                 e.preventDefault();
                                                             }
                                                         }}
-                                                        disabled={saving || disabled || nameLockedByAppliesTo}
+                                                        disabled={saving || effectiveDisabled || nameLockedByAppliesTo}
                                                         aria-disabled={isDoneBlocked || undefined}
                                                         aria-describedby={isDoneBlocked ? 'attribute-unique-name-error' : undefined}
-                                                        aria-label={nameLockedByAppliesTo ? formatMessage(messages.nameLockedAppliesToAriaLabel) : formatMessage(isEditingName ? messages.doneLinkAriaLabel : messages.editLinkAriaLabel)}
+                                                        aria-label={nameEditLinkAriaLabel}
                                                         data-testid='attributeNameEditLink'
                                                     >
                                                         <FormattedMessage {...(isEditingName ? messages.doneLink : messages.editLink)}/>
                                                     </button>
                                                 );
-                                                return nameLockedByAppliesTo ? (
-                                                    <WithTooltip title={formatMessage(messages.nameLockedAppliesToTooltip)}>
+
+                                                const nameLockTooltip = formatMessage(NAME_LOCK_MESSAGES[nameLockReason ?? 'appliesTo'].tooltip);
+                                                return nameLocked ? (
+                                                    <WithTooltip title={nameLockTooltip}>
                                                         <span data-testid='attributeNameEditLinkLockWrap'>
                                                             {editLinkButton}
                                                         </span>
@@ -1102,16 +1164,22 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                                                 <AttributeOptionsRankValues
                                                     options={options}
                                                     onOptionsChange={handleOptionsChange}
-                                                    disabled={saving || disabled}
+                                                    disabled={saving || effectiveDisabled}
                                                 />
                                             ) : (
                                                 <AttributeOptionsValues
                                                     options={options}
                                                     onOptionsChange={handleOptionsChange}
-                                                    disabled={saving || disabled}
+                                                    disabled={saving || effectiveDisabled}
                                                 />
                                             )}
-                                            {optionsIssue && (
+                                            {/* Suppressed for plugin-owned fields -- this validation targets
+                                                admin-authored data entered through this form; a plugin-supplied
+                                                template's options came from the plugin API and aren't guaranteed
+                                                to satisfy this UI's own shape rules. Showing an actionable-looking
+                                                error on a page with no controls to act on it would be worse than
+                                                showing nothing. */}
+                                            {optionsIssue && !isPluginOwned && (
                                                 <div
                                                     className='AttributeDetails__uniqueNameError'
                                                     role='alert'
@@ -1131,21 +1199,30 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                                             </p>
                                         )
                                     )}
-                                    <AttributeExternalSource
-                                        ldapAttr={ldapAttr}
-                                        samlAttr={samlAttr}
-                                        fieldType={fieldType}
-                                        onLink={handleLink}
-                                        disabled={saving || disabled}
-                                        disableAdding={typeLockedByAppliesTo}
-                                    />
+                                    {isPluginOwned ? (
+                                        <AttributePluginSource
+                                            pluginId={sourcePluginId!}
+                                            isOrphaned={isOrphaned}
+                                        />
+                                    ) : (
+                                        <AttributeExternalSource
+                                            ldapAttr={ldapAttr}
+                                            samlAttr={samlAttr}
+                                            fieldType={fieldType}
+                                            onLink={handleLink}
+                                            disabled={saving || effectiveDisabled}
+                                            disableAdding={typeLockedByAppliesTo}
+                                        />
+                                    )}
                                 </div>
                             </div>
                         </Card.Body>
                     </Card>
                     <AttributeAppliesTo
                         appliesTo={appliesTo}
-                        disabled={saving || disabled}
+                        disabled={saving || effectiveDisabled}
+                        hideAddResource={isPluginOwned}
+                        lockedTooltip={isPluginOwned ? formatMessage(messages.appliesToLockedPluginTooltip) : undefined}
                         onAdd={handleAdd}
                         onRemove={handleRemove}
                     />
@@ -1205,6 +1282,14 @@ const messages = defineMessages({
         id: 'admin.global_attributes.attribute_details.unique_name.locked_applies_to_tooltip',
         defaultMessage: 'Name cannot be changed while this attribute applies to a resource. Remove and save first.',
     },
+    nameLockedPluginAriaLabel: {
+        id: 'admin.global_attributes.attribute_details.unique_name.locked_plugin_aria_label',
+        defaultMessage: 'Edit unique name. Locked because this attribute is managed by a plugin.',
+    },
+    nameLockedPluginTooltip: {
+        id: 'admin.global_attributes.attribute_details.unique_name.locked_plugin_tooltip',
+        defaultMessage: 'Name cannot be changed — this attribute is managed by a plugin.',
+    },
     helperText: {
         id: 'admin.global_attributes.attribute_details.unique_name.helper_text',
         defaultMessage: 'Name is the internal identifier for policies and integrations. Display name is what admins and users see.',
@@ -1221,6 +1306,10 @@ const messages = defineMessages({
         id: 'admin.global_attributes.attribute_details.type.field_locked_applies_to_aria_label',
         defaultMessage: 'Type: {value}. Locked while this attribute applies to a resource.',
     },
+    typeFieldLockedPluginAriaLabel: {
+        id: 'admin.global_attributes.attribute_details.type.field_locked_plugin_aria_label',
+        defaultMessage: 'Type: {value}. Locked because this attribute is managed by a plugin.',
+    },
     typeLockedAppliesToTooltip: {
         id: 'admin.global_attributes.attribute_details.type.locked_applies_to_tooltip',
         defaultMessage: 'Type cannot be changed while this attribute applies to a resource.',
@@ -1228,6 +1317,14 @@ const messages = defineMessages({
     typeLockedExternalSourceTooltip: {
         id: 'admin.global_attributes.attribute_details.type.locked_external_source_tooltip',
         defaultMessage: 'Type cannot be changed while this attribute is linked to an external source.',
+    },
+    typeLockedPluginTooltip: {
+        id: 'admin.global_attributes.attribute_details.type.locked_plugin_tooltip',
+        defaultMessage: 'Type cannot be changed — this attribute is managed by a plugin.',
+    },
+    appliesToLockedPluginTooltip: {
+        id: 'admin.global_attributes.attribute_details.applies_to.locked_plugin_tooltip',
+        defaultMessage: 'This resource cannot be changed — this attribute is managed by a plugin.',
     },
     optionsLabel: {id: 'admin.global_attributes.attribute_details.options.label', defaultMessage: 'Options'},
     optionsHelp: {
@@ -1245,6 +1342,20 @@ const messages = defineMessages({
     save: {id: 'admin.global_attributes.attribute_details.save', defaultMessage: 'Save'},
     cancel: {id: 'admin.global_attributes.attribute_details.cancel', defaultMessage: 'Cancel'},
 });
+
+// One reason derived once (see typeLockReason above), looked up here for both
+// the tooltip and the aria-label -- a new lock reason becomes one entry in
+// this map instead of a fourth branch across two separate if/else chains.
+const TYPE_LOCK_MESSAGES: Record<'plugin' | 'externalSource' | 'appliesTo', {tooltip: MessageDescriptor; ariaLabel: MessageDescriptor}> = {
+    plugin: {tooltip: messages.typeLockedPluginTooltip, ariaLabel: messages.typeFieldLockedPluginAriaLabel},
+    externalSource: {tooltip: messages.typeLockedExternalSourceTooltip, ariaLabel: messages.typeFieldLockedAriaLabel},
+    appliesTo: {tooltip: messages.typeLockedAppliesToTooltip, ariaLabel: messages.typeFieldLockedAppliesToAriaLabel},
+};
+
+const NAME_LOCK_MESSAGES: Record<'plugin' | 'appliesTo', {tooltip: MessageDescriptor; ariaLabel: MessageDescriptor}> = {
+    plugin: {tooltip: messages.nameLockedPluginTooltip, ariaLabel: messages.nameLockedPluginAriaLabel},
+    appliesTo: {tooltip: messages.nameLockedAppliesToTooltip, ariaLabel: messages.nameLockedAppliesToAriaLabel},
+};
 
 const nameErrorMessages = defineMessages({
     invalidCharset: {
