@@ -19,9 +19,10 @@
  *     tag renders as raw markup.
  *   - a translation does not drop a variable or tag the source has. Dropping
  *     one renders fine, it just quietly loses a value or a link.
- *   - a variable shared with the source is used with the same type. Demoting
- *     {count, plural, ...} to a bare {count} still parses and still renders,
- *     it just silently stops pluralizing.
+ *   - a variable shared with the source is not used in a weaker role than the
+ *     source uses it. Demoting {count, plural, ...} to a bare {count} still
+ *     parses and still renders, it just silently stops pluralizing. The
+ *     opposite direction is allowed: see PROMOTIONS.
  *   - an unescaped ASCII apostrophe immediately before < or { where the source
  *     has no such quoting. In ICU that opens a quoted literal which swallows the tag
  *     or variable and everything after it. The message still parses, so this
@@ -72,6 +73,28 @@ const TYPES = {
     5: 'select',
     6: 'plural',
     8: 'tag',
+};
+
+/**
+ * Roles a translation may use a variable in that the source does not, keyed by
+ * the role the source uses.
+ *
+ * English needs a plural far less often than the languages it is translated
+ * into: "{count} items were deleted" is one sentence in English and four in
+ * Russian. Wrapping a bare {count} in {count, plural, ...} is how a translator
+ * makes that sentence grammatical, and it loses nothing -- so it is allowed,
+ * even though the source never asked for a plural. Demotion is the reverse and
+ * stays fatal.
+ *
+ * The formatting types are deliberately absent. They are not interchangeable
+ * with each other or reachable from a bare argument: {x, number} over a string
+ * renders NaN and {x, date} over a non-date renders "Invalid Date", so a
+ * translation reaching for one the source did not use is a defect, not a
+ * grammar fix.
+ */
+const PROMOTIONS = {
+    argument: new Set(['plural', 'select']),
+    number: new Set(['plural']),
 };
 
 /**
@@ -171,9 +194,13 @@ for (const localePath of localePaths) {
                 continue;
             }
             for (const type of types) {
-                if (!sourceTypes.has(type)) {
-                    errors.push(`${name}:${key}: "${arg}" is used as ${type}, but the source only uses it as ${[...sourceTypes].join('/')}`);
+                if (sourceTypes.has(type)) {
+                    continue;
                 }
+                if ([...sourceTypes].some((sourceType) => PROMOTIONS[sourceType]?.has(type))) {
+                    continue;
+                }
+                errors.push(`${name}:${key}: "${arg}" is used as ${type}, but the source only uses it as ${[...sourceTypes].join('/')}`);
             }
         }
 
