@@ -26,7 +26,6 @@ func TestReactionStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStor
 	t.Run("ReactionDeleteAllWithEmojiName", func(t *testing.T) { testReactionDeleteAllWithEmojiName(t, rctx, ss, s) })
 	t.Run("PermanentDeleteByUser", func(t *testing.T) { testPermanentDeleteByUser(t, rctx, ss) })
 	t.Run("PermanentDeleteBatch", func(t *testing.T) { testReactionStorePermanentDeleteBatch(t, rctx, ss) })
-	t.Run("ReactionBulkGetForPosts", func(t *testing.T) { testReactionBulkGetForPosts(t, rctx, ss) })
 	t.Run("ReactionDeadlock", func(t *testing.T) { testReactionDeadlock(t, rctx, ss) })
 	t.Run("ExistsOnPost", func(t *testing.T) { testExistsOnPost(t, rctx, ss) })
 	t.Run("GetUniqueCountForPost", func(t *testing.T) { testGetUniqueCountForPost(t, rctx, ss) })
@@ -740,83 +739,6 @@ func testReactionStorePermanentDeleteBatch(t *testing.T, rctx request.CTX, ss st
 	returned, err = ss.Reaction().GetForPost(newerPost.Id, false)
 	require.NoError(t, err)
 	require.Len(t, returned, 1, "reactions for newer post should not have been deleted")
-}
-
-func testReactionBulkGetForPosts(t *testing.T, rctx request.CTX, ss store.Store) {
-	userId := model.NewId()
-	post, _ := ss.Post().Save(rctx, &model.Post{
-		ChannelId: model.NewId(),
-		UserId:    userId,
-	})
-	postId := post.Id
-	post, _ = ss.Post().Save(rctx, &model.Post{
-		ChannelId: model.NewId(),
-		UserId:    userId,
-	})
-	post2Id := post.Id
-	post, _ = ss.Post().Save(rctx, &model.Post{
-		ChannelId: model.NewId(),
-		UserId:    userId,
-	})
-	post3Id := post.Id
-	post, _ = ss.Post().Save(rctx, &model.Post{
-		ChannelId: model.NewId(),
-		UserId:    userId,
-	})
-	post4Id := post.Id
-
-	reactions := []*model.Reaction{
-		{
-			UserId:    userId,
-			PostId:    postId,
-			EmojiName: "smile",
-		},
-		{
-			UserId:    model.NewId(),
-			PostId:    post2Id,
-			EmojiName: "smile",
-		},
-		{
-			UserId:    userId,
-			PostId:    post3Id,
-			EmojiName: "sad",
-		},
-		{
-			UserId:    userId,
-			PostId:    postId,
-			EmojiName: "angry",
-		},
-		{
-			UserId:    userId,
-			PostId:    post2Id,
-			EmojiName: "angry",
-		},
-		{
-			UserId:    userId,
-			PostId:    post4Id,
-			EmojiName: "angry",
-		},
-	}
-
-	for _, reaction := range reactions {
-		_, err := ss.Reaction().Save(reaction)
-		require.NoError(t, err)
-	}
-
-	postIds := []string{postId, post2Id, post3Id}
-	returned, err := ss.Reaction().BulkGetForPosts(postIds)
-	require.NoError(t, err)
-	require.Len(t, returned, 5, "should've returned 5 reactions")
-
-	post4IdFound := false
-	for _, reaction := range returned {
-		if reaction.PostId == post4Id {
-			post4IdFound = true
-			break
-		}
-	}
-
-	require.False(t, post4IdFound, "Wrong reaction returned")
 }
 
 // testReactionDeadlock is a best-case attempt to recreate the deadlock scenario.

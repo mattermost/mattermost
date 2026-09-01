@@ -163,7 +163,7 @@ func (a *App) CreateOrUpdateAccessControlPolicy(rctx request.CTX, policy *model.
 	// callers may intentionally set rules they don't match, mirroring the
 	// masking self-inclusion exemption below.
 	if policy.Type == model.AccessControlPolicyTypeTeam {
-		if session := rctx.Session(); session != nil && session.UserId != "" && !a.HasPermissionTo(session.UserId, model.PermissionManageSystem) {
+		if session := rctx.Session(); session != nil && session.UserId != "" && !a.HasPermissionTo(rctx, session.UserId, model.PermissionManageSystem) {
 			for _, rule := range policy.Rules {
 				if appErr := a.ValidateTeamAdminSelfInclusion(rctx, session.UserId, rule.Expression); appErr != nil {
 					return nil, appErr
@@ -212,7 +212,7 @@ func (a *App) CreateOrUpdateAccessControlPolicy(rctx request.CTX, policy *model.
 		// (e.g., creating a "Clearance == Top Secret" rule without holding that
 		// clearance themselves). Masking and write-path value validation still
 		// apply to system admins above.
-		if !a.HasPermissionTo(callerID, model.PermissionManageSystem) {
+		if !a.HasPermissionTo(rctx, callerID, model.PermissionManageSystem) {
 			if appErr := a.checkSelfInclusion(rctx, policy, callerID, mergedHidden); appErr != nil {
 				return nil, appErr
 			}
@@ -1784,13 +1784,13 @@ func (a *App) SearchAccessControlPolicies(rctx request.CTX, opts model.AccessCon
 	return policies, total, nil
 }
 
-func (a *App) GetAccessControlPolicyAttributes(rctx request.CTX, channelID string, action string) (map[string][]string, *model.AppError) {
+func (a *App) GetAccessControlPolicyAttributes(rctx request.CTX, resourceID string, action string) (map[string][]string, *model.AppError) {
 	acs := a.Srv().ch.AccessControl
 	if acs == nil {
 		return nil, model.NewAppError("GetChannelAccessControlAttributes", "app.pap.get_channel_access_control_attributes.app_error", nil, "Policy Administration Point is not initialized", http.StatusNotImplemented)
 	}
 
-	attributes, appErr := acs.GetPolicyRuleAttributes(rctx, channelID, action)
+	attributes, appErr := acs.GetPolicyRuleAttributes(rctx, resourceID, action)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -1808,14 +1808,34 @@ func (a *App) GetAccessControlPolicyAttributes(rctx request.CTX, channelID strin
 		return map[string][]string{}, nil
 	}
 
+	// Generate a map of native fields, since they do not reside in the Property Store.
+	nativeFieldsByName := make(map[string]*model.PropertyField)
+	for _, f := range model.NativeUserAttributeFields(cpaGroup.ID) {
+		nativeFieldsByName[f.Name] = f
+	}
+
 	for fieldName := range attributes {
 		// Read directly from the store so this security filter sees the raw
 		// access_mode, unaffected by property read hooks for the request caller.
 		field, fieldErr := a.Srv().Store().PropertyField().GetFieldByNameForObjectType(rctx, cpaGroup.ID, "", model.PropertyFieldObjectTypeUser, fieldName)
 		if fieldErr != nil {
-			delete(attributes, fieldName)
-			continue
+			// If the error is due to not being found, we won't skip to the next field just yet
+			// in case it is a native field
+			var nfErr *store.ErrNotFound
+			notFound := errors.As(fieldErr, &nfErr)
+			if !notFound {
+				delete(attributes, fieldName)
+				continue
+			}
+
+			//If property wasn't found, check if this is a Native Field.
+			field = nativeFieldsByName[fieldName]
+			if field == nil {
+				delete(attributes, fieldName)
+				continue
+			}
 		}
+
 		switch field.GetAccessMode() {
 		case model.PropertyAccessModeSourceOnly, model.PropertyAccessModeSharedOnly:
 			delete(attributes, fieldName)
@@ -2381,7 +2401,7 @@ type ValidateAccessControlPolicyPermissionOptions struct {
 
 func (a *App) ValidateAccessControlPolicyPermissionWithOptions(rctx request.CTX, userID, policyID string, opts ValidateAccessControlPolicyPermissionOptions) *model.AppError {
 	// System admins can manage any policy
-	if a.HasPermissionTo(userID, model.PermissionManageSystem) {
+	if a.HasPermissionTo(rctx, userID, model.PermissionManageSystem) {
 		return nil
 	}
 
@@ -2460,7 +2480,7 @@ func (a *App) isSystemPolicyAppliedToChannel(rctx request.CTX, policyID, channel
 // ValidateChannelAccessControlPolicyCreation validates if a user can create a channel-specific access control policy
 func (a *App) ValidateChannelAccessControlPolicyCreation(rctx request.CTX, userID string, policy *model.AccessControlPolicy) *model.AppError {
 	// System admins can create any type of policy
-	if a.HasPermissionTo(userID, model.PermissionManageSystem) {
+	if a.HasPermissionTo(rctx, userID, model.PermissionManageSystem) {
 		return nil
 	}
 
@@ -2614,7 +2634,7 @@ func (a *App) BuildAccessControlSubject(rctx request.CTX, userID string, roles s
 	// user.isbot / user.createat) for runtime PDP evaluation. a.GetUser is the
 	// cached user read and already resolves IsBot via the Bots join, so this is
 	// a single (usually cache-hit) lookup per subject build.
-	user, appErr := a.GetUser(userID)
+	user, appErr := a.GetUser(rctx, userID)
 	if appErr != nil {
 		// Fail closed: a native-attribute policy must not silently evaluate
 		// against zero-valued natives if the user read fails. The caller
