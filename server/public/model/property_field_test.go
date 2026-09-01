@@ -1220,6 +1220,31 @@ func TestPropertyFieldPatch_IsValid(t *testing.T) {
 	})
 }
 
+func TestPropertyFieldPatch_PermissionsDecode(t *testing.T) {
+	t.Run("absent permissions key leaves the field nil", func(t *testing.T) {
+		var patch PropertyFieldPatch
+		require.NoError(t, json.Unmarshal([]byte(`{"name":"test field"}`), &patch))
+		assert.Nil(t, patch.Permissions)
+	})
+
+	t.Run("empty permissions object gives a non-nil patch with all raw keys nil", func(t *testing.T) {
+		var patch PropertyFieldPatch
+		require.NoError(t, json.Unmarshal([]byte(`{"permissions":{}}`), &patch))
+		require.NotNil(t, patch.Permissions)
+		assert.Nil(t, patch.Permissions.Restrictions)
+		assert.Nil(t, patch.Permissions.Grants)
+		assert.Nil(t, patch.Permissions.Masking)
+	})
+
+	t.Run("permissions with an explicit null masking key clears it", func(t *testing.T) {
+		var patch PropertyFieldPatch
+		require.NoError(t, json.Unmarshal([]byte(`{"permissions":{"masking":null}}`), &patch))
+		require.NotNil(t, patch.Permissions)
+		require.NotNil(t, patch.Permissions.Masking)
+		assert.Equal(t, "null", string(patch.Permissions.Masking))
+	})
+}
+
 func TestPropertyField_Patch(t *testing.T) {
 	t.Run("replace mode patches all fields", func(t *testing.T) {
 		pf := &PropertyField{

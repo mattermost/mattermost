@@ -549,6 +549,7 @@ type PropertyFieldPatch struct {
 	TargetID      *string            `json:"target_id"`
 	TargetType    *string            `json:"target_type"`
 	LinkedFieldID *string            `json:"linked_field_id,omitempty"`
+	Permissions   *PermissionsPatch  `json:"permissions,omitempty"`
 }
 
 func (pfp *PropertyFieldPatch) Auditable() map[string]any {
@@ -559,6 +560,7 @@ func (pfp *PropertyFieldPatch) Auditable() map[string]any {
 		"target_id":       pfp.TargetID,
 		"target_type":     pfp.TargetType,
 		"linked_field_id": pfp.LinkedFieldID,
+		"permissions":     pfp.Permissions,
 	}
 }
 
