@@ -668,14 +668,6 @@
     "translation": "{{.User}} adăugat la {{.Channel}} canal."
   },
   {
-    "id": "api.command_invite.user_already_in_channel.app_error",
-    "translation": {
-      "few": "",
-      "one": "{{.User}} este deja în canal.",
-      "other": ""
-    }
-  },
-  {
     "id": "api.command_invite_people.permission.app_error",
     "translation": "Nu aveți permisiunea de a invita noi utilizatori pe acest server."
   },

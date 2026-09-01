@@ -5273,13 +5273,6 @@
     "translation": "Нямате права да каните нови потребители в този сървър."
   },
   {
-    "id": "api.command_invite.user_already_in_channel.app_error",
-    "translation": {
-      "one": "{{.User}} е вече в канала.",
-      "other": ""
-    }
-  },
-  {
     "id": "api.command_invite.success",
     "translation": "{{.User}} е добавен в канала {{.Channel}}."
   },
