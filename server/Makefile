@@ -351,6 +351,11 @@ i18n-extract: ## Extract strings for translation from the source code
 	cd ../tools/mmgotool && $(GO) install .
 	$(GOBIN)/mmgotool i18n extract --portal-dir=""
 
+.PHONY: i18n-verify
+i18n-verify: ## Verify the non-English translation files against en.json
+	cd ../tools/mmgotool && $(GO) install .
+	$(GOBIN)/mmgotool i18n verify
+
 .PHONY: i18n-check
 i18n-check: ## Exit on empty translation strings and translation source strings
 	cd ../tools/mmgotool && $(GO) install .

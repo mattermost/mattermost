@@ -1157,10 +1157,6 @@
     "translation": "Lisansta yalnızca {{.Users}} kullanıcı destekleniyor. Ancak sisteminizde {{.Count}} tekil kullanıcı var. Tekil kullanıcı sayısı farklı e-posta adreslerine göre belirlenir. Toplam kullanıcı sayısını Site raporları -> İstatistikleri görüntüle bölümünden görebilirsiniz."
   },
   {
-    "id": "api.license.client.old_format.app_error",
-    "translation": "Yeni istemci lisansı biçimi henüz desteklenmiyor. Lütfen sorgu dizgesini format=old olarak yazın."
-  },
-  {
     "id": "api.marshal_error",
     "translation": "Sıraya alınamadı."
   },
@@ -1479,78 +1475,6 @@
     "translation": "Sunucu başlatılırken sorun çıktı. Hata: %v"
   },
   {
-    "id": "api.slackimport.slack_add_bot_user.unable_import",
-    "translation": "{{.Username}} Bütünleştirme/Slack Bot kullanıcısı içe aktarılamadı.\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_channels.added",
-    "translation": "\nEklenen kanallar:\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_channels.failed_to_add_user",
-    "translation": "{{.Username}} Slack kullanıcısı kanala eklenemedi.\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_channels.import_failed",
-    "translation": "{{.DisplayName}} Slack kanalı içe aktarılamadı.\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_channels.merge",
-    "translation": "{{.DisplayName}} Slack kanalı zaten etkin bir Mattermost kanalı olarak var. İki kanal birleştirilecek.\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_users.created",
-    "translation": "\nEklenen kullanıcılar:\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_users.merge_existing",
-    "translation": "E-posta adresi {{.Email}} olan Slack kullanıcısı aynı e-posta adresini kullanan {{.Username}} Mattermost kullanıcısı ile birleştirildi.\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_users.merge_existing_failed",
-    "translation": "E-posta adresi {{.Email}} olan Slack kullanıcısı aynı e-posta adresini kullanan {{.Username}} Mattermost kullanıcısı birleştirildi ancak kullanıcı ilgili takıma eklenemedi.\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_users.missing_email_address",
-    "translation": "Dışa aktarılmış Slack verileri içinde {{.Username}} kullanıcısının e-posta adresi yok. Yerine {{.Email}} kullanılıyor. Kullanıcının sistemde oturum açtıktan sonra e-posta adresini güncellemesi gerekir.\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_users.unable_import",
-    "translation": "{{.Username}} Slack kullanıcısı içe aktarılamadı.\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.log",
-    "translation": "Mattermost Slack içe aktarma günlüğü\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.note1",
-    "translation": "- Bu içe aktarıcı tarafından desteklenmediğinden bazı iletiler içe aktarılamayabilir.\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.note2",
-    "translation": "- Slack bot iletileri şu anda desteklenmiyor.\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.note3",
-    "translation": "- Sunucu günlüklerinde ek hata iletileri bulunabilir.\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.notes",
-    "translation": "\nNotlar:\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.open.app_error",
-    "translation": "Dosya açılamadı: {{.Filename}}.\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.team_fail",
-    "translation": "İçe aktarılacak takımın bilgileri alınamadı.\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.zip.app_error",
-    "translation": "Slack dışa aktarma zip dosyası açılamadı.\n"
-  },
-  {
     "id": "api.status.user_not_found.app_error",
     "translation": "Kullanıcı bulunamadı."
   },
@@ -1573,34 +1497,6 @@
   {
     "id": "api.team.get_team_icon.read_file.app_error",
     "translation": "Takım simgesi dosyası okunamadı."
-  },
-  {
-    "id": "api.team.import_team.array.app_error",
-    "translation": "İstekte 'file' altındaki dizi boş."
-  },
-  {
-    "id": "api.team.import_team.integer.app_error",
-    "translation": "Dosya boyutu değeri tam sayı olmalıdır."
-  },
-  {
-    "id": "api.team.import_team.no_file.app_error",
-    "translation": "İstekte 'file' altında bir dosya yok."
-  },
-  {
-    "id": "api.team.import_team.no_import_from.app_error",
-    "translation": "İstek biçimi bozuk: İçe aktarılacak konum alanı bulunamadı."
-  },
-  {
-    "id": "api.team.import_team.open.app_error",
-    "translation": "Dosya açılamadı."
-  },
-  {
-    "id": "api.team.import_team.parse.app_error",
-    "translation": "Çok parçalı form işlenemedi."
-  },
-  {
-    "id": "api.team.import_team.unavailable.app_error",
-    "translation": "İstek biçimi bozuk: Dosya boyutu alanı bulunamadı."
   },
   {
     "id": "api.team.invite_members.disabled.app_error",
@@ -3531,14 +3427,6 @@
     "translation": "Alt etki alanlarında tanımlama bilgilerine izin verilmesi için site adresi ayarlanmış olmalıdır."
   },
   {
-    "id": "model.config.is_valid.atmos_camo_image_proxy_options.app_error",
-    "translation": "Atmos/camo için RemoteImageProxyOptions değeri geçersiz. Paylaşılmış anahtarınıza ayarlanmış olmalıdır."
-  },
-  {
-    "id": "model.config.is_valid.atmos_camo_image_proxy_url.app_error",
-    "translation": "Atmos/camo için RemoteImageProxyURL değeri geçersiz. Paylaşılmış anahtarınıza ayarlanmış olmalıdır."
-  },
-  {
     "id": "model.config.is_valid.cluster_email_batching.app_error",
     "translation": "Küme özelliği kapalıyken toplu e-posta özelliği açılamaz."
   },
@@ -3597,10 +3485,6 @@
   {
     "id": "model.config.is_valid.email_security.app_error",
     "translation": "Bağlantı güvenliği e-posta ayarı geçersiz. '', 'TLS' ya da 'STARTTLS' olmalıdır."
-  },
-  {
-    "id": "model.config.is_valid.encrypt_sql.app_error",
-    "translation": "REST şifreleme anahtarı SQL ayarı geçersiz. En az 32 karakter uzunluğunda olmalıdır."
   },
   {
     "id": "model.config.is_valid.file_driver.app_error",
@@ -4915,10 +4799,6 @@
     "translation": "Anında bildirim onay iletisi hazırlanırken bir sorun çıktı."
   },
   {
-    "id": "api.slackimport.slack_import.zip.file_too_large",
-    "translation": "Zip arşivindeki {{.Filename}} Slack içine aktarılmak için çok büyük\n"
-  },
-  {
     "id": "api.system.id_loaded.not_available.app_error",
     "translation": "Kod ile yüklenen anında bildirimler yapılandırılmamış ya da bu sunucu üzerinde desteklenmiyor."
   },
@@ -5299,10 +5179,6 @@
     "translation": "Tüm kanalları listeleme izniniz yok"
   },
   {
-    "id": "api.team.import_team.unknown_import_from.app_error",
-    "translation": "İçe aktarma kaynağı bilinmiyor."
-  },
-  {
     "id": "api.team.invalidate_all_email_invites.app_error",
     "translation": "E-posta davetleri geçersiz kılınırken sorun çıktı."
   },
@@ -5593,10 +5469,6 @@
   {
     "id": "app.reaction.delete_all_with_emoji_name.get_reactions.app_error",
     "translation": "Bu görsel ifade adının tüm tepkileri alınamadı."
-  },
-  {
-    "id": "app.reaction.bulk_get_for_post_ids.app_error",
-    "translation": "İletinin tepkileri alınamadı."
   },
   {
     "id": "api.license.request-trial.bad-request.terms-not-accepted",
@@ -8686,36 +8558,8 @@
     "translation": "Kanal üyesi güncellenemedi. Bildirim özellikleri boyutu sınırına ulaşıldı."
   },
   {
-    "id": "app.eport.generate_presigned_url.config.app_error",
-    "translation": "Bu işlemler için ayrılmış bir dışa aktarma depolama alanı kullanılmalıdır."
-  },
-  {
-    "id": "app.eport.generate_presigned_url.driver.app_error",
-    "translation": "Dışa aktarma depolama alanı sürücünüz önceden imzalanmış adreslerin oluşturulmasını desteklemiyor."
-  },
-  {
-    "id": "app.eport.generate_presigned_url.featureflag.app_error",
-    "translation": "Bu özellik bir özellik işareti ile kısıtlanmış."
-  },
-  {
-    "id": "app.eport.generate_presigned_url.fileexist.app_error",
-    "translation": "Dosyanın var olup olmadığı denetlenemedi."
-  },
-  {
-    "id": "app.eport.generate_presigned_url.link.app_error",
-    "translation": "Önceden imzalanmış adres oluşturulamadı."
-  },
-  {
-    "id": "app.eport.generate_presigned_url.notfound.app_error",
-    "translation": "Dışa aktarma dosyası bulunamadı."
-  },
-  {
     "id": "app.post_persistent_notification.delete_by_team.app_error",
     "translation": "Takıma göre kalıcı bildirimler silinemedi."
-  },
-  {
-    "id": "ent.elasticsearch.max_version.app_error",
-    "translation": "{{.Backend}} {{.Version}} sürümü, desteklenen {{.MaxVersion}} sürümünden daha yeni"
   },
   {
     "id": "model.channel_member.is_valid.channel_auto_follow_threads_value.app_error",
@@ -10596,10 +10440,6 @@
     "translation": "Kanal bildirimi rengi geçerli bir onaltılık renk değeri olmalıdır (#FF0000 veya #F00 gibi)"
   },
   {
-    "id": "model.config.is_valid.client_side_cert_enable.app_error",
-    "translation": "Sertifika temelli kimlik doğrulaması kaldırıldı. İlerlemek için lütfen ClientSideCertEnable özelliğini kapalı bırakın."
-  },
-  {
     "id": "model.config.is_valid.content_flagging.common_reviewers_not_set.app_error",
     "translation": "\"Tüm takımlar için aynı değerlendiriciler\" seçeneği açıldığında, ortak değerlendiriciler veya ek değerlendiriciler ayarlanmalıdır."
   },
@@ -10622,10 +10462,6 @@
   {
     "id": "model.config.is_valid.experimental_audit_settings.file_name_is_directory",
     "translation": "Dosya adı bir klasör olmamalıdır."
-  },
-  {
-    "id": "model.config.is_valid.experimental_view_archived_channels.app_error",
-    "translation": "Arşivlenmiş kanalların gizlenmesi artık desteklenmiyor. Bunun yerine bu kanalları özel yapın ve üyelerini kaldırın."
   },
   {
     "id": "model.config.is_valid.notification_settings.invalid_event",

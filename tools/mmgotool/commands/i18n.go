@@ -15,10 +15,13 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"regexp"
 	"sort"
 	"strconv"
 	"strings"
 
+	"github.com/mattermost/go-i18n/i18n/bundle"
+	"github.com/mattermost/go-i18n/i18n/language"
 	"github.com/spf13/cobra"
 )
 
@@ -64,6 +67,16 @@ var CheckEmptySrcCmd = &cobra.Command{
 	RunE:    checkEmptySrcCmdF,
 }
 
+var VerifyCmd = &cobra.Command{
+	Use:     "verify",
+	Short:   "Verify the non-English translation files against en.json",
+	Long:    "Checks every non-English file in i18n/ against i18n/en.json: it must load through the same go-i18n loader the server runs at startup, hold exactly the ids en.json holds, interpolate exactly the {{.Fields}} the source interpolates, and define exactly the CLDR plural categories its locale uses.",
+	Example: "  i18n verify",
+	// A verification failure is a normal outcome, not a usage error.
+	SilenceUsage: true,
+	RunE:         verifyCmdF,
+}
+
 var CleanEmptyCmd = &cobra.Command{
 	Use:     "clean-empty",
 	Short:   "Clean empty translations",
@@ -92,6 +105,9 @@ func init() {
 	CheckEmptySrcCmd.Flags().String("enterprise-dir", "../../enterprise", "Path to folder with the Mattermost enterprise source code")
 	CheckEmptySrcCmd.Flags().String("server-dir", "./", "Path to folder with the Mattermost server source code")
 
+	VerifyCmd.Flags().Bool("warn-missing-ids", false, "Report ids missing from a locale as warnings instead of errors")
+	VerifyCmd.Flags().String("server-dir", "./", "Path to folder with the Mattermost server source code")
+
 	CleanEmptyCmd.Flags().Bool("dry-run", false, "Run without applying changes")
 	CleanEmptyCmd.Flags().Bool("check", false, "Throw exit code on empty translation strings")
 	CleanEmptyCmd.Flags().String("portal-dir", "../customer-web-server", "Path to folder with the Mattermost Customer Portal source code")
@@ -103,6 +119,7 @@ func init() {
 		CheckCmd,
 		CheckEmptySrcCmd,
 		CleanEmptyCmd,
+		VerifyCmd,
 	)
 	RootCmd.AddCommand(I18nCmd)
 }
@@ -758,4 +775,255 @@ func JSONMarshal(t any) ([]byte, error) {
 	encoder.SetIndent("", "    ")
 	err := encoder.Encode(t)
 	return buffer.Bytes(), err
+}
+
+var templateTokenRe = regexp.MustCompile(`\{\{\s*\.([A-Za-z0-9_]+)\s*\}\}`)
+
+// pluralForms returns the category-to-string map of a pluralised translation,
+// and whether the translation is pluralised at all. A translation is either a
+// plain string or a map of plural category to string.
+func pluralForms(raw json.RawMessage) (map[string]string, bool) {
+	var plural map[string]string
+	if err := json.Unmarshal(raw, &plural); err != nil {
+		return nil, false
+	}
+
+	return plural, true
+}
+
+// templateTokens returns the {{.Field}} names a translation interpolates.
+func templateTokens(raw json.RawMessage) map[string]bool {
+	out := map[string]bool{}
+
+	var s string
+	if err := json.Unmarshal(raw, &s); err == nil {
+		for _, m := range templateTokenRe.FindAllStringSubmatch(s, -1) {
+			out[m[1]] = true
+		}
+		return out
+	}
+
+	if plural, ok := pluralForms(raw); ok {
+		for _, v := range plural {
+			for _, m := range templateTokenRe.FindAllStringSubmatch(v, -1) {
+				out[m[1]] = true
+			}
+		}
+	}
+
+	return out
+}
+
+func loadItems(filename string) (map[string]Item, error) {
+	raw, err := os.ReadFile(filename)
+	if err != nil {
+		return nil, err
+	}
+
+	var list []Item
+	if err = json.Unmarshal(raw, &list); err != nil {
+		return nil, err
+	}
+
+	items := make(map[string]Item, len(list))
+	for _, item := range list {
+		items[item.ID] = item
+	}
+
+	return items, nil
+}
+
+// pluralCategories returns the CLDR plural categories go-i18n uses for a
+// locale, or nil if it has no plural spec.
+func pluralCategories(locale string) map[language.Plural]bool {
+	spec := language.GetPluralSpec(locale)
+	if spec == nil {
+		return nil
+	}
+
+	categories := map[language.Plural]bool{}
+	for c := range spec.Plurals {
+		categories[c] = true
+	}
+
+	return categories
+}
+
+func verifyLocaleFile(filename string, en map[string]Item, warnMissingIDs bool) (problems, warnings []string) {
+	name := filepath.Base(filename)
+	locale := strings.TrimSuffix(name, ".json")
+
+	// The strongest check available: the loader the server actually runs at
+	// startup. It rejects invalid JSON, plural categories the locale does not
+	// have, and any translation that fails to parse as a text/template.
+	//
+	// A fresh bundle per file, rather than the package-global one, so that a
+	// locale cannot mask a defect in another and so the checks are order
+	// independent and safe to run in parallel.
+	if err := bundle.New().LoadTranslationFile(filename); err != nil {
+		return []string{fmt.Sprintf("%s: rejected by the runtime translation loader: %v", name, err)}, nil
+	}
+
+	items, err := loadItems(filename)
+	if err != nil {
+		return []string{fmt.Sprintf("%s: %v", name, err)}, nil
+	}
+
+	// Unreachable in practice, and kept as an invariant guard: the loader above
+	// derives the language with language.Parse, which only yields one when
+	// GetPluralSpec is non-nil for the same tag, so a file that loaded always
+	// has a spec here.
+	categories := pluralCategories(locale)
+	if categories == nil {
+		problems = append(problems, fmt.Sprintf("%s: no CLDR plural spec for locale %q", name, locale))
+	}
+
+	for id := range en {
+		if _, ok := items[id]; !ok {
+			msg := fmt.Sprintf("%s: %s: missing id", name, id)
+			if warnMissingIDs {
+				warnings = append(warnings, msg)
+			} else {
+				problems = append(problems, msg)
+			}
+		}
+	}
+
+	for id, item := range items {
+		source, ok := en[id]
+		if !ok {
+			problems = append(problems, fmt.Sprintf("%s: %s: extra id not in en.json", name, id))
+			continue
+		}
+
+		// An unknown token renders as "<no value>" to the user; a dropped
+		// one quietly loses the value it was meant to show.
+		sourceTokens := templateTokens(source.Translation)
+		itemTokens := templateTokens(item.Translation)
+		for token := range itemTokens {
+			if !sourceTokens[token] {
+				problems = append(problems, fmt.Sprintf("%s: %s: unknown template token {{.%s}} not present in source", name, id, token))
+			}
+		}
+		for token := range sourceTokens {
+			if !itemTokens[token] {
+				problems = append(problems, fmt.Sprintf("%s: %s: source template token {{.%s}} is missing from the translation", name, id, token))
+			}
+		}
+
+		_, sourceIsPlural := pluralForms(source.Translation)
+		plural, itemIsPlural := pluralForms(item.Translation)
+
+		// Collapsing a pluralised source to a single string still loads and
+		// still renders, it just silently stops pluralising -- the same defect
+		// check_icu.mjs rejects on the webapp side.
+		if sourceIsPlural && !itemIsPlural {
+			problems = append(problems, fmt.Sprintf("%s: %s: en.json pluralises this id but the translation is a single string, which silently stops pluralising", name, id))
+			continue
+		}
+
+		// The opposite direction is deliberately allowed, matching
+		// check_icu.mjs. Whether a count reaches go-i18n is a property of the
+		// call site, not of en.json's shape: the batched email title is a plain
+		// string in English and pluralised in six locales, and its call site in
+		// email_batching.go passes len(notifications)-1. A language that has to
+		// inflect where English does not is translating correctly. The residual
+		// risk is a call site that passes no count, where go-i18n resolves to
+		// language.Invalid, finds no template, and renders the raw id -- not
+		// something the catalogs can tell us, so it is not checked here.
+		if !itemIsPlural {
+			continue
+		}
+
+		// An empty form is worse than an absent translation. go-i18n builds no
+		// template for it, finds none at format time, and falls through to
+		// returning the translation id itself, so the user is shown something
+		// like "api.command_invite.user_already_in_channel.app_error". Deleting
+		// the entry instead lets the en fallback serve real English.
+		//
+		// Empty single-string translations render the same raw id, but they are
+		// not flagged here: several hundred already exist, and `i18n clean-empty`
+		// already removes exactly that shape. This is the one the existing tools
+		// cannot see, because countEmptyItems and removeEmptyTranslations both
+		// test the raw JSON for `""` and so skip every plural map.
+		for c, form := range plural {
+			if strings.TrimSpace(form) == "" {
+				problems = append(problems, fmt.Sprintf("%s: %s: plural category %q is empty, which renders the raw translation id; delete the entry to fall back to English", name, id, c))
+			}
+		}
+
+		if categories == nil {
+			continue
+		}
+
+		for c := range categories {
+			if _, ok := plural[string(c)]; !ok {
+				problems = append(problems, fmt.Sprintf("%s: %s: missing plural category %q required for this locale", name, id, c))
+			}
+		}
+		for c := range plural {
+			if !categories[language.Plural(c)] {
+				problems = append(problems, fmt.Sprintf("%s: %s: plural category %q is not used by this locale", name, id, c))
+			}
+		}
+	}
+
+	return problems, warnings
+}
+
+func verifyCmdF(command *cobra.Command, args []string) error {
+	warnMissingIDs, err := command.Flags().GetBool("warn-missing-ids")
+	if err != nil {
+		return errors.New("invalid warn-missing-ids parameter")
+	}
+	mattermostDir, err := command.Flags().GetString("server-dir")
+	if err != nil {
+		return errors.New("invalid server-dir parameter")
+	}
+
+	translationDir := path.Join(mattermostDir, "i18n")
+	en, err := loadItems(path.Join(translationDir, "en.json"))
+	if err != nil {
+		return err
+	}
+
+	dirEntries, err := os.ReadDir(translationDir)
+	if err != nil {
+		return err
+	}
+
+	var problems, warnings []string
+	checked := 0
+	for _, dirEntry := range dirEntries {
+		if dirEntry.IsDir() || filepath.Ext(dirEntry.Name()) != ".json" || dirEntry.Name() == "en.json" {
+			continue
+		}
+
+		checked++
+		fileProblems, fileWarnings := verifyLocaleFile(path.Join(translationDir, dirEntry.Name()), en, warnMissingIDs)
+		problems = append(problems, fileProblems...)
+		warnings = append(warnings, fileWarnings...)
+	}
+
+	// Map iteration order is random, so sort for a stable, diffable report.
+	sort.Strings(warnings)
+	sort.Strings(problems)
+
+	for _, w := range warnings {
+		fmt.Println(w)
+	}
+	if len(warnings) > 0 {
+		fmt.Printf("\n%d warning(s)\n", len(warnings))
+	}
+
+	for _, p := range problems {
+		fmt.Println(p)
+	}
+	if len(problems) > 0 {
+		return fmt.Errorf("%d error(s) across %d locale files", len(problems), checked)
+	}
+
+	fmt.Printf("OK: %d locale files checked against %s\n", checked, path.Join(translationDir, "en.json"))
+
+	return nil
 }

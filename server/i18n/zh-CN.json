@@ -1154,10 +1154,6 @@
     "translation": "该许可证仅支持 {{.Users}} 位用户，但您的系统有 {{.Count}} 位唯一用户。唯一用户按邮箱地址计算。您可以在站点报告 > 查看统计中查看总数。"
   },
   {
-    "id": "api.license.client.old_format.app_error",
-    "translation": "暂未支持客户端许可证的新格式。请在查询字符串中指定 format=old。"
-  },
-  {
     "id": "api.marshal_error",
     "translation": "编码失败。"
   },
@@ -1474,78 +1470,6 @@
     "translation": "启动服务出错, err:%v"
   },
   {
-    "id": "api.slackimport.slack_add_bot_user.unable_import",
-    "translation": "无法导入集成/Slack 机器人用户 {{.Username}}。\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_channels.added",
-    "translation": "\n频道已添加：\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_channels.failed_to_add_user",
-    "translation": "无法添加 Slack 用户 {{.Username}} 到频道。\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_channels.import_failed",
-    "translation": "无法导入 Slack 频道 {{.DisplayName}}。\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_channels.merge",
-    "translation": "Slack 频道 {{.DisplayName}} 已作为 Mattermost 频道存在。已合并两个频道。\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_users.created",
-    "translation": "\n已创建用户：\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_users.merge_existing",
-    "translation": "Slack 用户已与拥有邮箱地址 {{.Email}} 和用户名 {{.Username}} 的 Mattermost 用户合并。\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_users.merge_existing_failed",
-    "translation": "Slack 用户已与现有邮箱地址 {{.Email}}、用户名 {{.Username}} 的 Mattermost 用户合并，但无法将该用户添加到其团队。\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_users.missing_email_address",
-    "translation": "Slack 导出中的用户 {{.Username}} 没有邮箱地址。将暂时使用 {{.Email}} 代替。该用户登录系统后需要更新其邮箱地址。\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_users.unable_import",
-    "translation": "无法导入 Slack 用户：{{.Username}}。\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.log",
-    "translation": "Mattermost Slack 导入日志\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.note1",
-    "translation": "- 部分信息可能未导入，因为导入程序不支持这些信息。\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.note2",
-    "translation": "- 暂不支持 Slack 机器人消息。\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.note3",
-    "translation": "- 可在服务器日志中查看更多错误。\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.notes",
-    "translation": "\n备注：\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.open.app_error",
-    "translation": "无法打开文件：{{.Filename}}。\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.team_fail",
-    "translation": "导入时无法获取要导入的团队。\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.zip.app_error",
-    "translation": "无法打开 Slack 导出的 zip 文件。\n"
-  },
-  {
     "id": "api.status.user_not_found.app_error",
     "translation": "未找到用户。"
   },
@@ -1568,34 +1492,6 @@
   {
     "id": "api.team.get_team_icon.read_file.app_error",
     "translation": "无法读取团队图标文件。"
-  },
-  {
-    "id": "api.team.import_team.array.app_error",
-    "translation": "请求中的“file”为空数组。"
-  },
-  {
-    "id": "api.team.import_team.integer.app_error",
-    "translation": "文件大小不是个整数。"
-  },
-  {
-    "id": "api.team.import_team.no_file.app_error",
-    "translation": "请求中 ‘file’ 文件不存在。"
-  },
-  {
-    "id": "api.team.import_team.no_import_from.app_error",
-    "translation": "错误请求：缺少 importFrom 字段。"
-  },
-  {
-    "id": "api.team.import_team.open.app_error",
-    "translation": "无法打开文件。"
-  },
-  {
-    "id": "api.team.import_team.parse.app_error",
-    "translation": "无法解析混合表单。"
-  },
-  {
-    "id": "api.team.import_team.unavailable.app_error",
-    "translation": "错误请求：缺少 filesize 字段。"
   },
   {
     "id": "api.team.invite_members.disabled.app_error",
@@ -3526,14 +3422,6 @@
     "translation": "允许子域名 cookie 需要设置 SiteURL。"
   },
   {
-    "id": "model.config.is_valid.atmos_camo_image_proxy_options.app_error",
-    "translation": "atmos/camo 设置 RemoteImageProxyOptions 无效。必须设为您的共享密钥。"
-  },
-  {
-    "id": "model.config.is_valid.atmos_camo_image_proxy_url.app_error",
-    "translation": "atmos/camo 设置 RemoteImageProxyURL 无效。必须设为您的共享密钥。"
-  },
-  {
     "id": "model.config.is_valid.cluster_email_batching.app_error",
     "translation": "启用集群时无法启用批量邮件。"
   },
@@ -3592,10 +3480,6 @@
   {
     "id": "model.config.is_valid.email_security.app_error",
     "translation": "邮件设置中的连接安全性无效。必须为“”、“TLS”或“STARTTLS”。"
-  },
-  {
-    "id": "model.config.is_valid.encrypt_sql.app_error",
-    "translation": "SQL 加密秘钥设置无效。至少32位及以上字符。"
   },
   {
     "id": "model.config.is_valid.file_driver.app_error",
@@ -4910,16 +4794,8 @@
     "translation": "会话已超时：请登录以继续接收通知。系统管理员将 {{.siteName}} 的会话过期时间配置为 {{.hoursCount}} 小时。"
   },
   {
-    "id": "api.slackimport.slack_import.zip.file_too_large",
-    "translation": "zip 压缩包中的 {{.Filename}} 过大，无法进行 Slack 导入\n"
-  },
-  {
     "id": "api.team.add_members.user_denied",
     "translation": "此团队由组管理。此用户并不属于同步到此团队的组。"
-  },
-  {
-    "id": "api.team.import_team.unknown_import_from.app_error",
-    "translation": "位置导入来源。"
   },
   {
     "id": "api.user.login.guest_accounts.license.error",
@@ -5588,10 +5464,6 @@
   {
     "id": "app.reaction.delete_all_with_emoji_name.get_reactions.app_error",
     "translation": "无法使用提供的表情符获取表情回应。"
-  },
-  {
-    "id": "app.reaction.bulk_get_for_post_ids.app_error",
-    "translation": "无法获取消息的表情回应。"
   },
   {
     "id": "app.command.listteamcommands.internal_error",
@@ -8566,10 +8438,6 @@
     "translation": "获取团队时发生错误。"
   },
   {
-    "id": "ent.elasticsearch.max_version.app_error",
-    "translation": "{{.Backend}} 版本 {{.Version}} 高于最高支持版本 {{.MaxVersion}}"
-  },
-  {
     "id": "model.config.is_valid.persistent_notifications_recipients.app_error",
     "translation": "持久通知的最大收件人数无效。必须是正数。"
   },
@@ -8632,30 +8500,6 @@
   {
     "id": "app.channel.update_member.notify_props_limit_exceeded.app_error",
     "translation": "无法更新频道成员，通知属性大小超过限制。"
-  },
-  {
-    "id": "app.eport.generate_presigned_url.config.app_error",
-    "translation": "此操作需要使用专用的导出存储。"
-  },
-  {
-    "id": "app.eport.generate_presigned_url.driver.app_error",
-    "translation": "您的导出存储驱动程序不支持预签名 URL 生成。"
-  },
-  {
-    "id": "app.eport.generate_presigned_url.featureflag.app_error",
-    "translation": "此功能受功能标志限制。"
-  },
-  {
-    "id": "app.eport.generate_presigned_url.fileexist.app_error",
-    "translation": "无法检查文件是否存在。"
-  },
-  {
-    "id": "app.eport.generate_presigned_url.link.app_error",
-    "translation": "无法生成预签名 URL。"
-  },
-  {
-    "id": "app.eport.generate_presigned_url.notfound.app_error",
-    "translation": "未找到导出文件。"
   },
   {
     "id": "app.file_info.get.gif.app_error",
@@ -10610,14 +10454,6 @@
     "translation": "该父项已被导入。"
   },
   {
-    "id": "model.config.is_valid.client_side_cert_enable.app_error",
-    "translation": "基于证书的认证已被移除。请禁用 ClientSideCertEnable 以继续。"
-  },
-  {
-    "id": "model.config.is_valid.experimental_view_archived_channels.app_error",
-    "translation": "不再支持隐藏已归档的频道。请将这些频道设为私有并移除成员。"
-  },
-  {
     "id": "api.user.check_user_password.invalid_hash.app_error",
     "translation": "哈希密码的格式无效，无法解析。"
   },
@@ -12410,10 +12246,6 @@
     "translation": "{{.Backend}} 健康检查失败：无法完成检查。"
   },
   {
-    "id": "ent.elasticsearch.min_version.app_error",
-    "translation": "{{.Backend}} 版本 {{.Version}} 低于支持的最低版本 {{.MinVersion}}"
-  },
-  {
     "id": "ent.elasticsearch.update_posts_channel_type.error",
     "translation": "{{.Backend}} 更新消息中的频道类型失败"
   },
@@ -12440,10 +12272,6 @@
   {
     "id": "model.access_policy.is_valid.scope_id_without_scope.app_error",
     "translation": "未设置范围时不能设置范围 ID。"
-  },
-  {
-    "id": "model.config.is_valid.atmos_camo_image_proxy_options_length.app_error",
-    "translation": "atmos/camo 的 RemoteImageProxyOptions 无效：为满足 FIPS 合规要求，HMAC 密钥至少需要 {{.MinLength}} 字节。"
   },
   {
     "id": "model.config.is_valid.dcr_redirect_uri_allowlist.app_error",
@@ -12528,18 +12356,6 @@
   {
     "id": "web.error.unsupported_desktop_app.title",
     "translation": "需要更新"
-  },
-  {
-    "id": "api.slackimport.slack_add_bot_user.email",
-    "translation": "邮箱地址为 {{.Email}} 的集成/Slack 机器人用户已导入。\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_users.email",
-    "translation": "邮箱地址为 {{.Email}} 的 Slack 用户已导入。\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_users.send_reset_email_failed",
-    "translation": "无法向 {{.Username}}（{{.Email}}）发送密码重置邮件。\n"
   },
   {
     "id": "api.property.v2_group_not_found.app_error",
