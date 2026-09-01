@@ -415,7 +415,11 @@
     },
     {
       "from": "/collaborate/view-system-information",
-      "to": "/end-user-guide/collaborate/view-system-information"
+      "to": "/end-user-guide/view-system-information"
+    },
+    {
+      "from": "/end-user-guide/collaborate/view-system-information",
+      "to": "/end-user-guide/view-system-information"
     },
     {
       "from": "/administration/announcement-banner",

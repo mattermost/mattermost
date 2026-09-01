@@ -629,16 +629,15 @@ const ADMIN_MANAGE_HIDDEN = new Set([
 // End User Guide — Collaborate — manual grouping override.
 // ---------------------------------------------------------------------------
 //
-// Collaborate is a flat 49-file dump (Channels, Messaging, Calls, Teams, and
+// Collaborate is a flat 48-file dump (Channels, Messaging, Calls, Teams, and
 // Accessibility topics all interleaved alphabetically) — the section
 // End-user Guide > Collaborate feedback (Eric Sethna review, item 6) called
 // out as "overwhelming". This override groups it by topic, same pattern as
 // Administration Guide's Configure/Manage/Onboard/Scale (see #37591/#37630).
 //
-// `collaborate-within-channels` doubles as both the Channels group's landing
-// page and a regular grouped item — it already reads as a "Channels" hub
-// page in its own "Learn more" section, which the `channels` group's item
-// list below mirrors.
+// A `landing` page is the group's hub, so it isn't repeated as a child.
+// Item order is the reader's task sequence, not alphabetical — joining a
+// channel comes before creating one, archiving last.
 
 const COLLABORATE_GROUPS = {
   channels: {
@@ -647,54 +646,54 @@ const COLLABORATE_GROUPS = {
     items: [
       'channel-types',
       'browse-channels',
-      'create-channels',
       'join-leave-channels',
-      'navigate-between-channels',
+      'create-channels',
       'channel-naming-conventions',
       'channel-header-purpose',
       'rename-channels',
-      'archive-unarchive-channels',
+      'navigate-between-channels',
       'favorite-channels',
       'mark-channels-unread',
       'manage-channel-members',
       'manage-channel-bookmarks',
       'display-channel-banners',
-      'autotranslate-messages',
       'convert-public-channels',
       'convert-group-messages',
+      'archive-unarchive-channels',
     ],
   },
   messaging: {
-    label: 'Messaging & Threads',
+    label: 'Messages and threads',
+    landing: 'communicate-with-messages',
     items: [
       'send-messages',
-      'communicate-with-messages',
       'reply-to-messages',
       'organize-conversations',
       'format-messages',
-      'mark-messages-unread',
       'mention-people',
+      'react-with-emojis-gifs',
+      'share-files-in-messages',
+      'share-links',
       'message-priority',
-      'message-reminders',
       'schedule-messages',
+      'message-reminders',
+      'mark-messages-unread',
       'save-pin-messages',
-      'flag-messages',
       'forward-messages',
       'search-for-messages',
-      'share-links',
-      'share-files-in-messages',
-      'react-with-emojis-gifs',
+      'autotranslate-messages',
+      'flag-messages',
     ],
   },
   calls: {
-    label: 'Calls & Screen Sharing',
+    label: 'Calls and screen sharing',
+    landing: 'audio-and-screensharing',
     items: [
       'make-calls',
-      'audio-and-screensharing',
     ],
   },
   teamsAndRoles: {
-    label: 'Teams, Groups & Roles',
+    label: 'Teams, groups, and roles',
     items: [
       'learn-about-roles',
       'organize-using-teams',
@@ -703,20 +702,18 @@ const COLLABORATE_GROUPS = {
     ],
   },
   integrations: {
-    label: 'Integrations & Connected Apps',
+    label: 'Integrations and connected apps',
     items: [
       'extend-mattermost-with-integrations',
-      'agents-context-management',
       'collaborate-within-connected-microsoft-teams',
     ],
   },
   accessibility: {
-    label: 'Keyboard Shortcuts & Accessibility',
+    label: 'Keyboard shortcuts and accessibility',
     items: [
       'keyboard-shortcuts',
       'team-keyboard-shortcuts',
       'keyboard-accessibility',
-      'view-system-information',
     ],
   },
 };
@@ -733,7 +730,8 @@ const COLLABORATE_ORDER = [
   {group: 'accessibility'},
 ];
 
-// Files re-parented into groups — exclude from the orphan check.
+// Files re-parented into groups, or out of Collaborate entirely
+// (agents-context-management sits under AI Agents) — skip the orphan check.
 const COLLABORATE_HIDDEN = new Set([
   'channel-types', 'browse-channels', 'create-channels', 'join-leave-channels',
   'navigate-between-channels', 'channel-naming-conventions', 'channel-header-purpose',
@@ -752,7 +750,6 @@ const COLLABORATE_HIDDEN = new Set([
   'extend-mattermost-with-integrations', 'agents-context-management',
   'collaborate-within-connected-microsoft-teams',
   'keyboard-shortcuts', 'team-keyboard-shortcuts', 'keyboard-accessibility',
-  'view-system-information',
 ]);
 
 // ---------------------------------------------------------------------------
@@ -970,7 +967,90 @@ const ADMIN_ROOT_ORDER = [
   'Configure', 'Onboard users', 'Manage', 'Monitor and troubleshoot', 'Comply', 'Upgrade',
 ];
 
-const ENDUSER_ROOT_ORDER = ['Access', 'Collaborate', 'Workflow Automation', 'Project Management', 'AI Agents', 'Preferences'];
+// AI Agents above Project Management: Boards is in maintenance mode (see
+// administration-guide/configure/install-boards), Agents is not.
+const ENDUSER_ROOT_ORDER = [
+  'Access your workspace', 'Collaborate', 'Workflow Automation', 'AI Agents',
+  'Project Management', 'Preferences',
+];
+
+// ---------------------------------------------------------------------------
+// End User Guide — Access / Workflow Automation / Project Management /
+// Preferences ordering overrides.
+// ---------------------------------------------------------------------------
+//
+// Without these, the four sections fall through to the filesystem default
+// (`sidebar_position` if set, else alphabetical) and none of their pages set
+// `sidebar_position`. `order` entries are doc basenames relative to the
+// section's directory; an object is a nested group.
+
+const ENDUSER_SECTION_OVERRIDES = {
+  access: {
+    // access/ has no landing file for the auto-generated label to come from.
+    label: 'Access your workspace',
+    landing: 'access-your-workspace',
+    order: [
+      'install-desktop-app',
+      'install-ios-app',
+      'install-android-app',
+      'client-availability',
+      'log-out',
+    ],
+  },
+  'workflow-automation': {
+    order: [
+      'learn-about-playbooks',
+      'work-with-playbooks',
+      'work-with-runs',
+      'work-with-tasks',
+      'notifications-and-updates',
+      'metrics-and-goals',
+      'share-and-collaborate',
+      'interact-with-playbooks',
+    ],
+  },
+  'project-management': {
+    order: [
+      'navigate-boards',
+      'work-with-boards',
+      'work-with-cards',
+      'work-with-views',
+      'groups-filter-sort',
+      'calculations',
+      'share-and-collaborate',
+      'migrate-to-boards',
+      'boards-settings',
+    ],
+  },
+  preferences: {
+    order: [
+      'manage-your-profile',
+      'set-your-status-availability',
+      'manage-your-security-preferences',
+      {
+        label: 'Notifications',
+        landing: 'manage-your-notifications',
+        items: [
+          'manage-your-mentions-keywords-notifications',
+          'manage-your-thread-reply-notifications',
+          'manage-your-channel-specific-notifications',
+          'manage-your-desktop-notifications',
+          'manage-your-mobile-notifications',
+          'manage-your-web-notifications',
+          'troubleshoot-notifications',
+        ],
+      },
+      'customize-your-theme',
+      'manage-your-display-options',
+      'customize-your-channel-sidebar',
+      'manage-your-sidebar-options',
+      'manage-advanced-options',
+      'manage-your-plugin-preferences',
+      'customize-desktop-app-experience',
+      'connect-multiple-workspaces',
+    ],
+  },
+};
 
 // ---------------------------------------------------------------------------
 // Integrations Guide — manual grouping override.
@@ -1958,22 +2038,13 @@ function buildSecuritySidebar(autoCat) {
 }
 
 // ---------------------------------------------------------------------------
-// End User Guide — builder. Two independent overrides on top of the
-// otherwise filesystem-driven auto-generated sidebar:
-//   1. Nests the Agents plugin's usage-tips page under the existing "AI
-//      Agents" doc, the same way Configure nests Agents' admin-side pages
-//      (see ADMIN_CONFIGURE_GROUPS.agents above) — a narrow, targeted
-//      promotion rather than a full manual-grouping override.
-//   2. Regroups the "Collaborate" sub-category (49 files) into the topic
-//      groups defined in COLLABORATE_GROUPS above, the same
-//      manual-grouping-override pattern used for Administration Guide's
-//      Configure/Manage/Onboard/Scale sections.
+// End User Guide — builder.
 // ---------------------------------------------------------------------------
 
 // Finds the {type: 'doc', id: docId} leaf anywhere in `items` and replaces
 // it in place with a category that links to that same doc and nests
-// `children` (each a fully-qualified doc id) underneath it. Returns true if
-// the promotion was applied, so callers can warn when it wasn't.
+// `children` (each a doc id, or a {doc, label} pair) underneath it. Returns
+// true if the promotion was applied, so callers can warn when it wasn't.
 function promoteDocToCategory(items, docId, children) {
   for (let i = 0; i < items.length; i++) {
     const it = items[i];
@@ -1983,7 +2054,11 @@ function promoteDocToCategory(items, docId, children) {
         label: it.label,
         collapsed: true,
         link: {type: 'doc', id: docId},
-        items: children.map((childId) => ({type: 'doc', id: childId, label: docLabelById(childId)})),
+        items: children.map((child) => {
+          const id = typeof child === 'string' ? child : child.doc;
+          const label = (typeof child === 'string' ? null : child.label) || docLabelById(id);
+          return {type: 'doc', id, label};
+        }),
       };
       return true;
     }
@@ -1994,22 +2069,78 @@ function promoteDocToCategory(items, docId, children) {
   return false;
 }
 
+// Applies one ENDUSER_SECTION_OVERRIDES entry in place, so the section keeps
+// its position until orderRootCategories runs.
+function regroupEndUserSection(sectionCat, dirName, override) {
+  const leafLabels = collectLeafLabels(sectionCat);
+  const prefix = `end-user-guide/${dirName}/`;
+
+  function buildItem(spec) {
+    if (typeof spec === 'string') {
+      const id = prefix + spec;
+      return {type: 'doc', id, label: leafLabels[id] || humanize(spec)};
+    }
+    const cat = {type: 'category', label: spec.label, collapsed: true, items: spec.items.map(buildItem)};
+    if (spec.landing) cat.link = {type: 'doc', id: prefix + spec.landing};
+    return cat;
+  }
+
+  const items = override.order.map(buildItem);
+  if (override.label) sectionCat.label = override.label;
+  if (override.landing) sectionCat.link = {type: 'doc', id: prefix + override.landing};
+
+  const known = new Set();
+  (function walk(n) {
+    if (Array.isArray(n)) n.forEach(walk);
+    else if (n && typeof n === 'object') {
+      if (n.type === 'doc' && n.id) known.add(n.id);
+      if (n.link && n.link.id) known.add(n.link.id);
+      if (n.items) walk(n.items);
+    }
+  })([...items, sectionCat.link].filter(Boolean));
+  const orphans = Object.keys(leafLabels).filter((id) => !known.has(id));
+  if (orphans.length > 0) {
+    console.warn(`[sidebar] WARN: ${orphans.length} ${dirName} file(s) missing from ENDUSER_SECTION_OVERRIDES — falling through to the end of the section:`);
+    for (const id of orphans) console.warn(`  - ${id}`);
+    for (const id of orphans) items.push({type: 'doc', id, label: leafLabels[id]});
+  }
+
+  sectionCat.items = items;
+  return sectionCat;
+}
+
 function buildEndUserGuideSidebar(autoCat) {
-  const promoted = promoteDocToCategory(autoCat.items, 'end-user-guide/agents', ['agents/docs/usage_tips']);
+  // usage_tips' label is overridden here because agents/docs/ is staged from
+  // the plugin submodule and gitignored — its frontmatter title can't be
+  // corrected in this repo.
+  const promoted = promoteDocToCategory(autoCat.items, 'end-user-guide/agents', [
+    {doc: 'agents/docs/usage_tips', label: 'Agents usage tips and best practices'},
+    'end-user-guide/collaborate/agents-context-management',
+  ]);
   if (!promoted) {
-    console.warn('[sidebar] WARN: End User Guide "agents" doc not found — Agents usage-tips nesting was not applied.');
+    console.warn('[sidebar] WARN: End User Guide "agents" doc not found — Agents child pages were not nested.');
   }
 
   let foundCollaborate = false;
+  const foundSections = new Set();
   for (const it of autoCat.items) {
     if (it.type !== 'category') continue;
-    if (categoryDirName(it) === 'collaborate') {
+    const dirName = categoryDirName(it);
+    if (dirName === 'collaborate') {
       regroupCollaborate(it);
       foundCollaborate = true;
+    } else if (ENDUSER_SECTION_OVERRIDES[dirName]) {
+      regroupEndUserSection(it, dirName, ENDUSER_SECTION_OVERRIDES[dirName]);
+      foundSections.add(dirName);
     }
   }
   if (!foundCollaborate) {
     console.warn('[sidebar] WARN: End User Guide "Collaborate" sub-category not found — COLLABORATE_GROUPS override was not applied.');
+  }
+  for (const dirName of Object.keys(ENDUSER_SECTION_OVERRIDES)) {
+    if (!foundSections.has(dirName)) {
+      console.warn(`[sidebar] WARN: End User Guide "${dirName}" sub-category not found — its ordering override was not applied.`);
+    }
   }
 
   orderRootCategories(autoCat, ENDUSER_ROOT_ORDER, 'End User Guide');
