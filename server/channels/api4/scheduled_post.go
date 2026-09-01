@@ -45,7 +45,6 @@ func scheduledPostChecks(where string, c *Context, scheduledPost *model.Schedule
 		return
 	}
 
-
 	postPriorityCheckWithContext(where, c, scheduledPost.GetPriority(), scheduledPost.RootId)
 	if c.Err != nil {
 		return
