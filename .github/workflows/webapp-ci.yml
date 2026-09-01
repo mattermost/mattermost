@@ -37,6 +37,38 @@ jobs:
         run: |
           npm run check
 
+  check-lockfile:
+    permissions:
+      contents: read
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: webapp
+    steps:
+      - name: ci/checkout-repo
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+      - name: ci/setup-node
+        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
+        with:
+          node-version-file: ".nvmrc"
+      - name: ci/check-lockfile
+        run: |
+          # `npm ci` accepts a lockfile that npm 10 has stripped of its "peer"
+          # markers, so it can't catch this. Regenerating and diffing can.
+          npm install --package-lock-only --ignore-scripts --no-audit --no-fund
+
+          if ! git diff --quiet -- package-lock.json; then
+            echo "::error file=webapp/package-lock.json::package-lock.json is not what the pinned npm generates"
+            echo "Regenerate it using the Node version in .nvmrc:"
+            echo "    cd webapp && npm install"
+            echo
+            git --no-pager diff -- package-lock.json
+            exit 1
+          fi
+
   check-i18n:
     permissions:
       contents: read
