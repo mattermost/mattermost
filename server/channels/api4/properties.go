@@ -113,6 +113,16 @@ func createPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// A group not serving the v3 payload has no place for a permissions
+	// object in its shape, so accepting one would store something the
+	// caller was never shown. There is no existing field to hold field.write
+	// on yet, so a creator setting their own new field's permissions stays
+	// legal by design -- only the shape is checked here.
+	if field.Permissions != nil && !servesV3(c, group) {
+		c.Err = model.NewAppError("createPropertyField", "api.property_field.patch.permissions_not_supported.app_error", nil, "", http.StatusBadRequest)
+		return
+	}
+
 	// Pre-canonicalize system objects so the scope check below cannot be
 	// bypassed by submitting ObjectType=system with TargetType=channel. The
 	// App layer re-canonicalizes defensively for plugin/internal callers.
@@ -541,6 +551,24 @@ func patchPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 		maps.Copy(orig.Attrs, existingField.Attrs)
 	}
 	auditRec.AddEventPriorState(&orig)
+
+	// Permissions rides its own patch type (PermissionsPatch) rather than
+	// Patch's field-by-field copy, so it is applied here rather than inside
+	// Patch: absent leaves the stored object alone, null clears it, an
+	// object replaces it outright.
+	if patch.Permissions != nil {
+		if !servesV3(c, group) {
+			c.Err = model.NewAppError("patchPropertyField", "api.property_field.patch.permissions_not_supported.app_error", nil, "", http.StatusBadRequest)
+			return
+		}
+
+		updatedPermissions, err := patch.Permissions.ApplyTo(existingField.Permissions)
+		if err != nil {
+			c.Err = model.NewAppError("patchPropertyField", "api.property_field.patch.invalid_permissions.app_error", nil, err.Error(), http.StatusBadRequest)
+			return
+		}
+		existingField.Permissions = updatedPermissions
+	}
 
 	existingField.Patch(patch, true)
 	existingField.UpdatedBy = c.AppContext.Session().UserId
@@ -1020,8 +1048,11 @@ func addPropertyPermissionBasisMeta(auditRec *model.AuditRecord, basis app.Prope
 // isOptionsOnlyPatch checks if the patch only modifies the options attribute.
 // Returns true if the only change is to attrs.options.
 func isOptionsOnlyPatch(patch *model.PropertyFieldPatch) bool {
-	// If any field property (besides attrs) is being updated, it's not options-only
-	if patch.Name != nil || patch.Type != nil || patch.TargetID != nil || patch.TargetType != nil || patch.LinkedFieldID != nil {
+	// If any field property (besides attrs) is being updated, it's not options-only.
+	// Permissions counts too: a permissions-bearing patch must be gated on
+	// field.write, not the narrower option.write, since it can change who
+	// may read or write the field's own definition.
+	if patch.Name != nil || patch.Type != nil || patch.TargetID != nil || patch.TargetType != nil || patch.LinkedFieldID != nil || patch.Permissions != nil {
 		return false
 	}
 

@@ -3355,8 +3355,16 @@
     "translation": "Unable to change that many property field options. Only {{.Max}} options can be changed at once."
   },
   {
+    "id": "api.property_field.patch.invalid_permissions.app_error",
+    "translation": "The submitted permissions object is invalid."
+  },
+  {
     "id": "api.property_field.patch.legacy_field.app_error",
     "translation": "Cannot patch a v1 property field via this API."
+  },
+  {
+    "id": "api.property_field.patch.permissions_not_supported.app_error",
+    "translation": "This property group does not support submitting a permissions object."
   },
   {
     "id": "api.property_field.update.no_field_permission.app_error",

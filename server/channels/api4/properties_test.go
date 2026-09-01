@@ -568,6 +568,55 @@ func TestCreatePropertyField(t *testing.T) {
 		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
 	})
+
+	t.Run("create with permissions against a group not serving v3 is rejected", func(t *testing.T) {
+		field := &model.PropertyField{
+			Name:       model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{
+					Field: model.WriteOnly{Write: model.PermissionLevelMember},
+				},
+			},
+		}
+
+		_, resp, err := th.SystemAdminClient.CreatePropertyField(context.Background(), group.Name, "post", field)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("create with permissions against a v3 group with the flag on is stored, with no field.write to check", func(t *testing.T) {
+		v3Group, appErr := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_v3_create_permissions", Version: model.PropertyGroupVersionV3})
+		require.Nil(t, appErr)
+		require.NotNil(t, v3Group)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.PropertyFieldPermissionsV3 = true
+		})
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.PropertyFieldPermissionsV3 = false
+		})
+
+		field := &model.PropertyField{
+			Name:       model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{
+					// There is no existing field yet to hold field.write on, so a
+					// creator setting their own new field's permissions is legal
+					// regardless of what the restrictions say.
+					Field: model.WriteOnly{Write: model.PermissionLevelSysadmin},
+				},
+			},
+		}
+
+		created, resp, err := th.SystemAdminClient.CreatePropertyField(context.Background(), v3Group.Name, "post", field)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+		require.NotNil(t, created.Permissions)
+	})
 }
 
 func TestServePropertyFieldPermissionsPayload(t *testing.T) {
@@ -2658,6 +2707,135 @@ func TestPatchPropertyField(t *testing.T) {
 		require.Equal(t, "color", updatedField.Attrs["subtype"])
 		// The "options" key should be updated
 		require.NotNil(t, updatedField.Attrs["options"])
+	})
+
+	t.Run("submitted permissions is gated on field.write", func(t *testing.T) {
+		v3PermissionsGroup, appErr := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_v3_patch_field_permissions", Version: model.PropertyGroupVersionV3})
+		require.Nil(t, appErr)
+		require.NotNil(t, v3PermissionsGroup)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.PropertyFieldPermissionsV3 = true
+		})
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.PropertyFieldPermissionsV3 = false
+		})
+
+		newFieldWithPermissions := func(t *testing.T) *model.PropertyField {
+			t.Helper()
+			field := &model.PropertyField{
+				Name:       model.NewId(),
+				Type:       model.PropertyFieldTypeText,
+				GroupID:    v3PermissionsGroup.ID,
+				ObjectType: model.PropertyFieldObjectTypeUser,
+				TargetType: "system",
+				Permissions: &model.Permissions{
+					Restrictions: &model.Restrictions{
+						Field:  model.WriteOnly{Write: model.PermissionLevelSysadmin},
+						Value:  model.ReadWrite{Read: model.PermissionLevelMember, Write: model.PermissionLevelSysadmin},
+						Option: model.ReadWrite{Read: model.PermissionLevelMember, Write: model.PermissionLevelSysadmin},
+					},
+					Grants: []model.Grant{
+						{Identity: model.Identity{Type: model.PropertyOwnerTypeUser, ID: model.NewId()}, Allow: []string{model.PropertyActionValueWrite}},
+					},
+					Masking: &model.Masking{
+						Except: []model.Identity{{Type: model.PropertyOwnerTypeUser, ID: model.NewId()}},
+					},
+				},
+			}
+			created, appErr := th.App.CreatePropertyField(th.Context, field, false, "")
+			require.Nil(t, appErr)
+			require.NotNil(t, created.Permissions)
+			return created
+		}
+
+		newGrantsPatch := func(t *testing.T) *model.PermissionsPatch {
+			t.Helper()
+			grants, err := json.Marshal([]model.Grant{
+				{Identity: model.Identity{Type: model.PropertyOwnerTypeUser, ID: model.NewId()}, Allow: []string{model.PropertyActionValueRead}},
+			})
+			require.NoError(t, err)
+			return &model.PermissionsPatch{Grants: grants}
+		}
+
+		t.Run("member without field.write is refused and the field is unchanged", func(t *testing.T) {
+			createdField := newFieldWithPermissions(t)
+
+			th.LoginBasic(t)
+			patch := &model.PropertyFieldPatch{Permissions: newGrantsPatch(t)}
+			_, resp, err := th.Client.PatchPropertyField(context.Background(), v3PermissionsGroup.Name, model.PropertyFieldObjectTypeUser, createdField.ID, patch)
+			require.Error(t, err)
+			CheckForbiddenStatus(t, resp)
+
+			stored, appErr := th.App.GetPropertyField(th.Context, v3PermissionsGroup.ID, createdField.ID)
+			require.Nil(t, appErr)
+			require.Equal(t, createdField.Permissions, stored.Permissions)
+		})
+
+		t.Run("admin's submission is stored", func(t *testing.T) {
+			createdField := newFieldWithPermissions(t)
+
+			patch := &model.PropertyFieldPatch{Permissions: newGrantsPatch(t)}
+			updated, resp, err := th.SystemAdminClient.PatchPropertyField(context.Background(), v3PermissionsGroup.Name, model.PropertyFieldObjectTypeUser, createdField.ID, patch)
+			require.NoError(t, err)
+			CheckOKStatus(t, resp)
+			require.NotNil(t, updated.Permissions)
+			require.Len(t, updated.Permissions.Grants, 1)
+			require.Equal(t, []string{model.PropertyActionValueRead}, updated.Permissions.Grants[0].Allow)
+		})
+
+		t.Run("permissions absent leaves the stored object untouched", func(t *testing.T) {
+			createdField := newFieldWithPermissions(t)
+
+			newName := model.NewId()
+			patch := &model.PropertyFieldPatch{Name: &newName}
+			updated, resp, err := th.SystemAdminClient.PatchPropertyField(context.Background(), v3PermissionsGroup.Name, model.PropertyFieldObjectTypeUser, createdField.ID, patch)
+			require.NoError(t, err)
+			CheckOKStatus(t, resp)
+			require.Equal(t, newName, updated.Name)
+			require.Equal(t, createdField.Permissions, updated.Permissions)
+		})
+
+		t.Run("masking null clears masking and leaves restrictions and grants untouched", func(t *testing.T) {
+			createdField := newFieldWithPermissions(t)
+
+			patch := &model.PropertyFieldPatch{Permissions: &model.PermissionsPatch{Masking: json.RawMessage("null")}}
+			updated, resp, err := th.SystemAdminClient.PatchPropertyField(context.Background(), v3PermissionsGroup.Name, model.PropertyFieldObjectTypeUser, createdField.ID, patch)
+			require.NoError(t, err)
+			CheckOKStatus(t, resp)
+			require.Nil(t, updated.Permissions.Masking)
+			require.Equal(t, createdField.Permissions.Restrictions, updated.Permissions.Restrictions)
+			require.Equal(t, createdField.Permissions.Grants, updated.Permissions.Grants)
+		})
+
+		t.Run("a submitted filtered true is refused", func(t *testing.T) {
+			createdField := newFieldWithPermissions(t)
+
+			patch := &model.PropertyFieldPatch{Permissions: &model.PermissionsPatch{Filtered: true}}
+			_, resp, err := th.SystemAdminClient.PatchPropertyField(context.Background(), v3PermissionsGroup.Name, model.PropertyFieldObjectTypeUser, createdField.ID, patch)
+			require.Error(t, err)
+			CheckBadRequestStatus(t, resp)
+		})
+
+		t.Run("submission against a v2 group is rejected", func(t *testing.T) {
+			v2Field := &model.PropertyField{
+				Name:              model.NewId(),
+				Type:              model.PropertyFieldTypeText,
+				GroupID:           group.ID,
+				ObjectType:        "post",
+				TargetType:        "system",
+				PermissionField:   &memberLevel,
+				PermissionValues:  &memberLevel,
+				PermissionOptions: &memberLevel,
+			}
+			createdField, appErr := th.App.CreatePropertyField(th.Context, v2Field, false, "")
+			require.Nil(t, appErr)
+
+			patch := &model.PropertyFieldPatch{Permissions: newGrantsPatch(t)}
+			_, resp, err := th.SystemAdminClient.PatchPropertyField(context.Background(), group.Name, "post", createdField.ID, patch)
+			require.Error(t, err)
+			CheckBadRequestStatus(t, resp)
+		})
 	})
 
 	t.Run("v3 group with flag off falls back to v2 and returns 200", func(t *testing.T) {
