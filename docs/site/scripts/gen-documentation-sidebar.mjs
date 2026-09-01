@@ -39,7 +39,10 @@ const OUT = join(SITE_ROOT, 'sidebars', 'documentation.generated.json');
 // plus a `*_ROOT_ORDER`/`*_ORDER` array giving the top-level order (plain
 // strings for standalone docs, `{group: 'key'}` for a group from the map).
 // A `*_HIDDEN` set lists files that got re-parented into a group so the
-// orphan check below doesn't re-append them at the section root. A group's
+// orphan check below doesn't re-append them at the section root. (A page that
+// should not appear in the sidebar at all — an MDX snippet include — is not
+// listed here: it carries `unlisted: true` in its own frontmatter, which both
+// this generator and Docusaurus honour. See isHidden below.) A group's
 // `items` can itself contain nested `{label, items}` sub-groups (see e.g.
 // OVERVIEW_GROUPS.subscription's "Cloud" sub-group below) — that's what
 // gets you a 3rd level of TOC nesting (Guide > Group > Sub-group > page)
@@ -77,16 +80,6 @@ const TOP_LEVEL = [
 // The Overview directory is flat (~40 .mdx files at one level) for URL-
 // stability reasons — moving files into sub-directories would break the
 // redirect table. Mirrors the live docs.mattermost.com Overview structure.
-
-// Files in docs/product-overview/ that are MDX snippet/partial includes,
-// not standalone pages. Excluded from the auto-generated sidebar so they
-// don't appear as orphan entries. They remain importable from other MDX.
-const OVERVIEW_HIDDEN = new Set([
-  'common-esr-support',
-  'common-esr-support-upgrade',
-  'common-esr-support-rst',
-  'cloud-supported-integrations',
-]);
 
 const OVERVIEW_GROUPS = {
   // 'Subscription Overview' — paid subscription model: Self-Hosted, Cloud, Non-Profit.
@@ -273,12 +266,12 @@ const DEPLOYMENT_GROUPS = {
       ]},
       {label: 'High Availability and Clustering', items: [
         'scale/high-availability-cluster-based-deployment',
-        'scale/additional-ha-considerations',
         'scale/server-architecture',
       ]},
+      // additional-ha-considerations, estimated-storage-per-user-per-month and
+      // lifetime-storage are `unlisted: true` snippet includes rendered inside
+      // the scale-to-* pages, so they are not listed here.
       {label: 'Storage Sizing', items: [
-        'scale/estimated-storage-per-user-per-month',
-        'scale/lifetime-storage',
         'scale/backing-storage-benchmarks',
       ]},
       {label: 'Search Infrastructure', landing: 'scale/enterprise-search', items: [
@@ -403,17 +396,6 @@ const DEPLOYMENT_ROOT_ORDER = [
 // — keep it that way.
 const DEPLOYMENT_HIDDEN = new Set([]);
 
-// Files in docs/deployment-guide/ that are MDX snippet/partial includes, not
-// standalone pages — same treatment as OVERVIEW_HIDDEN above. This one is
-// imported by both elasticsearch-setup and opensearch-setup, so its content
-// already renders inside them; listing it in the sidebar as well showed the
-// same fragment three times. It keeps its own URL because
-// administration-guide/upgrade/admin-onboarding-tasks deep-links to its
-// "enterprise search limitations" anchor.
-const DEPLOYMENT_SNIPPETS = new Set([
-  'scale/common-configure-mattermost-for-enterprise-search',
-]);
-
 // ---------------------------------------------------------------------------
 // Administration Guide — Configure — manual grouping override.
 // ---------------------------------------------------------------------------
@@ -439,9 +421,10 @@ const ADMIN_CONFIGURE_GROUPS = {
       'compliance-configuration-settings',
       'reporting-configuration-settings',
       'user-management-configuration-settings',
+      // rate-limiting-configuration-settings and
+      // push-notification-server-configuration-settings are `unlisted: true`
+      // snippet includes rendered inside Environment configuration settings.
       'environment-configuration-settings',
-      'rate-limiting-configuration-settings',
-      'push-notification-server-configuration-settings',
       'experimental-configuration-settings',
       'deprecated-configuration-settings',
     ],
@@ -520,7 +503,6 @@ const ADMIN_CONFIGURE_HIDDEN = new Set([
   'integrations-configuration-settings', 'plugins-configuration-settings',
   'compliance-configuration-settings', 'reporting-configuration-settings',
   'user-management-configuration-settings', 'environment-configuration-settings',
-  'rate-limiting-configuration-settings', 'push-notification-server-configuration-settings',
   'experimental-configuration-settings', 'deprecated-configuration-settings',
   'bleve-search', 'enabling-chinese-japanese-korean-search',
   'smtp-email', 'email-templates',
@@ -813,19 +795,20 @@ const ADMIN_ONBOARD_GROUPS = {
     landing: 'corporate-directory-integration',
     items: [
       {
+        // sso-saml-before-you-begin, sso-saml-ldapsync and sso-saml-faq are
+        // `unlisted: true` snippet includes rendered inside each identity
+        // provider page below, so they are not listed separately. Matches the
+        // Sphinx sso-saml toctree.
         label: 'SAML Single Sign-On',
         landing: 'sso-saml',
         items: [
-          'sso-saml-before-you-begin',
           'sso-saml-adfs',
           'sso-saml-adfs-msws2016',
           'sso-saml-entraid',
           'sso-saml-keycloak',
-          'sso-saml-ldapsync',
           'sso-saml-okta',
           'sso-saml-onelogin',
           'sso-saml-technical',
-          'sso-saml-faq',
         ],
       },
       'sso-openidconnect',
@@ -887,14 +870,13 @@ const ADMIN_ONBOARD_ORDER = [
 ];
 
 // Files re-parented into groups — exclude from the orphan check. Every
-// Onboard file lives in a group (no standalone top-level docs), so this
-// covers all 34.
+// listed Onboard file lives in a group (no standalone top-level docs).
 const ADMIN_ONBOARD_HIDDEN = new Set([
-  'sso-saml', 'sso-saml-before-you-begin', 'sso-saml-adfs', 'sso-saml-adfs-msws2016',
-  'sso-saml-entraid', 'sso-saml-keycloak', 'sso-saml-ldapsync', 'sso-saml-okta',
-  'sso-saml-onelogin', 'sso-saml-technical', 'sso-saml-faq',
+  'sso-saml', 'sso-saml-adfs', 'sso-saml-adfs-msws2016',
+  'sso-saml-entraid', 'sso-saml-keycloak', 'sso-saml-okta',
+  'sso-saml-onelogin', 'sso-saml-technical',
   'sso-openidconnect', 'sso-google', 'sso-gitlab', 'sso-entraid',
-  'convert-oauth20-service-providers-to-openidconnect', 'common-converting-oauth-to-openidconnect',
+  'convert-oauth20-service-providers-to-openidconnect',
   'ad-ldap', 'ad-ldap-groups-synchronization', 'managing-team-channel-membership-using-ad-ldap-sync-groups',
   'multi-factor-authentication', 'certificate-based-authentication', 'ssl-client-certificate',
   'guest-accounts', 'delegated-granular-administration', 'advanced-permissions',
@@ -1082,8 +1064,12 @@ function readFm(filePath, key) {
   } catch { return null; }
 }
 
-function isDraft(filePath) {
-  return readFm(filePath, 'draft') === 'true';
+// Pages excluded from the sidebar by their own frontmatter: `draft: true`
+// (not ready) and `unlisted: true` (MDX snippet includes imported by another
+// page — Docusaurus already drops these from the sidebar, search, and sitemap
+// in production, so the generator must agree or dev and prod disagree).
+function isHidden(filePath) {
+  return readFm(filePath, 'draft') === 'true' || readFm(filePath, 'unlisted') === 'true';
 }
 
 function pathToDocId(relPath) { return relPath.replace(/\.(md|mdx)$/, ''); }
@@ -1107,7 +1093,7 @@ function buildCategory(absDir, docsRelDir) {
   const entries = readdirSync(absDir);
   const indexFile = findIndexFile(absDir);
   let categoryLink = null;
-  if (indexFile && !isDraft(join(absDir, indexFile))) {
+  if (indexFile && !isHidden(join(absDir, indexFile))) {
     categoryLink = {type: 'doc', id: pathToDocId(join(docsRelDir, indexFile))};
   }
 
@@ -1118,7 +1104,7 @@ function buildCategory(absDir, docsRelDir) {
     const abs = join(absDir, name);
     const st = statSync(abs);
     if (st.isDirectory()) subDirs.push(name);
-    else if (st.isFile() && /\.(md|mdx)$/.test(name) && !isDraft(abs)) leafDocs.push(name);
+    else if (st.isFile() && /\.(md|mdx)$/.test(name) && !isHidden(abs)) leafDocs.push(name);
   }
 
   function key(name, abs) {
@@ -1243,9 +1229,6 @@ function buildOverviewGroup(g, leafLabels) {
 
 function buildOverviewSidebar(autoCat) {
   const leafLabels = collectLeafLabels(autoCat);
-  // Drop hidden snippet-include partials from the label map up front.
-  for (const hidden of OVERVIEW_HIDDEN) delete leafLabels[`product-overview/${hidden}`];
-
   const items = OVERVIEW_ROOT_ORDER.map((spec) => buildOverviewItem(spec, leafLabels));
 
   // Surface any flat docs we didn't include in the manual order so a new
@@ -1342,11 +1325,6 @@ function buildDeploymentSidebar(autoCat) {
   }
 
   const leafLabels = collectLeafLabels(autoCat);
-
-  // Drop snippet-include partials before grouping so they neither render as
-  // sidebar entries nor trip the orphan check below.
-  for (const s of DEPLOYMENT_SNIPPETS) delete leafLabels[`deployment-guide/${s}`];
-
   const items = DEPLOYMENT_ROOT_ORDER.map((spec) => buildDeploymentItem(spec, leafLabels, autoCats));
 
   // Orphan detection: surface any leaf doc in the Deployment Guide that we
