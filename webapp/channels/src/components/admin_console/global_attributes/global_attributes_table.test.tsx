@@ -502,7 +502,7 @@ describe('GlobalAttributesTable', () => {
             });
         });
 
-        it('enables Edit and navigates to the edit page for a plugin-owned row (the edit page itself now handles the read-only rendering)', async () => {
+        it('enables View (not Edit) and navigates to the edit page for a plugin-owned row (the edit page itself now handles the read-only rendering)', async () => {
             getPropertyFields.mockResolvedValueOnce([makeField({
                 attrs: {source_plugin_id: 'com.example.plugin', protected: true},
             })]).mockResolvedValue([]);
@@ -516,11 +516,14 @@ describe('GlobalAttributesTable', () => {
 
             await userEvent.click(await screen.findByTestId('global-attribute-actions-field-1'));
 
-            const edit = screen.getAllByRole('menuitem').find((el) => el.textContent?.includes('Edit attribute'));
-            expect(edit).not.toHaveAttribute('aria-disabled', 'true');
-            expect(edit).not.toHaveTextContent('Coming soon');
+            const menuitems = screen.getAllByRole('menuitem');
+            expect(menuitems.find((el) => el.textContent?.includes('Edit attribute'))).toBeUndefined();
 
-            await userEvent.click(edit!);
+            const view = menuitems.find((el) => el.textContent?.includes('View attribute'));
+            expect(view).not.toHaveAttribute('aria-disabled', 'true');
+            expect(view).not.toHaveTextContent('Coming soon');
+
+            await userEvent.click(view!);
             await waitFor(() => {
                 expect(mockHistoryPush).toHaveBeenCalledWith('/admin_console/system_attributes/manage_attributes/attribute_details/field-1');
             });

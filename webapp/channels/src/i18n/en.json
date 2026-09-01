@@ -1553,6 +1553,7 @@
   "admin.global_attributes.table.actions.menu_label": "Select an action",
   "admin.global_attributes.table.actions.plugin_managed": "Plugin-managed",
   "admin.global_attributes.table.actions.tooltip": "More actions",
+  "admin.global_attributes.table.actions.view": "View attribute",
   "admin.global_attributes.table.applies_to": "Applies to",
   "admin.global_attributes.table.attribute": "Attribute",
   "admin.global_attributes.table.attribute.classification_subtitle": "Read-only",

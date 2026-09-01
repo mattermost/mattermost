@@ -11,7 +11,7 @@ import {useDispatch, useSelector} from 'react-redux';
 import {Link} from 'react-router-dom';
 
 import type {ClientError} from '@mattermost/client';
-import {ChevronDownCircleOutlineIcon, ContentCopyIcon, DotsHorizontalIcon, FormatListBulletedIcon, MenuVariantIcon, OpenInNewIcon, PencilOutlineIcon, PowerPlugOutlineIcon, SortAscendingIcon, SyncIcon, TrashCanOutlineIcon} from '@mattermost/compass-icons/components';
+import {ChevronDownCircleOutlineIcon, ContentCopyIcon, DotsHorizontalIcon, EyeOutlineIcon, FormatListBulletedIcon, MenuVariantIcon, OpenInNewIcon, PencilOutlineIcon, PowerPlugOutlineIcon, SortAscendingIcon, SyncIcon, TrashCanOutlineIcon} from '@mattermost/compass-icons/components';
 import type IconProps from '@mattermost/compass-icons/components/props';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {FieldType, PropertyField, PropertyFieldOption} from '@mattermost/types/properties';
@@ -291,9 +291,9 @@ function ActionsCell({field, isClassificationRow, isMobileView, pluginInventoryL
         >
             <Menu.Item
                 id={`${menuId}-edit`}
-                leadingElement={<PencilOutlineIcon size={18}/>}
+                leadingElement={isPluginOwned ? <EyeOutlineIcon size={18}/> : <PencilOutlineIcon size={18}/>}
                 onClick={() => getHistory().push(attributeDetailsRoute(field.id))}
-                labels={<FormattedMessage {...actionsLabels.edit}/>}
+                labels={<FormattedMessage {...(isPluginOwned ? actionsLabels.view : actionsLabels.edit)}/>}
             />
             <Menu.Item
                 id={`${menuId}-duplicate`}
@@ -621,6 +621,7 @@ export const actionsLabels = defineMessages({
     tooltip: {id: 'admin.global_attributes.table.actions.tooltip', defaultMessage: 'More actions'},
     menuLabel: {id: 'admin.global_attributes.table.actions.menu_label', defaultMessage: 'Select an action'},
     edit: {id: 'admin.global_attributes.table.actions.edit', defaultMessage: 'Edit attribute'},
+    view: {id: 'admin.global_attributes.table.actions.view', defaultMessage: 'View attribute'},
     duplicate: {id: 'admin.global_attributes.table.actions.duplicate', defaultMessage: 'Duplicate attribute'},
     delete: {id: 'admin.global_attributes.table.actions.delete', defaultMessage: 'Delete attribute'},
     comingSoon: {id: 'admin.global_attributes.table.actions.coming_soon', defaultMessage: 'Coming soon'},
