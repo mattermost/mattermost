@@ -4,7 +4,7 @@
 import {FloatingPortal} from '@floating-ui/react';
 import type {Placement} from '@floating-ui/react-dom';
 import {useFloating, offset as floatingOffset, autoUpdate} from '@floating-ui/react-dom';
-import React, {useLayoutEffect} from 'react';
+import React, {useLayoutEffect, useRef} from 'react';
 import {CSSTransition} from 'react-transition-group';
 import styled from 'styled-components';
 
@@ -75,6 +75,7 @@ export const TaskListPopover = ({
         })],
         whileElementsMounted: autoUpdate,
     });
+    const overlayRef = useRef<HTMLDivElement>(null);
 
     useLayoutEffect(() => {
         setReference(trigger);
@@ -94,9 +95,11 @@ export const TaskListPopover = ({
                 timeout={150}
                 classNames='fade'
                 in={isVisible}
+                nodeRef={overlayRef}
                 unmountOnExit={true}
             >
                 <Overlay
+                    ref={overlayRef}
                     onClick={onClick}
                     data-cy='onboarding-task-list-overlay'
                 />
