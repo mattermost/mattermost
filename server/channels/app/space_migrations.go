@@ -154,33 +154,23 @@ func (s *Server) doSpaceSchemesCreationMigration() error {
 		return fmt.Errorf("could not query migration: %w", err)
 	}
 
-	presets := []struct {
-		name        string
-		displayName string
-		userPerms   []*model.Permission
-	}{
-		{model.SchemeNameSpaceContribute, model.SchemeDisplayNameSpaceContribute, model.SpaceDefaultContributePermissions},
-		{model.SchemeNameSpaceComment, model.SchemeDisplayNameSpaceComment, model.SpaceDefaultCommentPermissions},
-		{model.SchemeNameSpaceReadOnly, model.SchemeDisplayNameSpaceReadOnly, model.SpaceDefaultReadOnlyPermissions},
-	}
-
-	for _, preset := range presets {
-		user := model.PermissionIDs(preset.userPerms)
+	for _, preset := range model.SpacePermissionPresets() {
+		user := model.PermissionIDs(preset.Permissions)
 		admin := model.PermissionIDs(model.SpaceAdminRolePermissions)
 		guest := model.PermissionIDs(model.SpaceDefaultReadOnlyPermissions)
 		_, err := s.Store().Scheme().SaveChannelSchemeWithRoles(&model.Scheme{
-			Name:        preset.name,
-			DisplayName: preset.displayName,
+			Name:        preset.SchemeName,
+			DisplayName: preset.DisplayName,
 			Scope:       model.SchemeScopeChannel,
 		}, user, admin, guest)
 		if err == nil {
 			continue
 		}
 
-		mlog.Warn("Couldn't save the space preset scheme, another node or an earlier migration run may have created it; re-reading on the primary", mlog.String("scheme_name", preset.name), mlog.Err(err))
-		scheme, readErr := s.Store().Scheme().GetByNameFromMaster(preset.name)
+		mlog.Warn("Couldn't save the space preset scheme, another node or an earlier migration run may have created it; re-reading on the primary", mlog.String("scheme_name", preset.SchemeName), mlog.Err(err))
+		scheme, readErr := s.Store().Scheme().GetByNameFromMaster(preset.SchemeName)
 		if readErr != nil {
-			return fmt.Errorf("failed to create space scheme %q: %w (re-read on the primary also failed: %v)", preset.name, err, readErr)
+			return fmt.Errorf("failed to create space scheme %q: %w (re-read on the primary also failed: %v)", preset.SchemeName, err, readErr)
 		}
 		if validateErr := s.validateAdoptableSpaceScheme(scheme, user, admin, guest); validateErr != nil {
 			return validateErr

@@ -175,6 +175,28 @@ func TestIsSpaceSchemeName(t *testing.T) {
 	assert.False(t, IsSpaceSchemeName(NewId()))
 }
 
+func TestSpacePermissionPresets(t *testing.T) {
+	presets := SpacePermissionPresets()
+	require.Len(t, presets, 3)
+
+	names := make([]string, 0, len(presets))
+	for _, preset := range presets {
+		names = append(names, preset.SchemeName)
+		assert.True(t, IsSpaceSchemeName(preset.SchemeName))
+		assert.NotEmpty(t, preset.DisplayName)
+		require.NotEmpty(t, preset.Permissions)
+		assert.Equal(t, PermissionReadPage.Id, preset.Permissions[0].Id)
+	}
+	assert.Equal(t, SpaceSchemeNames, names)
+
+	// Callers receive independent slices, not aliases of the canonical registry.
+	presets[0].SchemeName = "changed"
+	presets[0].Permissions[0] = PermissionCreatePost
+	again := SpacePermissionPresets()
+	assert.Equal(t, SchemeNameSpaceContribute, again[0].SchemeName)
+	assert.Equal(t, PermissionReadPage, again[0].Permissions[0])
+}
+
 // TestSpaceSlicesMatchCanonicalSet pins the hand-written preset baselines against
 // the canonical set. The capability slices are derived from it, so they need no
 // pinning; the admin slice is the whole set by construction.
@@ -226,7 +248,18 @@ func TestIsSpaceCapabilityRole(t *testing.T) {
 	for _, name := range SpaceCapabilityRoles {
 		_, ok := roles[name]
 		assert.True(t, ok, "MakeDefaultRoles must define %q", name)
+
+		permission, ok := SpaceCapabilityPermissionForRole(name)
+		require.True(t, ok, "role %q must have a canonical capability", name)
+		mappedRole, ok := SpaceCapabilityRoleForPermission(permission.Id)
+		require.True(t, ok, "permission %q must map back to a capability role", permission.Id)
+		assert.Equal(t, name, mappedRole)
 	}
+
+	_, ok := SpaceCapabilityPermissionForRole(ChannelUserRoleId)
+	assert.False(t, ok)
+	_, ok = SpaceCapabilityRoleForPermission(PermissionReadPage.Id)
+	assert.False(t, ok)
 }
 
 func TestPluginChannelSchemeName(t *testing.T) {

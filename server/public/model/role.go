@@ -62,11 +62,6 @@ func init() {
 		builtInRoleSet[id] = true
 	}
 
-	spaceCapabilityRoleSet = make(map[string]bool, len(SpaceCapabilityRoles))
-	for _, id := range SpaceCapabilityRoles {
-		spaceCapabilityRoleSet[id] = true
-	}
-
 	// When updating the values here, the values in mattermost-redux must also be updated.
 	SysconsoleAncillaryPermissions = map[string][]*Permission{
 		PermissionSysconsoleReadAboutEditionAndLicense.Id: {
@@ -929,14 +924,9 @@ func IsChannelScopedBuiltInRole(roleName string) bool {
 }
 
 // SpaceCapabilityRoles enumerates the space capability roles for the seeding
-// migration to iterate deterministically.
-var SpaceCapabilityRoles = []string{
-	SpacePageCreatorRoleId,
-	SpacePageCommenterRoleId,
-	SpacePageEditorRoleId,
-	SpacePageDeleterOwnRoleId,
-	SpacePageDeleterRoleId,
-}
+// migration to iterate deterministically. It is derived from the canonical
+// capability definitions in initializeSpacePermissions.
+var SpaceCapabilityRoles []string
 
 var spaceCapabilityRoleSet map[string]bool
 

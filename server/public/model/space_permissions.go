@@ -38,6 +38,24 @@ func IsSpaceChannelScopedPermissionID(id string) bool {
 // SpaceCapabilityRolePermissions maps each space capability role to what it
 // grants. A capability role is self-contained: read_page plus its one capability.
 var SpaceCapabilityRolePermissions map[string][]*Permission
+var spaceCapabilityRoleByPermissionID map[string]string
+var spaceCapabilityPermissionByRole map[string]*Permission
+
+// SpaceCapabilityRoleForPermission returns the capability role that grants the
+// given page permission. The lookup reads the private canonical registry rather
+// than the exported compatibility map.
+func SpaceCapabilityRoleForPermission(permissionID string) (string, bool) {
+	role, ok := spaceCapabilityRoleByPermissionID[permissionID]
+	return role, ok
+}
+
+// SpaceCapabilityPermissionForRole returns the page permission granted beyond
+// read_page by a capability role. The lookup reads the private canonical registry
+// rather than the exported compatibility map.
+func SpaceCapabilityPermissionForRole(role string) (*Permission, bool) {
+	permission, ok := spaceCapabilityPermissionByRole[role]
+	return permission, ok
+}
 
 // spaceCapabilityRolePermissions builds the grant of a single capability role.
 func spaceCapabilityRolePermissions(capability *Permission) []*Permission {
@@ -52,6 +70,27 @@ var SpaceAdminRolePermissions []*Permission
 var SpaceDefaultContributePermissions []*Permission
 var SpaceDefaultCommentPermissions []*Permission
 var SpaceDefaultReadOnlyPermissions []*Permission
+
+// SpacePermissionPreset is the canonical definition of a seeded space scheme.
+type SpacePermissionPreset struct {
+	SchemeName  string
+	DisplayName string
+	Permissions []*Permission
+}
+
+var spacePermissionPresets []SpacePermissionPreset
+
+// SpacePermissionPresets returns the seeded space preset definitions. The
+// returned outer and permission slices are copies; the Permission values are the
+// package's canonical read-only definitions.
+func SpacePermissionPresets() []SpacePermissionPreset {
+	presets := make([]SpacePermissionPreset, len(spacePermissionPresets))
+	for i, preset := range spacePermissionPresets {
+		presets[i] = preset
+		presets[i].Permissions = slices.Clone(preset.Permissions)
+	}
+	return presets
+}
 
 func initializeSpacePermissions() {
 	PermissionCreatePage = &Permission{
@@ -142,13 +181,29 @@ func initializeSpacePermissions() {
 		spaceChannelScopedPermissionIDs[p.Id] = true
 	}
 
-	SpaceCapabilityRolePermissions = map[string][]*Permission{
-		SpacePageCreatorRoleId:    spaceCapabilityRolePermissions(PermissionCreatePage),
-		SpacePageCommenterRoleId:  spaceCapabilityRolePermissions(PermissionCommentPage),
-		SpacePageEditorRoleId:     spaceCapabilityRolePermissions(PermissionEditPage),
-		SpacePageDeleterOwnRoleId: spaceCapabilityRolePermissions(PermissionDeleteOwnPage),
-		SpacePageDeleterRoleId:    spaceCapabilityRolePermissions(PermissionDeletePage),
+	capabilityDefinitions := []struct {
+		role       string
+		permission *Permission
+	}{
+		{SpacePageCreatorRoleId, PermissionCreatePage},
+		{SpacePageCommenterRoleId, PermissionCommentPage},
+		{SpacePageEditorRoleId, PermissionEditPage},
+		{SpacePageDeleterOwnRoleId, PermissionDeleteOwnPage},
+		{SpacePageDeleterRoleId, PermissionDeletePage},
 	}
+	SpaceCapabilityRoles = make([]string, 0, len(capabilityDefinitions))
+	spaceCapabilityRoleSet = make(map[string]bool, len(capabilityDefinitions))
+	SpaceCapabilityRolePermissions = make(map[string][]*Permission, len(capabilityDefinitions))
+	spaceCapabilityRoleByPermissionID = make(map[string]string, len(capabilityDefinitions))
+	spaceCapabilityPermissionByRole = make(map[string]*Permission, len(capabilityDefinitions))
+	for _, definition := range capabilityDefinitions {
+		SpaceCapabilityRoles = append(SpaceCapabilityRoles, definition.role)
+		spaceCapabilityRoleSet[definition.role] = true
+		SpaceCapabilityRolePermissions[definition.role] = spaceCapabilityRolePermissions(definition.permission)
+		spaceCapabilityRoleByPermissionID[definition.permission.Id] = definition.role
+		spaceCapabilityPermissionByRole[definition.role] = definition.permission
+	}
+
 	SpaceAdminRolePermissions = slices.Clone(SpaceChannelScopedPermissions)
 	SpaceDefaultContributePermissions = []*Permission{
 		PermissionReadPage,
@@ -163,5 +218,17 @@ func initializeSpacePermissions() {
 	}
 	SpaceDefaultReadOnlyPermissions = []*Permission{
 		PermissionReadPage,
+	}
+
+	spacePermissionPresets = []SpacePermissionPreset{
+		{SchemeNameSpaceContribute, SchemeDisplayNameSpaceContribute, slices.Clone(SpaceDefaultContributePermissions)},
+		{SchemeNameSpaceComment, SchemeDisplayNameSpaceComment, slices.Clone(SpaceDefaultCommentPermissions)},
+		{SchemeNameSpaceReadOnly, SchemeDisplayNameSpaceReadOnly, slices.Clone(SpaceDefaultReadOnlyPermissions)},
+	}
+	SpaceSchemeNames = make([]string, 0, len(spacePermissionPresets))
+	spaceSchemeNameSet = make(map[string]bool, len(spacePermissionPresets))
+	for _, preset := range spacePermissionPresets {
+		SpaceSchemeNames = append(SpaceSchemeNames, preset.SchemeName)
+		spaceSchemeNameSet[preset.SchemeName] = true
 	}
 }

@@ -328,8 +328,9 @@ func (a *App) HasPermissionToTeam(rctx request.CTX, askingUserId string, teamID 
 // whole audience does not cost one lookup per user. Input order is kept and a repeated id
 // is returned once.
 //
-// The membership read is primary-backed, as HasPermissionToTeam's is. A replica that has
-// yet to see a membership end would keep counting a user every per-request gate already denies.
+// Both the membership and account-liveness reads are primary-backed, and the latter bypasses
+// the profile cache. Stale membership or account state could otherwise keep counting a user
+// every per-request gate already denies.
 func (a *App) FilterUsersWithTeamPermission(rctx request.CTX, teamID string, userIDs []string, permission *model.Permission) ([]string, *model.AppError) {
 	granted := make([]string, 0, len(userIDs))
 	if teamID == "" || len(userIDs) == 0 {
@@ -367,9 +368,18 @@ func (a *App) FilterUsersWithTeamPermission(rctx request.CTX, teamID string, use
 
 	// Every unique id is loaded, not only remaining: a deactivated team member is granted
 	// by the membership walk above and would otherwise skip the user read entirely.
-	users, err := a.GetUsersByIds(rctx, ordered, &store.UserGetByIdsOpts{})
+	// Account liveness is part of this authority answer, so use the same primary-backed
+	// snapshot as the membership read above and bypass the profile cache. A cached or
+	// replica-backed profile can still report an account as active immediately after it is
+	// deactivated, which would keep counting it as reachable.
+	users, err := a.Srv().Store().User().GetProfileByIds(
+		RequestContextWithMaster(rctx),
+		ordered,
+		&store.UserGetByIdsOpts{},
+		false,
+	)
 	if err != nil {
-		return nil, err
+		return nil, model.NewAppError("FilterUsersWithTeamPermission", "app.user.get_profiles.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	active := make(map[string]*model.User, len(users))
 	for _, user := range users {

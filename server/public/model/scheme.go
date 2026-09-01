@@ -35,23 +35,13 @@ const (
 	SchemeDisplayNameSpaceReadOnly   = "Space Read-Only Scheme"
 )
 
-// SpaceSchemeNames lists the seeded space preset scheme names. It is the
-// enumeration source; membership tests go through IsSpaceSchemeName, which reads a
-// set frozen at init so mutating this slice cannot widen what the guards accept.
-var SpaceSchemeNames = []string{
-	SchemeNameSpaceContribute,
-	SchemeNameSpaceComment,
-	SchemeNameSpaceReadOnly,
-}
+// SpaceSchemeNames lists the seeded space preset scheme names. It is derived from
+// the canonical preset definitions in initializeSpacePermissions; membership
+// tests go through IsSpaceSchemeName, which reads a private set so mutating this
+// slice cannot widen what the guards accept.
+var SpaceSchemeNames []string
 
 var spaceSchemeNameSet map[string]bool
-
-func init() {
-	spaceSchemeNameSet = make(map[string]bool, len(SpaceSchemeNames))
-	for _, name := range SpaceSchemeNames {
-		spaceSchemeNameSet[name] = true
-	}
-}
 
 // IsSpaceSchemeName reports whether name is reserved for a seeded space preset.
 func IsSpaceSchemeName(name string) bool {
