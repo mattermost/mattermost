@@ -1207,24 +1207,24 @@ func (a *App) exportCustomEmoji(rctx request.CTX, job *model.Job, writer io.Writ
 					return nil, model.NewAppError("BulkExport", "app.export.export_custom_emoji.mkdir.error", nil, "", http.StatusBadRequest).Wrap(err)
 				}
 			}
+		}
 
-			for _, emoji := range customEmojiList {
-				emojiImagePath := filepath.Join(emojiPath, emoji.Id, "image")
-				filePath := filepath.Join(exportDir, emoji.Id, "image")
-				if exportFiles {
-					err := a.copyEmojiImages(rctx, emoji.Id, emojiImagePath, pathToDir)
-					if err != nil {
-						return nil, model.NewAppError("BulkExport", "app.export.export_custom_emoji.copy_emoji_images.error", nil, "", http.StatusBadRequest).Wrap(err)
-					}
-				} else {
-					filePath = filepath.Join("emoji", emoji.Id, "image")
-					emojiPaths = append(emojiPaths, filePath)
+		for _, emoji := range customEmojiList {
+			emojiImagePath := filepath.Join(emojiPath, emoji.Id, "image")
+			filePath := filepath.Join(exportDir, emoji.Id, "image")
+			if exportFiles {
+				err := a.copyEmojiImages(rctx, emoji.Id, emojiImagePath, pathToDir)
+				if err != nil {
+					return nil, model.NewAppError("BulkExport", "app.export.export_custom_emoji.copy_emoji_images.error", nil, "", http.StatusBadRequest).Wrap(err)
 				}
+			} else {
+				filePath = filepath.Join("emoji", emoji.Id, "image")
+				emojiPaths = append(emojiPaths, filePath)
+			}
 
-				emojiImportObject := importLineFromEmoji(emoji, filePath)
-				if err := a.exportWriteLine(writer, emojiImportObject); err != nil {
-					return nil, err
-				}
+			emojiImportObject := importLineFromEmoji(emoji, filePath)
+			if err := a.exportWriteLine(writer, emojiImportObject); err != nil {
+				return nil, err
 			}
 		}
 	}
