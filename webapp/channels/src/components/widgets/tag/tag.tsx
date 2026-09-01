@@ -127,7 +127,7 @@ const TagText = styled.span`
     text-overflow: ellipsis;
 `;
 
-const Tag = ({
+const Tag = React.forwardRef<HTMLDivElement, Props>(({
     variant,
     onClick,
     className,
@@ -136,7 +136,7 @@ const Tag = ({
     size = 'xs',
     uppercase = false,
     ...rest
-}: Props) => {
+}, ref) => {
     const Icon = iconName ? glyphMap[iconName] : null;
     const element = onClick ? 'button' : 'div';
 
@@ -157,6 +157,7 @@ const Tag = ({
     return (
         <TagWrapper
             {...rest}
+            ref={ref}
             as={element}
             uppercase={uppercase}
             onClick={onClick}
@@ -166,6 +167,7 @@ const Tag = ({
             <TagText>{text}</TagText>
         </TagWrapper>
     );
-};
+});
+Tag.displayName = 'Tag';
 
 export default memo(Tag);
