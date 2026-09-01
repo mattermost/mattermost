@@ -71,7 +71,11 @@ func ensurePluginMeta() error {
 			return
 		}
 		matches, err := filepath.Glob(filepath.Join(repoRoot, "dist", "*.tar.gz"))
-		if err != nil || len(matches) == 0 {
+		if err != nil {
+			pluginMetaErr = fmt.Errorf("glob plugin bundle in dist/: %w", err)
+			return
+		}
+		if len(matches) == 0 {
 			pluginMetaErr = fmt.Errorf("no plugin bundle found in dist/ — ensure 'make dist' ran before tests")
 			return
 		}
@@ -203,18 +207,28 @@ func deployPlugin(ctx context.Context, client *model.Client4) error {
 
 	// Poll until the plugin reaches Running state.
 	deadline := time.Now().Add(30 * time.Second)
+	var lastStatusErr error
 	for time.Now().Before(deadline) {
 		statuses, _, statusErr := client.GetPluginStatuses(ctx)
-		if statusErr == nil {
+		if statusErr != nil {
+			lastStatusErr = statusErr
+		} else {
 			for _, s := range statuses {
 				if s.PluginId == pluginID && s.State == model.PluginStateRunning {
 					return nil
 				}
 			}
 		}
-		time.Sleep(500 * time.Millisecond)
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case <-time.After(500 * time.Millisecond):
+		}
 	}
 
+	if lastStatusErr != nil {
+		return fmt.Errorf("plugin %s did not reach running state within 30s: %w", pluginID, lastStatusErr)
+	}
 	return fmt.Errorf("plugin %s did not reach running state within 30s", pluginID)
 }
 
