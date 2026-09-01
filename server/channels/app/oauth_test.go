@@ -318,6 +318,14 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 			} else {
 				*cfg.GitLabSettings.UserAPIEndpoint = ""
 			}
+
+			// The test server binds to a loopback (reserved) address, which the
+			// filtered OAuth client refuses unless it is explicitly allowlisted.
+			if serverURL != "" {
+				if u, parseErr := url.Parse(serverURL); parseErr == nil {
+					*cfg.ServiceSettings.AllowedUntrustedInternalConnections = u.Hostname()
+				}
+			}
 		})
 
 		return th
@@ -453,6 +461,32 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 		_, _, _, err := th.App.AuthorizeOAuthUser(th.Context, &httptest.ResponseRecorder{}, request, model.ServiceGitlab, "", state, "")
 		require.NotNil(t, err)
 		assert.Equal(t, "api.user.authorize_oauth_user.token_failed.app_error", err.Id)
+	})
+
+	t.Run("refuses a reserved-IP token endpoint that is not allowlisted", func(t *testing.T) {
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			err := json.NewEncoder(w).Encode(&model.AccessResponse{
+				AccessToken: model.NewId(),
+				TokenType:   model.AccessTokenType,
+			})
+			require.NoError(t, err)
+		}))
+		defer server.Close()
+
+		th := setup(t, true, true, true, server.URL)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.AllowedUntrustedInternalConnections = ""
+		})
+
+		cookie := model.NewId()
+		request := makeRequest(cookie)
+		state := makeState(makeToken(th, cookie))
+
+		_, _, _, err := th.App.AuthorizeOAuthUser(th.Context, &httptest.ResponseRecorder{}, request, model.ServiceGitlab, "", state, "")
+		require.NotNil(t, err)
+		assert.Equal(t, "api.user.authorize_oauth_user.token_failed.app_error", err.Id)
+		assert.ErrorContains(t, err.Unwrap(), "reserved range")
 	})
 
 	t.Run("with an error token response", func(t *testing.T) {
