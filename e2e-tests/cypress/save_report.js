@@ -4,7 +4,7 @@
 /* eslint-disable no-console */
 
 /*
- * This is used for saving artifacts to AWS S3, sending data to automation dashboard and
+ * This is used for sending data to automation dashboard and
  * publishing quick summary to community channels.
  *
  * Usage: [ENV] node save_report.js
@@ -14,8 +14,6 @@
  *   BUILD_ID=[build_id]        : Build identifier from CI
  *   BUILD_TAG=[build_tag]      : Docker image used to run the test
  *
- *   For saving artifacts to AWS S3
- *      - AWS_S3_BUCKET, AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY
  *   For saving test cases to Test Management
  *      - TM4J_ENABLE=true|false
  *      - TM4J_API_KEY=[api_key]
@@ -42,7 +40,6 @@ const {
     readJsonFromFile,
     writeJsonToFile,
 } = require('./utils/report');
-const {saveArtifacts} = require('./utils/artifacts');
 const {MOCHAWESOME_REPORT_DIR, RESULTS_DIR} = require('./utils/constants');
 const {createTestCycle, createTestExecutions} = require('./utils/test_cases');
 
@@ -82,11 +79,6 @@ const saveReport = async () => {
     console.log(summary);
     writeJsonToFile(summary, 'summary.json', MOCHAWESOME_REPORT_DIR);
 
-    const result = await saveArtifacts();
-    if (result && result.success) {
-        console.log('Successfully uploaded artifacts to S3:', result.reportLink);
-    }
-
     // Create or use an existing test cycle
     let testCycle = {};
     if (TM4J_ENABLE === 'true') {
@@ -97,7 +89,7 @@ const saveReport = async () => {
     // Send test report to "QA: UI Test Automation" channel via webhook
     if (TYPE && TYPE !== 'NONE' && WEBHOOK_URL) {
         const environment = readJsonFromFile(`${RESULTS_DIR}/environment.json`);
-        const data = generateTestReport(summary, result && result.success, result && result.reportLink, environment, testCycle.key);
+        const data = generateTestReport(summary, false, undefined, environment, testCycle.key);
         await sendReport('summary report to Community channel', WEBHOOK_URL, data);
     }
 

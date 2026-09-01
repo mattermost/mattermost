@@ -19,6 +19,7 @@ func (api *API) InitAction() {
 	api.BaseRoutes.APIRoot.Handle("/actions/dialogs/open", api.APIHandler(openDialog)).Methods(http.MethodPost)
 	api.BaseRoutes.APIRoot.Handle("/actions/dialogs/submit", api.APISessionRequired(submitDialog)).Methods(http.MethodPost)
 	api.BaseRoutes.APIRoot.Handle("/actions/dialogs/lookup", api.APISessionRequired(lookupDialog)).Methods(http.MethodPost)
+	api.BaseRoutes.APIRoot.Handle("/actions/dialogs/execute", api.APISessionRequired(executeDialogAction)).Methods(http.MethodPost)
 }
 
 func doPostAction(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -163,10 +164,20 @@ func submitDialog(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), submit.TeamId, model.PermissionViewTeam) {
-		c.SetPermissionError(model.PermissionViewTeam)
-		return
+	// Derive the team from the server-loaded channel, not the client-supplied
+	// TeamId — otherwise a client could omit TeamId on a team channel and skip
+	// the PermissionViewTeam check. channel.TeamId is empty for DM/GM channels.
+	if channel.TeamId != "" {
+		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), channel.TeamId, model.PermissionViewTeam) {
+			c.SetPermissionError(model.PermissionViewTeam)
+			return
+		}
 	}
+
+	// The client-supplied TeamId is not trusted for the permission check above, so
+	// don't forward it to the integration either — use the channel's authoritative
+	// team (empty for DM/GM).
+	submit.TeamId = channel.TeamId
 
 	resp, err := c.App.SubmitInteractiveDialog(c.AppContext, submit)
 	if err != nil {
@@ -178,6 +189,62 @@ func submitDialog(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if _, err := w.Write(b); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+func executeDialogAction(c *Context, w http.ResponseWriter, r *http.Request) {
+	var request model.ExecuteDialogActionRequest
+
+	jsonErr := json.NewDecoder(r.Body).Decode(&request)
+	if jsonErr != nil {
+		c.SetInvalidParamWithErr("dialog_action", jsonErr)
+		return
+	}
+
+	if request.URL == "" {
+		c.SetInvalidParam("url")
+		return
+	}
+
+	if !model.IsValidLookupURL(request.URL) {
+		c.SetInvalidParam("url")
+		return
+	}
+
+	channel, err := c.App.GetChannel(c.AppContext, request.ChannelId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+	if ok, _ := c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel); !ok {
+		c.SetPermissionError(model.PermissionReadChannelContent)
+		return
+	}
+
+	// Derive the team from the server-loaded channel, not the client-supplied
+	// TeamId — otherwise a client could omit TeamId on a team channel and skip
+	// the PermissionViewTeam check. channel.TeamId is empty for DM/GM channels.
+	if channel.TeamId != "" {
+		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), channel.TeamId, model.PermissionViewTeam) {
+			c.SetPermissionError(model.PermissionViewTeam)
+			return
+		}
+	}
+
+	// The client-supplied TeamId is not trusted for the permission check above,
+	// so don't trust it for the downstream team lookup / integration payload either.
+	// Use the channel's authoritative team (empty for DM/GM, which skips the lookup).
+	request.TeamId = channel.TeamId
+
+	triggerId, err := c.App.ExecuteDialogAction(c.AppContext, c.AppContext.Session().UserId, request)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	resp := &model.ExecuteDialogActionResponse{TriggerId: triggerId}
+	if encErr := json.NewEncoder(w).Encode(resp); encErr != nil {
+		c.Logger.Warn("Error writing response", mlog.Err(encErr))
 	}
 }
 
@@ -216,10 +283,20 @@ func lookupDialog(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), lookup.TeamId, model.PermissionViewTeam) {
-		c.SetPermissionError(model.PermissionViewTeam)
-		return
+	// Derive the team from the server-loaded channel, not the client-supplied
+	// TeamId — otherwise a client could omit TeamId on a team channel and skip
+	// the PermissionViewTeam check. channel.TeamId is empty for DM/GM channels.
+	if channel.TeamId != "" {
+		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), channel.TeamId, model.PermissionViewTeam) {
+			c.SetPermissionError(model.PermissionViewTeam)
+			return
+		}
 	}
+
+	// The client-supplied TeamId is not trusted for the permission check above, so
+	// don't forward it to the integration either — use the channel's authoritative
+	// team (empty for DM/GM). Set before logging so the trace reflects the real team.
+	lookup.TeamId = channel.TeamId
 
 	c.Logger.Debug("Performing lookup dialog request",
 		mlog.String("url", lookup.URL),

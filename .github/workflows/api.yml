@@ -22,11 +22,12 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: ci/restore-npm-cache
+        uses: ./.github/actions/restore-e2e-npm-cache
+
       - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
         with:
           node-version-file: .nvmrc
-          cache: "npm"
-          cache-dependency-path: api/package-lock.json
 
       - name: Run build
         run: make build

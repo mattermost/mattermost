@@ -27,6 +27,9 @@ export default class ChannelsCenterView {
     readonly channelBanner;
     readonly autotranslationBadge;
     readonly flagPostConfirmationDialog;
+    readonly notificationSeparator;
+    readonly postViews;
+    readonly channelIntro;
 
     constructor(container: Locator, page: Page) {
         this.container = container;
@@ -44,6 +47,9 @@ export default class ChannelsCenterView {
             page.getByRole('dialog', {name: 'Quarantine for Review'}),
             page,
         );
+        this.notificationSeparator = container.locator('.NotificationSeparator');
+        this.postViews = container.getByTestId('postView');
+        this.channelIntro = container.locator('#channelIntro');
     }
 
     async toBeVisible() {
@@ -71,6 +77,16 @@ export default class ChannelsCenterView {
         const lastPost = this.container.getByTestId('postView').last();
         await lastPost.waitFor();
         return new ChannelsPost(lastPost);
+    }
+
+    /**
+     * Return the Center post whose body contains the given text. Prefer this over getLastPost:
+     * adding a member appends a join system message, so the post under test is often not last.
+     */
+    async getPostByText(text: string) {
+        const post = this.container.getByTestId('postView').filter({hasText: text}).last();
+        await post.waitFor();
+        return new ChannelsPost(post);
     }
 
     /**

@@ -11,7 +11,8 @@ import type {IDMappedObjects} from '@mattermost/types/utilities';
 import {UserTypes} from 'mattermost-redux/action_types';
 
 import {ActionTypes} from 'utils/constants';
-import {extractPluginConfiguration} from 'utils/plugins/plugin_setting_extraction';
+import {extractChannelSettingsTab} from 'utils/plugins/channel_settings_extraction';
+import {extractPluginUserSettings} from 'utils/plugins/user_settings_extraction';
 
 import type {MMAction} from 'types/store';
 import type {
@@ -465,11 +466,40 @@ function siteStatsHandlers(state: PluginsState['siteStatsHandlers'] = {}, action
     }
 }
 
+function channelSettingsTabs(state: PluginsState['channelSettingsTabs'] = [], action: MMAction) {
+    switch (action.type) {
+    case ActionTypes.RECEIVED_PLUGIN_CHANNEL_SETTINGS_TAB: {
+        if (!action.data) {
+            return state;
+        }
+        const normalized = extractChannelSettingsTab(action.data);
+        if (!normalized) {
+            // eslint-disable-next-line no-console
+            console.warn(`Plugin ${action.data.pluginId} is trying to register an invalid channel settings tab. Contact the plugin developer to fix this issue.`);
+            return state;
+        }
+        const nextState = [...state, normalized];
+        nextState.sort(sortComponents);
+        return nextState;
+    }
+    case ActionTypes.REMOVED_WEBAPP_PLUGIN:
+        if (action.data) {
+            return state.filter((tab) => tab.pluginId !== action.data.id);
+        }
+        return state;
+
+    case UserTypes.LOGOUT_SUCCESS:
+        return [];
+    default:
+        return state;
+    }
+}
+
 function userSettings(state: PluginsState['userSettings'] = {}, action: MMAction) {
     switch (action.type) {
     case ActionTypes.RECEIVED_PLUGIN_USER_SETTINGS:
         if (action.data) {
-            const extractedConfiguration = extractPluginConfiguration(action.data.setting, action.data.pluginId);
+            const extractedConfiguration = extractPluginUserSettings(action.data.setting, action.data.pluginId);
             if (!extractedConfiguration) {
                 // eslint-disable-next-line no-console
                 console.warn(`Plugin ${action.data.pluginId} is trying to register an invalid configuration. Contact the plugin developer to fix this issue.`);
@@ -531,4 +561,8 @@ export default combineReducers({
     // objects where every key is a plugin id and the value is configuration schema to show in
     // the user settings modal
     userSettings,
+
+    // array of normalized channel settings tab registrations shown in the
+    // channel settings modal, validated via extractChannelSettingsTab
+    channelSettingsTabs,
 });

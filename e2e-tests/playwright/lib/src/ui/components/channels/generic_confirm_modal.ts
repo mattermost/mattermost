@@ -16,10 +16,10 @@ export default class GenericConfirmModal {
     readonly confirmButton: Locator;
     readonly cancelButton: Locator;
 
-    constructor(container: Locator) {
+    constructor(container: Locator, confirmLabel = 'Confirm', cancelLabel = 'Cancel') {
         this.container = container;
-        this.confirmButton = container.locator('#confirmModalButton');
-        this.cancelButton = container.locator('#cancelModalButton');
+        this.confirmButton = container.getByRole('button', {name: confirmLabel, exact: true});
+        this.cancelButton = container.getByRole('button', {name: cancelLabel, exact: true});
     }
 
     async toBeVisible() {

@@ -84,6 +84,8 @@ const ProfilePopoverCustomAttributes = ({
                     <strong
                         id={`user-popover__custom_attributes-title-${attribute.id}`}
                         className='user-popover__subtitle'
+                        role='heading'
+                        aria-level={3}
                     >
                         {getUserPropertyFieldLabel(attribute)}
                     </strong>

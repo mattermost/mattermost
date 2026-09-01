@@ -14,7 +14,6 @@ import {
     createParentPolicy,
     assignChannelsToPolicy,
     createPrivateChannel,
-    createPublicChannel,
     createGroupConstrainedPrivateChannel,
     setUserAttribute,
     addAttributeRule,
@@ -86,7 +85,7 @@ test.describe('Channel Settings Modal - Access Control Tab', () => {
         const {adminUser, adminClient, team} = await pw.initSetup();
         await enableABACConfig(adminClient);
 
-        const channel = await createPublicChannel(adminClient, team.id);
+        const channel = await adminClient.createPublicChannel(team.id);
 
         const {page} = await pw.testBrowser.login(adminUser);
         const channelsPage = new ChannelsPage(page);

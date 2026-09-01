@@ -20,7 +20,6 @@ import {getCurrentUserId, isCurrentUserGuestUser, getStatusForUserId, makeGetDis
 
 import * as GlobalActions from 'actions/global_actions';
 import type {CreatePostOptions} from 'actions/post_actions';
-import {actionOnGlobalItemsWithPrefix} from 'actions/storage';
 import type {SubmitPostReturnType} from 'actions/views/create_comment';
 import {removeDraft, updateDraft} from 'actions/views/drafts';
 import {openModal} from 'actions/views/modals';
@@ -68,7 +67,7 @@ import * as Utils from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
 import type {PostDraft} from 'types/store/draft';
-import {isPostDraftEmpty} from 'types/store/draft';
+import {draftHasAttachments, isPostDraftEmpty} from 'types/store/draft';
 
 import AIActionsMenu from './ai_actions_menu';
 import DoNotDisturbWarning from './do_not_disturb_warning';
@@ -126,7 +125,7 @@ export type Props = {
 const AdvancedTextEditor = ({
     location,
     channelId,
-    rootId,
+    rootId: rootIdProp,
     postId,
     isThreadView = false,
     placeholder,
@@ -134,6 +133,11 @@ const AdvancedTextEditor = ({
     afterSubmit,
     storageKey,
 }: Props) => {
+    // rootId is typed as required, but plugins reach this component through the untyped
+    // window.Components bridge and may omit it. Every draft carries '' rather than undefined
+    // for a non-thread composer, so an undefined prop desyncs the id comparisons below.
+    const rootId = rootIdProp ?? '';
+
     const {formatMessage} = useIntl();
 
     const dispatch = useDispatch();
@@ -243,6 +247,10 @@ const AdvancedTextEditor = ({
     const codeBlockOnCtrlEnter = useSelector((state: GlobalState) => getBool(state, Preferences.CATEGORY_ADVANCED_SETTINGS, 'code_block_ctrl_enter', true));
     const isDMOrGMRemote = isChannelShared && (channelType === Constants.DM_CHANNEL || channelType === Constants.GM_CHANNEL);
 
+    if (draft.channelId !== channelId || draft.rootId !== rootId) {
+        setDraft(draftFromStore);
+    }
+
     const handleShowPreview = useCallback(() => {
         setShowPreview((prev) => !prev);
     }, []);
@@ -256,7 +264,17 @@ const AdvancedTextEditor = ({
             clearTimeout(saveDraftFrame.current);
         }
 
-        setDraft(draftToChange);
+        // A late async callback (slow submit, finished file upload) may call handleDraftChange
+        // with the channelId/rootId captured when it started. If the user has since moved to
+        // another channel or thread, do not overwrite the text they have typed here.
+        setDraft((currentDraft) => {
+            if (currentDraft.channelId !== draftToChange.channelId || currentDraft.rootId !== draftToChange.rootId) {
+                // The current channel/thread has changed, so don't update the draft displayed to the user
+                return currentDraft;
+            }
+
+            return draftToChange;
+        });
 
         const saveDraft = () => {
             let prefix = StoragePrefixes.DRAFT;
@@ -269,6 +287,14 @@ const AdvancedTextEditor = ({
 
             if (isPostDraftEmpty(draftToChange)) {
                 dispatch(removeDraft(key, draftToChange.channelId, draftToChange.rootId));
+                return;
+            }
+
+            // Editing an existing post must never create a synced/visible draft. Edit
+            // content is only persisted locally under the edit_draft_* key, so skip the
+            // show + server-upsert paths that would surface it in the drafts UI.
+            if (isInEditMode) {
+                dispatch(updateDraft(key, draftToChange, draftToChange.rootId));
                 return;
             }
 
@@ -289,7 +315,7 @@ const AdvancedTextEditor = ({
         }
 
         storedDrafts.current[draftToChange.rootId || draftToChange.channelId] = draftToChange;
-    }, [dispatch]);
+    }, [dispatch, isInEditMode, storageKey]);
 
     const applyWysiwygFormatting = useCallback((editor: Editor, mode: MarkdownMode) => {
         const isInlineMark = mode === 'bold' || mode === 'italic' || mode === 'strike';
@@ -670,17 +696,6 @@ const AdvancedTextEditor = ({
         setServerError(null);
     }, [channelId, rootId]);
 
-    // Remove uploads in progress on mount
-    useEffect(() => {
-        dispatch(actionOnGlobalItemsWithPrefix(rootId ? StoragePrefixes.COMMENT_DRAFT : StoragePrefixes.DRAFT, (_key: string, draft: PostDraft) => {
-            if (!draft || !draft.uploadsInProgress || draft.uploadsInProgress.length === 0) {
-                return draft;
-            }
-
-            return {...draft, uploadsInProgress: []};
-        }));
-    }, []);
-
     // Register listener to store the draft when the page unloads
     useEffect(() => {
         const callback = () => handleDraftChange(draft, {instant: true, show: true});
@@ -699,12 +714,10 @@ const AdvancedTextEditor = ({
         handleSubmitWithErrorHandling(undefined, schedulingInfo);
     }, [handleSubmitWithErrorHandling]);
 
-    // Set the draft from store when changing post or channels, and store the previous one
+    // Store the previous draft when changing post or channels
     useEffect(() => {
         // Store the draft that existed when we opened the channel to know if it should be saved
         const draftOnOpen = draftFromStore;
-
-        setDraft(draftOnOpen);
 
         return () => {
             if (draftOnOpen !== draftRef.current) {
@@ -719,6 +732,7 @@ const AdvancedTextEditor = ({
             disabled={disableSendButton}
             handleSubmit={handleSubmitPostAndScheduledMessage}
             channelId={channelId}
+            allowRecurring={!draftHasAttachments(draft)}
         />
     );
 

@@ -18,7 +18,7 @@ func TestGetTermsOfService(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 	client := th.Client
 
-	_, appErr := th.App.CreateTermsOfService("abc", th.BasicUser.Id)
+	_, appErr := th.App.CreateTermsOfService(th.Context, "abc", th.BasicUser.Id)
 	require.Nil(t, appErr)
 
 	termsOfService, _, err := client.GetTermsOfService(context.Background(), "")

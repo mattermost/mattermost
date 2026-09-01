@@ -1,6 +1,9 @@
 ---
 title: "Code signing custom builds"
 ---
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 <PlanAvailability slug="all-commercial" />
 
 Code signing is an essential process for ensuring the authenticity and integrity of your custom `Mattermost` builds. This guide provides steps on how to code sign a build using your own certificates for Windows, Mac, and Linux.
@@ -13,38 +16,32 @@ Make sure to follow each operating system's guidelines and best practices for si
 
 ## Prerequisites
 
-<div class="tab">
-
-Windows
+<Tabs>
+<TabItem value="windows" label="Windows">
 
 1.  **Code Signing Certificate**: Obtain a certificate from a Certificate Authority (CA) or use a self-signed certificate if suitable.
 2.  **SignTool**: Available as part of the Windows SDK.
 
-</div>
-
-<div class="tab">
-
-Linux
+</TabItem>
+<TabItem value="linux" label="Linux">
 
 1.  **GPG Key**: Create a GPG key if you don't have one.
 2.  **GnuPG**: Install [GnuPG](https://gnupg.org/howtos/card-howto/en/ch02.html) if not already installed.
 
-</div>
-
-<div class="tab">
-
-Mac
+</TabItem>
+<TabItem value="mac" label="Mac">
 
 1.  **Developer ID Application Certificate**: Obtain from Apple. It requires an Apple Developer account.
 2.  **Xcode**: Ensure [Xcode](https://developer.apple.com/xcode/) is installed.
 
-</div>
+</TabItem>
+</Tabs>
+
 
 ## Process
 
-<div class="tab">
-
-Windows
+<Tabs>
+<TabItem value="windows" label="Windows">
 
 1.  **Install SignTool**: Install the Windows SDK to access the `SignTool` utility.
 
@@ -61,11 +58,8 @@ Windows
     signtool sign /v /s "My" /sha1 <cert hash> /fd SHA256 /tr http://timestamp.digicert.com /td SHA256 <path-to-your-executable>
     ```
 
-</div>
-
-<div class="tab">
-
-Linux
+</TabItem>
+<TabItem value="linux" label="Linux">
 
 1.  **Create or Import Your GPG Key**: If you don't have a GPG key, create one:
 
@@ -103,11 +97,8 @@ Linux
     rpm --checksig your-package.rpm
     ```
 
-</div>
-
-<div class="tab">
-
-Mac
+</TabItem>
+<TabItem value="mac" label="Mac">
 
 1.  **Obtain a Code Signing Certificate**: Create a `Developer ID Application` certificate in your Apple Developer account and download it.
 
@@ -126,7 +117,9 @@ Mac
     codesign -dv --verbose=4 /path/to/your.app
     ```
 
-</div>
+</TabItem>
+</Tabs>
+
 
 ## Summary
 

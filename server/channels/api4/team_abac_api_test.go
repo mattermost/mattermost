@@ -17,10 +17,13 @@ import (
 )
 
 // enableTeamABAC turns on the license + config the team ABAC paths require and
-// injects a mock PDP, returning it for per-test stubbing.
+// injects a mock PDP, returning it for per-test stubbing. Feature flags are
+// read-only by default in tests, so unlock them first — otherwise the
+// TeamMembershipAccessControl toggle below is silently dropped.
 func enableTeamABAC(t *testing.T, th *TestHelper) *mocks.AccessControlServiceInterface {
 	t.Helper()
 	require.True(t, th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced)))
+	th.ConfigStore.SetReadOnlyFF(false)
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.AccessControlSettings.EnableAttributeBasedAccessControl = true
 		cfg.FeatureFlags.TeamMembershipAccessControl = true
@@ -83,7 +86,7 @@ func doUnassign(t *testing.T, client *model.Client4, policyID string, body assig
 }
 
 func TestAssignAccessPolicyTeamIds(t *testing.T) {
-	th := SetupConfig(t, func(cfg *model.Config) { cfg.FeatureFlags.AttributeBasedAccessControl = true }).InitBasic(t)
+	th := Setup(t).InitBasic(t)
 
 	parent := &model.AccessControlPolicy{
 		ID:       model.NewId(),
@@ -143,7 +146,7 @@ func TestAssignAccessPolicyTeamIds(t *testing.T) {
 }
 
 func TestUnassignAccessPolicyTeamIds(t *testing.T) {
-	th := SetupConfig(t, func(cfg *model.Config) { cfg.FeatureFlags.AttributeBasedAccessControl = true }).InitBasic(t)
+	th := Setup(t).InitBasic(t)
 
 	policyID := model.NewId()
 
@@ -177,7 +180,6 @@ func TestUnassignAccessPolicyTeamIds(t *testing.T) {
 
 func TestGetTeamAccessControlPolicy(t *testing.T) {
 	th := SetupConfig(t, func(cfg *model.Config) {
-		cfg.FeatureFlags.AttributeBasedAccessControl = true
 		cfg.FeatureFlags.TeamMembershipAccessControl = true
 	}).InitBasic(t)
 
@@ -251,6 +253,86 @@ func TestGetTeamAccessControlPolicy(t *testing.T) {
 		require.Equal(t, http.StatusOK, resp.StatusCode)
 	})
 
+	t.Run("resolves imported parent policies into parent_policies for the banner", func(t *testing.T) {
+		m := enableTeamABAC(t, th)
+
+		// Team child policy that imports a system-level parent policy.
+		parentID := model.NewId()
+		teamPolicy := saveTeamMembershipPolicy(t, th, th.BasicTeam.Id)
+		teamPolicy.Imports = []string{parentID}
+		_, err := th.App.Srv().Store().AccessControlPolicy().Save(th.Context, teamPolicy)
+		require.NoError(t, err)
+
+		// The stored parent carries assignment metadata (scope, child_ids) that spans
+		// other teams — the response must not leak any of it.
+		parentPolicy := &model.AccessControlPolicy{
+			ID:       parentID,
+			Type:     model.AccessControlPolicyTypeParent,
+			Name:     "Engineering",
+			Active:   true,
+			Revision: 1,
+			Version:  model.AccessControlPolicyVersionV0_3,
+			Scope:    model.AccessControlPolicyScopeTeam,
+			ScopeID:  model.NewId(),
+			Props:    map[string]any{"child_ids": []string{model.NewId(), model.NewId()}},
+			Rules: []model.AccessControlPolicyRule{
+				{Actions: []string{model.AccessControlPolicyActionMembership}, Expression: `user.attributes.Department == "Engineering"`},
+			},
+		}
+
+		m.On("GetPolicy", mock.AnythingOfType("*request.Context"), th.BasicTeam.Id).Return(teamPolicy, nil)
+		m.On("GetPolicy", mock.AnythingOfType("*request.Context"), parentID).Return(parentPolicy, nil)
+
+		// AttributeValueMasking is on by default, so the handler masks parent
+		// expressions through the PDP. Pass them through unchanged here.
+		m.On("MaskExpressionForCaller", mock.Anything, mock.Anything, mock.Anything).
+			Return(`user.attributes.Department == "Engineering"`, false, (*model.AppError)(nil))
+
+		assertBanner := func(t *testing.T, client *model.Client4) {
+			t.Helper()
+			resp, err := getPolicy(t, client, th.BasicTeam.Id)
+			require.NoError(t, err)
+			defer resp.Body.Close()
+			require.Equal(t, http.StatusOK, resp.StatusCode)
+
+			var body struct {
+				Policy         *model.AccessControlPolicy   `json:"policy"`
+				Enforced       bool                         `json:"enforced"`
+				ParentPolicies []*model.AccessControlPolicy `json:"parent_policies"`
+			}
+			require.NoError(t, json.NewDecoder(resp.Body).Decode(&body))
+			require.Len(t, body.ParentPolicies, 1)
+			got := body.ParentPolicies[0]
+			require.Equal(t, parentID, got.ID)
+			require.Equal(t, "Engineering", got.Name)
+			require.Len(t, got.Rules, 1)
+			require.Equal(t, `user.attributes.Department == "Engineering"`, got.Rules[0].Expression)
+
+			// Assignment metadata must be stripped.
+			require.Empty(t, got.Scope)
+			require.Empty(t, got.ScopeID)
+			require.Nil(t, got.Props)
+		}
+
+		// System admin gets the resolved parent — the pre-existing behavior.
+		t.Run("system admin", func(t *testing.T) {
+			assertBanner(t, th.SystemAdminClient)
+		})
+
+		// Team admin gets the SAME banner data, without needing to fetch the parent
+		// policy directly (which requires ManageSystem). This is the MM-70056 fix.
+		t.Run("team admin", func(t *testing.T) {
+			th.AddPermissionToRole(t, model.PermissionManageTeamAccessRules.Id, model.TeamAdminRoleId)
+			defer th.RemovePermissionFromRole(t, model.PermissionManageTeamAccessRules.Id, model.TeamAdminRoleId)
+			th.LinkUserToTeam(t, th.TeamAdminUser, th.BasicTeam)
+			th.UpdateUserToTeamAdmin(t, th.TeamAdminUser, th.BasicTeam)
+			th.LoginTeamAdmin(t)
+			defer th.LoginBasic(t)
+
+			assertBanner(t, th.Client)
+		})
+	})
+
 	t.Run("disabled flag hides a policy row created while dark", func(t *testing.T) {
 		enableTeamABAC(t, th)
 		// A child policy persisted while the feature was on must not leak through
@@ -275,7 +357,6 @@ func TestGetTeamAccessControlPolicy(t *testing.T) {
 
 func TestGetUsersNotInTeamAbacMatchOnly(t *testing.T) {
 	th := SetupConfig(t, func(cfg *model.Config) {
-		cfg.FeatureFlags.AttributeBasedAccessControl = true
 		cfg.FeatureFlags.TeamMembershipAccessControl = true
 	}).InitBasic(t)
 
@@ -284,7 +365,7 @@ func TestGetUsersNotInTeamAbacMatchOnly(t *testing.T) {
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 		// BasicUser/BasicUser2 are team members, so they must not appear.
-		require.NotContains(t, userIDs(users), th.BasicUser.Id)
+		require.NotContains(t, pluckIDs(users, func(u *model.User) string { return u.Id }), th.BasicUser.Id)
 	})
 
 	t.Run("abac_match_only=true routes to the policy-matched candidates", func(t *testing.T) {
@@ -302,9 +383,63 @@ func TestGetUsersNotInTeamAbacMatchOnly(t *testing.T) {
 
 		var users []*model.User
 		require.NoError(t, json.NewDecoder(resp.Body).Decode(&users))
-		require.Equal(t, []string{qualifying.Id}, userIDs(users))
+		require.Equal(t, []string{qualifying.Id}, pluckIDs(users, func(u *model.User) string { return u.Id }))
 		m.AssertExpectations(t)
 	})
+
+	t.Run("term query param is forwarded to the policy query", func(t *testing.T) {
+		m := enableTeamABAC(t, th)
+		saveTeamMembershipPolicy(t, th, th.BasicTeam.Id)
+
+		qualifying := th.CreateUser(t)
+		m.On("QueryUsersForResource", mock.AnythingOfType("*request.Context"), th.BasicTeam.Id, model.AccessControlPolicyActionMembership, mock.MatchedBy(func(opts model.SubjectSearchOptions) bool {
+			return opts.Term == "eng"
+		})).Return([]*model.User{qualifying}, int64(1), (*model.AppError)(nil))
+
+		resp, err := th.SystemAdminClient.DoAPIGet(context.Background(), "/users?not_in_team="+th.BasicTeam.Id+"&abac_match_only=true&term=eng&per_page=200", "")
+		require.NoError(t, err)
+		defer resp.Body.Close()
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+		m.AssertExpectations(t)
+	})
+
+	// The term search must not let a non-admin probe users' real names when
+	// PrivacySettings.ShowFullName is off — mirroring the normal user-search gate.
+	// System admin (asAdmin) is never restricted.
+	privacyCases := []struct {
+		name             string
+		asAdmin          bool
+		showFullName     bool
+		wantExcludeNames bool
+	}{
+		{"non-admin with ShowFullName off excludes full names", false, false, true},
+		{"non-admin with ShowFullName on allows full names", false, true, false},
+		{"system admin always allows full names", true, false, false},
+	}
+	for _, tc := range privacyCases {
+		t.Run(tc.name, func(t *testing.T) {
+			m := enableTeamABAC(t, th)
+			saveTeamMembershipPolicy(t, th, th.BasicTeam.Id)
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				cfg.PrivacySettings.ShowFullName = model.NewPointer(tc.showFullName)
+			})
+
+			m.On("QueryUsersForResource", mock.AnythingOfType("*request.Context"), th.BasicTeam.Id, model.AccessControlPolicyActionMembership, mock.MatchedBy(func(opts model.SubjectSearchOptions) bool {
+				return opts.ExcludeFullNames == tc.wantExcludeNames
+			})).Return([]*model.User{}, int64(0), (*model.AppError)(nil))
+
+			// BasicUser is a member of BasicTeam, so it holds ViewTeam but is not a sysadmin.
+			client := th.Client
+			if tc.asAdmin {
+				client = th.SystemAdminClient
+			}
+			resp, err := client.DoAPIGet(context.Background(), "/users?not_in_team="+th.BasicTeam.Id+"&abac_match_only=true&term=smith&per_page=200", "")
+			require.NoError(t, err)
+			defer resp.Body.Close()
+			require.Equal(t, http.StatusOK, resp.StatusCode)
+			m.AssertExpectations(t)
+		})
+	}
 
 	t.Run("caller without view_team permission is forbidden", func(t *testing.T) {
 		// Owned by the admin so BasicUser is a genuine non-member without ViewTeam.
@@ -315,20 +450,11 @@ func TestGetUsersNotInTeamAbacMatchOnly(t *testing.T) {
 	})
 }
 
-func userIDs(users []*model.User) []string {
-	ids := make([]string, 0, len(users))
-	for _, u := range users {
-		ids = append(ids, u.Id)
-	}
-	return ids
-}
-
 // TestAddTeamMembersGracefulABACError pins P1-21: a per-user ABAC denial in the
 // batch add surfaces as that user's Error in graceful mode without aborting the
 // batch; qualifying users in the same batch are still added.
 func TestAddTeamMembersGracefulABACError(t *testing.T) {
 	th := SetupConfig(t, func(cfg *model.Config) {
-		cfg.FeatureFlags.AttributeBasedAccessControl = true
 		cfg.FeatureFlags.TeamMembershipAccessControl = true
 	}).InitBasic(t)
 

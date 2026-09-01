@@ -5,7 +5,6 @@ package app
 
 import (
 	"archive/zip"
-	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -591,7 +590,7 @@ func (a *App) exportAllBots(rctx request.CTX, job *model.Job, writer io.Writer, 
 			afterId = bot.UserId
 
 			var ownerUsername string
-			owner, err := a.Srv().Store().User().Get(rctx.Context(), bot.OwnerId)
+			owner, err := a.Srv().Store().User().Get(rctx, bot.OwnerId)
 			if err != nil {
 				var nfErr *store.ErrNotFound
 				if errors.As(err, &nfErr) {
@@ -844,7 +843,7 @@ func (a *App) BuildPostReactions(rctx request.CTX, postID string) (*[]ReactionIm
 	}
 
 	for _, reaction := range reactions {
-		user, err := a.Srv().Store().User().Get(context.Background(), reaction.UserId)
+		user, err := a.Srv().Store().User().Get(rctx, reaction.UserId)
 		if err != nil {
 			var nfErr *store.ErrNotFound
 			if errors.As(err, &nfErr) { // this is a valid case, the user that reacted might've been deleted by now
@@ -1017,12 +1016,12 @@ func (a *App) exportAllDirectChannels(rctx request.CTX, job *model.Job, writer i
 				}
 			}
 
-			favoritedBy, err := a.buildFavoritedByList(channel.Id)
+			favoritedBy, err := a.buildFavoritedByList(rctx, channel.Id)
 			if err != nil {
 				return err
 			}
 
-			shownBy, err := a.buildShownByList(channel)
+			shownBy, err := a.buildShownByList(rctx, channel)
 			if err != nil {
 				return err
 			}
@@ -1037,7 +1036,7 @@ func (a *App) exportAllDirectChannels(rctx request.CTX, job *model.Job, writer i
 	return nil
 }
 
-func (a *App) buildFavoritedByList(channelID string) ([]string, *model.AppError) {
+func (a *App) buildFavoritedByList(rctx request.CTX, channelID string) ([]string, *model.AppError) {
 	prefs, err := a.Srv().Store().Preference().GetCategoryAndName(model.PreferenceCategoryFavoriteChannel, channelID)
 	if err != nil {
 		return nil, model.NewAppError("buildFavoritedByList", "app.preference.get_category.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -1049,7 +1048,7 @@ func (a *App) buildFavoritedByList(channelID string) ([]string, *model.AppError)
 			continue
 		}
 
-		user, err := a.Srv().Store().User().Get(context.Background(), pref.UserId)
+		user, err := a.Srv().Store().User().Get(rctx, pref.UserId)
 		if err != nil {
 			return nil, model.NewAppError("buildFavoritedByList", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
@@ -1060,7 +1059,7 @@ func (a *App) buildFavoritedByList(channelID string) ([]string, *model.AppError)
 	return userIDs, nil
 }
 
-func (a *App) buildShownByList(channel *model.DirectChannelForExport) ([]string, *model.AppError) {
+func (a *App) buildShownByList(rctx request.CTX, channel *model.DirectChannelForExport) ([]string, *model.AppError) {
 	shownBy := make([]string, 0)
 	switch channel.Type {
 	case model.ChannelTypeGroup:
@@ -1072,7 +1071,7 @@ func (a *App) buildShownByList(channel *model.DirectChannelForExport) ([]string,
 
 			for i := range prefs {
 				if prefs[i].Name == channel.Id && prefs[i].Value == "true" {
-					user, err := a.Srv().Store().User().Get(context.Background(), member.UserId)
+					user, err := a.Srv().Store().User().Get(rctx, member.UserId)
 					if err != nil {
 						return nil, model.NewAppError("buildShownByList", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 					}
@@ -1095,7 +1094,7 @@ func (a *App) buildShownByList(channel *model.DirectChannelForExport) ([]string,
 
 			for _, pref := range prefs {
 				if pref.Value == "true" && pref.UserId == member.UserId {
-					user, err := a.Srv().Store().User().Get(context.Background(), member.UserId)
+					user, err := a.Srv().Store().User().Get(rctx, member.UserId)
 					if err != nil {
 						return nil, model.NewAppError("buildShownByList", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 					}
@@ -1261,32 +1260,32 @@ func (a *App) ListExports() ([]string, *model.AppError) {
 }
 
 func (a *App) GeneratePresignURLForExport(name string) (*model.PresignURLResponse, *model.AppError) {
-	if !a.Config().FeatureFlags.EnableExportDirectDownload {
-		return nil, model.NewAppError("GeneratePresignURLForExport", "app.eport.generate_presigned_url.featureflag.app_error", nil, "", http.StatusInternalServerError)
+	if !a.License().IsCloud() {
+		return nil, model.NewAppError("GeneratePresignURLForExport", "app.export.generate_presigned_url.direct_download.app_error", nil, "", http.StatusForbidden)
 	}
 
 	if !*a.Config().FileSettings.DedicatedExportStore {
-		return nil, model.NewAppError("GeneratePresignURLForExport", "app.eport.generate_presigned_url.config.app_error", nil, "", http.StatusInternalServerError)
+		return nil, model.NewAppError("GeneratePresignURLForExport", "app.export.generate_presigned_url.config.app_error", nil, "", http.StatusInternalServerError)
 	}
 
 	b := a.ExportFileBackend()
 	backend, ok := b.(filestore.FileBackendWithLinkGenerator)
 	if !ok {
-		return nil, model.NewAppError("GeneratePresignURLForExport", "app.eport.generate_presigned_url.driver.app_error", nil, "", http.StatusInternalServerError)
+		return nil, model.NewAppError("GeneratePresignURLForExport", "app.export.generate_presigned_url.driver.app_error", nil, "", http.StatusInternalServerError)
 	}
 
 	p := path.Join(*a.Config().ExportSettings.Directory, filepath.Base(name))
 	found, err := b.FileExists(p)
 	if err != nil {
-		return nil, model.NewAppError("GeneratePresignURLForExport", "app.eport.generate_presigned_url.fileexist.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return nil, model.NewAppError("GeneratePresignURLForExport", "app.export.generate_presigned_url.fileexist.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	if !found {
-		return nil, model.NewAppError("GeneratePresignURLForExport", "app.eport.generate_presigned_url.notfound.app_error", nil, "", http.StatusInternalServerError)
+		return nil, model.NewAppError("GeneratePresignURLForExport", "app.export.generate_presigned_url.notfound.app_error", nil, "", http.StatusInternalServerError)
 	}
 
 	link, exp, err := backend.GeneratePublicLink(p)
 	if err != nil {
-		return nil, model.NewAppError("GeneratePresignURLForExport", "app.eport.generate_presigned_url.link.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return nil, model.NewAppError("GeneratePresignURLForExport", "app.export.generate_presigned_url.link.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return &model.PresignURLResponse{

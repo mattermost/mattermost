@@ -1,7 +1,10 @@
 ---
 title: "Format messages"
-draft: true
 ---
+import useBaseUrl from '@docusaurus/useBaseUrl';
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 <PlanAvailability slug="all-commercial" />
 
 ## Use the messaging formatting toolbar
@@ -17,51 +20,52 @@ The message formatting toolbar offers the following formatting options:
 <col style={{width: '53%'}} />
 <col style={{width: '46%'}} />
 </colgroup>
+<thead>
+<tr>
+<th>Formatting option</th>
+<th>Icon</th>
+</tr>
+</thead>
 <tbody>
 <tr>
-<td rowspan="2"><blockquote>
-<p><strong>Formatting option</strong></p>
-</blockquote>
-<dl>
-<dt>==================================================================================</dt>
-<dd>
-<p><a href="#use-markdown">Bold, italicize, or strike out text</a></p>
-</dd>
-</dl></td>
-<td rowspan="2"><blockquote>
-<p><strong>Icon</strong> |</p>
-</blockquote>
-<dl>
-<dt>=========================+</dt>
-<dd>
-<p><a href="mm-subst:bold-icon">bold-icon</a> | <a href="mm-subst:italics-icon">italics-icon</a> | <a href="mm-subst:strikeout-icon">strikeout-icon</a> |</p>
-</dd>
-</dl></td>
-</tr>
-<tr>
+<td><a href="#use-markdown">Bold, italicize, or strike out text</a></td>
+<td>
+<img src={useBaseUrl('/img/ui/format-bold_F0264.svg')} alt="Bold" className="theme-icon" />
+<img src={useBaseUrl('/img/ui/format-italic_F0277.svg')} alt="Italicize" className="theme-icon" />
+<img src={useBaseUrl('/img/ui/format-strikethrough-variant_F0281.svg')} alt="Strikeout" className="theme-icon" />
+</td>
 </tr>
 <tr>
 <td>Add <a href="#headings">headings</a>, <a href="#links">links</a>, or attachments</td>
-<td><a href="mm-subst:headings-icon">headings-icon</a> | <a href="mm-subst:copy-link-icon">copy-link-icon</a> | <a href="mm-subst:attachments-icon">attachments-icon</a> |</td>
+<td>
+<img src={useBaseUrl('/img/ui/format-header_E81D.svg')} alt="Headings" className="theme-icon" />
+<img src={useBaseUrl('/img/ui/link-variant_F0339.svg')} alt="Copy link" className="theme-icon" />
+<img src={useBaseUrl('/img/ui/paperclip_F03E2.svg')} alt="Attachments" className="theme-icon" />
+</td>
 </tr>
 <tr>
 <td>Format a numbered list, a bulleted list, quoted text, or text as code</td>
-<td><a href="mm-subst:numbered-icon">numbered-icon</a> | <a href="mm-subst:bullets-icon">bullets-icon</a> | <a href="mm-subst:quotes-icon">quotes-icon</a> | <a href="mm-subst:code-icon">code-icon</a> |</td>
+<td>
+<img src={useBaseUrl('/img/ui/format-list-numbered_F027B.svg')} alt="Numbered list" className="theme-icon" />
+<img src={useBaseUrl('/img/ui/format-list-bulleted_F0279.svg')} alt="Bulleted list" className="theme-icon" />
+<img src={useBaseUrl('/img/ui/format-quote-open_F0757.svg')} alt="Quoted text" className="theme-icon" />
+<img src={useBaseUrl('/img/ui/code-tags_F0174.svg')} alt="Code" className="theme-icon" />
+</td>
 </tr>
 <tr>
-<td colspan="2"><a href="mm-doc:%2Fend-user-guide%2Fcollaborate%2Freact-with-emojis-gifs">Add emojis or GIFs</a> | <a href="mm-subst:emoji-icon">emoji-icon</a> |</td>
+<td colspan="2"><a href="/end-user-guide/collaborate/react-with-emojis-gifs">Add emojis or GIFs</a> <img src={useBaseUrl('/img/ui/emoticon-outline_F01F2.svg')} alt="Emoji" className="theme-icon" /></td>
 </tr>
 <tr>
-<td colspan="2"><a href="mm-doc:%2Fend-user-guide%2Fcollaborate%2Fmessage-priority">Set message priority</a> | <a href="mm-subst:message-priority-icon">message-priority-icon</a></td>
+<td colspan="2"><a href="/end-user-guide/collaborate/message-priority">Set message priority</a> <img src={useBaseUrl('/img/ui/alert-circle-outline_F05D6.svg')} alt="Message priority" className="theme-icon" /></td>
 </tr>
 </tbody>
 </table>
 
-Review how your message formatting will look when the message is sent by selecting the **Show/Hide Preview** <img src="/img/ui/eye-outline_F06D0.svg" alt="Review your message text formatting using the Show/Hide preview icon in the message formatting toolbar." className="theme-icon" /> icon. Return to your draft message by selecting the icon again.
+Review how your message formatting will look when the message is sent by selecting the **Show/Hide Preview** <img src={useBaseUrl('/img/ui/eye-outline_F06D0.svg')} alt="Review your message text formatting using the Show/Hide preview icon in the message formatting toolbar." className="theme-icon" /> icon. Return to your draft message by selecting the icon again.
 
 <Tip>
 
-- Hide the formatting options by selecting the **Show/Hide Formatting** <img src="/img/ui/format-letter-case_F0B34.svg" alt="Hide formatting options in the message formatting toolbar using the Show/Hide Formatting icon." className="theme-icon" /> icon. Select the icon again to show the formatting options.
+- Hide the formatting options by selecting the **Show/Hide Formatting** <img src={useBaseUrl('/img/ui/format-letter-case_F0B34.svg')} alt="Hide formatting options in the message formatting toolbar using the Show/Hide Formatting icon." className="theme-icon" /> icon. Select the icon again to show the formatting options.
 - You can control whether post formatting is rendered within the message formatting editor. When disabled, raw text is shown. See the [Channels customization](/end-user-guide/preferences/manage-advanced-options) documentation for details.
 
 </Tip>
@@ -84,8 +88,8 @@ Common formatting keyboard shortcuts are supported. Bold text by pressing <kbd>C
 
 - `*italics*` (or `_italics_`) renders as *italics*
 - `**bold**` renders as **bold**
-- `***bold-italic***` renders as <img src="../../images/bold_italics.png" width="100" alt="Bold Italics" />
-- `~~strikethrough~~` renders as <img src="../../images/strikethrough.png" width="100" alt="Strike Through" />
+- `***bold-italic***` renders as <img src={useBaseUrl('/images/bold_italics.png')} width="100" alt="Bold Italics" />
+- `~~strikethrough~~` renders as <img src={useBaseUrl('/images/strikethrough.png')} width="100" alt="Strike Through" />
 
 ### Links
 
@@ -192,7 +196,31 @@ Renders as:
 
 Creating a fixed-width code block is recommended for pasting multi-line blocks of code or other text output because it's easier to read with fixed-width font alignment. Examples include block text snippets, ASCII tables, and log files. Rendered code blocks include a **Copy** option to copy the contents of the code block.
 
-This can be accomplished by placing three backticks ```` ` on the line directly above and directly below your code:  .. code-block:: text ``<code> this is my code block </code>`.. tip::    Type three backticks```<code>, press \`Shift \<mm-kbd:\></code>\_\_ <kbd>Enter</kbd> on Windows or Linux, or <kbd>⇧</kbd> <kbd>↵</kbd> on Mac, `<type_your_code>`, press <kbd>Shift</kbd> <kbd>Enter</kbd> on Windows or Linux, or <kbd>⇧</kbd> <kbd>↵</kbd> on Mac again, then type three more backticks ```` `.   Or by indenting each line by four spaces:  .. code-block:: text        this is my       code block    ^^^^ 4x spaces  Syntax highlighting ^^^^^^^^^^^^^^^^^^^^  To add syntax highlighting, type the language to be highlighted after the ````\` at the beginning of the code block. Mattermost also offers four different code themes (GitHub, Solarized Dark, Solarized Light, and Monokai) that can be changed in **Settings \> Display \> Theme \> Custom Theme \> Center Channel Styles**.
+This can be accomplished by placing three backticks (```` ``` ````) on the line directly above and directly below your code:
+
+````text
+```
+this is my
+code block
+```
+````
+
+<Tip>
+
+Type three backticks (```` ``` ````), press <kbd>Shift</kbd> <kbd>Enter</kbd> on Windows or Linux, or <kbd>⇧</kbd> <kbd>↵</kbd> on Mac, `<type_your_code>`, press <kbd>Shift</kbd> <kbd>Enter</kbd> on Windows or Linux, or <kbd>⇧</kbd> <kbd>↵</kbd> on Mac again, then type three more backticks (```` ``` ````).
+
+</Tip>
+
+Or by indenting each line by four spaces:
+
+```text
+    this is my
+    code block
+```
+
+### Syntax highlighting
+
+To add syntax highlighting, type the language to be highlighted after the ```` ``` ```` at the beginning of the code block. Mattermost also offers four different code themes (GitHub, Solarized Dark, Solarized Light, and Monokai) that can be changed in **Settings \> Display \> Theme \> Custom Theme \> Center Channel Styles**.
 
 Supported languages and their aliases include:
 
@@ -560,7 +588,7 @@ Example: An in-line image that's 50 pixels wide and 76 pixels high.
 
 Renders as:
 
-> <img src="../../images/icon-50x76.png" id="Mattermost Icon" alt="Mattermost" />
+> <img src={useBaseUrl('/images/icon-50x76.png')} id="Mattermost Icon" alt="Mattermost" />
 
 #### In-line image displayed with fixed width
 
@@ -572,7 +600,7 @@ Example: An in-line image that's 50 pixels wide where the system adjusts the hei
 
 Renders as:
 
-> <img src="../../images/icon-76x76.png" width="50" alt="Mattermost" />
+> <img src={useBaseUrl('/images/icon-76x76.png')} width="50" alt="Mattermost" />
 
 ### Horizontal lines
 
@@ -616,9 +644,8 @@ Multi-line text in a table cell isn't supported using HTML tags such as `<br />`
 
 ### Math Formulas
 
-<div class="tab">
-
-Using Inline LaTeX
+<Tabs>
+<TabItem value="using-inline-latex" label="Using Inline LaTeX">
 
 You can create formulas that display inline using LaTeX. Use the dollar sign ($) symbol at the beginning and end of each formula.
 
@@ -636,11 +663,8 @@ Renders as:
 
 ![An inline LaTeX math equation sample.](/images/latex-inline.png)
 
-</div>
-
-<div class="tab">
-
-Using LaTeX in Code Blocks
+</TabItem>
+<TabItem value="using-latex-in-code-blocks" label="Using LaTeX in Code Blocks">
 
 Create formulas as code blocks by using LaTeX in a `latex` [code blocks](#code-blocks).
 
@@ -660,6 +684,8 @@ Renders as:
 
 ![A LaTeX code block math equation sample.](/images/latex-codeblock.png)
 
-</div>
+</TabItem>
+</Tabs>
+
 
 <PlanAvailability slug="academy-message-formatting" />

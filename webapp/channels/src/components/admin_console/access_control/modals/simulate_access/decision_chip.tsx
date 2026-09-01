@@ -47,6 +47,10 @@ const blameSourceMessages = defineMessages({
         id: 'admin.access_control.simulate_access.blame.no_applicable_rule',
         defaultMessage: "this rule doesn't apply to this user",
     },
+    [POLICY_SIMULATION_BLAME_SOURCES.NO_SESSION_DATA]: {
+        id: 'admin.access_control.simulate_access.blame.no_session_data',
+        defaultMessage: 'No recent session',
+    },
     [POLICY_SIMULATION_BLAME_SOURCES.SIBLING_SAVED]: {
         id: 'admin.access_control.simulate_access.blame.sibling_saved',
         defaultMessage: 'another rule',
@@ -150,6 +154,21 @@ export default function DecisionChip({decision, pending}: Props): JSX.Element {
             );
         }
 
+        if (hasBlame(decision.blame, POLICY_SIMULATION_BLAME_SOURCES.NO_SESSION_DATA)) {
+            return (
+                <span
+                    className='SimulateAccessModal__rowChip SimulateAccessModal__rowChip--not-applicable'
+                    data-testid='simulate-access-row-chip-no-session-data'
+                >
+                    <MinusCircleOutlineIcon
+                        size={ICON_SIZE}
+                        className='SimulateAccessModal__rowChipIcon'
+                    />
+                    <FormattedMessage {...blameSourceMessages[POLICY_SIMULATION_BLAME_SOURCES.NO_SESSION_DATA]}/>
+                </span>
+            );
+        }
+
         // ALLOW with sibling_saved blame: the editing rule alone would
         // have denied. Surface that inline so authors can spot
         // "OR-saved" allows. Only reached when no_applicable_rule
@@ -196,23 +215,47 @@ export default function DecisionChip({decision, pending}: Props): JSX.Element {
     // governed but the subject's role doesn't match. Render the same
     // neutral "doesn't apply" pill rather than a hard "Denied" chip so
     // the UX stays consistent regardless of evaluation scope.
-    if (hasBlame(decision.blame, POLICY_SIMULATION_BLAME_SOURCES.NO_APPLICABLE_RULE) ||
-        hasBlame(decision.blame, POLICY_SIMULATION_BLAME_SOURCES.NO_APPLICABLE_POLICY)) {
-        const source = hasBlame(decision.blame, POLICY_SIMULATION_BLAME_SOURCES.NO_APPLICABLE_RULE) ?
-            POLICY_SIMULATION_BLAME_SOURCES.NO_APPLICABLE_RULE :
-            POLICY_SIMULATION_BLAME_SOURCES.NO_APPLICABLE_POLICY;
+    if (hasBlame(decision.blame, POLICY_SIMULATION_BLAME_SOURCES.NO_APPLICABLE_RULE)) {
         return (
             <span
                 className='SimulateAccessModal__rowChip SimulateAccessModal__rowChip--not-applicable'
-                data-testid={source === POLICY_SIMULATION_BLAME_SOURCES.NO_APPLICABLE_RULE ?
-                    'simulate-access-row-chip-not-applicable-rule' :
-                    'simulate-access-row-chip-not-applicable'}
+                data-testid='simulate-access-row-chip-not-applicable-rule'
             >
                 <MinusCircleOutlineIcon
                     size={ICON_SIZE}
                     className='SimulateAccessModal__rowChipIcon'
                 />
-                <FormattedMessage {...blameSourceMessages[source]}/>
+                <FormattedMessage {...blameSourceMessages[POLICY_SIMULATION_BLAME_SOURCES.NO_APPLICABLE_RULE]}/>
+            </span>
+        );
+    }
+
+    if (hasBlame(decision.blame, POLICY_SIMULATION_BLAME_SOURCES.NO_SESSION_DATA)) {
+        return (
+            <span
+                className='SimulateAccessModal__rowChip SimulateAccessModal__rowChip--not-applicable'
+                data-testid='simulate-access-row-chip-no-session-data'
+            >
+                <MinusCircleOutlineIcon
+                    size={ICON_SIZE}
+                    className='SimulateAccessModal__rowChipIcon'
+                />
+                <FormattedMessage {...blameSourceMessages[POLICY_SIMULATION_BLAME_SOURCES.NO_SESSION_DATA]}/>
+            </span>
+        );
+    }
+
+    if (hasBlame(decision.blame, POLICY_SIMULATION_BLAME_SOURCES.NO_APPLICABLE_POLICY)) {
+        return (
+            <span
+                className='SimulateAccessModal__rowChip SimulateAccessModal__rowChip--not-applicable'
+                data-testid='simulate-access-row-chip-not-applicable'
+            >
+                <MinusCircleOutlineIcon
+                    size={ICON_SIZE}
+                    className='SimulateAccessModal__rowChipIcon'
+                />
+                <FormattedMessage {...blameSourceMessages[POLICY_SIMULATION_BLAME_SOURCES.NO_APPLICABLE_POLICY]}/>
             </span>
         );
     }

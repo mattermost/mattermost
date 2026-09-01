@@ -23,6 +23,14 @@ let requestedNotificationPermission = Boolean('Notification' in window && Notifi
 export interface ShowNotificationParams {
     title: string;
     body: string;
+
+    /**
+     * Opaque, non-content identifier used as the Web Notifications API tag.
+     * Callers may pass a stable id when they need replacement semantics. When
+     * omitted, the tag is left empty so no user-visible notification text reaches
+     * the tag field (see #36297 / MM-68537).
+     */
+    tag?: string;
     requireInteraction: boolean;
     silent: boolean;
     onClick?: (this: Notification, e: Event) => any | null;
@@ -32,6 +40,7 @@ export function showNotification(
     {
         title,
         body,
+        tag,
         requireInteraction,
         silent,
         onClick,
@@ -71,7 +80,15 @@ export function showNotification(
 
         const notification = new Notification(title, {
             body,
-            tag: body,
+
+            // Use the explicit opaque tag when the caller provides one; otherwise keep it empty.
+            // Notification text must never reach the tag field:
+            // Chromium-based browsers serialise tag into the notification
+            // activation command line via --notification-launch-id
+            // (https://notifications.spec.whatwg.org/#dom-notification-tag), where endpoint
+            // detection tools log it and ship it to customer SIEM pipelines that were never in
+            // scope to receive chat content. See #36297 / MM-68537.
+            tag: tag ?? '',
             icon: icon50,
             requireInteraction,
             silent,

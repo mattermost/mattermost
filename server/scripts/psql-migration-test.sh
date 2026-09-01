@@ -14,7 +14,7 @@ docker exec -i mattermost-postgres psql -U mmuser -d migrated -c "INSERT INTO Sy
 
 echo "Setting up config for db migration"
 cat config/config.json | \
-    jq '.SqlSettings.DataSource = "postgres://mmuser:mostest@localhost:5432/migrated?sslmode=disable&connect_timeout=10"'| \
+    jq '.SqlSettings.DataSource = "postgres://mmuser:mostest_password@localhost:5432/migrated?sslmode=disable&connect_timeout=10"'| \
     jq '.SqlSettings.DriverName = "postgres"' > $TMPDIR/config.json
 
 echo "Running the migration"
@@ -22,7 +22,7 @@ make ARGS="db migrate --config $TMPDIR/config.json" run-cli
 
 echo "Setting up config for fresh db setup"
 cat config/config.json | \
-    jq '.SqlSettings.DataSource = "postgres://mmuser:mostest@localhost:5432/latest?sslmode=disable&connect_timeout=10"'| \
+    jq '.SqlSettings.DataSource = "postgres://mmuser:mostest_password@localhost:5432/latest?sslmode=disable&connect_timeout=10"'| \
     jq '.SqlSettings.DriverName = "postgres"' > $TMPDIR/config.json
 
 echo "Setting up fresh db"

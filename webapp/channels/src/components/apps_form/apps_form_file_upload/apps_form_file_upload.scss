@@ -1,0 +1,44 @@
+.apps-form-file-upload {
+    .file__upload {
+        display: inline-block;
+        margin-right: 10px;
+
+        input[type="file"] {
+            display: none;
+        }
+    }
+
+    &__buttons {
+        display: flex;
+        align-items: center;
+        margin-bottom: 10px;
+        gap: 10px;
+    }
+
+    &__errors {
+        margin: 8px 0;
+    }
+
+    &__error-message {
+        display: flex;
+        align-items: center;
+        padding: 2px 0;
+        color: var(--error-text);
+        font-size: 0.9em;
+        gap: 6px;
+        line-height: 1.3;
+        word-break: break-word;
+        word-wrap: break-word;
+    }
+
+    &__error-icon {
+        color: var(--error-text);
+    }
+
+    .file-preview__container {
+        display: flex;
+        height: auto;
+        flex-wrap: wrap;
+        margin: 8px 0;
+    }
+}

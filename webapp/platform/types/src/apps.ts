@@ -445,9 +445,6 @@ export type DateTimeConfig = {
     time_interval?: number; // Minutes between time options (default: 60)
     location_timezone?: string; // IANA timezone for display (e.g., "America/Denver", "Asia/Tokyo")
     manual_time_entry?: boolean; // Allow text entry for time
-
-    /** @deprecated Use manual_time_entry instead. Kept for backward compatibility. */
-    allow_manual_time_entry?: boolean;
 };
 
 // This should go in mattermost-redux
@@ -476,6 +473,9 @@ export type AppField = {
     multiselect?: boolean;
     lookup?: AppCall;
 
+    // File props
+    allow_multiple?: boolean;
+
     // Text props
     subtype?: string;
     min_length?: number;
@@ -484,14 +484,9 @@ export type AppField = {
     // Date/datetime configuration
     datetime_config?: DateTimeConfig;
 
-    /** @deprecated Use datetime_config.min_date instead. Kept for backward compatibility. */
-    min_date?: string;
-
-    /** @deprecated Use datetime_config.max_date instead. Kept for backward compatibility. */
-    max_date?: string;
-
-    /** @deprecated Use datetime_config.time_interval instead. Kept for backward compatibility. */
-    time_interval?: number;
+    // Action button props
+    action_button_url?: string;
+    action_button_context?: Record<string, string>;
 };
 
 /**
@@ -571,6 +566,10 @@ function isAppField(v: unknown): v is AppField {
         return false;
     }
 
+    if (field.allow_multiple !== undefined && typeof field.allow_multiple !== 'boolean') {
+        return false;
+    }
+
     if (field.lookup !== undefined && !isAppCall(field.lookup)) {
         return false;
     }
@@ -608,34 +607,20 @@ function isAppField(v: unknown): v is AppField {
         if (field.datetime_config.manual_time_entry !== undefined && typeof field.datetime_config.manual_time_entry !== 'boolean') {
             return false;
         }
-        if (field.datetime_config.allow_manual_time_entry !== undefined && typeof field.datetime_config.allow_manual_time_entry !== 'boolean') {
-            return false;
-        }
     }
 
-    // Validate deprecated top-level fields (kept for backward compatibility)
-    if (field.min_date !== undefined) {
-        if (typeof field.min_date !== 'string') {
-            return false;
-        }
-
-        if (!isValidDateString(field.min_date)) {
-            return false;
-        }
-    }
-
-    if (field.max_date !== undefined) {
-        if (typeof field.max_date !== 'string') {
-            return false;
-        }
-
-        if (!isValidDateString(field.max_date)) {
-            return false;
-        }
-    }
-
-    if (field.time_interval !== undefined && typeof field.time_interval !== 'number') {
+    // Validate action button fields
+    if (field.action_button_url !== undefined && typeof field.action_button_url !== 'string') {
         return false;
+    }
+
+    if (field.action_button_context !== undefined) {
+        if (typeof field.action_button_context !== 'object' || field.action_button_context === null) {
+            return false;
+        }
+        if (!Object.values(field.action_button_context).every((value) => typeof value === 'string')) {
+            return false;
+        }
     }
 
     return true;

@@ -63,6 +63,17 @@ export function isFromWebhook(post: Post): boolean {
     return post.props?.from_webhook === 'true';
 }
 
+export function isSilentNotification(post: Post): boolean {
+    return post.props?.silent_notification === true;
+}
+
+export function isNotificationSuppressed(post: Post): boolean {
+    if (post.props?.force_notification) {
+        return false;
+    }
+    return isSilentNotification(post);
+}
+
 export function isFromBot(post: Post): boolean {
     return post.props && post.props.from_bot === 'true';
 }
@@ -237,9 +248,13 @@ export function shouldFocusMainTextbox(e: React.KeyboardEvent | KeyboardEvent, a
         return false;
     }
 
-    // Do not focus if we're currently focused on a textarea or input
+    // Do not focus if we're currently focused on a textarea, an input, or a
+    // rich text editor
     const keepFocusTags = ['TEXTAREA', 'INPUT'];
     if (!activeElement || keepFocusTags.includes(activeElement.tagName)) {
+        return false;
+    }
+    if (activeElement.closest('[contenteditable="true"]')) {
         return false;
     }
 

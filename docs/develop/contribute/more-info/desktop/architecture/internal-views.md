@@ -13,7 +13,7 @@ These are the internally-managed windows acting as the main user interface point
 
 #### Main window
 
-![Main Window screenshot](main-window.png)
+![Main Window screenshot](/img/desktop-architecture/main-window.png)
 
 This is the primary view that encapsulates the core of the Desktop App interface. Most `BrowserView` objects are rendered using this window as their parent, and are affected by the behavior of this window. Most other controls, including the tray icon and taskbar/dock icon, interact with this window, and most of their functionality is tied to it as well.
 
@@ -27,7 +27,7 @@ This window is managed by the `MainWindow` module located at [main/windows/mainW
 
 #### Settings window
 
-![Settings Window screenshot](settings-window.png)
+![Settings Window screenshot](/img/desktop-architecture/settings-window.png)
 
 This window is created when the user opens **Preferences** from the **File** menu. It contains an interface where the user can change settings specific to the Desktop App client that do not affect their Mattermost servers. This window is a child window of the Main Window and will close/hide when the Main Window is closed/hidden.
 
@@ -45,7 +45,7 @@ Most of these views exist as they act as augments to the existing interface and 
 
 #### Loading screen
 
-![Loading Screen screenshot](loading-screen.png)
+![Loading Screen screenshot](/img/desktop-architecture/loading-screen.png)
 
 This is a `BrowserView` that renders over top of external Mattermost views that are loading. It is a cosmetic view that avoids the user having a white screen while the application is loading. The view is ephemeral should only be visible while the current external Mattermost view is loading.
 

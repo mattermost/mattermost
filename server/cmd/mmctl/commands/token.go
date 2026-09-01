@@ -44,6 +44,17 @@ var RevokeUserTokenCmd = &cobra.Command{
 	Args:    cobra.MinimumNArgs(1),
 }
 
+var RotateUserTokenCmd = &cobra.Command{
+	Use:   "rotate [token-id]",
+	Short: "Rotate a personal access token",
+	Long: "Generate a new secret for an existing personal access token, immediately invalidating the old secret. " +
+		"Use --expires-in to set a new expiry.",
+	Example: `  rotate xwt6numaubyj9mqjfkqjk5pfqr
+  rotate xwt6numaubyj9mqjfkqjk5pfqr --expires-in 90d`,
+	RunE: withClient(rotateTokenCmdF),
+	Args: cobra.ExactArgs(1),
+}
+
 var ListUserTokensCmd = &cobra.Command{
 	Use:     "list [user]",
 	Short:   "List users tokens",
@@ -55,6 +66,7 @@ var ListUserTokensCmd = &cobra.Command{
 
 func init() {
 	GenerateUserTokenCmd.Flags().String("expires-in", "", "Duration after which the token expires (e.g. 90d, 12h, 30m). Accepts the standard Go duration syntax plus a 'd' (days) suffix. If empty, the token does not expire.")
+	RotateUserTokenCmd.Flags().String("expires-in", "", "New expiry duration for the rotated token (e.g. 90d, 12h). If empty, the token does not expire (subject to server policy).")
 
 	ListUserTokensCmd.Flags().Int("page", 0, "Page number to fetch for the list of users")
 	ListUserTokensCmd.Flags().Int("per-page", DefaultPageSize, "Number of users to be fetched")
@@ -65,6 +77,7 @@ func init() {
 	TokenCmd.AddCommand(
 		GenerateUserTokenCmd,
 		RevokeUserTokenCmd,
+		RotateUserTokenCmd,
 		ListUserTokensCmd,
 	)
 
@@ -170,6 +183,21 @@ func listTokensOfAUserCmdF(c client.Client, command *cobra.Command, args []strin
 			printer.PrintT("{{.Id}}: {{.Description}}", t)
 		}
 	}
+	return nil
+}
+
+func rotateTokenCmdF(c client.Client, command *cobra.Command, args []string) error {
+	expiresAt, err := resolveTokenExpiry(command)
+	if err != nil {
+		return err
+	}
+
+	token, _, err := c.RotateUserAccessToken(context.TODO(), args[0], expiresAt)
+	if err != nil {
+		return errors.Errorf("could not rotate token %q: %s", args[0], err.Error())
+	}
+	printer.PrintT("{{.Token}}: {{.Description}}", token)
+
 	return nil
 }
 

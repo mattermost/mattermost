@@ -23,6 +23,13 @@ const (
 	NativeAttributeDisplayNameCreateAt = "Account created"
 )
 
+// NativeAttributeIDPrefix namespaces the synthetic IDs assigned to native user
+// attribute fields. These fields are not persisted, but the ABAC editors key
+// attribute selection off the field ID (a CPA and a session attribute can share
+// a name, so only the ID disambiguates the namespace). Every field — including
+// these synthetic ones — must therefore carry a unique, non-empty ID.
+const NativeAttributeIDPrefix = "native_user_attribute_"
+
 // PropertyField Attrs keys describing a synthetic native user attribute.
 const (
 	// NativeAttributeAttrMarker marks a field as a Mattermost-native user
@@ -45,6 +52,10 @@ func nativeAttributeField(groupID, name, displayName string, fieldType PropertyF
 	}
 	maps.Copy(attrs, extraAttrs)
 	return &PropertyField{
+		// Synthetic, deterministic ID: native fields are never persisted, but the
+		// ABAC editors resolve the selected attribute by ID, so each field needs a
+		// stable, unique, non-empty ID. Names are a fixed, unique set.
+		ID:                NativeAttributeIDPrefix + name,
 		GroupID:           groupID,
 		Name:              name,
 		Type:              fieldType,
@@ -62,10 +73,15 @@ func nativeAttributeField(groupID, name, displayName string, fieldType PropertyF
 // access-control autocomplete so the table/text editors can list them alongside
 // custom profile attributes.
 func NativeUserAttributeFields(groupID string) []*PropertyField {
+	// The options must be the gob-registered []any / map[string]any
+	// containers, not a concrete slice type: these fields cross the plugin
+	// RPC boundary inside PropertyField.Attrs, and an unregistered type
+	// (e.g. []map[string]string) fails gob encoding and shuts down the
+	// shared plugin API connection. The JSON output is identical either way.
 	boolSelectOptions := StringInterface{
-		PropertyFieldAttributeOptions: []map[string]string{
-			{"name": "true"},
-			{"name": "false"},
+		PropertyFieldAttributeOptions: []any{
+			map[string]any{"name": "true"},
+			map[string]any{"name": "false"},
 		},
 	}
 

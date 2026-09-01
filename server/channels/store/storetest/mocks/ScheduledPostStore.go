@@ -6,6 +6,7 @@ package mocks
 
 import (
 	model "github.com/mattermost/mattermost/server/public/model"
+	request "github.com/mattermost/mattermost/server/public/shared/request"
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -14,9 +15,9 @@ type ScheduledPostStore struct {
 	mock.Mock
 }
 
-// CreateScheduledPost provides a mock function with given fields: scheduledPost
-func (_m *ScheduledPostStore) CreateScheduledPost(scheduledPost *model.ScheduledPost) (*model.ScheduledPost, error) {
-	ret := _m.Called(scheduledPost)
+// CreateScheduledPost provides a mock function with given fields: rctx, scheduledPost
+func (_m *ScheduledPostStore) CreateScheduledPost(rctx request.CTX, scheduledPost *model.ScheduledPost) (*model.ScheduledPost, error) {
+	ret := _m.Called(rctx, scheduledPost)
 
 	if len(ret) == 0 {
 		panic("no return value specified for CreateScheduledPost")
@@ -24,19 +25,19 @@ func (_m *ScheduledPostStore) CreateScheduledPost(scheduledPost *model.Scheduled
 
 	var r0 *model.ScheduledPost
 	var r1 error
-	if rf, ok := ret.Get(0).(func(*model.ScheduledPost) (*model.ScheduledPost, error)); ok {
-		return rf(scheduledPost)
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.ScheduledPost) (*model.ScheduledPost, error)); ok {
+		return rf(rctx, scheduledPost)
 	}
-	if rf, ok := ret.Get(0).(func(*model.ScheduledPost) *model.ScheduledPost); ok {
-		r0 = rf(scheduledPost)
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.ScheduledPost) *model.ScheduledPost); ok {
+		r0 = rf(rctx, scheduledPost)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.ScheduledPost)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(*model.ScheduledPost) error); ok {
-		r1 = rf(scheduledPost)
+	if rf, ok := ret.Get(1).(func(request.CTX, *model.ScheduledPost) error); ok {
+		r1 = rf(rctx, scheduledPost)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -44,9 +45,9 @@ func (_m *ScheduledPostStore) CreateScheduledPost(scheduledPost *model.Scheduled
 	return r0, r1
 }
 
-// Get provides a mock function with given fields: scheduledPostId
-func (_m *ScheduledPostStore) Get(scheduledPostId string) (*model.ScheduledPost, error) {
-	ret := _m.Called(scheduledPostId)
+// Get provides a mock function with given fields: rctx, scheduledPostId
+func (_m *ScheduledPostStore) Get(rctx request.CTX, scheduledPostId string) (*model.ScheduledPost, error) {
+	ret := _m.Called(rctx, scheduledPostId)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Get")
@@ -54,19 +55,19 @@ func (_m *ScheduledPostStore) Get(scheduledPostId string) (*model.ScheduledPost,
 
 	var r0 *model.ScheduledPost
 	var r1 error
-	if rf, ok := ret.Get(0).(func(string) (*model.ScheduledPost, error)); ok {
-		return rf(scheduledPostId)
+	if rf, ok := ret.Get(0).(func(request.CTX, string) (*model.ScheduledPost, error)); ok {
+		return rf(rctx, scheduledPostId)
 	}
-	if rf, ok := ret.Get(0).(func(string) *model.ScheduledPost); ok {
-		r0 = rf(scheduledPostId)
+	if rf, ok := ret.Get(0).(func(request.CTX, string) *model.ScheduledPost); ok {
+		r0 = rf(rctx, scheduledPostId)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.ScheduledPost)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(scheduledPostId)
+	if rf, ok := ret.Get(1).(func(request.CTX, string) error); ok {
+		r1 = rf(rctx, scheduledPostId)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -92,9 +93,9 @@ func (_m *ScheduledPostStore) GetMaxMessageSize() int {
 	return r0
 }
 
-// GetPendingScheduledPosts provides a mock function with given fields: beforeTime, afterTime, lastScheduledPostId, perPage
-func (_m *ScheduledPostStore) GetPendingScheduledPosts(beforeTime int64, afterTime int64, lastScheduledPostId string, perPage uint64) ([]*model.ScheduledPost, error) {
-	ret := _m.Called(beforeTime, afterTime, lastScheduledPostId, perPage)
+// GetPendingScheduledPosts provides a mock function with given fields: rctx, beforeTime, afterTime, lastScheduledPostId, perPage
+func (_m *ScheduledPostStore) GetPendingScheduledPosts(rctx request.CTX, beforeTime int64, afterTime int64, lastScheduledPostId string, perPage uint64) ([]*model.ScheduledPost, error) {
+	ret := _m.Called(rctx, beforeTime, afterTime, lastScheduledPostId, perPage)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetPendingScheduledPosts")
@@ -102,19 +103,19 @@ func (_m *ScheduledPostStore) GetPendingScheduledPosts(beforeTime int64, afterTi
 
 	var r0 []*model.ScheduledPost
 	var r1 error
-	if rf, ok := ret.Get(0).(func(int64, int64, string, uint64) ([]*model.ScheduledPost, error)); ok {
-		return rf(beforeTime, afterTime, lastScheduledPostId, perPage)
+	if rf, ok := ret.Get(0).(func(request.CTX, int64, int64, string, uint64) ([]*model.ScheduledPost, error)); ok {
+		return rf(rctx, beforeTime, afterTime, lastScheduledPostId, perPage)
 	}
-	if rf, ok := ret.Get(0).(func(int64, int64, string, uint64) []*model.ScheduledPost); ok {
-		r0 = rf(beforeTime, afterTime, lastScheduledPostId, perPage)
+	if rf, ok := ret.Get(0).(func(request.CTX, int64, int64, string, uint64) []*model.ScheduledPost); ok {
+		r0 = rf(rctx, beforeTime, afterTime, lastScheduledPostId, perPage)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.ScheduledPost)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(int64, int64, string, uint64) error); ok {
-		r1 = rf(beforeTime, afterTime, lastScheduledPostId, perPage)
+	if rf, ok := ret.Get(1).(func(request.CTX, int64, int64, string, uint64) error); ok {
+		r1 = rf(rctx, beforeTime, afterTime, lastScheduledPostId, perPage)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -122,9 +123,9 @@ func (_m *ScheduledPostStore) GetPendingScheduledPosts(beforeTime int64, afterTi
 	return r0, r1
 }
 
-// GetScheduledPostsForUser provides a mock function with given fields: userId, teamId
-func (_m *ScheduledPostStore) GetScheduledPostsForUser(userId string, teamId string) ([]*model.ScheduledPost, error) {
-	ret := _m.Called(userId, teamId)
+// GetScheduledPostsForUser provides a mock function with given fields: rctx, userId, teamId
+func (_m *ScheduledPostStore) GetScheduledPostsForUser(rctx request.CTX, userId string, teamId string) ([]*model.ScheduledPost, error) {
+	ret := _m.Called(rctx, userId, teamId)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetScheduledPostsForUser")
@@ -132,19 +133,19 @@ func (_m *ScheduledPostStore) GetScheduledPostsForUser(userId string, teamId str
 
 	var r0 []*model.ScheduledPost
 	var r1 error
-	if rf, ok := ret.Get(0).(func(string, string) ([]*model.ScheduledPost, error)); ok {
-		return rf(userId, teamId)
+	if rf, ok := ret.Get(0).(func(request.CTX, string, string) ([]*model.ScheduledPost, error)); ok {
+		return rf(rctx, userId, teamId)
 	}
-	if rf, ok := ret.Get(0).(func(string, string) []*model.ScheduledPost); ok {
-		r0 = rf(userId, teamId)
+	if rf, ok := ret.Get(0).(func(request.CTX, string, string) []*model.ScheduledPost); ok {
+		r0 = rf(rctx, userId, teamId)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.ScheduledPost)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(string, string) error); ok {
-		r1 = rf(userId, teamId)
+	if rf, ok := ret.Get(1).(func(request.CTX, string, string) error); ok {
+		r1 = rf(rctx, userId, teamId)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -188,17 +189,17 @@ func (_m *ScheduledPostStore) PermanentlyDeleteScheduledPosts(scheduledPostIDs [
 	return r0
 }
 
-// UpdateOldScheduledPosts provides a mock function with given fields: beforeTime
-func (_m *ScheduledPostStore) UpdateOldScheduledPosts(beforeTime int64) error {
-	ret := _m.Called(beforeTime)
+// UpdateOldScheduledPosts provides a mock function with given fields: rctx, beforeTime
+func (_m *ScheduledPostStore) UpdateOldScheduledPosts(rctx request.CTX, beforeTime int64) error {
+	ret := _m.Called(rctx, beforeTime)
 
 	if len(ret) == 0 {
 		panic("no return value specified for UpdateOldScheduledPosts")
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(int64) error); ok {
-		r0 = rf(beforeTime)
+	if rf, ok := ret.Get(0).(func(request.CTX, int64) error); ok {
+		r0 = rf(rctx, beforeTime)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -206,17 +207,35 @@ func (_m *ScheduledPostStore) UpdateOldScheduledPosts(beforeTime int64) error {
 	return r0
 }
 
-// UpdatedScheduledPost provides a mock function with given fields: scheduledPost
-func (_m *ScheduledPostStore) UpdatedScheduledPost(scheduledPost *model.ScheduledPost) error {
-	ret := _m.Called(scheduledPost)
+// UpdateRecurringScheduledPosts provides a mock function with given fields: rctx, scheduledPosts
+func (_m *ScheduledPostStore) UpdateRecurringScheduledPosts(rctx request.CTX, scheduledPosts []*model.ScheduledPost) error {
+	ret := _m.Called(rctx, scheduledPosts)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateRecurringScheduledPosts")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(request.CTX, []*model.ScheduledPost) error); ok {
+		r0 = rf(rctx, scheduledPosts)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// UpdatedScheduledPost provides a mock function with given fields: rctx, scheduledPost
+func (_m *ScheduledPostStore) UpdatedScheduledPost(rctx request.CTX, scheduledPost *model.ScheduledPost) error {
+	ret := _m.Called(rctx, scheduledPost)
 
 	if len(ret) == 0 {
 		panic("no return value specified for UpdatedScheduledPost")
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(*model.ScheduledPost) error); ok {
-		r0 = rf(scheduledPost)
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.ScheduledPost) error); ok {
+		r0 = rf(rctx, scheduledPost)
 	} else {
 		r0 = ret.Error(0)
 	}

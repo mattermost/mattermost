@@ -96,6 +96,22 @@ export function getMembershipRule(rules?: AccessControlPolicyRule[]): AccessCont
     return undefined;
 }
 
+// ANDs CEL membership expressions; searchUsersForExpression doesn't resolve
+// policy imports, so callers combine them here.
+export function combineMembershipExpressions(expressions: Array<string | undefined>): string {
+    const parts = expressions.
+        map((expr) => expr?.trim()).
+        filter((expr): expr is string => Boolean(expr));
+
+    if (parts.length === 0) {
+        return '';
+    }
+    if (parts.length === 1) {
+        return parts[0]!;
+    }
+    return parts.map((expr) => `(${expr})`).join(' && ');
+}
+
 /**
  * Returns the rules that govern non-membership actions (file upload/download
  * permission rules in v0.4). Membership rules and wildcard-action rules are
@@ -246,6 +262,7 @@ export const POLICY_SIMULATION_BLAME_SOURCES = {
     PEER_POLICY: 'peer_policy',
     NO_APPLICABLE_POLICY: 'no_applicable_policy',
     NO_APPLICABLE_RULE: 'no_applicable_rule',
+    NO_SESSION_DATA: 'no_session_data',
     SIBLING_SAVED: 'sibling_saved',
 } as const;
 

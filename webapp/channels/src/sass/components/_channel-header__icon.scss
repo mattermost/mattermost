@@ -71,6 +71,36 @@
     .icon__search {
         top: 1px;
     }
+
+    .channel-header__members-icon-wrapper {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .channel-header__join-request-badge {
+        position: absolute;
+        z-index: 1;
+        top: -2px;
+        right: -3px;
+        width: 6px;
+        height: 6px;
+        border-radius: var(--radius-full);
+        background: var(--button-bg);
+        box-shadow: 0 0 0 2px var(--center-channel-bg);
+        pointer-events: none;
+    }
+
+    &:hover .channel-header__join-request-badge {
+        box-shadow: 0 0 0 2px color-mix(in srgb, var(--center-channel-color) 8%, var(--center-channel-bg));
+    }
+
+    &:active .channel-header__join-request-badge,
+    &--active .channel-header__join-request-badge,
+    &--active:hover .channel-header__join-request-badge {
+        box-shadow: 0 0 0 2px color-mix(in srgb, var(--button-bg) 8%, var(--center-channel-bg));
+    }
 }
 
 .channel-header__info .channel-header__icons .channel-header__icon--wide {

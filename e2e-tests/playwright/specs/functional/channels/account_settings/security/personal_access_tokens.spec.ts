@@ -216,4 +216,100 @@ test.describe('Personal Access Tokens expiry @personal_access_tokens', () => {
         const disabledRow = modal.locator('.setting-box__item', {hasText: 'disabled token'});
         await expect(disabledRow.getByText('Disabled')).toBeVisible();
     });
+
+    test('regenerates a token and reveals the new secret', async ({pw}) => {
+        test.setTimeout(120000);
+        const {user, adminClient} = await pw.initSetup();
+        await adminClient.patchConfig({ServiceSettings: {EnableUserAccessTokens: true}});
+        await adminClient.updateUserRoles(user.id, TOKEN_ROLES);
+        await pw.waitUntil(async () => {
+            const cfg = await adminClient.getConfig();
+            return cfg.ServiceSettings?.EnableUserAccessTokens === true;
+        });
+
+        // # Seed a token for the user
+        const originalToken = await adminClient.createUserAccessToken(user.id, 'rotate me token');
+
+        const {channelsPage} = await pw.testBrowser.login(user);
+        await channelsPage.goto();
+        await channelsPage.toBeVisible();
+
+        const modal = await openTokensSection(channelsPage.page);
+        const tokenRow = modal.locator('.setting-box__item', {hasText: 'rotate me token'});
+        await expect(tokenRow.getByText(originalToken.id)).toBeVisible();
+
+        // # Click Regenerate and confirm the warning naming the token
+        await tokenRow.getByRole('link', {name: 'Regenerate'}).click();
+        const confirmModal = channelsPage.page.locator('#confirmModal');
+        await expect(confirmModal.getByText('Regenerate Token?')).toBeVisible();
+        await expect(confirmModal.getByText(/rotate me token/)).toBeVisible();
+        await confirmModal.getByRole('button', {name: 'Yes, Regenerate'}).click();
+
+        // * The new secret is revealed, the token keeps its id, and the old row is hidden
+        await expect(modal.getByText('Access Token:')).toBeVisible();
+        await expect(modal.getByText(originalToken.id)).toBeVisible();
+        await expect(tokenRow).toBeHidden();
+
+        // * The old secret no longer authenticates, the token is still enabled
+        const rotated = await adminClient.getUserAccessToken(originalToken.id);
+        expect(rotated.is_active).toBe(true);
+        expect(rotated.id).toBe(originalToken.id);
+    });
+
+    test('lets the user pick a new expiry when regenerating', async ({pw}) => {
+        test.setTimeout(120000);
+        const {user, adminClient} = await pw.initSetup();
+        await adminClient.patchConfig({ServiceSettings: {EnableUserAccessTokens: true}});
+        await adminClient.updateUserRoles(user.id, TOKEN_ROLES);
+        await pw.waitUntil(async () => {
+            const cfg = await adminClient.getConfig();
+            return cfg.ServiceSettings?.EnableUserAccessTokens === true;
+        });
+
+        // # Seed a never-expiring token for the user
+        const originalToken = await adminClient.createUserAccessToken(user.id, 'expiring rotate token');
+        expect(originalToken.expires_at).toBe(0);
+
+        const {channelsPage} = await pw.testBrowser.login(user);
+        await channelsPage.goto();
+        await channelsPage.toBeVisible();
+
+        const modal = await openTokensSection(channelsPage.page);
+        const tokenRow = modal.locator('.setting-box__item', {hasText: 'expiring rotate token'});
+
+        // # Regenerate, choosing a 7-day expiry instead of the "no expiry" default
+        await tokenRow.getByRole('link', {name: 'Regenerate'}).click();
+        const confirmModal = channelsPage.page.locator('#confirmModal');
+        await confirmModal.locator('#regenerateTokenExpiry').selectOption('7d');
+        await confirmModal.getByRole('button', {name: 'Yes, Regenerate'}).click();
+
+        // * The rotated token now has a future expiry set
+        await expect(modal.getByText('Access Token:')).toBeVisible();
+        const rotated = await adminClient.getUserAccessToken(originalToken.id);
+        expect(rotated.expires_at).toBeGreaterThan(Date.now());
+    });
+
+    test('does not offer to regenerate a disabled token', async ({pw}) => {
+        test.setTimeout(120000);
+        const {user, adminClient} = await pw.initSetup();
+        await adminClient.patchConfig({ServiceSettings: {EnableUserAccessTokens: true}});
+        await adminClient.updateUserRoles(user.id, TOKEN_ROLES);
+        await pw.waitUntil(async () => {
+            const cfg = await adminClient.getConfig();
+            return cfg.ServiceSettings?.EnableUserAccessTokens === true;
+        });
+
+        const disabledToken = await adminClient.createUserAccessToken(user.id, 'disabled token');
+        await adminClient.disableUserAccessToken(disabledToken.id);
+
+        const {channelsPage} = await pw.testBrowser.login(user);
+        await channelsPage.goto();
+        await channelsPage.toBeVisible();
+
+        const modal = await openTokensSection(channelsPage.page);
+        const disabledRow = modal.locator('.setting-box__item', {hasText: 'disabled token'});
+
+        // * No Regenerate link for a disabled token
+        await expect(disabledRow.getByRole('link', {name: 'Regenerate'})).toBeHidden();
+    });
 });

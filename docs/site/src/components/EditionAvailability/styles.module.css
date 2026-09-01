@@ -20,8 +20,14 @@
   background: rgba(255, 255, 255, 0.04);
 }
 
+/* Edition and Deployment badges share the same denim left-edge — no color
+ * differentiation between them; the label text already distinguishes them. */
 .edition {
-  border-left-color: var(--mm-color-marigold, #FFBC1F);
+  border-left-color: var(--mm-color-denim, #1E325C);
+}
+
+[data-theme='dark'] .edition {
+  border-left-color: var(--mm-denim-300, #8499C5);
 }
 
 .key {

@@ -1404,6 +1404,41 @@ export function enableUserAccessToken(tokenId: string): ActionFuncAsync {
     };
 }
 
+export function rotateUserAccessToken(tokenId: string, expiresAt?: number): ActionFuncAsync<UserAccessToken> {
+    return async (dispatch, getState) => {
+        let data;
+
+        try {
+            data = await Client4.rotateUserAccessToken(tokenId, expiresAt);
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch(logError(error));
+            return {error};
+        }
+
+        const actions: AnyAction[] = [{
+            type: AdminTypes.RECEIVED_USER_ACCESS_TOKEN,
+            data: {...data,
+                token: '',
+            },
+        }];
+
+        const {currentUserId} = getState().entities.users;
+        if (data.user_id === currentUserId) {
+            actions.push(
+                {
+                    type: UserTypes.RECEIVED_MY_USER_ACCESS_TOKEN,
+                    data: {...data, token: ''},
+                },
+            );
+        }
+
+        dispatch(batchActions(actions));
+
+        return {data};
+    };
+}
+
 export function getKnownUsers() {
     return bindClientFunc({
         clientFunc: Client4.getKnownUsers,
@@ -1476,5 +1511,6 @@ export default {
     revokeUserAccessToken,
     disableUserAccessToken,
     enableUserAccessToken,
+    rotateUserAccessToken,
     checkForModifiedUsers,
 };

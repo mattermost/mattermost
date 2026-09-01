@@ -21,11 +21,22 @@ import WebSocketClient from 'client/web_websocket_client';
 import Pluggable from 'plugins/pluggable';
 import {Constants} from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
-import {getCurrentProduct} from 'utils/products';
+import {getCurrentProduct, getTeamScopedProductURL, isTeamScopedProduct} from 'utils/products';
 import {filterAndSortTeamsByDisplayName} from 'utils/team_utils';
 import * as Utils from 'utils/utils';
 
+import type {ProductComponent} from 'types/store/plugins';
+
 import type {PropsFromRedux} from './index';
+
+// The URL to switch to for a team: a team-scoped product keeps you in the product on the new
+// team; otherwise it's the team's channels.
+export function getTeamSwitchURL(currentProduct: ProductComponent | null, teamName: string): string {
+    if (currentProduct && isTeamScopedProduct(currentProduct)) {
+        return getTeamScopedProductURL(currentProduct.baseURL, teamName);
+    }
+    return `/${teamName}`;
+}
 
 export interface Props extends PropsFromRedux, WrappedComponentProps {
     location: RouteComponentProps['location'];
@@ -46,6 +57,15 @@ export class TeamSidebar extends React.PureComponent<Props, State> {
         };
     }
 
+    // Switch to `team`, respecting the current product. Team-scoped products and Channels carry the
+    // team in the URL, so navigate there; global products (e.g. Boards) aren't URL-tied to a team,
+    // so dispatch selectTeam without navigating. Used by both the click and keyboard switch paths.
+    switchTeamTo = (team: Team) => {
+        const currentProduct = getCurrentProduct(this.props.products, this.props.location.pathname);
+        const switchByTeam = currentProduct !== null && !isTeamScopedProduct(currentProduct);
+        this.props.actions.switchTeam(getTeamSwitchURL(currentProduct, team.name), switchByTeam ? team : undefined);
+    };
+
     switchToPrevOrNextTeam = (e: KeyboardEvent, currentTeamId: string, teams: Team[]) => {
         if (Keyboard.isKeyPressed(e, Constants.KeyCodes.UP) || Keyboard.isKeyPressed(e, Constants.KeyCodes.DOWN)) {
             e.preventDefault();
@@ -62,7 +82,7 @@ export class TeamSidebar extends React.PureComponent<Props, State> {
                 team = teams[newPos];
             }
 
-            this.props.actions.switchTeam(`/${team.name}`);
+            this.switchTeamTo(team);
             return true;
         }
         return false;
@@ -91,7 +111,7 @@ export class TeamSidebar extends React.PureComponent<Props, State> {
                     return false;
                 }
                 const team = teams[idx];
-                this.props.actions.switchTeam(`/${team.name}`);
+                this.switchTeamTo(team);
                 return true;
             }
         }
@@ -123,7 +143,7 @@ export class TeamSidebar extends React.PureComponent<Props, State> {
 
     componentDidUpdate(prevProps: Props) {
         // TODO: debounce
-        if (prevProps.currentTeamId !== this.props.currentTeamId && this.props.enableWebSocketEventScope) {
+        if (prevProps.currentTeamId !== this.props.currentTeamId) {
             WebSocketClient.updateActiveTeam(this.props.currentTeamId);
         }
     }
@@ -199,7 +219,7 @@ export class TeamSidebar extends React.PureComponent<Props, State> {
             return (
                 <TeamButton
                     key={'switch_team_' + team.name}
-                    url={`/${team.name}`}
+                    url={getTeamSwitchURL(currentProduct, team.name)}
                     tip={team.display_name}
                     active={team.id === this.props.currentTeamId}
                     displayName={team.display_name}
@@ -209,7 +229,7 @@ export class TeamSidebar extends React.PureComponent<Props, State> {
                     mentions={this.props.mentionsInTeamMap.has(team.id) ? this.props.mentionsInTeamMap.get(team.id) : 0}
                     hasUrgent={this.props.teamHasUrgentMap.has(team.id) ? this.props.teamHasUrgentMap.get(team.id) : false}
                     teamIconUrl={Utils.imageURLForTeam(team)}
-                    switchTeam={(url: string) => this.props.actions.switchTeam(url, currentProduct ? team : undefined)}
+                    switchTeam={() => this.switchTeamTo(team)}
                     isDraggable={true}
                     teamId={team.id}
                     teamIndex={index}

@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"slices"
 	"sort"
 	"strings"
 	"unicode/utf8"
@@ -24,7 +25,7 @@ var (
 
 // PermissionChecker checks whether a user has a specific permission.
 // This avoids a circular dependency between the properties and app packages.
-type PermissionChecker func(userID string, permission *model.Permission) bool
+type PermissionChecker func(rctx request.CTX, userID string, permission *model.Permission) bool
 
 // AccessControlAttributeValidationHook validates and sanitizes property field attributes
 // and values for managed property groups. It owns the full attr pipeline
@@ -40,6 +41,11 @@ type PermissionChecker func(userID string, permission *model.Permission) bool
 //     ldap/saml on non-text fields)
 //   - auto-assigns IDs to options that lack one and validates option shape
 //   - validates visibility, value_type, managed, display_name, and sort_order
+//   - validates and canonicalizes actions, the render-placement allow-list
+//     shared by the classification banner and channel labels; on update this
+//     fires only when actions actually change, so a field carrying a value
+//     that is no longer valid stays editable on all other attrs (lenient
+//     grandfather, as for Name)
 //   - validates property values for text fields against value_type
 //     constraints (email, url, phone)
 //   - enforces that managed="admin" can only be set by callers with
@@ -79,8 +85,9 @@ func (h *AccessControlAttributeValidationHook) isGroupManaged(groupID string) bo
 // default, clears attrs that don't apply to the field type, validates each
 // attr, and auto-IDs+validates options for select-shaped fields. Mutates
 // field.Attrs in place. prevType is the field's type before this operation.
-// prevType is empty on creation of a new field.
-func (h *AccessControlAttributeValidationHook) sanitizeAndValidateFieldAttrs(field *model.PropertyField, prevType model.PropertyFieldType) error {
+// prevType is empty on creation of a new field. prevActions is the field's
+// attrs["actions"] before this operation, nil on creation.
+func (h *AccessControlAttributeValidationHook) sanitizeAndValidateFieldAttrs(field *model.PropertyField, prevType model.PropertyFieldType, prevActions any) error {
 	if field.Attrs == nil {
 		field.Attrs = model.StringInterface{}
 	}
@@ -121,6 +128,9 @@ func (h *AccessControlAttributeValidationHook) sanitizeAndValidateFieldAttrs(fie
 	if managed != "" && managed != "admin" {
 		return fmt.Errorf("invalid managed %q (must be empty or %q): %w", managed, "admin", ErrInvalidFieldAttrs)
 	}
+	if err := h.sanitizeAndValidateOwners(field); err != nil {
+		return err
+	}
 	if dn, _ := field.Attrs[model.PropertyFieldAttrDisplayName].(string); utf8.RuneCountInString(dn) > model.PropertyFieldNameMaxRunes {
 		return fmt.Errorf("display_name exceeds max length of %d runes: %w", model.PropertyFieldNameMaxRunes, ErrInvalidFieldAttrs)
 	}
@@ -132,7 +142,46 @@ func (h *AccessControlAttributeValidationHook) sanitizeAndValidateFieldAttrs(fie
 	if err := model.ValidatePropertyFieldSortOrder(field); err != nil {
 		return fmt.Errorf("%s: %w", err.Error(), ErrInvalidFieldAttrs)
 	}
+	// Lenient grandfather, same rationale as Name: a PATCH merges attrs, so a
+	// field carrying an actions value that predates (or has since fallen out of)
+	// the allow-list would otherwise be unpatchable on every other attr, with
+	// delete/recreate the only way out. Only a caller actually changing actions
+	// gets the strict check; an untouched value rides along as-is.
+	if err := model.SanitizeAndValidatePropertyFieldActions(field); err != nil {
+		if !sameFieldActions(field.Attrs[model.PropertyFieldAttrActions], prevActions) {
+			return fmt.Errorf("%s: %w", err.Error(), ErrInvalidFieldAttrs)
+		}
+	}
 	return nil
+}
+
+// sameFieldActions reports whether two raw attrs["actions"] values carry the
+// same list. Anything that isn't a list of strings compares unequal, so a
+// caller sending a malformed value is still rejected rather than grandfathered.
+func sameFieldActions(a, b any) bool {
+	as, aOK := fieldActionsAsStrings(a)
+	bs, bOK := fieldActionsAsStrings(b)
+	return aOK && bOK && slices.Equal(as, bs)
+}
+
+func fieldActionsAsStrings(raw any) ([]string, bool) {
+	switch v := raw.(type) {
+	case nil:
+		return nil, true
+	case []string:
+		return v, true
+	case []any:
+		out := make([]string, 0, len(v))
+		for _, elem := range v {
+			s, ok := elem.(string)
+			if !ok {
+				return nil, false
+			}
+			out = append(out, s)
+		}
+		return out, true
+	}
+	return nil, false
 }
 
 // trimmedFieldAttrKeys lists the string-valued attrs the hook trims on the
@@ -221,6 +270,111 @@ func (h *AccessControlAttributeValidationHook) sanitizeAndValidateOptions(field 
 	return nil
 }
 
+// sanitizeAndValidateOwners normalizes and validates the owners attr on a
+// field. Each entry is trimmed and must be well-formed ({id, type, scopes}
+// with a recognized type); scopes are trimmed and deduped; duplicate owner
+// entries (same type+id) are merged. Owners may not be combined with
+// managed="admin". An empty or absent list is removed so HasPropertyFieldOwners
+// stays false. The normalized list is written back in canonical form
+// ([]any of maps) so downstream readers see a single shape.
+//
+// Defensive bounds (see the Property Owner* constants) cap the id and scope
+// lengths and the number of owners/scopes so a buggy or hostile owner cannot
+// bloat the Attrs blob. They are deliberately far above real usage.
+//
+// An unrecognized owner type is rejected here, but an owner that simply does
+// not correspond to any real installed plugin/service is intentionally
+// accepted: it is a harmless no-op (the field stays locked to its real owners),
+// so the system fails safe and access is checked at the moment of action.
+func (h *AccessControlAttributeValidationHook) sanitizeAndValidateOwners(field *model.PropertyField) error {
+	raw, ok := field.Attrs[model.PropertyAttrsOwners]
+	if !ok || raw == nil {
+		return nil
+	}
+
+	data, err := json.Marshal(raw)
+	if err != nil {
+		return fmt.Errorf("invalid owners: %s: %w", err, ErrInvalidFieldAttrs)
+	}
+	var owners []model.PropertyOwner
+	if err = json.Unmarshal(data, &owners); err != nil {
+		return fmt.Errorf("invalid owners: %s: %w", err, ErrInvalidFieldAttrs)
+	}
+
+	if len(owners) == 0 {
+		delete(field.Attrs, model.PropertyAttrsOwners)
+		return nil
+	}
+
+	if managed, _ := field.Attrs[model.PropertyFieldAttrManaged].(string); managed == "admin" {
+		return fmt.Errorf("owners cannot be combined with managed=admin: %w", ErrInvalidFieldAttrs)
+	}
+
+	normalized := make([]model.PropertyOwner, 0, len(owners))
+	indexByKey := make(map[string]int, len(owners))
+	for _, owner := range owners {
+		owner.ID = strings.TrimSpace(owner.ID)
+		owner.Type = strings.TrimSpace(owner.Type)
+		if owner.ID == "" {
+			return fmt.Errorf("invalid owners: owner id cannot be empty: %w", ErrInvalidFieldAttrs)
+		}
+		if utf8.RuneCountInString(owner.ID) > model.PropertyOwnerIDMaxRunes {
+			return fmt.Errorf("invalid owners: owner id exceeds max length of %d runes: %w", model.PropertyOwnerIDMaxRunes, ErrInvalidFieldAttrs)
+		}
+		if !model.IsValidPropertyOwnerType(owner.Type) {
+			return fmt.Errorf("invalid owners: unknown owner type %q: %w", owner.Type, ErrInvalidFieldAttrs)
+		}
+
+		scopes := make([]string, 0, len(owner.Scopes))
+		for _, scope := range owner.Scopes {
+			scope = strings.TrimSpace(scope)
+			if scope == "" || slices.Contains(scopes, scope) {
+				continue
+			}
+			if utf8.RuneCountInString(scope) > model.PropertyOwnerScopeMaxRunes {
+				return fmt.Errorf("invalid owners: scope exceeds max length of %d runes: %w", model.PropertyOwnerScopeMaxRunes, ErrInvalidFieldAttrs)
+			}
+			if !model.IsValidPropertyOwnerScope(scope) {
+				return fmt.Errorf("invalid owners: scope %q contains invalid characters: %w", scope, ErrInvalidFieldAttrs)
+			}
+			scopes = append(scopes, scope)
+		}
+		owner.Scopes = scopes
+
+		key := owner.Type + "\x00" + owner.ID
+		if idx, dup := indexByKey[key]; dup {
+			for _, scope := range owner.Scopes {
+				if !slices.Contains(normalized[idx].Scopes, scope) {
+					normalized[idx].Scopes = append(normalized[idx].Scopes, scope)
+				}
+			}
+			continue
+		}
+		indexByKey[key] = len(normalized)
+		normalized = append(normalized, owner)
+	}
+
+	if len(normalized) > model.PropertyOwnersMaxPerField {
+		return fmt.Errorf("invalid owners: too many owners (%d), max is %d: %w", len(normalized), model.PropertyOwnersMaxPerField, ErrInvalidFieldAttrs)
+	}
+	for _, owner := range normalized {
+		if len(owner.Scopes) > model.PropertyOwnerScopesMax {
+			return fmt.Errorf("invalid owners: owner %q has too many scopes (%d), max is %d: %w", owner.ID, len(owner.Scopes), model.PropertyOwnerScopesMax, ErrInvalidFieldAttrs)
+		}
+	}
+
+	out, err := json.Marshal(normalized)
+	if err != nil {
+		return fmt.Errorf("invalid owners: %s: %w", err, ErrInvalidFieldAttrs)
+	}
+	var canonical []any
+	if err = json.Unmarshal(out, &canonical); err != nil {
+		return fmt.Errorf("invalid owners: %s: %w", err, ErrInvalidFieldAttrs)
+	}
+	field.Attrs[model.PropertyAttrsOwners] = canonical
+	return nil
+}
+
 // validateRankOptions enforces that every option on a rank field carries a
 // positive, unique rank. It is the single source of truth for rank validity
 // and runs on every rank path: it rejects a directly-authored field (create or
@@ -284,6 +438,12 @@ func rankSortKey(rank *int) int {
 //     gated on PermissionManageSystem; callers without an identifiable
 //     caller ID (e.g. internal callers with no session on rctx) are
 //     treated as non-admin and rejected.
+//   - When the field is owner-managed, PermissionValues is pinned to sysadmin.
+//     Human value writes are already blocked authoritatively by
+//     checkOwnerValueWriteAccess in the property-service hook, but pinning
+//     sysadmin here is the safe fallback: if the owners list is ever dropped,
+//     the field defaults to admin-only rather than becoming writable by every
+//     member.
 //   - Otherwise, PermissionValues is left as-is when set, and default-filled
 //     by ObjectType when nil (member for user fields, sysadmin for system
 //     and template). Caller pins are never downgraded.
@@ -298,9 +458,11 @@ func (h *AccessControlAttributeValidationHook) enforceGroupPermissions(rctx requ
 			return nil, fmt.Errorf("missing permission to set managed=admin: no permission checker configured: %w", ErrAdminRequired)
 		}
 		callerID := h.propertyService.extractCallerID(rctx)
-		if callerID == "" || !h.permissionChecker(callerID, model.PermissionManageSystem) {
+		if callerID == "" || !h.permissionChecker(rctx, callerID, model.PermissionManageSystem) {
 			return nil, fmt.Errorf("missing permission to set managed=admin: only system admins can set managed=admin: %w", ErrAdminRequired)
 		}
+		field.PermissionValues = &sysadmin
+	} else if model.HasPropertyFieldOwners(field) {
 		field.PermissionValues = &sysadmin
 	} else if field.PermissionValues == nil {
 		defaultLevel := defaultPermissionValuesForObjectType(field.ObjectType)
@@ -341,9 +503,10 @@ func (h *AccessControlAttributeValidationHook) PreCreatePropertyField(rctx reque
 		return nil, appErr
 	}
 
-	// Create: no prior type, so a rank field here is authored directly and its
-	// ranks are validated strictly rather than repaired.
-	if err := h.sanitizeAndValidateFieldAttrs(field, ""); err != nil {
+	// Create: no prior type or actions, so a rank field here is authored directly
+	// and its ranks are validated strictly rather than repaired, and actions get
+	// the strict check with nothing to grandfather.
+	if err := h.sanitizeAndValidateFieldAttrs(field, "", nil); err != nil {
 		return nil, err
 	}
 
@@ -358,7 +521,7 @@ func (h *AccessControlAttributeValidationHook) PreUpdatePropertyField(rctx reque
 	// Lenient grandfather: only validate Name against CEL rules when it
 	// actually changes, so pre-existing fields whose names predate this
 	// validation remain editable on all other attrs.
-	existing, err := h.propertyService.getPropertyField(groupID, field.ID)
+	existing, err := h.propertyService.getPropertyField(rctx, groupID, field.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -368,7 +531,7 @@ func (h *AccessControlAttributeValidationHook) PreUpdatePropertyField(rctx reque
 		}
 	}
 
-	if err := h.sanitizeAndValidateFieldAttrs(field, existing.Type); err != nil {
+	if err := h.sanitizeAndValidateFieldAttrs(field, existing.Type, existing.Attrs[model.PropertyFieldAttrActions]); err != nil {
 		return nil, err
 	}
 
@@ -386,7 +549,7 @@ func (h *AccessControlAttributeValidationHook) PreUpdatePropertyFields(rctx requ
 	for i, f := range fields {
 		fieldIDs[i] = f.ID
 	}
-	existingFields, err := h.propertyService.getPropertyFields(groupID, fieldIDs)
+	existingFields, err := h.propertyService.getPropertyFields(rctx, groupID, fieldIDs)
 	if err != nil {
 		return nil, err
 	}
@@ -407,10 +570,12 @@ func (h *AccessControlAttributeValidationHook) PreUpdatePropertyFields(rctx requ
 		// the not-found error later); strict rank validation is the safe
 		// default for that path.
 		var prevType model.PropertyFieldType
+		var prevActions any
 		if existing != nil {
 			prevType = existing.Type
+			prevActions = existing.Attrs[model.PropertyFieldAttrActions]
 		}
-		if err := h.sanitizeAndValidateFieldAttrs(field, prevType); err != nil {
+		if err := h.sanitizeAndValidateFieldAttrs(field, prevType, prevActions); err != nil {
 			return nil, fmt.Errorf("field %s: %w", field.ID, err)
 		}
 
@@ -537,7 +702,7 @@ func (h *AccessControlAttributeValidationHook) validateValueAgainstField(field *
 	return nil
 }
 
-func (h *AccessControlAttributeValidationHook) validateValues(values []*model.PropertyValue) error {
+func (h *AccessControlAttributeValidationHook) validateValues(rctx request.CTX, values []*model.PropertyValue) error {
 	if len(values) == 0 {
 		return nil
 	}
@@ -557,7 +722,7 @@ func (h *AccessControlAttributeValidationHook) validateValues(values []*model.Pr
 		fieldIDs = append(fieldIDs, id)
 	}
 
-	fields, err := h.propertyService.getPropertyFields(groupID, fieldIDs)
+	fields, err := h.propertyService.getPropertyFields(rctx, groupID, fieldIDs)
 	if err != nil {
 		return fmt.Errorf("failed to fetch fields for validation: %w", err)
 	}
@@ -580,43 +745,43 @@ func (h *AccessControlAttributeValidationHook) validateValues(values []*model.Pr
 	return nil
 }
 
-func (h *AccessControlAttributeValidationHook) PreUpsertPropertyValue(_ request.CTX, value *model.PropertyValue) (*model.PropertyValue, error) {
-	if err := h.validateValues([]*model.PropertyValue{value}); err != nil {
+func (h *AccessControlAttributeValidationHook) PreUpsertPropertyValue(rctx request.CTX, value *model.PropertyValue) (*model.PropertyValue, error) {
+	if err := h.validateValues(rctx, []*model.PropertyValue{value}); err != nil {
 		return nil, err
 	}
 	return value, nil
 }
 
-func (h *AccessControlAttributeValidationHook) PreUpsertPropertyValues(_ request.CTX, values []*model.PropertyValue) ([]*model.PropertyValue, error) {
-	if err := h.validateValues(values); err != nil {
+func (h *AccessControlAttributeValidationHook) PreUpsertPropertyValues(rctx request.CTX, values []*model.PropertyValue) ([]*model.PropertyValue, error) {
+	if err := h.validateValues(rctx, values); err != nil {
 		return nil, err
 	}
 	return values, nil
 }
 
-func (h *AccessControlAttributeValidationHook) PreCreatePropertyValue(_ request.CTX, value *model.PropertyValue) (*model.PropertyValue, error) {
-	if err := h.validateValues([]*model.PropertyValue{value}); err != nil {
+func (h *AccessControlAttributeValidationHook) PreCreatePropertyValue(rctx request.CTX, value *model.PropertyValue) (*model.PropertyValue, error) {
+	if err := h.validateValues(rctx, []*model.PropertyValue{value}); err != nil {
 		return nil, err
 	}
 	return value, nil
 }
 
-func (h *AccessControlAttributeValidationHook) PreCreatePropertyValues(_ request.CTX, values []*model.PropertyValue) ([]*model.PropertyValue, error) {
-	if err := h.validateValues(values); err != nil {
+func (h *AccessControlAttributeValidationHook) PreCreatePropertyValues(rctx request.CTX, values []*model.PropertyValue) ([]*model.PropertyValue, error) {
+	if err := h.validateValues(rctx, values); err != nil {
 		return nil, err
 	}
 	return values, nil
 }
 
-func (h *AccessControlAttributeValidationHook) PreUpdatePropertyValue(_ request.CTX, _ string, value *model.PropertyValue) (*model.PropertyValue, error) {
-	if err := h.validateValues([]*model.PropertyValue{value}); err != nil {
+func (h *AccessControlAttributeValidationHook) PreUpdatePropertyValue(rctx request.CTX, _ string, value *model.PropertyValue) (*model.PropertyValue, error) {
+	if err := h.validateValues(rctx, []*model.PropertyValue{value}); err != nil {
 		return nil, err
 	}
 	return value, nil
 }
 
-func (h *AccessControlAttributeValidationHook) PreUpdatePropertyValues(_ request.CTX, _ string, values []*model.PropertyValue) ([]*model.PropertyValue, error) {
-	if err := h.validateValues(values); err != nil {
+func (h *AccessControlAttributeValidationHook) PreUpdatePropertyValues(rctx request.CTX, _ string, values []*model.PropertyValue) ([]*model.PropertyValue, error) {
+	if err := h.validateValues(rctx, values); err != nil {
 		return nil, err
 	}
 	return values, nil
