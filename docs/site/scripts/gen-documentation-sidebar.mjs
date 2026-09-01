@@ -814,7 +814,7 @@ const ADMIN_ONBOARD_GROUPS = {
         // `unlisted: true` snippet includes rendered inside each identity
         // provider page below, so they are not listed separately. Matches the
         // Sphinx sso-saml toctree.
-        label: 'SAML Single Sign-On',
+        label: 'SAML',
         landing: 'sso-saml',
         items: [
           'sso-saml-adfs',
