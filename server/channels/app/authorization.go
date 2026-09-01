@@ -647,7 +647,7 @@ func (a *App) hasChannelPropertyAdmin(rctx request.CTX, userID, channelID string
 		return false
 	}
 
-	user, appErr := a.GetUser(userID)
+	user, appErr := a.GetUser(rctx, userID)
 	if appErr != nil {
 		return false
 	}
