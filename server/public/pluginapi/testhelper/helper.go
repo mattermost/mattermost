@@ -84,9 +84,48 @@ func ensurePluginMeta() error {
 	return pluginMetaErr
 }
 
+// maxConcurrentTests bounds how many integration tests may run against the shared
+// Mattermost instance at once. It is 1 because tests mutate global, process-wide
+// server state — most notably per-plugin configuration, which lives in the server's
+// single in-memory Config — so two tests cannot safely overlap on one instance.
+//
+// This constant is the seam for a future instance pool: enabling real parallel
+// execution is a matter of raising it and handing each lease a distinct instance.
+// The lease contract below (one instance held for the whole test) is already what
+// such a pool requires, so tests may call t.Parallel() today and are simply
+// serialized through here until the pool lands.
+const maxConcurrentTests = 1
+
+var (
+	instanceSem = make(chan struct{}, maxConcurrentTests)
+	leasedTests sync.Map // *testing.T -> struct{}: tests currently holding a lease
+)
+
+// acquireInstance leases the shared Mattermost instance for the lifetime of t,
+// blocking until a slot is free. Calling it more than once within a single test is
+// safe: only the first call for a given t takes a slot, and that slot is released
+// exactly once via t.Cleanup. Keying the lease on t (rather than on each Setup call)
+// is what lets a test call Setup twice — e.g. to assert database-reset isolation —
+// without deadlocking against itself when maxConcurrentTests is 1.
+func acquireInstance(t *testing.T) {
+	t.Helper()
+	if _, held := leasedTests.LoadOrStore(t, struct{}{}); held {
+		return
+	}
+	instanceSem <- struct{}{}
+	t.Cleanup(func() {
+		<-instanceSem
+		leasedTests.Delete(t)
+	})
+}
+
 // Setup starts containers (once per test binary), resets the database, deploys the plugin,
 // and creates fresh test data (team, user, channel). Each test gets a completely clean
 // database — no state leaks between tests.
+//
+// Because tests share one Mattermost instance and mutate global server state, Setup
+// serializes them: a test holds the instance from Setup until it finishes. Tests may
+// still call t.Parallel(); they are gated one at a time. See maxConcurrentTests.
 //
 // If Docker is not available the test fails. Set SKIP_DOCKER_TESTS to skip instead.
 func Setup(t *testing.T) *TestHelper {
@@ -95,6 +134,10 @@ func Setup(t *testing.T) *TestHelper {
 	if os.Getenv("SKIP_DOCKER_TESTS") != "" {
 		t.Skip("Skipping integration test (SKIP_DOCKER_TESTS is set)")
 	}
+
+	// Lease the shared instance for the whole test before touching it, so concurrent
+	// tests do not clobber each other's global state (config, DB) mid-run.
+	acquireInstance(t)
 
 	c, err := ensureContainers(t)
 	require.NoError(t, err, "Docker is required for integration tests")
