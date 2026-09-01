@@ -284,7 +284,6 @@ const DEPLOYMENT_GROUPS = {
       {label: 'Search Infrastructure', landing: 'scale/enterprise-search', items: [
         'scale/elasticsearch-setup',
         'scale/opensearch-setup',
-        'scale/common-configure-mattermost-for-enterprise-search',
       ]},
       // Flattened from a category holding a single page.
       {doc: 'scale/redis', label: 'Caching with Redis'},
@@ -403,6 +402,17 @@ const DEPLOYMENT_ROOT_ORDER = [
 // hidden list is the health signal that nothing in the section is unreachable
 // — keep it that way.
 const DEPLOYMENT_HIDDEN = new Set([]);
+
+// Files in docs/deployment-guide/ that are MDX snippet/partial includes, not
+// standalone pages — same treatment as OVERVIEW_HIDDEN above. This one is
+// imported by both elasticsearch-setup and opensearch-setup, so its content
+// already renders inside them; listing it in the sidebar as well showed the
+// same fragment three times. It keeps its own URL because
+// administration-guide/upgrade/admin-onboarding-tasks deep-links to its
+// "enterprise search limitations" anchor.
+const DEPLOYMENT_SNIPPETS = new Set([
+  'scale/common-configure-mattermost-for-enterprise-search',
+]);
 
 // ---------------------------------------------------------------------------
 // Administration Guide — Configure — manual grouping override.
@@ -1294,6 +1304,10 @@ function buildDeploymentSidebar(autoCat) {
   }
 
   const leafLabels = collectLeafLabels(autoCat);
+
+  // Drop snippet-include partials before grouping so they neither render as
+  // sidebar entries nor trip the orphan check below.
+  for (const s of DEPLOYMENT_SNIPPETS) delete leafLabels[`deployment-guide/${s}`];
 
   const items = DEPLOYMENT_ROOT_ORDER.map((spec) => buildDeploymentItem(spec, leafLabels, autoCats));
 
