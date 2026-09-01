@@ -13,6 +13,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -26,9 +27,7 @@ func celSafeName() string {
 
 func TestCreateCPAField(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := SetupConfig(t, func(cfg *model.Config) {
-		cfg.FeatureFlags.CustomProfileAttributes = true
-	})
+	th := Setup(t)
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		field := &model.PropertyField{Name: celSafeName(), Type: model.PropertyFieldTypeText}
@@ -138,9 +137,7 @@ func TestCreateCPAField(t *testing.T) {
 
 func TestCPAFieldLimit(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := SetupConfig(t, func(cfg *model.Config) {
-		cfg.FeatureFlags.CustomProfileAttributes = true
-	}).InitBasic(t)
+	th := Setup(t).InitBasic(t)
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
 
 	// Create 20 fields — the maximum allowed by FieldLimitHook.
@@ -184,9 +181,7 @@ func TestCPAFieldLimit(t *testing.T) {
 
 func TestListCPAFields(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := SetupConfig(t, func(cfg *model.Config) {
-		cfg.FeatureFlags.CustomProfileAttributes = true
-	})
+	th := Setup(t)
 
 	// License required for field creation (LicenseCheckHook)
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
@@ -237,7 +232,6 @@ func TestListCPAFields(t *testing.T) {
 func TestPatchCPAField(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupConfig(t, func(cfg *model.Config) {
-		cfg.FeatureFlags.CustomProfileAttributes = true
 		cfg.FeatureFlags.PropertyFieldRank = true
 	})
 
@@ -589,9 +583,7 @@ func TestPatchCPAField(t *testing.T) {
 
 func TestDeleteCPAField(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := SetupConfig(t, func(cfg *model.Config) {
-		cfg.FeatureFlags.CustomProfileAttributes = true
-	})
+	th := Setup(t)
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		// Create a field with a license so we can test the license check on delete.
@@ -676,9 +668,7 @@ func TestDeleteCPAField(t *testing.T) {
 func TestListCPAValues(t *testing.T) {
 	mainHelper.Parallel(t)
 
-	th := SetupConfig(t, func(cfg *model.Config) {
-		cfg.FeatureFlags.CustomProfileAttributes = true
-	}).InitBasic(t)
+	th := Setup(t).InitBasic(t)
 
 	// License required for field/value creation (LicenseCheckHook)
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
@@ -773,9 +763,7 @@ func TestListCPAValues(t *testing.T) {
 func TestPatchCPAValues(t *testing.T) {
 	mainHelper.Parallel(t)
 
-	th := SetupConfig(t, func(cfg *model.Config) {
-		cfg.FeatureFlags.CustomProfileAttributes = true
-	}).InitBasic(t)
+	th := Setup(t).InitBasic(t)
 
 	// License required for field creation (LicenseCheckHook)
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
@@ -1177,9 +1165,7 @@ func TestPatchCPAValues(t *testing.T) {
 func TestPatchCPAValuesForUser(t *testing.T) {
 	mainHelper.Parallel(t)
 
-	th := SetupConfig(t, func(cfg *model.Config) {
-		cfg.FeatureFlags.CustomProfileAttributes = true
-	}).InitBasic(t)
+	th := Setup(t).InitBasic(t)
 
 	// License required for field creation (LicenseCheckHook)
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
@@ -1577,7 +1563,6 @@ func TestPatchCPAValuesForUser(t *testing.T) {
 func TestCPANonAdminWriteOwnValueViaGenericAPI(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupConfig(t, func(cfg *model.Config) {
-		cfg.FeatureFlags.CustomProfileAttributes = true
 		cfg.FeatureFlags.IntegratedBoards = true
 	}).InitBasic(t)
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
@@ -1639,7 +1624,6 @@ func TestCPANonAdminWriteOwnValueViaGenericAPI(t *testing.T) {
 func TestCPANonAdminBlockedFromAdminManagedViaGenericAPI(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupConfig(t, func(cfg *model.Config) {
-		cfg.FeatureFlags.CustomProfileAttributes = true
 		cfg.FeatureFlags.IntegratedBoards = true
 	}).InitBasic(t)
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
@@ -1704,7 +1688,6 @@ func TestCPANonAdminBlockedFromAdminManagedViaGenericAPI(t *testing.T) {
 func TestCPACrossAPIFieldRoundtrip(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupConfig(t, func(cfg *model.Config) {
-		cfg.FeatureFlags.CustomProfileAttributes = true
 		cfg.FeatureFlags.IntegratedBoards = true
 	}).InitBasic(t)
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
@@ -1823,7 +1806,6 @@ func TestCPACrossAPIFieldRoundtrip(t *testing.T) {
 func TestCPABackwardCompatAfterRefactor(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupConfig(t, func(cfg *model.Config) {
-		cfg.FeatureFlags.CustomProfileAttributes = true
 		cfg.FeatureFlags.IntegratedBoards = true
 	}).InitBasic(t)
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
@@ -1912,5 +1894,184 @@ func TestCPABackwardCompatAfterRefactor(t *testing.T) {
 		CheckForbiddenStatus(t, resp)
 		require.Error(t, err)
 		CheckErrorID(t, err, "app.property.sync_lock.app_error")
+	})
+}
+
+func TestOwnerManagedCPAFieldHumanValueWrites(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := Setup(t).InitBasic(t)
+
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+
+	field := &model.PropertyField{
+		Name: celSafeName(),
+		Type: model.PropertyFieldTypeText,
+		Attrs: model.StringInterface{
+			model.PropertyAttrsOwners: []model.PropertyOwner{
+				{ID: "com.mattermost.scim", Type: model.PropertyOwnerTypePlugin, Scopes: []string{"entra"}},
+			},
+		},
+	}
+
+	created, resp, err := th.SystemAdminClient.CreateCPAField(context.Background(), field)
+	CheckCreatedStatus(t, resp)
+	require.NoError(t, err)
+	require.NotNil(t, created)
+	// Owner-managed fields pin PermissionValues to sysadmin so that if the
+	// owners list is ever dropped, the field stays admin-only instead of
+	// becoming writable by every member. Human writes are additionally blocked
+	// in the property-service hook (like the ldap/saml sync lock).
+	require.NotNil(t, created.PermissionValues)
+	assert.Equal(t, model.PermissionLevelSysadmin, *created.PermissionValues)
+	require.NotNil(t, created.PermissionField)
+	assert.Equal(t, model.PermissionLevelSysadmin, *created.PermissionField)
+
+	t.Run("member cannot write values on an owner-managed field", func(t *testing.T) {
+		// The sysadmin PermissionValues pin denies the member at the API
+		// permission layer, before reaching the property-service hook.
+		_, resp, err := th.Client.PatchCPAValues(context.Background(), map[string]json.RawMessage{
+			created.ID: json.RawMessage(`"member write"`),
+		})
+		CheckForbiddenStatus(t, resp)
+		require.Error(t, err)
+		CheckErrorID(t, err, "api.property_value.patch.no_values_permission.app_error")
+	})
+
+	t.Run("system admin cannot write own values on an owner-managed field", func(t *testing.T) {
+		_, resp, err := th.SystemAdminClient.PatchCPAValues(context.Background(), map[string]json.RawMessage{
+			created.ID: json.RawMessage(`"admin write"`),
+		})
+		CheckForbiddenStatus(t, resp)
+		require.Error(t, err)
+		CheckErrorID(t, err, "app.property.access_denied.app_error")
+	})
+
+	t.Run("system admin cannot write values for another user on an owner-managed field", func(t *testing.T) {
+		_, resp, err := th.SystemAdminClient.PatchCPAValuesForUser(context.Background(), th.BasicUser.Id, map[string]json.RawMessage{
+			created.ID: json.RawMessage(`"admin write for user"`),
+		})
+		CheckForbiddenStatus(t, resp)
+		require.Error(t, err)
+		CheckErrorID(t, err, "app.property.access_denied.app_error")
+	})
+
+	// The machine-owner write path (a listed owner acting as a matching scope
+	// is allowed) is covered by the property-service tests in
+	// channels/app/properties, which can stub the plugin checker.
+}
+
+func TestSysadminManagesCPAFieldOwners(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := Setup(t).InitBasic(t)
+
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+
+	t.Run("system admin can create a field with owners and scopes", func(t *testing.T) {
+		field := &model.PropertyField{
+			Name: celSafeName(),
+			Type: model.PropertyFieldTypeText,
+			Attrs: model.StringInterface{
+				model.PropertyAttrsOwners: []model.PropertyOwner{
+					{ID: "com.mattermost.scim", Type: model.PropertyOwnerTypePlugin, Scopes: []string{"entra"}},
+				},
+			},
+		}
+
+		created, resp, err := th.SystemAdminClient.CreateCPAField(context.Background(), field)
+		CheckCreatedStatus(t, resp)
+		require.NoError(t, err)
+		require.NotNil(t, created)
+
+		owners := model.GetPropertyFieldOwners(created)
+		require.Len(t, owners, 1)
+		assert.Equal(t, "com.mattermost.scim", owners[0].ID)
+		assert.Equal(t, model.PropertyOwnerTypePlugin, owners[0].Type)
+		assert.Equal(t, []string{"entra"}, owners[0].Scopes)
+	})
+
+	t.Run("member cannot create a field with owners", func(t *testing.T) {
+		field := &model.PropertyField{
+			Name: celSafeName(),
+			Type: model.PropertyFieldTypeText,
+			Attrs: model.StringInterface{
+				model.PropertyAttrsOwners: []model.PropertyOwner{
+					{ID: "com.mattermost.scim", Type: model.PropertyOwnerTypePlugin, Scopes: []string{"entra"}},
+				},
+			},
+		}
+
+		_, resp, err := th.Client.CreateCPAField(context.Background(), field)
+		CheckForbiddenStatus(t, resp)
+		require.Error(t, err)
+	})
+
+	t.Run("system admin can patch owners to add, change, and remove scopes", func(t *testing.T) {
+		field := &model.PropertyField{
+			Name: celSafeName(),
+			Type: model.PropertyFieldTypeText,
+		}
+		created, resp, err := th.SystemAdminClient.CreateCPAField(context.Background(), field)
+		CheckCreatedStatus(t, resp)
+		require.NoError(t, err)
+
+		// Add owners
+		patched, resp, err := th.SystemAdminClient.PatchCPAField(context.Background(), created.ID, &model.PropertyFieldPatch{
+			Attrs: &model.StringInterface{
+				model.PropertyAttrsOwners: []model.PropertyOwner{
+					{ID: "com.mattermost.scim", Type: model.PropertyOwnerTypePlugin, Scopes: []string{"entra"}},
+				},
+			},
+		})
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+		owners := model.GetPropertyFieldOwners(patched)
+		require.Len(t, owners, 1)
+		assert.Equal(t, []string{"entra"}, owners[0].Scopes)
+
+		// Change scopes
+		patched, resp, err = th.SystemAdminClient.PatchCPAField(context.Background(), created.ID, &model.PropertyFieldPatch{
+			Attrs: &model.StringInterface{
+				model.PropertyAttrsOwners: []model.PropertyOwner{
+					{ID: "com.mattermost.scim", Type: model.PropertyOwnerTypePlugin, Scopes: []string{"entra", "okta"}},
+				},
+			},
+		})
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+		owners = model.GetPropertyFieldOwners(patched)
+		require.Len(t, owners, 1)
+		assert.ElementsMatch(t, []string{"entra", "okta"}, owners[0].Scopes)
+
+		// Remove owners
+		patched, resp, err = th.SystemAdminClient.PatchCPAField(context.Background(), created.ID, &model.PropertyFieldPatch{
+			Attrs: &model.StringInterface{
+				model.PropertyAttrsOwners: nil,
+			},
+		})
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+		assert.False(t, model.HasPropertyFieldOwners(patched))
+	})
+
+	t.Run("member cannot patch owners on a field", func(t *testing.T) {
+		field := &model.PropertyField{
+			Name: celSafeName(),
+			Type: model.PropertyFieldTypeText,
+		}
+		created, resp, err := th.SystemAdminClient.CreateCPAField(context.Background(), field)
+		CheckCreatedStatus(t, resp)
+		require.NoError(t, err)
+
+		_, resp, err = th.Client.PatchCPAField(context.Background(), created.ID, &model.PropertyFieldPatch{
+			Attrs: &model.StringInterface{
+				model.PropertyAttrsOwners: []model.PropertyOwner{
+					{ID: "com.mattermost.scim", Type: model.PropertyOwnerTypePlugin, Scopes: []string{"entra"}},
+				},
+			},
+		})
+		CheckForbiddenStatus(t, resp)
+		require.Error(t, err)
 	})
 }

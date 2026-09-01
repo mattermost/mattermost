@@ -6,6 +6,7 @@ package api4
 import (
 	"encoding/json"
 	"net/http"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -18,14 +19,32 @@ import (
 // Masking is attribute-based, not permission-based: system admins who do not hold all values
 // in a policy must also receive redacted raw expressions.
 func shouldRedactExpressions(c *Context) bool {
-	return c.App.Config().FeatureFlags.AttributeBasedAccessControl &&
-		c.App.Config().FeatureFlags.AttributeValueMasking
+	return c.App.Config().FeatureFlags.AttributeValueMasking
+}
+
+// preserveSystemManagedFields pins parent imports and team-scope metadata to the stored values:
+// attaching/detaching parents belongs to the assign/unassign endpoints, so a channel/team admin
+// editing rules here can't change them. No stored policy (first-time create) means they start empty.
+func preserveSystemManagedFields(c *Context, policy *model.AccessControlPolicy) *model.AppError {
+	stored, appErr := c.App.GetAccessControlPolicy(c.AppContext, policy.ID)
+	if appErr != nil {
+		if appErr.StatusCode == http.StatusNotFound {
+			policy.Imports = nil
+			policy.Scope = ""
+			policy.ScopeID = ""
+			return nil
+		}
+		return appErr
+	}
+
+	// Clone so a later mutation of policy.Imports can't reach back into the stored object.
+	policy.Imports = slices.Clone(stored.Imports)
+	policy.Scope = stored.Scope
+	policy.ScopeID = stored.ScopeID
+	return nil
 }
 
 func (api *API) InitAccessControlPolicy() {
-	if !api.srv.Config().FeatureFlags.AttributeBasedAccessControl {
-		return
-	}
 	api.BaseRoutes.AccessControlPolicies.Handle("", api.APISessionRequired(createAccessControlPolicy)).Methods(http.MethodPut)
 	api.BaseRoutes.AccessControlPolicies.Handle("/search", api.APISessionRequired(searchAccessControlPolicies)).Methods(http.MethodPost)
 	api.BaseRoutes.AccessControlPolicies.Handle("/activate", api.APISessionRequired(setActiveStatus)).Methods(http.MethodPut)
@@ -44,6 +63,52 @@ func (api *API) InitAccessControlPolicy() {
 	api.BaseRoutes.AccessControlPolicy.Handle("/unassign", api.APISessionRequired(unassignAccessPolicy)).Methods(http.MethodDelete)
 	api.BaseRoutes.AccessControlPolicy.Handle("/resources/channels", api.APISessionRequired(getChannelsForAccessControlPolicy)).Methods(http.MethodGet)
 	api.BaseRoutes.AccessControlPolicy.Handle("/resources/channels/search", api.APISessionRequired(searchChannelsForAccessControlPolicy)).Methods(http.MethodPost)
+
+	api.BaseRoutes.AccessControlDecisions.Handle("/actions/search", api.APISessionRequired(searchAccessControlDecisionActions)).Methods(http.MethodPost)
+}
+
+// searchAccessControlDecisionActions returns non-authoritative, render-time ABAC
+// decisions for the current session user on a single resource. If Subject is
+// provided in the request it must match the authenticated session user ID — any
+// other value is rejected with 403. Results are for rendering only; protected
+// endpoints always re-evaluate the PDP live.
+func searchAccessControlDecisionActions(c *Context, w http.ResponseWriter, r *http.Request) {
+	var req model.ActionSearchRequest
+	if jsonErr := json.NewDecoder(r.Body).Decode(&req); jsonErr != nil {
+		c.SetInvalidParamWithErr("action_search", jsonErr)
+		return
+	}
+	if appErr := req.IsValid(); appErr != nil {
+		c.Err = appErr
+		return
+	}
+	// Fail closed on resource types we can't authorize: only channel decisions are exposed
+	// today, so anything else is rejected rather than silently skipping the access check.
+	switch req.Resource.Type {
+	case model.AccessControlPolicyTypeChannel:
+		if hasPermission, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), req.Resource.ID, model.PermissionReadChannel); !hasPermission {
+			c.SetPermissionError(model.PermissionReadChannel)
+			return
+		}
+	default:
+		c.Err = model.NewAppError("searchAccessControlDecisionActions", "api.access_control.decision.unsupported_resource_type.app_error", map[string]any{"Type": req.Resource.Type}, "", http.StatusBadRequest)
+		return
+	}
+
+	resp, appErr := c.App.SearchAllowedActionsForCurrentUser(c.AppContext, req)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	js, err := json.Marshal(resp)
+	if err != nil {
+		c.Err = model.NewAppError("searchAccessControlDecisionActions", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
+	if _, err := w.Write(js); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func createAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -75,11 +140,13 @@ func createAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Reques
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterAuditableToAuditRec(auditRec, "requested", &policy)
 
+	// Sysadmin is allowed in every case; each case layers its own non-sysadmin fallback.
+	hasManageSystem := c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem)
+
 	switch policy.Type {
 	case model.AccessControlPolicyTypeParent:
-		hasSystemPermission := c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem)
 		teamID := r.URL.Query().Get("team_id")
-		if !hasSystemPermission {
+		if !hasManageSystem {
 			if teamID == "" || !model.IsValidId(teamID) {
 				c.SetPermissionError(model.PermissionManageSystem)
 				return
@@ -105,7 +172,7 @@ func createAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Reques
 		// override from the authenticated query param so a crafted request cannot assign
 		// the policy to a different team. For system admins, inject only when the body
 		// did not supply scope (preserves the existing sysadmin-sets-scope-explicitly path).
-		if !hasSystemPermission {
+		if !hasManageSystem {
 			policy.Scope = model.AccessControlPolicyScopeTeam
 			policy.ScopeID = teamID
 		} else if teamID != "" && model.IsValidId(teamID) && policy.Scope == "" {
@@ -113,15 +180,12 @@ func createAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Reques
 			policy.ScopeID = teamID
 		}
 	case model.AccessControlPolicyTypePermission:
-		if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		if !hasManageSystem {
 			c.SetPermissionError(model.PermissionManageSystem)
 			return
 		}
 	case model.AccessControlPolicyTypeChannel:
-		// Check if user has system admin permission first
-		hasManageSystemPermission := c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem)
-
-		if !hasManageSystemPermission {
+		if !hasManageSystem {
 			// For non-system admins, check channel-specific permission
 			if !model.IsValidId(policy.ID) {
 				c.SetInvalidParam("policy.id")
@@ -136,6 +200,36 @@ func createAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Reques
 
 			// Now do the full validation (channel exists, is private, etc.)
 			if appErr := c.App.ValidateChannelAccessControlPolicyCreation(c.AppContext, c.AppContext.Session().UserId, &policy); appErr != nil {
+				c.Err = appErr
+				return
+			}
+
+			if appErr := preserveSystemManagedFields(c, &policy); appErr != nil {
+				c.Err = appErr
+				return
+			}
+		}
+	case model.AccessControlPolicyTypeTeam:
+		// Team-type policies are keyed by the team ID, so policy.ID is the team.
+		if !hasManageSystem {
+			if !model.IsValidId(policy.ID) {
+				c.SetInvalidParam("policy.id")
+				return
+			}
+			if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), policy.ID, model.PermissionManageTeamAccessRules) {
+				c.SetPermissionError(model.PermissionManageTeamAccessRules)
+				return
+			}
+			// Hard-block a team admin from saving rules that would lock themselves
+			// out of their own team.
+			for _, rule := range policy.Rules {
+				if appErr := c.App.ValidateTeamAdminSelfInclusion(c.AppContext, c.AppContext.Session().UserId, rule.Expression); appErr != nil {
+					c.Err = appErr
+					return
+				}
+			}
+
+			if appErr := preserveSystemManagedFields(c, &policy); appErr != nil {
 				c.Err = appErr
 				return
 			}
@@ -211,6 +305,11 @@ func getAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
+	// Stamp assigned-resource counts (channel_count, team_count, child_ids) so the
+	// policy editor can disable deletion while any channel or team is still linked,
+	// mirroring the policy list. GetAccessControlPolicy does not compute these.
+	c.App.PopulateAccessControlPolicyChildCounts(c.AppContext, policy)
+
 	if shouldRedactExpressions(c) {
 		c.App.MaskPolicyExpressions(c.AppContext, policy, c.AppContext.Session().UserId)
 	}
@@ -251,14 +350,19 @@ func deleteAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Reques
 				c.SetPermissionError(model.PermissionManageTeamAccessRules)
 				return
 			}
-			owned, appErr := c.App.ValidateTeamAdminPolicyOwnership(c.AppContext, teamID, policyID)
-			if appErr != nil {
-				c.Err = appErr
-				return
-			}
-			if !owned {
-				c.SetPermissionError(model.PermissionManageTeamAccessRules)
-				return
+			// Team-type policies use the team's own ID as the policy ID.
+			// A team admin can delete their team's direct policy without the
+			// parent-ownership check (which only covers parent-type policies).
+			if policyID != teamID {
+				owned, appErr := c.App.ValidateTeamAdminPolicyOwnership(c.AppContext, teamID, policyID)
+				if appErr != nil {
+					c.Err = appErr
+					return
+				}
+				if !owned {
+					c.SetPermissionError(model.PermissionManageTeamAccessRules)
+					return
+				}
 			}
 		}
 	}
@@ -269,6 +373,10 @@ func deleteAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 	auditRec.Success()
+
+	// Middleware forces a JSON content-type, so an empty 200 body fails the
+	// client's parse and surfaces a spurious error on a successful delete.
+	ReturnStatusOK(w)
 }
 
 func checkExpression(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -364,12 +472,25 @@ func testExpression(c *Context, w http.ResponseWriter, r *http.Request) {
 		Cursor: model.SubjectCursor{
 			TargetID: checkExpressionRequest.After,
 		},
+		// Carry the channel so a resource.attributes.* expression resolves
+		// against that channel's values; ignored for resource-free expressions.
+		ResourceID: channelId,
+	}
+
+	// Scope results to a team's current members only for callers authorized on
+	// that team. A channel admin clears the permission gate via the channel
+	// branch, so binding the team scope to teamID alone would let them point the
+	// search at any team — gate it on the verified team permission instead.
+	if hasSystemPermission || hasTeamPermission {
+		searchOpts.TeamID = teamID
 	}
 
 	// Only system admins see ALL matching users (unrestricted).
 	// Delegated admins (team and channel) see only users matching expressions with attributes they possess.
 	if hasSystemPermission {
 		users, count, appErr = c.App.TestExpression(c.AppContext, checkExpressionRequest.Expression, searchOpts)
+	} else if hasTeamPermission {
+		users, count, appErr = c.App.TestExpressionWithTeamContext(c.AppContext, checkExpressionRequest.Expression, searchOpts)
 	} else {
 		users, count, appErr = c.App.TestExpressionWithChannelContext(c.AppContext, checkExpressionRequest.Expression, searchOpts)
 	}
@@ -607,6 +728,11 @@ func simulatePolicyForUsers(c *Context, w http.ResponseWriter, r *http.Request) 
 	// callers. Targets the user's actual attribute values shown in
 	// the Decision Details panel and per-leaf ActualValue strings.
 	c.App.RedactSimulationAttributesForCaller(c.AppContext, resp, hasSystemPermission)
+
+	// Sanitize evaluation traces for non-system-admin callers.
+	// Traces are sysadmin-only; channel/team admins get flat
+	// expressions and the frontend falls back when trees are absent.
+	c.App.SanitizeSimulationEvaluationTracesForCaller(resp, hasSystemPermission)
 
 	js, err := json.Marshal(resp)
 	if err != nil {
@@ -846,14 +972,19 @@ func setActiveStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 				// Try team-admin permission via team_id in request
 				if list.TeamID != "" && model.IsValidId(list.TeamID) &&
 					c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), list.TeamID, model.PermissionManageTeamAccessRules) {
-					owned, appErr := c.App.ValidateTeamAdminPolicyOwnership(c.AppContext, list.TeamID, entry.ID)
-					if appErr != nil {
-						c.Err = appErr
-						return
-					}
-					if !owned {
-						c.SetPermissionError(model.PermissionManageTeamAccessRules)
-						return
+					// Team-type policies use the team's own ID as the policy ID.
+					// Skip the parent-ownership check for a team admin toggling their
+					// own team policy's active flag.
+					if entry.ID != list.TeamID {
+						owned, appErr := c.App.ValidateTeamAdminPolicyOwnership(c.AppContext, list.TeamID, entry.ID)
+						if appErr != nil {
+							c.Err = appErr
+							return
+						}
+						if !owned {
+							c.SetPermissionError(model.PermissionManageTeamAccessRules)
+							return
+						}
 					}
 				} else {
 					c.SetPermissionError(model.PermissionManageChannelAccessRules)
@@ -982,6 +1113,7 @@ func assignAccessPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec.Success()
+	ReturnStatusOK(w)
 }
 
 func unassignAccessPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1085,6 +1217,7 @@ func unassignAccessPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec.Success()
+	ReturnStatusOK(w)
 }
 
 func getChannelsForAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1226,6 +1359,14 @@ func getFieldsAutocomplete(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	teamID := r.URL.Query().Get("team_id")
 
+	// Pulls channel-object-type CPA fields — the ones a rule references as
+	// resource.attributes.* — for a caller with no single channel to scope by,
+	// such as an editor for a policy that many channels import. Only meaningful
+	// without a channelId (a channel scope already includes them), and in that
+	// case the permission check below requires either ManageSystem or
+	// team-admin access-rule permission on team_id (via teamAdminCELContextOK).
+	includeResourceFields := r.URL.Query().Get("include_resource_fields") == "true"
+
 	hasSystemPermission := c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem)
 	if !hasSystemPermission {
 		if !teamAdminCELContextOK(c, channelId, teamID) {
@@ -1264,7 +1405,7 @@ func getFieldsAutocomplete(c *Context, w http.ResponseWriter, r *http.Request) {
 	var ac []*model.PropertyField
 	var appErr *model.AppError
 
-	ac, appErr = c.App.GetAccessControlFieldsAutocomplete(c.AppContext, after, limit, c.AppContext.Session().UserId)
+	ac, appErr = c.App.GetAccessControlFieldsAutocomplete(c.AppContext, channelId, includeResourceFields, after, limit, c.AppContext.Session().UserId)
 
 	if appErr != nil {
 		c.Err = appErr

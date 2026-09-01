@@ -33,6 +33,7 @@ func newSqlUserAccessTokenStore(sqlStore *SqlStore) store.UserAccessTokenStore {
 			"UserAccessTokens.Description",
 			"UserAccessTokens.IsActive",
 			"UserAccessTokens.ExpiresAt",
+			"UserAccessTokens.LastNotifiedAt",
 		).
 		From("UserAccessTokens")
 
@@ -270,6 +271,89 @@ func (s SqlUserAccessTokenStore) GetExpiredBefore(cutoff int64, limit int) ([]*m
 	return tokens, nil
 }
 
+// GetExpiringTokens returns active, non-bot tokens belonging to non-deactivated
+// users that need a pre-expiry warning for one of the given day thresholds
+// (e.g. 7/3/1), ordered most-urgent first, up to the given limit. Bot tokens are
+// excluded because bot accounts are exempt from the expiry policy and have no
+// human inbox to notify.
+//
+// Only *actionable* rows are returned: for each threshold T a token qualifies
+// when it has entered the T-day bucket (ExpiresAt <= now + T days) and has not
+// yet been notified at T or a more urgent bucket. "Not yet notified at T" means
+// the last warning (if any) was sent while more than T days remained, i.e.
+// LastNotifiedAt < ExpiresAt - T days (or LastNotifiedAt IS NULL). OR-ing this
+// across every threshold yields exactly the tokens whose current (most urgent)
+// bucket is still un-notified, so tokens already warned at their current bucket
+// never consume a result slot — without this, a backlog of already-warned tokens
+// ordered ahead of a less-urgent unnotified token could starve it past the limit
+// on every run. The worker still recomputes each token's bucket and re-checks the
+// last-notified time as a guard against races. The secret Token column is
+// intentionally NOT selected — callers use the returned rows for metadata
+// (notification, marker update) only.
+//
+// A non-positive limit or empty thresholds returns an empty slice without
+// hitting the DB rather than relying on the int -> uint64 cast (which would
+// otherwise wrap a negative value into an enormous unsigned limit and
+// effectively disable the bound).
+func (s SqlUserAccessTokenStore) GetExpiringTokens(now int64, thresholds []int, limit int) ([]*model.UserAccessToken, error) {
+	tokens := []*model.UserAccessToken{}
+
+	if limit <= 0 || len(thresholds) == 0 {
+		return tokens, nil
+	}
+
+	actionable := sq.Or{}
+	for _, t := range thresholds {
+		bucketMillis := int64(t) * model.DayInMilliseconds
+		actionable = append(actionable, sq.And{
+			sq.LtOrEq{"UserAccessTokens.ExpiresAt": now + bucketMillis},
+			sq.Or{
+				sq.Eq{"UserAccessTokens.LastNotifiedAt": nil},
+				sq.Expr("UserAccessTokens.LastNotifiedAt < UserAccessTokens.ExpiresAt - ?", bucketMillis),
+			},
+		})
+	}
+
+	query := s.getQueryBuilder().
+		Select(
+			"UserAccessTokens.Id",
+			"UserAccessTokens.UserId",
+			"UserAccessTokens.Description",
+			"UserAccessTokens.IsActive",
+			"UserAccessTokens.ExpiresAt",
+			"UserAccessTokens.LastNotifiedAt",
+		).
+		From("UserAccessTokens").
+		InnerJoin("Users ON Users.Id = UserAccessTokens.UserId").
+		LeftJoin("Bots ON Bots.UserId = UserAccessTokens.UserId").
+		Where(sq.Eq{"UserAccessTokens.IsActive": true}).
+		Where(sq.Gt{"UserAccessTokens.ExpiresAt": now}).
+		Where(sq.Eq{"Users.DeleteAt": 0}).
+		Where(sq.Eq{"Bots.UserId": nil}).
+		Where(actionable).
+		OrderBy("UserAccessTokens.ExpiresAt ASC").
+		Limit(uint64(limit))
+
+	// Read from master: this dedups against LastNotifiedAt (written to master),
+	// so a lagging replica could re-surface an already-warned token and send a
+	// duplicate. It runs at most once per job run, so master costs nothing here.
+	if err := s.GetMaster().SelectBuilder(&tokens, query); err != nil {
+		return nil, errors.Wrap(err, "failed to find expiring UserAccessTokens")
+	}
+
+	return tokens, nil
+}
+
+// UpdateLastNotifiedAt records the time (Unix milliseconds) at which the token
+// owner was most recently warned about the token's upcoming expiry, so the hourly
+// notify_expiring_access_tokens job does not re-send the same warning on subsequent runs.
+func (s SqlUserAccessTokenStore) UpdateLastNotifiedAt(tokenId string, notifiedAt int64) error {
+	if _, err := s.GetMaster().Exec("UPDATE UserAccessTokens SET LastNotifiedAt = ? WHERE Id = ?", notifiedAt, tokenId); err != nil {
+		return errors.Wrapf(err, "failed to update LastNotifiedAt for UserAccessToken with id=%s", tokenId)
+	}
+	return nil
+}
+
 // CountNonCompliantExpiry returns the number of active, non-bot tokens that
 // violate the maximum lifetime policy implied by maxExpiresAt. It is used to
 // preview the blast radius before revoking.
@@ -401,6 +485,36 @@ func (s SqlUserAccessTokenStore) deleteSessionsAndDisableToken(transaction *sqlx
 func (s SqlUserAccessTokenStore) updateTokenDisable(transaction *sqlxTxWrapper, tokenId string) error {
 	if _, err := transaction.Exec("UPDATE UserAccessTokens SET IsActive = FALSE WHERE Id = ?", tokenId); err != nil {
 		return errors.Wrapf(err, "failed to update UserAccessToken with id=%s", tokenId)
+	}
+
+	return nil
+}
+
+// UpdateTokenRotate replaces the secret and expiry on an existing token inside
+// a single transaction.  Old sessions keyed to the previous secret are deleted
+// first (the join reads the old Token value, so the DELETE must precede the
+// UPDATE), then the token row is updated with the new secret and expiry.
+func (s SqlUserAccessTokenStore) UpdateTokenRotate(tokenID, newToken string, expiresAt int64) (err error) {
+	transaction, err := s.GetMaster().Begin()
+	if err != nil {
+		return errors.Wrap(err, "begin_transaction")
+	}
+	defer finalizeTransactionX(transaction, &err)
+
+	deleteQuery := "DELETE FROM Sessions s USING UserAccessTokens o WHERE o.Token = s.Token AND o.Id = ?"
+	if _, err = transaction.Exec(deleteQuery, tokenID); err != nil {
+		return errors.Wrapf(err, "failed to delete Sessions for UserAccessToken id=%s during rotate", tokenID)
+	}
+
+	if _, err = transaction.Exec(
+		"UPDATE UserAccessTokens SET Token = ?, ExpiresAt = ? WHERE Id = ?",
+		newToken, expiresAt, tokenID,
+	); err != nil {
+		return errors.Wrapf(err, "failed to rotate UserAccessToken id=%s", tokenID)
+	}
+
+	if err = transaction.Commit(); err != nil {
+		return errors.Wrap(err, "commit_transaction")
 	}
 
 	return nil

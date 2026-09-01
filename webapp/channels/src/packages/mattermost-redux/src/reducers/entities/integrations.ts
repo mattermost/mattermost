@@ -3,7 +3,7 @@
 
 import {combineReducers} from 'redux';
 
-import type {Command, IncomingWebhook, OutgoingWebhook, OAuthApp, OutgoingOAuthConnection, DialogArgs} from '@mattermost/types/integrations';
+import type {Command, IncomingWebhook, OutgoingWebhook, OAuthApp, OutgoingOAuthConnection, DialogArgs, OpenDialogRequest} from '@mattermost/types/integrations';
 import type {IDMappedObjects} from '@mattermost/types/utilities';
 
 import type {MMReduxAction} from 'mattermost-redux/action_types';
@@ -314,10 +314,26 @@ function dialogTriggerId(state = '', action: MMReduxAction) {
     }
 }
 
-function dialog(state = '', action: MMReduxAction) {
+function dialogs(state: Record<string, OpenDialogRequest> = {}, action: MMReduxAction) {
     switch (action.type) {
-    case IntegrationTypes.RECEIVED_DIALOG:
-        return action.data;
+    case IntegrationTypes.RECEIVED_DIALOG: {
+        const dialog = action.data as OpenDialogRequest;
+        if (!dialog?.trigger_id) {
+            return state;
+        }
+        return {...state, [dialog.trigger_id]: dialog};
+    }
+    case IntegrationTypes.REMOVE_DIALOG: {
+        const triggerId = action.data as string;
+        if (!triggerId || !state[triggerId]) {
+            return state;
+        }
+        const next = {...state};
+        Reflect.deleteProperty(next, triggerId);
+        return next;
+    }
+    case UserTypes.LOGOUT_SUCCESS:
+        return {};
     default:
         return state;
     }
@@ -358,6 +374,6 @@ export default combineReducers({
     // trigger ID for interactive dialogs
     dialogTriggerId,
 
-    // data for an interactive dialog to display
-    dialog,
+    // map of trigger_id → data for active interactive dialogs
+    dialogs,
 });

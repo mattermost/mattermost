@@ -5,11 +5,12 @@ import cloneDeep from 'lodash/cloneDeep';
 
 import {WebSocketEvents} from '@mattermost/client';
 
-import {ChannelTypes, CloudTypes, TeamTypes} from 'mattermost-redux/action_types';
+import {ChannelTypes, CloudTypes, JobTypes, PostTypes, RenderPermissionTypes, TeamTypes} from 'mattermost-redux/action_types';
 import {fetchMyCategories} from 'mattermost-redux/actions/channel_categories';
-import {fetchAllMyTeamsChannels} from 'mattermost-redux/actions/channels';
+import {fetchAllMyTeamsChannels, getChannelMember} from 'mattermost-redux/actions/channels';
 import {getCustomProfileAttributeFields} from 'mattermost-redux/actions/general';
 import {getGroup} from 'mattermost-redux/actions/groups';
+import {getJobsByType} from 'mattermost-redux/actions/jobs';
 import {
     getPostThreads,
     getPostsAround,
@@ -39,6 +40,7 @@ import {setIntl} from 'utils/i18n';
 import {
     handleChannelUpdatedEvent,
     handleChannelAccessControlUpdatedEvent,
+    handlePermissionPolicyUpdatedEvent,
     handleTeamAccessControlUpdatedEvent,
     handleEvent,
     handleFileUploadRejected,
@@ -61,6 +63,7 @@ import {
     handleCustomAttributesCreated,
     handleCustomAttributesUpdated,
     handleCustomAttributesDeleted,
+    handleJobUpdated,
 } from './websocket_actions';
 
 jest.mock('mattermost-redux/actions/posts', () => ({
@@ -68,6 +71,7 @@ jest.mock('mattermost-redux/actions/posts', () => ({
     getPostThreads: jest.fn(() => ({type: 'GET_THREADS_FOR_POSTS'})),
     getPostsAround: jest.fn(() => ({type: 'GET_POSTS_AROUND'})),
     getMentionsAndStatusesForPosts: jest.fn(),
+    resetReloadPostsInChannel: jest.fn((channelId) => ({type: 'MOCK_RESET_POSTS', channelId})),
 }));
 
 jest.mock('mattermost-redux/actions/channel_categories', () => ({
@@ -98,6 +102,7 @@ jest.mock('mattermost-redux/actions/users', () => ({
 
 jest.mock('mattermost-redux/actions/channels', () => ({
     getChannelStats: jest.fn(() => ({type: 'GET_CHANNEL_STATS'})),
+    getChannelMember: jest.fn(() => ({type: 'GET_CHANNEL_MEMBER'})),
     fetchAllMyChannelMembers: jest.fn(() => ({type: 'FETCH_ALL_MY_CHANNEL_MEMBERS'})),
     fetchAllMyTeamsChannels: jest.fn(),
 }));
@@ -120,6 +125,7 @@ jest.mock('actions/global_actions', () => ({
 jest.mock('actions/views/channel', () => ({
     ...jest.requireActual('actions/views/channel'),
     syncPostsInChannel: jest.fn(),
+    loadUnreads: jest.fn((channelId) => ({type: 'MOCK_LOAD_UNREADS', channelId})),
 }));
 
 jest.mock('plugins', () => ({
@@ -138,6 +144,10 @@ jest.mock('mattermost-redux/actions/shared_channels', () => ({
         channelId,
         forceRefresh,
     })),
+}));
+
+jest.mock('mattermost-redux/actions/jobs', () => ({
+    getJobsByType: jest.fn((jobType) => ({type: 'MOCK_GET_JOBS_BY_TYPE', jobType})),
 }));
 
 let mockState = {
@@ -465,7 +475,26 @@ describe('handleUserAddedEvent', () => {
         },
     };
 
-    test('should load the added user profile when it is not already in the store', async () => {
+    // A state where the added user already has both a loaded profile and a loaded
+    // ChannelMembership in the current channel, so nothing needs to be fetched.
+    const stateWithLoadedMember = mergeObjects(stateWithLicense, {
+        entities: {
+            users: {
+                profiles: {
+                    loadedMember: {id: 'loadedMember', roles: 'system_user'},
+                },
+            },
+            channels: {
+                membersInChannel: {
+                    [currentChannelId]: {
+                        loadedMember: {channel_id: currentChannelId, user_id: 'loadedMember'},
+                    },
+                },
+            },
+        },
+    });
+
+    test('should load both the profile and the channel membership for a newly synced remote member', async () => {
         const testStore = configureStore(stateWithLicense);
         const msg = {
             data: {
@@ -477,10 +506,19 @@ describe('handleUserAddedEvent', () => {
         };
 
         await testStore.dispatch(handleUserAddedEvent(msg));
+
+        // Both the profile and the ChannelMembership are required for the member to
+        // render in the participant list.
         expect(getUser).toHaveBeenCalledWith('remoteUser');
+        expect(getChannelMember).toHaveBeenCalledWith(currentChannelId, 'remoteUser');
     });
 
-    test('should not load the added user profile when it is already in the store', async () => {
+    test('should still load the channel membership when the profile is already loaded but the membership is not', async () => {
+        // Regression test for MM-67616: a synced remote member whose profile was
+        // already loaded (e.g. because they posted) but who has no ChannelMembership
+        // was silently dropped from the participant list, because the member list
+        // requires the membership relation. The membership must be fetched even when
+        // the profile fetch is skipped.
         const testStore = configureStore(stateWithLicense);
         const msg = {
             data: {
@@ -492,10 +530,29 @@ describe('handleUserAddedEvent', () => {
         };
 
         await testStore.dispatch(handleUserAddedEvent(msg));
+
         expect(getUser).not.toHaveBeenCalled();
+        expect(getChannelMember).toHaveBeenCalledWith(currentChannelId, 'user');
     });
 
-    test('should not load the added user profile when the channel is not the current channel', async () => {
+    test('should not load the profile or membership when both are already in the store', async () => {
+        const testStore = configureStore(stateWithLoadedMember);
+        const msg = {
+            data: {
+                user_id: 'loadedMember',
+            },
+            broadcast: {
+                channel_id: currentChannelId,
+            },
+        };
+
+        await testStore.dispatch(handleUserAddedEvent(msg));
+
+        expect(getUser).not.toHaveBeenCalled();
+        expect(getChannelMember).not.toHaveBeenCalled();
+    });
+
+    test('should not load the profile or membership when the channel is not the current channel', async () => {
         const testStore = configureStore(stateWithLicense);
         const msg = {
             data: {
@@ -507,7 +564,9 @@ describe('handleUserAddedEvent', () => {
         };
 
         await testStore.dispatch(handleUserAddedEvent(msg));
+
         expect(getUser).not.toHaveBeenCalled();
+        expect(getChannelMember).not.toHaveBeenCalled();
     });
 });
 
@@ -889,9 +948,6 @@ describe('reconnect', () => {
                         license: {
                             SkuShortName: 'enterprise',
                         },
-                        config: {
-                            FeatureFlagCustomProfileAttributes: 'true',
-                        },
                     },
                 },
             },
@@ -905,9 +961,9 @@ describe('reconnect', () => {
     });
 
     test.each([
-        {SkuShortName: 'starter', FeatureFlagCustomProfileAttributes: 'true'},
-        {SkuShortName: 'enterprise', FeatureFlagCustomProfileAttributes: 'false'},
-    ])("should not reload custom profile attribute fields on reconnect if feature isn't available", ({SkuShortName, FeatureFlagCustomProfileAttributes}) => {
+        {SkuShortName: 'starter'},
+        {SkuShortName: 'professional'},
+    ])('should not reload custom profile attribute fields on reconnect without an Enterprise license', ({SkuShortName}) => {
         const clonedMockState = cloneDeep(mockState);
 
         mockState = mergeObjects(
@@ -917,9 +973,6 @@ describe('reconnect', () => {
                     general: {
                         license: {
                             SkuShortName,
-                        },
-                        config: {
-                            FeatureFlagCustomProfileAttributes,
                         },
                     },
                 },
@@ -1047,12 +1100,20 @@ describe('handleChannelUpdatedEvent', () => {
 });
 
 describe('handleChannelAccessControlUpdatedEvent', () => {
+    const withPermissionPolicies = (entities = {}) => ({
+        entities: {
+            general: {config: {FeatureFlagPermissionPolicies: 'true'}},
+            ...entities,
+        },
+    });
+
     beforeEach(() => {
         invalidateAccessControlAttributesCache.mockClear();
     });
 
     test('dispatches RECEIVED_CHANNEL with parsed channel and invalidates attribute cache', () => {
-        const testStore = configureStore({});
+        // Current channel differs from the updated channel, so no post reconciliation.
+        const testStore = configureStore(withPermissionPolicies({channels: {currentChannelId: 'other-channel'}}));
         const channel = {
             id: 'channel-ac-1',
             team_id: 'team-1',
@@ -1066,14 +1127,49 @@ describe('handleChannelAccessControlUpdatedEvent', () => {
 
         testStore.dispatch(handleChannelAccessControlUpdatedEvent(msg));
 
+        // Scoped to the one channel: no broad channel/member/team refetch.
         expect(testStore.getActions()).toEqual([
             {
                 type: ChannelTypes.RECEIVED_CHANNEL,
                 data: channel,
             },
+            {
+                type: RenderPermissionTypes.INVALIDATE_RENDER_DECISIONS_FOR_CHANNEL,
+                data: {channelId: 'channel-ac-1', generation: expect.any(Number)},
+            },
+            {
+                type: PostTypes.RESET_POSTS_IN_CHANNEL,
+                channelId: 'channel-ac-1',
+            },
         ]);
         expect(invalidateAccessControlAttributesCache).toHaveBeenCalledTimes(1);
         expect(invalidateAccessControlAttributesCache).toHaveBeenCalledWith('channel', 'channel-ac-1');
+    });
+
+    test('refetches the posts when the updated channel is the one being viewed', () => {
+        const testStore = configureStore(withPermissionPolicies({channels: {currentChannelId: 'channel-ac-1'}}));
+        const channel = {id: 'channel-ac-1', team_id: 'team-1', policy_enforced: true};
+
+        testStore.dispatch(handleChannelAccessControlUpdatedEvent({data: {channel: JSON.stringify(channel)}}));
+
+        // Dropping the chunks alone would leave the channel in view empty until it remounts.
+        expect(testStore.getActions()).toContainEqual({type: PostTypes.RESET_POSTS_IN_CHANNEL, channelId: 'channel-ac-1'});
+        expect(testStore.getActions()).toContainEqual({type: 'MOCK_LOAD_UNREADS', channelId: 'channel-ac-1'});
+    });
+
+    test('updates the channel but drops no render state when permission policies are disabled', () => {
+        const testStore = configureStore({
+            entities: {
+                general: {config: {FeatureFlagPermissionPolicies: 'false'}},
+                channels: {currentChannelId: 'channel-ac-1'},
+            },
+        });
+        const channel = {id: 'channel-ac-1', team_id: 'team-1', policy_enforced: true};
+
+        testStore.dispatch(handleChannelAccessControlUpdatedEvent({data: {channel: JSON.stringify(channel)}}));
+
+        const types = testStore.getActions().map((a) => a.type);
+        expect(types).toEqual([ChannelTypes.RECEIVED_CHANNEL]);
     });
 
     test('returns early when msg.data.channel is missing', () => {
@@ -1631,6 +1727,90 @@ describe('handleCustomAttributeValuesUpdated', () => {
     });
 });
 
+describe('render permission invalidation via existing events', () => {
+    const currentUserId = 'user1';
+
+    function stateWithCurrentUser(currentChannelId = '') {
+        return {
+            entities: {
+                users: {
+                    currentUserId,
+                    profiles: {user1: {id: currentUserId, roles: 'system_user'}},
+                },
+                channels: {currentChannelId},
+                general: {config: {FeatureFlagPermissionPolicies: 'true'}},
+                posts: {postsInChannel: {}},
+            },
+        };
+    }
+
+    test('CPA value update for the current user clears render decisions, resets every channel and refetches the visible one', () => {
+        const testStore = configureStore(stateWithCurrentUser('visible-channel'));
+
+        testStore.dispatch(handleCustomAttributeValuesUpdated({data: {user_id: currentUserId, values: {field1: 'v'}}}));
+
+        const actions = testStore.getActions();
+        expect(actions.map((a) => a.type)).toContain(RenderPermissionTypes.CLEAR_RENDER_DECISIONS);
+
+        // One bulk reset (no channel id) rather than one dispatch per loaded channel.
+        expect(actions).toContainEqual({type: PostTypes.RESET_POSTS_IN_CHANNEL, channelId: undefined});
+        expect(actions).toContainEqual({type: 'MOCK_LOAD_UNREADS', channelId: 'visible-channel'});
+    });
+
+    test('CPA value update with no channel in view resets without refetching', () => {
+        const testStore = configureStore(stateWithCurrentUser());
+
+        testStore.dispatch(handleCustomAttributeValuesUpdated({data: {user_id: currentUserId, values: {field1: 'v'}}}));
+
+        const types = testStore.getActions().map((a) => a.type);
+        expect(types).toContain(PostTypes.RESET_POSTS_IN_CHANNEL);
+        expect(types).not.toContain('MOCK_LOAD_UNREADS');
+    });
+
+    test('CPA value update for another user does NOT invalidate current-user render decisions', () => {
+        const testStore = configureStore(stateWithCurrentUser());
+
+        testStore.dispatch(handleCustomAttributeValuesUpdated({data: {user_id: 'someoneElse', values: {field1: 'v'}}}));
+
+        const types = testStore.getActions().map((a) => a.type);
+        expect(types).not.toContain(RenderPermissionTypes.CLEAR_RENDER_DECISIONS);
+        expect(types).not.toContain(PostTypes.RESET_POSTS_IN_CHANNEL);
+    });
+});
+
+describe('handlePermissionPolicyUpdatedEvent', () => {
+    function stateWith(currentChannelId, channelIds = [], permissionPoliciesEnabled = true) {
+        return {
+            entities: {
+                channels: {currentChannelId},
+                general: {config: {FeatureFlagPermissionPolicies: permissionPoliciesEnabled ? 'true' : 'false'}},
+                posts: {postsInChannel: channelIds.reduce((acc, id) => ({...acc, [id]: []}), {})},
+            },
+        };
+    }
+
+    test('clears render decisions and resets every loaded channel in a single action', () => {
+        const testStore = configureStore(stateWith('visible-channel', ['visible-channel', 'other-channel']));
+
+        testStore.dispatch(handlePermissionPolicyUpdatedEvent());
+
+        const actions = testStore.getActions();
+        expect(actions.map((a) => a.type)).toContain(RenderPermissionTypes.CLEAR_RENDER_DECISIONS);
+
+        const resets = actions.filter((a) => a.type === PostTypes.RESET_POSTS_IN_CHANNEL);
+        expect(resets).toEqual([{type: PostTypes.RESET_POSTS_IN_CHANNEL, channelId: undefined}]);
+        expect(actions).toContainEqual({type: 'MOCK_LOAD_UNREADS', channelId: 'visible-channel'});
+    });
+
+    test('does nothing when permission policies are disabled', () => {
+        const testStore = configureStore(stateWith('visible-channel', ['visible-channel'], false));
+
+        testStore.dispatch(handlePermissionPolicyUpdatedEvent());
+
+        expect(testStore.getActions()).toEqual([]);
+    });
+});
+
 describe('handleCustomAttributeCRUD', () => {
     const field1 = {id: 'field1', groupid: 'group1', name: 'FIELD ONE', type: 'text'};
     const field2 = {id: 'field2', groupid: 'group1', name: 'FIELD TWO', type: 'text'};
@@ -2146,5 +2326,63 @@ describe('handleFileUploadRejected', () => {
         const closeModalAction = testStore.getActions().find((action) => action.type === ActionTypes.MODAL_CLOSE);
         expect(closeModalAction).toBeDefined();
         expect(closeModalAction.modalId).toBe(ModalIdentifiers.INFO_TOAST);
+    });
+});
+
+describe('handleJobUpdated', () => {
+    beforeEach(() => {
+        getJobsByType.mockClear();
+    });
+
+    test('dispatches RECEIVED_JOB with the parsed job on valid JSON', () => {
+        const job = {id: 'job1', type: 'ldap_sync', status: 'success'};
+        const msg = {data: {job: JSON.stringify(job)}};
+
+        const testStore = configureStore(mockState);
+        testStore.dispatch(handleJobUpdated(msg));
+
+        expect(testStore.getActions()).toContainEqual({
+            type: JobTypes.RECEIVED_JOB,
+            data: job,
+        });
+    });
+
+    test('does not dispatch when msg.data.job is malformed JSON', () => {
+        const msg = {data: {job: '{not-valid-json'}};
+
+        const testStore = configureStore(mockState);
+        testStore.dispatch(handleJobUpdated(msg));
+
+        expect(testStore.getActions()).toHaveLength(0);
+    });
+
+    test.each([
+        ['success', 'ldap_sync'],
+        ['error', 'message_export'],
+        ['warning', 'data_retention'],
+        ['canceled', 'elasticsearch_post_indexing'],
+    ])('re-fetches job list on terminal status "%s"', (status, type) => {
+        const job = {id: 'job1', type, status};
+        const msg = {data: {job: JSON.stringify(job)}};
+
+        const testStore = configureStore(mockState);
+        testStore.dispatch(handleJobUpdated(msg));
+
+        expect(testStore.getActions()).toContainEqual({
+            type: 'MOCK_GET_JOBS_BY_TYPE',
+            jobType: type,
+        });
+    });
+
+    test('does not re-fetch on non-terminal status', () => {
+        const job = {id: 'job1', type: 'ldap_sync', status: 'in_progress'};
+        const msg = {data: {job: JSON.stringify(job)}};
+
+        const testStore = configureStore(mockState);
+        testStore.dispatch(handleJobUpdated(msg));
+
+        expect(testStore.getActions()).not.toContainEqual(
+            expect.objectContaining({type: 'MOCK_GET_JOBS_BY_TYPE'}),
+        );
     });
 });

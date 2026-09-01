@@ -8,6 +8,7 @@ export default class BrowseChannelsModal {
     readonly container: Locator;
 
     readonly createNewChannelButton: Locator;
+    readonly hideArchivedCheckbox: Locator;
     readonly hideJoinedCheckbox: Locator;
     readonly searchInput: Locator;
 
@@ -17,6 +18,7 @@ export default class BrowseChannelsModal {
         this.container = container;
 
         this.createNewChannelButton = container.getByRole('button', {name: 'Create New Channel'});
+        this.hideArchivedCheckbox = container.getByRole('checkbox', {name: 'Hide Archived'});
         this.hideJoinedCheckbox = container.getByRole('checkbox', {name: 'Hide Joined'});
         this.searchInput = container.getByRole('textbox', {name: 'Search channels'});
 
@@ -44,5 +46,25 @@ export default class BrowseChannelsModal {
         const row = this.results.locator('[data-testid^="ChannelRow-"]').nth(index);
 
         expect(await row.getAttribute('data-testid')).toEqual(`ChannelRow-${channelName}`);
+    }
+
+    getChannelRow(channelDisplayName: string): Locator {
+        return this.results.locator('.more-modal__row').filter({hasText: channelDisplayName});
+    }
+
+    async clickRequestToJoin(channelDisplayName: string) {
+        await this.getChannelRow(channelDisplayName).getByText('Request to join').click();
+    }
+
+    async clickWithdraw(channelDisplayName: string) {
+        await this.getChannelRow(channelDisplayName).getByText('Withdraw', {exact: true}).click();
+    }
+
+    async toHaveWithdrawButton(channelDisplayName: string) {
+        await expect(this.getChannelRow(channelDisplayName).getByText('Withdraw', {exact: true})).toBeVisible();
+    }
+
+    async toHaveRequestToJoinButton(channelDisplayName: string) {
+        await expect(this.getChannelRow(channelDisplayName).getByText('Request to join')).toBeVisible();
     }
 }

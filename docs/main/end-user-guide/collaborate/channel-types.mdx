@@ -1,6 +1,8 @@
 ---
 title: "Channel types"
 ---
+import useBaseUrl from '@docusaurus/useBaseUrl';
+
 <PlanAvailability slug="all-commercial" />
 
 Channels are used to organize conversations across different topics. The channels you're a member of display in the left pane. Learn how to create channels by visiting the [create channels](/end-user-guide/collaborate/create-channels) documentation.
@@ -21,13 +23,13 @@ Enterprise customers can additionally configure [read-only](/administration-guid
 
 ## Public channels
 
-Public channels are open to everyone on a team and are identified with a **Globe** <img src="/img/ui/globe_E805.svg" alt="Public channels are identified with a Globe icon." className="theme-icon" /> icon. New team members are automatically added to the **Town Square** channel.
+Public channels are open to everyone on a team and are identified with a **Globe** <img src={useBaseUrl('/img/ui/globe_E805.svg')} alt="Public channels are identified with a Globe icon." className="theme-icon" /> icon. New team members are automatically added to the **Town Square** channel.
 
 See the [Join and leave channels](/end-user-guide/collaborate/join-leave-channels) documentation for details on discovering, joining, and leaving other channels.
 
 ## Private channels
 
-Private channels are channels for sensitive topics and are only visible to selected team members. Private channels are identified with a **Lock** <img src="/img/ui/lock-outline_F0341.svg" alt="Private channels are identified with a Lock icon." className="theme-icon" /> icon. Channel members can choose to leave private channels at any time.
+Private channels are channels for sensitive topics and are only visible to selected team members. Private channels are identified with a **Lock** <img src={useBaseUrl('/img/ui/lock-outline_F0341.svg')} alt="Private channels are identified with a Lock icon." className="theme-icon" /> icon. Channel members can choose to leave private channels at any time.
 
 <Note>
 
@@ -47,7 +49,7 @@ Direct messages update the numbered badge count and trigger a notification unles
 <Note>
 
 - From Mattermost v10, when sending a direct message, Mattermost warns you that the recipient's availability is set to [Do Not Disturb](/end-user-guide/preferences/set-your-status-availability#set-your-availability), and when the recipient's local time is outside of regular business hours (between 10PM and 6AM). This warning displays directly above the message text field.
-- When a Mattermost user is deactivated in the system, your [direct message channel](/end-user-guide/collaborate/channel-types#direct-message-channels) with that user are [archived](#archived-channels) and marked as read-only. An **Archived** icon <img src="/img/ui/archive-outline_F120E.svg" alt="Archived channels are identified with a File Box icon." className="theme-icon" /> displays next to archived channels.
+- When a Mattermost user is deactivated in the system, your [direct message channel](/end-user-guide/collaborate/channel-types#direct-message-channels) with that user are [archived](#archived-channels) and marked as read-only. An **Archived** icon <img src={useBaseUrl('/img/ui/archive-outline_F120E.svg')} alt="Archived channels are identified with a File Box icon." className="theme-icon" /> displays next to archived channels.
 
 </Note>
 
@@ -67,6 +69,6 @@ Want to have a group conversation with more than 7 people? [Create a private cha
 
 ## Archived channels
 
-Archived channels are deactivated public, private, direct message, or group message channels that are no longer used. Archived channels are identified with a **File Box** <img src="/img/ui/archive-outline_F120E.svg" alt="Archived channels are identified with a File Box icon." className="theme-icon" /> icon. From Mattermost v11.5, archived private channels are identified with a distinct **Archive Lock** icon to visually differentiate them from archived public channels.
+Archived channels are deactivated public, private, direct message, or group message channels that are no longer used. Archived channels are identified with a **File Box** <img src={useBaseUrl('/img/ui/archive-outline_F120E.svg')} alt="Archived channels are identified with a File Box icon." className="theme-icon" /> icon. From Mattermost v11.5, archived private channels are identified with a distinct **Archive Lock** icon to visually differentiate them from archived public channels.
 
 [Archiving a channel](/end-user-guide/collaborate/archive-unarchive-channels#archive-a-channel) marks it read-only to prevent new messages from being sent and preserve channel history. You can continue to access archived channels, unless your system admin has [disabled](/administration-guide/configure/site-configuration-settings#allow-users-to-view-archived-channels) your ability to do so.

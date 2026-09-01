@@ -493,9 +493,11 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 	})
 
 	t.Run("with an invalid token type", func(t *testing.T) {
+		accessToken := model.NewId()
+
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			err := json.NewEncoder(w).Encode(&model.AccessResponse{
-				AccessToken: model.NewId(),
+				AccessToken: accessToken,
 				TokenType:   "",
 			})
 			require.NoError(t, err)
@@ -511,6 +513,59 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 		_, _, _, err := th.App.AuthorizeOAuthUser(th.Context, &httptest.ResponseRecorder{}, request, model.ServiceGitlab, "", state, "")
 		require.NotNil(t, err)
 		assert.Equal(t, "api.user.authorize_oauth_user.bad_token.app_error", err.Id)
+		assert.NotContains(t, err.DetailedError, accessToken)
+		assert.NotContains(t, err.Error(), accessToken)
+		assert.Contains(t, err.DetailedError, `"access_token":"[REDACTED]"`)
+	})
+
+	t.Run("with a JSON error token response containing a token", func(t *testing.T) {
+		accessToken := model.NewId()
+
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusTeapot)
+			_, err := w.Write([]byte(`{"access_token": "` + accessToken + `", "error": "teapot"}`))
+			require.NoError(t, err)
+		}))
+		defer server.Close()
+
+		th := setup(t, true, true, true, server.URL)
+
+		cookie := model.NewId()
+		request := makeRequest(cookie)
+		state := makeState(makeToken(th, cookie))
+
+		_, _, _, err := th.App.AuthorizeOAuthUser(th.Context, &httptest.ResponseRecorder{}, request, model.ServiceGitlab, "", state, "")
+		require.NotNil(t, err)
+		assert.Equal(t, "api.user.authorize_oauth_user.bad_response.app_error", err.Id)
+		assert.NotContains(t, err.DetailedError, accessToken)
+		assert.NotContains(t, err.Error(), accessToken)
+		assert.Contains(t, err.DetailedError, "status_code=418")
+		assert.Contains(t, err.DetailedError, "teapot")
+	})
+
+	t.Run("with a form encoded token response", func(t *testing.T) {
+		accessToken := model.NewId()
+
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "application/x-www-form-urlencoded")
+			_, err := w.Write([]byte("access_token=" + accessToken + "&token_type=bearer&scope=read"))
+			require.NoError(t, err)
+		}))
+		defer server.Close()
+
+		th := setup(t, true, true, true, server.URL)
+
+		cookie := model.NewId()
+		request := makeRequest(cookie)
+		state := makeState(makeToken(th, cookie))
+
+		_, _, _, err := th.App.AuthorizeOAuthUser(th.Context, &httptest.ResponseRecorder{}, request, model.ServiceGitlab, "", state, "")
+		require.NotNil(t, err)
+		assert.Equal(t, "api.user.authorize_oauth_user.bad_response.app_error", err.Id)
+		assert.NotContains(t, err.DetailedError, accessToken)
+		assert.NotContains(t, err.Error(), accessToken)
+		assert.Contains(t, err.DetailedError, "access_token=[REDACTED]")
+		assert.Contains(t, err.DetailedError, "scope=read")
 	})
 
 	t.Run("with an empty token response", func(t *testing.T) {
@@ -1458,6 +1513,58 @@ func TestGetOAuthAccessTokenForCodeFlow(t *testing.T) {
 		require.Contains(t, appErr.Id, "client_id_mismatch")
 		require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
 	})
+
+	t.Run("RefreshToken_InvalidatesOldTokenInCache", func(t *testing.T) {
+		oapp := createConfidentialOAuthApp("TestCacheInvalidation")
+		code := getAuthorizationCode(oapp, "")
+
+		// Get initial access token (newSession adds it to the session cache).
+		initialResp, appErr := th.App.GetOAuthAccessTokenForCodeFlow(
+			th.Context,
+			oapp.Id,
+			model.AccessTokenGrantType,
+			oapp.CallbackUrls[0],
+			code,
+			oapp.ClientSecret,
+			"",
+			"",
+			"",
+		)
+		require.Nil(t, appErr)
+		require.NotEmpty(t, initialResp.AccessToken)
+		require.NotEmpty(t, initialResp.RefreshToken)
+
+		oldToken := initialResp.AccessToken
+
+		// Confirm the old session is reachable (from cache or DB).
+		_, appErr = th.App.GetSession(oldToken)
+		require.Nil(t, appErr, "old token should be valid before refresh")
+
+		// Rotate the token.
+		newResp, appErr := th.App.GetOAuthAccessTokenForCodeFlow(
+			th.Context,
+			oapp.Id,
+			model.RefreshTokenGrantType,
+			oapp.CallbackUrls[0],
+			"",
+			oapp.ClientSecret,
+			initialResp.RefreshToken,
+			"",
+			"",
+		)
+		require.Nil(t, appErr)
+		require.NotEmpty(t, newResp.AccessToken)
+		require.NotEqual(t, oldToken, newResp.AccessToken)
+
+		// The old token must be rejected immediately, the session cache must
+		// have been cleared so the removed DB row is not masked.
+		_, appErr = th.App.GetSession(oldToken)
+		require.NotNil(t, appErr, "old token must be invalid after refresh")
+
+		// The new token must still be accepted.
+		_, appErr = th.App.GetSession(newResp.AccessToken)
+		require.Nil(t, appErr, "new token must remain valid after refresh")
+	})
 }
 
 func TestOAuthRefreshTokenGrantRejectsDeactivatedUser(t *testing.T) {
@@ -1567,6 +1674,55 @@ func TestOAuthImplicitGrantRejectsDeactivatedUser(t *testing.T) {
 	accessData, sErr := th.App.Srv().Store().OAuth().GetAccessDataByUserForApp(user.Id, oapp.Id)
 	require.NoError(t, sErr)
 	require.Empty(t, accessData, "no access data may be persisted for an inactive user")
+}
+
+func TestSwitchOAuthToEmail(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	setupOAuthUser := func(t *testing.T) *model.User {
+		t.Helper()
+
+		authData := model.NewId()
+		_, err := th.App.Srv().Store().User().UpdateAuthData(th.BasicUser.Id, model.UserAuthServiceGitlab, &authData, th.BasicUser.Email, true)
+		require.NoError(t, err)
+		th.App.InvalidateCacheForUser(th.BasicUser.Id)
+
+		user, appErr := th.App.GetUser(th.Context, th.BasicUser.Id)
+		require.Nil(t, appErr)
+		require.Equal(t, model.UserAuthServiceGitlab, user.AuthService)
+
+		return user
+	}
+
+	t.Run("rejects integration session", func(t *testing.T) {
+		user := setupOAuthUser(t)
+
+		rctx := th.Context.WithSession(&model.Session{UserId: user.Id, Id: model.NewId(), IsOAuth: true})
+
+		_, appErr := th.App.SwitchOAuthToEmail(rctx, user.Email, model.NewTestPassword(), user.Id)
+		require.NotNil(t, appErr)
+		require.Equal(t, "api.user.oauth_to_email.integration_session.app_error", appErr.Id)
+		require.Equal(t, http.StatusForbidden, appErr.StatusCode)
+
+		user, appErr = th.App.GetUser(th.Context, user.Id)
+		require.Nil(t, appErr)
+		require.Equal(t, model.UserAuthServiceGitlab, user.AuthService)
+	})
+
+	t.Run("allows regular session", func(t *testing.T) {
+		user := setupOAuthUser(t)
+
+		rctx := th.Context.WithSession(&model.Session{UserId: user.Id, Id: model.NewId()})
+
+		link, appErr := th.App.SwitchOAuthToEmail(rctx, user.Email, model.NewTestPassword(), user.Id)
+		require.Nil(t, appErr)
+		require.Equal(t, "/login?extra=signin_change", link)
+
+		user, appErr = th.App.GetUser(th.Context, user.Id)
+		require.Nil(t, appErr)
+		require.Empty(t, user.AuthService)
+	})
 }
 
 func TestParseOAuthStateTokenExtra(t *testing.T) {
@@ -1881,7 +2037,7 @@ func TestLoginByIntune_BotAccountBlocked(t *testing.T) {
 
 	// Create bot account
 	bot := th.CreateBot(t)
-	botUser, appErr := th.App.GetUser(bot.UserId)
+	botUser, appErr := th.App.GetUser(th.Context, bot.UserId)
 	require.Nil(t, appErr)
 
 	// Create mock Intune interface that returns bot user
@@ -1927,7 +2083,7 @@ func TestLoginByIntune_AccountLocked(t *testing.T) {
 	require.Nil(t, appErr)
 
 	// Reload user to get updated DeleteAt
-	deletedUser, appErr = th.App.GetUser(deletedUser.Id)
+	deletedUser, appErr = th.App.GetUser(th.Context, deletedUser.Id)
 	require.Nil(t, appErr)
 
 	// Create mock Intune interface that returns deleted user
@@ -1986,4 +2142,135 @@ func TestLoginByIntune_TokenValidationFailure(t *testing.T) {
 	assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
 
 	mockIntune.AssertExpectations(t)
+}
+
+func TestRedactOAuthTokenResponse(t *testing.T) {
+	testCases := []struct {
+		Description string
+		Body        string
+		Expected    string
+	}{
+		{
+			"empty body",
+			"",
+			"",
+		},
+		{
+			"body without any token",
+			`{"error":"invalid_grant","error_description":"code expired"}`,
+			`{"error":"invalid_grant","error_description":"code expired"}`,
+		},
+		{
+			"json access token",
+			`{"access_token":"abcd1234","token_type":"bearer"}`,
+			`{"access_token":"[REDACTED]","token_type":"bearer"}`,
+		},
+		{
+			"json access token with whitespace",
+			`{"access_token" : "abcd1234"}`,
+			`{"access_token" : "[REDACTED]"}`,
+		},
+		{
+			"json access token with mixed case key",
+			`{"Access_Token":"abcd1234"}`,
+			`{"Access_Token":"[REDACTED]"}`,
+		},
+		{
+			"json refresh and id tokens",
+			`{"access_token":"a","refresh_token":"b","id_token":"c","expires_in":3600}`,
+			`{"access_token":"[REDACTED]","refresh_token":"[REDACTED]","id_token":"[REDACTED]","expires_in":3600}`,
+		},
+		{
+			"form encoded tokens",
+			"access_token=abcd1234&scope=read&refresh_token=efgh5678",
+			"access_token=[REDACTED]&scope=read&refresh_token=[REDACTED]",
+		},
+		{
+			"truncated json body",
+			`{"access_token":"abcd1234`,
+			`{"access_token":"[REDACTED]`,
+		},
+		{
+			"json access token containing an escaped quote",
+			`{"access_token":"abc\"def","token_type":"bearer"}`,
+			`{"access_token":"[REDACTED]","token_type":"bearer"}`,
+		},
+		{
+			"json access token ending with an escaped backslash",
+			`{"access_token":"abc\\","token_type":"bearer"}`,
+			`{"access_token":"[REDACTED]","token_type":"bearer"}`,
+		},
+		{
+			"json access token containing escaped quotes and backslashes",
+			`{"refresh_token":"a\\b\"c\\\"d","expires_in":3600}`,
+			`{"refresh_token":"[REDACTED]","expires_in":3600}`,
+		},
+		{
+			"truncated json body ending with a lone backslash",
+			`{"access_token":"abcd1234\`,
+			`{"access_token":"[REDACTED]\`,
+		},
+		{
+			"json member name with escaped underscore",
+			`{"access\u005ftoken":"abcd1234","token_type":"bearer"}`,
+			`{"access\u005ftoken":"[REDACTED]","token_type":"bearer"}`,
+		},
+		{
+			"json member name with escaped underscore and mixed case",
+			`{"Refresh\u005FTOKEN":"abcd1234"}`,
+			`{"Refresh\u005FTOKEN":"[REDACTED]"}`,
+		},
+		{
+			"form field name with percent encoded underscore",
+			"access%5Ftoken=abcd1234&scope=read",
+			"access%5Ftoken=[REDACTED]&scope=read",
+		},
+		{
+			"form field name with lowercase percent encoded underscore",
+			"scope=read&id%5ftoken=abcd1234",
+			"scope=read&id%5ftoken=[REDACTED]",
+		},
+		{
+			"form encoded body inside a json error field",
+			`{"error":"access_token=abcd1234"}`,
+			`{"error":"access_token=[REDACTED]"}`,
+		},
+		{
+			"form encoded token in json error field preceded by field with = in its value",
+			`{"error_uri":"https://provider.com/help?code=42","error_description":"access_token=SECRET"}`,
+			`{"error_uri":"https://provider.com/help?code=42","error_description":"access_token=[REDACTED]"}`,
+		},
+		{
+			"json member name that merely ends with a token name",
+			`{"my_access_token_hint":"abcd1234"}`,
+			`{"my_access_token_hint":"abcd1234"}`,
+		},
+		{
+			"form field name that merely contains a token name",
+			"xaccess_token=abcd1234",
+			"xaccess_token=abcd1234",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Description, func(t *testing.T) {
+			assert.Equal(t, tc.Expected, redactOAuthTokenResponse(tc.Body))
+		})
+	}
+
+	t.Run("no part of a token value survives redaction", func(t *testing.T) {
+		for _, body := range []string{
+			`{"access_token":"abc\"def","token_type":"bearer"}`,
+			`{"access_token":"abc\\","token_type":"bearer"}`,
+			`{"refresh_token":"a\\b\"c\\\"def","expires_in":3600}`,
+			`{"id_token":"abc\"def"}`,
+			"access_token=abc%22def&scope=read",
+			`{"access\u005ftoken":"abcdef"}`,
+			"access%5Ftoken=abcdef&scope=read",
+		} {
+			actual := redactOAuthTokenResponse(body)
+			assert.NotContains(t, actual, "abc")
+			assert.NotContains(t, actual, "def")
+		}
+	})
 }

@@ -166,7 +166,7 @@ func (d *DriverImpl) ShutdownConns(pluginID string) {
 		if entry.pluginID == pluginID {
 			err := entry.conn.Close()
 			if err != nil {
-				d.s.Log().Error("Error while closing DB connection", mlog.Err(err), mlog.String("pluginID", pluginID))
+				d.s.Log().Error("Error while closing DB connection", mlog.Err(err), mlog.String("plugin_id", pluginID))
 			}
 			delete(d.connMap, connID)
 		}

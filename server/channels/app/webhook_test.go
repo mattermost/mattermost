@@ -491,14 +491,14 @@ func TestCreateWebhookPost(t *testing.T) {
 			model.PostPropsWebhookDisplayName: hook.DisplayName,
 		},
 		model.PostTypeMessageAttachment,
-		"", nil)
+		"", nil, false)
 	require.Nil(t, appErr)
 
 	assert.Contains(t, post.GetProps(), model.PostPropsFromWebhook, "missing from_webhook prop")
 	assert.Contains(t, post.GetProps(), model.PostPropsAttachments, "missing attachments prop")
 	assert.Contains(t, post.GetProps(), model.PostPropsWebhookDisplayName, "missing webhook_display_name prop")
 
-	_, appErr = th.App.CreateWebhookPost(th.Context, hook.UserId, th.BasicChannel, "foo", "user", "http://iconurl", "", nil, model.PostTypeSystemGeneric, "", nil)
+	_, appErr = th.App.CreateWebhookPost(th.Context, hook.UserId, th.BasicChannel, "foo", "user", "http://iconurl", "", nil, model.PostTypeSystemGeneric, "", nil, false)
 	require.NotNil(t, appErr, "Should have failed - bad post type")
 
 	expectedText := "`<>|<>|`"
@@ -509,7 +509,7 @@ func TestCreateWebhookPost(t *testing.T) {
 			},
 		},
 		model.PostPropsWebhookDisplayName: hook.DisplayName,
-	}, model.PostTypeMessageAttachment, "", nil)
+	}, model.PostTypeMessageAttachment, "", nil, false)
 	require.Nil(t, appErr)
 	assert.Equal(t, expectedText, post.Message)
 
@@ -521,7 +521,7 @@ func TestCreateWebhookPost(t *testing.T) {
 			},
 		},
 		model.PostPropsWebhookDisplayName: hook.DisplayName,
-	}, model.PostTypeMessageAttachment, "", nil)
+	}, model.PostTypeMessageAttachment, "", nil, false)
 	require.Nil(t, appErr)
 	assert.Equal(t, expectedText, post.Message)
 
@@ -549,13 +549,42 @@ Date:   Thu Mar 1 19:46:48 2018 +0300
 			},
 		},
 		model.PostPropsWebhookDisplayName: hook.DisplayName,
-	}, model.PostTypeMessageAttachment, "", nil)
+	}, model.PostTypeMessageAttachment, "", nil, false)
 	require.Nil(t, appErr)
 	assert.Equal(t, expectedText, post.Message)
 
+	t.Run("should add silent notification prop when requested", func(t *testing.T) {
+		post, appErr := th.App.CreateWebhookPost(th.Context, hook.UserId, th.BasicChannel, "silent ping", "user", "http://iconurl", "",
+			model.StringInterface{model.PostPropsWebhookDisplayName: hook.DisplayName},
+			model.PostTypeDefault,
+			"", nil, true)
+		require.Nil(t, appErr)
+		require.True(t, post.HasSilentNotification())
+	})
+
+	t.Run("should add silent notification prop from incoming webhook Silent field", func(t *testing.T) {
+		err := th.App.HandleIncomingWebhook(th.Context, hook.Id, &model.IncomingWebhookRequest{
+			Text:   "silent via json field",
+			Silent: true,
+		})
+		require.Nil(t, err)
+
+		list, appErr := th.App.GetPosts(th.Context, th.BasicChannel.Id, 0, 10)
+		require.Nil(t, appErr)
+		var found *model.Post
+		for _, p := range list.Posts {
+			if p.Message == "silent via json field" {
+				found = p
+				break
+			}
+		}
+		require.NotNil(t, found)
+		require.True(t, found.HasSilentNotification())
+	})
+
 	t.Run("should set webhook creator status to online", func(t *testing.T) {
 		testCluster.ClearMessages()
-		_, appErr := th.App.CreateWebhookPost(th.Context, hook.UserId, th.BasicChannel, "text", "", "", "", model.StringInterface{}, model.PostTypeDefault, "", nil)
+		_, appErr := th.App.CreateWebhookPost(th.Context, hook.UserId, th.BasicChannel, "text", "", "", "", model.StringInterface{}, model.PostTypeDefault, "", nil, false)
 		require.Nil(t, appErr)
 
 		msgs := testCluster.SelectMessages(func(msg *model.ClusterMessage) bool {
@@ -593,6 +622,7 @@ func TestCreateWebhookPostWithOverriddenIcon(t *testing.T) {
 			"",
 			"",
 			nil,
+			false,
 		)
 
 		require.Nil(t, appErr)
@@ -616,6 +646,7 @@ func TestCreateWebhookPostWithOverriddenIcon(t *testing.T) {
 			"",
 			"",
 			nil,
+			false,
 		)
 
 		require.Nil(t, appErr)
@@ -641,6 +672,7 @@ func TestCreateWebhookPostWithOverriddenIcon(t *testing.T) {
 			"",
 			"",
 			nil,
+			false,
 		)
 
 		require.Nil(t, appErr)
@@ -664,6 +696,7 @@ func TestCreateWebhookPostWithOverriddenIcon(t *testing.T) {
 			"",
 			"",
 			nil,
+			false,
 		)
 
 		require.Nil(t, appErr)
@@ -713,6 +746,7 @@ func TestCreateWebhookPostWithPriority(t *testing.T) {
 			model.PostTypeMessageAttachment,
 			"",
 			&conditions,
+			false,
 		)
 
 		require.Nil(t, appErr)
@@ -752,7 +786,7 @@ func TestCreateWebhookPostLinks(t *testing.T) {
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
-			post, appErr := th.App.CreateWebhookPost(th.Context, hook.UserId, th.BasicChannel, tc.input, "", "", "", model.StringInterface{}, "", "", nil)
+			post, appErr := th.App.CreateWebhookPost(th.Context, hook.UserId, th.BasicChannel, tc.input, "", "", "", model.StringInterface{}, "", "", nil, false)
 			require.Nil(t, appErr)
 			require.Equal(t, tc.expectedOutput, post.Message)
 		})
@@ -1078,7 +1112,7 @@ func TestCreateWebhookPostFeatureFlag(t *testing.T) {
 						"act": map[string]any{"type": "external", "url": "http://example.com"},
 					},
 				},
-				"", "", nil)
+				"", "", nil, false)
 			require.Nil(t, appErr)
 			require.NotNil(t, post)
 		})
@@ -1099,7 +1133,7 @@ func TestCreateWebhookPostFeatureFlag(t *testing.T) {
 						nil,
 					),
 				},
-				"", "", nil)
+				"", "", nil, false)
 			require.Nil(t, appErr)
 
 			list, listErr := th.App.GetPosts(th.Context, th.BasicChannel.Id, 0, 20)

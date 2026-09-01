@@ -1,6 +1,10 @@
 ---
 title: "Communicate a channel's focus and scope"
 ---
+import useBaseUrl from '@docusaurus/useBaseUrl';
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 <PlanAvailability slug="all-commercial" />
 
 Every channel in Mattermost serves a purpose and exists for a reason. You can communicate a channel's focus and scope in 3 ways:
@@ -25,11 +29,10 @@ Looking to rename an existing channel? See the [rename channels](/end-user-guide
 
 You're prompted to provide an optional channel purpose description when [creating a channel](/end-user-guide/collaborate/create-channels) or [renaming a channel](/end-user-guide/collaborate/rename-channels). A channel purpose can be up to 250 characters in length, and is often used to help users decide whether to join that channel.
 
-A channel's purpose is visible in the right pane when you select the **View Info** <img src="/img/ui/information-outline_F02FD.svg" alt="Use the Channel Info icon to access additional channel management options." className="theme-icon" /> icon for the channel. Any member of a channel can change a channel's purpose description, unless the system admin has [disabled the ability to do so](/administration-guide/onboard/advanced-permissions).
+A channel's purpose is visible in the right pane when you select the **View Info** <img src={useBaseUrl('/img/ui/information-outline_F02FD.svg')} alt="Use the Channel Info icon to access additional channel management options." className="theme-icon" /> icon for the channel. Any member of a channel can change a channel's purpose description, unless the system admin has [disabled the ability to do so](/administration-guide/onboard/advanced-permissions).
 
-<div class="tab">
-
-Web/Desktop
+<Tabs>
+<TabItem value="web-desktop" label="Web/Desktop">
 
 ![Channel purpose helps users decide if they want to join the channel based on its scope or focus.](/images/channel-purpose-info.png)
 
@@ -37,17 +40,14 @@ Web/Desktop
 2.  Enter or update the channel purpose.
 3.  Select **Save**.
 
-</div>
-
-<div class="tab">
-
-Mobile
+</TabItem>
+<TabItem value="mobile" label="Mobile">
 
 1.  Tap the channel you want to edit.
 
 ![Select a channel that you want to edit.](/images/mobile-select-a-channel.jpg)
 
-2.  Tap the **More** <img src="/img/ui/dots-vertical_F01D9.svg" alt="Use the More icon in the top left corner to access Mattermost desktop apps customization settings." className="theme-icon" /> icon located in the top right corner of the app.
+2.  Tap the **More** <img src={useBaseUrl('/img/ui/dots-vertical_F01D9.svg')} alt="Use the More icon in the top left corner to access Mattermost desktop apps customization settings." className="theme-icon" /> icon located in the top right corner of the app.
 
 ![Tap on More options to access available options for the channel.](/images/mobile-select-more-options-for-a-channel.jpg)
 
@@ -63,7 +63,9 @@ Mobile
 
 ![Click on Edit channel to rename the channel.](/images/mobile-update-channel-purpose.jpg)
 
-</div>
+</TabItem>
+</Tabs>
+
 
 ## Channel header
 
@@ -71,26 +73,22 @@ A channel header is text that displays directly under a channel name at the top 
 
 A channel header can be up to 1024 characters in length, include Markdown formatting, and is often used to summarize the channel's focus or to provide links to frequently accessed documents, tools, or websites.
 
-<div class="tab">
-
-Web/Desktop
+<Tabs>
+<TabItem value="web-desktop" label="Web/Desktop">
 
 1.  Select the channel name at the top of the center pane to access the drop-down menu, then select **Channel Settings**.
 2.  Enter or change channel header details. You can use the same [Markdown formatting](/end-user-guide/collaborate/format-messages#use-markdown) in the channel header as you would when composing a message.
 
 ![Channel headers can include links to documents, tools, or websites.](/images/channel-header.png)
 
-</div>
-
-<div class="tab">
-
-Mobile
+</TabItem>
+<TabItem value="mobile" label="Mobile">
 
 1.  Tap the channel you want to edit.
 
 ![Select a channel that you want to edit.](/images/mobile-select-a-channel.jpg)
 
-2.  Tap the **More** <img src="/img/ui/dots-vertical_F01D9.svg" alt="Use the More icon in the top left corner to access Mattermost desktop apps customization settings." className="theme-icon" /> icon located in the top right corner of the app.
+2.  Tap the **More** <img src={useBaseUrl('/img/ui/dots-vertical_F01D9.svg')} alt="Use the More icon in the top left corner to access Mattermost desktop apps customization settings." className="theme-icon" /> icon located in the top right corner of the app.
 
 ![Tap on More options to access available options for the channel.](/images/mobile-select-more-options-for-a-channel.jpg)
 
@@ -106,4 +104,6 @@ Mobile
 
 ![Click on Edit channel to rename the channel.](/images/mobile-update-channel-header.jpg)
 
-</div>
+</TabItem>
+</Tabs>
+

@@ -37,6 +37,7 @@ export type Props = {
     jobData?: any;
     onRowClick?: (job: Job) => void;
     perPage?: number;
+
     actions: {
         getJobsByType: (jobType: JobType) => void;
         cancelJob: (jobId: string) => Promise<ActionResult>;
@@ -49,8 +50,6 @@ type State = {
 };
 
 class JobTable extends React.PureComponent<Props, State> {
-    interval: ReturnType<typeof setInterval> | null = null;
-
     constructor(props: Props) {
         super(props);
         this.state = {
@@ -60,13 +59,6 @@ class JobTable extends React.PureComponent<Props, State> {
 
     componentDidMount() {
         this.props.actions.getJobsByType(this.props.jobType);
-        this.interval = setInterval(this.reload, 15000);
-    }
-
-    componentWillUnmount() {
-        if (this.interval) {
-            clearInterval(this.interval);
-        }
     }
 
     getExtraInfoText = (job: Job) => {
@@ -152,6 +144,29 @@ class JobTable extends React.PureComponent<Props, State> {
                     }
                     {!hideDetailsColumn && (
                         <td>{this.getExtraInfoText(job)}</td>
+                    )}
+                    {/* Only wired for ACCESS_CONTROL_SYNC, where the details column is
+                        hidden — keep it so, or this cell and its header misalign. */}
+                    {this.props.onRowClick && (
+                        <td className='view-details-field whitespace--nowrap'>
+                            {/* A button, not the row, so it's keyboard-focusable; stopPropagation avoids a double row click. */}
+                            <Button
+                                type='button'
+                                emphasis='quaternary'
+                                size='sm'
+                                className='view-details-link'
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    this.props.onRowClick!(job);
+                                }}
+                            >
+                                <FormattedMessage
+                                    id='admin.jobTable.viewDetails'
+                                    defaultMessage='View details'
+                                />
+                                <i className='icon icon-chevron-right'/>
+                            </Button>
+                        </td>
                     )}
                     <td className='cancel-button-field whitespace--nowrap text-center'>
                         <JobCancelButton
@@ -272,6 +287,7 @@ class JobTable extends React.PureComponent<Props, State> {
                                             />
                                         </th>
                                     )}
+                                    {this.props.onRowClick && <th className='view-details-field'/>}
                                     <th className='cancel-button-field'/>
                                 </tr>
                             </thead>

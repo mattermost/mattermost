@@ -99,4 +99,11 @@ export default class DisplaySettings {
 
         await expect(this.container.locator('section', {hasText: sectionTitles[section]})).toBeVisible();
     }
+
+    async selectPremadeTheme(theme: 'Denim' | 'Sapphire' | 'Quartz' | 'Indigo' | 'Onyx') {
+        await this.themeEditButton.click();
+        await this.verifySectionIsExpanded('theme');
+        await this.container.getByRole('button', {name: theme}).click();
+        await this.container.getByRole('button', {name: 'Save', exact: true}).click();
+    }
 }

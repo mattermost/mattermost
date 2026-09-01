@@ -48,7 +48,11 @@ export type WebSocketMessage = (
     Messages.ChannelBookmarkSorted |
 
     Messages.ChannelAccessControlUpdated |
+    Messages.PermissionPolicyUpdated |
     Messages.TeamAccessControlUpdated |
+
+    Messages.ChannelJoinRequestCreated |
+    Messages.ChannelJoinRequestUpdated |
 
     Messages.Team |
     Messages.UpdateTeamScheme |
@@ -98,6 +102,7 @@ export type WebSocketMessage = (
 
     Messages.ContentFlaggingReportValueUpdated |
 
+    Messages.JobUpdated |
     Messages.RecapUpdated |
 
     Messages.FileDownloadRejected |

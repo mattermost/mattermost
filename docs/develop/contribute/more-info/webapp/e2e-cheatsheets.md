@@ -44,7 +44,7 @@ Note that `cy.findBy*` are shown but other variants are `cy.findAllBy*`, `cy.que
 Please do not use any `Xpath` selectors such as the descendant selector. Do not use the `ul > li` and order selectors either, like `ul > li:nth-child(2)`. If an element can only be queried with this approach, then you may modify the application codebase, improve it, and make it "accessible to everyone".
 _____
 ### Settings Modal
-![settings modal image](../../../../img/e2e/settings-modal.png)
+![settings modal image](/img/e2e/settings-modal.png)
 
 #### Opening the settings modal
 The function `cy.uiOpenSettingsModal(section)` opens the settings modal when viewing a channel. `section` is of the 
@@ -119,7 +119,7 @@ Use the function `cy.findByRole(role, {name})`. `role` is of the < <a target="_b
     ```
 _____
 ### Channel Menu
-![channel menu image](../../../../img/e2e/channel-menu.png)
+![channel menu image](/img/e2e/channel-menu.png)
 
 #### Opening the channel menu
 Use the function `cy.uiOpenChannelMenu(item)`. This will open the channel menu by clicking the channel header title or dropdown icon when viewing a channel. `item` is of the type < <a target="_blank" href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type">string</a> >. Possible values for `item` are: `'View Info'`, `'Move to...'`,`'Notification Preferences'`, `'Mute Channel'`, `'Add Members'`, `'Manage Members'`,`'Edit Channel Header'`, `'Edit Channel Purpose'`, `'Rename Channel'`, and `'Convert to Private Channel'`, `'Archive Channel'`, and `'Leave Channel'`.
@@ -141,7 +141,7 @@ Use the function `cy.uiCloseChannelMenu()`. This will close the channel menu by 
 Use the function `cy.uiGetChannelMenu()`.
 _____
 ### Product Menu
-![product menu image](../../../../img/e2e/product-menu.png)
+![product menu image](/img/e2e/product-menu.png)
 
 #### Opening the product menu
 Use the function `cy.uiOpenProductMenu(item)`. `item` is of the type < <a target="_blank" href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type">string</a> >. Possible values for `item` are: `'Channels'`, `'Boards'`, `'Playbooks'`, `'System Console'`, `'Integrations'`, `'Marketplace'`, `'Download Apps'`, and `'About Mattermost'`.

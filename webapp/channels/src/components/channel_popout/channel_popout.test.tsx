@@ -12,9 +12,8 @@ import {selectTeam} from 'mattermost-redux/actions/teams';
 import {useTeamByName} from 'components/common/hooks/use_team';
 
 import {renderWithContext, screen, waitFor} from 'tests/react_testing_utils';
+import {getPopoutChannelTitle} from 'utils/popouts/popout_windows';
 import {TestHelper} from 'utils/test_helper';
-
-import {getPopoutChannelTitle} from './channel_popout';
 
 import ChannelPopout from './index';
 

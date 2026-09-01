@@ -97,6 +97,17 @@ export default class SystemProperties {
         return this.container.locator('input[id^="react-select-"]').last();
     }
 
+    rowByName(name: string): Locator {
+        const escapedName = name.replaceAll('\\', '\\\\').replaceAll('"', '\\"');
+        return this.container.locator('tr', {
+            has: this.page.locator(`input[data-testid="property-field-input"][value="${escapedName}"]`),
+        });
+    }
+
+    reorderButtonByName(name: string): Locator {
+        return this.rowByName(name).getByRole('button', {name: 'Reorder row'});
+    }
+
     // ── Attribute actions ───────────────────────────────────────────────
 
     async addAttribute() {

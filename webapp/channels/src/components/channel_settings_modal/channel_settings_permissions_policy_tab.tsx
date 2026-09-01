@@ -26,9 +26,10 @@ import type {Channel} from '@mattermost/types/channels';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
 
 import {getAccessControlSettings} from 'mattermost-redux/selectors/entities/access_control';
-import {isPolicySimulationEnabled} from 'mattermost-redux/selectors/entities/general';
+import {getFeatureFlagValue, isPolicySimulationEnabled} from 'mattermost-redux/selectors/entities/general';
 import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 
+import {mergeSessionAttributes} from 'components/admin_console/access_control/editors/shared';
 import TableEditor from 'components/admin_console/access_control/editors/table_editor/table_editor';
 import SimulateAccessModal from 'components/admin_console/access_control/modals/simulate_access/simulate_access_modal';
 import * as Menu from 'components/menu';
@@ -36,6 +37,7 @@ import SaveChangesPanel, {type SaveChangesPanelState} from 'components/widgets/m
 
 import {useChannelAccessControlActions} from 'hooks/useChannelAccessControlActions';
 import {useChannelSystemPolicies} from 'hooks/useChannelSystemPolicies';
+import {useEnabledSessionAttributeFields} from 'hooks/useEnabledSessionAttributeFields';
 
 import type {GlobalState} from 'types/store';
 
@@ -173,6 +175,7 @@ function ChannelSettingsPermissionsPolicyTab({
     const {formatMessage} = useIntl();
     const accessControlSettings = useSelector((state: GlobalState) => getAccessControlSettings(state));
     const isSystemAdmin = useSelector(isCurrentUserSystemAdmin);
+    const sessionAttributesEnabled = useSelector((state: GlobalState) => getFeatureFlagValue(state, 'SessionAttributes') === 'true');
 
     // Gate the "Simulate rules" button + modal. The
     // /cel/simulate_users endpoint returns 501 when this is off, so
@@ -195,6 +198,15 @@ function ChannelSettingsPermissionsPolicyTab({
 
     const [userAttributes, setUserAttributes] = useState<UserPropertyField[]>([]);
     const [attributesLoaded, setAttributesLoaded] = useState(false);
+
+    // The CEL autocomplete endpoint returns access control group attributes
+    // and does not return session attributes, so fetch
+    // the enabled ones separately and merge them into the picker.
+    const sessionFields = useEnabledSessionAttributeFields(sessionAttributesEnabled);
+    const mergedAttributes = useMemo(
+        () => mergeSessionAttributes(userAttributes, sessionFields),
+        [userAttributes, sessionFields],
+    );
 
     const [saveChangesPanelState, setSaveChangesPanelState] = useState<SaveChangesPanelState>();
     const [formError, setFormError] = useState<string>('');
@@ -485,6 +497,36 @@ function ChannelSettingsPermissionsPolicyTab({
         const rulesWithMembership = buildRulesWithMembership(originalAllRules, originalMembershipExpression);
         const finalRules = buildRulesWithPermissionRules(rulesWithMembership, persistedPermissionRules);
 
+        // Deleting the last permission rule can leave the channel policy with no
+        // rules and no imports (a channel that only ever had permission rules and
+        // no membership rule). The server rejects an empty policy with
+        // "Unable to save access control policy." (AccessControlPolicy.IsValid:
+        // "Policy must either import or define rules"), so mirror the Membership
+        // Policy tab and delete the channel policy instead — returning the
+        // channel to standard access.
+        if (finalRules.length === 0 && originalImports.length === 0) {
+            const deleteResult = await actions.deleteChannelPolicy(channel.id);
+
+            // A 404 means the policy was never persisted (rules added and removed
+            // before any save), which is an effective success for this flow.
+            if (deleteResult.error && deleteResult.error.status_code !== 404) {
+                setFormError(deleteResult.error.message || formatMessage({
+                    id: 'channel_settings.permissions_policy.save_error',
+                    defaultMessage: 'Failed to save permission rules',
+                }));
+                return SAVE_RESULT_ERROR;
+            }
+
+            setOriginalAllRules([]);
+
+            // Mirror the Membership Policy tab's empty-delete path: once the
+            // channel policy is gone, the next save in this tab session must
+            // not re-POST the stale active flag from the deleted policy.
+            setOriginalActive(false);
+            setOriginalRulesJSON(JSON.stringify(persistedPermissionRules));
+            return SAVE_RESULT_SAVED;
+        }
+
         const policy = {
             id: channel.id,
             name: channel.display_name,
@@ -605,7 +647,7 @@ function ChannelSettingsPermissionsPolicyTab({
                 isNew={isNew}
                 channelId={channel.id}
                 actions={actions}
-                userAttributes={userAttributes}
+                userAttributes={mergedAttributes}
                 attributesLoaded={attributesLoaded}
                 enableUserManagedAttributes={accessControlSettings?.EnableUserManagedAttributes || false}
                 isSystemAdmin={isSystemAdmin}
@@ -1036,6 +1078,7 @@ function PermissionRuleEditor({
                         }}
                         menu={{
                             id: 'cpp-role-selector-menu',
+                            className: 'ChannelSettingsModal__permissionsPolicyOptionMenu',
                             'aria-label': formatMessage({
                                 id: 'channel_settings.permissions_policy.field.role_menu_aria',
                                 defaultMessage: 'Role selection menu',
@@ -1185,6 +1228,7 @@ function PermissionRuleEditor({
                             }}
                             menu={{
                                 id: 'cpp-add-permission-menu',
+                                className: 'ChannelSettingsModal__permissionsPolicyOptionMenu',
                                 'aria-label': formatMessage({
                                     id: 'channel_settings.permissions_policy.field.actions_add_menu_aria',
                                     defaultMessage: 'Add permission menu',

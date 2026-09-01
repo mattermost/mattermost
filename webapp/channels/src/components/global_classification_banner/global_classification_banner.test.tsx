@@ -7,13 +7,11 @@ import type {PropertyField, PropertyValue} from '@mattermost/types/properties';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
 import {Client4} from 'mattermost-redux/client';
+import {ACCESS_CONTROL_PROPERTY_GROUP, DISPLAY_BANNER_BOTTOM, DISPLAY_BANNER_TOP} from 'mattermost-redux/constants/properties';
 
 import {
-    DISPLAY_BANNER_BOTTOM,
-    DISPLAY_BANNER_TOP,
     CLASSIFICATIONS_FIELD_TARGET_ID,
     CLASSIFICATIONS_FIELD_TARGET_TYPE,
-    CLASSIFICATIONS_GROUP_NAME,
     CLASSIFICATIONS_SYSTEM_OBJECT_TYPE,
     CLASSIFICATIONS_SYSTEM_VALUE_TARGET_ID,
 } from 'components/admin_console/classification_markings/utils';
@@ -34,7 +32,7 @@ const LINKED_FIELD_ID = 'linked_field1';
 function makeLinkedField(actions: string[], options: Array<{id: string; name: string; color: string}> = []): PropertyField {
     return {
         id: LINKED_FIELD_ID,
-        group_id: CLASSIFICATIONS_GROUP_NAME,
+        group_id: ACCESS_CONTROL_PROPERTY_GROUP,
         name: 'classification',
         type: 'select',
         object_type: CLASSIFICATIONS_SYSTEM_OBJECT_TYPE,
@@ -58,7 +56,7 @@ function makeSystemValue(optionId: string): PropertyValue<string> {
         id: 'value1',
         target_id: CLASSIFICATIONS_SYSTEM_VALUE_TARGET_ID,
         target_type: CLASSIFICATIONS_SYSTEM_OBJECT_TYPE,
-        group_id: CLASSIFICATIONS_GROUP_NAME,
+        group_id: ACCESS_CONTROL_PROPERTY_GROUP,
         field_id: LINKED_FIELD_ID,
         value: optionId,
         create_at: 3000,
@@ -275,7 +273,7 @@ describe('GlobalClassificationBanner', () => {
         );
 
         expect(Client4.getPropertyFields).toHaveBeenCalledWith(
-            CLASSIFICATIONS_GROUP_NAME,
+            ACCESS_CONTROL_PROPERTY_GROUP,
             CLASSIFICATIONS_SYSTEM_OBJECT_TYPE,
             CLASSIFICATIONS_FIELD_TARGET_TYPE,
             CLASSIFICATIONS_FIELD_TARGET_ID,

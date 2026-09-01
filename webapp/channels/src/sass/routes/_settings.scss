@@ -143,6 +143,10 @@
             text-decoration: none;
             transition: all 0.15s ease;
 
+            &:hover {
+                background: var(--button-bg);
+            }
+
             span {
                 margin-top: -3px;
                 font-size: 22px;
@@ -192,6 +196,11 @@
             text-align: center;
             text-decoration: none;
             transition: all 0.15s ease;
+
+            &:hover {
+                background: var(--button-bg);
+                color: var(--button-color);
+            }
 
             span {
                 margin-top: -3px;
@@ -606,7 +615,7 @@
                 }
 
                 .has-error {
-                    color: #a94442;
+                    color: var(--error-text);
                 }
 
                 .file-status {
@@ -655,7 +664,9 @@
 
             img {
                 &.icon {
+                    width: 18px;
                     height: 18px;
+                    margin-right: 6px;
                     vertical-align: top;
                 }
             }

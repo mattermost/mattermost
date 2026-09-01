@@ -5,7 +5,7 @@ title: "Set up Auto-translation (Beta)"
 
 From Mattermost v11.5, auto-translation automatically translates channel messages into each user's preferred display language. This enables multilingual teams to collaborate without language barriers.
 
-Auto-translation uses an asynchronous queue-based architecture. When a message is posted in a channel with auto-translation enabled, the message is queued for translation into every configured target language. Translated messages replace the original display for users whose display language matches a target language, and they can view the original text at any time by selecting the translation icon on the message.
+Auto-translation uses an asynchronous queue-based architecture. When a message is posted in a channel with auto-translation enabled, the message is queued for translation into every configured target language. Translated messages replace the original display for users whose display language matches a target language, and they can view the original text at any time by selecting the translation icon on the message. A user's translation target language is determined by their Mattermost display language (set via **Settings \> Display \> Language**); decoupling the translation target from the display language is not currently supported.
 
 Two translation provider options are available:
 
@@ -61,23 +61,29 @@ To configure:
 
 <Tip>
 
-**Choosing between LibreTranslate and Agents**: LibreTranslate is a lightweight, self-hosted translation engine. The Agents provider uses an LLM backend and generally produces more accurate translations, especially for languages such as Japanese, Korean, and Chinese where contextual understanding improves quality. Consider your translation quality needs and existing infrastructure when choosing.
+**Choosing between LibreTranslate and Agents**: LibreTranslate is a lightweight, self-hosted translation engine. The Agents provider uses an LLM backend and generally produces more accurate translations, especially for languages such as Japanese, Korean, and Chinese where contextual understanding improves quality. Consider your translation quality needs and existing infrastructure when choosing. LibreTranslate does not support direct translation between all language pairs; for unsupported combinations it performs a pivot translation through an intermediate language (typically English), which can reduce accuracy for those pairs.
 
-**Choosing an LLM for the Agents provider**: Smaller, faster models are recommended for auto-translation. Translation is a well-defined task that doesn't benefit from the extended reasoning capabilities of larger models — larger models may actually overthink the task, adding unnecessary latency without improving quality. A model like `gpt-3.5-turbo` provides accurate translations with lower latency.
+**Choosing an LLM for the Agents provider**: Smaller, faster models are recommended for auto-translation. Translation is a well-defined task that doesn't benefit from the extended reasoning capabilities of larger models — larger models may actually overthink the task, adding unnecessary latency without improving quality. Choose a small, low-latency model that is currently supported by your configured LLM provider and validated in your environment.
 
 </Tip>
 
 ### Enable auto-translation
 
 1.  Go to **System Console \> Site Configuration \> Localization**.
-2.  Set [Enable autotranslation](/administration-guide/configure/site-configuration-settings#enable-autotranslation) to **True**.
+2.  Set [Enable autotranslation](/administration-guide/configure/site-configuration-settings#enable-auto-translation) to **True**.
 3.  Select a [Translation provider](/administration-guide/configure/site-configuration-settings#translation-provider) (`libretranslate` or `agents`).
 4.  Configure [Languages allowed](/administration-guide/configure/site-configuration-settings#languages-allowed) — every message in auto-translation-enabled channels is translated into each language in this list.
 5.  Select **Save**.
 
+<Note>
+
+The languages available in the **Languages allowed** list are controlled by the **Available languages** setting (`AvailableLocales`) under **Site Configuration \> Localization**. If that field is blank, all supported languages are available; otherwise only listed languages appear as selectable auto-translation targets. The `EnableExperimentalLocales` setting can make additional locale codes available. Note that some locales (such as `zh-Hans`) are in beta — portions of the Mattermost UI may still display in English, which is a UI localization limitation and does not affect message translation.
+
+</Note>
+
 Use the [Restrict autotranslation in direct and group messages](/administration-guide/configure/site-configuration-settings#restrict-autotranslation-in-direct-and-group-messages) setting to control whether auto-translation can be enabled in direct and group messages.
 
-See the [auto-translation configuration reference](/administration-guide/configure/site-configuration-settings#autotranslation) for all available settings.
+See the [auto-translation configuration reference](../../configure/site-configuration-settings#auto-translation) for all available settings.
 
 ### Enable auto-translation in a channel
 

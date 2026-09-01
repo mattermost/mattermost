@@ -151,10 +151,10 @@ describe('components/ProfilePopoverCustomAttributes', () => {
         );
 
         // Check that all attribute titles are rendered
-        expect(screen.getByText('Text Attribute')).toBeInTheDocument();
-        expect(screen.getByText('Phone Number')).toBeInTheDocument();
-        expect(screen.getByText('Website')).toBeInTheDocument();
-        expect(screen.getByText('Select Attribute')).toBeInTheDocument();
+        expect(screen.getByRole('heading', {name: 'Text Attribute', level: 3})).toBeInTheDocument();
+        expect(screen.getByRole('heading', {name: 'Phone Number', level: 3})).toBeInTheDocument();
+        expect(screen.getByRole('heading', {name: 'Website', level: 3})).toBeInTheDocument();
+        expect(screen.getByRole('heading', {name: 'Select Attribute', level: 3})).toBeInTheDocument();
 
         // Check that all attribute values are rendered
         expect(screen.getByText('text value')).toBeInTheDocument();

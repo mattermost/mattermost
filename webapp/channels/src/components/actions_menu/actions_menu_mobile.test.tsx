@@ -31,6 +31,7 @@ describe('components/actions_menu/ActionsMenu on mobile view', () => {
             teamId: 'team_id_1',
             handleDropdownOpened: jest.fn(),
             isMenuOpen: true,
+            isMobileView: true,
             actions: {
                 openModal: jest.fn(),
                 openAppsModal: jest.fn(),

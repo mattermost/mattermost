@@ -89,7 +89,7 @@ jobs:
         id: read-token
         uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
         with:
-          app-id: ${{ vars.CHANGELOG_READ_CLIENT_ID }}
+          client-id: ${{ vars.CHANGELOG_READ_CLIENT_ID }}
           private-key: ${{ secrets.CHANGELOG_READ_PRIVATE_KEY }}
           repositories: mattermost
 
@@ -97,7 +97,7 @@ jobs:
         id: write-token
         uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
         with:
-          app-id: ${{ vars.CHANGELOG_WRITE_CLIENT_ID }}
+          client-id: ${{ vars.CHANGELOG_WRITE_CLIENT_ID }}
           private-key: ${{ secrets.CHANGELOG_WRITE_PRIVATE_KEY }}
           repositories: docs
 
@@ -505,12 +505,12 @@ jobs:
           GH_TOKEN: ${{ steps.write-token.outputs.token }}
           MILESTONE_TITLE: ${{ steps.vars.outputs.milestone_title }}
         run: |
-          # Use --arg to pass the title safely - avoids jq injection if the
-          # milestone title contains quotes or other special characters.
+          # Pipe to standalone jq with --arg to pass the title safely.
+          # gh api does not support jq variable bindings directly.
           NUM=$(gh api 'repos/mattermost/docs/milestones?state=all' \
             --paginate \
-            --jq '.[] | select(.title == $title) | .number' \
-            --arg title "$MILESTONE_TITLE" \
+            | jq -r --arg title "$MILESTONE_TITLE" \
+                '.[] | select(.title == $title) | .number' \
             | head -1)
 
           if [ -z "$NUM" ]; then
@@ -531,7 +531,6 @@ jobs:
           GH_TOKEN: ${{ steps.write-token.outputs.token }}
           BRANCH: ${{ steps.vars.outputs.branch }}
           MILESTONE_TITLE: ${{ steps.vars.outputs.milestone_title }}
-          MILESTONE_NUMBER: ${{ steps.docs-milestone.outputs.number }}
           SOURCE_REPO: ${{ steps.vars.outputs.source_repo }}
           PR_NUMBER: ${{ steps.vars.outputs.pr_number }}
           PR_TITLE: ${{ steps.vars.outputs.pr_title }}
@@ -554,13 +553,14 @@ jobs:
 
           # Open as a draft so a human must explicitly un-draft before merging.
           # This is the primary control against auto-committing injected content.
+          # gh pr create --milestone takes a title string, not a numeric ID.
           URL=$(gh pr create \
             --repo mattermost/docs \
             --head "$BRANCH" \
             --base "${{ steps.base-branch.outputs.base }}" \
             --title "docs: ${PR_TITLE_SHORT}" \
             --body "$BODY" \
-            --milestone "$MILESTONE_NUMBER" \
+            --milestone "$MILESTONE_TITLE" \
             --draft)
 
           echo "number=$(echo "$URL" | grep -oE '[0-9]+$')" >> "$GITHUB_OUTPUT"
@@ -572,11 +572,11 @@ jobs:
         env:
           GH_TOKEN: ${{ steps.write-token.outputs.token }}
           DOCS_PR: ${{ steps.existing.outputs.number }}
-          MILESTONE_NUMBER: ${{ steps.docs-milestone.outputs.number }}
+          MILESTONE_TITLE: ${{ steps.vars.outputs.milestone_title }}
         run: |
           gh pr edit "$DOCS_PR" \
             --repo mattermost/docs \
-            --milestone "$MILESTONE_NUMBER"
+            --milestone "$MILESTONE_TITLE"
 
       # 12. Resolve final docs PR reference
       - name: Resolve docs PR reference

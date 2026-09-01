@@ -8,6 +8,7 @@ import {
     FloatingPortal,
     offset as floatingOffset,
     shift,
+    size as floatingSize,
     useClick,
     useDismiss,
     useFloating,
@@ -72,6 +73,18 @@ export default function SessionAttributeEditorButton({userId, displayName, field
             floatingOffset(6),
             flip({padding: 8}),
             shift({padding: 8}),
+
+            // Cap the popover to the space actually available on the
+            // chosen side so a long session-attribute list can't grow
+            // it past the viewport and hide the Apply / Cancel actions
+            // (MM-70142). The panel becomes a flex column and the field
+            // grid scrolls inside the cap.
+            floatingSize({
+                padding: 8,
+                apply({availableHeight, elements}) {
+                    elements.floating.style.maxHeight = `${Math.max(0, availableHeight)}px`;
+                },
+            }),
         ],
     });
 

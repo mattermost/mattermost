@@ -21,7 +21,7 @@ import {fileURLToPath} from 'node:url';
 const HERE = dirname(fileURLToPath(import.meta.url));
 const SITE_ROOT = resolve(HERE, '..');
 const REPO_ROOT = resolve(SITE_ROOT, '..');
-const DOCS = join(REPO_ROOT, 'docs');
+const DOCS = join(REPO_ROOT, 'main');
 const SRC = join(SITE_ROOT, 'scripts', 'migrate-main-docs', 'redirects.json');
 const OUT = join(SITE_ROOT, 'sidebars', 'active-redirects.json');
 

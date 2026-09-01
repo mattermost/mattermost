@@ -1180,6 +1180,25 @@ func TestDisableBot(t *testing.T) {
 			require.Equal(t, bot, disabledBot2)
 		})
 	})
+
+	t.Run("cannot disable a protected system-owned bot", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		systemBot, appErr := th.App.GetSystemBot(th.Context)
+		require.Nil(t, appErr)
+		require.Equal(t, model.BotSystemBotUsername, systemBot.Username)
+
+		_, resp, err := th.SystemAdminClient.DisableBot(context.Background(), systemBot.UserId)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+		CheckErrorID(t, err, "app.bot.update_bot_active.protected_bot.app_error")
+
+		// The bot must remain enabled.
+		bot, resp, err := th.SystemAdminClient.GetBotIncludeDeleted(context.Background(), systemBot.UserId, "")
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Zero(t, bot.DeleteAt)
+	})
 }
 
 func TestEnableBot(t *testing.T) {

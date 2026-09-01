@@ -187,6 +187,42 @@ function renderRemoveFromTeamMessage(post: Post): ReactNode {
     );
 }
 
+function renderTeamAccessControlRemovalMessage(post: Post): ReactNode {
+    const teamName = ensureString(post.props?.team_name);
+
+    return (
+        <span className='post--system__access-control'>
+            <i
+                className='icon icon-shield-outline'
+                aria-hidden='true'
+            />
+            <FormattedMessage
+                id='post_body.team_access_control.removed'
+                defaultMessage='You have been removed from {teamName} because you no longer meet the membership requirements.'
+                values={{teamName}}
+            />
+        </span>
+    );
+}
+
+function renderTeamAccessControlAdditionMessage(post: Post): ReactNode {
+    const teamName = ensureString(post.props?.team_name);
+
+    return (
+        <span className='post--system__access-control'>
+            <i
+                className='icon icon-account-plus-outline'
+                aria-hidden='true'
+            />
+            <FormattedMessage
+                id='post_body.team_access_control.added'
+                defaultMessage='You have been added to {teamName} because you now meet the membership requirements.'
+                values={{teamName}}
+            />
+        </span>
+    );
+}
+
 function renderHeaderChangeMessage(post: Post): ReactNode {
     if (!post.props.username) {
         return null;
@@ -441,6 +477,8 @@ const systemMessageRenderers = {
     [Posts.POST_TYPES.LEAVE_TEAM]: renderLeaveTeamMessage,
     [Posts.POST_TYPES.ADD_TO_TEAM]: renderAddToTeamMessage,
     [Posts.POST_TYPES.REMOVE_FROM_TEAM]: renderRemoveFromTeamMessage,
+    [Posts.POST_TYPES.ACCESS_CONTROL_TEAM_REMOVAL]: renderTeamAccessControlRemovalMessage,
+    [Posts.POST_TYPES.ACCESS_CONTROL_TEAM_ADDITION]: renderTeamAccessControlAdditionMessage,
     [Posts.POST_TYPES.HEADER_CHANGE]: renderHeaderChangeMessage,
     [Posts.POST_TYPES.DISPLAYNAME_CHANGE]: renderDisplayNameChangeMessage,
     [Posts.POST_TYPES.CONVERT_CHANNEL]: renderConvertChannelToPrivateMessage,

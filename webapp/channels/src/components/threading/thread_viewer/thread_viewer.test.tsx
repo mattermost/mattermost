@@ -87,7 +87,6 @@ describe('components/threading/ThreadViewer', () => {
         appsEnabled: true,
         rootPostId: post.id,
         isThreadView: true,
-        enableWebSocketEventScope: false,
         lastUpdateAt: 1234,
     };
 

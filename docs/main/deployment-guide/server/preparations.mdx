@@ -2,6 +2,9 @@
 title: "Prepare your Mattermost Server environment"
 sidebar_label: "Preparations"
 ---
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 This guide outlines the key preparation steps required before installing the Mattermost Server, focusing on setting up the database and file storage systems.
 
 Before installing Mattermost Server, review the following preparation requirements:
@@ -59,29 +62,27 @@ PostgreSQL v14+ is required for Mattermost server installations. [MySQL database
 
     1.  Edit `postgresql.conf` to allow remote connections:
 
-        <div class="tab">
+<Tabs>
+<TabItem value="ubuntu-debian" label="Ubuntu/Debian">
 
-        Ubuntu/Debian
-
-        Edit `/etc/postgresql/&#123;version&#125;/main/postgresql.conf`:
-
-        ``` text
-        listen_addresses = '*'
-        ```
-
-        </div>
-
-        <div class="tab">
-
-        RHEL/CentOS
-
-        Edit `/var/lib/pgsql/&#123;version&#125;/data/postgresql.conf`:
+Edit `/etc/postgresql/&#123;version&#125;/main/postgresql.conf`:
 
         ``` text
         listen_addresses = '*'
         ```
 
-        </div>
+</TabItem>
+<TabItem value="rhel-centos" label="RHEL/CentOS">
+
+Edit `/var/lib/pgsql/&#123;version&#125;/data/postgresql.conf`:
+
+        ``` text
+        listen_addresses = '*'
+        ```
+
+</TabItem>
+</Tabs>
+
 
     2.  Configure client authentication by editing `pg_hba.conf`:
 
@@ -93,25 +94,23 @@ PostgreSQL v14+ is required for Mattermost server installations. [MySQL database
 
 4.  Restart the PostgreSQL service to apply the configuration changes:
 
-    <div class="tab">
+<Tabs>
+<TabItem value="ubuntu-debian" label="Ubuntu/Debian">
 
-    Ubuntu/Debian
+``` sh
+sudo systemctl restart postgresql
+```
 
-    ``` sh
-    sudo systemctl restart postgresql
-    ```
+</TabItem>
+<TabItem value="rhel-centos" label="RHEL/CentOS">
 
-    </div>
+``` sh
+sudo systemctl restart postgresql
+```
 
-    <div class="tab">
+</TabItem>
+</Tabs>
 
-    RHEL/CentOS
-
-    ``` sh
-    sudo systemctl restart postgresql
-    ```
-
-    </div>
 
 <Important>
 

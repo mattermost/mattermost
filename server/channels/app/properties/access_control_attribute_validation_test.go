@@ -5,10 +5,12 @@ package properties
 
 import (
 	"encoding/json"
+	"fmt"
 	"strings"
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -79,6 +81,72 @@ func TestAccessControlAttributeValidationHook(t *testing.T) {
 		assert.NotEmpty(t, created.ID)
 	})
 
+	t.Run("allows classification and smart label actions on create", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "field_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+			ObjectType: "channel",
+			Attrs: model.StringInterface{model.PropertyFieldAttrActions: []any{
+				model.PropertyFieldActionDisplayBannerTop,
+				model.PropertyFieldActionDisplayLabelHeader,
+				model.PropertyFieldActionDisplayLabelInfo,
+			}},
+		}
+		created, createErr := th.service.CreatePropertyField(th.Context, field)
+		require.NoError(t, createErr)
+		require.Equal(t, []any{
+			model.PropertyFieldActionDisplayBannerTop,
+			model.PropertyFieldActionDisplayLabelHeader,
+			model.PropertyFieldActionDisplayLabelInfo,
+		}, created.Attrs[model.PropertyFieldAttrActions])
+	})
+
+	// The classification banner is the only production writer of actions today,
+	// on a system-object linked field. Its exact round trip has to keep working:
+	// this validation is new, the banner is not.
+	t.Run("classification banner actions round-trip through create, patch, and clear", func(t *testing.T) {
+		field, createErr := th.service.CreatePropertyField(th.Context, &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "field_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+			ObjectType: "system",
+			Attrs: model.StringInterface{model.PropertyFieldAttrActions: []any{
+				model.PropertyFieldActionDisplayBannerTop,
+				model.PropertyFieldActionDisplayBannerBottom,
+			}},
+		})
+		require.NoError(t, createErr)
+
+		field.Attrs = model.StringInterface{model.PropertyFieldAttrActions: []any{model.PropertyFieldActionDisplayBannerTop}}
+		updated, _, updateErr := th.service.UpdatePropertyField(th.Context, group.ID, field)
+		require.NoError(t, updateErr)
+		require.Equal(t, []any{model.PropertyFieldActionDisplayBannerTop}, updated.Attrs[model.PropertyFieldAttrActions])
+
+		// Disabling the banner sends an empty list, which clears the key rather
+		// than storing []. Both read as "no actions" client-side.
+		updated.Attrs = model.StringInterface{model.PropertyFieldAttrActions: []any{}}
+		cleared, _, clearErr := th.service.UpdatePropertyField(th.Context, group.ID, updated)
+		require.NoError(t, clearErr)
+		require.NotContains(t, cleared.Attrs, model.PropertyFieldAttrActions)
+	})
+
+	t.Run("rejects invalid actions on create", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "field_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+			ObjectType: "channel",
+			Attrs:      model.StringInterface{model.PropertyFieldAttrActions: []any{"unknown"}},
+		}
+		_, createErr := th.service.CreatePropertyField(th.Context, field)
+		require.Error(t, createErr)
+		assert.Contains(t, createErr.Error(), "unknown action")
+	})
+
 	t.Run("rejects invalid visibility on update", func(t *testing.T) {
 		field := th.CreatePropertyFieldDirect(t, &model.PropertyField{
 			GroupID:    group.ID,
@@ -92,6 +160,49 @@ func TestAccessControlAttributeValidationHook(t *testing.T) {
 		_, _, updateErr := th.service.UpdatePropertyField(th.Context, group.ID, field)
 		require.Error(t, updateErr)
 		assert.Contains(t, updateErr.Error(), "visibility")
+	})
+
+	t.Run("rejects invalid actions on update", func(t *testing.T) {
+		field := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "field_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+			ObjectType: "channel",
+		})
+
+		field.Attrs = model.StringInterface{model.PropertyFieldAttrActions: []any{"unknown"}}
+		_, _, updateErr := th.service.UpdatePropertyField(th.Context, group.ID, field)
+		require.Error(t, updateErr)
+		assert.Contains(t, updateErr.Error(), "unknown action")
+	})
+
+	// Mirrors the lenient grandfather for Name: attrs are merged on PATCH, so a
+	// field carrying an actions value that is no longer valid has to stay editable
+	// on every other attr rather than needing delete/recreate to fix.
+	t.Run("grandfathers an untouched invalid actions value on update", func(t *testing.T) {
+		field := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "field_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+			ObjectType: "channel",
+			Attrs:      model.StringInterface{model.PropertyFieldAttrActions: []any{"retired_action"}},
+		})
+
+		field.Attrs = model.StringInterface{
+			model.PropertyFieldAttrActions:     []any{"retired_action"},
+			model.PropertyFieldAttrDisplayName: "Renamed",
+		}
+		updated, _, updateErr := th.service.UpdatePropertyField(th.Context, group.ID, field)
+		require.NoError(t, updateErr)
+		assert.Equal(t, "Renamed", updated.Attrs[model.PropertyFieldAttrDisplayName])
+
+		// Changing actions still gets the strict check.
+		field.Attrs = model.StringInterface{model.PropertyFieldAttrActions: []any{"retired_action", "unknown"}}
+		_, _, updateErr = th.service.UpdatePropertyField(th.Context, group.ID, field)
+		require.Error(t, updateErr)
+		assert.Contains(t, updateErr.Error(), "unknown action")
 	})
 
 	t.Run("skips validation for unmanaged groups", func(t *testing.T) {
@@ -976,7 +1087,7 @@ func TestAccessControlAttributeValidationHookManagedAuthorization(t *testing.T) 
 	adminUserID := model.NewId()
 	regularUserID := model.NewId()
 
-	permChecker := func(userID string, perm *model.Permission) bool {
+	permChecker := func(_ request.CTX, userID string, perm *model.Permission) bool {
 		return userID == adminUserID && perm.Id == model.PermissionManageSystem.Id
 	}
 
@@ -1461,7 +1572,7 @@ func TestAccessControlAttributeValidationHookSync(t *testing.T) {
 	require.NoError(t, err)
 
 	adminUserID := model.NewId()
-	permChecker := func(userID string, perm *model.Permission) bool {
+	permChecker := func(_ request.CTX, userID string, perm *model.Permission) bool {
 		return userID == adminUserID && perm.Id == model.PermissionManageSystem.Id
 	}
 
@@ -1643,5 +1754,272 @@ func TestAccessControlAttributeValidationHookSync(t *testing.T) {
 		require.NoError(t, createErr)
 		assert.NotContains(t, created.Attrs, model.PropertyFieldAttrLDAP)
 		assert.NotContains(t, created.Attrs, model.PropertyFieldAttrSAML)
+	})
+}
+
+func TestAccessControlAttributeValidationHook_Owners(t *testing.T) {
+	th := Setup(t)
+
+	group, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "test_owner_validation", Version: model.PropertyGroupVersionV2})
+	require.NoError(t, err)
+
+	hook := NewAccessControlAttributeValidationHook(th.service, func(_ request.CTX, userID string, _ *model.Permission) bool {
+		return userID == "admin-user"
+	}, group.ID)
+	th.service.AddHook(hook)
+
+	newOwnerFieldAttrs := func(owners []model.PropertyOwner) model.StringInterface {
+		return model.StringInterface{model.PropertyAttrsOwners: owners}
+	}
+
+	t.Run("normalizes owners: trims, dedupes scopes, merges duplicate entries", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "field_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+			ObjectType: "user",
+			Attrs: newOwnerFieldAttrs([]model.PropertyOwner{
+				{ID: "  com.mattermost.scim ", Type: model.PropertyOwnerTypePlugin, Scopes: []string{" entra ", "entra", ""}},
+				{ID: "com.mattermost.scim", Type: model.PropertyOwnerTypePlugin, Scopes: []string{"okta"}},
+			}),
+		}
+		created, createErr := th.service.CreatePropertyField(th.Context, field)
+		require.NoError(t, createErr)
+
+		owners := model.GetPropertyFieldOwners(created)
+		require.Len(t, owners, 1)
+		assert.Equal(t, "com.mattermost.scim", owners[0].ID)
+		assert.Equal(t, model.PropertyOwnerTypePlugin, owners[0].Type)
+		assert.ElementsMatch(t, []string{"entra", "okta"}, owners[0].Scopes)
+	})
+
+	t.Run("preserves scope label case verbatim", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "field_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+			ObjectType: "user",
+			Attrs: newOwnerFieldAttrs([]model.PropertyOwner{
+				{ID: "com.mattermost.scim", Type: model.PropertyOwnerTypePlugin, Scopes: []string{"Entra"}},
+			}),
+		}
+		created, createErr := th.service.CreatePropertyField(th.Context, field)
+		require.NoError(t, createErr)
+
+		owners := model.GetPropertyFieldOwners(created)
+		require.Len(t, owners, 1)
+		assert.Equal(t, []string{"Entra"}, owners[0].Scopes)
+	})
+
+	t.Run("keeps case-variant scope labels distinct but dedupes exact duplicates", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "field_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+			ObjectType: "user",
+			Attrs: newOwnerFieldAttrs([]model.PropertyOwner{
+				{ID: "com.mattermost.scim", Type: model.PropertyOwnerTypePlugin, Scopes: []string{"Entra", "entra", "Entra"}},
+			}),
+		}
+		created, createErr := th.service.CreatePropertyField(th.Context, field)
+		require.NoError(t, createErr)
+
+		owners := model.GetPropertyFieldOwners(created)
+		require.Len(t, owners, 1)
+		assert.Equal(t, []string{"Entra", "entra"}, owners[0].Scopes)
+	})
+
+	t.Run("rejects a scope with invalid characters", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "field_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+			ObjectType: "user",
+			Attrs: newOwnerFieldAttrs([]model.PropertyOwner{
+				{ID: "com.mattermost.scim", Type: model.PropertyOwnerTypePlugin, Scopes: []string{"a b"}},
+			}),
+		}
+		_, createErr := th.service.CreatePropertyField(th.Context, field)
+		require.Error(t, createErr)
+		assert.Contains(t, createErr.Error(), "invalid characters")
+	})
+
+	t.Run("rejects an owner with an unknown type", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "field_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+			ObjectType: "user",
+			Attrs: newOwnerFieldAttrs([]model.PropertyOwner{
+				{ID: "x", Type: "bogus", Scopes: []string{"s"}},
+			}),
+		}
+		_, createErr := th.service.CreatePropertyField(th.Context, field)
+		require.Error(t, createErr)
+		assert.Contains(t, createErr.Error(), "owner type")
+	})
+
+	t.Run("rejects an owner with an empty id", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "field_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+			ObjectType: "user",
+			Attrs: newOwnerFieldAttrs([]model.PropertyOwner{
+				{ID: "  ", Type: model.PropertyOwnerTypePlugin},
+			}),
+		}
+		_, createErr := th.service.CreatePropertyField(th.Context, field)
+		require.Error(t, createErr)
+		assert.Contains(t, createErr.Error(), "owner id")
+	})
+
+	t.Run("rejects owners combined with managed=admin", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "field_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+			ObjectType: "user",
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttrManaged: "admin",
+				model.PropertyAttrsOwners: []model.PropertyOwner{
+					{ID: "com.mattermost.scim", Type: model.PropertyOwnerTypePlugin, Scopes: []string{"entra"}},
+				},
+			},
+		}
+		_, createErr := th.service.CreatePropertyField(th.Context, field)
+		require.Error(t, createErr)
+		assert.Contains(t, createErr.Error(), "managed=admin")
+	})
+
+	t.Run("allows owners combined with saml sync attr", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "field_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+			ObjectType: "user",
+			Attrs: model.StringInterface{
+				model.CustomProfileAttributesPropertyAttrsSAML: "department",
+				model.PropertyAttrsOwners: []model.PropertyOwner{
+					{ID: "com.mattermost.scim", Type: model.PropertyOwnerTypePlugin, Scopes: []string{"entra", "okta"}},
+				},
+			},
+		}
+		created, createErr := th.service.CreatePropertyField(th.Context, field)
+		require.NoError(t, createErr)
+		assert.Equal(t, "department", created.Attrs[model.CustomProfileAttributesPropertyAttrsSAML])
+		require.True(t, model.HasPropertyFieldOwners(created))
+	})
+
+	t.Run("pins permission_values to sysadmin for owner-managed fields", func(t *testing.T) {
+		// Owner-managed fields pin PermissionValues to sysadmin so that if the
+		// owners list is ever dropped, the field falls back to admin-only
+		// rather than becoming writable by every member.
+		field := &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "field_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+			ObjectType: "user",
+			Attrs: newOwnerFieldAttrs([]model.PropertyOwner{
+				{ID: "com.mattermost.scim", Type: model.PropertyOwnerTypePlugin, Scopes: []string{"entra"}},
+			}),
+		}
+		created, createErr := th.service.CreatePropertyField(th.Context, field)
+		require.NoError(t, createErr)
+		require.NotNil(t, created.PermissionValues)
+		assert.Equal(t, model.PermissionLevelSysadmin, *created.PermissionValues)
+	})
+
+	t.Run("removes an empty owners list", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "field_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+			ObjectType: "user",
+			Attrs:      newOwnerFieldAttrs([]model.PropertyOwner{}),
+		}
+		created, createErr := th.service.CreatePropertyField(th.Context, field)
+		require.NoError(t, createErr)
+		assert.False(t, model.HasPropertyFieldOwners(created))
+	})
+
+	t.Run("rejects too many owners", func(t *testing.T) {
+		owners := make([]model.PropertyOwner, 0, model.PropertyOwnersMaxPerField+1)
+		for i := 0; i <= model.PropertyOwnersMaxPerField; i++ {
+			owners = append(owners, model.PropertyOwner{ID: fmt.Sprintf("com.mattermost.owner%d", i), Type: model.PropertyOwnerTypePlugin, Scopes: []string{"entra"}})
+		}
+		field := &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "field_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+			ObjectType: "user",
+			Attrs:      newOwnerFieldAttrs(owners),
+		}
+		_, createErr := th.service.CreatePropertyField(th.Context, field)
+		require.Error(t, createErr)
+		assert.Contains(t, createErr.Error(), "too many owners")
+	})
+
+	t.Run("rejects too many scopes on a single owner", func(t *testing.T) {
+		scopes := make([]string, 0, model.PropertyOwnerScopesMax+1)
+		for i := 0; i <= model.PropertyOwnerScopesMax; i++ {
+			scopes = append(scopes, fmt.Sprintf("scope%d", i))
+		}
+		field := &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "field_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+			ObjectType: "user",
+			Attrs: newOwnerFieldAttrs([]model.PropertyOwner{
+				{ID: "com.mattermost.scim", Type: model.PropertyOwnerTypePlugin, Scopes: scopes},
+			}),
+		}
+		_, createErr := th.service.CreatePropertyField(th.Context, field)
+		require.Error(t, createErr)
+		assert.Contains(t, createErr.Error(), "too many scopes")
+	})
+
+	t.Run("rejects an overlong scope", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "field_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+			ObjectType: "user",
+			Attrs: newOwnerFieldAttrs([]model.PropertyOwner{
+				{ID: "com.mattermost.scim", Type: model.PropertyOwnerTypePlugin, Scopes: []string{strings.Repeat("a", model.PropertyOwnerScopeMaxRunes+1)}},
+			}),
+		}
+		_, createErr := th.service.CreatePropertyField(th.Context, field)
+		require.Error(t, createErr)
+		assert.Contains(t, createErr.Error(), "scope exceeds max length")
+	})
+
+	t.Run("rejects an overlong owner id", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "field_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+			ObjectType: "user",
+			Attrs: newOwnerFieldAttrs([]model.PropertyOwner{
+				{ID: strings.Repeat("a", model.PropertyOwnerIDMaxRunes+1), Type: model.PropertyOwnerTypePlugin, Scopes: []string{"entra"}},
+			}),
+		}
+		_, createErr := th.service.CreatePropertyField(th.Context, field)
+		require.Error(t, createErr)
+		assert.Contains(t, createErr.Error(), "owner id exceeds max length")
 	})
 }

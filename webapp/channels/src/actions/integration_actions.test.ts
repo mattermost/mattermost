@@ -3,8 +3,10 @@
 
 import type {IncomingWebhook, OutgoingWebhook, Command, OAuthApp} from '@mattermost/types/integrations';
 
+import {IntegrationTypes} from 'mattermost-redux/action_types';
 import * as IntegrationActions from 'mattermost-redux/actions/integrations';
 import {getProfilesByIds} from 'mattermost-redux/actions/users';
+import {Client4} from 'mattermost-redux/client';
 
 import * as Actions from 'actions/integration_actions';
 
@@ -50,6 +52,16 @@ jest.mock('mattermost-redux/selectors/entities/apps', () => ({
 
 jest.mock('mattermost-redux/selectors/entities/integrations', () => ({
     getDialogArguments: jest.fn(() => null),
+}));
+
+jest.mock('mattermost-redux/client');
+
+jest.mock('mattermost-redux/actions/helpers', () => ({
+    forceLogoutIfNecessary: jest.fn(),
+}));
+
+jest.mock('mattermost-redux/actions/errors', () => ({
+    logError: jest.fn(() => ({type: 'MOCK_LOG_ERROR'})),
 }));
 
 interface CustomMatchers<R = unknown> {
@@ -447,6 +459,105 @@ describe('actions/integration_actions', () => {
             const testStore = mockStore(initialState);
             testStore.dispatch(Actions.loadProfilesForOutgoingOAuthConnections([]));
             expect(getProfilesByIds).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('executeDialogAction', () => {
+        const {getDialogArguments} = require('mattermost-redux/selectors/entities/integrations');
+
+        const url = 'https://example.com/action';
+        const context = {key: 'value'};
+
+        beforeEach(() => {
+            getDialogArguments.mockReturnValue(null);
+        });
+
+        test('uses dialog channel_id when getDialogArguments returns a dialog with channel_id', async () => {
+            getDialogArguments.mockReturnValue({channel_id: 'dialog_channel_id'});
+            (Client4.executeDialogAction as jest.Mock).mockResolvedValue({});
+
+            // currentChannelId in state is 'current_channel_id' — proves dialog wins
+            const testStore = mockStore(initialState);
+            await testStore.dispatch(Actions.executeDialogAction(url, context));
+
+            expect(Client4.executeDialogAction).toHaveBeenCalledWith(
+                url,
+                context,
+                'dialog_channel_id',
+                'team_id1',
+            );
+        });
+
+        test('falls back to getCurrentChannelId when getDialogArguments returns null', async () => {
+            getDialogArguments.mockReturnValue(null);
+            (Client4.executeDialogAction as jest.Mock).mockResolvedValue({});
+
+            const testStore = mockStore(initialState);
+            await testStore.dispatch(Actions.executeDialogAction(url, context));
+
+            expect(Client4.executeDialogAction).toHaveBeenCalledWith(
+                url,
+                context,
+                'current_channel_id',
+                'team_id1',
+            );
+        });
+
+        test('falls back to getCurrentChannelId when dialog has no channel_id', async () => {
+            getDialogArguments.mockReturnValue({callback_id: 'cb1'});
+            (Client4.executeDialogAction as jest.Mock).mockResolvedValue({});
+
+            const testStore = mockStore(initialState);
+            await testStore.dispatch(Actions.executeDialogAction(url, context));
+
+            expect(Client4.executeDialogAction).toHaveBeenCalledWith(
+                url,
+                context,
+                'current_channel_id',
+                'team_id1',
+            );
+        });
+
+        test('dispatches RECEIVED_DIALOG_TRIGGER_ID when response includes trigger_id', async () => {
+            (Client4.executeDialogAction as jest.Mock).mockResolvedValue({trigger_id: 'trigger123'});
+
+            const testStore = mockStore(initialState);
+            await testStore.dispatch(Actions.executeDialogAction(url, context));
+
+            const dispatchedActions = testStore.getActions();
+            expect(dispatchedActions).toContainEqual({
+                type: IntegrationTypes.RECEIVED_DIALOG_TRIGGER_ID,
+                data: 'trigger123',
+            });
+        });
+
+        test('does not dispatch RECEIVED_DIALOG_TRIGGER_ID when response has no trigger_id', async () => {
+            (Client4.executeDialogAction as jest.Mock).mockResolvedValue({});
+
+            const testStore = mockStore(initialState);
+            await testStore.dispatch(Actions.executeDialogAction(url, context));
+
+            const dispatchedActions = testStore.getActions();
+            const triggerIdAction = dispatchedActions.find(
+                (a) => a.type === IntegrationTypes.RECEIVED_DIALOG_TRIGGER_ID,
+            );
+            expect(triggerIdAction).toBeUndefined();
+        });
+
+        test('returns {error} and does not dispatch RECEIVED_DIALOG_TRIGGER_ID on Client4 failure', async () => {
+            const networkError = new Error('network failure');
+            (Client4.executeDialogAction as jest.Mock).mockRejectedValue(networkError);
+
+            const testStore = mockStore(initialState);
+            const result = await testStore.dispatch(Actions.executeDialogAction(url, context));
+
+            expect(result.error).toBe(networkError);
+
+            const dispatchedActions = testStore.getActions();
+            const triggerIdAction = dispatchedActions.find(
+                (a) => a.type === IntegrationTypes.RECEIVED_DIALOG_TRIGGER_ID,
+            );
+            expect(triggerIdAction).toBeUndefined();
         });
     });
 });

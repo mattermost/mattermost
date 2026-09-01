@@ -3,7 +3,7 @@ title: "Deploy Prometheus and Grafana for performance monitoring"
 ---
 <PlanAvailability slug="entry-ent" />
 
-Performance monitoring support enables admins to track system health for large Enterprise deployments through integrations with [Prometheus](https://prometheus.io/) and [Grafana](https://grafana.com/). These integrations support data collection from several Mattermost servers, which is particularly useful if you're running Mattermost [in high availability mode](/administration-guide/scale/high-availability-cluster-based-deployment). Once you're tracking system health, you can [set up performance alerts](/administration-guide/scale/performance-alerting) on your Grafana dashboard.
+Performance monitoring support enables admins to track system health for large Enterprise deployments through integrations with [Prometheus](https://prometheus.io/) and [Grafana](https://grafana.com/). These integrations support data collection from several Mattermost servers, which is particularly useful if you're running Mattermost [in high availability mode](/deployment-guide/reference-architecture/scale/high-availability-cluster-based-deployment). Once you're tracking system health, you can [set up performance alerts](/administration-guide/scale/performance-alerting) on your Grafana dashboard.
 
 Admins can collect and store various data points from the Mattermost application in an [OpenMetrics](https://openmetrics.io) format by [deploying Prometheus](#install-prometheus) and [Grafana](#install-grafana).
 
@@ -117,7 +117,7 @@ See [this Grafana guide](https://grafana.com/docs/grafana/v7.5/dashboards/export
 </Tip>
 
 - [Mattermost Performance Monitoring v2](https://grafana.com/grafana/dashboards/15582-mattermost-performance-monitoring-v2/), which contains detailed charts for performance monitoring including application, cluster, job server, and system metrics.
-- [Mattermost Notification Health Monitoring](https://grafana.com/grafana/dashboards/21305-mattermost-notification-health/), which can be used to track different types of notifications sent from Mattermost. Accessing and enabling Mattermost Notification Health Monitoring requires the feature flag `NotificationMonitoring` to be set to `true`. System admins can [disable notification monitoring data collection](/administration-guide/configure/site-configuration-settings#enable-notification-monitoring) through the System Console.
+- [Mattermost Notification Health Monitoring](https://grafana.com/grafana/dashboards/21305-mattermost-notification-health/), which can be used to track different types of notifications sent from Mattermost. System admins can [disable notification monitoring data collection](/administration-guide/configure/site-configuration-settings#enable-notification-monitoring) through the System Console.
 - [Mattermost Web App Performance Metrics](https://grafana.com/grafana/dashboards/21460-web-app-metrics/), which contains detailed metrics for client-side performance, including web vitals and Mattermost-specifc metrics.
 - [Mattermost Desktop App Performance Metrics](https://grafana.com/grafana/dashboards/22736-desktop-app-metrics/), which contains detailed metrics for client-side desktop performance, including CPU and memory usage metrics.
 - [Mattermost Mobile App Performance Metrics](https://grafana.com/grafana/dashboards/21695-mobile-performance-metrics/), which contains detailed metrics for client-side mobile performance, including web vitals and Mattermost-specifc metrics.
@@ -128,6 +128,8 @@ See [this Grafana guide](https://grafana.com/docs/grafana/v7.5/dashboards/export
 ## What's collected?
 
 Mattermost provides [custom metrics](/administration-guide/scale/performance-monitoring-metrics#custom-mattermost-metrics) and [standard Go metrics](/administration-guide/scale/performance-monitoring-metrics#standard-go-metrics) that can be used to monitor your system's performance.
+
+When the `AggregatePluginMetrics` feature flag is enabled, plugin-provided metrics are included in the same `/metrics` scrape target and can be filtered by the `plugin_id` label.
 
 ## Next steps
 

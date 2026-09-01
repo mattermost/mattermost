@@ -7,7 +7,7 @@ The Desktop App exercises relatively strict control over the user's ability to n
 - **Security:** Since we expose certain Electron (and therefore NodeJS) APIs to the front-end application, we want to be in control of what scripts are run in the front-end. We make a concerted effort to lock down the exposed APIs to only what is necessary; however, to avoid any privacy or security breaches, it's best to avoid allowing the user to navigate to any page that isn't explicitly trusted.
 - **User Experience:** Our application is ONLY designed to work with the Mattermost Web App and thus allowing the user to navigate to other places that are not the Web App is not a supported use case, and could create some undesirable effects.
 
-![Navigation diagram](navigation-diagram.png)
+![Navigation diagram](/img/desktop-architecture/navigation-diagram.png)
 
 ### Internal navigation
   

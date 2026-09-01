@@ -1101,6 +1101,26 @@ $sidebarOpacityAnimationDuration: 0.15s;
         .SidebarMenu:not(.menuOpen) {
             display: none;
         }
+
+        .SidebarChannelLink__join-request-dot {
+            position: relative;
+            display: flex;
+            width: 28px;
+            min-width: 0;
+            flex: 0 0 28px;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none;
+
+            &::before {
+                display: block;
+                width: 6px;
+                height: 6px;
+                border-radius: var(--radius-full);
+                background: var(--sidebar-text-active-border);
+                content: '';
+            }
+        }
     }
 
     .SidebarChannel .SidebarLink:focus {
@@ -1126,7 +1146,8 @@ $sidebarOpacityAnimationDuration: 0.15s;
         }
 
         .channel-pencil-icon,
-        .badge {
+        .badge,
+        .SidebarChannelLink__join-request-dot {
             // Hide the badge by hiding it instead of using `display: none` since the desktop app only counts
             // badges with a non-zero offsetHeight when counting notifications
             position: absolute;

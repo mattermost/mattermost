@@ -99,7 +99,7 @@ var ConfigMigrateCmd = &cobra.Command{
 	Use:     "migrate [from_config] [to_config]",
 	Short:   "Migrate existing config between backends",
 	Long:    "Migrate a file-based configuration to (or from) a database-based configuration. Point the Mattermost server at the target configuration to start using it. Note that this command is only available in `--local` mode.",
-	Example: `config migrate path/to/config.json "postgres://mmuser:mostest@localhost:5432/mattermost_test?sslmode=disable&connect_timeout=10"`,
+	Example: `config migrate path/to/config.json "postgres://mmuser:mostest_password@localhost:5432/mattermost_test?sslmode=disable&connect_timeout=10"`,
 	Args:    cobra.ExactArgs(2),
 	RunE:    withClient(configMigrateCmdF),
 }
@@ -554,7 +554,7 @@ func configSubpathCmdF(cmd *cobra.Command, _ []string) error {
 	assetsDir, _ := cmd.Flags().GetString("assets-dir")
 	path, _ := cmd.Flags().GetString("path")
 
-	if err := utils.UpdateAssetsSubpathInDir(path, assetsDir); err != nil {
+	if err := utils.UpdateAssetsSubpathInDir(path, assetsDir, nil); err != nil {
 		return errors.Wrap(err, "failed to update assets subpath")
 	}
 

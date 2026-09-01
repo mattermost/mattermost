@@ -1,15 +1,18 @@
 ---
 title: "Search for messages"
 ---
+import useBaseUrl from '@docusaurus/useBaseUrl';
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 <PlanAvailability slug="all-commercial" />
 
 Use Mattermost search to find messages, replies, and the contents of files. You can also search by [hashtags](#hashtags), perform more advanced searches using [search modifiers](#search-modifiers), or adjust search results to show messages from the current team, a specific team, or all teams.
 
 ## Search for message
 
-<div class="tab">
-
-Web/Desktop
+<Tabs>
+<TabItem value="web-desktop" label="Web/Desktop">
 
 1.  Select the Search field, select **Messages**, enter your search criteria.
 
@@ -43,13 +46,16 @@ From Mattermost v10.8, you can also adjust your search results to show messages 
 
 </Tip>
 
-</div>
+<Tip>
 
-<div class="tab">
+When using Mattermost in a web browser or the desktop app, you can open your current search results in a separate popout window by selecting the **Open in new window** <img src={useBaseUrl('/img/ui/dock-window_F10AC.svg')} alt="Open thread in a new browser window icon." /> icon in the search results header.
 
-Mobile
+</Tip>
 
-1.  Tap the **Search** <img src="/img/ui/magnify_F0349.svg" alt="Search for messages and files in Mattermost." className="theme-icon" /> icon at the bottom of the app to search for messages or files attached to messages.
+</TabItem>
+<TabItem value="mobile" label="Mobile">
+
+1.  Tap the **Search** <img src={useBaseUrl('/img/ui/magnify_F0349.svg')} alt="Search for messages and files in Mattermost." className="theme-icon" /> icon at the bottom of the app to search for messages or files attached to messages.
 
 > ![Tap on the Search icon to search for messages.](/images/mobile-search-for-messages.jpg)
 
@@ -67,13 +73,9 @@ Mobile
 >
 > ![Check the search results to find your required message or file from the list.](/images/mobile-search-message-results.jpg)
 
-<Tip>
+</TabItem>
+</Tabs>
 
-When using Mattermost in a web browser or the desktop app, you can open your current search results in a separate popout window by selecting the **Open in new window** <img src="/img/ui/dock-window_F10AC.svg" alt="Open thread in a new browser window icon." /> icon in the search results header.
-
-</Tip>
-
-</div>
 
 ## Search for files
 
@@ -112,25 +114,23 @@ Using Mattermost in a web browser or the desktop app, you can narrow search resu
 
 You can access files recently shared in a channel:
 
-<div class="tab">
+<Tabs>
+<TabItem value="web-desktop" label="Web/Desktop">
 
-Web/Desktop
-
-Select the <img src="/img/ui/file-text-outline_F09EE.svg" alt="Use the Channel Files icon to search for files attached to messages in a given channel." className="theme-icon" /> icon to the right of the channel name to access files recently shared in that channel.
+Select the <img src={useBaseUrl('/img/ui/file-text-outline_F09EE.svg')} alt="Use the Channel Files icon to search for files attached to messages in a given channel." className="theme-icon" /> icon to the right of the channel name to access files recently shared in that channel.
 
 ![Use the Channel Files option to access recently shared files in the current channel.](/images/channel-files-icon.png)
 
-Alternatively, you can select the channel name, select the **View Info** <img src="/img/ui/information-outline_F02FD.svg" alt="Use the Channel Info icon to access additional channel management options." className="theme-icon" /> icon, then select **Files** in the right pane.
+Alternatively, you can select the channel name, select the **View Info** <img src={useBaseUrl('/img/ui/information-outline_F02FD.svg')} alt="Use the Channel Info icon to access additional channel management options." className="theme-icon" /> icon, then select **Files** in the right pane.
 
-</div>
-
-<div class="tab">
-
-Mobile
+</TabItem>
+<TabItem value="mobile" label="Mobile">
 
 Tap the channel name to view channel options, then tap **Files**.
 
-</div>
+</TabItem>
+</Tabs>
+
 
 ## Search modifiers
 
@@ -215,7 +215,7 @@ From Mattermost v11.6, when your system admin [enables searching public channels
 
 ## Technical notes about searching
 
-By default, Mattermost uses full text search support included in PostgreSQL. Select the **product menu** <img src="/img/ui/products_E82F.svg" alt="Navigate between Channels, collaborative playbooks, and boards using the product menu icon." className="theme-icon" /> then select **About Mattermost** to see which database you’re using.
+By default, Mattermost uses full text search support included in PostgreSQL. Select the **product menu** <img src={useBaseUrl('/img/ui/products_E82F.svg')} alt="Navigate between Channels, collaborative playbooks, and boards using the product menu icon." className="theme-icon" /> then select **About Mattermost** to see which database you’re using.
 
 - Stop words are filtered out of search results. See [PostgreSQL](https://www.postgresql.org/docs/10/textsearch-dictionaries.html#TEXTSEARCH-STOPWORDS) database documentation for a full list of applicable stop words.
 - URLs don’t return results.

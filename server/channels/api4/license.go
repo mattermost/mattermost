@@ -28,18 +28,6 @@ func (api *API) InitLicense() {
 }
 
 func getClientLicense(c *Context, w http.ResponseWriter, r *http.Request) {
-	format := r.URL.Query().Get("format")
-
-	if format == "" {
-		c.Err = model.NewAppError("getClientLicense", "api.license.client.old_format.app_error", nil, "", http.StatusBadRequest)
-		return
-	}
-
-	if format != "old" {
-		c.SetInvalidParam("format")
-		return
-	}
-
 	var clientLicense map[string]string
 
 	if c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionReadLicenseInformation) {
@@ -254,9 +242,9 @@ func requestTrialLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 	var appErr *model.AppError
 	// If any of the newly supported trial request fields are set (ie, not a legacy request), process this as a new trial request (requiring the new fields) otherwise fall back on the old method.
 	if !trialRequest.IsLegacy() {
-		appErr = c.App.Channels().RequestTrialLicenseWithExtraFields(c.AppContext.Session().UserId, trialRequest)
+		appErr = c.App.Channels().RequestTrialLicenseWithExtraFields(c.AppContext, c.AppContext.Session().UserId, trialRequest)
 	} else {
-		appErr = c.App.Channels().RequestTrialLicense(c.AppContext.Session().UserId, trialRequest.Users, trialRequest.TermsAccepted, trialRequest.ReceiveEmailsAccepted)
+		appErr = c.App.Channels().RequestTrialLicense(c.AppContext, c.AppContext.Session().UserId, trialRequest.Users, trialRequest.TermsAccepted, trialRequest.ReceiveEmailsAccepted)
 	}
 
 	if appErr != nil {

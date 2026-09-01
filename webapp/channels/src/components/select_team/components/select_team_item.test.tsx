@@ -88,4 +88,18 @@ describe('components/select_team/components/SelectTeamItem', () => {
         await userEvent.click(screen.getByRole('link'));
         expect(onTeamClick).not.toHaveBeenCalled();
     });
+
+    test('shows the Recommended chip with an accessible label when the team is recommended', () => {
+        const props = {...baseProps, team: {...baseProps.team, recommended: true} as Team};
+        renderWithContext(<SelectTeamItem {...props}/>);
+
+        expect(screen.getByText('Recommended')).toBeInTheDocument();
+        expect(screen.getByLabelText('Recommended based on your attributes')).toBeInTheDocument();
+    });
+
+    test('does not show the Recommended chip when the team is not recommended', () => {
+        renderWithContext(<SelectTeamItem {...baseProps}/>);
+
+        expect(screen.queryByText('Recommended')).not.toBeInTheDocument();
+    });
 });

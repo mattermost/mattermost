@@ -194,11 +194,14 @@ function isElementVisible(element: HTMLElement): boolean {
     while (currentElement) {
         const style = window.getComputedStyle(currentElement);
 
-        // Check common ways elements can be hidden
+        // Check common ways elements can be hidden. Note: pointer-events is
+        // intentionally not treated as a visibility signal here. It only affects
+        // mouse/touch hit-testing, not keyboard focusability, and an ancestor's
+        // `pointer-events: none` can be re-enabled on descendants, so walking the
+        // ancestor chain for it wrongly excludes still-focusable elements.
         if (
             style.display === 'none' ||
             style.visibility === 'hidden' ||
-            style.pointerEvents === 'none' ||
             currentElement.hasAttribute('hidden')
         ) {
             return false;

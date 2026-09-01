@@ -141,56 +141,129 @@ func (jss SqlJobStore) SaveOnce(job *model.Job) (*model.Job, error) {
 	return job, nil
 }
 
-func (jss SqlJobStore) UpdateOptimistically(job *model.Job, currentStatus string) (bool, error) {
+// SaveOnceByTypeAndData inserts the job only when no pending or in-progress job already exists
+// with the same type and matching data filter. Unlike SaveOnce (which dedupes per type), this
+// allows many concurrent jobs of the same type while keeping at most one queued per entity
+// identified by the data filter (e.g. one job per scheduled_recap_id). Returns (nil, nil) when a
+// matching job already exists.
+func (jss SqlJobStore) SaveOnceByTypeAndData(job *model.Job, data map[string]string) (*model.Job, error) {
+	if len(data) == 0 {
+		return nil, errors.New("data filter cannot be empty")
+	}
+
+	jsonData, err := json.Marshal(job.Data)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed marshalling job data")
+	}
+	if jss.IsBinaryParamEnabled() {
+		jsonData = AppendBinaryFlag(jsonData)
+	}
+
+	tx, err := jss.GetMaster().BeginWithIsolation(&sql.TxOptions{
+		Isolation: sql.LevelSerializable,
+	})
+	if err != nil {
+		return nil, errors.Wrap(err, "begin_transaction")
+	}
+	defer finalizeTransactionX(tx, &err)
+
+	query, args, err := jss.jobTypeAndDataQuery(
+		jss.getQueryBuilder().Select("COUNT(*)").From("Jobs"),
+		job.Type,
+		data,
+		model.JobStatusPending,
+		model.JobStatusInProgress,
+	).ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "job_tosql")
+	}
+
+	var count int64
+	err = tx.Get(&count, query, args...)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to count pending and in-progress jobs with type=%s and data filter", job.Type)
+	}
+
+	if count > 0 {
+		return nil, nil
+	}
+
+	query, args, err = jss.getQueryBuilder().
+		Insert("Jobs").
+		Columns("Id", "Type", "Priority", "CreateAt", "StartAt", "LastActivityAt", "Status", "Progress", "Data").
+		Values(job.Id, job.Type, job.Priority, job.CreateAt, job.StartAt, job.LastActivityAt, job.Status, job.Progress, jsonData).ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to generate sqlquery")
+	}
+
+	if _, err = tx.Exec(query, args...); err != nil {
+		if isRepeatableError(err) {
+			return nil, nil
+		}
+		return nil, errors.Wrap(err, "failed to save Job")
+	}
+
+	if err = tx.Commit(); err != nil {
+		if isRepeatableError(err) {
+			return nil, nil
+		}
+		return nil, errors.Wrap(err, "commit_transaction")
+	}
+
+	return job, nil
+}
+
+// UpdateOptimistically updates the job only if its current status matches currentStatus.
+// Returns the updated job on success, or nil if no row was matched (status mismatch or job not
+// found). A nil return with a nil error is not an error — it means the precondition was not met.
+func (jss SqlJobStore) UpdateOptimistically(job *model.Job, currentStatus string) (*model.Job, error) {
 	dataJSON, jsonErr := json.Marshal(job.Data)
 	if jsonErr != nil {
-		return false, errors.Wrap(jsonErr, "failed to encode job's data to JSON")
+		return nil, errors.Wrap(jsonErr, "failed to encode job's data to JSON")
 	}
 	if jss.IsBinaryParamEnabled() {
 		dataJSON = AppendBinaryFlag(dataJSON)
 	}
-	query, args, err := jss.getQueryBuilder().
+
+	builder := jss.getQueryBuilder().
 		Update("Jobs").
 		Set("LastActivityAt", model.GetMillis()).
 		Set("Status", job.Status).
 		Set("Data", dataJSON).
 		Set("Progress", job.Progress).
-		Where(sq.Eq{"Id": job.Id, "Status": currentStatus}).ToSql()
-	if err != nil {
-		return false, errors.Wrap(err, "job_tosql")
-	}
-	sqlResult, err := jss.GetMaster().Exec(query, args...)
-	if err != nil {
-		return false, errors.Wrap(err, "failed to update Job")
-	}
+		Where(sq.Eq{"Id": job.Id, "Status": currentStatus}).
+		Suffix("RETURNING " + strings.Join(jss.jobColumns, ", "))
 
-	rows, err := sqlResult.RowsAffected()
-
-	if err != nil {
-		return false, errors.Wrap(err, "unable to get rows affected")
+	var jobs []*model.Job
+	if err := jss.GetMaster().SelectBuilder(&jobs, builder); err != nil {
+		return nil, errors.Wrapf(err, "failed to update Job with id=%s", job.Id)
 	}
 
-	if rows != 1 {
-		return false, nil
+	if len(jobs) != 1 {
+		return nil, nil
 	}
 
-	return true, nil
+	return jobs[0], nil
 }
 
 func (jss SqlJobStore) UpdateStatus(id string, status string) (*model.Job, error) {
-	job := &model.Job{
-		Id:             id,
-		Status:         status,
-		LastActivityAt: model.GetMillis(),
-	}
+	builder := jss.getQueryBuilder().
+		Update("Jobs").
+		Set("Status", status).
+		Set("LastActivityAt", model.GetMillis()).
+		Where(sq.Eq{"Id": id}).
+		Suffix("RETURNING " + strings.Join(jss.jobColumns, ", "))
 
-	if _, err := jss.GetMaster().NamedExec(`UPDATE Jobs
-		SET Status=:Status, LastActivityAt=:LastActivityAt
-		WHERE Id=:Id`, job); err != nil {
+	var jobs []*model.Job
+	if err := jss.GetMaster().SelectBuilder(&jobs, builder); err != nil {
 		return nil, errors.Wrapf(err, "failed to update Job with id=%s", id)
 	}
 
-	return job, nil
+	if len(jobs) != 1 {
+		return nil, store.NewErrNotFound("Job", id)
+	}
+
+	return jobs[0], nil
 }
 
 func (jss SqlJobStore) UpdateStatusOptimistically(id string, currentStatus string, newStatus string) (*model.Job, error) {
@@ -387,9 +460,8 @@ func (jss SqlJobStore) GetCountByStatusAndType(status string, jobType string) (i
 	return count, nil
 }
 
-func (jss SqlJobStore) GetByTypeAndData(rctx request.CTX, jobType string, data map[string]string, useMaster bool, statuses ...string) ([]*model.Job, error) {
-	query := jss.jobQuery.Where(sq.Eq{"Type": jobType})
-
+func (jss SqlJobStore) jobTypeAndDataQuery(query sq.SelectBuilder, jobType string, data map[string]string, statuses ...string) sq.SelectBuilder {
+	query = query.Where(sq.Eq{"Type": jobType})
 	// Add status filtering if provided - enables full usage of idx_jobs_status_type index
 	if len(statuses) > 0 {
 		query = query.Where(sq.Eq{"Status": statuses})
@@ -399,6 +471,12 @@ func (jss SqlJobStore) GetByTypeAndData(rctx request.CTX, jobType string, data m
 	for key, value := range data {
 		query = query.Where(sq.Expr("Data->? = ?", key, fmt.Sprintf(`"%s"`, value)))
 	}
+
+	return query
+}
+
+func (jss SqlJobStore) GetByTypeAndData(rctx request.CTX, jobType string, data map[string]string, useMaster bool, statuses ...string) ([]*model.Job, error) {
+	query := jss.jobTypeAndDataQuery(jss.jobQuery, jobType, data, statuses...)
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
