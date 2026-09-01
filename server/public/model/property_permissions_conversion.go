@@ -81,10 +81,132 @@ func PermissionsFromLegacy(field *PropertyField, opts LegacyConversionOpts) *Per
 		}
 	}
 
+	grants := []Grant{}
+	if opts.ConvertAttrs {
+		// Owners, the source plugin ID and the sync lock are all read from Attrs,
+		// so they convert only where Attrs were ever enforced.
+		grants = grantsFromLegacy(field)
+	}
+	if opts.Template != nil {
+		// A linked field's grant over option.read is read access to the template's
+		// own scheme, never a right the identity held over the linked field itself
+		// (PropertyField.IsValid refuses such a grant outright), so the converted
+		// grants must not carry it.
+		for i := range grants {
+			grants[i].Allow = removeAction(grants[i].Allow, PropertyActionOptionRead)
+		}
+	}
+
 	return &Permissions{
 		Restrictions: restrictions,
-		Grants:       []Grant{},
+		Grants:       grants,
 	}
+}
+
+// grantsFromLegacy converts a field's owners, source plugin and sync lock —
+// all Attrs-based, all implicitly trusted with everything under the legacy
+// model — into grants enumerating the five enforced actions. An identity named
+// by more than one input (an owner who is also the field's source plugin)
+// collapses into a single grant rather than one per input, matching how the
+// store's grants table is keyed.
+func grantsFromLegacy(field *PropertyField) []Grant {
+	type identityKey struct{ typ, id string }
+	var order []identityKey
+	byIdentity := map[identityKey]*Grant{}
+
+	addGrant := func(identityType, id string, scopes, allow []string) {
+		if id == "" {
+			return
+		}
+		key := identityKey{identityType, id}
+		if existing, ok := byIdentity[key]; ok {
+			existing.Allow = unionActions(existing.Allow, allow)
+			existing.Scopes = mergeScopes(existing.Scopes, scopes)
+			return
+		}
+		byIdentity[key] = &Grant{
+			Identity: Identity{Type: identityType, ID: id},
+			Scopes:   scopes,
+			Allow:    allow,
+		}
+		order = append(order, key)
+	}
+
+	for _, owner := range GetPropertyFieldOwners(field) {
+		addGrant(owner.Type, owner.ID, owner.Scopes, validPropertyActions)
+	}
+
+	if pluginID, _ := field.Attrs[PropertyAttrsSourcePluginID].(string); pluginID != "" {
+		// The source plugin can read, write the definition and write values on a
+		// protected field today (hasUnrestrictedFieldReadAccess,
+		// checkLegacyFieldWriteAccess); anything less takes access away, and it is
+		// never scope-restricted.
+		addGrant(PropertyOwnerTypePlugin, pluginID, nil, validPropertyActions)
+	}
+
+	if syncSource := GetPropertyFieldSyncSource(field); syncSource != "" {
+		// The ldap/saml lock only ever gated value writes (checkSyncLock); granting
+		// value.read too would widen a source_only synced field the sync caller
+		// cannot read today.
+		addGrant(PropertyOwnerTypeService, syncSource, nil, []string{PropertyActionValueWrite})
+	}
+
+	grants := make([]Grant, 0, len(order))
+	for _, key := range order {
+		grants = append(grants, *byIdentity[key])
+	}
+	return grants
+}
+
+// unionActions merges two allow lists, returning their union in
+// validPropertyActions order so a merged grant's Allow is deterministic.
+func unionActions(a, b []string) []string {
+	seen := map[string]bool{}
+	for _, action := range a {
+		seen[action] = true
+	}
+	for _, action := range b {
+		seen[action] = true
+	}
+	result := make([]string, 0, len(seen))
+	for _, action := range validPropertyActions {
+		if seen[action] {
+			result = append(result, action)
+		}
+	}
+	return result
+}
+
+// mergeScopes combines two owner scope lists for the same identity. An empty
+// list means unrestricted (Grant.matches skips the scope check when Scopes is
+// empty), so if either side is unrestricted the merge must stay unrestricted
+// rather than narrowing it to the other side's scopes.
+func mergeScopes(a, b []string) []string {
+	if len(a) == 0 || len(b) == 0 {
+		return nil
+	}
+	seen := map[string]bool{}
+	result := make([]string, 0, len(a)+len(b))
+	for _, scopes := range [][]string{a, b} {
+		for _, scope := range scopes {
+			if !seen[scope] {
+				seen[scope] = true
+				result = append(result, scope)
+			}
+		}
+	}
+	return result
+}
+
+// removeAction returns allow with action removed, preserving order.
+func removeAction(allow []string, action string) []string {
+	result := make([]string, 0, len(allow))
+	for _, a := range allow {
+		if a != action {
+			result = append(result, a)
+		}
+	}
+	return result
 }
 
 // permissionLevelOrNone reads a legacy *PermissionLevel column, converting an

@@ -167,3 +167,130 @@ func TestPermissionsFromLegacyLinkedFieldOptionReadNoCapNeeded(t *testing.T) {
 
 	assert.Equal(t, PermissionLevelNone, p.Restrictions.TierFor(PropertyActionOptionRead))
 }
+
+func TestPermissionsFromLegacyGrantsOwners(t *testing.T) {
+	// Two owners with scopes convert to two grants, scopes preserved, each
+	// carrying all five enforced actions.
+	field := &PropertyField{
+		Attrs: StringInterface{
+			PropertyAttrsOwners: []PropertyOwner{
+				{Type: PropertyOwnerTypeUser, ID: "user1", Scopes: []string{"scope-a"}},
+				{Type: PropertyOwnerTypeRole, ID: "role1", Scopes: []string{"scope-b", "scope-c"}},
+			},
+		},
+	}
+
+	p := PermissionsFromLegacy(field, LegacyConversionOpts{ConvertAttrs: true})
+
+	require.Len(t, p.Grants, 2)
+	assert.Equal(t, PropertyOwnerTypeUser, p.Grants[0].Type)
+	assert.Equal(t, "user1", p.Grants[0].ID)
+	assert.Equal(t, []string{"scope-a"}, p.Grants[0].Scopes)
+	assert.ElementsMatch(t, validPropertyActions, p.Grants[0].Allow)
+	assert.Equal(t, PropertyOwnerTypeRole, p.Grants[1].Type)
+	assert.Equal(t, "role1", p.Grants[1].ID)
+	assert.Equal(t, []string{"scope-b", "scope-c"}, p.Grants[1].Scopes)
+	assert.ElementsMatch(t, validPropertyActions, p.Grants[1].Allow)
+}
+
+func TestPermissionsFromLegacyGrantsOwnerIsSourcePlugin(t *testing.T) {
+	// An owner that is also the field's source plugin collapses into one grant
+	// rather than two, and the merge does not narrow the plugin's unrestricted
+	// access down to the owner's scope.
+	field := &PropertyField{
+		Attrs: StringInterface{
+			PropertyAttrsSourcePluginID: "plugin1",
+			PropertyAttrsOwners: []PropertyOwner{
+				{Type: PropertyOwnerTypePlugin, ID: "plugin1", Scopes: []string{"scope-a"}},
+			},
+		},
+	}
+
+	p := PermissionsFromLegacy(field, LegacyConversionOpts{ConvertAttrs: true})
+
+	require.Len(t, p.Grants, 1)
+	assert.Equal(t, PropertyOwnerTypePlugin, p.Grants[0].Type)
+	assert.Equal(t, "plugin1", p.Grants[0].ID)
+	assert.Empty(t, p.Grants[0].Scopes)
+	assert.ElementsMatch(t, validPropertyActions, p.Grants[0].Allow)
+}
+
+func TestPermissionsFromLegacyGrantsSourcePluginOnly(t *testing.T) {
+	// A source_only field with a source plugin: restrictions deny reads to
+	// everyone (7.2), but the plugin's grant admits it regardless, making it
+	// the field's only reader.
+	field := &PropertyField{
+		Attrs: StringInterface{
+			PropertyAttrsAccessMode:     PropertyAccessModeSourceOnly,
+			PropertyAttrsSourcePluginID: "plugin1",
+		},
+	}
+
+	p := PermissionsFromLegacy(field, LegacyConversionOpts{ConvertAttrs: true})
+
+	assert.Equal(t, PermissionLevelNone, p.Restrictions.TierFor(PropertyActionValueRead))
+	assert.Equal(t, PermissionLevelNone, p.Restrictions.TierFor(PropertyActionOptionRead))
+	require.Len(t, p.Grants, 1)
+	assert.Equal(t, PropertyOwnerTypePlugin, p.Grants[0].Type)
+	assert.Equal(t, "plugin1", p.Grants[0].ID)
+	assert.ElementsMatch(t, validPropertyActions, p.Grants[0].Allow)
+}
+
+func TestPermissionsFromLegacyGrantsSyncLock(t *testing.T) {
+	// An ldap-synced field converts to a service grant allowing value.write and
+	// nothing else — the lock never gated anything but value writes.
+	field := &PropertyField{
+		Attrs: StringInterface{
+			PropertyFieldAttrLDAP: "ldap-sync-id",
+		},
+	}
+
+	p := PermissionsFromLegacy(field, LegacyConversionOpts{ConvertAttrs: true})
+
+	require.Len(t, p.Grants, 1)
+	assert.Equal(t, PropertyOwnerTypeService, p.Grants[0].Type)
+	assert.Equal(t, "ldap", p.Grants[0].ID)
+	assert.Equal(t, []string{PropertyActionValueWrite}, p.Grants[0].Allow)
+}
+
+func TestPermissionsFromLegacyGrantsLinkedFieldDropsOptionRead(t *testing.T) {
+	// A linked field's converted owner grant carries four actions, option.read
+	// absent — a grant over the template's own scheme was never a right the
+	// linked field's owner held.
+	field := &PropertyField{
+		Attrs: StringInterface{
+			PropertyAttrsOwners: []PropertyOwner{
+				{Type: PropertyOwnerTypeUser, ID: "user1"},
+			},
+		},
+	}
+	template := &Permissions{Restrictions: &Restrictions{}}
+
+	p := PermissionsFromLegacy(field, LegacyConversionOpts{ConvertAttrs: true, Template: template})
+
+	require.Len(t, p.Grants, 1)
+	assert.NotContains(t, p.Grants[0].Allow, PropertyActionOptionRead)
+	assert.ElementsMatch(t, []string{
+		PropertyActionFieldWrite,
+		PropertyActionOptionWrite,
+		PropertyActionValueRead,
+		PropertyActionValueWrite,
+	}, p.Grants[0].Allow)
+}
+
+func TestPermissionsFromLegacyGrantsConvertAttrsFalse(t *testing.T) {
+	// Owners in the attrs convert to nothing when ConvertAttrs is false —
+	// outside access_control, Attrs were never enforced.
+	field := &PropertyField{
+		Attrs: StringInterface{
+			PropertyAttrsOwners: []PropertyOwner{
+				{Type: PropertyOwnerTypeUser, ID: "user1"},
+			},
+			PropertyAttrsSourcePluginID: "plugin1",
+		},
+	}
+
+	p := PermissionsFromLegacy(field, LegacyConversionOpts{ConvertAttrs: false})
+
+	assert.Empty(t, p.Grants)
+}
