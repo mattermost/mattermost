@@ -779,8 +779,19 @@ func JSONMarshal(t any) ([]byte, error) {
 
 var templateTokenRe = regexp.MustCompile(`\{\{\s*\.([A-Za-z0-9_]+)\s*\}\}`)
 
-// templateTokens returns the {{.Field}} names a translation interpolates. A
-// translation is either a plain string or a map of plural category to string.
+// pluralForms returns the category-to-string map of a pluralised translation,
+// and whether the translation is pluralised at all. A translation is either a
+// plain string or a map of plural category to string.
+func pluralForms(raw json.RawMessage) (map[string]string, bool) {
+	var plural map[string]string
+	if err := json.Unmarshal(raw, &plural); err != nil {
+		return nil, false
+	}
+
+	return plural, true
+}
+
+// templateTokens returns the {{.Field}} names a translation interpolates.
 func templateTokens(raw json.RawMessage) map[string]bool {
 	out := map[string]bool{}
 
@@ -792,8 +803,7 @@ func templateTokens(raw json.RawMessage) map[string]bool {
 		return out
 	}
 
-	var plural map[string]string
-	if err := json.Unmarshal(raw, &plural); err == nil {
+	if plural, ok := pluralForms(raw); ok {
 		for _, v := range plural {
 			for _, m := range templateTokenRe.FindAllStringSubmatch(v, -1) {
 				out[m[1]] = true
@@ -893,17 +903,27 @@ func verifyLocaleFile(filename string, en map[string]Item, warnMissingIDs bool) 
 			}
 		}
 
-		if categories == nil {
+		_, sourceIsPlural := pluralForms(source.Translation)
+		plural, itemIsPlural := pluralForms(item.Translation)
+
+		// Collapsing a pluralised source to a single string still loads and
+		// still renders, it just silently stops pluralising -- the same defect
+		// check_icu.mjs rejects on the webapp side.
+		if sourceIsPlural && !itemIsPlural {
+			problems = append(problems, fmt.Sprintf("%s: %s: en.json pluralises this id but the translation is a single string, which silently stops pluralising", name, id))
 			continue
 		}
 
-		var plural map[string]string
-		if json.Unmarshal(item.Translation, &plural) != nil {
-			continue
-		}
-
-		var sourcePlural map[string]string
-		if json.Unmarshal(source.Translation, &sourcePlural) != nil {
+		// The opposite direction is deliberately allowed, matching
+		// check_icu.mjs. Whether a count reaches go-i18n is a property of the
+		// call site, not of en.json's shape: the batched email title is a plain
+		// string in English and pluralised in six locales, and its call site in
+		// email_batching.go passes len(notifications)-1. A language that has to
+		// inflect where English does not is translating correctly. The residual
+		// risk is a call site that passes no count, where go-i18n resolves to
+		// language.Invalid, finds no template, and renders the raw id -- not
+		// something the catalogs can tell us, so it is not checked here.
+		if !itemIsPlural || categories == nil {
 			continue
 		}
 
