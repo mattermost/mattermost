@@ -306,14 +306,18 @@
                 a string, an array of strings for `multiselect` and `multiuser`
                 fields, or `null` to clear the value.
               additionalProperties:
-                nullable: true
                 oneOf:
                   - type: string
+                    nullable: true
                   - type: array
                     items:
                       type: string
               example:
-                eqyzt9guiibnxreinsnyruep6r: dxgbcfk9jpgmzb3dc9gtkzxm6o
+                eqyzt9guiibnxreinsnyruep6r: Backend
+                x8p3mwqk9zdrbn6yhtsjaf1cve:
+                  - dxgbcfk9jpgmzb3dc9gtkzxm6o
+                  - t9wq3rzcyxbn8kmhped5uafj7o
+                k2rdynm7bwqtxgcp5hzefa9su3: null
       responses:
         "200":
           description: Custom Profile Attribute values patch successful
@@ -326,14 +330,18 @@
                   a string, an array of strings for `multiselect` and `multiuser`
                   fields, or `null` for a value that was cleared.
                 additionalProperties:
-                  nullable: true
                   oneOf:
                     - type: string
+                      nullable: true
                     - type: array
                       items:
                         type: string
                 example:
-                  eqyzt9guiibnxreinsnyruep6r: dxgbcfk9jpgmzb3dc9gtkzxm6o
+                  eqyzt9guiibnxreinsnyruep6r: Backend
+                  x8p3mwqk9zdrbn6yhtsjaf1cve:
+                    - dxgbcfk9jpgmzb3dc9gtkzxm6o
+                    - t9wq3rzcyxbn8kmhped5uafj7o
+                  k2rdynm7bwqtxgcp5hzefa9su3: null
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -403,14 +411,18 @@
                   a string, an array of strings for `multiselect` and `multiuser`
                   fields, or `null` for a value that was cleared.
                 additionalProperties:
-                  nullable: true
                   oneOf:
                     - type: string
+                      nullable: true
                     - type: array
                       items:
                         type: string
                 example:
-                  eqyzt9guiibnxreinsnyruep6r: dxgbcfk9jpgmzb3dc9gtkzxm6o
+                  eqyzt9guiibnxreinsnyruep6r: Backend
+                  x8p3mwqk9zdrbn6yhtsjaf1cve:
+                    - dxgbcfk9jpgmzb3dc9gtkzxm6o
+                    - t9wq3rzcyxbn8kmhped5uafj7o
+                  k2rdynm7bwqtxgcp5hzefa9su3: null
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -451,14 +463,18 @@
                 a string, an array of strings for `multiselect` and `multiuser`
                 fields, or `null` to clear the value.
               additionalProperties:
-                nullable: true
                 oneOf:
                   - type: string
+                    nullable: true
                   - type: array
                     items:
                       type: string
               example:
-                eqyzt9guiibnxreinsnyruep6r: dxgbcfk9jpgmzb3dc9gtkzxm6o
+                eqyzt9guiibnxreinsnyruep6r: Backend
+                x8p3mwqk9zdrbn6yhtsjaf1cve:
+                  - dxgbcfk9jpgmzb3dc9gtkzxm6o
+                  - t9wq3rzcyxbn8kmhped5uafj7o
+                k2rdynm7bwqtxgcp5hzefa9su3: null
       responses:
         '200':
           description: Custom profile attribute values updated successfully
@@ -471,14 +487,18 @@
                   a string, an array of strings for `multiselect` and `multiuser`
                   fields, or `null` for a value that was cleared.
                 additionalProperties:
-                  nullable: true
                   oneOf:
                     - type: string
+                      nullable: true
                     - type: array
                       items:
                         type: string
                 example:
-                  eqyzt9guiibnxreinsnyruep6r: dxgbcfk9jpgmzb3dc9gtkzxm6o
+                  eqyzt9guiibnxreinsnyruep6r: Backend
+                  x8p3mwqk9zdrbn6yhtsjaf1cve:
+                    - dxgbcfk9jpgmzb3dc9gtkzxm6o
+                    - t9wq3rzcyxbn8kmhped5uafj7o
+                  k2rdynm7bwqtxgcp5hzefa9su3: null
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
