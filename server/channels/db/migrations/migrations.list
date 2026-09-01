@@ -427,7 +427,9 @@ channels/db/migrations/postgres/000215_drop_channelmembers_autotranslation_colum
 channels/db/migrations/postgres/000215_drop_channelmembers_autotranslation_column.up.sql
 channels/db/migrations/postgres/000216_split_attribute_view_by_object_type.down.sql
 channels/db/migrations/postgres/000216_split_attribute_view_by_object_type.up.sql
-channels/db/migrations/postgres/000217_add_fileinfo_createat_id_index.down.sql
-channels/db/migrations/postgres/000217_add_fileinfo_createat_id_index.up.sql
-channels/db/migrations/postgres/000218_add_channels_createat_id_index.down.sql
-channels/db/migrations/postgres/000218_add_channels_createat_id_index.up.sql
+channels/db/migrations/postgres/000217_resize_message_columns.down.sql
+channels/db/migrations/postgres/000217_resize_message_columns.up.sql
+channels/db/migrations/postgres/000218_add_fileinfo_createat_id_index.down.sql
+channels/db/migrations/postgres/000218_add_fileinfo_createat_id_index.up.sql
+channels/db/migrations/postgres/000219_add_channels_createat_id_index.down.sql
+channels/db/migrations/postgres/000219_add_channels_createat_id_index.up.sql
