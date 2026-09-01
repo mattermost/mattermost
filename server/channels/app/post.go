@@ -47,9 +47,8 @@ func (a *App) CreatePostAsUserWithFlags(rctx request.CTX, post *model.Post, curr
 		return nil, false, err
 	}
 
-	if strings.HasPrefix(post.Type, model.PostSystemMessagePrefix) {
-		err := model.NewAppError("CreatePostAsUser", "api.context.invalid_param.app_error", map[string]any{"Name": "post.type"}, "", http.StatusBadRequest)
-		return nil, false, err
+	if post.IsSystemMessage() {
+		return nil, false, model.NewAppError("CreatePostAsUser", "api.context.invalid_param.app_error", map[string]any{"Name": "post.type"}, "", http.StatusBadRequest)
 	}
 
 	if channel.DeleteAt != 0 {
@@ -636,7 +635,7 @@ func (a *App) FillInPostProps(rctx request.CTX, post *model.Post, channel *model
 
 	// Populate AI-generated username from provided user ID
 	if aiGenUserID, ok := post.GetProp(model.PostPropsAIGeneratedByUserID).(string); ok && aiGenUserID != "" {
-		user, err := a.GetUser(aiGenUserID)
+		user, err := a.GetUser(rctx, aiGenUserID)
 		if err != nil {
 			// If user doesn't exist, remove the ai_generated_by prop to avoid storing invalid data
 			rctx.Logger().Warn("Failed to get user for AI-generated post, removing ai_generated_by prop", mlog.String("user_id", aiGenUserID), mlog.Err(err))
@@ -1430,23 +1429,63 @@ func (a *App) GetPosts(rctx request.CTX, channelID string, offset int, limit int
 	return postList, nil
 }
 
-func (a *App) GetPostsEtag(channel *model.Channel, collapsedThreads bool) string {
-	var postsEtag string
-	if a.AutoTranslation() == nil || !a.AutoTranslation().IsFeatureAvailable() {
-		postsEtag = a.Srv().Store().Post().GetEtag(channel.Id, true, collapsedThreads, false)
+// Cannot collide with a real epoch, which always carries a row count. For when no user is in
+// scope and there is genuinely no attribute component to track.
+const unknownABACEtagEpoch = "unknown"
+
+// degradedABACEtagEpoch stands in for an epoch whose lookup failed, and must miss the cache.
+// Unique per call: a stable sentinel would let two failed lookups either side of a policy change
+// produce identical ETags, and the client would 304 onto the old sanitization.
+func degradedABACEtagEpoch() string {
+	return unknownABACEtagEpoch + "-" + strconv.FormatInt(time.Now().UnixNano(), 10)
+}
+
+// AppendABACEtag folds the policy and user-attribute epochs into a base ETag, so a policy or
+// attribute change misses the cache and SanitizePostListMetadataForUser runs instead of the
+// request 304ing onto differently-sanitized content. No-op when ABAC is inactive.
+//
+// Pass "" for channelID when no channel is in scope; the policy epoch then covers only the
+// system-scoped permission policies.
+func (a *App) AppendABACEtag(base string, userID string, channelID string) string {
+	if !a.attributeBasedAccessControlEnabled() {
+		return base
+	}
+
+	rctx := request.EmptyContext(a.Log())
+
+	policyEpoch := degradedABACEtagEpoch()
+	if epoch, err := a.Srv().Store().AccessControlPolicy().GetEtagEpoch(rctx, channelID); err == nil {
+		policyEpoch = epoch
 	} else {
-		channelEnabled, err := a.AutoTranslation().IsChannelEnabled(channel.Id)
-		if err != nil || !channelEnabled {
-			postsEtag = a.Srv().Store().Post().GetEtag(channel.Id, true, collapsedThreads, false)
+		a.Log().Warn("ABAC ETag: failed to get access control policy epoch; policy component will be unknown",
+			mlog.Err(err))
+	}
+
+	cpaEpoch := unknownABACEtagEpoch
+	if userID != "" {
+		cpaEpoch = degradedABACEtagEpoch()
+		if epoch, err := a.Srv().Store().Attributes().GetUserPropertyValuesEpoch(rctx, userID); err == nil {
+			cpaEpoch = epoch
 		} else {
-			// Channel has auto-translation enabled - include translation etag
-			postsEtag = a.Srv().Store().Post().GetEtag(channel.Id, true, collapsedThreads, true)
+			a.Log().Warn("ABAC ETag: failed to get user CPA epoch; attribute component will be unknown",
+				mlog.String("user_id", userID),
+				mlog.Err(err))
 		}
 	}
 
-	// Include DisableJoinLeaveMessages so that toggling it invalidates the ETag and forces
-	// clients to re-fetch filtered posts, without thrashing the ETag on unrelated channel changes.
-	return fmt.Sprintf("%v.%t", postsEtag, channel.DisableJoinLeaveMessages)
+	return fmt.Sprintf("%s.%s.%s", base, policyEpoch, cpaEpoch)
+}
+
+func (a *App) GetPostsEtag(channel *model.Channel, userID string, collapsedThreads bool) string {
+	includeTranslations := false
+	if a.AutoTranslation() != nil && a.AutoTranslation().IsFeatureAvailable() {
+		if enabled, err := a.AutoTranslation().IsChannelEnabled(channel.Id); err == nil && enabled {
+			includeTranslations = true
+		}
+	}
+	base := a.Srv().Store().Post().GetEtag(channel.Id, true, collapsedThreads, includeTranslations)
+	base = a.AppendABACEtag(base, userID, channel.Id)
+	return fmt.Sprintf("%v.%t", base, channel.DisableJoinLeaveMessages)
 }
 
 func (a *App) GetPostsSince(rctx request.CTX, options model.GetPostsSinceOptions) (*model.PostList, *model.AppError) {
@@ -3525,7 +3564,7 @@ func (a *App) SendTestMessage(rctx request.CTX, userID string) (*model.Post, *mo
 		return nil, model.NewAppError("SendTestMessage", "app.notifications.send_test_message.errors.no_channel", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	user, err := a.GetUser(userID)
+	user, err := a.GetUser(rctx, userID)
 	if err != nil {
 		return nil, model.NewAppError("SendTestMessage", "app.notifications.send_test_message.errors.no_user", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -3586,7 +3625,7 @@ func (a *App) RewriteMessage(
 
 	userLocale := ""
 	if session := rctx.Session(); session != nil && session.UserId != "" {
-		user, appErr := a.GetUser(session.UserId)
+		user, appErr := a.GetUser(rctx, session.UserId)
 		if appErr == nil {
 			userLocale = user.Locale
 		} else {

@@ -27,6 +27,13 @@ const algoliaThemeConfig =
           indexName: 'mattermost-docs',
           contextualSearch: true,
           searchPagePath: 'search',
+          searchParameters: {
+            optionalFilters: [
+              'docusaurus_tag:docs-documentation-current<score=3>',
+              'docusaurus_tag:docs-developers-current<score=2>',
+              'docusaurus_tag:docs-api-current<score=1>',
+            ],
+          },
         },
       }
     : {};

@@ -442,7 +442,7 @@ func TestSendNotifications_SilentPostBroadcastsPosted(t *testing.T) {
 	th.AddUserToChannel(t, th.BasicUser2, th.BasicChannel)
 
 	bot := th.CreateBot(t)
-	botUser, appErr := th.App.GetUser(bot.UserId)
+	botUser, appErr := th.App.GetUser(th.Context, bot.UserId)
 	require.Nil(t, appErr)
 	th.LinkUserToTeam(t, botUser, th.BasicTeam)
 	_, appErr = th.App.AddUserToChannel(th.Context, botUser, th.BasicChannel, false)
@@ -481,7 +481,7 @@ func TestCreatePostSilentBroadcastsPostedWithProps(t *testing.T) {
 	th.AddUserToChannel(t, th.BasicUser2, th.BasicChannel)
 
 	bot := th.CreateBot(t)
-	botUser, appErr := th.App.GetUser(bot.UserId)
+	botUser, appErr := th.App.GetUser(th.Context, bot.UserId)
 	require.Nil(t, appErr)
 	th.LinkUserToTeam(t, botUser, th.BasicTeam)
 	_, appErr = th.App.AddUserToChannel(th.Context, botUser, th.BasicChannel, false)
@@ -521,7 +521,7 @@ func TestSendNotifications_SilentSkipsGroupMention(t *testing.T) {
 	th.AddUserToChannel(t, th.BasicUser2, th.BasicChannel)
 
 	bot := th.CreateBot(t)
-	botUser, appErr := th.App.GetUser(bot.UserId)
+	botUser, appErr := th.App.GetUser(th.Context, bot.UserId)
 	require.Nil(t, appErr)
 	th.LinkUserToTeam(t, botUser, th.BasicTeam)
 	_, appErr = th.App.AddUserToChannel(th.Context, botUser, th.BasicChannel, false)
@@ -566,7 +566,7 @@ func TestSendNotifications_SilentSkipsCRTFollowers(t *testing.T) {
 	th.AddUserToChannel(t, th.BasicUser2, th.BasicChannel)
 
 	bot := th.CreateBot(t)
-	botUser, appErr := th.App.GetUser(bot.UserId)
+	botUser, appErr := th.App.GetUser(th.Context, bot.UserId)
 	require.Nil(t, appErr)
 	th.LinkUserToTeam(t, botUser, th.BasicTeam)
 	_, appErr = th.App.AddUserToChannel(th.Context, botUser, th.BasicChannel, false)
