@@ -9,6 +9,7 @@ import {
     ACCESS_CONTROL_CHANNEL_ROLE_ADMIN,
     ACCESS_CONTROL_CHANNEL_ROLE_USER,
 } from '@mattermost/types/access_control';
+import type {AccessControlPolicyRule} from '@mattermost/types/access_control';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
 
 import TableEditor from 'components/admin_console/access_control/editors/table_editor/table_editor';
@@ -393,11 +394,13 @@ describe('components/channel_settings_modal/ChannelSettingsPermissionsPolicyTab'
         expect(await screen.findByText('Settings saved')).toBeInTheDocument();
     });
 
-    test('does not re-send a stale active flag when recreating a policy after empty delete', async () => {
-        // Regression: after deleting an active channel policy via the empty-
-        // rules path, adding a rule and saving again (without closing the tab)
-        // must create the new policy with active:false. Leaving originalActive
-        // as true would silently re-enable membership auto-sync.
+    test('does not resurrect auto-add when recreating a policy after empty delete', async () => {
+        // Regression: after deleting a channel policy via the empty-rules path,
+        // adding a rule and saving again (without closing the tab) must create a
+        // policy carrying nothing from the deleted one. Auto-add now rides on the
+        // membership rule, so stale rules would silently re-enable membership
+        // sync — and the deprecated active flag on the fetched policy must not
+        // turn into auto-add either.
         mockActions.getChannelPolicy.mockResolvedValue({
             data: {
                 id: 'channel_id',
@@ -451,7 +454,9 @@ describe('components/channel_settings_modal/ChannelSettingsPermissionsPolicyTab'
         await waitFor(() => {
             expect(mockActions.saveChannelPolicy).toHaveBeenCalledTimes(1);
         });
-        expect(mockActions.saveChannelPolicy.mock.calls[0][0].active).toBe(false);
+        const recreated = mockActions.saveChannelPolicy.mock.calls[0][0];
+        expect(recreated.rules).toEqual([expect.objectContaining({name: 'Recreated rule'})]);
+        expect(recreated.rules.some((rule: AccessControlPolicyRule) => rule.metadata?.auto_add)).toBe(false);
     });
 
     test('saves the remaining membership rule when the last permission rule is removed', async () => {

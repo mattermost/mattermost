@@ -120,8 +120,9 @@ func (a *App) SearchTeamAccessPolicies(rctx request.CTX, teamID, requesterID str
 	// is not a reason to hide the policy from them.
 	filtered := make([]*model.AccessControlPolicy, 0, len(policies))
 	for _, policy := range policies {
-		if len(policy.Rules) > 0 && policyAppliesToPrivateChannel(rctx, policy, idToType, batchLookupFailed) {
-			expression := policy.Rules[0].Expression
+		effectiveRules := policy.EffectiveRules()
+		if len(effectiveRules) > 0 && policyAppliesToPrivateChannel(rctx, policy, idToType, batchLookupFailed) {
+			expression := effectiveRules[0].Expression
 			matches, matchErr := a.ValidateExpressionAgainstRequester(rctx, expression, requesterID)
 			if matchErr != nil {
 				rctx.Logger().Warn("Failed to validate self-inclusion for policy",

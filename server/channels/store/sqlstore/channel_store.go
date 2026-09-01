@@ -189,7 +189,11 @@ func channelSliceColumns(isSelect bool, prefix ...string) []string {
 		}
 
 		columns = append(columns, fmt.Sprintf("EXISTS (SELECT 1 FROM AccessControlPolicies acp WHERE acp.ID = %sId AND acp.Type = 'channel') AS PolicyEnforced", p))
-		columns = append(columns, fmt.Sprintf("COALESCE((SELECT acp.Active FROM AccessControlPolicies acp WHERE acp.ID = %sId AND acp.Type = 'channel' AND acp.Active = TRUE LIMIT 1), false) AS PolicyIsActive", p))
+		autoAdd := fmt.Sprintf("COALESCE((SELECT %s FROM AccessControlPolicies acp WHERE acp.ID = %sId AND acp.Type = 'channel' LIMIT 1), false)", autoAddMembersExpr("acp"), p)
+		columns = append(columns, autoAdd+" AS PolicyAutoAdd")
+		// PolicyIsActive is the deprecated alias for PolicyAutoAdd; both report
+		// whether the channel's policy auto-adds members.
+		columns = append(columns, autoAdd+" AS PolicyIsActive")
 	}
 
 	return columns

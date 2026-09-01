@@ -6,7 +6,7 @@ import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import type {AccessControlPolicy, AccessControlPolicyRule} from '@mattermost/types/access_control';
-import {getMembershipRule, buildRulesWithMembership, combineMembershipExpressions} from '@mattermost/types/access_control';
+import {getMembershipRule, buildRulesWithMembership, combineMembershipExpressions, getAutoAddFromRules, autoAddModeForToggle} from '@mattermost/types/access_control';
 import {SyncableType} from '@mattermost/types/groups';
 import type {Group, SyncablePatch} from '@mattermost/types/groups';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
@@ -63,7 +63,6 @@ export type Props = {
         assignTeamToAccessControlPolicy: (policyId: string, teamId: string) => Promise<ActionResult>;
         unassignTeamsFromAccessControlPolicy: (policyId: string, teamIds: string[]) => Promise<ActionResult>;
         searchPolicies: (term: string, type: string, after: string, limit: number) => Promise<ActionResult>;
-        updateAccessControlPoliciesActive: (states: Array<{id: string; active: boolean}>) => Promise<ActionResult>;
         createAccessControlTeamSyncJob: (data: {policy_id?: string}) => Promise<ActionResult>;
         getTeamStats: (teamId: string) => Promise<ActionResult>;
         getTeamMembers: (teamId: string, page?: number, perPage?: number) => Promise<ActionResult>;
@@ -258,7 +257,7 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
             // Extract team-level rules and auto-sync from the child policy regardless of imports.
             const membershipRule = getMembershipRule(policy.rules);
             const rulesExpression = membershipRule?.expression || '';
-            const autoSync = policy.active ?? false;
+            const autoSync = getAutoAddFromRules(policy.rules);
 
             this.setState({
                 teamRulesExpression: rulesExpression,
@@ -649,7 +648,11 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
                 }
             }
 
-            if (!saveNeeded && !isEmptyAbacState && policyEnforced && (teamRulesHaveChanges || hasParentPolicies)) {
+            // Auto-add lives on the policy's membership rule, so a toggle-only change
+            // is saved through the same policy write as a rule edit.
+            const autoSyncChanged = teamRulesAutoSync !== this.state.teamRulesOriginalAutoSync;
+
+            if (!saveNeeded && !isEmptyAbacState && policyEnforced && (teamRulesHaveChanges || hasParentPolicies || autoSyncChanged)) {
                 try {
                     const teamPolicy: AccessControlPolicy = {
                         id: teamID,
@@ -657,9 +660,8 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
                         type: 'team',
                         revision: 1,
                         created_at: Date.now(),
-                        active: false,
                         imports: accessControlPolicies.map((p) => p.id),
-                        rules: buildRulesWithMembership(teamRulesExistingRules, teamRulesExpression),
+                        rules: buildRulesWithMembership(teamRulesExistingRules, teamRulesExpression, autoAddModeForToggle(teamRulesAutoSync)),
                     };
 
                     const policyResult = await actions.saveTeamAccessPolicy(teamPolicy);
@@ -667,29 +669,21 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
                         serverError = <FormError error={policyResult.error.message}/>;
                         saveNeeded = true;
                     } else {
-                        const activeResult = await actions.updateAccessControlPoliciesActive([{id: teamID, active: teamRulesAutoSync}]);
-                        if (activeResult.error) {
-                            serverError = <FormError error={activeResult.error?.message}/>;
-                            saveNeeded = true;
-                        }
-
                         // Reconcile now instead of waiting for the scheduler. A private
                         // team runs the removal pass regardless of auto-add, so any
                         // enforced save (custom rules or a parent policy) must fire a job
                         // even with auto-add off or non-qualifying members linger; public
                         // teams no-op.
-                        if (!saveNeeded && (hasTeamRules || hasParentPolicies || teamRulesAutoSync)) {
+                        if (hasTeamRules || hasParentPolicies || teamRulesAutoSync) {
                             await actions.createAccessControlTeamSyncJob({policy_id: teamID});
                         }
 
-                        if (!saveNeeded) {
-                            this.setState({
-                                teamRulesOriginalExpression: teamRulesExpression,
-                                teamRulesOriginalAutoSync: teamRulesAutoSync,
-                                teamRulesHaveChanges: false,
-                                originalPolicyIds: accessControlPolicies.map((p) => p.id),
-                            });
-                        }
+                        this.setState({
+                            teamRulesOriginalExpression: teamRulesExpression,
+                            teamRulesOriginalAutoSync: teamRulesAutoSync,
+                            teamRulesHaveChanges: false,
+                            originalPolicyIds: accessControlPolicies.map((p) => p.id),
+                        });
                     }
                 } catch (error) {
                     const message = error instanceof Error ? error.message : String(error);
