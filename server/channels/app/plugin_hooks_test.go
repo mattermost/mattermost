@@ -889,7 +889,7 @@ func TestUserHasLoggedIn(t *testing.T) {
 	assert.NotNil(t, session)
 
 	require.EventuallyWithT(t, func(c *assert.CollectT) {
-		user, _ := th.App.GetUser(th.BasicUser.Id)
+		user, _ := th.App.GetUser(th.Context, th.BasicUser.Id)
 		assert.Equal(c, user.FirstName, "plugin-callback-success", "Expected firstname overwrite, got default")
 	}, 2*time.Second, 100*time.Millisecond)
 }
@@ -938,7 +938,7 @@ func TestUserHasBeenDeactivated(t *testing.T) {
 	require.Nil(t, err)
 
 	time.Sleep(2 * time.Second)
-	user, err = th.App.GetUser(user.Id)
+	user, err = th.App.GetUser(th.Context, user.Id)
 	require.Nil(t, err)
 	require.Equal(t, "plugin-callback-success", user.Nickname)
 }
@@ -983,7 +983,7 @@ func TestUserHasBeenCreated(t *testing.T) {
 	require.Nil(t, err)
 
 	time.Sleep(2 * time.Second)
-	user, err = th.App.GetUser(user.Id)
+	user, err = th.App.GetUser(th.Context, user.Id)
 	require.Nil(t, err)
 	require.Equal(t, "plugin-callback-success", user.Nickname)
 }
@@ -1169,7 +1169,7 @@ func TestActiveHooks(t *testing.T) {
 		_, appErr := th.App.CreateUser(th.Context, user1)
 		require.Nil(t, appErr)
 		time.Sleep(2 * time.Second)
-		user1, appErr = th.App.GetUser(user1.Id)
+		user1, appErr = th.App.GetUser(th.Context, user1.Id)
 		require.Nil(t, appErr)
 		require.Equal(t, "plugin-callback-success", user1.Nickname)
 
@@ -1275,7 +1275,7 @@ func TestHookMetrics(t *testing.T) {
 		_, appErr := th.App.CreateUser(th.Context, user1)
 		require.Nil(t, appErr)
 		time.Sleep(2 * time.Second)
-		user1, appErr = th.App.GetUser(user1.Id)
+		user1, appErr = th.App.GetUser(th.Context, user1.Id)
 		require.Nil(t, appErr)
 		require.Equal(t, "plugin-callback-success", user1.Nickname)
 
@@ -1513,6 +1513,68 @@ func TestHookOnCloudLimitsUpdated(t *testing.T) {
 	}, plugin.OnCloudLimitsUpdatedID)
 
 	require.True(t, hookCalled)
+}
+
+func TestHookOnLicenseChanged(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t, StartMetrics)
+
+	tearDown, pluginIDs, activationErrors := SetAppEnvironmentWithPlugins(t,
+		[]string{
+			`
+		package main
+
+		import (
+			"github.com/mattermost/mattermost/server/public/model"
+			"github.com/mattermost/mattermost/server/public/plugin"
+		)
+
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+		}
+
+		func (p *MyPlugin) OnLicenseChanged(oldLicense, newLicense *model.License) {
+			oldID := "nil"
+			if oldLicense != nil {
+				oldID = oldLicense.Id
+			}
+			newID := "nil"
+			if newLicense != nil {
+				newID = newLicense.Id
+			}
+			p.API.KVSet("old_license_id", []byte(oldID))
+			p.API.KVSet("new_license_id", []byte(newID))
+		}
+
+		func main() {
+			plugin.ClientMain(&MyPlugin{})
+		}
+	`,
+		}, th.App, th.NewPluginAPI)
+	defer tearDown()
+
+	require.Len(t, pluginIDs, 1)
+	require.NoError(t, activationErrors[0])
+	pluginID := pluginIDs[0]
+	require.True(t, th.App.GetPluginsEnvironment().IsActive(pluginID))
+
+	oldLicense := model.NewTestLicense()
+	oldLicense.Id = model.NewId()
+	require.True(t, th.App.Srv().SetLicense(oldLicense))
+
+	newLicense := model.NewTestLicense()
+	newLicense.Id = model.NewId()
+	require.True(t, th.App.Srv().SetLicense(newLicense))
+
+	oldID, appErr := th.App.GetPluginKey(pluginID, "old_license_id")
+	require.Nil(t, appErr)
+	require.Equal(t, []byte(oldLicense.Id), oldID)
+
+	newID, appErr := th.App.GetPluginKey(pluginID, "new_license_id")
+	require.Nil(t, appErr)
+	require.Equal(t, []byte(newLicense.Id), newID)
+
+	require.True(t, th.App.GetPluginsEnvironment().IsActive(pluginID))
 }
 
 //go:embed test_templates/hook_notification_will_be_pushed.tmpl

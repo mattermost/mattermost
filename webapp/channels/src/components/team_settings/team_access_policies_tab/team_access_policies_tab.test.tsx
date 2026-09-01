@@ -25,6 +25,8 @@ describe('TeamAccessPoliciesTab', () => {
             TrustProxyDeviceIdentityHeader: false,
             EnforceDeviceIDConsistency: false,
             EnableAccessControlAuditLogging: false,
+            SyncJobIntervalSeconds: 3600,
+            AttributeRefreshIntervalSeconds: 30,
         },
         areThereUnsavedChanges: false,
         setAreThereUnsavedChanges: jest.fn(),

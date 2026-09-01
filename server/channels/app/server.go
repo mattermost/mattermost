@@ -337,14 +337,14 @@ func NewServer(options ...Option) (*Server, error) {
 	// Attribute validation hook — validates visibility, sort_order on fields,
 	// field-type constraints on values (options, user IDs, value_type), and
 	// managed-flag authorization + permission level enforcement.
-	permChecker := func(userID string, perm *model.Permission) bool {
+	permChecker := func(rctx request.CTX, userID string, perm *model.Permission) bool {
 		// Local-mode (unrestricted) sessions are tagged with
 		// CallerIDLocalAdmin by the HTTP layer; grant them admin
 		// permissions without a user lookup.
 		if userID == model.CallerIDLocalAdmin {
 			return true
 		}
-		return app.HasPermissionTo(userID, perm)
+		return app.HasPermissionTo(rctx, userID, perm)
 	}
 	attrValidationHook := properties.NewAccessControlAttributeValidationHook(s.propertyService, permChecker, cpaGroup.ID)
 	s.propertyService.AddHook(attrValidationHook)
@@ -863,7 +863,7 @@ func (s *Server) Shutdown() {
 	timeoutCtx, timeoutCancel := context.WithTimeout(context.Background(), time.Second*15)
 	defer timeoutCancel()
 	if err = s.Log().ShutdownWithTimeout(timeoutCtx); err != nil {
-		fmt.Fprintf(os.Stderr, "Error shutting down main logger: %v", err)
+		fmt.Fprintf(os.Stderr, "Error shutting down main logger (this can happen if a log target, e.g. a remote TCP endpoint, is unreachable; check preceding connection error logs for the affected target): %v\n", err)
 	}
 }
 
