@@ -54,7 +54,7 @@ func TestPermissionsJSONRoundTrip(t *testing.T) {
 
 func TestPermissionsGrantsShape(t *testing.T) {
 	// A caller who matches no grant still sees the key, as "[]" rather than
-	// absent — every caller gets the same shape (§9.1).
+	// absent — every caller gets the same shape regardless of privilege.
 	out, err := json.Marshal(&Permissions{Grants: []Grant{}})
 	require.NoError(t, err)
 	assert.Contains(t, string(out), `"grants":[]`)
