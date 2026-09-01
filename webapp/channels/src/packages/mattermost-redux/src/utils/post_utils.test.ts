@@ -14,7 +14,6 @@ import {
     isMeMessage,
     isUserActivityPost,
     shouldFilterJoinLeavePost,
-    shouldFilterBackingChannelPost,
     isPostCommentMention,
     getEmbedFromMetadata,
     shouldUpdatePost,
@@ -25,26 +24,6 @@ import TestHelper from '../../test/test_helper';
 import {Permissions} from '../constants';
 
 describe('PostUtils', () => {
-    describe('shouldFilterBackingChannelPost', () => {
-        it('filters posts a backing-channel feature renders on its own surface', () => {
-            expect(shouldFilterBackingChannelPost(TestHelper.getPostMock({type: PostTypes.DOCS_PAGE_COMMENT}))).toBe(true);
-        });
-
-        it('does not filter ordinary chat posts', () => {
-            expect(shouldFilterBackingChannelPost(TestHelper.getPostMock({type: '' as PostType}))).toBe(false);
-        });
-
-        it('does not filter unrelated system posts', () => {
-            expect(shouldFilterBackingChannelPost(TestHelper.getPostMock({type: PostTypes.JOIN_CHANNEL}))).toBe(false);
-            expect(shouldFilterBackingChannelPost(TestHelper.getPostMock({type: PostTypes.HEADER_CHANGE}))).toBe(false);
-            expect(shouldFilterBackingChannelPost(TestHelper.getPostMock({type: PostTypes.BURN_ON_READ}))).toBe(false);
-        });
-
-        it('does not filter a post whose type merely shares the custom_ prefix', () => {
-            expect(shouldFilterBackingChannelPost(TestHelper.getPostMock({type: 'custom_something_else' as PostType}))).toBe(false);
-        });
-    });
-
     describe('shouldFilterJoinLeavePost', () => {
         it('show join/leave posts', () => {
             const showJoinLeave = true;

@@ -173,7 +173,7 @@ func (s *SqlPostStore) SaveMultiple(rctx request.CTX, posts []*model.Post) ([]*m
 			// the rejection, and the lookup runs only on this already-exceptional path.
 			var channelType model.ChannelType
 			chErr := s.GetMaster().Get(&channelType, "SELECT Type FROM Channels WHERE Id = ?", post.ChannelId)
-			if chErr != nil || !channelType.IsNonMessageBacking() {
+			if chErr != nil || channelType != model.ChannelTypeSpace {
 				return nil, idx, store.NewErrInvalidInput("Post", "id", post.Id)
 			}
 		}
@@ -1043,6 +1043,8 @@ func (s *SqlPostStore) MoveThreadsToChannel(rctx request.CTX, rootIDs []string, 
 	if len(rootIDs) == 0 {
 		return nil, nil
 	}
+	threadRows := sq.Or{sq.Eq{"Id": rootIDs}, sq.Eq{"RootId": rootIDs}, sq.Eq{"OriginalId": rootIDs}}
+	currentThreadRows := sq.Or{sq.Eq{"Id": rootIDs}, sq.Eq{"RootId": rootIDs}}
 
 	transaction, err := s.GetMaster().Begin()
 	if err != nil {
@@ -1075,7 +1077,7 @@ func (s *SqlPostStore) MoveThreadsToChannel(rctx request.CTX, rootIDs []string, 
 	lockQuery := s.getQueryBuilder().
 		Select("Id").
 		From("Posts").
-		Where(sq.Or{sq.Eq{"Id": rootIDs}, sq.Eq{"RootId": rootIDs}, sq.Eq{"OriginalId": rootIDs}}).
+		Where(threadRows).
 		OrderBy("Id ASC").
 		Suffix("FOR UPDATE")
 	var lockedIDs []string
@@ -1093,7 +1095,7 @@ func (s *SqlPostStore) MoveThreadsToChannel(rctx request.CTX, rootIDs []string, 
 	deltaQuery := s.getQueryBuilder().
 		Select("ChannelId", "COUNT(*) AS Count", "SUM(CASE WHEN RootId = '' THEN 1 ELSE 0 END) AS RootCount").
 		From("Posts").
-		Where(sq.Or{sq.Eq{"Id": rootIDs}, sq.Eq{"RootId": rootIDs}}).
+		Where(currentThreadRows).
 		Where(sq.Eq{"OriginalId": ""}).
 		Where(sq.NotEq{"ChannelId": targetChannelID}).
 		GroupBy("ChannelId")
@@ -1109,7 +1111,7 @@ func (s *SqlPostStore) MoveThreadsToChannel(rctx request.CTX, rootIDs []string, 
 	touchedQuery := s.getQueryBuilder().
 		Select("DISTINCT ChannelId").
 		From("Posts").
-		Where(sq.Or{sq.Eq{"Id": rootIDs}, sq.Eq{"RootId": rootIDs}, sq.Eq{"OriginalId": rootIDs}})
+		Where(threadRows)
 	if err = transaction.SelectBuilder(&touchedChannelIDs, touchedQuery); err != nil {
 		return nil, errors.Wrap(err, "failed to list channels for move")
 	}
@@ -1127,7 +1129,7 @@ func (s *SqlPostStore) MoveThreadsToChannel(rctx request.CTX, rootIDs []string, 
 	}
 	targetFound := false
 	for _, channel := range channelTypes {
-		if !channel.Type.IsNonMessageBacking() {
+		if channel.Type != model.ChannelTypeSpace {
 			return nil, store.NewErrInvalidInput("Channel", "Type", string(channel.Type))
 		}
 		if channel.Id == targetChannelID {
@@ -1141,7 +1143,7 @@ func (s *SqlPostStore) MoveThreadsToChannel(rctx request.CTX, rootIDs []string, 
 	moveQuery := s.getQueryBuilder().
 		Update("Posts").
 		Set("ChannelId", targetChannelID).
-		Where(sq.Or{sq.Eq{"Id": rootIDs}, sq.Eq{"RootId": rootIDs}, sq.Eq{"OriginalId": rootIDs}})
+		Where(threadRows)
 	if _, err = transaction.ExecBuilder(moveQuery); err != nil {
 		return nil, errors.Wrap(err, "failed to move Posts")
 	}

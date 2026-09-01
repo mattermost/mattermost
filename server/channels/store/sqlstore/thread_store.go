@@ -5,7 +5,6 @@ package sqlstore
 
 import (
 	"database/sql"
-	"strings"
 	"time"
 
 	sq "github.com/mattermost/squirrel"
@@ -70,14 +69,16 @@ type SqlThreadStore struct {
 func (s *SqlThreadStore) ClearCaches() {
 }
 
-// channelMembershipPredicate filters out ThreadMemberships whose user is no
-// longer a member of the thread's channel. DM/GM threads have an empty
-// ThreadTeamId and are exempt because their access is intrinsic to the
-// channel members.
+// channelMembershipPredicate keeps chat-visible thread memberships whose user still belongs to
+// the channel. DM/GM threads have an empty ThreadTeamId and are exempt from the membership check
+// because their access is intrinsic to the channel members.
 func channelMembershipPredicate() sq.Sqlizer {
-	return sq.Or{
-		sq.Eq{"Threads.ThreadTeamId": ""},
-		sq.Expr("EXISTS (SELECT 1 FROM ChannelMembers WHERE ChannelMembers.ChannelId = Threads.ChannelId AND ChannelMembers.UserId = ThreadMemberships.UserId)"),
+	return sq.And{
+		sq.Or{
+			sq.Eq{"Threads.ThreadTeamId": ""},
+			sq.Expr("EXISTS (SELECT 1 FROM ChannelMembers WHERE ChannelMembers.ChannelId = Threads.ChannelId AND ChannelMembers.UserId = ThreadMemberships.UserId)"),
+		},
+		nonMessageBackingThreadExclusion(),
 	}
 }
 
@@ -142,15 +143,11 @@ func (s *SqlThreadStore) Get(id string) (*model.Thread, error) {
 // PermanentDeleteBatch produces — and a join or NOT IN would silently drop those ordinary chat
 // threads from every count.
 func nonMessageBackingThreadExclusion() sq.Sqlizer {
-	placeholders := make([]string, len(nonMessageBackingChannelTypes))
-	args := make([]any, len(nonMessageBackingChannelTypes))
-	for i, t := range nonMessageBackingChannelTypes {
-		placeholders[i] = "?"
-		args[i] = t
-	}
-	return sq.Expr(
-		"NOT EXISTS (SELECT 1 FROM Channels WHERE Channels.Id = Threads.ChannelId AND Channels.Type IN ("+strings.Join(placeholders, ",")+"))",
-		args...)
+	subquery := sq.Select("1").
+		From("Channels").
+		Where("Channels.Id = Threads.ChannelId").
+		Where(sq.Eq{"Channels.Type": nonMessageBackingChannelTypes})
+	return sq.Expr("NOT EXISTS (?)", subquery)
 }
 
 func (s *SqlThreadStore) getTotalThreadsQuery(userId, teamId string, opts model.GetUserThreadsOpts) sq.SelectBuilder {
@@ -162,8 +159,7 @@ func (s *SqlThreadStore) getTotalThreadsQuery(userId, teamId string, opts model.
 			"ThreadMemberships.UserId":    userId,
 			"ThreadMemberships.Following": true,
 		}).
-		Where(channelMembershipPredicate()).
-		Where(nonMessageBackingThreadExclusion())
+		Where(channelMembershipPredicate())
 
 	if teamId != "" {
 		if opts.ExcludeDirect {
@@ -231,8 +227,7 @@ func (s *SqlThreadStore) GetTotalUnreadMentions(userId, teamId string, opts mode
 			"ThreadMemberships.UserId":    userId,
 			"ThreadMemberships.Following": true,
 		}).
-		Where(channelMembershipPredicate()).
-		Where(nonMessageBackingThreadExclusion())
+		Where(channelMembershipPredicate())
 
 	if teamId != "" {
 		if opts.ExcludeDirect {
@@ -274,8 +269,7 @@ func (s *SqlThreadStore) GetTotalUnreadUrgentMentions(userId, teamId string, opt
 			"ThreadMemberships.Following": true,
 			"PostsPriority.Priority":      model.PostPriorityUrgent,
 		}).
-		Where(channelMembershipPredicate()).
-		Where(nonMessageBackingThreadExclusion())
+		Where(channelMembershipPredicate())
 
 	if teamId != "" {
 		if opts.ExcludeDirect {
@@ -332,8 +326,7 @@ func (s *SqlThreadStore) GetThreadsForUser(rctx request.CTX, userId, teamId stri
 	query = query.
 		Where(sq.Eq{"ThreadMemberships.UserId": userId}).
 		Where(sq.Eq{"ThreadMemberships.Following": true}).
-		Where(channelMembershipPredicate()).
-		Where(nonMessageBackingThreadExclusion())
+		Where(channelMembershipPredicate())
 
 	if opts.IncludeIsUrgent {
 		urgencyCase := sq.
@@ -441,7 +434,6 @@ func (s *SqlThreadStore) GetTeamsUnreadForUser(userID string, teamIDs []string, 
 		sq.Eq{"Threads.ThreadTeamId": teamIDs},
 		sq.Eq{"COALESCE(Threads.ThreadDeleteAt, 0)": 0},
 		channelMembershipPredicate(),
-		nonMessageBackingThreadExclusion(),
 	}
 
 	var eg errgroup.Group

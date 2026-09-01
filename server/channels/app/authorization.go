@@ -204,6 +204,23 @@ func (a *App) SessionHasPermissionToGroup(session model.Session, groupID string,
 	return a.SessionHasPermissionTo(session, permission)
 }
 
+// getPostChannel resolves the channel that owns postID from the primary database and maps store
+// failures to an AppError. Callers decide whether the resolved channel type is valid for their
+// operation.
+func (a *App) getPostChannel(where, postID string) (*model.Channel, *model.AppError) {
+	channel, err := a.Srv().Store().Channel().GetForPost(postID)
+	if err == nil {
+		return channel, nil
+	}
+	status := http.StatusInternalServerError
+	messageID := "app.channel.get.app_error"
+	if errors.Is(err, sql.ErrNoRows) {
+		status = http.StatusNotFound
+		messageID = "app.user.get_threads_for_user.not_found"
+	}
+	return nil, model.NewAppError(where, messageID, nil, "failed to classify post channel", status).Wrap(err)
+}
+
 func (a *App) SessionHasPermissionToChannelByPost(session model.Session, postID string, permission *model.Permission) bool {
 	if postID == "" {
 		return false
@@ -213,11 +230,16 @@ func (a *App) SessionHasPermissionToChannelByPost(session model.Session, postID 
 	// chat authorization. The rejection comes before the membership question — membership in a
 	// backing channel grants no chat permission on its posts — and fails closed for post-id
 	// routes core has not written yet.
-	channel, channelErr := a.Srv().Store().Channel().GetForPost(postID)
-	if channelErr != nil {
+	channel, appErr := a.getPostChannel("SessionHasPermissionToChannelByPost", postID)
+	if appErr != nil {
+		// Preserve the existing system-permission fallback for an id that names no post. Other
+		// lookup failures fail closed because the channel type could not be classified.
+		if appErr.StatusCode == http.StatusNotFound {
+			return a.SessionHasPermissionTo(session, permission)
+		}
 		return false
 	}
-	if channel.Type.IsNonMessageBacking() {
+	if channel.IsSpace() {
 		return false
 	}
 
@@ -234,7 +256,7 @@ func (a *App) SessionHasPermissionToChannelByPost(session model.Session, postID 
 	return a.SessionHasPermissionTo(session, permission)
 }
 
-func (a *App) SessionHasPermissionToReadPost(rctx request.CTX, session model.Session, postID string) (hasPermission bool, isMember bool) {
+func (a *App) SessionHasPermissionToReadPost(rctx request.CTX, session model.Session, postID string) (hasPErmission bool, isMember bool) {
 	return a.sessionHasPermissionToReadPost(rctx, session, postID, false)
 }
 
@@ -251,15 +273,16 @@ func (a *App) sessionHasPermissionToReadPost(rctx request.CTX, session model.Ses
 		return false, false
 	}
 
-	channel, err := a.Srv().Store().Channel().GetForPost(postID)
-	if err != nil {
+	channel, appErr := a.getPostChannel("SessionHasPermissionToReadPost", postID)
+	if appErr != nil {
+		// Match the historical behavior for a missing post while failing closed when an existing
+		// post cannot be classified because of a store failure.
+		if appErr.StatusCode == http.StatusNotFound {
+			return a.SessionHasPermissionTo(session, model.PermissionReadChannelContent), false
+		}
 		return false, false
 	}
-
-	// A post in a non-message backing channel (e.g. a Docs space) is not readable through chat
-	// authorization; the rejection comes before the membership question and fails closed for
-	// post-id routes core has not written yet.
-	if !allowBacking && channel.Type.IsNonMessageBacking() {
+	if !allowBacking && channel.IsSpace() {
 		return false, false
 	}
 
@@ -382,8 +405,14 @@ func (a *App) HasPermissionToChannel(rctx request.CTX, askingUserId string, chan
 }
 
 func (a *App) HasPermissionToChannelByPost(rctx request.CTX, askingUserId string, postID string, permission *model.Permission) bool {
-	channel, err := a.Srv().Store().Channel().GetForPost(postID)
-	if err != nil || channel.Type.IsNonMessageBacking() {
+	channel, appErr := a.getPostChannel("HasPermissionToChannelByPost", postID)
+	if appErr != nil {
+		if appErr.StatusCode == http.StatusNotFound {
+			return a.HasPermissionTo(rctx, askingUserId, permission)
+		}
+		return false
+	}
+	if channel.IsSpace() {
 		return false
 	}
 	if channelMember, err := a.Srv().Store().Channel().GetMemberForPost(postID, askingUserId); err == nil {

@@ -43,46 +43,6 @@ describe('makeFilterPostsAndAddSeparators', () => {
         global.Date.now = realDateNow;
     });
 
-    it('filter backing-channel posts out of the feed', () => {
-        const filterPostsAndAddSeparators = makeFilterPostsAndAddSeparators();
-        const time = Date.now();
-        const today = new Date(time);
-        const currentOffset = today.getTimezoneOffset() * 60 * 1000;
-        const expectedDateLine = time + currentOffset;
-
-        const state = {
-            entities: {
-                general: {config: {}},
-                posts: {
-                    posts: {
-                        1001: {id: '1001', create_at: time, type: ''},
-                        1002: {id: '1002', create_at: time + 1, type: Posts.POST_TYPES.DOCS_PAGE_COMMENT},
-                    },
-                },
-                preferences: {myPreferences: {}},
-                users: {
-                    currentUserId: '1234',
-                    profiles: {
-                        1234: {id: '1234', username: 'user', timezone: {useAutomaticTimezone: 'false', manualTimezone: 'UTC'}},
-                    },
-                },
-            },
-        } as unknown as GlobalState;
-
-        const now = filterPostsAndAddSeparators(state, {
-            postIds: ['1002', '1001'],
-            lastViewedAt: Number.POSITIVE_INFINITY,
-            indicateNewMessages: true,
-        });
-
-        // 1002 is a Docs page comment and must never reach the channel feed, regardless of
-        // any user preference — unlike join/leave posts, this is not user-configurable.
-        expect(now).toEqual([
-            '1001',
-            'date-' + expectedDateLine,
-        ]);
-    });
-
     it('filter join/leave posts', () => {
         const filterPostsAndAddSeparators = makeFilterPostsAndAddSeparators();
         const time = Date.now();

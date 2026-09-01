@@ -54,7 +54,7 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 	// has no chat context for it; and mention parsing, thread autofollow, and mention-count
 	// updates would put unread state on a channel that no chat client lists. Notification
 	// delivery for these posts belongs to the owning feature, not to the chat pipeline.
-	if channel.Type.IsNonMessageBacking() {
+	if channel.IsSpace() {
 		return []string{}, nil
 	}
 
@@ -1055,7 +1055,7 @@ func (a *App) RemoveNotifications(rctx request.CTX, post *model.Post, channel *m
 				// The thread_updated payload carries the root post; a non-message backing
 				// channel's thread must not reach chat clients. The membership updates above
 				// stand — only the broadcast is withheld.
-				if !channel.Type.IsNonMessageBacking() {
+				if !channel.IsSpace() {
 					message := model.NewWebSocketEvent(model.WebsocketEventThreadUpdated, team.Id, "", userID, nil, "")
 					message.Add("thread", string(payload))
 					message.Add("previous_unread_mentions", previousUnreadMentions)

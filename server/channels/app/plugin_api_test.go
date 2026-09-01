@@ -4211,7 +4211,7 @@ func TestAppMovePostsToChannel(t *testing.T) {
 	})
 
 	t.Run("the batch cap is enforced", func(t *testing.T) {
-		oversized := make([]string, MovePostsToChannelMaxBatch+1)
+		oversized := make([]string, movePostsToChannelMaxBatch+1)
 		for i := range oversized {
 			oversized[i] = model.NewId()
 		}

@@ -131,15 +131,6 @@ export function shouldFilterJoinLeavePost(post: Post, showJoinLeave: boolean, cu
     return !isJoinLeavePostForUsername(post, currentUsername);
 }
 
-/**
- * Returns true if a post should be hidden from the channel feed and the Threads list because it
- * belongs to a feature that writes into a backing channel and renders its own surface.
- * The post object passed in must be not null/undefined.
- */
-export function shouldFilterBackingChannelPost(post: Post): boolean {
-    return Posts.BACKING_CHANNEL_POST_TYPES.indexOf(post.type) !== -1;
-}
-
 function isJoinLeavePostForUsername(post: Post, currentUsername: string): boolean {
     if (!post.props || !currentUsername) {
         return false;

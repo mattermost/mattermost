@@ -444,14 +444,6 @@ func (o *Channel) IsSpace() bool {
 	return o.Type == ChannelTypeSpace
 }
 
-// IsNonMessageBacking reports whether t is an opaque backing channel type — a channel that
-// exists to carry another feature's data (e.g. a Docs space) and whose posts must stay out of
-// chat surfaces. Mirrors the store's deny-list for id-keyed queries, which the type allow-list
-// on lookups does not reach.
-func (t ChannelType) IsNonMessageBacking() bool {
-	return t == ChannelTypeSpace
-}
-
 // IsMessageChannel reports whether the channel is one of the message-bearing
 // types (open, private, direct, or group). Returns false for boards and any
 // future non-message channel types.

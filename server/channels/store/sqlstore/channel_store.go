@@ -49,21 +49,9 @@ var messageChannelTypes = []model.ChannelType{
 // otherwise TotalMsgCount grows and the channel generates unread badges and push notifications
 // in the chat UI. Backing channel types that never write posts are already invisible in these
 // queries without an explicit filter and do not need to be listed here.
-// The list is derived from the model's ChannelType.IsNonMessageBacking classifier, which the
-// app layer consults for the same rule; extend the classifier, not this variable.
-var nonMessageBackingChannelTypes = func() []model.ChannelType {
-	all := []model.ChannelType{
-		model.ChannelTypeOpen, model.ChannelTypePrivate, model.ChannelTypeDirect, model.ChannelTypeGroup,
-		model.ChannelTypeSpace, model.ChannelTypeOpenBoard, model.ChannelTypePrivateBoard,
-	}
-	backing := make([]model.ChannelType, 0, 1)
-	for _, t := range all {
-		if t.IsNonMessageBacking() {
-			backing = append(backing, t)
-		}
-	}
-	return backing
-}()
+var nonMessageBackingChannelTypes = []model.ChannelType{
+	model.ChannelTypeSpace,
+}
 
 // nonMessageBackingChannelTypesNotIn returns a "NOT IN (...)" SQL clause and its args for use
 // in raw SQL queries, keeping those callers in sync with the deny-list.

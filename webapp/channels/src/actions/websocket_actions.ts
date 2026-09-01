@@ -25,7 +25,7 @@ import type {Reaction} from '@mattermost/types/reactions';
 import type {Role} from '@mattermost/types/roles';
 import type {ScheduledPost} from '@mattermost/types/schedule_post';
 import type {Team, TeamMembership} from '@mattermost/types/teams';
-import type {UserThreadWithPost} from '@mattermost/types/threads';
+import type {UserThread} from '@mattermost/types/threads';
 
 import type {MMReduxAction} from 'mattermost-redux/action_types';
 import {
@@ -136,7 +136,6 @@ import {
 } from 'mattermost-redux/selectors/entities/teams';
 import {getNewestThreadInTeam, getThread, getThreads} from 'mattermost-redux/selectors/entities/threads';
 import {getCurrentUser, getCurrentUserId, getUser, getIsManualStatusForUserId, isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
-import {shouldFilterBackingChannelPost} from 'mattermost-redux/utils/post_utils';
 import {isGuest} from 'mattermost-redux/utils/user_utils';
 
 import {handlePostExpired} from 'actions/burn_on_read_deletion';
@@ -2254,16 +2253,9 @@ function handleThreadUpdated(msg: WebSocketMessages.ThreadUpdated): ThunkActionF
     return (doDispatch, doGetState) => {
         let threadData;
         try {
-            threadData = JSON.parse(msg.data.thread) as UserThreadWithPost;
+            threadData = JSON.parse(msg.data.thread) as UserThread;
         } catch {
             // invalid JSON
-            return;
-        }
-
-        // A backing-channel feature renders its own threads; they must not enter the
-        // Threads store. The server-side exclusion cannot reach this event, because it is
-        // published per follower rather than read back through the thread store.
-        if (shouldFilterBackingChannelPost(threadData.post)) {
             return;
         }
 

@@ -1318,7 +1318,7 @@ func TestSessionHasPermissionToReadPost(t *testing.T) {
 		assert.False(t, isMember)
 	})
 
-	t.Run("fails closed if postID is missing", func(t *testing.T) {
+	t.Run("returns permission based on system level if postID is missing", func(t *testing.T) {
 		// To simulate a missing post, use a postID that doesn't exist
 		session := model.Session{
 			UserId: th.SystemAdminUser.Id,
@@ -1326,7 +1326,7 @@ func TestSessionHasPermissionToReadPost(t *testing.T) {
 		}
 
 		ok, isMember := th.App.SessionHasPermissionToReadPost(th.Context, session, model.NewId())
-		assert.False(t, ok)
+		assert.True(t, ok)
 		assert.False(t, isMember)
 
 		// Basic user, should be false

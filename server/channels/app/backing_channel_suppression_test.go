@@ -254,46 +254,6 @@ func TestBackingChannelPostIDGateCoverage(t *testing.T) {
 	assert.Equal(t, 2, counts["SessionHasPermissionToChannelByPost("], "the two reaction writes")
 }
 
-// TestPostsPageCommentPartialIndexCatalog pins the shape of the page-comment partial index from
-// the catalog: the predicate is what keeps ordinary chat posts out of it entirely, which is the
-// property the write-path cost argument rests on, and a predicate edit silently destroys it
-// while every read test stays green.
-func TestPostsPageCommentPartialIndexCatalog(t *testing.T) {
-	mainHelper.Parallel(t)
-
-	Setup(t)
-	sqlStore := mainHelper.GetSQLStore()
-
-	var predicate string
-	err := sqlStore.GetMaster().Get(&predicate, `
-		SELECT pg_get_expr(pg_index.indpred, pg_index.indrelid)
-		FROM pg_index
-		JOIN pg_class ON pg_class.oid = pg_index.indexrelid
-		WHERE pg_class.relname = 'idx_posts_page_comment_page_id'`)
-	require.NoError(t, err, "the partial index must exist after migrations")
-	assert.Contains(t, predicate, "custom_page_comment")
-	assert.Contains(t, predicate, "(rootid)::text = ''::text")
-	assert.Contains(t, predicate, "(originalid)::text = ''::text")
-
-	var expression string
-	err = sqlStore.GetMaster().Get(&expression, `
-		SELECT pg_get_expr(pg_index.indexprs, pg_index.indrelid)
-		FROM pg_index
-		JOIN pg_class ON pg_class.oid = pg_index.indexrelid
-		WHERE pg_class.relname = 'idx_posts_page_comment_page_id'`)
-	require.NoError(t, err)
-	assert.Contains(t, expression, "page_id")
-
-	var definition string
-	err = sqlStore.GetMaster().Get(&definition, `
-		SELECT pg_get_indexdef(pg_class.oid)
-		FROM pg_class
-		WHERE pg_class.relname = 'idx_posts_page_comment_page_id'`)
-	require.NoError(t, err)
-	assert.Regexp(t, `(?i)page_id.*,[[:space:]]*id\)`, definition,
-		"Id must be the second index key so each bounded repair page can be read in keyset order")
-}
-
 // TestBackingChannelNotificationSuppression pins that a mention in a backing-channel post reaches
 // no chat notification surface. Websocket delivery was already excluded; email, push, and the
 // mention-count and mention-driven autofollow writes are the halves that a channel-scoped payload

@@ -940,19 +940,19 @@ func (api *PluginAPI) DeleteEphemeralPost(userID, postID string) {
 	api.app.DeleteEphemeralPost(api.ctx, userID, postID)
 }
 
+// tryResolvePostChannel resolves a stored post's channel directly from the primary database.
+// It is deliberately best-effort: callers pass nil into the app layer on any error so that the
+// underlying mutation retains its existing lookup and error behavior.
+func (api *PluginAPI) tryResolvePostChannel(postID string) *model.Channel {
+	channel, _ := api.app.getPostChannel("PluginAPI.tryResolvePostChannel", postID)
+	return channel
+}
+
 func (api *PluginAPI) DeletePost(postID string) *model.AppError {
-	// Best-effort pre-resolution through the backing-type fallback, so a post in a backing
-	// channel (which the generic channel lookup cannot resolve) is deletable through the plugin
-	// API. The store is read directly — GetSinglePost would fire the consume hooks on a write
-	// path — and from master, matching the helper's own read, so a freshly created post cannot
-	// miss on a lagging replica. Any failure here falls through with a nil channel, and the
-	// delete resolves — and errors — exactly as it always has.
-	var channel *model.Channel
-	if post, nErr := api.app.Srv().Store().Post().GetSingle(RequestContextWithMaster(api.ctx), postID, true); nErr == nil {
-		if resolved, resolveErr := api.resolveChannel(post.ChannelId); resolveErr == nil {
-			channel = resolved
-		}
-	}
+	// Best-effort pre-resolution from the post itself, so a post in a backing channel (which the
+	// generic channel lookup cannot resolve) is deletable through the plugin API. Any failure here
+	// falls through with a nil channel, and the delete resolves — and errors — exactly as before.
+	channel := api.tryResolvePostChannel(postID)
 	_, err := api.app.deletePostWithChannel(api.ctx, postID, api.id, channel)
 	return err
 }
@@ -1018,14 +1018,8 @@ func (api *PluginAPI) UpdatePost(post *model.Post) (*model.Post, *model.AppError
 		}
 		allowMmBlocksActionsUpdate = true
 	}
-	// Best-effort pre-resolution through the backing-type fallback (see DeletePost); the stored
-	// post's ChannelId is used, matching the resolution UpdatePost itself performs.
-	var channel *model.Channel
-	if oldPost, nErr := api.app.Srv().Store().Post().GetSingle(RequestContextWithMaster(api.ctx), post.Id, true); nErr == nil {
-		if resolved, resolveErr := api.resolveChannel(oldPost.ChannelId); resolveErr == nil {
-			channel = resolved
-		}
-	}
+	// Best-effort pre-resolution from the stored post (see DeletePost).
+	channel := api.tryResolvePostChannel(post.Id)
 	post, _, appErr := api.app.updatePostWithChannel(api.ctx, post, &model.UpdatePostOptions{SafeUpdate: false, AllowMmBlocksActionsUpdate: allowMmBlocksActionsUpdate}, channel)
 	if post != nil {
 		post = post.ForPlugin()
