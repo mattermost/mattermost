@@ -196,7 +196,8 @@ func resetDatabase(ctx context.Context, c *mmContainers) error {
 	// Restart the container so the server re-initializes default roles/permissions.
 	// The Roles and Systems tables were truncated, so doAppMigrations() will detect
 	// missing completion markers and re-run all permission migrations.
-	stopTimeout := 10 * time.Second
+	// Short SIGTERM grace: the container is rebuilt from the reset DB, so an unclean stop loses nothing.
+	stopTimeout := 2 * time.Second
 	if err := c.mmContainer.Stop(ctx, &stopTimeout); err != nil {
 		return fmt.Errorf("failed to stop container after reset: %w", err)
 	}
