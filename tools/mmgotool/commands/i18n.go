@@ -923,7 +923,28 @@ func verifyLocaleFile(filename string, en map[string]Item, warnMissingIDs bool) 
 		// risk is a call site that passes no count, where go-i18n resolves to
 		// language.Invalid, finds no template, and renders the raw id -- not
 		// something the catalogs can tell us, so it is not checked here.
-		if !itemIsPlural || categories == nil {
+		if !itemIsPlural {
+			continue
+		}
+
+		// An empty form is worse than an absent translation. go-i18n builds no
+		// template for it, finds none at format time, and falls through to
+		// returning the translation id itself, so the user is shown something
+		// like "api.command_invite.user_already_in_channel.app_error". Deleting
+		// the entry instead lets the en fallback serve real English.
+		//
+		// Empty single-string translations render the same raw id, but they are
+		// not flagged here: several hundred already exist, and `i18n clean-empty`
+		// already removes exactly that shape. This is the one the existing tools
+		// cannot see, because countEmptyItems and removeEmptyTranslations both
+		// test the raw JSON for `""` and so skip every plural map.
+		for c, form := range plural {
+			if strings.TrimSpace(form) == "" {
+				problems = append(problems, fmt.Sprintf("%s: %s: plural category %q is empty, which renders the raw translation id; delete the entry to fall back to English", name, id, c))
+			}
+		}
+
+		if categories == nil {
 			continue
 		}
 
