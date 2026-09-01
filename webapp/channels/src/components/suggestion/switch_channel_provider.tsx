@@ -533,8 +533,17 @@ function startsWithSearchTerm(wrapped: WrappedChannel) {
     return displayName.startsWith(prefix) || wrapped.name.toLowerCase().startsWith(prefix);
 }
 
+// Demotion weights applied when ranking quick switcher results, ordered strongest first. Each
+// weight is larger than the sum of all weaker ones, so a stronger reason to demote always
+// outranks any combination of weaker reasons.
+const ARCHIVED_RANK_PENALTY = 16;
+const DEACTIVATED_RANK_PENALTY = 8;
+const UNINTERACTED_OPEN_CHANNEL_RANK_PENALTY = 4;
+const NON_PREFIX_MATCH_RANK_PENALTY = 2;
+const HIDDEN_IN_SIDEBAR_RANK_PENALTY = 1;
+
 // Every result is ranked on the same scale so that comparing any two of them is consistent with
-// comparing them through a third. The weights order the reasons to demote a result, strongest first.
+// comparing them through a third.
 function searchRank(wrapped: WrappedChannel) {
     const channel = wrapped.channel;
     const isArchived = Boolean(channel.delete_at);
@@ -543,11 +552,11 @@ function searchRank(wrapped: WrappedChannel) {
     const isUninteractedOpenChannel = channel.type === Constants.OPEN_CHANNEL && !wrapped.last_viewed_at;
 
     return (
-        (isArchived ? 16 : 0) +
-        (wrapped.deactivated ? 8 : 0) +
-        (isUninteractedOpenChannel ? 4 : 0) +
-        (startsWithSearchTerm(wrapped) ? 0 : 2) +
-        (wrapped.hiddenInSidebar ? 1 : 0)
+        (isArchived ? ARCHIVED_RANK_PENALTY : 0) +
+        (wrapped.deactivated ? DEACTIVATED_RANK_PENALTY : 0) +
+        (isUninteractedOpenChannel ? UNINTERACTED_OPEN_CHANNEL_RANK_PENALTY : 0) +
+        (startsWithSearchTerm(wrapped) ? 0 : NON_PREFIX_MATCH_RANK_PENALTY) +
+        (wrapped.hiddenInSidebar ? HIDDEN_IN_SIDEBAR_RANK_PENALTY : 0)
     );
 }
 

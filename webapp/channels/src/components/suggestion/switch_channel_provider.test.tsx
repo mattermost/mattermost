@@ -1336,22 +1336,22 @@ describe('components/SwitchChannelProvider', () => {
     });
 
     describe('ranking the person matching the search term above group messages containing them', () => {
-        const joram = TestHelper.getUserMock({
-            id: 'joram_user_id',
-            username: 'joram',
-            first_name: 'Joram',
-            last_name: 'Wilander',
+        const delphine = TestHelper.getUserMock({
+            id: 'delphine_user_id',
+            username: 'delphine',
+            first_name: 'Delphine',
+            last_name: 'Marlow',
         });
 
-        const otherMembers = ['pavel.zeman', 'chris.overton', 'dschalla', 'jason.blais', 'zoe.zimmerman'].
+        const otherMembers = ['esme.fielder', 'bruno.castellani', 'bianca.rossi', 'clive.mercer', 'wanda.pryor'].
             map((username) => TestHelper.getUserMock({id: `${username}_id`, username}));
 
         // A GM's display name is its members listed alphabetically, so it starts with the searched
         // username whenever that member sorts first, which is how a GM can look like a prefix match
         const gmMemberSets = [
-            ['joram', 'pavel.zeman'],
-            ['chris.overton', 'joram'],
-            ['dschalla', 'jason.blais', 'joram'],
+            ['delphine', 'esme.fielder'],
+            ['bruno.castellani', 'delphine'],
+            ['bianca.rossi', 'clive.mercer', 'delphine'],
         ];
 
         type Options = {
@@ -1376,7 +1376,7 @@ describe('components/SwitchChannelProvider', () => {
 
             const profiles: Record<string, UserProfile> = {
                 current_user_id: TestHelper.getUserMock({id: 'current_user_id', username: 'current.user'}),
-                [joram.id]: joram,
+                [delphine.id]: delphine,
             };
             [...otherMembers, ...extraProfiles].forEach((profile) => {
                 profiles[profile.id] = profile;
@@ -1394,7 +1394,7 @@ describe('components/SwitchChannelProvider', () => {
                 myMembers[id] = {channel_id: id, last_viewed_at: lastViewedAt};
                 profilesInChannel[id] = new Set([
                     'current_user_id',
-                    ...memberUsernames.map((username) => (username === joram.username ? joram.id : `${username}_id`)),
+                    ...memberUsernames.map((username) => (username === delphine.username ? delphine.id : `${username}_id`)),
                 ]);
                 myPreferences[`group_channel_show--${id}`] = {
                     category: 'group_channel_show',
@@ -1426,7 +1426,7 @@ describe('components/SwitchChannelProvider', () => {
             };
 
             if (existingDmLastViewedAt) {
-                addDm(joram.id, existingDmLastViewedAt);
+                addDm(delphine.id, existingDmLastViewedAt);
             }
             extraDmChannels.forEach(({userId, lastViewedAt}) => addDm(userId, lastViewedAt));
 
@@ -1453,7 +1453,7 @@ describe('components/SwitchChannelProvider', () => {
             };
         }
 
-        async function search(term: string, state: ReturnType<typeof makeState>, usersFromServer: UserProfile[] = [joram]) {
+        async function search(term: string, state: ReturnType<typeof makeState>, usersFromServer: UserProfile[] = [delphine]) {
             jest.mocked(Client4.autocompleteUsers).mockResolvedValue({users: usersFromServer});
 
             const switchProvider = new SwitchChannelProvider();
@@ -1472,7 +1472,7 @@ describe('components/SwitchChannelProvider', () => {
         function stateWithCompetingDm() {
             const containsTerm = TestHelper.getUserMock({
                 id: 'contains_term_user_id',
-                username: 'ajoram',
+                username: 'adelphine',
             });
 
             return {
@@ -1486,12 +1486,12 @@ describe('components/SwitchChannelProvider', () => {
         }
 
         it('ranks the person first once the server results arrive, even with no DM channel yet', async () => {
-            const [localResults, mergedResults] = await search('jora', makeState());
+            const [localResults, mergedResults] = await search('delp', makeState());
 
-            // The user has never messaged joram, so only the GMs are known locally
+            // The user has never messaged delphine, so only the GMs are known locally
             expect(localResults.terms).toEqual(['gm_channel_2', 'gm_channel_1', 'gm_channel_0']);
 
-            expect(mergedResults.terms).toEqual([joram.id, 'gm_channel_2', 'gm_channel_1', 'gm_channel_0']);
+            expect(mergedResults.terms).toEqual([delphine.id, 'gm_channel_2', 'gm_channel_1', 'gm_channel_0']);
 
             // Selecting a suggestion resolves it by term, so the two have to stay in lockstep
             expect(mergedResults.items.map((item: WrappedChannel) => (
@@ -1500,43 +1500,43 @@ describe('components/SwitchChannelProvider', () => {
         });
 
         it('ranks an existing DM first even when every group message was read more recently', async () => {
-            const [, mergedResults] = await search('jora', makeState({existingDmLastViewedAt: 1}));
+            const [, mergedResults] = await search('delp', makeState({existingDmLastViewedAt: 1}));
 
-            // gm_channel_0 is displayed as "joram, pavel.zeman", so it also starts with the search
-            // term, but only because joram sorts first among its members
-            expect(mergedResults.terms).toEqual([joram.id, 'gm_channel_2', 'gm_channel_1', 'gm_channel_0']);
+            // gm_channel_0 is displayed as "delphine, esme.fielder", so it also starts with the search
+            // term, but only because delphine sorts first among its members
+            expect(mergedResults.terms).toEqual([delphine.id, 'gm_channel_2', 'gm_channel_1', 'gm_channel_0']);
         });
 
         it('ranks the DM first when the search term is capitalized', async () => {
             const {containsTerm, state} = stateWithCompetingDm();
 
-            const [, mergedResults] = await search('Jora', state, [joram, containsTerm]);
+            const [, mergedResults] = await search('Delp', state, [delphine, containsTerm]);
 
-            expect(mergedResults.terms[0]).toEqual(joram.id);
+            expect(mergedResults.terms[0]).toEqual(delphine.id);
         });
 
         it('ranks the DM first when the search term is written as a mention', async () => {
             const {containsTerm, state} = stateWithCompetingDm();
 
-            // A leading @ makes the channel filter substring match on "@jora", which no group
+            // A leading @ makes the channel filter substring match on "@delp", which no group
             // message contains, so only the two people are left to rank
-            const [, mergedResults] = await search('@jora', state, [joram, containsTerm]);
+            const [, mergedResults] = await search('@delp', state, [delphine, containsTerm]);
 
-            expect(mergedResults.terms).toEqual([joram.id, containsTerm.id]);
+            expect(mergedResults.terms).toEqual([delphine.id, containsTerm.id]);
         });
 
         it('still ranks by recency when neither conversation matches the start of a name', async () => {
-            const [, mergedResults] = await search('wilander', makeState({existingDmLastViewedAt: 1}));
+            const [, mergedResults] = await search('marlow', makeState({existingDmLastViewedAt: 1}));
 
-            // Every result matches joram's last name mid-name, so none of them is a stronger match
+            // Every result matches delphine's last name mid-name, so none of them is a stronger match
             // than the others and the most recently read one wins
-            expect(mergedResults.terms).toEqual(['gm_channel_2', 'gm_channel_1', 'gm_channel_0', joram.id]);
+            expect(mergedResults.terms).toEqual(['gm_channel_2', 'gm_channel_1', 'gm_channel_0', delphine.id]);
         });
 
         it('keeps a group message hidden from the sidebar below an equally relevant visible one', async () => {
-            const state = makeState({hiddenGmMembers: ['joram', 'zoe.zimmerman']});
+            const state = makeState({hiddenGmMembers: ['delphine', 'wanda.pryor']});
 
-            const [, mergedResults] = await search('jora', state);
+            const [, mergedResults] = await search('delp', state);
 
             // Hidden group messages used to end up last only because they came from the server
             // results, which were appended rather than ranked
@@ -1574,7 +1574,7 @@ describe('components/SwitchChannelProvider', () => {
 
             const results = [
                 wrap('dm', Constants.DM_CHANNEL, 1, 'sam.smith'),
-                wrap('gm', Constants.GM_CHANNEL, 1000, 'sam.smith, zoe.zimmerman'),
+                wrap('gm', Constants.GM_CHANNEL, 1000, 'sam.smith, wanda.pryor'),
                 wrap('open', Constants.OPEN_CHANNEL, 500, 'sam-project'),
             ];
 
