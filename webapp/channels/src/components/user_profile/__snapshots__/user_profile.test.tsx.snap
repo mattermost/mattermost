@@ -69,6 +69,7 @@ exports[`components/UserProfile should not render ImportedInactiveTag for regula
     aria-expanded="false"
     aria-haspopup="dialog"
     class="user-popover style--none"
+    type="button"
   >
     nickname
   </button>
@@ -81,6 +82,7 @@ exports[`components/UserProfile should render ImportedInactiveTag for imported i
     aria-expanded="false"
     aria-haspopup="dialog"
     class="user-popover style--none"
+    type="button"
   >
     nickname
   </button>
