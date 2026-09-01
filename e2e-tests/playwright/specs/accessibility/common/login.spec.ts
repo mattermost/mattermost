@@ -3,6 +3,15 @@
 
 import {expect, test} from '@mattermost/playwright-lib';
 
+test.beforeEach(async ({pw}) => {
+    const {adminClient} = await pw.getAdminClient();
+    await adminClient.patchConfig({
+        TeamSettings: {EnableOpenServer: true},
+        SamlSettings: {Enable: false},
+        LdapSettings: {Enable: false},
+    });
+});
+
 test('/login accessibility quick check', async ({pw, axe}) => {
     // Set up the page not to redirect to the landing page
     await pw.hasSeenLandingPage();

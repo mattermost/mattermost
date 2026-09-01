@@ -816,7 +816,6 @@ type ReactionStore interface {
 	GetUniqueCountForPost(postID string) (int, error)
 	ExistsOnPost(postID string, emojiName string) (bool, error)
 	DeleteAllWithEmojiName(rctx request.CTX, emojiName string) error
-	BulkGetForPosts(postIds []string) ([]*model.Reaction, error)
 	GetSingle(userID, postID, remoteID, emojiName string) (*model.Reaction, error)
 	DeleteOrphanedRowsByIds(r *model.RetentionIdsForDeletion) (int64, error)
 	PermanentDeleteBatch(endTime int64, limit int64) (int64, error)
@@ -1255,6 +1254,20 @@ type AccessControlPolicyStore interface {
 	// channel-list reads to avoid an N+1 against AccessControlPolicies.
 	// Empty input returns an empty map and fires no SQL.
 	GetActionsForPolicies(rctx request.CTX, policyIDs []string) (map[string]map[string]bool, error)
+
+	// GetEtagEpoch returns an opaque epoch over the system-scoped permission policies plus the
+	// given channel's own policy row; an empty channelID covers only the former. Deletion-
+	// sensitive, so it moves even when the newest policy is not the one that changed.
+	GetEtagEpoch(rctx request.CTX, channelID string) (string, error)
+
+	// InvalidateEtagForChannel drops the cached render-ETag epoch for a single channel's policy.
+	// Call after that channel's policy changes. No-op outside the local cache layer.
+	InvalidateEtagForChannel(channelID string)
+
+	// ClearEtagCache drops all cached render-ETag epochs. Call after a system-scoped permission
+	// policy changes, since every channel's epoch aggregates the permission set. No-op outside
+	// the local cache layer.
+	ClearEtagCache()
 }
 
 type AttributesStore interface {
@@ -1262,7 +1275,19 @@ type AttributesStore interface {
 	GetSubject(rctx request.CTX, ID, groupID, objectType string) (*model.Subject, error)
 	SearchUsers(rctx request.CTX, opts model.SubjectSearchOptions) ([]*model.User, int64, error)
 	GetChannelMembersToRemove(rctx request.CTX, channelID string, opts model.SubjectSearchOptions) ([]*model.ChannelMember, error)
+	// GetUserPropertyValuesEpoch returns the per-user epoch for ABAC-aware post-list ETags.
+	// Deletion-sensitive, so soft-deleting any value moves it.
+	GetUserPropertyValuesEpoch(rctx request.CTX, userID string) (string, error)
 	GetTeamMembersToRemove(rctx request.CTX, teamID string, opts model.SubjectSearchOptions) ([]*model.TeamMember, error)
+
+	// InvalidateUserPropertyValuesEpoch drops the cached property-values epoch for a single user.
+	// Call after that user's property values change. No-op outside the local cache layer.
+	InvalidateUserPropertyValuesEpoch(userID string)
+
+	// ClearUserPropertyValuesEpochCache drops all cached property-values epochs. Call after a
+	// change that can affect many users at once (e.g. deleting a field). No-op outside the local
+	// cache layer.
+	ClearUserPropertyValuesEpochCache()
 }
 
 type SessionAttributeStore interface {

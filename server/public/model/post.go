@@ -73,7 +73,7 @@ const (
 	PostFilenamesMaxRunes = 4000
 	PostHashtagsMaxRunes  = 1000
 	PostMessageMaxRunesV1 = 4000
-	PostMessageMaxBytesV2 = 65535
+	PostMessageMaxBytesV2 = 1048576
 	PostMessageMaxRunesV2 = PostMessageMaxBytesV2 / 4 // Assume a worst-case representation
 
 	// Reporting API constants
@@ -1054,8 +1054,14 @@ func (o *Post) propsIsValid() error {
 	return multiErr.ErrorOrNil()
 }
 
+// IsSystemMessagePostType reports whether the given post type string is reserved for
+// system-generated messages.
+func IsSystemMessagePostType(postType string) bool {
+	return strings.HasPrefix(postType, PostSystemMessagePrefix)
+}
+
 func (o *Post) IsSystemMessage() bool {
-	return len(o.Type) >= len(PostSystemMessagePrefix) && o.Type[:len(PostSystemMessagePrefix)] == PostSystemMessagePrefix
+	return IsSystemMessagePostType(o.Type)
 }
 
 // IsAccessControlTeamMembershipNotification reports whether the post is a team

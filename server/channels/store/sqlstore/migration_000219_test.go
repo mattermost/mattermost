@@ -11,12 +11,25 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
-// TestMigration000219 pins the shape of PropertyOptionEdges. Both of its keys
-// lead with FieldID, which is what makes an edge belong to one field's option
-// hierarchy and nothing else, and what lets a walk in either direction stay
-// inside that field.
+func propertyFieldTypeHasValue(t *testing.T, s *SqlStore, label string) bool {
+	t.Helper()
+	var count int
+	err := s.GetMaster().Get(&count, `
+		SELECT COUNT(*)
+		FROM pg_enum e
+		JOIN pg_type ty ON ty.oid = e.enumtypid
+		WHERE ty.typname = 'property_field_type' AND e.enumlabel = $1`, label)
+	require.NoError(t, err)
+	return count > 0
+}
+
+// TestMigration000219 verifies that 'graph' is a usable property_field_type
+// value, and that the deliberately empty down migration leaves it in place —
+// which is the documented behaviour, not an oversight: Postgres cannot remove a
+// value from an enum type without rebuilding it.
 func TestMigration000219(t *testing.T) {
 	logger := mlog.CreateTestLogger(t)
 
@@ -29,72 +42,48 @@ func TestMigration000219(t *testing.T) {
 	require.NoError(t, err)
 	defer store.Close()
 
-	indexDefs := func(t *testing.T) map[string]string {
-		t.Helper()
-		type index struct {
-			Indexname string
-			Indexdef  string
-		}
-		rows := []*index{}
-		require.NoError(t, store.GetMaster().Select(&rows,
-			"SELECT indexname, indexdef FROM pg_indexes WHERE tablename = 'propertyoptionedges'"))
-
-		defs := make(map[string]string, len(rows))
-		for _, row := range rows {
-			defs[row.Indexname] = row.Indexdef
-		}
-		return defs
-	}
-
 	// New() applies all migrations, so 000219 is already in effect.
-	defs := indexDefs(t)
-	require.Len(t, defs, 2, "the table carries its primary key and one secondary index: %v", defs)
+	require.True(t, propertyFieldTypeHasValue(t, store, "graph"))
 
-	// The upward walk, and the identity of an edge.
-	assert.Contains(t, defs["propertyoptionedges_pkey"], "(fieldid, childoptionid, parentoptionid)")
-	// The downward walk, and the check for an option's children.
-	assert.Contains(t, defs["idx_propertyoptionedges_fieldid_parent_child"], "(fieldid, parentoptionid, childoptionid)")
+	group, err := store.PropertyGroup().Register(&model.PropertyGroup{Name: model.NewId(), Version: model.PropertyGroupVersionV1})
+	require.NoError(t, err)
 
-	fieldID := model.NewId()
-	childID := model.NewId()
-	parentID := model.NewId()
+	t.Run("a field row can hold the graph type", func(t *testing.T) {
+		field, cErr := store.PropertyField().Create(&model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "programs",
+			Type:       model.PropertyFieldTypeGraph,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{"name": "Air Program"},
+					map[string]any{"name": "Fighter Jet Program"},
+				},
+			},
+		})
+		require.NoError(t, cErr)
 
-	insertEdge := func(t *testing.T, fieldID, childID, parentID string) error {
-		t.Helper()
-		_, iErr := store.GetMaster().Exec(
-			"INSERT INTO PropertyOptionEdges (FieldID, ChildOptionID, ParentOptionID, CreateAt) VALUES (?, ?, ?, ?)",
-			fieldID, childID, parentID, model.GetMillis())
-		return iErr
-	}
+		read, gErr := store.PropertyField().Get(request.TestContext(t), group.ID, field.ID)
+		require.NoError(t, gErr)
+		assert.Equal(t, model.PropertyFieldTypeGraph, read.Type)
 
-	t.Run("an edge is identified by its field and both endpoints", func(t *testing.T) {
-		require.NoError(t, insertEdge(t, fieldID, childID, parentID))
-		require.Error(t, insertEdge(t, fieldID, childID, parentID), "the same edge twice on one field is one edge")
-
-		// The same pair of identifiers on another field is a different edge, not a
-		// duplicate: option IDs are unique within a field, not across fields.
-		require.NoError(t, insertEdge(t, model.NewId(), childID, parentID))
-
-		// And an option may have more than one parent, which is the whole point of
-		// a hierarchy that is not a tree.
-		require.NoError(t, insertEdge(t, fieldID, childID, model.NewId()))
+		// The options of a graph field are rows like any other option-bearing
+		// type's, so they come back hydrated.
+		options, ok := read.Attrs[model.PropertyFieldAttributeOptions].([]any)
+		require.True(t, ok, "expected an inline option list, got %#v", read.Attrs[model.PropertyFieldAttributeOptions])
+		assert.Len(t, options, 2)
 	})
 
-	t.Run("the down migration drops the table", func(t *testing.T) {
-		_, dErr := store.GetMaster().ExecNoTimeout(readMigrationSQL(t, "000219_create_property_option_edges.down.sql"))
-		require.NoError(t, dErr)
-		require.Empty(t, indexDefs(t))
+	t.Run("the down migration keeps the enum value", func(t *testing.T) {
+		_, dErr := store.GetMaster().ExecNoTimeout(readMigrationSQL(t, "000219_add_graph_to_property_field_type.down.sql"))
+		require.NoError(t, dErr, "down migration should succeed")
+		assert.True(t, propertyFieldTypeHasValue(t, store, "graph"),
+			"the down migration is a no-op, so 'graph' must survive it")
 
-		_, uErr := store.GetMaster().ExecNoTimeout(readMigrationSQL(t, "000219_create_property_option_edges.up.sql"))
-		require.NoError(t, uErr)
-		// The secondary index lives in 000223 so CREATE INDEX CONCURRENTLY is
-		// its own non-transactional migration.
-		_, iErr := store.GetMaster().ExecNoTimeout(readMigrationSQL(t, "000223_create_property_option_edges_parent_child_index.up.sql"))
-		require.NoError(t, iErr)
-		require.Len(t, indexDefs(t), 2)
-
-		var count int
-		require.NoError(t, store.GetMaster().Get(&count, "SELECT COUNT(*) FROM PropertyOptionEdges"))
-		assert.Zero(t, count, "the recreated table starts empty")
+		// And re-applying the up migration on top is harmless.
+		_, uErr := store.GetMaster().ExecNoTimeout(readMigrationSQL(t, "000219_add_graph_to_property_field_type.up.sql"))
+		require.NoError(t, uErr, "up migration should be re-appliable")
+		assert.True(t, propertyFieldTypeHasValue(t, store, "graph"))
 	})
 }
