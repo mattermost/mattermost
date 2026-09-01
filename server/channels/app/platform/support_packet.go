@@ -152,6 +152,7 @@ func (ps *PlatformService) getSupportPacketDiagnostics(rctx request.CTX) (*model
 		d.License.SkuShortName = license.SkuShortName
 		d.License.IsTrial = license.IsTrial
 		d.License.IsGovSKU = license.IsGovSku
+		d.License.IsNonProduction = license.IsNonProduction
 	}
 
 	/* Server */
@@ -220,7 +221,7 @@ func (ps *PlatformService) getSupportPacketDiagnostics(rctx request.CTX) (*model
 	d.Database.ReplicaConnections = ps.Store.TotalReadDbConnections()
 	d.Database.SearchConnections = ps.Store.TotalSearchDbConnections()
 
-	err = ps.applyStoreDiagnostics(rctx.Context(), &d)
+	err = ps.applyStoreDiagnostics(rctx, &d)
 	if err != nil {
 		rErr = multierror.Append(rErr, err)
 	}
@@ -388,8 +389,8 @@ func (ps *PlatformService) getSupportPacketDiagnostics(rctx request.CTX) (*model
 	return fileData, rErr.ErrorOrNil()
 }
 
-func (ps *PlatformService) applyStoreDiagnostics(ctx context.Context, diagnostics *model.SupportPacketDiagnostics) error {
-	storeDiagnostics, err := ps.Store.GetDiagnostics(ctx)
+func (ps *PlatformService) applyStoreDiagnostics(rctx request.CTX, diagnostics *model.SupportPacketDiagnostics) error {
+	storeDiagnostics, err := ps.Store.GetDiagnostics(rctx)
 	if storeDiagnostics == nil {
 		if err != nil {
 			return errors.Wrap(err, "error while collecting support packet database diagnostics")

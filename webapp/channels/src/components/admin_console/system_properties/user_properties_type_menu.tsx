@@ -17,6 +17,8 @@ import type {IDMappedObjects} from '@mattermost/types/utilities';
 import useGetFeatureFlagValue from 'components/common/hooks/useGetFeatureFlagValue';
 import * as Menu from 'components/menu';
 
+import {isLinkedField} from './user_properties_utils';
+
 import './user_properties_type_menu.scss';
 
 interface Props {
@@ -61,7 +63,10 @@ const SelectType = (props: Props) => {
     const CurrentTypeIcon = currentTypeDescriptor.icon;
 
     const isProtected = Boolean(props.field.attrs?.protected);
-    const isDisabled = props.field.delete_at !== 0 || isProtected;
+
+    // Linked fields take their type from the template they link to; the server
+    // rejects a type change on them.
+    const isDisabled = props.field.delete_at !== 0 || isProtected || isLinkedField(props.field);
 
     return (
         <Menu.Container

@@ -405,7 +405,7 @@
     > button {
         @include mixins.button-small;
 
-        padding: 10px 16px;
+        flex-shrink: 0;
         border-width: 0;
         border-radius: 4px;
         box-shadow: none;
@@ -913,6 +913,8 @@
         color: rgba(var(--center-channel-color-rgb), 0.75);
         font-size: 11px;
         font-style: italic;
+        line-height: normal;
+
         -webkit-user-select: none; /* Chrome all / Safari all */
         -moz-user-select: none; /* Firefox all */
         -ms-user-select: none; /* IE 10+ */
@@ -1956,25 +1958,14 @@
 // with a bottom fade so truncated content reads as "more below".
 .post-message--collapsed.post-message-preview--overflow {
     .post-message__text-container {
-        position: relative;
+        -webkit-mask-image: linear-gradient(to bottom, black calc(100% - 82px), transparent calc(100% - 24px));
+        mask-image: linear-gradient(to bottom, black calc(100% - 82px), transparent calc(100% - 24px));
+    }
 
-        &::after {
-            position: absolute;
-            z-index: 1;
-            right: 0;
-            bottom: 0;
-            left: 0;
-            height: 40%;
-            min-height: 28px;
-            max-height: 64px;
-            background: linear-gradient(
-                to bottom,
-                rgba(var(--center-channel-bg-rgb), 0) 0%,
-                var(--center-channel-bg) 100%
-            );
-            content: '';
-            pointer-events: none;
-        }
+    .post-preview-collapse__show-more-button {
+        position: absolute;
+        bottom: 0;
+        left: 0;
     }
 }
 

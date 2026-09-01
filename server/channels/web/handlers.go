@@ -25,6 +25,15 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
 
+// tokenDigest returns a stable, non-reversible identifier for a token, usable for correlation.
+func tokenDigest(token string) string {
+	if token == "" {
+		return "<none>"
+	}
+
+	return utils.HashSha256(token)[:16]
+}
+
 func GetHandlerName(h func(*Context, http.ResponseWriter, *http.Request)) string {
 	handlerName := runtime.FuncForPC(reflect.ValueOf(h).Pointer()).Name()
 	pos := strings.LastIndex(handlerName, ".")
@@ -170,6 +179,9 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		// if there is a valid session and userID then include the user_id
 		if c.AppContext.Session() != nil && c.AppContext.Session().UserId != "" {
 			responseLogFields = append(responseLogFields, mlog.String("user_id", c.AppContext.Session().UserId))
+			if c.AppContext.Session().IsUserAccessToken() {
+				responseLogFields = append(responseLogFields, mlog.String("user_access_token_id", c.AppContext.Session().Props[model.SessionPropUserAccessTokenId]))
+			}
 		}
 
 		statusCode := strconv.Itoa(w.(*responseWriterWrapper).StatusCode())
@@ -268,15 +280,15 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		session, err := c.App.GetSession(token)
 
 		if err != nil {
-			c.Logger.Info("Invalid session", mlog.Err(err))
+			c.Logger.Info("Invalid session", mlog.String("error", strings.ReplaceAll(err.Error(), token, tokenDigest(token))))
 			if err.StatusCode == http.StatusInternalServerError {
 				c.Err = err
 			} else if h.RequireSession {
 				c.RemoveSessionCookie(w, r)
-				c.Err = model.NewAppError("ServeHTTP", "api.context.session_expired.app_error", nil, "token="+token, http.StatusUnauthorized)
+				c.Err = model.NewAppError("ServeHTTP", "api.context.session_expired.app_error", nil, "token_sha256="+tokenDigest(token), http.StatusUnauthorized)
 			}
 		} else if !session.IsOAuth && tokenLocation == app.TokenLocationQueryString {
-			c.Err = model.NewAppError("ServeHTTP", "api.context.token_provided.app_error", nil, "token="+token, http.StatusUnauthorized)
+			c.Err = model.NewAppError("ServeHTTP", "api.context.token_provided.app_error", nil, "token_sha256="+tokenDigest(token), http.StatusUnauthorized)
 		} else {
 			c.AppContext = c.AppContext.WithSession(session)
 		}
@@ -293,13 +305,13 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		if csrfChecked && !csrfPassed {
 			c.AppContext = c.AppContext.WithSession(&model.Session{})
 			c.RemoveSessionCookie(w, r)
-			c.Err = model.NewAppError("ServeHTTP", "api.context.session_expired.app_error", nil, "token="+token+" Appears to be a CSRF attempt", http.StatusUnauthorized)
+			c.Err = model.NewAppError("ServeHTTP", "api.context.session_expired.app_error", nil, "token_sha256="+tokenDigest(token)+" Appears to be a CSRF attempt", http.StatusUnauthorized)
 		}
 	} else if token != "" && c.App.Channels().License().IsCloud() && tokenLocation == app.TokenLocationCloudHeader {
 		// Check to see if this provided token matches our CWS Token
 		session, err := c.App.GetCloudSession(token)
 		if err != nil {
-			c.Logger.Warn("Invalid CWS token", mlog.Err(err))
+			c.Logger.Warn("Invalid CWS token", mlog.String("error", strings.ReplaceAll(err.Error(), token, tokenDigest(token))))
 			c.Err = err
 		} else {
 			c.AppContext = c.AppContext.WithSession(session)
@@ -313,7 +325,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			// Check the token is correct for the remote cluster id.
 			session, err := c.App.GetRemoteClusterSession(token, remoteId)
 			if err != nil {
-				c.Logger.Warn("Invalid remote cluster token", mlog.Err(err))
+				c.Logger.Warn("Invalid remote cluster token", mlog.String("error", strings.ReplaceAll(err.Error(), token, tokenDigest(token))))
 				c.Err = err
 			} else {
 				c.AppContext = c.AppContext.WithSession(session)
@@ -321,13 +333,17 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	c.Logger = c.App.Log().With(
+	loggerFields := []mlog.Field{
 		mlog.String("path", c.AppContext.Path()),
 		mlog.String("request_id", c.AppContext.RequestId()),
 		mlog.String("ip_addr", c.AppContext.IPAddress()),
 		mlog.String("user_id", c.AppContext.Session().UserId),
 		mlog.String("method", r.Method),
-	)
+	}
+	if c.AppContext.Session().IsUserAccessToken() {
+		loggerFields = append(loggerFields, mlog.String("user_access_token_id", c.AppContext.Session().Props[model.SessionPropUserAccessTokenId]))
+	}
+	c.Logger = c.App.Log().With(loggerFields...)
 	c.AppContext = c.AppContext.WithLogger(c.Logger)
 	c.App.ProcessSessionAttributesRequest(c.AppContext, r)
 
@@ -431,7 +447,7 @@ func (h Handler) handleContextError(c *Context, w http.ResponseWriter, r *http.R
 	}
 
 	// Sanitize all 5xx error messages in hardened mode
-	if *c.App.Config().ServiceSettings.ExperimentalEnableHardenedMode && c.Err.StatusCode >= 500 {
+	if *c.App.Config().ServiceSettings.EnableHardenedMode && c.Err.StatusCode >= 500 {
 		c.Err.Id = ""
 		c.Err.Message = "Internal Server Error"
 		c.Err.WipeDetailed()

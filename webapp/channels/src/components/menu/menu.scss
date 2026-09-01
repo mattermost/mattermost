@@ -20,7 +20,26 @@
     }
 }
 
+.modal-dialog.menuModal {
+    pointer-events: none;
+}
+
+.modal-dialog.menuModal .modal-content {
+    pointer-events: auto;
+}
+
 .menuModal {
+    // On mobile the menu renders inside a full-height modal dialog, so the
+    // dialog would otherwise intercept clicks in the empty area around the
+    // menu. Letting those clicks pass through to the modal container restores
+    // the standard "click outside to dismiss" behavior, while the menu itself
+    // stays interactive.
+    pointer-events: none;
+
+    & .modal-content {
+        pointer-events: auto;
+    }
+
     & .modal-header {
         display: none;
     }

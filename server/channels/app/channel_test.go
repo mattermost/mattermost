@@ -4,7 +4,6 @@
 package app
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"net/http"
@@ -2165,7 +2164,7 @@ func TestAddUserToChannel(t *testing.T) {
 		require.Nil(t, appErr)
 	}()
 	bot := th.CreateBot(t)
-	botUser, _ := th.App.GetUser(bot.UserId)
+	botUser, _ := th.App.GetUser(th.Context, bot.UserId)
 	defer func() {
 		appErr := th.App.PermanentDeleteBot(th.Context, botUser.Id)
 		require.Nil(t, appErr)
@@ -2260,7 +2259,7 @@ func TestRemoveUserFromChannel(t *testing.T) {
 	}()
 
 	bot := th.CreateBot(t)
-	botUser, _ := th.App.GetUser(bot.UserId)
+	botUser, _ := th.App.GetUser(th.Context, bot.UserId)
 	defer func() {
 		appErr := th.App.PermanentDeleteBot(th.Context, botUser.Id)
 		require.Nil(t, appErr)
@@ -3465,7 +3464,7 @@ func TestConvertGroupMessageToChannel(t *testing.T) {
 
 	mockUserStore := mocks.UserStore{}
 	mockStore.On("User").Return(&mockUserStore)
-	mockUserStore.On("Get", context.Background(), "user_id_1").Return(&model.User{Username: "username_1"}, nil)
+	mockUserStore.On("Get", mock.Anything, "user_id_1").Return(&model.User{Username: "username_1"}, nil)
 	mockUserStore.On("GetProfilesInChannel", mock.AnythingOfType("*model.UserGetOptions")).Return([]*model.User{
 		{Id: "user_id_1", Username: "user_id_1"},
 		{Id: "user_id_2", Username: "user_id_2"},

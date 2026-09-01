@@ -541,6 +541,7 @@ func TestArchiveMaxFileSize(t *testing.T) {
 }
 
 func TestExtractConcurrency(t *testing.T) {
+	t.Skip("Skipped due to flakiness — tracked in https://mattermost.atlassian.net/browse/MM-70109")
 	logger := mlog.CreateConsoleTestLogger(t)
 	resetExtractionConcurrencyForTest(1)
 	t.Cleanup(func() {

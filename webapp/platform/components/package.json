@@ -1,6 +1,6 @@
 {
   "name": "@mattermost/components",
-  "version": "11.10.0",
+  "version": "11.11.0",
   "private": true,
   "module": "dist/index.esm.js",
   "types": "dist/index.d.ts",
@@ -18,7 +18,6 @@
   },
   "devDependencies": {
     "@babel/plugin-transform-runtime": "^7.17.0",
-    "jest-environment-jsdom": "30.1.0",
     "@rollup/plugin-babel": "^5.3.1",
     "@rollup/plugin-commonjs": "^21.0.2",
     "@rollup/plugin-node-resolve": "^13.1.3",
@@ -32,6 +31,7 @@
     "@types/shallow-equals": "^1.0.0",
     "@types/styled-components": "^5.1.19",
     "babel-plugin-styled-components": "2.1.4",
+    "jest-environment-jsdom": "30.1.0",
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "rollup": "^2.75.7",
@@ -42,7 +42,7 @@
   "peerDependencies": {
     "@babel/runtime-corejs3": "^7.17.8",
     "@mattermost/compass-icons": "0.1.61",
-    "@mattermost/shared": "11.10.0",
+    "@mattermost/shared": "11.11.0",
     "classnames": "^2.3.1",
     "lodash": "^4.17.21",
     "react-intl": "*",
@@ -51,7 +51,7 @@
   },
   "dependencies": {
     "@tippyjs/react": "4.2.6",
-    "react-bootstrap": "github:mattermost/react-bootstrap#05559f4c61c5a314783c390d2d82906ee8c7e558",
+    "react-bootstrap": "github:mattermost/react-bootstrap#c17701564a6f240a14419d94369936c380f917e5",
     "styled-components": "5.3.7"
   }
 }

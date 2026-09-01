@@ -1,0 +1,127 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+// Adapted from attribute_options_rank_values.scss, minus the rank badge --
+// this editor's chips have no rank number, only a name and a "Move to
+// position" popover.
+.attribute-options-values {
+    display: flex;
+    width: 100%;
+    flex-direction: column;
+
+    .attribute-options-values__chips {
+        display: flex;
+        min-height: 40px;
+        flex-wrap: wrap;
+        align-items: center;
+        padding: 8px 10px;
+        cursor: text;
+        gap: 6px;
+
+        &:hover,
+        &:focus-within {
+            background: rgba(var(--button-bg-rgb), 0.08);
+        }
+    }
+
+    .attribute-options-values__chip {
+        display: inline-flex;
+        overflow: hidden;
+        height: 24px;
+        align-items: stretch;
+        border-radius: 12px;
+        background: rgba(var(--center-channel-color-rgb), 0.08);
+        color: var(--center-channel-color);
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .attribute-options-values__chip-name {
+        display: inline-flex;
+        align-items: center;
+        padding: 0 8px;
+        border: none;
+        background: transparent;
+        color: inherit;
+        cursor: pointer;
+        font: inherit;
+
+        &:hover {
+            background: rgba(var(--center-channel-color-rgb), 0.08);
+        }
+    }
+
+    .attribute-options-values__chip-label {
+        line-height: 16px;
+    }
+
+    .attribute-options-values__chip-remove {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 4px;
+        border: none;
+        background: transparent;
+        color: var(--center-channel-color);
+        cursor: pointer;
+
+        &:hover {
+            background: rgba(var(--center-channel-color-rgb), 0.08);
+            color: var(--center-channel-color);
+        }
+    }
+
+    .attribute-options-values__add-sizer {
+        display: inline-grid;
+        flex: 0 1 auto;
+        grid-template-columns: 0 min-content;
+
+        &::after {
+            min-width: 2px;
+            padding: 0;
+            content: attr(data-value) ' ';
+            font: inherit;
+            grid-area: 1 / 2;
+            visibility: hidden;
+            white-space: pre;
+        }
+    }
+
+    .attribute-options-values__add-input {
+        width: 100%;
+        min-width: 2px;
+        height: 24px;
+        padding: 0;
+        border: none;
+        margin: 0;
+        background: transparent;
+        color: var(--center-channel-color);
+        font: inherit;
+        grid-area: 1 / 2;
+
+        &::placeholder {
+            color: hsl(0, 0%, 50%);
+            opacity: 1;
+        }
+
+        &:focus {
+            outline: none;
+        }
+    }
+
+    .attribute-options-values__position-current {
+        margin-right: 6px;
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+    }
+
+    .attribute-options-values__danger-text {
+        margin-top: 4px;
+        color: var(--error-text);
+        font-size: 12px;
+    }
+}
+
+.attribute-options-values__popover-list.MuiList-root {
+    padding-top: 0;
+    padding-bottom: 0;
+}

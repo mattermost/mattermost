@@ -10,6 +10,7 @@ import (
 	"slices"
 	"strconv"
 	"time"
+	"unicode/utf8"
 
 	"github.com/gorilla/mux"
 
@@ -56,6 +57,20 @@ func (api *API) InitPost() {
 	api.BaseRoutes.Post.Handle("/burn", api.APISessionRequired(burnPost)).Methods(http.MethodDelete)
 }
 
+// rejectOversizedMessage sets c.Err and returns true if message is longer than the configured
+// MaxPostSize. It mirrors the check in model.Post.IsValid, but runs before any markdown processing
+// (e.g. PostWithProxyRemovedFromImageURLs) is applied to the raw message, so that oversized
+// messages are rejected before that processing pays for them.
+func rejectOversizedMessage(c *Context, where string, message string) bool {
+	maxPostSize := c.App.MaxPostSize()
+	if length := utf8.RuneCountInString(message); length > maxPostSize {
+		c.Err = model.NewAppError(where, "model.post.is_valid.message_length.app_error",
+			map[string]any{"Length": length, "MaxLength": maxPostSize}, "", http.StatusBadRequest)
+		return true
+	}
+	return false
+}
+
 func createPostChecks(where string, c *Context, post *model.Post) {
 	// ***************************************************************
 	// NOTE - if you make any change here, please make sure to apply the
@@ -65,6 +80,11 @@ func createPostChecks(where string, c *Context, post *model.Post) {
 
 	userCreatePostPermissionCheckWithContext(c, post.ChannelId)
 	if c.Err != nil {
+		return
+	}
+
+	if model.IsSystemMessagePostType(post.Type) {
+		c.SetInvalidParam("post.type")
 		return
 	}
 
@@ -113,6 +133,10 @@ func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	createPostChecks("Api4.createPost", c, &post)
 	if c.Err != nil {
+		return
+	}
+
+	if rejectOversizedMessage(c, "Api4.createPost", post.Message) {
 		return
 	}
 
@@ -307,7 +331,7 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	if since > 0 {
 		list, err = c.App.GetPostsSince(c.AppContext, model.GetPostsSinceOptions{ChannelId: channelId, Time: since, SkipFetchThreads: skipFetchThreads, CollapsedThreads: collapsedThreads, CollapsedThreadsExtended: collapsedThreadsExtended, UserId: c.AppContext.Session().UserId})
 	} else if afterPost != "" {
-		etag = c.App.GetPostsEtag(channelId, collapsedThreads)
+		etag = c.App.GetPostsEtag(channelId, c.AppContext.Session().UserId, collapsedThreads)
 
 		if c.HandleEtag(etag, "Get Posts After", w, r) {
 			return
@@ -315,7 +339,7 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		list, err = c.App.GetPostsAfterPost(c.AppContext, model.GetPostsOptions{ChannelId: channelId, PostId: afterPost, Page: page, PerPage: perPage, SkipFetchThreads: skipFetchThreads, CollapsedThreads: collapsedThreads, UserId: c.AppContext.Session().UserId, IncludeDeleted: includeDeleted})
 	} else if beforePost != "" {
-		etag = c.App.GetPostsEtag(channelId, collapsedThreads)
+		etag = c.App.GetPostsEtag(channelId, c.AppContext.Session().UserId, collapsedThreads)
 
 		if c.HandleEtag(etag, "Get Posts Before", w, r) {
 			return
@@ -323,7 +347,7 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		list, err = c.App.GetPostsBeforePost(c.AppContext, model.GetPostsOptions{ChannelId: channelId, PostId: beforePost, Page: page, PerPage: perPage, SkipFetchThreads: skipFetchThreads, CollapsedThreads: collapsedThreads, CollapsedThreadsExtended: collapsedThreadsExtended, UserId: c.AppContext.Session().UserId, IncludeDeleted: includeDeleted})
 	} else {
-		etag = c.App.GetPostsEtag(channelId, collapsedThreads)
+		etag = c.App.GetPostsEtag(channelId, c.AppContext.Session().UserId, collapsedThreads)
 
 		if c.HandleEtag(etag, "Get Posts", w, r) {
 			return
@@ -375,7 +399,7 @@ func getPostsForChannelAroundLastUnread(c *Context, w http.ResponseWriter, r *ht
 	}
 
 	userId := c.Params.UserId
-	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), userId) {
+	if !c.App.SessionHasPermissionToUser(c.AppContext, *c.AppContext.Session(), userId) {
 		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
@@ -409,7 +433,7 @@ func getPostsForChannelAroundLastUnread(c *Context, w http.ResponseWriter, r *ht
 
 	etag := ""
 	if len(postList.Order) == 0 {
-		etag = c.App.GetPostsEtag(channelId, collapsedThreads)
+		etag = c.App.GetPostsEtag(channelId, c.AppContext.Session().UserId, collapsedThreads)
 
 		if c.HandleEtag(etag, "Get Posts", w, r) {
 			return
@@ -459,7 +483,7 @@ func getFlaggedPostsForUser(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
+	if !c.App.SessionHasPermissionToUser(c.AppContext, *c.AppContext.Session(), c.Params.UserId) {
 		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
@@ -584,11 +608,12 @@ func getPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if c.HandleEtag(post.Etag(), "Get Post", w, r) {
+	postEtag := c.App.AppendABACEtag(post.Etag(), c.AppContext.Session().UserId, post.ChannelId)
+	if c.HandleEtag(postEtag, "Get Post", w, r) {
 		return
 	}
 
-	w.Header().Set(model.HeaderEtagServer, post.Etag())
+	w.Header().Set(model.HeaderEtagServer, postEtag)
 	if err := post.EncodeJSON(w); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
@@ -901,7 +926,8 @@ func getPostThread(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if c.HandleEtag(list.Etag(), "Get Post Thread", w, r) {
+	threadEtag := c.App.AppendABACEtag(list.Etag(), c.AppContext.Session().UserId, post.ChannelId)
+	if c.HandleEtag(threadEtag, "Get Post Thread", w, r) {
 		return
 	}
 
@@ -912,7 +938,7 @@ func getPostThread(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Set(model.HeaderEtagServer, clientPostList.Etag())
+	w.Header().Set(model.HeaderEtagServer, threadEtag)
 
 	if err := clientPostList.EncodeJSON(w); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
@@ -1123,6 +1149,10 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if rejectOversizedMessage(c, "Api4.updatePost", post.Message) {
+		return
+	}
+
 	if originalPost.Type == model.PostTypeCard && c.App.Config().FeatureFlags.IntegratedBoards {
 		// Cards: collaborative model — skip ownership check
 		// PermissionEditPost already checked above
@@ -1186,6 +1216,10 @@ func patchPost(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	isMember := postPatchChecks(c, auditRec, &post)
 	if c.Err != nil {
+		return
+	}
+
+	if post.Message != nil && rejectOversizedMessage(c, "Api4.patchPost", *post.Message) {
 		return
 	}
 
@@ -1274,7 +1308,7 @@ func setPostUnread(c *Context, w http.ResponseWriter, r *http.Request) {
 	props := model.MapBoolFromJSON(r.Body)
 	collapsedThreadsSupported := props["collapsed_threads_supported"]
 
-	if c.AppContext.Session().UserId != c.Params.UserId && !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
+	if c.AppContext.Session().UserId != c.Params.UserId && !c.App.SessionHasPermissionToUser(c.AppContext, *c.AppContext.Session(), c.Params.UserId) {
 		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
@@ -1299,7 +1333,7 @@ func setPostReminder(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if c.AppContext.Session().UserId != c.Params.UserId && !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
+	if c.AppContext.Session().UserId != c.Params.UserId && !c.App.SessionHasPermissionToUser(c.AppContext, *c.AppContext.Session(), c.Params.UserId) {
 		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
@@ -1409,7 +1443,7 @@ func acknowledgePost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
+	if !c.App.SessionHasPermissionToUser(c.AppContext, *c.AppContext.Session(), c.Params.UserId) {
 		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
@@ -1448,7 +1482,7 @@ func unacknowledgePost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
+	if !c.App.SessionHasPermissionToUser(c.AppContext, *c.AppContext.Session(), c.Params.UserId) {
 		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
@@ -1495,7 +1529,7 @@ func moveThread(c *Context, w http.ResponseWriter, r *http.Request) {
 	model.AddEventParameterToAuditRec(auditRec, "original_post_id", c.Params.PostId)
 	model.AddEventParameterToAuditRec(auditRec, "to_channel_id", moveThreadParams.ChannelId)
 
-	user, err := c.App.GetUser(c.AppContext.Session().UserId)
+	user, err := c.App.GetUser(c.AppContext, c.AppContext.Session().UserId)
 	if err != nil {
 		c.Err = err
 		return
@@ -1678,7 +1712,11 @@ func getPostInfo(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	hasPermissionToAccessChannel, hasJoinedChannel := c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel)
 
-	if !hasPermissionToAccessChannel && channel.Type == model.ChannelTypeOpen && !*c.App.Config().ComplianceSettings.Enable {
+	// Join metadata is independent of ComplianceSettings. Compliance still blocks
+	// reading public-channel *content* for non-members (HasPermissionToReadChannel),
+	// including permalink previews. GetPostInfo returns only channel/team identifiers
+	// so the client can join, which creates the compliance trail, then load the post.
+	if !hasPermissionToAccessChannel && channel.Type == model.ChannelTypeOpen {
 		canJoinOpenChannel := c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), channel.TeamId, model.PermissionJoinPublicChannels)
 		canJoinOpenTeam := team != nil && team.AllowOpenInvite && c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionJoinPublicTeams)
 		hasPermissionToAccessChannel = canJoinOpenChannel || canJoinOpenTeam

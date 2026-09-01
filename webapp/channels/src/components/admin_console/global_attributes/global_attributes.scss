@@ -20,8 +20,13 @@
 
     .admin-console__container {
         max-width: 1680px;
-        margin: 0 auto;
     }
+}
+
+.GlobalAttributes__actions {
+    display: flex;
+    justify-content: flex-end;
+    padding: 24px;
 }
 
 .GlobalAttributes__headerGroup {

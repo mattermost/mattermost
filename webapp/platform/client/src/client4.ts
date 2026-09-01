@@ -122,6 +122,7 @@ import type {UserPropertyField, UserPropertyFieldPatch} from '@mattermost/types/
 import type {Reaction} from '@mattermost/types/reactions';
 import type {Recap, CreateRecapRequest, ScheduledRecap, ScheduledRecapInput, RecapLimitStatus} from '@mattermost/types/recaps';
 import type {RemoteCluster, RemoteClusterAcceptInvite, RemoteClusterPatch, RemoteClusterWithPassword} from '@mattermost/types/remote_clusters';
+import type {ActionSearchRequest, ActionSearchResponse} from '@mattermost/types/render_permissions';
 import type {UserReport, UserReportFilter, UserReportOptions} from '@mattermost/types/reports';
 import type {Role} from '@mattermost/types/roles';
 import type {SamlCertificateStatus, SamlMetadataResponse} from '@mattermost/types/saml';
@@ -159,7 +160,7 @@ import type {
 import type {DeepPartial, PartialExcept, RelationOneToOne} from '@mattermost/types/utilities';
 
 import {cleanUrlForLogging} from './errors';
-import {buildQueryString} from './helpers';
+import {buildQueryString, extractFilenameFromContentDisposition} from './helpers';
 
 export enum LdapDiagnosticTestType {
     FILTERS = 'filters',
@@ -3068,7 +3069,7 @@ export default class Client4 {
 
     getClientLicenseOld = () => {
         return this.doFetch<ClientLicense>(
-            `${this.getBaseRoute()}/license/client?format=old`,
+            `${this.getBaseRoute()}/license/client`,
             {method: 'get'},
         );
     };
@@ -4883,7 +4884,7 @@ export default class Client4 {
                 const text = await response.text();
                 const objects = text.trim().split('\n');
                 data = objects.map((obj) => JSON.parse(obj));
-            } else if (contentType === 'application/zip') {
+            } else if (contentType === 'application/zip' || contentType?.startsWith('text/csv')) {
                 data = await response.blob();
             } else {
                 data = await response.text();
@@ -5120,6 +5121,17 @@ export default class Client4 {
         );
     };
 
+    searchAccessControlDecisionActions = (resourceType: string, resourceId: string, actions?: string[]) => {
+        const body: ActionSearchRequest = {resource: {type: resourceType, id: resourceId}};
+        if (actions && actions.length > 0) {
+            body.actions = actions;
+        }
+        return this.doFetch<ActionSearchResponse>(
+            `${this.getBaseRoute()}/access_control/decisions/actions/search`,
+            {method: 'post', body: JSON.stringify(body)},
+        );
+    };
+
     searchChildAccessControlPolicyChannels = (policyId: string, term: string, opts: ChannelSearchOpts, teamId?: string) => {
         const teamParam = teamId ? `?team_id=${encodeURIComponent(teamId)}` : '';
         return this.doFetch<ChannelsWithTotalCount>(
@@ -5157,7 +5169,7 @@ export default class Client4 {
     };
 
     getTeamAccessControlPolicy = (teamId: string) => {
-        return this.doFetch<{policy: AccessControlPolicy | null; enforced: boolean}>(
+        return this.doFetch<{policy: AccessControlPolicy | null; enforced: boolean; parent_policies?: AccessControlPolicy[]}>(
             `${this.getTeamRoute(teamId)}/access_control/policy`,
             {method: 'get'},
         );
@@ -5208,13 +5220,19 @@ export default class Client4 {
         return this.createJob(job);
     };
 
-    getAccessControlFields = (after: string, limit: number, channelId?: string, teamId?: string) => {
+    getAccessControlFields = (after: string, limit: number, channelId?: string, teamId?: string, includeResourceFields?: boolean) => {
         const params = new URLSearchParams({after, limit: limit.toString()});
         if (channelId) {
             params.append('channelId', channelId);
         }
         if (teamId) {
             params.append('team_id', teamId);
+        }
+
+        // Parent policies reference resource.attributes.* (channel-object-type
+        // fields) without a single channel to scope by; ask for them explicitly.
+        if (includeResourceFields) {
+            params.append('include_resource_fields', 'true');
         }
 
         return this.doFetch<UserPropertyField[]>(
@@ -5424,6 +5442,28 @@ export default class Client4 {
                 signal,
             },
         );
+    };
+
+    getPostExposureReportUrl = (postId: string) => {
+        return `${this.getContentFlaggingRoute()}/post/${postId}/exposure_report`;
+    };
+
+    generatePostExposureReport = async (postId: string, signal?: AbortSignal): Promise<{blob: Blob; filename: string}> => {
+        const {data, headers} = await this.doFetchWithResponse<Blob>(
+            this.getPostExposureReportUrl(postId),
+            {
+                method: 'post',
+                signal,
+            },
+        );
+
+        return {
+            blob: data,
+            filename: extractFilenameFromContentDisposition(
+                headers.get('Content-Disposition'),
+                `post-exposure-${postId}-${Date.now()}.csv`,
+            ),
+        };
     };
 }
 

@@ -29,6 +29,7 @@ import {editLatestPost} from 'actions/views/create_comment';
 import {useDebounce} from 'hooks/useDebounce';
 import {useLatest} from 'hooks/useLatest';
 
+import {serializeToMarkdown} from './wysiwyg_markdown';
 import WysiwygSuggestionList from './wysiwyg_suggestion_list';
 
 import './wysiwyg_editor.scss';
@@ -109,6 +110,7 @@ type Props = {
     channelId: string;
     rootId?: string;
     disabled?: boolean;
+    readOnly?: boolean;
     id?: string;
     useCtrlSend?: boolean;
     sendCodeBlockOnCtrlEnter?: boolean;
@@ -145,6 +147,7 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
     channelId,
     rootId,
     disabled = false,
+    readOnly = false,
     id,
     useCtrlSend = false,
     sendCodeBlockOnCtrlEnter = false,
@@ -164,6 +167,8 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
     const onChangeRef = useLatest(onChange);
     const onFocusRef = useLatest(onFocus);
     const onBlurRef = useLatest(onBlur);
+    const disabledRef = useLatest(disabled);
+    const readOnlyRef = useLatest(readOnly);
     const useCtrlSendRef = useLatest(useCtrlSend);
     const sendCodeBlockOnCtrlEnterRef = useLatest(sendCodeBlockOnCtrlEnter);
     const placeholderRef = useLatest(placeholderText ?? '');
@@ -175,19 +180,17 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
         onChangeRef.current(md);
     }, SERIALIZE_DEBOUNCE_MS);
 
+    const handleSuggestionSubmit = useCallback(() => {
+        onSubmitRef.current();
+    }, [onSubmitRef]);
+
     const handleUpdate = useCallback(({editor}: {editor: Editor}) => {
         if (jsonMode) {
             debouncedOnChange(JSON.stringify(editor.getJSON()));
             return;
         }
 
-        // Strip &nbsp; artifacts the @tiptap/markdown serializer leaves around
-        // empty paragraphs at doc start/end.
-        const md = editor.getMarkdown().trimEnd().
-            replace(/\n\n&nbsp;\n/g, '\n').
-            replace(/\n\n&nbsp;$/g, '').
-            replace(/^&nbsp;$/, '');
-        debouncedOnChange(md);
+        debouncedOnChange(serializeToMarkdown(editor));
     }, [debouncedOnChange, jsonMode]);
 
     const baseExtensions: Extensions = [
@@ -271,13 +274,18 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
         // Tiptap emits this from the Editor constructor, which useEditor runs
         // during render — hence the buffering in captureContentError.
         onContentError: ({error}) => captureContentError(error),
-        editable: !disabled,
+        editable: !disabled && !readOnly,
         editorProps: {
-            attributes: {
+
+            // A function, not an object: the editor is built once, so a static map
+            // would freeze these at their value on mount.
+            attributes: () => ({
                 ...(id ? {id, 'data-testid': id} : {}),
-                role: 'textbox',
-                ...(disabled ? {'aria-disabled': 'true', 'data-disabled': 'true'} : {'aria-disabled': 'false'}),
-            },
+                ...(readOnlyRef.current ? {} : {
+                    role: 'textbox',
+                    ...(disabledRef.current ? {'aria-disabled': 'true', 'data-disabled': 'true'} : {'aria-disabled': 'false'}),
+                }),
+            }),
             handlePaste: (_view, event) => {
                 if (jsonMode) {
                     return false;
@@ -387,7 +395,12 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
                     const ed = editorRef.current;
                     if (ed && !ed.isDestroyed) {
                         event.preventDefault();
-                        ed.chain().focus().splitBlock().setNode('paragraph').run();
+
+                        try {
+                            ed.chain().focus().splitBlock().setNode('paragraph').run();
+                        } catch {
+                            ed.chain().focus().splitBlock().run();
+                        }
                         return true;
                     }
                 }
@@ -475,7 +488,7 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
         getEditor: () => editorRef.current,
         insertText: (text: string) => {
             const ed = editorRef.current;
-            if (ed && !ed.isDestroyed) {
+            if (ed && !ed.isDestroyed && !readOnlyRef.current) {
                 const {state} = ed;
                 const {from} = state.selection;
                 const charBefore = from > 0 ? state.doc.textBetween(from - 1, from) : '';
@@ -521,18 +534,21 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
 
     useEffect(() => {
         if (editor && !editor.isDestroyed) {
-            editor.setEditable(!disabled);
+            editor.setEditable(!disabled && !readOnly, false);
         }
-    }, [disabled, editor]);
+    }, [disabled, readOnly, editor]);
 
     return (
-        <div className={`WysiwygEditor${disabled ? ' WysiwygEditor--disabled' : ''}`}>
+        <div className={`WysiwygEditor${disabled && !readOnly ? ' WysiwygEditor--disabled' : ''}`}>
             <EditorContent editor={editor}/>
-            <WysiwygSuggestionList
-                editor={editor}
-                channelId={channelId}
-                rootId={rootId}
-            />
+            {!readOnly && (
+                <WysiwygSuggestionList
+                    editor={editor}
+                    channelId={channelId}
+                    rootId={rootId}
+                    onSubmit={handleSuggestionSubmit}
+                />
+            )}
         </div>
     );
 });

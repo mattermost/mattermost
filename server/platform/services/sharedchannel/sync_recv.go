@@ -4,7 +4,6 @@
 package sharedchannel
 
 import (
-	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -168,9 +167,9 @@ func (scs *Service) ProcessSyncMessage(rctx request.CTX, syncMsg *model.SyncMsg,
 		if syncMsg.ChannelId != post.ChannelId {
 			scs.server.Log().LogM(mlog.MlvlSharedChannelServiceWarn, "ChannelId mismatch",
 				mlog.String("remote", rc.Name),
-				mlog.String("sm.ChannelId", syncMsg.ChannelId),
-				mlog.String("sm.Post.ChannelId", post.ChannelId),
-				mlog.String("PostId", post.Id),
+				mlog.String("sm_channel_id", syncMsg.ChannelId),
+				mlog.String("sm_post_channel_id", post.ChannelId),
+				mlog.String("post_id", post.Id),
 			)
 			syncResp.PostErrors = append(syncResp.PostErrors, post.Id)
 			continue
@@ -181,8 +180,8 @@ func (scs *Service) ProcessSyncMessage(rctx request.CTX, syncMsg *model.SyncMsg,
 			team, err2 = scs.server.GetStore().Channel().GetTeamForChannel(syncMsg.ChannelId)
 			if err2 != nil {
 				scs.server.Log().LogM(mlog.MlvlSharedChannelServiceError, "Error getting Team for Channel",
-					mlog.String("ChannelId", post.ChannelId),
-					mlog.String("PostId", post.Id),
+					mlog.String("channel_id", post.ChannelId),
+					mlog.String("post_id", post.Id),
 					mlog.String("remote", rc.Name),
 					mlog.Err(err2),
 				)
@@ -302,7 +301,7 @@ func (scs *Service) upsertSyncUser(rctx request.CTX, user *model.User, channel *
 	var err error
 
 	// Check if user already exists
-	euser, err := scs.server.GetStore().User().Get(context.Background(), user.Id)
+	euser, err := scs.server.GetStore().User().Get(rctx, user.Id)
 	if err != nil {
 		if _, ok := err.(errNotFound); !ok {
 			return nil, fmt.Errorf("error checking sync user: %w", err)
@@ -362,7 +361,7 @@ func (scs *Service) upsertSyncUser(rctx request.CTX, user *model.User, channel *
 	// added and exit quickly.  Not needed for DMs where teamId is empty.
 	if channel != nil && channel.TeamId != "" {
 		// add user to team
-		if err := scs.app.AddUserToTeamByTeamId(request.EmptyContext(scs.server.Log()), channel.TeamId, userSaved); err != nil {
+		if err := scs.app.AddUserToTeamByTeamId(rctx, channel.TeamId, userSaved); err != nil {
 			return nil, fmt.Errorf("error adding sync user to Team: %w", err)
 		}
 		// add user to channel
@@ -497,7 +496,7 @@ func (scs *Service) upsertSyncPost(post *model.Post, targetChannel *model.Channe
 	if rpost == nil {
 		// post doesn't exist; check that user belongs to remote and create post.
 		// user is not checked for edit/delete because admins can perform those actions
-		user, err := scs.server.GetStore().User().Get(context.TODO(), post.UserId)
+		user, err := scs.server.GetStore().User().Get(rctx, post.UserId)
 		if err != nil {
 			return nil, fmt.Errorf("error fetching user for post sync: %w", err)
 		}
@@ -713,7 +712,7 @@ func (scs *Service) upsertSyncReaction(reaction *model.Reaction, targetChannel *
 	if existingReaction == nil {
 		// reaction does not exist; check that user belongs to remote and create reaction
 		// this is not done for delete since deletion can be done by admins on the remote
-		user, err := scs.server.GetStore().User().Get(context.TODO(), reaction.UserId)
+		user, err := scs.server.GetStore().User().Get(rctx, reaction.UserId)
 		if err != nil {
 			return nil, fmt.Errorf("error fetching user for reaction sync: %w", err)
 		}
@@ -760,7 +759,7 @@ func (scs *Service) upsertSyncAcknowledgement(acknowledgement *model.PostAcknowl
 	if existingAcknowledgement == nil {
 		// acknowledgement does not exist; check that user belongs to remote and create acknowledgement
 		// this is not done for delete since deletion can be done by admins on the remote
-		user, err := scs.server.GetStore().User().Get(context.TODO(), acknowledgement.UserId)
+		user, err := scs.server.GetStore().User().Get(rctx, acknowledgement.UserId)
 		if err != nil {
 			return nil, fmt.Errorf("error fetching user for acknowledgement sync: %w", err)
 		}
@@ -789,7 +788,7 @@ func (scs *Service) upsertSyncAcknowledgement(acknowledgement *model.PostAcknowl
 }
 
 func (scs *Service) upsertSyncUserStatus(rctx request.CTX, status *model.Status, rc *model.RemoteCluster) error {
-	user, err := scs.server.GetStore().User().Get(rctx.Context(), status.UserId)
+	user, err := scs.server.GetStore().User().Get(rctx, status.UserId)
 	if err != nil {
 		return fmt.Errorf("error getting user when syncing status: %w", err)
 	}
@@ -820,7 +819,7 @@ func (scs *Service) transformMentionsOnReceive(rctx request.CTX, post *model.Pos
 		var newMention string
 
 		// Get the user to determine transformation type
-		if user, err := scs.server.GetStore().User().Get(context.Background(), userID); err == nil && user != nil {
+		if user, err := scs.server.GetStore().User().Get(rctx, userID); err == nil && user != nil {
 			// User exists in receiver's database
 			if strings.Contains(mention, ":") {
 				// Colon mention (e.g., "@admin:remote1") - always use the user's actual username

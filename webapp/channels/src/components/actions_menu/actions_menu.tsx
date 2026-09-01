@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import {createPortal} from 'react-dom';
 import type {IntlShape} from 'react-intl';
 import {injectIntl} from 'react-intl';
 
@@ -39,6 +40,7 @@ export type Props = {
     handleDropdownOpened: (open: boolean) => void;
     intl: IntlShape;
     isMenuOpen: boolean;
+    isMobileView: boolean;
     isSysAdmin: boolean;
     location?: 'CENTER' | 'RHS_ROOT' | 'RHS_COMMENT' | 'SEARCH' | string;
     pluginMenuItems?: PostDropdownMenuAction[];
@@ -93,6 +95,7 @@ export class ActionMenuClass extends React.PureComponent<Props, State> {
         pluginMenuItems: [],
     };
     private buttonElement: HTMLButtonElement | null = null;
+    private menuPortalRef = React.createRef<HTMLDivElement>();
 
     constructor(props: Props) {
         super(props);
@@ -341,10 +344,27 @@ export class ActionMenuClass extends React.PureComponent<Props, State> {
                 marketPlace,
             ];
 
+            const menu = (
+                <Menu
+                    listId={popupId}
+                    openLeft={true}
+                    openUp={this.state.openUp}
+                    ariaLabel={formatMessage({id: 'post_info.menuAriaLabel', defaultMessage: 'Post extra options'})}
+                >
+                    {menuItems}
+                </Menu>
+            );
+
+            // In mobile view the menu renders as a full-screen fixed overlay. Posts live inside the
+            // virtualized post list, whose `will-change: transform` makes it the containing block for
+            // fixed descendants, so the overlay would anchor to the scrolled content instead of the
+            // viewport. Portaling to the body escapes that containing block, and we hand the portal
+            // node to MenuWrapper so its blur handling still treats the menu as inside itself.
             return (
                 <MenuWrapper
                     open={this.props.isMenuOpen}
                     onToggle={this.handleDropdownOpened}
+                    portalNodeRef={this.menuPortalRef}
                 >
                     <ActionsMenuButton
                         ref={this.buttonRef}
@@ -352,14 +372,15 @@ export class ActionMenuClass extends React.PureComponent<Props, State> {
                         popupId={popupId}
                         isMenuOpen={this.props.isMenuOpen}
                     />
-                    <Menu
-                        listId={popupId}
-                        openLeft={true}
-                        openUp={this.state.openUp}
-                        ariaLabel={formatMessage({id: 'post_info.menuAriaLabel', defaultMessage: 'Post extra options'})}
-                    >
-                        {menuItems}
-                    </Menu>
+                    {this.props.isMobileView ? createPortal(
+                        <div
+                            className='post-actions-menu-mobile'
+                            ref={this.menuPortalRef}
+                        >
+                            {menu}
+                        </div>,
+                        document.body,
+                    ) : menu}
                 </MenuWrapper>
             );
         } else if (this.props.isSysAdmin) {

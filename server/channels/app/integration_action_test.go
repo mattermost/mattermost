@@ -2531,7 +2531,7 @@ func buildMmBlocksActionsProp(id, url string, context map[string]any) map[string
 func setupBotInChannel(t *testing.T, th *TestHelper) *model.User {
 	t.Helper()
 	bot := th.CreateBot(t)
-	botUser, appErr := th.App.GetUser(bot.UserId)
+	botUser, appErr := th.App.GetUser(th.Context, bot.UserId)
 	require.Nil(t, appErr)
 	_, _, appErr = th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, botUser.Id, "")
 	require.Nil(t, appErr)

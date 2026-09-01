@@ -166,12 +166,15 @@ func parseListMarker(markdown string, r Range) (success, isOrdered bool, ordered
 	return true, false, 0, next, 1, Range{r.Position + 1, r.End}
 }
 
-func listStart(markdown string, indent int, r Range, matchedBlocks, unmatchedBlocks []Block) []Block {
+func listStart(markdown string, indent int, r Range, matchedBlocks, unmatchedBlocks []Block, depth int) []Block {
 	afterList := false
 	if len(matchedBlocks) > 0 {
 		_, afterList = matchedBlocks[len(matchedBlocks)-1].(*List)
 	}
 	if !afterList && indent > 3 {
+		return nil
+	}
+	if depth >= maxNestingDepth {
 		return nil
 	}
 
@@ -212,7 +215,7 @@ func listStart(markdown string, indent int, r Range, matchedBlocks, unmatchedBlo
 		Children:          []*ListItem{listItem},
 	}
 	ret := []Block{list, listItem}
-	if descendants := blockStartOrParagraph(markdown, indentAfterMarker-consumedIndentAfterMarker, remaining, nil, nil); descendants != nil {
+	if descendants := blockStartOrParagraph(markdown, indentAfterMarker-consumedIndentAfterMarker, remaining, nil, nil, depth+1); descendants != nil {
 		listItem.Children = append(listItem.Children, descendants[0])
 		ret = append(ret, descendants...)
 	}

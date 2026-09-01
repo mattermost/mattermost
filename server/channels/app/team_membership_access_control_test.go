@@ -22,6 +22,7 @@ func TestHydrateTeamPolicyActions(t *testing.T) {
 		thMock := SetupWithStoreMock(t)
 		mockStore := thMock.App.Srv().Store().(*storemocks.Store)
 		mockACPStore := storemocks.AccessControlPolicyStore{}
+		stubACPEtagInvalidation(&mockACPStore)
 		mockStore.On("AccessControlPolicy").Return(&mockACPStore).Maybe()
 
 		team := &model.Team{Id: model.NewId(), PolicyEnforced: false}
@@ -41,6 +42,7 @@ func TestHydrateTeamPolicyActions(t *testing.T) {
 		thMock := SetupWithStoreMock(t)
 		mockStore := thMock.App.Srv().Store().(*storemocks.Store)
 		mockACPStore := storemocks.AccessControlPolicyStore{}
+		stubACPEtagInvalidation(&mockACPStore)
 		mockStore.On("AccessControlPolicy").Return(&mockACPStore)
 
 		teamID := model.NewId()
@@ -58,6 +60,7 @@ func TestHydrateTeamPolicyActions(t *testing.T) {
 		thMock := SetupWithStoreMock(t)
 		mockStore := thMock.App.Srv().Store().(*storemocks.Store)
 		mockACPStore := storemocks.AccessControlPolicyStore{}
+		stubACPEtagInvalidation(&mockACPStore)
 		mockStore.On("AccessControlPolicy").Return(&mockACPStore)
 
 		teamID := model.NewId()
@@ -74,6 +77,7 @@ func TestHydrateTeamPolicyActions(t *testing.T) {
 		thMock := SetupWithStoreMock(t)
 		mockStore := thMock.App.Srv().Store().(*storemocks.Store)
 		mockACPStore := storemocks.AccessControlPolicyStore{}
+		stubACPEtagInvalidation(&mockACPStore)
 		mockStore.On("AccessControlPolicy").Return(&mockACPStore)
 
 		teamID := model.NewId()
@@ -91,6 +95,7 @@ func TestHydrateTeamPolicyActions(t *testing.T) {
 		thMock := SetupWithStoreMock(t)
 		mockStore := thMock.App.Srv().Store().(*storemocks.Store)
 		mockACPStore := storemocks.AccessControlPolicyStore{}
+		stubACPEtagInvalidation(&mockACPStore)
 		mockStore.On("AccessControlPolicy").Return(&mockACPStore)
 
 		teamID := model.NewId()
@@ -110,6 +115,7 @@ func TestHydrateTeamsPolicyActions(t *testing.T) {
 		thMock := SetupWithStoreMock(t)
 		mockStore := thMock.App.Srv().Store().(*storemocks.Store)
 		mockACPStore := storemocks.AccessControlPolicyStore{}
+		stubACPEtagInvalidation(&mockACPStore)
 		mockStore.On("AccessControlPolicy").Return(&mockACPStore).Maybe()
 
 		appErr := thMock.App.HydrateTeamsPolicyActions(thMock.Context, nil)
@@ -123,6 +129,7 @@ func TestHydrateTeamsPolicyActions(t *testing.T) {
 		thMock := SetupWithStoreMock(t)
 		mockStore := thMock.App.Srv().Store().(*storemocks.Store)
 		mockACPStore := storemocks.AccessControlPolicyStore{}
+		stubACPEtagInvalidation(&mockACPStore)
 		mockStore.On("AccessControlPolicy").Return(&mockACPStore).Maybe()
 
 		teams := []*model.Team{
@@ -141,6 +148,7 @@ func TestHydrateTeamsPolicyActions(t *testing.T) {
 		thMock := SetupWithStoreMock(t)
 		mockStore := thMock.App.Srv().Store().(*storemocks.Store)
 		mockACPStore := storemocks.AccessControlPolicyStore{}
+		stubACPEtagInvalidation(&mockACPStore)
 		mockStore.On("AccessControlPolicy").Return(&mockACPStore)
 
 		enforced1 := model.NewId()
@@ -180,6 +188,7 @@ func TestHydrateTeamsPolicyActions(t *testing.T) {
 		thMock := SetupWithStoreMock(t)
 		mockStore := thMock.App.Srv().Store().(*storemocks.Store)
 		mockACPStore := storemocks.AccessControlPolicyStore{}
+		stubACPEtagInvalidation(&mockACPStore)
 		mockStore.On("AccessControlPolicy").Return(&mockACPStore)
 
 		enforced := model.NewId()
@@ -197,6 +206,7 @@ func TestHydrateTeamsPolicyActions(t *testing.T) {
 		thMock := SetupWithStoreMock(t)
 		mockStore := thMock.App.Srv().Store().(*storemocks.Store)
 		mockACPStore := storemocks.AccessControlPolicyStore{}
+		stubACPEtagInvalidation(&mockACPStore)
 		mockStore.On("AccessControlPolicy").Return(&mockACPStore)
 
 		teams := []*model.Team{{Id: model.NewId(), PolicyEnforced: true}}
@@ -323,18 +333,12 @@ func TestTeamAccessControlled(t *testing.T) {
 	})
 }
 
-// TestTeamAccessControlledFeatureFlagOff exercises the kill switch. The
-// FeatureFlags section is read-only at runtime, so the off state is the
-// default (no SetupConfig override) — license and config are on, yet an
-// assigned membership policy must not engage the gate.
+// TestTeamAccessControlledFeatureFlagOff exercises the kill switch: with the
+// flag explicitly off — license and config on, and a membership policy
+// assigned — the gate must not engage. The flag is set at construction because
+// the config store treats the FeatureFlags section as read-only at runtime.
 func TestTeamAccessControlledFeatureFlagOff(t *testing.T) {
-	th := Setup(t).InitBasic(t)
-	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.AccessControlSettings.EnableAttributeBasedAccessControl = true
-	})
-	ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
-	require.True(t, ok)
-	defer th.App.Srv().SetLicense(nil)
+	th := setupTeamABACPrereqsFlagOff(t)
 
 	team := th.CreateTeam(t)
 	saveTestTeamPolicy(t, th, team.Id, model.AccessControlPolicyActionMembership)
