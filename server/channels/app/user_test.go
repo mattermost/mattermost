@@ -3431,6 +3431,53 @@ func TestDemoteUserToGuestWhileSpaceAdmin(t *testing.T) {
 	assert.True(t, has)
 }
 
+// A space's creator holds admin_space through the SchemeAdmin flag alone, with no capability role in
+// ExplicitRoles. The sibling cases all seed a capability role too, so this one covers the
+// SchemeAdmin-only membership: converting it to a guest must remove admin_space and leave only
+// read_page.
+//
+// The scheme flags are cleared by the store-level demotion for every one of the user's channel
+// members, so these assertions hold whether or not revokeSpaceAuthorityFromMember runs. This case
+// checks the permissions a former space admin is left with, not the revocation path itself.
+func TestDemoteUserToGuestWhileSpaceAdminWithoutCapabilityRole(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	require.NoError(t, th.App.SetPhase2PermissionsMigrationStatus(true))
+
+	user := th.CreateUser(t)
+	th.LinkUserToTeam(t, user, th.BasicTeam)
+	contribute := getSeededSpaceScheme(t, th, model.SchemeNameSpaceContribute)
+	space := saveSpaceChannelWithScheme(t, th, contribute.Id)
+	_, err := th.App.Srv().Store().Channel().SaveMember(th.Context, &model.ChannelMember{
+		ChannelId:   space.Id,
+		UserId:      user.Id,
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+		SchemeUser:  true,
+		SchemeAdmin: true,
+	})
+	require.NoError(t, err)
+	th.App.Srv().Store().Channel().InvalidateAllChannelMembersForUser(user.Id)
+
+	member, appErr := th.App.GetChannelMember(th.Context, space.Id, user.Id)
+	require.Nil(t, appErr)
+	require.Empty(t, member.ExplicitRoles, "the fixture must carry no capability role")
+	has, _ := th.App.HasPermissionToChannel(th.Context, user.Id, space.Id, model.PermissionAdminSpace)
+	require.True(t, has)
+
+	require.Nil(t, th.App.DemoteUserToGuest(th.Context, user))
+
+	member, appErr = th.App.GetChannelMember(th.Context, space.Id, user.Id)
+	require.Nil(t, appErr)
+	assert.False(t, member.SchemeAdmin)
+	assert.False(t, member.SchemeUser)
+	assert.True(t, member.SchemeGuest)
+
+	has, _ = th.App.HasPermissionToChannel(th.Context, user.Id, space.Id, model.PermissionAdminSpace)
+	assert.False(t, has)
+	has, _ = th.App.HasPermissionToChannel(th.Context, user.Id, space.Id, model.PermissionReadPage)
+	assert.True(t, has)
+}
+
 // The revocation walks every team the user belongs to and every space membership
 // within each team, so a user holding capability roles on several spaces — two in
 // one team and one in another — loses all of them, not only the first membership
