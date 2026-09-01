@@ -5,7 +5,7 @@ import {useEffect, useMemo} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
 import type {ChannelBanner} from '@mattermost/types/channels';
-import type {PropertyField, PropertyValue} from '@mattermost/types/properties';
+import type {PropertyField, PropertyFieldOption, PropertyValue} from '@mattermost/types/properties';
 import type {GlobalState} from '@mattermost/types/store';
 
 import {PropertyTypes} from 'mattermost-redux/action_types';
@@ -21,7 +21,6 @@ import {
 } from 'mattermost-redux/constants/properties';
 import {getChannelBanner} from 'mattermost-redux/selectors/entities/channels';
 import {getFeatureFlagValue, getLicense} from 'mattermost-redux/selectors/entities/general';
-import type {ResolvedChannelAttribute} from 'mattermost-redux/selectors/entities/properties';
 import {getChannelAttributeFields, getChannelBannerFields, getPropertyValueForTargetField, makeGetResolvedChannelAttributes} from 'mattermost-redux/selectors/entities/properties';
 
 import {CLASSIFICATIONS_CHANNEL_FIELD_NAME, CLASSIFICATIONS_CHANNEL_OBJECT_TYPE} from 'components/admin_console/classification_markings/utils';
@@ -181,27 +180,25 @@ export default function useChannelClassificationBanner(channelId: string): Chann
             position,
         };
 
-        // Designated path: every banner attribute that has a value, in field order.
-        // Composed plain, because the same values render plain once the channel
-        // authors a template out of the chips in Channel Settings.
-        if (designatedFields.length > 0) {
-            // Classification is special: its selected level carries a colour that must
-            // drive and lock the banner colour regardless of how many other attributes
-            // share the banner.
-            const classificationField = designatedFields.find((f) => f.name === CLASSIFICATIONS_CHANNEL_FIELD_NAME);
-            const classificationIsBannerDesignated = Boolean(classificationField);
+        // Designated path: the single banner attribute with the lowest sort_order
+        // drives text and colour. A second designated attribute only wins the slot
+        // when the admin reorders it ahead of the first — it does not get appended.
+        if (designated) {
+            const classificationIsBannerDesignated = designated.name === CLASSIFICATIONS_CHANNEL_FIELD_NAME;
 
-            const byId = new Map(resolvedAttributes.map((attribute) => [attribute.field.id, attribute]));
-            const parts = designatedFields.
-                map((field) => byId.get(field.id)).
-                filter((attribute) => Boolean(attribute?.displayValue)) as ResolvedChannelAttribute[];
-
-            if (parts.length === 0) {
+            if (!propertyValue || typeof propertyValue.value !== 'string') {
                 return {...noBanner, classificationIsBannerDesignated};
             }
 
-            const composed = parts.map((attribute) => attribute.displayValue).join(' · ');
-            const bannerText = channelBannerInfo?.text ? renderBannerTemplate(channelBannerInfo.text, resolvedAttributes) : composed;
+            // A select option that no longer exists (deleted after being chosen) has to
+            // suppress the banner rather than surface the raw stored id.
+            const options = (designated.attrs?.options as PropertyFieldOption[] | undefined) ?? [];
+            const option = options.find((candidate) => candidate.id === propertyValue.value);
+            if (!option) {
+                return {...noBanner, classificationIsBannerDesignated};
+            }
+
+            const bannerText = channelBannerInfo?.text ? renderBannerTemplate(channelBannerInfo.text, resolvedAttributes) : `**${option.name}**`;
 
             if (!bannerText) {
                 return {...noBanner, classificationIsBannerDesignated};
@@ -210,22 +207,16 @@ export default function useChannelClassificationBanner(channelId: string): Chann
             // Classification colour wins unconditionally: it is locked at the UI level
             // so authored background_color is never written when classification is
             // designated. For all other cases the authored colour takes priority.
-            const classificationPart = classificationField ? parts.find((p) => p.field.id === classificationField.id) : undefined;
-            const classificationOptionColor = classificationPart?.option?.color;
-
-            const optionColor = classificationOptionColor ?? (parts.length === 1 ? parts[0].option?.color : undefined);
             const authoredColor = classificationIsBannerDesignated ? undefined : channelBannerInfo?.background_color;
-
-            const single = parts.length === 1 ? parts[0].value?.value : undefined;
 
             return {
                 hasClassification: true,
                 classificationBanner: {
                     enabled: true,
                     text: bannerText,
-                    background_color: authoredColor || optionColor || DEFAULT_BANNER_COLOR,
+                    background_color: authoredColor || option.color || DEFAULT_BANNER_COLOR,
                 },
-                classificationId: typeof single === 'string' ? single : undefined,
+                classificationId: propertyValue.value,
                 classificationIsBannerDesignated,
                 bannerText,
                 position,

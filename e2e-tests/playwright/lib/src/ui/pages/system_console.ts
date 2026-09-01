@@ -54,7 +54,6 @@ export default class SystemConsolePage {
     readonly systemProperties: SystemProperties;
     readonly sessionAttributes: SessionAttributes;
     readonly boardAttributes: BoardAttributes;
-    readonly globalAttributes: GlobalAttributes;
 
     // Feature Discovery (license-gated features)
     readonly featureDiscovery: FeatureDiscovery;
@@ -96,7 +95,6 @@ export default class SystemConsolePage {
         this.systemProperties = new SystemProperties(adminConsoleWrapper);
         this.sessionAttributes = new SessionAttributes(adminConsoleWrapper);
         this.boardAttributes = new BoardAttributes(adminConsoleWrapper);
-        this.globalAttributes = new GlobalAttributes(adminConsoleWrapper);
 
         // Feature Discovery
         this.featureDiscovery = new FeatureDiscovery(adminConsoleWrapper);

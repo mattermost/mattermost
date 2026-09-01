@@ -74,7 +74,7 @@ function attribute(name: string, displayValue: string, displayName?: string): Re
         updated_by: '',
     } as PropertyField;
 
-    return {field, displayValue};
+    return {field, displayValue, displayValues: [displayValue]};
 }
 
 const ATTRIBUTES = [

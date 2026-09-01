@@ -29,7 +29,7 @@ function attribute(name: string, displayValue: string): ResolvedChannelAttribute
         updated_by: '',
     } as PropertyField;
 
-    return {field, displayValue};
+    return {field, displayValue, displayValues: [displayValue]};
 }
 
 describe('BannerPreview', () => {

@@ -74,6 +74,7 @@ beforeEach(() => {
         classificationBanner: undefined,
         classificationId: undefined,
         bannerText: undefined,
+                classificationIsBannerDesignated: false,
     });
 });
 
@@ -1113,6 +1114,7 @@ describe('ChannelSettingsConfigurationTab', () => {
                 } : undefined,
                 classificationId: initialBanner.classificationId,
                 bannerText: initialBanner.bannerText,
+                classificationIsBannerDesignated: false,
             });
         }
 
@@ -1382,6 +1384,7 @@ describe('ChannelSettingsConfigurationTab', () => {
                 classificationBanner: undefined,
                 classificationId: undefined,
                 bannerText: undefined,
+                classificationIsBannerDesignated: false,
             });
             rerender(
                 <ChannelSettingsConfigurationTab

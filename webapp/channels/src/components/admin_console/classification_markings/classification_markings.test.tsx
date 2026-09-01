@@ -108,7 +108,7 @@ function makeChannelLinkedField(overrides: Partial<PropertyField> = {}): Propert
 function makeUserLinkedField(overrides: Partial<PropertyField> = {}): PropertyField {
     return {
         id: 'clearance_field1',
-        group_id: CLASSIFICATIONS_GROUP_NAME,
+        group_id: ACCESS_CONTROL_PROPERTY_GROUP,
         name: CLEARANCE_FIELD_NAME,
         type: 'rank',
         attrs: {},
@@ -1386,7 +1386,7 @@ describe('Channel classification linked field branches', () => {
 
         await waitFor(() => {
             expect(createSpy).toHaveBeenCalledWith(
-                CLASSIFICATIONS_GROUP_NAME,
+                ACCESS_CONTROL_PROPERTY_GROUP,
                 CLASSIFICATIONS_USER_OBJECT_TYPE,
                 expect.objectContaining({
                     name: CLEARANCE_FIELD_NAME,
@@ -1445,12 +1445,12 @@ describe('Channel classification linked field branches', () => {
 
         await waitFor(() => {
             expect(deleteSpy).toHaveBeenCalledWith(
-                CLASSIFICATIONS_GROUP_NAME,
+                ACCESS_CONTROL_PROPERTY_GROUP,
                 CLASSIFICATIONS_USER_OBJECT_TYPE,
                 clearance.id,
             );
             expect(deleteSpy).toHaveBeenCalledWith(
-                CLASSIFICATIONS_GROUP_NAME,
+                ACCESS_CONTROL_PROPERTY_GROUP,
                 CLASSIFICATIONS_USER_OBJECT_TYPE,
                 extraClearance.id,
             );

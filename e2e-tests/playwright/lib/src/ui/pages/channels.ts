@@ -5,7 +5,6 @@ import type {Page} from '@playwright/test';
 import {expect} from '@playwright/test';
 import {waitUntil} from 'async-wait-until';
 
-import {ChannelInfoPanel} from '@/ui/components/channels/channel_attributes';
 import type {
     ChannelNotificationPreferencesModal,
     ChannelsPost,
@@ -501,12 +500,5 @@ export default class ChannelsPage {
 
     async getFlaggedPostViewDetailButton(flaggedPostId: string) {
         return this.page.getByTestId(`data-spillage-action-view-details_${flaggedPostId}`);
-    }
-
-    async openChannelInfo(): Promise<ChannelInfoPanel> {
-        await this.page.locator('#channel-info-btn').click();
-        const panel = new ChannelInfoPanel(this.page.locator('#rhsContainer'));
-        await panel.toBeVisible();
-        return panel;
     }
 }

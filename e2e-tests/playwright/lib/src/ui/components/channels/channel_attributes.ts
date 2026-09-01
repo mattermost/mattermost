@@ -148,20 +148,3 @@ export class ChannelInfoAttributes {
         }
     }
 }
-
-/**
- * The Channel Info right-hand-side panel.
- */
-export class ChannelInfoPanel {
-    readonly container: Locator;
-    readonly attributes: ChannelInfoAttributes;
-
-    constructor(container: Locator) {
-        this.container = container;
-        this.attributes = new ChannelInfoAttributes(container.getByTestId('channelInfoAttributes'));
-    }
-
-    async toBeVisible() {
-        await expect(this.container).toBeVisible();
-    }
-}
