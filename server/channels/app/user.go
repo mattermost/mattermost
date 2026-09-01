@@ -444,24 +444,25 @@ func (a *App) createUserOrGuest(rctx request.CTX, user *model.User, guest bool) 
 	return ruser, nil
 }
 
-func (a *App) CreateOAuthUser(rctx request.CTX, service string, userData io.Reader, inviteToken string, inviteId string, tokenUser *model.User) (*model.User, *model.AppError) {
+// CreateOAuthUser creates a user from OAuth/OIDC identity data.
+func (a *App) CreateOAuthUser(rctx request.CTX, service string, userData io.Reader, inviteToken string, inviteId string, tokenUser *model.User) (user *model.User, userWasCreated bool, err *model.AppError) {
 	if !*a.Config().TeamSettings.EnableUserCreation {
-		return nil, model.NewAppError("CreateOAuthUser", "api.user.create_user.disabled.app_error", nil, "", http.StatusNotImplemented)
+		return nil, false, model.NewAppError("CreateOAuthUser", "api.user.create_user.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
 	provider, e := a.getSSOProvider(service)
 	if e != nil {
-		return nil, e
+		return nil, false, e
 	}
 
-	settings, err := provider.GetSSOSettings(rctx, a.Config(), service)
-	if err != nil {
-		return nil, model.NewAppError("CreateOAuthUser", "api.user.oauth.get_settings.app_error", map[string]any{"Service": service}, "", http.StatusInternalServerError).Wrap(err)
+	settings, getErr := provider.GetSSOSettings(rctx, a.Config(), service)
+	if getErr != nil {
+		return nil, false, model.NewAppError("CreateOAuthUser", "api.user.oauth.get_settings.app_error", map[string]any{"Service": service}, "", http.StatusInternalServerError).Wrap(getErr)
 	}
 
-	user, err := provider.GetUserFromJSON(rctx, userData, tokenUser, settings)
-	if err != nil {
-		return nil, model.NewAppError("CreateOAuthUser", "api.user.create_oauth_user.create.app_error", map[string]any{"Service": service}, "", http.StatusInternalServerError).Wrap(err)
+	user, getErr = provider.GetUserFromJSON(rctx, userData, tokenUser, settings)
+	if getErr != nil {
+		return nil, false, model.NewAppError("CreateOAuthUser", "api.user.create_oauth_user.create.app_error", map[string]any{"Service": service}, "", http.StatusInternalServerError).Wrap(getErr)
 	}
 	if user.AuthService == "" {
 		user.AuthService = service
@@ -478,36 +479,36 @@ func (a *App) CreateOAuthUser(rctx request.CTX, service string, userData io.Read
 
 	userByAuth, _ := a.ch.srv.userService.GetUserByAuth(user.AuthData, service)
 	if userByAuth != nil {
-		return userByAuth, nil
+		return userByAuth, false, nil
 	}
 
 	userByEmail, _ := a.ch.srv.userService.GetUserByEmail(user.Email)
 	if userByEmail != nil {
 		if userByEmail.AuthService == "" {
-			return nil, model.NewAppError("CreateOAuthUser", "api.user.create_oauth_user.already_attached.app_error", map[string]any{"Service": service, "Auth": model.UserAuthServiceEmail}, "email="+user.Email, http.StatusBadRequest)
+			return nil, false, model.NewAppError("CreateOAuthUser", "api.user.create_oauth_user.already_attached.app_error", map[string]any{"Service": service, "Auth": model.UserAuthServiceEmail}, "email="+user.Email, http.StatusBadRequest)
 		}
 		if provider.IsSameUser(rctx, userByEmail, user) {
-			if _, err = a.Srv().Store().User().UpdateAuthData(userByEmail.Id, user.AuthService, user.AuthData, "", false); err != nil {
+			if _, updateErr := a.Srv().Store().User().UpdateAuthData(userByEmail.Id, user.AuthService, user.AuthData, "", false); updateErr != nil {
 				// if the user is not updated, write a warning to the log, but don't prevent user login
-				rctx.Logger().Warn("Error attempting to update user AuthData", mlog.Err(err))
+				rctx.Logger().Warn("Error attempting to update user AuthData", mlog.Err(updateErr))
 			}
-			return userByEmail, nil
+			return userByEmail, false, nil
 		}
-		return nil, model.NewAppError("CreateOAuthUser", "api.user.create_oauth_user.already_attached.app_error", map[string]any{"Service": service, "Auth": userByEmail.AuthService}, "email="+user.Email+" authData="+*user.AuthData, http.StatusBadRequest)
+		return nil, false, model.NewAppError("CreateOAuthUser", "api.user.create_oauth_user.already_attached.app_error", map[string]any{"Service": service, "Auth": userByEmail.AuthService}, "email="+user.Email+" authData="+*user.AuthData, http.StatusBadRequest)
 	}
 
 	user.EmailVerified = true
 
 	ruser, appErr := a.CreateUser(rctx, user)
 	if appErr != nil {
-		return nil, appErr
+		return nil, false, appErr
 	}
 
 	if appErr = a.AddUserToTeamByInviteIfNeeded(rctx, ruser, inviteToken, inviteId); appErr != nil {
 		rctx.Logger().Warn("Failed to add user to team", mlog.Err(appErr))
 	}
 
-	return ruser, nil
+	return ruser, true, nil
 }
 
 func (a *App) AddUserToTeamByInviteIfNeeded(rctx request.CTX, user *model.User, inviteToken string, inviteId string) *model.AppError {
