@@ -114,7 +114,10 @@ export class ChannelInfoAttributes {
             await input.press('Escape');
             await expect(input).not.toBeVisible();
         } else {
-            await this.container.page().locator('body').click({position: {x: 0, y: 0}});
+            await this.container
+                .page()
+                .locator('body')
+                .click({position: {x: 0, y: 0}});
         }
     }
 
@@ -143,5 +146,22 @@ export class ChannelInfoAttributes {
             await this.editor(name).click();
             await this.container.page().getByText(option, {exact: true}).click();
         }
+    }
+}
+
+/**
+ * The Channel Info right-hand-side panel.
+ */
+export class ChannelInfoPanel {
+    readonly container: Locator;
+    readonly attributes: ChannelInfoAttributes;
+
+    constructor(container: Locator) {
+        this.container = container;
+        this.attributes = new ChannelInfoAttributes(container.getByTestId('channelInfoAttributes'));
+    }
+
+    async toBeVisible() {
+        await expect(this.container).toBeVisible();
     }
 }

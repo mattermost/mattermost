@@ -198,12 +198,9 @@ test.describe('Channel attribute display and editing', {tag: ['@channel_attribut
 
             // The key is type-validated, so a truthy string cannot smuggle past it.
             await expect(
-                adminClient.patchPropertyField(
-                    'access_control',
-                    'channel',
-                    locked.id,
-                    {attrs: {...locked.attrs, editable: 'yes'}} as never,
-                ),
+                adminClient.patchPropertyField('access_control', 'channel', locked.id, {
+                    attrs: {...locked.attrs, editable: 'yes'},
+                } as never),
             ).rejects.toThrow();
 
             // Refused for a system admin too: the lock is a property of the attribute,
@@ -361,7 +358,10 @@ test.describe('Channel attribute display and editing', {tag: ['@channel_attribut
 
             // Selections may each carry a different colour, so none of them wins and
             // the banner falls back rather than rendering transparent.
-            await expect(page.getByTestId('channel_banner_container')).toHaveCSS('background-color', 'rgb(221, 221, 221)');
+            await expect(page.getByTestId('channel_banner_container')).toHaveCSS(
+                'background-color',
+                'rgb(221, 221, 221)',
+            );
         } finally {
             await deleteAttributes(adminClient, created);
         }

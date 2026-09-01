@@ -5,6 +5,8 @@ import type {PropertyField} from '@mattermost/types/properties';
 
 import {expect, test} from '@mattermost/playwright-lib';
 
+import {findChannelField} from '../../system_console/global_attributes/applies_to_helpers';
+
 import {
     DISPLAY_BANNER_TOP,
     DISPLAY_LABEL_INFO,
@@ -18,7 +20,6 @@ import {
     purgeAttributes,
     setChannelValue,
 } from './helpers';
-import {findChannelField} from '../../system_console/global_attributes/applies_to_helpers';
 
 const BANNER_COLOR = '#1e325c';
 
@@ -447,7 +448,9 @@ test.describe('Channel attribute banner composition', {tag: ['@channel_attribute
      * @objective Verify that a non-classification banner attribute leaves the color picker
      * editable and the banner toggle unlocked.
      */
-    test('color picker is editable and toggle is unlocked when a non-classification attribute drives the banner', async ({pw}) => {
+    test('color picker is editable and toggle is unlocked when a non-classification attribute drives the banner', async ({
+        pw,
+    }) => {
         await pw.skipIfNoLicense();
         await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
 
@@ -477,9 +480,9 @@ test.describe('Channel attribute banner composition', {tag: ['@channel_attribute
             const configuration = await settings.openConfigurationTab();
 
             // * Color picker is editable — no classification in the banner
-            await expect(configuration.container.locator(
-                '#channel_banner_banner_background_color_picker-inputColorValue',
-            )).toBeEnabled();
+            await expect(
+                configuration.container.locator('#channel_banner_banner_background_color_picker-inputColorValue'),
+            ).toBeEnabled();
 
             // * Toggle is also not locked
             await expect(configuration.container.getByTestId('channelBannerToggle-button')).not.toBeDisabled();
@@ -492,7 +495,9 @@ test.describe('Channel attribute banner composition', {tag: ['@channel_attribute
      * @objective Verify that when classification is banner-designated, Channel Settings
      * locks the color picker to the selected level's color and the user cannot override it.
      */
-    test('color picker is locked to the classification level color when classification is banner-designated', async ({pw}) => {
+    test('color picker is locked to the classification level color when classification is banner-designated', async ({
+        pw,
+    }) => {
         await pw.skipIfNoLicense();
         await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
 
@@ -575,13 +580,9 @@ test.describe('Channel attribute banner composition', {tag: ['@channel_attribute
             created.push(marker);
 
             // Required attributes must be seeded at channel creation time
-            const channel = await createChannelForAttributes(
-                adminClient,
-                team,
-                `req-banner-${suffix}`,
-                undefined,
-                [{field_id: marker.id, value: optionId(marker, 'RESTRICTED')}],
-            );
+            const channel = await createChannelForAttributes(adminClient, team, `req-banner-${suffix}`, undefined, [
+                {field_id: marker.id, value: optionId(marker, 'RESTRICTED')},
+            ]);
             await adminClient.addToChannel(adminUser.id, channel.id);
 
             const {channelsPage} = await pw.testBrowser.login(adminUser);

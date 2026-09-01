@@ -57,9 +57,11 @@ test.describe('Channel attribute editing', {tag: ['@channel_attributes']}, () =>
 
             // * The new value replaces the old one, in the panel and in the store
             await expect(info.attributes.chip(note.name)).toHaveText('second draft');
-            await expect.poll(async () => {
-                return valueFor(await readChannelValues(adminClient, channel.id), note);
-            }).toBe('second draft');
+            await expect
+                .poll(async () => {
+                    return valueFor(await readChannelValues(adminClient, channel.id), note);
+                })
+                .toBe('second draft');
         } finally {
             await deleteAttributes(adminClient, created);
         }
@@ -104,9 +106,11 @@ test.describe('Channel attribute editing', {tag: ['@channel_attributes']}, () =>
 
             // * Escape leaves the committed value untouched
             await expect(info.attributes.chip(note.name)).toHaveText('blurred');
-            await expect.poll(async () => {
-                return valueFor(await readChannelValues(adminClient, channel.id), note);
-            }).toBe('blurred');
+            await expect
+                .poll(async () => {
+                    return valueFor(await readChannelValues(adminClient, channel.id), note);
+                })
+                .toBe('blurred');
         } finally {
             await deleteAttributes(adminClient, created);
         }
@@ -147,17 +151,21 @@ test.describe('Channel attribute editing', {tag: ['@channel_attributes']}, () =>
             await info.attributes.select(caveats.name, 'ORCON');
 
             // * Both options are stored, in the order they were picked
-            await expect.poll(async () => {
-                return valueFor(await readChannelValues(adminClient, channel.id), caveats);
-            }).toEqual([optionId(caveats, 'NOFORN'), optionId(caveats, 'ORCON')]);
+            await expect
+                .poll(async () => {
+                    return valueFor(await readChannelValues(adminClient, channel.id), caveats);
+                })
+                .toEqual([optionId(caveats, 'NOFORN'), optionId(caveats, 'ORCON')]);
 
             // # Remove the first one from the still-open editor
             await info.attributes.deselect(caveats.name, 'NOFORN');
 
             // * Only the remaining option survives, and the header agrees
-            await expect.poll(async () => {
-                return valueFor(await readChannelValues(adminClient, channel.id), caveats);
-            }).toEqual([optionId(caveats, 'ORCON')]);
+            await expect
+                .poll(async () => {
+                    return valueFor(await readChannelValues(adminClient, channel.id), caveats);
+                })
+                .toEqual([optionId(caveats, 'ORCON')]);
             await expect(channelsPage.centerView.header.attributes.chip('ORCON')).toBeVisible();
             await expect(channelsPage.centerView.header.attributes.chip('NOFORN')).toHaveCount(0);
         } finally {
@@ -214,9 +222,11 @@ test.describe('Channel attribute editing', {tag: ['@channel_attributes']}, () =>
             await info.attributes.editor(note.name).press('Enter');
 
             await expect(info.attributes.chip(note.name)).toHaveText('never saved');
-            await expect.poll(async () => {
-                return valueFor(await readChannelValues(adminClient, channel.id), note);
-            }).toBe('never saved');
+            await expect
+                .poll(async () => {
+                    return valueFor(await readChannelValues(adminClient, channel.id), note);
+                })
+                .toBe('never saved');
         } finally {
             await deleteAttributes(adminClient, created);
         }

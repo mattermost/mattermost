@@ -47,7 +47,10 @@ test.describe('Channel attribute assignment', {tag: ['@channel_attributes']}, ()
                 options: ['NOFORN', 'ORCON'],
                 required: true,
             });
-            const note = await createAttribute(adminClient, attributeName('note', suffix), {type: 'text', required: true});
+            const note = await createAttribute(adminClient, attributeName('note', suffix), {
+                type: 'text',
+                required: true,
+            });
             const userScoped = await createAttribute(adminClient, attributeName('clearance', suffix), {
                 objectType: 'user',
                 options: ['SECRET'],

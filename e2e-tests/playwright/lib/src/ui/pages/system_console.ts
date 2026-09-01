@@ -50,6 +50,7 @@ export default class SystemConsolePage {
     readonly usersAndTeams: UsersAndTeams;
 
     // System Attributes
+    readonly globalAttributes: GlobalAttributes;
     readonly systemProperties: SystemProperties;
     readonly sessionAttributes: SessionAttributes;
     readonly boardAttributes: BoardAttributes;
@@ -91,6 +92,7 @@ export default class SystemConsolePage {
         this.usersAndTeams = new UsersAndTeams(adminConsoleWrapper);
 
         // System Attributes
+        this.globalAttributes = new GlobalAttributes(adminConsoleWrapper);
         this.systemProperties = new SystemProperties(adminConsoleWrapper);
         this.sessionAttributes = new SessionAttributes(adminConsoleWrapper);
         this.boardAttributes = new BoardAttributes(adminConsoleWrapper);

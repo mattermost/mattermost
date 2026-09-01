@@ -206,7 +206,7 @@ export async function assertNoForeignRequiredAttributes(adminClient: Client4): P
         const names = foreign.map((field) => field.name).join(', ');
         throw new Error(
             `Required channel attributes not owned by these specs are present: ${names}. ` +
-            'Channel creation cannot complete until each has a value. Delete them, or turn off Required, and re-run.',
+                'Channel creation cannot complete until each has a value. Delete them, or turn off Required, and re-run.',
         );
     }
 }

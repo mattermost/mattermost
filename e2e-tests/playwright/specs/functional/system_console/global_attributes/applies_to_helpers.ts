@@ -28,12 +28,12 @@ export type ChannelAttributeConfig = {
  * derives the unique name from as the display name is typed.
  */
 export function derivedAttributeName(displayName: string): string {
-    let slug = displayName.
-        replace(/([a-z0-9])([A-Z])/g, '$1_$2').
-        replace(/([A-Z]+)([A-Z][a-z])/g, '$1_$2').
-        toLowerCase().
-        replace(/[^a-z0-9_]/g, '_');
-    if ((/^[0-9]/).test(slug)) {
+    let slug = displayName
+        .replace(/([a-z0-9])([A-Z])/g, '$1_$2')
+        .replace(/([A-Z]+)([A-Z][a-z])/g, '$1_$2')
+        .toLowerCase()
+        .replace(/[^a-z0-9_]/g, '_');
+    if (/^[0-9]/.test(slug)) {
         slug = '_' + slug;
     }
     return slug.replace(/_+/g, '_').replace(/_+$/, '') || '_copy';
@@ -45,14 +45,7 @@ export function derivedAttributeName(displayName: string): string {
  */
 export async function configureChannelAttribute(
     systemConsolePage: SystemConsolePage,
-    {
-        displayName,
-        type,
-        options = [],
-        required = false,
-        changePolicy,
-        displayLocations = [],
-    }: ChannelAttributeConfig,
+    {displayName, type, options = [], required = false, changePolicy, displayLocations = []}: ChannelAttributeConfig,
 ): Promise<string> {
     const {globalAttributes} = systemConsolePage;
     const {attributeAppliesToChannels} = globalAttributes;

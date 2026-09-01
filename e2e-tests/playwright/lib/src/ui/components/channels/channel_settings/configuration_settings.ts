@@ -108,9 +108,6 @@ export default class ConfigurationSettings {
         return this.container.getByTestId('channel_banner_banner_text_textbox');
     }
 
-    /**
-     * The chip editor that replaces the plain textbox once channel attributes are on.
-     */
     get bannerTextEditor() {
         return this.container.getByTestId('bannerTextEditor');
     }
@@ -131,9 +128,6 @@ export default class ConfigurationSettings {
         return this.container.getByTestId(`bannerTextEditorChipRemove-${name}`);
     }
 
-    /**
-     * Types literal banner text at the end of the chip editor, leaving existing chips.
-     */
     async typeBannerText(text: string) {
         await this.bannerTextEditor.click();
         await this.container.page().keyboard.press('End');
@@ -141,10 +135,19 @@ export default class ConfigurationSettings {
     }
 
     async clearBannerText() {
-        await this.bannerTextEditor.click();
-        await this.container.page().keyboard.press('ControlOrMeta+A');
-        await this.container.page().keyboard.press('Backspace');
-        await expect(this.bannerTextEditor).toHaveText('');
+        const editor = this.bannerTextEditor;
+        await editor.click();
+        // Keyboard events and execCommand('delete') both honour contenteditable=false
+        // on chip spans and refuse to remove them. Direct DOM removal bypasses that
+        // restriction; the synthetic input event syncs React's emittedRef so the
+        // component does not re-seed the chips from the stale template string.
+        await editor.evaluate((el: HTMLElement) => {
+            while (el.firstChild) {
+                el.removeChild(el.firstChild);
+            }
+            el.dispatchEvent(new InputEvent('input', {bubbles: true, cancelable: false}));
+        });
+        await expect(editor).toHaveText('');
     }
 
     async insertBannerToken(name: string) {
@@ -155,8 +158,6 @@ export default class ConfigurationSettings {
         await expect(item).toBeVisible();
         await item.click();
 
-        // One click inserts exactly one chip, so a double-insert fails at its source
-        // rather than as a puzzling banner assertion later.
         await expect(this.bannerTokenChip(name)).toHaveCount(1);
     }
 

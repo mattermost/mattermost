@@ -23,6 +23,7 @@ export default class ChannelsHeader {
         this.channelMenuDropdown = container.locator('#channelHeaderDropdownButton');
         this.callButton = container.getByRole('button', {name: /call/i}).first();
         this.pinnedMessagesButton = container.locator('#channelHeaderPinButton');
+        this.attributes = new ChannelAttributeLabels(container.getByTestId('channelAttributeLabels'));
     }
 
     async toBeVisible() {
