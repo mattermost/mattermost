@@ -217,10 +217,13 @@ const DEPLOYMENT_GROUPS = {
     ],
   },
 
-  // Install the server — one sub-group per install method. No landing page;
-  // the choice between them is made in Plan.
+  // Deploy the Server — one sub-group per deployment method. No landing page;
+  // the choice between them is made in Plan. "Deploy" rather than "Install"
+  // because all nine child pages are titled "Deploy Mattermost ...", and these
+  // pages use "install" for a narrower step within them (getting the binary
+  // onto the host) alongside database setup, configuration, and startup.
   install: {
-    label: 'Install the server',
+    label: 'Deploy the Server',
     items: [
       {label: 'Linux', landing: 'server/deploy-linux', items: [
         'server/linux/deploy-ubuntu',
@@ -243,7 +246,7 @@ const DEPLOYMENT_GROUPS = {
   // the day-2 topics below. The former one-child "Encryption" category is
   // flattened into this group, with encryption-options as its landing page.
   secure: {
-    label: 'Secure your deployment',
+    label: 'Secure Your Deployment',
     landing: 'encryption-options',
     items: [
       'transport-encryption',
@@ -257,7 +260,7 @@ const DEPLOYMENT_GROUPS = {
     label: 'Scale',
     landing: 'scale/scaling-for-enterprise',
     items: [
-      {label: 'Reference architectures by user count', items: [
+      {label: 'Reference Architectures by User Count', items: [
         'scale/scale-to-200-users',
         'scale/scale-to-2000-users',
         'scale/scale-to-15000-users',
@@ -268,17 +271,17 @@ const DEPLOYMENT_GROUPS = {
         'scale/scale-to-100000-users',
         'scale/scale-to-200000-users',
       ]},
-      {label: 'High availability and clustering', items: [
+      {label: 'High Availability and Clustering', items: [
         'scale/high-availability-cluster-based-deployment',
         'scale/additional-ha-considerations',
         'scale/server-architecture',
       ]},
-      {label: 'Storage sizing', items: [
+      {label: 'Storage Sizing', items: [
         'scale/estimated-storage-per-user-per-month',
         'scale/lifetime-storage',
         'scale/backing-storage-benchmarks',
       ]},
-      {label: 'Search infrastructure', landing: 'scale/enterprise-search', items: [
+      {label: 'Search Infrastructure', landing: 'scale/enterprise-search', items: [
         'scale/elasticsearch-setup',
         'scale/opensearch-setup',
         'scale/common-configure-mattermost-for-enterprise-search',
@@ -292,7 +295,7 @@ const DEPLOYMENT_GROUPS = {
   // active/passive across two sites), not routine administration, so it sits
   // next to Scale rather than down with the day-2 topics.
   backupDr: {
-    label: 'Back up and recover',
+    label: 'Back Up and Recover',
     landing: 'backup-disaster-recovery',
     items: [
       'disaster-recovery-aws',
@@ -303,7 +306,7 @@ const DEPLOYMENT_GROUPS = {
   // RTCD, Offloader, Kubernetes, logging, and metrics are deployment and
   // operations concerns, not settings-reference material.
   calls: {
-    label: 'Calls deployment',
+    label: 'Calls Deployment',
     landing: 'calls/calls-deployment-guide',
     items: [
       'calls/calls-rtcd-setup',
@@ -320,7 +323,7 @@ const DEPLOYMENT_GROUPS = {
   // of alphabetically. desktop-troubleshooting is deliberately absent: its
   // sidebar home is the central troubleshooting hub below.
   desktop: {
-    label: 'Desktop app deployment',
+    label: 'Desktop App Deployment',
     landing: 'desktop/desktop-app-deployment',
     items: [
       'desktop/linux-desktop-install',
@@ -336,7 +339,7 @@ const DEPLOYMENT_GROUPS = {
   // mobile-app-deployment (the section overview) sorts 6th of 10 inside its
   // own section. mobile-troubleshooting's sidebar home is the hub below.
   mobile: {
-    label: 'Mobile app deployment',
+    label: 'Mobile App Deployment',
     landing: 'mobile/mobile-app-deployment',
     items: [
       'mobile/deploy-mobile-apps-using-emm-provider',
@@ -359,7 +362,7 @@ const DEPLOYMENT_GROUPS = {
   // link here rather than duplicating the entries, which would split
   // prev/next pagination across two sidebar locations.
   troubleshooting: {
-    label: 'Troubleshoot deployments',
+    label: 'Troubleshoot Deployments',
     landing: 'deployment-troubleshooting',
     items: [
       'server/troubleshooting',
