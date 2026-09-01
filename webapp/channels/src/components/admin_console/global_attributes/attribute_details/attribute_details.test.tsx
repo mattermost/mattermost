@@ -1690,6 +1690,19 @@ describe('AttributeDetails', () => {
                 expect(screen.getByTestId('saveSetting')).toBeDisabled();
             });
 
+            it('switches the Type and Unique Name lock reasons to the orphaned copy, not the plain "managed by a plugin" text', async () => {
+                mockPluginNotInstalled();
+                mockLoadedField(makePluginOwnedTemplate());
+
+                renderEdit();
+                await waitForForm();
+                await waitFor(() => expect(screen.getByTestId('attributePluginSource')).toHaveTextContent('no longer installed'));
+
+                expect(screen.getByTestId('attributeTypeMenuButton')).toHaveAccessibleName(/no longer installed/);
+                expect(screen.getByTestId('attributeTypeMenuButton')).not.toHaveAccessibleName(/managed by a plugin\./);
+                expect(screen.getByTestId('attributeNameEditLink')).toHaveAccessibleName(/no longer installed/);
+            });
+
             it('keeps the Applies-to row locked (toggle disabled, Remove unreachable) when orphaned, even though the server would permit that delete', async () => {
                 mockPluginNotInstalled();
                 mockLoadedField(makePluginOwnedTemplate(), [makeLinked('user', 'user-field')]);

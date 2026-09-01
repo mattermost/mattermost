@@ -257,6 +257,18 @@ function nameErrorMessage(error: CPAFieldNameValidationError, formatMessage: Int
     return formatMessage(nameErrorMessages.invalidCharset);
 }
 
+// Returns the first reason whose condition is true, checked in the given order --
+// shared by typeLockReason/nameLockReason below so a priority-ordered "which lock
+// reason wins" chain exists in exactly one place, not once per lockable field.
+function firstMatchingReason<T extends string>(...pairs: Array<[T, boolean]>): T | null {
+    for (const [reason, matches] of pairs) {
+        if (matches) {
+            return reason;
+        }
+    }
+    return null;
+}
+
 type Props = {
     disabled?: boolean;
 };
@@ -863,19 +875,19 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
     const TypeIcon = getTypeIcon(fieldType);
 
     // Reason derived once, then looked up for both the tooltip and the
-    // aria-label below -- isPluginOwned checked first: a plugin-owned field
-    // with zero applied resources has typeLockedByAppliesTo === false and
+    // aria-label below -- pluginOrphaned/plugin checked first: a plugin-owned
+    // field with zero applied resources has typeLockedByAppliesTo === false and
     // hasExternalSource === false, so it must not fall through to the
     // "applies to a resource" copy, which would be factually wrong when it
-    // applies to nothing.
-    let typeLockReason: 'plugin' | 'externalSource' | 'appliesTo' | null = null;
-    if (isPluginOwned) {
-        typeLockReason = 'plugin';
-    } else if (hasExternalSource) {
-        typeLockReason = 'externalSource';
-    } else if (typeLockedByAppliesTo) {
-        typeLockReason = 'appliesTo';
-    }
+    // applies to nothing. pluginOrphaned (not plain "plugin") whenever the
+    // field is also orphaned, so this tooltip doesn't contradict the
+    // "(no longer installed)" copy the Managed-by panel shows one card up.
+    const typeLockReason = firstMatchingReason<'pluginOrphaned' | 'plugin' | 'externalSource' | 'appliesTo'>(
+        ['pluginOrphaned', isPluginOwned && isOrphaned],
+        ['plugin', isPluginOwned],
+        ['externalSource', hasExternalSource],
+        ['appliesTo', typeLockedByAppliesTo],
+    );
     const typeLockTooltip = formatMessage(TYPE_LOCK_MESSAGES[typeLockReason ?? 'appliesTo'].tooltip);
     const typeButtonAriaLabel = typeLockReason ? formatMessage(TYPE_LOCK_MESSAGES[typeLockReason].ariaLabel, {value: formatMessage(getTypeLabel(fieldType))}) : formatMessage(messages.typeFieldAriaLabel, {value: formatMessage(getTypeLabel(fieldType))});
     const typeMenu = (
@@ -1059,17 +1071,14 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                                             )}
                                             {(() => {
                                                 // Reason derived once, then looked up for both the aria-label
-                                                // and the tooltip below -- isPluginOwned checked first, same
-                                                // priority reasoning as typeLockReason above -- a plugin-owned
-                                                // field with zero applied resources has nameLockedByAppliesTo
-                                                // === false, so it must not fall through to the normal
-                                                // Edit/Done label or render with no explanatory tooltip at all.
-                                                let nameLockReason: 'plugin' | 'appliesTo' | null = null;
-                                                if (isPluginOwned) {
-                                                    nameLockReason = 'plugin';
-                                                } else if (nameLockedByAppliesTo) {
-                                                    nameLockReason = 'appliesTo';
-                                                }
+                                                // and the tooltip below -- same priority reasoning as
+                                                // typeLockReason above, including preferring pluginOrphaned
+                                                // over plain "plugin" once the field is confirmed orphaned.
+                                                const nameLockReason = firstMatchingReason<'pluginOrphaned' | 'plugin' | 'appliesTo'>(
+                                                    ['pluginOrphaned', isPluginOwned && isOrphaned],
+                                                    ['plugin', isPluginOwned],
+                                                    ['appliesTo', nameLockedByAppliesTo],
+                                                );
                                                 const nameEditLinkAriaLabel = nameLockReason ? formatMessage(NAME_LOCK_MESSAGES[nameLockReason].ariaLabel) : formatMessage(isEditingName ? messages.doneLinkAriaLabel : messages.editLinkAriaLabel);
 
                                                 const editLinkButton = (
@@ -1209,6 +1218,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                                         <AttributePluginSource
                                             pluginId={sourcePluginId!}
                                             isOrphaned={isOrphaned}
+                                            pluginInventoryLoaded={pluginInventoryLoaded}
                                         />
                                     ) : (
                                         <AttributeExternalSource
@@ -1228,7 +1238,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                         appliesTo={appliesTo}
                         disabled={saving || effectiveDisabled}
                         hideAddResource={isPluginOwned}
-                        lockedTooltip={isPluginOwned ? formatMessage(messages.appliesToLockedPluginTooltip) : undefined}
+                        lockedTooltip={isPluginOwned ? formatMessage(isOrphaned ? messages.appliesToLockedPluginOrphanedTooltip : messages.appliesToLockedPluginTooltip) : undefined}
                         onAdd={handleAdd}
                         onRemove={handleRemove}
                     />
@@ -1296,6 +1306,14 @@ const messages = defineMessages({
         id: 'admin.global_attributes.attribute_details.unique_name.locked_plugin_tooltip',
         defaultMessage: 'Name cannot be changed — this attribute is managed by a plugin.',
     },
+    nameLockedPluginOrphanedAriaLabel: {
+        id: 'admin.global_attributes.attribute_details.unique_name.locked_plugin_orphaned_aria_label',
+        defaultMessage: "Edit unique name. Locked because this attribute was managed by a plugin that's no longer installed.",
+    },
+    nameLockedPluginOrphanedTooltip: {
+        id: 'admin.global_attributes.attribute_details.unique_name.locked_plugin_orphaned_tooltip',
+        defaultMessage: "Name cannot be changed — this attribute was managed by a plugin that's no longer installed.",
+    },
     helperText: {
         id: 'admin.global_attributes.attribute_details.unique_name.helper_text',
         defaultMessage: 'Name is the internal identifier for policies and integrations. Display name is what admins and users see.',
@@ -1316,6 +1334,10 @@ const messages = defineMessages({
         id: 'admin.global_attributes.attribute_details.type.field_locked_plugin_aria_label',
         defaultMessage: 'Type: {value}. Locked because this attribute is managed by a plugin.',
     },
+    typeFieldLockedPluginOrphanedAriaLabel: {
+        id: 'admin.global_attributes.attribute_details.type.field_locked_plugin_orphaned_aria_label',
+        defaultMessage: "Type: {value}. Locked because this attribute was managed by a plugin that's no longer installed.",
+    },
     typeLockedAppliesToTooltip: {
         id: 'admin.global_attributes.attribute_details.type.locked_applies_to_tooltip',
         defaultMessage: 'Type cannot be changed while this attribute applies to a resource.',
@@ -1328,9 +1350,17 @@ const messages = defineMessages({
         id: 'admin.global_attributes.attribute_details.type.locked_plugin_tooltip',
         defaultMessage: 'Type cannot be changed — this attribute is managed by a plugin.',
     },
+    typeLockedPluginOrphanedTooltip: {
+        id: 'admin.global_attributes.attribute_details.type.locked_plugin_orphaned_tooltip',
+        defaultMessage: "Type cannot be changed — this attribute was managed by a plugin that's no longer installed.",
+    },
     appliesToLockedPluginTooltip: {
         id: 'admin.global_attributes.attribute_details.applies_to.locked_plugin_tooltip',
         defaultMessage: 'This resource cannot be changed — this attribute is managed by a plugin.',
+    },
+    appliesToLockedPluginOrphanedTooltip: {
+        id: 'admin.global_attributes.attribute_details.applies_to.locked_plugin_orphaned_tooltip',
+        defaultMessage: "This resource cannot be changed — this attribute was managed by a plugin that's no longer installed.",
     },
     optionsLabel: {id: 'admin.global_attributes.attribute_details.options.label', defaultMessage: 'Options'},
     optionsHelp: {
@@ -1352,13 +1382,15 @@ const messages = defineMessages({
 // One reason derived once (see typeLockReason above), looked up here for both
 // the tooltip and the aria-label -- a new lock reason becomes one entry in
 // this map instead of a fourth branch across two separate if/else chains.
-const TYPE_LOCK_MESSAGES: Record<'plugin' | 'externalSource' | 'appliesTo', {tooltip: MessageDescriptor; ariaLabel: MessageDescriptor}> = {
+const TYPE_LOCK_MESSAGES: Record<'pluginOrphaned' | 'plugin' | 'externalSource' | 'appliesTo', {tooltip: MessageDescriptor; ariaLabel: MessageDescriptor}> = {
+    pluginOrphaned: {tooltip: messages.typeLockedPluginOrphanedTooltip, ariaLabel: messages.typeFieldLockedPluginOrphanedAriaLabel},
     plugin: {tooltip: messages.typeLockedPluginTooltip, ariaLabel: messages.typeFieldLockedPluginAriaLabel},
     externalSource: {tooltip: messages.typeLockedExternalSourceTooltip, ariaLabel: messages.typeFieldLockedAriaLabel},
     appliesTo: {tooltip: messages.typeLockedAppliesToTooltip, ariaLabel: messages.typeFieldLockedAppliesToAriaLabel},
 };
 
-const NAME_LOCK_MESSAGES: Record<'plugin' | 'appliesTo', {tooltip: MessageDescriptor; ariaLabel: MessageDescriptor}> = {
+const NAME_LOCK_MESSAGES: Record<'pluginOrphaned' | 'plugin' | 'appliesTo', {tooltip: MessageDescriptor; ariaLabel: MessageDescriptor}> = {
+    pluginOrphaned: {tooltip: messages.nameLockedPluginOrphanedTooltip, ariaLabel: messages.nameLockedPluginOrphanedAriaLabel},
     plugin: {tooltip: messages.nameLockedPluginTooltip, ariaLabel: messages.nameLockedPluginAriaLabel},
     appliesTo: {tooltip: messages.nameLockedAppliesToTooltip, ariaLabel: messages.nameLockedAppliesToAriaLabel},
 };

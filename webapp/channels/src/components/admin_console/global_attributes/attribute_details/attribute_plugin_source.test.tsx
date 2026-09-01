@@ -18,6 +18,7 @@ describe('AttributePluginSource', () => {
             <AttributePluginSource
                 pluginId='test-plugin'
                 isOrphaned={false}
+                pluginInventoryLoaded={true}
                 {...props}
             />,
             pluginDisplayName ? {
@@ -55,6 +56,13 @@ describe('AttributePluginSource', () => {
 
         renderComponent({isOrphaned: true});
         expect(screen.getAllByTestId('attributePluginSourceHelperText')[1]).toHaveTextContent('Name, type, and values are owned by the plugin and are read-only here.');
+    });
+
+    it('suppresses the settings link until the plugin inventory has settled, even for a not-actually-orphaned plugin', () => {
+        renderComponent({isOrphaned: false, pluginInventoryLoaded: false}, 'Test Plugin');
+
+        expect(screen.getByTestId('attributePluginSourceManagedBy')).toHaveTextContent('Managed by Test Plugin');
+        expect(screen.queryByTestId('attributePluginSourceLink')).not.toBeInTheDocument();
     });
 
     it('falls back to the raw plugin id when the plugin name cannot be resolved', () => {
