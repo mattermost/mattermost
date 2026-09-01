@@ -82,7 +82,7 @@ func (c *deliveryAuditCapture) postIDs() []string {
 	records := c.records()
 	out := make([]string, 0, len(records))
 	for _, rec := range records {
-		postID, _ := auditMeta(c.t, rec)[model.PostDeliveryKeyPostID].(string)
+		postID, _ := auditMeta(c.t, rec, model.PostDeliveryKeyPostID).(string)
 		out = append(out, postID)
 	}
 	return out
@@ -94,7 +94,7 @@ func (c *deliveryAuditCapture) requireOne() (string, map[string]any) {
 
 	records := c.records()
 	require.Len(c.t, records, 1)
-	return auditActorUserID(c.t, records[0]), auditMeta(c.t, records[0])
+	return auditActorUserID(c.t, records[0]), auditMetaMap(c.t, records[0])
 }
 
 func auditActorUserID(t *testing.T, rec map[string]any) string {
@@ -106,7 +106,9 @@ func auditActorUserID(t *testing.T, rec map[string]any) string {
 	return userID
 }
 
-func auditMeta(t *testing.T, rec map[string]any) map[string]any {
+// auditMetaMap returns a record's whole meta map, for assertions that read several keys off the
+// same record. auditMeta reads a single key.
+func auditMetaMap(t *testing.T, rec map[string]any) map[string]any {
 	t.Helper()
 
 	meta, ok := rec[model.AuditKeyMeta].(map[string]any)
@@ -303,7 +305,7 @@ func TestRecordPostsDelivery(t *testing.T) {
 		require.Len(t, records, len(posts))
 		for i, rec := range records {
 			require.Equal(t, th.BasicUser2.Id, auditActorUserID(t, rec))
-			require.Equal(t, posts[i].Id, auditMeta(t, rec)[model.PostDeliveryKeyPostID])
+			require.Equal(t, posts[i].Id, auditMeta(t, rec, model.PostDeliveryKeyPostID))
 		}
 	})
 
@@ -322,7 +324,7 @@ func TestRecordPostsDelivery(t *testing.T) {
 
 		records := capture.records()
 		require.Len(t, records, 1)
-		require.Equal(t, tracked.Id, auditMeta(t, records[0])[model.PostDeliveryKeyPostID])
+		require.Equal(t, tracked.Id, auditMeta(t, records[0], model.PostDeliveryKeyPostID))
 	})
 
 	t.Run("empty input emits nothing", func(t *testing.T) {
@@ -462,7 +464,7 @@ func TestSanitizePostMetadataForUserRecordsPreviewDelivery(t *testing.T) {
 	records := capture.records()
 	require.Len(t, records, 1)
 
-	meta := auditMeta(t, records[0])
+	meta := auditMetaMap(t, records[0])
 	require.Equal(t, th.BasicUser2.Id, auditActorUserID(t, records[0]))
 	require.Equal(t, previewed.Id, meta[model.PostDeliveryKeyPostID])
 	require.Equal(t, th.BasicChannel.Id, meta[model.PostDeliveryKeyChannelID])
@@ -503,7 +505,7 @@ func TestCreatePostWithPermalinkRecordsPreviewForAuthor(t *testing.T) {
 
 	var previewRecord map[string]any
 	for _, rec := range capture.records() {
-		meta := auditMeta(t, rec)
+		meta := auditMetaMap(t, rec)
 		if meta[model.PostDeliveryKeyMechanism] != model.DeliveryMechanismPermalinkPreview {
 			continue
 		}
@@ -635,8 +637,8 @@ func TestRecordPostDeliveryToIntegrations(t *testing.T) {
 
 		records := capture.records()
 		require.Len(t, records, 2)
-		require.Equal(t, "plugin.a", auditMeta(t, records[0])[model.PostDeliveryKeyPluginID])
-		require.Equal(t, "plugin.b", auditMeta(t, records[1])[model.PostDeliveryKeyPluginID])
+		require.Equal(t, "plugin.a", auditMeta(t, records[0], model.PostDeliveryKeyPluginID))
+		require.Equal(t, "plugin.b", auditMeta(t, records[1], model.PostDeliveryKeyPluginID))
 	})
 
 	t.Run("one record per post handed to a plugin", func(t *testing.T) {
