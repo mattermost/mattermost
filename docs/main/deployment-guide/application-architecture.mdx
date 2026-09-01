@@ -43,7 +43,7 @@ The Mattermost Server is the heart of the platform and responsible for processin
 
 **Notification Service**: Sends notifications through supported mediums:
 
-- **Push Notifications**: Real-time notifications to iOS and Android devices (via a Push Notification Service). High availabilty is ensured through multiple notification servers and retry mechanisms, guaranteeing that notifications are delivered even in the event of service disruptions.
+- **Push Notifications**: Real-time notifications to iOS and Android devices (via a Push Notification Service). High availability is ensured through multiple notification servers and retry mechanisms, guaranteeing that notifications are delivered even in the event of service disruptions.
 - **Email Notifications**: Delivered to users when they are offline or need event alerts. Load balancing and backup mail server configurations help ensure email delivery remains consistent and reliable.
 
 **Data Management Service**: Responsible for managing message data, metadata, user profiles, and logs. Ensures the integrity of data passed between the database and the server. This layer serves as the operational core of the platform, orchestrating user activities with data handling and integration capabilities.
@@ -73,7 +73,7 @@ High availability measures ensure scalable and fail-safe support for millions of
 
 **System Extensions**: Mattermost is not only a collaboration tool but also a platform designed for extensibility. Key extensibility features include:
 
-**Self-Hosted Integrations**: Connect Mattermost to other local or cloud-based systems like Jira, GitLab, or any custom integrations your team needs. Leverage built-in APIs and webhooks to automate workflows and trigger system-to-system communications. For high availaiblity, integrations can employ redundant communication channels and retry mechanisms to handle transient failures gracefully.
+**Self-Hosted Integrations**: Connect Mattermost to other local or cloud-based systems like Jira, GitLab, or any custom integrations your team needs. Leverage built-in APIs and webhooks to automate workflows and trigger system-to-system communications. For high availability, integrations can employ redundant communication channels and retry mechanisms to handle transient failures gracefully.
 
 **Third-Party Authentication**: Bind integrations to third-party platforms (e.g., Slack-importing APIs, OAuth services). Third-party identity services ensure consistent and secure user access flows. Third-party identity services can leverage load-balancing and failover strategies to ensure consistent and secure user access flows, even under high traffic or outages.
 
