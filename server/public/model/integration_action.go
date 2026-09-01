@@ -676,7 +676,7 @@ func DecodeAndVerifyTriggerId(triggerId string, s *ecdsa.PrivateKey, timeout tim
 		return "", "", "", NewAppError("DecodeAndVerifyTriggerId", "interactive_message.decode_trigger_id.signature_decode_failed", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
-	triggerData := strings.Join([]string{clientTriggerId, userId, timestampStr, channelId}, ":") + ":"
+	triggerData := strings.Join(split[:len(split)-1], ":") + ":"
 
 	h := crypto.SHA256
 	sum := h.New()
