@@ -142,16 +142,28 @@ func TestPostPreSave(t *testing.T) {
 	o.Etag()
 }
 
+func TestIsSystemMessagePostType(t *testing.T) {
+	for _, tc := range []struct {
+		postType string
+		want     bool
+	}{
+		{"", false},
+		{"custom_foo", false},
+		{PostTypeJoinLeave, true},
+		{PostTypeJoinChannel, true},
+		{PostTypeDefault, false},
+		// case-sensitive: mixed-case prefix is not a system type
+		{"System_generic", false},
+		// whitespace is not trimmed
+		{" " + PostSystemMessagePrefix + "foo", false},
+	} {
+		require.Equal(t, tc.want, IsSystemMessagePostType(tc.postType), "postType=%q", tc.postType)
+	}
+}
+
 func TestPostIsSystemMessage(t *testing.T) {
-	post1 := Post{Message: "test_1"}
-	post1.PreSave()
-
-	require.False(t, post1.IsSystemMessage())
-
-	post2 := Post{Message: "test_2", Type: PostTypeJoinLeave}
-	post2.PreSave()
-
-	require.True(t, post2.IsSystemMessage())
+	require.False(t, (&Post{Message: "test_1"}).IsSystemMessage())
+	require.True(t, (&Post{Message: "test_2", Type: PostTypeJoinLeave}).IsSystemMessage())
 }
 
 func TestPostIsNotificationSuppressed(t *testing.T) {

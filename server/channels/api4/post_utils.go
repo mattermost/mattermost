@@ -26,8 +26,15 @@ func userCreatePostPermissionCheckWithContext(c *Context, channelId string) {
 	}
 }
 
+func postHardenedModeCheckWithContext(where string, c *Context, props model.StringInterface) {
+	if appErr := app.PostHardenedModeCheckWithApp(c.App, c.AppContext.Session().IsIntegration(), props); appErr != nil {
+		appErr.Where = where
+		c.Err = appErr
+	}
+}
+
 func postPriorityCheckWithContext(where string, c *Context, priority *model.PostPriority, rootId string) {
-	appErr := app.PostPriorityCheckWithApp(where, c.App, c.AppContext.Session().UserId, priority, rootId)
+	appErr := app.PostPriorityCheckWithApp(where, c.App, c.AppContext, c.AppContext.Session().UserId, priority, rootId)
 	if appErr != nil {
 		appErr.Where = where
 		c.Err = appErr

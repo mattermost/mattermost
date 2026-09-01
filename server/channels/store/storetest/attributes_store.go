@@ -32,6 +32,8 @@ var (
 
 func TestAttributesStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	t.Run("RefreshAndGet", func(t *testing.T) { testAttributesStoreRefresh(t, rctx, ss) })
+	t.Run("GetChannelSubject", func(t *testing.T) { testAttributesStoreGetChannelSubject(t, rctx, ss) })
+	t.Run("EmptyMultiselect", func(t *testing.T) { testAttributesStoreEmptyMultiselect(t, rctx, ss) })
 	t.Run("SearchUsers", func(t *testing.T) { testAttributesStoreSearchUsers(t, rctx, ss, s) })
 	t.Run("SearchUsersBySubjectID", func(t *testing.T) { testAttributesStoreSearchUsersBySubjectID(t, rctx, ss, s) })
 	t.Run("GetChannelMembersToRemove", func(t *testing.T) { testAttributesStoreGetChannelMembersToRemove(t, rctx, ss, s) })
@@ -211,7 +213,7 @@ func testAttributesStoreRefresh(t *testing.T, rctx request.CTX, ss store.Store) 
 
 		// Check if the attributes are set correctly
 		for _, user := range users {
-			subject, err := ss.Attributes().GetSubject(rctx, user.Id, groupID)
+			subject, err := ss.Attributes().GetSubject(rctx, user.Id, groupID, model.PropertyFieldObjectTypeUser)
 			require.NoError(t, err, "couldn't get subject")
 
 			require.Equal(t, user.Id, subject.ID)
@@ -220,10 +222,138 @@ func testAttributesStoreRefresh(t *testing.T, rctx request.CTX, ss store.Store) 
 	})
 
 	t.Run("Get non-existing subject", func(t *testing.T) {
-		subject, err := ss.Attributes().GetSubject(rctx, "non-existing-id", groupID)
+		subject, err := ss.Attributes().GetSubject(rctx, "non-existing-id", groupID, model.PropertyFieldObjectTypeUser)
 		require.Error(t, err, "expected error when getting non-existing subject")
 		require.IsType(t, &store.ErrNotFound{}, err, "expected not found error")
 		require.Nil(t, subject, "expected nil subject for non-existing ID")
+	})
+}
+
+// testAttributesStoreGetChannelSubject verifies the per-object-type view split
+// (migration 000216): a channel-scoped attribute is readable via
+// GetSubject(..., "channel") from ChannelAttributeView, and is *not* visible
+// through the user view — proving the two views filter by ObjectType.
+func testAttributesStoreGetChannelSubject(t *testing.T, rctx request.CTX, ss store.Store) {
+	group, err := ss.PropertyGroup().Register(&model.PropertyGroup{Name: model.NewId(), Version: model.PropertyGroupVersionV1})
+	require.NoError(t, err)
+	groupID := group.ID
+
+	field, err := ss.PropertyField().Create(&model.PropertyField{
+		GroupID:    groupID,
+		Name:       "channel_prop",
+		Type:       model.PropertyFieldTypeText,
+		ObjectType: model.PropertyFieldObjectTypeChannel,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
+	})
+	require.NoError(t, err)
+
+	channelID := model.NewId()
+	val, err := json.Marshal("channel_value")
+	require.NoError(t, err)
+	pv, err := ss.PropertyValue().Create(&model.PropertyValue{
+		TargetID:   channelID,
+		TargetType: model.PropertyValueTargetTypeChannel,
+		GroupID:    groupID,
+		FieldID:    field.ID,
+		Value:      val,
+	})
+	require.NoError(t, err)
+
+	t.Cleanup(func() {
+		require.NoError(t, ss.PropertyValue().Delete(groupID, pv.ID))
+		require.NoError(t, ss.PropertyField().Delete(groupID, field.ID))
+	})
+
+	require.NoError(t, ss.Attributes().RefreshAttributes())
+
+	t.Run("channel view returns channel attributes", func(t *testing.T) {
+		subject, err := ss.Attributes().GetSubject(rctx, channelID, groupID, model.PropertyFieldObjectTypeChannel)
+		require.NoError(t, err)
+		require.Equal(t, channelID, subject.ID)
+		require.Equal(t, model.PropertyValueTargetTypeChannel, subject.Type)
+		require.Equal(t, "channel_value", subject.Attributes["channel_prop"])
+	})
+
+	t.Run("user view does not see the channel row", func(t *testing.T) {
+		subject, err := ss.Attributes().GetSubject(rctx, channelID, groupID, model.PropertyFieldObjectTypeUser)
+		require.Error(t, err)
+		require.IsType(t, &store.ErrNotFound{}, err)
+		require.Nil(t, subject)
+	})
+}
+
+// testAttributesStoreEmptyMultiselect pins the fail-closed contract for
+// multiselect attributes (migration 000216): an empty multiselect resolves to
+// NULL in the matview, never an empty array. The view builds the value with
+// jsonb_agg over the joined option rows, and jsonb_agg over zero rows yields
+// NULL — there is no NULLIF/COALESCE. A refactor that wrapped it in
+// COALESCE(..., '[]') would silently flip fail-closed to fail-open (an empty tag
+// set would start satisfying an "in"/membership rule) with the rest of the suite
+// still green, so assert the NULL directly.
+func testAttributesStoreEmptyMultiselect(t *testing.T, rctx request.CTX, ss store.Store) {
+	group, err := ss.PropertyGroup().Register(&model.PropertyGroup{Name: model.NewId(), Version: model.PropertyGroupVersionV1})
+	require.NoError(t, err)
+	groupID := group.ID
+
+	optID1, optID2 := model.NewId(), model.NewId()
+	field, err := ss.PropertyField().Create(&model.PropertyField{
+		GroupID: groupID,
+		Name:    "tags",
+		Type:    model.PropertyFieldTypeMultiselect,
+		Attrs: map[string]any{"options": []any{
+			map[string]any{"id": optID1, "name": "blue", "color": ""},
+			map[string]any{"id": optID2, "name": "green", "color": ""},
+		}},
+		ObjectType: model.PropertyFieldObjectTypeChannel,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
+	})
+	require.NoError(t, err)
+
+	emptyChannelID := model.NewId()
+	fullChannelID := model.NewId()
+
+	emptyVal, err := json.Marshal([]string{})
+	require.NoError(t, err)
+	fullVal, err := json.Marshal([]string{optID1, optID2})
+	require.NoError(t, err)
+
+	pvEmpty, err := ss.PropertyValue().Create(&model.PropertyValue{
+		TargetID:   emptyChannelID,
+		TargetType: model.PropertyValueTargetTypeChannel,
+		GroupID:    groupID,
+		FieldID:    field.ID,
+		Value:      emptyVal,
+	})
+	require.NoError(t, err)
+	pvFull, err := ss.PropertyValue().Create(&model.PropertyValue{
+		TargetID:   fullChannelID,
+		TargetType: model.PropertyValueTargetTypeChannel,
+		GroupID:    groupID,
+		FieldID:    field.ID,
+		Value:      fullVal,
+	})
+	require.NoError(t, err)
+
+	t.Cleanup(func() {
+		require.NoError(t, ss.PropertyValue().Delete(groupID, pvEmpty.ID))
+		require.NoError(t, ss.PropertyValue().Delete(groupID, pvFull.ID))
+		require.NoError(t, ss.PropertyField().Delete(groupID, field.ID))
+	})
+
+	require.NoError(t, ss.Attributes().RefreshAttributes())
+
+	t.Run("empty multiselect resolves to NULL, not []", func(t *testing.T) {
+		subject, err := ss.Attributes().GetSubject(rctx, emptyChannelID, groupID, model.PropertyFieldObjectTypeChannel)
+		require.NoError(t, err)
+		// nil (JSON null), never []any{} — an empty slice would satisfy a
+		// membership rule and open the fail-open hole this test guards.
+		require.Nil(t, subject.Attributes["tags"])
+	})
+
+	t.Run("populated multiselect resolves to option names", func(t *testing.T) {
+		subject, err := ss.Attributes().GetSubject(rctx, fullChannelID, groupID, model.PropertyFieldObjectTypeChannel)
+		require.NoError(t, err)
+		require.ElementsMatch(t, []any{"blue", "green"}, subject.Attributes["tags"])
 	})
 }
 
@@ -315,14 +445,14 @@ func testAttributesStoreSearchUsers(t *testing.T, rctx request.CTX, ss store.Sto
 	})
 
 	// Regression test: pagination must page on Users.Id, not the LEFT-JOINed
-	// AttributeView.TargetID. A user with no custom-attribute row has a NULL
+	// UserAttributeView.TargetID. A user with no custom-attribute row has a NULL
 	// TargetID, so a "TargetID > cursor" predicate silently drops them from
 	// every page. Native-only policies (e.g. user.verified) match exactly such
 	// users, and the membership sync always seeds a cursor, so this manifested
 	// as the sync adding zero members while the Test modal (no cursor) showed
 	// the full set.
 	t.Run("Search paginates users with no attribute row", func(t *testing.T) {
-		// A fresh user with no custom attributes => no AttributeView row.
+		// A fresh user with no custom attributes => no UserAttributeView row.
 		u := model.User{Email: MakeEmail(), Username: model.NewUsername()}
 		_, err := ss.User().Save(rctx, &u)
 		require.NoError(t, err, "couldn't save attribute-less user")
@@ -333,7 +463,7 @@ func testAttributesStoreSearchUsers(t *testing.T, rctx request.CTX, ss store.Sto
 		require.NoError(t, ss.Attributes().RefreshAttributes(), "couldn't refresh attributes")
 
 		// Native-style predicate against the Users table; matches the user above
-		// despite the missing AttributeView row.
+		// despite the missing UserAttributeView row.
 		subjects, _, err := ss.Attributes().SearchUsers(rctx, model.SubjectSearchOptions{
 			Query: "Users.Email = $1::text",
 			Args:  []any{u.Email},
@@ -433,9 +563,9 @@ func testAttributesStoreGetChannelMembersToRemove(t *testing.T, rctx request.CTX
 	})
 
 	// Regression test: a native-attribute policy resolves against the Users
-	// table (the query is joined to Users), and a member with no AttributeView
+	// table (the query is joined to Users), and a member with no UserAttributeView
 	// row who satisfies it must NOT be removed. Before the fix, native columns
-	// failed to resolve (no Users join) and the "OR AttributeView.TargetID IS
+	// failed to resolve (no Users join) and the "OR UserAttributeView.TargetID IS
 	// NULL" clause removed attribute-less members outright.
 	t.Run("native policy keeps members with no attribute row", func(t *testing.T) {
 		extra := model.User{Email: MakeEmail(), Username: model.NewUsername()}
@@ -554,9 +684,9 @@ func testAttributesStoreGetTeamMembersToRemove(t *testing.T, rctx request.CTX, s
 	})
 
 	// Regression test: a native-attribute policy resolves against the Users
-	// table (the query is joined to Users), and a member with no AttributeView
+	// table (the query is joined to Users), and a member with no UserAttributeView
 	// row who satisfies it must NOT be removed. Before the fix, native columns
-	// failed to resolve (no Users join) and the "OR AttributeView.TargetID IS
+	// failed to resolve (no Users join) and the "OR UserAttributeView.TargetID IS
 	// NULL" clause removed attribute-less members outright.
 	t.Run("native policy keeps members with no attribute row", func(t *testing.T) {
 		extra := model.User{Email: MakeEmail(), Username: model.NewUsername()}

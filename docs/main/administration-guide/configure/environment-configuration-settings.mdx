@@ -306,6 +306,36 @@ Enabling this feature makes these connections susceptible to man-in-the-middle a
 
 </Warning>
 
+### Enable hardened mode
+
+<table>
+<colgroup>
+<col style={{width: '38%'}} />
+<col style={{width: '61%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>Configure Mattermost to run in a hardened mode that makes user experience trade-offs in the interest of security.</p><ul><li><strong>true</strong>: Hardened mode is enabled.</li><li><strong>false</strong>: <strong>(Default)</strong> Hardened mode is disabled.</li></ul></td>
+<td><ul><li>System Config path: <strong>Environment &gt; Web Server</strong></li><li><code>config.json</code> setting: <code>ServiceSettings</code> &gt; <code>EnableHardenedMode</code> &gt; <code>false</code></li><li>Environment variable: <code>MM_SERVICESETTINGS_ENABLEHARDENEDMODE</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+<Note>
+
+This setting was called `ServiceSettings.ExperimentalEnableHardenedMode` until Mattermost v11.11. On first start after upgrading, the server automatically migrates the old key to `ServiceSettings.EnableHardenedMode` and removes it from `config.json`.
+
+Changes made when hardened mode is enabled:
+
+- Failed login returns a generic error message instead of a specific message for username and password.
+- If [multi-factor authentication (MFA)](/administration-guide/onboard/multi-factor-authentication) is enabled, the route to check if a user has MFA enabled always returns true. This causes the MFA input screen to appear even if the user does not have MFA enabled. The user may enter any value to pass the screen. Note that hardened mode does not affect user experience when MFA is enforced.
+- Password reset does not inform the user that they can not reset their SSO account through Mattermost and instead claims to have sent the password reset email.
+- Mattermost sanitizes all 500 errors before returned to the client. Use the supplied `request_id` to match user-facing errors with the server logs.
+
+Post identity and display-override props (`from_webhook`, `from_bot`, `override_username`, `override_icon_url`, and related keys) are always stripped from caller-supplied create/update payloads for non-integration authors and re-applied only under verified integration authority. On update, stripping removes values the caller sent; existing identity props already stored on the post are preserved so a normal edit cannot wipe or replace a bot or webhook identity. That behavior is independent of hardened mode.
+
+</Note>
+
 ### Managed resource paths
 
 <table>
@@ -2558,7 +2588,7 @@ See the [Telemetry](/administration-guide/manage/telemetry#security-update-check
 
 With self-hosted deployments, you can configure Mattermost as a [high availability cluster-based deployment](/deployment-guide/reference-architecture/scale/high-availability-cluster-based-deployment) by going to **System Console \> Environment \> High Availability**, or by editing the `config.json` file as described in the following tables. Changes to configuration settings in this section require a server restart before taking effect.
 
-In a Mattermost high availability cluster-based deployment, the System Console is set to read-only, and settings can only be changed by editing the `config.json` file directly. However, to test a high availability cluster-based environment, you can disable `ClusterSettings.ReadOnlyConfig` in the `config.json` file by setting it to `false`. This allows changes applied using the System Console to be saved back to the configuration file.
+When a Mattermost high availability cluster-based deployment uses `config.json` for configuration, the System Console is set to read-only by default, and settings can only be changed by editing the `config.json` file directly. However, to test a high availability cluster-based environment, you can disable `ClusterSettings.ReadOnlyConfig` in the `config.json` file by setting it to `false`. This allows changes applied using the System Console to be saved back to the configuration file. When configuration is stored in the database, `ClusterSettings.ReadOnlyConfig` is ignored and the System Console remains fully editable. See [Store configuration in your database](/administration-guide/configure/configuration-in-your-database) for details.
 
 ### Enable high availability mode
 

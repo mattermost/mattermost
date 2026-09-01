@@ -277,7 +277,7 @@ func TestComputePostExposure(t *testing.T) {
 	t.Run("excludes bots", func(t *testing.T) {
 		channel := th.CreateChannel(t, th.BasicTeam)
 		bot := th.CreateBot(t)
-		botUser, appErr := th.App.GetUser(bot.UserId)
+		botUser, appErr := th.App.GetUser(th.Context, bot.UserId)
 		require.Nil(t, appErr)
 		th.LinkUserToTeam(t, botUser, th.BasicTeam)
 		th.AddUserToChannel(t, botUser, channel)

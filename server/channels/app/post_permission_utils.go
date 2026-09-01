@@ -4,14 +4,15 @@
 package app
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
-func PostPriorityCheckWithApp(where string, a *App, userId string, priority *model.PostPriority, rootId string) *model.AppError {
-	user, appErr := a.GetUser(userId)
+func PostPriorityCheckWithApp(where string, a *App, rctx request.CTX, userId string, priority *model.PostPriority, rootId string) *model.AppError {
+	user, appErr := a.GetUser(rctx, userId)
 	if appErr != nil {
 		return appErr
 	}
@@ -81,6 +82,22 @@ func postPriorityCheck(
 	return nil
 }
 
+func PostHardenedModeCheckWithApp(a *App, isIntegration bool, props model.StringInterface) *model.AppError {
+	hardenedModeEnabled := *a.Config().ServiceSettings.EnableHardenedMode
+	return postHardenedModeCheck(hardenedModeEnabled, isIntegration, props)
+}
+
+func postHardenedModeCheck(hardenedModeEnabled, isIntegration bool, props model.StringInterface) *model.AppError {
+	if hardenedModeEnabled {
+		if reservedProps := model.ContainsIntegrationsReservedProps(props); len(reservedProps) > 0 && !isIntegration {
+			return model.NewAppError("", "api.context.invalid_body_param.app_error", map[string]any{"Name": "props"}, fmt.Sprintf("Cannot use props reserved for integrations. props: %v", reservedProps), http.StatusBadRequest)
+		}
+	}
+
+	return nil
+}
+
+
 func userCreatePostPermissionCheckWithApp(rctx request.CTX, a *App, userId, channelId string) *model.AppError {
 	hasPermission := false
 	if ok, _ := a.HasPermissionToChannel(rctx, userId, channelId, model.PermissionCreatePost); ok {
@@ -141,7 +158,7 @@ func PostBurnOnReadCheckWithApp(where string, a *App, rctx request.CTX, userId, 
 		// Check if the DM is with a bot (AI agents, plugins, etc.)
 		otherUserId := channel.GetOtherUserIdForDM(userId)
 		if otherUserId != "" && otherUserId != userId {
-			otherUser, err := a.GetUser(otherUserId)
+			otherUser, err := a.GetUser(rctx, otherUserId)
 			if err != nil {
 				// Failed to retrieve the other user (user not found, DB error, etc.)
 				// Block burn-on-read post as we cannot validate the recipient

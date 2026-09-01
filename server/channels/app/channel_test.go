@@ -2165,7 +2165,7 @@ func TestAddUserToChannel(t *testing.T) {
 		require.Nil(t, appErr)
 	}()
 	bot := th.CreateBot(t)
-	botUser, _ := th.App.GetUser(bot.UserId)
+	botUser, _ := th.App.GetUser(th.Context, bot.UserId)
 	defer func() {
 		appErr := th.App.PermanentDeleteBot(th.Context, botUser.Id)
 		require.Nil(t, appErr)
@@ -2260,7 +2260,7 @@ func TestRemoveUserFromChannel(t *testing.T) {
 	}()
 
 	bot := th.CreateBot(t)
-	botUser, _ := th.App.GetUser(bot.UserId)
+	botUser, _ := th.App.GetUser(th.Context, bot.UserId)
 	defer func() {
 		appErr := th.App.PermanentDeleteBot(th.Context, botUser.Id)
 		require.Nil(t, appErr)
@@ -3035,6 +3035,8 @@ func TestMarkChannelAsUnreadFromPostStripsActionIntegrations(t *testing.T) {
 		*cfg.ServiceSettings.ThreadAutoFollow = true
 		*cfg.ServiceSettings.CollapsedThreads = model.CollapsedThreadsDefaultOn
 	})
+
+	th.AddUserToChannel(t, th.BasicUser2, th.BasicChannel)
 
 	rootPost, _, appErr := th.App.CreatePost(th.Context, &model.Post{
 		UserId:    th.BasicUser.Id,
