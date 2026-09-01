@@ -869,6 +869,10 @@ func verifyLocaleFile(filename string, en map[string]Item, warnMissingIDs bool) 
 		return []string{fmt.Sprintf("%s: %v", name, err)}, nil
 	}
 
+	// Unreachable in practice, and kept as an invariant guard: the loader above
+	// derives the language with language.Parse, which only yields one when
+	// GetPluralSpec is non-nil for the same tag, so a file that loaded always
+	// has a spec here.
 	categories := pluralCategories(locale)
 	if categories == nil {
 		problems = append(problems, fmt.Sprintf("%s: no CLDR plural spec for locale %q", name, locale))
