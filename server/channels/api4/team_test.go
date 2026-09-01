@@ -3834,6 +3834,63 @@ func TestUpdateTeamMemberRolesRejectsGuestAndAdmin(t *testing.T) {
 	require.Equal(t, rolesBefore, memberAfter.Roles)
 }
 
+func TestUpdateTeamMemberRolesRejectsNonTeamScopedRoles(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	SystemAdminClient := th.SystemAdminClient
+
+	const teamMember = "team_user"
+
+	invalidRoles := []struct {
+		name  string
+		roles string
+	}{
+		{name: "system manager with team user", roles: teamMember + " " + model.SystemManagerRoleId},
+		{name: "system user manager with team user", roles: teamMember + " " + model.SystemUserManagerRoleId},
+		{name: "system read only admin with team user", roles: teamMember + " " + model.SystemReadOnlyAdminRoleId},
+		{name: "system post all with team user", roles: teamMember + " " + model.SystemPostAllRoleId},
+		{name: "team post all with team user", roles: teamMember + " " + model.TeamPostAllRoleId},
+		{name: "team post all public with team user", roles: teamMember + " " + model.TeamPostAllPublicRoleId},
+		{name: "channel user with team user", roles: teamMember + " " + model.ChannelUserRoleId},
+		{name: "custom group user with team user", roles: teamMember + " " + model.CustomGroupUserRoleId},
+	}
+
+	for _, tc := range invalidRoles {
+		t.Run("rejects "+tc.name, func(t *testing.T) {
+			memberBefore, _, err := SystemAdminClient.GetTeamMember(context.Background(), th.BasicTeam.Id, th.BasicUser2.Id, "")
+			require.NoError(t, err)
+			rolesBefore := memberBefore.Roles
+
+			resp, err := SystemAdminClient.UpdateTeamMemberRoles(context.Background(), th.BasicTeam.Id, th.BasicUser2.Id, tc.roles)
+			require.Error(t, err)
+			CheckBadRequestStatus(t, resp)
+
+			memberAfter, _, err := SystemAdminClient.GetTeamMember(context.Background(), th.BasicTeam.Id, th.BasicUser2.Id, "")
+			require.NoError(t, err)
+			require.Equal(t, rolesBefore, memberAfter.Roles)
+		})
+	}
+
+	validRoles := []struct {
+		name  string
+		roles string
+	}{
+		{name: "team member", roles: teamMember},
+		{name: "team admin", roles: "team_user team_admin"},
+	}
+
+	for _, tc := range validRoles {
+		t.Run("accepts "+tc.name, func(t *testing.T) {
+			_, err := SystemAdminClient.UpdateTeamMemberRoles(context.Background(), th.BasicTeam.Id, th.BasicUser2.Id, tc.roles)
+			require.NoError(t, err)
+
+			member, _, err := SystemAdminClient.GetTeamMember(context.Background(), th.BasicTeam.Id, th.BasicUser2.Id, "")
+			require.NoError(t, err)
+			require.ElementsMatch(t, strings.Fields(tc.roles), strings.Fields(member.Roles))
+		})
+	}
+}
+
 func TestUpdateTeamMemberSchemeRoles(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
