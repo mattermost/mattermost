@@ -33,6 +33,10 @@ jobs:
   warm:
     name: Warm Cypress deps cache
     runs-on: ubuntu-24.04
+    # workflow_dispatch can target any branch. Warming from one would write a
+    # branch-scoped entry keyed on that branch's lockfile — quota spent on a key
+    # no other branch can read, which is the churn this workflow exists to avoid.
+    if: github.ref == 'refs/heads/master'
     # Bound a hung run so it can't hold the concurrency group for the default
     # 6-hour timeout and block subsequent warm runs.
     timeout-minutes: 30
