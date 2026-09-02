@@ -269,7 +269,7 @@ func TestStartPostsTemplateFailureDoesNotCreateProcessors(t *testing.T) {
 	appErr := es.Start(context.Background())
 	require.NotNil(t, appErr)
 	require.Contains(t, appErr.Error(), "failed to find tokenizer under name [icu_tokenizer]")
-	require.Contains(t, appErr.Error(), "Verify that the required analysis-icu plugin is installed on every Elasticsearch node")
+	require.Contains(t, appErr.Error(), "Verify that the required analysis-icu plugin is installed on every elasticsearch node")
 	require.Equal(t, int32(0), es.ready.Load())
 	require.Nil(t, es.bulkProcessor)
 	require.Nil(t, es.syncBulkProcessor)
@@ -518,27 +518,6 @@ func TestWrapElasticsearchTemplateError(t *testing.T) {
 	generic := errors.New("template request failed")
 	require.Same(t, generic, wrapElasticsearchTemplateError(generic))
 	require.NoError(t, wrapElasticsearchTemplateError(nil))
-
-	guidance := "Verify that the required analysis-icu plugin is installed on every Elasticsearch node"
-	withGuidance := wrapElasticsearchPostsTemplateError(wrapped)
-	require.Contains(t, withGuidance.Error(), guidance)
-
-	unrelatedReason := "failed to find tokenizer under name [standard]"
-	unrelated := &types.ElasticsearchError{
-		ErrorCause: types.ErrorCause{
-			Type:   "illegal_argument_exception",
-			Reason: &outerReason,
-			CausedBy: &types.ErrorCause{
-				Type:   "illegal_argument_exception",
-				Reason: &unrelatedReason,
-			},
-		},
-		Status: 400,
-	}
-	withUnrelatedError := wrapElasticsearchPostsTemplateError(unrelated)
-	require.Contains(t, withUnrelatedError.Error(), guidance)
-	require.ErrorIs(t, withUnrelatedError, unrelated)
-	require.NoError(t, wrapElasticsearchPostsTemplateError(nil))
 }
 
 type testBulkClient struct {

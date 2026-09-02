@@ -28,7 +28,6 @@ import (
 	"github.com/opensearch-project/opensearch-go/v4/opensearchapi"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app/platform"
@@ -49,16 +48,6 @@ var (
 func isIndexNotFound(err error) bool {
 	var osErr *opensearch.StructError
 	return errors.As(err, &osErr) && osErr.Status == http.StatusNotFound && osErr.Err.Type == "index_not_found_exception"
-}
-
-// wrapOpensearchPostsTemplateError preserves the original OpenSearch error and adds actionable ICU
-// guidance for posts-template failures.
-func wrapOpensearchPostsTemplateError(err error) error {
-	if err == nil {
-		return nil
-	}
-
-	return fmt.Errorf("%w: %s", err, i18n.T("ent.elasticsearch.analysis_icu_required", map[string]any{"Backend": "OpenSearch"}))
 }
 
 type OpensearchInterfaceImpl struct {
@@ -209,7 +198,7 @@ func (os *OpensearchInterfaceImpl) Start(ctx context.Context) *model.AppError {
 		Body:          bytes.NewReader(templateBuf),
 	})
 	if err != nil {
-		return model.NewAppError("Opensearch.start", "ent.elasticsearch.create_template_posts_if_not_exists.template_create_failed", map[string]any{"Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusInternalServerError).Wrap(wrapOpensearchPostsTemplateError(err))
+		return model.NewAppError("Opensearch.start", "ent.elasticsearch.create_template_posts_if_not_exists.template_create_failed", map[string]any{"Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	// Set up channels index template.

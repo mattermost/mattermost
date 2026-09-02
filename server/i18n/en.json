@@ -10399,10 +10399,6 @@
     "translation": "{{.Backend}} aggregator worker failed due to the indexing job failing"
   },
   {
-    "id": "ent.elasticsearch.analysis_icu_required",
-    "translation": "Verify that the required analysis-icu plugin is installed on every {{.Backend}} node, then restart {{.Backend}}."
-  },
-  {
     "id": "ent.elasticsearch.backfill_posts_channel_type.error",
     "translation": "{{.Backend}} failed to backfill channel type on posts"
   },
@@ -10444,7 +10440,7 @@
   },
   {
     "id": "ent.elasticsearch.create_template_posts_if_not_exists.template_create_failed",
-    "translation": "Failed to create {{.Backend}} template for posts"
+    "translation": "Failed to create {{.Backend}} template for posts. Verify that the required analysis-icu plugin is installed on every {{.Backend}} node, then restart {{.Backend}}"
   },
   {
     "id": "ent.elasticsearch.create_template_users_if_not_exists.template_create_failed",

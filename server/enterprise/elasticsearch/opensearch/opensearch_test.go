@@ -83,7 +83,7 @@ func TestStartTemplateFailureDoesNotCreateBulkProcessors(t *testing.T) {
 	appErr := impl.Start(context.Background())
 	require.NotNil(t, appErr)
 	require.Contains(t, appErr.Error(), "icu_tokenizer")
-	require.Contains(t, appErr.Error(), "Verify that the required analysis-icu plugin is installed on every OpenSearch node")
+	require.Contains(t, appErr.Error(), "Verify that the required analysis-icu plugin is installed on every opensearch node")
 	require.Equal(t, int32(0), impl.ready.Load())
 	require.Nil(t, impl.bulkProcessor)
 	require.Nil(t, impl.syncBulkProcessor)
@@ -129,41 +129,6 @@ func TestStartWithoutPluginInventoryUsesTemplateValidation(t *testing.T) {
 		requestedTemplates = append(requestedTemplates, <-templateRequested)
 	}
 	require.ElementsMatch(t, []string{common.IndexBasePosts, common.IndexBaseChannels, common.IndexBaseUsers, common.IndexBaseFiles}, requestedTemplates)
-}
-
-func TestWrapOpensearchPostsTemplateError(t *testing.T) {
-	guidance := "Verify that the required analysis-icu plugin is installed on every OpenSearch node"
-	missingICU := &opensearch.StructError{
-		Status: 400,
-		Err: opensearch.Err{
-			Type:   "illegal_argument_exception",
-			Reason: "failed to parse template",
-			CausedBy: &opensearch.CausedBy{
-				Type:   "illegal_argument_exception",
-				Reason: "Custom Analyzer [mm_lowercaser] failed to find tokenizer under name [icu_tokenizer]",
-			},
-		},
-	}
-
-	withGuidance := wrapOpensearchPostsTemplateError(missingICU)
-	require.Contains(t, withGuidance.Error(), guidance)
-	require.ErrorIs(t, withGuidance, missingICU)
-
-	unrelated := &opensearch.StructError{
-		Status: 400,
-		Err: opensearch.Err{
-			Type:   "illegal_argument_exception",
-			Reason: "failed to parse template",
-			CausedBy: &opensearch.CausedBy{
-				Type:   "illegal_argument_exception",
-				Reason: "failed to find tokenizer under name [standard]",
-			},
-		},
-	}
-	withUnrelatedError := wrapOpensearchPostsTemplateError(unrelated)
-	require.Contains(t, withUnrelatedError.Error(), guidance)
-	require.ErrorIs(t, withUnrelatedError, unrelated)
-	require.NoError(t, wrapOpensearchPostsTemplateError(nil))
 }
 
 // missingCJKPluginsWarning mirrors the warning Start logs when no CJK analyzer plugin is detected.

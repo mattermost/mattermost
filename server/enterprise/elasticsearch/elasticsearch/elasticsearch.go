@@ -26,7 +26,6 @@ import (
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types/enums/sortorder"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app/platform"
@@ -83,15 +82,6 @@ func wrapElasticsearchTemplateError(err error) error {
 	}
 
 	return fmt.Errorf("caused by: %s: %w", causes, err)
-}
-
-func wrapElasticsearchPostsTemplateError(err error) error {
-	err = wrapElasticsearchTemplateError(err)
-	if err == nil {
-		return nil
-	}
-
-	return fmt.Errorf("%s: %w", i18n.T("ent.elasticsearch.analysis_icu_required", map[string]any{"Backend": "Elasticsearch"}), err)
 }
 
 func formatElasticsearchCauses(cause *types.ErrorCause) string {
@@ -231,7 +221,7 @@ func (es *ElasticsearchInterfaceImpl) Start(ctx context.Context) *model.AppError
 		Request(common.GetPostTemplate(es.Platform.Config(), opts...)).
 		Do(ctx)
 	if err != nil {
-		return model.NewAppError("Elasticsearch.start", "ent.elasticsearch.create_template_posts_if_not_exists.template_create_failed", map[string]any{"Backend": model.ElasticsearchSettingsESBackend}, "", http.StatusInternalServerError).Wrap(wrapElasticsearchPostsTemplateError(err))
+		return model.NewAppError("Elasticsearch.start", "ent.elasticsearch.create_template_posts_if_not_exists.template_create_failed", map[string]any{"Backend": model.ElasticsearchSettingsESBackend}, "", http.StatusInternalServerError).Wrap(wrapElasticsearchTemplateError(err))
 	}
 
 	// Set up channels index template.
