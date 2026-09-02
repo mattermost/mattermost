@@ -254,7 +254,7 @@ func exportCreateCmdF(c client.Client, command *cobra.Command, args []string) er
 				return fmt.Errorf("channel %q not found in team %q", name, resolvedTeams[0].name)
 			}
 		}
-		resolvedChannelNames = append(resolvedChannelNames, name)
+		resolvedChannelNames = append(resolvedChannelNames, strings.ToLower(name))
 	}
 
 	if len(resolvedChannelNames) > 0 && len(resolvedTeams) == 0 {
