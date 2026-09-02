@@ -206,12 +206,11 @@ func deployPlugin(ctx context.Context, client *model.Client4) error {
 	}
 
 	// Poll until the plugin reaches Running state.
-	deadline := time.Now().Add(30 * time.Second)
-	pollCtx, cancel := context.WithDeadline(ctx, deadline)
+	pollCtx, cancel := context.WithDeadline(ctx, time.Now().Add(30*time.Second))
 	defer cancel()
 
 	var lastStatusErr error
-	for time.Now().Before(deadline) {
+	for {
 		statuses, _, statusErr := client.GetPluginStatuses(pollCtx)
 		if statusErr != nil {
 			lastStatusErr = statusErr
@@ -223,16 +222,14 @@ func deployPlugin(ctx context.Context, client *model.Client4) error {
 			}
 		}
 		select {
-		case <-ctx.Done():
-			return ctx.Err()
+		case <-pollCtx.Done():
+			if lastStatusErr != nil {
+				return fmt.Errorf("plugin %s did not reach running state within 30s: %w", pluginID, lastStatusErr)
+			}
+			return fmt.Errorf("plugin %s did not reach running state within 30s", pluginID)
 		case <-time.After(500 * time.Millisecond):
 		}
 	}
-
-	if lastStatusErr != nil {
-		return fmt.Errorf("plugin %s did not reach running state within 30s: %w", pluginID, lastStatusErr)
-	}
-	return fmt.Errorf("plugin %s did not reach running state within 30s", pluginID)
 }
 
 func findRepoRoot() (string, error) {
