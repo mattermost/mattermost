@@ -257,7 +257,7 @@ jobs:
           ref: ${{ inputs.commit_sha }}
           fetch-depth: 1
       - name: ci/dispatch-begin
-        uses: mattermost/mattermost-test-system-io/.github/actions/test-system-io-dispatch-begin@1631d8fcea24f4545a0b3b7f77e41c2fe0be4418 # 2026-07-28
+        uses: mattermost/mattermost-test-system-io/.github/actions/test-system-io-dispatch-begin@ab06a20 # 2026-09-02, mattermost-test-system-io#101 (W9 environment-metadata)
         with:
           # Staging TSIO is opt-in via repo variable, so a demo cannot leave
           # production runs pointed at staging after the fact.
@@ -266,6 +266,14 @@ jobs:
           repo-dir: ${{ github.workspace }}
           composite-identity: ${{ needs.prepare-run.outputs.composite-identity-json }}
           total-reports-expected: ${{ inputs.workers }}
+          # W9 — see the playwright template for why this exists.
+          environment-metadata: |
+            {
+              "server_edition": "${{ inputs.server_edition || 'enterprise' }}",
+              "server": "${{ inputs.server }}",
+              "server_image_tag": "${{ inputs.server_image_tag }}",
+              "testcontainers": "false"
+            }
           retest-on-fail: ${{ inputs.retest_on_fail }}
           cypress-stage: ${{ inputs.cypress_stage }}
           cypress-include-group: ${{ inputs.cypress_include_group }}
@@ -342,7 +350,7 @@ jobs:
         working-directory: e2e-tests
         run: make start-server
       - name: ci/dispatch-run
-        uses: mattermost/mattermost-test-system-io/.github/actions/test-system-io-dispatch-run@1631d8fcea24f4545a0b3b7f77e41c2fe0be4418 # 2026-07-28
+        uses: mattermost/mattermost-test-system-io/.github/actions/test-system-io-dispatch-run@1631d8fcea24f4545a0b3b7f77e41c2fe0be4418
         with:
           use-staging: ${{ vars.E2E_USE_STAGING_TEST_IO_URL != 'false' }}
           framework: cypress
@@ -387,7 +395,7 @@ jobs:
       - name: ci/run-summary
         id: summary
         continue-on-error: true
-        uses: mattermost/mattermost-test-system-io/.github/actions/test-system-io-summary@e2d5032cfa71a3ad11b0975b135cd221564f2787 # 2026-08-06
+        uses: mattermost/mattermost-test-system-io/.github/actions/test-system-io-summary@e2d5032cfa71a3ad11b0975b135cd221564f2787
         with:
           use-staging: ${{ vars.E2E_USE_STAGING_TEST_IO_URL != 'false' }}
           composite-identity: ${{ needs.prepare-run.outputs.composite-identity-json }}
@@ -433,7 +441,7 @@ jobs:
     steps:
       - name: ci/ai-flake-triage
         id: triage
-        uses: mattermost/mattermost-test-system-io/.github/actions/test-system-io-ai-triage@a3b7e34 # 2026-09-02, mattermost-test-system-io#101 (rate-shift gate, quarantine, blast-radius queue)
+        uses: mattermost/mattermost-test-system-io/.github/actions/test-system-io-ai-triage@ab06a20 # 2026-09-02, mattermost-test-system-io#101
         with:
           use-staging: ${{ vars.E2E_USE_STAGING_TEST_IO_URL != 'false' }}
           composite-identity: ${{ needs.prepare-run.outputs.composite-identity-json }}
@@ -489,7 +497,7 @@ jobs:
           ref: ${{ inputs.commit_sha }}
           fetch-depth: 0
       - name: ci/ai-test-autofix
-        uses: mattermost/mattermost-test-system-io/.github/actions/test-system-io-ai-triage@a3b7e34 # 2026-09-02, mattermost-test-system-io#101 (rate-shift gate, quarantine, blast-radius queue)
+        uses: mattermost/mattermost-test-system-io/.github/actions/test-system-io-ai-triage@ab06a20 # 2026-09-02, mattermost-test-system-io#101
         with:
           use-staging: ${{ vars.E2E_USE_STAGING_TEST_IO_URL != 'false' }}
           composite-identity: ${{ needs.prepare-run.outputs.composite-identity-json }}

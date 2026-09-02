@@ -240,7 +240,7 @@ jobs:
           ref: ${{ inputs.commit_sha }}
           fetch-depth: 1
       - name: ci/dispatch-begin
-        uses: mattermost/mattermost-test-system-io/.github/actions/test-system-io-dispatch-begin@1631d8fcea24f4545a0b3b7f77e41c2fe0be4418 # 2026-07-28
+        uses: mattermost/mattermost-test-system-io/.github/actions/test-system-io-dispatch-begin@ab06a20 # 2026-09-02, mattermost-test-system-io#101 (W9 environment-metadata)
         with:
           # Staging TSIO is opt-in via repo variable, so a demo cannot leave
           # production runs pointed at staging after the fact.
@@ -249,6 +249,21 @@ jobs:
           repo-dir: ${{ github.workspace }}
           composite-identity: ${{ needs.prepare-run.outputs.composite-identity-json }}
           total-reports-expected: ${{ inputs.workers }}
+          # W9 — the run configuration this group executes under. The
+          # deterministic config-delta pre-tag compares a failure against the
+          # last passing run for the same test and, when configuration is the
+          # ONLY difference, returns FLAKY_INFRA with zero model calls.
+          environment-metadata: |
+            {
+              "server_edition": "${{ inputs.server_edition || 'enterprise' }}",
+              "server": "${{ inputs.server }}",
+              "server_image_tag": "${{ inputs.server_image_tag }}",
+              "playwright_project": "${{ inputs.playwright_project }}",
+              "playwright_retries": "${{ inputs.playwright_retries }}",
+              "testcontainers": "true",
+              "testcontainers_services": "openldap,keycloak,elasticsearch,opensearch,minio,azurite",
+              "triage_demo": "${{ vars.E2E_TRIAGE_DEMO }}"
+            }
           retest-on-fail: ${{ inputs.retest_on_fail }}
           playwright-project: ${{ inputs.playwright_project }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -334,7 +349,7 @@ jobs:
         working-directory: e2e-tests/playwright
         run: npx playwright test --project=setup
       - name: ci/dispatch-run
-        uses: mattermost/mattermost-test-system-io/.github/actions/test-system-io-dispatch-run@1631d8fcea24f4545a0b3b7f77e41c2fe0be4418 # 2026-07-28
+        uses: mattermost/mattermost-test-system-io/.github/actions/test-system-io-dispatch-run@1631d8fcea24f4545a0b3b7f77e41c2fe0be4418
         with:
           use-staging: ${{ vars.E2E_USE_STAGING_TEST_IO_URL != 'false' }}
           framework: playwright
@@ -376,7 +391,7 @@ jobs:
       - name: ci/run-summary
         id: summary
         continue-on-error: true
-        uses: mattermost/mattermost-test-system-io/.github/actions/test-system-io-summary@e2d5032cfa71a3ad11b0975b135cd221564f2787 # 2026-08-06
+        uses: mattermost/mattermost-test-system-io/.github/actions/test-system-io-summary@e2d5032cfa71a3ad11b0975b135cd221564f2787
         with:
           use-staging: ${{ vars.E2E_USE_STAGING_TEST_IO_URL != 'false' }}
           composite-identity: ${{ needs.prepare-run.outputs.composite-identity-json }}
@@ -422,7 +437,7 @@ jobs:
     steps:
       - name: ci/ai-flake-triage
         id: triage
-        uses: mattermost/mattermost-test-system-io/.github/actions/test-system-io-ai-triage@a3b7e34 # 2026-09-02, mattermost-test-system-io#101 (rate-shift gate, quarantine, blast-radius queue)
+        uses: mattermost/mattermost-test-system-io/.github/actions/test-system-io-ai-triage@ab06a20 # 2026-09-02, mattermost-test-system-io#101
         with:
           use-staging: ${{ vars.E2E_USE_STAGING_TEST_IO_URL != 'false' }}
           composite-identity: ${{ needs.prepare-run.outputs.composite-identity-json }}
@@ -484,7 +499,7 @@ jobs:
           ref: ${{ inputs.commit_sha }}
           fetch-depth: 0
       - name: ci/ai-test-autofix
-        uses: mattermost/mattermost-test-system-io/.github/actions/test-system-io-ai-triage@a3b7e34 # 2026-09-02, mattermost-test-system-io#101 (rate-shift gate, quarantine, blast-radius queue)
+        uses: mattermost/mattermost-test-system-io/.github/actions/test-system-io-ai-triage@ab06a20 # 2026-09-02, mattermost-test-system-io#101
         with:
           use-staging: ${{ vars.E2E_USE_STAGING_TEST_IO_URL != 'false' }}
           composite-identity: ${{ needs.prepare-run.outputs.composite-identity-json }}
