@@ -2,7 +2,7 @@
   "_meta": {
     "maintained": "by hand",
     "note": "Legacy Sphinx URL redirects, originally bulk-extracted during the docs migration. Add new entries at the end of the array. `from` must be unique and must not contain an anchor; `to` should point at a page that exists, or the redirect silently dead-ends.",
-    "active": 736
+    "active": 738
   },
   "redirects": [
     {
@@ -1027,7 +1027,7 @@
     },
     {
       "from": "/deploy/server/orchestration",
-      "to": "/deployment-guide/server/orchestration"
+      "to": "/get-help/deployment-solution-programs"
     },
     {
       "from": "/deploy/server/prepare-mattermost-mysql-database",
@@ -2952,6 +2952,10 @@
     {
       "from": "/administration-guide/scale/server-architecture",
       "to": "/deployment-guide/scale/server-architecture"
+    },
+    {
+      "from": "/deployment-guide/server/orchestration",
+      "to": "/get-help/deployment-solution-programs"
     }
   ]
 }

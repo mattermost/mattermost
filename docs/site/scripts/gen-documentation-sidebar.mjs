@@ -48,7 +48,7 @@ const TOP_LEVEL = [
   {dir: 'security-guide',       label: 'Security Guide'},
   {dir: 'end-user-guide',       label: 'End User Guide'},
   {dir: 'integrations-guide',   label: 'Integrations Guide'},
-  {dir: 'get-help',             label: 'Get Help'},
+  {dir: 'get-help',             label: 'Support and Community'},
 ];
 
 // ---------------------------------------------------------------------------
@@ -146,8 +146,10 @@ const DEPLOYMENT_GROUPS = {
     ],
   },
 
-  // What you decide before touching a server: the component model, the sizing
-  // builder, the requirements matrix, and who can deploy for you.
+  // What you decide before touching a server. Deployment Solution Programs
+  // deliberately isn't here — most of that page is a compliance spec for
+  // third parties building installers, so it lives under Support and
+  // Community, linked from the Plan and Deploy landing pages.
   plan: {
     label: 'Plan',
     landing: 'server/server-deployment-planning',
@@ -155,7 +157,6 @@ const DEPLOYMENT_GROUPS = {
       'application-architecture',
       'deployment-architecture',
       'software-hardware-requirements',
-      'server/orchestration',
     ],
   },
 
