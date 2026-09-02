@@ -1921,6 +1921,25 @@ func (a *App) getUsersByUsernames(usernames []string, deactivateMissingUsers boo
 	return users, nil
 }
 
+// prefetchUsersByUsernames batch-fetches usernames into the given users map as a best-effort
+// optimization, so callers like extractThreadMembers hit the pre-fetched map instead of issuing
+// a GetByUsername call per entry. Unlike getUsersByUsernames, missing usernames are not an error
+// here — callers are expected to have their own fallback/error handling for entries not found.
+func (a *App) prefetchUsersByUsernames(usernames []string, users map[string]*model.User) {
+	if len(usernames) == 0 {
+		return
+	}
+
+	fetched, err := a.Srv().Store().User().GetProfilesByUsernames(utils.RemoveDuplicatesFromStringArray(usernames), nil)
+	if err != nil {
+		return
+	}
+
+	for _, user := range fetched {
+		users[strings.ToLower(user.Username)] = user
+	}
+}
+
 func (a *App) getTeamsByNames(names []string) (map[string]*model.Team, *model.AppError) {
 	allTeams, err := a.Srv().Store().Team().GetByNames(names)
 	if err != nil {
@@ -2002,12 +2021,18 @@ func (a *App) importMultiplePostLines(rctx request.CTX, lines []imports.LineImpo
 	rctx.Logger().Info("Importing post lines", mlog.Int("count", len(lines)), mlog.Int("first_line", lines[0].LineNumber))
 
 	usernames := []string{}
+	followerUsernames := []string{}
 	teamNames := make([]string, len(lines))
 	postsData := make([]*imports.PostImportData, len(lines))
 	for i, line := range lines {
 		usernames = append(usernames, *line.Post.User)
 		if line.Post.FlaggedBy != nil {
 			usernames = append(usernames, *line.Post.FlaggedBy...)
+		}
+		if line.Post.ThreadFollowers != nil {
+			for _, follower := range *line.Post.ThreadFollowers {
+				followerUsernames = append(followerUsernames, *follower.User)
+			}
 		}
 		teamNames[i] = *line.Post.Team
 		postsData[i] = line.Post
@@ -2017,6 +2042,7 @@ func (a *App) importMultiplePostLines(rctx request.CTX, lines []imports.LineImpo
 	if err != nil {
 		return 0, err
 	}
+	a.prefetchUsersByUsernames(followerUsernames, users)
 
 	teams, err := a.getTeamsByNames(teamNames)
 	if err != nil {
@@ -2563,10 +2589,16 @@ func (a *App) importMultipleDirectPostLines(rctx request.CTX, lines []imports.Li
 	}
 
 	usernames := []string{}
+	followerUsernames := []string{}
 	for _, line := range lines {
 		usernames = append(usernames, *line.DirectPost.User)
 		if line.DirectPost.FlaggedBy != nil {
 			usernames = append(usernames, *line.DirectPost.FlaggedBy...)
+		}
+		if line.DirectPost.ThreadFollowers != nil {
+			for _, follower := range *line.DirectPost.ThreadFollowers {
+				followerUsernames = append(followerUsernames, *follower.User)
+			}
 		}
 		usernames = append(usernames, *line.DirectPost.ChannelMembers...)
 	}
@@ -2575,6 +2607,7 @@ func (a *App) importMultipleDirectPostLines(rctx request.CTX, lines []imports.Li
 	if err != nil {
 		return 0, err
 	}
+	a.prefetchUsersByUsernames(followerUsernames, users)
 
 	var (
 		postsWithData                = []postAndData{}
