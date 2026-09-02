@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -475,6 +476,22 @@ func TestOwnerSyncBidirectionalTransitions(t *testing.T) {
 	})
 
 	rctxHuman := RequestContextWithCallerID(th.Context, model.NewId())
+
+	// These fields' field.write is pinned to sysadmin (the same column-pinning
+	// every access_control field gets), and the hook's owner-managed branch no
+	// longer bypasses that ladder for a human once the field carries
+	// Permissions -- an administrator reaching this service call directly, the
+	// way this test does, needs the same standing an api4 caller would already
+	// have through SessionPropertyFieldEditBasis. defaultLadderCheckerForTests
+	// treats every caller as an ordinary member, so this test's own edits need
+	// their own checker rather than inferring privilege from a fixture's ID.
+	th.service.setLadderCheckerForTests(func(_ request.CTX, _ string, field *model.PropertyField, action, _ string) bool {
+		if field.Permissions == nil {
+			return false
+		}
+		return model.PermissionLevelSysadmin.AtMostAsPermissiveAs(field.Permissions.Restrictions.TierFor(action))
+	})
+	t.Cleanup(func() { th.service.setLadderCheckerForTests(nil) })
 
 	newValue := func(fieldID string) *model.PropertyValue {
 		return &model.PropertyValue{

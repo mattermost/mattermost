@@ -8705,6 +8705,10 @@
     "translation": "Cannot modify type of a linked field. Type is inherited from the source."
   },
   {
+    "id": "app.property_field.update.masking_discarded.app_error",
+    "translation": "Cannot change this field's access mode because it contains data the caller may not read."
+  },
+  {
     "id": "app.property_field.update.name_conflict.app_error",
     "translation": "Cannot update property to \"{{.Name}}\": a property with this name already exists at the {{.ConflictLevel}} level."
   },

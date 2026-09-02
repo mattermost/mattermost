@@ -7,6 +7,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"maps"
 	"net/http"
 	"reflect"
 
@@ -64,7 +65,11 @@ func (ps *PropertyService) createPropertyField(field *model.PropertyField) (*mod
 		return ps.createFieldWithOptionLinks(field)
 	}
 
-	// If this field links to a source, validate the source and copy its schema
+	// If this field links to a source, validate the source and copy its schema.
+	// source is declared here rather than with := inside the block below so
+	// the permissions default after the block can reuse this same fetch
+	// instead of reading the template a second time.
+	var source *model.PropertyField
 	if field.LinkedFieldID != nil && *field.LinkedFieldID != "" {
 		// Templates are definition-only and cannot themselves be linked
 		if field.ObjectType == model.PropertyFieldObjectTypeTemplate {
@@ -77,7 +82,8 @@ func (ps *PropertyService) createPropertyField(field *model.PropertyField) (*mod
 			)
 		}
 
-		source, err := ps.fieldStore.Get(store.WithMaster(context.Background()), "", *field.LinkedFieldID)
+		var err error
+		source, err = ps.fieldStore.Get(store.WithMaster(context.Background()), "", *field.LinkedFieldID)
 		if err != nil {
 			if store.IsErrNotFound(err) {
 				return nil, model.NewAppError(
@@ -183,6 +189,10 @@ func (ps *PropertyService) createPropertyField(field *model.PropertyField) (*mod
 		}
 	}
 
+	if err := ps.defaultPropertyFieldPermissions(field, source); err != nil {
+		return nil, err
+	}
+
 	// Check for hierarchical name conflicts
 	conflictLevel, err := ps.fieldStore.CheckPropertyNameConflict(field, "")
 	if err != nil {
@@ -200,6 +210,70 @@ func (ps *PropertyService) createPropertyField(field *model.PropertyField) (*mod
 	}
 
 	return ps.createFieldWithOptionLinks(field)
+}
+
+// defaultPropertyFieldPermissions gives field a Permissions object converted
+// from its legacy permission columns and, for an access_control field, its
+// Attrs, when the caller submitted none -- so every PSAv2/v3 field reaches the
+// store carrying one, and the decision engine can eventually stop consulting
+// the legacy columns at all. A field arriving with its own Permissions is left
+// exactly as submitted: a v3 caller's object is authoritative, and a caller
+// creating a field controls its own permissions by design. template is the
+// linked field's source when field.LinkedFieldID is set (nil otherwise); its
+// Permissions caps the converted field's own option.read, the same cap the
+// startup backfill applies when converting a linked field.
+func (ps *PropertyService) defaultPropertyFieldPermissions(field *model.PropertyField, template *model.PropertyField) error {
+	if field.Permissions != nil {
+		return nil
+	}
+
+	convertAttrs, err := ps.groupConvertsAttrs(field.GroupID)
+	if err != nil {
+		return fmt.Errorf("defaultPropertyFieldPermissions: %w", err)
+	}
+
+	opts := model.LegacyConversionOpts{ConvertAttrs: convertAttrs, Template: templatePermissionsOrZero(template)}
+	field.Permissions = model.PermissionsFromLegacy(field, opts)
+	return nil
+}
+
+// groupConvertsAttrs reports whether groupID is the access_control group,
+// which is the only group whose Attrs (protected, access_mode, owners,
+// source plugin, sync lock) were ever enforced -- everywhere else there is
+// nothing in Attrs to preserve. A deployment that has never registered the
+// group (no CPA fields at all) cannot have a field belonging to it either,
+// so a not-found lookup means false rather than a failed create or update.
+func (ps *PropertyService) groupConvertsAttrs(groupID string) (bool, error) {
+	accessControlGroup, err := ps.Group(model.AccessControlPropertyGroupName)
+	var notFound *store.ErrNotFound
+	switch {
+	case err == nil:
+		return groupID == accessControlGroup.ID, nil
+	case errors.As(err, &notFound):
+		// ps.Group wraps the store error, so the not-found check has to see
+		// through that wrapping -- store.IsErrNotFound does a plain type
+		// assertion and would miss it.
+		return false, nil
+	default:
+		return false, fmt.Errorf("failed to get access control property group: %w", err)
+	}
+}
+
+// templatePermissionsOrZero returns template's Permissions, or a zero-value
+// Permissions when template is nil (field is not linked) or has not itself
+// converted yet -- a template still legacy-shaped is a row the startup
+// backfill has not reached, and validateLinkedFieldOptionReadCeiling already
+// treats an unconverted template as a ceiling of none for the same reason:
+// there is nothing yet to compare against, and refusing the field's own
+// option.read anything but none is the recoverable direction.
+func templatePermissionsOrZero(template *model.PropertyField) *model.Permissions {
+	if template == nil {
+		return nil
+	}
+	if template.Permissions != nil {
+		return template.Permissions
+	}
+	return &model.Permissions{}
 }
 
 // validateLinkedFieldOptionReadCeiling refuses a linked field whose option.read
@@ -456,6 +530,16 @@ func (ps *PropertyService) updatePropertyFields(rctx request.CTX, groupID string
 			continue
 		}
 
+		// A field converted at create time carries the owners, source plugin
+		// and sync source it had at that moment. Keep it in sync with a v2
+		// caller's legacy-shaped update before anything below reads
+		// field.Permissions, or a co-owner or sync source added through the
+		// legacy Attrs path would be silently refused by the very object that
+		// was supposed to grant it.
+		if err := ps.translateLegacyPermissionKeys(field, existing); err != nil {
+			return nil, nil, nil, err
+		}
+
 		// A field with more than model.PropertyFieldMaxHydratedOptions options
 		// reads back with its option list left out, so a caller that read it and
 		// is now writing it back has no idea what the field's options are. Any
@@ -666,6 +750,24 @@ func (ps *PropertyService) updatePropertyFields(rctx request.CTX, groupID string
 		}
 	}
 
+	// A field left with no Permissions by translateLegacyPermissionKeys above
+	// (nothing legacy changed, so nothing was reconverted) still must not
+	// reach the store nil: there is no legitimate "clear the permissions"
+	// write, and a field with none would eventually deny everyone everything
+	// once nothing else falls back to the legacy columns. Backfilling here,
+	// after every check above that treats nil as meaningful (the option-read
+	// ceiling in particular) has already run, is what lets those checks keep
+	// seeing "no Permissions object was submitted" for a field nothing
+	// changed on.
+	for _, field := range fields {
+		if field.Permissions != nil || field.IsPSAv1() {
+			continue
+		}
+		if existing, ok := existingByID[field.ID]; ok {
+			field.Permissions = existing.Permissions
+		}
+	}
+
 	// Build expected UpdateAt map for optimistic concurrency control.
 	// This closes the TOCTOU window: if any field was modified between the
 	// GetMany above and the UPDATE below, the store will reject the write.
@@ -713,6 +815,217 @@ func (ps *PropertyService) updatePropertyFields(rctx request.CTX, groupID string
 	requested, propagated, clearedFieldIDs = ps.runPostUpdatePropertyFields(rctx, groupID, prev, requested, propagated)
 
 	return requested, propagated, clearedFieldIDs, nil
+}
+
+// translateLegacyPermissionKeys reconverts field.Permissions when a
+// legacy-shaped update changes one of the columns or attrs it was last
+// converted from, so a field converted at create time does not go stale the
+// moment a co-owner or a sync source is added through the legacy Attrs path
+// afterward -- a converted Permissions object is authoritative over the
+// legacy columns, so a stale one would go on refusing the very identity that
+// was just given ownership.
+//
+// Deliberately leaves a nil field.Permissions nil when nothing legacy
+// changed, rather than filling it from existing here: the option-read
+// ceiling check later in this same loop treats a nil Permissions as "nothing
+// to check", which is correct when nothing did change, and filling it in
+// this early would make every linked-field update pay that check's cost even
+// when the field itself asked for nothing. updatePropertyFields backfills a
+// still-nil Permissions from existing right before the write, once every
+// check that cares about the distinction has already run.
+//
+// Skips a PSAv1 field outright: it cannot hold a Permissions object, so
+// translating one would produce a row the store refuses -- a plugin
+// changing its own field's access_mode would start getting a 400 where it
+// works today.
+func (ps *PropertyService) translateLegacyPermissionKeys(field, existing *model.PropertyField) error {
+	if field.IsPSAv1() {
+		return nil
+	}
+
+	if !legacyPermissionKeysChanged(field, existing) {
+		// A v2 caller's whole-object update always carries these columns back
+		// exactly as read, so "unchanged from what's stored" and "unchanged
+		// from what the caller was shown" are the same question. A pure v3
+		// caller that never sets a legacy column or attr compares as
+		// unchanged too, by the same rule: there is nothing to diff against.
+		return nil
+	}
+
+	convertAttrs, err := ps.groupConvertsAttrs(field.GroupID)
+	if err != nil {
+		return fmt.Errorf("translateLegacyPermissionKeys: %w", err)
+	}
+
+	opts := model.LegacyConversionOpts{ConvertAttrs: convertAttrs}
+	if field.LinkedFieldID != nil && *field.LinkedFieldID != "" {
+		template, tErr := ps.fieldStore.Get(store.WithMaster(context.Background()), "", *field.LinkedFieldID)
+		if tErr != nil {
+			return fmt.Errorf("translateLegacyPermissionKeys: failed to get linked template field %q: %w", *field.LinkedFieldID, tErr)
+		}
+		opts.Template = templatePermissionsOrZero(template)
+	}
+
+	reconverted := model.PermissionsFromLegacy(fillOwnerAllowFromStored(field, existing), opts)
+	if err := reconcileTranslatedMasking(reconverted, existing); err != nil {
+		return err
+	}
+
+	field.Permissions = reconverted
+	return nil
+}
+
+// legacyPermissionKeysChanged reports whether field's legacy-shaped
+// permission keys -- Protected, the three permission levels, the sync-source
+// attrs, and the protected/owners/access_mode attrs -- differ from what is
+// already stored on existing. Compared against the raw stored columns rather
+// than a value re-derived from existing.Permissions: field.Protected and the
+// three permission-level columns are independent inputs to PermissionsFromLegacy,
+// not outputs of it, and the owners attr can carry fewer entries than
+// ProjectLegacyPermissions would report for the same field once a source
+// plugin, a sync lock or the ambient-access wildcard has added a grant of its
+// own -- comparing against those synthetic entries would report "changed"
+// for a caller that never touched the owners list at all.
+//
+// A submitted permission-level pointer of nil never counts as a change: a v2
+// caller's whole-object update always carries a real value here (every v2
+// create pins all three before the row is ever written), so nil only means a
+// caller that never speaks the legacy shape, and there is no legitimate way
+// to ask "clear this column" through this path.
+func legacyPermissionKeysChanged(field, existing *model.PropertyField) bool {
+	if field.Protected != existing.Protected {
+		return true
+	}
+	if permissionLevelPtrChanged(field.PermissionField, existing.PermissionField) {
+		return true
+	}
+	if permissionLevelPtrChanged(field.PermissionValues, existing.PermissionValues) {
+		return true
+	}
+	if permissionLevelPtrChanged(field.PermissionOptions, existing.PermissionOptions) {
+		return true
+	}
+	if legacyAttrString(field.Attrs, model.PropertyAttrsAccessMode) != legacyAttrString(existing.Attrs, model.PropertyAttrsAccessMode) {
+		return true
+	}
+	if legacyAttrBool(field.Attrs, model.PropertyAttrsProtected) != legacyAttrBool(existing.Attrs, model.PropertyAttrsProtected) {
+		return true
+	}
+	if legacyAttrString(field.Attrs, model.PropertyFieldAttrLDAP) != legacyAttrString(existing.Attrs, model.PropertyFieldAttrLDAP) {
+		return true
+	}
+	if legacyAttrString(field.Attrs, model.PropertyFieldAttrSAML) != legacyAttrString(existing.Attrs, model.PropertyFieldAttrSAML) {
+		return true
+	}
+	if !reflect.DeepEqual(model.GetPropertyFieldOwners(field), model.GetPropertyFieldOwners(existing)) {
+		return true
+	}
+
+	return false
+}
+
+func permissionLevelPtrChanged(submitted, stored *model.PermissionLevel) bool {
+	if submitted == nil {
+		return false
+	}
+	return stored == nil || *submitted != *stored
+}
+
+func legacyAttrString(attrs model.StringInterface, key string) string {
+	if attrs == nil {
+		return ""
+	}
+	s, _ := attrs[key].(string)
+	return s
+}
+
+func legacyAttrBool(attrs model.StringInterface, key string) bool {
+	if attrs == nil {
+		return false
+	}
+	b, _ := attrs[key].(bool)
+	return b
+}
+
+// fillOwnerAllowFromStored replaces an empty Allow on any owner field
+// submits with the Allow already stored for that identity, read off the
+// projection of existing -- exactly what a v2 caller was shown.
+// PermissionsFromLegacy enumerates every action for an owner with no Allow,
+// which is right for a first conversion and wrong for a v2 client that never
+// knew action lists existed: it would silently re-widen an owner's grant to
+// every action on every save. An owner naming an identity with nothing
+// stored keeps that all-five default, since there is nothing to preserve.
+func fillOwnerAllowFromStored(field, existing *model.PropertyField) *model.PropertyField {
+	submitted := model.GetPropertyFieldOwners(field)
+	if len(submitted) == 0 {
+		return field
+	}
+
+	stored := model.GetPropertyFieldOwners(model.ProjectLegacyPermissions(existing))
+	if len(stored) == 0 {
+		return field
+	}
+
+	changed := false
+	filled := make([]model.PropertyOwner, 0, len(submitted))
+	for _, owner := range submitted {
+		if len(owner.Allow) > 0 {
+			filled = append(filled, owner)
+			continue
+		}
+		matched := false
+		for _, s := range stored {
+			if s.Type == owner.Type && s.ID == owner.ID {
+				filled = append(filled, s)
+				matched = true
+				changed = true
+			}
+		}
+		if !matched {
+			filled = append(filled, owner)
+		}
+	}
+	if !changed {
+		return field
+	}
+
+	copied := *field
+	copied.Attrs = maps.Clone(field.Attrs)
+	copied.Attrs[model.PropertyAttrsOwners] = filled
+	return &copied
+}
+
+// reconcileTranslatedMasking folds a translated field's stored masking back
+// into its freshly reconverted Permissions. Masking's internals --
+// mask_by_field_id and except -- are never shown to a v2 caller (§2.6), so an
+// inbound access_mode must never flatten them to an empty object; this is the
+// same refusal an access control policy already gives a caller editing a
+// rule carrying masked values, rather than trusting them to notice a flag and
+// re-read.
+func reconcileTranslatedMasking(reconverted *model.Permissions, existing *model.PropertyField) error {
+	var stored *model.Masking
+	if existing.Permissions != nil {
+		stored = existing.Permissions.Masking
+	}
+
+	if reconverted.Masking != nil {
+		if stored != nil {
+			reconverted.Masking = stored
+		}
+		return nil
+	}
+
+	if stored != nil && (stored.MaskByFieldID != "" || len(stored.Except) > 0) {
+		return model.NewAppError(
+			"UpdatePropertyFields",
+			"app.property_field.update.masking_discarded.app_error",
+			nil,
+			"cannot change this field's access mode because it contains data the caller may not read",
+			http.StatusBadRequest,
+		)
+	}
+
+	return nil
 }
 
 func (ps *PropertyService) deletePropertyField(groupID, id string) error {

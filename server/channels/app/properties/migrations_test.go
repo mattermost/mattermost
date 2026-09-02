@@ -9,10 +9,30 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/testlib"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
+
+// createLegacyPropertyField creates field through the service and then strips
+// off the Permissions the create path now defaults onto every PSAv2/v3 field,
+// leaving a legacy-shaped row for convertBatch/MigrateBackfillPropertyPermissions
+// to convert. Routing the strip back through CreatePropertyField would just
+// re-default it, so this writes the stripped field straight through the store
+// instead; a nil expectedUpdateAts skips the optimistic-concurrency check, so
+// this is a plain overwrite.
+func createLegacyPropertyField(t *testing.T, th *TestHelper, rctx request.CTX, field *model.PropertyField) *model.PropertyField {
+	t.Helper()
+	created, err := th.service.CreatePropertyField(rctx, field)
+	require.NoError(t, err)
+
+	created.Permissions = nil
+	_, err = th.service.fieldStore.Update(created.GroupID, []*model.PropertyField{created}, nil)
+	require.NoError(t, err)
+
+	return created
+}
 
 // requireWarnLogged flushes th's logger and asserts buffer holds a warn entry
 // whose message contains substr.
@@ -68,7 +88,7 @@ func TestPermissionsBackfillConvertBatch(t *testing.T) {
 		t.Cleanup(func() { th.service.setPluginCheckerForTests(nil) })
 		rctxPlugin := RequestContextWithCallerID(th.Context, "test-plugin")
 
-		acField, err := th.service.CreatePropertyField(rctxPlugin, &model.PropertyField{
+		acField := createLegacyPropertyField(t, th, rctxPlugin, &model.PropertyField{
 			GroupID:    th.CPAGroupID,
 			Name:       "masked-field",
 			Type:       model.PropertyFieldTypeSelect,
@@ -79,12 +99,11 @@ func TestPermissionsBackfillConvertBatch(t *testing.T) {
 				model.PropertyAttrsProtected:  true,
 			},
 		})
-		require.NoError(t, err)
 
 		otherGroup := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV2)
 		adminLevel := model.PermissionLevelAdmin
 		memberLevel := model.PermissionLevelMember
-		otherField, err := th.service.CreatePropertyField(th.Context, &model.PropertyField{
+		otherField := createLegacyPropertyField(t, th, th.Context, &model.PropertyField{
 			GroupID:           otherGroup.ID,
 			Name:              "shared-only-elsewhere",
 			Type:              model.PropertyFieldTypeSelect,
@@ -102,7 +121,6 @@ func TestPermissionsBackfillConvertBatch(t *testing.T) {
 				model.PropertyAttrsSourcePluginID: "test-plugin",
 			},
 		})
-		require.NoError(t, err)
 
 		b := newPermissionsBackfill(th.service, accessControlGroupID)
 		converted, err := b.convertBatch(th.Context, []*model.PropertyField{acField, otherField})
@@ -134,7 +152,7 @@ func TestPermissionsBackfillConvertBatch(t *testing.T) {
 		require.NoError(t, err)
 
 		newLinked := func(name string) *model.PropertyField {
-			created, linkErr := th.service.CreatePropertyField(th.Context, &model.PropertyField{
+			return createLegacyPropertyField(t, th, th.Context, &model.PropertyField{
 				GroupID:       th.CPAGroupID,
 				Name:          name,
 				Type:          model.PropertyFieldTypeText,
@@ -142,8 +160,6 @@ func TestPermissionsBackfillConvertBatch(t *testing.T) {
 				TargetType:    string(model.PropertyFieldTargetLevelSystem),
 				LinkedFieldID: &template.ID,
 			})
-			require.NoError(t, linkErr)
-			return created
 		}
 		linked1 := newLinked("linked-1")
 		linked2 := newLinked("linked-2")
@@ -173,7 +189,7 @@ func TestPermissionsBackfillConvertBatch(t *testing.T) {
 		t.Cleanup(func() { th.service.setPluginCheckerForTests(nil) })
 		rctxPlugin := RequestContextWithCallerID(th.Context, "test-plugin")
 
-		linked, err := th.service.CreatePropertyField(rctxPlugin, &model.PropertyField{
+		linked := createLegacyPropertyField(t, th, rctxPlugin, &model.PropertyField{
 			GroupID:       th.CPAGroupID,
 			Name:          "linked-shared-only",
 			Type:          model.PropertyFieldTypeText,
@@ -187,7 +203,6 @@ func TestPermissionsBackfillConvertBatch(t *testing.T) {
 				model.PropertyAttrsProtected:  true,
 			},
 		})
-		require.NoError(t, err)
 
 		buffer := captureMaskingFailureLog(t, th)
 
@@ -219,15 +234,13 @@ func TestMigrateBackfillPropertyPermissions_Paging(t *testing.T) {
 	t.Cleanup(func() { propertyPermissionsBackfillPageSize = orig })
 
 	newField := func(groupID, name string) *model.PropertyField {
-		field, err := th.service.CreatePropertyField(th.Context, &model.PropertyField{
+		return createLegacyPropertyField(t, th, th.Context, &model.PropertyField{
 			GroupID:    groupID,
 			Name:       name,
 			Type:       model.PropertyFieldTypeText,
 			ObjectType: model.PropertyFieldObjectTypeUser,
 			TargetType: string(model.PropertyFieldTargetLevelSystem),
 		})
-		require.NoError(t, err)
-		return field
 	}
 
 	fields := []*model.PropertyField{
@@ -263,7 +276,7 @@ func TestMigrateBackfillPropertyPermissions_Paging(t *testing.T) {
 func TestMigrateBackfillPropertyPermissions_OversizedOptions(t *testing.T) {
 	th := Setup(t).RegisterCPAPropertyGroup(t)
 
-	field, err := th.service.CreatePropertyField(th.Context, &model.PropertyField{
+	field := createLegacyPropertyField(t, th, th.Context, &model.PropertyField{
 		GroupID:    th.CPAGroupID,
 		Name:       "oversized_select",
 		Type:       model.PropertyFieldTypeSelect,
@@ -273,7 +286,6 @@ func TestMigrateBackfillPropertyPermissions_OversizedOptions(t *testing.T) {
 			model.PropertyFieldAttributeOptions: oversizedOptions(false),
 		},
 	})
-	require.NoError(t, err)
 	requireStoredOptionsWithheld(t, th, th.CPAGroupID, field.ID)
 
 	converted, skipped, err := th.service.MigrateBackfillPropertyPermissions(th.Context)
@@ -303,7 +315,7 @@ func TestMigrateBackfillPropertyPermissions_LinkedFieldInheritsTemplateMasking(t
 	t.Cleanup(func() { th.service.setPluginCheckerForTests(nil) })
 	rctxPlugin := RequestContextWithCallerID(th.Context, "test-plugin")
 
-	template, err := th.service.CreatePropertyField(rctxPlugin, &model.PropertyField{
+	template := createLegacyPropertyField(t, th, rctxPlugin, &model.PropertyField{
 		GroupID:    th.CPAGroupID,
 		Name:       "masked-template",
 		Type:       model.PropertyFieldTypeSelect,
@@ -314,11 +326,10 @@ func TestMigrateBackfillPropertyPermissions_LinkedFieldInheritsTemplateMasking(t
 			model.PropertyAttrsProtected:  true,
 		},
 	})
-	require.NoError(t, err)
 
 	// Only the source plugin may link a field to a protected template, so the
 	// linked field is created by the same caller as the template.
-	linked, err := th.service.CreatePropertyField(rctxPlugin, &model.PropertyField{
+	linked := createLegacyPropertyField(t, th, rctxPlugin, &model.PropertyField{
 		GroupID:       th.CPAGroupID,
 		Name:          "linked-field",
 		Type:          model.PropertyFieldTypeText,
@@ -326,7 +337,6 @@ func TestMigrateBackfillPropertyPermissions_LinkedFieldInheritsTemplateMasking(t
 		TargetType:    string(model.PropertyFieldTargetLevelSystem),
 		LinkedFieldID: &template.ID,
 	})
-	require.NoError(t, err)
 
 	converted, skipped, err := th.service.MigrateBackfillPropertyPermissions(th.Context)
 	require.NoError(t, err)

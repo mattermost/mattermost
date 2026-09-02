@@ -180,14 +180,7 @@ func (f *PropertyField) GetAccessMode() string {
 		}
 	}
 
-	if f.Attrs == nil {
-		return PropertyAccessModePublic
-	}
-	accessMode, ok := f.Attrs[PropertyAttrsAccessMode].(string)
-	if !ok {
-		return PropertyAccessModePublic
-	}
-	return accessMode
+	return legacyAccessMode(f)
 }
 
 // ValidatePropertyFieldAccessMode validates that the access_mode attribute is valid

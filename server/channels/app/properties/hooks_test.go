@@ -421,7 +421,11 @@ func TestAccessControlHookGroupScoping(t *testing.T) {
 		updated.Name = "attempt-update"
 		_, _, err = th.service.UpdatePropertyField(rctxPlugin2, th.CPAGroupID, updated)
 		require.Error(t, err)
-		assert.Contains(t, err.Error(), "protected")
+		// The field converted to Permissions on create, so the refusal now
+		// comes from the field.write ladder check rather than the legacy
+		// protected/source-plugin comparison -- still a refusal, worded
+		// differently.
+		assert.Contains(t, err.Error(), "field write")
 	})
 
 	t.Run("access control NOT enforced for unmanaged group", func(t *testing.T) {

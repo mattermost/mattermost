@@ -903,8 +903,12 @@ func TestUpdatePropertyField_WriteAccessControl(t *testing.T) {
 		updated, _, err := th.service.UpdatePropertyField(rctxPlugin2, th.CPAGroupID, created)
 		require.Error(t, err)
 		assert.Nil(t, updated)
-		assert.Contains(t, err.Error(), "protected")
-		assert.Contains(t, err.Error(), "plugin-1")
+		// The field converted to Permissions on create, so the refusal now
+		// comes from the field.write grant check rather than the legacy
+		// protected/source-plugin comparison -- still a refusal, worded
+		// differently.
+		assert.Contains(t, err.Error(), "field.write")
+		assert.Contains(t, err.Error(), "plugin-2")
 	})
 
 	t.Run("denies empty callerID updating protected field", func(t *testing.T) {
@@ -926,7 +930,10 @@ func TestUpdatePropertyField_WriteAccessControl(t *testing.T) {
 		updated, _, err := th.service.UpdatePropertyField(rctxAnon, th.CPAGroupID, created)
 		require.Error(t, err)
 		assert.Nil(t, updated)
-		assert.Contains(t, err.Error(), "protected")
+		// The field converted to Permissions on create, so an unattributed
+		// caller is refused a field write outright rather than by the legacy
+		// protected check -- still a refusal, worded differently.
+		assert.Contains(t, err.Error(), "field write")
 	})
 
 	t.Run("prevents changing source_plugin_id", func(t *testing.T) {
@@ -1084,7 +1091,11 @@ func TestUpdatePropertyFields_BulkWriteAccessControl(t *testing.T) {
 		updated, _, _, err := th.service.UpdatePropertyFields(rctxPlugin2, th.CPAGroupID, []*model.PropertyField{created1, created2})
 		require.Error(t, err)
 		assert.Nil(t, updated)
-		assert.Contains(t, err.Error(), "protected")
+		// The protected field converted to Permissions on create, so the
+		// refusal that fails the whole batch now comes from the field.write
+		// grant check rather than the legacy protected comparison -- still a
+		// refusal, worded differently.
+		assert.Contains(t, err.Error(), "field.write")
 
 		// Verify neither was updated
 		check1, err := th.service.GetPropertyField(rctxPlugin1, th.CPAGroupID, created1.ID)
