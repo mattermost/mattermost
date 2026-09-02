@@ -642,7 +642,7 @@ describe('components/SwitchChannelProvider', () => {
         expect(results.terms).toEqual(expectedOrder);
     });
 
-    it('should start with the DM ahead of a GM that was viewed more recently', async () => {
+    it('should rank a group message the user has opened above a direct message they never have', async () => {
         const modifiedState = {
             ...defaultState,
             entities: {
@@ -700,9 +700,12 @@ describe('components/SwitchChannelProvider', () => {
 
         switchProvider.startNewRequest('');
         await switchProvider.fetchUsersAndChannels(searchText, resultsCallback);
+
+        // other_user1 has no last_viewed_at, so the group message the user has actually opened
+        // outranks the never-messaged person even though a direct message wins within a band
         const expectedOrder = [
-            'other_user1',
             'other_gm_channel',
+            'other_user1',
             'channel_other_user1',
         ];
 
@@ -841,7 +844,10 @@ describe('components/SwitchChannelProvider', () => {
                             msg_count: 1,
                             last_viewed_at: 3,
                         },
-                        other_user1: {},
+                        other_user1: {
+                            channel_id: 'other_user1',
+                            last_viewed_at: 4,
+                        },
                     },
                     channels: {
                         channel_other_user: {
@@ -881,6 +887,9 @@ describe('components/SwitchChannelProvider', () => {
 
         switchProvider.startNewRequest('');
         await switchProvider.fetchUsersAndChannels(searchText, resultsCallback);
+
+        // The DM and GM are in the same recency band, so the direct message leads and the hidden
+        // group message is demoted below it rather than surfacing first
         const expectedOrder = [
             'other_user1',
             'other_gm_channel',
@@ -1335,7 +1344,7 @@ describe('components/SwitchChannelProvider', () => {
         });
     });
 
-    describe('ranking the person matching the search term above group messages containing them', () => {
+    describe('ranking quick switcher results by recency then conversation type', () => {
         const delphine = TestHelper.getUserMock({
             id: 'delphine_user_id',
             username: 'delphine',
@@ -1467,8 +1476,8 @@ describe('components/SwitchChannelProvider', () => {
             return resultsCallback.mock.calls.map((call) => call[0].groups[0]);
         }
 
-        // The competing DM belongs to a user whose username only contains the search term, and was
-        // read much more recently, so it wins whenever the searched username fails to rank first
+        // The competing DM belongs to a user whose username only contains the search term, but was
+        // read much more recently, so recency puts it ahead of the exact match within the same band
         function stateWithCompetingDm() {
             const containsTerm = TestHelper.getUserMock({
                 id: 'contains_term_user_id',
@@ -1485,13 +1494,15 @@ describe('components/SwitchChannelProvider', () => {
             };
         }
 
-        it('ranks the person first once the server results arrive, even with no DM channel yet', async () => {
+        it('sorts a never-messaged person below every group message the user has opened', async () => {
             const [localResults, mergedResults] = await search('delp', makeState());
 
             // The user has never messaged delphine, so only the GMs are known locally
             expect(localResults.terms).toEqual(['gm_channel_2', 'gm_channel_1', 'gm_channel_0']);
 
-            expect(mergedResults.terms).toEqual([delphine.id, 'gm_channel_2', 'gm_channel_1', 'gm_channel_0']);
+            // delphine has no direct message history, so the server-only person falls below every
+            // group message the user has actually opened
+            expect(mergedResults.terms).toEqual(['gm_channel_2', 'gm_channel_1', 'gm_channel_0', delphine.id]);
 
             // Selecting a suggestion resolves it by term, so the two have to stay in lockstep
             expect(mergedResults.items.map((item: WrappedChannel) => (
@@ -1499,38 +1510,32 @@ describe('components/SwitchChannelProvider', () => {
             ))).toEqual(mergedResults.terms);
         });
 
-        it('ranks an existing DM first even when every group message was read more recently', async () => {
+        it('sorts an existing direct message above group messages in the same recency band', async () => {
             const [, mergedResults] = await search('delp', makeState({existingDmLastViewedAt: 1}));
 
-            // gm_channel_0 is displayed as "delphine, esme.fielder", so it also starts with the search
-            // term, but only because delphine sorts first among its members
+            // The DM and the group messages were all last read long ago, so they share a recency
+            // band and the direct message wins on conversation type
             expect(mergedResults.terms).toEqual([delphine.id, 'gm_channel_2', 'gm_channel_1', 'gm_channel_0']);
         });
 
-        it('ranks the DM first when the search term is capitalized', async () => {
+        it('sorts the more recently used of two matching direct messages first', async () => {
             const {containsTerm, state} = stateWithCompetingDm();
 
-            const [, mergedResults] = await search('Delp', state, [delphine, containsTerm]);
+            const [, mergedResults] = await search('delp', state, [delphine, containsTerm]);
 
-            expect(mergedResults.terms[0]).toEqual(delphine.id);
+            // Both people match "delp" and both DMs share the stale band, so the one opened more
+            // recently leads; both still outrank the group messages on conversation type
+            expect(mergedResults.terms).toEqual([containsTerm.id, delphine.id, 'gm_channel_2', 'gm_channel_1', 'gm_channel_0']);
         });
 
-        it('ranks the DM first when the search term is written as a mention', async () => {
+        it('ignores capitalization and a leading @ when ranking matching direct messages', async () => {
             const {containsTerm, state} = stateWithCompetingDm();
 
             // A leading @ makes the channel filter substring match on "@delp", which no group
-            // message contains, so only the two people are left to rank
-            const [, mergedResults] = await search('@delp', state, [delphine, containsTerm]);
+            // message contains, so only the two people are left to rank, ordered by recency
+            const [, mergedResults] = await search('@Delp', state, [delphine, containsTerm]);
 
-            expect(mergedResults.terms).toEqual([delphine.id, containsTerm.id]);
-        });
-
-        it('still ranks by recency when neither conversation matches the start of a name', async () => {
-            const [, mergedResults] = await search('marlow', makeState({existingDmLastViewedAt: 1}));
-
-            // Every result matches delphine's last name mid-name, so none of them is a stronger match
-            // than the others and the most recently read one wins
-            expect(mergedResults.terms).toEqual(['gm_channel_2', 'gm_channel_1', 'gm_channel_0', delphine.id]);
+            expect(mergedResults.terms).toEqual([containsTerm.id, delphine.id]);
         });
 
         it('keeps a group message hidden from the sidebar below an equally relevant visible one', async () => {
@@ -1565,13 +1570,11 @@ describe('components/SwitchChannelProvider', () => {
             ));
         }
 
+        const DAY = 24 * 60 * 60 * 1000;
+
         it('orders a result set the same way no matter which order it is merged in', async () => {
             // Ranking has to be consistent when compared through a third result, otherwise the
             // order depends on how the local and server results happened to be concatenated
-            const provider = new SwitchChannelProvider();
-            provider.store = mockStore(defaultState);
-            provider.handlePretextChanged('sam', jest.fn());
-
             const results = [
                 wrap('dm', Constants.DM_CHANNEL, 1, 'sam.smith'),
                 wrap('gm', Constants.GM_CHANNEL, 1000, 'sam.smith, wanda.pryor'),
@@ -1582,10 +1585,48 @@ describe('components/SwitchChannelProvider', () => {
                 [...ordering].sort(quickSwitchSorter).map((result) => result.channel.id).join(',')
             ));
 
-            // The channel named sam-project matches the search term at the start too and was read
-            // more recently than the DM, so it leads; the group message only contains a member
-            // named sam and stays last
-            expect(new Set(orderings)).toEqual(new Set(['open,dm,gm']));
+            // All three were last read long ago, so they share a recency band and sort by type:
+            // direct message, then group message, then channel
+            expect(new Set(orderings)).toEqual(new Set(['dm,gm,open']));
+        });
+
+        it('ranks recently used conversations above stale ones regardless of type', () => {
+            const recent = Date.now();
+            const stale = Date.now() - (90 * DAY);
+
+            const results = [
+                wrap('stale-dm', Constants.DM_CHANNEL, stale, 'sam.stale'),
+                wrap('recent-gm', Constants.GM_CHANNEL, recent, 'sam.smith, wanda.pryor'),
+                wrap('recent-channel', Constants.OPEN_CHANNEL, recent, 'sam-project'),
+            ];
+
+            expect([...results].sort(quickSwitchSorter).map((result) => result.channel.id)).
+                toEqual(['recent-gm', 'recent-channel', 'stale-dm']);
+        });
+
+        it('ranks a direct message above a group message and channel within the same recency band', () => {
+            const recent = Date.now();
+
+            const results = [
+                wrap('recent-gm', Constants.GM_CHANNEL, recent, 'sam.smith, wanda.pryor'),
+                wrap('recent-dm', Constants.DM_CHANNEL, recent, 'sam.smith'),
+                wrap('recent-channel', Constants.OPEN_CHANNEL, recent, 'sam-project'),
+            ];
+
+            expect([...results].sort(quickSwitchSorter).map((result) => result.channel.id)).
+                toEqual(['recent-dm', 'recent-gm', 'recent-channel']);
+        });
+
+        it('sorts a never-opened direct message below any conversation with activity', () => {
+            const stale = Date.now() - (90 * DAY);
+
+            const results = [
+                wrap('never-dm', Constants.DM_CHANNEL, 0, 'sam.newperson'),
+                wrap('stale-gm', Constants.GM_CHANNEL, stale, 'sam.smith, wanda.pryor'),
+            ];
+
+            expect([...results].sort(quickSwitchSorter).map((result) => result.channel.id)).
+                toEqual(['stale-gm', 'never-dm']);
         });
     });
 });

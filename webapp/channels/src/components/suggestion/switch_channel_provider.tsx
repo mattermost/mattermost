@@ -485,16 +485,6 @@ export const ConnectedSwitchChannelSuggestion = connect(
     {forwardRef: true},
 )(SwitchChannelSuggestion);
 
-let prefix = '';
-
-// The prefix is compared against lower cased display names and usernames, neither of which carries
-// the leading @ of a mention
-function normalizePrefix(channelPrefix: string) {
-    const lowerCasedPrefix = channelPrefix.toLowerCase();
-
-    return lowerCasedPrefix.startsWith('@') ? lowerCasedPrefix.substring(1) : lowerCasedPrefix;
-}
-
 function getWrappedChannelTerm(wrappedChannel: WrappedChannel) {
     if (isFakeDirectChannel(wrappedChannel.channel) && wrappedChannel.channel.userId) {
         return wrappedChannel.channel.userId;
@@ -516,46 +506,57 @@ function sortChannelsByRecencyAndTypeAndDisplayName(wrappedA: WrappedChannel, wr
     return sortChannelsByTypeAndDisplayName('en', wrappedA.channel as Channel, wrappedB.channel as Channel);
 }
 
-// A group message has no name of its own: its display name is its members listed alphabetically, so
-// it starts with a searched username only when that member happens to sort first
-function startsWithSearchTerm(wrapped: WrappedChannel) {
-    const channel = wrapped.channel;
+// Results are ranked on one additive scale so that comparing any two of them is consistent with
+// comparing them through a third. Each weight is larger than the sum of every weaker one, so a
+// stronger reason to demote always outranks any combination of weaker reasons.
+const ARCHIVED_RANK_PENALTY = 36;
+const DEACTIVATED_RANK_PENALTY = 18;
 
-    if (channel.type === Constants.GM_CHANNEL) {
-        return false;
-    }
+// How recently the user engaged with a conversation is the primary signal: one opened within the
+// last month leads, a staler one comes next, and one that was never opened trails both. This is what
+// keeps an exact but long-abandoned match below conversations the user actually uses.
+const RECENT_ACTIVITY_WINDOW = 30 * 24 * 60 * 60 * 1000;
+const STALE_ACTIVITY_RANK_PENALTY = 6;
+const NO_ACTIVITY_RANK_PENALTY = 12;
 
-    let displayName = channel.display_name.toLowerCase();
-    if (channel.type === Constants.DM_CHANNEL && displayName.startsWith('@')) {
-        displayName = displayName.substring(1);
-    }
+// Within a recency band a direct message outranks a group message, which outranks a channel.
+const GROUP_MESSAGE_RANK_PENALTY = 2;
+const CHANNEL_RANK_PENALTY = 4;
 
-    return displayName.startsWith(prefix) || wrapped.name.toLowerCase().startsWith(prefix);
-}
-
-// Demotion weights applied when ranking quick switcher results, ordered strongest first. Each
-// weight is larger than the sum of all weaker ones, so a stronger reason to demote always
-// outranks any combination of weaker reasons.
-const ARCHIVED_RANK_PENALTY = 16;
-const DEACTIVATED_RANK_PENALTY = 8;
-const UNINTERACTED_OPEN_CHANNEL_RANK_PENALTY = 4;
-const NON_PREFIX_MATCH_RANK_PENALTY = 2;
 const HIDDEN_IN_SIDEBAR_RANK_PENALTY = 1;
 
-// Every result is ranked on the same scale so that comparing any two of them is consistent with
-// comparing them through a third.
+function activityRankPenalty(wrapped: WrappedChannel) {
+    if (!wrapped.last_viewed_at) {
+        return NO_ACTIVITY_RANK_PENALTY;
+    }
+
+    if (Date.now() - wrapped.last_viewed_at > RECENT_ACTIVITY_WINDOW) {
+        return STALE_ACTIVITY_RANK_PENALTY;
+    }
+
+    return 0;
+}
+
+function typeRankPenalty(channel: ChannelItem) {
+    if (channel.type === Constants.DM_CHANNEL) {
+        return 0;
+    }
+
+    if (channel.type === Constants.GM_CHANNEL) {
+        return GROUP_MESSAGE_RANK_PENALTY;
+    }
+
+    return CHANNEL_RANK_PENALTY;
+}
+
 function searchRank(wrapped: WrappedChannel) {
     const channel = wrapped.channel;
-    const isArchived = Boolean(channel.delete_at);
-
-    // Open channels the user hasn't interacted with belong at the bottom of the list
-    const isUninteractedOpenChannel = channel.type === Constants.OPEN_CHANNEL && !wrapped.last_viewed_at;
 
     return (
-        (isArchived ? ARCHIVED_RANK_PENALTY : 0) +
+        (channel.delete_at ? ARCHIVED_RANK_PENALTY : 0) +
         (wrapped.deactivated ? DEACTIVATED_RANK_PENALTY : 0) +
-        (isUninteractedOpenChannel ? UNINTERACTED_OPEN_CHANNEL_RANK_PENALTY : 0) +
-        (startsWithSearchTerm(wrapped) ? 0 : NON_PREFIX_MATCH_RANK_PENALTY) +
+        activityRankPenalty(wrapped) +
+        typeRankPenalty(channel) +
         (wrapped.hiddenInSidebar ? HIDDEN_IN_SIDEBAR_RANK_PENALTY : 0)
     );
 }
@@ -642,7 +643,6 @@ export default class SwitchChannelProvider extends Provider {
      */
     handlePretextChanged(channelPrefix: string, resultsCallback: ResultsCallback<WrappedChannel>) {
         if (channelPrefix) {
-            prefix = normalizePrefix(channelPrefix);
             this.startNewRequest(channelPrefix);
             if (this.shouldCancelDispatch(channelPrefix)) {
                 return false;
@@ -949,7 +949,6 @@ export default class SwitchChannelProvider extends Provider {
         }).slice(0, 5);
         let sortedUnreadChannels = this.wrapChannels(unreadChannelsExclMuted, Constants.MENTION_UNREAD);
         if (wrappedRecentChannels.length === 0) {
-            prefix = '';
             this.startNewRequest('');
             this.fetchChannels(resultsCallback);
         }
