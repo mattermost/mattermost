@@ -1064,11 +1064,13 @@ func postEditTimeLimitExpired(cfg *model.Config, post *model.Post) bool {
 	return model.GetMillis() > post.CreateAt+int64(limit)*1000
 }
 
-// patchEditsPostContent reports whether a patch changes the content of a post, which is what
-// ServiceSettings.PostEditTimeLimit governs. Pin state is deliberately excluded: pinning and
-// unpinning must remain available no matter how old a post is (MM-7471).
-func patchEditsPostContent(patch *model.PostPatch) bool {
-	return patch.Message != nil || patch.Props != nil || patch.FileIds != nil || patch.HasReactions != nil
+// patchEditsMoreThanPinState reports whether a patch changes anything beyond a post's pin
+// state. ServiceSettings.PostEditTimeLimit governs post edits, and pinning is not an edit:
+// pin and unpin must stay available no matter how old a post is (MM-7471).
+func patchEditsMoreThanPinState(patch *model.PostPatch) bool {
+	rest := *patch
+	rest.IsPinned = nil
+	return !rest.IsEmpty()
 }
 
 func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1297,7 +1299,7 @@ func postPatchChecks(c *Context, auditRec *model.AuditRecord, patch *model.PostP
 		return false
 	}
 
-	if postEditTimeLimitExpired(c.App.Config(), originalPost) && patchEditsPostContent(patch) {
+	if postEditTimeLimitExpired(c.App.Config(), originalPost) && patchEditsMoreThanPinState(patch) {
 		c.Err = model.NewAppError("patchPost", "api.post.update_post.permissions_time_limit.app_error", map[string]any{"timeLimit": *c.App.Config().ServiceSettings.PostEditTimeLimit}, "", http.StatusBadRequest)
 		return isMember
 	}
