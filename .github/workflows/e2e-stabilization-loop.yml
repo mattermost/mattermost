@@ -71,7 +71,7 @@ jobs:
           fetch-depth: 0
 
       - name: ci/stabilization-loop
-        uses: mattermost/mattermost-test-system-io/.github/actions/test-system-io-stabilization@ab06a20 # 2026-09-02, mattermost-test-system-io#101
+        uses: mattermost/mattermost-test-system-io/.github/actions/test-system-io-stabilization@fd82c393b43f4023708e5f5e379f65ea75313382 # 2026-09-02, mattermost-test-system-io#101
         with:
           repo: ${{ github.repository }}
           use-staging: ${{ vars.E2E_TSIO_USE_STAGING || 'false' }}
