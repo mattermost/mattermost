@@ -537,6 +537,29 @@ describe('pasteHandler with a message copied out of the channel', () => {
         });
     }
 
+    it('should use a longer fence when a code block contains backticks', () => {
+        // Nested fences are awkward to round-trip through Markdown; use CodeBlock's .post-code markup.
+        const html = '<html><body><!--StartFragment-->' +
+            '<div class="post-code post-code--wrap">' +
+            '<div class="hljs"><code>use a ``` fence</code></div>' +
+            '</div>' +
+            '<!--EndFragment--></body></html>';
+
+        const event: any = {
+            target: {id: 'post_textbox'},
+            preventDefault: jest.fn(),
+            clipboardData: {
+                items: [1],
+                types: ['text/html', 'text/plain'],
+                getData: (type: string) => (type === 'text/plain' ? 'use a ``` fence' : html),
+            },
+        };
+
+        pasteHandler(event, Locations.CENTER, '', false);
+
+        expect(execCommandInsertText).toHaveBeenCalledWith('````\nuse a ``` fence\n````');
+    });
+
     it('should keep hashtags out of a link', () => {
         pasteRenderedMessage('A **bold** #hashtag');
 

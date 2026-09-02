@@ -25,6 +25,16 @@ export function isEmphasisReset(node: HTMLElement): boolean {
     }
 }
 
+// CommonMark: the opening fence must be longer than any run of backticks in the code.
+function codeBlockFence(code: string): string {
+    const length = (code.match(/`+/g) ?? []).reduce(
+        (max, run) => Math.max(max, run.length + 1),
+        3,
+    );
+
+    return '`'.repeat(length);
+}
+
 const turndownService = new TurndownService({
     emDelimiter: '*',
     headingStyle: 'atx',
@@ -58,8 +68,9 @@ turndownService.addRule('mattermostCodeBlock', {
         const element = node as HTMLElement;
         const code = element.querySelector('code')?.textContent ?? '';
         const languageLabel = element.querySelector('.post-code__language')?.textContent ?? '';
+        const fence = codeBlockFence(code);
 
-        return `\n\n\`\`\`${getLanguageFromDisplayName(languageLabel)}\n${code}\n\`\`\`\n\n`;
+        return `\n\n${fence}${getLanguageFromDisplayName(languageLabel)}\n${code}\n${fence}\n\n`;
     },
 });
 
