@@ -18,7 +18,7 @@ Before you get here, work through [Plan](/deployment-guide/server/server-deploym
   },
   {
     title: 'Containers',
-    description: 'Run Mattermost with Docker Compose. For evaluation, testing, and development only — not supported for production.',
+    description: 'Run Mattermost with Docker Compose. For evaluation, testing, and development only. Not supported for production.',
     to: '/deployment-guide/server/deploy-containers',
   },
 ]} />
@@ -47,7 +47,7 @@ The Operator works on any conformant cluster. Mattermost publishes a dedicated g
 - You want a straightforward setup on a host you already manage
 - You're deploying into an air-gapped enclave from the release tarball
 
-High availability is available on this path too, but you configure and operate the cluster yourself — see [High availability cluster-based deployment](/deployment-guide/scale/high-availability-cluster-based-deployment).
+High availability is available on this path too, but you configure and operate the cluster yourself. See [High availability cluster-based deployment](/deployment-guide/scale/high-availability-cluster-based-deployment).
 
 Install methods: [Ubuntu/Debian](/deployment-guide/server/linux/deploy-ubuntu), [RHEL and derivatives](/deployment-guide/server/linux/deploy-rhel), [manual tarball](/deployment-guide/server/linux/deploy-tar), and [Azure Native VM](/deployment-guide/server/linux/deploy-azure-native-vm) from the Azure Marketplace.
 
@@ -61,7 +61,7 @@ Container deployments aren't supported for production. Docker lacks automatic fa
 
 </Warning>
 
-A FIPS-compliant, STIG-hardened variant of every container image is published for regulated environments — see [FIPS and STIG container builds](/deployment-guide/server/containers/fips-stig).
+A FIPS-compliant, STIG-hardened variant of every container image is published for regulated environments. See [FIPS and STIG container builds](/deployment-guide/server/containers/fips-stig).
 
 ## Don't want to deploy it yourself?
 
@@ -73,5 +73,5 @@ After the server is running:
 
 - [Secure your deployment](/deployment-guide/encryption-options) with encryption at rest and [in transit](/deployment-guide/transport-encryption).
 - [Scale](/deployment-guide/scale/scaling-for-enterprise) with clustering, search infrastructure, and Redis caching.
-- [Back up and recover](/deployment-guide/backup-disaster-recovery) — set the backup strategy before you have users.
+- [Back up and recover](/deployment-guide/backup-disaster-recovery) to set the backup strategy before you have users.
 - If the install fails, see [Troubleshoot deployments](/deployment-guide/deployment-troubleshooting).
