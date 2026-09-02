@@ -9,12 +9,16 @@ on:
       - server/build/Dockerfile.buildenv
       - server/build/Dockerfile.buildenv-fips
       - server/build/buildenv-tag.sh
+      - server/.go-version
+      - .nvmrc
       - .github/workflows/build-server-image.yml
   pull_request:
     paths:
       - server/build/Dockerfile.buildenv
       - server/build/Dockerfile.buildenv-fips
       - server/build/buildenv-tag.sh
+      - server/.go-version
+      - .nvmrc
       - .github/workflows/build-server-image.yml
   workflow_dispatch:
 
