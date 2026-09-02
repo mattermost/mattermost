@@ -127,9 +127,15 @@ const OVERVIEW_ROOT_ORDER = [
 //
 // Ordered as a progression: evaluate → choose a scenario → Plan → Prepare →
 // Deploy → Secure → Scale → Back up → operate → troubleshoot. The `server/`
-// directory is dissolved into the Plan / Prepare / Deploy groups, and the
-// troubleshooting pages scattered across server/, desktop/, and mobile/ are
-// pulled up into one top-level category that is their single sidebar home.
+// directory is dissolved into the Plan / Prepare / Deploy groups.
+//
+// Troubleshooting is deliberately NOT one category. Each surface-specific page
+// sits next to the step that produces its errors — the database pages under
+// Prepare, Docker under Containers, and the app pages at the end of their own
+// sections — because that is where the reader already is when it breaks. Only
+// the cross-cutting page (logs, environment review, support-ticket data) has
+// no section home, so it sits at the guide root as the single entry point for
+// a reader who can't yet tell which layer failed.
 
 const DEPLOYMENT_GROUPS = {
   // Near the top rather than buried: these are the patterns regulated and
@@ -164,11 +170,14 @@ const DEPLOYMENT_GROUPS = {
   // deliberately: a reader following the sidebar top to bottom must not finish
   // installing before reaching NGINX and TLS. PostgreSQL leads and the
   // deprecated MySQL page sorts last, so the required database outranks it.
+  // Each database's troubleshooting page follows its setup page: those errors
+  // surface while the reader is working through the setup steps.
   prepare: {
     label: 'Prepare',
     landing: 'server/preparations',
     items: [
       'server/prepare-database',
+      'server/trouble-postgres',
       'server/prepare-file-storage',
       'server/prepare-network',
       'server/setup-nginx-proxy',
@@ -176,6 +185,7 @@ const DEPLOYMENT_GROUPS = {
       'server/image-proxy',
       'server/pre-authentication-secrets',
       'server/prepare-mattermost-mysql-database',
+      'server/trouble_mysql',
     ],
   },
 
@@ -199,6 +209,7 @@ const DEPLOYMENT_GROUPS = {
       ]},
       {label: 'Containers', landing: 'server/deploy-containers', items: [
         'server/containers/fips-stig',
+        'server/docker-troubleshooting',
       ]},
     ],
   },
@@ -269,9 +280,9 @@ const DEPLOYMENT_GROUPS = {
   },
 
   // Explicit rather than auto-generated, so the section overview is the
-  // landing page and the children run in procedural order.
-  // desktop-troubleshooting is absent on purpose — its sidebar home is the
-  // troubleshooting hub below.
+  // landing page and the children run in procedural order. Troubleshooting
+  // closes the section: symptom triage is what a reader reaches for after
+  // working through the rollout pages above it.
   desktop: {
     label: 'Desktop App Deployment',
     landing: 'desktop/desktop-app-deployment',
@@ -282,10 +293,12 @@ const DEPLOYMENT_GROUPS = {
       'desktop/desktop-msi-installer-and-group-policy-install',
       'desktop/desktop-custom-dictionaries',
       'desktop/desktop-app-managed-resources',
+      'desktop/desktop-troubleshooting',
     ],
   },
 
-  // Same treatment as Desktop, including mobile-troubleshooting's absence.
+  // Same treatment as Desktop. The FAQ and troubleshooting pages pair up at
+  // the end — both are question-shaped rather than procedural.
   mobile: {
     label: 'Mobile App Deployment',
     landing: 'mobile/mobile-app-deployment',
@@ -298,23 +311,6 @@ const DEPLOYMENT_GROUPS = {
       'mobile/mobile-security-features',
       'mobile/secure-mobile-file-storage',
       'mobile/mobile-faq',
-    ],
-  },
-
-  // The single sidebar home for every deployment troubleshooting page,
-  // including the desktop and mobile ones that live elsewhere on disk. A
-  // reader in a failure state is least likely to reason about which product
-  // surface owns the problem. The desktop and mobile sections link here rather
-  // than repeating the entries, which would split prev/next pagination.
-  troubleshooting: {
-    label: 'Troubleshoot Deployments',
-    landing: 'deployment-troubleshooting',
-    items: [
-      'server/troubleshooting',
-      'server/docker-troubleshooting',
-      'server/trouble-postgres',
-      'server/trouble_mysql',
-      'desktop/desktop-troubleshooting',
       'mobile/mobile-troubleshooting',
     ],
   },
@@ -335,7 +331,10 @@ const DEPLOYMENT_ROOT_ORDER = [
   {group: 'calls'},
   {group: 'desktop'},
   {group: 'mobile'},
-  {group: 'troubleshooting'},
+  // Last, and a page rather than a category: the reader who lands here is the
+  // one who can't attribute the failure to a layer yet. It indexes the
+  // surface-specific pages placed above.
+  'server/troubleshooting',
 ];
 
 // Empty because every Deployment Guide page is placed explicitly above. An

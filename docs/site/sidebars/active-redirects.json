@@ -2,7 +2,7 @@
   "_meta": {
     "maintained": "by hand",
     "note": "Legacy Sphinx URL redirects, originally bulk-extracted during the docs migration. Add new entries at the end of the array. `from` must be unique and must not contain an anchor; `to` should point at a page that exists, or the redirect silently dead-ends.",
-    "active": 738
+    "active": 739
   },
   "redirects": [
     {
@@ -2547,7 +2547,7 @@
     },
     {
       "from": "/guides/deployment-troubleshooting",
-      "to": "/deployment-guide/deployment-troubleshooting"
+      "to": "/deployment-guide/server/troubleshooting"
     },
     {
       "from": "/guides/messaging-collaboration",
@@ -2956,6 +2956,10 @@
     {
       "from": "/deployment-guide/server/orchestration",
       "to": "/get-help/deployment-solution-programs"
+    },
+    {
+      "from": "/deployment-guide/deployment-troubleshooting",
+      "to": "/deployment-guide/server/troubleshooting"
     }
   ]
 }
