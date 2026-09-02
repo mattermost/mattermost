@@ -2877,9 +2877,9 @@ func (a *App) extractThreadMembers(rctx request.CTX, line *imports.LineImportWor
 	threadMemberships := []*model.ThreadMembership{}
 
 	var importedFollowers []imports.ThreadFollowerImportData
-	if line.Post != nil {
+	if line.Post != nil && line.Post.ThreadFollowers != nil {
 		importedFollowers = *line.Post.ThreadFollowers
-	} else if line.DirectPost != nil {
+	} else if line.DirectPost != nil && line.DirectPost.ThreadFollowers != nil {
 		importedFollowers = *line.DirectPost.ThreadFollowers
 	}
 	participants := make([]*model.User, 0, len(importedFollowers))
