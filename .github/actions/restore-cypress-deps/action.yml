@@ -1,10 +1,16 @@
 name: "Restore Cypress deps cache"
 description: >
-  Restore everything a Cypress worker needs — node_modules plus the Cypress
-  binary — keyed on the cypress lockfile. Read-only: e2e-ci-cache-warm-cypress-deps.yml
-  is the only writer of this key, so PR runs never write to the Actions cache.
-  The payload must stay identical to pack/unpack-cypress-deps so the cache and
-  the artifact are interchangeable.
+  The Actions-cache transport for the Cypress deps — node_modules plus the
+  Cypress binary — keyed on the cypress lockfile.
+
+  This is the fast path, taken whenever the key is warm: prep-deps asks whether
+  it exists with lookup-only, and the workers do the real restore. Read-only, as
+  e2e-ci-cache-warm-cypress-deps.yml is the only writer of the key, so PR and
+  merge runs never write to the Actions cache.
+
+  When the key is cold the template falls back to the artifact transport instead
+  — pack-cypress-deps into unpack-cypress-deps — which must land the same
+  payload in the same paths, so the two transports are interchangeable.
 
 inputs:
   lookup-only:
