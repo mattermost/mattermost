@@ -125,17 +125,26 @@ const OVERVIEW_ROOT_ORDER = [
 // Deployment Guide — manual grouping override.
 // ---------------------------------------------------------------------------
 //
-// Ordered as a progression: evaluate → choose a scenario → Plan → Prepare →
-// Deploy → Secure → Scale → Back up → operate → troubleshoot. The `server/`
-// directory is dissolved into the Plan / Prepare / Deploy groups.
+// The operator's end-to-end path is one group, `serverDeployment`, ordered as
+// a progression: Plan → Prepare → choose a method → make it highly available →
+// secure it → back it up. That keeps the guide's top level to five entries —
+// evaluate, pick a scenario, deploy the server, then the three client-side
+// sections — instead of thirteen. The `server/` directory is dissolved into
+// the Plan / Prepare / Deploy groups.
+//
+// There is no `scaling` group. Sizing is a planning question and lives in
+// Plan; the search and cache pages are setup steps against real infrastructure
+// and live in Prepare. What survives of the old Scale section is the
+// `referenceArch` group, a holding pen for the nine `scale-to-*` pages pending
+// the consolidation gated in docs/PARITY-reference-architectures.md.
 //
 // Troubleshooting is deliberately NOT one category. Each surface-specific page
 // sits next to the step that produces its errors — the database pages under
 // Prepare, Docker under Containers, and the app pages at the end of their own
 // sections — because that is where the reader already is when it breaks. Only
 // the cross-cutting page (logs, environment review, support-ticket data) has
-// no section home, so it sits at the guide root as the single entry point for
-// a reader who can't yet tell which layer failed.
+// no section home, so it closes Server deployment as the single entry point
+// for a reader who can't yet tell which layer failed.
 
 const DEPLOYMENT_GROUPS = {
   // Near the top rather than buried: these are the patterns regulated and
@@ -156,45 +165,78 @@ const DEPLOYMENT_GROUPS = {
   // deliberately isn't here — most of that page is a compliance spec for
   // third parties building installers, so it lives under Support and
   // Community, linked from the Plan and Deploy landing pages.
+  //
+  // Software and hardware requirements sorts last: it states minimums for
+  // components the reader has already chosen and sized.
   plan: {
     label: 'Plan',
     landing: 'server/server-deployment-planning',
     items: [
       'application-architecture',
       'deployment-architecture',
+      {group: 'referenceArch'},
+      'scale/high-availability-cluster-based-deployment',
       'software-hardware-requirements',
+    ],
+  },
+
+  // The tested reference architectures, which "Size your deployment" is meant
+  // to replace. They are still here because the two disagree on the numbers
+  // they both publish — see docs/PARITY-reference-architectures.md. This group
+  // disappears when that report is signed off and the pages are deleted.
+  referenceArch: {
+    label: 'Reference architectures',
+    landing: 'scale/scaling-for-enterprise',
+    items: [
+      'scale/scale-to-200-users',
+      'scale/scale-to-2000-users',
+      'scale/scale-to-15000-users',
+      'scale/scale-to-30000-users',
+      'scale/scale-to-50000-users',
+      'scale/scale-to-80000-users',
+      'scale/scale-to-90000-users',
+      'scale/scale-to-100000-users',
+      'scale/scale-to-200000-users',
+      'scale/server-architecture',
+      'scale/backing-storage-benchmarks',
     ],
   },
 
   // Prerequisites that must exist before the install runs. Sits BEFORE Deploy
   // deliberately: a reader following the sidebar top to bottom must not finish
-  // installing before reaching NGINX and TLS. PostgreSQL leads and the
-  // deprecated MySQL page sorts last, so the required database outranks it.
-  // Each database's troubleshooting page follows its setup page: those errors
-  // surface while the reader is working through the setup steps.
+  // installing before reaching NGINX and TLS. The hard prerequisites lead, the
+  // production hardening follows, and search and cache close the group: they
+  // are setup steps against real infrastructure, but only large deployments
+  // provision them.
+  //
+  // The two MySQL pages are `unlisted: true` rather than listed here. MySQL is
+  // removed in v11, so they are no longer part of any supported install path,
+  // but they stay published because a reader mid-migration still needs them.
   prepare: {
     label: 'Prepare',
     landing: 'server/preparations',
     items: [
       'server/prepare-database',
-      'server/trouble-postgres',
       'server/prepare-file-storage',
       'server/prepare-network',
       'server/setup-nginx-proxy',
       'server/setup-tls',
       'server/image-proxy',
       'server/pre-authentication-secrets',
-      'server/prepare-mattermost-mysql-database',
-      'server/trouble_mysql',
+      {label: 'Search infrastructure', landing: 'scale/enterprise-search', items: [
+        'scale/elasticsearch-setup',
+        'scale/opensearch-setup',
+      ]},
+      {doc: 'scale/redis', label: 'Caching with Redis'},
     ],
   },
 
   // One sub-group per deployment method, with a landing page comparing them so
-  // the trade-offs sit next to the pages they describe. Labelled "Deploy"
-  // rather than "Install" because these pages use "install" for a narrower
-  // step within them — getting the binary onto the host.
+  // the trade-offs sit next to the pages they describe. Named for the choice
+  // the reader is making here — Linux, Kubernetes, or containers — rather than
+  // for the act of deploying, which is what the whole parent group is about.
   install: {
-    label: 'Deploy the Server',
+    label: 'Choose a deployment method',
     landing: 'server/deploy-server',
     items: [
       {label: 'Linux', landing: 'server/deploy-linux', items: [
@@ -214,54 +256,43 @@ const DEPLOYMENT_GROUPS = {
     ],
   },
 
-  // Encryption at rest and in transit are install-time decisions, so this sits
-  // next to Deploy rather than with the day-2 topics below.
+  // Encryption at rest and in transit depend on both the proxy from Prepare
+  // and a running server from Deploy, so this is its own step after both
+  // rather than a child of either.
   secure: {
-    label: 'Secure Your Deployment',
+    label: 'Secure your deployment',
     landing: 'encryption-options',
     items: [
       'transport-encryption',
     ],
   },
 
-  scaling: {
-    label: 'Scale',
-    landing: 'scale/scaling-for-enterprise',
-    items: [
-      {label: 'Reference Architectures by User Count', items: [
-        'scale/scale-to-200-users',
-        'scale/scale-to-2000-users',
-        'scale/scale-to-15000-users',
-        'scale/scale-to-30000-users',
-        'scale/scale-to-50000-users',
-        'scale/scale-to-80000-users',
-        'scale/scale-to-90000-users',
-        'scale/scale-to-100000-users',
-        'scale/scale-to-200000-users',
-      ]},
-      {label: 'High Availability and Clustering', items: [
-        'scale/high-availability-cluster-based-deployment',
-        'scale/server-architecture',
-      ]},
-      {label: 'Storage Sizing', items: [
-        'scale/backing-storage-benchmarks',
-      ]},
-      {label: 'Search Infrastructure', landing: 'scale/enterprise-search', items: [
-        'scale/elasticsearch-setup',
-        'scale/opensearch-setup',
-      ]},
-      // Flattened from a category holding a single page.
-      {doc: 'scale/redis', label: 'Caching with Redis'},
-    ],
-  },
-
   // Deployment-time architecture (HA-vs-DR, active/passive across two sites),
-  // not routine administration, so it sits next to Scale.
+  // not routine administration.
   backupDr: {
-    label: 'Back Up and Recover',
+    label: 'Back up and recover',
     landing: 'backup-disaster-recovery',
     items: [
       'disaster-recovery-aws',
+    ],
+  },
+
+  // The operator's path, start to finish. Every child is a step in it, which
+  // is why the securing and backup steps are siblings of the install methods
+  // rather than children: each depends on a running server, not on which
+  // method produced it.
+  serverDeployment: {
+    label: 'Server deployment',
+    items: [
+      {group: 'plan'},
+      {group: 'prepare'},
+      {group: 'install'},
+      {group: 'secure'},
+      {group: 'backupDr'},
+      // Keeps its auto-generated tree: it has an index file and its children
+      // already set sidebar_position.
+      {auto: 'air-gapped-operations'},
+      {doc: 'server/troubleshooting', label: 'General deployment troubleshooting'},
     ],
   },
 
@@ -316,25 +347,17 @@ const DEPLOYMENT_GROUPS = {
   },
 };
 
+// Deployment Scenarios stays a sibling of Server deployment rather than a
+// child of Plan: it addresses evaluation, DNS failover, and zero-trust access
+// constraints that shape the whole deployment, above the level of the
+// server-specific planning pages.
 const DEPLOYMENT_ROOT_ORDER = [
   'quick-start-evaluation',
   {group: 'deploymentScenarios'},
-  {group: 'plan'},
-  {group: 'prepare'},
-  {group: 'install'},
-  {group: 'secure'},
-  {group: 'scaling'},
-  {group: 'backupDr'},
-  // Keeps its auto-generated tree: it has an index file and its children
-  // already set sidebar_position.
-  {auto: 'air-gapped-operations'},
+  {group: 'serverDeployment'},
   {group: 'calls'},
   {group: 'desktop'},
   {group: 'mobile'},
-  // Last, and a page rather than a category: the reader who lands here is the
-  // one who can't attribute the failure to a layer yet. It indexes the
-  // surface-specific pages placed above.
-  'server/troubleshooting',
 ];
 
 // Empty because every Deployment Guide page is placed explicitly above. An
@@ -450,16 +473,27 @@ const ADMIN_CONFIGURE_HIDDEN = new Set([
 // pages are each scattered across both. Replaced here with task-based groups.
 
 const ADMIN_MANAGE_GROUPS = {
-  userAccess: {
-    label: 'Users and access',
+  // "Access control" rather than "Users and access": every page here is about
+  // what a user is allowed to do, not about the user records themselves.
+  //
+  // User attributes nests under ABAC as its first child. Custom profile
+  // attributes are usable on their own, and the page stays directly linkable,
+  // but they are a prerequisite of the access rules that follow — you define
+  // the attributes before you can write a policy against them.
+  //
+  // Advanced permissions is a two-page topic, so the main page is the group's
+  // landing and the backend-infrastructure page is its child.
+  accessControl: {
+    label: 'Access control',
     landing: 'admin/user-management',
     items: [
-      'admin/user-attributes',
       'team-channel-members',
-      {doc: 'administration-guide/onboard/advanced-permissions'},
-      {doc: 'administration-guide/onboard/advanced-permissions-backend-infrastructure'},
+      {label: 'Advanced permissions', landingDoc: 'administration-guide/onboard/advanced-permissions', items: [
+        {doc: 'administration-guide/onboard/advanced-permissions-backend-infrastructure'},
+      ]},
       {doc: 'administration-guide/onboard/delegated-granular-administration'},
       {label: 'Attribute-based access control', landing: 'admin/attribute-based-access-control', items: [
+        'admin/user-attributes',
         'admin/abac-system-wide-policies',
         'admin/abac-team-membership',
         'admin/abac-team-channel-policies',
@@ -502,22 +536,6 @@ const ADMIN_MANAGE_GROUPS = {
       'user-satisfaction-surveys',
     ],
   },
-  dataMigration: {
-    // Infrastructure migration; platform migration is under Onboard users.
-    // Bulk import lives in onboard/ on disk but pairs with bulk export here —
-    // same JSONL format, same mmctl command family.
-    label: 'Data import, export, and migration',
-    landing: 'admin/migration',
-    items: [
-      {doc: 'administration-guide/onboard/bulk-loading-data'},
-      'bulk-export-tool',
-      {label: 'Migrate from MySQL to PostgreSQL', landing: 'admin/postgres-migration', items: [
-        'admin/postgres-migration-assist-tool',
-        'admin/manual-postgres-migration',
-      ]},
-      'admin/fips-migration',
-    ],
-  },
   reference: {
     label: 'Reference',
     items: [
@@ -529,12 +547,11 @@ const ADMIN_MANAGE_GROUPS = {
 
 // `admin/`-prefixed basenames live in the nested sub-folder.
 const ADMIN_MANAGE_ORDER = [
-  {group: 'userAccess'},
+  {group: 'accessControl'},
   {group: 'serverOps'},
   {group: 'licensing'},
   {group: 'cloudWorkspace'},
   {group: 'notices'},
-  {group: 'dataMigration'},
   {group: 'reference'},
 ];
 
@@ -548,10 +565,11 @@ const ADMIN_MANAGE_HIDDEN = new Set([
   'cloud-workspace-management', 'cloud-data-export', 'cloud-data-residency', 'cloud-ip-filtering',
   'cloud-byok',
   'in-product-notices', 'system-wide-notifications', 'user-satisfaction-surveys',
+  'product-limits', 'feature-labels',
+  // Listed under Migration.
   'bulk-export-tool', 'admin/migration', 'admin/postgres-migration',
   'admin/postgres-migration-assist-tool', 'admin/manual-postgres-migration',
   'admin/fips-migration',
-  'product-limits', 'feature-labels',
   // Listed under Configure.
   'admin/content-flagging', 'admin/autotranslation', 'admin/customize-branding',
   'code-signing-custom-builds',
@@ -722,36 +740,24 @@ const ADMIN_ONBOARD_GROUPS = {
       'managing-team-channel-membership-using-ad-ldap-sync-groups',
     ],
   },
-  mfaCert: {
-    label: 'Multi-factor and certificate authentication',
-    items: [
-      'multi-factor-authentication',
-      'certificate-based-authentication',
-      'ssl-client-certificate',
-    ],
-  },
-  migration: {
-    // Platform migration; infrastructure migration is under Manage.
-    label: 'Migrate from another platform',
-    landing: 'migrating-to-mattermost',
-    items: [
-      'migrate-from-slack',
-      'migrate-from-rocketchat',
-      'migrate-gitlab-omnibus',
-      'migration-announcement-email',
-    ],
-  },
 };
 
-// Identity setup first, then getting accounts in, then the one-time platform
-// migration tasks admins hit least often.
+// Identity setup first, then getting accounts in. Platform migration moved out
+// to the Migration section — arriving from another platform is a one-time
+// project, not part of standing up authentication.
+//
+// Multi-factor authentication and SSL client certificates are sibling leaves
+// rather than a "Multi-factor and certificate authentication" group. That
+// group existed to hold experimental certificate-based authentication, which
+// is deprecated from v11 and now `unlisted: true`; grouping the two survivors
+// under a joint heading buries MFA, which is the one most admins want.
 const ADMIN_ONBOARD_ORDER = [
   {group: 'sso'},
   {group: 'adldap'},
-  {group: 'mfaCert'},
+  'multi-factor-authentication',
+  'ssl-client-certificate',
   'user-provisioning-workflows',
   'guest-accounts',
-  {group: 'migration'},
 ];
 
 const ADMIN_ONBOARD_HIDDEN = new Set([
@@ -762,16 +768,14 @@ const ADMIN_ONBOARD_HIDDEN = new Set([
   'convert-oauth20-service-providers-to-openidconnect',
   'corporate-directory-integration',
   'ad-ldap', 'ad-ldap-groups-synchronization', 'managing-team-channel-membership-using-ad-ldap-sync-groups',
-  'multi-factor-authentication', 'certificate-based-authentication', 'ssl-client-certificate',
-  'migrating-to-mattermost', 'migrate-from-slack', 'migrate-from-rocketchat', 'migrate-gitlab-omnibus',
-  'migration-announcement-email',
-  // Listed under Manage > Users and access.
+  // Listed under Manage > Access control.
   'advanced-permissions', 'advanced-permissions-backend-infrastructure',
   'delegated-granular-administration',
   // Listed under Configure.
   'connected-workspaces',
-  // Listed under Manage > Data import, export, and migration.
-  'bulk-loading-data',
+  // Listed under Migration.
+  'migrating-to-mattermost', 'migrate-from-slack', 'migrate-from-rocketchat', 'migrate-gitlab-omnibus',
+  'migration-announcement-email', 'bulk-loading-data',
 ]);
 
 // ---------------------------------------------------------------------------
@@ -874,8 +878,43 @@ const ADMIN_UPGRADE_HIDDEN = new Set([
   'notify-admin',
 ]);
 
+// ---------------------------------------------------------------------------
+// Administration Guide — Migration — synthetic top-level section.
+// ---------------------------------------------------------------------------
+//
+// Not built from a directory: these pages live in manage/ and onboard/ on
+// disk. They are one section because bulk import and export exist for the same
+// reason a database or FIPS migration does — someone is moving a deployment
+// in, out, or between configurations. Splitting import/export away from
+// migration would separate things that serve one job.
+//
+// Full doc ids throughout, since the pages come from two directories.
+
+const ADMIN_MIGRATION = {
+  label: 'Migration',
+  landing: 'administration-guide/manage/admin/migration',
+  items: [
+    'administration-guide/onboard/bulk-loading-data',
+    'administration-guide/manage/bulk-export-tool',
+    {label: 'Migrate from MySQL to PostgreSQL', landing: 'administration-guide/manage/admin/postgres-migration', items: [
+      'administration-guide/manage/admin/postgres-migration-assist-tool',
+      'administration-guide/manage/admin/manual-postgres-migration',
+    ]},
+    'administration-guide/manage/admin/fips-migration',
+    {label: 'Migrate from another platform', landing: 'administration-guide/onboard/migrating-to-mattermost', items: [
+      'administration-guide/onboard/migrate-from-slack',
+      'administration-guide/onboard/migrate-from-rocketchat',
+      'administration-guide/onboard/migrate-gitlab-omnibus',
+      'administration-guide/onboard/migration-announcement-email',
+    ]},
+  ],
+};
+
+// Migration sits last, after Upgrade: a customer builds the infrastructure,
+// upgrades it, and then moves data into it.
 const ADMIN_ROOT_ORDER = [
   'Configure', 'Onboard users', 'Manage', 'Monitor and troubleshoot', 'Comply', 'Upgrade',
+  'Migration',
 ];
 
 // AI Agents above Project Management: Boards is in maintenance mode (see
@@ -965,25 +1004,29 @@ const ENDUSER_SECTION_OVERRIDES = {
 // Integrations Guide — manual grouping override.
 // ---------------------------------------------------------------------------
 //
-// `plugins` opens the guide because it explains the delivery mechanism
-// (pre-built / Mattermost-built / custom) that the catalogue and every vendor
-// page below depend on. Vendor pages nest under their catalogue, split
-// Microsoft / third-party to mirror the tables on popular-integrations, and
-// alphabetical within each group so a reader scanning for a vendor name can
-// predict where to look.
+// Pre-built integrations open the guide: a reader arriving here should first
+// see what already exists, then how the delivery mechanism works (Plugins),
+// and only then how to build their own (webhooks, slash commands, the API).
+//
+// Vendor pages nest under their catalogue and mirror the tables on
+// popular-integrations, split Microsoft / third-party. Microsoft stays its own
+// group even though Microsoft is a third party: it reflects the partnership,
+// and a reader looking for Teams looks under Microsoft before looking under a
+// capability heading. Alphabetical within each group so a reader scanning for
+// a vendor name can predict where to look.
 
 const INTEGRATIONS_GROUPS = {
   prebuilt: {
-    label: 'Popular Pre-Built Integrations',
+    label: 'Pre-built integrations',
     landing: 'popular-integrations',
     items: [
-      {label: 'Microsoft Integrations', items: [
+      {label: 'Microsoft integrations', items: [
         'mattermost-mission-collaboration-for-m365',
         'microsoft-calendar',
         'microsoft-teams-meetings',
         'microsoft-teams-sync',
       ]},
-      {label: 'Third-Party Integrations', items: [
+      {label: 'Third-party integrations', items: [
         'github',
         'gitlab',
         'jira',
@@ -1011,8 +1054,8 @@ const INTEGRATIONS_GROUPS = {
 };
 
 const INTEGRATIONS_ROOT_ORDER = [
-  'plugins',
   {group: 'prebuilt'},
+  'plugins',
   {group: 'webhooks'},
   {group: 'slashCommands'},
   'restful-api',
@@ -1708,6 +1751,25 @@ function regroupAdminUpgrade(upgradeCat) {
   return upgradeCat;
 }
 
+// Migration takes fully-qualified doc ids rather than basenames, so it needs
+// no section prefix and reads labels straight off each file.
+function buildAdminMigrationItem(spec) {
+  if (typeof spec === 'string') {
+    return {type: 'doc', id: spec, label: docLabelById(spec)};
+  }
+  if (spec.doc) {
+    return {type: 'doc', id: spec.doc, label: spec.label || docLabelById(spec.doc)};
+  }
+  return buildAdminMigrationGroup(spec);
+}
+
+function buildAdminMigrationGroup(g) {
+  const items = g.items.map(buildAdminMigrationItem);
+  const cat = {type: 'category', label: g.label, collapsed: true, items};
+  if (g.landing) cat.link = {type: 'doc', id: g.landing};
+  return cat;
+}
+
 function buildAdminGuideSidebar(autoCat) {
   const regroupers = {
     configure: regroupAdminConfigure,
@@ -1731,6 +1793,8 @@ function buildAdminGuideSidebar(autoCat) {
       console.warn(`[sidebar] WARN: Administration Guide "${dirName}" sub-category not found — its ordering override was not applied.`);
     }
   }
+
+  autoCat.items.push(buildAdminMigrationGroup(ADMIN_MIGRATION));
 
   orderRootCategories(autoCat, ADMIN_ROOT_ORDER, 'Administration Guide');
   return autoCat;

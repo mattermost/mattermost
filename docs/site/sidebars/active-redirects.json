@@ -2,7 +2,7 @@
   "_meta": {
     "maintained": "by hand",
     "note": "Legacy Sphinx URL redirects, originally bulk-extracted during the docs migration. Add new entries at the end of the array. `from` must be unique and must not contain an anchor; `to` should point at a page that exists, or the redirect silently dead-ends.",
-    "active": 739
+    "active": 740
   },
   "redirects": [
     {
@@ -1043,7 +1043,7 @@
     },
     {
       "from": "/deploy/server/trouble-postgres",
-      "to": "/deployment-guide/server/trouble-postgres"
+      "to": "/deployment-guide/server/prepare-database"
     },
     {
       "from": "/deploy/server/trouble_mysql",
@@ -1455,7 +1455,7 @@
     },
     {
       "from": "/install/trouble-postgres",
-      "to": "/deployment-guide/server/trouble-postgres"
+      "to": "/deployment-guide/server/prepare-database"
     },
     {
       "from": "/install/trouble_mysql",
@@ -2960,6 +2960,10 @@
     {
       "from": "/deployment-guide/deployment-troubleshooting",
       "to": "/deployment-guide/server/troubleshooting"
+    },
+    {
+      "from": "/deployment-guide/server/trouble-postgres",
+      "to": "/deployment-guide/server/prepare-database"
     }
   ]
 }
