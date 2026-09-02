@@ -122,6 +122,15 @@ const ChannelInfoAttributes = ({channelId}: Props) => {
         setRevealedFieldIds([]);
     }, [channelId]);
 
+    // The panel survives a channel switch, so a save started on one channel can
+    // still resolve after the user has moved to another. Fields are keyed by a
+    // global template id, so a stale result cannot simply be filtered by field
+    // id -- it would still match a same-named field on the new channel.
+    const activeChannelIdRef = useRef(channelId);
+    useEffect(() => {
+        activeChannelIdRef.current = channelId;
+    }, [channelId]);
+
     const isMountedRef = useRef(true);
     useEffect(() => {
         isMountedRef.current = true;
@@ -131,22 +140,25 @@ const ChannelInfoAttributes = ({channelId}: Props) => {
     }, []);
 
     const handleSubmit = useCallback(async (field: PropertyField, value: ChannelAttributeValue) => {
+        const requestChannelId = channelId;
+        const isStale = () => !isMountedRef.current || activeChannelIdRef.current !== requestChannelId;
+
         setSavingFieldId(field.id);
         setFailedFieldId(undefined);
         try {
             await setChannelAttributeValue(dispatch, channelId, field.id, value);
-            if (!isMountedRef.current) {
+            if (isStale()) {
                 return;
             }
             setEditingFieldId(undefined);
             setRevealedFieldIds((prev) => prev.filter((id) => id !== field.id));
         } catch {
             // Named in the row: the failure belongs beside the value it did not save.
-            if (isMountedRef.current) {
+            if (!isStale()) {
                 setFailedFieldId(field.id);
             }
         } finally {
-            if (isMountedRef.current) {
+            if (!isStale()) {
                 setSavingFieldId(undefined);
             }
         }

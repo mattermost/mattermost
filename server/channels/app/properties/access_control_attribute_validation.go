@@ -979,3 +979,77 @@ func (h *AccessControlAttributeValidationHook) PreUpdatePropertyValues(rctx requ
 	}
 	return values, nil
 }
+
+// PreDeletePropertyValue closes the gap a literal delete would otherwise leave in
+// change_policy: a delete is indistinguishable from a clear, which every
+// non-"any" policy already refuses on the upsert path. Without this, deleting a
+// locked value and writing a fresh one would launder it past its policy.
+func (h *AccessControlAttributeValidationHook) PreDeletePropertyValue(rctx request.CTX, groupID string, id string) error {
+	value, err := h.propertyService.getPropertyValue(groupID, id)
+	if err != nil {
+		// Nothing to enforce against a value that cannot be found; the delete
+		// itself will fail downstream with the appropriate not-found error.
+		return nil
+	}
+	return h.refuseGovernedDelete(rctx, groupID, []*model.PropertyValue{value})
+}
+
+// PreDeletePropertyValuesForTarget covers the same gap for a target-wide delete
+// (e.g. via the plugin API). Other target types are untouched -- see
+// validateChangePolicy for why enforcement is scoped to channels.
+func (h *AccessControlAttributeValidationHook) PreDeletePropertyValuesForTarget(rctx request.CTX, groupID string, targetType string, targetID string) error {
+	if targetType != model.PropertyValueTargetTypeChannel {
+		return nil
+	}
+	values, err := h.getValuesForTarget(groupID, targetType, targetID)
+	if err != nil {
+		return err
+	}
+	return h.refuseGovernedDelete(rctx, groupID, values)
+}
+
+// refuseGovernedDelete refuses to delete any channel value that is both set and
+// governed by a non-"any" change policy.
+func (h *AccessControlAttributeValidationHook) refuseGovernedDelete(rctx request.CTX, groupID string, values []*model.PropertyValue) error {
+	if !h.isGroupManaged(groupID) {
+		return nil
+	}
+
+	channelValues := make([]*model.PropertyValue, 0, len(values))
+	for _, v := range values {
+		if v.TargetType == model.PropertyValueTargetTypeChannel && !model.IsEmptyPropertyValue(v.Value) {
+			channelValues = append(channelValues, v)
+		}
+	}
+	if len(channelValues) == 0 {
+		return nil
+	}
+
+	fieldIDSet := make(map[string]struct{})
+	for _, v := range channelValues {
+		fieldIDSet[v.FieldID] = struct{}{}
+	}
+	fieldIDs := make([]string, 0, len(fieldIDSet))
+	for id := range fieldIDSet {
+		fieldIDs = append(fieldIDs, id)
+	}
+
+	fields, err := h.propertyService.getPropertyFields(rctx, groupID, fieldIDs)
+	if err != nil {
+		return fmt.Errorf("failed to fetch fields for delete validation: %w", err)
+	}
+	fieldMap := make(map[string]*model.PropertyField, len(fields))
+	for _, f := range fields {
+		fieldMap[f.ID] = f
+	}
+
+	for _, v := range channelValues {
+		field, ok := fieldMap[v.FieldID]
+		if !ok || model.GetPropertyFieldChangePolicy(field) == model.PropertyFieldChangePolicyAny {
+			continue
+		}
+		return newChangePolicyError(field, model.GetPropertyFieldChangePolicy(field))
+	}
+
+	return nil
+}

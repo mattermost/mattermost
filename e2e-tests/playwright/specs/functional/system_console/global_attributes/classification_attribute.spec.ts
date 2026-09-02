@@ -208,7 +208,7 @@ test.describe(
             await channelsPage.toBeVisible();
 
             // * No banner, even though the channel has a classification
-            await expect(page.getByTestId('channelBanner')).toHaveCount(0);
+            await expect(page.getByTestId('channel_banner_container')).toHaveCount(0);
         });
 
         /**

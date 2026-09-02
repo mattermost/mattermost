@@ -43,7 +43,7 @@ import AttributeOptionsRankValues from './attribute_options_rank_values';
 import AttributeOptionsValues from './attribute_options_values';
 import {useConfirmRemoveAppliesTo} from './attribute_remove_applies_to_warning_modal';
 
-import {CHANNEL_VALUE_SETTER, DEFAULT_CHANNEL_RESOURCE_CONFIG, buildChannelFieldAttrs, isOrderedChangePolicy} from '../applies_to/channels';
+import {CHANNEL_VALUE_SETTER, DEFAULT_CHANNEL_RESOURCE_CONFIG, buildChannelFieldAttrs, buildChannelFieldPatch, isOrderedChangePolicy, parseChannelFieldConfig} from '../applies_to/channels';
 import type {ChannelResourceConfig} from '../applies_to/channels';
 import {GLOBAL_ATTRIBUTES_LIST_ROUTE} from '../constants';
 import {getSourceKind, getTypeIcon, getTypeLabel, isClassificationMarkingsField, typeLabels} from '../global_attributes_table';
@@ -56,6 +56,7 @@ import {
     fetchAttributeField,
     fetchLinkedFieldsForTemplate,
     linkedFieldsByResourceType,
+    patchLinkedAttributeField,
     updateAttributeField,
 } from '../utils';
 
@@ -406,6 +407,9 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                 setLdapAttr(typeof field.attrs?.ldap === 'string' ? field.attrs.ldap : '');
                 setSamlAttr(typeof field.attrs?.saml === 'string' ? field.attrs.saml : '');
                 setAppliesTo(ALL_RESOURCE_TYPES.filter((type) => Boolean(linkedByType[type])));
+                if (linkedByType.channel) {
+                    setChannelResource(parseChannelFieldConfig(linkedByType.channel));
+                }
                 setLoading(false);
             } catch {
                 if (!cancelled) {
@@ -799,7 +803,15 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
             for (const type of toCreate) {
                 try {
                     // eslint-disable-next-line no-await-in-loop
-                    const linkedField = await createLinkedAttributeField(type, currentName, fieldType, displayName, fieldId);
+                    const linkedField = await createLinkedAttributeField(
+                        type,
+                        currentName,
+                        fieldType,
+                        displayName,
+                        fieldId,
+                        type === 'channel' ? buildChannelFieldAttrs(channelResource) : undefined,
+                        type === 'channel' ? CHANNEL_VALUE_SETTER : undefined,
+                    );
                     persistedLinkedFieldsRef.current[type] = linkedField;
                 } catch (error) {
                     const cpaErrorKind = type === 'user' ? appliesToErrorKindFromError(error) : null;
@@ -808,6 +820,27 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                         errorKind: cpaErrorKind ?? 'applies_to_partial_save',
                         serverErrorMessage: null,
                         failedResourceTypes: [type],
+                    });
+                    return;
+                }
+            }
+
+            // An existing Channels row's own settings (required, change policy,
+            // display locations) are not part of the template patch above, so a
+            // resource that was already applied still needs its own PATCH to
+            // pick up an edit to those settings.
+            const persistedChannelField = persistedLinkedFieldsRef.current.channel;
+            if (persistedChannelField && appliesTo.includes('channel') && !toCreate.includes('channel')) {
+                try {
+                    // eslint-disable-next-line no-await-in-loop
+                    const patchedChannelField = await patchLinkedAttributeField('channel', persistedChannelField.id, buildChannelFieldPatch(channelResource));
+                    persistedLinkedFieldsRef.current.channel = patchedChannelField;
+                } catch {
+                    finalizeSave({
+                        success: false,
+                        errorKind: 'applies_to_partial_save',
+                        serverErrorMessage: null,
+                        failedResourceTypes: ['channel'],
                     });
                     return;
                 }

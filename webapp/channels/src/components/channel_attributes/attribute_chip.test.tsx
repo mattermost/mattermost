@@ -88,4 +88,20 @@ describe('AttributeChip', () => {
 
         expect(screen.getByTestId('attributeChip')).toHaveClass('AttributeChip--neutral');
     });
+
+    test('falls back to the neutral treatment for a six-character non-hex colour', () => {
+        // Six characters passes a length-only check, but 'zzzzzz' has no hex
+        // digits -- it must not slip past validation into an unreadable chip.
+        renderWithContext(
+            <AttributeChip
+                label='Caveat'
+                value='NOFORN'
+                color='zzzzzz'
+            />,
+        );
+
+        const chip = screen.getByTestId('attributeChip');
+        expect(chip).toHaveClass('AttributeChip--neutral');
+        expect(chip).not.toHaveStyle({color: '#ffffff'});
+    });
 });

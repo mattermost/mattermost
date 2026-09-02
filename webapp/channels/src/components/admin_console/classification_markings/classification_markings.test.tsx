@@ -1277,7 +1277,7 @@ describe('Channel classification linked field branches', () => {
             mockResolvedValueOnce(patchedTemplate).
             mockResolvedValueOnce(patchedLinked);
 
-        const createSpy = jest.spyOn(Client4, 'createPropertyField');
+        const createSpy = jest.spyOn(Client4, 'createPropertyField').mockResolvedValue(makeLinkedField());
 
         renderWithContext(<ClassificationMarkings/>, BASE_STATE);
         await screen.findByText('Classification levels');
@@ -1322,7 +1322,7 @@ describe('Channel classification linked field branches', () => {
             mockResolvedValueOnce(patchedTemplate).
             mockResolvedValueOnce(patchedLinked);
 
-        const createSpy = jest.spyOn(Client4, 'createPropertyField');
+        const createSpy = jest.spyOn(Client4, 'createPropertyField').mockResolvedValue(makeLinkedField());
 
         const {store} = renderWithContext(<ClassificationMarkings/>, BASE_STATE);
         await screen.findByText('Classification levels');

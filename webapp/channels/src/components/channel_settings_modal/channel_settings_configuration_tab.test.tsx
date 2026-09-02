@@ -74,7 +74,7 @@ beforeEach(() => {
         classificationBanner: undefined,
         classificationId: undefined,
         bannerText: undefined,
-                classificationIsBannerDesignated: false,
+        classificationIsBannerDesignated: false,
     });
 });
 

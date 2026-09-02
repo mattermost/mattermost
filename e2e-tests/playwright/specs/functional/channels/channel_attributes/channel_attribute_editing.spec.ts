@@ -202,6 +202,9 @@ test.describe('Channel attribute editing', {tag: ['@channel_attributes']}, () =>
             await channelsPage.toBeVisible();
 
             await page.route('**/api/v4/properties/groups/access_control/channel/values/**', (route) => {
+                if (route.request().method() !== 'PATCH') {
+                    return route.continue();
+                }
                 return route.fulfill({status: 500, body: '{"message":"forced failure"}'});
             });
 

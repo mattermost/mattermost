@@ -9,6 +9,12 @@ import {getContrastingSimpleColor} from 'mattermost-redux/utils/theme_utils';
 
 import './attribute_chip.scss';
 
+// getContrastingSimpleColor only checks length, so a 6-character non-hex string
+// (e.g. 'zzzzzz') parses to NaN channels and still returns a contrasting colour
+// instead of failing -- forcing white/black text onto a background the browser
+// then silently ignores as invalid CSS.
+const HEX_COLOR_PATTERN = /^#?[0-9a-fA-F]{6}$/;
+
 type Props = {
     label: string;
     value: string;
@@ -35,7 +41,7 @@ type Props = {
  */
 const AttributeChip = ({label, value, color, announceLabel = true, className}: Props) => {
     const style = useMemo(() => {
-        if (!color) {
+        if (!color || !HEX_COLOR_PATTERN.test(color)) {
             return undefined;
         }
 

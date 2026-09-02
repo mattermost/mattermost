@@ -614,6 +614,7 @@ function ChannelSettingsConfigurationTab({
 
         return true;
     }, [
+        canManageClassification,
         canManageSharedChannels,
         channel,
         channelAttributesEnabled,
@@ -852,7 +853,7 @@ function ChannelSettingsConfigurationTab({
                                 id='channelBannerToggle'
                                 ariaLabel={bannerHeading}
                                 size='btn-md'
-                                disabled={bannerLockedByClassification || bannerRequiredByAttribute}
+                                disabled={bannerLockedByClassification || bannerRequiredByAttribute || bannerDrivenByAttribute}
                                 onToggle={handleBannerToggle}
                                 toggled={bannerLockedByClassification || bannerDrivenByAttribute || bannerRequiredByAttribute || updatedChannelBanner.enabled}
                                 tabIndex={0}

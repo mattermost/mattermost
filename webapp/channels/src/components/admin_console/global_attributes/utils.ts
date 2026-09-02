@@ -224,3 +224,14 @@ export function createLinkedAttributeField(
 export function deleteLinkedAttributeField(objectType: ResourceObjectType, fieldId: string): Promise<unknown> {
     return Client4.deletePropertyField(GLOBAL_ATTRIBUTES_GROUP_NAME, objectType, fieldId);
 }
+
+// PATCHes an existing linked field for one Applies-to resource -- e.g. the
+// Channels row's own settings (buildChannelFieldPatch), applied without
+// touching the fields owned by the template save (name/type/options).
+export function patchLinkedAttributeField(
+    objectType: ResourceObjectType,
+    fieldId: string,
+    patch: Partial<PropertyField> & Record<string, unknown>,
+): Promise<PropertyField> {
+    return Client4.patchPropertyField(GLOBAL_ATTRIBUTES_GROUP_NAME, objectType, fieldId, patch);
+}

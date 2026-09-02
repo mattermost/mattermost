@@ -36,6 +36,11 @@ export const useChannelResourceRemove = () => {
                 dialogProps: {
                     onConfirm: () => resolve(true),
                     onCancel: () => resolve(false),
+
+                    // Escape and a backdrop click call neither of the above, only
+                    // this -- without it the promise never settles and the caller
+                    // hangs waiting on a dismissal that already happened.
+                    onExited: () => resolve(false),
                 },
             }));
         });
