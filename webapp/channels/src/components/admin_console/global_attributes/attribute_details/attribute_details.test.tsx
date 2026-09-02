@@ -1296,7 +1296,7 @@ describe('AttributeDetails', () => {
                 </Route>
                 <ModalController/>
             </div>,
-            {},
+            CHANNEL_ATTRIBUTES_STATE,
             {
                 history: createMemoryHistory({
                     initialEntries: [`/admin_console/system_attributes/manage_attributes/attribute_details/${FIELD_ID}`],

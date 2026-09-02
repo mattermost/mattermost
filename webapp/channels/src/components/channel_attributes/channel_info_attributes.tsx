@@ -126,9 +126,9 @@ const ChannelInfoAttributes = ({channelId}: Props) => {
     // still resolve after the user has moved to another. Fields are keyed by a
     // global template id, so a stale result cannot simply be filtered by field
     // id -- it would still match a same-named field on the new channel.
-    const activeChannelIdRef = useRef(channelId);
+    const visitTokenRef = useRef(0);
     useEffect(() => {
-        activeChannelIdRef.current = channelId;
+        visitTokenRef.current += 1;
     }, [channelId]);
 
     const isMountedRef = useRef(true);
@@ -140,8 +140,8 @@ const ChannelInfoAttributes = ({channelId}: Props) => {
     }, []);
 
     const handleSubmit = useCallback(async (field: PropertyField, value: ChannelAttributeValue) => {
-        const requestChannelId = channelId;
-        const isStale = () => !isMountedRef.current || activeChannelIdRef.current !== requestChannelId;
+        const requestVisitToken = visitTokenRef.current;
+        const isStale = () => !isMountedRef.current || visitTokenRef.current !== requestVisitToken;
 
         setSavingFieldId(field.id);
         setFailedFieldId(undefined);

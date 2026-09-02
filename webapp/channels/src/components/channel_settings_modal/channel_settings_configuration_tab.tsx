@@ -863,7 +863,7 @@ function ChannelSettingsConfigurationTab({
                     </div>
 
                     {
-                        (bannerLockedByClassification || bannerDrivenByAttribute || updatedChannelBanner.enabled) &&
+                        (bannerLockedByClassification || bannerDrivenByAttribute || bannerRequiredByAttribute || updatedChannelBanner.enabled) &&
                         <div className='channel_banner_section_body'>
                             {/*Banner text section*/}
                             <div className='setting_section'>
