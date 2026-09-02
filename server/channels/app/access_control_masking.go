@@ -129,7 +129,7 @@ func (r *appMaskingResolver) fieldToMaskingInfo(field *model.PropertyField) *mod
 		info.Access = model.MaskingFieldAccessSourceOnly
 	case model.PropertyAccessModeSharedOnly:
 		info.Access = model.MaskingFieldAccessSharedOnly
-		if field.Type == model.PropertyFieldTypeSelect || field.Type == model.PropertyFieldTypeMultiselect {
+		if field.Type.SupportsOptions() {
 			info.VisibleValues = extractVisibleOptionNames(field)
 		} else {
 			info.VisibleValues = r.app.getCallerTextValues(r.rctxWithCaller, r.callerID, field, r.cpaGroupID)
