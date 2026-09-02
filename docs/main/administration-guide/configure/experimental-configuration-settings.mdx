@@ -1195,7 +1195,7 @@ This setting isn't available in the System Console and can only be set in `confi
 
 Set whether or not this Mattermost server will handle tasks created by the Scheduler. When running Mattermost on a single machine, this setting should always be enabled.
 
-When running Mattermost in [High Availablity mode](/deployment-guide/scale/high-availability-cluster-based-deployment), one or more servers should have this setting enabled. We recommend that your High Availability cluster-based deployment has one or more dedicated Workers with this setting enabled while the remaining Mattermost app servers have it disabled.
+When running Mattermost in [High Availablity mode](/deployment-guide/server/high-availability-cluster-based-deployment), one or more servers should have this setting enabled. We recommend that your High Availability cluster-based deployment has one or more dedicated Workers with this setting enabled while the remaining Mattermost app servers have it disabled.
 
 <table>
 <colgroup>
@@ -1214,7 +1214,7 @@ This setting isn't available in the System Console and can only be set in `confi
 
 Set whether or not this Mattermost server will schedule tasks that will be completed by a Worker. When running Mattermost on a single machine, this setting should always be enabled.
 
-When running Mattermost in [High Availablity mode](/deployment-guide/scale/high-availability-cluster-based-deployment), this setting should always be enabled. In a High Availability cluster-based deployment, exactly one of the servers will be designated as the Scheduler at a time to ensure that duplicate tasks aren't created. See [High Availability documentation](/deployment-guide/scale/high-availability-cluster-based-deployment) for more details.
+When running Mattermost in [High Availablity mode](/deployment-guide/server/high-availability-cluster-based-deployment), this setting should always be enabled. In a High Availability cluster-based deployment, exactly one of the servers will be designated as the Scheduler at a time to ensure that duplicate tasks aren't created. See [High Availability documentation](/deployment-guide/server/high-availability-cluster-based-deployment) for more details.
 
 <Warning>
 

@@ -26,7 +26,7 @@ Everything in this section is a decision you make before touching a server: what
 Sizing depends on more than user count. Before you move on to [Prepare](/deployment-guide/server/preparations), settle:
 
 - **Expected user count and growth.** Sizing is driven by concurrent users, not registered users. [Size your deployment](/deployment-guide/deployment-architecture) maps a scale tier to a bill of materials.
-- **Whether you need high availability.** HA changes the topology, the licensing, and the deployment method. See [High availability cluster-based deployment](/deployment-guide/scale/high-availability-cluster-based-deployment).
+- **Whether you need high availability.** HA changes the topology, the licensing, and the deployment method. See [High availability cluster-based deployment](/deployment-guide/server/high-availability-cluster-based-deployment).
 - **Your backup and disaster recovery requirements.** These are deployment-time architecture decisions, not day-2 tasks. See [Back up and recover](/deployment-guide/backup-disaster-recovery).
 - **Which deployment method fits your environment.** Kubernetes, Linux, or containers. The trade-offs are compared in [Deploy the Mattermost server](/deployment-guide/server/deploy-server#deployment-options).
 - **Security and compliance constraints.** If you're deploying air-gapped, into a coalition network, or under a compliance framework, start from [Deployment Scenarios](/deployment-guide/deployment-scenarios/deployment-scenarios-index), because those constraints shape every decision that follows.

@@ -2,7 +2,7 @@
   "_meta": {
     "maintained": "by hand",
     "note": "Legacy Sphinx URL redirects, originally bulk-extracted during the docs migration. Add new entries at the end of the array. `from` must be unique and must not contain an anchor; `to` should point at a page that exists, or the redirect silently dead-ends.",
-    "active": 740
+    "active": 741
   },
   "redirects": [
     {
@@ -1151,7 +1151,7 @@
     },
     {
       "from": "/deployment/ha",
-      "to": "/deployment-guide/scale/high-availability-cluster-based-deployment"
+      "to": "/deployment-guide/server/high-availability-cluster-based-deployment"
     },
     {
       "from": "/deployment/metrics",
@@ -2431,7 +2431,7 @@
     },
     {
       "from": "/scale/high-availability-cluster-based-deployment",
-      "to": "/deployment-guide/scale/high-availability-cluster-based-deployment"
+      "to": "/deployment-guide/server/high-availability-cluster-based-deployment"
     },
     {
       "from": "/scale/lifetime-storage",
@@ -2503,7 +2503,7 @@
     },
     {
       "from": "/scale/high-availability-cluster",
-      "to": "/deployment-guide/scale/high-availability-cluster-based-deployment"
+      "to": "/deployment-guide/server/high-availability-cluster-based-deployment"
     },
     {
       "from": "/scale/scale-to-100-users",
@@ -2895,7 +2895,11 @@
     },
     {
       "from": "/administration-guide/scale/high-availability-cluster-based-deployment",
-      "to": "/deployment-guide/scale/high-availability-cluster-based-deployment"
+      "to": "/deployment-guide/server/high-availability-cluster-based-deployment"
+    },
+    {
+      "from": "/deployment-guide/scale/high-availability-cluster-based-deployment",
+      "to": "/deployment-guide/server/high-availability-cluster-based-deployment"
     },
     {
       "from": "/administration-guide/scale/lifetime-storage",

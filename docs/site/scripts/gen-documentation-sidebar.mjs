@@ -175,7 +175,6 @@ const DEPLOYMENT_GROUPS = {
       'application-architecture',
       'deployment-architecture',
       {group: 'referenceArch'},
-      'scale/high-availability-cluster-based-deployment',
       'software-hardware-requirements',
     ],
   },
@@ -223,6 +222,7 @@ const DEPLOYMENT_GROUPS = {
       'server/setup-tls',
       'server/image-proxy',
       'server/pre-authentication-secrets',
+      'server/high-availability-cluster-based-deployment',
       {label: 'Search infrastructure', landing: 'scale/enterprise-search', items: [
         'scale/elasticsearch-setup',
         'scale/opensearch-setup',
@@ -891,7 +891,7 @@ const ADMIN_UPGRADE_HIDDEN = new Set([
 // Full doc ids throughout, since the pages come from two directories.
 
 const ADMIN_MIGRATION = {
-  label: 'Migration',
+  label: 'Migrate',
   landing: 'administration-guide/manage/admin/migration',
   items: [
     'administration-guide/onboard/bulk-loading-data',
@@ -910,11 +910,11 @@ const ADMIN_MIGRATION = {
   ],
 };
 
-// Migration sits last, after Upgrade: a customer builds the infrastructure,
+// Migrate sits last, after Upgrade: a customer builds the infrastructure,
 // upgrades it, and then moves data into it.
 const ADMIN_ROOT_ORDER = [
   'Configure', 'Onboard users', 'Manage', 'Monitor and troubleshoot', 'Comply', 'Upgrade',
-  'Migration',
+  'Migrate',
 ];
 
 // AI Agents above Project Management: Boards is in maintenance mode (see

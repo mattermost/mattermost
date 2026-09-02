@@ -1153,7 +1153,7 @@ When you reinstall a plugin in v5.14, the previous **Enabled** or **Disabled** s
 
 ### CLI and High Availability
 
-The CLI is run in a single node which bypasses the mechanisms that a [high availability environment](/deployment-guide/scale/high-availability-cluster-based-deployment) uses to perform actions across all nodes in the cluster. As a result, when running [CLI commands](/administration-guide/manage/command-line-tools) in a High Availability environment, tasks such as updating and deleting users or changing configuration settings require a server restart.
+The CLI is run in a single node which bypasses the mechanisms that a [high availability environment](/deployment-guide/server/high-availability-cluster-based-deployment) uses to perform actions across all nodes in the cluster. As a result, when running [CLI commands](/administration-guide/manage/command-line-tools) in a High Availability environment, tasks such as updating and deleting users or changing configuration settings require a server restart.
 
 We recommend using [mmctl](/administration-guide/manage/mmctl-command-line-tool) in a high availability environment instead since a server restart is not required. These changes are made through the API layer, so the node receiving the change request notifies all other nodes in the cluster.
 

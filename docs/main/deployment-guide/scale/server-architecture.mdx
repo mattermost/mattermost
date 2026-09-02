@@ -5,7 +5,7 @@ import useBaseUrl from '@docusaurus/useBaseUrl';
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
-The following diagrams detail suggested architecture configurations of [high availability Mattermost deployments](/deployment-guide/scale/high-availability-cluster-based-deployment#deployment-guide) at different scales. Hardware and infrastructure requirements will vary significantly based on usage and policies. See the [scaling for enterprise](/deployment-guide/scale/scaling-for-enterprise) documentation for reference architecture guidance at scale, including hardware and infrastructure requirements.
+The following diagrams detail suggested architecture configurations of [high availability Mattermost deployments](/deployment-guide/server/high-availability-cluster-based-deployment#deployment-guide) at different scales. Hardware and infrastructure requirements will vary significantly based on usage and policies. See the [scaling for enterprise](/deployment-guide/scale/scaling-for-enterprise) documentation for reference architecture guidance at scale, including hardware and infrastructure requirements.
 
 High availability in Mattermost consists of running redundant Mattermost application servers, redundant database servers, and redundant load balancers so that failure of any one of these components does not interrupt operation of the system. Upon failure of one component, the remaining application servers, database servers, and load balancers must be sized and configured to carry the full load of the system. If this requirement is not met, an outage of one component can result in an overload of the remaining components, causing a complete system outage.
 

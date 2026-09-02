@@ -390,7 +390,7 @@ When using the Mattermost Desktop App, additional configuration is required to o
 
 <Note>
 
-Purging the caches may adversely impact performance. [high availability cluster-based deployments](/deployment-guide/scale/high-availability-cluster-based-deployment) will attempt to purge all the servers in the cluster.
+Purging the caches may adversely impact performance. [high availability cluster-based deployments](/deployment-guide/server/high-availability-cluster-based-deployment) will attempt to purge all the servers in the cluster.
 
 </Note>
 
@@ -754,7 +754,7 @@ Your database admin must configure the functionality according to supported valu
 
 #### AWS High Availablity RDS cluster deployments
 
-For an AWS High Availability RDS cluster deployment, point this configuration setting to the write/read endpoint at the **cluster** level to benefit from the AWS failover handling. AWS takes care of promoting different database nodes to be the writer node. Mattermost doesn't need to manage this. See the [high availability database configuration](/deployment-guide/scale/high-availability-cluster-based-deployment#database) documentation for details.
+For an AWS High Availability RDS cluster deployment, point this configuration setting to the write/read endpoint at the **cluster** level to benefit from the AWS failover handling. AWS takes care of promoting different database nodes to be the writer node. Mattermost doesn't need to manage this. See the [high availability database configuration](/deployment-guide/server/high-availability-cluster-based-deployment#database) documentation for details.
 
 ### Maximum open connections
 
@@ -963,7 +963,7 @@ Read-only display of the currently active backend used for search. Values can in
 
 #### AWS High Availability RDS cluster deployments
 
-For an AWS High Availability RDS cluster deployment, point this configuration setting directly to the underlying read-only node endpoint within the RDS cluster to circumvent the failover/load balancing that AWS/RDS takes care of (except for the write traffic). Mattermost has its own method of balancing the read-only connections and can also balance those queries to the data source/write+read connection should those nodes fail. See the [high availability database configuration](/deployment-guide/scale/high-availability-cluster-based-deployment#database) documentation for details.
+For an AWS High Availability RDS cluster deployment, point this configuration setting directly to the underlying read-only node endpoint within the RDS cluster to circumvent the failover/load balancing that AWS/RDS takes care of (except for the write traffic). Mattermost has its own method of balancing the read-only connections and can also balance those queries to the data source/write+read connection should those nodes fail. See the [high availability database configuration](/deployment-guide/server/high-availability-cluster-based-deployment#database) documentation for details.
 
 ### Search replicas
 
@@ -989,7 +989,7 @@ For an AWS High Availability RDS cluster deployment, point this configuration se
 
 #### AWS High Availability RDS cluster deployments
 
-For an AWS High Availability RDS cluster deployment, point this configuration setting directly to the underlying read-only node endpoint within the RDS cluster to circumvent the failover/load balancing that AWS/RDS takes care of (except for the write traffic). Mattermost has its own method of balancing the read-only connections and can also balance those queries to the data source/write+read connection should those nodes fail. See the [high availability database configuration](/deployment-guide/scale/high-availability-cluster-based-deployment#database) documentation for details.
+For an AWS High Availability RDS cluster deployment, point this configuration setting directly to the underlying read-only node endpoint within the RDS cluster to circumvent the failover/load balancing that AWS/RDS takes care of (except for the write traffic). Mattermost has its own method of balancing the read-only connections and can also balance those queries to the data source/write+read connection should those nodes fail. See the [high availability database configuration](/deployment-guide/server/high-availability-cluster-based-deployment#database) documentation for details.
 
 ### Replica lag settings
 
@@ -2585,7 +2585,7 @@ See the [Telemetry](/administration-guide/manage/telemetry#security-update-check
 
 <PlanAvailability slug="ent-plus" />
 
-With self-hosted deployments, you can configure Mattermost as a [high availability cluster-based deployment](/deployment-guide/scale/high-availability-cluster-based-deployment) by going to **System Console \> Environment \> High Availability**, or by editing the `config.json` file as described in the following tables. Changes to configuration settings in this section require a server restart before taking effect.
+With self-hosted deployments, you can configure Mattermost as a [high availability cluster-based deployment](/deployment-guide/server/high-availability-cluster-based-deployment) by going to **System Console \> Environment \> High Availability**, or by editing the `config.json` file as described in the following tables. Changes to configuration settings in this section require a server restart before taking effect.
 
 When a Mattermost high availability cluster-based deployment uses `config.json` for configuration, the System Console is set to read-only by default, and settings can only be changed by editing the `config.json` file directly. However, to test a high availability cluster-based environment, you can disable `ClusterSettings.ReadOnlyConfig` in the `config.json` file by setting it to `false`. This allows changes applied using the System Console to be saved back to the configuration file. When configuration is stored in the database, `ClusterSettings.ReadOnlyConfig` is ignored and the System Console remains fully editable. See [Store configuration in your database](/administration-guide/configure/configuration-in-your-database) for details.
 
@@ -2634,7 +2634,7 @@ When a Mattermost high availability cluster-based deployment uses `config.json` 
 </tbody>
 </table>
 
-See the [high availability cluster-based deployment](/deployment-guide/scale/high-availability-cluster-based-deployment) documentation for details.
+See the [high availability cluster-based deployment](/deployment-guide/server/high-availability-cluster-based-deployment) documentation for details.
 
 ### Use IP address
 
@@ -3408,7 +3408,7 @@ After changing this setting, the new session length takes effect after the next 
 
 - This setting has no effect when [extend session length with activity](#extend-session-length-with-activity) is set to **true**.
 - This setting applies to the webapp and the desktop app. For mobile apps, use an [EMM provider](/deployment-guide/mobile/deploy-mobile-apps-using-emm-provider) to lock the app when not in use. |
-- In [high availability mode](/deployment-guide/scale/high-availability-cluster-based-deployment), enable IP hash load balancing for reliable timeout measurement.
+- In [high availability mode](/deployment-guide/server/high-availability-cluster-based-deployment), enable IP hash load balancing for reliable timeout measurement.
 
 </Note>
 
