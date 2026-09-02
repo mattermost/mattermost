@@ -286,7 +286,13 @@ func TestMigrateBackfillPropertyPermissions_OversizedOptions(t *testing.T) {
 			model.PropertyFieldAttributeOptions: oversizedOptions(false),
 		},
 	})
-	requireStoredOptionsWithheld(t, th, th.CPAGroupID, field.ID)
+	// A legacy field carries no permissions object, so the hooked read now
+	// denies it outright; read under the store accessor the backfill itself
+	// uses, to see what was actually persisted, same as the post-backfill
+	// check below.
+	before, err := th.service.getPropertyField(th.CPAGroupID, field.ID)
+	require.NoError(t, err)
+	requireOptionsWithheld(t, before)
 
 	converted, skipped, err := th.service.MigrateBackfillPropertyPermissions(th.Context)
 	require.NoError(t, err)

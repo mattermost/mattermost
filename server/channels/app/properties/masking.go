@@ -265,12 +265,7 @@ func (h *AccessControlHook) maskValue(rctx request.CTX, c maskingContext, field 
 // caller's holdings; that is exactly what masking exists to withhold. Called
 // once, from the read path that hides the value on this error
 // (applyValueReadAccessControl); the write path that refuses on this error
-// reports it as a failure instead, so it has no log line of its own. The
-// legacy shared_only path's logHiddenGraphValue logs the equivalent failure
-// for its own graph-only clamp; the two stay separate because masking and
-// shared_only disagree on purpose about what a caller sees when they hold
-// only some of an option's ancestors, and merging the logging would blur
-// that.
+// reports it as a failure instead, so it has no log line of its own.
 func logMaskingFailure(rctx request.CTX, field *model.PropertyField, value *model.PropertyValue, err error) {
 	rctx.Logger().Error(
 		"Hiding a masked property value because what the caller may see of it could not be established",

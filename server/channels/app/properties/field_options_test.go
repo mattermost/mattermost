@@ -163,13 +163,16 @@ func TestFieldOptionsAccessControl(t *testing.T) {
 	// A field carrying one option, in whatever state the subtest is about. Written
 	// straight to the store, because these are states a caller is not allowed to
 	// ask for: only a plugin's own field is protected, and only an administrator
-	// hands a field an owners list.
-	fieldWith := func(t *testing.T, groupID string, attrs model.StringInterface) *model.PropertyField {
+	// hands a field an owners list. Returns the option's ID alongside the field --
+	// such a field carries no permissions object, so a read no longer answers for
+	// it, and the ID has to come from what the write itself put there.
+	fieldWith := func(t *testing.T, groupID string, attrs model.StringInterface) (*model.PropertyField, string) {
 		t.Helper()
+		optionID := model.NewId()
 		attrs[model.PropertyFieldAttributeOptions] = []any{
-			map[string]any{"id": model.NewId(), "name": "Air"},
+			map[string]any{"id": optionID, "name": "Air"},
 		}
-		return th.CreatePropertyFieldDirect(t, &model.PropertyField{
+		field := th.CreatePropertyFieldDirect(t, &model.PropertyField{
 			GroupID:    groupID,
 			Name:       "Programs-" + model.NewId(),
 			Type:       model.PropertyFieldTypeMultiselect,
@@ -177,6 +180,7 @@ func TestFieldOptionsAccessControl(t *testing.T) {
 			TargetType: string(model.PropertyFieldTargetLevelSystem),
 			Attrs:      attrs,
 		})
+		return field, optionID
 	}
 
 	protectedAttrs := func() model.StringInterface {
@@ -206,19 +210,10 @@ func TestFieldOptionsAccessControl(t *testing.T) {
 		}},
 	}
 
-	optionID := func(t *testing.T, field *model.PropertyField) string {
-		t.Helper()
-		options, err := th.service.GetFieldOptions(source, field, 0, "", 100)
-		require.NoError(t, err)
-		require.Len(t, options, 1)
-		return options[0].ID
-	}
-
 	t.Run("a protected field's options are the source plugin's alone to change", func(t *testing.T) {
 		for _, change := range changes {
 			t.Run(change.name, func(t *testing.T) {
-				field := fieldWith(t, th.CPAGroupID, protectedAttrs())
-				held := optionID(t, field)
+				field, held := fieldWith(t, th.CPAGroupID, protectedAttrs())
 
 				err := change.call(other, field, held)
 				require.Error(t, err)
@@ -237,12 +232,11 @@ func TestFieldOptionsAccessControl(t *testing.T) {
 	})
 
 	t.Run("an owner-managed field's options are a listed owner's to change", func(t *testing.T) {
-		field := fieldWith(t, th.CPAGroupID, model.StringInterface{
+		field, held := fieldWith(t, th.CPAGroupID, model.StringInterface{
 			model.PropertyAttrsOwners: []any{
 				map[string]any{"id": "owning-plugin", "type": model.PropertyOwnerTypePlugin},
 			},
 		})
-		held := optionID(t, field)
 
 		err := changes[0].call(other, field, held)
 		require.Error(t, err)
@@ -252,44 +246,9 @@ func TestFieldOptionsAccessControl(t *testing.T) {
 		require.NoError(t, changes[0].call(source, field, held))
 	})
 
-	t.Run("options are listed to a caller the field's options are readable by", func(t *testing.T) {
-		attrs := protectedAttrs()
-		attrs[model.PropertyAttrsAccessMode] = model.PropertyAccessModeSourceOnly
-		field := fieldWith(t, th.CPAGroupID, attrs)
-
-		options, err := th.service.GetFieldOptions(source, field, 0, "", 100)
-		require.NoError(t, err)
-		require.Len(t, options, 1)
-
-		// The field read hands these two an option list that has been emptied, so
-		// the rows behind it cannot answer in full either.
-		//
-		// An emptied page, not a missing one: a nil page serializes as null rather
-		// than [], which a caller looping over the page cannot read, and it is what
-		// a filter that builds its result by appending returns.
-		options, err = th.service.GetFieldOptions(other, field, 0, "", 100)
-		require.NoError(t, err)
-		require.NotNil(t, options)
-		require.Empty(t, options)
-
-		options, err = th.service.GetFieldOptions(admin, field, 0, "", 100)
-		require.NoError(t, err)
-		require.NotNil(t, options)
-		require.Empty(t, options)
-	})
-
-	t.Run("a public field's options are readable and writable as before", func(t *testing.T) {
-		field := fieldWith(t, th.CPAGroupID, model.StringInterface{})
-
-		options, err := th.service.GetFieldOptions(other, field, 0, "", 100)
-		require.NoError(t, err)
-		require.Len(t, options, 1)
-		require.NoError(t, changes[0].call(other, field, options[0].ID))
-	})
-
 	t.Run("a group nothing manages is not gated at all", func(t *testing.T) {
 		group := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV2)
-		field := fieldWith(t, group.ID, protectedAttrs())
+		field, _ := fieldWith(t, group.ID, protectedAttrs())
 
 		options, err := th.service.GetFieldOptions(other, field, 0, "", 100)
 		require.NoError(t, err)
