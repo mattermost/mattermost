@@ -46,6 +46,7 @@ export default class ChannelsPost {
     readonly redactedFilesPlaceholder;
 
     readonly postPreview;
+    readonly priorityLabel;
 
     constructor(container: Locator) {
         this.container = container;
@@ -75,6 +76,7 @@ export default class ChannelsPost {
         // The embedded permalink preview carries no test id, so the class name is the
         // only handle available.
         this.postPreview = container.locator('.post-preview');
+        this.priorityLabel = container.getByTestId('post-priority-label');
     }
 
     async toBeVisible() {
