@@ -17,3 +17,12 @@
 /docs/main/deployment-guide/desktop/*install.mdx @mattermost/release-eng @mattermost/release-managers
 /docs/main/deployment-guide/server/linux/deploy-rhel.mdx @mattermost/release-eng @mattermost/release-managers
 /docs/main/deployment-guide/server/linux/deploy-tar.mdx @mattermost/release-eng @mattermost/release-managers
+
+# E2E test suites. Required by the AI flake-triage system: when it diagnoses a
+# failure as a PRODUCT bug it does not attempt a fix — it routes to the owning
+# team via CODEOWNERS of the product area, and routes TEST-side work here.
+# Without this entry that routing silently falls back to whoever owns the repo
+# root, which is how a routed bug ends up owned by nobody.
+/e2e-tests/ @mattermost/test-infra
+/e2e-tests/playwright/ @mattermost/test-infra
+/e2e-tests/cypress/ @mattermost/test-infra

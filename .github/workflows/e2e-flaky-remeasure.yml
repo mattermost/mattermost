@@ -1,0 +1,224 @@
+---
+# Targeted re-measurement — run ONE test N times and measure how often it fails.
+#
+# WHY THIS EXISTS. Verifying a flaky-test fix used to mean waiting for ~20
+# natural master runs, which takes about a week. That week was never a property
+# of the fix — it was a property of how we sampled. Running the one test 20
+# times here takes a single job.
+#
+# It is also a strictly BETTER measurement than waiting: 20 consecutive
+# executions at one commit isolate this test's own flakiness, whereas 20 master
+# runs spread over a week confound it with everything else that landed.
+#
+# On the measured numbers this is what lets the stabilization loop keep up with
+# new flaky tests appearing (see the throughput endpoint in
+# mattermost-test-system-io): drain goes from 0.10/day to 1.48/day against a
+# 1.47/day arrival rate, once paired with a 48-hour review SLA.
+#
+# `--retries=0` is not a preference, it is the whole point: retries mask
+# flakiness, and flakiness is what we are here to measure.
+name: E2E — targeted flaky re-measurement
+
+on:
+  workflow_dispatch:
+    inputs:
+      test_id:
+        description: "Test id or title fragment to grep (e.g. MM-T2007)"
+        type: string
+        required: true
+      repeat:
+        description: "How many times to run it (20 matches the flakiness window)"
+        type: string
+        required: false
+        default: "20"
+      commit_sha:
+        description: "Commit to measure at (default: this branch's head)"
+        type: string
+        required: false
+        default: ""
+      report_to_tsio:
+        description: "Upload the result so it feeds test history and the rate-shift signal"
+        type: boolean
+        required: false
+        default: true
+
+permissions: {}
+
+concurrency:
+  # One re-measurement per test at a time. Two concurrent runs of the same test
+  # would interleave in the history and corrupt the very rate we are measuring.
+  group: e2e-remeasure-${{ inputs.test_id }}
+  cancel-in-progress: false
+
+jobs:
+  remeasure:
+    name: "re-measure ${{ inputs.test_id }} x${{ inputs.repeat }}"
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      TEST_ID: ${{ inputs.test_id }}
+      REPEAT: ${{ inputs.repeat }}
+      PW_USE_TESTCONTAINERS: "true"
+      PW_TESTCONTAINERS_REUSE: "true"
+      MM_LICENSE: ${{ secrets.MM_E2E_TEST_LICENSE_ONPREM_ENT }}
+    steps:
+      - name: ci/validate-inputs
+        env:
+          RAW_REPEAT: ${{ inputs.repeat }}
+          RAW_TEST_ID: ${{ inputs.test_id }}
+        run: |
+          set -euo pipefail
+          # The grep value reaches a shell and a regex engine. Keep it to the
+          # shape of a real test id / title fragment rather than trying to
+          # escape arbitrary input.
+          if ! printf '%s' "$RAW_TEST_ID" | grep -Eq '^[A-Za-z0-9_. @-]{3,80}$'; then
+            echo "::error::test_id must be 3-80 chars of letters, digits, space, _ . @ or -"
+            exit 1
+          fi
+          if ! printf '%s' "$RAW_REPEAT" | grep -Eq '^[0-9]{1,3}$' || [ "$RAW_REPEAT" -lt 2 ] || [ "$RAW_REPEAT" -gt 100 ]; then
+            echo "::error::repeat must be an integer between 2 and 100"
+            exit 1
+          fi
+
+      - name: ci/checkout-repo
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+          ref: ${{ inputs.commit_sha || github.sha }}
+          fetch-depth: 0
+
+      - name: ci/resolve-sha
+        id: sha
+        run: echo "value=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: ci/setup-webapp-node-modules
+        uses: ./.github/actions/webapp-setup
+        with:
+          read-only: "true"
+
+      - name: ci/run-target-repeatedly
+        id: run
+        working-directory: e2e-tests/playwright
+        continue-on-error: true
+        env:
+          # Every repetition must be an independent sample.
+          PW_SNAPSHOT_ENABLE: "true"
+        run: |
+          set -uo pipefail
+          npm run build
+          # --repeat-each gives N independent executions; --retries=0 keeps each
+          # one a real sample. --workers=1 keeps them serial so they cannot
+          # contend for the same fixtures and manufacture failures.
+          npx playwright test \
+            --grep "${TEST_ID}" \
+            --repeat-each="${REPEAT}" \
+            --retries=0 \
+            --workers=1 \
+            --project=chrome \
+            --reporter=json,line \
+            > pw-remeasure.json 2> pw-remeasure.log || true
+          echo "exit_recorded=true" >> "$GITHUB_OUTPUT"
+          tail -40 pw-remeasure.log || true
+
+      - name: ci/measure
+        id: measure
+        working-directory: e2e-tests/playwright
+        run: |
+          set -euo pipefail
+          if [ ! -s pw-remeasure.json ]; then
+            echo "::error::no JSON reporter output — the run did not start"
+            exit 1
+          fi
+
+          # Count every leaf result, not suites: --repeat-each produces one
+          # result per repetition.
+          TOTAL="$(jq '[.suites[]? | recurse(.suites[]?) | .specs[]? | .tests[]? | .results[]?] | length' pw-remeasure.json)"
+          PASSED="$(jq '[.suites[]? | recurse(.suites[]?) | .specs[]? | .tests[]? | .results[]? | select(.status=="passed")] | length' pw-remeasure.json)"
+          FAILED="$((TOTAL - PASSED))"
+
+          if [ "$TOTAL" -eq 0 ]; then
+            echo "::error::grep '${TEST_ID}' matched no tests — check the id"
+            exit 1
+          fi
+          if [ "$TOTAL" -lt "$REPEAT" ]; then
+            echo "::warning::expected ${REPEAT} results, got ${TOTAL} — some repetitions did not execute"
+          fi
+
+          RATE="$(awk -v f="$FAILED" -v t="$TOTAL" 'BEGIN{printf "%.4f", (t>0 ? f/t : 0)}')"
+          PCT="$(awk -v r="$RATE" 'BEGIN{printf "%.1f", r*100}')"
+
+          {
+            echo "total=${TOTAL}"
+            echo "passed=${PASSED}"
+            echo "failed=${FAILED}"
+            echo "failure_rate=${RATE}"
+          } >> "$GITHUB_OUTPUT"
+
+          {
+            echo "## Targeted re-measurement — \`${TEST_ID}\`"
+            echo
+            echo "| | |"
+            echo "|---|---|"
+            echo "| commit | \`${{ steps.sha.outputs.value }}\` |"
+            echo "| executions | ${TOTAL} |"
+            echo "| passed | ${PASSED} |"
+            echo "| failed | ${FAILED} |"
+            echo "| **failure rate** | **${PCT}%** |"
+            echo
+            if [ "$FAILED" -eq 0 ]; then
+              echo "✅ **Stable across ${TOTAL} consecutive runs.** No failure observed."
+              echo
+              echo "With 0/${TOTAL} failing, any true failure rate above"
+              echo "$(awk -v t="$TOTAL" 'BEGIN{printf "%.0f", (1-0.05^(1/t))*100}')% would have shown at least one"
+              echo "failure with 95% probability — so this bounds the rate, it does not prove zero."
+            else
+              echo "⚠️ **Still failing ${PCT}% of the time.** The fix did not stabilise it."
+            fi
+            echo
+            echo "\`--retries=0\` and \`--workers=1\`: every repetition is an independent, serial sample."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: ci/upload-to-tsio
+        if: inputs.report_to_tsio
+        uses: mattermost/mattermost-test-system-io/.github/actions/test-system-io-report-upload@a3b7e34
+        with:
+          use-staging: ${{ vars.E2E_TSIO_USE_STAGING || 'false' }}
+          framework: playwright
+          total-reports-expected: "1"
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          json-path: e2e-tests/playwright/pw-remeasure.json
+          gh-job-name: ${{ github.job }}
+          # A dedicated branch label so re-measurement samples are attributable
+          # and never mistaken for organic master runs when computing the
+          # baseline rate the rate-shift gate compares against.
+          composite-identity: |
+            {
+              "repository": "${{ github.repository }}",
+              "commit_sha": "${{ steps.sha.outputs.value }}",
+              "gh_run_id": "${{ github.run_id }}",
+              "gh_run_attempt": "${{ github.run_attempt }}",
+              "name": "remeasure-${{ inputs.test_id }}",
+              "branch": "remeasure/${{ inputs.test_id }}"
+            }
+          environment-metadata: |
+            {
+              "remeasurement": "true",
+              "target_test": "${{ inputs.test_id }}",
+              "repetitions": "${{ inputs.repeat }}",
+              "retries": "0"
+            }
+
+      - name: ci/artifacts
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: remeasure-${{ inputs.test_id }}-${{ github.run_id }}
+          path: |
+            e2e-tests/playwright/pw-remeasure.json
+            e2e-tests/playwright/pw-remeasure.log
+            e2e-tests/playwright/test-results/
+          retention-days: 7
+          if-no-files-found: warn

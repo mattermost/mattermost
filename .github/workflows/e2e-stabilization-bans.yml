@@ -1,0 +1,132 @@
+---
+# W10 — the six mechanical bans, enforced in CI on any PR that edits E2E specs.
+#
+# WHAT THIS IS FOR. The review bar on a flaky-test fix is "does it actually fix
+# the flakiness", but "stability" is too soft a thing to lean on at 5pm on a
+# Friday. These six edits are the cheap ways to make a flaky test pass without
+# fixing anything, and they are the ones a tired human waves through:
+#
+#   1. a bare sleep / fixed wait
+#   2. a retry wrapper around a previously un-retried assertion
+#   3. a loosened assertion
+#   4. a deleted assertion
+#   5. a skip or ignore tag
+#   6. a raised timeout at test, suite or config level
+#
+# Making them CI rules means the reviewer judges the APPROACH rather than
+# policing the obvious.
+#
+# WHY IT RUNS ON HUMAN PRs TOO, NOT JUST AGENT ONES. The stabilization agent
+# already self-checks its own diff before pushing, so if this only covered
+# agent PRs it would be checking the one author that already checks itself. The
+# masking edits are just as tempting by hand, and a rule that applies to the
+# robot but not to us would not survive contact with a deadline.
+#
+# Note the distinction from the triage funnel's retry handling: the funnel
+# OBSERVES a run-level retry as evidence of flakiness; ban 2 forbids ADDING an
+# assertion-level retry as a fix. Observing is fine; papering over is not.
+#
+# THE OVERRIDE IS HUMAN-ONLY. Apply the label below and CI reports instead of
+# failing. The stabilization agent cannot apply labels, so it cannot exempt
+# itself. Every override is visible in the PR's own history.
+name: E2E — stabilization bans
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, labeled, unlabeled]
+    paths:
+      - "e2e-tests/**"
+
+permissions: {}
+
+concurrency:
+  group: e2e-stabilization-bans-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  bans:
+    name: mechanical bans
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - name: ci/checkout-repo
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+          # Need both sides to diff against the merge base.
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: ci/checkout-ban-checker
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+          repository: mattermost/mattermost-test-system-io
+          ref: a3b7e34
+          sparse-checkout: scripts/lib
+          sparse-checkout-cone-mode: true
+          path: .tsio-checker
+
+      - name: ci/build-diff
+        id: diff
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          git fetch --no-tags --depth=1 origin "$BASE_SHA" 2>/dev/null || git fetch --no-tags origin
+          MERGE_BASE="$(git merge-base "$BASE_SHA" "$HEAD_SHA" || echo "$BASE_SHA")"
+          echo "merge base: $MERGE_BASE"
+          # Only the E2E trees: the checker's own roots also scope this, but
+          # keeping the diff small keeps the failure output readable.
+          git diff --unified=3 "$MERGE_BASE" "$HEAD_SHA" -- 'e2e-tests/**' > ban-check.diff
+          echo "bytes=$(wc -c < ban-check.diff | tr -d ' ')" >> "$GITHUB_OUTPUT"
+
+      - name: ci/check-bans
+        if: steps.diff.outputs.bytes != '0'
+        env:
+          # Human-only escape hatch. The agent cannot apply labels.
+          REPORT_ONLY: ${{ contains(github.event.pull_request.labels.*.name, 'E2E/Allow-Test-Masking') }}
+        run: |
+          set -uo pipefail
+          ARGS=()
+          if [ "$REPORT_ONLY" = "true" ]; then
+            ARGS+=(--report-only)
+          fi
+
+          set +e
+          OUT="$(node .tsio-checker/scripts/lib/stabilization-ban-checker.js ban-check.diff "${ARGS[@]+"${ARGS[@]}"}" 2>&1)"
+          CODE=$?
+          set -e
+          printf '%s\n' "$OUT"
+
+          {
+            echo "## E2E stabilization bans"
+            echo
+            if [ "$CODE" -eq 0 ] && [ "$REPORT_ONLY" != "true" ]; then
+              echo "✅ No masking edits detected."
+            elif [ "$REPORT_ONLY" = "true" ]; then
+              echo "⚠️ **Override label \`E2E/Allow-Test-Masking\` is applied — reporting only.**"
+              echo
+              echo "A human chose this; the stabilization agent cannot apply labels."
+            else
+              echo "❌ **Masking edits detected.** These make a flaky test pass without fixing it."
+              echo
+              echo "If the change is genuinely correct, explain why in the PR and apply"
+              echo "\`E2E/Allow-Test-Masking\` — that is a deliberate, recorded decision."
+            fi
+            echo
+            echo '```'
+            printf '%s\n' "$OUT"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          if [ "$REPORT_ONLY" = "true" ]; then
+            exit 0
+          fi
+          exit "$CODE"
+
+      - name: ci/no-e2e-diff
+        if: steps.diff.outputs.bytes == '0'
+        run: echo "No changes under e2e-tests/ against the merge base — nothing to check."

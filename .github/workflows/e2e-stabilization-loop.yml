@@ -1,0 +1,93 @@
+---
+# M3 / W14 — the master-side stabilization loop.
+#
+# Takes one test at a time off the TSIO stabilization queue (promotions first,
+# then the blast-radius ranking — how many distinct PRs the test broke), has an
+# agent investigate it with TSIO evidence, edits ONLY files under
+# `e2e-tests/**`, self-checks its own diff against the six mechanical bans, and
+# opens a PR against master.
+#
+# THREE THINGS IT DELIBERATELY CANNOT DO:
+#
+#  1. Merge. Human review is always required. The loop never pushes to master
+#     and never merges its own PR.
+#  2. Touch product code. Only `e2e-tests/**` is editable. When the diagnosis
+#     is a product bug the loop does not attempt a fix — it routes to the owning
+#     team via CODEOWNERS with the evidence attached. An agent editing product
+#     code to make a test pass is the exact outcome this design exists to
+#     prevent.
+#  3. Hide flakiness. The six bans (bare wait, raised timeout, retry wrapper,
+#     skip tag, deleted assertion, loosened assertion) are enforced on its own
+#     diff before any push, and again in CI on the PR it opens
+#     (e2e-stabilization-bans.yml). Belt and braces on purpose: the loop must
+#     not be the only thing checking the loop.
+#
+# OFF BY DEFAULT. Requires the repo variable E2E_STABILIZATION_LOOP to be set
+# to `on`. The rollout ladder puts this at Phase 3, after PR and master gating
+# have held.
+name: E2E — stabilization loop
+
+on:
+  schedule:
+    # Daily, early UTC. Deliberately not more often: the binding constraint is
+    # human review capacity, not agent throughput, so a faster cadence would
+    # only pile up PRs nobody has time to review.
+    - cron: "23 5 * * 1-5"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Investigate and report, open no PR, touch nothing"
+        type: boolean
+        required: false
+        default: true
+      concurrency_override:
+        description: "Max open stabilization PRs (hard cap 5)"
+        type: string
+        required: false
+        default: ""
+
+permissions: {}
+
+concurrency:
+  group: e2e-stabilization-loop
+  cancel-in-progress: false
+
+jobs:
+  stabilize:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    # Two independent guards: the kill switch, and never on a fork.
+    if: >-
+      github.repository == 'mattermost/mattermost' &&
+      (github.event_name == 'workflow_dispatch' || vars.E2E_STABILIZATION_LOOP == 'on')
+    permissions:
+      contents: read
+    steps:
+      - name: ci/checkout-repo
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+          ref: master
+          fetch-depth: 0
+
+      - name: ci/stabilization-loop
+        uses: mattermost/mattermost-test-system-io/.github/actions/test-system-io-stabilization@a3b7e34
+        with:
+          repo: ${{ github.repository }}
+          use-staging: ${{ vars.E2E_TSIO_USE_STAGING || 'false' }}
+          base-branch: master
+          # A scheduled run honours the kill switch and is never dry by
+          # default; a manual run defaults to dry so a human can look first.
+          dry-run: >-
+            ${{ github.event_name == 'workflow_dispatch'
+                && inputs.dry_run
+                || (vars.E2E_STABILIZATION_DRY_RUN == 'true') }}
+          concurrency: ${{ inputs.concurrency_override || vars.E2E_STABILIZATION_CONCURRENCY || '2' }}
+          max-attempts-per-test: "3"
+          monthly-attempt-budget: ${{ vars.E2E_STABILIZATION_BUDGET || '20' }}
+          queue-depth: "10"
+          anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
+          # A PAT, not GITHUB_TOKEN: a GITHUB_TOKEN push does not trigger the
+          # workflows that validate the fix, and the validating E2E run IS the
+          # fix's proof.
+          github-token: ${{ secrets.GH_TOKEN }}
