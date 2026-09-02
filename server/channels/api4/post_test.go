@@ -1724,40 +1724,38 @@ func TestCreatePostSilentQueryParam(t *testing.T) {
 func TestPatchEditsMoreThanPinState(t *testing.T) {
 	mainHelper.Parallel(t)
 
+	// Each case builds its patch through a factory so that the expected value below has its
+	// own pointees, and mutation of a pointed-to value is caught as well as reassignment.
 	testCases := []struct {
 		name     string
-		patch    model.PostPatch
+		newPatch func() model.PostPatch
 		expected bool
 	}{
-		{"empty patch", model.PostPatch{}, false},
-		{"pin state only", model.PostPatch{IsPinned: model.NewPointer(true)}, false},
-		{"unpin state only", model.PostPatch{IsPinned: model.NewPointer(false)}, false},
-		{"message", model.PostPatch{Message: model.NewPointer("edited")}, true},
-		{"props", model.PostPatch{Props: &model.StringInterface{"foo": "bar"}}, true},
-		{"file ids", model.PostPatch{FileIds: &model.StringArray{"fileid"}}, true},
-		{"has reactions", model.PostPatch{HasReactions: model.NewPointer(true)}, true},
-		{
-			"message alongside pin state",
-			model.PostPatch{IsPinned: model.NewPointer(true), Message: model.NewPointer("edited")},
-			true,
-		},
-		{
-			"props alongside pin state",
-			model.PostPatch{IsPinned: model.NewPointer(true), Props: &model.StringInterface{"foo": "bar"}},
-			true,
-		},
-		{
-			"file ids alongside pin state",
-			model.PostPatch{IsPinned: model.NewPointer(true), FileIds: &model.StringArray{"fileid"}},
-			true,
-		},
+		{"empty patch", func() model.PostPatch { return model.PostPatch{} }, false},
+		{"pin state only", func() model.PostPatch { return model.PostPatch{IsPinned: new(true)} }, false},
+		{"unpin state only", func() model.PostPatch { return model.PostPatch{IsPinned: new(false)} }, false},
+		{"message", func() model.PostPatch { return model.PostPatch{Message: new("edited")} }, true},
+		{"props", func() model.PostPatch {
+			return model.PostPatch{Props: &model.StringInterface{"foo": "bar"}}
+		}, true},
+		{"file ids", func() model.PostPatch { return model.PostPatch{FileIds: &model.StringArray{"fileid"}} }, true},
+		{"has reactions", func() model.PostPatch { return model.PostPatch{HasReactions: new(true)} }, true},
+		{"message alongside pin state", func() model.PostPatch {
+			return model.PostPatch{IsPinned: new(true), Message: new("edited")}
+		}, true},
+		{"props alongside pin state", func() model.PostPatch {
+			return model.PostPatch{IsPinned: new(true), Props: &model.StringInterface{"foo": "bar"}}
+		}, true},
+		{"file ids alongside pin state", func() model.PostPatch {
+			return model.PostPatch{IsPinned: new(true), FileIds: &model.StringArray{"fileid"}}
+		}, true},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			patch := tc.patch
+			patch := tc.newPatch()
 			require.Equal(t, tc.expected, patchEditsMoreThanPinState(&patch))
-			require.Equal(t, tc.patch, patch, "the caller's patch must not be modified")
+			require.Equal(t, tc.newPatch(), patch, "the caller's patch must not be modified")
 		})
 	}
 }
@@ -3021,7 +3019,7 @@ func TestPatchPost(t *testing.T) {
 
 		patch := &model.PostPatch{
 			IsPinned: new(true),
-			Message:  model.NewPointer("edited message"),
+			Message:  new("edited message"),
 		}
 		_, resp, err := th.SystemAdminClient.PatchPost(context.Background(), oldPost.Id, patch)
 		require.Error(t, err)
@@ -3255,7 +3253,7 @@ func TestPinPost(t *testing.T) {
 
 		// Give the post a non-zero EditAt so that a pin clearing it would be caught below.
 		editedPost, _, appErr := th.App.PatchPost(th.Context, oldPost.Id, &model.PostPatch{
-			Message: model.NewPointer("edited message"),
+			Message: new("edited message"),
 		}, &model.UpdatePostOptions{})
 		require.Nil(t, appErr)
 		require.NotZero(t, editedPost.EditAt)
@@ -3329,6 +3327,19 @@ func TestPinPost(t *testing.T) {
 		}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, appErr)
 
+		// Give both posts a non-zero EditAt so that a no-op clearing it would be caught below.
+		editedPinnedPost, _, appErr := th.App.PatchPost(th.Context, pinnedPost.Id, &model.PostPatch{
+			Message: new("edited message"),
+		}, &model.UpdatePostOptions{})
+		require.Nil(t, appErr)
+		require.NotZero(t, editedPinnedPost.EditAt)
+
+		editedUnpinnedPost, _, appErr := th.App.PatchPost(th.Context, unpinnedPost.Id, &model.PostPatch{
+			Message: new("edited message"),
+		}, &model.UpdatePostOptions{})
+		require.Nil(t, appErr)
+		require.NotZero(t, editedUnpinnedPost.EditAt)
+
 		// Both are no-ops and must succeed regardless of age.
 		_, err := client.PinPost(context.Background(), pinnedPost.Id)
 		require.NoError(t, err)
@@ -3336,6 +3347,7 @@ func TestPinPost(t *testing.T) {
 		storedPost, appErr := th.App.GetSinglePost(th.Context, pinnedPost.Id, false)
 		require.Nil(t, appErr)
 		require.True(t, storedPost.IsPinned)
+		require.Equal(t, editedPinnedPost.EditAt, storedPost.EditAt, "a no-op pin must not mark the post as edited")
 
 		_, err = client.UnpinPost(context.Background(), unpinnedPost.Id)
 		require.NoError(t, err)
@@ -3343,6 +3355,7 @@ func TestPinPost(t *testing.T) {
 		storedPost, appErr = th.App.GetSinglePost(th.Context, unpinnedPost.Id, false)
 		require.Nil(t, appErr)
 		require.False(t, storedPost.IsPinned)
+		require.Equal(t, editedUnpinnedPost.EditAt, storedPost.EditAt, "a no-op unpin must not mark the post as edited")
 	})
 
 	post := th.BasicPost
@@ -3396,7 +3409,7 @@ func TestUnpinPost(t *testing.T) {
 
 		// Give the post a non-zero EditAt so that an unpin clearing it would be caught below.
 		editedPost, _, appErr := th.App.PatchPost(th.Context, oldPost.Id, &model.PostPatch{
-			Message: model.NewPointer("edited message"),
+			Message: new("edited message"),
 		}, &model.UpdatePostOptions{})
 		require.Nil(t, appErr)
 		require.NotZero(t, editedPost.EditAt)
