@@ -1982,6 +1982,22 @@ func TestOwnerManagedCPAFieldHumanValueWrites(t *testing.T) {
 	// channels/app/properties, which can stub the plugin checker.
 }
 
+// findOwner returns the owner in owners with the given ID, or nil. A field's
+// owners now come from its permissions object's grants, not only from what
+// was explicitly submitted -- a public, unprotected field also carries a "*"
+// plugin grant for the ambient access every such field already had under the
+// legacy model (TestProjectLegacyPermissionsWildcardGrantBecomesOwner), so
+// asserting on one owner by ID is the stable check rather than the total
+// count.
+func findOwner(owners []model.PropertyOwner, id string) *model.PropertyOwner {
+	for i := range owners {
+		if owners[i].ID == id {
+			return &owners[i]
+		}
+	}
+	return nil
+}
+
 func TestSysadminManagesCPAFieldOwners(t *testing.T) {
 	mainHelper.Parallel(t)
 
@@ -2008,10 +2024,10 @@ func TestSysadminManagesCPAFieldOwners(t *testing.T) {
 		require.NotNil(t, created)
 
 		owners := model.GetPropertyFieldOwners(created)
-		require.Len(t, owners, 1)
-		assert.Equal(t, "com.mattermost.scim", owners[0].ID)
-		assert.Equal(t, model.PropertyOwnerTypePlugin, owners[0].Type)
-		assert.Equal(t, []string{"entra"}, owners[0].Scopes)
+		scim := findOwner(owners, "com.mattermost.scim")
+		require.NotNil(t, scim)
+		assert.Equal(t, model.PropertyOwnerTypePlugin, scim.Type)
+		assert.Equal(t, []string{"entra"}, scim.Scopes)
 	})
 
 	t.Run("member cannot create a field with owners", func(t *testing.T) {
@@ -2050,8 +2066,9 @@ func TestSysadminManagesCPAFieldOwners(t *testing.T) {
 		CheckOKStatus(t, resp)
 		require.NoError(t, err)
 		owners := model.GetPropertyFieldOwners(patched)
-		require.Len(t, owners, 1)
-		assert.Equal(t, []string{"entra"}, owners[0].Scopes)
+		scim := findOwner(owners, "com.mattermost.scim")
+		require.NotNil(t, scim)
+		assert.Equal(t, []string{"entra"}, scim.Scopes)
 
 		// Change scopes
 		patched, resp, err = th.SystemAdminClient.PatchCPAField(context.Background(), created.ID, &model.PropertyFieldPatch{
@@ -2064,8 +2081,9 @@ func TestSysadminManagesCPAFieldOwners(t *testing.T) {
 		CheckOKStatus(t, resp)
 		require.NoError(t, err)
 		owners = model.GetPropertyFieldOwners(patched)
-		require.Len(t, owners, 1)
-		assert.ElementsMatch(t, []string{"entra", "okta"}, owners[0].Scopes)
+		scim = findOwner(owners, "com.mattermost.scim")
+		require.NotNil(t, scim)
+		assert.ElementsMatch(t, []string{"entra", "okta"}, scim.Scopes)
 
 		// Remove owners
 		patched, resp, err = th.SystemAdminClient.PatchCPAField(context.Background(), created.ID, &model.PropertyFieldPatch{
@@ -2075,7 +2093,13 @@ func TestSysadminManagesCPAFieldOwners(t *testing.T) {
 		})
 		CheckOKStatus(t, resp)
 		require.NoError(t, err)
-		assert.False(t, model.HasPropertyFieldOwners(patched))
+		owners = model.GetPropertyFieldOwners(patched)
+		assert.Nil(t, findOwner(owners, "com.mattermost.scim"), "the explicit owner must be gone")
+		// A public, unprotected field with no explicit owner is ambiently
+		// writable by any plugin under the legacy model; removing the last
+		// declared owner surfaces that access as a "*" owner instead of
+		// reporting none at all.
+		assert.NotNil(t, findOwner(owners, "*"), "the field's real ambient access must stay visible")
 	})
 
 	t.Run("member cannot patch owners on a field", func(t *testing.T) {

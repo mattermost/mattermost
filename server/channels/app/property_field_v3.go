@@ -40,12 +40,13 @@ func (a *App) shapePropertyFieldForCaller(rctx request.CTX, session model.Sessio
 		return field
 	}
 
-	copied := *field
-
 	if !serveV3 {
-		copied.Permissions = nil
-		return &copied
+		projected := model.ProjectLegacyPermissions(field)
+		projected.Permissions = nil
+		return projected
 	}
+
+	copied := *field
 
 	isLinked := field.LinkedFieldID != nil && *field.LinkedFieldID != ""
 	canEdit := a.SessionPropertyFieldEditBasis(rctx, session, field).Allowed

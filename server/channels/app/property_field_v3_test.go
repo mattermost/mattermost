@@ -45,6 +45,34 @@ func TestShapePropertyFieldForCaller(t *testing.T) {
 		assert.Nil(t, shaped.Permissions)
 	})
 
+	t.Run("serveV3 false projects the legacy keys from permissions", func(t *testing.T) {
+		field := newField(&model.Permissions{
+			Restrictions: &model.Restrictions{
+				Field:  model.WriteOnly{Write: model.PermissionLevelNone},
+				Value:  model.ReadWrite{Read: model.PermissionLevelEveryone, Write: model.PermissionLevelMember},
+				Option: model.ReadWrite{Read: model.PermissionLevelEveryone, Write: model.PermissionLevelAdmin},
+			},
+			Grants: []model.Grant{
+				{Identity: model.Identity{Type: model.PropertyOwnerTypeUser, ID: th.BasicUser2.Id}, Allow: []string{model.PropertyActionValueWrite}},
+			},
+		})
+
+		session := model.Session{UserId: th.BasicUser.Id}
+		shaped := th.App.ShapePropertyFieldForCaller(th.Context, session, field, false)
+		require.NotNil(t, shaped)
+		assert.Nil(t, shaped.Permissions)
+		assert.True(t, shaped.Protected)
+		require.NotNil(t, shaped.PermissionField)
+		assert.Equal(t, model.PermissionLevelNone, *shaped.PermissionField)
+		require.NotNil(t, shaped.PermissionValues)
+		assert.Equal(t, model.PermissionLevelMember, *shaped.PermissionValues)
+		require.NotNil(t, shaped.PermissionOptions)
+		assert.Equal(t, model.PermissionLevelAdmin, *shaped.PermissionOptions)
+		owners := model.GetPropertyFieldOwners(shaped)
+		require.Len(t, owners, 1)
+		assert.Equal(t, th.BasicUser2.Id, owners[0].ID)
+	})
+
 	t.Run("field with no permissions is returned unchanged", func(t *testing.T) {
 		field := newField(nil)
 
