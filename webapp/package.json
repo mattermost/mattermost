@@ -5,6 +5,7 @@
     "node": "^24",
     "npm": "^11"
   },
+  "packageManager": "npm@11.6.2",
   "scripts": {
     "postinstall": "patch-package && npm run build --workspace platform/types --workspace platform/client --workspace platform/shared --workspace platform/components",
     "build": "node scripts/build.mjs",
