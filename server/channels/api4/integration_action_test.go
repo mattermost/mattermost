@@ -625,19 +625,7 @@ func TestOpenDialogPublishesChannel(t *testing.T) {
 		assert.Equal(t, th.BasicChannel.Id, openDialogAndCaptureChannel(t, baseRequest(triggerId)))
 	})
 
-	t.Run("keeps a channel the integration set explicitly", func(t *testing.T) {
-		_, triggerId, appErr := model.GenerateTriggerId(th.BasicUser.Id, th.BasicChannel.Id, th.App.AsymmetricSigningKey())
-		require.Nil(t, appErr)
-
-		request := baseRequest(triggerId)
-		request.ChannelId = th.BasicChannel2.Id
-
-		assert.Equal(t, th.BasicChannel2.Id, openDialogAndCaptureChannel(t, request))
-	})
-
-	// The integration's channel isn't signed, so a malformed one must not be forwarded —
-	// it would come back on submit and fail the channel lookup as a permission error.
-	t.Run("falls back to the trigger when the integration's channel is malformed", func(t *testing.T) {
+	t.Run("ignores any channel the integration set and uses the trigger's channel", func(t *testing.T) {
 		_, triggerId, appErr := model.GenerateTriggerId(th.BasicUser.Id, th.BasicChannel.Id, th.App.AsymmetricSigningKey())
 		require.Nil(t, appErr)
 
