@@ -207,9 +207,12 @@ func deployPlugin(ctx context.Context, client *model.Client4) error {
 
 	// Poll until the plugin reaches Running state.
 	deadline := time.Now().Add(30 * time.Second)
+	pollCtx, cancel := context.WithDeadline(ctx, deadline)
+	defer cancel()
+
 	var lastStatusErr error
 	for time.Now().Before(deadline) {
-		statuses, _, statusErr := client.GetPluginStatuses(ctx)
+		statuses, _, statusErr := client.GetPluginStatuses(pollCtx)
 		if statusErr != nil {
 			lastStatusErr = statusErr
 		} else {
