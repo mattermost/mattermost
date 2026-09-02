@@ -170,10 +170,13 @@ func TestPermissionsFromLegacyLinkedFieldOptionReadNoCapNeeded(t *testing.T) {
 }
 
 func TestPermissionsFromLegacyGrantsOwners(t *testing.T) {
-	// Two owners with scopes convert to two grants, scopes preserved, each
-	// carrying all five enforced actions. The field is public and owner-managed,
-	// so a third grant appears for the ambient read access any other plugin
-	// still has today (hasUnrestrictedFieldReadAccess does not consult owners).
+	// Two owners with scopes each convert to two grants rather than one: a
+	// scoped grant over the value actions, and a second, scopeless grant over
+	// field.write and the option actions -- scope only ever narrows a value
+	// action, so it has nothing to say about the other two. The field is
+	// public and owner-managed, so a fifth grant appears for the ambient read
+	// access any other plugin still has today (hasUnrestrictedFieldReadAccess
+	// does not consult owners).
 	field := &PropertyField{
 		Attrs: StringInterface{
 			PropertyAttrsOwners: []PropertyOwner{
@@ -185,18 +188,110 @@ func TestPermissionsFromLegacyGrantsOwners(t *testing.T) {
 
 	p := PermissionsFromLegacy(field, LegacyConversionOpts{ConvertAttrs: true})
 
-	require.Len(t, p.Grants, 3)
+	require.Len(t, p.Grants, 5)
 	assert.Equal(t, PropertyOwnerTypeUser, p.Grants[0].Type)
 	assert.Equal(t, "user1", p.Grants[0].ID)
 	assert.Equal(t, []string{"scope-a"}, p.Grants[0].Scopes)
+	assert.ElementsMatch(t, []string{PropertyActionValueRead, PropertyActionValueWrite}, p.Grants[0].Allow)
+	assert.Equal(t, PropertyOwnerTypeUser, p.Grants[1].Type)
+	assert.Equal(t, "user1", p.Grants[1].ID)
+	assert.Empty(t, p.Grants[1].Scopes)
+	assert.ElementsMatch(t, []string{PropertyActionFieldWrite, PropertyActionOptionRead, PropertyActionOptionWrite}, p.Grants[1].Allow)
+	assert.Equal(t, PropertyOwnerTypeRole, p.Grants[2].Type)
+	assert.Equal(t, "role1", p.Grants[2].ID)
+	assert.Equal(t, []string{"scope-b", "scope-c"}, p.Grants[2].Scopes)
+	assert.ElementsMatch(t, []string{PropertyActionValueRead, PropertyActionValueWrite}, p.Grants[2].Allow)
+	assert.Equal(t, PropertyOwnerTypeRole, p.Grants[3].Type)
+	assert.Equal(t, "role1", p.Grants[3].ID)
+	assert.Empty(t, p.Grants[3].Scopes)
+	assert.ElementsMatch(t, []string{PropertyActionFieldWrite, PropertyActionOptionRead, PropertyActionOptionWrite}, p.Grants[3].Allow)
+	assert.Equal(t, PropertyOwnerTypePlugin, p.Grants[4].Type)
+	assert.Equal(t, "*", p.Grants[4].ID)
+	assert.ElementsMatch(t, []string{PropertyActionOptionRead, PropertyActionValueRead}, p.Grants[4].Allow)
+}
+
+func TestPermissionsFromLegacyGrantsScopedOwnerDefinitionWriteUnscoped(t *testing.T) {
+	// A scoped owner may still write the field definition and the options
+	// under any scope (or none) -- the bug this conversion used to have was
+	// putting the owner's value scope on those actions too, refusing a
+	// definition write from a caller acting under the very scope it owns the
+	// field with.
+	field := &PropertyField{
+		Attrs: StringInterface{
+			PropertyAttrsOwners: []PropertyOwner{
+				{Type: PropertyOwnerTypePlugin, ID: "plugin-owner", Scopes: []string{"entra"}},
+			},
+		},
+	}
+
+	p := PermissionsFromLegacy(field, LegacyConversionOpts{ConvertAttrs: true})
+
+	assert.NotNil(t, p.MatchingGrant(PropertyOwnerTypePlugin, "plugin-owner", "", PropertyActionFieldWrite))
+	assert.NotNil(t, p.MatchingGrant(PropertyOwnerTypePlugin, "plugin-owner", "", PropertyActionOptionWrite))
+	assert.NotNil(t, p.MatchingGrant(PropertyOwnerTypePlugin, "plugin-owner", "okta", PropertyActionFieldWrite))
+
+	// The value grant is still scope-gated: acting as a scope the owner was
+	// never granted still refuses a value write.
+	assert.NotNil(t, p.MatchingGrant(PropertyOwnerTypePlugin, "plugin-owner", "entra", PropertyActionValueWrite))
+	assert.Nil(t, p.MatchingGrant(PropertyOwnerTypePlugin, "plugin-owner", "okta", PropertyActionValueWrite))
+}
+
+func TestPermissionsFromLegacyGrantsUnscopedOwnerUnaffected(t *testing.T) {
+	// An owner with no scopes collapses back into a single grant, same as
+	// before the split existed -- the split only produces two grants when a
+	// scope actually needs keeping off the definition-write actions.
+	field := &PropertyField{
+		Attrs: StringInterface{
+			PropertyAttrsOwners: []PropertyOwner{
+				{Type: PropertyOwnerTypeUser, ID: "user1"},
+			},
+		},
+	}
+
+	p := PermissionsFromLegacy(field, LegacyConversionOpts{ConvertAttrs: true})
+
+	// The field is public, so a second, wildcard grant appears for the
+	// ambient read access any other plugin still has today; the owner's own
+	// grant is still the single, unsplit one this test is about.
+	require.Len(t, p.Grants, 2)
+	assert.Equal(t, "user1", p.Grants[0].ID)
+	assert.Empty(t, p.Grants[0].Scopes)
 	assert.ElementsMatch(t, validPropertyActions, p.Grants[0].Allow)
-	assert.Equal(t, PropertyOwnerTypeRole, p.Grants[1].Type)
-	assert.Equal(t, "role1", p.Grants[1].ID)
-	assert.Equal(t, []string{"scope-b", "scope-c"}, p.Grants[1].Scopes)
-	assert.ElementsMatch(t, validPropertyActions, p.Grants[1].Allow)
-	assert.Equal(t, PropertyOwnerTypePlugin, p.Grants[2].Type)
-	assert.Equal(t, "*", p.Grants[2].ID)
-	assert.ElementsMatch(t, []string{PropertyActionOptionRead, PropertyActionValueRead}, p.Grants[2].Allow)
+}
+
+func TestPermissionsFromLegacyGrantsScopedOwnerAndSyncSourceStaySeparate(t *testing.T) {
+	// A field with both a scoped owner and a sync source converts to grants
+	// that keep the two identities separate -- the split tracks value/other
+	// halves per identity, not globally, so a second identity's contribution
+	// never bleeds into the owner's.
+	field := &PropertyField{
+		Attrs: StringInterface{
+			PropertyAttrsOwners: []PropertyOwner{
+				{Type: PropertyOwnerTypeUser, ID: "user1", Scopes: []string{"scope-a"}},
+			},
+			PropertyFieldAttrLDAP: "ldap-sync-id",
+		},
+	}
+
+	p := PermissionsFromLegacy(field, LegacyConversionOpts{ConvertAttrs: true})
+
+	var sawScopedUserGrant, sawUnscopedUserGrant bool
+	for _, g := range p.Grants {
+		if g.Type == PropertyOwnerTypeUser && g.ID == "user1" {
+			if len(g.Scopes) > 0 {
+				sawScopedUserGrant = true
+				assert.ElementsMatch(t, []string{PropertyActionValueRead, PropertyActionValueWrite}, g.Allow)
+			} else {
+				sawUnscopedUserGrant = true
+				assert.ElementsMatch(t, []string{PropertyActionFieldWrite, PropertyActionOptionRead, PropertyActionOptionWrite}, g.Allow)
+			}
+		}
+		if g.Type == PropertyOwnerTypeService && g.ID == "ldap" {
+			assert.Equal(t, []string{PropertyActionValueWrite}, g.Allow)
+		}
+	}
+	assert.True(t, sawScopedUserGrant)
+	assert.True(t, sawUnscopedUserGrant)
 }
 
 func TestPermissionsFromLegacyGrantsOwnerIsSourcePlugin(t *testing.T) {

@@ -229,31 +229,65 @@ func maskingFromLegacy(field *PropertyField, restrictions *Restrictions, opts Le
 // all Attrs-based, all implicitly trusted with everything under the legacy
 // model — into grants enumerating the five enforced actions, plus one
 // wildcard plugin grant for whatever ambient access a machine caller named
-// nowhere on the field still has today (see ambientMachineGrantAllow). An
-// identity named by more than one input (an owner who is also the field's
-// source plugin) collapses into a single grant rather than one per input,
-// matching how the store's grants table is keyed.
+// nowhere on the field still has today (see ambientMachineGrantAllow).
+//
+// Each input's Allow is split by PropertyActionMeasuredAgainstValueObject
+// before it is merged in: an owner's Scopes only ever narrows the value
+// actions, since field.write and the option actions are measured against the
+// field's own target rather than a value's object, so scope has nothing to
+// say about them. The two halves are tracked separately per identity and
+// recombined into one grant at the end whenever neither ends up carrying a
+// scope — e.g. an owner who is also the field's source plugin, whose
+// unrestricted access cancels the owner scope out of both halves. An identity
+// whose two halves do end up scoped differently is the case this split
+// exists for: a scoped owner keeps its field.write and option grants
+// unscoped even though its value grant is not, matching how the store's
+// grants table (keyed on FieldID, Type, ID, Action, not Scopes) lets two
+// grants for one identity coexist as long as their actions are disjoint.
 func grantsFromLegacy(field *PropertyField) []Grant {
 	type identityKey struct{ typ, id string }
 	var order []identityKey
-	byIdentity := map[identityKey]*Grant{}
+	valueByIdentity := map[identityKey]*Grant{}
+	otherByIdentity := map[identityKey]*Grant{}
 
-	addGrant := func(identityType, id string, scopes, allow []string) {
-		if id == "" {
+	addTo := func(byIdentity map[identityKey]*Grant, key identityKey, scopes, allow []string) {
+		if len(allow) == 0 {
 			return
 		}
-		key := identityKey{identityType, id}
 		if existing, ok := byIdentity[key]; ok {
 			existing.Allow = unionActions(existing.Allow, allow)
 			existing.Scopes = mergeScopes(existing.Scopes, scopes)
 			return
 		}
 		byIdentity[key] = &Grant{
-			Identity: Identity{Type: identityType, ID: id},
+			Identity: Identity{Type: key.typ, ID: key.id},
 			Scopes:   scopes,
 			Allow:    allow,
 		}
-		order = append(order, key)
+	}
+
+	addGrant := func(identityType, id string, scopes, allow []string) {
+		if id == "" {
+			return
+		}
+		key := identityKey{identityType, id}
+		if _, ok := valueByIdentity[key]; !ok {
+			if _, ok := otherByIdentity[key]; !ok {
+				order = append(order, key)
+			}
+		}
+		var valueAllow, otherAllow []string
+		for _, action := range allow {
+			if PropertyActionMeasuredAgainstValueObject(action) {
+				valueAllow = append(valueAllow, action)
+			} else {
+				otherAllow = append(otherAllow, action)
+			}
+		}
+		addTo(valueByIdentity, key, scopes, valueAllow)
+		// field.write/option grants are never scope-gated, no matter what
+		// scope the same call passed for the value half above.
+		addTo(otherByIdentity, key, nil, otherAllow)
 	}
 
 	for _, owner := range GetPropertyFieldOwners(field) {
@@ -292,7 +326,19 @@ func grantsFromLegacy(field *PropertyField) []Grant {
 
 	grants := make([]Grant, 0, len(order))
 	for _, key := range order {
-		grants = append(grants, *byIdentity[key])
+		value, other := valueByIdentity[key], otherByIdentity[key]
+		switch {
+		case value == nil:
+			grants = append(grants, *other)
+		case other == nil:
+			grants = append(grants, *value)
+		case len(value.Scopes) == 0 && len(other.Scopes) == 0:
+			// Neither half ended up scoped, so one grant says exactly what two
+			// would.
+			grants = append(grants, Grant{Identity: value.Identity, Allow: unionActions(value.Allow, other.Allow)})
+		default:
+			grants = append(grants, *value, *other)
+		}
 	}
 	return grants
 }
