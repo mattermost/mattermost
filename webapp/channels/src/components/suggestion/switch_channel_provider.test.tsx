@@ -18,7 +18,7 @@ import Constants, {StoragePrefixes} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
 import type {WrappedChannel} from './switch_channel_provider';
-import SwitchChannelProvider, {ConnectedSwitchChannelSuggestion, quickSwitchSorter} from './switch_channel_provider';
+import SwitchChannelProvider, {ConnectedSwitchChannelSuggestion, makeQuickSwitchSorter} from './switch_channel_provider';
 
 const latestPost = TestHelper.getPostMock({
     id: 'latest_post_id',
@@ -1476,20 +1476,20 @@ describe('components/SwitchChannelProvider', () => {
             return resultsCallback.mock.calls.map((call) => call[0].groups[0]);
         }
 
-        // The competing DM belongs to a user whose username only contains the search term, but was
-        // read much more recently, so recency puts it ahead of the exact match within the same band
+        // A second person whose username is also a prefix match for the search term, but whose DM was
+        // read much more recently, so recency puts it ahead of the other match within the same band
         function stateWithCompetingDm() {
-            const containsTerm = TestHelper.getUserMock({
-                id: 'contains_term_user_id',
-                username: 'adelphine',
+            const recentMatch = TestHelper.getUserMock({
+                id: 'recent_match_user_id',
+                username: 'delphina',
             });
 
             return {
-                containsTerm,
+                recentMatch,
                 state: makeState({
                     existingDmLastViewedAt: 1,
-                    extraProfiles: [containsTerm],
-                    extraDmChannels: [{userId: containsTerm.id, lastViewedAt: 9000}],
+                    extraProfiles: [recentMatch],
+                    extraDmChannels: [{userId: recentMatch.id, lastViewedAt: 9000}],
                 }),
             };
         }
@@ -1514,28 +1514,29 @@ describe('components/SwitchChannelProvider', () => {
             const [, mergedResults] = await search('delp', makeState({existingDmLastViewedAt: 1}));
 
             // The DM and the group messages were all last read long ago, so they share a recency
-            // band and the direct message wins on conversation type
+            // band; the direct message is a prefix match on the searched name while the group
+            // messages only contain it, so the direct message leads
             expect(mergedResults.terms).toEqual([delphine.id, 'gm_channel_2', 'gm_channel_1', 'gm_channel_0']);
         });
 
         it('sorts the more recently used of two matching direct messages first', async () => {
-            const {containsTerm, state} = stateWithCompetingDm();
+            const {recentMatch, state} = stateWithCompetingDm();
 
-            const [, mergedResults] = await search('delp', state, [delphine, containsTerm]);
+            const [, mergedResults] = await search('delp', state, [delphine, recentMatch]);
 
-            // Both people match "delp" and both DMs share the stale band, so the one opened more
-            // recently leads; both still outrank the group messages on conversation type
-            expect(mergedResults.terms).toEqual([containsTerm.id, delphine.id, 'gm_channel_2', 'gm_channel_1', 'gm_channel_0']);
+            // Both usernames are prefix matches for "delp" and both DMs share the stale band, so the
+            // one opened more recently leads; both still outrank the group messages
+            expect(mergedResults.terms).toEqual([recentMatch.id, delphine.id, 'gm_channel_2', 'gm_channel_1', 'gm_channel_0']);
         });
 
         it('ignores capitalization and a leading @ when ranking matching direct messages', async () => {
-            const {containsTerm, state} = stateWithCompetingDm();
+            const {recentMatch, state} = stateWithCompetingDm();
 
             // A leading @ makes the channel filter substring match on "@delp", which no group
             // message contains, so only the two people are left to rank, ordered by recency
-            const [, mergedResults] = await search('@Delp', state, [delphine, containsTerm]);
+            const [, mergedResults] = await search('@Delp', state, [delphine, recentMatch]);
 
-            expect(mergedResults.terms).toEqual([containsTerm.id, delphine.id]);
+            expect(mergedResults.terms).toEqual([recentMatch.id, delphine.id]);
         });
 
         it('keeps a group message hidden from the sidebar below an equally relevant visible one', async () => {
@@ -1550,7 +1551,7 @@ describe('components/SwitchChannelProvider', () => {
         });
     });
 
-    describe('quickSwitchSorter', () => {
+    describe('makeQuickSwitchSorter', () => {
         function wrap(id: string, type: string, lastViewedAt: number, name: string): WrappedChannel {
             return {
                 channel: TestHelper.getChannelMock({id, name, display_name: name, type: type as Channel['type'], delete_at: 0}),
@@ -1578,15 +1579,16 @@ describe('components/SwitchChannelProvider', () => {
             const results = [
                 wrap('dm', Constants.DM_CHANNEL, 1, 'sam.smith'),
                 wrap('gm', Constants.GM_CHANNEL, 1000, 'sam.smith, wanda.pryor'),
-                wrap('open', Constants.OPEN_CHANNEL, 500, 'sam-project'),
+                wrap('open', Constants.OPEN_CHANNEL, 500, 'project-sam'),
             ];
 
             const orderings = permutations(results).map((ordering) => (
-                [...ordering].sort(quickSwitchSorter).map((result) => result.channel.id).join(',')
+                [...ordering].sort(makeQuickSwitchSorter('sam')).map((result) => result.channel.id).join(',')
             ));
 
-            // All three were last read long ago, so they share a recency band and sort by type:
-            // direct message, then group message, then channel
+            // All three were last read long ago, so they share a recency band. The direct message is
+            // a prefix match on the term while the group message and channel only contain it, so the
+            // direct message leads and the remaining two sort by type: group message, then channel
             expect(new Set(orderings)).toEqual(new Set(['dm,gm,open']));
         });
 
@@ -1597,10 +1599,10 @@ describe('components/SwitchChannelProvider', () => {
             const results = [
                 wrap('stale-dm', Constants.DM_CHANNEL, stale, 'sam.stale'),
                 wrap('recent-gm', Constants.GM_CHANNEL, recent, 'sam.smith, wanda.pryor'),
-                wrap('recent-channel', Constants.OPEN_CHANNEL, recent, 'sam-project'),
+                wrap('recent-channel', Constants.OPEN_CHANNEL, recent, 'project-sam'),
             ];
 
-            expect([...results].sort(quickSwitchSorter).map((result) => result.channel.id)).
+            expect([...results].sort(makeQuickSwitchSorter('sam')).map((result) => result.channel.id)).
                 toEqual(['recent-gm', 'recent-channel', 'stale-dm']);
         });
 
@@ -1610,11 +1612,26 @@ describe('components/SwitchChannelProvider', () => {
             const results = [
                 wrap('recent-gm', Constants.GM_CHANNEL, recent, 'sam.smith, wanda.pryor'),
                 wrap('recent-dm', Constants.DM_CHANNEL, recent, 'sam.smith'),
-                wrap('recent-channel', Constants.OPEN_CHANNEL, recent, 'sam-project'),
+                wrap('recent-channel', Constants.OPEN_CHANNEL, recent, 'project-sam'),
             ];
 
-            expect([...results].sort(quickSwitchSorter).map((result) => result.channel.id)).
+            expect([...results].sort(makeQuickSwitchSorter('sam')).map((result) => result.channel.id)).
                 toEqual(['recent-dm', 'recent-gm', 'recent-channel']);
+        });
+
+        it('ranks a channel the term is a prefix of above a direct message that only contains it', () => {
+            const recent = Date.now();
+
+            // Both were used just as recently, so recency does not separate them. "off" is a prefix
+            // of the channel's name but only appears mid-string in the person's, so the channel must
+            // not be buried under the direct message (MM-70519 review follow-up).
+            const results = [
+                wrap('midstring-dm', Constants.DM_CHANNEL, recent, 'geoffrey.hinton'),
+                wrap('prefix-channel', Constants.OPEN_CHANNEL, recent, 'off-topic'),
+            ];
+
+            expect([...results].sort(makeQuickSwitchSorter('off')).map((result) => result.channel.id)).
+                toEqual(['prefix-channel', 'midstring-dm']);
         });
 
         it('sorts a never-opened direct message below any conversation with activity', () => {
@@ -1625,7 +1642,7 @@ describe('components/SwitchChannelProvider', () => {
                 wrap('stale-gm', Constants.GM_CHANNEL, stale, 'sam.smith, wanda.pryor'),
             ];
 
-            expect([...results].sort(quickSwitchSorter).map((result) => result.channel.id)).
+            expect([...results].sort(makeQuickSwitchSorter('sam')).map((result) => result.channel.id)).
                 toEqual(['stale-gm', 'never-dm']);
         });
     });
