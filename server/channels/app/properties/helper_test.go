@@ -158,17 +158,18 @@ func (th *TestHelper) RegisterCPAPropertyGroup(tb testing.TB) *TestHelper {
 
 // defaultLadderCheckerForTests stands in for the app-layer human decision
 // that access_control_permissions_test.go and app/authorization's own tests
-// already cover with explicit injected checkers. It resolves the field's
-// tier for the action and allows anything above none, treating the
-// fabricated caller IDs used across this package as an ordinary member —
-// there is no real user or channel membership to check them against. It
-// must stay tier-based rather than always allow: a source_only field
-// converts option.read to none, and tests expect that to still deny.
+// already cover with explicit injected checkers. It treats the fabricated
+// caller IDs used across this package as an ordinary member — there is no
+// real user or channel membership to check them against — and allows the
+// action only when a member satisfies the field's tier, using the same
+// ladder comparison production code uses. A test needing an admin or
+// sysadmin caller sets its own checker through setLadderCheckerForTests
+// rather than this default inferring privilege from a fixture's caller ID.
 func defaultLadderCheckerForTests(_ request.CTX, _ string, field *model.PropertyField, action, _ string) bool {
 	if field.Permissions == nil {
 		return false
 	}
-	return field.Permissions.Restrictions.TierFor(action) != model.PermissionLevelNone
+	return model.PermissionLevelMember.AtMostAsPermissiveAs(field.Permissions.Restrictions.TierFor(action))
 }
 
 // columnPinningStubHook stands in for the column-pinning half of
