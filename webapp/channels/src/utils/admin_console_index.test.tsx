@@ -44,6 +44,15 @@ describe('AdminConsoleIndex.generateIndex', () => {
             'site_config/customization',
             'authentication/password',
         ]);
+        expect(idx.search('batching')).toEqual([
+            'environment/notifications',
+        ]);
+        expect(idx.search('Email Batching Buffer Size')).toEqual([
+            'environment/notifications',
+        ]);
+        expect(idx.search('subject lines')).toEqual([
+            'environment/notifications',
+        ]);
         expect(idx.search('deactivation')).toEqual([
             'authentication/saml',
             'site_config/users_and_teams',
