@@ -11,6 +11,7 @@ on:
       - server/build/buildenv-tag.sh
       - server/.go-version
       - .nvmrc
+      - mise.toml
       - .github/workflows/build-server-image.yml
   pull_request:
     paths:
@@ -19,6 +20,7 @@ on:
       - server/build/buildenv-tag.sh
       - server/.go-version
       - .nvmrc
+      - mise.toml
       - .github/workflows/build-server-image.yml
   workflow_dispatch:
 
