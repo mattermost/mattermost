@@ -718,6 +718,18 @@ const AdminDefinition: AdminDefinitionType = {
                     component: BoardAttributes,
                 },
             },
+            global_attribute_details_edit: {
+                url: `system_attributes/manage_attributes/attribute_details/:field_id(${ID_PATH_PATTERN})`,
+                isHidden: it.not(it.all(
+                    it.minLicenseTier(LicenseSkus.Enterprise),
+                    it.configIsTrue('FeatureFlags', 'GlobalAttributes'),
+                )),
+                isDisabled: it.not(it.isSystemAdmin),
+                schema: {
+                    id: 'GlobalAttributeDetails',
+                    component: AttributeDetails,
+                },
+            },
             global_attribute_details: {
                 url: 'system_attributes/manage_attributes/attribute_details',
                 isHidden: it.not(it.all(
@@ -778,6 +790,7 @@ const AdminDefinition: AdminDefinitionType = {
                                 {
                                     type: 'bool',
                                     key: 'AccessControlSettings.EnableAccessControlAuditLogging',
+                                    isHidden: true, // TODO: Remove when the PR#37771 is merged
                                     label: defineMessage({id: 'admin.accesscontrol.enableAuditLogging.title', defaultMessage: 'Enable audit logging for access control decisions'}),
                                     help_text: defineMessage({id: 'admin.accesscontrol.enableAuditLogging.desc', defaultMessage: 'When enabled, attribute-based access control policy decisions are written to the server audit log. Requires server audit logging to be active.'}),
                                     disabled_help_text: defineMessage({id: 'admin.accesscontrol.enableAuditLogging.disabled', defaultMessage: 'When enabled, attribute-based access control policy decisions are written to the server audit log. This setting requires attribute-based access control to be enabled and server audit logging to be active (enable file audit logging or configure an advanced audit logging target).'}),
