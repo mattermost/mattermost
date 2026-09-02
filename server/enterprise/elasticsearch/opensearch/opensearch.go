@@ -28,6 +28,7 @@ import (
 	"github.com/opensearch-project/opensearch-go/v4/opensearchapi"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app/platform"
@@ -48,6 +49,16 @@ var (
 func isIndexNotFound(err error) bool {
 	var osErr *opensearch.StructError
 	return errors.As(err, &osErr) && osErr.Status == http.StatusNotFound && osErr.Err.Type == "index_not_found_exception"
+}
+
+// wrapOpensearchPostsTemplateError preserves the original OpenSearch error and adds actionable ICU
+// guidance for posts-template failures.
+func wrapOpensearchPostsTemplateError(err error) error {
+	if err == nil {
+		return nil
+	}
+
+	return fmt.Errorf("%w: %s", err, i18n.T("ent.elasticsearch.analysis_icu_required", map[string]any{"Backend": "OpenSearch"}))
 }
 
 type OpensearchInterfaceImpl struct {
@@ -126,32 +137,20 @@ func (os *OpensearchInterfaceImpl) fetchServerInfo(ctx context.Context, client *
 	os.version = major
 	os.fullVersion = version
 
-	// Query every node because the CAT plugins API omits nodes with no plugins. Plugin information is
-	// also included in Support Packets. If it cannot be retrieved, preserve the existing best-effort
-	// behavior and let template creation report any resulting backend error.
-	resp, err := client.Nodes.Info(ctx, &opensearchapi.NodesInfoReq{Metrics: []string{"plugins"}})
+	// Plugin information is advisory: it is used for optional analyzers and Support Packets only.
+	// CAT plugins is used because AWS managed domains return empty plugin arrays from Nodes Info.
+	// CAT omits nodes with no plugins, so this inventory must not be used to prove cluster-wide absence.
+	resp, err := client.Cat.Plugins(ctx, nil)
 	if err != nil {
-		os.Platform.Log().Warn("Error retrieving opensearch node plugins", mlog.Err(err))
-		return nil
-	}
-	if resp.NodesInfo.Failed > 0 {
-		os.Platform.Log().Warn("Some opensearch nodes failed to return plugin information", mlog.Int("failed_nodes", resp.NodesInfo.Failed))
+		os.Platform.Log().Warn("Error retrieving opensearch plugins", mlog.Err(err))
 		return nil
 	}
 
 	os.plugins = nil
-	analysisICUInstalledOnEveryNode := true
-	for _, node := range resp.Nodes {
-		nodePlugins := make([]string, 0, len(node.Plugins))
-		for _, plugin := range node.Plugins {
-			nodePlugins = append(nodePlugins, plugin.Name)
+	for _, plugin := range resp.Plugins {
+		if plugin.Component != "" {
+			os.plugins = append(os.plugins, plugin.Component)
 		}
-		os.plugins = append(os.plugins, nodePlugins...)
-		analysisICUInstalledOnEveryNode = analysisICUInstalledOnEveryNode && common.HasAnalysisPlugin(nodePlugins, "analysis-icu")
-	}
-
-	if len(resp.Nodes) > 0 && !analysisICUInstalledOnEveryNode {
-		return model.NewAppError("Opensearch.fetchServerInfo", "ent.elasticsearch.analysis_icu_required", map[string]any{"Backend": "OpenSearch"}, "", http.StatusInternalServerError)
 	}
 
 	return nil
@@ -210,7 +209,7 @@ func (os *OpensearchInterfaceImpl) Start(ctx context.Context) *model.AppError {
 		Body:          bytes.NewReader(templateBuf),
 	})
 	if err != nil {
-		return model.NewAppError("Opensearch.start", "ent.elasticsearch.create_template_posts_if_not_exists.template_create_failed", map[string]any{"Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusInternalServerError).Wrap(err)
+		return model.NewAppError("Opensearch.start", "ent.elasticsearch.create_template_posts_if_not_exists.template_create_failed", map[string]any{"Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusInternalServerError).Wrap(wrapOpensearchPostsTemplateError(err))
 	}
 
 	// Set up channels index template.
