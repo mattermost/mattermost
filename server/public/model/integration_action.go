@@ -513,10 +513,8 @@ type OpenDialogRequest struct {
 	URL       string `json:"url"`
 	Dialog    Dialog `json:"dialog"`
 
-	// ChannelId is the channel the dialog belongs to, and is what the client sends
-	// back on submit. Integrations may set it to target a specific channel; when left
-	// empty the server fills it from the trigger, so a dialog is bound to the channel
-	// its trigger was created in rather than to whichever channel the user is viewing.
+	// ChannelId is populated by the server from the trigger and sent to the client,
+	// which echoes it back on submit so the submission targets the correct channel.
 	ChannelId string `json:"channel_id,omitempty"`
 }
 
@@ -609,8 +607,6 @@ func signForGenerateTriggerId(s crypto.Signer, digest []byte, opts crypto.Signer
 }
 
 // GenerateTriggerId signs the context an interactive dialog needs on submit.
-// channelId is embedded so the server can recover which channel the trigger
-// originated in without relying on client-supplied state.
 func GenerateTriggerId(userId, channelId string, s crypto.Signer) (string, string, *AppError) {
 	clientTriggerId := NewId()
 	triggerData := strings.Join([]string{clientTriggerId, userId, strconv.FormatInt(GetMillis(), 10), channelId}, ":") + ":"

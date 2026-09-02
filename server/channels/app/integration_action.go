@@ -314,19 +314,7 @@ func (a *App) OpenInteractiveDialog(rctx request.CTX, request model.OpenDialogRe
 	}
 
 	request.TriggerId = clientTriggerId
-
-	// Bind the dialog to the channel its trigger was created in, so the submission
-	// targets that channel rather than whichever one the client happens to be showing.
-	// An integration that names a real channel keeps its choice; triggers minted by an
-	// older server carry no channel, leaving the client on its previous fallback.
-	//
-	// Anything that isn't a well-formed ID is treated as unset rather than forwarded.
-	// The integration's value is not signed, so a malformed one would otherwise reach
-	// the client, come back on submit, and fail the channel lookup there — surfacing as
-	// a confusing permission error instead of quietly using the channel we can prove.
-	if !model.IsValidId(request.ChannelId) {
-		request.ChannelId = channelID
-	}
+	request.ChannelId = channelID
 
 	if dialogErr := request.IsValid(); dialogErr != nil {
 		rctx.Logger().Warn("Interactive dialog is invalid", mlog.Err(dialogErr))
