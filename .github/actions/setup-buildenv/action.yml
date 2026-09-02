@@ -27,9 +27,9 @@ runs:
         DOCKERFILE_INPUT: ${{ inputs.dockerfile }}
         DOCKERFILE_FIPS_INPUT: ${{ inputs.dockerfile-fips }}
       run: |
-        # These arrive via env rather than ${{ }}: GitHub expands an
-        # expression into the script before bash runs it, so an input that
-        # reached a fork PR could inject commands here.
+        # These arrive via env, not expression interpolation: GitHub expands
+        # an expression into the script before bash runs it, so an input a
+        # fork PR can reach could inject commands here.
         if [[ ! "${TAG_INPUT}" =~ ^[A-Za-z0-9_][A-Za-z0-9_.-]{0,127}$ ]]; then
           echo "::error::not a usable docker tag: ${TAG_INPUT}"
           exit 1
