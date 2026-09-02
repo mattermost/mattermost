@@ -227,10 +227,12 @@ func maskingFromLegacy(field *PropertyField, restrictions *Restrictions, opts Le
 
 // grantsFromLegacy converts a field's owners, source plugin and sync lock —
 // all Attrs-based, all implicitly trusted with everything under the legacy
-// model — into grants enumerating the five enforced actions. An identity named
-// by more than one input (an owner who is also the field's source plugin)
-// collapses into a single grant rather than one per input, matching how the
-// store's grants table is keyed.
+// model — into grants enumerating the five enforced actions, plus one
+// wildcard plugin grant for whatever ambient access a machine caller named
+// nowhere on the field still has today (see ambientMachineGrantAllow). An
+// identity named by more than one input (an owner who is also the field's
+// source plugin) collapses into a single grant rather than one per input,
+// matching how the store's grants table is keyed.
 func grantsFromLegacy(field *PropertyField) []Grant {
 	type identityKey struct{ typ, id string }
 	var order []identityKey
@@ -281,11 +283,69 @@ func grantsFromLegacy(field *PropertyField) []Grant {
 		addGrant(PropertyOwnerTypeService, syncSource, nil, []string{PropertyActionValueWrite})
 	}
 
+	if allow := ambientMachineGrantAllow(field); len(allow) > 0 {
+		// An installed plugin arriving through the plugin API meets no owner,
+		// protected or sync-lock check today, so without this grant the
+		// conversion would revoke access nothing else on this field replaces.
+		addGrant(PropertyOwnerTypePlugin, "*", nil, allow)
+	}
+
 	grants := make([]Grant, 0, len(order))
 	for _, key := range order {
 		grants = append(grants, *byIdentity[key])
 	}
 	return grants
+}
+
+// ambientMachineGrantAllow returns the actions a machine caller may perform on
+// field today with no grant naming it at all, so PermissionsFromLegacy can
+// mint a wildcard plugin grant preserving that access instead of silently
+// revoking it. Returns an empty slice when the field grants no such ambient
+// access, so the caller adds no grant rather than one with an empty Allow.
+//
+// Each action mirrors one legacy gate a machine caller meets when it is named
+// nowhere on the field:
+//   - value.read and option.read: hasUnrestrictedFieldReadAccess's only
+//     unconditional arm. A source_only field denies both today (no grant
+//     needed to match); a shared_only field is unmasked either way for a
+//     caller holding nothing, so it needs none either.
+//   - value.write: checkOwnerValueWriteAccess, checkLegacyFieldWriteAccess and
+//     checkSyncLock, in the order checkValueWriteAccess runs them -- the whole
+//     of the legacy value-write path for a field with none of the three.
+//   - field.write and option.write: the same owners/protected pair, since
+//     PreChangePropertyFieldOptions asks for a field.write on option changes.
+//
+// checkLegacyFieldWriteAccess also lets anyone write a protected field whose
+// source plugin has since been uninstalled -- a runtime fact a stored grant
+// cannot express -- so this predicate uses the static protected flag instead
+// and such a field converts to no wildcard write. Narrower than today for an
+// orphaned protected field, and narrower is the recoverable direction.
+func ambientMachineGrantAllow(field *PropertyField) []string {
+	granted := map[string]bool{}
+
+	if field.GetAccessMode() == PropertyAccessModePublic {
+		granted[PropertyActionValueRead] = true
+		granted[PropertyActionOptionRead] = true
+	}
+
+	// field.Protected and the access_control-only Attrs flag are two separate
+	// columns that both mean "protected"; either one stands in the way.
+	protected := field.Protected || IsPropertyFieldProtected(field)
+	if !HasPropertyFieldOwners(field) && !protected {
+		granted[PropertyActionFieldWrite] = true
+		granted[PropertyActionOptionWrite] = true
+		if GetPropertyFieldSyncSource(field) == "" {
+			granted[PropertyActionValueWrite] = true
+		}
+	}
+
+	allow := make([]string, 0, len(granted))
+	for _, action := range validPropertyActions {
+		if granted[action] {
+			allow = append(allow, action)
+		}
+	}
+	return allow
 }
 
 // unionActions merges two allow lists, returning their union in

@@ -171,7 +171,9 @@ func TestPermissionsFromLegacyLinkedFieldOptionReadNoCapNeeded(t *testing.T) {
 
 func TestPermissionsFromLegacyGrantsOwners(t *testing.T) {
 	// Two owners with scopes convert to two grants, scopes preserved, each
-	// carrying all five enforced actions.
+	// carrying all five enforced actions. The field is public and owner-managed,
+	// so a third grant appears for the ambient read access any other plugin
+	// still has today (hasUnrestrictedFieldReadAccess does not consult owners).
 	field := &PropertyField{
 		Attrs: StringInterface{
 			PropertyAttrsOwners: []PropertyOwner{
@@ -183,7 +185,7 @@ func TestPermissionsFromLegacyGrantsOwners(t *testing.T) {
 
 	p := PermissionsFromLegacy(field, LegacyConversionOpts{ConvertAttrs: true})
 
-	require.Len(t, p.Grants, 2)
+	require.Len(t, p.Grants, 3)
 	assert.Equal(t, PropertyOwnerTypeUser, p.Grants[0].Type)
 	assert.Equal(t, "user1", p.Grants[0].ID)
 	assert.Equal(t, []string{"scope-a"}, p.Grants[0].Scopes)
@@ -192,12 +194,16 @@ func TestPermissionsFromLegacyGrantsOwners(t *testing.T) {
 	assert.Equal(t, "role1", p.Grants[1].ID)
 	assert.Equal(t, []string{"scope-b", "scope-c"}, p.Grants[1].Scopes)
 	assert.ElementsMatch(t, validPropertyActions, p.Grants[1].Allow)
+	assert.Equal(t, PropertyOwnerTypePlugin, p.Grants[2].Type)
+	assert.Equal(t, "*", p.Grants[2].ID)
+	assert.ElementsMatch(t, []string{PropertyActionOptionRead, PropertyActionValueRead}, p.Grants[2].Allow)
 }
 
 func TestPermissionsFromLegacyGrantsOwnerIsSourcePlugin(t *testing.T) {
 	// An owner that is also the field's source plugin collapses into one grant
 	// rather than two, and the merge does not narrow the plugin's unrestricted
-	// access down to the owner's scope.
+	// access down to the owner's scope. The field being public still adds a
+	// second, wildcard grant for the read any other plugin has today.
 	field := &PropertyField{
 		Attrs: StringInterface{
 			PropertyAttrsSourcePluginID: "plugin1",
@@ -209,17 +215,22 @@ func TestPermissionsFromLegacyGrantsOwnerIsSourcePlugin(t *testing.T) {
 
 	p := PermissionsFromLegacy(field, LegacyConversionOpts{ConvertAttrs: true})
 
-	require.Len(t, p.Grants, 1)
+	require.Len(t, p.Grants, 2)
 	assert.Equal(t, PropertyOwnerTypePlugin, p.Grants[0].Type)
 	assert.Equal(t, "plugin1", p.Grants[0].ID)
 	assert.Empty(t, p.Grants[0].Scopes)
 	assert.ElementsMatch(t, validPropertyActions, p.Grants[0].Allow)
+	assert.Equal(t, "*", p.Grants[1].ID)
+	assert.ElementsMatch(t, []string{PropertyActionOptionRead, PropertyActionValueRead}, p.Grants[1].Allow)
 }
 
 func TestPermissionsFromLegacyGrantsSourcePluginOnly(t *testing.T) {
 	// A source_only field with a source plugin: restrictions deny reads to
 	// everyone (7.2), but the plugin's grant admits it regardless, making it
-	// the field's only reader.
+	// the field's only reader. The field has no owners and is not protected, so
+	// checkLegacyFieldWriteAccess and checkSyncLock both let any other plugin
+	// write it today; the wildcard grant is what keeps that true after
+	// conversion, even though such a plugin still cannot read the field.
 	field := &PropertyField{
 		Attrs: StringInterface{
 			PropertyAttrsAccessMode:     PropertyAccessModeSourceOnly,
@@ -231,15 +242,21 @@ func TestPermissionsFromLegacyGrantsSourcePluginOnly(t *testing.T) {
 
 	assert.Equal(t, PermissionLevelNone, p.Restrictions.TierFor(PropertyActionValueRead))
 	assert.Equal(t, PermissionLevelNone, p.Restrictions.TierFor(PropertyActionOptionRead))
-	require.Len(t, p.Grants, 1)
+	require.Len(t, p.Grants, 2)
 	assert.Equal(t, PropertyOwnerTypePlugin, p.Grants[0].Type)
 	assert.Equal(t, "plugin1", p.Grants[0].ID)
 	assert.ElementsMatch(t, validPropertyActions, p.Grants[0].Allow)
+	assert.Equal(t, "*", p.Grants[1].ID)
+	assert.ElementsMatch(t, []string{PropertyActionFieldWrite, PropertyActionOptionWrite, PropertyActionValueWrite}, p.Grants[1].Allow)
 }
 
 func TestPermissionsFromLegacyGrantsSyncLock(t *testing.T) {
 	// An ldap-synced field converts to a service grant allowing value.write and
-	// nothing else — the lock never gated anything but value writes.
+	// nothing else — the lock never gated anything but value writes. The field
+	// has no owners and is not protected, and is public, so a second, wildcard
+	// grant appears for everything the lock never touched: reads (public) and
+	// the field/option definition writes (checkSyncLock only ever gated value
+	// writes, so it never stood in their way).
 	field := &PropertyField{
 		Attrs: StringInterface{
 			PropertyFieldAttrLDAP: "ldap-sync-id",
@@ -248,16 +265,20 @@ func TestPermissionsFromLegacyGrantsSyncLock(t *testing.T) {
 
 	p := PermissionsFromLegacy(field, LegacyConversionOpts{ConvertAttrs: true})
 
-	require.Len(t, p.Grants, 1)
+	require.Len(t, p.Grants, 2)
 	assert.Equal(t, PropertyOwnerTypeService, p.Grants[0].Type)
 	assert.Equal(t, "ldap", p.Grants[0].ID)
 	assert.Equal(t, []string{PropertyActionValueWrite}, p.Grants[0].Allow)
+	assert.Equal(t, PropertyOwnerTypePlugin, p.Grants[1].Type)
+	assert.Equal(t, "*", p.Grants[1].ID)
+	assert.ElementsMatch(t, []string{PropertyActionFieldWrite, PropertyActionOptionRead, PropertyActionOptionWrite, PropertyActionValueRead}, p.Grants[1].Allow)
 }
 
 func TestPermissionsFromLegacyGrantsLinkedFieldDropsOptionRead(t *testing.T) {
 	// A linked field's converted owner grant carries four actions, option.read
 	// absent — a grant over the template's own scheme was never a right the
-	// linked field's owner held.
+	// linked field's owner held. The field is public, so the wildcard grant for
+	// every other plugin's ambient read loses option.read the same way.
 	field := &PropertyField{
 		Attrs: StringInterface{
 			PropertyAttrsOwners: []PropertyOwner{
@@ -269,7 +290,7 @@ func TestPermissionsFromLegacyGrantsLinkedFieldDropsOptionRead(t *testing.T) {
 
 	p := PermissionsFromLegacy(field, LegacyConversionOpts{ConvertAttrs: true, Template: template})
 
-	require.Len(t, p.Grants, 1)
+	require.Len(t, p.Grants, 2)
 	assert.NotContains(t, p.Grants[0].Allow, PropertyActionOptionRead)
 	assert.ElementsMatch(t, []string{
 		PropertyActionFieldWrite,
@@ -277,6 +298,9 @@ func TestPermissionsFromLegacyGrantsLinkedFieldDropsOptionRead(t *testing.T) {
 		PropertyActionValueRead,
 		PropertyActionValueWrite,
 	}, p.Grants[0].Allow)
+	assert.Equal(t, "*", p.Grants[1].ID)
+	assert.NotContains(t, p.Grants[1].Allow, PropertyActionOptionRead)
+	assert.Equal(t, []string{PropertyActionValueRead}, p.Grants[1].Allow)
 }
 
 func TestPermissionsFromLegacyMaskingSourcePlugin(t *testing.T) {
@@ -548,4 +572,150 @@ func TestPermissionsFromLegacyGrantsConvertAttrsFalse(t *testing.T) {
 	p := PermissionsFromLegacy(field, LegacyConversionOpts{ConvertAttrs: false})
 
 	assert.Empty(t, p.Grants)
+}
+
+func TestAmbientMachineGrantAllow(t *testing.T) {
+	tests := []struct {
+		name       string
+		accessMode string
+		owners     []PropertyOwner
+		protected  bool
+		protected2 bool // the field.Protected struct column, the second copy of the flag
+		synced     bool
+		want       []string
+	}{
+		{
+			name:       "public, unowned, unprotected, unsynced grants everything",
+			accessMode: PropertyAccessModePublic,
+			want:       validPropertyActions,
+		},
+		{
+			name:       "source_only grants no reads, since restrictions already deny them",
+			accessMode: PropertyAccessModeSourceOnly,
+			want:       []string{PropertyActionFieldWrite, PropertyActionOptionWrite, PropertyActionValueWrite},
+		},
+		{
+			name:       "shared_only grants no reads, since masking shows an ambient caller nothing anyway",
+			accessMode: PropertyAccessModeSharedOnly,
+			want:       []string{PropertyActionFieldWrite, PropertyActionOptionWrite, PropertyActionValueWrite},
+		},
+		{
+			name:       "an owner blocks every write, not just its own",
+			accessMode: PropertyAccessModePublic,
+			owners:     []PropertyOwner{{Type: PropertyOwnerTypeUser, ID: "user1"}},
+			want:       []string{PropertyActionOptionRead, PropertyActionValueRead},
+		},
+		{
+			name:       "the access_control-only protected attr blocks every write",
+			accessMode: PropertyAccessModePublic,
+			protected:  true,
+			want:       []string{PropertyActionOptionRead, PropertyActionValueRead},
+		},
+		{
+			name:       "the field.Protected column blocks every write the same way",
+			accessMode: PropertyAccessModePublic,
+			protected2: true,
+			want:       []string{PropertyActionOptionRead, PropertyActionValueRead},
+		},
+		{
+			name:       "a sync lock blocks only value.write",
+			accessMode: PropertyAccessModePublic,
+			synced:     true,
+			want:       []string{PropertyActionFieldWrite, PropertyActionOptionRead, PropertyActionOptionWrite, PropertyActionValueRead},
+		},
+		{
+			name:       "owned, protected and synced grants nothing at all",
+			accessMode: PropertyAccessModeSourceOnly,
+			owners:     []PropertyOwner{{Type: PropertyOwnerTypeUser, ID: "user1"}},
+			protected:  true,
+			synced:     true,
+			want:       []string{},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			field := &PropertyField{
+				Protected: tt.protected2,
+				Attrs: StringInterface{
+					PropertyAttrsAccessMode: tt.accessMode,
+				},
+			}
+			if tt.owners != nil {
+				field.Attrs[PropertyAttrsOwners] = tt.owners
+			}
+			if tt.protected {
+				field.Attrs[PropertyAttrsProtected] = true
+			}
+			if tt.synced {
+				field.Attrs[PropertyFieldAttrLDAP] = "ldap-sync-id"
+			}
+
+			assert.ElementsMatch(t, tt.want, ambientMachineGrantAllow(field))
+		})
+	}
+}
+
+func TestPermissionsFromLegacyGrantsNoAmbientAccessEmitsNoGrant(t *testing.T) {
+	// A field that grants no ambient access at all converts to zero grants,
+	// not a wildcard grant with an empty Allow -- Grant.isValid rejects that.
+	field := &PropertyField{
+		Attrs: StringInterface{
+			PropertyAttrsAccessMode: PropertyAccessModeSourceOnly,
+			PropertyAttrsProtected:  true,
+		},
+	}
+
+	p := PermissionsFromLegacy(field, LegacyConversionOpts{ConvertAttrs: true})
+
+	assert.Empty(t, p.Grants)
+}
+
+func TestPermissionsFromLegacyGrantsTemplateWildcardFieldWrite(t *testing.T) {
+	// An unowned, unprotected template converts to a wildcard grant that
+	// includes field.write -- handing any installed plugin the definition of a
+	// scheme every linked field inherits. That is exactly what
+	// enforceFieldUpdateAccess allows such a template's caller today (no
+	// owners, so it falls through to checkLegacyFieldWriteAccess, which only
+	// refuses a protected field), so this is faithful rather than a widening,
+	// even though it is the least comfortable case the conversion produces.
+	field := &PropertyField{
+		ObjectType: PropertyFieldObjectTypeTemplate,
+		Attrs: StringInterface{
+			PropertyAttrsAccessMode: PropertyAccessModePublic,
+		},
+	}
+
+	p := PermissionsFromLegacy(field, LegacyConversionOpts{ConvertAttrs: true})
+
+	require.Len(t, p.Grants, 1)
+	assert.Equal(t, "*", p.Grants[0].ID)
+	assert.Contains(t, p.Grants[0].Allow, PropertyActionFieldWrite)
+}
+
+func TestProjectLegacyPermissionsWildcardGrantBecomesOwner(t *testing.T) {
+	// A converted field's wildcard plugin grant projects into Attrs as an
+	// owner named "*" -- the model's spelling of a wildcard for a v2 caller.
+	// That flips HasPropertyFieldOwners from false to true on the projected
+	// copy, but grantsFromLegacy preserves an owner's Allow verbatim once it
+	// carries one, so converting the projected field back reproduces the same
+	// grant instead of losing or duplicating it.
+	field := &PropertyField{
+		Attrs: StringInterface{
+			PropertyAttrsAccessMode: PropertyAccessModePublic,
+		},
+	}
+	field.Permissions = PermissionsFromLegacy(field, LegacyConversionOpts{ConvertAttrs: true})
+	require.False(t, HasPropertyFieldOwners(field))
+
+	projected := ProjectLegacyPermissions(field)
+
+	assert.True(t, HasPropertyFieldOwners(projected))
+	owners := GetPropertyFieldOwners(projected)
+	require.Len(t, owners, 1)
+	assert.Equal(t, "*", owners[0].ID)
+	assert.Equal(t, PropertyOwnerTypePlugin, owners[0].Type)
+
+	reconverted := PermissionsFromLegacy(projected, LegacyConversionOpts{ConvertAttrs: true})
+	assert.Equal(t, field.Permissions, reconverted)
 }
