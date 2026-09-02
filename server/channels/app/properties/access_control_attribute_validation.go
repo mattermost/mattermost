@@ -497,11 +497,17 @@ func (h *AccessControlAttributeValidationHook) enforceGroupPermissions(rctx requ
 // defaultPermissionValuesForObjectType returns the PermissionValues level a
 // field should default to when the caller doesn't pin one. User fields are
 // member-writable so users can set their own values; system and template
-// fields attach to admin-owned scopes and require sysadmin.
+// fields attach to admin-owned scopes and require sysadmin. Channel fields
+// default to admin: unlike a user field, a channel attribute is shared state
+// that any member reading the channel would otherwise be able to overwrite,
+// and these values are expected to feed access-control policy decisions, so
+// the safer default is channel-admin (or sysadmin) rather than membership.
 func defaultPermissionValuesForObjectType(objectType string) model.PermissionLevel {
 	switch objectType {
 	case model.PropertyFieldObjectTypeSystem, model.PropertyFieldObjectTypeTemplate:
 		return model.PermissionLevelSysadmin
+	case model.PropertyFieldObjectTypeChannel:
+		return model.PermissionLevelAdmin
 	default:
 		return model.PermissionLevelMember
 	}

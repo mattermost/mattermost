@@ -46,16 +46,16 @@ export default function useCanSetChannelAttributes(channelId: string) {
             return false;
         }
 
-        // Empty means the server applies its default, which for a channel is member.
+        // Empty means the server applies its default, which for a channel is admin.
         switch (field.permission_values ?? '') {
         case 'none':
             return false;
         case 'sysadmin':
             return isSystemAdmin;
         case 'admin':
+        case '':
             return isSystemAdmin || canManageChannelRoles;
         case 'member':
-        case '':
             return isSystemAdmin || canReadChannel;
         default:
             return false;

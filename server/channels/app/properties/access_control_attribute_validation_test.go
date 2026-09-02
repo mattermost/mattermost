@@ -836,6 +836,57 @@ func TestAccessControlAttributeValidationHook(t *testing.T) {
 		assert.Equal(t, model.PermissionLevelSysadmin, *created.PermissionOptions)
 	})
 
+	t.Run("create channel-object field without managed sets PermissionValues to admin", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "field_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+			ObjectType: model.PropertyFieldObjectTypeChannel,
+			Attrs:      model.StringInterface{},
+		}
+		created, createErr := th.service.CreatePropertyField(th.Context, field)
+		require.NoError(t, createErr)
+		require.NotNil(t, created.PermissionValues)
+		assert.Equal(t, model.PermissionLevelAdmin, *created.PermissionValues)
+	})
+
+	t.Run("create channel-object field does not downgrade a caller-pinned PermissionValues", func(t *testing.T) {
+		member := model.PermissionLevelMember
+		field := &model.PropertyField{
+			GroupID:          group.ID,
+			Name:             "field_" + model.NewId(),
+			Type:             model.PropertyFieldTypeText,
+			TargetType:       "system",
+			ObjectType:       model.PropertyFieldObjectTypeChannel,
+			PermissionValues: &member,
+			Attrs:            model.StringInterface{},
+		}
+		created, createErr := th.service.CreatePropertyField(th.Context, field)
+		require.NoError(t, createErr)
+		require.NotNil(t, created.PermissionValues)
+		assert.Equal(t, model.PermissionLevelMember, *created.PermissionValues)
+	})
+
+	t.Run("update channel-object field to remove managed fills unset PermissionValues with admin", func(t *testing.T) {
+		field := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "field_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+			ObjectType: model.PropertyFieldObjectTypeChannel,
+			Attrs: model.StringInterface{
+				model.CustomProfileAttributesPropertyAttrsManaged: "admin",
+			},
+		})
+
+		field.Attrs = model.StringInterface{}
+		updated, _, updateErr := th.service.UpdatePropertyField(th.Context, group.ID, field)
+		require.NoError(t, updateErr)
+		require.NotNil(t, updated.PermissionValues)
+		assert.Equal(t, model.PermissionLevelAdmin, *updated.PermissionValues)
+	})
+
 	t.Run("update field to managed=admin is rejected when no permission checker is configured", func(t *testing.T) {
 		field := th.CreatePropertyFieldDirect(t, &model.PropertyField{
 			GroupID:    group.ID,
