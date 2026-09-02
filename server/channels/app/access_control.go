@@ -1784,13 +1784,13 @@ func (a *App) SearchAccessControlPolicies(rctx request.CTX, opts model.AccessCon
 	return policies, total, nil
 }
 
-func (a *App) GetAccessControlPolicyAttributes(rctx request.CTX, channelID string, action string) (map[string][]string, *model.AppError) {
+func (a *App) GetAccessControlPolicyAttributes(rctx request.CTX, resourceID string, action string) (map[string][]string, *model.AppError) {
 	acs := a.Srv().ch.AccessControl
 	if acs == nil {
 		return nil, model.NewAppError("GetChannelAccessControlAttributes", "app.pap.get_channel_access_control_attributes.app_error", nil, "Policy Administration Point is not initialized", http.StatusNotImplemented)
 	}
 
-	attributes, appErr := acs.GetPolicyRuleAttributes(rctx, channelID, action)
+	attributes, appErr := acs.GetPolicyRuleAttributes(rctx, resourceID, action)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -1808,14 +1808,34 @@ func (a *App) GetAccessControlPolicyAttributes(rctx request.CTX, channelID strin
 		return map[string][]string{}, nil
 	}
 
+	// Generate a map of native fields, since they do not reside in the Property Store.
+	nativeFieldsByName := make(map[string]*model.PropertyField)
+	for _, f := range model.NativeUserAttributeFields(cpaGroup.ID) {
+		nativeFieldsByName[f.Name] = f
+	}
+
 	for fieldName := range attributes {
 		// Read directly from the store so this security filter sees the raw
 		// access_mode, unaffected by property read hooks for the request caller.
 		field, fieldErr := a.Srv().Store().PropertyField().GetFieldByNameForObjectType(rctx, cpaGroup.ID, "", model.PropertyFieldObjectTypeUser, fieldName)
 		if fieldErr != nil {
-			delete(attributes, fieldName)
-			continue
+			// If the error is due to not being found, we won't skip to the next field just yet
+			// in case it is a native field
+			var nfErr *store.ErrNotFound
+			notFound := errors.As(fieldErr, &nfErr)
+			if !notFound {
+				delete(attributes, fieldName)
+				continue
+			}
+
+			//If property wasn't found, check if this is a Native Field.
+			field = nativeFieldsByName[fieldName]
+			if field == nil {
+				delete(attributes, fieldName)
+				continue
+			}
 		}
+
 		switch field.GetAccessMode() {
 		case model.PropertyAccessModeSourceOnly, model.PropertyAccessModeSharedOnly:
 			delete(attributes, fieldName)

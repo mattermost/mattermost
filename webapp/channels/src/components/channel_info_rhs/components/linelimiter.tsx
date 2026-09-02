@@ -22,6 +22,7 @@ const LineLimiterBase = ({children, maxLines, lineHeight, moreText, lessText, er
     const [open, setOpen] = useState(false);
     const [maxHeight, setMaxHeight] = useState('inherit');
     const ref = useRef<HTMLDivElement>(null);
+    const nodeRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         if (ref === null || ref.current === null) {
@@ -47,11 +48,13 @@ const LineLimiterBase = ({children, maxLines, lineHeight, moreText, lessText, er
     return (
         <CSSTransition
             in={open}
+            nodeRef={nodeRef}
             timeout={500}
             classNames='LineLimiter--Transition-'
         >
             <>
                 <div
+                    ref={nodeRef}
                     className={className}
                     style={{maxHeight}}
                 >
