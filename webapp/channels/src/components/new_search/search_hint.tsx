@@ -14,7 +14,7 @@ type Props = {
     searchTeam: string;
     hasSelectedOption: boolean;
     isDate: boolean;
-}
+};
 
 const SearchHintsContainer = styled.div`
     display: flex;

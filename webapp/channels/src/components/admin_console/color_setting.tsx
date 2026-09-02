@@ -14,7 +14,7 @@ type Props = {
     value: string;
     onChange?: (id: string, color: string) => void;
     disabled?: boolean;
-}
+};
 
 const ColorSetting = (props: Props) => {
     const handleChange = useCallback((color: string) => {

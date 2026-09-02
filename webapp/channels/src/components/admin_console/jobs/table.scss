@@ -32,6 +32,40 @@
         cursor: pointer;
         &:hover {
             background-color: rgba(0, 0, 0, 0.05);
+
+            .view-details-link {
+                color: var(--button-bg);
+            }
+        }
+
+        // Align with the hover-only cancel button.
+        > td {
+            vertical-align: middle;
+        }
+    }
+
+    .view-details-field {
+        text-align: right;
+    }
+
+    .view-details-link.btn {
+        display: inline-flex;
+        align-items: center;
+        padding: 0;
+        background: transparent;
+        color: rgba(var(--sys-center-channel-color-rgb), 0.56);
+        font-size: 12px;
+        font-weight: 600;
+        white-space: nowrap;
+
+        &:hover,
+        &:focus {
+            background: transparent;
+            color: var(--button-bg);
+        }
+
+        .icon {
+            font-size: 16px;
         }
     }
 

@@ -1,0 +1,214 @@
+---
+title: "MySQL installation troubleshooting"
+---
+<Important>
+
+- From Mattermost v11, Mattermost completely stops support MySQL as a database driver. MySQL support has been completely removed from the codebase, and the product will throw an invalid configuration error.
+- PostgreSQL is our preferred database of choice. See the [database software](/deployment-guide/software-hardware-requirements#database-software) documentation for details on database version support, and see the [Migrate from MySQL to PostgreSQL](/deployment-guide/postgres-migration) documentation for details on migrating from MySQL to PostgreSQL.
+
+</Important>
+
+Before you can run the Mattermost server, you must first install and configure a database. You can start Mattermost by navigating to the `/opt/mattermost` directory and entering the command `sudo -u mattermost bin/mattermost`. If the Mattermost server can't connect to the database, it will fail to start. This section deals with MySQL database issues that you may encounter when you start up Mattermost for the first time.
+
+<Note>
+
+- Additional database tuning guidance is available for specific Mattermost releases. See the [important upgrade notes](/administration-guide/upgrade/important-upgrade-notes) documentation for more details.
+- See the [database configuration settings](/administration-guide/configure/environment-configuration-settings#database) documentation for details on configuration options specific to MySQL databases.
+
+</Note>
+
+How you install MySQL varies depending upon which Linux distribution you use. However, once MySQL is installed, the configuration instructions are the same. For all distributions you must create a `mattermost` database and a `mattermost` database user. Failure to create these database objects or improperly referencing them from the Mattermost configuration file, `/opt/mattermost/config/config.json`, causes Mattermost to fail. The troubleshooting tips given here deal with these specific issues.
+
+Before proceeding, confirm that your MySQL server is running. You can do this by issuing the command `mysqladmin -u root -p status`. When prompted, enter your password. If MySQL is running you should see output like the following:
+
+> Uptime: 877134  Threads: 1  Questions: 9902  Slow queries: 0  Opens: 522
+>     Flush tables: 1  Open tables: 371  Queries per second avg: 0.011
+
+If MySQL is not running, review the instructions for installation on your distribution.
+
+<Warning>
+
+Some of the commands used in this section alter the database. **Use these commands only if your Mattermost installation has failed.** Do not directly manipulate the MySQL database for a working Mattermost installation.
+
+</Warning>
+
+## The `mattermost` database
+
+The database created during installation is named `mattermost`. If you fail to create this database or you misname it, you will see an error such as the following when you attempt to start the Mattermost server:
+
+> [2017/09/20 17:11:37 EDT] [INFO] Pinging SQL master database
+>     [2017/09/20 17:11:37 EDT] [ERROR] Failed to ping DB retrying in 10 seconds
+>     err-Error 1044: Access denied for user 'mmuser'@'%' to database 'mattermost'
+
+Note that MySQL is specifically denying access to the `mattermost` database. This may mean that you have failed to create a database named `mattermost` or you may have incorrectly referenced this database from the `/opt/mattermost/config/config.json` file.
+
+**Checking that the Database Exists**
+
+To confirm that the `mattermost` database exists, open MySQL as *root* by executing `mysql -u root -p`. When prompted, enter your password and then issue the command `show databases;`. This command displays all the databases. You should see something similar to the following:
+
+> +--------------------+
+>     | Database           |
+>     +--------------------+
+>     | information_schema |
+>     | mattermost         |
+>     | mysql              |
+>     | performance_schema |
+>     | sys                |
+>     +--------------------+
+>     5 rows in set (0.03 sec)
+
+**No mattermost Database**
+
+If the `mattermost` database doesn't exist, create a database named `mattermost` by opening MySQL as root and issuing the command: `create database mattermost;`.
+
+If you accidentally created a database with the wrong name, you can remove it by issuing the command: `drop database &#123;misnamed&#125;;`.
+
+After creating the database, attempt to restart the Mattermost server by navigating to the `/opt/mattermost` directory and entering the command `sudo -u mattermost bin/mattermost`.
+
+**The mattermost Database Exists**
+
+If the `mattermost` database does exist, confirm that you have defined the database driver correctly in the `/opt/mattermost/config/config.json` file. Open this file in a text editor, and review the value of `"DataSource"`. It should be:
+
+> "mmuser:*mmuser-password*@tcp(*host-name-or-IP*:3306)/mattermost?charset=utf8mb4,utf8&writeTimeout=30s"
+
+You should also confirm that `DriverName` element (found immediately above the `DataSource` element) is set to `mysql`.
+
+If you correct an error, restart the Mattermost server by navigating to the `/opt/mattermost` directory and entering the command `sudo -u mattermost bin/mattermost`.
+
+## The Database User
+
+During the installation you should create a MySQL database user from the *mysql* prompt by issuing the command
+
+samp  
+<code>create user 'mmuser'@'%' identified by '&#123;mmuser-password&#125;';</code>.
+
+The `mmuser-password` value is a placeholder for the password you chose. You may also have specified an IP address rather than the wild card `%`.
+
+<Note>
+
+A MySQL user is fully defined by their username and the host that they access MySQL from. These elements are separated by the `@` sign. The `%` character is a wild card indicating that the user can access MySQL from any IP address. If the user you created accesses MySQL from a specific IP address such as `10.10.10.2`, please adjust your actions accordingly.
+
+</Note>
+
+If the user and host combination that you created does not exist, you will see an error such as:
+
+> [2017/09/20 17:06:18 EDT] [INFO] Pinging SQL master database
+>     [2017/09/20 17:06:18 EDT] [ERROR] Failed to ping DB retrying in 10 seconds
+>     err-Error 1045: Access denied for user 'mmuser'@'localhost' (using password: YES)
+
+**Checking that mmuser Exists**
+
+To check that this user exists, log in to MySQL as *root*: `mysql -u root -p`.
+
+When prompted, enter the root password that you created when installing MySQL. From the `mysql` prompt enter the command `select User, Host from mysql.user;`. You should see something like the following:
+
+> +------------------+-----------+
+>     | User             | Host      |
+>     +------------------+-----------+
+>     | mmuser           | %         |
+>     | debian-sys-maint | localhost |
+>     | mysql.session    | localhost |
+>     | mysql.sys        | localhost |
+>     | root             | localhost |
+>     +------------------+-----------+
+>     5 rows in set (0.00 sec)
+
+**User Doesn't Exist**
+
+If `'mmuser'@'%'` does not exist, create this user by logging into MySQL as *root* and issuing the command:
+
+samp  
+<code>create user 'mmuser'@'%' identified by '&#123;mmuser-password&#125;';</code>.
+
+After creating a user, ensure that this user has rights to the `mattermost` database.
+
+**User Exists**
+
+If the user `mmuser` exists, the DataSource element of the `/opt/mattermost/config/config.json` file may be incorrect. Open this file and search for `DataSource`. Its value should be:
+
+> "mmuser:*mmuser-password*@tcp(*host-name-or-IP*:3306)/mattermost?charset=utf8mb4,utf8&writeTimeout=30s"
+
+If you correct an error, restart the Mattermost server by navigating to the `/opt/mattermost` directory and issuing the command: `sudo -u mattermost bin/mattermost`.
+
+## The user password
+
+Mattermost will fail if you use an incorrect password for `mmuser`. An incorrect password displays an error message such as the following:
+
+> [2017/09/20 17:09:10 EDT] [INFO] Pinging SQL master database
+>     [2017/09/20 17:09:10 EDT] [ERROR] Failed to ping DB retrying in 10 seconds
+>     err-Error 1045: Access denied for user 'mmuser'@'localhost' (using password: YES)
+
+**The password in \`\`config.json\`\`**
+
+The DataSource element of the `/opt/mattermost/config/config.json` file references the `mmuser` password. Open this file and search for `DataSource`. It's value should be:
+
+> "mmuser:*mmuser-password*@tcp(*host-name-or-IP*:3306)/mattermost?charset=utf8mb4,utf8&writeTimeout=30s"
+
+Check that the password is correct. If you correct an error, restart the Mattermost server by navigating to `/opt/mattermost` and issuing the command: `sudo -u mattermost bin/mattermost`.
+
+**Unsure of Password**
+
+If you are not sure that the `mmuser` password is correct, attempt to log in to MySQL as `mmuser` by issuing the command `mysql -u mmuser -p`. You will be prompted for your password. If your login fails, you are not using the correct password.
+
+With a new database installation, the easiest solution for an unknown password is to remove the existing `mmuser` and then recreating that user. You can do this by logging in to MySQL as `root` and issuing the following commands:
+
+- `drop user mmuser;`
+
+- `flush privileges;`
+
+- samp  
+  <code>create user 'mmuser'@'%' identified by '&#123;mmuser-password&#125;';</code>
+
+If you recreate `mmuser`, ensure that this user has rights to the `mattermost` database by following the instructions in the [granting privileges to mmuser](#mysql_grants) section below.
+
+## Insufficient user privileges
+
+If the database exists and the username and password are correct, the `mmuser` may not have sufficient rights to access the `mattermost` database. If this is the case, you may see an error message such as:
+
+> [2017/09/20 17:20:53 EDT] [INFO] Pinging SQL master database
+>     [2017/09/20 17:20:53 EDT] [ERROR] Failed to ping DB retrying in 10 seconds
+>     err-Error 1044: Access denied for user 'mmuser'@'%' to database 'mattermost
+
+<Note>
+
+Examine the error message closely. The user name displayed in the error message is the user identified in the `DataSource` element of the `/opt/mattermost/config/config.json` file. For example, if the error message reads `Access denied for user 'muser'@'%' ...`, you will know that you have misidentified the user as `muser` in the `config.json` file.
+
+</Note>
+
+You can check if the user `mmuser` has access to the `mattermost` database by logging in to MySQL as `mmuser` and issuing the command: `show databases;`. If this user does not have rights to view the `mattermost` database, you will not see it in the output.
+
+> +--------------------+
+>     | Database           |
+>     +--------------------+
+>     | information_schema |
+>     +--------------------+
+>     1 rows in set (0.00 sec)
+
+<div id="mysql_grants">
+
+**Granting privileges to mmuser**
+
+</div>
+
+If the `mattermost` database exists and `mmuser` cannot view it, exit from MySQL and then log in again as root. Issue the command `grant all privileges on mattermost.* to 'mmuser'@'%';` to grant all rights on `mattermost` to `mmuser`.
+
+Restart the Mattermost server by navigating to the `/opt/mattermost` directory and entering the command `sudo -u mattermost bin/mattermost`.
+
+## Server is set to SYSTEM timezone
+
+Mattermost customers using v7.7 or earlier may see an errors occur on servers using MySQL in cases where the server is set to SYSTEM timezone and doesn’t support named timezones. These errors can be fixed by populating the `timezone` tables on the server. Refer to the following docs for more information on loading the timezone table:
+
+- [Linux](https://dev.mysql.com/doc/refman/5.7/en/mysql-tzinfo-to-sql.html)
+- [Windows](https://dev.mysql.com/downloads/timezones.html)
+
+<Note>
+
+This issue has been addressed from Mattermost v7.8.
+
+</Note>
+
+## Maximum allowed packet
+
+The Go MySQL driver has changed the `maxAllowedPacket` size from 4MiB to 64MiB. This is to make it consistent with the change in the server-side default value from MySQL 5.7 to MySQL 8.0.
+
+If your `max_allowed_packet` setting is not 64MiB, update the MySQL configuration DSN with an additional parameter of `maxAllowedPacket` to match with the server-side value. Alternatively, set a value of `0` to fetch the server-side value automatically on every new connection which has a performance overhead.

@@ -52,9 +52,9 @@ describe('Interactive Menu - Action Button Error Handling', () => {
         cy.findByText('Error Button 1').should('be.visible').click({force: true});
         cy.wait(TIMEOUTS.HALF_SEC);
 
-        // * Verify that error message is displayed
-        cy.get('.has-error').should('be.visible');
-        cy.get('.has-error .control-label').should('contain.text', 'Action integration error.');
+        // * Verify that error message is displayed on the post
+        cy.getLastPost().find('.has-error').should('be.visible');
+        cy.getLastPost().find('.has-error .control-label').should('contain.text', 'Action integration error.');
     });
 
     it('MM-65023 should clear error message when successful action is triggered', () => {
@@ -72,8 +72,18 @@ describe('Interactive Menu - Action Button Error Handling', () => {
         cy.wait(TIMEOUTS.HALF_SEC);
 
         // * Verify that error message is displayed for test2
-        cy.get('.has-error').should('be.visible');
-        cy.get('.has-error .control-label').should('contain.text', 'Action integration error.');
+        cy.get('#postListContent').
+            contains('.mm-blocks-text', 'Action Button Error Clear Test - Error and Success').
+            parents('[id^="post_"]').
+            first().
+            find('.has-error').
+            should('be.visible');
+        cy.get('#postListContent').
+            contains('.mm-blocks-text', 'Action Button Error Clear Test - Error and Success').
+            parents('[id^="post_"]').
+            first().
+            find('.has-error .control-label').
+            should('contain.text', 'Action integration error.');
 
         // # Click on "Success Button" to trigger successful action
         cy.findByText('Success Button').should('be.visible').click({force: true});
@@ -81,9 +91,13 @@ describe('Interactive Menu - Action Button Error Handling', () => {
         // * Wait for successful response and verify the specific error from this test is cleared
         cy.uiWaitUntilMessagePostedIncludes('a < a | b > a');
 
-        // * Find the specific attachment container for this test and verify its error is cleared
-        cy.contains('.attachment', 'Action Button Error Clear Test - Error and Success')
-            .find('.has-error').should('not.exist');
+        cy.get('#postListContent').
+            contains('.mm-blocks-text', 'Action Button Error Clear Test - Error and Success').
+            parents('[id^="post_"]').
+            first().
+            within(() => {
+                cy.get('.has-error').should('not.exist');
+            });
     });
 
     it('MM-65023 should display tooltip on action button hover', () => {

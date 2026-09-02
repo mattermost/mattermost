@@ -18,7 +18,7 @@ type LoginMfaProps = {
     title?: ReactNode;
     subtitle?: ReactNode;
     onSubmit: ({loginId, password, token}: SubmitOptions) => void;
-}
+};
 
 const LoginMfa = ({loginId, password, title, subtitle, onSubmit}: LoginMfaProps) => {
     const {formatMessage} = useIntl();

@@ -1,0 +1,121 @@
+/* Branded callouts, styled to match the compact Docusaurus admonitions used
+ * elsewhere in the docs: a tinted panel with a left accent bar and a small
+ * icon + label header. */
+
+.callout {
+  margin: 1.5rem 0;
+  padding: 0.9rem 1.1rem 1rem;
+  border: 1px solid var(--callout-border);
+  border-left: 4px solid var(--callout-accent);
+  border-radius: 4px;
+  background: var(--callout-bg);
+  color: var(--mm-text-primary);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin-bottom: 0.5rem;
+}
+
+.icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 1.05rem;
+  height: 1.05rem;
+  font-family: var(--mm-font-sans);
+  font-weight: 700;
+  font-size: 0.7rem;
+  line-height: 1;
+  color: var(--callout-accent);
+  border: 1.5px solid currentColor;
+  border-radius: 50%;
+}
+
+.label {
+  font-family: var(--mm-font-sans);
+  font-weight: 700;
+  font-size: 0.8125rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  line-height: 1.2;
+  color: var(--callout-accent);
+}
+
+.content > :first-child { margin-top: 0; }
+.content > :last-child  { margin-bottom: 0; }
+.content p              { margin: 0.5rem 0; line-height: 1.6; }
+
+/* Kind variants: each sets an accent color plus a tint of the same hue for
+ * the panel background. */
+
+.note {
+  --callout-accent: #2E4B87;
+  --callout-bg: var(--mm-denim-50);
+  --callout-border: var(--mm-denim-100);
+}
+[data-theme='dark'] .note {
+  --callout-accent: var(--mm-denim-200);
+  --callout-bg: var(--mm-denim-700);
+  --callout-border: var(--mm-denim-400);
+}
+
+.tip {
+  --callout-accent: #1F5A39;
+  --callout-bg: #EAF5EE;
+  --callout-border: #C3E0CE;
+}
+[data-theme='dark'] .tip {
+  --callout-accent: #7FCC9E;
+  --callout-bg: #14442C;
+  --callout-border: #2C7A4F;
+}
+
+.important {
+  --callout-accent: #8A6200;
+  --callout-bg: var(--mm-marigold-100);
+  --callout-border: var(--mm-marigold-300);
+}
+[data-theme='dark'] .important {
+  --callout-accent: var(--mm-marigold-300);
+  --callout-bg: #4A3A10;
+  --callout-border: #7A6220;
+}
+
+/* Attention outranks Important: the reader loses something by skipping it.
+ * Brighter than Security's maroon so the two stay tellable apart. */
+.attention {
+  --callout-accent: #C8102E;
+  --callout-bg: #FDECEF;
+  --callout-border: #F5C6CE;
+}
+[data-theme='dark'] .attention {
+  --callout-accent: #F4A0AB;
+  --callout-bg: #4E0F1B;
+  --callout-border: #85202F;
+}
+
+.warning {
+  --callout-accent: #6B4F2E;
+  --callout-bg: #F6F1E9;
+  --callout-border: #E0D5C1;
+}
+[data-theme='dark'] .warning {
+  --callout-accent: var(--mm-color-sand);
+  --callout-bg: #3A2F22;
+  --callout-border: var(--mm-color-bark);
+}
+
+.security {
+  --callout-accent: #8B1F1F;
+  --callout-bg: #FBEDED;
+  --callout-border: #EFCFCF;
+}
+[data-theme='dark'] .security {
+  --callout-accent: #E9A0A0;
+  --callout-bg: #4A1F1F;
+  --callout-border: #7A3535;
+}

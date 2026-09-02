@@ -24,7 +24,7 @@ type Props = BaseSettingItemProps & {
     handleSelectChange: (selected: OnChangeValue<SelectOption, boolean>) => void;
     isSelectDisabled?: boolean;
     selectPlaceholder?: string;
-}
+};
 
 export default function CheckboxWithSelectSettingItem({
     title,

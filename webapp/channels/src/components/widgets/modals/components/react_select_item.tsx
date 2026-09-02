@@ -25,13 +25,13 @@ export type FieldsetReactSelect = {
     ariaLabelledby?: string;
     clearable?: boolean;
     options: SelectOption[];
-}
+};
 
 type Props = BaseSettingItemProps & {
     inputFieldData: FieldsetReactSelect;
     inputFieldValue: SelectOption;
     handleChange: (selected: OnChangeValue<SelectOption, boolean>) => void;
-}
+};
 
 // Function to extract text from MessageDescriptor or return string as-is
 export const getOptionLabel = (option: SelectOption, intl: ReturnType<typeof useIntl>): string => {

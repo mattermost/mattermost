@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Locator} from '@playwright/test';
+import type {Locator} from '@playwright/test';
 
 import {expect, test} from '@mattermost/playwright-lib';
 

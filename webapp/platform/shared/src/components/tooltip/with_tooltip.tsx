@@ -16,6 +16,7 @@ import {
     useTransitionStyles,
     FloatingArrow,
     flip,
+    shift,
     useMergeRefs,
 } from '@floating-ui/react';
 import classNames from 'classnames';
@@ -126,6 +127,7 @@ export function WithTooltip({
             flip({
                 fallbackPlacements: placements.fallback,
             }),
+            shift({padding: OverlayArrow.OFFSET}),
             arrow({
                 element: arrowRef,
             }),

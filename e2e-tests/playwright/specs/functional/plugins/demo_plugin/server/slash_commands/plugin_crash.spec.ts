@@ -27,7 +27,7 @@ test('should crash plugin via /crash command and verify recovery', async ({pw}) 
     await expect
         .poll(
             async () => {
-                return await pw.isPluginActive(adminClient, 'com.mattermost.demo-plugin');
+                return pw.isPluginActive(adminClient, 'com.mattermost.demo-plugin');
             },
             {
                 timeout: 10000, // Max 10s to recover

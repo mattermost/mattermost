@@ -10,12 +10,11 @@
 // Stage: @prod
 // Group: @channels @not_cloud @bot_accounts
 
-import {Team} from '@mattermost/types/teams';
+import type {Team} from '@mattermost/types/teams';
 
 import {createBotInteractive} from './helpers';
 
 import {getRandomId} from '@/utils';
-
 
 describe('Bot accounts - CRUD Testing', () => {
     let newTeam: Team;

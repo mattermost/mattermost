@@ -9,7 +9,7 @@ import Constants from 'utils/constants';
 
 type Props = {
     position: UserProfile['position'];
-}
+};
 
 const ProfilePopoverPosition = ({
     position,

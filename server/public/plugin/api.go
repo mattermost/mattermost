@@ -447,6 +447,20 @@ type API interface {
 	// Minimum server version: 5.2
 	DeleteChannel(channelId string) *model.AppError
 
+	// RestoreChannel restores a previously deleted (archived) channel.
+	//
+	// @tag Channel
+	// Minimum server version: 11.10
+	RestoreChannel(channelId string) *model.AppError
+
+	// GetChannelOfType resolves a channel by ID, requiring it to be of the given type. Unlike
+	// GetChannel, it resolves opaque backing channel types (e.g. space) that GetChannel excludes;
+	// a caller that needs such a channel asks for it by its exact type.
+	//
+	// @tag Channel
+	// Minimum server version: 11.10
+	GetChannelOfType(channelId string, channelType model.ChannelType) (*model.Channel, *model.AppError)
+
 	// GetPublicChannelsForTeam gets a list of all channels.
 	//
 	// @tag Channel
@@ -509,6 +523,26 @@ type API interface {
 	// @tag Channel
 	// Minimum server version: 5.2
 	UpdateChannel(channel *model.Channel) (*model.Channel, *model.AppError)
+
+	// RegisterChannelGuard claims the channel for this plugin, signaling to the server that the
+	// channel has plugin-managed semantics and that the server's default behaviors are unsafe
+	// without plugin involvement.
+	//
+	// The calling plugin's ID is implicit. Multiple plugins may co-guard the same channel; each
+	// claim is an independent row. Subsequent calls from the same plugin are idempotent; calls from
+	// a different plugin add a new claim.
+	//
+	// @tag Channel
+	// Minimum server version: 11.9
+	RegisterChannelGuard(channelID string) *model.AppError
+
+	// UnregisterChannelGuard releases this plugin's claim on the channel. Only the registering
+	// plugin can unregister its own claim; other plugins' claims on the same channel are
+	// unaffected.
+	//
+	// @tag Channel
+	// Minimum server version: 11.9
+	UnregisterChannelGuard(channelID string) *model.AppError
 
 	// SearchChannels returns the channels on a team matching the provided search term.
 	//
@@ -1624,6 +1658,43 @@ type API interface {
 	// Minimum server version: 10.10
 	DeletePropertyValuesForField(groupID, fieldID string) error
 
+	// UpsertPropertyValuesWithOptions creates or updates multiple property
+	// values, declaring the scope the plugin is acting as. The scope is
+	// checked against each field's owners list when the field is owner-managed.
+	//
+	// @tag PropertyValue
+	// Minimum server version: 11.10
+	UpsertPropertyValuesWithOptions(values []*model.PropertyValue, options model.PropertyRequestOptions) ([]*model.PropertyValue, error)
+
+	// UpsertPropertyValueWithOptions creates or updates a single property
+	// value, declaring the scope the plugin is acting as.
+	//
+	// @tag PropertyValue
+	// Minimum server version: 11.10
+	UpsertPropertyValueWithOptions(value *model.PropertyValue, options model.PropertyRequestOptions) (*model.PropertyValue, error)
+
+	// DeletePropertyValueWithOptions deletes a property value, declaring the
+	// scope the plugin is acting as.
+	//
+	// @tag PropertyValue
+	// Minimum server version: 11.10
+	DeletePropertyValueWithOptions(groupID, valueID string, options model.PropertyRequestOptions) error
+
+	// DeletePropertyValuesForTargetWithOptions deletes all property values for
+	// a target, declaring the scope the plugin is acting as. This is the
+	// deprovisioning entrypoint: it needs no value objects, only the target.
+	//
+	// @tag PropertyValue
+	// Minimum server version: 11.10
+	DeletePropertyValuesForTargetWithOptions(groupID, targetType, targetID string, options model.PropertyRequestOptions) error
+
+	// DeletePropertyValuesForFieldWithOptions deletes all property values for a
+	// field, declaring the scope the plugin is acting as.
+	//
+	// @tag PropertyValue
+	// Minimum server version: 11.10
+	DeletePropertyValuesForFieldWithOptions(groupID, fieldID string, options model.PropertyRequestOptions) error
+
 	// LogAuditRec logs an audit record using the default audit logger.
 	//
 	// @tag Audit
@@ -1635,6 +1706,74 @@ type API interface {
 	// @tag Audit
 	// Minimum server version: 10.10
 	LogAuditRecWithLevel(rec *model.AuditRecord, level mlog.Level)
+
+	// EvaluateAccessControl evaluates whether userID may perform action on the
+	// plugin-owned resource (resourceType, resourceID). resourceType must be
+	// "<callingPluginID>:<type>". The reply follows the OpenID AuthZEN
+	// evaluation response: Decision plus an optional Context.
+	//
+	// AccessDecision.IsNoPolicy() reports that the server positively determined
+	// no policy governs the resource — resolved even when the access control
+	// engine is unavailable — so the caller can safely apply its own defaults
+	// instead of treating the allow as an explicit grant. Any returned error
+	// means the decision could not be computed and the plugin MUST fail closed
+	// (deny).
+	//
+	// @tag AccessControl
+	// Minimum server version: 11.10
+	EvaluateAccessControl(userID, resourceType, resourceID, action string) (*model.AccessDecision, *model.AppError)
+
+	// SaveAccessControlPolicy creates or updates a policy whose Type is
+	// "<callingPluginID>:<type>". Version is forced to v0.5 and Active to
+	// true. policy.ID must be the resource's stable 26-char ID.
+	//
+	// @tag AccessControl
+	// Minimum server version: 11.10
+	SaveAccessControlPolicy(actingUserID string, policy *model.AccessControlPolicy) (*model.AccessControlPolicy, *model.AppError)
+
+	// GetAccessControlPolicy returns the policy stored under id. Returns a
+	// not-found error if no policy exists OR the stored policy's type is not
+	// owned by the calling plugin (fail closed, no existence leak).
+	//
+	// @tag AccessControl
+	// Minimum server version: 11.10
+	GetAccessControlPolicy(id string) (*model.AccessControlPolicy, *model.AppError)
+
+	// DeleteAccessControlPolicy deletes the policy stored under id after
+	// verifying the stored policy's type equals resourceType and is owned by
+	// the calling plugin. Type mismatches return a not-found error (fail closed).
+	//
+	// @tag AccessControl
+	// Minimum server version: 11.10
+	DeleteAccessControlPolicy(actingUserID, resourceType, id string) *model.AppError
+
+	// CheckAccessControlExpression compiles and lints a CEL expression; an
+	// empty slice means the expression is valid.
+	//
+	// @tag AccessControl
+	// Minimum server version: 11.10
+	CheckAccessControlExpression(actingUserID, resourceType, expression string) ([]model.CELExpressionError, *model.AppError)
+
+	// QueryUsersForAccessControlExpression returns users matching the
+	// expression (test modal support for policy editors).
+	//
+	// @tag AccessControl
+	// Minimum server version: 11.10
+	QueryUsersForAccessControlExpression(actingUserID, resourceType, expression, term, cursorID string, limit int) (*model.AccessControlPolicyTestResponse, *model.AppError)
+
+	// GetAccessControlFieldsAutocomplete returns CPA fields for editor
+	// autocomplete, filtered by the acting user's attribute visibility.
+	//
+	// @tag AccessControl
+	// Minimum server version: 11.10
+	GetAccessControlFieldsAutocomplete(actingUserID, after string, limit int) ([]*model.PropertyField, *model.AppError)
+
+	// GetAccessControlVisualAST converts a CEL expression to the visual
+	// (table) AST.
+	//
+	// @tag AccessControl
+	// Minimum server version: 11.10
+	GetAccessControlVisualAST(actingUserID, resourceType, expression string) (*model.VisualExpression, *model.AppError)
 }
 
 var handshake = plugin.HandshakeConfig{

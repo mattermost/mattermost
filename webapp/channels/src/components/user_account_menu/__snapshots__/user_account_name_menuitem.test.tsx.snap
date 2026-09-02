@@ -21,11 +21,11 @@ exports[`UserAccountNameMenuItem should not break if no props are passed 1`] = `
     <div
       class="label-elements"
     >
-      <h2
+      <span
         class="userAccountMenu_nameMenuItem_primaryLabel"
       >
         @undefined
-      </h2>
+      </span>
     </div>
   </li>
 </div>

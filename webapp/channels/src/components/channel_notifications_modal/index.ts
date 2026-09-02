@@ -31,6 +31,6 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
 
 const connector = connect(mapStateToProps, mapDispatchToProps);
 
-export type PropsFromRedux = ConnectedProps<typeof connector>
+export type PropsFromRedux = ConnectedProps<typeof connector>;
 
 export default connector(ChannelNotificationsModal);

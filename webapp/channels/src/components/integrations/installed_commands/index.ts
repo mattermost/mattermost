@@ -17,7 +17,7 @@ type Props = {
     team: {
         id: string;
     };
-}
+};
 
 function mapStateToProps(state: GlobalState, ownProps: Props) {
     const canManageOthersSlashCommands = haveITeamPermission(state, ownProps.team.id, Permissions.MANAGE_OTHERS_SLASH_COMMANDS);

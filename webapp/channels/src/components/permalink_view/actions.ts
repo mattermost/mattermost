@@ -28,7 +28,7 @@ let privateChannelJoinPromptVisible = false;
 
 type Option = {
     skipRedirectReplyPermalink: boolean;
-}
+};
 
 function focusRootPost(post: Post, channel: Channel): ActionFuncAsync {
     return async (dispatch, getState) => {
@@ -95,7 +95,7 @@ export function focusPost(postId: string, returnTo = '', currentUserId: string, 
         let postInfo;
         try {
             postInfo = await Client4.getPostInfo(postId);
-        } catch (e) {
+        } catch {
             getHistory().replace(`/error?type=${ErrorPageTypes.PERMALINK_NOT_FOUND}&returnTo=${returnTo}`);
             return;
         }

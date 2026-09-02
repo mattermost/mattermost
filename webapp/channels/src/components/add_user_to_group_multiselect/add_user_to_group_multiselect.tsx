@@ -60,13 +60,13 @@ export type Props = {
         loadStatusesForProfilesList: (users: UserProfile[]) => void;
         searchProfiles: (term: string, options: any) => Promise<ActionResult>;
     };
-}
+};
 
 type State = {
     values: UserProfileValue[];
     term: string;
     loadingUsers: boolean;
-}
+};
 
 export class AddUserToGroupMultiSelect extends React.PureComponent<Props, State> {
     private searchTimeoutId = 0;

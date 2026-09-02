@@ -27,7 +27,7 @@ type TextSettingProps = {
     disabled: boolean;
     setByEnv: boolean;
     filterResult: LdapDiagnosticResult | null;
-} & GeneralSettingProps
+} & GeneralSettingProps;
 
 const LDAPTextSetting = (props: TextSettingProps) => {
     const intl = useIntl();

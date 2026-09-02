@@ -15,83 +15,74 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestFwSeeker(t *testing.T) {
+func TestBufReadSeeker(t *testing.T) {
 	t.Run("Read", func(t *testing.T) {
 		data := []byte("hello world")
 		reader := bytes.NewReader(data)
-		seeker := &fwSeeker{r: reader}
+		seeker := &bufReadSeeker{r: reader}
 
-		// Read the first 5 bytes
 		buf := make([]byte, 5)
 		n, err := seeker.Read(buf)
 		require.NoError(t, err)
 		require.Equal(t, 5, n)
 		require.Equal(t, []byte("hello"), buf)
 
-		// Read the next 6 bytes
 		buf = make([]byte, 6)
 		n, err = seeker.Read(buf)
 		require.NoError(t, err)
 		require.Equal(t, 6, n)
 		require.Equal(t, []byte(" world"), buf)
 
-		// Try to read more, should get EOF
 		buf = make([]byte, 1)
 		n, err = seeker.Read(buf)
 		require.Equal(t, 0, n)
-		require.Equal(t, io.EOF, err)
+		require.ErrorIs(t, err, io.EOF)
 	})
 
 	t.Run("Seek forward from start", func(t *testing.T) {
 		data := []byte("hello world")
 		reader := bytes.NewReader(data)
-		seeker := &fwSeeker{r: reader}
+		seeker := &bufReadSeeker{r: reader}
 
-		// Seek forward 6 bytes
 		pos, err := seeker.Seek(6, io.SeekStart)
 		require.NoError(t, err)
 		require.Equal(t, int64(6), pos)
 
-		// Seeking from the same position should work
 		pos, err = seeker.Seek(6, io.SeekStart)
 		require.NoError(t, err)
 		require.Equal(t, int64(6), pos)
 
-		// Seeking again from start should work.
 		pos, err = seeker.Seek(7, io.SeekStart)
 		require.NoError(t, err)
 		require.Equal(t, int64(7), pos)
 
-		// Seeking backwards should not be supported
-		_, err = seeker.Seek(6, io.SeekStart)
-		require.EqualError(t, err, "seeking backwards is not supported")
-
-		// Read the remaining data
-		buf := make([]byte, 4)
-		n, err := seeker.Read(buf)
+		// Seeking backwards within the buffer is supported.
+		pos, err = seeker.Seek(6, io.SeekStart)
 		require.NoError(t, err)
-		require.Equal(t, 4, n)
-		require.Equal(t, []byte("orld"), buf)
+		require.Equal(t, int64(6), pos)
+
+		buf := make([]byte, 5)
+		n, err := io.ReadFull(seeker, buf)
+		require.NoError(t, err)
+		require.Equal(t, 5, n)
+		require.Equal(t, []byte("world"), buf)
 	})
 
 	t.Run("Seek forward from current", func(t *testing.T) {
 		data := []byte("hello world")
 		reader := bytes.NewReader(data)
-		seeker := &fwSeeker{r: reader}
+		seeker := &bufReadSeeker{r: reader}
 
-		// Read first 6 bytes
 		buf := make([]byte, 6)
 		n, err := seeker.Read(buf)
 		require.NoError(t, err)
 		require.Equal(t, 6, n)
 		require.Equal(t, []byte("hello "), buf)
 
-		// Seek forward 2 more bytes from current position
 		pos, err := seeker.Seek(2, io.SeekCurrent)
 		require.NoError(t, err)
 		require.Equal(t, int64(8), pos)
 
-		// Read the remaining data
 		buf = make([]byte, 3)
 		n, err = seeker.Read(buf)
 		require.NoError(t, err)
@@ -99,29 +90,78 @@ func TestFwSeeker(t *testing.T) {
 		require.Equal(t, []byte("rld"), buf)
 	})
 
-	t.Run("Seek backward not supported", func(t *testing.T) {
+	t.Run("Seek invalid cases", func(t *testing.T) {
 		data := []byte("hello world")
 		reader := bytes.NewReader(data)
-		seeker := &fwSeeker{r: reader}
+		seeker := &bufReadSeeker{r: reader}
 
-		// Try to seek backward
-		_, err := seeker.Seek(-1, io.SeekCurrent)
-		require.EqualError(t, err, "seeking backwards is not supported")
+		pos, err := seeker.Seek(-1, io.SeekCurrent)
+		require.EqualError(t, err, "seek: negative position -1")
+		require.Equal(t, int64(0), pos)
 
-		// Try to seek from end
-		_, err = seeker.Seek(0, io.SeekEnd)
-		require.EqualError(t, err, "seeking backwards is not supported")
+		pos, err = seeker.Seek(0, io.SeekEnd)
+		require.EqualError(t, err, "seek: unsupported whence 2")
+		require.Equal(t, int64(0), pos)
+	})
+
+	t.Run("Seek backward to start and re-read", func(t *testing.T) {
+		data := []byte("hello world")
+		seeker := &bufReadSeeker{r: bytes.NewReader(data)}
+
+		buf := make([]byte, len(data))
+		_, err := io.ReadFull(seeker, buf)
+		require.NoError(t, err)
+		require.Equal(t, data, buf)
+
+		pos, err := seeker.Seek(0, io.SeekStart)
+		require.NoError(t, err)
+		require.Equal(t, int64(0), pos)
+
+		buf2 := make([]byte, len(data))
+		_, err = io.ReadFull(seeker, buf2)
+		require.NoError(t, err)
+		require.Equal(t, data, buf2)
 	})
 
 	t.Run("Seek beyond EOF", func(t *testing.T) {
 		data := []byte("hello")
 		reader := bytes.NewReader(data)
-		seeker := &fwSeeker{r: reader}
+		seeker := &bufReadSeeker{r: reader}
 
-		// Try to seek beyond EOF
 		n, err := seeker.Seek(10, io.SeekStart)
-		require.EqualError(t, err, "failed to seek: EOF")
-		require.Equal(t, int64(5), n) // Should have read until EOF (5 bytes)
+		require.ErrorIs(t, err, io.EOF)
+		require.Equal(t, int64(5), n)
+	})
+
+	t.Run("Read enforces scan limit", func(t *testing.T) {
+		seeker := &bufReadSeeker{
+			r:   bytes.NewReader([]byte("x")),
+			buf: make([]byte, maxExifScanSize),
+			pos: maxExifScanSize,
+		}
+		_, err := seeker.Read(make([]byte, 1))
+		require.EqualError(t, err, fmt.Sprintf("read exceeded %d-byte scan limit", maxExifScanSize))
+	})
+
+	t.Run("Read clamps large p to avoid overshooting scan limit", func(t *testing.T) {
+		seeker := &bufReadSeeker{
+			r:   bytes.NewReader([]byte("AB")),
+			buf: make([]byte, maxExifScanSize-1),
+			pos: maxExifScanSize - 1,
+		}
+		p := make([]byte, 4096)
+		n, err := seeker.Read(p)
+		require.NoError(t, err)
+		require.Equal(t, 1, n)
+		require.Equal(t, byte('A'), p[0])
+		require.Equal(t, int64(maxExifScanSize), int64(len(seeker.buf)))
+	})
+
+	t.Run("Seek enforces scan limit", func(t *testing.T) {
+		seeker := &bufReadSeeker{r: bytes.NewReader(nil)}
+		pos, err := seeker.Seek(maxExifScanSize+1, io.SeekStart)
+		require.EqualError(t, err, fmt.Sprintf("seek: target %d exceeds %d-byte scan limit", maxExifScanSize+1, maxExifScanSize))
+		require.Equal(t, int64(0), pos)
 	})
 }
 
@@ -196,6 +236,26 @@ func TestGetImageOrientation(t *testing.T) {
 			require.Equal(t, tc.expectedOrientation, orientation, "Incorrect orientation detected for %s", tc.fileName)
 		})
 	}
+}
+
+func TestGetImageOrientationEdgeCases(t *testing.T) {
+	imgDir, ok := fileutils.FindDir("tests/exif_samples")
+	require.True(t, ok, "Failed to find exif samples directory")
+
+	t.Run("MIME type format string", func(t *testing.T) {
+		file, err := os.Open(filepath.Join(imgDir, "up.jpg"))
+		require.NoError(t, err)
+		defer file.Close()
+
+		orientation, err := GetImageOrientation(file, "image/jpeg")
+		require.NoError(t, err)
+		require.Equal(t, Upright, orientation)
+	})
+
+	t.Run("unsupported format returns error", func(t *testing.T) {
+		_, err := GetImageOrientation(bytes.NewReader([]byte("data")), "gif")
+		require.EqualError(t, err, "unsupported image format: gif")
+	})
 }
 
 func TestMakeImageUpright(t *testing.T) {

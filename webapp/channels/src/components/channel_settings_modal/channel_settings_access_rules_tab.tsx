@@ -6,14 +6,18 @@ import {FormattedMessage, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
 import type {AccessControlPolicyRule} from '@mattermost/types/access_control';
-import {getMembershipRule, buildRulesWithMembership} from '@mattermost/types/access_control';
+import {
+    getMembershipRule,
+    buildRulesWithMembership,
+} from '@mattermost/types/access_control';
 import type {Channel} from '@mattermost/types/channels';
-import type {UserPropertyField} from '@mattermost/types/properties';
+import type {UserPropertyField} from '@mattermost/types/properties_user';
 
 import {getAccessControlSettings} from 'mattermost-redux/selectors/entities/access_control';
 import {getChannelMessageCount} from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentUser, isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 
+import {excludeSessionAttributes} from 'components/admin_console/access_control/editors/shared';
 import TableEditor from 'components/admin_console/access_control/editors/table_editor/table_editor';
 import ConfirmModal from 'components/confirm_modal';
 import SystemPolicyIndicator from 'components/system_policy_indicator';
@@ -99,7 +103,7 @@ function ChannelSettingsAccessRulesTab({
             try {
                 const result = await actions.getAccessControlFields('', 100);
                 if (result.data) {
-                    setUserAttributes(result.data);
+                    setUserAttributes(excludeSessionAttributes(result.data));
                 }
                 setAttributesLoaded(true);
             } catch (error) {
@@ -134,7 +138,7 @@ function ChannelSettingsAccessRulesTab({
                     setAutoSyncMembers(existingAutoSync);
                     setOriginalAutoSyncMembers(existingAutoSync);
                 }
-            } catch (error) {
+            } catch {
                 // If no policy exists (404), that's fine - use defaults
                 setExpression('');
                 setOriginalExpression('');
@@ -462,7 +466,8 @@ function ChannelSettingsAccessRulesTab({
         } catch (error) {
             // eslint-disable-next-line no-console
             console.error('Failed to save access rules:', error);
-            setFormError(formatMessage({
+            const message = error instanceof Error ? error.message : '';
+            setFormError(message || formatMessage({
                 id: 'channel_settings.access_rules.save_error',
                 defaultMessage: 'Failed to save access rules',
             }));
@@ -470,7 +475,7 @@ function ChannelSettingsAccessRulesTab({
         } finally {
             setIsProcessingSave(false);
         }
-    }, [channel.id, channel.display_name, expression, autoSyncMembers, systemPolicies, actions, formatMessage, isEmptyRulesState]);
+    }, [channel.id, channel.display_name, expression, existingRules, autoSyncMembers, systemPolicies, actions, formatMessage, isEmptyRulesState]);
 
     // Handle save action
     const handleSave = useCallback(async (): Promise<SaveResult> => {

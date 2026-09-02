@@ -105,6 +105,12 @@ func deauthorizeOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if c.AppContext.Session().IsOAuth {
+		c.SetPermissionError(model.PermissionEditOtherUsers)
+		c.Err.DetailedError += ", attempted access by oauth app"
+		return
+	}
+
 	auditRec := c.MakeAuditRecord(model.AuditEventDeauthorizeOAuthApp, model.AuditStatusFail)
 	auditRec.AddMeta("client_id", clientId)
 	defer c.LogAuditRec(auditRec)
@@ -413,7 +419,10 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		isOAuthUser := user.IsOAuthUser()
 
-		session, err := c.App.DoLogin(c.AppContext, w, r, user, "", isMobile, isOAuthUser, false)
+		session, err := c.App.DoLogin(c.AppContext, w, r, user, model.LoginOptions{
+			IsMobile:    isMobile,
+			IsOAuthUser: isOAuthUser,
+		})
 		if err != nil {
 			err.Translate(c.AppContext.T)
 			c.Logger.Error(err.Error())
@@ -562,6 +571,18 @@ func signupWithOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, authURL, http.StatusFound)
 }
 
+// pathWithinPrefix reports whether target is at or under prefix, comparing on
+// path segments so /mmfoo is not treated as under /mm. An empty or "/" prefix
+// (root SiteURL) matches the root and any absolute path.
+func pathWithinPrefix(target, prefix string) bool {
+	target = path.Clean(target)
+	prefix = path.Clean(prefix)
+	if prefix == "." || prefix == "/" {
+		return target == "." || strings.HasPrefix(target, "/")
+	}
+	return target == prefix || strings.HasPrefix(target, prefix+"/")
+}
+
 func fullyQualifiedRedirectURL(siteURLPrefix, targetURL string, otherValidSchemes []string) string {
 	parsed, err := url.Parse(targetURL)
 	if err != nil {
@@ -582,7 +603,7 @@ func fullyQualifiedRedirectURL(siteURLPrefix, targetURL string, otherValidScheme
 	// Check if the targetURL is valid and within the siteURLPrefix, excluding native app schemes like mmauth://
 	sameScheme := parsed.Scheme == prefixParsed.Scheme
 	sameHost := parsed.Host == prefixParsed.Host
-	safePath := strings.HasPrefix(path.Clean(parsed.Path), path.Clean(prefixParsed.Path))
+	safePath := pathWithinPrefix(parsed.Path, prefixParsed.Path)
 
 	if sameScheme && sameHost && safePath {
 		return targetURL
@@ -609,7 +630,7 @@ func fullyQualifiedRedirectURL(siteURLPrefix, targetURL string, otherValidScheme
 		return siteURLPrefix
 	}
 
-	if !strings.HasPrefix(path.Clean(parsed.Path), path.Clean(prefixParsed.Path)) {
+	if !pathWithinPrefix(parsed.Path, prefixParsed.Path) {
 		return siteURLPrefix
 	}
 
@@ -646,6 +667,11 @@ func loginByIntune(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if req.VoIPDeviceId != "" && !model.IsValidVoIPDeviceId(req.VoIPDeviceId) {
+		c.SetInvalidParam("voip_device_id")
+		return
+	}
+
 	auditRec := c.MakeAuditRecord("login_by_intune", model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
@@ -660,8 +686,14 @@ func loginByIntune(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("obtained_user_id", user.Id)
 	c.LogAuditWithUserId(user.Id, "obtained user")
 
-	isMobile := req.DeviceId != ""
-	session, err := c.App.DoLogin(c.AppContext, w, r, user, req.DeviceId, isMobile, true, false)
+	model.AddEventParameterToAuditRec(auditRec, "device_id", req.DeviceId)
+	model.AddEventParameterToAuditRec(auditRec, "voip_device_id", req.VoIPDeviceId)
+
+	session, err := c.App.DoLogin(c.AppContext, w, r, user, model.LoginOptions{
+		DeviceId:     req.DeviceId,
+		VoIPDeviceId: req.VoIPDeviceId,
+		IsOAuthUser:  true,
+	})
 	if err != nil {
 		c.Err = err
 		return

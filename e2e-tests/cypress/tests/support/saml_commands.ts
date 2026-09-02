@@ -1,10 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {AdminConfig} from '@mattermost/types/config';
+import type {AdminConfig} from '@mattermost/types/config';
 
 import * as TIMEOUTS from '../fixtures/timeouts';
-import {ChainableT} from '../types';
+import type {ChainableT} from '../types';
 import {stubClipboard} from '../utils';
 
 // SAMLUser interface is based on cypress/tests/fixtures/saml_users.json

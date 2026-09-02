@@ -8,11 +8,11 @@ import SearchIcon from 'components/widgets/icons/search_icon';
 
 type Actions = {
     openRHSSearch: () => void;
-}
+};
 
 type Props = {
     actions: Actions;
-}
+};
 
 const ShowSearchButton = ({actions}: Props) => {
     const intl = useIntl();

@@ -1,0 +1,22 @@
+{
+  "title": "Mattermost API",
+  "subtitle": "REST API v4 — every endpoint, generated from the canonical OpenAPI specification.",
+  "eyebrow": "API REFERENCE",
+  "version": "v4",
+  "spine": [
+    "/api/",
+    "/api/examples",
+    "/api/reference/login",
+    "/api/reference/create-user",
+    "/api/reference/get-users",
+    "/api/reference/create-channel",
+    "/api/reference/add-channel-member",
+    "/api/reference/get-channels-for-team",
+    "/api/reference/create-post",
+    "/api/reference/get-post",
+    "/api/reference/update-post",
+    "/api/reference/delete-post",
+    "/api/reference/upload-file",
+    "/api/reference/save-reaction"
+  ]
+}

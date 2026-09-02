@@ -1,0 +1,262 @@
+.MmBlocksHierarchyEditor {
+    display: flex;
+    max-width: 56rem;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+    gap: 16px;
+}
+
+.MmBlocksHierarchyEditor__treePanel,
+.MmBlocksHierarchyEditor__propertiesPanel {
+    min-width: 220px;
+    flex: 1 1 240px;
+    padding: 12px;
+    border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+    border-radius: 4px;
+    background: rgba(var(--center-channel-color-rgb), 0.04);
+}
+
+.MmBlocksHierarchyEditor__heading {
+    margin: 0 0 10px;
+    color: var(--center-channel-color);
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.MmBlocksHierarchyEditor__empty {
+    margin: 0;
+    color: rgba(var(--center-channel-color-rgb), 0.64);
+    font-size: 12px;
+}
+
+.MmBlocksHierarchyEditor__emptyRoot {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.MmBlocksHierarchyEditor__emptyAdd {
+    position: relative;
+    align-self: flex-start;
+}
+
+.MmBlocksHierarchyEditor__tree,
+.MmBlocksHierarchyEditor__children {
+    padding: 0;
+    margin: 0;
+    list-style: none;
+}
+
+.MmBlocksHierarchyEditor__listLabel {
+    margin: 6px 0 2px;
+    color: rgba(var(--center-channel-color-rgb), 0.48);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    list-style: none;
+    text-transform: uppercase;
+}
+
+.MmBlocksHierarchyEditor__node {
+    list-style: none;
+}
+
+.MmBlocksHierarchyEditor__row {
+    position: relative;
+    display: flex;
+    min-height: 28px;
+    align-items: center;
+    border-radius: 3px;
+    gap: 4px;
+
+    &:hover,
+    &:focus-within {
+        background: rgba(var(--button-bg-rgb), 0.08);
+
+        .MmBlocksHierarchyEditor__rowActions,
+        .MmBlocksHierarchyEditor__dragHandle {
+            opacity: 1;
+        }
+
+        .MmBlocksHierarchyEditor__rowActions {
+            pointer-events: auto;
+        }
+    }
+
+    &.is-selected {
+        background: rgba(var(--button-bg-rgb), 0.14);
+    }
+
+    &.is-dragging {
+        opacity: 0.45;
+    }
+
+    &.is-drag-over {
+        background: rgba(var(--button-bg-rgb), 0.18);
+        outline: 1px dashed var(--button-bg);
+        outline-offset: -1px;
+    }
+}
+
+.MmBlocksHierarchyEditor__dragHandle {
+    flex-shrink: 0;
+    padding: 2px 4px;
+    border: none;
+    background: transparent;
+    color: rgba(var(--center-channel-color-rgb), 0.44);
+    cursor: grab;
+    font-size: 12px;
+    line-height: 1;
+    opacity: 0;
+    user-select: none;
+
+    &:active {
+        cursor: grabbing;
+    }
+
+    &:focus-visible {
+        opacity: 1;
+        outline: 2px solid var(--button-bg);
+        outline-offset: 1px;
+    }
+}
+
+.MmBlocksHierarchyEditor__rowButton {
+    min-width: 0;
+    flex: 1;
+    padding: 4px 6px;
+    border: none;
+    background: transparent;
+    color: var(--center-channel-color);
+    cursor: pointer;
+    font-size: 12px;
+    text-align: left;
+
+    &:focus-visible {
+        outline: 2px solid var(--button-bg);
+        outline-offset: 1px;
+    }
+}
+
+.MmBlocksHierarchyEditor__type {
+    display: inline-block;
+    min-width: 5.5rem;
+    margin-right: 6px;
+    color: var(--link-color);
+    font-family: Menlo, Monaco, Consolas, 'Courier New', monospace;
+    font-size: 11px;
+}
+
+.MmBlocksHierarchyEditor__summary {
+    color: rgba(var(--center-channel-color-rgb), 0.72);
+}
+
+.MmBlocksHierarchyEditor__rowActions {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    padding-right: 4px;
+    gap: 2px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.12s ease;
+}
+
+.MmBlocksHierarchyEditor__addMenu {
+    position: absolute;
+    z-index: 5;
+    top: 100%;
+    right: 0;
+    min-width: 10rem;
+    padding: 4px 0;
+    border: 1px solid rgba(var(--center-channel-color-rgb), 0.2);
+    border-radius: 4px;
+    margin-top: 2px;
+    background: var(--center-channel-bg);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.MmBlocksHierarchyEditor__addMenuHeading {
+    padding: 6px 12px 2px;
+    color: rgba(var(--center-channel-color-rgb), 0.48);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.MmBlocksHierarchyEditor__addMenuItem {
+    display: block;
+    width: 100%;
+    padding: 6px 12px;
+    border: none;
+    background: transparent;
+    color: var(--center-channel-color);
+    cursor: pointer;
+    font-size: 12px;
+    text-align: left;
+
+    &:hover {
+        background: rgba(var(--button-bg-rgb), 0.1);
+    }
+}
+
+.MmBlocksHierarchyEditor__properties {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.MmBlocksHierarchyEditor__propertyRow {
+    display: grid;
+    align-items: center;
+    font-size: 12px;
+    gap: 8px;
+    grid-template-columns: 7rem 1fr;
+
+    &--stacked {
+        grid-template-columns: 1fr;
+    }
+
+    input,
+    select,
+    textarea {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 4px 6px;
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.24);
+        border-radius: 3px;
+        background: var(--center-channel-bg);
+        color: var(--center-channel-color);
+        font-size: 12px;
+    }
+}
+
+.MmBlocksHierarchyEditor__propertyLabel {
+    color: rgba(var(--center-channel-color-rgb), 0.8);
+    font-family: Menlo, Monaco, Consolas, 'Courier New', monospace;
+    font-size: 11px;
+}
+
+.MmBlocksHierarchyEditor__propertyJson {
+    font-family: Menlo, Monaco, Consolas, 'Courier New', monospace;
+    line-height: 1.4;
+    resize: vertical;
+}
+
+.clMmBlocksEditorLayout {
+    display: flex;
+    max-width: 72rem;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 16px;
+}
+
+.clMmBlocksEditorLayout__json {
+    min-width: 260px;
+    flex: 1 1 280px;
+}
+
+.clMmBlocksEditorLayout__json .clJsonEditor {
+    max-width: none;
+}

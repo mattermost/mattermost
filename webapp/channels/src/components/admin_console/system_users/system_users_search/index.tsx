@@ -16,7 +16,7 @@ import './system_users_search.scss';
 
 type Props = {
     searchTerm: AdminConsoleUserManagementTableProperties['searchTerm'];
-}
+};
 
 export function SystemUsersSearch(props: Props) {
     const {formatMessage} = useIntl();

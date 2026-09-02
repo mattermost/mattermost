@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Page, expect} from '@playwright/test';
+import type {Page} from '@playwright/test';
+import {expect} from '@playwright/test';
 
 export default class LandingLoginPage {
     readonly page: Page;
@@ -16,9 +17,9 @@ export default class LandingLoginPage {
         this.page = page;
         this.isMobile = isMobile;
 
-        this.viewInAppButton = page.locator('text=View in App');
-        this.viewInDesktopAppButton = page.locator('text=View in Desktop App');
-        this.viewInBrowserButton = page.locator('text=View in Browser');
+        this.viewInAppButton = page.getByText('View in App');
+        this.viewInDesktopAppButton = page.getByText('View in Desktop App');
+        this.viewInBrowserButton = page.getByText('View in Browser');
     }
 
     async toBeVisible() {

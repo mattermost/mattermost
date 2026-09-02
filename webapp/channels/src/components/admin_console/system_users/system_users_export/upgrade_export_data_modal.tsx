@@ -12,7 +12,7 @@ import './upgrade_export_data_modal.scss';
 
 type Props = {
     onExited: () => void;
-}
+};
 
 export function UpgradeExportDataModal({onExited}: Props) {
     const {openPricingModal, isAirGapped} = useOpenPricingModal();

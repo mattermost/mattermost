@@ -18,7 +18,7 @@ type Props = {
     submit: () => void;
     saving: boolean;
     error?: string;
-}
+};
 
 export default class ManageAutoResponder extends React.PureComponent<Props> {
     handleAutoResponderChecked = (e: ChangeEvent<HTMLInputElement>) => {

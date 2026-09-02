@@ -673,7 +673,11 @@
   },
   {
     "id": "api.command_invite.user_already_in_channel.app_error",
-    "translation": "{{.User}} este deja în canal."
+    "translation": {
+      "few": "",
+      "one": "{{.User}} este deja în canal.",
+      "other": ""
+    }
   },
   {
     "id": "api.command_invite_people.permission.app_error",
@@ -6424,10 +6428,6 @@
     "translation": "Canalele nu pot fi obținute prin ID-uri."
   },
   {
-    "id": "app.channel.get_channel_counts.get.app_error",
-    "translation": "Imposibil de obținut numărul de canale."
-  },
-  {
     "id": "app.channel.count_posts_since.app_error",
     "translation": "Imposibil de numărat mesaje de la data dată."
   },
@@ -7798,14 +7798,6 @@
   {
     "id": "api.command_remote.permission_required",
     "translation": "Aveți nevoie de permisiunea `{{.Permission}}` pentru a gestiona clusterele la distanță."
-  },
-  {
-    "id": "api.file.test_connection_s3_bucket_does_not_exist.app_error",
-    "translation": "Asigurați-vă că bucket-ul Amazon S3 este disponibil și verificați permisiunile bucket-ului."
-  },
-  {
-    "id": "api.file.test_connection_s3_auth.app_error",
-    "translation": "Nu se poate conecta la S3. Verificați parametrii de autorizare a conexiunii Amazon S3 și setările de autentificare."
   },
   {
     "id": "api.command_remote.displayname.hint",

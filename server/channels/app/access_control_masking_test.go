@@ -5,6 +5,7 @@ package app
 
 import (
 	"encoding/json"
+	"strings"
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -15,28 +16,6 @@ import (
 
 	"github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 )
-
-func TestExtractFieldName(t *testing.T) {
-	tests := []struct {
-		name      string
-		attribute string
-		expected  string
-	}{
-		{"standard attribute path", "user.attributes.Program", "Program"},
-		{"multi-word field", "user.attributes.Clearance Level", "Clearance Level"},
-		{"no prefix", "Program", ""},
-		{"partial prefix", "user.attributes.", ""},
-		{"empty string", "", ""},
-		{"different prefix", "team.attributes.Program", ""},
-	}
-
-	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
-			result := extractFieldName(tc.attribute)
-			assert.Equal(t, tc.expected, result)
-		})
-	}
-}
 
 // Note: tests for field.GetAccessMode() live in model/property_access_test.go,
 // where the method is defined (TestPropertyFieldGetAccessMode).
@@ -388,6 +367,13 @@ func TestMaskConditionValues(t *testing.T) {
 		return &model.PropertyField{Type: fieldType, Attrs: attrs}
 	}
 
+	// hold wraps a field as its own holdings source with its own access mode —
+	// the direct-field case these unit tests exercise (channel-sibling access-mode
+	// resolution is covered by the store-backed tests).
+	hold := func(f *model.PropertyField) *maskingHoldings {
+		return &maskingHoldings{field: f, accessMode: f.GetAccessMode()}
+	}
+
 	options := []any{
 		map[string]any{"id": "id1", "name": "Alpha"},
 		map[string]any{"id": "id2", "name": "Bravo"},
@@ -410,7 +396,7 @@ func TestMaskConditionValues(t *testing.T) {
 			Value:     "Engineering",
 			ValueType: model.LiteralValue,
 		}
-		a.maskConditionValues(rctx, "caller", condition, "", map[string]*model.PropertyField{})
+		a.maskConditionValues(rctx, "caller", condition, "", map[string]*maskingHoldings{})
 		assert.Equal(t, "Engineering", condition.Value)
 		assert.False(t, condition.HasMaskedValues)
 	})
@@ -421,7 +407,7 @@ func TestMaskConditionValues(t *testing.T) {
 			Value:     "Alpha",
 			ValueType: model.LiteralValue,
 		}
-		a.maskConditionValues(rctx, "caller", condition, "", map[string]*model.PropertyField{})
+		a.maskConditionValues(rctx, "caller", condition, "", map[string]*maskingHoldings{})
 		assert.Nil(t, condition.Value)
 		assert.True(t, condition.HasMaskedValues)
 	})
@@ -432,8 +418,8 @@ func TestMaskConditionValues(t *testing.T) {
 			Value:     "Alpha",
 			ValueType: model.LiteralValue,
 		}
-		fields := map[string]*model.PropertyField{
-			"Program": makeField(model.PropertyAccessModePublic, model.PropertyFieldTypeSelect, options),
+		fields := map[string]*maskingHoldings{
+			"user/Program": hold(makeField(model.PropertyAccessModePublic, model.PropertyFieldTypeSelect, options)),
 		}
 		a.maskConditionValues(rctx, "caller", condition, "", fields)
 		assert.Equal(t, "Alpha", condition.Value)
@@ -446,8 +432,8 @@ func TestMaskConditionValues(t *testing.T) {
 			Value:     "Top Secret",
 			ValueType: model.LiteralValue,
 		}
-		fields := map[string]*model.PropertyField{
-			"Clearance": makeField(model.PropertyAccessModeSourceOnly, model.PropertyFieldTypeSelect, options),
+		fields := map[string]*maskingHoldings{
+			"user/Clearance": hold(makeField(model.PropertyAccessModeSourceOnly, model.PropertyFieldTypeSelect, options)),
 		}
 		a.maskConditionValues(rctx, "caller", condition, "", fields)
 		assert.Nil(t, condition.Value)
@@ -460,8 +446,8 @@ func TestMaskConditionValues(t *testing.T) {
 			Value:     "Alpha",
 			ValueType: model.LiteralValue,
 		}
-		fields := map[string]*model.PropertyField{
-			"Location": makeField(model.PropertyAccessModeSharedOnly, model.PropertyFieldTypeSelect, options),
+		fields := map[string]*maskingHoldings{
+			"user/Location": hold(makeField(model.PropertyAccessModeSharedOnly, model.PropertyFieldTypeSelect, options)),
 		}
 		a.maskConditionValues(rctx, "caller", condition, "", fields)
 		// "Alpha" is in the field options so it is visible
@@ -475,8 +461,8 @@ func TestMaskConditionValues(t *testing.T) {
 			Value:     "Charlie",
 			ValueType: model.LiteralValue,
 		}
-		fields := map[string]*model.PropertyField{
-			"Location": makeField(model.PropertyAccessModeSharedOnly, model.PropertyFieldTypeSelect, options),
+		fields := map[string]*maskingHoldings{
+			"user/Location": hold(makeField(model.PropertyAccessModeSharedOnly, model.PropertyFieldTypeSelect, options)),
 		}
 		a.maskConditionValues(rctx, "caller", condition, "", fields)
 		assert.Nil(t, condition.Value)
@@ -489,8 +475,8 @@ func TestMaskConditionValues(t *testing.T) {
 			Value:     []any{"Alpha", "Charlie"},
 			ValueType: model.LiteralValue,
 		}
-		fields := map[string]*model.PropertyField{
-			"Programs": makeField(model.PropertyAccessModeSharedOnly, model.PropertyFieldTypeMultiselect, options),
+		fields := map[string]*maskingHoldings{
+			"user/Programs": hold(makeField(model.PropertyAccessModeSharedOnly, model.PropertyFieldTypeMultiselect, options)),
 		}
 		a.maskConditionValues(rctx, "caller", condition, "", fields)
 		values, ok := condition.Value.([]any)
@@ -505,13 +491,54 @@ func TestMaskConditionValues(t *testing.T) {
 			Value:     "Alpha",
 			ValueType: model.LiteralValue,
 		}
-		fields := map[string]*model.PropertyField{
-			"Program": {
+		fields := map[string]*maskingHoldings{
+			"user/Program": hold(&model.PropertyField{
 				Type:  model.PropertyFieldTypeSelect,
 				Attrs: model.StringInterface{model.PropertyAttrsAccessMode: "future_unknown_mode"},
-			},
+			}),
 		}
 		a.maskConditionValues(rctx, "caller", condition, "", fields)
+		assert.Nil(t, condition.Value)
+		assert.True(t, condition.HasMaskedValues)
+	})
+
+	t.Run("resource attribute: keyed by channel object type, public passes through", func(t *testing.T) {
+		condition := &model.Condition{
+			Attribute: "resource.attributes.Sensitivity",
+			Value:     "Alpha",
+			ValueType: model.LiteralValue,
+		}
+		fields := map[string]*maskingHoldings{
+			"channel/Sensitivity": hold(makeField(model.PropertyAccessModePublic, model.PropertyFieldTypeSelect, options)),
+		}
+		a.maskConditionValues(rctx, "caller", condition, "", fields)
+		assert.Equal(t, "Alpha", condition.Value)
+		assert.False(t, condition.HasMaskedValues)
+	})
+
+	t.Run("resource attribute: shared_only value the caller does not hold is masked", func(t *testing.T) {
+		condition := &model.Condition{
+			Attribute: "resource.attributes.Sensitivity",
+			Value:     "secret",
+			ValueType: model.LiteralValue,
+		}
+		// The prefetched field is the holdings-bearing sibling; "secret" is not
+		// among the caller's visible options, so it masks.
+		fields := map[string]*maskingHoldings{
+			"channel/Sensitivity": hold(makeField(model.PropertyAccessModeSharedOnly, model.PropertyFieldTypeSelect, options)),
+		}
+		a.maskConditionValues(rctx, "caller", condition, "", fields)
+		assert.Nil(t, condition.Value)
+		assert.True(t, condition.HasMaskedValues)
+	})
+
+	t.Run("resource attribute missing from prefetch map: fail-closed", func(t *testing.T) {
+		condition := &model.Condition{
+			Attribute: "resource.attributes.Sensitivity",
+			Value:     "Alpha",
+			ValueType: model.LiteralValue,
+		}
+		a.maskConditionValues(rctx, "caller", condition, "", map[string]*maskingHoldings{})
 		assert.Nil(t, condition.Value)
 		assert.True(t, condition.HasMaskedValues)
 	})
@@ -563,7 +590,7 @@ func TestMaskConditionValues_SharedOnlyText(t *testing.T) {
 	})
 	require.Nil(t, appErr)
 
-	fieldsByName := map[string]*model.PropertyField{createdField.Name: createdField}
+	fieldsByName := map[string]*maskingHoldings{model.PropertyFieldObjectTypeUser + "/" + createdField.Name: {field: createdField, accessMode: createdField.GetAccessMode()}}
 
 	t.Run("caller's own value passes through", func(t *testing.T) {
 		condition := &model.Condition{
@@ -667,4 +694,880 @@ func TestGetMaskedVisualAST_Wiring(t *testing.T) {
 		assert.True(t, result.Conditions[0].HasMaskedValues)
 		mockACS.AssertExpectations(t)
 	})
+}
+
+// TestJoinChildExpressions covers the compound-rebuild helper that
+// keeps OR / AND / NOT structure intact when
+// maskSimulationEvaluationTree walks a compound node bottom-up. The
+// helper is pure (no DB / context); these are table-style tests that
+// pin the paren wrapping and the dropped-empty-child behavior so a
+// future refactor can't silently change either invariant.
+func TestJoinChildExpressions(t *testing.T) {
+	mkChild := func(expr string) model.PolicySimulationEvaluationNode {
+		return model.PolicySimulationEvaluationNode{Expression: expr}
+	}
+
+	t.Run("no children returns empty", func(t *testing.T) {
+		assert.Equal(t, "", joinChildExpressions(nil, "&&"))
+		assert.Equal(t, "", joinChildExpressions([]model.PolicySimulationEvaluationNode{}, "&&"))
+	})
+
+	t.Run("single child wrapped in parens", func(t *testing.T) {
+		result := joinChildExpressions([]model.PolicySimulationEvaluationNode{mkChild(`user.attributes.x == "a"`)}, "&&")
+		assert.Equal(t, `(user.attributes.x == "a")`, result)
+	})
+
+	t.Run("multiple children joined with operator", func(t *testing.T) {
+		children := []model.PolicySimulationEvaluationNode{
+			mkChild(`user.attributes.x == "a"`),
+			mkChild(`user.attributes.y == "b"`),
+		}
+		assert.Equal(t, `(user.attributes.x == "a") && (user.attributes.y == "b")`, joinChildExpressions(children, "&&"))
+		assert.Equal(t, `(user.attributes.x == "a") || (user.attributes.y == "b")`, joinChildExpressions(children, "||"))
+	})
+
+	t.Run("empty children dropped so parent has no dangling operator", func(t *testing.T) {
+		// A child whose leaf masking failed-closed has Expression="";
+		// the parent must skip it rather than emit "() && (real)" or
+		// a trailing " && ". Either of those would be invalid CEL and
+		// would surface to the picker.
+		children := []model.PolicySimulationEvaluationNode{
+			mkChild(""),
+			mkChild(`user.attributes.x == "a"`),
+			mkChild(""),
+		}
+		assert.Equal(t, `(user.attributes.x == "a")`, joinChildExpressions(children, "&&"))
+	})
+
+	t.Run("all children empty returns empty", func(t *testing.T) {
+		children := []model.PolicySimulationEvaluationNode{mkChild(""), mkChild("")}
+		assert.Equal(t, "", joinChildExpressions(children, "||"))
+	})
+}
+
+// TestClearEvaluationTreeLiterals pins the fail-closed walker: every
+// node's Expression must be wiped and every non-empty ExpectedValue
+// must collapse to the masked-token sentinel. The walker is invoked
+// from the top-level CPA-group-fetch failure path, so a regression
+// here would leak literal values back to the caller through the
+// simulator response.
+func TestClearEvaluationTreeLiterals(t *testing.T) {
+	t.Run("nil node is a no-op", func(t *testing.T) {
+		clearEvaluationTreeLiterals(nil) // must not panic
+	})
+
+	t.Run("leaf with literal: expression cleared, expected and actual sentinel", func(t *testing.T) {
+		node := &model.PolicySimulationEvaluationNode{
+			Kind:          model.PolicySimulationEvaluationKindCompare,
+			Expression:    `user.attributes.x == "secret"`,
+			ExpectedValue: "secret",
+			ActualValue:   "secret",
+		}
+		clearEvaluationTreeLiterals(node)
+		assert.Equal(t, "", node.Expression)
+		assert.Equal(t, maskedTokenValue, node.ExpectedValue)
+		assert.Equal(t, maskedTokenValue, node.ActualValue,
+			"fail-closed must also collapse the simulated user's value — it's just as much a literal as the rule's")
+	})
+
+	t.Run("leaf with empty expected/actual: stays empty (no sentinel invented)", func(t *testing.T) {
+		// A leaf with no recorded literal (e.g. an attribute-vs-
+		// attribute compare) must NOT have ExpectedValue or
+		// ActualValue forced to the sentinel — that would invent
+		// values where the simulator deliberately omitted them.
+		node := &model.PolicySimulationEvaluationNode{
+			Kind:       model.PolicySimulationEvaluationKindCompare,
+			Expression: `user.attributes.x == user.attributes.y`,
+		}
+		clearEvaluationTreeLiterals(node)
+		assert.Equal(t, "", node.Expression)
+		assert.Equal(t, "", node.ExpectedValue)
+		assert.Equal(t, "", node.ActualValue)
+	})
+
+	t.Run("compound node recurses into children", func(t *testing.T) {
+		root := &model.PolicySimulationEvaluationNode{
+			Kind:       model.PolicySimulationEvaluationKindAnd,
+			Expression: `(user.attributes.x == "a") && (user.attributes.y == "b")`,
+			Children: []model.PolicySimulationEvaluationNode{
+				{Kind: model.PolicySimulationEvaluationKindCompare, Expression: `user.attributes.x == "a"`, ExpectedValue: "a", ActualValue: "a"},
+				{Kind: model.PolicySimulationEvaluationKindCompare, Expression: `user.attributes.y == "b"`, ExpectedValue: "b", ActualValue: "z"},
+			},
+		}
+		clearEvaluationTreeLiterals(root)
+		assert.Equal(t, "", root.Expression)
+		assert.Equal(t, "", root.Children[0].Expression)
+		assert.Equal(t, maskedTokenValue, root.Children[0].ExpectedValue)
+		assert.Equal(t, maskedTokenValue, root.Children[0].ActualValue)
+		assert.Equal(t, "", root.Children[1].Expression)
+		assert.Equal(t, maskedTokenValue, root.Children[1].ExpectedValue)
+		assert.Equal(t, maskedTokenValue, root.Children[1].ActualValue)
+	})
+}
+
+// TestMaskSimulationPolicyLiteralsForCaller_FlagOff and
+// _GuardClauses pin the entry-point branches that short-circuit
+// without touching the response. Together they prove the function
+// is safe to call from the simulate handler regardless of feature-
+// flag or input state, so the wiring in
+// SimulateAccessControlPolicyForUsers doesn't need to add its own
+// gates.
+func TestMaskSimulationPolicyLiteralsForCaller_FlagOff(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.AttributeValueMasking = false
+	}).InitBasic(t)
+	rctx := request.TestContext(t)
+
+	resp := &model.PolicySimulationResponse{
+		Results: []model.PolicySimulationUserResult{{
+			Decisions: map[string]model.PolicySimulationActionDecision{
+				"view_channel": {
+					Blame: []model.PolicySimulationBlame{{
+						RuleName:   "rule1",
+						Expression: `user.attributes.x == "kept-as-is"`,
+						EvaluationTree: &model.PolicySimulationEvaluationNode{
+							Kind:          model.PolicySimulationEvaluationKindCompare,
+							Expression:    `user.attributes.x == "kept-as-is"`,
+							ExpectedValue: "kept-as-is",
+						},
+					}},
+				},
+			},
+		}},
+	}
+
+	th.App.MaskSimulationPolicyLiteralsForCaller(rctx, resp, model.NewId())
+
+	blame := resp.Results[0].Decisions["view_channel"].Blame[0]
+	assert.Equal(t, `user.attributes.x == "kept-as-is"`, blame.Expression, "flag off must skip masking entirely")
+	assert.Equal(t, "kept-as-is", blame.EvaluationTree.ExpectedValue, "flag off must skip masking entirely")
+}
+
+func TestMaskSimulationPolicyLiteralsForCaller_GuardClauses(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.AttributeValueMasking = true
+	}).InitBasic(t)
+	rctx := request.TestContext(t)
+
+	t.Run("nil response is a no-op", func(t *testing.T) {
+		// Must not panic and must not touch anything (there's nothing
+		// to touch). Pinned because the api4 handler dereferences
+		// resp.Results immediately after this call.
+		th.App.MaskSimulationPolicyLiteralsForCaller(rctx, nil, model.NewId())
+	})
+
+	t.Run("empty callerID is a no-op", func(t *testing.T) {
+		// The API layer rejects empty callerID before reaching this function.
+		// Pinned to ensure MaskSimulationPolicyLiteralsForCaller is safe to call
+		// with an empty callerID (no panic, no masking applied).
+		resp := &model.PolicySimulationResponse{
+			Results: []model.PolicySimulationUserResult{{
+				Decisions: map[string]model.PolicySimulationActionDecision{
+					"view_channel": {
+						Blame: []model.PolicySimulationBlame{{
+							Expression: `user.attributes.x == "kept"`,
+						}},
+					},
+				},
+			}},
+		}
+		th.App.MaskSimulationPolicyLiteralsForCaller(rctx, resp, "")
+		assert.Equal(t, `user.attributes.x == "kept"`, resp.Results[0].Decisions["view_channel"].Blame[0].Expression)
+	})
+}
+
+// TestMaskSimulationPolicyLiteralsForCaller_SourceOnly is the end-
+// to-end test for the new pass: a real source_only CPA field
+// (inserted directly via the store because the App's
+// CreatePropertyField hook rejects non-plugin callers from setting
+// protected/source_plugin_id) drives the masker against a simulator
+// response shaped like the picker output. We mock MaskExpressionForCaller
+// — the rest of the masking pipeline (field lookup, simulation tree
+// walk, expression backfill) is the real one, because that's the
+// layer this test is pinning. Every
+// literal-bearing surface (Blame.Expression, the leaf evaluation
+// tree's Expression and ExpectedValue, MergedRule.Expression, and
+// the merged-rule subtree) must collapse to the "--------" sentinel
+// for a caller who isn't the source plugin, regardless of role.
+func TestMaskSimulationPolicyLiteralsForCaller_SourceOnly(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.AttributeValueMasking = true
+	}).InitBasic(t)
+	ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+	require.True(t, ok)
+	defer th.App.Srv().SetLicense(nil)
+	rctx := request.TestContext(t)
+
+	cpaGroup, gErr := th.App.GetPropertyGroup(rctx, model.AccessControlPropertyGroupName)
+	require.Nil(t, gErr)
+
+	fieldName := celSafeName()
+	_, sErr := th.Store.PropertyField().Create(&model.PropertyField{
+		GroupID:    cpaGroup.ID,
+		Name:       fieldName,
+		Type:       model.PropertyFieldTypeText,
+		ObjectType: model.PropertyFieldObjectTypeUser,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
+		Attrs: model.StringInterface{
+			model.PropertyAttrsProtected:      true,
+			model.PropertyAttrsAccessMode:     model.PropertyAccessModeSourceOnly,
+			model.PropertyAttrsSourcePluginID: "com.mattermost.uas-plugin",
+		},
+	})
+	require.NoError(t, sErr)
+
+	// Mock MaskExpressionForCaller to return the sentinel for source_only values.
+	// Tests run without a real PAP wired up; the canonical walker is exercised by
+	// cel_utils/masking_test.go — here we pin the app-layer wiring end-to-end.
+	leafExpr := `user.attributes.` + fieldName + ` == "Crimsone One"`
+	maskedExpr := `user.attributes.` + fieldName + ` == "` + maskedTokenValue + `"`
+	mockACS := &mocks.AccessControlServiceInterface{}
+	th.App.Srv().ch.AccessControl = mockACS
+	mockACS.On("MaskExpressionForCaller", mock.Anything, mock.Anything, mock.Anything).
+		Return(maskedExpr, true, nil)
+	resp := &model.PolicySimulationResponse{
+		Results: []model.PolicySimulationUserResult{{
+			User: &model.User{Id: model.NewId()},
+			Decisions: map[string]model.PolicySimulationActionDecision{
+				"upload_file_attachment": {
+					Decision: false,
+					Blame: []model.PolicySimulationBlame{{
+						Source:     model.PolicySimulationBlameSourceThisRule,
+						RuleName:   "rule1",
+						Expression: leafExpr,
+						EvaluationTree: &model.PolicySimulationEvaluationNode{
+							Kind:          model.PolicySimulationEvaluationKindCompare,
+							Expression:    leafExpr,
+							ExpectedValue: "Crimsone One",
+							ActualValue:   "Crimsone One",
+							Outcome:       model.PolicySimulationEvaluationOutcomeFalse,
+							Attribute:     "user.attributes." + fieldName,
+						},
+						MergedRules: []model.PolicySimulationMergedRule{{
+							Name:       "rule1",
+							Expression: leafExpr,
+							EvaluationTree: &model.PolicySimulationEvaluationNode{
+								Kind:          model.PolicySimulationEvaluationKindCompare,
+								Expression:    leafExpr,
+								ExpectedValue: "Crimsone One",
+								ActualValue:   "Crimsone One",
+								Outcome:       model.PolicySimulationEvaluationOutcomeFalse,
+								Attribute:     "user.attributes." + fieldName,
+							},
+						}},
+					}},
+				},
+			},
+		}},
+	}
+
+	th.App.MaskSimulationPolicyLiteralsForCaller(rctx, resp, model.NewId())
+
+	blame := resp.Results[0].Decisions["upload_file_attachment"].Blame[0]
+
+	// Top-level Blame.Expression is re-sourced from the (also-masked)
+	// evaluation tree root so the OR / NOT shape survives. For a
+	// single-leaf rule the rebuilt text IS the masked leaf form.
+	assert.Contains(t, blame.Expression, maskedTokenValue,
+		"Blame.Expression must carry the masked sentinel for source_only literals")
+	assert.NotContains(t, blame.Expression, "Crimsone One",
+		"Blame.Expression must not leak the source_only literal back to the caller")
+
+	// Evaluation tree leaf — every surface (Expression, the
+	// rule-literal ExpectedValue, AND the simulated user's
+	// ActualValue) must reflect the mask. ActualValue is the user-
+	// data twin of ExpectedValue: source_only means "nobody but the
+	// source plugin sees ANY value", so the user's recorded value
+	// is just as sensitive as the rule literal.
+	require.NotNil(t, blame.EvaluationTree)
+	assert.Contains(t, blame.EvaluationTree.Expression, maskedTokenValue)
+	assert.NotContains(t, blame.EvaluationTree.Expression, "Crimsone One")
+	assert.Equal(t, maskedTokenValue, blame.EvaluationTree.ExpectedValue,
+		"leaf ExpectedValue must collapse to the sentinel when the field is source_only")
+	assert.Equal(t, maskedTokenValue, blame.EvaluationTree.ActualValue,
+		"leaf ActualValue must collapse to the sentinel when the field is source_only — the picker's 'Actual: X' line is a leak path otherwise")
+
+	// MergedRule surfaces are independent of the top-level Blame —
+	// the picker renders them in a separate "combined evaluation"
+	// section, so a leak on either path is equally bad.
+	require.Len(t, blame.MergedRules, 1)
+	m := blame.MergedRules[0]
+	assert.Contains(t, m.Expression, maskedTokenValue)
+	assert.NotContains(t, m.Expression, "Crimsone One")
+	require.NotNil(t, m.EvaluationTree)
+	assert.Contains(t, m.EvaluationTree.Expression, maskedTokenValue)
+	assert.Equal(t, maskedTokenValue, m.EvaluationTree.ExpectedValue)
+	assert.Equal(t, maskedTokenValue, m.EvaluationTree.ActualValue)
+	mockACS.AssertExpectations(t)
+}
+
+// TestMaskSimulationPolicyLiteralsForCaller_PublicFieldPassesThrough
+// proves the masker doesn't over-mask: a plain public CPA field's
+// literal value stays visible end-to-end on every surface. Without
+// this pin a future refactor could accidentally fail-close on every
+// field by treating an empty access_mode as "non-public", silently
+// blanking the picker.
+func TestMaskSimulationPolicyLiteralsForCaller_PublicFieldPassesThrough(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.AttributeValueMasking = true
+	}).InitBasic(t)
+	ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+	require.True(t, ok)
+	defer th.App.Srv().SetLicense(nil)
+	rctx := request.TestContext(t)
+
+	cpaGroup, gErr := th.App.GetPropertyGroup(rctx, model.AccessControlPropertyGroupName)
+	require.Nil(t, gErr)
+
+	fieldName := celSafeName()
+	_, vAppErr := th.App.CreatePropertyField(rctx, &model.PropertyField{
+		GroupID:    cpaGroup.ID,
+		Name:       fieldName,
+		Type:       model.PropertyFieldTypeText,
+		ObjectType: model.PropertyFieldObjectTypeUser,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
+	}, false, "")
+	require.Nil(t, vAppErr)
+
+	expr := `user.attributes.` + fieldName + ` == "Engineering"`
+	mockACS := &mocks.AccessControlServiceInterface{}
+	th.App.Srv().ch.AccessControl = mockACS
+	mockACS.On("MaskExpressionForCaller", mock.Anything, mock.Anything, mock.Anything).
+		Return(expr, false, nil)
+	resp := &model.PolicySimulationResponse{
+		Results: []model.PolicySimulationUserResult{{
+			Decisions: map[string]model.PolicySimulationActionDecision{
+				"view_channel": {
+					Blame: []model.PolicySimulationBlame{{
+						RuleName:   "rule1",
+						Expression: expr,
+						EvaluationTree: &model.PolicySimulationEvaluationNode{
+							Kind:          model.PolicySimulationEvaluationKindCompare,
+							Expression:    expr,
+							ExpectedValue: "Engineering",
+							ActualValue:   "Sales",
+							Attribute:     "user.attributes." + fieldName,
+						},
+					}},
+				},
+			},
+		}},
+	}
+
+	th.App.MaskSimulationPolicyLiteralsForCaller(rctx, resp, model.NewId())
+
+	blame := resp.Results[0].Decisions["view_channel"].Blame[0]
+	assert.Contains(t, blame.Expression, "Engineering",
+		"public field literal must pass through unchanged at the top level")
+	assert.Equal(t, "Engineering", blame.EvaluationTree.ExpectedValue,
+		"public field leaf ExpectedValue must pass through unchanged")
+	assert.Equal(t, "Sales", blame.EvaluationTree.ActualValue,
+		"public field leaf ActualValue must pass through unchanged")
+	assert.NotContains(t, blame.EvaluationTree.Expression, maskedTokenValue,
+		"public field leaf Expression must not gain a sentinel")
+	mockACS.AssertExpectations(t)
+}
+
+// TestMaskSimulationPolicyLiteralsForCaller_ActualValueIndependentFromExpected
+// pins the most subtle correctness invariant: ExpectedValue and
+// ActualValue are checked against the caller's holdings
+// independently. For a shared_only text field where the caller
+// holds value "A", the rule literal "A" stays visible but a
+// simulated user's actual value "B" must mask — because the caller
+// is allowed to see "A" (they hold it) but not "B" (they don't).
+// Without this pin a regression that masks both values together
+// (or neither together) would still pass the source_only and
+// public tests but silently leak per-value AVM semantics for the
+// shared_only path.
+//
+// Uses a non-CPA V1 property group for the same reason
+// TestMaskConditionValues_SharedOnlyText does: shared_only on the
+// CPA group requires a plugin caller for field creation /
+// value-write, which is unrelated to what we're pinning here.
+func TestMaskSimulationPolicyLiteralsForCaller_ActualValueIndependentFromExpected(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.AttributeValueMasking = true
+	}).InitBasic(t)
+	ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+	require.True(t, ok)
+	defer th.App.Srv().SetLicense(nil)
+	rctx := request.TestContext(t)
+	callerID := model.NewId()
+
+	group, gAppErr := th.App.RegisterPropertyGroup(rctx, &model.PropertyGroup{
+		Name:    "sim_mask_actual_test_" + model.NewId(),
+		Version: model.PropertyGroupVersionV1,
+	})
+	require.Nil(t, gAppErr)
+	groupID := group.ID
+
+	field := &model.PropertyField{
+		GroupID: groupID,
+		Name:    "f_" + model.NewId(),
+		Type:    model.PropertyFieldTypeText,
+		Attrs:   model.StringInterface{model.PropertyAttrsAccessMode: model.PropertyAccessModeSharedOnly},
+	}
+	createdField, vAppErr := th.App.CreatePropertyField(rctx, field, false, "")
+	require.Nil(t, vAppErr)
+
+	// Caller holds "A" — that's the rule literal we want to keep
+	// visible. They do NOT hold "B" — that's the simulated user's
+	// value that must mask independently.
+	_, vAppErr = th.App.CreatePropertyValue(rctx, &model.PropertyValue{
+		TargetID:   callerID,
+		TargetType: model.PropertyValueTargetTypeUser,
+		GroupID:    groupID,
+		FieldID:    createdField.ID,
+		Value:      json.RawMessage(`"A"`),
+	})
+	require.Nil(t, vAppErr)
+
+	// The simulator pass uses GetPropertyGroup(AccessControlPropertyGroupName)
+	// to derive the cpaGroupID for its mask context, but the helpers
+	// we exercise (callerCanSeeFieldValue / maskExpressionWithCache)
+	// look fields up by name through GetPropertyFieldByName, which
+	// is group-id-scoped. To make the test drive against our V1
+	// group we bypass the public entry point and call the
+	// per-decision helper directly with a mask context built around
+	// the V1 group. This is the same shortcut existing shared_only
+	// tests take.
+	mcResolver, resolverErr := newMaskingResolver(th.App, rctx, callerID)
+	require.Nil(t, resolverErr)
+	mc := &simulationMaskContext{
+		cpaGroupID:     groupID,
+		rctxWithCaller: RequestContextWithCallerID(rctx, callerID),
+		callerID:       callerID,
+		resolver:       mcResolver,
+	}
+
+	// Mock MaskExpressionForCaller to return the original expression: caller holds "A"
+	// so no literal is hidden, the expression passes through unchanged.
+	leafExpr := `user.attributes.` + createdField.Name + ` == "A"`
+	mockACS := &mocks.AccessControlServiceInterface{}
+	th.App.Srv().ch.AccessControl = mockACS
+	mockACS.On("MaskExpressionForCaller", mock.Anything, mock.Anything, mock.Anything).
+		Return(leafExpr, false, nil)
+	dec := &model.PolicySimulationActionDecision{
+		Blame: []model.PolicySimulationBlame{{
+			RuleName:   "rule1",
+			Expression: leafExpr,
+			EvaluationTree: &model.PolicySimulationEvaluationNode{
+				Kind:          model.PolicySimulationEvaluationKindCompare,
+				Expression:    leafExpr,
+				ExpectedValue: "A",
+				ActualValue:   "B",
+				Attribute:     "user.attributes." + createdField.Name,
+				Outcome:       model.PolicySimulationEvaluationOutcomeFalse,
+			},
+		}},
+	}
+
+	th.App.maskSimulationDecisionLiterals(dec, mc)
+
+	leaf := dec.Blame[0].EvaluationTree
+	require.NotNil(t, leaf)
+
+	// Rule literal "A" is in the caller's held values, so
+	// ExpectedValue passes through and the leaf Expression stays
+	// unmasked.
+	assert.Equal(t, "A", leaf.ExpectedValue,
+		"shared_only ExpectedValue the caller holds must pass through unchanged")
+	assert.NotContains(t, leaf.Expression, maskedTokenValue,
+		"shared_only Expression whose literal the caller holds must stay unmasked")
+
+	// Simulated user's value "B" is NOT in the caller's held values,
+	// so it must mask independently — same field, same access mode,
+	// different value.
+	assert.Equal(t, maskedTokenValue, leaf.ActualValue,
+		"shared_only ActualValue the caller doesn't hold must mask, even when ExpectedValue is visible")
+	mockACS.AssertExpectations(t)
+}
+
+// TestMaskSimulationPolicyLiteralsForCaller_CompoundOrPreserved
+// guards the boolean shape of the response. The simulation tree
+// walker reconstructs compound nodes bottom-up from already-masked
+// leaves, so OR / NOT structure must survive masking. This test seeds
+// a two-leaf OR tree against a source_only field, runs the masker,
+// and asserts the rebuilt compound still says "||". Without this pin
+// a regression would mask the literals correctly but misrepresent the
+// rule's logic to the picker.
+func TestMaskSimulationPolicyLiteralsForCaller_CompoundOrPreserved(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.AttributeValueMasking = true
+	}).InitBasic(t)
+	ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+	require.True(t, ok)
+	defer th.App.Srv().SetLicense(nil)
+	rctx := request.TestContext(t)
+
+	cpaGroup, gErr := th.App.GetPropertyGroup(rctx, model.AccessControlPropertyGroupName)
+	require.Nil(t, gErr)
+
+	fieldName := celSafeName()
+	_, sErr := th.Store.PropertyField().Create(&model.PropertyField{
+		GroupID:    cpaGroup.ID,
+		Name:       fieldName,
+		Type:       model.PropertyFieldTypeText,
+		ObjectType: model.PropertyFieldObjectTypeUser,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
+		Attrs: model.StringInterface{
+			model.PropertyAttrsProtected:      true,
+			model.PropertyAttrsAccessMode:     model.PropertyAccessModeSourceOnly,
+			model.PropertyAttrsSourcePluginID: "com.mattermost.uas-plugin",
+		},
+	})
+	require.NoError(t, sErr)
+
+	// Each leaf is masked through MaskExpressionForCaller independently.
+	// Both are source_only so both return the sentinel; we don't care about
+	// call order — the assertion is on the rebuilt compound preserving "||".
+	maskedLeaf := `user.attributes.` + fieldName + ` == "` + maskedTokenValue + `"`
+	mockACS := &mocks.AccessControlServiceInterface{}
+	th.App.Srv().ch.AccessControl = mockACS
+	mockACS.On("MaskExpressionForCaller", mock.Anything, mock.MatchedBy(func(expr string) bool {
+		return strings.Contains(expr, "Alpha")
+	}), mock.Anything).Return(maskedLeaf, true, nil)
+	mockACS.On("MaskExpressionForCaller", mock.Anything, mock.MatchedBy(func(expr string) bool {
+		return strings.Contains(expr, "Bravo")
+	}), mock.Anything).Return(maskedLeaf, true, nil)
+
+	mkLeaf := func(value string) model.PolicySimulationEvaluationNode {
+		return model.PolicySimulationEvaluationNode{
+			Kind:          model.PolicySimulationEvaluationKindCompare,
+			Expression:    `user.attributes.` + fieldName + ` == "` + value + `"`,
+			ExpectedValue: value,
+			Attribute:     "user.attributes." + fieldName,
+		}
+	}
+	resp := &model.PolicySimulationResponse{
+		Results: []model.PolicySimulationUserResult{{
+			Decisions: map[string]model.PolicySimulationActionDecision{
+				"view_channel": {
+					Blame: []model.PolicySimulationBlame{{
+						RuleName:   "rule1",
+						Expression: `(user.attributes.` + fieldName + ` == "Alpha") || (user.attributes.` + fieldName + ` == "Bravo")`,
+						EvaluationTree: &model.PolicySimulationEvaluationNode{
+							Kind: model.PolicySimulationEvaluationKindOr,
+							Children: []model.PolicySimulationEvaluationNode{
+								mkLeaf("Alpha"),
+								mkLeaf("Bravo"),
+							},
+						},
+					}},
+				},
+			},
+		}},
+	}
+
+	th.App.MaskSimulationPolicyLiteralsForCaller(rctx, resp, model.NewId())
+
+	blame := resp.Results[0].Decisions["view_channel"].Blame[0]
+	require.NotNil(t, blame.EvaluationTree)
+	assert.Contains(t, blame.EvaluationTree.Expression, "||",
+		"OR structure must survive masking — collapsing to AND would misrepresent the rule")
+	assert.NotContains(t, blame.EvaluationTree.Expression, "Alpha")
+	assert.NotContains(t, blame.EvaluationTree.Expression, "Bravo")
+
+	// Top-level Blame.Expression is backfilled from the (masked)
+	// tree root, so it must inherit the same preserved structure
+	// and the same absence of literal leaks.
+	assert.Equal(t, blame.EvaluationTree.Expression, blame.Expression)
+	mockACS.AssertExpectations(t)
+}
+
+// TestSplitCPAAttribute pins the CPA attribute-path splitter that routes a leaf
+// to the right object type. user.attributes.* → user, resource.attributes.* →
+// channel; everything else (native selectors, empty suffix) is not a CPA leaf.
+func TestSplitCPAAttribute(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	cases := []struct {
+		path       string
+		wantObject string
+		wantField  string
+		wantOK     bool
+	}{
+		{"user.attributes.Clearance", model.PropertyFieldObjectTypeUser, "Clearance", true},
+		{"resource.attributes.Sensitivity", model.PropertyFieldObjectTypeChannel, "Sensitivity", true},
+		{"user.email", "", "", false},
+		{"resource.id", "", "", false},
+		{"session.network_status", "", "", false},
+		{"user.attributes.", "", "", false},
+		{"resource.attributes.", "", "", false},
+		{"", "", "", false},
+	}
+	for _, c := range cases {
+		objectType, fieldName, ok := splitCPAAttribute(c.path)
+		assert.Equal(t, c.wantOK, ok, "ok mismatch for %q", c.path)
+		assert.Equal(t, c.wantObject, objectType, "objectType mismatch for %q", c.path)
+		assert.Equal(t, c.wantField, fieldName, "fieldName mismatch for %q", c.path)
+	}
+}
+
+// TestAppMaskingResolver_ChannelFieldUsesUserHoldings verifies the shared-template
+// bridge: a resource.attributes.<field> reference is masked by the caller's own
+// USER-side holdings for the linked template, since users never hold channel
+// values directly. A shared_only channel field whose user sibling the caller
+// partially holds must expose only the held option values.
+//
+// Run over both option-bearing types the clearance/classification pairing uses.
+// Rank is the one that regresses if the resolver spells its type list out instead
+// of asking Type.SupportsOptions(): a rank field would fall through to the
+// caller's raw text values, which hold the option ID rather than its name, so
+// every option would read as hidden.
+func TestAppMaskingResolver_ChannelFieldUsesUserHoldings(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	for _, fieldType := range []model.PropertyFieldType{model.PropertyFieldTypeSelect, model.PropertyFieldTypeRank} {
+		t.Run(string(fieldType), func(t *testing.T) {
+			assertChannelFieldUsesUserHoldings(t, fieldType)
+		})
+	}
+}
+
+func assertChannelFieldUsesUserHoldings(t *testing.T, fieldType model.PropertyFieldType) {
+	t.Helper()
+	th := Setup(t).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+	rctx := request.TestContext(t)
+
+	cpaGroup, gErr := th.App.GetPropertyGroup(rctx, model.AccessControlPropertyGroupName)
+	require.Nil(t, gErr)
+	groupID := cpaGroup.ID
+
+	callerID := model.NewId()
+
+	optA := model.NewId()
+	optB := model.NewId()
+	options := []any{
+		map[string]any{"id": optA, "name": "A", "rank": 1},
+		map[string]any{"id": optB, "name": "B", "rank": 2},
+	}
+
+	// Template field that both the user and channel fields link to.
+	tmpl, sErr := th.Store.PropertyField().Create(&model.PropertyField{
+		GroupID:    groupID,
+		Name:       celSafeName(),
+		Type:       fieldType,
+		ObjectType: model.PropertyFieldObjectTypeTemplate,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
+		Attrs:      model.StringInterface{model.PropertyFieldAttributeOptions: options},
+	})
+	require.NoError(t, sErr)
+
+	linkedAttrs := func() model.StringInterface {
+		return model.StringInterface{
+			model.PropertyFieldAttributeOptions: options,
+			model.PropertyAttrsProtected:        true,
+			model.PropertyAttrsAccessMode:       model.PropertyAccessModeSharedOnly,
+			model.PropertyAttrsSourcePluginID:   "com.mattermost.uas-plugin",
+		}
+	}
+
+	// Store-level Create bypasses the CPA access-control layer so protected /
+	// shared_only linked fields can be written directly (the same shortcut the
+	// other shared_only masking tests take). Reads still filter per caller.
+	userField, sErr := th.Store.PropertyField().Create(&model.PropertyField{
+		GroupID:       groupID,
+		Name:          celSafeName(),
+		Type:          fieldType,
+		ObjectType:    model.PropertyFieldObjectTypeUser,
+		TargetType:    string(model.PropertyFieldTargetLevelSystem),
+		LinkedFieldID: &tmpl.ID,
+		Attrs:         linkedAttrs(),
+	})
+	require.NoError(t, sErr)
+
+	channelFieldName := celSafeName()
+	_, sErr = th.Store.PropertyField().Create(&model.PropertyField{
+		GroupID:       groupID,
+		Name:          channelFieldName,
+		Type:          fieldType,
+		ObjectType:    model.PropertyFieldObjectTypeChannel,
+		TargetType:    string(model.PropertyFieldTargetLevelSystem),
+		LinkedFieldID: &tmpl.ID,
+		Attrs:         linkedAttrs(),
+	})
+	require.NoError(t, sErr)
+
+	// Caller holds option A on the USER field (users never hold channel values).
+	// Written store-level because the field is protected (app-layer writes to
+	// protected fields are plugin-only).
+	_, vErr := th.Store.PropertyValue().Create(&model.PropertyValue{
+		TargetID:   callerID,
+		TargetType: model.PropertyValueTargetTypeUser,
+		GroupID:    groupID,
+		FieldID:    userField.ID,
+		Value:      json.RawMessage(`"` + optA + `"`),
+	})
+	require.NoError(t, vErr)
+
+	resolver, rErr := newMaskingResolver(th.App, rctx, callerID)
+	require.Nil(t, rErr)
+
+	info, err := resolver.Resolve(model.PropertyFieldObjectTypeChannel, channelFieldName)
+	require.NoError(t, err)
+	require.Equal(t, model.MaskingFieldAccessSharedOnly, info.Access)
+	assert.False(t, info.IsValueHidden("A"), "value the caller holds user-side must be visible on the channel field")
+	assert.True(t, info.IsValueHidden("B"), "value the caller does not hold must be hidden on the channel field")
+}
+
+// TestAppMaskingResolver_AmbiguousUserSibling guards the fail-open hole where two
+// user fields link the same template. Nothing enforces LinkedFieldID uniqueness
+// at the DB level, so picking the "first" sibling would make channel-field
+// visibility depend on store order and could leak a value via the wrong sibling.
+// Resolution must error instead of guessing.
+func TestAppMaskingResolver_AmbiguousUserSibling(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+	rctx := request.TestContext(t)
+
+	cpaGroup, gErr := th.App.GetPropertyGroup(rctx, model.AccessControlPropertyGroupName)
+	require.Nil(t, gErr)
+	groupID := cpaGroup.ID
+
+	callerID := model.NewId()
+
+	optA := model.NewId()
+	options := []any{map[string]any{"id": optA, "name": "A"}}
+
+	tmpl, sErr := th.Store.PropertyField().Create(&model.PropertyField{
+		GroupID:    groupID,
+		Name:       celSafeName(),
+		Type:       model.PropertyFieldTypeSelect,
+		ObjectType: model.PropertyFieldObjectTypeTemplate,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
+		Attrs:      model.StringInterface{model.PropertyFieldAttributeOptions: options},
+	})
+	require.NoError(t, sErr)
+
+	linkedAttrs := func() model.StringInterface {
+		return model.StringInterface{
+			model.PropertyFieldAttributeOptions: options,
+			model.PropertyAttrsProtected:        true,
+			model.PropertyAttrsAccessMode:       model.PropertyAccessModeSharedOnly,
+			model.PropertyAttrsSourcePluginID:   "com.mattermost.uas-plugin",
+		}
+	}
+
+	// Two user fields link the same template — the ambiguity this test triggers.
+	for range 2 {
+		_, sErr = th.Store.PropertyField().Create(&model.PropertyField{
+			GroupID:       groupID,
+			Name:          celSafeName(),
+			Type:          model.PropertyFieldTypeSelect,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			LinkedFieldID: &tmpl.ID,
+			Attrs:         linkedAttrs(),
+		})
+		require.NoError(t, sErr)
+	}
+
+	channelFieldName := celSafeName()
+	_, sErr = th.Store.PropertyField().Create(&model.PropertyField{
+		GroupID:       groupID,
+		Name:          channelFieldName,
+		Type:          model.PropertyFieldTypeSelect,
+		ObjectType:    model.PropertyFieldObjectTypeChannel,
+		TargetType:    string(model.PropertyFieldTargetLevelSystem),
+		LinkedFieldID: &tmpl.ID,
+		Attrs:         linkedAttrs(),
+	})
+	require.NoError(t, sErr)
+
+	resolver, rErr := newMaskingResolver(th.App, rctx, callerID)
+	require.Nil(t, rErr)
+
+	// The Resolve path propagates the ambiguity error rather than guessing a
+	// sibling (the batch precompute path instead logs and fails the field closed).
+	_, err := resolver.Resolve(model.PropertyFieldObjectTypeChannel, channelFieldName)
+	require.Error(t, err)
+	var appErr *model.AppError
+	require.ErrorAs(t, err, &appErr)
+	require.Equal(t, "app.pap.masking.ambiguous_sibling.app_error", appErr.Id)
+}
+
+// TestAppMaskingResolver_ChannelFieldProtectedSiblingPublic guards the fail-open
+// hole where the channel field is protected (shared_only) but its user-side
+// sibling is public (the default when access mode is unset — linked fields do
+// NOT inherit access mode at creation). The access mode must come from the
+// channel field, not the sibling, and because a public sibling's options are
+// not held-filtered, the select values fail closed (all hidden) rather than
+// leaking every option name.
+func TestAppMaskingResolver_ChannelFieldProtectedSiblingPublic(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+	rctx := request.TestContext(t)
+
+	cpaGroup, gErr := th.App.GetPropertyGroup(rctx, model.AccessControlPropertyGroupName)
+	require.Nil(t, gErr)
+	groupID := cpaGroup.ID
+
+	callerID := model.NewId()
+
+	optA := model.NewId()
+	optB := model.NewId()
+	options := []any{
+		map[string]any{"id": optA, "name": "A"},
+		map[string]any{"id": optB, "name": "B"},
+	}
+
+	tmpl, sErr := th.Store.PropertyField().Create(&model.PropertyField{
+		GroupID:    groupID,
+		Name:       celSafeName(),
+		Type:       model.PropertyFieldTypeSelect,
+		ObjectType: model.PropertyFieldObjectTypeTemplate,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
+		Attrs:      model.StringInterface{model.PropertyFieldAttributeOptions: options},
+	})
+	require.NoError(t, sErr)
+
+	// User sibling: PUBLIC (access mode unset) — the misconfiguration the
+	// resolver must not trust for access mode.
+	_, sErr = th.Store.PropertyField().Create(&model.PropertyField{
+		GroupID:       groupID,
+		Name:          celSafeName(),
+		Type:          model.PropertyFieldTypeSelect,
+		ObjectType:    model.PropertyFieldObjectTypeUser,
+		TargetType:    string(model.PropertyFieldTargetLevelSystem),
+		LinkedFieldID: &tmpl.ID,
+		Attrs:         model.StringInterface{model.PropertyFieldAttributeOptions: options},
+	})
+	require.NoError(t, sErr)
+
+	// Channel field: shared_only (protected).
+	channelFieldName := celSafeName()
+	_, sErr = th.Store.PropertyField().Create(&model.PropertyField{
+		GroupID:       groupID,
+		Name:          channelFieldName,
+		Type:          model.PropertyFieldTypeSelect,
+		ObjectType:    model.PropertyFieldObjectTypeChannel,
+		TargetType:    string(model.PropertyFieldTargetLevelSystem),
+		LinkedFieldID: &tmpl.ID,
+		Attrs: model.StringInterface{
+			model.PropertyFieldAttributeOptions: options,
+			model.PropertyAttrsProtected:        true,
+			model.PropertyAttrsAccessMode:       model.PropertyAccessModeSharedOnly,
+		},
+	})
+	require.NoError(t, sErr)
+
+	resolver, rErr := newMaskingResolver(th.App, rctx, callerID)
+	require.Nil(t, rErr)
+
+	info, err := resolver.Resolve(model.PropertyFieldObjectTypeChannel, channelFieldName)
+	require.NoError(t, err)
+	require.Equal(t, model.MaskingFieldAccessSharedOnly, info.Access,
+		"access mode must come from the protected channel field, not the public sibling")
+	assert.True(t, info.IsValueHidden("A"), "protected channel field with a public sibling must fail closed, not leak option names")
+	assert.True(t, info.IsValueHidden("B"), "protected channel field with a public sibling must fail closed, not leak option names")
 }

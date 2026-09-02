@@ -4,7 +4,7 @@
 import os from 'node:os';
 
 import {expect, test} from '@playwright/test';
-import {PluginManifest} from '@mattermost/types/plugins';
+import type {PluginManifest} from '@mattermost/types/plugins';
 
 import {callsPluginId} from './constant';
 import {getAdminClient} from './server/init';
@@ -145,14 +145,14 @@ export async function ensurePluginsLoaded(pluginIds: string[] = []) {
             expect(isInstalled, `${pluginId} is not installed. Related test will fail.`).toBe(true);
 
             const isActive = plugins.active.some((plugin: PluginManifest) => plugin.id === pluginId);
-            if (!isActive) {
+            if (isActive) {
+                // eslint-disable-next-line no-console
+                console.log(`${pluginId} is installed and active.`);
+            } else {
                 await adminClient.enablePlugin(pluginId);
 
                 // eslint-disable-next-line no-console
                 console.log(`${pluginId} is installed and has been activated.`);
-            } else {
-                // eslint-disable-next-line no-console
-                console.log(`${pluginId} is installed and active.`);
             }
         });
 }

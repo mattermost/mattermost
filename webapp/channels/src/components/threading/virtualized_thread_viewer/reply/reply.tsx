@@ -18,7 +18,7 @@ type Props = {
     previousPostId: string;
     timestampProps?: Partial<TimestampProps>;
     isChannelAutotranslated: boolean;
-}
+};
 
 function Reply({
     a11yIndex,

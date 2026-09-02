@@ -53,7 +53,7 @@ func TestUpdateAssetsSubpath(t *testing.T) {
 		tempDir := t.TempDir()
 		t.Chdir(tempDir)
 
-		err := utils.UpdateAssetsSubpath("/")
+		err := utils.UpdateAssetsSubpath("/", nil)
 		require.Error(t, err)
 	})
 
@@ -159,7 +159,7 @@ func TestUpdateAssetsSubpath(t *testing.T) {
 				require.NoError(t, os.WriteFile(filepath.Join(tempDir, model.ClientDir, "root.html"), []byte(testCase.RootHTML), 0700))
 				require.NoError(t, os.WriteFile(filepath.Join(tempDir, model.ClientDir, "main.css"), []byte(testCase.MainCSS), 0700))
 				require.NoError(t, os.WriteFile(filepath.Join(tempDir, model.ClientDir, "manifest.json"), []byte(testCase.ManifestJSON), 0700))
-				err := utils.UpdateAssetsSubpath(testCase.Subpath)
+				err := utils.UpdateAssetsSubpath(testCase.Subpath, nil)
 				if testCase.ExpectedError != nil {
 					require.Equal(t, testCase.ExpectedError, err)
 				} else {
@@ -183,6 +183,57 @@ func TestUpdateAssetsSubpath(t *testing.T) {
 				require.Equal(t, testCase.ExpectedManifestJSON, string(contents))
 			})
 		}
+	})
+}
+
+func TestUpdateAssetsSubpathConcurrentReact(t *testing.T) {
+	// concurrentReactHash is the CSP script-src addition for the "window.enableConcurrentReact=true" inline script.
+	const concurrentReactHash = " 'sha256-VKORZJUo6WeDwDHwpxEgzZDt8C1kBbDOmUq72sfrx8M='"
+
+	// rootHTML renders a minimal root.html with the given CSP addition and concurrent React script body.
+	rootHTML := func(cspExtra, concurrentReactBody string) string {
+		return `<!DOCTYPE html> <html lang=en> <head> ` +
+			`<meta http-equiv="Content-Security-Policy" content="script-src 'self'` + cspExtra + `"> ` +
+			`<script id="publicPathInWindowScript"></script> ` +
+			`<script id="enableConcurrentReactScript">` + concurrentReactBody + `</script> ` +
+			`<link href="/static/main.js" rel="stylesheet"></head> <body></body> </html>`
+	}
+
+	writeAndUpdate := func(t *testing.T, initial string, enableConcurrentReact *bool) string {
+		t.Helper()
+
+		tempDir := t.TempDir()
+		t.Chdir(tempDir)
+		require.NoError(t, os.Mkdir(model.ClientDir, 0700))
+		require.NoError(t, os.WriteFile(filepath.Join(tempDir, model.ClientDir, "root.html"), []byte(initial), 0700))
+
+		require.NoError(t, utils.UpdateAssetsSubpath("/", enableConcurrentReact))
+
+		contents, err := os.ReadFile(filepath.Join(tempDir, model.ClientDir, "root.html"))
+		require.NoError(t, err)
+		return string(contents)
+	}
+
+	t.Run("enabled injects the script and CSP hash", func(t *testing.T) {
+		got := writeAndUpdate(t, rootHTML("", ""), model.NewPointer(true))
+		require.Equal(t, rootHTML(concurrentReactHash, "window.enableConcurrentReact=true"), got)
+	})
+
+	t.Run("disabled clears the script and CSP hash", func(t *testing.T) {
+		got := writeAndUpdate(t, rootHTML(concurrentReactHash, "window.enableConcurrentReact=true"), model.NewPointer(false))
+		require.Equal(t, rootHTML("", ""), got)
+	})
+
+	t.Run("nil preserves an enabled script", func(t *testing.T) {
+		initial := rootHTML(concurrentReactHash, "window.enableConcurrentReact=true")
+		got := writeAndUpdate(t, initial, nil)
+		require.Equal(t, initial, got)
+	})
+
+	t.Run("nil preserves a disabled script", func(t *testing.T) {
+		initial := rootHTML("", "")
+		got := writeAndUpdate(t, initial, nil)
+		require.Equal(t, initial, got)
 	})
 }
 

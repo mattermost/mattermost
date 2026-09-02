@@ -29,7 +29,7 @@ type Props = {
     onChange: (comment: string) => void;
     onError: (error: React.ReactNode) => void;
     onHeightChange: (height: number, maxHeight: number) => void;
-}
+};
 
 const ForwardPostCommentInput = ({channelId, canForwardPost, comment, permaLinkLength, onChange, onError, onSubmit, onHeightChange}: Props) => {
     const {formatMessage} = useIntl();

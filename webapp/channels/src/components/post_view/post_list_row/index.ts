@@ -18,7 +18,7 @@ import type {GlobalState} from 'types/store';
 import PostListRow from './post_list_row';
 import type {PostListRowProps} from './post_list_row';
 
-type OwnProps = Pick<PostListRowProps, 'listId'>
+type OwnProps = Pick<PostListRowProps, 'listId'>;
 
 function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
     const shortcutReactToLastPostEmittedFrom = getShortcutReactToLastPostEmittedFrom(state);
@@ -27,8 +27,8 @@ function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
     const newMessagesSeparatorActions = state.plugins.components.NewMessagesSeparatorAction;
 
     const props: Pick<
-    PostListRowProps,
-    'shortcutReactToLastPostEmittedFrom'| 'exceededLimitChannelId' | 'firstInaccessiblePostTime' | 'post' | 'currentUserId' | 'newMessagesSeparatorActions'
+        PostListRowProps,
+    'shortcutReactToLastPostEmittedFrom' | 'exceededLimitChannelId' | 'firstInaccessiblePostTime' | 'post' | 'currentUserId' | 'newMessagesSeparatorActions'
     > = {
         shortcutReactToLastPostEmittedFrom,
         post,

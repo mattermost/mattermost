@@ -29,7 +29,7 @@ type Props = {
     location: {
         pathname: string;
     };
-}
+};
 
 function makeMapStateToProps() {
     const getReplyCount = makeGetCommentCountForPost();

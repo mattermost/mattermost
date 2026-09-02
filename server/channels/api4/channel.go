@@ -28,6 +28,24 @@ func rejectBoardChannelByID(c *Context, channelId string) bool {
 	return false
 }
 
+// rejectSpaceChannelByID returns true and sets c.Err if the channel ID belongs
+// to a space channel. Space channels must use the spaces API, not /channels.
+// Use this on write endpoints to give a clear error instead of a 404.
+// It reads from the primary so a freshly created space cannot slip through on
+// replica lag, and fails closed by rejecting on any error other than not-found.
+func rejectSpaceChannelByID(c *Context, channelId string) bool {
+	_, err := c.App.GetChannelOfType(c.AppContext.With(app.RequestContextWithMaster), channelId, model.ChannelTypeSpace)
+	if err == nil {
+		c.Err = model.NewAppError("", "api.channel.space_channel.app_error", nil, "space channels cannot be accessed via /channels endpoints", http.StatusBadRequest)
+		return true
+	}
+	if err.StatusCode != http.StatusNotFound {
+		c.Err = err
+		return true
+	}
+	return false
+}
+
 func (api *API) InitChannel() {
 	api.BaseRoutes.Channels.Handle("", api.APISessionRequired(getAllChannels)).Methods(http.MethodGet)
 	api.BaseRoutes.Channels.Handle("", api.APISessionRequired(createChannel)).Methods(http.MethodPost)
@@ -100,6 +118,8 @@ func (api *API) InitChannel() {
 
 	api.BaseRoutes.ChannelModerations.Handle("", api.APISessionRequired(getChannelModerations)).Methods(http.MethodGet)
 	api.BaseRoutes.ChannelModerations.Handle("/patch", api.APISessionRequired(patchChannelModerations)).Methods(http.MethodPut)
+
+	api.initChannelJoinRequestRoutes()
 }
 
 func createChannel(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -112,6 +132,11 @@ func createChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if channel.IsBoard() {
 		c.SetInvalidParamWithDetails("type", "cannot create board channels via /channels endpoint")
+		return
+	}
+
+	if channel.IsSpace() {
+		c.SetInvalidParamWithDetails("type", "cannot create space channels via /channels endpoint")
 		return
 	}
 
@@ -142,6 +167,24 @@ func createChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	if channel.Type == model.ChannelTypePrivate && !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), channel.TeamId, model.PermissionCreatePrivateChannel) {
 		c.SetPermissionError(model.PermissionCreatePrivateChannel)
 		return
+	}
+
+	if channel.Discoverable {
+		if !c.App.Config().FeatureFlags.DiscoverableChannels {
+			c.Err = model.NewAppError("createChannel", "api.channel.discoverable_join_request.feature_disabled.app_error", nil, "", http.StatusBadRequest)
+			return
+		}
+		if channel.Type != model.ChannelTypePrivate {
+			c.Err = model.NewAppError("createChannel", "model.channel.is_valid.discoverable.app_error", nil, "", http.StatusBadRequest)
+			return
+		}
+		// The team-scoped check is the closest analog to "would this user
+		// have permission to manage discoverability after the channel is
+		// created" — channel-scope grants don't exist yet at creation time.
+		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), channel.TeamId, model.PermissionManagePrivateChannelDiscoverability) {
+			c.SetPermissionError(model.PermissionManagePrivateChannelDiscoverability)
+			return
+		}
 	}
 
 	sc, appErr := c.App.CreateChannelWithUser(c.AppContext, channel, c.AppContext.Session().UserId)
@@ -325,7 +368,7 @@ func updateChannelPrivacy(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := c.App.GetUser(c.AppContext.Session().UserId)
+	user, err := c.App.GetUser(c.AppContext, c.AppContext.Session().UserId)
 	if err != nil {
 		c.Err = err
 		return
@@ -377,14 +420,43 @@ func patchChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	updatingProperties := patch.DisplayName != nil || patch.Name != nil || patch.Header != nil || patch.Purpose != nil || patch.GroupConstrained != nil || patch.DefaultCategoryName != nil
 	updatingAutoTranslation := patch.AutoTranslation != nil
 	updatingManagedCategory := patch.ManagedCategoryName != nil
+	updatingDiscoverable := patch.Discoverable != nil
 
-	if !updatingProperties && !updatingAutoTranslation && patch.BannerInfo == nil && !updatingManagedCategory {
+	if !updatingProperties && !updatingAutoTranslation && patch.BannerInfo == nil && !updatingManagedCategory && !updatingDiscoverable {
 		c.Err = model.NewAppError("patchChannel", "api.channel.patch_update_channel.no_changes.app_error", nil, "", http.StatusBadRequest)
 		return
 	}
 
+	if updatingDiscoverable {
+		if !c.App.Config().FeatureFlags.DiscoverableChannels {
+			c.Err = model.NewAppError("patchChannel", "api.channel.discoverable_join_request.feature_disabled.app_error", nil, "", http.StatusBadRequest)
+			return
+		}
+		if oldChannel.Type != model.ChannelTypePrivate {
+			c.Err = model.NewAppError("patchChannel", "model.channel.is_valid.discoverable.app_error", nil, "", http.StatusBadRequest)
+			return
+		}
+		if oldChannel.DeleteAt != 0 {
+			c.Err = model.NewAppError("patchChannel", "api.channel.update_channel.deleted.app_error", nil, "", http.StatusBadRequest)
+			return
+		}
+		if oldChannel.IsShared() {
+			c.Err = model.NewAppError("patchChannel", "api.channel.discoverable_join_request.shared.app_error", nil, "", http.StatusBadRequest)
+			return
+		}
+		if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionManagePrivateChannelDiscoverability); !ok {
+			c.SetPermissionError(model.PermissionManagePrivateChannelDiscoverability)
+			return
+		}
+	}
+
 	if updatingAutoTranslation && (c.App.AutoTranslation() == nil || !c.App.AutoTranslation().IsFeatureAvailable()) {
 		c.Err = model.NewAppError("patchChannel", "api.channel.patch_update_channel.feature_not_available.app_error", nil, "", http.StatusForbidden)
+		return
+	}
+
+	if patch.GroupConstrained != nil && !oldChannel.SupportsGroupSync() {
+		c.Err = model.NewAppError("patchChannel", "api.channel.patch_update_channel.group_constrained_not_allowed.app_error", nil, "", http.StatusBadRequest)
 		return
 	}
 
@@ -641,7 +713,7 @@ func readAllMessages(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "user_id", c.Params.UserId)
 
-	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
+	if !c.App.SessionHasPermissionToUser(c.AppContext, *c.AppContext.Session(), c.Params.UserId) {
 		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
@@ -772,6 +844,11 @@ func getChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		checkChannelFlaggable(c, channel)
+		if c.Err != nil {
+			return
+		}
+
 		requireTeamContentReviewer(c, c.AppContext.Session().UserId, channel.TeamId)
 		if c.Err != nil {
 			return
@@ -806,6 +883,9 @@ func getChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 				}
 			}
 		} else if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionReadChannel); !ok {
+			if served := serveDiscoverableNonMember(c, w, channel); served {
+				return
+			}
 			c.SetPermissionError(model.PermissionReadChannel)
 			return
 		}
@@ -822,13 +902,87 @@ func getChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// sanitizeDiscoverableChannel returns a copy of `channel` containing only the
+// fields safe to expose to a non-member who can see the channel through the
+// discoverable surface. Cell-level secrets such as Props or per-channel
+// scheme identifiers are stripped so this view is strictly read-only metadata.
+func sanitizeDiscoverableChannel(channel *model.Channel) *model.Channel {
+	if channel == nil {
+		return nil
+	}
+	return &model.Channel{
+		Id:             channel.Id,
+		TeamId:         channel.TeamId,
+		Type:           channel.Type,
+		DisplayName:    channel.DisplayName,
+		Name:           channel.Name,
+		Header:         channel.Header,
+		Purpose:        channel.Purpose,
+		Discoverable:   channel.Discoverable,
+		PolicyEnforced: channel.PolicyEnforced,
+		CreateAt:       channel.CreateAt,
+		UpdateAt:       channel.UpdateAt,
+		DeleteAt:       channel.DeleteAt,
+	}
+}
+
+// discoverableNonMemberView returns a sanitized non-member view of `channel`
+// when the calling user qualifies under the discoverable visibility rules,
+// or (nil, nil) when the channel must remain hidden — the caller should
+// emit its own permission-denied response. Errors from the discoverable
+// lookup are returned for the caller to assign to c.Err. When the feature
+// flag is off, this returns (nil, nil) and the caller falls through to its
+// default 403/404 path so the existing read contract is preserved.
+func discoverableNonMemberView(c *Context, channel *model.Channel) (*model.Channel, *model.AppError) {
+	if !c.App.Config().FeatureFlags.DiscoverableChannels {
+		return nil, nil
+	}
+	user, userErr := c.App.GetUser(c.AppContext, c.AppContext.Session().UserId)
+	if userErr != nil {
+		return nil, userErr
+	}
+	allowed, allowedErr := c.App.IsDiscoverableJoinAllowed(c.AppContext, user, channel)
+	if allowedErr != nil {
+		return nil, allowedErr
+	}
+	if !allowed {
+		return nil, nil
+	}
+	return sanitizeDiscoverableChannel(channel), nil
+}
+
+// serveDiscoverableNonMember writes the sanitized non-member discoverable
+// view of `channel` to `w` and returns true when the request was handled
+// here (either the response was written, or c.Err was set on a lookup
+// failure). Returns false without touching the response when the caller
+// should emit its own permission-denied response (the channel is hidden
+// from this non-member, or the feature flag is off).
+//
+// Centralising this here means every read endpoint that previously emitted
+// 403/404 to a non-member can keep its prior failure shape while opting in
+// to the discoverable surface with a single `if served { return }` guard.
+func serveDiscoverableNonMember(c *Context, w http.ResponseWriter, channel *model.Channel) bool {
+	sanitized, err := discoverableNonMemberView(c, channel)
+	if err != nil {
+		c.Err = err
+		return true
+	}
+	if sanitized == nil {
+		return false
+	}
+	if encErr := json.NewEncoder(w).Encode(sanitized); encErr != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(encErr))
+	}
+	return true
+}
+
 func getChannelUnread(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequireChannelId().RequireUserId()
 	if c.Err != nil {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
+	if !c.App.SessionHasPermissionToUser(c.AppContext, *c.AppContext.Session(), c.Params.UserId) {
 		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
@@ -965,7 +1119,8 @@ func getPinnedPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if c.HandleEtag(posts.Etag(), "Get Pinned Posts", w, r) {
+	pinnedEtag := c.App.AppendABACEtag(posts.Etag(), c.AppContext.Session().UserId, c.Params.ChannelId)
+	if c.HandleEtag(pinnedEtag, "Get Pinned Posts", w, r) {
 		return
 	}
 
@@ -976,7 +1131,7 @@ func getPinnedPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Set(model.HeaderEtagServer, clientPostList.Etag())
+	w.Header().Set(model.HeaderEtagServer, pinnedEtag)
 	if err := clientPostList.EncodeJSON(w); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
@@ -1233,7 +1388,7 @@ func getChannelsForTeamForUser(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
+	if !c.App.SessionHasPermissionToUser(c.AppContext, *c.AppContext.Session(), c.Params.UserId) {
 		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
@@ -1284,7 +1439,7 @@ func getChannelsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
+	if !c.App.SessionHasPermissionToUser(c.AppContext, *c.AppContext.Session(), c.Params.UserId) {
 		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
@@ -1600,7 +1755,7 @@ func deleteChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		if *c.App.Config().ServiceSettings.EnableAPIChannelDeletion {
 			err = c.App.PermanentDeleteChannel(c.AppContext, channel)
 		} else {
-			user, usrErr := c.App.GetUser(c.AppContext.Session().UserId)
+			user, usrErr := c.App.GetUser(c.AppContext, c.AppContext.Session().UserId)
 			if usrErr == nil && user != nil && user.IsSystemAdmin() {
 				// More verbose error message for system admins
 				err = model.NewAppError("deleteChannel", "api.user.delete_channel.not_enabled.for_admin.app_error", nil, "channelId="+c.Params.ChannelId, http.StatusUnauthorized)
@@ -1646,6 +1801,9 @@ func getChannelByName(c *Context, w http.ResponseWriter, r *http.Request) {
 		// allows team admins to access private channel
 		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), channel.TeamId, model.PermissionManageTeam) {
 			if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channel.Id, model.PermissionReadChannel); !ok {
+				if served := serveDiscoverableNonMember(c, w, channel); served {
+					return
+				}
 				c.Err = model.NewAppError("getChannelByName", "app.channel.get_by_name.missing.app_error", nil, "teamId="+channel.TeamId+", "+"name="+channel.Name+"", http.StatusNotFound)
 				return
 			}
@@ -1686,6 +1844,9 @@ func getChannelByNameForTeamName(c *Context, w http.ResponseWriter, r *http.Requ
 	} else if !channelOk {
 		// allows team admins to access private channel
 		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), channel.TeamId, model.PermissionManageTeam) {
+			if served := serveDiscoverableNonMember(c, w, channel); served {
+				return
+			}
 			c.Err = model.NewAppError("getChannelByNameForTeamName", "app.channel.get_by_name.missing.app_error", nil, "teamId="+channel.TeamId+", "+"name="+channel.Name+"", http.StatusNotFound)
 			return
 		}
@@ -1854,7 +2015,7 @@ func viewChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
+	if !c.App.SessionHasPermissionToUser(c.AppContext, *c.AppContext.Session(), c.Params.UserId) {
 		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
@@ -1915,7 +2076,7 @@ func readMultipleChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
+	if !c.App.SessionHasPermissionToUser(c.AppContext, *c.AppContext.Session(), c.Params.UserId) {
 		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
@@ -1952,7 +2113,7 @@ func readAllInTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	model.AddEventParameterToAuditRec(auditRec, "user_id", c.Params.UserId)
 	model.AddEventParameterToAuditRec(auditRec, "team_id", c.Params.TeamId)
 
-	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
+	if !c.App.SessionHasPermissionToUser(c.AppContext, *c.AppContext.Session(), c.Params.UserId) {
 		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
@@ -1989,10 +2150,14 @@ func updateChannelMemberRoles(c *Context, w http.ResponseWriter, r *http.Request
 		return
 	}
 
+	if rejectSpaceChannelByID(c, c.Params.ChannelId) {
+		return
+	}
+
 	props := model.MapFromJSON(r.Body)
 
 	newRoles := props["roles"]
-	if !(model.IsValidUserRoles(newRoles)) {
+	if !model.IsValidChannelMemberRoles(newRoles) {
 		c.SetInvalidParam("roles")
 		return
 	}
@@ -2024,6 +2189,10 @@ func updateChannelMemberSchemeRoles(c *Context, w http.ResponseWriter, r *http.R
 	}
 
 	if rejectBoardChannelByID(c, c.Params.ChannelId) {
+		return
+	}
+
+	if rejectSpaceChannelByID(c, c.Params.ChannelId) {
 		return
 	}
 
@@ -2063,6 +2232,10 @@ func updateChannelMemberNotifyProps(c *Context, w http.ResponseWriter, r *http.R
 		return
 	}
 
+	if rejectSpaceChannelByID(c, c.Params.ChannelId) {
+		return
+	}
+
 	props := model.MapFromJSON(r.Body)
 	if props == nil {
 		c.SetInvalidParam("notify_props")
@@ -2074,7 +2247,7 @@ func updateChannelMemberNotifyProps(c *Context, w http.ResponseWriter, r *http.R
 	model.AddEventParameterToAuditRec(auditRec, "channel_id", c.Params.ChannelId)
 	model.AddEventParameterToAuditRec(auditRec, "props", props)
 
-	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
+	if !c.App.SessionHasPermissionToUser(c.AppContext, *c.AppContext.Session(), c.Params.UserId) {
 		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
@@ -2109,6 +2282,10 @@ func updateChannelMemberAutotranslation(c *Context, w http.ResponseWriter, r *ht
 		return
 	}
 
+	if rejectSpaceChannelByID(c, c.Params.ChannelId) {
+		return
+	}
+
 	props := UpdateChannelMemberAutotranslationProps{}
 	if err := json.NewDecoder(r.Body).Decode(&props); err != nil {
 		c.SetInvalidParamWithErr("autotranslation_disabled", err)
@@ -2121,7 +2298,7 @@ func updateChannelMemberAutotranslation(c *Context, w http.ResponseWriter, r *ht
 	model.AddEventParameterToAuditRec(auditRec, "autotranslation_disabled", props.AutoTranslationDisabled)
 	model.AddEventParameterToAuditRec(auditRec, "user_id", c.Params.UserId)
 
-	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
+	if !c.App.SessionHasPermissionToUser(c.AppContext, *c.AppContext.Session(), c.Params.UserId) {
 		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
@@ -2252,8 +2429,24 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if channel.Type == model.ChannelTypePrivate {
 		if hasPermission, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channel.Id, model.PermissionManagePrivateChannelMembers); !hasPermission {
+			// Allow the user to self-add to a discoverable private channel only
+			// through the request flow — the discoverable toggle does not
+			// implicitly grant PermissionManagePrivateChannelMembers, and the
+			// existing addChannelMember API would otherwise let any caller
+			// bypass the queue by issuing a direct POST.
 			c.SetPermissionError(model.PermissionManagePrivateChannelMembers)
 			return
+		}
+
+		// Discoverable + no policy: the request flow is the only path. Even
+		// admins use it to ensure the audit trail. We exempt the case where
+		// the requester is adding someone other than themselves so admin
+		// invites still work.
+		for _, userId := range userIds {
+			if c.App.IsDiscoverableSelfAddBlocked(c.AppContext, channel, c.AppContext.Session().UserId, userId) {
+				c.Err = model.NewAppError("addChannelMember", "api.channel.discoverable_join_request.discoverable_requires_approval.app_error", nil, "channel_id="+channel.Id, http.StatusForbidden)
+				return
+			}
 		}
 	}
 
@@ -2277,7 +2470,7 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 	var newChannelMembers []model.ChannelMember
 	for _, userId := range userIds {
 		if !model.IsValidId(userId) {
-			c.Logger.Warn("Error adding channel member, invalid UserId", mlog.String("UserId", userId), mlog.String("ChannelId", channel.Id))
+			c.Logger.Warn("Error adding channel member, invalid UserId", mlog.String("user_id", userId), mlog.String("channel_id", channel.Id))
 			c.SetInvalidParam("user_id")
 			lastError = c.Err
 			continue
@@ -2297,7 +2490,7 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		existingMember, err := c.App.GetChannelMember(c.AppContext, member.ChannelId, member.UserId)
 		if err != nil {
 			if err.Id != app.MissingChannelMemberError {
-				c.Logger.Warn("Error adding channel member, error getting channel member", mlog.String("UserId", userId), mlog.String("ChannelId", channel.Id), mlog.Err(err))
+				c.Logger.Warn("Error adding channel member, error getting channel member", mlog.String("user_id", userId), mlog.String("channel_id", channel.Id), mlog.Err(err))
 				lastError = err
 				continue
 			}
@@ -2310,12 +2503,12 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 				newChannelMembers = append(newChannelMembers, *existingMember)
 				continue
 			} else if isSelfAdd && !canAddSelf {
-				c.Logger.Warn("Error adding channel member, Invalid Permission to add self", mlog.String("UserId", userId), mlog.String("ChannelId", channel.Id))
+				c.Logger.Warn("Error adding channel member, Invalid Permission to add self", mlog.String("user_id", userId), mlog.String("channel_id", channel.Id))
 				c.SetPermissionError(model.PermissionJoinPublicChannels)
 				lastError = c.Err
 				continue
 			} else if !isSelfAdd && !canAddOthers {
-				c.Logger.Warn("Error adding channel member, Invalid Permission to add others", mlog.String("UserId", userId), mlog.String("ChannelId", channel.Id))
+				c.Logger.Warn("Error adding channel member, Invalid Permission to add others", mlog.String("user_id", userId), mlog.String("channel_id", channel.Id))
 				c.SetPermissionError(model.PermissionManagePublicChannelMembers)
 				lastError = c.Err
 				continue
@@ -2324,7 +2517,7 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		if existingMember != nil {
 			// user is already a member, go to next
-			c.Logger.Warn("User is already a channel member, skipping", mlog.String("UserId", userId), mlog.String("ChannelId", channel.Id))
+			c.Logger.Warn("User is already a channel member, skipping", mlog.String("user_id", userId), mlog.String("channel_id", channel.Id))
 			newChannelMembers = append(newChannelMembers, *existingMember)
 			continue
 		}
@@ -2334,7 +2527,7 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 			PostRootID:      postRootId,
 		})
 		if err != nil {
-			c.Logger.Warn("Error adding channel member", mlog.String("UserId", userId), mlog.String("ChannelId", channel.Id), mlog.Err(err))
+			c.Logger.Warn("Error adding channel member", mlog.String("user_id", userId), mlog.String("channel_id", channel.Id), mlog.Err(err))
 			lastError = err
 			continue
 		}
@@ -2343,7 +2536,7 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		if postRootId != "" {
 			err := c.App.UpdateThreadFollowForUserFromChannelAdd(c.AppContext, cm.UserId, channel.TeamId, postRootId)
 			if err != nil {
-				c.Logger.Warn("Error adding channel member, error updating thread", mlog.String("UserId", userId), mlog.String("ChannelId", channel.Id), mlog.Err(err))
+				c.Logger.Warn("Error adding channel member, error updating thread", mlog.String("user_id", userId), mlog.String("channel_id", channel.Id), mlog.Err(err))
 				lastError = err
 				continue
 			}
@@ -2488,8 +2681,11 @@ func setChannelMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Reject policy-enforced (ABAC) channels
-	if channel.PolicyEnforced {
+	// Reject channels whose policy controls membership (ABAC). Channels
+	// carrying only a permission policy (e.g. file upload restriction) keep
+	// the bulk-edit endpoint usable — those policies do not gate joins.
+	// App.GetChannel hydrates PolicyActions so this check is reliable.
+	if channel.HasMembershipPolicyAction() {
 		c.Err = model.NewAppError("setChannelMembers", "api.channel.set_members.policy_enforced.app_error", nil, "", http.StatusBadRequest)
 		return
 	}
@@ -2576,7 +2772,7 @@ func removeChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := c.App.GetUser(c.Params.UserId)
+	user, err := c.App.GetUser(c.AppContext, c.Params.UserId)
 	if err != nil {
 		c.Err = err
 		return
@@ -2686,6 +2882,10 @@ func updateChannelScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 func channelMembersMinusGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequireChannelId()
 	if c.Err != nil {
+		return
+	}
+
+	if rejectSpaceChannelByID(c, c.Params.ChannelId) {
 		return
 	}
 
@@ -2914,7 +3114,7 @@ func moveChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := c.App.GetUser(c.AppContext.Session().UserId)
+	user, err := c.App.GetUser(c.AppContext, c.AppContext.Session().UserId)
 	if err != nil {
 		c.Err = err
 		return
@@ -2958,7 +3158,7 @@ func getDirectOrGroupMessageMembersCommonTeams(c *Context, w http.ResponseWriter
 		return
 	}
 
-	user, err := c.App.GetUser(c.AppContext.Session().UserId)
+	user, err := c.App.GetUser(c.AppContext, c.AppContext.Session().UserId)
 	if err != nil {
 		c.Err = err
 		return
@@ -2994,13 +3194,17 @@ func convertGroupMessageToChannel(c *Context, w http.ResponseWriter, r *http.Req
 		return
 	}
 
+	if rejectSpaceChannelByID(c, c.Params.ChannelId) {
+		return
+	}
+
 	var gmConversionRequest *model.GroupMessageConversionRequestBody
 	if err := json.NewDecoder(r.Body).Decode(&gmConversionRequest); err != nil || gmConversionRequest == nil {
 		c.SetInvalidParamWithErr("body", err)
 		return
 	}
 
-	user, err := c.App.GetUser(c.AppContext.Session().UserId)
+	user, err := c.App.GetUser(c.AppContext, c.AppContext.Session().UserId)
 	if err != nil {
 		c.Err = err
 		return
@@ -3068,6 +3272,16 @@ func getChannelAccessControlAttributes(c *Context, w http.ResponseWriter, r *htt
 
 	if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionReadChannel); !ok {
 		c.SetPermissionError(model.PermissionReadChannel)
+		return
+	}
+
+	// When channel policy indicators are disabled, the matching attribute
+	// values must not leak to end users — not through the UI nor this API.
+	// Return an empty set so callers simply render no indicators.
+	if !*c.App.Config().AccessControlSettings.EnableChannelPolicyIndicators {
+		if err := json.NewEncoder(w).Encode(map[string][]string{}); err != nil {
+			c.Logger.Warn("Error while writing response", mlog.Err(err))
+		}
 		return
 	}
 

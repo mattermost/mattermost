@@ -5217,7 +5217,7 @@
   },
   {
     "id": "api.templates.remove_expired_license.subject",
-    "translation": "Ліцензію Mattermost Enterprise вимкнено."
+    "translation": "Термін дії вашої ліцензії на {{.SkuName}} закінчився"
   },
   {
     "id": "api.templates.invite_guest_subject",
@@ -6276,10 +6276,6 @@
     "translation": "Не вдається отримати канали за ідентифікаторами."
   },
   {
-    "id": "app.channel.get_channel_counts.get.app_error",
-    "translation": "Не вдається отримати кількість каналів."
-  },
-  {
     "id": "app.team.update.updating.app_error",
     "translation": "Ми зіткнулися з помилкою при оновленні команди."
   },
@@ -7280,14 +7276,6 @@
     "translation": "Не вдалося прочитати файл."
   },
   {
-    "id": "api.file.test_connection_s3_bucket_does_not_exist.app_error",
-    "translation": "Переконайтеся, що ваш контейнер Amazon S3 доступний та перевірте права доступу до нього."
-  },
-  {
-    "id": "api.file.test_connection_s3_auth.app_error",
-    "translation": "Не вдається підключитися до S3. Перевірте параметри авторизації підключення до Amazon S3 та налаштування автентифікації."
-  },
-  {
     "id": "api.file.file_reader.app_error",
     "translation": "Не вдалось отримати програму для читання файлів."
   },
@@ -7410,10 +7398,6 @@
   {
     "id": "api.file.upload_file.incorrect_channelId.app_error",
     "translation": "Не вдалося завантажити файл. Неправильний ідентифікатор каналу: {{.channelId}}"
-  },
-  {
-    "id": "api.file.test_connection_s3_settings_nil.app_error",
-    "translation": "Налаштування файлового сховища містять незаповнені значення."
   },
   {
     "id": "api.invalid_channel",
@@ -7725,7 +7709,7 @@
   },
   {
     "id": "api.templates.license_up_for_renewal_subject",
-    "translation": "Ваша ліцензія підлягає продовженню"
+    "translation": "Термін дії вашої ліцензії на {{.SkuName}} добігає кінця"
   },
   {
     "id": "api.templates.ip_filters_changed_footer.title",
@@ -7817,7 +7801,7 @@
   },
   {
     "id": "api.templates.license_up_for_renewal_subtitle",
-    "translation": "{{.UserName}}, термін дії вашої підписки закінчується через {{.Days}} днів. Ми сподіваємося, що ви насолоджуєтесь гнучкою та безпечною командною співпрацею, яку забезпечує Mattermost. Поновіть свою підписку якнайшвидше, щоб ваша команда могла продовжувати користуватися цими перевагами."
+    "translation": "Термін дії вашої ліцензії {{.SkuName}} для <a href=\"{{.SiteURL}}\">{{.SiteName}}</a> закінчується через {{.Days}} днів. Сподіваємося, вам подобається безпечна та надзвичайно важлива для роботи співпраця, яку забезпечує Mattermost."
   },
   {
     "id": "api.templates.license_up_for_renewal_title",
@@ -10016,14 +10000,6 @@
     "translation": "Не вдалося відфільтрувати конфігурацію."
   },
   {
-    "id": "app.custom_profile_attributes.property_field_delete.app_error",
-    "translation": "Не вдається видалити поле користувацького атрибуту профілю"
-  },
-  {
-    "id": "app.custom_profile_attributes.list_property_values.app_error",
-    "translation": "Не вдається отримати значення користувацьких атрибутів профілю"
-  },
-  {
     "id": "app.role.delete.app_error",
     "translation": "Не вдалося видалити роль."
   },
@@ -10044,10 +10020,6 @@
     "translation": "Неправильне значення властивості: {{.FieldName}} ({{.Reason}})."
   },
   {
-    "id": "api.custom_profile_attributes.license_error",
-    "translation": "Ваша ліцензія не підтримує користувацькі атрибути профілю."
-  },
-  {
     "id": "api.file.zip_file_reader.app_error",
     "translation": "Неможливо отримати програму для читання zip-файлів."
   },
@@ -10056,28 +10028,8 @@
     "translation": "Підрахунок активності каналів: {{.NumCompleted}}/{{.NumChannels}} каналів завершено."
   },
   {
-    "id": "app.custom_profile_attributes.cpa_group_id.app_error",
-    "translation": "Не вдалось зареєструвати групу властивостей \"Атрибути користувацького профілю\""
-  },
-  {
-    "id": "app.custom_profile_attributes.get_property_field.app_error",
-    "translation": "Неможливо отримати поле \"Атрибут профілю користувача\""
-  },
-  {
-    "id": "app.custom_profile_attributes.limit_reached.app_error",
-    "translation": "Досягнуто ліміт поля \"Атрибути профілю користувача\""
-  },
-  {
     "id": "api.command.execute_command.deleted.error",
     "translation": "Неможливо виконати команду у видаленому каналі."
-  },
-  {
-    "id": "app.custom_profile_attributes.property_field_not_found.app_error",
-    "translation": "Користувацьке поле атрибуту профілю не знайдено"
-  },
-  {
-    "id": "app.custom_profile_attributes.property_field_update.app_error",
-    "translation": "Не вдається оновити поле атрибуту користувацького профілю"
   },
   {
     "id": "app.file_info.get_count.app_error",
@@ -10104,14 +10056,6 @@
     "translation": "Сеанс не знайдено."
   },
   {
-    "id": "app.custom_profile_attributes.count_property_fields.app_error",
-    "translation": "Не вдалося підрахувати кількість полів для групи атрибутів користувацького профілю"
-  },
-  {
-    "id": "app.custom_profile_attributes.property_value_upsert.app_error",
-    "translation": "Не вдалося додати поля користувацьких атрибутів профілю"
-  },
-  {
     "id": "model.config.is_valid.metrics_client_side_user_id.app_error",
     "translation": "Невірний ідентифікатор користувача на стороні клієнта: {{.Id}}"
   },
@@ -10122,10 +10066,6 @@
   {
     "id": "app.file_info.delete_for_post_ids.app_error",
     "translation": "Не вдалося видалити запитувані файли з бази даних"
-  },
-  {
-    "id": "app.custom_profile_attributes.search_property_fields.app_error",
-    "translation": "Не вдалося виконати пошук полів атрибутів користувацького профілю"
   },
   {
     "id": "app.post.restore_post_version.not_an_history_item.app_error",
@@ -10220,10 +10160,6 @@
     "translation": "Функція недоступна для поточної ліцензії"
   },
   {
-    "id": "app.custom_profile_attributes.sanitize_and_validate.app_error",
-    "translation": "Некоректні атрибути значень властивостей : {{.AttributeName}} ({{.Reason}})."
-  },
-  {
     "id": "app.custom_profile_attributes.property_field_conversion.app_error",
     "translation": "Не вдалося перетворити поле властивості на поле атрибута кастомного профілю"
   },
@@ -10288,16 +10224,8 @@
     "translation": "Виникла помилка при декодуванні JSON-відповіді з інтерактивного діалогу."
   },
   {
-    "id": "app.custom_profile_attributes.delete_property_values_for_user.app_error",
-    "translation": "Не вдалося видалити значення атрибутів спеціального профілю для користувача"
-  },
-  {
     "id": "ent.ldap.update_cpa.empty_attribute",
     "translation": "Порожнє значення атрибута LDAP"
-  },
-  {
-    "id": "app.custom_profile_attributes.validate_value.app_error",
-    "translation": "Не вдалося перевірити значення властивості"
   },
   {
     "id": "ent.ldap.cpa_field_mapping.list_error",

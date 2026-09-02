@@ -7,6 +7,7 @@ exports[`components/admin_console/data_retention_settings/custom_policy_form sho
   >
     <div
       class="admin-console__header with-back"
+      data-testid="admin-console-header"
     >
       <div>
         <a
@@ -216,6 +217,7 @@ exports[`components/admin_console/data_retention_settings/custom_policy_form sho
             >
               <div
                 class="DataGrid customTable"
+                data-testid="dataGrid"
               >
                 <div
                   class="DataGrid_search"
@@ -246,6 +248,7 @@ exports[`components/admin_console/data_retention_settings/custom_policy_form sho
                 </div>
                 <div
                   class="DataGrid_header"
+                  data-testid="dataGrid-header"
                 >
                   <div
                     class="DataGrid_cell"
@@ -258,6 +261,7 @@ exports[`components/admin_console/data_retention_settings/custom_policy_form sho
                 </div>
                 <div
                   class="DataGrid_rows"
+                  data-testid="dataGrid-rows"
                 >
                   <div
                     class="DataGrid_empty"
@@ -305,6 +309,7 @@ exports[`components/admin_console/data_retention_settings/custom_policy_form sho
             >
               <div
                 class="DataGrid customTable"
+                data-testid="dataGrid"
               >
                 <div
                   class="DataGrid_search"
@@ -520,6 +525,7 @@ exports[`components/admin_console/data_retention_settings/custom_policy_form sho
                 </div>
                 <div
                   class="DataGrid_header"
+                  data-testid="dataGrid-header"
                 >
                   <div
                     class="DataGrid_cell"
@@ -537,6 +543,7 @@ exports[`components/admin_console/data_retention_settings/custom_policy_form sho
                 </div>
                 <div
                   class="DataGrid_rows"
+                  data-testid="dataGrid-rows"
                 >
                   <div
                     class="DataGrid_empty"
@@ -582,6 +589,7 @@ exports[`components/admin_console/data_retention_settings/custom_policy_form sho
   >
     <div
       class="admin-console__header with-back"
+      data-testid="admin-console-header"
     >
       <div>
         <a
@@ -786,6 +794,7 @@ exports[`components/admin_console/data_retention_settings/custom_policy_form sho
             >
               <div
                 class="DataGrid customTable"
+                data-testid="dataGrid"
               >
                 <div
                   class="DataGrid_search"
@@ -816,6 +825,7 @@ exports[`components/admin_console/data_retention_settings/custom_policy_form sho
                 </div>
                 <div
                   class="DataGrid_header"
+                  data-testid="dataGrid-header"
                 >
                   <div
                     class="DataGrid_cell"
@@ -828,6 +838,7 @@ exports[`components/admin_console/data_retention_settings/custom_policy_form sho
                 </div>
                 <div
                   class="DataGrid_rows"
+                  data-testid="dataGrid-rows"
                 >
                   <div
                     class="DataGrid_loading"
@@ -885,6 +896,7 @@ exports[`components/admin_console/data_retention_settings/custom_policy_form sho
             >
               <div
                 class="DataGrid customTable"
+                data-testid="dataGrid"
               >
                 <div
                   class="DataGrid_search"
@@ -1100,6 +1112,7 @@ exports[`components/admin_console/data_retention_settings/custom_policy_form sho
                 </div>
                 <div
                   class="DataGrid_header"
+                  data-testid="dataGrid-header"
                 >
                   <div
                     class="DataGrid_cell"
@@ -1117,6 +1130,7 @@ exports[`components/admin_console/data_retention_settings/custom_policy_form sho
                 </div>
                 <div
                   class="DataGrid_rows"
+                  data-testid="dataGrid-rows"
                 >
                   <div
                     class="DataGrid_loading"

@@ -8,6 +8,8 @@ This directory contains the E2E testing code for the Mattermost web client.
 
 Please refer to the [dedicated developer documentation](https://developers.mattermost.com/contribute/more-info/webapp/e2e-testing/) for instructions.
 
+> **Playwright note:** the instructions below describe the Docker Compose flow Cypress uses (and that Playwright previously used too). Playwright's CI and recommended local setup have since moved to [Testcontainers](https://node.testcontainers.org/) — see `playwright/README.md`'s Server Setup section for details. This Compose flow remains the way to run Cypress, and to run a plain server instance (`TEST=none make`).
+
 ##### For pipeline debugging
 
 The E2E testing pipeline's scripts depend on the following tools being installed on your system: `docker`, `docker-compose`, `make`, `git`, `jq`, `node`, and some common utilities (`coreutils`, `findutils`, `bash`, `awk`, `sed`, `grep`)
@@ -22,7 +24,7 @@ Instructions, detailed:
   * `ENABLED_DOCKER_SERVICES`: a space-separated list of services to start alongside the server. Default to `postgres inbucket`, for smoke test purposes and for lightweight and faster start-up time. Depending on the test requirement being worked on, you may want to override as needed, as such:
     - Cypress full tests require all services to be running: `postgres inbucket minio openldap elasticsearch keycloak`.
     - Cypress smoke tests require only the following: `postgres inbucket`.
-    - Playwright full tests require only the following: `postgres inbucket`.
+    - Playwright no longer runs against this Compose flow in CI (see the note above) — this only matters if you're using it to spin up a plain server instance (`TEST=none make`) for Playwright's `external` mode.
   * The following variables, will be passed over to the server container: `MM_LICENSE` (no enterprise features will be available if this is unset; required when `SERVER=cloud`), and the exploded `MM_ENV` (a comma-separated list of env var specifications)
   * The following variables, which will be passed over to the cypress container: `BRANCH`, `BUILD_ID`, `CI_BASE_URL`, `BROWSER`, `AUTOMATION_DASHBOARD_URL` and `AUTOMATION_DASHBOARD_TOKEN`
   * The `SERVER_IMAGE` variable can also be set if you want to select a custom mattermost-server image. If not specified, the value of the `SERVER_IMAGE_DEFAULT` variable defined in file `.ci/.e2erc` is used.
@@ -39,7 +41,7 @@ Instructions, detailed:
 3. `make`: start and prepare the server, then run the Cypress smoke tests
   * You can track the progress of the run in the `http://localhost:4000/cycles` dashboard if you launched it locally
   * For `SERVER=cloud` runs, you'll need to first create a cloud customer against the specified `CWS_URL` service by running `make cloud-init`. The user isn't automatically removed, and may be reused across multiple runs until you run `make cloud-teardown` to delete it.
-  * If you want to run the Playwright tests instead of the Cypress ones, you can run `TEST=playwright make`
+  * If you want to run the Playwright tests instead of the Cypress ones, you can run `TEST=playwright make` — though `playwright/README.md`'s Testcontainers option is now the recommended way to run Playwright locally/in CI
   * If you just want to run a local server instance, without any further testing, you can run `TEST=none make`
   * If you're using the automation dashboard, you have the option of sharding the E2E test run: you can launch the `make` command in parallel on different machines (NB: you must use the same `BUILD_ID` and `BRANCH` values that you used for `make generate-test-cycle`) to distribute running the test cases across them. When doing this, you should also set on each machine the `CI_BASE_URL` variable to a value that uniquely identifies the instance where `make` is running.
   * This script will also parse the local test results, and write a `e2e-tests/${TEST}/results/summary.json` file containing the following keys: `passed`, `failed` and `failed_expected` (the total number of testcases that were run is the sum of these three numbers)
@@ -71,4 +73,4 @@ For Cypress:
   * Your system needs to be setup for Cypress usage, to be able to run this command. Refer to the [E2E testing developer documentation](https://developers.mattermost.com/contribute/more-info/webapp/e2e-testing/) for this.
 4. The `cypress/results/testPasses.json` file will count, for each of the testfiles, how many times it was run, and how many times each of the testcases contained in it passed. If the attempts and passes numbers do not match, that specific testcase may be flaky.
 
-For Playwright: WIP
+For Playwright: not currently supported — Playwright tests are run and re-run individually via `npm run test -- <spec>`, see `playwright/README.md`.

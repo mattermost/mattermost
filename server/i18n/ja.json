@@ -6474,10 +6474,6 @@
     "translation": "チャンネルを取得できませんでした。"
   },
   {
-    "id": "app.channel.get_channel_counts.get.app_error",
-    "translation": "チャンネル数を取得できませんでした。"
-  },
-  {
     "id": "api.user.update_password.user_and_hashed.app_error",
     "translation": "システム管理者のみがハッシュ化されたパスワードを設定できます。"
   },
@@ -7794,14 +7790,6 @@
     "translation": "Webhookイベントが処理されませんでした。存在しないか、有効でないかのいずれかです。"
   },
   {
-    "id": "api.file.test_connection_s3_bucket_does_not_exist.app_error",
-    "translation": "Amazon S3バケットが利用可能であることを確認し、バケットの権限を確認してください。"
-  },
-  {
-    "id": "api.file.test_connection_s3_auth.app_error",
-    "translation": "S3へ接続できませんでした。Amazon S3接続の認証パラメーターと認証設定を確認してください。"
-  },
-  {
     "id": "ent.data_retention.policies.invalid_policy",
     "translation": "ポリシーが不正です。"
   },
@@ -8011,7 +7999,7 @@
   },
   {
     "id": "api.push_notification.title.collapsed_threads",
-    "translation": "{{.channelName}} へ返信する"
+    "translation": "{{.channelName}} への返信"
   },
   {
     "id": "api.post.send_notification_and_forget.push_comment_on_crt_thread",
@@ -8039,7 +8027,7 @@
   },
   {
     "id": "api.push_notification.title.collapsed_threads_dm",
-    "translation": "ダイレクトメッセージへ返信する"
+    "translation": "ダイレクトメッセージへの返信"
   },
   {
     "id": "api.post.send_notification_and_forget.push_comment_on_crt_thread_dm",
@@ -8244,10 +8232,6 @@
   {
     "id": "api.getThreadsForUser.bad_only_params",
     "translation": "getThreadsForUserに対するOnlyThreadsとOnlyTotalsのパラメータが矛盾しています"
-  },
-  {
-    "id": "api.file.test_connection_s3_settings_nil.app_error",
-    "translation": "ファイルストレージの設定に未設定の値があります。"
   },
   {
     "id": "api.file.test_connection_email_settings_nil.app_error",
@@ -10002,38 +9986,6 @@
     "translation": "カスタム絵文字の画像用のディレクトリを作成できませんでした"
   },
   {
-    "id": "app.custom_profile_attributes.cpa_group_id.app_error",
-    "translation": "カスタムプロフィール属性のプロパティグループを登録できません"
-  },
-  {
-    "id": "app.custom_profile_attributes.list_property_values.app_error",
-    "translation": "カスタムプロフィール属性の値を取得できませんでした"
-  },
-  {
-    "id": "app.custom_profile_attributes.property_field_delete.app_error",
-    "translation": "カスタムプロフィール属性のフィールドを削除できませんでした"
-  },
-  {
-    "id": "app.custom_profile_attributes.get_property_field.app_error",
-    "translation": "カスタムプロフィール属性のフィールドを取得できませんでした"
-  },
-  {
-    "id": "app.custom_profile_attributes.limit_reached.app_error",
-    "translation": "カスタムプロフィール属性のフィールドの上限に達しました"
-  },
-  {
-    "id": "app.custom_profile_attributes.property_field_not_found.app_error",
-    "translation": "カスタムプロフィール属性のフィールドが見つかりません"
-  },
-  {
-    "id": "app.custom_profile_attributes.property_field_update.app_error",
-    "translation": "カスタムプロフィール属性のフィールドを更新できませんでした"
-  },
-  {
-    "id": "app.custom_profile_attributes.search_property_fields.app_error",
-    "translation": "カスタムプロフィール属性のフィールドを検索できませんでした"
-  },
-  {
     "id": "app.file_info.delete_for_post_ids.app_error",
     "translation": "要求されたファイルをデータベースから削除できませんでした"
   },
@@ -10098,10 +10050,6 @@
     "translation": "削除されたチャンネルではコマンドを実行できません。"
   },
   {
-    "id": "api.custom_profile_attributes.license_error",
-    "translation": "あなたのライセンスはユーザー属性をサポートしていません。"
-  },
-  {
     "id": "api.file.zip_file_reader.app_error",
     "translation": "ZIPファイルリーダーを取得できませんでした。"
   },
@@ -10132,14 +10080,6 @@
   {
     "id": "api.context.get_session.app_error",
     "translation": "セッションが見つかりません。"
-  },
-  {
-    "id": "app.custom_profile_attributes.count_property_fields.app_error",
-    "translation": "カスタムプロフィール属性グループのフィールド数をカウントできませんでした"
-  },
-  {
-    "id": "app.custom_profile_attributes.property_value_upsert.app_error",
-    "translation": "カスタムプロフィール属性フィールドをupsertできませんでした"
   },
   {
     "id": "model.config.is_valid.metrics_client_side_user_id.app_error",
@@ -10206,10 +10146,6 @@
     "translation": "プロパティフィールドをカスタムプロフィール属性フィールドに変換できません"
   },
   {
-    "id": "app.custom_profile_attributes.sanitize_and_validate.app_error",
-    "translation": "無効なプロパティ値属性 : {{.AttributeName}} ({{.Reason}})。"
-  },
-  {
     "id": "app.group.license_error",
     "translation": "LDAPライセンスが必要です。"
   },
@@ -10236,14 +10172,6 @@
   {
     "id": "model.access_policy.is_valid.rules_imports.app_error",
     "translation": "ポリシーはルールをインポートするか定義しなければなりません。"
-  },
-  {
-    "id": "app.custom_profile_attributes.delete_property_values_for_user.app_error",
-    "translation": "ユーザーのカスタムプロフィール属性の値を削除できません"
-  },
-  {
-    "id": "app.custom_profile_attributes.validate_value.app_error",
-    "translation": "プロパティ値を検証できませんでした"
   },
   {
     "id": "ent.ldap.cpa_field_mapping.list_error",
@@ -10352,10 +10280,6 @@
   {
     "id": "model.config.is_valid.report_a_problem_mail.missing.app_error",
     "translation": "問題報告用メールアドレスは必須です。"
-  },
-  {
-    "id": "app.custom_profile_attributes.property_field_is_synced.app_error",
-    "translation": "同期されたカスタムプロフィール属性のフィールドの値を更新できません"
   },
   {
     "id": "app.import.validate_attachment_import_data.invalid_path.error",
@@ -10644,10 +10568,6 @@
   {
     "id": "app.access_control.insufficient_permissions",
     "translation": "あなたにはこのアクセス制御ポリシーを管理する権限がありません。"
-  },
-  {
-    "id": "app.custom_profile_attributes.property_field_is_managed.app_error",
-    "translation": "管理者が管理するカスタムプロフィール属性フィールドの値は更新できません"
   },
   {
     "id": "app.lookup_interactive_dialog.decode_json_error",

@@ -14,3 +14,5 @@ updates:
       day: "monday"
       time: "09:00"
       interval: "weekly"
+    cooldown:
+      default-days: 15  # 15 days of cooldown for dependency updates (only version updates)

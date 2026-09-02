@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Channel} from '@mattermost/types/channels';
+import type {Channel} from '@mattermost/types/channels';
 
 // ***************************************************************
 // - [#] indicates a test step (e.g. # Go to a page)

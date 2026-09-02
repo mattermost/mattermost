@@ -22,7 +22,7 @@ type Props = {
     returnFocus: () => void;
     handleCloseModals: () => void;
     handleShowDirectChannel: (e: React.MouseEvent<HTMLButtonElement>) => void;
-}
+};
 
 const ProfilePopoverSelfUserRow = ({
     userId,

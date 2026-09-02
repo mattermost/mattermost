@@ -9,7 +9,7 @@ import {GenericModal} from '@mattermost/components';
 export type MarkAllThreadsAsReadModalProps = {
     onConfirm: () => void;
     onCancel: () => void;
-}
+};
 
 function MarkAllThreadsAsReadModal({
     onConfirm,

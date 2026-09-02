@@ -1,0 +1,39 @@
+---
+title: "For Administrators"
+description: "Start here if you configure and operate Mattermost for your organization."
+slug: /for/administrator
+hide_table_of_contents: true
+---
+
+<Eyebrow>Persona landing</Eyebrow>
+
+# For Administrators
+
+You're the workspace or system admin who owns the day-to-day operation of one or more Mattermost workspaces. This page is a curated entry point — every link goes to the canonical guide.
+
+## Start here
+
+<CardGrid columns={3} cards={[
+  {title: 'Admin onboarding checklist', to: '/administration-guide/upgrade/admin-onboarding-tasks', description: 'Authentication, projects, security, backups, monitoring.'},
+  {title: 'Set up SSO', to: '/administration-guide/onboard/sso-saml', description: 'AD/LDAP, SAML, OIDC, Entra ID.'},
+  {title: 'Configure the system', to: '/administration-guide/configure/configuration-settings', description: 'Every config setting, grouped by area.'},
+]} />
+
+## Common tasks
+
+<CardGrid columns={3} cards={[
+  {title: 'Roles and permissions', to: '/administration-guide/manage/admin/user-management', description: 'System, team, channel roles + custom permissions.'},
+  {title: 'Compliance machinery', to: '/administration-guide/comply/compliance-export', description: 'Exports, eDiscovery, Legal Hold, retention.'},
+  {title: 'License management', to: '/administration-guide/upgrade/enterprise-install-upgrade', description: 'Self-hosted Enterprise licensing.'},
+  {title: 'Backup and DR', to: '/deployment-guide/backup-disaster-recovery', description: 'Active/Passive AWS, restore procedures.'},
+  {title: 'Upgrade Mattermost', to: '/administration-guide/upgrade/important-upgrade-notes', description: 'Important upgrade notes by version.'},
+  {title: 'mmctl and CLI', to: '/administration-guide/manage/mmctl-command-line-tool', description: 'Command-line administration for runbooks.'},
+]} />
+
+## Other personas
+
+<CardGrid columns={3} cards={[
+  {title: 'For SREs / platform operators', to: '/for/sre', description: 'Reference architecture, scaling, observability.'},
+  {title: 'For security architects', to: '/for/security-architect', description: 'Compliance frameworks, FIPS, hardening.'},
+  {title: 'For compliance officers', to: '/for/compliance-officer', description: 'Audit evidence, regulatory mappings.'},
+]} />

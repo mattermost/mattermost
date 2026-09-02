@@ -5,12 +5,16 @@ import React from 'react';
 
 import {getFileUrl} from 'mattermost-redux/utils/file_utils';
 
+import FilePreviewModal from 'components/file_preview_modal';
+
 import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
+import {ModalIdentifiers} from 'utils/constants';
 
 import FilePreview from './file_preview';
 
 describe('FilePreview', () => {
     const onRemove = jest.fn();
+    const openModal = jest.fn();
     const fileInfos = [
         {
             width: 100,
@@ -20,7 +24,7 @@ describe('FilePreview', () => {
             type: 'image/png',
             extension: 'png',
             has_preview_image: true,
-            user_id: '',
+            user_id: 'user_id_1',
             channel_id: 'channel_id',
             create_at: 0,
             update_at: 0,
@@ -60,6 +64,9 @@ describe('FilePreview', () => {
         uploadsInProgress,
         onRemove,
         uploadsProgressPercent,
+        actions: {
+            openModal,
+        },
     };
 
     test('should match snapshot', () => {
@@ -107,6 +114,129 @@ describe('FilePreview', () => {
         }
         await user.click(removeLink);
         expect(newOnRemove).toHaveBeenCalled();
+    });
+
+    test('should call openModal when image thumbnail is clicked', async () => {
+        openModal.mockClear();
+        renderWithContext(
+            <FilePreview {...baseProps}/>,
+        );
+
+        const user = userEvent.setup();
+        const thumb = screen.getByLabelText(/file thumbnail.*test_filename/i);
+        await user.click(thumb);
+
+        expect(openModal).toHaveBeenCalledTimes(1);
+        expect(openModal).toHaveBeenCalledWith({
+            modalId: ModalIdentifiers.FILE_PREVIEW_MODAL,
+            dialogType: FilePreviewModal,
+            dialogProps: {
+                post: {user_id: 'user_id_1', channel_id: 'channel_id'},
+                fileInfos,
+                startIndex: 0,
+            },
+        });
+    });
+
+    test('should call openModal when non-image file thumbnail is clicked', async () => {
+        const pdfFileInfos = [{
+            ...fileInfos[0],
+            id: 'file_id_pdf',
+            name: 'document.pdf',
+            type: 'application/pdf',
+            extension: 'pdf',
+            width: 0,
+            height: 0,
+            has_preview_image: false,
+        }];
+        openModal.mockClear();
+        renderWithContext(
+            <FilePreview
+                {...baseProps}
+                fileInfos={pdfFileInfos}
+                uploadsInProgress={[]}
+            />,
+        );
+
+        const user = userEvent.setup();
+        const thumb = screen.getByLabelText(/file thumbnail.*document\.pdf/i);
+        await user.click(thumb);
+
+        expect(openModal).toHaveBeenCalledTimes(1);
+        expect(openModal).toHaveBeenCalledWith({
+            modalId: ModalIdentifiers.FILE_PREVIEW_MODAL,
+            dialogType: FilePreviewModal,
+            dialogProps: {
+                post: {user_id: 'user_id_1', channel_id: 'channel_id'},
+                fileInfos: pdfFileInfos,
+                startIndex: 0,
+            },
+        });
+    });
+
+    /** Direct handler coverage: thumbnails for archived/deleted files are non-links, but guards must stay aligned. */
+    const thumbnailClickMouseEvent = () =>
+        ({
+            preventDefault: jest.fn(),
+            stopPropagation: jest.fn(),
+            blur: jest.fn(),
+            target: document.createElement('a'),
+        }) as unknown as React.MouseEvent<HTMLElement>;
+
+    test('should not open preview modal via handler when attachment is archived', () => {
+        const openModalFn = jest.fn();
+        const archivedInfos = [{...fileInfos[0], archived: true}];
+        const instance = new FilePreview({
+            enableSVGs: false,
+            fileInfos: archivedInfos,
+            uploadsInProgress: [],
+            uploadsProgressPercent: {},
+            actions: {openModal: openModalFn},
+        });
+
+        instance.handleThumbnailPreviewClick(thumbnailClickMouseEvent(), 0);
+
+        expect(openModalFn).not.toHaveBeenCalled();
+    });
+
+    test('should not open preview modal via handler when attachment has delete_at set', () => {
+        const openModalFn = jest.fn();
+        const deletedInfos = [{...fileInfos[0], delete_at: 999}];
+        const instance = new FilePreview({
+            enableSVGs: false,
+            fileInfos: deletedInfos,
+            uploadsInProgress: [],
+            uploadsProgressPercent: {},
+            actions: {openModal: openModalFn},
+        });
+
+        instance.handleThumbnailPreviewClick(thumbnailClickMouseEvent(), 0);
+
+        expect(openModalFn).not.toHaveBeenCalled();
+    });
+
+    test('should render non-interactive thumbnail wrapper when attachment is archived or deleted', () => {
+        const {container, rerender} = renderWithContext(
+            <FilePreview
+                {...baseProps}
+                fileInfos={[{...fileInfos[0], archived: true}]}
+                uploadsInProgress={[]}
+            />,
+        );
+
+        expect(container.querySelector('.post-image__thumbnail')).toBeTruthy();
+        expect(container.querySelector('a.post-image__thumbnail')).not.toBeInTheDocument();
+
+        rerender(
+            <FilePreview
+                {...baseProps}
+                fileInfos={[{...fileInfos[0], delete_at: 1}]}
+                uploadsInProgress={[]}
+            />,
+        );
+
+        expect(container.querySelector('a.post-image__thumbnail')).not.toBeInTheDocument();
+        expect(screen.queryAllByRole('link', {name: /file thumbnail/i})).toHaveLength(0);
     });
 
     test('should not render an SVG when SVGs are disabled', () => {

@@ -12,7 +12,7 @@ type Props = {
     log: LogObject | null;
     onModalDismissed: (e?: React.MouseEvent<HTMLButtonElement>) => void;
     show: boolean;
-}
+};
 
 const FullLogEventModal = ({
     log,

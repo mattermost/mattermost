@@ -21,7 +21,7 @@ type Props = {
     fileUploadSetstate: (key: string, filename: string | null, error_message: string | null) => void;
     disabled: boolean;
     setByEnv: boolean;
-} & GeneralSettingProps
+} & GeneralSettingProps;
 
 const LDAPFileUploadSetting = (props: Props) => {
     const intl = useIntl();

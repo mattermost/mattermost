@@ -21,7 +21,7 @@ type Props = {
     userCurrentTimezone: string;
     tomorrow9amTime: number;
     nextMonday: number;
-}
+};
 
 const DATE_RANGES = [
     RelativeRanges.TODAY_TITLE_CASE,
@@ -80,7 +80,7 @@ function RecentUsedCustomDate({handleOnSelect, userCurrentTimezone, nextMonday, 
         if (recentlyUsedCustomDate) {
             try {
                 return JSON.parse(recentlyUsedCustomDate) as RecentlyUsedCustomDate;
-            } catch (e) {
+            } catch {
                 return {};
             }
         }

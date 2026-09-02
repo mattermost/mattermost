@@ -46,7 +46,7 @@ type State = {
     show: boolean;
     serverError?: ServerError | null;
     postError?: React.ReactNode;
-}
+};
 
 export class EditChannelHeaderModal extends React.PureComponent<Props, State> {
     private editChannelHeaderTextboxRef: React.RefObject<TextboxClass>;

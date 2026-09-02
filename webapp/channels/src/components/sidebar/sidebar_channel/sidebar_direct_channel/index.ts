@@ -20,7 +20,7 @@ import SidebarDirectChannel from './sidebar_direct_channel';
 type OwnProps = {
     channel: Channel;
     currentTeamName: string;
-}
+};
 
 function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
     const teammate = getUser(state, ownProps.channel.teammate_id!);

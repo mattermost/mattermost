@@ -17,7 +17,7 @@ import type {GlobalState} from 'types/store';
 
 export type Props = {
     post: Post;
-}
+};
 function GMConversionMessage(props: Props): JSX.Element {
     const convertedByUserId = props.post.props.convertedByUserId;
     const gmMembersDuringConversionIDs = isStringArray(props.post.props.gmMembersDuringConversionIDs) ? props.post.props.gmMembersDuringConversionIDs : [];

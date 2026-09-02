@@ -17,8 +17,6 @@ import {getCustomEmoji} from './helpers';
 import * as TIMEOUTS from '@/fixtures/timeouts';
 import * as MESSAGES from '@/fixtures/messages';
 
-
-
 describe('Custom emojis', () => {
     let testTeam: Cypress.Team;
     let testUser: Cypress.UserProfile;

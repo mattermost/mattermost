@@ -15,7 +15,7 @@ import type {GlobalState} from 'types/store';
 type Props = {
     onSave: () => void;
     onCancel: () => void;
-}
+};
 
 const EditPostFooter = ({onSave, onCancel}: Props) => {
     const ctrlSend = useSelector((state: GlobalState) => getBool(state, Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter'));

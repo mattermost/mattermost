@@ -18,15 +18,6 @@ jest.mock('./list_item_size_observer', () => {
     };
 });
 
-jest.mock('lodash/debounce', () => {
-    return jest.fn((fn) => {
-        const debouncedFn = (...args: any[]) => fn(...args);
-        debouncedFn.cancel = jest.fn();
-        debouncedFn.flush = jest.fn();
-        return debouncedFn;
-    });
-});
-
 import ListItem from './list_item';
 
 describe('ListItem', () => {

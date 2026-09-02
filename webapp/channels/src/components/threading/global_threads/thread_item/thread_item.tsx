@@ -79,7 +79,7 @@ function ThreadItem({
     isFirstThreadInList,
     isPostPriorityEnabled,
     isChannelAutotranslated,
-}: Props & OwnProps): React.ReactElement|null {
+}: Props & OwnProps): React.ReactElement | null {
     const dispatch = useDispatch();
     const {select, goToInChannel, currentTeamId} = useThreadRouting();
     const {formatMessage, locale} = useIntl();

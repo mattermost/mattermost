@@ -36,7 +36,7 @@ type Props = {
 type SelectedOption = {
     value: string;
     label: string;
-}
+};
 
 type State = {
     isSaving: boolean;

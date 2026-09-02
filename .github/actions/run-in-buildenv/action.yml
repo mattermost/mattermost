@@ -1,0 +1,69 @@
+name: Run in build environment
+description: >
+  Runs a script inside the build-server container. Use for build and check
+  jobs that don't need direct control over the docker run invocation.
+
+  Note the special handling of HEAD_REF, REF_NAME, and RUN_ID. Since the
+  container is not otherwise given access to the runner's environment, we
+  re-export github.head_ref, github.ref_name, and github.run_id as a
+  special case for use in safely building up BUILD_NUMBER. In general,
+  don't extend this: if your use case requires more customization, use
+  load-buildenv and invoke docker run yourself.
+
+inputs:
+  run:
+    description: "Bash script to execute inside the container"
+    required: true
+  go-version:
+    description: "Go version to use (e.g. 1.24.3). Defaults to the version in server/.go-version."
+    required: false
+    default: ""
+  fips-enabled:
+    description: "Set to 'true' to use the FIPS build image"
+    required: false
+    default: "false"
+  working-directory:
+    description: "Working directory inside the container (absolute path under /mattermost/)"
+    required: false
+    default: "/mattermost/server"
+
+runs:
+  using: composite
+  steps:
+    - name: Read Go version
+      shell: bash
+      env:
+        GO_VERSION_INPUT: ${{ inputs.go-version }}
+      run: |
+        if [[ -n "${GO_VERSION_INPUT}" ]]; then
+          echo "GO_VERSION=${GO_VERSION_INPUT}" >> "${GITHUB_ENV}"
+        else
+          echo "GO_VERSION=$(cat server/.go-version)" >> "${GITHUB_ENV}"
+        fi
+    - uses: ./.github/actions/load-buildenv
+      id: buildenv
+      with:
+        go-version: ${{ env.GO_VERSION }}
+        fips-enabled: ${{ inputs.fips-enabled }}
+    - name: Run in buildenv
+      shell: bash
+      env:
+        CMD: ${{ inputs.run }}
+        IMAGE: ${{ steps.buildenv.outputs.image }}
+        WORKING_DIR: ${{ inputs.working-directory }}
+        HEAD_REF: ${{ github.head_ref }}
+        REF_NAME: ${{ github.ref_name }}
+        RUN_ID: ${{ github.run_id }}
+      run: |
+        SCRIPT=$(mktemp)
+        printf 'git config --global --add safe.directory /mattermost\n' > "${SCRIPT}"
+        printf '%s\n' "${CMD}" >> "${SCRIPT}"
+        docker run --rm \
+          --network host \
+          -e HEAD_REF -e REF_NAME -e RUN_ID \
+          -v "$PWD:/mattermost" \
+          -v "${SCRIPT}:/run-script.sh" \
+          -w "${WORKING_DIR}" \
+          "${IMAGE}" \
+          bash -eo pipefail /run-script.sh
+        rm -f "${SCRIPT}"

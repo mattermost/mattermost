@@ -1,0 +1,85 @@
+---
+title: "User satisfaction surveys"
+---
+<PlanAvailability slug="all-commercial" />
+
+Feedback is used to measure user satisfaction and improve product quality by hearing directly from users. Please refer to our [privacy policy](https://mattermost.com/privacy-policy/) for information on the collection and use of information received through our services.
+
+<Important>
+
+**Mattermost User Satisfaction Surveys are deprecated from Mattermost v10.11** and are no longer included as a pre-packaged plugin for new Mattermost deployments. Existing deployments that have this plugin enabled will continue to work, but we strongly recommend migrating to [user surveys](/administration-guide/configure/manage-user-surveys) for enhanced customization options, and local data storage, without telemetry data transmission back to Mattermost.
+
+</Important>
+
+## Administration
+
+### Is the survey enabled by default?
+
+**For Mattermost Server versions prior to v10.11**: The user satisfaction survey is a pre-packaged plugin, and surveys are enabled by default on all servers. However, the plugin will not be activated on any servers that have [Error and Diagnostic Reporting](/administration-guide/manage/telemetry) disabled, meaning no surveys or data collection occurs.
+
+**For Mattermost Server v10.11 and later**: The User Satisfaction Survey Plugin is no longer included as a pre-packaged plugin for new deployments. We recommend using the [Mattermost User Survey integration](/administration-guide/configure/manage-user-surveys) instead.
+
+### How can surveys be disabled?
+
+Disabling the **User Satisfaction Surveys** plugin from **System Console \> Plugins \> Plugin Management** will disable surveys and all data collection by the plugin.
+
+<Note>
+
+- If surveys have been disabled from the plugin configuration in **System Console \> Plugins \> User Satisfaction Surveys**, but the plugin itself is still enabled, surveys won't be scheduled but users can still send written feedback by messaging Surveybot.
+- When the plugin or surveys in the plugin configuration are disabled, they remain disabled for subsequent server upgrades.
+
+</Note>
+
+### When is the survey scheduled?
+
+Users will receive surveys 21 days after every server upgrade, assuming the following conditions are true:
+
+- User Satisfaction Surveys plugin is enabled in **System Console \> Plugins \> Plugin Management**.
+- Surveys are enabled in the plugin configuration in **System Console \> Plugins \> User Satisfaction Surveys**.
+- User account is greater than 21 days old.
+- User has not completed a survey in the last 90 days.
+- User has not been sent a survey in the last 90 days.
+- Current server version is greater than the server version of the last survey, excluding dot releases.
+
+The above conditions mean that at maximum frequency a user will receive a survey every 90 days, assuming the server is upgraded within that time period.
+
+### How will I be notified when a survey is scheduled?
+
+System admins will receive an email notification and in-product direct message from "Surveybot" mentioning the scheduled date the survey will be triggered.
+
+![When user satisfaction surveys are enabled in the System Console, Mattermost sends out user satisfaction surveys following every server upgrade. System admins are notified about upcoming surveys by email notification and through an in-product message from a system bot.](/images/nps-admin.png)
+
+## Survey Data
+
+### How is the survey received?
+
+Once the survey is triggered on the server, all users will receive an in-product direct messages from "Surveybot" on their next login or page refresh in Mattermost.
+
+Users can optionally select a 0-10 score on how likely they are to recommend Mattermost and then provide written feedback about their experience. Selecting a score and providing feedback are optional, and the survey can be ignored without interrupting usage of Mattermost.
+
+![Once Mattermost sends out a user satisfaction survey, all users receive an in-product message from a system bot the next time they log in or refresh Mattermost. The in-product message asks users to rate how likely they'd recommend Mattermost.](/images/nps-survey.png)
+
+### What data is collected?
+
+Data is only collected when a user selects a score or provides written feedback in response to survey questions. Please refer to our [privacy policy](https://mattermost.com/privacy-policy/) for more information on the collection and use of information received through our services. The following **non-personally identifiable information** is collected:
+
+- Survey information:  
+  - Score (0-10) submitted by the user
+  - Written feedback submitted by the user (if applicable)
+  - Timestamp of the survey submission
+
+- Server information:  
+  - Server/Web App version the survey was submitted on
+  - Installation date of the server
+  - Diagnostic ID used for error and diagnostics reporting
+  - License ID used for error and diagnostics reporting (if applicable)
+  - Enterprise or Professional (if applicable)
+
+- User information:  
+  - User role (system admin, team admin, or member)
+  - Account creation timestamp
+  - User ID of the surveyed user
+
+### Will this data be sent through my firewall?
+
+If Mattermost is self-hosted in a private network with firewall then data from the User Satisfaction Surveys plugin is not sent unless outbound connections are allowed or specifically configured for this plugin.

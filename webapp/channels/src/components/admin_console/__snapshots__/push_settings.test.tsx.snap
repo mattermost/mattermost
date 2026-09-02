@@ -11,6 +11,7 @@ exports[`components/PushSettings should match snapshot, licensed 1`] = `
     >
       <div
         class="admin-console__header"
+        data-testid="admin-console-header"
       >
         Push Notification Server
       </div>
@@ -272,6 +273,7 @@ exports[`components/PushSettings should match snapshot, unlicensed 1`] = `
     >
       <div
         class="admin-console__header"
+        data-testid="admin-console-header"
       >
         Push Notification Server
       </div>

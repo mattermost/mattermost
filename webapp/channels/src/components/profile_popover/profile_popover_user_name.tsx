@@ -6,7 +6,7 @@ import React from 'react';
 type Props = {
     hasFullName: boolean;
     username: string;
-}
+};
 
 const ProfilePopoverUserName = ({
     hasFullName,

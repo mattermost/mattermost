@@ -10,7 +10,7 @@ import ExternalLink from 'components/external_link';
 type Props = {
     url: string;
     message: MessageDescriptor;
-}
+};
 
 const ErrorLink: React.FC<Props> = ({
     url = '',

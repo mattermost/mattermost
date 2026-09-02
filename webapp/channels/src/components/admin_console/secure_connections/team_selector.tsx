@@ -16,7 +16,7 @@ export type Props = {
     onChange: (teamId: string) => void;
     testId: string;
     legend?: string;
-}
+};
 
 const TeamSelector = (props: Props): JSX.Element => {
     const value = props.teamsById[props.value];

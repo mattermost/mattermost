@@ -6,6 +6,7 @@ import React from 'react';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
 import {Permissions, Preferences} from 'mattermost-redux/constants';
+import {CategoryTypes} from 'mattermost-redux/constants/channel_categories';
 
 import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
 import {fireEvent, renderWithContext, screen, waitFor} from 'tests/react_testing_utils';
@@ -119,6 +120,13 @@ describe('components/sidebar', () => {
 
         const channel1 = TestHelper.getChannelMock({id: 'channel1', team_id: currentTeam.id});
         const channel2 = TestHelper.getChannelMock({id: 'channel2', team_id: currentTeam.id});
+        const sidebarCategory = TestHelper.getCategoryMock({
+            id: 'sidebar_category',
+            team_id: currentTeam.id,
+            user_id: currentUserId,
+            type: CategoryTypes.CUSTOM,
+            channel_ids: [channel1.id, channel2.id],
+        });
 
         const baseState: DeepPartial<GlobalState> = {
             entities: {
@@ -132,12 +140,20 @@ describe('components/sidebar', () => {
                         [currentTeam.id]: new Set([channel1.id, channel2.id]),
                     },
                     messageCounts: {
-                        channel1: {total: 10},
-                        channel2: {total: 10},
+                        channel1: {total: 10, root: 10},
+                        channel2: {total: 10, root: 10},
                     },
                     myMembers: {
-                        channel1: TestHelper.getChannelMembershipMock({channel_id: channel1.id, user_id: currentUserId, msg_count: 10}),
-                        channel2: TestHelper.getChannelMembershipMock({channel_id: channel2.id, user_id: currentUserId, msg_count: 10}),
+                        channel1: TestHelper.getChannelMembershipMock({channel_id: channel1.id, user_id: currentUserId, msg_count: 10, msg_count_root: 10}),
+                        channel2: TestHelper.getChannelMembershipMock({channel_id: channel2.id, user_id: currentUserId, msg_count: 10, msg_count_root: 10}),
+                    },
+                },
+                channelCategories: {
+                    byId: {
+                        [sidebarCategory.id]: sidebarCategory,
+                    },
+                    orderByTeam: {
+                        [currentTeam.id]: [sidebarCategory.id],
                     },
                 },
                 teams: {
@@ -184,12 +200,13 @@ describe('components/sidebar', () => {
                 entities: {
                     channels: {
                         messageCounts: {
-                            [channel2.id]: {total: 15},
+                            [channel2.id]: {total: 15, root: 15},
                         },
                     },
                     preferences: {
                         myPreferences: TestHelper.getPreferencesMock([
                             {category: Preferences.CATEGORY_SIDEBAR_SETTINGS, name: Preferences.SHOW_UNREAD_SECTION, value: 'false'},
+                            {category: Preferences.CATEGORY_DISPLAY_SETTINGS, name: Preferences.COLLAPSED_REPLY_THREADS, value: Preferences.COLLAPSED_REPLY_THREADS_OFF},
                         ]),
                     },
                 },
@@ -210,12 +227,13 @@ describe('components/sidebar', () => {
                 entities: {
                     channels: {
                         messageCounts: {
-                            [channel2.id]: {total: 15},
+                            [channel2.id]: {total: 15, root: 15},
                         },
                     },
                     preferences: {
                         myPreferences: TestHelper.getPreferencesMock([
                             {category: Preferences.CATEGORY_SIDEBAR_SETTINGS, name: Preferences.SHOW_UNREAD_SECTION, value: 'true'},
+                            {category: Preferences.CATEGORY_DISPLAY_SETTINGS, name: Preferences.COLLAPSED_REPLY_THREADS, value: Preferences.COLLAPSED_REPLY_THREADS_OFF},
                         ]),
                     },
                 },
@@ -226,9 +244,7 @@ describe('components/sidebar', () => {
                 mergeObjects(baseState, testState),
             );
 
-            await waitFor(() => {
-                expect(screen.queryByText('UNREADS')).toBeInTheDocument();
-            });
+            expect(await screen.findByText('UNREADS')).toBeInTheDocument();
         });
 
         test('should not render unreads category when there are no unread channels', async () => {
@@ -237,6 +253,7 @@ describe('components/sidebar', () => {
                     preferences: {
                         myPreferences: TestHelper.getPreferencesMock([
                             {category: Preferences.CATEGORY_SIDEBAR_SETTINGS, name: Preferences.SHOW_UNREAD_SECTION, value: 'true'},
+                            {category: Preferences.CATEGORY_DISPLAY_SETTINGS, name: Preferences.COLLAPSED_REPLY_THREADS, value: Preferences.COLLAPSED_REPLY_THREADS_OFF},
                         ]),
                     },
                 },
@@ -258,6 +275,7 @@ describe('components/sidebar', () => {
                     preferences: {
                         myPreferences: TestHelper.getPreferencesMock([
                             {category: Preferences.CATEGORY_SIDEBAR_SETTINGS, name: Preferences.SHOW_UNREAD_SECTION, value: 'true'},
+                            {category: Preferences.CATEGORY_DISPLAY_SETTINGS, name: Preferences.COLLAPSED_REPLY_THREADS, value: Preferences.COLLAPSED_REPLY_THREADS_OFF},
                         ]),
                     },
                 },
@@ -273,9 +291,7 @@ describe('components/sidebar', () => {
                 mergeObjects(baseState, testState),
             );
 
-            await waitFor(() => {
-                expect(screen.queryByText('UNREADS')).toBeInTheDocument();
-            });
+            expect(await screen.findByText('UNREADS')).toBeInTheDocument();
         });
     });
 

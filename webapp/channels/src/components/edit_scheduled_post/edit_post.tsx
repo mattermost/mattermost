@@ -50,13 +50,13 @@ import './style.scss';
 
 export type Actions = {
     addMessageIntoHistory: (message: string) => void;
-    editPost: (input: Partial<Post>) => Promise<Post>;
+    editPost: (input: Post) => Promise<ActionResult<Post>>;
     setDraft: (name: string, value: PostDraft | null) => void;
     unsetEditingPost: () => void;
     scrollPostListToBottom: () => void;
     runMessageWillBeUpdatedHooks: (newPost: Partial<Post>, oldPost: Post) => Promise<ActionResult>;
     updateScheduledPost: (scheduledPost: ScheduledPost, connectionId: string) => Promise<ActionResult>;
-}
+};
 
 export type Props = {
     canEditPost?: boolean;
@@ -126,7 +126,7 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
     // If we would just use the editText value from the state it would be a stale since it is encapsuled in the
     // function closure on initial render
     const draftRef = useRef<PostDraft>(draft);
-    const saveDraftFrame = useRef<number|null>();
+    const saveDraftFrame = useRef<number | null>();
 
     const id = scheduledPost ? scheduledPost.id : editingPost.postId;
     const draftStorageId = `${StoragePrefixes.EDIT_DRAFT}${id}`;
@@ -246,7 +246,7 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
         setSelectionRange({start: res.selectionStart, end: res.selectionEnd});
     };
 
-    const handleRefocusAndExit = (refocusId: string|null) => {
+    const handleRefocusAndExit = (refocusId: string | null) => {
         if (refocusId) {
             const element = document.getElementById(refocusId);
             element?.focus();

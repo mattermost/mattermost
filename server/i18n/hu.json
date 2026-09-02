@@ -3928,10 +3928,6 @@
     "translation": "Nem sikerült lekérni a csatornákat."
   },
   {
-    "id": "app.channel.get_channel_counts.get.app_error",
-    "translation": "Nem sikerült lekérni a csatornák mennyiségét."
-  },
-  {
     "id": "app.channel.get_by_scheme.app_error",
     "translation": "Nem sikerült lekérni a csatornákat a megadott sémához."
   },
@@ -5654,14 +5650,6 @@
   {
     "id": "api.file.upload_file.incorrect_channelId.app_error",
     "translation": "Nem lehet feltölteni a fájlt. Érvénytelen csatorna ID: {{.channelId}}"
-  },
-  {
-    "id": "api.file.test_connection_s3_bucket_does_not_exist.app_error",
-    "translation": "Győződjön meg arról, hogy elérhető-e az Amazon S3 bucket , és ellenőrizze a bucket engedélyeit."
-  },
-  {
-    "id": "api.file.test_connection_s3_auth.app_error",
-    "translation": "Nem sikerült csatlakozni az S3-hoz. Ellenőrizze az Amazon S3 kapcsolat hitelesítési paramétereit és hitelesítési beállításait."
   },
   {
     "id": "api.file.test_connection.app_error",
@@ -8217,10 +8205,6 @@
   {
     "id": "api.getThreadsForUser.bad_only_params",
     "translation": "A getThreadsForUser OnlyThreads és OnlyTotals paraméterei kölcsönösen kizárják egymást"
-  },
-  {
-    "id": "api.file.test_connection_s3_settings_nil.app_error",
-    "translation": "A fájl tároló beállításokban nem meghatározott értékek vannak."
   },
   {
     "id": "api.file.test_connection_email_settings_nil.app_error",

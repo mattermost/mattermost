@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Locator, expect} from '@playwright/test';
+import type {Locator} from '@playwright/test';
+import {expect} from '@playwright/test';
 
 /**
  * This is the generic confirm modal that is used in the app.
@@ -15,10 +16,10 @@ export default class GenericConfirmModal {
     readonly confirmButton: Locator;
     readonly cancelButton: Locator;
 
-    constructor(container: Locator) {
+    constructor(container: Locator, confirmLabel = 'Confirm', cancelLabel = 'Cancel') {
         this.container = container;
-        this.confirmButton = container.locator('#confirmModalButton');
-        this.cancelButton = container.locator('#cancelModalButton');
+        this.confirmButton = container.getByRole('button', {name: confirmLabel, exact: true});
+        this.cancelButton = container.getByRole('button', {name: cancelLabel, exact: true});
     }
 
     async toBeVisible() {

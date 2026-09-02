@@ -10,7 +10,7 @@ import {wrapEmojis} from 'utils/emoji_utils';
 type StaticProps = {
     children?: React.ReactNode;
     displayName: string;
-}
+};
 
 export const SidebarCategoryHeaderStatic = React.forwardRef((props: StaticProps, ref?: React.Ref<HTMLDivElement>) => {
     return (
@@ -38,7 +38,7 @@ type Props = StaticProps & {
     isManaged?: boolean;
     muted: boolean;
     onClick: (event: React.MouseEvent<HTMLElement>) => void;
-}
+};
 
 export const SidebarCategoryHeader = React.forwardRef(({
     children,

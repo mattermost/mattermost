@@ -13,7 +13,7 @@ import UserListRow from './user_list_row';
 
 type OwnProps = {
     user: UserProfile;
-}
+};
 
 function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
     const user = ownProps.user;

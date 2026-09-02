@@ -11,7 +11,7 @@ type Thresholds = {
     warn: number;
     danger: number;
     exceeded: number;
-}
+};
 
 type Props = {
 
@@ -19,7 +19,7 @@ type Props = {
     percent: number;
     thresholds?: Thresholds;
     barWidth?: number | string;
-}
+};
 
 const defaultThresholds = limitThresholds;
 
@@ -27,7 +27,7 @@ type BarBackgroundProps = {
     width: number | string;
     thresholds: Thresholds;
     percent: number;
-}
+};
 
 const BarBackground = styled.div<BarBackgroundProps>`
     height: ${(props) => (typeof props.width === 'number' ? Math.ceil(props.width / 20).toString() + 'px' : '8px')};
@@ -43,7 +43,7 @@ type BarForegroundProps = {
     width: number | string;
     percent: number;
     thresholds: Thresholds;
-}
+};
 
 function getColor(percent: number, thresholds: Thresholds): string {
     switch (true) {

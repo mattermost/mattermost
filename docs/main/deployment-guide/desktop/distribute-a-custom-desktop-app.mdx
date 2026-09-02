@@ -1,0 +1,80 @@
+---
+title: "Distribute a custom desktop app"
+---
+<PlanAvailability slug="all-commercial" />
+
+You can customize and distribute your own Mattermost desktop application by configuring [src/common/config/buildConfig.ts](https://github.com/mattermost/desktop/blob/master/src/common/config/buildConfig.ts).
+
+1.  Configure the desktop app's `buildConfig.ts` file. You can configure the following parameters to customize the user experience, including [defaultTeams](#defaultteams), [helpLink](#helplink), and [enableServerManagement](#enableservermanagement).
+2.  Follow the [Mattermost Desktop Development Guide](https://developers.mattermost.com/contribute/more-info/desktop/developer-setup/) to build the application.
+3.  Distribute the application to your users.
+
+## `defaultTeams`
+
+List of server URLs and their display names added to the desktop app by default, which the user cannot modify. Users can still add servers [through the Server Management page](#enableservermanagement) unless `enableServerManagement` is set to `false`. Expects an array of key-value pairs.
+
+Example:
+
+``` text
+defaultTeams: [
+  {
+    name: 'example',
+    url: 'https://example.com'
+  },
+  {
+    name: 'mattermost',
+    url: 'https://www.mattermost.com'
+  }
+]
+```
+
+## `helpLink`
+
+The URL of the help documentation in **Help \> Learn More** menu bar item. If none is specified, the menu option is hidden. Expects a string.
+
+Example:
+
+``` text
+helpLink: 'https://docs.mattermost.com/messaging/managing-desktop-app-servers.html'
+helpLink: ''
+```
+
+## `enableServerManagement`
+
+Controls whether users can add, edit, or remove servers on the app settings page. If set to false, at least one server must be specified for `defaultTeams` or else users cannot interact with any servers. Expects a boolean, true or false.
+
+Example:
+
+``` text
+enableServerManagement: true
+```
+
+## Managed resources
+
+[Custom builds](/deployment-guide/desktop/distribute-a-custom-desktop-app) of the Mattermost desktop app support managed resources which are services available on the same hostname and protocol as the Mattermost server.
+
+To configure managed resources, add their path to the `managedResources` field in your configuration file. Selecting a managed resource opens it as a pop-up window in the desktop app.
+
+Additionally, you must configure the :ref:Managed Resource Paths \<administration-guide/configure/environment-configuration-settings:managed resource paths\>\` server configuration setting. For example, adding the `/video` path:
+
+``` text
+[...]
+  managedResources: ['trusted', 'video'],
+[...]  
+```
+
+Below are examples of server URLs with valid and invalid managed resource URLs:
+
+Server: `https://mattermost.my.org`
+
+- Valid: `https://mattermost.my.org/video`
+- Valid: `https://mattermost.my.org/conference`
+- Invalid: `http://mattermost.my.org/video` (different protocol)
+- Invalid: `https://conference.my.org` (different origin)
+
+Server: `https://my.org/mattermost`
+
+- Valid: `https://my.org/video`
+- Valid: `https://my.org/conference`
+- Invalid: `http://my.org/video` (different protocol)
+- Invalid: `https://conference.my.org` (different origin)

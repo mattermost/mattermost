@@ -1,0 +1,66 @@
+name: Load build environment
+description: >
+  Loads build-server images uploaded by setup-buildenv into the local Docker
+  daemon, and resolves the image name from the Go version. Use in jobs that
+  run the container directly (test jobs). For jobs that only need a shell
+  inside the container, use run-in-buildenv instead.
+
+inputs:
+  go-version:
+    description: "Go version used to construct the image tag (e.g. 1.26.3)."
+    required: true
+  fips-enabled:
+    description: "Set to 'true' to resolve the FIPS build image"
+    required: false
+    default: "false"
+
+outputs:
+  image:
+    description: "Fully-qualified build image name (e.g. mattermost/mattermost-build-server:1.26.3)."
+    value: ${{ steps.resolve.outputs.image }}
+
+runs:
+  using: composite
+  steps:
+    - name: Set constants
+      shell: bash
+      run: |
+        echo "BUILDENV_ARTIFACT=buildenv-image" >> "${GITHUB_ENV}"
+        echo "BUILDENV_FIPS_ARTIFACT=buildenv-fips-image" >> "${GITHUB_ENV}"
+        echo "BUILDENV_TMPDIR=/tmp/buildenv-save" >> "${GITHUB_ENV}"
+    - name: Download buildenv artifact
+      id: download
+      if: ${{ inputs.fips-enabled != 'true' }}
+      continue-on-error: true
+      uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8.0.0
+      with:
+        name: ${{ env.BUILDENV_ARTIFACT }}
+        path: ${{ env.BUILDENV_TMPDIR }}/
+    - name: Load buildenv from artifact
+      if: ${{ inputs.fips-enabled != 'true' && steps.download.outcome == 'success' }}
+      shell: bash
+      run: docker load -i "${BUILDENV_TMPDIR}/image.tar.gz"
+    - name: Download buildenv-fips artifact
+      id: download-fips
+      if: ${{ inputs.fips-enabled == 'true' }}
+      continue-on-error: true
+      uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8.0.0
+      with:
+        name: ${{ env.BUILDENV_FIPS_ARTIFACT }}
+        path: ${{ env.BUILDENV_TMPDIR }}/
+    - name: Load buildenv-fips from artifact
+      if: ${{ inputs.fips-enabled == 'true' && steps.download-fips.outcome == 'success' }}
+      shell: bash
+      run: docker load -i "${BUILDENV_TMPDIR}/image-fips.tar.gz"
+    - name: Resolve image name
+      id: resolve
+      shell: bash
+      env:
+        FIPS: ${{ inputs.fips-enabled }}
+        GO_VERSION: ${{ inputs.go-version }}
+      run: |
+        if [[ "${FIPS}" == 'true' ]]; then
+          echo "image=mattermost/mattermost-build-server-fips:${GO_VERSION}" >> "${GITHUB_OUTPUT}"
+        else
+          echo "image=mattermost/mattermost-build-server:${GO_VERSION}" >> "${GITHUB_OUTPUT}"
+        fi

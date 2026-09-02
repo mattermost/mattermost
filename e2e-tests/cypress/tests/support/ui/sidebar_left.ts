@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {ChainableT} from '../../types';
+import type {ChainableT} from '../../types';
 
 Cypress.Commands.add('uiGetLHS', () => {
     return cy.get('#SidebarContainer').should('be.visible');

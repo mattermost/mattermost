@@ -1,0 +1,107 @@
+---
+slug: /
+title: Mattermost API v4
+description: REST API v4 — first-class per-endpoint pages generated from the canonical OpenAPI specification.
+sidebar_position: 1
+sidebar_label: Overview
+---
+
+<Eyebrow>API Reference</Eyebrow>
+
+Every endpoint is a first-class, deep-linkable page generated directly from the canonical OpenAPI spec. Per-endpoint code samples in **curl, PowerShell, Python, Node, and Go**.
+
+<StatStrip stats={[
+  {value: '549', label: 'Endpoints'},
+  {value: '38',  label: 'Resource groups'},
+  {value: '5',   label: 'Languages',  hint: 'curl · PowerShell · Python · Node · Go'},
+  {value: 'v4',  label: 'API version', hint: 'Stable, semver-tracked'}
+]} />
+
+<MethodLegend />
+
+## Start here
+
+<CardGrid columns={3} cards={[
+  {
+    title: 'Examples',
+    icon: 'channels',
+    to: '/api/examples',
+    description: 'Copy-pasteable curl quick-start for the most common operations: log in, post a message, create a channel, upload a file.',
+    meta: '6 quick recipes'
+  },
+  {
+    title: 'Authentication',
+    icon: 'security',
+    to: '/api/reference/login',
+    description: 'Log in flows, personal access tokens, session tokens, MFA, SSO. Required for almost every endpoint.',
+    meta: 'Login + tokens'
+  },
+  {
+    title: 'Reference',
+    icon: 'boards',
+    to: '/api/reference/login',
+    description: 'Every endpoint, grouped by resource: Users, Channels, Posts, Teams, Files, Webhooks, and more.',
+    meta: '38 groups · 549 endpoints'
+  }
+]} />
+
+## Common workflows
+
+<CardGrid columns={2} cards={[
+  {
+    title: 'Channels',
+    icon: 'channels',
+    to: '/api/reference/channels',
+    description: 'Create, list, archive, and manage channels. Add and remove members, change channel type, set headers and purposes.'
+  },
+  {
+    title: 'Posts',
+    icon: 'channels',
+    to: '/api/reference/posts',
+    description: 'Post, edit, delete, pin, react. Search, fetch threads, retrieve flagged posts.'
+  },
+  {
+    title: 'Users',
+    icon: 'channels',
+    to: '/api/reference/users',
+    description: 'Search, fetch, create, deactivate users. Manage roles, sessions, MFA, profile images.'
+  },
+  {
+    title: 'Webhooks',
+    icon: 'channels',
+    to: '/api/reference/webhooks',
+    description: 'Incoming and outgoing webhooks for integrations and ChatOps.'
+  }
+]} />
+
+## How it's generated
+
+The canonical source is the OpenAPI specification in `mattermost/mattermost/api/v4/source/` (56 YAML fragments, one per resource). The build pipeline:
+
+```bash
+node docs-site/scripts/build-openapi.mjs   # bundle 56 fragments → one YAML, 435 paths, 550 ops
+npx docusaurus gen-api-docs all            # emit ~589 MDX files (one per endpoint + tag pages)
+```
+
+When the upstream spec changes, this regenerates automatically. AI never authors API reference content — it's deterministic from the spec.
+
+## Looking for something else?
+
+<CardGrid columns={2} cards={[
+  {
+    title: 'Developers',
+    icon: 'channels',
+    to: '/developers',
+    description: 'Building plugins, integrations, slash commands, OAuth apps? Start here.'
+  },
+  {
+    title: 'Documentation',
+    icon: 'channels',
+    to: '/',
+    description: 'Operating, configuring, or using Mattermost? Admin and end-user guides.'
+  }
+]} />
+
+<Note>
+The legacy ReDoc-based reference at `developers.mattermost.com/api-documentation` is being decommissioned as part of the cutover (see PLAN.md §11.1 step 10).
+</Note>

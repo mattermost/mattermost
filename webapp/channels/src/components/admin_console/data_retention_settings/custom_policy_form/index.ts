@@ -18,7 +18,7 @@ import {
 import {getDataRetentionCustomPolicy} from 'mattermost-redux/selectors/entities/admin';
 import {getTeamsInPolicy} from 'mattermost-redux/selectors/entities/teams';
 
-import {setNavigationBlocked} from 'actions/admin_actions.jsx';
+import {setNavigationBlocked} from 'actions/admin_actions';
 
 import type {GlobalState} from 'types/store';
 
@@ -30,7 +30,7 @@ type OwnProps = {
             policy_id: string;
         };
     };
-}
+};
 
 function mapStateToProps() {
     const getPolicyTeams = getTeamsInPolicy();

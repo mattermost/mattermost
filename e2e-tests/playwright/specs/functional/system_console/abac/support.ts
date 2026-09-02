@@ -10,14 +10,12 @@ import {expect, type Page} from '@playwright/test';
 import type {Client4} from '@mattermost/client';
 import type {UserProfile} from '@mattermost/types/users';
 import type {Channel} from '@mattermost/types/channels';
-import type {UserPropertyField} from '@mattermost/types/properties';
+import type {UserPropertyField} from '@mattermost/types/properties_user';
 
-import {newTestPassword} from '@mattermost/playwright-lib';
+import {getRandomId, newTestPassword} from '@mattermost/playwright-lib';
 
-import {
-    CustomProfileAttribute,
-    setupCustomProfileAttributeValuesForUser,
-} from '../../channels/custom_profile_attributes/helpers';
+import type {CustomProfileAttribute} from '../../channels/custom_profile_attributes/helpers';
+import {setupCustomProfileAttributeValuesForUser} from '../../channels/custom_profile_attributes/helpers';
 
 /**
  * Verify policy exists with better waiting and retry logic
@@ -61,8 +59,8 @@ export async function verifyPolicyNotExists(page: Page, policyName: string): Pro
 export async function createUserAttributeField(client: Client4, name: string, type: string = 'text'): Promise<any> {
     const url = `${client.getBaseRoute()}/custom_profile_attributes/fields`;
     const field = {
-        name: name,
-        type: type,
+        name,
+        type,
         attrs: {
             managed: 'admin', // Admin-managed attribute
             visibility: 'when_set',
@@ -139,6 +137,20 @@ export async function ensureUserAttributes(client: Client4, attributeNames?: str
 }
 
 /**
+ * Resolve a user (CPA) attribute field by name. Attribute-picker menu items are
+ * keyed by field id (`#attribute-<id>`), so callers targeting a specific user
+ * attribute must look up its id rather than hardcoding its name.
+ */
+export async function getUserAttributeFieldByName(client: Client4, name: string): Promise<UserPropertyField> {
+    const fields = await client.getCustomProfileAttributeFields();
+    const field = fields.find((f) => f.name === name);
+    if (!field) {
+        throw new Error(`User attribute "${name}" not found`);
+    }
+    return field;
+}
+
+/**
  * Navigate to User Attributes page and create attributes via UI
  */
 export async function setupUserAttributesViaUI(page: Page, attributes: string[]): Promise<void> {
@@ -183,16 +195,16 @@ export async function createUserForABAC(
     attributeFieldsMap: Record<string, UserPropertyField>,
     attributes: CustomProfileAttribute[],
 ): Promise<UserProfile> {
-    // Generate random ID and ensure username starts with letter
-    const randomId = Math.random().toString(36).substring(2, 9);
-    const username = `user${randomId}`.toLowerCase();
+    // Username must start with a letter
+    const username = `user${getRandomId()}`.toLowerCase();
+    const password = newTestPassword();
 
     // Create the user
     const user = await adminClient.createUser(
         {
             email: `${username}@example.com`,
-            username: username,
-            password: newTestPassword(),
+            username,
+            password,
         } as any,
         '',
         '',
@@ -202,7 +214,7 @@ export async function createUserForABAC(
 
     // Attach the password back to the user object so pw.testBrowser.login() can authenticate.
     // The API response does not include the password field.
-    (user as any).password = 'Passwd4Testing!';
+    (user as any).password = password;
 
     return user;
 }
@@ -249,11 +261,11 @@ export async function testAccessRule(
     if (countText) {
         const totalMatch = countText.match(/of\s*(\d+)\s*total/i);
         if (totalMatch) {
-            totalMatches = parseInt(totalMatch[1]);
+            totalMatches = parseInt(totalMatch[1], 10);
         } else {
             const matchesMatch = countText.match(/(\d+)\s*match/i);
             if (matchesMatch) {
-                totalMatches = parseInt(matchesMatch[1]);
+                totalMatches = parseInt(matchesMatch[1], 10);
             }
         }
     }
@@ -355,6 +367,69 @@ export async function createPrivateChannelForABAC(client: Client4, teamId: strin
 }
 
 /**
+ * Fill a single-value condition in the table editor's value cell.
+ *
+ * A free-text attribute's value editor renders one of two ways depending on
+ * what comparison targets are available:
+ *   - an always-visible inline input (.values-editor__simple-input), when there
+ *     are no comparable channel-attribute targets; or
+ *   - a dropdown (valueSelectorMenuButton) whose "Add value..." field is only
+ *     revealed after the menu is opened, when channel attributes are offered as
+ *     comparison targets.
+ *
+ * Since channel (resource) attributes are system-wide, whether the dropdown
+ * appears depends on data that other specs may have created on the shared
+ * server. Handle both variants so the helper is agnostic to that.
+ *
+ * An attribute that carries options also renders the dropdown, but with a
+ * filter field rather than "Add value..." — pick the option from the menu
+ * instead of calling this.
+ */
+export async function fillSingleConditionValue(page: Page, value: string): Promise<void> {
+    const inlineInput = page.locator('.values-editor__simple-input').first();
+    const menuButton = page.locator('[data-testid="valueSelectorMenuButton"]').first();
+
+    // Wait for whichever variant rendered after the operator was chosen.
+    await page
+        .locator('.values-editor__simple-input, [data-testid="valueSelectorMenuButton"]')
+        .first()
+        .waitFor({state: 'visible', timeout: 10000});
+
+    if (await inlineInput.isVisible().catch(() => false)) {
+        await inlineInput.fill(value);
+        await inlineInput.press('Tab'); // commit (onBlur)
+        await page.waitForTimeout(300);
+        return;
+    }
+
+    // Dropdown variant: open the menu, then fill the "Add value..." field inside it.
+    // Match on the accessible name, not the placeholder: the menu autofocuses this
+    // input, and Input only sets a placeholder attribute while unfocused (the text
+    // moves into the floating legend), so a placeholder locator resolves to nothing.
+    await menuButton.click({force: true});
+    const menuInput = page.locator('input[aria-label*="Add value" i], input[placeholder*="Add value" i]').first();
+
+    // A click that lands while a sibling menu (e.g. the operator selector the caller
+    // just used) is still closing is spent dismissing that menu instead, leaving this
+    // one shut. Re-click once rather than requiring every caller to pause first. The
+    // gate has to be a waitFor, not isVisible(), which returns immediately and would
+    // toggle the menu straight back shut.
+    try {
+        await menuInput.waitFor({state: 'visible', timeout: 3000});
+    } catch {
+        await menuButton.click({force: true});
+        await menuInput.waitFor({state: 'visible', timeout: 10000});
+    }
+    await menuInput.fill(value);
+
+    // Tab commits (input onBlur) and closes the menu (menu closeMenuOnTab), so
+    // the dropdown doesn't overlay later actions. Enter would commit but leave
+    // the menu open, and Escape is swallowed by the input's stopPropagation.
+    await menuInput.press('Tab');
+    await page.waitForTimeout(300);
+}
+
+/**
  * Create basic policy using Table Editor (Simple mode)
  */
 /**
@@ -407,7 +482,9 @@ export async function createBasicPolicy(
 
             // Wait for attributes to become available (up to 10 s in 2 s increments)
             for (let i = 0; i < 5; i++) {
-                if (!(await addAttributeButton.isDisabled())) break;
+                if (!(await addAttributeButton.isDisabled())) {
+                    break;
+                }
                 await page.waitForTimeout(2000);
             }
         }
@@ -479,10 +556,7 @@ export async function createBasicPolicy(
             await page.waitForTimeout(300);
         } else {
             // Single-value operator
-            const valueInput = page.locator('.values-editor__simple-input, input[placeholder*="Add value" i]').first();
-            await valueInput.waitFor({state: 'visible', timeout: 10000});
-            await valueInput.fill(options.value);
-            await page.waitForTimeout(500);
+            await fillSingleConditionValue(page, options.value);
         }
     } // end if (clickedAddAttribute)
 
@@ -863,7 +937,7 @@ export async function createAdvancedPolicy(
     const saveEnabled = await saveButton.isEnabled({timeout: 5000}).catch(() => false);
     if (!saveEnabled) {
         // console.error(`❌ Save button is disabled - cannot save policy`);
-        throw new Error(`Save button is disabled`);
+        throw new Error('Save button is disabled');
     }
 
     await saveButton.click();
@@ -882,7 +956,7 @@ export async function createAdvancedPolicy(
     const applyVisible = await applyPolicyButton.isVisible({timeout: 10000}).catch(() => false);
 
     if (!applyVisible) {
-        throw new Error(`Apply Policy button not visible after Save`);
+        throw new Error('Apply Policy button not visible after Save');
     }
 
     // Arm the response interceptor BEFORE the click so we never miss the POST.
@@ -937,7 +1011,9 @@ export async function waitForLatestSyncJob(
                             const resp = await fetch(`/api/v4/jobs/${encodeURIComponent(id)}`, {
                                 credentials: 'include',
                             });
-                            if (!resp.ok) return {status: `http_${resp.status}`};
+                            if (!resp.ok) {
+                                return {status: `http_${resp.status}`};
+                            }
                             return resp.json();
                         }, expectedJobId);
                         const status = (job?.status ?? '').toLowerCase();
@@ -946,7 +1022,9 @@ export async function waitForLatestSyncJob(
                         }
                         return status;
                     } catch (err) {
-                        if (err instanceof Error && err.message.startsWith('Sync job')) throw err;
+                        if (err instanceof Error && err.message.startsWith('Sync job')) {
+                            throw err;
+                        }
                         return 'pending'; // network hiccup — keep polling
                     }
                 },
@@ -996,7 +1074,7 @@ export async function waitForLatestSyncJob(
  * Uses `expect.poll` with 500 ms intervals and a 30 s timeout so jobs that are
  * briefly delayed in the queue do not cause spurious failures.
  */
-export async function waitForPolicySyncJob(client: Client4, policyId: string): Promise<void> {
+export async function waitForPolicySyncJob(client: Client4, policyId: string, timeoutMs = 60_000): Promise<void> {
     await expect
         .poll(
             async () => {
@@ -1005,7 +1083,9 @@ export async function waitForPolicySyncJob(client: Client4, policyId: string): P
                         `${client.getBaseRoute()}/jobs/type/access_control_sync?policy_id=${encodeURIComponent(policyId)}&page=0&per_page=5`,
                         {method: 'GET'},
                     );
-                    if (!Array.isArray(jobs) || jobs.length === 0) return 'pending';
+                    if (!Array.isArray(jobs) || jobs.length === 0) {
+                        return 'pending';
+                    }
                     // Sort by create_at descending so jobs[0] is the latest.
                     // The API does not guarantee order, so without this sort
                     // jobs[0] can be an older already-successful job, causing
@@ -1017,14 +1097,16 @@ export async function waitForPolicySyncJob(client: Client4, policyId: string): P
                     }
                     return status;
                 } catch (err) {
-                    if (err instanceof Error && err.message.startsWith('Policy sync job')) throw err;
+                    if (err instanceof Error && err.message.startsWith('Policy sync job')) {
+                        throw err;
+                    }
                     return 'pending'; // network hiccup — keep polling
                 }
             },
             {
-                timeout: 30_000,
+                timeout: timeoutMs,
                 intervals: [500, 500, 500, 1000, 1000, 2000],
-                message: `Policy sync job for ${policyId} did not reach success within 30 s`,
+                message: `Policy sync job for ${policyId} did not reach success within ${timeoutMs / 1000} s`,
             },
         )
         .toBe('success');
@@ -1073,7 +1155,7 @@ export async function getJobDetailsForChannel(
             if (await addedTab.isVisible({timeout: 2000})) {
                 const addedText = await addedTab.textContent();
                 const addedMatch = addedText?.match(/Added\s*\((\d+)\)/i);
-                added = addedMatch ? parseInt(addedMatch[1]) : 0;
+                added = addedMatch ? parseInt(addedMatch[1], 10) : 0;
             }
 
             // Parse Removed count from the tab: "Removed (X)"
@@ -1081,7 +1163,7 @@ export async function getJobDetailsForChannel(
             if (await removedTab.isVisible({timeout: 2000})) {
                 const removedText = await removedTab.textContent();
                 const removedMatch = removedText?.match(/Removed\s*\((\d+)\)/i);
-                removed = removedMatch ? parseInt(removedMatch[1]) : 0;
+                removed = removedMatch ? parseInt(removedMatch[1], 10) : 0;
             }
 
             // Close the Channel Membership Changes modal
@@ -1103,8 +1185,8 @@ export async function getJobDetailsForChannel(
             const addedMatch = countsText?.match(/\+(\d+)/);
             const removedMatch = countsText?.match(/-(\d+)/);
 
-            added = addedMatch ? parseInt(addedMatch[1]) : 0;
-            removed = removedMatch ? parseInt(removedMatch[1]) : 0;
+            added = addedMatch ? parseInt(addedMatch[1], 10) : 0;
+            removed = removedMatch ? parseInt(removedMatch[1], 10) : 0;
         }
     }
 
@@ -1233,17 +1315,13 @@ export async function getPolicyIdByName(
 
                 if (policy) {
                     return policy.id;
-                } else {
-                    // Wait before retrying
-                    if (attempt < retries) {
-                        await new Promise((resolve) => setTimeout(resolve, 2000));
-                    }
                 }
-            } else {
                 // Wait before retrying
                 if (attempt < retries) {
                     await new Promise((resolve) => setTimeout(resolve, 2000));
                 }
+            } else if (attempt < retries) {
+                await new Promise((resolve) => setTimeout(resolve, 2000));
             }
         } catch {
             // console.error(`Failed to search policies (attempt ${attempt}):`, _error.message || String(_error));
@@ -1371,6 +1449,35 @@ export async function navigateToPermissionPoliciesPage(page: Page): Promise<void
  * Uses doFetch (same pattern as getPolicyIdByName) to find the policy by name,
  * then issues a DELETE. Safe to call even if the policy does not exist.
  */
+/**
+ * Rewrite the CEL expression on every rule of an existing permission policy.
+ *
+ * API rather than the CEL editor: SavePolicy publishes permission_policy_updated whichever
+ * surface issued the change, and driving the admin UI would test the editor instead.
+ *
+ * Revoke by narrowing the expression, never by removing an action. An action no rule grants is
+ * implicitly allowed, so dropping one widens access instead of withdrawing it.
+ */
+export async function updatePermissionPolicyExpression(
+    client: Client4,
+    policyName: string,
+    expression: string,
+): Promise<void> {
+    const policyId = await getPolicyIdByName(client, policyName);
+    expect(policyId, `Could not find permission policy "${policyName}" to update`).toBeTruthy();
+
+    const policy = await (client as any).doFetch(`${client.getBaseRoute()}/access_control_policies/${policyId}`, {
+        method: 'GET',
+    });
+
+    policy.rules = (policy.rules || []).map((rule: any) => ({...rule, expression}));
+
+    await (client as any).doFetch(`${client.getBaseRoute()}/access_control_policies`, {
+        method: 'PUT',
+        body: JSON.stringify(policy),
+    });
+}
+
 export async function deletePermissionPolicyByName(client: Client4, policyName: string): Promise<void> {
     try {
         const searchUrl = `${client.getBaseRoute()}/access_control_policies/search`;

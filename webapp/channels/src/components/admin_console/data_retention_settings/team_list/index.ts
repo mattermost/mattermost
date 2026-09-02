@@ -22,7 +22,7 @@ import TeamList from './team_list';
 type OwnProps = {
     policyId?: string;
     teamsToAdd: Record<string, Team>;
-}
+};
 
 function searchTeamsToAdd(teams: Record<string, Team>, term: string): Record<string, Team> {
     const filteredTeams = filterTeamsStartingWithTerm(Object.keys(teams).map((key) => teams[key]), term);

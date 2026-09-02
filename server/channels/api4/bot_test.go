@@ -129,7 +129,7 @@ func TestCreateBot(t *testing.T) {
 		_, appErr = th.App.UpdateUserRoles(th.Context, bot.UserId, model.TeamUserRoleId+" "+model.SystemUserAccessTokenRoleId, false)
 		assert.Nil(t, appErr)
 
-		rtoken, _, err := th.Client.CreateUserAccessToken(context.Background(), bot.UserId, "test token")
+		rtoken, _, err := th.Client.CreateUserAccessToken(context.Background(), bot.UserId, "test token", 0)
 		require.NoError(t, err)
 		th.Client.AuthToken = rtoken.Token
 
@@ -1179,6 +1179,25 @@ func TestDisableBot(t *testing.T) {
 			CheckOKStatus(t, resp)
 			require.Equal(t, bot, disabledBot2)
 		})
+	})
+
+	t.Run("cannot disable a protected system-owned bot", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		systemBot, appErr := th.App.GetSystemBot(th.Context)
+		require.Nil(t, appErr)
+		require.Equal(t, model.BotSystemBotUsername, systemBot.Username)
+
+		_, resp, err := th.SystemAdminClient.DisableBot(context.Background(), systemBot.UserId)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+		CheckErrorID(t, err, "app.bot.update_bot_active.protected_bot.app_error")
+
+		// The bot must remain enabled.
+		bot, resp, err := th.SystemAdminClient.GetBotIncludeDeleted(context.Background(), systemBot.UserId, "")
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Zero(t, bot.DeleteAt)
 	})
 }
 

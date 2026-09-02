@@ -497,6 +497,20 @@ func (api *apiTimerLayer) DeleteChannel(channelId string) *model.AppError {
 	return _returnsA
 }
 
+func (api *apiTimerLayer) RestoreChannel(channelId string) *model.AppError {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.RestoreChannel(channelId)
+	api.recordTime(startTime, "RestoreChannel", _returnsA == nil)
+	return _returnsA
+}
+
+func (api *apiTimerLayer) GetChannelOfType(channelId string, channelType model.ChannelType) (*model.Channel, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.GetChannelOfType(channelId, channelType)
+	api.recordTime(startTime, "GetChannelOfType", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
 func (api *apiTimerLayer) GetPublicChannelsForTeam(teamID string, page, perPage int) ([]*model.Channel, *model.AppError) {
 	startTime := timePkg.Now()
 	_returnsA, _returnsB := api.apiImpl.GetPublicChannelsForTeam(teamID, page, perPage)
@@ -558,6 +572,20 @@ func (api *apiTimerLayer) UpdateChannel(channel *model.Channel) (*model.Channel,
 	_returnsA, _returnsB := api.apiImpl.UpdateChannel(channel)
 	api.recordTime(startTime, "UpdateChannel", _returnsB == nil)
 	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) RegisterChannelGuard(channelID string) *model.AppError {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.RegisterChannelGuard(channelID)
+	api.recordTime(startTime, "RegisterChannelGuard", _returnsA == nil)
+	return _returnsA
+}
+
+func (api *apiTimerLayer) UnregisterChannelGuard(channelID string) *model.AppError {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.UnregisterChannelGuard(channelID)
+	api.recordTime(startTime, "UnregisterChannelGuard", _returnsA == nil)
+	return _returnsA
 }
 
 func (api *apiTimerLayer) SearchChannels(teamID string, term string) ([]*model.Channel, *model.AppError) {
@@ -1695,6 +1723,41 @@ func (api *apiTimerLayer) DeletePropertyValuesForField(groupID, fieldID string) 
 	return _returnsA
 }
 
+func (api *apiTimerLayer) UpsertPropertyValuesWithOptions(values []*model.PropertyValue, options model.PropertyRequestOptions) ([]*model.PropertyValue, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.UpsertPropertyValuesWithOptions(values, options)
+	api.recordTime(startTime, "UpsertPropertyValuesWithOptions", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) UpsertPropertyValueWithOptions(value *model.PropertyValue, options model.PropertyRequestOptions) (*model.PropertyValue, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.UpsertPropertyValueWithOptions(value, options)
+	api.recordTime(startTime, "UpsertPropertyValueWithOptions", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) DeletePropertyValueWithOptions(groupID, valueID string, options model.PropertyRequestOptions) error {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.DeletePropertyValueWithOptions(groupID, valueID, options)
+	api.recordTime(startTime, "DeletePropertyValueWithOptions", _returnsA == nil)
+	return _returnsA
+}
+
+func (api *apiTimerLayer) DeletePropertyValuesForTargetWithOptions(groupID, targetType, targetID string, options model.PropertyRequestOptions) error {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.DeletePropertyValuesForTargetWithOptions(groupID, targetType, targetID, options)
+	api.recordTime(startTime, "DeletePropertyValuesForTargetWithOptions", _returnsA == nil)
+	return _returnsA
+}
+
+func (api *apiTimerLayer) DeletePropertyValuesForFieldWithOptions(groupID, fieldID string, options model.PropertyRequestOptions) error {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.DeletePropertyValuesForFieldWithOptions(groupID, fieldID, options)
+	api.recordTime(startTime, "DeletePropertyValuesForFieldWithOptions", _returnsA == nil)
+	return _returnsA
+}
+
 func (api *apiTimerLayer) LogAuditRec(rec *model.AuditRecord) {
 	startTime := timePkg.Now()
 	api.apiImpl.LogAuditRec(rec)
@@ -1705,4 +1768,60 @@ func (api *apiTimerLayer) LogAuditRecWithLevel(rec *model.AuditRecord, level mlo
 	startTime := timePkg.Now()
 	api.apiImpl.LogAuditRecWithLevel(rec, level)
 	api.recordTime(startTime, "LogAuditRecWithLevel", true)
+}
+
+func (api *apiTimerLayer) EvaluateAccessControl(userID, resourceType, resourceID, action string) (*model.AccessDecision, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.EvaluateAccessControl(userID, resourceType, resourceID, action)
+	api.recordTime(startTime, "EvaluateAccessControl", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) SaveAccessControlPolicy(actingUserID string, policy *model.AccessControlPolicy) (*model.AccessControlPolicy, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.SaveAccessControlPolicy(actingUserID, policy)
+	api.recordTime(startTime, "SaveAccessControlPolicy", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) GetAccessControlPolicy(id string) (*model.AccessControlPolicy, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.GetAccessControlPolicy(id)
+	api.recordTime(startTime, "GetAccessControlPolicy", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) DeleteAccessControlPolicy(actingUserID, resourceType, id string) *model.AppError {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.DeleteAccessControlPolicy(actingUserID, resourceType, id)
+	api.recordTime(startTime, "DeleteAccessControlPolicy", _returnsA == nil)
+	return _returnsA
+}
+
+func (api *apiTimerLayer) CheckAccessControlExpression(actingUserID, resourceType, expression string) ([]model.CELExpressionError, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.CheckAccessControlExpression(actingUserID, resourceType, expression)
+	api.recordTime(startTime, "CheckAccessControlExpression", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) QueryUsersForAccessControlExpression(actingUserID, resourceType, expression, term, cursorID string, limit int) (*model.AccessControlPolicyTestResponse, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.QueryUsersForAccessControlExpression(actingUserID, resourceType, expression, term, cursorID, limit)
+	api.recordTime(startTime, "QueryUsersForAccessControlExpression", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) GetAccessControlFieldsAutocomplete(actingUserID, after string, limit int) ([]*model.PropertyField, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.GetAccessControlFieldsAutocomplete(actingUserID, after, limit)
+	api.recordTime(startTime, "GetAccessControlFieldsAutocomplete", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) GetAccessControlVisualAST(actingUserID, resourceType, expression string) (*model.VisualExpression, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.GetAccessControlVisualAST(actingUserID, resourceType, expression)
+	api.recordTime(startTime, "GetAccessControlVisualAST", _returnsB == nil)
+	return _returnsA, _returnsB
 }

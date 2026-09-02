@@ -8,7 +8,7 @@ type ClickCategoryMenuItemProps = {
     menuItemText: string;
     categoryMenuButtonName?: string;
     isSubMenu?: boolean;
-}
+};
 
 export function clickCategoryMenuItem({categoryDisplayName, menuItemText, categoryMenuButtonName = categoryDisplayName, isSubMenu = false}: ClickCategoryMenuItemProps) {
     cy.get('#SidebarContainer').should('be.visible').within(() => {

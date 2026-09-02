@@ -5,8 +5,9 @@ import {writeFile} from 'node:fs/promises';
 import path from 'node:path';
 import fs from 'node:fs';
 
-import {Browser, BrowserContext, request} from '@playwright/test';
-import {UserProfile} from '@mattermost/types/users';
+import type {Browser, BrowserContext} from '@playwright/test';
+import {request} from '@playwright/test';
+import type {UserProfile} from '@mattermost/types/users';
 
 import {testConfig} from './test_config';
 import {pages} from './ui/pages';

@@ -30,11 +30,11 @@ type Props = {
     location: {
         pathname: string;
     };
-}
+};
 
 type State = {
     show: boolean;
-}
+};
 
 export default class DeletePostModal extends React.PureComponent<Props, State> {
     deletePostBtn: React.RefObject<HTMLButtonElement>;

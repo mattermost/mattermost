@@ -9,83 +9,81 @@ exports[`ManageTeamsModal should match snapshot init 1`] = `
     aria-hidden="true"
   />
   <div
-    role="none"
+    class="fade modal-backdrop in"
+  />
+  <div
+    aria-labelledby="manageTeamsModalLabel"
+    aria-modal="true"
+    class="fade in modal"
+    id="manageTeamsModal"
+    role="dialog"
+    style="display: block; padding-right: 0px;"
+    tabindex="-1"
   >
     <div
-      class="fade modal-backdrop in"
-    />
-    <div
-      aria-labelledby="manageTeamsModalLabel"
-      class="fade in modal"
-      role="dialog"
-      style="display: block; padding-right: 0px;"
-      tabindex="-1"
+      class="a11y__modal manage-teams modal--overflow-visible modal-dialog"
     >
       <div
-        class="a11y__modal manage-teams modal--overflow-visible modal-dialog"
+        class="modal-content"
+        role="document"
       >
         <div
-          class="modal-content"
-          role="document"
+          class="modal-header"
         >
-          <div
-            class="modal-header"
+          <button
+            aria-label="Close"
+            class="close"
+            type="button"
           >
-            <button
-              aria-label="Close"
-              class="close"
-              type="button"
+            <span
+              aria-hidden="true"
             >
-              <span
-                aria-hidden="true"
-              >
-                ×
-              </span>
-              <span
-                class="sr-only"
-              >
-                Close
-              </span>
-            </button>
-            <h1
-              class="modal-title"
-              id="manageTeamsModalLabel"
+              ×
+            </span>
+            <span
+              class="sr-only"
             >
-              Manage Teams
-            </h1>
-          </div>
-          <div
-            class="modal-body"
+              Close
+            </span>
+          </button>
+          <h1
+            class="modal-title"
+            id="manageTeamsModalLabel"
           >
-            <div>
+            Manage Teams
+          </h1>
+        </div>
+        <div
+          class="modal-body"
+        >
+          <div>
+            <div
+              class="manage-teams__user"
+            >
+              <img
+                alt="currentUsername profile image"
+                class="Avatar Avatar-lg"
+                loading="lazy"
+                src="/api/v4/users/currentUserId/image?_=1234"
+              />
               <div
-                class="manage-teams__user"
+                class="manage-teams__info"
               >
-                <img
-                  alt="currentUsername profile image"
-                  class="Avatar Avatar-lg"
-                  loading="lazy"
-                  src="/api/v4/users/currentUserId/image?_=1234"
-                />
                 <div
-                  class="manage-teams__info"
+                  class="manage-teams__name"
                 >
-                  <div
-                    class="manage-teams__name"
-                  >
-                    @currentUsername
-                  </div>
-                  <div
-                    class="manage-teams__email"
-                  >
-                    currentUser@test.com
-                  </div>
+                  @currentUsername
+                </div>
+                <div
+                  class="manage-teams__email"
+                >
+                  currentUser@test.com
                 </div>
               </div>
-              <div
-                class="manage-teams__teams"
-              />
             </div>
+            <div
+              class="manage-teams__teams"
+            />
           </div>
         </div>
       </div>

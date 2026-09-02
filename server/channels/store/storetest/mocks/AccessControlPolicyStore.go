@@ -15,6 +15,11 @@ type AccessControlPolicyStore struct {
 	mock.Mock
 }
 
+// ClearEtagCache provides a mock function with no fields
+func (_m *AccessControlPolicyStore) ClearEtagCache() {
+	_m.Called()
+}
+
 // Delete provides a mock function with given fields: rctx, id
 func (_m *AccessControlPolicyStore) Delete(rctx request.CTX, id string) error {
 	ret := _m.Called(rctx, id)
@@ -63,6 +68,94 @@ func (_m *AccessControlPolicyStore) Get(rctx request.CTX, id string) (*model.Acc
 	return r0, r1
 }
 
+// GetActionsForPolicies provides a mock function with given fields: rctx, policyIDs
+func (_m *AccessControlPolicyStore) GetActionsForPolicies(rctx request.CTX, policyIDs []string) (map[string]map[string]bool, error) {
+	ret := _m.Called(rctx, policyIDs)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetActionsForPolicies")
+	}
+
+	var r0 map[string]map[string]bool
+	var r1 error
+	if rf, ok := ret.Get(0).(func(request.CTX, []string) (map[string]map[string]bool, error)); ok {
+		return rf(rctx, policyIDs)
+	}
+	if rf, ok := ret.Get(0).(func(request.CTX, []string) map[string]map[string]bool); ok {
+		r0 = rf(rctx, policyIDs)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(map[string]map[string]bool)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(request.CTX, []string) error); ok {
+		r1 = rf(rctx, policyIDs)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetActionsForPolicy provides a mock function with given fields: rctx, policyID
+func (_m *AccessControlPolicyStore) GetActionsForPolicy(rctx request.CTX, policyID string) (map[string]bool, error) {
+	ret := _m.Called(rctx, policyID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetActionsForPolicy")
+	}
+
+	var r0 map[string]bool
+	var r1 error
+	if rf, ok := ret.Get(0).(func(request.CTX, string) (map[string]bool, error)); ok {
+		return rf(rctx, policyID)
+	}
+	if rf, ok := ret.Get(0).(func(request.CTX, string) map[string]bool); ok {
+		r0 = rf(rctx, policyID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(map[string]bool)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(request.CTX, string) error); ok {
+		r1 = rf(rctx, policyID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetEtagEpoch provides a mock function with given fields: rctx, channelID
+func (_m *AccessControlPolicyStore) GetEtagEpoch(rctx request.CTX, channelID string) (string, error) {
+	ret := _m.Called(rctx, channelID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetEtagEpoch")
+	}
+
+	var r0 string
+	var r1 error
+	if rf, ok := ret.Get(0).(func(request.CTX, string) (string, error)); ok {
+		return rf(rctx, channelID)
+	}
+	if rf, ok := ret.Get(0).(func(request.CTX, string) string); ok {
+		r0 = rf(rctx, channelID)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	if rf, ok := ret.Get(1).(func(request.CTX, string) error); ok {
+		r1 = rf(rctx, channelID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetPoliciesByFieldID provides a mock function with given fields: rctx, fieldID
 func (_m *AccessControlPolicyStore) GetPoliciesByFieldID(rctx request.CTX, fieldID string) ([]*model.AccessControlPolicy, error) {
 	ret := _m.Called(rctx, fieldID)
@@ -91,6 +184,11 @@ func (_m *AccessControlPolicyStore) GetPoliciesByFieldID(rctx request.CTX, field
 	}
 
 	return r0, r1
+}
+
+// InvalidateEtagForChannel provides a mock function with given fields: channelID
+func (_m *AccessControlPolicyStore) InvalidateEtagForChannel(channelID string) {
+	_m.Called(channelID)
 }
 
 // Save provides a mock function with given fields: rctx, policy

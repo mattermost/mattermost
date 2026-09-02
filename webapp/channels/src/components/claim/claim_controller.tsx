@@ -26,7 +26,7 @@ export interface PasswordConfig {
 
 type Location = {
     search: string;
-}
+};
 
 export type Props = {
     location: Location;
@@ -39,7 +39,7 @@ export type Props = {
     actions: {
         switchLdapToEmail: (ldapPassword: string, email: string, emailPassword: string, mfaCode?: string) => Promise<ActionResult<AuthChangeResponse>>;
     };
-}
+};
 
 export default class ClaimController extends React.PureComponent<Props> {
     render(): JSX.Element {
@@ -63,8 +63,8 @@ export default class ClaimController extends React.PureComponent<Props> {
                                     path={`${this.props.match.url}/oauth_to_email`}
                                     render={() => (
                                         <OAuthToEmail
-                                            currentType={currentType}
-                                            email={email}
+                                            currentType={currentType || ''}
+                                            email={email || ''}
                                             siteName={this.props.siteName}
                                             passwordConfig={this.props.passwordConfig}
                                         />
@@ -74,7 +74,7 @@ export default class ClaimController extends React.PureComponent<Props> {
                                     path={`${this.props.match.url}/email_to_oauth`}
                                     render={() => (
                                         <EmailToOAuth
-                                            newType={newType}
+                                            newType={newType || ''}
                                             email={email || ''}
                                             siteName={this.props.siteName}
                                         />

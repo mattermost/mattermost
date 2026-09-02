@@ -56,15 +56,15 @@ export type Props = WrappedComponentProps & {
     direction?: 'left' | 'right';
     openUp?: boolean;
     styleSelectableItem?: boolean;
-    extraText?: string| JSX.Element;
+    extraText?: string | JSX.Element;
     rightDecorator?: React.ReactNode;
     isHeader?: boolean;
     tabIndex?: number;
-}
+};
 
 type State = {
     show: boolean;
-}
+};
 
 /**
  * @deprecated Use the "webapp/channels/src/components/menu" instead.
@@ -96,7 +96,7 @@ export class SubMenuItem extends React.PureComponent<Props, State> {
         this.setState({show: false});
     };
 
-    private onClick = (event: React.SyntheticEvent<HTMLElement>| React.BaseSyntheticEvent<HTMLElement>) => {
+    private onClick = (event: React.SyntheticEvent<HTMLElement> | React.BaseSyntheticEvent<HTMLElement>) => {
         event.preventDefault();
         const {id, postId, subMenu, action, root, isHeader} = this.props;
         const isMobile = isMobileViewHack();

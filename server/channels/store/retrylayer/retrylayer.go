@@ -7,7 +7,6 @@
 package retrylayer
 
 import (
-	"context"
 	timepkg "time"
 
 	"github.com/lib/pq"
@@ -27,6 +26,7 @@ type RetryLayer struct {
 	BotStore                        store.BotStore
 	ChannelStore                    store.ChannelStore
 	ChannelBookmarkStore            store.ChannelBookmarkStore
+	ChannelGuardStore               store.ChannelGuardStore
 	ChannelJoinRequestStore         store.ChannelJoinRequestStore
 	ChannelMemberHistoryStore       store.ChannelMemberHistoryStore
 	ClusterDiscoveryStore           store.ClusterDiscoveryStore
@@ -62,8 +62,10 @@ type RetryLayer struct {
 	RetentionPolicyStore            store.RetentionPolicyStore
 	RoleStore                       store.RoleStore
 	ScheduledPostStore              store.ScheduledPostStore
+	ScheduledRecapStore             store.ScheduledRecapStore
 	SchemeStore                     store.SchemeStore
 	SessionStore                    store.SessionStore
+	SessionAttributeStore           store.SessionAttributeStore
 	SharedChannelStore              store.SharedChannelStore
 	StatusStore                     store.StatusStore
 	SystemStore                     store.SystemStore
@@ -106,6 +108,10 @@ func (s *RetryLayer) Channel() store.ChannelStore {
 
 func (s *RetryLayer) ChannelBookmark() store.ChannelBookmarkStore {
 	return s.ChannelBookmarkStore
+}
+
+func (s *RetryLayer) ChannelGuard() store.ChannelGuardStore {
+	return s.ChannelGuardStore
 }
 
 func (s *RetryLayer) ChannelJoinRequest() store.ChannelJoinRequestStore {
@@ -248,12 +254,20 @@ func (s *RetryLayer) ScheduledPost() store.ScheduledPostStore {
 	return s.ScheduledPostStore
 }
 
+func (s *RetryLayer) ScheduledRecap() store.ScheduledRecapStore {
+	return s.ScheduledRecapStore
+}
+
 func (s *RetryLayer) Scheme() store.SchemeStore {
 	return s.SchemeStore
 }
 
 func (s *RetryLayer) Session() store.SessionStore {
 	return s.SessionStore
+}
+
+func (s *RetryLayer) SessionAttribute() store.SessionAttributeStore {
+	return s.SessionAttributeStore
 }
 
 func (s *RetryLayer) SharedChannel() store.SharedChannelStore {
@@ -344,6 +358,11 @@ type RetryLayerChannelStore struct {
 
 type RetryLayerChannelBookmarkStore struct {
 	store.ChannelBookmarkStore
+	Root *RetryLayer
+}
+
+type RetryLayerChannelGuardStore struct {
+	store.ChannelGuardStore
 	Root *RetryLayer
 }
 
@@ -522,6 +541,11 @@ type RetryLayerScheduledPostStore struct {
 	Root *RetryLayer
 }
 
+type RetryLayerScheduledRecapStore struct {
+	store.ScheduledRecapStore
+	Root *RetryLayer
+}
+
 type RetryLayerSchemeStore struct {
 	store.SchemeStore
 	Root *RetryLayer
@@ -529,6 +553,11 @@ type RetryLayerSchemeStore struct {
 
 type RetryLayerSessionStore struct {
 	store.SessionStore
+	Root *RetryLayer
+}
+
+type RetryLayerSessionAttributeStore struct {
+	store.SessionAttributeStore
 	Root *RetryLayer
 }
 
@@ -613,6 +642,12 @@ func isRepeatableError(err error) bool {
 	return false
 }
 
+func (s *RetryLayerAccessControlPolicyStore) ClearEtagCache() {
+
+	s.AccessControlPolicyStore.ClearEtagCache()
+
+}
+
 func (s *RetryLayerAccessControlPolicyStore) Delete(rctx request.CTX, id string) error {
 
 	tries := 0
@@ -655,6 +690,69 @@ func (s *RetryLayerAccessControlPolicyStore) Get(rctx request.CTX, id string) (*
 
 }
 
+func (s *RetryLayerAccessControlPolicyStore) GetActionsForPolicies(rctx request.CTX, policyIDs []string) (map[string]map[string]bool, error) {
+
+	tries := 0
+	for {
+		result, err := s.AccessControlPolicyStore.GetActionsForPolicies(rctx, policyIDs)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerAccessControlPolicyStore) GetActionsForPolicy(rctx request.CTX, policyID string) (map[string]bool, error) {
+
+	tries := 0
+	for {
+		result, err := s.AccessControlPolicyStore.GetActionsForPolicy(rctx, policyID)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerAccessControlPolicyStore) GetEtagEpoch(rctx request.CTX, channelID string) (string, error) {
+
+	tries := 0
+	for {
+		result, err := s.AccessControlPolicyStore.GetEtagEpoch(rctx, channelID)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerAccessControlPolicyStore) GetPoliciesByFieldID(rctx request.CTX, fieldID string) ([]*model.AccessControlPolicy, error) {
 
 	tries := 0
@@ -673,6 +771,12 @@ func (s *RetryLayerAccessControlPolicyStore) GetPoliciesByFieldID(rctx request.C
 		}
 		timepkg.Sleep(100 * timepkg.Millisecond)
 	}
+
+}
+
+func (s *RetryLayerAccessControlPolicyStore) InvalidateEtagForChannel(channelID string) {
+
+	s.AccessControlPolicyStore.InvalidateEtagForChannel(channelID)
 
 }
 
@@ -760,6 +864,12 @@ func (s *RetryLayerAccessControlPolicyStore) SetActiveStatusMultiple(rctx reques
 
 }
 
+func (s *RetryLayerAttributesStore) ClearUserPropertyValuesEpochCache() {
+
+	s.AttributesStore.ClearUserPropertyValuesEpochCache()
+
+}
+
 func (s *RetryLayerAttributesStore) GetChannelMembersToRemove(rctx request.CTX, channelID string, opts model.SubjectSearchOptions) ([]*model.ChannelMember, error) {
 
 	tries := 0
@@ -781,11 +891,11 @@ func (s *RetryLayerAttributesStore) GetChannelMembersToRemove(rctx request.CTX, 
 
 }
 
-func (s *RetryLayerAttributesStore) GetSubject(rctx request.CTX, ID string, groupID string) (*model.Subject, error) {
+func (s *RetryLayerAttributesStore) GetSubject(rctx request.CTX, ID string, groupID string, objectType string) (*model.Subject, error) {
 
 	tries := 0
 	for {
-		result, err := s.AttributesStore.GetSubject(rctx, ID, groupID)
+		result, err := s.AttributesStore.GetSubject(rctx, ID, groupID, objectType)
 		if err == nil {
 			return result, nil
 		}
@@ -799,6 +909,54 @@ func (s *RetryLayerAttributesStore) GetSubject(rctx request.CTX, ID string, grou
 		}
 		timepkg.Sleep(100 * timepkg.Millisecond)
 	}
+
+}
+
+func (s *RetryLayerAttributesStore) GetTeamMembersToRemove(rctx request.CTX, teamID string, opts model.SubjectSearchOptions) ([]*model.TeamMember, error) {
+
+	tries := 0
+	for {
+		result, err := s.AttributesStore.GetTeamMembersToRemove(rctx, teamID, opts)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerAttributesStore) GetUserPropertyValuesEpoch(rctx request.CTX, userID string) (string, error) {
+
+	tries := 0
+	for {
+		result, err := s.AttributesStore.GetUserPropertyValuesEpoch(rctx, userID)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerAttributesStore) InvalidateUserPropertyValuesEpoch(userID string) {
+
+	s.AttributesStore.InvalidateUserPropertyValuesEpoch(userID)
 
 }
 
@@ -2014,6 +2172,27 @@ func (s *RetryLayerChannelStore) GetChannelMembersTimezones(channelID string) ([
 
 }
 
+func (s *RetryLayerChannelStore) GetChannelOfType(rctx request.CTX, id string, channelType model.ChannelType) (*model.Channel, error) {
+
+	tries := 0
+	for {
+		result, err := s.ChannelStore.GetChannelOfType(rctx, id, channelType)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerChannelStore) GetChannelUnread(channelID string, userID string) (*model.ChannelUnread, error) {
 
 	tries := 0
@@ -2239,6 +2418,27 @@ func (s *RetryLayerChannelStore) GetDeletedByName(teamID string, name string) (*
 		if tries >= 3 {
 			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
 			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerChannelStore) GetDirectMessagesWithUnreadAndMentions(rctx request.CTX, userID string, userNotifyProps model.StringMap) ([]string, []string, map[string]int64, error) {
+
+	tries := 0
+	for {
+		result, resultVar1, resultVar2, err := s.ChannelStore.GetDirectMessagesWithUnreadAndMentions(rctx, userID, userNotifyProps)
+		if err == nil {
+			return result, resultVar1, resultVar2, nil
+		}
+		if !isRepeatableError(err) {
+			return result, resultVar1, resultVar2, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, resultVar1, resultVar2, err
 		}
 		timepkg.Sleep(100 * timepkg.Millisecond)
 	}
@@ -2587,6 +2787,27 @@ func (s *RetryLayerChannelStore) GetMembersInfoByChannelIds(channelIDs []string)
 
 }
 
+func (s *RetryLayerChannelStore) GetMembersWithLastViewedAtSince(rctx request.CTX, channelID string, since int64, afterUserID string, limit int) ([]*model.ChannelMemberLastViewed, error) {
+
+	tries := 0
+	for {
+		result, err := s.ChannelStore.GetMembersWithLastViewedAtSince(rctx, channelID, since, afterUserID, limit)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerChannelStore) GetMoreChannels(teamID string, userID string, offset int, limit int) (model.ChannelList, error) {
 
 	tries := 0
@@ -2818,6 +3039,27 @@ func (s *RetryLayerChannelStore) GetTeamChannels(teamID string) (model.ChannelLi
 
 }
 
+func (s *RetryLayerChannelStore) GetTeamChannelsWithUnreadAndMentions(rctx request.CTX, teamID string, userID string, userNotifyProps model.StringMap) ([]string, []string, map[string]int64, error) {
+
+	tries := 0
+	for {
+		result, resultVar1, resultVar2, err := s.ChannelStore.GetTeamChannelsWithUnreadAndMentions(rctx, teamID, userID, userNotifyProps)
+		if err == nil {
+			return result, resultVar1, resultVar2, nil
+		}
+		if !isRepeatableError(err) {
+			return result, resultVar1, resultVar2, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, resultVar1, resultVar2, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerChannelStore) GetTeamForChannel(channelID string) (*model.Team, error) {
 
 	tries := 0
@@ -2844,6 +3086,48 @@ func (s *RetryLayerChannelStore) GetTeamMembersForChannel(rctx request.CTX, chan
 	tries := 0
 	for {
 		result, err := s.ChannelStore.GetTeamMembersForChannel(rctx, channelID)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerChannelStore) GetTeamSpaceChannels(teamID string) (model.ChannelList, error) {
+
+	tries := 0
+	for {
+		result, err := s.ChannelStore.GetTeamSpaceChannels(teamID)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerChannelStore) GetTeamSpaceChannelsForUser(teamID string, userID string) (model.ChannelList, error) {
+
+	tries := 0
+	for {
+		result, err := s.ChannelStore.GetTeamSpaceChannelsForUser(teamID, userID)
 		if err == nil {
 			return result, nil
 		}
@@ -3868,6 +4152,90 @@ func (s *RetryLayerChannelBookmarkStore) UpdateSortOrder(bookmarkID string, chan
 
 }
 
+func (s *RetryLayerChannelGuardStore) Delete(rctx request.CTX, channelID string, pluginID string) (int64, error) {
+
+	tries := 0
+	for {
+		result, err := s.ChannelGuardStore.Delete(rctx, channelID, pluginID)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerChannelGuardStore) GetAll(rctx request.CTX) ([]*store.ChannelGuard, error) {
+
+	tries := 0
+	for {
+		result, err := s.ChannelGuardStore.GetAll(rctx)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerChannelGuardStore) GetForChannel(rctx request.CTX, channelID string) ([]*store.ChannelGuard, error) {
+
+	tries := 0
+	for {
+		result, err := s.ChannelGuardStore.GetForChannel(rctx, channelID)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerChannelGuardStore) Save(rctx request.CTX, guard *store.ChannelGuard) error {
+
+	tries := 0
+	for {
+		err := s.ChannelGuardStore.Save(rctx, guard)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerChannelJoinRequestStore) CountPending(channelId string) (int64, error) {
 
 	tries := 0
@@ -4162,11 +4530,11 @@ func (s *RetryLayerChannelMemberHistoryStore) LogJoinEvent(userID string, channe
 
 }
 
-func (s *RetryLayerChannelMemberHistoryStore) LogLeaveEvent(userID string, channelID string, leaveTime int64) error {
+func (s *RetryLayerChannelMemberHistoryStore) LogLeaveEvent(rctx request.CTX, userID string, channelID string, leaveTime int64) error {
 
 	tries := 0
 	for {
-		err := s.ChannelMemberHistoryStore.LogLeaveEvent(userID, channelID, leaveTime)
+		err := s.ChannelMemberHistoryStore.LogLeaveEvent(rctx, userID, channelID, leaveTime)
 		if err == nil {
 			return nil
 		}
@@ -7210,7 +7578,28 @@ func (s *RetryLayerJobStore) SaveOnce(job *model.Job) (*model.Job, error) {
 
 }
 
-func (s *RetryLayerJobStore) UpdateOptimistically(job *model.Job, currentStatus string) (bool, error) {
+func (s *RetryLayerJobStore) SaveOnceByTypeAndData(job *model.Job, data map[string]string) (*model.Job, error) {
+
+	tries := 0
+	for {
+		result, err := s.JobStore.SaveOnceByTypeAndData(job, data)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerJobStore) UpdateOptimistically(job *model.Job, currentStatus string) (*model.Job, error) {
 
 	tries := 0
 	for {
@@ -8950,6 +9339,27 @@ func (s *RetryLayerPostStore) GetSingle(rctx request.CTX, id string, inclDeleted
 
 }
 
+func (s *RetryLayerPostStore) GetVisiblePostIdAroundTime(channelID string, timestamp int64, before bool, collapsedThreads bool, userID string) (string, error) {
+
+	tries := 0
+	for {
+		result, err := s.PostStore.GetVisiblePostIdAroundTime(channelID, timestamp, before, collapsedThreads, userID)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerPostStore) HasAutoResponsePostByUserSince(options model.GetPostsSinceOptions, userID string) (bool, error) {
 
 	tries := 0
@@ -10153,6 +10563,27 @@ func (s *RetryLayerPropertyFieldStore) CountForGroup(groupID string, includeDele
 
 }
 
+func (s *RetryLayerPropertyFieldStore) CountForGroupObjectType(groupID string, objectType string, includeDeleted bool) (int64, error) {
+
+	tries := 0
+	for {
+		result, err := s.PropertyFieldStore.CountForGroupObjectType(groupID, objectType, includeDeleted)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerPropertyFieldStore) CountForTarget(groupID string, targetType string, targetID string, includeDeleted bool) (int64, error) {
 
 	tries := 0
@@ -10237,11 +10668,11 @@ func (s *RetryLayerPropertyFieldStore) Delete(groupID string, id string) error {
 
 }
 
-func (s *RetryLayerPropertyFieldStore) Get(ctx context.Context, groupID string, id string) (*model.PropertyField, error) {
+func (s *RetryLayerPropertyFieldStore) Get(rctx request.CTX, groupID string, id string) (*model.PropertyField, error) {
 
 	tries := 0
 	for {
-		result, err := s.PropertyFieldStore.Get(ctx, groupID, id)
+		result, err := s.PropertyFieldStore.Get(rctx, groupID, id)
 		if err == nil {
 			return result, nil
 		}
@@ -10258,11 +10689,11 @@ func (s *RetryLayerPropertyFieldStore) Get(ctx context.Context, groupID string, 
 
 }
 
-func (s *RetryLayerPropertyFieldStore) GetFieldByName(ctx context.Context, groupID string, targetID string, name string) (*model.PropertyField, error) {
+func (s *RetryLayerPropertyFieldStore) GetFieldByName(rctx request.CTX, groupID string, targetID string, name string) (*model.PropertyField, error) {
 
 	tries := 0
 	for {
-		result, err := s.PropertyFieldStore.GetFieldByName(ctx, groupID, targetID, name)
+		result, err := s.PropertyFieldStore.GetFieldByName(rctx, groupID, targetID, name)
 		if err == nil {
 			return result, nil
 		}
@@ -10279,11 +10710,53 @@ func (s *RetryLayerPropertyFieldStore) GetFieldByName(ctx context.Context, group
 
 }
 
-func (s *RetryLayerPropertyFieldStore) GetMany(ctx context.Context, groupID string, ids []string) ([]*model.PropertyField, error) {
+func (s *RetryLayerPropertyFieldStore) GetFieldByNameForObjectType(rctx request.CTX, groupID string, targetID string, objectType string, name string) (*model.PropertyField, error) {
 
 	tries := 0
 	for {
-		result, err := s.PropertyFieldStore.GetMany(ctx, groupID, ids)
+		result, err := s.PropertyFieldStore.GetFieldByNameForObjectType(rctx, groupID, targetID, objectType, name)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerPropertyFieldStore) GetForGroup(rctx request.CTX, groupID string) ([]*model.PropertyField, error) {
+
+	tries := 0
+	for {
+		result, err := s.PropertyFieldStore.GetForGroup(rctx, groupID)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerPropertyFieldStore) GetMany(rctx request.CTX, groupID string, ids []string) ([]*model.PropertyField, error) {
+
+	tries := 0
+	for {
+		result, err := s.PropertyFieldStore.GetMany(rctx, groupID, ids)
 		if err == nil {
 			return result, nil
 		}
@@ -10636,27 +11109,6 @@ func (s *RetryLayerPropertyValueStore) Upsert(values []*model.PropertyValue) ([]
 
 }
 
-func (s *RetryLayerReactionStore) BulkGetForPosts(postIds []string) ([]*model.Reaction, error) {
-
-	tries := 0
-	for {
-		result, err := s.ReactionStore.BulkGetForPosts(postIds)
-		if err == nil {
-			return result, nil
-		}
-		if !isRepeatableError(err) {
-			return result, err
-		}
-		tries++
-		if tries >= 3 {
-			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return result, err
-		}
-		timepkg.Sleep(100 * timepkg.Millisecond)
-	}
-
-}
-
 func (s *RetryLayerReactionStore) Delete(reaction *model.Reaction) (*model.Reaction, error) {
 
 	tries := 0
@@ -10678,11 +11130,11 @@ func (s *RetryLayerReactionStore) Delete(reaction *model.Reaction) (*model.React
 
 }
 
-func (s *RetryLayerReactionStore) DeleteAllWithEmojiName(emojiName string) error {
+func (s *RetryLayerReactionStore) DeleteAllWithEmojiName(rctx request.CTX, emojiName string) error {
 
 	tries := 0
 	for {
-		err := s.ReactionStore.DeleteAllWithEmojiName(emojiName)
+		err := s.ReactionStore.DeleteAllWithEmojiName(rctx, emojiName)
 		if err == nil {
 			return nil
 		}
@@ -10846,11 +11298,11 @@ func (s *RetryLayerReactionStore) PermanentDeleteBatch(endTime int64, limit int6
 
 }
 
-func (s *RetryLayerReactionStore) PermanentDeleteByUser(userID string) error {
+func (s *RetryLayerReactionStore) PermanentDeleteByUser(rctx request.CTX, userID string) error {
 
 	tries := 0
 	for {
-		err := s.ReactionStore.PermanentDeleteByUser(userID)
+		err := s.ReactionStore.PermanentDeleteByUser(rctx, userID)
 		if err == nil {
 			return nil
 		}
@@ -11062,6 +11514,27 @@ func (s *RetryLayerReadReceiptStore) Update(rctx request.CTX, receipt *model.Rea
 
 }
 
+func (s *RetryLayerRecapStore) CountForUserSince(userId string, since int64) (int64, error) {
+
+	tries := 0
+	for {
+		result, err := s.RecapStore.CountForUserSince(userId, since)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerRecapStore) DeleteRecap(id string) error {
 
 	tries := 0
@@ -11098,6 +11571,27 @@ func (s *RetryLayerRecapStore) DeleteRecapChannels(recapId string) error {
 		if tries >= 3 {
 			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
 			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerRecapStore) GetLastCompletedManualRecap(userId string) (*model.Recap, error) {
+
+	tries := 0
+	for {
+		result, err := s.RecapStore.GetLastCompletedManualRecap(userId)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
 		}
 		timepkg.Sleep(100 * timepkg.Millisecond)
 	}
@@ -11188,6 +11682,27 @@ func (s *RetryLayerRecapStore) MarkRecapAsRead(id string) error {
 
 }
 
+func (s *RetryLayerRecapStore) MarkRecapSkipped(id string, reason string) error {
+
+	tries := 0
+	for {
+		err := s.RecapStore.MarkRecapSkipped(id, reason)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerRecapStore) MarkRecapsAsViewed(userId string, statuses []string) ([]string, error) {
 
 	tries := 0
@@ -11245,6 +11760,48 @@ func (s *RetryLayerRecapStore) SaveRecapChannel(recapChannel *model.RecapChannel
 		if tries >= 3 {
 			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
 			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerRecapStore) SaveRecapIfUnderDailyLimit(recap *model.Recap, since int64, limit int) (*model.Recap, error) {
+
+	tries := 0
+	for {
+		result, err := s.RecapStore.SaveRecapIfUnderDailyLimit(recap, since, limit)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerRecapStore) SumTotalMessageCountForUserSince(userId string, since int64) (int64, error) {
+
+	tries := 0
+	for {
+		result, err := s.RecapStore.SumTotalMessageCountForUserSince(userId, since)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
 		}
 		timepkg.Sleep(100 * timepkg.Millisecond)
 	}
@@ -12070,11 +12627,11 @@ func (s *RetryLayerRoleStore) GetAll() ([]*model.Role, error) {
 
 }
 
-func (s *RetryLayerRoleStore) GetByName(ctx context.Context, name string) (*model.Role, error) {
+func (s *RetryLayerRoleStore) GetByName(rctx request.CTX, name string) (*model.Role, error) {
 
 	tries := 0
 	for {
-		result, err := s.RoleStore.GetByName(ctx, name)
+		result, err := s.RoleStore.GetByName(rctx, name)
 		if err == nil {
 			return result, nil
 		}
@@ -12154,11 +12711,11 @@ func (s *RetryLayerRoleStore) Save(role *model.Role) (*model.Role, error) {
 
 }
 
-func (s *RetryLayerScheduledPostStore) CreateScheduledPost(scheduledPost *model.ScheduledPost) (*model.ScheduledPost, error) {
+func (s *RetryLayerRoleStore) SavePreservingUnknownPermissions(role *model.Role) (*model.Role, error) {
 
 	tries := 0
 	for {
-		result, err := s.ScheduledPostStore.CreateScheduledPost(scheduledPost)
+		result, err := s.RoleStore.SavePreservingUnknownPermissions(role)
 		if err == nil {
 			return result, nil
 		}
@@ -12175,11 +12732,32 @@ func (s *RetryLayerScheduledPostStore) CreateScheduledPost(scheduledPost *model.
 
 }
 
-func (s *RetryLayerScheduledPostStore) Get(scheduledPostId string) (*model.ScheduledPost, error) {
+func (s *RetryLayerScheduledPostStore) CreateScheduledPost(rctx request.CTX, scheduledPost *model.ScheduledPost) (*model.ScheduledPost, error) {
 
 	tries := 0
 	for {
-		result, err := s.ScheduledPostStore.Get(scheduledPostId)
+		result, err := s.ScheduledPostStore.CreateScheduledPost(rctx, scheduledPost)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerScheduledPostStore) Get(rctx request.CTX, scheduledPostId string) (*model.ScheduledPost, error) {
+
+	tries := 0
+	for {
+		result, err := s.ScheduledPostStore.Get(rctx, scheduledPostId)
 		if err == nil {
 			return result, nil
 		}
@@ -12202,11 +12780,11 @@ func (s *RetryLayerScheduledPostStore) GetMaxMessageSize() int {
 
 }
 
-func (s *RetryLayerScheduledPostStore) GetPendingScheduledPosts(beforeTime int64, afterTime int64, lastScheduledPostId string, perPage uint64) ([]*model.ScheduledPost, error) {
+func (s *RetryLayerScheduledPostStore) GetPendingScheduledPosts(rctx request.CTX, beforeTime int64, afterTime int64, lastScheduledPostId string, perPage uint64) ([]*model.ScheduledPost, error) {
 
 	tries := 0
 	for {
-		result, err := s.ScheduledPostStore.GetPendingScheduledPosts(beforeTime, afterTime, lastScheduledPostId, perPage)
+		result, err := s.ScheduledPostStore.GetPendingScheduledPosts(rctx, beforeTime, afterTime, lastScheduledPostId, perPage)
 		if err == nil {
 			return result, nil
 		}
@@ -12223,11 +12801,11 @@ func (s *RetryLayerScheduledPostStore) GetPendingScheduledPosts(beforeTime int64
 
 }
 
-func (s *RetryLayerScheduledPostStore) GetScheduledPostsForUser(userId string, teamId string) ([]*model.ScheduledPost, error) {
+func (s *RetryLayerScheduledPostStore) GetScheduledPostsForUser(rctx request.CTX, userId string, teamId string) ([]*model.ScheduledPost, error) {
 
 	tries := 0
 	for {
-		result, err := s.ScheduledPostStore.GetScheduledPostsForUser(userId, teamId)
+		result, err := s.ScheduledPostStore.GetScheduledPostsForUser(rctx, userId, teamId)
 		if err == nil {
 			return result, nil
 		}
@@ -12286,11 +12864,11 @@ func (s *RetryLayerScheduledPostStore) PermanentlyDeleteScheduledPosts(scheduled
 
 }
 
-func (s *RetryLayerScheduledPostStore) UpdateOldScheduledPosts(beforeTime int64) error {
+func (s *RetryLayerScheduledPostStore) UpdateOldScheduledPosts(rctx request.CTX, beforeTime int64) error {
 
 	tries := 0
 	for {
-		err := s.ScheduledPostStore.UpdateOldScheduledPosts(beforeTime)
+		err := s.ScheduledPostStore.UpdateOldScheduledPosts(rctx, beforeTime)
 		if err == nil {
 			return nil
 		}
@@ -12307,11 +12885,263 @@ func (s *RetryLayerScheduledPostStore) UpdateOldScheduledPosts(beforeTime int64)
 
 }
 
-func (s *RetryLayerScheduledPostStore) UpdatedScheduledPost(scheduledPost *model.ScheduledPost) error {
+func (s *RetryLayerScheduledPostStore) UpdateRecurringScheduledPosts(rctx request.CTX, scheduledPosts []*model.ScheduledPost) error {
 
 	tries := 0
 	for {
-		err := s.ScheduledPostStore.UpdatedScheduledPost(scheduledPost)
+		err := s.ScheduledPostStore.UpdateRecurringScheduledPosts(rctx, scheduledPosts)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerScheduledPostStore) UpdatedScheduledPost(rctx request.CTX, scheduledPost *model.ScheduledPost) error {
+
+	tries := 0
+	for {
+		err := s.ScheduledPostStore.UpdatedScheduledPost(rctx, scheduledPost)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerScheduledRecapStore) CountForUser(userId string) (int64, error) {
+
+	tries := 0
+	for {
+		result, err := s.ScheduledRecapStore.CountForUser(userId)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerScheduledRecapStore) Delete(id string) error {
+
+	tries := 0
+	for {
+		err := s.ScheduledRecapStore.Delete(id)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerScheduledRecapStore) Get(id string) (*model.ScheduledRecap, error) {
+
+	tries := 0
+	for {
+		result, err := s.ScheduledRecapStore.Get(id)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerScheduledRecapStore) GetDueBefore(timestamp int64, limit int) ([]*model.ScheduledRecap, error) {
+
+	tries := 0
+	for {
+		result, err := s.ScheduledRecapStore.GetDueBefore(timestamp, limit)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerScheduledRecapStore) GetForUser(userId string, page int, perPage int) ([]*model.ScheduledRecap, error) {
+
+	tries := 0
+	for {
+		result, err := s.ScheduledRecapStore.GetForUser(userId, page, perPage)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerScheduledRecapStore) MarkExecuted(id string, lastRunAt int64, nextRunAt int64) error {
+
+	tries := 0
+	for {
+		err := s.ScheduledRecapStore.MarkExecuted(id, lastRunAt, nextRunAt)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerScheduledRecapStore) Save(scheduledRecap *model.ScheduledRecap) (*model.ScheduledRecap, error) {
+
+	tries := 0
+	for {
+		result, err := s.ScheduledRecapStore.Save(scheduledRecap)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerScheduledRecapStore) SaveIfUnderLimit(scheduledRecap *model.ScheduledRecap, limit int) (*model.ScheduledRecap, error) {
+
+	tries := 0
+	for {
+		result, err := s.ScheduledRecapStore.SaveIfUnderLimit(scheduledRecap, limit)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerScheduledRecapStore) SetEnabled(id string, enabled bool) error {
+
+	tries := 0
+	for {
+		err := s.ScheduledRecapStore.SetEnabled(id, enabled)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerScheduledRecapStore) Update(scheduledRecap *model.ScheduledRecap) (*model.ScheduledRecap, error) {
+
+	tries := 0
+	for {
+		result, err := s.ScheduledRecapStore.Update(scheduledRecap)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerScheduledRecapStore) UpdateNextRunAt(id string, nextRunAt int64) error {
+
+	tries := 0
+	for {
+		err := s.ScheduledRecapStore.UpdateNextRunAt(id, nextRunAt)
 		if err == nil {
 			return nil
 		}
@@ -12559,6 +13389,27 @@ func (s *RetryLayerSessionStore) Get(rctx request.CTX, sessionIDOrToken string) 
 
 }
 
+func (s *RetryLayerSessionStore) GetAllSessionsWithActiveDeviceIds() ([]*model.Session, error) {
+
+	tries := 0
+	for {
+		result, err := s.SessionStore.GetAllSessionsWithActiveDeviceIds()
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerSessionStore) GetLRUSessions(rctx request.CTX, userID string, limit uint64, offset uint64) ([]*model.Session, error) {
 
 	tries := 0
@@ -12748,21 +13599,21 @@ func (s *RetryLayerSessionStore) Save(rctx request.CTX, session *model.Session) 
 
 }
 
-func (s *RetryLayerSessionStore) UpdateDeviceId(id string, deviceID string, expiresAt int64) (string, error) {
+func (s *RetryLayerSessionStore) UpdateDeviceId(id string, deviceId string, voIPDeviceId string, expiresAt int64) error {
 
 	tries := 0
 	for {
-		result, err := s.SessionStore.UpdateDeviceId(id, deviceID, expiresAt)
+		err := s.SessionStore.UpdateDeviceId(id, deviceId, voIPDeviceId, expiresAt)
 		if err == nil {
-			return result, nil
+			return nil
 		}
 		if !isRepeatableError(err) {
-			return result, err
+			return err
 		}
 		tries++
 		if tries >= 3 {
 			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return result, err
+			return err
 		}
 		timepkg.Sleep(100 * timepkg.Millisecond)
 	}
@@ -12868,6 +13719,90 @@ func (s *RetryLayerSessionStore) UpdateRoles(userID string, roles string) (strin
 		if tries >= 3 {
 			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
 			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerSessionAttributeStore) Clear() error {
+
+	tries := 0
+	for {
+		err := s.SessionAttributeStore.Clear()
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerSessionAttributeStore) Get(sessionID string) (map[string]any, map[string]int64, error) {
+
+	tries := 0
+	for {
+		result, resultVar1, err := s.SessionAttributeStore.Get(sessionID)
+		if err == nil {
+			return result, resultVar1, nil
+		}
+		if !isRepeatableError(err) {
+			return result, resultVar1, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, resultVar1, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerSessionAttributeStore) Invalidate(sessionID string) error {
+
+	tries := 0
+	for {
+		err := s.SessionAttributeStore.Invalidate(sessionID)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerSessionAttributeStore) Refresh(sessionID string, attrs map[string]any, updatedAt int64) error {
+
+	tries := 0
+	for {
+		err := s.SessionAttributeStore.Refresh(sessionID, attrs, updatedAt)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
 		}
 		timepkg.Sleep(100 * timepkg.Millisecond)
 	}
@@ -16096,11 +17031,32 @@ func (s *RetryLayerUserStore) DeactivateMagicLinkGuests() ([]string, error) {
 
 }
 
-func (s *RetryLayerUserStore) DemoteUserToGuest(userID string) (*model.User, error) {
+func (s *RetryLayerUserStore) DecrementFailedPasswordAttempts(userID string) error {
 
 	tries := 0
 	for {
-		result, err := s.UserStore.DemoteUserToGuest(userID)
+		err := s.UserStore.DecrementFailedPasswordAttempts(userID)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerUserStore) DemoteUserToGuest(rctx request.CTX, userID string) (*model.User, error) {
+
+	tries := 0
+	for {
+		result, err := s.UserStore.DemoteUserToGuest(rctx, userID)
 		if err == nil {
 			return result, nil
 		}
@@ -16117,11 +17073,11 @@ func (s *RetryLayerUserStore) DemoteUserToGuest(userID string) (*model.User, err
 
 }
 
-func (s *RetryLayerUserStore) Get(ctx context.Context, id string) (*model.User, error) {
+func (s *RetryLayerUserStore) Get(rctx request.CTX, id string) (*model.User, error) {
 
 	tries := 0
 	for {
-		result, err := s.UserStore.Get(ctx, id)
+		result, err := s.UserStore.Get(rctx, id)
 		if err == nil {
 			return result, nil
 		}
@@ -16222,11 +17178,11 @@ func (s *RetryLayerUserStore) GetAllProfiles(options *model.UserGetOptions) ([]*
 
 }
 
-func (s *RetryLayerUserStore) GetAllProfilesInChannel(ctx context.Context, channelID string, allowFromCache bool) (map[string]*model.User, error) {
+func (s *RetryLayerUserStore) GetAllProfilesInChannel(rctx request.CTX, channelID string, allowFromCache bool) (map[string]*model.User, error) {
 
 	tries := 0
 	for {
-		result, err := s.UserStore.GetAllProfilesInChannel(ctx, channelID, allowFromCache)
+		result, err := s.UserStore.GetAllProfilesInChannel(rctx, channelID, allowFromCache)
 		if err == nil {
 			return result, nil
 		}
@@ -17035,11 +17991,11 @@ func (s *RetryLayerUserStore) PermanentDelete(rctx request.CTX, userID string) e
 
 }
 
-func (s *RetryLayerUserStore) PromoteGuestToUser(userID string) error {
+func (s *RetryLayerUserStore) PromoteGuestToUser(rctx request.CTX, userID string) error {
 
 	tries := 0
 	for {
-		err := s.UserStore.PromoteGuestToUser(userID)
+		err := s.UserStore.PromoteGuestToUser(rctx, userID)
 		if err == nil {
 			return nil
 		}
@@ -17350,6 +18306,27 @@ func (s *RetryLayerUserStore) StoreMfaUsedTimestamps(userID string, ts []int) er
 
 }
 
+func (s *RetryLayerUserStore) TryIncrementFailedPasswordAttempts(userID string, maxAttempts int) (bool, error) {
+
+	tries := 0
+	for {
+		result, err := s.UserStore.TryIncrementFailedPasswordAttempts(userID, maxAttempts)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerUserStore) Update(rctx request.CTX, user *model.User, allowRoleUpdate bool) (*model.UserUpdate, error) {
 
 	tries := 0
@@ -17397,48 +18374,6 @@ func (s *RetryLayerUserStore) UpdateFailedPasswordAttempts(userID string, attemp
 	tries := 0
 	for {
 		err := s.UserStore.UpdateFailedPasswordAttempts(userID, attempts)
-		if err == nil {
-			return nil
-		}
-		if !isRepeatableError(err) {
-			return err
-		}
-		tries++
-		if tries >= 3 {
-			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return err
-		}
-		timepkg.Sleep(100 * timepkg.Millisecond)
-	}
-
-}
-
-func (s *RetryLayerUserStore) TryIncrementFailedPasswordAttempts(userID string, maxAttempts int) (bool, error) {
-
-	tries := 0
-	for {
-		result, err := s.UserStore.TryIncrementFailedPasswordAttempts(userID, maxAttempts)
-		if err == nil {
-			return result, nil
-		}
-		if !isRepeatableError(err) {
-			return result, err
-		}
-		tries++
-		if tries >= 3 {
-			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return result, err
-		}
-		timepkg.Sleep(100 * timepkg.Millisecond)
-	}
-
-}
-
-func (s *RetryLayerUserStore) DecrementFailedPasswordAttempts(userID string) error {
-
-	tries := 0
-	for {
-		err := s.UserStore.DecrementFailedPasswordAttempts(userID)
 		if err == nil {
 			return nil
 		}
@@ -17623,6 +18558,27 @@ func (s *RetryLayerUserStore) VerifyEmail(userID string, email string) (string, 
 
 }
 
+func (s *RetryLayerUserAccessTokenStore) CountNonCompliantExpiry(maxExpiresAt int64) (int64, error) {
+
+	tries := 0
+	for {
+		result, err := s.UserAccessTokenStore.CountNonCompliantExpiry(maxExpiresAt)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerUserAccessTokenStore) Delete(tokenID string) error {
 
 	tries := 0
@@ -17659,6 +18615,48 @@ func (s *RetryLayerUserAccessTokenStore) DeleteAllForUser(userID string) error {
 		if tries >= 3 {
 			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
 			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerUserAccessTokenStore) DeleteByIds(tokenIDs []string) (int64, error) {
+
+	tries := 0
+	for {
+		result, err := s.UserAccessTokenStore.DeleteByIds(tokenIDs)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerUserAccessTokenStore) DeleteNonCompliantExpiry(maxExpiresAt int64, limit int) ([]string, error) {
+
+	tries := 0
+	for {
+		result, err := s.UserAccessTokenStore.DeleteNonCompliantExpiry(maxExpiresAt, limit)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
 		}
 		timepkg.Sleep(100 * timepkg.Millisecond)
 	}
@@ -17749,6 +18747,48 @@ func (s *RetryLayerUserAccessTokenStore) GetByUser(userID string, page int, perP
 
 }
 
+func (s *RetryLayerUserAccessTokenStore) GetExpiredBefore(cutoff int64, limit int) ([]*model.UserAccessToken, error) {
+
+	tries := 0
+	for {
+		result, err := s.UserAccessTokenStore.GetExpiredBefore(cutoff, limit)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerUserAccessTokenStore) GetExpiringTokens(now int64, thresholds []int, limit int) ([]*model.UserAccessToken, error) {
+
+	tries := 0
+	for {
+		result, err := s.UserAccessTokenStore.GetExpiringTokens(now, thresholds, limit)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerUserAccessTokenStore) Save(token *model.UserAccessToken) (*model.UserAccessToken, error) {
 
 	tries := 0
@@ -17791,6 +18831,27 @@ func (s *RetryLayerUserAccessTokenStore) Search(term string) ([]*model.UserAcces
 
 }
 
+func (s *RetryLayerUserAccessTokenStore) UpdateLastNotifiedAt(tokenID string, notifiedAt int64) error {
+
+	tries := 0
+	for {
+		err := s.UserAccessTokenStore.UpdateLastNotifiedAt(tokenID, notifiedAt)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerUserAccessTokenStore) UpdateTokenDisable(tokenID string) error {
 
 	tries := 0
@@ -17817,6 +18878,27 @@ func (s *RetryLayerUserAccessTokenStore) UpdateTokenEnable(tokenID string) error
 	tries := 0
 	for {
 		err := s.UserAccessTokenStore.UpdateTokenEnable(tokenID)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerUserAccessTokenStore) UpdateTokenRotate(tokenID string, newToken string, expiresAt int64) error {
+
+	tries := 0
+	for {
+		err := s.UserAccessTokenStore.UpdateTokenRotate(tokenID, newToken, expiresAt)
 		if err == nil {
 			return nil
 		}
@@ -18559,6 +19641,27 @@ func (s *RetryLayerWebhookStore) UpdateIncoming(webhook *model.IncomingWebhook) 
 
 }
 
+func (s *RetryLayerWebhookStore) UpdateIncomingLastUsed(webhookID string, lastUsed int64) error {
+
+	tries := 0
+	for {
+		err := s.WebhookStore.UpdateIncomingLastUsed(webhookID, lastUsed)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerWebhookStore) UpdateOutgoing(hook *model.OutgoingWebhook) (*model.OutgoingWebhook, error) {
 
 	tries := 0
@@ -18624,6 +19727,7 @@ func New(childStore store.Store) *RetryLayer {
 	newStore.BotStore = &RetryLayerBotStore{BotStore: childStore.Bot(), Root: &newStore}
 	newStore.ChannelStore = &RetryLayerChannelStore{ChannelStore: childStore.Channel(), Root: &newStore}
 	newStore.ChannelBookmarkStore = &RetryLayerChannelBookmarkStore{ChannelBookmarkStore: childStore.ChannelBookmark(), Root: &newStore}
+	newStore.ChannelGuardStore = &RetryLayerChannelGuardStore{ChannelGuardStore: childStore.ChannelGuard(), Root: &newStore}
 	newStore.ChannelJoinRequestStore = &RetryLayerChannelJoinRequestStore{ChannelJoinRequestStore: childStore.ChannelJoinRequest(), Root: &newStore}
 	newStore.ChannelMemberHistoryStore = &RetryLayerChannelMemberHistoryStore{ChannelMemberHistoryStore: childStore.ChannelMemberHistory(), Root: &newStore}
 	newStore.ClusterDiscoveryStore = &RetryLayerClusterDiscoveryStore{ClusterDiscoveryStore: childStore.ClusterDiscovery(), Root: &newStore}
@@ -18659,8 +19763,10 @@ func New(childStore store.Store) *RetryLayer {
 	newStore.RetentionPolicyStore = &RetryLayerRetentionPolicyStore{RetentionPolicyStore: childStore.RetentionPolicy(), Root: &newStore}
 	newStore.RoleStore = &RetryLayerRoleStore{RoleStore: childStore.Role(), Root: &newStore}
 	newStore.ScheduledPostStore = &RetryLayerScheduledPostStore{ScheduledPostStore: childStore.ScheduledPost(), Root: &newStore}
+	newStore.ScheduledRecapStore = &RetryLayerScheduledRecapStore{ScheduledRecapStore: childStore.ScheduledRecap(), Root: &newStore}
 	newStore.SchemeStore = &RetryLayerSchemeStore{SchemeStore: childStore.Scheme(), Root: &newStore}
 	newStore.SessionStore = &RetryLayerSessionStore{SessionStore: childStore.Session(), Root: &newStore}
+	newStore.SessionAttributeStore = &RetryLayerSessionAttributeStore{SessionAttributeStore: childStore.SessionAttribute(), Root: &newStore}
 	newStore.SharedChannelStore = &RetryLayerSharedChannelStore{SharedChannelStore: childStore.SharedChannel(), Root: &newStore}
 	newStore.StatusStore = &RetryLayerStatusStore{StatusStore: childStore.Status(), Root: &newStore}
 	newStore.SystemStore = &RetryLayerSystemStore{SystemStore: childStore.System(), Root: &newStore}

@@ -9,7 +9,6 @@ import type {Dispatch} from 'redux';
 import type {FileInfo} from '@mattermost/types/files';
 
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
-import {getFeatureFlagValue} from 'mattermost-redux/selectors/entities/general';
 
 import {openModal} from 'actions/views/modals';
 
@@ -27,13 +26,10 @@ export type OwnProps = {
 
 function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
     const channel = getChannel(state, ownProps.channelId);
-    const enableSharedChannelsPlugins = getFeatureFlagValue(state, 'EnableSharedChannelsPlugins') === 'true';
 
     return {
         channelDisplayName: '',
         channelType: channel?.type,
-        channel,
-        enableSharedChannelsPlugins,
     };
 }
 

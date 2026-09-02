@@ -58,6 +58,14 @@ func TestGetMattermostLog(t *testing.T) {
 
 	logLocation := config.GetLogFileLocation(dir)
 
+	// ReconfigureLogger may create mattermost.log as soon as file logging is enabled.
+	// Flush and remove it so the next GetLogFile exercises the missing-file path.
+	th.Service.Logger().Flush()
+	err = os.Remove(logLocation)
+	if err != nil && !os.IsNotExist(err) {
+		require.NoError(t, err)
+	}
+
 	// There is no mattermost.log file yet, so this fails
 	fileData, err = th.Service.GetLogFile(th.Context)
 	assert.Nil(t, fileData)
@@ -80,6 +88,12 @@ func TestGetMattermostLog(t *testing.T) {
 		outsideDir, err := os.MkdirTemp("", "outside")
 		require.NoError(t, err)
 		t.Cleanup(func() {
+			// MM-62438: stop the file target before removing temp dirs.
+			th.Service.UpdateConfig(func(cfg *model.Config) {
+				*cfg.LogSettings.EnableFile = false
+				*cfg.LogSettings.FileLocation = dir
+			})
+			th.Service.Logger().Flush()
 			err = os.RemoveAll(outsideDir)
 			require.NoError(t, err)
 		})
@@ -89,10 +103,11 @@ func TestGetMattermostLog(t *testing.T) {
 		err = os.WriteFile(outsideLogLocation, []byte("secret data"), 0644)
 		require.NoError(t, err)
 
-		// Set FileLocation to the outside directory (MM_LOG_PATH is still set to 'dir')
+		// Set FileLocation to the outside directory (log root override is still 'dir')
 		th.Service.UpdateConfig(func(cfg *model.Config) {
 			*cfg.LogSettings.FileLocation = outsideDir
 		})
+		th.Service.Logger().Flush()
 
 		// Should be blocked by path validation
 		fileData, err = th.Service.GetLogFile(th.Context)

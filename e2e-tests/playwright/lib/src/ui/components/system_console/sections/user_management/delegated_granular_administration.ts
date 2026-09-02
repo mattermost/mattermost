@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Locator, expect} from '@playwright/test';
+import type {Locator} from '@playwright/test';
+import {expect} from '@playwright/test';
 
 import SystemRoles from './system_roles';
 
@@ -44,7 +45,7 @@ class AdminRolesPanel {
         this.container = container;
         this.title = container.getByRole('heading', {name: 'Admin Roles'});
         this.description = container.getByText('Manage different levels of access to the system console.');
-        this.dataGrid = new DataGrid(container.locator('.DataGrid'));
+        this.dataGrid = new DataGrid(container.getByTestId('dataGrid'));
     }
 
     async toBeVisible() {
@@ -88,32 +89,32 @@ class DataGrid {
 
     constructor(container: Locator) {
         this.container = container;
-        this.header = container.locator('.DataGrid_header');
-        this.rows = container.locator('.DataGrid_rows');
+        this.header = container.getByTestId('dataGrid-header');
+        this.rows = container.getByTestId('dataGrid-rows');
 
         // Individual role rows
         this.systemAdmin = new RoleRow(
-            this.rows.locator('.DataGrid_row').filter({hasText: 'System Admin'}),
+            this.rows.getByTestId('dataGrid-row').filter({hasText: 'System Admin'}),
             'system_admin_edit',
         );
         this.systemManager = new RoleRow(
-            this.rows.locator('.DataGrid_row').filter({hasText: 'System Manager'}),
+            this.rows.getByTestId('dataGrid-row').filter({hasText: 'System Manager'}),
             'system_manager_edit',
         );
         this.userManager = new RoleRow(
-            this.rows.locator('.DataGrid_row').filter({hasText: 'User Manager'}),
+            this.rows.getByTestId('dataGrid-row').filter({hasText: 'User Manager'}),
             'system_user_manager_edit',
         );
         this.customGroupManager = new RoleRow(
-            this.rows.locator('.DataGrid_row').filter({hasText: 'Custom Group Manager'}),
+            this.rows.getByTestId('dataGrid-row').filter({hasText: 'Custom Group Manager'}),
             'system_custom_group_admin_edit',
         );
         this.sharedChannelManager = new RoleRow(
-            this.rows.locator('.DataGrid_row').filter({hasText: 'Shared Channel Manager'}),
+            this.rows.getByTestId('dataGrid-row').filter({hasText: 'Shared Channel Manager'}),
             'system_shared_channel_manager_edit',
         );
         this.viewer = new RoleRow(
-            this.rows.locator('.DataGrid_row').filter({hasText: 'Viewer'}),
+            this.rows.getByTestId('dataGrid-row').filter({hasText: 'Viewer'}),
             'system_read_only_admin_edit',
         );
     }
@@ -133,7 +134,7 @@ class RoleRow {
     constructor(container: Locator, editTestId: string) {
         this.container = container;
 
-        const cells = container.locator('.DataGrid_cell');
+        const cells = container.getByTestId('dataGrid-cell');
         this.roleName = cells.nth(0);
         this.description = cells.nth(1);
         this.type = cells.nth(2);

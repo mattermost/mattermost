@@ -11,6 +11,7 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
     >
       <div
         class="admin-console__header"
+        data-testid="admin-console-header"
       >
         Elasticsearch
       </div>
@@ -768,6 +769,7 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
     >
       <div
         class="admin-console__header"
+        data-testid="admin-console-header"
       >
         Elasticsearch
       </div>
@@ -1503,6 +1505,7 @@ exports[`components/ElasticSearchSettings should match snapshot, sniff enabled 1
     >
       <div
         class="admin-console__header"
+        data-testid="admin-console-header"
       >
         Elasticsearch
       </div>

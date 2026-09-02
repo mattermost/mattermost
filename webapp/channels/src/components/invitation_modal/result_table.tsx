@@ -20,34 +20,35 @@ import './result_table.scss';
 
 type InviteNotSent = {
     text: React.ReactNode | React.ReactNodeArray;
-}
+};
 
 type InviteEmail = {
     email: string;
-}
+};
 
 type InviteUser = {
     user: UserProfile;
-}
+};
 
 type I18nLike = {
     id: string;
     defaultMessage: string;
     values?: Record<string, React.ReactNode>;
-}
+};
 
 export type InviteResult = (InviteNotSent | InviteEmail | InviteUser) & {
     reason: string | I18nLike;
     path?: string;
-}
+};
 
 export type Props = {
     sent?: boolean;
     rows: InviteResult[];
-}
+};
 
 export default function ResultTable(props: Props) {
     const intl = useIntl();
+    let wrapperDataTestId = 'invitation-not-sent-section';
     let wrapperClass = 'invitation-modal-confirm invitation-modal-confirm--not-sent';
     let header = (
         <h2>
@@ -58,6 +59,7 @@ export default function ResultTable(props: Props) {
         </h2>
     );
     if (props.sent) {
+        wrapperDataTestId = 'invitation-sent-section';
         wrapperClass = 'invitation-modal-confirm invitation-modal-confirm--sent';
         header = (
             <h2>
@@ -88,7 +90,10 @@ export default function ResultTable(props: Props) {
         );
     }
     return (
-        <div className={wrapperClass}>
+        <div
+            className={wrapperClass}
+            data-testid={wrapperDataTestId}
+        >
             {header}
             <table className='InviteResultTable'>
                 <thead>
@@ -177,7 +182,10 @@ export default function ResultTable(props: Props) {
                                         {guestBadge}
                                     </span>
                                 </td>
-                                <td className='reason'>
+                                <td
+                                    className='reason'
+                                    data-testid='invitation-result-reason'
+                                >
                                     {reason}
                                 </td>
                             </tr>

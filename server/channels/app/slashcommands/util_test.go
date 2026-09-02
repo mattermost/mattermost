@@ -4,9 +4,13 @@
 package slashcommands
 
 import (
+	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
+
+	"github.com/mattermost/mattermost/server/public/model"
 )
 
 func TestParseNamedArgs(t *testing.T) {
@@ -37,4 +41,23 @@ func TestParseNamedArgs(t *testing.T) {
 		assert.NotNil(t, m)
 		assert.Equal(t, tt.m, m, tt.name)
 	}
+}
+
+func TestFormatTimestamp(t *testing.T) {
+	t.Run("zero renders as placeholder", func(t *testing.T) {
+		assert.Equal(t, "--", formatTimestamp(0))
+	})
+
+	t.Run("today renders with a Today prefix", func(t *testing.T) {
+		got := formatTimestamp(model.GetMillis())
+		assert.True(t, strings.HasPrefix(got, "Today "), "expected a Today prefix, got %q", got)
+	})
+
+	t.Run("an earlier day renders the full date without the placeholder", func(t *testing.T) {
+		twoDaysAgo := model.GetMillis() - int64(48*time.Hour/time.Millisecond)
+		got := formatTimestamp(twoDaysAgo)
+		assert.NotEqual(t, "--", got)
+		assert.False(t, strings.HasPrefix(got, "Today "), "expected a full date, got %q", got)
+		assert.Equal(t, model.GetTimeForMillis(twoDaysAgo).Format("Jan 2 15:04:05 MST 2006"), got)
+	})
 }

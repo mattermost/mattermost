@@ -19,15 +19,15 @@ export type CreateDataRetentionCustomPolicy = {
 export type PatchDataRetentionCustomPolicy = {
     display_name: string;
     post_duration: number;
-}
+};
 
 export type PatchDataRetentionCustomPolicyTeams = {
     team_ids: string[];
-}
+};
 
 export type PatchDataRetentionCustomPolicyChannels = {
     channel_ids: string[];
-}
+};
 
 export type DataRetentionCustomPolicies = {
     [x: string]: DataRetentionCustomPolicy;

@@ -19,7 +19,7 @@ type Props = {
     id: string;
     handleViewCategory: () => void;
     numChannels: number;
-}
+};
 
 const MarkAsUnreadItem = ({
     id,

@@ -12,7 +12,10 @@ type Props = {
 
 const RecapProcessing = ({recap}: Props) => {
     return (
-        <div className='recap-processing'>
+        <div
+            className='recap-processing'
+            data-testid='recap-processing'
+        >
             <div className='recap-processing-header'>
                 <h2 className='recap-processing-title'>{recap.title}</h2>
                 <div className='recap-processing-subtitle'>

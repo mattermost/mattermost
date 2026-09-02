@@ -3597,7 +3597,11 @@
   },
   {
     "id": "api.command_invite.user_already_in_channel.app_error",
-    "translation": "{{.User}} ja està al canal."
+    "translation": {
+      "many": "",
+      "one": "{{.User}} ja està al canal.",
+      "other": ""
+    }
   },
   {
     "id": "api.command_invite.success",

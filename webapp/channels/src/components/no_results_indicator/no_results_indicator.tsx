@@ -25,7 +25,7 @@ interface Props {
     subtitleClassName?: string;
 }
 
-const iconMap: {[key in NoResultsVariant]: React.ReactNode } = {
+const iconMap: {[key in NoResultsVariant]: React.ReactNode} = {
     [NoResultsVariant.Search]: <SearchSVG className='no-results__icon'/>,
     [NoResultsVariant.ChannelSearch]: <ChannelSearchSVG className='no-results__icon'/>,
     [NoResultsVariant.Files]: <ChannelFilesSVG className='no-results__icon'/>,
@@ -163,6 +163,7 @@ const NoResultsIndicator = ({
     let content = (
         <div
             className={classNames('no-results__wrapper', {'horizontal-layout': layout === NoResultsLayout.Horizontal})}
+            data-testid='no-results-wrapper'
             style={style}
         >
             {iconGraphic}
@@ -171,7 +172,10 @@ const NoResultsIndicator = ({
                 className='no-results__text-container'
             >
                 {title && (
-                    <h3 className={classNames('no-results__title', {'only-title': !subtitle}, titleClassName)}>
+                    <h3
+                        className={classNames('no-results__title', {'only-title': !subtitle}, titleClassName)}
+                        data-testid='no-results-title'
+                    >
                         {title}
                     </h3>
                 )}

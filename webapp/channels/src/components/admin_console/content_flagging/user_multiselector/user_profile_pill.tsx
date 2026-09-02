@@ -76,7 +76,7 @@ type Props = {
     innerProps: JSX.IntrinsicElements['div'];
     selectProps: unknown;
     removeProps?: JSX.IntrinsicElements['div'];
-}
+};
 
 function BaseUserProfilePill({data, innerProps, selectProps, removeProps}: Props) {
     const item = data.raw;

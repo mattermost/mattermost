@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Locator, expect} from '@playwright/test';
+import type {Locator} from '@playwright/test';
+import {expect} from '@playwright/test';
 
 /**
  * System Console Navbar component
@@ -12,7 +13,7 @@ export default class SystemConsoleNavbar {
 
     constructor(container: Locator) {
         this.container = container;
-        this.backLink = container.locator('.backstage-navbar__back');
+        this.backLink = container.getByTestId('backstage-navbar-back');
     }
 
     async toBeVisible() {

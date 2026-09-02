@@ -35,13 +35,14 @@ type Props = PreparingWorkspacePageProps & {
     createTeam: (OrganizationName: string) => Promise<{error: string | null; newTeam: Team | null | undefined}>;
     updateTeam: (teamToUpdate: Team) => Promise<{error: string | null; updatedTeam: Team | null}>;
     setInviteId: (inviteId: string) => void;
-}
+};
 
 const Organization = (props: Props) => {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
 
     const [triedNext, setTriedNext] = useState(false);
+    const nodeRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>();
     const validation = teamNameToUrl(props.organization || '');
     const teamApiError = useRef<typeof TeamApiError | null>(null);
@@ -122,14 +123,19 @@ const Organization = (props: Props) => {
         className += ' ' + props.className;
     }
     return (
+
         <CSSTransition
             in={props.show}
+            nodeRef={nodeRef}
             timeout={Animations.PAGE_SLIDE}
             classNames={mapAnimationReasonToClass('Organization', props.transitionDirection)}
             mountOnEnter={true}
             unmountOnExit={true}
         >
-            <div className={className}>
+            <div
+                ref={nodeRef}
+                className={className}
+            >
                 <div className='Organization-right-col'>
                     <div className='Organization-form-wrapper'>
                         <div className='Organization__progress-path'>

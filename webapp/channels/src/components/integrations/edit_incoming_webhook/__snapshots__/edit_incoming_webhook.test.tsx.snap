@@ -410,6 +410,7 @@ exports[`components/integrations/EditIncomingWebhook should not call getIncoming
 <div>
   <div
     class="loading-screen"
+    data-testid="loading-screen"
     style="position: relative;"
   >
     <div
@@ -628,6 +629,7 @@ exports[`components/integrations/EditIncomingWebhook should show Loading screen 
 <div>
   <div
     class="loading-screen"
+    data-testid="loading-screen"
     style="position: relative;"
   >
     <div

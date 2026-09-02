@@ -47,7 +47,7 @@ const SidebarCategoryMenu = ({
 }: Props) => {
     const dispatch = useDispatch();
     const showUnreadsCategory = useSelector(shouldShowUnreadsCategory);
-    const getUnreadsIdsForCategory = useMemo(makeGetUnreadIdsForCategory, [category]);
+    const getUnreadsIdsForCategory = useMemo(() => makeGetUnreadIdsForCategory(), []);
     const unreadsIds = useSelector((state: GlobalState) => getUnreadsIdsForCategory(state, category));
     const {formatMessage} = useIntl();
 

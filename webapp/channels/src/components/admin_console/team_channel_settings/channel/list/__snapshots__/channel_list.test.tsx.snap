@@ -7,6 +7,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
   >
     <div
       class="DataGrid"
+      data-testid="dataGrid"
     >
       <div
         class="DataGrid_search"
@@ -279,6 +280,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
       </div>
       <div
         class="DataGrid_header"
+        data-testid="dataGrid-header"
       >
         <div
           class="DataGrid_cell"
@@ -303,13 +305,16 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
       </div>
       <div
         class="DataGrid_rows"
+        data-testid="dataGrid-rows"
         style="min-height: 40px;"
       >
         <div
           class="DataGrid_row"
+          data-testid="dataGrid-row"
         >
           <div
             class="DataGrid_cell"
+            data-testid="dataGrid-cell"
             style="flex-grow: 4;"
           >
             <span
@@ -347,6 +352,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
           </div>
           <div
             class="DataGrid_cell"
+            data-testid="dataGrid-cell"
             style="flex-grow: 1.5;"
           >
             <span
@@ -357,6 +363,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
           </div>
           <div
             class="DataGrid_cell"
+            data-testid="dataGrid-cell"
           >
             <span
               class="group-description adjusted row-content"
@@ -370,6 +377,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
           </div>
           <div
             class="DataGrid_cell"
+            data-testid="dataGrid-cell"
             style="text-align: right;"
           >
             <span
@@ -387,11 +395,16 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
       </div>
       <div
         class="DataGrid_footer"
+        data-testid="dataGrid-footer"
       >
         <div
           class="DataGrid_cell"
         >
-          1 - 1 of 1
+          <span
+            data-testid="dataGrid-footer-paginationInfo"
+          >
+            1 - 1 of 1
+          </span>
           <button
             aria-label="Previous page"
             class="btn btn-quaternary btn-icon btn-sm ml-2 prev disabled"
@@ -428,6 +441,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
   >
     <div
       class="DataGrid"
+      data-testid="dataGrid"
     >
       <div
         class="DataGrid_search"
@@ -700,6 +714,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
       </div>
       <div
         class="DataGrid_header"
+        data-testid="dataGrid-header"
       >
         <div
           class="DataGrid_cell"
@@ -724,13 +739,16 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
       </div>
       <div
         class="DataGrid_rows"
+        data-testid="dataGrid-rows"
         style="min-height: 400px;"
       >
         <div
           class="DataGrid_row"
+          data-testid="dataGrid-row"
         >
           <div
             class="DataGrid_cell"
+            data-testid="dataGrid-cell"
             style="flex-grow: 4;"
           >
             <span
@@ -768,6 +786,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
           </div>
           <div
             class="DataGrid_cell"
+            data-testid="dataGrid-cell"
             style="flex-grow: 1.5;"
           >
             <span
@@ -778,6 +797,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
           </div>
           <div
             class="DataGrid_cell"
+            data-testid="dataGrid-cell"
           >
             <span
               class="group-description adjusted row-content"
@@ -791,6 +811,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
           </div>
           <div
             class="DataGrid_cell"
+            data-testid="dataGrid-cell"
             style="text-align: right;"
           >
             <span
@@ -807,9 +828,11 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
         </div>
         <div
           class="DataGrid_row"
+          data-testid="dataGrid-row"
         >
           <div
             class="DataGrid_cell"
+            data-testid="dataGrid-cell"
             style="flex-grow: 4;"
           >
             <span
@@ -847,6 +870,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
           </div>
           <div
             class="DataGrid_cell"
+            data-testid="dataGrid-cell"
             style="flex-grow: 1.5;"
           >
             <span
@@ -857,6 +881,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
           </div>
           <div
             class="DataGrid_cell"
+            data-testid="dataGrid-cell"
           >
             <span
               class="group-description adjusted row-content"
@@ -870,6 +895,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
           </div>
           <div
             class="DataGrid_cell"
+            data-testid="dataGrid-cell"
             style="text-align: right;"
           >
             <span
@@ -886,9 +912,11 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
         </div>
         <div
           class="DataGrid_row"
+          data-testid="dataGrid-row"
         >
           <div
             class="DataGrid_cell"
+            data-testid="dataGrid-cell"
             style="flex-grow: 4;"
           >
             <span
@@ -926,6 +954,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
           </div>
           <div
             class="DataGrid_cell"
+            data-testid="dataGrid-cell"
             style="flex-grow: 1.5;"
           >
             <span
@@ -936,6 +965,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
           </div>
           <div
             class="DataGrid_cell"
+            data-testid="dataGrid-cell"
           >
             <span
               class="group-description adjusted row-content"
@@ -949,6 +979,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
           </div>
           <div
             class="DataGrid_cell"
+            data-testid="dataGrid-cell"
             style="text-align: right;"
           >
             <span
@@ -965,9 +996,11 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
         </div>
         <div
           class="DataGrid_row"
+          data-testid="dataGrid-row"
         >
           <div
             class="DataGrid_cell"
+            data-testid="dataGrid-cell"
             style="flex-grow: 4;"
           >
             <span
@@ -1005,6 +1038,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
           </div>
           <div
             class="DataGrid_cell"
+            data-testid="dataGrid-cell"
             style="flex-grow: 1.5;"
           >
             <span
@@ -1015,6 +1049,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
           </div>
           <div
             class="DataGrid_cell"
+            data-testid="dataGrid-cell"
           >
             <span
               class="group-description adjusted row-content"
@@ -1028,6 +1063,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
           </div>
           <div
             class="DataGrid_cell"
+            data-testid="dataGrid-cell"
             style="text-align: right;"
           >
             <span
@@ -1044,9 +1080,11 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
         </div>
         <div
           class="DataGrid_row"
+          data-testid="dataGrid-row"
         >
           <div
             class="DataGrid_cell"
+            data-testid="dataGrid-cell"
             style="flex-grow: 4;"
           >
             <span
@@ -1084,6 +1122,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
           </div>
           <div
             class="DataGrid_cell"
+            data-testid="dataGrid-cell"
             style="flex-grow: 1.5;"
           >
             <span
@@ -1094,6 +1133,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
           </div>
           <div
             class="DataGrid_cell"
+            data-testid="dataGrid-cell"
           >
             <span
               class="group-description adjusted row-content"
@@ -1107,6 +1147,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
           </div>
           <div
             class="DataGrid_cell"
+            data-testid="dataGrid-cell"
             style="text-align: right;"
           >
             <span
@@ -1123,9 +1164,11 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
         </div>
         <div
           class="DataGrid_row"
+          data-testid="dataGrid-row"
         >
           <div
             class="DataGrid_cell"
+            data-testid="dataGrid-cell"
             style="flex-grow: 4;"
           >
             <span
@@ -1163,6 +1206,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
           </div>
           <div
             class="DataGrid_cell"
+            data-testid="dataGrid-cell"
             style="flex-grow: 1.5;"
           >
             <span
@@ -1173,6 +1217,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
           </div>
           <div
             class="DataGrid_cell"
+            data-testid="dataGrid-cell"
           >
             <span
               class="group-description adjusted row-content"
@@ -1186,6 +1231,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
           </div>
           <div
             class="DataGrid_cell"
+            data-testid="dataGrid-cell"
             style="text-align: right;"
           >
             <span
@@ -1202,9 +1248,11 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
         </div>
         <div
           class="DataGrid_row"
+          data-testid="dataGrid-row"
         >
           <div
             class="DataGrid_cell"
+            data-testid="dataGrid-cell"
             style="flex-grow: 4;"
           >
             <span
@@ -1242,6 +1290,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
           </div>
           <div
             class="DataGrid_cell"
+            data-testid="dataGrid-cell"
             style="flex-grow: 1.5;"
           >
             <span
@@ -1252,6 +1301,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
           </div>
           <div
             class="DataGrid_cell"
+            data-testid="dataGrid-cell"
           >
             <span
               class="group-description adjusted row-content"
@@ -1265,6 +1315,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
           </div>
           <div
             class="DataGrid_cell"
+            data-testid="dataGrid-cell"
             style="text-align: right;"
           >
             <span
@@ -1281,9 +1332,11 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
         </div>
         <div
           class="DataGrid_row"
+          data-testid="dataGrid-row"
         >
           <div
             class="DataGrid_cell"
+            data-testid="dataGrid-cell"
             style="flex-grow: 4;"
           >
             <span
@@ -1321,6 +1374,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
           </div>
           <div
             class="DataGrid_cell"
+            data-testid="dataGrid-cell"
             style="flex-grow: 1.5;"
           >
             <span
@@ -1331,6 +1385,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
           </div>
           <div
             class="DataGrid_cell"
+            data-testid="dataGrid-cell"
           >
             <span
               class="group-description adjusted row-content"
@@ -1344,6 +1399,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
           </div>
           <div
             class="DataGrid_cell"
+            data-testid="dataGrid-cell"
             style="text-align: right;"
           >
             <span
@@ -1360,9 +1416,11 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
         </div>
         <div
           class="DataGrid_row"
+          data-testid="dataGrid-row"
         >
           <div
             class="DataGrid_cell"
+            data-testid="dataGrid-cell"
             style="flex-grow: 4;"
           >
             <span
@@ -1400,6 +1458,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
           </div>
           <div
             class="DataGrid_cell"
+            data-testid="dataGrid-cell"
             style="flex-grow: 1.5;"
           >
             <span
@@ -1410,6 +1469,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
           </div>
           <div
             class="DataGrid_cell"
+            data-testid="dataGrid-cell"
           >
             <span
               class="group-description adjusted row-content"
@@ -1423,6 +1483,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
           </div>
           <div
             class="DataGrid_cell"
+            data-testid="dataGrid-cell"
             style="text-align: right;"
           >
             <span
@@ -1439,9 +1500,11 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
         </div>
         <div
           class="DataGrid_row"
+          data-testid="dataGrid-row"
         >
           <div
             class="DataGrid_cell"
+            data-testid="dataGrid-cell"
             style="flex-grow: 4;"
           >
             <span
@@ -1479,6 +1542,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
           </div>
           <div
             class="DataGrid_cell"
+            data-testid="dataGrid-cell"
             style="flex-grow: 1.5;"
           >
             <span
@@ -1489,6 +1553,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
           </div>
           <div
             class="DataGrid_cell"
+            data-testid="dataGrid-cell"
           >
             <span
               class="group-description adjusted row-content"
@@ -1502,6 +1567,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
           </div>
           <div
             class="DataGrid_cell"
+            data-testid="dataGrid-cell"
             style="text-align: right;"
           >
             <span
@@ -1519,11 +1585,16 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
       </div>
       <div
         class="DataGrid_footer"
+        data-testid="dataGrid-footer"
       >
         <div
           class="DataGrid_cell"
         >
-          1 - 10 of 30
+          <span
+            data-testid="dataGrid-footer-paginationInfo"
+          >
+            1 - 10 of 30
+          </span>
           <button
             aria-label="Previous page"
             class="btn btn-quaternary btn-icon btn-sm ml-2 prev disabled"
@@ -1559,6 +1630,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
   >
     <div
       class="DataGrid"
+      data-testid="dataGrid"
     >
       <div
         class="DataGrid_search"
@@ -1831,6 +1903,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
       </div>
       <div
         class="DataGrid_header"
+        data-testid="dataGrid-header"
       >
         <div
           class="DataGrid_cell"
@@ -1855,13 +1928,16 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
       </div>
       <div
         class="DataGrid_rows"
+        data-testid="dataGrid-rows"
         style="min-height: 40px;"
       >
         <div
           class="DataGrid_row"
+          data-testid="dataGrid-row"
         >
           <div
             class="DataGrid_cell"
+            data-testid="dataGrid-cell"
             style="flex-grow: 4;"
           >
             <span
@@ -1903,6 +1979,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
           </div>
           <div
             class="DataGrid_cell"
+            data-testid="dataGrid-cell"
             style="flex-grow: 1.5;"
           >
             <span
@@ -1913,6 +1990,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
           </div>
           <div
             class="DataGrid_cell"
+            data-testid="dataGrid-cell"
           >
             <span
               class="group-description adjusted row-content"
@@ -1926,6 +2004,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
           </div>
           <div
             class="DataGrid_cell"
+            data-testid="dataGrid-cell"
             style="text-align: right;"
           >
             <span
@@ -1943,11 +2022,16 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
       </div>
       <div
         class="DataGrid_footer"
+        data-testid="dataGrid-footer"
       >
         <div
           class="DataGrid_cell"
         >
-          1 - 1 of 1
+          <span
+            data-testid="dataGrid-footer-paginationInfo"
+          >
+            1 - 1 of 1
+          </span>
           <button
             aria-label="Previous page"
             class="btn btn-quaternary btn-icon btn-sm ml-2 prev disabled"
@@ -1984,6 +2068,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should render c
   >
     <div
       class="DataGrid"
+      data-testid="dataGrid"
     >
       <div
         class="DataGrid_search"
@@ -2256,6 +2341,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should render c
       </div>
       <div
         class="DataGrid_header"
+        data-testid="dataGrid-header"
       >
         <div
           class="DataGrid_cell"
@@ -2280,13 +2366,16 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should render c
       </div>
       <div
         class="DataGrid_rows"
+        data-testid="dataGrid-rows"
         style="min-height: 40px;"
       >
         <div
           class="DataGrid_row"
+          data-testid="dataGrid-row"
         >
           <div
             class="DataGrid_cell"
+            data-testid="dataGrid-cell"
             style="flex-grow: 4;"
           >
             <span
@@ -2316,6 +2405,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should render c
           </div>
           <div
             class="DataGrid_cell"
+            data-testid="dataGrid-cell"
             style="flex-grow: 1.5;"
           >
             <span
@@ -2326,6 +2416,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should render c
           </div>
           <div
             class="DataGrid_cell"
+            data-testid="dataGrid-cell"
           >
             <span
               class="group-description adjusted row-content"
@@ -2339,6 +2430,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should render c
           </div>
           <div
             class="DataGrid_cell"
+            data-testid="dataGrid-cell"
             style="text-align: right;"
           >
             <span
@@ -2356,11 +2448,16 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should render c
       </div>
       <div
         class="DataGrid_footer"
+        data-testid="dataGrid-footer"
       >
         <div
           class="DataGrid_cell"
         >
-          1 - 1 of 1
+          <span
+            data-testid="dataGrid-footer-paginationInfo"
+          >
+            1 - 1 of 1
+          </span>
           <button
             aria-label="Previous page"
             class="btn btn-quaternary btn-icon btn-sm ml-2 prev disabled"
@@ -2397,6 +2494,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should render c
   >
     <div
       class="DataGrid"
+      data-testid="dataGrid"
     >
       <div
         class="DataGrid_search"
@@ -2669,6 +2767,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should render c
       </div>
       <div
         class="DataGrid_header"
+        data-testid="dataGrid-header"
       >
         <div
           class="DataGrid_cell"
@@ -2693,13 +2792,16 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should render c
       </div>
       <div
         class="DataGrid_rows"
+        data-testid="dataGrid-rows"
         style="min-height: 40px;"
       >
         <div
           class="DataGrid_row"
+          data-testid="dataGrid-row"
         >
           <div
             class="DataGrid_cell"
+            data-testid="dataGrid-cell"
             style="flex-grow: 4;"
           >
             <span
@@ -2729,6 +2831,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should render c
           </div>
           <div
             class="DataGrid_cell"
+            data-testid="dataGrid-cell"
             style="flex-grow: 1.5;"
           >
             <span
@@ -2739,6 +2842,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should render c
           </div>
           <div
             class="DataGrid_cell"
+            data-testid="dataGrid-cell"
           >
             <span
               class="group-description adjusted row-content"
@@ -2752,6 +2856,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should render c
           </div>
           <div
             class="DataGrid_cell"
+            data-testid="dataGrid-cell"
             style="text-align: right;"
           >
             <span
@@ -2769,11 +2874,16 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should render c
       </div>
       <div
         class="DataGrid_footer"
+        data-testid="dataGrid-footer"
       >
         <div
           class="DataGrid_cell"
         >
-          1 - 1 of 1
+          <span
+            data-testid="dataGrid-footer-paginationInfo"
+          >
+            1 - 1 of 1
+          </span>
           <button
             aria-label="Previous page"
             class="btn btn-quaternary btn-icon btn-sm ml-2 prev disabled"

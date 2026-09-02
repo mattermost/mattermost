@@ -1,12 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {ReactElement, ReactNode} from 'react';
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
-import {CheckIcon, ChevronRightIcon, DotsHorizontalIcon, EyeOutlineIcon, LockOutlineIcon, PencilOutlineIcon, SyncIcon, TrashCanOutlineIcon, ContentCopyIcon} from '@mattermost/compass-icons/components';
-import type {FieldVisibility, UserPropertyField} from '@mattermost/types/properties';
+import {CheckIcon, ChevronRightIcon, DotsHorizontalIcon, EyeOutlineIcon, FormatListNumberedIcon, LockOutlineIcon, PencilOutlineIcon, SyncIcon, TrashCanOutlineIcon, ContentCopyIcon} from '@mattermost/compass-icons/components';
+import type {FieldVisibility} from '@mattermost/types/properties';
+import type {UserPropertyField} from '@mattermost/types/properties_user';
 
 import {openModal} from 'actions/views/modals';
 
@@ -17,8 +19,9 @@ import {ModalIdentifiers} from 'utils/constants';
 import {slugifyForCEL} from 'utils/properties';
 
 import AttributeModal from './attribute_modal';
+import RankedSchemaModal from './ranked_schema_modal';
 import {useUserPropertyFieldDelete} from './user_properties_delete_modal';
-import {isCreatePending} from './user_properties_utils';
+import {isCreatePending, isLinkedField} from './user_properties_utils';
 
 import './user_properties_dot_menu.scss';
 
@@ -28,7 +31,7 @@ type Props = {
     createField: (field: UserPropertyField) => void;
     updateField: (field: UserPropertyField) => void;
     deleteField: (id: string) => void;
-}
+};
 
 export const useAttributeLinkModal = (field: UserPropertyField, updateField: Props['updateField']) => {
     const dispatch = useDispatch();
@@ -108,6 +111,15 @@ export const useAttributeLinkModal = (field: UserPropertyField, updateField: Pro
 
 const menuId = 'user-property-field_dotmenu';
 
+// Menu.Item renders a second label child as help text under the primary label —
+// the same treatment the "Editable by users" item uses when it's locked.
+const withLinkedHelp = (label: ReactElement, isLinked: boolean, help: ReactNode): ReactElement => (isLinked ? (
+    <>
+        <span>{label}</span>
+        <span>{help}</span>
+    </>
+) : label);
+
 const DotMenu = ({
     field,
     canCreate,
@@ -115,14 +127,60 @@ const DotMenu = ({
     updateField,
     deleteField,
 }: Props) => {
+    const {formatMessage} = useIntl();
+    const dispatch = useDispatch();
     const {promptDelete} = useUserPropertyFieldDelete();
     const {promptEditLdapLink, promptEditSamlLink} = useAttributeLinkModal(field, updateField);
 
     const isProtected = Boolean(field.attrs?.protected);
 
+    const promptEditRanking = () => {
+        dispatch(openModal({
+            modalId: ModalIdentifiers.RANKED_SCHEMA_MODAL,
+            dialogType: RankedSchemaModal,
+            dialogProps: {
+                field,
+                onSave: updateField,
+                onExited: () => {},
+            },
+        }));
+    };
+
+    const isSynced = Boolean(field.attrs.ldap || field.attrs.saml);
+
+    // Linked fields take their type and options from the template they link to.
+    // That rules out editing the ranking (options) and linking to AD/LDAP or SAML
+    // (both coerce the field to `text`) — the server rejects either change. The
+    // rest of this menu (visibility, editable-by-users, duplicate, delete) is
+    // unaffected.
+    const isLinked = isLinkedField(field);
+    const linkedHelp = (
+        <FormattedMessage
+            id='admin.system_properties.user_properties.dotmenu.linked.help'
+            defaultMessage='Managed by a linked attribute template'
+        />
+    );
+
+    // Owner-managed fields (e.g. SCIM-provisioned) are read-only in this
+    // screen: ownership and values are governed by the owning integration, so
+    // they behave like synced fields for the "Editable by users" toggle and
+    // expose no link/unlink action here.
+    const isOwnerManaged = Boolean(field.attrs.owners?.length);
+    const isManagedExternally = isSynced || isOwnerManaged;
+    const isEditableByUsers = !isManagedExternally && field.attrs.managed !== 'admin';
+
     const handleDuplicate = () => {
         const name = `${slugifyForCEL(field.name)}_copy`;
-        createField({...field, attrs: {...field.attrs}, name});
+        const duplicate = {...field, attrs: {...field.attrs}, name};
+
+        // A copy is a standalone field, not a second holder of the original's
+        // provenance: owners belong to the integration that assigned them, and a
+        // template link would make the copy inherit a type and option set the
+        // create request cannot carry anyway.
+        delete duplicate.attrs.owners;
+        delete duplicate.linked_field_id;
+
+        createField(duplicate);
     };
 
     const handleDelete = () => {
@@ -139,6 +197,10 @@ const DotMenu = ({
     };
 
     const handleEditableByUsersToggle = () => {
+        if (isManagedExternally) {
+            return;
+        }
+
         const newAttrs = {...field.attrs};
 
         if (field.attrs.managed === 'admin') {
@@ -192,11 +254,28 @@ const DotMenu = ({
                 disabled: field.delete_at !== 0 || isProtected,
             }}
             menu={{
-                id: `${menuId}-menu`,
-                'aria-label': 'Select an action',
+                id: `${menuId}-${field.id}-menu`,
+                'aria-label': formatMessage({
+                    id: 'admin.system_properties.user_properties.dotmenu.label',
+                    defaultMessage: 'Select an action',
+                }),
                 className: 'user-property-field-dotmenu-menu',
             }}
         >
+            {field.type === 'rank' && (
+                <Menu.Item
+                    id={`${menuId}_edit-ranking`}
+                    disabled={isLinked}
+                    onClick={promptEditRanking}
+                    leadingElement={<FormatListNumberedIcon size={18}/>}
+                    labels={withLinkedHelp((
+                        <FormattedMessage
+                            id='admin.system_properties.user_properties.dotmenu.edit_ranking.label'
+                            defaultMessage='Edit ranking'
+                        />
+                    ), isLinked, linkedHelp)}
+                />
+            )}
             <Menu.SubMenu
                 id={`${menuId}-${field.id}-visibility`}
                 menuId={`${menuId}-${field.id}-visibility-menu`}
@@ -276,10 +355,46 @@ const DotMenu = ({
             <Menu.Item
                 id={`${menuId}_editable-by-users`}
                 role='menuitemcheckbox'
-                aria-checked={field.attrs.managed !== 'admin'}
+                disabled={isManagedExternally}
+                aria-checked={isEditableByUsers}
                 onClick={handleEditableByUsersToggle}
                 leadingElement={<PencilOutlineIcon size={18}/>}
-                labels={(
+                labels={isManagedExternally ? (
+                    <>
+                        <span>
+                            <FormattedMessage
+                                id='admin.system_properties.user_properties.dotmenu.editable_by_users.label'
+                                defaultMessage='Editable by users'
+                            />
+                        </span>
+                        <span>
+                            {(() => {
+                                if (isOwnerManaged && isSynced) {
+                                    return (
+                                        <FormattedMessage
+                                            id='admin.system_properties.user_properties.dotmenu.editable_by_users.owner_managed_synced_help'
+                                            defaultMessage='Managed by an integration and synced via AD/LDAP or SAML'
+                                        />
+                                    );
+                                }
+                                if (isOwnerManaged) {
+                                    return (
+                                        <FormattedMessage
+                                            id='admin.system_properties.user_properties.dotmenu.editable_by_users.owner_managed_help'
+                                            defaultMessage='This attribute is managed by an integration'
+                                        />
+                                    );
+                                }
+                                return (
+                                    <FormattedMessage
+                                        id='admin.system_properties.user_properties.dotmenu.editable_by_users.synced_help'
+                                        defaultMessage='Synced attributes are managed by AD/LDAP or SAML'
+                                    />
+                                );
+                            })()}
+                        </span>
+                    </>
+                ) : (
                     <FormattedMessage
                         id='admin.system_properties.user_properties.dotmenu.editable_by_users.label'
                         defaultMessage='Editable by users'
@@ -288,9 +403,9 @@ const DotMenu = ({
                 trailingElements={(
                     <Toggle
                         size='btn-sm'
-                        disabled={false}
+                        disabled={isManagedExternally}
                         onToggle={handleEditableByUsersToggle}
-                        toggled={field.attrs.managed !== 'admin'}
+                        toggled={isEditableByUsers}
                         toggleClassName='btn-toggle-primary'
                         tabIndex={-1}
                     />
@@ -301,8 +416,9 @@ const DotMenu = ({
                     key={`${menuId}_link_ad-ldap`}
                     id={`${menuId}_link_ad-ldap`}
                     leadingElement={<SyncIcon size={18}/>}
+                    disabled={isLinked}
                     onClick={() => promptEditLdapLink()}
-                    labels={field.attrs.ldap ? (
+                    labels={withLinkedHelp(field.attrs.ldap ? (
                         <FormattedMessage
                             id='admin.system_properties.user_properties.dotmenu.ad_ldap.edit_link.label'
                             defaultMessage='Edit LDAP link'
@@ -312,14 +428,15 @@ const DotMenu = ({
                             id='admin.system_properties.user_properties.dotmenu.ad_ldap.link_property.label'
                             defaultMessage='Link attribute to AD/LDAP'
                         />
-                    )}
+                    ), isLinked, linkedHelp)}
                 />,
                 <Menu.Item
                     key={`${menuId}_link_saml`}
                     id={`${menuId}_link_saml`}
                     leadingElement={<SyncIcon size={18}/>}
+                    disabled={isLinked}
                     onClick={() => promptEditSamlLink()}
-                    labels={field.attrs.saml ? (
+                    labels={withLinkedHelp(field.attrs.saml ? (
                         <FormattedMessage
                             id='admin.system_properties.user_properties.dotmenu.saml.edit_link.label'
                             defaultMessage='Edit SAML link'
@@ -329,7 +446,7 @@ const DotMenu = ({
                             id='admin.system_properties.user_properties.dotmenu.saml.link_property.label'
                             defaultMessage='Link attribute to SAML'
                         />
-                    )}
+                    ), isLinked, linkedHelp)}
                 />,
             ])}
             <Menu.Separator/>

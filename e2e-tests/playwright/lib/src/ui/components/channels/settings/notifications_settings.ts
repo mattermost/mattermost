@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Locator, expect} from '@playwright/test';
+import type {Locator} from '@playwright/test';
+import {expect} from '@playwright/test';
 
 type NotificationSettingsSection = 'keysWithHighlight' | 'keysWithNotification';
 
@@ -17,8 +18,10 @@ export default class NotificationsSettings {
     readonly desktopAndMobileEditButton;
     readonly desktopNotificationSoundEditButton;
     readonly emailEditButton;
+    readonly channelMentionAutoFollowEditButton;
     readonly keywordsTriggerNotificationsEditButton;
     readonly keywordsGetHighlightedEditButton;
+    readonly channelWideMentionsCheckbox;
 
     readonly testNotificationButton;
     readonly troubleshootingDocsButton;
@@ -35,8 +38,12 @@ export default class NotificationsSettings {
         this.desktopAndMobileEditButton = container.locator('#desktopAndMobileEdit');
         this.desktopNotificationSoundEditButton = container.locator('#desktopNotificationSoundEdit');
         this.emailEditButton = container.locator('#emailEdit');
+        this.channelMentionAutoFollowEditButton = container.getByRole('button', {
+            name: 'Auto-follow threads on channel-wide mentions Edit',
+        });
         this.keywordsTriggerNotificationsEditButton = container.locator('#keywordsAndMentionsEdit');
         this.keywordsGetHighlightedEditButton = container.locator('#keywordsAndHighlightEdit');
+        this.channelWideMentionsCheckbox = container.getByRole('checkbox', {name: 'Channel-wide mentions'});
 
         this.testNotificationButton = container.getByRole('button', {name: 'Send a test notification'});
         this.troubleshootingDocsButton = container.getByRole('button', {name: 'Troubleshooting docs 󰏌'});

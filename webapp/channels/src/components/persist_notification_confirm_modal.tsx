@@ -40,7 +40,7 @@ function PersistNotificationConfirmModal({
     let confirmBtn: React.ReactNode = '';
     let handleConfirm = () => {};
 
-    const getMentionCount = useMemo(makeGetUserOrGroupMentionCountFromMessage, []);
+    const getMentionCount = useMemo(() => makeGetUserOrGroupMentionCountFromMessage(), []);
     const maxRecipients = useSelector(getPersistentNotificationMaxRecipients);
     const interval = useSelector(getPersistentNotificationIntervalMinutes);
     const count = useSelector((state: GlobalState) => getMentionCount(state, message));

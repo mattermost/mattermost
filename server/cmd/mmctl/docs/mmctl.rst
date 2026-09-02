@@ -51,6 +51,7 @@ SEE ALSO
 * `mmctl permissions <mmctl_permissions.rst>`_ 	 - Management of permissions
 * `mmctl plugin <mmctl_plugin.rst>`_ 	 - Management of plugins
 * `mmctl post <mmctl_post.rst>`_ 	 - Management of posts
+* `mmctl report <mmctl_report.rst>`_ 	 - Reporting commands
 * `mmctl roles <mmctl_roles.rst>`_ 	 - Manage user roles
 * `mmctl saml <mmctl_saml.rst>`_ 	 - SAML related utilities
 * `mmctl sampledata <mmctl_sampledata.rst>`_ 	 - Generate sample data

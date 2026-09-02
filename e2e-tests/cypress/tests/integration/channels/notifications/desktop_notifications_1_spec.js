@@ -19,7 +19,6 @@ import * as MESSAGES from '@/fixtures/messages';
 import * as TIMEOUTS from '@/fixtures/timeouts';
 import {spyNotificationAs} from '@/support/notification';
 
-
 describe('Desktop notifications', () => {
     let testTeam;
     let testUser;

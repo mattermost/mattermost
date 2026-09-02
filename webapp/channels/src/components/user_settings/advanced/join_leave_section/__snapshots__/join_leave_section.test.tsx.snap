@@ -4,6 +4,7 @@ exports[`components/user_settings/advanced/JoinLeaveSection should match snapsho
 <div>
   <div
     class="section-min"
+    data-testid="section-min"
   >
     <div
       class="section-min__header"

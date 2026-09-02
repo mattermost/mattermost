@@ -65,7 +65,7 @@ type Props = {
     * The async function to run when the action button is pressed
     */
     action: (command: Command) => Promise<void>;
-}
+};
 
 type State = {
     saving: boolean;
@@ -80,7 +80,7 @@ type State = {
     autocomplete: boolean;
     autocompleteHint: string;
     autocompleteDescription: string;
-}
+};
 
 export default class AbstractCommand extends React.PureComponent<Props, State> {
     constructor(props: Props) {

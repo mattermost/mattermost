@@ -198,3 +198,40 @@
         }
     }
 }
+
+// Mui portals the role dropdown out of `.PermissionPolicySettings`, so
+// these rules need to live at the root. The "Members" option carries a
+// long secondary description ("System administrators also fall back…")
+// that we want to wrap inside the dropdown's existing width instead of
+// stretching the popover horizontally.
+
+// !important is required because MUI's emotion-generated styles set
+// `white-space: nowrap` on `.MuiMenuItem-root` with high specificity
+// (their CSS-in-JS chains are hard to beat without it), and we need the
+// description span to soft-wrap onto a second line.
+#pp-role-selector-menu {
+    &.MuiMenuList-root,
+    & {
+        max-width: 360px;
+    }
+
+    .MuiMenuItem-root {
+        white-space: normal !important;
+    }
+
+    .label-elements {
+        min-width: 0;
+        flex-shrink: 1;
+
+        > :first-child,
+        > :only-child,
+        > :last-child {
+            white-space: normal !important;
+            word-break: break-word;
+        }
+
+        > :last-child {
+            line-height: 1.4;
+        }
+    }
+}

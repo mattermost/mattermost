@@ -181,3 +181,45 @@ func (p *PropertyService) DeletePropertyValuesForTarget(groupID, targetType, tar
 func (p *PropertyService) DeletePropertyValuesForField(groupID, fieldID string) error {
 	return p.api.DeletePropertyValuesForField(groupID, fieldID)
 }
+
+// UpsertPropertyValuesWithOptions creates or updates multiple property values,
+// declaring the scope the plugin is acting as for owner-based access control.
+//
+// Minimum server version: 11.10
+func (p *PropertyService) UpsertPropertyValuesWithOptions(values []*model.PropertyValue, options model.PropertyRequestOptions) ([]*model.PropertyValue, error) {
+	return p.api.UpsertPropertyValuesWithOptions(values, options)
+}
+
+// UpsertPropertyValueWithOptions creates or updates a single property value,
+// declaring the scope the plugin is acting as for owner-based access control.
+//
+// Minimum server version: 11.10
+func (p *PropertyService) UpsertPropertyValueWithOptions(value *model.PropertyValue, options model.PropertyRequestOptions) (*model.PropertyValue, error) {
+	return p.api.UpsertPropertyValueWithOptions(value, options)
+}
+
+// DeletePropertyValueWithOptions deletes a property value, declaring the scope
+// the plugin is acting as for owner-based access control.
+//
+// Minimum server version: 11.10
+func (p *PropertyService) DeletePropertyValueWithOptions(groupID, valueID string, options model.PropertyRequestOptions) error {
+	return p.api.DeletePropertyValueWithOptions(groupID, valueID, options)
+}
+
+// DeletePropertyValuesForTargetWithOptions deletes all property values for a
+// target, declaring the scope the plugin is acting as. This is the
+// deprovisioning entrypoint and needs only the target, no value objects.
+//
+// Minimum server version: 11.10
+func (p *PropertyService) DeletePropertyValuesForTargetWithOptions(groupID, targetType, targetID string, options model.PropertyRequestOptions) error {
+	return p.api.DeletePropertyValuesForTargetWithOptions(groupID, targetType, targetID, options)
+}
+
+// DeletePropertyValuesForFieldWithOptions deletes all property values for a
+// field, declaring the scope the plugin is acting as for owner-based access
+// control.
+//
+// Minimum server version: 11.10
+func (p *PropertyService) DeletePropertyValuesForFieldWithOptions(groupID, fieldID string, options model.PropertyRequestOptions) error {
+	return p.api.DeletePropertyValuesForFieldWithOptions(groupID, fieldID, options)
+}

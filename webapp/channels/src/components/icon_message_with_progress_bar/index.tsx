@@ -18,7 +18,7 @@ type PageCopy = {
     icon: JSX.Element;
     buttonText?: string;
     linkText?: string;
-}
+};
 
 type Props = {
     processingState: ProcessState;
@@ -28,7 +28,7 @@ type Props = {
     failedCopy: PageCopy;
     handleGoBack: () => void;
     error: boolean;
-}
+};
 
 export default function IconMessageWithProgressBar({processingState, progress, successPage, handleGoBack, error, processingCopy, failedCopy}: Props) {
     const progressBar: JSX.Element | null = (

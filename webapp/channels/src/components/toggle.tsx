@@ -12,11 +12,11 @@ type Props = {
     offText?: React.ReactNode;
     id?: string;
     overrideTestId?: boolean;
-    size?: 'btn-lg' | 'btn-md' |'btn-sm';
+    size?: 'btn-lg' | 'btn-md' | 'btn-sm';
     toggleClassName?: string;
     ariaLabel?: string;
     tabIndex?: number;
-}
+};
 
 const Toggle: React.FC<Props> = (props: Props) => {
     const {

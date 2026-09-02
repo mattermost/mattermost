@@ -17,7 +17,7 @@ import PerformanceDebuggingSection from './performance_debugging_section';
 export type OwnProps = {
     adminMode?: boolean;
     userId: string;
-}
+};
 
 function mapStateToProps(state: GlobalState, props: OwnProps) {
     const userPreferences = props.adminMode && props.userId ? getUserPreferences(state, props.userId) : undefined;

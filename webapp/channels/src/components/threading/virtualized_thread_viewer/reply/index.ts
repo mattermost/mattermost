@@ -14,7 +14,7 @@ import Reply from './reply';
 
 type OwnProps = {
     id: string;
-}
+};
 
 function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
     const previewCollapsed = get(

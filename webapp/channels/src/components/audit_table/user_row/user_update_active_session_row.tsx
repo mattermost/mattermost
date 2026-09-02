@@ -22,7 +22,7 @@ type Props = {
     showSession: boolean;
     updateField: string;
     userInfo: string[];
-}
+};
 
 export default function UserUpdateActiveSessionRow({
     audit,

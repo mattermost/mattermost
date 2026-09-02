@@ -25,12 +25,12 @@ export type InstalledOutgoingOAuthConnectionProps = {
     filter?: string | null;
 
     onDelete: (outgoingOAuthConnection: OutgoingOAuthConnection) => void;
-}
+};
 
 export type InstalledOutgoingOAuthConnectionState = {
     clientSecret: string;
     error?: string | null;
-}
+};
 
 const InstalledOutgoingOAuthConnection = (props: InstalledOutgoingOAuthConnectionProps) => {
     const handleDelete = (): void => {

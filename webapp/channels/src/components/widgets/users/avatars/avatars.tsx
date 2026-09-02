@@ -59,6 +59,7 @@ function UserAvatar({
     const name = useSelector((state: GlobalState) => displayNameGetter(state, true)(user));
 
     const profilePictureURL = userId ? imageURLForUser(userId) : '';
+    const avatarPictureURL = userId ? imageURLForUser(userId, user?.last_picture_update) : '';
 
     return (
         <ProfilePopover<HTMLButtonElement>
@@ -71,7 +72,7 @@ function UserAvatar({
                 title={name}
             >
                 <Avatar
-                    url={imageURLForUser(userId, user?.last_picture_update)}
+                    url={avatarPictureURL}
                     username={user?.username}
                     tabIndex={-1}
                     {...props}

@@ -197,6 +197,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_link should match sn
   <a
     aria-label="channel_label aria_label_prefix_ 2 mentions"
     class="SidebarLink unread-title"
+    data-testid="sidebar-unread-channel"
     href="/team/channels/town-square"
     id="sidebarItem_"
     tabindex="0"

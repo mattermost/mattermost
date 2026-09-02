@@ -706,7 +706,7 @@ func TestWatcherHealthFlag(t *testing.T) {
 
 		require.Eventually(t, func() bool {
 			require.NoError(t, w.ps.Logger().Flush())
-			return testlib.CheckLog(t, strings.NewReader(logBuffer.String()), "",
+			return testlib.CheckLog(t, strings.NewReader(logBuffer.String()), mlog.LvlWarn.Name,
 				"Search engine health check failed: it is now marked as unhealthy")
 		}, 2*time.Second, 5*time.Millisecond,
 			"expected log for healthy->unhealthy transition")
@@ -720,7 +720,7 @@ func TestWatcherHealthFlag(t *testing.T) {
 
 		require.Eventually(t, func() bool {
 			require.NoError(t, w.ps.Logger().Flush())
-			return testlib.CheckLog(t, strings.NewReader(logBuffer.String()), "",
+			return testlib.CheckLog(t, strings.NewReader(logBuffer.String()), mlog.LvlInfo.Name,
 				"Search engine health check succeeded: it is now marked as healthy")
 		}, 2*time.Second, 5*time.Millisecond,
 			"expected log for unhealthy->healthy transition")

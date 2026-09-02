@@ -7,7 +7,7 @@ import {useIntl} from 'react-intl';
 
 type Props = {
     additionalClassName?: string;
-}
+};
 
 const WarningIcon = ({additionalClassName}: Props) => {
     const {formatMessage} = useIntl();

@@ -16,7 +16,7 @@ type Props = {
     handleRemove: (id: string) => void;
     clientId: string;
     fileInfo: FilePreviewInfo;
-}
+};
 
 export default class FileProgressPreview extends React.PureComponent<Props> {
     handleRemove = () => {
@@ -75,7 +75,6 @@ export default class FileProgressPreview extends React.PureComponent<Props> {
 
         return (
             <div
-                ref={clientId}
                 key={clientId}
                 className='file-preview post-image__column'
                 data-client-id={clientId}

@@ -10,7 +10,9 @@ import {useSelector} from 'react-redux';
 import type {OnChangeValue, ActionMeta, StylesConfig} from 'react-select';
 import ReactSelect from 'react-select';
 
-import type {UserPropertyField, PropertyFieldOption} from '@mattermost/types/properties';
+import type {LockProfileFieldsSetting} from '@mattermost/types/config';
+import {supportsOptions, type PropertyFieldOption} from '@mattermost/types/properties';
+import type {UserPropertyField} from '@mattermost/types/properties_user';
 import type {UserProfile} from '@mattermost/types/users';
 
 import type {LogErrorOptions} from 'mattermost-redux/actions/errors';
@@ -170,8 +172,10 @@ export type Props = {
     ldapPositionAttributeSet?: boolean;
     samlPositionAttributeSet?: boolean;
     ldapPictureAttributeSet?: boolean;
+    lockProfileFieldsForEmailUsers: LockProfileFieldsSetting;
+    canEditOtherUsers: boolean;
     enableCustomProfileAttributes: boolean;
-}
+};
 
 type State = {
     username: string;
@@ -192,7 +196,7 @@ type State = {
     serverError?: string;
     emailError?: string;
     customAttributeValues: Record<string, string | string[]>;
-}
+};
 
 // Private component to get plugin display name
 type PluginDisplayNameProps = {
@@ -862,7 +866,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
             );
         }
 
-        let describe: JSX.Element|string = '';
+        let describe: JSX.Element | string = '';
         if (this.props.user.auth_service === '') {
             describe = this.props.user.email;
         } else if (this.props.user.auth_service === Constants.GITLAB_SERVICE) {
@@ -935,6 +939,29 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
         );
     }
 
+    isFieldLockedByAdmin = (field: 'name' | 'username' | 'nickname' | 'position' | 'picture'): boolean => {
+        if (this.props.user.auth_service !== '' || this.props.canEditOtherUsers) {
+            return false;
+        }
+
+        const setting = this.props.lockProfileFieldsForEmailUsers;
+        if (setting === Constants.LOCK_PROFILE_FIELDS.NAME_AND_USERNAME) {
+            return field === 'name' || field === 'username';
+        }
+        return setting === Constants.LOCK_PROFILE_FIELDS.ALL;
+    };
+
+    createFieldManagedByAdminMessage = () => {
+        return (
+            <span>
+                <FormattedMessage
+                    id='user.settings.general.field_locked_by_admin'
+                    defaultMessage='This field is managed by your System Admin. Contact them to request a change.'
+                />
+            </span>
+        );
+    };
+
     createNameSection = () => {
         const user = this.props.user;
         const {formatMessage} = this.props.intl;
@@ -946,6 +973,9 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
 
             let extraInfo;
             let submit = null;
+            const lockNameFields = this.isFieldLockedByAdmin('name');
+            const firstNameLocked = lockNameFields && user.first_name !== '';
+            const lastNameLocked = lockNameFields && user.last_name !== '';
             if (
                 (this.props.user.auth_service === Constants.LDAP_SERVICE &&
                     (this.props.ldapFirstNameAttributeSet || this.props.ldapLastNameAttributeSet)) ||
@@ -961,6 +991,8 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                         />
                     </span>
                 );
+            } else if (firstNameLocked && lastNameLocked) {
+                extraInfo = this.createFieldManagedByAdminMessage();
             } else {
                 inputs.push(
                     <div
@@ -983,6 +1015,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                                 autoFocus={true}
                                 type='text'
                                 onChange={this.updateFirstName}
+                                disabled={firstNameLocked}
                                 maxLength={Constants.MAX_FIRSTNAME_LENGTH}
                                 value={this.state.firstName}
                                 onFocus={Utils.moveCursorToEnd}
@@ -1012,6 +1045,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                                 name='lastName'
                                 type='text'
                                 onChange={this.updateLastName}
+                                disabled={lastNameLocked}
                                 maxLength={Constants.MAX_LASTNAME_LENGTH}
                                 value={this.state.lastName}
                                 aria-label={formatMessage({id: 'user.settings.general.lastName', defaultMessage: 'Last Name'})}
@@ -1038,7 +1072,8 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                     </a>
                 );
 
-                extraInfo = (
+                // Each empty name may be filled once even when the other name is already locked.
+                extraInfo = firstNameLocked || lastNameLocked ? this.createFieldManagedByAdminMessage() : (
                     <span>
                         <FormattedMessage
                             id='user.settings.general.notificationsExtra'
@@ -1066,7 +1101,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
             );
         }
 
-        let describe: JSX.Element|string = '';
+        let describe: JSX.Element | string = '';
 
         if (user.first_name && user.last_name) {
             describe = user.first_name + ' ' + user.last_name;
@@ -1124,8 +1159,10 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                         />
                     </span>
                 );
+            } else if (this.isFieldLockedByAdmin('nickname')) {
+                extraInfo = this.createFieldManagedByAdminMessage();
             } else {
-                let nicknameLabel: JSX.Element|string = (
+                let nicknameLabel: JSX.Element | string = (
                     <FormattedMessage
                         id='user.settings.general.nickname'
                         defaultMessage='Nickname'
@@ -1182,7 +1219,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
             );
         }
 
-        let describe: JSX.Element|string = '';
+        let describe: JSX.Element | string = '';
         if (user.nickname) {
             describe = user.nickname;
         } else {
@@ -1225,7 +1262,9 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
 
             let extraInfo;
             let submit = null;
-            if (this.props.user.auth_service === '') {
+            if (this.isFieldLockedByAdmin('username')) {
+                extraInfo = this.createFieldManagedByAdminMessage();
+            } else if (this.props.user.auth_service === '') {
                 let usernameLabel: JSX.Element | string = (
                     <FormattedMessage
                         id='user.settings.general.username'
@@ -1331,7 +1370,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
         if (active) {
             const inputs = [];
 
-            let extraInfo: JSX.Element|string;
+            let extraInfo: JSX.Element | string;
             let submit = null;
             if ((this.props.user.auth_service === Constants.LDAP_SERVICE && this.props.ldapPositionAttributeSet) || (this.props.user.auth_service === Constants.SAML_SERVICE && this.props.samlPositionAttributeSet)) {
                 extraInfo = (
@@ -1342,6 +1381,8 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                         />
                     </span>
                 );
+            } else if (this.isFieldLockedByAdmin('position')) {
+                extraInfo = this.createFieldManagedByAdminMessage();
             } else {
                 let positionLabel: JSX.Element | string = (
                     <FormattedMessage
@@ -1401,7 +1442,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
             );
         }
 
-        let describe: JSX.Element|string = '';
+        let describe: JSX.Element | string = '';
         if (user.position) {
             describe = user.position;
         } else {
@@ -1453,7 +1494,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                     return '';
                 }
 
-                if (attribute.type === 'select' || attribute.type === 'multiselect') {
+                if (supportsOptions(attribute)) {
                     const attribOptions = attribute.attrs.options;
                     if (!attribOptions) {
                         return '';
@@ -1481,7 +1522,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
 
             if (active) {
                 const inputs = [];
-                let extraInfo: JSX.Element|string = '';
+                let extraInfo: JSX.Element | string = '';
                 let submit = null;
 
                 const validate = () => {
@@ -1514,12 +1555,27 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                     (this.props.user.auth_service === Constants.SAML_SERVICE && attribute.attrs?.saml));
                 const isAdminManaged = attribute.attrs?.managed === 'admin';
 
+                // Owner-managed fields (e.g. SCIM-provisioned) are written only
+                // by the owning integration; the server rejects human value
+                // writes, so render them read-only just like synced fields.
+                const isOwnerManaged = Boolean(attribute.attrs?.owners?.length);
+                const isReadOnly = isSynced || isOwnerManaged || isAdminManaged || isProtected;
+
                 if (isSynced) {
                     extraInfo = (
                         <span>
                             <FormattedMessage
                                 id='user.settings.general.field_handled_externally'
                                 defaultMessage='This field is handled through your login provider. If you want to change it, you need to do so through your login provider.'
+                            />
+                        </span>
+                    );
+                } else if (isOwnerManaged) {
+                    extraInfo = (
+                        <span>
+                            <FormattedMessage
+                                id='user.settings.general.field_managed_externally'
+                                defaultMessage='This field is managed by an external integration and cannot be edited here.'
                             />
                         </span>
                     );
@@ -1545,8 +1601,8 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                     );
                 }
 
-                // Only render inputs if the field is not synced, admin-managed, or protected
-                if (!isSynced && !isAdminManaged && !isProtected) {
+                // Only render inputs if the field is editable by the user
+                if (!isReadOnly) {
                     let attributeLabel: JSX.Element | string = (
                         getUserPropertyFieldLabel(attribute)
                     );
@@ -1554,7 +1610,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                         attributeLabel = '';
                     }
 
-                    if (attribute.type === 'select' || attribute.type === 'multiselect') {
+                    if (supportsOptions(attribute)) {
                         const attribOptions: PropertyFieldOption[] = attribute.attrs!.options as PropertyFieldOption[];
                         const opts = attribOptions.map((o) => {
                             return {label: o.name, value: o.id} as SelectOption;
@@ -1609,7 +1665,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                 }
 
                 // Only enable submit and show default extra info if field is editable
-                if (!isSynced && !isAdminManaged && !isProtected) {
+                if (!isReadOnly) {
                     extraInfo = (
                         <span>
                             <FormattedMessage
@@ -1635,7 +1691,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                     />
                 );
             }
-            let describe: JSX.Element|string = '';
+            let describe: JSX.Element | string = '';
             if (this.props.user.custom_profile_attributes?.[attribute.id]) {
                 const attributeValue = getDisplayValue(this.props.user.custom_profile_attributes?.[attribute.id]);
                 if (attributeValue) {
@@ -1695,7 +1751,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
             let submit = null;
             let setDefault = null;
             let helpText = null;
-            let imgSrc = null;
+            const imgSrc = Utils.imageURLForUser(user.id, user.last_picture_update);
 
             if ((this.props.user.auth_service === Constants.LDAP_SERVICE || this.props.user.auth_service === Constants.SAML_SERVICE) && this.props.ldapPictureAttributeSet) {
                 helpText = (
@@ -1706,10 +1762,11 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                         />
                     </span>
                 );
+            } else if (this.isFieldLockedByAdmin('picture')) {
+                helpText = this.createFieldManagedByAdminMessage();
             } else {
                 submit = this.submitPicture;
                 setDefault = user.last_picture_update > 0 ? this.setDefaultProfilePicture : null;
-                imgSrc = Utils.imageURLForUser(user.id, user.last_picture_update);
                 helpText = (
                     <FormattedMessage
                         id='setting_picture.help.profile'
@@ -1741,7 +1798,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
             );
         }
 
-        let minMessage: JSX.Element|string = formatMessage(holders.uploadImage);
+        let minMessage: JSX.Element | string = formatMessage(holders.uploadImage);
         if (this.props.isMobileView) {
             minMessage = formatMessage(holders.uploadImageMobile);
         }

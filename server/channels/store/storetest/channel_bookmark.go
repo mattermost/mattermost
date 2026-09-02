@@ -30,6 +30,7 @@ func TestChannelBookmarkStore(t *testing.T, rctx request.CTX, ss store.Store, s 
 	t.Run("UpdateSortOrderChannelBookmark", func(t *testing.T) { testUpdateSortOrderChannelBookmark(t, rctx, ss) })
 	t.Run("DeleteChannelBookmark", func(t *testing.T) { testDeleteChannelBookmark(t, rctx, ss) })
 	t.Run("GetChannelBookmark", func(t *testing.T) { testGetChannelBookmark(t, rctx, ss) })
+	t.Run("BoardBookmarkSaveAndGet", func(t *testing.T) { testBoardBookmarkSaveAndGet(t, rctx, ss, s) })
 }
 
 func testSaveChannelBookmark(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -561,4 +562,52 @@ func testGetChannelBookmark(t *testing.T, rctx request.CTX, ss store.Store) {
 		assert.NoError(t, err)
 		assert.NotNil(t, bookmarkResp)
 	})
+}
+
+func testBoardBookmarkSaveAndGet(t *testing.T, _ request.CTX, ss store.Store, s SqlStore) {
+	t.Helper()
+
+	channelID := model.NewId()
+	userID := model.NewId()
+	boardChannelID := model.NewId()
+	linkPath := "/team/boards/" + boardChannelID
+
+	bookmark := &model.ChannelBookmark{
+		ChannelId:   channelID,
+		OwnerId:     userID,
+		DisplayName: "Engineering Roadmap",
+		LinkUrl:     linkPath,
+		Type:        model.ChannelBookmarkBoard,
+		TargetId:    boardChannelID,
+	}
+
+	saved, err := ss.ChannelBookmark().Save(bookmark, true)
+	require.NoError(t, err)
+	require.NotNil(t, saved)
+	assert.Equal(t, model.ChannelBookmarkBoard, saved.Type)
+	assert.Equal(t, boardChannelID, saved.TargetId)
+	assert.Equal(t, linkPath, saved.LinkUrl)
+
+	loaded, err := ss.ChannelBookmark().Get(saved.Id, false)
+	require.NoError(t, err)
+	assert.Equal(t, model.ChannelBookmarkBoard, loaded.Type)
+	assert.Equal(t, boardChannelID, loaded.TargetId)
+	assert.Equal(t, linkPath, loaded.LinkUrl)
+
+	linkBookmark := &model.ChannelBookmark{
+		ChannelId:   channelID,
+		OwnerId:     userID,
+		DisplayName: "Plain link",
+		LinkUrl:     "https://example.com",
+		Type:        model.ChannelBookmarkLink,
+	}
+	linkSaved, err := ss.ChannelBookmark().Save(linkBookmark, true)
+	require.NoError(t, err)
+
+	var count int
+	err = s.GetMaster().Get(&count,
+		"SELECT COUNT(*) FROM channelbookmarks WHERE id = ? AND targetid IS NULL",
+		linkSaved.Id)
+	require.NoError(t, err)
+	assert.Equal(t, 1, count, "link bookmarks must persist SQL NULL for targetid")
 }

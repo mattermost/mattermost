@@ -32,6 +32,7 @@ import {closeRightHandSide, selectPost, setRhsExpanded, selectPostCard, selectPo
 import {getBurnOnReadDurationMinutes} from 'selectors/burn_on_read';
 import {isBurnOnReadPost, shouldDisplayConcealedPlaceholder} from 'selectors/burn_on_read_posts';
 import {getShortcutReactToLastPostEmittedFrom, getOneClickReactionEmojis} from 'selectors/emojis';
+import {getIsGlobalThreadsView} from 'selectors/lhs';
 import {getIsPostBeingEdited, getIsPostBeingEditedInRHS, isEmbedVisible} from 'selectors/posts';
 import {getHighlightedPostId, getRhsState, getSelectedPostCard} from 'selectors/rhs';
 import {getIsMobileView} from 'selectors/views/browser';
@@ -201,8 +202,8 @@ function makeMapStateToProps() {
             replyCount: getReplyCount(state, post),
             canReply,
             pluginPostTypes: state.plugins.postTypes,
+            channel,
             channelIsArchived: isArchivedChannel(channel),
-            channelIsShared: channel?.shared,
             isConsecutivePost: isConsecutivePost(state, ownProps, locale),
             previousPostIsComment,
             isFlagged: isPostFlagged(state, post.id),
@@ -219,7 +220,7 @@ function makeMapStateToProps() {
             recentEmojis: emojis,
             center: get(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.CHANNEL_DISPLAY_MODE, Preferences.CHANNEL_DISPLAY_MODE_DEFAULT) === Preferences.CHANNEL_DISPLAY_MODE_CENTERED,
             isCollapsedThreadsEnabled: isCollapsedThreadsEnabled(state),
-            isExpanded: state.views.rhs.isSidebarExpanded,
+            isExpanded: state.views.rhs.isSidebarExpanded || getIsGlobalThreadsView(state),
             isPostBeingEdited: ownProps.location === Locations.CENTER ? !getIsPostBeingEditedInRHS(state, post.id) && getIsPostBeingEdited(state, post.id) : getIsPostBeingEditedInRHS(state, post.id),
             isMobileView: getIsMobileView(state),
             previewCollapsed,
@@ -274,7 +275,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
 
 const connector = connect(makeMapStateToProps, mapDispatchToProps);
 
-export type PropsFromRedux = ConnectedProps<typeof connector>
+export type PropsFromRedux = ConnectedProps<typeof connector>;
 
 export default connector(PostComponent);
 

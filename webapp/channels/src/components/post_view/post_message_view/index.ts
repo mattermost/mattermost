@@ -4,7 +4,6 @@
 import {connect} from 'react-redux';
 
 import {Preferences} from 'mattermost-redux/constants';
-import {getFeatureFlagValue} from 'mattermost-redux/selectors/entities/general';
 import {getTheme, getBool} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentRelativeTeamUrl} from 'mattermost-redux/selectors/entities/teams';
 
@@ -18,7 +17,6 @@ function mapStateToProps(state: GlobalState) {
         pluginPostTypes: state.plugins.postTypes,
         theme: getTheme(state),
         currentRelativeTeamUrl: getCurrentRelativeTeamUrl(state),
-        sharedChannelsPluginsEnabled: getFeatureFlagValue(state, 'EnableSharedChannelsPlugins') === 'true',
     };
 }
 

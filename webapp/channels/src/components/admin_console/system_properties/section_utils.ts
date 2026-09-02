@@ -13,7 +13,7 @@ export class BatchProcessingError<T = Error> extends Error {
 
 export type SectionHook = SectionIO & {
     content: ReactElement;
-}
+};
 
 export type SectionIO = {
     save: () => void;
@@ -48,7 +48,7 @@ export type ReadOperations<T> = {
     get: () => Promise<T | undefined>;
     select?: (state: GlobalState) => T | undefined;
     opts?: {forceInitialGet: boolean; initial?: Partial<T>};
-}
+};
 
 export interface CollectionIO<T extends {id: string}> {
     create?: (patch?: Partial<T>) => void;
@@ -56,6 +56,8 @@ export interface CollectionIO<T extends {id: string}> {
     delete?: ((item: T) => void) | ((id: T['id']) => void);
     reorder?: (item: T, nextOrder: number) => void;
 }
+
+export type PendingOps<T extends {id: string}> = {[op: string]: T[]};
 
 /**
  * Monitored async operation with stateful error and loading status handling.

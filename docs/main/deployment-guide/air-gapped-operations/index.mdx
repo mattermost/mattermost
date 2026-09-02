@@ -1,0 +1,26 @@
+---
+title: Air-Gapped Operations
+sidebar_position: 5
+description: Deploy and operate Mattermost in a self-hosted air-gapped environment with no direct internet access.
+---
+
+<EditionAvailability tiers="free,professional,enterprise,enterprise-advanced" />
+<DeploymentAvailability modes="self-hosted,air-gapped" />
+
+# Air-Gapped Operations
+
+An air-gapped environment is one that's isolated from the public internet, requiring all necessary components to be available locally. This section outlines what you'll need to deploy and operate Mattermost in a self-hosted air-gapped environment — preparation, deployment guidance, and the configuration changes required for a successful deployment.
+
+Deploying Mattermost in an air-gapped environment requires preparing all necessary software, container images, and configuration resources in advance, since the target system has no direct internet access; transferring these artifacts to the isolated network using secure media; and then installing, configuring, and validating the deployment within the air-gapped environment.
+
+<Tip>
+
+Consider [talking to a Mattermost expert](https://mattermost.com/contact-sales/) if your organization needs support deploying Mattermost and supporting services in an air-gapped environment.
+
+</Tip>
+
+## In this section
+
+- [Deployment Overview](/deployment-guide/air-gapped-operations/quick-start-runbook) — the high-level steps to prepare for and complete an air-gapped install.
+- [Bill of Materials and Registry Mirroring](/deployment-guide/air-gapped-operations/mirror-package-repositories) — what to gather before you cross the air gap, and how to set up a private package mirror or container registry.
+- [Configure for Air-Gapped Operation](/deployment-guide/air-gapped-operations/disable-phone-home-features) — server settings that depend on internet access and should be disabled or adjusted.

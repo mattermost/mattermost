@@ -11,7 +11,7 @@ import './radio_setting.scss';
 interface Props {
     id: string;
     label: React.ReactNode;
-    values: Array<{ text: string; value: string }>;
+    values: Array<{text: string; value: string}>;
     value: string;
     setByEnv: boolean;
     disabled?: boolean;

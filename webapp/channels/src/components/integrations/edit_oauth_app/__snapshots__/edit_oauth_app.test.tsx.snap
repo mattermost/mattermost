@@ -556,6 +556,7 @@ exports[`components/integrations/EditOAuthApp should match snapshot, loading 1`]
 <div>
   <div
     class="loading-screen"
+    data-testid="loading-screen"
     style="position: relative;"
   >
     <div

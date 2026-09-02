@@ -15,7 +15,7 @@ export type ExternalLinkQueryParams = {
     utm_campaign?: string;
     utm_content?: string;
     userId?: string;
-}
+};
 
 /**
  * useExternalLink is used when linking outside of the MM server to add extra tracking parameters when linking to any

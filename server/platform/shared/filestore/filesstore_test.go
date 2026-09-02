@@ -932,7 +932,7 @@ func TestNewExportFileBackendSettingsFromConfig(t *testing.T) {
 		actual := NewExportFileBackendSettingsFromConfig(&model.FileSettings{
 			ExportDriverName: new(driverLocal),
 			ExportDirectory:  new("directory"),
-		}, enableComplianceFeature, skipVerify)
+		}, enableComplianceFeature, skipVerify, "")
 
 		require.Equal(t, expected, actual)
 	})
@@ -976,7 +976,43 @@ func TestNewExportFileBackendSettingsFromConfig(t *testing.T) {
 			ExportAmazonS3PresignExpiresSeconds:      new(int64(60000)),
 			ExportAmazonS3UploadPartSizeBytes:        model.NewPointer(int64(model.FileSettingsDefaultS3ExportUploadPartSizeBytes)),
 			ExportAmazonS3StorageClass:               new(""),
-		}, enableComplianceFeature, skipVerify)
+		}, enableComplianceFeature, skipVerify, "")
+
+		require.Equal(t, expected, actual)
+	})
+
+	t.Run("azure filestore", func(t *testing.T) {
+		skipVerify := false
+		enableComplianceFeature := false
+
+		expected := FileBackendSettings{
+			DriverName:                          driverAzure,
+			AzureStorageAccount:                 "anaccount",
+			AzureAuthMode:                       model.AzureAuthModeSharedKey,
+			AzureAccessKey:                      "akey",
+			AzureContainer:                      "acontainer",
+			AzurePathPrefix:                     "prefix",
+			AzureCloud:                          model.AzureCloudCommercial,
+			AzureEndpoint:                       "",
+			AzureSSL:                            true,
+			AzureRequestTimeoutMilliseconds:     30000,
+			AzurePresignExpiresSeconds:          21600,
+			AllowedUntrustedInternalConnections: "10.0.0.0/8 internal.example.com",
+		}
+
+		actual := NewExportFileBackendSettingsFromConfig(&model.FileSettings{
+			ExportDriverName:                      new(driverAzure),
+			ExportAzureStorageAccount:             new("anaccount"),
+			ExportAzureAuthMode:                   new(model.AzureAuthModeSharedKey),
+			ExportAzureAccessKey:                  new("akey"),
+			ExportAzureContainer:                  new("acontainer"),
+			ExportAzurePathPrefix:                 new("prefix"),
+			ExportAzureCloud:                      new(model.AzureCloudCommercial),
+			ExportAzureEndpoint:                   new(""),
+			ExportAzureSSL:                        new(true),
+			ExportAzureRequestTimeoutMilliseconds: new(int64(30000)),
+			ExportAzurePresignExpiresSeconds:      new(int64(21600)),
+		}, enableComplianceFeature, skipVerify, "10.0.0.0/8 internal.example.com")
 
 		require.Equal(t, expected, actual)
 	})
@@ -1021,7 +1057,7 @@ func TestNewExportFileBackendSettingsFromConfig(t *testing.T) {
 			ExportAmazonS3PresignExpiresSeconds:      new(int64(60000)),
 			ExportAmazonS3UploadPartSizeBytes:        model.NewPointer(int64(model.FileSettingsDefaultS3ExportUploadPartSizeBytes)),
 			ExportAmazonS3StorageClass:               new(""),
-		}, enableComplianceFeature, skipVerify)
+		}, enableComplianceFeature, skipVerify, "")
 
 		require.Equal(t, expected, actual)
 	})

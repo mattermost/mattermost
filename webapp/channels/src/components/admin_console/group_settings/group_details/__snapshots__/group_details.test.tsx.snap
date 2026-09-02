@@ -9,6 +9,7 @@ exports[`components/admin_console/group_settings/group_details/GroupDetails shou
   >
     <div
       class="admin-console__header with-back"
+      data-testid="admin-console-header"
     >
       <div>
         <a
@@ -403,6 +404,7 @@ exports[`components/admin_console/group_settings/group_details/GroupDetails shou
       </a>
       <div
         class="error-message"
+        data-testid="saveChangesPanel-errorMessage"
       />
     </div>
   </div>
@@ -418,6 +420,7 @@ exports[`components/admin_console/group_settings/group_details/GroupDetails shou
   >
     <div
       class="admin-console__header with-back"
+      data-testid="admin-console-header"
     >
       <div>
         <a
@@ -812,6 +815,7 @@ exports[`components/admin_console/group_settings/group_details/GroupDetails shou
       </a>
       <div
         class="error-message"
+        data-testid="saveChangesPanel-errorMessage"
       />
     </div>
   </div>
@@ -825,6 +829,7 @@ exports[`components/admin_console/group_settings/group_details/GroupDetails shou
   >
     <div
       class="admin-console__header with-back"
+      data-testid="admin-console-header"
     >
       <div>
         <a
@@ -1219,6 +1224,7 @@ exports[`components/admin_console/group_settings/group_details/GroupDetails shou
       </a>
       <div
         class="error-message"
+        data-testid="saveChangesPanel-errorMessage"
       />
     </div>
   </div>
@@ -1232,6 +1238,7 @@ exports[`components/admin_console/group_settings/group_details/GroupDetails shou
   >
     <div
       class="admin-console__header with-back"
+      data-testid="admin-console-header"
     >
       <div>
         <a
@@ -1624,6 +1631,7 @@ exports[`components/admin_console/group_settings/group_details/GroupDetails shou
       </a>
       <div
         class="error-message"
+        data-testid="saveChangesPanel-errorMessage"
       />
     </div>
   </div>

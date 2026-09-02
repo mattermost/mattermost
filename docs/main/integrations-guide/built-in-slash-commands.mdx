@@ -1,0 +1,60 @@
+---
+title: "Built-In Slash Commands"
+---
+<PlanAvailability slug="all-commercial" />
+
+The following built-in slash comamnds are available in your Mattermost [workspace](/end-user-guide/end-user-guide-index).
+
+<Tip>
+
+Looking for more slash commands? See the [custom slash commands](https://developers.mattermost.com/integrate/slash-commands/custom/) developer documentation for details on creating custom commands.
+
+</Tip>
+
+## Invite people
+
+- Invite one person using `/invite user1` or `/invite @user1`.
+- Invite a custom user group using `/invite @usergroup`.
+- Invite multiple people using `/invite @user1 @user2`.
+- Invite one person to a specific channel using `/invite @user1 ~channel1`, or `/invite @user1 channel1`.
+- Invite multiple people to multiple channels using `/invite @user1 @user2 ~channel1 ~channel2`.
+- Invite people by email using `/invite_people &#123;name@domain.com, ...&#125;`.
+
+## Join, leave, or mute channels
+
+- Join a specific channel using `/join &#123;channel-name&#125;` or `/open &#123;channel-name&#125;`.
+- Leave a channel using `/leave`.
+- Mute a channel using `/mute` or `/mute &#123;channel-name&#125;` to turn off desktop, email, and push notifications for the current or specified channel.
+- Remove someone from a channel using `/kick &#123;@username&#125;` or `/remove &#123;@username&#125;`.
+
+## Start or join a call
+
+- Start a call in a channe or thread using `/call start`
+- Join a call in a channel or thread using `/call join`
+
+## Manage conversations
+
+- Send a direct message to someone using `/msg &#123;@username&#125; &#123;message&#125;`, or send a group message to multiple people using `/groupmsg &#123;@username1, @username2, @username3,...&#125; &#123;message&#125;`.
+- Display text as a code block using `/code &#123;text&#125;`.
+- Automatically collapse image previews using `/collapse`, and automatially expand them using `/expand`.
+- Echo text back to yourself using `/echo &#123;message&#125; &#123;delay in seconds&#125;` or `/me &#123;message&#125;`.
+- Respond with a shrug using `/shrug &#123;message&#125;`.
+- Search message text using `search &#123;text&#125;`.
+
+## Set your availability and status
+
+- Set [your availability](/end-user-guide/preferences/set-your-status-availability#set-your-availability) using `/away`, `/offline`, `/online`, or `/dnd`
+- Set [a custom status](/end-user-guide/preferences/set-your-status-availability#set-a-custom-status) using `/status &#123;emoji_name&#125; &#123;descriptive status_message&#125;`, such as `/status sick Feeling unwell and taking time off to recover`. Clear your current status using `/status clear`.
+
+## Manage channels
+
+- Edit the channel header using `/header &#123;text&#125;` or the channel purpose using `/purpose &#123;text&#125;`.
+- Rename a channel using `/rename &#123;text&#125;`.
+
+## More useful slash commands
+
+- Open the Mattermost product documentation using `/help`.
+- Open the in-product Marketplace using `/marketplace`.
+- Display a list of keyboard shortcuts using `/shortcuts`.
+- Open the **Settings** screen using `/settings`.
+- Log out of Mattermost using `/logout`.

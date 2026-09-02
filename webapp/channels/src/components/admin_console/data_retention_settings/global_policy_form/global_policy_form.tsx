@@ -25,7 +25,7 @@ import './global_policy_form.scss';
 type ValueType = {
     label: string | JSX.Element;
     value: string;
-}
+};
 type Props = {
     config: DeepPartial<AdminConfig>;
     messageRetentionHours: string | undefined;
@@ -45,7 +45,7 @@ type State = {
     saving: boolean;
     serverError: React.ReactNode;
     formErrorText: React.ReactNode;
-}
+};
 
 export default class GlobalPolicyForm extends React.PureComponent<Props, State> {
     constructor(props: Props) {

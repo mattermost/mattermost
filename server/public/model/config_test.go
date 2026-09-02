@@ -33,13 +33,6 @@ func TestConfigDefaults(t *testing.T) {
 		var recursivelyUninitialize func(*Config, string, reflect.Value)
 		recursivelyUninitialize = func(config *Config, name string, v reflect.Value) {
 			if v.Type().Kind() == reflect.Pointer {
-				// Ignoring these 2 settings.
-				// TODO: remove them completely in v8.0.
-				if name == "config.ElasticsearchSettings.BulkIndexingTimeWindowSeconds" ||
-					name == "config.ClusterSettings.EnableExperimentalGossipEncryption" {
-					return
-				}
-
 				// Set every pointer we find in the tree to nil
 				v.Set(reflect.Zero(v.Type()))
 				require.True(t, v.IsNil())
@@ -69,6 +62,12 @@ func TestConfigDefaults(t *testing.T) {
 		require.Equal(t, SupportSettingsDefaultReportAProblemLink, *c.SupportSettings.ReportAProblemLink)
 		require.Equal(t, "", *c.SupportSettings.ReportAProblemMail)
 		require.Equal(t, true, *c.SupportSettings.AllowDownloadLogs)
+	})
+	t.Run("access control audit logging default", func(t *testing.T) {
+		c := Config{}
+		c.SetDefaults()
+		require.NotNil(t, c.AccessControlSettings.EnableAccessControlAuditLogging)
+		require.False(t, *c.AccessControlSettings.EnableAccessControlAuditLogging)
 	})
 }
 
@@ -110,6 +109,91 @@ func TestConfigIsValid(t *testing.T) {
 	})
 }
 
+func TestFeatureFlagsIsValid(t *testing.T) {
+	t.Run("defaults are valid", func(t *testing.T) {
+		f := &FeatureFlags{}
+		f.SetDefaults()
+		require.Nil(t, f.isValid())
+	})
+
+	t.Run("AppsEnabled is rejected", func(t *testing.T) {
+		f := &FeatureFlags{}
+		f.SetDefaults()
+		f.AppsEnabled = true
+
+		appErr := f.isValid()
+		require.NotNil(t, appErr)
+		require.Equal(t, "model.config.is_valid.feature_flags.apps_enabled.app_error", appErr.Id)
+	})
+
+	t.Run("MoveThreadsEnabled is rejected", func(t *testing.T) {
+		f := &FeatureFlags{}
+		f.SetDefaults()
+		f.MoveThreadsEnabled = true
+
+		appErr := f.isValid()
+		require.NotNil(t, appErr)
+		require.Equal(t, "model.config.is_valid.feature_flags.move_threads_enabled.app_error", appErr.Id)
+	})
+}
+
+func TestConfigIsValidAppsEnabled(t *testing.T) {
+	c := Config{}
+	c.SetDefaults()
+	require.Nil(t, c.IsValid())
+
+	c.FeatureFlags.AppsEnabled = true
+	appErr := c.IsValid()
+	require.NotNil(t, appErr)
+	require.Equal(t, "model.config.is_valid.feature_flags.apps_enabled.app_error", appErr.Id)
+
+	// A nil FeatureFlags must not panic the validation chain.
+	c.FeatureFlags = nil
+	require.Nil(t, c.IsValid())
+}
+
+func TestConfigIsValidMoveThreadsEnabled(t *testing.T) {
+	c := Config{}
+	c.SetDefaults()
+	require.Nil(t, c.IsValid())
+
+	c.FeatureFlags.MoveThreadsEnabled = true
+	appErr := c.IsValid()
+	require.NotNil(t, appErr)
+	require.Equal(t, "model.config.is_valid.feature_flags.move_threads_enabled.app_error", appErr.Id)
+
+	// A nil FeatureFlags must not panic the validation chain.
+	c.FeatureFlags = nil
+	require.Nil(t, c.IsValid())
+}
+
+func TestAccessControlSettingsIsValid(t *testing.T) {
+	for name, test := range map[string]struct {
+		AccessControlSettings AccessControlSettings
+		ExpectError           bool
+	}{
+		"sync_job_interval_zero":                {AccessControlSettings: AccessControlSettings{SyncJobIntervalSeconds: new(0)}, ExpectError: true},
+		"sync_job_interval_negative":            {AccessControlSettings: AccessControlSettings{SyncJobIntervalSeconds: new(-1000)}, ExpectError: true},
+		"sync_job_interval_sub-minute rejected": {AccessControlSettings: AccessControlSettings{SyncJobIntervalSeconds: new(30)}, ExpectError: true},
+		"sync_job_interval_just below minimum":  {AccessControlSettings: AccessControlSettings{SyncJobIntervalSeconds: new(59)}, ExpectError: true},
+		"sync_job_interval_minimum":             {AccessControlSettings: AccessControlSettings{SyncJobIntervalSeconds: new(60)}, ExpectError: false},
+		"sync_job_interval_default":             {AccessControlSettings: AccessControlSettings{SyncJobIntervalSeconds: nil}, ExpectError: false}, // Test will set default
+		"attribute_refresh_interval_zero":       {AccessControlSettings: AccessControlSettings{AttributeRefreshIntervalSeconds: new(0)}, ExpectError: false},
+		"attribute_refresh_interval_negative":   {AccessControlSettings: AccessControlSettings{AttributeRefreshIntervalSeconds: new(-1)}, ExpectError: true},
+		"attribute_refresh_interval_default":    {AccessControlSettings: AccessControlSettings{AttributeRefreshIntervalSeconds: nil}, ExpectError: false}, // Test will set default
+	} {
+		t.Run(name, func(t *testing.T) {
+			test.AccessControlSettings.SetDefaults()
+
+			if test.ExpectError {
+				require.NotNil(t, test.AccessControlSettings.isValid())
+			} else {
+				require.Nil(t, test.AccessControlSettings.isValid())
+			}
+		})
+	}
+}
+
 func TestConfigEmptySiteName(t *testing.T) {
 	c1 := Config{
 		TeamSettings: TeamSettings{
@@ -148,6 +232,30 @@ func TestServiceSettingsIsValid(t *testing.T) {
 			},
 			ExpectError: false,
 		},
+		"MaximumPersonalAccessTokenLifetimeDays zero (unlimited) is accepted": {
+			ServiceSettings: ServiceSettings{
+				MaximumPersonalAccessTokenLifetimeDays: new(0),
+			},
+			ExpectError: false,
+		},
+		"MaximumPersonalAccessTokenLifetimeDays negative is rejected": {
+			ServiceSettings: ServiceSettings{
+				MaximumPersonalAccessTokenLifetimeDays: new(-1),
+			},
+			ExpectError: true,
+		},
+		"MaximumPersonalAccessTokenLifetimeDays at upper bound is accepted": {
+			ServiceSettings: ServiceSettings{
+				MaximumPersonalAccessTokenLifetimeDays: new(MaxPersonalAccessTokenLifetimeDays),
+			},
+			ExpectError: false,
+		},
+		"MaximumPersonalAccessTokenLifetimeDays beyond upper bound is rejected": {
+			ServiceSettings: ServiceSettings{
+				MaximumPersonalAccessTokenLifetimeDays: new(MaxPersonalAccessTokenLifetimeDays + 1),
+			},
+			ExpectError: true,
+		},
 	} {
 		t.Run(name, func(t *testing.T) {
 			test.ServiceSettings.SetDefaults(false)
@@ -160,6 +268,45 @@ func TestServiceSettingsIsValid(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestServiceSettingsHardenedModeMigration(t *testing.T) {
+	t.Run("defaults to disabled without the deprecated setting", func(t *testing.T) {
+		ss := ServiceSettings{}
+		ss.SetDefaults(false)
+
+		require.False(t, *ss.EnableHardenedMode)
+		require.False(t, *ss.ExperimentalEnableHardenedMode)
+		assert.Nil(t, ss.isValid())
+	})
+
+	t.Run("accepts the renamed setting", func(t *testing.T) {
+		ss := ServiceSettings{EnableHardenedMode: new(true)}
+		ss.SetDefaults(false)
+
+		assert.Nil(t, ss.isValid())
+	})
+
+	t.Run("migrates the deprecated setting to the renamed setting", func(t *testing.T) {
+		ss := ServiceSettings{ExperimentalEnableHardenedMode: new(true)}
+		ss.SetDefaults(false)
+
+		require.True(t, *ss.EnableHardenedMode)
+		require.True(t, *ss.ExperimentalEnableHardenedMode)
+		assert.Nil(t, ss.isValid())
+	})
+
+	t.Run("explicit new key wins over deprecated key", func(t *testing.T) {
+		ss := ServiceSettings{
+			EnableHardenedMode:             new(false),
+			ExperimentalEnableHardenedMode: new(true),
+		}
+		ss.SetDefaults(false)
+
+		require.False(t, *ss.EnableHardenedMode)
+		require.True(t, *ss.ExperimentalEnableHardenedMode)
+		assert.Nil(t, ss.isValid())
+	})
 }
 
 func TestConfigEnableDeveloper(t *testing.T) {
@@ -318,6 +465,259 @@ func TestFileSettingsAzureRequestTimeoutBounds(t *testing.T) {
 			err := cfg.FileSettings.isValid()
 			require.NotNil(t, err)
 			assert.Equal(t, tc.errID, err.Id)
+		})
+	}
+}
+
+func TestFileSettingsExtractContentTimeout(t *testing.T) {
+	t.Run("default is valid", func(t *testing.T) {
+		cfg := &Config{}
+		cfg.SetDefaults()
+		require.NotNil(t, cfg.FileSettings.ExtractContentTimeout)
+		assert.Equal(t, 10, *cfg.FileSettings.ExtractContentTimeout)
+		assert.Nil(t, cfg.FileSettings.isValid())
+	})
+
+	t.Run("zero disables the timeout and is valid", func(t *testing.T) {
+		cfg := &Config{}
+		cfg.SetDefaults()
+		cfg.FileSettings.ExtractContentTimeout = NewPointer(0)
+		assert.Nil(t, cfg.FileSettings.isValid())
+	})
+
+	t.Run("a positive value is valid", func(t *testing.T) {
+		cfg := &Config{}
+		cfg.SetDefaults()
+		cfg.FileSettings.ExtractContentTimeout = NewPointer(10)
+		assert.Nil(t, cfg.FileSettings.isValid())
+	})
+
+	t.Run("a negative value is rejected", func(t *testing.T) {
+		cfg := &Config{}
+		cfg.SetDefaults()
+		cfg.FileSettings.ExtractContentTimeout = NewPointer(-1)
+		err := cfg.FileSettings.isValid()
+		require.NotNil(t, err)
+		assert.Equal(t, "model.config.is_valid.extract_content_timeout.app_error", err.Id)
+	})
+}
+
+func TestFileSettingsAzureAuthMode(t *testing.T) {
+	t.Run("defaults to shared_key", func(t *testing.T) {
+		cfg := &Config{}
+		cfg.SetDefaults()
+		require.NotNil(t, cfg.FileSettings.AzureAuthMode)
+		require.NotNil(t, cfg.FileSettings.ExportAzureAuthMode)
+		assert.Equal(t, AzureAuthModeSharedKey, *cfg.FileSettings.AzureAuthMode)
+		assert.Equal(t, AzureAuthModeSharedKey, *cfg.FileSettings.ExportAzureAuthMode)
+	})
+
+	t.Run("default_credential is accepted", func(t *testing.T) {
+		cfg := &Config{}
+		cfg.SetDefaults()
+		cfg.FileSettings.AzureAuthMode = NewPointer(AzureAuthModeDefaultCredential)
+		cfg.FileSettings.ExportAzureAuthMode = NewPointer(AzureAuthModeDefaultCredential)
+
+		assert.Nil(t, cfg.FileSettings.isValid())
+	})
+
+	t.Run("unknown primary mode is rejected", func(t *testing.T) {
+		cfg := &Config{}
+		cfg.SetDefaults()
+		cfg.FileSettings.AzureAuthMode = NewPointer("oauth2")
+
+		err := cfg.FileSettings.isValid()
+		require.NotNil(t, err)
+		assert.Equal(t, "model.config.is_valid.azure_auth_mode.app_error", err.Id)
+	})
+
+	t.Run("unknown export mode is rejected", func(t *testing.T) {
+		cfg := &Config{}
+		cfg.SetDefaults()
+		cfg.FileSettings.ExportAzureAuthMode = NewPointer("oauth2")
+
+		err := cfg.FileSettings.isValid()
+		require.NotNil(t, err)
+		assert.Equal(t, "model.config.is_valid.export_azure_auth_mode.app_error", err.Id)
+	})
+}
+
+func TestFileSettingsAzureCloudValidation(t *testing.T) {
+	t.Run("unknown cloud values are rejected", func(t *testing.T) {
+		cases := []struct {
+			name         string
+			configSetter func(*Config, *string)
+			errID        string
+		}{
+			{"AzureCloud", func(cfg *Config, v *string) { cfg.FileSettings.AzureCloud = v }, "model.config.is_valid.azure_cloud.app_error"},
+			{"ExportAzureCloud", func(cfg *Config, v *string) { cfg.FileSettings.ExportAzureCloud = v }, "model.config.is_valid.azure_cloud.app_error"},
+		}
+		for _, tc := range cases {
+			t.Run(tc.name, func(t *testing.T) {
+				cfg := &Config{}
+				cfg.SetDefaults()
+				tc.configSetter(cfg, NewPointer("not-a-real-cloud"))
+
+				err := cfg.FileSettings.isValid()
+				require.NotNil(t, err)
+				assert.Equal(t, tc.errID, err.Id)
+			})
+		}
+	})
+
+	t.Run("custom cloud requires endpoint", func(t *testing.T) {
+		cases := []struct {
+			name        string
+			cloudSetter func(*Config, *string)
+			errID       string
+		}{
+			{"AzureCloud", func(cfg *Config, v *string) { cfg.FileSettings.AzureCloud = v }, "model.config.is_valid.azure_custom_endpoint.app_error"},
+			{"ExportAzureCloud", func(cfg *Config, v *string) { cfg.FileSettings.ExportAzureCloud = v }, "model.config.is_valid.azure_custom_endpoint.app_error"},
+		}
+		for _, tc := range cases {
+			t.Run(tc.name, func(t *testing.T) {
+				cfg := &Config{}
+				cfg.SetDefaults()
+				tc.cloudSetter(cfg, NewPointer(AzureCloudCustom))
+
+				err := cfg.FileSettings.isValid()
+				require.NotNil(t, err)
+				assert.Equal(t, tc.errID, err.Id)
+			})
+		}
+	})
+
+	t.Run("custom cloud with a valid endpoint passes validation", func(t *testing.T) {
+		cases := []struct {
+			name           string
+			cloudSetter    func(*Config, *string)
+			endpointSetter func(*Config, *string)
+		}{
+			{
+				"AzureCloud",
+				func(cfg *Config, v *string) { cfg.FileSettings.AzureCloud = v },
+				func(cfg *Config, v *string) { cfg.FileSettings.AzureEndpoint = v },
+			},
+			{
+				"ExportAzureCloud",
+				func(cfg *Config, v *string) { cfg.FileSettings.ExportAzureCloud = v },
+				func(cfg *Config, v *string) { cfg.FileSettings.ExportAzureEndpoint = v },
+			},
+		}
+		for _, tc := range cases {
+			t.Run(tc.name, func(t *testing.T) {
+				cfg := &Config{}
+				cfg.SetDefaults()
+				tc.cloudSetter(cfg, NewPointer(AzureCloudCustom))
+				tc.endpointSetter(cfg, NewPointer("https://account.blob.core.windows.net/"))
+
+				err := cfg.FileSettings.isValid()
+				require.Nil(t, err)
+			})
+		}
+	})
+}
+
+func TestFileSettingsAzureStorageAccountValidation(t *testing.T) {
+	// Managed clouds put the account name in the service hostname, so it must
+	// match Azure's documented format.
+	type accessors struct {
+		driver  func(*Config, *string)
+		cloud   func(*Config, *string)
+		account func(*Config, *string)
+	}
+	variants := []struct {
+		name string
+		accessors
+	}{
+		{
+			"upload",
+			accessors{
+				func(cfg *Config, v *string) { cfg.FileSettings.DriverName = v },
+				func(cfg *Config, v *string) { cfg.FileSettings.AzureCloud = v },
+				func(cfg *Config, v *string) { cfg.FileSettings.AzureStorageAccount = v },
+			},
+		},
+		{
+			"export",
+			accessors{
+				func(cfg *Config, v *string) { cfg.FileSettings.ExportDriverName = v },
+				func(cfg *Config, v *string) { cfg.FileSettings.ExportAzureCloud = v },
+				func(cfg *Config, v *string) { cfg.FileSettings.ExportAzureStorageAccount = v },
+			},
+		},
+	}
+
+	for _, variant := range variants {
+		t.Run(variant.name, func(t *testing.T) {
+			t.Run("malformed account name is rejected for commercial cloud", func(t *testing.T) {
+				for _, bad := range []string{"", "ab", strings.Repeat("a", 25), "WithUppercase", "with-dash", "with.dot", "with/slash", "with#hash"} {
+					cfg := &Config{}
+					cfg.SetDefaults()
+					variant.driver(cfg, NewPointer(ImageDriverAzure))
+					variant.cloud(cfg, NewPointer(AzureCloudCommercial))
+					variant.account(cfg, NewPointer(bad))
+
+					err := cfg.FileSettings.isValid()
+					require.NotNil(t, err, "expected %q to be rejected", bad)
+					assert.Equal(t, "model.config.is_valid.azure_storage_account.app_error", err.Id)
+				}
+			})
+
+			t.Run("valid account name passes for managed clouds", func(t *testing.T) {
+				// Empty cloud is treated as commercial, so it is validated too.
+				for _, cloud := range []string{AzureCloudCommercial, AzureCloudGovernment, ""} {
+					cfg := &Config{}
+					cfg.SetDefaults()
+					variant.driver(cfg, NewPointer(ImageDriverAzure))
+					variant.cloud(cfg, NewPointer(cloud))
+					variant.account(cfg, NewPointer("acmemattermost"))
+
+					err := cfg.FileSettings.isValid()
+					require.Nil(t, err)
+				}
+			})
+
+			t.Run("malformed account name is rejected for empty (commercial) cloud", func(t *testing.T) {
+				cfg := &Config{}
+				cfg.SetDefaults()
+				variant.driver(cfg, NewPointer(ImageDriverAzure))
+				variant.cloud(cfg, NewPointer(""))
+				variant.account(cfg, NewPointer("with#hash"))
+
+				err := cfg.FileSettings.isValid()
+				require.NotNil(t, err)
+				assert.Equal(t, "model.config.is_valid.azure_storage_account.app_error", err.Id)
+			})
+
+			t.Run("custom cloud skips account name validation", func(t *testing.T) {
+				cfg := &Config{}
+				cfg.SetDefaults()
+				variant.driver(cfg, NewPointer(ImageDriverAzure))
+				variant.cloud(cfg, NewPointer(AzureCloudCustom))
+				variant.account(cfg, NewPointer("with#hash"))
+				// Custom mode derives the host from the endpoint, not the account.
+				if variant.name == "upload" {
+					cfg.FileSettings.AzureEndpoint = NewPointer("https://blob.example.com/")
+				} else {
+					cfg.FileSettings.ExportAzureEndpoint = NewPointer("https://blob.example.com/")
+				}
+
+				err := cfg.FileSettings.isValid()
+				require.Nil(t, err)
+			})
+
+			t.Run("non-azure driver skips account name validation", func(t *testing.T) {
+				cfg := &Config{}
+				cfg.SetDefaults()
+				// DriverName stays at its default (local); the malformed Azure
+				// account name must not block an unrelated driver's config.
+				variant.cloud(cfg, NewPointer(AzureCloudCommercial))
+				variant.account(cfg, NewPointer("with#hash"))
+
+				err := cfg.FileSettings.isValid()
+				require.Nil(t, err)
+			})
 		})
 	}
 }
@@ -581,6 +981,30 @@ func TestTeamSettingsIsValidSiteNameEmpty(t *testing.T) {
 	require.Nil(t, c1.TeamSettings.isValid())
 }
 
+func TestTeamSettingsLockProfileFieldsForEmailUsersIsValid(t *testing.T) {
+	for name, testCase := range map[string]struct {
+		value        string
+		expectsError bool
+	}{
+		"none":              {value: TeamSettingsLockProfileFieldsNone},
+		"name and username": {value: TeamSettingsLockProfileFieldsNameAndUsername},
+		"all":               {value: TeamSettingsLockProfileFieldsAll},
+		"invalid":           {value: "invalid", expectsError: true},
+	} {
+		t.Run(name, func(t *testing.T) {
+			config := Config{}
+			config.SetDefaults()
+			config.TeamSettings.LockProfileFieldsForEmailUsers = new(testCase.value)
+
+			if testCase.expectsError {
+				require.NotNil(t, config.TeamSettings.isValid())
+			} else {
+				require.Nil(t, config.TeamSettings.isValid())
+			}
+		})
+	}
+}
+
 func TestTeamSettingsDefaultJoinLeaveMessage(t *testing.T) {
 	c1 := Config{}
 	c1.SetDefaults()
@@ -721,11 +1145,25 @@ func TestMessageExportSettingsIsValidGlobalRelaySettingsInvalidCustomerType(t *t
 }
 
 // func TestMessageExportSettingsIsValidGlobalRelaySettingsInvalidEmailAddress(t *testing.T) {
+func customRelaySettings(name, value string) *GlobalRelayMessageExportSettings {
+	return &GlobalRelayMessageExportSettings{
+		CustomerType:         new(GlobalrelayCustomerTypeCustom),
+		EmailAddress:         new("valid@mattermost.com"),
+		SMTPUsername:         new("SomeUsername"),
+		SMTPPassword:         new("SomePassword"),
+		CustomSMTPServerName: new("feeds.example.com"),
+		CustomSMTPPort:       new("25"),
+		CustomHeaderName:     new(name),
+		CustomHeaderValue:    new(value),
+	}
+}
+
 func TestMessageExportSettingsGlobalRelaySettings(t *testing.T) {
 	tests := []struct {
 		name    string
 		value   *GlobalRelayMessageExportSettings
 		success bool
+		errorId string
 	}{
 		{
 			"Invalid email address",
@@ -736,6 +1174,7 @@ func TestMessageExportSettingsGlobalRelaySettings(t *testing.T) {
 				SMTPPassword: new("SomePassword"),
 			},
 			false,
+			"",
 		},
 		{
 			"Missing smtp username",
@@ -745,6 +1184,7 @@ func TestMessageExportSettingsGlobalRelaySettings(t *testing.T) {
 				SMTPPassword: new("SomePassword"),
 			},
 			false,
+			"",
 		},
 		{
 			"Invalid smtp username",
@@ -755,6 +1195,7 @@ func TestMessageExportSettingsGlobalRelaySettings(t *testing.T) {
 				SMTPPassword: new("SomePassword"),
 			},
 			false,
+			"",
 		},
 		{
 			"Invalid smtp password",
@@ -765,6 +1206,7 @@ func TestMessageExportSettingsGlobalRelaySettings(t *testing.T) {
 				SMTPPassword: new(""),
 			},
 			false,
+			"",
 		},
 		{
 			"Valid data",
@@ -775,6 +1217,127 @@ func TestMessageExportSettingsGlobalRelaySettings(t *testing.T) {
 				SMTPPassword: new("SomePassword"),
 			},
 			true,
+			"",
+		},
+		{
+			"A9 with only custom header name set is ignored",
+			&GlobalRelayMessageExportSettings{
+				CustomerType:     new(GlobalrelayCustomerTypeA9),
+				EmailAddress:     new("valid@mattermost.com"),
+				SMTPUsername:     new("SomeUsername"),
+				SMTPPassword:     new("SomePassword"),
+				CustomHeaderName: new("X-Custom"),
+			},
+			true,
+			"",
+		},
+		{
+			"Valid custom header",
+			customRelaySettings("X-ProofpointArchiveMediaType", "Message"),
+			true,
+			"",
+		},
+		{
+			"Custom header name with CRLF",
+			customRelaySettings("X-Custom\r\nInjected", "Message"),
+			false,
+			"model.config.is_valid.message_export.global_relay.custom_header_name.app_error",
+		},
+		{
+			"Custom header value with CRLF",
+			customRelaySettings("X-Custom", "Message\r\nInjected: evil"),
+			false,
+			"model.config.is_valid.message_export.global_relay.custom_header_value.app_error",
+		},
+		{
+			"Custom header name with invalid character",
+			customRelaySettings("X-Custom:Header", "Message"),
+			false,
+			"model.config.is_valid.message_export.global_relay.custom_header_name.app_error",
+		},
+		{
+			"Custom header name with a space",
+			customRelaySettings("X Custom", "Message"),
+			false,
+			"model.config.is_valid.message_export.global_relay.custom_header_name.app_error",
+		},
+		{
+			"Custom header value may contain spaces and colons",
+			customRelaySettings("X-Custom", "some value: with punctuation"),
+			true,
+			"",
+		},
+		{
+			"Custom header name set without a value",
+			customRelaySettings("X-Custom", ""),
+			false,
+			"model.config.is_valid.message_export.global_relay.custom_header_incomplete.app_error",
+		},
+		{
+			"Custom header value set without a name",
+			customRelaySettings("", "Message"),
+			false,
+			"model.config.is_valid.message_export.global_relay.custom_header_incomplete.app_error",
+		},
+		{
+			"Custom header both empty",
+			customRelaySettings("", ""),
+			true,
+			"",
+		},
+		{
+			"Custom header value may contain non-ASCII",
+			customRelaySettings("X-Custom", "Café Meeting"),
+			true,
+			"",
+		},
+		{
+			"Custom header name with a non-token character",
+			customRelaySettings("X-Custom(Foo)", "Message"),
+			false,
+			"model.config.is_valid.message_export.global_relay.custom_header_name.app_error",
+		},
+		{
+			"Custom header name reserved: From",
+			customRelaySettings("From", "attacker@example.com"),
+			false,
+			"model.config.is_valid.message_export.global_relay.custom_header_reserved.app_error",
+		},
+		{
+			"Custom header name reserved: to (case-insensitive)",
+			customRelaySettings("to", "attacker@example.com"),
+			false,
+			"model.config.is_valid.message_export.global_relay.custom_header_reserved.app_error",
+		},
+		{
+			"Custom header name reserved: X-GlobalRelay-MsgType",
+			customRelaySettings(GlobalRelayMsgTypeHeader, "NotMattermost"),
+			false,
+			"model.config.is_valid.message_export.global_relay.custom_header_reserved.app_error",
+		},
+		{
+			"Custom header name reserved: Content-Type",
+			customRelaySettings("Content-Type", "text/plain"),
+			false,
+			"model.config.is_valid.message_export.global_relay.custom_header_reserved.app_error",
+		},
+		{
+			"Custom header name reserved: mixed-case fRoM",
+			customRelaySettings("fRoM", "attacker@example.com"),
+			false,
+			"model.config.is_valid.message_export.global_relay.custom_header_reserved.app_error",
+		},
+		{
+			"Custom header name reserved: mixed-case x-globalrelay-MSGTYPE",
+			customRelaySettings("x-globalrelay-MSGTYPE", "NotMattermost"),
+			false,
+			"model.config.is_valid.message_export.global_relay.custom_header_reserved.app_error",
+		},
+		{
+			"Custom header value is whitespace-only",
+			customRelaySettings("X-Custom", "   "),
+			false,
+			"model.config.is_valid.message_export.global_relay.custom_header_incomplete.app_error",
 		},
 	}
 
@@ -792,7 +1355,11 @@ func TestMessageExportSettingsGlobalRelaySettings(t *testing.T) {
 			if tt.success {
 				require.Nil(t, mes.isValid())
 			} else {
-				require.NotNil(t, mes.isValid())
+				appErr := mes.isValid()
+				require.NotNil(t, appErr)
+				if tt.errorId != "" {
+					require.Equal(t, tt.errorId, appErr.Id)
+				}
 			}
 		})
 	}
@@ -807,6 +1374,33 @@ func TestMessageExportSetDefaults(t *testing.T) {
 	require.Equal(t, int64(0), *mes.ExportFromTimestamp)
 	require.Equal(t, 10000, *mes.BatchSize)
 	require.Equal(t, ComplianceExportTypeActiance, *mes.ExportFormat)
+}
+
+func TestGlobalRelayMessageExportSetDefaultsCustomHeader(t *testing.T) {
+	grs := &GlobalRelayMessageExportSettings{}
+	grs.SetDefaults()
+
+	require.Equal(t, "", *grs.CustomHeaderName)
+	require.Equal(t, "", *grs.CustomHeaderValue)
+}
+
+func TestMessageExportSettingsGlobalRelayZipCustomHeader(t *testing.T) {
+	mes := &MessageExportSettings{
+		EnableExport:        new(true),
+		ExportFormat:        new(ComplianceExportTypeGlobalrelayZip),
+		ExportFromTimestamp: new(int64(0)),
+		DailyRunTime:        new("15:04"),
+		BatchSize:           new(100),
+		GlobalRelaySettings: &GlobalRelayMessageExportSettings{
+			CustomerType:      new(GlobalrelayCustomerTypeCustom),
+			CustomHeaderName:  new("X-Custom\r\nInjected"),
+			CustomHeaderValue: new("Message"),
+		},
+	}
+
+	appErr := mes.isValid()
+	require.NotNil(t, appErr)
+	require.Equal(t, "model.config.is_valid.message_export.global_relay.custom_header_name.app_error", appErr.Id)
 }
 
 func TestMessageExportSetDefaultsExportEnabledExportFromTimestampNil(t *testing.T) {
@@ -1020,21 +1614,15 @@ func TestImageProxySettingsSetDefaults(t *testing.T) {
 
 		assert.Equal(t, false, *ips.Enable)
 		assert.Equal(t, ImageProxyTypeLocal, *ips.ImageProxyType)
-		assert.Equal(t, "", *ips.RemoteImageProxyURL)
-		assert.Equal(t, "", *ips.RemoteImageProxyOptions)
 	})
 }
 
 func TestImageProxySettingsIsValid(t *testing.T) {
-	testHMACKey := NewTestPassword()
-
 	for _, test := range []struct {
-		Name                    string
-		Enable                  bool
-		ImageProxyType          string
-		RemoteImageProxyURL     string
-		RemoteImageProxyOptions string
-		ExpectError             bool
+		Name           string
+		Enable         bool
+		ImageProxyType string
+		ExpectError    bool
 	}{
 		{
 			Name:        "disabled",
@@ -1042,12 +1630,22 @@ func TestImageProxySettingsIsValid(t *testing.T) {
 			ExpectError: false,
 		},
 		{
-			Name:                    "disabled with bad values",
-			Enable:                  false,
-			ImageProxyType:          "garbage",
-			RemoteImageProxyURL:     "garbage",
-			RemoteImageProxyOptions: "garbage",
-			ExpectError:             false,
+			Name:           "disabled with bad values",
+			Enable:         false,
+			ImageProxyType: "garbage",
+			ExpectError:    false,
+		},
+		{
+			Name:           "atmos/camo, disabled",
+			Enable:         false,
+			ImageProxyType: ImageProxyTypeLegacyAtmosCamo,
+			ExpectError:    true,
+		},
+		{
+			Name:           "atmos/camo, enabled",
+			Enable:         true,
+			ImageProxyType: ImageProxyTypeLegacyAtmosCamo,
+			ExpectError:    true,
 		},
 		{
 			Name:           "missing type",
@@ -1056,52 +1654,16 @@ func TestImageProxySettingsIsValid(t *testing.T) {
 			ExpectError:    true,
 		},
 		{
-			Name:                    "local",
-			Enable:                  true,
-			ImageProxyType:          "local",
-			RemoteImageProxyURL:     "garbage",
-			RemoteImageProxyOptions: "garbage",
-			ExpectError:             false,
-		},
-		{
-			Name:                    "atmos/camo",
-			Enable:                  true,
-			ImageProxyType:          ImageProxyTypeAtmosCamo,
-			RemoteImageProxyURL:     "someurl",
-			RemoteImageProxyOptions: testHMACKey,
-			ExpectError:             false,
-		},
-		{
-			Name:                    "atmos/camo, missing url",
-			Enable:                  true,
-			ImageProxyType:          ImageProxyTypeAtmosCamo,
-			RemoteImageProxyURL:     "",
-			RemoteImageProxyOptions: "garbage",
-			ExpectError:             true,
-		},
-		{
-			Name:                    "atmos/camo, missing options",
-			Enable:                  true,
-			ImageProxyType:          ImageProxyTypeAtmosCamo,
-			RemoteImageProxyURL:     "someurl",
-			RemoteImageProxyOptions: "",
-			ExpectError:             true,
-		},
-		{
-			Name:                    "atmos/camo, short options under FIPS",
-			Enable:                  true,
-			ImageProxyType:          ImageProxyTypeAtmosCamo,
-			RemoteImageProxyURL:     "someurl",
-			RemoteImageProxyOptions: "foo",
-			ExpectError:             FIPSEnabled,
+			Name:           "local",
+			Enable:         true,
+			ImageProxyType: "local",
+			ExpectError:    false,
 		},
 	} {
 		t.Run(test.Name, func(t *testing.T) {
 			ips := &ImageProxySettings{
-				Enable:                  &test.Enable,
-				ImageProxyType:          &test.ImageProxyType,
-				RemoteImageProxyURL:     &test.RemoteImageProxyURL,
-				RemoteImageProxyOptions: &test.RemoteImageProxyOptions,
+				Enable:         &test.Enable,
+				ImageProxyType: &test.ImageProxyType,
 			}
 
 			appErr := ips.isValid()
@@ -1669,7 +2231,6 @@ func TestConfigSanitize(t *testing.T) {
 	assert.Equal(t, FakeSetting, *c.OpenIdSettings.Secret)
 	assert.Equal(t, FakeSetting, *c.AutoTranslationSettings.LibreTranslate.APIKey)
 	assert.Equal(t, FakeSetting, *c.SqlSettings.DataSource)
-	assert.Equal(t, FakeSetting, *c.SqlSettings.AtRestEncryptKey)
 	assert.Equal(t, FakeSetting, *c.ElasticsearchSettings.Password)
 	assert.Equal(t, FakeSetting, *c.ServiceSettings.GoogleDeveloperKey)
 	assert.Equal(t, FakeSetting, *c.ServiceSettings.GiphySdkKey)
@@ -1692,7 +2253,7 @@ func TestConfigSanitize(t *testing.T) {
 	t.Run("partially sanitize DataSource", func(t *testing.T) {
 		c := Config{}
 		c.SetDefaults()
-		*c.SqlSettings.DataSource = "postgres://mmuser:mostest@localhost:5432/mattermost_test?sslmode=disable"
+		*c.SqlSettings.DataSource = "postgres://mmuser:mostest_password@localhost:5432/mattermost_test?sslmode=disable"
 		c.Sanitize(nil, &SanitizeOptions{PartiallyRedactDataSources: true})
 
 		expectedURL := "postgres://" + SanitizedPassword + ":" + SanitizedPassword + "@localhost:5432/mattermost_test?sslmode=disable"
@@ -1974,15 +2535,15 @@ func TestSanitizeDataSource(t *testing.T) {
 				"",
 			},
 			{
-				"postgres://mmuser:mostest@localhost",
+				"postgres://mmuser:mostest_password@localhost",
 				"postgres://" + SanitizedPassword + ":" + SanitizedPassword + "@localhost",
 			},
 			{
-				"postgres://mmuser:mostest@localhost/dummy?sslmode=disable",
+				"postgres://mmuser:mostest_password@localhost/dummy?sslmode=disable",
 				"postgres://" + SanitizedPassword + ":" + SanitizedPassword + "@localhost/dummy?sslmode=disable",
 			},
 			{
-				"postgres://localhost/dummy?sslmode=disable&user=mmuser&password=mostest",
+				"postgres://localhost/dummy?sslmode=disable&user=mmuser&password=mostest_password",
 				"postgres://" + SanitizedPassword + ":" + SanitizedPassword + "@localhost/dummy?sslmode=disable",
 			},
 		}
@@ -2215,14 +2776,25 @@ func TestConfigServiceSettingsIsValid(t *testing.T) {
 		appErr := cfg.ServiceSettings.isValid()
 		require.Nil(t, appErr)
 
+		// Custom URI schemes used by desktop OAuth clients are accepted
+		cfg.ServiceSettings.DCRRedirectURIAllowlist = []string{"cursor://anysphere.cursor-mcp/oauth/callback", "com.example.app://callback/**"}
+		appErr = cfg.ServiceSettings.isValid()
+		require.Nil(t, appErr)
+
 		// Empty/whitespace entry rejected
 		cfg.ServiceSettings.DCRRedirectURIAllowlist = []string{"https://ok.com/**", "  ", "https://also.com/cb"}
 		appErr = cfg.ServiceSettings.isValid()
 		require.NotNil(t, appErr)
 		require.Equal(t, "model.config.is_valid.dcr_redirect_uri_allowlist.app_error", appErr.Id)
 
-		// Non-http(s) scheme rejected
-		cfg.ServiceSettings.DCRRedirectURIAllowlist = []string{"ftp://example.com/**"}
+		// Scheme without a host rejected
+		cfg.ServiceSettings.DCRRedirectURIAllowlist = []string{"cursor://"}
+		appErr = cfg.ServiceSettings.isValid()
+		require.NotNil(t, appErr)
+		require.Equal(t, "model.config.is_valid.dcr_redirect_uri_allowlist.app_error", appErr.Id)
+
+		// Opaque URI without a host rejected
+		cfg.ServiceSettings.DCRRedirectURIAllowlist = []string{"javascript:alert(1)"}
 		appErr = cfg.ServiceSettings.isValid()
 		require.NotNil(t, appErr)
 		require.Equal(t, "model.config.is_valid.dcr_redirect_uri_allowlist.app_error", appErr.Id)

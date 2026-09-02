@@ -30,7 +30,7 @@ type Props = {
     currentUserId: string;
     fullname: string;
     username: string;
-}
+};
 
 export function isUserInCall(state: GlobalState, userId: string, channelId: string) {
     const sessionsInCall = getSessionsInCalls(state)[channelId] || {};

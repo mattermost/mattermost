@@ -68,12 +68,75 @@ import vi from './vi.json';
 import zhCN from './zh-CN.json';
 import zhTW from './zh-TW.json';
 
-type TranslationsMap = {
-    [id: string]: string,
-};
-
 export const langIDs = ["am","ar","be","bg","bn","br","ca","cs","da","de","el","en-AU","es","et","eu","fa","fi","fil","fr","fy","gl","gu","he","hi","hr","hu","id","is","it","ja","ka","kk-Latn","kk","km","ko","la","lo","lt","lv","mk","ml","mn","nb-NO","ne","nl","pl","pr","pt-BR","pt","ro","ru","si","sl","sq","sr","sv","th","tr","uk","vi","zh-CN","zh-TW"];
 
 export const langLabels = {"am":"አማርኛ","ar":"العربية","be":"Беларуская","bg":"Български","bn":"বাংলা","br":"Brezhoneg","ca":"Català","cs":"Čeština","da":"Dansk","de":"Deutsch","el":"Ελληνικά","en-AU":"English (Australia)","es":"Español","et":"eesti keel","eu":"Euskara","fa":"فارسی","fi":"Suomi","fil":"Filipino","fr":"Français","fy":"Frysk","gl":"Galego","gu":"ગુજરાતી","he":"עברית‏","hi":"हिन्दी","hr":"Hrvatski","hu":"Magyar","id":"Bahasa Indonesia","is":"Íslenska","it":"Italiano","ja":"日本語","ka":"ქართული","kk-Latn":"Қазақша","kk":"Қазақша","km":"ភាសាខ្មែរ","ko":"한국어","la":"Latin","lo":"ພາສາລາວ","lt":"Lietuvių","lv":"Latviešu","mk":"Македонски","ml":"മലയാളം","mn":"Монгол","nb-NO":"Norsk (bokmål)","ne":"नेपाली","nl":"Nederlands","pl":"Polski","pr":"pr","pt-BR":"Português (Brasil)","pt":"Português","ro":"Română","ru":"Русский","si":"සිංහල","sl":"Slovenščina","sq":"Shqip","sr":"Српски","sv":"Svenska","th":"ภาษาไทย","tr":"Türkçe","uk":"Українська","vi":"Tiếng Việt","zh-CN":"中文（中国大陆）","zh-TW":"中文（台灣）"};
 
-export const langFiles: {[langID: string]: TranslationsMap} = {am,ar,be,bg,bn,br,ca,cs,da,de,el,'en-AU':enAU,es,et,eu,fa,fi,fil,fr,fy,gl,gu,he,hi,hr,hu,id,is,it,ja,ka,'kk-Latn':kkLatn,kk,km,ko,la,lo,lt,lv,mk,ml,mn,'nb-NO':nbNO,ne,nl,pl,pr,'pt-BR':ptBR,pt,ro,ru,si,sl,sq,sr,sv,th,tr,uk,vi,'zh-CN':zhCN,'zh-TW':zhTW};
+// TypeScript thinks it's importing these language files' contents directly, but Webpack rewrites the above imports
+// to the URL the file for lazy loading. That's the reason for the ugly type assertions below.
+export const langFiles: {
+    [langID: string]: string;
+} = {
+    am: am as unknown as string,
+    ar: ar as unknown as string,
+    be: be as unknown as string,
+    bg: bg as unknown as string,
+    bn: bn as unknown as string,
+    br: br as unknown as string,
+    ca: ca as unknown as string,
+    cs: cs as unknown as string,
+    da: da as unknown as string,
+    de: de as unknown as string,
+    el: el as unknown as string,
+    'en-AU': enAU as unknown as string,
+    es: es as unknown as string,
+    et: et as unknown as string,
+    eu: eu as unknown as string,
+    fa: fa as unknown as string,
+    fi: fi as unknown as string,
+    fil: fil as unknown as string,
+    fr: fr as unknown as string,
+    fy: fy as unknown as string,
+    gl: gl as unknown as string,
+    gu: gu as unknown as string,
+    he: he as unknown as string,
+    hi: hi as unknown as string,
+    hr: hr as unknown as string,
+    hu: hu as unknown as string,
+    id: id as unknown as string,
+    is: is as unknown as string,
+    it: it as unknown as string,
+    ja: ja as unknown as string,
+    ka: ka as unknown as string,
+    'kk-Latn': kkLatn as unknown as string,
+    kk: kk as unknown as string,
+    km: km as unknown as string,
+    ko: ko as unknown as string,
+    la: la as unknown as string,
+    lo: lo as unknown as string,
+    lt: lt as unknown as string,
+    lv: lv as unknown as string,
+    mk: mk as unknown as string,
+    ml: ml as unknown as string,
+    mn: mn as unknown as string,
+    'nb-NO': nbNO as unknown as string,
+    ne: ne as unknown as string,
+    nl: nl as unknown as string,
+    pl: pl as unknown as string,
+    pr: pr as unknown as string,
+    'pt-BR': ptBR as unknown as string,
+    pt: pt as unknown as string,
+    ro: ro as unknown as string,
+    ru: ru as unknown as string,
+    si: si as unknown as string,
+    sl: sl as unknown as string,
+    sq: sq as unknown as string,
+    sr: sr as unknown as string,
+    sv: sv as unknown as string,
+    th: th as unknown as string,
+    tr: tr as unknown as string,
+    uk: uk as unknown as string,
+    vi: vi as unknown as string,
+    'zh-CN': zhCN as unknown as string,
+    'zh-TW': zhTW as unknown as string
+};

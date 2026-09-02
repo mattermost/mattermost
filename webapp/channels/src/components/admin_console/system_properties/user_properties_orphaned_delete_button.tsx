@@ -4,7 +4,7 @@
 import React from 'react';
 
 import {TrashCanOutlineIcon} from '@mattermost/compass-icons/components';
-import type {UserPropertyField} from '@mattermost/types/properties';
+import type {UserPropertyField} from '@mattermost/types/properties_user';
 
 import {useUserPropertyFieldDelete} from './user_properties_delete_modal';
 import {isCreatePending} from './user_properties_utils';

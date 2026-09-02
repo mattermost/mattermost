@@ -31,7 +31,7 @@ export type ChannelsTourTipProps = {
     overlayPunchOut: PunchOutCoordsHeightAndWidth | null;
     singleTip?: boolean;
     placement?: Placement;
-    pulsatingDotPlacement?: Omit<Placement, 'auto'| 'auto-end'>;
+    pulsatingDotPlacement?: Omit<Placement, 'auto' | 'auto-end'>;
     pulsatingDotTranslate?: {x: number; y: number};
     offset?: [number, number];
     width?: string | number;
@@ -40,7 +40,7 @@ export type ChannelsTourTipProps = {
     tippyBlueStyle?: boolean;
     showOptOut?: boolean;
     interactivePunchOut?: boolean;
-}
+};
 
 export const ChannelsTourTip = ({
     title,

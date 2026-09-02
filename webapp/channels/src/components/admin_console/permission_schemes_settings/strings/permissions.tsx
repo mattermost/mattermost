@@ -185,16 +185,6 @@ export const permissionRolesStrings: Record<string, Record<string, MessageDescri
             defaultMessage: '{editTimeLimitButton} after posting, allow users to edit their own posts.',
         },
     }),
-    import_team: defineMessages({
-        name: {
-            id: 'admin.permissions.permission.import_team.name',
-            defaultMessage: 'Import team',
-        },
-        description: {
-            id: 'admin.permissions.permission.import_team.description',
-            defaultMessage: 'Import team',
-        },
-    }),
     list_team_channels: defineMessages({
         name: {
             id: 'admin.permissions.permission.list_team_channels.name',

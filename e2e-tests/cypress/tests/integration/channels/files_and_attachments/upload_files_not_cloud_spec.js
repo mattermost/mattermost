@@ -15,7 +15,6 @@ import {downloadAttachmentAndVerifyItsProperties} from './helpers';
 import * as TIMEOUTS from '@/fixtures/timeouts';
 import {stubClipboard} from '@/utils';
 
-
 describe('Upload Files', () => {
     let testTeam;
     let testChannel;

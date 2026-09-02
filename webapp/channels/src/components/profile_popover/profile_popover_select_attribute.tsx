@@ -3,13 +3,14 @@
 
 import React from 'react';
 
-import type {PropertyFieldOption, UserPropertyField} from '@mattermost/types/properties';
+import type {PropertyFieldOption} from '@mattermost/types/properties';
+import type {UserPropertyField} from '@mattermost/types/properties_user';
 import type {UserProfile} from '@mattermost/types/users';
 
 type Props = {
     attribute: UserPropertyField;
     userProfile: UserProfile;
-}
+};
 
 const ProfilePopoverSelectAttribute = ({attribute, userProfile}: Props) => {
     const attributeValue = userProfile.custom_profile_attributes?.[attribute.id];

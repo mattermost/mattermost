@@ -46,7 +46,7 @@ func getSharedChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// only return channels the user is a member of, unless they are a shared channels manager.
-	if !c.App.HasPermissionTo(c.AppContext.Session().UserId, model.PermissionManageSharedChannels) {
+	if !c.App.HasPermissionTo(c.AppContext, c.AppContext.Session().UserId, model.PermissionManageSharedChannels) {
 		opts.MemberId = c.AppContext.Session().UserId
 	}
 
@@ -274,7 +274,7 @@ func getSharedChannelRemotes(c *Context, w http.ResponseWriter, r *http.Request)
 		if errors.Is(err, model.ErrChannelNotShared) {
 			remoteStatuses = []*model.SharedChannelRemoteStatus{}
 		} else {
-			c.Err = model.NewAppError("getSharedChannelRemotes", "api.command_share.fetch_remote_status.error", nil, "", http.StatusInternalServerError).Wrap(err)
+			c.Err = model.NewAppError("getSharedChannelRemotes", "api.command_share.fetch_remote_status.error", map[string]any{"Error": err.Error()}, "", http.StatusInternalServerError).Wrap(err)
 			return
 		}
 	}
@@ -329,7 +329,7 @@ func canUserDirectMessage(c *Context, w http.ResponseWriter, r *http.Request) {
 	// Get shared channel sync service for remote user checks
 	scs := c.App.Srv().GetSharedChannelSyncService()
 	if scs != nil {
-		otherUser, otherErr := c.App.GetUser(c.Params.OtherUserId)
+		otherUser, otherErr := c.App.GetUser(c.AppContext, c.Params.OtherUserId)
 		if otherErr != nil {
 			canDM = false
 		} else {

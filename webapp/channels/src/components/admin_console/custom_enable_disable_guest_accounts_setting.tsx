@@ -17,7 +17,7 @@ type Props = {
     disabled?: boolean;
     setByEnv: boolean;
     showConfirm: boolean;
-}
+};
 
 const CustomEnableDisableGuestAccountsSetting = ({
     id,

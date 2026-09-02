@@ -129,6 +129,25 @@ def file_at(ref: str, path: str) -> str:
         return ""
  
  
+def _compute_merge_base() -> str:
+    """Resolve the merge-base of BASE_SHA and HEAD_SHA.
+ 
+    Per-checker comparisons must use this rather than BASE_SHA. BASE_SHA is the
+    tip of the target branch at PR-event time; if that branch advances on a
+    watched file after the PR diverges, comparing branch-tip vs target-tip
+    would attribute those upstream edits to this PR (false add/remove).
+    `git diff A...B` already does this implicitly; the per-file snapshots must
+    match.
+    """
+    return subprocess.run(
+        ["git", "merge-base", BASE_SHA, HEAD_SHA],
+        capture_output=True, text=True, check=True,
+    ).stdout.strip()
+ 
+ 
+MERGE_BASE = _compute_merge_base()
+ 
+ 
 # ── Checker 1 — config.go ──────────────────────────────────────────────────────
  
 _CONFIG_PATH     = "server/public/model/config.go"
@@ -163,8 +182,11 @@ def _scan_struct_fields(src: str) -> set[tuple[str, str]]:
         while struct_stack and depth <= struct_stack[-1][1]:
             struct_stack.pop()
  
-        # Record fields only when we're directly inside exactly one named struct
-        if len(struct_stack) == 1:
+        # Record fields only when we're directly inside the named struct body.
+        # The depth check (depth == struct_stack[0][1] + 1) ensures that fields
+        # inside nested anonymous struct { ... } blocks are not incorrectly
+        # attributed to the outer named struct.
+        if len(struct_stack) == 1 and depth == struct_stack[0][1] + 1:
             fm = _FIELD_LINE_RE.match(line)
             if fm:
                 fields.add((struct_stack[0][0], fm.group(1)))
@@ -176,7 +198,7 @@ def check_config(patches: dict[str, str]) -> CheckResult:
     """
     Detect exported Go struct field additions/removals in config.go.
  
-    Compares full-file snapshots at BASE_SHA and HEAD_SHA so that fields
+    Compares full-file snapshots at MERGE_BASE and HEAD_SHA so that fields
     are always attributed to the correct struct regardless of which diff
     hunks are present.
     """
@@ -184,14 +206,14 @@ def check_config(patches: dict[str, str]) -> CheckResult:
     if _CONFIG_PATH not in patches:
         return result
  
-    base_fields = _scan_struct_fields(file_at(BASE_SHA, _CONFIG_PATH))
+    base_fields = _scan_struct_fields(file_at(MERGE_BASE, _CONFIG_PATH))
     head_fields = _scan_struct_fields(file_at(HEAD_SHA, _CONFIG_PATH))
  
     added   = head_fields - base_fields
     removed = base_fields - head_fields
  
-    result.additions = sorted(f"`{s}.{f}`" for s, f in added)
-    result.removals  = sorted(f"`{s}.{f}`" for s, f in removed)
+    result.additions = sorted(f"``{s}.{f}``" for s, f in added)
+    result.removals  = sorted(f"``{s}.{f}``" for s, f in removed)
     return result
  
  
@@ -254,7 +276,7 @@ def check_api(patches: dict[str, str]) -> CheckResult:
     """
     Detect API endpoint additions/removals in the api4/ directory.
  
-    Compares full-file snapshots at BASE_SHA and HEAD_SHA via set arithmetic,
+    Compares full-file snapshots at MERGE_BASE and HEAD_SHA via set arithmetic,
     so multi-line and multi-method registrations are handled correctly.
     """
     result = CheckResult(label="API Changes (`api4`)")
@@ -271,7 +293,7 @@ def check_api(patches: dict[str, str]) -> CheckResult:
     removed_eps: set[tuple[str, str, str]] = set()
  
     for fname, patch in api4_patches.items():
-        base_eps = _parse_endpoints(file_at(BASE_SHA, fname))
+        base_eps = _parse_endpoints(file_at(MERGE_BASE, fname))
         head_eps = _parse_endpoints(file_at(HEAD_SHA, fname))
         added_eps   |= head_eps - base_eps
         removed_eps |= base_eps - head_eps
@@ -301,18 +323,18 @@ def check_audit_events(patches: dict[str, str]) -> CheckResult:
     """
     Detect AuditEvent* constant additions/removals.
  
-    Uses full-file snapshots at BASE_SHA/HEAD_SHA so reorderings and
+    Uses full-file snapshots at MERGE_BASE/HEAD_SHA so reorderings and
     cross-constant name collisions don't produce false results.
     """
     result = CheckResult(label="Audit Log Event Changes")
     if _AUDIT_EVENT_PATH not in patches:
         return result
  
-    base_events = _parse_audit_events(file_at(BASE_SHA, _AUDIT_EVENT_PATH))
+    base_events = _parse_audit_events(file_at(MERGE_BASE, _AUDIT_EVENT_PATH))
     head_events = _parse_audit_events(file_at(HEAD_SHA, _AUDIT_EVENT_PATH))
  
-    result.additions = sorted(f"`{e}`" for e in head_events - base_events)
-    result.removals  = sorted(f"`{e}`" for e in base_events - head_events)
+    result.additions = sorted(f"``{e}``" for e in head_events - base_events)
+    result.removals  = sorted(f"``{e}``" for e in base_events - head_events)
     return result
  
  
@@ -343,13 +365,13 @@ def check_go_version(patches: dict[str, str]) -> CheckResult:
     if _DOCKERFILE_PATH not in patches:
         return result
  
-    old_ver = _parse_go_version(file_at(BASE_SHA, _DOCKERFILE_PATH))
+    old_ver = _parse_go_version(file_at(MERGE_BASE, _DOCKERFILE_PATH))
     new_ver = _parse_go_version(file_at(HEAD_SHA, _DOCKERFILE_PATH))
  
     if old_ver and new_ver and old_ver != new_ver:
-        result.changes.append(f"Go updated: `{old_ver}` → `{new_ver}`")
+        result.changes.append(f"Go updated: ``{old_ver}`` → ``{new_ver}``")
     elif new_ver and not old_ver:
-        result.additions.append(f"`{new_ver}`")
+        result.additions.append(f"``{new_ver}``")
     return result
  
  
@@ -357,10 +379,11 @@ def check_go_version(patches: dict[str, str]) -> CheckResult:
  
 # Matches lines that were auto-generated by this script so they can be stripped
 # before re-injecting a fresh set on subsequent commits.
+# Handles both single-backtick (older runs) and double-backtick (current) format.
 _AUTO_LINE_RE = re.compile(
-    r"^(Added|Removed) `[^`]+`.*(configuration setting|API endpoint|audit log event)\."
+    r"^(Added|Removed) `{1,2}[^`]+`{1,2}.*(configuration setting|API endpoint|audit log event)\."
     r"|^Go runtime updated from \S+ to \S+\."
-    r"|^Go runtime set to `[^`]+`\."
+    r"|^Go runtime set to `{1,2}[^`]+`{1,2}\."
     r"|^🆕 New API file:"
     r"|^🗑️  Removed API file:"
 )
@@ -396,11 +419,11 @@ def _format_lines(result: CheckResult) -> list[str]:
  
     elif "Go Runtime" in result.label:
         for item in result.additions:
-            # item is e.g. "`1.22`" — strip backticks for the prose form
+            # item is e.g. "``1.22``"
             lines.append(f"Go runtime set to {item}.")
         for c in result.changes:
-            # c arrives as "Go updated: `1.21` → `1.22`" — rewrite it
-            m = re.search(r"`([^`]+)`\s*→\s*`([^`]+)`", c)
+            # c arrives as "Go updated: ``1.21`` → ``1.22``" — rewrite it
+            m = re.search(r"``([^`]+)``\s*→\s*``([^`]+)``", c)
             if m:
                 lines.append(f"Go runtime updated from {m.group(1)} to {m.group(2)}.")
             else:

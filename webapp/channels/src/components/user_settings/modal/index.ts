@@ -12,6 +12,7 @@ import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getUserPreferences as getUserPreferencesSelector} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUser, getUser as getUserSelector} from 'mattermost-redux/selectors/entities/users';
 
+import {getBasePath} from 'selectors/general';
 import {getPluginUserSettings} from 'selectors/plugins';
 
 import {makeAsyncComponent} from 'components/async_load';
@@ -35,6 +36,7 @@ function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
         userPreferences: ownProps.adminMode && ownProps.userID ? getUserPreferencesSelector(state, ownProps.userID) : undefined,
         sendEmailNotifications,
         requireEmailVerification,
+        basePath: getBasePath(state),
         pluginSettings: getPluginUserSettings(state),
     };
 }

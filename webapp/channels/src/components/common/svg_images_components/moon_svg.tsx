@@ -6,7 +6,7 @@ import React from 'react';
 type Props = {
     title?: string;
     className?: string;
-}
+};
 
 export default function Moon(props: Props) {
     return (

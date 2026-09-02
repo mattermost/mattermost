@@ -15,7 +15,6 @@ import {getAdminAccount} from '@/support/env';
 import {spyNotificationAs} from '@/support/notification';
 import timeouts from '@/fixtures/timeouts';
 
-
 describe('Authentication', () => {
     let testTeam;
     let testUser;

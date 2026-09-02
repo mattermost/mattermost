@@ -75,7 +75,7 @@ export type Props = {
     tabIndex?: number;
     size?: 'md' | 'lg';
     role?: string;
-}
+};
 
 const defaultClearableTooltipText = (
     <FormattedMessage

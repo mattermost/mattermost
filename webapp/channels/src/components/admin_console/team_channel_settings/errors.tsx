@@ -60,7 +60,7 @@ type UsersWillBeRemovedProps = {
     total: number;
     scope: string;
     scopeId: string;
-}
+};
 
 export const UsersWillBeRemovedError = ({users, total, scope, scopeId}: UsersWillBeRemovedProps) => {
     let error = (

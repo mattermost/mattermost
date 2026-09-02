@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Locator, expect} from '@playwright/test';
+import type {Locator} from '@playwright/test';
+import {expect} from '@playwright/test';
 
 import AdvancedSettings from './advanced_settings';
 import DisplaySettings from './display_settings';
@@ -27,7 +28,7 @@ export default class SettingsModal {
     constructor(container: Locator) {
         this.container = container;
 
-        this.content = container.locator('.modal-content');
+        this.content = container;
         this.closeButton = container.getByRole('button', {name: 'Close'});
 
         this.notificationsTab = container.getByRole('tab', {name: 'notifications'});

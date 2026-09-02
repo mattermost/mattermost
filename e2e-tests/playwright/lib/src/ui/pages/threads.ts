@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Page, expect} from '@playwright/test';
+import type {Page} from '@playwright/test';
+import {expect} from '@playwright/test';
 
 import {ChannelsPost} from '@/ui/components';
 
@@ -17,7 +18,7 @@ export default class ThreadsPage {
 
         this.threadsList = page.locator('#threads-list');
 
-        this.noThreadSelected = page.locator('.no-results__title', {
+        this.noThreadSelected = page.getByTestId('no-results-title').filter({
             hasText: /Looks like you’re all caught up|Catch up on your threads/,
         });
     }

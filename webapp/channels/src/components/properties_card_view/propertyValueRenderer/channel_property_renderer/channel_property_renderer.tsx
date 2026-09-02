@@ -14,7 +14,7 @@ import './channel_property_renderer.scss';
 type Props = {
     value: PropertyValue<unknown>;
     metadata?: ChannelFieldMetadata;
-}
+};
 
 export default function ChannelPropertyRenderer({value, metadata}: Props) {
     const channelId = value.value as string;
@@ -30,7 +30,7 @@ export default function ChannelPropertyRenderer({value, metadata}: Props) {
                 (
                     <>
                         <SidebarBaseChannelIcon
-                            channelType={channel.type}
+                            channel={channel}
                         />
                         {channel.display_name}
                     </>

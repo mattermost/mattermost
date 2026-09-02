@@ -23,7 +23,7 @@ type Props = {
     currentLicenseSKU: string;
     onExited?: () => void;
     handleRemove?: (e: React.MouseEvent<HTMLButtonElement>) => Promise<void>;
-}
+};
 
 const ConfirmLicenseRemovalModal: React.FC<Props> = (props: Props): JSX.Element | null => {
     const dispatch = useDispatch();

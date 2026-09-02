@@ -237,7 +237,10 @@ func (s *Server) doPermissionsMigration(key string, migrationMap permissionsMap,
 
 	for _, role := range roles {
 		role.Permissions = applyPermissionsMap(role, roleMap, migrationMap)
-		if _, err := s.Store().Role().Save(role); err != nil {
+		// Use SavePreservingUnknownPermissions so a server that was downgraded from a
+		// newer release (which wrote permissions this binary doesn't recognize) does
+		// not fail fatally here. Unknown permissions are logged and preserved (MM-68830).
+		if _, err := s.Store().Role().SavePreservingUnknownPermissions(role); err != nil {
 			var invErr *store.ErrInvalidInput
 			switch {
 			case errors.As(err, &invErr):
@@ -1184,6 +1187,15 @@ func (a *App) removeGetAnalyticsPermissionMigration() (permissionsMap, error) {
 	return transformations, nil
 }
 
+func (a *App) removeImportTeamPermissionMigration() (permissionsMap, error) {
+	return permissionsMap{
+		permissionTransformation{
+			On:     permissionExists("import_team"),
+			Remove: []string{"import_team"},
+		},
+	}, nil
+}
+
 func (a *App) addSysConsoleMobileSecurityPermission() (permissionsMap, error) {
 	transformations := []permissionTransformation{}
 
@@ -1405,6 +1417,7 @@ func (s *Server) doPermissionsMigrations() error {
 		{Key: model.MigrationKeyAddManageAgentPermissions, Migration: a.getAddManageAgentPermissionsMigration},
 		{Key: model.MigrationKeyAddEditFileAttachmentPermission, Migration: a.getAddEditFileAttachmentPermissionMigration},
 		{Key: model.MigrationKeyAddDiscoverableChannelPermissions, Migration: a.getAddDiscoverableChannelPermissionsMigration},
+		{Key: model.MigrationRemoveImportTeamPermission, Migration: a.removeImportTeamPermissionMigration},
 	}
 
 	roles, err := s.Store().Role().GetAll()

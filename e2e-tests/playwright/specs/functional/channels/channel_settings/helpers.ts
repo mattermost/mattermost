@@ -22,7 +22,7 @@
 import type {Client4} from '@mattermost/client';
 import type {UserProfile} from '@mattermost/types/users';
 
-import {newTestPassword, getRandomId} from '@mattermost/playwright-lib';
+import {newTestPassword, getRandomId, type PlaywrightClient4} from '@mattermost/playwright-lib';
 
 import {assignChannelsToPolicy, deletePolicy, unassignChannelsFromPolicy} from '../team_settings/helpers';
 
@@ -134,14 +134,8 @@ export async function setUserAttributeById(client: Client4, userId: string, fiel
 /**
  * Create a public channel and register cleanup for it.
  */
-export async function createTrackedPublicChannel(client: Client4, teamId: string, ledger: CleanupLedger) {
-    const id = getRandomId();
-    const channel = await client.createChannel({
-        team_id: teamId,
-        name: `pub-${id}`,
-        display_name: `PUB-${id}`,
-        type: 'O',
-    } as any);
+export async function createTrackedPublicChannel(client: PlaywrightClient4, teamId: string, ledger: CleanupLedger) {
+    const channel = await client.createPublicChannel(teamId);
     ledger.add(() => client.deleteChannel(channel.id));
     return channel;
 }

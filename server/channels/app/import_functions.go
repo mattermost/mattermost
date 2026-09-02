@@ -593,7 +593,7 @@ func (a *App) importUser(rctx request.CTX, data *imports.UserImportData, dryRun 
 			if appErr = a.updateUserNotifyProps(user.Id, user.NotifyProps); appErr != nil {
 				return appErr
 			}
-			if savedUser, appErr = a.GetUser(user.Id); appErr != nil {
+			if savedUser, appErr = a.GetUser(rctx, user.Id); appErr != nil {
 				return appErr
 			}
 		}
@@ -616,7 +616,7 @@ func (a *App) importUser(rctx request.CTX, data *imports.UserImportData, dryRun 
 		}
 		if emailVerified {
 			if hasUserEmailVerifiedChanged {
-				if err := a.VerifyUserEmail(user.Id, user.Email); err != nil {
+				if err := a.VerifyUserEmail(rctx, user.Id, user.Email); err != nil {
 					return err
 				}
 			}
@@ -954,7 +954,7 @@ func (a *App) importBot(rctx request.CTX, data *imports.BotImportData, dryRun bo
 	// so Bot().Update() alone doesn't persist it. Update the user record
 	// if the DisplayName has diverged.
 	if data.DisplayName != nil && savedBot.UserId != "" {
-		botUser, userErr := a.Srv().Store().User().Get(rctx.Context(), savedBot.UserId)
+		botUser, userErr := a.Srv().Store().User().Get(rctx, savedBot.UserId)
 		if userErr != nil {
 			rctx.Logger().Warn("Failed to fetch bot user for DisplayName update",
 				mlog.String("user_id", savedBot.UserId),
@@ -1113,7 +1113,7 @@ func (a *App) importUserTeams(rctx request.CTX, user *model.User, data *[]import
 			if appErr != nil {
 				return appErr
 			}
-			member.SchemeAdmin = userShouldBeAdmin
+			member.SchemeAdmin = member.SchemeAdmin || userShouldBeAdmin
 		}
 
 		if tdata.Channels != nil {
@@ -1170,7 +1170,7 @@ func (a *App) importUserTeams(rctx request.CTX, user *model.User, data *[]import
 			}
 		}
 
-		if _, appErr := a.UpdateTeamMemberSchemeRoles(rctx, member.TeamId, user.Id, isGuestByTeamID[member.TeamId], isUserByTeamId[member.TeamId], isAdminByTeamID[member.TeamId]); appErr != nil {
+		if _, appErr := a.UpdateTeamMemberSchemeRoles(rctx, member.TeamId, user.Id, isGuestByTeamID[member.TeamId], isUserByTeamId[member.TeamId], member.SchemeAdmin || isAdminByTeamID[member.TeamId]); appErr != nil {
 			rctx.Logger().Warn("Error updating team member scheme roles", mlog.String("team_id", member.TeamId), mlog.String("user_id", user.Id), mlog.Err(appErr))
 		}
 	}
@@ -2180,8 +2180,15 @@ func (a *App) importDirectChannel(rctx request.CTX, data *imports.DirectChannelI
 
 	newChannelMembers := make([]*model.ChannelMember, 0)
 	for _, member := range data.Participants {
+		u := userMap[strings.ToLower(*member.Username)]
+		// Default scheme flags so that imports omitting them still produce a
+		// usable role on the resulting channel member, matching the regular
+		// user-channel import path. Explicit values in the import data still
+		// override these defaults below.
 		m := &model.ChannelMember{
 			NotifyProps: model.GetDefaultChannelNotifyProps(),
+			SchemeGuest: u.IsGuest(),
+			SchemeUser:  !u.IsGuest(),
 		}
 		if member.LastViewedAt != nil {
 			m.LastViewedAt = *member.LastViewedAt
@@ -2249,12 +2256,39 @@ func (a *App) importDirectChannel(rctx request.CTX, data *imports.DirectChannelI
 			}
 		}
 
-		u := userMap[strings.ToLower(*member.Username)]
 		if existing, ok := existingMembers[u.Id]; ok {
 			// Decide which membership is newer. We have LastViewedAt in the import data, which should
 			// give us a good idea of which membership is newer.
 			if existing.LastViewedAt > m.LastViewedAt {
 				continue
+			}
+		} else {
+			// The channel pre-existed (either from a concurrent worker that committed the Channels
+			// row but had not finished its SaveMember loop yet, an earlier import that crashed
+			// mid-loop, or a GM whose membership has since drifted) without this participant.
+			// Insert the ChannelMembers row first so UpdateMultipleMembers below has something
+			// to UPDATE — otherwise it returns ErrNotFound and aborts the import.
+			toInsert := &model.ChannelMember{
+				UserId:      u.Id,
+				ChannelId:   channel.Id,
+				NotifyProps: model.GetDefaultChannelNotifyProps(),
+				SchemeUser:  !u.IsGuest(),
+				SchemeGuest: u.IsGuest(),
+			}
+			if _, nErr := a.Srv().Store().Channel().SaveMember(rctx, toInsert); nErr != nil {
+				var cErr *store.ErrConflict
+				// A concurrent importer may have inserted the row in the meantime — the row
+				// exists, which is all we need before the UPDATE.
+				if !errors.As(nErr, &cErr) {
+					return model.NewAppError("BulkImport", "app.import.import_direct_channel.save_member.error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+				}
+			} else {
+				if histErr := a.Srv().Store().ChannelMemberHistory().LogJoinEvent(u.Id, channel.Id, model.GetMillis()); histErr != nil {
+					rctx.Logger().Warn("Failed to log channel member history join event during import",
+						mlog.String("user_id", u.Id),
+						mlog.String("channel_id", channel.Id),
+						mlog.Err(histErr))
+				}
 			}
 		}
 		m.UserId = u.Id

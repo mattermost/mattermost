@@ -83,9 +83,9 @@ function validateDateTimeValue(value: string, elem: DialogElement): DialogError 
         });
     }
 
-    // Range validation against min_date / max_date (datetime_config takes precedence over legacy fields)
-    const effectiveMinDate = elem.datetime_config?.min_date ?? elem.min_date;
-    const effectiveMaxDate = elem.datetime_config?.max_date ?? elem.max_date;
+    // Range validation against min_date / max_date
+    const effectiveMinDate = elem.datetime_config?.min_date;
+    const effectiveMaxDate = elem.datetime_config?.max_date;
     if (effectiveMinDate) {
         const minDate = resolveBoundToDate(effectiveMinDate);
         if (minDate && parsedDate < minDate) {
@@ -109,6 +109,10 @@ function validateDateTimeValue(value: string, elem: DialogElement): DialogError 
 }
 
 export function checkDialogElementForError(elem: DialogElement, value: any): DialogError | undefined | null {
+    if (elem.type === 'action_button') {
+        return null;
+    }
+
     // Check if value is empty (handles arrays for multiselect)
     let isEmpty;
     if (value === 0) {
@@ -183,6 +187,19 @@ export function checkDialogElementForError(elem: DialogElement, value: any): Dia
             }
         }
         return null;
+    } else if (type === 'file') {
+        // File elements store file IDs, so we just need to check if file was uploaded
+        // The actual validation that file exists will be done server-side
+        if (Array.isArray(value) && value.length === 0) {
+            // An empty array means no files selected — treat as no value, not invalid.
+            return null;
+        }
+        if (value && typeof value !== 'string') {
+            return defineMessage({
+                id: 'interactive_dialog.error.invalid_file',
+                defaultMessage: 'Invalid file upload.',
+            });
+        }
     }
 
     return null;

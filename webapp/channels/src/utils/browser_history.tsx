@@ -14,7 +14,7 @@ const b = createBrowserHistory({basename: window.basename});
 const isDesktop = isDesktopApp() && isServerVersionGreaterThanOrEqualTo(getDesktopVersion(), '5.0.0');
 const browserHistory = {
     ...b,
-    push: (path: string | { pathname: string }, ...args: string[]) => {
+    push: (path: string | {pathname: string}, ...args: string[]) => {
         if (isDesktop) {
             DesktopApp.doBrowserHistoryPush(typeof path === 'object' ? path.pathname : path);
         } else {

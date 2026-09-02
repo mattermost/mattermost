@@ -19,7 +19,7 @@ import {getUserCurrentTimezone} from 'mattermost-redux/utils/timezone_utils';
 import {getIsRhsOpen, getSelectedPostId} from 'selectors/rhs';
 
 import {isThreadPopoutWindow} from 'utils/popouts/popout_windows';
-import {isFromWebhook} from 'utils/post_utils';
+import {isFromWebhook, isNotificationSuppressed} from 'utils/post_utils';
 
 import type {GlobalState} from 'types/store';
 import type {ViewsState} from 'types/store/views';
@@ -146,6 +146,7 @@ export function makeFilterRepliesAndAddSeparators() {
                     post.create_at >= lastViewedAt &&
                     (i < posts.length - 1) &&
                     (post.user_id !== currentUser.id || isFromWebhook(post)) &&
+                    !isNotificationSuppressed(post) &&
                     !addedNewMessagesIndicator
                 ) {
                     out.push(START_OF_NEW_MESSAGES);

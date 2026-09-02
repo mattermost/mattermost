@@ -8,6 +8,7 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -286,6 +287,41 @@ func TestPlugin(t *testing.T) {
 	})
 }
 
+func TestUploadPluginConflictDetails(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.PluginSettings.Enable = true
+		*cfg.PluginSettings.EnableUploads = true
+		*cfg.ServiceSettings.EnableDeveloper = false
+	})
+
+	path, _ := fileutils.FindDir("tests")
+	tarData, err := os.ReadFile(filepath.Join(path, "testplugin.tar.gz"))
+	require.NoError(t, err)
+
+	manifest, _, err := th.SystemAdminClient.UploadPlugin(context.Background(), bytes.NewReader(tarData))
+	require.NoError(t, err)
+	defer os.RemoveAll("plugins/testplugin")
+	require.Equal(t, "testplugin", manifest.Id)
+
+	_, resp, err := th.SystemAdminClient.UploadPlugin(context.Background(), bytes.NewReader(tarData))
+	require.Error(t, err)
+	CheckBadRequestStatus(t, resp)
+	CheckErrorID(t, err, "app.plugin.install_id.app_error")
+
+	var appErr *model.AppError
+	require.True(t, errors.As(err, &appErr))
+	require.Empty(t, appErr.DetailedError, "detailed error must still be wiped with EnableDeveloper disabled")
+	require.NotEmpty(t, appErr.Props, "conflict props must survive with EnableDeveloper disabled")
+
+	assert.Equal(t, "testplugin", appErr.Props[model.PluginInstallConflictPropPluginID])
+	assert.Equal(t, manifest.Version, appErr.Props[model.PluginInstallConflictPropExistingVersion])
+	assert.Equal(t, manifest.Version, appErr.Props[model.PluginInstallConflictPropUploadedVersion])
+	assert.Equal(t, model.PluginInstallConflictVersionDirectionSame, appErr.Props[model.PluginInstallConflictPropVersionDirection])
+}
+
 func TestPluginInstallDirectoryConflict(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
@@ -433,12 +469,17 @@ func TestNotifyClusterPluginEvent(t *testing.T) {
 	// Successful remove
 	webSocketClient := th.CreateConnectedWebSocketClientWithClient(t, th.SystemAdminClient)
 
+	var statusesPresent bool
+	var receivedStatuses any
 	done := make(chan bool)
 	go func() {
 		for {
 			select {
 			case resp := <-webSocketClient.EventChannel:
-				if resp.EventType() == model.WebsocketEventPluginStatusesChanged && len(resp.GetData()["plugin_statuses"].([]any)) == 0 {
+				// The event only signals admins to refetch statuses; it carries an empty
+				// plugin_statuses array (compatibility shim), not the full slice.
+				if resp.EventType() == model.WebsocketEventPluginStatusesChanged {
+					receivedStatuses, statusesPresent = resp.GetData()["plugin_statuses"]
 					done <- true
 					return
 				}
@@ -455,6 +496,8 @@ func TestNotifyClusterPluginEvent(t *testing.T) {
 
 	result := <-done
 	require.True(t, result, "plugin_statuses_changed websocket event was not received")
+	require.True(t, statusesPresent, "plugin_statuses field should be present")
+	assert.Empty(t, receivedStatuses, "plugin_statuses should be an empty array")
 
 	messages = testCluster.GetMessages()
 

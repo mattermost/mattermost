@@ -60,16 +60,28 @@ func (a *App) ExportFileBackend() filestore.FileBackend {
 }
 
 func (a *App) CheckMandatoryS3Fields(settings *model.FileSettings) *model.AppError {
-	var fileBackendSettings filestore.FileBackendSettings
-	if a.License().IsCloud() && a.Config().FeatureFlags.CloudDedicatedExportUI && a.Config().FileSettings.DedicatedExportStore != nil && *a.Config().FileSettings.DedicatedExportStore {
-		fileBackendSettings = filestore.NewExportFileBackendSettingsFromConfig(settings, false, false)
-	} else {
-		fileBackendSettings = filestore.NewFileBackendSettingsFromConfig(settings, false, false)
+	bucket := settings.AmazonS3Bucket
+	if bucket == nil || *bucket == "" {
+		return model.NewAppError("CheckMandatoryS3Fields", "api.admin.test_s3.missing_s3_bucket", nil, "", http.StatusBadRequest)
 	}
+	return nil
+}
 
-	err := fileBackendSettings.CheckMandatoryS3Fields()
-	if err != nil {
-		return model.NewAppError("CheckMandatoryS3Fields", "api.admin.test_s3.missing_s3_bucket", nil, "", http.StatusBadRequest).Wrap(err)
+func (a *App) CheckMandatoryAzureFields(settings *model.FileSettings) *model.AppError {
+	storageAccount := settings.AzureStorageAccount
+	authMode := settings.AzureAuthMode
+	accessKey := settings.AzureAccessKey
+	container := settings.AzureContainer
+	if storageAccount == nil || *storageAccount == "" {
+		return model.NewAppError("CheckMandatoryAzureFields", "api.admin.test_azure.missing_azure_field", nil, "missing azure storage account setting", http.StatusBadRequest)
+	}
+	if container == nil || *container == "" {
+		return model.NewAppError("CheckMandatoryAzureFields", "api.admin.test_azure.missing_azure_field", nil, "missing azure container setting", http.StatusBadRequest)
+	}
+	// Access key only matters under shared-key auth. Default credential pulls
+	// identity from the host environment.
+	if authMode != nil && *authMode == model.AzureAuthModeSharedKey && (accessKey == nil || *accessKey == "") {
+		return model.NewAppError("CheckMandatoryAzureFields", "api.admin.test_azure.missing_azure_field", nil, "missing azure access key setting", http.StatusBadRequest)
 	}
 	return nil
 }
@@ -107,12 +119,9 @@ func (a *App) TestFileStoreConnectionWithConfig(cfg *model.FileSettings) *model.
 	var backend filestore.FileBackend
 	var err error
 	complianceEnabled := license != nil && *license.Features.Compliance
-	if license.IsCloud() && a.Config().FeatureFlags.CloudDedicatedExportUI && a.Config().FileSettings.DedicatedExportStore != nil && *a.Config().FileSettings.DedicatedExportStore {
-		allowInsecure := a.Config().ServiceSettings.EnableInsecureOutgoingConnections != nil && *a.Config().ServiceSettings.EnableInsecureOutgoingConnections
-		backend, err = filestore.NewFileBackend(filestore.NewExportFileBackendSettingsFromConfig(cfg, complianceEnabled && license.IsCloud(), allowInsecure))
-	} else {
-		backend, err = filestore.NewFileBackend(filestore.NewFileBackendSettingsFromConfig(cfg, complianceEnabled, insecure != nil && *insecure))
-	}
+	allowInsecure := insecure != nil && *insecure
+	allowedUntrustedInternalConnections := model.SafeDereference(a.Config().ServiceSettings.AllowedUntrustedInternalConnections)
+	backend, err = filestore.NewFileBackend(filestore.NewFileBackendSettingsFromConfig(cfg, complianceEnabled, allowInsecure, allowedUntrustedInternalConnections))
 	if err != nil {
 		return model.NewAppError("FileAttachmentBackend", "api.file.no_driver.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -799,7 +808,6 @@ func (a *App) UploadFileX(rctx request.CTX, channelID, name string, input io.Rea
 	}
 
 	rctx = rctx.WithLogFields(
-		mlog.String("file_name", name),
 		mlog.String("channel_id", channelID),
 		mlog.String("user_id", t.UserId),
 	)
@@ -812,6 +820,10 @@ func (a *App) UploadFileX(rctx request.CTX, channelID, name string, input io.Rea
 	}
 
 	t.init(a)
+
+	rctx = rctx.WithLogFields(
+		mlog.String("file_info_id", t.fileinfo.Id),
+	)
 
 	var aerr *model.AppError
 	if !t.Raw && t.fileinfo.IsImage() {
@@ -867,12 +879,14 @@ func (a *App) UploadFileX(rctx request.CTX, channelID, name string, input io.Rea
 
 	if *a.Config().FileSettings.ExtractContent && t.ExtractContent {
 		infoCopy := *t.fileinfo
-		a.Srv().GoBuffered(func() {
+		if !a.Srv().GoExtraction(func() {
 			err := a.ExtractContentFromFileInfo(rctx, &infoCopy)
 			if err != nil {
-				rctx.Logger().Error("Failed to extract file content", mlog.Err(err), mlog.String("fileInfoId", infoCopy.Id))
+				rctx.Logger().Error("Failed to extract file content", mlog.Err(err))
 			}
-		})
+		}) {
+			rctx.Logger().Warn("Content extraction queue is full, skipping inline extraction; this file's content will not be searchable until the scheduled content extraction catch-up job runs or an admin runs a content extraction job (e.g. mmctl extract)")
+		}
 	}
 
 	return t.fileinfo, nil
@@ -1134,12 +1148,14 @@ func (a *App) DoUploadFileExpectModification(rctx request.CTX, now time.Time, ra
 	// and something we can do without.
 	if *a.Config().FileSettings.ExtractContent && extractContent {
 		infoCopy := *info
-		a.Srv().GoBuffered(func() {
+		if !a.Srv().GoExtraction(func() {
 			err := a.ExtractContentFromFileInfo(rctx, &infoCopy)
 			if err != nil {
-				rctx.Logger().Error("Failed to extract file content", mlog.Err(err), mlog.String("fileInfoId", infoCopy.Id))
+				rctx.Logger().Error("Failed to extract file content", mlog.Err(err), mlog.String("file_info_id", infoCopy.Id))
 			}
-		})
+		}) {
+			rctx.Logger().Warn("Content extraction queue is full, skipping inline extraction; this file's content will not be searchable until the scheduled content extraction catch-up job runs or an admin runs a content extraction job (e.g. mmctl extract)", mlog.String("file_info_id", infoCopy.Id))
+		}
 	}
 
 	return info, data, nil
@@ -1528,7 +1544,14 @@ func (a *App) FilterFilesByChannelPermissions(rctx request.CTX, fileList *model.
 		}
 	}
 
-	abacSubject := a.buildFileDownloadSubject(rctx, userID)
+	abacSubject, abacSubjectErr := a.buildFileDownloadSubject(rctx, userID)
+	if abacSubjectErr != nil {
+		// Fail closed: a transient subject-build failure must not silently
+		// allow files through. Surface the error to the caller — the
+		// search returns 5xx instead of leaking files past a policy that
+		// would have denied them.
+		return false, abacSubjectErr
+	}
 
 	channelPermission := make(map[string]bool)
 	filteredFiles := make(map[string]*model.FileInfo)
@@ -1567,38 +1590,87 @@ func (a *App) FilterFilesByChannelPermissions(rctx request.CTX, fileList *model.
 	return allFilesHaveMembership, nil
 }
 
-// buildFileDownloadSubject returns a fully populated ABAC Subject for the user
-// when ABAC is active, or nil when ABAC is not configured / not enabled.
-func (a *App) buildFileDownloadSubject(rctx request.CTX, userID string) *model.Subject {
+// buildFileDownloadSubject returns a fully populated ABAC Subject for the
+// user when ABAC is active. The error return distinguishes the two
+// failure modes that used to share `nil`:
+//   - (nil, nil): ABAC isn't configured/enabled; the file download path
+//     is allowed without further checks.
+//   - (subject, nil): ABAC is active; caller should evaluate.
+//   - (nil, err): a transient lookup failure (GetUser /
+//     BuildAccessControlSubject). The caller MUST treat this as a
+//     denial; the previous behaviour returned `nil` here too which
+//     `hasFileDownloadPermission` interpreted as "ABAC disabled,
+//     allow" — i.e. a transient DB blip silently bypassed
+//     download_file_attachment policies.
+func (a *App) buildFileDownloadSubject(rctx request.CTX, userID string) (*model.Subject, *model.AppError) {
 	acs := a.Srv().Channels().AccessControl
 	if acs == nil {
-		return nil
+		return nil, nil
 	}
 	if !*a.Config().AccessControlSettings.EnableAttributeBasedAccessControl {
-		return nil
+		return nil, nil
 	}
 	if !a.Config().FeatureFlags.PermissionPolicies {
-		return nil
+		return nil, nil
 	}
 
-	user, err := a.GetUser(userID)
-	if err != nil {
-		rctx.Logger().Warn("Failed to get user for file download permission filtering",
-			mlog.String("user_id", userID),
-			mlog.Err(err),
-		)
-		return nil
+	var subject *model.Subject
+	var appErr *model.AppError
+	if rctx.Session().UserId == userID {
+		subject, appErr = a.BuildAccessControlSubjectForSession(rctx, "")
+	} else {
+		user, err := a.GetUser(rctx, userID)
+		if err != nil {
+			rctx.Logger().Warn("Failed to get user for file download permission filtering",
+				mlog.String("user_id", userID),
+				mlog.Err(err),
+			)
+			return nil, err
+		}
+		// channelID is intentionally empty here: the subject is reused across many
+		// channels in the file-search loop. hasFileDownloadPermission attaches the
+		// channel-scoped role per-evaluation via attachChannelScopedRole.
+		subject, appErr = a.BuildAccessControlSubject(rctx, userID, user.Roles, "")
 	}
-
-	subject, appErr := a.BuildAccessControlSubject(rctx, userID, user.Roles)
 	if appErr != nil {
 		rctx.Logger().Warn("Failed to build ABAC subject for file search filtering",
 			mlog.String("user_id", userID),
 			mlog.Err(appErr),
 		)
-		return nil
+		return nil, appErr
 	}
-	return subject
+	return subject, nil
+}
+
+// attachChannelScopedRole returns a copy of the subject with the channel-scoped
+// ScopedRole entry replaced for the given channelID. It's used in hot paths
+// where the same per-user Subject is reused across many channels — Subject
+// is taken by value and SetScopedRole always allocates a fresh ScopedRoles
+// backing array, so the caller's cached Subject is not mutated.
+//
+// Errors from GetSubjectChannelRole (e.g. transient channel-member store
+// failures) are propagated as an AppError. Callers MUST treat the error as
+// a denial — a transient DB blip is distinguishable from "no channel role"
+// (legitimate non-member), and conflating the two could let infra hiccups
+// silently degrade ABAC enforcement even with the downstream
+// PolicyGovernsAction fail-secure in place. Defense in depth: both layers
+// should fail closed independently. Callers should NOT stamp an empty
+// channel role in the error path — Subject is returned unchanged so the
+// caller can use it for logging without leaking a partially populated
+// scope onto downstream evaluators.
+func (a *App) attachChannelScopedRole(rctx request.CTX, subject model.Subject, userID, channelID string) (model.Subject, *model.AppError) {
+	channelRole, appErr := a.GetSubjectChannelRole(rctx, userID, channelID)
+	if appErr != nil {
+		rctx.Logger().Warn(
+			"Failed to resolve channel-scoped role for ABAC subject; treating as denial (transient lookup failure must not silently bypass ABAC)",
+			mlog.String("user_id", userID),
+			mlog.String("channel_id", channelID),
+			mlog.Err(appErr),
+		)
+		return subject, appErr
+	}
+	subject.SetScopedRole(model.AccessControlSubjectScopeChannel, channelRole)
+	return subject, nil
 }
 
 // hasFileDownloadPermission evaluates the ABAC download_file_attachment policy
@@ -1614,8 +1686,16 @@ func (a *App) hasFileDownloadPermission(rctx request.CTX, userID string, channel
 		return true
 	}
 
+	subjectForChannel, attachErr := a.attachChannelScopedRole(rctx, *subject, userID, channelID)
+	if attachErr != nil {
+		// Channel-role lookup failed (e.g. transient ChannelMember store
+		// error). Fail-secure: refuse access rather than evaluating against
+		// a subject missing its channel scope. The warn log was already
+		// emitted by attachChannelScopedRole.
+		return false
+	}
 	decision, evalErr := acs.AccessEvaluation(rctx, model.AccessRequest{
-		Subject:  *subject,
+		Subject:  subjectForChannel,
 		Resource: model.Resource{Type: model.AccessControlPolicyTypeChannel, ID: channelID},
 		Action:   model.AccessControlPolicyActionDownloadFileAttachment,
 	})
@@ -1636,14 +1716,23 @@ func (a *App) ExtractContentFromFileInfo(rctx request.CTX, fileInfo *model.FileI
 		return nil
 	}
 
+	logger := rctx.Logger().With(mlog.String("file_info_id", fileInfo.Id))
+	logger.Debug("Extracting content from file", mlog.String("extension", fileInfo.Extension))
+
 	file, aerr := a.FileReader(fileInfo.Path)
 	if aerr != nil {
 		return errors.Wrap(aerr, "failed to open file for extract file content")
 	}
-	defer file.Close()
-	text, err := docextractor.Extract(rctx.Logger(), fileInfo.Name, file, docextractor.ExtractSettings{
+	// Ownership of closing the file is handed to docextractor.Extract via
+	// ReaderCloser: with a timeout configured, extraction may continue on a
+	// detached goroutine after Extract returns, so closing the file here would
+	// race with that goroutine still reading it.
+	text, err := docextractor.Extract(logger, fileInfo.Name, file, docextractor.ExtractSettings{
+		Ctx:              rctx.Context(),
 		ArchiveRecursion: *a.Config().FileSettings.ArchiveRecursion,
 		MaxFileSize:      *a.Config().FileSettings.MaxFileSize,
+		Timeout:          time.Duration(*a.Config().FileSettings.ExtractContentTimeout) * time.Second,
+		ReaderCloser:     file,
 	})
 	if err != nil {
 		return errors.Wrap(err, "failed to extract file content")
@@ -1657,7 +1746,7 @@ func (a *App) ExtractContentFromFileInfo(rctx request.CTX, fileInfo *model.FileI
 		}
 		reloadFileInfo, storeErr := a.Srv().Store().FileInfo().Get(fileInfo.Id)
 		if storeErr != nil {
-			rctx.Logger().Warn("Failed to invalidate the fileInfo cache.", mlog.Err(storeErr), mlog.String("file_info_id", fileInfo.Id))
+			logger.Warn("Failed to invalidate the fileInfo cache.", mlog.Err(storeErr))
 		} else {
 			a.Srv().Store().FileInfo().InvalidateFileInfosForPostCache(reloadFileInfo.PostId, false)
 		}
@@ -1898,6 +1987,25 @@ func (a *App) sendFileDownloadRejectedEvent(info *model.FileInfo, userID string,
 	message.Add("channel_id", info.ChannelId)
 	message.Add("post_id", info.PostId)
 	message.Add("download_type", string(downloadType))
+	a.Publish(message)
+}
+
+// sendFileUploadRejectedEvent sends a websocket event to notify the user that their file upload was
+// rejected by a plugin. It mirrors sendFileDownloadRejectedEvent so the webapp can surface the
+// rejection as a toast instead of an inline composer error. When connectionID is provided, the event
+// is only sent to that specific connection.
+func (a *App) sendFileUploadRejectedEvent(info *model.FileInfo, userID string, connectionID string, rejectionReason string) {
+	if userID == "" {
+		return
+	}
+
+	message := model.NewWebSocketEvent(model.WebsocketEventFileUploadRejected, "", info.ChannelId, userID, nil, "")
+	if connectionID != "" {
+		message.GetBroadcast().ConnectionId = connectionID
+	}
+	message.Add("file_name", info.Name)
+	message.Add("rejection_reason", rejectionReason)
+	message.Add("channel_id", info.ChannelId)
 	a.Publish(message)
 }
 

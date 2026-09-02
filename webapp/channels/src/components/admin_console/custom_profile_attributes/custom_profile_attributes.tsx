@@ -11,7 +11,7 @@ import {FormattedMessage, defineMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
 import {Link} from 'react-router-dom';
 
-import type {UserPropertyField, UserPropertyFieldType} from '@mattermost/types/properties';
+import type {UserPropertyField, UserPropertyFieldType} from '@mattermost/types/properties_user';
 
 import {Client4} from 'mattermost-redux/client';
 import {getCustomProfileAttributes} from 'mattermost-redux/selectors/entities/general';
@@ -86,7 +86,7 @@ type Props = {
     registerSaveAction: (saveAction: () => Promise<unknown>) => void;
     unRegisterSaveAction: (saveAction: () => Promise<unknown>) => void;
     id?: string;
-}
+};
 
 type SaveActionResult = {
     error?: Error;

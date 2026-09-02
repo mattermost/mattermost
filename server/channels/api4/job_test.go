@@ -6,6 +6,7 @@ package api4
 import (
 	"context"
 	"encoding/json"
+	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
@@ -48,6 +49,31 @@ func TestCreateJob(t *testing.T) {
 		_, resp, err := th.SystemAdminClient.CreateJob(context.Background(), &model.Job{Type: model.NewId()})
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
+	})
+}
+
+func TestCreateNotifyExpiringAccessTokensJob(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	th.LoginSystemManager(t)
+
+	job := &model.Job{Type: model.JobTypeNotifyExpiringAccessTokens}
+
+	t.Run("forbidden without manage_jobs permission", func(t *testing.T) {
+		_, resp, err := th.SystemManagerClient.CreateJob(context.Background(), job)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("allowed as system admin", func(t *testing.T) {
+		received, _, err := th.SystemAdminClient.CreateJob(context.Background(), job)
+		require.NoError(t, err)
+		defer func() {
+			result, appErr := th.App.Srv().Store().Job().Delete(received.Id)
+			require.NoErrorf(t, appErr, "Failed to delete job (result: %v): %v", result, appErr)
+		}()
+		require.Equal(t, model.JobTypeNotifyExpiringAccessTokens, received.Type)
 	})
 }
 
@@ -169,6 +195,12 @@ func TestGetJobs(t *testing.T) {
 		require.Len(t, received, 1, "received wrong number of jobs")
 		require.Equal(t, jobs[3].Id, received[0].Id, "should've received the ldap sync job")
 	})
+
+	t.Run("Return 400 for invalid status", func(t *testing.T) {
+		_, resp, err := th.SystemAdminClient.GetJobs(context.Background(), "", "not_a_valid_status", 0, 60)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
 }
 
 func TestGetJobsByType(t *testing.T) {
@@ -238,6 +270,12 @@ func TestGetJobsByType(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 
 	_, _, err = th.SystemManagerClient.GetJobsByType(context.Background(), model.JobTypeElasticsearchPostIndexing, 0, 60)
+	require.NoError(t, err)
+
+	_, _, err = th.SystemAdminClient.GetJobsByType(context.Background(), model.JobTypePostPersistentNotifications, 0, 60)
+	require.NoError(t, err)
+
+	_, _, err = th.SystemAdminClient.GetJobsByType(context.Background(), model.JobTypeDeleteExpiredPosts, 0, 60)
 	require.NoError(t, err)
 }
 
@@ -555,6 +593,116 @@ func TestGetJobsByType_TeamAdminAccessControlSync(t *testing.T) {
 	})
 }
 
+func TestGetJobsByType_TeamAdminAccessControlTeamSync(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.AddPermissionToRole(t, model.PermissionManageTeamAccessRules.Id, model.TeamAdminRoleId)
+
+	otherTeamID := model.NewId()
+	parentPolicyID := model.NewId()
+
+	// A team-type policy's ID is its team ID, so policy_id is the team scope here.
+	ownTeamJob := &model.Job{
+		Id:       model.NewId(),
+		Type:     model.JobTypeAccessControlTeamSync,
+		Status:   model.JobStatusSuccess,
+		CreateAt: model.GetMillis(),
+		Data:     map[string]string{"policy_id": th.BasicTeam.Id},
+	}
+	otherTeamJob := &model.Job{
+		Id:       model.NewId(),
+		Type:     model.JobTypeAccessControlTeamSync,
+		Status:   model.JobStatusSuccess,
+		CreateAt: model.GetMillis(),
+		Data:     map[string]string{"policy_id": otherTeamID},
+	}
+	channelSyncJob := &model.Job{
+		Id:       model.NewId(),
+		Type:     model.JobTypeAccessControlSync,
+		Status:   model.JobStatusSuccess,
+		CreateAt: model.GetMillis(),
+		Data:     map[string]string{"policy_id": parentPolicyID},
+	}
+
+	for _, job := range []*model.Job{ownTeamJob, otherTeamJob, channelSyncJob} {
+		_, err := th.App.Srv().Store().Job().Save(job)
+		require.NoError(t, err)
+		defer func(id string) {
+			_, _ = th.App.Srv().Store().Job().Delete(id)
+		}(job.Id)
+	}
+
+	getJobs := func(t *testing.T, client *model.Client4, jobType, extraQuery string) *http.Response {
+		t.Helper()
+		resp, _ := client.DoAPIGet(context.Background(), "/jobs/type/"+jobType+"?page=0&per_page=60"+extraQuery, "")
+		require.NotNil(t, resp)
+		return resp
+	}
+
+	t.Run("team admin reads team sync jobs for their own team", func(t *testing.T) {
+		th.LoginTeamAdmin(t)
+		defer th.LoginBasic(t)
+
+		resp := getJobs(t, th.Client, model.JobTypeAccessControlTeamSync, "&policy_id="+th.BasicTeam.Id)
+		defer resp.Body.Close()
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+
+		var received []*model.Job
+		require.NoError(t, json.NewDecoder(resp.Body).Decode(&received))
+		require.Len(t, received, 1)
+		require.Equal(t, ownTeamJob.Id, received[0].Id)
+	})
+
+	t.Run("team admin cannot read another team's team sync jobs", func(t *testing.T) {
+		th.LoginTeamAdmin(t)
+		defer th.LoginBasic(t)
+
+		resp := getJobs(t, th.Client, model.JobTypeAccessControlTeamSync, "&policy_id="+otherTeamID)
+		defer resp.Body.Close()
+		require.Equal(t, http.StatusForbidden, resp.StatusCode)
+	})
+
+	t.Run("team admin still cannot enumerate channel sync jobs by policy_id", func(t *testing.T) {
+		th.LoginTeamAdmin(t)
+		defer th.LoginBasic(t)
+
+		resp := getJobs(t, th.Client, model.JobTypeAccessControlSync, "&policy_id="+parentPolicyID)
+		defer resp.Body.Close()
+		require.Equal(t, http.StatusForbidden, resp.StatusCode)
+	})
+
+	t.Run("team admin cannot read team sync jobs without a policy_id", func(t *testing.T) {
+		th.LoginTeamAdmin(t)
+		defer th.LoginBasic(t)
+
+		resp := getJobs(t, th.Client, model.JobTypeAccessControlTeamSync, "")
+		defer resp.Body.Close()
+		require.Equal(t, http.StatusForbidden, resp.StatusCode)
+	})
+
+	t.Run("team admin cannot pair an unvetted team_id with their own policy_id", func(t *testing.T) {
+		th.LoginTeamAdmin(t)
+		defer th.LoginBasic(t)
+
+		resp := getJobs(t, th.Client, model.JobTypeAccessControlTeamSync,
+			"&policy_id="+th.BasicTeam.Id+"&team_id="+otherTeamID)
+		defer resp.Body.Close()
+		require.Equal(t, http.StatusForbidden, resp.StatusCode)
+	})
+
+	t.Run("system admin reads team sync jobs by policy_id", func(t *testing.T) {
+		resp := getJobs(t, th.SystemAdminClient, model.JobTypeAccessControlTeamSync, "&policy_id="+otherTeamID)
+		defer resp.Body.Close()
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+
+		var received []*model.Job
+		require.NoError(t, json.NewDecoder(resp.Body).Decode(&received))
+		require.Len(t, received, 1)
+		require.Equal(t, otherTeamJob.Id, received[0].Id)
+	})
+}
+
 func TestDownloadJob(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
@@ -622,8 +770,8 @@ func TestDownloadJob(t *testing.T) {
 	CheckBadRequestStatus(t, resp)
 
 	job.Data["is_downloadable"] = "true"
-	updateStatus, err := th.App.Srv().Store().Job().UpdateOptimistically(job, model.JobStatusSuccess)
-	require.True(t, updateStatus)
+	updatedJob, err := th.App.Srv().Store().Job().UpdateOptimistically(job, model.JobStatusSuccess)
+	require.NotNil(t, updatedJob)
 	require.NoError(t, err)
 
 	_, resp, err = th.SystemAdminClient.DownloadJob(context.Background(), job.Id)

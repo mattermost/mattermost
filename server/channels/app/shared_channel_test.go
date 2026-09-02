@@ -34,7 +34,6 @@ func setupSharedChannels(tb testing.TB) *TestHelper {
 	return SetupConfig(tb, func(cfg *model.Config) {
 		*cfg.ConnectedWorkspacesSettings.EnableRemoteClusterService = true
 		*cfg.ConnectedWorkspacesSettings.EnableSharedChannels = true
-		cfg.FeatureFlags.EnableSharedChannelsMemberSync = true
 		cfg.ClusterSettings.ClusterName = new("test-remote")
 	})
 }
@@ -1237,7 +1236,7 @@ func TestPluginAPIReceiveSharedChannelSyncMsg(t *testing.T) {
 		assert.Empty(t, resp.UserErrors)
 
 		// Verify the user was actually created in the database
-		user, appErr := th.App.GetUser(userID)
+		user, appErr := th.App.GetUser(th.Context, userID)
 		require.Nil(t, appErr)
 		assert.Contains(t, user.Username, username) // username gets ":remotename" appended by sync
 		assert.Equal(t, rc.RemoteId, user.GetRemoteID())
@@ -1826,7 +1825,7 @@ func TestPluginAPIReceiveSharedChannelProfileImageSyncMsg(t *testing.T) {
 		require.NoError(t, err)
 
 		// Verify the user's LastPictureUpdate was bumped
-		updatedUser, appErr := th.App.GetUser(remoteUser.Id)
+		updatedUser, appErr := th.App.GetUser(th.Context, remoteUser.Id)
 		require.Nil(t, appErr)
 		assert.Greater(t, updatedUser.LastPictureUpdate, lastPictureBefore)
 
@@ -1918,7 +1917,7 @@ func TestPluginRPCSharedChannelSync(t *testing.T) {
 	// --- Post-activation verification: check everything landed in the DB ---
 
 	// Verify synced user
-	user, appErr := th.App.GetUser(syncUserID)
+	user, appErr := th.App.GetUser(th.Context, syncUserID)
 	require.Nil(t, appErr, "synced user should exist in DB")
 	assert.Contains(t, user.Username, "rpc-synced-user")
 	assert.Equal(t, rc.RemoteId, user.GetRemoteID())
@@ -1937,7 +1936,7 @@ func TestPluginRPCSharedChannelSync(t *testing.T) {
 	// the detailed DB verification for attachment persistence.
 
 	// Verify profile image was saved for the synced user
-	updatedUser, err := th.App.Srv().Store().User().Get(th.Context.Context(), syncUserID)
+	updatedUser, err := th.App.Srv().Store().User().Get(th.Context, syncUserID)
 	require.NoError(t, err)
 	assert.Greater(t, updatedUser.LastPictureUpdate, int64(0), "LastPictureUpdate should be set after profile image sync")
 

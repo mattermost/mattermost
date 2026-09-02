@@ -5,8 +5,10 @@ import fs from 'fs';
 
 import nock from 'nock';
 
+import type {Channel} from '@mattermost/types/channels';
 import type {AdminConfig} from '@mattermost/types/config';
 import type {CreateDataRetentionCustomPolicy} from '@mattermost/types/data_retention';
+import type {Team} from '@mattermost/types/teams';
 
 import * as Actions from 'mattermost-redux/actions/admin';
 import {Client4} from 'mattermost-redux/client';
@@ -287,7 +289,7 @@ describe('Actions.Admin', () => {
                 emails: 'joram@example.com',
             });
 
-        const {data: created} = await store.dispatch(Actions.createComplianceReport(job));
+        const created = (await store.dispatch(Actions.createComplianceReport(job))).data!;
 
         const state = store.getState();
         const request = state.requests.admin.createCompliance;
@@ -325,7 +327,7 @@ describe('Actions.Admin', () => {
                 emails: 'joram@example.com',
             });
 
-        const {data: report} = await store.dispatch(Actions.createComplianceReport(job));
+        const report = (await store.dispatch(Actions.createComplianceReport(job))).data!;
 
         nock(Client4.getBaseRoute()).
             get(`/compliance/reports/${report.id}`).
@@ -365,7 +367,7 @@ describe('Actions.Admin', () => {
                 emails: 'joram@example.com',
             });
 
-        const {data: report} = await store.dispatch(Actions.createComplianceReport(job));
+        const report = (await store.dispatch(Actions.createComplianceReport(job))).data!;
 
         nock(Client4.getBaseRoute()).
             get('/compliance/reports').
@@ -1166,7 +1168,7 @@ describe('Actions.Admin', () => {
 
         const response = await store.dispatch(Actions.searchDataRetentionCustomPolicyTeams('id1', 'test', {}));
 
-        expect(response.data.length === 1).toBeTruthy();
+        expect((response.data as unknown as Team[]).length === 1).toBeTruthy();
     });
 
     it('searchDataRetentionCustomPolicyChannels', async () => {
@@ -1176,7 +1178,7 @@ describe('Actions.Admin', () => {
 
         const response = await store.dispatch(Actions.searchDataRetentionCustomPolicyChannels('id1', 'test', {}));
 
-        expect(response.data.length === 1).toBeTruthy();
+        expect((response.data as unknown as Channel[]).length === 1).toBeTruthy();
     });
 
     it('createDataRetentionCustomPolicy', async () => {

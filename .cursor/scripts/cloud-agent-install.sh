@@ -16,7 +16,6 @@ ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
 cd "$ROOT"
 
 NODE_VERSION="${CLOUD_AGENT_NODE_VERSION:-24.11.1}"
-AGENT_BROWSER_VERSION="${CLOUD_AGENT_BROWSER_VERSION:-0.27.0}"
 
 export GOPATH="${GOPATH:-$HOME/go}"
 export PATH="/usr/local/go/bin:$GOPATH/bin:/usr/local/bin:$PATH"
@@ -53,14 +52,6 @@ ensure_node() {
   fi
 
   log "Using node $(node --version) and npm $(npm --version)"
-
-  if ! command -v agent-browser >/dev/null 2>&1; then
-    npm install -g "agent-browser@${AGENT_BROWSER_VERSION}"
-  fi
-
-  if ! is_true "${CLOUD_AGENT_SKIP_AGENT_BROWSER_INSTALL:-false}"; then
-    agent-browser install || log "agent-browser install failed; continuing so code tasks are not blocked."
-  fi
 }
 
 enterprise_build_dir() {

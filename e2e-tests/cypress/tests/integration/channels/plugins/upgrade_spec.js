@@ -22,7 +22,6 @@ import {waitForAlertMessage} from './helpers';
 import * as TIMEOUTS from '@/fixtures/timeouts';
 import {demoPlugin, demoPluginOld} from '@/utils/plugins';
 
-
 describe('Plugin remains enabled when upgraded', () => {
     before(() => {
         cy.shouldNotRunOnCloudEdition();
@@ -54,15 +53,8 @@ describe('Plugin remains enabled when upgraded', () => {
                 cy.get('input[type=file]').attachFile({fileContent, fileName: demoPluginOld.filename, mimeType});
             });
 
-        cy.get('#uploadPlugin').scrollIntoView().should('be.visible').click().wait(TIMEOUTS.HALF_SEC);
-
-        // * Verify that the button shows correct text while uploading
-        cy.findByText('Uploading...', {timeout: TIMEOUTS.ONE_MIN}).should('be.visible');
-
-        // * Verify that the button shows correct text and is disabled after upload
+        // * Verify the old demo plugin is installed after selecting the file
         waitForServerStatus(demoPluginOld.id, demoPluginOld.version, {isInstalled: true});
-        cy.findByText('Upload', {timeout: TIMEOUTS.ONE_MIN}).should('be.visible');
-        cy.get('#uploadPlugin', {timeout: TIMEOUTS.ONE_MIN}).should('be.disabled');
 
         // * Verify that the old demo plugin is successfully uploaded
         cy.findByText(`Successfully uploaded plugin from ${demoPluginOld.filename}`);
@@ -81,7 +73,7 @@ describe('Plugin remains enabled when upgraded', () => {
         // * Verify older version of demo plugin
         cy.findByText(new RegExp(`${demoPluginOld.id} - ${demoPluginOld.version}`)).scrollIntoView().should('be.visible');
 
-        cy.get('#uploadPlugin').scrollIntoView().should('be.visible');
+        cy.findByText('Click or drop plugin bundle to upload').scrollIntoView().should('be.visible');
 
         // # Upgrade plugin
         cy.fixture(demoPlugin.filename, 'binary').
@@ -90,16 +82,15 @@ describe('Plugin remains enabled when upgraded', () => {
                 cy.get('input[type=file]').attachFile({fileContent, fileName: demoPlugin.filename, mimeType});
             });
 
-        // * Verify that the button shows correct text while uploading
-        cy.get('#uploadPlugin').should('be.visible').click().wait(TIMEOUTS.HALF_SEC);
-
-        // # Confirm overwrite of plugin with same name
+        // # Review and confirm overwrite of plugin with same name
+        cy.findByTestId('plugin-upload-overwrite-review').should('be.visible').within(() => {
+            cy.findByText('This upload upgrades the existing plugin.').should('be.visible');
+            cy.findByText(`v${demoPluginOld.version} \u2192 v${demoPlugin.version}`).should('be.visible');
+        });
         cy.get('#confirmModalButton').should('be.visible').click();
 
-        // * Verify that the button shows correct text and is disabled after upload
+        // * Verify that the latest demo plugin is uploaded and remains active after overwrite
         waitForServerStatus(demoPlugin.id, demoPlugin.version, {isActive: true});
-        cy.findByText('Upload', {timeout: TIMEOUTS.ONE_MIN}).should('be.visible');
-        cy.get('#uploadPlugin', {timeout: TIMEOUTS.ONE_MIN}).should('be.disabled');
 
         // * Verify that the latest demo plugin is successfully uploaded
         cy.findByText(`Successfully updated plugin from ${demoPlugin.filename}`);

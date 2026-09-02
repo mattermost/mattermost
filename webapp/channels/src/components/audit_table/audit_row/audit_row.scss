@@ -1,0 +1,12 @@
+.AuditRow {
+    white-space: nowrap;
+    word-break: break-all;
+
+    .AuditRowDesc {
+        white-space: normal;
+
+        &--error {
+            color: var(--error-text);
+        }
+    }
+}

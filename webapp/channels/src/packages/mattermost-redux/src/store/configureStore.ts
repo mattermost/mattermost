@@ -13,6 +13,7 @@ import type {
 import {withExtraArgument as thunkWithExtraArgument} from 'redux-thunk';
 
 import type {GlobalState} from '@mattermost/types/store';
+import type {DeepPartial} from '@mattermost/types/utilities';
 
 import {createReducer} from './helpers';
 import initialState from './initial_state';
@@ -31,8 +32,8 @@ export default function configureStore<S extends GlobalState>({
     preloadedState,
 }: {
     appReducers: Record<string, Reducer>;
-    getAppReducers: () => Record<string, Reducer>;
-    preloadedState: Partial<S>;
+    getAppReducers?: () => Record<string, Reducer>;
+    preloadedState?: DeepPartial<S>;
 }): Store {
     const baseState = {
         ...initialState,

@@ -200,4 +200,67 @@ describe('components/ChannelSelectorModal', () => {
         // The group constrained channel should not appear in the rendered output
         expect(container).toMatchSnapshot();
     });
+
+    test('renders fallback channel icon when matcher returns false', () => {
+        const openChannel: ChannelWithTeamData = Object.assign(
+            TestHelper.getChannelWithTeamDataMock({id: 'ch-open', type: 'O', delete_at: 0}),
+        );
+        const ref = React.createRef<InstanceType<typeof ChannelSelectorModal>>();
+        renderWithContext(
+            <ChannelSelectorModal
+                {...defaultProps}
+                ref={ref}
+            />,
+            {plugins: {components: {ChannelIconOverride: [{id: '1', pluginId: 'p', matcher: () => false, iconName: 'shield-outline'}]}}} as any,
+        );
+        act(() => {
+            ref.current!.setState({channels: [openChannel], loadingChannels: false});
+        });
+
+        const icon = document.body.querySelector('.channel-info-block i');
+        expect(icon).toBeInTheDocument();
+        expect(icon).toHaveClass('icon-globe');
+        expect(icon).not.toHaveClass('icon-shield-outline');
+    });
+
+    test('does not render channel icon for DM channels', () => {
+        const dmChannel: ChannelWithTeamData = Object.assign(
+            TestHelper.getChannelWithTeamDataMock({id: 'ch-dm', type: 'D', delete_at: 0}),
+        );
+        const ref = React.createRef<InstanceType<typeof ChannelSelectorModal>>();
+        renderWithContext(
+            <ChannelSelectorModal
+                {...defaultProps}
+                ref={ref}
+            />,
+        );
+        act(() => {
+            ref.current!.setState({channels: [dmChannel], loadingChannels: false});
+        });
+
+        const icon = document.body.querySelector('.channel-info-block i');
+        expect(icon).toBeNull();
+    });
+
+    test('renders override icon-shield-outline when matcher matches', () => {
+        const openChannel: ChannelWithTeamData = Object.assign(
+            TestHelper.getChannelWithTeamDataMock({id: 'ch-open', type: 'O', delete_at: 0}),
+        );
+        const ref = React.createRef<InstanceType<typeof ChannelSelectorModal>>();
+        renderWithContext(
+            <ChannelSelectorModal
+                {...defaultProps}
+                ref={ref}
+            />,
+            {plugins: {components: {ChannelIconOverride: [{id: '1', pluginId: 'p', matcher: () => true, iconName: 'shield-outline'}]}}} as any,
+        );
+        act(() => {
+            ref.current!.setState({channels: [openChannel], loadingChannels: false});
+        });
+
+        const icon = document.body.querySelector('.channel-info-block i');
+        expect(icon).toBeInTheDocument();
+        expect(icon).toHaveClass('icon-shield-outline');
+        expect(icon).not.toHaveClass('icon-globe');
+    });
 });

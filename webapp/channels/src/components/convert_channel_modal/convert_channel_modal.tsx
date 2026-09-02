@@ -23,11 +23,11 @@ type Props = {
     actions: {
         updateChannelPrivacy: (channelId: string, privacy: string) => void;
     };
-}
+};
 
 type State = {
     show: boolean;
-}
+};
 
 export default class ConvertChannelModal extends React.PureComponent<Props, State> {
     constructor(props: Props) {

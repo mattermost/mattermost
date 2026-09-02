@@ -102,13 +102,26 @@ func (pv *PropertyValue) IsValid() error {
 	return nil
 }
 
+// PropertyValueSearchCursor carries two alternative pagination keys because
+// value listings serve two different read patterns:
+//
+//   - Directory listings (no since filter) page in creation order using
+//     CreateAt + PropertyValueID. CreateAt never changes, so the scan is
+//     stable across concurrent updates.
+//   - Delta sync (SinceUpdateAt > 0) pages in update order using UpdateAt +
+//     PropertyValueID, matching the ORDER BY the store applies in that mode.
+//
+// IsValid requires exactly one of CreateAt or UpdateAt to be positive
+// alongside a valid PropertyValueID. An empty cursor is also valid and means
+// "start from the beginning".
 type PropertyValueSearchCursor struct {
 	PropertyValueID string
 	CreateAt        int64
+	UpdateAt        int64
 }
 
 func (p PropertyValueSearchCursor) IsEmpty() bool {
-	return p.PropertyValueID == "" && p.CreateAt == 0
+	return p.PropertyValueID == "" && p.CreateAt == 0 && p.UpdateAt == 0
 }
 
 func (p PropertyValueSearchCursor) IsValid() error {
@@ -116,33 +129,67 @@ func (p PropertyValueSearchCursor) IsValid() error {
 		return nil
 	}
 
-	if p.CreateAt <= 0 {
-		return errors.New("create at cannot be negative or zero")
+	if !IsValidId(p.PropertyValueID) {
+		return errors.New("property value id is invalid")
 	}
 
-	if !IsValidId(p.PropertyValueID) {
-		return errors.New("property field id is invalid")
+	hasCreate := p.CreateAt > 0
+	hasUpdate := p.UpdateAt > 0
+	if hasCreate == hasUpdate {
+		return errors.New("cursor must have exactly one of create_at or update_at set")
 	}
 	return nil
 }
 
+// PropertyValueSearchOpts captures the filters accepted by SearchPropertyValues.
+//
+// SinceUpdateAt > 0 switches the endpoint to delta mode: rows are ordered by
+// UpdateAt, tombstones are included automatically, and pagination must use
+// Cursor.UpdateAt (Cursor.CreateAt is used in the default directory mode).
 type PropertyValueSearchOpts struct {
 	GroupID        string
 	TargetType     string
 	TargetIDs      []string
 	FieldID        string
-	SinceUpdateAt  int64 // UpdateAt after which to send the items
+	SinceUpdateAt  int64
 	IncludeDeleted bool
 	Cursor         PropertyValueSearchCursor
 	PerPage        int
 	Value          json.RawMessage
 }
 
+func (o PropertyValueSearchOpts) IsValid() error {
+	if err := o.Cursor.IsValid(); err != nil {
+		return err
+	}
+
+	// Cursor key must match the active ordering: delta mode (SinceUpdateAt>0)
+	// pages by UpdateAt; directory mode pages by CreateAt. A mismatch would
+	// silently skip rows because the WHERE clause references the wrong column.
+	if !o.Cursor.IsEmpty() {
+		deltaMode := o.SinceUpdateAt > 0
+		if deltaMode && o.Cursor.UpdateAt == 0 {
+			return errors.New("cursor_update_at required when since is set")
+		}
+		if !deltaMode && o.Cursor.CreateAt == 0 {
+			return errors.New("cursor_create_at required when since is not set")
+		}
+	}
+
+	return nil
+}
+
 // PropertyValueSearch captures the parameters provided by a client for
-// searching property values
+// searching property values.
+//
+// SinceUpdateAt > 0 switches the endpoint to delta mode: rows are ordered by
+// update_at, tombstones are included, and pagination must use CursorUpdateAt
+// (CursorCreateAt is used in the default directory mode).
 type PropertyValueSearch struct {
 	CursorID       string `json:"cursor_id,omitempty"`
 	CursorCreateAt int64  `json:"cursor_create_at,omitempty"`
+	CursorUpdateAt int64  `json:"cursor_update_at,omitempty"`
+	SinceUpdateAt  int64  `json:"since,omitempty"`
 	PerPage        int    `json:"per_page"`
 }
 

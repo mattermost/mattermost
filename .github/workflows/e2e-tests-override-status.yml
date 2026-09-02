@@ -9,8 +9,14 @@ on:
         required: true
         type: string
 
+permissions: {}
+
 jobs:
   override-status:
+    permissions:
+      contents: read
+      pull-requests: read
+      statuses: write
     runs-on: ubuntu-24.04
     steps:
       - name: Validate inputs
@@ -25,9 +31,10 @@ jobs:
         id: pr-info
         env:
           GH_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
           PR_NUMBER: ${{ inputs.pr_number }}
         run: |
-          PR_DATA=$(gh api repos/${{ github.repository }}/pulls/${PR_NUMBER})
+          PR_DATA=$(gh api "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}")
           HEAD_SHA=$(echo "$PR_DATA" | jq -r '.head.sha')
           echo "head_sha=$HEAD_SHA" >> $GITHUB_OUTPUT
 
@@ -35,6 +42,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           COMMIT_SHA: ${{ steps.pr-info.outputs.head_sha }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
         run: |
           # Only full tests can be overridden (smoke tests must pass)
           FULL_TEST_CONTEXTS=("e2e-test/playwright-full/enterprise" "e2e-test/cypress-full/enterprise" "e2e-test/playwright-full/fips" "e2e-test/cypress-full/fips")
@@ -43,7 +51,7 @@ jobs:
             echo "Checking: $CONTEXT_NAME"
 
             # Get current status
-            STATUS_JSON=$(gh api repos/${{ github.repository }}/commits/${COMMIT_SHA}/statuses \
+            STATUS_JSON=$(gh api "repos/${GITHUB_REPOSITORY}/commits/${COMMIT_SHA}/statuses" \
               --jq "[.[] | select(.context == \"$CONTEXT_NAME\")] | first // empty")
 
             if [ -z "$STATUS_JSON" ]; then
@@ -79,7 +87,7 @@ jobs:
             echo "  New: $NEW_MSG"
 
             # Update status via GitHub API
-            gh api repos/${{ github.repository }}/statuses/${COMMIT_SHA} \
+            gh api "repos/${GITHUB_REPOSITORY}/statuses/${COMMIT_SHA}" \
               -f state=success \
               -f context="$CONTEXT_NAME" \
               -f description="$NEW_MSG" \

@@ -37,9 +37,9 @@ type WrapperProps<T extends keyof PluginsState['components'], U extends ProductS
      * Only supported when pluggableName is "Product".
      */
     subComponentName?: U;
-}
+};
 
-export type PluggableProps<Key extends keyof PluginsState['components'], SubKey extends ProductSubComponentNames> = WrapperProps<Key, SubKey> & Omit<ComponentProps<Key, SubKey>, keyof WrapperProps<Key, SubKey> | 'theme' | (Key extends 'Product' ? never : 'webSocketClient')>
+export type PluggableProps<Key extends keyof PluginsState['components'], SubKey extends ProductSubComponentNames> = WrapperProps<Key, SubKey> & Omit<ComponentProps<Key, SubKey>, keyof WrapperProps<Key, SubKey> | 'theme' | (Key extends 'Product' ? never : 'webSocketClient')>;
 
 export default function Pluggable<Key extends keyof PluginsState['components'], SubKey extends ProductSubComponentNames>(props: PluggableProps<Key, SubKey>) {
     const {

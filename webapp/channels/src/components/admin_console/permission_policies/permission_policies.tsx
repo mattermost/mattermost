@@ -28,7 +28,7 @@ const PAGE_SIZE = 10;
 
 const ROLE_LABELS: Record<string, string> = {
     system_guest: 'Guest users',
-    system_user: 'Members and system administrators',
+    system_user: 'Members',
     system_admin: 'System administrators',
 };
 

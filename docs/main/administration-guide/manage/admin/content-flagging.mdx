@@ -1,0 +1,193 @@
+---
+title: "Data Spillage Handling"
+---
+<PlanAvailability slug="entry-adv" />
+
+Data Spillage Handling helps prevent accidental data spillage and helps system administrators respond quickly to potential leaks without disrupting collaboration. Enabling this feature empowers Mattermost users to report messages that may contain sensitive, regulated, or inappropriate information, and enables designated content reviewers to assess and take appropriate action by removing or dismissing quarantined messages.
+
+By making every team member a first line of defense against sensitive-data exposure, Data Spillage Handling strengthens mission-critical, secure deployments and supports compliance with organizational and regulatory data-handling standards.
+
+## Before you begin
+
+You must be a System Admin in Mattermost. You need to identify who will be content reviewers for quarantined messages, and you need to decide whether quarantined messages should be hidden from users in Mattermost while under review.
+
+## Enable
+
+Data Spillage Handling isn't enabled by default. To enable Data Spillage Handling:
+
+1.  Go to **System Console \> Site Configuration \> Data Spillage Handling**.
+2.  Set **Enable Data Spillage Handling** to **True**.
+
+Alternatively, you can configure Data Spillage Handling via the [config.json file or through environment variables](/administration-guide/configure/site-configuration-settings#content-flagging).
+
+## Configure
+
+1.  Under **Content Reviewers**, define who should review quarantined content:
+
+    - **Same reviewers for all teams**: Set to **True** to apply one global reviewer list across all teams, or **False** to configure reviewers per team.
+    - **Reviewers**: Start typing to search for users to assign as content reviewers.
+
+    <Important>
+
+    Choose reviewers carefully. Assigning reviewer roles grants access to potentially sensitive information and may expose data from private channels.
+
+    - A global reviewer can view quarantined messages from all teams and channels, including private channels they’re not a member of.
+    - Team-specific reviewers can view quarantined messages from their assigned teams, including private channels within those teams they’re not members of.
+
+    </Important>
+
+    - **Additional reviewers**: Optionally include:
+      - **System Administrators**: System admins receive quarantined messages for all teams they are part of.
+      - **Team Administrators**: Team admins receive quarantined messages for their respective teams.
+
+2.  Under **Notification Settings**, specify who receives updates at each stage of the quarantine workflow when content is quarantined or reviewed:
+
+    - **Notify when content is quarantined**: Reviewer(s), Author.
+    - **Notify when a reviewer is assigned**: Reviewer(s).
+    - **Notify when content is removed**: Reviewer(s), Author, Reporter.
+    - **Notify on dismissal**: Reviewer(s), Author, Reporter.
+
+    All notifications are sent via the **Data Spillage Bot** as direct messages.
+
+3.  Under **Additional Settings**, configure how the quarantine workflow behaves:
+
+    - **Reasons for quarantine**: Define the preset categories that appear in the quarantine dialog for users (for example: **Classification mismatch**, **Need-to-know violation**, **Personally identifiable information (PII) exposure**, **Operational security (OPSEC) concern**, **Controlled Unclassified Information (CUI) violation**).
+    - **Require reporters to add comment**: Set to **True** to require users to add a short explanation when quarantining a message.
+    - **Require reviewers to add comment**: Set to **True** to require reviewers to add a comment when resolving a quarantine.
+    - **Hide message from channel while it is being reviewed**: Set to **True** to automatically hide quarantined messages from the channel until reviews are complete. If a root post is quarantined, the entire thread is hidden.
+
+<Tip>
+
+We recommend enabling **Hide message from channel while it is being reviewed** and require comments from both reporters and reviewers to maintain transparency, accountability, and an auditable record of actions.
+
+</Tip>
+
+## Monitor quarantined messages
+
+When [a user quarantines a message](/end-user-guide/collaborate/flag-messages), the **Data Spillage Bot** sends a direct message to all content reviewers.
+
+Direct messages from the **Data Spillage Bot** is a centralized moderation queue, where reviewers can view, assign, and act on quarantined messages without leaving Mattermost. Reviewers can use it to monitor potential data spills, coordinate response, and maintain an auditable record of review activity.
+
+Each quarantined message appears as a card-formatted message that includes:
+
+- **Quarantined by**: The user who reported the message.
+- **Status**: The current state of the review. All quarantined content starts in **Pending** status.
+- **Reason**: The reason selected by the reporter (for example, **Classification mismatch**, **Need-to-know violation**).
+- **Message preview**: A snippet of the quarantined message, including the author, timestamp, and original channel.
+- **Reviewer**: The user currently assigned to review the message (initially **Unassigned**).
+- **Channel**: The name of the channel where the message was originally posted.
+- **Team**: The team context for the quarantined message.
+- **Comment**: Any reporter-provided context.
+- **Post ID**: The system identifier for the original message for auditing purposes.
+
+Reviewers can select **View details** to take action as follows:
+
+- Assign a **Reviewer** responsible for reviewing the quarantined message.
+- **Remove message**: Permanently delete the quarantined message from its original channel for all users. The status of the quarantined message changes to **Removed**.
+- **Keep message**: Dismiss the quarantine and restore the message if it was hidden. The status of the quarantined message changes to **Retained**.
+- **Add a comment**: Record the reason for the decision when required.
+- **Generate a report**: Download a report of the quarantined message and review activity for record-keeping or incident response. See [Generate a quarantined message report](#generate-a-quarantined-message-report) for details.
+
+Once an action is taken, the **Status** field updates automatically. The **Data Spillage Bot** sends follow-up notifications to the reporter, author, and other reviewers based on how Data Spillage Handling is configured.
+
+### Generate a quarantined message report
+
+Reviewers can generate a downloadable report that captures the full context of a quarantined message and the associated review activity. Reports are useful for record-keeping, incident response, and preserving evidence before a message is permanently removed.
+
+A report can be generated from any of the following entry points:
+
+- **From the quarantined message details**: Select **Download report** from the message details panel. This option is available regardless of the quarantine's status, including **Pending**, **Reviewer Assigned**, **Removed**, or **Retained**.
+- **From the Remove message flow**: When you select **Remove message**, the confirmation dialog includes a **Download quarantined message report** checkbox, selected by default. With the checkbox selected, Mattermost generates and downloads the report before you can permanently remove the message. This safeguard ensures the record is preserved on your device before the message contents are deleted.
+- **From the Keep message flow**: When you select **Keep message**, the confirmation dialog includes the same checkbox. With the checkbox selected, Mattermost generates and downloads the report in the background while the keep action completes.
+
+If you choose to skip the report download from the **Remove message** or **Keep message** flow, Mattermost asks you to confirm that you're proceeding without a report. The skip decision is recorded in the audit log.
+
+If report generation fails (for example, due to a network interruption or session timeout), the dialog displays an error and offers a retry option. You can also skip the report and proceed with the action, or cancel and download the report later from the message details.
+
+Each time a reviewer generates a report, the **Data Spillage Bot** notifies all content reviewers so an auditable record exists whenever a copy of the potentially spilled data is obtained.
+
+<Tip>
+
+We recommend generating a report before removing a message. Once a message is removed, its content, attachments, and edit history are permanently deleted and can't be recovered.
+
+</Tip>
+
+#### Report contents and format
+
+Each report is a ZIP archive containing YAML metadata files and the original file attachments. YAML is used because it's both human-readable and machine-parseable, which makes the report suitable for manual review and for ingestion by downstream compliance or incident-response tooling.
+
+The archive has the following structure:
+
+``` text
+/
+├── report_metadata.yaml
+├── content_review.yaml
+├── post/
+│   ├── post.yaml
+│   └── attachments/
+│       └── <original attachment files>
+└── edit_history/
+    └── <edit_post_id>/
+        ├── post.yaml
+        └── attachments/
+            └── <original attachment files>
+```
+
+- **report_metadata.yaml**: Identifies the report itself, including the user ID and username of the reviewer who generated the report, the generation timestamp, and the report format version (used for forward compatibility if the report format changes in future releases).
+- **content_review.yaml**: Captures the data spillage event, including the reporter's user ID, username, selected reason, and comment; the report timestamp; whether the message was hidden during review; and, once the quarantine is resolved, the reviewer's user ID, username, comment, and action timestamp. For unresolved quarantines, reviewer fields are omitted.
+- **post/post.yaml**: Describes the quarantined message, including the post ID, author ID, author name, author email, message content, channel ID, channel display name, team ID, team display name, creation and update timestamps, pinned status, root ID, post properties, post metadata, reply count (for root posts), and the ordered list of edit history post IDs.
+- **post/attachments/**: The original files attached to the quarantined message, included verbatim.
+- **edit_history/\<edit_post_id\>/**: One subdirectory per previous version of the message, each containing a `post.yaml` and an `attachments/` directory in the same format as the base post directory.
+
+To avoid duplication, attachment files are deduplicated across the entire archive by their file ID. Each unique attachment appears exactly once — under the base post if it exists in the current version of the message, or under the earliest edit-history entry that referenced it.
+
+### Deleted messages
+
+When a reviewer permanently removes a quarantined message, the message and all associated data are deleted from the database and file system and can't be recovered. The deletion covers:
+
+- **Post record**: The text of the message and any associated post properties. The content is scrubbed before the post is deleted.
+- **File attachments**: The files stored in Mattermost's file storage (local, S3, etc.).
+- **File attachment records**: The file info database rows for the message, including file names, IDs, and links to storage.
+- **Edit history**: Every prior revision of the message, along with file metadata from each revision.
+- **Priority metadata**: Any message priority or importance settings.
+- **Persistent notifications**: Any recurring notifications attached to the message.
+- **Acknowledgements**: Records of users who acknowledged the message.
+- **Reminders**: Any reminders created for the message.
+- **Thread, replies, and reactions**: The thread record, replies, and reaction data, if any, associated with the message.
+
+#### Post deletion report
+
+When a reviewer selects **Remove message**, the **Data Spillage Bot** posts a **Post Deletion Report** into the reviewer's content review thread for that quarantined message. The report is delivered to every reviewer who received the original quarantine notification, and is localized to each reviewer's language. Each post includes a short summary rendered inline, and a full report attached as a Markdown file named `deletion_report_<post_id>.md`.
+
+The report records every cleanup step performed against the message and its associated data. The steps map directly to the data scope listed in [Deleted messages](#deleted-messages):
+
+- **File attachments**: Files removed from file storage.
+- **File attachment records**: File info database rows for the message.
+- **Edit history**: Every prior revision of the message. Each revision is reported as its own sub-step so that reviewers can see exactly which revisions were cleared.
+- **Priority metadata**: Message priority and importance settings.
+- **Persistent notifications**: Recurring notifications attached to the message.
+- **Acknowledgements**: Records of users who acknowledged the message.
+- **Reminders**: Reminders set on the message.
+- **Thread, replies, and reactions**: The thread record, replies, and reaction data associated with the message.
+- **Post record**: The post itself. The content is scrubbed before the post is deleted.
+
+Each step is assigned one of the following statuses:
+
+- **Removed** ✅: The data was successfully deleted.
+- **Not applicable** ➖: There was no data of this type to delete.
+- **Partial** ⚠️: Some items of this type were deleted, but at least one failed. This status most often appears under **Edit history** when one revision can't be deleted.
+- **Failed** ❌: The step didn't complete. The report includes an error log so reviewers and System Administrators can inspect what went wrong.
+
+When every step is **Removed** or **Not applicable**, no further action is required. The report serves as the auditable record of the deletion.
+
+When any step reports **Partial** or **Failed**, the report displays an *incomplete* warning. Reviewers should escalate to a System Administrator, who can use the attached `deletion_report_<postId>.md` file - including the full per-step error log - to perform manual remediation and confirm that the data is fully removed.
+
+<Note>
+
+The post deletion report is the single source of truth for post-removal auditing. It isn't stored elsewhere in the System Console, so the reviewer thread containing the report should be retained in line with your organization's audit retention policy.
+
+</Note>
+
+## Best practice recommendations
+
+Before rolling out Data Spillage Handling organization-wide, we recommend communicating that the feature protects both users and the organization from accidental data spillage. Start with a pilot team to validate reviewer notifications and workflows, integrate the process with existing data-handling or incident-response playbooks, and require reporter and reviewer comments to ensure every decision is transparent and auditable.

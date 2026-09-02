@@ -15,7 +15,7 @@ import DropdownInput from 'components/dropdown_input';
 export type Props = {
     teamsById: {[id: string]: Team};
     onChange: (teamId: string) => void;
-}
+};
 
 const TeamSelector = (props: Props): JSX.Element => {
     const [value, setValue] = useState<Team>();

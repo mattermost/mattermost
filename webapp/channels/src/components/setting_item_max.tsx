@@ -49,7 +49,7 @@ type Props = {
     saveButtonText?: string;
     saveButtonVariant?: ButtonVariant;
     isValid?: boolean;
-}
+};
 
 const SettingItemMax = ({
     infoPosition = 'bottom',

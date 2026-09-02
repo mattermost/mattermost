@@ -10,7 +10,7 @@ type Props = {
     show: boolean;
     onConfirm: (checked: boolean) => void;
     onCancel: (checked: boolean) => void;
-}
+};
 
 const DiscardChangesModal = ({
     show,

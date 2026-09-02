@@ -8,7 +8,7 @@ export type LinkInfo = {
     link: string;
     extension: string;
     name: string;
-}
+};
 
 export function isFileInfo(info: FileInfo | LinkInfo): info is FileInfo {
     return Boolean((info as FileInfo).id);

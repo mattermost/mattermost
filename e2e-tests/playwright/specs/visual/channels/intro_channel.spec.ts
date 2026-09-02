@@ -27,7 +27,7 @@ test(
         await pw.hideDynamicChannelsContent(page);
 
         // * Verify channel intro page appears as expected
-        const testArgs = {page: page, browserName, viewport};
+        const testArgs = {page, browserName, viewport};
         await pw.matchSnapshot(testInfo, testArgs);
     },
 );

@@ -5,6 +5,7 @@ package app
 
 import (
 	"bytes"
+	"errors"
 	"io"
 	"net/http"
 	"path"
@@ -231,12 +232,15 @@ func (ch *Channels) servePluginRequest(w http.ResponseWriter, r *http.Request, h
 
 	session, appErr := app.GetSession(token)
 	if appErr != nil {
+		// GetSession embeds the raw token in its error message.
+		sessionErr := strings.ReplaceAll(appErr.Error(), token, "<redacted>")
 		if appErr.StatusCode == http.StatusInternalServerError {
-			handleInternalServerError(rctx, "Internal server error while loading session", appErr)
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			rctx.Logger().Error("Internal server error while loading session", mlog.String("error", sessionErr))
 			return
 		}
 		rctx.Logger().Debug("Token in plugin request is invalid. Treating request as unauthenticated",
-			mlog.Err(appErr),
+			mlog.String("error", sessionErr),
 		)
 		handler(context, w, r)
 		return
@@ -264,7 +268,18 @@ func (ch *Channels) servePluginRequest(w http.ResponseWriter, r *http.Request, h
 		return
 	}
 
-	if validateCSRFForPluginRequest(rctx, r, session, cookieAuth, *ch.cfgSvc.Config().ServiceSettings.ExperimentalStrictCSRFEnforcement) {
+	maxBodyBytes := *ch.cfgSvc.Config().ServiceSettings.MaximumPayloadSizeBytes + bytes.MinRead
+	csrfValid, err := validateCSRFForPluginRequest(rctx, w, r, session, cookieAuth, *ch.cfgSvc.Config().ServiceSettings.ExperimentalStrictCSRFEnforcement, maxBodyBytes)
+	if err != nil {
+		var maxBytesErr *http.MaxBytesError
+		if errors.As(err, &maxBytesErr) {
+			http.Error(w, http.StatusText(http.StatusRequestEntityTooLarge), http.StatusRequestEntityTooLarge)
+			return
+		}
+		handleInternalServerError(rctx, "Failed to read request body for plugin CSRF validation", err)
+		return
+	}
+	if csrfValid {
 		r.Header.Set("Mattermost-User-Id", session.UserId)
 		context.SessionId = session.Id
 	} else {
@@ -275,18 +290,19 @@ func (ch *Channels) servePluginRequest(w http.ResponseWriter, r *http.Request, h
 }
 
 // validateCSRFForPluginRequest validates CSRF token for plugin requests
-func validateCSRFForPluginRequest(rctx request.CTX, r *http.Request, session *model.Session, cookieAuth bool, strictCSRFEnforcement bool) bool {
+func validateCSRFForPluginRequest(rctx request.CTX, w http.ResponseWriter, r *http.Request, session *model.Session, cookieAuth bool, strictCSRFEnforcement bool, maxBodyBytes int64) (bool, error) {
 	// Skip CSRF check for non-cookie auth or GET requests
 	if !cookieAuth || r.Method == http.MethodGet {
-		return true
+		return true, nil
 	}
 
 	csrfTokenFromClient := r.Header.Get(model.HeaderCsrfToken)
 
 	if csrfTokenFromClient == "" {
+		r.Body = http.MaxBytesReader(w, r.Body, maxBodyBytes)
 		bodyBytes, err := io.ReadAll(r.Body)
 		if err != nil {
-			rctx.Logger().Warn("Failed to read request body for plugin request", mlog.Err(err))
+			return false, err
 		}
 		r.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
 		if err := r.ParseForm(); err != nil {
@@ -298,7 +314,7 @@ func validateCSRFForPluginRequest(rctx request.CTX, r *http.Request, session *mo
 
 	expectedToken := session.GetCSRF()
 	if csrfTokenFromClient == expectedToken {
-		return true
+		return true, nil
 	}
 
 	// ToDo(DSchalla) 2019/01/04: Remove after deprecation period and only allow CSRF Header (MM-13657)
@@ -306,13 +322,13 @@ func validateCSRFForPluginRequest(rctx request.CTX, r *http.Request, session *mo
 		csrfErrorMessage := "CSRF Check failed for request - Please migrate your plugin to either send a CSRF Header or Form Field, XMLHttpRequest is deprecated"
 		if strictCSRFEnforcement {
 			rctx.Logger().Warn(csrfErrorMessage, mlog.String("session_id", session.Id))
-			return false
+			return false, nil
 		}
 
 		// Allow XMLHttpRequest for backward compatibility when not strict
 		rctx.Logger().Debug(csrfErrorMessage, mlog.String("session_id", session.Id))
-		return true
+		return true, nil
 	}
 
-	return false
+	return false, nil
 }

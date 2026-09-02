@@ -16,13 +16,13 @@ import ExpiryTime from './expiry_time';
 type ExpiryMenuItem = {
     text: string;
     value: string;
-}
+};
 
 type Props = {
     duration: CustomStatusDuration;
     expiryTime?: string;
     handleDurationChange: (expiryValue: CustomStatusDuration) => void;
-}
+};
 
 const {
     DONT_CLEAR,
@@ -40,7 +40,7 @@ const ExpiryMenu: React.FC<Props> = (props: Props) => {
     const {formatMessage} = useIntl();
     const [menuItems, setMenuItems] = useState<JSX.Element[]>([]);
 
-    const expiryMenuItems: { [key in CustomStatusDuration]?: ExpiryMenuItem } = {
+    const expiryMenuItems: {[key in CustomStatusDuration]?: ExpiryMenuItem} = {
         [DONT_CLEAR]: {
             text: formatMessage(durationValues[DONT_CLEAR]),
             value: formatMessage(durationValues[DONT_CLEAR]),

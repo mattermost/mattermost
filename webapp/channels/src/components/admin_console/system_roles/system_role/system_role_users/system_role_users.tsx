@@ -37,14 +37,14 @@ export type Props = {
         setUserGridSearch: (term: string) => void;
     };
     readOnly?: boolean;
-}
+};
 
 type State = {
     loading: boolean;
     page: number;
     includeUsers: Record<string, UserProfile>;
     excludeUsers: Record<string, UserProfile>;
-}
+};
 
 const USERS_PER_PAGE = 10;
 
