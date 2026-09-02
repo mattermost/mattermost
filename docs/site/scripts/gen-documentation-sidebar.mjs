@@ -161,17 +161,20 @@ const DEPLOYMENT_GROUPS = {
 
   // Prerequisites that must exist before the install runs. Sits BEFORE Deploy
   // deliberately: a reader following the sidebar top to bottom must not finish
-  // installing before reaching NGINX and TLS. `server/preparations` already
-  // links to exactly these, so it's the landing page.
+  // installing before reaching NGINX and TLS. PostgreSQL leads and the
+  // deprecated MySQL page sorts last, so the required database outranks it.
   prepare: {
     label: 'Prepare',
     landing: 'server/preparations',
     items: [
+      'server/prepare-database',
+      'server/prepare-file-storage',
+      'server/prepare-network',
       'server/setup-nginx-proxy',
       'server/setup-tls',
-      'server/prepare-mattermost-mysql-database',
       'server/image-proxy',
       'server/pre-authentication-secrets',
+      'server/prepare-mattermost-mysql-database',
     ],
   },
 

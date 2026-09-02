@@ -122,7 +122,7 @@ This guide requires a schema of v7.1 ESR or later. So, if you have an earlier ve
 - Confirm your Mattermost version. See the **About** modal for details.
 - Schedule the migration window. This process requires you to stop the Mattermost Server during the migration.
 - See the [schema-diffs](#schema-diffs) section to ensure data compatibility between schemas.
-- Prepare your PostgreSQL environment by creating a database and user. See the [database](/deployment-guide/server/preparations) documentation for details.
+- Prepare your PostgreSQL environment by creating a database and user. See the [database](/deployment-guide/server/prepare-database) documentation for details.
 - On [newer versions](https://www.postgresql.org/docs/release/15.0/) of PostgreSQL, newly created users do not have access to `public` schema. The access should be explicitly granted by running `GRANT ALL ON SCHEMA public to mmuser`.
 
 </Important>

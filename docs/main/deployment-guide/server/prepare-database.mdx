@@ -1,0 +1,111 @@
+---
+title: "Set up the Mattermost PostgreSQL database"
+sidebar_label: "Set up the database"
+---
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+PostgreSQL v14+ is required for Mattermost server installations. Create the database, user, and grants before you install Mattermost Server, so the installer has something to connect to.
+
+You can run PostgreSQL on the same host as Mattermost, on a separate server, or as a managed service such as Amazon RDS or Azure Database for PostgreSQL. See the [database software](/deployment-guide/software-hardware-requirements#database-software) documentation for the supported versions and the minimum version policy.
+
+<Note>
+
+[MySQL database support](/deployment-guide/server/prepare-mattermost-mysql-database) is being deprecated starting with Mattermost v11. See the [PostgreSQL migration](/administration-guide/manage/admin/postgres-migration) documentation for guidance on migrating from MySQL to PostgreSQL.
+
+</Note>
+
+## Create the database and user
+
+1.  Create an PostgreSQL server instance. See the [PostgreSQL documentation](https://www.postgresql.org/download/) for details. When the installation is complete, the PostgreSQL server is running, and a Linux user account called postgres has been created.
+
+2.  Create the Mattermost database and user:
+
+    1.  Access PostgreSQL by running:
+
+        ``` sh
+        sudo -u postgres psql
+        ```
+
+    2.  Create the database:
+
+        ``` sql
+        CREATE DATABASE mattermost WITH ENCODING 'UTF8' LC_COLLATE='en_US.UTF-8' LC_CTYPE='en_US.UTF-8' TEMPLATE=template0;
+        ```
+
+    If this steps fails with an error message like `invalid LC_COLLATE locale name: "en_US.UTF-8"`, you need to generate the locale first using `locale-gen en_US.UTF-8`.
+
+    3.  Create the Mattermost user with a secure password:
+
+        ``` sql
+        CREATE USER mmuser WITH PASSWORD 'mmuser-password';
+        ```
+
+    4.  Grant database access to the user:
+
+        ``` sql
+        GRANT ALL PRIVILEGES ON DATABASE mattermost to mmuser;
+        ```
+
+    5.  If using PostgreSQL v15.x or later, additional grants are required:
+
+        ``` text
+        ALTER DATABASE mattermost OWNER TO mmuser;
+        -- Connect to the mattermost database so the schema grants below apply to the right schema
+        \c mattermost
+        ALTER SCHEMA public OWNER TO mmuser;
+        GRANT USAGE, CREATE ON SCHEMA public TO mmuser;
+        ```
+
+## Allow remote connections
+
+Complete this section only if the database runs on a different host from Mattermost Server. A database local to the application host needs no additional configuration.
+
+1.  Edit `postgresql.conf` to allow remote connections:
+
+<Tabs>
+<TabItem value="ubuntu-debian" label="Ubuntu/Debian">
+
+Edit `/etc/postgresql/&#123;version&#125;/main/postgresql.conf`:
+
+    ``` text
+    listen_addresses = '*'
+    ```
+
+</TabItem>
+<TabItem value="rhel-centos" label="RHEL/CentOS">
+
+Edit `/var/lib/pgsql/&#123;version&#125;/data/postgresql.conf`:
+
+    ``` text
+    listen_addresses = '*'
+    ```
+
+</TabItem>
+</Tabs>
+
+2.  Configure client authentication by editing `pg_hba.conf`.
+
+    Add the following line, replacing `&#123;mattermost-server-IP&#125;`:
+
+    ``` text
+    host all all {mattermost-server-IP}/32 md5
+    ```
+
+    Restrict the source to the Mattermost server's address rather than a wider range, so the database only accepts connections from the application layer.
+
+3.  Restart the PostgreSQL service to apply the configuration changes:
+
+    ``` sh
+    sudo systemctl restart postgresql
+    ```
+
+<Important>
+
+If you are upgrading a major version of PostgreSQL, see [Upgrade PostgreSQL](/administration-guide/upgrade/upgrading-postgres) for the full upgrade procedure and post-upgrade steps.
+
+</Important>
+
+## Next steps
+
+Once the database is ready, continue with the rest of the [preparation checklist](/deployment-guide/server/preparations), or go straight to your install method: [Kubernetes](/deployment-guide/server/deploy-kubernetes), [Linux](/deployment-guide/server/deploy-linux), or [containers](/deployment-guide/server/deploy-containers).

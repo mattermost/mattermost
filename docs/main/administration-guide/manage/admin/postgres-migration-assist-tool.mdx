@@ -20,7 +20,7 @@ You'll also need to install the `pgloader` tool to migrate your data from MySQL 
 <Important>
 
 - If you encounter heap exhaustion errors in `pgloader`, edit your generated `migration.load` and under the `WITH` block set: `prefetch rows = 1000` and consider reducing it if the issue persists.
-- Please make sure you have the necessary environment to perform the migration. Ensure that the MySQL and PostgreSQL databases are running and accessible. To set up a PostgreSQL instance, see the [prepare your Mattermost database](/deployment-guide/server/preparations) documentation for details.
+- Please make sure you have the necessary environment to perform the migration. Ensure that the MySQL and PostgreSQL databases are running and accessible. To set up a PostgreSQL instance, see the [prepare your Mattermost database](/deployment-guide/server/prepare-database) documentation for details.
 - If you were previously utilizing a database for handling the [Mattermost configuration](/administration-guide/configure/configuration-in-your-database), those tables will not be migrated from your MySQL database with the migration [script](#migrate-the-data). You will need to manually migrate those configuration settings to your PostgreSQL database after completing the migration process. See the [configuration in database](/administration-guide/manage/admin/manual-postgres-migration#configuration-in-database) documentation for details.
 
 </Important>
