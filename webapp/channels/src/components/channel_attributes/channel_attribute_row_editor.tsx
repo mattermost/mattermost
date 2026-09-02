@@ -124,11 +124,11 @@ const ChannelAttributeRowEditor = ({field, rawValue, onSubmit, onCancel, saving}
 
                 // An abandoned edit is not a request to clear the value.
                 onBlur={() => {
-                    const next = text.trim();
-                    if (next === initialText) {
+                    if (text === initialText) {
                         onCancel();
                         return;
                     }
+                    const next = text.trim();
                     onSubmit(next || null);
                 }}
                 disabled={saving}

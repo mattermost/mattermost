@@ -2506,6 +2506,14 @@ func TestAccessControlAttributeValidationHookRequired(t *testing.T) {
 		requireRefused(t, err)
 	})
 
+	t.Run("deleting a required non-channel value is refused too", func(t *testing.T) {
+		field := newRequiredField(t, model.PropertyFieldObjectTypePost)
+		value, err := write(field, model.NewId(), model.PropertyValueTargetTypePost, `"SECRET"`)
+		require.NoError(t, err)
+
+		requireRefused(t, th.service.DeletePropertyValue(th.Context, group.ID, value.ID))
+	})
+
 	t.Run("a field that is not required is unaffected", func(t *testing.T) {
 		field, createErr := th.service.CreatePropertyField(th.Context, &model.PropertyField{
 			GroupID:    group.ID,

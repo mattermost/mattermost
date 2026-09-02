@@ -1035,18 +1035,18 @@ func (h *AccessControlAttributeValidationHook) refuseGovernedDelete(rctx request
 		return nil
 	}
 
-	channelValues := make([]*model.PropertyValue, 0, len(values))
+	setValues := make([]*model.PropertyValue, 0, len(values))
 	for _, v := range values {
-		if v.TargetType == model.PropertyValueTargetTypeChannel && !model.IsEmptyPropertyValue(v.Value) {
-			channelValues = append(channelValues, v)
+		if !model.IsEmptyPropertyValue(v.Value) {
+			setValues = append(setValues, v)
 		}
 	}
-	if len(channelValues) == 0 {
+	if len(setValues) == 0 {
 		return nil
 	}
 
 	fieldIDSet := make(map[string]struct{})
-	for _, v := range channelValues {
+	for _, v := range setValues {
 		fieldIDSet[v.FieldID] = struct{}{}
 	}
 	fieldIDs := make([]string, 0, len(fieldIDSet))
@@ -1063,15 +1063,18 @@ func (h *AccessControlAttributeValidationHook) refuseGovernedDelete(rctx request
 		fieldMap[f.ID] = f
 	}
 
-	for _, v := range channelValues {
+	for _, v := range setValues {
 		field, ok := fieldMap[v.FieldID]
 		if !ok {
 			continue
 		}
+		// Required is enforced for every target type, matching the write path
+		// in validateValues. change_policy stays channel-only -- see
+		// validateChangePolicy for why.
 		if model.IsPropertyFieldRequired(field) {
 			return newRequiredValueError(field)
 		}
-		if model.GetPropertyFieldChangePolicy(field) != model.PropertyFieldChangePolicyAny {
+		if v.TargetType == model.PropertyValueTargetTypeChannel && model.GetPropertyFieldChangePolicy(field) != model.PropertyFieldChangePolicyAny {
 			return newChangePolicyError(field, model.GetPropertyFieldChangePolicy(field))
 		}
 	}

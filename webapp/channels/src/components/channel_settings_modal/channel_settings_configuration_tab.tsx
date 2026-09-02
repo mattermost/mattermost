@@ -181,8 +181,10 @@ function ChannelSettingsConfigurationTab({
 
     // An attribute-designated banner renders off the property value, so banner_info
     // stays disabled by design. The section still has to read as on, or the toggle
-    // contradicts the banner the channel is visibly showing.
-    const bannerDrivenByAttribute = channelAttributesEnabled && classificationBanner.hasClassification;
+    // contradicts the banner the channel is visibly showing. Gated on bannerFields
+    // so the legacy classification fallback -- which has no display actions of its
+    // own -- isn't mistaken for an attribute-driven banner.
+    const bannerDrivenByAttribute = channelAttributesEnabled && bannerFields.length > 0 && classificationBanner.hasClassification;
 
     // Required banner attributes mandate the banner: the channel has no say.
     const bannerRequiredByAttribute = channelAttributesEnabled &&
@@ -869,7 +871,7 @@ function ChannelSettingsConfigurationTab({
                                 id='channelBannerToggle'
                                 ariaLabel={bannerHeading}
                                 size='btn-md'
-                                disabled={bannerLockedByClassification || bannerRequiredByAttribute || bannerDrivenByAttribute}
+                                disabled={bannerLockedByClassification || bannerRequiredByAttribute}
                                 onToggle={handleBannerToggle}
                                 toggled={bannerLockedByClassification || bannerDrivenByAttribute || bannerRequiredByAttribute || updatedChannelBanner.enabled}
                                 tabIndex={0}
