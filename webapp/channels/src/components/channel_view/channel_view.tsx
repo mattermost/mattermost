@@ -95,10 +95,15 @@ export default class ChannelView extends React.PureComponent<Props, State> {
         this.setState({waitForLoader: v});
     };
 
+    componentDidMount() {
+        this.props.loadPostAttributeFields(this.props.channelId);
+    }
+
     componentDidUpdate(prevProps: Props) {
         // TODO: debounce
         if (prevProps.channelId !== this.props.channelId) {
             WebSocketClient.updateActiveChannel(this.props.channelId);
+            this.props.loadPostAttributeFields(this.props.channelId);
         }
 
         // If we're restricting direct messages and the value is not yet set, fetch it

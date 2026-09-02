@@ -80,9 +80,12 @@ async function listPropertyFields(objectType: string): Promise<PropertyField[]> 
         const page = await Client4.getPropertyFields(
             GLOBAL_ATTRIBUTES_GROUP_NAME,
             objectType,
-            GLOBAL_ATTRIBUTES_TARGET_TYPE,
-            undefined,
-            {perPage: MAX_PROPERTY_FIELDS_PER_PAGE, cursorId, cursorCreateAt},
+            {
+                targetType: GLOBAL_ATTRIBUTES_TARGET_TYPE,
+                perPage: MAX_PROPERTY_FIELDS_PER_PAGE,
+                cursorId,
+                cursorCreateAt,
+            },
         );
         fields.push(...page);
         if (page.length === 0) {

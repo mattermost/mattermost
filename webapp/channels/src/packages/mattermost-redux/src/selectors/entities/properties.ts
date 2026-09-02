@@ -3,6 +3,7 @@
 
 import type {PropertyField, PropertyFieldOption, PropertyGroup, PropertyValue} from '@mattermost/types/properties';
 import {supportsOptions} from '@mattermost/types/properties';
+import {POST_ATTRIBUTES_PROPERTY_GROUP_NAME, POST_ATTRIBUTES_PROPERTY_OBJECT_TYPE} from '@mattermost/types/properties_post';
 import type {GlobalState} from '@mattermost/types/store';
 
 import {
@@ -80,16 +81,80 @@ export function getPropertyGroupByName(state: GlobalState, name: string): Proper
 
 // Value selectors
 
-export const getPropertyValuesForTarget = createSelector(
-    'getPropertyValuesForTarget',
-    (state: GlobalState, targetId: string) => state.entities.properties.values.byTargetId[targetId],
-    (targetValues) => {
-        if (!targetValues) {
-            return [];
-        }
-        return Object.values(targetValues);
-    },
-);
+/**
+ * One target's property values.
+ *
+ * A factory per docs/develop/contribute/more-info/webapp/redux/selectors.md; the
+ * module-scoped parameterized selectors in this file predate that rule.
+ */
+export function makeGetPropertyValuesForTarget(): (state: GlobalState, targetId: string) => Array<PropertyValue<unknown>> {
+    return createSelector(
+        'getPropertyValuesForTarget',
+        (state: GlobalState, targetId: string) => state.entities.properties.values.byTargetId[targetId],
+        (targetValues) => {
+            if (!targetValues) {
+                return [];
+            }
+            return Object.values(targetValues);
+        },
+    );
+}
+
+/**
+ * The post-attribute fields that apply to a post in a given channel: the channel's
+ * scope chain, which is every system-scoped field plus the ones targeting this
+ * channel's team and this channel itself.
+ *
+ * The bucket this reads is filled incrementally by hierarchical fetches, one per
+ * channel visited, so it accumulates other channels' channel-scoped fields too — the
+ * filter is what keeps them off this channel's posts.
+ *
+ * Ordered by attrs.sort_order ascending, then name, so every post in a channel shows
+ * its attributes in the same order. A factory per
+ * docs/develop/contribute/more-info/webapp/redux/selectors.md.
+ */
+export function makeGetPostAttributeFields(): (state: GlobalState, channelId: string) => PropertyField[] {
+    return createSelector(
+        'getPostAttributeFields',
+        (state: GlobalState) => {
+            const groupId = getPropertyGroupByName(state, POST_ATTRIBUTES_PROPERTY_GROUP_NAME)?.id;
+            return groupId ? state.entities.properties.fields.byObjectType[POST_ATTRIBUTES_PROPERTY_OBJECT_TYPE]?.[groupId] : undefined;
+        },
+        (state: GlobalState, channelId: string) => channelId,
+        (state: GlobalState, channelId: string) => state.entities.channels.channels[channelId]?.team_id ?? '',
+        (fields, channelId, teamId) => {
+            // No channel means no scope chain to resolve against, so nothing applies —
+            // not even the system-scoped fields another channel's fetch left behind.
+            if (!fields || !channelId) {
+                return [];
+            }
+
+            const applicable = Object.values(fields).filter((field) => {
+                switch (field.target_type) {
+                case 'system':
+                    return true;
+                case 'team':
+                    return Boolean(teamId) && field.target_id === teamId;
+                case 'channel':
+                    return field.target_id === channelId;
+                default:
+                    return false;
+                }
+            });
+
+            return applicable.sort((a, b) => {
+                const aOrder = typeof a.attrs?.sort_order === 'number' ? a.attrs.sort_order : Number.MAX_SAFE_INTEGER;
+                const bOrder = typeof b.attrs?.sort_order === 'number' ? b.attrs.sort_order : Number.MAX_SAFE_INTEGER;
+
+                if (aOrder !== bOrder) {
+                    return aOrder - bOrder;
+                }
+
+                return a.name.localeCompare(b.name);
+            });
+        },
+    );
+}
 
 export function getPropertyValueForTargetField(
     state: GlobalState,

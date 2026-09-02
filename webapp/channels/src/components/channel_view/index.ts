@@ -18,6 +18,7 @@ import {getRoles} from 'mattermost-redux/selectors/entities/roles_helpers';
 import {getCurrentRelativeTeamUrl} from 'mattermost-redux/selectors/entities/teams';
 import {isFirstAdmin} from 'mattermost-redux/selectors/entities/users';
 
+import {loadPostAttributeFields} from 'actions/post_attributes';
 import {goToLastViewedChannel} from 'actions/views/channel';
 
 import {getIsChannelBookmarksEnabled} from 'components/channel_bookmarks/utils';
@@ -58,6 +59,7 @@ function mapStateToProps(state: GlobalState) {
 const mapDispatchToProps = ({
     goToLastViewedChannel,
     fetchIsRestrictedDM,
+    loadPostAttributeFields,
 });
 
 const connector = connect(mapStateToProps, mapDispatchToProps);

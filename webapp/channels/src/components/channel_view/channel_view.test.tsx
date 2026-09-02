@@ -58,6 +58,7 @@ describe('components/channel_view', () => {
         isChannelBookmarksEnabled: false,
         missingChannelRole: false,
         fetchIsRestrictedDM: jest.fn(),
+        loadPostAttributeFields: jest.fn(),
         canRestrictDirectMessage: false,
         restrictDirectMessage: false,
     };

@@ -14,7 +14,7 @@ import {
     getPropertyFieldsByIds,
     getPropertyGroupById,
     getPropertyGroupByName,
-    getPropertyValuesForTarget,
+    makeGetPropertyValuesForTarget,
     getPropertyValueForTargetField,
     getPropertyValuesForTargetByFieldIds,
     getPropertyValuesForField,
@@ -249,7 +249,7 @@ describe('Value selectors', () => {
                 },
             };
 
-            const result = getPropertyValuesForTarget(state as GlobalState, 'target-1');
+            const result = makeGetPropertyValuesForTarget()(state as GlobalState, 'target-1');
             expect(result).toHaveLength(2);
             expect(result).toContain(val1);
             expect(result).toContain(val2);
@@ -266,7 +266,7 @@ describe('Value selectors', () => {
                 },
             };
 
-            expect(getPropertyValuesForTarget(state as GlobalState, 'unknown')).toEqual([]);
+            expect(makeGetPropertyValuesForTarget()(state as GlobalState, 'unknown')).toEqual([]);
         });
     });
 

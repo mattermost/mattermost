@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {PropertyField, PropertyValue} from '@mattermost/types/properties';
+import type {PropertyField, PropertyFieldsScope, PropertyValue} from '@mattermost/types/properties';
 
 import {Client4} from 'mattermost-redux/client';
 import {getPropertyGroupByName} from 'mattermost-redux/selectors/entities/properties';
@@ -19,22 +19,35 @@ import PropertyTypes from '../action_types/properties';
 // targetIds are independent in-flight requests.
 const latestFetchSeqByScope = new Map<string, number>();
 
-function scopeKey(groupName: string, objectType: string, targetType: string, targetId?: string): string {
-    return `${groupName}|${objectType}|${targetType}|${targetId ?? ''}`;
+// The two scope modes are tagged apart so a hierarchical fetch and a single-target
+// fetch never collide on one key. groupName and objectType MUST stay in the key:
+// without objectType the two reconnect fetches for the classification group — same
+// targetType 'system', same empty targetId, differing only in object type — would
+// share a key, and the second would cause the first's dispatches to be skipped.
+function scopeKey(groupName: string, objectType: string, scope: PropertyFieldsScope): string {
+    const parts = scope.targetType ?
+        ['target', scope.targetType, scope.targetId ?? ''] :
+        ['hierarchy', scope.channelId ?? '', scope.teamId ?? ''];
+
+    return [groupName, objectType, ...parts].join('|');
 }
 
 /**
- * Fetches property fields for a given group, object type, and target scope,
- * then stores them in the Redux property fields state.
+ * Fetches property fields for a given group, object type, and scope, then stores them
+ * in the Redux property fields state.
+ *
+ * The scope is either single-target (`targetType` + `targetId`) or hierarchical
+ * (`channelId` or `teamId`), which the server expands to the named scope plus every
+ * ancestor above it. For a channel, system > team > channel in one request, with the
+ * channel's team resolved server-side.
  */
 export function fetchPropertyFields(
     groupName: string,
     objectType: string,
-    targetType: string,
-    targetId?: string,
+    scope: PropertyFieldsScope,
 ): ActionFuncAsync<PropertyField[]> {
     return async (dispatch, getState) => {
-        const key = scopeKey(groupName, objectType, targetType, targetId);
+        const key = scopeKey(groupName, objectType, scope);
         const seq = (latestFetchSeqByScope.get(key) ?? 0) + 1;
         latestFetchSeqByScope.set(key, seq);
 
@@ -46,13 +59,7 @@ export function fetchPropertyFields(
 
         while (fetched < maxItems) {
             // eslint-disable-next-line no-await-in-loop
-            const page = await Client4.getPropertyFields(
-                groupName,
-                objectType,
-                targetType,
-                targetId,
-                {cursorId, cursorCreateAt},
-            );
+            const page = await Client4.getPropertyFields(groupName, objectType, {...scope, cursorId, cursorCreateAt});
             fields = fields.concat(page);
 
             if (page.length === 0) {
@@ -85,17 +92,23 @@ export function fetchPropertyFields(
             });
         }
 
-        // Resolve the scope's groupId even when nothing came back, so an empty result
-        // can still clear a previously-cached, now-fully-deleted scope. Falls back to
-        // the cached name -> id mapping from an earlier fetch; if that's not known
-        // either, there's nothing cached yet for this scope to clear.
-        const groupId = fields[0]?.group_id ?? getPropertyGroupByName(getState(), groupName)?.id;
+        // Only single-target scopes replace their bucket outright. That action is keyed
+        // by (objectType, groupId), which is coarser than the fetch scope, so letting a
+        // hierarchical fetch through would make one channel's chain evict every other
+        // channel's fields. Hierarchical results take the incremental merge above only.
+        if (scope.targetType) {
+            // Resolve the scope's groupId even when nothing came back, so an empty result
+            // can still clear a previously-cached, now-fully-deleted scope. Falls back to
+            // the cached name -> id mapping from an earlier fetch; if that's not known
+            // either, there's nothing cached yet for this scope to clear.
+            const groupId = fields[0]?.group_id ?? getPropertyGroupByName(getState(), groupName)?.id;
 
-        if (groupId) {
-            dispatch({
-                type: PropertyTypes.RECEIVED_PROPERTY_FIELDS_FOR_SCOPE,
-                data: {objectType, groupId, fields},
-            });
+            if (groupId) {
+                dispatch({
+                    type: PropertyTypes.RECEIVED_PROPERTY_FIELDS_FOR_SCOPE,
+                    data: {objectType, groupId, fields},
+                });
+            }
         }
 
         return {data: fields};

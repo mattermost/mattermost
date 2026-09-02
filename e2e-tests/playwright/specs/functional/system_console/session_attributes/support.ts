@@ -95,11 +95,7 @@ export async function restoreSessionAttributesToBaseline(): Promise<void> {
 }
 
 export async function getSessionAttributeFields(client: Client4): Promise<PropertyField[]> {
-    return client.getPropertyFields(
-        SESSION_ATTRIBUTES_GROUP,
-        SESSION_ATTRIBUTES_OBJECT_TYPE,
-        SESSION_ATTRIBUTES_TARGET_TYPE,
-    );
+    return client.getPropertyFields(SESSION_ATTRIBUTES_GROUP, SESSION_ATTRIBUTES_OBJECT_TYPE, {targetType: SESSION_ATTRIBUTES_TARGET_TYPE});
 }
 
 export function findFieldByName(fields: PropertyField[], name: string): PropertyField {

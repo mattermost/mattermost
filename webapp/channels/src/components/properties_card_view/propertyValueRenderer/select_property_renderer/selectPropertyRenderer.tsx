@@ -15,7 +15,12 @@ type Props = {
 };
 
 export default function SelectPropertyRenderer({field, value}: Props) {
-    const valueConfig = (field as SelectPropertyField).attrs?.options?.find((option) => option.name === value.value);
+    const options = (field as SelectPropertyField).attrs?.options;
+
+    // Match the option id first, falling back to its name.
+    const valueConfig = options?.find((option) => option.id === value.value) ??
+        options?.find((option) => option.name === value.value);
+
     const {backgroundColor, color} = getOptionColors(valueConfig?.color || DEFAULT_BACKGROUND_COLOR);
 
     return (
@@ -27,7 +32,7 @@ export default function SelectPropertyRenderer({field, value}: Props) {
                 color,
             }}
         >
-            {value.value as string}
+            {valueConfig?.name ?? (value.value as string)}
         </div>
     );
 }

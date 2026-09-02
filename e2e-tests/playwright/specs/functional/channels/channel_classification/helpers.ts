@@ -38,7 +38,7 @@ export async function setClassificationMarkingsFeatureFlag(adminClient: Client4,
 export async function deleteClassificationFieldsIfExist(adminClient: Client4) {
     // Delete channel linked fields first
     try {
-        const channelFields = await adminClient.getPropertyFields(PROPERTY_GROUP, CHANNEL_OBJECT_TYPE, TARGET_TYPE, '');
+        const channelFields = await adminClient.getPropertyFields(PROPERTY_GROUP, CHANNEL_OBJECT_TYPE, {targetType: TARGET_TYPE, targetId: ''});
         for (const f of channelFields.filter((f) => f.name === CHANNEL_LINKED_FIELD_NAME && f.delete_at === 0)) {
             await adminClient.deletePropertyField(PROPERTY_GROUP, CHANNEL_OBJECT_TYPE, f.id);
         }
@@ -49,7 +49,7 @@ export async function deleteClassificationFieldsIfExist(adminClient: Client4) {
     // Delete system linked fields
     for (const objectType of ['system', 'user'] as const) {
         try {
-            const linkedFields = await adminClient.getPropertyFields(PROPERTY_GROUP, objectType, TARGET_TYPE, '');
+            const linkedFields = await adminClient.getPropertyFields(PROPERTY_GROUP, objectType, {targetType: TARGET_TYPE, targetId: ''});
             for (const f of linkedFields.filter(
                 (f) => f.name === 'classification' && f.delete_at === 0 && f.linked_field_id,
             )) {
@@ -62,7 +62,7 @@ export async function deleteClassificationFieldsIfExist(adminClient: Client4) {
 
     // Delete template fields
     try {
-        const fields = await adminClient.getPropertyFields(PROPERTY_GROUP, TEMPLATE_OBJECT_TYPE, TARGET_TYPE);
+        const fields = await adminClient.getPropertyFields(PROPERTY_GROUP, TEMPLATE_OBJECT_TYPE, {targetType: TARGET_TYPE});
         for (const f of fields.filter((f) => f.name === CLASSIFICATION_FIELD_NAME && f.delete_at === 0)) {
             await adminClient.deletePropertyField(PROPERTY_GROUP, TEMPLATE_OBJECT_TYPE, f.id);
         }

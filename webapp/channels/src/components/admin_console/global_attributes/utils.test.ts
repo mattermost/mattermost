@@ -626,9 +626,9 @@ describe('global_attributes/utils', () => {
 
             const fields = await fetchLinkedFieldsForTemplate('template-id', ALL_RESOURCE_TYPES);
 
-            expect(getPropertyFields).toHaveBeenCalledWith('access_control', 'user', 'system', undefined, expect.objectContaining({perPage: 200}));
-            expect(getPropertyFields).toHaveBeenCalledWith('access_control', 'channel', 'system', undefined, expect.objectContaining({perPage: 200}));
-            expect(getPropertyFields).toHaveBeenCalledWith('access_control', 'post', 'system', undefined, expect.objectContaining({perPage: 200}));
+            expect(getPropertyFields).toHaveBeenCalledWith('access_control', 'user', expect.objectContaining({targetType: 'system', perPage: 200}));
+            expect(getPropertyFields).toHaveBeenCalledWith('access_control', 'channel', expect.objectContaining({targetType: 'system', perPage: 200}));
+            expect(getPropertyFields).toHaveBeenCalledWith('access_control', 'post', expect.objectContaining({targetType: 'system', perPage: 200}));
             expect(fields.map((field) => field.id)).toEqual(['u1', 'c1']);
         });
 

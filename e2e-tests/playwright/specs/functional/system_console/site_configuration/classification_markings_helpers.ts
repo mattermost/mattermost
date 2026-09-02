@@ -37,7 +37,7 @@ export async function setClassificationMarkingsFeatureFlag(adminClient: Client4,
 export async function deleteClassificationMarkingsFieldIfExists(adminClient: Client4) {
     // Delete channel linked fields first (created by channel classification tests).
     try {
-        const channelFields = await adminClient.getPropertyFields(PROPERTY_GROUP, 'channel', TARGET_TYPE, '');
+        const channelFields = await adminClient.getPropertyFields(PROPERTY_GROUP, 'channel', {targetType: TARGET_TYPE, targetId: ''});
         for (const f of channelFields.filter((f) => f.name === 'classification' && f.delete_at === 0)) {
             await adminClient.deletePropertyField(PROPERTY_GROUP, 'channel', f.id);
         }
@@ -49,12 +49,7 @@ export async function deleteClassificationMarkingsFieldIfExists(adminClient: Cli
     // to handle stale data from earlier versions of the feature.
     for (const objectType of [LINKED_OBJECT_TYPE, 'user'] as const) {
         try {
-            const linkedFields = await adminClient.getPropertyFields(
-                PROPERTY_GROUP,
-                objectType,
-                TARGET_TYPE,
-                SYSTEM_FIELD_TARGET_ID,
-            );
+            const linkedFields = await adminClient.getPropertyFields(PROPERTY_GROUP, objectType, {targetType: TARGET_TYPE, targetId: SYSTEM_FIELD_TARGET_ID});
             const matchingLinkedFields = linkedFields.filter(
                 (f) => f.name === LINKED_CLASSIFICATION_FIELD_NAME && f.delete_at === 0 && f.linked_field_id,
             );
@@ -66,7 +61,7 @@ export async function deleteClassificationMarkingsFieldIfExists(adminClient: Cli
         }
     }
     try {
-        const fields = await adminClient.getPropertyFields(PROPERTY_GROUP, OBJECT_TYPE, TARGET_TYPE);
+        const fields = await adminClient.getPropertyFields(PROPERTY_GROUP, OBJECT_TYPE, {targetType: TARGET_TYPE});
         const matchingFields = fields.filter((f) => f.name === CLASSIFICATION_FIELD_NAME && f.delete_at === 0);
         for (const f of matchingFields) {
             await adminClient.deletePropertyField(PROPERTY_GROUP, OBJECT_TYPE, f.id);

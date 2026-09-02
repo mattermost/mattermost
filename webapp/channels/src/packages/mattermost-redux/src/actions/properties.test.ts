@@ -94,7 +94,7 @@ describe('Actions.fetchPropertyFields', () => {
 
         getPropertyFields.mockResolvedValueOnce([field]).mockResolvedValue([]);
 
-        const result = await store.dispatch(fetchPropertyFields(GROUP, OBJECT_TYPE, TARGET_TYPE));
+        const result = await store.dispatch(fetchPropertyFields(GROUP, OBJECT_TYPE, {targetType: TARGET_TYPE}));
 
         expect(result.data).toEqual([field]);
 
@@ -107,7 +107,7 @@ describe('Actions.fetchPropertyFields', () => {
         const store = configureStore();
         getPropertyFields.mockResolvedValue([]);
 
-        await store.dispatch(fetchPropertyFields(GROUP, OBJECT_TYPE, TARGET_TYPE));
+        await store.dispatch(fetchPropertyFields(GROUP, OBJECT_TYPE, {targetType: TARGET_TYPE}));
 
         const state = store.getState() as GlobalState;
         expect(state.entities.properties.groups.byName[GROUP]).toBeUndefined();
@@ -119,14 +119,14 @@ describe('Actions.fetchPropertyFields', () => {
         field.group_id = GROUP_UUID;
 
         getPropertyFields.mockResolvedValueOnce([field]).mockResolvedValueOnce([]);
-        await store.dispatch(fetchPropertyFields(GROUP, OBJECT_TYPE, TARGET_TYPE));
+        await store.dispatch(fetchPropertyFields(GROUP, OBJECT_TYPE, {targetType: TARGET_TYPE}));
 
         let state = store.getState() as GlobalState;
         expect(state.entities.properties.fields.byObjectType[OBJECT_TYPE]?.[GROUP_UUID]?.['field-1']).toEqual(field);
 
         // The field was deleted server-side; a directory-mode refetch no longer returns it.
         getPropertyFields.mockResolvedValue([]);
-        await store.dispatch(fetchPropertyFields(GROUP, OBJECT_TYPE, TARGET_TYPE));
+        await store.dispatch(fetchPropertyFields(GROUP, OBJECT_TYPE, {targetType: TARGET_TYPE}));
 
         state = store.getState() as GlobalState;
         expect(state.entities.properties.fields.byObjectType[OBJECT_TYPE]?.[GROUP_UUID]).toBeUndefined();
@@ -140,7 +140,7 @@ describe('Actions.fetchPropertyFields', () => {
 
         // Seed the store as if an earlier fetch already cached this field for the scope.
         getPropertyFields.mockResolvedValueOnce([field]).mockResolvedValueOnce([]);
-        await store.dispatch(fetchPropertyFields(GROUP, OBJECT_TYPE, TARGET_TYPE));
+        await store.dispatch(fetchPropertyFields(GROUP, OBJECT_TYPE, {targetType: TARGET_TYPE}));
 
         let resolveOlderPage: (fields: PropertyField[]) => void = () => {};
 
@@ -152,8 +152,8 @@ describe('Actions.fetchPropertyFields', () => {
             mockResolvedValueOnce([]); // older fetch's terminating (empty) page
 
         // Start an older fetch (still in flight) before a newer one for the same scope.
-        const olderFetch = store.dispatch(fetchPropertyFields(GROUP, OBJECT_TYPE, TARGET_TYPE));
-        const newerFetch = store.dispatch(fetchPropertyFields(GROUP, OBJECT_TYPE, TARGET_TYPE));
+        const olderFetch = store.dispatch(fetchPropertyFields(GROUP, OBJECT_TYPE, {targetType: TARGET_TYPE}));
+        const newerFetch = store.dispatch(fetchPropertyFields(GROUP, OBJECT_TYPE, {targetType: TARGET_TYPE}));
 
         // The newer fetch resolves first, discovering the field was deleted server-side.
         await newerFetch;

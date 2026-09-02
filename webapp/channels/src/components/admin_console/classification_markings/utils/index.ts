@@ -162,9 +162,12 @@ export async function fetchClassificationField(): Promise<PropertyField | undefi
         const fields = await Client4.getPropertyFields( // eslint-disable-line no-await-in-loop
             ACCESS_CONTROL_PROPERTY_GROUP,
             CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE,
-            CLASSIFICATIONS_FIELD_TARGET_TYPE,
-            CLASSIFICATIONS_FIELD_TARGET_ID,
-            {cursorId, cursorCreateAt},
+            {
+                targetType: CLASSIFICATIONS_FIELD_TARGET_TYPE,
+                targetId: CLASSIFICATIONS_FIELD_TARGET_ID,
+                cursorId,
+                cursorCreateAt,
+            },
         );
         const found = fields.find((f: PropertyField) => f.name === CLASSIFICATIONS_TEMPLATE_FIELD_NAME && f.delete_at === 0);
         if (found || fields.length === 0) {
@@ -217,9 +220,12 @@ export async function fetchLinkedClassificationField(): Promise<PropertyField | 
         const fields = await Client4.getPropertyFields( // eslint-disable-line no-await-in-loop
             ACCESS_CONTROL_PROPERTY_GROUP,
             CLASSIFICATIONS_SYSTEM_OBJECT_TYPE,
-            CLASSIFICATIONS_FIELD_TARGET_TYPE,
-            CLASSIFICATIONS_FIELD_TARGET_ID,
-            {cursorId, cursorCreateAt},
+            {
+                targetType: CLASSIFICATIONS_FIELD_TARGET_TYPE,
+                targetId: CLASSIFICATIONS_FIELD_TARGET_ID,
+                cursorId,
+                cursorCreateAt,
+            },
         );
         const found = fields.find((f: PropertyField) => f.name === CLASSIFICATIONS_SYSTEM_FIELD_NAME && f.delete_at === 0 && f.linked_field_id);
         if (found || fields.length === 0) {
@@ -298,9 +304,12 @@ export async function fetchChannelClassificationField(): Promise<PropertyField |
         const fields = await Client4.getPropertyFields( // eslint-disable-line no-await-in-loop
             ACCESS_CONTROL_PROPERTY_GROUP,
             CLASSIFICATIONS_CHANNEL_OBJECT_TYPE,
-            CLASSIFICATIONS_FIELD_TARGET_TYPE,
-            CLASSIFICATIONS_FIELD_TARGET_ID,
-            {cursorId, cursorCreateAt},
+            {
+                targetType: CLASSIFICATIONS_FIELD_TARGET_TYPE,
+                targetId: CLASSIFICATIONS_FIELD_TARGET_ID,
+                cursorId,
+                cursorCreateAt,
+            },
         );
         const found = fields.find((f: PropertyField) => f.name === CLASSIFICATIONS_CHANNEL_FIELD_NAME && f.delete_at === 0 && f.linked_field_id);
         if (found || fields.length === 0) {
@@ -367,9 +376,12 @@ export async function fetchUserLinkedFields(templateFieldId: string): Promise<Pr
         const fields = await Client4.getPropertyFields( // eslint-disable-line no-await-in-loop
             ACCESS_CONTROL_PROPERTY_GROUP,
             CLASSIFICATIONS_USER_OBJECT_TYPE,
-            CLASSIFICATIONS_FIELD_TARGET_TYPE,
-            CLASSIFICATIONS_FIELD_TARGET_ID,
-            {cursorId, cursorCreateAt},
+            {
+                targetType: CLASSIFICATIONS_FIELD_TARGET_TYPE,
+                targetId: CLASSIFICATIONS_FIELD_TARGET_ID,
+                cursorId,
+                cursorCreateAt,
+            },
         );
         for (const f of fields) {
             if (f.delete_at === 0 && f.linked_field_id === templateFieldId) {

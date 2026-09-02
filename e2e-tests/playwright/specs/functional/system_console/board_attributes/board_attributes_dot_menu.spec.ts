@@ -45,7 +45,7 @@ test.describe('Board Attributes - row dot menu', {tag: '@board_attributes'}, () 
         await expect(ba.nameInputByValue(original)).toBeVisible();
         await expect(ba.nameInputByValue(copy)).toBeVisible();
 
-        const fields = await adminClient.getPropertyFields('boards', 'post', 'system');
+        const fields = await adminClient.getPropertyFields('boards', 'post', {targetType: 'system'});
         const names = (fields ?? []).map((f) => f.name);
         expect(names).toEqual(expect.arrayContaining([original, copy]));
     });
@@ -80,7 +80,7 @@ test.describe('Board Attributes - row dot menu', {tag: '@board_attributes'}, () 
         await expect(ba.nameInputByValue(name)).toHaveCount(0);
 
         // * The server no longer lists the attribute
-        const fields = await adminClient.getPropertyFields('boards', 'post', 'system');
+        const fields = await adminClient.getPropertyFields('boards', 'post', {targetType: 'system'});
         const names = (fields ?? []).map((f) => f.name);
         expect(names).not.toContain(name);
     });

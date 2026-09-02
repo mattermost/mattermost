@@ -61,6 +61,25 @@ export type PropertyGroup = {
     name: string;
 };
 
+type PropertyFieldsPagination = {
+    cursorId?: string;
+    cursorCreateAt?: number;
+    perPage?: number;
+};
+
+/**
+ * Scope for a property field query. The two modes are mutually exclusive on the
+ * server, so they are modelled as a union rather than as four independent
+ * optional keys.
+ */
+export type PropertyFieldsScope =
+    {channelId: string; teamId?: never; targetType?: never; targetId?: never} |
+    {teamId: string; channelId?: never; targetType?: never; targetId?: never} |
+    {targetType: 'system'; targetId?: string; channelId?: never; teamId?: never} |
+    {targetType: 'team' | 'channel'; targetId: string; channelId?: never; teamId?: never};
+
+export type PropertyFieldsQuery = PropertyFieldsScope & PropertyFieldsPagination;
+
 export type NameMappedPropertyFields = {[key: PropertyField['name']]: PropertyField};
 
 export type PropertyValue<T> = {

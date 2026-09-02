@@ -44,11 +44,9 @@ describe('Client4', () => {
                 query({target_type: 'system', per_page: '10', cursor_id: 'abc', cursor_create_at: '999'}).
                 reply(200, fields);
 
-            const result = await client.getPropertyFields('grp', 'user', 'system', undefined, {
-                perPage: 10,
+            const result = await client.getPropertyFields('grp', 'user', {targetType: 'system', perPage: 10,
                 cursorId: 'abc',
-                cursorCreateAt: 999,
-            });
+                cursorCreateAt: 999});
 
             expect(result).toEqual(fields);
         });
@@ -59,7 +57,7 @@ describe('Client4', () => {
                 query({target_type: 'channel', target_id: 'ch1'}).
                 reply(200, []);
 
-            const result = await client.getPropertyFields('grp', 'user', 'channel', 'ch1');
+            const result = await client.getPropertyFields('grp', 'user', {targetType: 'channel', targetId: 'ch1'});
             expect(result).toEqual([]);
         });
 
@@ -69,7 +67,7 @@ describe('Client4', () => {
                 query({target_type: 'system'}).
                 reply(200, []);
 
-            const result = await client.getPropertyFields('grp', 'user', 'system');
+            const result = await client.getPropertyFields('grp', 'user', {targetType: 'system'});
             expect(result).toEqual([]);
         });
 

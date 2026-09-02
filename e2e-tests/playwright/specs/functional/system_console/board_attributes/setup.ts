@@ -88,7 +88,7 @@ export async function cleanupCustomBoardFields(nameFilter?: (name: string) => bo
 
 async function deleteNonProtectedFields(adminClient: Client4, nameFilter?: (name: string) => boolean): Promise<void> {
     try {
-        const fields = await adminClient.getPropertyFields(BOARDS_GROUP, OBJECT_TYPE_POST, SYSTEM_TARGET_TYPE);
+        const fields = await adminClient.getPropertyFields(BOARDS_GROUP, OBJECT_TYPE_POST, {targetType: SYSTEM_TARGET_TYPE});
         for (const field of fields ?? []) {
             if (field.protected) {
                 continue;

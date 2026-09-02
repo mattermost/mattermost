@@ -973,13 +973,7 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
                 await expect(systemConsolePage.page).toHaveURL(new RegExp(`${GLOBAL_ATTRIBUTES_ADMIN_PATH}$`));
 
                 // * Exactly two linked fields exist, pointing back at the template
-                const templateFields = await adminClient.getPropertyFields(
-                    'access_control',
-                    'template',
-                    'system',
-                    undefined,
-                    {perPage: 200},
-                );
+                const templateFields = await adminClient.getPropertyFields('access_control', 'template', {targetType: 'system', perPage: 200});
                 const templateField = templateFields.find((f) => f.name === expectedName && f.delete_at === 0);
                 expect(templateField).toBeDefined();
 
@@ -1057,27 +1051,13 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
                 await expect(systemConsolePage.page.getByTestId('saveSetting')).not.toBeDisabled();
 
                 // * Nothing survived the rollback -- no template, no user/channel linked fields
-                const templateFieldsAfterFailure = await adminClient.getPropertyFields(
-                    'access_control',
-                    'template',
-                    'system',
-                    undefined,
-                    {perPage: 200},
-                );
+                const templateFieldsAfterFailure = await adminClient.getPropertyFields('access_control', 'template', {targetType: 'system', perPage: 200});
                 expect(
                     templateFieldsAfterFailure.find((f) => f.name === expectedName && f.delete_at === 0),
                 ).toBeUndefined();
 
-                const userFields = await adminClient.getPropertyFields('access_control', 'user', 'system', undefined, {
-                    perPage: 200,
-                });
-                const channelFields = await adminClient.getPropertyFields(
-                    'access_control',
-                    'channel',
-                    'system',
-                    undefined,
-                    {perPage: 200},
-                );
+                const userFields = await adminClient.getPropertyFields('access_control', 'user', {targetType: 'system', perPage: 200});
+                const channelFields = await adminClient.getPropertyFields('access_control', 'channel', {targetType: 'system', perPage: 200});
                 expect(userFields.find((f) => f.name === expectedName && f.delete_at === 0)).toBeUndefined();
                 expect(channelFields.find((f) => f.name === expectedName && f.delete_at === 0)).toBeUndefined();
 
@@ -1088,13 +1068,7 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
                 // * This time it succeeds
                 await expect(systemConsolePage.page).toHaveURL(new RegExp(`${GLOBAL_ATTRIBUTES_ADMIN_PATH}$`));
 
-                const templateFieldsAfterRetry = await adminClient.getPropertyFields(
-                    'access_control',
-                    'template',
-                    'system',
-                    undefined,
-                    {perPage: 200},
-                );
+                const templateFieldsAfterRetry = await adminClient.getPropertyFields('access_control', 'template', {targetType: 'system', perPage: 200});
                 const templateField = templateFieldsAfterRetry.find(
                     (f) => f.name === expectedName && f.delete_at === 0,
                 );
