@@ -206,13 +206,12 @@ jobs:
           echo "workers=$(jq -nc --argjson n "${INPUT_WORKERS}" '[range(1; $n+1)]')" >> $GITHUB_OUTPUT
           echo "start_time=$(date +%s)" >> $GITHUB_OUTPUT
 
-  # Install webapp node_modules once via the shared webapp-setup action, then
-  # workers restore the same stable cache. The node_modules cache is keyed only
-  # on webapp/package-lock.json and is shared with webapp-ci.yml jobs.
+  # Build the Cypress deps once and hand them to the workers as a run-scoped
+  # artifact.
   prep-deps:
     name: prep-deps
     runs-on: ubuntu-24.04
-    timeout-minutes: 10
+    timeout-minutes: 15
     permissions:
       contents: read
     steps:
@@ -222,23 +221,23 @@ jobs:
           persist-credentials: false
           ref: ${{ inputs.commit_sha }}
           fetch-depth: 1
+      # Provides the @mattermost/eslint-plugin target the cypress install
+      # symlinks to.
       - name: ci/setup-webapp-node-modules
         uses: ./.github/actions/webapp-setup
-      - name: ci/cache-cypress-deps
-        # node_modules + the cypress binary (downloaded to ~/.cache/Cypress by
-        # cypress's postinstall, not into node_modules). Both must be cached;
-        # otherwise workers see "cypress npm package installed but binary missing".
-        id: cache-cypress
-        uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
-        with:
-          path: |
-            e2e-tests/cypress/node_modules
-            ~/.cache/Cypress
-          key: e2e-cypress-deps-${{ runner.os }}-${{ hashFiles('e2e-tests/cypress/package-lock.json') }}
+      # Read-only restore of the registry cache warmed daily from master, so the
+      # install below refetches as little as possible.
+      - name: ci/restore-npm-cache
+        uses: ./.github/actions/restore-e2e-npm-cache
+      # The postinstall downloads the Cypress binary to ~/.cache/Cypress rather
+      # than into node_modules, which is why the artifact carries both.
       - name: ci/install-cypress-deps
-        if: steps.cache-cypress.outputs.cache-hit != 'true'
         working-directory: e2e-tests/cypress
         run: npm ci
+      - name: ci/pack-cypress-deps
+        uses: ./.github/actions/pack-cypress-deps
+        with:
+          fips: ${{ inputs.server_edition == 'fips' }}
 
   # Register the Test System IO run AFTER prep-deps so workers reach
   # dispatch-run within Test System IO's inactivity window.
@@ -335,14 +334,12 @@ jobs:
         uses: ./.github/actions/webapp-setup
         with:
           read-only: "true"
-      - name: ci/restore-cypress-deps
-        uses: actions/cache/restore@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
+      # prep-deps built these; it is an ancestor of this job via dispatch-begin,
+      # so the artifact is always present by now.
+      - name: ci/reuse-cypress-deps
+        uses: ./.github/actions/unpack-cypress-deps
         with:
-          path: |
-            e2e-tests/cypress/node_modules
-            ~/.cache/Cypress
-          key: e2e-cypress-deps-${{ runner.os }}-${{ hashFiles('e2e-tests/cypress/package-lock.json') }}
-          fail-on-cache-miss: true
+          fips: ${{ inputs.server_edition == 'fips' }}
       - name: ci/cloud-init
         working-directory: e2e-tests
         run: make cloud-init

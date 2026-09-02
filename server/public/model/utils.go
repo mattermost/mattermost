@@ -237,8 +237,14 @@ type AppError struct {
 	StatusCode      int    `json:"status_code,omitempty"` // The http status code
 	Where           string `json:"-"`                     // The function where it happened in the form of Struct.Func
 	SkipTranslation bool   `json:"-"`                     // Whether translation for the error should be skipped.
-	params          map[string]any
-	wrapped         error
+
+	// Props carries caller-authored context to API clients, like the Props fields on Users and
+	// Posts. Unlike DetailedError it is always returned to clients regardless of developer mode, so
+	// it must only hold flat strings that are safe for any client to see - never internal details.
+	Props StringMap `json:"props,omitempty"`
+
+	params  map[string]any
+	wrapped error
 }
 
 const maxErrorLength = 1024
