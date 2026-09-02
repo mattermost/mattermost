@@ -66,11 +66,13 @@ func TestGetPropertyFieldReadAccess(t *testing.T) {
 		assert.Equal(t, created.ID, retrieved.ID)
 		assert.Len(t, retrieved.Attrs[model.PropertyFieldAttributeOptions].([]any), 2)
 
-		// Anonymous caller can read
+		// An anonymous caller is refused outright, regardless of the field's
+		// own access mode -- there is no identity to judge against a grant or
+		// the ladder, so its options come back filtered to nothing.
 		retrieved, err = th.service.GetPropertyField(rctxAnon, th.CPAGroupID, created.ID)
 		require.NoError(t, err)
 		assert.Equal(t, created.ID, retrieved.ID)
-		assert.Len(t, retrieved.Attrs[model.PropertyFieldAttributeOptions].([]any), 2)
+		assert.Empty(t, retrieved.Attrs[model.PropertyFieldAttributeOptions])
 	})
 
 	t.Run("source_only field - source plugin gets all options", func(t *testing.T) {
@@ -1153,6 +1155,13 @@ func TestDeletePropertyField_WriteAccessControl(t *testing.T) {
 		created, err := th.service.CreatePropertyField(rctxPlugin1, field)
 		require.NoError(t, err)
 
+		// plugin-2 isn't registered here, so it takes the human path, and
+		// field.write is pinned to sysadmin for every access_control field --
+		// the deleter always meant an administrator, it just never had to say
+		// so under the legacy owner-managed bypass.
+		th.service.setLadderCheckerForTests(sysadminLadderCheckerForTests)
+		t.Cleanup(func() { th.service.setLadderCheckerForTests(defaultLadderCheckerForTests) })
+
 		err = th.service.DeletePropertyField(rctxPlugin2, th.CPAGroupID, created.ID)
 		require.NoError(t, err)
 	})
@@ -1195,7 +1204,7 @@ func TestDeletePropertyField_WriteAccessControl(t *testing.T) {
 
 		err = th.service.DeletePropertyField(rctxPlugin2, th.CPAGroupID, created.ID)
 		require.Error(t, err)
-		assert.Contains(t, err.Error(), "protected")
+		assert.Contains(t, err.Error(), "a field delete")
 	})
 
 	t.Run("non-CPA group routes directly to PropertyService without access control", func(t *testing.T) {
@@ -1251,6 +1260,11 @@ func TestDeletePropertyField_OrphanedFieldDeletion(t *testing.T) {
 			return false
 		})
 
+		// "admin-user" isn't a registered plugin, so it takes the human path,
+		// and field.write is pinned to sysadmin for every access_control field.
+		th.service.setLadderCheckerForTests(sysadminLadderCheckerForTests)
+		t.Cleanup(func() { th.service.setLadderCheckerForTests(defaultLadderCheckerForTests) })
+
 		err = th.service.DeletePropertyField(RequestContextWithCallerID(th.Context, "admin-user"), th.CPAGroupID, created.ID)
 		require.NoError(t, err)
 	})
@@ -1275,8 +1289,7 @@ func TestDeletePropertyField_OrphanedFieldDeletion(t *testing.T) {
 
 		err = th.service.DeletePropertyField(RequestContextWithCallerID(th.Context, "admin-user"), th.CPAGroupID, created.ID)
 		require.Error(t, err)
-		assert.Contains(t, err.Error(), "protected")
-		assert.Contains(t, err.Error(), "installed-plugin")
+		assert.Contains(t, err.Error(), "a field delete")
 
 		err = th.service.DeletePropertyField(RequestContextWithCallerID(th.Context, "installed-plugin"), th.CPAGroupID, created.ID)
 		require.NoError(t, err)
@@ -1310,7 +1323,7 @@ func TestDeletePropertyField_OrphanedFieldDeletion(t *testing.T) {
 		updated, _, err := th.service.UpdatePropertyField(RequestContextWithCallerID(th.Context, "admin-user"), th.CPAGroupID, created)
 		require.Error(t, err)
 		assert.Nil(t, updated)
-		assert.Contains(t, err.Error(), "protected")
+		assert.Contains(t, err.Error(), "a field write")
 	})
 }
 

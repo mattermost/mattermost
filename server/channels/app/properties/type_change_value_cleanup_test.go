@@ -19,6 +19,15 @@ func TestTypeChangeValueCleanupHook(t *testing.T) {
 	th := Setup(t).RegisterCPAPropertyGroup(t)
 	th.service.AddHook(NewTypeChangeValueCleanupHook(th.service))
 
+	// field.write is pinned to sysadmin for every access_control field, and a
+	// value write needs an identified caller now that permissionsAllows fails
+	// closed on an empty one -- this suite is about the cleanup hook, not
+	// access control, so it runs as an administrator throughout rather than
+	// an anonymous caller.
+	th.service.setLadderCheckerForTests(sysadminLadderCheckerForTests)
+	t.Cleanup(func() { th.service.setLadderCheckerForTests(defaultLadderCheckerForTests) })
+	rctx := RequestContextWithCallerID(th.Context, model.NewId())
+
 	t.Run("type change deletes values and reports cleared field id", func(t *testing.T) {
 		// Create a select field with two options.
 		optionAID := model.NewId()
@@ -36,14 +45,14 @@ func TestTypeChangeValueCleanupHook(t *testing.T) {
 				},
 			},
 		}
-		created, err := th.service.CreatePropertyField(th.Context, field)
+		created, err := th.service.CreatePropertyField(rctx, field)
 		require.NoError(t, err)
 
 		// Seed a value referencing one of the options.
 		userID := model.NewId()
 		raw, err := json.Marshal(optionAID)
 		require.NoError(t, err)
-		_, err = th.service.UpsertPropertyValue(th.Context, &model.PropertyValue{
+		_, err = th.service.UpsertPropertyValue(rctx, &model.PropertyValue{
 			GroupID:    th.CPAGroupID,
 			FieldID:    created.ID,
 			TargetID:   userID,
@@ -53,7 +62,7 @@ func TestTypeChangeValueCleanupHook(t *testing.T) {
 		require.NoError(t, err)
 
 		// Confirm the value exists pre-patch.
-		preValues, err := th.service.SearchPropertyValues(th.Context, th.CPAGroupID, model.PropertyValueSearchOpts{
+		preValues, err := th.service.SearchPropertyValues(rctx, th.CPAGroupID, model.PropertyValueSearchOpts{
 			FieldID: created.ID,
 			PerPage: 10,
 		})
@@ -63,12 +72,12 @@ func TestTypeChangeValueCleanupHook(t *testing.T) {
 		// Patch to type=text. AccessControlAttributeValidationHook strips the now-invalid
 		// options attr; TypeChangeValueCleanupHook deletes the dependent value.
 		created.Type = model.PropertyFieldTypeText
-		_, clearedIDs, err := th.service.UpdatePropertyField(th.Context, th.CPAGroupID, created)
+		_, clearedIDs, err := th.service.UpdatePropertyField(rctx, th.CPAGroupID, created)
 		require.NoError(t, err)
 		assert.Equal(t, []string{created.ID}, clearedIDs, "expected post-hook to report the type-changed field as cleared")
 
 		// Confirm the value is gone.
-		postValues, err := th.service.SearchPropertyValues(th.Context, th.CPAGroupID, model.PropertyValueSearchOpts{
+		postValues, err := th.service.SearchPropertyValues(rctx, th.CPAGroupID, model.PropertyValueSearchOpts{
 			FieldID: created.ID,
 			PerPage: 10,
 		})
@@ -93,14 +102,14 @@ func TestTypeChangeValueCleanupHook(t *testing.T) {
 				},
 			},
 		}
-		created, err := th.service.CreatePropertyField(th.Context, field)
+		created, err := th.service.CreatePropertyField(rctx, field)
 		require.NoError(t, err)
 
 		// Multiselect value is a JSON array of option IDs.
 		userID := model.NewId()
 		raw, err := json.Marshal([]string{optionAID, optionBID})
 		require.NoError(t, err)
-		_, err = th.service.UpsertPropertyValue(th.Context, &model.PropertyValue{
+		_, err = th.service.UpsertPropertyValue(rctx, &model.PropertyValue{
 			GroupID:    th.CPAGroupID,
 			FieldID:    created.ID,
 			TargetID:   userID,
@@ -109,7 +118,7 @@ func TestTypeChangeValueCleanupHook(t *testing.T) {
 		})
 		require.NoError(t, err)
 
-		preValues, err := th.service.SearchPropertyValues(th.Context, th.CPAGroupID, model.PropertyValueSearchOpts{
+		preValues, err := th.service.SearchPropertyValues(rctx, th.CPAGroupID, model.PropertyValueSearchOpts{
 			FieldID: created.ID,
 			PerPage: 10,
 		})
@@ -117,11 +126,11 @@ func TestTypeChangeValueCleanupHook(t *testing.T) {
 		require.Len(t, preValues, 1)
 
 		created.Type = model.PropertyFieldTypeText
-		_, clearedIDs, err := th.service.UpdatePropertyField(th.Context, th.CPAGroupID, created)
+		_, clearedIDs, err := th.service.UpdatePropertyField(rctx, th.CPAGroupID, created)
 		require.NoError(t, err)
 		assert.Equal(t, []string{created.ID}, clearedIDs, "expected post-hook to report the type-changed field as cleared")
 
-		postValues, err := th.service.SearchPropertyValues(th.Context, th.CPAGroupID, model.PropertyValueSearchOpts{
+		postValues, err := th.service.SearchPropertyValues(rctx, th.CPAGroupID, model.PropertyValueSearchOpts{
 			FieldID: created.ID,
 			PerPage: 10,
 		})
@@ -137,12 +146,12 @@ func TestTypeChangeValueCleanupHook(t *testing.T) {
 			ObjectType: model.PropertyFieldObjectTypeUser,
 			TargetType: string(model.PropertyFieldTargetLevelSystem),
 		}
-		created, err := th.service.CreatePropertyField(th.Context, field)
+		created, err := th.service.CreatePropertyField(rctx, field)
 		require.NoError(t, err)
 
 		raw, err := json.Marshal("hello")
 		require.NoError(t, err)
-		_, err = th.service.UpsertPropertyValue(th.Context, &model.PropertyValue{
+		_, err = th.service.UpsertPropertyValue(rctx, &model.PropertyValue{
 			GroupID:    th.CPAGroupID,
 			FieldID:    created.ID,
 			TargetID:   model.NewId(),
@@ -153,11 +162,11 @@ func TestTypeChangeValueCleanupHook(t *testing.T) {
 
 		// Rename only — no Type change.
 		created.Name = "text-field-renamed-" + model.NewId()
-		_, clearedIDs, err := th.service.UpdatePropertyField(th.Context, th.CPAGroupID, created)
+		_, clearedIDs, err := th.service.UpdatePropertyField(rctx, th.CPAGroupID, created)
 		require.NoError(t, err)
 		assert.Empty(t, clearedIDs, "rename without type change must not clear values")
 
-		values, err := th.service.SearchPropertyValues(th.Context, th.CPAGroupID, model.PropertyValueSearchOpts{
+		values, err := th.service.SearchPropertyValues(rctx, th.CPAGroupID, model.PropertyValueSearchOpts{
 			FieldID: created.ID,
 			PerPage: 10,
 		})
@@ -191,12 +200,12 @@ func TestTypeChangeValueCleanupHook(t *testing.T) {
 						},
 					},
 				}
-				created, err := th.service.CreatePropertyField(th.Context, field)
+				created, err := th.service.CreatePropertyField(rctx, field)
 				require.NoError(t, err)
 
 				raw, err := json.Marshal(optionAID)
 				require.NoError(t, err)
-				_, err = th.service.UpsertPropertyValue(th.Context, &model.PropertyValue{
+				_, err = th.service.UpsertPropertyValue(rctx, &model.PropertyValue{
 					GroupID:    th.CPAGroupID,
 					FieldID:    created.ID,
 					TargetID:   model.NewId(),
@@ -206,11 +215,11 @@ func TestTypeChangeValueCleanupHook(t *testing.T) {
 				require.NoError(t, err)
 
 				created.Type = tc.toType
-				_, clearedIDs, err := th.service.UpdatePropertyField(th.Context, th.CPAGroupID, created)
+				_, clearedIDs, err := th.service.UpdatePropertyField(rctx, th.CPAGroupID, created)
 				require.NoError(t, err)
 				assert.Empty(t, clearedIDs, "select<->rank transition must not clear values")
 
-				values, err := th.service.SearchPropertyValues(th.Context, th.CPAGroupID, model.PropertyValueSearchOpts{
+				values, err := th.service.SearchPropertyValues(rctx, th.CPAGroupID, model.PropertyValueSearchOpts{
 					FieldID: created.ID,
 					PerPage: 10,
 				})
@@ -235,7 +244,7 @@ func TestTypeChangeValueCleanupHook(t *testing.T) {
 				},
 			},
 		}
-		created1, err := th.service.CreatePropertyField(th.Context, f1)
+		created1, err := th.service.CreatePropertyField(rctx, f1)
 		require.NoError(t, err)
 
 		// Field 2: text, will be renamed only → no cleanup expected.
@@ -246,12 +255,12 @@ func TestTypeChangeValueCleanupHook(t *testing.T) {
 			ObjectType: model.PropertyFieldObjectTypeUser,
 			TargetType: string(model.PropertyFieldTargetLevelSystem),
 		}
-		created2, err := th.service.CreatePropertyField(th.Context, f2)
+		created2, err := th.service.CreatePropertyField(rctx, f2)
 		require.NoError(t, err)
 
 		raw, err := json.Marshal(optID)
 		require.NoError(t, err)
-		_, err = th.service.UpsertPropertyValue(th.Context, &model.PropertyValue{
+		_, err = th.service.UpsertPropertyValue(rctx, &model.PropertyValue{
 			GroupID:    th.CPAGroupID,
 			FieldID:    created1.ID,
 			TargetID:   model.NewId(),
@@ -264,7 +273,7 @@ func TestTypeChangeValueCleanupHook(t *testing.T) {
 		created1.Type = model.PropertyFieldTypeText
 		created2.Name = "batch-text-renamed-" + model.NewId()
 
-		_, _, clearedIDs, err := th.service.UpdatePropertyFields(th.Context, th.CPAGroupID, []*model.PropertyField{created1, created2})
+		_, _, clearedIDs, err := th.service.UpdatePropertyFields(rctx, th.CPAGroupID, []*model.PropertyField{created1, created2})
 		require.NoError(t, err)
 		assert.Equal(t, []string{created1.ID}, clearedIDs, "only the type-changed field should be in clearedIDs")
 	})

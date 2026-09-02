@@ -321,8 +321,14 @@ func TestOptionsOmitted_LinkedFieldGuard(t *testing.T) {
 // as deleted options rather than as a rejected request.
 func TestOptionsOmitted_DisplayNameBackfill(t *testing.T) {
 	th := Setup(t).RegisterCPAPropertyGroup(t)
+	// This field lives on the access_control group specifically -- the backfill
+	// under test only touches that group -- so its reads need an identified
+	// caller now that an anonymous one is refused outright. The field's access
+	// mode defaults to public, which the default ladder checker's member tier
+	// already satisfies.
+	rctx := RequestContextWithCallerID(th.Context, model.NewId())
 
-	field, err := th.service.CreatePropertyField(th.Context, &model.PropertyField{
+	field, err := th.service.CreatePropertyField(rctx, &model.PropertyField{
 		GroupID:    th.CPAGroupID,
 		Name:       "oversized_select",
 		Type:       model.PropertyFieldTypeSelect,
@@ -333,14 +339,16 @@ func TestOptionsOmitted_DisplayNameBackfill(t *testing.T) {
 		},
 	})
 	require.NoError(t, err)
-	requireStoredOptionsWithheld(t, th, th.CPAGroupID, field.ID)
+	stored, err := th.service.GetPropertyField(rctx, th.CPAGroupID, field.ID)
+	require.NoError(t, err)
+	requireOptionsWithheld(t, stored)
 	require.Empty(t, field.Attrs[model.CustomProfileAttributesPropertyAttrsDisplayName])
 
 	backfilled, _, err := th.service.MigrateBackfillCPADisplayName(request.EmptyContext(th.Context.Logger()))
 	require.NoError(t, err)
 	require.Equal(t, 1, backfilled)
 
-	updated, err := th.service.GetPropertyField(th.Context, th.CPAGroupID, field.ID)
+	updated, err := th.service.GetPropertyField(rctx, th.CPAGroupID, field.ID)
 	require.NoError(t, err)
 	assert.Equal(t, "oversized_select", updated.Attrs[model.CustomProfileAttributesPropertyAttrsDisplayName])
 	requireOptionsWithheld(t, updated)

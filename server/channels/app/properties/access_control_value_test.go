@@ -94,7 +94,7 @@ func TestCreatePropertyValue_WriteAccessControl(t *testing.T) {
 		createdValue, err := th.service.CreatePropertyValue(rctxPlugin2, value)
 		require.Error(t, err)
 		assert.Nil(t, createdValue)
-		assert.Contains(t, err.Error(), "protected")
+		assert.Contains(t, err.Error(), "value.write")
 	})
 
 	t.Run("non-CPA group routes directly to PropertyService without access control", func(t *testing.T) {
@@ -187,7 +187,7 @@ func TestDeletePropertyValue_WriteAccessControl(t *testing.T) {
 
 		err = th.service.DeletePropertyValue(rctxPlugin2, th.CPAGroupID, createdValue.ID)
 		require.Error(t, err)
-		assert.Contains(t, err.Error(), "protected")
+		assert.Contains(t, err.Error(), "value.write")
 	})
 }
 
@@ -256,7 +256,7 @@ func TestDeletePropertyValuesForTarget_WriteAccessControl(t *testing.T) {
 		// Try to delete with plugin2 (should fail)
 		err = th.service.DeletePropertyValuesForTarget(rctxPlugin2, th.CPAGroupID, "user", targetID)
 		require.Error(t, err)
-		assert.Contains(t, err.Error(), "protected")
+		assert.Contains(t, err.Error(), "value.write")
 
 		// Verify values still exist
 		values, err := th.service.SearchPropertyValues(rctxPlugin1, th.CPAGroupID, model.PropertyValueSearchOpts{
@@ -300,7 +300,10 @@ func TestGetPropertyValueReadAccess(t *testing.T) {
 		field, err := th.service.CreatePropertyField(rctxAnon, field)
 		require.NoError(t, err)
 
-		// Create value
+		// Create value. An anonymous caller can create nothing once the field
+		// carries permissions -- fail-closed applies to writes as much as
+		// reads -- so the value needs an identified writer even though this
+		// subtest is about who may read it.
 		textValue, jsonErr := json.Marshal("test value")
 		require.NoError(t, jsonErr)
 		value := &model.PropertyValue{
@@ -310,7 +313,7 @@ func TestGetPropertyValueReadAccess(t *testing.T) {
 			TargetID:   userID1,
 			Value:      textValue,
 		}
-		value, err = th.service.CreatePropertyValue(rctxAnon, value)
+		value, err = th.service.CreatePropertyValue(rctx1, value)
 		require.NoError(t, err)
 
 		// Plugin 1 can read
@@ -332,11 +335,12 @@ func TestGetPropertyValueReadAccess(t *testing.T) {
 		require.NotNil(t, retrieved)
 		assert.Equal(t, value.ID, retrieved.ID)
 
-		// Anonymous caller can read
+		// An anonymous caller is refused outright, regardless of the field's
+		// own access mode -- there is no identity to judge against a grant or
+		// the ladder. A denied read is filtered silently rather than erroring.
 		retrieved, err = th.service.GetPropertyValue(rctxAnon, th.CPAGroupID, value.ID)
 		require.NoError(t, err)
-		require.NotNil(t, retrieved)
-		assert.Equal(t, value.ID, retrieved.ID)
+		assert.Nil(t, retrieved)
 	})
 
 	t.Run("source_only field value - only source plugin can read", func(t *testing.T) {
@@ -785,7 +789,10 @@ func TestGetPropertyValuesReadAccess(t *testing.T) {
 			TargetID:   userID,
 			Value:      publicValue,
 		}
-		publicPropValue, err = th.service.CreatePropertyValue(rctxAnon, publicPropValue)
+		// An anonymous caller can create nothing once the field carries
+		// permissions -- fail-closed applies to writes too -- so this needs an
+		// identified writer even though the subtest is about who may read it.
+		publicPropValue, err = th.service.CreatePropertyValue(rctx1, publicPropValue)
 		require.NoError(t, err)
 
 		sourceOnlyValue, jsonErr := json.Marshal("secret")
@@ -866,10 +873,13 @@ func TestSearchPropertyValuesReadAccess(t *testing.T) {
 		sourceOnlyField, err = th.service.CreatePropertyField(rctx1, sourceOnlyField)
 		require.NoError(t, err)
 
-		// Create values for both fields
+		// Create values for both fields. An anonymous caller can create
+		// nothing once the field carries permissions, so the public value
+		// needs an identified writer even though this subtest is about who
+		// may read it.
 		publicValue, jsonErr := json.Marshal("public data")
 		require.NoError(t, jsonErr)
-		_, err = th.service.CreatePropertyValue(rctxAnon, &model.PropertyValue{
+		_, err = th.service.CreatePropertyValue(rctx1, &model.PropertyValue{
 			GroupID:    th.CPAGroupID,
 			FieldID:    publicField.ID,
 			TargetType: "user",
@@ -1150,7 +1160,7 @@ func TestCreatePropertyValues_WriteAccessControl(t *testing.T) {
 		created, err := th.service.CreatePropertyValues(rctx2, values)
 		require.Error(t, err)
 		assert.Nil(t, created)
-		assert.Contains(t, err.Error(), "protected")
+		assert.Contains(t, err.Error(), "a value write")
 
 		// Verify neither value was created
 		results, err := th.service.SearchPropertyValues(rctx1, th.CPAGroupID, model.PropertyValueSearchOpts{
@@ -1466,7 +1476,7 @@ func TestUpdatePropertyValue_WriteAccessControl(t *testing.T) {
 		updated, err := th.service.UpdatePropertyValue(rctxPlugin2, th.CPAGroupID, createdValue)
 		require.Error(t, err)
 		assert.Nil(t, updated)
-		assert.Contains(t, err.Error(), "protected")
+		assert.Contains(t, err.Error(), "a value write")
 	})
 
 	t.Run("any caller can update values for non-protected field", func(t *testing.T) {
@@ -1622,7 +1632,7 @@ func TestUpdatePropertyValues_WriteAccessControl(t *testing.T) {
 		updated, err := th.service.UpdatePropertyValues(rctx2, th.CPAGroupID, createdValues)
 		require.Error(t, err)
 		assert.Nil(t, updated)
-		assert.Contains(t, err.Error(), "protected")
+		assert.Contains(t, err.Error(), "value.write")
 
 		// Verify values were NOT updated
 		retrieved, err := th.service.GetPropertyValues(rctx1, th.CPAGroupID, []string{createdValues[0].ID, createdValues[1].ID})
@@ -1685,7 +1695,7 @@ func TestUpdatePropertyValues_WriteAccessControl(t *testing.T) {
 		updated, err := th.service.UpdatePropertyValues(rctx2, th.CPAGroupID, createdValues)
 		require.Error(t, err)
 		assert.Nil(t, updated)
-		assert.Contains(t, err.Error(), "protected")
+		assert.Contains(t, err.Error(), "value.write")
 
 		// Verify NO values were updated (atomic failure)
 		retrieved, err := th.service.GetPropertyValues(rctx1, th.CPAGroupID, []string{createdValues[0].ID, createdValues[1].ID})
@@ -1762,7 +1772,7 @@ func TestUpdatePropertyValues_WriteAccessControl(t *testing.T) {
 		updated, err := th.service.UpdatePropertyValues(rctx1, th.CPAGroupID, []*model.PropertyValue{createdValue1, createdValue2})
 		require.Error(t, err)
 		assert.Nil(t, updated)
-		assert.Contains(t, err.Error(), "protected")
+		assert.Contains(t, err.Error(), "value.write")
 
 		// Verify NO values were updated (atomic failure)
 		retrieved, err := th.service.GetPropertyValues(rctx1, th.CPAGroupID, []string{createdValue1.ID, createdValue2.ID})
@@ -1779,7 +1789,7 @@ func TestUpdatePropertyValues_WriteAccessControl(t *testing.T) {
 		updated, err = th.service.UpdatePropertyValues(rctx2, th.CPAGroupID, []*model.PropertyValue{createdValue1, createdValue2})
 		require.Error(t, err)
 		assert.Nil(t, updated)
-		assert.Contains(t, err.Error(), "protected")
+		assert.Contains(t, err.Error(), "value.write")
 
 		// Verify still NO values were updated
 		retrieved, err = th.service.GetPropertyValues(rctx1, th.CPAGroupID, []string{createdValue1.ID, createdValue2.ID})
@@ -1883,7 +1893,7 @@ func TestUpsertPropertyValue_WriteAccessControl(t *testing.T) {
 		upserted, err := th.service.UpsertPropertyValue(rctxPlugin2, value)
 		require.Error(t, err)
 		assert.Nil(t, upserted)
-		assert.Contains(t, err.Error(), "protected")
+		assert.Contains(t, err.Error(), "a value write")
 	})
 }
 
@@ -1998,7 +2008,7 @@ func TestUpsertPropertyValues_WriteAccessControl(t *testing.T) {
 		upserted, err := th.service.UpsertPropertyValues(rctx2, values)
 		require.Error(t, err)
 		assert.Nil(t, upserted)
-		assert.Contains(t, err.Error(), "protected")
+		assert.Contains(t, err.Error(), "value.write")
 
 		// Verify no values were created
 		retrieved, err := th.service.SearchPropertyValues(rctx1, th.CPAGroupID, model.PropertyValueSearchOpts{
@@ -2057,7 +2067,7 @@ func TestUpsertPropertyValues_WriteAccessControl(t *testing.T) {
 		upserted, err := th.service.UpsertPropertyValues(rctx2, values)
 		require.Error(t, err)
 		assert.Nil(t, upserted)
-		assert.Contains(t, err.Error(), "protected")
+		assert.Contains(t, err.Error(), "value.write")
 
 		// Verify no values were created (atomic failure)
 		retrieved, err := th.service.SearchPropertyValues(rctx1, th.CPAGroupID, model.PropertyValueSearchOpts{
@@ -2123,7 +2133,7 @@ func TestUpsertPropertyValues_WriteAccessControl(t *testing.T) {
 		upserted, err := th.service.UpsertPropertyValues(rctx1, values)
 		require.Error(t, err)
 		assert.Nil(t, upserted)
-		assert.Contains(t, err.Error(), "protected")
+		assert.Contains(t, err.Error(), "value.write")
 
 		// Verify no values were created (atomic failure)
 		retrieved, err := th.service.SearchPropertyValues(rctx1, th.CPAGroupID, model.PropertyValueSearchOpts{
@@ -2140,7 +2150,7 @@ func TestUpsertPropertyValues_WriteAccessControl(t *testing.T) {
 		upserted, err = th.service.UpsertPropertyValues(rctx2, values)
 		require.Error(t, err)
 		assert.Nil(t, upserted)
-		assert.Contains(t, err.Error(), "protected")
+		assert.Contains(t, err.Error(), "value.write")
 
 		// Verify still no values were created
 		retrieved, err = th.service.SearchPropertyValues(rctx1, th.CPAGroupID, model.PropertyValueSearchOpts{
@@ -2372,6 +2382,17 @@ func TestDeletePropertyValuesForField_WriteAccessControl(t *testing.T) {
 	})
 
 	t.Run("non-source plugin cannot delete values for protected field", func(t *testing.T) {
+		// plugin-2 must be a registered plugin here, or it is classified as a
+		// human and takes the documented human bypass in
+		// PreDeletePropertyValuesForField -- the machine/human split changes
+		// the outcome where it previously didn't matter.
+		th.service.setPluginCheckerForTests(func(pluginID string) bool {
+			return pluginID == "plugin-1" || pluginID == "plugin-2"
+		})
+		t.Cleanup(func() {
+			th.service.setPluginCheckerForTests(func(pluginID string) bool { return pluginID == "plugin-1" })
+		})
+
 		// Create a protected field
 		field := &model.PropertyField{
 			GroupID:    th.CPAGroupID,
@@ -2400,7 +2421,7 @@ func TestDeletePropertyValuesForField_WriteAccessControl(t *testing.T) {
 		// Different plugin cannot delete values
 		err = th.service.DeletePropertyValuesForField(rctxPlugin2, th.CPAGroupID, created.ID)
 		require.Error(t, err)
-		assert.Contains(t, err.Error(), "protected")
+		assert.Contains(t, err.Error(), "value.write")
 
 		// Verify value still exists
 		retrieved, err := th.service.SearchPropertyValues(rctxPlugin1, th.CPAGroupID, model.PropertyValueSearchOpts{

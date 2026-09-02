@@ -172,6 +172,17 @@ func defaultLadderCheckerForTests(_ request.CTX, _ string, field *model.Property
 	return model.PermissionLevelMember.AtMostAsPermissiveAs(field.Permissions.Restrictions.TierFor(action))
 }
 
+// sysadminLadderCheckerForTests is the escape hatch defaultLadderCheckerForTests's
+// own doc comment points to: a test whose caller is meant to hold administrator
+// standing installs this instead, since the default only clears a tier up to
+// member.
+func sysadminLadderCheckerForTests(_ request.CTX, _ string, field *model.PropertyField, action, _ string) bool {
+	if field.Permissions == nil {
+		return false
+	}
+	return model.PermissionLevelSysadmin.AtMostAsPermissiveAs(field.Permissions.Restrictions.TierFor(action))
+}
+
 // columnPinningStubHook stands in for the column-pinning half of
 // AccessControlAttributeValidationHook.enforceGroupPermissions, without its
 // field-name and option validation, so a field converted to carry

@@ -196,15 +196,17 @@ func TestGraphSharedOnly_Value(t *testing.T) {
 		assert.Equal(t, []string{"Fighter Jet Program"}, namesOf(ids, h.visibleOptions(t, caller, target)))
 	})
 
-	t.Run("a caller below the target's option sees their own part of it", func(t *testing.T) {
+	t.Run("a caller below the target's option sees nothing", func(t *testing.T) {
 		// Alice holds F-18 and Bob is marked with the whole Fighter Jet program.
-		// She learns that they have F-18 in common, and nothing about the rest of
-		// the program.
+		// Coverage only runs downward from what a caller holds -- the same rule
+		// that keeps a caller from seeing what sits above their own option in a
+		// field's option list -- so Bob's broader designation is above Alice's
+		// and she sees nothing of it, not the narrower part they share.
 		alice := model.NewId()
 		h.assign(t, field.ID, alice, ids["F-18 Program"])
 		bob := h.assign(t, field.ID, model.NewId(), ids["Fighter Jet Program"])
 
-		assert.Equal(t, []string{"F-18 Program"}, namesOf(ids, h.visibleOptions(t, alice, bob)))
+		assert.Nil(t, h.visibleOptions(t, alice, bob))
 	})
 
 	t.Run("a caller on an unrelated branch sees nothing", func(t *testing.T) {
@@ -286,23 +288,23 @@ func TestGraphSharedOnly_ValueMultiParent(t *testing.T) {
 		"F-18":        {"Air", "Fighter Jet"},
 	}, "Air", "Fighter Jet", "F-18")
 
-	t.Run("an option reachable two ways is shown once, and only where nothing above it is shown", func(t *testing.T) {
-		// The caller holds both options below Air. Descending from Air stops at
-		// Fighter Jet down one branch and at F-18 down the other, and Fighter Jet
-		// already accounts for F-18.
+	t.Run("an option above every branch the caller holds is not shown", func(t *testing.T) {
+		// The caller holds both options below Air, on both branches Air reaches.
+		// Coverage only runs downward from what a caller holds, so Air -- above
+		// both of them -- is outside what either branch covers.
 		caller := model.NewId()
 		h.assign(t, field.ID, caller, ids["Fighter Jet"], ids["F-18"])
 		target := h.assign(t, field.ID, model.NewId(), ids["Air"])
 
-		assert.Equal(t, []string{"Fighter Jet"}, namesOf(ids, h.visibleOptions(t, caller, target)))
+		assert.Nil(t, h.visibleOptions(t, caller, target))
 	})
 
-	t.Run("an option reached down two branches is not reported twice", func(t *testing.T) {
+	t.Run("an option above the caller's holding is not shown, however many paths reach it", func(t *testing.T) {
 		caller := model.NewId()
 		h.assign(t, field.ID, caller, ids["F-18"])
 		target := h.assign(t, field.ID, model.NewId(), ids["Air"])
 
-		assert.Equal(t, []string{"F-18"}, namesOf(ids, h.visibleOptions(t, caller, target)))
+		assert.Nil(t, h.visibleOptions(t, caller, target))
 	})
 }
 
@@ -347,9 +349,14 @@ func TestGraphSharedOnly_ValueLinkedField(t *testing.T) {
 	require.Equal(t, model.PropertyFieldTypeGraph, linked.Type)
 	require.Equal(t, model.PropertyAccessModeSharedOnly, linked.Attrs[model.PropertyAttrsAccessMode])
 
+	// The caller holds Fighter Jet, above the target's F-18 designation, so
+	// coverage (which only runs downward from what a caller holds) shows it.
+	// Resolving the hierarchy against the linked field's own options instead of
+	// the template's would find the two unrelated and hide it, so this is what
+	// proves the template resolution runs at all.
 	caller := model.NewId()
-	h.assign(t, linked.ID, caller, ids["F-18 Program"])
-	target := h.assign(t, linked.ID, model.NewId(), ids["Fighter Jet Program"])
+	h.assign(t, linked.ID, caller, ids["Fighter Jet Program"])
+	target := h.assign(t, linked.ID, model.NewId(), ids["F-18 Program"])
 
 	assert.Equal(t, []string{"F-18 Program"}, namesOf(ids, h.visibleOptions(t, caller, target)))
 }
@@ -395,9 +402,11 @@ func TestGraphSharedOnly_ValueOptionsOmitted(t *testing.T) {
 	require.NoError(t, err)
 	requireOptionsWithheld(t, stored)
 
+	// The caller holds Fighter Jet, above the target's F-18 designation, so
+	// coverage (which only runs downward from what a caller holds) shows it.
 	caller := model.NewId()
-	h.assign(t, field.ID, caller, ids["F-18 Program"])
-	target := h.assign(t, field.ID, model.NewId(), ids["Fighter Jet Program"])
+	h.assign(t, field.ID, caller, ids["Fighter Jet Program"])
+	target := h.assign(t, field.ID, model.NewId(), ids["F-18 Program"])
 
 	assert.Equal(t, []string{"F-18 Program"}, namesOf(ids, h.visibleOptions(t, caller, target)),
 		"the hierarchy comes from the option rows, so the size of the field changes nothing")
