@@ -1,14 +1,10 @@
 #!/usr/bin/env node
-// Generate the Documentation sidebar from the migrated content tree under
-// main/. Output: docs-site/sidebars/documentation.generated.json
+// Generate the Documentation sidebar from the content tree under main/.
+// Output: docs-site/sidebars/documentation.generated.json
 //
-// Mirrors gen-developer-sidebar.mjs in structure. Only differences are
-// the source directory and the top-level section list (per PLAN.md 3.1).
-//
-// File layout: all manual-grouping CONFIG lives at the top (one section per
-// group of constants below) — that's what you touch when adding/moving a
-// page. All FUNCTIONS (generic helpers, per-section builders, main) live at
-// the bottom, and normally don't need to change for a content-only edit.
+// Mirrors gen-developer-sidebar.mjs in structure. Grouping config lives at
+// the top of the file — that's what you touch to add or move a page. The
+// builder functions below it rarely change for a content-only edit.
 //
 // Usage: node docs-site/scripts/gen-documentation-sidebar.mjs
 
@@ -26,40 +22,23 @@ const OUT = join(SITE_ROOT, 'sidebars', 'documentation.generated.json');
 // CONFIG — top-level sections, and manual grouping overrides.
 // ===========================================================================
 //
-// Most sections build their sidebar straight from the filesystem: each
+// By default a section's sidebar is built straight from the filesystem: each
 // subdirectory becomes a category, each file a doc, sorted by
-// `sidebar_position` frontmatter then filename (see buildCategory below).
-// Overview, Deployment Guide, Administration Guide > Configure/Manage/
-// Onboard/Scale, End User Guide > Collaborate, and Integrations Guide are
-// flat piles of 15-49 files that read badly as one long alphabetical list,
-// so each gets a manual grouping override applied at sidebar-render time
-// only — the files themselves stay flat on disk, so URLs don't move.
+// `sidebar_position` frontmatter then filename. Sections that are flat piles
+// of 15-49 files get a manual override instead, applied at render time only —
+// the files stay where they are on disk, so URLs don't move.
 //
-// Each override is a `*_GROUPS` map (group key -> {label, landing?, items})
-// plus a `*_ROOT_ORDER`/`*_ORDER` array giving the top-level order (plain
-// strings for standalone docs, `{group: 'key'}` for a group from the map).
-// A `*_HIDDEN` set lists files that got re-parented into a group so the
-// orphan check below doesn't re-append them at the section root. (A page that
-// belongs in no sidebar at all carries `unlisted: true` instead — see
-// isHidden.) A group's
-// `items` can itself contain nested `{label, items}` sub-groups (see e.g.
-// OVERVIEW_GROUPS.subscription's "Cloud" sub-group below) — that's what
-// gets you a 3rd level of TOC nesting (Guide > Group > Sub-group > page)
-// when a section's flat list is large enough to need it.
+// An override is a `*_GROUPS` map (key -> {label, landing?, items}) plus a
+// `*_ORDER` array for the top level: strings for standalone docs,
+// `{group: 'key'}` for a group. Group `items` can nest `{label, items}`
+// sub-groups for deeper levels. A `*_HIDDEN` set lists files re-parented into
+// a group so the orphan check doesn't re-append them at the section root; a
+// page that belongs in no sidebar at all carries `unlisted: true` instead.
 //
-// This pattern isn't a single generic engine — each section with an
-// override gets its own small `buildXItem`/`regroupX` pair (see
-// buildCollaborateItem/regroupCollaborate for the newest one) that mirrors
-// the others in shape. Adding an override for a new section means copying
-// that shape, not extending a shared function; sections without one of
-// these overrides just render every level of their filesystem tree as-is
-// (buildCategory already recurses to unlimited depth on its own).
-//
-// Adding a new file to one of these sections: add its basename to the
-// relevant group's `items` (or to the root order array, if standalone). If
-// you forget, the generator logs `WARN: N file(s) missing from *_ORDER` and
-// falls back to appending it at the section root — so it surfaces as a
-// build warning instead of silently disappearing.
+// Adding a file: add its basename to a group's `items`, or to the root order
+// if it's standalone. Forgetting logs `WARN: N file(s) missing from *_ORDER`
+// and appends it at the section root, so it surfaces as a build warning
+// rather than disappearing.
 
 const TOP_LEVEL = [
   {dir: 'product-overview',     label: 'Overview'},
@@ -76,12 +55,11 @@ const TOP_LEVEL = [
 // Overview — manual grouping override.
 // ---------------------------------------------------------------------------
 //
-// The Overview directory is flat (~40 .mdx files at one level) for URL-
-// stability reasons — moving files into sub-directories would break the
-// redirect table. Mirrors the live docs.mattermost.com Overview structure.
+// The Overview directory stays flat (~40 .mdx files at one level) for URL
+// stability — moving files into sub-directories would break the redirect
+// table. Grouping here mirrors the live docs.mattermost.com structure.
 
 const OVERVIEW_GROUPS = {
-  // 'Subscription Overview' — paid subscription model: Self-Hosted, Cloud, Non-Profit.
   subscription: {
     label: 'Subscription Overview',
     landing: 'subscription',
@@ -95,7 +73,6 @@ const OVERVIEW_GROUPS = {
       'non-profit-subscriptions',
     ],
   },
-  // 'Releases and Life Cycle' with Server / Desktop / Mobile sub-groups.
   releases: {
     label: 'Releases and Life Cycle',
     landing: 'releases-lifecycle',
@@ -120,7 +97,6 @@ const OVERVIEW_GROUPS = {
       'deprecated-features',
     ],
   },
-  // 'Frequently Asked Questions'.
   faq: {
     label: 'Frequently Asked Questions',
     landing: 'frequently-asked-questions',
@@ -135,8 +111,6 @@ const OVERVIEW_GROUPS = {
   },
 };
 
-// Top-level items in the Overview section, in order. Strings are doc basenames;
-// objects are group keys from OVERVIEW_GROUPS above. Mirrors the live site.
 const OVERVIEW_ROOT_ORDER = [
   'editions-and-offerings',
   'plans',
@@ -151,22 +125,15 @@ const OVERVIEW_ROOT_ORDER = [
 // Deployment Guide — manual grouping override.
 // ---------------------------------------------------------------------------
 //
-// The Deployment Guide directory has loose top-level files mixed with sub-
-// directories (server/, desktop/, mobile/, air-gapped-operations/, scale/,
-// deployment-scenarios/). The auto-generated sidebar ends up as 16 mostly-
-// alphabetical items at the top level, with a 16-item kitchen-sink under Server.
-//
-// This override applies a progression-ordered grouping: evaluate → choose a
-// scenario → Plan → Prepare → Install → Secure → Scale → Back up → operate.
-// The `server/` directory is dissolved into the Plan / Prepare / Install
-// groups, and the troubleshooting pages scattered across server/, desktop/,
-// and mobile/ are pulled up into the top-level "Troubleshoot deployments"
-// category, which is their single sidebar home.
+// Ordered as a progression: evaluate → choose a scenario → Plan → Prepare →
+// Deploy → Secure → Scale → Back up → operate → troubleshoot. The `server/`
+// directory is dissolved into the Plan / Prepare / Deploy groups, and the
+// troubleshooting pages scattered across server/, desktop/, and mobile/ are
+// pulled up into one top-level category that is their single sidebar home.
 
 const DEPLOYMENT_GROUPS = {
-  // 'Deployment Scenarios' — a top-level group at position 2. DISC-relevant
-  // patterns (OOB, Mission Partner, DDIL, Sovereign-on-Microsoft, Air-Gapped)
-  // deserve prominence, not burial.
+  // Near the top rather than buried: these are the patterns regulated and
+  // disconnected deployments start from.
   deploymentScenarios: {
     label: 'Deployment Scenarios',
     landing: 'deployment-scenarios/deployment-scenarios-index',
@@ -179,8 +146,8 @@ const DEPLOYMENT_GROUPS = {
     ],
   },
 
-  // Plan — what you decide before touching a server: the component model,
-  // the sizing builder, the requirements matrix, and who can deploy for you.
+  // What you decide before touching a server: the component model, the sizing
+  // builder, the requirements matrix, and who can deploy for you.
   plan: {
     label: 'Plan',
     landing: 'server/server-deployment-planning',
@@ -192,11 +159,10 @@ const DEPLOYMENT_GROUPS = {
     ],
   },
 
-  // Prepare — prerequisites that must exist before the install runs. This
-  // group sits BEFORE Install deliberately: NGINX and TLS are prerequisites
-  // for a working deployment, so a reader following the sidebar top to bottom
-  // must not finish installing before reaching them. `server/preparations` is
-  // already a hub page linking to exactly these, so it's the landing page.
+  // Prerequisites that must exist before the install runs. Sits BEFORE Deploy
+  // deliberately: a reader following the sidebar top to bottom must not finish
+  // installing before reaching NGINX and TLS. `server/preparations` already
+  // links to exactly these, so it's the landing page.
   prepare: {
     label: 'Prepare',
     landing: 'server/preparations',
@@ -209,12 +175,10 @@ const DEPLOYMENT_GROUPS = {
     ],
   },
 
-  // Deploy the Server — one sub-group per deployment method, with a landing
-  // page that compares them, so the trade-offs sit next to the pages they
-  // describe. "Deploy" rather than "Install" because all nine child pages are
-  // titled "Deploy Mattermost ...", and these pages use "install" for a
-  // narrower step within them (getting the binary onto the host) alongside
-  // database setup, configuration, and startup.
+  // One sub-group per deployment method, with a landing page comparing them so
+  // the trade-offs sit next to the pages they describe. Labelled "Deploy"
+  // rather than "Install" because these pages use "install" for a narrower
+  // step within them — getting the binary onto the host.
   install: {
     label: 'Deploy the Server',
     landing: 'server/deploy-server',
@@ -235,10 +199,8 @@ const DEPLOYMENT_GROUPS = {
     ],
   },
 
-  // Secure your deployment — at-rest + in-transit encryption. These are
-  // install-time decisions, so this sits next to Install rather than after
-  // the day-2 topics below. The former one-child "Encryption" category is
-  // flattened into this group, with encryption-options as its landing page.
+  // Encryption at rest and in transit are install-time decisions, so this sits
+  // next to Deploy rather than with the day-2 topics below.
   secure: {
     label: 'Secure Your Deployment',
     landing: 'encryption-options',
@@ -247,9 +209,6 @@ const DEPLOYMENT_GROUPS = {
     ],
   },
 
-  // Scale — capacity planning, HA, storage sizing, search, caching.
-  // `scaling-for-enterprise` is the general entry point referencing the
-  // sub-groups below, so it's the group's landing page.
   scaling: {
     label: 'Scale',
     landing: 'scale/scaling-for-enterprise',
@@ -281,9 +240,8 @@ const DEPLOYMENT_GROUPS = {
     ],
   },
 
-  // Back up and recover — deployment-time architecture (HA-vs-DR,
-  // active/passive across two sites), not routine administration, so it sits
-  // next to Scale rather than down with the day-2 topics.
+  // Deployment-time architecture (HA-vs-DR, active/passive across two sites),
+  // not routine administration, so it sits next to Scale.
   backupDr: {
     label: 'Back Up and Recover',
     landing: 'backup-disaster-recovery',
@@ -292,9 +250,8 @@ const DEPLOYMENT_GROUPS = {
     ],
   },
 
-  // Calls deployment — moved here from Administration Guide → Configure.
-  // RTCD, Offloader, Kubernetes, logging, and metrics are deployment and
-  // operations concerns, not settings-reference material.
+  // Moved here from Administration Guide → Configure: RTCD, Offloader, and
+  // the rest are deployment concerns, not settings-reference material.
   calls: {
     label: 'Calls Deployment',
     landing: 'calls/calls-deployment-guide',
@@ -307,11 +264,10 @@ const DEPLOYMENT_GROUPS = {
     ],
   },
 
-  // Desktop app deployment — explicit group rather than the auto-generated
-  // tree, so the section overview is the landing page (alphabetically it only
-  // happened to sort first) and the children run in procedural order instead
-  // of alphabetically. desktop-troubleshooting is deliberately absent: its
-  // sidebar home is the central troubleshooting hub below.
+  // Explicit rather than auto-generated, so the section overview is the
+  // landing page and the children run in procedural order.
+  // desktop-troubleshooting is absent on purpose — its sidebar home is the
+  // troubleshooting hub below.
   desktop: {
     label: 'Desktop App Deployment',
     landing: 'desktop/desktop-app-deployment',
@@ -325,9 +281,7 @@ const DEPLOYMENT_GROUPS = {
     ],
   },
 
-  // Mobile app deployment — same treatment as Desktop. Without this,
-  // mobile-app-deployment (the section overview) sorts 6th of 10 inside its
-  // own section. mobile-troubleshooting's sidebar home is the hub below.
+  // Same treatment as Desktop, including mobile-troubleshooting's absence.
   mobile: {
     label: 'Mobile App Deployment',
     landing: 'mobile/mobile-app-deployment',
@@ -343,14 +297,11 @@ const DEPLOYMENT_GROUPS = {
     ],
   },
 
-  // Troubleshoot deployments — the single sidebar home for every deployment
-  // troubleshooting page, including the desktop and mobile ones that live
-  // under those directories on disk. Readers arrive at a troubleshooting hub
-  // in a failure state and are least likely to reason about which product
-  // surface owns the problem, so a hub that silently covered only the server
-  // would be worse than no hub. The desktop and mobile section landing pages
-  // link here rather than duplicating the entries, which would split
-  // prev/next pagination across two sidebar locations.
+  // The single sidebar home for every deployment troubleshooting page,
+  // including the desktop and mobile ones that live elsewhere on disk. A
+  // reader in a failure state is least likely to reason about which product
+  // surface owns the problem. The desktop and mobile sections link here rather
+  // than repeating the entries, which would split prev/next pagination.
   troubleshooting: {
     label: 'Troubleshoot Deployments',
     landing: 'deployment-troubleshooting',
@@ -365,10 +316,6 @@ const DEPLOYMENT_GROUPS = {
   },
 };
 
-// Top-level Deployment Guide order — evaluate → choose a scenario → Plan →
-// Prepare → Install → Secure → Scale → Back up → operate → troubleshoot.
-// Strings are paths relative to docs/deployment-guide/; objects reference
-// DEPLOYMENT_GROUPS keys, or an auto-generated sub-directory tree.
 const DEPLOYMENT_ROOT_ORDER = [
   'quick-start-evaluation',
   {group: 'deploymentScenarios'},
@@ -378,8 +325,8 @@ const DEPLOYMENT_ROOT_ORDER = [
   {group: 'secure'},
   {group: 'scaling'},
   {group: 'backupDr'},
-  // Air-Gapped Operations keeps its auto-generated tree: it has its own
-  // index file and its children are already ordered by sidebar_position.
+  // Keeps its auto-generated tree: it has an index file and its children
+  // already set sidebar_position.
   {auto: 'air-gapped-operations'},
   {group: 'calls'},
   {group: 'desktop'},
@@ -387,20 +334,17 @@ const DEPLOYMENT_ROOT_ORDER = [
   {group: 'troubleshooting'},
 ];
 
-// Files re-parented into other groups — excluded from the orphan check so they
-// don't get re-appended at root level. Every Deployment Guide page is now
-// placed explicitly in DEPLOYMENT_ROOT_ORDER above, so this is empty. An empty
-// hidden list is the health signal that nothing in the section is unreachable
-// — keep it that way.
+// Empty because every Deployment Guide page is placed explicitly above. An
+// empty hidden list is the signal that nothing here is unreachable — keep it
+// that way.
 const DEPLOYMENT_HIDDEN = new Set([]);
 
 // ---------------------------------------------------------------------------
 // Administration Guide — Configure — manual grouping override.
 // ---------------------------------------------------------------------------
 //
-// Configure is a flat settings-reference dump. This override groups it by
-// task/subsystem so the ~13 "*-configuration-settings" reference pages don't
-// drown the task-oriented pages sitting alongside them at the same level.
+// Grouped by task/subsystem so the ~13 "*-configuration-settings" reference
+// pages don't drown the task-oriented pages sitting alongside them.
 
 const ADMIN_CONFIGURE_GROUPS = {
   settingsReference: {
@@ -446,13 +390,10 @@ const ADMIN_CONFIGURE_GROUPS = {
       {doc: 'administration-guide/manage/code-signing-custom-builds'},
     ],
   },
-  // Nests the Agents plugin's own provider/setup pages (vendored from the
-  // mattermost-plugin-agents submodule, staged by stage-agents-docs.mjs
-  // into main/agents/docs/) under the admin guide landing page, instead of
-  // a standalone top-level "Agents" section — mirrors Sphinx, which hides
-  // these behind a small toctree on administration-guide/configure/
-  // agents-admin-guide.rst rather than giving Agents its own nav entry.
-  // Items use the {doc: '<full id>'} form since they live outside
+  // The Agents plugin's own provider/setup pages, staged into main/agents/docs/
+  // from the mattermost-plugin-agents submodule by stage-agents-docs.mjs. They
+  // nest under the admin guide landing page rather than getting a top-level
+  // section, and use the {doc: '<full id>'} form since they live outside
   // administration-guide/configure/.
   agents: {
     label: 'AI agents',
@@ -465,10 +406,8 @@ const ADMIN_CONFIGURE_GROUPS = {
   },
 };
 
-// Top-level Configure order. Strings are doc basenames relative to
-// administration-guide/configure/; objects reference ADMIN_CONFIGURE_GROUPS
-// keys. Settings reference first, then the subsystems you configure at setup
-// time, then the capabilities you turn on afterwards.
+// Settings reference first, then the subsystems you configure at setup time,
+// then the capabilities you turn on afterwards.
 const ADMIN_CONFIGURE_ORDER = [
   {group: 'settingsReference'},
   'configuration-in-your-database',
@@ -485,8 +424,6 @@ const ADMIN_CONFIGURE_ORDER = [
   {doc: 'administration-guide/onboard/connected-workspaces'},
 ];
 
-// Files re-parented into groups, or listed under a different section —
-// exclude from the orphan check.
 const ADMIN_CONFIGURE_HIDDEN = new Set([
   'site-configuration-settings', 'authentication-configuration-settings',
   'integrations-configuration-settings', 'plugins-configuration-settings',
@@ -505,14 +442,9 @@ const ADMIN_CONFIGURE_HIDDEN = new Set([
 // Administration Guide — Manage — manual grouping override.
 // ---------------------------------------------------------------------------
 //
-// Manage has 37 files split into a flat top level (19) plus a nested
-// manage/admin/ sub-folder (18) — a raw filesystem artifact, not a real
-// Sphinx grouping (Sphinx has no manage-index.rst/toctree that groups this
-// content; the admin/ sub-folder exists on disk but is never surfaced as
-// its own nav level in Sphinx's real sidebar). Worse, the flat-vs-admin
-// split is internally inconsistent — e.g. monitoring/health pages and
-// billing pages are each scattered across both buckets. This override
-// replaces both with one set of task-based groups.
+// The flat top level (19 files) vs. nested manage/admin/ (18) split on disk is
+// a filesystem artifact, and an inconsistent one — monitoring and billing
+// pages are each scattered across both. Replaced here with task-based groups.
 
 const ADMIN_MANAGE_GROUPS = {
   userAccess: {
@@ -589,9 +521,7 @@ const ADMIN_MANAGE_GROUPS = {
   },
 };
 
-// Top-level Manage order. Strings are doc basenames relative to
-// administration-guide/manage/ (admin/-prefixed ones live in the nested
-// sub-folder); objects reference ADMIN_MANAGE_GROUPS keys.
+// `admin/`-prefixed basenames live in the nested sub-folder.
 const ADMIN_MANAGE_ORDER = [
   {group: 'userAccess'},
   {group: 'serverOps'},
@@ -602,8 +532,6 @@ const ADMIN_MANAGE_ORDER = [
   {group: 'reference'},
 ];
 
-// Files re-parented into groups, used as the section landing, or listed under
-// a different section — exclude from the orphan check.
 const ADMIN_MANAGE_HIDDEN = new Set([
   'admin/server-maintenance',
   'admin/user-management', 'admin/user-attributes', 'team-channel-members',
@@ -631,15 +559,10 @@ const ADMIN_MANAGE_HIDDEN = new Set([
 // End User Guide — Collaborate — manual grouping override.
 // ---------------------------------------------------------------------------
 //
-// Collaborate is a flat 48-file dump (Channels, Messaging, Calls, Teams, and
-// Accessibility topics all interleaved alphabetically) — the section
-// End-user Guide > Collaborate feedback (Eric Sethna review, item 6) called
-// out as "overwhelming". This override groups it by topic, same pattern as
-// Administration Guide's Configure/Manage/Onboard/Scale (see #37591/#37630).
-//
-// A `landing` page is the group's hub, so it isn't repeated as a child.
-// Item order is the reader's task sequence, not alphabetical — joining a
-// channel comes before creating one, archiving last.
+// 48 files with Channels, Messaging, Calls, Teams, and Accessibility topics
+// interleaved alphabetically, grouped here by topic. Item order within a group
+// is the reader's task sequence, not alphabetical — joining a channel comes
+// before creating one, archiving last.
 
 const COLLABORATE_GROUPS = {
   channels: {
@@ -720,8 +643,6 @@ const COLLABORATE_GROUPS = {
   },
 };
 
-// Top-level Collaborate order. Strings are doc basenames relative to
-// end-user-guide/collaborate/; objects reference COLLABORATE_GROUPS keys.
 const COLLABORATE_ORDER = [
   'invite-people',
   {group: 'channels'},
@@ -732,8 +653,8 @@ const COLLABORATE_ORDER = [
   {group: 'accessibility'},
 ];
 
-// Files re-parented into groups, or out of Collaborate entirely
-// (agents-context-management sits under AI Agents) — skip the orphan check.
+// agents-context-management leaves Collaborate entirely — it sits under AI
+// Agents.
 const COLLABORATE_HIDDEN = new Set([
   'channel-types', 'browse-channels', 'create-channels', 'join-leave-channels',
   'navigate-between-channels', 'channel-naming-conventions', 'channel-header-purpose',
@@ -758,11 +679,9 @@ const COLLABORATE_HIDDEN = new Set([
 // Administration Guide — Onboard — manual grouping override.
 // ---------------------------------------------------------------------------
 //
-// Onboard is a flat 30-odd-file dump spanning SSO/identity setup, guest
-// accounts, user provisioning, and one-time migration tasks. SAML is nested
-// inside the single sign-on group since it alone accounts for 8 files.
-// AD/LDAP is a sibling group, not an SSO child — an admin can run directory
-// synchronization without SSO.
+// SAML nests inside the single sign-on group since it alone accounts for 8
+// files. AD/LDAP is a sibling group, not an SSO child — an admin can run
+// directory synchronization without SSO.
 
 const ADMIN_ONBOARD_GROUPS = {
   sso: {
@@ -818,8 +737,7 @@ const ADMIN_ONBOARD_GROUPS = {
   },
 };
 
-// Top-level Onboard order. Identity setup first (SSO, AD/LDAP, then
-// MFA/certificates), then getting accounts in, then the one-time platform
+// Identity setup first, then getting accounts in, then the one-time platform
 // migration tasks admins hit least often.
 const ADMIN_ONBOARD_ORDER = [
   {group: 'sso'},
@@ -831,8 +749,6 @@ const ADMIN_ONBOARD_ORDER = [
   {group: 'migration'},
 ];
 
-// Files re-parented into groups, used as the section landing, or listed under
-// a different section — exclude from the orphan check.
 const ADMIN_ONBOARD_HIDDEN = new Set([
   'sso-saml', 'sso-saml-adfs', 'sso-saml-adfs-msws2016',
   'sso-saml-entraid', 'sso-saml-keycloak', 'sso-saml-okta',
@@ -855,22 +771,11 @@ const ADMIN_ONBOARD_HIDDEN = new Set([
 // Administration Guide — Scale — manual grouping override.
 // ---------------------------------------------------------------------------
 //
-// Scale was originally a flat 28-file dump mixing a whole run of
-// `scale-to-N-users` capacity-planning pages with unrelated HA, search, and
-// monitoring topics. In Sphinx's live nav, only the 7 monitoring/observability
-// pages below actually stay under Administration Guide — the other 21 files
-// (capacity planning, HA/architecture, search infrastructure, caching) are
-// listed under Deployment Guide → Reference Architecture instead (Sphinx
-// decouples toctree/nav placement from a page's physical file location, so
-// those files keep their `/administration-guide/scale/...` URLs there even
-// though they're navigated to from Deployment Guide). We mirror that split
-// here by physically moving those 21 files to `deployment-guide/scale/` (see
-// the `scaling` group in DEPLOYMENT_GROUPS).
-//
-// What's left is monitoring, so this category is re-labelled "Monitor and
-// troubleshoot" (see regroupAdminScale) and the eight monitoring pages that
-// live in manage/ on disk are listed here too, by full doc id. Files keep
-// their existing URLs.
+// The capacity planning, HA, search, and caching pages that used to live here
+// were physically moved to `deployment-guide/scale/` (see the `scaling` group
+// in DEPLOYMENT_GROUPS). What's left is monitoring, so regroupAdminScale
+// re-labels the category "Monitor and troubleshoot" and pulls in the
+// monitoring pages that live in manage/ on disk, by full doc id.
 
 const ADMIN_SCALE_GROUPS = {
   metrics: {
@@ -904,7 +809,6 @@ const ADMIN_SCALE_ORDER = [
   'ensuring-releases-perform-at-scale',
 ];
 
-// Files re-parented into groups — exclude from the orphan check.
 const ADMIN_SCALE_HIDDEN = new Set([
   'collect-performance-metrics', 'deploy-prometheus-grafana-for-performance-monitoring',
   'performance-monitoring-metrics', 'performance-alerting', 'push-notification-health-targets',
@@ -914,9 +818,9 @@ const ADMIN_SCALE_HIDDEN = new Set([
 // Administration Guide — Comply and Upgrade — manual ordering overrides.
 // ---------------------------------------------------------------------------
 //
-// Both sections are small enough not to need groups, but read badly in
-// filename order: Comply is ordered by how widely each capability is used,
-// reference material last; Upgrade follows the upgrade procedure.
+// Both are small enough not to need groups, but read badly in filename order.
+// Comply runs by how widely each capability is used, reference material last;
+// Upgrade follows the upgrade procedure.
 
 const ADMIN_COMPLY_GROUPS = {};
 
@@ -957,8 +861,6 @@ const ADMIN_UPGRADE_ORDER = [
   'open-source-components',
 ];
 
-// Files re-parented into groups, or listed under a different section —
-// exclude from the orphan check.
 const ADMIN_UPGRADE_HIDDEN = new Set([
   'admin-onboarding-tasks', 'enterprise-roll-out-checklist', 'welcome-email-to-end-users',
   // Listed under Manage > Notices and surveys.
@@ -981,10 +883,8 @@ const ENDUSER_ROOT_ORDER = [
 // Preferences ordering overrides.
 // ---------------------------------------------------------------------------
 //
-// Without these, the four sections fall through to the filesystem default
-// (`sidebar_position` if set, else alphabetical) and none of their pages set
-// `sidebar_position`. `order` entries are doc basenames relative to the
-// section's directory; an object is a nested group.
+// None of the pages in these four sections set `sidebar_position`, so without
+// an override they'd fall through to alphabetical order.
 
 const ENDUSER_SECTION_OVERRIDES = {
   access: {
@@ -1058,16 +958,12 @@ const ENDUSER_SECTION_OVERRIDES = {
 // Integrations Guide — manual grouping override.
 // ---------------------------------------------------------------------------
 //
-// Integrations Guide is a genuinely flat 20-item list (not just a migration
-// artifact — Sphinx has the same problem).
-//
 // `plugins` opens the guide because it explains the delivery mechanism
-// (pre-built / Mattermost-built / custom) that the catalogue and every
-// vendor page below depend on. The vendor pages then nest under the
-// catalogue they belong to, split Microsoft / third-party to mirror the
-// tables on popular-integrations, alphabetical within each group so a
-// reader scanning for a vendor name can predict where to look. The
-// remaining entries follow the order the landing page introduces them.
+// (pre-built / Mattermost-built / custom) that the catalogue and every vendor
+// page below depend on. Vendor pages nest under their catalogue, split
+// Microsoft / third-party to mirror the tables on popular-integrations, and
+// alphabetical within each group so a reader scanning for a vendor name can
+// predict where to look.
 
 const INTEGRATIONS_GROUPS = {
   prebuilt: {
@@ -1107,9 +1003,6 @@ const INTEGRATIONS_GROUPS = {
   },
 };
 
-// Top-level Integrations Guide order. Strings are doc basenames relative to
-// integrations-guide/; objects reference INTEGRATIONS_GROUPS keys or are
-// inline sub-groups (Microsoft Integrations, Third-Party Integrations).
 const INTEGRATIONS_ROOT_ORDER = [
   'plugins',
   {group: 'prebuilt'},
@@ -1133,16 +1026,15 @@ const INTEGRATIONS_HIDDEN = new Set([
 // Security Guide — manual grouping override.
 // ---------------------------------------------------------------------------
 //
-// Sphinx lists these flat in an arbitrary order, which put the regulatory
-// pages (CMMC/FINRA/HIPAA) ahead of the hardening guidance most readers
-// actually arrive for. Order here is by reader intent instead: harden the
-// deployment, then the architectural posture model, then the platform-
-// specific surface, then "prove it to an auditor" last.
+// Ordered by reader intent: harden the deployment, then the architectural
+// posture model, then the platform-specific surface, then "prove it to an
+// auditor" last. Flat filename order put the regulatory pages ahead of the
+// hardening guidance most readers arrive for.
 
 const SECURITY_GROUPS = {
   frameworks: {
-    // The three industry-regulation pages. Grouped so the section reads as
-    // "secure it" then "certify it" rather than interleaving the two.
+    // Grouped so the section reads as "secure it" then "certify it" rather
+    // than interleaving the two.
     label: 'Compliance Frameworks',
     items: [
       'cmmc-compliance',
@@ -1152,8 +1044,6 @@ const SECURITY_GROUPS = {
   },
 };
 
-// Strings are doc basenames relative to security-guide/; objects reference
-// SECURITY_GROUPS keys.
 const SECURITY_ROOT_ORDER = [
   'secure-mattermost',
   'zero-trust',
@@ -1197,13 +1087,10 @@ function isHidden(filePath) {
 
 function pathToDocId(relPath) { return relPath.replace(/\.(md|mdx)$/, ''); }
 
-// Landing pages in this tree are conventionally named either `index.md(x)`
-// or `<something>-index.md(x)` (e.g. integrations-guide-index.mdx,
-// use-cases-index.mdx) — the latter avoids "index.mdx" filename collisions
-// when files are flattened for URL stability, and doesn't always exactly
-// match the directory name. Recognize both, everywhere a directory's
-// landing file is looked up, so category headers/sorting/labels resolve
-// consistently instead of assuming a literal index.md(x).
+// Landing pages are named either `index.md(x)` or `<something>-index.md(x)`;
+// the latter avoids filename collisions when files are flattened for URL
+// stability, and doesn't always match its directory name. Both forms have to
+// resolve, or category headers, sorting, and labels disagree.
 function findIndexFile(absDir) {
   let entries;
   try { entries = readdirSync(absDir); } catch { return null; }
@@ -1274,10 +1161,9 @@ function buildCategory(absDir, docsRelDir) {
 }
 
 // The content sub-directory a category was built from (e.g. 'comply' for
-// administration-guide/comply/), read off its landing page or first doc.
-// Used by buildAdminGuideSidebar/buildEndUserGuideSidebar below to find the
-// Configure/Manage/Onboard/Scale/Collaborate sub-category to regroup,
-// independent of its (label-based) display text.
+// administration-guide/comply/), read off its landing page or first doc. Lets
+// the section builders below find a sub-category to regroup without depending
+// on its display label.
 function categoryDirName(cat) {
   if (cat.link && cat.link.id) return cat.link.id.split('/')[1];
   const items = cat.items || [];
@@ -1314,7 +1200,7 @@ function orderRootCategories(sectionCat, order, sectionLabel) {
 }
 
 // Pull every doc label from an auto-generated category so a manual ordering
-// preserves the frontmatter-derived titles.
+// keeps the frontmatter-derived titles.
 function collectLeafLabels(cat, acc = {}) {
   if (!cat || !cat.items) return acc;
   for (const it of cat.items) {
@@ -1354,8 +1240,6 @@ function buildOverviewSidebar(autoCat) {
   const leafLabels = collectLeafLabels(autoCat);
   const items = OVERVIEW_ROOT_ORDER.map((spec) => buildOverviewItem(spec, leafLabels));
 
-  // Surface any flat docs we didn't include in the manual order so a new
-  // file dropped into docs/product-overview/ doesn't silently disappear.
   const known = new Set();
   (function walk(n) {
     if (Array.isArray(n)) n.forEach(walk);
@@ -1379,9 +1263,8 @@ function buildOverviewSidebar(autoCat) {
     type: 'category',
     label: 'Overview',
     collapsed: true,
-    // Merged with the site landing — clicking "Overview" opens the
-    // root doc (docs/index.mdx, slug: /), which is the unified
-    // welcome / Overview page.
+    // Merged with the site landing: clicking "Overview" opens main/index.mdx
+    // (slug: /), the unified welcome page.
     link: {type: 'doc', id: 'index'},
     items,
   };
@@ -1397,12 +1280,10 @@ function buildDeploymentItem(spec, leafLabels, autoCats) {
     return {type: 'doc', id, label: leafLabels[id] || humanize(spec.split('/').pop())};
   }
   if (spec.doc) {
-    // Explicit doc leaf with an inline label override.
     const id = `deployment-guide/${spec.doc}`;
     return {type: 'doc', id, label: spec.label || leafLabels[id] || humanize(spec.doc.split('/').pop())};
   }
   if (spec.auto) {
-    // Reference an auto-generated sub-category (e.g., Desktop, Mobile, Air-Gapped).
     const cat = autoCats.get(spec.auto);
     if (!cat) throw new Error(`auto-category not found: deployment-guide/${spec.auto}`);
     return cat;
@@ -1425,10 +1306,9 @@ function buildDeploymentGroup(g, leafLabels, autoCats) {
 }
 
 function buildDeploymentSidebar(autoCat) {
-  // Index the auto-generated sub-categories by directory name so we can
-  // hand them off intact to the manual ordering. We look at the category's
-  // link target first, and fall back to the first doc child if the dir
-  // has no index.{md,mdx} (e.g., desktop/, mobile/).
+  // Index the auto-generated sub-categories by directory name so the manual
+  // ordering can hand them off intact. Falls back to the first doc child for
+  // directories with no index file (desktop/, mobile/).
   const autoCats = new Map();
   function dirNameFromId(id) {
     const parts = id.split('/');
@@ -1450,11 +1330,6 @@ function buildDeploymentSidebar(autoCat) {
   const leafLabels = collectLeafLabels(autoCat);
   const items = DEPLOYMENT_ROOT_ORDER.map((spec) => buildDeploymentItem(spec, leafLabels, autoCats));
 
-  // Orphan detection: surface any leaf doc in the Deployment Guide that we
-  // didn't include in the manual order, so new files don't silently disappear.
-  // DEPLOYMENT_HIDDEN is files we KNOW are re-parented inside groups — they
-  // are referenced (so their labels need to stay in leafLabels) but they
-  // must not be re-emitted as orphans.
   const hiddenIds = new Set();
   for (const h of DEPLOYMENT_HIDDEN) hiddenIds.add(`deployment-guide/${h}`);
   const known = new Set();
@@ -1491,10 +1366,8 @@ function buildDeploymentSidebar(autoCat) {
 // Administration Guide — builder (regroups the "Configure" sub-category).
 // ---------------------------------------------------------------------------
 
-// Resolves the label for a fully-qualified doc id (one that lives outside
-// the section currently being built, e.g. an Agents doc nested under
-// Administration Guide → Configure) by reading its own frontmatter
-// directly, since it won't be present in that section's `leafLabels` map.
+// Label for a doc that lives outside the section being built, so it won't be
+// in that section's `leafLabels` map. Read from its frontmatter directly.
 function docLabelById(id) {
   for (const ext of ['.mdx', '.md']) {
     const abs = join(SRC, `${id}${ext}`);
@@ -1522,9 +1395,8 @@ function buildAdminConfigureItem(spec, leafLabels) {
   return cat;
 }
 
-// Replace the auto-generated "Configure" sub-category's items (in place,
-// preserving its position among Administration Guide's other sub-categories
-// like Onboard/Manage/Upgrade/Scale/Comply) with the manual grouping above.
+// Every regroup* function below replaces a sub-category's items in place, so
+// the sub-category keeps its position until orderRootCategories runs.
 function regroupAdminConfigure(configureCat) {
   const leafLabels = collectLeafLabels(configureCat);
   const items = ADMIN_CONFIGURE_ORDER.map((spec) => buildAdminConfigureItem(spec, leafLabels));
@@ -1580,9 +1452,8 @@ function buildAdminManageGroup(g, leafLabels) {
   return cat;
 }
 
-// Replace the auto-generated "Manage" sub-category's items (in place,
-// flattening the manage/admin/ filesystem nesting into the task-based
-// groups above) with the manual grouping.
+// Also flattens the manage/admin/ filesystem nesting into the task-based
+// groups above.
 function regroupAdminManage(manageCat) {
   const leafLabels = collectLeafLabels(manageCat);
   const items = ADMIN_MANAGE_ORDER.map((spec) => buildAdminManageItem(spec, leafLabels));
@@ -1638,9 +1509,6 @@ function buildAdminOnboardGroup(g, leafLabels) {
   return cat;
 }
 
-// Replace the auto-generated "Onboard" sub-category's items (in place,
-// preserving its position among Administration Guide's other sub-categories)
-// with the manual grouping above.
 function regroupAdminOnboard(onboardCat) {
   const leafLabels = collectLeafLabels(onboardCat);
   const items = ADMIN_ONBOARD_ORDER.map((spec) => buildAdminOnboardItem(spec, leafLabels));
@@ -1694,10 +1562,8 @@ function buildAdminScaleGroup(g, leafLabels) {
   return cat;
 }
 
-// Replace the auto-generated "Scale" sub-category's items (in place,
-// preserving its position among Administration Guide's other sub-categories)
-// with the manual grouping above. Re-labelled because the directory name no
-// longer describes what's listed here.
+// Re-labelled because the `scale/` directory name no longer describes what's
+// listed here.
 function regroupAdminScale(scaleCat) {
   const leafLabels = collectLeafLabels(scaleCat);
   const items = ADMIN_SCALE_ORDER.map((spec) => buildAdminScaleItem(spec, leafLabels));
@@ -1753,7 +1619,6 @@ function buildAdminComplyGroup(g, leafLabels) {
   return cat;
 }
 
-// Re-order the auto-generated "Comply" sub-category (in place).
 function regroupAdminComply(complyCat) {
   const leafLabels = collectLeafLabels(complyCat);
   const items = ADMIN_COMPLY_ORDER.map((spec) => buildAdminComplyItem(spec, leafLabels));
@@ -1807,7 +1672,6 @@ function buildAdminUpgradeGroup(g, leafLabels) {
   return cat;
 }
 
-// Re-order the auto-generated "Upgrade" sub-category (in place).
 function regroupAdminUpgrade(upgradeCat) {
   const leafLabels = collectLeafLabels(upgradeCat);
   const items = ADMIN_UPGRADE_ORDER.map((spec) => buildAdminUpgradeItem(spec, leafLabels));
@@ -1875,9 +1739,7 @@ function buildCollaborateItem(spec, leafLabels) {
     return {type: 'doc', id, label: leafLabels[id] || humanize(spec)};
   }
   if (spec.items) {
-    // Inline subgroup (no COLLABORATE_GROUPS lookup) — mirrors
-    // buildAdminManageItem/buildAdminManageGroup, so a group's items can
-    // nest a further {label, items} sub-group for a 4th nesting level.
+    // Inline sub-group, no COLLABORATE_GROUPS lookup.
     return buildCollaborateGroup(spec, leafLabels);
   }
   const g = COLLABORATE_GROUPS[spec.group];
@@ -1892,9 +1754,6 @@ function buildCollaborateGroup(g, leafLabels) {
   return cat;
 }
 
-// Replace the auto-generated "Collaborate" sub-category's items (in place,
-// preserving its position among End User Guide's other sub-categories) with
-// the manual grouping above — same pattern as regroupAdminConfigure/Manage.
 function regroupCollaborate(collaborateCat) {
   const leafLabels = collectLeafLabels(collaborateCat);
   const items = COLLABORATE_ORDER.map((spec) => buildCollaborateItem(spec, leafLabels));
@@ -2043,10 +1902,9 @@ function buildSecuritySidebar(autoCat) {
 // End User Guide — builder.
 // ---------------------------------------------------------------------------
 
-// Finds the {type: 'doc', id: docId} leaf anywhere in `items` and replaces
-// it in place with a category that links to that same doc and nests
-// `children` (each a doc id, or a {doc, label} pair) underneath it. Returns
-// true if the promotion was applied, so callers can warn when it wasn't.
+// Replaces the `docId` leaf anywhere in `items` with a category that links to
+// that same doc and nests `children` (doc ids, or {doc, label} pairs) under it.
+// Returns false if the leaf wasn't found, so callers can warn.
 function promoteDocToCategory(items, docId, children) {
   for (let i = 0; i < items.length; i++) {
     const it = items[i];
@@ -2071,8 +1929,6 @@ function promoteDocToCategory(items, docId, children) {
   return false;
 }
 
-// Applies one ENDUSER_SECTION_OVERRIDES entry in place, so the section keeps
-// its position until orderRootCategories runs.
 function regroupEndUserSection(sectionCat, dirName, override) {
   const leafLabels = collectLeafLabels(sectionCat);
   const prefix = `end-user-guide/${dirName}/`;
@@ -2113,7 +1969,7 @@ function regroupEndUserSection(sectionCat, dirName, override) {
 
 function buildEndUserGuideSidebar(autoCat) {
   // usage_tips' label is overridden here because agents/docs/ is staged from
-  // the plugin submodule and gitignored — its frontmatter title can't be
+  // the plugin submodule and gitignored, so its frontmatter title can't be
   // corrected in this repo.
   const promoted = promoteDocToCategory(autoCat.items, 'end-user-guide/agents', [
     {doc: 'agents/docs/usage_tips', label: 'Agents usage tips and best practices'},
