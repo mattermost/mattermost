@@ -190,6 +190,37 @@ func TestFieldOptionsAccessControl(t *testing.T) {
 		}
 	}
 
+	// grantField builds a field carrying a field.write grant for the given
+	// plugin -- the converted equivalent of a protected or owner-managed
+	// field, both of which now reach the write gate as a grant naming the
+	// plugin that may change the definition. Written straight to the store
+	// for the same reason fieldWith is: only an administrator or a plugin
+	// acting through the create/update path ever produces one, and this test
+	// is checking what the gate does with it, not how it got there.
+	grantField := func(t *testing.T, groupID, pluginID string) (*model.PropertyField, string) {
+		t.Helper()
+		optionID := model.NewId()
+		field := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:    groupID,
+			Name:       "Programs-" + model.NewId(),
+			Type:       model.PropertyFieldTypeMultiselect,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{"id": optionID, "name": "Air"},
+				},
+			},
+			Permissions: &model.Permissions{
+				Grants: []model.Grant{{
+					Identity: model.Identity{Type: model.PropertyOwnerTypePlugin, ID: pluginID},
+					Allow:    []string{model.PropertyActionFieldWrite},
+				}},
+			},
+		})
+		return field, optionID
+	}
+
 	// Every verb, so that none of them is the one left unguarded. Each takes the
 	// field's own option, which is the only option any of these callers could name.
 	changes := []struct {
@@ -213,15 +244,14 @@ func TestFieldOptionsAccessControl(t *testing.T) {
 	t.Run("a protected field's options are the source plugin's alone to change", func(t *testing.T) {
 		for _, change := range changes {
 			t.Run(change.name, func(t *testing.T) {
-				field, held := fieldWith(t, th.CPAGroupID, protectedAttrs())
+				field, held := grantField(t, th.CPAGroupID, "owning-plugin")
 
 				err := change.call(other, field, held)
 				require.Error(t, err)
 				require.ErrorIs(t, err, ErrAccessDenied)
-				require.ErrorContains(t, err, "owning-plugin")
 
-				// Not the administrator's either, which is what the field write path
-				// answers: a protected field is the source plugin's schema.
+				// Not the administrator's either: a human caller is judged by the
+				// ladder, and this field's restrictions leave field.write at none.
 				err = change.call(admin, field, held)
 				require.Error(t, err)
 				require.ErrorIs(t, err, ErrAccessDenied)
@@ -232,16 +262,11 @@ func TestFieldOptionsAccessControl(t *testing.T) {
 	})
 
 	t.Run("an owner-managed field's options are a listed owner's to change", func(t *testing.T) {
-		field, held := fieldWith(t, th.CPAGroupID, model.StringInterface{
-			model.PropertyAttrsOwners: []any{
-				map[string]any{"id": "owning-plugin", "type": model.PropertyOwnerTypePlugin},
-			},
-		})
+		field, held := grantField(t, th.CPAGroupID, "owning-plugin")
 
 		err := changes[0].call(other, field, held)
 		require.Error(t, err)
 		require.ErrorIs(t, err, ErrAccessDenied)
-		require.ErrorContains(t, err, "owner-managed")
 
 		require.NoError(t, changes[0].call(source, field, held))
 	})

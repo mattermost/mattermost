@@ -2183,10 +2183,16 @@ func TestUpsertPropertyValues_WriteAccessControl(t *testing.T) {
 	})
 }
 
-func TestUpsertPropertyValue_SyncLock(t *testing.T) {
+// TestUpsertPropertyValue_ServiceGrant covers the mechanism that replaced the
+// ldap/saml sync lock: a field carrying a service grant for "ldap" or "saml"
+// is writable only by the matching sync caller, exactly as the legacy
+// attrs.ldap/attrs.saml lock was. The grant matcher's own tests already cover
+// grant matching in general, so this is one case for the mechanism, not one
+// per caller/field combination the legacy lock used to need.
+func TestUpsertPropertyValue_ServiceGrant(t *testing.T) {
 	th := Setup(t)
 
-	group, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "test_sync_lock", Version: model.PropertyGroupVersionV1})
+	group, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "test_service_grant", Version: model.PropertyGroupVersionV1})
 	require.NoError(t, err)
 
 	hook := NewAccessControlHook(th.service, nil, nil, nil, group.ID)
@@ -2198,125 +2204,47 @@ func TestUpsertPropertyValue_SyncLock(t *testing.T) {
 		Type:       model.PropertyFieldTypeText,
 		TargetType: "system",
 		ObjectType: "user",
-		Attrs:      model.StringInterface{model.PropertyFieldAttrLDAP: "cn"},
-	})
-
-	samlField := th.CreatePropertyFieldDirect(t, &model.PropertyField{
-		GroupID:    group.ID,
-		Name:       "saml_field_" + model.NewId(),
-		Type:       model.PropertyFieldTypeText,
-		TargetType: "system",
-		ObjectType: "user",
-		Attrs:      model.StringInterface{model.PropertyFieldAttrSAML: "displayName"},
-	})
-
-	nonSyncedField := th.CreatePropertyFieldDirect(t, &model.PropertyField{
-		GroupID:    group.ID,
-		Name:       "normal_field_" + model.NewId(),
-		Type:       model.PropertyFieldTypeText,
-		TargetType: "system",
-		ObjectType: "user",
+		Permissions: &model.Permissions{
+			Grants: []model.Grant{{
+				Identity: model.Identity{Type: model.PropertyOwnerTypeService, ID: model.PropertyFieldAttrLDAP},
+				Allow:    []string{model.PropertyActionValueWrite},
+			}},
+		},
 	})
 
 	targetID := model.NewId()
-
-	t.Run("blocks upsert on LDAP-synced field without caller ID", func(t *testing.T) {
-		value := &model.PropertyValue{
-			GroupID:    group.ID,
-			FieldID:    ldapField.ID,
-			TargetID:   targetID,
-			TargetType: "user",
-			Value:      json.RawMessage(`"test"`),
-		}
-		_, upsertErr := th.service.UpsertPropertyValue(th.Context, value)
-		require.Error(t, upsertErr)
-		assert.Contains(t, upsertErr.Error(), "ldap sync")
-	})
-
-	t.Run("allows LDAP sync service to upsert LDAP-synced field", func(t *testing.T) {
-		rctx := RequestContextWithCallerID(th.Context, model.CallerIDLDAPSync)
-		value := &model.PropertyValue{
+	newValue := func() *model.PropertyValue {
+		return &model.PropertyValue{
 			GroupID:    group.ID,
 			FieldID:    ldapField.ID,
 			TargetID:   targetID,
 			TargetType: "user",
 			Value:      json.RawMessage(`"John Doe"`),
 		}
-		result, upsertErr := th.service.UpsertPropertyValue(rctx, value)
-		require.NoError(t, upsertErr)
-		assert.NotEmpty(t, result.ID)
-	})
+	}
 
-	t.Run("blocks SAML sync service from writing LDAP-synced field", func(t *testing.T) {
-		rctx := RequestContextWithCallerID(th.Context, model.CallerIDSAMLSync)
-		value := &model.PropertyValue{
-			GroupID:    group.ID,
-			FieldID:    ldapField.ID,
-			TargetID:   targetID,
-			TargetType: "user",
-			Value:      json.RawMessage(`"wrong caller"`),
-		}
-		_, upsertErr := th.service.UpsertPropertyValue(rctx, value)
-		require.Error(t, upsertErr)
-		assert.Contains(t, upsertErr.Error(), "ldap sync")
-	})
-
-	t.Run("allows SAML sync service to upsert SAML-synced field", func(t *testing.T) {
-		rctx := RequestContextWithCallerID(th.Context, model.CallerIDSAMLSync)
-		value := &model.PropertyValue{
-			GroupID:    group.ID,
-			FieldID:    samlField.ID,
-			TargetID:   targetID,
-			TargetType: "user",
-			Value:      json.RawMessage(`"Jane Doe"`),
-		}
-		result, upsertErr := th.service.UpsertPropertyValue(rctx, value)
-		require.NoError(t, upsertErr)
-		assert.NotEmpty(t, result.ID)
-	})
-
-	t.Run("blocks regular user from writing SAML-synced field", func(t *testing.T) {
-		value := &model.PropertyValue{
-			GroupID:    group.ID,
-			FieldID:    samlField.ID,
-			TargetID:   targetID,
-			TargetType: "user",
-			Value:      json.RawMessage(`"sneaky"`),
-		}
-		_, upsertErr := th.service.UpsertPropertyValue(th.Context, value)
-		require.Error(t, upsertErr)
-		assert.Contains(t, upsertErr.Error(), "saml sync")
-	})
-
-	t.Run("allows regular user to upsert non-synced field", func(t *testing.T) {
-		value := &model.PropertyValue{
-			GroupID:    group.ID,
-			FieldID:    nonSyncedField.ID,
-			TargetID:   targetID,
-			TargetType: "user",
-			Value:      json.RawMessage(`"hello"`),
-		}
-		result, upsertErr := th.service.UpsertPropertyValue(th.Context, value)
-		require.NoError(t, upsertErr)
-		assert.NotEmpty(t, result.ID)
-	})
-
-	t.Run("sync lock applies to batch upsert", func(t *testing.T) {
-		values := []*model.PropertyValue{
-			{
-				GroupID:    group.ID,
-				FieldID:    ldapField.ID,
-				TargetID:   targetID,
-				TargetType: "user",
-				Value:      json.RawMessage(`"batch test"`),
-			},
-		}
-		_, upsertErr := th.service.UpsertPropertyValues(th.Context, values)
-		require.Error(t, upsertErr)
-		assert.Contains(t, upsertErr.Error(), "ldap sync")
-
-		// Same batch with the right caller should succeed
+	t.Run("allows LDAP sync service to upsert the field its grant names", func(t *testing.T) {
 		rctx := RequestContextWithCallerID(th.Context, model.CallerIDLDAPSync)
+		result, upsertErr := th.service.UpsertPropertyValue(rctx, newValue())
+		require.NoError(t, upsertErr)
+		assert.NotEmpty(t, result.ID)
+	})
+
+	t.Run("blocks SAML sync service, which holds no grant on this field", func(t *testing.T) {
+		rctx := RequestContextWithCallerID(th.Context, model.CallerIDSAMLSync)
+		_, upsertErr := th.service.UpsertPropertyValue(rctx, newValue())
+		require.Error(t, upsertErr)
+		assert.ErrorIs(t, upsertErr, ErrAccessDenied)
+	})
+
+	t.Run("service grant applies to batch upsert", func(t *testing.T) {
+		values := []*model.PropertyValue{newValue()}
+
+		rctx := RequestContextWithCallerID(th.Context, model.CallerIDSAMLSync)
+		_, upsertErr := th.service.UpsertPropertyValues(rctx, values)
+		require.Error(t, upsertErr)
+
+		rctx = RequestContextWithCallerID(th.Context, model.CallerIDLDAPSync)
 		results, upsertErr := th.service.UpsertPropertyValues(rctx, values)
 		require.NoError(t, upsertErr)
 		assert.Len(t, results, 1)

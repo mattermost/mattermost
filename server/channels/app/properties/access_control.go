@@ -24,7 +24,6 @@ import (
 	"fmt"
 	"maps"
 	"net/http"
-	"slices"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -698,7 +697,7 @@ func (h *AccessControlHook) PreDeletePropertyValuesForField(rctx request.CTX, gr
 	// sysadmin, refusing a legitimate cascade. A human caller's authority for
 	// this operation comes from the field-level write gate on the delete path
 	// (PreDeletePropertyField / enforceFieldUpdateAccess), not from here.
-	if field.Permissions != nil && !h.isMachineCaller(callerID) {
+	if !h.isMachineCaller(callerID) {
 		return nil
 	}
 
@@ -788,72 +787,6 @@ func (h *AccessControlHook) callerOwnerIdentity(callerID, scope string) (ownerID
 	}
 }
 
-// effectiveOwners returns the owners list used for value-write access checks on
-// an owner-managed field. Explicit owners from the attrs blob are augmented
-// with implicit service owners derived from attrs.ldap / attrs.saml so a field
-// can be written by both a listed plugin/scope and its legacy sync source.
-// Implicit service owners are only added when explicit owners are present;
-// legacy synced-only fields continue through checkSyncLock instead.
-func (h *AccessControlHook) effectiveOwners(field *model.PropertyField) []model.PropertyOwner {
-	owners := model.GetPropertyFieldOwners(field)
-	if len(owners) == 0 || field.Attrs == nil {
-		return owners
-	}
-
-	if ldap, _ := field.Attrs[model.PropertyFieldAttrLDAP].(string); ldap != "" {
-		owners = append(owners, model.PropertyOwner{
-			ID:   model.PropertyFieldAttrLDAP,
-			Type: model.PropertyOwnerTypeService,
-		})
-	}
-	if saml, _ := field.Attrs[model.PropertyFieldAttrSAML].(string); saml != "" {
-		owners = append(owners, model.PropertyOwner{
-			ID:   model.PropertyFieldAttrSAML,
-			Type: model.PropertyOwnerTypeService,
-		})
-	}
-	return owners
-}
-
-// checkOwnerValueWriteAccess enforces a field's owners list on a value write.
-// A machine caller is allowed only if it is a listed owner (matching ID and
-// type) whose scopes contain the caller's acting-as scope. An owner with an
-// empty scopes list is not restricted by scope and may write for any scope.
-//
-// Human callers are always rejected: an owner-managed field's values are
-// authoritative to the owning integration, so no session user — including
-// sysadmins — may overwrite them. This mirrors checkSyncLock for ldap/saml
-// fields and is the sole write authority for owner-managed fields (their
-// PermissionValues are left at the normal default and are not consulted here).
-func (h *AccessControlHook) checkOwnerValueWriteAccess(field *model.PropertyField, callerID, scope string) error {
-	if !h.isMachineCaller(callerID) {
-		return fmt.Errorf("field %s is owner-managed and cannot be modified by human caller %q: %w", field.ID, callerID, ErrAccessDenied)
-	}
-
-	ownerID, ownerType, effectiveScope := h.callerOwnerIdentity(callerID, scope)
-	for _, owner := range h.effectiveOwners(field) {
-		if owner.Type == ownerType && owner.ID == ownerID &&
-			(len(owner.Scopes) == 0 || slices.Contains(owner.Scopes, effectiveScope)) {
-			return nil
-		}
-	}
-
-	return fmt.Errorf("field %s is owner-managed and caller %q acting as scope %q is not an owner with a matching scope: %w", field.ID, callerID, effectiveScope, ErrAccessDenied)
-}
-
-// isListedOwner reports whether the machine caller matches an explicit owner
-// entry on the field (by id and type). Scope is not consulted: being a listed
-// owner is what authorizes managing the field; scope only gates value writes.
-func (h *AccessControlHook) isListedOwner(field *model.PropertyField, callerID string) bool {
-	ownerID, ownerType, _ := h.callerOwnerIdentity(callerID, "")
-	for _, owner := range model.GetPropertyFieldOwners(field) {
-		if owner.Type == ownerType && owner.ID == ownerID {
-			return true
-		}
-	}
-	return false
-}
-
 // permissionsGrantAllows reports whether a machine caller may perform action
 // on field under its typed permissions object. A machine caller has no human
 // role, so the restrictions ladder never applies to it: the decision is
@@ -884,22 +817,12 @@ func (h *AccessControlHook) permissionsAllows(rctx request.CTX, field *model.Pro
 	return h.ladderChecker(rctx, callerID, field, action, valueTargetID)
 }
 
-// enforceFieldUpdateAccess gates a field-definition update.
-//
-// A field carrying a typed permissions object is judged by it alone: a
-// machine caller needs a field.write grant on the stored (existing) field --
-// so it cannot grant itself the write in the same patch that uses it -- and a
-// human caller is judged by the same permissions object, via the injected
-// ladder checker. The owners/protected/sync-lock paths below are not
-// consulted once a field has converted to permissions.
-//
-// Owner-managed fields allow a machine caller only if it is a listed owner
-// (checked against the stored owners, so a non-owner cannot add itself). A
-// listed owner may edit the whole definition including the owners attr. Human
-// callers pass through to the API-layer sysadmin pin.
-//
-// For non-owner-managed fields, machine callers may not add owners, and legacy
-// protected / source_plugin_id rules continue to apply.
+// enforceFieldUpdateAccess gates a field-definition update. A machine caller
+// needs a field.write grant on the stored (existing) field -- so it cannot
+// grant itself the write in the same patch that uses it -- and a human caller
+// is judged by the same permissions object, via the injected ladder checker.
+// updated is accepted but never consulted, for the same reason: judging the
+// field being written would let a caller author its own way past the check.
 func (h *AccessControlHook) enforceFieldUpdateAccess(rctx request.CTX, existing, updated *model.PropertyField, callerID string) error {
 	if existing.Permissions != nil {
 		if h.isMachineCaller(callerID) {
@@ -914,17 +837,11 @@ func (h *AccessControlHook) enforceFieldUpdateAccess(rctx request.CTX, existing,
 		return fmt.Errorf("field %s refuses caller %q a field write: %w", existing.ID, callerID, ErrAccessDenied)
 	}
 
-	if model.HasPropertyFieldOwners(existing) {
-		if h.isMachineCaller(callerID) && !h.isListedOwner(existing, callerID) {
-			return fmt.Errorf("field %s is owner-managed and can only be modified by an administrator or a listed owner: %w", existing.ID, ErrAccessDenied)
-		}
-		return nil
-	}
-
-	if h.isMachineCaller(callerID) && model.HasPropertyFieldOwners(updated) {
-		return fmt.Errorf("owners can only be set by an administrator: %w", ErrAccessDenied)
-	}
-	return h.checkLegacyFieldWriteAccess(existing, callerID)
+	// Every group-managed field has carried a converted permissions object
+	// since the migration backfill, and the create/update path populates it
+	// too; unreached in production. Fails closed rather than falling back to
+	// the owners and source-plugin rules those columns no longer govern.
+	return fmt.Errorf("field %s carries no permissions object: %w", existing.ID, ErrAccessDenied)
 }
 
 // getSourcePluginID extracts the source_plugin_id from a PropertyField's attrs.
@@ -966,33 +883,9 @@ func (h *AccessControlHook) validateProtectedFieldUpdate(updatedField *model.Pro
 	return nil
 }
 
-// checkLegacyFieldWriteAccess enforces the protected / source_plugin_id rules on
-// a non-owner-managed field. Owner-managed fields are gated by
-// enforceFieldUpdateAccess; callers must confirm the field has no owners before
-// calling this.
-// IMPORTANT: Always pass the existing field fetched from the database, not a field provided by the caller.
-func (h *AccessControlHook) checkLegacyFieldWriteAccess(field *model.PropertyField, callerID string) error {
-	if !model.IsPropertyFieldProtected(field) {
-		return nil
-	}
-
-	sourcePluginID := h.getSourcePluginID(field)
-	if sourcePluginID == "" {
-		return fmt.Errorf("field %s is protected, but has no associated source plugin: %w", field.ID, ErrAccessDenied)
-	}
-
-	if sourcePluginID != callerID {
-		return fmt.Errorf("field %s is protected and can only be modified by source plugin '%s': %w", field.ID, sourcePluginID, ErrAccessDenied)
-	}
-
-	return nil
-}
-
 // checkFieldDeleteAccess checks if the given caller can delete a PropertyField.
-// A field carrying a typed permissions object is judged by it alone -- there
-// is no separate delete action, so deleting a definition is judged as a
-// field.write -- and the owners/protected paths below are not consulted once
-// a field has converted.
+// There is no separate delete action, so deleting a definition is judged as a
+// field.write.
 // IMPORTANT: Always pass the existing field fetched from the database, not a field provided by the caller.
 func (h *AccessControlHook) checkFieldDeleteAccess(rctx request.CTX, field *model.PropertyField, callerID string) error {
 	if field.Permissions != nil {
@@ -1008,59 +901,11 @@ func (h *AccessControlHook) checkFieldDeleteAccess(rctx request.CTX, field *mode
 		return fmt.Errorf("field %s refuses caller %q a field delete: %w", field.ID, callerID, ErrAccessDenied)
 	}
 
-	if model.HasPropertyFieldOwners(field) {
-		if h.isMachineCaller(callerID) && !h.isListedOwner(field, callerID) {
-			return fmt.Errorf("field %s is owner-managed and can only be deleted by an administrator or a listed owner: %w", field.ID, ErrAccessDenied)
-		}
-		return nil
-	}
-
-	if !model.IsPropertyFieldProtected(field) {
-		return nil
-	}
-
-	sourcePluginID := h.getSourcePluginID(field)
-	if sourcePluginID == "" {
-		return nil
-	}
-
-	if h.pluginChecker != nil && !h.pluginChecker(sourcePluginID) {
-		return nil
-	}
-
-	if sourcePluginID != callerID {
-		return fmt.Errorf("field %s is protected and can only be modified by source plugin '%s': %w", field.ID, sourcePluginID, ErrAccessDenied)
-	}
-
-	return nil
-}
-
-// checkSyncLock checks whether the caller is allowed to write values for a
-// synced field. Synced fields have an ldap or saml attr set, and only the
-// corresponding sync service (identified by well-known caller IDs) may write
-// their values.
-func (h *AccessControlHook) checkSyncLock(field *model.PropertyField, callerID string) error {
-	syncSource := model.GetPropertyFieldSyncSource(field)
-	if syncSource == "" {
-		return nil
-	}
-
-	// Map sync source to the expected caller ID
-	var expectedCallerID string
-	switch syncSource {
-	case "ldap":
-		expectedCallerID = model.CallerIDLDAPSync
-	case "saml":
-		expectedCallerID = model.CallerIDSAMLSync
-	default:
-		return fmt.Errorf("field %s has unknown sync source %q: %w", field.ID, syncSource, ErrInvalidFieldAttrs)
-	}
-
-	if callerID != expectedCallerID {
-		return fmt.Errorf("field %s is managed by %s sync and cannot be modified by caller %q: %w", field.ID, syncSource, callerID, ErrSyncLocked)
-	}
-
-	return nil
+	// Every group-managed field has carried a converted permissions object
+	// since the migration backfill, and the create/update path populates it
+	// too; unreached in production. Fails closed rather than falling back to
+	// the owners and source-plugin rules those columns no longer govern.
+	return fmt.Errorf("field %s carries no permissions object: %w", field.ID, ErrAccessDenied)
 }
 
 // valueWriteAccessCache memoizes checkValueWriteAccess within one hook call
@@ -1079,15 +924,11 @@ func (c valueWriteAccessCache) check(h *AccessControlHook, rctx request.CTX, mc 
 	return err
 }
 
-// checkValueWriteAccess gates a value write. A field carrying a typed
-// permissions object supersedes every legacy path below: a machine caller is
-// allowed only by a matching value.write grant, and a human caller is judged
-// against valueTargetID, the object the value hangs off. Once either has
-// admitted the write, a masked field still gets a say: checkValueWriteVisibility
-// refuses it if the caller cannot see the whole of what is already stored
-// there. Absent permissions, a field declaring an owners list has the owner
-// check (with scope matching) supersede the legacy protected-field and
-// sync-lock checks; otherwise it falls back to today's behaviour.
+// checkValueWriteAccess gates a value write: a machine caller is allowed only
+// by a matching value.write grant, and a human caller is judged against
+// valueTargetID, the object the value hangs off. Once either has admitted the
+// write, a masked field still gets a say: checkValueWriteVisibility refuses it
+// if the caller cannot see the whole of what is already stored there.
 func (h *AccessControlHook) checkValueWriteAccess(rctx request.CTX, mc maskingContext, field *model.PropertyField, callerID, scope, valueTargetID string) error {
 	if field.Permissions != nil {
 		if h.isMachineCaller(callerID) {
@@ -1100,14 +941,11 @@ func (h *AccessControlHook) checkValueWriteAccess(rctx request.CTX, mc maskingCo
 		return h.checkValueWriteVisibility(rctx, mc, field, callerID, valueTargetID)
 	}
 
-	if model.HasPropertyFieldOwners(field) {
-		return h.checkOwnerValueWriteAccess(field, callerID, scope)
-	}
-
-	if err := h.checkLegacyFieldWriteAccess(field, callerID); err != nil {
-		return err
-	}
-	return h.checkSyncLock(field, callerID)
+	// Every group-managed field has carried a converted permissions object
+	// since the migration backfill, and the create/update path populates it
+	// too; unreached in production. Fails closed rather than falling back to
+	// the owners, protected, and sync-lock rules those columns no longer govern.
+	return fmt.Errorf("field %s carries no permissions object: %w", field.ID, ErrAccessDenied)
 }
 
 // getCallerValuesForField retrieves all property values for the caller on a specific field.
