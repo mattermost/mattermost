@@ -36,7 +36,7 @@ export default class ProfileModal {
 
         this.closeButton = container.getByRole('button', {name: 'Close'});
         this.saveButton = container.getByRole('button', {name: 'Save'});
-        this.cancelButton = container.getByRole('button', {name: 'Cancel'});
+        this.cancelButton = container.getByRole('button', {name: 'Cancel', exact: true});
         this.managedByAdminMessage = container.getByText(
             'This field is managed by your System Admin. Contact them to request a change.',
         );
