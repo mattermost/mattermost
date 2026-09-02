@@ -182,7 +182,7 @@ func (te *customTestPdfExtractor) Match(filename string) bool {
 	return strings.HasSuffix(filename, ".pdf")
 }
 
-func (te *customTestPdfExtractor) Extract(filename string, r io.ReadSeeker, _ int64, _ *ExtractionBudget) (string, error) {
+func (te *customTestPdfExtractor) Extract(_ context.Context, filename string, r io.ReadSeeker, _ int64, _ *ExtractionBudget) (string, error) {
 	return "this is a text generated content", nil
 }
 
@@ -196,7 +196,7 @@ func (te *failingExtractor) Match(filename string) bool {
 	return true
 }
 
-func (te *failingExtractor) Extract(filename string, r io.ReadSeeker, _ int64, _ *ExtractionBudget) (string, error) {
+func (te *failingExtractor) Extract(_ context.Context, filename string, r io.ReadSeeker, _ int64, _ *ExtractionBudget) (string, error) {
 	return "", errors.New("this always fail")
 }
 
