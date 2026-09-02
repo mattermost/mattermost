@@ -20,9 +20,73 @@ NODE_VERSION="${CLOUD_AGENT_NODE_VERSION:-24.11.1}"
 export GOPATH="${GOPATH:-$HOME/go}"
 export PATH="/usr/local/go/bin:$GOPATH/bin:/usr/local/bin:$PATH"
 
+required_go_version() {
+  local version_file="$ROOT/server/.go-version"
+  if [ ! -f "$version_file" ]; then
+    log "server/.go-version is missing; cannot determine the required Go version."
+    return 1
+  fi
+  tr -d '[:space:]' < "$version_file"
+}
+
+current_go_version() {
+  command -v go >/dev/null 2>&1 || return 1
+  go version | awk '{print $3}' | sed 's/^go//'
+}
+
+install_go() {
+  local version="$1"
+  local go_arch
+  case "$(dpkg --print-architecture)" in
+    amd64) go_arch=amd64 ;;
+    arm64) go_arch=arm64 ;;
+    *)
+      log "Unsupported Go architecture: $(dpkg --print-architecture)"
+      return 1
+      ;;
+  esac
+
+  local tarball="/tmp/go${version}.linux-${go_arch}.tar.gz"
+  log "Downloading Go ${version} (${go_arch})."
+  curl --retry 3 --retry-delay 5 -fsSL "https://go.dev/dl/go${version}.linux-${go_arch}.tar.gz" -o "$tarball"
+  sudo rm -rf /usr/local/go
+  sudo tar -C /usr/local -xzf "$tarball"
+  sudo ln -sfnT /usr/local/go/bin/go /usr/local/bin/go
+  sudo ln -sfnT /usr/local/go/bin/gofmt /usr/local/bin/gofmt
+  rm -f "$tarball"
+}
+
+persist_go_path() {
+  local marker="# mattermost-cloud-agent-go-path"
+  local rc="${HOME}/.bashrc"
+  if [ -f "$rc" ] && grep -Fq "$marker" "$rc"; then
+    return 0
+  fi
+  {
+    echo "$marker"
+    echo 'export GOPATH="${GOPATH:-$HOME/go}"'
+    echo 'export PATH="/usr/local/go/bin:$GOPATH/bin:$PATH"'
+  } >> "$rc"
+}
+
 ensure_go() {
-  if ! command -v go >/dev/null 2>&1; then
-    log "Go is not available on PATH. PATH=$PATH"
+  export GOPATH="${GOPATH:-$HOME/go}"
+  export PATH="/usr/local/go/bin:/usr/local/bin:${GOPATH}/bin:${PATH}"
+
+  local required current
+  required="$(required_go_version)"
+  current="$(current_go_version || true)"
+
+  if [ "$current" != "$required" ]; then
+    log "Go ${current:-not found} does not match server/.go-version (${required}); installing."
+    install_go "$required"
+    hash -r
+    persist_go_path
+    current="$(current_go_version || true)"
+  fi
+
+  if [ "$current" != "$required" ]; then
+    log "Go is ${current:-not found} after install; expected ${required}."
     return 1
   fi
 

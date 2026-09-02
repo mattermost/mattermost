@@ -17,3 +17,5 @@ This repository has a checked-in Cloud Agent environment under `.cursor/`. Docke
 
 The environment declares `mattermost/enterprise` as a Cursor multi-repo dependency. Cursor clones the repositories as siblings, so `server/Makefile` can use its default `../../enterprise` path; the install hook does not clone or symlink enterprise.
 
+Go must match `server/.go-version`. `.cursor/Dockerfile` pins that version in the image, and `.cursor/scripts/cloud-agent-install.sh` installs it at bootstrap if the running toolchain is older or missing.
+
