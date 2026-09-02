@@ -213,6 +213,9 @@ export function PluginEnableButton({actions, disabled, homepageUrl, id, saveNeed
                         'aria-label': formatMessage({id: 'admin.plugin.actions.menu.aria_label', defaultMessage: 'Plugin actions'}),
                         children: <DotsHorizontalIcon size={16}/>,
                     }}
+                    menuButtonTooltip={{
+                        text: formatMessage({id: 'admin.plugin.actions.menu.tooltip', defaultMessage: 'More plugin actions'}),
+                    }}
                     menu={{
                         id: `plugin-actions-menu-${pluginId}`,
                         'aria-label': formatMessage({id: 'admin.plugin.actions.menu.aria_label', defaultMessage: 'Plugin actions'}),
