@@ -71,10 +71,10 @@ jobs:
           fetch-depth: 0
 
       - name: ci/stabilization-loop
-        uses: mattermost/mattermost-test-system-io/.github/actions/test-system-io-stabilization@fd82c393b43f4023708e5f5e379f65ea75313382 # 2026-09-02, mattermost-test-system-io#101
+        uses: mattermost/mattermost-test-system-io/.github/actions/test-system-io-stabilization@80e9ae918bc4682ed90b9087b701c0312389f952 # 2026-09-02, mattermost-test-system-io#101
         with:
           repo: ${{ github.repository }}
-          use-staging: ${{ vars.E2E_TSIO_USE_STAGING || 'false' }}
+          use-staging: ${{ vars.E2E_TRIAGE_TSIO_PRODUCTION != 'true' }}
           base-branch: master
           # A scheduled run honours the kill switch and is never dry by
           # default; a manual run defaults to dry so a human can look first.
