@@ -332,8 +332,8 @@ describe('ChannelInfoAttributes', () => {
         });
 
         test('an earlier save resolving cannot clobber a later save still in flight', async () => {
-            let resolveFirst: (value: unknown[]) => void = () => {};
-            let resolveSecond: (value: unknown[]) => void = () => {};
+            let resolveFirst: (value: Array<PropertyValue<unknown>>) => void = () => {};
+            let resolveSecond: (value: Array<PropertyValue<unknown>>) => void = () => {};
             const patchSpy = jest.spyOn(Client4, 'patchPropertyValues').
                 mockImplementationOnce(() => new Promise((resolve) => {
                     resolveFirst = resolve;

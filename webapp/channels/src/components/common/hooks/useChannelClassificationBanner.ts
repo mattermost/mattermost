@@ -190,7 +190,19 @@ export default function useChannelClassificationBanner(channelId: string): Chann
 
             const contributions = designatedFields.
                 map((field) => resolvedAttributes.find((resolved) => resolved.field.id === field.id)).
-                filter((resolved): resolved is ResolvedChannelAttribute => Boolean(resolved) && resolved.displayValue !== '');
+                filter((resolved): resolved is ResolvedChannelAttribute => {
+                    if (!resolved || resolved.displayValue === '') {
+                        return false;
+                    }
+
+                    // A select option that no longer exists (deleted after being chosen)
+                    // has to suppress that attribute's contribution rather than surface
+                    // the raw stored id in the banner.
+                    if (resolved.field.type === 'select' && !resolved.option) {
+                        return false;
+                    }
+                    return true;
+                });
 
             if (contributions.length === 0) {
                 return {...noBanner, classificationIsBannerDesignated};

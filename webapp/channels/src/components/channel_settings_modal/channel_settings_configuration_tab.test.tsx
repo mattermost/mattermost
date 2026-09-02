@@ -1152,7 +1152,7 @@ describe('ChannelSettingsConfigurationTab', () => {
                     entities: {
                         general: {
                             config: {FeatureFlagChannelAttributes: 'true'},
-                            license: {IsLicensed: 'true', SkuShortName: 'enterprise'},
+                            license: {IsLicensed: 'true', SkuShortName: 'advanced'},
                         },
                     },
                 },

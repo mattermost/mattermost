@@ -127,10 +127,10 @@ describe('useChannelClassificationBanner — generic designated attributes', () 
         );
 
         expect(result.current.hasClassification).toBe(true);
-        expect(result.current.bannerText).toBe('**AURORA**');
+        expect(result.current.bannerText).toBe('AURORA');
         expect(result.current.classificationBanner).toEqual({
             enabled: true,
-            text: '**AURORA**',
+            text: 'AURORA',
             background_color: '#1e325c',
         });
     });
@@ -195,7 +195,7 @@ describe('useChannelClassificationBanner — generic designated attributes', () 
         expect(result.current.position).toBe('display_banner_top');
     });
 
-    test('picks the lowest sort_order when two attributes designate a banner', () => {
+    test('joins attributes in sort_order and takes position from the lowest', () => {
         const second = designatedField('zulu', 'display_banner_top', [{id: 'opt_z', name: 'ZULU'}], 2);
         const first = designatedField('alpha', 'display_banner_bottom', [{id: 'opt_a', name: 'ALPHA'}], 1);
 
@@ -204,7 +204,7 @@ describe('useChannelClassificationBanner — generic designated attributes', () 
             makeState([second, first], [value('zulu', 'opt_z'), value('alpha', 'opt_a')]),
         );
 
-        expect(result.current.bannerText).toBe('**ALPHA**');
+        expect(result.current.bannerText).toBe('ALPHA · ZULU');
         expect(result.current.position).toBe('display_banner_bottom');
     });
 
