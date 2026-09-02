@@ -234,12 +234,18 @@ func (h *AccessControlHook) PreUpdatePropertyField(rctx request.CTX, groupID str
 		return nil, err
 	}
 
-	if err := h.validateProtectedFieldUpdate(field, callerID); err != nil {
-		return nil, err
+	accessModeChanged, protectedChanged := legacyValidatorGates(field, existingField)
+
+	if protectedChanged {
+		if err := h.validateProtectedFieldUpdate(field, callerID); err != nil {
+			return nil, err
+		}
 	}
 
-	if err := model.ValidatePropertyFieldAccessMode(field); err != nil {
-		return nil, fmt.Errorf("%s: %w", err.Error(), ErrInvalidAccessMode)
+	if accessModeChanged {
+		if err := model.ValidatePropertyFieldAccessMode(field); err != nil {
+			return nil, fmt.Errorf("%s: %w", err.Error(), ErrInvalidAccessMode)
+		}
 	}
 
 	return field, nil
@@ -284,12 +290,18 @@ func (h *AccessControlHook) PreUpdatePropertyFields(rctx request.CTX, groupID st
 			return nil, fmt.Errorf("field %s: %w", field.ID, err)
 		}
 
-		if err := h.validateProtectedFieldUpdate(field, callerID); err != nil {
-			return nil, fmt.Errorf("field %s: %w", field.ID, err)
+		accessModeChanged, protectedChanged := legacyValidatorGates(field, existingField)
+
+		if protectedChanged {
+			if err := h.validateProtectedFieldUpdate(field, callerID); err != nil {
+				return nil, fmt.Errorf("field %s: %w", field.ID, err)
+			}
 		}
 
-		if err := model.ValidatePropertyFieldAccessMode(field); err != nil {
-			return nil, fmt.Errorf("field %s: %s: %w", field.ID, err.Error(), ErrInvalidAccessMode)
+		if accessModeChanged {
+			if err := model.ValidatePropertyFieldAccessMode(field); err != nil {
+				return nil, fmt.Errorf("field %s: %s: %w", field.ID, err.Error(), ErrInvalidAccessMode)
+			}
 		}
 	}
 

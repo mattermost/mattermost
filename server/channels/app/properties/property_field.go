@@ -947,6 +947,24 @@ func legacyAttrBool(attrs model.StringInterface, key string) bool {
 	return b
 }
 
+// legacyValidatorGates reports, for each of the two legacy update validators
+// the hook still runs, whether the key that validator judges is one the
+// caller actually asked to change. "Changed" here means differs from
+// ProjectLegacyPermissions(existing) -- the same legacy-shaped view a caller
+// reading this field would have been shown -- not from the raw stored
+// columns: a field converted straight from a typed permissions object, with
+// no legacy columns of its own, still needs a caller's echoed-back read to
+// compare as unchanged. legacyPermissionKeysChanged answers a different
+// question (has anything legacy been asked to change at all, decided against
+// the raw columns) for deciding whether to reconvert Permissions, and is
+// deliberately not reused here for that reason.
+func legacyValidatorGates(field, existing *model.PropertyField) (accessModeChanged, protectedChanged bool) {
+	projected := model.ProjectLegacyPermissions(existing)
+	accessModeChanged = legacyAttrString(field.Attrs, model.PropertyAttrsAccessMode) != legacyAttrString(projected.Attrs, model.PropertyAttrsAccessMode)
+	protectedChanged = legacyAttrBool(field.Attrs, model.PropertyAttrsProtected) != legacyAttrBool(projected.Attrs, model.PropertyAttrsProtected)
+	return accessModeChanged, protectedChanged
+}
+
 // fillOwnerAllowFromStored replaces an empty Allow on any owner field
 // submits with the Allow already stored for that identity, read off the
 // projection of existing -- exactly what a v2 caller was shown.

@@ -1142,6 +1142,94 @@ func TestUpdatePropertyFields_BulkWriteAccessControl(t *testing.T) {
 	})
 }
 
+// TestUpdatePropertyField_LegacyValidatorGates covers the round trip a v2
+// caller makes when it reads a masked field's projected legacy view and
+// submits it straight back: the two legacy validators the hook still runs
+// must judge only the key the caller actually asked to change, or an
+// unchanged echo trips a rule meant to catch a real edit. A real edit to the
+// same key must still be refused.
+func TestUpdatePropertyField_LegacyValidatorGates(t *testing.T) {
+	th := Setup(t).RegisterCPAPropertyGroup(t)
+	th.service.setLadderCheckerForTests(sysadminLadderCheckerForTests)
+	t.Cleanup(func() { th.service.setLadderCheckerForTests(defaultLadderCheckerForTests) })
+
+	rctx := RequestContextWithCallerID(th.Context, model.NewId())
+
+	// newMaskedField creates a field the way a v3 caller configures one --
+	// Permissions set directly, with no legacy Attrs of its own. Masked,
+	// admin-only field.write and member-writable values project to
+	// access_mode: shared_only, protected: false, permission_values: member,
+	// none of which any raw stored column agrees with, since this field was
+	// never expressed through the legacy shape.
+	newMaskedField := func(name string) *model.PropertyField {
+		created, err := th.service.CreatePropertyField(th.Context, &model.PropertyField{
+			GroupID:    th.CPAGroupID,
+			Name:       name,
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{
+					Value:  model.ReadWrite{Read: model.PermissionLevelEveryone, Write: model.PermissionLevelMember},
+					Option: model.ReadWrite{Read: model.PermissionLevelEveryone},
+					Field:  model.WriteOnly{Write: model.PermissionLevelAdmin},
+				},
+				Masking: &model.Masking{},
+			},
+		})
+		require.NoError(t, err)
+		require.Equal(t, model.PropertyAccessModeSharedOnly, created.GetAccessMode())
+		return created
+	}
+
+	// echoedUpdate builds the field a v2 caller would submit after reading
+	// created through the legacy projection and sending it straight back
+	// unchanged -- Permissions absent, the way a caller that never speaks the
+	// v3 shape submits a whole-field update.
+	echoedUpdate := func(created *model.PropertyField) *model.PropertyField {
+		projected := model.ProjectLegacyPermissions(created)
+		echoed := *created
+		echoed.Permissions = nil
+		echoed.Attrs = projected.Attrs
+		echoed.Protected = projected.Protected
+		echoed.PermissionField = projected.PermissionField
+		echoed.PermissionValues = projected.PermissionValues
+		echoed.PermissionOptions = projected.PermissionOptions
+		return &echoed
+	}
+
+	t.Run("UpdatePropertyField accepts an unchanged legacy echo", func(t *testing.T) {
+		created := newMaskedField("Echo-Single")
+
+		// Without the gate, this 400s: "access mode 'shared_only' requires the
+		// field to be protected" -- the projection's own protected: false.
+		updated, _, err := th.service.UpdatePropertyField(rctx, th.CPAGroupID, echoedUpdate(created))
+		require.NoError(t, err)
+		assert.Equal(t, model.PropertyAccessModeSharedOnly, updated.GetAccessMode())
+	})
+
+	t.Run("UpdatePropertyFields accepts an unchanged legacy echo", func(t *testing.T) {
+		created := newMaskedField("Echo-Batch")
+
+		updated, _, _, err := th.service.UpdatePropertyFields(rctx, th.CPAGroupID, []*model.PropertyField{echoedUpdate(created)})
+		require.NoError(t, err)
+		require.Len(t, updated, 1)
+		assert.Equal(t, model.PropertyAccessModeSharedOnly, updated[0].GetAccessMode())
+	})
+
+	t.Run("a real access_mode edit is still refused", func(t *testing.T) {
+		created := newMaskedField("Echo-RealEdit")
+		submitted := echoedUpdate(created)
+		submitted.Attrs[model.PropertyAttrsAccessMode] = model.PropertyAccessModeSourceOnly
+		delete(submitted.Attrs, model.PropertyAttrsProtected)
+
+		updated, _, err := th.service.UpdatePropertyField(rctx, th.CPAGroupID, submitted)
+		require.Error(t, err)
+		assert.Nil(t, updated)
+		assert.Contains(t, err.Error(), "requires the field to be protected")
+	})
+}
+
 // TestDeletePropertyField_WriteAccessControl tests write access control for field deletion
 func TestDeletePropertyField_WriteAccessControl(t *testing.T) {
 	th := Setup(t).RegisterCPAPropertyGroup(t)
