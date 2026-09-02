@@ -995,6 +995,10 @@ func (h *AccessControlAttributeValidationHook) PreUpdatePropertyValues(rctx requ
 // non-"any" policy already refuses on the upsert path. Without this, deleting a
 // locked value and writing a fresh one would launder it past its policy.
 func (h *AccessControlAttributeValidationHook) PreDeletePropertyValue(rctx request.CTX, groupID string, id string) error {
+	if !h.isGroupManaged(groupID) {
+		return nil
+	}
+
 	value, err := h.propertyService.getPropertyValue(groupID, id)
 	if err != nil {
 		// Nothing to enforce against a value that cannot be found; the delete
@@ -1008,7 +1012,7 @@ func (h *AccessControlAttributeValidationHook) PreDeletePropertyValue(rctx reque
 // (e.g. via the plugin API). Other target types are untouched -- see
 // validateChangePolicy for why enforcement is scoped to channels.
 func (h *AccessControlAttributeValidationHook) PreDeletePropertyValuesForTarget(rctx request.CTX, groupID string, targetType string, targetID string) error {
-	if targetType != model.PropertyValueTargetTypeChannel {
+	if targetType != model.PropertyValueTargetTypeChannel || !h.isGroupManaged(groupID) {
 		return nil
 	}
 	values, err := h.getValuesForTarget(groupID, targetType, targetID)

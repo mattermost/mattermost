@@ -603,7 +603,6 @@ func TestCreateChannelWithPropertyValues(t *testing.T) {
 		require.NoError(t, err)
 		CheckCreatedStatus(t, resp)
 	})
-
 }
 
 // The tiers that need a session are covered by TestCreateChannelWithPropertyValues.
