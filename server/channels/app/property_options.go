@@ -123,9 +123,13 @@ func (a *App) propertyFieldOptionsChanged(rctx request.CTX, field *model.Propert
 			mlog.Err(err),
 		)
 		a.invalidatePolicyCachesForOptionChange(rctx, field.ID)
-		if field.ObjectType == model.PropertyFieldObjectTypeUser {
-			a.invalidateAllUserAttributeCaches()
-		}
+		// Unconditional, unlike the success path below, which can see whether any
+		// field involved is one the AttributeView materializes. Here nothing can:
+		// a template carries object type "template" and its user-scoped dependents
+		// are exactly what could not be read, so testing the caller's copy would
+		// skip the invalidation in the case most likely to need it. The cost of
+		// invalidating when nothing was affected is one matview refresh.
+		a.invalidateAllUserAttributeCaches()
 		return
 	}
 
