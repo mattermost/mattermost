@@ -166,7 +166,6 @@ func (es *ElasticsearchInterfaceImpl) fetchServerInfo(ctx context.Context, clien
 	es.fullVersion = version
 
 	// Plugin information is advisory: it is used for optional analyzers and Support Packets only.
-	// CAT plugins is used because AWS managed domains return empty plugin arrays from Nodes Info.
 	// CAT omits nodes with no plugins, so this inventory must not be used to prove cluster-wide absence.
 	resp, err := client.API.Cat.Plugins().Format("json").H("component").Do(ctx)
 	if err != nil {

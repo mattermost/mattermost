@@ -137,9 +137,9 @@ func (os *OpensearchInterfaceImpl) fetchServerInfo(ctx context.Context, client *
 	os.version = major
 	os.fullVersion = version
 
-	// Plugin information is advisory: it is used for optional analyzers and Support Packets only.
-	// CAT plugins is used because AWS managed domains return empty plugin arrays from Nodes Info.
-	// CAT omits nodes with no plugins, so this inventory must not be used to prove cluster-wide absence.
+	// CAT plugins is used because internally it calls nodes, but for some reason AWS's nodes
+	// endpoint doesn't correctly return its list (but CAT does). However, CAT omits nodes with no
+	// plugins, so this inventory must not be used to prove cluster-wide absence.
 	resp, err := client.Cat.Plugins(ctx, nil)
 	if err != nil {
 		os.Platform.Log().Warn("Error retrieving opensearch plugins", mlog.Err(err))
