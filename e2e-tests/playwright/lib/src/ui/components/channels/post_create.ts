@@ -142,12 +142,23 @@ export default class ChannelsPostCreate {
 
         if (files) {
             const filePaths = files.map((file) => path.join(assetPath, file));
-            page.once('filechooser', async (fileChooser) => {
-                await fileChooser.setFiles(filePaths);
-            });
+            const fileChooserPromise = page.waitForEvent('filechooser');
+            const yourComputerOption = page.locator('#fileUploadOptions').getByText('Your computer', {exact: true});
+            const uploadTargetPromise = Promise.race([
+                fileChooserPromise.then((fileChooser) => ({fileChooser})),
+                yourComputerOption.waitFor({state: 'visible'}).then(() => ({yourComputerOption})),
+            ]);
 
             // Click on the attachment button
             await this.attachmentButton.click();
+
+            const uploadTarget = await uploadTargetPromise;
+            if ('yourComputerOption' in uploadTarget) {
+                await uploadTarget.yourComputerOption.click();
+            }
+
+            const fileChooser = 'fileChooser' in uploadTarget ? uploadTarget.fileChooser : await fileChooserPromise;
+            await fileChooser.setFiles(filePaths);
 
             // Wait until the file preview is displayed
             await this.waitUntilFilePreviewContains(files);
