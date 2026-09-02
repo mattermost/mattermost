@@ -626,6 +626,46 @@ func TestImportImportTeamPreservesDisplayNameWhenDestinationSet(t *testing.T) {
 		"importTeam with a non-empty destinationTeam must not overwrite the existing display name")
 }
 
+// TestImportTeamArchivedOnDestinationIsPreserved is a regression test for the case
+// where a team is archived directly on the destination (e.g. by an admin) between
+// migration runs. TeamImportData carries no DeletedAt field, and importTeam never
+// touches Team.DeleteAt itself, so re-importing must not resurrect an archived team.
+func TestImportTeamArchivedOnDestinationIsPreserved(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	teamName := model.NewRandomTeamName()
+	data := imports.TeamImportData{
+		Name:        &teamName,
+		DisplayName: new("Original Name"),
+		Type:        new("O"),
+	}
+
+	// First import — creates the team.
+	appErr := th.App.importTeam(th.Context, &data, false, "")
+	require.Nil(t, appErr)
+
+	team, appErr := th.App.GetTeamByName(teamName)
+	require.Nil(t, appErr)
+
+	// Archive the team directly on the destination, independent of the import.
+	archivedAt := model.GetMillis()
+	team.DeleteAt = archivedAt
+	_, nErr := th.App.Srv().Store().Team().Update(team)
+	require.NoError(t, nErr)
+
+	// Re-import with an updated display name — the destination's archived state
+	// should be preserved, not undone.
+	data.DisplayName = new("Updated Name")
+	appErr = th.App.importTeam(th.Context, &data, false, "")
+	require.Nil(t, appErr, "re-import of archived team should succeed")
+
+	stillArchived, appErr := th.App.GetTeamByName(teamName)
+	require.Nil(t, appErr)
+	assert.Equal(t, archivedAt, stillArchived.DeleteAt, "team should remain archived after re-import")
+	assert.Equal(t, "Updated Name", stillArchived.DisplayName, "other fields should still be updated")
+}
+
 func TestImportImportChannel(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
@@ -772,18 +812,20 @@ func TestImportImportChannel(t *testing.T) {
 	assert.Equal(t, sanitizedChannelName, aChan.Name)
 }
 
-// TestImportChannelArchivedUnarchive is a regression test for the case where a
-// channel that was previously archived is re-imported without a DeletedAt value.
-// UpdateChannel rejects channels with DeleteAt != 0, so importChannel must clear
-// it before updating. Without that fix the import would return an error.
-func TestImportChannelArchivedUnarchive(t *testing.T) {
+// TestImportChannelArchivedOnDestinationIsPreserved is a regression test for the case
+// where a channel is archived directly on the destination (e.g. by an admin) between
+// migration runs, and is then re-imported without a DeletedAt value (because the
+// source channel is still active). UpdateChannel rejects channels with DeleteAt != 0,
+// so importChannel must clear it before updating other fields, but the archived state
+// itself should be preserved rather than silently undone by the re-import.
+func TestImportChannelArchivedOnDestinationIsPreserved(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
 
 	teamName := model.NewRandomTeamName()
 	appErr := th.App.importTeam(th.Context, &imports.TeamImportData{
 		Name:        &teamName,
-		DisplayName: new("Unarchive Test"),
+		DisplayName: new("Preserve Archive Test"),
 		Type:        new("O"),
 	}, false, "")
 	require.Nil(t, appErr)
@@ -806,8 +848,10 @@ func TestImportChannelArchivedUnarchive(t *testing.T) {
 	ch2, err := th.App.Srv().Store().Channel().GetByName(team.Id, channelName, false)
 	require.NoError(t, err)
 
-	// Archive the channel directly so the next import must handle DeleteAt != 0.
-	err = th.App.Srv().Store().Channel().Delete(ch2.Id, model.GetMillis())
+	// Archive the channel directly on the destination, independent of the import,
+	// so the next import must handle DeleteAt != 0.
+	archivedAt := model.GetMillis()
+	err = th.App.Srv().Store().Channel().Delete(ch2.Id, archivedAt)
 	require.NoError(t, err)
 
 	// Confirm it is now archived.
@@ -815,15 +859,16 @@ func TestImportChannelArchivedUnarchive(t *testing.T) {
 	require.NoError(t, err)
 	require.NotZero(t, archived.DeleteAt, "channel should be archived before re-import")
 
-	// Re-import with updated display name and no DeletedAt — should unarchive.
+	// Re-import with updated display name and no DeletedAt in the source data — the
+	// destination's archived state should be preserved, not undone.
 	data.DisplayName = new("Updated Name")
 	appErr = th.App.importChannel(th.Context, &data, false)
 	require.Nil(t, appErr, "re-import of archived channel should succeed")
 
-	unarchived, err := th.App.Srv().Store().Channel().GetByName(team.Id, channelName, false)
+	stillArchived, err := th.App.Srv().Store().Channel().GetByNameIncludeDeleted(team.Id, channelName, true)
 	require.NoError(t, err)
-	assert.Zero(t, unarchived.DeleteAt, "channel should be unarchived after re-import")
-	assert.Equal(t, "Updated Name", unarchived.DisplayName)
+	assert.Equal(t, archivedAt, stillArchived.DeleteAt, "channel should remain archived after re-import")
+	assert.Equal(t, "Updated Name", stillArchived.DisplayName, "other fields should still be updated")
 }
 
 func TestImportImportUser(t *testing.T) {
@@ -2266,6 +2311,44 @@ func TestImportUsernamRemap(t *testing.T) {
 		remapped, ok := report.Remap.Lookup(srcUsername)
 		require.True(t, ok, "remap should record the source→dest username mapping")
 		assert.Equal(t, renamedUsername, remapped)
+	})
+}
+
+// TestExtractThreadMembersNilThreadFollowers guards against a nil-pointer dereference:
+// extractThreadMembers must not assume ThreadFollowers is non-nil just because Post (or
+// DirectPost) is non-nil. Callers today happen to check ThreadFollowers != nil before
+// invoking this function, so this exercises the function directly rather than relying
+// on that caller-side guard remaining in place.
+func TestExtractThreadMembersNilThreadFollowers(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	t.Run("Post with nil ThreadFollowers", func(t *testing.T) {
+		line := &imports.LineImportWorkerData{
+			LineImportData: imports.LineImportData{
+				Post: &imports.PostImportData{},
+			},
+			LineNumber: 1,
+		}
+
+		memberships, lineNumber, appErr := th.App.extractThreadMembers(th.Context, line, map[string]*model.User{}, &model.Post{}, false, nil)
+		require.Nil(t, appErr)
+		assert.Equal(t, 0, lineNumber)
+		assert.Empty(t, memberships)
+	})
+
+	t.Run("DirectPost with nil ThreadFollowers", func(t *testing.T) {
+		line := &imports.LineImportWorkerData{
+			LineImportData: imports.LineImportData{
+				DirectPost: &imports.DirectPostImportData{},
+			},
+			LineNumber: 1,
+		}
+
+		memberships, lineNumber, appErr := th.App.extractThreadMembers(th.Context, line, map[string]*model.User{}, &model.Post{}, false, nil)
+		require.Nil(t, appErr)
+		assert.Equal(t, 0, lineNumber)
+		assert.Empty(t, memberships)
 	})
 }
 
@@ -4858,12 +4941,28 @@ func TestImportImportDirectChannel(t *testing.T) {
 		userC := th.CreateUser(t)
 		userIDs := []string{userA.Id, userB.Id, userC.Id}
 
-		// Pre-create the GM through the regular path so the Channels row and full
-		// membership exist, then drop userC at the store level to simulate the
-		// drifted/partial state described in the ticket.
-		gm, appErr := th.App.createGroupChannel(th.Context, userIDs, userA.Id)
-		require.Nil(t, appErr)
-		require.NoError(t, th.App.Srv().Store().Channel().RemoveMember(th.Context, gm.Id, userC.Id))
+		// Simulate a crash mid-SaveMember-loop: the Channels row exists and userA/userB
+		// were fully onboarded (SaveMember + LogJoinEvent), but userC was never reached,
+		// so they have no ChannelMemberHistory entry at all — distinguishing this from a
+		// participant who joined and later left/was removed (see the "previously left"
+		// test below), which must NOT be silently recovered.
+		group := &model.Channel{
+			Name:        model.GetGroupNameFromUserIds(userIDs),
+			DisplayName: model.GetGroupDisplayNameFromUsers([]*model.User{userA, userB, userC}, true),
+			Type:        model.ChannelTypeGroup,
+		}
+		gm, nErr := th.App.Srv().Store().Channel().Save(th.Context, group, *th.App.Config().TeamSettings.MaxChannelsPerTeam)
+		require.NoError(t, nErr)
+		for _, u := range []*model.User{userA, userB} {
+			_, nErr := th.App.Srv().Store().Channel().SaveMember(th.Context, &model.ChannelMember{
+				UserId:      u.Id,
+				ChannelId:   gm.Id,
+				NotifyProps: model.GetDefaultChannelNotifyProps(),
+				SchemeUser:  true,
+			})
+			require.NoError(t, nErr)
+			require.NoError(t, th.App.Srv().Store().ChannelMemberHistory().LogJoinEvent(u.Id, gm.Id, model.GetMillis()))
+		}
 
 		preMembers, appErr := th.App.GetChannelMembersPage(th.Context, gm.Id, 0, 100)
 		require.Nil(t, appErr)
@@ -4899,6 +4998,50 @@ func TestImportImportDirectChannel(t *testing.T) {
 		// LastViewedAt from the import data should have been applied via the
 		// subsequent UpdateMultipleMembers UPDATE on the newly-inserted row.
 		require.Equal(t, lastView, restored.LastViewedAt)
+	})
+
+	t.Run("GROUP channel does not resurrect a member removed at the data layer", func(t *testing.T) {
+		userA := th.CreateUser(t)
+		userB := th.CreateUser(t)
+		userC := th.CreateUser(t)
+		userIDs := []string{userA.Id, userB.Id, userC.Id}
+
+		// Mattermost has no product-level way to leave or be removed from a GM —
+		// LeaveChannel rejects IsGroupOrDirect(), and the removeChannelMember API only
+		// allows Open/Private channels. So the realistic cause of a live user's GM
+		// membership disappearing without an account deletion is data-layer removal
+		// (compliance tooling, a GDPR-driven partial wipe, direct intervention), which
+		// still leaves the ChannelMemberHistory join event behind. All three fully join
+		// through the regular path, then userC's ChannelMembers row is removed directly
+		// (without touching history) to model exactly that: userC has a join event but
+		// is not currently a member — which must not be silently reversed by importing
+		// the same export again.
+		gm, appErr := th.App.createGroupChannel(th.Context, userIDs, userA.Id)
+		require.Nil(t, appErr)
+		require.NoError(t, th.App.Srv().Store().Channel().RemoveMember(th.Context, gm.Id, userC.Id))
+
+		preMembers, appErr := th.App.GetChannelMembersPage(th.Context, gm.Id, 0, 100)
+		require.Nil(t, appErr)
+		require.Len(t, preMembers, 2, "precondition: userC should not be a member before import")
+
+		data := imports.DirectChannelImportData{
+			Participants: []*imports.DirectChannelMemberImportData{
+				{Username: model.NewPointer(userA.Username)},
+				{Username: model.NewPointer(userB.Username)},
+				{Username: model.NewPointer(userC.Username)},
+			},
+		}
+
+		appErr = th.App.importDirectChannel(th.Context, &data, false, false, nil)
+		require.Nil(t, appErr, "import must not fail just because a past member's membership was removed")
+
+		postMembers, appErr := th.App.GetChannelMembersPage(th.Context, gm.Id, 0, 100)
+		require.Nil(t, appErr)
+		require.Len(t, postMembers, 2, "userC's removal must not be silently reversed by the import")
+
+		for i := range postMembers {
+			require.NotEqual(t, userC.Id, postMembers[i].UserId, "userC must not have been re-added")
+		}
 	})
 
 	// Companion to the regression above: re-running the import after the channel is
@@ -4938,6 +5081,74 @@ func TestImportImportDirectChannel(t *testing.T) {
 		changes, nErr := th.App.Srv().Store().ChannelMemberHistory().GetMembershipChanges(gm.Id, beforeSecondRun, 100)
 		require.NoError(t, nErr)
 		require.Empty(t, changes, "second import must not log any membership changes when all participants are already members")
+	})
+
+	t.Run("GROUP channel with a missing member during a scoped import", func(t *testing.T) {
+		scopedUser := th.CreateUser(t)
+		curDirectCount, cErr := th.App.Srv().Store().Channel().AnalyticsTypeCount("", model.ChannelTypeDirect)
+		require.NoError(t, cErr)
+		curGroupCount, cErr := th.App.Srv().Store().Channel().AnalyticsTypeCount("", model.ChannelTypeGroup)
+		require.NoError(t, cErr)
+
+		dataset := generateDataset(imports.DirectChannelImportData{
+			Participants: []*imports.DirectChannelMemberImportData{
+				{
+					Username: new(th.BasicUser.Username),
+				},
+				{
+					Username: new(th.BasicUser2.Username),
+				},
+				{
+					Username: new(scopedUser.Username),
+				},
+				{
+					Username: new(model.NewId()),
+				},
+			},
+		})
+		for name, data := range dataset {
+			t.Run(name, func(t *testing.T) {
+				appErr := th.App.importDirectChannel(th.Context, &data, false, true, &imports.ImportReport{})
+				require.Nil(t, appErr, "the missing member should be skipped, not fail the whole import")
+
+				// Check that one more GROUP channel is in the DB, with the missing member skipped.
+				AssertChannelCount(t, th.App, model.ChannelTypeDirect, curDirectCount)
+				AssertChannelCount(t, th.App, model.ChannelTypeGroup, curGroupCount+1)
+
+				userIDs := []string{th.BasicUser.Id, th.BasicUser2.Id, scopedUser.Id}
+				_, appErr = th.App.createGroupChannel(th.Context, userIDs, th.BasicUser.Id)
+				require.Equal(t, store.ChannelExistsError, appErr.Id, "the created group should contain exactly the valid members")
+			})
+		}
+	})
+
+	t.Run("DIRECT channel with a missing member during a scoped import", func(t *testing.T) {
+		scopedUser := th.CreateUser(t)
+		curDirectCount, cErr := th.App.Srv().Store().Channel().AnalyticsTypeCount("", model.ChannelTypeDirect)
+		require.NoError(t, cErr)
+		curGroupCount, cErr := th.App.Srv().Store().Channel().AnalyticsTypeCount("", model.ChannelTypeGroup)
+		require.NoError(t, cErr)
+
+		dataset := generateDataset(imports.DirectChannelImportData{
+			Participants: []*imports.DirectChannelMemberImportData{
+				{
+					Username: new(scopedUser.Username),
+				},
+				{
+					Username: new(model.NewId()),
+				},
+			},
+		})
+		for name, data := range dataset {
+			t.Run(name, func(t *testing.T) {
+				appErr := th.App.importDirectChannel(th.Context, &data, false, true, &imports.ImportReport{})
+				require.Nil(t, appErr, "not enough valid members should be skipped, not fail the whole import")
+
+				// Not enough members remained after skipping the missing one, so no channel is created.
+				AssertChannelCount(t, th.App, model.ChannelTypeDirect, curDirectCount)
+				AssertChannelCount(t, th.App, model.ChannelTypeGroup, curGroupCount)
+			})
+		}
 	})
 }
 
@@ -5345,6 +5556,51 @@ func TestImportImportDirectPost(t *testing.T) {
 		require.NoError(t, nErr)
 
 		assert.ElementsMatch(t, []string{th.BasicUser.Id, th.BasicUser2.Id}, followers)
+	})
+
+	t.Run("Importing a direct post with a non existent follower during a scoped import", func(t *testing.T) {
+		// Create a thread.
+		importCreate := time.Now().Add(-1 * time.Minute).UnixMilli()
+		data := imports.LineImportWorkerData{
+			LineImportData: imports.LineImportData{
+				DirectPost: &imports.DirectPostImportData{
+					ChannelMembers: &[]string{
+						th.BasicUser.Username,
+						th.BasicUser2.Username,
+					},
+					User:     new(th.BasicUser.Username),
+					Message:  new("Thread Message"),
+					CreateAt: new(importCreate),
+					Replies: &[]imports.ReplyImportData{{
+						User:     new(th.BasicUser.Username),
+						Message:  new("Reply"),
+						CreateAt: new(model.GetMillis()),
+					}},
+					ThreadFollowers: &[]imports.ThreadFollowerImportData{{
+						User:       new(th.BasicUser.Username),
+						LastViewed: new(model.GetMillis()),
+					}, {
+						User: new("invalid.user"),
+					}},
+				},
+			},
+			LineNumber: 1,
+		}
+
+		// deactivateMissingUsers=true simulates a scoped import: the missing follower
+		// should be skipped with a warning instead of failing the whole batch.
+		errLine, err := th.App.importMultipleDirectPostLines(th.Context, []imports.LineImportWorkerData{data}, false, true, true, &imports.ImportReport{})
+		require.Nil(t, err)
+		require.Equal(t, 0, errLine)
+
+		resultPosts, nErr := th.App.Srv().Store().Post().GetPostsCreatedAt(channel.Id, importCreate)
+		require.NoError(t, nErr)
+		require.Equal(t, 1, len(resultPosts))
+
+		followers, nErr := th.App.Srv().Store().Thread().GetThreadFollowers(resultPosts[0].Id, true)
+		require.NoError(t, nErr)
+
+		assert.ElementsMatch(t, []string{th.BasicUser.Id}, followers)
 	})
 
 	t.Run("Importing a direct post with new followers", func(t *testing.T) {

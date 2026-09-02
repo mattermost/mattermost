@@ -320,22 +320,33 @@ func (a *App) importChannel(rctx request.CTX, data *imports.ChannelImportData, d
 	}
 
 	var chErr *model.AppError
+	var existingDeleteAt int64
 	if channel.Id == "" {
 		if _, chErr = a.CreateChannel(rctx, channel, false); chErr != nil {
 			return chErr
 		}
 	} else {
 		// UpdateChannel rejects channels with DeleteAt != 0. If the existing
-		// channel was previously archived (e.g. from a prior import run), clear
-		// it before the update. The correct DeleteAt will be restored below.
+		// channel is currently archived — whether from a prior import run or
+		// archived directly on the destination since then — clear it before
+		// the update. The correct DeleteAt is restored below.
+		existingDeleteAt = channel.DeleteAt
 		channel.DeleteAt = 0
 		if _, chErr = a.UpdateChannel(rctx, channel); chErr != nil {
 			return chErr
 		}
 	}
 
-	if data.DeletedAt != nil && *data.DeletedAt > 0 {
+	switch {
+	case data.DeletedAt != nil && *data.DeletedAt > 0:
 		if err := a.Srv().Store().Channel().Delete(channel.Id, *data.DeletedAt); err != nil {
+			return model.NewAppError("BulkImport", "app.import.import_channel.deleting.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+	case existingDeleteAt > 0:
+		// The import data doesn't say this channel is deleted, but it was already
+		// archived directly on the destination (e.g. by an admin, between migration
+		// runs) — preserve that instead of silently un-archiving it.
+		if err := a.Srv().Store().Channel().Delete(channel.Id, existingDeleteAt); err != nil {
 			return model.NewAppError("BulkImport", "app.import.import_channel.deleting.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
@@ -2388,9 +2399,38 @@ func (a *App) importDirectChannel(rctx request.CTX, data *imports.DirectChannelI
 		existingMembers[member.UserId] = member
 	}
 
+	// Distinguish "this membership was never established" (crash mid-loop, or a
+	// concurrent worker still mid-SaveMember-loop — the recovery case) from "this user
+	// joined before and has since left or been removed" (a deliberate change on the
+	// destination that a re-import must not silently undo) using ChannelMemberHistory,
+	// which records every join/leave and is never purged when a membership ends.
+	var candidateMissingIDs []string
+	for _, member := range data.Participants {
+		if u, ok := userMap[strings.ToLower(*member.Username)]; ok {
+			if _, isMember := existingMembers[u.Id]; !isMember {
+				candidateMissingIDs = append(candidateMissingIDs, u.Id)
+			}
+		}
+	}
+	previouslyLeftMembers := make(map[string]bool)
+	if len(candidateMissingIDs) > 0 {
+		everMembers, nErr := a.Srv().Store().ChannelMemberHistory().GetEverMembersInChannel(channel.Id, candidateMissingIDs)
+		if nErr != nil {
+			return model.NewAppError("BulkImport", "app.import.import_direct_channel.get_ever_members.error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+		}
+		for _, id := range everMembers {
+			previouslyLeftMembers[id] = true
+		}
+	}
+
 	newChannelMembers := make([]*model.ChannelMember, 0)
 	for _, member := range data.Participants {
-		u := userMap[strings.ToLower(*member.Username)]
+		u, ok := userMap[strings.ToLower(*member.Username)]
+		if !ok {
+			// Missing on the destination during a scoped import — already skipped
+			// out of userIDs above, so there's no membership to set up for them.
+			continue
+		}
 		// Default scheme flags so that imports omitting them still produce a
 		// usable role on the resulting channel member, matching the regular
 		// user-channel import path. Explicit values in the import data still
@@ -2473,11 +2513,17 @@ func (a *App) importDirectChannel(rctx request.CTX, data *imports.DirectChannelI
 				continue
 			}
 		} else {
+			if previouslyLeftMembers[u.Id] {
+				// This participant left or was removed from the channel at some point in the
+				// past (per ChannelMemberHistory) — respect that instead of silently re-adding
+				// them just because the source data still lists them as a participant.
+				continue
+			}
 			// The channel pre-existed (either from a concurrent worker that committed the Channels
-			// row but had not finished its SaveMember loop yet, an earlier import that crashed
-			// mid-loop, or a GM whose membership has since drifted) without this participant.
-			// Insert the ChannelMembers row first so UpdateMultipleMembers below has something
-			// to UPDATE — otherwise it returns ErrNotFound and aborts the import.
+			// row but had not finished its SaveMember loop yet, or an earlier import that crashed
+			// mid-loop) without this participant ever having joined. Insert the ChannelMembers row
+			// first so UpdateMultipleMembers below has something to UPDATE — otherwise it returns
+			// ErrNotFound and aborts the import.
 			toInsert := &model.ChannelMember{
 				UserId:      u.Id,
 				ChannelId:   channel.Id,
@@ -2519,9 +2565,15 @@ func (a *App) importDirectChannel(rctx request.CTX, data *imports.DirectChannelI
 
 	if data.ShownBy != nil {
 		for _, username := range *data.ShownBy {
+			shower, ok := userMap[strings.ToLower(username)]
+			if !ok {
+				// Missing on the destination during a scoped import — nothing to set a
+				// channel-show preference for.
+				continue
+			}
 			switch channel.Type {
 			case model.ChannelTypeDirect:
-				otherUserId := userMap[strings.ToLower(username)].Id
+				otherUserId := shower.Id
 				for uname, user := range userMap {
 					if uname != username {
 						otherUserId = user.Id
@@ -2529,14 +2581,14 @@ func (a *App) importDirectChannel(rctx request.CTX, data *imports.DirectChannelI
 					}
 				}
 				preferences = append(preferences, model.Preference{
-					UserId:   userMap[strings.ToLower(username)].Id,
+					UserId:   shower.Id,
 					Category: model.PreferenceCategoryDirectChannelShow,
 					Name:     otherUserId,
 					Value:    "true",
 				})
 			case model.ChannelTypeGroup:
 				preferences = append(preferences, model.Preference{
-					UserId:   userMap[strings.ToLower(username)].Id,
+					UserId:   shower.Id,
 					Category: model.PreferenceCategoryGroupChannelShow,
 					Name:     channel.Id,
 					Value:    "true",
@@ -2547,8 +2599,14 @@ func (a *App) importDirectChannel(rctx request.CTX, data *imports.DirectChannelI
 
 	if data.FavoritedBy != nil {
 		for _, favoriter := range *data.FavoritedBy {
+			favoriterUser, ok := userMap[strings.ToLower(favoriter)]
+			if !ok {
+				// Missing on the destination during a scoped import — nothing to
+				// favorite the channel for.
+				continue
+			}
 			preferences = append(preferences, model.Preference{
-				UserId:   userMap[strings.ToLower(favoriter)].Id,
+				UserId:   favoriterUser.Id,
 				Category: model.PreferenceCategoryFavoriteChannel,
 				Name:     channel.Id,
 				Value:    "true",
