@@ -349,10 +349,9 @@ func TestPostPatch_ContainsIntegrationsReservedProps(t *testing.T) {
 }
 
 func TestPostPatchIsEmpty(t *testing.T) {
-	// The api4 post edit time limit derives its check from IsEmpty, so a new PostPatch field
-	// that IsEmpty does not account for would silently escape that limit. Add the field here
-	// and to IsEmpty together.
-	require.Equal(t, 5, reflect.TypeOf(PostPatch{}).NumField())
+	// The api4 post edit time limit derives its check from IsEmpty, so a field IsEmpty does not
+	// account for silently escapes that limit. Add new fields here and to IsEmpty together.
+	require.Equal(t, 5, reflect.TypeFor[PostPatch]().NumField())
 
 	for name, patch := range map[string]PostPatch{
 		"is pinned":     {IsPinned: new(true)},

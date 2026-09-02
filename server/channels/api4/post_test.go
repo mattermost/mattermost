@@ -1724,8 +1724,8 @@ func TestCreatePostSilentQueryParam(t *testing.T) {
 func TestPatchEditsMoreThanPinState(t *testing.T) {
 	mainHelper.Parallel(t)
 
-	// Each case builds its patch through a factory so that the expected value below has its
-	// own pointees, and mutation of a pointed-to value is caught as well as reassignment.
+	// Patches come from factories so that the expectation has its own pointees, which is what
+	// makes the non-mutation assertion below catch a mutated pointee and not just a reassigned field.
 	testCases := []struct {
 		name     string
 		newPatch func() model.PostPatch
