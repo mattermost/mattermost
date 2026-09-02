@@ -1260,11 +1260,6 @@ func TestMaskSimulationPolicyLiteralsForCaller_CompoundOrPreserved(t *testing.T)
 // field's literals are option names, and the read path hands back the options at
 // or below the caller's own rank — so a caller must be able to name any of them
 // in a policy expression.
-//
-// Spelling the type list out as select/multiselect instead drops rank into the
-// text branch, where the caller's stored value is the option ID rather than its
-// name. Every option name then reads as hidden and no rank rule can be authored
-// by anyone, admins included.
 func TestAppMaskingResolver_SharedOnlyRank(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
