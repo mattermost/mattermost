@@ -1,6 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import React from 'react';
+
+import Markdown from 'components/markdown';
+
+import {renderWithContext} from 'tests/react_testing_utils';
+
 import {Locations} from './constants';
 import {execCommandInsertText} from './exec_commands';
 import {
@@ -9,11 +15,13 @@ import {
     formatMarkdownMessage,
     formatGithubCodePaste,
     formatMarkdownLinkMessage,
+    hasMarkdownFormatting,
     isTextUrl,
     hasPlainText,
     createFileFromClipboardDataItem,
     pasteHandler, isKnownTargetForPaste,
 } from './paste';
+import {TestHelper} from './test_helper';
 
 const validClipboardData: any = {
     items: [1],
@@ -234,6 +242,47 @@ describe('isTextUrl', () => {
     });
 });
 
+describe('hasMarkdownFormatting', () => {
+    const clipboardDataWith = (html: string): any => ({
+        items: [1],
+        types: ['text/html'],
+        getData: () => html,
+    });
+
+    test('Should return false without html in the clipboard', () => {
+        expect(hasMarkdownFormatting({items: [1], types: ['text/plain']} as any)).toBe(false);
+    });
+
+    test('Should return false for html without anything to format', () => {
+        expect(hasMarkdownFormatting(clipboardDataWith('<span style="color: red">a * b</span>'))).toBe(false);
+        expect(hasMarkdownFormatting(clipboardDataWith('<p>a paragraph</p><div>a division</div>'))).toBe(false);
+    });
+
+    test('Should return true for html with formatting', () => {
+        expect(hasMarkdownFormatting(clipboardDataWith('<h1>heading</h1>'))).toBe(true);
+        expect(hasMarkdownFormatting(clipboardDataWith('<p>a <strong>bold</strong> word</p>'))).toBe(true);
+        expect(hasMarkdownFormatting(clipboardDataWith('<p>a <b>bold</b> word</p>'))).toBe(true);
+        expect(hasMarkdownFormatting(clipboardDataWith('<p>a <i>italic</i> word</p>'))).toBe(true);
+        expect(hasMarkdownFormatting(clipboardDataWith('<p>a <del>struck</del> word</p>'))).toBe(true);
+        expect(hasMarkdownFormatting(clipboardDataWith('<p>a <code>coded</code> word</p>'))).toBe(true);
+        expect(hasMarkdownFormatting(clipboardDataWith('<ul><li>a bullet</li></ul>'))).toBe(true);
+        expect(hasMarkdownFormatting(clipboardDataWith('<ol><li>a step</li></ol>'))).toBe(true);
+        expect(hasMarkdownFormatting(clipboardDataWith('<blockquote>a quote</blockquote>'))).toBe(true);
+        expect(hasMarkdownFormatting(clipboardDataWith('<pre>some code</pre>'))).toBe(true);
+        expect(hasMarkdownFormatting(clipboardDataWith('<table><tr><td>a cell</td></tr></table>'))).toBe(true);
+        expect(hasMarkdownFormatting(clipboardDataWith('<p>above</p><hr><p>below</p>'))).toBe(true);
+    });
+
+    test('Should ignore emphasis that is styled away, as used by Google Docs', () => {
+        expect(hasMarkdownFormatting(clipboardDataWith('<b style="font-weight:normal"><span>plain text</span></b>'))).toBe(false);
+        expect(hasMarkdownFormatting(clipboardDataWith('<b style="font-weight:400"><span>plain text</span></b>'))).toBe(false);
+        expect(hasMarkdownFormatting(clipboardDataWith('<strong style="font-weight:normal">plain text</strong>'))).toBe(false);
+        expect(hasMarkdownFormatting(clipboardDataWith('<i style="font-style:normal"><span>plain text</span></i>'))).toBe(false);
+        expect(hasMarkdownFormatting(clipboardDataWith('<em style="font-style:normal">plain text</em>'))).toBe(false);
+        expect(hasMarkdownFormatting(clipboardDataWith('<b style="font-weight:normal"><em>emphasized</em></b>'))).toBe(true);
+    });
+});
+
 jest.mock('utils/exec_commands', () => ({
     execCommandInsertText: jest.fn(),
 }));
@@ -339,6 +388,178 @@ describe('pasteHandler', () => {
             }
         });
     }
+});
+
+describe('pasteHandler with formatted html', () => {
+    function pasteHtml(html: string, plainText = '') {
+        const event: any = {
+            target: {id: 'post_textbox'},
+            preventDefault: jest.fn(),
+            clipboardData: {
+                items: [1],
+                types: ['text/html', 'text/plain'],
+                getData: (type: string) => (type === 'text/plain' ? plainText : html),
+            },
+        };
+
+        pasteHandler(event, Locations.CENTER, '', false);
+
+        return event;
+    }
+
+    test('should leave html without any formatting to the browser', () => {
+        const event = pasteHtml('<span style="color: red">a * b</span>', 'a * b');
+
+        expect(event.preventDefault).not.toHaveBeenCalled();
+        expect(execCommandInsertText).not.toHaveBeenCalled();
+    });
+
+    test('should not emphasize content that Google Docs styles back to normal', () => {
+        pasteHtml('<b style="font-weight:normal" id="docs-internal-guid-1"><p>plain <em>emphasized</em> text</p></b>', 'plain emphasized text');
+
+        expect(execCommandInsertText).toHaveBeenCalledWith('plain *emphasized* text');
+    });
+
+    test.each(['del', 's', 'strike'])('should format %s with the double tilde that Mattermost renders', (tagName) => {
+        pasteHtml(`<p>a <${tagName}>struck</${tagName}> word</p>`, 'a struck word');
+
+        expect(execCommandInsertText).toHaveBeenCalledWith('a ~~struck~~ word');
+    });
+
+    test('should format a preformatted code block as a fenced code block', () => {
+        pasteHtml('<pre><code class="language-js">const a = 1;\nconsole.log(a);</code></pre>', 'const a = 1;\nconsole.log(a);');
+
+        expect(execCommandInsertText).toHaveBeenCalledWith('```js\nconst a = 1;\nconsole.log(a);\n```');
+    });
+
+    test('should format a task list', () => {
+        pasteHtml('<ul><li><input type="checkbox" checked>done</li><li><input type="checkbox">todo</li></ul>', 'done\ntodo');
+
+        expect(execCommandInsertText).toHaveBeenCalledWith('-   [x] done\n-   [ ] todo');
+    });
+});
+
+describe('pasteHandler with a message copied out of the channel', () => {
+    const townSquare = TestHelper.getChannelMock({id: 'channel_id', team_id: 'team_id', name: 'town-square', display_name: 'Town Square'});
+
+    const initialState = {
+        entities: {
+            teams: {
+                currentTeamId: 'team_id',
+                teams: {team_id: TestHelper.getTeamMock({id: 'team_id', name: 'myteam'})},
+            },
+            channels: {
+                channels: {channel_id: townSquare},
+                channelsInTeam: {team_id: new Set(['channel_id'])},
+            },
+        },
+    };
+
+    // Pastes the html that a rendered post is made of, as a browser does when a message is copied out of the channel.
+    function pasteRenderedMessage(message: string) {
+        const {container} = renderWithContext(<Markdown message={message}/>, initialState);
+
+        // Browsers put the copied markup on the clipboard inside a fragment of a full document.
+        const html = `<html><body><!--StartFragment-->${container.innerHTML}<!--EndFragment--></body></html>`;
+
+        const event: any = {
+            target: {id: 'post_textbox'},
+            preventDefault: jest.fn(),
+            clipboardData: {
+                items: [1],
+                types: ['text/html', 'text/plain'],
+                getData: (type: string) => (type === 'text/plain' ? container.textContent : html),
+            },
+        };
+
+        pasteHandler(event, Locations.CENTER, '', false);
+    }
+
+    const testCases = [
+        {
+            testName: 'headings',
+            message: '## A heading',
+            expectedMarkdown: '## A heading',
+        },
+        {
+            testName: 'inline formatting',
+            message: 'Some **bold** and *italic* and ~~struck~~ and `code`',
+            expectedMarkdown: 'Some **bold** and *italic* and ~~struck~~ and `code`',
+        },
+        {
+            testName: 'bulleted lists',
+            message: '- one\n- two\n  - nested',
+            expectedMarkdown: '-   one\n-   two\n    -   nested',
+        },
+        {
+            testName: 'numbered lists',
+            message: '1. one\n2. two',
+            expectedMarkdown: '1.  one\n2.  two',
+        },
+        {
+            testName: 'block quotes',
+            message: '> a quote',
+            expectedMarkdown: '> a quote',
+        },
+        {
+            testName: 'code blocks',
+            message: '```javascript\nconst a = 1;\nconsole.log(a);\n```',
+            expectedMarkdown: '```javascript\nconst a = 1;\nconsole.log(a);\n```',
+        },
+        {
+            testName: 'code blocks without a language',
+            message: '```\nconst a = 1;\nconsole.log(a);\n```',
+            expectedMarkdown: '```\nconst a = 1;\nconsole.log(a);\n```',
+        },
+        {
+            testName: 'task lists',
+            message: '- [x] done\n- [ ] todo',
+            expectedMarkdown: '-   [x]  done\n-   [ ]  todo',
+        },
+        {
+            testName: 'tables',
+            message: '| a | b |\n| --- | --- |\n| 1 | 2 |',
+            expectedMarkdown: '| a | b |\n| --- | --- |\n| 1 | 2 |',
+        },
+        {
+            testName: 'links',
+            message: 'Go to [Mattermost](https://mattermost.com)',
+            expectedMarkdown: 'Go to [Mattermost](https://mattermost.com)',
+        },
+    ];
+
+    for (const tc of testCases) {
+        it(`should keep the markdown of ${tc.testName}`, () => {
+            pasteRenderedMessage(tc.message);
+
+            expect(execCommandInsertText).toHaveBeenCalledTimes(1);
+            expect(execCommandInsertText).toHaveBeenCalledWith(tc.expectedMarkdown);
+        });
+    }
+
+    it('should keep hashtags out of a link', () => {
+        pasteRenderedMessage('A **bold** #hashtag');
+
+        expect(execCommandInsertText).toHaveBeenCalledWith('A **bold** #hashtag');
+    });
+
+    it('should keep channel mentions out of a link', () => {
+        pasteRenderedMessage('A **bold** ~town-square');
+
+        expect(execCommandInsertText).toHaveBeenCalledWith('A **bold** ~town-square');
+    });
+
+    it('should escape markdown characters that are part of the text', () => {
+        pasteRenderedMessage('A **bold** thing and 2 * 3 and a_b');
+
+        expect(execCommandInsertText).toHaveBeenCalledWith('A **bold** thing and 2 \\* 3 and a\\_b');
+    });
+
+    it('should paste a message without formatting as plain text', () => {
+        pasteRenderedMessage('2 * 3 * 4');
+
+        expect(execCommandInsertText).not.toHaveBeenCalled();
+    });
 });
 
 describe('hasPlainText', () => {
