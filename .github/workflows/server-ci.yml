@@ -389,7 +389,7 @@ jobs:
           # Explicitly fail here rather than relying on `if:`, since a job
           # skipped via `if:` is reported as "Success" by GitHub.
           if [ "${{ needs.buildenv.result }}" != "success" ]; then
-            echo "::error::'go' job did not succeed (result: ${{ needs.buildenv.result }}); relevant-changed could not be computed reliably. Failing Server CI Complete."
+            echo "::error::'buildenv' job did not succeed (result: ${{ needs.buildenv.result }}); relevant-changed could not be computed reliably. Failing Server CI Complete."
             exit 1
           fi
           echo "Server CI Complete"

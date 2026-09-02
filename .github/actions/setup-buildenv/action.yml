@@ -22,15 +22,26 @@ runs:
   steps:
     - name: Set constants
       shell: bash
+      env:
+        TAG_INPUT: ${{ inputs.build-server-tag }}
+        DOCKERFILE_INPUT: ${{ inputs.dockerfile }}
+        DOCKERFILE_FIPS_INPUT: ${{ inputs.dockerfile-fips }}
       run: |
+        # These arrive via env rather than ${{ }}: GitHub expands an
+        # expression into the script before bash runs it, so an input that
+        # reached a fork PR could inject commands here.
+        if [[ ! "${TAG_INPUT}" =~ ^[A-Za-z0-9_][A-Za-z0-9_.-]{0,127}$ ]]; then
+          echo "::error::not a usable docker tag: ${TAG_INPUT}"
+          exit 1
+        fi
         echo "BUILDENV_IMAGE=mattermost/mattermost-build-server" >> "${GITHUB_ENV}"
         echo "BUILDENV_ARTIFACT=buildenv-image" >> "${GITHUB_ENV}"
-        echo "BUILDENV_DOCKERFILE=${{ inputs.dockerfile }}" >> "${GITHUB_ENV}"
+        echo "BUILDENV_DOCKERFILE=${DOCKERFILE_INPUT}" >> "${GITHUB_ENV}"
         echo "BUILDENV_FIPS_IMAGE=mattermost/mattermost-build-server-fips" >> "${GITHUB_ENV}"
         echo "BUILDENV_FIPS_ARTIFACT=buildenv-fips-image" >> "${GITHUB_ENV}"
-        echo "BUILDENV_FIPS_DOCKERFILE=${{ inputs.dockerfile-fips }}" >> "${GITHUB_ENV}"
+        echo "BUILDENV_FIPS_DOCKERFILE=${DOCKERFILE_FIPS_INPUT}" >> "${GITHUB_ENV}"
         echo "BUILDENV_TMPDIR=/tmp/buildenv-save" >> "${GITHUB_ENV}"
-        echo "BUILDENV_TAG=${{ inputs.build-server-tag }}" >> "${GITHUB_ENV}"
+        echo "BUILDENV_TAG=${TAG_INPUT}" >> "${GITHUB_ENV}"
     # ── Regular ────────────────────────────────────────────────────────
     - name: Resolve regular image
       id: resolve
