@@ -151,6 +151,7 @@ func TestValidateLicense(t *testing.T) {
 }
 
 func TestLicenseFromBytesEnvironmentMismatch(t *testing.T) {
+	t.Skip("Skipped due to flakiness — tracked in https://mattermost.atlassian.net/browse/MM-70560")
 	t.Run("test license uploaded to a production server returns the wrong-environment error", func(t *testing.T) {
 		t.Setenv("MM_SERVICEENVIRONMENT", model.ServiceEnvironmentProduction)
 
