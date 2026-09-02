@@ -209,13 +209,15 @@ const DEPLOYMENT_GROUPS = {
     ],
   },
 
-  // Deploy the Server — one sub-group per deployment method. No landing page;
-  // the choice between them is made in Plan. "Deploy" rather than "Install"
-  // because all nine child pages are titled "Deploy Mattermost ...", and these
-  // pages use "install" for a narrower step within them (getting the binary
-  // onto the host) alongside database setup, configuration, and startup.
+  // Deploy the Server — one sub-group per deployment method, with a landing
+  // page that compares them, so the trade-offs sit next to the pages they
+  // describe. "Deploy" rather than "Install" because all nine child pages are
+  // titled "Deploy Mattermost ...", and these pages use "install" for a
+  // narrower step within them (getting the binary onto the host) alongside
+  // database setup, configuration, and startup.
   install: {
     label: 'Deploy the Server',
+    landing: 'server/deploy-server',
     items: [
       {label: 'Linux', landing: 'server/deploy-linux', items: [
         'server/linux/deploy-ubuntu',

@@ -5,16 +5,16 @@ This guide takes you from evaluating Mattermost through to running it in product
 
 ## Start here
 
-If you're new to Mattermost and want to see it working before planning anything, begin with [Quick Start Evaluation](/deployment-guide/quick-start-evaluation). If your environment has particular constraints — no internet egress, a coalition network, an intermittently connected edge — start with [Deployment Scenarios](/deployment-guide/deployment-scenarios/deployment-scenarios-index) instead, because those constraints shape every decision that follows.
+This page is the starting point for the whole guide. Work through the sections below in order — each one links to the pages inside it, so you don't need to pick a page from the sidebar to begin.
 
-Otherwise, work through the sections below in order.
+Two exceptions to the order. If you're new to Mattermost and want to see it working before planning anything, begin with [Quick Start Evaluation](/deployment-guide/quick-start-evaluation). If your environment has particular constraints — no internet egress, a coalition network, an intermittently connected edge — read [Deployment Scenarios](/deployment-guide/deployment-scenarios/deployment-scenarios-index) first, because those constraints shape every decision that follows.
 
 ## Deploy the server
 
 - [Deployment Scenarios](/deployment-guide/deployment-scenarios/deployment-scenarios-index) - Reference architectures for out-of-band communications, mission partner collaboration, DDIL operations, sovereign collaboration in Microsoft, and air-gapped environments.
 - [Plan](/deployment-guide/server/server-deployment-planning) - Understand the [components of a deployment](/deployment-guide/application-architecture), [size it for your user count](/deployment-guide/deployment-architecture), and check the [software and hardware requirements](/deployment-guide/software-hardware-requirements).
 - [Prepare](/deployment-guide/server/preparations) - Stand up the prerequisites before you install: the database, file storage, an [NGINX reverse proxy](/deployment-guide/server/setup-nginx-proxy), and [TLS](/deployment-guide/server/setup-tls).
-- Deploy the Server - Choose your platform: [Linux](/deployment-guide/server/deploy-linux), [Kubernetes](/deployment-guide/server/deploy-kubernetes), or [containers](/deployment-guide/server/deploy-containers).
+- [Deploy the Server](/deployment-guide/server/deploy-server) - Compare the deployment methods, then install on [Linux](/deployment-guide/server/deploy-linux), [Kubernetes](/deployment-guide/server/deploy-kubernetes), or with [containers](/deployment-guide/server/deploy-containers).
 - [Secure Your Deployment](/deployment-guide/encryption-options) - Encryption at rest and [in transit](/deployment-guide/transport-encryption).
 
 ## Scale and operate
