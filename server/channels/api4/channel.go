@@ -17,6 +17,12 @@ import (
 
 const maxListSize = 1000
 
+// classificationChannelFieldName is the channel-linked classification field's
+// Name within the access_control property group. Classification predates
+// channel attributes and ships behind its own flag/license pair, but writes
+// through the same property-values path as channel attributes on creation.
+const classificationChannelFieldName = "classification"
+
 // rejectBoardChannelByID returns true and sets c.Err if the channel ID belongs
 // to a board channel. Board channels must use the /boards endpoints, not /channels.
 // Use this on write endpoints to give a clear error instead of a 404.
@@ -216,26 +222,31 @@ func createChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 
 // channelAttributeValuesForCreate turns the submitted attribute values into
 // PropertyValues to write with the channel, and refuses the creation when a
-// required attribute has no value. Returning early when the feature is off keeps
-// creation byte-identical to its pre-feature behaviour, which is what makes this
-// safe to add to an endpoint every integration uses.
+// required attribute has no value. Each field is gated by its own feature:
+// classification by ClassificationMarkings + Enterprise, everything else by
+// ChannelAttributes + Enterprise Advanced. Both off with no items keeps
+// creation byte-identical to its pre-feature behaviour, which is what makes
+// this safe to add to an endpoint every integration uses.
 //
 // Errors never name an attribute: which markings a server defines is itself
 // sensitive, and the caller may not be allowed to see them.
 func channelAttributeValuesForCreate(c *Context, channel *model.Channel, license *model.License, items []model.PropertyValuePatchItem) ([]*model.PropertyValue, *model.AppError) {
-	if !c.App.Config().FeatureFlags.ChannelAttributes || !model.MinimumEnterpriseAdvancedLicense(license) {
-		if len(items) > 0 {
-			return nil, model.NewAppError("createChannel", "api.channel.create_channel.attributes_feature_disabled.app_error", nil, "", http.StatusBadRequest)
-		}
-		return nil, nil
-	}
-
 	// A DM/GM type reaching here is refused by the app layer anyway, but values on
 	// one are never legitimate: DM/GM attributes are derived from the participants,
 	// not hand-written.
 	if channel.IsGroupOrDirect() {
 		if len(items) > 0 {
 			return nil, model.NewAppError("createChannel", "api.channel.create_channel.invalid_attribute.app_error", nil, "attributes are not assigned to direct or group channels", http.StatusBadRequest)
+		}
+		return nil, nil
+	}
+
+	channelAttributesAvailable := c.App.Config().FeatureFlags.ChannelAttributes && model.MinimumEnterpriseAdvancedLicense(license)
+	classificationAvailable := c.App.Config().FeatureFlags.ClassificationMarkings && model.MinimumEnterpriseLicense(license)
+
+	if !channelAttributesAvailable && !classificationAvailable {
+		if len(items) > 0 {
+			return nil, model.NewAppError("createChannel", "api.channel.create_channel.attributes_feature_disabled.app_error", nil, "", http.StatusBadRequest)
 		}
 		return nil, nil
 	}
@@ -275,6 +286,9 @@ func channelAttributeValuesForCreate(c *Context, channel *model.Channel, license
 		if !ok {
 			return nil, model.NewAppError("createChannel", "api.channel.create_channel.invalid_attribute.app_error", nil, "unknown field", http.StatusBadRequest)
 		}
+		if !channelAttributeFieldAvailable(field, channelAttributesAvailable, classificationAvailable) {
+			return nil, model.NewAppError("createChannel", "api.channel.create_channel.attributes_feature_disabled.app_error", nil, "", http.StatusBadRequest)
+		}
 		if !canSetChannelAttributeOnCreate(c, field) {
 			return nil, model.NewAppError("createChannel", "api.channel.create_channel.attribute_no_permission.app_error", nil, "", http.StatusForbidden)
 		}
@@ -294,6 +308,9 @@ func channelAttributeValuesForCreate(c *Context, channel *model.Channel, license
 		if !model.IsPropertyFieldRequired(field) || !canSetChannelAttributeOnCreate(c, field) {
 			continue
 		}
+		if !channelAttributeFieldAvailable(field, channelAttributesAvailable, classificationAvailable) {
+			continue
+		}
 		if value, ok := supplied[field.ID]; !ok || model.IsEmptyPropertyValue(value) {
 			return nil, model.NewAppError("createChannel", "api.channel.create_channel.missing_required_attributes.app_error", nil, "", http.StatusBadRequest)
 		}
@@ -303,6 +320,21 @@ func channelAttributeValuesForCreate(c *Context, channel *model.Channel, license
 		return nil, nil
 	}
 	return values, nil
+}
+
+// isClassificationChannelField reports whether field is the channel-scoped
+// classification linked field rather than a generic channel attribute.
+func isClassificationChannelField(field *model.PropertyField) bool {
+	return field.Name == classificationChannelFieldName && field.LinkedFieldID != nil && *field.LinkedFieldID != ""
+}
+
+// channelAttributeFieldAvailable reports whether field's own feature is on,
+// given the pre-computed availability of channel attributes and classification.
+func channelAttributeFieldAvailable(field *model.PropertyField, channelAttributesAvailable, classificationAvailable bool) bool {
+	if isClassificationChannelField(field) {
+		return classificationAvailable
+	}
+	return channelAttributesAvailable
 }
 
 // canSetChannelAttributeOnCreate reports whether the caller may set this

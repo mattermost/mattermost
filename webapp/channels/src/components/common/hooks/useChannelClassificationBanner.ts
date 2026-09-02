@@ -118,6 +118,19 @@ export default function useChannelClassificationBanner(channelId: string): Chann
         return getPropertyValueForTargetField(state, channelId, fieldId) as PropertyValue<string> | undefined;
     });
 
+    // Several designated fields can share the banner, so the fetch below must not
+    // skip just because the first one is cached — a later one still missing its
+    // value would silently drop out of the banner until something else loads it.
+    const hasAllDesignatedValues = useSelector((state: GlobalState) => {
+        if (!channelId) {
+            return true;
+        }
+        if (designatedFields.length > 0) {
+            return designatedFields.every((field) => Boolean(getPropertyValueForTargetField(state, channelId, field.id)));
+        }
+        return Boolean(propertyValue);
+    });
+
     const channelBannerInfo = useSelector((state: GlobalState) => getChannelBanner(state, channelId));
 
     // banner_info.text is a template. Resolving it only in the composer's preview
@@ -153,7 +166,7 @@ export default function useChannelClassificationBanner(channelId: string): Chann
             return;
         }
 
-        if (!propertyValue) {
+        if (!hasAllDesignatedValues) {
             Client4.getPropertyValues(
                 ACCESS_CONTROL_PROPERTY_GROUP,
                 CLASSIFICATIONS_CHANNEL_OBJECT_TYPE,
@@ -169,7 +182,7 @@ export default function useChannelClassificationBanner(channelId: string): Chann
                 // Silently ignore - channel may not have a classification set
             });
         }
-    }, [channelId, shouldLoadValues, propertyValue, dispatch]);
+    }, [channelId, shouldLoadValues, hasAllDesignatedValues, dispatch]);
 
     return useMemo((): ChannelClassificationBannerState => {
         const noBanner: ChannelClassificationBannerState = {

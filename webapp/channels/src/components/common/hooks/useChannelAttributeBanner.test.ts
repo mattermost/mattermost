@@ -254,4 +254,18 @@ describe('useChannelClassificationBanner — generic designated attributes', () 
         await Promise.resolve();
         expect(fetchSpy).toHaveBeenCalledWith('access_control', 'channel', CHANNEL_ID);
     });
+
+    test('still fetches when a later designated field is missing its value, even though the first is cached', async () => {
+        const first = designatedField('alpha', 'display_banner_top', [{id: 'opt_a', name: 'ALPHA'}], 1);
+        const second = designatedField('zulu', 'display_banner_top', [{id: 'opt_z', name: 'ZULU'}], 2);
+        const fetchSpy = jest.spyOn(Client4, 'getPropertyValues').mockResolvedValue([]);
+
+        renderHookWithContext(
+            () => useChannelClassificationBanner(CHANNEL_ID),
+            makeState([first, second], [value('alpha', 'opt_a')]),
+        );
+
+        await Promise.resolve();
+        expect(fetchSpy).toHaveBeenCalledWith('access_control', 'channel', CHANNEL_ID);
+    });
 });
