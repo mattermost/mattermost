@@ -290,6 +290,28 @@ describe('ChannelInfoAttributes', () => {
             ));
         });
 
+        test('names a select editor with the attribute label, not the shared placeholder', async () => {
+            renderWithContext(
+                <ChannelInfoAttributes channelId={CHANNEL_ID}/>,
+                makeState([field('program', {required: true})], [value('program', null)]),
+            );
+
+            await userEvent.click(screen.getByTestId('channelInfoAttributeEdit-program'));
+
+            expect(await screen.findByRole('combobox', {name: 'Program'})).toBeInTheDocument();
+        });
+
+        test('names a text editor with the attribute label, not the shared placeholder', async () => {
+            renderWithContext(
+                <ChannelInfoAttributes channelId={CHANNEL_ID}/>,
+                makeState([field('note', {required: true, type: 'text'})], [value('note', null)]),
+            );
+
+            await userEvent.click(screen.getByTestId('channelInfoAttributeEdit-note'));
+
+            expect(await screen.findByLabelText('Note')).toBeInTheDocument();
+        });
+
         test('stops a text value at the length the server accepts', async () => {
             const patchSpy = jest.spyOn(Client4, 'patchPropertyValues').mockResolvedValue([]);
 

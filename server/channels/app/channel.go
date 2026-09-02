@@ -163,6 +163,15 @@ func (a *App) CreateChannelWithUser(rctx request.CTX, channel *model.Channel, us
 // values together. propertyValues are already validated and group-stamped by the
 // caller, and are written before this returns so nothing reacting to channel
 // creation observes a channel whose attributes are missing.
+//
+// A required attribute's "must have a value" rule is enforced only by the api4
+// handler that builds propertyValues (api4/channel.go:createChannel), not here.
+// Every other caller of this function or of CreateChannel — plugin_api.go,
+// import_functions.go, api4/channel_local.go, sharedchannel/channelinvite.go,
+// slashcommands/auto_channels.go — reaches it with no propertyValues at all,
+// which this layer accepts. That is deliberate: required is a creation-time UX
+// gate for the public API, not a data invariant, and these are trusted paths
+// the UX gate was never meant to police.
 func (a *App) CreateChannelWithUserAndPropertyValues(rctx request.CTX, channel *model.Channel, userID string, propertyValues []*model.PropertyValue) (*model.Channel, *model.AppError) {
 	if channel.IsGroupOrDirect() {
 		return nil, model.NewAppError("CreateChannelWithUser", "api.channel.create_channel.direct_channel.app_error", nil, "", http.StatusBadRequest)

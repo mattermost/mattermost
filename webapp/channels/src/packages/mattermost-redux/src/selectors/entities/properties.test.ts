@@ -602,18 +602,38 @@ describe('makeGetResolvedChannelAttributes', () => {
         const [resolved] = getResolvedChannelAttributes(state, CHANNEL_ID);
         expect(resolved.option).toBeUndefined();
         expect(resolved.displayValue).toBe('opt_deleted');
+        expect(resolved.unresolvedOptionIds).toEqual(['opt_deleted']);
     });
 
     test('multiselect falls back to the raw ID when an option no longer exists', () => {
         const state = makeAttrState([attrField({id: 'caveats', type: 'multiselect', attrs: {options}})], [attrValue('caveats', ['opt_a', 'opt_deleted'])]);
 
-        expect(getResolvedChannelAttributes(state, CHANNEL_ID)[0].displayValue).toBe('AURORA, opt_deleted');
+        const [resolved] = getResolvedChannelAttributes(state, CHANNEL_ID);
+        expect(resolved.displayValue).toBe('AURORA, opt_deleted');
+        expect(resolved.unresolvedOptionIds).toEqual(['opt_deleted']);
     });
 
-    test('text fields display their stored string directly', () => {
+    test('multiselect reports every stale id when none of the stored options resolve', () => {
+        const state = makeAttrState([attrField({id: 'caveats', type: 'multiselect', attrs: {options}})], [attrValue('caveats', ['opt_deleted_1', 'opt_deleted_2'])]);
+
+        const [resolved] = getResolvedChannelAttributes(state, CHANNEL_ID);
+        expect(resolved.unresolvedOptionIds).toEqual(['opt_deleted_1', 'opt_deleted_2']);
+    });
+
+    test('rank falls back to the raw ID and reports it unresolved when an option no longer exists', () => {
+        const state = makeAttrState([attrField({id: 'priority', type: 'rank', attrs: {options}})], [attrValue('priority', 'opt_deleted')]);
+
+        const [resolved] = getResolvedChannelAttributes(state, CHANNEL_ID);
+        expect(resolved.displayValue).toBe('opt_deleted');
+        expect(resolved.unresolvedOptionIds).toEqual(['opt_deleted']);
+    });
+
+    test('text fields display their stored string directly and never report unresolvedOptionIds', () => {
         const state = makeAttrState([attrField({id: 'note', type: 'text'})], [attrValue('note', 'handle with care')]);
 
-        expect(getResolvedChannelAttributes(state, CHANNEL_ID)[0].displayValue).toBe('handle with care');
+        const [resolved] = getResolvedChannelAttributes(state, CHANNEL_ID);
+        expect(resolved.displayValue).toBe('handle with care');
+        expect(resolved.unresolvedOptionIds).toBeUndefined();
     });
 
     test('does not leak another channel value into this channel', () => {

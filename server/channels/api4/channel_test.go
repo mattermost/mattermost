@@ -603,6 +603,7 @@ func TestCreateChannelWithPropertyValues(t *testing.T) {
 		require.NoError(t, err)
 		CheckCreatedStatus(t, resp)
 	})
+
 }
 
 // The tiers that need a session are covered by TestCreateChannelWithPropertyValues.
@@ -635,6 +636,22 @@ func TestCanSetChannelAttributeOnCreate(t *testing.T) {
 
 	t.Run("an unrecognised tier is not settable", func(t *testing.T) {
 		require.False(t, canSetChannelAttributeOnCreate(c, &model.PropertyField{PermissionValues: &unknown}))
+	})
+
+	sysadmin := model.PermissionLevelSysadmin
+
+	t.Run("sysadmin tier is settable by a caller with manage_system", func(t *testing.T) {
+		sysadminContext := &Context{App: th.App, AppContext: th.Context.WithSession(&model.Session{
+			Roles: model.SystemAdminRoleId,
+		})}
+		require.True(t, canSetChannelAttributeOnCreate(sysadminContext, &model.PropertyField{PermissionValues: &sysadmin}))
+	})
+
+	t.Run("sysadmin tier is not settable by a caller without manage_system", func(t *testing.T) {
+		memberContext := &Context{App: th.App, AppContext: th.Context.WithSession(&model.Session{
+			Roles: model.SystemUserRoleId,
+		})}
+		require.False(t, canSetChannelAttributeOnCreate(memberContext, &model.PropertyField{PermissionValues: &sysadmin}))
 	})
 }
 

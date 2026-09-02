@@ -12,6 +12,7 @@ import type {Board} from '@mattermost/types/boards';
 import type {ChannelType, Channel} from '@mattermost/types/channels';
 import type {ServerError} from '@mattermost/types/errors';
 import type {NewChannelFormResult, NewChannelFormState} from '@mattermost/types/plugins';
+import {isTextField, supportsOptions} from '@mattermost/types/properties';
 
 import {setNewChannelWithBoardPreference} from 'mattermost-redux/actions/boards';
 import {createChannel} from 'mattermost-redux/actions/channels';
@@ -151,7 +152,10 @@ const NewChannelModal = () => {
             if (!isPropertyFieldRequired(field) && field.id !== classificationFieldId) {
                 return false;
             }
-            if (field.permission_values === 'none') {
+            if (!supportsOptions(field) && !isTextField(field)) {
+                return false;
+            }
+            if (field.permission_values === 'none' || field.permission_values === undefined) {
                 return false;
             }
             if (field.permission_values === 'sysadmin' && !isSystemAdmin) {

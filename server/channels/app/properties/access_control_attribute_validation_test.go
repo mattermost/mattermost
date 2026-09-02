@@ -2359,3 +2359,119 @@ func TestAccessControlAttributeValidationHookChangePolicy(t *testing.T) {
 		assert.Empty(t, stored)
 	})
 }
+
+func TestAccessControlAttributeValidationHookRequired(t *testing.T) {
+	th := Setup(t)
+
+	group, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "test_attr_required", Version: model.PropertyGroupVersionV2})
+	require.NoError(t, err)
+
+	hook := NewAccessControlAttributeValidationHook(th.service, nil, group.ID)
+	th.service.AddHook(hook)
+
+	newRequiredField := func(t *testing.T, objectType string) *model.PropertyField {
+		t.Helper()
+		field, createErr := th.service.CreatePropertyField(th.Context, &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "text_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+			ObjectType: objectType,
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttrRequired: true,
+			},
+		})
+		require.NoError(t, createErr)
+		return field
+	}
+
+	write := func(field *model.PropertyField, targetID, targetType, raw string) (*model.PropertyValue, error) {
+		return th.service.UpsertPropertyValue(th.Context, &model.PropertyValue{
+			GroupID:    group.ID,
+			FieldID:    field.ID,
+			TargetID:   targetID,
+			TargetType: targetType,
+			Value:      json.RawMessage(raw),
+		})
+	}
+
+	writeChannel := func(field *model.PropertyField, channelID, raw string) (*model.PropertyValue, error) {
+		return write(field, channelID, model.PropertyValueTargetTypeChannel, raw)
+	}
+
+	requireRefused := func(t *testing.T, err error) {
+		t.Helper()
+		require.Error(t, err)
+		var appErr *model.AppError
+		require.ErrorAs(t, err, &appErr)
+		assert.Equal(t, "app.property_value.required.app_error", appErr.Id)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+	}
+
+	t.Run("an empty string is refused on the first write", func(t *testing.T) {
+		field := newRequiredField(t, model.PropertyFieldObjectTypeChannel)
+		_, err := writeChannel(field, model.NewId(), `""`)
+		requireRefused(t, err)
+	})
+
+	t.Run("a null value is refused", func(t *testing.T) {
+		field := newRequiredField(t, model.PropertyFieldObjectTypeChannel)
+		_, err := writeChannel(field, model.NewId(), `null`)
+		requireRefused(t, err)
+	})
+
+	t.Run("clearing a previously set value is refused", func(t *testing.T) {
+		field := newRequiredField(t, model.PropertyFieldObjectTypeChannel)
+		channelID := model.NewId()
+		_, err := writeChannel(field, channelID, `"SECRET"`)
+		require.NoError(t, err)
+
+		_, err = writeChannel(field, channelID, `""`)
+		requireRefused(t, err)
+	})
+
+	t.Run("moving to a different non-empty value is allowed", func(t *testing.T) {
+		field := newRequiredField(t, model.PropertyFieldObjectTypeChannel)
+		channelID := model.NewId()
+		_, err := writeChannel(field, channelID, `"SECRET"`)
+		require.NoError(t, err)
+
+		_, err = writeChannel(field, channelID, `"OTHER"`)
+		require.NoError(t, err)
+	})
+
+	t.Run("deleting a required value is refused", func(t *testing.T) {
+		field := newRequiredField(t, model.PropertyFieldObjectTypeChannel)
+		channelID := model.NewId()
+		value, err := writeChannel(field, channelID, `"SECRET"`)
+		require.NoError(t, err)
+
+		requireRefused(t, th.service.DeletePropertyValue(th.Context, group.ID, value.ID))
+	})
+
+	t.Run("a non-channel target is enforced too", func(t *testing.T) {
+		field := newRequiredField(t, model.PropertyFieldObjectTypePost)
+		_, err := write(field, model.NewId(), model.PropertyValueTargetTypePost, `""`)
+		requireRefused(t, err)
+	})
+
+	t.Run("a field that is not required is unaffected", func(t *testing.T) {
+		field, createErr := th.service.CreatePropertyField(th.Context, &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "text_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+			ObjectType: model.PropertyFieldObjectTypeChannel,
+		})
+		require.NoError(t, createErr)
+		channelID := model.NewId()
+
+		value, err := writeChannel(field, channelID, `"SECRET"`)
+		require.NoError(t, err)
+
+		_, err = writeChannel(field, channelID, `""`)
+		require.NoError(t, err, "clearing a non-required value must not be refused")
+
+		require.NoError(t, th.service.DeletePropertyValue(th.Context, group.ID, value.ID))
+	})
+}

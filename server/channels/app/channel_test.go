@@ -504,6 +504,52 @@ func TestCreateChannelDisplayNameTrimsWhitespace(t *testing.T) {
 	require.Equal(t, channel.DisplayName, "Public 1")
 }
 
+// TestCreateChannelWithUserIgnoresRequiredAttributesWithNoValues documents that
+// "required" is enforced only by the api4 handler that builds propertyValues
+// for the public create-channel endpoint, not by this app-layer entry point.
+// Every trusted caller (plugins, import, local API, shared channels, slash
+// commands) reaches CreateChannel/CreateChannelWithUser with no propertyValues
+// at all, and that must keep working even when a required channel attribute
+// exists.
+func TestCreateChannelWithUserIgnoresRequiredAttributesWithNoValues(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.ChannelAttributes = true
+	}).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+
+	group, appErr := th.App.GetPropertyGroup(th.Context, model.AccessControlPropertyGroupName)
+	require.Nil(t, appErr)
+
+	memberLevel := model.PermissionLevelMember
+	field, appErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+		Name:              "f_" + model.NewId(),
+		Type:              model.PropertyFieldTypeText,
+		GroupID:           group.ID,
+		ObjectType:        "channel",
+		TargetType:        "system",
+		PermissionField:   &memberLevel,
+		PermissionValues:  &memberLevel,
+		PermissionOptions: &memberLevel,
+		Attrs: model.StringInterface{
+			model.PropertyFieldAttrRequired: true,
+		},
+	}, false, "")
+	require.Nil(t, appErr)
+	t.Cleanup(func() {
+		require.Nil(t, th.App.DeletePropertyField(th.Context, group.ID, field.ID, true, ""))
+	})
+
+	channel, appErr := th.App.CreateChannelWithUser(th.Context, &model.Channel{
+		DisplayName: "No Values Trusted Path",
+		Name:        "no-values-" + model.NewId(),
+		Type:        model.ChannelTypeOpen,
+		TeamId:      th.BasicTeam.Id,
+	}, th.BasicUser.Id)
+	require.Nil(t, appErr)
+	require.NotNil(t, channel)
+}
+
 func TestCreateChannelSpaceRequiresEnableDocs(t *testing.T) {
 	mainHelper.Parallel(t)
 

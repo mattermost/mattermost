@@ -9,7 +9,7 @@ import type {PropertyField, PropertyFieldOption} from '@mattermost/types/propert
 import {supportsOptions} from '@mattermost/types/properties';
 
 import {PROPERTY_TEXT_VALUE_MAX_LENGTH} from 'mattermost-redux/constants/properties';
-import {canMoveToOption, getPropertyFieldChangePolicy, isPropertyValueSet} from 'mattermost-redux/utils/property_utils';
+import {canMoveToOption, getPropertyFieldChangePolicy, getPropertyFieldLabel, isPropertyValueSet} from 'mattermost-redux/utils/property_utils';
 
 import {ColorSwatch, LevelOptionLabel} from 'components/admin_console/classification_markings/classification_markings_styled';
 import DropdownInput from 'components/dropdown_input';
@@ -68,6 +68,8 @@ type Props = {
  */
 const ChannelAttributeRowEditor = ({field, rawValue, onSubmit, onCancel, saving}: Props) => {
     const {formatMessage} = useIntl();
+
+    const label = getPropertyFieldLabel(field);
 
     const isText = field.type === 'text';
     const isMultiselect = field.type === 'multiselect';
@@ -132,7 +134,7 @@ const ChannelAttributeRowEditor = ({field, rawValue, onSubmit, onCancel, saving}
                 disabled={saving}
                 autoFocus={true}
                 placeholder={formatMessage({id: 'channel_attributes.enter_value', defaultMessage: 'Enter a value'})}
-                aria-label={formatMessage({id: 'channel_attributes.enter_value', defaultMessage: 'Enter a value'})}
+                aria-label={label}
                 data-testid={`channelAttributeEdit-${field.name}`}
             />
         );
@@ -153,6 +155,7 @@ const ChannelAttributeRowEditor = ({field, rawValue, onSubmit, onCancel, saving}
             styles={dropdownStyles}
             menuPortalTarget={document.body}
             formatOptionLabel={hasColoredOptions ? formatColorOptionLabel : undefined}
+            aria-label={label}
         />
     );
 };

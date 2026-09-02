@@ -758,6 +758,9 @@ func (h *AccessControlAttributeValidationHook) validateValues(rctx request.CTX, 
 		if err := h.validateValueAgainstField(field, value); err != nil {
 			return fmt.Errorf("field %s: %s: %w", value.FieldID, err.Error(), ErrInvalidValue)
 		}
+		if model.IsPropertyFieldRequired(field) && model.IsEmptyPropertyValue(value.Value) {
+			return newRequiredValueError(field)
+		}
 	}
 
 	return h.validateChangePolicy(groupID, values, fieldMap)
@@ -897,6 +900,13 @@ func newChangePolicyError(field *model.PropertyField, policy string) error {
 	}
 }
 
+// newRequiredValueError returns the refusal for writing or deleting an empty
+// value on a required field.
+func newRequiredValueError(field *model.PropertyField) error {
+	details := fmt.Sprintf("field %s: value is required", field.ID)
+	return model.NewAppError("UpsertPropertyValues", "app.property_value.required.app_error", nil, details, http.StatusBadRequest)
+}
+
 // getValuesForTarget loads every value stored against one target, paging with
 // the same bounds as the access-control lookups.
 func (h *AccessControlAttributeValidationHook) getValuesForTarget(groupID, targetType, targetID string) ([]*model.PropertyValue, error) {
@@ -1008,8 +1018,8 @@ func (h *AccessControlAttributeValidationHook) PreDeletePropertyValuesForTarget(
 	return h.refuseGovernedDelete(rctx, groupID, values)
 }
 
-// refuseGovernedDelete refuses to delete any channel value that is both set and
-// governed by a non-"any" change policy.
+// refuseGovernedDelete refuses to delete any set channel value that is required,
+// or governed by a non-"any" change policy.
 func (h *AccessControlAttributeValidationHook) refuseGovernedDelete(rctx request.CTX, groupID string, values []*model.PropertyValue) error {
 	if !h.isGroupManaged(groupID) {
 		return nil
@@ -1045,10 +1055,15 @@ func (h *AccessControlAttributeValidationHook) refuseGovernedDelete(rctx request
 
 	for _, v := range channelValues {
 		field, ok := fieldMap[v.FieldID]
-		if !ok || model.GetPropertyFieldChangePolicy(field) == model.PropertyFieldChangePolicyAny {
+		if !ok {
 			continue
 		}
-		return newChangePolicyError(field, model.GetPropertyFieldChangePolicy(field))
+		if model.IsPropertyFieldRequired(field) {
+			return newRequiredValueError(field)
+		}
+		if model.GetPropertyFieldChangePolicy(field) != model.PropertyFieldChangePolicyAny {
+			return newChangePolicyError(field, model.GetPropertyFieldChangePolicy(field))
+		}
 	}
 
 	return nil

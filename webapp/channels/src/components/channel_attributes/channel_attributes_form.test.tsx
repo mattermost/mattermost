@@ -131,6 +131,18 @@ describe('ChannelAttributesForm', () => {
         expect(onChange).toHaveBeenCalledWith('f_note', undefined);
     });
 
+    test('names a select control with its field label, not the shared placeholder', () => {
+        renderWithContext(
+            <ChannelAttributesForm
+                fields={[program]}
+                values={{}}
+                onChange={jest.fn()}
+            />,
+        );
+
+        expect(screen.getByRole('combobox', {name: 'Program'})).toBeInTheDocument();
+    });
+
     test('caps a text value at the length the server accepts', () => {
         const note = field({id: 'f_note', name: 'note', type: 'text'});
 

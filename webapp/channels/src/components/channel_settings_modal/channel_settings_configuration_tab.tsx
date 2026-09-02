@@ -106,6 +106,7 @@ function ChannelSettingsConfigurationTab({
     const [formError, setFormError] = useState('');
     const [requireConfirm, setRequireConfirm] = useState(false);
     const [saveChangesPanelState, setSaveChangesPanelState] = useState<SaveChangesPanelState>();
+    const [isSaving, setIsSaving] = useState(false);
     const showSaveChangesPanel = requireConfirm || saveChangesPanelState === 'saved';
 
     const resetFormErrors = useCallback(() => {
@@ -639,22 +640,37 @@ function ChannelSettingsConfigurationTab({
         commitSharingAfterSave,
     ]);
 
+    // A ref, not the isSaving state, gates re-entry: two clicks in the same tick
+    // both read state before either re-render lands, so the state alone would not
+    // block the second click.
+    const isSavingRef = useRef(false);
+
     const performSave = useCallback(async () => {
-        const success = await handleSave();
-        if (!success) {
-            setSaveChangesPanelState('error');
+        if (isSavingRef.current) {
             return;
         }
+        isSavingRef.current = true;
+        setIsSaving(true);
+        try {
+            const success = await handleSave();
+            if (!success) {
+                setSaveChangesPanelState('error');
+                return;
+            }
 
-        // Update local state with trimmed values after successful save
-        setUpdatedChannelBanner((prev) => ({
-            ...prev,
-            text: prev.text?.trim() || '',
-            background_color: prev.background_color?.trim() || '',
-        }));
+            // Update local state with trimmed values after successful save
+            setUpdatedChannelBanner((prev) => ({
+                ...prev,
+                text: prev.text?.trim() || '',
+                background_color: prev.background_color?.trim() || '',
+            }));
 
-        resetFormErrors();
-        setSaveChangesPanelState('saved');
+            resetFormErrors();
+            setSaveChangesPanelState('saved');
+        } finally {
+            isSavingRef.current = false;
+            setIsSaving(false);
+        }
     }, [handleSave, resetFormErrors]);
 
     const handleSaveChanges = useCallback(async () => {
@@ -990,6 +1006,7 @@ function ChannelSettingsConfigurationTab({
                     handleClose={handleClose}
                     tabChangeError={hasErrors}
                     state={hasErrors ? 'error' : saveChangesPanelState}
+                    saving={isSaving}
                     customErrorMessage={formError}
                     cancelButtonText={formatMessage({
                         id: 'channel_settings.save_changes_panel.reset',

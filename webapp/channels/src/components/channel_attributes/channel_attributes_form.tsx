@@ -6,10 +6,10 @@ import {FormattedMessage, useIntl} from 'react-intl';
 import type {OnChangeValue} from 'react-select';
 
 import type {PropertyField, PropertyFieldOption} from '@mattermost/types/properties';
-import {supportsOptions} from '@mattermost/types/properties';
+import {isTextField, supportsOptions} from '@mattermost/types/properties';
 
 import {PROPERTY_TEXT_VALUE_MAX_LENGTH} from 'mattermost-redux/constants/properties';
-import {isPropertyFieldRequired} from 'mattermost-redux/utils/property_utils';
+import {getPropertyFieldLabel, isPropertyFieldRequired} from 'mattermost-redux/utils/property_utils';
 
 import {ColorSwatch, LevelOptionLabel} from 'components/admin_console/classification_markings/classification_markings_styled';
 import DropdownInput from 'components/dropdown_input';
@@ -39,15 +39,6 @@ const dropdownStyles = {
     menuPortal: (provided: Record<string, unknown>) => ({...provided, zIndex: 1100}),
 };
 
-function isText(field: PropertyField): boolean {
-    return field.type === 'text';
-}
-
-function fieldLabel(field: PropertyField): string {
-    const displayName = field.attrs?.display_name;
-    return typeof displayName === 'string' && displayName ? displayName : field.name;
-}
-
 function toOptions(field: PropertyField): Option[] {
     const options = (field.attrs?.options as PropertyFieldOption[] | undefined) ?? [];
     return options.map((option) => ({label: option.name, value: option.id, color: option.color}));
@@ -74,7 +65,7 @@ const ChannelAttributesForm = ({fields, values, onChange, disabled}: Props) => {
     // Date and user-valued attributes are storable through the API but have no
     // assignment UI in this release, so they are skipped rather than rendered as
     // something the user cannot fill in.
-    const supported = useMemo(() => fields.filter((field) => supportsOptions(field) || isText(field)), [fields]);
+    const supported = useMemo(() => fields.filter((field) => supportsOptions(field) || isTextField(field)), [fields]);
 
     // react-select hands back an array for isMulti and a single option otherwise,
     // so the shape is narrowed here rather than trusted from the field type.
@@ -116,7 +107,7 @@ const ChannelAttributesForm = ({fields, values, onChange, disabled}: Props) => {
                 />
             </p>
             {supported.map((field) => {
-                const label = fieldLabel(field);
+                const label = getPropertyFieldLabel(field);
                 const selected = values[field.id];
 
                 return (
@@ -144,7 +135,7 @@ const ChannelAttributesForm = ({fields, values, onChange, disabled}: Props) => {
                             )}
                         </span>
                         <div className='channel-attributes-form__control'>
-                            {isText(field) ? (
+                            {isTextField(field) ? (
                                 <Input
                                     id={`channelAttribute-${field.id}`}
                                     name={`channelAttribute-${field.name}`}
@@ -175,6 +166,7 @@ const ChannelAttributesForm = ({fields, values, onChange, disabled}: Props) => {
                                     styles={dropdownStyles}
                                     formatOptionLabel={formatOptionLabel}
                                     menuPortalTarget={document.body}
+                                    aria-label={label}
                                 />
                             )}
                         </div>

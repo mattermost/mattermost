@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import type {PropertyField, PropertyFieldOption, PropertyGroup, PropertyValue} from '@mattermost/types/properties';
+import {supportsOptions} from '@mattermost/types/properties';
 import type {GlobalState} from '@mattermost/types/store';
 
 import {
@@ -205,21 +206,37 @@ export type ResolvedChannelAttribute = {
     // produce one entry per selected option; all other types produce a
     // single-element array matching displayValue. Empty when the attribute is unset.
     displayValues: string[];
+
+    // Option ids stored on an options-bearing field (select/multiselect/rank) that no
+    // longer resolve to a live option, e.g. deleted after being chosen. Absent for
+    // text fields, where the raw string is the value rather than an option id.
+    unresolvedOptionIds?: string[];
 };
 
 const EMPTY_RESOLVED: ResolvedChannelAttribute[] = [];
 
-function resolveDisplayValue(field: PropertyField, raw: unknown): {option?: PropertyFieldOption; displayValue: string; displayValues: string[]} {
+function resolveDisplayValue(field: PropertyField, raw: unknown): {option?: PropertyFieldOption; displayValue: string; displayValues: string[]; unresolvedOptionIds?: string[]} {
     if (!isPropertyValueSet(raw)) {
         return {displayValue: '', displayValues: []};
     }
 
     const options = (field.attrs?.options as PropertyFieldOption[] | undefined) ?? [];
+    const optionsBearing = supportsOptions(field);
 
     if (Array.isArray(raw)) {
-        const names = raw.
-            map((id) => options.find((option) => option.id === id)?.name ?? String(id));
-        return {displayValue: names.join(', '), displayValues: names};
+        const unresolvedOptionIds: string[] = [];
+        const names = raw.map((id) => {
+            const name = options.find((option) => option.id === id)?.name;
+            if (name === undefined && optionsBearing) {
+                unresolvedOptionIds.push(String(id));
+            }
+            return name ?? String(id);
+        });
+        return {
+            displayValue: names.join(', '),
+            displayValues: names,
+            unresolvedOptionIds: unresolvedOptionIds.length > 0 ? unresolvedOptionIds : undefined,
+        };
     }
 
     if (typeof raw !== 'string') {
@@ -232,10 +249,14 @@ function resolveDisplayValue(field: PropertyField, raw: unknown): {option?: Prop
         return {option, displayValue: option.name, displayValues: [option.name]};
     }
 
-    // Text fields store the display string directly. A select field whose option
-    // was deleted lands here too and renders the raw id, which is wrong but
-    // visible — better than silently dropping a marking.
-    return {displayValue: raw, displayValues: [raw]};
+    // Text fields store the display string directly. An options-bearing field
+    // whose option was deleted lands here too and renders the raw id, which is
+    // wrong but visible — better than silently dropping a marking.
+    return {
+        displayValue: raw,
+        displayValues: [raw],
+        unresolvedOptionIds: optionsBearing ? [raw] : undefined,
+    };
 }
 
 /**

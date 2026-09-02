@@ -97,6 +97,10 @@ export const supportsOptions = (field: PropertyField) => {
     return field.type === 'select' || field.type === 'multiselect' || field.type === 'rank';
 };
 
+export const isTextField = (field: PropertyField) => {
+    return field.type === 'text';
+};
+
 // How a value may move once it is set, mirroring attrs.change_policy in
 // model/property_field_attrs_validation.go. raise_only and lower_only compare
 // option ranks, so the server strips them from any field that is not a rank.

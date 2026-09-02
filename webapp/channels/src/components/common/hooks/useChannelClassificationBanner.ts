@@ -208,10 +208,10 @@ export default function useChannelClassificationBanner(channelId: string): Chann
                         return false;
                     }
 
-                    // A select option that no longer exists (deleted after being chosen)
-                    // has to suppress that attribute's contribution rather than surface
-                    // the raw stored id in the banner.
-                    if (resolved.field.type === 'select' && !resolved.option) {
+                    // An option that no longer exists (deleted after being chosen) has to
+                    // suppress that attribute's contribution rather than surface the raw
+                    // stored id in the banner. Text fields have no unresolvedOptionIds.
+                    if (resolved.unresolvedOptionIds && resolved.unresolvedOptionIds.length > 0) {
                         return false;
                     }
                     return true;

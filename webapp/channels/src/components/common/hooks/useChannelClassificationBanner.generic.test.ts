@@ -20,12 +20,12 @@ jest.mock('react-redux', () => ({
 const CHANNEL_ID = 'channel1';
 const GROUP_ID = 'group_access_control';
 
-function designatedField(id: string, action: string, options: Array<{id: string; name: string; color?: string}>, sortOrder?: number): PropertyField {
+function designatedField(id: string, action: string, options: Array<{id: string; name: string; color?: string}>, sortOrder?: number, type: PropertyField['type'] = 'select'): PropertyField {
     return {
         id,
         group_id: GROUP_ID,
         name: id,
-        type: 'select',
+        type,
         target_id: '',
         target_type: 'system',
         object_type: 'channel',
@@ -210,6 +210,42 @@ describe('useChannelClassificationBanner — generic designated attributes', () 
 
     test('renders no banner when the stored option no longer exists', () => {
         const field = designatedField('program', 'display_banner_top', [{id: 'opt1', name: 'AURORA'}]);
+
+        const {result} = renderHookWithContext(
+            () => useChannelClassificationBanner(CHANNEL_ID),
+            makeState([field], [value('program', 'deleted_option')]),
+        );
+
+        expect(result.current.hasClassification).toBe(false);
+        expect(result.current.classificationBanner).toBeUndefined();
+    });
+
+    test('drops a stale option id from a mixed valid/stale multiselect rather than rendering it raw', () => {
+        const field = designatedField('program', 'display_banner_top', [{id: 'opt1', name: 'AURORA'}], undefined, 'multiselect');
+
+        const {result} = renderHookWithContext(
+            () => useChannelClassificationBanner(CHANNEL_ID),
+            makeState([field], [value('program', ['opt1', 'deleted_option'])]),
+        );
+
+        expect(result.current.hasClassification).toBe(false);
+        expect(result.current.classificationBanner).toBeUndefined();
+    });
+
+    test('renders no banner when every option in a multiselect is stale', () => {
+        const field = designatedField('program', 'display_banner_top', [{id: 'opt1', name: 'AURORA'}], undefined, 'multiselect');
+
+        const {result} = renderHookWithContext(
+            () => useChannelClassificationBanner(CHANNEL_ID),
+            makeState([field], [value('program', ['deleted_a', 'deleted_b'])]),
+        );
+
+        expect(result.current.hasClassification).toBe(false);
+        expect(result.current.classificationBanner).toBeUndefined();
+    });
+
+    test('renders no banner when a stale option is stored on a rank field', () => {
+        const field = designatedField('program', 'display_banner_top', [{id: 'opt1', name: 'AURORA'}], undefined, 'rank');
 
         const {result} = renderHookWithContext(
             () => useChannelClassificationBanner(CHANNEL_ID),

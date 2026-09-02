@@ -8805,6 +8805,10 @@
     "translation": "Invalid input provided."
   },
   {
+    "id": "app.property_value.required.app_error",
+    "translation": "This attribute is required and cannot be left empty."
+  },
+  {
     "id": "app.property_value.resolve_broadcast_params.unknown_object_type.app_error",
     "translation": "Unrecognized object type \"{{.ObjectType}}\" for property value broadcast."
   },
