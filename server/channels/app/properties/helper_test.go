@@ -136,11 +136,97 @@ func (th *TestHelper) RegisterCPAPropertyGroup(tb testing.TB) *TestHelper {
 	require.NoError(tb, groupErr)
 	th.CPAGroupID = group.ID
 
-	// Create and register the access control hook now that the group ID is known
-	hook := NewAccessControlHook(th.service, nil, nil, nil, group.ID)
+	// Create and register the access control hook now that the group ID is known.
+	// The ladder checker defaults to defaultLadderCheckerForTests rather than
+	// nil, so a field carrying a real Restrictions object is judged by its
+	// tier instead of being denied outright; a test that needs a specific
+	// human decision still overrides it with setLadderCheckerForTests.
+	hook := NewAccessControlHook(th.service, nil, defaultLadderCheckerForTests, nil, group.ID)
 	th.service.AddHook(hook)
 
+	// Production also runs AccessControlAttributeValidationHook.PreCreatePropertyField
+	// on this group, which pins PermissionField/PermissionOptions to sysadmin
+	// and fills PermissionValues so a converted field never has an unset
+	// permission column, the shape decidePropertyFieldPermission expects. The
+	// real hook also validates field names against the CEL grammar and
+	// auto-IDs options, which many fixtures in this package don't satisfy, so
+	// this registers only the column-pinning half.
+	th.service.AddHook(newColumnPinningStubHook(group.ID))
+
 	return th
+}
+
+// defaultLadderCheckerForTests stands in for the app-layer human decision
+// that access_control_permissions_test.go and app/authorization's own tests
+// already cover with explicit injected checkers. It resolves the field's
+// tier for the action and allows anything above none, treating the
+// fabricated caller IDs used across this package as an ordinary member —
+// there is no real user or channel membership to check them against. It
+// must stay tier-based rather than always allow: a source_only field
+// converts option.read to none, and tests expect that to still deny.
+func defaultLadderCheckerForTests(_ request.CTX, _ string, field *model.PropertyField, action, _ string) bool {
+	if field.Permissions == nil {
+		return false
+	}
+	return field.Permissions.Restrictions.TierFor(action) != model.PermissionLevelNone
+}
+
+// columnPinningStubHook stands in for the column-pinning half of
+// AccessControlAttributeValidationHook.enforceGroupPermissions, without its
+// field-name and option validation, so a field converted to carry
+// Permissions still has PermissionField, PermissionOptions and
+// PermissionValues set the way a field created through the API always does.
+// It skips the managed=admin upgrade: that needs a permission checker the
+// harness doesn't build, and no fixture in this package sets that attr.
+type columnPinningStubHook struct {
+	BasePropertyHook
+	managedGroupIDs map[string]struct{}
+}
+
+func newColumnPinningStubHook(managedGroupIDs ...string) *columnPinningStubHook {
+	ids := make(map[string]struct{}, len(managedGroupIDs))
+	for _, id := range managedGroupIDs {
+		ids[id] = struct{}{}
+	}
+	return &columnPinningStubHook{managedGroupIDs: ids}
+}
+
+func (h *columnPinningStubHook) isGroupManaged(groupID string) bool {
+	_, ok := h.managedGroupIDs[groupID]
+	return ok
+}
+
+// pinPermissionColumns mirrors enforceGroupPermissions's column pinning:
+// PermissionField and PermissionOptions always go to sysadmin, and
+// PermissionValues is pinned to sysadmin for an owner-managed field or
+// default-filled by object type when unset. A caller-supplied PermissionValues
+// is never overwritten.
+func (h *columnPinningStubHook) pinPermissionColumns(field *model.PropertyField) *model.PropertyField {
+	sysadmin := model.PermissionLevelSysadmin
+	switch {
+	case model.HasPropertyFieldOwners(field):
+		field.PermissionValues = &sysadmin
+	case field.PermissionValues == nil:
+		defaultLevel := defaultPermissionValuesForObjectType(field.ObjectType)
+		field.PermissionValues = &defaultLevel
+	}
+	field.PermissionField = &sysadmin
+	field.PermissionOptions = &sysadmin
+	return field
+}
+
+func (h *columnPinningStubHook) PreCreatePropertyField(_ request.CTX, field *model.PropertyField) (*model.PropertyField, error) {
+	if !h.isGroupManaged(field.GroupID) {
+		return field, nil
+	}
+	return h.pinPermissionColumns(field), nil
+}
+
+func (h *columnPinningStubHook) PreUpdatePropertyField(_ request.CTX, groupID string, field *model.PropertyField) (*model.PropertyField, error) {
+	if !h.isGroupManaged(groupID) {
+		return field, nil
+	}
+	return h.pinPermissionColumns(field), nil
 }
 
 // RegisterPropertyGroup registers a new property group with the given version and a unique name.
