@@ -43,7 +43,9 @@ jobs:
       - name: Calculate build image tag
         id: calculate
         working-directory: server/
-        run: echo BUILD_SERVER_TAG=$(./build/buildenv-tag.sh) >> "${GITHUB_OUTPUT}"
+        run: |
+          tag=$(./build/buildenv-tag.sh)
+          echo "BUILD_SERVER_TAG=${tag}" >> "${GITHUB_OUTPUT}"
       - name: Check for go.mod changes
         id: changed-files
         uses: tj-actions/changed-files@22103cc46bda19c2b464ffe86db46df6922fd323  # v47.0.5

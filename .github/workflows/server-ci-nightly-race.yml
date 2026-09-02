@@ -34,7 +34,9 @@ jobs:
       - name: Calculate build image tag
         id: calculate
         working-directory: server/
-        run: echo BUILD_SERVER_TAG=$(./build/buildenv-tag.sh) >> "${GITHUB_OUTPUT}"
+        run: |
+          tag=$(./build/buildenv-tag.sh)
+          echo "BUILD_SERVER_TAG=${tag}" >> "${GITHUB_OUTPUT}"
 
   test-race:
     name: Race Detector

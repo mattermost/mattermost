@@ -36,10 +36,11 @@ runs:
         TAG_INPUT: ${{ inputs.build-server-tag }}
       run: |
         if [[ -n "${TAG_INPUT}" ]]; then
-          echo "BUILD_SERVER_TAG=${TAG_INPUT}" >> "${GITHUB_ENV}"
+          tag="${TAG_INPUT}"
         else
-          echo "BUILD_SERVER_TAG=$(./server/build/buildenv-tag.sh)" >> "${GITHUB_ENV}"
+          tag=$(./server/build/buildenv-tag.sh)
         fi
+        echo "BUILD_SERVER_TAG=${tag}" >> "${GITHUB_ENV}"
     - uses: ./.github/actions/load-buildenv
       id: buildenv
       with:

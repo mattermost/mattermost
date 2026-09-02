@@ -57,7 +57,8 @@ jobs:
       - name: buildenv/calculate-tag
         id: tag
         run: |
-          echo "TAG=$(./server/build/buildenv-tag.sh)" >> "${GITHUB_OUTPUT}"
+          tag=$(./server/build/buildenv-tag.sh)
+          echo "TAG=${tag}" >> "${GITHUB_OUTPUT}"
 
       - name: buildenv/push
         if: github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/heads/release-')
@@ -107,7 +108,8 @@ jobs:
       - name: buildenv/calculate-tag
         id: tag
         run: |
-          echo "TAG=$(./server/build/buildenv-tag.sh)" >> "${GITHUB_OUTPUT}"
+          tag=$(./server/build/buildenv-tag.sh)
+          echo "TAG=${tag}" >> "${GITHUB_OUTPUT}"
 
       - name: buildenv/push
         if: github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/heads/release-')
