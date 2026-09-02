@@ -973,6 +973,12 @@ func legacyValidatorGates(field, existing *model.PropertyField) (accessModeChang
 // knew action lists existed: it would silently re-widen an owner's grant to
 // every action on every save. An owner naming an identity with nothing
 // stored keeps that all-five default, since there is nothing to preserve.
+//
+// An identity can be split across two stored owners -- one for the value
+// actions, one for the rest -- when they carry different scopes (see
+// grantsFromLegacy), so every stored match's Allow is merged rather than
+// just the first, and the submission's own Scopes are kept rather than
+// overwritten by whichever stored half happened to match.
 func fillOwnerAllowFromStored(field, existing *model.PropertyField) *model.PropertyField {
 	submitted := model.GetPropertyFieldOwners(field)
 	if len(submitted) == 0 {
@@ -991,17 +997,19 @@ func fillOwnerAllowFromStored(field, existing *model.PropertyField) *model.Prope
 			filled = append(filled, owner)
 			continue
 		}
-		matched := false
+		var allow []string
 		for _, s := range stored {
 			if s.Type == owner.Type && s.ID == owner.ID {
-				filled = append(filled, s)
-				matched = true
-				changed = true
+				allow = append(allow, s.Allow...)
 			}
 		}
-		if !matched {
+		if len(allow) == 0 {
 			filled = append(filled, owner)
+			continue
 		}
+		owner.Allow = allow
+		filled = append(filled, owner)
+		changed = true
 	}
 	if !changed {
 		return field
