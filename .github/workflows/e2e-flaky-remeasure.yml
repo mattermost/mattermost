@@ -183,7 +183,7 @@ jobs:
 
       - name: ci/upload-to-tsio
         if: inputs.report_to_tsio
-        uses: mattermost/mattermost-test-system-io/.github/actions/test-system-io-report-upload@80e9ae918bc4682ed90b9087b701c0312389f952 # 2026-09-02, mattermost-test-system-io#101
+        uses: mattermost/mattermost-test-system-io/.github/actions/test-system-io-report-upload@3ec41f55b17670c8c75b8e71a4e2546396afc369 # 2026-09-02, mattermost-test-system-io#101
         with:
           use-staging: ${{ vars.E2E_TRIAGE_TSIO_PRODUCTION != 'true' }}
           framework: playwright

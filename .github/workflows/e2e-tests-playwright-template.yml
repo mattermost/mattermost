@@ -240,14 +240,27 @@ jobs:
           ref: ${{ inputs.commit_sha }}
           fetch-depth: 1
       - name: ci/dispatch-begin
-        uses: mattermost/mattermost-test-system-io/.github/actions/test-system-io-dispatch-begin@80e9ae918bc4682ed90b9087b701c0312389f952 # 2026-09-02, mattermost-test-system-io#101
+        uses: mattermost/mattermost-test-system-io/.github/actions/test-system-io-dispatch-begin@3ec41f55b17670c8c75b8e71a4e2546396afc369 # 2026-09-02, mattermost-test-system-io#101
         with:
-          # Triage talks to STAGING by default, because the /api/v1/triage
-          # endpoints ship with mattermost-test-system-io#101 and are deployed
-          # to staging only. Production serves the web app on the same origin,
-          # so calling these paths there returns HTTP 200 with the SPA's HTML
-          # rather than a 404 — which crashed this job on the previous run.
-          # Set E2E_TRIAGE_TSIO_PRODUCTION=true once 101 is in production.
+          # ONE variable governs dispatch, reporting, summary AND triage on
+          # purpose: they must all target the SAME TSIO. Triage looks up the
+          # report group that dispatch/report created, so splitting them (report
+          # to production, triage to staging) makes triage 404 on every run.
+          #
+          # It defaults to STAGING because the /api/v1/triage endpoints ship
+          # with mattermost-test-system-io#101 and are only deployed there.
+          # Production serves the web app on the same origin, so those paths
+          # return HTTP 200 with the SPA's HTML instead of a 404 — which
+          # crashed this job on run 33670884093.
+          #
+          # MERGE BLOCKER, stated here so it is not discovered later: while this
+          # is `false`, mattermost's E2E data lands in staging and the
+          # production dashboard does not see it. Because triage and reporting
+          # cannot be split, the only correct pre-merge sequence is:
+          #   1. deploy tsio#101 to PRODUCTION
+          #   2. set E2E_TRIAGE_TSIO_PRODUCTION=true
+          #   3. then merge this PR
+          # Flipping the variable before step 1 restores the crash.
           use-staging: ${{ vars.E2E_TRIAGE_TSIO_PRODUCTION != 'true' }}
           framework: playwright
           repo-dir: ${{ github.workspace }}
@@ -436,7 +449,7 @@ jobs:
     steps:
       - name: ci/ai-flake-triage
         id: triage
-        uses: mattermost/mattermost-test-system-io/.github/actions/test-system-io-ai-triage@80e9ae918bc4682ed90b9087b701c0312389f952 # 2026-09-02, mattermost-test-system-io#101
+        uses: mattermost/mattermost-test-system-io/.github/actions/test-system-io-ai-triage@3ec41f55b17670c8c75b8e71a4e2546396afc369 # 2026-09-02, mattermost-test-system-io#101
         with:
           use-staging: ${{ vars.E2E_TRIAGE_TSIO_PRODUCTION != 'true' }}
           composite-identity: ${{ needs.prepare-run.outputs.composite-identity-json }}
@@ -498,7 +511,7 @@ jobs:
           ref: ${{ inputs.commit_sha }}
           fetch-depth: 0
       - name: ci/ai-test-autofix
-        uses: mattermost/mattermost-test-system-io/.github/actions/test-system-io-ai-triage@80e9ae918bc4682ed90b9087b701c0312389f952 # 2026-09-02, mattermost-test-system-io#101
+        uses: mattermost/mattermost-test-system-io/.github/actions/test-system-io-ai-triage@3ec41f55b17670c8c75b8e71a4e2546396afc369 # 2026-09-02, mattermost-test-system-io#101
         with:
           use-staging: ${{ vars.E2E_TRIAGE_TSIO_PRODUCTION != 'true' }}
           composite-identity: ${{ needs.prepare-run.outputs.composite-identity-json }}

@@ -256,7 +256,7 @@ jobs:
           ref: ${{ inputs.commit_sha }}
           fetch-depth: 1
       - name: ci/dispatch-begin
-        uses: mattermost/mattermost-test-system-io/.github/actions/test-system-io-dispatch-begin@80e9ae918bc4682ed90b9087b701c0312389f952 # 2026-09-02, mattermost-test-system-io#101
+        uses: mattermost/mattermost-test-system-io/.github/actions/test-system-io-dispatch-begin@3ec41f55b17670c8c75b8e71a4e2546396afc369 # 2026-09-02, mattermost-test-system-io#101
         with:
           # Staging TSIO is opt-in via repo variable, so a demo cannot leave
           # production runs pointed at staging after the fact.
@@ -438,7 +438,7 @@ jobs:
     steps:
       - name: ci/ai-flake-triage
         id: triage
-        uses: mattermost/mattermost-test-system-io/.github/actions/test-system-io-ai-triage@80e9ae918bc4682ed90b9087b701c0312389f952 # 2026-09-02, mattermost-test-system-io#101
+        uses: mattermost/mattermost-test-system-io/.github/actions/test-system-io-ai-triage@3ec41f55b17670c8c75b8e71a4e2546396afc369 # 2026-09-02, mattermost-test-system-io#101
         with:
           use-staging: ${{ vars.E2E_TRIAGE_TSIO_PRODUCTION != 'true' }}
           composite-identity: ${{ needs.prepare-run.outputs.composite-identity-json }}
@@ -494,7 +494,7 @@ jobs:
           ref: ${{ inputs.commit_sha }}
           fetch-depth: 0
       - name: ci/ai-test-autofix
-        uses: mattermost/mattermost-test-system-io/.github/actions/test-system-io-ai-triage@80e9ae918bc4682ed90b9087b701c0312389f952 # 2026-09-02, mattermost-test-system-io#101
+        uses: mattermost/mattermost-test-system-io/.github/actions/test-system-io-ai-triage@3ec41f55b17670c8c75b8e71a4e2546396afc369 # 2026-09-02, mattermost-test-system-io#101
         with:
           use-staging: ${{ vars.E2E_TRIAGE_TSIO_PRODUCTION != 'true' }}
           composite-identity: ${{ needs.prepare-run.outputs.composite-identity-json }}

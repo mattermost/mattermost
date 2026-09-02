@@ -63,7 +63,7 @@ jobs:
         with:
           persist-credentials: false
           repository: mattermost/mattermost-test-system-io
-          ref: 80e9ae918bc4682ed90b9087b701c0312389f952
+          ref: 3ec41f55b17670c8c75b8e71a4e2546396afc369
           sparse-checkout: scripts/lib
           sparse-checkout-cone-mode: true
           path: .tsio-checker
