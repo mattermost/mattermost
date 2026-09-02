@@ -420,7 +420,7 @@ jobs:
     # Skip when no relevant Server CI paths changed, since build-mattermost-server
     # (and thus server-dist-artifact) will not have run.
     if: >-
-      success('ci-complete') &&
+      success() &&
       needs.go.outputs.relevant-changed == 'true' &&
       github.repository_owner == 'mattermost' &&
       github.event_name == 'pull_request' &&

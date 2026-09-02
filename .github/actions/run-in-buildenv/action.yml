@@ -34,7 +34,9 @@ runs:
       shell: bash
       env:
         GO_VERSION_INPUT: ${{ inputs.go-version }}
-      run: |
+      # server/.go-version holds a bare version string, reviewed alongside the
+      # rest of the tree, and is re-exported so a later step can pass it on.
+      run: | # zizmor: ignore[github-env]
         if [[ -n "${GO_VERSION_INPUT}" ]]; then
           echo "GO_VERSION=${GO_VERSION_INPUT}" >> "${GITHUB_ENV}"
         else

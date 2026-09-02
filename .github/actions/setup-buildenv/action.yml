@@ -22,14 +22,19 @@ runs:
   steps:
     - name: Set constants
       shell: bash
+      env:
+        DOCKERFILE: ${{ inputs.dockerfile }}
+        DOCKERFILE_FIPS: ${{ inputs.dockerfile-fips }}
       run: |
-        echo "BUILDENV_IMAGE=mattermost/mattermost-build-server" >> "${GITHUB_ENV}"
-        echo "BUILDENV_ARTIFACT=buildenv-image" >> "${GITHUB_ENV}"
-        echo "BUILDENV_DOCKERFILE=${{ inputs.dockerfile }}" >> "${GITHUB_ENV}"
-        echo "BUILDENV_FIPS_IMAGE=mattermost/mattermost-build-server-fips" >> "${GITHUB_ENV}"
-        echo "BUILDENV_FIPS_ARTIFACT=buildenv-fips-image" >> "${GITHUB_ENV}"
-        echo "BUILDENV_FIPS_DOCKERFILE=${{ inputs.dockerfile-fips }}" >> "${GITHUB_ENV}"
-        echo "BUILDENV_TMPDIR=/tmp/buildenv-save" >> "${GITHUB_ENV}"
+        {
+          echo "BUILDENV_IMAGE=mattermost/mattermost-build-server"
+          echo "BUILDENV_ARTIFACT=buildenv-image"
+          echo "BUILDENV_DOCKERFILE=${DOCKERFILE}"
+          echo "BUILDENV_FIPS_IMAGE=mattermost/mattermost-build-server-fips"
+          echo "BUILDENV_FIPS_ARTIFACT=buildenv-fips-image"
+          echo "BUILDENV_FIPS_DOCKERFILE=${DOCKERFILE_FIPS}"
+          echo "BUILDENV_TMPDIR=/tmp/buildenv-save"
+        } >> "${GITHUB_ENV}"
     # ── Regular ────────────────────────────────────────────────────────
     - name: Resolve regular image
       id: resolve

@@ -1,0 +1,80 @@
+---
+name: Lint GitHub Actions
+
+on:
+  push:
+    branches:
+      - master
+      - release-*
+  pull_request:
+    paths:
+      - ".github/actions/**"
+      - ".github/workflows/**"
+      - ".github/actionlint.yaml"
+      - ".github/scripts/check_actions_expressions.py"
+      - ".github/zizmor.yml"
+      - ".yamllint"
+
+concurrency:
+  group: ${{ github.event_name == 'pull_request' && format('{0}-{1}', github.workflow, github.ref) || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions: {}
+
+env:
+  ACTIONLINT_VERSION: "1.7.12"
+  ACTIONLINT_SHA256: "8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8"
+  YAMLLINT_VERSION: "1.38.0"
+  ZIZMOR_VERSION: "1.30.0"
+
+jobs:
+  yamllint:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+      - name: Install yamllint
+        run: pipx install "yamllint==${YAMLLINT_VERSION}"
+      - name: Lint workflow and action YAML files
+        run: yamllint .github/workflows/ .github/actions/
+
+  actions-lint:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Install actionlint
+        run: |
+          curl --fail --silent --show-error --location \
+            --output "${RUNNER_TEMP}/actionlint.tar.gz" \
+            "https://github.com/rhysd/actionlint/releases/download/v${ACTIONLINT_VERSION}/actionlint_${ACTIONLINT_VERSION}_linux_amd64.tar.gz"
+          echo "${ACTIONLINT_SHA256}  ${RUNNER_TEMP}/actionlint.tar.gz" | sha256sum --check
+          sudo tar --extract --gzip --directory /usr/local/bin \
+            --file "${RUNNER_TEMP}/actionlint.tar.gz" actionlint
+
+      - name: Install zizmor
+        run: pipx install "zizmor==${ZIZMOR_VERSION}"
+
+      # actionlint cannot parse composite action.yml files, so it is scoped to
+      # .github/workflows/. Everything under .github/actions/ is covered by the
+      # expression check and zizmor below.
+      - name: Lint workflow semantics
+        run: actionlint -color
+
+      - name: Check expression syntax
+        if: ${{ !cancelled() }}
+        run: python3 .github/scripts/check_actions_expressions.py .github/workflows .github/actions
+
+      - name: Audit workflow and action security
+        if: ${{ !cancelled() }}
+        run: |
+          zizmor --no-online-audits --strict-collection --min-severity=medium \
+            --config .github/zizmor.yml --format=github \
+            .github/workflows .github/actions

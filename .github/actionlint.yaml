@@ -1,0 +1,30 @@
+---
+# https://github.com/rhysd/actionlint/blob/main/docs/config.md
+#
+# actionlint runs shellcheck over every `run:` block. The findings below already
+# existed when the Lint GitHub Actions workflow was added; they are baselined
+# rather than fixed so the gate starts green without a sweeping rewrite of the
+# E2E and release scripts. Everything else shellcheck reports still fails.
+paths:
+  .github/workflows/**:
+    ignore:
+      # Unquoted expansions and repeated `>> "$GITHUB_ENV"` redirects, spread
+      # across ~90 sites.
+      - 'shellcheck reported issue in this script: SC2086'
+      - 'shellcheck reported issue in this script: SC2129'
+      - 'shellcheck reported issue in this script: SC2046'
+      - 'shellcheck reported issue in this script: SC2005'
+  .github/workflows/e2e-tests-override-status.yml:
+    ignore:
+      # shellcheck cannot parse the escaped parentheses in a `[[ =~ ]]` pattern.
+      - 'shellcheck reported issue in this script: SC10'
+  .github/workflows/server-ci-artifacts.yml:
+    ignore:
+      - 'shellcheck reported issue in this script: SC2010'
+      - 'shellcheck reported issue in this script: SC2063'
+  .github/workflows/server-ci-report.yml:
+    ignore:
+      - 'shellcheck reported issue in this script: SC2188'
+  .github/workflows/server-test-template.yml:
+    ignore:
+      - 'shellcheck reported issue in this script: SC2034'

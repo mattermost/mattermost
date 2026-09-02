@@ -1,0 +1,29 @@
+---
+# Baseline for zizmor findings that predate the Lint GitHub Actions workflow.
+# https://docs.zizmor.sh/configuration/
+#
+# The gate also runs with --min-severity=medium, which drops the informational
+# and low findings that already exist across these workflows (notably
+# self-repository, which asks for the very recent "$/..." local action syntax).
+#
+# Entries below match on file name only, not path, so anything that would be
+# too broad as a file name is suppressed inline at the finding instead.
+rules:
+  artipacked:
+    ignore:
+      # Checkout credentials are deliberately persisted: the step is followed by
+      # a push to mattermost/docs using the same app token.
+      - docs-needed.yml
+      # Waiting on anthropics/claude-code-action#1236, as noted in the workflow.
+      - claude.yml
+  cache-poisoning:
+    ignore:
+      # No release artifacts are produced by this workflow, so a poisoned Go
+      # build cache has nothing to contaminate.
+      - tools-ci.yml
+  github-app:
+    ignore:
+      # Both tokens are already scoped to a single repository. Narrowing them
+      # further with permission-* inputs needs to be exercised against the live
+      # docs automation, so it is tracked separately.
+      - docs-needed.yml
