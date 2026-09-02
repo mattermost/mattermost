@@ -1,10 +1,13 @@
 ---
 title: "Migration"
 ---
-Moving an existing Mattermost deployment onto different infrastructure, and getting your data out of one.
+Getting data in and out of a Mattermost deployment, and moving an existing deployment onto different infrastructure.
 
-- [Bulk export tool](/administration-guide/manage/bulk-export-tool) - Export users, teams, channels, and posts to a JSONL file.
+- [Bulk import data](/administration-guide/onboard/bulk-loading-data) - Import users, teams, channels, and posts from a JSONL file.
+- [Bulk export data](/administration-guide/manage/bulk-export-tool) - Export users, teams, channels, and posts to a JSONL file.
 - [Migrate from MySQL to PostgreSQL](/administration-guide/manage/admin/postgres-migration) - Move your database, using the migration assist tool or by hand.
 - [Migrate to FIPS-compliant images](/administration-guide/manage/admin/fips-migration) - Switch an existing Docker or Kubernetes deployment to the FIPS-compliant Mattermost images.
 
-Moving to Mattermost from Slack, Rocket.Chat, or GitLab Omnibus is covered in [migrating to Mattermost](/administration-guide/onboard/migrating-to-mattermost), alongside [bulk loading data](/administration-guide/onboard/bulk-loading-data) and the [migration announcement email template](/administration-guide/onboard/migration-announcement-email).
+Import and export share the same JSONL format, so the [bulk import data](/administration-guide/onboard/bulk-loading-data) page is also the format reference for export files.
+
+Moving to Mattermost from Slack, Rocket.Chat, or GitLab Omnibus is covered in [migrating to Mattermost](/administration-guide/onboard/migrating-to-mattermost), alongside the [migration announcement email template](/administration-guide/onboard/migration-announcement-email).

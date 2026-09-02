@@ -505,9 +505,12 @@ const ADMIN_MANAGE_GROUPS = {
   },
   dataMigration: {
     // Infrastructure migration; platform migration is under Onboard users.
-    label: 'Data export and infrastructure migration',
+    // Bulk import lives in onboard/ on disk but pairs with bulk export here —
+    // same JSONL format, same mmctl command family.
+    label: 'Data import, export, and migration',
     landing: 'admin/migration',
     items: [
+      {doc: 'administration-guide/onboard/bulk-loading-data'},
       'bulk-export-tool',
       {label: 'Migrate from MySQL to PostgreSQL', landing: 'admin/postgres-migration', items: [
         'admin/postgres-migration-assist-tool',
@@ -748,7 +751,6 @@ const ADMIN_ONBOARD_ORDER = [
   {group: 'adldap'},
   {group: 'mfaCert'},
   'user-provisioning-workflows',
-  'bulk-loading-data',
   'guest-accounts',
   {group: 'migration'},
 ];
@@ -769,6 +771,8 @@ const ADMIN_ONBOARD_HIDDEN = new Set([
   'delegated-granular-administration',
   // Listed under Configure.
   'connected-workspaces',
+  // Listed under Manage > Data import, export, and migration.
+  'bulk-loading-data',
 ]);
 
 // ---------------------------------------------------------------------------
