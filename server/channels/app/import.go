@@ -537,7 +537,7 @@ func (a *App) importLine(rctx request.CTX, line imports.LineImportData, dryRun b
 		if line.DirectChannel == nil {
 			return model.NewAppError("BulkImport", "app.import.import_line.null_direct_channel.error", nil, "", http.StatusBadRequest)
 		}
-		return a.importDirectChannel(rctx, line.DirectChannel, dryRun)
+		return a.importDirectChannel(rctx, line.DirectChannel, dryRun, deactivateMissingUsers, report)
 	case line.Type == "emoji":
 		if line.Emoji == nil {
 			return model.NewAppError("BulkImport", "app.import.import_line.null_emoji.error", nil, "", http.StatusBadRequest)

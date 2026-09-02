@@ -2308,7 +2308,7 @@ func (a *App) updateFileInfoWithPostId(rctx request.CTX, post *model.Post) {
 	}
 }
 
-func (a *App) importDirectChannel(rctx request.CTX, data *imports.DirectChannelImportData, dryRun bool) *model.AppError {
+func (a *App) importDirectChannel(rctx request.CTX, data *imports.DirectChannelImportData, dryRun, deactivateMissingUsers bool, report *imports.ImportReport) *model.AppError {
 	var err *model.AppError
 	if err = imports.ValidateDirectChannelImportData(data); err != nil {
 		return err
@@ -2333,28 +2333,37 @@ func (a *App) importDirectChannel(rctx request.CTX, data *imports.DirectChannelI
 	}
 
 	var userIDs []string
-	userMap, err := a.getUsersByUsernames(members, false, nil)
+	userMap, err := a.getUsersByUsernames(members, deactivateMissingUsers, report)
 	if err != nil {
 		return err
 	}
 	for _, user := range members {
-		userIDs = append(userIDs, userMap[strings.ToLower(user)].Id)
+		member, ok := userMap[strings.ToLower(user)]
+		if !ok {
+			rctx.Logger().Warn("Skipping direct channel member not found on destination during scoped import", mlog.String("username", user))
+			continue
+		}
+		userIDs = append(userIDs, member.Id)
 	}
 
 	var channel *model.Channel
 
-	if len(userIDs) == 2 {
+	switch {
+	case len(userIDs) == 2:
 		ch, err2 := a.createDirectChannel(rctx, userIDs[0], userIDs[1])
 		if err2 != nil && err2.Id != store.ChannelExistsError {
 			return model.NewAppError("BulkImport", "app.import.import_direct_channel.create_direct_channel.error", nil, "", http.StatusBadRequest).Wrap(err2)
 		}
 		channel = ch
-	} else {
+	case len(userIDs) > 2:
 		ch, err2 := a.createGroupChannel(rctx, userIDs, "")
 		if err2 != nil && err2.Id != store.ChannelExistsError {
 			return model.NewAppError("BulkImport", "app.import.import_direct_channel.create_group_channel.error", nil, "", http.StatusBadRequest).Wrap(err2)
 		}
 		channel = ch
+	default:
+		rctx.Logger().Warn("Not enough users to create a direct channel during scoped import")
+		return nil
 	}
 
 	totalMembers, err := a.GetChannelMemberCount(rctx, channel.Id)

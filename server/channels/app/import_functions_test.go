@@ -4445,7 +4445,7 @@ func TestImportImportDirectChannel(t *testing.T) {
 		})
 		for name, data := range dataset {
 			t.Run(name, func(t *testing.T) {
-				err = th.App.importDirectChannel(th.Context, &data, true)
+				err = th.App.importDirectChannel(th.Context, &data, true, false, nil)
 				require.Error(t, err)
 
 				// Check that no more channels are in the DB.
@@ -4468,7 +4468,7 @@ func TestImportImportDirectChannel(t *testing.T) {
 		})
 		for name, data := range dataset {
 			t.Run(name, func(t *testing.T) {
-				appErr := th.App.importDirectChannel(th.Context, &data, true)
+				appErr := th.App.importDirectChannel(th.Context, &data, true, false, nil)
 				require.Nil(t, appErr)
 
 				// Check that no more channels are in the DB.
@@ -4494,7 +4494,7 @@ func TestImportImportDirectChannel(t *testing.T) {
 		})
 		for name, data := range dataset {
 			t.Run(name, func(t *testing.T) {
-				appErr := th.App.importDirectChannel(th.Context, &data, true)
+				appErr := th.App.importDirectChannel(th.Context, &data, true, false, nil)
 				require.Nil(t, appErr)
 
 				// Check that no more channels are in the DB.
@@ -4514,7 +4514,7 @@ func TestImportImportDirectChannel(t *testing.T) {
 		})
 		for name, data := range dataset {
 			t.Run(name, func(t *testing.T) {
-				err = th.App.importDirectChannel(th.Context, &data, false)
+				err = th.App.importDirectChannel(th.Context, &data, false, false, nil)
 				require.Error(t, err)
 
 				// Check that no more channels are in the DB.
@@ -4537,7 +4537,7 @@ func TestImportImportDirectChannel(t *testing.T) {
 		})
 		for name, data := range dataset {
 			t.Run(name, func(t *testing.T) {
-				appErr := th.App.importDirectChannel(th.Context, &data, false)
+				appErr := th.App.importDirectChannel(th.Context, &data, false, false, nil)
 				require.Nil(t, appErr)
 
 				// Check that one more DIRECT channel is in the DB.
@@ -4545,7 +4545,7 @@ func TestImportImportDirectChannel(t *testing.T) {
 				AssertChannelCount(t, th.App, model.ChannelTypeGroup, groupChannelCount)
 
 				// Do the same DIRECT channel again.
-				appErr = th.App.importDirectChannel(th.Context, &data, false)
+				appErr = th.App.importDirectChannel(th.Context, &data, false, false, nil)
 				require.Nil(t, appErr)
 
 				// Check that no more channels are in the DB.
@@ -4554,7 +4554,7 @@ func TestImportImportDirectChannel(t *testing.T) {
 
 				// Update the channel's HEADER
 				data.Header = new("New Channel Header 2")
-				appErr = th.App.importDirectChannel(th.Context, &data, false)
+				appErr = th.App.importDirectChannel(th.Context, &data, false, false, nil)
 				require.Nil(t, appErr)
 
 				// Check that no more channels are in the DB.
@@ -4588,7 +4588,7 @@ func TestImportImportDirectChannel(t *testing.T) {
 		})
 		for name, data := range dataset {
 			t.Run(name, func(t *testing.T) {
-				appErr := th.App.importDirectChannel(th.Context, &data, false)
+				appErr := th.App.importDirectChannel(th.Context, &data, false, false, nil)
 				require.NotNil(t, appErr)
 
 				// Check that no more channels are in the DB.
@@ -4614,7 +4614,7 @@ func TestImportImportDirectChannel(t *testing.T) {
 		})
 		for name, data := range dataset {
 			t.Run(name, func(t *testing.T) {
-				appErr := th.App.importDirectChannel(th.Context, &data, false)
+				appErr := th.App.importDirectChannel(th.Context, &data, false, false, nil)
 				require.Nil(t, appErr)
 
 				// Check that one more GROUP channel is in the DB.
@@ -4622,7 +4622,7 @@ func TestImportImportDirectChannel(t *testing.T) {
 				AssertChannelCount(t, th.App, model.ChannelTypeGroup, groupChannelCount+1)
 
 				// Do the same DIRECT channel again.
-				appErr = th.App.importDirectChannel(th.Context, &data, false)
+				appErr = th.App.importDirectChannel(th.Context, &data, false, false, nil)
 				require.Nil(t, appErr)
 
 				// Check that no more channels are in the DB.
@@ -4631,7 +4631,7 @@ func TestImportImportDirectChannel(t *testing.T) {
 
 				// Update the channel's HEADER
 				data.Header = new("New Channel Header 3")
-				appErr = th.App.importDirectChannel(th.Context, &data, false)
+				appErr = th.App.importDirectChannel(th.Context, &data, false, false, nil)
 				require.Nil(t, appErr)
 
 				// Check that no more channels are in the DB.
@@ -4668,7 +4668,7 @@ func TestImportImportDirectChannel(t *testing.T) {
 					th.BasicUser.Username,
 					th.BasicUser2.Username,
 				}
-				appErr := th.App.importDirectChannel(th.Context, &data, false)
+				appErr := th.App.importDirectChannel(th.Context, &data, false, false, nil)
 				require.Nil(t, appErr)
 
 				channel, appErr := th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser.Id, th.BasicUser2.Id)
@@ -4693,7 +4693,7 @@ func TestImportImportDirectChannel(t *testing.T) {
 			},
 		}
 
-		appErr := th.App.importDirectChannel(th.Context, &data, false)
+		appErr := th.App.importDirectChannel(th.Context, &data, false, false, nil)
 		require.Nil(t, appErr)
 
 		channel, appErr := th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser.Id, th.BasicUser2.Id)
@@ -4725,7 +4725,7 @@ func TestImportImportDirectChannel(t *testing.T) {
 			},
 		}
 
-		appErr := th.App.importDirectChannel(th.Context, &data, false)
+		appErr := th.App.importDirectChannel(th.Context, &data, false, false, nil)
 		require.Nil(t, appErr)
 
 		channel, appErr := th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser.Id, th.BasicUser2.Id)
@@ -4760,7 +4760,7 @@ func TestImportImportDirectChannel(t *testing.T) {
 			},
 		}
 
-		appErr := th.App.importDirectChannel(th.Context, &data, false)
+		appErr := th.App.importDirectChannel(th.Context, &data, false, false, nil)
 		require.Nil(t, appErr)
 
 		channel, appErr := th.App.GetGroupChannel(th.Context, []string{th.BasicUser.Id, th.BasicUser2.Id, user3.Id})
@@ -4798,7 +4798,7 @@ func TestImportImportDirectChannel(t *testing.T) {
 			},
 		}
 
-		appErr := th.App.importDirectChannel(th.Context, &data, false)
+		appErr := th.App.importDirectChannel(th.Context, &data, false, false, nil)
 		require.Nil(t, appErr)
 
 		channel, appErr := th.App.GetOrCreateDirectChannel(th.Context, dmUserA.Id, dmUserB.Id)
@@ -4830,7 +4830,7 @@ func TestImportImportDirectChannel(t *testing.T) {
 			},
 		}
 
-		appErr := th.App.importDirectChannel(th.Context, &data, false)
+		appErr := th.App.importDirectChannel(th.Context, &data, false, false, nil)
 		require.Nil(t, appErr)
 
 		channel, appErr := th.App.GetGroupChannel(th.Context, []string{gmUserA.Id, gmUserB.Id, gmUserC.Id})
@@ -4881,7 +4881,7 @@ func TestImportImportDirectChannel(t *testing.T) {
 			},
 		}
 
-		appErr = th.App.importDirectChannel(th.Context, &data, false)
+		appErr = th.App.importDirectChannel(th.Context, &data, false, false, nil)
 		require.Nil(t, appErr, "import must not fail on pre-existing GM with partial membership")
 
 		postMembers, appErr := th.App.GetChannelMembersPage(th.Context, gm.Id, 0, 100)
@@ -4916,7 +4916,7 @@ func TestImportImportDirectChannel(t *testing.T) {
 			},
 		}
 
-		appErr := th.App.importDirectChannel(th.Context, &data, false)
+		appErr := th.App.importDirectChannel(th.Context, &data, false, false, nil)
 		require.Nil(t, appErr)
 
 		gm, appErr := th.App.GetGroupChannel(th.Context, []string{userA.Id, userB.Id, userC.Id})
@@ -4928,7 +4928,7 @@ func TestImportImportDirectChannel(t *testing.T) {
 		// missing-member branch was not entered for any participant.
 		beforeSecondRun := model.GetMillis()
 
-		appErr = th.App.importDirectChannel(th.Context, &data, false)
+		appErr = th.App.importDirectChannel(th.Context, &data, false, false, nil)
 		require.Nil(t, appErr)
 
 		members, appErr := th.App.GetChannelMembersPage(th.Context, gm.Id, 0, 100)
@@ -4956,7 +4956,7 @@ func TestImportImportDirectPost(t *testing.T) {
 			},
 		},
 	}
-	appErr := th.App.importDirectChannel(th.Context, &channelData, false)
+	appErr := th.App.importDirectChannel(th.Context, &channelData, false, false, nil)
 	require.Nil(t, appErr)
 
 	// Get the channel.
@@ -5423,7 +5423,7 @@ func TestImportImportDirectPost(t *testing.T) {
 			},
 		},
 	}
-	appErr = th.App.importDirectChannel(th.Context, &channelData, false)
+	appErr = th.App.importDirectChannel(th.Context, &channelData, false, false, nil)
 	require.Nil(t, appErr)
 
 	// Get the channel.
