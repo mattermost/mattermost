@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {screen, waitFor} from '@testing-library/react';
+import {act, screen, waitFor} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 
@@ -329,6 +329,50 @@ describe('ChannelInfoAttributes', () => {
 
             expect(await screen.findByTestId('channelInfoAttributeError-program')).toHaveTextContent("Couldn't save Program");
             expect(screen.getByTestId('channelInfoAttributeRow-program')).toBeInTheDocument();
+        });
+
+        test('an earlier save resolving cannot clobber a later save still in flight', async () => {
+            let resolveFirst: (value: unknown[]) => void = () => {};
+            let resolveSecond: (value: unknown[]) => void = () => {};
+            const patchSpy = jest.spyOn(Client4, 'patchPropertyValues').
+                mockImplementationOnce(() => new Promise((resolve) => {
+                    resolveFirst = resolve;
+                })).
+                mockImplementationOnce(() => new Promise((resolve) => {
+                    resolveSecond = resolve;
+                }));
+
+            renderWithContext(
+                <ChannelInfoAttributes channelId={CHANNEL_ID}/>,
+                makeState(
+                    [field('program', {required: true}), field('team', {required: true})],
+                    [value('program', null), value('team', null)],
+                ),
+            );
+
+            await userEvent.click(screen.getByTestId('channelInfoAttributeEdit-program'));
+            let control = await screen.findByTestId('channelAttributeEdit-program');
+            await userEvent.click(control.querySelector('input')!);
+            await userEvent.click(await screen.findByText('VALUE_PROGRAM'));
+            await waitFor(() => expect(patchSpy).toHaveBeenCalledTimes(1));
+
+            // Program's save is still in flight -- open and submit team's editor
+            // before it resolves, so both requests overlap within one visit.
+            await userEvent.click(screen.getByTestId('channelInfoAttributeEdit-team'));
+            control = await screen.findByTestId('channelAttributeEdit-team');
+            await userEvent.click(control.querySelector('input')!);
+            await userEvent.click(await screen.findByText('VALUE_TEAM'));
+            await waitFor(() => expect(patchSpy).toHaveBeenCalledTimes(2));
+
+            // The earlier (program) request resolving must not close team's
+            // still-pending editor -- only team's own request should do that.
+            await act(async () => {
+                resolveFirst([]);
+            });
+            expect(screen.getByTestId('channelAttributeEdit-team')).toBeInTheDocument();
+
+            resolveSecond([]);
+            await waitFor(() => expect(screen.queryByTestId('channelAttributeEdit-team')).not.toBeInTheDocument());
         });
     });
 

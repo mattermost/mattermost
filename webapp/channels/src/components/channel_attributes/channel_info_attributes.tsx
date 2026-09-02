@@ -131,6 +131,12 @@ const ChannelInfoAttributes = ({channelId}: Props) => {
         visitTokenRef.current += 1;
     }, [channelId]);
 
+    // A later save (even for a different field, within the same channel visit)
+    // must win over an earlier one still in flight -- otherwise the earlier
+    // save's completion can clear editingFieldId/savingFieldId out from under
+    // the field the user is now actively editing or saving.
+    const saveSequenceRef = useRef(0);
+
     const isMountedRef = useRef(true);
     useEffect(() => {
         isMountedRef.current = true;
@@ -141,7 +147,8 @@ const ChannelInfoAttributes = ({channelId}: Props) => {
 
     const handleSubmit = useCallback(async (field: PropertyField, value: ChannelAttributeValue) => {
         const requestVisitToken = visitTokenRef.current;
-        const isStale = () => !isMountedRef.current || visitTokenRef.current !== requestVisitToken;
+        const requestSequence = ++saveSequenceRef.current;
+        const isStale = () => !isMountedRef.current || visitTokenRef.current !== requestVisitToken || saveSequenceRef.current !== requestSequence;
 
         setSavingFieldId(field.id);
         setFailedFieldId(undefined);
