@@ -3630,6 +3630,49 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 		require.Equal(t, 1, errLine)
 	})
 
+	t.Run("Importing a post with a non existent follower during a scoped import", func(t *testing.T) {
+		// Create a thread.
+		importCreate := time.Now().Add(-1 * time.Minute).UnixMilli()
+		data := imports.LineImportWorkerData{
+			LineImportData: imports.LineImportData{
+				Post: &imports.PostImportData{
+					Team:     &teamName,
+					Channel:  &channelName,
+					User:     &user.Username,
+					Message:  new("Thread Message"),
+					CreateAt: new(importCreate),
+					Replies: &[]imports.ReplyImportData{{
+						User:     &user.Username,
+						Message:  new("Reply"),
+						CreateAt: new(model.GetMillis()),
+					}},
+					ThreadFollowers: &[]imports.ThreadFollowerImportData{{
+						User:       &user.Username,
+						LastViewed: new(model.GetMillis()),
+					}, {
+						User: new("invalid.user"),
+					}},
+				},
+			},
+			LineNumber: 1,
+		}
+
+		// deactivateMissingUsers=true simulates a scoped import: the missing follower
+		// should be skipped with a warning instead of failing the whole batch.
+		errLine, err := th.App.importMultiplePostLines(th.Context, []imports.LineImportWorkerData{data}, false, true, true, &imports.ImportReport{})
+		require.Nil(t, err)
+		require.Equal(t, 0, errLine)
+
+		resultPosts, nErr := th.App.Srv().Store().Post().GetPostsCreatedAt(channel.Id, importCreate)
+		require.NoError(t, nErr)
+		require.Equal(t, 1, len(resultPosts))
+
+		followers, nErr := th.App.Srv().Store().Thread().GetThreadFollowers(resultPosts[0].Id, true)
+		require.NoError(t, nErr)
+
+		assert.ElementsMatch(t, []string{user.Id}, followers)
+	})
+
 	t.Run("Importing a post with new followers", func(t *testing.T) {
 		importCreate := time.Now().Add(-5 * time.Minute).UnixMilli()
 		data := imports.LineImportWorkerData{

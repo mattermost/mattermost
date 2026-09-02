@@ -2095,7 +2095,7 @@ func (a *App) importMultiplePostLines(rctx request.CTX, lines []imports.LineImpo
 			post.IsPinned = *line.Post.IsPinned
 		}
 		if line.Post.ThreadFollowers != nil {
-			threadMemberships, lineNumber, err := a.extractThreadMembers(&line, users, post, report)
+			threadMemberships, lineNumber, err := a.extractThreadMembers(rctx, &line, users, post, deactivateMissingUsers, report)
 			if err != nil {
 				return lineNumber, err
 			}
@@ -2660,7 +2660,7 @@ func (a *App) importMultipleDirectPostLines(rctx request.CTX, lines []imports.Li
 			post.IsPinned = *line.DirectPost.IsPinned
 		}
 		if line.DirectPost.ThreadFollowers != nil {
-			threadMemberships, lineNumber, err := a.extractThreadMembers(&line, users, post, report)
+			threadMemberships, lineNumber, err := a.extractThreadMembers(rctx, &line, users, post, deactivateMissingUsers, report)
 			if err != nil {
 				return lineNumber, err
 			}
@@ -2873,7 +2873,7 @@ func (a *App) importEmoji(rctx request.CTX, data *imports.EmojiImportData, dryRu
 	return nil
 }
 
-func (a *App) extractThreadMembers(line *imports.LineImportWorkerData, users map[string]*model.User, post *model.Post, report *imports.ImportReport) ([]*model.ThreadMembership, int, *model.AppError) {
+func (a *App) extractThreadMembers(rctx request.CTX, line *imports.LineImportWorkerData, users map[string]*model.User, post *model.Post, deactivateMissingUsers bool, report *imports.ImportReport) ([]*model.ThreadMembership, int, *model.AppError) {
 	threadMemberships := []*model.ThreadMembership{}
 
 	var importedFollowers []imports.ThreadFollowerImportData
@@ -2882,9 +2882,9 @@ func (a *App) extractThreadMembers(line *imports.LineImportWorkerData, users map
 	} else if line.DirectPost != nil {
 		importedFollowers = *line.DirectPost.ThreadFollowers
 	}
-	participants := make([]*model.User, len(importedFollowers))
+	participants := make([]*model.User, 0, len(importedFollowers))
 
-	for i, member := range importedFollowers {
+	for _, member := range importedFollowers {
 		user, ok := users[strings.ToLower(*member.User)]
 		if !ok {
 			// User not in pre-fetched map — try the remap first (username may have changed
@@ -2898,6 +2898,10 @@ func (a *App) extractThreadMembers(line *imports.LineImportWorkerData, users map
 			var uErr error
 			user, uErr = a.Srv().Store().User().GetByUsername(lookupUsername)
 			if uErr != nil {
+				if deactivateMissingUsers {
+					rctx.Logger().Warn("Skipping thread follower not found on destination during scoped import", mlog.String("username", *member.User))
+					continue
+				}
 				return nil, line.LineNumber, model.NewAppError("importMultiplePostLines", "app.import.get_users_by_username.some_users_not_found.error", nil, "", http.StatusBadRequest).Wrap(uErr)
 			}
 		}
@@ -2914,7 +2918,7 @@ func (a *App) extractThreadMembers(line *imports.LineImportWorkerData, users map
 			membership.UnreadMentions = *member.UnreadMentions
 		}
 		// We only need the user ID to update the thread.
-		participants[i] = &model.User{Id: user.Id}
+		participants = append(participants, &model.User{Id: user.Id})
 		threadMemberships = append(threadMemberships, membership)
 	}
 	post.Participants = participants
