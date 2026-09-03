@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {test} from '@mattermost/playwright-lib';
+import {expect, test} from '@mattermost/playwright-lib';
 
 import {setupContentFlagging, createPost} from './../support';
 
@@ -60,13 +60,14 @@ test('Reviewer receives a deletion report summary after removing a flagged post'
     );
     await removedPost.toBeVisible();
 
-    const viewDetailButton = await channelsPage.getFlaggedPostViewDetailButton(post.id);
-    await viewDetailButton.click();
-
+    // # Open the thread — the deletion report is posted as a reply, not on the
+    // view-details property card.
+    await expect(removedPost.threadFooter.container).toBeVisible();
+    await removedPost.threadFooter.reply();
     await channelsPage.sidebarRight.toBeVisible();
 
-    // * Verify the async deletion-report file is in the RHS before table headers
-    await channelsPage.sidebarRight.toContainText(expectedFileName, 30000);
+    // * Verify the async deletion-report file is in the thread before table headers
+    await channelsPage.sidebarRight.toContainText(expectedFileName);
 
     // * Verify the summary table headers are present (rendered as markdown table)
     await channelsPage.sidebarRight.toContainText('Step');
