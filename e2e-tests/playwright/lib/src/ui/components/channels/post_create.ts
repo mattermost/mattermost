@@ -144,16 +144,15 @@ export default class ChannelsPostCreate {
             const fileInput = this.container.locator('input[type="file"]');
             await expect(fileInput).toBeAttached();
             await fileInput.setInputFiles(filePaths);
+            // Wait for the upload API first so the 10s preview asserts run after
+            // the file exists, instead of racing the default expect timeout.
+            if (uploadResponsePromise) {
+                await uploadResponsePromise;
+            }
             await this.waitUntilFilePreviewContains(files);
         }
 
         await this.sendMessage();
-
-        // Without this, tests can click Send before the upload finishes under CI load,
-        // producing posts with no attachments (flaky redacted-file / demo_plugin tests).
-        if (uploadResponsePromise) {
-            await uploadResponsePromise;
-        }
     }
 
     /**
