@@ -205,6 +205,8 @@ describe('Authentication', () => {
             LdapSettings: {
                 Enable: false,
             },
+        }).then(({config}) => {
+            expect(config.TeamSettings.EnableUserCreation).to.equal(false);
         });
 
         cy.apiLogout();
@@ -277,27 +279,30 @@ describe('Authentication', () => {
         }).then(({config}) => {
             expect(config.TeamSettings.RestrictCreationToDomains).to.equal('test.com');
             expect(config.TeamSettings.EnableUserCreation).to.equal(true);
+            expect(config.ServiceSettings.EnableEmailInvitations).to.equal(true);
         });
 
-        cy.visit('/');
-        cy.postMessage('hello');
+        // Admin last-team can be an ABAC/restricted team; invite from a team we just created.
+        cy.apiCreateTeam('invite-domain', 'Invite Domain').then(({team}) => {
+            cy.visit(`/${team.name}/channels/town-square`);
+            cy.get('#post_textbox').should('be.visible');
 
-        // # Open team menu and click on "Invite People"
-        cy.uiOpenTeamMenu('Invite people');
+            cy.uiOpenTeamMenu('Invite people');
 
-        const inviteEmail = `test-${getRandomId()}@mattermost.com`;
+            const inviteEmail = `test-${getRandomId()}@mattermost.com`;
 
-        cy.get('.users-emails-input__control').should('be.visible').within(() => {
-            cy.get('input').type(inviteEmail, {force: true});
+            cy.get('.users-emails-input__control').should('be.visible').within(() => {
+                cy.get('input').type(inviteEmail, {force: true});
+            });
+
+            // The no-match notice also contains the email; click the creatable "Add {email}" option.
+            cy.get('.users-emails-input__option:not(.users-emails-input__option--no-matches)').
+                should('contain', inviteEmail).
+                click();
+            cy.get('.users-emails-input__multi-value').should('contain', inviteEmail);
+            cy.findByTestId('inviteButton').should('be.enabled').click();
+
+            cy.contains('The following email addresses do not belong to an accepted domain:').should('be.visible');
         });
-        cy.get('.users-emails-input__menu').
-            children().
-            first().
-            should('contain', inviteEmail).
-            click();
-        cy.get('.users-emails-input__multi-value').should('contain', inviteEmail);
-        cy.findByTestId('inviteButton').should('be.enabled').click();
-
-        cy.contains('The following email addresses do not belong to an accepted domain:').should('be.visible');
     });
 });
