@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test} from '@mattermost/playwright-lib';
+import {test} from '@mattermost/playwright-lib';
 
 import {setupContentFlagging, createPost} from './../support';
 
@@ -54,18 +54,19 @@ test('Reviewer receives a deletion report summary after removing a flagged post'
     await channelsPage.goto(team.name, '@content-review');
     await channelsPage.toBeVisible();
 
-    // * Verify the stub and async deletion-report file landed in the thread
-    const lastPost = await channelsPage.centerView.getLastPost();
-    await lastPost.toContainText('Content deleted as part of Content Flagging review process');
-    await expect(channelsPage.centerView.container).toContainText(expectedFileName, {timeout: 30000});
+    // * Verify the removed stub is in the content-review thread
+    const removedPost = await channelsPage.centerView.getPostByText(
+        'Content deleted as part of Content Flagging review process',
+    );
+    await removedPost.toBeVisible();
 
     const viewDetailButton = await channelsPage.getFlaggedPostViewDetailButton(post.id);
     await viewDetailButton.click();
 
     await channelsPage.sidebarRight.toBeVisible();
 
-    // * Verify file attachment is present with the expected filename pattern
-    await channelsPage.sidebarRight.toContainText(expectedFileName);
+    // * Verify the async deletion-report file is in the RHS before table headers
+    await channelsPage.sidebarRight.toContainText(expectedFileName, 30000);
 
     // * Verify the summary table headers are present (rendered as markdown table)
     await channelsPage.sidebarRight.toContainText('Step');

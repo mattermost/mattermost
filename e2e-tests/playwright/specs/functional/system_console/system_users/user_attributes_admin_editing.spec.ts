@@ -155,17 +155,26 @@ test.describe('System Console - Admin User Profile Editing', () => {
         testUser = await pw.createNewUserProfile(adminClient, {prefix: 'admin-edit-target-'});
         await adminClient.addToTeam(team.id, testUser.id);
 
-        // Pre-cleanup: delete any stale UAAE-prefixed fields from previous runs that
-        // may have leaked past afterEach (e.g. from a crashed test). The server enforces
-        // a 20-field limit; stale fields silently block creation of our fresh ones.
-        // The 'UAAE_' prefix is unique to this suite so deleting them is safe even when
-        // other test suites run concurrently on the same server.
+        // Pre-cleanup: delete stale UAAE fields and, if the 20-field cap would
+        // block creating our 5, leftover order_/scroll_/region* fields from
+        // suites that do not always clean up.
         try {
             const existingFields = await adminClient.getCustomProfileAttributeFields();
-            const staleUaaeFields = existingFields.filter((f) => f.name.startsWith('UAAE_'));
-            if (staleUaaeFields.length > 0) {
+            const needed = testUserAttributes.length;
+            const leakedName = (name: string) =>
+                name.startsWith('UAAE_') ||
+                /^order_\d+_/.test(name) ||
+                /^scroll_\d+_/.test(name) ||
+                /^reorder_\d+_/.test(name) ||
+                /^region[a-f0-9]+$/i.test(name);
+            const staleUaae = existingFields.filter((f) => f.name.startsWith('UAAE_'));
+            const leftover = existingFields.filter((f) => leakedName(f.name) && !f.name.startsWith('UAAE_'));
+            const freeAfterUaae = 20 - (existingFields.length - staleUaae.length);
+            const extraToFree = Math.max(0, needed - freeAfterUaae);
+            const toDelete = [...staleUaae, ...leftover.slice(0, extraToFree)];
+            if (toDelete.length > 0) {
                 const staleMap: Record<string, UserPropertyField> = {};
-                for (const f of staleUaaeFields) {
+                for (const f of toDelete) {
                     staleMap[f.id] = f;
                 }
                 await deleteCustomProfileAttributes(adminClient, staleMap);
