@@ -181,8 +181,11 @@ func patchCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Permission branching (session-bound).
-	isOptionsOnly := isOptionsOnlyPatch(patch)
+	// Permission branching (session-bound). This handler never applies a
+	// permissions patch -- CPA is served the v2 shape, so patch.Permissions is
+	// dropped rather than applied -- which means a patch cannot change the
+	// permissions here and the routing is never a field write on that account.
+	isOptionsOnly := isOptionsOnlyPatch(patch, false)
 	if isOptionsOnly && !existingField.Type.SupportsOptions() {
 		isOptionsOnly = false
 	}

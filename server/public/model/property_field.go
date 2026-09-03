@@ -852,6 +852,83 @@ func PropertyFieldSuppliesOptions(attrs StringInterface) bool {
 	return propertyFieldOptionCount(attrs) > 0
 }
 
+// PropertyFieldChangeIsOptionsOnly reports whether updated differs from existing
+// in nothing but its option list. An option change is gated on option.write and
+// every other change on field.write, so the enforcement hook needs the same
+// distinction the api4 patch handler draws from the patch body (see
+// isOptionsOnlyPatch) -- the hook only ever sees the merged field, so it has to
+// derive the answer by comparing.
+//
+// Ambiguity resolves to false, which is the stricter answer: a caller that lands
+// here is then held to field.write.
+func PropertyFieldChangeIsOptionsOnly(existing, updated *PropertyField) bool {
+	if existing == nil || updated == nil {
+		return false
+	}
+	if existing.Name != updated.Name ||
+		existing.Type != updated.Type ||
+		existing.TargetID != updated.TargetID ||
+		existing.TargetType != updated.TargetType ||
+		existing.ObjectType != updated.ObjectType ||
+		existing.Protected != updated.Protected {
+		return false
+	}
+	if !equalStringPointers(existing.LinkedFieldID, updated.LinkedFieldID) {
+		return false
+	}
+	// A permissions-bearing change decides who may read or write the definition
+	// itself, so it is never an option-only change however the rest compares.
+	if !reflect.DeepEqual(existing.Permissions, updated.Permissions) {
+		return false
+	}
+	if !equalPermissionLevelPointers(existing.PermissionField, updated.PermissionField) ||
+		!equalPermissionLevelPointers(existing.PermissionValues, updated.PermissionValues) ||
+		!equalPermissionLevelPointers(existing.PermissionOptions, updated.PermissionOptions) {
+		return false
+	}
+
+	// Every attr except the option list has to match. Compared key by key rather
+	// than whole-map so that a differing option list does not mask a differing
+	// sibling key.
+	optionsDiffer := false
+	for key := range attrKeyUnion(existing.Attrs, updated.Attrs) {
+		if reflect.DeepEqual(existing.Attrs[key], updated.Attrs[key]) {
+			continue
+		}
+		if key != PropertyFieldAttributeOptions {
+			return false
+		}
+		optionsDiffer = true
+	}
+
+	return optionsDiffer
+}
+
+func attrKeyUnion(a, b StringInterface) map[string]struct{} {
+	keys := make(map[string]struct{}, len(a)+len(b))
+	for key := range a {
+		keys[key] = struct{}{}
+	}
+	for key := range b {
+		keys[key] = struct{}{}
+	}
+	return keys
+}
+
+func equalStringPointers(a, b *string) bool {
+	if a == nil || b == nil {
+		return a == b
+	}
+	return *a == *b
+}
+
+func equalPermissionLevelPointers(a, b *PermissionLevel) bool {
+	if a == nil || b == nil {
+		return a == b
+	}
+	return *a == *b
+}
+
 // propertyFieldOptionCount reports how many options an option list carries.
 // Counted through reflection rather than a type switch because the key
 // legitimately holds any slice shape: []any from JSON, []map[string]any from Go

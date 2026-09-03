@@ -45,6 +45,7 @@ func GetMockStoreForSetupFunctions() *mocks.Store {
 	systemStore.On("GetByName", "managed_category_setup_done").Return(&model.System{Name: "managed_category_setup_done", Value: "true"}, nil)
 	systemStore.On("GetByName", "session_attributes_setup_done").Return(&model.System{Name: "session_attributes_setup_done", Value: "true"}, nil)
 	systemStore.On("GetByName", "cpa_display_name_backfill_done").Return(&model.System{Name: "cpa_display_name_backfill_done", Value: "true"}, nil)
+	systemStore.On("GetByName", "property_permissions_backfill_done").Return(&model.System{Name: "property_permissions_backfill_done", Value: "true"}, nil)
 	systemStore.On("GetByName", model.MigrationKeyEmojiPermissionsSplit).Return(&model.System{Name: model.MigrationKeyEmojiPermissionsSplit, Value: "true"}, nil)
 	systemStore.On("GetByName", model.MigrationKeyWebhookPermissionsSplit).Return(&model.System{Name: model.MigrationKeyWebhookPermissionsSplit, Value: "true"}, nil)
 	systemStore.On("GetByName", model.MigrationKeyIntegrationsOwnPermissions).Return(&model.System{Name: model.MigrationKeyIntegrationsOwnPermissions, Value: "true"}, nil)
@@ -191,6 +192,28 @@ func GetMockStoreForSetupFunctions() *mocks.Store {
 	propertyGroupStore.On("Get", model.ManagedCategoryPropertyGroupName).Return(managedCategoryGroup, nil)
 	propertyGroupStore.On("Get", model.BoardsPropertyGroupName).Return(boardsGroup, nil)
 	propertyGroupStore.On("Get", model.SessionAttributesPropertyGroupName).Return(sessionAttributesGroup, nil)
+
+	// The access control hook resolves a field's group by ID to read its
+	// version, which decides whether the field is under enforcement at all, so
+	// every group reachable by name has to be reachable by ID too.
+	propertyGroupStore.On("GetByID", mock.AnythingOfType("string")).Return(
+		func(id string) *model.PropertyGroup {
+			for _, group := range groupsByName {
+				if group.ID == id {
+					return group
+				}
+			}
+			return nil
+		},
+		func(id string) error {
+			for _, group := range groupsByName {
+				if group.ID == id {
+					return nil
+				}
+			}
+			return store.NewErrNotFound("PropertyGroup", id)
+		},
+	)
 
 	propertyFieldStore.On("SearchPropertyFields", mock.Anything).Return([]*model.PropertyField{}, nil)
 	propertyFieldStore.On("CreatePropertyField", mock.Anything).Return(&model.PropertyField{}, nil)

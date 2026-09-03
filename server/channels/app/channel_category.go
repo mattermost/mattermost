@@ -348,11 +348,18 @@ func (a *App) ClearChannelManagedCategory(rctx request.CTX, channelID string) *m
 // matching how api4's sessionCallerID does it for other property writes.
 func rctxWithSessionCallerID(rctx request.CTX) request.CTX {
 	session := rctx.Session()
-	callerID := session.UserId
 	if session.IsUnrestricted() {
-		callerID = model.CallerIDLocalAdmin
+		return RequestContextWithCallerID(rctx, model.CallerIDLocalAdmin)
 	}
-	return RequestContextWithCallerID(rctx, callerID)
+	if session.UserId != "" {
+		return RequestContextWithCallerID(rctx, session.UserId)
+	}
+	// No session means the caller is not an HTTP request: the plugin API has
+	// already tagged the plugin's manifest ID on the context it hands in.
+	// Overwriting that with an empty caller would have the hook refuse the
+	// write, and CreateChannel logs and drops that error, so the channel would
+	// quietly come back with no managed category at all.
+	return rctx
 }
 
 // GetVisibleManagedCategoryMappings returns a map of channelID -> categoryName for all channels
@@ -375,7 +382,11 @@ func (a *App) GetVisibleManagedCategoryMappings(rctx request.CTX, teamID string)
 		channelIDs = append(channelIDs, ch.Id)
 	}
 
-	values, appErr := a.SearchPropertyValues(rctx, a.Channels().managedCategoryGroupID, model.PropertyValueSearchOpts{
+	// Tagged like the write and the clear: this read goes through the access
+	// control hook now that managed_category is enforced, and an untagged
+	// context names nobody, which filters every value out and hands back an
+	// empty map instead of the caller's categories.
+	values, appErr := a.SearchPropertyValues(rctxWithSessionCallerID(rctx), a.Channels().managedCategoryGroupID, model.PropertyValueSearchOpts{
 		FieldID:   a.Channels().managedCategoryFieldID,
 		TargetIDs: channelIDs,
 		PerPage:   len(channelIDs),

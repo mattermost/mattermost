@@ -69,15 +69,14 @@ type PropertyRoleLister func(userID string) []string
 // control based on caller identity. It checks protected fields, plugin
 // ownership, and access modes (public, source-only, shared-only).
 //
-// The hook only applies to groups whose IDs are in managedGroupIDs. Operations
-// on other groups pass through without access control checks.
+// The hook only applies to PSAv2/PSAv3 property groups (isGroupEnforced).
+// Operations on a PSAv1 group pass through without access control checks.
 type AccessControlHook struct {
 	BasePropertyHook
 	propertyService *PropertyService
 	pluginChecker   PluginChecker
 	ladderChecker   PropertyLadderChecker
 	roleLister      PropertyRoleLister
-	managedGroupIDs map[string]struct{}
 }
 
 // Compile-time check that AccessControlHook implements PropertyHook.
@@ -94,26 +93,30 @@ var _ PropertyHook = (*AccessControlHook)(nil)
 // The roleLister function answers which roles a human caller holds, for
 // matching a masking except list's role entries; pass nil where no masking
 // with a role exemption is under test.
-// managedGroupIDs lists the property group IDs that this hook enforces access
-// control for. Operations on groups not in this list are passed through.
-func NewAccessControlHook(ps *PropertyService, pluginChecker PluginChecker, ladderChecker PropertyLadderChecker, roleLister PropertyRoleLister, managedGroupIDs ...string) *AccessControlHook {
-	ids := make(map[string]struct{}, len(managedGroupIDs))
-	for _, id := range managedGroupIDs {
-		ids[id] = struct{}{}
-	}
+func NewAccessControlHook(ps *PropertyService, pluginChecker PluginChecker, ladderChecker PropertyLadderChecker, roleLister PropertyRoleLister) *AccessControlHook {
 	return &AccessControlHook{
 		propertyService: ps,
 		pluginChecker:   pluginChecker,
 		ladderChecker:   ladderChecker,
 		roleLister:      roleLister,
-		managedGroupIDs: ids,
 	}
 }
 
-// isGroupManaged checks whether the given group ID is managed by this hook.
-func (h *AccessControlHook) isGroupManaged(groupID string) bool {
-	_, ok := h.managedGroupIDs[groupID]
-	return ok
+// isGroupEnforced reports whether groupID names a PSAv2 or PSAv3 property
+// group. A PSAv1 field cannot hold a permissions object at all
+// (PropertyField.IsValid), and enforceFieldGroupVersionMatch already makes
+// "v1 group" and "field that cannot hold permissions" the same set, so
+// gating on group version -- rather than an allowlist of group IDs -- is an
+// exact test for which groups this hook has anything to decide on. A group
+// ID that fails to resolve has no fields to protect, so the error is
+// returned rather than treated as unenforced: a new enforcement point must
+// not fail open.
+func (h *AccessControlHook) isGroupEnforced(groupID string) (bool, error) {
+	group, err := h.propertyService.GroupByID(groupID)
+	if err != nil {
+		return false, err
+	}
+	return group.IsPSAv2() || group.IsPSAv3(), nil
 }
 
 // Field Pre-Hooks
@@ -124,7 +127,11 @@ func (h *AccessControlHook) isGroupManaged(groupID string) bool {
 // When linking to a source template, security attributes are validated and
 // inherited from the source.
 func (h *AccessControlHook) PreCreatePropertyField(rctx request.CTX, field *model.PropertyField) (*model.PropertyField, error) {
-	if !h.isGroupManaged(field.GroupID) {
+	enforced, err := h.isGroupEnforced(field.GroupID)
+	if err != nil {
+		return nil, err
+	}
+	if !enforced {
 		return field, nil
 	}
 
@@ -228,9 +235,11 @@ func (h *AccessControlHook) validateAndInheritLinkedFieldSecurity(rctx request.C
 
 // templateReadsAreRestricted reports whether source has anything worth
 // gating a link to: an explicit read filter, or a read tier below everyone.
-// A nil Permissions object -- unreached in production, since every
-// group-managed field has carried one since the migration backfill -- fails
-// closed rather than treating "nothing to check" as "nothing to protect".
+// A nil Permissions object -- unreached in production, since the backfill
+// converted every stored PSAv2/v3 field and the create path defaults one onto
+// every new one -- fails closed rather than treating "nothing to check" as
+// "nothing to protect". Linking to such a field is therefore refused outright,
+// which is the fail-closed answer for a row the conversion did not reach.
 func templateReadsAreRestricted(source *model.PropertyField) bool {
 	if source.Permissions == nil {
 		return true
@@ -270,7 +279,11 @@ func linkedFieldGrantsFrom(source []model.Grant) []model.Grant {
 // PreUpdatePropertyField enforces access control on field updates.
 // Checks write access and ensures source_plugin_id is not changed.
 func (h *AccessControlHook) PreUpdatePropertyField(rctx request.CTX, groupID string, field *model.PropertyField) (*model.PropertyField, error) {
-	if !h.isGroupManaged(groupID) {
+	enforced, err := h.isGroupEnforced(groupID)
+	if err != nil {
+		return nil, err
+	}
+	if !enforced {
 		return field, nil
 	}
 
@@ -309,7 +322,14 @@ func (h *AccessControlHook) PreUpdatePropertyField(rctx request.CTX, groupID str
 // PreUpdatePropertyFields enforces access control on batch field updates.
 // Checks write access for all fields atomically before allowing any updates.
 func (h *AccessControlHook) PreUpdatePropertyFields(rctx request.CTX, groupID string, fields []*model.PropertyField) ([]*model.PropertyField, error) {
-	if len(fields) == 0 || !h.isGroupManaged(groupID) {
+	if len(fields) == 0 {
+		return fields, nil
+	}
+	enforced, err := h.isGroupEnforced(groupID)
+	if err != nil {
+		return nil, err
+	}
+	if !enforced {
 		return fields, nil
 	}
 
@@ -371,7 +391,11 @@ func (h *AccessControlHook) PreCountPropertyFields(_ request.CTX, _ string) erro
 
 // PreDeletePropertyField enforces access control on field deletion.
 func (h *AccessControlHook) PreDeletePropertyField(rctx request.CTX, groupID string, id string) error {
-	if !h.isGroupManaged(groupID) {
+	enforced, err := h.isGroupEnforced(groupID)
+	if err != nil {
+		return err
+	}
+	if !enforced {
 		return nil
 	}
 
@@ -395,22 +419,47 @@ func (h *AccessControlHook) PostUpdatePropertyFields(_ request.CTX, _ string, _,
 
 // Field option hooks
 
-// PreChangePropertyFieldOptions gates a change to a field's options with the
-// rules that gate a change to the field itself. A field's options are part of
-// its definition: stated as the field's own option list they are written through
-// PreUpdatePropertyField, and the answer cannot depend on which of the two paths
-// a caller took -- otherwise the options endpoint is a way around the protected
-// flag and the owners list.
+// PreChangePropertyFieldOptions gates a change to a field's options on
+// option.write -- the action §2.2 measures at the field target for exactly this
+// operation. The same answer has to come out of the other path to a field's
+// options, a field update carrying nothing but a new option list, which
+// enforceFieldUpdateAccess routes here's equivalent; otherwise one of the two
+// endpoints is a way around the other.
 //
-// The field is the one the store has, and it stands for both sides of the
-// update: an option change alters no attribute of the field, so there is no
-// incoming copy to judge, and in particular no owners list a caller could be
-// adding itself to.
+// The field is the one the store has. An option change alters no attribute of
+// the field, so there is no incoming copy to judge, and in particular no owners
+// list a caller could be adding itself to.
 func (h *AccessControlHook) PreChangePropertyFieldOptions(rctx request.CTX, field *model.PropertyField) error {
-	if field == nil || !h.isGroupManaged(field.GroupID) {
+	if field == nil {
 		return nil
 	}
-	return h.enforceFieldUpdateAccess(rctx, field, field, h.extractCallerID(rctx))
+	enforced, err := h.isGroupEnforced(field.GroupID)
+	if err != nil {
+		return err
+	}
+	if !enforced {
+		return nil
+	}
+	return h.enforceOptionWriteAccess(rctx, field, h.extractCallerID(rctx))
+}
+
+// enforceOptionWriteAccess answers option.write for a caller changing a field's
+// option list. Separate from enforceFieldUpdateAccess because the two name
+// different grid cells: a field configured field.write: sysadmin with
+// option.write: member delegates option management to members without letting
+// them touch the definition, and gating options as a field write would make
+// that configuration unusable.
+func (h *AccessControlHook) enforceOptionWriteAccess(rctx request.CTX, field *model.PropertyField, callerID string) error {
+	if field.Permissions == nil {
+		// The same fail-closed arm enforceFieldUpdateAccess has, for the same
+		// reason: every PSAv2/v3 field has carried a converted object since the
+		// backfill, so this is unreached in production.
+		return fmt.Errorf("field %s carries no permissions object: %w", field.ID, ErrAccessDenied)
+	}
+	if h.permissionsAllows(rctx, field, callerID, "", model.PropertyActionOptionWrite, "") {
+		return nil
+	}
+	return fmt.Errorf("field %s refuses caller %q an option write: %w", field.ID, callerID, ErrAccessDenied)
 }
 
 // PostGetPropertyFieldOptions applies the field's read access to a page of its
@@ -422,7 +471,14 @@ func (h *AccessControlHook) PreChangePropertyFieldOptions(rctx request.CTX, fiel
 // filtered to what the caller may see via filterMaskedOptionPage, the same
 // overlap rule a value read applies.
 func (h *AccessControlHook) PostGetPropertyFieldOptions(rctx request.CTX, field *model.PropertyField, options []*model.PropertyFieldOption) ([]*model.PropertyFieldOption, error) {
-	if field == nil || !h.isGroupManaged(field.GroupID) {
+	if field == nil {
+		return options, nil
+	}
+	enforced, err := h.isGroupEnforced(field.GroupID)
+	if err != nil {
+		return nil, err
+	}
+	if !enforced {
 		return options, nil
 	}
 	callerID := h.extractCallerID(rctx)
@@ -452,7 +508,11 @@ func (h *AccessControlHook) PostGetPropertyFieldOptions(rctx request.CTX, field 
 
 // PostGetPropertyField applies read access control to a single field.
 func (h *AccessControlHook) PostGetPropertyField(rctx request.CTX, field *model.PropertyField) (*model.PropertyField, error) {
-	if !h.isGroupManaged(field.GroupID) {
+	enforced, err := h.isGroupEnforced(field.GroupID)
+	if err != nil {
+		return nil, err
+	}
+	if !enforced {
 		return field, nil
 	}
 
@@ -467,7 +527,11 @@ func (h *AccessControlHook) PostGetPropertyFields(rctx request.CTX, fields []*mo
 		return fields, nil
 	}
 
-	if !h.isGroupManaged(fields[0].GroupID) {
+	enforced, err := h.isGroupEnforced(fields[0].GroupID)
+	if err != nil {
+		return nil, err
+	}
+	if !enforced {
 		return fields, nil
 	}
 
@@ -479,7 +543,11 @@ func (h *AccessControlHook) PostGetPropertyFields(rctx request.CTX, fields []*mo
 
 // PreCreatePropertyValue enforces write access and sync locking on the value's field before creation.
 func (h *AccessControlHook) PreCreatePropertyValue(rctx request.CTX, value *model.PropertyValue) (*model.PropertyValue, error) {
-	if !h.isGroupManaged(value.GroupID) {
+	enforced, err := h.isGroupEnforced(value.GroupID)
+	if err != nil {
+		return nil, err
+	}
+	if !enforced {
 		return value, nil
 	}
 
@@ -500,7 +568,14 @@ func (h *AccessControlHook) PreCreatePropertyValue(rctx request.CTX, value *mode
 // PreCreatePropertyValues enforces write access and sync locking for all fields atomically before creation.
 // All values in a batch share the same GroupID (enforced by the public API).
 func (h *AccessControlHook) PreCreatePropertyValues(rctx request.CTX, values []*model.PropertyValue) ([]*model.PropertyValue, error) {
-	if len(values) == 0 || !h.isGroupManaged(values[0].GroupID) {
+	if len(values) == 0 {
+		return values, nil
+	}
+	enforced, err := h.isGroupEnforced(values[0].GroupID)
+	if err != nil {
+		return nil, err
+	}
+	if !enforced {
 		return values, nil
 	}
 
@@ -529,7 +604,11 @@ func (h *AccessControlHook) PreCreatePropertyValues(rctx request.CTX, values []*
 
 // PreUpdatePropertyValue enforces write access and sync locking on the value's field before update.
 func (h *AccessControlHook) PreUpdatePropertyValue(rctx request.CTX, groupID string, value *model.PropertyValue) (*model.PropertyValue, error) {
-	if !h.isGroupManaged(groupID) {
+	enforced, err := h.isGroupEnforced(groupID)
+	if err != nil {
+		return nil, err
+	}
+	if !enforced {
 		return value, nil
 	}
 
@@ -550,7 +629,14 @@ func (h *AccessControlHook) PreUpdatePropertyValue(rctx request.CTX, groupID str
 // PreUpdatePropertyValues enforces write access and sync locking for all fields atomically before update.
 // All values in a batch share the same GroupID (enforced by the public API).
 func (h *AccessControlHook) PreUpdatePropertyValues(rctx request.CTX, groupID string, values []*model.PropertyValue) ([]*model.PropertyValue, error) {
-	if len(values) == 0 || !h.isGroupManaged(groupID) {
+	if len(values) == 0 {
+		return values, nil
+	}
+	enforced, err := h.isGroupEnforced(groupID)
+	if err != nil {
+		return nil, err
+	}
+	if !enforced {
 		return values, nil
 	}
 
@@ -579,7 +665,11 @@ func (h *AccessControlHook) PreUpdatePropertyValues(rctx request.CTX, groupID st
 
 // PreUpsertPropertyValue enforces write access and sync locking on the value's field before upsert.
 func (h *AccessControlHook) PreUpsertPropertyValue(rctx request.CTX, value *model.PropertyValue) (*model.PropertyValue, error) {
-	if !h.isGroupManaged(value.GroupID) {
+	enforced, err := h.isGroupEnforced(value.GroupID)
+	if err != nil {
+		return nil, err
+	}
+	if !enforced {
 		return value, nil
 	}
 
@@ -600,7 +690,14 @@ func (h *AccessControlHook) PreUpsertPropertyValue(rctx request.CTX, value *mode
 // PreUpsertPropertyValues enforces write access and sync locking for all fields atomically before upsert.
 // All values in a batch share the same GroupID (enforced by the public API).
 func (h *AccessControlHook) PreUpsertPropertyValues(rctx request.CTX, values []*model.PropertyValue) ([]*model.PropertyValue, error) {
-	if len(values) == 0 || !h.isGroupManaged(values[0].GroupID) {
+	if len(values) == 0 {
+		return values, nil
+	}
+	enforced, err := h.isGroupEnforced(values[0].GroupID)
+	if err != nil {
+		return nil, err
+	}
+	if !enforced {
 		return values, nil
 	}
 
@@ -629,7 +726,11 @@ func (h *AccessControlHook) PreUpsertPropertyValues(rctx request.CTX, values []*
 
 // PreDeletePropertyValue enforces write access before deleting a value.
 func (h *AccessControlHook) PreDeletePropertyValue(rctx request.CTX, groupID string, id string) error {
-	if !h.isGroupManaged(groupID) {
+	enforced, err := h.isGroupEnforced(groupID)
+	if err != nil {
+		return err
+	}
+	if !enforced {
 		return nil
 	}
 
@@ -656,7 +757,9 @@ func (h *AccessControlHook) PreDeletePropertyValue(rctx request.CTX, groupID str
 // PreDeletePropertyValuesForTarget enforces write access for all affected fields
 // before deleting all values for a target.
 func (h *AccessControlHook) PreDeletePropertyValuesForTarget(rctx request.CTX, groupID string, targetType string, targetID string) error {
-	if !h.isGroupManaged(groupID) {
+	if enforced, err := h.isGroupEnforced(groupID); err != nil {
+		return err
+	} else if !enforced {
 		return nil
 	}
 
@@ -737,7 +840,11 @@ func (h *AccessControlHook) PreDeletePropertyValuesForTarget(rctx request.CTX, g
 
 // PreDeletePropertyValuesForField enforces write access before deleting all values for a field.
 func (h *AccessControlHook) PreDeletePropertyValuesForField(rctx request.CTX, groupID string, fieldID string) error {
-	if !h.isGroupManaged(groupID) {
+	enforced, err := h.isGroupEnforced(groupID)
+	if err != nil {
+		return err
+	}
+	if !enforced {
 		return nil
 	}
 
@@ -769,7 +876,11 @@ func (h *AccessControlHook) PostGetPropertyValue(rctx request.CTX, value *model.
 	if value == nil {
 		return nil, nil
 	}
-	if !h.isGroupManaged(value.GroupID) {
+	enforced, err := h.isGroupEnforced(value.GroupID)
+	if err != nil {
+		return nil, err
+	}
+	if !enforced {
 		return value, nil
 	}
 
@@ -791,7 +902,14 @@ func (h *AccessControlHook) PostGetPropertyValue(rctx request.CTX, value *model.
 // Values the caller doesn't have access to are silently filtered out.
 // All values in a batch share the same GroupID (enforced by the public API).
 func (h *AccessControlHook) PostGetPropertyValues(rctx request.CTX, values []*model.PropertyValue) ([]*model.PropertyValue, error) {
-	if len(values) == 0 || !h.isGroupManaged(values[0].GroupID) {
+	if len(values) == 0 {
+		return values, nil
+	}
+	enforced, err := h.isGroupEnforced(values[0].GroupID)
+	if err != nil {
+		return nil, err
+	}
+	if !enforced {
 		return values, nil
 	}
 
@@ -881,6 +999,17 @@ func (h *AccessControlHook) permissionsAllows(rctx request.CTX, field *model.Pro
 // updated is accepted but never consulted, for the same reason: judging the
 // field being written would let a caller author its own way past the check.
 func (h *AccessControlHook) enforceFieldUpdateAccess(rctx request.CTX, existing, updated *model.PropertyField, callerID string) error {
+	// An update that changes nothing but the option list is an option write, not
+	// a field write, and has to be answered the same way the options endpoint
+	// answers it. channels/api4's patchPropertyField already routes such a patch
+	// to option.write (isOptionsOnlyPatch); the hook sees only the merged field,
+	// so it derives the same distinction by comparing. Without this the two
+	// layers decide about different grid cells and a field delegating option
+	// management to members is allowed at api4 and refused here.
+	if model.PropertyFieldChangeIsOptionsOnly(existing, updated) {
+		return h.enforceOptionWriteAccess(rctx, existing, callerID)
+	}
+
 	if existing.Permissions != nil {
 		if h.isMachineCaller(callerID) {
 			if h.permissionsGrantAllows(existing, callerID, "", model.PropertyActionFieldWrite) {

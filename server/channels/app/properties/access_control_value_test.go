@@ -96,39 +96,6 @@ func TestCreatePropertyValue_WriteAccessControl(t *testing.T) {
 		assert.Nil(t, createdValue)
 		assert.Contains(t, err.Error(), "value.write")
 	})
-
-	t.Run("non-CPA group routes directly to PropertyService without access control", func(t *testing.T) {
-		nonCpaGroup, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "other_group_value_create", Version: model.PropertyGroupVersionV2})
-		require.NoError(t, err)
-
-		field := &model.PropertyField{
-			GroupID: nonCpaGroup.ID,
-			Name:    "Non-CPA Value Protected",
-			Type:    model.PropertyFieldTypeText,
-			Attrs: model.StringInterface{
-				model.PropertyAttrsProtected:      true,
-				model.PropertyAttrsSourcePluginID: "plugin-1",
-			},
-			ObjectType: model.PropertyFieldObjectTypeUser,
-			TargetType: string(model.PropertyFieldTargetLevelSystem),
-		}
-
-		created, err := th.service.CreatePropertyField(rctxPlugin1, field)
-		require.NoError(t, err)
-
-		// Create value with different plugin - should be allowed (no access control)
-		value := &model.PropertyValue{
-			GroupID:    nonCpaGroup.ID,
-			FieldID:    created.ID,
-			TargetType: "user",
-			TargetID:   model.NewId(),
-			Value:      json.RawMessage(`"test value"`),
-		}
-
-		createdValue, err := th.service.CreatePropertyValue(rctxPlugin2, value)
-		require.NoError(t, err)
-		assert.NotNil(t, createdValue)
-	})
 }
 
 // TestDeletePropertyValue_WriteAccessControl tests write access control for value deletion
@@ -687,50 +654,6 @@ func TestGetPropertyValueReadAccess(t *testing.T) {
 		retrieved, err := th.service.GetPropertyValue(rctxUser2, th.CPAGroupID, value.ID)
 		require.NoError(t, err)
 		assert.Nil(t, retrieved)
-	})
-
-	t.Run("non-CPA group routes directly to PropertyService without filtering", func(t *testing.T) {
-		nonCpaGroup, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "other_group_value_read", Version: model.PropertyGroupVersionV2})
-		require.NoError(t, err)
-
-		field := &model.PropertyField{
-			GroupID:    nonCpaGroup.ID,
-			Name:       "non-cpa-value-source-only",
-			Type:       model.PropertyFieldTypeText,
-			ObjectType: model.PropertyFieldObjectTypeUser,
-			TargetType: string(model.PropertyFieldTargetLevelSystem),
-			Attrs: model.StringInterface{
-				model.PropertyAttrsAccessMode:     model.PropertyAccessModeSourceOnly,
-				model.PropertyAttrsProtected:      true,
-				model.PropertyAttrsSourcePluginID: pluginID1,
-			},
-		}
-
-		created, err := th.service.CreatePropertyField(rctxTestPlugin, field)
-		require.NoError(t, err)
-
-		targetID := model.NewId()
-		value := &model.PropertyValue{
-			GroupID:    nonCpaGroup.ID,
-			FieldID:    created.ID,
-			TargetType: "user",
-			TargetID:   targetID,
-			Value:      json.RawMessage(`"visible"`),
-		}
-		createdValue, err := th.service.CreatePropertyValue(rctxTestPlugin, value)
-		require.NoError(t, err)
-
-		// Other plugin can read (no filtering, goes directly to PropertyService)
-		rctx2Local := RequestContextWithCallerID(th.Context, "plugin-2")
-		retrieved, err := th.service.GetPropertyValue(rctx2Local, nonCpaGroup.ID, createdValue.ID)
-		require.NoError(t, err)
-		assert.NotNil(t, retrieved)
-
-		// User can also read (no filtering, goes directly to PropertyService)
-		rctxUser := RequestContextWithCallerID(th.Context, model.NewId())
-		retrievedByUser, err := th.service.GetPropertyValue(rctxUser, nonCpaGroup.ID, createdValue.ID)
-		require.NoError(t, err)
-		assert.NotNil(t, retrievedByUser)
 	})
 }
 
@@ -1295,56 +1218,6 @@ func TestCreatePropertyValues_WriteAccessControl(t *testing.T) {
 		require.Error(t, err)
 		assert.Nil(t, created)
 		assert.Contains(t, err.Error(), "mixed group IDs in batch")
-	})
-
-	t.Run("non-CPA group routes directly to PropertyService without access control", func(t *testing.T) {
-		// Register a non-CPA group
-		nonCpaGroup, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "other_group_bulk", Version: model.PropertyGroupVersionV2})
-		require.NoError(t, err)
-
-		// Create two fields in non-CPA group
-		field1 := &model.PropertyField{
-			GroupID:    nonCpaGroup.ID,
-			Name:       "non-cpa-bulk-field-1",
-			Type:       model.PropertyFieldTypeText,
-			ObjectType: model.PropertyFieldObjectTypeUser,
-			TargetType: string(model.PropertyFieldTargetLevelSystem),
-		}
-		field2 := &model.PropertyField{
-			GroupID:    nonCpaGroup.ID,
-			Name:       "non-cpa-bulk-field-2",
-			Type:       model.PropertyFieldTypeText,
-			ObjectType: model.PropertyFieldObjectTypeUser,
-			TargetType: string(model.PropertyFieldTargetLevelSystem),
-		}
-
-		created1, err := th.service.CreatePropertyField(rctx1, field1)
-		require.NoError(t, err)
-		created2, err := th.service.CreatePropertyField(rctx1, field2)
-		require.NoError(t, err)
-
-		// Create values for both fields with different plugin - should be allowed (no access control)
-		targetID := model.NewId()
-		values := []*model.PropertyValue{
-			{
-				GroupID:    nonCpaGroup.ID,
-				FieldID:    created1.ID,
-				TargetType: "user",
-				TargetID:   targetID,
-				Value:      json.RawMessage(`"value1"`),
-			},
-			{
-				GroupID:    nonCpaGroup.ID,
-				FieldID:    created2.ID,
-				TargetType: "user",
-				TargetID:   targetID,
-				Value:      json.RawMessage(`"value2"`),
-			},
-		}
-
-		createdValues, err := th.service.CreatePropertyValues(rctx2, values)
-		require.NoError(t, err)
-		assert.Len(t, createdValues, 2)
 	})
 
 	t.Run("mixed CPA and non-CPA groups are rejected before access control", func(t *testing.T) {
@@ -2192,10 +2065,14 @@ func TestUpsertPropertyValues_WriteAccessControl(t *testing.T) {
 func TestUpsertPropertyValue_ServiceGrant(t *testing.T) {
 	th := Setup(t)
 
-	group, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "test_service_grant", Version: model.PropertyGroupVersionV1})
+	// v2, not v1: the hook now enforces by group version rather than a
+	// construction-time allowlist, and a v1 field cannot carry a permissions
+	// object in production, so a v1 group here would pass the writes below
+	// through unchecked instead of exercising the service grant.
+	group, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "test_service_grant", Version: model.PropertyGroupVersionV2})
 	require.NoError(t, err)
 
-	hook := NewAccessControlHook(th.service, nil, nil, nil, group.ID)
+	hook := NewAccessControlHook(th.service, nil, nil, nil)
 	th.service.AddHook(hook)
 
 	ldapField := th.CreatePropertyFieldDirect(t, &model.PropertyField{

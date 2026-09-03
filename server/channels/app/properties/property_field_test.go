@@ -979,18 +979,19 @@ func TestUpdatePropertyFieldTranslatesLegacyPermissionKeys(t *testing.T) {
 
 func TestUpdatePropertyField(t *testing.T) {
 	th := Setup(t).RegisterCPAPropertyGroup(t)
-	rctx := th.Context
+	rctx := RequestContextWithCallerID(th.Context, model.NewId())
 
 	t.Run("updating non-name fields should not trigger conflict check", func(t *testing.T) {
 		groupID := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV2).ID
 
 		// Create a property
 		field := th.CreatePropertyFieldDirect(t, &model.PropertyField{
-			ObjectType: "channel",
-			GroupID:    groupID,
-			TargetType: string(model.PropertyFieldTargetLevelSystem),
-			Type:       model.PropertyFieldTypeText,
-			Name:       "NoConflictCheck",
+			Permissions: openPermissions(),
+			ObjectType:  "channel",
+			GroupID:     groupID,
+			TargetType:  string(model.PropertyFieldTargetLevelSystem),
+			Type:        model.PropertyFieldTypeText,
+			Name:        "NoConflictCheck",
 			Attrs: map[string]any{
 				"key": "original",
 			},
@@ -1011,11 +1012,12 @@ func TestUpdatePropertyField(t *testing.T) {
 
 		// Create a property
 		field := th.CreatePropertyFieldDirect(t, &model.PropertyField{
-			ObjectType: "channel",
-			GroupID:    groupID,
-			TargetType: string(model.PropertyFieldTargetLevelSystem),
-			Type:       model.PropertyFieldTypeText,
-			Name:       "OriginalName",
+			Permissions: openPermissions(),
+			ObjectType:  "channel",
+			GroupID:     groupID,
+			TargetType:  string(model.PropertyFieldTargetLevelSystem),
+			Type:        model.PropertyFieldTypeText,
+			Name:        "OriginalName",
 		})
 
 		// Update name to non-conflicting value
@@ -1031,21 +1033,23 @@ func TestUpdatePropertyField(t *testing.T) {
 
 		// Create a team-level property
 		th.CreatePropertyFieldDirect(t, &model.PropertyField{
-			ObjectType: "channel",
-			GroupID:    groupID,
-			TargetType: string(model.PropertyFieldTargetLevelTeam),
-			TargetID:   team.Id,
-			Type:       model.PropertyFieldTypeText,
-			Name:       "ExistingTeamProp",
+			Permissions: openPermissions(),
+			ObjectType:  "channel",
+			GroupID:     groupID,
+			TargetType:  string(model.PropertyFieldTargetLevelTeam),
+			TargetID:    team.Id,
+			Type:        model.PropertyFieldTypeText,
+			Name:        "ExistingTeamProp",
 		})
 
 		// Create a system-level property with different name
 		systemField := th.CreatePropertyFieldDirect(t, &model.PropertyField{
-			ObjectType: "channel",
-			GroupID:    groupID,
-			TargetType: string(model.PropertyFieldTargetLevelSystem),
-			Type:       model.PropertyFieldTypeText,
-			Name:       "SystemProp",
+			Permissions: openPermissions(),
+			ObjectType:  "channel",
+			GroupID:     groupID,
+			TargetType:  string(model.PropertyFieldTargetLevelSystem),
+			Type:        model.PropertyFieldTypeText,
+			Name:        "SystemProp",
 		})
 
 		// Try to update system-level to name that conflicts with team-level
@@ -1067,22 +1071,24 @@ func TestUpdatePropertyField(t *testing.T) {
 
 		// Create a channel-level property in a regular channel
 		th.CreatePropertyFieldDirect(t, &model.PropertyField{
-			ObjectType: "channel",
-			GroupID:    groupID,
-			TargetType: string(model.PropertyFieldTargetLevelChannel),
-			TargetID:   channel.Id,
-			Type:       model.PropertyFieldTypeText,
-			Name:       "ChannelProp",
+			Permissions: openPermissions(),
+			ObjectType:  "channel",
+			GroupID:     groupID,
+			TargetType:  string(model.PropertyFieldTargetLevelChannel),
+			TargetID:    channel.Id,
+			Type:        model.PropertyFieldTypeText,
+			Name:        "ChannelProp",
 		})
 
 		// Create a channel-level property in a DM channel with different name
 		dmField := th.CreatePropertyFieldDirect(t, &model.PropertyField{
-			ObjectType: "channel",
-			GroupID:    groupID,
-			TargetType: string(model.PropertyFieldTargetLevelChannel),
-			TargetID:   dmChannel.Id,
-			Type:       model.PropertyFieldTypeText,
-			Name:       "DMProp",
+			Permissions: openPermissions(),
+			ObjectType:  "channel",
+			GroupID:     groupID,
+			TargetType:  string(model.PropertyFieldTargetLevelChannel),
+			TargetID:    dmChannel.Id,
+			Type:        model.PropertyFieldTypeText,
+			Name:        "DMProp",
 		})
 
 		// Update DM property to same name as regular channel property - should succeed
@@ -1099,21 +1105,23 @@ func TestUpdatePropertyField(t *testing.T) {
 
 		// Create a system-level property
 		th.CreatePropertyFieldDirect(t, &model.PropertyField{
-			ObjectType: "channel",
-			GroupID:    groupID,
-			TargetType: string(model.PropertyFieldTargetLevelSystem),
-			Type:       model.PropertyFieldTypeText,
-			Name:       "ExistingSystemProp",
+			Permissions: openPermissions(),
+			ObjectType:  "channel",
+			GroupID:     groupID,
+			TargetType:  string(model.PropertyFieldTargetLevelSystem),
+			Type:        model.PropertyFieldTypeText,
+			Name:        "ExistingSystemProp",
 		})
 
 		// Create a team-level property with different name
 		teamField := th.CreatePropertyFieldDirect(t, &model.PropertyField{
-			ObjectType: "channel",
-			GroupID:    groupID,
-			TargetType: string(model.PropertyFieldTargetLevelTeam),
-			TargetID:   team.Id,
-			Type:       model.PropertyFieldTypeText,
-			Name:       "TeamProp",
+			Permissions: openPermissions(),
+			ObjectType:  "channel",
+			GroupID:     groupID,
+			TargetType:  string(model.PropertyFieldTargetLevelTeam),
+			TargetID:    team.Id,
+			Type:        model.PropertyFieldTypeText,
+			Name:        "TeamProp",
 		})
 
 		// Try to update team-level to name that conflicts with system-level
@@ -1136,21 +1144,23 @@ func TestUpdatePropertyField(t *testing.T) {
 		// Create two channel-level properties with the same name in different channels
 		// (no conflict since channel-level properties in different channels don't conflict)
 		th.CreatePropertyFieldDirect(t, &model.PropertyField{
-			ObjectType: "channel",
-			GroupID:    groupID,
-			TargetType: string(model.PropertyFieldTargetLevelChannel),
-			TargetID:   channel1.Id,
-			Type:       model.PropertyFieldTypeText,
-			Name:       "SharedName",
+			Permissions: openPermissions(),
+			ObjectType:  "channel",
+			GroupID:     groupID,
+			TargetType:  string(model.PropertyFieldTargetLevelChannel),
+			TargetID:    channel1.Id,
+			Type:        model.PropertyFieldTypeText,
+			Name:        "SharedName",
 		})
 
 		channel2Field := th.CreatePropertyFieldDirect(t, &model.PropertyField{
-			ObjectType: "channel",
-			GroupID:    groupID,
-			TargetType: string(model.PropertyFieldTargetLevelChannel),
-			TargetID:   channel2.Id,
-			Type:       model.PropertyFieldTypeText,
-			Name:       "SharedName",
+			Permissions: openPermissions(),
+			ObjectType:  "channel",
+			GroupID:     groupID,
+			TargetType:  string(model.PropertyFieldTargetLevelChannel),
+			TargetID:    channel2.Id,
+			Type:        model.PropertyFieldTypeText,
+			Name:        "SharedName",
 		})
 
 		// Try to update channel2's property to system-level - should conflict with channel1's property
@@ -1175,21 +1185,23 @@ func TestUpdatePropertyField(t *testing.T) {
 		// Create two channel-level properties with the same name in different channels
 		// (no conflict since channel-level properties in different channels don't conflict)
 		th.CreatePropertyFieldDirect(t, &model.PropertyField{
-			ObjectType: "channel",
-			GroupID:    groupID,
-			TargetType: string(model.PropertyFieldTargetLevelChannel),
-			TargetID:   channel1.Id,
-			Type:       model.PropertyFieldTypeText,
-			Name:       "SharedName",
+			Permissions: openPermissions(),
+			ObjectType:  "channel",
+			GroupID:     groupID,
+			TargetType:  string(model.PropertyFieldTargetLevelChannel),
+			TargetID:    channel1.Id,
+			Type:        model.PropertyFieldTypeText,
+			Name:        "SharedName",
 		})
 
 		channel2Field := th.CreatePropertyFieldDirect(t, &model.PropertyField{
-			ObjectType: "channel",
-			GroupID:    groupID,
-			TargetType: string(model.PropertyFieldTargetLevelChannel),
-			TargetID:   channel2.Id,
-			Type:       model.PropertyFieldTypeText,
-			Name:       "SharedName",
+			Permissions: openPermissions(),
+			ObjectType:  "channel",
+			GroupID:     groupID,
+			TargetType:  string(model.PropertyFieldTargetLevelChannel),
+			TargetID:    channel2.Id,
+			Type:        model.PropertyFieldTypeText,
+			Name:        "SharedName",
 		})
 
 		// Update channel2's property TargetID to channel1 - should conflict
@@ -1208,6 +1220,8 @@ func TestUpdatePropertyField(t *testing.T) {
 		groupID := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV1).ID
 
 		// Create a legacy property (no ObjectType)
+		// No Permissions object: a PSAv1 field cannot hold one, and its v1 group
+		// is not enforced by the hook, so it needs none.
 		field := th.CreatePropertyFieldDirect(t, &model.PropertyField{
 			ObjectType: "", // Legacy
 			GroupID:    groupID,
@@ -1228,11 +1242,12 @@ func TestUpdatePropertyField(t *testing.T) {
 
 		// Create a property
 		field := th.CreatePropertyFieldDirect(t, &model.PropertyField{
-			ObjectType: "channel",
-			GroupID:    groupID,
-			TargetType: string(model.PropertyFieldTargetLevelSystem),
-			Type:       model.PropertyFieldTypeText,
-			Name:       "SameName",
+			Permissions: openPermissions(),
+			ObjectType:  "channel",
+			GroupID:     groupID,
+			TargetType:  string(model.PropertyFieldTargetLevelSystem),
+			Type:        model.PropertyFieldTypeText,
+			Name:        "SameName",
 		})
 
 		// Update with same name should succeed (no actual change to name)
@@ -1245,7 +1260,7 @@ func TestUpdatePropertyField(t *testing.T) {
 
 func TestLinkedPropertyFields(t *testing.T) {
 	th := Setup(t).RegisterCPAPropertyGroup(t)
-	rctx := th.Context
+	rctx := RequestContextWithCallerID(th.Context, model.NewId())
 	group := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV2)
 
 	// Helper to create a source template field with select options
@@ -1263,6 +1278,7 @@ func TestLinkedPropertyFields(t *testing.T) {
 					map[string]any{"id": model.NewId(), "name": "Option B"},
 				},
 			},
+			Permissions: openPermissions(),
 		})
 	}
 
@@ -1718,7 +1734,7 @@ func TestLinkedPropertyFields(t *testing.T) {
 				},
 			},
 			Permissions: &model.Permissions{
-				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelMember}},
+				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelMember}, Field: model.WriteOnly{Write: model.PermissionLevelEveryone}},
 			},
 		})
 
@@ -1730,7 +1746,7 @@ func TestLinkedPropertyFields(t *testing.T) {
 			Type:          model.PropertyFieldTypeText,
 			LinkedFieldID: &source.ID,
 			Permissions: &model.Permissions{
-				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelEveryone}},
+				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelEveryone}, Field: model.WriteOnly{Write: model.PermissionLevelEveryone}},
 			},
 		})
 		require.Error(t, err)
@@ -1750,7 +1766,7 @@ func TestLinkedPropertyFields(t *testing.T) {
 				},
 			},
 			Permissions: &model.Permissions{
-				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelMember}},
+				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelMember}, Field: model.WriteOnly{Write: model.PermissionLevelEveryone}},
 			},
 		})
 
@@ -1762,7 +1778,7 @@ func TestLinkedPropertyFields(t *testing.T) {
 			Type:          model.PropertyFieldTypeText,
 			LinkedFieldID: &source.ID,
 			Permissions: &model.Permissions{
-				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelMember}},
+				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelMember}, Field: model.WriteOnly{Write: model.PermissionLevelEveryone}},
 			},
 		})
 		require.NoError(t, err)
@@ -1776,15 +1792,25 @@ func TestLinkedPropertyFields(t *testing.T) {
 			Type:          model.PropertyFieldTypeText,
 			LinkedFieldID: &source.ID,
 			Permissions: &model.Permissions{
-				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelAdmin}},
+				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelAdmin}, Field: model.WriteOnly{Write: model.PermissionLevelEveryone}},
 			},
 		})
 		require.NoError(t, err)
 		require.NotNil(t, tighter)
 	})
 
-	t.Run("create linked field rejects any option.read against a template with no permissions object", func(t *testing.T) {
-		source := createSourceField(t, "NoPermsSource-"+model.NewId())
+	// A template carrying no permissions object is a row the conversion backfill
+	// has not reached. Linking to one is refused outright, so the option.read
+	// ceiling against such a template is only reachable on the update path --
+	// where the gate measures the field being updated, not the template.
+	t.Run("linking to a template with no permissions object is refused", func(t *testing.T) {
+		source := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:    group.ID,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Type:       model.PropertyFieldTypeSelect,
+			Name:       "NoPermsSource-" + model.NewId(),
+		})
 
 		_, err := th.service.CreatePropertyField(rctx, &model.PropertyField{
 			GroupID:       group.ID,
@@ -1794,15 +1820,15 @@ func TestLinkedPropertyFields(t *testing.T) {
 			Type:          model.PropertyFieldTypeText,
 			LinkedFieldID: &source.ID,
 			Permissions: &model.Permissions{
-				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelMember}},
+				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelMember}, Field: model.WriteOnly{Write: model.PermissionLevelEveryone}},
 			},
 		})
 		require.Error(t, err)
-		assert.Contains(t, err.Error(), "option.read")
+		assert.Contains(t, err.Error(), "protected template")
 
-		// A linked field that sets no permissions at all has nothing to compare and
-		// is unaffected by the template carrying none either.
-		unset, err := th.service.CreatePropertyField(rctx, &model.PropertyField{
+		// Submitting no permissions at all does not get past the gate either: it
+		// measures the template, not what the linked field is asking for.
+		_, err = th.service.CreatePropertyField(rctx, &model.PropertyField{
 			GroupID:       group.ID,
 			ObjectType:    model.PropertyFieldObjectTypeChannel,
 			TargetType:    string(model.PropertyFieldTargetLevelSystem),
@@ -1810,8 +1836,37 @@ func TestLinkedPropertyFields(t *testing.T) {
 			Type:          model.PropertyFieldTypeText,
 			LinkedFieldID: &source.ID,
 		})
-		require.NoError(t, err)
-		require.NotNil(t, unset)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "protected template")
+	})
+
+	t.Run("updating a field linked to a template with no permissions object ceilings option.read at none", func(t *testing.T) {
+		source := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:    group.ID,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Type:       model.PropertyFieldTypeSelect,
+			Name:       "NoPermsUpdateSource-" + model.NewId(),
+		})
+
+		// Created directly, the way a row predating the backfill looks: the hook
+		// would refuse this link today.
+		linked := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:       group.ID,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Type:          model.PropertyFieldTypeSelect,
+			Name:          "NoPermsUpdateLinked-" + model.NewId(),
+			LinkedFieldID: &source.ID,
+			Permissions:   openPermissions(),
+		})
+
+		linked.Permissions = &model.Permissions{
+			Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelMember}, Field: model.WriteOnly{Write: model.PermissionLevelEveryone}},
+		}
+		_, _, err := th.service.UpdatePropertyField(rctx, group.ID, linked)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "option.read")
 	})
 
 	t.Run("create linked field ceiling is confined to option.read", func(t *testing.T) {
@@ -1827,7 +1882,7 @@ func TestLinkedPropertyFields(t *testing.T) {
 				},
 			},
 			Permissions: &model.Permissions{
-				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelMember}},
+				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelMember}, Field: model.WriteOnly{Write: model.PermissionLevelEveryone}},
 			},
 		})
 
@@ -1857,7 +1912,7 @@ func TestLinkedPropertyFields(t *testing.T) {
 			Name:       "Unlinked-" + model.NewId(),
 			Type:       model.PropertyFieldTypeText,
 			Permissions: &model.Permissions{
-				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelEveryone}},
+				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelEveryone}, Field: model.WriteOnly{Write: model.PermissionLevelEveryone}},
 			},
 		})
 		require.NoError(t, err)
@@ -2044,6 +2099,7 @@ func TestLinkedPropertyFields(t *testing.T) {
 					map[string]any{"name": "Fighter Jet Program", "parents": []string{"Air Program"}},
 				},
 			},
+			Permissions: openPermissions(),
 		})
 
 		linked := th.CreatePropertyField(t, rctx, &model.PropertyField{
@@ -2160,11 +2216,12 @@ func TestLinkedPropertyFields(t *testing.T) {
 	t.Run("update blocks setting LinkedFieldID on non-linked field", func(t *testing.T) {
 		// Create a regular (non-linked) field
 		regular := th.CreatePropertyField(t, rctx, &model.PropertyField{
-			GroupID:    group.ID,
-			ObjectType: model.PropertyFieldObjectTypeUser,
-			TargetType: string(model.PropertyFieldTargetLevelSystem),
-			Name:       "Regular-" + model.NewId(),
-			Type:       model.PropertyFieldTypeSelect,
+			GroupID:     group.ID,
+			ObjectType:  model.PropertyFieldObjectTypeUser,
+			TargetType:  string(model.PropertyFieldTargetLevelSystem),
+			Name:        "Regular-" + model.NewId(),
+			Type:        model.PropertyFieldTypeSelect,
+			Permissions: openPermissions(),
 		})
 
 		require.Nil(t, regular.LinkedFieldID)
@@ -2216,7 +2273,7 @@ func TestLinkedPropertyFields(t *testing.T) {
 				},
 			},
 			Permissions: &model.Permissions{
-				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelMember}},
+				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelMember}, Field: model.WriteOnly{Write: model.PermissionLevelEveryone}},
 			},
 		})
 
@@ -2228,7 +2285,7 @@ func TestLinkedPropertyFields(t *testing.T) {
 			Type:          model.PropertyFieldTypeText,
 			LinkedFieldID: &source.ID,
 			Permissions: &model.Permissions{
-				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelAdmin}},
+				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelAdmin}, Field: model.WriteOnly{Write: model.PermissionLevelEveryone}},
 			},
 		})
 
@@ -2259,7 +2316,7 @@ func TestLinkedPropertyFields(t *testing.T) {
 				},
 			},
 			Permissions: &model.Permissions{
-				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelMember}},
+				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelMember}, Field: model.WriteOnly{Write: model.PermissionLevelEveryone}},
 			},
 		})
 
@@ -2281,19 +2338,23 @@ func TestLinkedPropertyFields(t *testing.T) {
 		// exercise the "no Permissions object submitted" case this asserts.
 		linked.Permissions = nil
 		linked.Name = "UpdateNoPermsLinked-Renamed-" + model.NewId()
+		// Every update costs one read of the field being updated: the hook needs
+		// the stored copy to gate the write against, and it now runs for this
+		// group. That read is the baseline both cases below are measured from;
+		// the template read is the one this asserts is conditional.
 		before := counter.gets
 		result, _, err := th.service.UpdatePropertyField(rctx, group.ID, linked)
 		require.NoError(t, err)
 		assert.Equal(t, linked.Name, result.Name)
-		assert.Equal(t, before, counter.gets, "no Permissions object on the update must not read the template")
+		assert.Equal(t, before+1, counter.gets, "no Permissions object on the update must not read the template")
 
 		linked.Permissions = &model.Permissions{
-			Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelSysadmin}},
+			Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelSysadmin}, Field: model.WriteOnly{Write: model.PermissionLevelEveryone}},
 		}
 		before = counter.gets
 		_, _, err = th.service.UpdatePropertyField(rctx, group.ID, linked)
 		require.NoError(t, err)
-		assert.Equal(t, before+1, counter.gets, "an update carrying a Permissions object must read the template to check the ceiling")
+		assert.Equal(t, before+2, counter.gets, "an update carrying a Permissions object must read the template to check the ceiling")
 	})
 
 	t.Run("tightening template's option.read past a dependent's tier is refused", func(t *testing.T) {
@@ -2309,7 +2370,7 @@ func TestLinkedPropertyFields(t *testing.T) {
 				},
 			},
 			Permissions: &model.Permissions{
-				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelMember}},
+				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelMember}, Field: model.WriteOnly{Write: model.PermissionLevelEveryone}},
 			},
 		})
 
@@ -2321,7 +2382,7 @@ func TestLinkedPropertyFields(t *testing.T) {
 			Type:          model.PropertyFieldTypeText,
 			LinkedFieldID: &template.ID,
 			Permissions: &model.Permissions{
-				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelMember}},
+				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelMember}, Field: model.WriteOnly{Write: model.PermissionLevelEveryone}},
 			},
 		})
 
@@ -2351,7 +2412,7 @@ func TestLinkedPropertyFields(t *testing.T) {
 				},
 			},
 			Permissions: &model.Permissions{
-				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelMember}},
+				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelMember}, Field: model.WriteOnly{Write: model.PermissionLevelEveryone}},
 			},
 		})
 
@@ -2363,7 +2424,7 @@ func TestLinkedPropertyFields(t *testing.T) {
 			Type:          model.PropertyFieldTypeText,
 			LinkedFieldID: &template.ID,
 			Permissions: &model.Permissions{
-				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelSysadmin}},
+				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelSysadmin}, Field: model.WriteOnly{Write: model.PermissionLevelEveryone}},
 			},
 		})
 
@@ -2386,7 +2447,7 @@ func TestLinkedPropertyFields(t *testing.T) {
 				},
 			},
 			Permissions: &model.Permissions{
-				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelMember}},
+				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelMember}, Field: model.WriteOnly{Write: model.PermissionLevelEveryone}},
 			},
 		})
 
@@ -2398,7 +2459,7 @@ func TestLinkedPropertyFields(t *testing.T) {
 			Type:          model.PropertyFieldTypeText,
 			LinkedFieldID: &template.ID,
 			Permissions: &model.Permissions{
-				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelMember}},
+				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelMember}, Field: model.WriteOnly{Write: model.PermissionLevelEveryone}},
 			},
 		})
 
@@ -2423,7 +2484,7 @@ func TestLinkedPropertyFields(t *testing.T) {
 				},
 			},
 			Permissions: &model.Permissions{
-				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelSysadmin}},
+				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelSysadmin}, Field: model.WriteOnly{Write: model.PermissionLevelEveryone}},
 			},
 		})
 
@@ -2435,7 +2496,7 @@ func TestLinkedPropertyFields(t *testing.T) {
 			Type:          model.PropertyFieldTypeText,
 			LinkedFieldID: &template.ID,
 			Permissions: &model.Permissions{
-				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelSysadmin}},
+				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelSysadmin}, Field: model.WriteOnly{Write: model.PermissionLevelEveryone}},
 			},
 		})
 
@@ -2458,7 +2519,7 @@ func TestLinkedPropertyFields(t *testing.T) {
 				},
 			},
 			Permissions: &model.Permissions{
-				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelMember}},
+				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelMember}, Field: model.WriteOnly{Write: model.PermissionLevelEveryone}},
 			},
 		})
 
@@ -2481,7 +2542,7 @@ func TestLinkedPropertyFields(t *testing.T) {
 				},
 			},
 			Permissions: &model.Permissions{
-				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelMember}},
+				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelMember}, Field: model.WriteOnly{Write: model.PermissionLevelEveryone}},
 			},
 		})
 
@@ -2493,7 +2554,7 @@ func TestLinkedPropertyFields(t *testing.T) {
 			Type:          model.PropertyFieldTypeText,
 			LinkedFieldID: &template.ID,
 			Permissions: &model.Permissions{
-				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelMember}},
+				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelMember}, Field: model.WriteOnly{Write: model.PermissionLevelEveryone}},
 			},
 		})
 
@@ -2516,7 +2577,7 @@ func TestLinkedPropertyFields(t *testing.T) {
 				},
 			},
 			Permissions: &model.Permissions{
-				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelMember}},
+				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelMember}, Field: model.WriteOnly{Write: model.PermissionLevelEveryone}},
 			},
 		})
 
@@ -2528,7 +2589,7 @@ func TestLinkedPropertyFields(t *testing.T) {
 			Type:          model.PropertyFieldTypeText,
 			LinkedFieldID: &template.ID,
 			Permissions: &model.Permissions{
-				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelMember}},
+				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelMember}, Field: model.WriteOnly{Write: model.PermissionLevelEveryone}},
 			},
 		})
 
@@ -2562,7 +2623,7 @@ func TestLinkedPropertyFields(t *testing.T) {
 				},
 			},
 			Permissions: &model.Permissions{
-				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelEveryone}},
+				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelEveryone}, Field: model.WriteOnly{Write: model.PermissionLevelEveryone}},
 			},
 		})
 
@@ -2574,7 +2635,7 @@ func TestLinkedPropertyFields(t *testing.T) {
 			Type:          model.PropertyFieldTypeText,
 			LinkedFieldID: &template.ID,
 			Permissions: &model.Permissions{
-				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelMember}},
+				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelMember}, Field: model.WriteOnly{Write: model.PermissionLevelEveryone}},
 			},
 		})
 
@@ -2608,7 +2669,7 @@ func TestLinkedPropertyFields(t *testing.T) {
 				},
 			},
 			Permissions: &model.Permissions{
-				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelMember}},
+				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelMember}, Field: model.WriteOnly{Write: model.PermissionLevelEveryone}},
 			},
 		})
 
@@ -2620,7 +2681,7 @@ func TestLinkedPropertyFields(t *testing.T) {
 			Type:          model.PropertyFieldTypeText,
 			LinkedFieldID: &template.ID,
 			Permissions: &model.Permissions{
-				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelMember}},
+				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelMember}, Field: model.WriteOnly{Write: model.PermissionLevelEveryone}},
 			},
 		})
 
@@ -2651,7 +2712,7 @@ func TestLinkedPropertyFields(t *testing.T) {
 				},
 			},
 			Permissions: &model.Permissions{
-				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelMember}},
+				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelMember}, Field: model.WriteOnly{Write: model.PermissionLevelEveryone}},
 			},
 		})
 
@@ -2663,7 +2724,7 @@ func TestLinkedPropertyFields(t *testing.T) {
 			Type:          model.PropertyFieldTypeText,
 			LinkedFieldID: &template.ID,
 			Permissions: &model.Permissions{
-				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelMember}},
+				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelMember}, Field: model.WriteOnly{Write: model.PermissionLevelEveryone}},
 			},
 		})
 
@@ -2694,7 +2755,7 @@ func TestLinkedPropertyFields(t *testing.T) {
 				},
 			},
 			Permissions: &model.Permissions{
-				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelMember}},
+				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelMember}, Field: model.WriteOnly{Write: model.PermissionLevelEveryone}},
 			},
 		})
 
@@ -2706,7 +2767,7 @@ func TestLinkedPropertyFields(t *testing.T) {
 			Type:          model.PropertyFieldTypeText,
 			LinkedFieldID: &template.ID,
 			Permissions: &model.Permissions{
-				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelMember}},
+				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelMember}, Field: model.WriteOnly{Write: model.PermissionLevelEveryone}},
 			},
 		})
 
@@ -2735,7 +2796,7 @@ func TestLinkedPropertyFields(t *testing.T) {
 				},
 			},
 			Permissions: &model.Permissions{
-				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelMember}},
+				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelMember}, Field: model.WriteOnly{Write: model.PermissionLevelEveryone}},
 			},
 		})
 
@@ -2747,7 +2808,7 @@ func TestLinkedPropertyFields(t *testing.T) {
 			Type:          model.PropertyFieldTypeText,
 			LinkedFieldID: &template.ID,
 			Permissions: &model.Permissions{
-				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelMember}},
+				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelMember}, Field: model.WriteOnly{Write: model.PermissionLevelEveryone}},
 			},
 		})
 
@@ -2772,7 +2833,7 @@ func TestLinkedPropertyFields(t *testing.T) {
 				},
 			},
 			Permissions: &model.Permissions{
-				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelMember}},
+				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelMember}, Field: model.WriteOnly{Write: model.PermissionLevelEveryone}},
 			},
 		})
 
@@ -2787,7 +2848,7 @@ func TestLinkedPropertyFields(t *testing.T) {
 
 		linked.LinkedFieldID = nil
 		linked.Permissions = &model.Permissions{
-			Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelEveryone}},
+			Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelEveryone}, Field: model.WriteOnly{Write: model.PermissionLevelEveryone}},
 		}
 		result, _, err := th.service.UpdatePropertyField(rctx, group.ID, linked)
 		require.NoError(t, err)
@@ -2797,15 +2858,16 @@ func TestLinkedPropertyFields(t *testing.T) {
 
 	t.Run("update to an unlinked field with option.read everyone is unaffected", func(t *testing.T) {
 		unlinked := th.CreatePropertyField(t, rctx, &model.PropertyField{
-			GroupID:    group.ID,
-			ObjectType: model.PropertyFieldObjectTypeUser,
-			TargetType: string(model.PropertyFieldTargetLevelSystem),
-			Name:       "UpdateUnlinked-" + model.NewId(),
-			Type:       model.PropertyFieldTypeText,
+			GroupID:     group.ID,
+			ObjectType:  model.PropertyFieldObjectTypeUser,
+			TargetType:  string(model.PropertyFieldTargetLevelSystem),
+			Name:        "UpdateUnlinked-" + model.NewId(),
+			Type:        model.PropertyFieldTypeText,
+			Permissions: openPermissions(),
 		})
 
 		unlinked.Permissions = &model.Permissions{
-			Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelEveryone}},
+			Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelEveryone}, Field: model.WriteOnly{Write: model.PermissionLevelEveryone}},
 		}
 		result, _, err := th.service.UpdatePropertyField(rctx, group.ID, unlinked)
 		require.NoError(t, err)
@@ -2866,6 +2928,7 @@ func TestLinkedPropertyFields(t *testing.T) {
 					map[string]any{"id": optCID, "name": "Option C", "color": "green"},
 				},
 			},
+			Permissions: openPermissions(),
 		})
 
 		linked := th.CreatePropertyField(t, rctx, &model.PropertyField{
@@ -2939,6 +3002,7 @@ func TestLinkedPropertyFields(t *testing.T) {
 					map[string]any{"id": model.NewId(), "name": "Y"},
 				},
 			},
+			Permissions: openPermissions(),
 		})
 
 		// Linking from group B to a template in group A must fail

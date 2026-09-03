@@ -7,6 +7,7 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"reflect"
 	"testing"
 	"time"
 
@@ -3208,14 +3209,14 @@ func TestIsOptionsOnlyPatch(t *testing.T) {
 		patch := &model.PropertyFieldPatch{
 			Name: new("new name"),
 		}
-		require.False(t, isOptionsOnlyPatch(patch))
+		require.False(t, isOptionsOnlyPatch(patch, false))
 	})
 
 	t.Run("empty attrs is not options-only", func(t *testing.T) {
 		patch := &model.PropertyFieldPatch{
 			Attrs: &model.StringInterface{},
 		}
-		require.False(t, isOptionsOnlyPatch(patch))
+		require.False(t, isOptionsOnlyPatch(patch, false))
 	})
 
 	t.Run("attrs with only options is options-only", func(t *testing.T) {
@@ -3224,7 +3225,7 @@ func TestIsOptionsOnlyPatch(t *testing.T) {
 				"options": []any{},
 			},
 		}
-		require.True(t, isOptionsOnlyPatch(patch))
+		require.True(t, isOptionsOnlyPatch(patch, false))
 	})
 
 	t.Run("attrs with options and other keys is not options-only", func(t *testing.T) {
@@ -3234,7 +3235,7 @@ func TestIsOptionsOnlyPatch(t *testing.T) {
 				"other":   "value",
 			},
 		}
-		require.False(t, isOptionsOnlyPatch(patch))
+		require.False(t, isOptionsOnlyPatch(patch, false))
 	})
 
 	t.Run("name change with options is not options-only", func(t *testing.T) {
@@ -3244,7 +3245,7 @@ func TestIsOptionsOnlyPatch(t *testing.T) {
 				"options": []any{},
 			},
 		}
-		require.False(t, isOptionsOnlyPatch(patch))
+		require.False(t, isOptionsOnlyPatch(patch, false))
 	})
 
 	t.Run("type change is not options-only", func(t *testing.T) {
@@ -3252,7 +3253,7 @@ func TestIsOptionsOnlyPatch(t *testing.T) {
 		patch := &model.PropertyFieldPatch{
 			Type: &newType,
 		}
-		require.False(t, isOptionsOnlyPatch(patch))
+		require.False(t, isOptionsOnlyPatch(patch, false))
 	})
 }
 
@@ -5370,4 +5371,96 @@ func TestSystemObjectType(t *testing.T) {
 		require.Error(t, patchErr)
 		CheckNotFoundStatus(t, resp)
 	})
+}
+
+// isOptionsOnlyPatch decides which permission a patch is gated on at this
+// layer; model.PropertyFieldChangeIsOptionsOnly decides the same thing inside
+// the enforcement hook, which never sees the patch and has to compare the
+// merged field against the stored one. If the two ever disagree, one layer
+// allows what the other refuses -- the defect step 7.17 fixed. This asserts
+// they agree on every shape of patch that reaches the handler.
+func TestOptionsOnlyPatchAgreesWithFieldComparison(t *testing.T) {
+	// One fixed option ID: stored() is called twice, so a fresh model.NewId()
+	// per call would make the two fields differ before any patch was applied.
+	storedOptionID := model.NewId()
+
+	stored := func() *model.PropertyField {
+		return &model.PropertyField{
+			ID:         "fieldid",
+			GroupID:    "groupid",
+			Name:       "Programs",
+			Type:       model.PropertyFieldTypeSelect,
+			ObjectType: "user",
+			TargetType: "system",
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{"id": storedOptionID, "name": "Air"},
+				},
+				"visibility": "always",
+			},
+		}
+	}
+
+	newOptions := []any{map[string]any{"id": model.NewId(), "name": "Sea"}}
+	storedPermissions := &model.Permissions{Restrictions: &model.Restrictions{
+		Field: model.WriteOnly{Write: model.PermissionLevelSysadmin},
+	}}
+
+	testCases := []struct {
+		name string
+		// permissions the field already carries, if any
+		permissions *model.Permissions
+		patch       *model.PropertyFieldPatch
+	}{
+		{"options alone", nil, &model.PropertyFieldPatch{
+			Attrs: &model.StringInterface{model.PropertyFieldAttributeOptions: newOptions},
+		}},
+		{"options plus a sibling attr", nil, &model.PropertyFieldPatch{
+			Attrs: &model.StringInterface{model.PropertyFieldAttributeOptions: newOptions, "visibility": "hidden"},
+		}},
+		{"options plus a name", nil, &model.PropertyFieldPatch{
+			Name:  model.NewPointer("Renamed"),
+			Attrs: &model.StringInterface{model.PropertyFieldAttributeOptions: newOptions},
+		}},
+		{"options plus permissions that change something", storedPermissions, &model.PropertyFieldPatch{
+			Attrs:       &model.StringInterface{model.PropertyFieldAttributeOptions: newOptions},
+			Permissions: &model.PermissionsPatch{Restrictions: json.RawMessage(`{"field":{"write":"member"}}`)},
+		}},
+		{"options plus a permissions echo", storedPermissions, &model.PropertyFieldPatch{
+			Attrs:       &model.StringInterface{model.PropertyFieldAttributeOptions: newOptions},
+			Permissions: &model.PermissionsPatch{Restrictions: json.RawMessage(`{"field":{"write":"sysadmin"}}`)},
+		}},
+		{"a sibling attr alone", nil, &model.PropertyFieldPatch{
+			Attrs: &model.StringInterface{"visibility": "hidden"},
+		}},
+		{"a name alone", nil, &model.PropertyFieldPatch{
+			Name: model.NewPointer("Renamed"),
+		}},
+		{"no attrs at all", nil, &model.PropertyFieldPatch{}},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			existing := stored()
+			existing.Permissions = tc.permissions
+			patched := stored()
+			patched.Permissions = tc.permissions
+
+			// Mirror patchPropertyField: resolve the permissions patch first,
+			// decide whether it changed anything, then apply the rest.
+			permissionsChanged := false
+			if tc.patch.Permissions != nil {
+				applied, err := tc.patch.Permissions.ApplyTo(patched.Permissions)
+				require.NoError(t, err)
+				permissionsChanged = !reflect.DeepEqual(patched.Permissions, applied)
+				patched.Permissions = applied
+			}
+			patched.Patch(tc.patch, true)
+
+			require.Equal(t,
+				isOptionsOnlyPatch(tc.patch, permissionsChanged),
+				model.PropertyFieldChangeIsOptionsOnly(existing, patched),
+				"the api4 patch check and the hook's field comparison must agree")
+		})
+	}
 }

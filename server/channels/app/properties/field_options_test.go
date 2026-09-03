@@ -160,43 +160,13 @@ func TestFieldOptionsAccessControl(t *testing.T) {
 	other := RequestContextWithCallerID(th.Context, "other-plugin")
 	admin := RequestContextWithCallerID(th.Context, model.CallerIDLocalAdmin)
 
-	// A field carrying one option, in whatever state the subtest is about. Written
-	// straight to the store, because these are states a caller is not allowed to
-	// ask for: only a plugin's own field is protected, and only an administrator
-	// hands a field an owners list. Returns the option's ID alongside the field --
-	// such a field carries no permissions object, so a read no longer answers for
-	// it, and the ID has to come from what the write itself put there.
-	fieldWith := func(t *testing.T, groupID string, attrs model.StringInterface) (*model.PropertyField, string) {
-		t.Helper()
-		optionID := model.NewId()
-		attrs[model.PropertyFieldAttributeOptions] = []any{
-			map[string]any{"id": optionID, "name": "Air"},
-		}
-		field := th.CreatePropertyFieldDirect(t, &model.PropertyField{
-			GroupID:    groupID,
-			Name:       "Programs-" + model.NewId(),
-			Type:       model.PropertyFieldTypeMultiselect,
-			ObjectType: model.PropertyFieldObjectTypeUser,
-			TargetType: string(model.PropertyFieldTargetLevelSystem),
-			Attrs:      attrs,
-		})
-		return field, optionID
-	}
-
-	protectedAttrs := func() model.StringInterface {
-		return model.StringInterface{
-			model.PropertyAttrsProtected:      true,
-			model.PropertyAttrsSourcePluginID: "owning-plugin",
-		}
-	}
-
 	// grantField builds a field carrying a field.write grant for the given
 	// plugin -- the converted equivalent of a protected or owner-managed
 	// field, both of which now reach the write gate as a grant naming the
 	// plugin that may change the definition. Written straight to the store
-	// for the same reason fieldWith is: only an administrator or a plugin
-	// acting through the create/update path ever produces one, and this test
-	// is checking what the gate does with it, not how it got there.
+	// because only an administrator or a plugin acting through the
+	// create/update path ever produces one, and this test is checking what the
+	// gate does with it, not how it got there.
 	grantField := func(t *testing.T, groupID, pluginID string) (*model.PropertyField, string) {
 		t.Helper()
 		optionID := model.NewId()
@@ -214,7 +184,12 @@ func TestFieldOptionsAccessControl(t *testing.T) {
 			Permissions: &model.Permissions{
 				Grants: []model.Grant{{
 					Identity: model.Identity{Type: model.PropertyOwnerTypePlugin, ID: pluginID},
-					Allow:    []string{model.PropertyActionFieldWrite},
+					// Both actions, because that is what the conversion emits: a
+					// protected field's source plugin gets a grant over all five
+					// enforced actions (grantsFromLegacy). Granting field.write
+					// alone would be a shape no converted field ever has, and
+					// option changes are gated on option.write.
+					Allow: []string{model.PropertyActionFieldWrite, model.PropertyActionOptionWrite},
 				}},
 			},
 		})
@@ -269,16 +244,6 @@ func TestFieldOptionsAccessControl(t *testing.T) {
 		require.ErrorIs(t, err, ErrAccessDenied)
 
 		require.NoError(t, changes[0].call(source, field, held))
-	})
-
-	t.Run("a group nothing manages is not gated at all", func(t *testing.T) {
-		group := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV2)
-		field, _ := fieldWith(t, group.ID, protectedAttrs())
-
-		options, err := th.service.GetFieldOptions(other, field, 0, "", 100)
-		require.NoError(t, err)
-		require.Len(t, options, 1)
-		require.NoError(t, changes[0].call(other, field, options[0].ID))
 	})
 }
 
@@ -731,5 +696,71 @@ func TestFieldOptionsFromFieldList(t *testing.T) {
 		_, propagated, _, err = th.service.UpdatePropertyFields(th.Context, group.ID, []*model.PropertyField{withParent(current, "Air")})
 		require.NoError(t, err)
 		require.Empty(t, propagated)
+	})
+}
+
+// A field can delegate option management without delegating the definition:
+// field.write: sysadmin with option.write: member means "only an admin edits
+// this field, but a member manages its options". The hook used to gate every
+// option change as a field write, which made that configuration unusable and
+// put the hook's answer at odds with channels/app/authorization.go's, so both
+// halves are asserted here -- the option change is admitted and the field
+// update is still refused, for the same caller on the same field.
+func TestFieldOptionsDelegatedToOptionWrite(t *testing.T) {
+	th := Setup(t).RegisterCPAPropertyGroup(t)
+	group := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV2)
+
+	memberID := model.NewId()
+	rctx := RequestContextWithCallerID(th.Context, memberID)
+
+	optionID := model.NewId()
+	field := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+		GroupID:    group.ID,
+		Name:       "Programs-" + model.NewId(),
+		Type:       model.PropertyFieldTypeMultiselect,
+		ObjectType: model.PropertyFieldObjectTypeUser,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
+		Attrs: model.StringInterface{
+			model.PropertyFieldAttributeOptions: []any{
+				map[string]any{"id": optionID, "name": "Air"},
+			},
+		},
+		Permissions: &model.Permissions{Restrictions: &model.Restrictions{
+			Field:  model.WriteOnly{Write: model.PermissionLevelSysadmin},
+			Option: model.ReadWrite{Read: model.PermissionLevelEveryone, Write: model.PermissionLevelMember},
+		}},
+	})
+
+	t.Run("the options endpoint admits a member holding only option.write", func(t *testing.T) {
+		created, err := th.service.CreateFieldOptions(rctx, field, []*model.PropertyFieldOption{{Name: "Sea"}})
+		require.NoError(t, err)
+		require.Len(t, created, 1)
+	})
+
+	t.Run("a field update carrying nothing but options admits the same member", func(t *testing.T) {
+		stored, err := th.service.GetPropertyField(rctx, group.ID, field.ID)
+		require.NoError(t, err)
+
+		optionsOnly := *stored
+		optionsOnly.Attrs = model.StringInterface{
+			model.PropertyFieldAttributeOptions: []any{
+				map[string]any{"id": optionID, "name": "Air"},
+				map[string]any{"id": model.NewId(), "name": "Land"},
+			},
+		}
+		updated, _, err := th.service.UpdatePropertyField(rctx, group.ID, &optionsOnly)
+		require.NoError(t, err)
+		require.NotNil(t, updated)
+	})
+
+	t.Run("a field update changing anything else still refuses that member", func(t *testing.T) {
+		stored, err := th.service.GetPropertyField(rctx, group.ID, field.ID)
+		require.NoError(t, err)
+
+		renamed := *stored
+		renamed.Name = "Renamed-" + model.NewId()
+		_, _, err = th.service.UpdatePropertyField(rctx, group.ID, &renamed)
+		require.Error(t, err)
+		require.ErrorIs(t, err, ErrAccessDenied)
 	})
 }

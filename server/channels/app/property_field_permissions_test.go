@@ -711,7 +711,9 @@ func TestPropertyPermissionBasisFor(t *testing.T) {
 			},
 		}
 
-		basis := th.App.PropertyPermissionBasisFor(th.Context, field, model.PropertyActionFieldWrite, "")
+		// Explicitly anonymous: th.Context names a local-mode admin, which the
+		// ladder admits without a lookup, so it cannot stand in for "nobody".
+		basis := th.App.PropertyPermissionBasisFor(th.emptyContextWithCallerID(anonymousCallerId), field, model.PropertyActionFieldWrite, "")
 		assert.False(t, basis.Allowed)
 	})
 

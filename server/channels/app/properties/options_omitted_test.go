@@ -52,10 +52,12 @@ func requireOptionsWithheld(t *testing.T, field *model.PropertyField) {
 
 // requireStoredOptionsWithheld reads the field back and asserts the withheld
 // shape. Create returns the field as the caller submitted it — option list and
-// all — so only a read shows what the field now looks like to a consumer.
-func requireStoredOptionsWithheld(t *testing.T, th *TestHelper, groupID, fieldID string) {
+// all — so only a read shows what the field now looks like to a consumer. The
+// read takes an rctx because a caller the field refuses option.read gets the
+// options *hidden* instead, which is a different shape from withheld-for-size.
+func requireStoredOptionsWithheld(t *testing.T, th *TestHelper, rctx request.CTX, groupID, fieldID string) {
 	t.Helper()
-	field, err := th.service.GetPropertyField(th.Context, groupID, fieldID)
+	field, err := th.service.GetPropertyField(rctx, groupID, fieldID)
 	require.NoError(t, err)
 	requireOptionsWithheld(t, field)
 }
@@ -208,7 +210,7 @@ func TestOptionsOmitted_ValueValidation(t *testing.T) {
 		},
 	})
 	require.NoError(t, err)
-	requireStoredOptionsWithheld(t, th, group.ID, field.ID)
+	requireStoredOptionsWithheld(t, th, th.Context, group.ID, field.ID)
 
 	t.Run("an option the field really has is accepted", func(t *testing.T) {
 		encoded, mErr := json.Marshal(optionIDAt(t, options, 0))
@@ -248,7 +250,12 @@ func TestOptionsOmitted_LinkedFieldGuard(t *testing.T) {
 	th := Setup(t).RegisterCPAPropertyGroup(t)
 	group := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV2)
 
-	template, err := th.service.CreatePropertyField(th.Context, &model.PropertyField{
+	// The hook gates this group, so the fixtures need a caller it recognises and
+	// permissions that let one read the options; a caller refused option.read is
+	// shown the hidden shape, not the withheld-for-size shape under test.
+	rctx := RequestContextWithCallerID(th.Context, model.NewId())
+
+	template, err := th.service.CreatePropertyField(rctx, &model.PropertyField{
 		GroupID:    group.ID,
 		Name:       "template-oversized",
 		Type:       model.PropertyFieldTypeSelect,
@@ -257,11 +264,12 @@ func TestOptionsOmitted_LinkedFieldGuard(t *testing.T) {
 		Attrs: model.StringInterface{
 			model.PropertyFieldAttributeOptions: oversizedOptions(false),
 		},
+		Permissions: openPermissions(),
 	})
 	require.NoError(t, err)
-	requireStoredOptionsWithheld(t, th, group.ID, template.ID)
+	requireStoredOptionsWithheld(t, th, rctx, group.ID, template.ID)
 
-	linked, err := th.service.CreatePropertyField(th.Context, &model.PropertyField{
+	linked, err := th.service.CreatePropertyField(rctx, &model.PropertyField{
 		GroupID:       group.ID,
 		Name:          "linked-oversized",
 		Type:          model.PropertyFieldTypeSelect,
@@ -270,27 +278,27 @@ func TestOptionsOmitted_LinkedFieldGuard(t *testing.T) {
 		LinkedFieldID: model.NewPointer(template.ID),
 	})
 	require.NoError(t, err)
-	requireStoredOptionsWithheld(t, th, group.ID, linked.ID)
+	requireStoredOptionsWithheld(t, th, rctx, group.ID, linked.ID)
 
 	t.Run("a read-modify-write that supplies no options is allowed", func(t *testing.T) {
-		field, gErr := th.service.GetPropertyField(th.Context, group.ID, linked.ID)
+		field, gErr := th.service.GetPropertyField(rctx, group.ID, linked.ID)
 		require.NoError(t, gErr)
 		field.Attrs["display_name"] = "Linked"
 
-		updated, _, uErr := th.service.UpdatePropertyField(th.Context, group.ID, field)
+		updated, _, uErr := th.service.UpdatePropertyField(rctx, group.ID, field)
 		require.NoError(t, uErr)
 		assert.Equal(t, "Linked", updated.Attrs["display_name"])
 		requireOptionsWithheld(t, updated)
 	})
 
 	t.Run("supplying an option list is refused", func(t *testing.T) {
-		field, gErr := th.service.GetPropertyField(th.Context, group.ID, linked.ID)
+		field, gErr := th.service.GetPropertyField(rctx, group.ID, linked.ID)
 		require.NoError(t, gErr)
 		field.Attrs[model.PropertyFieldAttributeOptions] = []any{
 			map[string]any{"id": model.NewId(), "name": "Local"},
 		}
 
-		_, _, uErr := th.service.UpdatePropertyField(th.Context, group.ID, field)
+		_, _, uErr := th.service.UpdatePropertyField(rctx, group.ID, field)
 		require.Error(t, uErr)
 		assert.Contains(t, uErr.Error(), "option list of a field whose options were not loaded")
 	})
@@ -299,17 +307,17 @@ func TestOptionsOmitted_LinkedFieldGuard(t *testing.T) {
 		// A client that read the field, saw no options, and normalised that to an
 		// empty array. It asserts nothing, so it is neither refused nor obeyed —
 		// obeying it would ask the store to delete every option the field derives.
-		field, gErr := th.service.GetPropertyField(th.Context, group.ID, linked.ID)
+		field, gErr := th.service.GetPropertyField(rctx, group.ID, linked.ID)
 		require.NoError(t, gErr)
 		field.Attrs[model.PropertyFieldAttributeOptions] = []any{}
 
-		_, _, uErr := th.service.UpdatePropertyField(th.Context, group.ID, field)
+		_, _, uErr := th.service.UpdatePropertyField(rctx, group.ID, field)
 		require.NoError(t, uErr)
-		requireStoredOptionsWithheld(t, th, group.ID, linked.ID)
+		requireStoredOptionsWithheld(t, th, rctx, group.ID, linked.ID)
 	})
 
 	t.Run("the template keeps every option throughout", func(t *testing.T) {
-		field, gErr := th.service.GetPropertyField(th.Context, group.ID, template.ID)
+		field, gErr := th.service.GetPropertyField(rctx, group.ID, template.ID)
 		require.NoError(t, gErr)
 		requireOptionsWithheld(t, field)
 	})
@@ -375,7 +383,7 @@ func TestOptionsOmitted_PatchThenWrite(t *testing.T) {
 			},
 		})
 		require.NoError(t, err)
-		requireStoredOptionsWithheld(t, th, group.ID, field.ID)
+		requireStoredOptionsWithheld(t, th, th.Context, group.ID, field.ID)
 		return field
 	}
 
@@ -407,7 +415,7 @@ func TestOptionsOmitted_PatchThenWrite(t *testing.T) {
 		}))
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "option list of a field whose options were not loaded")
-		requireStoredOptionsWithheld(t, th, group.ID, field.ID)
+		requireStoredOptionsWithheld(t, th, th.Context, group.ID, field.ID)
 	})
 
 	t.Run("a supplied empty option list leaves every option in place", func(t *testing.T) {

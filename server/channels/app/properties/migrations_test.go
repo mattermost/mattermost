@@ -103,7 +103,13 @@ func TestPermissionsBackfillConvertBatch(t *testing.T) {
 		otherGroup := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV2)
 		adminLevel := model.PermissionLevelAdmin
 		memberLevel := model.PermissionLevelMember
-		otherField := createLegacyPropertyField(t, th, th.Context, &model.PropertyField{
+		// Straight to the store, not through the service: shared_only paired with
+		// a member-writable permission_values is a combination the legacy
+		// access-mode validator refuses, and that validator reaches this group
+		// now. Rows in exactly that shape predate the validator and are what the
+		// backfill exists to convert, so the fixture has to be able to hold one.
+		// A direct write also leaves Permissions nil, so nothing needs stripping.
+		otherField := th.CreatePropertyFieldDirect(t, &model.PropertyField{
 			GroupID:           otherGroup.ID,
 			Name:              "shared-only-elsewhere",
 			Type:              model.PropertyFieldTypeSelect,

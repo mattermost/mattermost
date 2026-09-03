@@ -626,6 +626,20 @@ func (s *Server) doPostPriorityConfigDefaultTrueMigration() error {
 	return nil
 }
 
+// systemCallerContext is the request context a setup migration writes and reads
+// property fields with. The access control hook gates every PSAv2/v3 group and
+// refuses a caller that names nobody, so a migration installing or upgrading a
+// group's builtin field definitions has to identify itself. Each migration
+// passes its own subsystem identity and is admitted only on the group that
+// identity owns, so one subsystem's migration cannot touch another's schema.
+//
+// A PSAv1 group's migration needs none of this: the hook never reaches it, and
+// doSetupContentFlaggingProperties passes a nil context for that reason.
+func (s *Server) systemCallerContext(callerID string) request.CTX {
+	rctx := request.EmptyContext(s.Log())
+	return rctx.WithContext(model.WithCallerID(rctx.Context(), callerID))
+}
+
 func (s *Server) doSetupContentFlaggingProperties() error {
 	// This migration is designed in a way to allow adding more properties in the future.
 	// When a new property needs to be added, add it to the expectedPropertiesMap map and
@@ -790,7 +804,7 @@ func (s *Server) doSetupBoardsProperties() error {
 		return fmt.Errorf("failed to register boards property group: %w", err)
 	}
 
-	existingProperties, err := s.propertyService.SearchPropertyFields(nil, group.ID, model.PropertyFieldSearchOpts{PerPage: 100})
+	existingProperties, err := s.propertyService.SearchPropertyFields(s.systemCallerContext(model.CallerIDBoardsSystem), group.ID, model.PropertyFieldSearchOpts{PerPage: 100})
 	if err != nil {
 		return fmt.Errorf("failed to search for existing boards properties: %w", err)
 	}
@@ -866,18 +880,18 @@ func (s *Server) doSetupBoardsProperties() error {
 	}
 
 	for _, property := range propertiesToCreate {
-		if _, err := s.propertyService.CreatePropertyField(nil, property); err != nil {
+		if _, err := s.propertyService.CreatePropertyField(s.systemCallerContext(model.CallerIDBoardsSystem), property); err != nil {
 			// Another server may have won the race and created this field
 			// concurrently (e.g. parallel tests sharing a database pool).
 			// Tolerate that but propagate any other error.
-			if _, retryErr := s.propertyService.GetPropertyFieldByNameForObjectType(nil, group.ID, "", property.ObjectType, property.Name); retryErr != nil {
+			if _, retryErr := s.propertyService.GetPropertyFieldByNameForObjectType(s.systemCallerContext(model.CallerIDBoardsSystem), group.ID, "", property.ObjectType, property.Name); retryErr != nil {
 				return fmt.Errorf("failed to create boards property: %q, error: %w", property.Name, err)
 			}
 		}
 	}
 
 	if len(propertiesToUpdate) > 0 {
-		if _, _, _, err := s.propertyService.UpdatePropertyFields(nil, group.ID, propertiesToUpdate); err != nil {
+		if _, _, _, err := s.propertyService.UpdatePropertyFields(s.systemCallerContext(model.CallerIDBoardsSystem), group.ID, propertiesToUpdate); err != nil {
 			// Another server may have won the race and updated these fields
 			// concurrently (e.g. parallel tests sharing a database pool).
 			// Both servers write the same expected values, so tolerate the
@@ -948,7 +962,7 @@ func mergeBoardsStatusColors(attrs model.StringInterface, colorByName map[string
 
 // seedSessionAttributeFields idempotently seeds the built-in session attribute property fields.
 func (s *Server) seedSessionAttributeFields(groupID string) error {
-	existing, err := s.propertyService.SearchPropertyFields(nil, groupID, model.PropertyFieldSearchOpts{PerPage: 100})
+	existing, err := s.propertyService.SearchPropertyFields(s.systemCallerContext(model.CallerIDSessionAttributesSystem), groupID, model.PropertyFieldSearchOpts{PerPage: 100})
 	if err != nil {
 		return fmt.Errorf("failed to search for existing session attribute fields: %w", err)
 	}
@@ -979,15 +993,15 @@ func (s *Server) seedSessionAttributeFields(groupID string) error {
 	}
 
 	for _, field := range fieldsToCreate {
-		if _, err := s.propertyService.CreatePropertyField(nil, field); err != nil {
-			if _, retryErr := s.propertyService.GetPropertyFieldByNameForObjectType(nil, groupID, "", field.ObjectType, field.Name); retryErr != nil {
+		if _, err := s.propertyService.CreatePropertyField(s.systemCallerContext(model.CallerIDSessionAttributesSystem), field); err != nil {
+			if _, retryErr := s.propertyService.GetPropertyFieldByNameForObjectType(s.systemCallerContext(model.CallerIDSessionAttributesSystem), groupID, "", field.ObjectType, field.Name); retryErr != nil {
 				return fmt.Errorf("failed to create session attribute field: %q, error: %w", field.Name, err)
 			}
 		}
 	}
 
 	if len(fieldsToUpdate) > 0 {
-		if _, _, _, err := s.propertyService.UpdatePropertyFields(nil, groupID, fieldsToUpdate); err != nil {
+		if _, _, _, err := s.propertyService.UpdatePropertyFields(s.systemCallerContext(model.CallerIDSessionAttributesSystem), groupID, fieldsToUpdate); err != nil {
 			var conflictErr *store.ErrConflict
 			if !errors.As(err, &conflictErr) {
 				return fmt.Errorf("failed to update session attribute fields: %w", err)
@@ -1039,7 +1053,7 @@ func (s *Server) doSetupManagedCategoryProperties() error {
 		return fmt.Errorf("failed to register managed category group: %w", err)
 	}
 
-	_, err = s.propertyService.GetPropertyFieldByNameForObjectType(nil, group.ID, "", model.PropertyValueTargetTypeChannel, model.ManagedCategoryPropertyFieldName)
+	_, err = s.propertyService.GetPropertyFieldByNameForObjectType(s.systemCallerContext(model.CallerIDManagedCategorySystem), group.ID, "", model.PropertyValueTargetTypeChannel, model.ManagedCategoryPropertyFieldName)
 	if err != nil {
 		field := &model.PropertyField{
 			GroupID:           group.ID,
@@ -1054,8 +1068,8 @@ func (s *Server) doSetupManagedCategoryProperties() error {
 			PermissionOptions: model.NewPointer(model.PermissionLevelMember),
 		}
 
-		if _, err := s.propertyService.CreatePropertyField(nil, field); err != nil {
-			if _, retryErr := s.propertyService.GetPropertyFieldByNameForObjectType(nil, group.ID, "", field.ObjectType, model.ManagedCategoryPropertyFieldName); retryErr != nil {
+		if _, err := s.propertyService.CreatePropertyField(s.systemCallerContext(model.CallerIDManagedCategorySystem), field); err != nil {
+			if _, retryErr := s.propertyService.GetPropertyFieldByNameForObjectType(s.systemCallerContext(model.CallerIDManagedCategorySystem), group.ID, "", field.ObjectType, model.ManagedCategoryPropertyFieldName); retryErr != nil {
 				return fmt.Errorf("failed to create managed category field: %w", err)
 			}
 		}
@@ -1147,7 +1161,7 @@ func (s *Server) cacheManagedCategoryIDs() error {
 		return fmt.Errorf("failed to get managed category group: %w", err)
 	}
 
-	field, err := s.propertyService.GetPropertyFieldByNameForObjectType(nil, group.ID, "", model.PropertyValueTargetTypeChannel, model.ManagedCategoryPropertyFieldName)
+	field, err := s.propertyService.GetPropertyFieldByNameForObjectType(s.systemCallerContext(model.CallerIDManagedCategorySystem), group.ID, "", model.PropertyValueTargetTypeChannel, model.ManagedCategoryPropertyFieldName)
 	if err != nil {
 		return fmt.Errorf("failed to get managed category field: %w", err)
 	}

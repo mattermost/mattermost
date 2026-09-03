@@ -49,8 +49,12 @@ func TestGetCPAValue(t *testing.T) {
 			FieldID:    fieldID,
 			Value:      json.RawMessage(`"Value"`),
 		}
-		created, err := th.App.CreatePropertyValue(rctx, propertyValue)
-		require.Nil(t, err)
+		// Written through the store: the hook resolves a value's group to decide
+		// whether to enforce it and refuses a group ID that names nothing, so a
+		// value under an unregistered group can no longer be created through the
+		// service. The row itself is still what this asserts the read rejects.
+		created, storeErr := th.Store.PropertyValue().Create(propertyValue)
+		require.NoError(t, storeErr)
 		require.NotNil(t, created)
 
 		pv, appErr := th.App.GetPropertyValue(rctx, cpaID, created.ID)

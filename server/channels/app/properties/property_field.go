@@ -176,17 +176,6 @@ func (ps *PropertyService) createPropertyField(field *model.PropertyField) (*mod
 				field.Attrs[model.PropertyFieldAttributeOptions] = opts
 			}
 		}
-
-		// Inherit permission levels from source template
-		if source.PermissionField != nil {
-			field.PermissionField = source.PermissionField
-		}
-		if source.PermissionValues != nil {
-			field.PermissionValues = source.PermissionValues
-		}
-		if source.PermissionOptions != nil {
-			field.PermissionOptions = source.PermissionOptions
-		}
 	}
 
 	if err := ps.defaultPropertyFieldPermissions(field, source); err != nil {

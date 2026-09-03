@@ -290,37 +290,6 @@ func TestGetPropertyFieldReadAccess(t *testing.T) {
 		assert.Empty(t, retrieved.Attrs[model.PropertyFieldAttributeOptions].([]any))
 	})
 
-	t.Run("non-CPA group routes directly to PropertyService without filtering", func(t *testing.T) {
-		nonCpaGroup, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "other_group_routing_read", Version: model.PropertyGroupVersionV2})
-		require.NoError(t, err)
-
-		field := &model.PropertyField{
-			GroupID:    nonCpaGroup.ID,
-			Name:       "routing-test-non-cpa-source-only",
-			Type:       model.PropertyFieldTypeSelect,
-			ObjectType: model.PropertyFieldObjectTypeUser,
-			TargetType: string(model.PropertyFieldTargetLevelSystem),
-			Attrs: model.StringInterface{
-				model.PropertyAttrsAccessMode:     model.PropertyAccessModeSourceOnly,
-				model.PropertyAttrsProtected:      true,
-				model.PropertyAttrsSourcePluginID: pluginID1,
-				model.PropertyFieldAttributeOptions: []any{
-					map[string]any{"id": "opt1", "value": "Option 1"},
-					map[string]any{"id": "opt2", "value": "Option 2"},
-				},
-			},
-		}
-		rctx1 := RequestContextWithCallerID(th.Context, pluginID1)
-		created, err := th.service.CreatePropertyField(rctx1, field)
-		require.NoError(t, err)
-
-		// Other plugin sees ALL options (no filtering, goes directly to PropertyService)
-		rctx2 := RequestContextWithCallerID(th.Context, "plugin-2")
-		retrieved, err := th.service.GetPropertyField(rctx2, nonCpaGroup.ID, created.ID)
-		require.NoError(t, err)
-		assert.Len(t, retrieved.Attrs[model.PropertyFieldAttributeOptions].([]any), 2)
-	})
-
 	t.Run("field with no attrs defaults to public", func(t *testing.T) {
 		field := &model.PropertyField{
 			GroupID:    th.CPAGroupID,
@@ -814,25 +783,6 @@ func TestCreatePropertyField_AccessControl(t *testing.T) {
 		assert.True(t, created.Attrs[model.PropertyAttrsProtected].(bool))
 		assert.Equal(t, model.PropertyAccessModeSourceOnly, created.Attrs[model.PropertyAttrsAccessMode])
 	})
-
-	t.Run("non-CPA group routes directly to PropertyService without setting source_plugin_id", func(t *testing.T) {
-		nonCpaGroup, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "other_group_create", Version: model.PropertyGroupVersionV2})
-		require.NoError(t, err)
-
-		field := &model.PropertyField{
-			GroupID:    nonCpaGroup.ID,
-			Name:       model.NewId(),
-			Type:       model.PropertyFieldTypeText,
-			ObjectType: model.PropertyFieldObjectTypeUser,
-			TargetType: string(model.PropertyFieldTargetLevelSystem),
-		}
-
-		rctx := RequestContextWithCallerID(th.Context, "plugin-2")
-		created, err := th.service.CreatePropertyField(rctx, field)
-		require.NoError(t, err)
-		assert.NotNil(t, created)
-		assert.Nil(t, created.Attrs[model.PropertyAttrsSourcePluginID])
-	})
 }
 
 // TestUpdatePropertyField_WriteAccessControl tests write access control for field updates
@@ -1008,33 +958,6 @@ func TestUpdatePropertyField_WriteAccessControl(t *testing.T) {
 		updated, _, err = th.service.UpdatePropertyField(rctxPlugin1, th.CPAGroupID, created)
 		require.NoError(t, err)
 		assert.True(t, model.IsPropertyFieldProtected(updated))
-	})
-
-	t.Run("non-CPA group routes directly to PropertyService without access control", func(t *testing.T) {
-		nonCpaGroup, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "other_group_update", Version: model.PropertyGroupVersionV2})
-		require.NoError(t, err)
-
-		field := &model.PropertyField{
-			GroupID: nonCpaGroup.ID,
-			Name:    "Non-CPA Protected",
-			Type:    model.PropertyFieldTypeText,
-			Attrs: model.StringInterface{
-				model.PropertyAttrsProtected:      true,
-				model.PropertyAttrsSourcePluginID: "plugin-1",
-			},
-			ObjectType: model.PropertyFieldObjectTypeUser,
-			TargetType: string(model.PropertyFieldTargetLevelSystem),
-		}
-
-		created, err := th.service.CreatePropertyField(rctxPlugin1, field)
-		require.NoError(t, err)
-
-		// Update with different plugin - should be allowed (no access control)
-		created.Name = "Updated by Plugin2"
-		updated, _, err := th.service.UpdatePropertyField(rctxPlugin2, nonCpaGroup.ID, created)
-		require.NoError(t, err)
-		assert.NotNil(t, updated)
-		assert.Equal(t, "Updated by Plugin2", updated.Name)
 	})
 }
 
@@ -1293,30 +1216,6 @@ func TestDeletePropertyField_WriteAccessControl(t *testing.T) {
 		err = th.service.DeletePropertyField(rctxPlugin2, th.CPAGroupID, created.ID)
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "a field delete")
-	})
-
-	t.Run("non-CPA group routes directly to PropertyService without access control", func(t *testing.T) {
-		nonCpaGroup, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "other_group_delete", Version: model.PropertyGroupVersionV2})
-		require.NoError(t, err)
-
-		field := &model.PropertyField{
-			GroupID: nonCpaGroup.ID,
-			Name:    "Non-CPA Delete Protected",
-			Type:    model.PropertyFieldTypeText,
-			Attrs: model.StringInterface{
-				model.PropertyAttrsProtected:      true,
-				model.PropertyAttrsSourcePluginID: "plugin-1",
-			},
-			ObjectType: model.PropertyFieldObjectTypeUser,
-			TargetType: string(model.PropertyFieldTargetLevelSystem),
-		}
-
-		created, err := th.service.CreatePropertyField(rctxPlugin1, field)
-		require.NoError(t, err)
-
-		// Delete with different plugin - should be allowed (no access control)
-		err = th.service.DeletePropertyField(rctxPlugin2, nonCpaGroup.ID, created.ID)
-		require.NoError(t, err)
 	})
 }
 

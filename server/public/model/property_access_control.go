@@ -29,11 +29,41 @@ const AccessControlScopeContextKey AccessControlContextKey = "access_control_sco
 // privileges. HTTP handlers tag the rctx with this caller ID when
 // Session().IsUnrestricted() is true, so the attribute validation hook's
 // permission checker can grant admin privileges without a user lookup.
+//
+// The CallerID*System values mark a request as the startup migration that
+// installs and upgrades one group's builtin field definitions. There is one per
+// subsystem rather than a single shared "migration" identity, so that the
+// boards migration cannot rewrite session_attributes' schema. They are not
+// machine callers matched by grants -- a builtin field declares none, and the
+// migration owns the definition it writes rather than holding a permission over
+// it. Step 7.17a moves them onto service grants, at which point they become
+// machine callers and SystemCallerOwnedGroup goes away.
 const (
 	CallerIDLDAPSync   = "system:ldap_sync"
 	CallerIDSAMLSync   = "system:saml_sync"
 	CallerIDLocalAdmin = "system:local_admin"
+
+	CallerIDBoardsSystem            = "system:boards"
+	CallerIDSessionAttributesSystem = "system:session_attributes"
+	CallerIDManagedCategorySystem   = "system:managed_category"
 )
+
+// systemCallerOwnedGroups maps each subsystem identity to the one property
+// group whose builtin definitions it owns.
+var systemCallerOwnedGroups = map[string]string{
+	CallerIDBoardsSystem:            BoardsPropertyGroupName,
+	CallerIDSessionAttributesSystem: SessionAttributesPropertyGroupName,
+	CallerIDManagedCategorySystem:   ManagedCategoryPropertyGroupName,
+}
+
+// SystemCallerOwnedGroup reports the property group a subsystem identity owns.
+// A caller that is not one of those identities returns false, and one that is
+// may act only on the group it names -- the separation a single shared
+// migration identity would not buy.
+func SystemCallerOwnedGroup(callerID string) (string, bool) {
+	group, ok := systemCallerOwnedGroups[callerID]
+	return group, ok
+}
 
 // WithCallerID adds the caller ID to a context.Context for access control purposes.
 func WithCallerID(ctx context.Context, callerID string) context.Context {

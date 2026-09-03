@@ -141,7 +141,7 @@ func (th *TestHelper) RegisterCPAPropertyGroup(tb testing.TB) *TestHelper {
 	// nil, so a field carrying a real Restrictions object is judged by its
 	// tier instead of being denied outright; a test that needs a specific
 	// human decision still overrides it with setLadderCheckerForTests.
-	hook := NewAccessControlHook(th.service, nil, defaultLadderCheckerForTests, nil, group.ID)
+	hook := NewAccessControlHook(th.service, nil, defaultLadderCheckerForTests, nil)
 	th.service.AddHook(hook)
 
 	// Production also runs AccessControlAttributeValidationHook.PreCreatePropertyField
@@ -308,6 +308,20 @@ func (th *TestHelper) CreatePropertyField(tb testing.TB, rctx request.CTX, field
 	result, err := th.service.CreatePropertyField(rctx, field)
 	require.NoError(tb, err)
 	return result
+}
+
+// openPermissions is the permissions object for a fixture whose test is about
+// something other than access control -- every action at everyone, so the hook
+// admits an ordinary member and the test exercises what it was written for.
+// Fixtures that go through the store directly need one explicitly:
+// CreatePropertyFieldDirect skips defaultPropertyFieldPermissions, and a field
+// reaching a hook gate with a nil Permissions is refused.
+func openPermissions() *model.Permissions {
+	return &model.Permissions{Restrictions: &model.Restrictions{
+		Value:  model.ReadWrite{Read: model.PermissionLevelEveryone, Write: model.PermissionLevelEveryone},
+		Option: model.ReadWrite{Read: model.PermissionLevelEveryone, Write: model.PermissionLevelEveryone},
+		Field:  model.WriteOnly{Write: model.PermissionLevelEveryone},
+	}}
 }
 
 // CreatePropertyFieldDirect creates a property field directly via store (bypasses conflict check and access control)
