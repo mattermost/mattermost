@@ -66,7 +66,7 @@ describe('Channel sidebar', () => {
         cy.uiGetLHSHeader().findByText(teamName);
 
         // # Get channel group button and wait for Channels to be visible since for some reason it shows up later...
-        cy.get('.SidebarChannelGroupHeader_groupButton > div[data-rbd-drag-handle-draggable-id]').should('be.visible').as('fromChannelGroup');
+        cy.get('.SidebarChannelGroupHeader_groupButton > div[data-rfd-drag-handle-draggable-id]').should('be.visible').as('fromChannelGroup');
         cy.get('@fromChannelGroup').should('contain', 'CHANNELS');
 
         // * Verify the order is correct to begin with
@@ -80,7 +80,7 @@ describe('Channel sidebar', () => {
             trigger('keydown', {keyCode: SpaceKeyCode, force: true}).wait(TIMEOUTS.THREE_SEC);
 
         // * Verify that the elements have been re-ordered
-        cy.get('.SidebarChannelGroupHeader_groupButton > div[data-rbd-drag-handle-draggable-id]').as('toChannelGroup');
+        cy.get('.SidebarChannelGroupHeader_groupButton > div[data-rfd-drag-handle-draggable-id]').as('toChannelGroup');
         cy.get('@toChannelGroup').eq(1).should('contain', 'CHANNELS');
         cy.get('@toChannelGroup').eq(0).should('contain', 'DIRECT MESSAGES');
     });

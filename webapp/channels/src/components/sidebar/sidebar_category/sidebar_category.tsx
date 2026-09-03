@@ -1,10 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Draggable, Droppable} from '@hello-pangea/dnd';
 import classNames from 'classnames';
 import React from 'react';
 import type {JSX, KeyboardEvent, MouseEvent} from 'react';
-import {Draggable, Droppable} from 'react-beautiful-dnd';
 import {FormattedMessage, defineMessages} from 'react-intl';
 
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
@@ -199,7 +199,7 @@ export default class SidebarCategory extends React.PureComponent<Props, State> {
                     index={0}
                 >
                     {(provided) => {
-                        // NEW_CHANNEL_SPACER here is used as a spacer to ensure react-beautiful-dnd will not try and place the first channel
+                        // NEW_CHANNEL_SPACER here is used as a spacer to ensure @hello-pangea/dnd will not try and place the first channel
                         // on the header. This acts as a space filler for the header so that the first channel dragged in will float below it.
                         return (
                             <li
