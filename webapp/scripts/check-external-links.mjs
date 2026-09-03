@@ -159,6 +159,7 @@ async function checkUrlWithRedirects(originalUrl) {
         // Some origins reject HEAD; retry with GET and let the outer loop
         // handle any 3xx the GET returns so we still follow the chain.
         if (response.status === 405 || response.status === 403) {
+            await response.body?.cancel();
             response = await fetch(currentUrl, {
                 method: 'GET',
                 redirect: 'manual',
@@ -167,23 +168,30 @@ async function checkUrlWithRedirects(originalUrl) {
             });
         }
 
-        const result = processResponse(originalUrl, response);
+        // Always release the response body — HEAD leaves it null (safe no-op),
+        // but the GET fallback returns real bodies we never read. Leaving them
+        // open pins sockets in undici's pool until finalization.
+        try {
+            const result = processResponse(originalUrl, response);
 
-        if (!result.redirect) {
-            return result;
+            if (!result.redirect) {
+                return result;
+            }
+
+            const location = response.headers.get('location');
+            if (!location) {
+                return {
+                    url: originalUrl,
+                    status: response.status,
+                    ok: false,
+                    error: 'Redirect without Location header',
+                };
+            }
+
+            currentUrl = new URL(location, currentUrl).href;
+        } finally {
+            await response.body?.cancel();
         }
-
-        const location = response.headers.get('location');
-        if (!location) {
-            return {
-                url: originalUrl,
-                status: response.status,
-                ok: false,
-                error: 'Redirect without Location header',
-            };
-        }
-
-        currentUrl = new URL(location, currentUrl).href;
     }
 
     return {
