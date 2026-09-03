@@ -255,9 +255,9 @@ jobs:
       build_id: ${{ needs.generate-build-variables.outputs.build_id }}
       server_image_tag: ${{ needs.generate-build-variables.outputs.server_image_tag }}
       server_edition: ${{ inputs.server_edition }}
-      server_image_repo: ${{ inputs.server_image_repo }}
+      server_image_repo: ${{ inputs.server_image_repo || 'mattermostdevelopment' }}
       server_image_aliases: ${{ inputs.server_image_aliases }}
-      enable_reporting: ${{ inputs.enable_reporting }}
+      enable_reporting: ${{ inputs.enable_reporting == true }}
       report_type: ${{ inputs.report_type }}
       ref_branch: ${{ inputs.ref_branch }}
       pr_number: ${{ inputs.pr_number }}

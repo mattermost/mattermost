@@ -270,7 +270,7 @@ jobs:
       # dispatch pulls specs from a shared queue, so no worker knows in advance which
       # service-tagged spec (e.g. @ldap, @saml, @elasticsearch) it will draw.
       PW_USE_TESTCONTAINERS: "true"
-      PW_TESTCONTAINERS_SERVICES: "openldap,keycloak,elasticsearch,minio"
+      PW_TESTCONTAINERS_SERVICES: "openldap,keycloak,elasticsearch,opensearch,minio,azurite"
       # Keeps the server alive across this worker's per-spec dispatch invocations instead of
       # tearing down after each — otherwise ci/prepare-playwright's own global-teardown call would
       # stop the server that ci/dispatch-run needs next. ci/testcontainers-teardown does the final
