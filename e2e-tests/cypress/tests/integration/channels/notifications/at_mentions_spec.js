@@ -301,8 +301,7 @@ function setNotificationSettings(desiredSettings = {first: true, username: true,
         expect(props.channel).to.equal(desiredSettings.shouts ? 'true' : 'false');
     });
 
-    // # Navigate to a channel we are NOT going to post to, then spy.
-    // A stub installed before this click is lost if the channel switch remounts the window APIs.
+    // Spy after the channel switch so the stub is on the window that receives the post.
     cy.get(`#sidebarItem_${channelName}`).scrollIntoView().click({force: true});
     cy.get('#loadingSpinner').should('not.exist');
     cy.get('#channelHeaderDropdownButton').should('be.visible');
