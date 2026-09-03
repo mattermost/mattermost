@@ -22,14 +22,15 @@ test.describe('Burn-on-Read in DMs and GMs', () => {
         await channelsPage.toBeVisible();
         await channelsPage.goto(team.name, `@${otherUser.username}`);
 
-        // * Verify BoR toggle button is available
-        await expect(channelsPage.centerView.postCreate.burnOnReadButton).toBeVisible();
+        // * Verify BoR toggle is attached and enabled before using it
+        await expect(channelsPage.centerView.postCreate.burnOnReadButton).toBeAttached();
+        await expect(channelsPage.centerView.postCreate.burnOnReadButton).toBeEnabled();
 
         // # Toggle BoR on
         await channelsPage.centerView.postCreate.toggleBurnOnRead();
 
         // * Verify BoR label appears indicating it's enabled
-        await expect(channelsPage.centerView.postCreate.burnOnReadLabel).toBeVisible({timeout: 10000});
+        await expect(channelsPage.centerView.postCreate.burnOnReadLabel).toBeVisible();
     });
 
     test('MM-66742_2 complete BoR flow in DM between two users', {tag: [BOR_TAG]}, async ({pw}) => {
@@ -345,10 +346,8 @@ test.describe('Burn-on-Read in DMs and GMs', () => {
         await receiverPage.goto(team.name, `@${sender.username}`);
         await receiverPage.toBeVisible();
 
-        // Wait for posts to load - at least one concealed placeholder should be visible
-        await expect(receiverPage.centerView.container.locator('.BurnOnReadConcealedPlaceholder').first()).toBeVisible({
-            timeout: 10000,
-        });
+        // Wait for posts to load via the BoR placeholder test id
+        await expect(receiverPage.centerView.container.getByTestId(/^burn-on-read-concealed-/).first()).toBeVisible();
 
         // * Get all concealed placeholders
         const concealedPlaceholders = receiverPage.centerView.container.locator('.BurnOnReadConcealedPlaceholder');

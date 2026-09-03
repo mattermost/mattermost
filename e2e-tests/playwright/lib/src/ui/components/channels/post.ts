@@ -13,7 +13,7 @@ import ThreadFooter from './thread_footer';
 // Both assert the positive case first: a lone "placeholder is absent" check also passes
 // against a region that has not rendered at all.
 export async function expectFilesVisible(scope: Locator) {
-    await expect(scope.getByTestId('fileAttachmentList')).toBeVisible({timeout: 30000});
+    await expect(scope.getByTestId('fileAttachmentList')).toBeVisible();
     await expect(scope.getByTestId('redactedFilesPlaceholder')).toHaveCount(0);
 }
 

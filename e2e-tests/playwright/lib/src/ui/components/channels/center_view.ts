@@ -85,14 +85,14 @@ export default class ChannelsCenterView {
      */
     async getPostByText(text: string) {
         const post = this.container.getByTestId('postView').filter({hasText: text}).last();
-        await post.waitFor({timeout: duration.half_min});
+        await expect(post).toBeVisible();
         return new ChannelsPost(post);
     }
 
     async getConcealedBorPost() {
         // Pin to post id so the locator survives reveal (placeholder is then removed).
         const placeholder = this.container.getByTestId(/^burn-on-read-concealed-/).last();
-        await placeholder.waitFor({timeout: duration.half_min});
+        await expect(placeholder).toBeVisible();
         const testId = await placeholder.getAttribute('data-testid');
         return this.getPostById((testId || '').replace('burn-on-read-concealed-', ''));
     }

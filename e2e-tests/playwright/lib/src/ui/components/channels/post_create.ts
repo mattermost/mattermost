@@ -6,9 +6,7 @@ import path from 'node:path';
 import type {Locator} from '@playwright/test';
 import {expect} from '@playwright/test';
 
-import {duration} from '@/util';
 import {assetPath} from '@/file';
-import {waitUntil} from '@/test_action';
 
 export default class ChannelsPostCreate {
     readonly container: Locator;
@@ -221,25 +219,18 @@ export default class ChannelsPostCreate {
         await this.previewArea.locator('.mention-link').click();
     }
 
-    async waitUntilFilePreviewContains(files: string[], timeout = duration.half_min) {
-        await waitUntil(
-            async () => {
-                const previews = this.filePreview.getByTestId('file-preview-item');
-                const details = this.filePreview.getByTestId('post-image-details');
-
-                const [previewsCount, detailsCount] = await Promise.all([previews.count(), details.count()]);
-
-                return previewsCount === files.length && detailsCount === files.length;
-            },
-            {timeout},
-        );
+    async waitUntilFilePreviewContains(files: string[]) {
+        await expect(this.filePreview).toBeVisible();
+        await expect(this.filePreview.getByTestId('file-preview-item')).toHaveCount(files.length);
+        await expect(this.filePreview.getByTestId('post-image-details')).toHaveCount(files.length);
     }
 
     /**
      * Toggle the burn-on-read feature for the message
      */
     async toggleBurnOnRead() {
-        await expect(this.burnOnReadButton).toBeVisible();
+        await expect(this.burnOnReadButton).toBeAttached();
+        await expect(this.burnOnReadButton).toBeEnabled();
         await this.burnOnReadButton.click();
     }
 
