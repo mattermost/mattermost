@@ -378,19 +378,6 @@ func validateOutgoingOAuthConnectionCredentials(c *Context, w http.ResponseWrite
 		return
 	}
 
-	if inputConnection.Id != "" && inputConnection.ClientSecret == "" {
-		var err *model.AppError
-		var storedConnection *model.OutgoingOAuthConnection
-		storedConnection, err = service.GetConnection(c.AppContext, inputConnection.Id)
-		if err != nil {
-			c.Err = model.NewAppError(whereOutgoingOAuthConnection, "api.context.outgoing_oauth_connection.validate_connection_credentials.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-			w.WriteHeader(c.Err.StatusCode)
-			return
-		}
-
-		inputConnection.ClientSecret = storedConnection.ClientSecret
-	}
-
 	model.AddEventParameterAuditableToAuditRec(auditRec, "outgoing_oauth_connection", inputConnection)
 
 	// Try to retrieve a token with the provided credentials

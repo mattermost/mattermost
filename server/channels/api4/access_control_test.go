@@ -16,6 +16,15 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// allowSelfInclusion stubs QueryUsersForExpression so checkSelfInclusion
+// succeeds for userID. Maybe() so tests whose expressions skip the check
+// ("true"/empty) still pass AssertExpectations.
+func allowSelfInclusion(mockACS *mocks.AccessControlServiceInterface, userID string) {
+	mockACS.On("QueryUsersForExpression", mock.Anything, mock.Anything, mock.Anything).
+		Return([]*model.User{{Id: userID}}, int64(1), nil).
+		Maybe()
+}
+
 // maskingOffTestConfig disables attribute-value masking for policy-endpoint
 // tests that do not cover masking. ABAC and other ABAC sub-flags default on.
 func maskingOffTestConfig(cfg *model.Config) {
@@ -146,6 +155,7 @@ func TestCreateAccessControlPolicy(t *testing.T) {
 		th.App.Srv().Channels().AccessControl = mockAccessControlService
 		notFound := model.NewAppError("GetPolicy", "app.access_control.not_found.app_error", nil, "", http.StatusNotFound)
 		mockAccessControlService.On("GetPolicy", mock.AnythingOfType("*request.Context"), privateChannel.Id).Return(nil, notFound)
+		allowSelfInclusion(mockAccessControlService, channelAdmin.Id)
 		mockAccessControlService.On("SavePolicy", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("*model.AccessControlPolicy")).Return(channelPolicy, nil).Times(1)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
@@ -270,6 +280,7 @@ func TestCreateAccessControlPolicy(t *testing.T) {
 		// Set up mock expectations
 		notFound := model.NewAppError("GetPolicy", "app.access_control.not_found.app_error", nil, "", http.StatusNotFound)
 		mockAccessControlService.On("GetPolicy", mock.AnythingOfType("*request.Context"), ch.Id).Return(nil, notFound)
+		allowSelfInclusion(mockAccessControlService, th.BasicUser.Id)
 		mockAccessControlService.On("SavePolicy", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("*model.AccessControlPolicy")).Return(samplePolicy, nil).Times(1)
 
 		// Set the mock on the app
@@ -598,7 +609,9 @@ func TestCreateAccessControlPolicyPreservesSystemManagedFields(t *testing.T) {
 		_, _, err := client.Login(context.Background(), channelAdmin.Email, channelAdmin.Password)
 		require.NoError(t, err)
 
-		return privateChannel, client, enableABAC()
+		mockACS := enableABAC()
+		allowSelfInclusion(mockACS, channelAdmin.Id)
+		return privateChannel, client, mockACS
 	}
 
 	// Logs th.Client in as a team admin and stubs the per-rule self-inclusion check so the request
@@ -2027,6 +2040,7 @@ func setupTeamAdminABAC(t *testing.T, th *TestHelper) *mocks.AccessControlServic
 	})
 
 	th.AddPermissionToRole(t, model.PermissionManageTeamAccessRules.Id, model.TeamAdminRoleId)
+	allowSelfInclusion(mockACS, th.TeamAdminUser.Id)
 	return mockACS
 }
 

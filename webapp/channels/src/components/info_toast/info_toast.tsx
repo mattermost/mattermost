@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {useEffect, useCallback} from 'react';
+import React, {useEffect, useCallback, useRef} from 'react';
 import {useIntl} from 'react-intl';
 import {CSSTransition} from 'react-transition-group';
 
@@ -25,6 +25,7 @@ type Props = {
 
 function InfoToast({content, onExited, className, position = DEFAULT_POSITION}: Props): JSX.Element {
     const {formatMessage} = useIntl();
+    const nodeRef = useRef<HTMLDivElement>(null);
 
     // Validate position and fallback to default if invalid
     const validatedPosition = VALID_POSITIONS.includes(position) ? position : DEFAULT_POSITION;
@@ -51,13 +52,17 @@ function InfoToast({content, onExited, className, position = DEFAULT_POSITION}: 
     return (
         <CSSTransition
             in={Boolean(content)}
+            nodeRef={nodeRef}
             classNames='toast'
             mountOnEnter={true}
             unmountOnExit={true}
             timeout={300}
             appear={true}
         >
-            <div className={toastContainerClassname}>
+            <div
+                ref={nodeRef}
+                className={toastContainerClassname}
+            >
                 {content.icon}
                 <span>{content.message}</span>
                 {content.undo && (
