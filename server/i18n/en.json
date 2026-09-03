@@ -7013,6 +7013,10 @@
     "translation": "Failed to get channel members for direct channel"
   },
   {
+    "id": "app.import.import_direct_channel.get_ever_members.error",
+    "translation": "Failed to get the history of members who have ever belonged to the direct channel"
+  },
+  {
     "id": "app.import.import_direct_channel.no_members.error",
     "translation": "There are no members for the direct channel"
   },
