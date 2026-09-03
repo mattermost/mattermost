@@ -256,7 +256,7 @@ jobs:
           ref: ${{ inputs.commit_sha }}
           fetch-depth: 1
       - name: ci/dispatch-begin
-        uses: mattermost/mattermost-test-system-io/.github/actions/test-system-io-dispatch-begin@3ec41f55b17670c8c75b8e71a4e2546396afc369 # 2026-09-02, mattermost-test-system-io#101
+        uses: mattermost/mattermost-test-system-io/.github/actions/test-system-io-dispatch-begin@17daaac223e96e89ca82b9a7ee54f45e146a0967 # 2026-09-03, mattermost-test-system-io#101
         with:
           # Staging TSIO is opt-in via repo variable, so a demo cannot leave
           # production runs pointed at staging after the fact.
@@ -438,7 +438,7 @@ jobs:
     steps:
       - name: ci/ai-flake-triage
         id: triage
-        uses: mattermost/mattermost-test-system-io/.github/actions/test-system-io-ai-triage@3ec41f55b17670c8c75b8e71a4e2546396afc369 # 2026-09-02, mattermost-test-system-io#101
+        uses: mattermost/mattermost-test-system-io/.github/actions/test-system-io-ai-triage@17daaac223e96e89ca82b9a7ee54f45e146a0967 # 2026-09-03, mattermost-test-system-io#101
         with:
           use-staging: ${{ vars.E2E_TRIAGE_TSIO_PRODUCTION != 'true' }}
           composite-identity: ${{ needs.prepare-run.outputs.composite-identity-json }}
@@ -446,7 +446,13 @@ jobs:
           # `pr-N` / `commit-*` dashboard branch this run reported under.
           baseline-branch: ${{ inputs.ref_branch || 'master' }}
           run-type: ${{ inputs.report_type == 'MASTER' && 'MAIN' || (startsWith(inputs.report_type, 'RELEASE') && 'RELEASE' || 'PR') }}
-          mode: gate
+          # The kill switch. Gating is owned here, not by server state — the
+          # rollout-phase ladder that used to cap this was removed, so this
+          # input is the only thing that decides whether triage may turn a red
+          # check green. Default is shadow: an unset or misspelled variable
+          # observes rather than gates, and the action fails closed the same
+          # way on anything it does not recognise.
+          mode: ${{ vars.E2E_TRIAGE_MODE || 'shadow' }}
           # The platform row this template's summary step posted is the signal:
           # triage rewrites it instead of adding a separate ai-triage row.
           original-commit-status-contexts: ${{ inputs.context_name }}
@@ -482,10 +488,12 @@ jobs:
       inputs.autofix_mode == 'push' &&
       needs.ai-triage.outputs.fixable_clusters != '' &&
       needs.ai-triage.outputs.fixable_clusters != '[]'
-    # The fixer pushes and comments with the GH_TOKEN PAT — see the playwright
+    # The fixer pushes and comments with the GH_TOKEN PAT, and records every
+    # attempt against the stabilization queue over OIDC — see the playwright
     # template for the permission rationale.
     permissions:
       contents: read
+      id-token: write
     steps:
       - name: ci/checkout-for-autofix
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -494,7 +502,8 @@ jobs:
           ref: ${{ inputs.commit_sha }}
           fetch-depth: 0
       - name: ci/ai-test-autofix
-        uses: mattermost/mattermost-test-system-io/.github/actions/test-system-io-ai-triage@3ec41f55b17670c8c75b8e71a4e2546396afc369 # 2026-09-02, mattermost-test-system-io#101
+        id: autofix
+        uses: mattermost/mattermost-test-system-io/.github/actions/test-system-io-ai-triage@17daaac223e96e89ca82b9a7ee54f45e146a0967 # 2026-09-03, mattermost-test-system-io#101
         with:
           use-staging: ${{ vars.E2E_TRIAGE_TSIO_PRODUCTION != 'true' }}
           composite-identity: ${{ needs.prepare-run.outputs.composite-identity-json }}
@@ -504,3 +513,20 @@ jobs:
           # workflow runs, and the follow-up E2E run IS the fix's validation.
           github-token: ${{ secrets.GH_TOKEN || github.token }}
           anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
+      # Tests the agent has already failed on three times are not attempted
+      # again — they are a human's now, and the per-attempt notes are on the
+      # stabilization queue entry. Surfaced here so the run says so out loud
+      # rather than leaving it to whoever reads the queue next.
+      - name: ci/report-handover
+        if: steps.autofix.outputs.needs_human_tests != ''
+        env:
+          HANDED_OVER: ${{ steps.autofix.outputs.needs_human_tests }}
+        run: |
+          echo "::notice::handed to a human after repeated agent failures: ${HANDED_OVER}"
+          {
+            echo "### Handed to a human"
+            echo
+            echo "The agent has failed three times on each of these; it did not try again."
+            echo
+            for t in ${HANDED_OVER//,/ }; do echo "- \`${t}\`"; done
+          } >> "$GITHUB_STEP_SUMMARY"
