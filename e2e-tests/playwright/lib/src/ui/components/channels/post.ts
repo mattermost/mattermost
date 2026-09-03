@@ -161,7 +161,9 @@ export default class ChannelsPost {
     async downloadAttachment(fileName: string): Promise<string> {
         await expect(this.getFileAttachmentThumbnail(fileName)).toBeVisible();
 
-        const attachment = this.container.filter({hasText: fileName});
+        const attachment = this.fileAttachmentList
+            .locator('[data-testid="media-gallery-tile"], .post-image__column')
+            .filter({hasText: fileName});
         const downloadLink = attachment.getByRole('link', {name: 'download'});
 
         const page = this.container.page();
