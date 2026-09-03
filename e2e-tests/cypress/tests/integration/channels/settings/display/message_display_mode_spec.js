@@ -39,7 +39,9 @@ function verifyLineBreaksRemainIntact(display) {
     cy.uiGetPostTextBox().clear();
     cy.uiGetPostTextBox().type(firstLine);
     cy.uiGetPostTextBox().type('{shift}{enter}{enter}');
-    cy.uiGetPostTextBox().type(`${secondLine}{enter}`);
+    cy.uiGetPostTextBox().type(secondLine);
+    cy.uiGetPostTextBox().should('contain.value', firstLine).and('contain.value', secondLine);
+    cy.findByTestId('SendMessageButton').should('be.enabled').click();
 
     // Pin to the posted text so a later join system message is not treated as last.
     cy.contains('[data-testid="postView"]', firstLine).should('be.visible').invoke('attr', 'id').then((rawId) => {
