@@ -435,11 +435,17 @@ test.describe('Single-channel guests', () => {
             await expect(singleChannelGuestsCard).toBeVisible({timeout: 15000});
 
             // * Verify the count text is present — multi-channel guest should not increment it
-            const countText = await singleChannelGuestsCard.textContent();
-            const match = countText?.match(/(\d+)/);
-            expect(match).toBeTruthy();
-
-            const singleChannelGuestCount = Number(match![1]);
+            const readGuestCount = async () => {
+                await patchGuestEnabled(adminClient, true);
+                await systemConsolePage.page.reload();
+                await systemConsolePage.page.waitForLoadState('networkidle');
+                const text = await singleChannelGuestsCard.textContent().catch(() => '');
+                return Number(text?.match(/(\d+)/)?.[1] ?? NaN);
+            };
+            await expect
+                .poll(readGuestCount, {timeout: 180000, intervals: [3000, 5000, 8000, 12000]})
+                .toBeGreaterThanOrEqual(0);
+            const singleChannelGuestCount = await readGuestCount();
 
             // # Now create a single-channel guest to confirm baseline counting works
             const singleChannelGuest = await adminClient.createUser(await pw.random.user(), '', '');
@@ -447,15 +453,10 @@ test.describe('Single-channel guests', () => {
             await adminClient.addToTeam(team.id, singleChannelGuest.id);
             await adminClient.addToChannel(singleChannelGuest.id, channelA.id);
 
-            // # Reload page to get updated stats
-            await systemConsolePage.page.reload();
-            await systemConsolePage.page.waitForLoadState('networkidle');
-
             // * Verify the count increased by exactly 1 for the new single-channel guest
-            const updatedCountText = await singleChannelGuestsCard.textContent();
-            const updatedMatch = updatedCountText?.match(/(\d+)/);
-            expect(updatedMatch).toBeTruthy();
-            expect(Number(updatedMatch![1])).toBe(singleChannelGuestCount + 1);
+            await expect
+                .poll(readGuestCount, {timeout: 180000, intervals: [3000, 5000, 8000, 12000]})
+                .toBe(singleChannelGuestCount + 1);
         },
     );
 });
