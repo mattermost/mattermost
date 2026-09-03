@@ -10,8 +10,8 @@ import {render} from 'tests/react_testing_utils';
 import ExternalImage from './external_image';
 
 describe('ExternalImage', () => {
+    // Real callers treat an empty src as "don't render the image", as does this mock
     const baseProps = {
-        // Real callers treat an empty src as "don't render the image", as does this mock
         children: jest.fn((src) => (src ? <img src={src}/> : <span/>)),
         enableSVGs: true,
         imageMetadata: {
