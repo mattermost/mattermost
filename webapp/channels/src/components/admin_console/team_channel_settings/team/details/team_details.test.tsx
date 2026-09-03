@@ -1403,17 +1403,12 @@ describe('admin_console/team_channel_settings/team/TeamDetails', () => {
         expect(autoAdd).not.toBeChecked();
         await userEvent.click(autoAdd);
 
-        // #region agent log
-        require('fs').appendFileSync('/opt/cursor/logs/debug.log', JSON.stringify({hypothesisId: 'E', location: 'team_details.test.tsx:1406', message: 'TEST: autoAdd clicked, about to click Save', data: {autoAddChecked: (autoAdd as HTMLInputElement).checked, saveDisabled: (screen.getByText('Save').closest('button') as HTMLButtonElement | null)?.disabled}, timestamp: Date.now()}) + '\n');
-        // #endregion
-
         await userEvent.click(screen.getByText('Save'));
 
-        // #region agent log
-        require('fs').appendFileSync('/opt/cursor/logs/debug.log', JSON.stringify({hypothesisId: 'E', location: 'team_details.test.tsx:1409', message: 'TEST: after Save click', data: {confirmBtn: document.getElementById('confirmModalButton')?.textContent ?? null, modalTitles: Array.from(document.querySelectorAll('.modal-title')).map((n) => n.textContent)}, timestamp: Date.now()}) + '\n');
-        // #endregion
-
         // Saving rule changes surfaces the Apply membership policy confirmation.
+        // onSave counts affected members over several awaits before opening it, so the
+        // modal is not mounted on the commit that follows the Save click.
+        await waitFor(() => expect(screen.getByText('Apply membership policy')).toBeInTheDocument());
         await userEvent.click(document.getElementById('confirmModalButton')!);
 
         await waitFor(() => {

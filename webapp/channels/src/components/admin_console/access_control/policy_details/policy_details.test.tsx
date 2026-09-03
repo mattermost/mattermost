@@ -519,12 +519,10 @@ describe('components/admin_console/access_control/policy_details/PolicyDetails',
             expect(screen.getByText('Delete policy')).toBeInTheDocument();
         });
 
-        // #region agent log
-        require('fs').appendFileSync('/opt/cursor/logs/debug.log', JSON.stringify({hypothesisId: 'A', location: 'policy_details.test.tsx:523', message: 'TEST: about to assert has_resources subtitle', data: {}, timestamp: Date.now()}) + '\n');
-        // #endregion
-
         // The has-resources subtitle is shown instead of the deletable subtitle.
-        expect(screen.getByText(/Remove all assigned resources/)).toBeInTheDocument();
+        // The Delete policy card renders before fetchPolicy resolves, so the subtitle
+        // has to be awaited rather than read off the first commit.
+        expect(await screen.findByText(/Remove all assigned resources/)).toBeInTheDocument();
 
         // The linked-teams warning lists each team, linking to its System Console page.
         await waitFor(() => {

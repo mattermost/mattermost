@@ -210,13 +210,11 @@ describe('TableEditor - User Self-Exclusion', () => {
             expect(mockValidateExpression).toHaveBeenCalledWith('user.attributes.department == "Engineering"');
         });
 
-        // #region agent log
-        require('fs').appendFileSync('/opt/cursor/logs/debug.log', JSON.stringify({hypothesisId: 'C', location: 'table_editor_channel_admin.test.tsx:213', message: 'TEST: waitFor(validate called) returned; about to assert disabled', data: {}, timestamp: Date.now()}) + '\n');
-        // #endregion
-
-        // Check that the Test Access Rules button is disabled
-        const testButton = screen.getByRole('button', {name: /test access rule/i});
-        expect(testButton).toBeDisabled();
+        // Check that the Test Access Rules button is disabled. The validation call
+        // fires synchronously from the effect, and becoming disabled wraps the button
+        // in WithTooltip, which remounts it — so re-query inside waitFor rather than
+        // holding a reference from before the flip.
+        await waitFor(() => expect(screen.getByRole('button', {name: /test access rule/i})).toBeDisabled());
     });
 
     test('should show tooltip when user would be excluded', async () => {
@@ -237,9 +235,10 @@ describe('TableEditor - User Self-Exclusion', () => {
             expect(mockValidateExpression).toHaveBeenCalledWith('user.attributes.department == "Engineering"');
         });
 
-        // Check that the button is disabled - this is the main behavior we're testing
-        const testButton = screen.getByRole('button', {name: /test access rule/i});
-        expect(testButton).toBeDisabled();
+        // Check that the button is disabled - this is the main behavior we're testing.
+        // Re-query inside waitFor: becoming disabled wraps the button in WithTooltip,
+        // which remounts it, so a reference captured beforehand goes stale.
+        await waitFor(() => expect(screen.getByRole('button', {name: /test access rule/i})).toBeDisabled());
 
         // The tooltip functionality is complex with floating-ui and is already tested in the TestButton unit tests
         // The main functionality we care about is that the button is disabled when the user would be excluded

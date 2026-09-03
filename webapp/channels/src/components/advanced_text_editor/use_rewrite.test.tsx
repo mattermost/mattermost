@@ -370,15 +370,15 @@ describe('useRewrite', () => {
             const actionHandler = props.onMenuAction(RewriteAction.SHORTEN);
             actionHandler();
 
+            // isProcessing starts false, so waiting on it alone is satisfied by the
+            // initial render — and renderHook publishes result.current from an effect,
+            // so props would still close over the pre-rewrite originalMessage.
             await waitFor(() => {
-                expect(result.current.isProcessing).toBe(false);
+                expect(result.current.rewriteMenuProps.originalMessage).toBe('Test message');
             });
 
             props = result.current.rewriteMenuProps;
 
-            // #region agent log
-            require('fs').appendFileSync('/opt/cursor/logs/debug.log', JSON.stringify({hypothesisId: 'D', location: 'use_rewrite.test.tsx:377', message: 'TEST: read result.current after waitFor', data: {resultOriginalMessage: props.originalMessage, resultIsProcessing: result.current.isProcessing, draftChangeCalls: mockHandleDraftChange.mock.calls.length}, timestamp: Date.now()}) + '\n');
-            // #endregion
             props.onUndoMessage();
 
             expect(mockHandleDraftChange).toHaveBeenCalledWith(
