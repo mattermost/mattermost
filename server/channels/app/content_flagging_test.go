@@ -3419,7 +3419,8 @@ func TestNotifyRequestingReviewerOfSkippedAttachments(t *testing.T) {
 	require.Nil(t, setTwoReviewerConfig(th))
 
 	post := setupFlaggedPost(t, th)
-	message := i18n.GetUserTranslations("en")("app.data_spillage.report.attachments_omitted.notification")
+	T := i18n.GetUserTranslations("en")
+	message := T("app.data_spillage.report.attachments_omitted.notification")
 
 	t.Run("notifies only the requesting reviewer", func(t *testing.T) {
 		th.App.NotifyRequestingReviewerOfSkippedAttachments(th.Context, post.Id, th.BasicUser.Id)

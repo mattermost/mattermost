@@ -526,7 +526,8 @@ func (a *App) NotifyRequestingReviewerOfSkippedAttachments(rctx request.CTX, fla
 		locale = reviewer.Locale
 	}
 
-	message := i18n.GetUserTranslations(locale)("app.data_spillage.report.attachments_omitted.notification")
+	T := i18n.GetUserTranslations(locale)
+	message := T("app.data_spillage.report.attachments_omitted.notification")
 	posts, appErr := a.postReviewerMessage(rctx, message, groupID, flaggedPostID, nil, "", requestingUserID)
 	if appErr != nil {
 		rctx.Logger().Warn("Failed to notify the requesting reviewer of skipped attachments", mlog.String("flagged_post_id", flaggedPostID), mlog.String("user_id", requestingUserID), mlog.Err(appErr))
