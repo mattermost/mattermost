@@ -1326,6 +1326,7 @@ describe('components/new_channel_modal - channel attributes', () => {
         target_id: '',
         target_type: 'system',
         object_type: 'channel',
+        permission_values: 'member',
 
         // Required, because the create dialog now asks only for required
         // attributes — an optional one is added later from Channel Info.
