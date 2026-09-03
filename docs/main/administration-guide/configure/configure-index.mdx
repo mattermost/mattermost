@@ -1,0 +1,29 @@
+---
+title: "Configure Mattermost"
+sidebar_label: "Configure"
+---
+Configuration covers everything you set before and after your server is running: the System Console settings themselves, the subsystems Mattermost connects to, and the capabilities you turn on for your users.
+
+## System Console settings reference
+
+- [System Console settings](/administration-guide/configure/configuration-settings) - Every System Console setting, one page per section, with its `config.json` key and environment variable.
+- [Store configuration in your database](/administration-guide/configure/configuration-in-your-database) - Store configuration in your Mattermost database rather than as a JSON file.
+- [Environment variables](/administration-guide/configure/environment-variables) - Override configuration settings using environment variables.
+
+## Subsystems
+
+- [Search](/administration-guide/configure/bleve-search) - Enable Bleve search, and Chinese, Japanese, and Korean search.
+- [Email](/administration-guide/configure/smtp-email) - Set up SMTP email, and customize email templates.
+- [Configure Azure Blob Storage as the Mattermost file store](/administration-guide/configure/azure-blob-storage) - Use Azure Blob Storage instead of local or S3-compatible storage.
+
+For enterprise search with Elasticsearch or OpenSearch, see the [deployment guide](/deployment-guide/scale/elasticsearch-setup).
+
+## Capabilities
+
+- [Branding and customization](/administration-guide/manage/admin/customize-branding) - Apply your organization's branding, and sign custom builds.
+- [Mattermost Agents](/administration-guide/configure/agents-admin-guide) - Enable AI-powered Agents and connect an LLM provider.
+- [Install and manage plugins](/administration-guide/configure/manage-plugins) - Install, enable, configure, update, and remove plugins.
+- [Install Mattermost Boards](/administration-guide/configure/install-boards) - Install and configure the Boards plugin.
+- [Set up auto-translation](/administration-guide/manage/admin/autotranslation) - Enable and configure automatic message translation.
+- [Set up content flagging](/administration-guide/manage/admin/content-flagging) - Let users flag messages for review, and handle data spillage.
+- [Connected workspaces](/administration-guide/onboard/connected-workspaces) - Connect your workspace to another Mattermost deployment.
