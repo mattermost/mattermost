@@ -66,7 +66,7 @@ const ForwardPostModal = ({onExited, post}: Props) => {
     const [postError, setPostError] = useState<React.ReactNode>(null);
     const [selectedChannel, setSelectedChannel] = useState<ChannelOption>();
 
-    const bodyRef = useRef<HTMLDivElement>();
+    const bodyRef = useRef<HTMLDivElement>(undefined);
 
     const measuredRef = useCallback((node: HTMLDivElement) => {
         if (node !== null) {

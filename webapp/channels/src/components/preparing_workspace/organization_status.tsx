@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {type JSX} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import ExternalLink from 'components/external_link';
@@ -53,7 +53,7 @@ const OrganizationStatus = (props: {error: (UrlValidationCheck['error'] | typeof
                     id='onboarding_wizard.organization.reserved'
                     defaultMessage='Organization name may not <a>start with a reserved word</a>.'
                     values={{
-                        a: (chunks: React.ReactNode | React.ReactNodeArray) => (
+                        a: (chunks: React.ReactNode) => (
                             <ExternalLink
                                 location='organization_status'
                                 href={DocLinks.ABOUT_TEAMS}

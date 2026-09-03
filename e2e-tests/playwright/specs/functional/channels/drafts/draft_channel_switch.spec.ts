@@ -62,14 +62,12 @@ test.describe('draft channel switch', () => {
 
     /**
      * @objective Verify Ctrl/Cmd+K restores the destination draft and routes
-     * messages to the selected channel with concurrent React enabled.
+     * messages to the selected channel.
      */
     test(
-        'quick switcher keeps drafts and messages scoped to their channels with concurrent React',
+        'quick switcher keeps drafts and messages scoped to their channels',
         {tag: '@messaging'},
         async ({pw}) => {
-            await pw.ensureFeatureFlag('EnableConcurrentReact', true);
-
             const {team, user} = await pw.initSetup();
             const {channelsPage, page} = await pw.testBrowser.login(user);
 

@@ -324,7 +324,7 @@ const WysiwygSuggestionList = ({editor, channelId, rootId, onSubmit}: Props) => 
 
     return (
         <SuggestionList
-            inputRef={editorDomRef as React.RefObject<HTMLDivElement>}
+            inputRef={editorDomRef as React.RefObject<HTMLDivElement | null>}
             open={isOpen}
             pretext={pretext}
             cleared={false}

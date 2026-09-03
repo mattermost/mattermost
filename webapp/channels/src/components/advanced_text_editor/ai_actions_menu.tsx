@@ -6,7 +6,7 @@ import MuiPopover from '@mui/material/Popover';
 import type {PopoverOrigin} from '@mui/material/Popover';
 import classNames from 'classnames';
 import React, {useCallback, useMemo, useState} from 'react';
-import type {KeyboardEvent, MouseEvent} from 'react';
+import type {KeyboardEvent, MouseEvent, JSX} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 

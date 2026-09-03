@@ -1,0 +1,52 @@
+diff --git a/node_modules/@types/react-bootstrap/lib/Dropdown.d.ts b/node_modules/@types/react-bootstrap/lib/Dropdown.d.ts
+index 3711eed..664d607 100644
+--- a/node_modules/@types/react-bootstrap/lib/Dropdown.d.ts
++++ b/node_modules/@types/react-bootstrap/lib/Dropdown.d.ts
+@@ -22,7 +22,7 @@ declare namespace Dropdown {
+         role?: string | undefined;
+     }
+ 
+-    export type DropdownProps = Dropdown.DropdownBaseProps & React.HTMLProps<Dropdown>;
++    export type DropdownProps = Dropdown.DropdownBaseProps & Omit<React.HTMLProps<Dropdown>, "onToggle">;
+ }
+ 
+ declare class Dropdown extends React.Component<Dropdown.DropdownProps> {
+diff --git a/node_modules/@types/react-bootstrap/lib/NavItem.d.ts b/node_modules/@types/react-bootstrap/lib/NavItem.d.ts
+index 4f8ca4f..0f2855d 100644
+--- a/node_modules/@types/react-bootstrap/lib/NavItem.d.ts
++++ b/node_modules/@types/react-bootstrap/lib/NavItem.d.ts
+@@ -2,7 +2,7 @@ import * as React from "react";
+ import { SelectCallback, Sizes } from "react-bootstrap";
+ 
+ declare namespace NavItem {
+-    export interface NavItemProps extends React.HTMLProps<NavItem> {
++    export interface NavItemProps extends Omit<React.HTMLProps<NavItem>, "onToggle"> {
+         active?: boolean | undefined;
+         brand?: any; // TODO: Add more specific type
+         bsSize?: Sizes | undefined;
+diff --git a/node_modules/@types/react-bootstrap/lib/Navbar.d.ts b/node_modules/@types/react-bootstrap/lib/Navbar.d.ts
+index 748ca44..9699a40 100644
+--- a/node_modules/@types/react-bootstrap/lib/Navbar.d.ts
++++ b/node_modules/@types/react-bootstrap/lib/Navbar.d.ts
+@@ -6,7 +6,7 @@ import NavbarHeader = require("./NavbarHeader");
+ import NavbarToggle = require("./NavbarToggle");
+ 
+ declare namespace Navbar {
+-    export interface NavbarProps extends React.HTMLProps<Navbar> {
++    export interface NavbarProps extends Omit<React.HTMLProps<Navbar>, "onToggle"> {
+         brand?: any; // TODO: Add more specific type
+         bsSize?: Sizes | undefined;
+         bsStyle?: string | undefined;
+diff --git a/node_modules/@types/react-bootstrap/lib/Panel.d.ts b/node_modules/@types/react-bootstrap/lib/Panel.d.ts
+index 4f085a0..dace6ff 100644
+--- a/node_modules/@types/react-bootstrap/lib/Panel.d.ts
++++ b/node_modules/@types/react-bootstrap/lib/Panel.d.ts
+@@ -8,7 +8,7 @@ import PanelBody = require("./PanelBody");
+ import PanelFooter = require("./PanelFooter");
+ 
+ declare namespace Panel {
+-    export interface PanelProps extends TransitionCallbacks, React.HTMLProps<Panel> {
++    export interface PanelProps extends TransitionCallbacks, Omit<React.HTMLProps<Panel>, "onToggle"> {
+         bsClass?: string | undefined;
+         bsStyle?: string | undefined;
+         defaultExpanded?: boolean | undefined;

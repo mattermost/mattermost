@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import type {ChangeEvent, ChangeEventHandler} from 'react';
+import type {ChangeEvent, ChangeEventHandler, JSX} from 'react';
 import {defineMessage, FormattedMessage} from 'react-intl';
 
 import {Button} from '@mattermost/shared/components/button';

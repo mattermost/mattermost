@@ -232,7 +232,7 @@ describe('AdvancedTextbox', () => {
             expect.objectContaining({
                 preview: true,
             }),
-            expect.anything(),
+            undefined,
         );
     });
 

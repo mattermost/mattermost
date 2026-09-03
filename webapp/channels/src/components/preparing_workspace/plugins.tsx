@@ -163,7 +163,7 @@ const Plugins = (props: Props) => {
                                     id='onboarding_wizard.plugins.marketplace'
                                     defaultMessage='More tools can be added once your workspace is set up. To see all available integrations, <a>visit the Marketplace.</a>'
                                     values={{
-                                        a: (chunks: React.ReactNode | React.ReactNodeArray) => (
+                                        a: (chunks: React.ReactNode) => (
                                             <strong>
                                                 <ExternalLink
                                                     href='https://mattermost.com/marketplace/'

@@ -251,7 +251,7 @@ describe('components/MessageExportSettings/getJobDetails', () => {
         },
     };
 
-    let ref: React.RefObject<MessageExportSettings>;
+    let ref: React.RefObject<MessageExportSettings | null>;
 
     beforeEach(() => {
         ref = React.createRef<MessageExportSettings>();

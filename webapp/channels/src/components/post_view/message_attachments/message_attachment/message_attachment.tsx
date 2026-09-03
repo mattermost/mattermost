@@ -3,7 +3,7 @@
 
 import truncate from 'lodash/truncate';
 import React from 'react';
-import type {KeyboardEvent, MouseEvent, CSSProperties} from 'react';
+import type {KeyboardEvent, MouseEvent, CSSProperties, JSX} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import type {PostActionOption} from '@mattermost/types/integration_actions';

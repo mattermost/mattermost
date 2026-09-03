@@ -51,7 +51,7 @@ export interface Props extends MuiMenuItemProps {
      * @note
      * Wraps the labels with element such as span, div etc. to support styling instead of passing text node directly.
      */
-    labels: ReactElement;
+    labels: ReactElement<any>;
 
     /**
      * for some cases we have explicit requirement for labels to be in row instead of stack

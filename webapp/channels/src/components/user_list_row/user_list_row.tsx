@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import type {ReactNode} from 'react';
+import type {ReactNode, JSX} from 'react';
 import {FormattedMessage} from 'react-intl';
 import type {ConnectedComponent} from 'react-redux';
 import styled from 'styled-components';

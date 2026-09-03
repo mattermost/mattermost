@@ -67,7 +67,7 @@ describe('components/RootRedirect', () => {
                     pathname: '/login',
                 }),
             }),
-            {},
+            undefined,
         );
     });
 

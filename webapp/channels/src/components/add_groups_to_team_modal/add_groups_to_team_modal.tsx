@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import type {RefObject} from 'react';
+import type {RefObject, JSX} from 'react';
 import {Modal} from 'react-bootstrap';
 import type {IntlShape} from 'react-intl';
 import {injectIntl, FormattedMessage, defineMessage} from 'react-intl';
@@ -60,7 +60,7 @@ type State = {
 
 export class AddGroupsToTeamModal extends React.PureComponent<Props, State> {
     private searchTimeoutId: number;
-    private readonly selectedItemRef: RefObject<HTMLDivElement>;
+    private readonly selectedItemRef: RefObject<HTMLDivElement | null>;
 
     constructor(props: Props) {
         super(props);

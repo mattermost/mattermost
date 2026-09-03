@@ -47,7 +47,7 @@ type State = {
 };
 
 export class ManageLanguage extends React.PureComponent<Props, State> {
-    reactSelectContainer: React.RefObject<HTMLDivElement>;
+    reactSelectContainer: React.RefObject<HTMLDivElement | null>;
     constructor(props: Props) {
         super(props);
         const userLocale = props.locale;

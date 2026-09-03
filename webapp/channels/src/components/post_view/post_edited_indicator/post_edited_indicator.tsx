@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import type {MouseEvent, KeyboardEvent} from 'react';
+import type {MouseEvent, KeyboardEvent, JSX} from 'react';
 import {useIntl} from 'react-intl';
 
 import {PencilOutlineIcon} from '@mattermost/compass-icons/components';

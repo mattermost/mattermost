@@ -43,7 +43,7 @@ const membersTooltipMessages = defineMessages({
 export type Props = WrappedComponentProps & PropsFromRedux;
 
 class ChannelHeader extends React.PureComponent<Props> {
-    toggleFavoriteRef: RefObject<HTMLButtonElement>;
+    toggleFavoriteRef: RefObject<HTMLButtonElement | null>;
 
     constructor(props: Props) {
         super(props);

@@ -3,7 +3,7 @@
 
 import classNames from 'classnames';
 import React, {useCallback, useEffect, useRef} from 'react';
-import type {ReactNode} from 'react';
+import type {ReactNode, JSX} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import {Button, type ButtonVariant} from '@mattermost/shared/components/button';

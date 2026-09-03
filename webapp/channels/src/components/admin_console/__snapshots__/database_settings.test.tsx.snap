@@ -42,7 +42,6 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
                 class="form-control"
                 disabled=""
                 type="text"
-                value=""
               />
               <div
                 class="help-text"

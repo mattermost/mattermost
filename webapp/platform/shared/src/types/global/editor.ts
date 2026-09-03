@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {ComponentType, ForwardRefExoticComponent, KeyboardEvent, KeyboardEventHandler, ReactNode, ReactNodeArray, RefAttributes, RefObject} from 'react';
+import type {ComponentType, ForwardRefExoticComponent, KeyboardEvent, KeyboardEventHandler, ReactNode, RefAttributes, RefObject} from 'react';
 
 import type {Agent} from '@mattermost/types/agents';
 import type {Channel} from '@mattermost/types/channels';
@@ -47,7 +47,7 @@ export type WysiwygEditorProps = {
 };
 
 export type SuggestionListProps = {
-    inputRef?: RefObject<HTMLDivElement>;
+    inputRef?: RefObject<HTMLDivElement | null>;
     open: boolean;
     position?: 'top' | 'bottom';
     renderNoResults?: boolean;
@@ -71,7 +71,7 @@ export type FormattingBarProps = {
     applyFormatting: (mode: PublishedMarkdownMode) => void;
     disableControls: boolean;
     location: string;
-    additionalControls?: ReactNodeArray;
+    additionalControls?: readonly ReactNode[];
     aiActionsMenu?: ReactNode;
 
     // Returns a Tiptap Editor. Left as `any` so plugins don't need `@tiptap/react`

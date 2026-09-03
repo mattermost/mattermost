@@ -35,7 +35,7 @@ import './use_rewrite.scss';
 export interface MenuItemConfig {
     action: RewriteAction;
     label: MessageDescriptor;
-    icon: React.ReactElement;
+    icon: React.ReactElement<any>;
 }
 
 export const menuItems: MenuItemConfig[] = [
@@ -88,7 +88,7 @@ export interface RewriteMenuProps {
     onCancelProcessing: () => void;
     onUndoMessage: () => void;
     onRegenerateMessage: () => void;
-    customPromptRef: React.RefObject<HTMLInputElement>;
+    customPromptRef: React.RefObject<HTMLInputElement | null>;
 }
 
 export default function RewriteMenu({
@@ -318,7 +318,7 @@ export interface RewriteSubMenuHeaderProps {
     agents: Agent[];
     onCustomPromptKeyDown: (e: React.KeyboardEvent<HTMLInputElement>) => void;
     onCancelProcessing: () => void;
-    customPromptRef: React.RefObject<HTMLInputElement>;
+    customPromptRef: React.RefObject<HTMLInputElement | null>;
 }
 
 export function RewriteSubMenuHeader({

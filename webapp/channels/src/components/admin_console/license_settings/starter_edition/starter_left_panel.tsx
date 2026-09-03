@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import type {RefObject} from 'react';
+import type {RefObject, JSX} from 'react';
 import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
 
 import {Button} from '@mattermost/shared/components/button';
@@ -16,7 +16,7 @@ export interface StarterEditionProps {
     openEELicenseModal: () => void;
     currentPlan: JSX.Element;
     upgradedFromTE: boolean;
-    fileInputRef: RefObject<HTMLInputElement>;
+    fileInputRef: RefObject<HTMLInputElement | null>;
     handleChange: () => void;
 }
 

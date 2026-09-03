@@ -50,7 +50,7 @@ export const useIsLoggedIn = (): boolean => {
  * Hook that returns the current open state of the specified modal
  * - returns both the direct boolean for regular use and a ref that contains the boolean for usage in a callback
  */
-export const useIsModalOpen = (modalIdentifier: string): [boolean, React.RefObject<boolean>] => {
+export const useIsModalOpen = (modalIdentifier: string): [boolean, React.RefObject<boolean | null>] => {
     const modalOpenState = useSelector((state: GlobalState) => isModalOpen(state, modalIdentifier));
     const modalOpenStateRef = useRef(modalOpenState);
 

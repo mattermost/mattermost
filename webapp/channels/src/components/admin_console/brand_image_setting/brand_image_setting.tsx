@@ -12,7 +12,6 @@ import {Client4} from 'mattermost-redux/client';
 import {uploadBrandImage, deleteBrandImage} from 'actions/admin_actions';
 
 import SettingSet from 'components/admin_console/setting_set';
-import useDidUpdate from 'components/common/hooks/useDidUpdate';
 import FormError from 'components/form_error';
 
 import {Constants} from 'utils/constants';
@@ -54,10 +53,10 @@ const BrandImageSetting = ({
     registerSaveAction,
     unRegisterSaveAction,
 }: Props) => {
-    const imageRef = useRef<HTMLImageElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const [brandImage, setBrandImage] = useState<File | undefined>();
+    const [brandImagePreview, setBrandImagePreview] = useState('');
     const [shouldDeleteBrandImage, setShouldDeleteBrandImage] = useState(false);
     const [brandImageExists, setBrandImageExists] = useState(false);
     const [brandImageTimestamp, setBrandImageTimestamp] = useState(Date.now());
@@ -120,24 +119,20 @@ const BrandImageSetting = ({
         };
     }, [handleSave, registerSaveAction, unRegisterSaveAction]);
 
-    useDidUpdate(() => {
-        if (imageRef.current) {
-            const reader = new FileReader();
-
-            const img = imageRef.current;
-            reader.onload = (e) => {
-                const src =
-                    e.target?.result instanceof ArrayBuffer ? e.target?.result.toString() : e.target?.result;
-
-                if (src) {
-                    img.setAttribute('src', src);
-                }
-            };
-
-            if (brandImage) {
-                reader.readAsDataURL(brandImage);
-            }
+    useEffect(() => {
+        if (!brandImage) {
+            setBrandImagePreview('');
+            return undefined;
         }
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const result = e.target?.result;
+            setBrandImagePreview(result instanceof ArrayBuffer ? result.toString() : (result ?? ''));
+        };
+        reader.readAsDataURL(brandImage);
+
+        return () => reader.abort();
     }, [brandImage]);
 
     const handleSelectClick = useCallback(() => {
@@ -166,15 +161,14 @@ const BrandImageSetting = ({
 
     let img = null;
     if (brandImage) {
-        img = (
+        img = brandImagePreview ? (
             <div className='remove-image__img mb-5'>
                 <img
-                    ref={imageRef}
                     alt='brand image'
-                    src=''
+                    src={brandImagePreview}
                 />
             </div>
-        );
+        ) : null;
     } else if (brandImageExists) {
         let overlay;
         if (!disabled) {

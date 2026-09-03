@@ -288,7 +288,7 @@ const TYPING_DELAY_MS = 250;
  * @param func cancelable func; the provided signal will be aborted if any subsequent func calls are made
  */
 export const useLatest = <TArgs extends unknown[], TResult>(func: (signal: AbortSignal, ...args: TArgs) => Promise<TResult>, deps: DependencyList, opts?: {delay: number}) => {
-    const r = useRef<{controller: AbortController; handler?: NodeJS.Timeout}>();
+    const r = useRef<{controller: AbortController; handler?: NodeJS.Timeout}>(undefined);
 
     const start = useCallback(() => {
         r.current = {controller: new AbortController()};

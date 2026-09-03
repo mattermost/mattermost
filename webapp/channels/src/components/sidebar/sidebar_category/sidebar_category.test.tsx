@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {DragDropContext, Droppable} from '@hello-pangea/dnd';
 import React from 'react';
-import {DragDropContext, Droppable} from 'react-beautiful-dnd';
 
 import {CategorySorting} from '@mattermost/types/channel_categories';
 
@@ -19,7 +19,7 @@ jest.mock('../sidebar_channel', () => () => <li id='mock-sidebar-channel'/>);
 jest.mock('../add_channels_cta_button', () => () => <div id='mock-add-channels-button'/>);
 jest.mock('../invite_members_button', () => () => <div id='mock-invite-members-button'/>);
 
-// Suppress react-beautiful-dnd console errors in tests
+// Suppress @hello-pangea/dnd console errors in tests
 beforeEach(() => {
     jest.spyOn(console, 'error').mockImplementation(() => {});
 });
@@ -60,7 +60,7 @@ describe('components/sidebar/sidebar_category', () => {
     };
 
     // Wrapper component to provide DragDropContext and Droppable
-    const renderWithDnd = (component: React.ReactElement) => {
+    const renderWithDnd = (component: React.ReactElement<any>) => {
         const onDragEnd = () => {};
         return renderWithContext(
             <DragDropContext onDragEnd={onDragEnd}>

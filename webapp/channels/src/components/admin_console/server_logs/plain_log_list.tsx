@@ -25,7 +25,7 @@ type State = {
 };
 
 class PlainLogList extends React.PureComponent<Props, State> {
-    private logPanel: React.RefObject<HTMLDivElement>;
+    private logPanel: React.RefObject<HTMLDivElement | null>;
 
     constructor(props: Props) {
         super(props);

@@ -74,8 +74,8 @@ type State = {
 export default class MoreDirectChannels extends React.PureComponent<Props, State> {
     searchTimeoutId: any;
     exitToChannel?: string;
-    multiselect: React.RefObject<MultiSelect<OptionValue>>;
-    selectedItemRef: React.RefObject<HTMLDivElement>;
+    multiselect: React.RefObject<MultiSelect<OptionValue> | null>;
+    selectedItemRef: React.RefObject<HTMLDivElement | null>;
 
     constructor(props: Props) {
         super(props);
