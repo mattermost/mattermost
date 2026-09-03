@@ -6,7 +6,7 @@ import {FormattedMessage} from 'react-intl';
 
 import type {Channel} from '@mattermost/types/channels';
 
-import {renderWithContext, waitFor} from 'tests/react_testing_utils';
+import {renderWithContext, screen} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import AbstractList from './abstract_list';
@@ -63,9 +63,8 @@ describe('admin_console/team_channel_settings/AbstractList', () => {
             />,
         );
 
-        await waitFor(() => {
-            expect(actions.getData).toHaveBeenCalled();
-        });
+        await screen.findByText('test');
+        expect(actions.getData).toHaveBeenCalled();
 
         expect(container).toMatchSnapshot();
     });
@@ -97,9 +96,8 @@ describe('admin_console/team_channel_settings/AbstractList', () => {
             />,
         );
 
-        await waitFor(() => {
-            expect(actions.getData).toHaveBeenCalled();
-        });
+        await screen.findByText('DN');
+        expect(actions.getData).toHaveBeenCalled();
 
         expect(container).toMatchSnapshot();
     });
