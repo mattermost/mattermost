@@ -158,7 +158,7 @@ describe('ChannelsResourceRow', () => {
     it('says so in the summary when the attribute is displayed nowhere or locked', () => {
         renderRow({displayLocations: [], changePolicy: 'never'});
 
-        expect(screen.getByTestId('channelsResourceRowSummary')).toHaveTextContent('Optional · Not displayed · Locked once set');
+        expect(screen.getByTestId('channelsResourceRowSummary')).toHaveTextContent('Optional · Channel Info only · Locked once set');
     });
 
     it('summarises a directional policy too', () => {

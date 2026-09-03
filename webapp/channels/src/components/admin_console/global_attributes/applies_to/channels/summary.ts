@@ -35,7 +35,7 @@ const messages = defineMessages({
     required: {id: 'admin.global_attributes.applies_to.channels.summary.required', defaultMessage: 'Required'},
     optional: {id: 'admin.global_attributes.applies_to.channels.summary.optional', defaultMessage: 'Optional'},
     display: {id: 'admin.global_attributes.applies_to.channels.summary.display', defaultMessage: 'Display: {locations}'},
-    hidden: {id: 'admin.global_attributes.applies_to.channels.summary.hidden', defaultMessage: 'Not displayed'},
+    infoOnly: {id: 'admin.global_attributes.applies_to.channels.summary.hidden', defaultMessage: 'Channel Info only'},
 });
 
 export function displayLocationLabel(location: ChannelDisplayLocation, intl: IntlShape): string {
@@ -58,7 +58,7 @@ export function summarizeChannelResource(config: ChannelResourceConfig, intl: In
             join(' + ');
         segments.push(intl.formatMessage(messages.display, {locations}));
     } else {
-        segments.push(intl.formatMessage(messages.hidden));
+        segments.push(intl.formatMessage(messages.infoOnly));
     }
 
     const policySegment = summaryChangePolicyMessages[config.changePolicy as keyof typeof summaryChangePolicyMessages];

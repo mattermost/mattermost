@@ -297,7 +297,8 @@ test.describe('Channel attribute lifecycle', {tag: ['@channel_attributes']}, () 
             await channelsPage.toBeVisible();
             await page.goto(`/${team.name}/messages/@${other.username}`);
 
-            await expect(page.getByTestId('channelAttributeLabels')).toHaveCount(0);
+            await expect(page.getByTestId('channelAttributeLabels-header')).toHaveCount(0);
+            await expect(page.getByTestId('channelAttributeLabels-info')).toHaveCount(0);
             await expect(page.getByText('PRIVATE')).toHaveCount(0);
         } finally {
             await deleteAttributes(adminClient, created);

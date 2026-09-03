@@ -14,6 +14,7 @@ import {canMoveToOption, getPropertyFieldChangePolicy, getPropertyFieldLabel, is
 
 import useCanSetChannelAttributes from 'components/common/hooks/useCanSetChannelAttributes';
 import {selectChannelInfoAttributes} from 'components/common/hooks/useChannelInfoAttributes';
+import useIsChannelAttributeAdmin from 'components/common/hooks/useIsChannelAttributeAdmin';
 import useResolvedChannelAttributes from 'components/common/hooks/useResolvedChannelAttributes';
 import * as Menu from 'components/menu';
 
@@ -23,6 +24,8 @@ import type {ChannelAttributeValue} from './set_channel_attribute_value';
 import {setChannelAttributeValue} from './set_channel_attribute_value';
 
 import './channel_info_attributes.scss';
+
+const EMPTY_ATTRIBUTES: ResolvedChannelAttribute[] = [];
 
 function optionColor(attribute: ResolvedChannelAttribute): string | undefined {
     const color = attribute.option?.color;
@@ -76,7 +79,12 @@ const ChannelInfoAttributes = ({channelId}: Props) => {
 
     // One resolved list, two views: a second hook would duplicate the fetch.
     const allAttributes = useResolvedChannelAttributes(channelId);
-    const listed = useMemo(() => selectChannelInfoAttributes(allAttributes), [allAttributes]);
+
+    // Gates editing on top of canSet rather than relying on it: a field carrying the
+    // 'member' setter tier would otherwise hand a regular member a pencil, and this
+    // panel is read-only for members.
+    const isChannelAdmin = useIsChannelAttributeAdmin(channelId);
+    const listed = useMemo(() => selectChannelInfoAttributes(allAttributes, isChannelAdmin), [allAttributes, isChannelAdmin]);
     const canSet = useCanSetChannelAttributes(channelId);
 
     const [editingFieldId, setEditingFieldId] = useState<string>();
@@ -101,7 +109,7 @@ const ChannelInfoAttributes = ({channelId}: Props) => {
         return allAttributes.filter((attribute) => byId.has(attribute.field.id));
     }, [listed, revealedFieldIds, allAttributes]);
 
-    const addableAttributes = useMemo(() => allAttributes.filter((attribute) => {
+    const addableAttributes = useMemo(() => (isChannelAdmin ? allAttributes.filter((attribute) => {
         // Stored, not rendered: an attribute holding a value that fails to render
         // would otherwise reappear here as something still to fill in.
         if (isPropertyValueSet(attribute.value?.value) || isPropertyFieldRequired(attribute.field)) {
@@ -111,7 +119,7 @@ const ChannelInfoAttributes = ({channelId}: Props) => {
             return false;
         }
         return hasEditor(attribute.field) && canSet(attribute.field, false);
-    }), [allAttributes, revealedFieldIds, canSet]);
+    }) : EMPTY_ATTRIBUTES), [allAttributes, isChannelAdmin, revealedFieldIds, canSet]);
 
     // Channel Info survives a channel switch, so a row left open would reappear
     // open over a different channel's value.
@@ -208,7 +216,7 @@ const ChannelInfoAttributes = ({channelId}: Props) => {
                 const policy = getPropertyFieldChangePolicy(field);
                 const stuck = hasValue && !hasReachableOption(field, attribute.value?.value);
                 const locked = hasValue && (policy === 'never' || stuck);
-                const editable = hasEditor(field) && !stuck && canSet(field, hasValue);
+                const editable = isChannelAdmin && hasEditor(field) && !stuck && canSet(field, hasValue);
                 const isEditing = editingFieldId === field.id;
 
                 return (

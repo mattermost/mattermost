@@ -98,26 +98,58 @@ describe('ChannelAttributeLabels', () => {
         jest.restoreAllMocks();
     });
 
+    test('renders the info slot from its own action, not the header one', () => {
+        stubWidths(1000);
+        const info = field('program');
+        info.attrs = {...info.attrs, actions: ['display_label_info']};
+
+        renderWithContext(
+            <ChannelAttributeLabels
+                channelId={CHANNEL_ID}
+                surface='info'
+            />,
+            makeState([info]),
+        );
+
+        expect(screen.getByTestId('channelAttributeLabels-info')).toBeInTheDocument();
+        expect(screen.queryByTestId('channelAttributeLabels-header')).not.toBeInTheDocument();
+    });
+
     test('renders nothing when no attribute is designated for the header', () => {
         const plain = field('program');
         plain.attrs = {...plain.attrs, actions: ['display_label_info']};
 
-        renderWithContext(<ChannelAttributeLabels channelId={CHANNEL_ID}/>, makeState([plain]));
+        renderWithContext(
+            <ChannelAttributeLabels
+                channelId={CHANNEL_ID}
+                surface='header'
+            />,
+            makeState([plain]),
+        );
 
-        expect(screen.queryByTestId('channelAttributeLabels')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('channelAttributeLabels-header')).not.toBeInTheDocument();
     });
 
     test('renders nothing when the feature flag is off', () => {
-        renderWithContext(<ChannelAttributeLabels channelId={CHANNEL_ID}/>, makeState([field('program')], 'false'));
+        renderWithContext(
+            <ChannelAttributeLabels
+                channelId={CHANNEL_ID}
+                surface='header'
+            />,
+            makeState([field('program')], 'false'),
+        );
 
-        expect(screen.queryByTestId('channelAttributeLabels')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('channelAttributeLabels-header')).not.toBeInTheDocument();
     });
 
     test('renders chips in sort_order, breaking ties on field name', () => {
         stubWidths(1000);
 
         renderWithContext(
-            <ChannelAttributeLabels channelId={CHANNEL_ID}/>,
+            <ChannelAttributeLabels
+                channelId={CHANNEL_ID}
+                surface='header'
+            />,
             makeState([
                 field('zulu', {sortOrder: 2}),
                 field('alpha', {sortOrder: 2}),
@@ -137,12 +169,15 @@ describe('ChannelAttributeLabels', () => {
         stubWidths(1000);
 
         renderWithContext(
-            <ChannelAttributeLabels channelId={CHANNEL_ID}/>,
+            <ChannelAttributeLabels
+                channelId={CHANNEL_ID}
+                surface='header'
+            />,
             makeState([field('a'), field('b'), field('c')]),
         );
 
         await waitFor(() => expect(screen.getAllByTestId('attributeChip')).toHaveLength(3));
-        expect(screen.queryByTestId('channelAttributeLabelsOverflow')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('channelAttributeLabelsOverflow-header')).not.toBeInTheDocument();
     });
 
     test('collapses the remainder into +N at a narrow width', async () => {
@@ -150,11 +185,14 @@ describe('ChannelAttributeLabels', () => {
         stubWidths(110);
 
         renderWithContext(
-            <ChannelAttributeLabels channelId={CHANNEL_ID}/>,
+            <ChannelAttributeLabels
+                channelId={CHANNEL_ID}
+                surface='header'
+            />,
             makeState([field('a'), field('b'), field('c')]),
         );
 
-        const overflow = await screen.findByTestId('channelAttributeLabelsOverflow');
+        const overflow = await screen.findByTestId('channelAttributeLabelsOverflow-header');
         expect(overflow).toHaveTextContent('+2');
         expect(screen.getAllByTestId('attributeChip')).toHaveLength(1);
     });
@@ -163,11 +201,14 @@ describe('ChannelAttributeLabels', () => {
         stubWidths(10);
 
         renderWithContext(
-            <ChannelAttributeLabels channelId={CHANNEL_ID}/>,
+            <ChannelAttributeLabels
+                channelId={CHANNEL_ID}
+                surface='header'
+            />,
             makeState([field('a'), field('b')]),
         );
 
-        await waitFor(() => expect(screen.getByTestId('channelAttributeLabelsOverflow')).toHaveTextContent('+1'));
+        await waitFor(() => expect(screen.getByTestId('channelAttributeLabelsOverflow-header')).toHaveTextContent('+1'));
         expect(screen.getAllByTestId('attributeChip')).toHaveLength(1);
     });
 
@@ -175,16 +216,19 @@ describe('ChannelAttributeLabels', () => {
         stubWidths(110);
 
         renderWithContext(
-            <ChannelAttributeLabels channelId={CHANNEL_ID}/>,
+            <ChannelAttributeLabels
+                channelId={CHANNEL_ID}
+                surface='header'
+            />,
             makeState([field('a'), field('b'), field('c')]),
         );
 
-        const overflow = await screen.findByTestId('channelAttributeLabelsOverflow');
+        const overflow = await screen.findByTestId('channelAttributeLabelsOverflow-header');
         await act(async () => {
             overflow.click();
         });
 
-        const popover = await screen.findByTestId('channelAttributeLabelsPopover');
+        const popover = await screen.findByTestId('channelAttributeLabelsPopover-header');
         expect(popover).toHaveTextContent('B');
         expect(popover).toHaveTextContent('C');
     });
@@ -198,23 +242,38 @@ describe('ChannelAttributeLabels', () => {
         jest.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockReturnValue({width: 0} as DOMRect);
 
         renderWithContext(
-            <ChannelAttributeLabels channelId={CHANNEL_ID}/>,
+            <ChannelAttributeLabels
+                channelId={CHANNEL_ID}
+                surface='header'
+            />,
             makeState([field('a')]),
         );
 
         await waitFor(() => expect(screen.getAllByTestId('attributeChip')).toHaveLength(1));
-        expect(screen.queryByTestId('channelAttributeLabelsOverflow')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('channelAttributeLabelsOverflow-header')).not.toBeInTheDocument();
     });
 
     test('is deterministic: the same width yields the same split', async () => {
         stubWidths(110);
         const state = makeState([field('a'), field('b'), field('c')]);
 
-        const first = renderWithContext(<ChannelAttributeLabels channelId={CHANNEL_ID}/>, state);
-        const firstCount = (await screen.findByTestId('channelAttributeLabelsOverflow')).textContent;
+        const first = renderWithContext(
+            <ChannelAttributeLabels
+                channelId={CHANNEL_ID}
+                surface='header'
+            />,
+            state,
+        );
+        const firstCount = (await screen.findByTestId('channelAttributeLabelsOverflow-header')).textContent;
         first.unmount();
 
-        renderWithContext(<ChannelAttributeLabels channelId={CHANNEL_ID}/>, state);
-        expect((await screen.findByTestId('channelAttributeLabelsOverflow')).textContent).toBe(firstCount);
+        renderWithContext(
+            <ChannelAttributeLabels
+                channelId={CHANNEL_ID}
+                surface='header'
+            />,
+            state,
+        );
+        expect((await screen.findByTestId('channelAttributeLabelsOverflow-header')).textContent).toBe(firstCount);
     });
 });

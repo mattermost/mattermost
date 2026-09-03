@@ -62,7 +62,12 @@ function value(fieldId: string, raw: unknown): PropertyValue<unknown> {
     };
 }
 
-function makeState(fields: PropertyField[], values: Array<PropertyValue<unknown>>, flag = 'true'): DeepPartial<GlobalState> {
+type StateOptions = {
+    flag?: string;
+    isAdmin?: boolean;
+};
+
+function makeState(fields: PropertyField[], values: Array<PropertyValue<unknown>>, {flag = 'true', isAdmin = false}: StateOptions = {}): DeepPartial<GlobalState> {
     const byTargetId: Record<string, Record<string, PropertyValue<unknown>>> = {};
     for (const v of values) {
         byTargetId[v.target_id] = {...byTargetId[v.target_id], [v.field_id]: v};
@@ -70,6 +75,13 @@ function makeState(fields: PropertyField[], values: Array<PropertyValue<unknown>
 
     return {
         entities: {
+            users: {
+                currentUserId: 'me',
+                profiles: {me: {id: 'me', roles: isAdmin ? 'system_admin system_user' : 'system_user'}},
+            },
+            channels: {
+                channels: {[CHANNEL_ID]: {id: CHANNEL_ID, team_id: 'team1'}},
+            },
             general: {
                 config: {FeatureFlagChannelAttributes: flag},
                 license: {IsLicensed: 'true', SkuShortName: 'advanced'},
@@ -95,12 +107,19 @@ describe('useChannelInfoAttributes', () => {
         expect(result.current[0].displayValue).toBe('PROGRAM');
     });
 
-    test('lists a required attribute with no value, so an incomplete channel is visible', () => {
-        const state = makeState([field('program', {required: true})], []);
+    test('lists a required attribute with no value for an admin, so an incomplete channel is visible', () => {
+        const state = makeState([field('program', {required: true})], [], {isAdmin: true});
 
         const {result} = renderHookWithContext(() => useChannelInfoAttributes(CHANNEL_ID), state);
         expect(result.current.map((a) => a.field.id)).toEqual(['program']);
         expect(result.current[0].displayValue).toBe('');
+    });
+
+    test('omits a required attribute with no value for a member, whose problem it is not', () => {
+        const state = makeState([field('program', {required: true})], []);
+
+        const {result} = renderHookWithContext(() => useChannelInfoAttributes(CHANNEL_ID), state);
+        expect(result.current).toEqual([]);
     });
 
     test('omits an optional attribute with no value rather than rendering an empty row', () => {
@@ -110,14 +129,26 @@ describe('useChannelInfoAttributes', () => {
         expect(result.current).toEqual([]);
     });
 
-    test('omits an attribute not designated for the info surface even when required', () => {
-        const state = makeState(
-            [field('header_only', {actions: ['display_label_header'], required: true})],
-            [value('header_only', 'opt')],
-        );
+    test.each([true, false])('lists a set attribute with no display designation, isAdmin=%s', (isAdmin) => {
+        const state = makeState([field('undesignated', {actions: []})], [value('undesignated', 'opt')], {isAdmin});
 
         const {result} = renderHookWithContext(() => useChannelInfoAttributes(CHANNEL_ID), state);
-        expect(result.current).toEqual([]);
+        expect(result.current.map((a) => a.field.id)).toEqual(['undesignated']);
+    });
+
+    test('lists a required attribute with no display designation for an admin, so no setting can strand it', () => {
+        const state = makeState([field('header_only', {actions: ['display_label_header'], required: true})], [], {isAdmin: true});
+
+        const {result} = renderHookWithContext(() => useChannelInfoAttributes(CHANNEL_ID), state);
+        expect(result.current.map((a) => a.field.id)).toEqual(['header_only']);
+    });
+
+    test('lists a stored value that renders as nothing, the only way left to reach it', () => {
+        const state = makeState([field('program')], [value('program', [''])]);
+
+        const {result} = renderHookWithContext(() => useChannelInfoAttributes(CHANNEL_ID), state);
+        expect(result.current.map((a) => a.field.id)).toEqual(['program']);
+        expect(result.current[0].displayValue).toBe('');
     });
 
     test('treats a value cleared to null as unset', () => {
@@ -142,7 +173,7 @@ describe('useChannelInfoAttributes', () => {
     });
 
     test('returns nothing when the feature flag is off', () => {
-        const state = makeState([field('program', {required: true})], [value('program', 'opt')], 'false');
+        const state = makeState([field('program', {required: true})], [value('program', 'opt')], {flag: 'false'});
 
         const {result} = renderHookWithContext(() => useChannelInfoAttributes(CHANNEL_ID), state);
         expect(result.current).toEqual([]);

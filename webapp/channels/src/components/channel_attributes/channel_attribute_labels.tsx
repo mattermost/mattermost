@@ -23,6 +23,7 @@ import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {ResolvedChannelAttribute} from 'mattermost-redux/selectors/entities/properties';
 import {getPropertyFieldLabel} from 'mattermost-redux/utils/property_utils';
 
+import type {ChannelLabelSurface} from 'components/common/hooks/useChannelLabels';
 import useChannelLabels from 'components/common/hooks/useChannelLabels';
 
 import {OverlaysTimings, OverlayTransitionStyles, RootHtmlPortalId} from 'utils/constants';
@@ -47,10 +48,15 @@ function optionColor(attribute: ResolvedChannelAttribute): string | undefined {
 
 type Props = {
     channelId: string;
+
+    // Which of the header's two chip slots this instance fills: 'header' is the
+    // row under the channel name, 'info' the inline strip beside the member count.
+    // Both can be mounted at once, so every testid below is scoped by it.
+    surface: ChannelLabelSurface;
 };
 
 /**
- * The channel's designated attribute values, as chips, for the channel header.
+ * The channel's designated attribute values, as chips, for one channel header slot.
  * Mounted as a child because channel_header.tsx is a class component.
  *
  * Labels are informational — nothing here enforces access, and no string may
@@ -63,9 +69,9 @@ type ChipSpec = {
     color?: string;
 };
 
-const ChannelAttributeLabels = ({channelId}: Props) => {
+const ChannelAttributeLabels = ({channelId, surface}: Props) => {
     const {formatMessage} = useIntl();
-    const labels = useChannelLabels(channelId, 'header');
+    const labels = useChannelLabels(channelId, surface);
 
     // Expand each attribute into one ChipSpec per value (multiselect → N chips).
     const chipSpecs = useMemo((): ChipSpec[] => {
@@ -176,7 +182,7 @@ const ChannelAttributeLabels = ({channelId}: Props) => {
         <div
             ref={containerRef}
             className='ChannelAttributeLabels'
-            data-testid='channelAttributeLabels'
+            data-testid={`channelAttributeLabels-${surface}`}
             style={measured ? undefined : {visibility: 'hidden'}}
         >
             <div className='ChannelAttributeLabels__visible'>
@@ -195,7 +201,7 @@ const ChannelAttributeLabels = ({channelId}: Props) => {
                         {id: 'channel_attributes.labels.overflow_aria', defaultMessage: '{count, plural, one {# more attribute} other {# more attributes}}'},
                         {count: overflowIds.length},
                     )}
-                    data-testid='channelAttributeLabelsOverflow'
+                    data-testid={`channelAttributeLabelsOverflow-${surface}`}
                     {...getReferenceProps()}
                 >
                     <FormattedMessage
@@ -212,7 +218,7 @@ const ChannelAttributeLabels = ({channelId}: Props) => {
                         ref={setFloating}
                         className='ChannelAttributeLabels__popover'
                         style={{...floatingStyles, ...transitionStyles}}
-                        data-testid='channelAttributeLabelsPopover'
+                        data-testid={`channelAttributeLabelsPopover-${surface}`}
                         {...getFloatingProps()}
                     >
                         {overflowIds.map((id) => {

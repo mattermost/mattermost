@@ -12,6 +12,7 @@ import {
     assertNoForeignRequiredAttributes,
     attributeName,
     createAttribute,
+    createChannelForAttributes,
     deleteAttributes,
     optionId,
     purgeAttributes,
@@ -22,9 +23,10 @@ test.describe('Channel attribute display and editing', {tag: ['@channel_attribut
     test.describe.configure({mode: 'serial'});
 
     /**
-     * @objective Verify a designated attribute renders as a header chip and a Channel Info row for a channel member.
+     * @objective Verify a designated attribute renders in both header slots, and that an
+     * undesignated one still reaches the Channel Info panel, read-only, for a channel member.
      */
-    test('shows a designated attribute in the header and Channel Info', async ({pw}) => {
+    test('shows a designated attribute in both header slots and Channel Info', async ({pw}) => {
         await pw.skipIfNoLicense();
         await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
 
@@ -42,7 +44,7 @@ test.describe('Channel attribute display and editing', {tag: ['@channel_attribut
                 optionColors: {AURORA: '#1e325c'},
             });
 
-            // Stored but undesignated: reaches the data layer, never a chip.
+            // Undesignated: never a chip, but still reachable in Channel Info.
             const hidden = await createAttribute(adminClient, attributeName('undesignated', suffix), {
                 options: ['QUIET'],
             });
@@ -63,15 +65,101 @@ test.describe('Channel attribute display and editing', {tag: ['@channel_attribut
             await channelsPage.goto(team.name, channel.name);
             await channelsPage.toBeVisible();
 
-            // Visible to an ordinary member, not just whoever set it.
-            const chips = page.getByTestId('attributeChip');
-            await expect(chips.filter({hasText: 'AURORA'}).first()).toBeVisible();
-            await expect(page.getByText('QUIET')).toHaveCount(0);
+            // Visible to an ordinary member, not just whoever set it. Designated for
+            // both slots, so it renders in both.
+            const {attributes, infoAttributes} = channelsPage.centerView.header;
+            await expect(attributes.chip('AURORA')).toBeVisible();
+            await expect(infoAttributes.chip('AURORA')).toBeVisible();
+            await expect(attributes.chip('QUIET')).toHaveCount(0);
+            await expect(infoAttributes.chip('QUIET')).toHaveCount(0);
 
+            // Channel Info lists what the channel holds regardless of display
+            // designation -- it is the only surface a value can be edited from, so a
+            // display setting must not be able to strand one.
             await page.locator('#channel-info-btn').click();
             await expect(page.getByTestId('channelInfoAttributes')).toBeVisible();
             await expect(page.getByTestId(`channelInfoAttributeRow-${program.name}`)).toBeVisible();
-            await expect(page.getByTestId(`channelInfoAttributeRow-${hidden.name}`)).toHaveCount(0);
+            await expect(page.getByTestId(`channelInfoAttributeRow-${hidden.name}`)).toBeVisible();
+
+            // A member reads, never writes.
+            await expect(page.getByTestId(`channelInfoAttributeEdit-${hidden.name}`)).toHaveCount(0);
+            await expect(page.getByTestId('channelInfoAddAttributeButton')).toHaveCount(0);
+        } finally {
+            await deleteAttributes(adminClient, created);
+        }
+    });
+
+    /**
+     * @objective Verify a channel admin can reach and fill an attribute that is designated
+     * for no display location at all.
+     *
+     * Channel Info is the only surface a value can be edited from, so gating it on the
+     * display locations would leave a required attribute permanently unset with no way to
+     * fix it. The panel therefore lists by role, not by designation.
+     */
+    test('keeps an undesignated required attribute editable in Channel Info for a channel admin', async ({pw}) => {
+        await pw.skipIfNoLicense();
+        await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
+
+        const {adminClient, user, team} = await pw.initSetup();
+        const suffix = pw.random.id();
+        const created: PropertyField[] = [];
+
+        try {
+            await purgeAttributes(adminClient);
+            await assertNoForeignRequiredAttributes(adminClient);
+
+            // The channel comes first: a required attribute is refused at create time
+            // unless the call carries a value for it. Marking an attribute required
+            // after the fact is what leaves an existing channel incomplete, which is
+            // the case that needs a way out.
+            const channel = await createChannelForAttributes(adminClient, team, `nodisplay-${suffix}`);
+
+            const channelAdmin = await pw.createNewUserProfile(adminClient, {prefix: 'chanadmin'});
+            await adminClient.addToTeam(team.id, channelAdmin.id);
+            await adminClient.addToChannel(channelAdmin.id, channel.id);
+            await adminClient.updateChannelMemberSchemeRoles(channel.id, channelAdmin.id, true, true);
+            await adminClient.addToChannel(user.id, channel.id);
+
+            const undesignated = await createAttribute(adminClient, attributeName('nodisplay', suffix), {
+                options: ['FILLED'],
+                actions: [],
+                required: true,
+            });
+            created.push(undesignated);
+
+            // # Look at the incomplete channel as an ordinary member
+            const asMember = await pw.testBrowser.login(user);
+            await asMember.channelsPage.goto(team.name, channel.name);
+            await asMember.channelsPage.toBeVisible();
+
+            // * The member is told nothing: an unset required attribute is not theirs
+            // to fix, and an empty row they cannot fill only reads as a broken channel
+            await asMember.channelsPage.openChannelInfo();
+            await expect(asMember.page.getByTestId(`channelInfoAttributeRow-${undesignated.name}`)).toHaveCount(0);
+
+            // # Look at the same channel as the channel admin
+            const {channelsPage} = await pw.testBrowser.login(channelAdmin);
+            await channelsPage.goto(team.name, channel.name);
+            await channelsPage.toBeVisible();
+
+            // * No chips on either header slot, because nothing was designated
+            await expect(channelsPage.centerView.header.attributes.container).toHaveCount(0);
+            await expect(channelsPage.centerView.header.infoAttributes.container).toHaveCount(0);
+
+            // * But the row is there, saying the channel is incomplete, and it can be filled
+            const info = await channelsPage.openChannelInfo();
+            await expect(info.attributes.unset(undesignated.name)).toBeVisible();
+            await info.attributes.select(undesignated.name, 'FILLED');
+            await expect(info.attributes.chip(undesignated.name)).toHaveText('FILLED');
+
+            // * And once filled it reaches the member too, still read-only
+            const asMemberAgain = await pw.testBrowser.login(user);
+            await asMemberAgain.channelsPage.goto(team.name, channel.name);
+            await asMemberAgain.channelsPage.toBeVisible();
+            const memberInfo = await asMemberAgain.channelsPage.openChannelInfo();
+            await expect(memberInfo.attributes.chip(undesignated.name)).toHaveText('FILLED');
+            await expect(memberInfo.attributes.editButton(undesignated.name)).toHaveCount(0);
         } finally {
             await deleteAttributes(adminClient, created);
         }
@@ -101,9 +189,11 @@ test.describe('Channel attribute display and editing', {tag: ['@channel_attribut
             await adminClient.addToChannel(user.id, channel.id);
 
             for (let i = 0; i < 5; i++) {
+                // The inline slot: the one that shares its row with the header controls,
+                // so it is the only one where yielding space is an invariant.
                 const field = await createAttribute(adminClient, attributeName(`overflow${i}`, suffix), {
                     options: [`LONG_VALUE_NUMBER_${i}`],
-                    actions: [DISPLAY_LABEL_HEADER],
+                    actions: [DISPLAY_LABEL_INFO],
                     sortOrder: i,
                 });
                 created.push(field);
@@ -115,7 +205,7 @@ test.describe('Channel attribute display and editing', {tag: ['@channel_attribut
             await channelsPage.toBeVisible();
 
             const infoButton = page.locator('#channel-info-btn');
-            const row = page.getByTestId('channelAttributeLabels').locator('.ChannelAttributeLabels__visible');
+            const row = channelsPage.centerView.header.infoAttributes.visibleRow;
 
             await expect(page.getByTestId('attributeChip').first()).toBeVisible();
             const wideX = (await infoButton.boundingBox())?.x ?? 0;
@@ -126,7 +216,7 @@ test.describe('Channel attribute display and editing', {tag: ['@channel_attribut
             // layout and the icon row is not rendered at all.
             await page.setViewportSize({width: 800, height: 800});
 
-            await expect(page.getByTestId('channelAttributeLabelsOverflow')).toBeVisible();
+            await expect(page.getByTestId('channelAttributeLabelsOverflow-info')).toBeVisible();
 
             // Fewer chips shown than exist, and the remainder is reachable.
             const shown = await page.getByTestId('attributeChip').count();
@@ -140,14 +230,14 @@ test.describe('Channel attribute display and editing', {tag: ['@channel_attribut
 
             // The row is bounded by its container: whatever it cannot show goes to
             // the popover rather than spilling across the header.
-            const spill = await row.evaluate((el) => {
+            const spill = await row.evaluate((el: HTMLElement) => {
                 const parent = el.parentElement!.parentElement!;
                 return el.getBoundingClientRect().right - parent.getBoundingClientRect().right;
             });
             expect(spill).toBeLessThanOrEqual(1);
 
-            await page.getByTestId('channelAttributeLabelsOverflow').click();
-            await expect(page.getByTestId('channelAttributeLabelsPopover')).toBeVisible();
+            await page.getByTestId('channelAttributeLabelsOverflow-info').click();
+            await expect(page.getByTestId('channelAttributeLabelsPopover-info')).toBeVisible();
         } finally {
             await deleteAttributes(adminClient, created);
         }
@@ -492,7 +582,8 @@ test.describe('Channel attribute display and editing', {tag: ['@channel_attribut
             await channelsPage.toBeVisible();
 
             // The value stays in the database; only the surfaces disappear.
-            await expect(page.getByTestId('channelAttributeLabels')).toHaveCount(0);
+            await expect(page.getByTestId('channelAttributeLabels-header')).toHaveCount(0);
+            await expect(page.getByTestId('channelAttributeLabels-info')).toHaveCount(0);
             await expect(page.getByText('HIDDEN')).toHaveCount(0);
 
             await page.locator('#channel-info-btn').click();

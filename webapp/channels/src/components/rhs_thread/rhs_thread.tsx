@@ -33,7 +33,10 @@ const RhsThreadAttributeChips = ({channelId}: {channelId: string}) => {
     }
     return (
         <div className='RhsThread__attributes'>
-            <ChannelAttributeLabels channelId={channelId}/>
+            <ChannelAttributeLabels
+                channelId={channelId}
+                surface='header'
+            />
         </div>
     );
 };

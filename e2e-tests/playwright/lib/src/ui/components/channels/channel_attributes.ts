@@ -5,13 +5,22 @@ import type {Locator} from '@playwright/test';
 import {expect} from '@playwright/test';
 
 /**
- * The attribute chips in the channel header.
+ * Which of the channel header's two chip slots to address: 'header' is the row
+ * under the channel name, 'info' the inline strip beside the member count. Each
+ * slot carries its own test ids, since both can be on screen at once.
+ */
+export type ChannelAttributeSurface = 'header' | 'info';
+
+/**
+ * The attribute chips in one channel header slot.
  */
 export class ChannelAttributeLabels {
     readonly container: Locator;
+    readonly surface: ChannelAttributeSurface;
 
-    constructor(container: Locator) {
+    constructor(container: Locator, surface: ChannelAttributeSurface) {
         this.container = container;
+        this.surface = surface;
     }
 
     get chips() {
@@ -23,15 +32,23 @@ export class ChannelAttributeLabels {
     }
 
     get overflowButton() {
-        return this.container.getByTestId('channelAttributeLabelsOverflow');
+        return this.container.getByTestId(`channelAttributeLabelsOverflow-${this.surface}`);
     }
 
     get popover() {
-        return this.container.page().getByTestId('channelAttributeLabelsPopover');
+        return this.container.page().getByTestId(`channelAttributeLabelsPopover-${this.surface}`);
     }
 
     async toBeVisible() {
         await expect(this.container).toBeVisible();
+    }
+
+    async toBeHidden() {
+        await expect(this.container).toHaveCount(0);
+    }
+
+    get visibleRow(): Locator {
+        return this.container.locator('.ChannelAttributeLabels__visible');
     }
 
     async openOverflow() {

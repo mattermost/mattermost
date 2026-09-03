@@ -163,10 +163,13 @@ test.describe(
                 await modal.create();
                 await expect(modal.container).not.toBeVisible();
 
-                // * Channel Info carries it; the header does not
+                // * The inline header slot carries it, the row-below slot does not
+                await expect(channelsPage.centerView.header.infoAttributes.chip('INTERNAL')).toBeVisible();
+                await expect(channelsPage.centerView.header.attributes.chip('INTERNAL')).toHaveCount(0);
+
+                // * And Channel Info carries it, as it does for every attribute
                 const info = await channelsPage.openChannelInfo();
                 await expect(info.attributes.chip(name)).toHaveText('INTERNAL');
-                await expect(channelsPage.centerView.header.attributes.chip('INTERNAL')).toHaveCount(0);
             } finally {
                 await deleteChannelFieldIfExists(adminClient, name);
                 await deleteGlobalAttributeFieldIfExists(adminClient, name);
@@ -256,12 +259,16 @@ test.describe(
                 const values = await adminClient.getPropertyValues('access_control', 'channel', channel.id);
                 expect(values?.length).toBeGreaterThan(0);
 
-                // * And is rendered on no surface at all
+                // * And is rendered on no display surface
                 await expect(channelsPage.centerView.header.attributes.chip('QUIET')).toHaveCount(0);
+                await expect(channelsPage.centerView.header.infoAttributes.chip('QUIET')).toHaveCount(0);
                 await expect(channelsPage.page.getByTestId('channel_banner_container')).toHaveCount(0);
 
+                // * Channel Info still lists it: the display locations govern the
+                // header and banner, never whether an admin can reach a value
                 const info = await channelsPage.openChannelInfo();
-                await expect(info.attributes.row(name)).toHaveCount(0);
+                await expect(info.attributes.chip(name)).toHaveText('QUIET');
+                await expect(info.attributes.editButton(name)).toBeVisible();
             } finally {
                 await deleteChannelFieldIfExists(adminClient, name);
                 await deleteGlobalAttributeFieldIfExists(adminClient, name);

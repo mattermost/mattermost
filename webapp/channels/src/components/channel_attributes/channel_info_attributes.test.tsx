@@ -202,13 +202,53 @@ describe('ChannelInfoAttributes', () => {
         expect(screen.queryByTestId('channelInfoAttributes')).not.toBeInTheDocument();
     });
 
-    test('renders nothing for an attribute designated only for the header', () => {
+    // This panel is the only place a value can be edited, so a display setting
+    // must not be able to hide an attribute from the people who administer it.
+    test('renders an attribute designated only for the header, with its edit affordance', () => {
         renderWithContext(
             <ChannelInfoAttributes channelId={CHANNEL_ID}/>,
             makeState([field('program', {actions: ['display_label_header']})], [value('program', 'opt_program')]),
         );
 
-        expect(screen.queryByTestId('channelInfoAttributes')).not.toBeInTheDocument();
+        expect(screen.getByTestId('channelInfoAttributeRow-program')).toBeInTheDocument();
+        expect(screen.getByTestId('channelInfoAttributeEdit-program')).toBeInTheDocument();
+    });
+
+    test('renders an attribute with no display designation at all', () => {
+        renderWithContext(
+            <ChannelInfoAttributes channelId={CHANNEL_ID}/>,
+            makeState([field('program', {actions: []})], [value('program', 'opt_program')]),
+        );
+
+        expect(screen.getByTestId('channelInfoAttributeRow-program')).toBeInTheDocument();
+    });
+
+    describe('a regular member', () => {
+        beforeEach(() => {
+            mockChannelPermissions = {read_channel: true};
+        });
+
+        test('sees the value but no way to change it, even on a member-tier field', () => {
+            renderWithContext(
+                <ChannelInfoAttributes channelId={CHANNEL_ID}/>,
+                makeState([field('program')], [value('program', 'opt_program')]),
+            );
+
+            expect(screen.getByTestId('channelInfoAttributeRow-program')).toBeInTheDocument();
+            expect(screen.queryByTestId('channelInfoAttributeEdit-program')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('channelInfoAddAttributeButton')).not.toBeInTheDocument();
+        });
+
+        // An unset required attribute is the admin's problem to fix; showing a
+        // member an empty row they cannot fill only reads as a broken channel.
+        test('is not shown a required attribute that is still unset', () => {
+            renderWithContext(
+                <ChannelInfoAttributes channelId={CHANNEL_ID}/>,
+                makeState([field('program', {required: true})], []),
+            );
+
+            expect(screen.queryByTestId('channelInfoAttributes')).not.toBeInTheDocument();
+        });
     });
 
     describe('editing', () => {
