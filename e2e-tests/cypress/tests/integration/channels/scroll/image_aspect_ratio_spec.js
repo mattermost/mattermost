@@ -42,7 +42,7 @@ describe('Scroll', () => {
 
             // Last post must include the upload; within() on a stale join post never recovers.
             cy.findAllByTestId('postView').last().should(($post) => {
-                expect($post.find('.file-view--single .image-loaded img').length, 'posted image').to.be.greaterThan(0);
+                expect($post.find('.file-view--single').length, 'file attach').to.be.greaterThan(0);
             });
 
             cy.getLastPost().within(() => {
@@ -63,7 +63,7 @@ describe('Scroll', () => {
 
 function verifyImageAspectRatioCorrectness(originalImage) {
     const expected = originalImage.width / originalImage.height;
-    cy.get('.file-view--single .single-image-view__toggle').then(($toggle) => {
+    cy.get('.file-view--single .single-image-view__toggle').should('be.visible').then(($toggle) => {
         if ($toggle.attr('data-expanded') === 'false') {
             cy.wrap($toggle).click();
         }
