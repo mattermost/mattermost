@@ -16,12 +16,12 @@ Platform and OS scope reflects reported and tested environments and may not repr
 
 ## Release v11.10 - [Feature Release](https://docs.mattermost.com/product-overview/release-policy.html#release-types) \{#release-v11-10-feature-release}
 
-<Important>
+<Attention>
 
 **Breaking Changes**
  - Starting with v11.10.1, the updated `glibc-openssl-fips` bundle includes a new OpenSSL build that enforces the FIPS minimum key length of 112 bits for HMAC operations. The PostgreSQL driver (lib/pq) passes the database password as the HMAC key during SCRAM authentication, so a password shorter than 112 bits, or 14 ASCII characters, now causes a panic on connect rather than a graceful failure. Before upgrading, FIPS deployments should verify that the password in `SqlSettings.DataSource` is at least 14 characters and rotate it in PostgreSQL if it is shorter. Standard, non-FIPS builds are unaffected.
 
-</Important>
+</Attention>
 
 - **11.10.1, released 2026-08-25**
   - Mattermost v11.10.1 contains medium to high severity level security fixes. [Upgrading](https://docs.mattermost.com/upgrade/upgrading-mattermost-server.html) to this release is recommended. Details will be posted on our [security updates page](https://mattermost.com/security-updates/) 30 days after release as per the [Mattermost Responsible Disclosure Policy](https://mattermost.com/security-vulnerability-report/).
@@ -223,12 +223,12 @@ See [this blog post](https://mattermost.com/blog/mattermost-v11-10-is-now-availa
 - **11.9.0, released 2026-07-16**
   - Original 11.9.0 release.
 
-<Important>
+<Attention>
 
 **Breaking Changes**
  - Mattermost v11.9 changes how redirect URI allowlist patterns are matched for OAuth Dynamic Client Registration (DCR). Patterns are now evaluated per URL component (scheme, host, path, and query) rather than as a whole-string glob. See the [Important Upgrade Notes](https://docs.mattermost.com/upgrade/important-upgrade-notes.html) for more details.
 
-</Important>
+</Attention>
 
 ### Upgrade Impact
 
@@ -427,12 +427,12 @@ See [this blog post](https://mattermost.com/blog/mattermost-v11-9-is-now-availab
 - **11.8.0, released 2026-06-16**
   - Original 11.8.0 release.
 
-<Important>
+<Attention>
 
 **Breaking Changes**
  - The Custom Profile Attributes property group is renamed from ``custom_profile_attributes`` to ``access_control``, and CPA fields and values are migrated from the legacy property model to the v2 model. The functionality of the CPA feature is unchanged. Plugin developers that use CPA will need to register against the new group name.
 
-</Important>
+</Attention>
 
 ### Upgrade Impact
 
@@ -589,12 +589,12 @@ See [this blog post](https://mattermost.com/blog/mattermost-v11-8-0-is-now-avail
 
 ## Release v11.7 - [Extended Support Release](https://docs.mattermost.com/product-overview/release-policy.html#release-types) \{#release-v11-7-extended-support-release}
 
-<Important>
+<Attention>
 
 **Breaking Changes**
  - Starting with v11.7.10, the updated `glibc-openssl-fips` bundle includes a new OpenSSL build that enforces the FIPS minimum key length of 112 bits for HMAC operations. The PostgreSQL driver (lib/pq) passes the database password as the HMAC key during SCRAM authentication, so a password shorter than 112 bits, or 14 ASCII characters, now causes a panic on connect rather than a graceful failure. Before upgrading, FIPS deployments should verify that the password in `SqlSettings.DataSource` is at least 14 characters and rotate it in PostgreSQL if it is shorter. Standard, non-FIPS builds are unaffected.
 
-</Important>
+</Attention>
 
 - **11.7.10, released 2026-08-26**
   - Mattermost v11.7.10 contains low to high severity level security fixes. [Upgrading](https://docs.mattermost.com/upgrade/upgrading-mattermost-server.html) to this release is recommended. Details will be posted on our [security updates page](https://mattermost.com/security-updates/) 30 days after release as per the [Mattermost Responsible Disclosure Policy](https://mattermost.com/security-vulnerability-report/).
@@ -692,13 +692,13 @@ See [this blog post](https://mattermost.com/blog/mattermost-v11-8-0-is-now-avail
 - **11.7.0, released 2026-05-15**
   - Original 11.7.0 release.
 
-<Important>
+<Attention>
 
 **Breaking Changes**
  - FIPS builds require a minimum of 14 characters for passwords, atmos/camo proxy configuration, and shared channel secrets. Shorter passwords for existing users will no longer be valid and require a password reset. Non-FIPS builds are unaffected.
  - v11.7 includes Agents plugin v2. Please see [this guide](/agents/docs/upgrading_to_2.0) on how to upgrade the Mattermost Agents plugin from a v1.x release to v2.0.0. It covers the supported version path, the migrations that run automatically on first start of v2.0.0, the breaking changes and default-behavior flips that admins should know about before the upgrade window, and the verification steps to confirm the upgrade succeeded.
 
-</Important>
+</Attention>
 
 #### Database Schema Changes
  - The following schema changes are included in the v11.7 release. No database downtime is expected for this upgrade. See the [Important Upgrade Notes](https://docs.mattermost.com/upgrade/important-upgrade-notes.html) for more details.
@@ -1186,12 +1186,12 @@ See [this blog post](https://mattermost.com/blog/mattermost-v11-5-is-now-availab
 
 ### Upgrade Impact
 
-<Important>
+<Attention>
 
 **Breaking Changes**
  - Photoshop Document (PSD) files are now no longer inline previewed, they are treated as regular file attachments.
 
-</Important>
+</Attention>
 
 #### Database Schema Changes
  - Added two new tables, ``Recaps`` and ``RecapChannels``. No database downtime is expected for this upgrade. See the [Important Upgrade Notes](https://docs.mattermost.com/upgrade/important-upgrade-notes.html) for more details.
@@ -1271,12 +1271,12 @@ See [this blog post](https://mattermost.com/blog/mattermost-v11-4-is-now-availab
   - Fixed an issue where rate limiting was missing from the login endpoint (5 requests/second, 10 burst).
   - Mattermost v11.3.2 contains no database or functional changes.
 - **11.3.1, released 2026-02-13**
-<Important>
+<Attention>
 
 **Breaking Changes**
  - Photoshop Document (PSD) files are now no longer inline previewed, they are treated as regular file attachments.
 
-</Important>
+</Attention>
   - Mattermost v11.3.1 contains medium to high severity level security fixes. [Upgrading](https://docs.mattermost.com/upgrade/upgrading-mattermost-server.html) to this release is recommended. Details will be posted on our [security updates page](https://mattermost.com/security-updates/) 30 days after release as per the [Mattermost Responsible Disclosure Policy](https://mattermost.com/security-vulnerability-report/).
   - Pre-packaged Boards plugin version [v9.2.2](https://github.com/mattermost/mattermost-plugin-boards/releases/tag/v9.2.2).
   - Pre-packaged Playbooks plugin version [v2.6.2](https://github.com/mattermost/mattermost-plugin-playbooks/releases/tag/v2.6.2).
@@ -1395,12 +1395,12 @@ See [this blog post](https://mattermost.com/blog/mattermost-v11-3-is-now-availab
   - Fixed an issue where rate limiting was missing from the login endpoint (5 requests/second, 10 burst).
   - Mattermost v11.2.4 contains no database or functional changes.
 - **11.2.3, released 2026-02-13**
-<Important>
+<Attention>
 
 **Breaking Changes**
  - Photoshop Document (PSD) files are now no longer inline previewed, they are treated as regular file attachments.
 
-</Important>
+</Attention>
   - Mattermost v11.2.3 contains medium to high severity level security fixes. [Upgrading](https://docs.mattermost.com/upgrade/upgrading-mattermost-server.html) to this release is recommended. Details will be posted on our [security updates page](https://mattermost.com/security-updates/) 30 days after release as per the [Mattermost Responsible Disclosure Policy](https://mattermost.com/security-vulnerability-report/).
   - Pre-packaged Boards plugin version [v9.2.2](https://github.com/mattermost/mattermost-plugin-boards/releases/tag/v9.2.2).
   - Pre-packaged Playbooks plugin version [v2.6.2](https://github.com/mattermost/mattermost-plugin-playbooks/releases/tag/v2.6.2).
@@ -1526,12 +1526,12 @@ See [this blog post](https://mattermost.com/blog/mattermost-v11-2-is-now-availab
   - Fixed an issue where Chrome/Desktop App spell check on Windows often couldn't correct typos.
   - Mattermost v11.1.2 contains no database or functional changes.
 - **11.1.1, released 2025-11-21**
- <Important>
+ <Attention>
 
 **Critical Fixes**
   - Mattermost v11.1.1 contains a Critical severity level security fix in the Jira plugin. [Upgrading](https://docs.mattermost.com/upgrade/upgrading-mattermost-server.html) to this release as soon as possible is highly recommended. Details will be posted on our [security updates page](https://mattermost.com/security-updates/) 30 days after release as per the [Mattermost Responsible Disclosure Policy](https://mattermost.com/security-vulnerability-report/).
 
- </Important>
+ </Attention>
   - Pre-packaged Jira plugin version [v4.4.1](https://github.com/mattermost/mattermost-plugin-jira/releases/tag/v4.4.1).
   - Fixed an issue where thread popouts did not show the current user's status.
   - Fixed an issue where clicking on a permalink to a reply in another thread would not navigate the main window.
@@ -1540,12 +1540,12 @@ See [this blog post](https://mattermost.com/blog/mattermost-v11-2-is-now-availab
 - **11.1.0, released 2025-11-14**
   - Original 11.1.0 release.
 
-<Important>
+<Attention>
 
 **Breaking Changes**
  - The version of React used by the Mattermost web app has been updated from React 17 to React 18. See more details in [this forum post](https://forum.mattermost.com/t/upgrading-the-mattermost-web-app-to-react-18-v11/25000).
 
-</Important>
+</Attention>
 
 ### Upgrade Impact
 
@@ -1623,12 +1623,12 @@ See [this blog post](https://mattermost.com/blog/mattermost-v11-1-is-now-availab
   - Mattermost v11.0.7 contains medium severity level security fixes. [Upgrading](https://docs.mattermost.com/upgrade/upgrading-mattermost-server.html) to this release is recommended. Details will be posted on our [security updates page](https://mattermost.com/security-updates/) 30 days after release as per the [Mattermost Responsible Disclosure Policy](https://mattermost.com/security-vulnerability-report/).
   - Mattermost v11.0.7 contains no database or functional changes.
 - **11.0.6, released 2025-11-21**
- <Important>
+ <Attention>
 
 **Critical Fixes**
   - Mattermost v11.0.6 contains a Critical severity level security fix in the Jira plugin. [Upgrading](https://docs.mattermost.com/upgrade/upgrading-mattermost-server.html) to this release as soon as possible is highly recommended. Details will be posted on our [security updates page](https://mattermost.com/security-updates/) 30 days after release as per the [Mattermost Responsible Disclosure Policy](https://mattermost.com/security-vulnerability-report/).
 
- </Important>
+ </Attention>
   - Pre-packaged Jira plugin version [v4.4.1](https://github.com/mattermost/mattermost-plugin-jira/releases/tag/v4.4.1).
   - Mattermost v11.0.6 contains no database or functional changes.
 - **11.0.5, released 2025-11-17**
@@ -1639,12 +1639,12 @@ See [this blog post](https://mattermost.com/blog/mattermost-v11-1-is-now-availab
   - Fixed an issue where plugins could not receive 3rd-party authorization headers.
   - Mattermost v11.0.5 contains no database or functional changes.
 - **11.0.4, released 2025-10-28**
- <Important>
+ <Attention>
 
 **Critical Fixes**
   - Mattermost v11.0.4 contains Critical severity level security fixes. [Upgrading](https://docs.mattermost.com/upgrade/upgrading-mattermost-server.html) to this release as soon as possible is highly recommended. Details will be posted on our [security updates page](https://mattermost.com/security-updates/) 30 days after release as per the [Mattermost Responsible Disclosure Policy](https://mattermost.com/security-vulnerability-report/).
 
- </Important>
+ </Attention>
   - Fixed an issue where plugin configuration settings were incorrectly sanitized, causing API endpoints and plugins to receive masked values instead of actual configuration values.
   - Pre-packaged Boards plugin [v9.1.7](https://github.com/mattermost/mattermost-plugin-boards/releases/tag/v9.1.7).
   - Mattermost v11.0.4 contains no database or functional changes.
@@ -1655,7 +1655,7 @@ See [this blog post](https://mattermost.com/blog/mattermost-v11-1-is-now-availab
 - **11.0.1, released 2025-10-16**
   - Original 11.0.1 release.
 
-<Important>
+<Attention>
 
 **Breaking Changes**
  - GitLab SSO has been deprecated from Team Edition. Deployments using GitLab SSO can remain on v10.11 ESR (with 12 months of security updates), transition to our new free offering Mattermost Entry, or can explore commercial/nonprofit options. See more details in [this forum post](https://forum.mattermost.com/t/mattermost-v11-changes-in-free-offerings/25126). 
@@ -1686,7 +1686,7 @@ See [this blog post](https://mattermost.com/blog/mattermost-v11-1-is-now-availab
  - Stopped supporting manually installed plugins as per https://forum.mattermost.com/t/deprecation-notice-manual-plugin-deployment/21192
  - Support for PostgreSQL v13 has been removed. The new minimum PostgreSQL version is v14+. See the [minimum supported PostgreSQL version policy](https://docs.mattermost.com/deployment-guide/software-hardware-requirements.html#minimum-postgresql-database-support-policy) documentation for details.
 
-</Important>
+</Attention>
 
 ### Upgrade Impact
 

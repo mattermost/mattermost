@@ -32,7 +32,9 @@ declare global {
 // This runs before we start to render anything.
 function preRenderSetup(onPreRenderSetupReady: () => void) {
     window.onerror = (msg, url, line, column, error) => {
-        if (msg === 'ResizeObserver loop limit exceeded') {
+        // Benign Chromium ResizeObserver noise (Monaco automaticLayout, etc.).
+        // Covers both "loop limit exceeded" and "loop completed with undelivered notifications."
+        if (typeof msg === 'string' && msg.startsWith('ResizeObserver loop')) {
             return;
         }
 
