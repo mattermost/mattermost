@@ -585,14 +585,24 @@ export async function ensurePluginBundleDownloaded(request: APIRequestContext): 
     const attempts = 3;
     let lastError: Error | undefined;
     for (let attempt = 1; attempt <= attempts; attempt++) {
-        const response = await request.get(seeder.UPGRADE_PLUGIN_BUNDLE_URL);
-        if (response.ok()) {
-            fs.writeFileSync(seeder.UPGRADE_PLUGIN_BUNDLE_PATH, await response.body());
-            return seeder.UPGRADE_PLUGIN_BUNDLE_PATH;
+        let response: Awaited<ReturnType<APIRequestContext['get']>> | undefined;
+        try {
+            response = await request.get(seeder.UPGRADE_PLUGIN_BUNDLE_URL);
+            if (response.ok()) {
+                fs.writeFileSync(seeder.UPGRADE_PLUGIN_BUNDLE_PATH, await response.body());
+                return seeder.UPGRADE_PLUGIN_BUNDLE_PATH;
+            }
+            lastError = new Error(
+                `Failed to download plugin bundle (attempt ${attempt}/${attempts}): ${response.status()} ${response.statusText()}`,
+            );
+        } catch (error) {
+            lastError =
+                error instanceof Error
+                    ? error
+                    : new Error(`Failed to download plugin bundle (attempt ${attempt}/${attempts}): ${String(error)}`);
+        } finally {
+            await response?.dispose();
         }
-        lastError = new Error(
-            `Failed to download plugin bundle (attempt ${attempt}/${attempts}): ${response.status()} ${response.statusText()}`,
-        );
         if (attempt < attempts) {
             await new Promise((r) => setTimeout(r, 1000 * attempt));
         }
