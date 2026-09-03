@@ -11,7 +11,6 @@ import {isPostAttributesEnabled} from 'mattermost-redux/selectors/entities/gener
 
 import type {ActionFuncAsync} from 'types/store';
 
-
 export function loadPostAttributeFields(channelId?: string): ActionFuncAsync<boolean> {
     return async (dispatch, getState) => {
         if (!channelId || !isPostAttributesEnabled(getState())) {

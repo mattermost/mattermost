@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import {FormattedMessage} from 'react-intl';
 
 import type {Channel} from '@mattermost/types/channels';
 import type {Post} from '@mattermost/types/posts';
@@ -9,9 +10,11 @@ import type {Post} from '@mattermost/types/posts';
 import {usePostAttributeFields, usePostAttributeValues} from 'components/common/hooks/usePostAttributes';
 import PropertyValueRenderer from 'components/properties_card_view/propertyValueRenderer/propertyValueRenderer';
 
-import {useVisibleAttributes} from './utils';
+import {allocateChipBudget, useVisibleAttributes} from './utils';
 
 import './post_attributes_chips.scss';
+
+const MAX_VISIBLE_CHIPS = 2;
 
 type Props = {
     post: Post;
@@ -28,18 +31,33 @@ function PostAttributesChips({post, channel}: Props) {
         return null;
     }
 
+    const {shown, overflow} = allocateChipBudget(visible, MAX_VISIBLE_CHIPS);
+
     return (
         <div
             className='PostAttributesChips'
             data-testid='post-attributes-chips'
         >
-            {visible.map(({field, value}) => (
+            {shown.map(({field, value}) => (
                 <PropertyValueRenderer
                     key={field.id}
                     field={field}
                     value={value}
                 />
             ))}
+            {overflow > 0 && (
+                <span
+                    className='PostAttributesChips__overflow'
+                    data-testid='post-attributes-overflow'
+                    aria-hidden='true'
+                >
+                    <FormattedMessage
+                        id='post_attributes.chips.overflow'
+                        defaultMessage='+{count, number}'
+                        values={{count: overflow}}
+                    />
+                </span>
+            )}
         </div>
     );
 }

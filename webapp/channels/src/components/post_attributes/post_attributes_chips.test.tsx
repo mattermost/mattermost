@@ -16,6 +16,11 @@ const CHANNEL_ID = 'channel_id';
 const TEAM_ID = 'team_id';
 const POST_ID = 'post_id';
 
+const OPTIONS = [
+    {id: 'opt_secret', name: 'SECRET', color: 'red'},
+    {id: 'opt_unclassified', name: 'UNCLASSIFIED', color: 'green'},
+];
+
 function makeField(overrides: Partial<PropertyField> = {}): PropertyField {
     return {
         id: 'field_1',
@@ -25,12 +30,7 @@ function makeField(overrides: Partial<PropertyField> = {}): PropertyField {
         object_type: 'post',
         target_type: 'channel',
         target_id: CHANNEL_ID,
-        attrs: {
-            options: [
-                {id: 'opt_secret', name: 'SECRET', color: 'red'},
-                {id: 'opt_unclassified', name: 'UNCLASSIFIED', color: 'green'},
-            ],
-        },
+        attrs: {options: OPTIONS},
         create_at: 1,
         update_at: 1,
         delete_at: 0,
@@ -212,6 +212,189 @@ describe('PostAttributesChips', () => {
         );
 
         expect(screen.queryByTestId('post-attributes-chips')).not.toBeInTheDocument();
+    });
+
+    test.each([
+        ['zero', 0],
+        ['false', false],
+    ])('treats %s as set and gives it a chip', (_label, raw) => {
+        renderWithContext(
+            <PostAttributesChips
+                post={post}
+                channel={channel}
+            />,
+            makeState([makeField({type: 'text', attrs: {}})], [makeValue({value: raw})]),
+        );
+
+        expect(screen.getByTestId('post-attributes-chips')).toBeInTheDocument();
+        expect(screen.getByTestId('text-property')).toBeInTheDocument();
+    });
+
+    test('treats an empty array as unset', () => {
+        renderWithContext(
+            <PostAttributesChips
+                post={post}
+                channel={channel}
+            />,
+            makeState([makeField()], [makeValue({value: []})]),
+        );
+
+        expect(screen.queryByTestId('post-attributes-chips')).not.toBeInTheDocument();
+    });
+
+    test.each([
+        ['null', null],
+        ['undefined', undefined],
+    ])('treats %s as unset', (_label, raw) => {
+        renderWithContext(
+            <PostAttributesChips
+                post={post}
+                channel={channel}
+            />,
+            makeState([makeField()], [makeValue({value: raw})]),
+        );
+
+        expect(screen.queryByTestId('post-attributes-chips')).not.toBeInTheDocument();
+    });
+
+    test('renders nothing for an always field with no value', () => {
+        const field = makeField();
+        field.attrs = {...field.attrs, visibility: 'always'};
+
+        renderWithContext(
+            <PostAttributesChips
+                post={post}
+                channel={channel}
+            />,
+            makeState([field], []),
+        );
+
+        expect(screen.queryByTestId('post-attributes-chips')).not.toBeInTheDocument();
+    });
+
+    test('orders chips by sort_order, then by name', () => {
+        const fields = [
+            makeField({id: 'f_c', name: 'charlie', attrs: {options: OPTIONS, sort_order: 20}}),
+            makeField({id: 'f_b', name: 'bravo'}),
+            makeField({id: 'f_a', name: 'alpha', attrs: {options: OPTIONS, sort_order: 10}}),
+        ];
+        const values = fields.map((f, i) => makeValue({id: `v_${i}`, field_id: f.id, value: 'opt_secret'}));
+
+        renderWithContext(
+            <PostAttributesChips
+                post={post}
+                channel={channel}
+            />,
+            makeState(fields, values),
+        );
+
+        // Only the budget's worth renders, so the order is what decides which two.
+        expect(screen.getByTestId('post-attributes-chips').textContent).toBe('SECRETSECRET+1');
+    });
+
+    describe('the chip budget', () => {
+        test('renders two chips and +1 for three set single-valued fields', () => {
+            const fields = [
+                makeField({id: 'f_a', name: 'alpha', attrs: {options: OPTIONS, sort_order: 10}}),
+                makeField({id: 'f_b', name: 'bravo', attrs: {options: OPTIONS, sort_order: 20}}),
+                makeField({id: 'f_c', name: 'charlie', attrs: {options: OPTIONS, sort_order: 30}}),
+            ];
+            const values = [
+                makeValue({id: 'v_a', field_id: 'f_a', value: 'opt_secret'}),
+                makeValue({id: 'v_b', field_id: 'f_b', value: 'opt_unclassified'}),
+                makeValue({id: 'v_c', field_id: 'f_c', value: 'opt_secret'}),
+            ];
+
+            renderWithContext(
+                <PostAttributesChips
+                    post={post}
+                    channel={channel}
+                />,
+                makeState(fields, values),
+            );
+
+            expect(screen.getByText('SECRET')).toBeInTheDocument();
+            expect(screen.getByText('UNCLASSIFIED')).toBeInTheDocument();
+            expect(screen.getByTestId('post-attributes-overflow')).toHaveTextContent('+1');
+        });
+
+        // The badge counts what the row could not show, not what the channel
+        // defines. A field the rules exclude was never a chip, so it must not reach
+        // the budget: counting it would tell the user there are attributes to see
+        // when the excluded ones are unset or deliberately hidden.
+        test('leaves fields that earn no chip out of the overflow count', () => {
+            const fields = [
+                makeField({id: 'f_a', name: 'alpha', attrs: {options: OPTIONS, sort_order: 10}}),
+                makeField({id: 'f_hidden', name: 'bravo', attrs: {options: OPTIONS, sort_order: 20, visibility: 'hidden'}}),
+                makeField({id: 'f_b', name: 'charlie', attrs: {options: OPTIONS, sort_order: 30}}),
+                makeField({id: 'f_unset', name: 'delta', attrs: {options: OPTIONS, sort_order: 40, visibility: 'when_set'}}),
+                makeField({id: 'f_c', name: 'echo', attrs: {options: OPTIONS, sort_order: 50}}),
+            ];
+            const values = [
+                makeValue({id: 'v_a', field_id: 'f_a', value: 'opt_secret'}),
+
+                // Set, but its field is hidden.
+                makeValue({id: 'v_hidden', field_id: 'f_hidden', value: 'opt_secret'}),
+                makeValue({id: 'v_b', field_id: 'f_b', value: 'opt_unclassified'}),
+
+                // when_set with nothing in it — a cleared attribute, which is a real
+                // row rather than a missing one.
+                makeValue({id: 'v_unset', field_id: 'f_unset', value: ''}),
+                makeValue({id: 'v_c', field_id: 'f_c', value: 'opt_secret'}),
+            ];
+
+            renderWithContext(
+                <PostAttributesChips
+                    post={post}
+                    channel={channel}
+                />,
+                makeState(fields, values),
+            );
+
+            // Five fields, three of which earn a chip: alpha and charlie render, echo
+            // overflows. The hidden and the cleared one are not +2 on top of that.
+            expect(screen.getByTestId('post-attributes-chips').textContent).toBe('SECRETUNCLASSIFIED+1');
+        });
+
+        test('renders no overflow badge when everything fits', () => {
+            const fields = [
+                makeField({id: 'f_a', name: 'alpha', attrs: {options: OPTIONS, sort_order: 10}}),
+                makeField({id: 'f_b', name: 'bravo', attrs: {options: OPTIONS, sort_order: 20}}),
+            ];
+            const values = [
+                makeValue({id: 'v_a', field_id: 'f_a', value: 'opt_secret'}),
+                makeValue({id: 'v_b', field_id: 'f_b', value: 'opt_unclassified'}),
+            ];
+
+            renderWithContext(
+                <PostAttributesChips
+                    post={post}
+                    channel={channel}
+                />,
+                makeState(fields, values),
+            );
+
+            expect(screen.queryByTestId('post-attributes-overflow')).not.toBeInTheDocument();
+        });
+
+        test('hides the overflow badge from assistive technology', () => {
+            const fields = [
+                makeField({id: 'f_a', name: 'alpha', attrs: {options: OPTIONS, sort_order: 10}}),
+                makeField({id: 'f_b', name: 'bravo', attrs: {options: OPTIONS, sort_order: 20}}),
+                makeField({id: 'f_c', name: 'charlie', attrs: {options: OPTIONS, sort_order: 30}}),
+            ];
+            const values = fields.map((f, i) => makeValue({id: `v_${i}`, field_id: f.id, value: 'opt_secret'}));
+
+            renderWithContext(
+                <PostAttributesChips
+                    post={post}
+                    channel={channel}
+                />,
+                makeState(fields, values),
+            );
+
+            expect(screen.getByTestId('post-attributes-overflow')).toHaveAttribute('aria-hidden', 'true');
+        });
     });
 
     test('renders a value whose field is unknown as nothing, without throwing', () => {
