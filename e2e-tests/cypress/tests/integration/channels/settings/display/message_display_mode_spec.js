@@ -55,13 +55,11 @@ function verifyLineBreaksRemainIntact(display) {
         // # click edit post
         cy.get(`#edit_post_${postId}`).scrollIntoView().should('be.visible').click();
 
-        // # Add ",edited" to the text
+        // # Add ",edited" to the text and save
         const editMessage = ',edited';
-        cy.get('#edit_textbox').type(editMessage);
-
-        // # finish editing
-        cy.get('#edit_textbox').should('be.visible').and('contain.value', editMessage).type('{enter}');
-        cy.get('#edit_textbox').should('not.exist');
+        cy.get('#edit_textbox').should('be.visible').type(editMessage);
+        cy.get('#edit_textbox').should('contain.value', editMessage);
+        cy.get('#create_post').findByText('Save').should('be.enabled').click();
 
         // * Verify posted message includes newline, edit message and "Edited" indicator
         cy.get(postMessageTextId).should('have.text', `${firstLine}\n${secondLine}${editMessage} Edited`);

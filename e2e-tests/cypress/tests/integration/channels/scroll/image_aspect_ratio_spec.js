@@ -63,6 +63,11 @@ describe('Scroll', () => {
 
 function verifyImageAspectRatioCorrectness(originalImage) {
     const expected = originalImage.width / originalImage.height;
+    cy.get('.file-view--single .single-image-view__toggle').then(($toggle) => {
+        if ($toggle.attr('data-expanded') === 'false') {
+            cy.wrap($toggle).click();
+        }
+    });
     cy.get('.file-view--single .image-loaded img').
         should('be.visible').
         and(($img) => {
