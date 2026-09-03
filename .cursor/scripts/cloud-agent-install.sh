@@ -164,7 +164,7 @@ persist_node_path() {
   fi
   {
     echo "$marker"
-    echo 'export NVM_DIR="$HOME/.nvm"'
+    printf 'export NVM_DIR=%q\n' "${NVM_DIR:-$HOME/.nvm}"
     echo '[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"'
   } >> "$rc"
 }
