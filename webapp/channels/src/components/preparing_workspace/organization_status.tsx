@@ -53,7 +53,7 @@ const OrganizationStatus = (props: {error: (UrlValidationCheck['error'] | typeof
                     id='onboarding_wizard.organization.reserved'
                     defaultMessage='Organization name may not <a>start with a reserved word</a>.'
                     values={{
-                        a: (chunks: React.ReactNode | React.ReactNodeArray) => (
+                        a: (chunks: React.ReactNode | readonly React.ReactNode[]) => (
                             <ExternalLink
                                 location='organization_status'
                                 href={DocLinks.ABOUT_TEAMS}
