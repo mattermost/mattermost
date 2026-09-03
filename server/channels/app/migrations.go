@@ -804,6 +804,14 @@ func (s *Server) doSetupBoardsProperties() error {
 		return fmt.Errorf("failed to register boards property group: %w", err)
 	}
 
+	// Must run before this migration's own hook-gated reads and writes below:
+	// a field from before the permissions object existed has none yet, and the
+	// hook refuses that outright, before ever consulting this migration's own
+	// caller identity or grant.
+	if convertErr := s.propertyService.ConvertSystemOwnedFields(request.EmptyContext(s.Log()), group.ID, model.BoardsPropertyGroupName); convertErr != nil {
+		return fmt.Errorf("failed to convert existing boards properties: %w", convertErr)
+	}
+
 	existingProperties, err := s.propertyService.SearchPropertyFields(s.systemCallerContext(model.CallerIDBoardsSystem), group.ID, model.PropertyFieldSearchOpts{PerPage: 100})
 	if err != nil {
 		return fmt.Errorf("failed to search for existing boards properties: %w", err)
@@ -962,6 +970,12 @@ func mergeBoardsStatusColors(attrs model.StringInterface, colorByName map[string
 
 // seedSessionAttributeFields idempotently seeds the built-in session attribute property fields.
 func (s *Server) seedSessionAttributeFields(groupID string) error {
+	// Must run before this migration's own hook-gated reads and writes below --
+	// see the identical comment in doSetupBoardsProperties.
+	if err := s.propertyService.ConvertSystemOwnedFields(request.EmptyContext(s.Log()), groupID, model.SessionAttributesPropertyGroupName); err != nil {
+		return fmt.Errorf("failed to convert existing session attribute fields: %w", err)
+	}
+
 	existing, err := s.propertyService.SearchPropertyFields(s.systemCallerContext(model.CallerIDSessionAttributesSystem), groupID, model.PropertyFieldSearchOpts{PerPage: 100})
 	if err != nil {
 		return fmt.Errorf("failed to search for existing session attribute fields: %w", err)

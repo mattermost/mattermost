@@ -529,6 +529,42 @@ func TestDoSetupSessionAttributesProperties(t *testing.T) {
 		require.Nil(t, appErr)
 		require.Len(t, fields, expectedFieldCount)
 	})
+
+	t.Run("upgrading a field written before the permissions object existed", func(t *testing.T) {
+		th := Setup(t)
+
+		group, appErr := th.App.GetPropertyGroup(th.Context, model.SessionAttributesPropertyGroupName)
+		require.Nil(t, appErr)
+
+		fields, appErr := th.App.SearchPropertyFields(th.Context, group.ID, model.PropertyFieldSearchOpts{PerPage: 100})
+		require.Nil(t, appErr)
+		require.Len(t, fields, expectedFieldCount)
+
+		// Roll every field back to the shape a pre-effort install's row is in:
+		// legacy columns only, no permissions object at all. The hook refuses
+		// that outright regardless of caller, so seedSessionAttributeFields'
+		// own subsequent search and update would fail here without
+		// ConvertSystemOwnedFields running ahead of them.
+		expectedUpdateAts := make(map[string]int64, len(fields))
+		for _, f := range fields {
+			expectedUpdateAts[f.ID] = f.UpdateAt
+			f.Permissions = nil
+		}
+		_, err := th.Store.PropertyField().Update(group.ID, fields, expectedUpdateAts)
+		require.NoError(t, err)
+
+		require.NoError(t, th.Server.doSetupSessionAttributesProperties())
+
+		after, appErr := th.App.SearchPropertyFields(th.Context, group.ID, model.PropertyFieldSearchOpts{PerPage: 100})
+		require.Nil(t, appErr)
+		require.Len(t, after, expectedFieldCount)
+		for _, f := range after {
+			require.NotNil(t, f.Permissions, "field %q must be converted", f.Name)
+			require.NotNil(t,
+				f.Permissions.MatchingGrant(model.PropertyOwnerTypeService, model.SessionAttributesPropertyGroupName, "", model.PropertyActionFieldWrite),
+				"field %q must carry the session_attributes service grant", f.Name)
+		}
+	})
 }
 
 func TestDoSetupBoardsProperties(t *testing.T) {
@@ -657,6 +693,45 @@ func TestDoSetupBoardsProperties(t *testing.T) {
 
 		idsAfter := optionIDsByName(t, statusAfter.Attrs)
 		require.Equal(t, idsBefore, idsAfter, "v2 upgrade must preserve every existing option ID")
+	})
+
+	t.Run("upgrading a field written before the permissions object existed", func(t *testing.T) {
+		th := Setup(t)
+
+		group, appErr := th.App.GetPropertyGroup(th.Context, model.BoardsPropertyGroupName)
+		require.Nil(t, appErr)
+
+		fields, appErr := th.App.SearchPropertyFields(th.Context, group.ID, model.PropertyFieldSearchOpts{PerPage: 100})
+		require.Nil(t, appErr)
+		require.Len(t, fields, 2)
+
+		// Roll every field back to the shape a pre-effort install's row is in:
+		// legacy columns only, no permissions object at all. The hook refuses
+		// that outright regardless of caller, so doSetupBoardsProperties' own
+		// subsequent search and update would fail here without
+		// ConvertSystemOwnedFields running ahead of them.
+		expectedUpdateAts := make(map[string]int64, len(fields))
+		for _, f := range fields {
+			expectedUpdateAts[f.ID] = f.UpdateAt
+			f.Permissions = nil
+		}
+		_, err := th.Store.PropertyField().Update(group.ID, fields, expectedUpdateAts)
+		require.NoError(t, err)
+
+		sysErr := th.Store.System().SaveOrUpdate(&model.System{Name: boardsPropertySetupDoneKey, Value: "v1"})
+		require.NoError(t, sysErr)
+
+		require.NoError(t, th.Server.doSetupBoardsProperties())
+
+		after, appErr := th.App.SearchPropertyFields(th.Context, group.ID, model.PropertyFieldSearchOpts{PerPage: 100})
+		require.Nil(t, appErr)
+		require.Len(t, after, 2)
+		for _, f := range after {
+			require.NotNil(t, f.Permissions, "field %q must be converted", f.Name)
+			require.NotNil(t,
+				f.Permissions.MatchingGrant(model.PropertyOwnerTypeService, model.BoardsPropertyGroupName, "", model.PropertyActionFieldWrite),
+				"field %q must carry the boards service grant", f.Name)
+		}
 	})
 }
 

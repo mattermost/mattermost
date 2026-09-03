@@ -223,6 +223,20 @@ func (ps *PropertyService) defaultPropertyFieldPermissions(field *model.Property
 
 	opts := model.LegacyConversionOpts{ConvertAttrs: convertAttrs, Template: templatePermissionsOrZero(template)}
 	field.Permissions = model.PermissionsFromLegacy(field, opts)
+
+	// A fresh install creates boards/session_attributes/managed_category's
+	// builtin fields through this same path, and PermissionsFromLegacy mints no
+	// grant for them (their group's Attrs were never enforced, so
+	// ConvertAttrs is false and grantsFromLegacy never runs). Without this,
+	// the very first version bump after creation would find its own field
+	// carrying permissions and no matching grant, and refuse itself.
+	group, err := ps.GroupByID(field.GroupID)
+	if err != nil {
+		return fmt.Errorf("defaultPropertyFieldPermissions: failed to resolve group name: %w", err)
+	}
+	if grant := model.SystemOwnedFieldGrant(group.Name, field.Name); grant != nil {
+		field.Permissions.Grants = append(field.Permissions.Grants, *grant)
+	}
 	return nil
 }
 

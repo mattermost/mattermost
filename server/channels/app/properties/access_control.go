@@ -937,20 +937,29 @@ func (h *AccessControlHook) isCallerPlugin(callerID string) bool {
 }
 
 // isMachineCaller reports whether the caller is a machine actor (an installed
-// plugin or a built-in sync service) rather than a human. Owner-list
-// enforcement applies only to machine callers; human callers (session users
-// and local admins) are governed by the API-layer permission levels.
+// plugin, a built-in sync service, or a system subsystem's setup migration)
+// rather than a human. Owner-list enforcement applies only to machine
+// callers; human callers (session users and local admins) are governed by
+// the API-layer permission levels. A system caller holds no position in any
+// scheme, so the restrictions ladder is meaningless for it -- like a plugin
+// or a sync service, it acts only by matching a grant.
 func (h *AccessControlHook) isMachineCaller(callerID string) bool {
-	return h.isCallerPlugin(callerID) ||
+	if h.isCallerPlugin(callerID) ||
 		callerID == model.CallerIDLDAPSync ||
-		callerID == model.CallerIDSAMLSync
+		callerID == model.CallerIDSAMLSync {
+		return true
+	}
+	_, isSystem := model.SystemCallerOwnedGroup(callerID)
+	return isSystem
 }
 
 // callerOwnerIdentity maps a machine caller (and its acting-as scope) to the
 // owner identity it would match in a field's owners list. A built-in sync
 // service is a singleton (one LDAP, one SAML), so its owner type is "service"
-// and it carries no scope; for a plugin the manifest ID is the owner ID and the
-// scope is whatever the plugin declared on the request context.
+// and it carries no scope; a system subsystem is the same shape, keyed by the
+// group name it owns rather than a fixed attr name; for a plugin the manifest
+// ID is the owner ID and the scope is whatever the plugin declared on the
+// request context.
 func (h *AccessControlHook) callerOwnerIdentity(callerID, scope string) (ownerID, ownerType, effectiveScope string) {
 	switch callerID {
 	case model.CallerIDLDAPSync:
@@ -958,6 +967,9 @@ func (h *AccessControlHook) callerOwnerIdentity(callerID, scope string) (ownerID
 	case model.CallerIDSAMLSync:
 		return model.PropertyFieldAttrSAML, model.PropertyOwnerTypeService, ""
 	default:
+		if group, ok := model.SystemCallerOwnedGroup(callerID); ok {
+			return group, model.PropertyOwnerTypeService, ""
+		}
 		return callerID, model.PropertyOwnerTypePlugin, scope
 	}
 }

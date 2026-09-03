@@ -331,17 +331,6 @@ func NewServer(options ...Option) (*Server, error) {
 		if userID == model.CallerIDLocalAdmin {
 			return true
 		}
-		// A setup migration installing a group's builtin field definitions owns
-		// those definitions, and the hook now gates every PSAv2/v3 group, so it
-		// has to be able to write them. Granted only on the group it owns: a
-		// shared identity would let the boards migration rewrite
-		// session_attributes' schema. Step 7.17a replaces this arm with a
-		// service grant on the fields themselves, which is revocable where this
-		// is not.
-		if ownedGroup, isSystem := model.SystemCallerOwnedGroup(userID); isSystem {
-			group, gErr := s.propertyService.GroupByID(field.GroupID)
-			return gErr == nil && group.Name == ownedGroup
-		}
 		return app.decidePropertyFieldPermission(rctx, userID, field, action, valueTargetID).Allowed
 	}, app.propertyCallerRoles)
 	s.propertyService.AddHook(accessControlHook)

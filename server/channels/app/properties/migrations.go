@@ -89,6 +89,70 @@ func (ps *PropertyService) MigrateBackfillCPADisplayName(rctx request.CTX) (back
 	return len(fieldsToUpdate), skipped, nil
 }
 
+// ConvertSystemOwnedFields makes sure every builtin field a system subsystem
+// owns in groupID (per model.SystemOwnedFieldGrant) carries that subsystem's
+// {service, groupName} grant, converting the field from its legacy columns
+// first if it carries no Permissions object at all.
+//
+// Reads and writes through the unexported field accessors, bypassing the
+// access-control hook, for the same reason MigrateBackfillCPADisplayName
+// does: the hook refuses a field with no Permissions object outright, on
+// both the read (hiding its options, the same defect that once destroyed
+// every install's boards Status options) and the write, before any caller
+// identity or grant is ever consulted -- so there is no way through the hook
+// to reach a field that has never been converted, or one converted before
+// this grant existed. A setup migration calls this before anything else it
+// does, so its own subsequent hook-gated reads and writes find the grant
+// already there whether the field predates the permissions object entirely,
+// was converted by an earlier server version that had no such grant, or
+// already carries this one -- each of the three is a no-op past this point.
+//
+// Confined to the names groupName's migration seeds (SystemOwnedFieldGrant
+// returns nil for anything else), so a custom field sharing the group with a
+// builtin one -- session_attributes accepts admin-created fields through the
+// generic v3 API -- is never touched.
+func (ps *PropertyService) ConvertSystemOwnedFields(rctx request.CTX, groupID, groupName string) error {
+	fields, err := ps.searchPropertyFields(groupID, model.PropertyFieldSearchOpts{PerPage: propertyPermissionsBackfillPageSize})
+	if err != nil {
+		return fmt.Errorf("ConvertSystemOwnedFields: failed to search fields: %w", err)
+	}
+
+	convertAttrs, err := ps.groupConvertsAttrs(groupID)
+	if err != nil {
+		return fmt.Errorf("ConvertSystemOwnedFields: %w", err)
+	}
+
+	var toUpdate []*model.PropertyField
+	for _, field := range fields {
+		grant := model.SystemOwnedFieldGrant(groupName, field.Name)
+		if grant == nil {
+			continue
+		}
+
+		changed := false
+		if field.Permissions == nil {
+			field.Permissions = model.PermissionsFromLegacy(field, model.LegacyConversionOpts{ConvertAttrs: convertAttrs})
+			changed = true
+		}
+		if field.Permissions.MatchingGrant(grant.Type, grant.ID, "", model.PropertyActionFieldWrite) == nil {
+			field.Permissions.Grants = append(field.Permissions.Grants, *grant)
+			changed = true
+		}
+		if changed {
+			toUpdate = append(toUpdate, field)
+		}
+	}
+	if len(toUpdate) == 0 {
+		return nil
+	}
+
+	_, _, _, err = ps.updatePropertyFields(rctx, groupID, toUpdate)
+	if err != nil {
+		return fmt.Errorf("ConvertSystemOwnedFields: failed to persist converted fields: %w", err)
+	}
+	return nil
+}
+
 // permissionsBackfill holds the state one backfill run carries across pages:
 // which group is access_control (the only one whose Attrs ever gated
 // anything, so the only one whose Attrs convert), and every linked field's
