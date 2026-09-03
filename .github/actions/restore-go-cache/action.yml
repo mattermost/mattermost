@@ -3,18 +3,37 @@ description: >
   Read-only restore of the Go module cache, build cache, and CI tool binaries
   warmed by server-ci-cache-warm. Module/build caches live under RUNNER_TEMP
   (outside the checkout); tool binaries in server/bin.
+
+outputs:
+  gomodcache:
+    description: "Go module cache path, for GOMODCACHE"
+    value: ${{ steps.paths.outputs.gomodcache }}
+  gocache:
+    description: "Go build cache path, for GOCACHE"
+    value: ${{ steps.paths.outputs.gocache }}
+  gobin:
+    description: "CI tool binary path, for GOBIN"
+    value: ${{ steps.paths.outputs.gobin }}
+
 runs:
   using: composite
   steps:
-    - name: Export Go cache paths
+    - name: Resolve Go cache paths
+      id: paths
       shell: bash
       run: |
-        echo "GOMODCACHE=${RUNNER_TEMP}/go-cache/mod" >> "$GITHUB_ENV"
-        echo "GOCACHE=${RUNNER_TEMP}/go-cache/build" >> "$GITHUB_ENV"
-        echo "GOBIN=${{ github.workspace }}/server/bin" >> "$GITHUB_ENV"
+        {
+          echo "gomodcache=${RUNNER_TEMP}/go-cache/mod"
+          echo "gocache=${RUNNER_TEMP}/go-cache/build"
+          echo "gobin=${GITHUB_WORKSPACE}/server/bin"
+        } >> "${GITHUB_OUTPUT}"
     - name: Create Go cache directories
       shell: bash
-      run: mkdir -p "$GOMODCACHE" "$GOCACHE" "$GOBIN"
+      env:
+        GOMODCACHE: ${{ steps.paths.outputs.gomodcache }}
+        GOCACHE: ${{ steps.paths.outputs.gocache }}
+        GOBIN: ${{ steps.paths.outputs.gobin }}
+      run: mkdir -p "${GOMODCACHE}" "${GOCACHE}" "${GOBIN}"
     - name: Restore Go module and build cache
       uses: actions/cache/restore@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
       with:

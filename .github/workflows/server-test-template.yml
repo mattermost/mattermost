@@ -118,6 +118,7 @@ jobs:
           fips-enabled: ${{ inputs.fips-enabled }}
 
       - name: Restore Go cache
+        id: go-cache
         uses: ./.github/actions/restore-go-cache
 
       - name: Restore test timing data
@@ -192,6 +193,10 @@ jobs:
         env:
           SHARD_INDEX: ${{ inputs.shard-index }}
           SHARD_TOTAL: ${{ inputs.shard-total }}
+          # `go work` and shard-split.js's `go test -list` run on the host, so
+          # they need the restored caches that the container gets via -e.
+          GOMODCACHE: ${{ steps.go-cache.outputs.gomodcache }}
+          GOCACHE: ${{ steps.go-cache.outputs.gocache }}
         run: |
           set -euo pipefail
 
