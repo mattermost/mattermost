@@ -36,8 +36,10 @@ describe('Scroll', () => {
         ];
 
         uploadedImages.forEach((uploadedImage) => {
-            cy.get('#fileUploadInput').attachFile(uploadedImage.file);
-            cy.uiWaitForFileUploadPreview();
+            cy.intercept('POST', '**/api/v4/files').as('uploadFile');
+            cy.get('#fileUploadInput').should('exist').attachFile(uploadedImage.file);
+            cy.wait('@uploadFile').its('response.statusCode').should('be.oneOf', [200, 201]);
+            cy.get('[data-testid="file-preview-item"]').should('be.visible');
             cy.postMessage(uploadedImage.file);
 
             // Last post must include the upload; within() on a stale join post never recovers.
