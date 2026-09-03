@@ -19,9 +19,10 @@ type OfflinePurgeReport struct {
 }
 
 // SessionWipeReport confirms a client-side ephemeral mode wipe triggered by a session revocation.
-// It is self-reported because the session it refers to is already revoked by the time it is sent.
+// Signature is the one the wipe push carried, echoed back to attribute the report: the session it
+// refers to is already revoked by the time it is sent.
 type SessionWipeReport struct {
-	UserId      string  `json:"user_id"`
 	WipeAt      *int64  `json:"wipe_at"`
 	ErrorReason *string `json:"error_reason"`
+	Signature   string  `json:"signature"`
 }
