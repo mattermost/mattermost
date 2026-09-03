@@ -70,6 +70,19 @@ export function isPolicySimulationEnabled(state: GlobalState): boolean {
         getConfig(state).FeatureFlagPolicySimulation === 'true';
 }
 
+/**
+ * Whether View Channel should be offered in the policy authoring pickers.
+ *
+ * Both `ViewChannelABACPermission` and the `PermissionPolicies` umbrella must
+ * be on, mirroring the server's `IsViewChannelABACPermissionEnabled()`. It is
+ * independent of `ChannelPermissionPolicies`: denying view_channel hides a
+ * whole channel, not just an attachment, so it ships on its own flag.
+ */
+export function isViewChannelABACPermissionEnabled(state: GlobalState): boolean {
+    return isPermissionPoliciesEnabled(state) &&
+        getConfig(state).FeatureFlagViewChannelABACPermission === 'true';
+}
+
 export type PasswordConfig = {
     minimumLength: number;
     requireLowercase: boolean;

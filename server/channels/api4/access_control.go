@@ -136,6 +136,12 @@ func createAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
+	// Allow view channel action only if the corresponding feature flag is enabled
+	if policy.HasViewChannelAction() && !c.App.Config().FeatureFlags.IsViewChannelABACPermissionEnabled() {
+		c.Err = model.NewAppError("createAccessControlPolicy", "api.access_control_policy.view_channel.feature_disabled", nil, "", http.StatusNotImplemented)
+		return
+	}
+
 	auditRec := c.MakeAuditRecord(model.AuditEventCreateAccessControlPolicy, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterAuditableToAuditRec(auditRec, "requested", &policy)
