@@ -31,6 +31,7 @@
                     value is recorded on the audit event.
                   type: integer
                   format: int64
+                  nullable: true
                 playbook_runs_deleted:
                   description: >
                     The number of playbook runs deleted by the cleanup run. Required
@@ -38,6 +39,7 @@
                     value is recorded on the audit event.
                   type: integer
                   format: int64
+                  nullable: true
                 cleanup_at:
                   description: >
                     The time in milliseconds the cleanup run completed. Always optional;
@@ -46,6 +48,7 @@
                     server-observed time is always recorded separately as server_ts.
                   type: integer
                   format: int64
+                  nullable: true
                 error_reason:
                   description: >
                     A reason describing why the cleanup run failed. Its presence alone
@@ -55,6 +58,7 @@
                     longer than 400 characters are truncated to 400 with a trailing
                     ellipsis rather than rejected.
                   type: string
+                  nullable: true
         required: true
       responses:
         "200":
@@ -102,6 +106,7 @@
                     no offline_time_minutes value is recorded on the audit event.
                   type: integer
                   format: int64
+                  nullable: true
                 purge_at:
                   description: >
                     The time in milliseconds the purge completed. Always optional; it
@@ -110,6 +115,7 @@
                     server-observed time is always recorded separately as server_ts.
                   type: integer
                   format: int64
+                  nullable: true
                 error_reason:
                   description: >
                     A reason describing why the offline purge failed. Its presence alone
@@ -119,6 +125,7 @@
                     longer than 400 characters are truncated to 400 with a trailing
                     ellipsis rather than rejected.
                   type: string
+                  nullable: true
         required: true
       responses:
         "200":
@@ -172,6 +179,7 @@
                     is always recorded separately as server_ts.
                   type: integer
                   format: int64
+                  nullable: true
                 error_reason:
                   description: >
                     A reason describing why the session wipe failed. Its presence alone
@@ -181,6 +189,7 @@
                     longer than 400 characters are truncated to 400 with a trailing
                     ellipsis rather than rejected.
                   type: string
+                  nullable: true
               required:
                 - signature
         required: true
