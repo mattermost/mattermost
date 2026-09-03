@@ -94,6 +94,9 @@ const useRewrite = (
     }, []);
 
     const undoMessage = useCallback(() => {
+        // #region agent log
+        require('fs').appendFileSync('/opt/cursor/logs/debug.log', JSON.stringify({hypothesisId: 'D', location: 'use_rewrite.tsx:96', message: 'undoMessage invoked', data: {closureOriginalMessage: originalMessage, draftMessage: draft.message}, timestamp: Date.now()}) + '\n');
+        // #endregion
         handleDraftChange({
             ...draft,
             message: originalMessage,
@@ -217,6 +220,10 @@ const useRewrite = (
         regenerateMessage,
         customPromptRef,
     ]);
+
+    // #region agent log
+    require('fs').appendFileSync('/opt/cursor/logs/debug.log', JSON.stringify({hypothesisId: 'D', location: 'use_rewrite.tsx:221', message: 'hook render', data: {originalMessage, isProcessing, draftMessage: draft.message}, timestamp: Date.now()}) + '\n');
+    // #endregion
 
     return {
         rewriteMenuProps,

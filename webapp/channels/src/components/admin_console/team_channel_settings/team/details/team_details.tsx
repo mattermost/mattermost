@@ -649,6 +649,9 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
                 }
             }
 
+            // #region agent log
+            require('fs').appendFileSync('/opt/cursor/logs/debug.log', JSON.stringify({hypothesisId: 'E', location: 'team_details.tsx:652', message: 'handleSubmit abac branch check', data: {saveNeeded, isEmptyAbacState, policyEnforced, teamRulesHaveChanges, hasParentPolicies, teamRulesAutoSync}, timestamp: Date.now()}) + '\n');
+            // #endregion
             if (!saveNeeded && !isEmptyAbacState && policyEnforced && (teamRulesHaveChanges || hasParentPolicies)) {
                 try {
                     const teamPolicy: AccessControlPolicy = {
@@ -823,6 +826,9 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
     };
 
     onSave = async () => {
+        // #region agent log
+        require('fs').appendFileSync('/opt/cursor/logs/debug.log', JSON.stringify({hypothesisId: 'E', location: 'team_details.tsx:824', message: 'onSave entry', data: {autoSync: this.state.teamRulesAutoSync, origAutoSync: this.state.teamRulesOriginalAutoSync, policyEnforced: this.state.policyEnforced, haveChanges: this.state.teamRulesHaveChanges, saveNeeded: this.state.saveNeeded, policies: this.state.accessControlPolicies.map((p) => p.id), origPolicyIds: this.state.originalPolicyIds, expr: this.state.teamRulesExpression, origExpr: this.state.teamRulesOriginalExpression}, timestamp: Date.now()}) + '\n');
+        // #endregion
         const nameError = this.getTeamNameError();
         if (nameError) {
             this.setState({nameError, saveNeeded: true});
@@ -919,10 +925,16 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
 
             // Hand off to the confirmation modal; clear the busy state so the panel isn't
             // spinning behind it (the modal's Apply button drives the actual save).
+            // #region agent log
+            require('fs').appendFileSync('/opt/cursor/logs/debug.log', JSON.stringify({hypothesisId: 'E', location: 'team_details.tsx:922', message: 'showAbacSaveConfirm=true', data: {affectedCount, qualifyingCount, addCount}, timestamp: Date.now()}) + '\n');
+            // #endregion
             this.setState({saving: false, showAbacSaveConfirm: true, abacAffectedCount: affectedCount, abacQualifyingCount: qualifyingCount, abacAddCount: addCount});
             return;
         }
 
+        // #region agent log
+        require('fs').appendFileSync('/opt/cursor/logs/debug.log', JSON.stringify({hypothesisId: 'E', location: 'team_details.tsx:926', message: 'no abac changes -> handleSubmit', data: {}, timestamp: Date.now()}) + '\n');
+        // #endregion
         this.handleSubmit();
     };
 

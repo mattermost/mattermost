@@ -210,6 +210,10 @@ describe('TableEditor - User Self-Exclusion', () => {
             expect(mockValidateExpression).toHaveBeenCalledWith('user.attributes.department == "Engineering"');
         });
 
+        // #region agent log
+        require('fs').appendFileSync('/opt/cursor/logs/debug.log', JSON.stringify({hypothesisId: 'C', location: 'table_editor_channel_admin.test.tsx:213', message: 'TEST: waitFor(validate called) returned; about to assert disabled', data: {}, timestamp: Date.now()}) + '\n');
+        // #endregion
+
         // Check that the Test Access Rules button is disabled
         const testButton = screen.getByRole('button', {name: /test access rule/i});
         expect(testButton).toBeDisabled();

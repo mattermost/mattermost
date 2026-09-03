@@ -689,6 +689,10 @@ describe('components/channel_invite_modal', () => {
             expect(Client4.searchUsers).toHaveBeenCalled();
         });
 
+        // #region agent log
+        require('fs').appendFileSync('/opt/cursor/logs/debug.log', JSON.stringify({hypothesisId: 'B', location: 'channel_invite_modal.test.tsx:692', message: 'TEST: waitFor(searchUsers called) returned; about to query user-1 span', data: {}, timestamp: Date.now()}) + '\n');
+        // #endregion
+
         // now only one visible <span> should match "user-1"
         expect(getUserSpan('user-1')).toBeInTheDocument();
 

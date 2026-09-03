@@ -455,6 +455,10 @@ function TableEditor({
 
             try {
                 const result = await validateExpressionAgainstRequester(value);
+
+                // #region agent log
+                require('fs').appendFileSync('/opt/cursor/logs/debug.log', JSON.stringify({hypothesisId: 'C', location: 'table_editor.tsx:458', message: 'validate resolved, setUserWouldBeExcluded', data: {excluded: !result.data?.requester_matches}, timestamp: Date.now()}) + '\n');
+                // #endregion
                 setUserWouldBeExcluded(!result.data?.requester_matches);
             } catch {
                 setUserWouldBeExcluded(false);
@@ -640,6 +644,10 @@ function TableEditor({
         setRows(newRows);
         updateExpression(newRows);
     }, [updateExpression, rows]);
+
+    // #region agent log
+    require('fs').appendFileSync('/opt/cursor/logs/debug.log', JSON.stringify({hypothesisId: 'C', location: 'table_editor.tsx:648', message: 'render', data: {userWouldBeExcluded, hasMaskedRows, rows: rows.length}, timestamp: Date.now()}) + '\n');
+    // #endregion
 
     return (
         <div

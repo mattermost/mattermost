@@ -375,6 +375,10 @@ describe('useRewrite', () => {
             });
 
             props = result.current.rewriteMenuProps;
+
+            // #region agent log
+            require('fs').appendFileSync('/opt/cursor/logs/debug.log', JSON.stringify({hypothesisId: 'D', location: 'use_rewrite.test.tsx:377', message: 'TEST: read result.current after waitFor', data: {resultOriginalMessage: props.originalMessage, resultIsProcessing: result.current.isProcessing, draftChangeCalls: mockHandleDraftChange.mock.calls.length}, timestamp: Date.now()}) + '\n');
+            // #endregion
             props.onUndoMessage();
 
             expect(mockHandleDraftChange).toHaveBeenCalledWith(
