@@ -5,7 +5,11 @@ import type {PropertyField} from '@mattermost/types/properties';
 
 import {expect, test} from '@mattermost/playwright-lib';
 
-import {findChannelField} from '../../system_console/global_attributes/applies_to_helpers';
+import {
+    TEST_LEVELS,
+    deleteClassificationFieldsIfExist,
+    setupClassificationWithChannelField,
+} from '../channel_classification/helpers';
 
 import {
     DISPLAY_BANNER_TOP,
@@ -504,32 +508,24 @@ test.describe('Channel attribute banner composition', {tag: ['@channel_attribute
         const {adminClient, adminUser, team} = await pw.initSetup();
         const suffix = pw.random.id();
 
-        const classificationField = await findChannelField(adminClient, 'classification');
-        if (!classificationField) {
-            test.skip();
-            return;
+        // Provision the classification template + channel-linked field ourselves:
+        // this test must not depend on state left behind by other spec files.
+        const {channelFieldId, levels} = await setupClassificationWithChannelField(adminClient, TEST_LEVELS);
+        const level = levels.find((l) => l.color);
+        if (!level) {
+            throw new Error('setupClassificationWithChannelField did not return a coloured level');
         }
-
-        const originalAttrs = classificationField.attrs;
 
         try {
             // Designate classification for the banner
-            await adminClient.patchPropertyField('access_control', 'channel', classificationField.id, {
-                attrs: {...originalAttrs, actions: ['display_banner_top']},
+            await adminClient.patchPropertyField('access_control', 'channel', channelFieldId, {
+                attrs: {actions: ['display_banner_top']},
             } as never);
-
-            // Pick the first level that carries a colour
-            const options = (originalAttrs?.options ?? []) as Array<{id: string; name: string; color: string}>;
-            const level = options.find((o) => o.color);
-            if (!level) {
-                test.skip();
-                return;
-            }
 
             const channel = await createChannelForAttributes(adminClient, team, `class-banner-${suffix}`);
             await adminClient.addToChannel(adminUser.id, channel.id);
             await adminClient.patchPropertyValues('access_control', 'channel', channel.id, [
-                {field_id: classificationField.id, value: level.id},
+                {field_id: channelFieldId, value: level.id},
             ] as never);
 
             const {channelsPage} = await pw.testBrowser.login(adminUser);
@@ -549,9 +545,7 @@ test.describe('Channel attribute banner composition', {tag: ['@channel_attribute
             // * It shows the classification level's colour
             await expect(colorInput).toHaveValue(level.color.toUpperCase());
         } finally {
-            await adminClient.patchPropertyField('access_control', 'channel', classificationField.id, {
-                attrs: originalAttrs,
-            } as never);
+            await deleteClassificationFieldsIfExist(adminClient);
         }
     });
 
