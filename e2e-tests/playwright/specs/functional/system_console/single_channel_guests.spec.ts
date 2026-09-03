@@ -444,10 +444,13 @@ test.describe('Single-channel guests', () => {
             };
             let singleChannelGuestCount = NaN;
             await expect
-                .poll(async () => {
-                    singleChannelGuestCount = await readGuestCount();
-                    return singleChannelGuestCount;
-                }, {timeout: 180000, intervals: [3000, 5000, 8000, 12000]})
+                .poll(
+                    async () => {
+                        singleChannelGuestCount = await readGuestCount();
+                        return singleChannelGuestCount;
+                    },
+                    {timeout: 180000, intervals: [3000, 5000, 8000, 12000]},
+                )
                 .toBeGreaterThanOrEqual(0);
 
             // # Now create a single-channel guest to confirm baseline counting works
