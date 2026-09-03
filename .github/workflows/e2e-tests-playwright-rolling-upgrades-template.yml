@@ -104,6 +104,8 @@ permissions:
 
 env:
   SERVER_IMAGE: "${{ inputs.server_image_repo }}/${{ inputs.server_edition == 'fips' && 'mattermost-enterprise-fips-edition' || inputs.server_edition == 'team' && 'mattermost-team-edition' || 'mattermost-enterprise-edition' }}:${{ inputs.server_image_tag }}"
+  # Job/workflow-level so ci/publish-webhook's `if` can see it (step env is applied after `if`).
+  REPORT_WEBHOOK_URL: ${{ secrets.REPORT_WEBHOOK_URL }}
 
 jobs:
   prepare-run:
@@ -271,7 +273,7 @@ jobs:
       PW_USE_TESTCONTAINERS: "true"
       # Same fixed set as the full suite's workers: dispatch pulls specs from a shared queue, so no
       # worker knows in advance which service-tagged spec (e.g. @ldap, @saml) it will draw.
-      PW_TESTCONTAINERS_SERVICES: "openldap,keycloak,elasticsearch,minio"
+      PW_TESTCONTAINERS_SERVICES: "openldap,keycloak,elasticsearch,opensearch,minio,azurite"
       # Load-bearing three times over here: upgrade-to has to adopt the stack upgrade-from left
       # running, the swap has to keep Postgres and file storage while only the server is replaced,
       # and dispatch-run's per-spec invocations all have to land on that same upgraded server.
@@ -392,7 +394,6 @@ jobs:
       - name: ci/publish-webhook
         if: inputs.enable_reporting && env.REPORT_WEBHOOK_URL != ''
         env:
-          REPORT_WEBHOOK_URL: ${{ secrets.REPORT_WEBHOOK_URL }}
           PAYLOAD: ${{ steps.summary.outputs.webhook_payload }}
         run: |
           curl -X POST -H "Content-Type: application/json" -d "$PAYLOAD" "$REPORT_WEBHOOK_URL"
