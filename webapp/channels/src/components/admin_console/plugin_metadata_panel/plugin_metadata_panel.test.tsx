@@ -89,13 +89,13 @@ describe('PluginMetadataPanel', () => {
         expect(screen.queryByRole('link')).not.toBeInTheDocument();
     });
 
-    test('should omit the display name when showName is false', () => {
+    test('should omit the display name when hideName is true', () => {
         renderWithContext(
             <PluginMetadataPanel
                 name='FL3XX'
                 id='com.mattermost.fl3xx'
                 version='0.7.4'
-                showName={false}
+                hideName={true}
             />,
         );
 

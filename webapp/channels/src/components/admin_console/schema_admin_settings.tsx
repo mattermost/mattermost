@@ -392,7 +392,7 @@ export class SchemaAdminSettings extends React.PureComponent<SchemaAdminSettings
                                     version={this.props.pluginVersion || this.props.plugin.version}
                                     homepageUrl={this.props.plugin.homepage_url}
                                     releaseNotesUrl={this.props.plugin.release_notes_url}
-                                    showName={false}
+                                    hideName={true}
                                 />
                                 {description && (
                                     <p className='PluginMetadataPanel__description'>
