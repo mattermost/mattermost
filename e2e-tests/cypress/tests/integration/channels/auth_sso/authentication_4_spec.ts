@@ -266,7 +266,14 @@ describe('Authentication', () => {
     });
 
     it('MM-T1755 - Restrict Domains - Email invite', () => {
-        // Create the team before restricting domains; admin email may not match test.com.
+        // T1754 leaves RestrictCreationToDomains set; clear it so admin can create this team.
+        cy.apiUpdateConfig({
+            TeamSettings: {
+                RestrictCreationToDomains: '',
+                EnableUserCreation: true,
+            },
+        });
+
         cy.apiCreateTeam('invite-domain', 'Invite Domain').then(({team}) => {
             cy.apiUpdateConfig({
                 EmailSettings: {
