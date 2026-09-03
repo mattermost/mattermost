@@ -99,7 +99,7 @@ func (sm *ServerManager) resetDatabases(ctx context.Context) error {
 			fmt.Sprintf("CREATE DATABASE %s", db),
 		} {
 			cmd := exec.CommandContext(ctx, "docker", "exec",
-				"-e", "PGPASSWORD=mostest",
+				"-e", "PGPASSWORD=mostest_password",
 				"mattermost-postgres",
 				"psql", "-U", "mmuser", "-d", "postgres", "-c", sql,
 			)
@@ -143,7 +143,7 @@ func (sm *ServerManager) launchServerB(logsDir string, truncate bool) error {
 	sm.procB.Env = append(sm.procB.Env,
 		"MM_SERVICESETTINGS_SITEURL="+sm.cfg.ServerBURL,
 		"MM_SERVICESETTINGS_LISTENADDRESS=:9066",
-		"MM_SQLSETTINGS_DATASOURCE=postgres://mmuser:mostest@localhost/mattermost_node_test?sslmode=disable&connect_timeout=10&binary_parameters=yes",
+		"MM_SQLSETTINGS_DATASOURCE=postgres://mmuser:mostest_password@localhost/mattermost_node_test?sslmode=disable&connect_timeout=10&binary_parameters=yes",
 		"MM_LOGSETTINGS_FILELOCATION="+filepath.Join(logsDir, "server_b.log"),
 	)
 	flags := os.O_CREATE | os.O_WRONLY | os.O_APPEND
@@ -176,7 +176,7 @@ func (sm *ServerManager) startServers(ctx context.Context) error {
 	sm.procA.Env = append(sm.procA.Env,
 		"MM_SERVICESETTINGS_SITEURL="+sm.cfg.ServerAURL,
 		"MM_SERVICESETTINGS_LISTENADDRESS=:9065",
-		"MM_SQLSETTINGS_DATASOURCE=postgres://mmuser:mostest@localhost/mattermost_test?sslmode=disable&connect_timeout=10&binary_parameters=yes",
+		"MM_SQLSETTINGS_DATASOURCE=postgres://mmuser:mostest_password@localhost/mattermost_test?sslmode=disable&connect_timeout=10&binary_parameters=yes",
 		"MM_LOGSETTINGS_FILELOCATION="+filepath.Join(logsDir, "server_a.log"),
 	)
 	outA, err := os.Create(filepath.Join(logsDir, "server_a_stdout.log"))
@@ -265,7 +265,7 @@ func ProvisionAdmin(ctx context.Context, serverURL, dbName, username, email, pas
 	// (psql -v variable substitution is not supported with -c)
 	cmd := exec.CommandContext(ctx, "docker", "exec",
 		"-i",
-		"-e", "PGPASSWORD=mostest",
+		"-e", "PGPASSWORD=mostest_password",
 		"mattermost-postgres",
 		"psql", "-U", "mmuser", "-d", dbName,
 		"-v", "uname="+username,

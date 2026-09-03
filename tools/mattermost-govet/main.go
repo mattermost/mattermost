@@ -16,6 +16,7 @@ import (
 	"github.com/mattermost/mattermost/tools/mattermost-govet/immut"
 	"github.com/mattermost/mattermost/tools/mattermost-govet/inconsistentReceiverName"
 	"github.com/mattermost/mattermost/tools/mattermost-govet/license"
+	"github.com/mattermost/mattermost/tools/mattermost-govet/mlogFieldNaming"
 	"github.com/mattermost/mattermost/tools/mattermost-govet/mutexLock"
 	"github.com/mattermost/mattermost/tools/mattermost-govet/noSelectStar"
 	"github.com/mattermost/mattermost/tools/mattermost-govet/openApiSync"
@@ -33,6 +34,7 @@ func main() {
 		license.Analyzer,
 		license.EEAnalyzer,
 		structuredLogging.Analyzer,
+		mlogFieldNaming.Analyzer,
 		// appErrorWhere.Analyzer,
 		tFatal.Analyzer,
 		equalLenAsserts.Analyzer,

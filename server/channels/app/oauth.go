@@ -5,13 +5,13 @@ package app
 
 import (
 	"bytes"
-	"context"
 	b64 "encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 	"net/url"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -33,6 +33,19 @@ const (
 	CookieOAuth              = "MMOAUTH"
 	OpenIDScope              = "openid"
 )
+
+const oauthTokenRedacted = "[REDACTED]"
+
+// oauthTokenPattern matches an access_token, refresh_token, or id_token field name (in JSON or
+// form-encoded format, with literal, percent-encoded, or JSON-unicode-escaped underscores) followed
+// by its value. Group 1 captures everything up to and including the value's opening delimiter so it
+// can be preserved in the replacement; group 2 captures the value itself.
+var oauthTokenPattern = regexp.MustCompile(`(?i)((?:^|[^0-9a-z_])(?:access|refresh|id)(?:_|%5[Ff]|\\u005[Ff])token\s*"?\s*[=:]\s*"?)((?:[^&;,"'\s}\\]|\\.)*)`)
+
+// redactOAuthTokenResponse masks token values in a token endpoint response body so it can be used in error details.
+func redactOAuthTokenResponse(body string) string {
+	return oauthTokenPattern.ReplaceAllString(body, "${1}"+oauthTokenRedacted)
+}
 
 func (a *App) CreateOAuthApp(app *model.OAuthApp) (*model.OAuthApp, *model.AppError) {
 	// Public method for plugin API - always generates secrets for backward compatibility
@@ -280,7 +293,7 @@ func (a *App) GetOAuthAccessTokenForImplicitFlow(rctx request.CTX, userID string
 		return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.credentials.app_error", nil, "", http.StatusNotFound).Wrap(err)
 	}
 
-	user, err := a.GetUser(userID)
+	user, err := a.GetUser(rctx, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -357,7 +370,7 @@ func (a *App) handleAuthorizationCodeGrant(rctx request.CTX, oauthApp *model.OAu
 		return nil, err
 	}
 
-	user, nErr := a.Srv().Store().User().Get(context.Background(), authData.UserId)
+	user, nErr := a.Srv().Store().User().Get(rctx, authData.UserId)
 	if nErr != nil {
 		return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.internal_user.app_error", nil, "", http.StatusNotFound).Wrap(nErr)
 	}
@@ -407,7 +420,7 @@ func (a *App) handleRefreshTokenGrant(rctx request.CTX, oauthApp *model.OAuthApp
 		return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.client_id_mismatch.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	user, nErr := a.Srv().Store().User().Get(context.Background(), accessData.UserId)
+	user, nErr := a.Srv().Store().User().Get(rctx, accessData.UserId)
 	if nErr != nil {
 		return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.internal_user.app_error", nil, "", http.StatusNotFound).Wrap(nErr)
 	}
@@ -1101,7 +1114,7 @@ func (a *App) AuthorizeOAuthUser(rctx request.CTX, w http.ResponseWriter, r *htt
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Set("Accept", "application/json")
 
-	resp, err := a.HTTPService().MakeClient(true).Do(req)
+	resp, err := a.HTTPService().MakeClient(false).Do(req)
 	if err != nil {
 		return nil, stateProps, nil, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.token_failed.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -1112,15 +1125,15 @@ func (a *App) AuthorizeOAuthUser(rctx request.CTX, w http.ResponseWriter, r *htt
 	var ar *model.AccessResponse
 	err = json.NewDecoder(tee).Decode(&ar)
 	if err != nil || resp.StatusCode != http.StatusOK {
-		return nil, stateProps, nil, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.bad_response.app_error", nil, fmt.Sprintf("response_body=%s, status_code=%d, error=%v", buf.String(), resp.StatusCode, err), http.StatusInternalServerError).Wrap(err)
+		return nil, stateProps, nil, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.bad_response.app_error", nil, fmt.Sprintf("response_body=%s, status_code=%d, error=%v", redactOAuthTokenResponse(buf.String()), resp.StatusCode, err), http.StatusInternalServerError).Wrap(err)
 	}
 
 	if strings.ToLower(ar.TokenType) != model.AccessTokenType {
-		return nil, stateProps, nil, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.bad_token.app_error", nil, "token_type="+ar.TokenType+", response_body="+buf.String(), http.StatusInternalServerError)
+		return nil, stateProps, nil, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.bad_token.app_error", nil, "token_type="+ar.TokenType+", response_body="+redactOAuthTokenResponse(buf.String()), http.StatusInternalServerError)
 	}
 
 	if ar.AccessToken == "" {
-		return nil, stateProps, nil, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.missing.app_error", nil, "response_body="+buf.String(), http.StatusInternalServerError)
+		return nil, stateProps, nil, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.missing.app_error", nil, "response_body="+redactOAuthTokenResponse(buf.String()), http.StatusInternalServerError)
 	}
 
 	p = url.Values{}
@@ -1143,7 +1156,7 @@ func (a *App) AuthorizeOAuthUser(rctx request.CTX, w http.ResponseWriter, r *htt
 	req.Header.Set("Accept", "application/json")
 	req.Header.Set("Authorization", "Bearer "+ar.AccessToken)
 
-	resp, err = a.HTTPService().MakeClient(true).Do(req)
+	resp, err = a.HTTPService().MakeClient(false).Do(req)
 	if err != nil {
 		return nil, stateProps, nil, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.service.app_error", map[string]any{"Service": service}, "", http.StatusInternalServerError).Wrap(err)
 	} else if resp.StatusCode != http.StatusOK {

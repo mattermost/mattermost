@@ -10,7 +10,7 @@ export const POSTGRES_ALIAS = 'postgres';
 export const POSTGRES_PORT = 5432;
 export const POSTGRES_DB = 'mattermost_test';
 export const POSTGRES_USER = 'mmuser';
-export const POSTGRES_PASSWORD = 'mostest';
+export const POSTGRES_PASSWORD = 'mostest_password';
 
 export const INBUCKET_ALIAS = 'inbucket';
 export const INBUCKET_WEB_PORT = 9001;
@@ -28,7 +28,7 @@ export const WEBHOOK_PORT = 3000;
 export const OPENLDAP_ALIAS = 'openldap';
 export const OPENLDAP_PORT = 389;
 export const OPENLDAP_ADMIN_DN = 'cn=admin,dc=mm,dc=test,dc=com';
-export const OPENLDAP_ADMIN_PASSWORD = 'mostest';
+export const OPENLDAP_ADMIN_PASSWORD = 'mostest_password';
 export const OPENLDAP_BASE_DN = 'dc=mm,dc=test,dc=com';
 
 export const KEYCLOAK_ALIAS = 'keycloak';

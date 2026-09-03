@@ -9,7 +9,7 @@ Add all static files under a file directory named `public` within the plugin dir
 
 ## How do plugins make sure http requests are authentic?
 
-Plugins can implement the [`ServeHTTP`](/developers/integrate/reference/server/server-reference#Hooks.ServeHTTP) to listen to http requests. This can be used to receive post action requests when [Interactive Messages Buttons and Menus](https://docs.mattermost.com/developer/interactive-messages.html) are triggered by users.
+Plugins can implement the [`ServeHTTP`](/developers/integrate/reference/server#Hooks.ServeHTTP) to listen to http requests. This can be used to receive post action requests when [Interactive Messages Buttons and Menus](https://docs.mattermost.com/developer/interactive-messages.html) are triggered by users.
 
 When plugins act as an HTTP server, they serve requests from Mattermost clients (which are authenticated in a Mattermost sense), but may also serve HTTP requests from external services like webhooks. These requests from external services might use the Authorization header to authorize themselves against the plugin.
 

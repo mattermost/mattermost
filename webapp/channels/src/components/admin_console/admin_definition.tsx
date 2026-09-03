@@ -97,6 +97,7 @@ import SessionAttributesFeatureDiscovery from './feature_discovery/features/sess
 import UserAttributesFeatureDiscovery from './feature_discovery/features/user_attributes';
 import FeatureFlags, {messages as featureFlagsMessages} from './feature_flags';
 import GlobalAttributes, {searchableStrings as globalAttributesSearchableStrings} from './global_attributes';
+import AttributeDetails from './global_attributes/attribute_details';
 import GroupDetails from './group_settings/group_details';
 import GroupSettings from './group_settings/group_settings';
 import IPFiltering from './ip_filtering';
@@ -176,6 +177,8 @@ const SAML_SETTINGS_CANONICAL_ALGORITHM_C14N11 = 'Canonical1.1';
 //   - type: which define the widget type.
 //   - label (and label_default): which define the main text of the setting.
 //   - isDisabled: a function which receive current config, the state of the page and the license.
+//     Prefer depending on a parent bool setting (it.stateIsFalse('Parent.Key')) over repeating that
+//     parent's config/state checks; @mattermost/no-redundant-admin-config-deps enforces this.
 //   - isHidden: a function which receive current config, the state of the page and the license.
 //
 // Custom Widget (extends from Widget):
@@ -715,6 +718,30 @@ const AdminDefinition: AdminDefinitionType = {
                     component: BoardAttributes,
                 },
             },
+            global_attribute_details_edit: {
+                url: `system_attributes/manage_attributes/attribute_details/:field_id(${ID_PATH_PATTERN})`,
+                isHidden: it.not(it.all(
+                    it.minLicenseTier(LicenseSkus.Enterprise),
+                    it.configIsTrue('FeatureFlags', 'GlobalAttributes'),
+                )),
+                isDisabled: it.not(it.isSystemAdmin),
+                schema: {
+                    id: 'GlobalAttributeDetails',
+                    component: AttributeDetails,
+                },
+            },
+            global_attribute_details: {
+                url: 'system_attributes/manage_attributes/attribute_details',
+                isHidden: it.not(it.all(
+                    it.minLicenseTier(LicenseSkus.Enterprise),
+                    it.configIsTrue('FeatureFlags', 'GlobalAttributes'),
+                )),
+                isDisabled: it.not(it.isSystemAdmin),
+                schema: {
+                    id: 'GlobalAttributeDetails',
+                    component: AttributeDetails,
+                },
+            },
             global_attributes: {
                 url: 'system_attributes/manage_attributes',
                 title: defineMessage({id: 'admin.sidebar.global_attributes', defaultMessage: 'Manage Attributes'}),
@@ -763,6 +790,7 @@ const AdminDefinition: AdminDefinitionType = {
                                 {
                                     type: 'bool',
                                     key: 'AccessControlSettings.EnableAccessControlAuditLogging',
+                                    isHidden: true, // TODO: Remove when the PR#37771 is merged
                                     label: defineMessage({id: 'admin.accesscontrol.enableAuditLogging.title', defaultMessage: 'Enable audit logging for access control decisions'}),
                                     help_text: defineMessage({id: 'admin.accesscontrol.enableAuditLogging.desc', defaultMessage: 'When enabled, attribute-based access control policy decisions are written to the server audit log. Requires server audit logging to be active.'}),
                                     disabled_help_text: defineMessage({id: 'admin.accesscontrol.enableAuditLogging.disabled', defaultMessage: 'When enabled, attribute-based access control policy decisions are written to the server audit log. This setting requires attribute-based access control to be enabled and server audit logging to be active (enable file audit logging or configure an advanced audit logging target).'}),
@@ -776,6 +804,40 @@ const AdminDefinition: AdminDefinitionType = {
                                     key: 'AccessControlSettings.EnableChannelPolicyIndicators',
                                     label: defineMessage({id: 'admin.accesscontrol.enableChannelPolicyIndicatorsTitle', defaultMessage: 'Show channel access indicators to end users'}),
                                     help_text: defineMessage({id: 'admin.accesscontrol.enableChannelPolicyIndicatorsDesc', defaultMessage: 'When enabled, channels restricted by a membership access policy display the matching user attributes as tags in the channel members list and the invite dialog. Disable this to avoid revealing policy details to end users.'}),
+                                    isDisabled: it.configIsFalse('AccessControlSettings', 'EnableAttributeBasedAccessControl'),
+                                },
+                            ],
+                        },
+                        {
+                            key: 'admin.accesscontrol.session_attributes',
+                            title: defineMessage({id: 'admin.accesscontrol.session_attributes', defaultMessage: 'Session Attributes'}),
+                            isHidden: it.any(
+                                it.configIsFalse('FeatureFlags', 'SessionAttributes'),
+                                it.not(it.minLicenseTier(LicenseSkus.EnterpriseAdvanced)),
+                            ),
+                            settings: [
+                                {
+                                    type: 'bool',
+                                    key: 'AccessControlSettings.TrustProxyDeviceIdentityHeader',
+                                    label: defineMessage({id: 'admin.accesscontrol.trustProxyDeviceIdentityHeader.title', defaultMessage: 'Trust proxy device identity header'}),
+                                    help_text: defineMessage({id: 'admin.accesscontrol.trustProxyDeviceIdentityHeader.desc', defaultMessage: 'When enabled, the **TLS device ID** attribute is populated from the `X-Mattermost-Session-Attribute-Device-Id` request header, letting a reverse proxy that performs mutual TLS assert a device identity that the client cannot forge. **Note:** The device identity is accepted from the request header, so all clients must connect to Mattermost through a proxy that sets it and strips it from inbound requests.'}),
+                                    help_text_markdown: true,
+                                    isHidden: it.any(
+                                        it.configIsFalse('FeatureFlags', 'SessionAttributes'),
+                                        it.not(it.minLicenseTier(LicenseSkus.EnterpriseAdvanced)),
+                                    ),
+                                    isDisabled: it.configIsFalse('AccessControlSettings', 'EnableAttributeBasedAccessControl'),
+                                },
+                                {
+                                    type: 'bool',
+                                    key: 'AccessControlSettings.EnforceDeviceIDConsistency',
+                                    label: defineMessage({id: 'admin.accesscontrol.enforceDeviceIdConsistency.title', defaultMessage: 'Enforce device ID consistency'}),
+                                    help_text: defineMessage({id: 'admin.accesscontrol.enforceDeviceIdConsistency.desc', defaultMessage: 'When enabled, the **TLS device ID**, **Device ID**, and **Hardware ID** attributes are compared against the values cached for a session. If one of them changes mid-session, the session is revoked, the user must log in again, and the revocation is recorded in the audit log. This mitigates token theft, since a stolen token replayed from another device reports a different identifier. When disabled, a changed device identity overwrites the cached value and the session continues. **Note:** Confirm that these attributes report stable values across your fleet before enabling, since an identifier that legitimately changes will log users out.'}),
+                                    help_text_markdown: true,
+                                    isHidden: it.any(
+                                        it.configIsFalse('FeatureFlags', 'SessionAttributes'),
+                                        it.not(it.minLicenseTier(LicenseSkus.EnterpriseAdvanced)),
+                                    ),
                                     isDisabled: it.configIsFalse('AccessControlSettings', 'EnableAttributeBasedAccessControl'),
                                 },
                             ],
@@ -1096,6 +1158,14 @@ const AdminDefinition: AdminDefinitionType = {
                         },
                         {
                             type: 'bool',
+                            key: 'ServiceSettings.EnableChannelViewedMessages',
+                            label: defineMessage({id: 'admin.service.enableChannelViewedMessages', defaultMessage: 'Enable Channel Viewed WebSocket Messages:'}),
+                            help_text: defineMessage({id: 'admin.service.enableChannelViewedMessagesDescription', defaultMessage: 'This setting determines whether `channel_viewed` WebSocket events are sent, which synchronize unread notifications across clients and devices. Disabling the setting in larger deployments may improve server performance.'}),
+                            help_text_markdown: false,
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.WEB_SERVER)),
+                        },
+                        {
+                            type: 'bool',
                             key: 'ServiceSettings.EnableInsecureOutgoingConnections',
                             label: defineMessage({id: 'admin.service.insecureTlsTitle', defaultMessage: 'Enable Insecure Outgoing Connections: '}),
                             help_text: defineMessage({id: 'admin.service.insecureTlsDesc', defaultMessage: 'When true, any outgoing HTTPS requests will accept unverified, self-signed certificates. For example, outgoing webhooks to a server with a self-signed TLS certificate, using any domain, will be allowed. Note that this makes these connections susceptible to man-in-the-middle attacks.'}),
@@ -1104,6 +1174,24 @@ const AdminDefinition: AdminDefinitionType = {
                                 title: defineMessage({id: 'admin.service.insecureTlsProductionWarning.title', defaultMessage: 'Insecure outgoing connections are not recommended for production environments'}),
                                 text: defineMessage({id: 'admin.service.insecureTlsProductionWarning.text', defaultMessage: 'Mattermost will not verify TLS certificates for outbound connections, exposing them to man-in-the-middle attacks. Enable only for testing.'}),
                             },
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.WEB_SERVER)),
+                        },
+                        {
+                            type: 'bool',
+                            key: 'ServiceSettings.EnableHardenedMode',
+                            label: defineMessage({id: 'admin.service.hardenedModeTitle', defaultMessage: 'Enable Hardened Mode:'}),
+                            help_text: defineMessage({id: 'admin.service.hardenedModeDesc', defaultMessage: 'Enables a hardened mode for Mattermost that makes user experience trade-offs in the interest of security. See <link>documentation</link> to learn more.'}), // eslint-disable-line formatjs/enforce-placeholders -- placeholders provided
+                            help_text_values: {
+                                link: (msg: string) => (
+                                    <ExternalLink
+                                        location='admin_console'
+                                        href={DocLinks.ENABLE_HARDENED_MODE}
+                                    >
+                                        {msg}
+                                    </ExternalLink>
+                                ),
+                            },
+                            help_text_markdown: false,
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.WEB_SERVER)),
                         },
                         {
@@ -1627,10 +1715,6 @@ const AdminDefinition: AdminDefinitionType = {
                             help_text_markdown: false,
                             options: [
                                 {
-                                    value: 'atmos/camo',
-                                    display_name: defineMessage({id: 'atmos/camo', defaultMessage: 'atmos/camo'}),
-                                },
-                                {
                                     value: 'local',
                                     display_name: defineMessage({id: 'local', defaultMessage: 'local'}),
                                 },
@@ -1638,28 +1722,6 @@ const AdminDefinition: AdminDefinitionType = {
                             isDisabled: it.any(
                                 it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.IMAGE_PROXY)),
                                 it.stateIsFalse('ImageProxySettings.Enable'),
-                            ),
-                        },
-                        {
-                            type: 'text',
-                            key: 'ImageProxySettings.RemoteImageProxyURL',
-                            label: defineMessage({id: 'admin.image.proxyURL', defaultMessage: 'Remote Image Proxy URL:'}),
-                            help_text: defineMessage({id: 'admin.image.proxyURLDescription', defaultMessage: 'URL of your remote image proxy server.'}),
-                            isDisabled: it.any(
-                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.IMAGE_PROXY)),
-                                it.stateIsFalse('ImageProxySettings.Enable'),
-                                it.stateEquals('ImageProxySettings.ImageProxyType', 'local'),
-                            ),
-                        },
-                        {
-                            type: 'text',
-                            key: 'ImageProxySettings.RemoteImageProxyOptions',
-                            label: defineMessage({id: 'admin.image.proxyOptions', defaultMessage: 'Remote Image Proxy Options:'}),
-                            help_text: defineMessage({id: 'admin.image.proxyOptionsDescription', defaultMessage: 'Additional options such as the URL signing key. Refer to your image proxy documentation to learn more about what options are supported.'}),
-                            isDisabled: it.any(
-                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.IMAGE_PROXY)),
-                                it.stateIsFalse('ImageProxySettings.Enable'),
-                                it.stateEquals('ImageProxySettings.ImageProxyType', 'local'),
                             ),
                         },
                     ],
@@ -2602,6 +2664,84 @@ const AdminDefinition: AdminDefinitionType = {
                         },
                         {
                             type: 'bool',
+                            key: 'ThemeSettings.EnableThemeSelection',
+                            label: defineMessage({id: 'admin.customization.enableThemeSelectionTitle', defaultMessage: 'Enable Theme Selection:'}),
+                            help_text: defineMessage({id: 'admin.customization.enableThemeSelectionDesc', defaultMessage: 'Enables the **Display > Theme** tab in Settings so users can select their theme.'}),
+                            help_text_markdown: true,
+                            isHidden: it.any(
+                                it.not(it.licensed),
+                                it.licensedForSku('starter'),
+                            ),
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.CUSTOMIZATION)),
+                        },
+                        {
+                            type: 'bool',
+                            key: 'ThemeSettings.AllowCustomThemes',
+                            label: defineMessage({id: 'admin.customization.allowCustomThemesTitle', defaultMessage: 'Allow Custom Themes:'}),
+                            help_text: defineMessage({id: 'admin.customization.allowCustomThemesDesc', defaultMessage: 'Enables the **Display > Theme > Custom Theme** section in Settings.'}),
+                            help_text_markdown: true,
+                            isHidden: it.any(
+                                it.not(it.licensed),
+                                it.licensedForSku('starter'),
+                            ),
+                            isDisabled: it.any(
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.CUSTOMIZATION)),
+                                it.stateIsFalse('ThemeSettings.EnableThemeSelection'),
+                            ),
+                        },
+                        {
+                            type: 'text',
+                            key: 'ThemeSettings.AllowedThemes',
+                            multiple: true,
+                            label: defineMessage({id: 'admin.customization.allowedThemesTitle', defaultMessage: 'Allowed Themes:'}),
+                            help_text: defineMessage({id: 'admin.customization.allowedThemesDesc', defaultMessage: 'Restrict the themes users can select in **Display > Theme** to a comma-separated list of theme names. Valid names are `denim`, `sapphire`, `quartz`, `indigo`, and `onyx`. Leave this field blank to allow all themes.'}),
+                            help_text_markdown: true,
+                            placeholder: defineMessage({id: 'admin.customization.allowedThemesPlaceholder', defaultMessage: 'E.g.: "denim,onyx"'}),
+                            isHidden: it.any(
+                                it.not(it.licensed),
+                                it.licensedForSku('starter'),
+                            ),
+                            isDisabled: it.any(
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.CUSTOMIZATION)),
+                                it.stateIsFalse('ThemeSettings.EnableThemeSelection'),
+                            ),
+                        },
+                        {
+                            type: 'dropdown',
+                            key: 'ThemeSettings.DefaultTheme',
+                            label: defineMessage({id: 'admin.customization.defaultThemeTitle', defaultMessage: 'Default Theme:'}),
+                            help_text: defineMessage({id: 'admin.customization.defaultThemeDesc', defaultMessage: 'Set a default theme that applies to all new users on the system.'}),
+                            help_text_markdown: true,
+                            options: [
+                                {
+                                    value: 'denim',
+                                    display_name: defineMessage({id: 'admin.customization.defaultTheme.options.denim', defaultMessage: 'Denim'}),
+                                },
+                                {
+                                    value: 'sapphire',
+                                    display_name: defineMessage({id: 'admin.customization.defaultTheme.options.sapphire', defaultMessage: 'Sapphire'}),
+                                },
+                                {
+                                    value: 'quartz',
+                                    display_name: defineMessage({id: 'admin.customization.defaultTheme.options.quartz', defaultMessage: 'Quartz'}),
+                                },
+                                {
+                                    value: 'indigo',
+                                    display_name: defineMessage({id: 'admin.customization.defaultTheme.options.indigo', defaultMessage: 'Indigo'}),
+                                },
+                                {
+                                    value: 'onyx',
+                                    display_name: defineMessage({id: 'admin.customization.defaultTheme.options.onyx', defaultMessage: 'Onyx'}),
+                                },
+                            ],
+                            isHidden: it.any(
+                                it.not(it.licensed),
+                                it.licensedForSku('starter'),
+                            ),
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.CUSTOMIZATION)),
+                        },
+                        {
+                            type: 'bool',
                             key: 'SupportSettings.EnableAskCommunityLink',
                             label: defineMessage({id: 'admin.support.enableAskCommunityTitle', defaultMessage: 'Enable Ask Community Link:'}),
                             help_text: defineMessage({id: 'admin.support.enableAskCommunityDesc', defaultMessage: 'When true, "Ask the community" link appears on the Mattermost user interface and Help Menu, which allows users to join the Mattermost Community to ask questions and help others troubleshoot issues. When false, the link is hidden from users.'}),
@@ -2737,6 +2877,22 @@ const AdminDefinition: AdminDefinitionType = {
                             help_text: defineMessage({id: 'admin.customization.iosAppDownloadLinkDesc', defaultMessage: 'Add a link to download the iOS app. Users who access the site on a mobile web browser will be prompted with a page giving them the option to download the app. Leave this field blank to prevent the page from appearing.'}),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.CUSTOMIZATION)),
                             isHidden: it.configIsTrue('ExperimentalSettings', 'RestrictSystemAdmin'),
+                        },
+                        {
+                            type: 'bool',
+                            key: 'ServiceSettings.EnableTutorial',
+                            label: defineMessage({id: 'admin.customization.enableTutorialTitle', defaultMessage: 'Enable Tutorial:'}),
+                            help_text: defineMessage({id: 'admin.customization.enableTutorialDesc', defaultMessage: 'When true, users are prompted with a tutorial when they open Mattermost for the first time after account creation. When false, the tutorial is disabled, and users are placed in Town Square when they open Mattermost for the first time after account creation.'}),
+                            help_text_markdown: false,
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.CUSTOMIZATION)),
+                        },
+                        {
+                            type: 'bool',
+                            key: 'ServiceSettings.EnableOnboardingFlow',
+                            label: defineMessage({id: 'admin.customization.enableOnboardingFlowTitle', defaultMessage: 'Enable Onboarding:'}),
+                            help_text: defineMessage({id: 'admin.customization.enableOnboardingFlowDesc', defaultMessage: 'When true, new users are shown steps to complete as part of an onboarding process'}),
+                            help_text_markdown: false,
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.CUSTOMIZATION)),
                         },
                         {
                             type: 'bool',
@@ -2962,6 +3118,14 @@ const AdminDefinition: AdminDefinitionType = {
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.USERS_AND_TEAMS)),
                         },
                         {
+                            type: 'number',
+                            key: 'TeamSettings.UserStatusAwayTimeout',
+                            label: defineMessage({id: 'admin.team.userStatusAwayTimeoutTitle', defaultMessage: 'User Status Away Timeout (seconds):'}),
+                            help_text: defineMessage({id: 'admin.team.userStatusAwayTimeoutDescription', defaultMessage: 'This setting defines the number of seconds of inactivity after which the user\'s status indicator changes to "Away".'}),
+                            placeholder: defineMessage({id: 'admin.team.userStatusAwayTimeoutExample', defaultMessage: 'E.g.: "300"'}),
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.USERS_AND_TEAMS)),
+                        },
+                        {
                             type: 'bool',
                             key: 'ServiceSettings.EnableCustomGroups',
                             label: defineMessage({id: 'admin.team.customUserGroupsTitle', defaultMessage: 'Enable Custom User Groups: '}),
@@ -2977,6 +3141,14 @@ const AdminDefinition: AdminDefinitionType = {
                             label: defineMessage({id: 'admin.team.refreshPostStatsRunTimeTitle', defaultMessage: 'User Statistics Update Time:'}),
                             help_text: defineMessage({id: 'admin.team.refreshPostStatsRunTimeDescription', defaultMessage: "Set the server time for updating the user post statistics, including each user's total post count and the timestamp of their most recent post. Must be a 24-hour time stamp in the form HH:MM based on the local time of the server."}),
                             placeholder: defineMessage({id: 'admin.team.refreshPostStatsRunTimeExample', defaultMessage: 'E.g.: "00:00"'}),
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.USERS_AND_TEAMS)),
+                        },
+                        {
+                            type: 'bool',
+                            key: 'TeamSettings.EnableUserDeactivation',
+                            label: defineMessage({id: 'admin.team.enableUserDeactivationTitle', defaultMessage: 'Enable Account Deactivation:'}),
+                            help_text: defineMessage({id: 'admin.team.enableUserDeactivationDescription', defaultMessage: 'When true, users may deactivate their own account from **Settings > Advanced**. If a user deactivates their own account, they will get an email notification confirming they were deactivated. When false, users may not deactivate their own account. Only available to users who sign in with an email address and password.'}),
+                            help_text_markdown: true,
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.USERS_AND_TEAMS)),
                         },
                         {
@@ -3038,6 +3210,30 @@ const AdminDefinition: AdminDefinitionType = {
                             isHidden: it.licensedForFeature('Cloud'),
                         },
                         {
+                            type: 'number',
+                            key: 'EmailSettings.EmailBatchingBufferSize',
+                            label: defineMessage({id: 'admin.environment.notifications.emailBatchingBufferSize.label', defaultMessage: 'Email Batching Buffer Size:'}),
+                            help_text: defineMessage({id: 'admin.environment.notifications.emailBatchingBufferSize.help', defaultMessage: 'Specify the maximum number of notifications batched into a single email.'}),
+                            placeholder: defineMessage({id: 'admin.environment.notifications.emailBatchingBufferSize.placeholder', defaultMessage: 'E.g.: "256"'}),
+                            isDisabled: it.any(
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.NOTIFICATIONS)),
+                                it.stateIsFalse('EmailSettings.EnableEmailBatching'),
+                            ),
+                            isHidden: it.licensedForFeature('Cloud'),
+                        },
+                        {
+                            type: 'number',
+                            key: 'EmailSettings.EmailBatchingInterval',
+                            label: defineMessage({id: 'admin.environment.notifications.emailBatchingInterval.label', defaultMessage: 'Email Batching Interval:'}),
+                            help_text: defineMessage({id: 'admin.environment.notifications.emailBatchingInterval.help', defaultMessage: 'Specify the maximum frequency, in seconds, which the batching job checks for new notifications. Longer batching intervals will increase performance.'}),
+                            placeholder: defineMessage({id: 'admin.environment.notifications.emailBatchingInterval.placeholder', defaultMessage: 'E.g.: "30"'}),
+                            isDisabled: it.any(
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.NOTIFICATIONS)),
+                                it.stateIsFalse('EmailSettings.EnableEmailBatching'),
+                            ),
+                            isHidden: it.licensedForFeature('Cloud'),
+                        },
+                        {
                             type: 'dropdown',
                             key: 'EmailSettings.EmailNotificationContentsType',
                             label: defineMessage({id: 'admin.environment.notifications.contents.label', defaultMessage: 'Email Notification Contents:'}),
@@ -3054,6 +3250,13 @@ const AdminDefinition: AdminDefinitionType = {
                                 },
                             ],
                             isHidden: it.not(it.licensedForFeature('EmailNotificationContents')),
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.NOTIFICATIONS)),
+                        },
+                        {
+                            type: 'bool',
+                            key: 'EmailSettings.UseChannelInEmailNotifications',
+                            label: defineMessage({id: 'admin.environment.notifications.useChannelInEmailNotifications.label', defaultMessage: 'Use Channel Name in Email Notifications:'}),
+                            help_text: defineMessage({id: 'admin.environment.notifications.useChannelInEmailNotifications.help', defaultMessage: 'When true, channel and team name appears in email notification subject lines. Useful for servers using only one team. When false, only team name appears in email notification subject line.'}),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.NOTIFICATIONS)),
                         },
                         {
@@ -3793,6 +3996,26 @@ const AdminDefinition: AdminDefinitionType = {
                                         return new ValidationResult(true, '');
                                     },
                                 },
+                                {
+                                    type: 'bool',
+                                    key: 'ServiceSettings.EnableUserTypingMessages',
+                                    label: defineMessage({id: 'admin.posts.enableUserTypingMessages.title', defaultMessage: 'Enable User Typing Messages:'}),
+                                    help_text: defineMessage({id: 'admin.posts.enableUserTypingMessages.desc', defaultMessage: 'This setting determines whether "user is typing..." messages are displayed below the message box. Disabling the setting in larger deployments may improve server performance.'}),
+                                    help_text_markdown: false,
+                                    isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
+                                },
+                                {
+                                    type: 'number',
+                                    key: 'ServiceSettings.TimeBetweenUserTypingUpdatesMilliseconds',
+                                    label: defineMessage({id: 'admin.posts.timeBetweenUserTypingUpdatesMilliseconds.title', defaultMessage: 'User Typing Timeout (milliseconds):'}),
+                                    help_text: defineMessage({id: 'admin.posts.timeBetweenUserTypingUpdatesMilliseconds.desc', defaultMessage: 'The number of milliseconds to wait between emitting user typing websocket events.'}),
+                                    help_text_markdown: false,
+                                    placeholder: defineMessage({id: 'admin.posts.timeBetweenUserTypingUpdatesMilliseconds.example', defaultMessage: 'E.g.: "5000"'}),
+                                    isDisabled: it.any(
+                                        it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
+                                        it.stateIsFalse('ServiceSettings.EnableUserTypingMessages'),
+                                    ),
+                                },
                             ],
                         },
                     ],
@@ -4442,7 +4665,6 @@ const AdminDefinition: AdminDefinitionType = {
                                 it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.SAML)),
                                 it.configIsFalse('GuestAccountsSettings', 'Enable'),
                                 it.stateIsFalse('SamlSettings.EnableSyncWithLdap'),
-                                it.stateIsFalse('SamlSettings.Enable'),
                             ),
                         },
                         {
@@ -4464,7 +4686,6 @@ const AdminDefinition: AdminDefinitionType = {
                             help_text_markdown: false,
                             isDisabled: it.any(
                                 it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.SAML)),
-                                it.stateIsFalse('SamlSettings.Enable'),
                                 it.stateIsFalse('SamlSettings.EnableSyncWithLdap'),
                             ),
                         },
@@ -4618,7 +4839,6 @@ const AdminDefinition: AdminDefinitionType = {
                             remove_action: removePrivateSamlCertificate,
                             isDisabled: it.any(
                                 it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.SAML)),
-                                it.stateIsFalse('SamlSettings.Enable'),
                                 it.stateIsFalse('SamlSettings.Encrypt'),
                             ),
                         },
@@ -4636,7 +4856,6 @@ const AdminDefinition: AdminDefinitionType = {
                             remove_action: removePublicSamlCertificate,
                             isDisabled: it.any(
                                 it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.SAML)),
-                                it.stateIsFalse('SamlSettings.Enable'),
                                 it.stateIsFalse('SamlSettings.Encrypt'),
                             ),
                         },
@@ -4658,7 +4877,6 @@ const AdminDefinition: AdminDefinitionType = {
                             label: defineMessage({id: 'admin.saml.signatureAlgorithmTitle', defaultMessage: 'Signature Algorithm'}),
                             isDisabled: it.any(
                                 it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.SAML)),
-                                it.stateIsFalse('SamlSettings.Encrypt'),
                                 it.stateIsFalse('SamlSettings.SignRequest'),
                             ),
                             options: [
@@ -4702,7 +4920,6 @@ const AdminDefinition: AdminDefinitionType = {
                             ],
                             isDisabled: it.any(
                                 it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.SAML)),
-                                it.stateIsFalse('SamlSettings.Encrypt'),
                                 it.stateIsFalse('SamlSettings.SignRequest'),
                             ),
                         },
@@ -4771,7 +4988,6 @@ const AdminDefinition: AdminDefinitionType = {
                             isDisabled: it.any(
                                 it.not(it.isSystemAdmin),
                                 it.stateIsFalse('SamlSettings.EnableAdminAttribute'),
-                                it.stateIsFalse('SamlSettings.Enable'),
                             ),
                         },
                         {
@@ -5401,7 +5617,7 @@ const AdminDefinition: AdminDefinitionType = {
                             type: 'text',
                             key: 'GitLabSettings.Id',
                             label: defineMessage({id: 'admin.openid.clientIdTitle', defaultMessage: 'Client ID:'}),
-                            help_text: defineMessage({id: 'admin.openid.clientIdDescription', defaultMessage: 'Obtaining the Client ID differs across providers. Please check you provider\'s documentation.'}),
+                            help_text: defineMessage({id: 'admin.openid.clientIdDescription', defaultMessage: 'Obtaining the Client ID differs across providers. Please check your provider\'s documentation.'}),
                             placeholder: defineMessage({id: 'admin.gitlab.clientIdExample', defaultMessage: 'E.g.: "jcuS8PuvcpGhpgHhlcpT1Mx42pnqMxQY"'}),
                             isHidden: it.not(it.stateEquals('openidType', Constants.GITLAB_SERVICE)),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.OPENID)),
@@ -5410,7 +5626,7 @@ const AdminDefinition: AdminDefinitionType = {
                             type: 'text',
                             key: 'GitLabSettings.Secret',
                             label: defineMessage({id: 'admin.openid.clientSecretTitle', defaultMessage: 'Client Secret:'}),
-                            help_text: defineMessage({id: 'admin.openid.clientSecretDescription', defaultMessage: 'Obtaining the Client Secret differs across providers. Please check you provider\'s documentation.'}),
+                            help_text: defineMessage({id: 'admin.openid.clientSecretDescription', defaultMessage: 'Obtaining the Client Secret differs across providers. Please check your provider\'s documentation.'}),
                             placeholder: defineMessage({id: 'admin.gitlab.clientSecretExample', defaultMessage: 'E.g.: "jcuS8PuvcpGhpgHhlcpT1Mx42pnqMxQY"'}),
                             isHidden: it.not(it.stateEquals('openidType', Constants.GITLAB_SERVICE)),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.OPENID)),
@@ -5429,7 +5645,7 @@ const AdminDefinition: AdminDefinitionType = {
                             type: 'text',
                             key: 'GoogleSettings.Id',
                             label: defineMessage({id: 'admin.openid.clientIdTitle', defaultMessage: 'Client ID:'}),
-                            help_text: defineMessage({id: 'admin.openid.clientIdDescription', defaultMessage: 'Obtaining the Client ID differs across providers. Please check you provider\'s documentation.'}),
+                            help_text: defineMessage({id: 'admin.openid.clientIdDescription', defaultMessage: 'Obtaining the Client ID differs across providers. Please check your provider\'s documentation.'}),
                             placeholder: defineMessage({id: 'admin.google.clientIdExample', defaultMessage: 'E.g.: "7602141235235-url0fhs1mayfasbmop5qlfns8dh4.apps.googleusercontent.com"'}),
                             isHidden: it.not(it.stateEquals('openidType', Constants.GOOGLE_SERVICE)),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.OPENID)),
@@ -5438,7 +5654,7 @@ const AdminDefinition: AdminDefinitionType = {
                             type: 'text',
                             key: 'GoogleSettings.Secret',
                             label: defineMessage({id: 'admin.openid.clientSecretTitle', defaultMessage: 'Client Secret:'}),
-                            help_text: defineMessage({id: 'admin.openid.clientSecretDescription', defaultMessage: 'Obtaining the Client Secret differs across providers. Please check you provider\'s documentation.'}),
+                            help_text: defineMessage({id: 'admin.openid.clientSecretDescription', defaultMessage: 'Obtaining the Client Secret differs across providers. Please check your provider\'s documentation.'}),
                             placeholder: defineMessage({id: 'admin.google.clientSecretExample', defaultMessage: 'E.g.: "H8sz0Az-dDs2p15-7QzD231"'}),
                             isHidden: it.not(it.stateEquals('openidType', Constants.GOOGLE_SERVICE)),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.OPENID)),
@@ -5471,7 +5687,7 @@ const AdminDefinition: AdminDefinitionType = {
                             type: 'text',
                             key: 'Office365Settings.Id',
                             label: defineMessage({id: 'admin.openid.clientIdTitle', defaultMessage: 'Client ID:'}),
-                            help_text: defineMessage({id: 'admin.openid.clientIdDescription', defaultMessage: 'Obtaining the Client ID differs across providers. Please check you provider\'s documentation.'}),
+                            help_text: defineMessage({id: 'admin.openid.clientIdDescription', defaultMessage: 'Obtaining the Client ID differs across providers. Please check your provider\'s documentation.'}),
                             placeholder: defineMessage({id: 'admin.office365.clientIdExample', defaultMessage: 'E.g.: "adf3sfa2-ag3f-sn4n-ids0-sh1hdax192qq"'}),
                             isHidden: it.not(it.stateEquals('openidType', Constants.OFFICE365_SERVICE)),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.OPENID)),
@@ -5480,7 +5696,7 @@ const AdminDefinition: AdminDefinitionType = {
                             type: 'text',
                             key: 'Office365Settings.Secret',
                             label: defineMessage({id: 'admin.openid.clientSecretTitle', defaultMessage: 'Client Secret:'}),
-                            help_text: defineMessage({id: 'admin.openid.clientSecretDescription', defaultMessage: 'Obtaining the Client Secret differs across providers. Please check you provider\'s documentation.'}),
+                            help_text: defineMessage({id: 'admin.openid.clientSecretDescription', defaultMessage: 'Obtaining the Client Secret differs across providers. Please check your provider\'s documentation.'}),
                             placeholder: defineMessage({id: 'admin.office365.clientSecretExample', defaultMessage: 'E.g.: "shAieM47sNBfgl20f8ci294"'}),
                             isHidden: it.not(it.stateEquals('openidType', Constants.OFFICE365_SERVICE)),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.OPENID)),
@@ -5518,7 +5734,7 @@ const AdminDefinition: AdminDefinitionType = {
                             type: 'text',
                             key: 'OpenIdSettings.Id',
                             label: defineMessage({id: 'admin.openid.clientIdTitle', defaultMessage: 'Client ID:'}),
-                            help_text: defineMessage({id: 'admin.openid.clientIdDescription', defaultMessage: 'Obtaining the Client ID differs across providers. Please check you provider\'s documentation.'}),
+                            help_text: defineMessage({id: 'admin.openid.clientIdDescription', defaultMessage: 'Obtaining the Client ID differs across providers. Please check your provider\'s documentation.'}),
                             placeholder: defineMessage({id: 'admin.openid.clientIdExample', defaultMessage: 'E.g.: "adf3sfa2-ag3f-sn4n-ids0-sh1hdax192qq"'}),
                             isHidden: it.any(it.not(it.stateEquals('openidType', Constants.OPENID_SERVICE)), it.licensedForCloudStarter),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.OPENID)),
@@ -5527,7 +5743,7 @@ const AdminDefinition: AdminDefinitionType = {
                             type: 'text',
                             key: 'OpenIdSettings.Secret',
                             label: defineMessage({id: 'admin.openid.clientSecretTitle', defaultMessage: 'Client Secret:'}),
-                            help_text: defineMessage({id: 'admin.openid.clientSecretDescription', defaultMessage: 'Obtaining the Client Secret differs across providers. Please check you provider\'s documentation.'}),
+                            help_text: defineMessage({id: 'admin.openid.clientSecretDescription', defaultMessage: 'Obtaining the Client Secret differs across providers. Please check your provider\'s documentation.'}),
                             placeholder: defineMessage({id: 'admin.openid.clientSecretExample', defaultMessage: 'E.g.: "H8sz0Az-dDs2p15-7QzD231"'}),
                             isHidden: it.any(it.not(it.stateEquals('openidType', Constants.OPENID_SERVICE)), it.licensedForCloudStarter),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.OPENID)),
@@ -5878,12 +6094,11 @@ const AdminDefinition: AdminDefinitionType = {
                             key: 'ServiceSettings.DCRRedirectURIAllowlist',
                             multiple: true,
                             label: defineMessage({id: 'admin.oauth.dcrRedirectURIAllowlistTitle', defaultMessage: 'DCR Redirect URI Allowlist:'}),
-                            help_text: defineMessage({id: 'admin.oauth.dcrRedirectURIAllowlistDesc', defaultMessage: 'When Dynamic Client Registration is enabled, optionally restrict which redirect URIs can be registered. Enter comma-separated URL glob patterns (e.g. https://*.example.com/**). If empty, all valid redirect URIs are allowed. Wildcards are matched within URL components only: host wildcards apply to the host, path wildcards apply to the path, and query strings must be explicitly included if allowed.'}),
+                            help_text: defineMessage({id: 'admin.oauth.dcrRedirectURIAllowlistDesc', defaultMessage: 'When Dynamic Client Registration is enabled, optionally restrict which redirect URIs can be registered. Enter comma-separated URL glob patterns (e.g. https://*.example.com/**). Custom URI schemes used by desktop OAuth clients (e.g. cursor://app/callback) are supported in addition to http and https. If empty, all valid redirect URIs are allowed. Wildcards are matched within URL components only: host wildcards apply to the host, path wildcards apply to the path, and query strings must be explicitly included if allowed.'}),
                             help_text_markdown: false,
                             placeholder: defineMessage({id: 'admin.oauth.dcrRedirectURIAllowlistPlaceholder', defaultMessage: 'E.g.: https://*.example.com/**, https://app.example.com/callback'}),
                             isDisabled: it.any(
                                 it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.INTEGRATIONS.INTEGRATION_MANAGEMENT)),
-                                it.stateIsFalse('ServiceSettings.EnableOAuthServiceProvider'),
                                 it.stateIsFalse('ServiceSettings.EnableDynamicClientRegistration'),
                             ),
                             isHidden: it.licensedForFeature('Cloud'),
@@ -6490,69 +6705,11 @@ const AdminDefinition: AdminDefinitionType = {
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
                         },
                         {
-                            type: 'number',
-                            key: 'EmailSettings.EmailBatchingBufferSize',
-                            label: defineMessage({id: 'admin.experimental.emailBatchingBufferSize.title', defaultMessage: 'Email Batching Buffer Size:'}),
-                            help_text: defineMessage({id: 'admin.experimental.emailBatchingBufferSize.desc', defaultMessage: 'Specify the maximum number of notifications batched into a single email.'}),
-                            help_text_markdown: false,
-                            placeholder: defineMessage({id: 'admin.experimental.emailBatchingBufferSize.example', defaultMessage: 'E.g.: "256"'}),
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
-                        },
-                        {
-                            type: 'number',
-                            key: 'EmailSettings.EmailBatchingInterval',
-                            label: defineMessage({id: 'admin.experimental.emailBatchingInterval.title', defaultMessage: 'Email Batching Interval:'}),
-                            help_text: defineMessage({id: 'admin.experimental.emailBatchingInterval.desc', defaultMessage: 'Specify the maximum frequency, in seconds, which the batching job checks for new notifications. Longer batching intervals will increase performance.'}),
-                            help_text_markdown: false,
-                            placeholder: defineMessage({id: 'admin.experimental.emailBatchingInterval.example', defaultMessage: 'E.g.: "30"'}),
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
-                        },
-                        {
-                            type: 'color',
-                            key: 'EmailSettings.LoginButtonColor',
-                            label: defineMessage({id: 'admin.experimental.emailSettingsLoginButtonColor.title', defaultMessage: 'Email Login Button Color:'}),
-                            help_text: defineMessage({id: 'admin.experimental.emailSettingsLoginButtonColor.desc', defaultMessage: 'Specify the color of the email login button for white labeling purposes. Use a hex code with a #-sign before the code. This setting only applies to the mobile apps.'}),
-                            help_text_markdown: false,
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
-                        },
-                        {
-                            type: 'color',
-                            key: 'EmailSettings.LoginButtonBorderColor',
-                            label: defineMessage({id: 'admin.experimental.emailSettingsLoginButtonBorderColor.title', defaultMessage: 'Email Login Button Border Color:'}),
-                            help_text: defineMessage({id: 'admin.experimental.emailSettingsLoginButtonBorderColor.desc', defaultMessage: 'Specify the color of the email login button border for white labeling purposes. Use a hex code with a #-sign before the code. This setting only applies to the mobile apps.'}),
-                            help_text_markdown: false,
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
-                        },
-                        {
-                            type: 'color',
-                            key: 'EmailSettings.LoginButtonTextColor',
-                            label: defineMessage({id: 'admin.experimental.emailSettingsLoginButtonTextColor.title', defaultMessage: 'Email Login Button Text Color:'}),
-                            help_text: defineMessage({id: 'admin.experimental.emailSettingsLoginButtonTextColor.desc', defaultMessage: 'Specify the color of the email login button text for white labeling purposes. Use a hex code with a #-sign before the code. This setting only applies to the mobile apps.'}),
-                            help_text_markdown: false,
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
-                        },
-                        {
-                            type: 'bool',
-                            key: 'TeamSettings.EnableUserDeactivation',
-                            label: defineMessage({id: 'admin.experimental.enableUserDeactivation.title', defaultMessage: 'Enable Account Deactivation:'}),
-                            help_text: defineMessage({id: 'admin.experimental.enableUserDeactivation.desc', defaultMessage: 'When true, users may deactivate their own account from **Settings > Advanced**. If a user deactivates their own account, they will get an email notification confirming they were deactivated. When false, users may not deactivate their own account.'}),
-                            help_text_markdown: true,
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
-                        },
-                        {
                             type: 'bool',
                             key: 'TeamSettings.ExperimentalEnableAutomaticReplies',
                             label: defineMessage({id: 'admin.experimental.experimentalEnableAutomaticReplies.title', defaultMessage: 'Enable Automatic Replies:'}),
                             help_text: defineMessage({id: 'admin.experimental.experimentalEnableAutomaticReplies.desc', defaultMessage: 'When true, users can enable Automatic Replies in **Settings > Notifications**. Users set a custom message that will be automatically sent in response to Direct Messages. When false, disables the Automatic Direct Message Replies feature and hides it from Settings.'}),
                             help_text_markdown: true,
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
-                        },
-                        {
-                            type: 'bool',
-                            key: 'ServiceSettings.EnableChannelViewedMessages',
-                            label: defineMessage({id: 'admin.experimental.enableChannelViewedMessages.title', defaultMessage: 'Enable Channel Viewed WebSocket Messages:'}),
-                            help_text: defineMessage({id: 'admin.experimental.enableChannelViewedMessages.desc', defaultMessage: 'This setting determines whether `channel_viewed` WebSocket events are sent, which synchronize unread notifications across clients and devices. Disabling the setting in larger deployments may improve server performance.'}),
-                            help_text_markdown: false,
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
                         },
                         {
@@ -6564,127 +6721,12 @@ const AdminDefinition: AdminDefinitionType = {
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
                         },
                         {
-                            type: 'bool',
-                            key: 'ServiceSettings.ExperimentalEnableHardenedMode',
-                            label: defineMessage({id: 'admin.experimental.experimentalEnableHardenedMode.title', defaultMessage: 'Enable Hardened Mode:'}),
-                            help_text: defineMessage({id: 'admin.experimental.experimentalEnableHardenedMode.desc', defaultMessage: 'Enables a hardened mode for Mattermost that makes user experience trade-offs in the interest of security. See <link>documentation</link> to learn more.'}), // eslint-disable-line formatjs/enforce-placeholders -- placeholders provided
-                            help_text_values: {
-                                link: (msg: string) => (
-                                    <ExternalLink
-                                        location='admin_console'
-                                        href={DocLinks.ENABLE_HARDENED_MODE}
-                                    >
-                                        {msg}
-                                    </ExternalLink>
-                                ),
-                            },
-                            help_text_markdown: false,
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
-                        },
-                        {
-                            type: 'bool',
-                            key: 'ThemeSettings.EnableThemeSelection',
-                            label: defineMessage({id: 'admin.experimental.enableThemeSelection.title', defaultMessage: 'Enable Theme Selection:'}),
-                            help_text: defineMessage({id: 'admin.experimental.enableThemeSelection.desc', defaultMessage: 'Enables the **Display > Theme** tab in Settings so users can select their theme.'}),
-                            help_text_markdown: true,
-                            isHidden: it.any(
-                                it.not(it.licensed),
-                                it.licensedForSku('starter'),
-                            ),
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
-                        },
-                        {
-                            type: 'bool',
-                            key: 'ThemeSettings.AllowCustomThemes',
-                            label: defineMessage({id: 'admin.experimental.allowCustomThemes.title', defaultMessage: 'Allow Custom Themes:'}),
-                            help_text: defineMessage({id: 'admin.experimental.allowCustomThemes.desc', defaultMessage: 'Enables the **Display > Theme > Custom Theme** section in Settings.'}),
-                            help_text_markdown: true,
-                            isHidden: it.any(
-                                it.not(it.licensed),
-                                it.licensedForSku('starter'),
-                            ),
-                            isDisabled: it.any(
-                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
-                                it.stateIsFalse('ThemeSettings.EnableThemeSelection'),
-                            ),
-                        },
-                        {
-                            type: 'dropdown',
-                            key: 'ThemeSettings.DefaultTheme',
-                            label: defineMessage({id: 'admin.experimental.defaultTheme.title', defaultMessage: 'Default Theme:'}),
-                            help_text: defineMessage({id: 'admin.experimental.defaultTheme.desc', defaultMessage: 'Set a default theme that applies to all new users on the system.'}),
-                            help_text_markdown: true,
-                            options: [
-                                {
-                                    value: 'denim',
-                                    display_name: defineMessage({id: 'admin.experimental.defaultTheme.options.denim', defaultMessage: 'Denim'}),
-                                },
-                                {
-                                    value: 'sapphire',
-                                    display_name: defineMessage({id: 'admin.experimental.defaultTheme.options.sapphire', defaultMessage: 'Sapphire'}),
-                                },
-                                {
-                                    value: 'quartz',
-                                    display_name: defineMessage({id: 'admin.experimental.defaultTheme.options.quartz', defaultMessage: 'Quartz'}),
-                                },
-                                {
-                                    value: 'indigo',
-                                    display_name: defineMessage({id: 'admin.experimental.defaultTheme.options.indigo', defaultMessage: 'Indigo'}),
-                                },
-                                {
-                                    value: 'onyx',
-                                    display_name: defineMessage({id: 'admin.experimental.defaultTheme.options.onyx', defaultMessage: 'Onyx'}),
-                                },
-                            ],
-                            isHidden: it.any(
-                                it.not(it.licensed),
-                                it.licensedForSku('starter'),
-                            ),
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
-                        },
-                        {
-                            type: 'bool',
-                            key: 'ServiceSettings.EnableTutorial',
-                            label: defineMessage({id: 'admin.experimental.enableTutorial.title', defaultMessage: 'Enable Tutorial:'}),
-                            help_text: defineMessage({id: 'admin.experimental.enableTutorial.desc', defaultMessage: 'When true, users are prompted with a tutorial when they open Mattermost for the first time after account creation. When false, the tutorial is disabled, and users are placed in Town Square when they open Mattermost for the first time after account creation.'}),
-                            help_text_markdown: false,
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
-                        },
-                        {
-                            type: 'bool',
-                            key: 'ServiceSettings.EnableOnboardingFlow',
-                            label: defineMessage({id: 'admin.experimental.enableOnboardingFlow.title', defaultMessage: 'Enable Onboarding:'}),
-                            help_text: defineMessage({id: 'admin.experimental.enableOnboardingFlow.desc', defaultMessage: 'When true, new users are shown steps to complete as part of an onboarding process'}),
-                            help_text_markdown: false,
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
-                        },
-                        {
-                            type: 'bool',
-                            key: 'ServiceSettings.EnableUserTypingMessages',
-                            label: defineMessage({id: 'admin.experimental.enableUserTypingMessages.title', defaultMessage: 'Enable User Typing Messages:'}),
-                            help_text: defineMessage({id: 'admin.experimental.enableUserTypingMessages.desc', defaultMessage: 'This setting determines whether "user is typing..." messages are displayed below the message box. Disabling the setting in larger deployments may improve server performance.'}),
-                            help_text_markdown: false,
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
-                        },
-                        {
-                            type: 'number',
-                            key: 'ServiceSettings.TimeBetweenUserTypingUpdatesMilliseconds',
-                            label: defineMessage({id: 'admin.experimental.timeBetweenUserTypingUpdatesMilliseconds.title', defaultMessage: 'User Typing Timeout:'}),
-                            help_text: defineMessage({id: 'admin.experimental.timeBetweenUserTypingUpdatesMilliseconds.desc', defaultMessage: 'The number of milliseconds to wait between emitting user typing websocket events.'}),
-                            help_text_markdown: false,
-                            placeholder: defineMessage({id: 'admin.experimental.timeBetweenUserTypingUpdatesMilliseconds.example', defaultMessage: 'E.g.: "5000"'}),
-                            isDisabled: it.any(
-                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
-                                it.stateIsFalse('ServiceSettings.EnableUserTypingMessages'),
-                            ),
-                        },
-                        {
                             type: 'number',
                             key: 'ExperimentalSettings.UsersStatusAndProfileFetchingPollIntervalMilliseconds',
                             label: defineMessage({id: 'admin.experimental.UsersStatusAndProfileFetchingPollIntervalMilliseconds.title', defaultMessage: 'User\'s Status and Profile Fetching Poll Interval:'}),
                             help_text: defineMessage({id: 'admin.experimental.UsersStatusAndProfileFetchingPollIntervalMilliseconds.desc', defaultMessage: 'The number of milliseconds to wait between fetching user statuses and profiles periodically.'}),
                             help_text_markdown: false,
-                            placeholder: defineMessage({id: 'admin.experimental.timeBetweenUserTypingUpdatesMilliseconds.example', defaultMessage: 'E.g.: "5000"'}),
+                            placeholder: defineMessage({id: 'admin.experimental.UsersStatusAndProfileFetchingPollIntervalMilliseconds.example', defaultMessage: 'E.g.: "5000"'}),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
                         },
                         {
@@ -6694,23 +6736,6 @@ const AdminDefinition: AdminDefinitionType = {
                             help_text: defineMessage({id: 'admin.experimental.experimentalPrimaryTeam.desc', defaultMessage: 'The primary team of which users on the server are members. When a primary team is set, the options to join other teams or leave the primary team are disabled.'}),
                             help_text_markdown: true,
                             placeholder: defineMessage({id: 'admin.experimental.experimentalPrimaryTeam.example', defaultMessage: 'E.g.: "teamname"'}),
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
-                        },
-                        {
-                            type: 'bool',
-                            key: 'EmailSettings.UseChannelInEmailNotifications',
-                            label: defineMessage({id: 'admin.experimental.useChannelInEmailNotifications.title', defaultMessage: 'Use Channel Name in Email Notifications:'}),
-                            help_text: defineMessage({id: 'admin.experimental.useChannelInEmailNotifications.desc', defaultMessage: 'When true, channel and team name appears in email notification subject lines. Useful for servers using only one team. When false, only team name appears in email notification subject line.'}),
-                            help_text_markdown: false,
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
-                        },
-                        {
-                            type: 'number',
-                            key: 'TeamSettings.UserStatusAwayTimeout',
-                            label: defineMessage({id: 'admin.experimental.userStatusAwayTimeout.title', defaultMessage: 'User Status Away Timeout:'}),
-                            help_text: defineMessage({id: 'admin.experimental.userStatusAwayTimeout.desc', defaultMessage: 'This setting defines the number of seconds after which the user\'s status indicator changes to "Away", when they are away from Mattermost.'}),
-                            help_text_markdown: false,
-                            placeholder: defineMessage({id: 'admin.experimental.userStatusAwayTimeout.example', defaultMessage: 'E.g.: "300"'}),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
                         },
                         {

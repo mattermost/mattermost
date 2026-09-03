@@ -430,6 +430,11 @@ func (l *License) HasSharedChannels() bool {
 		MinimumProfessionalLicense(l)
 }
 
+// HasMHPNS reports whether the license grants access to the Mattermost hosted push notification service.
+func (l *License) HasMHPNS() bool {
+	return l != nil && l.Features != nil && l.Features.MHPNS != nil && *l.Features.MHPNS
+}
+
 // NewTestLicense returns a license that expires in the future and has the given features.
 func NewTestLicense(features ...string) *License {
 	ret := &License{

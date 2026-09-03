@@ -555,6 +555,11 @@ func getFile(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		checkChannelFlaggable(c, channel)
+		if c.Err != nil {
+			return
+		}
+
 		requireTeamContentReviewer(c, c.AppContext.Session().UserId, channel.TeamId)
 		if c.Err != nil {
 			return

@@ -83,9 +83,9 @@ function validateDateTimeValue(value: string, elem: DialogElement): DialogError 
         });
     }
 
-    // Range validation against min_date / max_date (datetime_config takes precedence over legacy fields)
-    const effectiveMinDate = elem.datetime_config?.min_date ?? elem.min_date;
-    const effectiveMaxDate = elem.datetime_config?.max_date ?? elem.max_date;
+    // Range validation against min_date / max_date
+    const effectiveMinDate = elem.datetime_config?.min_date;
+    const effectiveMaxDate = elem.datetime_config?.max_date;
     if (effectiveMinDate) {
         const minDate = resolveBoundToDate(effectiveMinDate);
         if (minDate && parsedDate < minDate) {
