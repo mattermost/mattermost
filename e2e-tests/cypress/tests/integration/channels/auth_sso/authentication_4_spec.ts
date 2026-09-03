@@ -229,6 +229,9 @@ describe('Authentication', () => {
                 RestrictCreationToDomains: 'test.com',
                 EnableUserCreation: true,
             },
+        }).then(({config}) => {
+            expect(config.TeamSettings.RestrictCreationToDomains).to.equal('test.com');
+            expect(config.TeamSettings.EnableUserCreation).to.equal(true);
         });
 
         cy.apiLogout();
@@ -264,6 +267,9 @@ describe('Authentication', () => {
                 RestrictCreationToDomains: 'test.com',
                 EnableUserCreation: true,
             },
+        }).then(({config}) => {
+            expect(config.TeamSettings.RestrictCreationToDomains).to.equal('test.com');
+            expect(config.TeamSettings.EnableUserCreation).to.equal(true);
         });
 
         cy.visit('/');

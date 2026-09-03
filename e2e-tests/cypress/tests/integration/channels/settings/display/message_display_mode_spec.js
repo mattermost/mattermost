@@ -36,11 +36,10 @@ function verifyLineBreaksRemainIntact(display) {
     const secondLine = 'Second line';
 
     // # Enter in text
-    cy.uiGetPostTextBox().
-        clear().
-        type(firstLine).
-        type('{shift}{enter}{enter}').
-        type(`${secondLine}{enter}`);
+    cy.uiGetPostTextBox().clear();
+    cy.uiGetPostTextBox().type(firstLine);
+    cy.uiGetPostTextBox().type('{shift}{enter}{enter}');
+    cy.uiGetPostTextBox().type(`${secondLine}{enter}`);
 
     // Pin to the posted text so a later join system message is not treated as last.
     cy.contains('[data-testid="postView"]', firstLine).should('be.visible').invoke('attr', 'id').then((rawId) => {
