@@ -90,14 +90,11 @@ export default class ChannelsCenterView {
     }
 
     async getConcealedBorPost() {
-        const post = this.container
-            .getByTestId('postView')
-            .filter({
-                has: this.container.getByTestId(/^burn-on-read-concealed-/),
-            })
-            .last();
-        await post.waitFor({timeout: duration.half_min});
-        return new ChannelsPost(post);
+        // Pin to post id so the locator survives reveal (placeholder is then removed).
+        const placeholder = this.container.getByTestId(/^burn-on-read-concealed-/).last();
+        await placeholder.waitFor({timeout: duration.half_min});
+        const testId = await placeholder.getAttribute('data-testid');
+        return this.getPostById((testId || '').replace('burn-on-read-concealed-', ''));
     }
 
     /**
