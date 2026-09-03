@@ -6,6 +6,7 @@ package sqlstore
 import (
 	"database/sql"
 	"fmt"
+	"maps"
 	"reflect"
 	"regexp"
 	"slices"
@@ -172,7 +173,11 @@ func (s *SqlPostStore) SaveMultiple(rctx request.CTX, posts []*model.Post) ([]*m
 			// save has committed can be resolved by reading the row back. Chat channels keep
 			// the rejection, and the lookup runs only on this already-exceptional path.
 			var channelType model.ChannelType
-			chErr := s.GetMaster().Get(&channelType, "SELECT Type FROM Channels WHERE Id = ?", post.ChannelId)
+			channelTypeQuery := s.getQueryBuilder().
+				Select("Type").
+				From("Channels").
+				Where(sq.Eq{"Id": post.ChannelId})
+			chErr := s.GetMaster().GetBuilder(&channelType, channelTypeQuery)
 			if chErr != nil {
 				return nil, idx, errors.Wrapf(chErr, "failed to get channel type for channelId=%s", post.ChannelId)
 			}
@@ -1032,7 +1037,7 @@ func (s *SqlPostStore) Delete(rctx request.CTX, postID string, time int64, delet
 	return nil
 }
 
-// MoveThreadsToChannel moves the given root posts — each with its full thread: live and
+// MoveThreadsToBackingChannel moves the given root posts — each with its full thread: live and
 // soft-deleted replies plus edit-history rows — into targetChannelID in one transaction,
 // rewriting the Threads rows and both sides' message counters. Edit-history rows (OriginalId
 // set) move but are excluded from the counter deltas, since they never counted toward a
@@ -1042,7 +1047,7 @@ func (s *SqlPostStore) Delete(rctx request.CTX, postID string, time int64, delet
 // inside the transaction — that scope is also why LastPostAt is not recomputed: backing
 // channels carry no chat unread surfaces. Returns the distinct source channel ids so the
 // caller can invalidate their post caches.
-func (s *SqlPostStore) MoveThreadsToChannel(rctx request.CTX, rootIDs []string, targetChannelID, targetTeamID string) (_ []string, err error) {
+func (s *SqlPostStore) MoveThreadsToBackingChannel(rctx request.CTX, rootIDs []string, targetChannelID, targetTeamID string) (_ []string, err error) {
 	if len(rootIDs) == 0 {
 		return nil, nil
 	}
@@ -1132,7 +1137,7 @@ func (s *SqlPostStore) MoveThreadsToChannel(rctx request.CTX, rootIDs []string, 
 	}
 	targetFound := false
 	for _, channel := range channelTypes {
-		if channel.Type != model.ChannelTypeSpace {
+		if !channel.Type.IsNonMessageBacking() {
 			return nil, store.NewErrInvalidInput("Channel", "Type", string(channel.Type))
 		}
 		if channel.Id == targetChannelID {
@@ -1149,6 +1154,21 @@ func (s *SqlPostStore) MoveThreadsToChannel(rctx request.CTX, rootIDs []string, 
 		Where(threadRows)
 	if _, err = transaction.ExecBuilder(moveQuery); err != nil {
 		return nil, errors.Wrap(err, "failed to move Posts")
+	}
+
+	// FileInfo carries its owning post's channel as a denormalized column, and file search joins
+	// channel membership through it, so a row left on the source channel would be scoped to the
+	// wrong members. The subquery re-derives the match set rather than binding every moved id,
+	// and matches on Id/RootId/OriginalId, which the move above does not touch.
+	// Built without the store's placeholder format: only the outer statement numbers its
+	// placeholders, and a nested builder that has already numbered its own would double-count.
+	movedPostIDs := sq.Select("Id").From("Posts").Where(threadRows)
+	fileQuery := s.getQueryBuilder().
+		Update("FileInfo").
+		Set("ChannelId", targetChannelID).
+		Where(sq.Expr("PostId IN (?)", movedPostIDs))
+	if _, err = transaction.ExecBuilder(fileQuery); err != nil {
+		return nil, errors.Wrap(err, "failed to move FileInfo")
 	}
 
 	threadQuery := s.getQueryBuilder().
@@ -1168,11 +1188,7 @@ func (s *SqlPostStore) MoveThreadsToChannel(rctx request.CTX, rootIDs []string, 
 		target := counterDeltas[targetChannelID]
 		counterDeltas[targetChannelID] = [2]int64{target[0] + delta.Count, target[1] + delta.RootCount}
 	}
-	counterChannelIDs := make([]string, 0, len(counterDeltas))
-	for channelID := range counterDeltas {
-		counterChannelIDs = append(counterChannelIDs, channelID)
-	}
-	slices.Sort(counterChannelIDs)
+	counterChannelIDs := slices.Sorted(maps.Keys(counterDeltas))
 	for _, channelID := range counterChannelIDs {
 		delta := counterDeltas[channelID]
 		counterQuery := s.getQueryBuilder().

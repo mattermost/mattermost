@@ -204,9 +204,10 @@ func (a *App) SessionHasPermissionToGroup(session model.Session, groupID string,
 	return a.SessionHasPermissionTo(session, permission)
 }
 
-// getPostChannel resolves the channel that owns postID from the primary database and maps store
-// failures to an AppError. Callers decide whether the resolved channel type is valid for their
-// operation.
+// getPostChannel resolves the channel that owns postID and maps store failures to an AppError.
+// The read is replica-first and reaches the primary only when the replica has no row, so a
+// caller that needs the channel a just-committed write landed on cannot rely on it. Callers
+// decide whether the resolved channel type is valid for their operation.
 func (a *App) getPostChannel(where, postID string) (*model.Channel, *model.AppError) {
 	channel, err := a.Srv().Store().Channel().GetForPost(postID)
 	if err == nil {

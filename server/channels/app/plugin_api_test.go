@@ -4087,7 +4087,7 @@ func TestPluginAPIPostMutationsOnSpaceChannel(t *testing.T) {
 	})
 }
 
-func TestAppMovePostsToChannel(t *testing.T) {
+func TestAppMoveThreadsToBackingChannel(t *testing.T) {
 	mainHelper.Parallel(t)
 
 	th := Setup(t).InitBasic(t)
@@ -4131,7 +4131,7 @@ func TestAppMovePostsToChannel(t *testing.T) {
 		sourceCount, sourceRootCount := counters(t, source.Id)
 		targetCount, targetRootCount := counters(t, target.Id)
 
-		require.Nil(t, th.App.MovePostsToChannel(th.Context, []string{root.Id}, target.Id))
+		require.Nil(t, th.App.MoveThreadsToBackingChannel(th.Context, []string{root.Id}, target.Id))
 
 		for _, id := range []string{root.Id, liveReply.Id, deletedReply.Id, history[0].Id} {
 			moved, err := th.App.Srv().Store().Post().GetSingle(th.Context, id, true)
@@ -4153,7 +4153,7 @@ func TestAppMovePostsToChannel(t *testing.T) {
 		require.Equal(t, targetRootCount+1, gotTargetRootCount)
 
 		t.Run("a re-run is a no-op", func(t *testing.T) {
-			require.Nil(t, th.App.MovePostsToChannel(th.Context, []string{root.Id}, target.Id))
+			require.Nil(t, th.App.MoveThreadsToBackingChannel(th.Context, []string{root.Id}, target.Id))
 			count, rootCount := counters(t, target.Id)
 			require.Equal(t, gotTargetCount, count)
 			require.Equal(t, gotTargetRootCount, rootCount)
@@ -4164,7 +4164,7 @@ func TestAppMovePostsToChannel(t *testing.T) {
 		root := newPost(t, source.Id, "", "root")
 		reply := newPost(t, source.Id, root.Id, "reply")
 
-		appErr := th.App.MovePostsToChannel(th.Context, []string{reply.Id}, target.Id)
+		appErr := th.App.MoveThreadsToBackingChannel(th.Context, []string{reply.Id}, target.Id)
 		require.NotNil(t, appErr)
 		require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
 	})
@@ -4172,7 +4172,7 @@ func TestAppMovePostsToChannel(t *testing.T) {
 	t.Run("a non-backing target reads as not-found", func(t *testing.T) {
 		root := newPost(t, source.Id, "", "root")
 
-		appErr := th.App.MovePostsToChannel(th.Context, []string{root.Id}, th.BasicChannel.Id)
+		appErr := th.App.MoveThreadsToBackingChannel(th.Context, []string{root.Id}, th.BasicChannel.Id)
 		require.NotNil(t, appErr)
 		require.Equal(t, http.StatusNotFound, appErr.StatusCode)
 	})
@@ -4180,7 +4180,7 @@ func TestAppMovePostsToChannel(t *testing.T) {
 	t.Run("a non-backing source is rejected", func(t *testing.T) {
 		chatPost := th.CreatePost(t, th.BasicChannel)
 
-		appErr := th.App.MovePostsToChannel(th.Context, []string{chatPost.Id}, target.Id)
+		appErr := th.App.MoveThreadsToBackingChannel(th.Context, []string{chatPost.Id}, target.Id)
 		require.NotNil(t, appErr)
 		require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
 
@@ -4201,7 +4201,7 @@ func TestAppMovePostsToChannel(t *testing.T) {
 		require.Nil(t, appErr)
 		require.NotEmpty(t, history)
 
-		appErr = th.App.MovePostsToChannel(th.Context, []string{history[0].Id}, target.Id)
+		appErr = th.App.MoveThreadsToBackingChannel(th.Context, []string{history[0].Id}, target.Id)
 		require.NotNil(t, appErr)
 		require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
 
@@ -4211,34 +4211,34 @@ func TestAppMovePostsToChannel(t *testing.T) {
 	})
 
 	t.Run("the batch cap is enforced", func(t *testing.T) {
-		oversized := make([]string, movePostsToChannelMaxBatch+1)
+		oversized := make([]string, moveThreadsToBackingChannelMaxBatch+1)
 		for i := range oversized {
 			oversized[i] = model.NewId()
 		}
-		appErr := th.App.MovePostsToChannel(th.Context, oversized, target.Id)
+		appErr := th.App.MoveThreadsToBackingChannel(th.Context, oversized, target.Id)
 		require.NotNil(t, appErr)
 		require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
-		require.Equal(t, "app.post.move_posts_to_channel.batch_too_large.app_error", appErr.Id, "the cap must be what rejects, not another bad request")
+		require.Equal(t, "app.post.move_threads_to_backing_channel.batch_too_large.app_error", appErr.Id, "the cap must be what rejects, not another bad request")
 	})
 
 	t.Run("a batch at exactly the cap is accepted", func(t *testing.T) {
 		// Unknown ids are skipped, so the batch reaches the store and returns without moving
 		// anything: what is under test is that the cap rejects only what exceeds it.
-		atCap := make([]string, movePostsToChannelMaxBatch)
+		atCap := make([]string, moveThreadsToBackingChannelMaxBatch)
 		for i := range atCap {
 			atCap[i] = model.NewId()
 		}
-		require.Nil(t, th.App.MovePostsToChannel(th.Context, atCap, target.Id))
+		require.Nil(t, th.App.MoveThreadsToBackingChannel(th.Context, atCap, target.Id))
 	})
 
 	t.Run("an empty batch is a no-op", func(t *testing.T) {
-		require.Nil(t, th.App.MovePostsToChannel(th.Context, nil, target.Id))
-		require.Nil(t, th.App.MovePostsToChannel(th.Context, []string{}, target.Id))
+		require.Nil(t, th.App.MoveThreadsToBackingChannel(th.Context, nil, target.Id))
+		require.Nil(t, th.App.MoveThreadsToBackingChannel(th.Context, []string{}, target.Id))
 	})
 
 	t.Run("the plugin API surface reaches it", func(t *testing.T) {
 		root := newPost(t, source.Id, "", "root via api")
-		require.Nil(t, api.MovePostsToChannel([]string{root.Id}, target.Id))
+		require.Nil(t, api.MoveThreadsToBackingChannel([]string{root.Id}, target.Id))
 		moved, err := th.App.Srv().Store().Post().GetSingle(th.Context, root.Id, true)
 		require.NoError(t, err)
 		require.Equal(t, target.Id, moved.ChannelId)

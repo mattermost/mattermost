@@ -45,13 +45,10 @@ var messageChannelTypes = []model.ChannelType{
 
 // nonMessageBackingChannelTypes is the deny-list for queries that filter by channel ID or
 // team+user rather than by type, so the messageChannelTypes allow-list does not apply to them.
-// A backing channel type must be added here when it writes real posts to the backing channel;
-// otherwise TotalMsgCount grows and the channel generates unread badges and push notifications
-// in the chat UI. Backing channel types that never write posts are already invisible in these
-// queries without an explicit filter and do not need to be listed here.
-var nonMessageBackingChannelTypes = []model.ChannelType{
-	model.ChannelTypeSpace,
-}
+// A type belongs on the model's list once it writes real posts to its backing channel; without
+// the filter TotalMsgCount grows and the channel generates unread badges and push notifications
+// in the chat UI. Types that never write posts are already invisible to these queries.
+var nonMessageBackingChannelTypes = model.NonMessageBackingChannelTypes
 
 // nonMessageBackingChannelTypesNotIn returns a "NOT IN (...)" SQL clause and its args for use
 // in raw SQL queries, keeping those callers in sync with the deny-list.

@@ -853,10 +853,10 @@ func (api *apiTimerLayer) UpdatePost(post *model.Post) (*model.Post, *model.AppE
 	return _returnsA, _returnsB
 }
 
-func (api *apiTimerLayer) MovePostsToChannel(rootIds []string, channelId string) *model.AppError {
+func (api *apiTimerLayer) MoveThreadsToBackingChannel(rootIds []string, channelId string) *model.AppError {
 	startTime := timePkg.Now()
-	_returnsA := api.apiImpl.MovePostsToChannel(rootIds, channelId)
-	api.recordTime(startTime, "MovePostsToChannel", _returnsA == nil)
+	_returnsA := api.apiImpl.MoveThreadsToBackingChannel(rootIds, channelId)
+	api.recordTime(startTime, "MoveThreadsToBackingChannel", _returnsA == nil)
 	return _returnsA
 }
 

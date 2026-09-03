@@ -794,17 +794,19 @@ type API interface {
 	// Minimum server version: 5.2
 	UpdatePost(post *model.Post) (*model.Post, *model.AppError)
 
-	// MovePostsToChannel moves the given root posts — each with its full thread of replies and
-	// edit history — into the given channel, in place: ids, timestamps, and reactions are
-	// preserved. The move is restricted to non-message backing channels (e.g. a Docs space) on
-	// both sides, and an id that names an existing post must name a root post; an id that
-	// matches no post moves nothing and does not fail the call. Batches are capped server-side;
-	// callers drive larger sets a batch at a time.
+	// MoveThreadsToBackingChannel moves the given root posts — each with its full thread of
+	// replies and edit history — into the given channel, in place: ids, timestamps, and
+	// reactions are preserved. Both the target and every channel the threads currently live in
+	// must be a non-message backing channel (model.NonMessageBackingChannelTypes); the move is
+	// correct only where a channel carries no chat unread state to maintain. Every id must name
+	// a root post — a reply id is rejected, since moving a bare reply would split its thread —
+	// while an id that matches no post moves nothing and does not fail the call. Batches are
+	// capped server-side; callers drive larger sets a batch at a time.
 	//
 	// @tag Post
 	// @tag Channel
 	// Minimum server version: 11.11
-	MovePostsToChannel(rootIds []string, channelId string) *model.AppError
+	MoveThreadsToBackingChannel(rootIds []string, channelId string) *model.AppError
 
 	// AddChannelsToRetentionPolicy assigns the given channels to the granular data-retention
 	// policy, so their content follows that policy's clock rather than the global or team one.

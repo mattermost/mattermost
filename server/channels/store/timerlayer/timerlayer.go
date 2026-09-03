@@ -7567,10 +7567,10 @@ func (s *TimerLayerPostStore) InvalidateLastPostTimeCache(channelID string) {
 	}
 }
 
-func (s *TimerLayerPostStore) MoveThreadsToChannel(rctx request.CTX, rootIDs []string, targetChannelID string, targetTeamID string) ([]string, error) {
+func (s *TimerLayerPostStore) MoveThreadsToBackingChannel(rctx request.CTX, rootIDs []string, targetChannelID string, targetTeamID string) ([]string, error) {
 	start := time.Now()
 
-	result, err := s.PostStore.MoveThreadsToChannel(rctx, rootIDs, targetChannelID, targetTeamID)
+	result, err := s.PostStore.MoveThreadsToBackingChannel(rctx, rootIDs, targetChannelID, targetTeamID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -7578,7 +7578,7 @@ func (s *TimerLayerPostStore) MoveThreadsToChannel(rctx request.CTX, rootIDs []s
 		if err == nil {
 			success = "true"
 		}
-		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.MoveThreadsToChannel", success, elapsed)
+		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.MoveThreadsToBackingChannel", success, elapsed)
 	}
 	return result, err
 }

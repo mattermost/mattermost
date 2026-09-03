@@ -9387,11 +9387,11 @@ func (s *RetryLayerPostStore) InvalidateLastPostTimeCache(channelID string) {
 
 }
 
-func (s *RetryLayerPostStore) MoveThreadsToChannel(rctx request.CTX, rootIDs []string, targetChannelID string, targetTeamID string) ([]string, error) {
+func (s *RetryLayerPostStore) MoveThreadsToBackingChannel(rctx request.CTX, rootIDs []string, targetChannelID string, targetTeamID string) ([]string, error) {
 
 	tries := 0
 	for {
-		result, err := s.PostStore.MoveThreadsToChannel(rctx, rootIDs, targetChannelID, targetTeamID)
+		result, err := s.PostStore.MoveThreadsToBackingChannel(rctx, rootIDs, targetChannelID, targetTeamID)
 		if err == nil {
 			return result, nil
 		}

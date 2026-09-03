@@ -3084,17 +3084,27 @@ func (a *App) GetThreadMembershipForUser(userId, threadId string) (*model.Thread
 	return threadMembership, nil
 }
 
+// checkThreadIsChatVisible rejects a thread whose post belongs to a non-message backing channel.
+// Keep this check at the app boundary: store-level thread reads are also used by internal
+// notification and feature-owned flows that still need the underlying row.
+func (a *App) checkThreadIsChatVisible(where, threadID string) *model.AppError {
+	channel, appErr := a.getPostChannel(where, threadID)
+	if appErr != nil {
+		return appErr
+	}
+	if channel.IsSpace() {
+		return model.NewAppError(where, "app.user.get_threads_for_user.not_found", nil, "backing channel thread", http.StatusNotFound)
+	}
+	return nil
+}
+
 func (a *App) GetThreadForUser(rctx request.CTX, threadMembership *model.ThreadMembership, extended bool) (*model.ThreadResponse, *model.AppError) {
 	// A thread in a non-message backing channel (e.g. a Docs space comment thread) is not a
 	// chat thread: its membership row stays, but the chat read surfaces report not-found. The
 	// exclusion lives here rather than in the store because internal callers — the notification
 	// fan-out among them — read the store directly and must keep seeing the row.
-	channel, appErr := a.getPostChannel("GetThreadForUser", threadMembership.PostId)
-	if appErr != nil {
+	if appErr := a.checkThreadIsChatVisible("GetThreadForUser", threadMembership.PostId); appErr != nil {
 		return nil, appErr
-	}
-	if channel.IsSpace() {
-		return nil, model.NewAppError("GetThreadForUser", "app.user.get_threads_for_user.not_found", nil, "backing channel thread", http.StatusNotFound)
 	}
 
 	thread, nErr := a.Srv().Store().Thread().GetThreadForUser(rctx, threadMembership, extended, a.IsPostPriorityEnabled())
@@ -3161,8 +3171,9 @@ func (a *App) UpdateThreadFollowForUser(userID, teamID, threadID string, state b
 }
 
 func (a *App) UpdateThreadFollowForUserFromChannelAdd(rctx request.CTX, userID, teamID, threadID string) *model.AppError {
-	backingChannel, appErr := a.getPostChannel("UpdateThreadFollowForUserFromChannelAdd", threadID)
-	if appErr != nil {
+	// Reject before MaintainMembership: a channel-add route must not create chat follow state for
+	// a feature-owned backing thread and then fail later while computing chat mention state.
+	if appErr := a.checkThreadIsChatVisible("UpdateThreadFollowForUserFromChannelAdd", threadID); appErr != nil {
 		return appErr
 	}
 	opts := store.ThreadMembershipOpts{
@@ -3193,15 +3204,6 @@ func (a *App) UpdateThreadFollowForUserFromChannelAdd(rctx request.CTX, userID, 
 	_, err = a.Srv().Store().Thread().UpdateMembership(tm)
 	if err != nil {
 		return model.NewAppError("UpdateThreadFollowForUserFromChannelAdd", "app.user.update_thread_follow_for_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	// The thread_updated payload carries the root post; a non-message backing channel's thread
-	// must not reach chat clients. A backing channel does not reach this point today:
-	// countThreadMentions above resolves its channel through GetChannel, which excludes backing
-	// types, so the call returns not-found first. Kept as a backstop so the broadcast stays
-	// withheld if that exclusion is ever relaxed.
-	if backingChannel.IsSpace() {
-		return nil
 	}
 
 	message := model.NewWebSocketEvent(model.WebsocketEventThreadUpdated, teamID, "", userID, nil, "")
@@ -3256,12 +3258,8 @@ func (a *App) UpdateThreadReadForUserByPost(rctx request.CTX, currentSessionId, 
 }
 
 func (a *App) UpdateThreadReadForUser(rctx request.CTX, currentSessionId, userID, teamID, threadID string, timestamp int64) (*model.ThreadResponse, *model.AppError) {
-	channel, channelErr := a.getPostChannel("UpdateThreadReadForUser", threadID)
-	if channelErr != nil {
-		return nil, channelErr
-	}
-	if channel.IsSpace() {
-		return nil, model.NewAppError("UpdateThreadReadForUser", "app.user.get_threads_for_user.not_found", nil, "backing channel thread", http.StatusNotFound)
+	if appErr := a.checkThreadIsChatVisible("UpdateThreadReadForUser", threadID); appErr != nil {
+		return nil, appErr
 	}
 	user, err := a.GetUser(rctx, userID)
 	if err != nil {

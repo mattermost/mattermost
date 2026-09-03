@@ -4696,12 +4696,12 @@ func (_m *API) LogWarn(msg string, keyValuePairs ...interface{}) {
 	_m.Called(_ca...)
 }
 
-// MovePostsToChannel provides a mock function with given fields: rootIds, channelId
-func (_m *API) MovePostsToChannel(rootIds []string, channelId string) *model.AppError {
+// MoveThreadsToBackingChannel provides a mock function with given fields: rootIds, channelId
+func (_m *API) MoveThreadsToBackingChannel(rootIds []string, channelId string) *model.AppError {
 	ret := _m.Called(rootIds, channelId)
 
 	if len(ret) == 0 {
-		panic("no return value specified for MovePostsToChannel")
+		panic("no return value specified for MoveThreadsToBackingChannel")
 	}
 
 	var r0 *model.AppError

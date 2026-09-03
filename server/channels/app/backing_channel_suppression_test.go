@@ -77,6 +77,17 @@ func TestBackingChannelThreadSuppression(t *testing.T) {
 		after, appErr := th.App.GetThreadMembershipForUser(th.BasicUser2.Id, root.Id)
 		require.Nil(t, appErr)
 		assert.Equal(t, spaceLastViewed, after.LastViewed, "a refused read-state move must not mutate")
+
+		// Channel-add follow is another chat-only route. It must reject before MaintainMembership,
+		// otherwise the request returns an error but leaves a feature-owned thread followed.
+		unrelatedUserID := model.NewId()
+		appErr = th.App.UpdateThreadFollowForUserFromChannelAdd(th.Context, unrelatedUserID, th.BasicTeam.Id, root.Id)
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusNotFound, appErr.StatusCode)
+		_, err = threadStore.GetMembershipForUser(unrelatedUserID, root.Id)
+		require.Error(t, err)
+		var nfErr *store.ErrNotFound
+		assert.ErrorAs(t, err, &nfErr, "a rejected follow must not create thread membership state")
 	})
 
 	t.Run("an ordinary chat thread still counts, and mark-all-read reaches only it", func(t *testing.T) {
@@ -358,13 +369,13 @@ func TestBackingChannelNotificationSuppression(t *testing.T) {
 	})
 }
 
-// TestMoveThreadsToChannelConcurrentCounters pins that two overlapping moves of the same threads
+// TestMoveThreadsToBackingChannelConcurrentCounters pins that two overlapping moves of the same threads
 // cannot corrupt the channel counters. Deriving the per-source deltas before locking the rows lets
 // both transactions count the posts in the same source, so both subtract it while only one target
 // ends up holding the rows. Two concurrent moves over one space's comments are reachable in
 // practice: a page move re-homes comments with a space-wide sweep, so two page moves in one space
 // cover overlapping sets.
-func TestMoveThreadsToChannelConcurrentCounters(t *testing.T) {
+func TestMoveThreadsToBackingChannelConcurrentCounters(t *testing.T) {
 	mainHelper.Parallel(t)
 
 	th := Setup(t).InitBasic(t)
@@ -388,7 +399,7 @@ func TestMoveThreadsToChannelConcurrentCounters(t *testing.T) {
 	for _, target := range []string{targetB.Id, targetC.Id} {
 		go func() {
 			<-start
-			_, err := postStore.MoveThreadsToChannel(th.Context, rootIDs, target, th.BasicTeam.Id)
+			_, err := postStore.MoveThreadsToBackingChannel(th.Context, rootIDs, target, th.BasicTeam.Id)
 			results <- err
 		}()
 	}

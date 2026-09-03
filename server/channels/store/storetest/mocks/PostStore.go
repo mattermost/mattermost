@@ -1109,12 +1109,12 @@ func (_m *PostStore) InvalidateLastPostTimeCache(channelID string) {
 	_m.Called(channelID)
 }
 
-// MoveThreadsToChannel provides a mock function with given fields: rctx, rootIDs, targetChannelID, targetTeamID
-func (_m *PostStore) MoveThreadsToChannel(rctx request.CTX, rootIDs []string, targetChannelID string, targetTeamID string) ([]string, error) {
+// MoveThreadsToBackingChannel provides a mock function with given fields: rctx, rootIDs, targetChannelID, targetTeamID
+func (_m *PostStore) MoveThreadsToBackingChannel(rctx request.CTX, rootIDs []string, targetChannelID string, targetTeamID string) ([]string, error) {
 	ret := _m.Called(rctx, rootIDs, targetChannelID, targetTeamID)
 
 	if len(ret) == 0 {
-		panic("no return value specified for MoveThreadsToChannel")
+		panic("no return value specified for MoveThreadsToBackingChannel")
 	}
 
 	var r0 []string

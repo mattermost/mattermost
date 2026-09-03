@@ -77,16 +77,16 @@ func (p *PostService) DeletePost(postID string) error {
 	return normalizeAppErr(p.api.DeletePost(postID))
 }
 
-// MovePostsToChannel moves the given root posts — each with its full thread of replies and
-// edit history — into channelID, in place: ids, timestamps, and reactions are preserved. The
-// move is restricted to non-message backing channels (e.g. a Docs space) on both sides, and an
-// id that names an existing post must name a root post; an id that matches no post moves nothing
-// and does not fail the call. Batches are capped server-side; callers drive larger sets a batch
-// at a time.
+// MoveThreadsToBackingChannel moves the given root posts — each with its full thread of replies
+// and edit history — into channelID, in place: ids, timestamps, and reactions are preserved.
+// Both the target and every channel the threads currently live in must be a non-message backing
+// channel (model.NonMessageBackingChannelTypes). Every id must name a root post; an id that
+// matches no post moves nothing and does not fail the call. Batches are capped server-side;
+// callers drive larger sets a batch at a time.
 //
 // Minimum server version: 11.11
-func (p *PostService) MovePostsToChannel(rootIDs []string, channelID string) error {
-	return normalizeAppErr(p.api.MovePostsToChannel(rootIDs, channelID))
+func (p *PostService) MoveThreadsToBackingChannel(rootIDs []string, channelID string) error {
+	return normalizeAppErr(p.api.MoveThreadsToBackingChannel(rootIDs, channelID))
 }
 
 // SendEphemeralPost creates an ephemeral post.

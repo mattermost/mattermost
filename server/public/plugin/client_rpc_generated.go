@@ -5765,31 +5765,31 @@ func (s *apiRPCServer) UpdatePost(args *Z_UpdatePostArgs, returns *Z_UpdatePostR
 	return nil
 }
 
-type Z_MovePostsToChannelArgs struct {
+type Z_MoveThreadsToBackingChannelArgs struct {
 	A []string
 	B string
 }
 
-type Z_MovePostsToChannelReturns struct {
+type Z_MoveThreadsToBackingChannelReturns struct {
 	A *model.AppError
 }
 
-func (g *apiRPCClient) MovePostsToChannel(rootIds []string, channelId string) *model.AppError {
-	_args := &Z_MovePostsToChannelArgs{rootIds, channelId}
-	_returns := &Z_MovePostsToChannelReturns{}
-	if err := g.client.Call("Plugin.MovePostsToChannel", _args, _returns); err != nil {
-		log.Printf("RPC call to MovePostsToChannel API failed: %s", err.Error())
+func (g *apiRPCClient) MoveThreadsToBackingChannel(rootIds []string, channelId string) *model.AppError {
+	_args := &Z_MoveThreadsToBackingChannelArgs{rootIds, channelId}
+	_returns := &Z_MoveThreadsToBackingChannelReturns{}
+	if err := g.client.Call("Plugin.MoveThreadsToBackingChannel", _args, _returns); err != nil {
+		log.Printf("RPC call to MoveThreadsToBackingChannel API failed: %s", err.Error())
 	}
 	return _returns.A
 }
 
-func (s *apiRPCServer) MovePostsToChannel(args *Z_MovePostsToChannelArgs, returns *Z_MovePostsToChannelReturns) error {
+func (s *apiRPCServer) MoveThreadsToBackingChannel(args *Z_MoveThreadsToBackingChannelArgs, returns *Z_MoveThreadsToBackingChannelReturns) error {
 	if hook, ok := s.impl.(interface {
-		MovePostsToChannel(rootIds []string, channelId string) *model.AppError
+		MoveThreadsToBackingChannel(rootIds []string, channelId string) *model.AppError
 	}); ok {
-		returns.A = hook.MovePostsToChannel(args.A, args.B)
+		returns.A = hook.MoveThreadsToBackingChannel(args.A, args.B)
 	} else {
-		return encodableError(fmt.Errorf("API MovePostsToChannel called but not implemented."))
+		return encodableError(fmt.Errorf("API MoveThreadsToBackingChannel called but not implemented."))
 	}
 	return nil
 }

@@ -940,9 +940,11 @@ func (api *PluginAPI) DeleteEphemeralPost(userID, postID string) {
 	api.app.DeleteEphemeralPost(api.ctx, userID, postID)
 }
 
-// tryResolvePostChannel resolves a stored post's channel directly from the primary database.
+// tryResolvePostChannel resolves a stored post's channel from the post itself, replica-first.
 // It is deliberately best-effort: callers pass nil into the app layer on any error so that the
-// underlying mutation retains its existing lookup and error behavior.
+// underlying mutation retains its existing lookup and error behavior. A resolved channel is
+// checked against the post the mutation reads, so a replica that has not caught up with a move
+// fails the call closed rather than acting on the stale channel.
 func (api *PluginAPI) tryResolvePostChannel(postID string) *model.Channel {
 	channel, _ := api.app.getPostChannel("PluginAPI.tryResolvePostChannel", postID)
 	return channel
@@ -951,7 +953,8 @@ func (api *PluginAPI) tryResolvePostChannel(postID string) *model.Channel {
 func (api *PluginAPI) DeletePost(postID string) *model.AppError {
 	// Best-effort pre-resolution from the post itself, so a post in a backing channel (which the
 	// generic channel lookup cannot resolve) is deletable through the plugin API. Any failure here
-	// falls through with a nil channel, and the delete resolves — and errors — exactly as before.
+	// falls through with a nil channel and the delete resolves as it did before; a channel that
+	// resolves but disagrees with the post's own is rejected rather than acted on.
 	channel := api.tryResolvePostChannel(postID)
 	_, err := api.app.deletePostWithChannel(api.ctx, postID, api.id, channel)
 	return err
@@ -1027,8 +1030,8 @@ func (api *PluginAPI) UpdatePost(post *model.Post) (*model.Post, *model.AppError
 	return post, appErr
 }
 
-func (api *PluginAPI) MovePostsToChannel(rootIDs []string, channelID string) *model.AppError {
-	return api.app.MovePostsToChannel(api.ctx, rootIDs, channelID)
+func (api *PluginAPI) MoveThreadsToBackingChannel(rootIDs []string, channelID string) *model.AppError {
+	return api.app.MoveThreadsToBackingChannel(api.ctx, rootIDs, channelID)
 }
 
 func (api *PluginAPI) AddChannelsToRetentionPolicy(policyID string, channelIDs []string) *model.AppError {

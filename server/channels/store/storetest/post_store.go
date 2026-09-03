@@ -72,7 +72,7 @@ func TestPostStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	t.Run("GetNthRecentPostTime", func(t *testing.T) { testGetNthRecentPostTime(t, rctx, ss) })
 	t.Run("GetEditHistoryForPost", func(t *testing.T) { testGetEditHistoryForPost(t, rctx, ss) })
 	t.Run("RestoreContentFlaggedPost", func(t *testing.T) { testRestoreContentFlaggedPost(t, rctx, ss) })
-	t.Run("MoveThreadsToChannel", func(t *testing.T) { testPostStoreMoveThreadsToChannel(t, rctx, ss) })
+	t.Run("MoveThreadsToBackingChannel", func(t *testing.T) { testPostStoreMoveThreadsToBackingChannel(t, rctx, ss) })
 }
 
 func testPostStoreSave(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -6383,29 +6383,25 @@ func testDeleteAllPostRemindersForPost(t *testing.T, rctx request.CTX, ss store.
 	})
 }
 
-func testPostStoreMoveThreadsToChannel(t *testing.T, rctx request.CTX, ss store.Store) {
-	newSpace := func(t *testing.T, teamID string) *model.Channel {
+func testPostStoreMoveThreadsToBackingChannel(t *testing.T, rctx request.CTX, ss store.Store) {
+	newChannel := func(t *testing.T, teamID string, channelType model.ChannelType) *model.Channel {
 		t.Helper()
 		channel, err := ss.Channel().Save(rctx, &model.Channel{
 			TeamId:      teamID,
-			DisplayName: "Space",
-			Name:        "space-" + model.NewId(),
-			Type:        model.ChannelTypeSpace,
+			DisplayName: "Move target",
+			Name:        "move-" + model.NewId(),
+			Type:        channelType,
 		}, -1)
 		require.NoError(t, err)
 		return channel
 	}
 
+	newSpace := func(t *testing.T, teamID string) *model.Channel {
+		return newChannel(t, teamID, model.ChannelTypeSpace)
+	}
+
 	newOpen := func(t *testing.T, teamID string) *model.Channel {
-		t.Helper()
-		channel, err := ss.Channel().Save(rctx, &model.Channel{
-			TeamId:      teamID,
-			DisplayName: "Open",
-			Name:        "open-" + model.NewId(),
-			Type:        model.ChannelTypeOpen,
-		}, -1)
-		require.NoError(t, err)
-		return channel
+		return newChannel(t, teamID, model.ChannelTypeOpen)
 	}
 
 	newPost := func(t *testing.T, channelID, rootID string) *model.Post {
@@ -6430,8 +6426,46 @@ func testPostStoreMoveThreadsToChannel(t *testing.T, rctx request.CTX, ss store.
 		return channel.TotalMsgCount, channel.TotalMsgCountRoot
 	}
 
+	t.Run("attachments follow their post to the new channel", func(t *testing.T) {
+		// FileInfo denormalizes its post's channel, and file search scopes results by joining
+		// channel membership through that column, so a row left behind would be readable by the
+		// source channel's members instead of the target's.
+		teamID := model.NewId()
+		source := newSpace(t, teamID)
+		target := newSpace(t, teamID)
+		root := newPost(t, source.Id, "")
+		reply := newPost(t, source.Id, root.Id)
+
+		rootFile, err := ss.FileInfo().Save(rctx, &model.FileInfo{
+			Id:        model.NewId(),
+			PostId:    root.Id,
+			ChannelId: source.Id,
+			CreatorId: root.UserId,
+			Path:      "root.txt",
+		})
+		require.NoError(t, err)
+		replyFile, err := ss.FileInfo().Save(rctx, &model.FileInfo{
+			Id:        model.NewId(),
+			PostId:    reply.Id,
+			ChannelId: source.Id,
+			CreatorId: reply.UserId,
+			Path:      "reply.png",
+		})
+		require.NoError(t, err)
+
+		_, err = ss.Post().MoveThreadsToBackingChannel(rctx, []string{root.Id}, target.Id, teamID)
+		require.NoError(t, err)
+
+		movedRootFile, err := ss.FileInfo().Get(rootFile.Id)
+		require.NoError(t, err)
+		assert.Equal(t, target.Id, movedRootFile.ChannelId)
+		movedReplyFile, err := ss.FileInfo().Get(replyFile.Id)
+		require.NoError(t, err)
+		assert.Equal(t, target.Id, movedReplyFile.ChannelId, "a reply's attachment moves with the thread")
+	})
+
 	t.Run("an empty batch is a no-op", func(t *testing.T) {
-		sources, err := ss.Post().MoveThreadsToChannel(rctx, nil, model.NewId(), model.NewId())
+		sources, err := ss.Post().MoveThreadsToBackingChannel(rctx, nil, model.NewId(), model.NewId())
 		require.NoError(t, err)
 		assert.Empty(t, sources)
 	})
@@ -6443,7 +6477,7 @@ func testPostStoreMoveThreadsToChannel(t *testing.T, rctx request.CTX, ss store.
 		root := newPost(t, source.Id, "")
 		reply := newPost(t, source.Id, root.Id)
 
-		_, err := ss.Post().MoveThreadsToChannel(rctx, []string{reply.Id}, target.Id, teamID)
+		_, err := ss.Post().MoveThreadsToBackingChannel(rctx, []string{reply.Id}, target.Id, teamID)
 		require.Error(t, err)
 		var invErr *store.ErrInvalidInput
 		require.True(t, errors.As(err, &invErr))
@@ -6467,7 +6501,7 @@ func testPostStoreMoveThreadsToChannel(t *testing.T, rctx request.CTX, ss store.
 		require.NoError(t, err)
 		require.Len(t, history, 1)
 
-		_, err = ss.Post().MoveThreadsToChannel(rctx, []string{history[0].Id}, target.Id, teamID)
+		_, err = ss.Post().MoveThreadsToBackingChannel(rctx, []string{history[0].Id}, target.Id, teamID)
 		require.Error(t, err)
 		var invErr *store.ErrInvalidInput
 		require.True(t, errors.As(err, &invErr))
@@ -6477,7 +6511,7 @@ func testPostStoreMoveThreadsToChannel(t *testing.T, rctx request.CTX, ss store.
 		teamID := model.NewId()
 		target := newSpace(t, teamID)
 
-		sources, err := ss.Post().MoveThreadsToChannel(rctx, []string{model.NewId()}, target.Id, teamID)
+		sources, err := ss.Post().MoveThreadsToBackingChannel(rctx, []string{model.NewId()}, target.Id, teamID)
 		require.NoError(t, err)
 		assert.Empty(t, sources)
 	})
@@ -6488,7 +6522,7 @@ func testPostStoreMoveThreadsToChannel(t *testing.T, rctx request.CTX, ss store.
 		target := newOpen(t, teamID)
 		root := newPost(t, source.Id, "")
 
-		_, err := ss.Post().MoveThreadsToChannel(rctx, []string{root.Id}, target.Id, teamID)
+		_, err := ss.Post().MoveThreadsToBackingChannel(rctx, []string{root.Id}, target.Id, teamID)
 		require.Error(t, err)
 		var invErr *store.ErrInvalidInput
 		require.True(t, errors.As(err, &invErr))
@@ -6500,7 +6534,7 @@ func testPostStoreMoveThreadsToChannel(t *testing.T, rctx request.CTX, ss store.
 		target := newSpace(t, teamID)
 		root := newPost(t, source.Id, "")
 
-		_, err := ss.Post().MoveThreadsToChannel(rctx, []string{root.Id}, target.Id, teamID)
+		_, err := ss.Post().MoveThreadsToBackingChannel(rctx, []string{root.Id}, target.Id, teamID)
 		require.Error(t, err)
 		var invErr *store.ErrInvalidInput
 		require.True(t, errors.As(err, &invErr))
@@ -6515,7 +6549,7 @@ func testPostStoreMoveThreadsToChannel(t *testing.T, rctx request.CTX, ss store.
 		source := newSpace(t, teamID)
 		root := newPost(t, source.Id, "")
 
-		_, err := ss.Post().MoveThreadsToChannel(rctx, []string{root.Id}, model.NewId(), teamID)
+		_, err := ss.Post().MoveThreadsToBackingChannel(rctx, []string{root.Id}, model.NewId(), teamID)
 		require.Error(t, err)
 		var nfErr *store.ErrNotFound
 		require.True(t, errors.As(err, &nfErr))
@@ -6547,7 +6581,7 @@ func testPostStoreMoveThreadsToChannel(t *testing.T, rctx request.CTX, ss store.
 		sourceBefore, sourceRootBefore := counts(t, sourceAnchor.Id)
 		targetBefore, targetRootBefore := counts(t, targetAnchor.Id)
 
-		sources, err := ss.Post().MoveThreadsToChannel(rctx, []string{root.Id}, target.Id, targetTeamID)
+		sources, err := ss.Post().MoveThreadsToBackingChannel(rctx, []string{root.Id}, target.Id, targetTeamID)
 		require.NoError(t, err)
 		assert.Equal(t, []string{source.Id}, sources, "the caller invalidates the source's post cache")
 
@@ -6574,7 +6608,7 @@ func testPostStoreMoveThreadsToChannel(t *testing.T, rctx request.CTX, ss store.
 			sourceRerun, sourceRootRerun := counts(t, sourceAnchor.Id)
 			targetRerun, targetRootRerun := counts(t, targetAnchor.Id)
 
-			_, err := ss.Post().MoveThreadsToChannel(rctx, []string{root.Id}, target.Id, targetTeamID)
+			_, err := ss.Post().MoveThreadsToBackingChannel(rctx, []string{root.Id}, target.Id, targetTeamID)
 			require.NoError(t, err)
 
 			sourceEnd, sourceRootEnd := counts(t, sourceAnchor.Id)
@@ -6595,7 +6629,7 @@ func testPostStoreMoveThreadsToChannel(t *testing.T, rctx request.CTX, ss store.
 		rootA := newPost(t, sourceA.Id, "")
 		rootB := newPost(t, sourceB.Id, "")
 
-		sources, err := ss.Post().MoveThreadsToChannel(rctx, []string{rootA.Id, rootB.Id}, target.Id, teamID)
+		sources, err := ss.Post().MoveThreadsToBackingChannel(rctx, []string{rootA.Id, rootB.Id}, target.Id, teamID)
 		require.NoError(t, err)
 		assert.ElementsMatch(t, []string{sourceA.Id, sourceB.Id}, sources)
 	})
