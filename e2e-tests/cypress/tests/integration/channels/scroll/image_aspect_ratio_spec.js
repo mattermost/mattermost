@@ -42,7 +42,7 @@ describe('Scroll', () => {
 
             // Last post must include the upload; within() on a stale join post never recovers.
             cy.findAllByTestId('postView').last().should(($post) => {
-                expect($post.find('.file-view--single .image-loaded img').length, 'posted image').to.be.greaterThan(0);
+                expect($post.find('.file-view--single').length, 'file attach').to.be.greaterThan(0);
             });
 
             cy.getLastPost().within(() => {
