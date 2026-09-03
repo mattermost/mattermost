@@ -43,7 +43,7 @@ const Organization = (props: Props) => {
 
     const [triedNext, setTriedNext] = useState(false);
     const nodeRef = useRef<HTMLDivElement>(null);
-    const inputRef = useRef<HTMLInputElement>();
+    const inputRef = useRef<HTMLInputElement>(undefined);
     const validation = teamNameToUrl(props.organization || '');
     const teamApiError = useRef<typeof TeamApiError | null>(null);
 

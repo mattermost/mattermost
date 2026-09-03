@@ -33,7 +33,7 @@ type Props = {
     options: Option[];
     saving: boolean;
     search: (term: string) => void;
-    selectedItemRef: React.RefObject<HTMLDivElement>;
+    selectedItemRef: React.RefObject<HTMLDivElement | null>;
     totalCount: number;
     users: UserProfile[];
 

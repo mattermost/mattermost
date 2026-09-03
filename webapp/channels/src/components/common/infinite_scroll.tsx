@@ -64,7 +64,7 @@ type State = {
 };
 
 export default class InfiniteScroll extends React.PureComponent<Props, State> {
-    node: React.RefObject<HTMLDivElement>;
+    node: React.RefObject<HTMLDivElement | null>;
 
     static defaultProps = {
         bufferValue: SCROLL_BUFFER,

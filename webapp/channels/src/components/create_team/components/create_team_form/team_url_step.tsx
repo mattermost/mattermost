@@ -15,7 +15,7 @@ export type Props = {
     teamURL?: string;
     nameError: string | JSX.Element;
     isLoading: boolean;
-    teamURLInput: React.RefObject<HTMLInputElement>;
+    teamURLInput: React.RefObject<HTMLInputElement | null>;
     onTeamURLChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
     onFocus: (e: React.FocusEvent<HTMLInputElement>) => void;
     onSubmit: (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void;

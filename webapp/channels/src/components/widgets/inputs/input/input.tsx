@@ -228,7 +228,7 @@ const Input = React.forwardRef((
         if (otherProps.type === 'textarea') {
             return (
                 <textarea
-                    ref={ref as React.RefObject<HTMLTextAreaElement>}
+                    ref={ref as React.RefObject<HTMLTextAreaElement | null>}
                     id={inputId}
                     className={classNames('Input form-control', inputSize, inputClassName, {Input__focus: showLegend})}
                     value={value}
@@ -244,11 +244,12 @@ const Input = React.forwardRef((
                     onFocus={handleOnFocus}
                     onBlur={handleOnBlur}
                     onChange={handleOnChange}
-                />);
+                />
+            );
         }
         return (
             <input
-                ref={ref as React.RefObject<HTMLInputElement>}
+                ref={ref as React.RefObject<HTMLInputElement | null>}
                 id={inputId}
                 className={classNames('Input form-control', inputSize, inputClassName, {Input__focus: showLegend})}
                 value={value}

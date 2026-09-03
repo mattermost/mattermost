@@ -53,7 +53,7 @@ type ExtraProps = {
  * @remarks emulates standard browser URL hash scroll-to behavior, but also works in custom or nested scroll containers.
  */
 const useFocusScroller = (location: Location): RefCallback<HTMLElement> => {
-    const lastFocusedLocation = useRef<Location>();
+    const lastFocusedLocation = useRef<Location>(undefined);
 
     return useCallback((node) => {
         if (!node || !location.hash || lastFocusedLocation.current === location) {

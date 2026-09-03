@@ -24,7 +24,7 @@ export type Props<T extends Value> = {
         select: (value: T) => void,
     ) => React.ReactNode;
     query?: string;
-    selectedItemRef?: React.RefObject<HTMLDivElement>;
+    selectedItemRef?: React.RefObject<HTMLDivElement | null>;
     options: T[];
     customNoOptionsMessage?: React.ReactNode;
 };

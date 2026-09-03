@@ -57,7 +57,7 @@ type State = {
 
 export class AddGroupsToChannelModal extends React.PureComponent<Props, State> {
     private searchTimeoutId: number;
-    private selectedItemRef: React.RefObject<HTMLDivElement>;
+    private selectedItemRef: React.RefObject<HTMLDivElement | null>;
 
     constructor(props: Props) {
         super(props);

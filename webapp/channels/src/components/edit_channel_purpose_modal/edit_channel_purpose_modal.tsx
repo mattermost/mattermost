@@ -41,7 +41,7 @@ type State = {
 };
 
 export class EditChannelPurposeModal extends React.PureComponent<Props, State> {
-    private purpose: React.RefObject<HTMLTextAreaElement>;
+    private purpose: React.RefObject<HTMLTextAreaElement | null>;
 
     constructor(props: Props) {
         super(props);
