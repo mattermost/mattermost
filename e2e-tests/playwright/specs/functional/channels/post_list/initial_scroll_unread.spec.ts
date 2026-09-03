@@ -194,8 +194,6 @@ test.describe('Post list initial scroll in unread channel', () => {
                 await channelsPage.goto(team.name, 'town-square');
                 await channelsPage.centerView.getLastPost();
 
-                await page.waitForLoadState('networkidle');
-
                 // * Verify that the channel starts as unread
                 await channelsPage.sidebarLeft.assertItemUnread(channel.name);
 
@@ -220,7 +218,6 @@ test.describe('Post list initial scroll in unread channel', () => {
 
     async function waitForScrollToSettle(watcher: PostListScrollWatcher) {
         await channelsPage.centerView.toBeVisible();
-        await page.waitForLoadState('networkidle');
 
         // # Wait until the post list hasn't scrolled for 500ms before returning results
         return watcher.waitForObservations(500);

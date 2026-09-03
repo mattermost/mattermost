@@ -152,16 +152,16 @@ export default function IMEDiagram() {
               </p>
             </div>
             <div className={styles.productGrid}>
-              <Cell to="/end-user-guide/messaging-collaboration" title="Messaging Collaboration" icon={<IconChat />}>
+              <Cell to="/end-user-guide/collaborate/collaborate-index" title="Messaging Collaboration" icon={<IconChat />}>
                 Mattermost Channels for ChatOps and automation
               </Cell>
-              <Cell to="/end-user-guide/workflow-automation" title="Workflow Automation" icon={<IconChecklist />}>
+              <Cell to="/end-user-guide/workflow-automation/workflow-automation-index" title="Workflow Automation" icon={<IconChecklist />}>
                 Mattermost Playbooks for automating SOPs
               </Cell>
               <Cell to="/end-user-guide/collaborate/audio-and-screensharing" title="Audio & Screenshare" icon={<IconCall />}>
                 Mattermost Calls for real‑time calling and screenshare
               </Cell>
-              <Cell to="/end-user-guide/project-task-management" title="Project Tracking" icon={<IconTarget />}>
+              <Cell to="/end-user-guide/project-management/project-management-index" title="Project Tracking" icon={<IconTarget />}>
                 Mattermost Boards for Kanban and work management
               </Cell>
               <Cell to="/end-user-guide/agents" title="AI Agents & Open APIs" icon={<IconSparkles />}>
@@ -236,7 +236,7 @@ export default function IMEDiagram() {
                 availability.
               </p>
             </div>
-            <Cell to="/deployment-guide/reference-architecture/reference-architecture-index" title="Tactical Edge to Strategic Core" icon={<IconServer />}>
+            <Cell to="/deployment-guide/deployment-scenarios/deployment-scenarios-index" title="Tactical Edge to Strategic Core" icon={<IconServer />}>
               Runs at the edge, in your data center, in sovereign clouds, and on global hyperscalers: Azure, AWS, Google Cloud, Oracle Cloud.
             </Cell>
             <Cell to="/for/air-gapped-operator" title="Mission-Ready Security & Resilience" icon={<IconShield />}>

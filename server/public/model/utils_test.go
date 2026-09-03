@@ -224,6 +224,20 @@ func TestAppErrorSerialize(t *testing.T) {
 		require.EqualError(t, berr, aerr.Error())
 	})
 
+	t.Run("Props survive WipeDetailed and round-trip to clients", func(t *testing.T) {
+		aerr := NewAppError("", "message", nil, "detail", http.StatusTeapot).Wrap(errors.New("wrapped"))
+		aerr.Props = StringMap{"plugin_id": "com.example", "version_direction": "downgrade"}
+		aerr.WipeDetailed()
+		js := aerr.ToJSON()
+		err := AppErrorFromJSON(strings.NewReader(js))
+		berr, ok := err.(*AppError)
+		require.True(t, ok)
+		require.Equal(t, "message", berr.Id)
+		require.Empty(t, berr.DetailedError, "WipeDetailed must still discard the detailed error")
+		require.Equal(t, StringMap{"plugin_id": "com.example", "version_direction": "downgrade"}, berr.Props)
+		require.Equal(t, http.StatusTeapot, berr.StatusCode)
+	})
+
 	t.Run("Where", func(t *testing.T) {
 		appErr := NewAppError("TestAppError", "message", nil, "", http.StatusInternalServerError)
 		json := appErr.ToJSON()
@@ -1088,12 +1102,6 @@ func checkNowhereNil(t *testing.T, name string, value any) bool {
 	v := reflect.ValueOf(value)
 	switch v.Type().Kind() {
 	case reflect.Pointer:
-		// Ignoring these 2 settings.
-		// TODO: remove them completely in v8.0.
-		if name == "config.ElasticsearchSettings.BulkIndexingTimeWindowSeconds" ||
-			name == "config.ClusterSettings.EnableExperimentalGossipEncryption" {
-			return true
-		}
 
 		if v.IsNil() {
 			t.Logf("%s was nil", name)

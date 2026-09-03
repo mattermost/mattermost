@@ -155,34 +155,19 @@ func (es *ElasticsearchInterfaceImpl) fetchServerInfo(ctx context.Context, clien
 	es.version = major
 	es.fullVersion = version
 
-	// Query every node because the CAT plugins API omits nodes with no plugins. Plugin information is
-	// also included in Support Packets. If it cannot be retrieved, preserve the existing best-effort
-	// behavior and let template creation report any resulting backend error.
-	resp, err := client.Nodes.Info().Metric("plugins").Do(ctx)
+	// Plugin information is advisory: it is used for optional analyzers and Support Packets only.
+	// CAT omits nodes with no plugins, so this inventory must not be used to prove cluster-wide absence.
+	resp, err := client.API.Cat.Plugins().Format("json").H("component").Do(ctx)
 	if err != nil {
-		es.Platform.Log().Warn("Error retrieving elasticsearch node plugins", mlog.Err(err))
-		return nil
-	}
-	if resp.NodeStats != nil && resp.NodeStats.Failed > 0 {
-		es.Platform.Log().Warn("Some elasticsearch nodes failed to return plugin information", mlog.Int("failed_nodes", resp.NodeStats.Failed))
+		es.Platform.Log().Warn("Error retrieving elasticsearch plugins", mlog.Err(err))
 		return nil
 	}
 
 	es.plugins = nil
-	analysisICUInstalledOnEveryNode := true
-	for _, node := range resp.Nodes {
-		nodeHasAnalysisICU := false
-		for _, plugin := range node.Plugins {
-			es.plugins = append(es.plugins, plugin.Name)
-			if plugin.Name == "analysis-icu" {
-				nodeHasAnalysisICU = true
-			}
+	for _, plugin := range resp {
+		if plugin.Component != nil && *plugin.Component != "" {
+			es.plugins = append(es.plugins, *plugin.Component)
 		}
-		analysisICUInstalledOnEveryNode = analysisICUInstalledOnEveryNode && nodeHasAnalysisICU
-	}
-
-	if len(resp.Nodes) > 0 && !analysisICUInstalledOnEveryNode {
-		return model.NewAppError("Elasticsearch.fetchServerInfo", "ent.elasticsearch.analysis_icu_required", map[string]any{"Backend": "Elasticsearch"}, "", http.StatusInternalServerError)
 	}
 
 	return nil
@@ -216,13 +201,13 @@ func (es *ElasticsearchInterfaceImpl) Start(ctx context.Context) *model.AppError
 	opts := []func(*types.IndexTemplateMapping){}
 	// Set up additional analyzers to use in the post index template if CJK analyzers are enabled
 	if *es.Platform.Config().ElasticsearchSettings.EnableCJKAnalyzers {
-		if slices.Contains(es.plugins, "analysis-nori") {
+		if common.HasAnalysisPlugin(es.plugins, "analysis-nori") {
 			opts = append(opts, common.WithNoriAnalyzer())
 		}
-		if slices.Contains(es.plugins, "analysis-kuromoji") {
+		if common.HasAnalysisPlugin(es.plugins, "analysis-kuromoji") {
 			opts = append(opts, common.WithKuromojiAnalyzer())
 		}
-		if slices.Contains(es.plugins, "analysis-smartcn") {
+		if common.HasAnalysisPlugin(es.plugins, "analysis-smartcn") {
 			opts = append(opts, common.WithSmartCNAnalyzer())
 		}
 
@@ -468,15 +453,15 @@ func (es *ElasticsearchInterfaceImpl) getFieldVariants(fieldName string, query s
 		return variants
 	}
 
-	if slices.Contains(es.plugins, "analysis-nori") {
+	if common.HasAnalysisPlugin(es.plugins, "analysis-nori") {
 		variants = append(variants, fieldName+".nori")
 	}
 
-	if slices.Contains(es.plugins, "analysis-kuromoji") {
+	if common.HasAnalysisPlugin(es.plugins, "analysis-kuromoji") {
 		variants = append(variants, fieldName+".kuromoji")
 	}
 
-	if slices.Contains(es.plugins, "analysis-smartcn") {
+	if common.HasAnalysisPlugin(es.plugins, "analysis-smartcn") {
 		variants = append(variants, fieldName+".smartcn")
 	}
 
