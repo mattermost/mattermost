@@ -155,26 +155,15 @@ test.describe('System Console - Admin User Profile Editing', () => {
         testUser = await pw.createNewUserProfile(adminClient, {prefix: 'admin-edit-target-'});
         await adminClient.addToTeam(team.id, testUser.id);
 
-        // Pre-cleanup: delete stale UAAE fields and, if the 20-field cap would
-        // block creating our 5, leftover order_/scroll_/region* fields from
-        // suites that do not always clean up.
+        // Pre-cleanup: delete stale UAAE-prefixed fields from previous runs of
+        // this suite. The prefix is unique to these tests; do not delete other
+        // suites' fields. attribute_order_and_popover now cleans up its own.
         try {
             const existingFields = await adminClient.getCustomProfileAttributeFields();
-            const needed = testUserAttributes.length;
-            const leakedName = (name: string) =>
-                name.startsWith('UAAE_') ||
-                /^order_\d+_/.test(name) ||
-                /^scroll_\d+_/.test(name) ||
-                /^reorder_\d+_/.test(name) ||
-                /^region[a-f0-9]+$/i.test(name);
-            const staleUaae = existingFields.filter((f) => f.name.startsWith('UAAE_'));
-            const leftover = existingFields.filter((f) => leakedName(f.name) && !f.name.startsWith('UAAE_'));
-            const freeAfterUaae = 20 - (existingFields.length - staleUaae.length);
-            const extraToFree = Math.max(0, needed - freeAfterUaae);
-            const toDelete = [...staleUaae, ...leftover.slice(0, extraToFree)];
-            if (toDelete.length > 0) {
+            const staleUaaeFields = existingFields.filter((f) => f.name.startsWith('UAAE_'));
+            if (staleUaaeFields.length > 0) {
                 const staleMap: Record<string, UserPropertyField> = {};
-                for (const f of toDelete) {
+                for (const f of staleUaaeFields) {
                     staleMap[f.id] = f;
                 }
                 await deleteCustomProfileAttributes(adminClient, staleMap);
