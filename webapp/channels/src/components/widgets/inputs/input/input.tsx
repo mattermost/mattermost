@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {useState, useEffect} from 'react';
+import React, { useState, useEffect, type JSX } from 'react';
 import type {MessageDescriptor} from 'react-intl';
 import {useIntl} from 'react-intl';
 
@@ -24,7 +24,7 @@ export type CustomMessageInputType = {type?: 'info' | 'error' | 'warning' | 'suc
 export interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement | HTMLTextAreaElement>, 'placeholder'> {
     required?: boolean;
     hasError?: boolean;
-    addon?: React.ReactElement;
+    addon?: React.ReactElement<any>;
     textPrefix?: string;
     inputPrefix?: JSX.Element;
     inputSuffix?: JSX.Element;
@@ -228,7 +228,7 @@ const Input = React.forwardRef((
         if (otherProps.type === 'textarea') {
             return (
                 <textarea
-                    ref={ref as React.RefObject<HTMLTextAreaElement>}
+                    ref={ref as React.RefObject<HTMLTextAreaElement | null>}
                     id={inputId}
                     className={classNames('Input form-control', inputSize, inputClassName, {Input__focus: showLegend})}
                     value={value}
@@ -244,11 +244,12 @@ const Input = React.forwardRef((
                     onFocus={handleOnFocus}
                     onBlur={handleOnBlur}
                     onChange={handleOnChange}
-                />);
+                />
+            );
         }
         return (
             <input
-                ref={ref as React.RefObject<HTMLInputElement>}
+                ref={ref as React.RefObject<HTMLInputElement | null>}
                 id={inputId}
                 className={classNames('Input form-control', inputSize, inputClassName, {Input__focus: showLegend})}
                 value={value}

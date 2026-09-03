@@ -4,7 +4,7 @@
 /* eslint-disable no-underscore-dangle */
 
 import memoizeOne from 'memoize-one';
-import {createElement, PureComponent} from 'react';
+import { createElement, PureComponent, type JSX } from 'react';
 
 import ListItem from './list_item';
 

@@ -3,8 +3,8 @@
 
 import classNames from 'classnames';
 import React from 'react';
-import {DragDropContext, Droppable} from 'react-beautiful-dnd';
-import type {DroppableProvided, DropResult} from 'react-beautiful-dnd';
+import {DragDropContext, Droppable} from '@hello-pangea/dnd';
+import type {DroppableProvided, DropResult} from '@hello-pangea/dnd';
 import {injectIntl, FormattedMessage} from 'react-intl';
 import type {WrappedComponentProps} from 'react-intl';
 import type {RouteComponentProps} from 'react-router-dom';

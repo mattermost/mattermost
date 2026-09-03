@@ -3,7 +3,7 @@
 
 import classNames from 'classnames';
 import type {PrimitiveType, FormatXMLElementFn} from 'intl-messageformat';
-import React from 'react';
+import React, { type JSX } from 'react';
 import type {MessageDescriptor} from 'react-intl';
 import {useIntl} from 'react-intl';
 

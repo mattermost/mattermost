@@ -3,7 +3,7 @@
 
 /* eslint-disable max-lines */
 
-import React from 'react';
+import React, { type JSX } from 'react';
 import type {ChangeEvent} from 'react';
 import type {WrappedComponentProps} from 'react-intl';
 import {FormattedMessage, injectIntl} from 'react-intl';

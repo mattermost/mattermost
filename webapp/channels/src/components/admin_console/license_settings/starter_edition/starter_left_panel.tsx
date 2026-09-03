@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, { type JSX } from 'react';
 import type {RefObject} from 'react';
 import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
 
@@ -16,7 +16,7 @@ export interface StarterEditionProps {
     openEELicenseModal: () => void;
     currentPlan: JSX.Element;
     upgradedFromTE: boolean;
-    fileInputRef: RefObject<HTMLInputElement>;
+    fileInputRef: RefObject<HTMLInputElement | null>;
     handleChange: () => void;
 }
 

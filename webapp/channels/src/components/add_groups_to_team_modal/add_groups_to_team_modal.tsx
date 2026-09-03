@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, { type JSX } from 'react';
 import type {RefObject} from 'react';
 import {Modal} from 'react-bootstrap';
 import type {IntlShape} from 'react-intl';
@@ -60,7 +60,7 @@ type State = {
 
 export class AddGroupsToTeamModal extends React.PureComponent<Props, State> {
     private searchTimeoutId: number;
-    private readonly selectedItemRef: RefObject<HTMLDivElement>;
+    private readonly selectedItemRef: RefObject<HTMLDivElement | null>;
 
     constructor(props: Props) {
         super(props);

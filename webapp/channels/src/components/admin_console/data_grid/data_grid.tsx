@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React from 'react';
+import React, { type JSX } from 'react';
 import type {CSSProperties} from 'react';
 import {FormattedMessage} from 'react-intl';
 
@@ -77,7 +77,7 @@ type State = {
 const MINIMUM_COLUMN_WIDTH = 100;
 
 class DataGrid extends React.PureComponent<Props, State> {
-    private ref: React.RefObject<HTMLDivElement>;
+    private ref: React.RefObject<HTMLDivElement | null>;
 
     static defaultProps = {
         term: '',

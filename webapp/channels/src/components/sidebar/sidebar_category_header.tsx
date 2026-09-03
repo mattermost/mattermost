@@ -3,7 +3,7 @@
 
 import classNames from 'classnames';
 import React from 'react';
-import type {DraggableProvidedDragHandleProps} from 'react-beautiful-dnd';
+import type {DraggableProvidedDragHandleProps} from '@hello-pangea/dnd';
 
 import {wrapEmojis} from 'utils/emoji_utils';
 
@@ -30,7 +30,7 @@ export const SidebarCategoryHeaderStatic = React.forwardRef((props: StaticProps,
 SidebarCategoryHeaderStatic.displayName = 'SidebarCategoryHeaderStatic';
 
 type Props = StaticProps & {
-    dragHandleProps?: DraggableProvidedDragHandleProps;
+    dragHandleProps?: DraggableProvidedDragHandleProps | null;
     isCollapsed: boolean;
     isCollapsible: boolean;
     isDragging?: boolean;

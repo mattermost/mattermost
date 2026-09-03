@@ -45,6 +45,8 @@ import {canOpenPublishedModal, openPublishedModal} from './published_modals';
 import {loadSharedDependency} from './shared_dependencies';
 import Textbox from './textbox';
 
+import type { JSX } from "react";
+
 // Note: We can't directly use the hook here, but we can create a function that opens the external pricing page
 // For plugins, we'll always try to open the external page and let the browser handle if it's blocked
 const openPricingModalForPlugins = () => {

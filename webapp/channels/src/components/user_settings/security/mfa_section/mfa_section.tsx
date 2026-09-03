@@ -37,7 +37,7 @@ type State = {
 };
 
 export default class MfaSection extends React.PureComponent<Props, State> {
-    minRef: RefObject<SettingItemMinComponent>;
+    minRef: RefObject<SettingItemMinComponent | null>;
 
     public constructor(props: Props) {
         super(props);

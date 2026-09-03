@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React from 'react';
+import React, { type JSX } from 'react';
 
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {MarketplaceLabel} from '@mattermost/types/marketplace';
@@ -71,7 +71,7 @@ type MarketplaceItemState = {
 };
 
 export default class MarketplaceItem extends React.PureComponent <MarketplaceItemProps, MarketplaceItemState> {
-    descriptionRef: React.RefObject<HTMLParagraphElement>;
+    descriptionRef: React.RefObject<HTMLParagraphElement | null>;
 
     constructor(props: MarketplaceItemProps) {
         super(props);

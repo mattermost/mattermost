@@ -4,7 +4,7 @@
 import classNames from 'classnames';
 import React, {useState} from 'react';
 import type {AnimationEvent, ReactNode} from 'react';
-import {Draggable} from 'react-beautiful-dnd';
+import {Draggable} from '@hello-pangea/dnd';
 import {FormattedMessage} from 'react-intl';
 
 import Constants from 'utils/constants';

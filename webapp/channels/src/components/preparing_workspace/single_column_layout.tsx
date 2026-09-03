@@ -6,7 +6,7 @@ import React from 'react';
 import './single_column_layout.scss';
 
 type Props = {
-    children: React.ReactNode | React.ReactNodeArray;
+    children: React.ReactNode;
     style?: React.CSSProperties;
 };
 

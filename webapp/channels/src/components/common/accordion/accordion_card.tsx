@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {useEffect, useRef, useState} from 'react';
+import React, { useEffect, useRef, useState, type JSX } from 'react';
 import type {RefObject} from 'react';
 
 import type {AccordionItemType} from './accordion';
@@ -13,7 +13,7 @@ type Props = {
     data: AccordionItemType;
     isExpanded: boolean;
     onButtonClick: () => void;
-    onHeaderClick?: <T>(ref: RefObject<HTMLLIElement>) => T | void;
+    onHeaderClick?: <T>(ref: RefObject<HTMLLIElement | null>) => T | void;
 };
 
 const AccordionCard = ({

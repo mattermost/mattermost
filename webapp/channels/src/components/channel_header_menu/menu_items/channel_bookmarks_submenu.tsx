@@ -42,7 +42,7 @@ const ChannelBookmarksSubmenu = (props: Props) => {
         return null;
     }
 
-    const addItemLabels = (content: React.ReactNode): React.ReactElement => {
+    const addItemLabels = (content: React.ReactNode): React.ReactElement<any> => {
         if (limitReached) {
             return (
                 <>

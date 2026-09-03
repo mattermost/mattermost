@@ -124,7 +124,7 @@ interface FormattingBarProps {
      * controls that enhance the message,
      * e.g: message priority picker
      */
-    additionalControls?: React.ReactNodeArray;
+    additionalControls?: ReadonlyArray<React.ReactNode>;
 
     /**
      * AI actions menu rendered at the far left of the formatting bar

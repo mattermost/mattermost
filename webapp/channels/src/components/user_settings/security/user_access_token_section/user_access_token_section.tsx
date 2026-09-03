@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, { type JSX } from 'react';
 import {defineMessage, FormattedDate, FormattedMessage, FormattedTime, injectIntl} from 'react-intl';
 import type {WrappedComponentProps} from 'react-intl';
 
@@ -174,7 +174,7 @@ type State = {
 };
 
 class UserAccessTokenSection extends React.PureComponent<Props, State> {
-    private minRef: React.RefObject<SettingItemMinComponent>;
+    private minRef: React.RefObject<SettingItemMinComponent | null>;
 
     constructor(props: Props) {
         super(props);

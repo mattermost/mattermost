@@ -3,7 +3,7 @@
 
 /* eslint-disable max-lines */
 
-import React, {PureComponent} from 'react';
+import React, { PureComponent, type JSX } from 'react';
 import {defineMessage, defineMessages, FormattedDate, FormattedMessage, FormattedList, injectIntl} from 'react-intl';
 import type {IntlShape} from 'react-intl';
 import {useSelector} from 'react-redux';

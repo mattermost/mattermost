@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, { type JSX } from 'react';
 import {FormattedDate, FormattedMessage, FormattedTime, defineMessage} from 'react-intl';
 
 import {Button} from '@mattermost/shared/components/button';
@@ -60,11 +60,11 @@ type State = {
 };
 
 export default class ComplianceReports extends React.PureComponent<Props, State> {
-    private descInput: React.RefObject<HTMLInputElement>;
-    private emailsInput: React.RefObject<HTMLInputElement>;
-    private fromInput: React.RefObject<HTMLInputElement>;
-    private keywordsInput: React.RefObject<HTMLInputElement>;
-    private toInput: React.RefObject<HTMLInputElement>;
+    private descInput: React.RefObject<HTMLInputElement | null>;
+    private emailsInput: React.RefObject<HTMLInputElement | null>;
+    private fromInput: React.RefObject<HTMLInputElement | null>;
+    private keywordsInput: React.RefObject<HTMLInputElement | null>;
+    private toInput: React.RefObject<HTMLInputElement | null>;
 
     constructor(props: Props) {
         super(props);

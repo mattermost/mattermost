@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {useEffect, useRef} from 'react';
+import React, { useEffect, useRef, type JSX } from 'react';
 import type {ChangeEvent, CSSProperties, FormEvent} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
@@ -53,7 +53,7 @@ const SearchBar: React.FunctionComponent<Props> = (props: Props): JSX.Element =>
         children = null,
     } = props;
 
-    const searchRef = useRef<SuggestionBoxComponent>();
+    const searchRef = useRef<SuggestionBoxComponent>(undefined);
     const intl = useIntl();
 
     useEffect((): void => {

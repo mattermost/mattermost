@@ -4,8 +4,8 @@
 import classNames from 'classnames';
 import debounce from 'lodash/debounce';
 import React, {lazy} from 'react';
-import {DragDropContext, Droppable} from 'react-beautiful-dnd';
-import type {DropResult, DragStart, BeforeCapture} from 'react-beautiful-dnd';
+import {DragDropContext, Droppable} from '@hello-pangea/dnd';
+import type {DropResult, DragStart, BeforeCapture} from '@hello-pangea/dnd';
 import {FormattedMessage, injectIntl, type WrappedComponentProps} from 'react-intl';
 import {SpringSystem} from 'rebound';
 import type {Spring} from 'rebound';
@@ -94,7 +94,7 @@ const scrollMarginWithUnread = 55;
 
 export class SidebarList extends React.PureComponent<Props, State> {
     channelRefs: Map<string, HTMLLIElement>;
-    scrollbar: React.RefObject<HTMLDivElement>;
+    scrollbar: React.RefObject<HTMLDivElement | null>;
     animate: SpringSystem;
     scrollAnimation: Spring;
 

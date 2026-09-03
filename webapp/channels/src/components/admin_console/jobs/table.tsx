@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React from 'react';
+import React, { type JSX } from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import {Button} from '@mattermost/shared/components/button';
@@ -27,7 +27,7 @@ export type Props = {
     jobs: Job[];
     getExtraInfoText?: (job: Job) => React.ReactNode;
     disabled: boolean;
-    createJobHelpText: React.ReactElement;
+    createJobHelpText: React.ReactElement<any>;
     jobType: JobType;
     downloadExportResults?: boolean;
     className?: string;

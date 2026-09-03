@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React from 'react';
+import React, { type JSX } from 'react';
 import type {ChangeEvent, ElementType, FocusEvent, KeyboardEvent, MouseEvent} from 'react';
 import {FormattedMessage} from 'react-intl';
 
@@ -81,9 +81,9 @@ const HIDDEN = {visibility: 'hidden'} as const;
 
 export default class Textbox extends React.PureComponent<Props> {
     private readonly suggestionProviders: Provider[];
-    private readonly wrapper: React.RefObject<HTMLDivElement>;
-    private readonly message: React.RefObject<SuggestionBoxComponent>;
-    private readonly preview: React.RefObject<HTMLDivElement>;
+    private readonly wrapper: React.RefObject<HTMLDivElement | null>;
+    private readonly message: React.RefObject<SuggestionBoxComponent | null>;
+    private readonly preview: React.RefObject<HTMLDivElement | null>;
 
     static defaultProps = {
         supportsCommands: true,

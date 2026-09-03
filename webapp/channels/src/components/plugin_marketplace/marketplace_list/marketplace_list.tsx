@@ -24,7 +24,7 @@ type MarketplaceListProps = {
         onClick: () => void;
     };
     filter?: string;
-    listRef?: React.RefObject<HTMLDivElement>;
+    listRef?: React.RefObject<HTMLDivElement | null>;
 };
 
 const MarketplaceList = ({

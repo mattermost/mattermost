@@ -116,7 +116,7 @@ function useFirstFramePoster(fileId: string, src: string, enabled: boolean): Cac
     return state;
 }
 
-function useInViewport<T extends Element>(ref: React.RefObject<T>): boolean {
+function useInViewport<T extends Element>(ref: React.RefObject<T | null>): boolean {
     const [inView, setInView] = useState(false);
 
     useEffect(() => {

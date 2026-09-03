@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {createRef} from 'react';
+import React, { createRef, type JSX } from 'react';
 import type {RefObject} from 'react';
 import type {WrappedComponentProps} from 'react-intl';
 import {FormattedMessage, defineMessages, injectIntl} from 'react-intl';
@@ -82,7 +82,7 @@ export const searchableStrings = [
 ];
 
 class DataRetentionSettings extends React.PureComponent<Props, State> {
-    inputRef: RefObject<SelectInstance<OptionType>>;
+    inputRef: RefObject<SelectInstance<OptionType> | null>;
     constructor(props: Props) {
         super(props);
         this.inputRef = createRef();

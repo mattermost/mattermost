@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React from 'react';
+import React, { type JSX } from 'react';
 import type {CSSProperties} from 'react';
 import {injectIntl} from 'react-intl';
 import type {WrappedComponentProps} from 'react-intl';
@@ -70,7 +70,7 @@ type State = {
  * @deprecated Use the "webapp/channels/src/components/menu" instead.
  */
 export class SubMenuItem extends React.PureComponent<Props, State> {
-    private node: React.RefObject<HTMLLIElement>;
+    private node: React.RefObject<HTMLLIElement | null>;
 
     public static defaultProps = {
         show: true,

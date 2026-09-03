@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, { type JSX } from 'react';
 import {defineMessage, FormattedMessage} from 'react-intl';
 
 import {Button} from '@mattermost/shared/components/button';
@@ -36,7 +36,7 @@ type State = {
 };
 
 export default class Setup extends React.PureComponent<Props, State> {
-    input: React.RefObject<HTMLInputElement>;
+    input: React.RefObject<HTMLInputElement | null>;
 
     public constructor(props: Props) {
         super(props);

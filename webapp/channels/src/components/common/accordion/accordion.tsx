@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {useState} from 'react';
+import React, { useState, type JSX } from 'react';
 import type {RefObject} from 'react';
 
 import AccordionCard from './accordion_card';
@@ -22,7 +22,7 @@ type AccordionProps = {
     accordionItemsData: AccordionItemType[];
     expandMultiple?: boolean;
     openFirstElement?: boolean;
-    onHeaderClick?: <T>(ref: RefObject<HTMLLIElement>) => T | void;
+    onHeaderClick?: <T>(ref: RefObject<HTMLLIElement | null>) => T | void;
     className?: string;
     onItemOpened?: (index: number) => void;
 };

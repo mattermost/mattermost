@@ -17,6 +17,8 @@ import type Constants from 'utils/constants';
 
 import type ValidationResult from './validation';
 
+import type { JSX } from "react";
+
 type Component = any;
 
 type AdminDefinitionConfigSchemaComponent = {

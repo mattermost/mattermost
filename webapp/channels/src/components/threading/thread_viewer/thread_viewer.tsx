@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React from 'react';
+import React, { type JSX } from 'react';
 import type {HTMLAttributes} from 'react';
 
 import type {Channel} from '@mattermost/types/channels';

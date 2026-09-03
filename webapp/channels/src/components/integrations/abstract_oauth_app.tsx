@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {ChangeEvent, FormEvent} from 'react';
+import type { ChangeEvent, FormEvent, JSX } from 'react';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 import type {MessageDescriptor} from 'react-intl';
@@ -77,7 +77,7 @@ type State = {
 
 export default class AbstractOAuthApp extends React.PureComponent<Props, State> {
     private image: HTMLImageElement;
-    private icon_url: React.RefObject<HTMLInputElement>;
+    private icon_url: React.RefObject<HTMLInputElement | null>;
 
     constructor(props: Props) {
         super(props);

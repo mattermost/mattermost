@@ -71,7 +71,7 @@ export default class ChannelView extends React.PureComponent<Props, State> {
         return null;
     }
 
-    channelViewRef: React.RefObject<HTMLDivElement>;
+    channelViewRef: React.RefObject<HTMLDivElement | null>;
 
     constructor(props: Props) {
         super(props);

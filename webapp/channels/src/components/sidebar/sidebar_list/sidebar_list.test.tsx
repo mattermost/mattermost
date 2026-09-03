@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import type {MovementMode, DropResult} from 'react-beautiful-dnd';
+import type {MovementMode, DropResult} from '@hello-pangea/dnd';
 
 import {CategorySorting} from '@mattermost/types/channel_categories';
 import type {ChannelType} from '@mattermost/types/channels';
@@ -369,6 +369,7 @@ describe('SidebarList', () => {
                 droppableId: 'droppable-categories',
                 index: 5,
             },
+            combine: null,
             draggableId: baseProps.categories[0].id,
             mode: 'SNAP' as MovementMode,
         };
@@ -387,6 +388,7 @@ describe('SidebarList', () => {
                 droppableId: baseProps.categories[0].id,
                 index: 5,
             },
+            combine: null,
             draggableId: baseProps.categories[0].id,
             mode: 'SNAP' as MovementMode,
         };

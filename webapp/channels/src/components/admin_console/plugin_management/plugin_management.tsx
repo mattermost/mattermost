@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React from 'react';
+import React, { type JSX } from 'react';
 import type {WrappedComponentProps} from 'react-intl';
 import {FormattedMessage, defineMessages, injectIntl} from 'react-intl';
 import {Link} from 'react-router-dom';
@@ -516,7 +516,7 @@ type State = BaseState & {
     draggingUpload: boolean;
 };
 export class PluginManagement extends OLDAdminSettings<Props, State> {
-    private fileInput: React.RefObject<HTMLInputElement>;
+    private fileInput: React.RefObject<HTMLInputElement | null>;
     constructor(props: Props) {
         super(props);
 

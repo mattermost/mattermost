@@ -14,7 +14,7 @@ import type {NewMessagesSeparatorActionComponent} from 'types/store/plugins';
 
 type Props = {
     separatorId: string;
-    wrapperRef?: React.RefObject<HTMLDivElement>;
+    wrapperRef?: React.RefObject<HTMLDivElement | null>;
     newMessagesSeparatorActions: NewMessagesSeparatorActionComponent[];
     channelId?: string;
     threadId?: string;

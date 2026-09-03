@@ -128,7 +128,7 @@ const DropdownInput = <T extends ValueType>(props: Props<T>) => {
 
     const {formatMessage} = useIntl();
     const [customInputLabel, setCustomInputLabel] = useState<CustomMessageInputType>(null);
-    const ownValue = useRef<T>();
+    const ownValue = useRef<T>(undefined);
 
     const ownOnChange = useCallback((value: T, action: ActionMeta<T>) => {
         ownValue.current = value;

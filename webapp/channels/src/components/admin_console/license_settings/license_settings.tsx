@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React from 'react';
+import React, { type JSX } from 'react';
 import {FormattedMessage, defineMessages} from 'react-intl';
 
 import type {StatusOK} from '@mattermost/types/client4';
@@ -91,7 +91,7 @@ type State = {
 };
 export default class LicenseSettings extends React.PureComponent<Props, State> {
     private interval: ReturnType<typeof setInterval> | null;
-    private fileInputRef: React.RefObject<HTMLInputElement>;
+    private fileInputRef: React.RefObject<HTMLInputElement | null>;
     constructor(props: Props) {
         super(props);
 

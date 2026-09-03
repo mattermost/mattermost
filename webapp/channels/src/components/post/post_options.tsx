@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classnames from 'classnames';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, { useCallback, useEffect, useRef, useState, type JSX } from 'react';
 import type {ReactNode} from 'react';
 import {FormattedMessage} from 'react-intl';
 

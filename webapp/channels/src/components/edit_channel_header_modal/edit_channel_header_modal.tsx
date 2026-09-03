@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, { type JSX } from 'react';
 import {Modal} from 'react-bootstrap';
 import type {WrappedComponentProps} from 'react-intl';
 import {FormattedMessage, injectIntl} from 'react-intl';
@@ -49,7 +49,7 @@ type State = {
 };
 
 export class EditChannelHeaderModal extends React.PureComponent<Props, State> {
-    private editChannelHeaderTextboxRef: React.RefObject<TextboxClass>;
+    private editChannelHeaderTextboxRef: React.RefObject<TextboxClass | null>;
 
     constructor(props: Props) {
         super(props);

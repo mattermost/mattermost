@@ -11,6 +11,8 @@ import type {AdminDefinitionSetting, AdminDefinitionSubSection} from 'components
 
 import {getPluginEntries} from './admin_console_plugin_index';
 
+import type { JSX } from "react";
+
 export type Index = {
 
     /**

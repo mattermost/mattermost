@@ -2,9 +2,9 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React from 'react';
+import React, { type JSX } from 'react';
 import type {MouseEvent, KeyboardEvent} from 'react';
-import {Draggable, Droppable} from 'react-beautiful-dnd';
+import {Draggable, Droppable} from '@hello-pangea/dnd';
 import {FormattedMessage, defineMessages} from 'react-intl';
 
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
@@ -55,8 +55,8 @@ type State = {
 };
 
 export default class SidebarCategory extends React.PureComponent<Props, State> {
-    categoryTitleRef: React.RefObject<HTMLButtonElement>;
-    newDropBoxRef: React.RefObject<HTMLDivElement>;
+    categoryTitleRef: React.RefObject<HTMLButtonElement | null>;
+    newDropBoxRef: React.RefObject<HTMLDivElement | null>;
 
     a11yKeyDownRegistered: boolean;
 
@@ -199,7 +199,7 @@ export default class SidebarCategory extends React.PureComponent<Props, State> {
                     index={0}
                 >
                     {(provided) => {
-                        // NEW_CHANNEL_SPACER here is used as a spacer to ensure react-beautiful-dnd will not try and place the first channel
+                        // NEW_CHANNEL_SPACER here is used as a spacer to ensure @hello-pangea/dnd will not try and place the first channel
                         // on the header. This acts as a space filler for the header so that the first channel dragged in will float below it.
                         return (
                             <li

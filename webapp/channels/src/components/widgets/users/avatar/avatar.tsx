@@ -74,7 +74,7 @@ const Avatar = forwardRef<HTMLElement, Props & Attrs>(({
         return (
             <div
                 {...attrs}
-                ref={ref as RefObject<HTMLDivElement>}
+                ref={ref as RefObject<HTMLDivElement | null>}
                 className={classNames(classes, 'Avatar-plain')}
                 data-content={text}
             />
@@ -92,7 +92,7 @@ const Avatar = forwardRef<HTMLElement, Props & Attrs>(({
     return (
         <img
             {...attrs}
-            ref={ref as RefObject<HTMLImageElement>}
+            ref={ref as RefObject<HTMLImageElement | null>}
             className={classes}
             alt={alt ?? formatMessage({id: 'avatar.alt', defaultMessage: '{username} profile image'}, {
                 username: username || 'user',

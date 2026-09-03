@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import type {ReactNode} from 'react';
+import type { ReactNode, JSX } from 'react';
 import React from 'react';
 import {useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';

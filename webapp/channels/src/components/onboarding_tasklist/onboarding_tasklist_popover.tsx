@@ -4,7 +4,7 @@
 import {FloatingPortal} from '@floating-ui/react';
 import type {Placement} from '@floating-ui/react-dom';
 import {useFloating, offset as floatingOffset, autoUpdate} from '@floating-ui/react-dom';
-import React, {useLayoutEffect, useRef} from 'react';
+import React, { useLayoutEffect, useRef, type JSX } from 'react';
 import {CSSTransition} from 'react-transition-group';
 import styled from 'styled-components';
 

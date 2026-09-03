@@ -11,7 +11,7 @@ import type {SuggestionResults} from './suggestion_results';
 import {countResults, hasResults} from './suggestion_results';
 
 export interface Props {
-    inputRef?: React.RefObject<HTMLDivElement>;
+    inputRef?: React.RefObject<HTMLDivElement | null>;
     open: boolean;
     position?: 'top' | 'bottom';
     renderNoResults?: boolean;
@@ -36,8 +36,8 @@ export default class SuggestionList extends React.PureComponent<Props> {
     static defaultProps = {
         renderNoResults: false,
     };
-    contentRef: React.RefObject<HTMLElement>;
-    wrapperRef: React.RefObject<HTMLDivElement>;
+    contentRef: React.RefObject<HTMLElement | null>;
+    wrapperRef: React.RefObject<HTMLDivElement | null>;
     itemRefs: Map<string, HTMLElement | null>;
     maxHeight: number;
 
@@ -69,7 +69,7 @@ export default class SuggestionList extends React.PureComponent<Props> {
             return;
         }
 
-        const inputHeight = (this.props.inputRef as React.RefObject<HTMLInputElement>).current?.clientHeight ?? 0;
+        const inputHeight = (this.props.inputRef as React.RefObject<HTMLInputElement | null>).current?.clientHeight ?? 0;
 
         this.maxHeight = Math.min(
             window.innerHeight - (inputHeight + Constants.POST_MODAL_PADDING),
@@ -152,7 +152,7 @@ export default class SuggestionList extends React.PureComponent<Props> {
             <ul
                 key='list-no-results'
                 className='suggestion-list__no-results'
-                ref={this.contentRef as React.RefObject<HTMLUListElement>}
+                ref={this.contentRef as React.RefObject<HTMLUListElement | null>}
             >
                 <FormattedMessage
                     id='suggestionList.noMatches'

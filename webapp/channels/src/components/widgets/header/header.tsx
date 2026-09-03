@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {Fragment} from 'react';
+import React, { Fragment, type JSX } from 'react';
 import type {ReactNode, HTMLAttributes} from 'react';
 
 import './header.scss';

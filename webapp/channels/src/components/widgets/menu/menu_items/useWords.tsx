@@ -39,7 +39,7 @@ export default function useWords(highestLimit: LimitSummary | false, isAdminUser
 
     const values = {
         callToAction,
-        a: (chunks: React.ReactNode | React.ReactNodeArray) => {
+        a: (chunks: React.ReactNode) => {
             if (isAirGapped) {
                 // Return plain text if air-gapped
                 return <>{chunks}</>;
@@ -73,7 +73,7 @@ export default function useWords(highestLimit: LimitSummary | false, isAdminUser
             id: 'workspace_limits.menu_limit.notify_admin',
             defaultMessage: 'Notify admin',
         });
-        values.a = (chunks: React.ReactNode | React.ReactNodeArray) => (
+        values.a = (chunks: React.ReactNode) => (
             <NotifyAdminCTA
                 ctaText={chunks}
                 notifyRequestData={{

@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState, useCallback, useEffect, useRef, useMemo} from 'react';
+import React, { useState, useCallback, useEffect, useRef, useMemo, type JSX } from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 import type {RouterProps} from 'react-router-dom';
@@ -94,7 +94,7 @@ const PreparingWorkspace = ({
 
     const config = useSelector(getConfig);
     const pluginsEnabled = config.PluginsEnabled === 'true';
-    const showOnMountTimeout = useRef<NodeJS.Timeout>();
+    const showOnMountTimeout = useRef<NodeJS.Timeout>(undefined);
     const configSiteUrl = config.SiteURL;
     const isConfigSiteUrlDefault = Boolean(config.SiteURL && config.SiteURL === Constants.DEFAULT_SITE_URL);
     const isSelfHosted = useSelector(getLicense).Cloud !== 'true';
