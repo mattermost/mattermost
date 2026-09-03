@@ -783,6 +783,26 @@ func TestRewriteTeamName(t *testing.T) {
 		rewriteTeamName(&line, "source-team", "dest-team")
 		assert.Equal(t, "dest-team", *line.Post.Team)
 	})
+
+	t.Run("nil user teams — no panic", func(t *testing.T) {
+		line := imports.LineImportData{
+			Type: "user",
+			User: &imports.UserImportData{Teams: nil},
+		}
+		assert.NotPanics(t, func() {
+			rewriteTeamName(&line, "source-team", "dest-team")
+		})
+	})
+
+	t.Run("unrelated line type — no change", func(t *testing.T) {
+		name := "source-team"
+		line := imports.LineImportData{
+			Type:  "emoji",
+			Emoji: &imports.EmojiImportData{Name: &name},
+		}
+		rewriteTeamName(&line, "source-team", "dest-team")
+		assert.Equal(t, "source-team", *line.Emoji.Name)
+	})
 }
 
 func TestDeactivateMissingUsersMode(t *testing.T) {
