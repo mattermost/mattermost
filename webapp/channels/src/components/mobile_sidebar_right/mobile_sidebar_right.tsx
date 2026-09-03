@@ -22,6 +22,7 @@ const MobileRightDrawer = ({
 }: Props) => {
     const usageDeltas = useGetUsageDeltas();
     const sidebarRef = useRef<HTMLDivElement>(null);
+    const drawerRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         if (isOpen && sidebarRef.current) {
@@ -46,15 +47,18 @@ const MobileRightDrawer = ({
             <div className='nav-pills__container mobile-main-menu'>
                 <CSSTransition
                     in={isOpen}
+                    nodeRef={drawerRef}
                     enter={true}
                     exit={true}
                     mountOnEnter={true}
                     unmountOnExit={true}
                     timeout={TRANSITION_TIMEOUT}
                 >
-                    <MobileRightDrawerItems
-                        usageDeltaTeams={usageDeltas.teams.active}
-                    />
+                    <div ref={drawerRef}>
+                        <MobileRightDrawerItems
+                            usageDeltaTeams={usageDeltas.teams.active}
+                        />
+                    </div>
                 </CSSTransition>
             </div>
         </div>
