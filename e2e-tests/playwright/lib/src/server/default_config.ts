@@ -817,7 +817,6 @@ const defaultServerConfig: AdminConfig = {
         MmBlocksEnabled: true,
         ClusterGracefulDrain: true,
         ChannelBookmarks: true,
-        EnableConcurrentReact: false,
         EnableMFIPluginSignaturePublicKey: true,
         RecurringScheduledPosts: false,
     },
