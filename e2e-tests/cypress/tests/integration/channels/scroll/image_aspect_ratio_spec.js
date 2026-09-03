@@ -38,9 +38,16 @@ describe('Scroll', () => {
         uploadedImages.forEach((uploadedImage) => {
             cy.get('#fileUploadInput').attachFile(uploadedImage.file);
             cy.uiWaitForFileUploadPreview();
-            cy.uiGetPostTextBox().clear().type('{enter}');
+            cy.postMessage(uploadedImage.file);
+
+            // Retry the last post until the upload is in it — getLastPost().within()
+            // otherwise pins the channel join message if the file post is still pending.
+            cy.findAllByTestId('postView').last().should(($post) => {
+                expect($post.find('.file-view--single .image-loaded img').length, 'posted image').to.be.greaterThan(0);
+            });
 
             cy.getLastPost().within(() => {
+                cy.contains(uploadedImage.file).should('be.visible');
                 verifyImageAspectRatioCorrectness(uploadedImage);
             });
 
