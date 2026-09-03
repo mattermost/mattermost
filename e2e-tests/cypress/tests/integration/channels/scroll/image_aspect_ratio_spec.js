@@ -40,8 +40,7 @@ describe('Scroll', () => {
             cy.uiWaitForFileUploadPreview();
             cy.postMessage(uploadedImage.file);
 
-            // Retry the last post until the upload is in it — getLastPost().within()
-            // otherwise pins the channel join message if the file post is still pending.
+            // Last post must include the upload; within() on a stale join post never recovers.
             cy.findAllByTestId('postView').last().should(($post) => {
                 expect($post.find('.file-view--single .image-loaded img').length, 'posted image').to.be.greaterThan(0);
             });
