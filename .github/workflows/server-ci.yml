@@ -20,8 +20,8 @@ permissions:
   contents: read
 
 jobs:
-  go:
-    name: Compute Go Version
+  buildenv:
+    name: Build Environment
     runs-on: ubuntu-22.04
     permissions:
       contents: read
@@ -29,7 +29,7 @@ jobs:
       actions: write
       id-token: write  # for chainguard (FIPS base image pull)
     outputs:
-      version: ${{ steps.calculate.outputs.GO_VERSION }}
+      build-server-tag: ${{ steps.calculate.outputs.BUILD_SERVER_TAG }}
       gomod-changed: ${{ steps.changed-files.outputs.any_changed }}
       # Individual jobs below use this to skip via `if:` rather
       # than the workflow being skipped entirely,
@@ -40,10 +40,12 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
         with:
           persist-credentials: false
-      - name: Calculate version
+      - name: Calculate build image tag
         id: calculate
         working-directory: server/
-        run: echo GO_VERSION=$(cat .go-version) >> "${GITHUB_OUTPUT}"
+        run: |
+          tag=$(./build/buildenv-tag.sh)
+          echo "BUILD_SERVER_TAG=${tag}" >> "${GITHUB_OUTPUT}"
       - name: Check for go.mod changes
         id: changed-files
         uses: tj-actions/changed-files@22103cc46bda19c2b464ffe86db46df6922fd323  # v47.0.5
@@ -61,6 +63,9 @@ jobs:
             .github/workflows/server-test-template.yml
             .github/workflows/server-test-merge-template.yml
             .github/workflows/mmctl-test-template.yml
+            .github/actions/setup-buildenv/**
+            .github/actions/load-buildenv/**
+            .github/actions/run-in-buildenv/**
             tools/mattermost-govet/**
           files_ignore: |
             server/**/*.md
@@ -73,11 +78,11 @@ jobs:
           DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
         uses: ./.github/actions/setup-buildenv
         with:
-          go-version: ${{ steps.calculate.outputs.GO_VERSION }}
+          build-server-tag: ${{ steps.calculate.outputs.BUILD_SERVER_TAG }}
   check-generated:
     name: Check generated files
-    needs: go
-    if: needs.go.outputs.relevant-changed == 'true'
+    needs: buildenv
+    if: needs.buildenv.outputs.relevant-changed == 'true'
     runs-on: ubuntu-22.04
     services:
       # make default-roles-permissions snapshots a live database.
@@ -117,9 +122,9 @@ jobs:
           fi
   check-backport-migrations:
     name: Check backport migrations
-    needs: go
+    needs: buildenv
     # Only backports (release-* base) must keep a migration's version+name; new master migrations are expected.
-    if: needs.go.outputs.relevant-changed == 'true' && startsWith(github.base_ref, 'release-')
+    if: needs.buildenv.outputs.relevant-changed == 'true' && startsWith(github.base_ref, 'release-')
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout mattermost project
@@ -138,8 +143,8 @@ jobs:
             make check-backport-migrations
   check-style:
     name: check-style
-    needs: go
-    if: needs.go.outputs.relevant-changed == 'true'
+    needs: buildenv
+    if: needs.buildenv.outputs.relevant-changed == 'true'
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout mattermost project
@@ -153,8 +158,8 @@ jobs:
           run: make check-style
   check-mattermost-vet-api:
     name: Vet API
-    needs: go
-    if: needs.go.outputs.relevant-changed == 'true'
+    needs: buildenv
+    if: needs.buildenv.outputs.relevant-changed == 'true'
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout mattermost project
@@ -173,8 +178,8 @@ jobs:
   # -- Sharded into 4 parallel runners for ~88% wall-time improvement --
   test-postgres-normal:
     name: Postgres (shard ${{ matrix.shard }})
-    needs: go
-    if: needs.go.outputs.relevant-changed == 'true'
+    needs: buildenv
+    if: needs.buildenv.outputs.relevant-changed == 'true'
     strategy:
       fail-fast: false  # Let all shards complete so we get full test results
       matrix:
@@ -192,7 +197,7 @@ jobs:
       # Each shard gets a unique artifact name so they don't collide
       logsartifact: "postgres-server-test-logs-shard-${{ matrix.shard }}"
       enablecoverage: ${{ github.event_name != 'pull_request' || !startsWith(github.event.pull_request.base.ref, 'release-') }}
-      go-version: ${{ needs.go.outputs.version }}
+      build-server-tag: ${{ needs.buildenv.outputs.build-server-tag }}
       fips-enabled: false
       shard-index: ${{ matrix.shard }}
       shard-total: 4
@@ -213,8 +218,8 @@ jobs:
 
   test-elasticsearch-v8:
     name: Elasticsearch v8 Compatibility
-    needs: go
-    if: needs.go.outputs.relevant-changed == 'true'
+    needs: buildenv
+    if: needs.buildenv.outputs.relevant-changed == 'true'
     permissions:
       contents: read
       actions: write
@@ -224,15 +229,15 @@ jobs:
       datasource: postgres://mmuser:mostest_password@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
       drivername: postgres
       logsartifact: elasticsearch-v8-server-test-logs
-      go-version: ${{ needs.go.outputs.version }}
+      build-server-tag: ${{ needs.buildenv.outputs.build-server-tag }}
       fips-enabled: false
       elasticsearch-version: "8.9.0"
       test-target: "test-server-elasticsearch"
 
   test-opensearch-v2:
     name: OpenSearch v2 Compatibility
-    needs: go
-    if: needs.go.outputs.relevant-changed == 'true'
+    needs: buildenv
+    if: needs.buildenv.outputs.relevant-changed == 'true'
     permissions:
       contents: read
       actions: write
@@ -242,7 +247,7 @@ jobs:
       datasource: postgres://mmuser:mostest_password@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
       drivername: postgres
       logsartifact: opensearch-v2-server-test-logs
-      go-version: ${{ needs.go.outputs.version }}
+      build-server-tag: ${{ needs.buildenv.outputs.build-server-tag }}
       fips-enabled: false
       opensearch-version: "2.19.0"
       test-target: "test-server-opensearch"
@@ -251,10 +256,10 @@ jobs:
   # Sharded for fast iteration. Weekly workflow provides regular full coverage.
   test-postgres-normal-fips:
     if: >-
-      needs.go.outputs.relevant-changed == 'true' &&
-      (contains(github.head_ref, 'fips') || needs.go.outputs.gomod-changed == 'true')
+      needs.buildenv.outputs.relevant-changed == 'true' &&
+      (contains(github.head_ref, 'fips') || needs.buildenv.outputs.gomod-changed == 'true')
     name: "Postgres FIPS (shard ${{ matrix.shard }})"
-    needs: go
+    needs: buildenv
     strategy:
       fail-fast: false
       matrix:
@@ -271,7 +276,7 @@ jobs:
       datasource: postgres://mmuser:mostest_password@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
       drivername: postgres
       logsartifact: "postgres-server-fips-test-logs-shard-${{ matrix.shard }}"
-      go-version: ${{ needs.go.outputs.version }}
+      build-server-tag: ${{ needs.buildenv.outputs.build-server-tag }}
       fips-enabled: true
       shard-index: ${{ matrix.shard }}
       shard-total: 4
@@ -289,8 +294,8 @@ jobs:
 
   test-mmctl:
     name: Run mmctl tests
-    needs: go
-    if: needs.go.outputs.relevant-changed == 'true'
+    needs: buildenv
+    if: needs.buildenv.outputs.relevant-changed == 'true'
     permissions:
       contents: read
       actions: write
@@ -302,14 +307,14 @@ jobs:
       datasource: postgres://mmuser:mostest_password@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
       drivername: postgres
       logsartifact: mmctl-test-logs
-      go-version: ${{ needs.go.outputs.version }}
+      build-server-tag: ${{ needs.buildenv.outputs.build-server-tag }}
       fips-enabled: false
   test-mmctl-fips:
     if: >-
-      needs.go.outputs.relevant-changed == 'true' &&
-      (contains(github.head_ref, 'fips') || needs.go.outputs.gomod-changed == 'true')
+      needs.buildenv.outputs.relevant-changed == 'true' &&
+      (contains(github.head_ref, 'fips') || needs.buildenv.outputs.gomod-changed == 'true')
     name: Run mmctl tests (FIPS)
-    needs: go
+    needs: buildenv
     permissions:
       contents: read
       actions: write
@@ -323,13 +328,13 @@ jobs:
       datasource: postgres://mmuser:mostest_password@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
       drivername: postgres
       logsartifact: mmctl-fips-test-logs
-      go-version: ${{ needs.go.outputs.version }}
+      build-server-tag: ${{ needs.buildenv.outputs.build-server-tag }}
       fips-enabled: true
 
   build-mattermost-server:
     name: Build mattermost server app
-    needs: go
-    if: needs.go.outputs.relevant-changed == 'true'
+    needs: buildenv
+    if: needs.buildenv.outputs.relevant-changed == 'true'
     permissions:
       contents: read
       actions: write
@@ -380,7 +385,7 @@ jobs:
     permissions: {}
     runs-on: ubuntu-22.04
     needs:
-      - go
+      - buildenv
       - merge-postgres-test-results
       - test-elasticsearch-v8
       - test-opensearch-v2
@@ -393,8 +398,8 @@ jobs:
         run: |
           # Explicitly fail here rather than relying on `if:`, since a job
           # skipped via `if:` is reported as "Success" by GitHub.
-          if [ "${{ needs.go.result }}" != "success" ]; then
-            echo "::error::'go' job did not succeed (result: ${{ needs.go.result }}); relevant-changed could not be computed reliably. Failing Server CI Complete."
+          if [ "${{ needs.buildenv.result }}" != "success" ]; then
+            echo "::error::'buildenv' job did not succeed (result: ${{ needs.buildenv.result }}); relevant-changed could not be computed reliably. Failing Server CI Complete."
             exit 1
           fi
           echo "Server CI Complete"
@@ -403,7 +408,7 @@ jobs:
     name: Server CI Report
     # Skip cleanly (rather than fail) when no relevant Server CI paths
     # changed, since none of the test jobs it reports on will have run.
-    if: always() && needs.go.outputs.relevant-changed == 'true'
+    if: always() && needs.buildenv.outputs.relevant-changed == 'true'
     permissions:
       contents: read
       actions: read
@@ -411,7 +416,7 @@ jobs:
       pull-requests: write
       issues: write
     needs:
-      - go
+      - buildenv
       - ci-complete
     uses: ./.github/workflows/server-ci-report.yml
     secrets:
@@ -431,7 +436,7 @@ jobs:
     # (and thus server-dist-artifact) will not have run.
     if: >-
       success('ci-complete') &&
-      needs.go.outputs.relevant-changed == 'true' &&
+      needs.buildenv.outputs.relevant-changed == 'true' &&
       github.repository_owner == 'mattermost' &&
       github.event_name == 'pull_request' &&
       github.event.pull_request.head.repo.full_name == github.repository
@@ -440,7 +445,7 @@ jobs:
       actions: read
       statuses: write
     needs:
-      - go
+      - buildenv
       - ci-complete
     uses: ./.github/workflows/server-ci-artifacts.yml
     secrets:

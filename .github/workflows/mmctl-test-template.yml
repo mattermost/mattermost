@@ -14,7 +14,8 @@ on:
       logsartifact:
         required: true
         type: string
-      go-version:
+      build-server-tag:
+        description: "Build image tag (e.g. go1.26.3-node24.11.1)"
         required: true
         type: string
       fips-enabled:
@@ -43,7 +44,6 @@ jobs:
       COMPOSE_PROJECT_NAME: ghactions
       INPUT_DATASOURCE: ${{ inputs.datasource }}
       INPUT_FIPS_ENABLED: ${{ inputs.fips-enabled }}
-      INPUT_GO_VERSION: ${{ inputs.go-version }}
       INPUT_LOGSARTIFACT: ${{ inputs.logsartifact }}
       INPUT_NAME: ${{ inputs.name }}
       INPUT_PR_NUMBER: ${{ github.event.pull_request.number }}
@@ -64,7 +64,7 @@ jobs:
         id: buildenv
         uses: ./.github/actions/load-buildenv
         with:
-          go-version: ${{ inputs.go-version }}
+          build-server-tag: ${{ inputs.build-server-tag }}
           fips-enabled: ${{ inputs.fips-enabled }}
       - name: Restore Go cache
         uses: ./.github/actions/restore-go-cache

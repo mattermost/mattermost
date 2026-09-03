@@ -13,7 +13,7 @@ The secure, self-hosted collaboration platform for defense, intelligence, securi
 
 <CardGrid columns={4} cards={[
   {title: 'For End Users', to: '/for/end-user', description: 'Messaging, Playbooks, Calls, Boards — day-to-day collaboration.'},
-  {title: 'For Administrators', to: '/for/administrator', description: 'User provisioning, SSO, RBAC, configuration, billing.'},
+  {title: 'For Administrators', to: '/for/administrator', description: 'User provisioning, SSO, ABAC, configuration, billing.'},
   {title: 'For Developers', to: '/for/developer', description: 'Plugins, the REST API, webhooks, slash commands.'},
   {title: 'For Security Architects', to: '/for/security-architect', description: 'Compliance frameworks, FIPS, audit logging, hardening.'},
 ]} />
@@ -148,7 +148,7 @@ IME runs on lightweight, ruggedized, or mobile infrastructure, optimized for dis
 
 - Supports [single-node Linux binaries](/deployment-guide/server/deploy-linux) and [containerized deployments in local Kubernetes environments](/deployment-guide/server/deploy-containers) for rapid, lightweight setup.
 - Enables flexible deployment on compact, portable compute platforms—ideal for ships, forward operating bases, mobile command units, or disconnected kits.
-- Operates fully [air-gapped](/deployment-guide/reference-architecture/deployment-scenarios/air-gapped-deployment) without reliance on internet, Domain Name System (DNS), or external authentication systems.
+- Operates fully [air-gapped](/deployment-guide/deployment-scenarios/air-gapped-deployment) without reliance on internet, Domain Name System (DNS), or external authentication systems.
 - Delivers secure communications, screen sharing, and workflow automation in isolated or DDIL conditions.
 
 ### Private Cloud & sovereign datacenter
@@ -156,8 +156,8 @@ IME runs on lightweight, ruggedized, or mobile infrastructure, optimized for dis
 For high-security environments requiring full infrastructure control, IME supports scalable, highly available deployment within sovereign datacenters.
 
 - [Kubernetes-native architecture](/deployment-guide/server/deploy-kubernetes) enables containerized services, self-healing workloads, and zero-downtime updates.
-- [High availability](/deployment-guide/reference-architecture/scale/high-availability-cluster-based-deployment) through clustering across application, database, and proxy layers.
-- [Horizontal scalability](/deployment-guide/reference-architecture/scale/scaling-for-enterprise) to tens of thousands of users per instance.
+- [High availability](/deployment-guide/server/high-availability-cluster-based-deployment) through clustering across application, database, and proxy layers.
+- [Horizontal scalability](/deployment-guide/scale/scaling-for-enterprise) to tens of thousands of users per instance.
 - Complies with Security Technical Implementation Guide (STIG), Federal Information Processing Standard 140-3 (FIPS 140-3), and Federal Risk and Authorization Management Program (FedRAMP)-aligned security standards.
 
 ### Hyperscaler & sovereign Cloud support

@@ -2,6 +2,7 @@
 title: "For Compliance Officers"
 description: "Start here if you collect audit evidence, respond to audits, and map regulatory mandates to Mattermost configuration."
 slug: /for/compliance-officer
+displayed_sidebar: documentation
 hide_table_of_contents: true
 ---
 
@@ -15,18 +16,18 @@ You collect audit evidence, respond to audits, and map regulatory mandates to Ma
 
 <CardGrid columns={3} cards={[
   {title: 'Comply (operational)', to: '/administration-guide/comply/compliance-export', description: 'Exports, eDiscovery, Legal Hold, retention.'},
-  {title: 'Compliance Frameworks', to: '/security-guide/compliance-frameworks', description: 'FedRAMP, IL, STIG, CMMC, HIPAA, FINRA mappings.'},
+  {title: 'Security Guide', to: '/security-guide/security-guide-index', description: 'Security controls and CMMC, HIPAA, FINRA coverage.'},
   {title: 'Audit logging', to: '/administration-guide/manage/logging', description: 'Schema, retention, SIEM integration.'},
 ]} />
 
 ## Common tasks
 
 <CardGrid columns={3} cards={[
-  {title: 'Compliance export', to: '/administration-guide/comply/compliance-export', description: 'Periodic export for regulated workloads.'},
   {title: 'eDiscovery', to: '/administration-guide/comply/electronic-discovery', description: 'Pull communications for legal review.'},
   {title: 'Legal Hold', to: '/administration-guide/comply/legal-hold', description: 'Preserve communications during litigation.'},
   {title: 'Data retention', to: '/administration-guide/comply/data-retention-policy', description: 'Policy-driven retention by team and channel.'},
-  {title: 'HIPAA / FINRA / CMMC', to: '/security-guide/compliance-frameworks', description: 'Industry-specific framework coverage.'},
+  {title: 'HIPAA compliance', to: '/security-guide/hipaa-compliance', description: 'Deploy as part of a HIPAA-compliant infrastructure.'},
+  {title: 'FINRA compliance', to: '/security-guide/finra-compliance', description: 'Meet FINRA cybersecurity requirements.'},
   {title: 'Permissions and roles', to: '/administration-guide/manage/admin/user-management', description: 'Verify RBAC + custom permissions match policy.'},
 ]} />
 
