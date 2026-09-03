@@ -140,14 +140,11 @@ export default class ChannelsPostCreate {
 
         if (files) {
             const filePaths = files.map((file) => path.join(assetPath, file));
-            page.once('filechooser', async (fileChooser) => {
-                await fileChooser.setFiles(filePaths);
-            });
-
-            // Click on the attachment button
+            await expect(this.attachmentButton).toBeEnabled();
+            const fileChooserPromise = page.waitForEvent('filechooser');
             await this.attachmentButton.click();
-
-            // Wait until the file preview is displayed
+            const fileChooser = await fileChooserPromise;
+            await fileChooser.setFiles(filePaths);
             await this.waitUntilFilePreviewContains(files);
         }
 
