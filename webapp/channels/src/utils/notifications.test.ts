@@ -3,6 +3,8 @@
 
 /* eslint-disable global-require */
 
+import icon50 from 'images/icon50x50.png';
+
 import configureStore from 'tests/test_store';
 
 import type {showNotification} from './notifications';
@@ -94,7 +96,7 @@ describe('Notifications.showNotification', () => {
         expect(call[1]).toEqual({
             body: 'body',
             tag: '',
-            icon: '',
+            icon: icon50,
             requireInteraction: true,
             silent: false,
         });
@@ -120,7 +122,7 @@ describe('Notifications.showNotification', () => {
         expect(call[1]).toEqual({
             body: 'body',
             tag: '',
-            icon: '',
+            icon: icon50,
             requireInteraction: true,
             silent: false,
         });
