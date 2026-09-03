@@ -442,10 +442,13 @@ test.describe('Single-channel guests', () => {
                 const text = await singleChannelGuestsCard.textContent().catch(() => '');
                 return Number(text?.match(/(\d+)/)?.[1] ?? NaN);
             };
+            let singleChannelGuestCount = NaN;
             await expect
-                .poll(readGuestCount, {timeout: 180000, intervals: [3000, 5000, 8000, 12000]})
+                .poll(async () => {
+                    singleChannelGuestCount = await readGuestCount();
+                    return singleChannelGuestCount;
+                }, {timeout: 180000, intervals: [3000, 5000, 8000, 12000]})
                 .toBeGreaterThanOrEqual(0);
-            const singleChannelGuestCount = await readGuestCount();
 
             // # Now create a single-channel guest to confirm baseline counting works
             const singleChannelGuest = await adminClient.createUser(await pw.random.user(), '', '');
