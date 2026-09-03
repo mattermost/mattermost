@@ -1,0 +1,86 @@
+diff --git a/node_modules/react-intl/lib/src/utils.js b/node_modules/react-intl/lib/src/utils.js
+index 6a9aae8..b798c02 100644
+--- a/node_modules/react-intl/lib/src/utils.js
++++ b/node_modules/react-intl/lib/src/utils.js
+@@ -12,11 +12,6 @@ export function invariantIntlContext(intl) {
+         '<IntlProvider> needs to exist in the component ancestry.');
+ }
+ export var DEFAULT_INTL_CONFIG = __assign(__assign({}, CORE_DEFAULT_INTL_CONFIG), { textComponent: React.Fragment });
+-var toKeyedReactNode = function (reactNode, key) {
+-    return React.isValidElement(reactNode)
+-        ? React.cloneElement(reactNode, { key: key })
+-        : reactNode;
+-};
+ /**
+  * Builds an array of {@link React.ReactNode}s with index-based keys, similar to
+  * {@link React.Children.toArray}. However, this function tells React that it
+@@ -25,14 +20,19 @@ var toKeyedReactNode = function (reactNode, key) {
+  * React doesn't recommend doing this because it makes reordering inefficient,
+  * but we mostly need this for message chunks, which don't tend to reorder to
+  * begin with.
++ *
+  */
+-export var toKeyedReactNodeArray = function (children) { var _a; 
+-/**
+- * Note: {@link React.Children.map} will add its own index-based prefix to
+- * every key anyway, so the auto-injected one doesn't even have to be unique.
+- * This basically just tells React that it's explicit/intentional.
+- */
+-return (_a = React.Children.map(children, toKeyedReactNode)) !== null && _a !== void 0 ? _a : []; };
++export var toKeyedReactNodeArray = function (children) {
++    var childrenArray = React.Children.toArray(children);
++    return childrenArray.map(function (child, index) {
++        // For React elements, wrap in a keyed Fragment
++        // This creates a new element with a key rather than trying to add one after creation
++        if (React.isValidElement(child)) {
++            return React.createElement(React.Fragment, { key: index }, child);
++        }
++        return child;
++    });
++};
+ /**
+  * Takes a `formatXMLElementFn`, and composes it in function, which passes
+  * argument `parts` through, assigning unique key to each part, to prevent
+diff --git a/node_modules/react-intl/src/utils.js b/node_modules/react-intl/src/utils.js
+index 8ef8083..fd22455 100644
+--- a/node_modules/react-intl/src/utils.js
++++ b/node_modules/react-intl/src/utils.js
+@@ -19,11 +19,6 @@ function invariantIntlContext(intl) {
+         '<IntlProvider> needs to exist in the component ancestry.');
+ }
+ exports.DEFAULT_INTL_CONFIG = tslib_1.__assign(tslib_1.__assign({}, intl_1.DEFAULT_INTL_CONFIG), { textComponent: React.Fragment });
+-var toKeyedReactNode = function (reactNode, key) {
+-    return React.isValidElement(reactNode)
+-        ? React.cloneElement(reactNode, { key: key })
+-        : reactNode;
+-};
+ /**
+  * Builds an array of {@link React.ReactNode}s with index-based keys, similar to
+  * {@link React.Children.toArray}. However, this function tells React that it
+@@ -32,14 +27,19 @@ var toKeyedReactNode = function (reactNode, key) {
+  * React doesn't recommend doing this because it makes reordering inefficient,
+  * but we mostly need this for message chunks, which don't tend to reorder to
+  * begin with.
++ *
+  */
+-var toKeyedReactNodeArray = function (children) { var _a; 
+-/**
+- * Note: {@link React.Children.map} will add its own index-based prefix to
+- * every key anyway, so the auto-injected one doesn't even have to be unique.
+- * This basically just tells React that it's explicit/intentional.
+- */
+-return (_a = React.Children.map(children, toKeyedReactNode)) !== null && _a !== void 0 ? _a : []; };
++var toKeyedReactNodeArray = function (children) {
++    var childrenArray = React.Children.toArray(children);
++    return childrenArray.map(function (child, index) {
++        // For React elements, wrap in a keyed Fragment
++        // This creates a new element with a key rather than trying to add one after creation
++        if (React.isValidElement(child)) {
++            return React.createElement(React.Fragment, { key: index }, child);
++        }
++        return child;
++    });
++};
+ exports.toKeyedReactNodeArray = toKeyedReactNodeArray;
+ /**
+  * Takes a `formatXMLElementFn`, and composes it in function, which passes
