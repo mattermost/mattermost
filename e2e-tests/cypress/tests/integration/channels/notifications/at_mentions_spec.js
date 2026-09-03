@@ -43,11 +43,14 @@ describe('Notifications', () => {
     });
 
     beforeEach(() => {
+        // # Login as receiver and visit off-topic channel
         cy.apiLogin(receiver);
         markChannelRead(testChannel.id);
         markChannelRead(otherChannel.id);
         cy.visit(`/${testTeam.name}/channels/off-topic`);
         cy.get('#channelHeaderDropdownButton').should('be.visible');
+
+        // * Verify unread mention badges are cleared
         cy.get(`#sidebarItem_${otherChannel.name}`).find('#unreadMentions').should('not.exist');
         cy.get(`#sidebarItem_${testChannel.name}`).find('#unreadMentions').should('not.exist');
     });
@@ -256,7 +259,7 @@ function markChannelRead(channelId) {
 }
 
 function setNotificationSettings(desiredSettings = {first: true, username: true, shouts: true, custom: true, customText: '@'}, channelName) {
-    // Navigate to settings modal
+    // # Navigate to settings modal
     cy.uiOpenSettingsModal();
 
     // # Click on notifications tab
@@ -264,10 +267,10 @@ function setNotificationSettings(desiredSettings = {first: true, username: true,
         should('be.visible').
         click();
 
-    // Notifications header should be visible
+    // * Notifications header should be visible
     cy.findAllByText('Notifications').should('be.visible');
 
-    // Open up 'Words that trigger mentions' sub-section
+    // # Open up 'Words that trigger mentions' sub-section
     cy.findByText('Keywords that trigger notifications').
         scrollIntoView().
         click();
@@ -279,20 +282,20 @@ function setNotificationSettings(desiredSettings = {first: true, username: true,
         {key: 'custom', selector: '#notificationTriggerCustom'},
     ];
 
-    // Set check boxes to desired state
+    // # Set check boxes to desired state
     settings.forEach((setting) => {
         const checkbox = desiredSettings[setting.key] ? {state: 'check', verify: 'be.checked'} : {state: 'uncheck', verify: 'not.be.checked'};
         cy.get(setting.selector)[checkbox.state]().should(checkbox.verify);
     });
 
-    // Set Custom field
+    // # Set Custom field
     if (desiredSettings.custom && desiredSettings.customText) {
         cy.get('#notificationTriggerCustomText').
             type(desiredSettings.customText, {force: true}).
             tab();
     }
 
-    // Click “Save” and close modal
+    // # Click “Save” and close modal
     cy.uiSaveAndClose();
 
     cy.apiGetMe().then(({user}) => {
@@ -301,9 +304,11 @@ function setNotificationSettings(desiredSettings = {first: true, username: true,
         expect(props.channel).to.equal(desiredSettings.shouts ? 'true' : 'false');
     });
 
-    // Spy after the channel switch so the stub is on the window that receives the post.
+    // # Navigate to a channel we are NOT going to post to
     cy.get(`#sidebarItem_${channelName}`).scrollIntoView().click({force: true});
     cy.get('#loadingSpinner').should('not.exist');
     cy.get('#channelHeaderDropdownButton').should('be.visible');
+
+    // # Setup notification spy
     spyNotificationAs('notifySpy', 'granted');
 }

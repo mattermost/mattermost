@@ -182,9 +182,16 @@ describe('System Console > User Management > Users', () => {
 });
 
 function searchUserAndOpenResetPassword(query, email) {
+    // # Search for the user.
     cy.findByPlaceholderText('Search users').should('be.visible').clear().type(query);
+
+    // * Verify the matching email is in the first row
     cy.get('#systemUsersTable-cell-0_emailColumn').should('be.visible').and('contain', email);
+
+    // # Open the actions menu.
     cy.get('#actionMenuButton-systemUsersTable-0').should('be.visible').click();
+
+    // # Click the Reset Password menu option.
     cy.get('#actionMenuItem-systemUsersTable-0-resetPassword').should('be.visible').click();
 }
 

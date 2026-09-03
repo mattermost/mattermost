@@ -80,8 +80,7 @@ export default class ChannelsCenterView {
     }
 
     /**
-     * Return the Center post whose body contains the given text. Prefer this over getLastPost:
-     * adding a member appends a join system message, so the post under test is often not last.
+     * Return the Center post whose body contains the given text.
      */
     async getPostByText(text: string) {
         const post = this.container.getByTestId('postView').filter({hasText: text}).last();
@@ -89,8 +88,10 @@ export default class ChannelsCenterView {
         return new ChannelsPost(post);
     }
 
+    /**
+     * Return the concealed BoR post, pinned by post id so the locator survives reveal.
+     */
     async getConcealedBorPost() {
-        // Pin to post id so the locator survives reveal (placeholder is then removed).
         const placeholder = this.container.getByTestId(/^burn-on-read-concealed-/).last();
         await expect(placeholder).toBeVisible();
         const testId = await placeholder.getAttribute('data-testid');

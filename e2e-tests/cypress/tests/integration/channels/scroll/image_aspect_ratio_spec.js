@@ -36,26 +36,37 @@ describe('Scroll', () => {
         ];
 
         uploadedImages.forEach((uploadedImage) => {
+            // # Upload the image
             cy.intercept('POST', '**/api/v4/files').as('uploadFile');
             cy.get('#fileUploadInput').should('exist').attachFile(uploadedImage.file);
             cy.wait('@uploadFile').its('response.statusCode').should('be.oneOf', [200, 201]);
+
+            // * Verify the file preview is shown
             cy.get('[data-testid="file-preview-item"]').should('be.visible');
+
+            // # Post the image
             cy.postMessage(uploadedImage.file);
 
-            // Last post must include the upload; within() on a stale join post never recovers.
+            // * Verify the last post includes the uploaded file
             cy.findAllByTestId('postView').last().should(($post) => {
                 expect($post.find('.file-view--single').length, 'file attach').to.be.greaterThan(0);
             });
 
             cy.getLastPostId().then((postId) => {
+                // # Get uploaded image in the center
                 cy.get(`#post_${postId}`).within(() => {
                     cy.contains(uploadedImage.file).should('be.visible');
+
+                    // * Verify image was uploaded and its aspect ratio is unchanged
                     verifyImageAspectRatioCorrectness(uploadedImage);
                 });
 
+                // # Open the message with image in RHS
                 cy.clickPostCommentIcon(postId);
 
+                // # Go to RHS where image is now opened
                 cy.get('#rhsContainer').within(() => {
+                    // * Verify image in the RHS has correct aspect ratio
                     verifyImageAspectRatioCorrectness(uploadedImage);
                 });
 

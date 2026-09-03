@@ -41,11 +41,13 @@ function verifyLineBreaksRemainIntact(display) {
     cy.uiGetPostTextBox().type('{shift}{enter}{enter}');
     cy.uiGetPostTextBox().type(secondLine);
     cy.uiGetPostTextBox().should('contain.value', firstLine).and('contain.value', secondLine);
+
+    // # Send the message
     cy.intercept('POST', '**/api/v4/posts').as('createPost');
     cy.findByTestId('SendMessageButton').should('be.enabled').click();
     cy.wait('@createPost').its('response.statusCode').should('eq', 201);
 
-    // Pin to the posted text so a later join system message is not treated as last.
+    // # Get last postId
     cy.contains('[data-testid="postView"]', firstLine).should('be.visible').invoke('attr', 'id').then((rawId) => {
         const postId = (rawId || '').replace(/^post_/, '');
         const postMessageTextId = `#postMessageText_${postId}`;
@@ -56,19 +58,21 @@ function verifyLineBreaksRemainIntact(display) {
         // # click dot menu button
         cy.clickPostDotMenu(postId);
 
-        // Menu items remount when the post list updates; click the edit action by id.
+        // # click edit post
         cy.get(`#edit_post_${postId}`).should('exist').click({force: true});
 
-        // # Add ",edited" to the text and save
+        // # Add ",edited" to the text
         const editMessage = ',edited';
         cy.get('#edit_textbox').should('be.visible').type(editMessage);
         cy.get('#edit_textbox').should('contain.value', editMessage);
+
+        // # finish editing
         cy.get('[data-testid="post-edit-container"] button.save').should('be.visible').click();
 
         // * Verify posted message includes newline, edit message and "Edited" indicator
         cy.get(postMessageTextId).should('have.text', `${firstLine}\n${secondLine}${editMessage} Edited`);
 
-        // Compact view can clip the indicator; assert it is mounted with the Edited label.
+        // * Post should have "Edited"
         cy.get(`#post_${postId}`).scrollIntoView();
         cy.get(`#postEdited_${postId}`).should('exist').and('contain', 'Edited');
     });

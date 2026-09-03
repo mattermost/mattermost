@@ -22,7 +22,7 @@ test.describe('Burn-on-Read in DMs and GMs', () => {
         await channelsPage.toBeVisible();
         await channelsPage.goto(team.name, `@${otherUser.username}`);
 
-        // * Verify BoR toggle is attached and enabled before using it
+        // * Verify BoR toggle button is available
         await expect(channelsPage.centerView.postCreate.burnOnReadButton).toBeAttached();
         await expect(channelsPage.centerView.postCreate.burnOnReadButton).toBeEnabled();
 
@@ -346,7 +346,7 @@ test.describe('Burn-on-Read in DMs and GMs', () => {
         await receiverPage.goto(team.name, `@${sender.username}`);
         await receiverPage.toBeVisible();
 
-        // Wait for posts to load via the BoR placeholder test id
+        // * Verify concealed BoR placeholders are visible
         await expect(receiverPage.centerView.container.getByTestId(/^burn-on-read-concealed-/).first()).toBeVisible();
 
         // * Get all concealed placeholders

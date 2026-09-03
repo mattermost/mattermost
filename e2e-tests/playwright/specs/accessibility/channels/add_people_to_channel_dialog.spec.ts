@@ -43,7 +43,7 @@ test(
         const membersMenuItem = page.locator('#channelMembers');
         await membersMenuItem.click();
 
-        // # Click Add in the members RHS (the intro "Add people" control is not always mounted)
+        // # Click the Add people button
         const membersRhs = page.locator('#rhsContainer');
         await expect(membersRhs).toBeVisible();
         const addMembers = membersRhs.locator('button.add-members');
@@ -92,7 +92,7 @@ test(
         // # Search for an invalid text
         await searchInput.fill('somethingwhichdoesnotexist');
 
-        // * Empty-state copy is either the channel-member miss or the invite-to-team prompt
+        // * Check if the no results message is displayed with proper accessibility
         const noResultsMessage = dialog.getByText(/No matches found|No results found matching/i);
         await expect(noResultsMessage).toBeVisible();
         const noResultsWrapper = dialog.locator('.multi-select__wrapper');
@@ -140,7 +140,7 @@ test(
         const membersMenuItem = page.locator('#channelMembers');
         await membersMenuItem.click();
 
-        // # Click Add in the members RHS (the intro "Add people" control is not always mounted)
+        // # Click the Add people button
         const membersRhs = page.locator('#rhsContainer');
         await expect(membersRhs).toBeVisible();
         const addMembers = membersRhs.locator('button.add-members');
