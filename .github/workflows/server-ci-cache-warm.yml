@@ -1,6 +1,8 @@
 # Warms the Go module cache, build cache, and CI tool binaries that server CI
 # jobs restore read-only (via restore-go-cache). Runs daily on master and on
 # demand, keyed on the Go version and all go.mod/go.sum files.
+# server/bin is only a warm start: every consumer re-runs its install-<tool>
+# prerequisite, so a binary the key doesn't cover still gets rebuilt before use.
 name: Server CI Cache Warm
 
 on:
