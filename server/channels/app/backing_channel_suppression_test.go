@@ -464,6 +464,23 @@ func TestBackingChannelBroadcastSuppression(t *testing.T) {
 		return post.Id
 	}
 
+	t.Run("creating a backing-channel post publishes no posted event", func(t *testing.T) {
+		messages, closeWS := connectFakeWebSocket(t, th, th.BasicUser.Id, "", []model.WebsocketEventType{model.WebsocketEventPosted})
+		defer closeWS()
+
+		newSpacePost(t)
+		chatPost := th.CreatePost(t, th.BasicChannel)
+
+		var received *model.WebSocketEvent
+		select {
+		case received = <-messages:
+		case <-time.After(5 * time.Second):
+			require.FailNow(t, "timed out waiting for the chat post's websocket event")
+		}
+		require.Equal(t, model.WebsocketEventPosted, received.EventType())
+		assert.Equal(t, chatPost.Id, receivedPostID(t, received), "the only posted event must be the chat one")
+	})
+
 	t.Run("editing a backing-channel post publishes no post_edited event", func(t *testing.T) {
 		messages, closeWS := connectFakeWebSocket(t, th, th.BasicUser.Id, "", []model.WebsocketEventType{model.WebsocketEventPostEdited})
 		defer closeWS()

@@ -73,6 +73,7 @@ func TestPostStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	t.Run("GetEditHistoryForPost", func(t *testing.T) { testGetEditHistoryForPost(t, rctx, ss) })
 	t.Run("RestoreContentFlaggedPost", func(t *testing.T) { testRestoreContentFlaggedPost(t, rctx, ss) })
 	t.Run("MoveThreadsToBackingChannel", func(t *testing.T) { testPostStoreMoveThreadsToBackingChannel(t, rctx, ss) })
+	t.Run("SaveCallerSuppliedID", func(t *testing.T) { testPostStoreSaveCallerSuppliedID(t, rctx, ss) })
 }
 
 func testPostStoreSave(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -6632,5 +6633,65 @@ func testPostStoreMoveThreadsToBackingChannel(t *testing.T, rctx request.CTX, ss
 		sources, err := ss.Post().MoveThreadsToBackingChannel(rctx, []string{rootA.Id, rootB.Id}, target.Id, teamID)
 		require.NoError(t, err)
 		assert.ElementsMatch(t, []string{sourceA.Id, sourceB.Id}, sources)
+	})
+}
+
+// testPostStoreSaveCallerSuppliedID pins the split in the pre-set-id rejection: a chat channel
+// keeps it, while a non-message backing channel accepts the id its trusted feature caller
+// allocated, so a create that errors after the save has committed can be resolved by reading the
+// row back. A test on the accepting side alone would pass with the rejection removed outright.
+func testPostStoreSaveCallerSuppliedID(t *testing.T, rctx request.CTX, ss store.Store) {
+	newChannel := func(t *testing.T, channelType model.ChannelType) *model.Channel {
+		t.Helper()
+		channel, err := ss.Channel().Save(rctx, &model.Channel{
+			TeamId:      model.NewId(),
+			DisplayName: "Caller-supplied id",
+			Name:        "supplied-" + model.NewId(),
+			Type:        channelType,
+		}, -1)
+		require.NoError(t, err)
+		return channel
+	}
+
+	t.Run("a backing channel keeps the id the caller allocated", func(t *testing.T) {
+		channel := newChannel(t, model.ChannelTypeSpace)
+		id := model.NewId()
+
+		saved, err := ss.Post().Save(rctx, &model.Post{
+			Id:        id,
+			ChannelId: channel.Id,
+			UserId:    model.NewId(),
+			Message:   NewTestID(),
+		})
+		require.NoError(t, err)
+		assert.Equal(t, id, saved.Id)
+
+		read, err := ss.Post().GetSingle(rctx, id, false)
+		require.NoError(t, err)
+		assert.Equal(t, id, read.Id)
+	})
+
+	t.Run("a chat channel still refuses a pre-set id", func(t *testing.T) {
+		channel := newChannel(t, model.ChannelTypeOpen)
+
+		_, err := ss.Post().Save(rctx, &model.Post{
+			Id:        model.NewId(),
+			ChannelId: channel.Id,
+			UserId:    model.NewId(),
+			Message:   NewTestID(),
+		})
+		require.Error(t, err)
+		var invErr *store.ErrInvalidInput
+		require.ErrorAs(t, err, &invErr)
+	})
+
+	t.Run("an unallocated id on no channel at all is refused", func(t *testing.T) {
+		_, err := ss.Post().Save(rctx, &model.Post{
+			Id:        model.NewId(),
+			ChannelId: model.NewId(),
+			UserId:    model.NewId(),
+			Message:   NewTestID(),
+		})
+		require.Error(t, err)
 	})
 }

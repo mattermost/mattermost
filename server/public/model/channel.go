@@ -445,9 +445,6 @@ func (o *Channel) IsSpace() bool {
 	return o.Type == ChannelTypeSpace
 }
 
-// IsMessageChannel reports whether the channel is one of the message-bearing
-// types (open, private, direct, or group). Returns false for boards and any
-// future non-message channel types.
 // NonMessageBackingChannelTypes are the channel types that back a feature storing its content
 // as posts while presenting no chat surface of its own: no notifications, no chat websocket
 // events, no thread list, and no unread state. Queries that answer a chat question exclude them,
@@ -463,12 +460,9 @@ func (t ChannelType) IsNonMessageBacking() bool {
 	return slices.Contains(NonMessageBackingChannelTypes, t)
 }
 
-// IsNonMessageBacking reports whether the channel backs a feature that stores its content as
-// posts but presents no chat surface.
-func (o *Channel) IsNonMessageBacking() bool {
-	return o.Type.IsNonMessageBacking()
-}
-
+// IsMessageChannel reports whether the channel is one of the message-bearing
+// types (open, private, direct, or group). Returns false for boards and any
+// future non-message channel types.
 func (o *Channel) IsMessageChannel() bool {
 	switch o.Type {
 	case ChannelTypeOpen, ChannelTypePrivate, ChannelTypeDirect, ChannelTypeGroup:
