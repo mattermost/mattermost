@@ -37,7 +37,7 @@ cd $GOPATH/src/my-plugin
 
 Create a file named `plugin.go` with the following contents:
 
-\{/* TODO: unconverted Hugo shortcode \{\{&lt;plugingoexamplecode name="_helloWorld"&gt;\}\} (sources/mattermost-developer-documentation/site/content/integrate/plugins/components/server/hello-world.md) */\}
+<PluginGoExample name="_helloWorld" />
 
 This plugin will register an HTTP handler that will respond with "Hello, world!" when requested.
 

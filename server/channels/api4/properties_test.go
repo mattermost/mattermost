@@ -196,6 +196,99 @@ func TestPropertyRoutesWithPostAttributesFlag(t *testing.T) {
 	})
 }
 
+// The gate is an OR across every Properties feature flag, so the off case is
+// only meaningful with all of them disabled — ClassificationMarkings defaults to
+// true. This is the half that backs "off by default exposes nothing".
+func TestPropertyRoutesAbsentWithoutGateFlags(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.IntegratedBoards = false
+		cfg.FeatureFlags.ManagedChannelCategories = false
+		cfg.FeatureFlags.ClassificationMarkings = false
+		cfg.FeatureFlags.SessionAttributes = false
+		cfg.FeatureFlags.PostAttributes = false
+		cfg.FeatureFlags.ChannelAttributes = false
+	}).InitBasic(t)
+
+	group, appErr := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{
+		Name:    "channel_attributes_off_test",
+		Version: model.PropertyGroupVersionV2,
+	})
+	require.Nil(t, appErr)
+
+	_, resp, err := th.SystemAdminClient.GetPropertyFields(context.Background(), group.Name, "channel", model.PropertyFieldSearch{TargetType: "system"})
+	require.Error(t, err)
+	CheckNotFoundStatus(t, resp)
+
+	field := &model.PropertyField{
+		Name:       model.NewId(),
+		Type:       model.PropertyFieldTypeText,
+		TargetType: "system",
+	}
+	_, resp, err = th.SystemAdminClient.CreatePropertyField(context.Background(), group.Name, "channel", field)
+	require.Error(t, err)
+	CheckNotFoundStatus(t, resp)
+
+	// Patch a field that genuinely exists, created through the app layer since
+	// the create route is gated off (asserted above). A random field ID would
+	// 404 on its own and prove nothing about the route being absent.
+	memberLevel := model.PermissionLevelMember
+	existingField, appErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+		Name:              model.NewId(),
+		Type:              model.PropertyFieldTypeText,
+		GroupID:           group.ID,
+		ObjectType:        "channel",
+		TargetType:        "system",
+		PermissionField:   &memberLevel,
+		PermissionValues:  &memberLevel,
+		PermissionOptions: &memberLevel,
+	}, false, "")
+	require.Nil(t, appErr)
+
+	_, resp, err = th.SystemAdminClient.PatchPropertyValues(context.Background(), group.Name, "channel", th.BasicChannel.Id, []model.PropertyValuePatchItem{
+		{FieldID: existingField.ID, Value: json.RawMessage(`"x"`)},
+	})
+	require.Error(t, err)
+	CheckNotFoundStatus(t, resp)
+}
+
+func TestPropertyRoutesWithChannelAttributesFlag(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.IntegratedBoards = false
+		cfg.FeatureFlags.ManagedChannelCategories = false
+		cfg.FeatureFlags.ClassificationMarkings = false
+		cfg.FeatureFlags.SessionAttributes = false
+		cfg.FeatureFlags.PostAttributes = false
+		cfg.FeatureFlags.ChannelAttributes = true
+	}).InitBasic(t)
+
+	group, appErr := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{
+		Name:    "channel_attributes_test",
+		Version: model.PropertyGroupVersionV2,
+	})
+	require.Nil(t, appErr)
+	require.NotNil(t, group)
+
+	field := &model.PropertyField{
+		Name:       model.NewId(),
+		Type:       model.PropertyFieldTypeText,
+		TargetType: "system",
+	}
+	createdField, resp, err := th.SystemAdminClient.CreatePropertyField(context.Background(), group.Name, "channel", field)
+	require.NoError(t, err)
+	CheckCreatedStatus(t, resp)
+	require.NotEmpty(t, createdField.ID)
+
+	fields, resp, err := th.SystemAdminClient.GetPropertyFields(context.Background(), group.Name, "channel", model.PropertyFieldSearch{TargetType: "system"})
+	require.NoError(t, err)
+	CheckOKStatus(t, resp)
+	require.Len(t, fields, 1)
+	require.Equal(t, createdField.ID, fields[0].ID)
+}
+
 func TestCreatePropertyField(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupConfig(t, func(cfg *model.Config) {
@@ -3744,6 +3837,24 @@ func TestPatchPropertyValuesChannelTargetAccess(t *testing.T) {
 		return createdField
 	}
 
+	createAdminField := func(t *testing.T) *model.PropertyField {
+		t.Helper()
+		adminLevel := model.PermissionLevelAdmin
+		field := &model.PropertyField{
+			Name:              model.NewId(),
+			Type:              model.PropertyFieldTypeText,
+			GroupID:           group.ID,
+			ObjectType:        "channel",
+			TargetType:        "system",
+			PermissionField:   &adminLevel,
+			PermissionValues:  &adminLevel,
+			PermissionOptions: &adminLevel,
+		}
+		createdField, appErr := th.App.CreatePropertyField(th.Context, field, false, "")
+		require.Nil(t, appErr)
+		return createdField
+	}
+
 	// Create a non-member user
 	nonMember := th.CreateUser(t)
 	nonMemberClient := th.CreateClient()
@@ -3824,6 +3935,19 @@ func TestPatchPropertyValuesChannelTargetAccess(t *testing.T) {
 		CheckForbiddenStatus(t, resp)
 	})
 
+	t.Run("DM channel - system admin non-participant can write admin-tier value", func(t *testing.T) {
+		dmChannel := th.CreateDmChannel(t, th.BasicUser2)
+		f := createAdminField(t)
+
+		items := []model.PropertyValuePatchItem{
+			{FieldID: f.ID, Value: json.RawMessage(`"dm-admin-val"`)},
+		}
+		values, resp, err := th.SystemAdminClient.PatchPropertyValues(context.Background(), group.Name, "channel", dmChannel.Id, items)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Len(t, values, 1)
+	})
+
 	t.Run("GM channel - participant can write", func(t *testing.T) {
 		gmChannel, appErr := th.App.CreateGroupChannel(th.Context, []string{th.BasicUser.Id, th.BasicUser2.Id, th.SystemAdminUser.Id}, th.BasicUser.Id)
 		require.Nil(t, appErr)
@@ -3850,6 +3974,188 @@ func TestPatchPropertyValuesChannelTargetAccess(t *testing.T) {
 		_, resp, err := nonMemberClient.PatchPropertyValues(context.Background(), group.Name, "channel", gmChannel.Id, items)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("GM channel - system admin non-participant can write admin-tier value", func(t *testing.T) {
+		thirdUser := th.CreateUser(t)
+		gmChannel, appErr := th.App.CreateGroupChannel(th.Context, []string{th.BasicUser.Id, th.BasicUser2.Id, thirdUser.Id}, th.BasicUser.Id)
+		require.Nil(t, appErr)
+		f := createAdminField(t)
+
+		items := []model.PropertyValuePatchItem{
+			{FieldID: f.ID, Value: json.RawMessage(`"gm-admin-val"`)},
+		}
+		values, resp, err := th.SystemAdminClient.PatchPropertyValues(context.Background(), group.Name, "channel", gmChannel.Id, items)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Len(t, values, 1)
+	})
+}
+
+// TestPatchPropertyValuesChannelAdminTier covers the two independent gates an
+// admin-tier channel value write has to clear: the outer per-channel
+// "may write properties here" check (manage_*_channel_properties, a channel_user
+// grant) and the inner per-field tier (manage_channel_roles, a channel_admin
+// grant that team_admin also carries). Clearing one never implies the other.
+func TestPatchPropertyValuesChannelAdminTier(t *testing.T) {
+	mainHelper.Parallel(t)
+	// ChannelAttributes is the only enabled gate flag, so this also asserts it
+	// opens the channel *value* routes and not just the field routes.
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.IntegratedBoards = false
+		cfg.FeatureFlags.ManagedChannelCategories = false
+		cfg.FeatureFlags.ClassificationMarkings = false
+		cfg.FeatureFlags.SessionAttributes = false
+		cfg.FeatureFlags.PostAttributes = false
+		cfg.FeatureFlags.ChannelAttributes = true
+	}).InitBasic(t)
+
+	group, appErr := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_chan_admin_tier", Version: model.PropertyGroupVersionV2})
+	require.Nil(t, appErr)
+
+	adminLevel := model.PermissionLevelAdmin
+
+	createAdminField := func(t *testing.T) *model.PropertyField {
+		t.Helper()
+		createdField, appErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+			Name:              model.NewId(),
+			Type:              model.PropertyFieldTypeText,
+			GroupID:           group.ID,
+			ObjectType:        "channel",
+			TargetType:        "system",
+			PermissionField:   &adminLevel,
+			PermissionValues:  &adminLevel,
+			PermissionOptions: &adminLevel,
+		}, false, "")
+		require.Nil(t, appErr)
+		return createdField
+	}
+
+	newChannel := func(t *testing.T, channelType model.ChannelType) *model.Channel {
+		t.Helper()
+		channel, appErr := th.App.CreateChannel(th.Context, &model.Channel{
+			TeamId:      th.BasicTeam.Id,
+			Type:        channelType,
+			Name:        model.NewId(),
+			DisplayName: "Channel Attributes Test",
+			CreatorId:   th.SystemAdminUser.Id,
+		}, false)
+		require.Nil(t, appErr)
+		return channel
+	}
+
+	loginNewClient := func(t *testing.T, user *model.User) *model.Client4 {
+		t.Helper()
+		client := th.CreateClient()
+		_, _, err := client.Login(context.Background(), user.Email, user.Password)
+		require.NoError(t, err)
+		return client
+	}
+
+	t.Run("plain channel member cannot write an admin-tier value", func(t *testing.T) {
+		f := createAdminField(t)
+		th.LoginBasic(t)
+
+		items := []model.PropertyValuePatchItem{
+			{FieldID: f.ID, Value: json.RawMessage(`"member-attempt"`)},
+		}
+		_, resp, err := th.Client.PatchPropertyValues(context.Background(), group.Name, "channel", th.BasicChannel.Id, items)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("channel admin can write an admin-tier value", func(t *testing.T) {
+		channel := newChannel(t, model.ChannelTypeOpen)
+		channelAdmin := th.CreateUser(t)
+		th.LinkUserToTeam(t, channelAdmin, th.BasicTeam)
+		th.AddUserToChannel(t, channelAdmin, channel)
+		th.MakeUserChannelAdmin(t, channelAdmin, channel)
+		client := loginNewClient(t, channelAdmin)
+
+		f := createAdminField(t)
+		items := []model.PropertyValuePatchItem{
+			{FieldID: f.ID, Value: json.RawMessage(`"channel-admin-val"`)},
+		}
+		values, resp, err := client.PatchPropertyValues(context.Background(), group.Name, "channel", channel.Id, items)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Len(t, values, 1)
+		require.Equal(t, json.RawMessage(`"channel-admin-val"`), values[0].Value)
+	})
+
+	t.Run("team admin inherits the admin tier inside a channel they belong to", func(t *testing.T) {
+		channel := newChannel(t, model.ChannelTypeOpen)
+		teamAdmin := th.CreateUser(t)
+		th.LinkUserToTeam(t, teamAdmin, th.BasicTeam)
+		th.UpdateUserToTeamAdmin(t, teamAdmin, th.BasicTeam)
+		member := th.AddUserToChannel(t, teamAdmin, channel)
+		// The admin tier has to come from the team role: this membership is a
+		// plain channel_user, so channel_admin cannot be the reason it passes.
+		require.False(t, member.SchemeAdmin)
+		client := loginNewClient(t, teamAdmin)
+
+		f := createAdminField(t)
+		items := []model.PropertyValuePatchItem{
+			{FieldID: f.ID, Value: json.RawMessage(`"team-admin-val"`)},
+		}
+		values, resp, err := client.PatchPropertyValues(context.Background(), group.Name, "channel", channel.Id, items)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Len(t, values, 1)
+		require.Equal(t, json.RawMessage(`"team-admin-val"`), values[0].Value)
+	})
+
+	t.Run("team admin outside the channel is stopped by the outer property-write gate", func(t *testing.T) {
+		channel := newChannel(t, model.ChannelTypePrivate)
+		teamAdmin := th.CreateUser(t)
+		th.LinkUserToTeam(t, teamAdmin, th.BasicTeam)
+		th.UpdateUserToTeamAdmin(t, teamAdmin, th.BasicTeam)
+		client := loginNewClient(t, teamAdmin)
+
+		f := createAdminField(t)
+
+		// Inner tier is satisfied without membership: manage_channel_roles
+		// cascades from the team role.
+		require.True(t, th.App.HasPermissionToSetPropertyFieldValues(th.Context, teamAdmin.Id, f, channel.Id))
+
+		// The outer gate is independent and still rejects the write:
+		// manage_private_channel_properties is a channel_user grant that
+		// team_admin does not carry.
+		items := []model.PropertyValuePatchItem{
+			{FieldID: f.ID, Value: json.RawMessage(`"outside-attempt"`)},
+		}
+		_, resp, err := client.PatchPropertyValues(context.Background(), group.Name, "channel", channel.Id, items)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("channel admin of one channel cannot write on another", func(t *testing.T) {
+		ownChannel := newChannel(t, model.ChannelTypeOpen)
+		otherChannel := newChannel(t, model.ChannelTypeOpen)
+
+		channelAdmin := th.CreateUser(t)
+		th.LinkUserToTeam(t, channelAdmin, th.BasicTeam)
+		th.AddUserToChannel(t, channelAdmin, ownChannel)
+		th.MakeUserChannelAdmin(t, channelAdmin, ownChannel)
+		member := th.AddUserToChannel(t, channelAdmin, otherChannel)
+		require.False(t, member.SchemeAdmin)
+		client := loginNewClient(t, channelAdmin)
+
+		f := createAdminField(t)
+		items := []model.PropertyValuePatchItem{
+			{FieldID: f.ID, Value: json.RawMessage(`"cross-channel-attempt"`)},
+		}
+
+		// The tier is evaluated against the target channel, so channel_admin
+		// elsewhere grants nothing here.
+		_, resp, err := client.PatchPropertyValues(context.Background(), group.Name, "channel", otherChannel.Id, items)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+
+		values, resp, err := client.PatchPropertyValues(context.Background(), group.Name, "channel", ownChannel.Id, items)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Len(t, values, 1)
 	})
 }
 
@@ -3901,6 +4207,194 @@ func TestCreatePropertyFieldTeamScopedBroadcast(t *testing.T) {
 
 		require.Equal(t, createdField.ID, receivedField.ID)
 		require.Equal(t, createdField.Name, receivedField.Name)
+	})
+}
+
+// nextPropertyValuesEvent drains the websocket stream until the next
+// property_values_updated event arrives, ignoring unrelated traffic.
+func nextPropertyValuesEvent(t *testing.T, wsClient *model.WebSocketClient) *model.WebSocketEvent {
+	t.Helper()
+
+	deadline := time.After(10 * time.Second)
+	for {
+		select {
+		case event, ok := <-wsClient.EventChannel:
+			require.True(t, ok, "websocket event channel closed while waiting for property_values_updated")
+			if event.EventType() == model.WebsocketEventPropertyValuesUpdated {
+				return event
+			}
+		case <-deadline:
+			require.FailNow(t, "timed out waiting for property_values_updated")
+		}
+	}
+}
+
+func decodeBroadcastValues(t *testing.T, event *model.WebSocketEvent) []*model.PropertyValue {
+	t.Helper()
+
+	raw, ok := event.GetData()["values"].(string)
+	require.True(t, ok, "event carries no values payload")
+
+	var values []*model.PropertyValue
+	require.NoError(t, json.Unmarshal([]byte(raw), &values))
+	return values
+}
+
+// Locks the four payloads the server emits under the single
+// property_values_updated event. The webapp tells an upsert from each deletion
+// path purely by which keys are present, so a silent change to any shape breaks
+// client cache invalidation without failing any other test:
+//
+//  1. upsert (incl. PATCH value:null)  object_type + target_id + full values array
+//  2. single delete                    object_type + target_id + one tombstone, ID empty
+//  3. delete for target                object_type + target_id + values "[]"
+//  4. delete for field                 field_id only, no object_type/target_id, values "[]"
+func TestPropertyValuesUpdatedPayloadShapes(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.ChannelAttributes = true
+	}).InitBasic(t)
+
+	group, appErr := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_value_payload_shapes", Version: model.PropertyGroupVersionV2})
+	require.Nil(t, appErr)
+
+	memberLevel := model.PermissionLevelMember
+	newChannelField := func(t *testing.T) *model.PropertyField {
+		t.Helper()
+		field, fieldErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+			Name:              model.NewId(),
+			Type:              model.PropertyFieldTypeText,
+			GroupID:           group.ID,
+			ObjectType:        "channel",
+			TargetType:        "system",
+			PermissionField:   &memberLevel,
+			PermissionValues:  &memberLevel,
+			PermissionOptions: &memberLevel,
+		}, false, "")
+		require.Nil(t, fieldErr)
+		return field
+	}
+
+	th.LoginBasic(t)
+	webSocketClient := th.CreateConnectedWebSocketClient(t)
+
+	field := newChannelField(t)
+	var valueID string
+
+	t.Run("shape 1: upsert carries object_type, target_id, and the full values array", func(t *testing.T) {
+		items := []model.PropertyValuePatchItem{
+			{FieldID: field.ID, Value: json.RawMessage(`"aurora"`)},
+		}
+		upserted, resp, patchErr := th.Client.PatchPropertyValues(context.Background(), group.Name, "channel", th.BasicChannel.Id, items)
+		require.NoError(t, patchErr)
+		CheckOKStatus(t, resp)
+		require.Len(t, upserted, 1)
+		valueID = upserted[0].ID
+
+		event := nextPropertyValuesEvent(t, webSocketClient)
+		require.Equal(t, "channel", event.GetData()["object_type"])
+		require.Equal(t, th.BasicChannel.Id, event.GetData()["target_id"])
+		require.Equal(t, th.BasicChannel.Id, event.GetBroadcast().ChannelId)
+
+		values := decodeBroadcastValues(t, event)
+		require.Len(t, values, 1)
+		require.Equal(t, field.ID, values[0].FieldID)
+		require.Equal(t, th.BasicChannel.Id, values[0].TargetID)
+		require.Equal(t, json.RawMessage(`"aurora"`), values[0].Value)
+	})
+
+	t.Run("shape 1: PATCH value:null follows the upsert path and keeps a null-valued row", func(t *testing.T) {
+		// The user-initiated clear is not a deletion: the row survives holding
+		// null, so client selectors must treat null as unset rather than wait
+		// for a delete broadcast that never arrives.
+		items := []model.PropertyValuePatchItem{
+			{FieldID: field.ID, Value: json.RawMessage(`null`)},
+		}
+		_, resp, patchErr := th.Client.PatchPropertyValues(context.Background(), group.Name, "channel", th.BasicChannel.Id, items)
+		require.NoError(t, patchErr)
+		CheckOKStatus(t, resp)
+
+		event := nextPropertyValuesEvent(t, webSocketClient)
+		require.Equal(t, "channel", event.GetData()["object_type"])
+		require.Equal(t, th.BasicChannel.Id, event.GetData()["target_id"])
+
+		values := decodeBroadcastValues(t, event)
+		require.Len(t, values, 1)
+		require.Equal(t, field.ID, values[0].FieldID)
+		require.Equal(t, json.RawMessage(`null`), values[0].Value)
+		// Populated ID: this is a real row, which is what separates it from the
+		// delete tombstone below.
+		require.NotEmpty(t, values[0].ID)
+	})
+
+	t.Run("shape 2: single delete carries a one-element zero-valued tombstone", func(t *testing.T) {
+		require.NotEmpty(t, valueID)
+		require.Nil(t, th.App.DeletePropertyValue(th.Context, group.ID, valueID))
+
+		event := nextPropertyValuesEvent(t, webSocketClient)
+		require.Equal(t, "channel", event.GetData()["object_type"])
+		require.Equal(t, th.BasicChannel.Id, event.GetData()["target_id"])
+
+		values := decodeBroadcastValues(t, event)
+		require.Len(t, values, 1)
+		require.Equal(t, field.ID, values[0].FieldID)
+		require.Equal(t, th.BasicChannel.Id, values[0].TargetID)
+		require.Equal(t, "channel", values[0].TargetType)
+		require.Equal(t, group.ID, values[0].GroupID)
+
+		// The tombstone is synthesized without a Value, and a nil RawMessage
+		// marshals to null — so on the wire a delete is indistinguishable from
+		// the value:null clear above except for the empty ID. A client keying off
+		// the value alone leaves a stale row behind instead of removing it.
+		require.Equal(t, json.RawMessage(`null`), values[0].Value)
+		require.Empty(t, values[0].ID)
+	})
+
+	t.Run("shape 3: delete for target carries an empty values array", func(t *testing.T) {
+		targetField := newChannelField(t)
+		items := []model.PropertyValuePatchItem{
+			{FieldID: targetField.ID, Value: json.RawMessage(`"noforn"`)},
+		}
+		_, resp, patchErr := th.Client.PatchPropertyValues(context.Background(), group.Name, "channel", th.BasicChannel.Id, items)
+		require.NoError(t, patchErr)
+		CheckOKStatus(t, resp)
+		nextPropertyValuesEvent(t, webSocketClient) // the upsert from the line above
+
+		require.Nil(t, th.App.DeletePropertyValuesForTarget(th.Context, group.ID, "channel", th.BasicChannel.Id))
+
+		event := nextPropertyValuesEvent(t, webSocketClient)
+		require.Equal(t, "channel", event.GetData()["object_type"])
+		require.Equal(t, th.BasicChannel.Id, event.GetData()["target_id"])
+		// Empty array, not tombstones: the event's target ID is the only thing
+		// identifying what to clear.
+		require.Equal(t, "[]", event.GetData()["values"])
+		require.Empty(t, decodeBroadcastValues(t, event))
+	})
+
+	t.Run("shape 4: delete for field carries field_id and no target", func(t *testing.T) {
+		fieldScoped := newChannelField(t)
+		items := []model.PropertyValuePatchItem{
+			{FieldID: fieldScoped.ID, Value: json.RawMessage(`"elevated"`)},
+		}
+		_, resp, patchErr := th.Client.PatchPropertyValues(context.Background(), group.Name, "channel", th.BasicChannel.Id, items)
+		require.NoError(t, patchErr)
+		CheckOKStatus(t, resp)
+		nextPropertyValuesEvent(t, webSocketClient) // the upsert from the line above
+
+		require.Nil(t, th.App.DeletePropertyValuesForField(th.Context, group.ID, fieldScoped.ID))
+
+		event := nextPropertyValuesEvent(t, webSocketClient)
+		require.Equal(t, fieldScoped.ID, event.GetData()["field_id"])
+		require.Equal(t, "[]", event.GetData()["values"])
+
+		// No target scoping: this shape clears one field across every target, so
+		// it broadcasts system-wide rather than to a channel.
+		_, hasObjectType := event.GetData()["object_type"]
+		require.False(t, hasObjectType, "delete-for-field must not carry object_type")
+		_, hasTargetID := event.GetData()["target_id"]
+		require.False(t, hasTargetID, "delete-for-field must not carry target_id")
+		require.Empty(t, event.GetBroadcast().ChannelId)
+		require.Empty(t, event.GetBroadcast().TeamId)
 	})
 }
 

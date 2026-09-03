@@ -19,9 +19,12 @@ The secure, self-hosted collaboration platform for defense, intelligence, securi
 ]} />
 
 Or jump to one of the specialized personas:
-[SREs / Platform Operators](/for/sre) ·
-[Compliance Officers](/for/compliance-officer) ·
-[Air-Gapped Operators](/for/air-gapped-operator)
+
+<CardGrid variant="compact" cards={[
+  {title: 'SREs / Platform Operators', to: '/for/sre', description: 'Deploy, scale, observability, disaster recovery.'},
+  {title: 'Compliance Officers', to: '/for/compliance-officer', description: 'Audit evidence, exports, framework mappings.'},
+  {title: 'Air-Gapped Operators', to: '/for/air-gapped-operator', description: 'Network-isolated enclaves and the tactical edge.'},
+]} />
 
 ## The Intelligent Mission Environment (IME)
 
@@ -45,7 +48,7 @@ Built on an extensible open-core architecture, Mattermost offers an array of col
 
 ### Messaging collaboration
 
-[Mattermost Channels](/end-user-guide/messaging-collaboration) enables secure, real-time and asynchronous communication across web, desktop, and mobile—powering mission-critical collaboration and Chat Operations (ChatOps) workflows across connected, hybrid, and air-gapped environments. Channels feature the following capabilities:
+[Mattermost Channels](/end-user-guide/collaborate/collaborate-index) enables secure, real-time and asynchronous communication across web, desktop, and mobile—powering mission-critical collaboration and Chat Operations (ChatOps) workflows across connected, hybrid, and air-gapped environments. Channels feature the following capabilities:
 
 - [Public](/end-user-guide/collaborate/channel-types#public-channels) and [private](/end-user-guide/collaborate/channel-types#private-channels) channels, [direct messages](/end-user-guide/collaborate/channel-types#direct-message-channels), and [threaded conversations](/end-user-guide/collaborate/organize-conversations) for structured operational coordination.
 - [Role-based access controls](/end-user-guide/collaborate/learn-about-roles) and [audit logs](/administration-guide/manage/logging#audit-logging) to support need-to-know enforcement.
@@ -60,7 +63,7 @@ See the [Client availability](/end-user-guide/access/client-availability) docume
 
 ### Workflow automation
 
-[Mattermost Playbooks](/end-user-guide/workflow-automation) standardizes and automates mission workflows such as incident response, shift changeovers, and operational checklists—reducing human error and improving procedural consistency. Playbooks feature:
+[Mattermost Playbooks](/end-user-guide/workflow-automation/workflow-automation-index) standardizes and automates mission workflows such as incident response, shift changeovers, and operational checklists—reducing human error and improving procedural consistency. Playbooks feature:
 
 - Structured [checklists](/end-user-guide/workflow-automation/work-with-playbooks#make-checklists) with assigned [tasks and due dates](/end-user-guide/workflow-automation/work-with-tasks#tasks-and-due-dates) to operationalize standard and incident or emergency operating procedures.
 - Automated [status updates and real-time notifications](/end-user-guide/workflow-automation/notifications-and-updates) in linked channels to keep stakeholders informed of workflow progress or blockers.
@@ -84,7 +87,7 @@ See the [Client availability](/end-user-guide/access/client-availability) docume
 
 ### Project and task management
 
-[Mattermost Boards](/end-user-guide/project-task-management) enables you to coordinate operational work with Kanban-style planning that integrates directly into messaging workflows—enabling transparency, prioritization, and accountability across teams with the following capabilities:
+[Mattermost Boards](/end-user-guide/project-management/project-management-index) enables you to coordinate operational work with Kanban-style planning that integrates directly into messaging workflows—enabling transparency, prioritization, and accountability across teams with the following capabilities:
 
 - Provides visual task [boards](/end-user-guide/project-management/work-with-boards) with drag-and-drop [cards](/end-user-guide/project-management/work-with-cards) and customizable workflows, supporting contextual awareness and [role-based task visibility](/end-user-guide/project-management/share-and-collaborate#board-permissions).
 - Delivers real-time updates and synchronization with [linked Mattermost channels](/end-user-guide/project-management/navigate-boards#link-a-board-to-a-channel).
@@ -145,7 +148,7 @@ IME runs on lightweight, ruggedized, or mobile infrastructure, optimized for dis
 
 - Supports [single-node Linux binaries](/deployment-guide/server/deploy-linux) and [containerized deployments in local Kubernetes environments](/deployment-guide/server/deploy-containers) for rapid, lightweight setup.
 - Enables flexible deployment on compact, portable compute platforms—ideal for ships, forward operating bases, mobile command units, or disconnected kits.
-- Operates fully [air-gapped](/deployment-guide/reference-architecture/deployment-scenarios/air-gapped-deployment) without reliance on internet, Domain Name System (DNS), or external authentication systems.
+- Operates fully [air-gapped](/deployment-guide/deployment-scenarios/air-gapped-deployment) without reliance on internet, Domain Name System (DNS), or external authentication systems.
 - Delivers secure communications, screen sharing, and workflow automation in isolated or DDIL conditions.
 
 ### Private Cloud & sovereign datacenter
@@ -153,8 +156,8 @@ IME runs on lightweight, ruggedized, or mobile infrastructure, optimized for dis
 For high-security environments requiring full infrastructure control, IME supports scalable, highly available deployment within sovereign datacenters.
 
 - [Kubernetes-native architecture](/deployment-guide/server/deploy-kubernetes) enables containerized services, self-healing workloads, and zero-downtime updates.
-- [High availability](/deployment-guide/reference-architecture/scale/high-availability-cluster-based-deployment) through clustering across application, database, and proxy layers.
-- [Horizontal scalability](/deployment-guide/reference-architecture/scale/scaling-for-enterprise) to tens of thousands of users per instance.
+- [High availability](/deployment-guide/server/high-availability-cluster-based-deployment) through clustering across application, database, and proxy layers.
+- [Horizontal scalability](/deployment-guide/scale/scaling-for-enterprise) to tens of thousands of users per instance.
 - Complies with Security Technical Implementation Guide (STIG), Federal Information Processing Standard 140-3 (FIPS 140-3), and Federal Risk and Authorization Management Program (FedRAMP)-aligned security standards.
 
 ### Hyperscaler & sovereign Cloud support

@@ -1514,7 +1514,7 @@ func TestPluginAPIReceiveSharedChannelSyncMsg(t *testing.T) {
 		assert.Empty(t, resp.UserErrors)
 
 		// Verify the user was actually created in the database
-		user, appErr := th.App.GetUser(userID)
+		user, appErr := th.App.GetUser(th.Context, userID)
 		require.Nil(t, appErr)
 		assert.Contains(t, user.Username, username) // username gets ":remotename" appended by sync
 		assert.Equal(t, rc.RemoteId, user.GetRemoteID())
@@ -2103,7 +2103,7 @@ func TestPluginAPIReceiveSharedChannelProfileImageSyncMsg(t *testing.T) {
 		require.NoError(t, err)
 
 		// Verify the user's LastPictureUpdate was bumped
-		updatedUser, appErr := th.App.GetUser(remoteUser.Id)
+		updatedUser, appErr := th.App.GetUser(th.Context, remoteUser.Id)
 		require.Nil(t, appErr)
 		assert.Greater(t, updatedUser.LastPictureUpdate, lastPictureBefore)
 
@@ -2195,7 +2195,7 @@ func TestPluginRPCSharedChannelSync(t *testing.T) {
 	// --- Post-activation verification: check everything landed in the DB ---
 
 	// Verify synced user
-	user, appErr := th.App.GetUser(syncUserID)
+	user, appErr := th.App.GetUser(th.Context, syncUserID)
 	require.Nil(t, appErr, "synced user should exist in DB")
 	assert.Contains(t, user.Username, "rpc-synced-user")
 	assert.Equal(t, rc.RemoteId, user.GetRemoteID())

@@ -777,7 +777,7 @@ The integration may also return a generic error message to the user that is not 
 
 Support for generic error messages was added in Mattermost v5.18.
 
-Finally, once the request is submitted, we recommend that the integration responds with a system message or an ephemeral message confirming the submission. This should be a separate request back to Mattermost once the service has received and responded to a submission request from a dialog. This can be done either via [the REST API](https://api.mattermost.com/#tag/posts%2Fpaths%2F~1posts~1ephemeral%2Fpost), or via the [Plugin API](/developers/integrate/reference/server/server-reference#API.SendEphemeralPost) if you're developing a plugin.
+Finally, once the request is submitted, we recommend that the integration responds with a system message or an ephemeral message confirming the submission. This should be a separate request back to Mattermost once the service has received and responded to a submission request from a dialog. This can be done either via [the REST API](https://api.mattermost.com/#tag/posts%2Fpaths%2F~1posts~1ephemeral%2Fpost), or via the [Plugin API](/developers/integrate/reference/server#API.SendEphemeralPost) if you're developing a plugin.
 
 ## Multi-step dialogs
 ##### Minimum Server Version: 11.1

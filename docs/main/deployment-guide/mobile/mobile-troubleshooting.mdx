@@ -51,13 +51,13 @@ If you are seeing this message all the time, and your internet connection seems 
 You can set up an internal server to proxy the connection out of their network to the Mattermost Hosted Push Notification Service (HPNS) by following the steps below:
 
 1.  Make sure your proxy server is properly configured to support SSL. Confirm it works by checking the URL at [https://www.digicert.com/help/](https://www.digicert.com/help/).
-2.  Setup a proxy to forward requests to `https://push.mattermost.com`.
+2.  Setup a proxy to forward requests to the HPNS URL matching your server's [push notification server location](/administration-guide/configure/push-notification-server-configuration-settings#push-notification-server): `https://global.push.mattermost.com`, `https://us.push.mattermost.com`, `https://eu.push.mattermost.com`, or `https://ap.push.mattermost.com`.
 3.  In Mattermost set **System Console** \> **Notification Settings** \> **Mobile Push** \> **Enable Push Notifications** in prior versions or **System Console \> Environment \> Push Notification Server \> Enable Push Notifications** in versions after 5.12 to "Manually enter Push Notification Service location"
 4.  Enter the URL of your proxy in the **Push Notification Server** field.
 
 <Note>
 
-Depending on how your proxy is configured you may need to add a port number and create a URL like `https://push.internalproxy.com:8000` mapped to `https://push.mattermost.com`
+Depending on how your proxy is configured you may need to add a port number and create a URL like `https://push.internalproxy.com:8000` mapped to your region's HPNS URL, such as `https://us.push.mattermost.com`.
 
 </Note>
 
@@ -147,3 +147,7 @@ To conserve disk space, once your push notification issue is resolved, go to **S
 </Important>
 
 If push notifications are not being delivered on the mobile device, confirm that you're logged in to the **Native** mobile app session through **Profile \> Security \> View and Log Out of Active Sessions**. Otherwise, the <code>DeviceId</code> won't get registered in the <code>Sessions</code> table and notifications won't be delivered.
+
+## Integration posts (Mattermost Blocks) do not render or respond
+
+If buttons, menus, or structured content from an integration post is missing or unresponsive on mobile, see the [Mattermost Blocks reference](https://developers.mattermost.com/integrate/reference/mm-blocks/) in the developer documentation.

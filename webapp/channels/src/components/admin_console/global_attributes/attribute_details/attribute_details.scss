@@ -46,6 +46,11 @@
     }
 }
 
+.AttributeDetails__typeLockWrap {
+    display: inline-flex;
+    max-width: 100%;
+}
+
 .AttributeDetails__blockTitle {
     margin: 0;
     color: var(--center-channel-color);

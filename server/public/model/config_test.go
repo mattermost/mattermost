@@ -33,13 +33,6 @@ func TestConfigDefaults(t *testing.T) {
 		var recursivelyUninitialize func(*Config, string, reflect.Value)
 		recursivelyUninitialize = func(config *Config, name string, v reflect.Value) {
 			if v.Type().Kind() == reflect.Pointer {
-				// Ignoring these 2 settings.
-				// TODO: remove them completely in v8.0.
-				if name == "config.ElasticsearchSettings.BulkIndexingTimeWindowSeconds" ||
-					name == "config.ClusterSettings.EnableExperimentalGossipEncryption" {
-					return
-				}
-
 				// Set every pointer we find in the tree to nil
 				v.Set(reflect.Zero(v.Type()))
 				require.True(t, v.IsNil())
@@ -275,6 +268,45 @@ func TestServiceSettingsIsValid(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestServiceSettingsHardenedModeMigration(t *testing.T) {
+	t.Run("defaults to disabled without the deprecated setting", func(t *testing.T) {
+		ss := ServiceSettings{}
+		ss.SetDefaults(false)
+
+		require.False(t, *ss.EnableHardenedMode)
+		require.False(t, *ss.ExperimentalEnableHardenedMode)
+		assert.Nil(t, ss.isValid())
+	})
+
+	t.Run("accepts the renamed setting", func(t *testing.T) {
+		ss := ServiceSettings{EnableHardenedMode: new(true)}
+		ss.SetDefaults(false)
+
+		assert.Nil(t, ss.isValid())
+	})
+
+	t.Run("migrates the deprecated setting to the renamed setting", func(t *testing.T) {
+		ss := ServiceSettings{ExperimentalEnableHardenedMode: new(true)}
+		ss.SetDefaults(false)
+
+		require.True(t, *ss.EnableHardenedMode)
+		require.True(t, *ss.ExperimentalEnableHardenedMode)
+		assert.Nil(t, ss.isValid())
+	})
+
+	t.Run("explicit new key wins over deprecated key", func(t *testing.T) {
+		ss := ServiceSettings{
+			EnableHardenedMode:             new(false),
+			ExperimentalEnableHardenedMode: new(true),
+		}
+		ss.SetDefaults(false)
+
+		require.False(t, *ss.EnableHardenedMode)
+		require.True(t, *ss.ExperimentalEnableHardenedMode)
+		assert.Nil(t, ss.isValid())
+	})
 }
 
 func TestConfigEnableDeveloper(t *testing.T) {
@@ -1113,11 +1145,25 @@ func TestMessageExportSettingsIsValidGlobalRelaySettingsInvalidCustomerType(t *t
 }
 
 // func TestMessageExportSettingsIsValidGlobalRelaySettingsInvalidEmailAddress(t *testing.T) {
+func customRelaySettings(name, value string) *GlobalRelayMessageExportSettings {
+	return &GlobalRelayMessageExportSettings{
+		CustomerType:         new(GlobalrelayCustomerTypeCustom),
+		EmailAddress:         new("valid@mattermost.com"),
+		SMTPUsername:         new("SomeUsername"),
+		SMTPPassword:         new("SomePassword"),
+		CustomSMTPServerName: new("feeds.example.com"),
+		CustomSMTPPort:       new("25"),
+		CustomHeaderName:     new(name),
+		CustomHeaderValue:    new(value),
+	}
+}
+
 func TestMessageExportSettingsGlobalRelaySettings(t *testing.T) {
 	tests := []struct {
 		name    string
 		value   *GlobalRelayMessageExportSettings
 		success bool
+		errorId string
 	}{
 		{
 			"Invalid email address",
@@ -1128,6 +1174,7 @@ func TestMessageExportSettingsGlobalRelaySettings(t *testing.T) {
 				SMTPPassword: new("SomePassword"),
 			},
 			false,
+			"",
 		},
 		{
 			"Missing smtp username",
@@ -1137,6 +1184,7 @@ func TestMessageExportSettingsGlobalRelaySettings(t *testing.T) {
 				SMTPPassword: new("SomePassword"),
 			},
 			false,
+			"",
 		},
 		{
 			"Invalid smtp username",
@@ -1147,6 +1195,7 @@ func TestMessageExportSettingsGlobalRelaySettings(t *testing.T) {
 				SMTPPassword: new("SomePassword"),
 			},
 			false,
+			"",
 		},
 		{
 			"Invalid smtp password",
@@ -1157,6 +1206,7 @@ func TestMessageExportSettingsGlobalRelaySettings(t *testing.T) {
 				SMTPPassword: new(""),
 			},
 			false,
+			"",
 		},
 		{
 			"Valid data",
@@ -1167,6 +1217,127 @@ func TestMessageExportSettingsGlobalRelaySettings(t *testing.T) {
 				SMTPPassword: new("SomePassword"),
 			},
 			true,
+			"",
+		},
+		{
+			"A9 with only custom header name set is ignored",
+			&GlobalRelayMessageExportSettings{
+				CustomerType:     new(GlobalrelayCustomerTypeA9),
+				EmailAddress:     new("valid@mattermost.com"),
+				SMTPUsername:     new("SomeUsername"),
+				SMTPPassword:     new("SomePassword"),
+				CustomHeaderName: new("X-Custom"),
+			},
+			true,
+			"",
+		},
+		{
+			"Valid custom header",
+			customRelaySettings("X-ProofpointArchiveMediaType", "Message"),
+			true,
+			"",
+		},
+		{
+			"Custom header name with CRLF",
+			customRelaySettings("X-Custom\r\nInjected", "Message"),
+			false,
+			"model.config.is_valid.message_export.global_relay.custom_header_name.app_error",
+		},
+		{
+			"Custom header value with CRLF",
+			customRelaySettings("X-Custom", "Message\r\nInjected: evil"),
+			false,
+			"model.config.is_valid.message_export.global_relay.custom_header_value.app_error",
+		},
+		{
+			"Custom header name with invalid character",
+			customRelaySettings("X-Custom:Header", "Message"),
+			false,
+			"model.config.is_valid.message_export.global_relay.custom_header_name.app_error",
+		},
+		{
+			"Custom header name with a space",
+			customRelaySettings("X Custom", "Message"),
+			false,
+			"model.config.is_valid.message_export.global_relay.custom_header_name.app_error",
+		},
+		{
+			"Custom header value may contain spaces and colons",
+			customRelaySettings("X-Custom", "some value: with punctuation"),
+			true,
+			"",
+		},
+		{
+			"Custom header name set without a value",
+			customRelaySettings("X-Custom", ""),
+			false,
+			"model.config.is_valid.message_export.global_relay.custom_header_incomplete.app_error",
+		},
+		{
+			"Custom header value set without a name",
+			customRelaySettings("", "Message"),
+			false,
+			"model.config.is_valid.message_export.global_relay.custom_header_incomplete.app_error",
+		},
+		{
+			"Custom header both empty",
+			customRelaySettings("", ""),
+			true,
+			"",
+		},
+		{
+			"Custom header value may contain non-ASCII",
+			customRelaySettings("X-Custom", "Café Meeting"),
+			true,
+			"",
+		},
+		{
+			"Custom header name with a non-token character",
+			customRelaySettings("X-Custom(Foo)", "Message"),
+			false,
+			"model.config.is_valid.message_export.global_relay.custom_header_name.app_error",
+		},
+		{
+			"Custom header name reserved: From",
+			customRelaySettings("From", "attacker@example.com"),
+			false,
+			"model.config.is_valid.message_export.global_relay.custom_header_reserved.app_error",
+		},
+		{
+			"Custom header name reserved: to (case-insensitive)",
+			customRelaySettings("to", "attacker@example.com"),
+			false,
+			"model.config.is_valid.message_export.global_relay.custom_header_reserved.app_error",
+		},
+		{
+			"Custom header name reserved: X-GlobalRelay-MsgType",
+			customRelaySettings(GlobalRelayMsgTypeHeader, "NotMattermost"),
+			false,
+			"model.config.is_valid.message_export.global_relay.custom_header_reserved.app_error",
+		},
+		{
+			"Custom header name reserved: Content-Type",
+			customRelaySettings("Content-Type", "text/plain"),
+			false,
+			"model.config.is_valid.message_export.global_relay.custom_header_reserved.app_error",
+		},
+		{
+			"Custom header name reserved: mixed-case fRoM",
+			customRelaySettings("fRoM", "attacker@example.com"),
+			false,
+			"model.config.is_valid.message_export.global_relay.custom_header_reserved.app_error",
+		},
+		{
+			"Custom header name reserved: mixed-case x-globalrelay-MSGTYPE",
+			customRelaySettings("x-globalrelay-MSGTYPE", "NotMattermost"),
+			false,
+			"model.config.is_valid.message_export.global_relay.custom_header_reserved.app_error",
+		},
+		{
+			"Custom header value is whitespace-only",
+			customRelaySettings("X-Custom", "   "),
+			false,
+			"model.config.is_valid.message_export.global_relay.custom_header_incomplete.app_error",
 		},
 	}
 
@@ -1184,7 +1355,11 @@ func TestMessageExportSettingsGlobalRelaySettings(t *testing.T) {
 			if tt.success {
 				require.Nil(t, mes.isValid())
 			} else {
-				require.NotNil(t, mes.isValid())
+				appErr := mes.isValid()
+				require.NotNil(t, appErr)
+				if tt.errorId != "" {
+					require.Equal(t, tt.errorId, appErr.Id)
+				}
 			}
 		})
 	}
@@ -1199,6 +1374,33 @@ func TestMessageExportSetDefaults(t *testing.T) {
 	require.Equal(t, int64(0), *mes.ExportFromTimestamp)
 	require.Equal(t, 10000, *mes.BatchSize)
 	require.Equal(t, ComplianceExportTypeActiance, *mes.ExportFormat)
+}
+
+func TestGlobalRelayMessageExportSetDefaultsCustomHeader(t *testing.T) {
+	grs := &GlobalRelayMessageExportSettings{}
+	grs.SetDefaults()
+
+	require.Equal(t, "", *grs.CustomHeaderName)
+	require.Equal(t, "", *grs.CustomHeaderValue)
+}
+
+func TestMessageExportSettingsGlobalRelayZipCustomHeader(t *testing.T) {
+	mes := &MessageExportSettings{
+		EnableExport:        new(true),
+		ExportFormat:        new(ComplianceExportTypeGlobalrelayZip),
+		ExportFromTimestamp: new(int64(0)),
+		DailyRunTime:        new("15:04"),
+		BatchSize:           new(100),
+		GlobalRelaySettings: &GlobalRelayMessageExportSettings{
+			CustomerType:      new(GlobalrelayCustomerTypeCustom),
+			CustomHeaderName:  new("X-Custom\r\nInjected"),
+			CustomHeaderValue: new("Message"),
+		},
+	}
+
+	appErr := mes.isValid()
+	require.NotNil(t, appErr)
+	require.Equal(t, "model.config.is_valid.message_export.global_relay.custom_header_name.app_error", appErr.Id)
 }
 
 func TestMessageExportSetDefaultsExportEnabledExportFromTimestampNil(t *testing.T) {
@@ -2029,7 +2231,6 @@ func TestConfigSanitize(t *testing.T) {
 	assert.Equal(t, FakeSetting, *c.OpenIdSettings.Secret)
 	assert.Equal(t, FakeSetting, *c.AutoTranslationSettings.LibreTranslate.APIKey)
 	assert.Equal(t, FakeSetting, *c.SqlSettings.DataSource)
-	assert.Equal(t, FakeSetting, *c.SqlSettings.AtRestEncryptKey)
 	assert.Equal(t, FakeSetting, *c.ElasticsearchSettings.Password)
 	assert.Equal(t, FakeSetting, *c.ServiceSettings.GoogleDeveloperKey)
 	assert.Equal(t, FakeSetting, *c.ServiceSettings.GiphySdkKey)
@@ -2575,14 +2776,25 @@ func TestConfigServiceSettingsIsValid(t *testing.T) {
 		appErr := cfg.ServiceSettings.isValid()
 		require.Nil(t, appErr)
 
+		// Custom URI schemes used by desktop OAuth clients are accepted
+		cfg.ServiceSettings.DCRRedirectURIAllowlist = []string{"cursor://anysphere.cursor-mcp/oauth/callback", "com.example.app://callback/**"}
+		appErr = cfg.ServiceSettings.isValid()
+		require.Nil(t, appErr)
+
 		// Empty/whitespace entry rejected
 		cfg.ServiceSettings.DCRRedirectURIAllowlist = []string{"https://ok.com/**", "  ", "https://also.com/cb"}
 		appErr = cfg.ServiceSettings.isValid()
 		require.NotNil(t, appErr)
 		require.Equal(t, "model.config.is_valid.dcr_redirect_uri_allowlist.app_error", appErr.Id)
 
-		// Non-http(s) scheme rejected
-		cfg.ServiceSettings.DCRRedirectURIAllowlist = []string{"ftp://example.com/**"}
+		// Scheme without a host rejected
+		cfg.ServiceSettings.DCRRedirectURIAllowlist = []string{"cursor://"}
+		appErr = cfg.ServiceSettings.isValid()
+		require.NotNil(t, appErr)
+		require.Equal(t, "model.config.is_valid.dcr_redirect_uri_allowlist.app_error", appErr.Id)
+
+		// Opaque URI without a host rejected
+		cfg.ServiceSettings.DCRRedirectURIAllowlist = []string{"javascript:alert(1)"}
 		appErr = cfg.ServiceSettings.isValid()
 		require.NotNil(t, appErr)
 		require.Equal(t, "model.config.is_valid.dcr_redirect_uri_allowlist.app_error", appErr.Id)
