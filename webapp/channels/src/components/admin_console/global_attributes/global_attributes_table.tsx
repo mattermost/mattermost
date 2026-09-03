@@ -37,11 +37,12 @@ import {useIsFieldOrphaned} from 'components/common/hooks/use_field_orphaned';
 import LoadingScreen from 'components/loading_screen';
 import * as Menu from 'components/menu';
 
+import {getHistory} from 'utils/browser_history';
 import {LicenseSkus} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
 
-import {GLOBAL_ATTRIBUTES_GROUP_NAME, GLOBAL_ATTRIBUTES_OBJECT_TYPE, GLOBAL_ATTRIBUTES_TARGET_TYPE} from './constants';
+import {attributeDetailsRoute, GLOBAL_ATTRIBUTES_GROUP_NAME, GLOBAL_ATTRIBUTES_OBJECT_TYPE, GLOBAL_ATTRIBUTES_TARGET_TYPE} from './constants';
 import {useGlobalAttributeFieldDelete} from './global_attribute_delete_modal';
 import {deleteAttributeField} from './utils';
 
@@ -231,8 +232,9 @@ function ActionsCell({field, isClassificationRow, isMobileView, pluginInventoryL
     // that is how an admin cleans up what the plugin left behind.
     // Not short-circuited into the hook call, which has to run unconditionally.
     const fieldLooksOrphaned = useIsFieldOrphaned(field);
+    const isPluginOwned = getSourceKind(field) === 'plugin';
     const isOrphaned = pluginInventoryLoaded && fieldLooksOrphaned;
-    const isPluginManaged = getSourceKind(field) === 'plugin' && !isOrphaned;
+    const isPluginManaged = isPluginOwned && !isOrphaned;
 
     const handleConfirmed = useCallback(async () => {
         onDeleteError(null);
@@ -290,14 +292,19 @@ function ActionsCell({field, isClassificationRow, isMobileView, pluginInventoryL
         >
             <Menu.Item
                 id={`${menuId}-edit`}
-                disabled={true}
+                disabled={isPluginOwned}
                 leadingElement={<PencilOutlineIcon size={18}/>}
-                labels={(
-                    <>
-                        <span><FormattedMessage {...actionsLabels.edit}/></span>
-                        <span><FormattedMessage {...actionsLabels.comingSoon}/></span>
-                    </>
-                )}
+                onClick={isPluginOwned ? undefined : () => getHistory().push(attributeDetailsRoute(field.id))}
+                labels={
+                    isPluginOwned ? (
+                        <>
+                            <span><FormattedMessage {...actionsLabels.edit}/></span>
+                            <span><FormattedMessage {...actionsLabels.comingSoon}/></span>
+                        </>
+                    ) : (
+                        <FormattedMessage {...actionsLabels.edit}/>
+                    )
+                }
             />
             <Menu.Item
                 id={`${menuId}-duplicate`}
