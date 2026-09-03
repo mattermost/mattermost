@@ -48,4 +48,10 @@ for dockerfile in "${DOCKERFILES[@]}"; do
     node_version="${version}"
 done
 
-echo "go${go_version}-node${node_version}"
+tag="go${go_version}-node${node_version}"
+
+# CI interpolates this tag into shell commands and workflow files, so refuse
+# anything that isn't a well-formed Docker tag.
+[[ "${tag}" =~ ^[A-Za-z0-9_][A-Za-z0-9_.-]{0,127}$ ]] || fail "invalid tag: ${tag}"
+
+echo "${tag}"
