@@ -1,11 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {DragDropContext, Droppable} from '@hello-pangea/dnd';
+import type {DropResult, DragStart, BeforeCapture} from '@hello-pangea/dnd';
 import classNames from 'classnames';
 import debounce from 'lodash/debounce';
 import React, {lazy} from 'react';
-import {DragDropContext, Droppable} from '@hello-pangea/dnd';
-import type {DropResult, DragStart, BeforeCapture} from '@hello-pangea/dnd';
 import {FormattedMessage, injectIntl, type WrappedComponentProps} from 'react-intl';
 import {SpringSystem} from 'rebound';
 import type {Spring} from 'rebound';

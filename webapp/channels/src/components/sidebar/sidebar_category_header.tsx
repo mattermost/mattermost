@@ -1,9 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {DraggableProvidedDragHandleProps} from '@hello-pangea/dnd';
 import classNames from 'classnames';
 import React from 'react';
-import type {DraggableProvidedDragHandleProps} from '@hello-pangea/dnd';
 
 import {wrapEmojis} from 'utils/emoji_utils';
 

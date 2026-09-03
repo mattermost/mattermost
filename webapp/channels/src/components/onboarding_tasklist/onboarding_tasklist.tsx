@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, { useCallback, useEffect, useState, type JSX } from 'react';
+import React, {useCallback, useEffect, useState, type JSX} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 import {useLocation} from 'react-router-dom';
@@ -252,7 +252,7 @@ const OnBoardingTaskList = (): JSX.Element | null => {
             <CompletedAnimation completed={showAnimation}/>
             <Button
                 onClick={toggleTaskList}
-                ref={element => {
+                ref={(element) => {
                     setTrigger(element);
                 }}
                 open={open}

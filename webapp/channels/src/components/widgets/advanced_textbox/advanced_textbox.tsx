@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, { useState, useEffect, type JSX } from 'react';
+import React, {useState, useEffect, type JSX} from 'react';
 import {useIntl} from 'react-intl';
 
 import ShowFormat from 'components/advanced_text_editor/show_formatting/show_formatting';

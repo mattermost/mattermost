@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, { type JSX } from 'react';
-import type {ChangeEventHandler, FormEvent, MouseEvent} from 'react';
+import React from 'react';
+import type {ChangeEventHandler, FormEvent, MouseEvent, JSX} from 'react';
 import {FormattedMessage} from 'react-intl';
 import type {MessageDescriptor} from 'react-intl';
 import {Link} from 'react-router-dom';

@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, { useCallback, useEffect, useMemo, useRef, useState, type JSX } from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState, type JSX} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 

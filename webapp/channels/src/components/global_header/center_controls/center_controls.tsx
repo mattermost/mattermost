@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, { type JSX } from 'react';
+import React, {type JSX} from 'react';
 import styled from 'styled-components';
 
 import type {ProductIdentifier} from '@mattermost/types/products';

@@ -2,8 +2,8 @@
 // See LICENSE.txt for license information.
 
 import isEmpty from 'lodash/isEmpty';
-import React, { type JSX } from 'react';
-import type {ComponentType} from 'react';
+import React from 'react';
+import type {ComponentType, JSX} from 'react';
 
 import type {Subscription} from '@mattermost/types/cloud';
 

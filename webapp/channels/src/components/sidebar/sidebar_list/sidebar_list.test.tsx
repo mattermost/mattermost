@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import type {MovementMode, DropResult} from '@hello-pangea/dnd';
+import React from 'react';
 
 import {CategorySorting} from '@mattermost/types/channel_categories';
 import type {ChannelType} from '@mattermost/types/channels';

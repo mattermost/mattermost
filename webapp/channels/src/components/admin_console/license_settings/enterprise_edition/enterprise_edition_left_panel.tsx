@@ -2,8 +2,8 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, { useEffect, useState, type JSX } from 'react';
-import type {RefObject} from 'react';
+import React, {useEffect, useState} from 'react';
+import type {RefObject, JSX} from 'react';
 import {FormattedDate, FormattedMessage, FormattedNumber, FormattedTime, defineMessage, defineMessages, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 

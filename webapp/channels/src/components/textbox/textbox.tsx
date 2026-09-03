@@ -2,8 +2,8 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, { type JSX } from 'react';
-import type {ChangeEvent, ElementType, FocusEvent, KeyboardEvent, MouseEvent} from 'react';
+import React from 'react';
+import type {ChangeEvent, ElementType, FocusEvent, KeyboardEvent, MouseEvent, JSX} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import type {Agent} from '@mattermost/types/agents';

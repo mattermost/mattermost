@@ -1,10 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {KeyboardEvent} from 'react';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
 import type {DropResult} from '@hello-pangea/dnd';
 import {DragDropContext, Draggable, Droppable} from '@hello-pangea/dnd';
+import type {KeyboardEvent} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {createPortal} from 'react-dom';
 import {FormattedMessage, useIntl} from 'react-intl';
 

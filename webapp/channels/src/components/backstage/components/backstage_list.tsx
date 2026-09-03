@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, { useState, type JSX } from 'react';
-import type {ChangeEvent, ReactNode} from 'react';
+import React, {useState} from 'react';
+import type {ChangeEvent, ReactNode, JSX} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {Link} from 'react-router-dom';
 

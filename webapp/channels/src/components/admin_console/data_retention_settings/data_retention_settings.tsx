@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, { createRef, type JSX } from 'react';
-import type {RefObject} from 'react';
+import React, {createRef} from 'react';
+import type {RefObject, JSX} from 'react';
 import type {WrappedComponentProps} from 'react-intl';
 import {FormattedMessage, defineMessages, injectIntl} from 'react-intl';
 import type {SelectInstance} from 'react-select';

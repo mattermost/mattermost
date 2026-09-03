@@ -3,6 +3,8 @@
 
 /* eslint-disable @typescript-eslint/no-require-imports */
 
+import type {JSX} from 'react';
+
 import type {PublishedEditorUtils, PublishedModalId, PublishedModalIdCandidate, PublishedModalProps, PublishedModalUtils} from '@mattermost/shared/types/global';
 
 import {favoriteChannel, unfavoriteChannel} from 'mattermost-redux/actions/channels';
@@ -44,8 +46,6 @@ import {publishedEditorUtils} from './published_editor';
 import {canOpenPublishedModal, openPublishedModal} from './published_modals';
 import {loadSharedDependency} from './shared_dependencies';
 import Textbox from './textbox';
-
-import type { JSX } from "react";
 
 // Note: We can't directly use the hook here, but we can create a function that opens the external pricing page
 // For plugins, we'll always try to open the external page and let the browser handle if it's blocked

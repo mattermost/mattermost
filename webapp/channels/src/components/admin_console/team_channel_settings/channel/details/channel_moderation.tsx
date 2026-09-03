@@ -3,7 +3,7 @@
 
 import classNames from 'classnames';
 import isNil from 'lodash/isNil';
-import React, { type JSX } from 'react';
+import React, {type JSX} from 'react';
 import {FormattedMessage, defineMessages} from 'react-intl';
 import type {MessageDescriptor} from 'react-intl';
 

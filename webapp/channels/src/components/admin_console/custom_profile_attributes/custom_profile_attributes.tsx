@@ -5,7 +5,7 @@
 // "Custom Profile Attributes" (CPA). Internal identifiers retain the old
 // naming for backward compatibility. See MM-68235.
 
-import React, { useEffect, useState, type JSX } from 'react';
+import React, {useEffect, useState, type JSX} from 'react';
 import './custom_profile_attributes.scss';
 import {FormattedMessage, defineMessage} from 'react-intl';
 import {useSelector} from 'react-redux';

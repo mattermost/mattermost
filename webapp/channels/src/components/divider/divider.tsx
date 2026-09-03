@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, { type JSX } from 'react';
+import React, {type JSX} from 'react';
 
 import './divider.scss';
 

@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, { type JSX } from 'react';
-import type {ChangeEvent, SyntheticEvent, ReactNode} from 'react';
+import React from 'react';
+import type {ChangeEvent, SyntheticEvent, ReactNode, JSX} from 'react';
 import {defineMessage, FormattedMessage} from 'react-intl';
 import {Link} from 'react-router-dom';
 

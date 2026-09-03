@@ -3,7 +3,7 @@
 
 /* eslint-disable @stylistic/jsx-max-props-per-line */
 
-import React, { type JSX } from 'react';
+import React, {type JSX} from 'react';
 
 type ThemeThumbnailProps = {
     themeName?: string;

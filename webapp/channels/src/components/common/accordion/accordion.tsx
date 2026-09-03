@@ -2,8 +2,8 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, { useState, type JSX } from 'react';
-import type {RefObject} from 'react';
+import React, {useState} from 'react';
+import type {RefObject, JSX} from 'react';
 
 import AccordionCard from './accordion_card';
 

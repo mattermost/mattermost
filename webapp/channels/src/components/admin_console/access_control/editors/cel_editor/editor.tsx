@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import * as monaco from 'monaco-editor';
-import React, { useCallback, useEffect, useRef, useState, useMemo, type JSX } from 'react';
+import React, {useCallback, useEffect, useRef, useState, useMemo, type JSX} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
 import type {AccessControlTestResult, CELExpressionError} from '@mattermost/types/access_control';

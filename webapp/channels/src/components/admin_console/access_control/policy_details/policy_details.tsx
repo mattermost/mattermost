@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import cloneDeep from 'lodash/cloneDeep';
-import React, { useState, useEffect, useMemo, type JSX } from 'react';
+import React, {useState, useEffect, useMemo, type JSX} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
 import {GenericModal} from '@mattermost/components';

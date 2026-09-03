@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, { memo, type JSX } from 'react';
+import React, {memo, type JSX} from 'react';
 import {useIntl} from 'react-intl';
 
 import {ChevronDownIcon, ChevronUpIcon, FormatLetterCaseIcon} from '@mattermost/compass-icons/components';

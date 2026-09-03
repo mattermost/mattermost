@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, { memo, type JSX } from 'react';
+import React, {memo, type JSX} from 'react';
 import {useIntl} from 'react-intl';
 
 import {EyeOutlineIcon} from '@mattermost/compass-icons/components';

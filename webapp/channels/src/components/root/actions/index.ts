@@ -25,7 +25,7 @@ import {reloadPage} from 'utils/browser_utils';
 import {StoragePrefixes} from 'utils/constants';
 import {doesCookieContainsMMUserId} from 'utils/utils';
 
-import type {ActionFuncAsync, ThunkActionFunc} from 'types/store';
+import type {ThunkActionFunc} from 'types/store';
 import type {Translations} from 'types/store/i18n';
 
 export type TranslationPluginFunction = (locale: string) => Translations;

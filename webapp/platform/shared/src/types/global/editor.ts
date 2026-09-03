@@ -79,7 +79,7 @@ export type FormattingBarProps = {
     applyFormatting: (mode: PublishedMarkdownMode) => void;
     disableControls: boolean;
     location: string;
-    additionalControls?: ReadonlyArray<ReactNode>;
+    additionalControls?: readonly ReactNode[];
     aiActionsMenu?: ReactNode;
 
     // Returns a Tiptap Editor. Left as `any` so plugins don't need `@tiptap/react`

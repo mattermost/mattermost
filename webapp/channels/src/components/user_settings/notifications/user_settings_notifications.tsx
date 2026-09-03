@@ -3,8 +3,8 @@
 
 /* eslint-disable max-lines */
 
-import React, { type JSX } from 'react';
-import type {ChangeEvent} from 'react';
+import React from 'react';
+import type {ChangeEvent, JSX} from 'react';
 import type {WrappedComponentProps} from 'react-intl';
 import {FormattedMessage, injectIntl} from 'react-intl';
 import type {InputProps, OnChangeValue, StylesConfig} from 'react-select';

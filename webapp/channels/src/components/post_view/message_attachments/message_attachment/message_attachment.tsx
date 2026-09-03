@@ -2,8 +2,8 @@
 // See LICENSE.txt for license information.
 
 import truncate from 'lodash/truncate';
-import React, { type JSX } from 'react';
-import type {KeyboardEvent, MouseEvent, CSSProperties} from 'react';
+import React from 'react';
+import type {KeyboardEvent, MouseEvent, CSSProperties, JSX} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import type {PostActionOption} from '@mattermost/types/integration_actions';

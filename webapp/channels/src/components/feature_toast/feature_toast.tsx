@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {FloatingPortal} from '@floating-ui/react';
-import React, { type JSX } from 'react';
+import React, {type JSX} from 'react';
 import {useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 

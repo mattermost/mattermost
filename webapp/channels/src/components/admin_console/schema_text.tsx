@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import marked from 'marked';
-import React, { type JSX } from 'react';
+import React, {type JSX} from 'react';
 import type {MessageDescriptor} from 'react-intl';
 import {FormattedMessage} from 'react-intl';
 

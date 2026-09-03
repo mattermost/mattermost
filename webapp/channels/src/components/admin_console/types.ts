@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import type {FormatXMLElementFn} from 'intl-messageformat';
+import type {JSX} from 'react';
 import type {
     MessageDescriptor,
     PrimitiveType,
@@ -16,8 +17,6 @@ import type {JobType} from '@mattermost/types/jobs';
 import type Constants from 'utils/constants';
 
 import type ValidationResult from './validation';
-
-import type { JSX } from "react";
 
 type Component = any;
 

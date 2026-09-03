@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, { useState, useRef, useEffect, type JSX } from 'react';
+import React, {useState, useRef, useEffect, type JSX} from 'react';
 import {FormattedMessage, defineMessages, injectIntl, type WrappedComponentProps} from 'react-intl';
 
 import {Button} from '@mattermost/shared/components/button';

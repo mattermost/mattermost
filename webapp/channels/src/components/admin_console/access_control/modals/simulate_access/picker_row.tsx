@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, { useCallback, useMemo, useState, type JSX } from 'react';
+import React, {useCallback, useMemo, useState, type JSX} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import type {AccessControlPolicy, PolicySimulationActionDecision} from '@mattermost/types/access_control';
