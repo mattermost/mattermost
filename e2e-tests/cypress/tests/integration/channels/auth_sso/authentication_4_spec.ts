@@ -266,26 +266,25 @@ describe('Authentication', () => {
     });
 
     it('MM-T1755 - Restrict Domains - Email invite', () => {
-        // # Enable user account creation and set restricted domain
-        cy.apiUpdateConfig({
-            EmailSettings: {
-                RequireEmailVerification: false,
-            },
-            ServiceSettings: {
-                EnableEmailInvitations: true,
-            },
-            TeamSettings: {
-                RestrictCreationToDomains: 'test.com',
-                EnableUserCreation: true,
-            },
-        }).then(({config}) => {
-            expect(config.TeamSettings.RestrictCreationToDomains).to.equal('test.com');
-            expect(config.TeamSettings.EnableUserCreation).to.equal(true);
-            expect(config.ServiceSettings.EnableEmailInvitations).to.equal(true);
-        });
-
-        // Admin last-team can be an ABAC/restricted team; invite from a team we just created.
+        // Create the team before restricting domains; admin email may not match test.com.
         cy.apiCreateTeam('invite-domain', 'Invite Domain').then(({team}) => {
+            cy.apiUpdateConfig({
+                EmailSettings: {
+                    RequireEmailVerification: false,
+                },
+                ServiceSettings: {
+                    EnableEmailInvitations: true,
+                },
+                TeamSettings: {
+                    RestrictCreationToDomains: 'test.com',
+                    EnableUserCreation: true,
+                },
+            }).then(({config}) => {
+                expect(config.TeamSettings.RestrictCreationToDomains).to.equal('test.com');
+                expect(config.TeamSettings.EnableUserCreation).to.equal(true);
+                expect(config.ServiceSettings.EnableEmailInvitations).to.equal(true);
+            });
+
             cy.visit(`/${team.name}/channels/town-square`);
             cy.get('#post_textbox').should('be.visible');
 
