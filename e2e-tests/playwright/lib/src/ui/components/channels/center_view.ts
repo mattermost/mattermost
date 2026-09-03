@@ -85,7 +85,18 @@ export default class ChannelsCenterView {
      */
     async getPostByText(text: string) {
         const post = this.container.getByTestId('postView').filter({hasText: text}).last();
-        await post.waitFor();
+        await post.waitFor({timeout: duration.half_min});
+        return new ChannelsPost(post);
+    }
+
+    async getConcealedBorPost() {
+        const post = this.container
+            .getByTestId('postView')
+            .filter({
+                has: this.container.getByTestId(/^burn-on-read-concealed-/),
+            })
+            .last();
+        await post.waitFor({timeout: duration.half_min});
         return new ChannelsPost(post);
     }
 

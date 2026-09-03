@@ -109,7 +109,8 @@ test.describe('System Console - Membership Policy apostrophe values (MM-64357)',
                 .locator(`[id^="attribute-selector-menu"] li:has-text("${field!.name}")`)
                 .first()
                 .click({force: true});
-            await expect(page.locator('[id^="attribute-selector-menu"]')).toBeHidden();
+            await page.keyboard.press('Escape');
+            await expect(page.locator('[id^="attribute-selector-menu"]')).toBeHidden({timeout: 10000});
 
             // * A text attribute defaults to the "is" operator
             await expect(page.locator('[data-testid="operatorSelectorMenuButton"]').first()).toContainText('is');

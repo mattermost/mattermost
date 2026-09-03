@@ -43,9 +43,10 @@ test(
         const membersMenuItem = page.locator('#channelMembers');
         await membersMenuItem.click();
 
-        // # Click the Add people button
-        const addButton = page.getByRole('button', {name: 'Add people'});
-        await addButton.click();
+        // # Click Add in the members RHS (the intro "Add people" control is not always mounted)
+        const membersRhs = page.locator('#rhsContainer');
+        await expect(membersRhs).toBeVisible();
+        await membersRhs.locator('button.add-members').click();
 
         // * Verify the Add people dialog is visible
         const dialog = page.getByRole('dialog').first();
@@ -139,9 +140,10 @@ test(
         const membersMenuItem = page.locator('#channelMembers');
         await membersMenuItem.click();
 
-        // # Click the Add people button
-        const addButton = page.getByRole('button', {name: 'Add people'});
-        await addButton.click();
+        // # Click Add in the members RHS (the intro "Add people" control is not always mounted)
+        const membersRhs = page.locator('#rhsContainer');
+        await expect(membersRhs).toBeVisible();
+        await membersRhs.locator('button.add-members').click();
 
         // * Verify the Add people dialog is visible
         const dialog = page.getByRole('dialog').first();

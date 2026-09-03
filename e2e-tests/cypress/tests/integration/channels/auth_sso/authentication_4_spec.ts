@@ -272,18 +272,15 @@ describe('Authentication', () => {
         // # Open team menu and click on "Invite People"
         cy.uiOpenTeamMenu('Invite people');
 
-        // # Click invite members if needed
-        cy.findByText('Copy invite link').click();
+        const inviteEmail = `test-${getRandomId()}@mattermost.com`;
 
-        // # Input email, select member
-        cy.findByLabelText('Invite People').type(`test-${getRandomId()}@mattermost.com`);
-
-        // # Wait a moment for the autocomplete and then press enter to select the email
-        cy.wait(100);
+        // # Input email and confirm the chip is added so Invite enables
+        cy.findByLabelText('Invite People').should('be.visible').type(inviteEmail);
         cy.findByLabelText('Invite People').type('{enter}');
+        cy.contains(inviteEmail).should('be.visible');
 
         // # Click invite members button
-        cy.findByRole('button', {name: 'Invite'}).click();
+        cy.findByTestId('inviteButton').should('be.enabled').click();
 
         // * Verify message is what you expect it to be
         cy.contains('The following email addresses do not belong to an accepted domain:', {timeout: TIMEOUTS.ONE_MIN}).should('be.visible').and('exist');

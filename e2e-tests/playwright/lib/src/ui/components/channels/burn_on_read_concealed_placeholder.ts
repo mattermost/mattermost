@@ -30,6 +30,7 @@ export default class BurnOnReadConcealedPlaceholder {
      * The container itself is the clickable button
      */
     async clickToReveal() {
+        await expect(this.container).toBeVisible({timeout: 30000});
         await this.container.click();
     }
 

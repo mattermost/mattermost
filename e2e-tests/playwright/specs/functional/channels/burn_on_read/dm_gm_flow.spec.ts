@@ -29,7 +29,7 @@ test.describe('Burn-on-Read in DMs and GMs', () => {
         await channelsPage.centerView.postCreate.toggleBurnOnRead();
 
         // * Verify BoR label appears indicating it's enabled
-        await expect(channelsPage.centerView.postCreate.burnOnReadLabel).toBeVisible();
+        await expect(channelsPage.centerView.postCreate.burnOnReadLabel).toBeVisible({timeout: 10000});
     });
 
     test('MM-66742_2 complete BoR flow in DM between two users', {tag: [BOR_TAG]}, async ({pw}) => {

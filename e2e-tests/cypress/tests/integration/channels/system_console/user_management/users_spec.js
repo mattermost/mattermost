@@ -66,15 +66,7 @@ describe('System Console > User Management > Users', () => {
     });
 
     it('MM-T932 Users - Change a user\'s password', () => {
-        // # Search for the user.
-        cy.findByPlaceholderText('Search users').type(testUser.email).wait(TIMEOUTS.HALF_SEC);
-        cy.get('#systemUsersTable-cell-0_emailColumn').should('contain', testUser.email);
-
-        // # Open the actions menu.
-        cy.get('#systemUsersTable-cell-0_actionsColumn').click().wait(TIMEOUTS.HALF_SEC);
-
-        // # Click the Reset Password menu option.
-        cy.findByText('Reset password').click();
+        searchUserAndOpenResetPassword(testUser.email, testUser.email);
 
         // # Type new password and submit.
         cy.get('input[type=password]').type('new' + testUser.password);
@@ -97,15 +89,7 @@ describe('System Console > User Management > Users', () => {
     });
 
     it('MM-T933 Users - System admin changes own password - Cancel out of changes', () => {
-        // # Search for the admin.
-        cy.findByPlaceholderText('Search users').type(otherAdmin.username).wait(TIMEOUTS.HALF_SEC);
-        cy.get('#systemUsersTable-cell-0_emailColumn').should('contain', otherAdmin.email);
-
-        // # Open the actions menu.
-        cy.get('#systemUsersTable-cell-0_actionsColumn').click().wait(TIMEOUTS.HALF_SEC);
-
-        // # Click the Reset Password menu option.
-        cy.findByText('Reset password').click();
+        searchUserAndOpenResetPassword(otherAdmin.username, otherAdmin.email);
 
         // # Type current password and a new password.
         cy.get('input[type=password]').eq(0).type(otherAdmin.password);
@@ -122,15 +106,7 @@ describe('System Console > User Management > Users', () => {
     });
 
     it('MM-T934 Users - System admin changes own password - Incorrect old password', () => {
-        // # Search for the admin.
-        cy.findByPlaceholderText('Search users').type(otherAdmin.username).wait(TIMEOUTS.HALF_SEC);
-        cy.get('#systemUsersTable-cell-0_emailColumn').should('contain', otherAdmin.email);
-
-        // # Open the actions menu.
-        cy.get('#systemUsersTable-cell-0_actionsColumn').click().wait(TIMEOUTS.HALF_SEC);
-
-        // # Click the Reset Password menu option.
-        cy.findByText('Reset password').click();
+        searchUserAndOpenResetPassword(otherAdmin.username, otherAdmin.email);
 
         // # Type wrong current password and a new password.
         cy.get('input[type=password]').eq(0).type('wrong' + otherAdmin.password);
@@ -145,15 +121,7 @@ describe('System Console > User Management > Users', () => {
     });
 
     it('MM-T935 Users - System admin changes own password - Invalid new password', () => {
-        // # Search for the admin.
-        cy.findByPlaceholderText('Search users').type(otherAdmin.username).wait(TIMEOUTS.HALF_SEC);
-        cy.get('#systemUsersTable-cell-0_emailColumn').should('contain', otherAdmin.email);
-
-        // # Open the actions menu.
-        cy.get('#systemUsersTable-cell-0_actionsColumn').click().wait(TIMEOUTS.HALF_SEC);
-
-        // # Click the Reset Password menu option.
-        cy.findByText('Reset password').click();
+        searchUserAndOpenResetPassword(otherAdmin.username, otherAdmin.email);
 
         // # Type current password and a new too short password.
         cy.get('input[type=password]').eq(0).type(otherAdmin.password);
@@ -167,15 +135,7 @@ describe('System Console > User Management > Users', () => {
     });
 
     it('MM-T936 Users - System admin changes own password - Blank fields', () => {
-        // # Search for the admin.
-        cy.findByPlaceholderText('Search users').type(otherAdmin.username).wait(TIMEOUTS.HALF_SEC);
-        cy.get('#systemUsersTable-cell-0_emailColumn').should('contain', otherAdmin.email);
-
-        // # Open the actions menu.
-        cy.get('#systemUsersTable-cell-0_actionsColumn').click().wait(TIMEOUTS.HALF_SEC);
-
-        // # Click the Reset Password menu option.
-        cy.findByText('Reset password').click();
+        searchUserAndOpenResetPassword(otherAdmin.username, otherAdmin.email);
 
         // # Click the 'Reset' button.
         cy.get('button.btn-primary.confirm').should('contain', 'Reset').click().wait(TIMEOUTS.HALF_SEC);
@@ -195,15 +155,7 @@ describe('System Console > User Management > Users', () => {
     });
 
     it('MM-T937 Users - System admin changes own password - Successfully changed', () => {
-        // # Search for the admin.
-        cy.findByPlaceholderText('Search users').type(otherAdmin.username).wait(TIMEOUTS.HALF_SEC);
-        cy.get('#systemUsersTable-cell-0_emailColumn').should('contain', otherAdmin.email);
-
-        // # Open the actions menu.
-        cy.get('#systemUsersTable-cell-0_actionsColumn').click().wait(TIMEOUTS.HALF_SEC);
-
-        // # Click the Reset Password menu option.
-        cy.findByText('Reset password').click();
+        searchUserAndOpenResetPassword(otherAdmin.username, otherAdmin.email);
 
         // # Type current and new passwords..
         cy.get('input[type=password]').eq(0).type(otherAdmin.password);
@@ -228,6 +180,13 @@ describe('System Console > User Management > Users', () => {
         });
     });
 });
+
+function searchUserAndOpenResetPassword(query, email) {
+    cy.findByPlaceholderText('Search users').should('be.visible').clear().type(query);
+    cy.get('#systemUsersTable-cell-0_emailColumn', {timeout: TIMEOUTS.ONE_MIN}).should('contain', email);
+    cy.get('#actionMenuButton-systemUsersTable-0').should('be.visible').click();
+    cy.get('#actionMenuItem-systemUsersTable-0-resetPassword').should('be.visible').click();
+}
 
 function apiLogin(username, password) {
     return cy.request({

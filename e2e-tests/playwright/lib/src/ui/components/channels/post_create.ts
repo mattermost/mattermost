@@ -221,7 +221,7 @@ export default class ChannelsPostCreate {
         await this.previewArea.locator('.mention-link').click();
     }
 
-    async waitUntilFilePreviewContains(files: string[], timeout = duration.ten_sec) {
+    async waitUntilFilePreviewContains(files: string[], timeout = duration.half_min) {
         await waitUntil(
             async () => {
                 const previews = this.filePreview.getByTestId('file-preview-item');

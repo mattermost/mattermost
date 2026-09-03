@@ -38,16 +38,18 @@ describe('Notifications', () => {
             cy.apiAddUserToChannel(otherChannel.id, sender.id);
             return cy.apiAddUserToChannel(otherChannel.id, receiver.id);
         }).then(() => {
-            // # Login as receiver and visit off-topic channel
             cy.apiLogin(receiver);
-            cy.visit(`/${testTeam.name}/channels/${testChannel.name}`);
-
-            // # Wait for the page to fully load before continuing
-            cy.get('#channelHeaderDropdownButton').should('be.visible').and('have.text', testChannel.display_name);
-
-            cy.get(`#sidebarItem_${otherChannel.name}`).click();
-            cy.get('#sidebarItem_off-topic').click();
         });
+    });
+
+    beforeEach(() => {
+        cy.apiLogin(receiver);
+        markChannelRead(testChannel.id);
+        markChannelRead(otherChannel.id);
+        cy.visit(`/${testTeam.name}/channels/off-topic`);
+        cy.get('#channelHeaderDropdownButton').should('be.visible');
+        cy.get(`#sidebarItem_${otherChannel.name}`).find('#unreadMentions').should('not.exist');
+        cy.get(`#sidebarItem_${testChannel.name}`).find('#unreadMentions').should('not.exist');
     });
 
     it('MM-T547 still triggers notification if username is not listed in words that trigger mentions', () => {
@@ -244,6 +246,15 @@ describe('Notifications', () => {
     });
 });
 
+function markChannelRead(channelId) {
+    cy.request({
+        headers: {'X-Requested-With': 'XMLHttpRequest'},
+        url: '/api/v4/channels/members/me/view',
+        method: 'POST',
+        body: {channel_id: channelId, collapsed_threads_supported: true},
+    });
+}
+
 function setNotificationSettings(desiredSettings = {first: true, username: true, shouts: true, custom: true, customText: '@'}, channelName) {
     // Navigate to settings modal
     cy.uiOpenSettingsModal();
@@ -283,6 +294,12 @@ function setNotificationSettings(desiredSettings = {first: true, username: true,
 
     // Click “Save” and close modal
     cy.uiSaveAndClose();
+
+    cy.apiGetMe().then(({user}) => {
+        const props = user.notify_props || {};
+        expect(props.first_name).to.equal(desiredSettings.first ? 'true' : 'false');
+        expect(props.channel).to.equal(desiredSettings.shouts ? 'true' : 'false');
+    });
 
     // Setup notification spy
     spyNotificationAs('notifySpy', 'granted');

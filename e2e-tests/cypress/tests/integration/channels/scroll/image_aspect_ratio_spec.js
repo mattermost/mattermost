@@ -24,24 +24,22 @@ describe('Scroll', () => {
     it('MM-T2369 Aspect Ratio is preserved in RHS', () => {
         const uploadedImages = [
             {
-                alt: 'Wide image',
-                width: 960,
-                height: 246,
-                src:
-                    'https://cdn.pixabay.com/photo/2017/10/10/22/24/wide-format-2839089_960_720.jpg',
+                file: 'wide-image.png',
+                width: 96,
+                height: 24,
             },
             {
-                alt: 'Tall image',
-                width: 400,
-                height: 950,
-                src:
-                    'https://media.npr.org/programs/atc/features/2009/may/short/abetall3-0483922b5fb40887fc9fbe20a606e256cbbd10ee-s800-c85.jpg',
+                file: 'tall-image.png',
+                width: 24,
+                height: 96,
             },
         ];
 
         uploadedImages.forEach((uploadedImage) => {
-            // # Post the image as markdown image in the center
-            cy.uiPostMessageQuickly(`![${uploadedImage.alt}](${uploadedImage.src})`);
+            // # Attach a local image so the preview is served by this server
+            cy.get('#fileUploadInput').attachFile(uploadedImage.file);
+            cy.get('.post-image__thumbnail').should('be.visible');
+            cy.uiGetPostTextBox().clear().type('{enter}');
 
             // # Get uploaded image in the center
             cy.getLastPost().within(() => {
@@ -57,15 +55,19 @@ describe('Scroll', () => {
                 // * Verify image in the RHS has correct aspect ratio
                 verifyImageAspectRatioCorrectness(uploadedImage);
             });
+
+            cy.uiCloseRHS();
         });
     });
 });
 
 function verifyImageAspectRatioCorrectness(originalImage) {
-    cy.findByAltText(originalImage.alt).
-        should('exist').
-        and((img) => {
-            expect(img.width() / img.height()).to.be.closeTo(
+    cy.get('.post-image__thumbnail img, img.attachment-file__img, img').
+        first().
+        should('be.visible').
+        and(($img) => {
+            expect($img[0].naturalWidth, 'image finished loading').to.be.greaterThan(0);
+            expect($img[0].naturalWidth / $img[0].naturalHeight).to.be.closeTo(
                 originalImage.width / originalImage.height,
                 0.02,
             );
