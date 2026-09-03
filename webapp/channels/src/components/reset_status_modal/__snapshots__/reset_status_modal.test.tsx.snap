@@ -91,24 +91,24 @@ exports[`components/ResetStatusModal should match snapshot 1`] = `
                   class="ConfirmModal__footer"
                 >
                   <button
-                    class="_button_1e05o_2 _button--emphasis-tertiary_1e05o_92 _button--size-medium_1e05o_43"
+                    class="_button_1odpk_2 _button--emphasis-tertiary_1odpk_90 _button--size-medium_1odpk_46"
                     data-testid="cancel-button"
                     id="cancelModalButton"
                     type="button"
                   >
                     <span
-                      class="_button__label_1e05o_20"
+                      class="_button__label_1odpk_23"
                     >
                       Stay as "Away"
                     </span>
                   </button>
                   <button
-                    class="_button_1e05o_2 _button--emphasis-primary_1e05o_57 _button--size-medium_1e05o_43"
+                    class="_button_1odpk_2 _button--emphasis-primary_1odpk_60 _button--size-medium_1odpk_46"
                     id="confirmModalButton"
                     type="button"
                   >
                     <span
-                      class="_button__label_1e05o_20"
+                      class="_button__label_1odpk_23"
                     >
                       Set status to "Online"
                     </span>
@@ -205,24 +205,24 @@ exports[`components/ResetStatusModal should match snapshot, render modal for OOF
                   class="ConfirmModal__footer"
                 >
                   <button
-                    class="_button_1e05o_2 _button--emphasis-tertiary_1e05o_92 _button--size-medium_1e05o_43"
+                    class="_button_1odpk_2 _button--emphasis-tertiary_1odpk_90 _button--size-medium_1odpk_46"
                     data-testid="cancel-button"
                     id="cancelModalButton"
                     type="button"
                   >
                     <span
-                      class="_button__label_1e05o_20"
+                      class="_button__label_1odpk_23"
                     >
                       Stay "Out of office"
                     </span>
                   </button>
                   <button
-                    class="_button_1e05o_2 _button--emphasis-primary_1e05o_57 _button--size-medium_1e05o_43"
+                    class="_button_1odpk_2 _button--emphasis-primary_1odpk_60 _button--size-medium_1odpk_46"
                     id="confirmModalButton"
                     type="button"
                   >
                     <span
-                      class="_button__label_1e05o_20"
+                      class="_button__label_1odpk_23"
                     >
                       Set status to "Online"
                     </span>
