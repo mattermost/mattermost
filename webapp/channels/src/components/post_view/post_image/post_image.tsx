@@ -24,7 +24,7 @@ type PostImageProps = {
     actions: {
         openModal: <P>(modalData: ModalData<P>) => void;
     };
-}
+};
 
 const PostImage = ({
     imageMetadata,

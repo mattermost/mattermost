@@ -14,7 +14,6 @@ import {markAsUnreadFromPost, switchToChannel} from './helpers';
 
 import {beRead, beUnread} from '@/support/assertions';
 
-
 describe('Leaving channel', () => {
     let testUser;
     let otherUser;

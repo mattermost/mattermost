@@ -23,7 +23,7 @@ import AboutBuildModalCloud from './about_build_modal_cloud/about_build_modal_cl
 type SocketStatus = {
     connected: boolean;
     serverHostname: string | undefined;
-}
+};
 
 type Props = {
 

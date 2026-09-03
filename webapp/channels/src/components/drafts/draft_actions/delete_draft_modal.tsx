@@ -11,7 +11,7 @@ type Props = {
     displayName: string;
     onConfirm: () => void;
     onExited: () => void;
-}
+};
 
 function DeleteDraftModal({
     displayName,

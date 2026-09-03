@@ -4,6 +4,7 @@
 package app
 
 import (
+	"slices"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -48,7 +49,7 @@ func TestRestoreManageOAuthPermissionMigration(t *testing.T) {
 		return system.Name == model.MigrationKeyRestoreManageOAuthPermission && system.Value == "true"
 	})).Return(nil).Once()
 
-	roleStore.On("Save", mock.AnythingOfType("*model.Role")).
+	roleStore.On("SavePreservingUnknownPermissions", mock.AnythingOfType("*model.Role")).
 		Return(func(role *model.Role) *model.Role { return role }, nil).Twice()
 
 	appErr := th.App.Srv().doPermissionsMigration(model.MigrationKeyRestoreManageOAuthPermission, migrationMap, roles)
@@ -61,7 +62,7 @@ func TestRestoreManageOAuthPermissionMigration(t *testing.T) {
 	require.Nil(t, appErr)
 	assert.Len(t, systemAdminRole.Permissions, 2)
 
-	roleStore.AssertNumberOfCalls(t, "Save", 2)
+	roleStore.AssertNumberOfCalls(t, "SavePreservingUnknownPermissions", 2)
 	systemStore.AssertNumberOfCalls(t, "SaveOrUpdate", 1)
 }
 
@@ -98,7 +99,7 @@ func TestAddManageAgentPermissionsMigration(t *testing.T) {
 		return system.Name == model.MigrationKeyAddManageAgentPermissions && system.Value == "true"
 	})).Return(nil).Once()
 
-	roleStore.On("Save", mock.AnythingOfType("*model.Role")).
+	roleStore.On("SavePreservingUnknownPermissions", mock.AnythingOfType("*model.Role")).
 		Return(func(role *model.Role) *model.Role { return role }, nil).Twice()
 
 	appErr := th.App.Srv().doPermissionsMigration(model.MigrationKeyAddManageAgentPermissions, migrationMap, roles)
@@ -115,8 +116,50 @@ func TestAddManageAgentPermissionsMigration(t *testing.T) {
 	assert.Len(t, systemAdminRole.Permissions, 3, "system_admin should still have 3 permissions after idempotent run")
 	assert.Len(t, systemUserRole.Permissions, 2, "system_user should still have 2 permissions after idempotent run")
 
-	roleStore.AssertNumberOfCalls(t, "Save", 2)
+	roleStore.AssertNumberOfCalls(t, "SavePreservingUnknownPermissions", 2)
 	systemStore.AssertNumberOfCalls(t, "SaveOrUpdate", 1)
+}
+
+// TestPermissionsMigrationPreservesUnknownPermissions is the regression test for
+// MM-68830: a server downgraded from a newer release holds permissions the older
+// binary does not recognize. The permissions migration must not fail fatally, and
+// must preserve those unknown permissions rather than stripping them.
+func TestPermissionsMigrationPreservesUnknownPermissions(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := SetupWithStoreMock(t)
+
+	migrationMap, err := th.App.getAddManageAgentPermissionsMigration()
+	require.NoError(t, err)
+
+	const unknownPermission = "manage_own_agent_from_the_future"
+	systemAdminRole := &model.Role{
+		Name:        model.SystemAdminRoleId,
+		Permissions: []string{model.PermissionManageSystem.Id, unknownPermission},
+	}
+	roles := []*model.Role{systemAdminRole}
+
+	mockStore := th.App.Srv().Store().(*mocks.Store)
+	roleStore := mocks.RoleStore{}
+	systemStore := mocks.SystemStore{}
+
+	mockStore.On("Role").Return(&roleStore)
+	mockStore.On("System").Return(&systemStore)
+
+	systemStore.On("GetByName", model.MigrationKeyAddManageAgentPermissions).
+		Return(nil, model.NewAppError("test", "missing", nil, "", 404)).Once()
+	systemStore.On("SaveOrUpdate", mock.AnythingOfType("*model.System")).Return(nil).Once()
+
+	// The migration must route through the tolerant save, and the unknown permission
+	// must still be present on the role handed to the store (not stripped).
+	roleStore.On("SavePreservingUnknownPermissions", mock.MatchedBy(func(role *model.Role) bool {
+		return role.Name == model.SystemAdminRoleId && slices.Contains(role.Permissions, unknownPermission)
+	})).Return(func(role *model.Role) *model.Role { return role }, nil).Once()
+
+	appErr := th.App.Srv().doPermissionsMigration(model.MigrationKeyAddManageAgentPermissions, migrationMap, roles)
+	require.Nil(t, appErr, "downgrade migration must not fail fatally on unknown permissions")
+	assert.Contains(t, systemAdminRole.Permissions, unknownPermission, "unknown permission must be preserved across the migration")
+	roleStore.AssertNumberOfCalls(t, "SavePreservingUnknownPermissions", 1)
 }
 
 func TestApplyPermissionsMap(t *testing.T) {

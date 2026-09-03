@@ -150,9 +150,7 @@ func (ch *Channels) installPluginFromClusterMessage(pluginID string) {
 		logger.Error("Failed notify plugin enabled", mlog.Err(err))
 	}
 
-	if err := ch.notifyPluginStatusesChanged(); err != nil {
-		logger.Error("Failed to notify plugin status changed", mlog.Err(err))
-	}
+	ch.notifyPluginStatusesChanged()
 }
 
 // removePluginFromClusterMessage is called when a peer removes a plugin, signalling all other
@@ -166,9 +164,7 @@ func (ch *Channels) removePluginFromClusterMessage(pluginID string) {
 		logger.Error("Failed to remove plugin locally", mlog.Err(err))
 	}
 
-	if err := ch.notifyPluginStatusesChanged(); err != nil {
-		logger.Error("failed to notify plugin status changed", mlog.Err(err))
-	}
+	ch.notifyPluginStatusesChanged()
 }
 
 // InstallPlugin unpacks and installs a plugin but does not enable or activate it unless the
@@ -208,9 +204,7 @@ func (ch *Channels) installPlugin(bundle, signature io.ReadSeeker, installationS
 		logger.Warn("Failed to notify plugin enabled", mlog.Err(err))
 	}
 
-	if err := ch.notifyPluginStatusesChanged(); err != nil {
-		logger.Warn("Failed to notify plugin status changed", mlog.Err(err))
-	}
+	ch.notifyPluginStatusesChanged()
 
 	return manifest, nil
 }
@@ -256,6 +250,40 @@ func (ch *Channels) installPluginToFilestore(manifest *model.Manifest, bundle, s
 	)
 
 	return nil
+}
+
+func newPluginInstallConflictAppError(existingManifest, uploadedManifest *model.Manifest) *model.AppError {
+	// Installing only validates the plugin id, so the uploaded name and homepage may be missing.
+	// Fall back to the installed plugin's metadata to keep the plugin identifiable.
+	name := uploadedManifest.Name
+	if name == "" {
+		name = existingManifest.Name
+	}
+	homepageURL := uploadedManifest.HomepageURL
+	if homepageURL == "" {
+		homepageURL = existingManifest.HomepageURL
+	}
+
+	direction := model.PluginInstallConflictVersionDirection(existingManifest, uploadedManifest)
+
+	// The confirmation dialog reads this from AppError.Props, which is returned to clients even when
+	// developer mode is off. Keep it to plugin metadata that is safe for any admin client to see.
+	props := model.StringMap{
+		model.PluginInstallConflictPropPluginID:         uploadedManifest.Id,
+		model.PluginInstallConflictPropPluginName:       name,
+		model.PluginInstallConflictPropHomepageURL:      homepageURL,
+		model.PluginInstallConflictPropExistingVersion:  existingManifest.Version,
+		model.PluginInstallConflictPropUploadedVersion:  uploadedManifest.Version,
+		model.PluginInstallConflictPropVersionDirection: direction,
+	}
+
+	// DetailedError is only for the server log; the client reads Props instead.
+	details := fmt.Sprintf("plugin %q conflict: existing version %q, uploaded version %q (%s)", uploadedManifest.Id, existingManifest.Version, uploadedManifest.Version, direction)
+
+	appErr := model.NewAppError("installExtractedPlugin", "app.plugin.install_id.app_error", nil, details, http.StatusBadRequest)
+	appErr.Props = props
+
+	return appErr
 }
 
 // InstallMarketplacePlugin installs a plugin listed in the marketplace server. It will get the
@@ -457,7 +485,7 @@ func (ch *Channels) installExtractedPlugin(manifest *model.Manifest, fromPluginD
 	if existingManifest != nil {
 		// Return an error if already installed and strategy disallows installation.
 		if installationStrategy == installPluginLocallyOnlyIfNew {
-			return nil, model.NewAppError("installExtractedPlugin", "app.plugin.install_id.app_error", nil, "", http.StatusBadRequest)
+			return nil, newPluginInstallConflictAppError(existingManifest, manifest)
 		}
 
 		// Skip installation if already installed and newer.
@@ -555,9 +583,7 @@ func (ch *Channels) RemovePlugin(id string) *model.AppError {
 		},
 	)
 
-	if err := ch.notifyPluginStatusesChanged(); err != nil {
-		logger.Warn("Failed to notify plugin status changed", mlog.Err(err))
-	}
+	ch.notifyPluginStatusesChanged()
 
 	return nil
 }

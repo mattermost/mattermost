@@ -16,8 +16,14 @@ const (
 
 	ExpiredLicenseError = "api.license.add_license.expired.app_error"
 	InvalidLicenseError = "api.license.add_license.invalid.app_error"
-	LicenseGracePeriod  = DayInMilliseconds * 10 //10 days
-	LicenseRenewalLink  = "https://mattermost.com/renew/"
+	// WrongEnvironmentProductionLicenseError is returned when a production license is
+	// uploaded to a server running in a test or development service environment.
+	WrongEnvironmentProductionLicenseError = "api.license.add_license.wrong_environment_production.app_error"
+	// WrongEnvironmentTestLicenseError is returned when a test or development license is
+	// uploaded to a server running in a production service environment.
+	WrongEnvironmentTestLicenseError = "api.license.add_license.wrong_environment_test.app_error"
+	LicenseGracePeriod               = DayInMilliseconds * 10 //10 days
+	LicenseRenewalLink               = "https://mattermost.com/renew/"
 
 	LicenseShortSkuE10                = "E10"
 	LicenseShortSkuE20                = "E20"
@@ -80,6 +86,7 @@ type License struct {
 	SkuShortName        string    `json:"sku_short_name"`
 	IsTrial             bool      `json:"is_trial"`
 	IsGovSku            bool      `json:"is_gov_sku"`
+	IsNonProduction     bool      `json:"is_non_production"`
 	IsSeatCountEnforced bool      `json:"is_seat_count_enforced"`
 	// ExtraUsers provides a grace mechanism that allows a configurable number of users
 	// beyond the base license limit before restricting user creation. When nil, defaults to 0.
@@ -421,6 +428,11 @@ func (l *License) HasSharedChannels() bool {
 
 	return (l.Features != nil && l.Features.SharedChannels != nil && *l.Features.SharedChannels) ||
 		MinimumProfessionalLicense(l)
+}
+
+// HasMHPNS reports whether the license grants access to the Mattermost hosted push notification service.
+func (l *License) HasMHPNS() bool {
+	return l != nil && l.Features != nil && l.Features.MHPNS != nil && *l.Features.MHPNS
 }
 
 // NewTestLicense returns a license that expires in the future and has the given features.

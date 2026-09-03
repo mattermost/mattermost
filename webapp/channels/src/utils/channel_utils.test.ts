@@ -173,6 +173,32 @@ describe('Channel Utils', () => {
         });
     });
 
+    describe('isArchivedChannel', () => {
+        test('returns false for undefined', () => {
+            expect(Utils.isArchivedChannel(undefined)).toBe(false);
+        });
+
+        test('returns false for channel object missing delete_at', () => {
+            expect(Utils.isArchivedChannel({} as Channel)).toBe(false);
+        });
+
+        test('returns false for channel with delete_at: 0', () => {
+            expect(Utils.isArchivedChannel({delete_at: 0} as Channel)).toBe(false);
+        });
+
+        test('returns true for channel with delete_at: 12345', () => {
+            expect(Utils.isArchivedChannel({delete_at: 12345} as Channel)).toBe(true);
+        });
+
+        test('returns true for channel with delete_at: -1', () => {
+            expect(Utils.isArchivedChannel({delete_at: -1} as Channel)).toBe(true);
+        });
+
+        test('getChannelIconClassName returns icon-globe for open channel missing delete_at', () => {
+            expect(Utils.getChannelIconClassName({type: 'O'} as Channel)).toBe('icon-globe');
+        });
+    });
+
     describe('getChannelRoutePathAndIdentifier', () => {
         test('should return channels path and channel name for open channels', () => {
             const channel = {type: Constants.OPEN_CHANNEL, name: 'town-square'} as Channel;

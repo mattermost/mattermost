@@ -17,7 +17,9 @@ test.fixme('should toggle hooks on and off via /demo_plugin command', async ({pw
     for (let i = 0; i < 25; i++) {
         try {
             demoChannel = await adminClient.getChannelByName(team.id, 'demo_plugin');
-            if (demoChannel?.id) break;
+            if (demoChannel?.id) {
+                break;
+            }
         } catch {
             // Channel not yet created — wait and retry
         }

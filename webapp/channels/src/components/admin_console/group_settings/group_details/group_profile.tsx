@@ -14,7 +14,7 @@ type Props = {
     isDisabled?: boolean;
     showAtMention: boolean;
     onChange?: React.ChangeEventHandler<HTMLInputElement>;
-}
+};
 
 const GroupProfile = ({
     name,

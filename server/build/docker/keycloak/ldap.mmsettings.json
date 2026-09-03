@@ -7,7 +7,7 @@
         "ConnectionSecurity": "",
         "BaseDN": "dc=mm,dc=test,dc=com",
         "BindUsername": "cn=admin,dc=mm,dc=test,dc=com",
-        "BindPassword": "mostest",
+        "BindPassword": "mostest_password",
         "UserFilter": "",
         "GroupFilter": "",
         "GuestFilter": "",
@@ -31,9 +31,6 @@
         "QueryTimeout": 60,
         "MaxPageSize": 0,
         "LoginFieldName": "",
-        "LoginButtonColor": "#0000",
-        "LoginButtonBorderColor": "#2389D7",
-        "LoginButtonTextColor": "#2389D7",
         "Trace": false
     }
 }

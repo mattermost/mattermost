@@ -29,6 +29,7 @@ const (
 	ChannelTypePrivate      ChannelType = "P"
 	ChannelTypeDirect       ChannelType = "D"
 	ChannelTypeGroup        ChannelType = "G"
+	ChannelTypeSpace        ChannelType = "S"
 	ChannelTypeOpenBoard    ChannelType = "BO"
 	ChannelTypePrivateBoard ChannelType = "BP"
 
@@ -329,7 +330,7 @@ func (o *Channel) IsValid() *AppError {
 		return NewAppError("Channel.IsValid", "model.channel.is_valid.1_or_more.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
-	if !(o.Type == ChannelTypeOpen || o.Type == ChannelTypePrivate || o.Type == ChannelTypeDirect || o.Type == ChannelTypeGroup || o.Type == ChannelTypeOpenBoard || o.Type == ChannelTypePrivateBoard) {
+	if !(o.Type == ChannelTypeOpen || o.Type == ChannelTypePrivate || o.Type == ChannelTypeDirect || o.Type == ChannelTypeGroup || o.Type == ChannelTypeSpace || o.Type == ChannelTypeOpenBoard || o.Type == ChannelTypePrivateBoard) {
 		return NewAppError("Channel.IsValid", "model.channel.is_valid.type.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
@@ -374,6 +375,10 @@ func (o *Channel) IsValid() *AppError {
 
 	if o.Discoverable && o.Type != ChannelTypePrivate {
 		return NewAppError("Channel.IsValid", "model.channel.is_valid.discoverable.app_error", nil, "id="+o.Id, http.StatusBadRequest)
+	}
+
+	if o.IsGroupConstrained() && !o.SupportsGroupSync() {
+		return NewAppError("Channel.IsValid", "model.channel.is_valid.group_constrained.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
 	return nil
@@ -422,12 +427,21 @@ func (o *Channel) IsGroupOrDirect() bool {
 	return o.Type == ChannelTypeDirect || o.Type == ChannelTypeGroup
 }
 
+// SupportsGroupSync reports whether group_constrained is meaningful for the channel type.
+func (o *Channel) SupportsGroupSync() bool {
+	return o.Type == ChannelTypeOpen || o.Type == ChannelTypePrivate
+}
+
 func (o *Channel) IsOpen() bool {
 	return o.Type == ChannelTypeOpen
 }
 
 func (o *Channel) IsBoard() bool {
 	return o.Type == ChannelTypeOpenBoard || o.Type == ChannelTypePrivateBoard
+}
+
+func (o *Channel) IsSpace() bool {
+	return o.Type == ChannelTypeSpace
 }
 
 // IsMessageChannel reports whether the channel is one of the message-bearing

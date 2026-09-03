@@ -5,8 +5,6 @@ import React from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
-import {getSubscriptionProduct} from 'mattermost-redux/selectors/entities/cloud';
-
 import {closeModal} from 'actions/views/modals';
 import {isModalOpen} from 'selectors/views/modals';
 
@@ -28,7 +26,6 @@ type Props = {
 
 function ErrorModal(props: Props) {
     const dispatch = useDispatch();
-    const subscriptionProduct = useSelector(getSubscriptionProduct);
 
     const [openContactSupport] = useOpenCloudZendeskSupportForm('Cloud Subscription', '');
 
@@ -61,9 +58,6 @@ function ErrorModal(props: Props) {
                         <FormattedMessage
                             defaultMessage={'We were unable to change your plan'}
                             id={'error_modal.title'}
-                            values={{
-                                selectedProductName: subscriptionProduct?.name,
-                            }}
                         />
                     }
                     formattedSubtitle={
@@ -72,7 +66,6 @@ function ErrorModal(props: Props) {
                             defaultMessage={
                                 'An error occurred while changing your plan. Please go back and try again, or contact the support team.'
                             }
-                            values={{plan: subscriptionProduct?.name}}
                         />
                     }
                     error={true}

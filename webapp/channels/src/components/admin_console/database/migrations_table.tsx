@@ -17,7 +17,7 @@ type Props = {
     actions: {
         getAppliedSchemaMigrations: () => Promise<ActionResult>;
     };
-}
+};
 
 const MigrationsTable = ({
     createHelpText,

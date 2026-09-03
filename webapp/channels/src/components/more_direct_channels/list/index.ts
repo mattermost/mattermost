@@ -22,7 +22,7 @@ import type {Option, OptionValue} from '../types';
 type OwnProps = {
     users: UserProfile[];
     values: OptionValue[];
-}
+};
 
 export function makeGetOptions(): (state: GlobalState, users: UserProfile[], values: OptionValue[]) => Option[] {
     // Gets all loaded DMs (as UserProfiles)

@@ -16,7 +16,7 @@ type Props = {
     moveSlide: () => void;
     btnsStyle?: BtnStyle;
     disabled?: boolean;
-}
+};
 
 enum Destination {
     NEXT = 'next',

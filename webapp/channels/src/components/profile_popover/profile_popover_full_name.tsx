@@ -9,7 +9,7 @@ type Props = {
     fullname: string;
     username: string;
     remoteId?: string;
-}
+};
 const ProfilePopoverFullName = ({
     fullname,
     username,

@@ -73,6 +73,9 @@ describe('AdminDefinition - Mobile Ephemeral Mode Settings', () => {
         expect(section?.componentProps?.requiredSku).toBe(LicenseSkus.EnterpriseAdvanced);
         expect(section?.componentProps?.featureDiscoveryConfig).toBeDefined();
         expect(section?.componentProps?.featureDiscoveryConfig?.featureName).toBe('mobile_ephemeral_mode');
+        expect(section?.componentProps?.featureDiscoveryConfig?.learnMoreURL).toBe(
+            'https://docs.mattermost.com/configure/environment-configuration-settings.html#mobile-security',
+        );
     });
 
     test('isHidden should return true when feature flag is disabled', () => {

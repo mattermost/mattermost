@@ -32,7 +32,7 @@ type Props = {
     initialConnection?: OutgoingOAuthConnection;
 
     submitAction: (connection: OutgoingOAuthConnection) => Promise<void>;
-}
+};
 
 type State = {
     name: string;
@@ -89,7 +89,6 @@ export default function AbstractOutgoingOAuthConnection(props: Props) {
 
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [validationStatus, setValidationStatus] = useState<ValidationStatus>(ValidationStatus.INITIAL);
-    const [isEditingSecret, setIsEditingSecret] = useState(false);
 
     const [isValidationModalOpen, setIsValidationModalOpen] = useState(false);
 
@@ -123,7 +122,7 @@ export default function AbstractOutgoingOAuthConnection(props: Props) {
             return undefined;
         }
 
-        if ((isNewConnection || isEditingSecret) && !formState.clientSecret) {
+        if (!formState.clientSecret) {
             setIsSubmitting(false);
             setError(
                 <FormattedMessage
@@ -309,44 +308,8 @@ export default function AbstractOutgoingOAuthConnection(props: Props) {
         });
     };
 
-    const startEditingClientSecret = () => {
-        setIsEditingSecret(true);
-    };
-
     const headerToRender = props.header;
     const footerToRender = props.footer;
-
-    let clientSecretSection = (
-        <input
-            id='client_secret'
-            type='text'
-            autoComplete='off'
-            className='form-control'
-            value={formState.clientSecret}
-            onChange={updateClientSecret}
-        />
-    );
-
-    if (!isNewConnection && !isEditingSecret) {
-        clientSecretSection = (
-            <>
-                <input
-                    id='client_secret'
-                    disabled={true}
-                    autoComplete='off'
-                    type='text'
-                    className='form-control disabled'
-                    value={'•'.repeat(40)}
-                />
-                <span
-                    onClick={startEditingClientSecret}
-                    className='outgoing-oauth-connections-edit-secret'
-                >
-                    <i className='icon icon-pencil-outline'/>
-                </span>
-            </>
-        );
-    }
 
     return (
         <div className='backstage-content'>
@@ -428,7 +391,14 @@ export default function AbstractOutgoingOAuthConnection(props: Props) {
                             />
                         </label>
                         <div className='col-md-5 col-sm-8'>
-                            {clientSecretSection}
+                            <input
+                                id='client_secret'
+                                type='password'
+                                autoComplete='off'
+                                className='form-control'
+                                value={formState.clientSecret}
+                                onChange={updateClientSecret}
+                            />
                             <div className='form__help'>
                                 <FormattedMessage
                                     id='add_outgoing_oauth_connection.client_secret.help'
@@ -563,7 +533,7 @@ type ValidateButtonProps = {
     status: ValidationStatus;
     onClick: (e: FormEvent) => void;
     setUnvalidated: (e: FormEvent) => void;
-}
+};
 
 const ValidateButton = ({status, onClick, setUnvalidated}: ValidateButtonProps) => {
     if (status === ValidationStatus.ERROR) {

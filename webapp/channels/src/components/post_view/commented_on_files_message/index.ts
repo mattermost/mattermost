@@ -15,7 +15,7 @@ type OwnProps = {
      * The id of the post that was commented on
      */
     parentPostId: string;
-}
+};
 
 function makeMapStateToProps() {
     const selectFileInfosForPost = makeGetFilesForPost();

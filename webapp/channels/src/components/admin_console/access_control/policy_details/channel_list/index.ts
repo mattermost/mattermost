@@ -23,7 +23,7 @@ type OwnProps = {
     policyId?: string;
     channelsToAdd: Record<string, ChannelWithTeamData>;
     teamId?: string;
-}
+};
 
 const EMPTY_FILTERS: ChannelSearchOpts = {};
 const EMPTY_SEARCH_TERM = '';

@@ -1,17 +1,20 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Locator, expect} from '@playwright/test';
+import type {Locator} from '@playwright/test';
+import {expect} from '@playwright/test';
 
 export default class ChannelsAppBar {
     readonly container: Locator;
 
     readonly playbooksIcon;
+    readonly demoPluginButton;
 
     constructor(container: Locator) {
         this.container = container;
 
         this.playbooksIcon = container.locator('#app-bar-icon-playbooks').getByRole('img');
+        this.demoPluginButton = container.locator('#app-bar-icon-com\\.mattermost\\.demo-plugin');
     }
 
     async toBeVisible() {

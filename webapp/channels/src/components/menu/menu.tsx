@@ -48,14 +48,21 @@ type MenuButtonProps = {
     class?: string;
     as?: 'button' | 'div';
     children: ReactNode;
-}
+
+    /**
+     * Opt-in passthrough for callers that need to inspect or adjust the
+     * trigger before the click opens the menu. The menu itself does not
+     * depend on it.
+     */
+    onMouseDown?: (event: MouseEvent<HTMLElement>) => void;
+};
 
 type MenuButtonTooltipProps = {
     isVertical?: boolean;
     class?: string;
     text: string;
     disabled?: boolean;
-}
+};
 
 type MenuProps = {
 
@@ -94,7 +101,7 @@ type MenuProps = {
      * Defaults to true (standard MUI behavior).
      */
     autoFocusItem?: boolean;
-}
+};
 
 const defaultAnchorOrigin = {vertical: 'bottom', horizontal: 'left'} as PopoverOrigin;
 const defaultTransformOrigin = {vertical: 'top', horizontal: 'left'} as PopoverOrigin;
@@ -267,6 +274,7 @@ export function Menu(props: Props) {
                 aria-label={props.menuButton?.['aria-label']}
                 aria-describedby={props.menuButton?.['aria-describedby']}
                 className={props.menuButton?.class ?? ''}
+                onMouseDown={props.menuButton?.onMouseDown}
                 onClick={handleMenuButtonClick}
             >
                 {props.menuButton.children}

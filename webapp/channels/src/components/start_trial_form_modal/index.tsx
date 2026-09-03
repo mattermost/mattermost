@@ -41,7 +41,7 @@ enum TrialLoadStatus {
     NotStarted = 'NOT_STARTED',
     Started = 'STARTED',
     Success = 'SUCCESS',
-    Failed = 'FAILED'
+    Failed = 'FAILED',
 }
 
 defineMessages({
@@ -82,7 +82,7 @@ export enum OrgSize {
 
 type Props = {
     onClose?: () => void;
-}
+};
 
 function StartTrialFormModal(props: Props): JSX.Element | null {
     const [status, setLoadStatus] = useState(TrialLoadStatus.NotStarted);
@@ -91,7 +91,7 @@ function StartTrialFormModal(props: Props): JSX.Element | null {
     const [name, setName] = useState('');
     const [email, setEmail] = useState(currentUser.email);
     const [companyName, setCompanyName] = useState('');
-    const [orgSize, setOrgSize] = useState<OrgSize | undefined>();
+    const [orgSize, setOrgSize] = useState<OrgSize | ''>('');
     const [country, setCountry] = useState('');
     const [businessEmailError, setBusinessEmailError] = useState<CustomMessageInputType | undefined>(undefined);
     const {formatMessage} = useIntl();
@@ -213,8 +213,8 @@ function StartTrialFormModal(props: Props): JSX.Element | null {
     };
 
     const getOrgSizeDropdownValue = () => {
-        if (typeof orgSize === 'undefined') {
-            return orgSize;
+        if (!orgSize) {
+            return undefined;
         }
         return {
             value: orgSize,

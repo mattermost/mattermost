@@ -9,7 +9,7 @@ import {Button} from '@mattermost/shared/components/button';
 
 type Props = {
     onExited: () => void;
-}
+};
 
 const PostDeletedModal = ({
     onExited,

@@ -15,7 +15,7 @@ type Props = {
     hasImageProxy: boolean;
     imageMetadata?: PostImage;
     src: string;
-}
+};
 
 const ExternalImage = (props: Props) => {
     const shouldRenderImage = props.enableSVGs || !isSVGImage(props.imageMetadata, props.src);

@@ -10,7 +10,7 @@ type Props = {
     keyword?: string;
     pathname?: string;
     children: ReactNode;
-}
+};
 
 const DEBOUNCE_WAIT_TIME = 200;
 

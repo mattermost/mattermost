@@ -16,7 +16,7 @@ import {
 } from 'components/admin_console/system_properties/controls';
 import ExternalLink from 'components/external_link';
 
-import * as I18n from 'i18n/i18n.jsx';
+import * as I18n from 'i18n/i18n';
 
 import type {SystemConsoleCustomSettingsComponentProps} from '../schema_admin_settings';
 import type {SearchableStrings} from '../types';

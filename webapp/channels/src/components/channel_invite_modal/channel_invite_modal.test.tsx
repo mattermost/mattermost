@@ -515,6 +515,37 @@ describe('components/channel_invite_modal', () => {
         expect(screen.getByText('Attribute1: tag2')).toBeInTheDocument();
     });
 
+    test('does not request access control indicators when EnableChannelPolicyIndicators is disabled', () => {
+        const useAccessControlAttributesMock = require('components/common/hooks/useAccessControlAttributes').default;
+        useAccessControlAttributesMock.mockClear();
+
+        const props = {
+            ...baseProps,
+            channel: {
+                ...channel,
+                type: 'P' as ChannelType,
+                policy_enforced: true,
+            },
+        };
+
+        renderWithContext(
+            <ChannelInviteModal {...props}/>,
+            {
+                entities: {
+                    general: {
+                        config: {
+                            EnableChannelPolicyIndicators: 'false',
+                        },
+                    },
+                },
+            },
+        );
+
+        // hasAccessControl is false so no attribute fetch is triggered for
+        // rendering policy tags.
+        expect(useAccessControlAttributesMock).toHaveBeenCalledWith('channel', channel.id, false);
+    });
+
     test('should not show AlertBanner when policy_enforced is false', () => {
         const channelWithoutPolicy = {
             ...channel,

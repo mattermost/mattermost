@@ -1,0 +1,6 @@
+extends: occurrence
+message: "Sentence is %s words; consider breaking it up. Mission-critical content reads short."
+level: suggestion
+scope: sentence
+max: 35
+token: \b(\w+)\b

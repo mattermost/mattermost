@@ -59,6 +59,20 @@ describe('PostAttachmentContainer', () => {
         expect(screen.getByText('some children')).toBeInTheDocument();
     });
 
+    test('should render non-clickable attachment when click action is prevented', () => {
+        const {container} = renderWithContext(
+            <PostAttachmentContainer
+                {...baseProps}
+                preventClickAction={true}
+            />,
+            initialState,
+        );
+
+        expect(screen.queryByRole('button')).not.toBeInTheDocument();
+        const attachment = container.querySelector('.attachment');
+        expect(attachment).toHaveClass('attachment--permalink', 'attachment--prevent-click');
+    });
+
     test('should handle clicks on elements with non-string className without throwing error', () => {
         renderWithContext(
             <PostAttachmentContainer {...baseProps}/>, initialState,

@@ -31,7 +31,8 @@ import UserSettingsModal from 'components/user_settings/modal';
 import {getHistory} from 'utils/browser_history';
 import {Constants, ModalIdentifiers} from 'utils/constants';
 import {getIntl} from 'utils/i18n';
-import {isUrlSafe, getSiteURL} from 'utils/url';
+import {applyIntegrationGotoLocation} from 'utils/integration_navigation';
+import {isUrlSafe} from 'utils/url';
 import {getUserIdFromChannelName} from 'utils/utils';
 
 import type {ActionFuncAsync} from 'types/store';
@@ -43,7 +44,7 @@ export type ExecuteCommandReturnType = {
     silentFailureReason?: Error;
     commandResponse?: CommandResponse;
     appResponse?: AppCallResponse;
-}
+};
 
 export function executeCommand(message: string, args: CommandArgs): ActionFuncAsync<ExecuteCommandReturnType> {
     return async (dispatch, getState) => {
@@ -216,13 +217,7 @@ export function executeCommand(message: string, args: CommandArgs): ActionFuncAs
         }
 
         if (hasGotoLocation) {
-            if (data.goto_location.startsWith('/')) {
-                getHistory().push(data.goto_location);
-            } else if (data.goto_location.startsWith(getSiteURL())) {
-                getHistory().push(data.goto_location.substr(getSiteURL().length));
-            } else {
-                window.open(data.goto_location);
-            }
+            applyIntegrationGotoLocation(data.goto_location);
         }
 
         return {data: {response: data}};

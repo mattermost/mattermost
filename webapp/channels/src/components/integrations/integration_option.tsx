@@ -9,7 +9,7 @@ type Props = {
     title: JSX.Element;
     description: JSX.Element;
     link: string;
-}
+};
 
 const IntegrationOption = ({image, title, description, link}: Props) => {
     return (

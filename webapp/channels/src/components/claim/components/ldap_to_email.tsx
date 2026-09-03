@@ -24,7 +24,7 @@ type Props = {
     email: string | null;
     switchLdapToEmail: (ldapPassword: string, email: string, password: string, token: string) => Promise<ActionResult<AuthChangeResponse>>;
     passwordConfig?: PasswordConfig;
-}
+};
 
 const LDAPToEmail = (props: Props) => {
     const [passwordError, setPasswordError] = useState<string | JSX.Element>('');

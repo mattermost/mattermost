@@ -7,13 +7,19 @@ exports[`admin_console/system_role should match snapshot 1`] = `
   >
     <div
       class="admin-console__header with-back"
+      data-testid="admin-console-header"
     >
       <div>
         <a
           class="fa fa-angle-left back"
+          data-testid="adminHeader-backLink"
           href="/admin_console/user_management/system_roles"
         />
-        role_name
+        <span
+          data-testid="adminHeader-roleName"
+        >
+          role_name
+        </span>
       </div>
     </div>
     <div
@@ -57,6 +63,7 @@ exports[`admin_console/system_role should match snapshot 1`] = `
       </a>
       <div
         class="error-message"
+        data-testid="saveChangesPanel-errorMessage"
       />
     </div>
   </div>
@@ -70,13 +77,19 @@ exports[`admin_console/system_role should match snapshot with isLicensedForCloud
   >
     <div
       class="admin-console__header with-back"
+      data-testid="admin-console-header"
     >
       <div>
         <a
           class="fa fa-angle-left back"
+          data-testid="adminHeader-backLink"
           href="/admin_console/user_management/system_roles"
         />
-        role_name
+        <span
+          data-testid="adminHeader-roleName"
+        >
+          role_name
+        </span>
       </div>
     </div>
     <div
@@ -120,6 +133,7 @@ exports[`admin_console/system_role should match snapshot with isLicensedForCloud
       </a>
       <div
         class="error-message"
+        data-testid="saveChangesPanel-errorMessage"
       />
     </div>
   </div>

@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Locator, expect} from '@playwright/test';
+import type {Locator} from '@playwright/test';
+import {expect} from '@playwright/test';
 
 /**
  * System Console section header component
@@ -13,7 +14,7 @@ export default class SystemConsoleHeader {
 
     constructor(container: Locator) {
         this.container = container;
-        this.title = container.locator('.admin-console__header');
+        this.title = container.getByTestId('admin-console-header');
     }
 
     async toBeVisible() {

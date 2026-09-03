@@ -323,6 +323,59 @@ test.describe('Channel Classification - Existing channel settings', () => {
         expect(colorValue.toLowerCase().replace('#', '')).toBe(selectedLevel!.color.toLowerCase().replace('#', ''));
     });
 
+    test('Disabling classification with a custom banner color preserves it server-side, and re-enabling restores the Save button', async ({
+        pw,
+    }) => {
+        const {adminUser, team, adminClient} = await initSetupTracked(pw);
+
+        const channel = await adminClient.createChannel(
+            pw.random.channel({teamId: team.id, name: `cls-${pw.random.id()}`, displayName: `Cls ${pw.random.id()}`}),
+        );
+        await adminClient.addToChannel(adminUser.id, channel.id);
+
+        const {channelsPage} = await pw.testBrowser.login(adminUser);
+        await channelsPage.goto(team.name, channel.name);
+        await expect(channelsPage.page.getByTestId('channel_view')).toBeVisible({timeout: 60000});
+
+        // Step 1: enable classification, select a level, save
+        const channelSettingsModal = await channelsPage.openChannelSettings();
+        const configurationTab = await channelSettingsModal.openConfigurationTab();
+
+        const classificationToggle = channelsPage.page.getByTestId('channelClassificationToggle-button');
+        await classificationToggle.click();
+
+        const dropdownContainer = channelsPage.page.getByTestId('channelClassificationLevel');
+        await dropdownContainer.click();
+        const selectedLevel = classificationLevels.find((l) => l.name === 'SECRET')!;
+        await channelsPage.page.locator('.DropDown__menu').getByText(selectedLevel.name, {exact: true}).click();
+        await configurationTab.save();
+
+        // Step 2: in the same open modal, disable classification, enable a manual banner,
+        // set a custom color, save. The manual banner toggle is needed because master no
+        // longer auto-enables banner_info.enabled when classification is on, so the banner
+        // section body (and its color input) is hidden after toggling classification off
+        // until a manual banner is enabled.
+        await classificationToggle.click();
+        await configurationTab.enableChannelBanner();
+        const customColor = 'aa00aa';
+        await configurationTab.setChannelBannerBackgroundColor(customColor);
+        await configurationTab.save();
+
+        // Symptom 1 guard: color input reflects what we typed and the server persisted the custom color
+        const colorInput = channelsPage.page.locator('#channel_banner_banner_background_color_picker-inputColorValue');
+        await expect(colorInput).toHaveValue(`#${customColor}`);
+        const persisted = await adminClient.getChannel(channel.id);
+        expect(persisted.banner_info?.background_color?.toLowerCase().replace('#', '')).toBe(customColor);
+
+        // Symptom 2 guard: re-enable classification → Save button reappears (panel transitions out of 'saved')
+        await classificationToggle.click();
+        const saveButton = channelsPage.page.getByTestId('SaveChangesPanel__save-btn');
+        await expect(saveButton).toBeVisible();
+        await expect(saveButton).toBeEnabled();
+
+        await channelSettingsModal.close();
+    });
+
     test('Editing banner text and saving updates the banner in real time', async ({pw}) => {
         const {adminUser, team, adminClient} = await initSetupTracked(pw);
 

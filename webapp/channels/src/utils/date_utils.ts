@@ -56,7 +56,7 @@ export function stringToMoment(value: string | null, timezone?: string): Moment 
         if (!isValid(parsedDate)) {
             return null;
         }
-    } catch (error) {
+    } catch {
         return null;
     }
 
@@ -171,7 +171,7 @@ export function stringToDate(value: string | null): Date | null {
             return null;
         }
         return parsed;
-    } catch (error) {
+    } catch {
         return null;
     }
 }

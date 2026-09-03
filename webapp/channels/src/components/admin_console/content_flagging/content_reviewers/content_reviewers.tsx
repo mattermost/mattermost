@@ -26,7 +26,7 @@ type Props = {
     onChange: SystemConsoleCustomSettingChangeHandler;
     value: ContentFlaggingReviewerSetting;
     disabled?: boolean;
-}
+};
 
 export default function ContentFlaggingContentReviewers({id, onChange, value, disabled = false}: Props) {
     const [reviewerSetting, setReviewerSetting] = useState<ContentFlaggingReviewerSetting>(value as ContentFlaggingReviewerSetting);

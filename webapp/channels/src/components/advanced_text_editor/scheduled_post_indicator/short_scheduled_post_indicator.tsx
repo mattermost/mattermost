@@ -10,7 +10,7 @@ import type {ChannelScheduledPostIndicatorData} from 'mattermost-redux/selectors
 type Props = {
     scheduledPostData: ChannelScheduledPostIndicatorData;
     scheduledPostLinkURL: string;
-}
+};
 
 export function ShortScheduledPostIndicator({scheduledPostData, scheduledPostLinkURL}: Props) {
     if (scheduledPostData.count === 0) {

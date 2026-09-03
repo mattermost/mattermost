@@ -19,13 +19,16 @@ type Props = {
      * onClick handler when user clicks back button
      */
     onClick?: React.EventHandler<React.MouseEvent>;
-}
+};
 
 const BackButton = ({url = '/', className, onClick}: Props): JSX.Element => {
     const {formatMessage} = useIntl();
 
     return (
-        <div className={classNames('signup-header', className)}>
+        <div
+            data-testid='signup-header'
+            className={classNames('signup-header', className)}
+        >
             <Link
                 data-testid='back_button'
                 onClick={onClick}

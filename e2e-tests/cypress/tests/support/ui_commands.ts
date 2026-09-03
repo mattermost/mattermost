@@ -4,7 +4,7 @@
 import localforage from 'localforage';
 
 import * as TIMEOUTS from '../fixtures/timeouts';
-import {ChainableT} from '../types';
+import type {ChainableT} from '../types';
 import {isMac} from '../utils';
 
 // ***********************************************************
@@ -323,13 +323,19 @@ function clickPostHeaderItem(postId: string, location: string, item: string) {
         idPrefix = 'post';
     }
 
+    const hoverPostAndClickItem = (id: string) => {
+        // # Hover over the post and then wait for the hovered class to apply to ensure the header items are visible
+        cy.get(`#${idPrefix}_${id}`).trigger('mouseover', {force: true}).should('have.class', 'post--hovered');
+
+        // # Ensure the header item is visible then click on it
+        cy.get(`#${location}_${item}_${id}`).scrollIntoView().trigger('mouseover', {force: true}).click({force: true});
+    };
+
     if (postId) {
-        cy.get(`#${idPrefix}_${postId}`).trigger('mouseover', {force: true}).
-            get(`#${location}_${item}_${postId}`).scrollIntoView().trigger('mouseover', {force: true}).click({force: true});
+        hoverPostAndClickItem(postId);
     } else {
         cy.getLastPostId().then((lastPostId) => {
-            cy.get(`#${idPrefix}_${lastPostId}`).trigger('mouseover', {force: true}).
-                get(`#${location}_${item}_${lastPostId}`).scrollIntoView().trigger('mouseover', {force: true}).click({force: true});
+            hoverPostAndClickItem(lastPostId);
         });
     }
 }
@@ -543,8 +549,8 @@ function checkRunLDAPSync() {
                 return cy.get('@firstRow').then((el) => {
                     return el.find('.status-icon-success').length > 0;
                 });
-            }
-            , {
+            },
+            {
                 timeout: TIMEOUTS.FIVE_MIN,
                 interval: TIMEOUTS.TWO_SEC,
                 errorMsg: 'AD/LDAP Sync Job did not finish',
@@ -556,11 +562,24 @@ Cypress.Commands.add('checkRunLDAPSync', checkRunLDAPSync);
 
 function clickEmojiInEmojiPicker(emojiName: string) {
     cy.get('#emojiPicker').should('exist').and('be.visible').within(() => {
-        // # Mouse over the emoji to get it selected
-        cy.findAllByTestId(emojiName).eq(0).trigger('mouseover', {force: true});
+        // Re-hover each retry: recent/custom emoji loads re-render the picker and
+        // reset the cursor, and search results omit emoji_picker_preview until an
+        // emoji is hovered. Cypress.$ so a missing node returns false for waitUntil.
+        cy.waitUntil(() => {
+            const $emoji = Cypress.$('#emojiPicker').find(`[data-testid="${emojiName}"]`);
+            if ($emoji.length === 0) {
+                return false;
+            }
 
-        // * Verify that preview shows the emoji selected
-        cy.findAllByTestId('emoji_picker_preview').eq(0).should('exist').and('be.visible').contains(emojiName, {matchCase: false});
+            return cy.wrap($emoji.eq(0)).trigger('mouseover', {force: true}).then(() => {
+                const previewText = Cypress.$('#emojiPicker').find('[data-testid="emoji_picker_preview"]').eq(0).text();
+                return previewText.toLowerCase().includes(emojiName.toLowerCase());
+            });
+        }, {
+            timeout: TIMEOUTS.TEN_SEC,
+            interval: TIMEOUTS.HALF_SEC,
+            errorMsg: `Emoji picker preview never showed "${emojiName}"`,
+        });
 
         // # Click on the emoji
         cy.findAllByTestId(emojiName).eq(0).click({force: true});

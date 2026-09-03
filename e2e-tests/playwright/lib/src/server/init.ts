@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {expect} from '@playwright/test';
-import {TeamType} from '@mattermost/types/teams';
+import type {TeamType} from '@mattermost/types/teams';
 
 import {makeClient} from './client';
 import {getOnPremServerConfig} from './default_config';

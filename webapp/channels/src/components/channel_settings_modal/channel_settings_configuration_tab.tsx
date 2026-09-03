@@ -12,15 +12,14 @@ import {PropertyTypes} from 'mattermost-redux/action_types';
 import {patchChannel} from 'mattermost-redux/actions/channels';
 import {fetchChannelRemotes} from 'mattermost-redux/actions/shared_channels';
 import {Client4} from 'mattermost-redux/client';
+import {Permissions} from 'mattermost-redux/constants';
+import {ACCESS_CONTROL_PROPERTY_GROUP} from 'mattermost-redux/constants/properties';
 import {isChannelAutotranslated as isChannelAutotranslatedSelector} from 'mattermost-redux/selectors/entities/channels';
+import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getRemotesForChannel} from 'mattermost-redux/selectors/entities/shared_channels';
-import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 
 import {ColorSwatch, LevelOptionLabel} from 'components/admin_console/classification_markings/classification_markings_styled';
-import {
-    CLASSIFICATIONS_CHANNEL_OBJECT_TYPE,
-    CLASSIFICATIONS_GROUP_NAME,
-} from 'components/admin_console/classification_markings/utils';
+import {CLASSIFICATIONS_CHANNEL_OBJECT_TYPE} from 'components/admin_console/classification_markings/utils';
 import {classificationPresetDropdownStyles} from 'components/admin_console/classification_markings/utils/preset_dropdown_styles';
 import ColorInput from 'components/color_input';
 import useChannelClassificationBanner from 'components/common/hooks/useChannelClassificationBanner';
@@ -59,12 +58,33 @@ type Props = {
     canManageChannelTranslation?: boolean;
     canManageBanner?: boolean;
     canManageSharedChannels?: boolean;
-}
+};
 
 function bannerHasChanges(originalBannerInfo: Channel['banner_info'], updatedBannerInfo: Channel['banner_info']): boolean {
     return (originalBannerInfo?.text?.trim() || '') !== (updatedBannerInfo?.text?.trim() || '') ||
         (originalBannerInfo?.background_color?.trim() || '') !== (updatedBannerInfo?.background_color?.trim() || '') ||
         originalBannerInfo?.enabled !== updatedBannerInfo?.enabled;
+}
+
+type SharingSnapshot = {
+    enabled: boolean;
+    remotes: WorkspaceWithStatus[];
+};
+
+function remoteIdsKey(remotes: Array<{remote_id?: string; name?: string}>) {
+    return remotes.map((r) => r.remote_id || r.name).sort().join(',');
+}
+
+function copyRemotes(remotes: WorkspaceWithStatus[]) {
+    return remotes.map((r) => ({...r}));
+}
+
+function remotesWithoutPendingSave(remotes: WorkspaceWithStatus[]) {
+    return remotes.map((remote) => {
+        const saved = {...remote};
+        delete saved.pendingSave;
+        return saved;
+    });
 }
 
 function ChannelSettingsConfigurationTab({
@@ -104,26 +124,13 @@ function ChannelSettingsConfigurationTab({
     const classificationBanner = useChannelClassificationBanner(channel.id);
 
     const classification = useClassificationMarkings();
-    const isSystemAdmin = useSelector(isCurrentUserSystemAdmin);
-    const canManageClassification = classification.available && isSystemAdmin;
+    const canManageChannelRoles = useSelector((state: GlobalState) =>
+        haveIChannelPermission(state, channel.team_id, channel.id, Permissions.MANAGE_CHANNEL_ROLES),
+    );
+    const canManageClassification = classification.available && canManageChannelRoles;
     const [classificationEnabled, setClassificationEnabled] = useState(classificationBanner.hasClassification);
     const [selectedClassificationId, setSelectedClassificationId] = useState(classificationBanner.classificationId || '');
-
     const bannerLockedByClassification = classificationEnabled && Boolean(selectedClassificationId);
-
-    useEffect(() => {
-        setClassificationEnabled(classificationBanner.hasClassification);
-        setSelectedClassificationId(classificationBanner.classificationId || '');
-
-        if (classificationBanner.hasClassification && classificationBanner.classificationBanner) {
-            setUpdatedChannelBanner((prev) => ({
-                ...prev,
-                enabled: true,
-                text: classificationBanner.classificationBanner?.text ?? prev.text,
-                background_color: classificationBanner.classificationBanner?.background_color || prev.background_color || DEFAULT_CHANNEL_BANNER.background_color,
-            }));
-        }
-    }, [classificationBanner.hasClassification, classificationBanner.classificationId, classificationBanner.classificationBanner]);
 
     const classificationOptions = useMemo(() => {
         return classification.levels.
@@ -156,7 +163,7 @@ function ChannelSettingsConfigurationTab({
     }), [classificationBanner.hasClassification, classificationBanner.classificationId]);
 
     const hasClassificationChanges = classificationEnabled !== initialClassificationState.enabled ||
-        selectedClassificationId !== initialClassificationState.classificationId;
+        (classificationEnabled && selectedClassificationId !== initialClassificationState.classificationId);
 
     const handleClassificationToggle = useCallback(() => {
         setClassificationEnabled((prev) => {
@@ -166,12 +173,9 @@ function ChannelSettingsConfigurationTab({
                     setSelectedClassificationId(lowestRank.id);
                     setUpdatedChannelBanner((banner) => ({
                         ...banner,
-                        enabled: true,
                         text: `**${lowestRank.name}**`,
                         background_color: lowestRank.color,
                     }));
-                } else {
-                    setUpdatedChannelBanner((banner) => ({...banner, enabled: true}));
                 }
             }
             return !prev;
@@ -184,7 +188,6 @@ function ChannelSettingsConfigurationTab({
         if (level) {
             setUpdatedChannelBanner((prev) => ({
                 ...prev,
-                enabled: true,
                 text: `**${level.name}**`,
                 background_color: level.color,
             }));
@@ -248,7 +251,6 @@ function ChannelSettingsConfigurationTab({
     const autoTranslationSubHeading = formatMessage({id: 'channel_translation.label.subtext', defaultMessage: 'When enabled, messages in this channel will be translated to members\' own languages. Members can opt-out of this from the channel menu to view the original message instead.'});
 
     const initialIsChannelAutotranslated = useSelector((state: GlobalState) => isChannelAutotranslatedSelector(state, channel.id));
-    const initialRemotes = useSelector((state: GlobalState) => getRemotesForChannel(state, channel.id));
     const [isChannelAutotranslated, setIsChannelAutotranslated] = useState(initialIsChannelAutotranslated);
     const hasAutoTranslationChanges = isChannelAutotranslated !== initialIsChannelAutotranslated;
 
@@ -257,36 +259,46 @@ function ChannelSettingsConfigurationTab({
     }, []);
 
     // Shared channels section
-    const [workspaceRemotes, setWorkspaceRemotes] = useState<WorkspaceWithStatus[]>(() =>
-        (initialRemotes || []).map((r) => ({...r})),
-    );
+    const initialRemotes = useSelector((state: GlobalState) => getRemotesForChannel(state, channel.id));
+    const userEditedSharingRef = useRef(false);
+
+    const [savedSharing, setSavedSharing] = useState<SharingSnapshot>(() => ({
+        enabled: (initialRemotes || []).length > 0,
+        remotes: copyRemotes(initialRemotes || []),
+    }));
+    const [sharingEnabled, setSharingEnabled] = useState(savedSharing.enabled);
+    const [workspaceRemotes, setWorkspaceRemotes] = useState<WorkspaceWithStatus[]>(() => copyRemotes(savedSharing.remotes));
     const [showRemoveSharingConfirmModal, setShowRemoveSharingConfirmModal] = useState(false);
 
-    // Key to force re-render the ShareChannelWithWorkspaces component
-    // on reset and on save
-    const [shareChannelKey, setShareChannelKey] = useState(Date.now());
+    const hasWorkspaceChanges = sharingEnabled !== savedSharing.enabled ||
+        remoteIdsKey(workspaceRemotes) !== remoteIdsKey(savedSharing.remotes);
 
-    // Track the toggle state to detect when sharing is explicitly disabled on a channel
-    // that has channel.shared=true but no remotes loaded (e.g. after page reload).
-    // Both are frozen at mount time so they don't drift apart due to async channel hydration.
-    const initialSharingEnabled = useRef(channel.shared || (initialRemotes || []).length > 0);
-    const [sharingEnabled, setSharingEnabled] = useState(channel.shared || (initialRemotes || []).length > 0);
+    const applySharingSnapshot = useCallback((remotes: WorkspaceWithStatus[]) => {
+        const copies = remotesWithoutPendingSave(copyRemotes(remotes));
+        const enabled = copies.length > 0;
+        setSavedSharing({enabled, remotes: copies});
+        setSharingEnabled(enabled);
+        setWorkspaceRemotes(copies);
+    }, []);
 
-    // Freeze initialRemoteIds in state and update it atomically with workspaceRemotes (in
-    // useDidUpdate below) so that the two never diverge in the same render. If we computed
-    // initialRemoteIds live from the Redux selector, a fetchChannelRemotes response could
-    // update initialRemotes one render before useDidUpdate syncs workspaceRemotes, causing a
-    // spurious hasWorkspaceChanges=true that triggers the "discard changes" dialog on close.
-    const [frozenInitialRemoteIds, setFrozenInitialRemoteIds] = useState(
-        () => (initialRemotes || []).map((r) => r.remote_id || r.name).sort().join(','),
-    );
-    const currentRemoteIds = workspaceRemotes.map((r) => r.remote_id || r.name).sort().join(',');
-    const hasWorkspaceChanges = frozenInitialRemoteIds !== currentRemoteIds ||
-        sharingEnabled !== initialSharingEnabled.current;
+    const commitSharingAfterSave = useCallback((remotes: WorkspaceWithStatus[]) => {
+        applySharingSnapshot(remotes);
+        userEditedSharingRef.current = false;
+    }, [applySharingSnapshot]);
+
+    const handleSharingToggle = useCallback((enabled: boolean) => {
+        userEditedSharingRef.current = true;
+        setSharingEnabled(enabled);
+    }, []);
+
+    const handleWorkspaceRemotesChange = useCallback((update: React.SetStateAction<WorkspaceWithStatus[]>) => {
+        userEditedSharingRef.current = true;
+        setWorkspaceRemotes(update);
+    }, []);
 
     const confirmModalMessages = useMemo(() => {
         const workspaceRemoteIdSet = new Set(workspaceRemotes.map((r) => r.remote_id || r.name));
-        const remotesToRemove = (initialRemotes || []).filter((r) => !workspaceRemoteIdSet.has(r.remote_id || r.name));
+        const remotesToRemove = savedSharing.remotes.filter((r) => !workspaceRemoteIdSet.has(r.remote_id || r.name));
         const channelDisplayName = channel.display_name || channel.name;
         const removeCount = remotesToRemove.length;
         const workspaceNames = remotesToRemove.map((r) => r.display_name || r.name || r.remote_id || '');
@@ -322,7 +334,7 @@ function ChannelSettingsConfigurationTab({
         channel.name,
         formatList,
         formatMessage,
-        initialRemotes,
+        savedSharing.remotes,
         workspaceRemotes,
     ]);
 
@@ -333,18 +345,13 @@ function ChannelSettingsConfigurationTab({
     }, [canManageSharedChannels, channel.id, dispatch]);
 
     useDidUpdate(() => {
-        if (initialRemotes && canManageSharedChannels) {
-            // Update both frozen baseline and working copy atomically so they never diverge.
-            setFrozenInitialRemoteIds(
-                initialRemotes.map((r) => r.remote_id || r.name).sort().join(','),
-            );
-            setWorkspaceRemotes(initialRemotes.map((r) => ({...r})));
-            initialSharingEnabled.current = initialRemotes.length > 0;
-            if (initialRemotes.length > 0) {
-                setSharingEnabled(true);
-            }
+        if (!canManageSharedChannels || userEditedSharingRef.current) {
+            return;
         }
-    }, [canManageSharedChannels, initialRemotes]);
+
+        const fromServer = (initialRemotes || []).map((r) => ({...r}));
+        applySharingSnapshot(fromServer);
+    }, [applySharingSnapshot, canManageSharedChannels, initialRemotes]);
 
     const handleCancelRemoveSharing = useCallback(() => {
         setShowRemoveSharingConfirmModal(false);
@@ -357,8 +364,39 @@ function ChannelSettingsConfigurationTab({
         (canManageSharedChannels && hasWorkspaceChanges);
 
     useEffect(() => {
+        if (hasUnsavedChanges) {
+            return;
+        }
+
+        setClassificationEnabled(classificationBanner.hasClassification);
+        setSelectedClassificationId(classificationBanner.classificationId || '');
+
+        // Mirror the classification text/color into the local banner_info form
+        // state so the user can edit text while a classification is active —
+        // but never flip banner_info.enabled. The classification banner renders
+        // off the property value (see channel_banner.tsx); leaving banner_info
+        // disabled means deleting the property value makes the banner disappear
+        // without dragging stale text/color into the manual banner slot.
+        if (classificationBanner.hasClassification && classificationBanner.classificationBanner) {
+            setUpdatedChannelBanner((prev) => ({
+                ...prev,
+                text: classificationBanner.classificationBanner?.text ?? prev.text,
+                background_color: classificationBanner.classificationBanner?.background_color || prev.background_color || DEFAULT_CHANNEL_BANNER.background_color,
+            }));
+        }
+    }, [
+        classificationBanner.hasClassification,
+        classificationBanner.classificationId,
+        classificationBanner.classificationBanner,
+        hasUnsavedChanges,
+    ]);
+
+    useEffect(() => {
         setRequireConfirm(hasUnsavedChanges);
         setAreThereUnsavedChanges?.(hasUnsavedChanges);
+        if (hasUnsavedChanges) {
+            setSaveChangesPanelState((current) => (current === 'saved' ? undefined : current));
+        }
     }, [hasUnsavedChanges, setAreThereUnsavedChanges]);
 
     const handleServerError = useCallback((err: ServerError) => {
@@ -405,7 +443,7 @@ function ChannelSettingsConfigurationTab({
             updated.banner_info = {
                 text: updatedChannelBanner.text?.trim() || '',
                 background_color: updatedChannelBanner.background_color?.trim() || '',
-                enabled: true,
+                enabled: updatedChannelBanner.enabled,
             };
         }
 
@@ -421,7 +459,7 @@ function ChannelSettingsConfigurationTab({
             if (classificationEnabled && selectedClassificationId) {
                 try {
                     const values = await Client4.patchPropertyValues(
-                        CLASSIFICATIONS_GROUP_NAME,
+                        ACCESS_CONTROL_PROPERTY_GROUP,
                         CLASSIFICATIONS_CHANNEL_OBJECT_TYPE,
                         channel.id,
                         [{field_id: classification.channelField.id, value: selectedClassificationId}],
@@ -434,7 +472,7 @@ function ChannelSettingsConfigurationTab({
             } else if (!classificationEnabled && initialClassificationState.enabled) {
                 try {
                     await Client4.patchPropertyValues(
-                        CLASSIFICATIONS_GROUP_NAME,
+                        ACCESS_CONTROL_PROPERTY_GROUP,
                         CLASSIFICATIONS_CHANNEL_OBJECT_TYPE,
                         channel.id,
                         [{field_id: classification.channelField.id, value: null}],
@@ -448,11 +486,11 @@ function ChannelSettingsConfigurationTab({
         }
 
         if (canManageSharedChannels && hasWorkspaceChanges) {
-            const initialIds = new Set((initialRemotes || []).map((r) => r.remote_id || r.name));
+            const savedIds = new Set(savedSharing.remotes.map((r) => r.remote_id || r.name));
             const currentIds = new Set(workspaceRemotes.map((r) => r.remote_id || r.name));
 
             const toAdd = workspaceRemotes.filter((w) => w.pendingSave).map((w) => w.remote_id || w.name);
-            const toRemove = Array.from(initialIds).filter((id) => !currentIds.has(id));
+            const toRemove = Array.from(savedIds).filter((id) => !currentIds.has(id));
 
             let errorCount = 0;
             let lastError: ServerError | undefined;
@@ -475,8 +513,7 @@ function ChannelSettingsConfigurationTab({
                     errorCount++;
                 }
             }
-            await dispatch(fetchChannelRemotes(channel.id, true));
-            setShareChannelKey(Date.now());
+            const fetchResult = await dispatch(fetchChannelRemotes(channel.id, true));
 
             if (errorCount === 1) {
                 handleServerError(lastError as ServerError);
@@ -487,6 +524,12 @@ function ChannelSettingsConfigurationTab({
                     defaultMessage: 'There has been errors while sharing the channel with some workspaces. Please try again.',
                 }));
             }
+
+            if (errorCount === 0) {
+                const refreshedRemotes = (fetchResult as {data?: WorkspaceWithStatus[]})?.data ?? workspaceRemotes;
+                commitSharingAfterSave(refreshedRemotes);
+            }
+
             return errorCount === 0;
         }
 
@@ -506,11 +549,12 @@ function ChannelSettingsConfigurationTab({
         initialBannerInfo,
         initialClassificationState.enabled,
         initialIsChannelAutotranslated,
-        initialRemotes,
         isChannelAutotranslated,
         selectedClassificationId,
+        savedSharing,
         updatedChannelBanner,
         workspaceRemotes,
+        commitSharingAfterSave,
     ]);
 
     const performSave = useCallback(async () => {
@@ -534,7 +578,7 @@ function ChannelSettingsConfigurationTab({
     const handleSaveChanges = useCallback(async () => {
         if (canManageSharedChannels && hasWorkspaceChanges) {
             const currentIds = new Set(workspaceRemotes.map((r) => r.remote_id || r.name));
-            const remotesToRemove = (initialRemotes || []).filter(
+            const remotesToRemove = savedSharing.remotes.filter(
                 (r) => !currentIds.has(r.remote_id || r.name),
             );
 
@@ -545,7 +589,7 @@ function ChannelSettingsConfigurationTab({
         }
 
         await performSave();
-    }, [canManageSharedChannels, hasWorkspaceChanges, initialRemotes, performSave, workspaceRemotes]);
+    }, [canManageSharedChannels, hasWorkspaceChanges, performSave, savedSharing.remotes, workspaceRemotes]);
 
     const handleConfirmRemoveSharing = useCallback(async () => {
         setShowRemoveSharingConfirmModal(false);
@@ -566,13 +610,11 @@ function ChannelSettingsConfigurationTab({
         setSelectedClassificationId(initialClassificationState.classificationId);
 
         if (canManageSharedChannels) {
-            setSharingEnabled(initialSharingEnabled.current);
-            if (initialRemotes) {
-                setWorkspaceRemotes(initialRemotes.map((r) => ({...r})));
-                setShareChannelKey(Date.now());
-            }
+            setSharingEnabled(savedSharing.enabled);
+            setWorkspaceRemotes(copyRemotes(savedSharing.remotes));
+            userEditedSharingRef.current = false;
         }
-    }, [canManageSharedChannels, initialBannerInfo, initialClassificationState, initialRemotes]);
+    }, [canManageSharedChannels, initialBannerInfo, initialClassificationState, savedSharing]);
 
     const handleClose = useCallback(() => {
         setSaveChangesPanelState(undefined);
@@ -586,7 +628,10 @@ function ChannelSettingsConfigurationTab({
         showTabSwitchError;
 
     return (
-        <div className={`ChannelSettingsModal__configurationTab${showSaveChangesPanel ? ' ChannelSettingsModal__configurationTab--with-save-panel' : ''}`}>
+        <div
+            className={`ChannelSettingsModal__configurationTab${showSaveChangesPanel ? ' ChannelSettingsModal__configurationTab--with-save-panel' : ''}`}
+            data-testid='channel-settings-configuration-tab'
+        >
             {canManageSharedChannels && (
                 <>
                     <ConfirmModal
@@ -607,12 +652,11 @@ function ChannelSettingsConfigurationTab({
                         isStacked={true}
                     />
                     <ShareChannelWithWorkspaces
-                        key={shareChannelKey}
                         remotes={workspaceRemotes}
-                        initialRemotes={initialRemotes}
-                        onRemotesChange={setWorkspaceRemotes}
+                        initialRemotes={savedSharing.remotes}
+                        onRemotesChange={handleWorkspaceRemotesChange}
                         enabled={sharingEnabled}
-                        onToggle={setSharingEnabled}
+                        onToggle={handleSharingToggle}
                     />
                 </>
             )}
@@ -625,18 +669,24 @@ function ChannelSettingsConfigurationTab({
                 <>
                     <div className='channel_banner_header'>
                         <div className='channel_banner_header__text'>
-                            <span className='Input_legend'>
+                            <label
+                                className='Input_legend'
+                                htmlFor='channelClassificationToggle'
+                            >
                                 <FormattedMessage
                                     id='channel_settings.classification.title'
                                     defaultMessage='Classification'
                                 />
-                            </span>
-                            <span className='Input_subheading'>
+                            </label>
+                            <label
+                                className='Input_subheading'
+                                htmlFor='channelClassificationToggle'
+                            >
                                 <FormattedMessage
                                     id='channel_settings.classification.description'
                                     defaultMessage='When enabled, a classification level can be set for the channel with configurable indicators.'
                                 />
-                            </span>
+                            </label>
                         </div>
 
                         <div className='channel_banner_header__toggle'>
@@ -655,19 +705,17 @@ function ChannelSettingsConfigurationTab({
 
                     {classificationEnabled && (
                         <div className='channel_banner_section_body'>
-                            <div style={{marginBottom: 16}}>
-                                <SectionNotice
-                                    type='warning'
-                                    iconOverride='icon-information-outline'
-                                    title={
-                                        <FormattedMessage
-                                            id='admin.classification_markings.notice.title'
-                                            defaultMessage='Classification markings are informational only'
-                                        />
-                                    }
-                                    text={formatMessage({id: 'admin.classification_markings.notice.body', defaultMessage: 'Markings are not tied to access control decisions at this time and are for display purposes only.'})}
-                                />
-                            </div>
+                            <SectionNotice
+                                type='warning'
+                                iconOverride='icon-information-outline'
+                                title={
+                                    <FormattedMessage
+                                        id='admin.classification_markings.notice.title'
+                                        defaultMessage='Classification markings are informational only'
+                                    />
+                                }
+                                text={formatMessage({id: 'admin.classification_markings.notice.body', defaultMessage: 'Markings are not tied to access control decisions at this time and are for display purposes only.'})}
+                            />
 
                             <div className='setting_section'>
                                 <span className='setting_title'>

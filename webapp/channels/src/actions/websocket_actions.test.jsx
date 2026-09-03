@@ -5,15 +5,18 @@ import cloneDeep from 'lodash/cloneDeep';
 
 import {WebSocketEvents} from '@mattermost/client';
 
-import {ChannelTypes, CloudTypes} from 'mattermost-redux/action_types';
+import {ChannelTypes, CloudTypes, JobTypes, PostTypes, RenderPermissionTypes, TeamTypes} from 'mattermost-redux/action_types';
 import {fetchMyCategories} from 'mattermost-redux/actions/channel_categories';
-import {fetchAllMyTeamsChannels} from 'mattermost-redux/actions/channels';
+import {fetchAllMyTeamsChannels, getChannelMember} from 'mattermost-redux/actions/channels';
 import {getCustomProfileAttributeFields} from 'mattermost-redux/actions/general';
 import {getGroup} from 'mattermost-redux/actions/groups';
+import {getJobsByType} from 'mattermost-redux/actions/jobs';
 import {
     getPostThreads,
+    getPostsAround,
     receivedNewPost,
 } from 'mattermost-redux/actions/posts';
+import {fetchChannelRemotes} from 'mattermost-redux/actions/shared_channels';
 import {batchFetchStatusesProfilesGroupsFromPosts} from 'mattermost-redux/actions/status_profile_polling';
 import {getUser} from 'mattermost-redux/actions/users';
 import {getCustomProfileAttributes} from 'mattermost-redux/selectors/entities/general';
@@ -28,20 +31,26 @@ import store from 'stores/redux_store';
 import {invalidateAccessControlAttributesCache} from 'components/common/hooks/useAccessControlAttributes';
 
 import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
+import {defaultIntl} from 'tests/helpers/intl-test-helper';
 import configureStore from 'tests/test_store';
 import {getHistory} from 'utils/browser_history';
-import Constants, {ActionTypes, UserStatuses} from 'utils/constants';
+import Constants, {ActionTypes, ModalIdentifiers, UserStatuses} from 'utils/constants';
+import {setIntl} from 'utils/i18n';
 
 import {
     handleChannelUpdatedEvent,
     handleChannelAccessControlUpdatedEvent,
+    handlePermissionPolicyUpdatedEvent,
+    handleTeamAccessControlUpdatedEvent,
     handleEvent,
+    handleFileUploadRejected,
     handleNewPostEvent,
     handleNewPostEvents,
     handlePluginEnabled,
     handlePluginDisabled,
     handlePostEditEvent,
     handlePostUnreadEvent,
+    handleUserAddedEvent,
     handleUserRemovedEvent,
     handleLeaveTeamEvent,
     reconnect,
@@ -54,12 +63,15 @@ import {
     handleCustomAttributesCreated,
     handleCustomAttributesUpdated,
     handleCustomAttributesDeleted,
+    handleJobUpdated,
 } from './websocket_actions';
 
 jest.mock('mattermost-redux/actions/posts', () => ({
     ...jest.requireActual('mattermost-redux/actions/posts'),
     getPostThreads: jest.fn(() => ({type: 'GET_THREADS_FOR_POSTS'})),
+    getPostsAround: jest.fn(() => ({type: 'GET_POSTS_AROUND'})),
     getMentionsAndStatusesForPosts: jest.fn(),
+    resetReloadPostsInChannel: jest.fn((channelId) => ({type: 'MOCK_RESET_POSTS', channelId})),
 }));
 
 jest.mock('mattermost-redux/actions/channel_categories', () => ({
@@ -90,6 +102,7 @@ jest.mock('mattermost-redux/actions/users', () => ({
 
 jest.mock('mattermost-redux/actions/channels', () => ({
     getChannelStats: jest.fn(() => ({type: 'GET_CHANNEL_STATS'})),
+    getChannelMember: jest.fn(() => ({type: 'GET_CHANNEL_MEMBER'})),
     fetchAllMyChannelMembers: jest.fn(() => ({type: 'FETCH_ALL_MY_CHANNEL_MEMBERS'})),
     fetchAllMyTeamsChannels: jest.fn(),
 }));
@@ -112,6 +125,7 @@ jest.mock('actions/global_actions', () => ({
 jest.mock('actions/views/channel', () => ({
     ...jest.requireActual('actions/views/channel'),
     syncPostsInChannel: jest.fn(),
+    loadUnreads: jest.fn((channelId) => ({type: 'MOCK_LOAD_UNREADS', channelId})),
 }));
 
 jest.mock('plugins', () => ({
@@ -122,6 +136,18 @@ jest.mock('plugins', () => ({
 jest.mock('components/common/hooks/useAccessControlAttributes', () => ({
     EntityType: {Channel: 'channel'},
     invalidateAccessControlAttributesCache: jest.fn(),
+}));
+
+jest.mock('mattermost-redux/actions/shared_channels', () => ({
+    fetchChannelRemotes: jest.fn((channelId, forceRefresh) => ({
+        type: 'MOCK_FETCH_CHANNEL_REMOTES',
+        channelId,
+        forceRefresh,
+    })),
+}));
+
+jest.mock('mattermost-redux/actions/jobs', () => ({
+    getJobsByType: jest.fn((jobType) => ({type: 'MOCK_GET_JOBS_BY_TYPE', jobType})),
 }));
 
 let mockState = {
@@ -211,6 +237,10 @@ let mockState = {
                     order: ['post5', 'post2', 'post1'],
                     recent: true,
                 }],
+                channel2: [{
+                    order: ['post4', 'post3'],
+                    recent: true,
+                }],
             },
         },
     },
@@ -251,20 +281,102 @@ describe('handleEvent', () => {
 });
 
 describe('handlePostEditEvent', () => {
+    beforeEach(() => {
+        store.dispatch.mockClear();
+        getPostsAround.mockClear();
+    });
+
+    const buildMsg = (postOverrides) => {
+        const post = JSON.stringify({
+            id: 'test',
+            create_at: 123,
+            update_at: 123,
+            user_id: 'user',
+            channel_id: '12345',
+            root_id: '',
+            message: 'asd',
+            pending_post_id: '2345',
+            metadata: {},
+            ...postOverrides,
+        });
+        return {
+            data: {post},
+            broadcast: {channel_id: '1234657'},
+        };
+    };
+
     test('post edited', async () => {
-        const post = '{"id":"test","create_at":123,"update_at":123,"user_id":"user","channel_id":"12345","root_id":"","message":"asd","pending_post_id":"2345","metadata":{}}';
-        const expectedAction = {type: 'RECEIVED_POST', data: JSON.parse(post), features: {crtEnabled: false}};
-        const msg = {
-            data: {
-                post,
-            },
-            broadcast: {
-                channel_id: '1234657',
-            },
+        const msg = buildMsg({});
+        const expectedAction = {
+            type: 'RECEIVED_POST',
+            data: JSON.parse(msg.data.post),
+            features: {crtEnabled: false},
         };
 
         handlePostEditEvent(msg);
         expect(store.dispatch).toHaveBeenCalledWith(expectedAction);
+        expect(getPostsAround).not.toHaveBeenCalled();
+    });
+
+    test('restored post within a loaded block range triggers getPostsAround', () => {
+        // mockState's otherChannel block contains post5 (create_at 12345 — newest)
+        // through post1 (create_at 12341 — oldest). A restored post not in that
+        // order but with create_at inside the range should fetch surrounding posts.
+        const msg = buildMsg({id: 'restored', channel_id: 'otherChannel', create_at: 12343});
+
+        handlePostEditEvent(msg);
+
+        expect(getPostsAround).toHaveBeenCalledWith('otherChannel', 'restored');
+        expect(store.dispatch).toHaveBeenCalledWith({type: 'GET_POSTS_AROUND'});
+    });
+
+    test('restored post newer than every loaded block in the current channel triggers getPostsAround', () => {
+        const msg = buildMsg({id: 'restored', channel_id: 'otherChannel', create_at: 99999});
+        handlePostEditEvent(msg);
+        expect(getPostsAround).toHaveBeenCalledWith('otherChannel', 'restored');
+    });
+
+    test('restored post newer than every loaded block in a non-current channel does not trigger getPostsAround', () => {
+        const msg = buildMsg({id: 'restored', channel_id: 'channel2', create_at: 99999});
+        handlePostEditEvent(msg);
+        expect(getPostsAround).not.toHaveBeenCalled();
+    });
+
+    test('restored post older than every loaded block does not trigger getPostsAround', () => {
+        // create_at well below the block's oldest (12341). Inserting here would
+        // produce a disjoint block; let the user load it naturally on scroll.
+        const msg = buildMsg({id: 'restored', channel_id: 'otherChannel', create_at: 100});
+
+        handlePostEditEvent(msg);
+
+        expect(getPostsAround).not.toHaveBeenCalled();
+    });
+
+    test('post already in a block does not trigger getPostsAround', () => {
+        // post5 is in mockState's otherChannel order — receivedPost updates the
+        // entity in place; no surrounding fetch is needed.
+        const msg = buildMsg({id: 'post5', channel_id: 'otherChannel', create_at: 12345});
+
+        handlePostEditEvent(msg);
+
+        expect(getPostsAround).not.toHaveBeenCalled();
+    });
+
+    test('edit for an unloaded channel does not trigger getPostsAround', () => {
+        const msg = buildMsg({id: 'restored', channel_id: 'channelNotInState', create_at: 12343});
+
+        handlePostEditEvent(msg);
+
+        expect(getPostsAround).not.toHaveBeenCalled();
+    });
+
+    test('thread reply does not trigger getPostsAround', () => {
+        // Replies live in postsInThread, not postsInChannel — skip this path.
+        const msg = buildMsg({id: 'reply', channel_id: 'otherChannel', create_at: 12343, root_id: 'post5'});
+
+        handlePostEditEvent(msg);
+
+        expect(getPostsAround).not.toHaveBeenCalled();
     });
 });
 
@@ -344,6 +456,117 @@ describe('handlePostUnreadEvent', () => {
 
         handlePostUnreadEvent(msg);
         expect(store.dispatch).toHaveBeenCalledWith(expectedAction);
+    });
+});
+
+describe('handleUserAddedEvent', () => {
+    const currentChannelId = mockState.entities.channels.currentChannelId;
+
+    // getLicense() must resolve to an object for handleUserAddedEvent, so add one
+    // to a local copy of the state rather than mutating the shared mockState.
+    const stateWithLicense = {
+        ...mockState,
+        entities: {
+            ...mockState.entities,
+            general: {
+                ...mockState.entities.general,
+                license: {},
+            },
+        },
+    };
+
+    // A state where the added user already has both a loaded profile and a loaded
+    // ChannelMembership in the current channel, so nothing needs to be fetched.
+    const stateWithLoadedMember = mergeObjects(stateWithLicense, {
+        entities: {
+            users: {
+                profiles: {
+                    loadedMember: {id: 'loadedMember', roles: 'system_user'},
+                },
+            },
+            channels: {
+                membersInChannel: {
+                    [currentChannelId]: {
+                        loadedMember: {channel_id: currentChannelId, user_id: 'loadedMember'},
+                    },
+                },
+            },
+        },
+    });
+
+    test('should load both the profile and the channel membership for a newly synced remote member', async () => {
+        const testStore = configureStore(stateWithLicense);
+        const msg = {
+            data: {
+                user_id: 'remoteUser',
+            },
+            broadcast: {
+                channel_id: currentChannelId,
+            },
+        };
+
+        await testStore.dispatch(handleUserAddedEvent(msg));
+
+        // Both the profile and the ChannelMembership are required for the member to
+        // render in the participant list.
+        expect(getUser).toHaveBeenCalledWith('remoteUser');
+        expect(getChannelMember).toHaveBeenCalledWith(currentChannelId, 'remoteUser');
+    });
+
+    test('should still load the channel membership when the profile is already loaded but the membership is not', async () => {
+        // Regression test for MM-67616: a synced remote member whose profile was
+        // already loaded (e.g. because they posted) but who has no ChannelMembership
+        // was silently dropped from the participant list, because the member list
+        // requires the membership relation. The membership must be fetched even when
+        // the profile fetch is skipped.
+        const testStore = configureStore(stateWithLicense);
+        const msg = {
+            data: {
+                user_id: 'user',
+            },
+            broadcast: {
+                channel_id: currentChannelId,
+            },
+        };
+
+        await testStore.dispatch(handleUserAddedEvent(msg));
+
+        expect(getUser).not.toHaveBeenCalled();
+        expect(getChannelMember).toHaveBeenCalledWith(currentChannelId, 'user');
+    });
+
+    test('should not load the profile or membership when both are already in the store', async () => {
+        const testStore = configureStore(stateWithLoadedMember);
+        const msg = {
+            data: {
+                user_id: 'loadedMember',
+            },
+            broadcast: {
+                channel_id: currentChannelId,
+            },
+        };
+
+        await testStore.dispatch(handleUserAddedEvent(msg));
+
+        expect(getUser).not.toHaveBeenCalled();
+        expect(getChannelMember).not.toHaveBeenCalled();
+    });
+
+    test('should not load the profile or membership when the channel is not the current channel', async () => {
+        const testStore = configureStore(stateWithLicense);
+        const msg = {
+            data: {
+                user_id: 'remoteUser',
+            },
+            broadcast: {
+                channel_id: 'someOtherChannel',
+            },
+        };
+
+        await testStore.dispatch(handleUserAddedEvent(msg));
+
+        expect(getUser).not.toHaveBeenCalled();
+        expect(getChannelMember).not.toHaveBeenCalled();
     });
 });
 
@@ -725,9 +948,6 @@ describe('reconnect', () => {
                         license: {
                             SkuShortName: 'enterprise',
                         },
-                        config: {
-                            FeatureFlagCustomProfileAttributes: 'true',
-                        },
                     },
                 },
             },
@@ -741,9 +961,9 @@ describe('reconnect', () => {
     });
 
     test.each([
-        {SkuShortName: 'starter', FeatureFlagCustomProfileAttributes: 'true'},
-        {SkuShortName: 'enterprise', FeatureFlagCustomProfileAttributes: 'false'},
-    ])("should not reload custom profile attribute fields on reconnect if feature isn't available", ({SkuShortName, FeatureFlagCustomProfileAttributes}) => {
+        {SkuShortName: 'starter'},
+        {SkuShortName: 'professional'},
+    ])('should not reload custom profile attribute fields on reconnect without an Enterprise license', ({SkuShortName}) => {
         const clonedMockState = cloneDeep(mockState);
 
         mockState = mergeObjects(
@@ -753,9 +973,6 @@ describe('reconnect', () => {
                     general: {
                         license: {
                             SkuShortName,
-                        },
-                        config: {
-                            FeatureFlagCustomProfileAttributes,
                         },
                     },
                 },
@@ -883,12 +1100,20 @@ describe('handleChannelUpdatedEvent', () => {
 });
 
 describe('handleChannelAccessControlUpdatedEvent', () => {
+    const withPermissionPolicies = (entities = {}) => ({
+        entities: {
+            general: {config: {FeatureFlagPermissionPolicies: 'true'}},
+            ...entities,
+        },
+    });
+
     beforeEach(() => {
         invalidateAccessControlAttributesCache.mockClear();
     });
 
     test('dispatches RECEIVED_CHANNEL with parsed channel and invalidates attribute cache', () => {
-        const testStore = configureStore({});
+        // Current channel differs from the updated channel, so no post reconciliation.
+        const testStore = configureStore(withPermissionPolicies({channels: {currentChannelId: 'other-channel'}}));
         const channel = {
             id: 'channel-ac-1',
             team_id: 'team-1',
@@ -902,14 +1127,49 @@ describe('handleChannelAccessControlUpdatedEvent', () => {
 
         testStore.dispatch(handleChannelAccessControlUpdatedEvent(msg));
 
+        // Scoped to the one channel: no broad channel/member/team refetch.
         expect(testStore.getActions()).toEqual([
             {
                 type: ChannelTypes.RECEIVED_CHANNEL,
                 data: channel,
             },
+            {
+                type: RenderPermissionTypes.INVALIDATE_RENDER_DECISIONS_FOR_CHANNEL,
+                data: {channelId: 'channel-ac-1', generation: expect.any(Number)},
+            },
+            {
+                type: PostTypes.RESET_POSTS_IN_CHANNEL,
+                channelId: 'channel-ac-1',
+            },
         ]);
         expect(invalidateAccessControlAttributesCache).toHaveBeenCalledTimes(1);
         expect(invalidateAccessControlAttributesCache).toHaveBeenCalledWith('channel', 'channel-ac-1');
+    });
+
+    test('refetches the posts when the updated channel is the one being viewed', () => {
+        const testStore = configureStore(withPermissionPolicies({channels: {currentChannelId: 'channel-ac-1'}}));
+        const channel = {id: 'channel-ac-1', team_id: 'team-1', policy_enforced: true};
+
+        testStore.dispatch(handleChannelAccessControlUpdatedEvent({data: {channel: JSON.stringify(channel)}}));
+
+        // Dropping the chunks alone would leave the channel in view empty until it remounts.
+        expect(testStore.getActions()).toContainEqual({type: PostTypes.RESET_POSTS_IN_CHANNEL, channelId: 'channel-ac-1'});
+        expect(testStore.getActions()).toContainEqual({type: 'MOCK_LOAD_UNREADS', channelId: 'channel-ac-1'});
+    });
+
+    test('updates the channel but drops no render state when permission policies are disabled', () => {
+        const testStore = configureStore({
+            entities: {
+                general: {config: {FeatureFlagPermissionPolicies: 'false'}},
+                channels: {currentChannelId: 'channel-ac-1'},
+            },
+        });
+        const channel = {id: 'channel-ac-1', team_id: 'team-1', policy_enforced: true};
+
+        testStore.dispatch(handleChannelAccessControlUpdatedEvent({data: {channel: JSON.stringify(channel)}}));
+
+        const types = testStore.getActions().map((a) => a.type);
+        expect(types).toEqual([ChannelTypes.RECEIVED_CHANNEL]);
     });
 
     test('returns early when msg.data.channel is missing', () => {
@@ -920,6 +1180,39 @@ describe('handleChannelAccessControlUpdatedEvent', () => {
 
         expect(testStore.getActions()).toEqual([]);
         expect(invalidateAccessControlAttributesCache).not.toHaveBeenCalled();
+    });
+});
+
+describe('handleTeamAccessControlUpdatedEvent', () => {
+    test('dispatches RECEIVED_TEAM with parsed team', () => {
+        const testStore = configureStore({});
+        const team = {
+            id: 'team-ac-1',
+            policy_enforced: true,
+        };
+        const msg = {
+            data: {
+                team: JSON.stringify(team),
+            },
+        };
+
+        testStore.dispatch(handleTeamAccessControlUpdatedEvent(msg));
+
+        expect(testStore.getActions()).toEqual([
+            {
+                type: TeamTypes.RECEIVED_TEAM,
+                data: team,
+            },
+        ]);
+    });
+
+    test('returns early when msg.data.team is missing', () => {
+        const testStore = configureStore({});
+        const msg = {data: {}};
+
+        testStore.dispatch(handleTeamAccessControlUpdatedEvent(msg));
+
+        expect(testStore.getActions()).toEqual([]);
     });
 });
 
@@ -1434,6 +1727,90 @@ describe('handleCustomAttributeValuesUpdated', () => {
     });
 });
 
+describe('render permission invalidation via existing events', () => {
+    const currentUserId = 'user1';
+
+    function stateWithCurrentUser(currentChannelId = '') {
+        return {
+            entities: {
+                users: {
+                    currentUserId,
+                    profiles: {user1: {id: currentUserId, roles: 'system_user'}},
+                },
+                channels: {currentChannelId},
+                general: {config: {FeatureFlagPermissionPolicies: 'true'}},
+                posts: {postsInChannel: {}},
+            },
+        };
+    }
+
+    test('CPA value update for the current user clears render decisions, resets every channel and refetches the visible one', () => {
+        const testStore = configureStore(stateWithCurrentUser('visible-channel'));
+
+        testStore.dispatch(handleCustomAttributeValuesUpdated({data: {user_id: currentUserId, values: {field1: 'v'}}}));
+
+        const actions = testStore.getActions();
+        expect(actions.map((a) => a.type)).toContain(RenderPermissionTypes.CLEAR_RENDER_DECISIONS);
+
+        // One bulk reset (no channel id) rather than one dispatch per loaded channel.
+        expect(actions).toContainEqual({type: PostTypes.RESET_POSTS_IN_CHANNEL, channelId: undefined});
+        expect(actions).toContainEqual({type: 'MOCK_LOAD_UNREADS', channelId: 'visible-channel'});
+    });
+
+    test('CPA value update with no channel in view resets without refetching', () => {
+        const testStore = configureStore(stateWithCurrentUser());
+
+        testStore.dispatch(handleCustomAttributeValuesUpdated({data: {user_id: currentUserId, values: {field1: 'v'}}}));
+
+        const types = testStore.getActions().map((a) => a.type);
+        expect(types).toContain(PostTypes.RESET_POSTS_IN_CHANNEL);
+        expect(types).not.toContain('MOCK_LOAD_UNREADS');
+    });
+
+    test('CPA value update for another user does NOT invalidate current-user render decisions', () => {
+        const testStore = configureStore(stateWithCurrentUser());
+
+        testStore.dispatch(handleCustomAttributeValuesUpdated({data: {user_id: 'someoneElse', values: {field1: 'v'}}}));
+
+        const types = testStore.getActions().map((a) => a.type);
+        expect(types).not.toContain(RenderPermissionTypes.CLEAR_RENDER_DECISIONS);
+        expect(types).not.toContain(PostTypes.RESET_POSTS_IN_CHANNEL);
+    });
+});
+
+describe('handlePermissionPolicyUpdatedEvent', () => {
+    function stateWith(currentChannelId, channelIds = [], permissionPoliciesEnabled = true) {
+        return {
+            entities: {
+                channels: {currentChannelId},
+                general: {config: {FeatureFlagPermissionPolicies: permissionPoliciesEnabled ? 'true' : 'false'}},
+                posts: {postsInChannel: channelIds.reduce((acc, id) => ({...acc, [id]: []}), {})},
+            },
+        };
+    }
+
+    test('clears render decisions and resets every loaded channel in a single action', () => {
+        const testStore = configureStore(stateWith('visible-channel', ['visible-channel', 'other-channel']));
+
+        testStore.dispatch(handlePermissionPolicyUpdatedEvent());
+
+        const actions = testStore.getActions();
+        expect(actions.map((a) => a.type)).toContain(RenderPermissionTypes.CLEAR_RENDER_DECISIONS);
+
+        const resets = actions.filter((a) => a.type === PostTypes.RESET_POSTS_IN_CHANNEL);
+        expect(resets).toEqual([{type: PostTypes.RESET_POSTS_IN_CHANNEL, channelId: undefined}]);
+        expect(actions).toContainEqual({type: 'MOCK_LOAD_UNREADS', channelId: 'visible-channel'});
+    });
+
+    test('does nothing when permission policies are disabled', () => {
+        const testStore = configureStore(stateWith('visible-channel', ['visible-channel'], false));
+
+        testStore.dispatch(handlePermissionPolicyUpdatedEvent());
+
+        expect(testStore.getActions()).toEqual([]);
+    });
+});
+
 describe('handleCustomAttributeCRUD', () => {
     const field1 = {id: 'field1', groupid: 'group1', name: 'FIELD ONE', type: 'text'};
     const field2 = {id: 'field2', groupid: 'group1', name: 'FIELD TWO', type: 'text'};
@@ -1820,5 +2197,192 @@ describe('handleChannelConvertedEvent', () => {
                 name: 'test-channel',
             },
         });
+    });
+});
+
+describe('handleSharedChannelRemoteUpdatedEvent', () => {
+    const channelId = 'shared-remote-channel';
+
+    beforeEach(() => {
+        store.dispatch.mockClear();
+        fetchChannelRemotes.mockClear();
+        mockState = {
+            ...mockState,
+            entities: {
+                ...mockState.entities,
+                channels: {
+                    ...mockState.entities.channels,
+                    channels: {
+                        ...mockState.entities.channels.channels,
+                        [channelId]: {
+                            id: channelId,
+                            team_id: 'currentTeamId',
+                            type: Constants.OPEN_CHANNEL,
+                            name: 'shared-channel',
+                            shared: true,
+                        },
+                    },
+                },
+            },
+        };
+    });
+
+    test('dispatches fetchChannelRemotes when local channel is shared', () => {
+        const msg = {
+            event: WebSocketEvents.SharedChannelRemoteUpdated,
+            data: {channel_id: channelId},
+            broadcast: {channel_id: channelId},
+        };
+
+        handleEvent(msg);
+
+        expect(fetchChannelRemotes).toHaveBeenCalledWith(channelId, true);
+        expect(store.dispatch).toHaveBeenCalledWith({
+            type: 'MOCK_FETCH_CHANNEL_REMOTES',
+            channelId,
+            forceRefresh: true,
+        });
+    });
+
+    test('skips fetch when local channel is not shared (regression: MM-66162)', () => {
+        mockState.entities.channels.channels[channelId].shared = false;
+
+        const msg = {
+            event: WebSocketEvents.SharedChannelRemoteUpdated,
+            data: {channel_id: channelId},
+            broadcast: {channel_id: channelId},
+        };
+
+        handleEvent(msg);
+
+        expect(fetchChannelRemotes).not.toHaveBeenCalled();
+    });
+
+    test('skips fetch when channel is absent from local state', () => {
+        const msg = {
+            event: WebSocketEvents.SharedChannelRemoteUpdated,
+            data: {channel_id: 'unknown-channel'},
+            broadcast: {channel_id: 'unknown-channel'},
+        };
+
+        handleEvent(msg);
+
+        expect(fetchChannelRemotes).not.toHaveBeenCalled();
+    });
+
+    test('skips fetch when channel_id is missing from both data and broadcast', () => {
+        const msg = {
+            event: WebSocketEvents.SharedChannelRemoteUpdated,
+            data: {},
+            broadcast: {},
+        };
+
+        handleEvent(msg);
+
+        expect(fetchChannelRemotes).not.toHaveBeenCalled();
+    });
+});
+
+describe('handleFileUploadRejected', () => {
+    beforeAll(() => {
+        setIntl(defaultIntl);
+    });
+
+    afterAll(() => {
+        setIntl(null);
+    });
+
+    const msg = {
+        event: WebSocketEvents.FileUploadRejected,
+        data: {
+            file_name: 'secret.tdf',
+            rejection_reason: 'blocked by policy',
+            channel_id: 'channel1',
+        },
+        broadcast: {},
+    };
+
+    test('opens an info toast with the rejection reason', () => {
+        const testStore = configureStore();
+
+        testStore.dispatch(handleFileUploadRejected(msg));
+
+        const openModalAction = testStore.getActions().find((action) => action.type === ActionTypes.MODAL_OPEN);
+        expect(openModalAction).toBeDefined();
+        expect(openModalAction.modalId).toBe(ModalIdentifiers.INFO_TOAST);
+        expect(openModalAction.dialogProps.position).toBe('bottom-center');
+        expect(openModalAction.dialogProps.content.message).toContain('blocked by policy');
+        expect(typeof openModalAction.dialogProps.onExited).toBe('function');
+    });
+
+    test('onExited closes the info toast', () => {
+        const testStore = configureStore();
+
+        testStore.dispatch(handleFileUploadRejected(msg));
+
+        const openModalAction = testStore.getActions().find((action) => action.type === ActionTypes.MODAL_OPEN);
+        openModalAction.dialogProps.onExited();
+
+        const closeModalAction = testStore.getActions().find((action) => action.type === ActionTypes.MODAL_CLOSE);
+        expect(closeModalAction).toBeDefined();
+        expect(closeModalAction.modalId).toBe(ModalIdentifiers.INFO_TOAST);
+    });
+});
+
+describe('handleJobUpdated', () => {
+    beforeEach(() => {
+        getJobsByType.mockClear();
+    });
+
+    test('dispatches RECEIVED_JOB with the parsed job on valid JSON', () => {
+        const job = {id: 'job1', type: 'ldap_sync', status: 'success'};
+        const msg = {data: {job: JSON.stringify(job)}};
+
+        const testStore = configureStore(mockState);
+        testStore.dispatch(handleJobUpdated(msg));
+
+        expect(testStore.getActions()).toContainEqual({
+            type: JobTypes.RECEIVED_JOB,
+            data: job,
+        });
+    });
+
+    test('does not dispatch when msg.data.job is malformed JSON', () => {
+        const msg = {data: {job: '{not-valid-json'}};
+
+        const testStore = configureStore(mockState);
+        testStore.dispatch(handleJobUpdated(msg));
+
+        expect(testStore.getActions()).toHaveLength(0);
+    });
+
+    test.each([
+        ['success', 'ldap_sync'],
+        ['error', 'message_export'],
+        ['warning', 'data_retention'],
+        ['canceled', 'elasticsearch_post_indexing'],
+    ])('re-fetches job list on terminal status "%s"', (status, type) => {
+        const job = {id: 'job1', type, status};
+        const msg = {data: {job: JSON.stringify(job)}};
+
+        const testStore = configureStore(mockState);
+        testStore.dispatch(handleJobUpdated(msg));
+
+        expect(testStore.getActions()).toContainEqual({
+            type: 'MOCK_GET_JOBS_BY_TYPE',
+            jobType: type,
+        });
+    });
+
+    test('does not re-fetch on non-terminal status', () => {
+        const job = {id: 'job1', type: 'ldap_sync', status: 'in_progress'};
+        const msg = {data: {job: JSON.stringify(job)}};
+
+        const testStore = configureStore(mockState);
+        testStore.dispatch(handleJobUpdated(msg));
+
+        expect(testStore.getActions()).not.toContainEqual(
+            expect.objectContaining({type: 'MOCK_GET_JOBS_BY_TYPE'}),
+        );
     });
 });

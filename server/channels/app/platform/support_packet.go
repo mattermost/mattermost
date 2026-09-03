@@ -33,13 +33,68 @@ const (
 	unknownDataPoint  = "unknown"
 )
 
+// diagnosticsYAMLComments annotates non-obvious fields in diagnostics.yaml
+// with inline (and a few group-header) comments so support engineers reading
+// the file under triage conditions have units, omitempty semantics, and
+// cumulative-vs-point-in-time semantics visible at a glance.
+var diagnosticsYAMLComments = yaml.CommentMap{
+	// server: — grouped into Machine / Capacity / Process lifecycle / Software
+	"$.server.os":                        {yaml.HeadComment(" Machine")},
+	"$.server.cpu_cores":                 {yaml.HeadComment(" Capacity (hardware → effective quota)"), yaml.LineComment(" logical CPUs visible to the OS")},
+	"$.server.total_memory_mb":           {yaml.LineComment(" host/VM total RAM; may exceed container limit")},
+	"$.server.container_cpu_limit":       {yaml.LineComment(" cgroup v2 CPU quota in CPUs; Linux only, omitted if no limit set")},
+	"$.server.container_memory_limit_mb": {yaml.LineComment(" cgroup v2 memory quota in MB; Linux only, omitted if no limit set")},
+	"$.server.process_id":                {yaml.HeadComment(" Process lifecycle")},
+	"$.server.started_at":                {yaml.LineComment(" when Mattermost process started")},
+	"$.server.host_started_at":           {yaml.LineComment(" when the host OS booted; omitted if unavailable")},
+	"$.server.open_file_descriptors":     {yaml.LineComment(" current open FDs for this process")},
+	"$.server.max_file_descriptors":      {yaml.LineComment(" system limit (ulimit -n)")},
+	"$.server.version":                   {yaml.HeadComment(" Software")},
+
+	// database: sql.DBStats cumulative counters (lifetime of process; all drivers)
+	"$.database.master_pool_wait_count":                  {yaml.LineComment(" cumulative; total times a goroutine waited for a connection since process start")},
+	"$.database.master_pool_wait_duration_ms":            {yaml.LineComment(" cumulative wait time across all goroutines since process start")},
+	"$.database.master_connections_closed_max_idle":      {yaml.LineComment(" cumulative; connections closed because the idle pool was full")},
+	"$.database.master_connections_closed_max_lifetime":  {yaml.LineComment(" cumulative; connections closed for exceeding ConnMaxLifetime")},
+	"$.database.replica_pool_wait_count":                 {yaml.LineComment(" cumulative across all replicas; see master_pool_wait_count")},
+	"$.database.replica_pool_wait_duration_ms":           {yaml.LineComment(" cumulative across all replicas")},
+	"$.database.replica_connections_closed_max_idle":     {yaml.LineComment(" cumulative across all replicas")},
+	"$.database.replica_connections_closed_max_lifetime": {yaml.LineComment(" cumulative across all replicas")},
+
+	// database: PostgreSQL-only fields (omitted on MySQL)
+	"$.database.cache_hit_ratio":                {yaml.HeadComment(" PostgreSQL-only (these fields are omitted on MySQL)"), yaml.LineComment(" blks_hit / (blks_hit + blks_read) from pg_stat_database; cumulative since stats reset")},
+	"$.database.deadlocks":                      {yaml.LineComment(" cumulative since pg_stat_database reset")},
+	"$.database.temp_files":                     {yaml.LineComment(" cumulative count of temp files created since stats reset")},
+	"$.database.temp_bytes_mb":                  {yaml.LineComment(" cumulative bytes written to temp files, in MB")},
+	"$.database.rollbacks":                      {yaml.LineComment(" cumulative transaction rollbacks since stats reset")},
+	"$.database.idle_in_transaction_count":      {yaml.LineComment(" point-in-time count from pg_stat_activity")},
+	"$.database.longest_query_duration_seconds": {yaml.LineComment(" point-in-time; max age of any active query right now")},
+	"$.database.waiting_for_lock_count":         {yaml.LineComment(" point-in-time count of backends waiting on a Lock wait_event_type")},
+	"$.database.posts_dead_tuples":              {yaml.LineComment(" n_dead_tup for the posts table from pg_stat_user_tables")},
+	"$.database.posts_last_autovacuum":          {yaml.LineComment(" last autovacuum on posts; null if never autovacuumed (then omitted)")},
+
+	// file_store: local driver only fields
+	"$.file_store.filesystem_type": {yaml.LineComment(" local driver only (e.g. ext4, xfs); omitted for s3 and other remote drivers")},
+	"$.file_store.total_mb":        {yaml.LineComment(" local driver only; capacity of the volume hosting FileSettings.Directory")},
+	"$.file_store.available_mb":    {yaml.LineComment(" local driver only; free space remaining on that volume")},
+}
+
 func (ps *PlatformService) GenerateSupportPacket(rctx request.CTX, options *model.SupportPacketOptions) ([]model.FileData, error) {
 	functions := map[string]func(request.CTX) (*model.FileData, error){
 		"diagnostics":  ps.getSupportPacketDiagnostics,
 		"config":       ps.getSanitizedConfigFile,
-		"cpu profile":  ps.getCPUProfile,
 		"heap profile": ps.getHeapProfile,
 		"goroutines":   ps.getGoroutineProfile,
+	}
+
+	cpuProfileDur := cpuProfileDuration
+	if options != nil && options.CPUProfileDuration != nil {
+		cpuProfileDur = *options.CPUProfileDuration
+	}
+	if cpuProfileDur > 0 {
+		functions["cpu profile"] = func(rctx request.CTX) (*model.FileData, error) {
+			return ps.getCPUProfile(rctx, cpuProfileDur)
+		}
 	}
 
 	if options != nil && options.IncludeLogs {
@@ -97,6 +152,7 @@ func (ps *PlatformService) getSupportPacketDiagnostics(rctx request.CTX) (*model
 		d.License.SkuShortName = license.SkuShortName
 		d.License.IsTrial = license.IsTrial
 		d.License.IsGovSKU = license.IsGovSku
+		d.License.IsNonProduction = license.IsNonProduction
 	}
 
 	/* Server */
@@ -165,7 +221,7 @@ func (ps *PlatformService) getSupportPacketDiagnostics(rctx request.CTX) (*model
 	d.Database.ReplicaConnections = ps.Store.TotalReadDbConnections()
 	d.Database.SearchConnections = ps.Store.TotalSearchDbConnections()
 
-	err = ps.applyStoreDiagnostics(rctx.Context(), &d)
+	err = ps.applyStoreDiagnostics(rctx, &d)
 	if err != nil {
 		rErr = multierror.Append(rErr, err)
 	}
@@ -321,7 +377,7 @@ func (ps *PlatformService) getSupportPacketDiagnostics(rctx request.CTX) (*model
 		d.Notifications.Push.Status = model.StatusDisabled
 	}
 
-	b, err := yaml.Marshal(&d)
+	b, err := yaml.MarshalWithOptions(&d, yaml.WithComment(diagnosticsYAMLComments))
 	if err != nil {
 		rErr = multierror.Append(errors.Wrap(err, "failed to marshal Support Packet into yaml"))
 	}
@@ -333,8 +389,8 @@ func (ps *PlatformService) getSupportPacketDiagnostics(rctx request.CTX) (*model
 	return fileData, rErr.ErrorOrNil()
 }
 
-func (ps *PlatformService) applyStoreDiagnostics(ctx context.Context, diagnostics *model.SupportPacketDiagnostics) error {
-	storeDiagnostics, err := ps.Store.GetDiagnostics(ctx)
+func (ps *PlatformService) applyStoreDiagnostics(rctx request.CTX, diagnostics *model.SupportPacketDiagnostics) error {
+	storeDiagnostics, err := ps.Store.GetDiagnostics(rctx)
 	if storeDiagnostics == nil {
 		if err != nil {
 			return errors.Wrap(err, "error while collecting support packet database diagnostics")
@@ -495,7 +551,7 @@ func (ps *PlatformService) getSanitizedConfigFile(rctx request.CTX) (*model.File
 	return fileData, nil
 }
 
-func (ps *PlatformService) getCPUProfile(_ request.CTX) (*model.FileData, error) {
+func (ps *PlatformService) getCPUProfile(_ request.CTX, duration time.Duration) (*model.FileData, error) {
 	var b bytes.Buffer
 
 	err := rpprof.StartCPUProfile(&b)
@@ -503,7 +559,7 @@ func (ps *PlatformService) getCPUProfile(_ request.CTX) (*model.FileData, error)
 		return nil, errors.Wrap(err, "failed to start CPU profile")
 	}
 
-	time.Sleep(cpuProfileDuration)
+	time.Sleep(duration)
 
 	rpprof.StopCPUProfile()
 

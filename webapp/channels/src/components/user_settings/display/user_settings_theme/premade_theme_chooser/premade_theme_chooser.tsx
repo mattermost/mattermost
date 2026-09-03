@@ -15,15 +15,15 @@ type Props = {
     theme: Theme;
     updateTheme: (theme: Theme) => void;
     allowedThemes: string[];
-}
+};
 
 const PremadeThemeChooser = ({theme, updateTheme, allowedThemes = []}: Props) => {
     const premadeThemes = [];
-    const hasAllowedThemes = allowedThemes.length > 1 || (allowedThemes[0] && allowedThemes[0].trim().length > 0);
+    const hasAllowedThemes = allowedThemes.length > 0;
 
     for (const k in Preferences.THEMES) {
         if (Object.hasOwn(Preferences.THEMES, k)) {
-            if (hasAllowedThemes && allowedThemes.indexOf(k) < 0) {
+            if (hasAllowedThemes && !allowedThemes.includes(k)) {
                 continue;
             }
 

@@ -38,6 +38,7 @@ func bookmarkWithFileInfoSliceColumns() []string {
 		"cb.ImageUrl",
 		"cb.Emoji",
 		"cb.Type",
+		"COALESCE(cb.TargetId, '') as TargetId",
 		"COALESCE(cb.OriginalId, '') as OriginalId",
 		"COALESCE(fi.Id, '') as FileId",
 		"COALESCE(fi.Name, '') as FileName",
@@ -161,10 +162,15 @@ func (s *SqlChannelBookmarkStore) Save(bookmark *model.ChannelBookmark, increase
 		bookmark.SortOrder = sortOrder + 1
 	}
 
+	targetID := any(bookmark.TargetId)
+	if bookmark.TargetId == "" {
+		targetID = nil
+	}
+
 	sql, args, sqlErr := s.getQueryBuilder().
 		Insert("ChannelBookmarks").
-		Columns("Id", "CreateAt", "UpdateAt", "DeleteAt", "ChannelId", "OwnerId", "FileInfoId", "DisplayName", "SortOrder", "LinkUrl", "ImageUrl", "Emoji", "Type").
-		Values(bookmark.Id, bookmark.CreateAt, bookmark.UpdateAt, bookmark.DeleteAt, bookmark.ChannelId, bookmark.OwnerId, bookmark.FileId, bookmark.DisplayName, bookmark.SortOrder, bookmark.LinkUrl, bookmark.ImageUrl, bookmark.Emoji, bookmark.Type).
+		Columns("Id", "CreateAt", "UpdateAt", "DeleteAt", "ChannelId", "OwnerId", "FileInfoId", "DisplayName", "SortOrder", "LinkUrl", "ImageUrl", "Emoji", "Type", "TargetId").
+		Values(bookmark.Id, bookmark.CreateAt, bookmark.UpdateAt, bookmark.DeleteAt, bookmark.ChannelId, bookmark.OwnerId, bookmark.FileId, bookmark.DisplayName, bookmark.SortOrder, bookmark.LinkUrl, bookmark.ImageUrl, bookmark.Emoji, bookmark.Type, targetID).
 		ToSql()
 
 	if sqlErr != nil {
@@ -200,6 +206,11 @@ func (s *SqlChannelBookmarkStore) Update(bookmark *model.ChannelBookmark) error 
 		return err
 	}
 
+	targetID := any(bookmark.TargetId)
+	if bookmark.TargetId == "" {
+		targetID = nil
+	}
+
 	query, args, err := s.getQueryBuilder().
 		Update("ChannelBookmarks").
 		Set("DisplayName", bookmark.DisplayName).
@@ -208,6 +219,7 @@ func (s *SqlChannelBookmarkStore) Update(bookmark *model.ChannelBookmark) error 
 		Set("ImageUrl", bookmark.ImageUrl).
 		Set("Emoji", bookmark.Emoji).
 		Set("FileInfoId", bookmark.FileId).
+		Set("TargetId", targetID).
 		Set("UpdateAt", bookmark.UpdateAt).
 		Where(sq.Eq{
 			"Id":       bookmark.Id,

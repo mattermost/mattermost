@@ -36,7 +36,7 @@ type Props = {
     theme: Theme;
     actionExecuting?: boolean;
     actionExecutingMessage?: string;
-}
+};
 
 const ActionButton = ({
     action,

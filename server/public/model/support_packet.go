@@ -3,11 +3,7 @@
 
 package model
 
-import (
-	"encoding/json"
-	"io"
-	"time"
-)
+import "time"
 
 const (
 	CurrentSupportPacketVersion = 2
@@ -18,30 +14,38 @@ type SupportPacketDiagnostics struct {
 	Version int `yaml:"version"`
 
 	License struct {
-		Company      string `yaml:"company"`
-		Users        int    `yaml:"users"`
-		SkuShortName string `yaml:"sku_short_name"`
-		IsTrial      bool   `yaml:"is_trial,omitempty"`
-		IsGovSKU     bool   `yaml:"is_gov_sku,omitempty"`
+		Company         string `yaml:"company"`
+		Users           int    `yaml:"users"`
+		SkuShortName    string `yaml:"sku_short_name"`
+		IsTrial         bool   `yaml:"is_trial,omitempty"`
+		IsGovSKU        bool   `yaml:"is_gov_sku,omitempty"`
+		IsNonProduction bool   `yaml:"is_non_production,omitempty"`
 	} `yaml:"license"`
 
 	Server struct {
-		OS                     string    `yaml:"os"`
-		Architecture           string    `yaml:"architecture"`
-		CPUCores               int       `yaml:"cpu_cores"`
-		TotalMemoryMB          uint64    `yaml:"total_memory_mb"`
-		ContainerCPULimit      float64   `yaml:"container_cpu_limit,omitempty"`
-		ContainerMemoryLimitMB uint64    `yaml:"container_memory_limit_mb,omitempty"`
-		OpenFileDescriptors    int64     `yaml:"open_file_descriptors"`
-		MaxFileDescriptors     int64     `yaml:"max_file_descriptors"`
-		Hostname               string    `yaml:"hostname"`
-		ProcessID              int       `yaml:"process_id"`
-		StartedAt              time.Time `yaml:"started_at"`
-		HostStartedAt          time.Time `yaml:"host_started_at,omitempty"`
-		Version                string    `yaml:"version"`
-		BuildHash              string    `yaml:"build_hash"`
-		GoVersion              string    `yaml:"go_version"`
-		InstallationType       string    `yaml:"installation_type"`
+		// Machine
+		OS               string `yaml:"os"`
+		Architecture     string `yaml:"architecture"`
+		Hostname         string `yaml:"hostname"`
+		InstallationType string `yaml:"installation_type"`
+
+		// Capacity
+		CPUCores               int     `yaml:"cpu_cores"`
+		TotalMemoryMB          uint64  `yaml:"total_memory_mb"`
+		ContainerCPULimit      float64 `yaml:"container_cpu_limit,omitempty"`
+		ContainerMemoryLimitMB uint64  `yaml:"container_memory_limit_mb,omitempty"`
+
+		// Process lifecycle
+		ProcessID           int       `yaml:"process_id"`
+		StartedAt           time.Time `yaml:"started_at"`
+		HostStartedAt       time.Time `yaml:"host_started_at,omitempty"`
+		OpenFileDescriptors int64     `yaml:"open_file_descriptors"`
+		MaxFileDescriptors  int64     `yaml:"max_file_descriptors"`
+
+		// Software
+		Version   string `yaml:"version"`
+		BuildHash string `yaml:"build_hash"`
+		GoVersion string `yaml:"go_version"`
 	} `yaml:"server"`
 
 	Config struct {
@@ -81,7 +85,7 @@ type SupportPacketDiagnostics struct {
 
 	FileStore struct {
 		Status         string `yaml:"file_status"`
-		Error          string `yaml:"erorr,omitempty"`
+		Error          string `yaml:"error,omitempty"`
 		Driver         string `yaml:"file_driver"`
 		FilesystemType string `yaml:"filesystem_type,omitempty"`
 		TotalMB        uint64 `yaml:"total_mb,omitempty"`
@@ -232,17 +236,10 @@ type FileData struct {
 }
 
 type SupportPacketOptions struct {
-	IncludeLogs   bool     `json:"include_logs"`   // IncludeLogs is the option to include server logs
-	PluginPackets []string `json:"plugin_packets"` // PluginPackets is a list of pluginids to call hooks
-}
-
-// SupportPacketOptionsFromReader decodes a json-encoded request from the given io.Reader.
-func SupportPacketOptionsFromReader(reader io.Reader) (*SupportPacketOptions, error) {
-	var r *SupportPacketOptions
-	err := json.NewDecoder(reader).Decode(&r)
-	if err != nil {
-		return nil, err
-	}
-
-	return r, nil
+	IncludeLogs   bool     // IncludeLogs is the option to include server logs
+	PluginPackets []string // PluginPackets is a list of pluginids to call hooks
+	// CPUProfileDuration lets programmatic callers (e.g. tests) override how long to sample
+	// the CPU profile for. It is not exposed via the HTTP API.
+	// nil leaves the server default in place; 0 skips CPU profile generation entirely.
+	CPUProfileDuration *time.Duration
 }

@@ -32,7 +32,7 @@ import ChannelInviteModal from './channel_invite_modal';
 type OwnProps = {
     channelId?: string;
     teamId?: string;
-}
+};
 
 function makeMapStateToProps(initialState: GlobalState, initialProps: OwnProps) {
     const getAllAssociatedGroupsForReference = makeGetAllAssociatedGroupsForReference();

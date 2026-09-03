@@ -19,7 +19,6 @@ import {
 
 import * as TIMEOUTS from '@/fixtures/timeouts';
 
-
 describe('Upload Files - Image', () => {
     before(() => {
         // # Create new team and new user and visit test channel
@@ -103,6 +102,61 @@ describe('Upload Files - Image', () => {
         };
 
         testImage(properties);
+    });
+
+    it('MM-69026 - Image preview supports zoom controls and keyboard shortcut', () => {
+        // Use a unique filename so we can find the thumbnail unambiguously after
+        // earlier tests in this spec have already uploaded PNG.png/JPG.jpg/etc.
+        const fileName = 'mm-69026-zoom.png';
+        const properties = {
+            filePath: 'mm_file_testing/Images/PNG.png',
+            fileName,
+            originalWidth: 400,
+            originalHeight: 479,
+            mimeType: 'image/png',
+        };
+
+        // # Post any message
+        cy.postMessage(fileName);
+
+        // # Post an image in center channel
+        attachFile(properties);
+
+        // # Wait until file upload is complete then submit
+        waitUntilUploadComplete();
+        cy.uiGetPostTextBox().clear().type('{enter}');
+        cy.wait(TIMEOUTS.FIVE_SEC);
+
+        // # Open file preview
+        cy.uiGetFileThumbnail(fileName).click();
+
+        // * Verify preview modal opened
+        cy.uiGetFilePreviewModal().as('filePreviewModal');
+
+        // * Zoom controls are visible for images
+        cy.get('@filePreviewModal').find('.file-preview-modal__zoom-bar .modal-zoom-btn').should('have.length.at.least', 1);
+
+        // # Click zoom-in
+        cy.get('@filePreviewModal').find('.modal-zoom-btn .icon-plus').click();
+
+        // * Image is scaled up — match only scale values strictly greater than 1
+        //   (e.g. scale(1.25), scale(2)), so a transform of scale(1) or no
+        //   scale at all would fail this assertion.
+        cy.get('@filePreviewModal').find('[data-testid="imagePreview"]').
+            should('have.attr', 'style').
+            and('match', /scale\((?:1\.\d+|[2-9]\d*(?:\.\d+)?)\)/);
+
+        // # Press '0' to reset
+        cy.get('body').type('0');
+
+        // * Image transform clears (no scale applied at default 1.0)
+        cy.get('@filePreviewModal').find('[data-testid="imagePreview"]').then(($img) => {
+            const style = $img.attr('style') || '';
+            expect(style).to.not.match(/scale\([0-9.]+\)/);
+        });
+
+        // # Close modal
+        cy.uiCloseFilePreviewModal();
     });
 });
 

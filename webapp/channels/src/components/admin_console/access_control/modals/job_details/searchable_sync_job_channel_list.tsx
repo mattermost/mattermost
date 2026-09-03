@@ -9,11 +9,11 @@ import type {Channel} from '@mattermost/types/channels';
 import type {Team} from '@mattermost/types/teams';
 import type {IDMappedObjects} from '@mattermost/types/utilities';
 
+import {ChannelIcon} from 'components/channel_type_icon';
 import MagnifyingGlassSVG from 'components/common/svg_images_components/magnifying_glass_svg';
 import LoadingScreen from 'components/loading_screen';
 import QuickInput from 'components/quick_input';
 
-import {getChannelIconComponent} from 'utils/channel_utils';
 import Constants from 'utils/constants';
 import {isKeyPressed} from 'utils/keyboard';
 
@@ -81,8 +81,11 @@ const SearchableSyncJobChannelList = (props: Props) => {
     const createChannelRow = (channel: Channel) => {
         const ariaLabel = `${channel.display_name}, ${channel.purpose}`.toLowerCase();
 
-        const ChannelIcon = getChannelIconComponent(channel);
-        const channelTypeIcon = <ChannelIcon size={18}/>;
+        const channelTypeIcon = (
+            <ChannelIcon
+                channel={channel}
+                size={18}
+            />);
 
         const team = props.teams[channel.team_id];
 
@@ -161,12 +164,22 @@ const SearchableSyncJobChannelList = (props: Props) => {
     };
 
     const getEmptyStateMessage = () => {
+        if (channelSearchValue) {
+            return (
+                <FormattedMessage
+                    id='more_channels.noMore'
+                    tagName='strong'
+                    defaultMessage='No results for "{text}"'
+                    values={{text: channelSearchValue}}
+                />
+            );
+        }
+
         return (
             <FormattedMessage
-                id='more_channels.noMore'
+                id='admin.jobTable.syncResults.noChanges'
                 tagName='strong'
-                defaultMessage='No results for "{text}"'
-                values={{text: channelSearchValue}}
+                defaultMessage='No channels were affected by this job.'
             />
         );
     };
@@ -182,14 +195,13 @@ const SearchableSyncJobChannelList = (props: Props) => {
         listContent = (
             <div
                 className='no-channel-message channel-switcher__suggestion-box'
-                aria-label={channelSearchValue.length > 0 ? props.intl.formatMessage(messages.noMore, {text: channelSearchValue}) : props.intl.formatMessage({id: 'widgets.channels_input.empty', defaultMessage: 'No channels found'})
-                }
+                aria-label={channelSearchValue.length > 0 ? props.intl.formatMessage(messages.noMore, {text: channelSearchValue}) : props.intl.formatMessage(messages.noChanges)}
             >
                 <MagnifyingGlassSVG/>
                 <h3 className='primary-message'>
                     {getEmptyStateMessage()}
                 </h3>
-                {props.noResultsText}
+                {channelSearchValue.length > 0 && props.noResultsText}
             </div>
         );
     } else {
@@ -303,6 +315,10 @@ const messages = defineMessages({
     noMore: {
         id: 'more_channels.noMore',
         defaultMessage: 'No results for "{text}"',
+    },
+    noChanges: {
+        id: 'admin.jobTable.syncResults.noChanges',
+        defaultMessage: 'No channels were affected by this job.',
     },
 });
 

@@ -167,7 +167,7 @@ type SharedChannelRemoteStatus struct {
 	DisplayName      string `json:"display_name"`
 	SiteURL          string `json:"site_url"`
 	LastPingAt       int64  `json:"last_ping_at"`
-	NextSyncAt       int64  `json:"next_sync_at"`
+	LastSyncAt       int64  `json:"last_sync_at"`
 	ReadOnly         bool   `json:"readonly"`
 	IsInviteAccepted bool   `json:"is_invite_accepted"`
 	Token            string `json:"token"`

@@ -75,7 +75,7 @@ const messages = defineMessages({
     traceDescription: {id: 'admin.sql.traceDescription', defaultMessage: '(Development Mode) When true, executing SQL statements are written to the log.'},
 });
 
-export const searchableStrings: Array<string|MessageDescriptor|[MessageDescriptor, {[key: string]: any}]> = [
+export const searchableStrings: Array<string | MessageDescriptor | [MessageDescriptor, {[key: string]: any}]> = [
     messages.title,
     [messages.recycleDescription, {featureName: '', reloadConfiguration: ''}],
     messages.featureName,

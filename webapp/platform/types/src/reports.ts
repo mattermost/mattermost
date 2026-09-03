@@ -31,8 +31,8 @@ export enum GuestFilter {
 }
 
 export enum CursorPaginationDirection {
-    'prev' = 'prev',
-    'next' = 'next',
+    prev = 'prev',
+    next = 'next',
 }
 
 export type UserReportFilter = {
@@ -43,7 +43,7 @@ export type UserReportFilter = {
     hide_inactive?: boolean;
     search_term?: string;
     guest_filter?: string;
-}
+};
 
 export type UserReportOptions = UserReportFilter & {
     page_size?: number;
@@ -89,4 +89,4 @@ export type UserReport = UserProfile & {
     days_active?: number;
     total_posts?: number;
     channel_count?: number;
-}
+};

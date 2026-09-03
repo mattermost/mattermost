@@ -28,7 +28,7 @@ type Props = OwnProps & PropsFromRedux;
 
 type State = {
     keepOpen: boolean;
-}
+};
 
 const FILE_TOOLTIP_RANGES = [
     RelativeRanges.TODAY_TITLE_CASE,
@@ -59,12 +59,7 @@ export default class FileSearchResultItem extends React.PureComponent<Props, Sta
     };
 
     private renderPluginItems = () => {
-        const {fileInfo, channel, enableSharedChannelsPlugins} = this.props;
-        const isSharedChannel = channel?.shared || false;
-
-        if (isSharedChannel && !enableSharedChannelsPlugins) {
-            return null;
-        }
+        const {fileInfo} = this.props;
 
         const pluginItems = this.props.pluginMenuItems?.filter((item) => item?.match(fileInfo)).map((item) => {
             return (

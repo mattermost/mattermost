@@ -1,0 +1,77 @@
+# Warms the webapp node_modules cache used by webapp CI and the E2E v2 templates
+# (via .github/actions/webapp-setup). Runs once per day on master so the cache is
+# fresh before CI runs; webapp CI restores it read-only, though the E2E v2
+# templates also populate it within their own runs.
+#
+# The cache is keyed on the OS and a hash of webapp/package-lock.json. PRs that
+# change the lockfile miss the exact key and fall back to the most recent warm
+# entry via restore-keys, then reconcile the delta with `make node_modules`.
+#
+# The E2E ~/.npm registry cache is warmed separately by e2e-ci-cache-warm.yml.
+name: Webapp CI Cache Warm
+
+on:
+  schedule:
+    - cron: "0 1 * * *" # Daily 1am UTC — 1 h before webapp CI typically runs
+  workflow_dispatch:
+
+# Prevent an overlapping manual dispatch and scheduled run from both missing the
+# lookup and then racing to reserve the same cache key.
+concurrency:
+  group: webapp-ci-cache-warm
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  actions: write # required to save the Actions cache
+
+jobs:
+  warm:
+    name: Warm Webapp node_modules Cache
+    runs-on: ubuntu-24.04
+    # Bound a hung run so it can't hold the concurrency group for the default
+    # 6-hour timeout and block subsequent warm runs.
+    timeout-minutes: 60
+    steps:
+      - name: Checkout mattermost project
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Check if node_modules cache already warm
+        id: node-modules-check
+        uses: actions/cache/restore@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
+        with:
+          path: |
+            webapp/node_modules
+            webapp/channels/node_modules
+            webapp/platform/client/node_modules
+            webapp/platform/components/node_modules
+            webapp/platform/shared/node_modules
+            webapp/platform/types/node_modules
+          key: node-modules-${{ runner.os }}-${{ hashFiles('webapp/package-lock.json') }}
+          lookup-only: true
+
+      - name: ci/setup-node
+        if: steps.node-modules-check.outputs.cache-hit != 'true'
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
+        with:
+          node-version-file: ".nvmrc"
+
+      - name: Install node modules
+        if: steps.node-modules-check.outputs.cache-hit != 'true'
+        working-directory: webapp
+        run: make node_modules
+
+      - name: Save node_modules cache
+        if: steps.node-modules-check.outputs.cache-hit != 'true'
+        uses: actions/cache/save@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
+        with:
+          path: |
+            webapp/node_modules
+            webapp/channels/node_modules
+            webapp/platform/client/node_modules
+            webapp/platform/components/node_modules
+            webapp/platform/shared/node_modules
+            webapp/platform/types/node_modules
+          key: node-modules-${{ runner.os }}-${{ hashFiles('webapp/package-lock.json') }}

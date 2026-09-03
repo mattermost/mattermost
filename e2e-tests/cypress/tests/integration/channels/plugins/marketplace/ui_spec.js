@@ -17,7 +17,6 @@ describe('Plugin Marketplace', () => {
 
     before(() => {
         cy.shouldNotRunOnCloudEdition();
-        cy.shouldHaveFeatureFlag('StreamlinedMarketplace', 'false'); // https://mattermost.atlassian.net/browse/MM-54230
         cy.shouldHavePluginUploadEnabled();
 
         cy.apiInitSetup().then(({team}) => {

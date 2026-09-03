@@ -14,7 +14,7 @@ import './card_image.css';
 
 type Props = {
     brand: string;
-}
+};
 
 export default function CardImage(props: Props) {
     const {brand} = props;

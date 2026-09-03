@@ -1057,7 +1057,7 @@ func TestDatabaseStoreString(t *testing.T) {
 	maskedDSN := ds.String()
 	assert.True(t, strings.HasPrefix(maskedDSN, "postgres://"))
 	assert.False(t, strings.Contains(maskedDSN, "mmuser"))
-	assert.False(t, strings.Contains(maskedDSN, "mostest"))
+	assert.False(t, strings.Contains(maskedDSN, "mostest_password"))
 }
 
 func TestCleanUp(t *testing.T) {

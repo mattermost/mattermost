@@ -13,7 +13,8 @@ type PostMetadata struct {
 	// for links in the post.
 	Embeds []*PostEmbed `json:"embeds,omitempty"`
 
-	// Emojis holds all custom emojis used in the post or used in reaction to the post.
+	// Emojis holds all custom emojis used in the post, reactions, message attachments, and
+	// interactive payloads (mm_blocks, Block Kit blocks, Adaptive Cards) where applicable.
 	Emojis []*Emoji `json:"emojis,omitempty"`
 
 	// Files holds information about the file attachments on the post.

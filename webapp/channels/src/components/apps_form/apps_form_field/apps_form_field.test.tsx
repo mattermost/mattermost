@@ -7,10 +7,22 @@ import type {AppField} from '@mattermost/types/apps';
 
 import {AppFieldTypes} from 'mattermost-redux/constants/apps';
 
-import {renderWithContext} from 'tests/react_testing_utils';
+import {renderWithContext, screen} from 'tests/react_testing_utils';
+
+// AppsFormActionButton (rendered for ACTION_BUTTON fields) uses executeDialogAction.
+// Mock it the same way apps_form_action_button.test.tsx does.
+const mockExecuteDialogAction = jest.fn();
+jest.mock('actions/integration_actions', () => ({
+    executeDialogAction: (...args: unknown[]) => mockExecuteDialogAction(...args),
+}));
 
 import AppsFormField from './apps_form_field';
 import type {Props} from './apps_form_field';
+
+beforeEach(() => {
+    mockExecuteDialogAction.mockReset();
+    mockExecuteDialogAction.mockReturnValue(() => Promise.resolve({data: {}}));
+});
 
 describe('components/apps_form/apps_form_field/AppsFormField', () => {
     const baseProps: Props = {
@@ -287,6 +299,25 @@ describe('components/apps_form/apps_form_field/AppsFormField', () => {
 
             // Markdown component should be rendered
             expect(container).toBeInTheDocument();
+        });
+
+        it('should render action_button field as a button with the field label', () => {
+            const actionButtonField: AppField = {
+                name: 'action-button-field',
+                type: AppFieldTypes.ACTION_BUTTON,
+                label: 'Run Action',
+                action_button_url: 'https://example.com/action',
+                action_button_context: {channelId: 'ch1'},
+            };
+
+            renderWithContext(
+                <AppsFormField
+                    {...baseProps}
+                    field={actionButtonField}
+                />,
+            );
+
+            expect(screen.getByRole('button', {name: 'Run Action'})).toBeVisible();
         });
     });
 

@@ -20,7 +20,7 @@ type AddressFormProps = {
     title: MessageDescriptor;
     formId: string;
     address: Address;
-}
+};
 
 const AddressForm = (props: AddressFormProps) => {
     const {formatMessage} = useIntl();
@@ -34,8 +34,8 @@ const AddressForm = (props: AddressFormProps) => {
 
     const handleInputChange = (key: keyof Address) => (
         event:
-        | React.ChangeEvent<HTMLInputElement>
-        | React.ChangeEvent<HTMLTextAreaElement>,
+        React.ChangeEvent<HTMLInputElement> |
+        React.ChangeEvent<HTMLTextAreaElement>,
     ) => {
         const target = event.target;
         const value = target.value;

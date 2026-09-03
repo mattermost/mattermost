@@ -10,6 +10,7 @@ import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
 
 import PostMessageView from 'components/post_view/post_message_view/post_message_view';
 
+import {testPluginComponentErrorHandling} from 'tests/helpers/plugin_error_handling';
 import {act, renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 
 jest.mock('components/properties_card_view/propertyValueRenderer/post_preview_property_renderer/post_preview_property_renderer', () => {
@@ -133,6 +134,40 @@ describe('components/post_view/PostAttachment', () => {
         expect(container).toMatchSnapshot();
     });
 
+    test('renders messageBodyFooter inside ShowMore text container', () => {
+        const {container} = renderWithContext(
+            <PostMessageView
+                {...baseProps}
+                maxHeight={200}
+                overflowType='ellipsis'
+                messageBodyFooter={<div data-testid='message-body-footer'/>}
+            />,
+        );
+
+        const textContainer = container.querySelector('.post-message__text-container');
+        expect(textContainer).toContainElement(screen.getByTestId('message-body-footer'));
+    });
+
+    test('applies maxHeight to text container when collapsed with ellipsis overflow', async () => {
+        stubShowMoreOverflowLayout(() => {
+            renderWithContext(
+                <PostMessageView
+                    {...baseProps}
+                    maxHeight={50}
+                    overflowType='ellipsis'
+                    messageBodyFooter={<div data-testid='message-body-footer'/>}
+                />,
+            );
+        });
+
+        await waitFor(() => {
+            expect(screen.getByRole('button', {name: /show more/i})).toBeInTheDocument();
+        });
+
+        const textContainer = screen.getByTestId('message-body-footer').closest('.post-message__text-container');
+        expect(textContainer).toHaveStyle({maxHeight: '50px'});
+    });
+
     test('should match checkOverflow state on handleHeightReceived change', () => {
         // PostMarkdown is mocked, so we get imageProps from the mock calls.
         // Import the mocked PostMarkdown to access its calls.
@@ -166,5 +201,17 @@ describe('components/post_view/PostAttachment', () => {
 
         // Should not cause additional re-render since height is 0
         expect(PostMarkdown.mock.calls.length).toEqual(callCountAfterFirst);
+    });
+
+    testPluginComponentErrorHandling((pluginComponent) => {
+        renderWithContext(
+            <PostMessageView
+                {...baseProps}
+                post={{...post, type: 'custom_plugin_type' as PostType}}
+                pluginPostTypes={{
+                    custom_plugin_type: pluginComponent as any,
+                }}
+            />,
+        );
     });
 });

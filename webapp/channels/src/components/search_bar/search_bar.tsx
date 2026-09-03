@@ -42,7 +42,7 @@ type Props = {
     clearSearchType?: () => void;
     getFocus?: (searchBarFocus: () => void) => void;
     children?: React.ReactNode;
-}
+};
 
 const SearchBar: React.FunctionComponent<Props> = (props: Props): JSX.Element => {
     const {

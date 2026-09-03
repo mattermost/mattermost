@@ -30,7 +30,7 @@ export type OwnProps = {
     collapseModal: () => void;
     adminMode?: boolean;
     userPreferences?: PreferencesType;
-}
+};
 
 const mapStateToProps = (state: GlobalState, props: OwnProps) => {
     // server config, related to server configuration, not the user

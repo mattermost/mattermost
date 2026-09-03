@@ -11,6 +11,8 @@ import {makeGetChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getPost, getLimitedViews} from 'mattermost-redux/selectors/entities/posts';
 
 import AdvancedCreateComment from 'components/advanced_create_comment';
+import {compassIconForName, useChannelIconOverrideName} from 'components/channel_type_icon';
+import {ChannelComposerBanner} from 'components/channel_view/channel_composer_banner';
 import BasicSeparator from 'components/widgets/separator/basic-separator';
 
 import {getArchiveIconComponent} from 'utils/channel_utils';
@@ -40,6 +42,8 @@ const CreateComment = forwardRef<HTMLDivElement, Props>(({
         }
         return getChannel(state, rootPost.channel_id);
     });
+    const overrideName = useChannelIconOverrideName(channel ?? undefined);
+
     if (!channel || threadIsLimited) {
         return null;
     }
@@ -69,15 +73,20 @@ const CreateComment = forwardRef<HTMLDivElement, Props>(({
     }
 
     if (channelIsArchived) {
-        const ArchiveIcon = getArchiveIconComponent(channelType);
+        const OverrideIcon = overrideName ? compassIconForName(overrideName) : null;
+        const IconComponent = OverrideIcon ?? getArchiveIconComponent(channelType);
+
+        const archiveIconEl = (
+            <IconComponent
+                size={20}
+                color={'rgba(var(--center-channel-color-rgb), 0.75)'}
+            />
+        );
         return (
             <div className='channel-archived-warning__container'>
                 <BasicSeparator/>
                 <div className='channel-archived-warning__content'>
-                    <ArchiveIcon
-                        size={20}
-                        color={'rgba(var(--center-channel-color-rgb), 0.75)'}
-                    />
+                    {archiveIconEl}
                     <FormattedMessage
                         id='createComment.threadFromArchivedChannelMessage'
                         defaultMessage='You are viewing a thread from an <strong>archived channel</strong>. New messages cannot be posted.'
@@ -96,6 +105,7 @@ const CreateComment = forwardRef<HTMLDivElement, Props>(({
             ref={ref}
             data-testid='comment-create'
         >
+            <ChannelComposerBanner channelId={channel.id}/>
             <AdvancedCreateComment
                 placeholder={placeholder}
                 channelId={channel.id}

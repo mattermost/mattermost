@@ -3,6 +3,7 @@
 
 import React from 'react';
 
+import {testPluginComponentErrorHandling} from 'tests/helpers/plugin_error_handling';
 import {act, renderWithContext, screen} from 'tests/react_testing_utils';
 
 import CodeBlock from './code_block';
@@ -90,5 +91,21 @@ it shouldn't highlight, it's just garbage`;
 
         expect(container.querySelector('code')).toHaveTextContent('foo foo foo foofoo foo foo foo');
         expect(container.querySelector('code')).not.toHaveTextContent('foo foo foo foo foo foo foo foo');
+    });
+
+    testPluginComponentErrorHandling((pluginComponent) => {
+        renderWithContext(
+            <CodeBlock
+                code='some code'
+                language='txt'
+            />,
+            {
+                plugins: {
+                    components: {
+                        CodeBlockAction: [pluginComponent],
+                    },
+                },
+            } as any,
+        );
     });
 });

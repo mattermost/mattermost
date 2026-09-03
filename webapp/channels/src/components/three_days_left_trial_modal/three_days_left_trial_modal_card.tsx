@@ -16,7 +16,7 @@ export type ThreeDaysLeftTrialCardProps = {
     buttonLabel?: string;
     pageURL?: string;
     onClose?: () => void;
-}
+};
 
 const ThreeDaysLeftTrialCard = (
     {

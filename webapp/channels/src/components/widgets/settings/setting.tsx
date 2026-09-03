@@ -11,7 +11,7 @@ type Props = {
     children: React.ReactNode;
     helpText?: React.ReactNode;
     footer?: React.ReactNode;
-}
+};
 
 const Setting: React.FC<Props> = ({
     inputId,

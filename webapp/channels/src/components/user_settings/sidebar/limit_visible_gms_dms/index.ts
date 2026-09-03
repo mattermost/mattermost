@@ -17,7 +17,7 @@ export type OwnProps = {
     adminMode?: boolean;
     userId: string;
     userPreferences?: PreferencesType;
-}
+};
 
 function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
     const userPreferences = ownProps.adminMode && ownProps.userPreferences ? ownProps.userPreferences : undefined;

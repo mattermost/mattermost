@@ -182,12 +182,33 @@ func trimTrailingCharactersFromLink(markdown string, start int, end int) int {
 		}
 	}
 
+	numClosing := 0
+	numOpening := 0
+	for i := 0; i < linkEnd; i++ {
+		if runes[i] == '(' {
+			numOpening += 1
+		} else if runes[i] == ')' {
+			numClosing += 1
+		}
+	}
+
+	trimLinkEnd := func(newEnd int) {
+		for i := newEnd; i < linkEnd; i++ {
+			if runes[i] == '(' {
+				numOpening -= 1
+			} else if runes[i] == ')' {
+				numClosing -= 1
+			}
+		}
+		linkEnd = newEnd
+	}
+
 	for linkEnd > 0 {
 		c := runes[linkEnd-1]
 
 		if !canEndAutolink(c) {
 			// Trim trailing quotes, periods, etc
-			linkEnd = linkEnd - 1
+			trimLinkEnd(linkEnd - 1)
 		} else if c == ';' {
 			// Trim a trailing HTML entity
 			newEnd := linkEnd - 2
@@ -197,17 +218,14 @@ func trimTrailingCharactersFromLink(markdown string, start int, end int) int {
 			}
 
 			if newEnd < linkEnd-2 && runes[newEnd] == '&' {
-				linkEnd = newEnd
+				trimLinkEnd(newEnd)
 			} else {
 				// This isn't actually an HTML entity, so just trim the semicolon
-				linkEnd = linkEnd - 1
+				trimLinkEnd(linkEnd - 1)
 			}
 		} else if c == ')' {
 			// Only allow an autolink ending with a bracket if that bracket is part of a matching pair of brackets.
 			// If there are more closing brackets than opening ones, remove the extra bracket
-
-			numClosing := 0
-			numOpening := 0
 
 			// Examples (input text => output linked portion):
 			//
@@ -223,20 +241,12 @@ func trimTrailingCharactersFromLink(markdown string, start int, end int) int {
 			//  http://www.pokemon.com/Pikachu_((Electric))
 			//    => http://www.pokemon.com/Pikachu_((Electric))
 
-			for i := 0; i < linkEnd; i++ {
-				if runes[i] == '(' {
-					numOpening += 1
-				} else if runes[i] == ')' {
-					numClosing += 1
-				}
-			}
-
 			if numClosing <= numOpening {
 				// There's fewer or equal closing brackets, so we've found the end of the link
 				break
 			}
 
-			linkEnd -= 1
+			trimLinkEnd(linkEnd - 1)
 		} else {
 			// There's no special characters at the end of the link, so we're at the end
 			break

@@ -24,13 +24,13 @@ export type Props = {
     actions?: {
         deleteScheme: (id: string) => Promise<ActionResult>;
     };
-}
+};
 
 type State = {
     showConfirmModal: boolean;
     deleting: boolean;
     serverError?: string;
-}
+};
 
 export default class PermissionsSchemeSummary extends React.PureComponent<Props & RouteComponentProps, State> {
     constructor(props: Props & RouteComponentProps) {

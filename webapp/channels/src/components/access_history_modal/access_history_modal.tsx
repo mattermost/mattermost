@@ -19,7 +19,7 @@ type Props = {
     };
     userAudits: Audit[];
     currentUserId: string;
-}
+};
 
 const AccessHistoryModal = ({
     actions: {

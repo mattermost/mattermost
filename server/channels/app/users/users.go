@@ -4,7 +4,6 @@
 package users
 
 import (
-	"context"
 	"encoding/base64"
 	"fmt"
 
@@ -43,11 +42,16 @@ func (us *UserService) CreateUser(rctx request.CTX, user *model.User, opts UserC
 	}
 
 	// Below is a special case where the first user in the entire
-	// system is granted the system_admin role
-	if ok, err := us.store.IsEmpty(true); err != nil {
-		return nil, errors.Wrap(UserStoreIsEmptyError, err.Error())
-	} else if ok {
-		user.Roles = model.SystemAdminRoleId + " " + model.SystemUserRoleId
+	// system is granted the system_admin role. Bot users must never be
+	// granted this role: on a fresh install the bots created by plugins
+	// can be the only accounts present, and they should not be treated
+	// as the "first user".
+	if !user.IsBot {
+		if ok, err := us.store.IsEmpty(true); err != nil {
+			return nil, errors.Wrap(UserStoreIsEmptyError, err.Error())
+		} else if ok {
+			user.Roles = model.SystemAdminRoleId + " " + model.SystemUserRoleId
+		}
 	}
 
 	if _, ok := i18n.GetSupportedLocales()[user.Locale]; !ok {
@@ -90,8 +94,8 @@ func (us *UserService) verifyUserEmail(userID, email string) error {
 	return nil
 }
 
-func (us *UserService) GetUser(userID string) (*model.User, error) {
-	return us.store.Get(context.Background(), userID)
+func (us *UserService) GetUser(rctx request.CTX, userID string) (*model.User, error) {
+	return us.store.Get(rctx, userID)
 }
 
 func (us *UserService) GetUsers(rctx request.CTX, userIDs []string) ([]*model.User, error) {
@@ -263,10 +267,10 @@ func (us *UserService) DeactivateMfa(user *model.User) error {
 	return mfa.New(us.store).Deactivate(user.Id)
 }
 
-func (us *UserService) PromoteGuestToUser(user *model.User) error {
-	return us.store.PromoteGuestToUser(user.Id)
+func (us *UserService) PromoteGuestToUser(rctx request.CTX, user *model.User) error {
+	return us.store.PromoteGuestToUser(rctx, user.Id)
 }
 
-func (us *UserService) DemoteUserToGuest(user *model.User) (*model.User, error) {
-	return us.store.DemoteUserToGuest(user.Id)
+func (us *UserService) DemoteUserToGuest(rctx request.CTX, user *model.User) (*model.User, error) {
+	return us.store.DemoteUserToGuest(rctx, user.Id)
 }

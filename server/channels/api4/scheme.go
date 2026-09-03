@@ -137,6 +137,8 @@ func getTeamsForScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	c.App.SanitizeTeams(*c.AppContext.Session(), teams)
+
 	js, err := json.Marshal(teams)
 	if err != nil {
 		c.Err = model.NewAppError("getTeamsForScheme", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)

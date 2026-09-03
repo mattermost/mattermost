@@ -22,7 +22,7 @@ import type {GlobalState} from 'types/store';
 
 type Props = {
     channel: Channel;
-}
+};
 
 const ChannelSettingsMenu = ({channel}: Props): JSX.Element | null => {
     const dispatch = useDispatch();

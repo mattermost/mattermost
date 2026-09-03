@@ -9,7 +9,6 @@
 
 // Group: @channels @enterprise @system_console @channel_moderation
 
-
 import {checkboxesTitleToIdMap} from './constants';
 import {
     deleteOrEditTeamScheme,

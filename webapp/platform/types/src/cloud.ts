@@ -20,13 +20,13 @@ export type CloudState = {
         limits?: true;
         trueUpReview?: true;
     };
-}
+};
 
 export type Installation = {
     id: string;
     state: string;
     allowed_ip_ranges: AllowedIPRange[];
-}
+};
 
 export type Subscription = {
     id: string;
@@ -48,7 +48,7 @@ export type Subscription = {
     will_renew?: string;
     simulated_current_time_ms?: number;
     is_cloud_preview?: boolean;
-}
+};
 
 export type Product = {
     id: string;
@@ -83,7 +83,7 @@ export type CloudCustomer = {
     billing_address: Address;
     company_address: Address;
     payment_method: PaymentMethod;
-}
+};
 
 // CustomerPatch model represents a customer patch on the system.
 export type CloudCustomerPatch = {
@@ -92,7 +92,7 @@ export type CloudCustomerPatch = {
     num_employees?: number;
     contact_first_name?: string;
     contact_last_name?: string;
-}
+};
 
 // Address model represents a customer's address.
 export type Address = {
@@ -102,7 +102,7 @@ export type Address = {
     line2: string;
     postal_code: string;
     state: string;
-}
+};
 
 // PaymentMethod represents methods of payment for a customer.
 export type PaymentMethod = {
@@ -112,13 +112,13 @@ export type PaymentMethod = {
     exp_year: number;
     card_brand: string;
     name: string;
-}
+};
 
 export type NotifyAdminRequest = {
     trial_notification: boolean;
     required_plan: string;
     required_feature: string;
-}
+};
 
 // Invoice model represents a invoice on the system.
 export type Invoice = {
@@ -134,7 +134,7 @@ export type Invoice = {
     subscription_id: string;
     line_items: InvoiceLineItem[];
     current_product_name: string;
-}
+};
 
 // actual string values come from customer-web-server and should be kept in sync with values seen there
 export const InvoiceLineItemType = {
@@ -155,7 +155,7 @@ export type InvoiceLineItem = {
     metadata: Record<string, string>;
     period_start: number;
     period_end: number;
-}
+};
 
 export type Limits = {
     messages?: {
@@ -167,7 +167,7 @@ export type Limits = {
     teams?: {
         active?: number;
     };
-}
+};
 
 export interface CloudUsage {
     files: {
@@ -185,11 +185,11 @@ export type TeamsUsage = {
     active: number;
     cloudArchived: number;
     teamsLoaded: boolean;
-}
+};
 
 export type ValidBusinessEmail = {
     is_valid: boolean;
-}
+};
 
 export const areShippingDetailsValid = (address: Address | null | undefined): boolean => {
     if (!address) {
@@ -200,7 +200,7 @@ export const areShippingDetailsValid = (address: Address | null | undefined): bo
 export type Feedback = {
     reason: string;
     comments: string;
-}
+};
 
 export type MessageDescriptor = {
     id: string;

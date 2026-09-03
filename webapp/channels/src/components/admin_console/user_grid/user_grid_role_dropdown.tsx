@@ -19,7 +19,7 @@ export type BaseMembership = {
     user_id: string;
     scheme_user: boolean;
     scheme_admin: boolean;
-}
+};
 
 type Props = {
     user: UserProfile;
@@ -27,7 +27,7 @@ type Props = {
     scope: 'team' | 'channel';
     handleUpdateMembership: (membership: BaseMembership) => void;
     isDisabled?: boolean;
-}
+};
 
 export type Role = 'system_admin' | 'team_admin' | 'team_user' | 'channel_admin' | 'channel_user' | 'shared_member' | 'guest';
 

@@ -39,7 +39,7 @@ describe('custom plugin sections and settings', () => {
         editRole: jest.fn(),
         isCurrentUserSystemAdmin: false,
         enterpriseReady: false,
-        match: {params: {plugin_id: 'testplugin'}} as match<{ plugin_id: string }>,
+        match: {params: {plugin_id: 'testplugin'}} as match<{plugin_id: string}>,
         config: {
             PluginSettings: {
                 Plugins: {
@@ -82,18 +82,209 @@ describe('custom plugin sections and settings', () => {
         },
     };
 
+    const expectPluginPageTitle = (pluginName: string, pluginId: string) => {
+        const panel = screen.getByTestId('plugin-metadata-panel');
+        expect(panel).toHaveTextContent(`${pluginName} (${pluginId}`);
+        expect(document.querySelector('.PluginMetadataPanel__settingsWrapper')).toContainElement(panel);
+        expect(screen.getByRole('heading', {level: 1, hidden: true})).toHaveTextContent(pluginName);
+    };
+
     it('empty sections and settings', () => {
         renderWithContext(
             <CustomPluginSettings
                 {...baseProps}
                 patchConfig={jest.fn()}
-            />
-            , {...baseState});
+            />,
+            {...baseState});
 
-        expect(screen.getByText('testplugin')).toBeInTheDocument();
+        expectPluginPageTitle('testplugin', 'testplugin');
         expect(screen.getByTestId('PluginSettings.PluginStates.testplugin.Enable')).toBeInTheDocument();
         expect(screen.getByText('This is the header')).toBeInTheDocument();
         expect(screen.getByText('This is the footer')).toBeInTheDocument();
+    });
+
+    it('renders top-level settings together with sections', () => {
+        const state = {
+            ...baseState,
+            entities: {
+                admin: {
+                    plugins: {
+                        testplugin: {
+                            ...plugin,
+                            settings_schema: {
+                                ...plugin.settings_schema,
+                                settings: [{
+                                    key: 'topLevelSetting',
+                                    display_name: 'Top-level Setting',
+                                    type: 'text' as const,
+                                    help_text: 'Top-level setting help text',
+                                    placeholder: '',
+                                    default: '',
+                                }],
+                                sections: [{
+                                    key: 'section1',
+                                    title: 'Section 1',
+                                    settings: [{
+                                        key: 'sectionSetting',
+                                        display_name: 'Section Setting',
+                                        type: 'text' as const,
+                                        help_text: 'Section setting help text',
+                                        placeholder: '',
+                                        default: '',
+                                    }],
+                                }],
+                            },
+                        },
+                    },
+                },
+            },
+        };
+
+        renderWithContext(
+            <CustomPluginSettings
+                {...baseProps}
+                patchConfig={jest.fn()}
+            />,
+            state,
+        );
+
+        expect(screen.getByText('Top-level Setting')).toBeInTheDocument();
+        expect(screen.getByText('Section 1')).toBeInTheDocument();
+        expect(screen.getByText('Section Setting')).toBeInTheDocument();
+    });
+
+    it('renders warnings for top-level custom settings when plugin activation failed', () => {
+        const state = {
+            ...baseState,
+            entities: {
+                admin: {
+                    plugins: {
+                        testplugin: {
+                            ...plugin,
+                            active: false,
+                            settings_schema: {
+                                ...plugin.settings_schema,
+                                settings: [
+                                    {
+                                        key: 'customSetting1',
+                                        display_name: 'Custom Setting 1',
+                                        type: 'custom' as const,
+                                        help_text: '',
+                                    },
+                                    {
+                                        key: 'customSetting2',
+                                        display_name: 'Custom Setting 2',
+                                        type: 'custom' as const,
+                                        help_text: '',
+                                    },
+                                ],
+                                sections: [{
+                                    key: 'section1',
+                                    title: 'Section 1',
+                                    settings: [],
+                                }],
+                            },
+                        },
+                    },
+                },
+            },
+        };
+
+        renderWithContext(
+            <CustomPluginSettings
+                {...baseProps}
+                config={{
+                    PluginSettings: {
+                        PluginStates: {
+                            testplugin: {
+                                Enable: true,
+                            },
+                        },
+                        Plugins: {
+                            testplugin: {},
+                        },
+                    } as unknown as PluginSettings,
+                }}
+                patchConfig={jest.fn()}
+            />,
+            state,
+        );
+
+        expect(screen.getAllByText('In order to view this setting, enable the plugin and click Save.')).toHaveLength(2);
+        expect(screen.getByText('Section 1')).toBeInTheDocument();
+    });
+
+    it('renders top-level settings when sections is empty', () => {
+        const state = {
+            ...baseState,
+            entities: {
+                admin: {
+                    plugins: {
+                        testplugin: {
+                            ...plugin,
+                            settings_schema: {
+                                ...plugin.settings_schema,
+                                settings: [{
+                                    key: 'topLevelSetting',
+                                    display_name: 'Top-level Setting',
+                                    type: 'text' as const,
+                                    help_text: 'Top-level setting help text',
+                                    placeholder: '',
+                                    default: '',
+                                }],
+                                sections: [],
+                            },
+                        },
+                    },
+                },
+            },
+        };
+
+        renderWithContext(
+            <CustomPluginSettings
+                {...baseProps}
+                patchConfig={jest.fn()}
+            />,
+            state,
+        );
+
+        expect(screen.getByText('Top-level Setting')).toBeInTheDocument();
+    });
+
+    it('renders plugin metadata with distinct display name and id', () => {
+        const pluginId = 'com.mattermost.fl3xx';
+        const pluginName = 'FL3XX';
+        const namedPlugin = {
+            ...plugin,
+            id: pluginId,
+            name: pluginName,
+        };
+
+        renderWithContext(
+            <CustomPluginSettings
+                {...baseProps}
+                match={{params: {plugin_id: pluginId}} as match<{plugin_id: string}>}
+                config={{
+                    PluginSettings: {
+                        Plugins: {
+                            [pluginId]: {},
+                        },
+                    } as unknown as PluginSettings,
+                }}
+                patchConfig={jest.fn()}
+            />,
+            {
+                entities: {
+                    admin: {
+                        plugins: {
+                            [pluginId]: namedPlugin,
+                        },
+                    },
+                },
+            },
+        );
+
+        expectPluginPageTitle(pluginName, pluginId);
     });
 
     it('all custom sections with plugin disabled should show single warning', () => {
@@ -157,10 +348,10 @@ describe('custom plugin sections and settings', () => {
             <CustomPluginSettings
                 {...props}
                 patchConfig={jest.fn()}
-            />
-            , {...state});
+            />,
+            {...state});
 
-        expect(screen.getByText('testplugin')).toBeInTheDocument();
+        expectPluginPageTitle('testplugin', 'testplugin');
         expect(screen.getByTestId('PluginSettings.PluginStates.testplugin.Enable')).toBeInTheDocument();
         expect(screen.getByText('In order to view and configure plugin settings, enable the plugin and click Save.')).toBeInTheDocument();
         expect(screen.queryByText('Custom Section 1')).not.toBeInTheDocument();
@@ -236,10 +427,10 @@ describe('custom plugin sections and settings', () => {
             <CustomPluginSettings
                 {...props}
                 patchConfig={jest.fn()}
-            />
-            , {...state});
+            />,
+            {...state});
 
-        expect(screen.getByText('testplugin')).toBeInTheDocument();
+        expectPluginPageTitle('testplugin', 'testplugin');
         expect(screen.getByTestId('PluginSettings.PluginStates.testplugin.Enable')).toBeInTheDocument();
         expect(screen.queryByText('In order to view and configure plugin settings, enable the plugin and click Save.')).not.toBeInTheDocument();
         expect(screen.queryByText('Custom Section 1')).toBeInTheDocument();
@@ -248,6 +439,162 @@ describe('custom plugin sections and settings', () => {
         expect(screen.getByText('Custom Section Bool Setting Help Text')).toBeInTheDocument();
         expect(screen.queryByText('Custom Section Custom Setting Help Text')).not.toBeInTheDocument();
         expect(screen.getByText('In order to view this setting, enable the plugin and click Save.')).toBeInTheDocument();
+    });
+
+    it('mixed custom section fallback with plugin disabled keeps fallback sections visible', () => {
+        const state = {
+            ...baseState,
+            entities: {
+                admin: {
+                    plugins: {
+                        testplugin: {
+                            ...plugin,
+                            settings_schema: {
+                                ...plugin.settings_schema,
+                                sections: [
+                                    {
+                                        key: 'section1',
+                                        title: 'Fallback Section',
+                                        settings: [
+                                            {
+                                                key: 'fallbacknumbersetting',
+                                                label: 'Fallback Number Setting',
+                                                type: 'number' as const,
+                                                help_text: 'Fallback Number Setting Help Text',
+                                            },
+                                        ],
+                                        custom: true,
+                                        fallback: true,
+                                    },
+                                    {
+                                        key: 'section2',
+                                        title: 'No Fallback Section',
+                                        settings: [
+                                            {
+                                                key: 'nofallbacknumbersetting',
+                                                label: 'No Fallback Number Setting',
+                                                type: 'number' as const,
+                                                help_text: 'No Fallback Number Setting Help Text',
+                                            },
+                                        ],
+                                        custom: true,
+                                        fallback: false,
+                                    },
+                                ],
+                            },
+                        },
+                    },
+                },
+            },
+        };
+
+        const props = {
+            ...baseProps,
+            config: {
+                ...baseProps.config,
+                PluginStates: {
+                    testplugin: {
+                        Enabled: false,
+                    },
+                },
+            },
+        };
+
+        renderWithContext(
+            <CustomPluginSettings
+                {...props}
+                patchConfig={jest.fn()}
+            />,
+            {...state});
+
+        expectPluginPageTitle('testplugin', 'testplugin');
+        expect(screen.getByTestId('PluginSettings.PluginStates.testplugin.Enable')).toBeInTheDocument();
+
+        // The single collapse warning must not replace the whole page when at least one section allows a fallback.
+        expect(screen.queryByText('In order to view and configure plugin settings, enable the plugin and click Save.')).not.toBeInTheDocument();
+
+        // The fallback-enabled section stays configurable.
+        expect(screen.getByText('Fallback Section')).toBeInTheDocument();
+        expect(screen.getByText('Fallback Number Setting Help Text')).toBeInTheDocument();
+
+        // The non-fallback section is hidden behind its own per-section warning.
+        expect(screen.getByText('No Fallback Section')).toBeInTheDocument();
+        expect(screen.getByText('In order to view this section, enable the plugin and click Save.')).toBeInTheDocument();
+        expect(screen.queryByText('No Fallback Number Setting Help Text')).not.toBeInTheDocument();
+    });
+
+    it('mixed custom section fallback is order-independent', () => {
+        const state = {
+            ...baseState,
+            entities: {
+                admin: {
+                    plugins: {
+                        testplugin: {
+                            ...plugin,
+                            settings_schema: {
+                                ...plugin.settings_schema,
+                                sections: [
+                                    {
+                                        key: 'section1',
+                                        title: 'No Fallback Section',
+                                        settings: [
+                                            {
+                                                key: 'nofallbacknumbersetting',
+                                                label: 'No Fallback Number Setting',
+                                                type: 'number' as const,
+                                                help_text: 'No Fallback Number Setting Help Text',
+                                            },
+                                        ],
+                                        custom: true,
+                                        fallback: false,
+                                    },
+                                    {
+                                        key: 'section2',
+                                        title: 'Fallback Section',
+                                        settings: [
+                                            {
+                                                key: 'fallbacknumbersetting',
+                                                label: 'Fallback Number Setting',
+                                                type: 'number' as const,
+                                                help_text: 'Fallback Number Setting Help Text',
+                                            },
+                                        ],
+                                        custom: true,
+                                        fallback: true,
+                                    },
+                                ],
+                            },
+                        },
+                    },
+                },
+            },
+        };
+
+        const props = {
+            ...baseProps,
+            config: {
+                ...baseProps.config,
+                PluginStates: {
+                    testplugin: {
+                        Enabled: false,
+                    },
+                },
+            },
+        };
+
+        renderWithContext(
+            <CustomPluginSettings
+                {...props}
+                patchConfig={jest.fn()}
+            />,
+            {...state});
+
+        expect(screen.queryByText('In order to view and configure plugin settings, enable the plugin and click Save.')).not.toBeInTheDocument();
+        expect(screen.getByText('Fallback Section')).toBeInTheDocument();
+        expect(screen.getByText('Fallback Number Setting Help Text')).toBeInTheDocument();
+        expect(screen.getByText('No Fallback Section')).toBeInTheDocument();
+        expect(screen.getByText('In order to view this section, enable the plugin and click Save.')).toBeInTheDocument();
+        expect(screen.queryByText('No Fallback Number Setting Help Text')).not.toBeInTheDocument();
     });
 
     it('custom sections with plugin enabled should render as expected', () => {
@@ -339,10 +686,10 @@ describe('custom plugin sections and settings', () => {
             <CustomPluginSettings
                 {...props}
                 patchConfig={jest.fn()}
-            />
-            , {...state});
+            />,
+            {...state});
 
-        expect(screen.getByText('testplugin')).toBeInTheDocument();
+        expectPluginPageTitle('testplugin', 'testplugin');
         expect(screen.getByTestId('PluginSettings.PluginStates.testplugin.Enable')).toBeInTheDocument();
         expect(screen.queryByText('In order to view and configure plugin settings, enable the plugin and click Save.')).not.toBeInTheDocument();
         expect(screen.getByText('Custom Component Section 1')).toBeInTheDocument();

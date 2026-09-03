@@ -5,14 +5,14 @@ x-logging: &default-logging
 
 services:
   postgres:
-    image: "postgres:14"
+    image: "postgres:15"
     logging: *default-logging
     restart: always
     networks:
       - mm-test
     environment:
       POSTGRES_USER: mmuser
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-mostest}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-mostest_password}
       POSTGRES_DB: mattermost_test
       POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256 --auth-local=scram-sha-256"
     command: postgres -c 'config_file=/etc/postgresql/postgresql.conf'
@@ -60,7 +60,7 @@ services:
       LDAP_TLS_VERIFY_CLIENT: "never"
       LDAP_ORGANISATION: "Mattermost Test"
       LDAP_DOMAIN: "mm.test.com"
-      LDAP_ADMIN_PASSWORD: "mostest"
+      LDAP_ADMIN_PASSWORD: "mostest_password"
   elasticsearch:
     build:
       context: .
@@ -84,6 +84,8 @@ services:
     build:
       context: .
       dockerfile: ./Dockerfile.opensearch
+      args:
+        OPENSEARCH_VERSION: ${OPENSEARCH_VERSION:-3.0.0}
     networks:
       - mm-test
     environment:
@@ -96,7 +98,9 @@ services:
       transport.host: "127.0.0.1"
       discovery.type: single-node
       plugins.security.disabled: "true"
-      ES_JAVA_OPTS: "-Xms512m -Xmx512m"
+      DISABLE_INSTALL_DEMO_CONFIG: "true"
+      OPENSEARCH_INITIAL_ADMIN_PASSWORD: "Test@dmin_123"
+      OPENSEARCH_JAVA_OPTS: "-Xms512m -Xmx512m"
   redis:
     image: "redis:7.4.0"
     logging: *default-logging

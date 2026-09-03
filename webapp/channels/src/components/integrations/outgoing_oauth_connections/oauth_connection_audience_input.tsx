@@ -25,7 +25,7 @@ type Props = {
     value: string;
     onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
     placeholder: MessageDescriptor;
-}
+};
 
 const OAuthConnectionAudienceInput = (props: Props) => {
     const mounted = useRef(false);

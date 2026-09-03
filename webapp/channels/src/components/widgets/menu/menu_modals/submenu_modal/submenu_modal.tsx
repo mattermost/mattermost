@@ -14,7 +14,7 @@ import './submenu_modal.scss';
 type Props = {
     elements?: Array<React.ComponentProps<typeof SubMenuItem>>;
     onExited: () => void;
-}
+};
 
 const SubMenuModal = ({
     elements,

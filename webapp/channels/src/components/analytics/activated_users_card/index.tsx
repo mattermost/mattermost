@@ -18,7 +18,7 @@ type ActivatedUserCardProps = {
     activatedUsers: number | undefined;
     isCloud: boolean;
     guestAccountsEnabled?: boolean;
-}
+};
 
 const ActivatedUserCard = ({activatedUsers, seatsPurchased, isCloud, guestAccountsEnabled = false}: ActivatedUserCardProps) => {
     const {isBetween5PercerntAnd10PercentPurchasedSeats, isOver10PercerntPurchasedSeats} = calculateOverageUserActivated({seatsPurchased, activeUsers: activatedUsers || 0});

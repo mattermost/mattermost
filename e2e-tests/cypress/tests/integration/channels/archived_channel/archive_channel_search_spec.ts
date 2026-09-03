@@ -14,7 +14,6 @@ import {createArchivedChannel} from './helpers';
 
 import {getRandomId} from '@/utils';
 
-
 describe('archive channel search tests', () => {
     let testTeam: Cypress.Team;
     let testChannel: Cypress.Channel;

@@ -5,10 +5,19 @@ import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
+import type {Channel} from '@mattermost/types/channels';
+
+import {withdrawMyChannelJoinRequest} from 'mattermost-redux/actions/channels';
+
 import {joinChannelById, switchToChannel} from 'actions/views/channel';
+import {openModal} from 'actions/views/modals';
 import {closeRightHandSide} from 'actions/views/rhs';
 import {getIsRhsOpen, getRhsState} from 'selectors/rhs';
 import {getIsMobileView} from 'selectors/views/browser';
+
+import RequestJoinChannelModal from 'components/request_join_channel_modal/request_join_channel_modal';
+
+import {ModalIdentifiers} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
 
@@ -23,12 +32,24 @@ function mapStateToProps(state: GlobalState) {
 }
 
 function mapDispatchToProps(dispatch: Dispatch) {
+    const boundActions = bindActionCreators({
+        joinChannelById,
+        switchToChannel,
+        closeRightHandSide,
+        withdrawJoinRequest: withdrawMyChannelJoinRequest,
+    }, dispatch);
+
     return {
-        actions: bindActionCreators({
-            joinChannelById,
-            switchToChannel,
-            closeRightHandSide,
-        }, dispatch),
+        actions: {
+            ...boundActions,
+            openRequestJoinModal: (channel: Channel) => {
+                dispatch(openModal({
+                    modalId: ModalIdentifiers.REQUEST_JOIN_CHANNEL,
+                    dialogType: RequestJoinChannelModal,
+                    dialogProps: {channel},
+                }));
+            },
+        },
     };
 }
 

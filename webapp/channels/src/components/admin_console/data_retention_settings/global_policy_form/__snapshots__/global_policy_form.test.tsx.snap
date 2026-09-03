@@ -7,6 +7,7 @@ exports[`components/PluginManagement should match snapshot 1`] = `
   >
     <div
       class="admin-console__header with-back"
+      data-testid="admin-console-header"
     >
       <div>
         <a

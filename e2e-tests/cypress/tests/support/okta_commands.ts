@@ -3,8 +3,7 @@
 
 import * as TIMEOUTS from '../fixtures/timeouts';
 
-import {ChainableT} from '@/types';
-
+import type {ChainableT} from '@/types';
 
 const token = 'SSWS ' + Cypress.expose('oktaMMAppToken');
 

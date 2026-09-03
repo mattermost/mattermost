@@ -39,7 +39,7 @@ export type AutocompleteOptionType<T> = {
     label: string | ReactElement;
     value: string;
     raw?: T;
-}
+};
 
 const BASE_SELECT_COMPONENTS = {
     LoadingIndicator,
@@ -50,12 +50,12 @@ const BASE_SELECT_COMPONENTS = {
 type MultiSelectProps = {
     multiSelectOnChange?: (selectedUserIds: string[]) => void;
     multiSelectInitialValue?: string[];
-}
+};
 
 type SingleSelectProps = {
     singleSelectOnChange?: (selectedUserId: string) => void;
     singleSelectInitialValue?: string;
-}
+};
 
 type Props = MultiSelectProps & SingleSelectProps & {
     id: string;
@@ -135,7 +135,7 @@ export function UserSelector({id, isMulti, className, multiSelectOnChange, multi
         }
     }, [dispatch, initialValue, isMulti, multiSelectInitialValue, singleSelectInitialValue, isGroupsEnabled, enableTeams]);
 
-    const getUsersByIds = useMemo(makeGetUsersByIds, []);
+    const getUsersByIds = useMemo(() => makeGetUsersByIds(), []);
     const initialUsers = useSelector((state: GlobalState) => getUsersByIds(state, initialValue || []));
     const allGroups = useSelector(getAllGroups);
     const allTeams = useSelector(getTeams);

@@ -16,6 +16,7 @@ exports[`components/threading/global_threads/thread_list/virtualized_thread_list
   <div>
     <div
       class="loading-screen"
+      data-testid="loading-screen"
       style="position: relative;"
     >
       <div
@@ -42,6 +43,7 @@ exports[`components/threading/global_threads/thread_list/virtualized_thread_list
   <div>
     <div
       class="no-results__wrapper horizontal-layout"
+      data-testid="no-results-wrapper"
       style="padding: 16px 16px 16px 24px; background: rgba(var(--center-channel-color-rgb), 0.04);"
     >
       <span
@@ -186,6 +188,7 @@ exports[`components/threading/global_threads/thread_list/virtualized_thread_list
       >
         <h3
           class="no-results__title thread-no-results-title"
+          data-testid="no-results-title"
         >
           That’s the end of the list
         </h3>

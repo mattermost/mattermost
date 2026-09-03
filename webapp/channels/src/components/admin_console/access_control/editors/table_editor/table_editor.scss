@@ -41,6 +41,12 @@
         }
     }
 
+    &__value-error {
+        margin-top: 4px;
+        color: var(--error-text);
+        font-size: 12px;
+    }
+
     &__row-remove {
         border: none;
         background: none;
@@ -65,5 +71,21 @@
 
     &__add-button-container {
         padding: 8px;
+    }
+
+    // Value cell holds an optional right-hand-side kind toggle (literal value
+    // vs. channel attribute) next to the value/attribute selector.
+    &__value-cell {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 4px;
+
+        // The selector fills the width and must be allowed to shrink: its field
+        // defaults to width:100%, which overflows the cell's flex min-content
+        // floor. min-width:0 lets a long value collapse instead of pushing out.
+        > * {
+            min-width: 0;
+        }
     }
 }

@@ -15,12 +15,13 @@ export type ClientResponse<T> = {
 };
 
 export type Options = {
-    headers?: { [x: string]: string };
+    headers?: {[x: string]: string};
     method?: string;
     url?: string;
     credentials?: 'omit' | 'same-origin' | 'include';
     body?: any;
     signal?: RequestInit['signal'];
+    cache?: RequestInit['cache']; /** Per-request fetch cache mode, e.g. 'reload' to bypass a stale ETag for a single request */
     ignoreStatus?: boolean; /** If true, status codes > 300 are ignored and don't cause an error */
     duplex?: 'half'; /** Optional, but required for node clients. Must be 'half' for half-duplex fetch; 'full' is reserved for future use. See https://fetch.spec.whatwg.org/#dom-requestinit-duplex */
 };
@@ -38,10 +39,10 @@ export type FetchPaginatedThreadOptions = {
     collapsedThreads?: boolean;
     collapsedThreadsExtended?: boolean;
     updatesOnly?: boolean; // This indicates the API is meant to be used to only get delta updates.
-    direction?: 'up'|'down';
+    direction?: 'up' | 'down';
     fetchAll?: boolean;
     perPage?: number;
     fromCreateAt?: number;
     fromUpdateAt?: number;
     fromPost?: string;
-}
+};

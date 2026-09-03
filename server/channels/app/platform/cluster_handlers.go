@@ -18,6 +18,7 @@ func (ps *PlatformService) RegisterClusterHandlers() {
 	ps.clusterIFace.RegisterClusterMessageHandler(model.ClusterEventInvalidateAllCaches, ps.ClusterInvalidateAllCachesHandler)
 	ps.clusterIFace.RegisterClusterMessageHandler(model.ClusterEventInvalidateWebConnCacheForUser, ps.clusterInvalidateWebConnSessionCacheForUserHandler)
 	ps.clusterIFace.RegisterClusterMessageHandler(model.ClusterEventBusyStateChanged, ps.clusterBusyStateChgHandler)
+	ps.clusterIFace.RegisterClusterMessageHandler(model.ClusterEventUpdateSessionAttributes, ps.ClusterUpdateSessionAttributesHandler)
 	ps.clusterIFace.RegisterClusterMessageHandler(model.ClusterEventClearSessionCacheForUser, ps.clusterClearSessionCacheForUserHandler)
 	ps.clusterIFace.RegisterClusterMessageHandler(model.ClusterEventClearSessionCacheForAllUsers, ps.clusterClearSessionCacheForAllUsersHandler)
 	for e, h := range ps.additionalClusterHandlers {
@@ -47,6 +48,18 @@ func (ps *PlatformService) ClusterUpdateStatusHandler(msg *model.ClusterMessage)
 
 	if err := ps.statusCache.SetWithDefaultExpiry(status.UserId, status); err != nil {
 		ps.logger.Warn("Failed to store the status in the cache", mlog.String("user_id", status.UserId), mlog.Err(err))
+	}
+}
+
+func (ps *PlatformService) ClusterUpdateSessionAttributesHandler(msg *model.ClusterMessage) {
+	var payload model.SessionAttributesClusterPayload
+	if err := json.Unmarshal(msg.Data, &payload); err != nil {
+		ps.logger.Warn("Failed to decode session attributes from JSON", mlog.Err(err))
+		return
+	}
+
+	if err := ps.Store.SessionAttribute().Refresh(payload.SessionID, payload.Attrs, payload.Timestamp); err != nil {
+		ps.logger.Warn("Failed to merge session attributes from cluster", mlog.String("session_id", payload.SessionID), mlog.Err(err))
 	}
 }
 

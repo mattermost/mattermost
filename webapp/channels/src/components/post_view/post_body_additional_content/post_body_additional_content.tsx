@@ -11,6 +11,7 @@ import {isArrayOf} from '@mattermost/types/utilities';
 import {validateBindings} from 'mattermost-redux/utils/apps';
 import {getEmbedFromMetadata} from 'mattermost-redux/utils/post_utils';
 
+import {hasInteractiveMessageProps} from 'components/block_renderer/translation';
 import MessageAttachmentList from 'components/post_view/message_attachments/message_attachment_list';
 import PostAttachmentOpenGraph from 'components/post_view/post_attachment_opengraph';
 import PostImage from 'components/post_view/post_image';
@@ -18,11 +19,13 @@ import PostMessagePreview from 'components/post_view/post_message_preview';
 import YoutubeVideo from 'components/youtube_video';
 
 import webSocketClient from 'client/web_websocket_client';
+import PluggableErrorBoundary from 'plugins/pluggable/error_boundary';
 import type {TextFormattingOptions} from 'utils/text_formatting';
 
 import type {PostWillRenderEmbedComponent} from 'types/store/plugins';
 
 import EmbeddedBindings from '../embedded_bindings/embedded_bindings';
+import InteractiveMessages from '../interactive_messages';
 
 export type Props = {
     post: Post;
@@ -31,6 +34,7 @@ export type Props = {
     isEmbedVisible?: boolean;
     options?: Partial<TextFormattingOptions>;
     appsEnabled: boolean;
+    mmBlocksEnabled: boolean;
     handleFileDropdownOpened?: (open: boolean) => void;
     actions: {
         toggleEmbedVisibility: (id: string) => void;
@@ -64,10 +68,12 @@ export default class PostBodyAdditionalContent extends React.PureComponent<Props
             if (c.match(embed)) {
                 const Component = c.component;
                 return this.props.isEmbedVisible && (
-                    <Component
-                        embed={embed}
-                        webSocketClient={webSocketClient}
-                    />
+                    <PluggableErrorBoundary pluginId={c.pluginId}>
+                        <Component
+                            embed={embed}
+                            webSocketClient={webSocketClient}
+                        />
+                    </PluggableErrorBoundary>
                 );
             }
         }
@@ -151,6 +157,22 @@ export default class PostBodyAdditionalContent extends React.PureComponent<Props
 
     render() {
         const embed = this.getEmbed();
+
+        // New Interactive Messages framework — checked first per priority order.
+        // When the feature flag is on, mm_blocks/blocks/cards/attachments are all
+        // handled here. The existing paths below are only reached when the flag is off.
+        if (this.props.mmBlocksEnabled) {
+            const props = this.props.post.props as Record<string, unknown>;
+
+            if (hasInteractiveMessageProps(props)) {
+                return (
+                    <>
+                        {this.props.children}
+                        <InteractiveMessages post={this.props.post}/>
+                    </>
+                );
+            }
+        }
 
         if (this.props.appsEnabled) {
             const appEmbeds = isArrayOf<AppBinding>(this.props.post.props?.app_bindings, isAppBinding) ? validateBindings(this.props.post.props?.app_bindings) : [];

@@ -7,7 +7,7 @@ import {FormattedMessage} from 'react-intl';
 type Props = {
     title?: JSX.Element;
     description: JSX.Element;
-}
+};
 
 const Banner: React.FC<Props> = (props: Props) => {
     let title = (

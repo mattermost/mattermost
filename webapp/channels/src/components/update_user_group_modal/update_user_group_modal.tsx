@@ -30,7 +30,7 @@ export type Props = {
         patchGroup: (groupId: string, group: CustomGroupPatch) => Promise<ActionResult>;
         openModal: <P>(modalData: ModalData<P>) => void;
     };
-}
+};
 
 const UpdateUserGroupModal = ({
     actions,

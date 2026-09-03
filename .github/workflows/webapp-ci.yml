@@ -14,8 +14,12 @@ concurrency:
   group: ${{ github.event_name == 'pull_request' && format('{0}-{1}', github.workflow, github.ref) || github.run_id }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
+permissions: {}
+
 jobs:
   check-lint:
+    permissions:
+      contents: read
     runs-on: ubuntu-24.04
     defaults:
       run:
@@ -23,13 +27,19 @@ jobs:
     steps:
       - name: ci/checkout-repo
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
       - name: ci/setup
         uses: ./.github/actions/webapp-setup
+        with:
+          read-only: "true"
       - name: ci/lint
         run: |
           npm run check
 
   check-i18n:
+    permissions:
+      contents: read
     needs: check-lint
     runs-on: ubuntu-24.04
     defaults:
@@ -38,14 +48,20 @@ jobs:
     steps:
       - name: ci/checkout-repo
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
       - name: ci/setup
         uses: ./.github/actions/webapp-setup
+        with:
+          read-only: "true"
       - name: ci/i18n-extract
         working-directory: webapp/channels
         run: |
           npm run i18n-extract:check
 
   check-external-links:
+    permissions:
+      contents: read
     needs: check-lint
     runs-on: ubuntu-24.04
     timeout-minutes: 15
@@ -55,14 +71,20 @@ jobs:
     steps:
       - name: ci/checkout-repo
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
       - name: ci/setup
         uses: ./.github/actions/webapp-setup
+        with:
+          read-only: "true"
       - name: ci/check-external-links
         run: |
           set -o pipefail
           npm run check-external-links -- --markdown | tee -a $GITHUB_STEP_SUMMARY
 
   check-types:
+    permissions:
+      contents: read
     needs: check-lint
     runs-on: ubuntu-24.04
     defaults:
@@ -71,8 +93,12 @@ jobs:
     steps:
       - name: ci/checkout-repo
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
       - name: ci/setup
         uses: ./.github/actions/webapp-setup
+        with:
+          read-only: "true"
       - name: ci/lint
         run: |
           npm run check-types
@@ -82,6 +108,8 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     permissions:
+      contents: read
+      actions: write
       checks: write
       pull-requests: write
     name: test (platform)
@@ -91,8 +119,12 @@ jobs:
     steps:
       - name: ci/checkout-repo
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
       - name: ci/setup
         uses: ./.github/actions/webapp-setup
+        with:
+          read-only: "true"
       - name: ci/test
         env:
           NODE_OPTIONS: --max_old_space_size=5120
@@ -113,6 +145,8 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     permissions:
+      contents: read
+      actions: write
       checks: write
       pull-requests: write
     name: test (mattermost-redux)
@@ -122,8 +156,12 @@ jobs:
     steps:
       - name: ci/checkout-repo
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
       - name: ci/setup
         uses: ./.github/actions/webapp-setup
+        with:
+          read-only: "true"
       - name: ci/test
         env:
           NODE_OPTIONS: --max_old_space_size=5120
@@ -141,6 +179,8 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     permissions:
+      contents: read
+      actions: write
       checks: write
       pull-requests: write
     strategy:
@@ -154,13 +194,18 @@ jobs:
     steps:
       - name: ci/checkout-repo
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
       - name: ci/setup
         uses: ./.github/actions/webapp-setup
+        with:
+          read-only: "true"
       - name: ci/test
         env:
+          MATRIX_SHARD: ${{ matrix.shard }}
           NODE_OPTIONS: --max_old_space_size=5120
         run: |
-          npm run test-ci -- --config jest.config.channels.js --coverageDirectory=coverage/shard-${{ matrix.shard }} --shard=${{ matrix.shard }}/4
+          npm run test-ci -- --config jest.config.channels.js --coverageDirectory="coverage/shard-${MATRIX_SHARD}" --shard="${MATRIX_SHARD}/4"
       - name: ci/upload-coverage-artifact
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
@@ -169,6 +214,9 @@ jobs:
           retention-days: 1
 
   upload-coverage:
+    permissions:
+      contents: read
+      actions: read
     runs-on: ubuntu-24.04
     needs: [test-platform, test-mattermost-redux, test-channels]
     if: ${{ github.event_name != 'pull_request' || !startsWith(github.event.pull_request.base.ref, 'release-') }}
@@ -178,8 +226,12 @@ jobs:
     steps:
       - name: ci/checkout-repo
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
       - name: ci/setup
         uses: ./.github/actions/webapp-setup
+        with:
+          read-only: "true"
       - name: ci/download-coverage-artifacts
         uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8.0.0
         with:
@@ -226,6 +278,8 @@ jobs:
           flags: webapp
 
   build:
+    permissions:
+      contents: read
     needs: check-lint
     runs-on: ubuntu-24.04
     defaults:
@@ -234,8 +288,12 @@ jobs:
     steps:
       - name: ci/checkout-repo
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
       - name: ci/setup
         uses: ./.github/actions/webapp-setup
+        with:
+          read-only: "true"
       - name: ci/build
         run: |
           npm run build

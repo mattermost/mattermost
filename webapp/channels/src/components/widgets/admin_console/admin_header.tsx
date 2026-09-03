@@ -13,6 +13,7 @@ type Props = {
 const AdminHeader = (props: Props) => {
     return (
         <div
+            data-testid='admin-console-header'
             className={
                 classNames(
                     'admin-console__header',

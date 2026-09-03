@@ -85,6 +85,8 @@ func setupWatcherTest(t *testing.T) (*searchEngineWatcher, *searchenginemocks.Se
 func TestRunSearchEngineWatcher(t *testing.T) {
 	t.Run("retries Start on failure then transitions to health phase", func(t *testing.T) {
 		w, engineMock := setupWatcherTest(t)
+		var logBuffer mlog.Buffer
+		require.NoError(t, mlog.AddWriterTarget(w.ps.Logger(), &logBuffer, true, mlog.StdAll...))
 
 		engineMock.On("IsEnabled").Return(true).Maybe()
 
@@ -122,6 +124,11 @@ func TestRunSearchEngineWatcher(t *testing.T) {
 			return healthChecked.Load() == 1
 		}, 2*time.Second, 5*time.Millisecond,
 			"watcher should have transitioned to health phase after Start succeeds")
+
+		require.NoError(t, w.ps.Logger().Flush())
+		logText := logBuffer.String()
+		testlib.AssertLog(t, strings.NewReader(logText), mlog.LvlError.Name, "Search engine watcher: Start() failed, will retry")
+		testlib.AssertNoLog(t, strings.NewReader(logText), mlog.LvlWarn.Name, "Search engine watcher: Start() failed, will retry")
 	})
 
 	t.Run("exponential backoff with cap", func(t *testing.T) {
@@ -706,7 +713,7 @@ func TestWatcherHealthFlag(t *testing.T) {
 
 		require.Eventually(t, func() bool {
 			require.NoError(t, w.ps.Logger().Flush())
-			return testlib.CheckLog(t, strings.NewReader(logBuffer.String()), "",
+			return testlib.CheckLog(t, strings.NewReader(logBuffer.String()), mlog.LvlWarn.Name,
 				"Search engine health check failed: it is now marked as unhealthy")
 		}, 2*time.Second, 5*time.Millisecond,
 			"expected log for healthy->unhealthy transition")
@@ -720,7 +727,7 @@ func TestWatcherHealthFlag(t *testing.T) {
 
 		require.Eventually(t, func() bool {
 			require.NoError(t, w.ps.Logger().Flush())
-			return testlib.CheckLog(t, strings.NewReader(logBuffer.String()), "",
+			return testlib.CheckLog(t, strings.NewReader(logBuffer.String()), mlog.LvlInfo.Name,
 				"Search engine health check succeeded: it is now marked as healthy")
 		}, 2*time.Second, 5*time.Millisecond,
 			"expected log for unhealthy->healthy transition")

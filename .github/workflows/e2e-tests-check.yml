@@ -5,8 +5,14 @@ on:
     paths:
       - "e2e-tests/**"
       - "webapp/platform/client/**"
+      - "webapp/platform/eslint-plugin/**"
       - "webapp/platform/types/**"
       - ".github/workflows/e2e-*.yml"
+
+permissions:
+  actions: write
+  contents: read
+  pull-requests: read
 
 jobs:
   check:
@@ -15,22 +21,28 @@ jobs:
       - name: ci/checkout-repo
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
+          persist-credentials: false
           fetch-depth: 0
 
+      - name: ci/restore-npm-cache
+        uses: ./.github/actions/restore-e2e-npm-cache
       - name: ci/setup-node
         uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
         with:
           node-version-file: ".nvmrc"
-          cache: npm
-          cache-dependency-path: |
-            e2e-tests/cypress/package-lock.json
-            e2e-tests/playwright/package-lock.json
-            webapp/package-lock.json
       - name: ci/npm-cache-verify
         # Heal any partial/dangling entries left in the restored ~/.npm cache
         # before running `npm ci`. Avoids the intermittent EEXIST/ENOENT
         # failures in npm's cacache writer.
         run: npm cache verify
+
+      # Set up web app subpackages and eslint plugin, restoring the warmed
+      # node_modules cache read-only and falling back to `make node_modules` on a
+      # miss.
+      - name: ci/webapp-setup
+        uses: ./.github/actions/webapp-setup
+        with:
+          read-only: "true"
 
       # Cypress check
       - name: ci/cypress/npm-install
@@ -41,9 +53,6 @@ jobs:
         run: npm run check
 
       # Playwright check
-      - name: ci/get-webapp-node-modules
-        working-directory: webapp
-        run: make node_modules
       - name: ci/playwright/npm-install
         working-directory: e2e-tests/playwright
         run: npm ci

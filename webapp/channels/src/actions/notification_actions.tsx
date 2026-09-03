@@ -19,7 +19,7 @@ import {
 import {getAllUserMentionKeys} from 'mattermost-redux/selectors/entities/search';
 import {getCurrentUserId, getCurrentUser, getStatusForUserId, getUser} from 'mattermost-redux/selectors/entities/users';
 import {isChannelMuted, isDirectChannel, isGroupChannel} from 'mattermost-redux/utils/channel_utils';
-import {ensureString, isSystemMessage, isUserAddedInChannel} from 'mattermost-redux/utils/post_utils';
+import {ensureString, isNotificationSuppressed, isSystemMessage, isUserAddedInChannel} from 'mattermost-redux/utils/post_utils';
 import {displayUsername} from 'mattermost-redux/utils/user_utils';
 
 import {getPlatformNotifications} from 'selectors/rhs';
@@ -48,7 +48,7 @@ type NotificationResult = {
     status: string;
     reason?: string;
     data?: string;
-}
+};
 
 type NotificationHooksArgs = {
     title: string;
@@ -57,7 +57,7 @@ type NotificationHooksArgs = {
     soundName: string;
     url: string;
     notify: boolean;
-}
+};
 
 /**
  * This function is used to determine if the desktop sound is enabled.
@@ -360,7 +360,7 @@ export function sendDesktopNotification(post: Post, msgProps: NewPostMessageProp
             return {data: {status: 'not_sent', reason: 'desktop_notification_hook', data: String(hookResult)}};
         }
 
-        const notifyDispatchResult = await dispatch(notifyMe(argsAfterHooks.title, argsAfterHooks.body, channel.id, teamId, argsAfterHooks.silent, argsAfterHooks.soundName, argsAfterHooks.url));
+        const notifyDispatchResult = await dispatch(notifyMe(argsAfterHooks.title, argsAfterHooks.body, channel.id, teamId, argsAfterHooks.silent, argsAfterHooks.soundName, argsAfterHooks.url, post.id));
 
         //Don't add extra sounds on native desktop clients
         if (desktopSoundEnabled && !isDesktopApp() && !isMobile()) {
@@ -465,6 +465,10 @@ function shouldSkipNotification(
 
     if (isSystemMessage(post) && !isUserAddedInChannel(post, currentUserId)) {
         return {status: 'not_sent', reason: 'system_message'};
+    }
+
+    if (isNotificationSuppressed(post)) {
+        return {status: 'not_sent', reason: 'silent_notification'};
     }
 
     if (!member) {
@@ -620,10 +624,12 @@ function shouldSkipNotification(
     return undefined;
 }
 
-export function notifyMe(title: string, body: string, channelId: string, teamId: string, silent: boolean, soundName: string, url: string): ActionFuncAsync<NotificationResult> {
+export function notifyMe(title: string, body: string, channelId: string, teamId: string, silent: boolean, soundName: string, url: string, postId: string): ActionFuncAsync<NotificationResult> {
     return async (dispatch) => {
         // handle notifications in desktop app
         if (isDesktopApp()) {
+            // The notification-tag leak only affects Chromium-based browser notifications,
+            // so the desktop app path does not need the opaque post id.
             const result = await DesktopApp.dispatchNotification(title, body, channelId, teamId, silent, soundName, url);
             return {data: result};
         }
@@ -632,6 +638,8 @@ export function notifyMe(title: string, body: string, channelId: string, teamId:
             const result = await dispatch(showNotification({
                 title,
                 body,
+
+                tag: postId,
                 requireInteraction: false,
                 silent,
                 onClick: () => {

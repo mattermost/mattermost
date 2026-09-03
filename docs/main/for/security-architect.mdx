@@ -1,0 +1,40 @@
+---
+title: "For Security Architects"
+description: "Start here if you evaluate Mattermost for regulated, classified, or DISC environments."
+slug: /for/security-architect
+displayed_sidebar: documentation
+hide_table_of_contents: true
+---
+
+<Eyebrow>Persona landing</Eyebrow>
+
+# For Security Architects and Accreditors
+
+You evaluate Mattermost for use in regulated, classified, or DISC (Defense, Intelligence, Security, Critical Infrastructure) environments. You write SSPs, POA&Ms, and authorization memos. You need citable specifics: CMVP certificates, NIST control mappings, attestation status, audit log schemas. This page is a curated entry point — every link goes to the canonical guide.
+
+## Start here
+
+<CardGrid columns={3} cards={[
+  {title: 'Security Guide', to: '/security-guide/security-guide-index', description: 'Encryption, access control, audit logging, and compliance.'},
+  {title: 'Cryptography & FIPS', to: '/deployment-guide/server/containers/fips-stig', description: 'FIPS 140-3 / STIG-hardened container image builds.'},
+  {title: 'Zero Trust architecture', to: '/security-guide/zero-trust', description: 'Control mapping against the CISA Zero Trust Maturity Model.'},
+]} />
+
+## Common tasks
+
+<CardGrid columns={3} cards={[
+  {title: 'CMMC compliance', to: '/security-guide/cmmc-compliance', description: 'CMMC 2.0 Level 2 requirement coverage.'},
+  {title: 'Secure Mattermost', to: '/security-guide/secure-mattermost', description: 'Hardening features and where to configure them.'},
+  {title: 'Transport encryption', to: '/deployment-guide/transport-encryption', description: 'TLS profile, cipher suites, PFS.'},
+  {title: 'Encryption at rest', to: '/deployment-guide/encryption-options', description: 'DB + file-storage encryption.'},
+  {title: 'Audit logging', to: '/administration-guide/manage/logging', description: 'Schema, retention, SIEM integration.'},
+  {title: 'Compliance export', to: '/administration-guide/comply/compliance-export', description: 'Export evidence for regulated workloads.'},
+]} />
+
+## Other personas
+
+<CardGrid columns={3} cards={[
+  {title: 'For compliance officers', to: '/for/compliance-officer', description: 'Audit evidence, regulatory mapping.'},
+  {title: 'For air-gapped operators', to: '/for/air-gapped-operator', description: 'Network-isolated enclave deployment.'},
+  {title: 'For administrators', to: '/for/administrator', description: 'Day-to-day workspace administration.'},
+]} />

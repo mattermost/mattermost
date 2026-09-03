@@ -7,14 +7,25 @@ exports[`components/channel_view Should match snapshot if channel is archived 1`
     id="app-content"
   >
     <div
-      data-testid="FileUploadOverlay"
-    />
-    <div
-      data-testid="ChannelHeader"
-    />
-    <div
-      data-testid="ChannelBanner"
-    />
+      class="file-overlay hidden center-file-overlay"
+      id="centerChannelFileDropOverlay"
+    >
+      <div
+        class="overlay__indent"
+      >
+        <div
+          class="overlay__circle vertical"
+        >
+          <img
+            alt=""
+            class="overlay__files"
+            loading="lazy"
+            src=""
+          />
+          Drop a file to upload it.
+        </div>
+      </div>
+    </div>
     <div
       data-channel-id="channelId"
       data-testid="deferred-post-view"
@@ -50,14 +61,25 @@ exports[`components/channel_view Should match snapshot if channel is deactivated
     id="app-content"
   >
     <div
-      data-testid="FileUploadOverlay"
-    />
-    <div
-      data-testid="ChannelHeader"
-    />
-    <div
-      data-testid="ChannelBanner"
-    />
+      class="file-overlay hidden center-file-overlay"
+      id="centerChannelFileDropOverlay"
+    >
+      <div
+        class="overlay__indent"
+      >
+        <div
+          class="overlay__circle vertical"
+        >
+          <img
+            alt=""
+            class="overlay__files"
+            loading="lazy"
+            src=""
+          />
+          Drop a file to upload it.
+        </div>
+      </div>
+    </div>
     <div
       data-channel-id="channelId"
       data-testid="deferred-post-view"
@@ -92,14 +114,25 @@ exports[`components/channel_view Should match snapshot with base props 1`] = `
     id="app-content"
   >
     <div
-      data-testid="FileUploadOverlay"
-    />
-    <div
-      data-testid="ChannelHeader"
-    />
-    <div
-      data-testid="ChannelBanner"
-    />
+      class="file-overlay hidden center-file-overlay"
+      id="centerChannelFileDropOverlay"
+    >
+      <div
+        class="overlay__indent"
+      >
+        <div
+          class="overlay__circle vertical"
+        >
+          <img
+            alt=""
+            class="overlay__files"
+            loading="lazy"
+            src=""
+          />
+          Drop a file to upload it.
+        </div>
+      </div>
+    </div>
     <div
       data-channel-id="channelId"
       data-testid="deferred-post-view"
@@ -108,11 +141,7 @@ exports[`components/channel_view Should match snapshot with base props 1`] = `
       class="post-create__container AdvancedTextEditor__ctr"
       data-testid="post-create"
       id="post-create"
-    >
-      <div
-        data-testid="AdvancedCreatePost"
-      />
-    </div>
+    />
   </div>
 </div>
 `;

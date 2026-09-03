@@ -109,7 +109,7 @@ export const getOpenInModalSuggestion = (parsed: ParsedCommand): AutocompleteSug
 
 export type ExtendedAutocompleteSuggestion = AutocompleteSuggestion & {
     item?: UserProfile | Channel;
-}
+};
 
 export const displayError = (err: string, channelID: string, rootID?: string) => {
     reduxStore.dispatch(sendEphemeralPost(err, channelID, rootID));

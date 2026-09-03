@@ -152,7 +152,7 @@ export class TeamSelectorModal extends React.PureComponent<Props, State> {
         this.setState({values});
     };
 
-    search = (term: string, multiselectComponent: { state: { page: number }; setState: (arg0: { page: number }) => void }) => {
+    search = (term: string, multiselectComponent: {state: {page: number}; setState: (arg0: {page: number}) => void}) => {
         if (multiselectComponent.state.page !== 0) {
             multiselectComponent.setState({page: 0});
         }
@@ -168,7 +168,7 @@ export class TeamSelectorModal extends React.PureComponent<Props, State> {
         return (
             <div
                 key={option.id}
-                ref={isSelected ? this.selectedItemRef : option.id}
+                ref={isSelected ? this.selectedItemRef : undefined}
                 className={'more-modal__row clickable ' + rowSelected}
                 onClick={() => onAdd(option)}
                 onMouseMove={() => onMouseMove(option)}
@@ -201,7 +201,7 @@ export class TeamSelectorModal extends React.PureComponent<Props, State> {
         );
     };
 
-    renderValue(props: { data: TeamValue }) {
+    renderValue(props: {data: TeamValue}) {
         return props.data.display_name;
     }
 

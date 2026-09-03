@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Locator, expect} from '@playwright/test';
+import type {Locator} from '@playwright/test';
+import {expect} from '@playwright/test';
 
 import BurnOnReadBadge from './burn_on_read_badge';
 import BurnOnReadConcealedPlaceholder from './burn_on_read_concealed_placeholder';
@@ -9,11 +10,26 @@ import BurnOnReadTimerChip from './burn_on_read_timer_chip';
 import PostMenu from './post_menu';
 import ThreadFooter from './thread_footer';
 
+// Both assert the positive case first: a lone "placeholder is absent" check also passes
+// against a region that has not rendered at all.
+export async function expectFilesVisible(scope: Locator) {
+    await expect(scope.getByTestId('fileAttachmentList')).toBeVisible();
+    await expect(scope.getByTestId('redactedFilesPlaceholder')).toHaveCount(0);
+}
+
+export async function expectFilesRedacted(scope: Locator) {
+    await expect(scope.getByTestId('redactedFilesPlaceholder')).toBeVisible();
+    await expect(scope.getByTestId('fileAttachmentList')).toHaveCount(0);
+}
+
 export default class ChannelsPost {
     readonly container: Locator;
 
     readonly body;
     readonly profileIcon;
+    readonly emoticon;
+    readonly messageText;
+    readonly editedIndicator;
 
     readonly removePostButton;
 
@@ -25,24 +41,40 @@ export default class ChannelsPost {
     readonly burnOnReadTimerChip;
     readonly concealedPlaceholder;
 
+    // File attachments and their ABAC-redacted stand-in
+    readonly fileAttachmentList;
+    readonly redactedFilesPlaceholder;
+
+    readonly postPreview;
+
     constructor(container: Locator) {
         this.container = container;
 
-        this.body = container.locator('.post__body');
+        this.body = container.getByTestId('post-body');
 
-        this.profileIcon = container.locator('.profile-icon');
+        this.profileIcon = container.getByTestId('profile-icon');
+        this.emoticon = container.locator('.emoticon');
+        this.messageText = container.locator('.post-message__text p');
+        this.editedIndicator = container.getByRole('button', {name: 'Edited'});
 
-        this.removePostButton = container.locator('.post__remove');
+        this.removePostButton = container.getByTestId('post-remove-button');
 
-        this.postMenu = new PostMenu(container.locator('.post-menu'));
-        this.threadFooter = new ThreadFooter(container.locator('.ThreadFooter'));
+        this.postMenu = new PostMenu(container.getByTestId(/^post-menu($|-)/));
+        this.threadFooter = new ThreadFooter(container.getByTestId('thread-footer'));
 
         // Burn-on-Read components
-        this.burnOnReadBadge = new BurnOnReadBadge(container.locator('.BurnOnReadBadge'));
-        this.burnOnReadTimerChip = new BurnOnReadTimerChip(container.locator('.BurnOnReadTimerChip'));
+        this.burnOnReadBadge = new BurnOnReadBadge(container.getByTestId(/^burn-on-read-badge-/));
+        this.burnOnReadTimerChip = new BurnOnReadTimerChip(container.getByTestId('burn-on-read-timer-chip'));
         this.concealedPlaceholder = new BurnOnReadConcealedPlaceholder(
-            container.locator('.BurnOnReadConcealedPlaceholder'),
+            container.getByTestId(/^burn-on-read-concealed-/),
         );
+
+        this.fileAttachmentList = container.getByTestId('fileAttachmentList');
+        this.redactedFilesPlaceholder = container.getByTestId('redactedFilesPlaceholder');
+
+        // The embedded permalink preview carries no test id, so the class name is the
+        // only handle available.
+        this.postPreview = container.locator('.post-preview');
     }
 
     async toBeVisible() {
@@ -69,6 +101,14 @@ export default class ChannelsPost {
         return this.profileIcon.getByAltText(`${username} profile image`);
     }
 
+    /**
+     * Locates a rendered link with the given accessible name inside the post body.
+     * @param name
+     */
+    getLink(name: string): Locator {
+        return this.container.getByRole('link', {name});
+    }
+
     async openAThread() {
         await this.container.hover();
         await this.postMenu.toBeVisible();
@@ -76,10 +116,26 @@ export default class ChannelsPost {
         await this.postMenu.replyButton.click();
     }
 
+    /**
+     * Clicks the "Edited" indicator to open the post's edit history in the right sidebar.
+     */
+    async openEditHistory() {
+        await this.editedIndicator.click();
+    }
+
     async reply() {
         await this.container.hover();
         await this.postMenu.toBeVisible();
         await this.postMenu.reply();
+    }
+
+    /**
+     * Hovers the post and opens the emoji reaction picker via the "add reaction" button.
+     */
+    async openReactionPicker() {
+        await this.container.hover();
+        await this.postMenu.toBeVisible();
+        await this.postMenu.addReactionButton.click();
     }
 
     /**
@@ -113,6 +169,20 @@ export default class ChannelsPost {
     }
 
     /**
+     * @param scope Sub-region to assert within, e.g. an embedded permalink preview
+     */
+    async toHaveFilesVisible(scope: Locator = this.container) {
+        await expectFilesVisible(scope);
+    }
+
+    /**
+     * @param scope Sub-region to assert within, e.g. an embedded permalink preview
+     */
+    async toHaveFilesRedacted(scope: Locator = this.container) {
+        await expectFilesRedacted(scope);
+    }
+
+    /**
      * Check if this is a burn-on-read post
      */
     async isBurnOnReadPost(): Promise<boolean> {
@@ -126,7 +196,7 @@ export default class ChannelsPost {
      * Check if the BoR post is concealed (not yet revealed)
      */
     async isConcealed(): Promise<boolean> {
-        return await this.concealedPlaceholder.container.isVisible();
+        return this.concealedPlaceholder.container.isVisible();
     }
 
     /**

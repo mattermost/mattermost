@@ -17,6 +17,7 @@ import {
 } from 'mattermost-redux/selectors/entities/files';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 
+import {toggleEmbedVisibility} from 'actions/post_actions';
 import {openModal} from 'actions/views/modals';
 import {getCurrentLocale} from 'selectors/i18n';
 import {isEmbedVisible} from 'selectors/posts';
@@ -35,7 +36,7 @@ export type OwnProps = {
     disableActions?: boolean;
     usePostAsSource?: boolean;
     overrideGenerateFileDownloadUrl?: (fileId: string) => string;
-}
+};
 
 function makeMapStateToProps() {
     const selectFilesForPost = makeGetFilesForPost();
@@ -85,6 +86,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
     return {
         actions: bindActionCreators({
             openModal,
+            toggleEmbedVisibility,
         }, dispatch),
     };
 }

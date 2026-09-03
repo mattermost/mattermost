@@ -9,7 +9,7 @@
 
 // Group: @channels @channel
 
-import {UserProfile} from '@mattermost/types/users';
+import type {UserProfile} from '@mattermost/types/users';
 
 import {getAdminAccount} from '@/support/env';
 

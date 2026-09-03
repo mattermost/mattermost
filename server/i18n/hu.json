@@ -8207,10 +8207,6 @@
     "translation": "A getThreadsForUser OnlyThreads és OnlyTotals paraméterei kölcsönösen kizárják egymást"
   },
   {
-    "id": "api.file.test_connection_s3_settings_nil.app_error",
-    "translation": "A fájl tároló beállításokban nem meghatározott értékek vannak."
-  },
-  {
     "id": "api.file.test_connection_email_settings_nil.app_error",
     "translation": "Az e-mail beállításokban nem meghatározott értékek vannak."
   },

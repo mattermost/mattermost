@@ -28,6 +28,7 @@ type MetricsInterface interface {
 	IncrementClusterRequest()
 	ObserveClusterRequestDuration(elapsed float64)
 	IncrementClusterEventType(eventType model.ClusterEvent)
+	ObserveClusterReliableFallbackLength(event model.ClusterEvent, length int)
 
 	IncrementLogin()
 	IncrementLoginFail()

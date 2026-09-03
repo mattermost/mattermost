@@ -417,20 +417,47 @@ func TestGetLogs(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
 
+	testID := model.NewId()
+	expectedMessages := make([]string, 0, 20)
 	for i := range 20 {
-		th.TestLogger.Info(strconv.Itoa(i))
+		message := fmt.Sprintf("getlogs_verify_%s_%d", testID, i)
+		expectedMessages = append(expectedMessages, message)
+		th.TestLogger.Info(message)
 	}
 
 	err := th.TestLogger.Flush()
 	require.NoError(t, err, "failed to flush log")
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
-		logs, _, err2 := c.GetLogs(context.Background(), 0, 10)
-		require.NoError(t, err2)
-		require.Len(t, logs, 10)
+		var logs []string
+		containsLogMessage := func(logs []string, expected string) bool {
+			for _, logLine := range logs {
+				if strings.Contains(logLine, expected) {
+					return true
+				}
+			}
+			return false
+		}
+		containsExpectedMessages := func(logs []string) bool {
+			for _, expected := range expectedMessages {
+				if !containsLogMessage(logs, expected) {
+					return false
+				}
+			}
+			return true
+		}
 
-		for i := 10; i < 20; i++ {
-			assert.Containsf(t, logs[i-10], fmt.Sprintf(`"msg":"%d"`, i), "Log line doesn't contain correct message")
+		require.Eventually(t, func() bool {
+			logs, _, err = c.GetLogs(context.Background(), 0, 200)
+			if err != nil {
+				return false
+			}
+
+			return containsExpectedMessages(logs)
+		}, 5*time.Second, 25*time.Millisecond)
+
+		for _, expected := range expectedMessages {
+			assert.Truef(t, containsLogMessage(logs, expected), "Log lines don't contain %q", expected)
 		}
 
 		logs, _, err = c.GetLogs(context.Background(), 1, 10)
@@ -459,6 +486,88 @@ func TestGetLogs(t *testing.T) {
 	_, resp, err = th.Client.GetLogs(context.Background(), 0, 10)
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
+}
+
+func TestQueryLogs(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	testID := model.NewId()
+	expectedMessages := make([]string, 0, 5)
+	for i := range 5 {
+		message := fmt.Sprintf("querylogs_verify_%s_%d", testID, i)
+		expectedMessages = append(expectedMessages, message)
+		th.TestLogger.Info(message)
+	}
+	require.NoError(t, th.TestLogger.Flush(), "failed to flush log")
+
+	containsAllMessages := func(combined string) bool {
+		for _, expected := range expectedMessages {
+			if !strings.Contains(combined, expected) {
+				return false
+			}
+		}
+		return true
+	}
+
+	// waitForFilteredLogs queries with the filter, asserting a successful response, and
+	// polls until the expected messages appear (log availability after Flush is
+	// asynchronous). It returns the per-node lines from the last response.
+	waitForFilteredLogs := func(t *testing.T, filter *model.LogFilter) map[string][]json.RawMessage {
+		t.Helper()
+		var nodes map[string][]json.RawMessage
+		require.Eventually(t, func() bool {
+			decoded, _, err := th.SystemAdminClient.QueryLogs(context.Background(), 0, 200, filter)
+			if err != nil {
+				return false
+			}
+
+			var combined strings.Builder
+			for _, lines := range decoded {
+				for _, line := range lines {
+					combined.Write(line)
+				}
+			}
+			if !containsAllMessages(combined.String()) {
+				return false
+			}
+			nodes = decoded
+			return true
+		}, 5*time.Second, 25*time.Millisecond, "expected logged messages to be returned")
+		return nodes
+	}
+
+	t.Run("empty bounds return unfiltered logs", func(t *testing.T) {
+		nodes := waitForFilteredLogs(t, &model.LogFilter{DateFrom: "", DateTo: ""})
+		require.Contains(t, nodes, "default")
+	})
+
+	t.Run("valid bounds are accepted and still return matching logs", func(t *testing.T) {
+		filter := &model.LogFilter{
+			DateFrom: "2000-01-01 00:00:00.000 +00:00",
+			DateTo:   "2100-01-01 00:00:00.000 +00:00",
+		}
+		nodes := waitForFilteredLogs(t, filter)
+		require.Contains(t, nodes, "default")
+	})
+
+	t.Run("malformed date_from is rejected with 400", func(t *testing.T) {
+		_, resp, err := th.SystemAdminClient.QueryLogs(context.Background(), 0, 200, &model.LogFilter{DateFrom: "not-a-date", DateTo: ""})
+		CheckErrorID(t, err, "model.log_filter.is_valid.date_from.app_error")
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("malformed date_to is rejected with 400", func(t *testing.T) {
+		_, resp, err := th.SystemAdminClient.QueryLogs(context.Background(), 0, 200, &model.LogFilter{DateFrom: "", DateTo: "also-not-a-date"})
+		CheckErrorID(t, err, "model.log_filter.is_valid.date_to.app_error")
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("non-admin is forbidden", func(t *testing.T) {
+		_, resp, err := th.Client.QueryLogs(context.Background(), 0, 200, &model.LogFilter{})
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
 }
 
 func TestDownloadLogs(t *testing.T) {
@@ -698,8 +807,104 @@ func TestS3TestConnection(t *testing.T) {
 		config.FileSettings = model.FileSettings{}
 		resp, err := th.SystemAdminClient.TestS3Connection(context.Background(), &config)
 		require.Error(t, err)
-		CheckErrorID(t, err, "api.file.test_connection_s3_settings_nil.app_error")
+		CheckErrorID(t, err, "api.file.test_connection_settings_nil.app_error")
 		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("desanitizes FakeSetting using running config", func(t *testing.T) {
+		// Seed the running config with valid Minio credentials so the
+		// running config's AmazonS3SecretAccessKey is the real secret.
+		th.App.UpdateConfig(func(c *model.Config) {
+			c.FileSettings.DriverName = model.NewPointer(model.ImageDriverS3)
+			c.FileSettings.AmazonS3AccessKeyId = model.NewPointer(model.MinioAccessKey)
+			c.FileSettings.AmazonS3SecretAccessKey = model.NewPointer(model.MinioSecretKey)
+			c.FileSettings.AmazonS3Bucket = model.NewPointer(model.MinioBucket)
+			c.FileSettings.AmazonS3Endpoint = model.NewPointer(s3Endpoint)
+			c.FileSettings.AmazonS3Region = model.NewPointer("us-east-1")
+			c.FileSettings.AmazonS3PathPrefix = model.NewPointer("")
+			c.FileSettings.AmazonS3SSL = model.NewPointer(false)
+		})
+
+		// Build a request body that mirrors what the System Console sends
+		// after the admin clicks Test Connection without re-entering the
+		// secret: every field present, but the secret slot is the
+		// FakeSetting placeholder.
+		body := model.Config{FileSettings: model.FileSettings{}}
+		body.FileSettings.SetDefaults(false)
+		body.FileSettings.DriverName = model.NewPointer(model.ImageDriverS3)
+		body.FileSettings.AmazonS3AccessKeyId = model.NewPointer(model.MinioAccessKey)
+		body.FileSettings.AmazonS3SecretAccessKey = model.NewPointer(model.FakeSetting)
+		body.FileSettings.AmazonS3Bucket = model.NewPointer(model.MinioBucket)
+		body.FileSettings.AmazonS3Endpoint = model.NewPointer(s3Endpoint)
+		body.FileSettings.AmazonS3Region = model.NewPointer("us-east-1")
+		body.FileSettings.AmazonS3PathPrefix = model.NewPointer("")
+		body.FileSettings.AmazonS3SSL = model.NewPointer(false)
+
+		// If desanitize is not running, the server tests with the literal
+		// "********" string as the secret and Minio returns a 403 auth
+		// error. A 200 here proves the placeholder was swapped for the
+		// real running-config value before the connection test.
+		resp, err := th.SystemAdminClient.TestS3Connection(context.Background(), &body)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+	})
+
+	t.Run("unsupported driver", func(t *testing.T) {
+		unsupported := model.FileSettings{}
+		unsupported.SetDefaults(false)
+		unsupported.DriverName = model.NewPointer("bogus")
+		resp, err := th.SystemAdminClient.TestS3Connection(context.Background(), &model.Config{FileSettings: unsupported})
+		require.Error(t, err)
+		CheckErrorID(t, err, "api.file.test_connection_unsupported_driver.app_error")
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("empty driver name", func(t *testing.T) {
+		empty := model.FileSettings{}
+		empty.SetDefaults(false)
+		empty.DriverName = model.NewPointer("")
+		resp, err := th.SystemAdminClient.TestS3Connection(context.Background(), &model.Config{FileSettings: empty})
+		require.Error(t, err)
+		CheckErrorID(t, err, "api.file.test_connection_unsupported_driver.app_error")
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("azure missing mandatory fields", func(t *testing.T) {
+		// CheckMandatoryAzureFields rejects requests that don't carry an
+		// Azure storage account, container, and access key. Each missing
+		// field path must produce the same 400 with the dedicated error
+		// ID so admins get a clear signal in the System Console toast.
+		base := model.FileSettings{}
+		base.SetDefaults(false)
+		base.DriverName = model.NewPointer(model.ImageDriverAzure)
+
+		cases := []struct {
+			name string
+			mut  func(*model.FileSettings)
+		}{
+			{"missing storage account", func(fs *model.FileSettings) {
+				fs.AzureContainer = model.NewPointer("mattermost")
+				fs.AzureAccessKey = model.NewPointer("secret")
+			}},
+			{"missing container", func(fs *model.FileSettings) {
+				fs.AzureStorageAccount = model.NewPointer("acmemattermost")
+				fs.AzureAccessKey = model.NewPointer("secret")
+			}},
+			{"missing access key", func(fs *model.FileSettings) {
+				fs.AzureStorageAccount = model.NewPointer("acmemattermost")
+				fs.AzureContainer = model.NewPointer("mattermost")
+			}},
+		}
+		for _, tc := range cases {
+			t.Run(tc.name, func(t *testing.T) {
+				fs := base
+				tc.mut(&fs)
+				resp, err := th.SystemAdminClient.TestS3Connection(context.Background(), &model.Config{FileSettings: fs})
+				require.Error(t, err)
+				CheckErrorID(t, err, "api.admin.test_azure.missing_azure_field")
+				CheckBadRequestStatus(t, resp)
+			})
+		}
 	})
 }
 

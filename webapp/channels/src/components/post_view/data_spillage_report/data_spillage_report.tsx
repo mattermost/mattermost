@@ -3,6 +3,7 @@
 
 import React, {useMemo} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
+import {matchPath, useLocation} from 'react-router-dom';
 
 import {ContentFlaggingStatus} from '@mattermost/types/content_flagging';
 import type {Post} from '@mattermost/types/posts';
@@ -17,6 +18,7 @@ import {useContentFlaggingFields, usePostContentFlaggingValues} from 'components
 import {useUser} from 'components/common/hooks/useUser';
 import DataSpillageAction from 'components/post_view/data_spillage_report/data_spillage_actions/data_spillage_actions';
 import DataSpillageDownloadReport from 'components/post_view/data_spillage_report/data_spillage_download_report/data_spillage_download_report';
+import DataSpillageExposureReport from 'components/post_view/data_spillage_report/data_spillage_exposure_report/data_spillage_exposure_report';
 import type {ActionRow, PropertiesCardViewMetadata} from 'components/properties_card_view/properties_card_view';
 import PropertiesCardView from 'components/properties_card_view/properties_card_view';
 
@@ -60,6 +62,9 @@ type Props = {
 
 export function DataSpillageReport({post, isRHS}: Props) {
     const {formatMessage} = useIntl();
+    const {pathname} = useLocation();
+
+    const inGlobalThreadsView = matchPath(pathname, {path: '/:team/threads/:threadIdentifier?'}) != null;
 
     const reportedPostId = post.props.reported_post_id as string;
 
@@ -108,7 +113,7 @@ export function DataSpillageReport({post, isRHS}: Props) {
         user: (<AtMention mentionName={reportingUser?.username || ''}/>),
     });
 
-    const mode = isRHS ? 'full' : 'short';
+    const mode = (isRHS && !inGlobalThreadsView) ? 'full' : 'short';
 
     const metadata = useMemo<PropertiesCardViewMetadata>(() => {
         const fieldMetadata: PropertiesCardViewMetadata = {
@@ -165,6 +170,23 @@ export function DataSpillageReport({post, isRHS}: Props) {
 
         const rows: ActionRow[] = [];
 
+        const statusFieldId = propertyFields.status?.id;
+        const status = statusFieldId ? (propertyValues.find((value) => value.field_id === statusFieldId)?.value as string | undefined) : undefined;
+        const reviewIsOpen = status === ContentFlaggingStatus.Pending || status === ContentFlaggingStatus.Assigned;
+
+        rows.push({
+            label: (
+                <FormattedMessage
+                    id='data_spillage_report.row.exposure_report.label'
+                    defaultMessage='Exposure report'
+                />
+            ),
+            content: (
+                <DataSpillageExposureReport flaggedPostId={reportedPost.id}/>
+            ),
+            testId: 'data-spillage-exposure-report-row',
+        });
+
         rows.push({
             label: (
                 <FormattedMessage
@@ -175,10 +197,7 @@ export function DataSpillageReport({post, isRHS}: Props) {
             content: <DataSpillageDownloadReport flaggedPostId={reportedPost.id}/>,
         });
 
-        const statusFieldId = propertyFields.status?.id;
-        const status = statusFieldId ? (propertyValues.find((value) => value.field_id === statusFieldId)?.value as string | undefined) : undefined;
-
-        if (reportingUser && (status === ContentFlaggingStatus.Pending || status === ContentFlaggingStatus.Assigned)) {
+        if (reportingUser && reviewIsOpen) {
             rows.push({
                 label: (
                     <FormattedMessage

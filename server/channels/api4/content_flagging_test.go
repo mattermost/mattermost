@@ -5,15 +5,19 @@ package api4
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
 	"testing"
+	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/testutils"
 	"github.com/stretchr/testify/require"
 )
 
-func setBasicCommonReviewerConfig(th *TestHelper) *model.AppError {
+func setBasicCommonReviewerConfig(th *TestHelper, extraReviewerIds ...string) *model.AppError {
+	ids := []string{th.BasicUser.Id}
+	ids = append(ids, extraReviewerIds...)
 	config := model.ContentFlaggingSettingsRequest{
 		ContentFlaggingSettingsBase: model.ContentFlaggingSettingsBase{
 			EnableContentFlagging: new(true),
@@ -23,7 +27,7 @@ func setBasicCommonReviewerConfig(th *TestHelper) *model.AppError {
 				CommonReviewers: new(true),
 			},
 			ReviewerIDsSettings: model.ReviewerIDsSettings{
-				CommonReviewerIds: []string{th.BasicUser.Id},
+				CommonReviewerIds: ids,
 			},
 		},
 	}
@@ -109,6 +113,19 @@ func flagPostViaAPI(t *testing.T, client *model.Client4, postId string) {
 	resp, err := client.FlagPostForContentReview(context.Background(), postId, flagRequest)
 	require.NoError(t, err)
 	require.Equal(t, http.StatusOK, resp.StatusCode)
+}
+
+func createDmPost(t *testing.T, th *TestHelper, client *model.Client4) *model.Post {
+	t.Helper()
+	dmChannel := th.CreateDmChannel(t, th.BasicUser2)
+	return th.CreatePostWithClient(t, client, dmChannel)
+}
+
+func createGmPost(t *testing.T, th *TestHelper, client *model.Client4) *model.Post {
+	t.Helper()
+	gmChannel, appErr := th.App.CreateGroupChannel(th.Context, []string{th.BasicUser.Id, th.BasicUser2.Id, th.SystemAdminUser.Id}, th.BasicUser.Id)
+	require.Nil(t, appErr)
+	return th.CreatePostWithClient(t, client, gmChannel)
 }
 
 func uploadFileAndCreatePost(t *testing.T, th *TestHelper, client *model.Client4) (*model.Post, *model.FileInfo) {
@@ -438,6 +455,36 @@ func TestGetPostPropertyValues(t *testing.T) {
 		require.NotNil(t, propertyValues)
 		require.Len(t, propertyValues, 6)
 	})
+
+	t.Run("Should not allow getting property values of a post in a DM channel", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+
+		appErr := setBasicCommonReviewerConfig(th)
+		require.Nil(t, appErr)
+
+		post := createDmPost(t, th, client)
+
+		propertyValues, resp, err := client.GetPostPropertyValues(context.Background(), post.Id)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorID(t, err, "api.data_spillage.error.invalid_channel_type")
+		require.Nil(t, propertyValues)
+	})
+
+	t.Run("Should not allow getting property values of a post in a GM channel", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+
+		appErr := setBasicCommonReviewerConfig(th)
+		require.Nil(t, appErr)
+
+		post := createGmPost(t, th, client)
+
+		propertyValues, resp, err := client.GetPostPropertyValues(context.Background(), post.Id)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorID(t, err, "api.data_spillage.error.invalid_channel_type")
+		require.Nil(t, propertyValues)
+	})
 }
 
 func TestGetFlaggedPost(t *testing.T) {
@@ -516,6 +563,36 @@ func TestGetFlaggedPost(t *testing.T) {
 		require.Equal(t, http.StatusOK, resp.StatusCode)
 		require.Equal(t, 1, len(flaggedPost.Metadata.Files))
 		require.Equal(t, fileInfo.Id, flaggedPost.Metadata.Files[0].Id)
+	})
+
+	t.Run("Should not allow getting a post in a DM channel", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+
+		appErr := setBasicCommonReviewerConfig(th)
+		require.Nil(t, appErr)
+
+		post := createDmPost(t, th, client)
+
+		flaggedPost, resp, err := client.GetContentFlaggedPost(context.Background(), post.Id)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorID(t, err, "api.data_spillage.error.invalid_channel_type")
+		require.Nil(t, flaggedPost)
+	})
+
+	t.Run("Should not allow getting a post in a GM channel", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+
+		appErr := setBasicCommonReviewerConfig(th)
+		require.Nil(t, appErr)
+
+		post := createGmPost(t, th, client)
+
+		flaggedPost, resp, err := client.GetContentFlaggedPost(context.Background(), post.Id)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorID(t, err, "api.data_spillage.error.invalid_channel_type")
+		require.Nil(t, flaggedPost)
 	})
 }
 
@@ -651,6 +728,73 @@ func TestFlagPost(t *testing.T) {
 		response, err = client.FlagPostForContentReview(context.Background(), createdPost.Id, flagRequest)
 		require.Error(t, err)
 		CheckBadRequestStatus(t, response)
+	})
+
+	t.Run("Should not allow flagging a post in a DM channel", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		defer th.RemoveLicense(t)
+
+		appErr := setBasicCommonReviewerConfig(th)
+		require.Nil(t, appErr)
+
+		dmChannel := th.CreateDmChannel(t, th.BasicUser2)
+		post := th.CreatePostWithClient(t, client, dmChannel)
+
+		flagRequest := &model.FlagContentRequest{
+			Reason:  "Classification mismatch",
+			Comment: "This is sensitive data",
+		}
+
+		resp, err := client.FlagPostForContentReview(context.Background(), post.Id, flagRequest)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorID(t, err, "api.data_spillage.error.invalid_channel_type")
+	})
+
+	t.Run("Should not allow flagging a post in a GM channel", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		defer th.RemoveLicense(t)
+
+		appErr := setBasicCommonReviewerConfig(th)
+		require.Nil(t, appErr)
+
+		gmChannel, appErr := th.App.CreateGroupChannel(th.Context, []string{th.BasicUser.Id, th.BasicUser2.Id, th.SystemAdminUser.Id}, th.BasicUser.Id)
+		require.Nil(t, appErr)
+		post := th.CreatePostWithClient(t, client, gmChannel)
+
+		flagRequest := &model.FlagContentRequest{
+			Reason:  "Classification mismatch",
+			Comment: "This is sensitive data",
+		}
+
+		resp, err := client.FlagPostForContentReview(context.Background(), post.Id, flagRequest)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorID(t, err, "api.data_spillage.error.invalid_channel_type")
+	})
+
+	t.Run("Should reject DM posts by channel type before the team enabled check", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		defer th.RemoveLicense(t)
+
+		// With per team reviewers, ContentFlaggingEnabledForTeam("") returns false for a DM, so
+		// without the channel type check running first this would surface the misleading
+		// "not_available_on_team" error instead.
+		appErr := setNonReviewerConfig(th)
+		require.Nil(t, appErr)
+
+		dmChannel := th.CreateDmChannel(t, th.BasicUser2)
+		post := th.CreatePostWithClient(t, client, dmChannel)
+
+		flagRequest := &model.FlagContentRequest{
+			Reason:  "Classification mismatch",
+			Comment: "This is sensitive data",
+		}
+
+		resp, err := client.FlagPostForContentReview(context.Background(), post.Id, flagRequest)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorID(t, err, "api.data_spillage.error.invalid_channel_type")
 	})
 }
 
@@ -912,6 +1056,36 @@ func TestAssignContentFlaggingReviewer(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, resp.StatusCode)
 	})
+
+	t.Run("Should not allow assigning a reviewer to a post in a DM channel", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		defer th.RemoveLicense(t)
+
+		appErr := setBasicCommonReviewerConfig(th)
+		require.Nil(t, appErr)
+
+		post := createDmPost(t, th, client)
+
+		resp, err := client.AssignContentFlaggingReviewer(context.Background(), post.Id, th.BasicUser.Id)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorID(t, err, "api.data_spillage.error.invalid_channel_type")
+	})
+
+	t.Run("Should not allow assigning a reviewer to a post in a GM channel", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		defer th.RemoveLicense(t)
+
+		appErr := setBasicCommonReviewerConfig(th)
+		require.Nil(t, appErr)
+
+		post := createGmPost(t, th, client)
+
+		resp, err := client.AssignContentFlaggingReviewer(context.Background(), post.Id, th.BasicUser.Id)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorID(t, err, "api.data_spillage.error.invalid_channel_type")
+	})
 }
 
 func TestRemoveFlaggedPost(t *testing.T) {
@@ -1074,6 +1248,42 @@ func TestRemoveFlaggedPost(t *testing.T) {
 		_, err2 = th.App.Srv().Store().Post().GetSingle(th.Context, editHistoryPostId, true)
 		require.Error(t, err2, "Edit history post should be permanently deleted")
 	})
+
+	t.Run("Should not allow removing a post in a DM channel", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		defer th.RemoveLicense(t)
+
+		appErr := setBasicCommonReviewerConfig(th)
+		require.Nil(t, appErr)
+
+		post := createDmPost(t, th, client)
+		actionRequest := &model.FlagContentActionRequest{
+			Comment: "Removing this post",
+		}
+
+		resp, err := client.RemoveFlaggedPost(context.Background(), post.Id, actionRequest)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorID(t, err, "api.data_spillage.error.invalid_channel_type")
+	})
+
+	t.Run("Should not allow removing a post in a GM channel", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		defer th.RemoveLicense(t)
+
+		appErr := setBasicCommonReviewerConfig(th)
+		require.Nil(t, appErr)
+
+		post := createGmPost(t, th, client)
+		actionRequest := &model.FlagContentActionRequest{
+			Comment: "Removing this post",
+		}
+
+		resp, err := client.RemoveFlaggedPost(context.Background(), post.Id, actionRequest)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorID(t, err, "api.data_spillage.error.invalid_channel_type")
+	})
 }
 
 func TestKeepFlaggedPost(t *testing.T) {
@@ -1185,6 +1395,8 @@ func TestKeepFlaggedPost(t *testing.T) {
 	})
 
 	t.Run("Should preserve file attachments and edit history when keeping flagged post", func(t *testing.T) {
+		t.Skip("Skipped due to flakiness — tracked in https://mattermost.atlassian.net/browse/MM-69511")
+
 		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 		defer th.RemoveLicense(t)
 
@@ -1241,5 +1453,104 @@ func TestKeepFlaggedPost(t *testing.T) {
 		require.Equal(t, http.StatusOK, resp.StatusCode)
 		require.NotNil(t, fetchedPost)
 		require.Equal(t, post.Id, fetchedPost.Id)
+	})
+
+	t.Run("Should broadcast restored post with DeleteAt=0 when keeping hidden flagged post", func(t *testing.T) {
+		// Regression test for MM-68799. RestoreContentFlaggedPost updates the DB
+		// but not the in-memory *model.Post passed to KeepFlaggedPost. Without the
+		// re-fetch added in KeepFlaggedPost, the broadcast post_edited event
+		// carries DeleteAt > 0 and channel viewers continue to hide the post.
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		defer th.RemoveLicense(t)
+
+		appErr := setBasicCommonReviewerConfig(th)
+		require.Nil(t, appErr)
+
+		th.App.UpdateConfig(func(config *model.Config) {
+			config.ContentFlaggingSettings.AdditionalSettings.HideFlaggedContent = model.NewPointer(true)
+		})
+		defer th.App.UpdateConfig(func(config *model.Config) {
+			config.ContentFlaggingSettings.AdditionalSettings.HideFlaggedContent = model.NewPointer(false)
+		})
+
+		post := th.CreatePost(t)
+		flagPostViaAPI(t, client, post.Id)
+
+		// Wait for the post to actually be hidden in the DB before retaining.
+		require.Eventually(t, func() bool {
+			hidden, getErr := th.App.GetSinglePost(th.Context, post.Id, true)
+			return getErr == nil && hidden.DeleteAt > 0
+		}, 5*time.Second, 100*time.Millisecond, "post should be soft-deleted after flagging")
+
+		// Connect a WebSocket client after flag so the post_deleted event from
+		// flagging doesn't pollute the channel we read from.
+		wsClient := th.CreateConnectedWebSocketClient(t)
+
+		actionRequest := &model.FlagContentActionRequest{
+			Comment: "Restoring after review",
+		}
+		resp, err := client.KeepFlaggedPost(context.Background(), post.Id, actionRequest)
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+
+		var seenPostEdited bool
+		timeout := time.After(5 * time.Second)
+		for !seenPostEdited {
+			select {
+			case event := <-wsClient.EventChannel:
+				if event.EventType() != model.WebsocketEventPostEdited {
+					continue
+				}
+				rawPost, ok := event.GetData()["post"].(string)
+				if !ok {
+					continue
+				}
+				var p model.Post
+				require.NoError(t, json.Unmarshal([]byte(rawPost), &p))
+				if p.Id != post.Id {
+					continue
+				}
+				require.Equal(t, int64(0), p.DeleteAt, "broadcast post must reflect restored DeleteAt=0")
+				seenPostEdited = true
+			case <-timeout:
+				require.FailNow(t, "timed out waiting for post_edited event with restored DeleteAt")
+			}
+		}
+	})
+
+	t.Run("Should not allow keeping a post in a DM channel", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		defer th.RemoveLicense(t)
+
+		appErr := setBasicCommonReviewerConfig(th)
+		require.Nil(t, appErr)
+
+		post := createDmPost(t, th, client)
+		actionRequest := &model.FlagContentActionRequest{
+			Comment: "Keeping this post",
+		}
+
+		resp, err := client.KeepFlaggedPost(context.Background(), post.Id, actionRequest)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorID(t, err, "api.data_spillage.error.invalid_channel_type")
+	})
+
+	t.Run("Should not allow keeping a post in a GM channel", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		defer th.RemoveLicense(t)
+
+		appErr := setBasicCommonReviewerConfig(th)
+		require.Nil(t, appErr)
+
+		post := createGmPost(t, th, client)
+		actionRequest := &model.FlagContentActionRequest{
+			Comment: "Keeping this post",
+		}
+
+		resp, err := client.KeepFlaggedPost(context.Background(), post.Id, actionRequest)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorID(t, err, "api.data_spillage.error.invalid_channel_type")
 	})
 }

@@ -3,8 +3,8 @@
 
 /* eslint-disable no-console */
 
-const {createServer} = require('http'); // eslint-disable-line @typescript-eslint/no-require-imports
-const {URLSearchParams} = require('url'); // eslint-disable-line @typescript-eslint/no-require-imports
+const {createServer} = require('http');
+const {URLSearchParams} = require('url');
 
 const PORT = Number(process.env.PORT) || 3010;
 
@@ -92,10 +92,11 @@ const server = createServer(async (req, res) => {
     console.log(`[mock-libretranslate] ${method} ${path}`);
 
     if (method === 'GET' && path === '/') {
-        return sendJson(res, 200, {
+        sendJson(res, 200, {
             message: 'LibreTranslate mock',
             endpoints: ['GET /', 'POST /translate', 'POST /detect', 'GET /languages', 'POST /__control/source'],
         });
+        return;
     }
 
     if (method === 'POST' && path === '/__control/source') {
@@ -103,17 +104,20 @@ const server = createServer(async (req, res) => {
         try {
             body = await parseBody(req);
         } catch {
-            return sendJson(res, 400, {error: 'Invalid body'});
+            sendJson(res, 400, {error: 'Invalid body'});
+            return;
         }
         if (typeof body.language === 'string') {
             sourceLanguage = body.language;
         }
         console.log(`[mock-libretranslate] source language set to: ${sourceLanguage}`);
-        return sendJson(res, 200, {ok: true, language: sourceLanguage});
+        sendJson(res, 200, {ok: true, language: sourceLanguage});
+        return;
     }
 
     if (method === 'GET' && path === '/languages') {
-        return sendJson(res, 200, LANGUAGES);
+        sendJson(res, 200, LANGUAGES);
+        return;
     }
 
     if (method === 'POST' && path === '/detect') {
@@ -121,7 +125,8 @@ const server = createServer(async (req, res) => {
         try {
             body = await parseBody(req);
         } catch {
-            return sendJson(res, 400, {error: 'Invalid body'});
+            sendJson(res, 400, {error: 'Invalid body'});
+            return;
         }
         console.log(`[mock-libretranslate] detect: q="${(body.q || '').slice(0, 40)}..." → ${sourceLanguage}`);
         sendJson(res, 200, [{language: sourceLanguage, confidence: 95}]);
@@ -133,7 +138,8 @@ const server = createServer(async (req, res) => {
         try {
             body = await parseBody(req);
         } catch {
-            return sendJson(res, 400, {error: 'Invalid body'});
+            sendJson(res, 400, {error: 'Invalid body'});
+            return;
         }
 
         const q = body.q || '';
@@ -144,7 +150,7 @@ const server = createServer(async (req, res) => {
         const actualSource = source === 'auto' ? sourceLanguage : source;
 
         // Only "translate" if source differs from target (matches real LibreTranslate behavior)
-        const translatedText = actualSource !== target ? `${q} [translated to ${target}]` : q;
+        const translatedText = actualSource === target ? q : `${q} [translated to ${target}]`;
 
         console.log(
             `[mock-libretranslate] translate: source=${actualSource} target=${target} → "${translatedText.slice(0, 60)}..."`,

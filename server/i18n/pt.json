@@ -850,5 +850,141 @@
       "one": "- {{.Count}} no canal {{.ChannelName}}. Motivo: {{.ErrorReason}}",
       "other": "- {{.Count}} no canal {{.ChannelName}}. Motivo: {{.ErrorReason}}"
     }
+  },
+  {
+    "id": "api.access_control_policy.channel_permission_policies.feature_disabled",
+    "translation": "A funcionalidade das políticas de permissão ao nível do canal não está ativada."
+  },
+  {
+    "id": "api.access_control_policy.permission_policies.feature_disabled",
+    "translation": "A funcionalidade das políticas de permissão não está ativada."
+  },
+  {
+    "id": "api.access_control_policy.policy_simulation.feature_disabled",
+    "translation": "A funcionalidade de simulação de política não está ativada."
+  },
+  {
+    "id": "api.access_control_policy.simulate.users_out_of_scope.app_error",
+    "translation": "Todos os utilizadores na simulação devem ser membros da equipa ou canal do pedido."
+  },
+  {
+    "id": "api.channel.add_user.to.channel.abac_subject_build_failed.app_error",
+    "translation": "Não foi possível criar o sujeito de controlo de acesso para o utilizador."
+  },
+  {
+    "id": "api.channel.discoverable_join_request.already_member.app_error",
+    "translation": "Já é um membro deste canal."
+  },
+  {
+    "id": "api.channel.discoverable_join_request.archived.app_error",
+    "translation": "Não é possível solicitar a adessão a um canal arquivado."
+  },
+  {
+    "id": "api.channel.discoverable_join_request.discoverable_requires_approval.app_error",
+    "translation": "Este canal requer aprovação do administrador para aderir. Por favor, envie um pedido através do modal \"Explorar Canais\"."
+  },
+  {
+    "id": "api.oauth.close_browser",
+    "translation": "Pode fechar agora este separador de navegador."
+  },
+  {
+    "id": "web.error.unsupported_browser.browser_get_latest.chrome",
+    "translation": "Obtenha o navegador Chrome mais recente"
+  },
+  {
+    "id": "web.error.unsupported_browser.browser_get_latest.firefox",
+    "translation": "Obtenha o navegador Firefox mais recente"
+  },
+  {
+    "id": "web.error.unsupported_browser.browser_get_latest.safari",
+    "translation": "Obtenha o navegador Safari mais recente"
+  },
+  {
+    "id": "web.error.unsupported_browser.browser_title.chrome",
+    "translation": "Google Chrome"
+  },
+  {
+    "id": "web.error.unsupported_browser.browser_title.edge",
+    "translation": "Microsoft Edge"
+  },
+  {
+    "id": "web.error.unsupported_browser.browser_title.firefox",
+    "translation": "Firefox"
+  },
+  {
+    "id": "web.error.unsupported_browser.browser_title.safari",
+    "translation": "Safari"
+  },
+  {
+    "id": "web.error.unsupported_browser.download",
+    "translation": "Transferir a App"
+  },
+  {
+    "id": "web.error.unsupported_browser.download_app_or_upgrade_browser",
+    "translation": "Transfira a aplicação Mattermost ou utilize um navegador suportado para uma melhor experiência."
+  },
+  {
+    "id": "web.error.unsupported_browser.download_the_app",
+    "translation": "Transferir a App"
+  },
+  {
+    "id": "web.error.unsupported_browser.install_guide.mac",
+    "translation": "Guia de Instalação"
+  },
+  {
+    "id": "web.error.unsupported_browser.install_guide.windows",
+    "translation": "Guia de Instalação"
+  },
+  {
+    "id": "web.error.unsupported_browser.learn_more",
+    "translation": "Saiba mais sobre os navegadores suportados."
+  },
+  {
+    "id": "web.error.unsupported_browser.min_browser_version.chrome",
+    "translation": "Versão 146+"
+  },
+  {
+    "id": "web.error.unsupported_browser.min_browser_version.edge",
+    "translation": "Versão 146+"
+  },
+  {
+    "id": "web.error.unsupported_browser.min_browser_version.firefox",
+    "translation": "Versão 140+"
+  },
+  {
+    "id": "web.error.unsupported_browser.min_browser_version.safari",
+    "translation": "Versão 26.2+"
+  },
+  {
+    "id": "web.error.unsupported_browser.min_os_version.mac",
+    "translation": "macOS 14+"
+  },
+  {
+    "id": "web.error.unsupported_browser.min_os_version.windows",
+    "translation": "Windows 11+"
+  },
+  {
+    "id": "web.error.unsupported_browser.no_longer_support",
+    "translation": "Este navegador já não é suportado pela Mattermost"
+  },
+  {
+    "id": "web.error.unsupported_browser.no_longer_support_version",
+    "translation": "Esta versão do seu navagedor já não é suportada pela Mattermost"
+  },
+  {
+    "id": "web.error.unsupported_browser.open_system_browser.edge",
+    "translation": "Abrir Edge"
+  },
+  {
+    "id": "web.error.unsupported_browser.system_browser_make_default",
+    "translation": "Tornar predefinição"
+  },
+  {
+    "id": "web.error.unsupported_browser.system_browser_or",
+    "translation": "ou"
+  },
+  {
+    "id": "web.error.unsupported_desktop_app.message",
+    "translation": "A sua {{.SiteName}} versão da Aplicação de PC ({{.CurrentVersion}}) é inferior à versão mínima necessária ({{.MinimumVersion}}). Por favor, atualize a sua aplicação ou abra {{.SiteName}} num navegador da Web para continuar."
   }
 ]

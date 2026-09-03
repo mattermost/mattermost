@@ -57,18 +57,19 @@ describe('Notifications', () => {
         const message = `@${receiver.username} I'm messaging you! ${Date.now()}`;
 
         // # Use another account to post a message @-mentioning our receiver
-        cy.postMessageAs({sender, message, channelId: otherChannel.id});
+        cy.postMessageAs({sender, message, channelId: otherChannel.id}).then(({id: postId}) => {
+            const body = `@${sender.username}: ${message}`;
 
-        const body = `@${sender.username}: ${message}`;
+            cy.get('@notifySpy').should('have.been.calledWithMatch', otherChannel.display_name, (args) => {
+                expect(args.body, `Notification body: "${args.body}" should match: "${body}"`).to.equal(body);
+                expect(args.tag, `Notification tag: "${args.tag}" should match the post id`).to.equal(postId);
+                expect(args.tag, `Notification tag: "${args.tag}" should not contain notification text`).not.to.equal(body);
+                return true;
+            });
 
-        cy.get('@notifySpy').should('have.been.calledWithMatch', otherChannel.display_name, (args) => {
-            expect(args.body, `Notification body: "${args.body}" should match: "${body}"`).to.equal(body);
-            expect(args.tag, `Notification tag: "${args.tag}" should match: "${body}"`).to.equal(body);
-            return true;
+            cy.get('@notifySpy').should('have.been.calledWithMatch',
+                otherChannel.display_name, {body, tag: postId, requireInteraction: false, silent: false});
         });
-
-        cy.get('@notifySpy').should('have.been.calledWithMatch',
-            otherChannel.display_name, {body, tag: body, requireInteraction: false, silent: false});
 
         // * Verify unread mentions badge
         cy.get(`#sidebarItem_${otherChannel.name}`).

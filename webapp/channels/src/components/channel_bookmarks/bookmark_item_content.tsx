@@ -28,6 +28,7 @@ import type {GlobalState} from 'types/store';
 import BookmarkItemDotMenu from './bookmark_dot_menu';
 import BookmarkIcon from './bookmark_icon';
 import {useTextOverflow} from './hooks';
+import {bookmarkHasLinkUrl, shouldOpenBookmarkInNewTab} from './utils';
 
 /**
  * Hook that provides link data and handlers for a bookmark.
@@ -71,16 +72,18 @@ export const useBookmarkLink = (
                 },
             }));
             onNavigate?.();
-        } else if (bookmark.type === 'link' && bookmark.link_url) {
+        } else if (bookmarkHasLinkUrl(bookmark)) {
             const siteURL = getSiteURL();
-            const url = bookmark.link_url;
+            const url = bookmark.link_url!;
             const prefixed = url[0] === '!';
-            const openInNewTab = shouldOpenInNewTab(url, siteURL);
+            const openInNewTab = shouldOpenBookmarkInNewTab(bookmark, siteURL);
 
             if (prefixed || openInNewTab) {
                 window.open(prefixed ? url.substring(1) : url, '_blank', 'noopener,noreferrer');
             } else if (url.startsWith(siteURL)) {
                 history.push(url.slice(siteURL.length));
+            } else if (url.startsWith('/')) {
+                history.push(url);
             } else {
                 window.location.href = url;
             }
@@ -122,7 +125,7 @@ export const useBookmarkLink = (
     let onClick: ((e: React.MouseEvent<HTMLElement>) => void) | undefined;
     let isFile = false;
 
-    if (bookmark.type === 'link' && bookmark.link_url) {
+    if (bookmarkHasLinkUrl(bookmark)) {
         href = disableLinks ? '#' : bookmark.link_url;
         onClick = onNavigate ? handleLinkClick : undefined;
     } else if (bookmark.type === 'file' && bookmark.file_id) {
@@ -334,6 +337,19 @@ export const DynamicLink = forwardRef<HTMLAnchorElement, DynamicLinkProps>(({
             >
                 {children}
             </ExternalLink>
+        );
+    }
+
+    if (href.startsWith('/') && !isFile) {
+        return (
+            <Link
+                {...otherProps}
+                to={href}
+                ref={ref}
+                draggable={false}
+            >
+                {children}
+            </Link>
         );
     }
 

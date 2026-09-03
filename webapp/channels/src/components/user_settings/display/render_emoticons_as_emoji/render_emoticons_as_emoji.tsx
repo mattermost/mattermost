@@ -18,12 +18,12 @@ export type Actions = {
 export type OwnProps = {
     user: UserProfile;
     updateSection: (section: string) => void;
-}
+};
 
 type Props = OwnProps & {
     renderEmoticonsAsEmoji: string;
     actions: Actions;
-}
+};
 
 const RenderEmoticonsAsEmoji: React.FC<Props> = ({user, renderEmoticonsAsEmoji, updateSection, actions}) => {
     const [value, setValue] = useState<string>(renderEmoticonsAsEmoji);

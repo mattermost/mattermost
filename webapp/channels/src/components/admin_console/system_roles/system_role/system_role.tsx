@@ -40,7 +40,7 @@ type Props = {
         updateUserRoles(userId: string, roles: string): Promise<ActionResult>;
         setNavigationBlocked: (blocked: boolean) => void;
     };
-}
+};
 
 type State = {
     usersToAdd: Record<string, UserProfile>;
@@ -51,7 +51,7 @@ type State = {
     saveNeeded: boolean;
     serverError: JSX.Element | undefined;
     saveKey: number;
-}
+};
 
 export default class SystemRole extends React.PureComponent<Props, State> {
     constructor(props: Props) {
@@ -252,8 +252,9 @@ export default class SystemRole extends React.PureComponent<Props, State> {
                         <BlockableLink
                             to='/admin_console/user_management/system_roles'
                             className='fa fa-angle-left back'
+                            data-testid='adminHeader-backLink'
                         />
-                        {name}
+                        <span data-testid='adminHeader-roleName'>{name}</span>
                     </div>
                 </AdminHeader>
                 <div className='admin-console__wrapper'>

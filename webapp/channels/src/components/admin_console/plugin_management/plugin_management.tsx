@@ -1,12 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import React from 'react';
 import type {WrappedComponentProps} from 'react-intl';
 import {FormattedMessage, defineMessages, injectIntl} from 'react-intl';
 import {Link} from 'react-router-dom';
+import semver from 'semver';
 
-import {Button} from '@mattermost/shared/components/button';
 import type {AdminConfig} from '@mattermost/types/config';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
@@ -21,12 +22,18 @@ import {appsPluginID} from 'utils/apps';
 import {DeveloperLinks} from 'utils/constants';
 import * as Utils from 'utils/utils';
 
+import type {PluginInstallConflict} from './plugin_upload_overwrite_review_modal';
+import PluginUploadOverwriteReviewModal from './plugin_upload_overwrite_review_modal';
+
 import BooleanSetting from '../boolean_setting';
 import OLDAdminSettings from '../old_admin_settings';
 import type {BaseProps, BaseState} from '../old_admin_settings';
+import PluginMetadataPanel, {formatPluginVersion} from '../plugin_metadata_panel/plugin_metadata_panel';
 import SettingSet from '../setting_set';
 import SettingsGroup from '../settings_group';
 import TextSetting from '../text_setting';
+
+import './plugin_management.scss';
 
 const PluginItemState = ({state}: {state: number}) => {
     switch (state) {
@@ -173,11 +180,16 @@ type PluginStatus = {
         header: string;
         footer: string;
         settings?: unknown[];
+        sections?: unknown[];
     };
-}
+};
 
 type PluginItemProps = {
     pluginStatus: PluginStatus;
+    plugin?: {
+        homepage_url?: string;
+        release_notes_url?: string;
+    };
     removing: boolean;
     handleEnable: (e: any) => any;
     handleDisable: (e: any) => any;
@@ -205,6 +217,11 @@ const messages = defineMessages({
     automaticPrepackagedPluginsDesc: {id: 'admin.plugins.settings.automaticPrepackagedPluginsDesc', defaultMessage: 'When true, automatically installs any prepackaged plugin found to be enabled in the server configuration.'},
     marketplaceUrl: {id: 'admin.plugins.settings.marketplaceUrl', defaultMessage: 'Marketplace URL:'},
     marketplaceUrlDesc: {id: 'admin.plugins.settings.marketplaceUrlDesc', defaultMessage: 'URL of the marketplace server.'},
+    uploadSuccess: {id: 'admin.plugin.upload.success', defaultMessage: 'Successfully uploaded plugin: {pluginName}'},
+    uploadSuccessUpdated: {id: 'admin.plugin.upload.success_updated', defaultMessage: 'Successfully updated plugin: {pluginName}'},
+    uploadSuccessUpgraded: {id: 'admin.plugin.upload.success_upgraded', defaultMessage: 'Successfully upgraded plugin: {pluginName} ({previousVersion} → {version})'},
+    uploadSuccessDowngraded: {id: 'admin.plugin.upload.success_downgraded', defaultMessage: 'Successfully downgraded plugin: {pluginName} ({previousVersion} → {version})'},
+    uploadSuccessSame: {id: 'admin.plugin.upload.success_same', defaultMessage: 'Successfully replaced plugin: {pluginName} (same version {version})'},
 });
 
 export const searchableStrings = [
@@ -228,6 +245,7 @@ export const searchableStrings = [
 
 const PluginItem = ({
     pluginStatus,
+    plugin,
     removing,
     handleEnable,
     handleDisable,
@@ -430,14 +448,13 @@ const PluginItem = ({
 
     return (
         <div data-testid={pluginStatus.id}>
-            <div>
-                <strong>{pluginStatus.name}</strong>
-                {' ('}
-                {pluginStatus.id}
-                {' - '}
-                {pluginStatus.version}
-                {')'}
-            </div>
+            <PluginMetadataPanel
+                name={pluginStatus.name}
+                id={pluginStatus.id}
+                version={pluginStatus.version}
+                homepageUrl={plugin?.homepage_url}
+                releaseNotesUrl={plugin?.release_notes_url}
+            />
             {description}
             <div className='pt-2'>
                 {activateButton}
@@ -476,16 +493,17 @@ type State = BaseState & {
     fileSelected: boolean;
     file: File | null;
     pluginDownloadUrl: string;
-    serverError: JSX.Element | string | null ;
+    serverError: JSX.Element | string | null;
     lastMessage: string | null;
     uploading: boolean;
     installing: boolean;
     overwritingUpload: boolean;
     confirmOverwriteUploadModal: boolean;
+    overwriteUploadConflict: PluginInstallConflict | null;
     overwritingInstall?: boolean;
     confirmOverwriteInstallModal: boolean;
     showRemoveModal: boolean;
-    resolveRemoveModal: string| null;
+    resolveRemoveModal: string | null;
     enable: boolean;
     enableUploads: boolean;
     allowInsecureDownloadUrl: boolean;
@@ -495,7 +513,8 @@ type State = BaseState & {
     marketplaceUrl: string;
     requirePluginSignature: boolean;
     removing: string | null;
-}
+    draggingUpload: boolean;
+};
 export class PluginManagement extends OLDAdminSettings<Props, State> {
     private fileInput: React.RefObject<HTMLInputElement>;
     constructor(props: Props) {
@@ -512,10 +531,12 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
             installing: false,
             overwritingUpload: false,
             confirmOverwriteUploadModal: false,
+            overwriteUploadConflict: null,
             overwritingInstall: false,
             confirmOverwriteInstallModal: false,
             showRemoveModal: false,
             resolveRemoveModal: null,
+            draggingUpload: false,
         });
         this.fileInput = React.createRef();
     }
@@ -558,30 +579,154 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
     }
 
     handleChooseFileClick = () => {
+        if (!this.canUploadPlugin()) {
+            return;
+        }
         this.fileInput.current?.click();
     };
 
+    renderUploadDropzoneTitleText = () => {
+        if (this.state.uploading) {
+            return (
+                <FormattedMessage
+                    id='admin.plugin.uploading_file'
+                    defaultMessage='Uploading {fileName}'
+                    values={{fileName: this.state.file?.name || '...'}}
+                />
+            );
+        }
+
+        if (this.state.file) {
+            return (
+                <FormattedMessage
+                    id='admin.plugin.upload.selected_file'
+                    defaultMessage='Selected: {fileName}'
+                    values={{fileName: this.state.file.name}}
+                />
+            );
+        }
+
+        return (
+            <FormattedMessage
+                id='admin.plugin.upload.dropzone_title'
+                defaultMessage='Click or drop plugin bundle to upload'
+            />
+        );
+    };
+
+    canUploadPlugin = () => {
+        const enable = this.props.config?.PluginSettings?.Enable;
+        const requirePluginSignature = this.props.config.PluginSettings?.RequirePluginSignature;
+
+        return Boolean(this.state.enableUploads && enable && !requirePluginSignature && !this.props.isDisabled && !this.state.uploading);
+    };
+
+    handleSelectedUploadFile = (file: File) => {
+        this.setState({
+            lastMessage: null,
+            serverError: null,
+            fileSelected: true,
+            file,
+            overwriteUploadConflict: null,
+        });
+        this.helpSubmitUpload(file, false);
+    };
+
     handleUpload = () => {
-        this.setState({lastMessage: null, serverError: null});
         const element = this.fileInput.current as HTMLInputElement;
         if (element.files && element.files.length > 0) {
-            this.setState({fileSelected: true, file: element.files[0]});
+            this.handleSelectedUploadFile(element.files[0]);
+        }
+        Utils.clearFileInput(element);
+    };
+
+    pluginInstallConflictFromProps = (props?: Record<string, string>): PluginInstallConflict => {
+        return {
+            plugin_id: props?.plugin_id,
+            plugin_name: props?.plugin_name,
+            homepage_url: props?.homepage_url,
+            existing_version: props?.existing_version,
+            uploaded_version: props?.uploaded_version,
+            version_direction: (props?.version_direction as PluginInstallConflict['version_direction']) || 'unknown',
+        };
+    };
+
+    handleUploadDragEnter = (e: React.DragEvent) => {
+        if (!this.canUploadPlugin()) {
+            return;
+        }
+
+        e.preventDefault();
+        this.setState({draggingUpload: true});
+    };
+
+    handleUploadDragOver = (e: React.DragEvent) => {
+        if (!this.canUploadPlugin()) {
+            return;
+        }
+
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'copy';
+    };
+
+    handleUploadDragLeave = (e: React.DragEvent) => {
+        e.preventDefault();
+
+        const relatedTarget = e.relatedTarget || e.nativeEvent.relatedTarget;
+        if (relatedTarget instanceof Node && e.currentTarget.contains(relatedTarget)) {
+            return;
+        }
+
+        this.setState({draggingUpload: false});
+    };
+
+    handleUploadDrop = (e: React.DragEvent) => {
+        e.preventDefault();
+        this.setState({draggingUpload: false});
+
+        if (!this.canUploadPlugin()) {
+            return;
+        }
+
+        const file = e.dataTransfer.files?.[0];
+        if (file) {
+            this.handleSelectedUploadFile(file);
         }
     };
 
+    formatUploadOverwriteMessage = (pluginName: string | undefined, previousVersion: string | undefined, newVersion: string | undefined) => {
+        if (previousVersion && newVersion && semver.valid(previousVersion) && semver.valid(newVersion)) {
+            if (semver.gt(newVersion, previousVersion)) {
+                return this.props.intl.formatMessage(messages.uploadSuccessUpgraded, {pluginName, previousVersion: formatPluginVersion(previousVersion), version: formatPluginVersion(newVersion)});
+            }
+            if (semver.lt(newVersion, previousVersion)) {
+                return this.props.intl.formatMessage(messages.uploadSuccessDowngraded, {pluginName, previousVersion: formatPluginVersion(previousVersion), version: formatPluginVersion(newVersion)});
+            }
+            return this.props.intl.formatMessage(messages.uploadSuccessSame, {pluginName, version: formatPluginVersion(newVersion)});
+        }
+        return this.props.intl.formatMessage(messages.uploadSuccessUpdated, {pluginName});
+    };
+
     helpSubmitUpload = async (file: File, force: boolean) => {
-        this.setState({uploading: true});
-        const {error} = await this.props.actions.uploadPlugin(file, force);
+        this.setState({uploading: true, overwriteUploadConflict: null, serverError: null, lastMessage: null});
+        const {data, error} = await this.props.actions.uploadPlugin(file, force);
 
         if (error) {
             if (error.server_error_id === 'app.plugin.install_id.app_error' && !force) {
-                this.setState({confirmOverwriteUploadModal: true, overwritingUpload: true});
+                this.setState({
+                    confirmOverwriteUploadModal: true,
+                    overwriteUploadConflict: this.pluginInstallConflictFromProps(error.props),
+                    uploading: false,
+                    overwritingUpload: false,
+                });
                 return;
             }
             this.setState({
                 file: null,
                 fileSelected: false,
                 uploading: false,
+                overwritingUpload: false,
+                overwriteUploadConflict: null,
             });
             if (error.server_error_id === 'app.plugin.activate.app_error') {
                 this.setState({serverError: this.props.intl.formatMessage({id: 'admin.plugin.error.activate', defaultMessage: 'Unable to upload the plugin. It may conflict with another plugin on your server.'})});
@@ -594,13 +739,14 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
             return;
         }
 
+        // Look up the version being replaced before getPlugins() refreshes the store with the new one.
+        const previousVersion = this.state.overwritingUpload && data ? this.props.plugins[data.id]?.version : undefined;
+
         this.setState({loading: true});
         await this.props.actions.getPlugins();
 
-        let msg = `Successfully uploaded plugin from ${file?.name}`;
-        if (this.state.overwritingUpload) {
-            msg = `Successfully updated plugin from ${file?.name}`;
-        }
+        const pluginName = data?.name || file?.name;
+        const msg = this.state.overwritingUpload ? this.formatUploadOverwriteMessage(pluginName, previousVersion, data?.version) : this.props.intl.formatMessage(messages.uploadSuccess, {pluginName});
 
         this.setState({
             file: null,
@@ -608,23 +754,10 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
             serverError: null,
             lastMessage: msg,
             overwritingUpload: false,
+            overwriteUploadConflict: null,
             uploading: false,
             loading: false,
         });
-    };
-
-    handleSubmitUpload = (e: React.SyntheticEvent) => {
-        e.preventDefault();
-
-        const element = this.fileInput.current as HTMLInputElement;
-        if (element.files?.length === 0) {
-            return;
-        }
-        const file = element.files && element.files[0];
-        if (file) {
-            this.helpSubmitUpload(file, false);
-        }
-        Utils.clearFileInput(element);
     };
 
     handleOverwriteUploadPluginCancel = () => {
@@ -633,13 +766,15 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
             fileSelected: false,
             serverError: null,
             confirmOverwriteUploadModal: false,
+            overwriteUploadConflict: null,
             lastMessage: null,
             uploading: false,
+            overwritingUpload: false,
         });
     };
 
     handleOverwriteUploadPlugin = () => {
-        this.setState({confirmOverwriteUploadModal: false});
+        this.setState({confirmOverwriteUploadModal: false, overwriteUploadConflict: null, overwritingUpload: true});
         if (this.state.file) {
             this.helpSubmitUpload(this.state.file, true);
         }
@@ -824,39 +959,13 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
         return (<FormattedMessage {...messages.title}/>);
     }
 
-    renderOverwritePluginModal = (
-        {show, onConfirm, onCancel}:
-        {show: boolean; onConfirm: (checked: boolean) => void; onCancel: (checked: boolean) => void }) => {
-        const title = (
-            <FormattedMessage
-                id='admin.plugin.upload.overwrite_modal.title'
-                defaultMessage='Overwrite existing plugin?'
-            />
-        );
-
-        const message = (
-            <FormattedMessage
-                id='admin.plugin.upload.overwrite_modal.desc'
-                defaultMessage='A plugin with this ID already exists. Would you like to overwrite it?'
-            />
-        );
-
-        const overwriteButton = (
-            <FormattedMessage
-                id='admin.plugin.upload.overwrite_modal.overwrite'
-                defaultMessage='Overwrite'
-            />
-        );
-
+    renderOverwritePluginModal = () => {
         return (
-            <ConfirmModal
-                show={show}
-                title={title}
-                message={message}
-                confirmButtonVariant='destructive'
-                confirmButtonText={overwriteButton}
-                onConfirm={onConfirm}
-                onCancel={onCancel}
+            <PluginUploadOverwriteReviewModal
+                show={this.state.confirmOverwriteUploadModal}
+                conflict={this.state.overwriteUploadConflict}
+                onConfirm={this.handleOverwriteUploadPlugin}
+                onCancel={this.handleOverwriteUploadPluginCancel}
             />
         );
     };
@@ -929,41 +1038,78 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
         return null;
     };
 
+    renderUploadDisabledReason = (enable: boolean | undefined, enableUploads: boolean, requirePluginSignature: boolean | undefined) => {
+        if (this.props.isDisabled) {
+            return (
+                <FormattedMessage
+                    id='admin.plugin.upload.disabled_permission'
+                    defaultMessage='You need permission to manage plugins before uploading a plugin.'
+                />
+            );
+        }
+
+        if (!enable) {
+            return (
+                <FormattedMessage
+                    id='admin.plugin.upload.disabled_plugins'
+                    defaultMessage='Enable plugins before uploading a plugin.'
+                />
+            );
+        }
+
+        if (requirePluginSignature) {
+            return (
+                <FormattedMessage
+                    id='admin.plugin.upload.disabled_signature_required'
+                    defaultMessage='Plugin signatures are required. Install plugins through Marketplace instead.'
+                />
+            );
+        }
+
+        if (!enableUploads) {
+            return (
+                <FormattedMessage
+                    id='admin.plugin.upload.disabled_uploads'
+                    defaultMessage='Plugin uploads are disabled. Enable plugin uploads in config.json before uploading a plugin.'
+                />
+            );
+        }
+
+        return null;
+    };
+
     renderSettings = () => {
         const {enableUploads} = this.state;
         const enable = this.props.config?.PluginSettings?.Enable;
+        const requirePluginSignature = this.props.config.PluginSettings?.RequirePluginSignature;
         let serverError = <></>;
         let lastMessage = <></>;
 
         // Using props values to make sure these are set on the server and not just locally
-        const enableUploadButton = enableUploads && enable && !(this.props.config.PluginSettings && this.props.config.PluginSettings.RequirePluginSignature);
+        const enableUploadButton = enableUploads && enable && !requirePluginSignature;
+        const uploadDisabledReason = this.renderUploadDisabledReason(enable, enableUploads, requirePluginSignature);
+        const uploadDropzoneDisabled = !enableUploadButton || this.props.isDisabled || this.state.uploading;
 
         if (this.state.serverError) {
-            serverError = <div className='col-sm-12'><div className='form-group has-error half'><label className='control-label'>{this.state.serverError}</label></div></div>;
+            serverError = (
+                <div className='PluginManagement__uploadStatus PluginManagement__uploadStatus--error'>
+                    <i
+                        className='icon icon-alert-outline'
+                        aria-hidden={true}
+                    />
+                    <span>{this.state.serverError}</span>
+                </div>
+            );
         }
         if (this.state.lastMessage) {
-            lastMessage = <div className='col-sm-12'><div className='form-group half'>{this.state.lastMessage}</div></div>;
-        }
-
-        let fileName;
-        if (this.state.file) {
-            fileName = this.state.file.name;
-        }
-
-        let uploadButtonText;
-        if (this.state.uploading) {
-            uploadButtonText = (
-                <FormattedMessage
-                    id='admin.plugin.uploading'
-                    defaultMessage='Uploading...'
-                />
-            );
-        } else {
-            uploadButtonText = (
-                <FormattedMessage
-                    id='admin.plugin.upload'
-                    defaultMessage='Upload'
-                />
+            lastMessage = (
+                <div className='PluginManagement__uploadStatus PluginManagement__uploadStatus--success'>
+                    <i
+                        className='icon icon-check-circle'
+                        aria-hidden={true}
+                    />
+                    <span>{this.state.lastMessage}</span>
+                </div>
             );
         }
 
@@ -992,11 +1138,17 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
             });
             pluginsList = plugins.map((pluginStatus: PluginStatus) => {
                 const p = this.props.plugins[pluginStatus.id];
-                const hasSettings = Boolean(p && p.settings_schema && (p.settings_schema.header || p.settings_schema.footer || (p.settings_schema.settings && p.settings_schema.settings.length > 0)));
+                const hasSettings = Boolean(p?.settings_schema && (
+                    p.settings_schema.header ||
+                    p.settings_schema.footer ||
+                    p.settings_schema.settings?.length ||
+                    p.settings_schema.sections?.length
+                ));
                 return (
                     <PluginItem
                         key={pluginStatus.id}
                         pluginStatus={pluginStatus}
+                        plugin={p}
                         removing={this.state.removing === pluginStatus.id}
                         handleEnable={this.handleEnable}
                         handleDisable={this.handleDisable}
@@ -1084,11 +1236,7 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
             );
         }
 
-        const overwriteUploadPluginModal = this.state.confirmOverwriteUploadModal && this.renderOverwritePluginModal({
-            show: this.state.confirmOverwriteUploadModal,
-            onConfirm: this.handleOverwriteUploadPlugin,
-            onCancel: this.handleOverwriteUploadPluginCancel,
-        });
+        const overwriteUploadPluginModal = this.state.confirmOverwriteUploadModal && this.renderOverwritePluginModal();
 
         const removePluginModal = this.state.showRemoveModal && this.renderRemovePluginModal(
             this.state.showRemoveModal,
@@ -1097,7 +1245,7 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
         );
 
         return (
-            <div className='admin-console__wrapper'>
+            <div className='admin-console__wrapper PluginManagement'>
                 <div className='admin-console__content'>
                     <SettingsGroup
                         id={'PluginSettings'}
@@ -1149,37 +1297,54 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
                                     helpText={uploadHelpText}
                                     label={<FormattedMessage {...messages.uploadTitle}/>}
                                 >
-                                    <div className='file__upload'>
-                                        <Button
-                                            type='button'
-                                            emphasis='tertiary'
-                                            onClick={this.handleChooseFileClick}
-                                            disabled={!enableUploadButton || this.props.isDisabled}
-                                        >
-                                            <FormattedMessage
-                                                id='admin.plugin.choose'
-                                                defaultMessage='Choose File'
-                                            />
-                                        </Button>
-                                        <input
-                                            ref={this.fileInput}
-                                            type='file'
-                                            accept='.gz'
-                                            onChange={this.handleUpload}
-                                            disabled={!enableUploadButton || this.props.isDisabled}
-                                        />
-                                    </div>
-                                    <Button
-                                        emphasis='primary'
-                                        id='uploadPlugin'
-                                        disabled={!this.state.fileSelected}
-                                        onClick={this.handleSubmitUpload}
+                                    <button
+                                        type='button'
+                                        className={classNames('PluginManagement__uploadDropzone', {
+                                            'PluginManagement__uploadDropzone--active': this.state.draggingUpload,
+                                        })}
+                                        onClick={this.handleChooseFileClick}
+                                        onDragEnter={this.handleUploadDragEnter}
+                                        onDragOver={this.handleUploadDragOver}
+                                        onDragLeave={this.handleUploadDragLeave}
+                                        onDrop={this.handleUploadDrop}
+                                        disabled={uploadDropzoneDisabled}
+                                        aria-describedby={uploadDisabledReason ? 'plugin-upload-description' : undefined}
                                     >
-                                        {uploadButtonText}
-                                    </Button>
-                                    <div className='help-text m-0'>
-                                        {fileName}
-                                    </div>
+                                        <span className='PluginManagement__uploadDropzoneTitle'>
+                                            <i
+                                                className='icon icon-upload-outline'
+                                                aria-hidden={true}
+                                            />
+                                            <span className='PluginManagement__uploadDropzoneTitleText'>
+                                                {this.renderUploadDropzoneTitleText()}
+                                            </span>
+                                        </span>
+                                        {uploadDisabledReason && (
+                                            <span
+                                                className='PluginManagement__uploadDropzoneDescription'
+                                                id='plugin-upload-description'
+                                            >
+                                                {uploadDisabledReason}
+                                            </span>
+                                        )}
+                                        {this.state.uploading && (
+                                            <div
+                                                className='PluginManagement__uploadProgress'
+                                                role='progressbar'
+                                                aria-label={this.props.intl.formatMessage({id: 'admin.plugin.upload.progress', defaultMessage: 'Plugin upload progress'})}
+                                            >
+                                                <div className='PluginManagement__uploadProgressBar'/>
+                                            </div>
+                                        )}
+                                    </button>
+                                    <input
+                                        ref={this.fileInput}
+                                        className='PluginManagement__fileInput'
+                                        type='file'
+                                        accept='.tar.gz,.gz'
+                                        onChange={this.handleUpload}
+                                        disabled={uploadDropzoneDisabled}
+                                    />
                                     {serverError}
                                     {lastMessage}
                                 </SettingSet>

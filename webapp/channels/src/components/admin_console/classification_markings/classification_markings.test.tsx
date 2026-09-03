@@ -6,6 +6,7 @@ import React from 'react';
 import type {PropertyField, PropertyFieldOption, PropertyValue} from '@mattermost/types/properties';
 
 import {Client4} from 'mattermost-redux/client';
+import {ACCESS_CONTROL_PROPERTY_GROUP, DISPLAY_BANNER_BOTTOM, DISPLAY_BANNER_TOP} from 'mattermost-redux/constants/properties';
 
 import {act, renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 
@@ -22,14 +23,15 @@ import {
     CLASSIFICATIONS_CHANNEL_OBJECT_TYPE,
     CLASSIFICATIONS_FIELD_TARGET_ID,
     CLASSIFICATIONS_FIELD_TARGET_TYPE,
-    CLASSIFICATIONS_GROUP_NAME,
     CLASSIFICATIONS_SYSTEM_FIELD_NAME,
     CLASSIFICATIONS_SYSTEM_OBJECT_TYPE,
     CLASSIFICATIONS_SYSTEM_VALUE_TARGET_ID,
     CLASSIFICATIONS_TEMPLATE_FIELD_NAME,
     CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE,
-    DISPLAY_BANNER_BOTTOM,
-    DISPLAY_BANNER_TOP,
+    CLASSIFICATIONS_GROUP_NAME,
+    CLASSIFICATIONS_USER_OBJECT_TYPE,
+    CLEARANCE_FIELD_DISPLAY_NAME,
+    CLEARANCE_FIELD_NAME,
 } from './utils';
 import type {ClassificationLevel} from './utils/presets';
 import {PRESET_CUSTOM, presets} from './utils/presets';
@@ -39,12 +41,17 @@ const BASE_STATE = {entities: {users: {currentUserId: MOCK_USER_ID}}};
 
 jest.mock('mattermost-redux/client');
 
+const mockHistoryPush = jest.fn();
+jest.mock('utils/browser_history', () => ({
+    getHistory: () => ({push: mockHistoryPush}),
+}));
+
 function makePropertyField(overrides: Partial<PropertyField> = {}): PropertyField {
     return {
         id: 'field1',
-        group_id: CLASSIFICATIONS_GROUP_NAME,
+        group_id: ACCESS_CONTROL_PROPERTY_GROUP,
         name: CLASSIFICATIONS_TEMPLATE_FIELD_NAME,
-        type: 'select',
+        type: 'rank',
         attrs: {options: []},
         target_id: '',
         target_type: CLASSIFICATIONS_FIELD_TARGET_TYPE,
@@ -61,9 +68,9 @@ function makePropertyField(overrides: Partial<PropertyField> = {}): PropertyFiel
 function makeLinkedField(overrides: Partial<PropertyField> = {}): PropertyField {
     return {
         id: 'linked_field1',
-        group_id: CLASSIFICATIONS_GROUP_NAME,
+        group_id: ACCESS_CONTROL_PROPERTY_GROUP,
         name: CLASSIFICATIONS_SYSTEM_FIELD_NAME,
-        type: 'select',
+        type: 'rank',
         attrs: {actions: []},
         target_id: CLASSIFICATIONS_FIELD_TARGET_ID,
         target_type: CLASSIFICATIONS_FIELD_TARGET_TYPE,
@@ -81,9 +88,9 @@ function makeLinkedField(overrides: Partial<PropertyField> = {}): PropertyField 
 function makeChannelLinkedField(overrides: Partial<PropertyField> = {}): PropertyField {
     return {
         id: 'channel_field1',
-        group_id: CLASSIFICATIONS_GROUP_NAME,
+        group_id: ACCESS_CONTROL_PROPERTY_GROUP,
         name: CLASSIFICATIONS_CHANNEL_FIELD_NAME,
-        type: 'select',
+        type: 'rank',
         attrs: {},
         target_id: '',
         target_type: CLASSIFICATIONS_FIELD_TARGET_TYPE,
@@ -98,12 +105,41 @@ function makeChannelLinkedField(overrides: Partial<PropertyField> = {}): Propert
     };
 }
 
+// A "Clearance" user field linked to the classification template ('field1').
+function makeUserLinkedField(overrides: Partial<PropertyField> = {}): PropertyField {
+    return {
+        id: 'clearance_field1',
+        group_id: CLASSIFICATIONS_GROUP_NAME,
+        name: CLEARANCE_FIELD_NAME,
+        type: 'rank',
+        attrs: {},
+        target_id: '',
+        target_type: CLASSIFICATIONS_FIELD_TARGET_TYPE,
+        object_type: CLASSIFICATIONS_USER_OBJECT_TYPE,
+        linked_field_id: 'field1',
+        create_at: 5000,
+        update_at: 5000,
+        delete_at: 0,
+        created_by: 'user1',
+        updated_by: 'user1',
+        ...overrides,
+    };
+}
+
+// State with ABAC enabled, which reveals the clearance attribute checkbox.
+const ABAC_STATE = {
+    entities: {
+        users: {currentUserId: MOCK_USER_ID},
+        admin: {config: {AccessControlSettings: {EnableAttributeBasedAccessControl: true}}},
+    },
+};
+
 function makeSystemValue(fieldId: string, optionId: string): PropertyValue<string> {
     return {
         id: 'value1',
         target_id: CLASSIFICATIONS_SYSTEM_VALUE_TARGET_ID,
         target_type: CLASSIFICATIONS_SYSTEM_OBJECT_TYPE,
-        group_id: CLASSIFICATIONS_GROUP_NAME,
+        group_id: ACCESS_CONTROL_PROPERTY_GROUP,
         field_id: fieldId,
         value: optionId,
         create_at: 3000,
@@ -354,7 +390,7 @@ describe('fetchChannelClassificationField', () => {
         expect(result).toEqual(expected);
         expect(Client4.getPropertyFields).toHaveBeenCalledTimes(1);
         expect(Client4.getPropertyFields).toHaveBeenCalledWith(
-            CLASSIFICATIONS_GROUP_NAME,
+            ACCESS_CONTROL_PROPERTY_GROUP,
             CLASSIFICATIONS_CHANNEL_OBJECT_TYPE,
             CLASSIFICATIONS_FIELD_TARGET_TYPE,
             '',
@@ -471,6 +507,57 @@ describe('ClassificationMarkings component', () => {
         ).toBeInTheDocument();
     });
 
+    test('should hide the informational notice while the clearance attribute is enabled', async () => {
+        const field = makePropertyField({attrs: {options: [{id: 'lvl1', name: 'UNCLASSIFIED', color: '#007A33', rank: 1}]}});
+        const linked = makeLinkedField({attrs: {actions: []}});
+        const channel = makeChannelLinkedField();
+        const clearance = makeUserLinkedField();
+
+        // Clearance exists, so the levels are enforced and the notice is untrue.
+        // Second user-object-type page comes back empty to end pagination.
+        let userCalls = 0;
+        jest.spyOn(Client4, 'getPropertyFields').mockImplementation(async (_group, objectType) => {
+            switch (objectType) {
+            case CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE:
+                return [field];
+            case CLASSIFICATIONS_SYSTEM_OBJECT_TYPE:
+                return [linked];
+            case CLASSIFICATIONS_CHANNEL_OBJECT_TYPE:
+                return [channel];
+            default:
+                return (userCalls++ % 2 === 0) ? [clearance] : [];
+            }
+        });
+
+        renderWithContext(<ClassificationMarkings/>, ABAC_STATE);
+        await screen.findByTestId('clearanceAttributeCheckbox');
+
+        expect(screen.getByTestId('clearanceAttributeCheckbox')).toBeChecked();
+        expect(
+            screen.queryByRole('heading', {name: 'Classification markings are informational only'}),
+        ).not.toBeInTheDocument();
+
+        // ...and it comes back the moment enforcement is turned off again.
+        await userEvent.setup().click(screen.getByTestId('clearanceAttributeCheckbox'));
+        expect(
+            await screen.findByRole('heading', {name: 'Classification markings are informational only'}),
+        ).toBeInTheDocument();
+        await act(async () => {});
+    });
+
+    test('should navigate to the membership policies page from the clearance help text', async () => {
+        const field = makePropertyField({attrs: {options: [{id: 'lvl1', name: 'UNCLASSIFIED', color: '#007A33', rank: 1}]}});
+        jest.spyOn(Client4, 'getPropertyFields').mockImplementation(async (_group, objectType) => {
+            return objectType === CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE ? [field] : [];
+        });
+
+        renderWithContext(<ClassificationMarkings/>, ABAC_STATE);
+        await screen.findByTestId('clearanceAttributeCheckbox');
+
+        await userEvent.setup().click(screen.getByText('membership policy'));
+        expect(mockHistoryPush).toHaveBeenCalledWith('/admin_console/system_attributes/membership_policies');
+    });
+
     test('should render disabled state when no existing field', async () => {
         jest.spyOn(Client4, 'getPropertyFields').mockResolvedValueOnce([]);
 
@@ -527,7 +614,7 @@ describe('ClassificationMarkings component', () => {
         expect(screen.getByText('Classification levels')).toBeInTheDocument();
     });
 
-    test('should not show Custom option in preset dropdown when a named preset is active', async () => {
+    test('should not show Custom option when a named preset is active and no custom edits exist', async () => {
         const usPreset = presets.find((p) => p.id === 'us')!;
         const field = makePropertyField({
             attrs: {
@@ -547,7 +634,8 @@ describe('ClassificationMarkings component', () => {
 
         await screen.findByText('Classification levels');
 
-        // The selected value in the dropdown should be US, not Custom
+        // The selected value should be US, and Custom should not appear anywhere
+        expect(screen.getByText('United States')).toBeInTheDocument();
         expect(screen.queryByText('Custom classification levels')).not.toBeInTheDocument();
     });
 
@@ -703,7 +791,7 @@ describe('ClassificationMarkings component', () => {
 
         await waitFor(() => {
             expect(Client4.patchPropertyField).toHaveBeenCalledWith(
-                CLASSIFICATIONS_GROUP_NAME,
+                ACCESS_CONTROL_PROPERTY_GROUP,
                 CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE,
                 'field1',
                 expect.objectContaining({
@@ -955,7 +1043,7 @@ describe('GlobalClassificationIndicators section', () => {
         await waitFor(() => {
             // Template field patched without global_banner in attrs.
             expect(Client4.patchPropertyField).toHaveBeenCalledWith(
-                CLASSIFICATIONS_GROUP_NAME,
+                ACCESS_CONTROL_PROPERTY_GROUP,
                 CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE,
                 'field1',
                 expect.objectContaining({
@@ -973,7 +1061,7 @@ describe('GlobalClassificationIndicators section', () => {
 
             // Linked field patched with updated actions (top_and_bottom).
             expect(Client4.patchPropertyField).toHaveBeenCalledWith(
-                CLASSIFICATIONS_GROUP_NAME,
+                ACCESS_CONTROL_PROPERTY_GROUP,
                 CLASSIFICATIONS_SYSTEM_OBJECT_TYPE,
                 'linked_field1',
                 expect.objectContaining({
@@ -1024,7 +1112,7 @@ describe('GlobalClassificationIndicators section', () => {
         await waitFor(() => {
             // Template field saved without global_banner.
             expect(Client4.patchPropertyField).toHaveBeenCalledWith(
-                CLASSIFICATIONS_GROUP_NAME,
+                ACCESS_CONTROL_PROPERTY_GROUP,
                 CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE,
                 'field1',
                 expect.not.objectContaining({
@@ -1034,7 +1122,7 @@ describe('GlobalClassificationIndicators section', () => {
 
             // Linked field patched with empty actions (banner disabled).
             expect(Client4.patchPropertyField).toHaveBeenCalledWith(
-                CLASSIFICATIONS_GROUP_NAME,
+                ACCESS_CONTROL_PROPERTY_GROUP,
                 CLASSIFICATIONS_SYSTEM_OBJECT_TYPE,
                 'linked_field1',
                 expect.objectContaining({
@@ -1054,7 +1142,8 @@ describe('GlobalClassificationIndicators section', () => {
         jest.spyOn(Client4, 'getPropertyFields').
             mockResolvedValueOnce([field]).
             mockResolvedValueOnce([linked]).
-            mockResolvedValueOnce([]);
+            mockResolvedValueOnce([]). // channel-linked field lookup during disable -> none
+            mockResolvedValueOnce([]); // clearance user field lookup during disable -> none
 
         const deleteOrder: string[] = [];
         const deleteFieldSpy = jest.spyOn(Client4, 'deletePropertyField');
@@ -1142,7 +1231,7 @@ describe('Channel classification linked field branches', () => {
 
         await waitFor(() => {
             expect(createSpy).toHaveBeenCalledWith(
-                CLASSIFICATIONS_GROUP_NAME,
+                ACCESS_CONTROL_PROPERTY_GROUP,
                 CLASSIFICATIONS_CHANNEL_OBJECT_TYPE,
                 expect.objectContaining({
                     name: CLASSIFICATIONS_CHANNEL_FIELD_NAME,
@@ -1204,6 +1293,111 @@ describe('Channel classification linked field branches', () => {
         expect(fieldsById[existingChannelField.id]).toEqual(existingChannelField);
     });
 
+    test('should create the linked Clearance user field on save when the clearance checkbox is enabled (ABAC on)', async () => {
+        const field = makePropertyField({attrs: {options: [{id: 'lvl1', name: 'UNCLASSIFIED', color: '#007A33', rank: 1}]}});
+        const linked = makeLinkedField({attrs: {actions: []}});
+        const channel = makeChannelLinkedField();
+
+        // No existing clearance field; everything else already exists (patch, not create).
+        jest.spyOn(Client4, 'getPropertyFields').mockImplementation(async (_group, objectType) => {
+            switch (objectType) {
+            case CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE:
+                return [field];
+            case CLASSIFICATIONS_SYSTEM_OBJECT_TYPE:
+                return [linked];
+            case CLASSIFICATIONS_CHANNEL_OBJECT_TYPE:
+                return [channel];
+            default:
+                return []; // user object type: no clearance yet
+            }
+        });
+        jest.spyOn(Client4, 'patchPropertyField').
+            mockResolvedValueOnce(makePropertyField({attrs: {options: [{id: 'lvl1', name: 'UNCLASSIFIED', color: '#007A33', rank: 1}]}})).
+            mockResolvedValueOnce(makeLinkedField({attrs: {actions: []}}));
+        const createdClearance = makeUserLinkedField();
+        const createSpy = jest.spyOn(Client4, 'createPropertyField').mockResolvedValue(createdClearance);
+
+        const {store} = renderWithContext(<ClassificationMarkings/>, ABAC_STATE);
+        await screen.findByTestId('clearanceAttributeCheckbox');
+
+        const user = userEvent.setup();
+        await user.click(screen.getByTestId('clearanceAttributeCheckbox'));
+        await user.click(await screen.findByText('Save'));
+
+        await waitFor(() => {
+            expect(createSpy).toHaveBeenCalledWith(
+                CLASSIFICATIONS_GROUP_NAME,
+                CLASSIFICATIONS_USER_OBJECT_TYPE,
+                expect.objectContaining({
+                    name: CLEARANCE_FIELD_NAME,
+                    type: 'rank',
+                    linked_field_id: field.id,
+                    attrs: expect.objectContaining({managed: 'admin', display_name: CLEARANCE_FIELD_DISPLAY_NAME}),
+                }),
+            );
+        });
+        await act(async () => {});
+
+        // Pushed into Redux eagerly, like every other field this save touches, so
+        // a consumer reading the properties slice sees it without a reload.
+        expect(store.getState().entities.properties.fields.byId[createdClearance.id]).toEqual(createdClearance);
+    });
+
+    test('should delete the linked Clearance user field on save when the clearance checkbox is disabled (ABAC on)', async () => {
+        const field = makePropertyField({attrs: {options: [{id: 'lvl1', name: 'UNCLASSIFIED', color: '#007A33', rank: 1}]}});
+        const linked = makeLinkedField({attrs: {actions: []}});
+        const channel = makeChannelLinkedField();
+        const clearance = makeUserLinkedField();
+
+        // Two linked clearance fields: this UI only ever creates one, but every
+        // match must be deleted — leaving one behind would keep enforcement live
+        // while the saved state records it as off.
+        const extraClearance = makeUserLinkedField({id: 'clearance_field2', name: 'clearance_dupe'});
+
+        // Clearance exists: return both on the first user-object-type page, then an
+        // empty page to end pagination (per fetchUserLinkedFields invocation).
+        let userCalls = 0;
+        jest.spyOn(Client4, 'getPropertyFields').mockImplementation(async (_group, objectType) => {
+            switch (objectType) {
+            case CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE:
+                return [field];
+            case CLASSIFICATIONS_SYSTEM_OBJECT_TYPE:
+                return [linked];
+            case CLASSIFICATIONS_CHANNEL_OBJECT_TYPE:
+                return [channel];
+            default:
+                return (userCalls++ % 2 === 0) ? [clearance, extraClearance] : [];
+            }
+        });
+        jest.spyOn(Client4, 'patchPropertyField').
+            mockResolvedValueOnce(makePropertyField({attrs: {options: [{id: 'lvl1', name: 'UNCLASSIFIED', color: '#007A33', rank: 1}]}})).
+            mockResolvedValueOnce(makeLinkedField({attrs: {actions: []}}));
+        const deleteSpy = jest.spyOn(Client4, 'deletePropertyField').mockResolvedValue({status: 'OK'});
+
+        renderWithContext(<ClassificationMarkings/>, ABAC_STATE);
+        await screen.findByTestId('clearanceAttributeCheckbox');
+
+        const user = userEvent.setup();
+        const checkbox = screen.getByTestId('clearanceAttributeCheckbox');
+        expect(checkbox).toBeChecked();
+        await user.click(checkbox);
+        await user.click(await screen.findByText('Save'));
+
+        await waitFor(() => {
+            expect(deleteSpy).toHaveBeenCalledWith(
+                CLASSIFICATIONS_GROUP_NAME,
+                CLASSIFICATIONS_USER_OBJECT_TYPE,
+                clearance.id,
+            );
+            expect(deleteSpy).toHaveBeenCalledWith(
+                CLASSIFICATIONS_GROUP_NAME,
+                CLASSIFICATIONS_USER_OBJECT_TYPE,
+                extraClearance.id,
+            );
+        });
+        await act(async () => {});
+    });
+
     test('should delete channel-linked field before linked and template when disabling', async () => {
         const field = makePropertyField({
             attrs: {options: [{id: 'lvl1', name: 'UNCLASSIFIED', color: '#007A33', rank: 1}]},
@@ -1214,7 +1408,8 @@ describe('Channel classification linked field branches', () => {
         jest.spyOn(Client4, 'getPropertyFields').
             mockResolvedValueOnce([field]). // template field load
             mockResolvedValueOnce([linked]). // linked field load
-            mockResolvedValueOnce([channel]); // channel field lookup during disable
+            mockResolvedValueOnce([channel]). // channel field lookup during disable
+            mockResolvedValueOnce([]); // clearance user field lookup during disable -> none
 
         const deleteOrder: string[] = [];
         jest.spyOn(Client4, 'deletePropertyField').mockImplementation(async (_group, objectType, id) => {
@@ -1273,7 +1468,8 @@ describe('Channel classification linked field branches', () => {
         jest.spyOn(Client4, 'getPropertyFields').
             mockResolvedValueOnce([field]).
             mockResolvedValueOnce([linked]).
-            mockResolvedValueOnce([]); // no channel field exists
+            mockResolvedValueOnce([]). // no channel field exists
+            mockResolvedValueOnce([]); // no clearance user field exists
 
         const deletedTypes: string[] = [];
         jest.spyOn(Client4, 'deletePropertyField').mockImplementation(async (_group, objectType) => {
@@ -1305,6 +1501,328 @@ describe('Channel classification linked field branches', () => {
             await waitFor(() => {
                 expect(deletedTypes).toEqual([CLASSIFICATIONS_SYSTEM_OBJECT_TYPE, CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE]);
             });
+        } finally {
+            console.error = origError;
+        }
+    });
+
+    test('should delete an existing clearance field when disabling even with ABAC off', async () => {
+        const field = makePropertyField({
+            attrs: {options: [{id: 'lvl1', name: 'UNCLASSIFIED', color: '#007A33', rank: 1}]},
+        });
+        const linked = makeLinkedField({attrs: {actions: []}});
+        const clearance = makeUserLinkedField();
+
+        // ABAC is off now, but the clearance field was created while it was on.
+        // Skipping its deletion would leave a dependent and fail the template delete.
+        let userCalls = 0;
+        jest.spyOn(Client4, 'getPropertyFields').mockImplementation(async (_group, objectType) => {
+            switch (objectType) {
+            case CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE:
+                return [field];
+            case CLASSIFICATIONS_SYSTEM_OBJECT_TYPE:
+                return [linked];
+            case CLASSIFICATIONS_CHANNEL_OBJECT_TYPE:
+                return [];
+            default:
+                return (userCalls++ % 2 === 0) ? [clearance] : [];
+            }
+        });
+
+        const deletedIds: string[] = [];
+        jest.spyOn(Client4, 'deletePropertyField').mockImplementation(async (_group, _objectType, id) => {
+            deletedIds.push(id);
+            return {status: 'OK'};
+        });
+
+        const origError = console.error;
+        console.error = (...args: Parameters<typeof console.error>) => {
+            if (typeof args[0] === 'string' && args[0].includes('not configured to support act')) {
+                return;
+            }
+            origError(...args);
+        };
+
+        try {
+            renderWithContext(<ClassificationMarkings/>, BASE_STATE);
+            await screen.findByText('Global Classification Indicators');
+
+            const user = userEvent.setup();
+
+            await act(async () => {
+                await user.click(screen.getByTestId('classificationEnabledfalse'));
+            });
+            await act(async () => {
+                await user.click(screen.getByText('Save'));
+            });
+
+            await waitFor(() => {
+                expect(deletedIds).toEqual([clearance.id, linked.id, field.id]);
+            });
+        } finally {
+            console.error = origError;
+        }
+    });
+});
+
+describe('Custom preset caching and dropdown visibility', () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
+    test('should restore cached custom levels when switching back to Custom', async () => {
+        const field = makePropertyField({
+            attrs: {
+                options: [
+                    {id: 'lvl1', name: 'UNCLASSIFIED', color: '#007A33', rank: 1},
+                    {id: 'lvl2', name: 'SECRET', color: '#C8102E', rank: 2},
+                ],
+            },
+        });
+        jest.spyOn(Client4, 'getPropertyFields').
+            mockResolvedValueOnce([field]).
+            mockResolvedValueOnce([]); // linked field
+
+        const origError = console.error;
+        console.error = (...args: Parameters<typeof console.error>) => {
+            if (typeof args[0] === 'string' && args[0].includes('not configured to support act')) {
+                return;
+            }
+            origError(...args);
+        };
+
+        try {
+            renderWithContext(<ClassificationMarkings/>, BASE_STATE);
+            await screen.findByText('Classification levels');
+
+            const user = userEvent.setup();
+
+            // Edit the first level to make it custom
+            const nameInputs = screen.getAllByRole('textbox', {name: /Classification level name/i});
+            await user.clear(nameInputs[0]);
+            await user.type(nameInputs[0], 'MY_CUSTOM_LEVEL');
+            await user.tab();
+
+            // Now the preset is Custom (shown as selected value)
+            expect(screen.getByText('Custom classification levels')).toBeInTheDocument();
+
+            // Open dropdown and switch to UK preset
+            await act(async () => {
+                await user.click(screen.getByText('Custom classification levels'));
+            });
+            await act(async () => {
+                await user.click(screen.getByText('UK (GSCP)'));
+            });
+
+            // Confirm the preset switch in the modal
+            await act(async () => {
+                await user.click(screen.getByText('Change preset'));
+            });
+
+            // Wait for the modal to close
+            await waitFor(() => {
+                expect(screen.queryByText('Change classification preset?')).not.toBeInTheDocument();
+            });
+
+            // Now on UK preset — verify UK levels are shown
+            expect(screen.getByDisplayValue('OFFICIAL')).toBeInTheDocument();
+
+            // Switch back to Custom from dropdown
+            await act(async () => {
+                await user.click(screen.getByText('UK (GSCP)'));
+            });
+            await act(async () => {
+                await user.click(screen.getByText('Custom classification levels'));
+            });
+
+            // The cached custom levels should be restored
+            expect(screen.getByDisplayValue('MY_CUSTOM_LEVEL')).toBeInTheDocument();
+            expect(screen.getByDisplayValue('SECRET')).toBeInTheDocument();
+        } finally {
+            console.error = origError;
+        }
+    });
+
+    test('should show Custom option in dropdown after caching custom edits', async () => {
+        const field = makePropertyField({
+            attrs: {
+                options: [{id: 'lvl1', name: 'UNCLASSIFIED', color: '#007A33', rank: 1}],
+            },
+        });
+        jest.spyOn(Client4, 'getPropertyFields').
+            mockResolvedValueOnce([field]).
+            mockResolvedValueOnce([]); // linked field
+
+        const origError = console.error;
+        console.error = (...args: Parameters<typeof console.error>) => {
+            if (typeof args[0] === 'string' && args[0].includes('not configured to support act')) {
+                return;
+            }
+            origError(...args);
+        };
+
+        try {
+            renderWithContext(<ClassificationMarkings/>, BASE_STATE);
+            await screen.findByText('Classification levels');
+
+            const user = userEvent.setup();
+
+            // Edit a level to enter custom mode
+            const nameInputs = screen.getAllByRole('textbox', {name: /Classification level name/i});
+            await user.clear(nameInputs[0]);
+            await user.type(nameInputs[0], 'EDITED');
+            await user.tab();
+
+            // Open dropdown and switch to US (caches custom levels)
+            await act(async () => {
+                await user.click(screen.getByText('Custom classification levels'));
+            });
+            await act(async () => {
+                await user.click(screen.getByText('United States'));
+            });
+
+            // Confirm the preset switch
+            await act(async () => {
+                await user.click(screen.getByText('Change preset'));
+            });
+
+            // Wait for modal to close
+            await waitFor(() => {
+                expect(screen.queryByText('Change classification preset?')).not.toBeInTheDocument();
+            });
+
+            // Now on US — "Custom classification levels" should remain visible as
+            // an option (rendered by react-select as the last non-selected option
+            // or still in the DOM). Since it's not the selected value, check after
+            // opening the dropdown menu.
+            expect(screen.getByText('United States')).toBeInTheDocument();
+
+            // The Custom option should still be available (rendered in the dropdown
+            // options list since cachedCustomLevels.length > 0)
+            await act(async () => {
+                await user.click(screen.getByText('United States'));
+            });
+            expect(screen.getByText('Custom classification levels')).toBeInTheDocument();
+        } finally {
+            console.error = origError;
+        }
+    });
+
+    test('should treat PRESET_EMPTY selection as a no-op', async () => {
+        jest.spyOn(Client4, 'getPropertyFields').mockResolvedValueOnce([]);
+
+        renderWithContext(<ClassificationMarkings/>, BASE_STATE);
+        await screen.findByText('True');
+
+        const user = userEvent.setup();
+
+        // Enable classification
+        await act(async () => {
+            await user.click(screen.getByRole('radio', {name: /True/i}));
+        });
+
+        // The placeholder "Select a preset…" should be the selected value
+        expect(screen.getByText('Select a preset…')).toBeInTheDocument();
+
+        // No levels should be rendered
+        expect(screen.queryAllByRole('textbox', {name: /Classification level name/i})).toHaveLength(0);
+
+        // No confirmation dialog should be shown
+        expect(screen.queryByText('Change classification preset?')).not.toBeInTheDocument();
+    });
+
+    test('should remap banner level_id from pending ID to server-assigned ID by rank after save', async () => {
+        // Start with an existing field and banner enabled so the global
+        // classification indicators section is visible with a level selected.
+        const field = makePropertyField({
+            attrs: {
+                options: [{id: 'lvl1', name: 'EXISTING', color: '#007A33', rank: 1}],
+            },
+        });
+        const linked = makeLinkedField({
+            attrs: {actions: [DISPLAY_BANNER_TOP]},
+        });
+        const sysValue = makeSystemValue('linked_field1', 'lvl1');
+
+        jest.spyOn(Client4, 'getPropertyFields').
+            mockResolvedValueOnce([field]).
+            mockResolvedValueOnce([linked]);
+        jest.spyOn(Client4, 'getSystemPropertyValues').
+            mockResolvedValueOnce([sysValue]);
+
+        const origError = console.error;
+        console.error = (...args: Parameters<typeof console.error>) => {
+            if (typeof args[0] === 'string' && args[0].includes('not configured to support act')) {
+                return;
+            }
+            origError(...args);
+        };
+
+        try {
+            renderWithContext(<ClassificationMarkings/>, BASE_STATE);
+            await screen.findByText('Classification levels');
+
+            const user = userEvent.setup();
+
+            // Delete the existing level and add a new one (gets a pending_ ID)
+            const deleteButtons = screen.getAllByRole('button', {name: /Delete level/i});
+            await act(async () => {
+                await user.click(deleteButtons[0]);
+            });
+
+            await act(async () => {
+                await user.click(screen.getByText('Add level'));
+            });
+
+            const nameInput = screen.getByRole('textbox', {name: /Classification level name/i});
+            await user.type(nameInput, 'NEW_LEVEL');
+            await user.tab();
+
+            // Select the new level for the global banner using the level dropdown.
+            const levelDropdownWrapper = screen.getByTestId('globalBannerLevel');
+            const levelControl = levelDropdownWrapper.querySelector('.DropDown__control')!;
+            await act(async () => {
+                await user.click(levelControl);
+            });
+            await act(async () => {
+                await user.click(screen.getByText('NEW_LEVEL'));
+            });
+
+            // Set up mocks for the save — server returns the template with a new ID
+            const serverGeneratedId = 'server_generated_new_id';
+            const patchedTemplate = makePropertyField({
+                attrs: {
+                    options: [{id: serverGeneratedId, name: 'NEW_LEVEL', color: '#000000', rank: 1}],
+                },
+            });
+            const patchedLinked = makeLinkedField({attrs: {actions: []}});
+
+            jest.spyOn(Client4, 'patchPropertyField').
+                mockResolvedValueOnce(patchedTemplate). // patch template
+                mockResolvedValueOnce(patchedLinked); // patch linked (disable banner first)
+
+            jest.spyOn(Client4, 'getPropertyFields').
+                mockResolvedValueOnce([makeChannelLinkedField()]); // channel field exists
+
+            const saveUpsertSpy = jest.spyOn(Utils, 'saveUpsertSystemValue').mockResolvedValue([]);
+
+            // The final patch linked (enable banner) needs a mock too
+            jest.spyOn(Client4, 'patchPropertyField').
+                mockResolvedValueOnce(patchedLinked);
+
+            // Save
+            await act(async () => {
+                await user.click(screen.getByText('Save'));
+            });
+
+            await waitFor(() => {
+                // The upsert should use the server-generated ID, NOT the pending_ ID
+                expect(saveUpsertSpy).toHaveBeenCalledWith(
+                    'linked_field1',
+                    serverGeneratedId,
+                );
+            });
+            await act(async () => {});
         } finally {
             console.error = origError;
         }

@@ -30,7 +30,7 @@ export type OwnProps = {
     isUnread: boolean;
     channelLeaveHandler?: (callback: () => void) => void;
     onMenuToggle: (open: boolean) => void;
-}
+};
 
 function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
     const member = getMyChannelMemberships(state)[ownProps.channel.id];

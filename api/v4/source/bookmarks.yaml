@@ -24,7 +24,7 @@
             type: number
             format: int64
       responses:
-        "201":
+        "200":
           description: Channel Bookmarks retrieval successful
           content:
             application/json:
@@ -90,7 +90,7 @@
                   type: string
                   enum: [link, file]
                   description: |
-                    * `link` for channel bookmarks that reference a link. `link_url` is requied
+                    * `link` for channel bookmarks that reference a link. `link_url` is required
                     * `file` for channel bookmarks that reference a file. `file_id` is required
         description: Channel Bookmark object to be created
         required: true
@@ -170,7 +170,7 @@
                   type: string
                   enum: [link, file]
                   description: |
-                    * `link` for channel bookmarks that reference a link. `link_url` is requied
+                    * `link` for channel bookmarks that reference a link. `link_url` is required
                     * `file` for channel bookmarks that reference a file. `file_id` is required
         description: Channel Bookmark object to be updated
         required: true

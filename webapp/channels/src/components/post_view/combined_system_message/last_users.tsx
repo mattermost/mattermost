@@ -58,11 +58,11 @@ type Props = {
     intl: IntlShape;
     postType: string;
     usernames: string[];
-}
+};
 
 type State = {
     expand: boolean;
-}
+};
 
 export class LastUsers extends React.PureComponent<Props, State> {
     constructor(props: Props) {

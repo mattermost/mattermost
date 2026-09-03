@@ -1,0 +1,45 @@
+---
+title: "Prepare your Mattermost Server environment"
+---
+Everything in this section has to exist before you run the installer. The database, file storage, and network access are hard prerequisites, because the install fails or the server won't start without them. The reverse proxy and TLS are prerequisites for a production deployment specifically: don't expose Mattermost to users without them.
+
+Work through the pages in order. If you haven't sized the deployment yet, start with [Plan](/deployment-guide/server/server-deployment-planning) and confirm your hosts against the [software and hardware requirements](/deployment-guide/software-hardware-requirements) first.
+
+<CardGrid columns={3} cards={[
+  {
+    title: 'Set up the database',
+    description: 'Create the PostgreSQL database, user, and grants, and allow remote connections if the database runs on its own host. PostgreSQL v14+ is required.',
+    to: '/deployment-guide/server/prepare-database',
+  },
+  {
+    title: 'Set up file storage',
+    description: 'Choose S3-compatible object storage, network file storage, or local storage for user files and attachments, and provision it.',
+    to: '/deployment-guide/server/prepare-file-storage',
+  },
+  {
+    title: 'Prepare your network',
+    description: 'The ports and protocols Mattermost needs in each direction, and how to route outbound traffic through a proxy.',
+    to: '/deployment-guide/server/prepare-network',
+  },
+]} />
+
+## Prepare for production
+
+The pages above get a server running. These make it safe to put in front of users:
+
+- [Set up an NGINX proxy](/deployment-guide/server/setup-nginx-proxy) - Configure NGINX as a reverse proxy for enhanced security and performance. Recommended for all production deployments.
+- [Set up TLS](/deployment-guide/server/setup-tls) - Enable secure communication with SSL/TLS encryption, terminated at the proxy.
+- [Use an image proxy](/deployment-guide/server/image-proxy) - Load external images through a proxy so third-party servers can't track who viewed them.
+- [Set pre-authentication secrets](/deployment-guide/server/pre-authentication-secrets) - Require a shared secret before clients can reach the server.
+
+Running an existing MySQL deployment? See [Set up the Mattermost MySQL database](/deployment-guide/server/prepare-mattermost-mysql-database). MySQL support is being removed in Mattermost v11, so new deployments must use PostgreSQL.
+
+## Next steps
+
+Once the prerequisites are in place, choose your install method:
+
+- [Deploy with Kubernetes](/deployment-guide/server/deploy-kubernetes)
+- [Deploy on Linux](/deployment-guide/server/deploy-linux)
+- [Deploy with Containers](/deployment-guide/server/deploy-containers)
+
+The trade-offs between the three are compared in [Deploy the Mattermost server](/deployment-guide/server/deploy-server#deployment-options).

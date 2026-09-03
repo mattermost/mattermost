@@ -137,7 +137,7 @@ type FormFieldProps = {
     label?: string;
     children: ReactNode | ReactNode[];
     helpText?: string | ReactNode;
-}
+};
 
 export const FormField = ({label, children, helpText}: FormFieldProps) => {
     return (

@@ -26,8 +26,9 @@ export type OwnProps = {
     displayUsername?: boolean;
     colorize?: boolean;
     hideStatus?: boolean;
+    hideGuestTag?: boolean;
     channelId?: Channel['id'];
-}
+};
 
 function makeMapStateToProps() {
     const getDisplayName = makeGetDisplayName();

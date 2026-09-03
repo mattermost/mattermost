@@ -74,6 +74,10 @@ export const getChannelHeaderMenuPluginComponents = createShallowSelector(
     },
 );
 
+export function getChannelSettingsTabs(state: GlobalState) {
+    return state.plugins.channelSettingsTabs || [];
+}
+
 export const getChannelMobileHeaderPluginButtons = createSelector(
     'getChannelMobileHeaderPluginButtons',
     (state: GlobalState) => state.plugins.components.MobileChannelHeaderButton,
@@ -175,6 +179,13 @@ export const getPluginDisplayName = (state: GlobalState, pluginId?: string): str
     if (!pluginId) {
         return 'unknown';
     }
-    const plugins = state.plugins?.plugins ?? {};
-    return plugins[pluginId]?.name || pluginId;
+
+    // state.plugins.plugins only holds manifests for plugins that shipped a webapp
+    // bundle and registered themselves in the browser. Server-only plugins never
+    // appear there, so consult the admin plugin statuses (populated by
+    // getPluginStatuses) before falling back to the raw, user-hostile plugin ID.
+    const webappName = state.plugins?.plugins?.[pluginId]?.name;
+    const installedName = state.entities?.admin?.pluginStatuses?.[pluginId]?.name;
+
+    return webappName || installedName || pluginId;
 };

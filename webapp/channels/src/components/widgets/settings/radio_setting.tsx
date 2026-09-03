@@ -16,7 +16,7 @@ type Props = {
     inputClassName?: string;
     helpText?: React.ReactNode;
 
-}
+};
 
 const RadioSetting = ({
     labelClassName = '',

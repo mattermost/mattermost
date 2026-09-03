@@ -4,6 +4,7 @@
 import {fireEvent} from '@testing-library/react';
 import React from 'react';
 
+import {testPluginComponentErrorHandling} from 'tests/helpers/plugin_error_handling';
 import {renderWithContext, screen} from 'tests/react_testing_utils';
 
 import type {PostDraft} from 'types/store/draft';
@@ -419,5 +420,36 @@ describe('AIActionsMenu', () => {
         expect(receivedProps.draft).toBeDefined();
         expect(receivedProps.getSelectedText).toBeDefined();
         expect(receivedProps.updateText).toBeDefined();
+    });
+
+    testPluginComponentErrorHandling((pluginComponent) => {
+        renderWithContext(
+            <AIActionsMenu
+                {...getBaseProps()}
+                aiRewriteEnabled={false}
+            />,
+            {
+                entities: {
+                    general: {config: {}},
+                    preferences: {myPreferences: {}},
+                    users: {currentUserId: 'user1'},
+                },
+                plugins: {
+                    components: {
+                        AIActionMenuItem: [
+                            {
+                                ...pluginComponent,
+                                icon: <span>{'icon'}</span>,
+                                text: 'Hover Me',
+                                sortOrder: 1,
+                            },
+                        ],
+                    },
+                },
+            } as any,
+        );
+
+        // The plugin component is only rendered once its submenu is opened by hovering the menu item.
+        fireEvent.mouseEnter(screen.getByText('Hover Me').closest('li')!);
     });
 });

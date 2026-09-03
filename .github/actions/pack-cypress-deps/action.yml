@@ -1,0 +1,40 @@
+name: "Pack Cypress deps artifact"
+description: >
+  Tar the Cypress node_modules and binary into a run-scoped artifact for the
+  workers in e2e-tests-cypress-template.yml. The payload must stay in sync with
+  unpack-cypress-deps.
+
+inputs:
+  fips:
+    description: >
+      Whether this is a FIPS-edition run. e2e-tests-ci.yml invokes the cypress
+      template twice per workflow run — once per edition — and artifact names are
+      run-scoped, so the two invocations would otherwise collide. Must match the
+      unpack step.
+    required: false
+    default: "false"
+
+runs:
+  using: "composite"
+  steps:
+    # -C so the archives hold paths relative to their extraction root, letting
+    # unpack extract straight into the workspace and HOME.
+    - name: ci/pack-cypress-deps
+      shell: bash
+      run: |
+        set -euo pipefail
+        tar -czf "${RUNNER_TEMP}/cypress-node-modules.tgz" -C "${GITHUB_WORKSPACE}" e2e-tests/cypress/node_modules
+        tar -czf "${RUNNER_TEMP}/cypress-binary.tgz" -C "${HOME}" .cache/Cypress
+    - name: ci/upload-cypress-deps
+      uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+      with:
+        name: e2e-cypress-deps${{ inputs.fips == 'true' && '-fips' || '' }}
+        path: |
+          ${{ runner.temp }}/cypress-node-modules.tgz
+          ${{ runner.temp }}/cypress-binary.tgz
+        # Only ever consumed by workers in the same run.
+        retention-days: 1
+        if-no-files-found: error
+        # The tarballs are already gzipped; re-compressing them in the zip
+        # wrapper costs CPU for no gain.
+        compression-level: 0

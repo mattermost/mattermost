@@ -16,11 +16,11 @@ type Props = {
     onExited: () => void;
     channel: Channel;
     actions: ChannelDetailsActions;
-}
+};
 
 type State = {
     show: boolean;
-}
+};
 
 export type ChannelDetailsActions = {
     unarchiveChannel: (channelId: string) => Promise<ActionResult>;

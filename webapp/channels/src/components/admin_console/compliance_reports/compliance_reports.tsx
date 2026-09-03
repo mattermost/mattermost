@@ -52,12 +52,12 @@ type Props = {
             */
         createComplianceReport: (job: Partial<Compliance>) => Promise<ActionResult<Compliance>>;
     };
-}
+};
 
 type State = {
     loadingReports: boolean;
     runningReport?: boolean;
-}
+};
 
 export default class ComplianceReports extends React.PureComponent<Props, State> {
     private descInput: React.RefObject<HTMLInputElement>;

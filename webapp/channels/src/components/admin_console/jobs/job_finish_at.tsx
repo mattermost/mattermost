@@ -11,7 +11,7 @@ import {JobStatuses} from 'utils/constants';
 type Props = {
     status: JobStatus;
     millis: number;
-}
+};
 
 const JobFinishAt = React.memo(({status, millis}: Props): JSX.Element => {
     if (millis === 0 || status === JobStatuses.PENDING || status === JobStatuses.IN_PROGRESS || status === JobStatuses.CANCEL_REQUESTED) {

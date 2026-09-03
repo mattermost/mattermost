@@ -108,7 +108,7 @@ case $MME2E_OSTYPE in
     export IS_LINUX="-linux"
     ;;
   darwin )
-    export BROWSER_DEFAULT="electron"
+    export BROWSER_DEFAULT="chrome"
     export IS_LINUX=""
     ;;
   * )

@@ -14,7 +14,7 @@ type Props = {
     children?: React.ReactNode;
     status?: 'warning' | 'error';
     formatter?: (value: number) => string;
-}
+};
 
 const StatisticCount = ({
     title,
@@ -36,7 +36,10 @@ const StatisticCount = ({
     const displayValue = typeof count === 'undefined' || isNaN(count) ? loading : result;
 
     return (
-        <div className='grid-statistics__card'>
+        <div
+            data-testid={id ? `${id}Card` : undefined}
+            className='grid-statistics__card'
+        >
             <div
                 className={classNames({
                     'total-count': true,

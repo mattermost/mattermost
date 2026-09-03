@@ -15,7 +15,7 @@ import Avatar from 'components/widgets/users/avatar';
 
 type Props = {
     currentUser: UserProfile;
-}
+};
 
 const SidebarHeader = ({currentUser: me}: Props) => {
     const intl = useIntl();
@@ -36,10 +36,16 @@ const SidebarHeader = ({currentUser: me}: Props) => {
     }
 
     return (
-        <MenuWrapper className='AdminSidebarHeader'>
+        <MenuWrapper
+            className='AdminSidebarHeader'
+            id='admin-sidebar-header'
+        >
             <div>
                 {profilePicture}
-                <div className='header__info'>
+                <div
+                    className='header__info'
+                    data-testid='admin-sidebar-header-info'
+                >
                     <div className='team__name'>
                         <FormattedMessage
                             id='admin.sidebarHeader.systemConsole'

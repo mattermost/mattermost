@@ -1,0 +1,28 @@
+{
+  "title": "Mattermost Integrations Guide",
+  "subtitle": "Bring your tools into Mattermost — from webhooks to platform plugins.",
+  "eyebrow": "INTEGRATIONS",
+  "version": "unreleased",
+  "spine": [
+    "/integrations-guide/built-in-slash-commands",
+    "/integrations-guide/faq",
+    "/integrations-guide/github",
+    "/integrations-guide/gitlab",
+    "/integrations-guide/incoming-webhooks",
+    "/integrations-guide/integrations-guide-index",
+    "/integrations-guide/jira",
+    "/integrations-guide/mattermost-mission-collaboration-for-m365",
+    "/integrations-guide/microsoft-calendar",
+    "/integrations-guide/microsoft-teams-meetings",
+    "/integrations-guide/microsoft-teams-sync",
+    "/integrations-guide/no-code-automation",
+    "/integrations-guide/outgoing-webhooks",
+    "/integrations-guide/plugins",
+    "/integrations-guide/restful-api",
+    "/integrations-guide/run-slash-commands",
+    "/integrations-guide/servicenow",
+    "/integrations-guide/slash-commands",
+    "/integrations-guide/webhook-integrations",
+    "/integrations-guide/zoom"
+  ]
+}

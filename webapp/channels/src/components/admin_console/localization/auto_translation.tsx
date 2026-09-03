@@ -20,7 +20,7 @@ import useGetAgentsBridgeEnabled from 'components/common/hooks/useGetAgentsBridg
 import Toggle from 'components/toggle';
 import BetaTag from 'components/widgets/tag/beta_tag';
 
-import * as I18n from 'i18n/i18n.jsx';
+import * as I18n from 'i18n/i18n';
 
 import AgentsSettings from './agents_settings';
 import AutoTranslationInfo from './auto_translation_info';
@@ -151,7 +151,10 @@ export default function AutoTranslation(props: SystemConsoleCustomSettingsCompon
     return (
         <AdminSection>
             <SectionHeader>
-                <div className='autotranslation-section-header'>
+                <div
+                    data-testid='autotranslation-section-header'
+                    className='autotranslation-section-header'
+                >
                     <hgroup>
                         <h1 className='localization-section-title'>
                             <FormattedMessage {...messages.enableAutoTranslationTitle}/>
@@ -163,7 +166,10 @@ export default function AutoTranslation(props: SystemConsoleCustomSettingsCompon
                             <FormattedMessage {...messages.enableAutoTranslationDescription}/>
                         </h5>
                     </hgroup>
-                    <div className='autotranslation-section-toggle'>
+                    <div
+                        data-testid='autotranslation-section-toggle'
+                        className='autotranslation-section-toggle'
+                    >
                         <span style={{marginRight: '12px'}}>
                             {autoTranslationSettings.Enable ? on : off}
                         </span>

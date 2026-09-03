@@ -32,6 +32,7 @@ func TestSessionStore(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("SessionRemoveToken", func(t *testing.T) { testSessionRemoveToken(t, rctx, ss) })
 	t.Run("SessionUpdateDeviceId", func(t *testing.T) { testSessionUpdateDeviceId(t, rctx, ss) })
 	t.Run("SessionUpdateDeviceId2", func(t *testing.T) { testSessionUpdateDeviceId2(t, rctx, ss) })
+	t.Run("SessionUpdateDeviceIdClearsOnEmpty", func(t *testing.T) { testSessionUpdateDeviceIdClearsOnEmpty(t, rctx, ss) })
 	t.Run("UpdateExpiresAt", func(t *testing.T) { testSessionStoreUpdateExpiresAt(t, rctx, ss) })
 	t.Run("UpdateLastActivityAt", func(t *testing.T) { testSessionStoreUpdateLastActivityAt(t, rctx, ss) })
 	t.Run("SessionCount", func(t *testing.T) { testSessionCount(t, rctx, ss) })
@@ -39,6 +40,7 @@ func TestSessionStore(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("UpdateExpiredNotify", func(t *testing.T) { testUpdateExpiredNotify(t, rctx, ss) })
 	t.Run("GetLRUSessions", func(t *testing.T) { testGetLRUSessions(t, rctx, ss) })
 	t.Run("GetSessionsWithActiveDeviceIds", func(t *testing.T) { testGetSessionsWithActiveDeviceIds(t, rctx, ss) })
+	t.Run("GetAllSessionsWithActiveDeviceIds", func(t *testing.T) { testGetAllSessionsWithActiveDeviceIds(t, rctx, ss) })
 	t.Run("GetMobileSessionMetadata", func(t *testing.T) { testGetMobileSessionMetadata(t, rctx, ss) })
 }
 
@@ -214,7 +216,7 @@ func testSessionUpdateDeviceId(t *testing.T, rctx request.CTX, ss store.Store) {
 	s1, err := ss.Session().Save(rctx, s1)
 	require.NoError(t, err)
 
-	_, err = ss.Session().UpdateDeviceId(s1.Id, model.PushNotifyApple+":1234567890", s1.ExpiresAt)
+	err = ss.Session().UpdateDeviceId(s1.Id, model.PushNotifyAppleReactNative+":1234567890", "", s1.ExpiresAt)
 	require.NoError(t, err)
 
 	s2 := &model.Session{}
@@ -223,7 +225,7 @@ func testSessionUpdateDeviceId(t *testing.T, rctx request.CTX, ss store.Store) {
 	s2, err = ss.Session().Save(rctx, s2)
 	require.NoError(t, err)
 
-	_, err = ss.Session().UpdateDeviceId(s2.Id, model.PushNotifyApple+":1234567890", s1.ExpiresAt)
+	err = ss.Session().UpdateDeviceId(s2.Id, model.PushNotifyAppleReactNative+":1234567890", "", s1.ExpiresAt)
 	require.NoError(t, err)
 }
 
@@ -234,7 +236,7 @@ func testSessionUpdateDeviceId2(t *testing.T, rctx request.CTX, ss store.Store) 
 	s1, err := ss.Session().Save(rctx, s1)
 	require.NoError(t, err)
 
-	_, err = ss.Session().UpdateDeviceId(s1.Id, model.PushNotifyAppleReactNative+":1234567890", s1.ExpiresAt)
+	err = ss.Session().UpdateDeviceId(s1.Id, model.PushNotifyAppleReactNative+":1234567890", model.PushNotifyAppleReactNative+":voiptoken", s1.ExpiresAt)
 	require.NoError(t, err)
 
 	s2 := &model.Session{}
@@ -243,8 +245,33 @@ func testSessionUpdateDeviceId2(t *testing.T, rctx request.CTX, ss store.Store) 
 	s2, err = ss.Session().Save(rctx, s2)
 	require.NoError(t, err)
 
-	_, err = ss.Session().UpdateDeviceId(s2.Id, model.PushNotifyAppleReactNative+":1234567890", s1.ExpiresAt)
+	err = ss.Session().UpdateDeviceId(s2.Id, model.PushNotifyAppleReactNative+":1234567890", "", s1.ExpiresAt)
 	require.NoError(t, err)
+
+	// Verify both columns round-tripped via the regular Get path.
+	got, err := ss.Session().Get(rctx, s1.Id)
+	require.NoError(t, err)
+	require.Equal(t, model.PushNotifyAppleReactNative+":1234567890", got.DeviceId)
+	require.Equal(t, model.PushNotifyAppleReactNative+":voiptoken", got.VoIPDeviceId)
+}
+
+func testSessionUpdateDeviceIdClearsOnEmpty(t *testing.T, rctx request.CTX, ss store.Store) {
+	s := &model.Session{UserId: model.NewId()}
+	s, err := ss.Session().Save(rctx, s)
+	require.NoError(t, err)
+
+	standardToken := model.PushNotifyAppleReactNative + ":standard"
+	voIPToken := model.PushNotifyAppleReactNative + ":voip"
+	err = ss.Session().UpdateDeviceId(s.Id, standardToken, voIPToken, s.ExpiresAt)
+	require.NoError(t, err)
+
+	err = ss.Session().UpdateDeviceId(s.Id, "", "", s.ExpiresAt)
+	require.NoError(t, err)
+
+	got, err := ss.Session().Get(rctx, s.Id)
+	require.NoError(t, err)
+	require.Empty(t, got.DeviceId)
+	require.Empty(t, got.VoIPDeviceId)
 }
 
 func testSessionStoreUpdateExpiresAt(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -442,25 +469,69 @@ func testGetSessionsWithActiveDeviceIds(t *testing.T, rctx request.CTX, ss store
 	s5, err = ss.Session().Save(rctx, s5)
 	require.NoError(t, err)
 
+	// Create session 6 with dead standard token but live VoIP token - should be INCLUDED
+	// (the "silence chat, keep ringing" case: alert topic dead, PushKit still alive).
+	s6 := &model.Session{}
+	s6.UserId = userId
+	s6.ExpiresAt = model.GetMillis() + 100000
+	s6.DeviceId = model.NewId()
+	s6.VoIPDeviceId = model.NewId()
+	s6.AddProp(model.SessionPropLastRemovedDeviceId, s6.DeviceId)
+	s6, err = ss.Session().Save(rctx, s6)
+	require.NoError(t, err)
+
+	// Create session 7 with live standard + dead VoIP - should be INCLUDED (via standard).
+	s7 := &model.Session{}
+	s7.UserId = userId
+	s7.ExpiresAt = model.GetMillis() + 100000
+	s7.DeviceId = model.NewId()
+	s7.VoIPDeviceId = model.NewId()
+	s7.AddProp(model.SessionPropLastRemovedVoIPDeviceId, s7.VoIPDeviceId)
+	s7, err = ss.Session().Save(rctx, s7)
+	require.NoError(t, err)
+
+	// Create session 8 with both tokens dead - should be EXCLUDED.
+	s8 := &model.Session{}
+	s8.UserId = userId
+	s8.ExpiresAt = model.GetMillis() + 100000
+	s8.DeviceId = model.NewId()
+	s8.VoIPDeviceId = model.NewId()
+	s8.AddProp(model.SessionPropLastRemovedDeviceId, s8.DeviceId)
+	s8.AddProp(model.SessionPropLastRemovedVoIPDeviceId, s8.VoIPDeviceId)
+	s8, err = ss.Session().Save(rctx, s8)
+	require.NoError(t, err)
+
+	// Create session 9 with VoIP token only (no standard) - should be INCLUDED.
+	s9 := &model.Session{}
+	s9.UserId = userId
+	s9.ExpiresAt = model.GetMillis() + 100000
+	s9.VoIPDeviceId = model.NewId()
+	s9, err = ss.Session().Save(rctx, s9)
+	require.NoError(t, err)
+
 	// Get sessions with active device IDs
 	sessions, err := ss.Session().GetSessionsWithActiveDeviceIds(userId)
 	require.NoError(t, err)
 
-	// We should have 2 sessions (s1 and s2)
-	require.Len(t, sessions, 2)
+	// Expected included: s1, s2, s6, s7, s9.
+	require.Len(t, sessions, 5)
 
-	// Verify s1 and s2 are in the result
 	sessionIds := make(map[string]bool)
 	for _, session := range sessions {
 		sessionIds[session.Id] = true
 	}
 	require.True(t, sessionIds[s1.Id])
 	require.True(t, sessionIds[s2.Id])
+	require.True(t, sessionIds[s6.Id])
+	require.True(t, sessionIds[s7.Id])
+	require.True(t, sessionIds[s9.Id])
 
-	// Verify s3, s4, and s5 are not in the result
+	// Excluded: s3 (dead standard, no VoIP), s4 (no device IDs), s5 (expired),
+	// s8 (both dead).
 	require.False(t, sessionIds[s3.Id])
 	require.False(t, sessionIds[s4.Id])
 	require.False(t, sessionIds[s5.Id])
+	require.False(t, sessionIds[s8.Id])
 }
 
 func testUpdateExpiredNotify(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -536,6 +607,44 @@ func testGetLRUSessions(t *testing.T, rctx request.CTX, ss store.Store) {
 	require.Equal(t, s3.Id, sessions[0].Id)
 	require.Equal(t, s2.Id, sessions[1].Id)
 	require.Equal(t, s1.Id, sessions[2].Id)
+}
+
+func testGetAllSessionsWithActiveDeviceIds(t *testing.T, rctx request.CTX, ss store.Store) {
+	err := ss.Session().RemoveAllSessions()
+	require.NoError(t, err)
+
+	userId1 := model.NewId()
+	userId2 := model.NewId()
+
+	s1 := &model.Session{UserId: userId1, ExpiresAt: model.GetMillis() + 100000, DeviceId: model.NewId()}
+	s1, err = ss.Session().Save(rctx, s1)
+	require.NoError(t, err)
+
+	s2 := &model.Session{UserId: userId2, ExpiresAt: model.GetMillis() + 100000, DeviceId: model.NewId()}
+	s2, err = ss.Session().Save(rctx, s2)
+	require.NoError(t, err)
+
+	// no device ID — excluded
+	s3 := &model.Session{UserId: userId1, ExpiresAt: model.GetMillis() + 100000}
+	s3, err = ss.Session().Save(rctx, s3)
+	require.NoError(t, err)
+
+	// expired — still included so the wipe reaches devices with stale local data
+	s4 := &model.Session{UserId: userId2, ExpiresAt: model.GetMillis() - 100000, DeviceId: model.NewId()}
+	s4, err = ss.Session().Save(rctx, s4)
+	require.NoError(t, err)
+
+	sessions, err := ss.Session().GetAllSessionsWithActiveDeviceIds()
+	require.NoError(t, err)
+
+	sessionIds := make(map[string]bool, len(sessions))
+	for _, s := range sessions {
+		sessionIds[s.Id] = true
+	}
+	require.True(t, sessionIds[s1.Id], "expected session from user1")
+	require.True(t, sessionIds[s2.Id], "expected session from user2")
+	require.False(t, sessionIds[s3.Id], "expected session without device ID excluded")
+	require.True(t, sessionIds[s4.Id], "expected expired session included for wipe")
 }
 
 func testGetMobileSessionMetadata(t *testing.T, rctx request.CTX, ss store.Store) {

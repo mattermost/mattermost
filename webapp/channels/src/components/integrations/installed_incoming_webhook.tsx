@@ -72,7 +72,7 @@ type Props = {
      *  Data used for filtering of webhook based on filter prop
      */
     channel: Channel;
-}
+};
 
 export default class InstalledIncomingWebhook extends React.PureComponent<Props> {
     handleDelete = () => {

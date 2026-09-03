@@ -14,6 +14,7 @@ import {ChevronRightIcon, CreationOutlineIcon, PencilOutlineIcon} from '@matterm
 
 import * as Menu from 'components/menu';
 
+import PluggableErrorBoundary from 'plugins/pluggable/error_boundary';
 import Constants from 'utils/constants';
 import {isKeyPressed} from 'utils/keyboard';
 
@@ -289,13 +290,15 @@ const AIActionsMenu = ({
                         {activePluginItem?.component && (() => {
                             const PluginComponent = activePluginItem.component;
                             return (
-                                <PluginComponent
-                                    draft={draft}
-                                    getSelectedText={getSelectedText}
-                                    updateText={updateText}
-                                    channelId={channelId}
-                                    isRHS={isRHS}
-                                />
+                                <PluggableErrorBoundary pluginId={activePluginItem.pluginId}>
+                                    <PluginComponent
+                                        draft={draft}
+                                        getSelectedText={getSelectedText}
+                                        updateText={updateText}
+                                        channelId={channelId}
+                                        isRHS={isRHS}
+                                    />
+                                </PluggableErrorBoundary>
                             );
                         })()}
                     </div>

@@ -7,6 +7,7 @@ import (
 	"errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
@@ -34,7 +35,7 @@ type ServiceConfig struct {
 
 // Users is a subset of UserService interface
 type Users interface {
-	GetUser(userID string) (*model.User, error)
+	GetUser(rctx request.CTX, userID string) (*model.User, error)
 }
 
 // WebHub is used to publish events, the name should be given appropriately

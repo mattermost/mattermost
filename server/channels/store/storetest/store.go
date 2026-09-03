@@ -4,7 +4,6 @@
 package storetest
 
 import (
-	"context"
 	"database/sql"
 	"time"
 
@@ -12,6 +11,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 )
@@ -72,9 +72,11 @@ type Store struct {
 	PropertyValueStore              mocks.PropertyValueStore
 	AccessControlPolicyStore        mocks.AccessControlPolicyStore
 	AttributesStore                 mocks.AttributesStore
+	SessionAttributeStore           mocks.SessionAttributeStore
 	AutoTranslationStore            mocks.AutoTranslationStore
 	ContentFlaggingStore            mocks.ContentFlaggingStore
 	RecapStore                      mocks.RecapStore
+	ScheduledRecapStore             mocks.ScheduledRecapStore
 	ReadReceiptStore                mocks.ReadReceiptStore
 	TemporaryPostStore              mocks.TemporaryPostStore
 	ViewStore                       mocks.ViewStore
@@ -172,6 +174,9 @@ func (s *Store) AccessControlPolicy() store.AccessControlPolicyStore {
 func (s *Store) Attributes() store.AttributesStore {
 	return &s.AttributesStore
 }
+func (s *Store) SessionAttribute() store.SessionAttributeStore {
+	return &s.SessionAttributeStore
+}
 func (s *Store) AutoTranslation() store.AutoTranslationStore {
 	return &s.AutoTranslationStore
 }
@@ -181,6 +186,9 @@ func (s *Store) ContentFlagging() store.ContentFlaggingStore {
 }
 func (s *Store) Recap() store.RecapStore {
 	return &s.RecapStore
+}
+func (s *Store) ScheduledRecap() store.ScheduledRecapStore {
+	return &s.ScheduledRecapStore
 }
 func (s *Store) ReadReceipt() store.ReadReceiptStore {
 	return &s.ReadReceiptStore
@@ -200,7 +208,7 @@ func (s *Store) GetSchemaDefinition() (*model.SupportPacketDatabaseSchema, error
 	}, nil
 }
 
-func (s *Store) GetDiagnostics(_ context.Context) (*store.DatabaseDiagnostics, error) {
+func (s *Store) GetDiagnostics(_ request.CTX) (*store.DatabaseDiagnostics, error) {
 	return &store.DatabaseDiagnostics{}, nil
 }
 
@@ -250,9 +258,11 @@ func (s *Store) AssertExpectations(t mock.TestingT) bool {
 		&s.ScheduledPostStore,
 		&s.AccessControlPolicyStore,
 		&s.AttributesStore,
+		&s.SessionAttributeStore,
 		&s.AutoTranslationStore,
 		&s.ContentFlaggingStore,
 		&s.RecapStore,
+		&s.ScheduledRecapStore,
 		&s.ReadReceiptStore,
 		&s.TemporaryPostStore,
 		&s.ViewStore,

@@ -21,7 +21,7 @@ type Props = {
     actions: {
         loadRolesIfNeeded(roles: Iterable<string>): void;
     };
-}
+};
 
 const CREATE_EMOJIS_PERMISSIONS = [Permissions.CREATE_EMOJIS];
 const ROLES = ['system_admin', 'team_admin', 'system_user', 'team_user'];

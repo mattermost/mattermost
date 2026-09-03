@@ -16,7 +16,7 @@ type Props = {
     onConfirm: () => void;
     onExited: () => void;
     focusOriginElement: string;
-}
+};
 
 export default function ConfirmManageUserSettingsModal(props: Props) {
     const handleExited = () => {

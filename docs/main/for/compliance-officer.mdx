@@ -1,0 +1,40 @@
+---
+title: "For Compliance Officers"
+description: "Start here if you collect audit evidence, respond to audits, and map regulatory mandates to Mattermost configuration."
+slug: /for/compliance-officer
+displayed_sidebar: documentation
+hide_table_of_contents: true
+---
+
+<Eyebrow>Persona landing</Eyebrow>
+
+# For Compliance Officers and Auditors
+
+You collect audit evidence, respond to audits, and map regulatory mandates to Mattermost configuration. You need step-by-step runbooks for exports + eDiscovery + Legal Hold, plus regulatory framework mappings. This page is a curated entry point — every link goes to the canonical guide.
+
+## Start here
+
+<CardGrid columns={3} cards={[
+  {title: 'Comply (operational)', to: '/administration-guide/comply/compliance-export', description: 'Exports, eDiscovery, Legal Hold, retention.'},
+  {title: 'Security Guide', to: '/security-guide/security-guide-index', description: 'Security controls and CMMC, HIPAA, FINRA coverage.'},
+  {title: 'Audit logging', to: '/administration-guide/manage/logging', description: 'Schema, retention, SIEM integration.'},
+]} />
+
+## Common tasks
+
+<CardGrid columns={3} cards={[
+  {title: 'eDiscovery', to: '/administration-guide/comply/electronic-discovery', description: 'Pull communications for legal review.'},
+  {title: 'Legal Hold', to: '/administration-guide/comply/legal-hold', description: 'Preserve communications during litigation.'},
+  {title: 'Data retention', to: '/administration-guide/comply/data-retention-policy', description: 'Policy-driven retention by team and channel.'},
+  {title: 'HIPAA compliance', to: '/security-guide/hipaa-compliance', description: 'Deploy as part of a HIPAA-compliant infrastructure.'},
+  {title: 'FINRA compliance', to: '/security-guide/finra-compliance', description: 'Meet FINRA cybersecurity requirements.'},
+  {title: 'Permissions and roles', to: '/administration-guide/manage/admin/user-management', description: 'Verify RBAC + custom permissions match policy.'},
+]} />
+
+## Other personas
+
+<CardGrid columns={3} cards={[
+  {title: 'For security architects', to: '/for/security-architect', description: 'Authorization, attestations, citable specifics.'},
+  {title: 'For administrators', to: '/for/administrator', description: 'Day-to-day operational configuration.'},
+  {title: 'For air-gapped operators', to: '/for/air-gapped-operator', description: 'Deployment in network-isolated enclaves.'},
+]} />

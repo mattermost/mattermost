@@ -15,16 +15,16 @@
  * Use underscores instead of spaces (e.g. 'Test_Department' not 'Test Department').
  */
 
-import {Client4} from '@mattermost/client';
-import {UserPropertyField} from '@mattermost/types/properties';
+import type {Client4} from '@mattermost/client';
+import type {UserPropertyField} from '@mattermost/types/properties_user';
 
-import {expect, getAdminClient, test, SystemConsolePage} from '@mattermost/playwright-lib';
-import type {PlaywrightExtended} from '@mattermost/playwright-lib';
+import {expect, getAdminClient, test} from '@mattermost/playwright-lib';
+import type {PlaywrightExtended, SystemConsolePage} from '@mattermost/playwright-lib';
 
+import type {CustomProfileAttribute} from '../../channels/custom_profile_attributes/helpers';
 import {
     setupCustomProfileAttributeFields,
     deleteCustomProfileAttributes,
-    CustomProfileAttribute,
 } from '../../channels/custom_profile_attributes/helpers';
 
 type FieldsMap = Record<string, UserPropertyField>;

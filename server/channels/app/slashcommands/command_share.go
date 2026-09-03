@@ -63,6 +63,10 @@ func (sp *ShareProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Com
 }
 
 func (sp *ShareProvider) GetAutoCompleteListItems(rctx request.CTX, a *app.App, commandArgs *model.CommandArgs, arg *model.AutocompleteArg, parsed, toBeParsed string) ([]model.AutocompleteListItem, error) {
+	if !a.HasPermissionTo(rctx, commandArgs.UserId, model.PermissionManageSharedChannels) {
+		return []model.AutocompleteListItem{}, nil
+	}
+
 	switch {
 	case strings.Contains(parsed, " share "):
 
@@ -123,7 +127,7 @@ func (sp *ShareProvider) getAutoCompleteUnInviteRemote(a *app.App, _ *model.Comm
 }
 
 func (sp *ShareProvider) DoCommand(a *app.App, rctx request.CTX, args *model.CommandArgs, message string) *model.CommandResponse {
-	if !a.HasPermissionTo(args.UserId, model.PermissionManageSharedChannels) {
+	if !a.HasPermissionTo(rctx, args.UserId, model.PermissionManageSharedChannels) {
 		return response(args.T("api.command_share.permission_required", map[string]any{"Permission": "manage_shared_channels"}))
 	}
 
@@ -297,7 +301,7 @@ func (sp *ShareProvider) doStatus(a *app.App, args *model.CommandArgs, _ map[str
 		accepted := formatBool(args.T, status.IsInviteAccepted)
 		online := formatBool(args.T, isOnline(status.LastPingAt))
 
-		lastSync := formatTimestamp(status.NextSyncAt)
+		lastSync := formatTimestamp(status.LastSyncAt)
 
 		fmt.Fprintf(&sb, "| %s | %s | %s | %s | %s | %s |\n",
 			status.DisplayName, status.SiteURL, readonly, accepted, online, lastSync)

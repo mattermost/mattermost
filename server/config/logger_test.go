@@ -213,3 +213,72 @@ func TestValidateLogFilePath(t *testing.T) {
 		assert.NoError(t, err)
 	})
 }
+
+func TestIsAuditLoggingActive(t *testing.T) {
+	auditTargetJSON := json.RawMessage(`{"my-audit":{"type":"file","levels":[{"id":100,"name":"audit-api"}],"options":{"filename":"audit.log"}}}`)
+	stdTargetJSON := json.RawMessage(`{"my-log":{"type":"file","levels":[{"id":4,"name":"info"}],"options":{"filename":"info.log"}}}`)
+	malformedJSON := json.RawMessage(`{not valid json`)
+
+	tests := []struct {
+		name                 string
+		fileEnabled          bool
+		fileName             string
+		advancedLoggingJSON  json.RawMessage
+		allowAdvancedLogging bool
+		expected             bool
+	}{
+		{
+			name:                 "A - file audit enabled (license independent)",
+			fileEnabled:          true,
+			fileName:             "audit.log",
+			allowAdvancedLogging: false,
+			expected:             true,
+		},
+		{
+			name:                 "B - advanced audit target, licensed",
+			fileEnabled:          false,
+			advancedLoggingJSON:  auditTargetJSON,
+			allowAdvancedLogging: true,
+			expected:             true,
+		},
+		{
+			name:                 "B - advanced audit target, unlicensed",
+			fileEnabled:          false,
+			advancedLoggingJSON:  auditTargetJSON,
+			allowAdvancedLogging: false,
+			expected:             false,
+		},
+		{
+			name:                 "C - valid advanced config, no audit level",
+			fileEnabled:          false,
+			advancedLoggingJSON:  stdTargetJSON,
+			allowAdvancedLogging: true,
+			expected:             false,
+		},
+		{
+			name:                 "D - nothing configured",
+			fileEnabled:          false,
+			allowAdvancedLogging: true,
+			expected:             false,
+		},
+		{
+			name:                 "malformed advanced JSON",
+			fileEnabled:          false,
+			advancedLoggingJSON:  malformedJSON,
+			allowAdvancedLogging: true,
+			expected:             false,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			auditSettings := model.ExperimentalAuditSettings{}
+			auditSettings.SetDefaults()
+			*auditSettings.FileEnabled = tc.fileEnabled
+			*auditSettings.FileName = tc.fileName
+			auditSettings.AdvancedLoggingJSON = tc.advancedLoggingJSON
+
+			assert.Equal(t, tc.expected, IsAuditLoggingActive(auditSettings, tc.allowAdvancedLogging))
+		})
+	}
+}

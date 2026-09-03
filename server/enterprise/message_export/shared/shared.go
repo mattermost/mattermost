@@ -564,10 +564,11 @@ func GetBatchPath(exportDir string, prevPostUpdateAt int64, lastPostUpdateAt int
 func GetExportBackend(rctx request.CTX, config *model.Config) (filestore.FileBackend, error) {
 	insecure := config.ServiceSettings.EnableInsecureOutgoingConnections
 	skipVerify := insecure != nil && *insecure
+	allowedUntrustedInternalConnections := model.SafeDereference(config.ServiceSettings.AllowedUntrustedInternalConnections)
 
 	if config.FileSettings.DedicatedExportStore != nil && *config.FileSettings.DedicatedExportStore {
 		rctx.Logger().Debug("Worker: using dedicated export filestore", mlog.String("driver_name", *config.FileSettings.ExportDriverName))
-		backend, errFileBack := filestore.NewExportFileBackend(filestore.NewExportFileBackendSettingsFromConfig(&config.FileSettings, true, skipVerify))
+		backend, errFileBack := filestore.NewExportFileBackend(filestore.NewExportFileBackendSettingsFromConfig(&config.FileSettings, true, skipVerify, allowedUntrustedInternalConnections))
 		if errFileBack != nil {
 			return nil, errFileBack
 		}
@@ -575,7 +576,7 @@ func GetExportBackend(rctx request.CTX, config *model.Config) (filestore.FileBac
 		return backend, nil
 	}
 
-	backend, err := filestore.NewFileBackend(filestore.NewFileBackendSettingsFromConfig(&config.FileSettings, true, skipVerify))
+	backend, err := filestore.NewFileBackend(filestore.NewFileBackendSettingsFromConfig(&config.FileSettings, true, skipVerify, allowedUntrustedInternalConnections))
 	if err != nil {
 		return nil, err
 	}
@@ -587,8 +588,9 @@ func GetExportBackend(rctx request.CTX, config *model.Config) (filestore.FileBac
 // where the export will be created.
 func GetFileAttachmentBackend(rctx request.CTX, config *model.Config) (filestore.FileBackend, error) {
 	insecure := config.ServiceSettings.EnableInsecureOutgoingConnections
+	allowedUntrustedInternalConnections := model.SafeDereference(config.ServiceSettings.AllowedUntrustedInternalConnections)
 
-	backend, err := filestore.NewFileBackend(filestore.NewFileBackendSettingsFromConfig(&config.FileSettings, true, insecure != nil && *insecure))
+	backend, err := filestore.NewFileBackend(filestore.NewFileBackendSettingsFromConfig(&config.FileSettings, true, insecure != nil && *insecure, allowedUntrustedInternalConnections))
 	if err != nil {
 		return nil, err
 	}

@@ -23,6 +23,18 @@ export function isFromWebhook(post: Post): boolean {
     return post.props?.from_webhook === 'true';
 }
 
+export function isSilentNotification(post: Post): boolean {
+    return post.props?.silent_notification === true;
+}
+
+// Mirrors server IsNotificationSuppressed: force_notification wins over silent.
+export function isNotificationSuppressed(post: Post): boolean {
+    if (post.props?.force_notification) {
+        return false;
+    }
+    return isSilentNotification(post);
+}
+
 export function isPostEphemeral(post: Post): boolean {
     return post.type === Posts.POST_TYPES.EPHEMERAL || post.type === Posts.POST_TYPES.EPHEMERAL_ADD_TO_CHANNEL || post.state === Posts.POST_DELETED;
 }
@@ -235,6 +247,15 @@ export function shouldUpdatePost(receivedPost: Post, storedPost?: Post): boolean
 
         if (!storedPost.metadata && receivedPost.metadata) {
             // Metadata is not the same between posts
+            return true;
+        }
+
+        // A policy change strips or restores file metadata without touching update_at. Both sides
+        // must carry metadata: a response that omits it entirely (some endpoints do) must not
+        // clobber what's stored, which is what the check above guards in the other direction.
+        if (storedPost.metadata && receivedPost.metadata &&
+            (storedPost.metadata.redacted_file_count ?? 0) !== (receivedPost.metadata.redacted_file_count ?? 0)
+        ) {
             return true;
         }
 

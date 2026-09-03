@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Locator, expect} from '@playwright/test';
+import type {Locator} from '@playwright/test';
+import {expect} from '@playwright/test';
 
 export default class MembersInvitedModal {
     readonly container: Locator;
@@ -18,8 +19,8 @@ export default class MembersInvitedModal {
         this.doneButton = container.getByRole('button', {name: 'Done'});
         this.inviteMoreButton = container.getByRole('button', {name: 'Invite More People'});
 
-        this.sentSection = container.locator('.invitation-modal-confirm--sent');
-        this.notSentSection = container.locator('.invitation-modal-confirm--not-sent');
+        this.sentSection = container.getByTestId('invitation-sent-section');
+        this.notSentSection = container.getByTestId('invitation-not-sent-section');
     }
 
     async toBeVisible() {
@@ -35,7 +36,7 @@ export default class MembersInvitedModal {
      */
     async getSentResultReason(): Promise<string> {
         await expect(this.sentSection).toBeVisible();
-        return (await this.sentSection.locator('.InviteResultRow .reason').textContent()) ?? '';
+        return (await this.sentSection.getByTestId('invitation-result-reason').textContent()) ?? '';
     }
 
     /**
@@ -43,7 +44,7 @@ export default class MembersInvitedModal {
      */
     async getNotSentResultReason(): Promise<string> {
         await expect(this.notSentSection).toBeVisible();
-        return (await this.notSentSection.locator('.InviteResultRow .reason').textContent()) ?? '';
+        return (await this.notSentSection.getByTestId('invitation-result-reason').textContent()) ?? '';
     }
 
     /**

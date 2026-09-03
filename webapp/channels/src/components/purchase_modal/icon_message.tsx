@@ -20,7 +20,7 @@ type Props = {
     footer?: JSX.Element;
     testId?: string;
     className?: string;
-}
+};
 
 export default function IconMessage(props: Props) {
     const {

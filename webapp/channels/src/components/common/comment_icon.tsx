@@ -17,7 +17,7 @@ type Props = {
     commentCount?: number;
     postId?: string;
     extraClass: string;
-}
+};
 
 const CommentIcon = ({
     location = 'CENTER',

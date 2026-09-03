@@ -366,6 +366,7 @@ exports[`components/post_edit_history should match snapshot 1`] = `
                             >
                               <div
                                 class="post-message__text"
+                                data-testid="post-message-text"
                                 dir="auto"
                                 id="rhsPostMessageText_post_id"
                               >

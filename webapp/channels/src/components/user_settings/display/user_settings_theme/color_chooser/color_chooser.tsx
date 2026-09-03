@@ -10,7 +10,7 @@ type Props = {
     label: React.ReactNode;
     value: string;
     onChange?: (id: string, newColor: string) => void;
-}
+};
 
 export default function ColorChooser(props: Props) {
     const handleChange = (newColor: string) => {

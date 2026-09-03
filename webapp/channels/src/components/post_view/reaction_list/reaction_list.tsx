@@ -30,7 +30,7 @@ type Props = {
     /**
      * The reactions to render
      */
-    reactions: { [x: string]: ReactionType } | undefined | null;
+    reactions: {[x: string]: ReactionType} | undefined | null;
 
     /**
      * Whether or not the user can add reactions to this post.

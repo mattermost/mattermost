@@ -9,16 +9,18 @@ import {Preferences} from 'mattermost-redux/constants';
 import {applyTheme} from 'utils/utils';
 
 import ButtonComponentLibrary from './button.cl';
+import MmBlocksComponentLibrary from './mm_blocks.cl';
 import SectionNoticeComponentLibrary from './section_notice.cl';
 
 import './component_library.scss';
 
 const componentMap = {
+    'MM blocks': MmBlocksComponentLibrary,
     Button: ButtonComponentLibrary,
     'Section Notice': SectionNoticeComponentLibrary,
 };
 
-type ComponentName = keyof typeof componentMap
+type ComponentName = keyof typeof componentMap;
 const defaultComponent = Object.keys(componentMap)[0] as ComponentName;
 
 type ThemeName = keyof typeof Preferences.THEMES;

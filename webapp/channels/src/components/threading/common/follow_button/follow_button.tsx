@@ -10,7 +10,7 @@ import Button from '../button';
 
 type Props = {
     isFollowing: boolean | null | undefined;
-}
+};
 
 function FollowButton({
     isFollowing,

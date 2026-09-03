@@ -5,6 +5,7 @@ package platform
 
 import (
 	"encoding/json"
+	"net/http"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -33,6 +34,21 @@ func TestSaveLicense(t *testing.T) {
 
 	_, err := th.Service.SaveLicense(b1)
 	require.NotNil(t, err, "shouldn't have saved license")
+}
+
+func TestSaveLicenseWrongEnvironment(t *testing.T) {
+	// t.Setenv prevents t.Parallel — the service environment has no config equivalent.
+	th := Setup(t)
+
+	t.Setenv("MM_SERVICEENVIRONMENT", model.ServiceEnvironmentProduction)
+
+	// validTestLicense is signed with the test key, so uploading it to a server running
+	// in the production service environment must report an environment mismatch rather
+	// than the generic invalid-license error.
+	_, appErr := th.Service.SaveLicense(validTestLicense)
+	require.NotNil(t, appErr, "shouldn't have saved a license signed for another environment")
+	require.Equal(t, model.WrongEnvironmentTestLicenseError, appErr.Id)
+	require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
 }
 
 func TestSaveEnterpriseAdvancedLicense(t *testing.T) {

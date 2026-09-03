@@ -19,39 +19,29 @@ All pipelines follow the **smoke-then-full** pattern: smoke tests run first, ful
 ├── e2e-tests-ci.yml                       # PR orchestrator
 ├── e2e-tests-on-merge.yml                 # Merge orchestrator (master/release branches)
 ├── e2e-tests-on-release.yml               # Release cut orchestrator
-├── e2e-tests-cypress.yml                  # Shared wrapper: routes to v1 or v2 template
-├── e2e-tests-playwright.yml               # Shared wrapper: routes to v1 or v2 template
-├── e2e-tests-cypress-template-v2.yml      # Active: cypress + test-system-io dispatch
-├── e2e-tests-playwright-template-v2.yml   # Active: playwright + test-system-io dispatch
-├── e2e-tests-cypress-template.yml         # Deprecated v1 (legacy in-job execution)
-└── e2e-tests-playwright-template.yml      # Deprecated v1 (legacy in-job execution)
+├── e2e-tests-cypress.yml                  # Shared wrapper: calls the cypress template
+├── e2e-tests-playwright.yml               # Shared wrapper: calls the playwright template
+├── e2e-tests-cypress-template.yml         # cypress + test-system-io dispatch
+└── e2e-tests-playwright-template.yml      # playwright + test-system-io dispatch
 ```
-
-> **v1 templates are deprecated.** They remain available behind a feature flag during cutover but receive no further changes. New work targets the v2 templates exclusively. The wrappers route by `vars.E2E_USE_TEST_IO_DISPATCH` — `'true'` selects v2, anything else falls back to v1.
 
 ### Call hierarchy
 
 ```
 e2e-tests-ci.yml ─────────────────┐
-e2e-tests-on-merge.yml ───────────┤──► e2e-tests-cypress.yml ─────┐
-e2e-tests-on-release.yml ─────────┘    e2e-tests-playwright.yml ──┤
-                                                                  │
-                                       ┌──────────────────────────┘
-                                       │  routes on E2E_USE_TEST_IO_DISPATCH
-                                       ▼
-                  v2 (active) ──► e2e-tests-{cypress,playwright}-template-v2.yml
-                  v1 (legacy) ──► e2e-tests-{cypress,playwright}-template.yml
+e2e-tests-on-merge.yml ───────────┤──► e2e-tests-cypress.yml ────► e2e-tests-cypress-template.yml
+e2e-tests-on-release.yml ─────────┘    e2e-tests-playwright.yml ─► e2e-tests-playwright-template.yml
 ```
 
 ---
 
-## Workflow Architecture (v2)
+## Workflow Architecture
 
-v2 splits the template into five jobs — `prepare-run`, `prep-deps`, `dispatch-begin`, `workers` (matrix), and `report` — and pushes spec-level execution to [Test System IO](https://github.com/mattermost/mattermost-test-system-io) so workers stay thin and identical.
+The template splits into five jobs — `prepare-run`, `prep-deps`, `dispatch-begin`, `workers` (matrix), and `report` — and pushes spec-level execution to [Test System IO](https://github.com/mattermost/mattermost-test-system-io) so workers stay thin and identical.
 
 ```
 ┌──────────────────────────────────────────────────────────────────────────┐
-│  Template v2: e2e-tests-{cypress,playwright}-template-v2.yml              │
+│  Template: e2e-tests-{cypress,playwright}-template.yml                    │
 │                                                                            │
 │   ┌───────────────────┐                ┌──────────────────────────────┐   │
 │   │ prepare-run       │                │ prep-deps                    │   │

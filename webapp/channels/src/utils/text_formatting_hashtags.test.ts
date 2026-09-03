@@ -101,19 +101,19 @@ describe('TextFormatting.Hashtags with default setting', () => {
 
     it('Searching for hashtags', () => {
         expect(TextFormatting.formatText('#test', {searchTerm: 'test'}, emojiMap).trim()).toBe(
-            '<p><span class="search-highlight"><a class=\'mention-link\' href=\'#\' data-hashtag=\'#test\'>#test</a></span></p>',
+            '<p><span class="search-highlight" data-testid="search-highlight"><a class=\'mention-link\' href=\'#\' data-hashtag=\'#test\'>#test</a></span></p>',
         );
 
         expect(TextFormatting.formatText('#test', {searchTerm: '#test'}, emojiMap).trim()).toBe(
-            '<p><span class="search-highlight"><a class=\'mention-link\' href=\'#\' data-hashtag=\'#test\'>#test</a></span></p>',
+            '<p><span class="search-highlight" data-testid="search-highlight"><a class=\'mention-link\' href=\'#\' data-hashtag=\'#test\'>#test</a></span></p>',
         );
 
         expect(TextFormatting.formatText('#foo/#bar', {searchTerm: '#foo'}, emojiMap).trim()).toBe(
-            '<p><span class="search-highlight"><a class=\'mention-link\' href=\'#\' data-hashtag=\'#foo\'>#foo</a></span>/<a class=\'mention-link\' href=\'#\' data-hashtag=\'#bar\'>#bar</a></p>',
+            '<p><span class="search-highlight" data-testid="search-highlight"><a class=\'mention-link\' href=\'#\' data-hashtag=\'#foo\'>#foo</a></span>/<a class=\'mention-link\' href=\'#\' data-hashtag=\'#bar\'>#bar</a></p>',
         );
 
         expect(TextFormatting.formatText('#foo/#bar', {searchTerm: 'bar'}, emojiMap).trim()).toBe(
-            '<p><a class=\'mention-link\' href=\'#\' data-hashtag=\'#foo\'>#foo</a>/<span class="search-highlight"><a class=\'mention-link\' href=\'#\' data-hashtag=\'#bar\'>#bar</a></span></p>',
+            '<p><a class=\'mention-link\' href=\'#\' data-hashtag=\'#foo\'>#foo</a>/<span class="search-highlight" data-testid="search-highlight"><a class=\'mention-link\' href=\'#\' data-hashtag=\'#bar\'>#bar</a></span></p>',
         );
 
         expect(TextFormatting.formatText('not#test', {searchTerm: '#test'}, emojiMap).trim()).toBe(

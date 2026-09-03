@@ -4,6 +4,7 @@
 import baseLocalForage from 'localforage';
 import {extendPrototype} from 'localforage-observable';
 import type {Store} from 'redux';
+import {batchActions} from 'redux-batched-actions';
 import type {Persistor} from 'redux-persist';
 import {persistStore, REHYDRATE} from 'redux-persist';
 import Observable from 'zen-observable';
@@ -13,12 +14,15 @@ import type {DeepPartial} from '@mattermost/types/utilities';
 import {General, RequestStatus} from 'mattermost-redux/constants';
 import configureServiceStore from 'mattermost-redux/store';
 
-import {cleanLocalStorage} from 'actions/storage';
+import {actionOnGlobalItemsWithPrefix, cleanLocalStorage} from 'actions/storage';
 import {clearUserCookie} from 'actions/views/cookie';
 import appReducers from 'reducers';
 import {getBasePath} from 'selectors/general';
 
+import {StoragePrefixes} from 'utils/constants';
+
 import type {GlobalState} from 'types/store';
+import type {PostDraft} from 'types/store/draft';
 
 declare global {
     interface Window {
@@ -39,10 +43,11 @@ export default function configureStore(preloadedState?: DeepPartial<GlobalState>
 
     localForage.ready().then(() => {
         const persistor: Persistor = persistStore(store, null, () => {
-            store.dispatch({
-                type: General.STORE_REHYDRATION_COMPLETE,
-                complete: true,
-            });
+            store.dispatch(batchActions([
+                actionOnGlobalItemsWithPrefix(StoragePrefixes.DRAFT, clearUploads),
+                actionOnGlobalItemsWithPrefix(StoragePrefixes.COMMENT_DRAFT, clearUploads),
+                {type: General.STORE_REHYDRATION_COMPLETE, complete: true},
+            ]));
 
             migratePersistedState(store, persistor);
         });
@@ -124,6 +129,20 @@ export default function configureStore(preloadedState?: DeepPartial<GlobalState>
 
     return store;
 }
+
+/**
+ * Clears uploadsInProgress from persisted drafts on rehydration.
+ *
+ * When the app restarts, any file uploads that were in progress are no longer valid
+ * since the upload connections were lost. Keeping stale upload references in the draft
+ * would block the user from sending the message until manually clearing them.
+ */
+const clearUploads = (_: string, draft: PostDraft) => {
+    if (!draft?.uploadsInProgress?.length) {
+        return draft;
+    }
+    return {...draft, uploadsInProgress: []};
+};
 
 /**
  * Migrates state.storage from redux-persist@4 to redux-persist@6

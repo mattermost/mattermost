@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {fireEvent} from '@testing-library/react';
 import React from 'react';
 
 import ImagePreview from 'components/file_preview_modal/image_preview';
@@ -69,6 +70,41 @@ describe('components/view_image/ImagePreview', () => {
         );
 
         expect(container).toMatchSnapshot();
+    });
+
+    test('should apply transform when scale is provided and not 1', () => {
+        const props = {
+            ...baseProps,
+            scale: 2,
+        };
+
+        render(<ImagePreview {...props}/>);
+
+        expect(screen.getByTestId('imagePreview')).toHaveStyle('transform: scale(2)');
+    });
+
+    test('should not apply transform when scale is 1', () => {
+        const props = {
+            ...baseProps,
+            scale: 1,
+        };
+
+        render(<ImagePreview {...props}/>);
+
+        expect(screen.getByTestId('imagePreview').getAttribute('style') || '').not.toContain('transform');
+    });
+
+    test('should call onWheel handler when wheel event fires on image', () => {
+        const onWheel = jest.fn();
+        const props = {
+            ...baseProps,
+            onWheel,
+        };
+
+        render(<ImagePreview {...props}/>);
+
+        fireEvent.wheel(screen.getByRole('link'), {deltaY: -100});
+        expect(onWheel).toHaveBeenCalledTimes(1);
     });
 
     test('should not download link for external file', () => {

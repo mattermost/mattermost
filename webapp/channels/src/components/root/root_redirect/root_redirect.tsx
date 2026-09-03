@@ -17,7 +17,7 @@ export type Props = {
     actions: {
         getFirstAdminSetupComplete: () => Promise<ActionResult>;
     };
-}
+};
 
 export default function RootRedirect(props: Props) {
     const history = useHistory();

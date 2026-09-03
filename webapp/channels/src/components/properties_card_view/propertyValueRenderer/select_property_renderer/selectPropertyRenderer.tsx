@@ -12,7 +12,7 @@ const DEFAULT_BACKGROUND_COLOR = 'light_gray';
 type Props = {
     field: PropertyField;
     value: PropertyValue<unknown>;
-}
+};
 
 export default function SelectPropertyRenderer({field, value}: Props) {
     const valueConfig = (field as SelectPropertyField).attrs?.options?.find((option) => option.name === value.value);

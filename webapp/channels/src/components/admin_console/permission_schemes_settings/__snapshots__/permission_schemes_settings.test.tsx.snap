@@ -4,6 +4,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_schemes
 <div>
   <div
     class="loading-screen"
+    data-testid="loading-screen"
     style="position: relative;"
   >
     <div
@@ -33,6 +34,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_schemes
   >
     <div
       class="admin-console__header"
+      data-testid="admin-console-header"
     >
       Permission Schemes
     </div>
@@ -270,6 +272,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_schemes
   >
     <div
       class="admin-console__header"
+      data-testid="admin-console-header"
     >
       Permission Schemes
     </div>
@@ -395,6 +398,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_schemes
   >
     <div
       class="admin-console__header"
+      data-testid="admin-console-header"
     >
       Permission Schemes
     </div>
@@ -650,6 +654,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_schemes
   >
     <div
       class="admin-console__header"
+      data-testid="admin-console-header"
     >
       Permission Schemes
     </div>
@@ -905,6 +910,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_schemes
   >
     <div
       class="admin-console__header"
+      data-testid="admin-console-header"
     >
       Permission Schemes
     </div>

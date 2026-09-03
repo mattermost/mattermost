@@ -41,20 +41,20 @@ export type Props = {
             perPage: number,
             teamId: string,
             channelId: string,
-            options?: any
+            options?: any,
         ) => Promise<ActionResult>;
         loadStatusesForProfilesList: (users: UserProfile[]) => void;
         loadTeamMembersAndChannelMembersForProfilesList: (
             profiles: UserProfile[],
             teamId: string,
-            channelId: string
+            channelId: string,
         ) => Promise<ActionResult>;
     };
-}
+};
 
 type State = {
     loading: boolean;
-}
+};
 
 export default class MemberListChannel extends React.PureComponent<Props, State> {
     private searchTimeoutId: number;

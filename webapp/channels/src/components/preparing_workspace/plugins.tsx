@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {useRef} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {CSSTransition} from 'react-transition-group';
 
@@ -29,9 +29,10 @@ type Props = PreparingWorkspacePageProps & {
     className?: string;
     isSelfHosted: boolean;
     handleVisitMarketPlaceClick: () => void;
-}
+};
 const Plugins = (props: Props) => {
     const {formatMessage} = useIntl();
+    const nodeRef = useRef<HTMLDivElement>(null);
     let className = 'Plugins-body';
 
     if (props.className) {
@@ -55,12 +56,16 @@ const Plugins = (props: Props) => {
     return (
         <CSSTransition
             in={props.show}
+            nodeRef={nodeRef}
             timeout={Animations.PAGE_SLIDE}
             classNames={mapAnimationReasonToClass('Plugins', props.transitionDirection)}
             mountOnEnter={true}
             unmountOnExit={true}
         >
-            <div className={className}>
+            <div
+                ref={nodeRef}
+                className={className}
+            >
                 <SingleColumnLayout>
                     <PageLine
                         style={{

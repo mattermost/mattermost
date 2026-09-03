@@ -19,7 +19,7 @@ type Props = {
     adminMode?: boolean;
 };
 
-type ButtonState = 'idle'|'sending'|'sent'|'error';
+type ButtonState = 'idle' | 'sending' | 'sent' | 'error';
 
 const SendTestNotificationNotice = ({
     adminMode = false,

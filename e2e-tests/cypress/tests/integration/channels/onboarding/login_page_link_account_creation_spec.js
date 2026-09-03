@@ -50,8 +50,8 @@ describe('Onboarding', () => {
         cy.get('#teamSettingsModal').should('exist').within(() => {
             cy.get('#accessButton').should('be.visible').click();
 
-            // # Enable any user with an account on the server to join the team
-            cy.get('input.mm-modal-generic-section-item__input-checkbox').last().should('be.visible').click();
+            // # Click 'Public Team' card to allow any user to join the team
+            cy.get('#public-private-selector-button-O').should('be.visible').click();
 
             cy.get('[data-testid="SaveChangesPanel__save-btn"]').should('be.visible').click();
 
@@ -100,7 +100,6 @@ describe('Onboarding', () => {
         // * Check that the 'Town Square' message is visible
         cy.url().should('include', `/${testTeam.name}/channels/town-square`);
     });
-
 
     function getEmail(username, email) {
         cy.getRecentEmail({username, email}).then((data) => {

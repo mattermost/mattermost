@@ -10,7 +10,7 @@ type Props = {
     user: UserProfile;
     removeUser: (user: UserProfile) => void;
     isDisabled?: boolean;
-}
+};
 
 const UserGridRemove = ({
     user,

@@ -8,4 +8,4 @@ export type SectionNoticeButtonProp = {
     leadingIcon?: string;
     loading?: boolean;
     disabled?: boolean;
-}
+};

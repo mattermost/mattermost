@@ -56,7 +56,7 @@ type Props = {
 
     // the type of user list row to render
     rowComponentType?: React.ComponentType<any>;
-}
+};
 
 type State = {
     nextDisabled: boolean;

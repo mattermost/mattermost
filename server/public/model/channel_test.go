@@ -93,6 +93,55 @@ func TestChannelIsValidDiscoverable(t *testing.T) {
 	})
 }
 
+func TestChannelSupportsGroupSync(t *testing.T) {
+	require.True(t, (&Channel{Type: ChannelTypeOpen}).SupportsGroupSync())
+	require.True(t, (&Channel{Type: ChannelTypePrivate}).SupportsGroupSync())
+	require.False(t, (&Channel{Type: ChannelTypeDirect}).SupportsGroupSync())
+	require.False(t, (&Channel{Type: ChannelTypeGroup}).SupportsGroupSync())
+	require.False(t, (&Channel{Type: ChannelTypeOpenBoard}).SupportsGroupSync())
+	require.False(t, (&Channel{Type: ChannelTypePrivateBoard}).SupportsGroupSync())
+}
+
+func TestChannelIsValidGroupConstrained(t *testing.T) {
+	base := Channel{
+		Id:          NewId(),
+		CreateAt:    GetMillis(),
+		UpdateAt:    GetMillis(),
+		DisplayName: "x",
+		Name:        "valid-name",
+		Header:      "h",
+		Purpose:     "p",
+	}
+
+	t.Run("group_constrained is allowed on public and private channels", func(t *testing.T) {
+		c := base
+		c.GroupConstrained = NewPointer(true)
+
+		c.Type = ChannelTypeOpen
+		require.Nil(t, c.IsValid())
+
+		c.Type = ChannelTypePrivate
+		require.Nil(t, c.IsValid())
+	})
+
+	t.Run("group_constrained is rejected on direct, group, and board channels", func(t *testing.T) {
+		c := base
+		c.GroupConstrained = NewPointer(true)
+
+		c.Type = ChannelTypeDirect
+		require.NotNil(t, c.IsValid())
+
+		c.Type = ChannelTypeGroup
+		require.NotNil(t, c.IsValid())
+
+		c.Type = ChannelTypeOpenBoard
+		require.NotNil(t, c.IsValid())
+
+		c.Type = ChannelTypePrivateBoard
+		require.NotNil(t, c.IsValid())
+	})
+}
+
 func TestChannelIsValid(t *testing.T) {
 	o := Channel{}
 
@@ -143,6 +192,21 @@ func TestChannelIsValid(t *testing.T) {
 
 	o.Name = "71b03afcbb2d503d49f87f057549c43db4e19f92"
 	require.NotNil(t, o.IsValid())
+}
+
+func TestChannelTypeSpace(t *testing.T) {
+	t.Run("IsValid accepts a space backing channel", func(t *testing.T) {
+		o := Channel{
+			Id:          NewId(),
+			CreateAt:    GetMillis(),
+			UpdateAt:    GetMillis(),
+			TeamId:      NewId(),
+			DisplayName: "Space",
+			Name:        "space-" + NewId(),
+			Type:        ChannelTypeSpace,
+		}
+		require.Nil(t, o.IsValid())
+	})
 }
 
 func TestChannelIsValidBoard(t *testing.T) {

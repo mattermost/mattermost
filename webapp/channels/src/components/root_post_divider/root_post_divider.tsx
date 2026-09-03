@@ -16,7 +16,7 @@ type Props = {
 
 const RootPostDivider: React.FC<Props> = ({postId}) => {
     const post = useSelector((state: GlobalState) => getPost(state, postId));
-    const getThreadOrSynthetic = useMemo(makeGetThreadOrSynthetic, []);
+    const getThreadOrSynthetic = useMemo(() => makeGetThreadOrSynthetic(), []);
 
     const totalReplies = useSelector((state: GlobalState) => {
         const thread = getThreadOrSynthetic(state, post);

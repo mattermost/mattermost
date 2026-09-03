@@ -123,7 +123,9 @@ test('MM-T3293 The entire thread appears in the RHS (scrollable)', {tag: ['@mess
         .poll(
             async () => {
                 const el = rhsContainer.getByText('First message', {exact: true});
-                if ((await el.count()) > 0 && (await el.first().isVisible())) return true;
+                if ((await el.count()) > 0 && (await el.first().isVisible())) {
+                    return true;
+                }
                 await page.mouse.wheel(0, -400);
                 return false;
             },

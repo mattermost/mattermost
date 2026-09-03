@@ -8,7 +8,7 @@ type Props = {
     width?: number;
     height?: number;
     className?: string;
-}
+};
 
 const Svg = styled.svg.attrs({
     version: '1.1',

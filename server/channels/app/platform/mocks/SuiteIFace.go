@@ -94,22 +94,40 @@ func (_m *SuiteIFace) HasPermissionToReadChannel(rctx request.CTX, userID string
 	return r0, r1
 }
 
+// HasPermissionToResolveChannelMention provides a mock function with given fields: rctx, userID, channel
+func (_m *SuiteIFace) HasPermissionToResolveChannelMention(rctx request.CTX, userID string, channel *model.Channel) bool {
+	ret := _m.Called(rctx, userID, channel)
+
+	if len(ret) == 0 {
+		panic("no return value specified for HasPermissionToResolveChannelMention")
+	}
+
+	var r0 bool
+	if rf, ok := ret.Get(0).(func(request.CTX, string, *model.Channel) bool); ok {
+		r0 = rf(rctx, userID, channel)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	return r0
+}
+
 // LogAuditRec provides a mock function with given fields: rctx, auditRec, err
 func (_m *SuiteIFace) LogAuditRec(rctx request.CTX, auditRec *model.AuditRecord, err error) {
 	_m.Called(rctx, auditRec, err)
 }
 
-// MFARequired provides a mock function with given fields: rctx
-func (_m *SuiteIFace) MFARequired(rctx request.CTX) *model.AppError {
-	ret := _m.Called(rctx)
+// MFARequired provides a mock function with given fields: rctx, method
+func (_m *SuiteIFace) MFARequired(rctx request.CTX, method string) *model.AppError {
+	ret := _m.Called(rctx, method)
 
 	if len(ret) == 0 {
 		panic("no return value specified for MFARequired")
 	}
 
 	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(request.CTX) *model.AppError); ok {
-		r0 = rf(rctx)
+	if rf, ok := ret.Get(0).(func(request.CTX, string) *model.AppError); ok {
+		r0 = rf(rctx, method)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.AppError)

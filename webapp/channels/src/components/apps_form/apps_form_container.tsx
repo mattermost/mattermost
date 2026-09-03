@@ -32,7 +32,7 @@ type Props = {
 
 type State = {
     form?: AppForm;
-}
+};
 
 class AppsFormContainer extends React.PureComponent<Props, State> {
     constructor(props: Props) {

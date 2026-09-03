@@ -16,7 +16,7 @@ import UpdateUserGroupModal from './update_user_group_modal';
 
 type OwnProps = {
     groupId: string;
-}
+};
 
 function makeMapStateToProps(state: GlobalState, props: OwnProps) {
     const group = getGroup(state, props.groupId);

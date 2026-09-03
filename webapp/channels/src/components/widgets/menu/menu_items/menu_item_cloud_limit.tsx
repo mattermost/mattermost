@@ -26,7 +26,7 @@ import './menu_item.scss';
 
 type Props = {
     id: string;
-}
+};
 
 const MenuItemCloudLimit = ({id}: Props) => {
     const dispatch = useDispatch();

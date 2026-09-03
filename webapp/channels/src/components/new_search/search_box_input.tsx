@@ -73,7 +73,7 @@ type Props = React.AriaAttributes & {
     setSearchTerms: (searchTerms: string) => void;
     onKeyDown: (e: React.KeyboardEvent<Element>) => void;
     focus: (newPosition: number) => void;
-}
+};
 
 const SearchInput = forwardRef<HTMLInputElement, Props>(({searchTerms, searchType, setSearchTerms, onKeyDown, focus, ...otherProps}, inputRef) => {
     const intl = useIntl();
@@ -121,6 +121,7 @@ const SearchInput = forwardRef<HTMLInputElement, Props>(({searchTerms, searchTyp
             />
             {searchTerms.length > 0 && (
                 <ClearButton
+                    data-testid='input-clear'
                     className='btn btn-sm input-clear-x'
                     onClick={clearSearch}
                 >
