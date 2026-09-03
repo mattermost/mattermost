@@ -546,9 +546,19 @@ func patchPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 		permissionsChanged = !reflect.DeepEqual(existingField.Permissions, applied)
 	}
 
+	// Mirrors permissionsChanged above: an options-only patch is gated on
+	// option.write only when the submitted option list actually differs from
+	// what is stored, not merely because it is the only attr present.
+	optionsChanged := false
+	if patch.Attrs != nil {
+		if newOptions, ok := (*patch.Attrs)[model.PropertyFieldAttributeOptions]; ok {
+			optionsChanged = !reflect.DeepEqual(existingField.Attrs[model.PropertyFieldAttributeOptions], newOptions)
+		}
+	}
+
 	// Permission branching (session-bound): options-only patches use a
 	// narrower permission than full edits.
-	isOptionsOnly := isOptionsOnlyPatch(patch, permissionsChanged)
+	isOptionsOnly := isOptionsOnlyPatch(patch, permissionsChanged, optionsChanged)
 	if isOptionsOnly && !existingField.Type.SupportsOptions() {
 		isOptionsOnly = false
 	}
@@ -1060,15 +1070,15 @@ func addPropertyPermissionBasisMeta(auditRec *model.AuditRecord, basis app.Prope
 }
 
 // isOptionsOnlyPatch checks if the patch only modifies the options attribute.
-// Returns true if the only change is to attrs.options.
-// permissionsChanged says whether the patch's permissions object, once applied,
-// actually differs from what is stored. A permissions *change* must be gated on
-// field.write rather than the narrower option.write, since it decides who may
-// read or write the field's own definition; a permissions object that round-trips
-// unchanged decides nothing and is judged like any other unchanged key (§8).
-// Keying on effect rather than on the key's presence is also what keeps this in
-// step with the enforcement hook, which can only judge by effect.
-func isOptionsOnlyPatch(patch *model.PropertyFieldPatch, permissionsChanged bool) bool {
+// Returns true if the only actual change is to attrs.options.
+// permissionsChanged and optionsChanged say whether the patch's permissions
+// object and option list, once applied, actually differ from what is stored.
+// Both must be keyed on effect rather than the key's presence: a permissions
+// or options value that round-trips unchanged decides nothing and is judged
+// like any other unchanged key, and keying on presence instead would disagree
+// with the enforcement hook, which only ever sees the merged field and so can
+// only judge by effect (model.PropertyFieldChangeIsOptionsOnly).
+func isOptionsOnlyPatch(patch *model.PropertyFieldPatch, permissionsChanged, optionsChanged bool) bool {
 	// If any field property (besides attrs) is being updated, it's not options-only.
 	if patch.Name != nil || patch.Type != nil || patch.TargetID != nil || patch.TargetType != nil || patch.LinkedFieldID != nil || permissionsChanged {
 		return false
@@ -1085,7 +1095,13 @@ func isOptionsOnlyPatch(patch *model.PropertyFieldPatch, permissionsChanged bool
 		return false
 	}
 
-	// If attrs has only the "options" key, it's an options-only update
+	// If attrs has only the "options" key, and the option list actually
+	// changed, it's an options-only update. An unchanged options echo decides
+	// nothing, same as an unchanged permissions echo above -- without
+	// optionsChanged here, a resubmission of the stored option list under the
+	// "options" key alone would be classified option-only by presence while
+	// the hook's field comparison finds nothing changed and falls back to
+	// field.write, and the two layers would disagree.
 	_, hasOptions := attrs[model.PropertyFieldAttributeOptions]
-	return len(attrs) == 1 && hasOptions
+	return len(attrs) == 1 && hasOptions && optionsChanged
 }

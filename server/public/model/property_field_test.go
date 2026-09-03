@@ -2393,3 +2393,30 @@ func TestPropertyField_OptionParentLinks(t *testing.T) {
 		assert.Contains(t, err.Error(), "not a list")
 	})
 }
+
+func TestPropertyFieldChangeIsOptionsOnly(t *testing.T) {
+	stored := func() *PropertyField {
+		return &PropertyField{
+			ID:   "fieldid",
+			Name: "Programs",
+			Type: PropertyFieldTypeSelect,
+			Attrs: StringInterface{
+				PropertyFieldAttributeOptions: []any{map[string]any{"id": "opt1", "name": "Air"}},
+			},
+		}
+	}
+
+	t.Run("an option list change alone reports true", func(t *testing.T) {
+		updated := stored()
+		updated.Attrs[PropertyFieldAttributeOptions] = []any{map[string]any{"id": "opt2", "name": "Sea"}}
+		assert.True(t, PropertyFieldChangeIsOptionsOnly(stored(), updated))
+	})
+
+	t.Run("an option list change alongside a delete timestamp reports false", func(t *testing.T) {
+		updated := stored()
+		updated.Attrs[PropertyFieldAttributeOptions] = []any{map[string]any{"id": "opt2", "name": "Sea"}}
+		updated.DeleteAt = 1
+		assert.False(t, PropertyFieldChangeIsOptionsOnly(stored(), updated),
+			"a caller holding only option.write must not be able to delete a field by updating it")
+	})
+}

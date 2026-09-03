@@ -870,7 +870,8 @@ func PropertyFieldChangeIsOptionsOnly(existing, updated *PropertyField) bool {
 		existing.TargetID != updated.TargetID ||
 		existing.TargetType != updated.TargetType ||
 		existing.ObjectType != updated.ObjectType ||
-		existing.Protected != updated.Protected {
+		existing.Protected != updated.Protected ||
+		existing.DeleteAt != updated.DeleteAt {
 		return false
 	}
 	if !equalStringPointers(existing.LinkedFieldID, updated.LinkedFieldID) {

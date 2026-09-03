@@ -3209,14 +3209,14 @@ func TestIsOptionsOnlyPatch(t *testing.T) {
 		patch := &model.PropertyFieldPatch{
 			Name: new("new name"),
 		}
-		require.False(t, isOptionsOnlyPatch(patch, false))
+		require.False(t, isOptionsOnlyPatch(patch, false, true))
 	})
 
 	t.Run("empty attrs is not options-only", func(t *testing.T) {
 		patch := &model.PropertyFieldPatch{
 			Attrs: &model.StringInterface{},
 		}
-		require.False(t, isOptionsOnlyPatch(patch, false))
+		require.False(t, isOptionsOnlyPatch(patch, false, true))
 	})
 
 	t.Run("attrs with only options is options-only", func(t *testing.T) {
@@ -3225,7 +3225,16 @@ func TestIsOptionsOnlyPatch(t *testing.T) {
 				"options": []any{},
 			},
 		}
-		require.True(t, isOptionsOnlyPatch(patch, false))
+		require.True(t, isOptionsOnlyPatch(patch, false, true))
+	})
+
+	t.Run("attrs with only options but nothing actually changed is not options-only", func(t *testing.T) {
+		patch := &model.PropertyFieldPatch{
+			Attrs: &model.StringInterface{
+				"options": []any{},
+			},
+		}
+		require.False(t, isOptionsOnlyPatch(patch, false, false))
 	})
 
 	t.Run("attrs with options and other keys is not options-only", func(t *testing.T) {
@@ -3235,7 +3244,7 @@ func TestIsOptionsOnlyPatch(t *testing.T) {
 				"other":   "value",
 			},
 		}
-		require.False(t, isOptionsOnlyPatch(patch, false))
+		require.False(t, isOptionsOnlyPatch(patch, false, true))
 	})
 
 	t.Run("name change with options is not options-only", func(t *testing.T) {
@@ -3245,7 +3254,7 @@ func TestIsOptionsOnlyPatch(t *testing.T) {
 				"options": []any{},
 			},
 		}
-		require.False(t, isOptionsOnlyPatch(patch, false))
+		require.False(t, isOptionsOnlyPatch(patch, false, true))
 	})
 
 	t.Run("type change is not options-only", func(t *testing.T) {
@@ -3253,7 +3262,7 @@ func TestIsOptionsOnlyPatch(t *testing.T) {
 		patch := &model.PropertyFieldPatch{
 			Type: &newType,
 		}
-		require.False(t, isOptionsOnlyPatch(patch, false))
+		require.False(t, isOptionsOnlyPatch(patch, false, true))
 	})
 }
 
@@ -5437,6 +5446,11 @@ func TestOptionsOnlyPatchAgreesWithFieldComparison(t *testing.T) {
 			Name: model.NewPointer("Renamed"),
 		}},
 		{"no attrs at all", nil, &model.PropertyFieldPatch{}},
+		{"an unchanged options echo", nil, &model.PropertyFieldPatch{
+			Attrs: &model.StringInterface{model.PropertyFieldAttributeOptions: []any{
+				map[string]any{"id": storedOptionID, "name": "Air"},
+			}},
+		}},
 	}
 
 	for _, tc := range testCases {
@@ -5455,10 +5469,18 @@ func TestOptionsOnlyPatchAgreesWithFieldComparison(t *testing.T) {
 				permissionsChanged = !reflect.DeepEqual(patched.Permissions, applied)
 				patched.Permissions = applied
 			}
+
+			optionsChanged := false
+			if tc.patch.Attrs != nil {
+				if newOptions, ok := (*tc.patch.Attrs)[model.PropertyFieldAttributeOptions]; ok {
+					optionsChanged = !reflect.DeepEqual(existing.Attrs[model.PropertyFieldAttributeOptions], newOptions)
+				}
+			}
+
 			patched.Patch(tc.patch, true)
 
 			require.Equal(t,
-				isOptionsOnlyPatch(tc.patch, permissionsChanged),
+				isOptionsOnlyPatch(tc.patch, permissionsChanged, optionsChanged),
 				model.PropertyFieldChangeIsOptionsOnly(existing, patched),
 				"the api4 patch check and the hook's field comparison must agree")
 		})

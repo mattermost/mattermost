@@ -11,6 +11,7 @@ import (
 	"encoding/json"
 	"maps"
 	"net/http"
+	"reflect"
 	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -181,11 +182,20 @@ func patchCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Mirrors patchPropertyField's optionsChanged: gate on option.write only
+	// when the submitted option list actually differs from what is stored.
+	optionsChanged := false
+	if patch.Attrs != nil {
+		if newOptions, ok := (*patch.Attrs)[model.PropertyFieldAttributeOptions]; ok {
+			optionsChanged = !reflect.DeepEqual(existingField.Attrs[model.PropertyFieldAttributeOptions], newOptions)
+		}
+	}
+
 	// Permission branching (session-bound). This handler never applies a
 	// permissions patch -- CPA is served the v2 shape, so patch.Permissions is
 	// dropped rather than applied -- which means a patch cannot change the
 	// permissions here and the routing is never a field write on that account.
-	isOptionsOnly := isOptionsOnlyPatch(patch, false)
+	isOptionsOnly := isOptionsOnlyPatch(patch, false, optionsChanged)
 	if isOptionsOnly && !existingField.Type.SupportsOptions() {
 		isOptionsOnly = false
 	}

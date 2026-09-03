@@ -763,4 +763,21 @@ func TestFieldOptionsDelegatedToOptionWrite(t *testing.T) {
 		require.Error(t, err)
 		require.ErrorIs(t, err, ErrAccessDenied)
 	})
+
+	t.Run("a field update carrying an option change alongside a delete timestamp still refuses that member", func(t *testing.T) {
+		stored, err := th.service.GetPropertyField(rctx, group.ID, field.ID)
+		require.NoError(t, err)
+
+		deleted := *stored
+		deleted.Attrs = model.StringInterface{
+			model.PropertyFieldAttributeOptions: []any{
+				map[string]any{"id": optionID, "name": "Air"},
+				map[string]any{"id": model.NewId(), "name": "Sky"},
+			},
+		}
+		deleted.DeleteAt = model.GetMillis()
+		_, _, err = th.service.UpdatePropertyField(rctx, group.ID, &deleted)
+		require.Error(t, err)
+		require.ErrorIs(t, err, ErrAccessDenied)
+	})
 }
