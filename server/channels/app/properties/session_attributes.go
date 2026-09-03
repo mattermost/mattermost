@@ -34,12 +34,11 @@ func (h *SessionAttributesHook) manages(groupID string) bool {
 
 // isSystemCaller reports whether this is the setup migration that seeds and
 // upgrades this group's schema, which is the only writer allowed past the locks
-// below. A nil rctx is how the migration used to be recognised; it now names
-// itself instead, because the access control hook refuses a caller that names
-// nobody. The nil arm stays for any other caller still omitting a context.
+// below. It names itself with model.CallerIDSessionAttributesSystem; an
+// unidentified caller, nil context included, is refused like any other.
 func isSystemCaller(rctx request.CTX) bool {
 	if rctx == nil {
-		return true
+		return false
 	}
 	callerID, _ := model.CallerIDFromContext(rctx.Context())
 	return callerID == model.CallerIDSessionAttributesSystem
