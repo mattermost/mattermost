@@ -910,13 +910,8 @@ describe('GlobalClassificationIndicators section', () => {
         const user = userEvent.setup();
 
         // Enable the global banner without selecting a level
-        await act(async () => {
-            await user.click(screen.getByTestId('globalBannerEnabledtrue'));
-        });
-
-        await act(async () => {
-            await user.click(screen.getByText('Save'));
-        });
+        await user.click(screen.getByTestId('globalBannerEnabledtrue'));
+        await user.click(screen.getByText('Save'));
 
         await screen.findByText(/A global classification level must be selected/);
     });
@@ -981,13 +976,8 @@ describe('GlobalClassificationIndicators section', () => {
 
         // Delete the first level (UNCLASSIFIED) which is referenced by the banner.
         const deleteButtons = screen.getAllByRole('button', {name: /Delete level/i});
-        await act(async () => {
-            await user.click(deleteButtons[0]);
-        });
-
-        await act(async () => {
-            await user.click(screen.getByText('Save'));
-        });
+        await user.click(deleteButtons[0]);
+        await user.click(screen.getByText('Save'));
 
         await screen.findByText(/The global classification banner is configured with a level that no longer exists/);
     });

@@ -297,12 +297,10 @@ describe('components/new_channel_modal', () => {
         expect(ChannelPurposeTextArea).toBeInTheDocument();
 
         // Simulate user interaction with purpose field including focus/blur for validation - fireEvent used because userEvent doesn't have direct focus/blur methods
-        await act(async () => {
-            fireEvent.focus(ChannelPurposeTextArea);
-            await userEvent.clear(ChannelPurposeTextArea);
-            await userEvent.type(ChannelPurposeTextArea, value);
-            fireEvent.blur(ChannelPurposeTextArea);
-        });
+        fireEvent.focus(ChannelPurposeTextArea);
+        await userEvent.clear(ChannelPurposeTextArea);
+        await userEvent.type(ChannelPurposeTextArea, value);
+        fireEvent.blur(ChannelPurposeTextArea);
 
         // Purpose should have been updated
         expect(ChannelPurposeTextArea).toHaveValue(value);
