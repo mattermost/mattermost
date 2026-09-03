@@ -662,6 +662,35 @@ func (a *App) importUser(rctx request.CTX, data *imports.UserImportData, dryRun 
 			case errors.Is(err, users.UserStoreIsEmptyError):
 				return model.NewAppError("importUser", "app.user.store_is_empty.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 			case errors.As(err, &invErr):
+				// A shell couldn't be created because the email/username is already taken by
+				// a different account on the destination. During a scoped import this is not
+				// fatal (see stopOnError) — record a remap so posts/reactions/replies that
+				// reference the source username are attributed to that existing account
+				// instead of being silently dropped as "user not found".
+				//
+				// LIMITATION: the "email" case below infers identity from an email collision
+				// alone, which is a weaker signal than auth_data or an exact username match —
+				// email addresses can be reused, shared, or duplicated in messy source data.
+				// If the destination account isn't actually the same person, their content
+				// will be misattributed rather than dropped. Warn loudly so this is reviewable.
+				if deactivateMissingUsers && report != nil {
+					switch invErr.Field {
+					case "email":
+						if existing, getErr := a.Srv().Store().User().GetByEmail(*data.Email); getErr == nil {
+							rctx.Logger().Warn(
+								"Scoped import: attributing source user's content to an unrelated destination account matched by email collision alone — this is not a verified identity match and may misattribute content if the email was reused or shared",
+								mlog.String("source_username", *data.Username),
+								mlog.String("matched_dest_username", existing.Username),
+								mlog.String("email", *data.Email),
+							)
+							report.Remap.Add(*data.Username, existing.Username)
+						}
+					case "username":
+						if existing, getErr := a.Srv().Store().User().GetByUsername(*data.Username); getErr == nil {
+							report.Remap.Add(*data.Username, existing.Username)
+						}
+					}
+				}
 				switch invErr.Field {
 				case "email":
 					return model.NewAppError("importUser", "app.user.save.email_exists.app_error", nil, "", http.StatusBadRequest).Wrap(err)

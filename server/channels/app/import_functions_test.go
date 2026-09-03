@@ -2312,6 +2312,58 @@ func TestImportUsernamRemap(t *testing.T) {
 		require.True(t, ok, "remap should record the source→dest username mapping")
 		assert.Equal(t, renamedUsername, remapped)
 	})
+
+	t.Run("remap is populated on email conflict during scoped import shell creation", func(t *testing.T) {
+		// SSO mismatch path (auth_data not found on dest) skips the username lookup entirely
+		// and goes straight to shell creation. If a different, unrelated dest account already
+		// owns the source email, CreateUser fails with email_exists — but that dest account is
+		// the right place to attribute this source user's content, since posts reference the
+		// source username and dest lookups by that username will otherwise never find it.
+		existing := th.CreateUser(t)
+
+		authData := model.NewId() // no dest user has this auth_data
+		srcUsername := "src-" + model.NewUsername()
+		data := imports.UserImportData{
+			Username:    &srcUsername,
+			Email:       &existing.Email,
+			AuthService: ptrStr(model.UserAuthServiceLdap),
+			AuthData:    &authData,
+		}
+		report := &imports.ImportReport{}
+		appErr := th.App.importUser(th.Context, &data, false, true, report)
+		require.NotNil(t, appErr, "shell creation should fail on the email conflict")
+		assert.Equal(t, "app.user.save.email_exists.app_error", appErr.Id)
+
+		// No shell should have been created under the source username.
+		_, err := th.App.Srv().Store().User().GetByUsername(srcUsername)
+		assert.Error(t, err, "no shell should exist for the source username")
+
+		remapped, ok := report.Remap.Lookup(srcUsername)
+		require.True(t, ok, "remap should record the source username → existing account mapping")
+		assert.Equal(t, existing.Username, remapped)
+	})
+
+	t.Run("remap is populated on username conflict during scoped import shell creation", func(t *testing.T) {
+		// Same SSO mismatch path, but the conflict is on username instead of email: a
+		// different, unrelated dest account already owns the literal source username.
+		existing := th.CreateUser(t)
+
+		authData := model.NewId() // no dest user has this auth_data
+		data := imports.UserImportData{
+			Username:    &existing.Username,
+			Email:       ptrStr(model.NewId() + "@example.com"),
+			AuthService: ptrStr(model.UserAuthServiceLdap),
+			AuthData:    &authData,
+		}
+		report := &imports.ImportReport{}
+		appErr := th.App.importUser(th.Context, &data, false, true, report)
+		require.NotNil(t, appErr, "shell creation should fail on the username conflict")
+		assert.Equal(t, "app.user.save.username_exists.app_error", appErr.Id)
+
+		remapped, ok := report.Remap.Lookup(existing.Username)
+		require.True(t, ok, "remap should record the source username → existing account mapping")
+		assert.Equal(t, existing.Username, remapped)
+	})
 }
 
 // TestExtractThreadMembersNilThreadFollowers guards against a nil-pointer dereference:
