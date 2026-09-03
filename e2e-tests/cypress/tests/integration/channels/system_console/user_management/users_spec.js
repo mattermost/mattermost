@@ -183,7 +183,7 @@ describe('System Console > User Management > Users', () => {
 
 function searchUserAndOpenResetPassword(query, email) {
     cy.findByPlaceholderText('Search users').should('be.visible').clear().type(query);
-    cy.get('#systemUsersTable-cell-0_emailColumn', {timeout: TIMEOUTS.ONE_MIN}).should('contain', email);
+    cy.get('#systemUsersTable-cell-0_emailColumn').should('be.visible').and('contain', email);
     cy.get('#actionMenuButton-systemUsersTable-0').should('be.visible').click();
     cy.get('#actionMenuItem-systemUsersTable-0-resetPassword').should('be.visible').click();
 }

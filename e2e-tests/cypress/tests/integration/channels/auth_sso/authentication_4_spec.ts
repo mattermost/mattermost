@@ -274,15 +274,17 @@ describe('Authentication', () => {
 
         const inviteEmail = `test-${getRandomId()}@mattermost.com`;
 
-        // # Input email and confirm the chip is added so Invite enables
-        cy.findByLabelText('Invite People').should('be.visible').type(inviteEmail);
-        cy.findByLabelText('Invite People').type('{enter}');
-        cy.contains(inviteEmail).should('be.visible');
-
-        // # Click invite members button
+        cy.get('.users-emails-input__control').should('be.visible').within(() => {
+            cy.get('input').type(inviteEmail, {force: true});
+        });
+        cy.get('.users-emails-input__menu').
+            children().
+            first().
+            should('contain', inviteEmail).
+            click();
+        cy.get('.users-emails-input__multi-value').should('contain', inviteEmail);
         cy.findByTestId('inviteButton').should('be.enabled').click();
 
-        // * Verify message is what you expect it to be
-        cy.contains('The following email addresses do not belong to an accepted domain:', {timeout: TIMEOUTS.ONE_MIN}).should('be.visible').and('exist');
+        cy.contains('The following email addresses do not belong to an accepted domain:').should('be.visible');
     });
 });

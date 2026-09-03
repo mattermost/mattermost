@@ -24,35 +24,29 @@ describe('Scroll', () => {
     it('MM-T2369 Aspect Ratio is preserved in RHS', () => {
         const uploadedImages = [
             {
-                file: 'wide-image.png',
-                width: 96,
-                height: 24,
+                file: 'image-small-height.png',
+                width: 340,
+                height: 25,
             },
             {
-                file: 'tall-image.png',
-                width: 24,
-                height: 96,
+                file: 'image-small-width.png',
+                width: 22,
+                height: 352,
             },
         ];
 
         uploadedImages.forEach((uploadedImage) => {
-            // # Attach a local image so the preview is served by this server
             cy.get('#fileUploadInput').attachFile(uploadedImage.file);
-            cy.get('.post-image__thumbnail').should('be.visible');
+            cy.uiWaitForFileUploadPreview();
             cy.uiGetPostTextBox().clear().type('{enter}');
 
-            // # Get uploaded image in the center
             cy.getLastPost().within(() => {
-                // * Verify image was uploaded and its aspect ratio is unchanged
                 verifyImageAspectRatioCorrectness(uploadedImage);
             });
 
-            // # Open the message with image in RHS
             cy.clickPostCommentIcon();
 
-            // # Go to RHS where image is now opened
             cy.get('#rhsContainer').within(() => {
-                // * Verify image in the RHS has correct aspect ratio
                 verifyImageAspectRatioCorrectness(uploadedImage);
             });
 
@@ -62,14 +56,13 @@ describe('Scroll', () => {
 });
 
 function verifyImageAspectRatioCorrectness(originalImage) {
-    cy.get('.post-image__thumbnail img, img.attachment-file__img, img').
-        first().
+    const expected = originalImage.width / originalImage.height;
+    cy.get('.file-view--single .image-loaded img').
         should('be.visible').
         and(($img) => {
-            expect($img[0].naturalWidth, 'image finished loading').to.be.greaterThan(0);
-            expect($img[0].naturalWidth / $img[0].naturalHeight).to.be.closeTo(
-                originalImage.width / originalImage.height,
-                0.02,
-            );
+            const img = $img[0];
+            expect(img.complete, 'decoded').to.equal(true);
+            expect(img.naturalWidth, 'loaded').to.be.greaterThan(0);
+            expect(img.naturalWidth / img.naturalHeight).to.be.closeTo(expected, 0.02);
         });
 }
