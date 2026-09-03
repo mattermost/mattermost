@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {test} from '@mattermost/playwright-lib';
+import {expect, test} from '@mattermost/playwright-lib';
 
 import {setupContentFlagging, createPost} from './../support';
 
@@ -17,7 +17,7 @@ import {setupContentFlagging, createPost} from './../support';
 test('Reviewer receives a deletion report summary after removing a flagged post', async ({pw}) => {
     const {adminClient, team, user: reviewerUser} = await pw.initSetup();
 
-    // Create author user..
+    // # Create author user
     const authorUser = await pw.random.user('author');
     const {id: authorUserID} = await adminClient.createUser(authorUser, '', '');
     await adminClient.addToTeam(team.id, authorUserID);
@@ -27,19 +27,20 @@ test('Reviewer receives a deletion report summary after removing a flagged post'
 
     const message = `Sensitive 2 post by @${authorUser.username} to be removed`;
     const {post} = await createPost(adminClient, authorUserClient, team, authorUser, message);
+    const expectedFileName = `deletion_report_${post.id}.md`;
 
-    // Flag the post
+    // # Flag the post
     await adminClient.flagPost(post.id, 'Classification mismatch', 'This message contains sensitive data');
 
-    // Login as reviewer and navigate to content review DM
+    // # Login as reviewer and navigate to content review DM
     const {channelsPage, contentReviewPage} = await pw.testBrowser.login(reviewerUser);
     await channelsPage.goto(team.name, '@content-review');
     await channelsPage.toBeVisible();
 
-    const lastPost = await channelsPage.centerView.getLastPost();
-    await lastPost.toContainText(message);
+    const flaggedPost = await channelsPage.centerView.getLastPost();
+    await flaggedPost.toContainText(message);
 
-    // Remove the post via the UI. The remove flow still routes through the
+    // # Remove the post via the UI. The remove flow still routes through the
     // skip-confirm step (destructive action), unlike the keep flow which now
     // bypasses it.
     await contentReviewPage.setReportCardByPostID(post.id);
@@ -53,14 +54,20 @@ test('Reviewer receives a deletion report summary after removing a flagged post'
     await channelsPage.goto(team.name, '@content-review');
     await channelsPage.toBeVisible();
 
+    // * Verify the stub and async deletion-report file landed in the thread
+    const lastPost = await channelsPage.centerView.getLastPost();
     await lastPost.toContainText('Content deleted as part of Content Flagging review process');
+    await expect(channelsPage.centerView.container).toContainText(expectedFileName, {timeout: 30000});
 
     const viewDetailButton = await channelsPage.getFlaggedPostViewDetailButton(post.id);
     await viewDetailButton.click();
 
     await channelsPage.sidebarRight.toBeVisible();
 
-    // Verify the summary table headers are present (rendered as markdown table)
+    // * Verify file attachment is present with the expected filename pattern
+    await channelsPage.sidebarRight.toContainText(expectedFileName);
+
+    // * Verify the summary table headers are present (rendered as markdown table)
     await channelsPage.sidebarRight.toContainText('Step');
     await channelsPage.sidebarRight.toContainText('Status');
     await channelsPage.sidebarRight.toContainText('Detail');
@@ -74,8 +81,4 @@ test('Reviewer receives a deletion report summary after removing a flagged post'
     await channelsPage.sidebarRight.toContainText('Reminders');
     await channelsPage.sidebarRight.toContainText('Thread, replies, and reactions');
     await channelsPage.sidebarRight.toContainText('Post record');
-
-    // Verify file attachment is present with the expected filename pattern
-    const expectedFileName = `deletion_report_${post.id}.md`;
-    await channelsPage.sidebarRight.toContainText(expectedFileName, 30000);
 });
