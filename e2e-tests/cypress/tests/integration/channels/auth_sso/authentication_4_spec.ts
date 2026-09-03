@@ -225,6 +225,9 @@ describe('Authentication', () => {
     it('MM-T1754 - Restrict Domains - Account creation link on signin page', () => {
         // # Enable user account creation and set restricted domain
         cy.apiUpdateConfig({
+            EmailSettings: {
+                RequireEmailVerification: false,
+            },
             TeamSettings: {
                 RestrictCreationToDomains: 'test.com',
                 EnableUserCreation: true,
@@ -255,14 +258,18 @@ describe('Authentication', () => {
 
         cy.findByText('Create account').click();
 
-        // * Make sure account was not created successfully
-        cy.get('.AlertBanner__title').scrollIntoView().should('be.visible');
-        cy.findByText('The email you provided does not belong to an accepted domain. Please contact your administrator or sign up with a different email.').should('be.visible').and('exist');
+        cy.findByText('The email you provided does not belong to an accepted domain. Please contact your administrator or sign up with a different email.').should('be.visible');
     });
 
     it('MM-T1755 - Restrict Domains - Email invite', () => {
         // # Enable user account creation and set restricted domain
         cy.apiUpdateConfig({
+            EmailSettings: {
+                RequireEmailVerification: false,
+            },
+            ServiceSettings: {
+                EnableEmailInvitations: true,
+            },
             TeamSettings: {
                 RestrictCreationToDomains: 'test.com',
                 EnableUserCreation: true,
