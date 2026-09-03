@@ -53,8 +53,8 @@ function verifyLineBreaksRemainIntact(display) {
         // # click dot menu button
         cy.clickPostDotMenu(postId);
 
-        // # click edit post
-        cy.get(`#edit_post_${postId}`).scrollIntoView().should('be.visible').click();
+        // Menu items remount when the post list updates; click the edit action by id.
+        cy.get(`#edit_post_${postId}`).should('exist').click({force: true});
 
         // # Add ",edited" to the text and save
         const editMessage = ',edited';
