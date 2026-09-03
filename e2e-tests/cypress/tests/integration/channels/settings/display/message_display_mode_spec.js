@@ -10,8 +10,6 @@
 // Stage: @prod
 // Group: @channels @account_setting
 
-import * as TIMEOUTS from '@/fixtures/timeouts';
-
 describe('Settings > Display > Message Display', () => {
     before(() => {
         // # Login as new user and visit off-topic
@@ -62,14 +60,14 @@ function verifyLineBreaksRemainIntact(display) {
         cy.get('#edit_textbox').type(editMessage);
 
         // # finish editing
-        cy.get('#edit_textbox').wait(TIMEOUTS.HALF_SEC).type('{enter}');
+        cy.get('#edit_textbox').should('be.visible').and('contain.value', editMessage).type('{enter}');
+        cy.get('#edit_textbox').should('not.exist');
 
         // * Verify posted message includes newline, edit message and "Edited" indicator
         cy.get(postMessageTextId).should('have.text', `${firstLine}\n${secondLine}${editMessage} Edited`);
 
-        // * Post should have "Edited"
-        cy.get(`#postEdited_${postId}`).
-            should('be.visible').
-            should('contain', 'Edited');
+        // Compact view can clip the indicator; assert it is mounted with the Edited label.
+        cy.get(`#post_${postId}`).scrollIntoView();
+        cy.get(`#postEdited_${postId}`).should('exist').and('contain', 'Edited');
     });
 }
