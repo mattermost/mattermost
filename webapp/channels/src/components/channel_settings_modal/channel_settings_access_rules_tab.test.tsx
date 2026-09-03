@@ -371,7 +371,7 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
                 isSystemAdmin: expect.any(Boolean),
                 validateExpressionAgainstRequester: mockActions.validateExpressionAgainstRequester,
             }),
-            expect.anything(),
+            undefined,
         );
     });
 

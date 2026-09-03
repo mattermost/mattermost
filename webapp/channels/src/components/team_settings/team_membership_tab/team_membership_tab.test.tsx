@@ -715,7 +715,7 @@ describe('components/team_settings/TeamMembershipTab', () => {
         const TableEditorMock = TableEditor as jest.MockedFunction<typeof TableEditor>;
         expect(TableEditorMock).toHaveBeenCalledWith(
             expect.objectContaining({value: maskedExpression}),
-            expect.anything(),
+            undefined,
         );
     });
 });
