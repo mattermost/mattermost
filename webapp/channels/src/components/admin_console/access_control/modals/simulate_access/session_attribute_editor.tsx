@@ -16,7 +16,7 @@ import {
     useInteractions,
     useRole,
 } from '@floating-ui/react';
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useState, type JSX} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
 import {Button} from '@mattermost/shared/components/button';

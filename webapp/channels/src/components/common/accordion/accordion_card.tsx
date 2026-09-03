@@ -3,7 +3,7 @@
 
 import classNames from 'classnames';
 import React, {useEffect, useRef, useState} from 'react';
-import type {RefObject} from 'react';
+import type {JSX, RefObject} from 'react';
 
 import type {AccordionItemType} from './accordion';
 

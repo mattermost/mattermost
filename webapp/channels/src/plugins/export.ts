@@ -3,6 +3,8 @@
 
 /* eslint-disable @typescript-eslint/no-require-imports */
 
+import type {JSX} from 'react';
+
 import type {PublishedEditorUtils, PublishedModalId, PublishedModalIdCandidate, PublishedModalProps, PublishedModalUtils} from '@mattermost/shared/types/global';
 
 import {favoriteChannel, unfavoriteChannel} from 'mattermost-redux/actions/channels';

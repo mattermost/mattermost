@@ -3,7 +3,7 @@
 
 import classNames from 'classnames';
 import React from 'react';
-import type {MouseEvent, KeyboardEvent} from 'react';
+import type {JSX, KeyboardEvent, MouseEvent} from 'react';
 import {Draggable, Droppable} from 'react-beautiful-dnd';
 import {FormattedMessage, defineMessages} from 'react-intl';
 

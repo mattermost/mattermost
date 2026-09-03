@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import type {RefObject} from 'react';
+import type {JSX, RefObject} from 'react';
 import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
 
 import {Button} from '@mattermost/shared/components/button';

@@ -3,7 +3,7 @@
 
 import classNames from 'classnames';
 import React from 'react';
-import type {CSSProperties} from 'react';
+import type {CSSProperties, JSX} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import type {FilterOptions} from 'components/admin_console/filter/filter';
