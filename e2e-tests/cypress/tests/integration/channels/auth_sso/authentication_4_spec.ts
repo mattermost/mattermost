@@ -211,11 +211,13 @@ describe('Authentication', () => {
 
         cy.apiLogout();
 
-        // # Go to front page
+        // Client config can stay stale after logout; wait for the server value, then reload.
+        cy.request('/api/v4/config/client').its('body.EnableUserCreation').should('eq', 'false');
         cy.visit('/login');
+        cy.reload();
 
         // * Assert that create account button is not visible
-        cy.findByText('Don\'t have an account?', {timeout: TIMEOUTS.ONE_MIN}).should('not.exist');
+        cy.findByText('Don\'t have an account?').should('not.exist');
 
         // # Go to sign up with email page
         cy.visit('/signup_user_complete');
