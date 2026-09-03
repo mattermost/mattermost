@@ -11,7 +11,8 @@ import ExternalImage from './external_image';
 
 describe('ExternalImage', () => {
     const baseProps = {
-        children: jest.fn((src) => <img src={src}/>),
+        // Real callers treat an empty src as "don't render the image", as does this mock
+        children: jest.fn((src) => (src ? <img src={src}/> : <span/>)),
         enableSVGs: true,
         imageMetadata: {
             format: 'png',
@@ -76,7 +77,7 @@ describe('ExternalImage', () => {
         const {container} = render(<ExternalImage {...props}/>);
 
         expect(props.children).toHaveBeenCalledWith('');
-        expect(container.querySelector('img')).toBeInTheDocument();
+        expect(container.querySelector('img')).not.toBeInTheDocument();
     });
 
     test('should pass src through the image proxy when enabled', () => {
