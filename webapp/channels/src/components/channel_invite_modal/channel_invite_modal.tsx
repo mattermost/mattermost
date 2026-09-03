@@ -516,9 +516,6 @@ const ChannelInviteModalComponent = (props: Props) => {
                             group_constrained: Boolean(props.channel.group_constrained),
                             limit: 100,
                         });
-                        // #region agent log
-                        require('fs').appendFileSync('/opt/cursor/logs/debug.log', JSON.stringify({hypothesisId: 'B', location: 'channel_invite_modal.tsx:520', message: 'searchUsers resolved', data: {seq, cur: privateAbacSearchSeq.current, hits: (profiles || []).length}, timestamp: Date.now()}) + '\n');
-                        // #endregion
                         if (seq === privateAbacSearchSeq.current) {
                             setPrivateAbacSearchHits(profiles || []);
                         }
@@ -737,10 +734,6 @@ const ChannelInviteModalComponent = (props: Props) => {
         abacFilteredUsers,
         privateAbacSearchHits,
     ]);
-
-    // #region agent log
-    require('fs').appendFileSync('/opt/cursor/logs/debug.log', JSON.stringify({hypothesisId: 'B', location: 'channel_invite_modal.tsx:740', message: 'render/computedOptions', data: {term, isPolicyEnforcedPrivate, hits: privateAbacSearchHits === null ? null : privateAbacSearchHits.length, abacFiltered: abacFilteredUsers.length, options: computedOptions.length, loadingUsers}, timestamp: Date.now()}) + '\n');
-    // #endregion
 
     // Update team members when options change
     useEffect(() => {

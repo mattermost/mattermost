@@ -220,10 +220,6 @@ function PolicyDetails({
                 const childIds = (policyProps.child_ids as unknown as string[]) || [];
                 setTeamsCount(teamCount);
 
-                // #region agent log
-                require('fs').appendFileSync('/opt/cursor/logs/debug.log', JSON.stringify({hypothesisId: 'A', location: 'policy_details.tsx:221', message: 'setTeamsCount from fetchPolicy', data: {teamCount, channelCount}, timestamp: Date.now()}) + '\n');
-                // #endregion
-
                 const teamIds = teamCount > 0 ? childIds.slice(channelCount) : [];
                 if (teamIds.length > 0) {
                     const teamResults = await Promise.all(teamIds.map((id) => actions.getTeam(id)));
@@ -471,10 +467,6 @@ function PolicyDetails({
     // channels or teams. Teams aren't editable from this editor (MVF), so a
     // linked team must be removed from the per-team System Console page first.
     const hasAssignedResources = () => hasChannels() || teamsCount > 0;
-
-    // #region agent log
-    require('fs').appendFileSync('/opt/cursor/logs/debug.log', JSON.stringify({hypothesisId: 'A', location: 'policy_details.tsx:470', message: 'render', data: {teamsCount, channelsCount, assignedTeams: assignedTeams.length, hasAssigned: hasAssignedResources()}, timestamp: Date.now()}) + '\n');
-    // #endregion
 
     // Effective channel mix = (saved - removed) + added. Reused by the
     // mixed-channel notice below the channel list and by the confirmation
