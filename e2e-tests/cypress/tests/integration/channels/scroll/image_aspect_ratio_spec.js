@@ -47,18 +47,20 @@ describe('Scroll', () => {
                 expect($post.find('.file-view--single').length, 'file attach').to.be.greaterThan(0);
             });
 
-            cy.getLastPost().within(() => {
-                cy.contains(uploadedImage.file).should('be.visible');
-                verifyImageAspectRatioCorrectness(uploadedImage);
+            cy.getLastPostId().then((postId) => {
+                cy.get(`#post_${postId}`).within(() => {
+                    cy.contains(uploadedImage.file).should('be.visible');
+                    verifyImageAspectRatioCorrectness(uploadedImage);
+                });
+
+                cy.clickPostCommentIcon(postId);
+
+                cy.get('#rhsContainer').within(() => {
+                    verifyImageAspectRatioCorrectness(uploadedImage);
+                });
+
+                cy.uiCloseRHS();
             });
-
-            cy.clickPostCommentIcon();
-
-            cy.get('#rhsContainer').within(() => {
-                verifyImageAspectRatioCorrectness(uploadedImage);
-            });
-
-            cy.uiCloseRHS();
         });
     });
 });
