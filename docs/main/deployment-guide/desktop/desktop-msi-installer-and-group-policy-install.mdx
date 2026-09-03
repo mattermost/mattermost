@@ -85,7 +85,7 @@ The following group policies are available supporting a state option of Not Conf
 > <td>Update Notifications</td>
 > <td>If disabled, in-app update notifications are not shown.</td>
 > <td>v5.1 or later</td>
-> <td><code>EnableAutoUpdates</code></td>
+> <td><code>EnableAutoUpdater</code></td>
 > </tr>
 > </tbody>
 > </table>
@@ -154,7 +154,7 @@ From desktop v6.0, users can run multiple Mattermost workspaces at the same time
 - On Windows, seed the approved list using the `DefaultServerList` Group Policy.
 - For scripted installs, seed `config.json` on first run to include multiple entries in the `teams` array. See the [Silent Windows desktop distribution](/deployment-guide/desktop/silent-windows-desktop-distribution) documentation for details.
 - To prevent users from adding or removing workspaces, use the existing `EnableServerManagement` Group Policy.
-- Disable `EnableAutoUpdates` to turn off update notifications.
+- Disable `EnableAutoUpdater` to turn off update notifications.
 
 ### Verify group policy settings have been applied
 
