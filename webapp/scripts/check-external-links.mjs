@@ -17,6 +17,13 @@ const ROOT_DOMAIN_PATTERN = /^https?:\/\/(www\.)?mattermost\.com\/?$/;
 /** Marketing forms; often slow or block bot User-Agents — not reliable to verify in CI. */
 const FORMS_MATTERMOST_PATTERN = /^https?:\/\/forms\.mattermost\.com\//i;
 
+// Hosts whose bot-management (Cloudflare TLS fingerprint checks etc.) rejects
+// non-browser clients regardless of User-Agent spoofing, so we can't validate
+// them from CI.
+const UNCRAWLABLE_HOSTS = new Set([
+    'support.mattermost.com', // Zendesk fronted by Cloudflare bot mgmt
+]);
+
 const SOURCE_EXTENSIONS = ['.ts', '.tsx', '.js', '.jsx'];
 
 const DIRECTORIES_TO_SCAN = [
@@ -195,10 +202,8 @@ function processResponse(originalUrl, response) {
         return {url: originalUrl, status, ok: true};
     }
 
-    if (status === 301) {
-        return {url: originalUrl, status, ok: true};
-    }
-
+    // Follow every 3xx (including 301) to its final destination. Short-circuiting
+    // 301s as "OK" hides real 404s at the chain's end
     if (isRedirect) {
         return {url: originalUrl, status, redirect: true};
     }
@@ -215,7 +220,14 @@ function processResponse(originalUrl, response) {
 }
 
 function shouldSkipUrlCheck(url) {
-    return PUSH_SERVER_PATTERN.test(url) || FORMS_MATTERMOST_PATTERN.test(url);
+    if (PUSH_SERVER_PATTERN.test(url) || FORMS_MATTERMOST_PATTERN.test(url)) {
+        return true;
+    }
+    try {
+        return UNCRAWLABLE_HOSTS.has(new URL(url).hostname);
+    } catch {
+        return false;
+    }
 }
 
 async function checkUrls(urls, concurrency = 5, silentProgress = false) {
