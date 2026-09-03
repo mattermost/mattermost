@@ -4,7 +4,6 @@
 /* eslint-disable global-require */
 
 import icon50 from 'images/icon50x50.png';
-
 import configureStore from 'tests/test_store';
 
 import type {showNotification} from './notifications';
