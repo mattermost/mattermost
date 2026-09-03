@@ -581,12 +581,23 @@ export async function ensurePluginBundleDownloaded(request: APIRequestContext): 
     if (fs.existsSync(seeder.UPGRADE_PLUGIN_BUNDLE_PATH)) {
         return seeder.UPGRADE_PLUGIN_BUNDLE_PATH;
     }
-    const response = await request.get(seeder.UPGRADE_PLUGIN_BUNDLE_URL);
-    if (!response.ok()) {
-        throw new Error(`Failed to download plugin bundle: ${response.status()} ${response.statusText()}`);
+
+    const attempts = 3;
+    let lastError: Error | undefined;
+    for (let attempt = 1; attempt <= attempts; attempt++) {
+        const response = await request.get(seeder.UPGRADE_PLUGIN_BUNDLE_URL);
+        if (response.ok()) {
+            fs.writeFileSync(seeder.UPGRADE_PLUGIN_BUNDLE_PATH, await response.body());
+            return seeder.UPGRADE_PLUGIN_BUNDLE_PATH;
+        }
+        lastError = new Error(
+            `Failed to download plugin bundle (attempt ${attempt}/${attempts}): ${response.status()} ${response.statusText()}`,
+        );
+        if (attempt < attempts) {
+            await new Promise((r) => setTimeout(r, 1000 * attempt));
+        }
     }
-    fs.writeFileSync(seeder.UPGRADE_PLUGIN_BUNDLE_PATH, await response.body());
-    return seeder.UPGRADE_PLUGIN_BUNDLE_PATH;
+    throw lastError ?? new Error('Failed to download plugin bundle');
 }
 
 export type UpgradeFromContext = {

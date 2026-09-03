@@ -126,6 +126,7 @@ async function resetPluginState(client: Client4) {
     } catch (error) {
         // eslint-disable-next-line no-console
         console.log('Could not reset plugin state', error);
+        throw error;
     }
 }
 

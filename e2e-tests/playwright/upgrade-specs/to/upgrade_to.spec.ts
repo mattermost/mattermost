@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, saveUpgradePhaseLogs, test} from '@mattermost/playwright-lib';
+import {expect, getPluginStatus, saveUpgradePhaseLogs, test} from '@mattermost/playwright-lib';
 
 import {
     assertChannelContainsMessage,
@@ -11,7 +11,6 @@ import {
     assertUpgradePlaybooksMatches,
     assertUpgradeSchemaMatches,
     channelIdForAttachmentSeed,
-    ensureUpgradePluginActive,
     ensureUpgradeTeam,
     loadUpgradeToContext,
     readServerIdentity,
@@ -126,16 +125,23 @@ test.describe.serial('upgrade-to baseline', {tag: ['@upgrade-to']}, () => {
         await assertUpgradePlaybooksMatches(adminClient, baseline);
     });
 
-    test('demo plugin matches baseline', async ({pw, request}) => {
+    test('mmctl talks to the upgraded server', async ({pw}) => {
+        // * Verify mmctl still works against the upgraded server, including unlicensed team runs
+        const mmctlResult = await pw.runMmctl(['version']);
+        expect(mmctlResult.exitCode).toBe(0);
+    });
+
+    test('demo plugin matches baseline', async ({pw}) => {
         const {adminClient, baseline} = await loadUpgradeToContext(pw);
 
         test.skip(!baseline.license?.isLicensed, 'Demo plugin requires an enterprise license');
 
-        // * Verify the demo plugin is still installed and active after upgrade
-        await ensureUpgradePluginActive(request, adminClient);
-
-        // * Verify mmctl still works against the upgraded server
-        const mmctlResult = await pw.runMmctl(['version']);
-        expect(mmctlResult.exitCode).toBe(0);
+        // * Verify the demo plugin is still installed and active after upgrade (read-only)
+        await expect
+            .poll(() => getPluginStatus(adminClient, seeder.UPGRADE_PLUGIN_ID), {timeout: 30000})
+            .toEqual({
+                isInstalled: true,
+                isActive: true,
+            });
     });
 });
