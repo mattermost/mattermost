@@ -77,3 +77,15 @@ jobs:
             e2e-tests/cypress/node_modules
             ~/.cache/Cypress
           key: ${{ steps.deps.outputs.key }}
+      # This job is the sole writer of the key, so its summary is where "is
+      # warming actually working?" gets answered.
+      - name: ci/report-warm-outcome
+        env:
+          CACHE_HIT: ${{ steps.deps.outputs.cache-hit }}
+          CACHE_KEY: ${{ steps.deps.outputs.key }}
+        run: |
+          if [ "${CACHE_HIT}" = "true" ]; then
+            echo "Cypress deps: \`${CACHE_KEY}\` already warm; nothing new to save." >> "${GITHUB_STEP_SUMMARY}"
+          else
+            echo "Cypress deps: saved \`${CACHE_KEY}\`." >> "${GITHUB_STEP_SUMMARY}"
+          fi

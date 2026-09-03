@@ -226,6 +226,20 @@ jobs:
         uses: ./.github/actions/restore-cypress-deps
         with:
           lookup-only: "true"
+      # Which transport a run took is otherwise only legible from which steps
+      # below were skipped. Reporting the key alongside the verdict is what makes
+      # a miss diagnosable: a lockfile or path drift reads as an unexpected key
+      # rather than an unexplained miss.
+      - name: ci/report-cypress-deps-transport
+        env:
+          CACHE_HIT: ${{ steps.probe.outputs.cache-hit }}
+          CACHE_KEY: ${{ steps.probe.outputs.key }}
+        run: |
+          if [ "${CACHE_HIT}" = "true" ]; then
+            echo "Cypress deps: cache **hit** on \`${CACHE_KEY}\` — workers restore it directly from the Actions cache." >> "${GITHUB_STEP_SUMMARY}"
+          else
+            echo "Cypress deps: cache **miss** on \`${CACHE_KEY}\` — installing once and shipping the run-scoped artifact." >> "${GITHUB_STEP_SUMMARY}"
+          fi
       # Everything below is the cache-miss path.
       #
       # Provides the @mattermost/eslint-plugin target the cypress install
