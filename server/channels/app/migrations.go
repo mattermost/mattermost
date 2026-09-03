@@ -1046,6 +1046,20 @@ func (s *Server) doSetupManagedCategoryProperties() error {
 		return fmt.Errorf("could not query migration: %w", err)
 	}
 
+	group, err := s.propertyService.RegisterPropertyGroup(&model.PropertyGroup{Name: model.ManagedCategoryPropertyGroupName, Version: model.PropertyGroupVersionV2})
+	if err != nil {
+		return fmt.Errorf("failed to register managed category group: %w", err)
+	}
+
+	// Must run before this migration's own hook-gated reads and writes below,
+	// on every branch including the already-migrated fast path: a field from
+	// before the permissions object existed has none yet, and the hook
+	// refuses that outright, before ever consulting this migration's own
+	// caller identity or grant. See the identical comment in doSetupBoardsProperties.
+	if convertErr := s.propertyService.ConvertSystemOwnedFields(request.EmptyContext(s.Log()), group.ID, model.ManagedCategoryPropertyGroupName); convertErr != nil {
+		return fmt.Errorf("failed to convert existing managed category properties: %w", convertErr)
+	}
+
 	if data != nil {
 		if data.Value == managedCategoryMigrationVersion {
 			return s.cacheManagedCategoryIDs()
@@ -1060,11 +1074,6 @@ func (s *Server) doSetupManagedCategoryProperties() error {
 		}
 
 		return s.cacheManagedCategoryIDs()
-	}
-
-	group, err := s.propertyService.RegisterPropertyGroup(&model.PropertyGroup{Name: model.ManagedCategoryPropertyGroupName, Version: model.PropertyGroupVersionV2})
-	if err != nil {
-		return fmt.Errorf("failed to register managed category group: %w", err)
 	}
 
 	_, err = s.propertyService.GetPropertyFieldByNameForObjectType(s.systemCallerContext(model.CallerIDManagedCategorySystem), group.ID, "", model.PropertyValueTargetTypeChannel, model.ManagedCategoryPropertyFieldName)

@@ -77,6 +77,42 @@ func TestDoSetupManagedCategoryProperties(t *testing.T) {
 		require.NoError(t, sysErr)
 		require.Equal(t, managedCategoryMigrationVersion, data.Value)
 	})
+
+	t.Run("upgrading a field written before the permissions object existed", func(t *testing.T) {
+		th := Setup(t)
+
+		group, appErr := th.App.GetPropertyGroup(th.Context, model.ManagedCategoryPropertyGroupName)
+		require.Nil(t, appErr)
+
+		fields, appErr := th.App.SearchPropertyFields(th.Context, group.ID, model.PropertyFieldSearchOpts{PerPage: 100})
+		require.Nil(t, appErr)
+		require.Len(t, fields, 1)
+
+		// Roll the field back to the shape a pre-effort install's row is in:
+		// legacy columns only, no permissions object at all. The hook refuses
+		// that outright regardless of caller, so doSetupManagedCategoryProperties'
+		// own subsequent read would fail here without ConvertSystemOwnedFields
+		// running ahead of it.
+		expectedUpdateAts := make(map[string]int64, len(fields))
+		for _, f := range fields {
+			expectedUpdateAts[f.ID] = f.UpdateAt
+			f.Permissions = nil
+		}
+		_, err := th.Store.PropertyField().Update(group.ID, fields, expectedUpdateAts)
+		require.NoError(t, err)
+
+		require.NoError(t, th.Server.doSetupManagedCategoryProperties())
+
+		after, appErr := th.App.SearchPropertyFields(th.Context, group.ID, model.PropertyFieldSearchOpts{PerPage: 100})
+		require.Nil(t, appErr)
+		require.Len(t, after, 1)
+		for _, f := range after {
+			require.NotNil(t, f.Permissions, "field %q must be converted", f.Name)
+			require.NotNil(t,
+				f.Permissions.MatchingGrant(model.PropertyOwnerTypeService, model.ManagedCategoryPropertyGroupName, "", model.PropertyActionFieldWrite),
+				"field %q must carry the managed_category service grant", f.Name)
+		}
+	})
 }
 
 func TestDoSetupContentFlaggingProperties(t *testing.T) {
