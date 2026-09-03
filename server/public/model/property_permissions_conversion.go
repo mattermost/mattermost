@@ -61,11 +61,13 @@ func PermissionsFromLegacy(field *PropertyField, opts LegacyConversionOpts) *Per
 		// field before it ever reads PermissionField, for every group.
 		restrictions.Field.Write = PermissionLevelNone
 	}
-	if opts.ConvertAttrs && IsPropertyFieldProtected(field) {
-		// On a protected access_control field the value-write gate falls through to
-		// the protected/source-plugin check, so only the source plugin can write
-		// values today no matter what PermissionValues says. Converting value.write
-		// to the column's level instead would hand those values to members.
+	if opts.ConvertAttrs && (HasPropertyFieldOwners(field) || IsPropertyFieldProtected(field) || GetPropertyFieldSyncSource(field) != "") {
+		// The legacy value-write gate (checkValueWriteAccess, now deleted) refused
+		// every human on an owner-managed, protected, or synced field before it ever
+		// read PermissionValues; converting that column's level instead would hand
+		// those values to members. A grant can still restore write access for a
+		// specific identity (e.g. the sync source itself, or a field's own owner),
+		// since the model is grant-only and a grant always beats a restriction.
 		restrictions.Value.Write = PermissionLevelNone
 	}
 

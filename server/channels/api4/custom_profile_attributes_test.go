@@ -953,7 +953,7 @@ func TestPatchCPAValues(t *testing.T) {
 		_, resp, err = th.Client.PatchCPAValues(context.Background(), values)
 		CheckForbiddenStatus(t, resp)
 		require.Error(t, err)
-		CheckErrorID(t, err, "app.property.sync_lock.app_error")
+		CheckErrorID(t, err, "api.property_value.patch.no_values_permission.app_error")
 
 		// Test SAML field
 		values = map[string]json.RawMessage{
@@ -962,7 +962,7 @@ func TestPatchCPAValues(t *testing.T) {
 		_, resp, err = th.Client.PatchCPAValues(context.Background(), values)
 		CheckForbiddenStatus(t, resp)
 		require.Error(t, err)
-		CheckErrorID(t, err, "app.property.sync_lock.app_error")
+		CheckErrorID(t, err, "api.property_value.patch.no_values_permission.app_error")
 
 		// Test multiple fields with one being LDAP synced
 		values = map[string]json.RawMessage{
@@ -972,7 +972,7 @@ func TestPatchCPAValues(t *testing.T) {
 		_, resp, err = th.Client.PatchCPAValues(context.Background(), values)
 		CheckForbiddenStatus(t, resp)
 		require.Error(t, err)
-		CheckErrorID(t, err, "app.property.sync_lock.app_error")
+		CheckErrorID(t, err, "api.property_value.patch.no_values_permission.app_error")
 	})
 
 	t.Run("an invalid patch should be rejected", func(t *testing.T) {
@@ -1360,7 +1360,7 @@ func TestPatchCPAValuesForUser(t *testing.T) {
 		_, resp, err = th.Client.PatchCPAValuesForUser(context.Background(), th.BasicUser.Id, values)
 		CheckForbiddenStatus(t, resp)
 		require.Error(t, err)
-		CheckErrorID(t, err, "app.property.sync_lock.app_error")
+		CheckErrorID(t, err, "api.property_value.patch.no_values_permission.app_error")
 
 		// Test SAML field
 		values = map[string]json.RawMessage{
@@ -1369,7 +1369,7 @@ func TestPatchCPAValuesForUser(t *testing.T) {
 		_, resp, err = th.Client.PatchCPAValuesForUser(context.Background(), th.BasicUser.Id, values)
 		CheckForbiddenStatus(t, resp)
 		require.Error(t, err)
-		CheckErrorID(t, err, "app.property.sync_lock.app_error")
+		CheckErrorID(t, err, "api.property_value.patch.no_values_permission.app_error")
 
 		// Test multiple fields with one being LDAP synced
 		values = map[string]json.RawMessage{
@@ -1379,7 +1379,7 @@ func TestPatchCPAValuesForUser(t *testing.T) {
 		_, resp, err = th.Client.PatchCPAValuesForUser(context.Background(), th.BasicUser.Id, values)
 		CheckForbiddenStatus(t, resp)
 		require.Error(t, err)
-		CheckErrorID(t, err, "app.property.sync_lock.app_error")
+		CheckErrorID(t, err, "api.property_value.patch.no_values_permission.app_error")
 	})
 
 	t.Run("an invalid patch should be rejected", func(t *testing.T) {
@@ -1912,7 +1912,7 @@ func TestCPABackwardCompatAfterRefactor(t *testing.T) {
 		)
 		CheckForbiddenStatus(t, resp)
 		require.Error(t, err)
-		CheckErrorID(t, err, "app.property.sync_lock.app_error")
+		CheckErrorID(t, err, "api.property_value.patch.no_values_permission.app_error")
 	})
 }
 

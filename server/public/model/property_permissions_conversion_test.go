@@ -100,6 +100,23 @@ func TestPermissionsFromLegacyProtectedAttr(t *testing.T) {
 	assert.Equal(t, PermissionLevelNone, p.Restrictions.TierFor(PropertyActionValueWrite))
 }
 
+func TestPermissionsFromLegacySyncedFieldNotProtected(t *testing.T) {
+	// The legacy value-write gate refused every human on a synced field whether
+	// or not it was also protected — checkSyncLock ran independently of the
+	// owner/protected checks. A field that is synced but not protected has to
+	// zero value.write on its own; otherwise it would fall through to whatever
+	// PermissionValues says and hand a synced attribute's values to members.
+	field := &PropertyField{
+		PermissionValues: new(PermissionLevelMember),
+		Attrs: StringInterface{
+			PropertyFieldAttrLDAP: "ldap-sync-id",
+		},
+	}
+	p := PermissionsFromLegacy(field, LegacyConversionOpts{ConvertAttrs: true})
+
+	assert.Equal(t, PermissionLevelNone, p.Restrictions.TierFor(PropertyActionValueWrite))
+}
+
 func TestPermissionsFromLegacyAccessMode(t *testing.T) {
 	tests := []struct {
 		name       string

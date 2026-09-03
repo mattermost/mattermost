@@ -59,22 +59,27 @@ func TestGetCPAValue(t *testing.T) {
 	})
 
 	t.Run("should succeed if id exists", func(t *testing.T) {
+		// A member-tier value read or write is judged against a real,
+		// resolvable caller, so this subtest can't share the outer rctx's
+		// anonymous caller ID the way its read-only siblings do.
+		userRctx := th.emptyContextWithCallerID(th.BasicUser.Id)
 		propertyValue := &model.PropertyValue{
-			TargetID:   model.NewId(),
+			TargetID:   th.BasicUser.Id,
 			TargetType: model.PropertyValueTargetTypeUser,
 			GroupID:    cpaID,
 			FieldID:    fieldID,
 			Value:      json.RawMessage(`"Value"`),
 		}
-		propertyValue, err := th.App.CreatePropertyValue(rctx, propertyValue)
+		propertyValue, err := th.App.CreatePropertyValue(userRctx, propertyValue)
 		require.Nil(t, err)
 
-		pv, appErr := th.App.GetPropertyValue(rctx, cpaID, propertyValue.ID)
+		pv, appErr := th.App.GetPropertyValue(userRctx, cpaID, propertyValue.ID)
 		require.Nil(t, appErr)
 		require.NotNil(t, pv)
 	})
 
 	t.Run("should handle array values correctly", func(t *testing.T) {
+		userRctx := th.emptyContextWithCallerID(th.BasicUser.Id)
 		optionIDs := []string{model.NewId(), model.NewId(), model.NewId()}
 		arrayField := &model.PropertyField{
 			GroupID:    cpaID,
@@ -94,16 +99,16 @@ func TestGetCPAValue(t *testing.T) {
 		require.Nil(t, err)
 
 		propertyValue := &model.PropertyValue{
-			TargetID:   model.NewId(),
+			TargetID:   th.BasicUser.Id,
 			TargetType: model.PropertyValueTargetTypeUser,
 			GroupID:    cpaID,
 			FieldID:    createdField.ID,
 			Value:      json.RawMessage(fmt.Sprintf(`["%s", "%s", "%s"]`, optionIDs[0], optionIDs[1], optionIDs[2])),
 		}
-		propertyValue, err = th.App.CreatePropertyValue(rctx, propertyValue)
+		propertyValue, err = th.App.CreatePropertyValue(userRctx, propertyValue)
 		require.Nil(t, err)
 
-		pv, appErr := th.App.GetPropertyValue(rctx, cpaID, propertyValue.ID)
+		pv, appErr := th.App.GetPropertyValue(userRctx, cpaID, propertyValue.ID)
 		require.Nil(t, appErr)
 		require.NotNil(t, pv)
 		var arrayValues []string
@@ -124,13 +129,16 @@ func TestDeleteCPAValues(t *testing.T) {
 	cpaID := cpaGroup.ID
 
 	rctx := th.emptyContextWithCallerID(anonymousCallerId)
+	// Value writes and deletes go through a member-tier check, which needs a
+	// real, resolvable caller; an anonymous caller ID is refused outright.
+	writeRctx := th.emptyContextWithCallerID(th.BasicUser.Id)
 
 	userID := model.NewId()
 	otherUserID := model.NewId()
 
 	listValues := func(targetID string) []*model.PropertyValue {
 		t.Helper()
-		values, appErr := th.App.SearchPropertyValues(rctx, cpaID, model.PropertyValueSearchOpts{
+		values, appErr := th.App.SearchPropertyValues(writeRctx, cpaID, model.PropertyValueSearchOpts{
 			TargetIDs:  []string{targetID},
 			TargetType: model.PropertyValueTargetTypeUser,
 			// Single-target search: at most one value per (target, field), so the field cap bounds the page.
@@ -161,21 +169,21 @@ func TestDeleteCPAValues(t *testing.T) {
 			FieldID:    createdField.ID,
 			Value:      json.RawMessage(fmt.Sprintf(`"Value %d"`, i)),
 		}
-		_, err = th.App.CreatePropertyValue(rctx, value)
+		_, err = th.App.CreatePropertyValue(writeRctx, value)
 		require.Nil(t, err)
 	}
 
 	require.Len(t, listValues(userID), 3)
 
 	t.Run("should delete all values for a user", func(t *testing.T) {
-		appErr := th.App.DeletePropertyValuesForTarget(rctx, cpaID, model.PropertyFieldObjectTypeUser, userID)
+		appErr := th.App.DeletePropertyValuesForTarget(writeRctx, cpaID, model.PropertyFieldObjectTypeUser, userID)
 		require.Nil(t, appErr)
 
 		require.Empty(t, listValues(userID))
 	})
 
 	t.Run("should handle deleting values for a user with no values", func(t *testing.T) {
-		appErr := th.App.DeletePropertyValuesForTarget(rctx, cpaID, model.PropertyFieldObjectTypeUser, otherUserID)
+		appErr := th.App.DeletePropertyValuesForTarget(writeRctx, cpaID, model.PropertyFieldObjectTypeUser, otherUserID)
 		require.Nil(t, appErr)
 	})
 
@@ -189,25 +197,27 @@ func TestDeleteCPAValues(t *testing.T) {
 				FieldID:    field.ID,
 				Value:      json.RawMessage(`"Other user value"`),
 			}
-			_, err := th.App.CreatePropertyValue(rctx, value)
+			_, err := th.App.CreatePropertyValue(writeRctx, value)
 			require.Nil(t, err)
 		}
 
-		appErr := th.App.DeletePropertyValuesForTarget(rctx, cpaID, model.PropertyFieldObjectTypeUser, userID)
+		appErr := th.App.DeletePropertyValuesForTarget(writeRctx, cpaID, model.PropertyFieldObjectTypeUser, userID)
 		require.Nil(t, appErr)
 
 		require.Len(t, listValues(otherUserID), 3)
 	})
 }
 
-// TestCPAValueSyncLock exercises AccessControlHook.checkSyncLock end-to-end
-// at the app layer: a write for a field with ldap= or saml= set only
-// succeeds when the caller ID matches the field's sync source. Covering this
-// at the app layer also asserts that the startup wiring in server.go
-// (access_control group registration, AccessControlHook install, and
-// CallerIDExtractor reading from request.CTX) is intact — something the
-// properties-package tests cannot verify because they install the hook
-// themselves.
+// TestCPAValueSyncLock exercises the sync lock end-to-end at the app layer: a
+// write for a field with ldap= or saml= set only succeeds when the caller ID
+// matches the field's sync source. What enforces that today is a converted
+// restriction (PermissionsFromLegacy sets value.write to none for a synced
+// field) plus the matching sync-service grant, not a dedicated gate — the
+// old AccessControlHook.checkSyncLock is gone. Covering this at the app
+// layer also asserts that the startup wiring in server.go (access_control
+// group registration, AccessControlHook install, and CallerIDExtractor
+// reading from request.CTX) is intact — something the properties-package
+// tests cannot verify because they install the hook themselves.
 func TestCPAValueSyncLock(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
@@ -256,22 +266,22 @@ func TestCPAValueSyncLock(t *testing.T) {
 		return appErr
 	}
 
-	requireSyncLock := func(appErr *model.AppError) {
+	requireAccessDenied := func(appErr *model.AppError) {
 		t.Helper()
 		require.NotNil(t, appErr)
-		require.Equal(t, "app.property.sync_lock.app_error", appErr.Id)
+		require.Equal(t, "app.property.access_denied.app_error", appErr.Id)
 	}
 
-	t.Run("anonymous caller is blocked on an LDAP-synced field", func(t *testing.T) {
-		requireSyncLock(upsertAs(anonymousCallerId, ldapField))
+	t.Run("an unprivileged caller is blocked on an LDAP-synced field", func(t *testing.T) {
+		requireAccessDenied(upsertAs(th.BasicUser.Id, ldapField))
 	})
 
-	t.Run("anonymous caller is blocked on a SAML-synced field", func(t *testing.T) {
-		requireSyncLock(upsertAs(anonymousCallerId, samlField))
+	t.Run("an unprivileged caller is blocked on a SAML-synced field", func(t *testing.T) {
+		requireAccessDenied(upsertAs(th.BasicUser.Id, samlField))
 	})
 
-	t.Run("anonymous caller is allowed on a non-synced field", func(t *testing.T) {
-		require.Nil(t, upsertAs(anonymousCallerId, plainField))
+	t.Run("an unprivileged caller is allowed on a non-synced field", func(t *testing.T) {
+		require.Nil(t, upsertAs(th.BasicUser.Id, plainField))
 	})
 
 	t.Run("LDAP sync caller is allowed on an LDAP-synced field", func(t *testing.T) {
@@ -279,7 +289,7 @@ func TestCPAValueSyncLock(t *testing.T) {
 	})
 
 	t.Run("LDAP sync caller is blocked on a SAML-synced field", func(t *testing.T) {
-		requireSyncLock(upsertAs(model.CallerIDLDAPSync, samlField))
+		requireAccessDenied(upsertAs(model.CallerIDLDAPSync, samlField))
 	})
 
 	t.Run("SAML sync caller is allowed on a SAML-synced field", func(t *testing.T) {
@@ -287,6 +297,6 @@ func TestCPAValueSyncLock(t *testing.T) {
 	})
 
 	t.Run("SAML sync caller is blocked on an LDAP-synced field", func(t *testing.T) {
-		requireSyncLock(upsertAs(model.CallerIDSAMLSync, ldapField))
+		requireAccessDenied(upsertAs(model.CallerIDSAMLSync, ldapField))
 	})
 }
