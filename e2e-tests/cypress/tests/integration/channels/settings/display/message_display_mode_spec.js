@@ -32,7 +32,7 @@ describe('Settings > Display > Message Display', () => {
 function verifyLineBreaksRemainIntact(display) {
     cy.uiChangeMessageDisplaySetting(display);
 
-    const firstLine = 'First line';
+    const firstLine = `First line ${Date.now()}`;
     const secondLine = 'Second line';
 
     // # Enter in text
@@ -42,8 +42,9 @@ function verifyLineBreaksRemainIntact(display) {
         type('{shift}{enter}{enter}').
         type(`${secondLine}{enter}`);
 
-    // # Get last postId
-    cy.getLastPostId().then((postId) => {
+    // Pin to the posted text so a later join system message is not treated as last.
+    cy.contains('[data-testid="postView"]', firstLine).should('be.visible').invoke('attr', 'id').then((rawId) => {
+        const postId = (rawId || '').replace(/^post_/, '');
         const postMessageTextId = `#postMessageText_${postId}`;
 
         // * Verify text still includes new line
