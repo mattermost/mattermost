@@ -104,7 +104,7 @@ UI smoke is intentionally **not** part of the upgrade projects — older images 
 
 ### Run locally
 
-Leaves the stack up between the two commands so you can inspect it. `test:upgrade:from` requires a clean slate — if `.env.testcontainers` exists from a prior run, tear the stack down first.
+Leaves the stack up between the two commands so you can inspect it. `test:upgrade:from` requires a clean slate — if `.env.testcontainers` exists from a prior run, tear the stack down first. `upgrade-to` reuses that stack, which needs `testcontainers.reuse.enable=true` in `~/.testcontainers.properties` (see `lib/README.md`).
 
 ```bash
 # Tear down any leftover stack before starting a new upgrade-from run

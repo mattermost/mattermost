@@ -83,7 +83,7 @@ The Mattermost server is expected at `http://localhost:8065`. The webapp dev ser
 
 ### Playwright upgrade-path tests (branch `e2e/playwright-upgrade-path-tests`)
 
-Rolling-upgrade coverage lives in a **separate CI pipeline** (not inside `e2e-tests-playwright-template.yml`). Locally:
+Rolling-upgrade coverage lives in a **separate CI pipeline** (not inside `e2e-tests-playwright-template.yml`). Locally, enable Testcontainers reuse (`echo testcontainers.reuse.enable=true >> ~/.testcontainers.properties`; see `e2e-tests/playwright/lib/README.md`) so `upgrade-to` adopts the stack created by `upgrade-from`:
 
 ```bash
 cd e2e-tests/playwright
