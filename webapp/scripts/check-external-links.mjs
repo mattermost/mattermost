@@ -149,21 +149,22 @@ async function checkUrlWithRedirects(originalUrl) {
     let currentUrl = originalUrl;
 
     for (let redirectCount = 0; redirectCount <= MAX_REDIRECTS; redirectCount++) {
-        const response = await fetch(currentUrl, {
+        let response = await fetch(currentUrl, {
             method: 'HEAD',
             redirect: 'manual',
             headers: FETCH_HEADERS,
             signal: AbortSignal.timeout(10000),
         });
 
+        // Some origins reject HEAD; retry with GET and let the outer loop
+        // handle any 3xx the GET returns so we still follow the chain.
         if (response.status === 405 || response.status === 403) {
-            const getResponse = await fetch(currentUrl, {
+            response = await fetch(currentUrl, {
                 method: 'GET',
                 redirect: 'manual',
                 headers: FETCH_HEADERS,
                 signal: AbortSignal.timeout(10000),
             });
-            return processResponse(originalUrl, getResponse);
         }
 
         const result = processResponse(originalUrl, response);
