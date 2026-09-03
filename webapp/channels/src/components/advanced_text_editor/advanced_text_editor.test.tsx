@@ -15,7 +15,7 @@ import type {FileUpload} from 'components/file_upload/file_upload';
 import type Textbox from 'components/textbox/textbox';
 
 import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
-import {renderWithContext, userEvent, screen, act, fireEvent} from 'tests/react_testing_utils';
+import {renderWithContext, userEvent, screen, act, createEvent, fireEvent} from 'tests/react_testing_utils';
 import Constants, {Locations, PostTypes, StoragePrefixes} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
@@ -368,8 +368,10 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
                 const textbox = screen.getByPlaceholderText('Write to Other Channel');
                 expect(textbox).toHaveValue(sourceDraft);
 
-                // SuggestionBox listens to onInput, not onChange.
-                fireEvent.input(textbox, {target: {value: destinationMessage}});
+                // SuggestionBox listens to onInput, not onChange. Dispatched directly instead of
+                // with fireEvent because fireEvent opens a nested act(...) scope, which React
+                // rejects while it's already flushing this commit.
+                textbox.dispatchEvent(createEvent.input(textbox, {target: {value: destinationMessage}}));
                 setSendDestinationMessage(true);
             }, [editorChannelId]);
 
@@ -381,7 +383,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
                     return;
                 }
 
-                fireEvent.click(screen.getByTestId('SendMessageButton'));
+                screen.getByTestId('SendMessageButton').click();
             }, [sendDestinationMessage]);
 
             return (
@@ -480,7 +482,10 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
 
                 const textbox = screen.getByPlaceholderText('Write to Other Channel');
                 expect(textbox).toHaveValue(sourceDraft);
-                fireEvent.input(textbox, {target: {value: destinationMessage}});
+
+                // Dispatched directly instead of with fireEvent because fireEvent opens a nested
+                // act(...) scope, which React rejects while it's already flushing this commit.
+                textbox.dispatchEvent(createEvent.input(textbox, {target: {value: destinationMessage}}));
             }, [editorChannelId]);
 
             return (
