@@ -562,11 +562,24 @@ Cypress.Commands.add('checkRunLDAPSync', checkRunLDAPSync);
 
 function clickEmojiInEmojiPicker(emojiName: string) {
     cy.get('#emojiPicker').should('exist').and('be.visible').within(() => {
-        // # Mouse over the emoji to get it selected
-        cy.findAllByTestId(emojiName).eq(0).trigger('mouseover', {force: true});
+        // Re-hover each retry: recent/custom emoji loads re-render the picker and
+        // reset the cursor, and search results omit emoji_picker_preview until an
+        // emoji is hovered. Cypress.$ so a missing node returns false for waitUntil.
+        cy.waitUntil(() => {
+            const $emoji = Cypress.$('#emojiPicker').find(`[data-testid="${emojiName}"]`);
+            if ($emoji.length === 0) {
+                return false;
+            }
 
-        // * Verify that preview shows the emoji selected
-        cy.findAllByTestId('emoji_picker_preview').eq(0).should('exist').and('be.visible').contains(emojiName, {matchCase: false});
+            return cy.wrap($emoji.eq(0)).trigger('mouseover', {force: true}).then(() => {
+                const previewText = Cypress.$('#emojiPicker').find('[data-testid="emoji_picker_preview"]').eq(0).text();
+                return previewText.toLowerCase().includes(emojiName.toLowerCase());
+            });
+        }, {
+            timeout: TIMEOUTS.TEN_SEC,
+            interval: TIMEOUTS.HALF_SEC,
+            errorMsg: `Emoji picker preview never showed "${emojiName}"`,
+        });
 
         // # Click on the emoji
         cy.findAllByTestId(emojiName).eq(0).click({force: true});
