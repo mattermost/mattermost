@@ -24,7 +24,7 @@ export type CustomMessageInputType = {type?: 'info' | 'error' | 'warning' | 'suc
 export interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement | HTMLTextAreaElement>, 'placeholder'> {
     required?: boolean;
     hasError?: boolean;
-    addon?: React.ReactElement;
+    addon?: React.ReactElement<any>;
     textPrefix?: string;
     inputPrefix?: JSX.Element;
     inputSuffix?: JSX.Element;

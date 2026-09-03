@@ -27,7 +27,7 @@ export type Props = {
     jobs: Job[];
     getExtraInfoText?: (job: Job) => React.ReactNode;
     disabled: boolean;
-    createJobHelpText: React.ReactElement;
+    createJobHelpText: React.ReactElement<any>;
     jobType: JobType;
     downloadExportResults?: boolean;
     className?: string;
