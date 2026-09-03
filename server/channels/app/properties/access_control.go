@@ -151,7 +151,7 @@ func (h *AccessControlHook) PreCreatePropertyField(rctx request.CTX, field *mode
 	}
 
 	if field.LinkedFieldID != nil && *field.LinkedFieldID != "" {
-		if err := h.validateAndInheritLinkedFieldSecurity(callerID, field); err != nil {
+		if err := h.validateAndInheritLinkedFieldSecurity(rctx, callerID, field); err != nil {
 			return nil, fmt.Errorf("PreCreatePropertyField: %w", err)
 		}
 	}
@@ -163,11 +163,17 @@ func (h *AccessControlHook) PreCreatePropertyField(rctx request.CTX, field *mode
 	return field, nil
 }
 
-// validateAndInheritLinkedFieldSecurity enforces that linked fields inherit
-// the source template's security posture. If the source is protected, only
-// the source plugin may create linked fields. Security attrs (protected,
-// source_plugin_id, access_mode) are copied from the source onto the field.
-func (h *AccessControlHook) validateAndInheritLinkedFieldSecurity(callerID string, field *model.PropertyField) error {
+// validateAndInheritLinkedFieldSecurity gates and seeds a linked field's
+// permissions from its template. The two are independent: the gate applies
+// only when the template's reads are restricted at all -- linking to an open
+// template requires no permission on it, so gating every link would refuse
+// callers who could already see everything the template holds. The
+// inheritance runs for every template, restricted or not, whenever the
+// caller supplied no permissions of its own: tying it to the gate would
+// leave an open template's own write levels (say, field.write: sysadmin)
+// unreachable from its linked fields, which would then take their write
+// levels from whatever the creator submitted or the api4 default pin.
+func (h *AccessControlHook) validateAndInheritLinkedFieldSecurity(rctx request.CTX, callerID string, field *model.PropertyField) error {
 	source, err := h.propertyService.getPropertyFieldFromMaster("", *field.LinkedFieldID)
 	if err != nil {
 		if store.IsErrNotFound(err) {
@@ -182,32 +188,83 @@ func (h *AccessControlHook) validateAndInheritLinkedFieldSecurity(callerID strin
 		return fmt.Errorf("failed to get linked source field %q: %w", *field.LinkedFieldID, err)
 	}
 
-	if source.Attrs == nil || !model.IsPropertyFieldProtected(source) {
-		return nil
+	if templateReadsAreRestricted(source) {
+		scope := h.extractActingAsScope(rctx)
+		if !h.permissionsAllows(rctx, source, callerID, scope, model.PropertyActionFieldWrite, "") {
+			return model.NewAppError(
+				"CreatePropertyField",
+				"app.property_field.create.linked_source_protected.app_error",
+				nil,
+				"only the source plugin can create linked fields from a protected template",
+				http.StatusForbidden,
+			)
+		}
 	}
 
-	sourcePluginID := h.getSourcePluginID(source)
-	if sourcePluginID == "" || callerID != sourcePluginID {
-		return model.NewAppError(
-			"CreatePropertyField",
-			"app.property_field.create.linked_source_protected.app_error",
-			nil,
-			"only the source plugin can create linked fields from a protected template",
-			http.StatusForbidden,
-		)
+	if field.Permissions == nil && source.Permissions != nil {
+		// Masking is never inherited: a linked field cannot declare its own
+		// (PropertyField.IsValid refuses one) and the read path resolves it from
+		// the template regardless. option.read is dropped from every inherited
+		// grant for the same reason -- it reads the template's own option
+		// scheme, never a right the identity held over this field.
+		field.Permissions = &model.Permissions{
+			Restrictions: source.Permissions.Restrictions,
+			Grants:       linkedFieldGrantsFrom(source.Permissions.Grants),
+		}
 	}
 
-	if field.Attrs == nil {
-		field.Attrs = make(model.StringInterface)
-	}
-
-	field.Attrs[model.PropertyAttrsProtected] = true
-	field.Attrs[model.PropertyAttrsSourcePluginID] = sourcePluginID
-	if v, ok := source.Attrs[model.PropertyAttrsAccessMode]; ok {
-		field.Attrs[model.PropertyAttrsAccessMode] = v
+	// source_plugin_id is identity metadata, not a permission, so it is copied
+	// regardless of whether the template's reads are restricted; the
+	// immutability check on update reads it from every linked field.
+	if sourcePluginID := h.getSourcePluginID(source); sourcePluginID != "" {
+		if field.Attrs == nil {
+			field.Attrs = make(model.StringInterface)
+		}
+		field.Attrs[model.PropertyAttrsSourcePluginID] = sourcePluginID
 	}
 
 	return nil
+}
+
+// templateReadsAreRestricted reports whether source has anything worth
+// gating a link to: an explicit read filter, or a read tier below everyone.
+// A nil Permissions object -- unreached in production, since every
+// group-managed field has carried one since the migration backfill -- fails
+// closed rather than treating "nothing to check" as "nothing to protect".
+func templateReadsAreRestricted(source *model.PropertyField) bool {
+	if source.Permissions == nil {
+		return true
+	}
+	if source.Permissions.Masking != nil {
+		return true
+	}
+	restrictions := source.Permissions.Restrictions
+	return restrictions.TierFor(model.PropertyActionValueRead) != model.PermissionLevelEveryone ||
+		restrictions.TierFor(model.PropertyActionOptionRead) != model.PermissionLevelEveryone
+}
+
+// linkedFieldGrantsFrom copies source's grants with option.read removed from
+// every Allow -- a linked field's option.read reads the template's own
+// scheme, so a grant conferring it there was never a right over this field
+// (PropertyField.IsValid refuses one outright). A grant left with an empty
+// Allow is dropped rather than kept invalid; the identity still holds
+// option.read by way of its grant on the template itself.
+func linkedFieldGrantsFrom(source []model.Grant) []model.Grant {
+	grants := make([]model.Grant, 0, len(source))
+	for _, g := range source {
+		allow := make([]string, 0, len(g.Allow))
+		for _, action := range g.Allow {
+			if action != model.PropertyActionOptionRead {
+				allow = append(allow, action)
+			}
+		}
+		if len(allow) == 0 {
+			continue
+		}
+		g.Allow = allow
+		grants = append(grants, g)
+	}
+	return grants
 }
 
 // PreUpdatePropertyField enforces access control on field updates.

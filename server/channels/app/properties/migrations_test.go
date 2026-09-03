@@ -333,9 +333,13 @@ func TestMigrateBackfillPropertyPermissions_LinkedFieldInheritsTemplateMasking(t
 		},
 	})
 
-	// Only the source plugin may link a field to a protected template, so the
-	// linked field is created by the same caller as the template.
-	linked := createLegacyPropertyField(t, th, rctxPlugin, &model.PropertyField{
+	// Created straight through the store, bypassing the service: template has
+	// already been stripped back to a legacy-shaped row with no Permissions,
+	// which the create-time gate on a linked field can only read as "nothing
+	// declared yet" -- not yet backfilled is not a state any caller's create
+	// request can reach in production, since the startup backfill always runs
+	// first, so there is nothing for the gate to authorize against here either.
+	linked := th.CreatePropertyFieldDirect(t, &model.PropertyField{
 		GroupID:       th.CPAGroupID,
 		Name:          "linked-field",
 		Type:          model.PropertyFieldTypeText,

@@ -336,7 +336,9 @@ func TestGraphSharedOnly_ValueLinkedField(t *testing.T) {
 	require.NoError(t, err)
 	ids := optionIDsByName(t, template)
 
-	// The type and the security attributes both come from the template.
+	// The type comes from the template; masking is never copied onto a linked
+	// field's own permissions -- the read path resolves it from the template
+	// instead, which is what the hierarchy assertion below actually exercises.
 	linked, err := h.th.service.CreatePropertyField(h.rctxSource, &model.PropertyField{
 		GroupID:       h.th.CPAGroupID,
 		Name:          "programs-linked",
@@ -347,7 +349,8 @@ func TestGraphSharedOnly_ValueLinkedField(t *testing.T) {
 	})
 	require.NoError(t, err)
 	require.Equal(t, model.PropertyFieldTypeGraph, linked.Type)
-	require.Equal(t, model.PropertyAccessModeSharedOnly, linked.Attrs[model.PropertyAttrsAccessMode])
+	require.NotNil(t, linked.Permissions)
+	require.Nil(t, linked.Permissions.Masking)
 
 	// The caller holds Fighter Jet, above the target's F-18 designation, so
 	// coverage (which only runs downward from what a caller holds) shows it.

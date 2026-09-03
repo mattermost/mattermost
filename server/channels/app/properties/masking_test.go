@@ -129,6 +129,23 @@ func TestResolveFieldMasking(t *testing.T) {
 		return created
 	}
 
+	// newLinkedFieldDirect is newLinkedField, but straight through the store:
+	// for a link created after its template is already masked, the service's
+	// create-time gate requires a caller holding field.write on the template,
+	// which none of these fixtures models -- these tests are about how a read
+	// resolves masking, not about who may create the link, so it is bypassed
+	// the same way CreatePropertyFieldDirect always is.
+	newLinkedFieldDirect := func(name string, templateID string) *model.PropertyField {
+		return th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:       th.CPAGroupID,
+			Name:          name,
+			Type:          model.PropertyFieldTypeText,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			LinkedFieldID: &templateID,
+		})
+	}
+
 	// setMasking persists masking directly through the store rather than the
 	// service, for a template or an unlinked field -- the two object shapes
 	// PropertyField.IsValid allows to carry masking. A linked field's own
@@ -163,7 +180,7 @@ func TestResolveFieldMasking(t *testing.T) {
 		template := newTemplate("Template-MaskByFieldID")
 		holdings := newLinkedField("Holdings-ForTemplate", template.ID)
 		template = setMasking(template, &model.Masking{MaskByFieldID: holdings.ID})
-		linked := newLinkedField("Linked-UsesTemplateHoldings", template.ID)
+		linked := newLinkedFieldDirect("Linked-UsesTemplateHoldings", template.ID)
 
 		fm, err := h.resolveFieldMasking(linked)
 		require.NoError(t, err)
@@ -204,7 +221,7 @@ func TestResolveFieldMasking(t *testing.T) {
 			MaskByFieldID: holdings.ID,
 			Except:        []model.Identity{{Type: model.PropertyOwnerTypeUser, ID: model.NewId()}},
 		})
-		linked := newLinkedField("Linked-OwnMaskingIgnored", template.ID)
+		linked := newLinkedFieldDirect("Linked-OwnMaskingIgnored", template.ID)
 		// PropertyField.IsValid rejects a linked field's own masking, so this
 		// sets it on the in-memory struct without persisting: resolveFieldMasking
 		// reads a linked field's masking off the struct it is handed and only
@@ -244,7 +261,7 @@ func TestResolveFieldMasking(t *testing.T) {
 		template := newTemplate("Template-Cached")
 		holdings := newLinkedField("Holdings-ForCached", template.ID)
 		template = setMasking(template, &model.Masking{MaskByFieldID: holdings.ID})
-		linked := newLinkedField("Linked-Cached", template.ID)
+		linked := newLinkedFieldDirect("Linked-Cached", template.ID)
 
 		counter := &countingPropertyFieldStore{PropertyFieldStore: th.service.fieldStore}
 		th.service.fieldStore = counter
@@ -742,22 +759,23 @@ func TestMaskValueReads(t *testing.T) {
 		require.NoError(t, err)
 		template = updated[0]
 
-		linked, err := th.service.CreatePropertyField(th.Context, &model.PropertyField{
-			GroupID:    th.CPAGroupID,
-			Name:       "Mask-Linked",
-			Type:       model.PropertyFieldTypeText,
-			ObjectType: model.PropertyFieldObjectTypeChannel,
-			TargetType: string(model.PropertyFieldTargetLevelSystem),
-			// A linked field's own restrictions/grants are its own -- only
-			// masking is locked to the template -- but it must still carry a
-			// (masking-empty) Permissions object of its own for the permission
-			// gate this test's ladder-checker stub answers to run at all; a
-			// nil Permissions here would fall through to the legacy
-			// access_mode path instead.
+		// Created straight through the store: the service's create-time gate on
+		// a masked template needs a caller holding field.write on it, which is
+		// not what this test is about. A linked field's own restrictions/grants
+		// are its own -- only masking is locked to the template -- but it must
+		// still carry a (masking-empty) Permissions object of its own for the
+		// permission gate this test's ladder-checker stub answers to run at
+		// all; a nil Permissions here would fall through to the legacy
+		// access_mode path instead.
+		linked := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:       th.CPAGroupID,
+			Name:          "Mask-Linked",
+			Type:          model.PropertyFieldTypeText,
+			ObjectType:    model.PropertyFieldObjectTypeChannel,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
 			Permissions:   &model.Permissions{},
 			LinkedFieldID: &template.ID,
 		})
-		require.NoError(t, err)
 
 		caller := model.NewId()
 		// The caller's holdings live on the holdings field, keyed by the
@@ -1540,16 +1558,21 @@ func TestMaskOptionPage(t *testing.T) {
 		require.NoError(t, err)
 		template = updated[0]
 
-		linked, err := th.service.CreatePropertyField(th.Context, &model.PropertyField{
-			GroupID:    th.CPAGroupID,
-			Name:       "Mask-Picker-Linked",
-			Type:       model.PropertyFieldTypeText,
-			ObjectType: model.PropertyFieldObjectTypeChannel,
-			TargetType: string(model.PropertyFieldTargetLevelSystem),
-			// A linked field's masking is locked to its template, but it still
-			// needs its own (masking-empty) Permissions object for the
-			// permission gate to run at all -- a nil Permissions falls
-			// through to the legacy access_mode path instead.
+		// Created through createPropertyField directly rather than the full
+		// service call: that still copies the template's type and options onto
+		// the linked field the way a real create does, but skips the
+		// create-time gate on a masked template, which needs a caller holding
+		// field.write on it -- not what this test is about. A linked field's
+		// masking is locked to its template, but it still needs its own
+		// (masking-empty) Permissions object for the permission gate to run at
+		// all -- a nil Permissions falls through to the legacy access_mode
+		// path instead.
+		linked, err := th.service.createPropertyField(&model.PropertyField{
+			GroupID:       th.CPAGroupID,
+			Name:          "Mask-Picker-Linked",
+			Type:          model.PropertyFieldTypeText,
+			ObjectType:    model.PropertyFieldObjectTypeChannel,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
 			Permissions:   &model.Permissions{},
 			LinkedFieldID: &template.ID,
 		})
@@ -1612,7 +1635,12 @@ func TestMaskOptionPage(t *testing.T) {
 		require.NoError(t, err)
 		template = updated[0]
 
-		linked, err := th.service.CreatePropertyField(th.Context, &model.PropertyField{
+		// Created through createPropertyField directly rather than the full
+		// service call: that still copies the template's type and options onto
+		// the linked field the way a real create does, but skips the
+		// create-time gate on a masked template, which needs a caller holding
+		// field.write on it -- not what this test is about.
+		linked, err := th.service.createPropertyField(&model.PropertyField{
 			GroupID:       th.CPAGroupID,
 			Name:          "Mask-Listing-Once-Linked",
 			Type:          model.PropertyFieldTypeText,
