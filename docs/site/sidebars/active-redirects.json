@@ -2,7 +2,7 @@
   "_meta": {
     "maintained": "by hand",
     "note": "Legacy Sphinx URL redirects, originally bulk-extracted during the docs migration. Add new entries at the end of the array. `from` must be unique and must not contain an anchor; `to` should point at a page that exists, or the redirect silently dead-ends.",
-    "active": 747
+    "active": 757
   },
   "redirects": [
     {
@@ -2992,6 +2992,46 @@
     {
       "from": "/guides/administration",
       "to": "/administration-guide/administration-guide-index"
+    },
+    {
+      "from": "/preferences/manage-your-notifications",
+      "to": "/end-user-guide/preferences/manage-your-notifications"
+    },
+    {
+      "from": "/messaging/formatting-text",
+      "to": "/end-user-guide/collaborate/format-messages"
+    },
+    {
+      "from": "/configure/authentication-configuration-settings",
+      "to": "/administration-guide/configure/authentication-configuration-settings"
+    },
+    {
+      "from": "/comply/audit-log",
+      "to": "/administration-guide/comply/embedded-json-audit-log-schema"
+    },
+    {
+      "from": "/administration/compliance",
+      "to": "/administration-guide/comply/comply-index"
+    },
+    {
+      "from": "/configure/reporting-configuration-settings",
+      "to": "/administration-guide/configure/reporting-configuration-settings"
+    },
+    {
+      "from": "/install/software-hardware-requirements",
+      "to": "/deployment-guide/software-hardware-requirements"
+    },
+    {
+      "from": "/configure/site-configuration-settings",
+      "to": "/administration-guide/configure/site-configuration-settings"
+    },
+    {
+      "from": "/onboard/ad-ldap-groups-synchronization",
+      "to": "/administration-guide/onboard/ad-ldap-groups-synchronization"
+    },
+    {
+      "from": "/developer/bot-accounts",
+      "to": "/developers/integrate/reference/bot-accounts"
     }
   ]
 }
