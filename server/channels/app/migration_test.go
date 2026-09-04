@@ -497,6 +497,37 @@ func TestChannelImportDestinationTeamRemap(t *testing.T) {
 }
 
 // ────────────────────────────────────────────────────────────────────────────
+// IMP-04: --destination-channel-name errors on a multi-channel-scoped export,
+// instead of silently no-oping the rename
+//
+// Reason: the team case (--destination-team-name against a multi-team export)
+// already fails fast with a clear error. The channel case had no equivalent
+// guard: sourceChannelName would be a comma-separated list like "a,b", and
+// rewriteChannelName compares against that literal string, which never
+// matches any real channel name — the rename would silently do nothing.
+// ────────────────────────────────────────────────────────────────────────────
+
+func TestChannelImportDestinationChannelNameRequiresSingleChannelScope(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	chan2 := th.CreateChannel(t, th.BasicTeam)
+
+	var buf bytes.Buffer
+	appErr := th.App.BulkExport(th.Context, &buf, "somePath", nil, model.BulkExportOpts{
+		TeamName:    th.BasicTeam.Name,
+		ChannelName: th.BasicChannel.Name + "," + chan2.Name,
+	})
+	require.Nil(t, appErr)
+
+	_, appErr = th.App.BulkImportWithPathAndOpts(
+		th.Context, &buf, nil, false, false, 1, "",
+		model.BulkImportOpts{DestinationChannelName: "renamed-channel"},
+	)
+	require.NotNil(t, appErr, "--destination-channel-name against a multi-channel export must error, not silently no-op")
+}
+
+// ────────────────────────────────────────────────────────────────────────────
 // IMP-02: destination team remapping works for team-only (no --channel) exports
 // ────────────────────────────────────────────────────────────────────────────
 

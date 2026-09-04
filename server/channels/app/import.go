@@ -317,6 +317,9 @@ func (a *App) bulkImport(rctx request.CTX, jsonlReader io.Reader, attachmentsRea
 					if destinationTeam != "" && strings.Contains(sourceTeamName, ",") {
 						return lineNumber, model.NewAppError("BulkImport", "app.import.bulk_import.destination_team_requires_single_team_scope.error", nil, "--destination-team-name requires a single-team export; this export contains multiple teams", http.StatusBadRequest)
 					}
+					if destinationChannel != "" && strings.Contains(sourceChannelName, ",") {
+						return lineNumber, model.NewAppError("BulkImport", "app.import.bulk_import.destination_channel_requires_single_channel_scope.error", nil, "--destination-channel-name requires a single-channel export; this export contains multiple channels", http.StatusBadRequest)
+					}
 					if scope.ChannelName != "" || scope.TeamName != "" {
 						deactivateMissingUsers = true
 						if attachmentsReader != nil {
