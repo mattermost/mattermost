@@ -783,6 +783,77 @@ func TestChannelImportReplyFromMissingUserSkipped(t *testing.T) {
 }
 
 // ────────────────────────────────────────────────────────────────────────────
+// IMP-02: a post referencing a channel missing on the destination is skipped,
+// not fatal to the whole import
+//
+// Reason: getChannelsForPosts used to return a fatal AppError on a channel
+// lookup miss, aborting the entire scoped import — inconsistent with the
+// graceful skip already in place for a missing team or missing user (both of
+// which just leave the post out and keep going). A single channel gone missing
+// (partially-completed migration retry, channel renamed/deleted on dest
+// between runs) shouldn't take down an otherwise-successful import.
+// ────────────────────────────────────────────────────────────────────────────
+
+func TestChannelImportPostForMissingChannelSkipped(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	teamName := model.NewRandomTeamName()
+	realChanName := model.NewId()
+	ghostChanName := model.NewId()
+	username := model.NewUsername()
+
+	createUserInDB(t, th, username)
+
+	var sb strings.Builder
+	enc := json.NewEncoder(&sb)
+
+	version := 1
+	scope := imports.ExportScopeAdditional{TeamName: teamName}
+	scopeJSON, err := json.Marshal(scope)
+	require.NoError(t, err)
+
+	require.NoError(t, enc.Encode(imports.LineImportData{
+		Type:    "version",
+		Version: &version,
+		Info:    &imports.VersionInfoImportData{Generator: "test", Version: "1.0", Created: "2024-01-01T00:00:00Z", Additional: scopeJSON},
+	}))
+	require.NoError(t, enc.Encode(imports.LineImportData{
+		Type: "team",
+		Team: &imports.TeamImportData{Name: new(teamName), DisplayName: new("T"), Type: new("O")},
+	}))
+	chanType := model.ChannelTypeOpen
+	require.NoError(t, enc.Encode(imports.LineImportData{
+		Type:    "channel",
+		Channel: &imports.ChannelImportData{Team: new(teamName), Name: new(realChanName), DisplayName: new("Real"), Type: &chanType},
+	}))
+
+	// Note: no "channel" line for ghostChanName — it will never exist on the destination.
+	ts := int64(1700000000000)
+	require.NoError(t, enc.Encode(imports.LineImportData{
+		Type: "post",
+		Post: &imports.PostImportData{
+			Team: new(teamName), Channel: new(ghostChanName), User: new(username),
+			Message: new("post in a channel that doesn't exist on dest"), CreateAt: &ts,
+		},
+	}))
+	ts2 := ts + 1000
+	require.NoError(t, enc.Encode(imports.LineImportData{
+		Type: "post",
+		Post: &imports.PostImportData{
+			Team: new(teamName), Channel: new(realChanName), User: new(username),
+			Message: new("post in the real channel"), CreateAt: &ts2,
+		},
+	}))
+
+	_, appErr := th.App.BulkImport(th.Context, strings.NewReader(sb.String()), nil, false, 1)
+	require.Nil(t, appErr, "import must not abort when a post references a channel missing on the destination")
+
+	assert.Equal(t, 1, postCountInChannel(t, th, th.Context, teamName, realChanName),
+		"the post in the real channel must still be imported despite the other post's missing channel")
+}
+
+// ────────────────────────────────────────────────────────────────────────────
 // IMP-03: Post count on dest exactly matches source after channel migration
 // ────────────────────────────────────────────────────────────────────────────
 

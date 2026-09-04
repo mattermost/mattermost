@@ -2007,7 +2007,7 @@ func (a *App) getChannelsByNames(names []string, teamID string) (map[string]*mod
 }
 
 // getChannelsForPosts returns map[teamName]map[channelName]*model.Channel
-func (a *App) getChannelsForPosts(teams map[string]*model.Team, data []*imports.PostImportData) (map[string]map[string]*model.Channel, *model.AppError) {
+func (a *App) getChannelsForPosts(teams map[string]*model.Team, data []*imports.PostImportData, deactivateMissingUsers bool) (map[string]map[string]*model.Channel, *model.AppError) {
 	teamChannels := make(map[string]map[string]*model.Channel)
 	for _, postData := range data {
 		teamName := strings.ToLower(*postData.Team)
@@ -2021,9 +2021,17 @@ func (a *App) getChannelsForPosts(teams map[string]*model.Team, data []*imports.
 		}
 		channelName := strings.ToLower(*postData.Channel)
 		if channel, ok := teamChannels[teamName][channelName]; !ok || channel == nil {
-			var err error
-			channel, err = a.Srv().Store().Channel().GetByNameIncludeDeleted(team.Id, *postData.Channel, true)
+			channel, err := a.Srv().Store().Channel().GetByNameIncludeDeleted(team.Id, *postData.Channel, true)
 			if err != nil {
+				var nfErr *store.ErrNotFound
+				if deactivateMissingUsers && errors.As(err, &nfErr) {
+					// Scoped migration: channel not found on destination (partially-
+					// completed migration retry, channel renamed/deleted on dest
+					// between runs). Caller will nil-check and skip the post, same
+					// as a missing team or user — a full/non-scoped import still
+					// treats this as a hard data-integrity error below.
+					continue
+				}
 				return nil, model.NewAppError("BulkImport", "app.import.import_post.channel_not_found.error", map[string]any{"ChannelName": *postData.Channel}, "", http.StatusBadRequest).Wrap(err)
 			}
 			teamChannels[teamName][channelName] = channel
@@ -2089,7 +2097,7 @@ func (a *App) importMultiplePostLines(rctx request.CTX, lines []imports.LineImpo
 		return 0, err
 	}
 
-	channels, err := a.getChannelsForPosts(teams, postsData)
+	channels, err := a.getChannelsForPosts(teams, postsData, deactivateMissingUsers)
 	if err != nil {
 		return 0, err
 	}
