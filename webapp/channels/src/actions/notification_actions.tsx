@@ -34,7 +34,8 @@ import MentionableRenderer from 'utils/markdown/mentionable_renderer';
 import {DesktopNotificationSounds, ding} from 'utils/notification_sounds';
 import {showNotification} from 'utils/notifications';
 import {createBurstNotificationId, findBurstMergeTarget} from 'utils/platform_notification_activity_merge';
-import {upsertPlatformNotificationOnServer} from 'utils/platform_notification_activity_storage';
+import {getActivityContextLabel} from 'utils/platform_notification_activity_record';
+import {isPlatformNotificationDismissed, syncPlatformNotificationActivityToStorage, upsertPlatformNotificationOnServer} from 'utils/platform_notification_activity_storage';
 import {getFocusedPopoutInfo} from 'utils/popouts/focus';
 import {cjkrPattern} from 'utils/text_formatting';
 import * as Utils from 'utils/utils';
@@ -148,6 +149,10 @@ function shouldSkipActivityNotification(
         return {status: 'not_sent', reason: 'system_message'};
     }
 
+    if (isNotificationSuppressed(post)) {
+        return {status: 'not_sent', reason: 'silent_notification'};
+    }
+
     if (!member) {
         return {status: 'error', reason: 'no_member'};
     }
@@ -179,29 +184,6 @@ function shouldSkipActivityNotification(
     );
 }
 
-function getSidebarNotificationContextLabel(state: GlobalState, msgProps: NewPostMessageProps, isCrtReply: boolean): string {
-    const currentUserId = getCurrentUserId(state);
-    let mentions: string[] = [];
-    if (msgProps.mentions) {
-        try {
-            mentions = JSON.parse(msgProps.mentions);
-        } catch {
-            mentions = [];
-        }
-    }
-    const isMention = mentions.includes(currentUserId);
-    if (isCrtReply && isMention) {
-        return Utils.localizeMessage({id: 'notification.sidebar.context.thread_mention', defaultMessage: 'Mention in thread'});
-    }
-    if (isCrtReply) {
-        return Utils.localizeMessage({id: 'notification.sidebar.context.thread_message', defaultMessage: 'Message in thread'});
-    }
-    if (isMention) {
-        return Utils.localizeMessage({id: 'notification.sidebar.context.mention', defaultMessage: 'Mention'});
-    }
-    return Utils.localizeMessage({id: 'notification.sidebar.context.message', defaultMessage: 'Message'});
-}
-
 /**
  * Records one Activity sidebar entry for every incoming post the user would be notified about,
  * including when no desktop toast fires (e.g. channel or thread already open).
@@ -231,6 +213,10 @@ export function recordPlatformNotificationForActivity(post: Post, msgProps: NewP
             return {data: false};
         }
 
+        if (isPlatformNotificationDismissed(state, post.id, post.create_at, [post.root_id])) {
+            return {data: false};
+        }
+
         const recordState = getState();
         const channelDisplayName = channel.display_name || msgProps.channel_display_name || '';
         const body = getNotificationBody(recordState, post, msgProps);
@@ -245,19 +231,20 @@ export function recordPlatformNotificationForActivity(post: Post, msgProps: NewP
         }
         const currentUserId = getCurrentUserId(recordState);
         const isMention = mentions.includes(currentUserId);
+        const isAddedToChannel = isUserAddedInChannel(post, currentUserId);
 
         const isDirectMessage = isDirectChannel(channel) || msgProps.channel_type === Constants.DM_CHANNEL;
         const isGroupMessage = isGroupChannel(channel) || msgProps.channel_type === Constants.GM_CHANNEL;
         const isPrivateMessage = isDirectMessage || isGroupMessage;
 
-        const recordedAt = Date.now();
+        const recordedAt = post.create_at || Date.now();
         const baseRecord = {
             recordedAt,
             postId: post.id,
             channelId: channel.id,
             teamId,
             channelDisplayName,
-            contextLabel: getSidebarNotificationContextLabel(recordState, msgProps, isCrtReply),
+            contextLabel: getActivityContextLabel(isCrtReply, isMention, isAddedToChannel),
             permalinkUrl: url,
             isThreadReply: isCrtReply,
             isMention,
@@ -284,7 +271,9 @@ export function recordPlatformNotificationForActivity(post: Post, msgProps: NewP
             data: record,
         });
 
-        const mergedRecord = getPlatformNotifications(getState()).find((notification) => notification.id === record.id) || record;
+        const mergedNotifications = getPlatformNotifications(getState());
+        const mergedRecord = mergedNotifications.find((notification) => notification.id === record.id) || record;
+        syncPlatformNotificationActivityToStorage(getState(), mergedNotifications);
         upsertPlatformNotificationOnServer(getState(), mergedRecord).catch((error) => {
             console.warn('Failed to save platform notification to server', error); // eslint-disable-line no-console
         });

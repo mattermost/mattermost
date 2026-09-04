@@ -8105,6 +8105,30 @@
     "translation": "Failed to evaluate permission policy."
   },
   {
+    "id": "app.platform_notification.clear.app_error",
+    "translation": "Unable to clear platform notifications."
+  },
+  {
+    "id": "app.platform_notification.delete.app_error",
+    "translation": "Unable to delete the platform notification."
+  },
+  {
+    "id": "app.platform_notification.get.app_error",
+    "translation": "Unable to get platform notifications."
+  },
+  {
+    "id": "app.platform_notification.permanent_delete_by_user.app_error",
+    "translation": "Unable to delete platform notifications for user."
+  },
+  {
+    "id": "app.platform_notification.replace.app_error",
+    "translation": "Unable to replace platform notifications."
+  },
+  {
+    "id": "app.platform_notification.save.app_error",
+    "translation": "Unable to save the platform notification."
+  },
+  {
     "id": "app.plugin.cluster.save_config.app_error",
     "translation": "The plugin configuration in your config.json file must be updated manually when using ReadOnlyConfig with clustering enabled."
   },
@@ -13089,6 +13113,42 @@
   {
     "id": "model.outgoing_oauth_connection.is_valid.update_at.error",
     "translation": "Update at must be a valid time."
+  },
+  {
+    "id": "model.platform_notification.is_valid.channel_id.app_error",
+    "translation": "Invalid channel id."
+  },
+  {
+    "id": "model.platform_notification.is_valid.id.app_error",
+    "translation": "Invalid platform notification id."
+  },
+  {
+    "id": "model.platform_notification.is_valid.post_id.app_error",
+    "translation": "Invalid post id."
+  },
+  {
+    "id": "model.platform_notification.is_valid.preview_body.app_error",
+    "translation": "Preview body is longer than the maximum permitted length."
+  },
+  {
+    "id": "model.platform_notification.is_valid.recorded_at.app_error",
+    "translation": "Recorded at must be a valid time."
+  },
+  {
+    "id": "model.platform_notification.is_valid.sender_user_id.app_error",
+    "translation": "Invalid sender user id."
+  },
+  {
+    "id": "model.platform_notification.is_valid.team_id.app_error",
+    "translation": "Invalid team id."
+  },
+  {
+    "id": "model.platform_notification.is_valid.thread_root_id.app_error",
+    "translation": "Invalid thread root id."
+  },
+  {
+    "id": "model.platform_notification.is_valid.user_id.app_error",
+    "translation": "Invalid user id."
   },
   {
     "id": "model.plugin_command.error.app_error",

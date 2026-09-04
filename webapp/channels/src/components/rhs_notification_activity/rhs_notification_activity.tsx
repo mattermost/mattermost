@@ -1,16 +1,23 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import React, {useEffect} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
 import {getPostsByIdsBatched} from 'mattermost-redux/actions/posts';
+import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
+import {getDateForDateLine, isDateLine} from 'mattermost-redux/utils/post_list';
 
+import {fillPlatformNotificationActivity} from 'actions/views/platform_notification_activity';
 import {reconcilePlatformNotificationActivity} from 'actions/views/rhs';
 
 import NoResultsIndicator from 'components/no_results_indicator/no_results_indicator';
 import {NoResultsVariant} from 'components/no_results_indicator/types';
+import DateSeparator from 'components/post_view/date_separator';
+
+import {addDateSeparatorsForPlatformNotifications} from 'utils/platform_notification_activity_dates';
 
 import type {GlobalState} from 'types/store';
 import type {PlatformNotificationRecord} from 'types/store/rhs';
@@ -26,6 +33,7 @@ type Props = {
 export default function RhsNotificationActivity({notifications}: Props) {
     const dispatch = useDispatch();
     const postsState = useSelector((state: GlobalState) => state.entities.posts.posts);
+    const currentUser = useSelector(getCurrentUser);
 
     useEffect(() => {
         const missingPostIds = notifications.flatMap((record) => {
@@ -43,6 +51,10 @@ export default function RhsNotificationActivity({notifications}: Props) {
             dispatch(getPostsByIdsBatched([...new Set(missingPostIds)]));
         }
     }, [dispatch, notifications, postsState]);
+
+    useEffect(() => {
+        dispatch(fillPlatformNotificationActivity());
+    }, [dispatch]);
 
     useEffect(() => {
         if (!notifications.some((record) => record.isThreadReply)) {
@@ -66,7 +78,7 @@ export default function RhsNotificationActivity({notifications}: Props) {
                     subtitle={
                         <FormattedMessage
                             id='rhs_notification_activity.empty_subtitle'
-                            defaultMessage='Notifications you receive appear here and stay until you remove them or clear the list, even after you refresh or sign in again.'
+                            defaultMessage='Notifications you receive appear here. Mark them as read when you are done.'
                         />
                     }
                 />
@@ -74,20 +86,37 @@ export default function RhsNotificationActivity({notifications}: Props) {
         );
     }
 
+    const items = addDateSeparatorsForPlatformNotifications(notifications, postsState, currentUser);
+
     return (
         <div className='RhsNotificationActivity'>
-            <ul className='RhsNotificationActivity__list'>
-                {notifications.map((record) => (
-                    <li
+            {items.map((item, index) => {
+                if (typeof item === 'string' && isDateLine(item)) {
+                    const date = getDateForDateLine(item);
+                    return (
+                        <DateSeparator
+                            key={item}
+                            date={date}
+                        />
+                    );
+                }
+
+                const previous = items[index - 1];
+                const afterDate = typeof previous === 'string' && isDateLine(previous);
+                const record = item as PlatformNotificationRecord;
+                return (
+                    <div
                         key={record.id}
-                        className='RhsNotificationActivity__item'
+                        className={classNames('RhsNotificationActivity__item', {
+                            'RhsNotificationActivity__item--afterDate': afterDate,
+                        })}
                     >
                         <RhsNotificationCard
                             record={record}
                         />
-                    </li>
-                ))}
-            </ul>
+                    </div>
+                );
+            })}
         </div>
     );
 }

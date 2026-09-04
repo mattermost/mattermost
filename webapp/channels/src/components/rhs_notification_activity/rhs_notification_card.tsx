@@ -7,16 +7,19 @@ import type {IntlShape, KeyboardEvent, MouseEvent} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
+
 import {Posts} from 'mattermost-redux/constants';
 import {getChannel, isMyChannelAutotranslated} from 'mattermost-redux/selectors/entities/channels';
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
 import {getTeammateNameDisplaySetting, get} from 'mattermost-redux/selectors/entities/preferences';
+import {getTeam} from 'mattermost-redux/selectors/entities/teams';
 import {getStatusForUserId, getUser} from 'mattermost-redux/selectors/entities/users';
 import {isDirectChannel, isGroupChannel} from 'mattermost-redux/utils/channel_utils';
 import {ensureString} from 'mattermost-redux/utils/post_utils';
 import {displayUsername} from 'mattermost-redux/utils/user_utils';
 
-import {openPlatformNotificationRecord} from 'actions/views/rhs';
+import {markPlatformNotificationAsRead, markPlatformNotificationAsUnread, openPlatformNotificationRecord} from 'actions/views/rhs';
 
 import Markdown from 'components/markdown';
 import {makeGetMentionKeysForPost} from 'components/post_markdown';
@@ -24,14 +27,12 @@ import ProfilePicture from 'components/profile_picture';
 import Avatar from 'components/widgets/users/avatar';
 
 import {Preferences} from 'utils/constants';
-import {isPlatformNotificationUnread} from 'utils/platform_notification_unread';
+import {getPlatformNotificationTimestamp, isPlatformNotificationUnread} from 'utils/platform_notification_unread';
 import {getPostTranslatedMessage, getPostTranslation} from 'utils/post_utils';
 import * as Utils from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
 import type {PlatformNotificationRecord} from 'types/store/rhs';
-
-import RhsNotificationMenu from './rhs_notification_menu';
 
 import './rhs_notification_card.scss';
 
@@ -188,15 +189,23 @@ export default function RhsNotificationCard({record}: Props) {
         return participantIds.filter((userId) => userId && userId !== senderUserId).length;
     }, [participantIds, senderUserId]);
 
+    const team = useSelector((state: GlobalState) => (record.teamId ? getTeam(state, record.teamId) : undefined));
     const channelName = record.channelDisplayName || intl.formatMessage({
         id: 'rhs_notification_activity.unknown_channel',
         defaultMessage: 'Channel',
     });
+    const teamName = team?.display_name || '';
+    const channelContext = (
+        <span className='RhsNotificationCard__channelName'>
+            {teamName ? `${channelName} | ${teamName}` : channelName}
+        </span>
+    );
 
     const headerUserId = senderUserId;
+    const timestamp = getPlatformNotificationTimestamp(record, post);
     const shortTimestamp = useMemo(
-        () => formatShortRelativeTime(record.recordedAt, intl),
-        [record.recordedAt, intl],
+        () => formatShortRelativeTime(timestamp, intl),
+        [timestamp, intl],
     );
 
     const headerMessage = useMemo(() => {
@@ -210,7 +219,7 @@ export default function RhsNotificationCard({record}: Props) {
                         values={{
                             sender: <span className='RhsNotificationCard__senderName'>{senderName}</span>,
                             count: messageCount,
-                            channel: <span className='RhsNotificationCard__channelName'>{channelName}</span>,
+                            channel: channelContext,
                         }}
                     />
                 );
@@ -222,7 +231,7 @@ export default function RhsNotificationCard({record}: Props) {
                     defaultMessage='{sender} sent you a message in {channel}.'
                     values={{
                         sender: <span className='RhsNotificationCard__senderName'>{senderName}</span>,
-                        channel: <span className='RhsNotificationCard__channelName'>{channelName}</span>,
+                        channel: channelContext,
                     }}
                 />
             );
@@ -261,7 +270,7 @@ export default function RhsNotificationCard({record}: Props) {
                     defaultMessage='{sender} mentioned you in {channel}'
                     values={{
                         sender: <span className='RhsNotificationCard__senderName'>{senderName}</span>,
-                        channel: <span className='RhsNotificationCard__channelName'>{channelName}</span>,
+                        channel: channelContext,
                     }}
                 />
             );
@@ -272,10 +281,11 @@ export default function RhsNotificationCard({record}: Props) {
                 return (
                     <FormattedMessage
                         id='rhs_notification_activity.header.thread_reply.with_others'
-                        defaultMessage="{sender} and {others} replied in a thread that you're following."
+                        defaultMessage="{sender} and {others} replied in a thread that you're following in {channel}."
                         values={{
                             sender: <span className='RhsNotificationCard__senderName'>{senderName}</span>,
                             others: getThreadOthersLabel(otherParticipantCount, intl),
+                            channel: channelContext,
                         }}
                     />
                 );
@@ -284,9 +294,10 @@ export default function RhsNotificationCard({record}: Props) {
             return (
                 <FormattedMessage
                     id='rhs_notification_activity.header.thread_reply'
-                    defaultMessage="{sender} replied in a thread that you're following."
+                    defaultMessage="{sender} replied in a thread that you're following in {channel}."
                     values={{
                         sender: <span className='RhsNotificationCard__senderName'>{senderName}</span>,
+                        channel: channelContext,
                     }}
                 />
             );
@@ -298,11 +309,11 @@ export default function RhsNotificationCard({record}: Props) {
                 defaultMessage='{sender} sent a message in {channel}'
                 values={{
                     sender: <span className='RhsNotificationCard__senderName'>{senderName}</span>,
-                    channel: <span className='RhsNotificationCard__channelName'>{channelName}</span>,
+                    channel: channelContext,
                 }}
             />
         );
-    }, [isGroupMessage, isDirectMessage, isMention, record.isThreadReply, record.replyCount, senderName, channelName, otherParticipantCount, intl]);
+    }, [isGroupMessage, isDirectMessage, isMention, record.isThreadReply, record.replyCount, senderName, channelName, teamName, otherParticipantCount, intl]);
 
     const headerUser = useSelector((state: GlobalState) => getUser(state, headerUserId));
     const headerUserStatus = useSelector((state: GlobalState) => getStatusForUserId(state, headerUserId));
@@ -336,6 +347,16 @@ export default function RhsNotificationCard({record}: Props) {
     const openNotification = useCallback(() => {
         dispatch(openPlatformNotificationRecord(record));
     }, [dispatch, record]);
+
+    const handleReadToggle = useCallback((e: MouseEvent<HTMLButtonElement>) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (hasUnreads) {
+            dispatch(markPlatformNotificationAsRead(record, false));
+            return;
+        }
+        dispatch(markPlatformNotificationAsUnread(record));
+    }, [dispatch, hasUnreads, record]);
 
     const handleCardClick = useCallback((e: MouseEvent<HTMLDivElement>) => {
         if (e.defaultPrevented) {
@@ -415,23 +436,44 @@ export default function RhsNotificationCard({record}: Props) {
                             </span>
                         </div>
                         <div className='RhsNotificationCard__headerActions'>
-                            {hasUnreads && (
-                                <div className='RhsNotificationCard__unreadIndicator alt-hidden'>
-                                    <div className='dot-unreads'/>
-                                </div>
-                            )}
                             <time
-                                className='RhsNotificationCard__timestamp alt-hidden'
-                                dateTime={new Date(record.recordedAt).toISOString()}
+                                className='RhsNotificationCard__timestamp'
+                                dateTime={new Date(timestamp).toISOString()}
                             >
                                 {shortTimestamp}
                             </time>
-                            <div
-                                className='menu-anchor alt-visible'
-                                onClick={(e) => e.stopPropagation()}
+                            <WithTooltip
+                                title={hasUnreads ? (
+                                    <FormattedMessage
+                                        id='rhs_notification_activity.mark_as_read'
+                                        defaultMessage='Mark as read'
+                                    />
+                                ) : (
+                                    <FormattedMessage
+                                        id='rhs_notification_activity.mark_as_unread'
+                                        defaultMessage='Mark as unread'
+                                    />
+                                )}
                             >
-                                <RhsNotificationMenu record={record}/>
-                            </div>
+                                <button
+                                    type='button'
+                                    className={classNames('RhsNotificationCard__readToggle', {
+                                        'RhsNotificationCard__readToggle--unread': hasUnreads,
+                                        'RhsNotificationCard__readToggle--read': !hasUnreads,
+                                    })}
+                                    aria-label={hasUnreads ? intl.formatMessage({
+                                        id: 'rhs_notification_activity.mark_as_read',
+                                        defaultMessage: 'Mark as read',
+                                    }) : intl.formatMessage({
+                                        id: 'rhs_notification_activity.mark_as_unread',
+                                        defaultMessage: 'Mark as unread',
+                                    })}
+                                    aria-pressed={!hasUnreads}
+                                    onClick={handleReadToggle}
+                                >
+                                    <span className='RhsNotificationCard__readDot'/>
+                                </button>
+                            </WithTooltip>
                         </div>
                     </div>
 

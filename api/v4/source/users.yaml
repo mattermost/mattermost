@@ -4021,7 +4021,7 @@
 
         ##### Permissions
 
-        Must be logged in as the user or have the `edit_other_users` permission.
+        Must be logged in as the user.
       operationId: GetPlatformNotifications
       parameters:
         - name: user_id
@@ -4054,7 +4054,7 @@
 
         ##### Permissions
 
-        Must be logged in as the user or have the `edit_other_users` permission.
+        Must be logged in as the user.
       operationId: ReplacePlatformNotifications
       parameters:
         - name: user_id
@@ -4096,7 +4096,7 @@
 
         ##### Permissions
 
-        Must be logged in as the user or have the `edit_other_users` permission.
+        Must be logged in as the user.
       operationId: UpsertPlatformNotification
       parameters:
         - name: user_id
@@ -4134,7 +4134,7 @@
 
         ##### Permissions
 
-        Must be logged in as the user or have the `edit_other_users` permission.
+        Must be logged in as the user.
       operationId: ClearPlatformNotifications
       parameters:
         - name: user_id
@@ -4162,7 +4162,7 @@
 
         ##### Permissions
 
-        Must be logged in as the user or have the `edit_other_users` permission.
+        Must be logged in as the user.
       operationId: DeletePlatformNotification
       parameters:
         - name: user_id

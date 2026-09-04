@@ -477,14 +477,18 @@ describe('rhs view actions', () => {
             const compareStore = mockStore(initialState);
 
             compareStore.dispatch(performSearch('@mattermost ', '', true));
+            compareStore.dispatch({
+                type: ActionTypes.UPDATE_RHS_SEARCH_TERMS,
+                terms: '@mattermost ',
+            });
             compareStore.dispatch(batchActions([
-                {
-                    type: ActionTypes.UPDATE_RHS_SEARCH_TERMS,
-                    terms: '@mattermost ',
-                },
                 {
                     type: ActionTypes.UPDATE_RHS_STATE,
                     state: RHSStates.MENTION,
+                },
+                {
+                    type: ActionTypes.SET_MENTION_RHS_PANEL,
+                    panel: 'activity',
                 },
             ]));
 
@@ -743,14 +747,18 @@ describe('rhs view actions', () => {
             const compareStore = mockStore(initialState);
 
             compareStore.dispatch(performSearch('@mattermost ', '', true));
+            compareStore.dispatch({
+                type: ActionTypes.UPDATE_RHS_SEARCH_TERMS,
+                terms: '@mattermost ',
+            });
             compareStore.dispatch(batchActions([
-                {
-                    type: ActionTypes.UPDATE_RHS_SEARCH_TERMS,
-                    terms: '@mattermost ',
-                },
                 {
                     type: ActionTypes.UPDATE_RHS_STATE,
                     state: RHSStates.MENTION,
+                },
+                {
+                    type: ActionTypes.SET_MENTION_RHS_PANEL,
+                    panel: 'activity',
                 },
             ]));
 

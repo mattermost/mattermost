@@ -60,6 +60,21 @@
             inset 0 0 0 2px var(--sidebar-header-bg);
     }
 
+    &__unread {
+        position: absolute;
+        top: 4px;
+        right: 4px;
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--sidebar-text-active-border);
+        box-shadow: 0 0 0 1px var(--sidebar-header-bg);
+    }
+
+    &--unread {
+        position: relative;
+    }
+
     & > i {
         position: relative;
         display: inline-flex;

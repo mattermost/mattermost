@@ -5,15 +5,13 @@
         padding-top: 0;
     }
 
-    &__list {
-        padding: 0;
-        margin: 0;
-        list-style: none;
-    }
-
     &__item {
         padding: 0;
         margin: 0;
+
+        &--afterDate .RhsNotificationCard {
+            padding-top: 22px;
+        }
     }
 }
 
@@ -64,9 +62,13 @@
 
         .Button {
             padding: 4px 0;
+            font-size: 12px;
+            font-weight: 600;
+            white-space: nowrap;
 
             &:disabled {
                 cursor: not-allowed;
+                opacity: 0.5;
             }
         }
     }

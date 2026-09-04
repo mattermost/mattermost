@@ -12,7 +12,7 @@ import {getSearchMatches, getSearchResults} from 'mattermost-redux/selectors/ent
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {makeAddDateSeparatorsForSearchResults} from 'mattermost-redux/utils/post_list';
 
-import {setMentionRhsPanel} from 'actions/views/rhs';
+import {searchRecentMentions, setMentionRhsPanel} from 'actions/views/rhs';
 import {
     getSearchResultsTerms,
     getSearchResultsType,
@@ -94,7 +94,7 @@ function makeMapStateToProps() {
     };
 }
 
-const connector = connect(makeMapStateToProps, {setMentionRhsPanel});
+const connector = connect(makeMapStateToProps, {setMentionRhsPanel, searchRecentMentions});
 
 export type PropsFromRedux = ConnectedProps<typeof connector>;
 

@@ -2436,7 +2436,7 @@ function handlePlatformNotificationsClearedEvent(): ThunkActionFunc<void> {
 
 function handlePlatformNotificationsReplacedEvent(): ThunkActionFunc<void> {
     return async (doDispatch) => {
-        doDispatch(hydratePlatformNotificationActivity(true));
+        doDispatch(hydratePlatformNotificationActivity(true, true));
     };
 }
 

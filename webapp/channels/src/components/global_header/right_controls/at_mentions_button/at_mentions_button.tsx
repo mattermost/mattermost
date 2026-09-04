@@ -8,7 +8,7 @@ import {useDispatch, useSelector} from 'react-redux';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import {closeRightHandSide, showMentions} from 'actions/views/rhs';
-import {getRhsState} from 'selectors/rhs';
+import {getRhsState, hasUnreadPlatformNotifications} from 'selectors/rhs';
 
 import IconButton from 'components/global_header/header_icon_button';
 import KeyboardShortcutSequence, {KEYBOARD_SHORTCUTS} from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
@@ -21,6 +21,7 @@ const AtMentionsButton = (): JSX.Element => {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
     const rhsState = useSelector((state: GlobalState) => getRhsState(state));
+    const hasUnreadNotifications = useSelector(hasUnreadPlatformNotifications);
 
     const mentionButtonClick = (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
@@ -50,6 +51,7 @@ const AtMentionsButton = (): JSX.Element => {
             <IconButton
                 icon={'bell-outline'}
                 toggled={rhsState === RHSStates.MENTION}
+                unread={hasUnreadNotifications}
                 onClick={mentionButtonClick}
                 aria-expanded={rhsState === RHSStates.MENTION}
                 aria-controls='searchContainer' // Must be changed if the ID of the container changes

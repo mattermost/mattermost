@@ -225,6 +225,8 @@ export const ActionTypes = keyMirror({
     RECONCILE_PLATFORM_NOTIFICATIONS: null,
     REMOVE_PLATFORM_NOTIFICATION: null,
     MARK_PLATFORM_NOTIFICATION_READ: null,
+    MARK_PLATFORM_NOTIFICATION_UNREAD: null,
+    MARK_ALL_PLATFORM_NOTIFICATIONS_READ: null,
     CLEAR_PLATFORM_NOTIFICATIONS: null,
 
     SET_RHS_SIZE: null,
@@ -848,6 +850,7 @@ export const StoragePrefixes = {
     MARK_ALL_READ_WITHOUT_CONFIRM: 'mark_all_as_read_without_confirm',
     HAS_SEEN_FEATURE_TOAST: 'has_seen_feature_toast',
     PLATFORM_NOTIFICATION_ACTIVITY: 'platform_notification_activity_',
+    PLATFORM_NOTIFICATION_ACTIVITY_DISMISSED: 'platform_notification_activity_dismissed_',
 };
 
 export const LandingPreferenceTypes = {

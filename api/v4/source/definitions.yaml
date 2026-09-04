@@ -4555,6 +4555,8 @@ components:
           type: boolean
         is_direct_message:
           type: boolean
+        is_group_message:
+          type: boolean
         sender_user_id:
           type: string
         thread_root_id:

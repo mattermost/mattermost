@@ -30,6 +30,7 @@ func platformNotificationSliceColumns() []string {
 		"IsThreadReply",
 		"IsMention",
 		"IsDirectMessage",
+		"IsGroupMessage",
 		"SenderUserId",
 		"ThreadRootId",
 		"ReplyCount",
@@ -53,6 +54,7 @@ func platformNotificationToSlice(notification *model.PlatformNotification) []any
 		notification.IsThreadReply,
 		notification.IsMention,
 		notification.IsDirectMessage,
+		notification.IsGroupMessage,
 		notification.SenderUserId,
 		notification.ThreadRootId,
 		notification.ReplyCount,
@@ -86,6 +88,7 @@ func (s *SqlPlatformNotificationStore) Upsert(notification *model.PlatformNotifi
 			IsThreadReply = EXCLUDED.IsThreadReply,
 			IsMention = EXCLUDED.IsMention,
 			IsDirectMessage = EXCLUDED.IsDirectMessage,
+			IsGroupMessage = EXCLUDED.IsGroupMessage,
 			SenderUserId = EXCLUDED.SenderUserId,
 			ThreadRootId = EXCLUDED.ThreadRootId,
 			ReplyCount = EXCLUDED.ReplyCount,
@@ -191,10 +194,12 @@ func (s *SqlPlatformNotificationStore) trimToMaxPerUser(userID string) error {
 	query, args, err := s.getQueryBuilder().
 		Delete("UserPlatformNotifications").
 		Where(sq.Expr(`UserId = ? AND Id IN (
-			SELECT Id FROM UserPlatformNotifications
-			WHERE UserId = ?
-			ORDER BY RecordedAt DESC
-			OFFSET ?
+			SELECT Id FROM (
+				SELECT Id FROM UserPlatformNotifications
+				WHERE UserId = ?
+				ORDER BY RecordedAt DESC
+				OFFSET ?
+			) AS stale_notifications
 		)`, userID, userID, model.PlatformNotificationMaxPerUser)).
 		ToSql()
 	if err != nil {

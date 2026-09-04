@@ -12,6 +12,7 @@ CREATE TABLE IF NOT EXISTS userplatformnotifications (
     isthreadreply boolean NOT NULL DEFAULT false,
     ismention boolean NOT NULL DEFAULT false,
     isdirectmessage boolean NOT NULL DEFAULT false,
+    isgroupmessage boolean NOT NULL DEFAULT false,
     senderuserid VARCHAR(26),
     threadrootid VARCHAR(26),
     replycount integer,

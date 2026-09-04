@@ -15,6 +15,7 @@ import type {SidebarSize} from 'components/resizable_sidebar/constants';
 
 import {PostTypes, RHSStates, StoragePrefixes} from 'utils/constants';
 import {sortPlatformNotificationsByRecency} from 'utils/platform_notification_activity_merge';
+import {isPlatformNotificationMarkedRead} from 'utils/platform_notification_unread';
 import {localizeMessage} from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
@@ -249,4 +250,8 @@ export function getMentionRhsPanel(state: GlobalState) {
 export function getPlatformNotifications(state: GlobalState): PlatformNotificationRecord[] {
     const notifications = state.views.rhs.platformNotifications || [];
     return sortPlatformNotificationsByRecency(notifications);
+}
+
+export function hasUnreadPlatformNotifications(state: GlobalState): boolean {
+    return getPlatformNotifications(state).some((record) => !isPlatformNotificationMarkedRead(record));
 }

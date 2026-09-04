@@ -24,6 +24,7 @@ type PlatformNotification struct {
 	IsThreadReply      bool        `json:"is_thread_reply"`
 	IsMention          bool        `json:"is_mention,omitempty"`
 	IsDirectMessage    bool        `json:"is_direct_message,omitempty"`
+	IsGroupMessage     bool        `json:"is_group_message,omitempty"`
 	SenderUserId       string      `json:"sender_user_id,omitempty"`
 	ThreadRootId       string      `json:"thread_root_id,omitempty"`
 	ReplyCount         int         `json:"reply_count,omitempty"`

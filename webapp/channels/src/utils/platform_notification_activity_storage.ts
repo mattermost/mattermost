@@ -14,8 +14,75 @@ import {PLATFORM_NOTIFICATION_ACTIVITY_MAX, StoragePrefixes} from 'utils/constan
 import type {GlobalState} from 'types/store';
 import type {PlatformNotificationRecord} from 'types/store/rhs';
 
+const DISMISSED_POST_ID_MAX = 1000;
+
+export type DismissedPlatformNotifications = {
+    postIds: string[];
+    clearedBefore: number;
+};
+
 function getStorageKey(userId: string): string {
     return `${StoragePrefixes.PLATFORM_NOTIFICATION_ACTIVITY}${userId}`;
+}
+
+function getDismissedStorageKey(userId: string): string {
+    return `${StoragePrefixes.PLATFORM_NOTIFICATION_ACTIVITY_DISMISSED}${userId}`;
+}
+
+export function readDismissedPlatformNotifications(state: GlobalState, userId: string): DismissedPlatformNotifications {
+    const raw = LocalStorageStore.getItem(getDismissedStorageKey(userId), state);
+    if (!raw || raw === 'null') {
+        return {postIds: [], clearedBefore: 0};
+    }
+    try {
+        const parsed: unknown = JSON.parse(raw);
+        if (!parsed || typeof parsed !== 'object') {
+            return {postIds: [], clearedBefore: 0};
+        }
+        const o = parsed as Record<string, unknown>;
+        const postIds = Array.isArray(o.postIds) ? o.postIds.filter((id): id is string => typeof id === 'string') : [];
+        const clearedBefore = typeof o.clearedBefore === 'number' ? o.clearedBefore : 0;
+        return {postIds, clearedBefore};
+    } catch {
+        return {postIds: [], clearedBefore: 0};
+    }
+}
+
+export function rememberDismissedPlatformNotifications(
+    state: GlobalState,
+    postIds: string[],
+    clearedBefore = 0,
+): void {
+    const userId = getCurrentUserId(state);
+    if (!userId) {
+        return;
+    }
+
+    const current = readDismissedPlatformNotifications(state, userId);
+    const next: DismissedPlatformNotifications = {
+        postIds: [...new Set([...current.postIds, ...postIds.filter(Boolean)])].slice(-DISMISSED_POST_ID_MAX),
+        clearedBefore: Math.max(current.clearedBefore, clearedBefore),
+    };
+    LocalStorageStore.setItem(getDismissedStorageKey(userId), JSON.stringify(next));
+}
+
+export function isPlatformNotificationDismissed(
+    state: GlobalState,
+    postId: string,
+    createdAt: number,
+    extraIds: Array<string | undefined> = [],
+): boolean {
+    const userId = getCurrentUserId(state);
+    if (!userId) {
+        return false;
+    }
+
+    const dismissed = readDismissedPlatformNotifications(state, userId);
+    if (createdAt > 0 && createdAt <= dismissed.clearedBefore) {
+        return true;
+    }
+
+    return [postId, ...extraIds].some((id) => Boolean(id && dismissed.postIds.includes(id)));
 }
 
 function isValidPlatformNotificationRecord(v: unknown): v is PlatformNotificationRecord {
@@ -162,8 +229,20 @@ export async function migrateLocalPlatformNotificationsToServer(state: GlobalSta
     return localRecords;
 }
 
-export function syncPlatformNotificationActivityToStorage(): void {
-    // Deprecated: notifications are persisted on the server.
+export function writePlatformNotificationActivityToStorage(state: GlobalState, records: PlatformNotificationRecord[]): void {
+    const userId = getCurrentUserId(state);
+    if (!userId) {
+        return;
+    }
+
+    LocalStorageStore.setItem(
+        getStorageKey(userId),
+        JSON.stringify(records.slice(0, PLATFORM_NOTIFICATION_ACTIVITY_MAX)),
+    );
+}
+
+export function syncPlatformNotificationActivityToStorage(state: GlobalState, records: PlatformNotificationRecord[]): void {
+    writePlatformNotificationActivityToStorage(state, records);
 }
 
 export async function syncPlatformNotificationActivityToServer(state: GlobalState, records: PlatformNotificationRecord[]): Promise<void> {

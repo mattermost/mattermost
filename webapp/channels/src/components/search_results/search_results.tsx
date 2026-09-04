@@ -6,8 +6,6 @@ import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {useIntl, FormattedMessage, defineMessage} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
-import {PlaylistCheckIcon} from '@mattermost/compass-icons/components';
-import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {FileSearchResultItem as FileSearchResultItemType} from '@mattermost/types/files';
 import type {Post} from '@mattermost/types/posts';
 
@@ -17,7 +15,8 @@ import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {isDateLine, getDateForDateLine} from 'mattermost-redux/utils/post_list';
 
-import {clearAllPlatformNotificationRecords} from 'actions/views/rhs';
+import {markAllPlatformNotificationsAsRead} from 'actions/views/rhs';
+
 import {getFilesDropdownPluginMenuItems} from 'selectors/plugins';
 import {getSearchTeam} from 'selectors/rhs';
 
@@ -37,6 +36,7 @@ import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
 
 import {searchHintOptions, DataSearchTypes, RHSStates} from 'utils/constants';
 import {isFileAttachmentsEnabled} from 'utils/file_utils';
+import {isPlatformNotificationMarkedRead} from 'utils/platform_notification_unread';
 import {popoutRhsSearch} from 'utils/popouts/popout_windows';
 
 import type {RhsState, SearchType} from 'types/store/rhs';
@@ -82,13 +82,13 @@ interface NoResultsProps {
 const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
     const scrollbars = useRef<HTMLDivElement>(null);
     const [searchType, setSearchType] = useState<string>(props.searchType);
-    const dispatch = useDispatch();
     const filesDropdownPluginMenuItems = useSelector(getFilesDropdownPluginMenuItems);
     const config = useSelector(getConfig);
     const currentChannel = useSelector(getCurrentChannel);
     const currentTeam = useSelector(getCurrentTeam);
     const searchTeamId = useSelector(getSearchTeam);
     const intl = useIntl();
+    const dispatch = useDispatch();
 
     useEffect(() => {
         if (props.searchFilterType !== 'all') {
@@ -179,6 +179,7 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
         mentionRhsPanel,
         platformNotifications,
         setMentionRhsPanel,
+        searchRecentMentions,
     } = props;
 
     const noResults = (!results || !Array.isArray(results) || results.length === 0);
@@ -277,6 +278,7 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
     const formattedTitle = intl.formatMessage(titleDescriptor);
 
     const isMentionActivityPanel = isMentionSearch && mentionRhsPanel === 'activity';
+    const hasUnreadActivity = platformNotifications.some((record) => !isPlatformNotificationMarkedRead(record));
 
     const handleOptionSelection = (term: string): void => {
         handleSearchHintSelection?.();
@@ -433,7 +435,9 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
                 <h2 id='rhsPanelTitle'>
                     {formattedTitle}
                 </h2>
-                {props.channelDisplayName && <div className='sidebar--right__title__channel'>{props.channelDisplayName}</div>}
+                {props.channelDisplayName && !isMentionSearch && (
+                    <div className='sidebar--right__title__channel'>{props.channelDisplayName}</div>
+                )}
             </SearchResultsHeader>
             {isMentionSearch && (
                 <Header
@@ -471,7 +475,10 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
                                     role='tab'
                                     aria-controls='mentionSidebarTabPanel'
                                     aria-selected={mentionRhsPanel === 'mentions'}
-                                    onClick={() => setMentionRhsPanel('mentions')}
+                                    onClick={() => {
+                                        setMentionRhsPanel('mentions');
+                                        searchRecentMentions();
+                                    }}
                                 >
                                     <FormattedMessage
                                         id='search_header.notifications_tab.mentions'
@@ -481,30 +488,19 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
                             </div>
                         </div>
                     )}
-                    right={mentionRhsPanel === 'activity' ? (
+                    right={isMentionActivityPanel ? (
                         <div className='right-anchor'>
-                            <WithTooltip
-                                title={intl.formatMessage({
-                                    id: 'rhs_notification_activity.clear_all',
-                                    defaultMessage: 'Clear all notifications',
-                                })}
+                            <ThreadTabButton
+                                id='mentionSidebarMarkAllAsRead'
+                                className='Button___large'
+                                disabled={!hasUnreadActivity}
+                                onClick={() => dispatch(markAllPlatformNotificationsAsRead())}
                             >
-                                <ThreadTabButton
-                                    id='notification-activity-clear-all'
-                                    aria-label={intl.formatMessage({
-                                        id: 'rhs_notification_activity.clear_all',
-                                        defaultMessage: 'Clear all notifications',
-                                    })}
-                                    className='Button___large Button___icon'
-                                    marginTop={true}
-                                    disabled={platformNotifications.length === 0}
-                                    onClick={() => dispatch(clearAllPlatformNotificationRecords())}
-                                >
-                                    <span className='icon'>
-                                        <PlaylistCheckIcon size={18}/>
-                                    </span>
-                                </ThreadTabButton>
-                            </WithTooltip>
+                                <FormattedMessage
+                                    id='rhs_notification_activity.mark_all_as_read'
+                                    defaultMessage='Mark all as read'
+                                />
+                            </ThreadTabButton>
                         </div>
                     ) : undefined}
                 />

@@ -513,6 +513,18 @@ function platformNotifications(state: PlatformNotificationRecord[] = [], action:
             record.id === id ? {...record, readAt} : record
         ));
     }
+    case ActionTypes.MARK_PLATFORM_NOTIFICATION_UNREAD: {
+        const id = (action as unknown as {data: string}).data;
+        return state.map((record) => (
+            record.id === id ? {...record, readAt: undefined} : record
+        ));
+    }
+    case ActionTypes.MARK_ALL_PLATFORM_NOTIFICATIONS_READ: {
+        const readAt = (action as unknown as {data: number}).data;
+        return state.map((record) => (
+            record.readAt && record.recordedAt <= record.readAt ? record : {...record, readAt}
+        ));
+    }
     case ActionTypes.CLEAR_PLATFORM_NOTIFICATIONS:
         return [];
     case UserTypes.LOGOUT_SUCCESS:
