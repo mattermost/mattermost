@@ -42,6 +42,7 @@ const (
 	DialogElementBoolMaxLength        = 150
 	DialogElementFileMaxLength        = 300
 	DefaultTimeIntervalMinutes        = 60 // Default time interval for DateTime fields
+	DialogCollapsibleMaxDepth         = 3  // Maximum levels of nested collapsible sections (top-level collapsible is depth 1)
 	MaxDialogFileIds                  = 10
 	// MaxDialogSubmissionIDShapedTokenScan bounds defense-in-depth scanning of
 	// request.Submission for ID-shaped tokens (file IDs, user/channel select values,
@@ -487,6 +488,15 @@ type DialogElement struct {
 	AllowMultiple bool                 `json:"allow_multiple,omitempty"`
 	Refresh       bool                 `json:"refresh,omitempty"`
 
+	// Collapsible section children; only used when Type is "collapsible".
+	Elements []DialogElement `json:"elements,omitempty"`
+	// Collapsed controls the initial open/closed state. The zero value (false)
+	// means the section starts expanded.
+	Collapsed bool `json:"collapsed,omitempty"`
+	// Borderless controls whether the section renders without a box outline. The
+	// zero value (false) means the section is bordered.
+	Borderless bool `json:"borderless,omitempty"`
+
 	// Date/datetime field configuration
 	DateTimeConfig *DialogDateTimeConfig `json:"datetime_config,omitempty"`
 
@@ -718,7 +728,7 @@ func (d *Dialog) IsValid() error {
 			}
 			elementMap[element.Name] = true
 
-			err := element.IsValid()
+			err := element.isValid(elementMap)
 			if err != nil {
 				multiErr = multierror.Append(multiErr, errors.Wrapf(err, "%q field is not valid", element.Name))
 			}
@@ -728,6 +738,17 @@ func (d *Dialog) IsValid() error {
 }
 
 func (e *DialogElement) IsValid() error {
+	seen := make(map[string]bool)
+	if e.Name != "" {
+		seen[e.Name] = true
+	}
+	return e.isValid(seen)
+}
+
+// isValid validates the element, threading a shared seen-name set through
+// recursive validation of collapsible children so duplicate names are detected
+// across the whole element tree, not just at the top level.
+func (e *DialogElement) isValid(seen map[string]bool) error {
 	var multiErr *multierror.Error
 	textSubTypes := map[string]bool{
 		"":         true,
@@ -739,20 +760,7 @@ func (e *DialogElement) IsValid() error {
 		"password": true,
 	}
 
-	if e.MinLength < 0 {
-		multiErr = multierror.Append(multiErr, errors.Errorf("min length cannot be a negative number, got %d", e.MinLength))
-	}
-	if e.MinLength > e.MaxLength {
-		multiErr = multierror.Append(multiErr, errors.Errorf("min length should be less then max length, got %d > %d", e.MinLength, e.MaxLength))
-	}
-
-	multiErr = multierror.Append(multiErr, checkMaxLength("DisplayName", e.DisplayName, DialogElementDisplayNameMaxLength))
-	multiErr = multierror.Append(multiErr, checkMaxLength("Name", e.Name, DialogElementNameMaxLength))
-	multiErr = multierror.Append(multiErr, checkMaxLength("HelpText", e.HelpText, DialogElementHelpTextMaxLength))
-
-	if e.MultiSelect && e.Type != "select" {
-		multiErr = multierror.Append(multiErr, errors.Errorf("multiselect can only be used with select elements, got type %q", e.Type))
-	}
+	multiErr = multierror.Append(multiErr, e.validateCommon())
 
 	if e.AllowMultiple && e.Type != "file" {
 		multiErr = multierror.Append(multiErr, errors.Errorf("allow_multiple can only be used with file elements, got type %q", e.Type))
@@ -837,6 +845,9 @@ func (e *DialogElement) IsValid() error {
 			}
 		}
 
+	case "collapsible":
+		multiErr = multierror.Append(multiErr, e.validateCollapsible(1, seen))
+
 	case "file":
 		multiErr = multierror.Append(multiErr, checkMaxLength("Placeholder", e.Placeholder, DialogElementFileMaxLength))
 		multiErr = multierror.Append(multiErr, checkMaxLength("Default", e.Default, DialogElementFileMaxLength))
@@ -879,6 +890,72 @@ func (e *DialogElement) IsValid() error {
 
 	default:
 		multiErr = multierror.Append(multiErr, errors.Errorf("invalid element type: %q", e.Type))
+	}
+
+	return multiErr.ErrorOrNil()
+}
+
+// validateCommon runs the field-level checks that apply to every element type,
+// independent of any type-specific rules. It is shared by both leaf elements
+// (via isValid) and nested collapsible sections (via validateCollapsible) so
+// that DisplayName/Name/HelpText, MinLength/MaxLength, and MultiSelect are
+// validated for every element in the tree.
+func (e *DialogElement) validateCommon() error {
+	var multiErr *multierror.Error
+
+	if e.MinLength < 0 {
+		multiErr = multierror.Append(multiErr, errors.Errorf("min length cannot be a negative number, got %d", e.MinLength))
+	}
+	if e.MinLength > e.MaxLength {
+		multiErr = multierror.Append(multiErr, errors.Errorf("min length should be less than max length, got %d > %d", e.MinLength, e.MaxLength))
+	}
+
+	multiErr = multierror.Append(multiErr, checkMaxLength("DisplayName", e.DisplayName, DialogElementDisplayNameMaxLength))
+	multiErr = multierror.Append(multiErr, checkMaxLength("Name", e.Name, DialogElementNameMaxLength))
+	multiErr = multierror.Append(multiErr, checkMaxLength("HelpText", e.HelpText, DialogElementHelpTextMaxLength))
+
+	if e.MultiSelect && e.Type != "select" {
+		multiErr = multierror.Append(multiErr, errors.Errorf("multiselect can only be used with select elements, got type %q", e.Type))
+	}
+
+	return multiErr.ErrorOrNil()
+}
+
+// validateCollapsible validates a collapsible element and its children, enforcing
+// the maximum nesting depth. depth is the level of this collapsible, where a
+// top-level collapsible is depth 1.
+func (e *DialogElement) validateCollapsible(depth int, seen map[string]bool) error {
+	var multiErr *multierror.Error
+
+	if len(e.Elements) == 0 {
+		multiErr = multierror.Append(multiErr, errors.New("collapsible element must have at least one child element"))
+	}
+
+	for i, child := range e.Elements {
+		if seen[child.Name] {
+			multiErr = multierror.Append(multiErr, errors.Errorf("duplicate dialog element %q", child.Name))
+		}
+		seen[child.Name] = true
+
+		if child.Type == "collapsible" {
+			// Nested collapsibles are validated directly (rather than via
+			// isValid) to preserve depth tracking, so run the common
+			// field-level checks here that isValid would otherwise apply.
+			if err := child.validateCommon(); err != nil {
+				multiErr = multierror.Append(multiErr, errors.Wrapf(err, "%q child element is not valid", child.Name))
+			}
+			if depth >= DialogCollapsibleMaxDepth {
+				multiErr = multierror.Append(multiErr, errors.Errorf("collapsible nesting exceeds maximum depth of %d (child %q at index %d)", DialogCollapsibleMaxDepth, child.Name, i))
+				continue
+			}
+			if err := child.validateCollapsible(depth+1, seen); err != nil {
+				multiErr = multierror.Append(multiErr, errors.Wrapf(err, "%q child element is not valid", child.Name))
+			}
+			continue
+		}
+		if err := child.isValid(seen); err != nil {
+			multiErr = multierror.Append(multiErr, errors.Wrapf(err, "%q child element is not valid", child.Name))
+		}
 	}
 
 	return multiErr.ErrorOrNil()

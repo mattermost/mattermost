@@ -12,7 +12,7 @@ import {getTeammateNameDisplaySetting} from 'mattermost-redux/selectors/entities
 import {autocompleteChannels} from 'actions/channel_actions';
 import {autocompleteUsers} from 'actions/user_actions';
 
-import AppsFormField from './apps_form_field';
+import AppsFormField, {type Props} from './apps_form_field';
 
 function mapStateToProps(state: GlobalState) {
     return {
@@ -29,4 +29,8 @@ function mapDispatchToProps(dispatch: Dispatch) {
     };
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(AppsFormField);
+type StateProps = ReturnType<typeof mapStateToProps>;
+type DispatchProps = ReturnType<typeof mapDispatchToProps>;
+type OwnProps = Omit<Props, keyof StateProps | keyof DispatchProps>;
+
+export default connect<StateProps, DispatchProps, OwnProps, GlobalState>(mapStateToProps, mapDispatchToProps)(AppsFormField);
