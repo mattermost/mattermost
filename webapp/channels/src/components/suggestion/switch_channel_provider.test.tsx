@@ -1549,6 +1549,60 @@ describe('components/SwitchChannelProvider', () => {
             expect(mergedResults.terms).toContain('hidden_gm_channel');
             expect(mergedResults.terms.indexOf('hidden_gm_channel')).toBeGreaterThan(mergedResults.terms.indexOf('gm_channel_0'));
         });
+
+        describe('developer-mode ranking debug log', () => {
+            let groupCollapsed: jest.SpyInstance;
+            let table: jest.SpyInstance;
+            let groupEnd: jest.SpyInstance;
+
+            beforeEach(() => {
+                groupCollapsed = jest.spyOn(console, 'groupCollapsed').mockImplementation(() => {});
+                table = jest.spyOn(console, 'table').mockImplementation(() => {});
+                groupEnd = jest.spyOn(console, 'groupEnd').mockImplementation(() => {});
+            });
+
+            afterEach(() => {
+                groupCollapsed.mockRestore();
+                table.mockRestore();
+                groupEnd.mockRestore();
+            });
+
+            function withDeveloperMode(state: ReturnType<typeof makeState>, enabled: boolean) {
+                return {
+                    ...state,
+                    entities: {
+                        ...state.entities,
+                        general: {
+                            ...state.entities.general,
+                            config: {...state.entities.general.config, EnableDeveloper: enabled ? 'true' : 'false'},
+                        },
+                    },
+                };
+            }
+
+            it('does not log ranking information when developer mode is disabled', async () => {
+                await search('delp', withDeveloperMode(makeState({existingDmLastViewedAt: 1}), false));
+
+                expect(table).not.toHaveBeenCalled();
+                expect(groupCollapsed).not.toHaveBeenCalled();
+            });
+
+            it('logs a ranking breakdown for each result list when developer mode is enabled', async () => {
+                await search('delp', withDeveloperMode(makeState({existingDmLastViewedAt: 1}), true));
+
+                // A breakdown is logged for both lists provided to the user: the local results and
+                // then the combined local + remote results
+                expect(table).toHaveBeenCalledTimes(2);
+
+                const loggedRows = table.mock.calls[table.mock.calls.length - 1][0];
+                const dmRow = loggedRows.find((row: {term: string}) => row.term === delphine.id);
+
+                // The breakdown shows why the direct message leads: it is a prefix match (no penalty)
+                // and a direct message (no type penalty), so the ordering is explainable at a glance
+                expect(dmRow).toMatchObject({type: Constants.DM_CHANNEL, nonPrefixMatch: 0, conversationType: 0});
+                expect(dmRow.rank).toBe(Math.min(...loggedRows.map((row: {rank: number}) => row.rank)));
+            });
+        });
     });
 
     describe('makeQuickSwitchSorter', () => {

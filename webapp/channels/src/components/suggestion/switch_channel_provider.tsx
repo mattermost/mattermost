@@ -31,7 +31,7 @@ import {
     getAllTeamsUnreadChannelIds,
     getMyPendingJoinRequestsByChannel,
 } from 'mattermost-redux/selectors/entities/channels';
-import {getConfig, isDiscoverableChannelsEnabled} from 'mattermost-redux/selectors/entities/general';
+import {getConfig, isDiscoverableChannelsEnabled, developerModeEnabled} from 'mattermost-redux/selectors/entities/general';
 import {getMyPreferences, isGroupChannelManuallyVisible, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {
     getActiveTeamsList,
@@ -580,17 +580,53 @@ function typeRankPenalty(channel: ChannelItem) {
     return CHANNEL_RANK_PENALTY;
 }
 
-function searchRank(wrapped: WrappedChannel, searchTerm: string) {
+function rankPenalties(wrapped: WrappedChannel, searchTerm: string) {
     const channel = wrapped.channel;
 
-    return (
-        (channel.delete_at ? ARCHIVED_RANK_PENALTY : 0) +
-        (wrapped.deactivated ? DEACTIVATED_RANK_PENALTY : 0) +
-        activityRankPenalty(wrapped) +
-        (startsWithSearchTerm(wrapped, searchTerm) ? 0 : NON_PREFIX_MATCH_RANK_PENALTY) +
-        typeRankPenalty(channel) +
-        (wrapped.hiddenInSidebar ? HIDDEN_IN_SIDEBAR_RANK_PENALTY : 0)
-    );
+    return {
+        archived: channel.delete_at ? ARCHIVED_RANK_PENALTY : 0,
+        deactivated: wrapped.deactivated ? DEACTIVATED_RANK_PENALTY : 0,
+        activity: activityRankPenalty(wrapped),
+        nonPrefixMatch: startsWithSearchTerm(wrapped, searchTerm) ? 0 : NON_PREFIX_MATCH_RANK_PENALTY,
+        type: typeRankPenalty(channel),
+        hiddenInSidebar: wrapped.hiddenInSidebar ? HIDDEN_IN_SIDEBAR_RANK_PENALTY : 0,
+    };
+}
+
+function searchRank(wrapped: WrappedChannel, searchTerm: string) {
+    const penalties = rankPenalties(wrapped, searchTerm);
+
+    return penalties.archived +
+        penalties.deactivated +
+        penalties.activity +
+        penalties.nonPrefixMatch +
+        penalties.type +
+        penalties.hiddenInSidebar;
+}
+
+// Builds the per-result ranking breakdown that the developer-mode debug log renders. Rank is
+// additive and lower sorts first; each field is the penalty that reason contributed, and
+// last_viewed_at is the recency tie-breaker used within a rank tier.
+function rankingDebugRows(searchTerm: string, items: WrappedChannel[]) {
+    const normalizedTerm = normalizeSearchTerm(searchTerm);
+
+    return items.map((wrapped) => {
+        const penalties = rankPenalties(wrapped, normalizedTerm);
+
+        return {
+            name: wrapped.channel.display_name || wrapped.name,
+            term: getWrappedChannelTerm(wrapped),
+            type: wrapped.channel.type,
+            rank: searchRank(wrapped, normalizedTerm),
+            archived: penalties.archived,
+            deactivated: penalties.deactivated,
+            activity: penalties.activity,
+            nonPrefixMatch: penalties.nonPrefixMatch,
+            conversationType: penalties.type,
+            hiddenInSidebar: penalties.hiddenInSidebar,
+            last_viewed_at: wrapped.last_viewed_at ? new Date(wrapped.last_viewed_at).toISOString() : 'never',
+        };
+    });
 }
 
 export function makeQuickSwitchSorter(searchTerm: string) {
@@ -671,6 +707,23 @@ function makeChannelSearchFilter(curState: GlobalState, channelPrefix: string) {
 export default class SwitchChannelProvider extends Provider {
     store = globalStore;
 
+    // Logs why a result list is ranked the way it is, but only when developer mode is enabled so it
+    // stays out of the way for regular users. Reviewers use it to explain quick switcher ordering
+    // without stepping through a debugger.
+    private logRankingDebug(searchTerm: string, items: WrappedChannel[], source: string) {
+        if (!developerModeEnabled(this.store.getState())) {
+            return;
+        }
+
+        const rows = rankingDebugRows(searchTerm, items);
+
+        /* eslint-disable no-console */
+        console.groupCollapsed(`[QuickSwitcher] "${searchTerm}" — ${source} results (${rows.length}), ranked lowest first`);
+        console.table(rows);
+        console.groupEnd();
+        /* eslint-enable no-console */
+    }
+
     /**
      * whenever this gets adjusted/refactored to not call the callback twice we need to adjust the behavior in
      * the ForwardPostChannelSelect component as well.
@@ -690,6 +743,7 @@ export default class SwitchChannelProvider extends Provider {
             const users = searchProfilesMatchingWithTerm(this.store.getState(), channelPrefix, false);
             const formattedData = this.formatGroup(channelPrefix, [ThreadsChannel, ...channels], users, true);
             if (formattedData) {
+                this.logRankingDebug(channelPrefix, formattedData.items, 'local');
                 resultsCallback(this.initialFilteredList(channelPrefix, formattedData));
             }
 
@@ -786,6 +840,8 @@ export default class SwitchChannelProvider extends Provider {
         // below every local match however well it matches the search term
         const combinedItems = [...localFormattedData.items, ...remoteOnlyItems].sort(makeQuickSwitchSorter(channelPrefix));
         const combinedTerms = combinedItems.map(getWrappedChannelTerm);
+
+        this.logRankingDebug(channelPrefix, combinedItems, 'local + remote');
 
         resultsCallback({
             matchedPretext: channelPrefix,
