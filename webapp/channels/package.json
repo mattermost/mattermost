@@ -58,6 +58,7 @@
     "html-to-react": "1.6.0",
     "ipaddr.js": "2.1.0",
     "katex": "0.16.21",
+    "libphonenumber-js": "1.11.20",
     "localforage": "1.10.0",
     "localforage-observable": "2.1.1",
     "lodash": "4.18.1",

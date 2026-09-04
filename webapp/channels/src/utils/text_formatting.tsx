@@ -3,6 +3,7 @@
 
 import emojiRegex from 'emoji-regex';
 import type {Renderer} from 'marked';
+import {parsePhoneNumber, type CountryCode} from 'libphonenumber-js/min';
 
 import type {SystemEmoji} from '@mattermost/types/emojis';
 import {isRecordOf} from '@mattermost/types/utilities';
@@ -206,6 +207,20 @@ export interface TextFormattingOptionsBase {
      * Whether or not to render text emoticons (:D) as emojis
      */
     renderEmoticonsAsEmoji: boolean;
+
+    /**
+     * Whether to auto-link international phone numbers (starting with +) as tel: links.
+     *
+     * Defaults to `false`.
+     */
+    enablePhoneNumberAutolinkingInternational: boolean;
+
+    /**
+     * Whether to auto-link North American 10-digit phone numbers as tel: links.
+     *
+     * Defaults to `false`.
+     */
+    enablePhoneNumberAutolinkingNorthAmerican: boolean;
 }
 
 export type TextFormattingOptions = Partial<TextFormattingOptionsBase>;
@@ -364,6 +379,16 @@ export function doFormatText(text: string, options: TextFormattingOptions, emoji
         }
 
         output = autolinkEmails(output, tokens);
+
+        if (options.enablePhoneNumberAutolinkingInternational || options.enablePhoneNumberAutolinkingNorthAmerican) {
+            output = autolinkPhoneNumbers(
+                output,
+                tokens,
+                options.enablePhoneNumberAutolinkingInternational ?? false,
+                options.enablePhoneNumberAutolinkingNorthAmerican ?? false,
+            );
+        }
+
         output = autolinkHashtags(output, tokens, options.minimumHashtagLength);
 
         if (!('emoticons' in options) || options.emoticons) {
@@ -436,6 +461,69 @@ function autolinkEmails(text: string, tokens: Tokens) {
     }
 
     return text.replace(emailRegex, replaceEmailWithToken);
+}
+
+// Matches international phone numbers starting with +, followed by digits/separators.
+// The prefix group prevents matching numbers embedded in words.
+// libphonenumber-js validates whether the candidate is a real dialable number.
+// eslint-disable-next-line no-useless-escape
+const internationalPhoneRegex = /(^|[^\p{L}\d])(\+\d[\d\s\-\.\(\)]{5,20})(?=$|[^\d\p{L}])/gu;
+
+// Matches North American phone numbers: optional 1- prefix, area code, exchange, subscriber.
+// Excludes 7-digit numbers (no area code) because the pattern requires three digit groups.
+// The negative look-behind (?<![+\d\p{L}]) excludes matches embedded in words or immediately
+// after digits. The second look-behind (?<!\+\d[\d\s\-.()*#]*) prevents matching the NA
+// portion of an international number (e.g. "555-123-4567" in "+1 555-123-4567").
+// eslint-disable-next-line no-useless-escape
+const northAmericanPhoneRegex = /(?<!\+\d[\d\s\-\.\(\)]*)(?<![+\d\p{L}])((?:1[\s\-\.]?)?\(?\d{3}\)?[\s\-\.]\d{3}[\s\-\.]\d{4})(?=$|[^\d\p{L}])/gu;
+
+function autolinkPhoneNumbers(
+    text: string,
+    tokens: Tokens,
+    enableInternational: boolean,
+    enableNorthAmerican: boolean,
+) {
+    function replacePhoneWithToken(
+        fullMatch: string,
+        prefix: string,
+        candidate: string,
+        defaultRegion?: CountryCode,
+    ) {
+        try {
+            const phoneNumber = parsePhoneNumber(candidate, defaultRegion);
+            if (!phoneNumber?.isPossible()) {
+                return fullMatch;
+            }
+
+            const index = tokens.size;
+            const alias = `$MM_PHONE${index}$`;
+
+            tokens.set(alias, {
+                value: `<a class="theme" href="${phoneNumber.getURI()}" rel="noreferrer">${candidate}</a>`,
+                originalText: candidate,
+            });
+
+            return prefix + alias;
+        } catch {
+            return fullMatch;
+        }
+    }
+
+    let output = text;
+
+    if (enableInternational) {
+        output = output.replace(internationalPhoneRegex, (fullMatch, prefix, candidate) =>
+            replacePhoneWithToken(fullMatch, prefix, candidate),
+        );
+    }
+
+    if (enableNorthAmerican) {
+        output = output.replace(northAmericanPhoneRegex, (fullMatch, candidate) =>
+            replacePhoneWithToken(fullMatch, '', candidate, 'US'),
+        );
+    }
+
+    return output;
 }
 
 export function autolinkAtMentions(text: string, tokens: Tokens): string {
