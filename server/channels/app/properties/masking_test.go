@@ -1328,9 +1328,7 @@ func TestMaskFieldOptions(t *testing.T) {
 // gates whether the caller may enumerate at all, and masking decides which
 // options on the page come back. This is a separate gate from
 // TestMaskFieldOptions because the paged listing reads options straight from
-// their own rows and reaches none of the inline-list filtering -- so this
-// generalizes filterSharedOnlyGraphOptionPage off graph-only and access_mode
-// onto every option-supporting type and masking.
+// their own rows and reaches none of the inline-list filtering.
 func TestMaskOptionPage(t *testing.T) {
 	th := Setup(t).RegisterCPAPropertyGroup(t)
 	alwaysAllow := func(_ request.CTX, _ string, _ *model.PropertyField, _, _ string) bool {

@@ -362,12 +362,9 @@ func (c maskingContext) visibleOptionIDs(h *AccessControlHook, rctx request.CTX,
 
 // maskFieldOptions returns a copy of field whose inline option list is
 // filtered to what callerID may see, given the masking fm already resolved
-// for it. Mirrors filterSharedOnlyFieldOptions's shape and Attrs handling
-// (access_control.go), using copyPropertyField and extractOptionIDList the
-// same way -- but never applies the rank ladder that function keeps for a
-// field with no permissions: a masked rank field's options are exact-option
-// membership, the same rule select and multiselect use, so
-// filterSharedOnlyRankFieldOptions is never called from here.
+// for it. A masked rank field's options are exact-option membership, the
+// same rule select and multiselect use, so this path never applies the
+// rank ladder.
 //
 // This runs only on the branch permissionsAllows already admitted for
 // option.read; a caller the gate refused never reaches it.
@@ -433,13 +430,8 @@ func (h *AccessControlHook) maskFieldOptions(rctx request.CTX, c maskingContext,
 
 // filterMaskedOptionPage keeps the options in one page of a masked field's
 // paged option listing that callerID may see, and strips each kept option's
-// parents. Generalizes filterSharedOnlyGraphOptionPage (access_control.go)
-// off graph-only and access_mode onto every option-supporting type and
-// masking, via visibleOptionIDs -- same page-not-reach framing (judging the
-// page bounds the work to the page size, where building the caller's full
-// reach walks the whole hierarchy), same parent-stripping reasoning (an
-// option's parent is by definition above it, so reporting it would hand a
-// caller who holds an option exactly the name masking withholds).
+// parents. Judging the page bounds the work to the page size; building the
+// caller's full reach would walk the whole hierarchy.
 //
 // A resolution failure is returned as an error rather than answered with an
 // empty page: every other masking path hides because it has nowhere to put a
@@ -466,8 +458,9 @@ func (h *AccessControlHook) filterMaskedOptionPage(rctx request.CTX, c maskingCo
 		if !visible[option.ID] {
 			continue
 		}
-		// See filterSharedOnlyGraphOptionPage for why parents come off: an absent
-		// parents key means "not reported", not "this is a root".
+		// A parent is above the kept option, so reporting it would name
+		// something masking withholds. Clearing Parents means "not reported",
+		// not "this is a root".
 		copied := *option
 		copied.Parents = nil
 		shown = append(shown, &copied)
