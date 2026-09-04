@@ -566,3 +566,14 @@ func TestOriginChecker(t *testing.T) {
 		require.Equalf(t, tc.Pass, res, "Test case (%d)", i)
 	}
 }
+
+func TestBuiltinAccessControlPropertyGroupVersion(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	group, appErr := th.App.GetPropertyGroup(th.Context, model.AccessControlPropertyGroupName)
+	require.Nil(t, appErr)
+	require.NotNil(t, group)
+	assert.True(t, group.IsPSAv3())
+	assert.Equal(t, model.PropertyGroupVersionV3, group.Version)
+}
