@@ -1721,6 +1721,45 @@ func TestCreatePostSilentQueryParam(t *testing.T) {
 	})
 }
 
+func TestPatchEditsMoreThanPinState(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	// Patches come from factories so that the expectation has its own pointees, which is what
+	// makes the non-mutation assertion below catch a mutated pointee and not just a reassigned field.
+	testCases := []struct {
+		name     string
+		newPatch func() model.PostPatch
+		expected bool
+	}{
+		{"empty patch", func() model.PostPatch { return model.PostPatch{} }, false},
+		{"pin state only", func() model.PostPatch { return model.PostPatch{IsPinned: new(true)} }, false},
+		{"unpin state only", func() model.PostPatch { return model.PostPatch{IsPinned: new(false)} }, false},
+		{"message", func() model.PostPatch { return model.PostPatch{Message: new("edited")} }, true},
+		{"props", func() model.PostPatch {
+			return model.PostPatch{Props: &model.StringInterface{"foo": "bar"}}
+		}, true},
+		{"file ids", func() model.PostPatch { return model.PostPatch{FileIds: &model.StringArray{"fileid"}} }, true},
+		{"has reactions", func() model.PostPatch { return model.PostPatch{HasReactions: new(true)} }, true},
+		{"message alongside pin state", func() model.PostPatch {
+			return model.PostPatch{IsPinned: new(true), Message: new("edited")}
+		}, true},
+		{"props alongside pin state", func() model.PostPatch {
+			return model.PostPatch{IsPinned: new(true), Props: &model.StringInterface{"foo": "bar"}}
+		}, true},
+		{"file ids alongside pin state", func() model.PostPatch {
+			return model.PostPatch{IsPinned: new(true), FileIds: &model.StringArray{"fileid"}}
+		}, true},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			patch := tc.newPatch()
+			require.Equal(t, tc.expected, patchEditsMoreThanPinState(&patch))
+			require.Equal(t, tc.newPatch(), patch, "the caller's patch must not be modified")
+		})
+	}
+}
+
 func TestUpdatePost(t *testing.T) {
 	mainHelper.Parallel(t)
 
@@ -1969,10 +2008,78 @@ func TestUpdatePost(t *testing.T) {
 			Message:   oldPost.Message,
 			IsPinned:  true,
 		}
+		updatedPost, _, err := client.UpdatePost(context.Background(), oldPost.Id, up)
+		require.NoError(t, err)
+		require.True(t, updatedPost.IsPinned)
+
+		storedPost, appErr := th.App.GetSinglePost(th.Context, oldPost.Id, false)
+		require.Nil(t, appErr)
+		require.True(t, storedPost.IsPinned)
+	})
+
+	t.Run("clear is_pinned but not message, post too old", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.PostEditTimeLimit = 1
+		})
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.PostEditTimeLimit = -1
+		})
+
+		oldPost, _, appErr := th.App.CreatePost(th.Context, &model.Post{
+			ChannelId: channel.Id,
+			Message:   "original message",
+			UserId:    th.BasicUser.Id,
+			IsPinned:  true,
+			CreateAt:  model.GetMillis() - 2000,
+		}, channel, model.CreatePostFlags{SetOnline: true})
+		require.Nil(t, appErr)
+
+		up := &model.Post{
+			Id:        oldPost.Id,
+			ChannelId: channel.Id,
+			Message:   oldPost.Message,
+			IsPinned:  false,
+		}
+		updatedPost, _, err := client.UpdatePost(context.Background(), oldPost.Id, up)
+		require.NoError(t, err)
+		require.False(t, updatedPost.IsPinned)
+
+		storedPost, appErr := th.App.GetSinglePost(th.Context, oldPost.Id, false)
+		require.Nil(t, appErr)
+		require.False(t, storedPost.IsPinned)
+	})
+
+	t.Run("change is_pinned and message, post too old", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.PostEditTimeLimit = 1
+		})
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.PostEditTimeLimit = -1
+		})
+
+		oldPost, _, appErr := th.App.CreatePost(th.Context, &model.Post{
+			ChannelId: channel.Id,
+			Message:   "original message",
+			UserId:    th.BasicUser.Id,
+			CreateAt:  model.GetMillis() - 2000,
+		}, channel, model.CreatePostFlags{SetOnline: true})
+		require.Nil(t, appErr)
+
+		up := &model.Post{
+			Id:        oldPost.Id,
+			ChannelId: channel.Id,
+			Message:   "edited message",
+			IsPinned:  true,
+		}
 		_, resp, err := client.UpdatePost(context.Background(), oldPost.Id, up)
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 		require.Equal(t, "api.post.update_post.permissions_time_limit.app_error", err.(*model.AppError).Id)
+
+		storedPost, appErr := th.App.GetSinglePost(th.Context, oldPost.Id, false)
+		require.Nil(t, appErr)
+		require.Equal(t, "original message", storedPost.Message)
+		require.False(t, storedPost.IsPinned)
 	})
 
 	t.Run("err with integrations-reserved props", func(t *testing.T) {
@@ -2885,10 +2992,44 @@ func TestPatchPost(t *testing.T) {
 		patch := &model.PostPatch{
 			IsPinned: new(true),
 		}
+		patchedPost, _, err := th.SystemAdminClient.PatchPost(context.Background(), oldPost.Id, patch)
+		require.NoError(t, err)
+		require.True(t, patchedPost.IsPinned)
+
+		storedPost, appErr := th.App.GetSinglePost(th.Context, oldPost.Id, false)
+		require.Nil(t, appErr)
+		require.True(t, storedPost.IsPinned)
+	})
+
+	t.Run("patch is_pinned along with message, time limit expired", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.PostEditTimeLimit = 1
+		})
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.PostEditTimeLimit = -1
+		})
+
+		oldPost := &model.Post{
+			ChannelId: channel.Id,
+			Message:   "original message",
+			CreateAt:  model.GetMillis() - 2000,
+		}
+		oldPost, _, err := th.SystemAdminClient.CreatePost(context.Background(), oldPost)
+		require.NoError(t, err)
+
+		patch := &model.PostPatch{
+			IsPinned: new(true),
+			Message:  new("edited message"),
+		}
 		_, resp, err := th.SystemAdminClient.PatchPost(context.Background(), oldPost.Id, patch)
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 		require.Equal(t, "api.post.update_post.permissions_time_limit.app_error", err.(*model.AppError).Id)
+
+		storedPost, appErr := th.App.GetSinglePost(th.Context, oldPost.Id, false)
+		require.Nil(t, appErr)
+		require.Equal(t, "original message", storedPost.Message)
+		require.False(t, storedPost.IsPinned)
 	})
 
 	t.Run("patch has_reactions only, time limit expired", func(t *testing.T) {
@@ -3110,12 +3251,57 @@ func TestPinPost(t *testing.T) {
 		}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, appErr)
 
-		resp, err := client.PinPost(context.Background(), oldPost.Id)
-		require.Error(t, err)
-		CheckBadRequestStatus(t, resp)
+		// Give the post a non-zero EditAt so that a pin clearing it would be caught below.
+		editedPost, _, appErr := th.App.PatchPost(th.Context, oldPost.Id, &model.PostPatch{
+			Message: new("edited message"),
+		}, &model.UpdatePostOptions{})
+		require.Nil(t, appErr)
+		require.NotZero(t, editedPost.EditAt)
+
+		_, err := client.PinPost(context.Background(), oldPost.Id)
+		require.NoError(t, err)
+
+		storedPost, appErr := th.App.GetSinglePost(th.Context, oldPost.Id, false)
+		require.Nil(t, appErr)
+		require.True(t, storedPost.IsPinned)
+		require.Equal(t, editedPost.EditAt, storedPost.EditAt, "pinning must not mark the post as edited")
 	})
 
-	t.Run("idempotent pin/unpin after time limit", func(t *testing.T) {
+	t.Run("pin another user's post after time limit", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.PostEditTimeLimit = 1
+		})
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.PostEditTimeLimit = -1
+		})
+
+		oldPost, _, appErr := th.App.CreatePost(th.Context, &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "original message",
+			UserId:    th.BasicUser.Id,
+			CreateAt:  model.GetMillis() - 2000,
+		}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
+		require.Nil(t, appErr)
+
+		th.LoginBasic2(t)
+		defer th.LoginBasic(t)
+
+		_, err := client.PinPost(context.Background(), oldPost.Id)
+		require.NoError(t, err)
+
+		storedPost, appErr := th.App.GetSinglePost(th.Context, oldPost.Id, false)
+		require.Nil(t, appErr)
+		require.True(t, storedPost.IsPinned)
+
+		_, err = client.UnpinPost(context.Background(), oldPost.Id)
+		require.NoError(t, err)
+
+		storedPost, appErr = th.App.GetSinglePost(th.Context, oldPost.Id, false)
+		require.Nil(t, appErr)
+		require.False(t, storedPost.IsPinned)
+	})
+
+	t.Run("no-op pin/unpin after time limit", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.PostEditTimeLimit = 1
 		})
@@ -3141,12 +3327,35 @@ func TestPinPost(t *testing.T) {
 		}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, appErr)
 
+		// Give both posts a non-zero EditAt so that a no-op clearing it would be caught below.
+		editedPinnedPost, _, appErr := th.App.PatchPost(th.Context, pinnedPost.Id, &model.PostPatch{
+			Message: new("edited message"),
+		}, &model.UpdatePostOptions{})
+		require.Nil(t, appErr)
+		require.NotZero(t, editedPinnedPost.EditAt)
+
+		editedUnpinnedPost, _, appErr := th.App.PatchPost(th.Context, unpinnedPost.Id, &model.PostPatch{
+			Message: new("edited message"),
+		}, &model.UpdatePostOptions{})
+		require.Nil(t, appErr)
+		require.NotZero(t, editedUnpinnedPost.EditAt)
+
 		// Both are no-ops and must succeed regardless of age.
 		_, err := client.PinPost(context.Background(), pinnedPost.Id)
 		require.NoError(t, err)
 
+		storedPost, appErr := th.App.GetSinglePost(th.Context, pinnedPost.Id, false)
+		require.Nil(t, appErr)
+		require.True(t, storedPost.IsPinned)
+		require.Equal(t, editedPinnedPost.EditAt, storedPost.EditAt, "a no-op pin must not mark the post as edited")
+
 		_, err = client.UnpinPost(context.Background(), unpinnedPost.Id)
 		require.NoError(t, err)
+
+		storedPost, appErr = th.App.GetSinglePost(th.Context, unpinnedPost.Id, false)
+		require.Nil(t, appErr)
+		require.False(t, storedPost.IsPinned)
+		require.Equal(t, editedUnpinnedPost.EditAt, storedPost.EditAt, "a no-op unpin must not mark the post as edited")
 	})
 
 	post := th.BasicPost
@@ -3198,9 +3407,20 @@ func TestUnpinPost(t *testing.T) {
 		}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, appErr)
 
-		resp, err := client.UnpinPost(context.Background(), oldPost.Id)
-		require.Error(t, err)
-		CheckBadRequestStatus(t, resp)
+		// Give the post a non-zero EditAt so that an unpin clearing it would be caught below.
+		editedPost, _, appErr := th.App.PatchPost(th.Context, oldPost.Id, &model.PostPatch{
+			Message: new("edited message"),
+		}, &model.UpdatePostOptions{})
+		require.Nil(t, appErr)
+		require.NotZero(t, editedPost.EditAt)
+
+		_, err := client.UnpinPost(context.Background(), oldPost.Id)
+		require.NoError(t, err)
+
+		storedPost, appErr := th.App.GetSinglePost(th.Context, oldPost.Id, false)
+		require.Nil(t, appErr)
+		require.False(t, storedPost.IsPinned)
+		require.Equal(t, editedPost.EditAt, storedPost.EditAt, "unpinning must not mark the post as edited")
 	})
 
 	pinnedPost := th.CreatePinnedPost(t)
