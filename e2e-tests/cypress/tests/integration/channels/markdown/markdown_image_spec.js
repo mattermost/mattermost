@@ -30,6 +30,9 @@ describe('Markdown', () => {
 
     const baseUrl = Cypress.config('baseUrl');
 
+    // Must match the image linked from markdown/markdown_inline_images_1.md
+    const inlineImageUrl = 'https://raw.githubusercontent.com/mattermost/mattermost/master/e2e-tests/cypress/tests/fixtures/mattermost-icon_128x128.png';
+
     it('with in-line images 1', () => {
         // #  Post markdown message
         cy.postMessageFromFile('markdown/markdown_inline_images_1.md');
@@ -44,11 +47,11 @@ describe('Markdown', () => {
                 should('have.class', 'markdown-inline-img').
                 and('have.class', 'markdown-inline-img--hover').
                 and('have.attr', 'alt', 'Build Status').
-                and('have.attr', 'src', `${baseUrl}/api/v4/image?url=https%3A%2F%2Fdocs.mattermost.com%2F_images%2Ficon-76x76.png`).
+                and('have.attr', 'src', `${baseUrl}/api/v4/image?url=${encodeURIComponent(inlineImageUrl)}`).
                 and((inlineImg) => {
-                    expect(inlineImg.height()).to.be.closeTo(76, 76);
+                    expect(inlineImg.height()).to.be.closeTo(128, 2);
                 }).
-                and('have.css', 'width', '76px');
+                and('have.css', 'width', '128px');
         });
     });
 
