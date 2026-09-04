@@ -362,10 +362,19 @@ func TestMaskConditionValues(t *testing.T) {
 
 	makeField := func(accessMode string, fieldType model.PropertyFieldType, options []any) *model.PropertyField {
 		attrs := model.StringInterface{model.PropertyAttrsAccessMode: accessMode}
+		if accessMode == model.PropertyAccessModeSourceOnly || accessMode == model.PropertyAccessModeSharedOnly {
+			attrs[model.PropertyAttrsProtected] = true
+		}
 		if options != nil {
 			attrs[model.PropertyFieldAttributeOptions] = options
 		}
-		return &model.PropertyField{Type: fieldType, Attrs: attrs}
+		field := &model.PropertyField{
+			Type:       fieldType,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			Attrs:      attrs,
+		}
+		field.Permissions = model.PermissionsFromLegacy(field, model.LegacyConversionOpts{ConvertAttrs: true})
+		return field
 	}
 
 	// hold wraps a field as its own holdings source with its own access mode —
@@ -494,10 +503,13 @@ func TestMaskConditionValues(t *testing.T) {
 			ValueType: model.LiteralValue,
 		}
 		fields := map[string]*maskingHoldings{
-			"user/Program": hold(&model.PropertyField{
-				Type:  model.PropertyFieldTypeSelect,
-				Attrs: model.StringInterface{model.PropertyAttrsAccessMode: "future_unknown_mode"},
-			}),
+			"user/Program": {
+				field: &model.PropertyField{
+					Type:  model.PropertyFieldTypeSelect,
+					Attrs: model.StringInterface{model.PropertyAttrsAccessMode: "future_unknown_mode"},
+				},
+				accessMode: "future_unknown_mode",
+			},
 		}
 		a.maskConditionValues(rctx, "caller", condition, "", fields)
 		assert.Nil(t, condition.Value)
@@ -593,7 +605,7 @@ func TestMaskConditionValues_SharedOnlyText(t *testing.T) {
 	})
 	require.Nil(t, appErr)
 
-	fieldsByName := map[string]*maskingHoldings{model.PropertyFieldObjectTypeUser + "/" + createdField.Name: {field: createdField, accessMode: createdField.GetAccessMode()}}
+	fieldsByName := map[string]*maskingHoldings{model.PropertyFieldObjectTypeUser + "/" + createdField.Name: {field: createdField, accessMode: model.PropertyAccessModeSharedOnly}}
 
 	t.Run("caller's own value passes through", func(t *testing.T) {
 		condition := &model.Condition{
@@ -1844,7 +1856,7 @@ func TestGetMaskedVisualAST_GraphWithheldOptionList(t *testing.T) {
 	}
 
 	fieldName := celSafeName()
-	field, sErr := th.Store.PropertyField().Create(&model.PropertyField{
+	graphField := &model.PropertyField{
 		GroupID:    groupID,
 		Name:       fieldName,
 		Type:       model.PropertyFieldTypeGraph,
@@ -1855,7 +1867,9 @@ func TestGetMaskedVisualAST_GraphWithheldOptionList(t *testing.T) {
 			model.PropertyAttrsProtected:        true,
 			model.PropertyAttrsAccessMode:       model.PropertyAccessModeSharedOnly,
 		},
-	})
+	}
+	graphField.Permissions = model.PermissionsFromLegacy(graphField, model.LegacyConversionOpts{ConvertAttrs: true})
+	field, sErr := th.Store.PropertyField().Create(graphField)
 	require.NoError(t, sErr)
 
 	//	Air Program ── Fighter Jet Program ── F-18 Program

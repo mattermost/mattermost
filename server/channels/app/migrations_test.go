@@ -471,7 +471,18 @@ func TestPropertyPermissionsBackfill_Idempotent(t *testing.T) {
 		TargetType: string(model.PropertyFieldTargetLevelSystem),
 	}, false, "")
 	require.Nil(t, appErr)
-	require.Nil(t, field.Permissions, "seed invariant: field must start with no permissions object")
+
+	// Create defaults a permissions object onto the row (including the
+	// ambient plugin * grant). Strip it so this test is actually exercising
+	// the backfill rather than the create path.
+	stored, storeErr := th.Store.PropertyField().Get(th.Context, group.ID, field.ID)
+	require.NoError(t, storeErr)
+	stored.Permissions = nil
+	_, storeErr = th.Store.PropertyField().Update(group.ID, []*model.PropertyField{stored}, nil)
+	require.NoError(t, storeErr)
+	stripped, storeErr := th.Store.PropertyField().Get(th.Context, group.ID, field.ID)
+	require.NoError(t, storeErr)
+	require.Nil(t, stripped.Permissions, "seed invariant: field must start the backfill with no permissions object")
 
 	err := th.Server.doSetupPropertyPermissionsBackfill(th.Context)
 	require.NoError(t, err)

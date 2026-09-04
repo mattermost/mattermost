@@ -236,6 +236,7 @@ func (f *sharedOnlyReadFixture) makeSharedOnly(t *testing.T) {
 	}
 	field.Attrs[model.PropertyAttrsProtected] = true
 	field.Attrs[model.PropertyAttrsAccessMode] = model.PropertyAccessModeSharedOnly
+	field.Permissions = model.PermissionsFromLegacy(field, model.LegacyConversionOpts{ConvertAttrs: true})
 
 	_, err = store.Update(f.groupID, []*model.PropertyField{field}, nil)
 	require.NoError(t, err)

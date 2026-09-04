@@ -1939,12 +1939,14 @@ func TestOwnerManagedCPAFieldHumanValueWrites(t *testing.T) {
 	})
 
 	t.Run("system admin cannot write own values on an owner-managed field", func(t *testing.T) {
+		// value.write is none on an owner-managed field, so the API permission
+		// layer refuses the sysadmin before the property-service hook runs.
 		_, resp, err := th.SystemAdminClient.PatchCPAValues(context.Background(), map[string]json.RawMessage{
 			created.ID: json.RawMessage(`"admin write"`),
 		})
 		CheckForbiddenStatus(t, resp)
 		require.Error(t, err)
-		CheckErrorID(t, err, "app.property.access_denied.app_error")
+		CheckErrorID(t, err, "api.property_value.patch.no_values_permission.app_error")
 	})
 
 	t.Run("system admin cannot write values for another user on an owner-managed field", func(t *testing.T) {
@@ -1953,7 +1955,7 @@ func TestOwnerManagedCPAFieldHumanValueWrites(t *testing.T) {
 		})
 		CheckForbiddenStatus(t, resp)
 		require.Error(t, err)
-		CheckErrorID(t, err, "app.property.access_denied.app_error")
+		CheckErrorID(t, err, "api.property_value.patch.no_values_permission.app_error")
 	})
 
 	// The machine-owner write path (a listed owner acting as a matching scope
