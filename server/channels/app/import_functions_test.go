@@ -1921,6 +1921,33 @@ func TestImportUserScopedMatching(t *testing.T) {
 		assert.Equal(t, savedDest.Username, updated.Username, "username should be preserved on auth_data match")
 	})
 
+	t.Run("SAML user matched by auth_data — live dest email preserved, not reverted to stale source value", func(t *testing.T) {
+		// SqlUserStore.Update only protects email on update for OAuth providers
+		// (gitlab/google/office365/openid) and effectively for LDAP (which rejects
+		// the whole update on an email mismatch) — SAML has no such protection at
+		// the store layer, so importUser itself must guard it.
+		authData := model.NewId()
+		savedDest := th.CreateUser(t)
+		_, err := th.App.Srv().Store().User().UpdateAuthData(savedDest.Id, model.UserAuthServiceSaml, &authData, savedDest.Email, false)
+		require.NoError(t, err)
+
+		staleSourceEmail := "stale-" + model.NewId() + "@example.com"
+		data := imports.UserImportData{
+			Username:    &savedDest.Username,
+			Email:       &staleSourceEmail,
+			AuthService: ptrStr(model.UserAuthServiceSaml),
+			AuthData:    &authData,
+		}
+		report := &imports.ImportReport{}
+		appErr := th.App.importUser(th.Context, &data, false, true, report)
+		require.Nil(t, appErr)
+
+		updated, err := th.App.Srv().Store().User().Get(th.Context, savedDest.Id)
+		require.NoError(t, err)
+		assert.Equal(t, savedDest.Email, updated.Email,
+			"live dest email must be preserved, not reverted to the stale source export's value")
+	})
+
 	t.Run("SSO user not matched by auth_data — deactivated shell created, report records mismatch", func(t *testing.T) {
 		authData := model.NewId() // no dest user has this auth_data
 		username := model.NewUsername()

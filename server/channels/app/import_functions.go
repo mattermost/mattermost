@@ -468,7 +468,14 @@ func (a *App) importUser(rctx request.CTX, data *imports.UserImportData, dryRun 
 		user.Username = *data.Username
 	}
 
-	if user.Email != *data.Email {
+	// When matched by auth_data, preserve the dest email for SAML the same way
+	// the store layer already does for OAuth providers (gitlab/google/office365/
+	// openid) and effectively does for LDAP (which rejects the whole update on an
+	// email mismatch) — SqlUserStore.Update has no equivalent protection for SAML.
+	// Without this, a live destination account's current email could be silently
+	// reverted to a stale value from the source export.
+	preserveEmailForSAML := matchedByAuthData && user.IsSAMLUser()
+	if !preserveEmailForSAML && user.Email != *data.Email {
 		hasUserChanged = true
 		hasUserEmailVerifiedChanged = true // Changing the email resets email verified to false by default.
 		user.Email = *data.Email
