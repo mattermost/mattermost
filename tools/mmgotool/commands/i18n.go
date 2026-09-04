@@ -125,24 +125,38 @@ func resolveSymlink(path string) string {
 	return path
 }
 
-func extractSrcStrings(enterpriseDir, mattermostDir, modelDir, pluginDir, portalDir string) map[string]bool {
+func extractSrcStrings(enterpriseDir, mattermostDir, modelDir, pluginDir, portalDir string) (map[string]bool, error) {
 	i18nStrings := map[string]bool{}
 	walkFunc := func(p string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
 		if strings.HasPrefix(p, path.Join(mattermostDir, "vendor")) {
 			return nil
 		}
-		return extractFromPath(p, info, err, i18nStrings)
+		return extractFromPath(p, i18nStrings)
 	}
 
+	dirs := []string{mattermostDir, enterpriseDir, modelDir, pluginDir}
 	if portalDir != "" {
-		_ = filepath.Walk(resolveSymlink(portalDir), walkFunc)
-	} else {
-		_ = filepath.Walk(resolveSymlink(mattermostDir), walkFunc)
-		_ = filepath.Walk(resolveSymlink(enterpriseDir), walkFunc)
-		_ = filepath.Walk(resolveSymlink(modelDir), walkFunc)
-		_ = filepath.Walk(resolveSymlink(pluginDir), walkFunc)
+		dirs = []string{portalDir}
 	}
-	return i18nStrings
+
+	for _, dir := range dirs {
+		resolved := resolveSymlink(dir)
+
+		// Optional source trees, such as the enterprise repository, may not be checked
+		// out alongside the server. Skip them instead of failing the extraction.
+		if _, err := os.Stat(resolved); errors.Is(err, os.ErrNotExist) {
+			continue
+		}
+
+		if err := filepath.Walk(resolved, walkFunc); err != nil {
+			return nil, fmt.Errorf("failed to walk %q: %w", dir, err)
+		}
+	}
+
+	return i18nStrings, nil
 }
 
 func extractCmdF(command *cobra.Command, args []string) (err error) {
@@ -182,7 +196,10 @@ func extractCmdF(command *cobra.Command, args []string) (err error) {
 		skipDynamic = true // dynamics are not needed for portal
 		translationDir = portalDir
 	}
-	i18nStrings := extractSrcStrings(enterpriseDir, mattermostDir, modelDir, pluginDir, portalDir)
+	i18nStrings, err := extractSrcStrings(enterpriseDir, mattermostDir, modelDir, pluginDir, portalDir)
+	if err != nil {
+		return err
+	}
 	if !skipDynamic {
 		addDynamicallyGeneratedStrings(i18nStrings)
 	}
@@ -280,7 +297,10 @@ func checkCmdF(command *cobra.Command, args []string) error {
 		translationDir = portalDir
 		skipDynamic = true // dynamics are not needed for portal
 	}
-	extractedSrcStrings := extractSrcStrings(enterpriseDir, mattermostDir, modelDir, pluginDir, portalDir)
+	extractedSrcStrings, err := extractSrcStrings(enterpriseDir, mattermostDir, modelDir, pluginDir, portalDir)
+	if err != nil {
+		return err
+	}
 	if !skipDynamic {
 		addDynamicallyGeneratedStrings(extractedSrcStrings)
 	}
@@ -503,7 +523,7 @@ func extractForConstants(name string, valueNode ast.Expr) *string {
 
 }
 
-func extractFromPath(path string, _ os.FileInfo, _ error, i18nStrings map[string]bool) error {
+func extractFromPath(path string, i18nStrings map[string]bool) error {
 	if strings.HasSuffix(path, "model/client4.go") {
 		return nil
 	}
@@ -519,7 +539,7 @@ func extractFromPath(path string, _ os.FileInfo, _ error, i18nStrings map[string
 
 	src, err := os.ReadFile(path)
 	if err != nil {
-		panic(err)
+		return fmt.Errorf("failed to read %q: %w", path, err)
 	}
 
 	fset := token.NewFileSet()
