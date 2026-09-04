@@ -3211,6 +3211,24 @@ func TestFilterConfig(t *testing.T) {
 		require.Equal(t, true, m["ServiceSettings"].(map[string]any)["EnableLocalMode"])
 	})
 
+	t.Run("helper pin of MaxUsersPerTeam 50 is not treated as the 2000 default", func(t *testing.T) {
+		cfg := &Config{}
+		cfg.SetDefaults()
+		*cfg.TeamSettings.MaxUsersPerTeam = 50
+
+		m, err := FilterConfig(cfg, ConfigFilterOptions{
+			GetConfigOptions: GetConfigOptions{
+				RemoveDefaults: true,
+			},
+		})
+		require.NoError(t, err)
+		ts, ok := m["TeamSettings"].(map[string]any)
+		require.True(t, ok)
+		require.EqualValues(t, 50, ts["MaxUsersPerTeam"])
+		_, ok = ts["MaxChannelsPerTeam"]
+		require.False(t, ok)
+	})
+
 	t.Run("should clear masked config values", func(t *testing.T) {
 		cfg := &Config{}
 		cfg.SetDefaults()
