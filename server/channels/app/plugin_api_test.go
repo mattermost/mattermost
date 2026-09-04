@@ -787,7 +787,7 @@ func TestPluginAPIHasPermissionToFileAction(t *testing.T) {
 
 	require.NoError(t, th.App.Srv().Store().SessionAttribute().Refresh(activeSession.Id, map[string]any{
 		model.SessionAttributesPropertyFieldIPAddress: "192.0.2.10",
-	}, model.GetMillis()))
+	}))
 
 	fileInfo, appErr := th.App.DoUploadFile(
 		th.Context,
