@@ -36,9 +36,9 @@ See the [supported SAML encryption methods](/administration-guide/configure/auth
 >
 > > - **RelayState**: leave blank
 > > - **Audience**: leave blank
-> > - **Recipient**: `https://&lt;your-mattermost-url&gt;/login/sso/saml` where `https://&lt;your-mattermost-url&gt;` should typically match the [Mattermost Site URL](/administration-guide/configure/environment-configuration-settings#site-url).
-> > - **ACS (Consumer) URL Validator**: `https:\/\/&lt;your-mattermost-url&gt;\/login\/sso\/saml`
-> > - **ACS (Consumer) URL**: `https://&lt;your-mattermost-url&gt;/login/sso/saml`
+> > - **Recipient**: `https://<your-mattermost-url>/login/sso/saml` where `https://<your-mattermost-url>` should typically match the [Mattermost Site URL](/administration-guide/configure/environment-configuration-settings#site-url).
+> > - **ACS (Consumer) URL Validator**: `https:\/\/<your-mattermost-url>\/login\/sso\/saml`
+> > - **ACS (Consumer) URL**: `https://<your-mattermost-url>/login/sso/saml`
 >
 > ![In OneLogin, select the Configuration tab to configure the SSO integration with required values.](/images/onelogin_3_configuration_1.png)
 >
@@ -140,7 +140,7 @@ See the [supported SAML encryption methods](/administration-guide/configure/auth
 2.  Configure Mattermost to verify the signature.
 
 > 1.  In the **Verify Signature** field, select **True**.
-> 2.  In the **Service Provider Login URL**, enter `https//&lt;your-mattermost-url&gt;/login/sso/saml`.
+> 2.  In the **Service Provider Login URL**, enter `https//<your-mattermost-url>/login/sso/saml`.
 >
 > ![On the System Console SAML page, enable the Verify Signature option by setting it to true, then enter your specific Service Provider Login URL based on your Mattermost URL](/images/okta_11_mattermost_verification.png)
 
