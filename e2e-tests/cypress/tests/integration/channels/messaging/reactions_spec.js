@@ -24,7 +24,9 @@ describe('Messaging', () => {
     // that fails before its own uiCloseRHS() would otherwise leave it open over the center channel
     // and take the rest of the file down with it, including its own retry.
     beforeEach(() => {
+        cy.get('body').type('{esc}');
         cy.uiCloseRHS();
+        cy.get('#post_textbox').should('be.visible');
     });
 
     it('MM-T2189 Emoji reaction - type +:+1:', () => {

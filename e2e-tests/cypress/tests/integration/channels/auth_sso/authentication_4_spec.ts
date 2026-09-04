@@ -205,15 +205,23 @@ describe('Authentication', () => {
             LdapSettings: {
                 Enable: false,
             },
+        }).then(({config}) => {
+            expect(config.TeamSettings.EnableUserCreation).to.equal(false);
         });
 
         cy.apiLogout();
 
+        // * Verify client config has account creation disabled
+        cy.request('/api/v4/config/client').its('body.EnableUserCreation').should('eq', 'false');
+
         // # Go to front page
         cy.visit('/login');
 
+        // # Reload so the login page picks up the client config
+        cy.reload();
+
         // * Assert that create account button is not visible
-        cy.findByText('Don\'t have an account?', {timeout: TIMEOUTS.ONE_MIN}).should('not.exist');
+        cy.findByText('Don\'t have an account?').should('not.exist');
 
         // # Go to sign up with email page
         cy.visit('/signup_user_complete');
@@ -225,10 +233,16 @@ describe('Authentication', () => {
     it('MM-T1754 - Restrict Domains - Account creation link on signin page', () => {
         // # Enable user account creation and set restricted domain
         cy.apiUpdateConfig({
+            EmailSettings: {
+                RequireEmailVerification: false,
+            },
             TeamSettings: {
                 RestrictCreationToDomains: 'test.com',
                 EnableUserCreation: true,
             },
+        }).then(({config}) => {
+            expect(config.TeamSettings.RestrictCreationToDomains).to.equal('test.com');
+            expect(config.TeamSettings.EnableUserCreation).to.equal(true);
         });
 
         cy.apiLogout();
@@ -253,39 +267,64 @@ describe('Authentication', () => {
         cy.findByText('Create account').click();
 
         // * Make sure account was not created successfully
-        cy.get('.AlertBanner__title').scrollIntoView().should('be.visible');
-        cy.findByText('The email you provided does not belong to an accepted domain. Please contact your administrator or sign up with a different email.').should('be.visible').and('exist');
+        cy.findByText('The email you provided does not belong to an accepted domain. Please contact your administrator or sign up with a different email.').should('be.visible');
     });
 
     it('MM-T1755 - Restrict Domains - Email invite', () => {
-        // # Enable user account creation and set restricted domain
+        // # Clear leftover domain restriction so a team can be created
         cy.apiUpdateConfig({
             TeamSettings: {
-                RestrictCreationToDomains: 'test.com',
+                RestrictCreationToDomains: '',
                 EnableUserCreation: true,
             },
         });
 
-        cy.visit('/');
-        cy.postMessage('hello');
+        // # Create a team to invite from
+        cy.apiCreateTeam('invite-domain', 'Invite Domain').then(({team}) => {
+            // # Enable user account creation and set restricted domain
+            cy.apiUpdateConfig({
+                EmailSettings: {
+                    RequireEmailVerification: false,
+                },
+                ServiceSettings: {
+                    EnableEmailInvitations: true,
+                },
+                TeamSettings: {
+                    RestrictCreationToDomains: 'test.com',
+                    EnableUserCreation: true,
+                },
+            }).then(({config}) => {
+                expect(config.TeamSettings.RestrictCreationToDomains).to.equal('test.com');
+                expect(config.TeamSettings.EnableUserCreation).to.equal(true);
+                expect(config.ServiceSettings.EnableEmailInvitations).to.equal(true);
+            });
 
-        // # Open team menu and click on "Invite People"
-        cy.uiOpenTeamMenu('Invite people');
+            cy.visit(`/${team.name}/channels/town-square`);
+            cy.get('#post_textbox').should('be.visible');
 
-        // # Click invite members if needed
-        cy.findByText('Copy invite link').click();
+            // # Open team menu and click on "Invite People"
+            cy.uiOpenTeamMenu('Invite people');
 
-        // # Input email, select member
-        cy.findByLabelText('Invite People').type(`test-${getRandomId()}@mattermost.com`);
+            const inviteEmail = `test-${getRandomId()}@mattermost.com`;
 
-        // # Wait a moment for the autocomplete and then press enter to select the email
-        cy.wait(100);
-        cy.findByLabelText('Invite People').type('{enter}');
+            // # Input email
+            cy.get('.users-emails-input__control').should('be.visible').within(() => {
+                cy.get('input').type(inviteEmail, {force: true});
+            });
 
-        // # Click invite members button
-        cy.findByRole('button', {name: 'Invite'}).click();
+            // # Select the Add email option
+            cy.get('.users-emails-input__option:not(.users-emails-input__option--no-matches)').
+                should('contain', inviteEmail).
+                click();
 
-        // * Verify message is what you expect it to be
-        cy.contains('The following email addresses do not belong to an accepted domain:', {timeout: TIMEOUTS.ONE_MIN}).should('be.visible').and('exist');
+            // * Verify the email chip is added
+            cy.get('.users-emails-input__multi-value').should('contain', inviteEmail);
+
+            // # Click invite members button
+            cy.findByTestId('inviteButton').should('be.enabled').click();
+
+            // * Verify message is what you expect it to be
+            cy.contains('The following email addresses do not belong to an accepted domain:').should('be.visible');
+        });
     });
 });
