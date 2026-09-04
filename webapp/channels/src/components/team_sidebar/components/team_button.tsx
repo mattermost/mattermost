@@ -1,9 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Draggable} from '@hello-pangea/dnd';
 import classNames from 'classnames';
 import React, {useCallback, useMemo, type JSX} from 'react';
-import {Draggable} from 'react-beautiful-dnd';
 import {defineMessages, useIntl} from 'react-intl';
 import {Link} from 'react-router-dom';
 

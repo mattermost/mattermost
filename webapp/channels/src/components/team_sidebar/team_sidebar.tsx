@@ -1,10 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {DragDropContext, Droppable} from '@hello-pangea/dnd';
+import type {DroppableProvided, DropResult} from '@hello-pangea/dnd';
 import classNames from 'classnames';
 import React from 'react';
-import {DragDropContext, Droppable} from 'react-beautiful-dnd';
-import type {DroppableProvided, DropResult} from 'react-beautiful-dnd';
 import {injectIntl, FormattedMessage} from 'react-intl';
 import type {WrappedComponentProps} from 'react-intl';
 import type {RouteComponentProps} from 'react-router-dom';
