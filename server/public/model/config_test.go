@@ -1013,6 +1013,27 @@ func TestTeamSettingsDefaultJoinLeaveMessage(t *testing.T) {
 	require.Equal(t, new(true), c1.TeamSettings.EnableJoinLeaveMessageByDefault)
 }
 
+func TestTeamSettingsDefaultMaxUsersPerTeam(t *testing.T) {
+	t.Run("unset defaults to 2000", func(t *testing.T) {
+		c1 := Config{}
+		c1.SetDefaults()
+
+		require.NotNil(t, c1.TeamSettings.MaxUsersPerTeam)
+		require.Equal(t, 2000, *c1.TeamSettings.MaxUsersPerTeam)
+	})
+
+	t.Run("configured value is preserved", func(t *testing.T) {
+		c1 := Config{
+			TeamSettings: TeamSettings{
+				MaxUsersPerTeam: new(7),
+			},
+		}
+		c1.SetDefaults()
+
+		require.Equal(t, 7, *c1.TeamSettings.MaxUsersPerTeam)
+	})
+}
+
 func TestMessageExportSettingsIsValidEnableExportNotSet(t *testing.T) {
 	mes := &MessageExportSettings{}
 
@@ -3188,6 +3209,24 @@ func TestFilterConfig(t *testing.T) {
 		require.NoError(t, err)
 		require.NotEmpty(t, m)
 		require.Equal(t, true, m["ServiceSettings"].(map[string]any)["EnableLocalMode"])
+	})
+
+	t.Run("helper pin of MaxUsersPerTeam 50 is not treated as the 2000 default", func(t *testing.T) {
+		cfg := &Config{}
+		cfg.SetDefaults()
+		*cfg.TeamSettings.MaxUsersPerTeam = 50
+
+		m, err := FilterConfig(cfg, ConfigFilterOptions{
+			GetConfigOptions: GetConfigOptions{
+				RemoveDefaults: true,
+			},
+		})
+		require.NoError(t, err)
+		ts, ok := m["TeamSettings"].(map[string]any)
+		require.True(t, ok)
+		require.EqualValues(t, 50, ts["MaxUsersPerTeam"])
+		_, ok = ts["MaxChannelsPerTeam"]
+		require.False(t, ok)
 	})
 
 	t.Run("should clear masked config values", func(t *testing.T) {

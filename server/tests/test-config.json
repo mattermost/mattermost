@@ -66,7 +66,7 @@
     },
     "TeamSettings": {
         "SiteName": "Mattermost",
-        "MaxUsersPerTeam": 50,
+        "MaxUsersPerTeam": 2000,
         "EnableUserCreation": true,
         "EnableOpenServer": false,
         "EnableUserDeactivation": false,

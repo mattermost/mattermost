@@ -360,7 +360,11 @@ func (s *MmctlE2ETestSuite) TestConfigExportCmdF() {
 		s.Require().True(ok)
 		ss, ok := m["TeamSettings"].(map[string]any)
 		s.Require().True(ok)
-		_, ok = ss["MaxUsersPerTeam"] // it's not being changed by the test suite
+		// apitestlib pins MaxUsersPerTeam to 50, which is no longer the
+		// generated default (2000), so that key is expected to remain.
+		// MaxChannelsPerTeam is left at its default and should be stripped.
+		s.Require().EqualValues(50, ss["MaxUsersPerTeam"])
+		_, ok = ss["MaxChannelsPerTeam"]
 		s.Require().False(ok)
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
