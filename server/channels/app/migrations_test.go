@@ -113,6 +113,34 @@ func TestDoSetupManagedCategoryProperties(t *testing.T) {
 				"field %q must carry the managed_category service grant", f.Name)
 		}
 	})
+
+	t.Run("subsequent boot after admin revokes service grant does not put it back", func(t *testing.T) {
+		th := Setup(t)
+
+		group, appErr := th.App.GetPropertyGroup(th.Context, model.ManagedCategoryPropertyGroupName)
+		require.Nil(t, appErr)
+
+		fields, appErr := th.App.SearchPropertyFields(th.Context, group.ID, model.PropertyFieldSearchOpts{PerPage: 100})
+		require.Nil(t, appErr)
+		require.Len(t, fields, 1)
+
+		field := fields[0]
+		revoked := *field.Permissions
+		revoked.Grants = nil
+		field.Permissions = &revoked
+		expectedUpdateAts := map[string]int64{field.ID: field.UpdateAt}
+		_, err := th.Store.PropertyField().Update(group.ID, []*model.PropertyField{field}, expectedUpdateAts)
+		require.NoError(t, err)
+
+		require.NoError(t, th.Server.doSetupManagedCategoryProperties())
+
+		after, appErr := th.App.SearchPropertyFields(th.Context, group.ID, model.PropertyFieldSearchOpts{PerPage: 100})
+		require.Nil(t, appErr)
+		require.Len(t, after, 1)
+		require.Nil(t,
+			after[0].Permissions.MatchingGrant(model.PropertyOwnerTypeService, model.ManagedCategoryPropertyGroupName, "", model.PropertyActionFieldWrite),
+			"subsequent boot must not re-add a revoked service grant")
+	})
 }
 
 func TestDoSetupContentFlaggingProperties(t *testing.T) {

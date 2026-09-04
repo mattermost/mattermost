@@ -89,28 +89,19 @@ func (ps *PropertyService) MigrateBackfillCPADisplayName(rctx request.CTX) (back
 	return len(fieldsToUpdate), skipped, nil
 }
 
-// ConvertSystemOwnedFields makes sure every builtin field a system subsystem
-// owns in groupID (per model.SystemOwnedFieldGrant) carries that subsystem's
-// {service, groupName} grant, converting the field from its legacy columns
-// first if it carries no Permissions object at all.
+// ConvertSystemOwnedFields bootstraps builtin fields that a system subsystem
+// owns in groupID (per model.SystemOwnedFieldGrant) when they carry no Permissions
+// object at all, converting them from legacy columns and adding the subsystem's
+// {service, groupName} grant.
 //
 // Reads and writes through the unexported field accessors, bypassing the
 // access-control hook, for the same reason MigrateBackfillCPADisplayName
-// does: the hook refuses a field with no Permissions object outright, on
-// both the read (hiding its options, the same defect that once destroyed
-// every install's boards Status options) and the write, before any caller
-// identity or grant is ever consulted -- so there is no way through the hook
-// to reach a field that has never been converted, or one converted before
-// this grant existed. A setup migration calls this before anything else it
-// does, so its own subsequent hook-gated reads and writes find the grant
-// already there whether the field predates the permissions object entirely,
-// was converted by an earlier server version that had no such grant, or
-// already carries this one -- each of the three is a no-op past this point.
+// does: the hook refuses a field with no Permissions object outright before
+// any caller identity or grant is consulted.
 //
-// Confined to the names groupName's migration seeds (SystemOwnedFieldGrant
-// returns nil for anything else), so a custom field sharing the group with a
-// builtin one -- session_attributes accepts admin-created fields through the
-// generic v3 API -- is never touched.
+// Only runs when field.Permissions == nil: if the field already carries permissions,
+// it is left untouched so that an administrator's revocation of the grant is not
+// undone on reboot.
 func (ps *PropertyService) ConvertSystemOwnedFields(rctx request.CTX, groupID, groupName string) error {
 	fields, err := ps.searchPropertyFields(groupID, model.PropertyFieldSearchOpts{PerPage: propertyPermissionsBackfillPageSize})
 	if err != nil {
@@ -129,18 +120,13 @@ func (ps *PropertyService) ConvertSystemOwnedFields(rctx request.CTX, groupID, g
 			continue
 		}
 
-		changed := false
-		if field.Permissions == nil {
-			field.Permissions = model.PermissionsFromLegacy(field, model.LegacyConversionOpts{ConvertAttrs: convertAttrs})
-			changed = true
+		if field.Permissions != nil {
+			continue
 		}
-		if field.Permissions.MatchingGrant(grant.Type, grant.ID, "", model.PropertyActionFieldWrite) == nil {
-			field.Permissions.Grants = append(field.Permissions.Grants, *grant)
-			changed = true
-		}
-		if changed {
-			toUpdate = append(toUpdate, field)
-		}
+
+		field.Permissions = model.PermissionsFromLegacy(field, model.LegacyConversionOpts{ConvertAttrs: convertAttrs})
+		field.Permissions.Grants = append(field.Permissions.Grants, *grant)
+		toUpdate = append(toUpdate, field)
 	}
 	if len(toUpdate) == 0 {
 		return nil

@@ -85,5 +85,16 @@ func TestConvertSystemOwnedFields(t *testing.T) {
 
 		_, _, _, err = th.service.UpdatePropertyFields(RequestContextWithCallerID(th.Context, model.CallerIDBoardsSystem), boardsGroup.ID, []*model.PropertyField{current})
 		require.Error(t, err, "revoking the service grant must actually take the access away")
+
+		// A subsequent boot or migration run must not restore the revoked grant.
+		require.NoError(t, th.service.ConvertSystemOwnedFields(th.Context, boardsGroup.ID, model.BoardsPropertyGroupName))
+
+		afterBoot, err := th.service.GetPropertyField(RequestContextWithCallerID(th.Context, model.CallerIDBoardsSystem), boardsGroup.ID, legacyField.ID)
+		require.NoError(t, err)
+		require.Nil(t, afterBoot.Permissions.MatchingGrant(model.PropertyOwnerTypeService, model.BoardsPropertyGroupName, "", model.PropertyActionFieldWrite),
+			"ConvertSystemOwnedFields must not re-add a revoked grant")
+
+		_, _, _, err = th.service.UpdatePropertyFields(RequestContextWithCallerID(th.Context, model.CallerIDBoardsSystem), boardsGroup.ID, []*model.PropertyField{current})
+		require.Error(t, err, "subsystem must still be refused after subsequent ConvertSystemOwnedFields run")
 	})
 }
