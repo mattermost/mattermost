@@ -694,6 +694,11 @@ func (a *App) importUser(rctx request.CTX, data *imports.UserImportData, dryRun 
 						}
 					case "username":
 						if existing, getErr := a.Srv().Store().User().GetByUsername(*data.Username); getErr == nil {
+							rctx.Logger().Warn(
+								"Scoped import: attributing source user's content to an unrelated destination account matched by username collision alone — this is not a verified identity match and may misattribute content if the username is coincidentally shared across instances",
+								mlog.String("source_username", *data.Username),
+								mlog.String("matched_dest_username", existing.Username),
+							)
 							report.Remap.Add(*data.Username, existing.Username)
 						}
 					}
