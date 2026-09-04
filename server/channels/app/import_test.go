@@ -1313,6 +1313,32 @@ func TestPreCreateSSOUser(t *testing.T) {
 		assert.Equal(t, samlData, *unchanged.AuthData, "auth_data should not have been overwritten")
 	})
 
+	t.Run("scoped migration does not hijack an unrelated existing account matched only by username", func(t *testing.T) {
+		// The destination has its own, unrelated local-password user who happens to
+		// share a username with someone in the source export. In a scoped migration
+		// (deactivateMissingUsers=true), source and destination are different
+		// instances, so this username collision must NOT be treated as an identity
+		// match — doing so would silently convert a real, active destination
+		// account's auth method to the source's SSO identity.
+		destUser := th.CreateUser(t)
+		require.Equal(t, "", destUser.AuthService, "precondition: dest user must be local-password")
+
+		ad := model.NewId()
+		data := &imports.UserImportData{
+			Username:    &destUser.Username,
+			Email:       new(model.NewId() + "@source.example.com"),
+			AuthService: &authService,
+			AuthData:    authData(ad),
+		}
+		appErr := th.App.preCreateSSOUser(th.Context, data, true)
+		require.Nil(t, appErr)
+
+		unchanged, err := th.App.Srv().Store().User().GetByUsername(destUser.Username)
+		require.NoError(t, err)
+		assert.Equal(t, "", unchanged.AuthService, "unrelated dest account's auth_service must not be changed")
+		assert.Nil(t, unchanged.AuthData, "unrelated dest account must not gain the source's auth_data")
+	})
+
 	t.Run("skips fresh creation when deactivateMissingUsers is true", func(t *testing.T) {
 		username := model.NewUsername()
 		email := username + "@example.com"

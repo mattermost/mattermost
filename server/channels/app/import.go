@@ -766,6 +766,18 @@ func (a *App) preCreateSSOUser(rctx request.CTX, data *imports.UserImportData, d
 		return nil
 	}
 
+	// Scoped migration: source and destination are different instances, so a
+	// username match is not a verified identity match — it's the same reasoning
+	// importUser already applies ("no username fallback... a username match could
+	// silently link content to the wrong account"). Without this check, an
+	// unrelated, currently-active destination account that happens to share a
+	// username with a source user would have its auth_service silently converted
+	// to the source's SSO identity below. Skip straight to the main import pass,
+	// which creates a deactivated shell for genuinely-missing users instead.
+	if deactivateMissingUsers {
+		return nil
+	}
+
 	// Exists by username — attach auth_data only if the account has no existing
 	// SSO provider, to avoid overwriting a different auth_service on the destination.
 	if existing, nErr := a.Srv().Store().User().GetByUsername(*data.Username); nErr == nil {
@@ -777,14 +789,6 @@ func (a *App) preCreateSSOUser(rctx request.CTX, data *imports.UserImportData, d
 		if _, uErr := a.Srv().Store().User().UpdateAuthData(existing.Id, *data.AuthService, data.AuthData, existing.Email, false); uErr != nil {
 			return model.NewAppError("preCreateSSOUser", "app.user.update_auth_data.app_error", nil, "", http.StatusInternalServerError).Wrap(uErr)
 		}
-		return nil
-	}
-
-	// When deactivateMissingUsers is true this is a scoped migration import: a user
-	// not found by auth_data or username is genuinely absent from the destination.
-	// Skip the fresh-create here and let the main import pass create a deactivated
-	// shell so the missing user is flagged for admin review.
-	if deactivateMissingUsers {
 		return nil
 	}
 
