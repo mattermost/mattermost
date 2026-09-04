@@ -101,6 +101,13 @@ type CustomProfileAttributesSelectOption struct {
 	Name  string `json:"name"`
 	Color string `json:"color"`
 	Rank  *int   `json:"rank,omitempty"`
+	// Parents carries the options directly above this one, by name, on a graph
+	// field. It is here only so that it survives: an option list written to a
+	// managed property group is normalized by decoding it into this type and
+	// encoding it again, which drops every key the type does not name. Nothing
+	// validates or stores it through this type -- PropertyField.OptionParentLinks
+	// is what reads it, from the option list itself.
+	Parents *[]string `json:"parents,omitempty"`
 }
 
 func (c CustomProfileAttributesSelectOption) GetID() string {
@@ -160,6 +167,8 @@ type CPAAttrs struct {
 	Visibility     string                                                `json:"visibility"`
 	SortOrder      float64                                               `json:"sort_order"`
 	Options        PropertyOptions[*CustomProfileAttributesSelectOption] `json:"options"`
+	OptionsCount   int                                                   `json:"options_count,omitempty"`
+	OptionsOmitted bool                                                  `json:"options_omitted,omitempty"`
 	ValueType      string                                                `json:"value_type"`
 	LDAP           string                                                `json:"ldap"`
 	SAML           string                                                `json:"saml"`
@@ -209,6 +218,11 @@ func (c *CPAField) Patch(patch *PropertyFieldPatch) error {
 	return nil
 }
 
+// ToPropertyField rebuilds a PropertyField whose Attrs hold exactly the keys
+// CPAAttrs models. A field read above PropertyFieldMaxHydratedOptions carries
+// PropertyFieldAttributeOptionsOmitted and PropertyFieldAttributeOptionsCount
+// instead of an option list, and those two keys round-trip through CPAAttrs
+// like any other.
 func (c *CPAField) ToPropertyField() *PropertyField {
 	pf := c.PropertyField
 
@@ -231,6 +245,14 @@ func (c *CPAField) ToPropertyField() *PropertyField {
 	// false for legacy-managed fields.
 	if len(c.Attrs.Owners) > 0 {
 		pf.Attrs[PropertyAttrsOwners] = c.Attrs.Owners
+	}
+
+	// Only write the withheld-options markers when the list was actually
+	// withheld, so a field with an inlined list keeps its attrs blob
+	// byte-for-byte unchanged.
+	if c.Attrs.OptionsOmitted {
+		pf.Attrs[PropertyFieldAttributeOptionsCount] = c.Attrs.OptionsCount
+		pf.Attrs[PropertyFieldAttributeOptionsOmitted] = c.Attrs.OptionsOmitted
 	}
 
 	return &pf

@@ -131,6 +131,13 @@ type FeatureFlags struct {
 	// rank, and the admin console hides the rank type option.
 	PropertyFieldRank bool
 
+	// FEATURE_FLAG_REMOVAL: PropertyFieldGraph - Remove this when the feature is GA.
+	// Gates the "graph" property field type: when off, the app layer rejects
+	// creating a graph property field. Converting a field to or from graph is
+	// refused whatever this flag says — see App.graphPropertyFieldGate for what
+	// the flag does and does not restrict.
+	PropertyFieldGraph bool
+
 	TeamMembershipAccessControl bool
 
 	// Enable channel attributes (Smart Labels, banners) powered by the Properties API.
@@ -220,6 +227,8 @@ func (f *FeatureFlags) SetDefaults() {
 	f.MobileEphemeralMode = false
 
 	f.PropertyFieldRank = true
+
+	f.PropertyFieldGraph = false
 
 	f.ChannelAttributes = false
 

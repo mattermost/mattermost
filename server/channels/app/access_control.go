@@ -862,7 +862,8 @@ func (a *App) RedactSimulationAttributesForCaller(rctx request.CTX, resp *model.
 // caller. The set includes both `visibility: hidden` fields and any field
 // whose `access_mode` is not public (source_only / shared_only). The
 // simulator's UserAttributeView populates its per-user map keyed by
-// `pf.Name` (see db/migrations/postgres/000216_split_attribute_view_by_object_type.up.sql),
+// `pf.Name` (see db/migrations/postgres/000221_add_graph_to_attribute_views.up.sql,
+// which recreates the views 000216 split by object type),
 // and the evaluation-tree walker likewise records `user.attributes.<name>`
 // on each leaf — so matching by name is correct for the user set. Channel
 // fields are matched the same way, by name, against their own set: the

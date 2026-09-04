@@ -1618,6 +1618,34 @@ func (api *apiTimerLayer) CountPropertyFieldsForTarget(groupID, targetType, targ
 	return _returnsA, _returnsB
 }
 
+func (api *apiTimerLayer) GetPropertyFieldOptions(groupID, fieldID string, cursorCreateAt int64, cursorID string, perPage int) ([]*model.PropertyFieldOption, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.GetPropertyFieldOptions(groupID, fieldID, cursorCreateAt, cursorID, perPage)
+	api.recordTime(startTime, "GetPropertyFieldOptions", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) CreatePropertyFieldOptions(groupID, fieldID string, options []*model.PropertyFieldOption) ([]*model.PropertyFieldOption, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.CreatePropertyFieldOptions(groupID, fieldID, options)
+	api.recordTime(startTime, "CreatePropertyFieldOptions", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) UpdatePropertyFieldOptions(groupID, fieldID string, options []*model.PropertyFieldOption) ([]*model.PropertyFieldOption, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.UpdatePropertyFieldOptions(groupID, fieldID, options)
+	api.recordTime(startTime, "UpdatePropertyFieldOptions", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) DeletePropertyFieldOptions(groupID, fieldID string, optionIDs []string) error {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.DeletePropertyFieldOptions(groupID, fieldID, optionIDs)
+	api.recordTime(startTime, "DeletePropertyFieldOptions", _returnsA == nil)
+	return _returnsA
+}
+
 func (api *apiTimerLayer) CreatePropertyValue(value *model.PropertyValue) (*model.PropertyValue, error) {
 	startTime := timePkg.Now()
 	_returnsA, _returnsB := api.apiImpl.CreatePropertyValue(value)

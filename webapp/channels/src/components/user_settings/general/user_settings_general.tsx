@@ -11,7 +11,7 @@ import type {OnChangeValue, ActionMeta, StylesConfig} from 'react-select';
 import ReactSelect from 'react-select';
 
 import type {LockProfileFieldsSetting} from '@mattermost/types/config';
-import {supportsOptions, type PropertyFieldOption} from '@mattermost/types/properties';
+import {valueRefersToOptions, type PropertyFieldOption} from '@mattermost/types/properties';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
 import type {UserProfile} from '@mattermost/types/users';
 
@@ -469,7 +469,10 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                 }
             }
         }
-        if (attributeField.type === 'multiselect' && !attributeValue) {
+
+        // Graph values are option-id arrays, same as multiselect. An empty string
+        // is not a legal value and would fail server-side attribute validation.
+        if ((attributeField.type === 'multiselect' || attributeField.type === 'graph') && !attributeValue) {
             attributeValue = [];
         }
 
@@ -1494,9 +1497,16 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                     return '';
                 }
 
-                if (supportsOptions(attribute)) {
+                if (valueRefersToOptions(attribute)) {
                     const attribOptions = attribute.attrs.options;
+                    const optionsOmitted = Boolean(attribute.attrs?.options_omitted);
                     if (!attribOptions) {
+                        if (optionsOmitted) {
+                            if (Array.isArray(attributeValue)) {
+                                return attributeValue.map((value) => ({label: value, value}));
+                            }
+                            return {label: attributeValue, value: attributeValue};
+                        }
                         return '';
                     }
                     if (Array.isArray(attributeValue)) {
@@ -1504,6 +1514,9 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                             const option = attribOptions.find((o) => o.id === value);
                             if (option) {
                                 return {label: option?.name, value: option?.id};
+                            }
+                            if (optionsOmitted) {
+                                return {label: value, value};
                             }
                             return null;
                         }).filter((value) => value != null);
@@ -1513,6 +1526,9 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                     const option = attribOptions.find((o) => o.id === attributeValue);
                     if (option) {
                         return {label: option?.name, value: option?.id};
+                    }
+                    if (optionsOmitted) {
+                        return {label: attributeValue, value: attributeValue};
                     }
                     return '';
                 }
@@ -1559,7 +1575,8 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                 // by the owning integration; the server rejects human value
                 // writes, so render them read-only just like synced fields.
                 const isOwnerManaged = Boolean(attribute.attrs?.owners?.length);
-                const isReadOnly = isSynced || isOwnerManaged || isAdminManaged || isProtected;
+                const optionsOmitted = Boolean(attribute.attrs?.options_omitted);
+                const isReadOnly = isSynced || isOwnerManaged || isAdminManaged || isProtected || optionsOmitted;
 
                 if (isSynced) {
                     extraInfo = (
@@ -1599,6 +1616,15 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                             />
                         </span>
                     );
+                } else if (optionsOmitted) {
+                    extraInfo = (
+                        <span>
+                            <FormattedMessage
+                                id='user.settings.general.field_options_omitted'
+                                defaultMessage='This field has too many options to be edited here.'
+                            />
+                        </span>
+                    );
                 }
 
                 // Only render inputs if the field is editable by the user
@@ -1610,14 +1636,14 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                         attributeLabel = '';
                     }
 
-                    if (supportsOptions(attribute)) {
-                        const attribOptions: PropertyFieldOption[] = attribute.attrs!.options as PropertyFieldOption[];
+                    if (valueRefersToOptions(attribute)) {
+                        const attribOptions: PropertyFieldOption[] = (attribute.attrs!.options as PropertyFieldOption[]) ?? [];
                         const opts = attribOptions.map((o) => {
                             return {label: o.name, value: o.id} as SelectOption;
                         });
                         inputs.push(
                             <ReactSelect
-                                isMulti={attribute.type === 'multiselect' ? true : undefined}
+                                isMulti={attribute.type === 'multiselect' || attribute.type === 'graph' ? true : undefined}
                                 key={sectionName}
                                 id={'customProfileAttribute_' + attribute.id}
                                 inputId={'customProfileAttribute_' + attribute.id + '_input'}

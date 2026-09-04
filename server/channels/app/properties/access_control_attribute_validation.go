@@ -111,6 +111,13 @@ func (h *AccessControlAttributeValidationHook) sanitizeAndValidateFieldAttrs(fie
 
 	if !isSelect {
 		delete(field.Attrs, model.PropertyFieldAttributeOptions)
+		// The two keys a read substitutes for an oversized option list go with it.
+		// Only a select-shaped field's attrs are stripped of them before storage,
+		// so converting an oversized field to text would otherwise persist them
+		// and every later read of that text field would claim its (non-existent)
+		// options were withheld.
+		delete(field.Attrs, model.PropertyFieldAttributeOptionsCount)
+		delete(field.Attrs, model.PropertyFieldAttributeOptionsOmitted)
 	}
 	if !isText {
 		delete(field.Attrs, model.PropertyFieldAttrLDAP)
@@ -589,117 +596,130 @@ func (h *AccessControlAttributeValidationHook) PreUpdatePropertyFields(rctx requ
 	return fields, nil
 }
 
-// extractOptionIDs extracts the set of valid option IDs from a
-// select or multiselect PropertyField's attrs. Returns nil if the
-// field has no options.
-func extractOptionIDs(field *model.PropertyField) (map[string]struct{}, error) {
-	if field.Attrs == nil {
-		return nil, nil
-	}
-
-	rawOptions, ok := field.Attrs[model.PropertyFieldAttributeOptions]
-	if !ok || rawOptions == nil {
-		return nil, nil
-	}
-
-	data, err := json.Marshal(rawOptions)
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal options: %w", err)
-	}
-
-	var options []struct {
-		ID string `json:"id"`
-	}
-	if err := json.Unmarshal(data, &options); err != nil {
-		return nil, fmt.Errorf("invalid options format: %w", err)
-	}
-
-	ids := make(map[string]struct{}, len(options))
-	for _, opt := range options {
-		if opt.ID != "" {
-			ids[opt.ID] = struct{}{}
+// optionsMissing checks that every one of optionIDs is in existing, returning
+// an error naming the first one that is not. existing is normally the set of
+// IDs one GetExistingOptionIDs call returned, covering every value in a batch
+// that names options on the same field, so this itself never touches the
+// store.
+func optionsMissing(optionIDs []string, existing map[string]struct{}) error {
+	for _, id := range optionIDs {
+		if _, ok := existing[id]; !ok {
+			return fmt.Errorf("option %q does not exist", id)
 		}
 	}
-	return ids, nil
+	return nil
 }
 
 // validateValueAgainstField checks a property value against field-type
 // constraints:
 //   - text: max length, value_type format (email, url, phone)
-//   - select: option ID must exist in the field's options
+//   - select, rank: option ID must exist in the field's options
 //   - multiselect: all option IDs must exist
+//   - graph: all option IDs must exist, and none may be repeated
 //   - user: value must be a valid Mattermost ID
 //   - multiuser: all values must be valid Mattermost IDs
-func (h *AccessControlAttributeValidationHook) validateValueAgainstField(field *model.PropertyField, value *model.PropertyValue) error {
+//   - date: nothing
+//
+// Every field type the model allows has a case, and a type with none is refused
+// outright. Access rules in these groups are written against the values this
+// decides on, so a type falling through to "valid" would let anything at all be
+// stored under it -- the wrong shape, or option identifiers naming no option --
+// and every rule reading it would then decide from data nothing had checked.
+//
+// For an option-bearing type this does not itself check the options exist —
+// it returns the option IDs the value names, and leaves that check to the
+// caller. That lets validateValues batch the check into one store call per
+// field instead of one per value: the store call queries the option rows
+// rather than the option list inlined into field.Attrs, because a field with
+// more than model.PropertyFieldMaxHydratedOptions options reads back without
+// that list, and a check against the list cannot tell the absent list from a
+// field that has no options.
+func (h *AccessControlAttributeValidationHook) validateValueAgainstField(field *model.PropertyField, value *model.PropertyValue) ([]string, error) {
 	switch field.Type {
 	case model.PropertyFieldTypeText:
 		var str string
 		if err := json.Unmarshal(value.Value, &str); err != nil {
-			return fmt.Errorf("expected string value: %w", err)
+			return nil, fmt.Errorf("expected string value: %w", err)
 		}
 		if len(strings.TrimSpace(str)) > model.PropertyFieldValueTypeTextMaxLength {
-			return fmt.Errorf("text value exceeds maximum length of %d characters", model.PropertyFieldValueTypeTextMaxLength)
+			return nil, fmt.Errorf("text value exceeds maximum length of %d characters", model.PropertyFieldValueTypeTextMaxLength)
 		}
 
 		valueType := model.GetPropertyFieldValueType(field)
 		if valueType == "" {
-			return nil
+			return nil, nil
 		}
-		return model.ValidatePropertyValueForValueType(valueType, value.Value)
+		return nil, model.ValidatePropertyValueForValueType(valueType, value.Value)
 
 	case model.PropertyFieldTypeSelect, model.PropertyFieldTypeRank:
 		var str string
 		if err := json.Unmarshal(value.Value, &str); err != nil {
-			return fmt.Errorf("expected string value for select field: %w", err)
+			return nil, fmt.Errorf("expected string value for select field: %w", err)
 		}
 		if str == "" {
-			return nil
+			return nil, nil
 		}
-		optionIDs, err := extractOptionIDs(field)
-		if err != nil {
-			return fmt.Errorf("failed to extract options: %w", err)
-		}
-		if _, ok := optionIDs[str]; !ok {
-			return fmt.Errorf("option %q does not exist", str)
-		}
+		return []string{str}, nil
 
 	case model.PropertyFieldTypeMultiselect:
 		var values []string
 		if err := json.Unmarshal(value.Value, &values); err != nil {
-			return fmt.Errorf("expected string array value for multiselect field: %w", err)
+			return nil, fmt.Errorf("expected string array value for multiselect field: %w", err)
 		}
-		optionIDs, err := extractOptionIDs(field)
-		if err != nil {
-			return fmt.Errorf("failed to extract options: %w", err)
+		return values, nil
+
+	case model.PropertyFieldTypeGraph:
+		// The same shape as a multiselect value -- the options an object holds, in
+		// no particular order -- and checked the same way, against the option rows.
+		var values []string
+		if err := json.Unmarshal(value.Value, &values); err != nil {
+			return nil, fmt.Errorf("expected string array value for graph field: %w", err)
 		}
+
+		// Holding an option twice says nothing that holding it once does not, so a
+		// repeat is a mistake in the caller rather than something to quietly
+		// discard. Refused here and not for multiselect, where a repeat has always
+		// been accepted and refusing one now would reject values callers already
+		// send.
+		seen := make(map[string]bool, len(values))
 		for _, v := range values {
-			if _, ok := optionIDs[v]; !ok {
-				return fmt.Errorf("option %q does not exist", v)
+			if seen[v] {
+				return nil, fmt.Errorf("option %q is listed more than once", v)
 			}
+			seen[v] = true
 		}
+		return values, nil
 
 	case model.PropertyFieldTypeUser:
 		var str string
 		if err := json.Unmarshal(value.Value, &str); err != nil {
-			return fmt.Errorf("expected string value for user field: %w", err)
+			return nil, fmt.Errorf("expected string value for user field: %w", err)
 		}
 		if str != "" && !model.IsValidId(str) {
-			return fmt.Errorf("invalid user id")
+			return nil, fmt.Errorf("invalid user id")
 		}
 
 	case model.PropertyFieldTypeMultiuser:
 		var values []string
 		if err := json.Unmarshal(value.Value, &values); err != nil {
-			return fmt.Errorf("expected string array value for multiuser field: %w", err)
+			return nil, fmt.Errorf("expected string array value for multiuser field: %w", err)
 		}
 		for _, v := range values {
 			if !model.IsValidId(v) {
-				return fmt.Errorf("invalid user id: %s", v)
+				return nil, fmt.Errorf("invalid user id: %s", v)
 			}
 		}
+
+	case model.PropertyFieldTypeDate:
+		// Nothing to check. A date value's shape has never been constrained here,
+		// and constraining it now would refuse values already stored. Listed so
+		// that the case below is only reached by a type nobody has considered.
+
+	default:
+		return nil, fmt.Errorf("values of a %s field are not validated, so none may be written", field.Type)
 	}
 
-	return nil
+	return nil, nil
 }
 
 func (h *AccessControlAttributeValidationHook) validateValues(rctx request.CTX, values []*model.PropertyValue) error {
@@ -732,13 +752,62 @@ func (h *AccessControlAttributeValidationHook) validateValues(rctx request.CTX, 
 		fieldMap[f.ID] = f
 	}
 
+	// A value whose field is option-bearing names option IDs to check against the
+	// store; held here rather than checked immediately so every value against the
+	// same field can be checked with one store call instead of one each.
+	type namedOptions struct {
+		fieldID   string
+		optionIDs []string
+	}
+	var pending []namedOptions
+
+	neededByField := make(map[string][]string)
+	seenByField := make(map[string]map[string]struct{})
+
 	for _, value := range values {
 		field, ok := fieldMap[value.FieldID]
 		if !ok {
 			return fmt.Errorf("field %s: %w", value.FieldID, ErrFieldNotFound)
 		}
-		if err := h.validateValueAgainstField(field, value); err != nil {
+		optionIDs, err := h.validateValueAgainstField(field, value)
+		if err != nil {
 			return fmt.Errorf("field %s: %s: %w", value.FieldID, err.Error(), ErrInvalidValue)
+		}
+		if len(optionIDs) == 0 {
+			continue
+		}
+		pending = append(pending, namedOptions{fieldID: value.FieldID, optionIDs: optionIDs})
+
+		seen, ok := seenByField[value.FieldID]
+		if !ok {
+			seen = make(map[string]struct{})
+			seenByField[value.FieldID] = seen
+		}
+		for _, id := range optionIDs {
+			if _, dup := seen[id]; dup {
+				continue
+			}
+			seen[id] = struct{}{}
+			neededByField[value.FieldID] = append(neededByField[value.FieldID], id)
+		}
+	}
+
+	existingByField := make(map[string]map[string]struct{}, len(neededByField))
+	for fieldID, optionIDs := range neededByField {
+		existing, err := h.propertyService.fieldStore.GetExistingOptionIDs(fieldMap[fieldID], optionIDs)
+		if err != nil {
+			return fmt.Errorf("failed to look up the options of field %s: %w", fieldID, err)
+		}
+		existingSet := make(map[string]struct{}, len(existing))
+		for _, id := range existing {
+			existingSet[id] = struct{}{}
+		}
+		existingByField[fieldID] = existingSet
+	}
+
+	for _, p := range pending {
+		if err := optionsMissing(p.optionIDs, existingByField[p.fieldID]); err != nil {
+			return fmt.Errorf("field %s: %s: %w", p.fieldID, err.Error(), ErrInvalidValue)
 		}
 	}
 

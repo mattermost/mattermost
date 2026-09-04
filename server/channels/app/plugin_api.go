@@ -1773,6 +1773,68 @@ func (api *PluginAPI) CountPropertyFieldsForTarget(groupID, targetType, targetID
 	return count, nil
 }
 
+func (api *PluginAPI) GetPropertyFieldOptions(groupID, fieldID string, cursorCreateAt int64, cursorID string, perPage int) ([]*model.PropertyFieldOption, error) {
+	rctx := api.psaPluginContext()
+	// The field read here is the field as the caller may see it. What the caller may
+	// then do with its options is decided against the field as the store has it, by
+	// the property service.
+	field, appErr := api.app.GetPropertyField(rctx, groupID, fieldID)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	options, appErr := api.app.GetPropertyFieldOptions(rctx, field, cursorCreateAt, cursorID, perPage)
+	if appErr != nil {
+		return nil, appErr
+	}
+	return options, nil
+}
+
+func (api *PluginAPI) CreatePropertyFieldOptions(groupID, fieldID string, options []*model.PropertyFieldOption) ([]*model.PropertyFieldOption, error) {
+	rctx := api.psaPluginContext()
+	field, appErr := api.app.GetPropertyField(rctx, groupID, fieldID)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	// No connection to exclude from the event a change publishes: a plugin is not
+	// one of the clients being told to read the field again.
+	created, appErr := api.app.CreatePropertyFieldOptions(rctx, field, options, "")
+	if appErr != nil {
+		return nil, appErr
+	}
+	return created, nil
+}
+
+func (api *PluginAPI) UpdatePropertyFieldOptions(groupID, fieldID string, options []*model.PropertyFieldOption) ([]*model.PropertyFieldOption, error) {
+	rctx := api.psaPluginContext()
+	field, appErr := api.app.GetPropertyField(rctx, groupID, fieldID)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	// The options as they stood are dropped: they exist for the audit record the
+	// HTTP layer writes, and a plugin already knows what it sent.
+	updated, _, appErr := api.app.UpdatePropertyFieldOptions(rctx, field, options, "")
+	if appErr != nil {
+		return nil, appErr
+	}
+	return updated, nil
+}
+
+func (api *PluginAPI) DeletePropertyFieldOptions(groupID, fieldID string, optionIDs []string) error {
+	rctx := api.psaPluginContext()
+	field, appErr := api.app.GetPropertyField(rctx, groupID, fieldID)
+	if appErr != nil {
+		return appErr
+	}
+
+	if _, appErr := api.app.DeletePropertyFieldOptions(rctx, field, optionIDs, ""); appErr != nil {
+		return appErr
+	}
+	return nil
+}
+
 func (api *PluginAPI) CreatePropertyValue(value *model.PropertyValue) (*model.PropertyValue, error) {
 	createdValue, appErr := api.app.CreatePropertyValue(api.psaPluginContext(), value)
 	if appErr != nil {

@@ -251,6 +251,74 @@ func TestPropertyFieldAPI(t *testing.T) {
 	})
 }
 
+func TestPropertyFieldOptionAPI(t *testing.T) {
+	// Each of these passes several arguments straight through, so what they are
+	// worth checking for is that every one arrives where it was meant to.
+	option := func(name string) *model.PropertyFieldOption {
+		return &model.PropertyFieldOption{ID: "option1", Name: name}
+	}
+
+	t.Run("GetPropertyFieldOptions", func(t *testing.T) {
+		api := &plugintest.API{}
+
+		options := []*model.PropertyFieldOption{option("Air Program")}
+		api.On("GetPropertyFieldOptions", "group1", "field1", int64(1700000000000), "cursor1", 50).Return(options, nil)
+
+		client := NewClient(api, nil)
+
+		result, err := client.Property.GetPropertyFieldOptions("group1", "field1", 1700000000000, "cursor1", 50)
+
+		require.NoError(t, err)
+		assert.Equal(t, options, result)
+		api.AssertExpectations(t)
+	})
+
+	t.Run("CreatePropertyFieldOptions", func(t *testing.T) {
+		api := &plugintest.API{}
+
+		parents := []string{"Air Program"}
+		payload := []*model.PropertyFieldOption{{Name: "Fighter Jet Program", Parents: &parents}}
+		created := []*model.PropertyFieldOption{option("Fighter Jet Program")}
+		api.On("CreatePropertyFieldOptions", "group1", "field1", payload).Return(created, nil)
+
+		client := NewClient(api, nil)
+
+		result, err := client.Property.CreatePropertyFieldOptions("group1", "field1", payload)
+
+		require.NoError(t, err)
+		assert.Equal(t, created, result)
+		api.AssertExpectations(t)
+	})
+
+	t.Run("UpdatePropertyFieldOptions", func(t *testing.T) {
+		api := &plugintest.API{}
+
+		payload := []*model.PropertyFieldOption{option("Aerial Program")}
+		api.On("UpdatePropertyFieldOptions", "group1", "field1", payload).Return(payload, nil)
+
+		client := NewClient(api, nil)
+
+		result, err := client.Property.UpdatePropertyFieldOptions("group1", "field1", payload)
+
+		require.NoError(t, err)
+		assert.Equal(t, payload, result)
+		api.AssertExpectations(t)
+	})
+
+	t.Run("DeletePropertyFieldOptions", func(t *testing.T) {
+		api := &plugintest.API{}
+
+		api.On("DeletePropertyFieldOptions", "group1", "field1", []string{"option1", "option2"}).Return(nil)
+
+		client := NewClient(api, nil)
+
+		err := client.Property.DeletePropertyFieldOptions("group1", "field1", []string{"option1", "option2"})
+
+		require.NoError(t, err)
+		api.AssertExpectations(t)
+	})
+}
+
 func TestPropertyValueAPI(t *testing.T) {
 	t.Run("CreatePropertyValue", func(t *testing.T) {
 		// Setup

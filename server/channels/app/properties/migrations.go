@@ -52,22 +52,28 @@ func (ps *PropertyService) MigrateBackfillCPADisplayName(rctx request.CTX) (back
 	}
 
 	for _, pf := range fields {
-		cpaField, convErr := model.NewCPAFieldFromPropertyField(pf)
-		if convErr != nil {
-			return 0, 0, fmt.Errorf("MigrateBackfillCPADisplayName: failed to convert property field %q: %w", pf.ID, convErr)
-		}
-
+		// The display_name attr is set on the PropertyField in place rather than by
+		// round-tripping through model.CPAField. CPAField holds a fixed set of typed
+		// attrs, so ToPropertyField rebuilds the whole blob from them and drops
+		// anything it has no field for — including the marker a read leaves on a
+		// field whose option list was withheld for being oversized. Losing that
+		// marker turns this backfill's write into "this field now has no options"
+		// and soft-deletes every one of them.
+		//
 		// Backfill if display_name is absent OR empty-string. This covers
 		// fields created before display_name existed, fields created after
 		// without an explicit display_name (stored as ""), and fields
 		// patched with display_name="".
-		if cpaField.Attrs.DisplayName != "" {
+		if displayName, _ := pf.Attrs[model.CustomProfileAttributesPropertyAttrsDisplayName].(string); displayName != "" {
 			skipped++
 			continue
 		}
 
-		cpaField.Attrs.DisplayName = cpaField.Name
-		fieldsToUpdate = append(fieldsToUpdate, cpaField.ToPropertyField())
+		if pf.Attrs == nil {
+			pf.Attrs = model.StringInterface{}
+		}
+		pf.Attrs[model.CustomProfileAttributesPropertyAttrsDisplayName] = pf.Name
+		fieldsToUpdate = append(fieldsToUpdate, pf)
 	}
 
 	if len(fieldsToUpdate) > 0 {

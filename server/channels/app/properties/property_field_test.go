@@ -1150,6 +1150,74 @@ func TestLinkedPropertyFields(t *testing.T) {
 		require.NoError(t, err)
 	})
 
+	t.Run("deleting a graph template is refused while a field links to it, and clears its hierarchy once none does", func(t *testing.T) {
+		template := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:    group.ID,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Type:       model.PropertyFieldTypeGraph,
+			Name:       "GraphSource-" + model.NewId(),
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{"name": "Air Program"},
+					map[string]any{"name": "Fighter Jet Program", "parents": []string{"Air Program"}},
+				},
+			},
+		})
+
+		linked := th.CreatePropertyField(t, rctx, &model.PropertyField{
+			GroupID:       group.ID,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Name:          "GraphLinked-" + model.NewId(),
+			Type:          model.PropertyFieldTypeText, // will be overwritten
+			LinkedFieldID: &template.ID,
+		})
+		require.Equal(t, model.PropertyFieldTypeGraph, linked.Type)
+
+		// What the template owns: how many live options, and how many parent links
+		// between them.
+		owned := func(t *testing.T) (int, int) {
+			t.Helper()
+			options, err := th.dbStore.PropertyField().CountOptions(template.ID)
+			require.NoError(t, err)
+			edges, err := th.dbStore.PropertyField().GetOptionEdges(template.ID)
+			require.NoError(t, err)
+			return options, len(edges)
+		}
+
+		options, edges := owned(t)
+		require.Equal(t, 2, options)
+		require.Equal(t, 1, edges)
+
+		err := th.service.DeletePropertyField(rctx, group.ID, template.ID)
+		require.Error(t, err)
+		appErr, ok := err.(*model.AppError)
+		require.True(t, ok)
+		assert.Equal(t, http.StatusConflict, appErr.StatusCode)
+
+		// The refusal is what protects the dependent: it serves the template's
+		// hierarchy rather than a copy, so a template deleted underneath it would
+		// leave it serving nothing.
+		options, edges = owned(t)
+		require.Equal(t, 2, options)
+		require.Equal(t, 1, edges)
+
+		// Deleting the dependent is not a route to emptying the template either. It
+		// owns no options at all, and every statement behind a field delete is scoped
+		// to the field's own rows.
+		require.NoError(t, th.service.DeletePropertyField(rctx, group.ID, linked.ID))
+		options, edges = owned(t)
+		require.Equal(t, 2, options)
+		require.Equal(t, 1, edges)
+
+		// With nothing deriving them, the options go with the template.
+		require.NoError(t, th.service.DeletePropertyField(rctx, group.ID, template.ID))
+		options, edges = owned(t)
+		require.Zero(t, options)
+		require.Zero(t, edges)
+	})
+
 	t.Run("unlink field preserves type and options", func(t *testing.T) {
 		source := createSourceField(t, "UnlinkSource-"+model.NewId())
 

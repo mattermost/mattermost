@@ -5,6 +5,7 @@ package app
 
 import (
 	"encoding/json"
+	"maps"
 	"net/http"
 	"reflect"
 	"strings"
@@ -19,6 +20,12 @@ import (
 // patch on a linked field — see UpdatePropertyFields' linked-field invariants.
 // Both nil/zero forms compare equal; otherwise reflect.DeepEqual handles the
 // nested map/slice shape produced by JSON unmarshalling.
+//
+// A field read above model.PropertyFieldMaxHydratedOptions has no options key,
+// so a read-modify-write of one compares nil against nil and is allowed through
+// to leave its options untouched. A caller that supplies a real list for such a
+// field is refused before reaching the store, by the option-list invariant in
+// the property service's UpdatePropertyFields.
 func propertyFieldOptionsEqual(a, b any) bool {
 	if a == nil && b == nil {
 		return true
@@ -51,6 +58,16 @@ func (a *App) publishPropertyFieldEvent(rctx request.CTX, eventType model.Websoc
 	teamID, channelID, ok := propertyFieldBroadcastParams(rctx, field)
 	if !ok {
 		return
+	}
+	// A broadcast has no recipient to filter options against, so any
+	// non-public field must go out with none at all — a caller reads the
+	// field back afterward to get the copy filtered for them.
+	if field.GetAccessMode() != model.PropertyAccessModePublic && field.Type.SupportsOptions() {
+		masked := *field
+		masked.Attrs = make(model.StringInterface, len(field.Attrs))
+		maps.Copy(masked.Attrs, field.Attrs)
+		masked.HideOptions()
+		field = &masked
 	}
 	fieldJSON, err := json.Marshal(field)
 	if err != nil {
@@ -96,6 +113,43 @@ func (a *App) rankPropertyFieldGate(where string, field *model.PropertyField) *m
 	)
 }
 
+// graphPropertyFieldGate blocks creating a "graph" property field while the
+// PropertyFieldGraph feature flag is disabled. It runs only on the create
+// path — nothing on the update path reads the flag, because
+// PropertyService.updatePropertyFields already rejects any conversion to or
+// from the graph type unconditionally, so a create-only gate loses no
+// coverage.
+//
+// A graph field that already exists therefore stays fully operable with the
+// flag off — its definition and options stay editable, and every path that
+// merely reads one is untouched. That half is the one a reader will not
+// assume, and it is deliberate: the flag exists to stop new graph fields
+// appearing, not to freeze the ones already in use. A flag switched off
+// underneath a field somebody is halfway through populating would leave that
+// field uncorrectable, with no way out but deleting it — a worse outcome than
+// the type shipping with no flag at all.
+//
+// Unlike rankPropertyFieldGate this is not narrowed to user-object fields.
+// Nothing shipped uses the graph type yet, so there is no existing feature to
+// exempt, and a hierarchy is normally defined on a template field that user and
+// channel fields link to — narrowing to user objects would leave the definition
+// itself ungated.
+func (a *App) graphPropertyFieldGate(field *model.PropertyField) *model.AppError {
+	if field == nil || field.Type != model.PropertyFieldTypeGraph {
+		return nil
+	}
+	if a.Config().FeatureFlags.PropertyFieldGraph {
+		return nil
+	}
+	return model.NewAppError(
+		"CreatePropertyField",
+		"app.property_field.graph_disabled.app_error",
+		nil,
+		"graph property fields are not enabled",
+		http.StatusBadRequest,
+	)
+}
+
 // CreatePropertyField creates a new property field.
 func (a *App) CreatePropertyField(rctx request.CTX, field *model.PropertyField, bypassProtectedCheck bool, connectionID string) (*model.PropertyField, *model.AppError) {
 	if field == nil {
@@ -108,6 +162,32 @@ func (a *App) CreatePropertyField(rctx request.CTX, field *model.PropertyField, 
 
 	if appErr := a.rankPropertyFieldGate("CreatePropertyField", field); appErr != nil {
 		return nil, appErr
+	}
+
+	if appErr := a.graphPropertyFieldGate(field); appErr != nil {
+		return nil, appErr
+	}
+
+	// A field created with a linked_field_id takes its type from the template it
+	// links to — the property service copies the source's type over whatever the
+	// request said — so the check above cannot see what is about to be created.
+	// Gate on the source's type as well, or a graph template hands out new graph
+	// fields while the flag is off. Skipped once the flag is on: the gate below
+	// is then a no-op regardless of source, so the read would only fetch an
+	// argument nothing needs.
+	if field.LinkedFieldID != nil && *field.LinkedFieldID != "" && !a.Config().FeatureFlags.PropertyFieldGraph {
+		source, appErr := a.GetPropertyField(rctx, field.GroupID, *field.LinkedFieldID)
+		switch {
+		case appErr != nil && appErr.StatusCode == http.StatusNotFound:
+			// No such source in this group. Nothing to gate, and the service has
+			// the specific errors for an unusable link target.
+		case appErr != nil:
+			return nil, appErr
+		default:
+			if appErr := a.graphPropertyFieldGate(source); appErr != nil {
+				return nil, appErr
+			}
+		}
 	}
 
 	if !bypassProtectedCheck && field.Protected {
@@ -384,19 +464,14 @@ func (a *App) UpdatePropertyFields(rctx request.CTX, groupID string, fields []*m
 		return nil, nil, model.NewAppError("UpdatePropertyFields", "app.property_field.update.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	// Notify the access control service so any per-field metadata it
-	// caches (e.g. the rank-by-name lookup used by the live evaluator)
-	// and any compiled-policy cache entries that depend on this field
-	// are dropped. This runs before the websocket broadcast so a client
-	// reacting to the event never re-reads stale cached metadata (mirrors
-	// the ordering in DeletePropertyField).
-	if acs := a.Srv().ch.AccessControl; acs != nil {
-		for _, field := range updated {
-			acs.OnPropertyFieldOptionsChanged(rctx, field.ID)
-		}
-		for _, field := range propagated {
-			acs.OnPropertyFieldOptionsChanged(rctx, field.ID)
-		}
+	// This runs before the websocket broadcast so a client reacting to the
+	// event never re-reads stale cached metadata (mirrors the ordering in
+	// DeletePropertyField).
+	for _, field := range updated {
+		a.invalidatePolicyCachesForOptionChange(rctx, field.ID)
+	}
+	for _, field := range propagated {
+		a.invalidatePolicyCachesForOptionChange(rctx, field.ID)
 	}
 
 	// Renaming or re-ranking an option rewrites what the matview materializes, and a type change
@@ -405,7 +480,8 @@ func (a *App) UpdatePropertyFields(rctx request.CTX, groupID string, fields []*m
 		a.invalidateAllUserAttributeCaches()
 	}
 
-	// Broadcast websocket events for both requested and propagated fields
+	// Broadcast websocket events for the requested fields and for the linked
+	// fields whose derived option list changed with them
 	for _, field := range updated {
 		a.publishPropertyFieldEvent(rctx, model.WebsocketEventPropertyFieldUpdated, field, connectionID)
 	}
@@ -468,20 +544,15 @@ func (a *App) DeletePropertyField(rctx request.CTX, groupID, id string, bypassPr
 		return model.NewAppError("DeletePropertyField", "app.property_field.delete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	// Notify the access control service so any per-field metadata it caches
-	// (e.g. the rank-by-name lookup used by the live evaluator) and any
-	// compiled-policy cache entries that depend on this field are dropped
-	// cluster-wide. Without this a deleted rank field's stale options would
-	// linger in the per-node cache until restart.
 	// The matview filters out soft-deleted fields, so this attribute disappears from every subject
 	// while PropertyValues stays untouched and the per-user epoch cannot see it.
 	if existing.ObjectType == model.PropertyFieldObjectTypeUser {
 		a.invalidateAllUserAttributeCaches()
 	}
 
-	if acs := a.Srv().ch.AccessControl; acs != nil {
-		acs.OnPropertyFieldOptionsChanged(rctx, existing.ID)
-	}
+	// Without this a deleted rank field's stale options would linger in the
+	// per-node cache until restart.
+	a.invalidatePolicyCachesForOptionChange(rctx, existing.ID)
 
 	if existing.IsPSAv2() {
 		teamID, channelID, ok := propertyFieldBroadcastParams(rctx, existing)

@@ -14,6 +14,8 @@ import {
     assignChannelsToPolicy,
     createLinkedMultiselectScale,
     createParentPolicyViaAPI,
+    deleteLinkedFieldTrio,
+    deleteParentPolicy,
     expectAddToChannelDenied,
     setChannelMultiselectValue,
     setUserMultiselectValue,
@@ -37,6 +39,21 @@ import {
  * the user's (the user holds every value the channel requires).
  */
 test.describe('ABAC resource.attributes - multiselect targets', {tag: ['@abac', '@abac_resource_attributes']}, () => {
+    // Fixtures this file created, torn down after each test. The access_control group
+    // allows at most 20 user-object fields, so a spec that leaks its fields eventually
+    // fails every later spec's setup rather than its own.
+    const cleanups: Array<() => Promise<void>> = [];
+
+    test.afterEach(async () => {
+        // Reverse order, so a policy goes before the fields its rules reference: while
+        // attribute-value masking is on, deleting a policy whose field is already gone
+        // is refused outright and the policy can no longer be removed at all.
+        for (const cleanup of cleanups.reverse()) {
+            await cleanup().catch(() => {});
+        }
+        cleanups.length = 0;
+    });
+
     test('has any of syncs and enforces on list intersection', async ({pw}) => {
         test.setTimeout(120000);
         await pw.skipIfNoLicense();
@@ -53,6 +70,7 @@ test.describe('ABAC resource.attributes - multiselect targets', {tag: ['@abac', 
             'beta',
             'gamma',
         ]);
+        cleanups.push(() => deleteLinkedFieldTrio(adminClient, scale));
         const {alpha, beta, gamma} = scale.optionIds;
 
         // Channel requires [alpha, beta]. has-any-of matches a user sharing >=1.
@@ -75,6 +93,7 @@ test.describe('ABAC resource.attributes - multiselect targets', {tag: ['@abac', 
             name: `HasAnyOf ${pw.random.id()}`,
             expression: `user.attributes.${scale.userFieldName}.hasAnyOf(resource.attributes.${scale.channelFieldName})`,
         });
+        cleanups.push(() => deleteParentPolicy(adminClient, policyId, [channel.id]));
         await assignChannelsToPolicy(adminClient, policyId, [channel.id]);
 
         await triggerSyncJob(adminClient, policyId);
@@ -111,6 +130,7 @@ test.describe('ABAC resource.attributes - multiselect targets', {tag: ['@abac', 
             'beta',
             'gamma',
         ]);
+        cleanups.push(() => deleteLinkedFieldTrio(adminClient, scale));
         const {alpha, beta, gamma} = scale.optionIds;
 
         // Channel requires [alpha, beta]. has-all-of matches only a user holding
@@ -134,6 +154,7 @@ test.describe('ABAC resource.attributes - multiselect targets', {tag: ['@abac', 
             name: `HasAllOf ${pw.random.id()}`,
             expression: `user.attributes.${scale.userFieldName}.hasAllOf(resource.attributes.${scale.channelFieldName})`,
         });
+        cleanups.push(() => deleteParentPolicy(adminClient, policyId, [channel.id]));
         await assignChannelsToPolicy(adminClient, policyId, [channel.id]);
 
         await triggerSyncJob(adminClient, policyId);
