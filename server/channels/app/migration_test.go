@@ -854,6 +854,86 @@ func TestChannelImportPostForMissingChannelSkipped(t *testing.T) {
 }
 
 // ────────────────────────────────────────────────────────────────────────────
+// IMP-05: a scoped import whose data would demote the destination's sole
+// system admin skips just that role update, instead of aborting entirely
+//
+// Reason: a general (non-SSO) username match against an existing destination
+// user goes through the normal UpdateUserRoles path. If that existing user
+// happens to be the destination's only system admin, Mattermost's own safety
+// check (UpdateUserRolesWithUser, "Cannot demote last System Admin") correctly
+// refuses the role change — but that AppError wasn't handled in stopOnError,
+// so it fell through to the default case and aborted the whole migration over
+// one username coincidence, instead of skipping just that user's role update.
+// ────────────────────────────────────────────────────────────────────────────
+
+func TestChannelImportSkipsLastAdminDemotion(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	teamName := model.NewRandomTeamName()
+	chanName := model.NewId()
+	adminUsername := th.SystemAdminUser.Username
+	otherUsername := model.NewUsername()
+	createUserInDB(t, th, otherUsername)
+
+	var sb strings.Builder
+	enc := json.NewEncoder(&sb)
+
+	version := 1
+	scope := imports.ExportScopeAdditional{TeamName: teamName}
+	scopeJSON, err := json.Marshal(scope)
+	require.NoError(t, err)
+
+	require.NoError(t, enc.Encode(imports.LineImportData{
+		Type:    "version",
+		Version: &version,
+		Info:    &imports.VersionInfoImportData{Generator: "test", Version: "1.0", Created: "2024-01-01T00:00:00Z", Additional: scopeJSON},
+	}))
+	require.NoError(t, enc.Encode(imports.LineImportData{
+		Type: "team",
+		Team: &imports.TeamImportData{Name: new(teamName), DisplayName: new("T"), Type: new("O")},
+	}))
+	chanType := model.ChannelTypeOpen
+	require.NoError(t, enc.Encode(imports.LineImportData{
+		Type:    "channel",
+		Channel: &imports.ChannelImportData{Team: new(teamName), Name: new(chanName), DisplayName: new("C"), Type: &chanType},
+	}))
+
+	// The source's line for this username carries only system_user — no
+	// auth_service, so this hits the general username-match path in importUser,
+	// not the SSO one. On the destination this username belongs to the sole
+	// system admin (th.SystemAdminUser from InitBasic).
+	adminEmail := th.SystemAdminUser.Email
+	require.NoError(t, enc.Encode(imports.LineImportData{
+		Type: "user",
+		User: &imports.UserImportData{
+			Username: &adminUsername, Email: &adminEmail, Roles: new("system_user"),
+		},
+	}))
+
+	ts := int64(1700000000000)
+	require.NoError(t, enc.Encode(imports.LineImportData{
+		Type: "post",
+		Post: &imports.PostImportData{
+			Team: new(teamName), Channel: new(chanName), User: new(otherUsername),
+			Message: new("a post from someone else, later in the file"), CreateAt: &ts,
+		},
+	}))
+
+	_, appErr := th.App.BulkImport(th.Context, strings.NewReader(sb.String()), nil, false, 1)
+	require.Nil(t, appErr, "import must not abort when the source data would demote the destination's last system admin")
+
+	// The admin must still be an admin — the role update was skipped, not applied.
+	stillAdmin, appErr2 := th.App.GetUserByUsername(adminUsername)
+	require.Nil(t, appErr2)
+	assert.Contains(t, stillAdmin.Roles, model.SystemAdminRoleId, "destination's sole system admin must not be demoted")
+
+	// The rest of the import must have proceeded past this line.
+	assert.Equal(t, 1, postCountInChannel(t, th, th.Context, teamName, chanName),
+		"import must continue past the skipped role update and still import the later post")
+}
+
+// ────────────────────────────────────────────────────────────────────────────
 // IMP-03: Post count on dest exactly matches source after channel migration
 // ────────────────────────────────────────────────────────────────────────────
 

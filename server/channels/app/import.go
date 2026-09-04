@@ -48,6 +48,19 @@ func stopOnError(rctx request.CTX, err imports.LineImportWorkerError, deactivate
 			return false
 		}
 		return true
+	case "app.user.update.lastAdmin.app_error":
+		if deactivateMissingUsers {
+			// Scoped migration: a general (non-SSO) username match landed on an
+			// existing destination user whose role the source data would change —
+			// and that user happens to be the destination's sole remaining system
+			// admin. Mattermost's own safety check correctly refuses the
+			// demotion; skip just this user's role update rather than aborting
+			// the entire migration over one username coincidence. Every other
+			// field for this user still imports; the account is not locked out.
+			rctx.Logger().Warn("Skipping role update that would have demoted the destination's last system admin", mlog.Err(err.Error))
+			return false
+		}
+		return true
 	default:
 		return true
 	}
