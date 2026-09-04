@@ -238,6 +238,57 @@ func TestExportTeamScopedExcludesDMs(t *testing.T) {
 }
 
 // ────────────────────────────────────────────────────────────────────────────
+// EXP-05: team-scoped export preserves the team's custom permission scheme
+//
+// Reason: exportAllTeams' scoped (--team-name) path used to build TeamForExport
+// via a plain Team().GetByName() and never populated SchemeName, unlike the
+// unscoped export path (which LEFT JOINs Schemes). A team with a custom
+// permission scheme migrated via --team-name would silently lose that scheme
+// assignment on the destination.
+// ────────────────────────────────────────────────────────────────────────────
+
+func TestExportTeamScopedPreservesScheme(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	err := th.App.Srv().Store().System().Save(&model.System{Name: model.MigrationKeyAdvancedPermissionsPhase2, Value: "true"})
+	require.NoError(t, err)
+
+	scheme, appErr := th.App.CreateScheme(&model.Scheme{
+		Name:        "custom_team_scheme_" + model.NewId(),
+		DisplayName: "Custom Team Scheme",
+		Scope:       model.SchemeScopeTeam,
+	})
+	require.Nil(t, appErr)
+
+	team := th.BasicTeam
+	team.SchemeId = &scheme.Id
+	_, appErr = th.App.UpdateTeamScheme(team)
+	require.Nil(t, appErr)
+
+	var buf bytes.Buffer
+	appErr = th.App.BulkExport(th.Context, &buf, "somePath", nil, model.BulkExportOpts{
+		TeamName: team.Name,
+	})
+	require.Nil(t, appErr)
+
+	scanner := bufio.NewScanner(&buf)
+	var teamLine *imports.LineImportData
+	for scanner.Scan() {
+		var line imports.LineImportData
+		require.NoError(t, json.Unmarshal(scanner.Bytes(), &line))
+		if line.Type == "team" {
+			teamLine = &line
+			break
+		}
+	}
+	require.NoError(t, scanner.Err())
+	require.NotNil(t, teamLine, "export must contain a team line")
+	require.NotNil(t, teamLine.Team.Scheme, "team-scoped export must populate the team's scheme name")
+	assert.Equal(t, scheme.Name, *teamLine.Team.Scheme)
+}
+
+// ────────────────────────────────────────────────────────────────────────────
 // USR-01: all post authors pre-exist → all posts imported
 // ────────────────────────────────────────────────────────────────────────────
 

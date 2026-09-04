@@ -455,8 +455,15 @@ func (a *App) exportAllTeams(rctx request.CTX, job *model.Job, writer io.Writer,
 				return nil, model.NewAppError("exportAllTeams", "app.export.export_all_teams.team_deleted.error", nil, "", http.StatusBadRequest)
 			}
 			teamNames[team.Name] = true
-			// SchemeName is not populated here; teams with a custom permission scheme will have it omitted from the export.
-			if appErr := a.exportWriteLine(writer, importLineFromTeam(&model.TeamForExport{Team: *team})); appErr != nil {
+			teamForExport := &model.TeamForExport{Team: *team}
+			if team.SchemeId != nil && *team.SchemeId != "" {
+				scheme, schemeErr := a.Srv().Store().Scheme().Get(*team.SchemeId)
+				if schemeErr != nil {
+					return nil, model.NewAppError("exportAllTeams", "app.scheme.get.app_error", nil, "", http.StatusInternalServerError).Wrap(schemeErr)
+				}
+				teamForExport.SchemeName = &scheme.Name
+			}
+			if appErr := a.exportWriteLine(writer, importLineFromTeam(teamForExport)); appErr != nil {
 				return nil, appErr
 			}
 		}
