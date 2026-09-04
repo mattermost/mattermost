@@ -449,3 +449,5 @@ channels/db/migrations/postgres/000226_move_access_control_group_to_v3.down.sql
 channels/db/migrations/postgres/000226_move_access_control_group_to_v3.up.sql
 channels/db/migrations/postgres/000227_drop_property_field_permission_columns.down.sql
 channels/db/migrations/postgres/000227_drop_property_field_permission_columns.up.sql
+channels/db/migrations/postgres/000228_create_property_field_grants_type_id_index.down.sql
+channels/db/migrations/postgres/000228_create_property_field_grants_type_id_index.up.sql

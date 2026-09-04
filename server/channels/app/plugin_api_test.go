@@ -3649,13 +3649,20 @@ func TestPluginAPIGetPropertyFieldProjectsLegacyPermissions(t *testing.T) {
 		assertProjected(t, got)
 	})
 
-	// The stored field itself must never be mutated by any of the reads above.
+	// Store hydration fills the dropped Protected/Permission* columns from
+	// Permissions so a load-modify-save does not look like a legacy-column
+	// change. Attrs (owners, access_mode) are still projected only on the
+	// plugin/v2 copy via ProjectLegacyPermissions.
 	stored, appErr := th.App.GetPropertyField(th.Context, group.ID, field.ID)
 	require.Nil(t, appErr)
-	assert.Nil(t, stored.PermissionField)
-	assert.Nil(t, stored.PermissionValues)
-	assert.Nil(t, stored.PermissionOptions)
-	assert.False(t, stored.Protected)
+	require.NotNil(t, stored)
+	assert.True(t, stored.Protected)
+	require.NotNil(t, stored.PermissionField)
+	assert.Equal(t, model.PermissionLevelNone, *stored.PermissionField)
+	require.NotNil(t, stored.PermissionValues)
+	assert.Equal(t, model.PermissionLevelMember, *stored.PermissionValues)
+	require.NotNil(t, stored.PermissionOptions)
+	assert.Equal(t, model.PermissionLevelAdmin, *stored.PermissionOptions)
 }
 
 func TestPluginAPIPropertyValueWithOptions(t *testing.T) {
