@@ -208,13 +208,27 @@ func (a *App) holdingsFieldFor(rctx request.CTX, groupID, objectType, fieldName 
 // Masking is always nil by construction (a masked scheme is declared on the
 // template alone), so GetAccessMode alone would report the linked field's
 // own, unmasked tiers even when its scheme is shared_only. Falls back to
-// field.GetAccessMode() on a nil Permissions, an unlinked field, or a
-// template lookup failure. Shared by callers that read the template through
-// different paths: the hook-mediated property service (effectiveAccessMode)
-// and the direct store read GetAccessControlPolicyAttributes uses to bypass
-// those hooks.
+// field.GetAccessMode() on an unlinked field or a template lookup failure.
+// Shared by callers that read the template through different paths: the
+// hook-mediated property service (effectiveAccessMode) and the direct store
+// read GetAccessControlPolicyAttributes uses to bypass those hooks.
+//
+// A field that could hold a permissions object and does not is reported
+// masked rather than public. The backfill fills one in for every PSAv2/v3
+// field, so that state is a row the conversion has not reached — and the
+// property system's own read hook already refuses it. These callers read
+// around that hook, so answering public here is the one place an unconverted
+// row could hand out values nothing has established the caller may see. A
+// PSAv1 field is not that case: it cannot hold a permissions object at all,
+// by design and indefinitely, so it keeps whatever GetAccessMode says.
 func effectiveAccessModeUsing(field *model.PropertyField, getTemplate func(id string) (*model.PropertyField, error)) string {
-	if field.Permissions == nil || field.Permissions.Masking != nil {
+	if field.Permissions == nil {
+		if field.IsPSAv1() {
+			return field.GetAccessMode()
+		}
+		return model.PropertyAccessModeSharedOnly
+	}
+	if field.Permissions.Masking != nil {
 		return field.GetAccessMode()
 	}
 	if field.LinkedFieldID == nil || *field.LinkedFieldID == "" {

@@ -1366,17 +1366,26 @@ func assertChannelFieldUsesUserHoldings(t *testing.T, fieldType model.PropertyFi
 	require.NoError(t, sErr)
 
 	linkedAttrs := func() model.StringInterface {
-		return model.StringInterface{
-			model.PropertyFieldAttributeOptions: options,
-			model.PropertyAttrsProtected:        true,
-			model.PropertyAttrsAccessMode:       model.PropertyAccessModeSharedOnly,
-			model.PropertyAttrsSourcePluginID:   "com.mattermost.uas-plugin",
+		return model.StringInterface{model.PropertyFieldAttributeOptions: options}
+	}
+
+	// A linked field declares no masking of its own -- the template owns the
+	// scheme -- but it needs a permissions object of its own for the read paths
+	// to treat it as converted, and both reads open so that masking is what
+	// filters them rather than the tier. Fresh per field: Restrictions is a
+	// pointer, and two fields must not share one.
+	linkedPermissions := func() *model.Permissions {
+		return &model.Permissions{
+			Restrictions: &model.Restrictions{
+				Value:  model.ReadWrite{Read: model.PermissionLevelEveryone},
+				Option: model.ReadWrite{Read: model.PermissionLevelEveryone},
+			},
 		}
 	}
 
-	// Store-level Create bypasses the CPA access-control layer so protected /
-	// shared_only linked fields can be written directly (the same shortcut the
-	// other shared_only masking tests take). Reads still filter per caller.
+	// Store-level Create rather than the app layer: creating a field that links
+	// to a masked template needs a caller holding field.write on that template,
+	// which is not what this test is about. Reads still filter per caller.
 	userField, sErr := th.Store.PropertyField().Create(&model.PropertyField{
 		GroupID:       groupID,
 		Name:          celSafeName(),
@@ -1385,6 +1394,7 @@ func assertChannelFieldUsesUserHoldings(t *testing.T, fieldType model.PropertyFi
 		TargetType:    string(model.PropertyFieldTargetLevelSystem),
 		LinkedFieldID: &tmpl.ID,
 		Attrs:         linkedAttrs(),
+		Permissions:   linkedPermissions(),
 	})
 	require.NoError(t, sErr)
 
@@ -1397,6 +1407,7 @@ func assertChannelFieldUsesUserHoldings(t *testing.T, fieldType model.PropertyFi
 		TargetType:    string(model.PropertyFieldTargetLevelSystem),
 		LinkedFieldID: &tmpl.ID,
 		Attrs:         linkedAttrs(),
+		Permissions:   linkedPermissions(),
 	})
 	require.NoError(t, sErr)
 
@@ -1614,17 +1625,24 @@ func TestAppMaskingResolver_HierarchyAndLadderUseOptionNames(t *testing.T) {
 	require.Nil(t, gErr)
 	groupID := cpaGroup.ID
 
-	sharedOnly := func(options []any) model.StringInterface {
-		return model.StringInterface{
-			model.PropertyFieldAttributeOptions: options,
-			model.PropertyAttrsProtected:        true,
-			model.PropertyAttrsAccessMode:       model.PropertyAccessModeSharedOnly,
+	// A masked field with both reads open: masking is what filters these, not
+	// the tier. Declared on the field itself, which is where an unlinked
+	// object_type:user field's holdings resolve to.
+	maskedPermissions := func() *model.Permissions {
+		return &model.Permissions{
+			Restrictions: &model.Restrictions{
+				Value:  model.ReadWrite{Read: model.PermissionLevelEveryone},
+				Option: model.ReadWrite{Read: model.PermissionLevelEveryone},
+			},
+			Masking: &model.Masking{},
 		}
 	}
 
-	// Store-level writes throughout: a protected field cannot be created through
-	// the app layer by anything but its source plugin, and the value on it likewise.
-	// Reads still run the masking the test is about.
+	// Store-level writes throughout: the value the caller holds is on a masked
+	// field, which no human may write. Reads still run the masking the test is
+	// about, and the fields carry the permissions object the backfill
+	// guarantees -- without one the resolver's read of the caller's own data
+	// comes back refused and every value masks.
 	t.Run("a graph field reports the option names the caller covers", func(t *testing.T) {
 		air, jet, f18 := model.NewId(), model.NewId(), model.NewId()
 		field, sErr := th.Store.PropertyField().Create(&model.PropertyField{
@@ -1633,11 +1651,12 @@ func TestAppMaskingResolver_HierarchyAndLadderUseOptionNames(t *testing.T) {
 			Type:       model.PropertyFieldTypeGraph,
 			ObjectType: model.PropertyFieldObjectTypeUser,
 			TargetType: string(model.PropertyFieldTargetLevelSystem),
-			Attrs: sharedOnly([]any{
+			Attrs: model.StringInterface{model.PropertyFieldAttributeOptions: []any{
 				map[string]any{"id": air, "name": "Air Program"},
 				map[string]any{"id": jet, "name": "Fighter Jet Program"},
 				map[string]any{"id": f18, "name": "F-18 Program"},
-			}),
+			}},
+			Permissions: maskedPermissions(),
 		})
 		require.NoError(t, sErr)
 
@@ -1668,7 +1687,7 @@ func TestAppMaskingResolver_HierarchyAndLadderUseOptionNames(t *testing.T) {
 		assert.True(t, info.IsValueHidden("Air Program"), "an option above the one the caller holds")
 	})
 
-	t.Run("a rank field reports the option names at or below the caller's rank", func(t *testing.T) {
+	t.Run("a rank field reports the caller's own rank and no other", func(t *testing.T) {
 		secret, confidential, public := model.NewId(), model.NewId(), model.NewId()
 		field, sErr := th.Store.PropertyField().Create(&model.PropertyField{
 			GroupID:    groupID,
@@ -1676,11 +1695,12 @@ func TestAppMaskingResolver_HierarchyAndLadderUseOptionNames(t *testing.T) {
 			Type:       model.PropertyFieldTypeRank,
 			ObjectType: model.PropertyFieldObjectTypeUser,
 			TargetType: string(model.PropertyFieldTargetLevelSystem),
-			Attrs: sharedOnly([]any{
+			Attrs: model.StringInterface{model.PropertyFieldAttributeOptions: []any{
 				map[string]any{"id": public, "name": "Public", "rank": 1},
 				map[string]any{"id": confidential, "name": "Confidential", "rank": 2},
 				map[string]any{"id": secret, "name": "Secret", "rank": 3},
-			}),
+			}},
+			Permissions: maskedPermissions(),
 		})
 		require.NoError(t, sErr)
 
@@ -1701,7 +1721,11 @@ func TestAppMaskingResolver_HierarchyAndLadderUseOptionNames(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, model.MaskingFieldAccessSharedOnly, info.Access)
 		assert.False(t, info.IsValueHidden("Confidential"), "the caller's own rank")
-		assert.False(t, info.IsValueHidden("Public"), "a rank below the caller's")
+		// Masking treats a rank like a select -- the same option or nothing -- so
+		// the ladder is not walked in either direction. Holding a higher rank no
+		// longer discloses a lower one, which is the narrowing this model
+		// announces relative to the clamping it replaces.
+		assert.True(t, info.IsValueHidden("Public"), "a rank below the caller's")
 		assert.True(t, info.IsValueHidden("Secret"), "a rank above the caller's")
 	})
 }
@@ -1743,8 +1767,17 @@ func TestAppMaskingResolver_GraphWithheldOptionList(t *testing.T) {
 		TargetType: string(model.PropertyFieldTargetLevelSystem),
 		Attrs: model.StringInterface{
 			model.PropertyFieldAttributeOptions: options,
-			model.PropertyAttrsProtected:        true,
-			model.PropertyAttrsAccessMode:       model.PropertyAccessModeSharedOnly,
+		},
+		// Masked with both reads open, the shape the backfill leaves behind:
+		// masking is what filters this read, not the tier, and the resolver
+		// reads the caller's own value back through the property system, which
+		// refuses a field carrying no permissions object at all.
+		Permissions: &model.Permissions{
+			Restrictions: &model.Restrictions{
+				Value:  model.ReadWrite{Read: model.PermissionLevelEveryone},
+				Option: model.ReadWrite{Read: model.PermissionLevelEveryone},
+			},
+			Masking: &model.Masking{},
 		},
 	})
 	require.NoError(t, sErr)

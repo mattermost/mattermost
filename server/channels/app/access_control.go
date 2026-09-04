@@ -1842,6 +1842,13 @@ func (a *App) GetAccessControlPolicyAttributes(rctx request.CTX, resourceID stri
 				delete(attributes, fieldName)
 				continue
 			}
+
+			// A native attribute is a column on the user table, synthesized into a
+			// field shape for this lookup alone. It carries no permissions object
+			// and never will, so it has no access mode to judge -- and asking
+			// effectiveAccessModeUsing anyway would get the answer it gives an
+			// unconverted property field, which is to mask.
+			continue
 		}
 		// Same store bypass for a linked field's template: a linked field's own
 		// Masking is always nil, so its effective mode must follow the template
