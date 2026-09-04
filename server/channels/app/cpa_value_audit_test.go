@@ -85,6 +85,11 @@ func TestBuildCPAValueAuditRecord(t *testing.T) {
 		assert.Equal(t, th.BasicUser.Id, rec.Meta["basis_grant_id"])
 		assert.NotContains(t, rec.Meta, "basis_grant_wildcard")
 
+		// PropertyPermissionBasisFor only treats a caller as a plugin when it
+		// is actually installed, so a wildcard plugin grant cannot capture a
+		// human ID (see TestPropertyRestrictionsAllow's wildcard cases).
+		registerTestPlugin(t, th, "com.example.plugin")
+
 		wildcardField := createField(t, &model.PropertyField{
 			Name:       "wildcard grant basis",
 			Type:       model.PropertyFieldTypeText,
