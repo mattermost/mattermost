@@ -4,7 +4,6 @@
 package app
 
 import (
-	"database/sql"
 	"net/http"
 	"testing"
 
@@ -90,7 +89,7 @@ func TestCreatePropertyField(t *testing.T) {
 		assert.True(t, created.Protected)
 	})
 
-	t.Run("legacy keys round trip via projection while stored row columns are untouched", func(t *testing.T) {
+	t.Run("legacy keys round trip via projection with no store columns behind them", func(t *testing.T) {
 		field := &model.PropertyField{
 			GroupID:           groupID,
 			Name:              "Legacy Stored Untouched",
@@ -106,20 +105,6 @@ func TestCreatePropertyField(t *testing.T) {
 		created, appErr := th.App.CreatePropertyField(th.Context, field, true, "")
 		require.Nil(t, appErr)
 		require.NotEmpty(t, created.ID)
-
-		var raw struct {
-			Protected         bool           `db:"protected"`
-			PermissionField   sql.NullString `db:"permissionfield"`
-			PermissionValues  sql.NullString `db:"permissionvalues"`
-			PermissionOptions sql.NullString `db:"permissionoptions"`
-		}
-		err := th.SQLStore.GetMaster().Get(&raw,
-			"SELECT Protected, PermissionField, PermissionValues, PermissionOptions FROM PropertyFields WHERE ID = $1", created.ID)
-		require.NoError(t, err)
-		assert.False(t, raw.Protected)
-		assert.False(t, raw.PermissionField.Valid)
-		assert.False(t, raw.PermissionValues.Valid)
-		assert.False(t, raw.PermissionOptions.Valid)
 
 		fetched, appErr := th.App.GetPropertyField(th.Context, groupID, created.ID)
 		require.Nil(t, appErr)
