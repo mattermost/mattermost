@@ -22,9 +22,5 @@ BEGIN
 END;
 $$;
 
--- Reverse-lookup index: the PK leads with FieldID, so it can't serve "which
--- fields may this caller act on" or "does this identity hold any grant" --
--- both filter by (Type, ID) without knowing FieldID. This index leads with
--- Type, ID instead, with Action appended so it also covers the
--- action-scoped lookup.
-CREATE INDEX IF NOT EXISTS idx_propertyfieldgrants_type_id ON PropertyFieldGrants (Type, ID, Action);
+-- Reverse-lookup index lives in 000228 so CREATE INDEX CONCURRENTLY is its
+-- own non-transactional migration.
