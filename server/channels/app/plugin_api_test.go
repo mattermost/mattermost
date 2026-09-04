@@ -739,6 +739,161 @@ func TestPluginAPIGetFile(t *testing.T) {
 	require.Nil(t, data)
 }
 
+func TestPluginAPIHasPermissionToFileAction(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+	api := th.SetupPluginAPI()
+
+	fileActionAPI, ok := any(api).(interface {
+		HasPermissionToFileAction(sessionID, fileID, action string) bool
+	})
+	if !t.Run("method exposure", func(t *testing.T) {
+		require.True(t, ok, "PluginAPI must expose HasPermissionToFileAction(sessionID, fileID, action string) bool")
+	}) {
+		return
+	}
+
+	th.ConfigStore.SetReadOnlyFF(false)
+	t.Cleanup(func() {
+		th.ConfigStore.SetReadOnlyFF(true)
+	})
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+		cfg.FeatureFlags.PermissionPolicies = true
+	})
+
+	activeSession, appErr := th.App.CreateSession(th.Context, &model.Session{
+		UserId:    th.BasicUser.Id,
+		Roles:     th.BasicUser.Roles,
+		ExpiresAt: model.GetMillis() + 100000,
+	})
+	require.Nil(t, appErr)
+
+	allowSession, appErr := th.App.CreateSession(th.Context, &model.Session{
+		UserId:    th.BasicUser2.Id,
+		Roles:     th.BasicUser2.Roles,
+		ExpiresAt: model.GetMillis() + 100000,
+	})
+	require.Nil(t, appErr)
+
+	expiredSession, appErr := th.App.CreateSession(th.Context, &model.Session{
+		UserId:    th.BasicUser.Id,
+		Roles:     th.BasicUser.Roles,
+		ExpiresAt: model.GetMillis() - 100000,
+	})
+	require.Nil(t, appErr)
+
+	fileInfo := th.CreateFileInfo(t, th.BasicUser.Id, "", th.BasicChannel.Id)
+	channelLessFileInfo := th.CreateFileInfo(t, th.BasicUser.Id, "", "")
+	t.Cleanup(func() {
+		require.NoError(t, th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, fileInfo.Id))
+		require.NoError(t, th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, channelLessFileInfo.Id))
+	})
+
+	mockAccessControl := &mocks.AccessControlServiceInterface{}
+	originalAccessControl := th.App.Srv().ch.AccessControl
+	th.App.Srv().ch.AccessControl = mockAccessControl
+	t.Cleanup(func() {
+		th.App.Srv().ch.AccessControl = originalAccessControl
+	})
+
+	mockAccessControl.On("AccessEvaluation", mock.Anything, mock.MatchedBy(func(req model.AccessRequest) bool {
+		return req.Subject.ID == th.BasicUser.Id &&
+			req.Resource.ID == th.BasicChannel.Id &&
+			req.Action == model.AccessControlPolicyActionDownloadFileAttachment
+	})).Return(model.AccessDecision{Decision: false}, (*model.AppError)(nil)).Once()
+	mockAccessControl.On("AccessEvaluation", mock.Anything, mock.MatchedBy(func(req model.AccessRequest) bool {
+		return req.Subject.ID == th.BasicUser.Id &&
+			req.Resource.ID == th.BasicChannel.Id &&
+			req.Action == model.AccessControlPolicyActionUploadFileAttachment
+	})).Return(model.AccessDecision{}, model.NewAppError("test", "test.error", nil, "", http.StatusInternalServerError)).Once()
+	mockAccessControl.On("AccessEvaluation", mock.Anything, mock.MatchedBy(func(req model.AccessRequest) bool {
+		return req.Subject.ID == th.BasicUser2.Id &&
+			req.Subject.Type == "user" &&
+			req.Subject.Role == th.BasicUser2.Roles &&
+			req.Resource.Type == model.AccessControlPolicyTypeChannel &&
+			req.Resource.ID == th.BasicChannel.Id &&
+			req.Action == model.AccessControlPolicyActionDownloadFileAttachment
+	})).Return(model.AccessDecision{Decision: true}, (*model.AppError)(nil)).Once()
+
+	tests := []struct {
+		name      string
+		sessionID string
+		fileID    string
+		action    string
+		expected  bool
+	}{
+		{
+			name:     "missing session",
+			fileID:   fileInfo.Id,
+			action:   model.AccessControlPolicyActionDownloadFileAttachment,
+			expected: false,
+		},
+		{
+			name:      "expired session",
+			sessionID: expiredSession.Id,
+			fileID:    fileInfo.Id,
+			action:    model.AccessControlPolicyActionDownloadFileAttachment,
+			expected:  false,
+		},
+		{
+			name:      "invalid session",
+			sessionID: model.NewId(),
+			fileID:    fileInfo.Id,
+			action:    model.AccessControlPolicyActionDownloadFileAttachment,
+			expected:  false,
+		},
+		{
+			name:      "unknown file",
+			sessionID: activeSession.Id,
+			fileID:    model.NewId(),
+			action:    model.AccessControlPolicyActionDownloadFileAttachment,
+			expected:  false,
+		},
+		{
+			name:      "channel-less file",
+			sessionID: activeSession.Id,
+			fileID:    channelLessFileInfo.Id,
+			action:    model.AccessControlPolicyActionDownloadFileAttachment,
+			expected:  false,
+		},
+		{
+			name:      "unsupported action",
+			sessionID: activeSession.Id,
+			fileID:    fileInfo.Id,
+			action:    "unsupported-action",
+			expected:  false,
+		},
+		{
+			name:      "policy denial",
+			sessionID: activeSession.Id,
+			fileID:    fileInfo.Id,
+			action:    model.AccessControlPolicyActionDownloadFileAttachment,
+			expected:  false,
+		},
+		{
+			name:      "policy evaluation error",
+			sessionID: activeSession.Id,
+			fileID:    fileInfo.Id,
+			action:    model.AccessControlPolicyActionUploadFileAttachment,
+			expected:  false,
+		},
+		{
+			name:      "policy allow with legacy subject roles",
+			sessionID: allowSession.Id,
+			fileID:    fileInfo.Id,
+			action:    model.AccessControlPolicyActionDownloadFileAttachment,
+			expected:  true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, tt.expected, fileActionAPI.HasPermissionToFileAction(tt.sessionID, tt.fileID, tt.action))
+		})
+	}
+	mockAccessControl.AssertExpectations(t)
+}
+
 func TestPluginAPIGetFileInfos(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
