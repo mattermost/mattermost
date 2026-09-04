@@ -161,6 +161,19 @@ func (a *App) CreatePropertyField(rctx request.CTX, field *model.PropertyField, 
 	CanonicalizeSystemObjectField(field)
 	field.Name = strings.TrimSpace(field.Name)
 
+	if !field.IsPSAv1() && field.Permissions == nil && !field.Protected {
+		defaultLevel := DefaultPropertyFieldPermissionLevel(field)
+		if field.PermissionField == nil {
+			field.PermissionField = &defaultLevel
+		}
+		if field.PermissionValues == nil {
+			field.PermissionValues = &defaultLevel
+		}
+		if field.PermissionOptions == nil {
+			field.PermissionOptions = &defaultLevel
+		}
+	}
+
 	if appErr := a.rankPropertyFieldGate("CreatePropertyField", field); appErr != nil {
 		return nil, appErr
 	}
@@ -454,7 +467,7 @@ func (a *App) UpdatePropertyFields(rctx request.CTX, groupID string, fields []*m
 		}
 
 		// Protected-check is the only invariant gated on the caller's opt-out.
-		if !bypassProtectedCheck && existing.Protected {
+		if !bypassProtectedCheck && model.ProjectLegacyPermissions(existing).Protected {
 			return nil, nil, model.NewAppError(
 				"UpdatePropertyFields",
 				"app.property_field.update.protected.app_error",
@@ -524,7 +537,7 @@ func (a *App) DeletePropertyField(rctx request.CTX, groupID, id string, bypassPr
 		return model.NewAppError("DeletePropertyField", "app.property_field.delete.not_found.app_error", nil, "", http.StatusNotFound)
 	}
 
-	if !bypassProtectedCheck && existing.Protected {
+	if !bypassProtectedCheck && model.ProjectLegacyPermissions(existing).Protected {
 		return model.NewAppError(
 			"DeletePropertyField",
 			"app.property_field.delete.protected.app_error",

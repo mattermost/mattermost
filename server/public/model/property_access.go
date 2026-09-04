@@ -164,9 +164,6 @@ func IsPropertyFieldProtected(field *PropertyField) bool {
 // none means source_only; else public. Reads the tiers through
 // Restrictions.TierFor, which is nil-receiver safe, so a Permissions with no
 // Restrictions reports source_only rather than panicking.
-//
-// Falls back to the legacy Attrs["access_mode"] read only while Permissions
-// is nil -- a shim for a field the backfill has not converted yet.
 func (f *PropertyField) GetAccessMode() string {
 	if f.Permissions != nil {
 		switch {
@@ -180,7 +177,7 @@ func (f *PropertyField) GetAccessMode() string {
 		}
 	}
 
-	return legacyAccessMode(f)
+	return PropertyAccessModePublic
 }
 
 // ValidatePropertyFieldAccessMode validates that the access_mode attribute is valid

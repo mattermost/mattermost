@@ -542,10 +542,7 @@ func testGetPropertyField(t *testing.T, _ request.CTX, ss store.Store, s SqlStor
 		require.Equal(t, fieldID, field.ID)
 		require.Empty(t, field.CreatedBy)
 		require.Empty(t, field.UpdatedBy)
-		require.False(t, field.Protected)
-		require.Nil(t, field.PermissionField)
-		require.Nil(t, field.PermissionValues)
-		require.Nil(t, field.PermissionOptions)
+		require.Nil(t, field.Permissions)
 	})
 }
 
