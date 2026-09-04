@@ -72,6 +72,10 @@ describe('AdminDefinitionHelpers - licensedForAddOn', () => {
         expect(checker({}, {}, {IsLicensed: 'true', AddOns: 'crossguard-premium'})).toBe(false);
         expect(checker({}, {}, {IsLicensed: 'true', AddOns: 'cross'})).toBe(false);
     });
+
+    test('should match case-insensitively', () => {
+        expect(checker({}, {}, {IsLicensed: 'true', AddOns: 'CrossGuard'})).toBe(true);
+    });
 });
 
 describe('AdminDefinitionHelpers - validators.numberInRange', () => {

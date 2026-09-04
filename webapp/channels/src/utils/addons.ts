@@ -29,13 +29,18 @@ export function getRequiredAddOn(pluginId: string): string | undefined {
  * Add-ons arrive from the server as a comma-separated list, because ClientLicense
  * is Record<string, string>. Split rather than substring match, so that an add-on
  * named 'crossguard' is not satisfied by 'crossguard-premium'.
+ *
+ * Comparison is case-insensitive to match License.HasAddOn on the server, which
+ * uses strings.EqualFold. Without this the server could activate an add-on granted
+ * as 'CrossGuard' while the System Console reported it as unlicensed.
  */
 export function licenseHasAddOn(license: ClientLicense | undefined, addOn: string): boolean {
     if (license?.IsLicensed !== 'true') {
         return false;
     }
 
-    return (license.AddOns ?? '').split(',').includes(addOn);
+    const target = addOn.toLowerCase();
+    return (license.AddOns ?? '').split(',').some((granted) => granted.toLowerCase() === target);
 }
 
 /**

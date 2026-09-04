@@ -39,6 +39,13 @@ describe('utils/addons', () => {
             expect(licenseHasAddOn(licensed('crossguard-premium'), 'crossguard')).toBe(false);
             expect(licenseHasAddOn(licensed('cross'), 'crossguard')).toBe(false);
         });
+
+        test('should match case-insensitively, as License.HasAddOn does on the server', () => {
+            expect(licenseHasAddOn(licensed('CrossGuard'), 'crossguard')).toBe(true);
+            expect(licenseHasAddOn(licensed('CROSSGUARD'), 'crossguard')).toBe(true);
+            expect(licenseHasAddOn(licensed('other,CrossGuard'), 'crossguard')).toBe(true);
+            expect(licenseHasAddOn(licensed('crossguard'), 'CrossGuard')).toBe(true);
+        });
     });
 
     describe('isUnlicensedAddOn', () => {
@@ -55,6 +62,7 @@ describe('utils/addons', () => {
 
         test('should return false for an add-on the license grants', () => {
             expect(isUnlicensedAddOn('crossguard', licensed('crossguard'))).toBe(false);
+            expect(isUnlicensedAddOn('crossguard', licensed('CrossGuard'))).toBe(false);
         });
     });
 
