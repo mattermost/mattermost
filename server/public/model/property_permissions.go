@@ -4,6 +4,7 @@
 package model
 
 import (
+	"database/sql/driver"
 	"encoding/json"
 	"fmt"
 	"slices"
@@ -73,6 +74,17 @@ func (p *Permissions) Scan(value any) error {
 	default:
 		return fmt.Errorf("received value %T is neither a byte slice nor string", value)
 	}
+}
+
+// Value implements driver.Valuer so a Permissions object is stored as JSON
+// text. Returning a string rather than []byte avoids lib/pq sending binary
+// jsonb (whose first byte is a version number).
+func (p Permissions) Value() (driver.Value, error) {
+	b, err := json.Marshal(p)
+	if err != nil {
+		return nil, err
+	}
+	return string(b), nil
 }
 
 // PermissionsPatch carries a partial update to a field's Permissions. Each of

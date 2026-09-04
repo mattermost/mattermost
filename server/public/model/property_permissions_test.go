@@ -5,6 +5,7 @@ package model
 
 import (
 	"encoding/json"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -50,6 +51,22 @@ func TestPermissionsJSONRoundTrip(t *testing.T) {
 	var p2 Permissions
 	require.NoError(t, json.Unmarshal(out, &p2))
 	assert.Equal(t, p, p2)
+}
+
+func TestPermissionsValueIsJSONText(t *testing.T) {
+	p := Permissions{
+		Restrictions: &Restrictions{Value: ReadWrite{Read: PermissionLevelEveryone}},
+	}
+	v, err := p.Value()
+	require.NoError(t, err)
+	s, ok := v.(string)
+	require.True(t, ok, "jsonb must be bound as text, not []byte")
+	require.True(t, strings.HasPrefix(s, "{"), s)
+
+	var roundtrip Permissions
+	require.NoError(t, roundtrip.Scan([]byte(s)))
+	require.NotNil(t, roundtrip.Restrictions)
+	assert.Equal(t, PermissionLevelEveryone, roundtrip.Restrictions.Value.Read)
 }
 
 func TestPermissionsGrantsShape(t *testing.T) {

@@ -164,6 +164,11 @@ func IsPropertyFieldProtected(field *PropertyField) bool {
 // none means source_only; else public. Reads the tiers through
 // Restrictions.TierFor, which is nil-receiver safe, so a Permissions with no
 // Restrictions reports source_only rather than panicking.
+//
+// A field with no Permissions object reports public here. Unconverted
+// PSAv2/v3 rows are fail-closed by effectiveAccessModeUsing (shared_only).
+// PSAv1 fields cannot hold a permissions object; callers that still need
+// their Attrs access_mode should use LegacyAccessMode.
 func (f *PropertyField) GetAccessMode() string {
 	if f.Permissions != nil {
 		switch {
