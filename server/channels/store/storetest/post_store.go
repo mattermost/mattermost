@@ -72,6 +72,8 @@ func TestPostStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	t.Run("GetNthRecentPostTime", func(t *testing.T) { testGetNthRecentPostTime(t, rctx, ss) })
 	t.Run("GetEditHistoryForPost", func(t *testing.T) { testGetEditHistoryForPost(t, rctx, ss) })
 	t.Run("RestoreContentFlaggedPost", func(t *testing.T) { testRestoreContentFlaggedPost(t, rctx, ss) })
+	t.Run("GetPostAuthorIDsForTeam", func(t *testing.T) { testPostStoreGetPostAuthorIDsForTeam(t, rctx, ss) })
+	t.Run("GetPostAuthorIDsForChannel", func(t *testing.T) { testPostStoreGetPostAuthorIDsForChannel(t, rctx, ss) })
 }
 
 func testPostStoreSave(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -4727,7 +4729,7 @@ func testPostStoreGetParentsForExportAfter(t *testing.T, rctx request.CTX, ss st
 	require.NoError(t, nErr)
 
 	t.Run("without archived channels", func(t *testing.T) {
-		posts, err := ss.Post().GetParentsForExportAfter(10000, strings.Repeat("0", 26), false)
+		posts, err := ss.Post().GetParentsForExportAfter(10000, strings.Repeat("0", 26), false, "", "")
 		assert.NoError(t, err)
 
 		found := false
@@ -4750,7 +4752,7 @@ func testPostStoreGetParentsForExportAfter(t *testing.T, rctx request.CTX, ss st
 	})
 
 	t.Run("with archived channels", func(t *testing.T) {
-		posts, err := ss.Post().GetParentsForExportAfter(10000, strings.Repeat("0", 26), true)
+		posts, err := ss.Post().GetParentsForExportAfter(10000, strings.Repeat("0", 26), true, "", "")
 		assert.NoError(t, err)
 
 		found := false
@@ -4778,7 +4780,7 @@ func testPostStoreGetParentsForExportAfter(t *testing.T, rctx request.CTX, ss st
 		}))
 		require.NoError(t, err)
 
-		posts, err := ss.Post().GetParentsForExportAfter(10000, strings.Repeat("0", 26), false)
+		posts, err := ss.Post().GetParentsForExportAfter(10000, strings.Repeat("0", 26), false, "", "")
 		assert.NoError(t, err)
 
 		for _, p := range posts {
@@ -4787,6 +4789,25 @@ func testPostStoreGetParentsForExportAfter(t *testing.T, rctx request.CTX, ss st
 				assert.Equal(t, model.StringArray([]string{u1.Username}), p.FlaggedBy)
 			}
 		}
+	})
+
+	t.Run("with channel name filter", func(t *testing.T) {
+		// c1 has p1, c2 (archived) has p2. Filtering by c1.Name should return p1 only.
+		posts, err := ss.Post().GetParentsForExportAfter(10000, strings.Repeat("0", 26), true, "", c1.Name)
+		assert.NoError(t, err)
+
+		found := false
+		foundOther := false
+		for _, p := range posts {
+			if p.Id == p1.Id {
+				found = true
+			}
+			if p.Id == p2.Id {
+				foundOther = true
+			}
+		}
+		assert.True(t, found, "post from target channel should be returned")
+		assert.False(t, foundOther, "post from other channel should be excluded by channel filter")
 	})
 }
 
@@ -6379,5 +6400,126 @@ func testDeleteAllPostRemindersForPost(t *testing.T, rctx request.CTX, ss store.
 		err = s.GetMaster().Get(&count, `SELECT COUNT(*) FROM PostReminders WHERE PostId=?`, p1.Id)
 		require.NoError(t, err)
 		require.Equal(t, 0, count)
+	})
+}
+
+func testPostStoreGetPostAuthorIDsForTeam(t *testing.T, rctx request.CTX, ss store.Store) {
+	team := model.Team{DisplayName: "T", Name: NewTestID(), Email: MakeEmail(), Type: model.TeamOpen}
+	_, err := ss.Team().Save(&team)
+	require.NoError(t, err)
+
+	ch1 := model.Channel{TeamId: team.Id, DisplayName: "Active", Name: NewTestID(), Type: model.ChannelTypeOpen}
+	_, nErr := ss.Channel().Save(rctx, &ch1, -1)
+	require.NoError(t, nErr)
+
+	ch2 := model.Channel{TeamId: team.Id, DisplayName: "Archived", Name: NewTestID(), Type: model.ChannelTypeOpen}
+	_, nErr = ss.Channel().Save(rctx, &ch2, -1)
+	require.NoError(t, nErr)
+
+	u1 := model.User{Username: model.NewUsername(), Email: MakeEmail()}
+	_, err = ss.User().Save(rctx, &u1)
+	require.NoError(t, err)
+
+	u2 := model.User{Username: model.NewUsername(), Email: MakeEmail()}
+	_, err = ss.User().Save(rctx, &u2)
+	require.NoError(t, err)
+
+	// u1 posts in active channel, u2 posts in channel that gets archived.
+	_, nErr = ss.Post().Save(rctx, &model.Post{ChannelId: ch1.Id, UserId: u1.Id, Message: NewTestID()})
+	require.NoError(t, nErr)
+	_, nErr = ss.Post().Save(rctx, &model.Post{ChannelId: ch2.Id, UserId: u2.Id, Message: NewTestID()})
+	require.NoError(t, nErr)
+
+	nErr = ss.Channel().Delete(ch2.Id, model.GetMillis())
+	require.NoError(t, nErr)
+
+	t.Run("excludes archived channels by default", func(t *testing.T) {
+		ids, err := ss.Post().GetPostAuthorIDsForTeam(team.Name, false)
+		require.NoError(t, err)
+		assert.Contains(t, ids, u1.Id, "active-channel author must be returned")
+		assert.NotContains(t, ids, u2.Id, "archived-channel author must be excluded")
+	})
+
+	t.Run("includes archived channels when flag is true", func(t *testing.T) {
+		ids, err := ss.Post().GetPostAuthorIDsForTeam(team.Name, true)
+		require.NoError(t, err)
+		assert.Contains(t, ids, u1.Id)
+		assert.Contains(t, ids, u2.Id, "archived-channel author must be included when flag is set")
+	})
+
+	t.Run("returns empty slice for non-existent team", func(t *testing.T) {
+		ids, err := ss.Post().GetPostAuthorIDsForTeam("no-such-team", true)
+		require.NoError(t, err)
+		assert.Empty(t, ids)
+	})
+
+	t.Run("excludes soft-deleted posts", func(t *testing.T) {
+		u3 := model.User{Username: model.NewUsername(), Email: MakeEmail()}
+		_, err := ss.User().Save(rctx, &u3)
+		require.NoError(t, err)
+
+		p, nErr := ss.Post().Save(rctx, &model.Post{ChannelId: ch1.Id, UserId: u3.Id, Message: NewTestID()})
+		require.NoError(t, nErr)
+		nErr = ss.Post().Delete(rctx, p.Id, model.GetMillis(), u3.Id)
+		require.NoError(t, nErr)
+
+		ids, err := ss.Post().GetPostAuthorIDsForTeam(team.Name, false)
+		require.NoError(t, err)
+		assert.NotContains(t, ids, u3.Id, "deleted-post author must not be returned")
+	})
+}
+
+func testPostStoreGetPostAuthorIDsForChannel(t *testing.T, rctx request.CTX, ss store.Store) {
+	team := model.Team{DisplayName: "T2", Name: NewTestID(), Email: MakeEmail(), Type: model.TeamOpen}
+	_, err := ss.Team().Save(&team)
+	require.NoError(t, err)
+
+	ch1 := model.Channel{TeamId: team.Id, DisplayName: "Chan1", Name: NewTestID(), Type: model.ChannelTypeOpen}
+	_, nErr := ss.Channel().Save(rctx, &ch1, -1)
+	require.NoError(t, nErr)
+
+	ch2 := model.Channel{TeamId: team.Id, DisplayName: "Chan2 (archived)", Name: NewTestID(), Type: model.ChannelTypeOpen}
+	_, nErr = ss.Channel().Save(rctx, &ch2, -1)
+	require.NoError(t, nErr)
+
+	u1 := model.User{Username: model.NewUsername(), Email: MakeEmail()}
+	_, err = ss.User().Save(rctx, &u1)
+	require.NoError(t, err)
+
+	u2 := model.User{Username: model.NewUsername(), Email: MakeEmail()}
+	_, err = ss.User().Save(rctx, &u2)
+	require.NoError(t, err)
+
+	_, nErr = ss.Post().Save(rctx, &model.Post{ChannelId: ch1.Id, UserId: u1.Id, Message: NewTestID()})
+	require.NoError(t, nErr)
+	_, nErr = ss.Post().Save(rctx, &model.Post{ChannelId: ch2.Id, UserId: u2.Id, Message: NewTestID()})
+	require.NoError(t, nErr)
+
+	nErr = ss.Channel().Delete(ch2.Id, model.GetMillis())
+	require.NoError(t, nErr)
+
+	t.Run("returns only authors from the named channel", func(t *testing.T) {
+		ids, err := ss.Post().GetPostAuthorIDsForChannel(team.Name, ch1.Name, false)
+		require.NoError(t, err)
+		assert.Contains(t, ids, u1.Id)
+		assert.NotContains(t, ids, u2.Id, "author from a different channel must not be returned")
+	})
+
+	t.Run("excludes archived channel when flag is false", func(t *testing.T) {
+		ids, err := ss.Post().GetPostAuthorIDsForChannel(team.Name, ch2.Name, false)
+		require.NoError(t, err)
+		assert.NotContains(t, ids, u2.Id, "archived channel must be excluded")
+	})
+
+	t.Run("includes archived channel when flag is true", func(t *testing.T) {
+		ids, err := ss.Post().GetPostAuthorIDsForChannel(team.Name, ch2.Name, true)
+		require.NoError(t, err)
+		assert.Contains(t, ids, u2.Id, "archived channel author must be returned when flag is set")
+	})
+
+	t.Run("returns empty slice for non-existent channel", func(t *testing.T) {
+		ids, err := ss.Post().GetPostAuthorIDsForChannel(team.Name, "no-such-channel", true)
+		require.NoError(t, err)
+		assert.Empty(t, ids)
 	})
 }

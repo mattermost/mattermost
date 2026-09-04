@@ -17,6 +17,7 @@ import StatusIcon from 'components/status_icon';
 import AgentTag from 'components/widgets/tag/agent_tag';
 import BotTag from 'components/widgets/tag/bot_tag';
 import GuestTag from 'components/widgets/tag/guest_tag';
+import ImportedInactiveTag from 'components/widgets/tag/imported_inactive_tag';
 import Tag from 'components/widgets/tag/tag';
 import Avatar from 'components/widgets/users/avatar';
 
@@ -53,6 +54,7 @@ const AtMentionSuggestion = React.forwardRef<HTMLLIElement, SuggestionProps<Item
         sharedIcon: null,
         guestTag: null,
         groupMembers: null,
+        importedInactiveTag: null,
     });
 
     let itemname: string;
@@ -205,7 +207,7 @@ const AtMentionSuggestion = React.forwardRef<HTMLLIElement, SuggestionProps<Item
             {...props}
             className={classNames({'suggestion-list__item--default-agent': item.isDefaultAgent})}
             aria-labelledby={ids.atMention}
-            aria-describedby={joinIds(ids.description, ids.youElement, ids.status, ids.botTag, ids.sharedIcon, ids.guestTag, ids.groupMembers)}
+            aria-describedby={joinIds(ids.description, ids.youElement, ids.status, ids.botTag, ids.sharedIcon, ids.guestTag, ids.groupMembers, ids.importedInactiveTag)}
             data-testid={`mentionSuggestion_${itemname}`}
         >
             {icon}
@@ -223,6 +225,7 @@ const AtMentionSuggestion = React.forwardRef<HTMLLIElement, SuggestionProps<Item
                 {customStatus}
                 {sharedIcon}
                 {isGuest(item.roles) && <GuestTag/>}
+                {item.props?.importedInactive === 'true' && <span id={ids.importedInactiveTag}><ImportedInactiveTag/></span>}
             </span>
             {countBadge}
         </SuggestionContainer>

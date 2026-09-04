@@ -171,7 +171,7 @@ func (a *App) importRole(rctx request.CTX, data *imports.RoleImportData, dryRun 
 	return err
 }
 
-func (a *App) importTeam(rctx request.CTX, data *imports.TeamImportData, dryRun bool) *model.AppError {
+func (a *App) importTeam(rctx request.CTX, data *imports.TeamImportData, dryRun bool, destinationTeam string) *model.AppError {
 	var fields []mlog.Field
 	if data != nil && data.Name != nil {
 		fields = append(fields, mlog.String("team_name", *data.Name))
@@ -198,7 +198,14 @@ func (a *App) importTeam(rctx request.CTX, data *imports.TeamImportData, dryRun 
 		}
 	}
 
-	team.DisplayName = *data.DisplayName
+	if destinationTeam != "" && team.Id != "" {
+		// Existing team in a dest migration: preserve whatever display name is
+		// already there so a customer's manual rename is not clobbered on
+		// incremental re-runs.
+	} else {
+		// New team (any context) or regular import: use the export display name.
+		team.DisplayName = *data.DisplayName
+	}
 	team.Type = *data.Type
 
 	if data.Description != nil {
@@ -313,18 +320,33 @@ func (a *App) importChannel(rctx request.CTX, data *imports.ChannelImportData, d
 	}
 
 	var chErr *model.AppError
+	var existingDeleteAt int64
 	if channel.Id == "" {
 		if _, chErr = a.CreateChannel(rctx, channel, false); chErr != nil {
 			return chErr
 		}
 	} else {
+		// UpdateChannel rejects channels with DeleteAt != 0. If the existing
+		// channel is currently archived — whether from a prior import run or
+		// archived directly on the destination since then — clear it before
+		// the update. The correct DeleteAt is restored below.
+		existingDeleteAt = channel.DeleteAt
+		channel.DeleteAt = 0
 		if _, chErr = a.UpdateChannel(rctx, channel); chErr != nil {
 			return chErr
 		}
 	}
 
-	if data.DeletedAt != nil && *data.DeletedAt > 0 {
+	switch {
+	case data.DeletedAt != nil && *data.DeletedAt > 0:
 		if err := a.Srv().Store().Channel().Delete(channel.Id, *data.DeletedAt); err != nil {
+			return model.NewAppError("BulkImport", "app.import.import_channel.deleting.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+	case existingDeleteAt > 0:
+		// The import data doesn't say this channel is deleted, but it was already
+		// archived directly on the destination (e.g. by an admin, between migration
+		// runs) — preserve that instead of silently un-archiving it.
+		if err := a.Srv().Store().Channel().Delete(channel.Id, existingDeleteAt); err != nil {
 			return model.NewAppError("BulkImport", "app.import.import_channel.deleting.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
@@ -332,7 +354,7 @@ func (a *App) importChannel(rctx request.CTX, data *imports.ChannelImportData, d
 	return nil
 }
 
-func (a *App) importUser(rctx request.CTX, data *imports.UserImportData, dryRun bool) *model.AppError {
+func (a *App) importUser(rctx request.CTX, data *imports.UserImportData, dryRun bool, deactivateMissingUsers bool, report *imports.ImportReport) *model.AppError {
 	var fields []mlog.Field
 	if data != nil && data.Username != nil {
 		fields = append(fields, mlog.String("user_name", *data.Username))
@@ -359,17 +381,101 @@ func (a *App) importUser(rctx request.CTX, data *imports.UserImportData, dryRun 
 
 	var user *model.User
 	var nErr error
-	user, nErr = a.Srv().Store().User().GetByUsername(*data.Username)
-	if nErr != nil {
-		user = &model.User{}
-		user.MakeNonNil()
-		user.SetDefaultNotifications()
-		hasUserChanged = true
+	// createDeactivated is true when deactivateMissingUsers is set and the user
+	// doesn't exist on the destination. We still create the account so their posts
+	// are preserved, but deactivate it so they can't log in until an admin reviews
+	// and explicitly reactivates them.
+	createDeactivated := false
+
+	// hasSSOIdentity is true whenever the import data carries a stable SSO identity
+	// (auth_service + auth_data). This is independent of import scope — auth_data
+	// is always the safer lookup key when present, regardless of whether this is a
+	// scoped or full-server import.
+	hasSSOIdentity := data.AuthService != nil && data.AuthData != nil && *data.AuthData != ""
+	matchedByAuthData := false
+	if hasSSOIdentity {
+		// Always match SSO users by auth_data. Falling back to username is unsafe:
+		// usernames can change (e.g. via SAML attribute sync), so a username match
+		// could silently link content to the wrong account.
+		user, nErr = a.Srv().Store().User().GetByAuth(data.AuthData, *data.AuthService)
+		if nErr != nil {
+			var nfErr *store.ErrNotFound
+			if !errors.As(nErr, &nfErr) {
+				return model.NewAppError("importUser", "app.user.get_by_auth.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+			}
+			// No dest account matched this SSO identity.
+			if deactivateMissingUsers {
+				// Scoped import: no username fallback — the source and dest are different
+				// instances and a username match could silently link content to the wrong
+				// account (e.g. if usernames changed via SAML attribute sync). Create a
+				// deactivated shell so posts are preserved pending admin review.
+				rctx.Logger().Warn(
+					"auth_data match failed during scoped import; creating deactivated shell to preserve posts — review and reactivate manually if needed",
+					mlog.String("username", *data.Username),
+					mlog.String("auth_service", *data.AuthService),
+					mlog.String("identity_match", "not_found"),
+				)
+				createDeactivated = true
+				user = &model.User{}
+				user.MakeNonNil()
+				user.SetDefaultNotifications()
+				hasUserChanged = true
+			} else {
+				// Full import (backup/restore of same instance): fall back to username
+				// so existing accounts are found and updated rather than duplicated.
+				user, nErr = a.Srv().Store().User().GetByUsername(*data.Username)
+				if nErr != nil {
+					var nfUsernameErr *store.ErrNotFound
+					if !errors.As(nErr, &nfUsernameErr) {
+						return model.NewAppError("importUser", "app.user.get_by_username.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+					}
+					user = &model.User{}
+					user.MakeNonNil()
+					user.SetDefaultNotifications()
+					hasUserChanged = true
+				}
+			}
+		} else {
+			matchedByAuthData = true
+			// If the username changed on the dest, record the mapping so post/reply/reaction
+			// processing can find this user even though posts reference the source username.
+			if user.Username != *data.Username {
+				report.Remap.Add(*data.Username, user.Username)
+			}
+		}
+	} else {
+		user, nErr = a.Srv().Store().User().GetByUsername(*data.Username)
+		if nErr != nil {
+			var nfErr *store.ErrNotFound
+			if !errors.As(nErr, &nfErr) {
+				return model.NewAppError("importUser", "app.user.get_by_username.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+			}
+			if deactivateMissingUsers {
+				rctx.Logger().Info("User not found on destination during scoped import; creating as deactivated to preserve post authorship", mlog.String("username", *data.Username))
+				createDeactivated = true
+			}
+			user = &model.User{}
+			user.MakeNonNil()
+			user.SetDefaultNotifications()
+			hasUserChanged = true
+		}
 	}
 
-	user.Username = *data.Username
+	// When matched by auth_data, preserve the dest username — the whole point of
+	// auth_data matching is that the username may have legitimately changed.
+	// For new shells (SSO mismatch or missing email user), the source username is used.
+	if !matchedByAuthData {
+		user.Username = *data.Username
+	}
 
-	if user.Email != *data.Email {
+	// When matched by auth_data, preserve the dest email for SAML the same way
+	// the store layer already does for OAuth providers (gitlab/google/office365/
+	// openid) and effectively does for LDAP (which rejects the whole update on an
+	// email mismatch) — SqlUserStore.Update has no equivalent protection for SAML.
+	// Without this, a live destination account's current email could be silently
+	// reverted to a stale value from the source export.
+	preserveEmailForSAML := matchedByAuthData && user.IsSAMLUser()
+	if !preserveEmailForSAML && user.Email != *data.Email {
 		hasUserChanged = true
 		hasUserEmailVerifiedChanged = true // Changing the email resets email verified to false by default.
 		user.Email = *data.Email
@@ -549,6 +655,9 @@ func (a *App) importUser(rctx request.CTX, data *imports.UserImportData, dryRun 
 	var savedUser *model.User
 	var err error
 	if user.Id == "" {
+		if createDeactivated {
+			user.SetProp(model.UserPropsKeyImportedInactive, "true")
+		}
 		if savedUser, err = a.ch.srv.userService.CreateUser(rctx, user, users.UserCreateOptions{FromImport: true}); err != nil {
 			var appErr *model.AppError
 			var invErr *store.ErrInvalidInput
@@ -560,6 +669,16 @@ func (a *App) importUser(rctx request.CTX, data *imports.UserImportData, dryRun 
 			case errors.Is(err, users.UserStoreIsEmptyError):
 				return model.NewAppError("importUser", "app.user.store_is_empty.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 			case errors.As(err, &invErr):
+				// A uniqueness collision does not verify that the destination account
+				// belongs to the source user. Leave the user unresolved instead of
+				// remapping their content to an unrelated account.
+				if deactivateMissingUsers {
+					rctx.Logger().Warn(
+						"Scoped import could not create an inactive user shell; leaving the source user unresolved",
+						mlog.String("source_username", *data.Username),
+						mlog.String("conflict_field", invErr.Field),
+					)
+				}
 				switch invErr.Field {
 				case "email":
 					return model.NewAppError("importUser", "app.user.save.email_exists.app_error", nil, "", http.StatusBadRequest).Wrap(err)
@@ -576,6 +695,16 @@ func (a *App) importUser(rctx request.CTX, data *imports.UserImportData, dryRun 
 		pref := model.Preference{UserId: savedUser.Id, Category: model.PreferenceCategoryTutorialSteps, Name: savedUser.Id, Value: "0"}
 		if err := a.Srv().Store().Preference().Save(model.Preferences{pref}); err != nil {
 			rctx.Logger().Warn("Encountered error saving tutorial preference", mlog.Err(err))
+		}
+
+		if createDeactivated && savedUser.DeleteAt == 0 {
+			// UpdateActive always stamps DeleteAt to the current time, which would
+			// clobber a legitimate historical DeleteAt the source already supplied
+			// (e.g. a user who was deactivated well before the migration). Only
+			// call it when the account isn't already deactivated.
+			if _, appErr := a.UpdateActive(rctx, savedUser, false); appErr != nil {
+				return appErr
+			}
 		}
 	} else {
 		var appErr *model.AppError
@@ -1380,7 +1509,7 @@ func (a *App) importUserChannels(rctx request.CTX, user *model.User, team *model
 	return nil
 }
 
-func (a *App) importReaction(data *imports.ReactionImportData, post *model.Post) *model.AppError {
+func (a *App) importReaction(rctx request.CTX, data *imports.ReactionImportData, post *model.Post, deactivateMissingUsers bool, report *imports.ImportReport) *model.AppError {
 	if err := imports.ValidateReactionImportData(data, post.CreateAt); err != nil {
 		return err
 	}
@@ -1388,6 +1517,27 @@ func (a *App) importReaction(data *imports.ReactionImportData, post *model.Post)
 	var user *model.User
 	var nErr error
 	if user, nErr = a.Srv().Store().User().GetByUsername(*data.User); nErr != nil {
+		var nfErr *store.ErrNotFound
+		if !errors.As(nErr, &nfErr) {
+			return model.NewAppError("importReaction", "app.user.get_by_username.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+		}
+		if report != nil {
+			if destUsername, ok := report.Remap.Lookup(*data.User); ok {
+				user, nErr = a.Srv().Store().User().GetByUsername(destUsername)
+				if nErr != nil {
+					var remapNfErr *store.ErrNotFound
+					if !errors.As(nErr, &remapNfErr) {
+						return model.NewAppError("importReaction", "app.user.get_by_username.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+					}
+				}
+			}
+		}
+	}
+	if nErr != nil {
+		if deactivateMissingUsers {
+			rctx.Logger().Warn("Skipping reaction from user not found on destination during scoped import", mlog.String("username", *data.User))
+			return nil
+		}
 		return model.NewAppError("BulkImport", "app.import.import_post.user_not_found.error", map[string]any{"Username": data.User}, "", http.StatusBadRequest).Wrap(nErr)
 	}
 
@@ -1410,7 +1560,7 @@ func (a *App) importReaction(data *imports.ReactionImportData, post *model.Post)
 	return nil
 }
 
-func (a *App) importReplies(rctx request.CTX, data []imports.ReplyImportData, post *model.Post, teamID string, extractContent bool) *model.AppError {
+func (a *App) importReplies(rctx request.CTX, data []imports.ReplyImportData, post *model.Post, teamID string, extractContent bool, deactivateMissingUsers bool, report *imports.ImportReport) *model.AppError {
 	var err *model.AppError
 	usernames := []string{}
 	for _, replyData := range data {
@@ -1423,7 +1573,7 @@ func (a *App) importReplies(rctx request.CTX, data []imports.ReplyImportData, po
 		}
 	}
 
-	users, err := a.getUsersByUsernames(usernames)
+	users, err := a.getUsersByUsernames(usernames, deactivateMissingUsers, report)
 	if err != nil {
 		return err
 	}
@@ -1443,6 +1593,11 @@ func (a *App) importReplies(rctx request.CTX, data []imports.ReplyImportData, po
 
 	for _, replyData := range data {
 		user := users[strings.ToLower(*replyData.User)]
+
+		if user == nil {
+			rctx.Logger().Warn("Skipping reply from user not found on destination during scoped import", mlog.String("username", *replyData.User))
+			continue
+		}
 
 		// Check if this post already exists.
 		replies, nErr := a.Srv().Store().Post().GetPostsCreatedAt(post.ChannelId, *replyData.CreateAt)
@@ -1544,7 +1699,7 @@ func (a *App) importReplies(rctx request.CTX, data []imports.ReplyImportData, po
 
 	for _, postAndReactions := range reactionsForCreateMap {
 		for _, reaction := range *postAndReactions.reactions {
-			if err := a.importReaction(&reaction, postAndReactions.post); err != nil {
+			if err := a.importReaction(rctx, &reaction, postAndReactions.post, deactivateMissingUsers, report); err != nil {
 				return err
 			}
 		}
@@ -1558,6 +1713,9 @@ func (a *App) importReplies(rctx request.CTX, data []imports.ReplyImportData, po
 
 			for _, username := range *postWithData.replyData.FlaggedBy {
 				user := users[strings.ToLower(username)]
+				if user == nil {
+					continue
+				}
 
 				preferences = append(preferences, model.Preference{
 					UserId:   user.Id,
@@ -1751,22 +1909,78 @@ type postAndData struct {
 	lineNumber     int
 }
 
-func (a *App) getUsersByUsernames(usernames []string) (map[string]*model.User, *model.AppError) {
+func (a *App) getUsersByUsernames(usernames []string, deactivateMissingUsers bool, report *imports.ImportReport) (map[string]*model.User, *model.AppError) {
 	uniqueUsernames := utils.RemoveDuplicatesFromStringArray(usernames)
 	allUsers, err := a.Srv().Store().User().GetProfilesByUsernames(uniqueUsernames, nil)
 	if err != nil {
 		return nil, model.NewAppError("BulkImport", "app.import.get_users_by_username.some_users_not_found.error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
-	if len(allUsers) != len(uniqueUsernames) {
-		return nil, model.NewAppError("BulkImport", "app.import.get_users_by_username.some_users_not_found.error", nil, "", http.StatusBadRequest)
-	}
-
 	users := make(map[string]*model.User)
 	for _, user := range allUsers {
 		users[strings.ToLower(user.Username)] = user
 	}
+
+	// For any source username not found, check the remap — the user's username may have
+	// changed on the dest since the export was taken (e.g. via SAML attribute sync).
+	// Collect all remapped dest usernames and resolve them in a single batch query
+	// rather than one GetByUsername call per miss — critical for performance at scale.
+	if report != nil {
+		var missedSrc []string
+		var missedDest []string
+		for _, srcUsername := range uniqueUsernames {
+			lowerSrc := strings.ToLower(srcUsername)
+			if _, found := users[lowerSrc]; !found {
+				if destUsername, ok := report.Remap.Lookup(srcUsername); ok {
+					missedSrc = append(missedSrc, lowerSrc)
+					missedDest = append(missedDest, destUsername)
+				}
+			}
+		}
+		if len(missedDest) > 0 {
+			remapped, rErr := a.Srv().Store().User().GetProfilesByUsernames(missedDest, nil)
+			if rErr != nil {
+				return nil, model.NewAppError("BulkImport", "app.import.get_users_by_username.some_users_not_found.error", nil, "", http.StatusInternalServerError).Wrap(rErr)
+			}
+			destToUser := make(map[string]*model.User, len(remapped))
+			for _, u := range remapped {
+				destToUser[strings.ToLower(u.Username)] = u
+			}
+			for i, lowerSrc := range missedSrc {
+				if u, ok := destToUser[strings.ToLower(missedDest[i])]; ok {
+					users[lowerSrc] = u
+				}
+			}
+		}
+	}
+
+	// Check completeness after remap resolution so that SSO users whose username changed
+	// on the dest (recorded via report.Remap during user processing) are not falsely
+	// reported as missing when the post-processing pass resolves them via remap.
+	if len(users) != len(uniqueUsernames) && !deactivateMissingUsers {
+		return nil, model.NewAppError("BulkImport", "app.import.get_users_by_username.some_users_not_found.error", nil, "", http.StatusBadRequest)
+	}
+
 	return users, nil
+}
+
+// prefetchUsersByUsernames batch-fetches usernames into the given users map as a best-effort
+// optimization, so callers like extractThreadMembers hit the pre-fetched map instead of issuing
+// a GetByUsername call per entry. Unlike getUsersByUsernames, missing usernames are not an error
+// here — callers are expected to have their own fallback/error handling for entries not found.
+func (a *App) prefetchUsersByUsernames(usernames []string, users map[string]*model.User) {
+	if len(usernames) == 0 {
+		return
+	}
+
+	fetched, err := a.Srv().Store().User().GetProfilesByUsernames(utils.RemoveDuplicatesFromStringArray(usernames), nil)
+	if err != nil {
+		return
+	}
+
+	for _, user := range fetched {
+		users[strings.ToLower(user.Username)] = user
+	}
 }
 
 func (a *App) getTeamsByNames(names []string) (map[string]*model.Team, *model.AppError) {
@@ -1796,19 +2010,42 @@ func (a *App) getChannelsByNames(names []string, teamID string) (map[string]*mod
 }
 
 // getChannelsForPosts returns map[teamName]map[channelName]*model.Channel
-func (a *App) getChannelsForPosts(teams map[string]*model.Team, data []*imports.PostImportData) (map[string]map[string]*model.Channel, *model.AppError) {
+func (a *App) getChannelsForPosts(teams map[string]*model.Team, data []*imports.PostImportData, deactivateMissingUsers bool) (map[string]map[string]*model.Channel, *model.AppError) {
 	teamChannels := make(map[string]map[string]*model.Channel)
+	unavailableTeamChannels := make(map[string]map[string]struct{})
 	for _, postData := range data {
 		teamName := strings.ToLower(*postData.Team)
 		if _, ok := teamChannels[teamName]; !ok {
 			teamChannels[teamName] = make(map[string]*model.Channel)
+			unavailableTeamChannels[teamName] = make(map[string]struct{})
+		}
+		team := teams[teamName]
+		if team == nil {
+			// Team not found on destination; caller will nil-check the channel and skip the post.
+			continue
 		}
 		channelName := strings.ToLower(*postData.Channel)
-		if channel, ok := teamChannels[teamName][channelName]; !ok || channel == nil {
-			var err error
-			channel, err = a.Srv().Store().Channel().GetByNameIncludeDeleted(teams[teamName].Id, *postData.Channel, true)
+		if _, unavailable := unavailableTeamChannels[teamName][channelName]; unavailable {
+			continue
+		}
+		if _, ok := teamChannels[teamName][channelName]; !ok {
+			channel, err := a.Srv().Store().Channel().GetByNameIncludeDeleted(team.Id, *postData.Channel, true)
 			if err != nil {
+				var nfErr *store.ErrNotFound
+				if deactivateMissingUsers && errors.As(err, &nfErr) {
+					// Scoped migration: channel not found on destination (partially-
+					// completed migration retry, channel renamed/deleted on dest
+					// between runs). Caller will nil-check and skip the post, same
+					// as a missing team or user — a full/non-scoped import still
+					// treats this as a hard data-integrity error below.
+					unavailableTeamChannels[teamName][channelName] = struct{}{}
+					continue
+				}
 				return nil, model.NewAppError("BulkImport", "app.import.import_post.channel_not_found.error", map[string]any{"ChannelName": *postData.Channel}, "", http.StatusBadRequest).Wrap(err)
+			}
+			if deactivateMissingUsers && channel.DeleteAt != 0 {
+				unavailableTeamChannels[teamName][channelName] = struct{}{}
+				continue
 			}
 			teamChannels[teamName][channelName] = channel
 		}
@@ -1824,7 +2061,7 @@ func getPostStrID(post *model.Post) string {
 
 // importMultiplePostLines will return an error and the line that
 // caused it whenever possible
-func (a *App) importMultiplePostLines(rctx request.CTX, lines []imports.LineImportWorkerData, dryRun, extractContent bool) (int, *model.AppError) {
+func (a *App) importMultiplePostLines(rctx request.CTX, lines []imports.LineImportWorkerData, dryRun, extractContent, deactivateMissingUsers bool, report *imports.ImportReport) (int, *model.AppError) {
 	if len(lines) == 0 {
 		return 0, nil
 	}
@@ -1845,6 +2082,7 @@ func (a *App) importMultiplePostLines(rctx request.CTX, lines []imports.LineImpo
 	rctx.Logger().Info("Importing post lines", mlog.Int("count", len(lines)), mlog.Int("first_line", lines[0].LineNumber))
 
 	usernames := []string{}
+	followerUsernames := []string{}
 	teamNames := make([]string, len(lines))
 	postsData := make([]*imports.PostImportData, len(lines))
 	for i, line := range lines {
@@ -1852,21 +2090,27 @@ func (a *App) importMultiplePostLines(rctx request.CTX, lines []imports.LineImpo
 		if line.Post.FlaggedBy != nil {
 			usernames = append(usernames, *line.Post.FlaggedBy...)
 		}
+		if line.Post.ThreadFollowers != nil {
+			for _, follower := range *line.Post.ThreadFollowers {
+				followerUsernames = append(followerUsernames, *follower.User)
+			}
+		}
 		teamNames[i] = *line.Post.Team
 		postsData[i] = line.Post
 	}
 
-	users, err := a.getUsersByUsernames(usernames)
+	users, err := a.getUsersByUsernames(usernames, deactivateMissingUsers, report)
 	if err != nil {
 		return 0, err
 	}
+	a.prefetchUsersByUsernames(followerUsernames, users)
 
 	teams, err := a.getTeamsByNames(teamNames)
 	if err != nil {
 		return 0, err
 	}
 
-	channels, err := a.getChannelsForPosts(teams, postsData)
+	channels, err := a.getChannelsForPosts(teams, postsData, deactivateMissingUsers)
 	if err != nil {
 		return 0, err
 	}
@@ -1883,8 +2127,23 @@ func (a *App) importMultiplePostLines(rctx request.CTX, lines []imports.LineImpo
 
 	for _, line := range lines {
 		team := teams[strings.ToLower(*line.Post.Team)]
-		channel := channels[*line.Post.Team][*line.Post.Channel]
+		channel := channels[strings.ToLower(*line.Post.Team)][strings.ToLower(*line.Post.Channel)]
 		user := users[strings.ToLower(*line.Post.User)]
+
+		if team == nil {
+			rctx.Logger().Warn("Skipping post for team not found on destination during scoped import", mlog.String("team", *line.Post.Team), mlog.Int("line_number", line.LineNumber))
+			continue
+		}
+
+		if channel == nil {
+			rctx.Logger().Warn("Skipping post for channel not found on destination during scoped import", mlog.String("channel", *line.Post.Channel), mlog.Int("line_number", line.LineNumber))
+			continue
+		}
+
+		if user == nil {
+			rctx.Logger().Warn("Skipping post from user not found on destination during scoped import", mlog.String("username", *line.Post.User), mlog.Int("line_number", line.LineNumber))
+			continue
+		}
 
 		// Check if this post already exists.
 		posts, nErr := a.Srv().Store().Post().GetPostsCreatedAt(channel.Id, *line.Post.CreateAt)
@@ -1923,7 +2182,7 @@ func (a *App) importMultiplePostLines(rctx request.CTX, lines []imports.LineImpo
 			post.IsPinned = *line.Post.IsPinned
 		}
 		if line.Post.ThreadFollowers != nil {
-			threadMemberships, lineNumber, err := a.extractThreadMembers(&line, users, post)
+			threadMemberships, lineNumber, err := a.extractThreadMembers(rctx, &line, users, post, deactivateMissingUsers, report)
 			if err != nil {
 				return lineNumber, err
 			}
@@ -2039,6 +2298,9 @@ func (a *App) importMultiplePostLines(rctx request.CTX, lines []imports.LineImpo
 
 			for _, username := range *postWithData.postData.FlaggedBy {
 				user := users[strings.ToLower(username)]
+				if user == nil {
+					continue
+				}
 
 				preferences = append(preferences, model.Preference{
 					UserId:   user.Id,
@@ -2057,14 +2319,14 @@ func (a *App) importMultiplePostLines(rctx request.CTX, lines []imports.LineImpo
 
 		if postWithData.postData.Reactions != nil {
 			for _, reaction := range *postWithData.postData.Reactions {
-				if err := a.importReaction(&reaction, postWithData.post); err != nil {
+				if err := a.importReaction(rctx, &reaction, postWithData.post, deactivateMissingUsers, report); err != nil {
 					return postWithData.lineNumber, err
 				}
 			}
 		}
 
 		if postWithData.postData.Replies != nil && len(*postWithData.postData.Replies) > 0 {
-			err := a.importReplies(rctx, *postWithData.postData.Replies, postWithData.post, postWithData.team.Id, extractContent)
+			err := a.importReplies(rctx, *postWithData.postData.Replies, postWithData.post, postWithData.team.Id, extractContent, deactivateMissingUsers, report)
 			if err != nil {
 				return postWithData.lineNumber, err
 			}
@@ -2107,7 +2369,7 @@ func (a *App) updateFileInfoWithPostId(rctx request.CTX, post *model.Post) {
 	}
 }
 
-func (a *App) importDirectChannel(rctx request.CTX, data *imports.DirectChannelImportData, dryRun bool) *model.AppError {
+func (a *App) importDirectChannel(rctx request.CTX, data *imports.DirectChannelImportData, dryRun, deactivateMissingUsers bool, report *imports.ImportReport) *model.AppError {
 	var err *model.AppError
 	if err = imports.ValidateDirectChannelImportData(data); err != nil {
 		return err
@@ -2132,28 +2394,37 @@ func (a *App) importDirectChannel(rctx request.CTX, data *imports.DirectChannelI
 	}
 
 	var userIDs []string
-	userMap, err := a.getUsersByUsernames(members)
+	userMap, err := a.getUsersByUsernames(members, deactivateMissingUsers, report)
 	if err != nil {
 		return err
 	}
 	for _, user := range members {
-		userIDs = append(userIDs, userMap[strings.ToLower(user)].Id)
+		member, ok := userMap[strings.ToLower(user)]
+		if !ok {
+			rctx.Logger().Warn("Skipping direct channel member not found on destination during scoped import", mlog.String("username", user))
+			continue
+		}
+		userIDs = append(userIDs, member.Id)
 	}
 
 	var channel *model.Channel
 
-	if len(userIDs) == 2 {
+	switch {
+	case len(userIDs) == 2:
 		ch, err2 := a.createDirectChannel(rctx, userIDs[0], userIDs[1])
 		if err2 != nil && err2.Id != store.ChannelExistsError {
 			return model.NewAppError("BulkImport", "app.import.import_direct_channel.create_direct_channel.error", nil, "", http.StatusBadRequest).Wrap(err2)
 		}
 		channel = ch
-	} else {
+	case len(userIDs) > 2:
 		ch, err2 := a.createGroupChannel(rctx, userIDs, "")
 		if err2 != nil && err2.Id != store.ChannelExistsError {
 			return model.NewAppError("BulkImport", "app.import.import_direct_channel.create_group_channel.error", nil, "", http.StatusBadRequest).Wrap(err2)
 		}
 		channel = ch
+	default:
+		rctx.Logger().Warn("Not enough users to create a direct channel during scoped import")
+		return nil
 	}
 
 	totalMembers, err := a.GetChannelMemberCount(rctx, channel.Id)
@@ -2178,9 +2449,38 @@ func (a *App) importDirectChannel(rctx request.CTX, data *imports.DirectChannelI
 		existingMembers[member.UserId] = member
 	}
 
+	// Distinguish "this membership was never established" (crash mid-loop, or a
+	// concurrent worker still mid-SaveMember-loop — the recovery case) from "this user
+	// joined before and has since left or been removed" (a deliberate change on the
+	// destination that a re-import must not silently undo) using ChannelMemberHistory,
+	// which records every join/leave and is never purged when a membership ends.
+	var candidateMissingIDs []string
+	for _, member := range data.Participants {
+		if u, ok := userMap[strings.ToLower(*member.Username)]; ok {
+			if _, isMember := existingMembers[u.Id]; !isMember {
+				candidateMissingIDs = append(candidateMissingIDs, u.Id)
+			}
+		}
+	}
+	previouslyLeftMembers := make(map[string]bool)
+	if len(candidateMissingIDs) > 0 {
+		everMembers, nErr := a.Srv().Store().ChannelMemberHistory().GetEverMembersInChannel(channel.Id, candidateMissingIDs)
+		if nErr != nil {
+			return model.NewAppError("BulkImport", "app.import.import_direct_channel.get_ever_members.error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+		}
+		for _, id := range everMembers {
+			previouslyLeftMembers[id] = true
+		}
+	}
+
 	newChannelMembers := make([]*model.ChannelMember, 0)
 	for _, member := range data.Participants {
-		u := userMap[strings.ToLower(*member.Username)]
+		u, ok := userMap[strings.ToLower(*member.Username)]
+		if !ok {
+			// Missing on the destination during a scoped import — already skipped
+			// out of userIDs above, so there's no membership to set up for them.
+			continue
+		}
 		// Default scheme flags so that imports omitting them still produce a
 		// usable role on the resulting channel member, matching the regular
 		// user-channel import path. Explicit values in the import data still
@@ -2263,11 +2563,17 @@ func (a *App) importDirectChannel(rctx request.CTX, data *imports.DirectChannelI
 				continue
 			}
 		} else {
+			if previouslyLeftMembers[u.Id] {
+				// This participant left or was removed from the channel at some point in the
+				// past (per ChannelMemberHistory) — respect that instead of silently re-adding
+				// them just because the source data still lists them as a participant.
+				continue
+			}
 			// The channel pre-existed (either from a concurrent worker that committed the Channels
-			// row but had not finished its SaveMember loop yet, an earlier import that crashed
-			// mid-loop, or a GM whose membership has since drifted) without this participant.
-			// Insert the ChannelMembers row first so UpdateMultipleMembers below has something
-			// to UPDATE — otherwise it returns ErrNotFound and aborts the import.
+			// row but had not finished its SaveMember loop yet, or an earlier import that crashed
+			// mid-loop) without this participant ever having joined. Insert the ChannelMembers row
+			// first so UpdateMultipleMembers below has something to UPDATE — otherwise it returns
+			// ErrNotFound and aborts the import.
 			toInsert := &model.ChannelMember{
 				UserId:      u.Id,
 				ChannelId:   channel.Id,
@@ -2309,9 +2615,15 @@ func (a *App) importDirectChannel(rctx request.CTX, data *imports.DirectChannelI
 
 	if data.ShownBy != nil {
 		for _, username := range *data.ShownBy {
+			shower, ok := userMap[strings.ToLower(username)]
+			if !ok {
+				// Missing on the destination during a scoped import — nothing to set a
+				// channel-show preference for.
+				continue
+			}
 			switch channel.Type {
 			case model.ChannelTypeDirect:
-				otherUserId := userMap[strings.ToLower(username)].Id
+				otherUserId := shower.Id
 				for uname, user := range userMap {
 					if uname != username {
 						otherUserId = user.Id
@@ -2319,14 +2631,14 @@ func (a *App) importDirectChannel(rctx request.CTX, data *imports.DirectChannelI
 					}
 				}
 				preferences = append(preferences, model.Preference{
-					UserId:   userMap[strings.ToLower(username)].Id,
+					UserId:   shower.Id,
 					Category: model.PreferenceCategoryDirectChannelShow,
 					Name:     otherUserId,
 					Value:    "true",
 				})
 			case model.ChannelTypeGroup:
 				preferences = append(preferences, model.Preference{
-					UserId:   userMap[strings.ToLower(username)].Id,
+					UserId:   shower.Id,
 					Category: model.PreferenceCategoryGroupChannelShow,
 					Name:     channel.Id,
 					Value:    "true",
@@ -2337,8 +2649,14 @@ func (a *App) importDirectChannel(rctx request.CTX, data *imports.DirectChannelI
 
 	if data.FavoritedBy != nil {
 		for _, favoriter := range *data.FavoritedBy {
+			favoriterUser, ok := userMap[strings.ToLower(favoriter)]
+			if !ok {
+				// Missing on the destination during a scoped import — nothing to
+				// favorite the channel for.
+				continue
+			}
 			preferences = append(preferences, model.Preference{
-				UserId:   userMap[strings.ToLower(favoriter)].Id,
+				UserId:   favoriterUser.Id,
 				Category: model.PreferenceCategoryFavoriteChannel,
 				Name:     channel.Id,
 				Value:    "true",
@@ -2371,7 +2689,7 @@ func (a *App) importDirectChannel(rctx request.CTX, data *imports.DirectChannelI
 
 // importMultipleDirectPostLines will return an error and the line
 // that caused it whenever possible
-func (a *App) importMultipleDirectPostLines(rctx request.CTX, lines []imports.LineImportWorkerData, dryRun, extractContent bool) (int, *model.AppError) {
+func (a *App) importMultipleDirectPostLines(rctx request.CTX, lines []imports.LineImportWorkerData, dryRun, extractContent, deactivateMissingUsers bool, report *imports.ImportReport) (int, *model.AppError) {
 	if len(lines) == 0 {
 		return 0, nil
 	}
@@ -2388,18 +2706,25 @@ func (a *App) importMultipleDirectPostLines(rctx request.CTX, lines []imports.Li
 	}
 
 	usernames := []string{}
+	followerUsernames := []string{}
 	for _, line := range lines {
 		usernames = append(usernames, *line.DirectPost.User)
 		if line.DirectPost.FlaggedBy != nil {
 			usernames = append(usernames, *line.DirectPost.FlaggedBy...)
 		}
+		if line.DirectPost.ThreadFollowers != nil {
+			for _, follower := range *line.DirectPost.ThreadFollowers {
+				followerUsernames = append(followerUsernames, *follower.User)
+			}
+		}
 		usernames = append(usernames, *line.DirectPost.ChannelMembers...)
 	}
 
-	users, err := a.getUsersByUsernames(usernames)
+	users, err := a.getUsersByUsernames(usernames, deactivateMissingUsers, report)
 	if err != nil {
 		return 0, err
 	}
+	a.prefetchUsersByUsernames(followerUsernames, users)
 
 	var (
 		postsWithData                = []postAndData{}
@@ -2416,6 +2741,10 @@ func (a *App) importMultipleDirectPostLines(rctx request.CTX, lines []imports.Li
 		var err *model.AppError
 		for _, username := range *line.DirectPost.ChannelMembers {
 			user := users[strings.ToLower(username)]
+			if user == nil {
+				rctx.Logger().Warn("Skipping direct post channel member not found on destination during scoped import", mlog.String("username", username), mlog.Int("line_number", line.LineNumber))
+				continue
+			}
 			userIDs = append(userIDs, user.Id)
 		}
 
@@ -2439,6 +2768,10 @@ func (a *App) importMultipleDirectPostLines(rctx request.CTX, lines []imports.Li
 		}
 
 		user := users[strings.ToLower(*line.DirectPost.User)]
+		if user == nil {
+			rctx.Logger().Warn("Skipping direct post from user not found on destination during scoped import", mlog.String("username", *line.DirectPost.User), mlog.Int("line_number", line.LineNumber))
+			continue
+		}
 
 		// Check if this post already exists.
 		posts, nErr := a.Srv().Store().Post().GetPostsCreatedAt(channel.Id, *line.DirectPost.CreateAt)
@@ -2477,7 +2810,7 @@ func (a *App) importMultipleDirectPostLines(rctx request.CTX, lines []imports.Li
 			post.IsPinned = *line.DirectPost.IsPinned
 		}
 		if line.DirectPost.ThreadFollowers != nil {
-			threadMemberships, lineNumber, err := a.extractThreadMembers(&line, users, post)
+			threadMemberships, lineNumber, err := a.extractThreadMembers(rctx, &line, users, post, deactivateMissingUsers, report)
 			if err != nil {
 				return lineNumber, err
 			}
@@ -2581,6 +2914,9 @@ func (a *App) importMultipleDirectPostLines(rctx request.CTX, lines []imports.Li
 
 			for _, username := range *postWithData.directPostData.FlaggedBy {
 				user := users[strings.ToLower(username)]
+				if user == nil {
+					continue
+				}
 
 				preferences = append(preferences, model.Preference{
 					UserId:   user.Id,
@@ -2599,14 +2935,14 @@ func (a *App) importMultipleDirectPostLines(rctx request.CTX, lines []imports.Li
 
 		if postWithData.directPostData.Reactions != nil {
 			for _, reaction := range *postWithData.directPostData.Reactions {
-				if err := a.importReaction(&reaction, postWithData.post); err != nil {
+				if err := a.importReaction(rctx, &reaction, postWithData.post, deactivateMissingUsers, report); err != nil {
 					return postWithData.lineNumber, err
 				}
 			}
 		}
 
 		if postWithData.directPostData.Replies != nil {
-			if err := a.importReplies(rctx, *postWithData.directPostData.Replies, postWithData.post, "noteam", extractContent); err != nil {
+			if err := a.importReplies(rctx, *postWithData.directPostData.Replies, postWithData.post, "noteam", extractContent, deactivateMissingUsers, report); err != nil {
 				return postWithData.lineNumber, err
 			}
 		}
@@ -2687,27 +3023,39 @@ func (a *App) importEmoji(rctx request.CTX, data *imports.EmojiImportData, dryRu
 	return nil
 }
 
-func (a *App) extractThreadMembers(line *imports.LineImportWorkerData, users map[string]*model.User, post *model.Post) ([]*model.ThreadMembership, int, *model.AppError) {
+func (a *App) extractThreadMembers(rctx request.CTX, line *imports.LineImportWorkerData, users map[string]*model.User, post *model.Post, deactivateMissingUsers bool, report *imports.ImportReport) ([]*model.ThreadMembership, int, *model.AppError) {
 	threadMemberships := []*model.ThreadMembership{}
 
 	var importedFollowers []imports.ThreadFollowerImportData
-	if line.Post != nil {
+	if line.Post != nil && line.Post.ThreadFollowers != nil {
 		importedFollowers = *line.Post.ThreadFollowers
-	} else if line.DirectPost != nil {
+	} else if line.DirectPost != nil && line.DirectPost.ThreadFollowers != nil {
 		importedFollowers = *line.DirectPost.ThreadFollowers
 	}
-	participants := make([]*model.User, len(importedFollowers))
+	participants := make([]*model.User, 0, len(importedFollowers))
 
-	for i, member := range importedFollowers {
+	for _, member := range importedFollowers {
 		user, ok := users[strings.ToLower(*member.User)]
 		if !ok {
-			// maybe it's a user on target instance but not in the import data.
-			// This is a rare case, but we need to or can to handle it.
-			// alternatively, we can continue and discard this follower as maybe they
-			// were deleted.
+			// User not in pre-fetched map — try the remap first (username may have changed
+			// on dest via SAML attribute sync), then fall back to a direct lookup.
+			lookupUsername := *member.User
+			if report != nil {
+				if destUsername, remapped := report.Remap.Lookup(*member.User); remapped {
+					lookupUsername = destUsername
+				}
+			}
 			var uErr error
-			user, uErr = a.Srv().Store().User().GetByUsername(*member.User)
+			user, uErr = a.Srv().Store().User().GetByUsername(lookupUsername)
 			if uErr != nil {
+				var nfErr *store.ErrNotFound
+				if !errors.As(uErr, &nfErr) {
+					return nil, line.LineNumber, model.NewAppError("extractThreadMembers", "app.user.get_by_username.app_error", nil, "", http.StatusInternalServerError).Wrap(uErr)
+				}
+				if deactivateMissingUsers {
+					rctx.Logger().Warn("Skipping thread follower not found on destination during scoped import", mlog.String("username", *member.User))
+					continue
+				}
 				return nil, line.LineNumber, model.NewAppError("importMultiplePostLines", "app.import.get_users_by_username.some_users_not_found.error", nil, "", http.StatusBadRequest).Wrap(uErr)
 			}
 		}
@@ -2724,7 +3072,7 @@ func (a *App) extractThreadMembers(line *imports.LineImportWorkerData, users map
 			membership.UnreadMentions = *member.UnreadMentions
 		}
 		// We only need the user ID to update the thread.
-		participants[i] = &model.User{Id: user.Id}
+		participants = append(participants, &model.User{Id: user.Id})
 		threadMemberships = append(threadMemberships, membership)
 	}
 	post.Participants = participants
