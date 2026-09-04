@@ -1680,6 +1680,22 @@ func TestPasswordRecovery(t *testing.T) {
 		err = th.App.resetPasswordFromToken(th.Context, token.Token, model.NewTestPassword(), model.GetMillisForTime(time.Now().Add(25*time.Hour)))
 		assert.NotNil(t, err)
 	})
+
+	t.Run("token is consumed and cannot be reused", func(t *testing.T) {
+		token, err := th.App.CreatePasswordRecoveryToken(th.Context, th.BasicUser.Id, th.BasicUser.Email)
+		assert.Nil(t, err)
+
+		err = th.App.ResetPasswordFromToken(th.Context, token.Token, model.NewTestPassword())
+		assert.Nil(t, err)
+
+		_, storeErr := th.App.Srv().Store().Token().GetByToken(token.Token)
+		assert.Error(t, storeErr, "the token must be deleted after being used")
+
+		// Simulates a concurrent request redeeming the same token: the loser must get
+		// an error instead of a false success, since the token is already consumed.
+		err = th.App.ResetPasswordFromToken(th.Context, token.Token, model.NewTestPassword())
+		assert.NotNil(t, err, "reusing an already-consumed token must fail")
+	})
 }
 
 func TestInvalidatePasswordRecoveryTokens(t *testing.T) {
