@@ -923,6 +923,13 @@ func (api *apiTimerLayer) GetFile(fileId string) ([]byte, *model.AppError) {
 	return _returnsA, _returnsB
 }
 
+func (api *apiTimerLayer) HasPermissionToFileAction(sessionID, fileID, action string) bool {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.HasPermissionToFileAction(sessionID, fileID, action)
+	api.recordTime(startTime, "HasPermissionToFileAction", true)
+	return _returnsA
+}
+
 func (api *apiTimerLayer) GetFileLink(fileId string) (string, *model.AppError) {
 	startTime := timePkg.Now()
 	_returnsA, _returnsB := api.apiImpl.GetFileLink(fileId)
