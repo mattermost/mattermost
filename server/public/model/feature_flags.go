@@ -225,7 +225,7 @@ func (f *FeatureFlags) SetDefaults() {
 
 	f.MmBlocksEnabled = true
 
-	f.EnableConcurrentReact = false
+	f.EnableConcurrentReact = true
 
 	f.EnableMFIPluginSignaturePublicKey = true
 
