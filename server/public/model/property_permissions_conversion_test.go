@@ -122,6 +122,7 @@ func TestPermissionsFromLegacyAccessMode(t *testing.T) {
 		wantRead   PermissionLevel
 	}{
 		{name: "public", accessMode: PropertyAccessModePublic, wantRead: PermissionLevelEveryone},
+		{name: "empty access_mode is public", accessMode: "", wantRead: PermissionLevelEveryone},
 		{name: "source_only", accessMode: PropertyAccessModeSourceOnly, wantRead: PermissionLevelNone},
 		{name: "shared_only reads, masking narrows later", accessMode: PropertyAccessModeSharedOnly, wantRead: PermissionLevelEveryone},
 		{name: "unrecognized access_mode treated as source_only", accessMode: "made_up_mode", wantRead: PermissionLevelNone},
@@ -301,7 +302,7 @@ func TestPermissionsFromLegacyGrantsScopedOwnerAndSyncSourceStaySeparate(t *test
 			}
 		}
 		if g.Type == PropertyOwnerTypeService && g.ID == "ldap" {
-			assert.Equal(t, []string{PropertyActionValueWrite}, g.Allow)
+			assert.Equal(t, []string{PropertyActionFieldWrite, PropertyActionValueWrite}, g.Allow)
 		}
 	}
 	assert.True(t, sawScopedUserGrant)
@@ -360,12 +361,12 @@ func TestPermissionsFromLegacyGrantsSourcePluginOnly(t *testing.T) {
 }
 
 func TestPermissionsFromLegacyGrantsSyncLock(t *testing.T) {
-	// An ldap-synced field converts to a service grant allowing value.write and
-	// nothing else — the lock never gated anything but value writes. The field
-	// has no owners and is not protected, and is public, so a second, wildcard
-	// grant appears for everything the lock never touched: reads (public) and
-	// the field/option definition writes (the lock only ever gated value
-	// writes, so it never stood in their way).
+	// An ldap-synced field converts to a service grant allowing value.write
+	// and field.write — the lock never gated human value writes, and the
+	// sync identity also needs to retire a field it maps. The field has no
+	// owners and is not protected, and is public, so a second, wildcard
+	// grant appears for everything the lock never touched: reads (public)
+	// and option definition writes.
 	field := &PropertyField{
 		Attrs: StringInterface{
 			PropertyFieldAttrLDAP: "ldap-sync-id",
@@ -377,7 +378,7 @@ func TestPermissionsFromLegacyGrantsSyncLock(t *testing.T) {
 	require.Len(t, p.Grants, 2)
 	assert.Equal(t, PropertyOwnerTypeService, p.Grants[0].Type)
 	assert.Equal(t, "ldap", p.Grants[0].ID)
-	assert.Equal(t, []string{PropertyActionValueWrite}, p.Grants[0].Allow)
+	assert.Equal(t, []string{PropertyActionFieldWrite, PropertyActionValueWrite}, p.Grants[0].Allow)
 	assert.Equal(t, PropertyOwnerTypePlugin, p.Grants[1].Type)
 	assert.Equal(t, "*", p.Grants[1].ID)
 	assert.ElementsMatch(t, []string{PropertyActionFieldWrite, PropertyActionOptionRead, PropertyActionOptionWrite, PropertyActionValueRead}, p.Grants[1].Allow)

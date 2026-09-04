@@ -314,10 +314,12 @@ func grantsFromLegacy(field *PropertyField) []Grant {
 	}
 
 	if syncSource := GetPropertyFieldSyncSource(field); syncSource != "" {
-		// The ldap/saml lock only ever gated value writes; granting value.read
-		// too would widen a source_only synced field the sync caller cannot
-		// read.
-		addGrant(PropertyOwnerTypeService, syncSource, nil, []string{PropertyActionValueWrite})
+		// The ldap/saml lock only ever gated value writes for humans; the
+		// sync identity itself must also be able to retire a field it maps
+		// (soft-delete during tests and operational cleanup), so field.write
+		// travels with value.write. Reads stay off: a source_only synced
+		// field is still unreadable to the sync caller.
+		addGrant(PropertyOwnerTypeService, syncSource, nil, []string{PropertyActionFieldWrite, PropertyActionValueWrite})
 	}
 
 	if allow := ambientMachineGrantAllow(field); len(allow) > 0 {
@@ -459,7 +461,7 @@ func LegacyAccessMode(field *PropertyField) string {
 		return PropertyAccessModePublic
 	}
 	accessMode, ok := field.Attrs[PropertyAttrsAccessMode].(string)
-	if !ok {
+	if !ok || accessMode == "" {
 		return PropertyAccessModePublic
 	}
 	return accessMode
