@@ -62,11 +62,11 @@ func PermissionsFromLegacy(field *PropertyField, opts LegacyConversionOpts) *Per
 		restrictions.Field.Write = PermissionLevelNone
 	}
 	if opts.ConvertAttrs && (HasPropertyFieldOwners(field) || IsPropertyFieldProtected(field) || GetPropertyFieldSyncSource(field) != "") {
-		// The legacy value-write gate (checkValueWriteAccess, now deleted) refused
-		// every human on an owner-managed, protected, or synced field before it ever
-		// read PermissionValues; converting that column's level instead would hand
-		// those values to members. A grant can still restore write access for a
-		// specific identity (e.g. the sync source itself, or a field's own owner),
+		// The converted restriction refuses every human on an owner-managed,
+		// protected, or synced field before it ever reads PermissionValues;
+		// converting that column's level instead would hand those values to
+		// members. A grant can still restore write access for a specific
+		// identity (e.g. the sync source itself, or a field's own owner),
 		// since the model is grant-only and a grant always beats a restriction.
 		restrictions.Value.Write = PermissionLevelNone
 	}
@@ -109,7 +109,7 @@ func PermissionsFromLegacy(field *PropertyField, opts LegacyConversionOpts) *Per
 // ProjectLegacyPermissions is the inverse of PermissionsFromLegacy: it
 // returns a copy of field with its legacy permission columns and Attrs
 // populated from field.Permissions, so a v2 caller keeps reading a field
-// whose access is now decided from permissions alone. Returns field
+// whose access is decided from permissions alone. Returns field
 // unchanged when Permissions is nil — there is nothing to project. Never
 // mutates field or its Attrs map.
 func ProjectLegacyPermissions(field *PropertyField) *PropertyField {
@@ -131,8 +131,8 @@ func ProjectLegacyPermissions(field *PropertyField) *PropertyField {
 	projected.PermissionValues = &valueWrite
 	projected.PermissionOptions = &optionWrite
 
-	// The exact inverse of 7.2's conversion, which keeps IsValid's own
-	// protected/permission_field cross-validation satisfied on the result.
+	// Protected is derived from field.write: none, which is how IsValid
+	// cross-validates protected against permission_field on the projected result.
 	projected.Protected = fieldWrite == PermissionLevelNone
 	if projected.Protected {
 		projected.Attrs[PropertyAttrsProtected] = true

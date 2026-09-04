@@ -701,11 +701,11 @@ func TestFieldOptionsFromFieldList(t *testing.T) {
 
 // A field can delegate option management without delegating the definition:
 // field.write: sysadmin with option.write: member means "only an admin edits
-// this field, but a member manages its options". The hook used to gate every
-// option change as a field write, which made that configuration unusable and
-// put the hook's answer at odds with channels/app/authorization.go's, so both
-// halves are asserted here -- the option change is admitted and the field
-// update is still refused, for the same caller on the same field.
+// this field, but a member manages its options". Both halves are asserted
+// here -- the option change is admitted and the field update is still
+// refused, for the same caller on the same field -- because gating options
+// as a field write would make that configuration unusable and disagree with
+// channels/app/authorization.go.
 func TestFieldOptionsDelegatedToOptionWrite(t *testing.T) {
 	th := Setup(t).RegisterCPAPropertyGroup(t)
 	group := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV2)

@@ -5386,8 +5386,8 @@ func TestSystemObjectType(t *testing.T) {
 // layer; model.PropertyFieldChangeIsOptionsOnly decides the same thing inside
 // the enforcement hook, which never sees the patch and has to compare the
 // merged field against the stored one. If the two ever disagree, one layer
-// allows what the other refuses -- the defect step 7.17 fixed. This asserts
-// they agree on every shape of patch that reaches the handler.
+// allows what the other refuses. This asserts they agree on every shape of
+// patch that reaches the handler.
 func TestOptionsOnlyPatchAgreesWithFieldComparison(t *testing.T) {
 	// One fixed option ID: stored() is called twice, so a fresh model.NewId()
 	// per call would make the two fields differ before any patch was applied.

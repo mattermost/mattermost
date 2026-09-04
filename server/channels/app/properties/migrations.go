@@ -190,10 +190,9 @@ func (b *permissionsBackfill) convertBatch(rctx request.CTX, fields []*model.Pro
 			if opts.ConvertAttrs && template.Masking == nil && model.LegacyAccessMode(field) == model.PropertyAccessModeSharedOnly {
 				// PermissionsFromLegacy narrows this field's own reads to none
 				// below rather than emitting a masking object it is not allowed
-				// to carry (divergence: a linked field may not declare masking of
-				// its own). That is a real access change an operator needs to
-				// know about, unlike every other conversion here, which is like
-				// for like.
+				// to carry: a linked field may not declare masking of its own.
+				// That is a real access change an operator needs to know about;
+				// every other conversion here is like for like.
 				rctx.Logger().Warn("Converting a linked field's shared_only access mode to no read access because its template did not convert to masked",
 					mlog.String("field_id", field.ID),
 					mlog.String("template_id", *field.LinkedFieldID),
@@ -319,9 +318,9 @@ func (b *permissionsBackfill) resolveTemplate(rctx request.CTX, groupID, templat
 // warnIfMaskedTemplateHasNonUserSiblings logs once when template converts to
 // masked and a field linked to it is not object_type: user. Such a field
 // shows nobody anything, before this conversion and after it, until an
-// operator sets the template's mask_by_field_id -- the conversion cannot pick
-// that field itself (§2.6 forbids inferring it), so this line is the only
-// thing that tells an operator the scheme is waiting on them.
+// operator sets the template's mask_by_field_id -- the conversion cannot
+// infer that field from the template's linked fields, so this line is the
+// only thing that tells an operator the scheme is waiting on them.
 func (b *permissionsBackfill) warnIfMaskedTemplateHasNonUserSiblings(rctx request.CTX, template *model.PropertyField) {
 	linked, err := b.service.fieldStore.GetLinkedFields([]string{template.ID}, nil)
 	if err != nil {

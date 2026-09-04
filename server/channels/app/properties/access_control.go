@@ -3,21 +3,6 @@
 
 package properties
 
-// This file implements access control for property fields and values using three key mechanisms:
-//
-// 1. Protected Fields (protected attribute):
-//    - Protected fields can only be modified by their source plugin (identified by source_plugin_id)
-//    - Non-protected fields can be modified by any caller with appropriate access
-//
-// 2. Access Mode (access_mode attribute):
-//    - Controls read access to field metadata (like options) and values
-//    - Three modes:
-//      * Public (empty string, default): Everyone can read all data
-//      * Source-only: Only the source plugin can read full field options and values; others see empty options and no values
-//      * Shared-only: Callers can only see field options and values they share with the target
-//                     (Example: If Alice selected Apples and Bananas, and Bob selected Bananas and Oranges,
-//                      then Alice querying Bob's values would only see Bananas)
-
 import (
 	"encoding/json"
 	"errors"
@@ -65,9 +50,10 @@ type PropertyLadderChecker func(rctx request.CTX, userID string, field *model.Pr
 // whose lookup fails, must be treated as no roles held.
 type PropertyRoleLister func(userID string) []string
 
-// AccessControlHook implements the PropertyHook interface to enforce access
-// control based on caller identity. It checks protected fields, plugin
-// ownership, and access modes (public, source-only, shared-only).
+// AccessControlHook implements the PropertyHook interface to enforce a
+// field's Permissions object: machines by matching grants, humans by the
+// injected ladder checker, and masked fields by filtering reads and refusing
+// a write the caller cannot fully see.
 //
 // The hook only applies to PSAv2/PSAv3 property groups (isGroupEnforced).
 // Operations on a PSAv1 group pass through without access control checks.
@@ -109,7 +95,7 @@ func NewAccessControlHook(ps *PropertyService, pluginChecker PluginChecker, ladd
 // gating on group version -- rather than an allowlist of group IDs -- is an
 // exact test for which groups this hook has anything to decide on. A group
 // ID that fails to resolve has no fields to protect, so the error is
-// returned rather than treated as unenforced: a new enforcement point must
+// returned rather than treated as unenforced: an unresolved group ID must
 // not fail open.
 func (h *AccessControlHook) isGroupEnforced(groupID string) (bool, error) {
 	group, err := h.propertyService.GroupByID(groupID)
@@ -420,7 +406,7 @@ func (h *AccessControlHook) PostUpdatePropertyFields(_ request.CTX, _ string, _,
 // Field option hooks
 
 // PreChangePropertyFieldOptions gates a change to a field's options on
-// option.write -- the action §2.2 measures at the field target for exactly this
+// option.write, which is measured at the field's own target for this
 // operation. The same answer has to come out of the other path to a field's
 // options, a field update carrying nothing but a new option list, which
 // enforceFieldUpdateAccess routes here's equivalent; otherwise one of the two
@@ -938,11 +924,10 @@ func (h *AccessControlHook) isCallerPlugin(callerID string) bool {
 
 // isMachineCaller reports whether the caller is a machine actor (an installed
 // plugin, a built-in sync service, or a system subsystem's setup migration)
-// rather than a human. Owner-list enforcement applies only to machine
-// callers; human callers (session users and local admins) are governed by
-// the API-layer permission levels. A system caller holds no position in any
-// scheme, so the restrictions ladder is meaningless for it -- like a plugin
-// or a sync service, it acts only by matching a grant.
+// rather than a human. A system caller holds no position in any scheme, so
+// the restrictions ladder is meaningless for it -- like a plugin or a sync
+// service, it acts only by matching a grant. Humans are judged by the
+// injected ladder checker; machines match grants only.
 func (h *AccessControlHook) isMachineCaller(callerID string) bool {
 	if h.isCallerPlugin(callerID) ||
 		callerID == model.CallerIDLDAPSync ||
@@ -1402,7 +1387,6 @@ func (h *AccessControlHook) applyValueReadAccessControl(rctx request.CTX, values
 
 		if field.Permissions != nil {
 			if !h.permissionsAllows(rctx, field, callerID, scope, model.PropertyActionValueRead, value.TargetID) {
-				// Denied: dropped silently.
 				continue
 			}
 

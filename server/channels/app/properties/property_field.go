@@ -1038,7 +1038,7 @@ func fillOwnerAllowFromStored(field, existing *model.PropertyField) *model.Prope
 
 // reconcileTranslatedMasking folds a translated field's stored masking back
 // into its freshly reconverted Permissions. Masking's internals --
-// mask_by_field_id and except -- are never shown to a v2 caller (§2.6), so an
+// mask_by_field_id and except -- are never shown to a v2 caller, so an
 // inbound access_mode must never flatten them to an empty object; this is the
 // same refusal an access control policy already gives a caller editing a
 // rule carrying masked values, rather than trusting them to notice a flag and

@@ -76,8 +76,8 @@ func SystemCallerOwnedGroup(callerID string) (string, bool) {
 // None of these groups masks any field today, so none of these identities is
 // listed in a masking except: a system caller is a machine caller like any
 // other and holds no values, so a masked field it needs to read would show it
-// nothing unless later added there explicitly -- see divergence 5's
-// CallerIDLocalAdmin note for the same trap. If boards, session_attributes or
+// nothing unless later added there explicitly -- the same trap as tagging a
+// local-mode admin as a machine caller with no holdings. If boards, session_attributes or
 // managed_category ever masks a field, its migration needs an except entry
 // naming its own service identity before that ships, or its own read of that
 // field goes blind the way the v1 -> v2 boards upgrade almost did.

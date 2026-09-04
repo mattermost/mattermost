@@ -536,10 +536,10 @@ func patchPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		patchedPermissions = applied
-		// Keyed on effect, not on the key being present. §8's rule is that an
-		// inbound key is applied only where it differs from what the caller was
-		// shown, so a permissions object that round-trips unchanged is an echo
-		// and gates nothing. This also keeps this decision in step with the
+		// Keyed on effect, not on the key being present. An inbound key is
+		// applied only where it differs from what the caller was shown, so a
+		// permissions object that round-trips unchanged is an echo and gates
+		// nothing. This also keeps this decision in step with the
 		// enforcement hook's, which sees only the merged field and so can only
 		// judge by effect (model.PropertyFieldChangeIsOptionsOnly) -- if the two
 		// disagree, one layer allows what the other refuses.
@@ -1066,8 +1066,6 @@ func addPropertyPermissionBasisMeta(auditRec *model.AuditRecord, basis app.Prope
 	}
 }
 
-// isOptionsOnlyPatch checks if the patch only modifies the options attribute.
-// Returns true if the only actual change is to attrs.options.
 // permissionsChanged and optionsChanged say whether the patch's permissions
 // object and option list, once applied, actually differ from what is stored.
 // Both must be keyed on effect rather than the key's presence: a permissions

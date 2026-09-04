@@ -229,10 +229,9 @@ func TestPermissionsFromLegacyGrantsOwners(t *testing.T) {
 
 func TestPermissionsFromLegacyGrantsScopedOwnerDefinitionWriteUnscoped(t *testing.T) {
 	// A scoped owner may still write the field definition and the options
-	// under any scope (or none) -- the bug this conversion used to have was
-	// putting the owner's value scope on those actions too, refusing a
-	// definition write from a caller acting under the very scope it owns the
-	// field with.
+	// under any scope (or none): scope only ever narrows the value actions,
+	// so putting it on field.write would refuse a definition write from a
+	// caller acting under the very scope it owns the field with.
 	field := &PropertyField{
 		Attrs: StringInterface{
 			PropertyAttrsOwners: []PropertyOwner{
@@ -338,7 +337,7 @@ func TestPermissionsFromLegacyGrantsOwnerIsSourcePlugin(t *testing.T) {
 
 func TestPermissionsFromLegacyGrantsSourcePluginOnly(t *testing.T) {
 	// A source_only field with a source plugin: restrictions deny reads to
-	// everyone (7.2), but the plugin's grant admits it regardless, making it
+	// everyone, but the plugin's grant admits it regardless, making it
 	// the field's only reader. The field has no owners and is not protected, so
 	// checkLegacyFieldWriteAccess and checkSyncLock both let any other plugin
 	// write it today; the wildcard grant is what keeps that true after

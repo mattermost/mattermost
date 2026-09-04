@@ -136,7 +136,6 @@ func (th *TestHelper) RegisterCPAPropertyGroup(tb testing.TB) *TestHelper {
 	require.NoError(tb, groupErr)
 	th.CPAGroupID = group.ID
 
-	// Create and register the access control hook now that the group ID is known.
 	// The ladder checker defaults to defaultLadderCheckerForTests rather than
 	// nil, so a field carrying a real Restrictions object is judged by its
 	// tier instead of being denied outright; a test that needs a specific

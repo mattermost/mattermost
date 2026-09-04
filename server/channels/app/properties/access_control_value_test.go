@@ -2189,8 +2189,7 @@ func TestDeletePropertyValuesForField_WriteAccessControl(t *testing.T) {
 	t.Run("non-source plugin cannot delete values for protected field", func(t *testing.T) {
 		// plugin-2 must be a registered plugin here, or it is classified as a
 		// human and takes the documented human bypass in
-		// PreDeletePropertyValuesForField -- the machine/human split changes
-		// the outcome where it previously didn't matter.
+		// PreDeletePropertyValuesForField -- that split decides this case.
 		th.service.setPluginCheckerForTests(func(pluginID string) bool {
 			return pluginID == "plugin-1" || pluginID == "plugin-2"
 		})

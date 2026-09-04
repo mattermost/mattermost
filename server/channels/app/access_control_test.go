@@ -3849,11 +3849,6 @@ func TestRedactSimulationAttributesForCallerAccessModes(t *testing.T) {
 		assertRedactedAgainst(t, field.Name)
 	})
 
-	// Regression case for the bug this step fixes: a linked field carries no
-	// Attrs["access_mode"] of its own, so before the fix (which read
-	// f.Attrs.AccessMode directly) this field had nothing to redact against
-	// and leaked. The shared_only scheme lives on the template's
-	// Permissions.Masking instead, which only effectiveAccessMode follows.
 	t.Run("shared_only inherited from a linked field's template is redacted on every surface", func(t *testing.T) {
 		tmpl, sErr := th.Store.PropertyField().Create(&model.PropertyField{
 			GroupID:    cpaGroup.ID,

@@ -221,7 +221,6 @@ func TestAccessControlHookEnforcesEveryPSAv2Group(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	// A read is filtered by the field's permissions, same as access_control.
 	retrieved, getErr := th.service.GetPropertyValue(RequestContextWithCallerID(th.Context, allowedReaderID), group.ID, value.ID)
 	require.NoError(t, getErr)
 	require.NotNil(t, retrieved)
@@ -230,7 +229,6 @@ func TestAccessControlHookEnforcesEveryPSAv2Group(t *testing.T) {
 	require.NoError(t, getErr)
 	assert.Nil(t, retrieved)
 
-	// A value write by a caller the field refuses is refused.
 	_, upErr := th.service.UpsertPropertyValue(RequestContextWithCallerID(th.Context, "other-plugin"), &model.PropertyValue{
 		GroupID:    group.ID,
 		FieldID:    created.ID,
@@ -241,7 +239,6 @@ func TestAccessControlHookEnforcesEveryPSAv2Group(t *testing.T) {
 	require.Error(t, upErr)
 	assert.ErrorIs(t, upErr, ErrAccessDenied)
 
-	// A caller a grant names is allowed.
 	_, upErr = th.service.UpsertPropertyValue(RequestContextWithCallerID(th.Context, "creator-plugin"), &model.PropertyValue{
 		GroupID:    group.ID,
 		FieldID:    created.ID,
@@ -323,11 +320,9 @@ func TestAccessControlHookGroupVersionGating(t *testing.T) {
 			},
 		})
 
-		// One read gate.
 		_, err := th.service.GetPropertyField(RequestContextWithCallerID(th.Context, model.NewId()), unregisteredGroupID, field.ID)
 		require.Error(t, err)
 
-		// One write gate.
 		_, err = th.service.UpsertPropertyValue(RequestContextWithCallerID(th.Context, model.NewId()), &model.PropertyValue{
 			GroupID:    unregisteredGroupID,
 			FieldID:    field.ID,
@@ -339,13 +334,12 @@ func TestAccessControlHookGroupVersionGating(t *testing.T) {
 	})
 }
 
-// TestAccessControlHookWideningPreservesExistingBehavior covers the two ways
-// widening the gate could be mistaken for a regression: a field that was
-// already refused by api4 before this step (a nil legacy PermissionValues,
-// converted to value.write: none) must still be refused now that the hook
-// gates it too, and a linked create outside access_control must still
-// inherit its template's security now that 7.16's inheritance function is
-// the only one left running for it.
+// TestAccessControlHookWideningPreservesExistingBehavior covers two shapes
+// that must still hold once the hook gates every PSAv2/v3 group: a field
+// converted from a nil PermissionValues (value.write: none, no grants) is
+// still refused a value write, and a linked create outside access_control
+// still inherits its template's security from
+// validateAndInheritLinkedFieldSecurity.
 func TestAccessControlHookWideningPreservesExistingBehavior(t *testing.T) {
 	th := Setup(t).RegisterCPAPropertyGroup(t)
 	t.Cleanup(func() { th.service.setLadderCheckerForTests(nil) })
@@ -354,8 +348,8 @@ func TestAccessControlHookWideningPreservesExistingBehavior(t *testing.T) {
 		th.service.setPluginCheckerForTests(func(pluginID string) bool { return pluginID == "boards-plugin" })
 		group := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV2)
 
-		// Restrictions and Grants are both left unset, the shape 7.2 converts a
-		// builtin field's nil PermissionValues into: value.write resolves to
+		// Restrictions and Grants are both left unset, the shape a builtin
+		// field's nil PermissionValues converts into: value.write resolves to
 		// none for a human (TierFor on a nil Restrictions) and matches no grant
 		// for a machine caller.
 		created, err := th.service.CreatePropertyField(th.Context, &model.PropertyField{
