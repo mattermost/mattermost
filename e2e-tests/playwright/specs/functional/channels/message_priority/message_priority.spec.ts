@@ -134,6 +134,7 @@ test(
     async ({pw}) => {
         // # Setup test environment
         const {user, team, adminClient} = await pw.initSetup();
+        const originalPostPriority = (await adminClient.getConfig()).ServiceSettings.PostPriority;
 
         try {
             // # Disable Message Priority in system settings
@@ -147,7 +148,7 @@ test(
             // * Verify the priority control is hidden
             await expect(channelsPage.centerView.postCreate.priorityButton).not.toBeVisible();
         } finally {
-            await adminClient.patchConfig({ServiceSettings: {PostPriority: true}});
+            await adminClient.patchConfig({ServiceSettings: {PostPriority: originalPostPriority}});
         }
     },
 );
