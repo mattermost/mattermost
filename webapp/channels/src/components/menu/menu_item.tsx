@@ -9,7 +9,6 @@ import React, {
     Children,
     forwardRef,
     useContext,
-    useRef,
 } from 'react';
 import type {
     ReactElement,
@@ -81,7 +80,7 @@ export interface Props extends MuiMenuItemProps {
      */
     isDestructive?: boolean;
 
-    onClick?: (event: MouseEvent<HTMLLIElement> | KeyboardEvent<HTMLLIElement>) => void;
+    onClick?: (event: MouseEvent<HTMLLIElement>) => void;
 
     role?: AriaRole;
 
@@ -156,48 +155,53 @@ export const MenuItem = forwardRef<HTMLLIElement, Props>((props, ref) => {
 
     const isMobileView = useSelector(getIsMobileView);
 
-    // MUI ButtonBase calls both onKeyDown and onClick with the same
-    // keydown event for Enter, so handleClick runs twice per activation.
-    // Dedupe by native event identity — no timing hacks needed, and the
-    // ref is naturally cleared when a new event comes through.
-    const lastHandledEventRef = useRef<Event | null>(null);
+    const keepMenuOpenOnSelect = disableCloseOnSelect || (isRoleCheckboxOrRadio(role) && !forceCloseOnSelect);
 
-    function handleClick(event: MouseEvent<HTMLLIElement> | KeyboardEvent<HTMLLIElement>) {
-        if (isCorrectKeyPressedOnMenuItem(event)) {
-            // If the menu item is a checkbox or radio button, we don't want to close the menu when it is clicked.
-            // unless forceCloseOnSelect is set to true.
-            // see https://www.w3.org/WAI/ARIA/apg/patterns/menubar/
-            if (disableCloseOnSelect || (isRoleCheckboxOrRadio(role) && !forceCloseOnSelect)) {
-                event.stopPropagation();
+    function handleClick(event: MouseEvent<HTMLLIElement>) {
+        if (!isPrimaryButtonClick(event)) {
+            return;
+        }
+
+        // If the menu item is a checkbox or radio button, we don't want to close the menu when it is clicked.
+        // unless forceCloseOnSelect is set to true.
+        // see https://www.w3.org/WAI/ARIA/apg/patterns/menubar/
+        if (keepMenuOpenOnSelect) {
+            event.stopPropagation();
+        } else {
+            // close submenu first if it is open
+            if (subMenuContext.close) {
+                subMenuContext.close();
+            }
+
+            // And then close the menu
+            if (menuContext.close) {
+                menuContext.close();
+            }
+        }
+
+        if (onClick) {
+            // Execute immediately when the menu isn't closing on select
+            // (mobile modal, checkbox/radio, or disableCloseOnSelect).
+            // Otherwise defer to after the close animation.
+            if (isMobileView || isRoleCheckboxOrRadio(role) || disableCloseOnSelect) {
+                onClick(event);
             } else {
-                // close submenu first if it is open
-                if (subMenuContext.close) {
-                    subMenuContext.close();
-                }
+                // Clone the event since we delay the click handler until after the menu has closed.
+                const clonedEvent = cloneDeep(event);
 
-                // And then close the menu
-                if (menuContext.close) {
-                    menuContext.close();
-                }
+                menuContext.addOnClosedListener(() => {
+                    onClick(clonedEvent);
+                });
             }
+        }
+    }
 
-            if (onClick && event.nativeEvent !== lastHandledEventRef.current) {
-                lastHandledEventRef.current = event.nativeEvent;
-
-                // Execute immediately when the menu isn't closing on select
-                // (mobile modal, checkbox/radio, or disableCloseOnSelect).
-                // Otherwise defer to after the close animation.
-                if (isMobileView || isRoleCheckboxOrRadio(role) || disableCloseOnSelect) {
-                    onClick(event);
-                } else {
-                    // Clone the event since we delay the click handler until after the menu has closed.
-                    const clonedEvent = cloneDeep(event);
-
-                    menuContext.addOnClosedListener(() => {
-                        onClick(clonedEvent);
-                    });
-                }
-            }
+    // MUI's ButtonBase synthesizes a click for Enter/Space on non-native buttons such as
+    // this one, so activation is handled entirely by handleClick. This only has to stop
+    // the key press from reaching the menu, which would otherwise close it.
+    function handleKeyDown(event: KeyboardEvent<HTMLLIElement>) {
+        if (keepMenuOpenOnSelect && isEnterOrSpacePressed(event)) {
+            event.stopPropagation();
         }
     }
 
@@ -217,7 +221,7 @@ export const MenuItem = forwardRef<HTMLLIElement, Props>((props, ref) => {
             hasSecondaryLabel={hasSecondaryLabel}
             isLabelsRowLayout={isLabelsRowLayout}
             onClick={handleClick}
-            onKeyDown={handleClick}
+            onKeyDown={handleKeyDown}
             role={role}
             {...otherProps}
         >
@@ -342,19 +346,12 @@ export const MenuItemStyled = styled(MuiMenuItem, {
     },
 );
 
-/**
- * Checks if the menu item was activated per WAI-ARIA guidelines.
- * Returns true for primary mouse click or Enter/Space keydown.
- */
-function isCorrectKeyPressedOnMenuItem(event: MouseEvent<HTMLLIElement> | KeyboardEvent<HTMLLIElement>) {
-    if (event.type === EventTypes.KEY_DOWN) {
-        const keyboardEvent = event as KeyboardEvent<HTMLLIElement>;
-        return isKeyPressed(keyboardEvent, Constants.KeyCodes.ENTER) || isKeyPressed(keyboardEvent, Constants.KeyCodes.SPACE);
-    }
-    if (event.type === EventTypes.CLICK) {
-        return (event as MouseEvent<HTMLLIElement>).button === 0;
-    }
-    return false;
+function isPrimaryButtonClick(event: MouseEvent<HTMLLIElement>) {
+    return event.type === EventTypes.CLICK && event.button === 0;
+}
+
+function isEnterOrSpacePressed(event: KeyboardEvent<HTMLLIElement>) {
+    return isKeyPressed(event, Constants.KeyCodes.ENTER) || isKeyPressed(event, Constants.KeyCodes.SPACE);
 }
 
 function isRoleCheckboxOrRadio(role: AriaRole) {

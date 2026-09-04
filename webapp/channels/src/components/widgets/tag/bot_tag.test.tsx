@@ -1,16 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {render, screen} from '@testing-library/react';
+import {screen} from '@testing-library/react';
 import React from 'react';
 
-import {withIntl} from 'tests/helpers/intl-test-helper';
+import {renderWithContext} from 'tests/react_testing_utils';
 
 import BotTag from './bot_tag';
 
 describe('components/widgets/tag/BotTag', () => {
     test('should render BOT tag with default props', () => {
-        render(withIntl(<BotTag/>));
+        renderWithContext(<BotTag/>);
 
         const botText = screen.getByText('BOT');
         expect(botText).toBeInTheDocument();
@@ -20,7 +20,7 @@ describe('components/widgets/tag/BotTag', () => {
     });
 
     test('should render BOT tag with custom className', () => {
-        render(withIntl(<BotTag className={'test'}/>));
+        renderWithContext(<BotTag className={'test'}/>);
 
         const botText = screen.getByText('BOT');
         expect(botText).toBeInTheDocument();
@@ -30,7 +30,7 @@ describe('components/widgets/tag/BotTag', () => {
     });
 
     test('should render BOT tag with custom size', () => {
-        render(withIntl(<BotTag size={'sm'}/>));
+        renderWithContext(<BotTag size={'sm'}/>);
 
         const botText = screen.getByText('BOT');
         expect(botText).toBeInTheDocument();

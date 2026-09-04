@@ -3,7 +3,7 @@
 
 import classNames from 'classnames';
 import React, {memo, useState} from 'react';
-import type {MouseEvent, KeyboardEvent} from 'react';
+import type {MouseEvent} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
@@ -31,7 +31,7 @@ import Constants from 'utils/constants';
 
 type Props = {
     category: ChannelCategory;
-    handleOpenDirectMessagesModal: (e: MouseEvent<HTMLLIElement> | KeyboardEvent<HTMLLIElement>) => void;
+    handleOpenDirectMessagesModal: (e: MouseEvent<HTMLLIElement>) => void;
 };
 
 const SidebarCategorySortingMenu = ({

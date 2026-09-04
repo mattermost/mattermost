@@ -95,7 +95,7 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
                   class="col-sm-8"
                 >
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="Label-eHXQqd jYRdHb"
                   >
                     <input
                       checked=""
@@ -108,7 +108,7 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
                     True
                   </label>
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="Label-eHXQqd jYRdHb"
                   >
                     <input
                       data-testid="settingbfalse"
@@ -520,7 +520,7 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
                   class="col-sm-8"
                 >
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="Label-eHXQqd jYRdHb"
                   >
                     <input
                       data-testid="PluginSettings.Plugins.testplugin.settingbtrue"
@@ -532,7 +532,7 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
                     True
                   </label>
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="Label-eHXQqd jYRdHb"
                   >
                     <input
                       checked=""

@@ -9,7 +9,7 @@ exports[`components/search_results/FilesFilterMenu should match snapshot, on all
       class="MenuWrapper "
     >
       <button
-        class="IconContainer-hXitkr fFJEfD action-icon dots-icon"
+        class="IconContainer-hWKCSz omYel action-icon dots-icon"
         id="filesFilterButton"
         type="button"
       >
@@ -40,7 +40,7 @@ exports[`components/search_results/FilesFilterMenu should match snapshot, on aud
       class="MenuWrapper "
     >
       <button
-        class="IconContainer-hXitkr fFJEfD action-icon dots-icon"
+        class="IconContainer-hWKCSz omYel action-icon dots-icon"
         id="filesFilterButton"
         type="button"
       >
@@ -74,7 +74,7 @@ exports[`components/search_results/FilesFilterMenu should match snapshot, on cod
       class="MenuWrapper "
     >
       <button
-        class="IconContainer-hXitkr fFJEfD action-icon dots-icon"
+        class="IconContainer-hWKCSz omYel action-icon dots-icon"
         id="filesFilterButton"
         type="button"
       >
@@ -108,7 +108,7 @@ exports[`components/search_results/FilesFilterMenu should match snapshot, on doc
       class="MenuWrapper "
     >
       <button
-        class="IconContainer-hXitkr fFJEfD action-icon dots-icon"
+        class="IconContainer-hWKCSz omYel action-icon dots-icon"
         id="filesFilterButton"
         type="button"
       >
@@ -142,7 +142,7 @@ exports[`components/search_results/FilesFilterMenu should match snapshot, on ima
       class="MenuWrapper "
     >
       <button
-        class="IconContainer-hXitkr fFJEfD action-icon dots-icon"
+        class="IconContainer-hWKCSz omYel action-icon dots-icon"
         id="filesFilterButton"
         type="button"
       >
@@ -176,7 +176,7 @@ exports[`components/search_results/FilesFilterMenu should match snapshot, on pre
       class="MenuWrapper "
     >
       <button
-        class="IconContainer-hXitkr fFJEfD action-icon dots-icon"
+        class="IconContainer-hWKCSz omYel action-icon dots-icon"
         id="filesFilterButton"
         type="button"
       >
@@ -210,7 +210,7 @@ exports[`components/search_results/FilesFilterMenu should match snapshot, on spr
       class="MenuWrapper "
     >
       <button
-        class="IconContainer-hXitkr fFJEfD action-icon dots-icon"
+        class="IconContainer-hWKCSz omYel action-icon dots-icon"
         id="filesFilterButton"
         type="button"
       >
@@ -244,7 +244,7 @@ exports[`components/search_results/FilesFilterMenu should match snapshot, on vid
       class="MenuWrapper "
     >
       <button
-        class="IconContainer-hXitkr fFJEfD action-icon dots-icon"
+        class="IconContainer-hWKCSz omYel action-icon dots-icon"
         id="filesFilterButton"
         type="button"
       >

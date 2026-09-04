@@ -23,10 +23,10 @@ exports[`components/threading/global_threads/thread_item should report total num
           class="ThreadItem__tags"
         >
           <button
-            class="TagWrapper-kezsCu ftZQnc Tag Tag--xs"
+            class="TagWrapper-kfDQYC jCGwnr Tag Tag--xs"
           >
             <span
-              class="TagText-bWoQAI beIloY"
+              class="TagText-bVBjHg CqOfw"
             >
               Team name
             </span>
@@ -107,10 +107,10 @@ exports[`components/threading/global_threads/thread_item should report unread me
           class="ThreadItem__tags"
         >
           <button
-            class="TagWrapper-kezsCu ftZQnc Tag Tag--xs"
+            class="TagWrapper-kfDQYC jCGwnr Tag Tag--xs"
           >
             <span
-              class="TagText-bWoQAI beIloY"
+              class="TagText-bVBjHg CqOfw"
             >
               Team name
             </span>
@@ -189,10 +189,10 @@ exports[`components/threading/global_threads/thread_item should report unread me
           class="ThreadItem__tags"
         >
           <button
-            class="TagWrapper-kezsCu ftZQnc Tag Tag--xs"
+            class="TagWrapper-kfDQYC jCGwnr Tag Tag--xs"
           >
             <span
-              class="TagText-bWoQAI beIloY"
+              class="TagText-bVBjHg CqOfw"
             >
               Team name
             </span>

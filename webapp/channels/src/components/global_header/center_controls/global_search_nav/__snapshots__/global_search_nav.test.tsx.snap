@@ -8,7 +8,7 @@ exports[`components/GlobalSearchNav should match snapshot with active flagged po
     <div
       aria-expanded="false"
       aria-haspopup="dialog"
-      class="NewSearchContainer-gTjiWW elvyVy a11y__region"
+      class="NewSearchContainer-gTckhK WGbim a11y__region"
       id="searchFormContainer"
       role="button"
       tabindex="0"
@@ -30,7 +30,7 @@ exports[`components/GlobalSearchNav should match snapshot with active mentions p
     <div
       aria-expanded="false"
       aria-haspopup="dialog"
-      class="NewSearchContainer-gTjiWW elvyVy a11y__region"
+      class="NewSearchContainer-gTckhK WGbim a11y__region"
       id="searchFormContainer"
       role="button"
       tabindex="0"

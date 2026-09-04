@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {memo} from 'react';
-import type {MouseEvent, KeyboardEvent} from 'react';
+import type {MouseEvent} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
@@ -62,7 +62,7 @@ const ChannelMoveToSubMenu = (props: Props) => {
         return currentTeam ? getCategoryInTeamWithChannel(state, currentTeam?.id || '', props.channel.id) : undefined;
     });
 
-    function handleMoveToCategory(event: MouseEvent<HTMLLIElement> | KeyboardEvent<HTMLLIElement>, categoryId: string) {
+    function handleMoveToCategory(event: MouseEvent, categoryId: string) {
         event.preventDefault();
 
         if (currentCategory?.id !== categoryId) {

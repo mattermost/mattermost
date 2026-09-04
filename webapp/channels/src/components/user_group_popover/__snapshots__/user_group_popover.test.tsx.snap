@@ -4,22 +4,22 @@ exports[`component/user_group_popover should match snapshot 1`] = `
 <body>
   <div>
     <div
-      class="Body-jPQbxz igoCos"
+      class="Body-jQDIrb kKKfqh"
     >
       <div
-        class="Header-ibSdfM kusPoL"
+        class="Header-ibewmk jjYjJj"
       >
         <div
-          class="Heading-da-dYZr fNyNqu"
+          class="Heading-daRFST ktUdxJ"
         >
           <span
-            class="Title-kjnmUU dRyzkA overflow--ellipsis text-nowrap"
+            class="Title-kjLdmM lkqsjv overflow--ellipsis text-nowrap"
           >
             group_display_name
           </span>
           <button
             aria-label="Close user group popover"
-            class="CloseButton-lhpIbX gfSMvf btn btn-sm btn-compact btn-icon a11y--active a11y--focused"
+            class="CloseButton-lidoVz gOSa-da btn btn-sm btn-compact btn-icon a11y--active a11y--focused"
           >
             <i
               class="icon icon-close"
@@ -27,7 +27,7 @@ exports[`component/user_group_popover should match snapshot 1`] = `
           </button>
         </div>
         <div
-          class="Subtitle-nUPuH jRbNtQ"
+          class="Subtitle-nwZcP iMPmJK"
         >
           <span
             class="overflow--ellipsis text-nowrap"
@@ -36,23 +36,23 @@ exports[`component/user_group_popover should match snapshot 1`] = `
             group_name
           </span>
           <span
-            class="NoShrink-kvQaWb Dot-eteWuQ dtTPXO cgfuuF"
+            class="NoShrink-kvskEj Dot-esXZgs jISdaE gAbmTu"
           >
             •
           </span>
           <span
-            class="NoShrink-kvQaWb dtTPXO"
+            class="NoShrink-kvskEj jISdaE"
           >
             15 Members
           </span>
         </div>
         <button
           aria-label="group_display_name @group_name 15 Members View full group info"
-          class="HeaderButton-jHoLmm ilOgnu user-group-popover_header-button"
+          class="HeaderButton-jHMA-dq jNcJGV user-group-popover_header-button"
         />
       </div>
       <div
-        class="SearchBar-cqlzfM icjFto"
+        class="SearchBar-cqeBRo koswXz"
       >
         <svg
           fill="currentColor"
@@ -79,7 +79,7 @@ exports[`component/user_group_popover should match snapshot 1`] = `
         </div>
       </div>
       <div
-        class="UserList-XyOeg gYqnUW"
+        class="UserList-XWEvY jsJLir"
         role="list"
         style="height: 307.20000000000005px;"
       >
@@ -90,7 +90,7 @@ exports[`component/user_group_popover should match snapshot 1`] = `
             style="height: 708px; width: 100%;"
           >
             <div
-              class="UserListItem-iDhzMB btbTmI group-member-list_item"
+              class="UserListItem-iCdbqt etMyYZ group-member-list_item"
               role="listitem"
               style="position: absolute; left: 0px; top: 0px; width: 100%;"
             >
@@ -99,7 +99,7 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                 aria-haspopup="dialog"
               >
                 <button
-                  class="UserButton-bZVaHo jdKisE"
+                  class="UserButton-bZhtNM dlyQhT"
                 >
                   <span
                     class="status-wrapper"
@@ -130,21 +130,21 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                     </span>
                   </span>
                   <span
-                    class="Username-heAezF leQMXk overflow--ellipsis text-nowrap"
+                    class="Username-hdvGdx dZhXpE overflow--ellipsis text-nowrap"
                   >
                     username0
                   </span>
                   <span
-                    class="Gap-pObhx gkSZux group-member-list_gap"
+                    class="Gap-pqmqt cJaLwB group-member-list_gap"
                   />
                 </button>
               </span>
               <div
-                class="DMContainer-imoJpV dVIrdO group-member-list_dm-button"
+                class="DMContainer-ilkkTN bVlgZa group-member-list_dm-button"
               >
                 <button
                   aria-label="Send message to username0"
-                  class="DMButton-hIgtnM hCLJtg btn btn-icon btn-xs"
+                  class="DMButton-hHZvZo kUDYjw btn btn-icon btn-xs"
                 >
                   <i
                     class="icon icon-send"
@@ -153,7 +153,7 @@ exports[`component/user_group_popover should match snapshot 1`] = `
               </div>
             </div>
             <div
-              class="UserListItem-iDhzMB dXGDct group-member-list_item"
+              class="UserListItem-iCdbqt gpOEVg group-member-list_item"
               role="listitem"
               style="position: absolute; left: 0px; top: 48px; width: 100%;"
             >
@@ -162,7 +162,7 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                 aria-haspopup="dialog"
               >
                 <button
-                  class="UserButton-bZVaHo jdKisE"
+                  class="UserButton-bZhtNM dlyQhT"
                 >
                   <span
                     class="status-wrapper"
@@ -193,21 +193,21 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                     </span>
                   </span>
                   <span
-                    class="Username-heAezF leQMXk overflow--ellipsis text-nowrap"
+                    class="Username-hdvGdx dZhXpE overflow--ellipsis text-nowrap"
                   >
                     username1
                   </span>
                   <span
-                    class="Gap-pObhx gkSZux group-member-list_gap"
+                    class="Gap-pqmqt cJaLwB group-member-list_gap"
                   />
                 </button>
               </span>
               <div
-                class="DMContainer-imoJpV dVIrdO group-member-list_dm-button"
+                class="DMContainer-ilkkTN bVlgZa group-member-list_dm-button"
               >
                 <button
                   aria-label="Send message to username1"
-                  class="DMButton-hIgtnM hCLJtg btn btn-icon btn-xs"
+                  class="DMButton-hHZvZo kUDYjw btn btn-icon btn-xs"
                 >
                   <i
                     class="icon icon-send"
@@ -216,7 +216,7 @@ exports[`component/user_group_popover should match snapshot 1`] = `
               </div>
             </div>
             <div
-              class="UserListItem-iDhzMB dXGDct group-member-list_item"
+              class="UserListItem-iCdbqt gpOEVg group-member-list_item"
               role="listitem"
               style="position: absolute; left: 0px; top: 88px; width: 100%;"
             >
@@ -225,7 +225,7 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                 aria-haspopup="dialog"
               >
                 <button
-                  class="UserButton-bZVaHo jdKisE"
+                  class="UserButton-bZhtNM dlyQhT"
                 >
                   <span
                     class="status-wrapper"
@@ -256,21 +256,21 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                     </span>
                   </span>
                   <span
-                    class="Username-heAezF leQMXk overflow--ellipsis text-nowrap"
+                    class="Username-hdvGdx dZhXpE overflow--ellipsis text-nowrap"
                   >
                     username10
                   </span>
                   <span
-                    class="Gap-pObhx gkSZux group-member-list_gap"
+                    class="Gap-pqmqt cJaLwB group-member-list_gap"
                   />
                 </button>
               </span>
               <div
-                class="DMContainer-imoJpV dVIrdO group-member-list_dm-button"
+                class="DMContainer-ilkkTN bVlgZa group-member-list_dm-button"
               >
                 <button
                   aria-label="Send message to username10"
-                  class="DMButton-hIgtnM hCLJtg btn btn-icon btn-xs"
+                  class="DMButton-hHZvZo kUDYjw btn btn-icon btn-xs"
                 >
                   <i
                     class="icon icon-send"
@@ -279,7 +279,7 @@ exports[`component/user_group_popover should match snapshot 1`] = `
               </div>
             </div>
             <div
-              class="UserListItem-iDhzMB dXGDct group-member-list_item"
+              class="UserListItem-iCdbqt gpOEVg group-member-list_item"
               role="listitem"
               style="position: absolute; left: 0px; top: 128px; width: 100%;"
             >
@@ -288,7 +288,7 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                 aria-haspopup="dialog"
               >
                 <button
-                  class="UserButton-bZVaHo jdKisE"
+                  class="UserButton-bZhtNM dlyQhT"
                 >
                   <span
                     class="status-wrapper"
@@ -319,21 +319,21 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                     </span>
                   </span>
                   <span
-                    class="Username-heAezF leQMXk overflow--ellipsis text-nowrap"
+                    class="Username-hdvGdx dZhXpE overflow--ellipsis text-nowrap"
                   >
                     username11
                   </span>
                   <span
-                    class="Gap-pObhx gkSZux group-member-list_gap"
+                    class="Gap-pqmqt cJaLwB group-member-list_gap"
                   />
                 </button>
               </span>
               <div
-                class="DMContainer-imoJpV dVIrdO group-member-list_dm-button"
+                class="DMContainer-ilkkTN bVlgZa group-member-list_dm-button"
               >
                 <button
                   aria-label="Send message to username11"
-                  class="DMButton-hIgtnM hCLJtg btn btn-icon btn-xs"
+                  class="DMButton-hHZvZo kUDYjw btn btn-icon btn-xs"
                 >
                   <i
                     class="icon icon-send"
@@ -342,7 +342,7 @@ exports[`component/user_group_popover should match snapshot 1`] = `
               </div>
             </div>
             <div
-              class="UserListItem-iDhzMB dXGDct group-member-list_item"
+              class="UserListItem-iCdbqt gpOEVg group-member-list_item"
               role="listitem"
               style="position: absolute; left: 0px; top: 168px; width: 100%;"
             >
@@ -351,7 +351,7 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                 aria-haspopup="dialog"
               >
                 <button
-                  class="UserButton-bZVaHo jdKisE"
+                  class="UserButton-bZhtNM dlyQhT"
                 >
                   <span
                     class="status-wrapper"
@@ -382,21 +382,21 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                     </span>
                   </span>
                   <span
-                    class="Username-heAezF leQMXk overflow--ellipsis text-nowrap"
+                    class="Username-hdvGdx dZhXpE overflow--ellipsis text-nowrap"
                   >
                     username12
                   </span>
                   <span
-                    class="Gap-pObhx gkSZux group-member-list_gap"
+                    class="Gap-pqmqt cJaLwB group-member-list_gap"
                   />
                 </button>
               </span>
               <div
-                class="DMContainer-imoJpV dVIrdO group-member-list_dm-button"
+                class="DMContainer-ilkkTN bVlgZa group-member-list_dm-button"
               >
                 <button
                   aria-label="Send message to username12"
-                  class="DMButton-hIgtnM hCLJtg btn btn-icon btn-xs"
+                  class="DMButton-hHZvZo kUDYjw btn btn-icon btn-xs"
                 >
                   <i
                     class="icon icon-send"

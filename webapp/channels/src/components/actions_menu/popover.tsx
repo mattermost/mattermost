@@ -56,12 +56,14 @@ export default function Popover({
                 anchorOrigin={anchorOrigin}
                 transformOrigin={transformOrigin}
                 marginThreshold={0}
-                TransitionProps={{
-                    mountOnEnter: true,
-                    unmountOnExit: true,
-                    timeout: {
-                        enter: OPEN_ANIMATION_DURATION,
-                        exit: CLOSE_ANIMATION_DURATION,
+                slotProps={{
+                    transition: {
+                        mountOnEnter: true,
+                        unmountOnExit: true,
+                        timeout: {
+                            enter: OPEN_ANIMATION_DURATION,
+                            exit: CLOSE_ANIMATION_DURATION,
+                        },
                     },
                 }}
                 role='dialog'

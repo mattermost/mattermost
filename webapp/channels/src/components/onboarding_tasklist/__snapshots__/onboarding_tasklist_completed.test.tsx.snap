@@ -3,7 +3,7 @@
 exports[`components/onboarding_tasklist/onboarding_tasklist_completed.tsx should match snapshot 1`] = `
 <div>
   <div
-    class="CompletedWrapper-byXeYZ caqIuy"
+    class="CompletedWrapper-byzqhV hKwSAl"
   >
     <img
       alt="completed tasks image"

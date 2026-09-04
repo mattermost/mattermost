@@ -31,9 +31,11 @@ describe('components/ChannelHeaderMenu/MenuItems/AddChannelMembers', () => {
 
     test('renders the component correctly', () => {
         renderWithContext(
-            <AddChannelMembers
-                channel={channel}
-            />, {},
+            <WithTestMenuContext>
+                <AddChannelMembers
+                    channel={channel}
+                />
+            </WithTestMenuContext>,
         );
 
         const menuItem = screen.getByText('Add Members');
@@ -46,7 +48,7 @@ describe('components/ChannelHeaderMenu/MenuItems/AddChannelMembers', () => {
                 <AddChannelMembers
                     channel={channel}
                 />
-            </WithTestMenuContext>, {},
+            </WithTestMenuContext>,
         );
 
         const menuItem = screen.getByText('Add Members');

@@ -93,7 +93,7 @@ describe('components/ChannelHeaderMenu/MenuItems/MobileChannelHeaderPlugins, wit
     };
 
     test('renders the component correctly', () => {
-        const {container} = renderWithContext(
+        renderWithContext(
             <WithTestMenuContext>
                 <MobileChannelHeaderPlugins
                     channel={channel}
@@ -101,7 +101,8 @@ describe('components/ChannelHeaderMenu/MenuItems/MobileChannelHeaderPlugins, wit
                 />
             </WithTestMenuContext>, {},
         );
-        expect(container.firstChild).toBeNull();
+
+        expect(screen.getByRole('menu')).toBeEmptyDOMElement();
     });
 
     test('renders the component correctly, with one extended component, and handle click event', async () => {

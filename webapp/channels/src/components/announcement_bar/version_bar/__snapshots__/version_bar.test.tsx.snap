@@ -5,7 +5,7 @@ exports[`components/VersionBar should match snapshot - bar rendered after build 
 exports[`components/VersionBar should match snapshot - bar rendered after build hash change 2`] = `
 <div>
   <div
-    class="_StyledDiv-BZhus eMNHXM announcement-bar"
+    class="_StyledDiv-BlAAQ ephMud announcement-bar"
   >
     <div
       class="announcement-bar__text"

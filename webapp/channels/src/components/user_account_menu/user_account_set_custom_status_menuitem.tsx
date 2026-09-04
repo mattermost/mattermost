@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {MouseEvent, KeyboardEvent} from 'react';
+import type {MouseEvent} from 'react';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
@@ -9,7 +9,7 @@ import * as Menu from 'components/menu';
 import EmojiIcon from 'components/widgets/icons/emoji_icon';
 
 interface Props {
-    openCustomStatusModal: (event: MouseEvent<HTMLLIElement> | KeyboardEvent<HTMLLIElement>) => void;
+    openCustomStatusModal: (event: MouseEvent<HTMLLIElement>) => void;
 }
 
 export default function UserAccountSetCustomStatusMenuItem(props: Props) {

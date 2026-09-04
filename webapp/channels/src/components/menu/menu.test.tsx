@@ -13,6 +13,7 @@ import {
     waitFor,
     waitForElementToBeRemoved,
 } from 'tests/react_testing_utils';
+import A11yController from 'utils/a11y_controller';
 
 import {Menu} from './menu';
 import {MenuItem} from './menu_item';
@@ -160,6 +161,68 @@ describe('menu click handlers', () => {
             expect(screen.getByText('A Modal')).toBeInTheDocument();
         });
     }
+
+    describe('keyboard interaction with A11yController', () => {
+        let a11yController: A11yController;
+        beforeEach(() => {
+            a11yController = new A11yController();
+        });
+
+        afterEach(() => {
+            a11yController.destroy();
+        });
+
+        test("opening menu with space shouldn't activate first menu item", async () => {
+            const onFirstItemClick = jest.fn();
+            const onSecondItemClick = jest.fn();
+
+            renderWithContext(
+                <Menu
+                    menu={{
+                        id: 'Menu',
+                        'aria-label': 'test menu',
+                    }}
+                    menuButton={{
+                        id: 'Menu-Button',
+                        'aria-label': 'menu button',
+                        children: <DotsVerticalIcon size={16}/>,
+                    }}
+                >
+                    <MenuItem
+                        labels={<span>{'First item'}</span>}
+                        disableCloseOnSelect={true}
+                        onClick={onFirstItemClick}
+                    />
+                    <MenuItem
+                        labels={<span>{'Second item'}</span>}
+                        disableCloseOnSelect={true}
+                        onClick={onSecondItemClick}
+                    />
+                </Menu>,
+            );
+
+            // Focus the menu
+            await userEvent.tab();
+            expect(screen.getByLabelText('menu button')).toHaveFocus();
+
+            // Attempt to open it
+            await userEvent.keyboard(' ');
+
+            // The menu should be open, and the first button shouldn't have been clicked
+            expect(screen.getByText('First item')).toBeInTheDocument();
+            expect(onFirstItemClick).not.toHaveBeenCalled();
+
+            // Move to the second item
+            await userEvent.keyboard('{arrowdown}');
+            expect(screen.getByText('Second item').closest('li')).toHaveFocus();
+
+            // Attempt to select it
+            await userEvent.keyboard(' ');
+
+            // The second button should've been clicked
+            expect(onSecondItemClick).toHaveBeenCalledTimes(1);
+        });
+    });
 });
 
 function MenuWithModal() {

@@ -17,6 +17,7 @@ import configureStore from 'store';
 import globalStore from 'stores/redux_store';
 
 import SharedPackageProvider from 'components/root/shared_package_provider';
+import StyledProvider from 'components/root/styled_provider';
 
 import WebSocketClient from 'client/web_websocket_client';
 import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
@@ -185,16 +186,18 @@ const Providers = ({children, store, history, options}: RenderStateProps) => {
     return (
         <Provider store={store}>
             <Router history={history}>
-                <SharedPackageProvider>
-                    <IntlProvider
-                        locale={options.locale}
-                        messages={options.intlMessages}
-                    >
-                        <WebSocketContext.Provider value={WebSocketClient}>
-                            {children}
-                        </WebSocketContext.Provider>
-                    </IntlProvider>
-                </SharedPackageProvider>
+                <StyledProvider>
+                    <SharedPackageProvider>
+                        <IntlProvider
+                            locale={options.locale}
+                            messages={options.intlMessages}
+                        >
+                            <WebSocketContext.Provider value={WebSocketClient}>
+                                {children}
+                            </WebSocketContext.Provider>
+                        </IntlProvider>
+                    </SharedPackageProvider>
+                </StyledProvider>
             </Router>
         </Provider>
     );

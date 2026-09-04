@@ -35,7 +35,7 @@ exports[`components/admin_console/CustomTermsOfServiceSettings should match snap
               class="col-sm-8"
             >
               <label
-                class="Label-eJcoMl iShgPr"
+                class="Label-eHXQqd jYRdHb"
               >
                 <input
                   checked=""
@@ -48,7 +48,7 @@ exports[`components/admin_console/CustomTermsOfServiceSettings should match snap
                 True
               </label>
               <label
-                class="Label-eJcoMl iShgPr"
+                class="Label-eHXQqd jYRdHb"
               >
                 <input
                   data-testid="SupportSettings.CustomTermsOfServiceEnabledfalse"

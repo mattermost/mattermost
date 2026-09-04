@@ -28,7 +28,9 @@ describe('components/ChannelHeaderMenu/MenuItems/AddGroupMembers', () => {
 
     test('renders the component correctly', () => {
         renderWithContext(
-            <AddGroupMembers/>, {},
+            <WithTestMenuContext>
+                <AddGroupMembers/>
+            </WithTestMenuContext>,
         );
 
         const menuItem = screen.getByText('Add Members');
@@ -39,7 +41,7 @@ describe('components/ChannelHeaderMenu/MenuItems/AddGroupMembers', () => {
         renderWithContext(
             <WithTestMenuContext>
                 <AddGroupMembers/>
-            </WithTestMenuContext>, {},
+            </WithTestMenuContext>,
         );
 
         const menuItem = screen.getByText('Add Members');

@@ -2,31 +2,37 @@
 
 exports[`UserAccountNameMenuItem should not break if no props are passed 1`] = `
 <div>
-  <li
-    aria-haspopup="true"
-    class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe userAccountMenu_nameMenuItem"
-    role="menuitem"
+  <ul
+    class="MuiList-root-fLpuKT bbiaaL MuiList-root MuiList-padding"
+    role="menu"
     tabindex="-1"
   >
-    <div
-      class="leading-element"
+    <li
+      aria-haspopup="true"
+      class="MuiButtonBase-root-KbJVG hCedyD MuiButtonBase-root MuiMenuItem-root-dWLmuj dGWNTl MuiMenuItem-root MuiMenuItem-gutters sc-jSpoMA jQEUQP userAccountMenu_nameMenuItem"
+      role="menuitem"
+      tabindex="0"
     >
-      <img
-        alt="user profile image"
-        aria-hidden="true"
-        class="Avatar Avatar-lg"
-        loading="lazy"
-      />
-    </div>
-    <div
-      class="label-elements"
-    >
-      <span
-        class="userAccountMenu_nameMenuItem_primaryLabel"
+      <div
+        class="leading-element"
       >
-        @undefined
-      </span>
-    </div>
-  </li>
+        <img
+          alt="user profile image"
+          aria-hidden="true"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+        />
+      </div>
+      <div
+        class="label-elements"
+      >
+        <span
+          class="userAccountMenu_nameMenuItem_primaryLabel"
+        >
+          @undefined
+        </span>
+      </div>
+    </li>
+  </ul>
 </div>
 `;

@@ -75,10 +75,10 @@ exports[`components/file_search_result/FileSearchResultItem should match snapsho
           class="fileMetadata"
         >
           <div
-            class="TagWrapper-kezsCu gCuUKH Tag Tag--xs file-search-channel-name"
+            class="TagWrapper-kfDQYC liNNWY Tag Tag--xs file-search-channel-name"
           >
             <span
-              class="TagText-bWoQAI beIloY"
+              class="TagText-bVBjHg CqOfw"
             >
               Direct Message
             </span>
@@ -134,10 +134,10 @@ exports[`components/file_search_result/FileSearchResultItem should match snapsho
           class="fileMetadata"
         >
           <div
-            class="TagWrapper-kezsCu gCuUKH Tag Tag--xs file-search-channel-name"
+            class="TagWrapper-kfDQYC liNNWY Tag Tag--xs file-search-channel-name"
           >
             <span
-              class="TagText-bWoQAI beIloY"
+              class="TagText-bVBjHg CqOfw"
             >
               Group Message
             </span>
@@ -193,10 +193,10 @@ exports[`components/file_search_result/FileSearchResultItem should match snapsho
           class="fileMetadata"
         >
           <div
-            class="TagWrapper-kezsCu gCuUKH Tag Tag--xs file-search-channel-name"
+            class="TagWrapper-kfDQYC liNNWY Tag Tag--xs file-search-channel-name"
           >
             <span
-              class="TagText-bWoQAI beIloY"
+              class="TagText-bVBjHg CqOfw"
             >
               test
             </span>

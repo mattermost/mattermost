@@ -147,7 +147,7 @@ export default class SidebarCategory extends React.PureComponent<Props, State> {
         }
     };
 
-    handleOpenDirectMessagesModal = (event: MouseEvent<HTMLLIElement | HTMLButtonElement> | KeyboardEvent<HTMLLIElement | HTMLButtonElement>) => {
+    handleOpenDirectMessagesModal = (event: MouseEvent<HTMLLIElement | HTMLButtonElement>) => {
         event.preventDefault();
 
         this.props.handleOpenMoreDirectChannelsModal(event.nativeEvent);

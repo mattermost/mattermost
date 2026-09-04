@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Badge} from '@mui/base';
 import React, {useCallback, useMemo} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
@@ -67,11 +66,12 @@ export default function DraftsAndSchedulePostsTabs(props: Props) {
                     defaultMessage='Scheduled'
                 />
                 {scheduledPosts?.length > 0 && (
-                    <Badge
+                    <span
                         className='badge'
-                        badgeContent={scheduledPosts.length}
-                        slotProps={{badge: {'data-testid': 'scheduled-posts-tab-counter-badge'} as React.HTMLAttributes<HTMLSpanElement>}}
-                    />
+                        data-testid='scheduled-posts-tab-counter-badge'
+                    >
+                        {scheduledPosts.length}
+                    </span>
                 )}
             </div>
         );
@@ -85,11 +85,12 @@ export default function DraftsAndSchedulePostsTabs(props: Props) {
                     defaultMessage='Drafts'
                 />
                 {props.drafts.length > 0 && (
-                    <Badge
+                    <span
                         className='badge'
-                        badgeContent={props.drafts.length}
-                        slotProps={{badge: {'data-testid': 'drafts-tab-counter-badge'} as React.HTMLAttributes<HTMLSpanElement>}}
-                    />
+                        data-testid='drafts-tab-counter-badge'
+                    >
+                        {props.drafts.length}
+                    </span>
                 )}
             </div>
         );
