@@ -4,6 +4,8 @@
 import type {Locator} from '@playwright/test';
 import {expect} from '@playwright/test';
 
+import {getDayPickerDayCell} from '../day_picker';
+
 export default class ScheduledDraftModal {
     readonly container: Locator;
 
@@ -25,25 +27,8 @@ export default class ScheduledDraftModal {
         await expect(this.container).toBeVisible();
     }
 
-    getDaySuffix(day: number): string {
-        if (day > 3 && day < 21) {
-            return 'th';
-        }
-        switch (day % 10) {
-            case 1:
-                return 'st';
-            case 2:
-                return 'nd';
-            case 3:
-                return 'rd';
-            default:
-                return 'th';
-        }
-    }
-
-    dateLocator(day: number, month: string, dayOfWeek: string) {
-        const daySuffix = this.getDaySuffix(day);
-        return this.container.locator(`button[aria-label*='${day}${daySuffix} ${month} (${dayOfWeek})']`);
+    dateLocator(day: number) {
+        return getDayPickerDayCell(this.container, day);
     }
 
     async selectDay(dayFromToday: number = 0) {
@@ -58,14 +43,12 @@ export default class ScheduledDraftModal {
         }
 
         const day = pacificDate.getDate();
-        const month = pacificDate.toLocaleString('default', {month: 'long'});
-        const dayOfWeek = pacificDate.toLocaleDateString('en-US', {weekday: 'long'});
 
-        const dl = this.dateLocator(day, month, dayOfWeek);
+        const dl = this.dateLocator(day);
 
         // If the date is not visible and the month has changed, click the next month button
         if (!(await dl.isVisible()) && pacificDate.getMonth() !== originDate.getMonth()) {
-            this.container.locator('button[aria-label="Go to next month"]').click();
+            await this.container.locator('button[aria-label="Go to next month"]').click();
         }
         await dl.click();
     }
