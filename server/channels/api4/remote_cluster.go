@@ -180,6 +180,11 @@ func remoteClusterConfirmInvite(c *Context, w http.ResponseWriter, r *http.Reque
 		return
 	}
 
+	if confirm.RemoteId != frame.RemoteId {
+		c.SetInvalidRemoteIdError(confirm.RemoteId)
+		return
+	}
+
 	if _, rcsErr := rcs.ReceiveInviteConfirmation(confirm); rcsErr != nil {
 		c.Err = model.NewAppError("remoteClusterConfirmInvite", "api.command_remote.confirm_invitation.error",
 			map[string]any{"Error": rcsErr.Error()}, "", http.StatusInternalServerError)
