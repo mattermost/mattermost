@@ -375,7 +375,7 @@ const DEPLOYMENT_HIDDEN = new Set([]);
 const ADMIN_CONFIGURE_GROUPS = {
   settingsReference: {
     // Ordered to follow the System Console's own left-hand nav.
-    label: 'System Console settings reference',
+    label: 'System Console settings',
     landing: 'configuration-settings',
     items: [
       'site-configuration-settings',
