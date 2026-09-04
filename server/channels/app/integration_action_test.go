@@ -1492,7 +1492,7 @@ func TestOpenInteractiveDialog(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 
 	t.Run("should successfully open dialog with valid trigger ID", func(t *testing.T) {
-		_, triggerId, err := model.GenerateTriggerId(th.BasicUser.Id, th.App.AsymmetricSigningKey())
+		_, triggerId, err := model.GenerateTriggerId(th.BasicUser.Id, th.BasicChannel.Id, th.App.AsymmetricSigningKey())
 		require.Nil(t, err)
 
 		request := model.OpenDialogRequest{
@@ -1540,7 +1540,7 @@ func TestOpenInteractiveDialog(t *testing.T) {
 		})
 
 		// Generate trigger ID and wait for it to expire
-		_, triggerId, err := model.GenerateTriggerId(th.BasicUser.Id, th.App.AsymmetricSigningKey())
+		_, triggerId, err := model.GenerateTriggerId(th.BasicUser.Id, th.BasicChannel.Id, th.App.AsymmetricSigningKey())
 		require.Nil(t, err)
 
 		time.Sleep(2 * time.Second)
@@ -1560,7 +1560,7 @@ func TestOpenInteractiveDialog(t *testing.T) {
 	})
 
 	t.Run("should handle dialog with invalid elements", func(t *testing.T) {
-		_, triggerId, err := model.GenerateTriggerId(th.BasicUser.Id, th.App.AsymmetricSigningKey())
+		_, triggerId, err := model.GenerateTriggerId(th.BasicUser.Id, th.BasicChannel.Id, th.App.AsymmetricSigningKey())
 		require.Nil(t, err)
 
 		request := model.OpenDialogRequest{
@@ -2054,6 +2054,133 @@ func TestCloneMmBlocksActionsProp(t *testing.T) {
 		}
 		t.Fatalf("clone walked %d levels without hitting truncation", tooDeep)
 	})
+}
+
+// MM-60200: a slash command typed in a thread runs against the thread's channel, which is
+// not necessarily the one the client is displaying — and is empty in Threads, Drafts and
+// Recaps. The trigger must carry the channel the command executed against, so a dialog the
+// command opens submits there rather than wherever the client happens to be.
+//
+// This guards the single argument at command.go's GenerateTriggerId call: drop it and the
+// webapp tests still pass, because they only prove the client sent the channel.
+func TestExecuteCommandTriggerCarriesCommandChannel(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := Setup(t).InitBasic(t)
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.EnableCommands = true
+		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
+		*cfg.ServiceSettings.SiteURL = "http://localhost:8065"
+	})
+
+	// The command's integration receives the full trigger in the request form.
+	triggerIds := make(chan string, 1)
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// assert, not require: this runs on the server's goroutine, where FailNow would
+		// stop that goroutine instead of failing the test.
+		assert.NoError(t, r.ParseForm())
+		triggerIds <- r.FormValue("trigger_id")
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write([]byte(`{"text": "ok"}`))
+	}))
+	defer ts.Close()
+
+	_, appErr := th.App.CreateCommand(&model.Command{
+		CreatorId: th.BasicUser.Id,
+		TeamId:    th.BasicTeam.Id,
+		URL:       ts.URL,
+		Method:    model.CommandMethodPost,
+		Trigger:   "triggerchannelcmd",
+	})
+	require.Nil(t, appErr)
+
+	// Deliberately a different channel from th.BasicChannel: whatever channel the caller
+	// supplies is what must end up in the trigger.
+	commandChannel := th.CreateChannel(t, th.BasicTeam)
+
+	_, appErr = th.App.ExecuteCommand(th.Context, &model.CommandArgs{
+		Command:   "/triggerchannelcmd",
+		UserId:    th.BasicUser.Id,
+		TeamId:    th.BasicTeam.Id,
+		ChannelId: commandChannel.Id,
+	})
+	require.Nil(t, appErr)
+
+	var triggerId string
+	select {
+	case triggerId = <-triggerIds:
+	case <-time.After(5 * time.Second):
+		require.FailNow(t, "timed out waiting for the command's integration request")
+	}
+	require.NotEmpty(t, triggerId)
+
+	timeout := time.Duration(*th.App.Config().ServiceSettings.OutgoingIntegrationRequestsTimeout) * time.Second
+	_, userID, channelID, appErr := model.DecodeAndVerifyTriggerId(triggerId, th.App.AsymmetricSigningKey(), timeout)
+	require.Nil(t, appErr)
+	assert.Equal(t, th.BasicUser.Id, userID)
+	assert.Equal(t, commandChannel.Id, channelID)
+}
+
+// MM-43351: an action button clicked from the global threads inbox has no current channel
+// on the client. The trigger must carry the post's own channel so the dialog it opens
+// submits against that channel instead of an empty one.
+func TestDoPostActionWithCookieTriggerCarriesPostChannel(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := Setup(t).InitBasic(t)
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
+	})
+
+	// The integration receives the full trigger, so capture it as sent upstream.
+	var received model.PostActionIntegrationRequest
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// assert, not require: this runs on the server's goroutine, where FailNow would
+		// stop that goroutine instead of failing the test.
+		assert.NoError(t, json.NewDecoder(r.Body).Decode(&received))
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte(`{}`))
+	}))
+	defer ts.Close()
+
+	interactivePost := model.Post{
+		Message:       "Interactive post",
+		ChannelId:     th.BasicChannel.Id,
+		PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
+		UserId:        th.BasicUser.Id,
+		Props: model.StringInterface{
+			model.PostPropsAttachments: []*model.MessageAttachment{
+				{
+					Text: "hello",
+					Actions: []*model.PostAction{
+						{
+							Type: model.PostActionTypeButton,
+							Name: "action",
+							Integration: &model.PostActionIntegration{
+								URL: ts.URL,
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	post, _, err := th.App.CreatePostAsUser(th.Context, &interactivePost, "", true)
+	require.Nil(t, err)
+	attachments, ok := post.GetProp(model.PostPropsAttachments).([]*model.MessageAttachment)
+	require.True(t, ok)
+	require.NotEmpty(t, attachments[0].Actions)
+
+	_, _, err = th.App.DoPostActionWithCookie(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "", nil, nil, nil, "")
+	require.Nil(t, err)
+	require.NotEmpty(t, received.TriggerId)
+
+	timeout := time.Duration(*th.App.Config().ServiceSettings.OutgoingIntegrationRequestsTimeout) * time.Second
+	_, userID, channelID, appErr := model.DecodeAndVerifyTriggerId(received.TriggerId, th.App.AsymmetricSigningKey(), timeout)
+	require.Nil(t, appErr)
+	assert.Equal(t, th.BasicUser.Id, userID)
+	assert.Equal(t, th.BasicChannel.Id, channelID)
 }
 
 func TestDoPostActionWithCookie(t *testing.T) {

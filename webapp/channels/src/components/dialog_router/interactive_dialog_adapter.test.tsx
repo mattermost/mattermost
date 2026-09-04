@@ -2422,4 +2422,85 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
             );
         });
     });
+
+    // MM-70251 / ECHO-40: the dialog must submit against the channel its trigger was
+    // created in, not whichever channel the user happens to be viewing.
+    describe('dialog channel', () => {
+        const renderWithChannel = async (channelId?: string) => {
+            const submitInteractiveDialog = jest.fn().mockResolvedValue({data: {}});
+            const lookupInteractiveDialog = jest.fn().mockResolvedValue({data: {items: []}});
+
+            const {getByTestId} = renderWithContext(
+                <InteractiveDialogAdapter
+                    {...baseProps}
+                    channelId={channelId}
+                    sourceUrl='https://example.com/refresh'
+                    actions={{submitInteractiveDialog, lookupInteractiveDialog}}
+                />,
+            );
+
+            await waitFor(() => {
+                expect(getByTestId('apps-form-container')).toBeInTheDocument();
+            });
+
+            const containerProps = MockAppsFormContainer.mock.calls[0][0];
+            return {submitInteractiveDialog, lookupInteractiveDialog, containerProps};
+        };
+
+        test('submits with the dialog channel', async () => {
+            const {submitInteractiveDialog, containerProps} = await renderWithChannel('dialog_channel_id');
+
+            await containerProps.actions.doAppSubmit({values: {}});
+
+            expect(submitInteractiveDialog).toHaveBeenCalledWith(
+                expect.objectContaining({channel_id: 'dialog_channel_id'}),
+            );
+        });
+
+        test('notifies cancellation with the dialog channel', async () => {
+            const {submitInteractiveDialog, containerProps} = await renderWithChannel('dialog_channel_id');
+
+            await containerProps.onHide();
+
+            expect(submitInteractiveDialog).toHaveBeenCalledWith(
+                expect.objectContaining({cancelled: true, channel_id: 'dialog_channel_id'}),
+            );
+        });
+
+        test('refreshes with the dialog channel', async () => {
+            const {submitInteractiveDialog, containerProps} = await renderWithChannel('dialog_channel_id');
+
+            await containerProps.actions.doAppFetchForm({values: {}, selected_field: 'somefield'});
+
+            expect(submitInteractiveDialog).toHaveBeenCalledWith(
+                expect.objectContaining({type: 'refresh', channel_id: 'dialog_channel_id'}),
+            );
+        });
+
+        test('looks up with the dialog channel', async () => {
+            const {lookupInteractiveDialog, containerProps} = await renderWithChannel('dialog_channel_id');
+
+            await containerProps.actions.doAppLookup({values: {}, query: 'abc'});
+
+            expect(lookupInteractiveDialog).toHaveBeenCalledWith(
+                expect.objectContaining({channel_id: 'dialog_channel_id'}),
+            );
+        });
+
+        test('exposes the dialog channel on the apps form context for action buttons', async () => {
+            const {containerProps} = await renderWithChannel('dialog_channel_id');
+
+            expect(containerProps.appContext.channel_id).toBe('dialog_channel_id');
+        });
+
+        test('sends an empty channel when none was recorded, so the action falls back to the current channel', async () => {
+            const {submitInteractiveDialog, containerProps} = await renderWithChannel(undefined);
+
+            await containerProps.actions.doAppSubmit({values: {}});
+
+            expect(submitInteractiveDialog).toHaveBeenCalledWith(
+                expect.objectContaining({channel_id: ''}),
+            );
+        });
+    });
 });

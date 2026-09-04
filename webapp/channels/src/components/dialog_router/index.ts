@@ -6,9 +6,9 @@ import type {ConnectedProps} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
+import {submitInteractiveDialog, lookupInteractiveDialog} from 'mattermost-redux/actions/integrations';
 import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 
-import {submitInteractiveDialog, lookupInteractiveDialog} from 'actions/integration_actions';
 import {getEmojiMap} from 'selectors/emojis';
 
 import type {GlobalState} from 'types/store';
@@ -26,6 +26,16 @@ function mapStateToProps(state: GlobalState, ownProps: {triggerId?: string}) {
     }
 
     return {
+
+        // The channel the trigger was created in, resolved by the server and sent with
+        // the dialog. The server is the only party that knows it for dialogs this client
+        // never initiated, such as a command a plugin ran server-side.
+        //
+        // Absent for a trigger minted by a node that predates it, and for dialogs a
+        // plugin injects client-side via window.openInteractiveDialog, which never
+        // round-trip the server. Both cases fall back to the current channel in the
+        // submit and lookup actions.
+        channelId: data.channel_id,
         url: data.url,
         callbackId: data.dialog.callback_id,
         elements: data.dialog.elements,

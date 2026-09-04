@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {IncomingWebhook, IncomingWebhooksWithCount, OutgoingWebhook, Command, OAuthApp, OutgoingOAuthConnection, DialogSubmission, SubmitDialogResponse} from '@mattermost/types/integrations';
+import type {IncomingWebhook, IncomingWebhooksWithCount, OutgoingWebhook, Command, OAuthApp, OutgoingOAuthConnection} from '@mattermost/types/integrations';
 
 import {IntegrationTypes} from 'mattermost-redux/action_types';
 import {logError} from 'mattermost-redux/actions/errors';
@@ -11,9 +11,8 @@ import {getProfilesByIds} from 'mattermost-redux/actions/users';
 import {Client4} from 'mattermost-redux/client';
 import {appsEnabled} from 'mattermost-redux/selectors/entities/apps';
 import {getCurrentChannelId} from 'mattermost-redux/selectors/entities/channels';
-import {getDialogArguments} from 'mattermost-redux/selectors/entities/integrations';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
-import {getCurrentUserId, getUser} from 'mattermost-redux/selectors/entities/users';
+import {getUser} from 'mattermost-redux/selectors/entities/users';
 
 import type {ActionFuncAsync} from 'types/store';
 
@@ -179,70 +178,15 @@ export function loadProfilesForOutgoingOAuthConnections(connections: OutgoingOAu
     };
 }
 
-/**
- * Proxy action for submitting an interactive dialog
- * This enhances the base Redux action by checking for dialog arguments in the state
- * before falling back to the current channel ID
- */
-export function submitInteractiveDialog(submission: DialogSubmission): ActionFuncAsync<SubmitDialogResponse> {
+export function executeDialogAction(url: string, context?: Record<string, string>, dialogChannelId?: string): ActionFuncAsync {
     return async (dispatch, getState) => {
         const state = getState();
 
-        // Get dialog arguments from state if available
-        const dialogArguments = getDialogArguments(state);
-
-        // Use channel_id from dialog arguments if available
-        if (dialogArguments && dialogArguments.channel_id) {
-            submission.channel_id = dialogArguments.channel_id;
-        }
-
-        // Populate user_id and team_id from current state (matching base implementation)
-        submission.user_id = getCurrentUserId(state);
-        submission.team_id = getCurrentTeamId(state);
-
-        // Dispatch the base action with our enhanced submission
-        const {data, error} = await dispatch(IntegrationActions.submitInteractiveDialog(submission));
-        if (error) {
-            return {error};
-        }
-        return {data};
-    };
-}
-
-/**
- * Proxy action for looking up dynamic options in an interactive dialog
- * This enhances the base Redux action by checking for dialog arguments in the state
- * before falling back to the current channel ID
- */
-export function lookupInteractiveDialog(submission: DialogSubmission): ActionFuncAsync<{items: Array<{text: string; value: string}>}> {
-    return async (dispatch, getState) => {
-        const state = getState();
-
-        // Get dialog arguments from state if available
-        const dialogArguments = getDialogArguments(state);
-
-        // Use channel_id from dialog arguments if available
-        if (dialogArguments && dialogArguments.channel_id) {
-            submission.channel_id = dialogArguments.channel_id;
-        }
-
-        // Dispatch the base action with our enhanced submission
-        const {data, error} = await dispatch(IntegrationActions.lookupInteractiveDialog(submission));
-        if (error) {
-            return {error};
-        }
-        return {data};
-    };
-}
-
-export function executeDialogAction(url: string, context?: Record<string, string>): ActionFuncAsync {
-    return async (dispatch, getState) => {
-        const state = getState();
-
-        // Prefer the dialog's own channel_id over the current channel, so a child
-        // dialog action targets the dialog's context even if the user has navigated away.
-        const dialogArguments = getDialogArguments(state);
-        const channelId = dialogArguments?.channel_id || getCurrentChannelId(state);
+        // Prefer the dialog's own channel over the current channel, so a child dialog
+        // action targets the dialog's context even if the user has navigated away. The
+        // server mints the child dialog's trigger against whatever is sent here, which
+        // is how the child inherits the parent's channel.
+        const channelId = dialogChannelId || getCurrentChannelId(state);
         const teamId = getCurrentTeamId(state);
 
         let data;

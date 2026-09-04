@@ -512,6 +512,10 @@ type OpenDialogRequest struct {
 	TriggerId string `json:"trigger_id"`
 	URL       string `json:"url"`
 	Dialog    Dialog `json:"dialog"`
+
+	// ChannelId is populated by the server from the trigger and sent to the client,
+	// which echoes it back on submit so the submission targets the correct channel.
+	ChannelId string `json:"channel_id,omitempty"`
 }
 
 type SubmitDialogRequest struct {
@@ -602,9 +606,10 @@ func signForGenerateTriggerId(s crypto.Signer, digest []byte, opts crypto.Signer
 	return s.Sign(rand.Reader, digest, opts)
 }
 
-func GenerateTriggerId(userId string, s crypto.Signer) (string, string, *AppError) {
+// GenerateTriggerId signs the context an interactive dialog needs on submit.
+func GenerateTriggerId(userId, channelId string, s crypto.Signer) (string, string, *AppError) {
 	clientTriggerId := NewId()
-	triggerData := strings.Join([]string{clientTriggerId, userId, strconv.FormatInt(GetMillis(), 10)}, ":") + ":"
+	triggerData := strings.Join([]string{clientTriggerId, userId, strconv.FormatInt(GetMillis(), 10), channelId}, ":") + ":"
 
 	h := crypto.SHA256
 	sum := h.New()
@@ -621,7 +626,7 @@ func GenerateTriggerId(userId string, s crypto.Signer) (string, string, *AppErro
 }
 
 func (r *PostActionIntegrationRequest) GenerateTriggerId(s crypto.Signer) (string, string, *AppError) {
-	clientTriggerId, triggerId, appErr := GenerateTriggerId(r.UserId, s)
+	clientTriggerId, triggerId, appErr := GenerateTriggerId(r.UserId, r.ChannelId, s)
 	if appErr != nil {
 		return "", "", appErr
 	}
@@ -630,29 +635,33 @@ func (r *PostActionIntegrationRequest) GenerateTriggerId(s crypto.Signer) (strin
 	return clientTriggerId, triggerId, nil
 }
 
-func DecodeAndVerifyTriggerId(triggerId string, s *ecdsa.PrivateKey, timeout time.Duration) (string, string, *AppError) {
+// DecodeAndVerifyTriggerId returns the client trigger ID, the user the trigger was
+// minted for, and the channel it originated in.
+func DecodeAndVerifyTriggerId(triggerId string, s *ecdsa.PrivateKey, timeout time.Duration) (string, string, string, *AppError) {
 	triggerIdBytes, err := base64.StdEncoding.DecodeString(triggerId)
 	if err != nil {
-		return "", "", NewAppError("DecodeAndVerifyTriggerId", "interactive_message.decode_trigger_id.base64_decode_failed", nil, "", http.StatusBadRequest).Wrap(err)
+		return "", "", "", NewAppError("DecodeAndVerifyTriggerId", "interactive_message.decode_trigger_id.base64_decode_failed", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
 	split := strings.Split(string(triggerIdBytes), ":")
-	if len(split) != 4 {
-		return "", "", NewAppError("DecodeAndVerifyTriggerId", "interactive_message.decode_trigger_id.missing_data", nil, "", http.StatusBadRequest)
+	if len(split) < 5 {
+		return "", "", "", NewAppError("DecodeAndVerifyTriggerId", "interactive_message.decode_trigger_id.missing_data", nil, "", http.StatusBadRequest)
 	}
 
 	clientTriggerId := split[0]
 	userId := split[1]
 	timestampStr := split[2]
 	timestamp, _ := strconv.ParseInt(timestampStr, 10, 64)
+	channelId := split[3]
+	signatureStr := split[len(split)-1]
 
 	if time.Since(time.UnixMilli(timestamp)) > timeout {
-		return "", "", NewAppError("DecodeAndVerifyTriggerId", "interactive_message.decode_trigger_id.expired", map[string]any{"Duration": timeout.String()}, "", http.StatusBadRequest)
+		return "", "", "", NewAppError("DecodeAndVerifyTriggerId", "interactive_message.decode_trigger_id.expired", map[string]any{"Duration": timeout.String()}, "", http.StatusBadRequest)
 	}
 
-	signature, err := base64.StdEncoding.DecodeString(split[3])
+	signature, err := base64.StdEncoding.DecodeString(signatureStr)
 	if err != nil {
-		return "", "", NewAppError("DecodeAndVerifyTriggerId", "interactive_message.decode_trigger_id.base64_decode_failed_signature", nil, "", http.StatusBadRequest).Wrap(err)
+		return "", "", "", NewAppError("DecodeAndVerifyTriggerId", "interactive_message.decode_trigger_id.base64_decode_failed_signature", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
 	var esig struct {
@@ -660,23 +669,23 @@ func DecodeAndVerifyTriggerId(triggerId string, s *ecdsa.PrivateKey, timeout tim
 	}
 
 	if _, err := asn1.Unmarshal(signature, &esig); err != nil {
-		return "", "", NewAppError("DecodeAndVerifyTriggerId", "interactive_message.decode_trigger_id.signature_decode_failed", nil, "", http.StatusBadRequest).Wrap(err)
+		return "", "", "", NewAppError("DecodeAndVerifyTriggerId", "interactive_message.decode_trigger_id.signature_decode_failed", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
-	triggerData := strings.Join([]string{clientTriggerId, userId, timestampStr}, ":") + ":"
+	triggerData := strings.Join(split[:len(split)-1], ":") + ":"
 
 	h := crypto.SHA256
 	sum := h.New()
 	sum.Write([]byte(triggerData))
 
 	if !ecdsa.Verify(&s.PublicKey, sum.Sum(nil), esig.R, esig.S) {
-		return "", "", NewAppError("DecodeAndVerifyTriggerId", "interactive_message.decode_trigger_id.verify_signature_failed", nil, "", http.StatusBadRequest)
+		return "", "", "", NewAppError("DecodeAndVerifyTriggerId", "interactive_message.decode_trigger_id.verify_signature_failed", nil, "", http.StatusBadRequest)
 	}
 
-	return clientTriggerId, userId, nil
+	return clientTriggerId, userId, channelId, nil
 }
 
-func (r *OpenDialogRequest) DecodeAndVerifyTriggerId(s *ecdsa.PrivateKey, timeout time.Duration) (string, string, *AppError) {
+func (r *OpenDialogRequest) DecodeAndVerifyTriggerId(s *ecdsa.PrivateKey, timeout time.Duration) (string, string, string, *AppError) {
 	return DecodeAndVerifyTriggerId(r.TriggerId, s, timeout)
 }
 

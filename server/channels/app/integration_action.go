@@ -308,12 +308,13 @@ func (a *App) DoLocalRequest(rctx request.CTX, rawURL string, body []byte) (*htt
 
 func (a *App) OpenInteractiveDialog(rctx request.CTX, request model.OpenDialogRequest) *model.AppError {
 	timeout := time.Duration(*a.Config().ServiceSettings.OutgoingIntegrationRequestsTimeout) * time.Second
-	clientTriggerId, userID, appErr := request.DecodeAndVerifyTriggerId(a.AsymmetricSigningKey(), timeout)
+	clientTriggerId, userID, channelID, appErr := request.DecodeAndVerifyTriggerId(a.AsymmetricSigningKey(), timeout)
 	if appErr != nil {
 		return appErr
 	}
 
 	request.TriggerId = clientTriggerId
+	request.ChannelId = channelID
 
 	if dialogErr := request.IsValid(); dialogErr != nil {
 		rctx.Logger().Warn("Interactive dialog is invalid", mlog.Err(dialogErr))
