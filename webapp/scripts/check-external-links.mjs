@@ -17,6 +17,13 @@ const ROOT_DOMAIN_PATTERN = /^https?:\/\/(www\.)?mattermost\.com\/?$/;
 /** Marketing forms; often slow or block bot User-Agents — not reliable to verify in CI. */
 const FORMS_MATTERMOST_PATTERN = /^https?:\/\/forms\.mattermost\.com\//i;
 
+// Hosts whose bot-management (Cloudflare TLS fingerprint checks etc.) rejects
+// non-browser clients regardless of User-Agent spoofing, so we can't validate
+// them from CI.
+const UNCRAWLABLE_HOSTS = new Set([
+    'support.mattermost.com', // Zendesk fronted by Cloudflare bot mgmt
+]);
+
 const SOURCE_EXTENSIONS = ['.ts', '.tsx', '.js', '.jsx'];
 
 const DIRECTORIES_TO_SCAN = [
@@ -142,40 +149,49 @@ async function checkUrlWithRedirects(originalUrl) {
     let currentUrl = originalUrl;
 
     for (let redirectCount = 0; redirectCount <= MAX_REDIRECTS; redirectCount++) {
-        const response = await fetch(currentUrl, {
+        let response = await fetch(currentUrl, {
             method: 'HEAD',
             redirect: 'manual',
             headers: FETCH_HEADERS,
             signal: AbortSignal.timeout(10000),
         });
 
+        // Some origins reject HEAD; retry with GET and let the outer loop
+        // handle any 3xx the GET returns so we still follow the chain.
         if (response.status === 405 || response.status === 403) {
-            const getResponse = await fetch(currentUrl, {
+            await response.body?.cancel();
+            response = await fetch(currentUrl, {
                 method: 'GET',
                 redirect: 'manual',
                 headers: FETCH_HEADERS,
                 signal: AbortSignal.timeout(10000),
             });
-            return processResponse(originalUrl, getResponse);
         }
 
-        const result = processResponse(originalUrl, response);
+        // Always release the response body — HEAD leaves it null (safe no-op),
+        // but the GET fallback returns real bodies we never read. Leaving them
+        // open pins sockets in undici's pool until finalization.
+        try {
+            const result = processResponse(originalUrl, response);
 
-        if (!result.redirect) {
-            return result;
+            if (!result.redirect) {
+                return result;
+            }
+
+            const location = response.headers.get('location');
+            if (!location) {
+                return {
+                    url: originalUrl,
+                    status: response.status,
+                    ok: false,
+                    error: 'Redirect without Location header',
+                };
+            }
+
+            currentUrl = new URL(location, currentUrl).href;
+        } finally {
+            await response.body?.cancel();
         }
-
-        const location = response.headers.get('location');
-        if (!location) {
-            return {
-                url: originalUrl,
-                status: response.status,
-                ok: false,
-                error: 'Redirect without Location header',
-            };
-        }
-
-        currentUrl = new URL(location, currentUrl).href;
     }
 
     return {
@@ -195,10 +211,8 @@ function processResponse(originalUrl, response) {
         return {url: originalUrl, status, ok: true};
     }
 
-    if (status === 301) {
-        return {url: originalUrl, status, ok: true};
-    }
-
+    // Follow every 3xx (including 301) to its final destination. Short-circuiting
+    // 301s as "OK" hides real 404s at the chain's end
     if (isRedirect) {
         return {url: originalUrl, status, redirect: true};
     }
@@ -215,7 +229,14 @@ function processResponse(originalUrl, response) {
 }
 
 function shouldSkipUrlCheck(url) {
-    return PUSH_SERVER_PATTERN.test(url) || FORMS_MATTERMOST_PATTERN.test(url);
+    if (PUSH_SERVER_PATTERN.test(url) || FORMS_MATTERMOST_PATTERN.test(url)) {
+        return true;
+    }
+    try {
+        return UNCRAWLABLE_HOSTS.has(new URL(url).hostname);
+    } catch {
+        return false;
+    }
 }
 
 async function checkUrls(urls, concurrency = 5, silentProgress = false) {
