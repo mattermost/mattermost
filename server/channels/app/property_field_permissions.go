@@ -130,12 +130,12 @@ func (a *App) PropertyPermissionBasisFor(rctx request.CTX, field *model.Property
 	}
 
 	// Decide machine vs. human before matching any grant, mirroring
-	// AccessControlHook.isMachineCaller exactly (plugin, or LDAP sync, or
-	// SAML sync) so the audit basis and the enforcement gate cannot
-	// disagree about a caller. An installed plugin's ID could otherwise
-	// match a wildcard ("*") plugin grant even when the caller is actually
-	// a human, since Permissions.MatchingGrant honours the wildcard against
-	// any ID.
+	// AccessControlHook.isMachineCaller exactly (plugin, LDAP sync, SAML
+	// sync, or a system subsystem) so the audit basis and the enforcement
+	// gate cannot disagree about a caller. An installed plugin's ID could
+	// otherwise match a wildcard ("*") plugin grant even when the caller
+	// is actually a human, since Permissions.MatchingGrant honours the
+	// wildcard against any ID.
 	switch {
 	case a.IsInstalledPlugin(callerID):
 		scope := model.PropertyRequestOptionsFromContext(rctx.Context()).ActingAsScope
@@ -148,6 +148,10 @@ func (a *App) PropertyPermissionBasisFor(rctx request.CTX, field *model.Property
 		return basisFromMatchingGrant(basis, field.Permissions, model.PropertyOwnerTypeService, model.PropertyFieldAttrLDAP, "", action)
 	case callerID == model.CallerIDSAMLSync:
 		return basisFromMatchingGrant(basis, field.Permissions, model.PropertyOwnerTypeService, model.PropertyFieldAttrSAML, "", action)
+	default:
+		if group, ok := model.SystemCallerOwnedGroup(callerID); ok {
+			return basisFromMatchingGrant(basis, field.Permissions, model.PropertyOwnerTypeService, group, "", action)
+		}
 	}
 
 	return a.decidePropertyFieldPermission(rctx, callerID, field, action, valueTargetID)

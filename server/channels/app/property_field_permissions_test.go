@@ -624,6 +624,51 @@ func TestPropertyPermissionBasisFor(t *testing.T) {
 		assert.Equal(t, model.PropertyFieldAttrLDAP, basis.GrantID)
 	})
 
+	t.Run("a system caller allowed by a service grant on its group", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID:    groupID,
+			Name:       "system caller basis allowed",
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Permissions: &model.Permissions{
+				Grants: []model.Grant{
+					{
+						Identity: model.Identity{Type: model.PropertyOwnerTypeService, ID: model.BoardsPropertyGroupName},
+						Allow:    []string{model.PropertyActionValueWrite},
+					},
+				},
+			},
+		}
+
+		rctx := RequestContextWithCallerID(th.Context, model.CallerIDBoardsSystem)
+		basis := th.App.PropertyPermissionBasisFor(rctx, field, model.PropertyActionValueWrite, "")
+		assert.True(t, basis.Allowed)
+		assert.Equal(t, model.PropertyOwnerTypeService, basis.CallerType)
+		assert.Equal(t, model.BoardsPropertyGroupName, basis.GrantID)
+	})
+
+	t.Run("a system caller with no matching service grant is denied", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID:    groupID,
+			Name:       "system caller basis denied",
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{
+					Value: model.ReadWrite{Write: model.PermissionLevelEveryone},
+				},
+			},
+		}
+
+		rctx := RequestContextWithCallerID(th.Context, model.CallerIDBoardsSystem)
+		basis := th.App.PropertyPermissionBasisFor(rctx, field, model.PropertyActionValueWrite, "")
+		assert.False(t, basis.Allowed)
+		assert.Empty(t, basis.GrantID)
+		assert.Empty(t, basis.Tier)
+	})
+
 	t.Run("a SAML sync caller allowed by a service grant on saml", func(t *testing.T) {
 		field := &model.PropertyField{
 			GroupID:    groupID,
