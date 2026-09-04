@@ -1088,7 +1088,6 @@ func (a *App) DoUploadFileExpectModification(rctx request.CTX, now time.Time, ra
 	info.Id = model.NewId()
 	info.CreatorId = userID
 	info.CreateAt = now.UnixNano() / int64(time.Millisecond)
-	info.ChannelId = channelID
 
 	pathPrefix := now.Format("20060102") + "/teams/" + teamID + "/channels/" + channelID + "/users/" + userID + "/" + info.Id + "/"
 	if userID == model.BookmarkFileOwner {

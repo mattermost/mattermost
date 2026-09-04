@@ -798,20 +798,9 @@ func TestPluginAPIHasPermissionToFileAction(t *testing.T) {
 		model.SessionAttributesPropertyFieldIPAddress: "192.0.2.10",
 	}, model.GetMillis()))
 
-	fileInfo, appErr := th.App.DoUploadFile(
-		th.Context,
-		time.Now(),
-		th.BasicTeam.Id,
-		th.BasicChannel.Id,
-		th.BasicUser.Id,
-		"file-action-policy-test",
-		[]byte("test"),
-		true,
-	)
-	require.Nil(t, appErr)
+	fileInfo := th.CreateFileInfo(t, th.BasicUser.Id, "", th.BasicChannel.Id)
 	t.Cleanup(func() {
 		require.NoError(t, th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, fileInfo.Id))
-		require.Nil(t, th.App.RemoveFile(fileInfo.Path))
 	})
 
 	mockAccessControl := &mocks.AccessControlServiceInterface{}
