@@ -7,6 +7,7 @@ import React from 'react';
 import {DATE_LINE} from 'mattermost-redux/utils/post_list';
 
 import {markAllPlatformNotificationsAsRead} from 'actions/views/rhs';
+
 import SearchResults, {arePropsEqual} from 'components/search_results/search_results';
 import type {Props} from 'components/search_results/search_results';
 
@@ -14,6 +15,7 @@ import {renderWithContext} from 'tests/react_testing_utils';
 import {getHistory} from 'utils/browser_history';
 import {popoutRhsSearch} from 'utils/popouts/popout_windows';
 import {TestHelper} from 'utils/test_helper';
+
 import type {PlatformNotificationRecord} from 'types/store/rhs';
 
 jest.mock('utils/popouts/popout_windows', () => ({

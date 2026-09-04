@@ -4,6 +4,7 @@
 import React from 'react';
 
 import {renderWithContext} from 'tests/react_testing_utils';
+
 import type {PlatformNotificationRecord} from 'types/store/rhs';
 
 import RhsNotificationActivity from './rhs_notification_activity';

@@ -18,7 +18,6 @@ import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {isDateLine, getDateForDateLine} from 'mattermost-redux/utils/post_list';
 
 import {markAllPlatformNotificationsAsRead} from 'actions/views/rhs';
-
 import {getFilesDropdownPluginMenuItems} from 'selectors/plugins';
 import {getSearchTeam} from 'selectors/rhs';
 
@@ -506,7 +505,6 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
                                     })}
                                     className='Button___large Button___icon'
                                     disabled={!hasUnreadActivity}
-                                    marginTop={true}
                                     onClick={() => dispatch(markAllPlatformNotificationsAsRead())}
                                 >
                                     <span className='icon'>

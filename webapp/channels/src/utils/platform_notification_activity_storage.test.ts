@@ -3,9 +3,9 @@
 
 import type {PlatformNotification} from '@mattermost/types/platform_notifications';
 
-import type {PlatformNotificationRecord} from 'types/store/rhs';
-
 import LocalStorageStore from 'stores/local_storage_store';
+
+import type {PlatformNotificationRecord} from 'types/store/rhs';
 
 import {
     fromServerPlatformNotification,

@@ -14,7 +14,6 @@ import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/pre
 import {getMyTeams} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 import {getCurrentUserId, getCurrentUserMentionKeys} from 'mattermost-redux/selectors/entities/users';
-import type {DispatchFunc} from 'mattermost-redux/types/actions';
 import {isDirectChannel, isGroupChannel} from 'mattermost-redux/utils/channel_utils';
 import {isUserAddedInChannel} from 'mattermost-redux/utils/post_utils';
 
@@ -33,7 +32,7 @@ import {
 } from 'utils/platform_notification_activity_storage';
 import {getBrowserUtcOffset, getUtcOffsetForTimeZone} from 'utils/timezone';
 
-import type {ActionFuncAsync} from 'types/store';
+import type {ActionFuncAsync, DispatchFunc} from 'types/store';
 import type {PlatformNotificationRecord} from 'types/store/rhs';
 
 const SEED_MENTION_PAGE_SIZE = 60;

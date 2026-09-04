@@ -4145,7 +4145,11 @@
             type: string
       responses:
         "200":
-          $ref: "#/components/schemas/StatusOK"
+          description: Platform notifications cleared successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -4179,7 +4183,11 @@
             type: string
       responses:
         "200":
-          $ref: "#/components/schemas/StatusOK"
+          description: Platform notification deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":

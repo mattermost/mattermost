@@ -61,6 +61,22 @@
         align-items: center;
 
         .Button {
+            display: flex;
+            width: 32px;
+            height: 32px;
+            box-sizing: border-box;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+
+            .Button_label {
+                display: flex;
+                margin-top: 0;
+                align-items: center;
+                justify-content: center;
+                line-height: 0;
+            }
+
             &:disabled {
                 cursor: not-allowed;
                 opacity: 0.5;
