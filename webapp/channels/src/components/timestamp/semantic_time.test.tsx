@@ -14,7 +14,7 @@ describe('components/timestamp/SemanticTime', () => {
                 value={new Date('2020-06-05T10:20:30Z')}
             />,
         );
-        expect(screen.getByRole('time')).toHaveAttribute('datetime', '2020-06-05T10:20:30.000');
+        expect(screen.getByRole('time')).toHaveAttribute('datetime', '2020-06-05T10:20:30.000+00:00');
     });
 
     test('should support passthrough children', () => {

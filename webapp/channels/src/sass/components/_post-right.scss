@@ -128,18 +128,24 @@
                     padding-left: 1em;
 
                     .post__header {
-                        height: auto;
                         margin-left: 0;
-                        float: none;
-
-                        .post__time {
-                            opacity: 0.73;
-                        }
                     }
 
-                    &.same--user.post--bot {
+                    &.same--user {
                         .post__header {
+                            height: auto;
+                            margin-left: 0;
                             float: none;
+
+                            .post__time {
+                                opacity: 0.73;
+                            }
+                        }
+
+                        &.post--bot {
+                            .post__header {
+                                float: none;
+                            }
                         }
                     }
                 }

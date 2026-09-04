@@ -4,10 +4,9 @@
 import {
     getDiff,
     isToday,
-    isYesterday,
 } from './datetime';
 
-describe('isToday and isYesterday', () => {
+describe('isToday', () => {
     test('tomorrow at 12am', () => {
         const date = new Date();
         date.setDate(date.getDate() + 1);
@@ -15,14 +14,12 @@ describe('isToday and isYesterday', () => {
         date.setMinutes(0);
 
         expect(isToday(date)).toBe(false);
-        expect(isYesterday(date)).toBe(false);
     });
 
     test('now', () => {
         const date = new Date();
 
         expect(isToday(date)).toBe(true);
-        expect(isYesterday(date)).toBe(false);
     });
 
     test('today at 12am', () => {
@@ -31,7 +28,6 @@ describe('isToday and isYesterday', () => {
         date.setMinutes(0);
 
         expect(isToday(date)).toBe(true);
-        expect(isYesterday(date)).toBe(false);
     });
 
     test('today at 11:59pm', () => {
@@ -40,7 +36,6 @@ describe('isToday and isYesterday', () => {
         date.setMinutes(59);
 
         expect(isToday(date)).toBe(true);
-        expect(isYesterday(date)).toBe(false);
     });
 
     test('yesterday at 11:59pm', () => {
@@ -50,7 +45,6 @@ describe('isToday and isYesterday', () => {
         date.setMinutes(59);
 
         expect(isToday(date)).toBe(false);
-        expect(isYesterday(date)).toBe(true);
     });
 
     test('yesterday at 12am', () => {
@@ -60,7 +54,6 @@ describe('isToday and isYesterday', () => {
         date.setMinutes(0);
 
         expect(isToday(date)).toBe(false);
-        expect(isYesterday(date)).toBe(true);
     });
 
     test('two days ago at 11:59pm', () => {
@@ -70,7 +63,6 @@ describe('isToday and isYesterday', () => {
         date.setMinutes(59);
 
         expect(isToday(date)).toBe(false);
-        expect(isYesterday(date)).toBe(false);
     });
 });
 

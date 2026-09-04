@@ -45,9 +45,13 @@ test(
         await page.keyboard.press('Tab');
         await pw.toBeFocusedWithFocusVisible(displaySettings.themeEditButton);
 
-        // # Press Tab to move focus to Clock Display button
+        // # Press Tab to move focus to Date and Time button
         await page.keyboard.press('Tab');
-        await pw.toBeFocusedWithFocusVisible(displaySettings.clockDisplayEditButton);
+        await pw.toBeFocusedWithFocusVisible(displaySettings.dateAndTimeEditButton);
+
+        // # Press Tab to move focus to Timezone button
+        await page.keyboard.press('Tab');
+        await pw.toBeFocusedWithFocusVisible(displaySettings.timezoneEditButton);
 
         // # Press Tab to move focus to Teammate Name Display button
         await page.keyboard.press('Tab');
@@ -60,10 +64,6 @@ test(
         // # Press Tab to move focus to Share last active time button
         await page.keyboard.press('Tab');
         await pw.toBeFocusedWithFocusVisible(displaySettings.lastActiveTimeEditButton);
-
-        // # Press Tab to move focus to Timezone button
-        await page.keyboard.press('Tab');
-        await pw.toBeFocusedWithFocusVisible(displaySettings.timezoneEditButton);
 
         // # Press Tab to move focus to Website Link Previews button
         await page.keyboard.press('Tab');
@@ -138,8 +138,11 @@ test(
             - heading "Theme" [level=4]
             - button "Theme Edit": Edit
             - text: /.+/
-            - heading "Clock Display" [level=4]
-            - button "Clock Display Edit": Edit
+            - heading "Date and Time" [level=4]
+            - button "Date and Time Edit": Edit
+            - text: /.+/
+            - heading "Timezone" [level=4]
+            - button "Timezone Edit": Edit
             - text: /.+/
             - heading "Teammate Name Display" [level=4]
             - button "Teammate Name Display Edit": Edit
@@ -149,9 +152,6 @@ test(
             - text: /.+/
             - heading "Share last active time" [level=4]
             - button "Share last active time Edit": Edit
-            - text: /.+/
-            - heading "Timezone" [level=4]
-            - button "Timezone Edit": Edit
             - text: /.+/
             - heading "Website Link Previews" [level=4]
             - button "Website Link Previews Edit": Edit
@@ -380,10 +380,10 @@ test(
 );
 
 /**
- * @objective Verify Clock Display section passes accessibility scan and matches aria-snapshot
+ * @objective Verify Date and Time section passes accessibility scan and matches aria-snapshot
  */
 test(
-    'accessibility scan and aria-snapshot of Clock Display section',
+    'accessibility scan and aria-snapshot of Date and Time section',
     {tag: ['@accessibility', '@settings', '@display_settings', '@snapshots']},
     async ({pw, axe}) => {
         // # Create and sign in a new user
@@ -410,19 +410,30 @@ test(
 
         const displaySettings = settingsModal.displaySettings;
 
-        // # Click Edit on Clock Display section
-        await displaySettings.clockDisplayEditButton.click();
+        // # Click Edit on Date and Time section
+        await displaySettings.dateAndTimeEditButton.click();
 
-        // * Verify aria snapshot of Clock Display section when expanded
+        // * Verify aria snapshot of Date and Time section when expanded
         await displaySettings.expandedSection.waitFor();
         await expect(displaySettings.expandedSection).toMatchAriaSnapshot(`
-          - heading "Clock Display" [level=4]
+          - heading "Date and Time" [level=4]
           - group "Clock Display":
             - text: Clock Display
             - radio /.+/ [checked]
             - text: /.+/
             - radio /.+/
             - text: /.+/
+          - separator
+          - group "Timestamp Format":
+            - text: Timestamp Format
+            - radio /.+/ [checked]
+            - text: /.+/
+            - radio /.+/
+            - text: /.+/
+            - radio /.+/
+            - text: /.+/
+            - checkbox /Show seconds in timestamps.+/
+            - text: /Show seconds in timestamps.+/
           - separator
           - alert
           - button "Save"

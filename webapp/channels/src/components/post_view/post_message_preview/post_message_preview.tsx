@@ -175,15 +175,8 @@ const PostMessagePreview = (props: Props) => {
                     <div className='col d-flex align-items-center'>
                         <Timestamp
                             value={previewPost.create_at}
-                            units={[
-                                'now',
-                                'minute',
-                                'hour',
-                                'day',
-                            ]}
-                            useTime={false}
-                            day={'numeric'}
                             className='post-preview__time'
+                            usePreferredFormat={true}
                         />
                         {previewPost.metadata?.priority && isPostPriorityEnabled && (
                             <span className='d-flex mr-2 ml-1'>
