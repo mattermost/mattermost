@@ -6,11 +6,16 @@ package scheduled_recap
 import (
 	"errors"
 	"testing"
+	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs"
+	"github.com/mattermost/mattermost/server/v8/channels/store/storetest"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
+	"github.com/mattermost/mattermost/server/v8/channels/utils/testutils"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
@@ -25,6 +30,115 @@ func (m *mockScheduledRecapApp) CreateRecapFromSchedule(rctx request.CTX, schedu
 		return nil, args.Get(1).(*model.AppError)
 	}
 	return args.Get(0).(*model.Recap), nil
+}
+
+type blockingScheduledRecapApp struct {
+	started chan<- string
+	release <-chan struct{}
+}
+
+func (a *blockingScheduledRecapApp) CreateRecapFromSchedule(_ request.CTX, scheduledRecap *model.ScheduledRecap) (*model.Recap, *model.AppError) {
+	a.started <- scheduledRecap.Id
+	<-a.release
+	return &model.Recap{Id: model.NewId()}, nil
+}
+
+func TestMakeWorkerProcessesScheduledRecapsConcurrently(t *testing.T) {
+	const poolSize = 3
+
+	cfg := &model.Config{}
+	cfg.SetDefaults()
+	cfg.AIRecapSettings.Processing.MaxConcurrentJobs = model.NewPointer(poolSize)
+
+	mockStore := &storetest.Store{}
+	t.Cleanup(func() {
+		mockStore.AssertExpectations(t)
+	})
+
+	started := make(chan string, poolSize)
+	release := make(chan struct{})
+	app := &blockingScheduledRecapApp{started: started, release: release}
+	jobServer := jobs.NewJobServer(&testutils.StaticConfigService{Cfg: cfg}, mockStore, nil, mlog.CreateConsoleTestLogger(t), nil)
+	worker := MakeWorker(jobServer, mockStore, app)
+
+	scheduledRecaps := make([]*model.ScheduledRecap, 0, poolSize)
+	jobsToRun := make([]model.Job, 0, poolSize)
+	for range poolSize {
+		scheduledRecap := testScheduledRecap(true)
+		job := model.Job{
+			Id:   model.NewId(),
+			Type: model.JobTypeScheduledRecap,
+			Data: map[string]string{"scheduled_recap_id": scheduledRecap.Id},
+		}
+		claimedJob := job
+		claimedJob.Status = model.JobStatusInProgress
+
+		mockStore.JobStore.
+			On("UpdateStatusOptimistically", job.Id, model.JobStatusPending, model.JobStatusInProgress).
+			Return(&claimedJob, nil).
+			Once()
+		mockStore.JobStore.
+			On("UpdateOptimistically", mock.MatchedBy(func(updatedJob *model.Job) bool {
+				return updatedJob.Id == job.Id
+			}), model.JobStatusInProgress).
+			Return(&claimedJob, nil).
+			Once()
+		mockStore.JobStore.
+			On("UpdateStatus", job.Id, model.JobStatusSuccess).
+			Return(&claimedJob, nil).
+			Once()
+		mockStore.ScheduledRecapStore.On("Get", scheduledRecap.Id).Return(scheduledRecap, nil).Once()
+		mockStore.ScheduledRecapStore.
+			On("MarkExecuted", scheduledRecap.Id, mock.AnythingOfType("int64"), mock.AnythingOfType("int64")).
+			Return(nil).
+			Once()
+
+		scheduledRecaps = append(scheduledRecaps, scheduledRecap)
+		jobsToRun = append(jobsToRun, job)
+	}
+
+	go worker.Run()
+	for i := range jobsToRun {
+		select {
+		case worker.JobChannel() <- jobsToRun[i]:
+		case <-time.After(5 * time.Second):
+			assert.FailNow(t, "timed out sending scheduled recap job")
+		}
+	}
+
+	startedIDs := make(map[string]bool, poolSize)
+	for range poolSize {
+		select {
+		case id := <-started:
+			startedIDs[id] = true
+		case <-time.After(5 * time.Second):
+			assert.FailNow(t, "scheduled recap jobs did not execute concurrently")
+		}
+	}
+	expectedIDs := make(map[string]bool, poolSize)
+	for _, scheduledRecap := range scheduledRecaps {
+		expectedIDs[scheduledRecap.Id] = true
+	}
+	assert.Equal(t, expectedIDs, startedIDs)
+
+	extraJob := model.Job{Id: model.NewId(), Type: model.JobTypeScheduledRecap}
+	select {
+	case worker.JobChannel() <- extraJob:
+		assert.FailNow(t, "worker accepted a job while the configured pool was exhausted")
+	case <-time.After(100 * time.Millisecond):
+	}
+
+	close(release)
+	stopped := make(chan struct{})
+	go func() {
+		worker.Stop()
+		close(stopped)
+	}()
+	select {
+	case <-stopped:
+	case <-time.After(5 * time.Second):
+		assert.FailNow(t, "worker did not stop after concurrent jobs completed")
+	}
 }
 
 func TestProcessScheduledRecapJobReturnsPersistenceErrors(t *testing.T) {
