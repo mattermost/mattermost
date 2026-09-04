@@ -64,15 +64,21 @@ End User Guide → Collaborate (`COLLABORATE_GROUPS`/`COLLABORATE_ORDER`), and
 Integrations Guide (`INTEGRATIONS_GROUPS`/`INTEGRATIONS_ROOT_ORDER`).
 
 Usually the override only changes how the sidebar renders — files stay
-flat on disk at their existing paths, so URLs don't move. The one
-exception is Administration Guide → Scale: 21 of its 28 files (capacity
-planning, HA/architecture, search infrastructure, caching) were physically
-moved to `deployment-guide/reference-architecture/scale/` and are grouped
-via `DEPLOYMENT_GROUPS.scaling`, matching where Sphinx's live nav actually
-lists that content (under Deployment Guide → Reference Architecture, as a
-sibling of Application Architecture). Only the 7 monitoring/observability
-pages stayed under `ADMIN_SCALE_GROUPS`. Since that move changes URLs, the
-Sphinx→Docusaurus redirect targets for those 21 pages in
+flat on disk at their existing paths, so URLs don't move. There are two
+exceptions, both cases where the nav home and the URL would otherwise
+disagree:
+
+- Administration Guide → Scale: 21 of its 28 files (capacity planning,
+  HA/architecture, search infrastructure, caching) were physically moved to
+  `deployment-guide/scale/` and are grouped via `DEPLOYMENT_GROUPS.scaling`,
+  matching where Sphinx's live nav lists that content. Only the 7
+  monitoring/observability pages stayed under `ADMIN_SCALE_GROUPS`.
+- The PostgreSQL and FIPS migration pages moved the other way, from
+  `deployment-guide/` to `administration-guide/manage/admin/`, where
+  Sphinx's only toctree for them lives. They're grouped under
+  `ADMIN_MANAGE_GROUPS.dataMigration`.
+
+Since those moves change URLs, the Sphinx→Docusaurus redirect targets in
 `sidebars/active-redirects.json` were updated to point at the new paths,
 and internal `.mdx` links across the docs were rewritten accordingly.
 

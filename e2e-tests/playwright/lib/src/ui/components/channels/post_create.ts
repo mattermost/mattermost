@@ -6,9 +6,7 @@ import path from 'node:path';
 import type {Locator} from '@playwright/test';
 import {expect} from '@playwright/test';
 
-import {duration} from '@/util';
 import {assetPath} from '@/file';
-import {waitUntil} from '@/test_action';
 
 export default class ChannelsPostCreate {
     readonly container: Locator;
@@ -144,24 +142,19 @@ export default class ChannelsPostCreate {
 
         if (files) {
             const filePaths = files.map((file) => path.join(assetPath, file));
-            page.once('filechooser', async (fileChooser) => {
-                await fileChooser.setFiles(filePaths);
-            });
-
-            // Click on the attachment button
-            await this.attachmentButton.click();
-
-            // Wait until the file preview is displayed
+            await expect(this.attachmentButton).toBeVisible();
+            const fileInput = this.container.locator('input[type="file"]');
+            await expect(fileInput).toBeAttached();
+            await fileInput.setInputFiles(filePaths);
+            // Wait for the upload API first so the 10s preview asserts run after
+            // the file exists, instead of racing the default expect timeout.
+            if (uploadResponsePromise) {
+                await uploadResponsePromise;
+            }
             await this.waitUntilFilePreviewContains(files);
         }
 
         await this.sendMessage();
-
-        // Without this, tests can click Send before the upload finishes under CI load,
-        // producing posts with no attachments (flaky redacted-file / demo_plugin tests).
-        if (uploadResponsePromise) {
-            await uploadResponsePromise;
-        }
     }
 
     /**
@@ -223,25 +216,18 @@ export default class ChannelsPostCreate {
         await this.previewArea.locator('.mention-link').click();
     }
 
-    async waitUntilFilePreviewContains(files: string[], timeout = duration.ten_sec) {
-        await waitUntil(
-            async () => {
-                const previews = this.filePreview.getByTestId('file-preview-item');
-                const details = this.filePreview.getByTestId('post-image-details');
-
-                const [previewsCount, detailsCount] = await Promise.all([previews.count(), details.count()]);
-
-                return previewsCount === files.length && detailsCount === files.length;
-            },
-            {timeout},
-        );
+    async waitUntilFilePreviewContains(files: string[]) {
+        await expect(this.filePreview).toBeVisible();
+        await expect(this.filePreview.getByTestId('file-preview-item')).toHaveCount(files.length);
+        await expect(this.filePreview.getByTestId('post-image-details')).toHaveCount(files.length);
     }
 
     /**
      * Toggle the burn-on-read feature for the message
      */
     async toggleBurnOnRead() {
-        await expect(this.burnOnReadButton).toBeVisible();
+        await expect(this.burnOnReadButton).toBeAttached();
+        await expect(this.burnOnReadButton).toBeEnabled();
         await this.burnOnReadButton.click();
     }
 
