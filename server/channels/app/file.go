@@ -1334,7 +1334,9 @@ func (a *App) SetFileSearchableContent(rctx request.CTX, fileID string, data str
 		return appErr
 	}
 
-	err := a.Srv().Store().FileInfo().SetContent(rctx, fileInfo.Id, data)
+	// The Content column is UTF-8, and the database rejects anything else. The
+	// data comes from a plugin, so it carries no guarantee of being valid.
+	err := a.Srv().Store().FileInfo().SetContent(rctx, fileInfo.Id, strings.ToValidUTF8(data, ""))
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
