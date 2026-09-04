@@ -232,7 +232,7 @@ const defaultServerConfig: AdminConfig = {
     },
     TeamSettings: {
         SiteName: 'Mattermost',
-        MaxUsersPerTeam: 50,
+        MaxUsersPerTeam: 2000,
         EnableJoinLeaveMessageByDefault: true,
         EnableUserCreation: true,
         EnableOpenServer: false,

@@ -142,7 +142,7 @@ const (
 	ServiceSettingsMaxUniqueReactionsPerPost     = 500
 
 	TeamSettingsDefaultSiteName              = "Mattermost"
-	TeamSettingsDefaultMaxUsersPerTeam       = 50
+	TeamSettingsDefaultMaxUsersPerTeam       = 2000
 	TeamSettingsDefaultCustomBrandText       = ""
 	TeamSettingsDefaultCustomDescriptionText = ""
 	TeamSettingsDefaultUserStatusAwayTimeout = 300

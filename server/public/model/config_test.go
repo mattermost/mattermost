@@ -1013,6 +1013,28 @@ func TestTeamSettingsDefaultJoinLeaveMessage(t *testing.T) {
 	require.Equal(t, new(true), c1.TeamSettings.EnableJoinLeaveMessageByDefault)
 }
 
+func TestTeamSettingsDefaultMaxUsersPerTeam(t *testing.T) {
+	t.Run("unset defaults to 2000", func(t *testing.T) {
+		c1 := Config{}
+		c1.SetDefaults()
+
+		require.NotNil(t, c1.TeamSettings.MaxUsersPerTeam)
+		require.Equal(t, 2000, *c1.TeamSettings.MaxUsersPerTeam)
+	})
+
+	t.Run("configured value is preserved", func(t *testing.T) {
+		c1 := Config{
+			TeamSettings: TeamSettings{
+				MaxUsersPerTeam: new(50),
+			},
+		}
+		c1.SetDefaults()
+
+		require.NotNil(t, c1.TeamSettings.MaxUsersPerTeam)
+		require.Equal(t, 50, *c1.TeamSettings.MaxUsersPerTeam)
+	})
+}
+
 func TestMessageExportSettingsIsValidEnableExportNotSet(t *testing.T) {
 	mes := &MessageExportSettings{}
 
