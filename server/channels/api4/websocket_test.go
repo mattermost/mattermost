@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -45,54 +46,47 @@ func TestWebSocketEvent(t *testing.T) {
 	evt1.Add("user_id", "somerandomid")
 	th.App.Publish(evt1)
 
-	time.Sleep(300 * time.Millisecond)
-
-	stop := make(chan bool)
-	eventHit := false
-
+	// Wait for the typing event to arrive on the WebSocket channel.
+	var eventHit int32
+	done := make(chan struct{})
 	go func() {
-		for {
-			select {
-			case resp := <-WebSocketClient.EventChannel:
-				if resp.EventType() == model.WebsocketEventTyping && resp.GetData()["user_id"].(string) == "somerandomid" {
-					eventHit = true
-				}
-			case <-stop:
+		defer close(done)
+		for resp := range WebSocketClient.EventChannel {
+			if resp.EventType() == model.WebsocketEventTyping && resp.GetData()["user_id"].(string) == "somerandomid" {
+				atomic.StoreInt32(&eventHit, 1)
 				return
 			}
 		}
 	}()
 
-	time.Sleep(400 * time.Millisecond)
-
-	stop <- true
-
-	require.True(t, eventHit, "did not receive typing event")
+	select {
+	case <-done:
+	case <-time.After(5 * time.Second):
+	}
+	require.Equal(t, int32(1), atomic.LoadInt32(&eventHit), "did not receive typing event")
 
 	evt2 := model.NewWebSocketEvent(model.WebsocketEventTyping, "", "somerandomid", "", nil, "")
 	th.App.Publish(evt2)
-	time.Sleep(300 * time.Millisecond)
 
-	eventHit = false
-
+	// Verify we do NOT receive a typing event for a bad channel id.
+	// Use require.Never to assert the event doesn't arrive.
+	var badEventHit int32
+	done2 := make(chan struct{})
 	go func() {
-		for {
-			select {
-			case resp := <-WebSocketClient.EventChannel:
-				if resp.EventType() == model.WebsocketEventTyping {
-					eventHit = true
-				}
-			case <-stop:
+		defer close(done2)
+		for resp := range WebSocketClient.EventChannel {
+			if resp.EventType() == model.WebsocketEventTyping {
+				atomic.StoreInt32(&badEventHit, 1)
 				return
 			}
 		}
 	}()
 
-	time.Sleep(400 * time.Millisecond)
-
-	stop <- true
-
-	require.False(t, eventHit, "got typing event for bad channel id")
+	select {
+	case <-done2:
+	case <-time.After(500 * time.Millisecond):
+	}
+	require.Equal(t, int32(0), atomic.LoadInt32(&badEventHit), "got typing event for bad channel id")
 }
 
 func TestCreateDirectChannelWithSocket(t *testing.T) {
@@ -120,34 +114,31 @@ func TestCreateDirectChannelWithSocket(t *testing.T) {
 	wsr := <-WebSocketClient.EventChannel
 	require.Equal(t, wsr.EventType(), model.WebsocketEventHello, "missing hello")
 
-	stop := make(chan bool)
-	count := 0
+	var count int32
 
+	done := make(chan struct{})
 	go func() {
-		for {
-			select {
-			case wsr := <-WebSocketClient.EventChannel:
-				if wsr != nil && wsr.EventType() == model.WebsocketEventDirectAdded {
-					count = count + 1
+		defer close(done)
+		for wsr := range WebSocketClient.EventChannel {
+			if wsr != nil && wsr.EventType() == model.WebsocketEventDirectAdded {
+				if int(atomic.AddInt32(&count, 1)) == len(users) {
+					return
 				}
-
-			case <-stop:
-				return
 			}
 		}
 	}()
 
 	for _, user := range users {
-		time.Sleep(100 * time.Millisecond)
 		_, _, err := client.CreateDirectChannel(context.Background(), th.BasicUser.Id, user.Id)
 		require.NoError(t, err, "failed to create DM channel")
 	}
 
-	time.Sleep(5000 * time.Millisecond)
+	select {
+	case <-done:
+	case <-time.After(10 * time.Second):
+	}
 
-	stop <- true
-
-	require.Equal(t, count, len(users), "We didn't get the proper amount of direct_added messages")
+	require.Equal(t, int32(len(users)), atomic.LoadInt32(&count), "We didn't get the proper amount of direct_added messages")
 }
 
 func TestWebsocketOriginSecurity(t *testing.T) {
@@ -248,8 +239,17 @@ func TestWebSocketSendBinary(t *testing.T) {
 	th.LoginBasic2WithClient(t, client2)
 	_ = th.CreateConnectedWebSocketClientWithClient(t, client2)
 
-	// Wait for statuses to be updated
-	time.Sleep(time.Second)
+	// Poll until statuses are updated (both users online).
+	require.Eventually(t, func() bool {
+		WebSocketClient.GetStatuses()
+		resp := <-WebSocketClient.ResponseChannel
+		if resp.Error != nil {
+			return false
+		}
+		s1, ok1 := resp.Data[th.BasicUser.Id]
+		s2, ok2 := resp.Data[th.BasicUser2.Id]
+		return ok1 && ok2 && s1 == model.StatusOnline && s2 == model.StatusOnline
+	}, 10*time.Second, 100*time.Millisecond, "statuses were not updated in time")
 
 	err := WebSocketClient.SendBinaryMessage("get_statuses", nil)
 	require.NoError(t, err)
@@ -307,8 +307,16 @@ func TestWebSocketStatuses(t *testing.T) {
 
 	WebSocketClient2 := th.CreateConnectedWebSocketClient(t)
 
-	// Wait for statuses to be updated
-	time.Sleep(time.Second)
+	// Poll until BasicUser2 shows as online in statuses.
+	require.Eventually(t, func() bool {
+		WebSocketClient.GetStatuses()
+		resp := <-WebSocketClient.ResponseChannel
+		if resp.Error != nil {
+			return false
+		}
+		s, ok := resp.Data[th.BasicUser2.Id]
+		return ok && s == model.StatusOnline
+	}, 10*time.Second, 100*time.Millisecond, "BasicUser2 status was not updated to online")
 
 	WebSocketClient.GetStatuses()
 	resp = <-WebSocketClient.ResponseChannel
@@ -365,6 +373,9 @@ func TestWebSocketStatuses(t *testing.T) {
 	}()
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.UserStatusAwayTimeout = 1 })
 
+	// These sleeps are testing time-dependent away-timeout behavior.
+	// The UserStatusAwayTimeout is set to 1 second, so we must sleep
+	// past that threshold to verify the status transitions.
 	time.Sleep(1500 * time.Millisecond)
 
 	th.App.SetStatusAwayIfNeeded(th.BasicUser.Id, false)
@@ -380,36 +391,33 @@ func TestWebSocketStatuses(t *testing.T) {
 	_, ok = resp.Data[th.BasicUser2.Id]
 	require.False(t, ok, "should not have had user status")
 
-	stop := make(chan bool)
-	onlineHit := false
-	awayHit := false
-
+	// Wait for both online and away status change events.
+	var onlineHit, awayHit int32
+	done := make(chan struct{})
 	go func() {
-		for {
-			select {
-			case resp := <-WebSocketClient.EventChannel:
-				if resp.EventType() == model.WebsocketEventStatusChange && resp.GetData()["user_id"].(string) == th.BasicUser.Id {
-					status := resp.GetData()["status"].(string)
-					if status == model.StatusOnline {
-						onlineHit = true
-					} else if status == model.StatusAway {
-						awayHit = true
-					}
+		defer close(done)
+		for resp := range WebSocketClient.EventChannel {
+			if resp.EventType() == model.WebsocketEventStatusChange && resp.GetData()["user_id"].(string) == th.BasicUser.Id {
+				status := resp.GetData()["status"].(string)
+				if status == model.StatusOnline {
+					atomic.StoreInt32(&onlineHit, 1)
+				} else if status == model.StatusAway {
+					atomic.StoreInt32(&awayHit, 1)
 				}
-			case <-stop:
-				return
+				if atomic.LoadInt32(&onlineHit) == 1 && atomic.LoadInt32(&awayHit) == 1 {
+					return
+				}
 			}
 		}
 	}()
 
-	time.Sleep(500 * time.Millisecond)
+	select {
+	case <-done:
+	case <-time.After(5 * time.Second):
+	}
 
-	stop <- true
-
-	require.True(t, onlineHit, "didn't get online event")
-	require.True(t, awayHit, "didn't get away event")
-
-	time.Sleep(500 * time.Millisecond)
+	require.Equal(t, int32(1), atomic.LoadInt32(&onlineHit), "didn't get online event")
+	require.Equal(t, int32(1), atomic.LoadInt32(&awayHit), "didn't get away event")
 }
 
 func TestWebSocketPresence(t *testing.T) {
