@@ -14,6 +14,18 @@ import {TestHelper} from 'utils/test_helper';
 
 import type {GlobalState} from 'types/store';
 
+jest.mock('components/admin_console/content_flagging/user_multiselector/user_multiselector', () => ({
+    UserSelector: (props: {id: string; singleSelectInitialValue?: string; singleSelectOnChange?: (id: string) => void}) => (
+        <button
+            type='button'
+            id={props.id}
+            data-testid='owner-selector'
+            data-value={props.singleSelectInitialValue}
+            onClick={() => props.singleSelectOnChange?.('new_owner_id')}
+        />
+    ),
+}));
+
 const initialState: DeepPartial<GlobalState> = {
     entities: {
         channels: {
@@ -178,5 +190,39 @@ describe('components/integrations/AbstractOutgoingWebhook', () => {
 
         expect(action).toHaveBeenCalled();
         expect(action).toHaveBeenCalledTimes(1);
+    });
+
+    test('should not render the owner selector when canManageOthersWebhooks is false', () => {
+        const {container} = renderWithContext(<AbstractOutgoingWebhook {...requiredProps}/>, initialState as GlobalState);
+        expect(container.querySelector('#ownerId')).not.toBeInTheDocument();
+    });
+
+    test('should render the owner selector when canManageOthersWebhooks is true', () => {
+        const props = {...requiredProps, canManageOthersWebhooks: true};
+        const {container} = renderWithContext(<AbstractOutgoingWebhook {...props}/>, initialState as GlobalState);
+        const ownerSelector = container.querySelector('#ownerId');
+        expect(ownerSelector).toBeInTheDocument();
+        expect(ownerSelector).toHaveAttribute('data-value', 'test_creator_id');
+    });
+
+    test('should submit the existing owner when it is not changed', async () => {
+        action.mockClear();
+        const {container} = renderWithContext(<AbstractOutgoingWebhook {...requiredProps}/>, initialState as GlobalState);
+        await userEvent.click(container.querySelector('#saveWebhook') as HTMLButtonElement);
+
+        expect(action).toHaveBeenCalledTimes(1);
+        expect(action).toHaveBeenCalledWith(expect.objectContaining({creator_id: 'test_creator_id'}));
+    });
+
+    test('should submit the newly selected owner', async () => {
+        action.mockClear();
+        const props = {...requiredProps, canManageOthersWebhooks: true};
+        const {container} = renderWithContext(<AbstractOutgoingWebhook {...props}/>, initialState as GlobalState);
+
+        await userEvent.click(container.querySelector('[data-testid="owner-selector"]') as HTMLButtonElement);
+        await userEvent.click(container.querySelector('#saveWebhook') as HTMLButtonElement);
+
+        expect(action).toHaveBeenCalledTimes(1);
+        expect(action).toHaveBeenCalledWith(expect.objectContaining({creator_id: 'new_owner_id'}));
     });
 });

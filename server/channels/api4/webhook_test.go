@@ -244,20 +244,149 @@ func TestIncomingWebhookValidateUser(t *testing.T) {
 		CheckForbiddenStatus(t, resp)
 	})
 
-	t.Run("update validates the retained owner even when the payload also changes the owner", func(t *testing.T) {
+	t.Run("update cannot reassign the owner to a user who cannot access the channel", func(t *testing.T) {
 		hook := &model.IncomingWebhook{ChannelId: th.BasicChannel.Id, UserId: th.BasicUser2.Id}
 		created, _, err := th.Client.CreateIncomingWebhook(context.Background(), hook)
 		require.NoError(t, err)
 
-		// The owner is immutable on update, so changing it alongside the channel must not
-		// let the supplied user stand in for the retained owner's channel access.
-		privateChannel := th.CreatePrivateChannel(t)
-		created.ChannelId = privateChannel.Id
-		created.UserId = th.TeamAdminUser.Id
+		nonMember := th.CreateUser(t)
+		created.UserId = nonMember.Id
 
 		_, resp, err := th.Client.UpdateIncomingWebhook(context.Background(), created)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("update can reassign the owner to a user who is a member of the channel", func(t *testing.T) {
+		hook := &model.IncomingWebhook{ChannelId: th.BasicChannel.Id, UserId: th.BasicUser2.Id}
+		created, _, err := th.Client.CreateIncomingWebhook(context.Background(), hook)
+		require.NoError(t, err)
+		require.Equal(t, th.BasicUser2.Id, created.UserId)
+
+		created.UserId = th.BasicUser.Id
+		updated, _, err := th.Client.UpdateIncomingWebhook(context.Background(), created)
+		require.NoError(t, err)
+		require.Equal(t, th.BasicUser.Id, updated.UserId, "hook owner should be reassigned")
+	})
+}
+
+func TestUpdateIncomingHookChangeOwner(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableIncomingWebhooks = true })
+
+	defaultRolePermissions := th.SaveDefaultRolePermissions(t)
+	defer th.RestoreDefaultRolePermissions(t, defaultRolePermissions)
+
+	t.Run("a user without manage_others cannot change the owner of their own hook", func(t *testing.T) {
+		addIncomingWebhookPermissions(t, th, model.TeamUserRoleId)
+		defer removeIncomingWebhookPermissions(t, th, model.TeamUserRoleId)
+
+		hook := &model.IncomingWebhook{ChannelId: th.BasicChannel.Id}
+		created, _, err := th.Client.CreateIncomingWebhook(context.Background(), hook)
+		require.NoError(t, err)
+		require.Equal(t, th.BasicUser.Id, created.UserId)
+
+		created.UserId = th.BasicUser2.Id
+		_, resp, err := th.Client.UpdateIncomingWebhook(context.Background(), created)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("a user with manage_others can change the owner", func(t *testing.T) {
+		addIncomingWebhookPermissionsWithOthers(t, th, model.TeamUserRoleId)
+		defer removeIncomingWebhookPermissions(t, th, model.TeamUserRoleId)
+
+		hook := &model.IncomingWebhook{ChannelId: th.BasicChannel.Id}
+		created, _, err := th.Client.CreateIncomingWebhook(context.Background(), hook)
+		require.NoError(t, err)
+		require.Equal(t, th.BasicUser.Id, created.UserId)
+
+		created.UserId = th.BasicUser2.Id
+		updated, _, err := th.Client.UpdateIncomingWebhook(context.Background(), created)
+		require.NoError(t, err)
+		require.Equal(t, th.BasicUser2.Id, updated.UserId, "hook owner should be reassigned")
+	})
+
+	t.Run("changing the owner to a non-existent user fails", func(t *testing.T) {
+		addIncomingWebhookPermissionsWithOthers(t, th, model.TeamUserRoleId)
+		defer removeIncomingWebhookPermissions(t, th, model.TeamUserRoleId)
+
+		hook := &model.IncomingWebhook{ChannelId: th.BasicChannel.Id}
+		created, _, err := th.Client.CreateIncomingWebhook(context.Background(), hook)
+		require.NoError(t, err)
+
+		created.UserId = model.NewId()
+		_, resp, err := th.Client.UpdateIncomingWebhook(context.Background(), created)
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+	})
+}
+
+func TestUpdateOutgoingHookChangeOwner(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOutgoingWebhooks = true })
+
+	defaultRolePermissions := th.SaveDefaultRolePermissions(t)
+	defer th.RestoreDefaultRolePermissions(t, defaultRolePermissions)
+
+	newHook := func() *model.OutgoingWebhook {
+		return &model.OutgoingWebhook{
+			ChannelId: th.BasicChannel.Id, TeamId: th.BasicChannel.TeamId,
+			CallbackURLs: []string{"http://nowhere.com"}, TriggerWords: []string{model.NewId()},
+		}
+	}
+
+	t.Run("a user without manage_others cannot change the owner of their own hook", func(t *testing.T) {
+		th.AddPermissionToRole(t, model.PermissionManageOwnOutgoingWebhooks.Id, model.TeamUserRoleId)
+		defer th.RemovePermissionFromRole(t, model.PermissionManageOwnOutgoingWebhooks.Id, model.TeamUserRoleId)
+
+		created, _, err := th.Client.CreateOutgoingWebhook(context.Background(), newHook())
+		require.NoError(t, err)
+		require.Equal(t, th.BasicUser.Id, created.CreatorId)
+
+		created.CreatorId = th.BasicUser2.Id
+		_, resp, err := th.Client.UpdateOutgoingWebhook(context.Background(), created)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("a user with manage_others can change the owner", func(t *testing.T) {
+		th.AddPermissionToRole(t, model.PermissionManageOwnOutgoingWebhooks.Id, model.TeamUserRoleId)
+		th.AddPermissionToRole(t, model.PermissionManageOthersOutgoingWebhooks.Id, model.TeamUserRoleId)
+		defer func() {
+			th.RemovePermissionFromRole(t, model.PermissionManageOwnOutgoingWebhooks.Id, model.TeamUserRoleId)
+			th.RemovePermissionFromRole(t, model.PermissionManageOthersOutgoingWebhooks.Id, model.TeamUserRoleId)
+		}()
+
+		created, _, err := th.Client.CreateOutgoingWebhook(context.Background(), newHook())
+		require.NoError(t, err)
+		require.Equal(t, th.BasicUser.Id, created.CreatorId)
+
+		created.CreatorId = th.BasicUser2.Id
+		updated, _, err := th.Client.UpdateOutgoingWebhook(context.Background(), created)
+		require.NoError(t, err)
+		require.Equal(t, th.BasicUser2.Id, updated.CreatorId, "hook creator should be reassigned")
+	})
+
+	t.Run("changing the owner to a non-existent user fails", func(t *testing.T) {
+		th.AddPermissionToRole(t, model.PermissionManageOwnOutgoingWebhooks.Id, model.TeamUserRoleId)
+		th.AddPermissionToRole(t, model.PermissionManageOthersOutgoingWebhooks.Id, model.TeamUserRoleId)
+		defer func() {
+			th.RemovePermissionFromRole(t, model.PermissionManageOwnOutgoingWebhooks.Id, model.TeamUserRoleId)
+			th.RemovePermissionFromRole(t, model.PermissionManageOthersOutgoingWebhooks.Id, model.TeamUserRoleId)
+		}()
+
+		created, _, err := th.Client.CreateOutgoingWebhook(context.Background(), newHook())
+		require.NoError(t, err)
+
+		created.CreatorId = model.NewId()
+		_, resp, err := th.Client.UpdateOutgoingWebhook(context.Background(), created)
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
 	})
 }
 
@@ -1138,7 +1267,7 @@ func TestUpdateIncomingHook(t *testing.T) {
 			sameUserHook, _, err := th.Client.CreateIncomingWebhook(context.Background(), sameUserHook)
 			require.NoError(t, err)
 
-			sameUserHook.UserId = th.BasicUser2.Id
+			sameUserHook.DisplayName = "updated by same user"
 			_, _, err = th.Client.UpdateIncomingWebhook(context.Background(), sameUserHook)
 			require.NoError(t, err)
 		})
