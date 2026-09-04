@@ -146,6 +146,12 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
         }
     };
 
+    // Called by settings tabs to flag that they hold unsaved changes
+    setRequireConfirm = (requireConfirm?: boolean, customConfirmAction?: (handleConfirm: () => void) => void) => {
+        this.requireConfirm = requireConfirm || false;
+        this.customConfirmAction = customConfirmAction || null;
+    };
+
     // Called when the close button is pressed on the main modal
     handleHide = () => {
         if (this.requireConfirm) {
@@ -359,6 +365,11 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
                 show={this.state.show}
                 onHide={this.handleHide}
                 onExited={this.handleHidden}
+
+                // Closing is owned by handleHide so that unsaved changes can be confirmed first.
+                // Without this, the modal hides itself before handleHide runs and takes the
+                // confirmation below down with it.
+                preventClose={true}
                 ariaLabel={modalTitle}
                 compassDesign={true}
                 enforceFocus={this.state.enforceFocus}
@@ -401,10 +412,7 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
                                         updateTab={this.updateTab}
                                         closeModal={this.closeModal}
                                         collapseModal={this.collapseModal}
-                                        setRequireConfirm={(requireConfirm?: boolean, customConfirmAction?: () => () => void) => {
-                                            this.requireConfirm = requireConfirm || false;
-                                            this.customConfirmAction = customConfirmAction || null;
-                                        }}
+                                        setRequireConfirm={this.setRequireConfirm}
                                         pluginSettings={this.props.pluginSettings}
                                         user={this.props.user}
                                         adminMode={this.props.adminMode}

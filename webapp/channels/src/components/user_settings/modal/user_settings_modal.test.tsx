@@ -1,15 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {screen} from '@testing-library/react';
 import type {ComponentProps} from 'react';
 import React from 'react';
 
 import type {DeepPartial} from '@mattermost/types/utilities';
 
 import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
-import {renderWithContext, userEvent} from 'tests/react_testing_utils';
+import {act, renderWithContext, screen, userEvent, within} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
+import {applyTheme} from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
 
@@ -46,7 +46,8 @@ jest.mock('utils/url', () => ({
 }));
 
 jest.mock('utils/utils', () => ({
-    getDisplayName: jest.fn(() => 'Test User'),
+    ...jest.requireActual('utils/utils'),
+    applyTheme: jest.fn(),
 }));
 
 describe('do first render to avoid other testing issues', () => {
@@ -207,6 +208,155 @@ describe('collapsing the settings pane on mobile', () => {
 
         expect(modalDialog).not.toHaveClass('display--content');
         expect(screen.getByRole('tab', {name: 'display'})).toHaveAttribute('aria-selected', 'false');
+    });
+});
+
+describe('discarding an unsaved theme preview', () => {
+    const themeState: DeepPartial<GlobalState> = {
+        entities: {
+            general: {
+                config: {
+                    EnableThemeSelection: 'true',
+                },
+            },
+        },
+    };
+
+    // The GenericModal fade lasts 300ms and delayFocusTrap adds another 500ms
+    const modalTeardownMs = 300 + 500;
+
+    let user: ReturnType<typeof userEvent.setup>;
+    let onExited: jest.Mock;
+
+    beforeEach(() => {
+        jest.useFakeTimers();
+        user = userEvent.setup({advanceTimers: jest.advanceTimersByTime});
+        onExited = jest.fn();
+    });
+
+    afterEach(() => {
+        jest.useRealTimers();
+    });
+
+    // Runs any pending modal fade transition to completion, so that a modal which is
+    // on its way out has actually gone by the time the assertions run.
+    const settleTransitions = () => act(() => {
+        jest.advanceTimersByTime(modalTeardownMs);
+    });
+
+    const renderSettingsModal = () => renderWithContext(
+        <UserSettingsModal
+            {...baseProps}
+            onExited={onExited}
+        />,
+        mergeObjects(baseState, themeState),
+    );
+
+    const openThemeSection = async () => {
+        await user.click(screen.getByRole('tab', {name: 'display'}));
+        await user.click(screen.getByRole('button', {name: 'Theme Edit'}));
+    };
+
+    const previewOnyxTheme = async () => {
+        await openThemeSection();
+        await user.click(screen.getByRole('button', {name: /Onyx/}));
+
+        expect(screen.getByRole('button', {name: /Onyx/})).toHaveClass('active');
+    };
+
+    const settingsModal = () => document.getElementById('accountSettingsModal');
+    const confirmDialog = () => document.getElementById('confirmModal');
+    const discardMessage = () => screen.queryByText('You have unsaved changes, are you sure you want to discard them?');
+    const closeSettingsModal = () => user.click(within(settingsModal()!).getByRole('button', {name: 'Close'}));
+
+    it('keeps the settings modal open while the confirmation is unanswered', async () => {
+        renderSettingsModal();
+
+        await previewOnyxTheme();
+        await closeSettingsModal();
+        settleTransitions();
+
+        expect(discardMessage()).toBeVisible();
+        expect(settingsModal()).toBeInTheDocument();
+        expect(onExited).not.toHaveBeenCalled();
+        expect(applyTheme).toHaveBeenLastCalledWith(expect.objectContaining({type: 'Onyx'}));
+    });
+
+    it('keeps the settings modal and the previewed theme when the discard is cancelled', async () => {
+        renderSettingsModal();
+
+        await previewOnyxTheme();
+        await closeSettingsModal();
+        await user.click(within(confirmDialog()!).getByRole('button', {name: 'Cancel'}));
+        settleTransitions();
+
+        expect(discardMessage()).not.toBeInTheDocument();
+        expect(settingsModal()).toBeInTheDocument();
+        expect(screen.getByRole('button', {name: /Onyx/})).toHaveClass('active');
+        expect(onExited).not.toHaveBeenCalled();
+        expect(applyTheme).toHaveBeenLastCalledWith(expect.objectContaining({type: 'Onyx'}));
+
+        // The preview is still unsaved, so closing again has to ask a second time
+        await closeSettingsModal();
+
+        expect(discardMessage()).toBeVisible();
+    });
+
+    it('closes the settings modal and reverts the theme when the discard is confirmed', async () => {
+        renderSettingsModal();
+
+        await previewOnyxTheme();
+        await closeSettingsModal();
+        await user.click(within(confirmDialog()!).getByRole('button', {name: 'Yes, Discard'}));
+        settleTransitions();
+
+        expect(settingsModal()).not.toBeInTheDocument();
+        expect(onExited).toHaveBeenCalled();
+        expect(applyTheme).toHaveBeenLastCalledWith(expect.objectContaining({type: 'Denim'}));
+    });
+
+    it('closes the settings modal without confirmation when the theme already in use is re-selected', async () => {
+        renderSettingsModal();
+
+        await openThemeSection();
+        await user.click(screen.getByRole('button', {name: /Denim/}));
+
+        // Denim is already the active theme, so this proves the click reached the theme setting
+        expect(applyTheme).toHaveBeenCalledWith(expect.objectContaining({type: 'Denim'}));
+
+        await closeSettingsModal();
+
+        // Asserted before the fade completes, since a confirmation that is wrongly shown here
+        // gets torn down along with the closing settings modal
+        expect(discardMessage()).not.toBeInTheDocument();
+
+        settleTransitions();
+
+        expect(settingsModal()).not.toBeInTheDocument();
+        expect(onExited).toHaveBeenCalled();
+    });
+
+    // Saving is the one place that clears the unsaved-changes flag and immediately reads it back,
+    // so this is also the guard against requireConfirm becoming asynchronous
+    it('closes the settings modal without confirmation after the previewed theme is saved', async () => {
+        renderSettingsModal();
+
+        await previewOnyxTheme();
+        await user.click(screen.getByRole('button', {name: 'Save'}));
+        settleTransitions();
+
+        // Saving collapses the theme section, and nothing is left to discard
+        expect(discardMessage()).not.toBeInTheDocument();
+        expect(screen.getByRole('button', {name: 'Theme Edit'})).toBeVisible();
+
+        await closeSettingsModal();
+
+        expect(discardMessage()).not.toBeInTheDocument();
+
+        settleTransitions();
+
+        expect(settingsModal()).not.toBeInTheDocument();
+        expect(onExited).toHaveBeenCalled();
     });
 });
 

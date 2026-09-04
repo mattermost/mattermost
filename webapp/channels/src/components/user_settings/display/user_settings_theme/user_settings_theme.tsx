@@ -46,9 +46,20 @@ type State = {
     theme: Theme;
 };
 
+function areThemesEqual(one: Theme, other: Theme): boolean {
+    const fields = new Set([...Object.keys(one), ...Object.keys(other)]);
+
+    for (const field of fields) {
+        if (one[field] !== other[field]) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 export default class ThemeSetting extends React.PureComponent<Props, State> {
     minRef: RefObject<SettingItemMinComponent>;
-    originalTheme: Theme;
     constructor(props: Props) {
         super(props);
 
@@ -58,7 +69,6 @@ export default class ThemeSetting extends React.PureComponent<Props, State> {
             serverError: '',
         };
 
-        this.originalTheme = Object.assign({}, this.state.theme);
         this.minRef = React.createRef();
     }
 
@@ -77,11 +87,18 @@ export default class ThemeSetting extends React.PureComponent<Props, State> {
         }
     }
 
-    getStateFromProps(props = this.props): State {
+    // The theme as it is currently saved, which is what an unsaved preview is compared against
+    getSavedTheme(props = this.props): Theme {
         const theme = {...props.theme};
         if (!theme.codeTheme) {
             theme.codeTheme = Constants.DEFAULT_CODE_THEME;
         }
+
+        return theme;
+    }
+
+    getStateFromProps(props = this.props): State {
+        const theme = this.getSavedTheme(props);
 
         return {
             theme,
@@ -109,25 +126,12 @@ export default class ThemeSetting extends React.PureComponent<Props, State> {
         }
 
         this.props.setRequireConfirm?.(false);
-        this.originalTheme = Object.assign({}, this.state.theme);
         this.props.updateSection('');
         this.setState({isSaving: false});
     };
 
     updateTheme = (theme: Theme): void => {
-        let themeChanged = this.state.theme.length === theme.length;
-        if (!themeChanged) {
-            for (const field in theme) {
-                if (Object.hasOwn(theme, field)) {
-                    if (this.state.theme[field] !== theme[field]) {
-                        themeChanged = true;
-                        break;
-                    }
-                }
-            }
-        }
-
-        this.props.setRequireConfirm?.(themeChanged);
+        this.props.setRequireConfirm?.(!areThemesEqual(this.getSavedTheme(), theme));
 
         this.setState({theme});
         applyTheme(theme);
