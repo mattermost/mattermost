@@ -2,14 +2,17 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {useState} from 'react';
+import React, {useMemo, useState} from 'react';
 import {defineMessages, FormattedMessage, useIntl} from 'react-intl';
 
 import {ChevronDownIcon, ProductChannelsIcon} from '@mattermost/compass-icons/components';
 import {Button} from '@mattermost/shared/components/button';
 
 import {resourceTypeLabels} from './attribute_applies_to_constants';
-import type {AttributeAppliesToItemProps} from './attribute_applies_to_constants';
+import type {AttributeAppliesToChannelItemProps} from './attribute_applies_to_constants';
+
+import ChannelsResourceSettings from '../applies_to/channels/channels_resource_settings';
+import {summarizeChannelResource} from '../applies_to/channels/summary';
 
 import './attribute_applies_to_item.scss';
 
@@ -22,11 +25,16 @@ const BODY_ID = 'attribute-applies-to-channel-panel';
 // array index, which misattributes state when a row is removed from the
 // middle of the list). Remove is only reachable once expanded -- there is no
 // collapsed-row remove affordance.
-function AttributeAppliesToChannelItem({disabled = false, onRemove}: AttributeAppliesToItemProps): JSX.Element {
-    const {formatMessage} = useIntl();
+function AttributeAppliesToChannelItem({config, onConfigChange, ordered, disabled = false, onRemove}: AttributeAppliesToChannelItemProps): JSX.Element {
+    const intl = useIntl();
+    const {formatMessage} = intl;
     const [isOpen, setIsOpen] = useState(false);
 
     const label = formatMessage(resourceTypeLabels.channel);
+
+    // Collapsed, the row is the only place the configuration is visible, so it
+    // states it rather than leaving the admin to expand every row to find out.
+    const summary = useMemo(() => summarizeChannelResource(config, intl), [config, intl]);
     const toggleLabel = formatMessage(isOpen ? messages.collapseLabel : messages.expandLabel, {label});
 
     return (
@@ -52,6 +60,14 @@ function AttributeAppliesToChannelItem({disabled = false, onRemove}: AttributeAp
                     />
                     <ProductChannelsIcon size={18}/>
                     <span className='AttributeAppliesToItem__label'>{label}</span>
+                    {!isOpen && (
+                        <span
+                            className='AttributeAppliesToItem__summary'
+                            data-testid='attributeAppliesToRow-channel-summary'
+                        >
+                            {summary}
+                        </span>
+                    )}
                 </Button>
                 {isOpen && (
                     <Button
@@ -76,11 +92,12 @@ function AttributeAppliesToChannelItem({disabled = false, onRemove}: AttributeAp
                     className='AttributeAppliesToItem__body'
                     data-testid='attributeAppliesToRow-channel-body'
                 >
-                    <div className='AttributeAppliesToItem__row'>
-                        <span>
-                            <FormattedMessage {...messages.bodyPlaceholder}/>
-                        </span>
-                    </div>
+                    <ChannelsResourceSettings
+                        value={config}
+                        onChange={onConfigChange}
+                        ordered={ordered}
+                        disabled={disabled}
+                    />
                 </div>
             )}
         </div>
@@ -93,8 +110,4 @@ const messages = defineMessages({
     expandLabel: {id: 'admin.global_attributes.attribute_details.applies_to.item.expand', defaultMessage: 'Expand {label}'},
     collapseLabel: {id: 'admin.global_attributes.attribute_details.applies_to.item.collapse', defaultMessage: 'Collapse {label}'},
     removeLabel: {id: 'admin.global_attributes.attribute_details.applies_to.item.remove', defaultMessage: 'Remove resource'},
-    bodyPlaceholder: {
-        id: 'admin.global_attributes.attribute_details.applies_to.item.body_placeholder',
-        defaultMessage: 'No additional settings for this resource yet.',
-    },
 });

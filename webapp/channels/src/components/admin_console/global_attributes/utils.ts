@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {PropertyField, PropertyFieldOption} from '@mattermost/types/properties';
+import type {PropertyField, PropertyFieldOption, PropertyPermissionLevel} from '@mattermost/types/properties';
 
 import {Client4} from 'mattermost-redux/client';
 
@@ -187,12 +187,22 @@ export function deleteAttributeField(fieldId: string): Promise<unknown> {
 // Decisions table). objectType is the resource type ('user'/'channel'/'post'),
 // a URL path segment on the generic property-fields endpoint, not a separate
 // route.
+//
+// `attrs` is what the resource's own settings contribute -- only Channels has
+// any today (buildChannelFieldAttrs). Trailing and optional so the other two
+// resource types keep calling this unchanged.
+//
+// `permissionValues` is likewise per-resource: Channels pins it, because the
+// server otherwise defaults a channel field to "member" and any member could
+// then change the value. Omitting it takes that server default.
 export function createLinkedAttributeField(
     objectType: ResourceObjectType,
     name: string,
     fieldType: AttributeFieldType,
     displayName: string,
     linkedFieldId: string,
+    attrs?: Record<string, unknown>,
+    permissionValues?: PropertyPermissionLevel,
 ): Promise<PropertyField> {
     return Client4.createPropertyField(GLOBAL_ATTRIBUTES_GROUP_NAME, objectType, {
         name,
@@ -200,8 +210,10 @@ export function createLinkedAttributeField(
         target_type: GLOBAL_ATTRIBUTES_TARGET_TYPE,
         target_id: '',
         linked_field_id: linkedFieldId,
+        ...(permissionValues ? {permission_values: permissionValues} : {}),
         attrs: {
             display_name: displayName.trim() || undefined,
+            ...attrs,
         },
     });
 }
@@ -211,4 +223,15 @@ export function createLinkedAttributeField(
 // deleting a template with active linked dependents.
 export function deleteLinkedAttributeField(objectType: ResourceObjectType, fieldId: string): Promise<unknown> {
     return Client4.deletePropertyField(GLOBAL_ATTRIBUTES_GROUP_NAME, objectType, fieldId);
+}
+
+// PATCHes an existing linked field for one Applies-to resource -- e.g. the
+// Channels row's own settings (buildChannelFieldPatch), applied without
+// touching the fields owned by the template save (name/type/options).
+export function patchLinkedAttributeField(
+    objectType: ResourceObjectType,
+    fieldId: string,
+    patch: Partial<PropertyField> & Record<string, unknown>,
+): Promise<PropertyField> {
+    return Client4.patchPropertyField(GLOBAL_ATTRIBUTES_GROUP_NAME, objectType, fieldId, patch);
 }

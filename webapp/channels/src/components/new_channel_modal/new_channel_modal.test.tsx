@@ -1326,7 +1326,11 @@ describe('components/new_channel_modal - channel attributes', () => {
         target_id: '',
         target_type: 'system',
         object_type: 'channel',
-        attrs: {display_name: 'Program', options: [{id: 'opt_a', name: 'AURORA'}, {id: 'opt_b', name: 'BOREALIS'}]},
+        permission_values: 'member',
+
+        // Required, because the create dialog now asks only for required
+        // attributes — an optional one is added later from Channel Info.
+        attrs: {display_name: 'Program', required: true, options: [{id: 'opt_a', name: 'AURORA'}, {id: 'opt_b', name: 'BOREALIS'}]},
         create_at: 1,
         update_at: 1,
         delete_at: 0,
@@ -1355,18 +1359,12 @@ describe('components/new_channel_modal - channel attributes', () => {
         },
     };
 
-    let patchPropertyValues: jest.SpyInstance;
-
     beforeEach(() => {
         jest.clearAllMocks();
         mockedUseClassificationMarkings.mockReturnValue({available: false, loading: false, channelField: null, levels: []});
         mockedUseChannelAttributes.mockReturnValue({enabled: true, loading: false, failed: false, fields: [program]});
         (createChannel as jest.Mock).mockReturnValue(() => Promise.resolve({data: createdChannel, error: null}));
-        patchPropertyValues = jest.spyOn(Client4, 'patchPropertyValues').mockResolvedValue([]);
-    });
-
-    afterEach(() => {
-        patchPropertyValues.mockRestore();
+        jest.spyOn(Client4, 'patchPropertyValues').mockResolvedValue([]);
     });
 
     async function fillAndSelect() {
@@ -1375,42 +1373,104 @@ describe('components/new_channel_modal - channel attributes', () => {
         await userEvent.click(screen.getByText('AURORA'));
     }
 
-    test('writes the selected attribute values against the channel that was just created', async () => {
+    test('sends the selected attribute values with the channel it creates', async () => {
         renderWithContext(<NewChannelModal/>, state);
 
         await fillAndSelect();
         await userEvent.click(screen.getByText('Create channel'));
 
-        await waitFor(() => expect(patchPropertyValues).toHaveBeenCalledTimes(1));
-        expect(patchPropertyValues).toHaveBeenCalledWith(
-            'access_control',
-            'channel',
-            createdChannel.id,
-            [{field_id: program.id, value: 'opt_a'}],
-        );
+        // One call, not two: the server needs the values in hand to refuse a
+        // channel that would not meet its own requirements.
+        await waitFor(() => expect(createChannel).toHaveBeenCalledTimes(1));
+        expect((createChannel as jest.Mock).mock.calls[0][0]).toMatchObject({
+            property_values: [{field_id: program.id, value: 'opt_a'}],
+        });
+        expect(Client4.patchPropertyValues).not.toHaveBeenCalled();
     });
 
-    test('writes nothing when no attribute was chosen', async () => {
+    test('blocks creation while a required attribute is empty', async () => {
         renderWithContext(<NewChannelModal/>, state);
+
+        await userEvent.type(screen.getByPlaceholderText('Enter a name for your new channel'), 'My Channel');
+
+        // The server enforces this too; the dialog does it as well so the user
+        // finds out while typing rather than on submit.
+        expect(screen.getByText('Create channel').closest('button')).toBeDisabled();
+
+        await userEvent.click(screen.getByText('Create channel'));
+        expect(createChannel).not.toHaveBeenCalled();
+    });
+
+    test('marks a required attribute in the form', () => {
+        renderWithContext(<NewChannelModal/>, state);
+
+        expect(screen.getByTestId('channelAttributeRow-program')).toHaveTextContent('Program*');
+    });
+
+    test('does not ask for optional attributes at creation', async () => {
+        mockedUseChannelAttributes.mockReturnValue({
+            enabled: true,
+            loading: false,
+            failed: false,
+            fields: [{...program, attrs: {...program.attrs, required: false}}],
+        });
+
+        renderWithContext(<NewChannelModal/>, state);
+
+        // Reachable from Channel Info instead, so creation stays short.
+        expect(screen.queryByTestId('channelAttributeRow-program')).not.toBeInTheDocument();
 
         await userEvent.type(screen.getByPlaceholderText('Enter a name for your new channel'), 'My Channel');
         await userEvent.click(screen.getByText('Create channel'));
 
         await waitFor(() => expect(createChannel).toHaveBeenCalled());
-        expect(patchPropertyValues).not.toHaveBeenCalled();
+        expect((createChannel as jest.Mock).mock.calls[0][0]).not.toHaveProperty('property_values');
     });
 
-    test('keeps the channel and names the unsaved attribute when the write fails', async () => {
-        patchPropertyValues.mockRejectedValue(new Error('nope'));
+    test('asks for classification even when it is optional, without blocking Create', async () => {
+        // Classification has always been offered at channel creation, and its own
+        // control here is suppressed once the flag is on, so the generic section has
+        // to carry it whether or not it is required.
+        const classification = {
+            ...program,
+            id: 'f_classification',
+            name: 'classification',
+            attrs: {display_name: 'Classification', options: [{id: 'lvl1', name: 'SECRET'}]},
+        };
+        mockedUseClassificationMarkings.mockReturnValue({
+            available: true,
+            loading: false,
+            channelField: classification,
+            levels: [],
+        });
+        mockedUseChannelAttributes.mockReturnValue({enabled: true, loading: false, failed: false, fields: [classification]});
+
+        renderWithContext(<NewChannelModal/>, state);
+
+        const row = screen.getByTestId('channelAttributeRow-classification');
+        expect(row).toBeInTheDocument();
+
+        // Offered, but not marked required and not standing in the way of Create.
+        expect(row).not.toHaveTextContent('Classification*');
+
+        await userEvent.type(screen.getByPlaceholderText('Enter a name for your new channel'), 'My Channel');
+        expect(screen.getByText('Create channel').closest('button')).toBeEnabled();
+
+        await userEvent.click(screen.getByText('Create channel'));
+        await waitFor(() => expect(createChannel).toHaveBeenCalled());
+    });
+
+    test('surfaces a server refusal instead of closing', async () => {
+        (createChannel as jest.Mock).mockReturnValue(() => Promise.resolve({
+            data: null,
+            error: {message: 'This channel is missing required attributes.'},
+        }));
 
         renderWithContext(<NewChannelModal/>, state);
 
         await fillAndSelect();
         await userEvent.click(screen.getByText('Create channel'));
 
-        // The error has to name what was not saved, and the modal has to stop
-        // offering to create a second channel.
-        await waitFor(() => expect(screen.getByText(/these attributes were not saved: Program/)).toBeInTheDocument());
-        expect(screen.getByText('Go to channel')).toBeEnabled();
+        await waitFor(() => expect(screen.getByText('This channel is missing required attributes.')).toBeInTheDocument());
     });
 });

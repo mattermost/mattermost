@@ -6,6 +6,7 @@ package api4
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"testing"
 	"time"
@@ -3909,7 +3910,9 @@ func TestPatchPropertyValuesChannelTargetAccess(t *testing.T) {
 		CheckForbiddenStatus(t, resp)
 	})
 
-	t.Run("DM channel - participant can write", func(t *testing.T) {
+	// DM/GM values are destined to be derived from the participants' attributes,
+	// so a participant may not hand-write one even at the member tier.
+	t.Run("DM channel - participant cannot write member-tier value", func(t *testing.T) {
 		dmChannel := th.CreateDmChannel(t, th.BasicUser2)
 		f := createField(t)
 		th.LoginBasic(t)
@@ -3917,10 +3920,62 @@ func TestPatchPropertyValuesChannelTargetAccess(t *testing.T) {
 		items := []model.PropertyValuePatchItem{
 			{FieldID: f.ID, Value: json.RawMessage(`"dm-val"`)},
 		}
-		values, resp, err := th.Client.PatchPropertyValues(context.Background(), group.Name, "channel", dmChannel.Id, items)
+		_, resp, err := th.Client.PatchPropertyValues(context.Background(), group.Name, "channel", dmChannel.Id, items)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("DM channel - participant cannot write admin-tier value", func(t *testing.T) {
+		dmChannel := th.CreateDmChannel(t, th.BasicUser2)
+		f := createAdminField(t)
+		th.LoginBasic(t)
+
+		items := []model.PropertyValuePatchItem{
+			{FieldID: f.ID, Value: json.RawMessage(`"dm-admin-val"`)},
+		}
+		_, resp, err := th.Client.PatchPropertyValues(context.Background(), group.Name, "channel", dmChannel.Id, items)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("DM channel - system admin can write member-tier value", func(t *testing.T) {
+		dmChannel := th.CreateDmChannel(t, th.BasicUser2)
+		f := createField(t)
+
+		items := []model.PropertyValuePatchItem{
+			{FieldID: f.ID, Value: json.RawMessage(`"dm-sysadmin-val"`)},
+		}
+		values, resp, err := th.SystemAdminClient.PatchPropertyValues(context.Background(), group.Name, "channel", dmChannel.Id, items)
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 		require.Len(t, values, 1)
+	})
+
+	t.Run("DM channel - participant can still read values", func(t *testing.T) {
+		dmChannel := th.CreateDmChannel(t, th.BasicUser2)
+		f := createField(t)
+
+		items := []model.PropertyValuePatchItem{
+			{FieldID: f.ID, Value: json.RawMessage(`"dm-readable"`)},
+		}
+		_, resp, err := th.SystemAdminClient.PatchPropertyValues(context.Background(), group.Name, "channel", dmChannel.Id, items)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		th.LoginBasic(t)
+		read, resp, err := th.Client.GetPropertyValues(context.Background(), group.Name, "channel", dmChannel.Id, model.PropertyValueSearch{})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		// The DM is shared across the subtests here, so assert on this field only.
+		var found *model.PropertyValue
+		for _, v := range read {
+			if v.FieldID == f.ID {
+				found = v
+			}
+		}
+		require.NotNil(t, found)
+		require.Equal(t, json.RawMessage(`"dm-readable"`), found.Value)
 	})
 
 	t.Run("DM channel - non-participant cannot write", func(t *testing.T) {
@@ -3948,7 +4003,7 @@ func TestPatchPropertyValuesChannelTargetAccess(t *testing.T) {
 		require.Len(t, values, 1)
 	})
 
-	t.Run("GM channel - participant can write", func(t *testing.T) {
+	t.Run("GM channel - participant cannot write member-tier value", func(t *testing.T) {
 		gmChannel, appErr := th.App.CreateGroupChannel(th.Context, []string{th.BasicUser.Id, th.BasicUser2.Id, th.SystemAdminUser.Id}, th.BasicUser.Id)
 		require.Nil(t, appErr)
 		f := createField(t)
@@ -3957,10 +4012,9 @@ func TestPatchPropertyValuesChannelTargetAccess(t *testing.T) {
 		items := []model.PropertyValuePatchItem{
 			{FieldID: f.ID, Value: json.RawMessage(`"gm-val"`)},
 		}
-		values, resp, err := th.Client.PatchPropertyValues(context.Background(), group.Name, "channel", gmChannel.Id, items)
-		require.NoError(t, err)
-		CheckOKStatus(t, resp)
-		require.Len(t, values, 1)
+		_, resp, err := th.Client.PatchPropertyValues(context.Background(), group.Name, "channel", gmChannel.Id, items)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
 	})
 
 	t.Run("GM channel - non-participant cannot write", func(t *testing.T) {
@@ -5316,5 +5370,146 @@ func TestSystemObjectType(t *testing.T) {
 		_, resp, patchErr := th.SystemAdminClient.PatchSystemPropertyValues(context.Background(), group.Name, items)
 		require.Error(t, patchErr)
 		CheckNotFoundStatus(t, resp)
+	})
+}
+
+func TestPatchPropertyValuesChangePolicy(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.ChannelAttributes = true
+	}).InitBasic(t)
+
+	// The change policy is enforced by the attribute validation hook, which is
+	// registered against the access_control group only, and channel attributes
+	// need Enterprise Advanced.
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+
+	group, appErr := th.App.GetPropertyGroup(th.Context, model.AccessControlPropertyGroupName)
+	require.Nil(t, appErr)
+
+	memberLevel := model.PermissionLevelMember
+
+	createField := func(t *testing.T, fieldType model.PropertyFieldType, attrs model.StringInterface) *model.PropertyField {
+		t.Helper()
+		field, fieldErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+			// Prefixed: a raw NewId may start with a digit, which the CEL
+			// identifier rule on channel attribute names rejects.
+			Name:              "attr_" + model.NewId(),
+			Type:              fieldType,
+			GroupID:           group.ID,
+			ObjectType:        "channel",
+			TargetType:        "system",
+			PermissionField:   &memberLevel,
+			PermissionValues:  &memberLevel,
+			PermissionOptions: &memberLevel,
+			Attrs:             attrs,
+		}, false, "")
+		require.Nil(t, fieldErr)
+		return field
+	}
+
+	patch := func(t *testing.T, field *model.PropertyField, raw string) (*model.Response, error) {
+		t.Helper()
+		items := []model.PropertyValuePatchItem{{FieldID: field.ID, Value: json.RawMessage(raw)}}
+		_, resp, err := th.Client.PatchPropertyValues(context.Background(), group.Name, "channel", th.BasicChannel.Id, items)
+		return resp, err
+	}
+
+	th.LoginBasic(t)
+
+	t.Run("never: a second write is forbidden", func(t *testing.T) {
+		field := createField(t, model.PropertyFieldTypeText, model.StringInterface{
+			model.PropertyFieldAttrChangePolicy: model.PropertyFieldChangePolicyNever,
+		})
+
+		resp, err := patch(t, field, `"SECRET"`)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		resp, err = patch(t, field, `"OTHER"`)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+		CheckErrorID(t, err, "app.property_value.change_policy.never.app_error")
+	})
+
+	t.Run("raise_only: down is forbidden and up is allowed", func(t *testing.T) {
+		field := createField(t, model.PropertyFieldTypeRank, model.StringInterface{
+			model.PropertyFieldAttributeOptions: []any{
+				map[string]any{"name": "LOW", "rank": 1},
+				map[string]any{"name": "MID", "rank": 2},
+				map[string]any{"name": "HIGH", "rank": 3},
+			},
+			model.PropertyFieldAttrChangePolicy: model.PropertyFieldChangePolicyRaiseOnly,
+		})
+
+		options, ok := field.Attrs[model.PropertyFieldAttributeOptions].([]any)
+		require.True(t, ok)
+		optionID := func(idx int) string {
+			m, isMap := options[idx].(map[string]any)
+			require.True(t, isMap)
+			id, isString := m["id"].(string)
+			require.True(t, isString)
+			return id
+		}
+
+		resp, err := patch(t, field, fmt.Sprintf("%q", optionID(1)))
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		resp, err = patch(t, field, fmt.Sprintf("%q", optionID(0)))
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+		CheckErrorID(t, err, "app.property_value.change_policy.raise_only.app_error")
+
+		resp, err = patch(t, field, fmt.Sprintf("%q", optionID(2)))
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+	})
+}
+
+func TestChannelAttributesRequireEnterpriseAdvanced(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.ChannelAttributes = true
+	}).InitBasic(t)
+
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+
+	groupName := model.AccessControlPropertyGroupName
+
+	t.Run("listing channel fields is refused", func(t *testing.T) {
+		_, resp, err := th.SystemAdminClient.GetPropertyFields(context.Background(), groupName, model.PropertyFieldObjectTypeChannel, model.PropertyFieldSearch{
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			PerPage:    100,
+		})
+		require.Error(t, err)
+		CheckErrorID(t, err, "api.property.channel_attributes.license.app_error")
+		require.Equal(t, http.StatusNotImplemented, resp.StatusCode)
+	})
+
+	t.Run("reading channel values is refused", func(t *testing.T) {
+		_, resp, err := th.Client.GetPropertyValues(context.Background(), groupName, model.PropertyFieldObjectTypeChannel, th.BasicChannel.Id, model.PropertyValueSearch{PerPage: 100})
+		require.Error(t, err)
+		CheckErrorID(t, err, "api.property.channel_attributes.license.app_error")
+		require.Equal(t, http.StatusNotImplemented, resp.StatusCode)
+	})
+
+	t.Run("user attributes in the same group are unaffected", func(t *testing.T) {
+		_, _, err := th.SystemAdminClient.GetPropertyFields(context.Background(), groupName, model.PropertyFieldObjectTypeUser, model.PropertyFieldSearch{
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			PerPage:    100,
+		})
+		require.NoError(t, err)
+	})
+
+	t.Run("Enterprise Advanced is admitted", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		defer th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+
+		_, _, err := th.SystemAdminClient.GetPropertyFields(context.Background(), groupName, model.PropertyFieldObjectTypeChannel, model.PropertyFieldSearch{
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			PerPage:    100,
+		})
+		require.NoError(t, err)
 	})
 }

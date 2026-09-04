@@ -28,7 +28,6 @@ import {
     CLASSIFICATIONS_SYSTEM_VALUE_TARGET_ID,
     CLASSIFICATIONS_TEMPLATE_FIELD_NAME,
     CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE,
-    CLASSIFICATIONS_GROUP_NAME,
     CLASSIFICATIONS_USER_OBJECT_TYPE,
     CLEARANCE_FIELD_DISPLAY_NAME,
     CLEARANCE_FIELD_NAME,
@@ -109,7 +108,7 @@ function makeChannelLinkedField(overrides: Partial<PropertyField> = {}): Propert
 function makeUserLinkedField(overrides: Partial<PropertyField> = {}): PropertyField {
     return {
         id: 'clearance_field1',
-        group_id: CLASSIFICATIONS_GROUP_NAME,
+        group_id: ACCESS_CONTROL_PROPERTY_GROUP,
         name: CLEARANCE_FIELD_NAME,
         type: 'rank',
         attrs: {},
@@ -1195,7 +1194,71 @@ describe('Channel classification linked field branches', () => {
         jest.clearAllMocks();
     });
 
-    test('should create channel-linked field when none exists during save', async () => {
+    test('should create the channel-linked field on the transition into enabled', async () => {
+        // The other half of the rule below: creation happens once, when classification
+        // is turned on, so enabling it still gives channels a classification to carry.
+        jest.spyOn(Client4, 'getPropertyFields').
+            mockResolvedValueOnce([]). // template field load -> none, so this starts disabled
+            mockResolvedValueOnce([]). // linked field load
+            mockResolvedValue([]); // channel-linked field lookup during save
+
+        const createdTemplate = makePropertyField({
+            attrs: {options: [{id: 'lvl1', name: 'NEW', color: '#007A33', rank: 1}]},
+        });
+        const createSpy = jest.spyOn(Client4, 'createPropertyField').
+            mockResolvedValueOnce(createdTemplate). // template
+            mockResolvedValueOnce(makeLinkedField({attrs: {actions: []}})). // system linked
+            mockResolvedValueOnce(makeChannelLinkedField()); // channel linked
+
+        // Suppress noisy "not configured to support act" warnings from the enable flow.
+        const origError = console.error;
+        console.error = (...args: Parameters<typeof console.error>) => {
+            if (typeof args[0] === 'string' && args[0].includes('not configured to support act')) {
+                return;
+            }
+            origError(...args);
+        };
+
+        try {
+            renderWithContext(<ClassificationMarkings/>, BASE_STATE);
+            await screen.findByText('True');
+
+            const user = userEvent.setup();
+            await act(async () => {
+                await user.click(screen.getByRole('radio', {name: /True/i}));
+            });
+            await act(async () => {
+                await user.click(screen.getByText('Add level'));
+            });
+
+            const nameInput = screen.getByRole('textbox', {name: /Classification level name/i});
+            await user.type(nameInput, 'NEW');
+            await user.tab();
+
+            await act(async () => {
+                await user.click(screen.getByText('Save'));
+            });
+
+            await waitFor(() => {
+                expect(createSpy).toHaveBeenCalledWith(
+                    ACCESS_CONTROL_PROPERTY_GROUP,
+                    CLASSIFICATIONS_CHANNEL_OBJECT_TYPE,
+                    expect.objectContaining({
+                        name: CLASSIFICATIONS_CHANNEL_FIELD_NAME,
+                        linked_field_id: createdTemplate.id,
+                    }),
+                );
+            });
+            await act(async () => {});
+        } finally {
+            console.error = origError;
+        }
+    });
+
+    test('should not reinstate a channel-linked field that was removed while enabled', async () => {
+        // The channel field is created on the transition into enabled, not on every
+        // save. An admin who removed the Channels resource from the attribute page
+        // would otherwise get it back by saving anything here.
         const field = makePropertyField({
             attrs: {options: [{id: 'lvl1', name: 'UNCLASSIFIED', color: '#007A33', rank: 1}]},
         });
@@ -1204,7 +1267,6 @@ describe('Channel classification linked field branches', () => {
             attrs: {options: [{id: 'lvl1', name: 'MODIFIED', color: '#007A33', rank: 1}]},
         });
         const patchedLinked = makeLinkedField({attrs: {actions: []}});
-        const createdChannelField = makeChannelLinkedField();
 
         jest.spyOn(Client4, 'getPropertyFields').
             mockResolvedValueOnce([field]). // template field load
@@ -1215,8 +1277,7 @@ describe('Channel classification linked field branches', () => {
             mockResolvedValueOnce(patchedTemplate).
             mockResolvedValueOnce(patchedLinked);
 
-        const createSpy = jest.spyOn(Client4, 'createPropertyField').
-            mockResolvedValueOnce(createdChannelField);
+        const createSpy = jest.spyOn(Client4, 'createPropertyField').mockResolvedValue(makeLinkedField());
 
         renderWithContext(<ClassificationMarkings/>, BASE_STATE);
         await screen.findByText('Classification levels');
@@ -1230,16 +1291,15 @@ describe('Channel classification linked field branches', () => {
         await user.click(await screen.findByText('Save'));
 
         await waitFor(() => {
-            expect(createSpy).toHaveBeenCalledWith(
-                ACCESS_CONTROL_PROPERTY_GROUP,
-                CLASSIFICATIONS_CHANNEL_OBJECT_TYPE,
-                expect.objectContaining({
-                    name: CLASSIFICATIONS_CHANNEL_FIELD_NAME,
-                    linked_field_id: 'field1',
-                }),
-            );
+            expect(Client4.patchPropertyField).toHaveBeenCalled();
         });
         await act(async () => {});
+
+        expect(createSpy).not.toHaveBeenCalledWith(
+            expect.anything(),
+            CLASSIFICATIONS_CHANNEL_OBJECT_TYPE,
+            expect.anything(),
+        );
     });
 
     test('should not create channel-linked field when one already exists during save', async () => {
@@ -1262,7 +1322,7 @@ describe('Channel classification linked field branches', () => {
             mockResolvedValueOnce(patchedTemplate).
             mockResolvedValueOnce(patchedLinked);
 
-        const createSpy = jest.spyOn(Client4, 'createPropertyField');
+        const createSpy = jest.spyOn(Client4, 'createPropertyField').mockResolvedValue(makeLinkedField());
 
         const {store} = renderWithContext(<ClassificationMarkings/>, BASE_STATE);
         await screen.findByText('Classification levels');
@@ -1326,7 +1386,7 @@ describe('Channel classification linked field branches', () => {
 
         await waitFor(() => {
             expect(createSpy).toHaveBeenCalledWith(
-                CLASSIFICATIONS_GROUP_NAME,
+                ACCESS_CONTROL_PROPERTY_GROUP,
                 CLASSIFICATIONS_USER_OBJECT_TYPE,
                 expect.objectContaining({
                     name: CLEARANCE_FIELD_NAME,
@@ -1385,12 +1445,12 @@ describe('Channel classification linked field branches', () => {
 
         await waitFor(() => {
             expect(deleteSpy).toHaveBeenCalledWith(
-                CLASSIFICATIONS_GROUP_NAME,
+                ACCESS_CONTROL_PROPERTY_GROUP,
                 CLASSIFICATIONS_USER_OBJECT_TYPE,
                 clearance.id,
             );
             expect(deleteSpy).toHaveBeenCalledWith(
-                CLASSIFICATIONS_GROUP_NAME,
+                ACCESS_CONTROL_PROPERTY_GROUP,
                 CLASSIFICATIONS_USER_OBJECT_TYPE,
                 extraClearance.id,
             );

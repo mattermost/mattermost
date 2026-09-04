@@ -42,6 +42,7 @@ import {LicenseSkus} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
 
+import {CLASSIFICATION_ATTRIBUTE_ROUTE} from './classification_attribute';
 import {attributeDetailsRoute, GLOBAL_ATTRIBUTES_GROUP_NAME, GLOBAL_ATTRIBUTES_OBJECT_TYPE, GLOBAL_ATTRIBUTES_TARGET_TYPE} from './constants';
 import {useGlobalAttributeFieldDelete} from './global_attribute_delete_modal';
 import {deleteAttributeField} from './utils';
@@ -93,6 +94,17 @@ function useClassificationMarkingsReachable(): boolean {
         const license = getLicense(state);
         return it.minLicenseTier(LicenseSkus.Enterprise)(config, state, license) &&
             it.configIsTrue('FeatureFlags', 'ClassificationMarkings')(config);
+    });
+}
+
+// Mirrors the classification_attribute route's own gate, the way the hook above
+// mirrors the Classification Markings one. Below Enterprise Advanced, or without
+// the flag, the route is hidden, so Edit must not offer it.
+function useClassificationAttributePageReachable(): boolean {
+    return useSelector((state: GlobalState) => {
+        const config = getAdminConfig(state);
+        return it.minLicenseTier(LicenseSkus.EnterpriseAdvanced)(config, state, getLicense(state)) &&
+            it.configIsTrue('FeatureFlags', 'ChannelAttributes')(config);
     });
 }
 
@@ -213,13 +225,14 @@ function AttributeCell({field, isClassificationRow}: ClassificationAwareCellProp
 }
 
 type ActionsCellProps = ClassificationAwareCellProps & {
+    canEditClassification: boolean;
     isMobileView: boolean;
     pluginInventoryLoaded: boolean;
     onDeleteError: (message: string | null) => void;
     onDeleteModalExited: () => void;
 };
 
-function ActionsCell({field, isClassificationRow, isMobileView, pluginInventoryLoaded, onDeleteError, onDeleteModalExited}: ActionsCellProps) {
+function ActionsCell({field, isClassificationRow, canEditClassification, isMobileView, pluginInventoryLoaded, onDeleteError, onDeleteModalExited}: ActionsCellProps) {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
     const promptDelete = useGlobalAttributeFieldDelete();
@@ -251,8 +264,7 @@ function ActionsCell({field, isClassificationRow, isMobileView, pluginInventoryL
 
     if (isClassificationRow) {
         const classificationLinkLabel = formatMessage(actionsLabels.classificationLink);
-
-        return (
+        const externalLink = (
             <WithTooltip
                 title={classificationLinkLabel}
                 disabled={isMobileView}
@@ -270,6 +282,47 @@ function ActionsCell({field, isClassificationRow, isMobileView, pluginInventoryL
                     />
                 </Link>
             </WithTooltip>
+        );
+
+        if (!canEditClassification) {
+            return externalLink;
+        }
+
+        // Both destinations: Edit configures which resources classification applies
+        // to, the link goes to where its levels are defined.
+        return (
+            <div className='GlobalAttributesTable__actions--classification'>
+                <Menu.Container
+                    menuButton={{
+                        id: `${menuId}-button`,
+                        class: 'btn btn-transparent GlobalAttributesTable__actionsButton',
+                        children: <DotsHorizontalIcon size={18}/>,
+                        dataTestId: menuId,
+                        'aria-label': formatMessage(actionsLabels.tooltip),
+                    }}
+                    menuButtonTooltip={{text: formatMessage(actionsLabels.tooltip)}}
+                    menu={{
+                        id: `${menuId}-menu`,
+                        'aria-label': formatMessage(actionsLabels.menuLabel),
+                    }}
+                    anchorOrigin={{vertical: 'bottom', horizontal: 'right'}}
+                    transformOrigin={{vertical: 'top', horizontal: 'right'}}
+                >
+                    <Menu.LinkItem
+                        id={`${menuId}-edit`}
+                        to={CLASSIFICATION_ATTRIBUTE_ROUTE}
+                        leadingElement={<PencilOutlineIcon size={18}/>}
+                        labels={<span><FormattedMessage {...actionsLabels.edit}/></span>}
+                    />
+                    <Menu.LinkItem
+                        id={`${menuId}-markings`}
+                        to={CLASSIFICATIONS_MARKINGS_ADMIN_URL}
+                        leadingElement={<OpenInNewIcon size={18}/>}
+                        labels={<span><FormattedMessage {...actionsLabels.classificationLink}/></span>}
+                    />
+                </Menu.Container>
+                {externalLink}
+            </div>
         );
     }
 
@@ -353,6 +406,7 @@ export default function GlobalAttributesTable() {
     );
 
     const classificationMarkingsReachable = useClassificationMarkingsReachable();
+    const classificationAttributePageReachable = useClassificationAttributePageReachable();
     const isMobileView = useSelector(getIsMobileView);
 
     const fields = useSelector((state: GlobalState) =>
@@ -521,6 +575,7 @@ export default function GlobalAttributesTable() {
                     <ActionsCell
                         field={row.original}
                         isClassificationRow={isClassificationRow(row.original)}
+                        canEditClassification={classificationAttributePageReachable}
                         isMobileView={isMobileView}
                         pluginInventoryLoaded={pluginInventoryLoaded}
                         onDeleteError={setDeleteError}
@@ -530,7 +585,7 @@ export default function GlobalAttributesTable() {
                 enableHiding: false,
             }),
         ];
-    }, [groupId, classificationMarkingsReachable, isMobileView, pluginInventoryLoaded, handleDeleteModalExited]);
+    }, [groupId, classificationMarkingsReachable, classificationAttributePageReachable, isMobileView, pluginInventoryLoaded, handleDeleteModalExited]);
 
     const table = useReactTable<PropertyField>({
         data: rows,
@@ -610,7 +665,10 @@ const messages = defineMessages({
     loadError: {id: 'admin.global_attributes.table.load_error', defaultMessage: 'There was an error while loading attributes.'},
     classificationSubtitle: {
         id: 'admin.global_attributes.table.attribute.classification_subtitle',
-        defaultMessage: 'Read-only',
+
+        // Scoped to the definition on purpose: the resources it applies to are
+        // editable on its own page.
+        defaultMessage: 'Definition is read-only',
     },
 });
 

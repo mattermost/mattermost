@@ -501,6 +501,7 @@ export const ModalIdentifiers = {
     USER_PROPERTY_FIELD_DELETE: 'user_property_field_delete',
     SESSION_ATTRIBUTE_DISABLE: 'session_attribute_disable',
     BOARD_ATTRIBUTE_FIELD_DELETE: 'board_attribute_field_delete',
+    CHANNEL_RESOURCE_REMOVE: 'channel_resource_remove',
     GLOBAL_ATTRIBUTE_FIELD_DELETE: 'global_attribute_field_delete',
     GLOBAL_ATTRIBUTE_REMOVE_APPLIES_TO: 'global_attribute_remove_applies_to',
     ATTRIBUTE_MODAL_LDAP: 'attribute_modal_ldap',

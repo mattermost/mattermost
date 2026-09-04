@@ -6,6 +6,7 @@ package properties
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"strings"
 	"testing"
 
@@ -203,6 +204,111 @@ func TestAccessControlAttributeValidationHook(t *testing.T) {
 		_, _, updateErr = th.service.UpdatePropertyField(th.Context, group.ID, field)
 		require.Error(t, updateErr)
 		assert.Contains(t, updateErr.Error(), "unknown action")
+	})
+
+	t.Run("required and editable round-trip through create, patch, and clear", func(t *testing.T) {
+		field, createErr := th.service.CreatePropertyField(th.Context, &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "field_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+			ObjectType: "channel",
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttrRequired: true,
+				model.PropertyFieldAttrEditable: false,
+			},
+		})
+		require.NoError(t, createErr)
+		require.Equal(t, true, field.Attrs[model.PropertyFieldAttrRequired])
+		require.Equal(t, false, field.Attrs[model.PropertyFieldAttrEditable])
+
+		field.Attrs = model.StringInterface{
+			model.PropertyFieldAttrRequired: false,
+			model.PropertyFieldAttrEditable: true,
+		}
+		updated, _, updateErr := th.service.UpdatePropertyField(th.Context, group.ID, field)
+		require.NoError(t, updateErr)
+		require.Equal(t, false, updated.Attrs[model.PropertyFieldAttrRequired])
+		require.Equal(t, true, updated.Attrs[model.PropertyFieldAttrEditable])
+
+		// Unsetting sends nil, which clears the key. For editable that restores the
+		// permissive default, so absent and true have to stay indistinguishable.
+		updated.Attrs = model.StringInterface{
+			model.PropertyFieldAttrRequired: nil,
+			model.PropertyFieldAttrEditable: nil,
+		}
+		cleared, _, clearErr := th.service.UpdatePropertyField(th.Context, group.ID, updated)
+		require.NoError(t, clearErr)
+		require.NotContains(t, cleared.Attrs, model.PropertyFieldAttrRequired)
+		require.NotContains(t, cleared.Attrs, model.PropertyFieldAttrEditable)
+	})
+
+	t.Run("rejects non-boolean required on create", func(t *testing.T) {
+		_, createErr := th.service.CreatePropertyField(th.Context, &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "field_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+			ObjectType: "channel",
+			Attrs:      model.StringInterface{model.PropertyFieldAttrRequired: "true"},
+		})
+		require.Error(t, createErr)
+		assert.Contains(t, createErr.Error(), "required")
+	})
+
+	t.Run("rejects non-boolean editable on update", func(t *testing.T) {
+		field := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "field_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+			ObjectType: "channel",
+		})
+
+		field.Attrs = model.StringInterface{model.PropertyFieldAttrEditable: 1}
+		_, _, updateErr := th.service.UpdatePropertyField(th.Context, group.ID, field)
+		require.Error(t, updateErr)
+		assert.Contains(t, updateErr.Error(), "editable")
+	})
+
+	// The keys describe a binding, not a value, so they are object-type-agnostic
+	// like every other attr. A user-object field accepting them is the evidence
+	// that no channel-only branch crept into the pipeline.
+	t.Run("required and editable are accepted on other object types", func(t *testing.T) {
+		created, createErr := th.service.CreatePropertyField(th.Context, &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "field_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+			ObjectType: "user",
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttrRequired: true,
+				model.PropertyFieldAttrEditable: false,
+			},
+		})
+		require.NoError(t, createErr)
+		assert.Equal(t, true, created.Attrs[model.PropertyFieldAttrRequired])
+		assert.Equal(t, false, created.Attrs[model.PropertyFieldAttrEditable])
+	})
+
+	// A bad boolean must not be smuggled past validation by riding along with
+	// keys that are themselves valid.
+	t.Run("rejects a bad boolean alongside valid attrs", func(t *testing.T) {
+		_, createErr := th.service.CreatePropertyField(th.Context, &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "field_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+			ObjectType: "channel",
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttrVisibility: model.PropertyFieldVisibilityAlways,
+				model.PropertyFieldAttrSortOrder:  float64(2),
+				model.PropertyFieldAttrActions:    []any{model.PropertyFieldActionDisplayLabelHeader},
+				model.PropertyFieldAttrRequired:   []any{true},
+			},
+		})
+		require.Error(t, createErr)
+		assert.Contains(t, createErr.Error(), "required")
 	})
 
 	t.Run("skips validation for unmanaged groups", func(t *testing.T) {
@@ -728,6 +834,57 @@ func TestAccessControlAttributeValidationHook(t *testing.T) {
 		assert.Equal(t, model.PermissionLevelSysadmin, *created.PermissionField)
 		require.NotNil(t, created.PermissionOptions)
 		assert.Equal(t, model.PermissionLevelSysadmin, *created.PermissionOptions)
+	})
+
+	t.Run("create channel-object field without managed sets PermissionValues to admin", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "field_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+			ObjectType: model.PropertyFieldObjectTypeChannel,
+			Attrs:      model.StringInterface{},
+		}
+		created, createErr := th.service.CreatePropertyField(th.Context, field)
+		require.NoError(t, createErr)
+		require.NotNil(t, created.PermissionValues)
+		assert.Equal(t, model.PermissionLevelAdmin, *created.PermissionValues)
+	})
+
+	t.Run("create channel-object field does not downgrade a caller-pinned PermissionValues", func(t *testing.T) {
+		member := model.PermissionLevelMember
+		field := &model.PropertyField{
+			GroupID:          group.ID,
+			Name:             "field_" + model.NewId(),
+			Type:             model.PropertyFieldTypeText,
+			TargetType:       "system",
+			ObjectType:       model.PropertyFieldObjectTypeChannel,
+			PermissionValues: &member,
+			Attrs:            model.StringInterface{},
+		}
+		created, createErr := th.service.CreatePropertyField(th.Context, field)
+		require.NoError(t, createErr)
+		require.NotNil(t, created.PermissionValues)
+		assert.Equal(t, model.PermissionLevelMember, *created.PermissionValues)
+	})
+
+	t.Run("update channel-object field to remove managed fills unset PermissionValues with admin", func(t *testing.T) {
+		field := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "field_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+			ObjectType: model.PropertyFieldObjectTypeChannel,
+			Attrs: model.StringInterface{
+				model.CustomProfileAttributesPropertyAttrsManaged: "admin",
+			},
+		})
+
+		field.Attrs = model.StringInterface{}
+		updated, _, updateErr := th.service.UpdatePropertyField(th.Context, group.ID, field)
+		require.NoError(t, updateErr)
+		require.NotNil(t, updated.PermissionValues)
+		assert.Equal(t, model.PermissionLevelAdmin, *updated.PermissionValues)
 	})
 
 	t.Run("update field to managed=admin is rejected when no permission checker is configured", func(t *testing.T) {
@@ -2021,5 +2178,359 @@ func TestAccessControlAttributeValidationHook_Owners(t *testing.T) {
 		_, createErr := th.service.CreatePropertyField(th.Context, field)
 		require.Error(t, createErr)
 		assert.Contains(t, createErr.Error(), "owner id exceeds max length")
+	})
+}
+
+func TestAccessControlAttributeValidationHookChangePolicy(t *testing.T) {
+	th := Setup(t)
+
+	group, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "test_attr_change_policy", Version: model.PropertyGroupVersionV2})
+	require.NoError(t, err)
+
+	hook := NewAccessControlAttributeValidationHook(th.service, nil, group.ID)
+	th.service.AddHook(hook)
+
+	// optionIDs returns the persisted option IDs in rank order, so a test can
+	// name a rung ("the middle one") without hardcoding a generated ID.
+	optionIDs := func(t *testing.T, field *model.PropertyField) []string {
+		t.Helper()
+		opts, ok := field.Attrs[model.PropertyFieldAttributeOptions].([]any)
+		require.True(t, ok, "options should be []any, got %T", field.Attrs[model.PropertyFieldAttributeOptions])
+		ids := make([]string, 0, len(opts))
+		for _, opt := range opts {
+			m, isMap := opt.(map[string]any)
+			require.True(t, isMap, "option should be map[string]any, got %T", opt)
+			id, isString := m["id"].(string)
+			require.True(t, isString, "option should carry a string id")
+			ids = append(ids, id)
+		}
+		return ids
+	}
+
+	newRankField := func(t *testing.T, policy string) (*model.PropertyField, []string) {
+		t.Helper()
+		field, createErr := th.service.CreatePropertyField(th.Context, &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "rank_" + model.NewId(),
+			Type:       model.PropertyFieldTypeRank,
+			TargetType: "system",
+			ObjectType: model.PropertyFieldObjectTypeChannel,
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{"name": "LOW", "rank": 1},
+					map[string]any{"name": "MID", "rank": 2},
+					map[string]any{"name": "HIGH", "rank": 3},
+				},
+				model.PropertyFieldAttrChangePolicy: policy,
+			},
+		})
+		require.NoError(t, createErr)
+		return field, optionIDs(t, field)
+	}
+
+	newTextField := func(t *testing.T, objectType string, attrs model.StringInterface) *model.PropertyField {
+		t.Helper()
+		field, createErr := th.service.CreatePropertyField(th.Context, &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "text_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+			ObjectType: objectType,
+			Attrs:      attrs,
+		})
+		require.NoError(t, createErr)
+		return field
+	}
+
+	write := func(field *model.PropertyField, targetID, targetType, raw string) error {
+		_, upsertErr := th.service.UpsertPropertyValue(th.Context, &model.PropertyValue{
+			GroupID:    group.ID,
+			FieldID:    field.ID,
+			TargetID:   targetID,
+			TargetType: targetType,
+			Value:      json.RawMessage(raw),
+		})
+		return upsertErr
+	}
+
+	writeChannel := func(field *model.PropertyField, channelID, raw string) error {
+		return write(field, channelID, model.PropertyValueTargetTypeChannel, raw)
+	}
+
+	requireRefused := func(t *testing.T, err error, wantID string) {
+		t.Helper()
+		require.Error(t, err)
+		var appErr *model.AppError
+		require.ErrorAs(t, err, &appErr)
+		assert.Equal(t, wantID, appErr.Id)
+		assert.Equal(t, http.StatusForbidden, appErr.StatusCode)
+	}
+
+	const (
+		neverErrorID     = "app.property_value.change_policy.never.app_error"
+		raiseOnlyErrorID = "app.property_value.change_policy.raise_only.app_error"
+		lowerOnlyErrorID = "app.property_value.change_policy.lower_only.app_error"
+	)
+
+	t.Run("never: the first write is allowed and every later one is refused", func(t *testing.T) {
+		field := newTextField(t, model.PropertyFieldObjectTypeChannel, model.StringInterface{
+			model.PropertyFieldAttrChangePolicy: model.PropertyFieldChangePolicyNever,
+		})
+		channelID := model.NewId()
+
+		require.NoError(t, writeChannel(field, channelID, `"SECRET"`))
+
+		for name, raw := range map[string]string{
+			"a different value": `"OTHER"`,
+			"the same value":    `"SECRET"`,
+			"an explicit null":  `null`,
+			"an empty string":   `""`,
+		} {
+			t.Run(name+" is refused", func(t *testing.T) {
+				requireRefused(t, writeChannel(field, channelID, raw), neverErrorID)
+			})
+		}
+	})
+
+	t.Run("never: a legacy editable=false field locks without change_policy", func(t *testing.T) {
+		field := newTextField(t, model.PropertyFieldObjectTypeChannel, model.StringInterface{
+			model.PropertyFieldAttrEditable: false,
+		})
+		channelID := model.NewId()
+
+		require.NoError(t, writeChannel(field, channelID, `"SECRET"`))
+		requireRefused(t, writeChannel(field, channelID, `"OTHER"`), neverErrorID)
+	})
+
+	t.Run("raise_only: only a higher rank is allowed", func(t *testing.T) {
+		field, options := newRankField(t, model.PropertyFieldChangePolicyRaiseOnly)
+		low, mid, high := options[0], options[1], options[2]
+		channelID := model.NewId()
+
+		require.NoError(t, writeChannel(field, channelID, fmt.Sprintf("%q", mid)), "any rung may be picked first")
+		requireRefused(t, writeChannel(field, channelID, fmt.Sprintf("%q", low)), raiseOnlyErrorID)
+		requireRefused(t, writeChannel(field, channelID, fmt.Sprintf("%q", mid)), raiseOnlyErrorID)
+		requireRefused(t, writeChannel(field, channelID, `null`), raiseOnlyErrorID)
+		require.NoError(t, writeChannel(field, channelID, fmt.Sprintf("%q", high)))
+	})
+
+	t.Run("lower_only: only a lower rank is allowed", func(t *testing.T) {
+		field, options := newRankField(t, model.PropertyFieldChangePolicyLowerOnly)
+		low, mid, high := options[0], options[1], options[2]
+		channelID := model.NewId()
+
+		require.NoError(t, writeChannel(field, channelID, fmt.Sprintf("%q", mid)))
+		requireRefused(t, writeChannel(field, channelID, fmt.Sprintf("%q", high)), lowerOnlyErrorID)
+		requireRefused(t, writeChannel(field, channelID, fmt.Sprintf("%q", mid)), lowerOnlyErrorID)
+		requireRefused(t, writeChannel(field, channelID, `null`), lowerOnlyErrorID)
+		require.NoError(t, writeChannel(field, channelID, fmt.Sprintf("%q", low)))
+	})
+
+	t.Run("any: the value moves freely", func(t *testing.T) {
+		field, options := newRankField(t, model.PropertyFieldChangePolicyAny)
+		channelID := model.NewId()
+
+		require.NoError(t, writeChannel(field, channelID, fmt.Sprintf("%q", options[1])))
+		require.NoError(t, writeChannel(field, channelID, fmt.Sprintf("%q", options[0])))
+		require.NoError(t, writeChannel(field, channelID, `null`))
+	})
+
+	t.Run("a cleared value reads as unset, so it can be set again", func(t *testing.T) {
+		field := newTextField(t, model.PropertyFieldObjectTypeChannel, model.StringInterface{
+			model.PropertyFieldAttrChangePolicy: model.PropertyFieldChangePolicyNever,
+		})
+		channelID := model.NewId()
+
+		// A user-initiated clear leaves a null-valued row rather than deleting
+		// it; written through the store so the policy does not refuse the clear.
+		_, createErr := th.dbStore.PropertyValue().Create(&model.PropertyValue{
+			GroupID:    group.ID,
+			FieldID:    field.ID,
+			TargetID:   channelID,
+			TargetType: model.PropertyValueTargetTypeChannel,
+			Value:      json.RawMessage(`null`),
+		})
+		require.NoError(t, createErr)
+
+		require.NoError(t, writeChannel(field, channelID, `"SECRET"`))
+	})
+
+	t.Run("a directional policy refuses when the stored option is gone", func(t *testing.T) {
+		field, options := newRankField(t, model.PropertyFieldChangePolicyRaiseOnly)
+		channelID := model.NewId()
+
+		// The rank the channel holds no longer exists on the field, so there is
+		// nothing to compare against and the move must fail closed.
+		_, createErr := th.dbStore.PropertyValue().Create(&model.PropertyValue{
+			GroupID:    group.ID,
+			FieldID:    field.ID,
+			TargetID:   channelID,
+			TargetType: model.PropertyValueTargetTypeChannel,
+			Value:      json.RawMessage(fmt.Sprintf("%q", model.NewId())),
+		})
+		require.NoError(t, createErr)
+
+		requireRefused(t, writeChannel(field, channelID, fmt.Sprintf("%q", options[2])), raiseOnlyErrorID)
+	})
+
+	t.Run("user targets are untouched, so directory sync keeps working", func(t *testing.T) {
+		field := newTextField(t, model.PropertyFieldObjectTypeUser, model.StringInterface{
+			model.PropertyFieldAttrChangePolicy: model.PropertyFieldChangePolicyNever,
+		})
+		userID := model.NewId()
+
+		require.NoError(t, write(field, userID, model.PropertyValueTargetTypeUser, `"first"`))
+		require.NoError(t, write(field, userID, model.PropertyValueTargetTypeUser, `"second"`))
+	})
+
+	t.Run("one refused value rejects the whole batch", func(t *testing.T) {
+		locked := newTextField(t, model.PropertyFieldObjectTypeChannel, model.StringInterface{
+			model.PropertyFieldAttrChangePolicy: model.PropertyFieldChangePolicyNever,
+		})
+		open := newTextField(t, model.PropertyFieldObjectTypeChannel, nil)
+		channelID := model.NewId()
+
+		require.NoError(t, writeChannel(locked, channelID, `"SECRET"`))
+
+		batch := []*model.PropertyValue{
+			{GroupID: group.ID, FieldID: open.ID, TargetID: channelID, TargetType: model.PropertyValueTargetTypeChannel, Value: json.RawMessage(`"fine"`)},
+			{GroupID: group.ID, FieldID: locked.ID, TargetID: channelID, TargetType: model.PropertyValueTargetTypeChannel, Value: json.RawMessage(`"OTHER"`)},
+		}
+		_, upsertErr := th.service.UpsertPropertyValues(th.Context, batch)
+		requireRefused(t, upsertErr, neverErrorID)
+
+		// The clean value in the same batch must not have landed either.
+		stored, searchErr := th.service.SearchPropertyValues(th.Context, group.ID, model.PropertyValueSearchOpts{
+			TargetType: model.PropertyValueTargetTypeChannel,
+			TargetIDs:  []string{channelID},
+			FieldID:    open.ID,
+			PerPage:    10,
+		})
+		require.NoError(t, searchErr)
+		assert.Empty(t, stored)
+	})
+}
+
+func TestAccessControlAttributeValidationHookRequired(t *testing.T) {
+	th := Setup(t)
+
+	group, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "test_attr_required", Version: model.PropertyGroupVersionV2})
+	require.NoError(t, err)
+
+	hook := NewAccessControlAttributeValidationHook(th.service, nil, group.ID)
+	th.service.AddHook(hook)
+
+	newRequiredField := func(t *testing.T, objectType string) *model.PropertyField {
+		t.Helper()
+		field, createErr := th.service.CreatePropertyField(th.Context, &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "text_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+			ObjectType: objectType,
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttrRequired: true,
+			},
+		})
+		require.NoError(t, createErr)
+		return field
+	}
+
+	write := func(field *model.PropertyField, targetID, targetType, raw string) (*model.PropertyValue, error) {
+		return th.service.UpsertPropertyValue(th.Context, &model.PropertyValue{
+			GroupID:    group.ID,
+			FieldID:    field.ID,
+			TargetID:   targetID,
+			TargetType: targetType,
+			Value:      json.RawMessage(raw),
+		})
+	}
+
+	writeChannel := func(field *model.PropertyField, channelID, raw string) (*model.PropertyValue, error) {
+		return write(field, channelID, model.PropertyValueTargetTypeChannel, raw)
+	}
+
+	requireRefused := func(t *testing.T, err error) {
+		t.Helper()
+		require.Error(t, err)
+		var appErr *model.AppError
+		require.ErrorAs(t, err, &appErr)
+		assert.Equal(t, "app.property_value.required.app_error", appErr.Id)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+	}
+
+	t.Run("an empty string is refused on the first write", func(t *testing.T) {
+		field := newRequiredField(t, model.PropertyFieldObjectTypeChannel)
+		_, err := writeChannel(field, model.NewId(), `""`)
+		requireRefused(t, err)
+	})
+
+	t.Run("a null value is refused", func(t *testing.T) {
+		field := newRequiredField(t, model.PropertyFieldObjectTypeChannel)
+		_, err := writeChannel(field, model.NewId(), `null`)
+		requireRefused(t, err)
+	})
+
+	t.Run("clearing a previously set value is refused", func(t *testing.T) {
+		field := newRequiredField(t, model.PropertyFieldObjectTypeChannel)
+		channelID := model.NewId()
+		_, err := writeChannel(field, channelID, `"SECRET"`)
+		require.NoError(t, err)
+
+		_, err = writeChannel(field, channelID, `""`)
+		requireRefused(t, err)
+	})
+
+	t.Run("moving to a different non-empty value is allowed", func(t *testing.T) {
+		field := newRequiredField(t, model.PropertyFieldObjectTypeChannel)
+		channelID := model.NewId()
+		_, err := writeChannel(field, channelID, `"SECRET"`)
+		require.NoError(t, err)
+
+		_, err = writeChannel(field, channelID, `"OTHER"`)
+		require.NoError(t, err)
+	})
+
+	t.Run("deleting a required value is refused", func(t *testing.T) {
+		field := newRequiredField(t, model.PropertyFieldObjectTypeChannel)
+		channelID := model.NewId()
+		value, err := writeChannel(field, channelID, `"SECRET"`)
+		require.NoError(t, err)
+
+		requireRefused(t, th.service.DeletePropertyValue(th.Context, group.ID, value.ID))
+	})
+
+	t.Run("a non-channel target is enforced too", func(t *testing.T) {
+		field := newRequiredField(t, model.PropertyFieldObjectTypePost)
+		_, err := write(field, model.NewId(), model.PropertyValueTargetTypePost, `""`)
+		requireRefused(t, err)
+	})
+
+	t.Run("deleting a required non-channel value is refused too", func(t *testing.T) {
+		field := newRequiredField(t, model.PropertyFieldObjectTypePost)
+		value, err := write(field, model.NewId(), model.PropertyValueTargetTypePost, `"SECRET"`)
+		require.NoError(t, err)
+
+		requireRefused(t, th.service.DeletePropertyValue(th.Context, group.ID, value.ID))
+	})
+
+	t.Run("a field that is not required is unaffected", func(t *testing.T) {
+		field, createErr := th.service.CreatePropertyField(th.Context, &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "text_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+			ObjectType: model.PropertyFieldObjectTypeChannel,
+		})
+		require.NoError(t, createErr)
+		channelID := model.NewId()
+
+		value, err := writeChannel(field, channelID, `"SECRET"`)
+		require.NoError(t, err)
+
+		_, err = writeChannel(field, channelID, `""`)
+		require.NoError(t, err, "clearing a non-required value must not be refused")
+
+		require.NoError(t, th.service.DeletePropertyValue(th.Context, group.ID, value.ID))
 	})
 }

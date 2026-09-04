@@ -182,6 +182,15 @@ type ChannelsWithCount struct {
 	TotalCount int64                   `json:"total_count"`
 }
 
+// ChannelCreateRequest is the POST /channels body. The values ride the create
+// request rather than a second call so the server can refuse a channel that
+// would not satisfy its own required attributes; they are not part of Channel
+// itself because Channel maps to columns.
+type ChannelCreateRequest struct {
+	Channel
+	PropertyValues []PropertyValuePatchItem `json:"property_values"`
+}
+
 type ChannelPatch struct {
 	DisplayName         *string            `json:"display_name"`
 	Name                *string            `json:"name"`

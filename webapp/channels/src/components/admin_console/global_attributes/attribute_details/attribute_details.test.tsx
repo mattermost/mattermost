@@ -9,6 +9,7 @@ import {ClientError} from '@mattermost/client';
 import type {PropertyField} from '@mattermost/types/properties';
 
 import {Client4} from 'mattermost-redux/client';
+import {DISPLAY_LABEL_HEADER} from 'mattermost-redux/constants/properties';
 
 import ModalController from 'components/modal_controller';
 
@@ -46,11 +47,19 @@ describe('AttributeDetails', () => {
         jest.restoreAllMocks();
     });
 
+    const CHANNEL_ATTRIBUTES_STATE = {entities: {general: {
+        config: {FeatureFlagChannelAttributes: 'true'},
+        license: {IsLicensed: 'true', SkuShortName: 'advanced'},
+    }}};
+
+    // Channels is only offered with the flag on and an Enterprise Advanced
+    // licence, and most cases here exercise all three resources.
     const renderComponent = () => renderWithContext(
         <div>
             <AttributeDetails/>
             <ModalController/>
         </div>,
+        CHANNEL_ATTRIBUTES_STATE,
     );
 
     it('renders the empty auto-slug caption as a dash, not the _copy sentinel', () => {
@@ -488,6 +497,116 @@ describe('AttributeDetails', () => {
                 ],
             }),
         }));
+    });
+
+    describe('applying an attribute to channels', () => {
+        const withoutChannelAttributes = () => renderWithContext(
+            <div>
+                <AttributeDetails/>
+                <ModalController/>
+            </div>,
+        );
+
+        const template = {id: 'template_id_1234567890abcdef', name: 'my_attribute', type: 'text', target_type: 'system', target_id: ''} as PropertyField;
+
+        const addChannels = async () => {
+            await userEvent.click(screen.getByTestId('attributeAppliesToAddResourceButtonHeader'));
+            await userEvent.click(screen.getByRole('menuitem', {name: 'Channels'}));
+            await waitFor(() => expect(screen.getByTestId('attributeAppliesToRow-channel')).toBeInTheDocument());
+        };
+
+        it('is not offered without the feature flag and an Enterprise Advanced licence', async () => {
+            withoutChannelAttributes();
+
+            await userEvent.click(screen.getByTestId('attributeAppliesToAddResourceButtonHeader'));
+
+            expect(screen.getAllByRole('menuitem').map((item) => item.textContent)).toEqual(['Users', 'Posts']);
+        });
+
+        it('creates only the template when Channels is not added', async () => {
+            const createPropertyField = jest.spyOn(Client4, 'createPropertyField').mockResolvedValue(template);
+
+            renderComponent();
+            await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'My Attribute');
+            await userEvent.click(screen.getByTestId('saveSetting'));
+
+            await waitFor(() => expect(mockHistoryPush).toHaveBeenCalled());
+            expect(createPropertyField).toHaveBeenCalledTimes(1);
+        });
+
+        it('carries the row\'s settings onto the linked channel field', async () => {
+            const createPropertyField = jest.spyOn(Client4, 'createPropertyField').mockResolvedValue(template);
+
+            renderComponent();
+            await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'My Attribute');
+            await addChannels();
+            await userEvent.click(screen.getByTestId('attributeAppliesToRow-channel-toggle'));
+            await userEvent.click(screen.getByTestId('channelsResourceRequired-button'));
+            await userEvent.click(screen.getByTestId(`channelsResourceLocation-${DISPLAY_LABEL_HEADER}`));
+            await userEvent.click(screen.getByTestId('saveSetting'));
+
+            await waitFor(() => expect(mockHistoryPush).toHaveBeenCalled());
+
+            expect(createPropertyField).toHaveBeenNthCalledWith(1, 'access_control', 'template', expect.any(Object));
+            expect(createPropertyField).toHaveBeenNthCalledWith(2, 'access_control', 'channel', expect.objectContaining({
+                linked_field_id: template.id,
+                attrs: expect.objectContaining({
+                    required: true,
+                    actions: [DISPLAY_LABEL_HEADER],
+                }),
+            }));
+        });
+
+        it('sends no channel keys for a row left at its defaults, so the field reads as one created before them', async () => {
+            const createPropertyField = jest.spyOn(Client4, 'createPropertyField').mockResolvedValue(template);
+
+            renderComponent();
+            await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'My Attribute');
+            await addChannels();
+            await userEvent.click(screen.getByTestId('saveSetting'));
+
+            await waitFor(() => expect(mockHistoryPush).toHaveBeenCalled());
+
+            const channelCall = createPropertyField.mock.calls[1][2] as {attrs: Record<string, unknown>};
+            expect(Object.keys(channelCall.attrs)).toEqual(['display_name']);
+        });
+
+        it('pins who may set the value, since the server would otherwise let any member', async () => {
+            const createPropertyField = jest.spyOn(Client4, 'createPropertyField').mockResolvedValue(template);
+
+            renderComponent();
+            await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'My Attribute');
+            await addChannels();
+            await userEvent.click(screen.getByTestId('saveSetting'));
+
+            await waitFor(() => expect(mockHistoryPush).toHaveBeenCalled());
+
+            expect(createPropertyField).toHaveBeenNthCalledWith(2, 'access_control', 'channel', expect.objectContaining({
+                permission_values: 'admin',
+            }));
+
+            // Only Channels pins it; the template must keep the server's default.
+            expect(createPropertyField.mock.calls[0][2]).not.toHaveProperty('permission_values');
+        });
+
+        it('keeps the settings when Channels is removed and added back', async () => {
+            const createPropertyField = jest.spyOn(Client4, 'createPropertyField').mockResolvedValue(template);
+
+            renderComponent();
+            await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'My Attribute');
+            await addChannels();
+            await userEvent.click(screen.getByTestId('attributeAppliesToRow-channel-toggle'));
+            await userEvent.click(screen.getByTestId('channelsResourceRequired-button'));
+            await userEvent.click(screen.getByTestId('attributeAppliesToRow-channel-remove'));
+            await addChannels();
+            await userEvent.click(screen.getByTestId('saveSetting'));
+
+            await waitFor(() => expect(mockHistoryPush).toHaveBeenCalled());
+
+            expect(createPropertyField).toHaveBeenNthCalledWith(2, 'access_control', 'channel', expect.objectContaining({
+                attrs: expect.objectContaining({required: true}),
+            }));
+        });
     });
 
     it.each([
@@ -1177,7 +1296,7 @@ describe('AttributeDetails', () => {
                 </Route>
                 <ModalController/>
             </div>,
-            {},
+            CHANNEL_ATTRIBUTES_STATE,
             {
                 history: createMemoryHistory({
                     initialEntries: [`/admin_console/system_attributes/manage_attributes/attribute_details/${FIELD_ID}`],

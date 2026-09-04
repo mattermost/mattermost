@@ -69,6 +69,188 @@ func TestValidatePropertyFieldSortOrder(t *testing.T) {
 	}
 }
 
+func TestSanitizeAndValidatePropertyFieldBoolAttr(t *testing.T) {
+	tests := []struct {
+		name      string
+		key       string
+		attrs     StringInterface
+		want      bool
+		wantKey   bool
+		wantError string
+	}{
+		{name: "nil attrs", key: PropertyFieldAttrRequired, attrs: nil},
+		{name: "no key", key: PropertyFieldAttrRequired, attrs: StringInterface{"other": "value"}},
+		{name: "explicit nil clears the key", key: PropertyFieldAttrRequired, attrs: StringInterface{PropertyFieldAttrRequired: nil}},
+		{name: "required true", key: PropertyFieldAttrRequired, attrs: StringInterface{PropertyFieldAttrRequired: true}, want: true, wantKey: true},
+		{name: "required false is kept", key: PropertyFieldAttrRequired, attrs: StringInterface{PropertyFieldAttrRequired: false}, want: false, wantKey: true},
+		{name: "editable false is kept", key: PropertyFieldAttrEditable, attrs: StringInterface{PropertyFieldAttrEditable: false}, want: false, wantKey: true},
+		{name: "string is not coerced", key: PropertyFieldAttrRequired, attrs: StringInterface{PropertyFieldAttrRequired: "true"}, wantError: "required must be a boolean"},
+		{name: "numeric is rejected", key: PropertyFieldAttrEditable, attrs: StringInterface{PropertyFieldAttrEditable: 1}, wantError: "editable must be a boolean"},
+		{name: "array is rejected", key: PropertyFieldAttrRequired, attrs: StringInterface{PropertyFieldAttrRequired: []any{true}}, wantError: "required must be a boolean"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			field := &PropertyField{Attrs: tt.attrs}
+			err := SanitizeAndValidatePropertyFieldBoolAttr(field, tt.key)
+			if tt.wantError != "" {
+				require.ErrorContains(t, err, tt.wantError)
+				return
+			}
+
+			require.NoError(t, err)
+			if field.Attrs == nil {
+				return
+			}
+			actual, ok := field.Attrs[tt.key]
+			require.Equal(t, tt.wantKey, ok)
+			if tt.wantKey {
+				require.Equal(t, tt.want, actual)
+			}
+		})
+	}
+}
+
+// The two keys are independent: validating one must not disturb the other, and
+// neither may touch a key the hook doesn't own.
+func TestSanitizeAndValidatePropertyFieldBoolAttrLeavesOtherKeys(t *testing.T) {
+	field := &PropertyField{Attrs: StringInterface{
+		PropertyFieldAttrRequired:   true,
+		PropertyFieldAttrEditable:   nil,
+		PropertyFieldAttrSortOrder:  3,
+		PropertyFieldAttrVisibility: PropertyFieldVisibilityAlways,
+	}}
+
+	require.NoError(t, SanitizeAndValidatePropertyFieldBoolAttr(field, PropertyFieldAttrRequired))
+	require.NoError(t, SanitizeAndValidatePropertyFieldBoolAttr(field, PropertyFieldAttrEditable))
+
+	require.Equal(t, true, field.Attrs[PropertyFieldAttrRequired])
+	require.NotContains(t, field.Attrs, PropertyFieldAttrEditable)
+	require.Equal(t, 3, field.Attrs[PropertyFieldAttrSortOrder])
+	require.Equal(t, PropertyFieldVisibilityAlways, field.Attrs[PropertyFieldAttrVisibility])
+}
+
+func TestIsPropertyFieldRequired(t *testing.T) {
+	tests := []struct {
+		name  string
+		field *PropertyField
+		want  bool
+	}{
+		{name: "nil field", field: nil, want: false},
+		{name: "nil attrs", field: &PropertyField{}, want: false},
+		{name: "absent key", field: &PropertyField{Attrs: StringInterface{}}, want: false},
+		{name: "true", field: &PropertyField{Attrs: StringInterface{PropertyFieldAttrRequired: true}}, want: true},
+		{name: "false", field: &PropertyField{Attrs: StringInterface{PropertyFieldAttrRequired: false}}, want: false},
+		// A typo must not silently block channel creation.
+		{name: "stringly true", field: &PropertyField{Attrs: StringInterface{PropertyFieldAttrRequired: "true"}}, want: false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			require.Equal(t, tt.want, IsPropertyFieldRequired(tt.field))
+		})
+	}
+}
+
+func TestIsEmptyPropertyValue(t *testing.T) {
+	empty := []string{"", " ", "null", `""`, "[]", " [] "}
+	for _, raw := range empty {
+		require.True(t, IsEmptyPropertyValue(json.RawMessage(raw)), raw)
+	}
+
+	set := []string{`"x"`, `["a"]`, "0", "false", `{"a":1}`}
+	for _, raw := range set {
+		require.False(t, IsEmptyPropertyValue(json.RawMessage(raw)), raw)
+	}
+}
+
+func TestSanitizeAndValidatePropertyFieldChangePolicy(t *testing.T) {
+	tests := []struct {
+		name      string
+		fieldType PropertyFieldType
+		attrs     StringInterface
+		want      string
+		wantKey   bool
+		wantError string
+	}{
+		{name: "nil attrs", fieldType: PropertyFieldTypeSelect, attrs: nil},
+		{name: "no key", fieldType: PropertyFieldTypeSelect, attrs: StringInterface{"other": "value"}},
+		{name: "explicit nil clears the key", fieldType: PropertyFieldTypeSelect, attrs: StringInterface{PropertyFieldAttrChangePolicy: nil}},
+		{name: "empty clears the key", fieldType: PropertyFieldTypeSelect, attrs: StringInterface{PropertyFieldAttrChangePolicy: "  "}},
+		{name: "any is the default and is not stored", fieldType: PropertyFieldTypeSelect, attrs: StringInterface{PropertyFieldAttrChangePolicy: PropertyFieldChangePolicyAny}},
+		{
+			name:      "never is kept on any type",
+			fieldType: PropertyFieldTypeText,
+			attrs:     StringInterface{PropertyFieldAttrChangePolicy: PropertyFieldChangePolicyNever},
+			want:      PropertyFieldChangePolicyNever,
+			wantKey:   true,
+		},
+		{
+			name:      "raise_only is kept on a rank field",
+			fieldType: PropertyFieldTypeRank,
+			attrs:     StringInterface{PropertyFieldAttrChangePolicy: " raise_only "},
+			want:      PropertyFieldChangePolicyRaiseOnly,
+			wantKey:   true,
+		},
+		{
+			name:      "raise_only is stripped off a select field, which has no ranks to compare",
+			fieldType: PropertyFieldTypeSelect,
+			attrs:     StringInterface{PropertyFieldAttrChangePolicy: PropertyFieldChangePolicyRaiseOnly},
+		},
+		{
+			name:      "unknown policy is rejected",
+			fieldType: PropertyFieldTypeRank,
+			attrs:     StringInterface{PropertyFieldAttrChangePolicy: "frozen"},
+			wantError: `invalid change_policy "frozen"`,
+		},
+		{
+			name:      "non-string is rejected",
+			fieldType: PropertyFieldTypeRank,
+			attrs:     StringInterface{PropertyFieldAttrChangePolicy: true},
+			wantError: "change_policy must be a string",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			field := &PropertyField{Type: tt.fieldType, Attrs: tt.attrs}
+			err := SanitizeAndValidatePropertyFieldChangePolicy(field)
+			if tt.wantError != "" {
+				require.ErrorContains(t, err, tt.wantError)
+				return
+			}
+
+			require.NoError(t, err)
+			if field.Attrs == nil {
+				return
+			}
+			actual, ok := field.Attrs[PropertyFieldAttrChangePolicy]
+			require.Equal(t, tt.wantKey, ok)
+			if tt.wantKey {
+				require.Equal(t, tt.want, actual)
+			}
+		})
+	}
+}
+
+// editable predates change_policy, so a field carrying only editable=false must
+// still read as locked.
+func TestGetPropertyFieldChangePolicy(t *testing.T) {
+	require.Equal(t, PropertyFieldChangePolicyAny, GetPropertyFieldChangePolicy(&PropertyField{}))
+	require.Equal(t, PropertyFieldChangePolicyAny, GetPropertyFieldChangePolicy(&PropertyField{Attrs: StringInterface{PropertyFieldAttrEditable: true}}))
+	require.Equal(t, PropertyFieldChangePolicyNever, GetPropertyFieldChangePolicy(&PropertyField{Attrs: StringInterface{PropertyFieldAttrEditable: false}}))
+	require.Equal(t, PropertyFieldChangePolicyRaiseOnly, GetPropertyFieldChangePolicy(&PropertyField{Attrs: StringInterface{
+		PropertyFieldAttrChangePolicy: PropertyFieldChangePolicyRaiseOnly,
+	}}))
+
+	// change_policy wins: it is the more expressive key, and the pair is only ever
+	// written together for "never".
+	require.Equal(t, PropertyFieldChangePolicyNever, GetPropertyFieldChangePolicy(&PropertyField{Attrs: StringInterface{
+		PropertyFieldAttrChangePolicy: PropertyFieldChangePolicyNever,
+		PropertyFieldAttrEditable:     false,
+	}}))
+}
+
 func TestSanitizeAndValidatePropertyFieldActions(t *testing.T) {
 	tests := []struct {
 		name      string

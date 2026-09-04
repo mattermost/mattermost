@@ -1,0 +1,39 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+// Matches the banner text field's width, and truncates like the real banner. The
+// nowrap lives on the child, not here: a nowrap flex container reports its full text
+// as its minimum width and drags the modal wide with it.
+.BannerPreview {
+    display: flex;
+    overflow: hidden;
+    width: 460px;
+    min-width: 0;
+    max-width: 100%;
+    align-items: center;
+    justify-content: center;
+    padding: 4px 12px;
+    border-radius: 4px;
+    background: rgba(var(--center-channel-color-rgb), 0.08);
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 20px;
+    text-align: center;
+
+    > * {
+        overflow: hidden;
+        min-width: 0;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    p {
+        margin: 0;
+    }
+}
+
+.BannerPreview__empty {
+    color: rgba(var(--center-channel-color-rgb), 0.64);
+    font-style: italic;
+    font-weight: 400;
+}

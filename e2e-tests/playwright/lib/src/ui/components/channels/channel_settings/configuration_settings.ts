@@ -104,6 +104,68 @@ export default class ConfigurationSettings {
         expect((await colorInput.inputValue()).replace('#', '')).toBe(color);
     }
 
+    get bannerTextbox() {
+        return this.container.getByTestId('channel_banner_banner_text_textbox');
+    }
+
+    get bannerTextEditor() {
+        return this.container.getByTestId('bannerTextEditor');
+    }
+
+    get bannerTokenButton() {
+        return this.container.getByTestId('bannerAttributeTokenButton');
+    }
+
+    get bannerTokenPreview() {
+        return this.container.getByTestId('bannerAttributePreview');
+    }
+
+    bannerTokenChip(name: string) {
+        return this.container.getByTestId(`bannerTextEditorChip-${name}`);
+    }
+
+    bannerTokenChipRemove(name: string) {
+        return this.container.getByTestId(`bannerTextEditorChipRemove-${name}`);
+    }
+
+    async typeBannerText(text: string) {
+        await this.bannerTextEditor.click();
+        await this.container.page().keyboard.press('End');
+        await this.container.page().keyboard.type(text);
+    }
+
+    async clearBannerText() {
+        const editor = this.bannerTextEditor;
+        await editor.click();
+        // Keyboard events and execCommand('delete') both honour contenteditable=false
+        // on chip spans and refuse to remove them. Direct DOM removal bypasses that
+        // restriction; the synthetic input event syncs React's emittedRef so the
+        // component does not re-seed the chips from the stale template string.
+        await editor.evaluate((el: HTMLElement) => {
+            while (el.firstChild) {
+                el.removeChild(el.firstChild);
+            }
+            el.dispatchEvent(new InputEvent('input', {bubbles: true, cancelable: false}));
+        });
+        await expect(editor).toHaveText('');
+    }
+
+    async insertBannerToken(name: string) {
+        await expect(this.bannerTokenButton).toBeVisible();
+        await this.bannerTokenButton.click();
+
+        const item = this.container.page().getByTestId(`bannerAttributeToken-${name}`);
+        await expect(item).toBeVisible();
+        await item.click();
+
+        await expect(this.bannerTokenChip(name)).toHaveCount(1);
+    }
+
+    async removeBannerToken(name: string) {
+        await this.container.getByTestId(`bannerTextEditorChipRemove-${name}`).click();
+        await expect(this.bannerTokenChip(name)).toHaveCount(0);
+    }
+
     get shareWithConnectedWorkspacesSection() {
         return this.container.getByText('Share with connected workspaces');
     }

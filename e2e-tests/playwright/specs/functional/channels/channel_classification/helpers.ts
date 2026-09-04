@@ -108,13 +108,17 @@ export async function setupClassificationWithChannelField(
         permission_options: 'admin',
     } as Parameters<Client4['createPropertyField']>[2]);
 
-    // Create channel linked field
+    // Create channel linked field. permission_values must be set (matching how
+    // the admin console creates it) or the server refuses to let anyone,
+    // including the creator, set a value on it.
     const channelField = await adminClient.createPropertyField(PROPERTY_GROUP, CHANNEL_OBJECT_TYPE, {
         name: CHANNEL_LINKED_FIELD_NAME,
         type: 'select',
         target_type: TARGET_TYPE,
         target_id: '',
         linked_field_id: templateField.id,
+        permission_field: 'admin',
+        permission_values: 'admin',
     } as Parameters<Client4['createPropertyField']>[2]);
 
     // Resolve levels with server-assigned IDs

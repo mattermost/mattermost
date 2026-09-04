@@ -2493,6 +2493,25 @@ func TestSessionHasPropertyFieldPermissionAdmin(t *testing.T) {
 			assert.False(t, th.App.SessionHasPermissionToSetPropertyFieldValues(th.Context, channelMember, field, th.BasicChannel.Id))
 		})
 
+		t.Run("channel-object value: team admin of the channel's team passes without a channel role", func(t *testing.T) {
+			// The cascade this relies on is load-bearing for channel attributes: the
+			// System Console offers no setter control, so "admin" is the only tier
+			// they get, and it has to admit the roles above channel admin.
+			field := fieldFor(model.PropertyFieldObjectTypeChannel)
+			_, appErr := th.App.UpdateTeamMemberRoles(th.Context, th.BasicTeam.Id, th.BasicUser.Id,
+				model.TeamUserRoleId+" "+model.TeamAdminRoleId)
+			require.Nil(t, appErr)
+			t.Cleanup(func() {
+				_, _ = th.App.UpdateTeamMemberRoles(th.Context, th.BasicTeam.Id, th.BasicUser.Id, model.TeamUserRoleId)
+			})
+
+			teamAdmin := model.Session{UserId: th.BasicUser.Id, Roles: model.SystemUserRoleId}
+			assert.True(t, th.App.SessionHasPermissionToSetPropertyFieldValues(th.Context, teamAdmin, field, th.BasicChannel.Id))
+
+			sysadmin := model.Session{UserId: th.SystemAdminUser.Id, Roles: model.SystemUserRoleId + " " + model.SystemAdminRoleId}
+			assert.True(t, th.App.SessionHasPermissionToSetPropertyFieldValues(th.Context, sysadmin, field, th.BasicChannel.Id))
+		})
+
 		t.Run("post-object value: post-lookup yields the post's channel admin", func(t *testing.T) {
 			field := fieldFor(model.PropertyFieldObjectTypePost)
 			_, appErr := th.App.UpdateChannelMemberRoles(th.Context, th.BasicChannel.Id, th.BasicUser.Id,
@@ -2593,4 +2612,72 @@ func TestSessionHasPermissionToSetPropertyFieldValues_PostMember(t *testing.T) {
 	assert.True(t, th.App.SessionHasPermissionToSetPropertyFieldValues(th.Context, authorSession, field, post.Id))
 	// Non-author who is also a channel member can set the value.
 	assert.True(t, th.App.SessionHasPermissionToSetPropertyFieldValues(th.Context, nonAuthorSession, field, post.Id))
+}
+
+// Member-level scope access on channel-object values normally means channel
+// membership, but DM/GM values are reserved for the system: they are meant to
+// be derived from the participants' own attributes rather than typed in by a
+// participant.
+func TestSessionHasPermissionToSetPropertyFieldValues_DirectAndGroupChannels(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	groupID := registerTestPropertyGroup(t, th)
+
+	fieldFor := func(level model.PermissionLevel) *model.PropertyField {
+		return &model.PropertyField{
+			GroupID:           groupID,
+			Name:              "channel values " + string(level),
+			Type:              model.PropertyFieldTypeText,
+			ObjectType:        model.PropertyFieldObjectTypeChannel,
+			TargetType:        string(model.PropertyFieldTargetLevelSystem),
+			PermissionField:   model.NewPointer(model.PermissionLevelSysadmin),
+			PermissionValues:  model.NewPointer(level),
+			PermissionOptions: model.NewPointer(model.PermissionLevelSysadmin),
+		}
+	}
+
+	memberField := fieldFor(model.PermissionLevelMember)
+	adminField := fieldFor(model.PermissionLevelAdmin)
+
+	participant := model.Session{UserId: th.BasicUser.Id, Roles: model.SystemUserRoleId}
+	sysadmin := model.Session{UserId: th.SystemAdminUser.Id, Roles: model.SystemUserRoleId + " " + model.SystemAdminRoleId}
+
+	dmChannel := th.CreateDmChannel(t, th.BasicUser2)
+	gmChannel := th.CreateGroupChannel(t, th.BasicUser2, th.SystemAdminUser)
+
+	t.Run("DM: participant cannot set a member-tier value", func(t *testing.T) {
+		assert.False(t, th.App.SessionHasPermissionToSetPropertyFieldValues(th.Context, participant, memberField, dmChannel.Id))
+	})
+
+	t.Run("GM: participant cannot set a member-tier value", func(t *testing.T) {
+		assert.False(t, th.App.SessionHasPermissionToSetPropertyFieldValues(th.Context, participant, memberField, gmChannel.Id))
+	})
+
+	t.Run("DM: participant cannot set an admin-tier value", func(t *testing.T) {
+		assert.False(t, th.App.SessionHasPermissionToSetPropertyFieldValues(th.Context, participant, adminField, dmChannel.Id))
+	})
+
+	t.Run("DM: sysadmin can set a member-tier value", func(t *testing.T) {
+		assert.True(t, th.App.SessionHasPermissionToSetPropertyFieldValues(th.Context, sysadmin, memberField, dmChannel.Id))
+	})
+
+	t.Run("GM: sysadmin can set a member-tier value", func(t *testing.T) {
+		assert.True(t, th.App.SessionHasPermissionToSetPropertyFieldValues(th.Context, sysadmin, memberField, gmChannel.Id))
+	})
+
+	t.Run("public channel: ordinary member can still set a member-tier value", func(t *testing.T) {
+		assert.True(t, th.App.SessionHasPermissionToSetPropertyFieldValues(th.Context, participant, memberField, th.BasicChannel.Id))
+	})
+
+	t.Run("private channel: channel admin can still set a member-tier value", func(t *testing.T) {
+		privateChannel := th.CreatePrivateChannel(t, th.BasicTeam)
+		_, appErr := th.App.AddUserToChannel(th.Context, th.BasicUser, privateChannel, false)
+		require.Nil(t, appErr)
+		_, appErr = th.App.UpdateChannelMemberRoles(th.Context, privateChannel.Id, th.BasicUser.Id,
+			model.ChannelUserRoleId+" "+model.ChannelAdminRoleId)
+		require.Nil(t, appErr)
+
+		assert.True(t, th.App.SessionHasPermissionToSetPropertyFieldValues(th.Context, participant, memberField, privateChannel.Id))
+	})
 }
