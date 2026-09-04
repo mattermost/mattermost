@@ -878,6 +878,19 @@ func (ps *PropertyService) translateLegacyPermissionKeys(rctx request.CTX, field
 		return err
 	}
 
+	// PermissionsFromLegacy does not mint the subsystem grant that create
+	// and ConvertSystemOwnedFields add. Reconversion would otherwise drop it
+	// the first time a legacy-shaped update of a boards/session_attributes/
+	// managed_category builtin looks like a column change.
+	group, gErr := ps.GroupByID(field.GroupID)
+	if gErr != nil {
+		return fmt.Errorf("translateLegacyPermissionKeys: failed to resolve group name: %w", gErr)
+	}
+	if grant := model.SystemOwnedFieldGrant(group.Name, field.Name); grant != nil &&
+		reconverted.MatchingGrant(grant.Type, grant.ID, "", model.PropertyActionFieldWrite) == nil {
+		reconverted.Grants = append(reconverted.Grants, *grant)
+	}
+
 	field.Permissions = reconverted
 	return nil
 }

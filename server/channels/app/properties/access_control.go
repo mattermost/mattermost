@@ -1028,10 +1028,34 @@ func (h *AccessControlHook) permissionsGrantAllows(field *model.PropertyField, c
 // union of the ladder and the caller's user/role grants as one bool, so this
 // function's only job is splitting machine from human.
 func (h *AccessControlHook) permissionsAllows(rctx request.CTX, field *model.PropertyField, callerID, scope, action, valueTargetID string) bool {
-	if callerID == "" {
+	if callerID == "" || field == nil {
 		return false
 	}
+	if h.permissionsAllowsOn(rctx, field, callerID, scope, action, valueTargetID) {
+		return true
+	}
+	// A linked field cannot carry an option.read grant (IsValid refuses it;
+	// conversion strips it). Machine callers are grant-only, so option.read
+	// for a linked field is the grant they hold on the template — the same
+	// identity still "holds option.read by way of its grant on the template
+	// itself" (linkedFieldGrantsFrom). Humans are judged by the linked
+	// field's own option.read tier and must not inherit the template's.
+	if action != model.PropertyActionOptionRead || !h.isMachineCaller(callerID) ||
+		field.LinkedFieldID == nil || *field.LinkedFieldID == "" {
+		return false
+	}
+	template, err := h.propertyService.getPropertyField(rctx, field.GroupID, *field.LinkedFieldID)
+	if err != nil || template == nil || template.Permissions == nil {
+		return false
+	}
+	return h.permissionsAllowsOn(rctx, template, callerID, scope, action, valueTargetID)
+}
+
+func (h *AccessControlHook) permissionsAllowsOn(rctx request.CTX, field *model.PropertyField, callerID, scope, action, valueTargetID string) bool {
 	if h.isMachineCaller(callerID) {
+		if field.Permissions == nil {
+			return false
+		}
 		return h.permissionsGrantAllows(field, callerID, scope, action)
 	}
 	if h.ladderChecker == nil {
