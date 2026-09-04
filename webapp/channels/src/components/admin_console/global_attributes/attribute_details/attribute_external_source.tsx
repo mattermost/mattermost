@@ -205,7 +205,11 @@ function AttributeExternalSource({ldapAttr, samlAttr, fieldType, onLink, disable
                     );
                     return disableAdding ? (
                         <WithTooltip title={formatMessage(messages.disabledWhileAppliesToTooltip)}>
-                            <span data-testid='attributeExternalSourceTriggerLockWrap'>
+                            <span
+                                // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- WithTooltip's useFocus only fires on its cloned child; without this the disabled trigger is unreachable by keyboard, so the tooltip explaining the lock is mouse-only
+                                tabIndex={0}
+                                data-testid='attributeExternalSourceTriggerLockWrap'
+                            >
                                 {trigger}
                             </span>
                         </WithTooltip>

@@ -502,7 +502,7 @@ describe('GlobalAttributesTable', () => {
             });
         });
 
-        it('keeps Edit as Coming soon on a plugin-owned row', async () => {
+        it('enables View (not Edit) and navigates to the edit page for a plugin-owned row (the edit page itself now handles the read-only rendering)', async () => {
             getPropertyFields.mockResolvedValueOnce([makeField({
                 attrs: {source_plugin_id: 'com.example.plugin', protected: true},
             })]).mockResolvedValue([]);
@@ -516,9 +516,44 @@ describe('GlobalAttributesTable', () => {
 
             await userEvent.click(await screen.findByTestId('global-attribute-actions-field-1'));
 
-            const edit = screen.getAllByRole('menuitem').find((el) => el.textContent?.includes('Edit attribute'));
-            expect(edit).toHaveAttribute('aria-disabled', 'true');
-            expect(edit).toHaveTextContent('Coming soon');
+            const menuitems = screen.getAllByRole('menuitem');
+            expect(menuitems.find((el) => el.textContent?.includes('Edit attribute'))).toBeUndefined();
+
+            const view = menuitems.find((el) => el.textContent?.includes('View attribute'));
+            expect(view).not.toHaveAttribute('aria-disabled', 'true');
+            expect(view).not.toHaveTextContent('Coming soon');
+
+            await userEvent.click(view!);
+            await waitFor(() => {
+                expect(mockHistoryPush).toHaveBeenCalledWith('/admin_console/system_attributes/manage_attributes/attribute_details/field-1');
+            });
+        });
+
+        it('leaves Duplicate stubbed and Delete\'s orphan-aware gating unaffected on a plugin-owned row', async () => {
+            getPropertyFields.mockResolvedValueOnce([makeField({
+                attrs: {source_plugin_id: 'com.example.plugin', protected: true},
+            })]).mockResolvedValue([]);
+
+            const state = getBaseState();
+            state.entities!.admin = {
+                pluginStatuses: {'com.example.plugin': {id: 'com.example.plugin'}},
+            } as EntitiesPartial['admin'];
+
+            renderWithContext(<GlobalAttributesTable/>, state);
+
+            await userEvent.click(await screen.findByTestId('global-attribute-actions-field-1'));
+
+            const menuitems = screen.getAllByRole('menuitem');
+            const duplicate = menuitems.find((el) => el.textContent?.includes('Duplicate attribute'));
+            const del = menuitems.find((el) => el.textContent?.includes('Delete attribute'));
+
+            expect(duplicate).toHaveAttribute('aria-disabled', 'true');
+            expect(duplicate).toHaveTextContent('Coming soon');
+
+            // Plugin is installed (pluginStatuses has an entry) -- Delete stays
+            // plugin-managed/disabled, same as before this change.
+            expect(del).toHaveAttribute('aria-disabled', 'true');
+            expect(del).toHaveTextContent('Plugin-managed');
         });
     });
 
