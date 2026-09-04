@@ -1250,8 +1250,6 @@ func TestPreCreateSSOUser(t *testing.T) {
 			AuthService: &authService,
 			AuthData:    authData(ad),
 		}
-		// deactivateMissingUsers must be false here — true causes preCreateSSOUser to
-		// skip fresh creation, defeating the purpose of this subtest.
 		appErr := th.App.preCreateSSOUser(th.Context, data, false)
 		require.Nil(t, appErr)
 
@@ -1331,7 +1329,7 @@ func TestPreCreateSSOUser(t *testing.T) {
 			AuthData:    authData(ad),
 		}
 		appErr := th.App.preCreateSSOUser(th.Context, data, true)
-		require.Nil(t, appErr)
+		require.NotNil(t, appErr, "fresh identity creation should report the username collision")
 
 		unchanged, err := th.App.Srv().Store().User().GetByUsername(destUser.Username)
 		require.NoError(t, err)
@@ -1339,7 +1337,7 @@ func TestPreCreateSSOUser(t *testing.T) {
 		assert.Nil(t, unchanged.AuthData, "unrelated dest account must not gain the source's auth_data")
 	})
 
-	t.Run("skips fresh creation when deactivateMissingUsers is true", func(t *testing.T) {
+	t.Run("creates fresh identity when deactivateMissingUsers is true", func(t *testing.T) {
 		username := model.NewUsername()
 		email := username + "@example.com"
 		ad := model.NewId()
@@ -1353,9 +1351,11 @@ func TestPreCreateSSOUser(t *testing.T) {
 		appErr := th.App.preCreateSSOUser(th.Context, data, true)
 		require.Nil(t, appErr)
 
-		// With deactivateMissingUsers=true, no user should have been created.
-		_, err := th.App.Srv().Store().User().GetByUsername(username)
-		require.Error(t, err, "user should not have been created when deactivateMissingUsers is true")
+		created, err := th.App.Srv().Store().User().GetByUsername(username)
+		require.NoError(t, err)
+		assert.Equal(t, authService, created.AuthService)
+		require.NotNil(t, created.AuthData)
+		assert.Equal(t, ad, *created.AuthData)
 	})
 }
 
@@ -1383,9 +1383,19 @@ func TestCheckpointResume(t *testing.T) {
 		`{"type":"post","post":{"team":"` + teamName + `","channel":"` + channelName + `","user":"` + username + `","message":"after-checkpoint","create_at":200000000002}}`,
 	}, "\n")
 
-	opts := model.BulkImportOpts{ResumeFromLine: 5}
+	var checkpoints []int
+	opts := model.BulkImportOpts{
+		ResumeFromLine: 5,
+		OnCheckpoint: func(lineNumber int) {
+			checkpoints = append(checkpoints, lineNumber)
+		},
+	}
 	_, appErr := th.App.BulkImportWithPathAndOpts(th.Context, strings.NewReader(data), nil, false, false, 1, "", opts)
 	require.Nil(t, appErr)
+	require.NotEmpty(t, checkpoints)
+	for _, checkpoint := range checkpoints {
+		assert.GreaterOrEqual(t, checkpoint, opts.ResumeFromLine, "resumed imports must not persist an earlier checkpoint")
+	}
 
 	// Non-post lines are always re-processed — team, channel, and user must exist.
 	team, appErr := th.App.GetTeamByName(teamName)

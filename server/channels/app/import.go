@@ -20,6 +20,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app/imports"
 	"github.com/mattermost/mattermost/server/v8/channels/app/users"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
 
@@ -382,7 +383,11 @@ func (a *App) bulkImport(rctx request.CTX, jsonlReader io.Reader, attachmentsRea
 				// Checkpoint after each completed segment so a crashed import
 				// can resume without restarting from line 1.
 				if onCheckpoint != nil {
-					onCheckpoint(lineNumber - 1)
+					checkpoint := lineNumber - 1
+					if checkpoint < resumeFromLine {
+						checkpoint = resumeFromLine
+					}
+					onCheckpoint(checkpoint)
 				}
 			}
 
@@ -776,35 +781,38 @@ func (a *App) preCreateSSOUser(rctx request.CTX, data *imports.UserImportData, d
 		return model.NewAppError("preCreateSSOUser", "app.import.pre_create_sso_user.missing_fields.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	// Already exists by auth_data — nothing to do.
-	if _, nErr := a.Srv().Store().User().GetByAuth(data.AuthData, *data.AuthService); nErr == nil {
-		return nil
-	}
-
-	// Scoped migration: source and destination are different instances, so a
-	// username match is not a verified identity match — it's the same reasoning
-	// importUser already applies ("no username fallback... a username match could
-	// silently link content to the wrong account"). Without this check, an
-	// unrelated, currently-active destination account that happens to share a
-	// username with a source user would have its auth_service silently converted
-	// to the source's SSO identity below. Skip straight to the main import pass,
-	// which creates a deactivated shell for genuinely-missing users instead.
-	if deactivateMissingUsers {
+	// Already exists by auth_data — nothing to do. Other lookup failures must
+	// remain visible instead of being treated as a missing identity.
+	if _, nErr := a.Srv().Store().User().GetByAuth(data.AuthData, *data.AuthService); nErr != nil {
+		var nfErr *store.ErrNotFound
+		if !errors.As(nErr, &nfErr) {
+			return model.NewAppError("preCreateSSOUser", "app.user.get_by_auth.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+		}
+	} else {
 		return nil
 	}
 
 	// Exists by username — attach auth_data only if the account has no existing
 	// SSO provider, to avoid overwriting a different auth_service on the destination.
-	if existing, nErr := a.Srv().Store().User().GetByUsername(*data.Username); nErr == nil {
-		if existing.AuthService != "" && existing.AuthService != *data.AuthService {
-			// Account already belongs to a different SSO provider; leave it alone and
-			// let the main import pass handle the conflict.
+	// Scoped migrations skip this unverified username match, but still continue
+	// to the fresh identity creation path below.
+	if !deactivateMissingUsers {
+		if existing, nErr := a.Srv().Store().User().GetByUsername(*data.Username); nErr != nil {
+			var nfErr *store.ErrNotFound
+			if !errors.As(nErr, &nfErr) {
+				return model.NewAppError("preCreateSSOUser", "app.user.get_by_username.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+			}
+		} else {
+			if existing.AuthService != "" && existing.AuthService != *data.AuthService {
+				// Account already belongs to a different SSO provider; leave it alone and
+				// let the main import pass handle the conflict.
+				return nil
+			}
+			if _, uErr := a.Srv().Store().User().UpdateAuthData(existing.Id, *data.AuthService, data.AuthData, existing.Email, false); uErr != nil {
+				return model.NewAppError("preCreateSSOUser", "app.user.update_auth_data.app_error", nil, "", http.StatusInternalServerError).Wrap(uErr)
+			}
 			return nil
 		}
-		if _, uErr := a.Srv().Store().User().UpdateAuthData(existing.Id, *data.AuthService, data.AuthData, existing.Email, false); uErr != nil {
-			return model.NewAppError("preCreateSSOUser", "app.user.update_auth_data.app_error", nil, "", http.StatusInternalServerError).Wrap(uErr)
-		}
-		return nil
 	}
 
 	// Create a minimal user record — main pass fills in profile, teams, prefs.

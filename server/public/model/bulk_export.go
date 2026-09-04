@@ -41,7 +41,9 @@ type BulkImportOpts struct {
 	// OnCheckpoint is called after each segment boundary completes (i.e. after
 	// wg.Wait() drains all workers for that segment type). The argument is the
 	// last line number fully processed. Callers use this to persist a checkpoint
-	// so a failed import can be resumed without restarting from line 1.
+	// so a failed import can be resumed without restarting from line 1. A negative
+	// argument reports the total line count for progress display and must be
+	// handled separately from positive resume checkpoints.
 	// Nil means no checkpointing.
 	OnCheckpoint func(lineNumber int)
 }

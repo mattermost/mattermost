@@ -413,7 +413,7 @@ func (a *App) importUser(rctx request.CTX, data *imports.UserImportData, dryRun 
 					"auth_data match failed during scoped import; creating deactivated shell to preserve posts — review and reactivate manually if needed",
 					mlog.String("username", *data.Username),
 					mlog.String("auth_service", *data.AuthService),
-					mlog.String("auth_data", *data.AuthData),
+					mlog.String("identity_match", "not_found"),
 				)
 				createDeactivated = true
 				user = &model.User{}
@@ -669,39 +669,15 @@ func (a *App) importUser(rctx request.CTX, data *imports.UserImportData, dryRun 
 			case errors.Is(err, users.UserStoreIsEmptyError):
 				return model.NewAppError("importUser", "app.user.store_is_empty.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 			case errors.As(err, &invErr):
-				// A shell couldn't be created because the email/username is already taken by
-				// a different account on the destination. During a scoped import this is not
-				// fatal (see stopOnError) — record a remap so posts/reactions/replies that
-				// reference the source username are attributed to that existing account
-				// instead of being silently dropped as "user not found".
-				//
-				// LIMITATION: the "email" case below infers identity from an email collision
-				// alone, which is a weaker signal than auth_data or an exact username match —
-				// email addresses can be reused, shared, or duplicated in messy source data.
-				// If the destination account isn't actually the same person, their content
-				// will be misattributed rather than dropped. Warn loudly so this is reviewable.
-				if deactivateMissingUsers && report != nil {
-					switch invErr.Field {
-					case "email":
-						if existing, getErr := a.Srv().Store().User().GetByEmail(*data.Email); getErr == nil {
-							rctx.Logger().Warn(
-								"Scoped import: attributing source user's content to an unrelated destination account matched by email collision alone — this is not a verified identity match and may misattribute content if the email was reused or shared",
-								mlog.String("source_username", *data.Username),
-								mlog.String("matched_dest_username", existing.Username),
-								mlog.String("email", *data.Email),
-							)
-							report.Remap.Add(*data.Username, existing.Username)
-						}
-					case "username":
-						if existing, getErr := a.Srv().Store().User().GetByUsername(*data.Username); getErr == nil {
-							rctx.Logger().Warn(
-								"Scoped import: attributing source user's content to an unrelated destination account matched by username collision alone — this is not a verified identity match and may misattribute content if the username is coincidentally shared across instances",
-								mlog.String("source_username", *data.Username),
-								mlog.String("matched_dest_username", existing.Username),
-							)
-							report.Remap.Add(*data.Username, existing.Username)
-						}
-					}
+				// A uniqueness collision does not verify that the destination account
+				// belongs to the source user. Leave the user unresolved instead of
+				// remapping their content to an unrelated account.
+				if deactivateMissingUsers {
+					rctx.Logger().Warn(
+						"Scoped import could not create an inactive user shell; leaving the source user unresolved",
+						mlog.String("source_username", *data.Username),
+						mlog.String("conflict_field", invErr.Field),
+					)
 				}
 				switch invErr.Field {
 				case "email":
@@ -1541,9 +1517,19 @@ func (a *App) importReaction(rctx request.CTX, data *imports.ReactionImportData,
 	var user *model.User
 	var nErr error
 	if user, nErr = a.Srv().Store().User().GetByUsername(*data.User); nErr != nil {
+		var nfErr *store.ErrNotFound
+		if !errors.As(nErr, &nfErr) {
+			return model.NewAppError("importReaction", "app.user.get_by_username.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+		}
 		if report != nil {
 			if destUsername, ok := report.Remap.Lookup(*data.User); ok {
 				user, nErr = a.Srv().Store().User().GetByUsername(destUsername)
+				if nErr != nil {
+					var remapNfErr *store.ErrNotFound
+					if !errors.As(nErr, &remapNfErr) {
+						return model.NewAppError("importReaction", "app.user.get_by_username.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+					}
+				}
 			}
 		}
 	}
@@ -1953,15 +1939,16 @@ func (a *App) getUsersByUsernames(usernames []string, deactivateMissingUsers boo
 		}
 		if len(missedDest) > 0 {
 			remapped, rErr := a.Srv().Store().User().GetProfilesByUsernames(missedDest, nil)
-			if rErr == nil {
-				destToUser := make(map[string]*model.User, len(remapped))
-				for _, u := range remapped {
-					destToUser[strings.ToLower(u.Username)] = u
-				}
-				for i, lowerSrc := range missedSrc {
-					if u, ok := destToUser[strings.ToLower(missedDest[i])]; ok {
-						users[lowerSrc] = u
-					}
+			if rErr != nil {
+				return nil, model.NewAppError("BulkImport", "app.import.get_users_by_username.some_users_not_found.error", nil, "", http.StatusInternalServerError).Wrap(rErr)
+			}
+			destToUser := make(map[string]*model.User, len(remapped))
+			for _, u := range remapped {
+				destToUser[strings.ToLower(u.Username)] = u
+			}
+			for i, lowerSrc := range missedSrc {
+				if u, ok := destToUser[strings.ToLower(missedDest[i])]; ok {
+					users[lowerSrc] = u
 				}
 			}
 		}
@@ -2025,10 +2012,12 @@ func (a *App) getChannelsByNames(names []string, teamID string) (map[string]*mod
 // getChannelsForPosts returns map[teamName]map[channelName]*model.Channel
 func (a *App) getChannelsForPosts(teams map[string]*model.Team, data []*imports.PostImportData, deactivateMissingUsers bool) (map[string]map[string]*model.Channel, *model.AppError) {
 	teamChannels := make(map[string]map[string]*model.Channel)
+	unavailableTeamChannels := make(map[string]map[string]struct{})
 	for _, postData := range data {
 		teamName := strings.ToLower(*postData.Team)
 		if _, ok := teamChannels[teamName]; !ok {
 			teamChannels[teamName] = make(map[string]*model.Channel)
+			unavailableTeamChannels[teamName] = make(map[string]struct{})
 		}
 		team := teams[teamName]
 		if team == nil {
@@ -2036,7 +2025,10 @@ func (a *App) getChannelsForPosts(teams map[string]*model.Team, data []*imports.
 			continue
 		}
 		channelName := strings.ToLower(*postData.Channel)
-		if channel, ok := teamChannels[teamName][channelName]; !ok || channel == nil {
+		if _, unavailable := unavailableTeamChannels[teamName][channelName]; unavailable {
+			continue
+		}
+		if _, ok := teamChannels[teamName][channelName]; !ok {
 			channel, err := a.Srv().Store().Channel().GetByNameIncludeDeleted(team.Id, *postData.Channel, true)
 			if err != nil {
 				var nfErr *store.ErrNotFound
@@ -2046,9 +2038,14 @@ func (a *App) getChannelsForPosts(teams map[string]*model.Team, data []*imports.
 					// between runs). Caller will nil-check and skip the post, same
 					// as a missing team or user — a full/non-scoped import still
 					// treats this as a hard data-integrity error below.
+					unavailableTeamChannels[teamName][channelName] = struct{}{}
 					continue
 				}
 				return nil, model.NewAppError("BulkImport", "app.import.import_post.channel_not_found.error", map[string]any{"ChannelName": *postData.Channel}, "", http.StatusBadRequest).Wrap(err)
+			}
+			if deactivateMissingUsers && channel.DeleteAt != 0 {
+				unavailableTeamChannels[teamName][channelName] = struct{}{}
+				continue
 			}
 			teamChannels[teamName][channelName] = channel
 		}
@@ -3051,6 +3048,10 @@ func (a *App) extractThreadMembers(rctx request.CTX, line *imports.LineImportWor
 			var uErr error
 			user, uErr = a.Srv().Store().User().GetByUsername(lookupUsername)
 			if uErr != nil {
+				var nfErr *store.ErrNotFound
+				if !errors.As(uErr, &nfErr) {
+					return nil, line.LineNumber, model.NewAppError("extractThreadMembers", "app.user.get_by_username.app_error", nil, "", http.StatusInternalServerError).Wrap(uErr)
+				}
 				if deactivateMissingUsers {
 					rctx.Logger().Warn("Skipping thread follower not found on destination during scoped import", mlog.String("username", *member.User))
 					continue

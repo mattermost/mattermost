@@ -57,9 +57,9 @@ func channelScopedJSONL(t *testing.T, teamName, chanName string, postAuthors []s
 	require.NoError(t, enc.Encode(imports.LineImportData{
 		Type: "team",
 		Team: &imports.TeamImportData{
-			Name:        new(teamName),
-			DisplayName: new("Mig Test Team"),
-			Type:        new("O"),
+			Name:        model.NewPointer(teamName),
+			DisplayName: model.NewPointer("Mig Test Team"),
+			Type:        model.NewPointer("O"),
 		},
 	}))
 
@@ -67,9 +67,9 @@ func channelScopedJSONL(t *testing.T, teamName, chanName string, postAuthors []s
 	require.NoError(t, enc.Encode(imports.LineImportData{
 		Type: "channel",
 		Channel: &imports.ChannelImportData{
-			Team:        new(teamName),
-			Name:        new(chanName),
-			DisplayName: new("Mig Test Chan"),
+			Team:        model.NewPointer(teamName),
+			Name:        model.NewPointer(chanName),
+			DisplayName: model.NewPointer("Mig Test Chan"),
 			Type:        &chanType,
 		},
 	}))
@@ -78,11 +78,11 @@ func channelScopedJSONL(t *testing.T, teamName, chanName string, postAuthors []s
 		require.NoError(t, enc.Encode(imports.LineImportData{
 			Type: "user",
 			User: &imports.UserImportData{
-				Username: new(uname),
-				Email:    new(uname + "@mig-test.example.com"),
+				Username: model.NewPointer(uname),
+				Email:    model.NewPointer(uname + "@mig-test.example.com"),
 				Teams: &[]imports.UserTeamImportData{{
-					Name:     new(teamName),
-					Channels: &[]imports.UserChannelImportData{{Name: new(chanName)}},
+					Name:     model.NewPointer(teamName),
+					Channels: &[]imports.UserChannelImportData{{Name: model.NewPointer(chanName)}},
 				}},
 			},
 		}))
@@ -94,10 +94,10 @@ func channelScopedJSONL(t *testing.T, teamName, chanName string, postAuthors []s
 		require.NoError(t, enc.Encode(imports.LineImportData{
 			Type: "post",
 			Post: &imports.PostImportData{
-				Team:     new(teamName),
-				Channel:  new(chanName),
-				User:     new(uname),
-				Message:  new("Hello from " + uname),
+				Team:     model.NewPointer(teamName),
+				Channel:  model.NewPointer(chanName),
+				User:     model.NewPointer(uname),
+				Message:  model.NewPointer("Hello from " + uname),
 				CreateAt: &tsLocal,
 			},
 		}))
@@ -406,9 +406,9 @@ func TestFullTeamImportErrorsOnMissingUser(t *testing.T) {
 	require.NoError(t, enc.Encode(imports.LineImportData{
 		Type: "team",
 		Team: &imports.TeamImportData{
-			Name:        new(teamName),
-			DisplayName: new("Strict Team"),
-			Type:        new("O"),
+			Name:        model.NewPointer(teamName),
+			DisplayName: model.NewPointer("Strict Team"),
+			Type:        model.NewPointer("O"),
 		},
 	}))
 
@@ -416,9 +416,9 @@ func TestFullTeamImportErrorsOnMissingUser(t *testing.T) {
 	require.NoError(t, enc.Encode(imports.LineImportData{
 		Type: "channel",
 		Channel: &imports.ChannelImportData{
-			Team:        new(teamName),
-			Name:        new(chanName),
-			DisplayName: new("Strict Chan"),
+			Team:        model.NewPointer(teamName),
+			Name:        model.NewPointer(chanName),
+			DisplayName: model.NewPointer("Strict Chan"),
 			Type:        &chanType,
 		},
 	}))
@@ -428,10 +428,10 @@ func TestFullTeamImportErrorsOnMissingUser(t *testing.T) {
 	require.NoError(t, enc.Encode(imports.LineImportData{
 		Type: "post",
 		Post: &imports.PostImportData{
-			Team:     new(teamName),
-			Channel:  new(chanName),
-			User:     new(model.NewUsername()),
-			Message:  new("ghost message"),
+			Team:     model.NewPointer(teamName),
+			Channel:  model.NewPointer(chanName),
+			User:     model.NewPointer(model.NewUsername()),
+			Message:  model.NewPointer("ghost message"),
 			CreateAt: &ts,
 		},
 	}))
@@ -471,11 +471,11 @@ func TestDestinationTeamNameErrorsOnUnscopedMultiTeamExport(t *testing.T) {
 	}))
 	require.NoError(t, enc.Encode(imports.LineImportData{
 		Type: "team",
-		Team: &imports.TeamImportData{Name: new(team1Name), DisplayName: new("Team One"), Type: new("O")},
+		Team: &imports.TeamImportData{Name: model.NewPointer(team1Name), DisplayName: model.NewPointer("Team One"), Type: model.NewPointer("O")},
 	}))
 	require.NoError(t, enc.Encode(imports.LineImportData{
 		Type: "team",
-		Team: &imports.TeamImportData{Name: new(team2Name), DisplayName: new("Team Two"), Type: new("O")},
+		Team: &imports.TeamImportData{Name: model.NewPointer(team2Name), DisplayName: model.NewPointer("Team Two"), Type: model.NewPointer("O")},
 	}))
 
 	_, appErr := th.App.BulkImportWithPathAndOpts(
@@ -940,12 +940,12 @@ func TestChannelImportReplyFromMissingUserSkipped(t *testing.T) {
 	}))
 	require.NoError(t, enc.Encode(imports.LineImportData{
 		Type: "team",
-		Team: &imports.TeamImportData{Name: new(teamName), DisplayName: new("T"), Type: new("O")},
+		Team: &imports.TeamImportData{Name: model.NewPointer(teamName), DisplayName: model.NewPointer("T"), Type: model.NewPointer("O")},
 	}))
 	chanType := model.ChannelTypeOpen
 	require.NoError(t, enc.Encode(imports.LineImportData{
 		Type:    "channel",
-		Channel: &imports.ChannelImportData{Team: new(teamName), Name: new(chanName), DisplayName: new("C"), Type: &chanType},
+		Channel: &imports.ChannelImportData{Team: model.NewPointer(teamName), Name: model.NewPointer(chanName), DisplayName: model.NewPointer("C"), Type: &chanType},
 	}))
 
 	// Post from alice with a reply from ghost-user (who does not exist on dest).
@@ -955,10 +955,10 @@ func TestChannelImportReplyFromMissingUserSkipped(t *testing.T) {
 	require.NoError(t, enc.Encode(imports.LineImportData{
 		Type: "post",
 		Post: &imports.PostImportData{
-			Team: new(teamName), Channel: new(chanName), User: new(aliceUsername),
-			Message: new("root post"), CreateAt: &ts,
+			Team: model.NewPointer(teamName), Channel: model.NewPointer(chanName), User: model.NewPointer(aliceUsername),
+			Message: model.NewPointer("root post"), CreateAt: &ts,
 			Replies: &[]imports.ReplyImportData{{
-				User: new(ghostUsername), Message: new("ghost reply"), CreateAt: &replyTs,
+				User: model.NewPointer(ghostUsername), Message: model.NewPointer("ghost reply"), CreateAt: &replyTs,
 			}},
 		},
 	}))
@@ -1009,12 +1009,12 @@ func TestChannelImportPostForMissingChannelSkipped(t *testing.T) {
 	}))
 	require.NoError(t, enc.Encode(imports.LineImportData{
 		Type: "team",
-		Team: &imports.TeamImportData{Name: new(teamName), DisplayName: new("T"), Type: new("O")},
+		Team: &imports.TeamImportData{Name: model.NewPointer(teamName), DisplayName: model.NewPointer("T"), Type: model.NewPointer("O")},
 	}))
 	chanType := model.ChannelTypeOpen
 	require.NoError(t, enc.Encode(imports.LineImportData{
 		Type:    "channel",
-		Channel: &imports.ChannelImportData{Team: new(teamName), Name: new(realChanName), DisplayName: new("Real"), Type: &chanType},
+		Channel: &imports.ChannelImportData{Team: model.NewPointer(teamName), Name: model.NewPointer(realChanName), DisplayName: model.NewPointer("Real"), Type: &chanType},
 	}))
 
 	// Note: no "channel" line for ghostChanName — it will never exist on the destination.
@@ -1022,16 +1022,16 @@ func TestChannelImportPostForMissingChannelSkipped(t *testing.T) {
 	require.NoError(t, enc.Encode(imports.LineImportData{
 		Type: "post",
 		Post: &imports.PostImportData{
-			Team: new(teamName), Channel: new(ghostChanName), User: new(username),
-			Message: new("post in a channel that doesn't exist on dest"), CreateAt: &ts,
+			Team: model.NewPointer(teamName), Channel: model.NewPointer(ghostChanName), User: model.NewPointer(username),
+			Message: model.NewPointer("post in a channel that doesn't exist on dest"), CreateAt: &ts,
 		},
 	}))
 	ts2 := ts + 1000
 	require.NoError(t, enc.Encode(imports.LineImportData{
 		Type: "post",
 		Post: &imports.PostImportData{
-			Team: new(teamName), Channel: new(realChanName), User: new(username),
-			Message: new("post in the real channel"), CreateAt: &ts2,
+			Team: model.NewPointer(teamName), Channel: model.NewPointer(realChanName), User: model.NewPointer(username),
+			Message: model.NewPointer("post in the real channel"), CreateAt: &ts2,
 		},
 	}))
 
@@ -1080,12 +1080,12 @@ func TestChannelImportSkipsLastAdminDemotion(t *testing.T) {
 	}))
 	require.NoError(t, enc.Encode(imports.LineImportData{
 		Type: "team",
-		Team: &imports.TeamImportData{Name: new(teamName), DisplayName: new("T"), Type: new("O")},
+		Team: &imports.TeamImportData{Name: model.NewPointer(teamName), DisplayName: model.NewPointer("T"), Type: model.NewPointer("O")},
 	}))
 	chanType := model.ChannelTypeOpen
 	require.NoError(t, enc.Encode(imports.LineImportData{
 		Type:    "channel",
-		Channel: &imports.ChannelImportData{Team: new(teamName), Name: new(chanName), DisplayName: new("C"), Type: &chanType},
+		Channel: &imports.ChannelImportData{Team: model.NewPointer(teamName), Name: model.NewPointer(chanName), DisplayName: model.NewPointer("C"), Type: &chanType},
 	}))
 
 	// The source's line for this username carries only system_user — no
@@ -1096,7 +1096,7 @@ func TestChannelImportSkipsLastAdminDemotion(t *testing.T) {
 	require.NoError(t, enc.Encode(imports.LineImportData{
 		Type: "user",
 		User: &imports.UserImportData{
-			Username: &adminUsername, Email: &adminEmail, Roles: new("system_user"),
+			Username: &adminUsername, Email: &adminEmail, Roles: model.NewPointer("system_user"),
 		},
 	}))
 
@@ -1104,8 +1104,8 @@ func TestChannelImportSkipsLastAdminDemotion(t *testing.T) {
 	require.NoError(t, enc.Encode(imports.LineImportData{
 		Type: "post",
 		Post: &imports.PostImportData{
-			Team: new(teamName), Channel: new(chanName), User: new(otherUsername),
-			Message: new("a post from someone else, later in the file"), CreateAt: &ts,
+			Team: model.NewPointer(teamName), Channel: model.NewPointer(chanName), User: model.NewPointer(otherUsername),
+			Message: model.NewPointer("a post from someone else, later in the file"), CreateAt: &ts,
 		},
 	}))
 
@@ -1156,24 +1156,24 @@ func TestChannelImportPreservesSourceDeleteAt(t *testing.T) {
 	}))
 	require.NoError(t, enc.Encode(imports.LineImportData{
 		Type: "team",
-		Team: &imports.TeamImportData{Name: new(teamName), DisplayName: new("T"), Type: new("O")},
+		Team: &imports.TeamImportData{Name: model.NewPointer(teamName), DisplayName: model.NewPointer("T"), Type: model.NewPointer("O")},
 	}))
 	chanType := model.ChannelTypeOpen
 	require.NoError(t, enc.Encode(imports.LineImportData{
 		Type:    "channel",
-		Channel: &imports.ChannelImportData{Team: new(teamName), Name: new(chanName), DisplayName: new("C"), Type: &chanType},
+		Channel: &imports.ChannelImportData{Team: model.NewPointer(teamName), Name: model.NewPointer(chanName), DisplayName: model.NewPointer("C"), Type: &chanType},
 	}))
 
 	deleteAt := sourceDeleteAt
 	require.NoError(t, enc.Encode(imports.LineImportData{
 		Type: "user",
 		User: &imports.UserImportData{
-			Username: new(username),
-			Email:    new(username + "@mig-test.example.com"),
+			Username: model.NewPointer(username),
+			Email:    model.NewPointer(username + "@mig-test.example.com"),
 			DeleteAt: &deleteAt,
 			Teams: &[]imports.UserTeamImportData{{
-				Name:     new(teamName),
-				Channels: &[]imports.UserChannelImportData{{Name: new(chanName)}},
+				Name:     model.NewPointer(teamName),
+				Channels: &[]imports.UserChannelImportData{{Name: model.NewPointer(chanName)}},
 			}},
 		},
 	}))
@@ -1182,8 +1182,8 @@ func TestChannelImportPreservesSourceDeleteAt(t *testing.T) {
 	require.NoError(t, enc.Encode(imports.LineImportData{
 		Type: "post",
 		Post: &imports.PostImportData{
-			Team: new(teamName), Channel: new(chanName), User: new(username),
-			Message: new("hello"), CreateAt: &ts,
+			Team: model.NewPointer(teamName), Channel: model.NewPointer(chanName), User: model.NewPointer(username),
+			Message: model.NewPointer("hello"), CreateAt: &ts,
 		},
 	}))
 
@@ -1631,9 +1631,9 @@ func TestRewriteTeamNameSetsDisplayNameToSlug(t *testing.T) {
 	line := &imports.LineImportData{
 		Type: "team",
 		Team: &imports.TeamImportData{
-			Name:        new(srcName),
-			DisplayName: new("Large Team (20k)"),
-			Type:        new("O"),
+			Name:        model.NewPointer(srcName),
+			DisplayName: model.NewPointer("Large Team (20k)"),
+			Type:        model.NewPointer("O"),
 		},
 	}
 	rewriteTeamName(line, srcName, destName)
@@ -1656,9 +1656,9 @@ func TestRewriteTeamNameHyphenatedSlugUsedAsDisplayName(t *testing.T) {
 	line := &imports.LineImportData{
 		Type: "team",
 		Team: &imports.TeamImportData{
-			Name:        new(srcName),
-			DisplayName: new("Large Team (20k)"),
-			Type:        new("O"),
+			Name:        model.NewPointer(srcName),
+			DisplayName: model.NewPointer("Large Team (20k)"),
+			Type:        model.NewPointer("O"),
 		},
 	}
 	rewriteTeamName(line, srcName, destName)
@@ -1680,9 +1680,9 @@ func TestRewriteTeamNameMultiSegmentSlugUsedAsDisplayName(t *testing.T) {
 	line := &imports.LineImportData{
 		Type: "team",
 		Team: &imports.TeamImportData{
-			Name:        new(srcName),
-			DisplayName: new("Large Team"),
-			Type:        new("O"),
+			Name:        model.NewPointer(srcName),
+			DisplayName: model.NewPointer("Large Team"),
+			Type:        model.NewPointer("O"),
 		},
 	}
 	rewriteTeamName(line, srcName, destName)
@@ -1703,9 +1703,9 @@ func TestRewriteTeamNameNoopWhenNameDoesNotMatch(t *testing.T) {
 	line := &imports.LineImportData{
 		Type: "team",
 		Team: &imports.TeamImportData{
-			Name:        new(originalName),
-			DisplayName: new(originalDisplay),
-			Type:        new("O"),
+			Name:        model.NewPointer(originalName),
+			DisplayName: model.NewPointer(originalDisplay),
+			Type:        model.NewPointer("O"),
 		},
 	}
 	rewriteTeamName(line, "large-team", "engineering")
