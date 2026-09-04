@@ -60,7 +60,7 @@ describe('components/sidebar/sidebar_category', () => {
     };
 
     // Wrapper component to provide DragDropContext and Droppable
-    const renderWithDnd = (component: React.ReactElement) => {
+    const renderWithDnd = (component: React.ReactElement<any>) => {
         const onDragEnd = () => {};
         return renderWithContext(
             <DragDropContext onDragEnd={onDragEnd}>

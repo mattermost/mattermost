@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {isValidElement} from 'react';
+import React, {isValidElement, type JSX} from 'react';
 import {NavLink} from 'react-router-dom';
 
 type Props = {

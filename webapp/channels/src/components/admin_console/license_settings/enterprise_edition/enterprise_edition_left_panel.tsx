@@ -3,7 +3,7 @@
 
 import classNames from 'classnames';
 import React, {useEffect, useState} from 'react';
-import type {RefObject} from 'react';
+import type {JSX, RefObject} from 'react';
 import {FormattedDate, FormattedMessage, FormattedNumber, FormattedTime, defineMessage, defineMessages, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
