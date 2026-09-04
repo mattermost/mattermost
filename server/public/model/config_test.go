@@ -1025,13 +1025,12 @@ func TestTeamSettingsDefaultMaxUsersPerTeam(t *testing.T) {
 	t.Run("configured value is preserved", func(t *testing.T) {
 		c1 := Config{
 			TeamSettings: TeamSettings{
-				MaxUsersPerTeam: new(50),
+				MaxUsersPerTeam: new(7),
 			},
 		}
 		c1.SetDefaults()
 
-		require.NotNil(t, c1.TeamSettings.MaxUsersPerTeam)
-		require.Equal(t, 50, *c1.TeamSettings.MaxUsersPerTeam)
+		require.Equal(t, 7, *c1.TeamSettings.MaxUsersPerTeam)
 	})
 }
 
