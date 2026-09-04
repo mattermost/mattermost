@@ -63,6 +63,35 @@ func getV2Group(c *Context, callerName string) *model.PropertyGroup {
 	return group
 }
 
+// resolvePropertyGroupParam reads the includePropertyGroups query parameter and resolves it to a
+// property group ID. Returns "" when the parameter is absent, which callers pass straight through to
+// PreparePostForClientOpts as "do not hydrate". On any validation failure it sets c.Err, so callers
+// check that rather than the returned value.
+func resolvePropertyGroupParam(c *Context, r *http.Request) string {
+	raw := r.URL.Query().Get("includePropertyGroups")
+	if raw == "" {
+		return ""
+	}
+
+	// The parameter is plural and comma-separated for forward compatibility, but hydrating more
+	// than one group per request is not supported yet. Reject rather than silently taking the
+	// first, which would return a body that does not match what was asked for.
+	names := strings.Split(raw, ",")
+	if len(names) != 1 || strings.TrimSpace(names[0]) == "" {
+		c.Err = model.NewAppError("resolvePropertyGroupParam", "api.post.property_groups.too_many.app_error",
+			nil, "", http.StatusBadRequest)
+		return ""
+	}
+
+	c.Params.GroupName = strings.TrimSpace(names[0])
+	group := getV2Group(c, "resolvePropertyGroupParam")
+	if group == nil {
+		return ""
+	}
+
+	return group.ID
+}
+
 func createPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequireGroupName().RequireObjectType()
 	if c.Err != nil {

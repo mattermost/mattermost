@@ -3179,6 +3179,10 @@
     "translation": "The number of Post IDs received has exceeded the maximum size of {{.MaxLength}}"
   },
   {
+    "id": "api.post.property_groups.too_many.app_error",
+    "translation": "Only one property group can be requested at a time."
+  },
+  {
     "id": "api.post.reveal_post.cannot_reveal_own_post.app_error",
     "translation": "You cannot reveal your own burn-on-read post."
   },
@@ -8445,6 +8449,14 @@
     "translation": "Failed to permanently delete post."
   },
   {
+    "id": "app.post.property_values.field_bound_exceeded.app_error",
+    "translation": "The number of attributes that apply to this post exceeds the supported limit."
+  },
+  {
+    "id": "app.post.property_values.value_bound_exceeded.app_error",
+    "translation": "The number of attribute values for these posts exceeds the supported limit."
+  },
+  {
     "id": "app.post.restore_post_version.get_single.app_error",
     "translation": "Failed to get the old post version."
   },
@@ -8627,6 +8639,10 @@
   {
     "id": "app.property_field.create.protected.app_error",
     "translation": "Cannot create a protected property field."
+  },
+  {
+    "id": "app.property_field.create.target_limit_reached.app_error",
+    "translation": "The maximum number of property fields for this target has been reached."
   },
   {
     "id": "app.property_field.create.template_cannot_be_linked.app_error",

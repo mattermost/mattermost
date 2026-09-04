@@ -48,7 +48,7 @@ func TestPreparePostListForClient(t *testing.T) {
 		postList.AddPost(&model.Post{})
 	}
 
-	clientPostList := th.App.PreparePostListForClient(th.Context, postList)
+	clientPostList := th.App.PreparePostListForClient(th.Context, postList, nil)
 
 	t.Run("doesn't mutate provided post list", func(t *testing.T) {
 		assert.NotEqual(t, clientPostList, postList, "should've returned a new post list")

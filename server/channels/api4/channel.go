@@ -1124,7 +1124,7 @@ func getPinnedPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	clientPostList := c.App.PreparePostListForClient(c.AppContext, posts)
+	clientPostList := c.App.PreparePostListForClient(c.AppContext, posts, nil)
 	clientPostList, isMemberForAllPreviews, err := c.App.SanitizePostListMetadataForUser(c.AppContext, clientPostList, c.AppContext.Session().UserId)
 	if err != nil {
 		c.Err = err

@@ -11046,11 +11046,11 @@ func (s *RetryLayerPropertyValueStore) GetMany(groupID string, ids []string) ([]
 
 }
 
-func (s *RetryLayerPropertyValueStore) SearchPropertyValues(opts model.PropertyValueSearchOpts) ([]*model.PropertyValue, error) {
+func (s *RetryLayerPropertyValueStore) SearchPropertyValues(rctx request.CTX, opts model.PropertyValueSearchOpts) ([]*model.PropertyValue, error) {
 
 	tries := 0
 	for {
-		result, err := s.PropertyValueStore.SearchPropertyValues(opts)
+		result, err := s.PropertyValueStore.SearchPropertyValues(rctx, opts)
 		if err == nil {
 			return result, nil
 		}
