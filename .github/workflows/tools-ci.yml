@@ -42,9 +42,6 @@ jobs:
       - name: Run check-style
         run: make check-style
 
-  # Each tool under tools/ is its own Go module, so the server and mmctl suites
-  # cannot reach them. Add a module to these matrices when it grows its first
-  # test or lint config, or neither will run anywhere.
   test:
     name: Test (${{ matrix.tool }})
     runs-on: ubuntu-22.04
