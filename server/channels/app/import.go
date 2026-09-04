@@ -383,10 +383,7 @@ func (a *App) bulkImport(rctx request.CTX, jsonlReader io.Reader, attachmentsRea
 				// Checkpoint after each completed segment so a crashed import
 				// can resume without restarting from line 1.
 				if onCheckpoint != nil {
-					checkpoint := lineNumber - 1
-					if checkpoint < resumeFromLine {
-						checkpoint = resumeFromLine
-					}
+					checkpoint := max(lineNumber-1, resumeFromLine)
 					onCheckpoint(checkpoint)
 				}
 			}
