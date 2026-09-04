@@ -846,18 +846,18 @@ func (ps *PropertyService) translateLegacyPermissionKeys(field, existing *model.
 		return nil
 	}
 
-	if !legacyPermissionKeysChanged(field, existing) {
+	convertAttrs, err := ps.groupConvertsAttrs(field.GroupID)
+	if err != nil {
+		return fmt.Errorf("translateLegacyPermissionKeys: %w", err)
+	}
+
+	if !legacyPermissionKeysChanged(field, existing, convertAttrs) {
 		// A v2 caller's whole-object update always carries these columns back
 		// exactly as read, so "unchanged from what's stored" and "unchanged
 		// from what the caller was shown" are the same question. A pure v3
 		// caller that never sets a legacy column or attr compares as
 		// unchanged too, by the same rule: there is nothing to diff against.
 		return nil
-	}
-
-	convertAttrs, err := ps.groupConvertsAttrs(field.GroupID)
-	if err != nil {
-		return fmt.Errorf("translateLegacyPermissionKeys: %w", err)
 	}
 
 	opts := model.LegacyConversionOpts{ConvertAttrs: convertAttrs}
@@ -881,31 +881,43 @@ func (ps *PropertyService) translateLegacyPermissionKeys(field, existing *model.
 // legacyPermissionKeysChanged reports whether field's legacy-shaped
 // permission keys -- Protected, the three permission levels, the sync-source
 // attrs, and the protected/owners/access_mode attrs -- differ from what is
-// already stored on existing. Compared against the raw stored columns rather
-// than a value re-derived from existing.Permissions: field.Protected and the
-// three permission-level columns are independent inputs to PermissionsFromLegacy,
-// not outputs of it, and the owners attr can carry fewer entries than
-// ProjectLegacyPermissions would report for the same field once a source
-// plugin, a sync lock or the ambient-access wildcard has added a grant of its
-// own -- comparing against those synthetic entries would report "changed"
-// for a caller that never touched the owners list at all.
+// already stored on existing.
+//
+// Protected and the three permission-level columns are no longer selected
+// from the store, so existing.Protected / Permission* are always the zero
+// value after a load. PermissionValues is compared against
+// ProjectLegacyPermissions(existing) instead: that is the v2 view a caller
+// was shown and would echo back. Protected, PermissionField and
+// PermissionOptions are only compared that way when this group's update
+// hook does not pin Field/Options to sysadmin first -- that pin would
+// otherwise make every protected-field update look like a column change.
+// The owners / access_mode / protected / sync-source attrs are still stored,
+// and are compared against existing.Attrs rather than the projection -- the
+// owners attr can carry fewer entries than ProjectLegacyPermissions would
+// report once a source plugin, a sync lock or the ambient-access wildcard
+// has added a grant of its own, and comparing against those synthetic
+// entries would report "changed" for a caller that never touched the owners
+// list at all.
 //
 // A submitted permission-level pointer of nil never counts as a change: a v2
 // caller's whole-object update always carries a real value here (every v2
 // create pins all three before the row is ever written), so nil only means a
 // caller that never speaks the legacy shape, and there is no legitimate way
 // to ask "clear this column" through this path.
-func legacyPermissionKeysChanged(field, existing *model.PropertyField) bool {
-	if field.Protected != existing.Protected {
-		return true
+func legacyPermissionKeysChanged(field, existing *model.PropertyField, columnsPinned bool) bool {
+	projected := model.ProjectLegacyPermissions(existing)
+	if !columnsPinned {
+		if field.Protected != projected.Protected {
+			return true
+		}
+		if permissionLevelPtrChanged(field.PermissionField, projected.PermissionField) {
+			return true
+		}
+		if permissionLevelPtrChanged(field.PermissionOptions, projected.PermissionOptions) {
+			return true
+		}
 	}
-	if permissionLevelPtrChanged(field.PermissionField, existing.PermissionField) {
-		return true
-	}
-	if permissionLevelPtrChanged(field.PermissionValues, existing.PermissionValues) {
-		return true
-	}
-	if permissionLevelPtrChanged(field.PermissionOptions, existing.PermissionOptions) {
+	if permissionLevelPtrChanged(field.PermissionValues, projected.PermissionValues) {
 		return true
 	}
 	if legacyAttrString(field.Attrs, model.PropertyAttrsAccessMode) != legacyAttrString(existing.Attrs, model.PropertyAttrsAccessMode) {
@@ -958,9 +970,9 @@ func legacyAttrBool(attrs model.StringInterface, key string) bool {
 // columns: a field converted straight from a typed permissions object, with
 // no legacy columns of its own, still needs a caller's echoed-back read to
 // compare as unchanged. legacyPermissionKeysChanged answers a different
-// question (has anything legacy been asked to change at all, decided against
-// the raw columns) for deciding whether to reconvert Permissions, and is
-// deliberately not reused here for that reason.
+// question (has anything legacy been asked to change at all) for deciding
+// whether to reconvert Permissions, and is deliberately not reused here for
+// that reason.
 func legacyValidatorGates(field, existing *model.PropertyField) (accessModeChanged, protectedChanged bool) {
 	projected := model.ProjectLegacyPermissions(existing)
 	accessModeChanged = legacyAttrString(field.Attrs, model.PropertyAttrsAccessMode) != legacyAttrString(projected.Attrs, model.PropertyAttrsAccessMode)

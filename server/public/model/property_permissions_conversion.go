@@ -36,7 +36,7 @@ func PermissionsFromLegacy(field *PropertyField, opts LegacyConversionOpts) *Per
 		restrictions.Value.Read = PermissionLevelEveryone
 		restrictions.Option.Read = PermissionLevelEveryone
 	} else {
-		switch legacyAccessMode(field) {
+		switch LegacyAccessMode(field) {
 		case PropertyAccessModePublic:
 			restrictions.Value.Read = PermissionLevelEveryone
 			restrictions.Option.Read = PermissionLevelEveryone
@@ -183,7 +183,7 @@ func ownersFromGrants(grants []Grant) []PropertyOwner {
 // template's object whole, or, if the template did not convert to masked,
 // narrows the field's own reads to none in restrictions instead.
 func maskingFromLegacy(field *PropertyField, restrictions *Restrictions, opts LegacyConversionOpts) *Masking {
-	if !opts.ConvertAttrs || legacyAccessMode(field) != PropertyAccessModeSharedOnly {
+	if !opts.ConvertAttrs || LegacyAccessMode(field) != PropertyAccessModeSharedOnly {
 		return nil
 	}
 
@@ -371,7 +371,7 @@ func grantsFromLegacy(field *PropertyField) []Grant {
 func ambientMachineGrantAllow(field *PropertyField) []string {
 	granted := map[string]bool{}
 
-	if legacyAccessMode(field) == PropertyAccessModePublic {
+	if LegacyAccessMode(field) == PropertyAccessModePublic {
 		granted[PropertyActionValueRead] = true
 		granted[PropertyActionOptionRead] = true
 	}
@@ -447,15 +447,17 @@ func removeAction(allow []string, action string) []string {
 	return result
 }
 
-// legacyAccessMode reads Attrs[access_mode] directly, ignoring Permissions
+// LegacyAccessMode reads Attrs[access_mode] directly, ignoring Permissions
 // even when it is set. GetAccessMode prefers Permissions once it is non-nil,
 // which is right for every other reader -- but converting a field is the one
 // place that must read what the legacy submission actually says regardless
 // of what Permissions currently holds: reconverting an already-converted
 // field puts the stored object on the field before this runs (see
 // updatePropertyFields' translation), and GetAccessMode would then report
-// the old, pre-update mode instead of the caller's submitted one.
-func legacyAccessMode(field *PropertyField) string {
+// the old, pre-update mode instead of the caller's submitted one. The same
+// applies to a backfill row whose Permissions has been stripped: GetAccessMode
+// reports public, and the stored attr is the value the conversion must see.
+func LegacyAccessMode(field *PropertyField) string {
 	if field.Attrs == nil {
 		return PropertyAccessModePublic
 	}

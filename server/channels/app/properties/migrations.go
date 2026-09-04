@@ -187,7 +187,7 @@ func (b *permissionsBackfill) convertBatch(rctx request.CTX, fields []*model.Pro
 			}
 			opts.Template = template
 
-			if opts.ConvertAttrs && template.Masking == nil && field.GetAccessMode() == model.PropertyAccessModeSharedOnly {
+			if opts.ConvertAttrs && template.Masking == nil && model.LegacyAccessMode(field) == model.PropertyAccessModeSharedOnly {
 				// PermissionsFromLegacy narrows this field's own reads to none
 				// below rather than emitting a masking object it is not allowed
 				// to carry (divergence: a linked field may not declare masking of

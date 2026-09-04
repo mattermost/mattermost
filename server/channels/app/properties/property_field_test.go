@@ -764,7 +764,7 @@ func TestUpdatePropertyFieldTranslatesLegacyPermissionKeys(t *testing.T) {
 		// created this way would appear to have gained a legacy key the
 		// moment it takes its first trip through UpdatePropertyField.
 		sysadminLevel := model.PermissionLevelSysadmin
-		memberLevel := model.PermissionLevelMember
+		adminLevel := model.PermissionLevelAdmin
 		exemptUser := model.NewId()
 		field := th.CreatePropertyFieldDirect(t, &model.PropertyField{
 			GroupID:           th.CPAGroupID,
@@ -774,12 +774,12 @@ func TestUpdatePropertyFieldTranslatesLegacyPermissionKeys(t *testing.T) {
 			TargetType:        string(model.PropertyFieldTargetLevelSystem),
 			PermissionField:   &sysadminLevel,
 			PermissionOptions: &sysadminLevel,
-			PermissionValues:  &memberLevel,
+			PermissionValues:  &adminLevel,
 			Permissions: &model.Permissions{
 				Restrictions: &model.Restrictions{
 					Field:  model.WriteOnly{Write: model.PermissionLevelSysadmin},
 					Value:  model.ReadWrite{Read: model.PermissionLevelEveryone, Write: model.PermissionLevelAdmin},
-					Option: model.ReadWrite{Read: model.PermissionLevelEveryone},
+					Option: model.ReadWrite{Read: model.PermissionLevelEveryone, Write: model.PermissionLevelSysadmin},
 				},
 				// mask_by_field_id may only be set on a template; this is an
 				// unlinked user-object field, so it resolves its own holdings
@@ -888,6 +888,11 @@ func TestUpdatePropertyFieldTranslatesLegacyPermissionKeys(t *testing.T) {
 		// A v3 caller widens the except list beyond anything the legacy attrs
 		// could produce. No legacy key changes here, so this must land
 		// untouched -- the round-trip guarantee rule 2 relies on.
+		//
+		// The store no longer returns the permission columns, so leftover
+		// create-time levels (sysadmin) would compare as a change against
+		// the projected none this protected field actually stored. Copy the
+		// projected columns so this update looks like a read-modify-write.
 		stewardID := model.NewId()
 		augmentedMasking := *field.Permissions.Masking
 		augmentedMasking.Except = append(append([]model.Identity{}, field.Permissions.Masking.Except...),
@@ -895,6 +900,11 @@ func TestUpdatePropertyFieldTranslatesLegacyPermissionKeys(t *testing.T) {
 		augmented := *field.Permissions
 		augmented.Masking = &augmentedMasking
 		field.Permissions = &augmented
+		projected := model.ProjectLegacyPermissions(field)
+		field.Protected = projected.Protected
+		field.PermissionField = projected.PermissionField
+		field.PermissionValues = projected.PermissionValues
+		field.PermissionOptions = projected.PermissionOptions
 		field, _, err = th.service.UpdatePropertyField(rctxPlugin, th.CPAGroupID, field)
 		require.NoError(t, err)
 		require.Len(t, field.Permissions.Masking.Except, 2)
