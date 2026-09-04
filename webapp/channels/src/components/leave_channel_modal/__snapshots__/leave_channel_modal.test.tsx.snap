@@ -195,19 +195,27 @@ exports[`components/LeaveChannelModal should match snapshot, init 1`] = `
                   class="ConfirmModal__footer"
                 >
                   <button
-                    class="btn btn-tertiary"
+                    class="_button_1odpk_2 _button--emphasis-tertiary_1odpk_90 _button--size-medium_1odpk_46"
                     data-testid="cancel-button"
                     id="cancelModalButton"
                     type="button"
                   >
-                    Cancel
+                    <span
+                      class="_button__label_1odpk_23"
+                    >
+                      Cancel
+                    </span>
                   </button>
                   <button
-                    class="btn btn-danger"
+                    class="_button_1odpk_2 _button--emphasis-primary_1odpk_60 _button--size-medium_1odpk_46 _button--destructive_1odpk_117"
                     id="confirmModalButton"
                     type="button"
                   >
-                    Yes, leave channel
+                    <span
+                      class="_button__label_1odpk_23"
+                    >
+                      Yes, leave channel
+                    </span>
                   </button>
                 </div>
               </div>
