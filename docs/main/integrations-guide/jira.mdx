@@ -192,7 +192,7 @@ Use the `/jira issue create` slash command to create a Jira issue without leavin
 
 #### Transition Jira issues
 
-You can transition issues without leaving Mattermost by using the `/jira transition &lt;issue-key&gt; &lt;state&gt;` slash command. States and issue transitions are based on your Jira project workflow configuration. For example, `/jira transition EXT-20 done` transitions the issue key EXT-20 to a `done` state. Partial matches are supported. For example, running the `/jira transition EXT-20 in` slash command transitions the issue to an `in progress` state. However, if your Jira instance includes states of both `in review` and `in progress`, the Jira integration bot will prompt you to clarify which state you want.
+You can transition issues without leaving Mattermost by using the `/jira transition <issue-key> <state>` slash command. States and issue transitions are based on your Jira project workflow configuration. For example, `/jira transition EXT-20 done` transitions the issue key EXT-20 to a `done` state. Partial matches are supported. For example, running the `/jira transition EXT-20 in` slash command transitions the issue to an `in progress` state. However, if your Jira instance includes states of both `in review` and `in progress`, the Jira integration bot will prompt you to clarify which state you want.
 
 #### Assign Jira issues
 
