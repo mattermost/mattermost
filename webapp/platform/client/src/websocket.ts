@@ -363,7 +363,7 @@ export default class WebSocketClient {
                 }
             } else if (this.eventCallback || this.messageListeners.size > 0) {
                 // We check the hello packet, which is always the first packet in a stream.
-                if (msg.event === WebSocketEvents.Hello && (this.missedEventCallback || this.missedMessageListeners.size > 0)) {
+                if (msg.event === WebSocketEvents.Hello) {
                     console.log('got connection id ', msg.data.connection_id); //eslint-disable-line no-console
                     // If we already have a connectionId present, and server sends a different one,
                     // that means it's either a long timeout, or server restart, or sequence number is not found.
@@ -371,14 +371,22 @@ export default class WebSocketClient {
                     if (this.connectionId !== '' && this.connectionId !== msg.data.connection_id) {
                         console.log('long timeout, or server restart, or sequence number is not found.'); //eslint-disable-line no-console
 
-                        this.missedEventCallback?.();
-
-                        for (const listener of this.missedMessageListeners) {
+                        if (this.missedEventCallback || this.missedMessageListeners.size > 0) {
                             try {
-                                listener();
+                                this.missedEventCallback?.();
                             } catch (e) {
-                                console.log(`missed message listener "${listener.name}" failed: ${e}`); // eslint-disable-line no-console
+                                console.log(`missed event callback failed: ${e}`); // eslint-disable-line no-console
                             }
+
+                            for (const listener of this.missedMessageListeners) {
+                                try {
+                                    listener();
+                                } catch (e) {
+                                    console.log(`missed message listener "${listener.name}" failed: ${e}`); // eslint-disable-line no-console
+                                }
+                            }
+                        } else {
+                            console.warn('hello event received but no missed message listeners registered to handle reconnection'); // eslint-disable-line no-console
                         }
 
                         this.serverSequence = 0;
