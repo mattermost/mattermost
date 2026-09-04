@@ -49,11 +49,11 @@ However, if you would like to set up encryption for your SAML connection, select
 
 > ![image](/images/adfs_7_configure_certificate_encryption.png)
 
-7.  On the **Configure URL** screen, select **Enable Support for the SAML 2.0 WebSSO protocol**, then enter the **SAML 2.0 SSO service URL**, similar to `https://&lt;your-mattermost-url&gt;/login/sso/saml` where `&lt;your-mattermost-url&gt;` should typically match the [Mattermost Site URL](/administration-guide/configure/environment-configuration-settings#site-url).
+7.  On the **Configure URL** screen, select **Enable Support for the SAML 2.0 WebSSO protocol**, then enter the **SAML 2.0 SSO service URL**, similar to `https://<your-mattermost-url>/login/sso/saml` where `<your-mattermost-url>` should typically match the [Mattermost Site URL](/administration-guide/configure/environment-configuration-settings#site-url).
 
     > ![image](/images/adfs_8_configure_url.png)
 
-8.  On the **Configure Identifiers** screen, enter the **Relying party trust identifier** (also known as the **Identity Provider Issuer URL**) of the form `https://&lt;your-idp-url&gt;/adfs/services/trust`, then click **Add**.
+8.  On the **Configure Identifiers** screen, enter the **Relying party trust identifier** (also known as the **Identity Provider Issuer URL**) of the form `https://<your-idp-url>/adfs/services/trust`, then click **Add**.
 
     > ![image](/images/adfs_9_configure_identifiers.png)
 
@@ -118,9 +118,9 @@ Select **Pass through all claim values**, then select **Finish**.
 7.  Select **Finish** to create the claim rule, then select **OK** to finish creating rules.
 8.  Open Windows PowerShell as an administrator, then run the following command:
 
-> `Set-ADFSRelyingPartyTrust -TargetName &lt;display-name&gt; -SamlResponseSignature "MessageAndAssertion"`
+> `Set-ADFSRelyingPartyTrust -TargetName <display-name> -SamlResponseSignature "MessageAndAssertion"`
 
-where `&lt;display-name&gt;` is the name you specified in step 4 when adding a relying party trust. In this example, `&lt;display-name&gt;` would be `mattermost`.
+where `<display-name>` is the name you specified in step 4 when adding a relying party trust. In this example, `<display-name>` would be `mattermost`.
 
 This action adds the signature to SAML messages, making verification successful.
 

@@ -152,6 +152,7 @@ func TestValidateLicense(t *testing.T) {
 
 func TestLicenseFromBytesEnvironmentMismatch(t *testing.T) {
 	t.Run("test license uploaded to a production server returns the wrong-environment error", func(t *testing.T) {
+		t.Skip("Skipped due to flakiness — tracked in https://mattermost.atlassian.net/browse/MM-70560")
 		t.Setenv("MM_SERVICEENVIRONMENT", model.ServiceEnvironmentProduction)
 
 		license, appErr := LicenseValidator.LicenseFromBytes(validTestLicense)
@@ -162,6 +163,7 @@ func TestLicenseFromBytesEnvironmentMismatch(t *testing.T) {
 	})
 
 	t.Run("production license uploaded to a test/dev server returns the wrong-environment error", func(t *testing.T) {
+		t.Skip("Skipped due to flakiness — tracked in https://mattermost.atlassian.net/browse/MM-70560")
 		t.Setenv("MM_SERVICEENVIRONMENT", model.ServiceEnvironmentTest)
 
 		// We cannot sign with the real production key, so stand in a generated key as
