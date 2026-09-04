@@ -4024,7 +4024,10 @@ const AdminDefinition: AdminDefinitionType = {
             recaps: {
                 url: 'site_config/recaps',
                 title: defineMessage({id: 'admin.sidebar.recaps', defaultMessage: 'Recaps'}),
-                isHidden: it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.SITE.AI_RECAPS)),
+                isHidden: it.any(
+                    it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.SITE.AI_RECAPS)),
+                    it.configIsFalse('FeatureFlags', 'EnableAIRecaps'),
+                ),
                 schema: {
                     id: 'RecapSettings',
                     name: defineMessage({id: 'admin.site.recaps', defaultMessage: 'Recaps'}),
