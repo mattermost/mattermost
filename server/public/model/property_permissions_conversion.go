@@ -230,8 +230,8 @@ func maskingFromLegacy(field *PropertyField, restrictions *Restrictions, opts Le
 // grantsFromLegacy converts a field's owners, source plugin and sync lock —
 // all Attrs-based, all implicitly trusted with everything under the legacy
 // model — into grants enumerating the five enforced actions, plus one
-// wildcard plugin grant for whatever ambient access a machine caller named
-// nowhere on the field still has today (see ambientMachineGrantAllow).
+// wildcard plugin grant for ambient access a machine caller named nowhere
+// on the field still holds (see ambientMachineGrantAllow).
 //
 // Each input's Allow is split by PropertyActionMeasuredAgainstValueObject
 // before it is merged in: an owner's Scopes only ever narrows the value
@@ -306,23 +306,23 @@ func grantsFromLegacy(field *PropertyField) []Grant {
 
 	if pluginID, _ := field.Attrs[PropertyAttrsSourcePluginID].(string); pluginID != "" {
 		// The source plugin can read, write the definition and write values on a
-		// protected field today (hasUnrestrictedFieldReadAccess,
-		// checkLegacyFieldWriteAccess); anything less takes access away, and it is
-		// never scope-restricted.
+		// protected field; anything less takes access away, and it is never
+		// scope-restricted.
 		addGrant(PropertyOwnerTypePlugin, pluginID, nil, validPropertyActions)
 	}
 
 	if syncSource := GetPropertyFieldSyncSource(field); syncSource != "" {
-		// The ldap/saml lock only ever gated value writes (checkSyncLock); granting
-		// value.read too would widen a source_only synced field the sync caller
-		// cannot read today.
+		// The ldap/saml lock only ever gated value writes; granting value.read
+		// too would widen a source_only synced field the sync caller cannot
+		// read.
 		addGrant(PropertyOwnerTypeService, syncSource, nil, []string{PropertyActionValueWrite})
 	}
 
 	if allow := ambientMachineGrantAllow(field); len(allow) > 0 {
-		// An installed plugin arriving through the plugin API meets no owner,
-		// protected or sync-lock check today, so without this grant the
-		// conversion would revoke access nothing else on this field replaces.
+		// An installed plugin arriving through the plugin API matches no
+		// owner, protected, or sync-lock grant of its own, so without this
+		// wildcard the conversion would revoke access nothing else on this
+		// field replaces.
 		addGrant(PropertyOwnerTypePlugin, "*", nil, allow)
 	}
 
@@ -346,28 +346,23 @@ func grantsFromLegacy(field *PropertyField) []Grant {
 }
 
 // ambientMachineGrantAllow returns the actions a machine caller may perform on
-// field today with no grant naming it at all, so PermissionsFromLegacy can
-// mint a wildcard plugin grant preserving that access instead of silently
-// revoking it. Returns an empty slice when the field grants no such ambient
-// access, so the caller adds no grant rather than one with an empty Allow.
+// field with no grant naming it at all, so PermissionsFromLegacy can mint a
+// wildcard plugin grant preserving that access instead of silently revoking
+// it. Returns an empty slice when the field grants no such ambient access, so
+// the caller adds no grant rather than one with an empty Allow.
 //
-// Each action mirrors one legacy gate a machine caller meets when it is named
-// nowhere on the field:
-//   - value.read and option.read: hasUnrestrictedFieldReadAccess's only
-//     unconditional arm. A source_only field denies both today (no grant
-//     needed to match); a shared_only field is unmasked either way for a
-//     caller holding nothing, so it needs none either.
-//   - value.write: checkOwnerValueWriteAccess, checkLegacyFieldWriteAccess and
-//     checkSyncLock, in the order checkValueWriteAccess runs them -- the whole
-//     of the legacy value-write path for a field with none of the three.
-//   - field.write and option.write: the same owners/protected pair, since
-//     PreChangePropertyFieldOptions asks for a field.write on option changes.
+// Each action mirrors what an unnamed plugin could do on the field:
+//   - value.read and option.read: only a public field. A source_only field
+//     denies both (no grant needed to match); a shared_only field is unmasked
+//     either way for a caller holding nothing, so it needs none either.
+//   - value.write: only when the field has no owners, is not protected, and
+//     is not synced.
+//   - field.write and option.write: the same owners/protected pair. Option
+//     changes are gated on option.write, so they share that grant.
 //
-// checkLegacyFieldWriteAccess also lets anyone write a protected field whose
-// source plugin has since been uninstalled -- a runtime fact a stored grant
-// cannot express -- so this predicate uses the static protected flag instead
-// and such a field converts to no wildcard write. Narrower than today for an
-// orphaned protected field, and narrower is the recoverable direction.
+// An orphaned protected field (source plugin uninstalled) converts to no
+// wildcard write: a stored grant cannot express "the source is gone", and
+// narrower is the recoverable direction.
 func ambientMachineGrantAllow(field *PropertyField) []string {
 	granted := map[string]bool{}
 

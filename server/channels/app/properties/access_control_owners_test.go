@@ -147,9 +147,9 @@ func TestOwnerFieldWriteAccessControl(t *testing.T) {
 		created := createOwnedField(t, th, "HumanEditable", "plugin-owner", []string{"entra"})
 		created.Attrs[model.CustomProfileAttributesPropertyAttrsVisibility] = model.PropertyFieldVisibilityAlways
 
-		// field.write is pinned to sysadmin for every access_control field; a
-		// human editing a definition always meant an administrator, it just
-		// never had to say so under the legacy owner-managed bypass.
+		// field.write is pinned to sysadmin for every access_control field.
+		// The default test ladder only admits a member, so this install is
+		// what lets the administrator through.
 		th.service.setLadderCheckerForTests(sysadminLadderCheckerForTests)
 		t.Cleanup(func() { th.service.setLadderCheckerForTests(defaultLadderCheckerForTests) })
 
@@ -215,10 +215,8 @@ func TestOwnerListManagedByAdminOnly(t *testing.T) {
 		// An unowned, unprotected field converts to an ambient wildcard
 		// field.write grant open to any installed plugin, so plugin-owner may
 		// add itself as an owner here even though the field names no owner
-		// yet. The legacy owners guard refused this outright because an
-		// owner-managed field used to shut every human out of the value
-		// writes it owns; grants are additive with no deny, so adding one now
-		// takes nothing away from anyone.
+		// yet. Grants are additive with no deny, so adding one takes nothing
+		// away from anyone.
 		plain, createErr := th.service.CreatePropertyField(th.Context, &model.PropertyField{
 			GroupID:    th.CPAGroupID,
 			Name:       "NoOwnersYet",
@@ -254,9 +252,9 @@ func TestOwnerListManagedByAdminOnly(t *testing.T) {
 			},
 		}
 
-		// field.write is pinned to sysadmin for every access_control field; a
-		// human adding owners always meant an administrator, it just never
-		// had to say so under the legacy owners guard.
+		// field.write is pinned to sysadmin for every access_control field.
+		// The default test ladder only admits a member, so this install is
+		// what lets the administrator through.
 		th.service.setLadderCheckerForTests(sysadminLadderCheckerForTests)
 		t.Cleanup(func() { th.service.setLadderCheckerForTests(defaultLadderCheckerForTests) })
 

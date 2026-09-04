@@ -2056,19 +2056,16 @@ func TestUpsertPropertyValues_WriteAccessControl(t *testing.T) {
 	})
 }
 
-// TestUpsertPropertyValue_ServiceGrant covers the mechanism that replaced the
-// ldap/saml sync lock: a field carrying a service grant for "ldap" or "saml"
-// is writable only by the matching sync caller, exactly as the legacy
-// attrs.ldap/attrs.saml lock was. The grant matcher's own tests already cover
-// grant matching in general, so this is one case for the mechanism, not one
-// per caller/field combination the legacy lock used to need.
+// TestUpsertPropertyValue_ServiceGrant covers a field carrying a service grant
+// for "ldap" or "saml": writable only by the matching sync caller. The grant
+// matcher's own tests already cover matching in general, so this is one case
+// for the converted restriction plus grant, not one per caller/field pair.
 func TestUpsertPropertyValue_ServiceGrant(t *testing.T) {
 	th := Setup(t)
 
-	// v2, not v1: the hook now enforces by group version rather than a
-	// construction-time allowlist, and a v1 field cannot carry a permissions
-	// object in production, so a v1 group here would pass the writes below
-	// through unchecked instead of exercising the service grant.
+	// v2, not v1: the hook enforces by group version, and a v1 field cannot
+	// carry a permissions object in production, so a v1 group here would pass
+	// the writes below through unchecked instead of exercising the service grant.
 	group, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "test_service_grant", Version: model.PropertyGroupVersionV2})
 	require.NoError(t, err)
 

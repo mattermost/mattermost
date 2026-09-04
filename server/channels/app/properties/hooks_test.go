@@ -421,10 +421,7 @@ func TestAccessControlHookGroupScoping(t *testing.T) {
 		updated.Name = "attempt-update"
 		_, _, err = th.service.UpdatePropertyField(rctxPlugin2, th.CPAGroupID, updated)
 		require.Error(t, err)
-		// The field converted to Permissions on create, so the refusal now
-		// comes from the field.write ladder check rather than the legacy
-		// protected/source-plugin comparison -- still a refusal, worded
-		// differently.
+		// plugin-2 holds no field.write grant on a field whose source is plugin-1.
 		assert.Contains(t, err.Error(), "field write")
 	})
 

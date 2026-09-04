@@ -292,10 +292,9 @@ func TestMigrateBackfillPropertyPermissions_OversizedOptions(t *testing.T) {
 			model.PropertyFieldAttributeOptions: oversizedOptions(false),
 		},
 	})
-	// A legacy field carries no permissions object, so the hooked read now
-	// denies it outright; read under the store accessor the backfill itself
-	// uses, to see what was actually persisted, same as the post-backfill
-	// check below.
+	// A field with no permissions object is refused at the hook, so read
+	// through the store accessor the backfill itself uses to see what was
+	// persisted, same as the check after MigrateBackfillPropertyPermissions.
 	before, err := th.service.getPropertyField(th.CPAGroupID, field.ID)
 	require.NoError(t, err)
 	requireOptionsWithheld(t, before)
@@ -305,10 +304,10 @@ func TestMigrateBackfillPropertyPermissions_OversizedOptions(t *testing.T) {
 	assert.Equal(t, 1, converted)
 	assert.Equal(t, 0, skipped)
 
-	// The hooked read now denies this unauthenticated context field.read on the
-	// field's new Permissions, which withholds the options for a different
-	// reason (HideOptions) than the one under test. Read under the store
-	// accessor the backfill itself uses, to see what was actually persisted.
+	// After conversion the field carries Permissions, so a hooked read
+	// withholds options via HideOptions — a different reason than the one
+	// under test. Read through the store accessor the backfill uses to see
+	// what was persisted.
 	updated, err := th.service.getPropertyField(th.CPAGroupID, field.ID)
 	require.NoError(t, err)
 	assert.NotNil(t, updated.Permissions)

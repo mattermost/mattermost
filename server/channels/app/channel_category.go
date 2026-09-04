@@ -383,9 +383,8 @@ func (a *App) GetVisibleManagedCategoryMappings(rctx request.CTX, teamID string)
 	}
 
 	// Tagged like the write and the clear: this read goes through the access
-	// control hook now that managed_category is enforced, and an untagged
-	// context names nobody, which filters every value out and hands back an
-	// empty map instead of the caller's categories.
+	// control hook, and an untagged context names nobody, which filters every
+	// value out and hands back an empty map instead of the caller's categories.
 	values, appErr := a.SearchPropertyValues(rctxWithSessionCallerID(rctx), a.Channels().managedCategoryGroupID, model.PropertyValueSearchOpts{
 		FieldID:   a.Channels().managedCategoryFieldID,
 		TargetIDs: channelIDs,

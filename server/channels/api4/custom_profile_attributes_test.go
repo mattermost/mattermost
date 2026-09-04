@@ -1816,11 +1816,11 @@ func TestCPACrossAPIFieldRoundtrip(t *testing.T) {
 	})
 }
 
-// TestCPABackwardCompatAfterRefactor spot-checks invariants that could have
-// drifted in the Phase 7 refactor of the CPA handlers into thin shims. Broad
-// behavioral equivalence is already covered by the existing CPA tests (they
-// still pass); these subtests target invariants that those tests don't
-// exercise directly.
+// TestCPABackwardCompatAfterRefactor pins CPA-handler invariants the rest of
+// the CPA tests do not: ListCPAFields returns fields in sort_order, create
+// responses fill typed CPAField attrs the caller omitted, and an LDAP-synced
+// write through the CPA path is still refused. The CPA handlers map onto the
+// generic properties API; these cases fail if that mapping drops those fields.
 func TestCPABackwardCompatAfterRefactor(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupConfig(t, func(cfg *model.Config) {

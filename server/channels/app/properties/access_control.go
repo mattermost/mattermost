@@ -1020,10 +1020,9 @@ func (h *AccessControlHook) enforceFieldUpdateAccess(rctx request.CTX, existing,
 		return fmt.Errorf("field %s refuses caller %q a field write: %w", existing.ID, callerID, ErrAccessDenied)
 	}
 
-	// Every group-managed field has carried a converted permissions object
-	// since the migration backfill, and the create/update path populates it
-	// too; unreached in production. Fails closed rather than falling back to
-	// the owners and source-plugin rules those columns no longer govern.
+	// Unreached in production: every PSAv2/v3 field carries a converted
+	// permissions object from backfill or create/update. Fail closed rather
+	// than deciding from Attrs owners or source_plugin_id.
 	return fmt.Errorf("field %s carries no permissions object: %w", existing.ID, ErrAccessDenied)
 }
 
@@ -1084,10 +1083,9 @@ func (h *AccessControlHook) checkFieldDeleteAccess(rctx request.CTX, field *mode
 		return fmt.Errorf("field %s refuses caller %q a field delete: %w", field.ID, callerID, ErrAccessDenied)
 	}
 
-	// Every group-managed field has carried a converted permissions object
-	// since the migration backfill, and the create/update path populates it
-	// too; unreached in production. Fails closed rather than falling back to
-	// the owners and source-plugin rules those columns no longer govern.
+	// Unreached in production: every PSAv2/v3 field carries a converted
+	// permissions object from backfill or create/update. Fail closed rather
+	// than deciding from Attrs owners or source_plugin_id.
 	return fmt.Errorf("field %s carries no permissions object: %w", field.ID, ErrAccessDenied)
 }
 
@@ -1124,10 +1122,9 @@ func (h *AccessControlHook) checkValueWriteAccess(rctx request.CTX, mc maskingCo
 		return h.checkValueWriteVisibility(rctx, mc, field, callerID, valueTargetID)
 	}
 
-	// Every group-managed field has carried a converted permissions object
-	// since the migration backfill, and the create/update path populates it
-	// too; unreached in production. Fails closed rather than falling back to
-	// the owners, protected, and sync-lock rules those columns no longer govern.
+	// Unreached in production: every PSAv2/v3 field carries a converted
+	// permissions object from backfill or create/update. Fail closed rather
+	// than deciding from Attrs owners, protected, or a sync source.
 	return fmt.Errorf("field %s carries no permissions object: %w", field.ID, ErrAccessDenied)
 }
 

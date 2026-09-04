@@ -101,11 +101,9 @@ func TestPermissionsFromLegacyProtectedAttr(t *testing.T) {
 }
 
 func TestPermissionsFromLegacySyncedFieldNotProtected(t *testing.T) {
-	// The legacy value-write gate refused every human on a synced field whether
-	// or not it was also protected — checkSyncLock ran independently of the
-	// owner/protected checks. A field that is synced but not protected has to
-	// zero value.write on its own; otherwise it would fall through to whatever
-	// PermissionValues says and hand a synced attribute's values to members.
+	// A field that is synced but not protected still zeros value.write;
+	// converting PermissionValues instead would hand a synced attribute's
+	// values to members.
 	field := &PropertyField{
 		PermissionValues: new(PermissionLevelMember),
 		Attrs: StringInterface{
@@ -192,8 +190,8 @@ func TestPermissionsFromLegacyGrantsOwners(t *testing.T) {
 	// field.write and the option actions -- scope only ever narrows a value
 	// action, so it has nothing to say about the other two. The field is
 	// public and owner-managed, so a fifth grant appears for the ambient read
-	// access any other plugin still has today (hasUnrestrictedFieldReadAccess
-	// does not consult owners).
+	// access any other plugin still has: owners do not close reads on a
+	// public field.
 	field := &PropertyField{
 		Attrs: StringInterface{
 			PropertyAttrsOwners: []PropertyOwner{
@@ -339,9 +337,9 @@ func TestPermissionsFromLegacyGrantsSourcePluginOnly(t *testing.T) {
 	// A source_only field with a source plugin: restrictions deny reads to
 	// everyone, but the plugin's grant admits it regardless, making it
 	// the field's only reader. The field has no owners and is not protected, so
-	// checkLegacyFieldWriteAccess and checkSyncLock both let any other plugin
-	// write it today; the wildcard grant is what keeps that true after
-	// conversion, even though such a plugin still cannot read the field.
+	// any other plugin may still write it; the wildcard grant is what keeps
+	// that true after conversion, even though such a plugin still cannot read
+	// the field.
 	field := &PropertyField{
 		Attrs: StringInterface{
 			PropertyAttrsAccessMode:     PropertyAccessModeSourceOnly,
@@ -366,7 +364,7 @@ func TestPermissionsFromLegacyGrantsSyncLock(t *testing.T) {
 	// nothing else — the lock never gated anything but value writes. The field
 	// has no owners and is not protected, and is public, so a second, wildcard
 	// grant appears for everything the lock never touched: reads (public) and
-	// the field/option definition writes (checkSyncLock only ever gated value
+	// the field/option definition writes (the lock only ever gated value
 	// writes, so it never stood in their way).
 	field := &PropertyField{
 		Attrs: StringInterface{
@@ -785,11 +783,10 @@ func TestPermissionsFromLegacyGrantsNoAmbientAccessEmitsNoGrant(t *testing.T) {
 func TestPermissionsFromLegacyGrantsTemplateWildcardFieldWrite(t *testing.T) {
 	// An unowned, unprotected template converts to a wildcard grant that
 	// includes field.write -- handing any installed plugin the definition of a
-	// scheme every linked field inherits. That is exactly what
-	// enforceFieldUpdateAccess allows such a template's caller today (no
-	// owners, so it falls through to checkLegacyFieldWriteAccess, which only
-	// refuses a protected field), so this is faithful rather than a widening,
-	// even though it is the least comfortable case the conversion produces.
+	// scheme every linked field inherits. That matches what
+	// enforceFieldUpdateAccess allows such a template's caller (no owners and
+	// not protected), so this is faithful rather than a widening, even though
+	// it is the least comfortable case the conversion produces.
 	field := &PropertyField{
 		ObjectType: PropertyFieldObjectTypeTemplate,
 		Attrs: StringInterface{

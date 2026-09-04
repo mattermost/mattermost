@@ -20,7 +20,7 @@ func TestTypeChangeValueCleanupHook(t *testing.T) {
 	th.service.AddHook(NewTypeChangeValueCleanupHook(th.service))
 
 	// field.write is pinned to sysadmin for every access_control field, and a
-	// value write needs an identified caller now that permissionsAllows fails
+	// value write needs an identified caller because permissionsAllows fails
 	// closed on an empty one -- this suite is about the cleanup hook, not
 	// access control, so it runs as an administrator throughout rather than
 	// an anonymous caller.

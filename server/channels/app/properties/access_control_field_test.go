@@ -855,10 +855,7 @@ func TestUpdatePropertyField_WriteAccessControl(t *testing.T) {
 		updated, _, err := th.service.UpdatePropertyField(rctxPlugin2, th.CPAGroupID, created)
 		require.Error(t, err)
 		assert.Nil(t, updated)
-		// The field converted to Permissions on create, so the refusal now
-		// comes from the field.write grant check rather than the legacy
-		// protected/source-plugin comparison -- still a refusal, worded
-		// differently.
+		// plugin-2 holds no field.write grant on a field whose source is plugin-1.
 		assert.Contains(t, err.Error(), "field.write")
 		assert.Contains(t, err.Error(), "plugin-2")
 	})
@@ -882,9 +879,7 @@ func TestUpdatePropertyField_WriteAccessControl(t *testing.T) {
 		updated, _, err := th.service.UpdatePropertyField(rctxAnon, th.CPAGroupID, created)
 		require.Error(t, err)
 		assert.Nil(t, updated)
-		// The field converted to Permissions on create, so an unattributed
-		// caller is refused a field write outright rather than by the legacy
-		// protected check -- still a refusal, worded differently.
+		// permissionsAllows fails closed on an empty caller ID.
 		assert.Contains(t, err.Error(), "field write")
 	})
 
@@ -1016,10 +1011,7 @@ func TestUpdatePropertyFields_BulkWriteAccessControl(t *testing.T) {
 		updated, _, _, err := th.service.UpdatePropertyFields(rctxPlugin2, th.CPAGroupID, []*model.PropertyField{created1, created2})
 		require.Error(t, err)
 		assert.Nil(t, updated)
-		// The protected field converted to Permissions on create, so the
-		// refusal that fails the whole batch now comes from the field.write
-		// grant check rather than the legacy protected comparison -- still a
-		// refusal, worded differently.
+		// plugin-2 holds no field.write grant on the protected field, so the batch fails.
 		assert.Contains(t, err.Error(), "field.write")
 
 		// Verify neither was updated
@@ -1167,9 +1159,9 @@ func TestDeletePropertyField_WriteAccessControl(t *testing.T) {
 		require.NoError(t, err)
 
 		// plugin-2 isn't registered here, so it takes the human path, and
-		// field.write is pinned to sysadmin for every access_control field --
-		// the deleter always meant an administrator, it just never had to say
-		// so under the legacy owner-managed bypass.
+		// field.write is pinned to sysadmin for every access_control field.
+		// The default test ladder only admits a member, so this install is
+		// what lets the administrator through.
 		th.service.setLadderCheckerForTests(sysadminLadderCheckerForTests)
 		t.Cleanup(func() { th.service.setLadderCheckerForTests(defaultLadderCheckerForTests) })
 

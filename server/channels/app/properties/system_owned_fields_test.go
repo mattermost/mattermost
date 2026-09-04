@@ -11,12 +11,11 @@ import (
 )
 
 // TestConvertSystemOwnedFields exercises the bootstrap path a real upgrade
-// takes: a field written by a server version that predates the permissions
-// object -- legacy columns only, Permissions nil -- reaching a server where
-// the access-control hook now gates its group. ConvertSystemOwnedFields has
-// to convert and grant it before the owning subsystem's own hook-gated writes
-// ever see it, since a nil-Permissions field denies outright regardless of
-// caller (see the identical comment in migrations.go).
+// takes: a field written with legacy columns only (Permissions nil) on a
+// PSAv2/v3 group the hook enforces. ConvertSystemOwnedFields has to convert
+// and grant it before the owning subsystem's hook-gated writes ever see it,
+// since a nil-Permissions field denies outright regardless of caller
+// (see the identical comment in migrations.go).
 func TestConvertSystemOwnedFields(t *testing.T) {
 	th := Setup(t)
 	t.Cleanup(func() { th.service.setLadderCheckerForTests(nil) })

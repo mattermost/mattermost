@@ -331,8 +331,8 @@ func TestOptionsOmitted_DisplayNameBackfill(t *testing.T) {
 	th := Setup(t).RegisterCPAPropertyGroup(t)
 	// This field lives on the access_control group specifically -- the backfill
 	// under test only touches that group -- so its reads need an identified
-	// caller now that an anonymous one is refused outright. The field's access
-	// mode defaults to public, which the default ladder checker's member tier
+	// caller: an anonymous one is refused outright. The field's access mode
+	// defaults to public, which the default ladder checker's member tier
 	// already satisfies.
 	rctx := RequestContextWithCallerID(th.Context, model.NewId())
 

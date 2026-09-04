@@ -214,10 +214,9 @@ func TestDeleteCPAValues(t *testing.T) {
 
 // TestCPAValueSyncLock exercises the sync lock end-to-end at the app layer: a
 // write for a field with ldap= or saml= set only succeeds when the caller ID
-// matches the field's sync source. What enforces that today is a converted
+// matches the field's sync source. What enforces that is a converted
 // restriction (PermissionsFromLegacy sets value.write to none for a synced
-// field) plus the matching sync-service grant, not a dedicated gate — the
-// old AccessControlHook.checkSyncLock is gone. Covering this at the app
+// field) plus the matching sync-service grant. Covering this at the app
 // layer also asserts that the startup wiring in server.go (access_control
 // group registration, AccessControlHook install, and CallerIDExtractor
 // reading from request.CTX) is intact — something the properties-package
