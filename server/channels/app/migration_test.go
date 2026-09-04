@@ -441,6 +441,57 @@ func TestFullTeamImportErrorsOnMissingUser(t *testing.T) {
 }
 
 // ────────────────────────────────────────────────────────────────────────────
+// IMP-06: --destination-team-name errors on an unscoped multi-team export
+// (e.g. a full export from an older binary with no ExportScopeAdditional),
+// instead of silently renaming only the first team encountered
+//
+// Reason: the scoped-export multi-team guard only fires when
+// ExportScopeAdditional is present and its TeamName contains a comma. An
+// older-binary full export has no such metadata, so sourceTeamName is
+// inferred from whichever "team" line appears first — with nothing stopping
+// a second, different team line from passing through unrenamed and
+// unreported.
+// ────────────────────────────────────────────────────────────────────────────
+
+func TestDestinationTeamNameErrorsOnUnscopedMultiTeamExport(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	team1Name := model.NewRandomTeamName()
+	team2Name := model.NewRandomTeamName()
+
+	var sb strings.Builder
+	enc := json.NewEncoder(&sb)
+
+	version := 1
+	require.NoError(t, enc.Encode(imports.LineImportData{
+		Type:    "version",
+		Version: &version,
+		Info:    &imports.VersionInfoImportData{Generator: "test", Version: "1.0", Created: "2024-01-01T00:00:00Z"},
+	}))
+	require.NoError(t, enc.Encode(imports.LineImportData{
+		Type: "team",
+		Team: &imports.TeamImportData{Name: new(team1Name), DisplayName: new("Team One"), Type: new("O")},
+	}))
+	require.NoError(t, enc.Encode(imports.LineImportData{
+		Type: "team",
+		Team: &imports.TeamImportData{Name: new(team2Name), DisplayName: new("Team Two"), Type: new("O")},
+	}))
+
+	_, appErr := th.App.BulkImportWithPathAndOpts(
+		th.Context, strings.NewReader(sb.String()), nil, false, false, 1, "",
+		model.BulkImportOpts{DestinationTeamName: "renamed-team"},
+	)
+	require.NotNil(t, appErr, "--destination-team-name against an unscoped multi-team export must error, not silently rename only the first team")
+
+	// Team One (renamed) may already exist since the error can only be caught
+	// after the second team line arrives — that's fine, the point is the import
+	// doesn't complete successfully and silently leave Team Two un-renamed.
+	_, appErr2 := th.App.GetTeamByName(team2Name)
+	assert.NotNil(t, appErr2, "team two must not have been imported under its original name as if nothing were wrong")
+}
+
+// ────────────────────────────────────────────────────────────────────────────
 // IMP-01: destination team remapping end-to-end (using real BulkExport)
 // ────────────────────────────────────────────────────────────────────────────
 

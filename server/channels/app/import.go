@@ -264,6 +264,7 @@ func (a *App) bulkImport(rctx request.CTX, jsonlReader io.Reader, attachmentsRea
 	lineNumber := 0
 	deactivateMissingUsers := false
 	sourceTeamName := ""
+	sourceTeamNameInferred := false
 	sourceChannelName := ""
 
 	a.Srv().Store().LockToMaster()
@@ -403,8 +404,19 @@ func (a *App) bulkImport(rctx request.CTX, jsonlReader io.Reader, attachmentsRea
 
 		// When ExportScopeAdditional is absent (e.g. full-team export from older binaries),
 		// infer sourceTeamName from the first team line so --destination-team still works.
-		if destinationTeam != "" && sourceTeamName == "" && line.Type == "team" && line.Team != nil && line.Team.Name != nil {
-			sourceTeamName = *line.Team.Name
+		if destinationTeam != "" && line.Type == "team" && line.Team != nil && line.Team.Name != nil {
+			if sourceTeamName == "" {
+				sourceTeamName = *line.Team.Name
+				sourceTeamNameInferred = true
+			} else if sourceTeamNameInferred && *line.Team.Name != sourceTeamName {
+				// Fail fast: a second, different team line showed up after we'd
+				// already inferred sourceTeamName from the first one. This export
+				// has no scope metadata to tell us up front it's multi-team (e.g.
+				// an older-binary full export), so the only way to catch this is
+				// noticing it here — same reasoning as the scoped multi-team guard
+				// above, just discovered one line later instead of at line 1.
+				return lineNumber, model.NewAppError("BulkImport", "app.import.bulk_import.destination_team_requires_single_team_scope.error", nil, "--destination-team-name requires a single-team export; this export contains multiple teams", http.StatusBadRequest)
+			}
 		}
 
 		if destinationTeam != "" && sourceTeamName != "" {
