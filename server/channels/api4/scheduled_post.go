@@ -101,6 +101,10 @@ func createSchedulePost(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.SetPermissionError(model.PermissionUploadFile)
 			return
 		}
+		if !c.App.HasPermissionToFileAction(c.AppContext, c.AppContext.Session().UserId, c.AppContext.Session().Roles, scheduledPost.ChannelId, model.AccessControlPolicyActionUploadFileAttachment) {
+			c.Err = model.NewAppError("Api4.createSchedulePost", "api.file.upload_file.abac_denied.app_error", nil, "", http.StatusForbidden)
+			return
+		}
 	}
 
 	scheduledPostChecks("Api4.createSchedulePost", c, &scheduledPost)

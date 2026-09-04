@@ -4,6 +4,8 @@
 package api4
 
 import (
+	"net/http"
+
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
@@ -81,6 +83,10 @@ func checkUploadFilePermissionForNewFiles(c *Context, newFileIds []string, origi
 	if hasNewFiles {
 		if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), originalPost.ChannelId, model.PermissionUploadFile); !ok {
 			c.SetPermissionError(model.PermissionUploadFile)
+			return
+		}
+		if !c.App.HasPermissionToFileAction(c.AppContext, c.AppContext.Session().UserId, c.AppContext.Session().Roles, originalPost.ChannelId, model.AccessControlPolicyActionUploadFileAttachment) {
+			c.Err = model.NewAppError("checkUploadFilePermissionForNewFiles", "api.file.upload_file.abac_denied.app_error", nil, "", http.StatusForbidden)
 			return
 		}
 	}

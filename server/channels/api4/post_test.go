@@ -32,6 +32,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/testlib"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/testutils"
+	eacmocks "github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 )
 
 // Helper to enable feature with license
@@ -488,6 +489,117 @@ func TestCreatePost(t *testing.T) {
 		require.Error(t, err)
 		CheckUnauthorizedStatus(t, resp)
 		assert.Nil(t, rpost)
+	})
+}
+
+func TestCreatePostABACEnforcement(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.PermissionPolicies = true
+		cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+	}).InitBasic(t)
+
+	client := th.Client
+
+	// The channel upload_file permission check runs before ABAC, so the user must already be
+	// able to upload for this to reach the gate under test.
+	mockUploadDecision := func(t *testing.T, allowed bool) {
+		t.Helper()
+
+		mockACS := &eacmocks.AccessControlServiceInterface{}
+		mockACS.On("AccessEvaluation", mock.Anything, mock.MatchedBy(func(req model.AccessRequest) bool {
+			return req.Action == model.AccessControlPolicyActionUploadFileAttachment
+		})).Return(model.AccessDecision{Decision: allowed}, (*model.AppError)(nil))
+		// Post creation/update also sanitizes file metadata via a separate
+		// download_file_attachment ABAC check; keep that path open so it doesn't
+		// interfere with the upload-gate assertions under test here.
+		mockACS.On("AccessEvaluation", mock.Anything, mock.MatchedBy(func(req model.AccessRequest) bool {
+			return req.Action != model.AccessControlPolicyActionUploadFileAttachment
+		})).Return(model.AccessDecision{Decision: true}, (*model.AppError)(nil))
+
+		original := th.App.Srv().Channels().AccessControl
+		th.App.Srv().Channels().AccessControl = mockACS
+		t.Cleanup(func() {
+			th.App.Srv().Channels().AccessControl = original
+		})
+	}
+
+	uploadFile := func(t *testing.T) string {
+		t.Helper()
+		fileResp, resp, err := client.UploadFile(context.Background(), []byte("test file data"), th.BasicChannel.Id, "test-file.txt")
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+		return fileResp.FileInfos[0].Id
+	}
+
+	t.Run("createPost with files is rejected when the policy denies the upload action", func(t *testing.T) {
+		fileId := uploadFile(t)
+		mockUploadDecision(t, false)
+
+		post := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "post with file blocked by ABAC",
+			FileIds:   model.StringArray{fileId},
+		}
+		rpost, resp, err := client.CreatePost(context.Background(), post)
+		require.Error(t, err)
+		CheckErrorID(t, err, "api.file.upload_file.abac_denied.app_error")
+		CheckForbiddenStatus(t, resp)
+		assert.Nil(t, rpost)
+	})
+
+	t.Run("createPost with files succeeds when the policy allows the upload action", func(t *testing.T) {
+		fileId := uploadFile(t)
+		mockUploadDecision(t, true)
+
+		post := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "post with file allowed by ABAC",
+			FileIds:   model.StringArray{fileId},
+		}
+		rpost, resp, err := client.CreatePost(context.Background(), post)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+		require.NotNil(t, rpost)
+		assert.Contains(t, rpost.FileIds, fileId)
+	})
+
+	t.Run("createPost with files is unaffected when ABAC is disabled (regression)", func(t *testing.T) {
+		fileId := uploadFile(t)
+		mockUploadDecision(t, false)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(false)
+		})
+		t.Cleanup(func() {
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+			})
+		})
+
+		post := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "post with file, ABAC disabled",
+			FileIds:   model.StringArray{fileId},
+		}
+		rpost, resp, err := client.CreatePost(context.Background(), post)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+		require.NotNil(t, rpost)
+		assert.Contains(t, rpost.FileIds, fileId)
+	})
+
+	t.Run("createPost without files is unaffected by a denying policy", func(t *testing.T) {
+		mockUploadDecision(t, false)
+
+		post := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "post without any files",
+		}
+		rpost, resp, err := client.CreatePost(context.Background(), post)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+		require.NotNil(t, rpost)
 	})
 }
 
@@ -2468,6 +2580,137 @@ func TestUpdatePost(t *testing.T) {
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 		assert.Nil(t, updatedPost)
+	})
+}
+
+// TestCheckUploadFilePermissionForNewFilesABACEnforcement covers the shared
+// checkUploadFilePermissionForNewFiles helper (post_utils.go), exercised here via updatePost.
+// The same helper is also used by patchPost and updateScheduledPost.
+func TestCheckUploadFilePermissionForNewFilesABACEnforcement(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.PermissionPolicies = true
+		cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+	}).InitBasic(t)
+
+	client := th.Client
+
+	mockUploadDecision := func(t *testing.T, allowed bool) {
+		t.Helper()
+
+		mockACS := &eacmocks.AccessControlServiceInterface{}
+		mockACS.On("AccessEvaluation", mock.Anything, mock.MatchedBy(func(req model.AccessRequest) bool {
+			return req.Action == model.AccessControlPolicyActionUploadFileAttachment
+		})).Return(model.AccessDecision{Decision: allowed}, (*model.AppError)(nil))
+		// Post creation/update also sanitizes file metadata via a separate
+		// download_file_attachment ABAC check; keep that path open so it doesn't
+		// interfere with the upload-gate assertions under test here.
+		mockACS.On("AccessEvaluation", mock.Anything, mock.MatchedBy(func(req model.AccessRequest) bool {
+			return req.Action != model.AccessControlPolicyActionUploadFileAttachment
+		})).Return(model.AccessDecision{Decision: true}, (*model.AppError)(nil))
+
+		original := th.App.Srv().Channels().AccessControl
+		th.App.Srv().Channels().AccessControl = mockACS
+		t.Cleanup(func() {
+			th.App.Srv().Channels().AccessControl = original
+		})
+	}
+
+	newPostWithoutFiles := func(t *testing.T) *model.Post {
+		t.Helper()
+		post, _, appErr := th.App.CreatePost(th.Context, &model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   "post without files",
+		}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
+		require.Nil(t, appErr)
+		return post
+	}
+
+	uploadFile := func(t *testing.T) string {
+		t.Helper()
+		fileResp, resp, err := client.UploadFile(context.Background(), []byte("test file data"), th.BasicChannel.Id, "test-file.txt")
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+		return fileResp.FileInfos[0].Id
+	}
+
+	t.Run("adding a new file to a post is rejected when the policy denies the upload action", func(t *testing.T) {
+		postWithoutFiles := newPostWithoutFiles(t)
+		fileId := uploadFile(t)
+		mockUploadDecision(t, false)
+
+		update := &model.Post{
+			Id:        postWithoutFiles.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   "updated post with new file",
+			FileIds:   model.StringArray{fileId},
+		}
+		updatedPost, resp, err := client.UpdatePost(context.Background(), postWithoutFiles.Id, update)
+		require.Error(t, err)
+		CheckErrorID(t, err, "api.file.upload_file.abac_denied.app_error")
+		CheckForbiddenStatus(t, resp)
+		assert.Nil(t, updatedPost)
+	})
+
+	t.Run("adding a new file to a post succeeds when the policy allows the upload action", func(t *testing.T) {
+		postWithoutFiles := newPostWithoutFiles(t)
+		fileId := uploadFile(t)
+		mockUploadDecision(t, true)
+
+		update := &model.Post{
+			Id:        postWithoutFiles.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   "updated post with new file",
+			FileIds:   model.StringArray{fileId},
+		}
+		updatedPost, resp, err := client.UpdatePost(context.Background(), postWithoutFiles.Id, update)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.NotNil(t, updatedPost)
+		assert.Contains(t, updatedPost.FileIds, fileId)
+	})
+
+	t.Run("adding a new file to a post is unaffected when ABAC is disabled (regression)", func(t *testing.T) {
+		postWithoutFiles := newPostWithoutFiles(t)
+		fileId := uploadFile(t)
+		mockUploadDecision(t, false)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(false)
+		})
+		t.Cleanup(func() {
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+			})
+		})
+
+		update := &model.Post{
+			Id:        postWithoutFiles.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   "updated post with new file, ABAC disabled",
+			FileIds:   model.StringArray{fileId},
+		}
+		updatedPost, resp, err := client.UpdatePost(context.Background(), postWithoutFiles.Id, update)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.NotNil(t, updatedPost)
+		assert.Contains(t, updatedPost.FileIds, fileId)
+	})
+
+	t.Run("editing a post without adding new files is unaffected by a denying policy", func(t *testing.T) {
+		postWithoutFiles := newPostWithoutFiles(t)
+		mockUploadDecision(t, false)
+
+		update := &model.Post{
+			Id:        postWithoutFiles.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   "edited message, no new files",
+		}
+		updatedPost, resp, err := client.UpdatePost(context.Background(), postWithoutFiles.Id, update)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.NotNil(t, updatedPost)
 	})
 }
 
