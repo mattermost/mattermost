@@ -360,11 +360,10 @@ func (c maskingContext) visibleOptionIDs(h *AccessControlHook, rctx request.CTX,
 	return visible, nil
 }
 
-// maskFieldOptions returns a copy of field whose inline option list is
-// filtered to what callerID may see, given the masking fm already resolved
-// for it. A masked rank field's options are exact-option membership, the
-// same rule select and multiselect use, so this path never applies the
-// rank ladder.
+// maskFieldOptions filters field's inline option list to what callerID may
+// see. A masked rank field's options are exact-option membership, the same
+// rule select and multiselect use, so this path never applies the rank
+// ladder.
 //
 // This runs only on the branch permissionsAllows already admitted for
 // option.read; a caller the gate refused never reaches it.
@@ -428,10 +427,8 @@ func (h *AccessControlHook) maskFieldOptions(rctx request.CTX, c maskingContext,
 	return filteredField
 }
 
-// filterMaskedOptionPage keeps the options in one page of a masked field's
-// paged option listing that callerID may see, and strips each kept option's
-// parents. Judging the page bounds the work to the page size; building the
-// caller's full reach would walk the whole hierarchy.
+// filterMaskedOptionPage judges only this page so the work stays bounded by
+// page size; building the caller's full reach would walk the whole hierarchy.
 //
 // A resolution failure is returned as an error rather than answered with an
 // empty page: every other masking path hides because it has nowhere to put a

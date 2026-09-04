@@ -382,11 +382,9 @@ func grantAllowFor(t *testing.T, p *model.Permissions, ownerType, ownerID string
 }
 
 // TestMigrateBackfillPropertyPermissions_LinkedFieldDropsOptionReadGrant
-// converts a template and a linked field that share an owner. The conversion
-// drops option.read from the linked field's grant (a linked field cannot
-// grant read of the template's option scheme) and PropertyField.IsValid
-// refuses the row if that drop is missed, so this is the path a broken drop
-// would first fail on at startup rather than in a model unit test.
+// is the startup write: a linked field cannot grant read of the template's
+// option scheme, and PropertyField.IsValid refuses the row if conversion
+// leaves option.read on that grant. A model unit test would miss that write.
 func TestMigrateBackfillPropertyPermissions_LinkedFieldDropsOptionReadGrant(t *testing.T) {
 	th := Setup(t).RegisterCPAPropertyGroup(t)
 
@@ -404,12 +402,10 @@ func TestMigrateBackfillPropertyPermissions_LinkedFieldDropsOptionReadGrant(t *t
 		},
 	})
 
-	// Created straight through the store, bypassing the service: template has
-	// already been stripped back to a legacy-shaped row with no Permissions,
-	// which the create-time gate on a linked field can only read as "nothing
-	// declared yet" -- not yet backfilled is not a state any caller's create
-	// request can reach in production, since the startup backfill always runs
-	// first, so there is nothing for the gate to authorize against here either.
+	// The template is a stripped legacy-shaped row with no Permissions. The
+	// create-time gate on a linked field reads that as nothing declared yet,
+	// which no production create can reach — the startup backfill always
+	// runs first — so there is nothing for the gate to authorize against.
 	linked := th.CreatePropertyFieldDirect(t, &model.PropertyField{
 		GroupID:       th.CPAGroupID,
 		Name:          "owned-linked-field",

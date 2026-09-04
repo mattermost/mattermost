@@ -129,8 +129,7 @@ func (a *App) PropertyPermissionBasisFor(rctx request.CTX, field *model.Property
 		return basis
 	}
 
-	// Decide machine vs. human before matching any grant, mirroring
-	// AccessControlHook.isMachineCaller exactly (plugin, LDAP sync, SAML
+	// Mirror AccessControlHook.isMachineCaller (plugin, LDAP sync, SAML
 	// sync, or a system subsystem) so the audit basis and the enforcement
 	// gate cannot disagree about a caller. An installed plugin's ID could
 	// otherwise match a wildcard ("*") plugin grant even when the caller
