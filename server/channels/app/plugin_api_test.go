@@ -750,6 +750,138 @@ func TestPluginAPIGetFile(t *testing.T) {
 	require.Nil(t, data)
 }
 
+func TestPluginAPIHasPermissionToFileAction(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+	api := th.SetupPluginAPI()
+
+	fileActionAPI, ok := any(api).(interface {
+		HasPermissionToFileAction(sessionID, fileID, action string) bool
+	})
+	if !t.Run("method exposure", func(t *testing.T) {
+		require.True(t, ok, "PluginAPI must expose HasPermissionToFileAction(sessionID, fileID, action string) bool")
+	}) {
+		return
+	}
+
+	enableSessionAttributesCollection(t, th)
+	th.ConfigStore.SetReadOnlyFF(false)
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(true)
+		cfg.FeatureFlags.PermissionPolicies = true
+	})
+	th.ConfigStore.SetReadOnlyFF(true)
+
+	activeSession, appErr := th.App.CreateSession(th.Context, &model.Session{
+		UserId:    th.BasicUser.Id,
+		ExpiresAt: model.GetMillis() + 100000,
+		Props:     model.StringMap{},
+	})
+	require.Nil(t, appErr)
+
+	expiredSession, appErr := th.App.CreateSession(th.Context, &model.Session{
+		UserId:    th.BasicUser.Id,
+		ExpiresAt: model.GetMillis() - 100000,
+		Props:     model.StringMap{},
+	})
+	require.Nil(t, appErr)
+
+	require.NoError(t, th.App.Srv().Store().SessionAttribute().Refresh(activeSession.Id, map[string]any{
+		model.SessionAttributesPropertyFieldIPAddress: "192.0.2.10",
+	}, model.GetMillis()))
+
+	fileInfo, appErr := th.App.DoUploadFile(
+		th.Context,
+		time.Now(),
+		th.BasicTeam.Id,
+		th.BasicChannel.Id,
+		th.BasicUser.Id,
+		"file-action-policy-test",
+		[]byte("test"),
+		true,
+	)
+	require.Nil(t, appErr)
+	t.Cleanup(func() {
+		require.NoError(t, th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, fileInfo.Id))
+		require.Nil(t, th.App.RemoveFile(fileInfo.Path))
+	})
+
+	mockAccessControl := &mocks.AccessControlServiceInterface{}
+	th.App.Srv().ch.AccessControl = mockAccessControl
+	mockAccessControl.On("AccessEvaluation", mock.Anything, mock.MatchedBy(func(req model.AccessRequest) bool {
+		return req.Resource.ID == th.BasicChannel.Id &&
+			req.Action == model.AccessControlPolicyActionDownloadFileAttachment
+	})).Return(model.AccessDecision{Decision: false}, (*model.AppError)(nil)).Once()
+	mockAccessControl.On("AccessEvaluation", mock.Anything, mock.MatchedBy(func(req model.AccessRequest) bool {
+		return req.Resource.ID == th.BasicChannel.Id &&
+			req.Action == model.AccessControlPolicyActionUploadFileAttachment &&
+			req.Subject.Session[model.SessionAttributesPropertyFieldIPAddress] == "192.0.2.10"
+	})).Return(model.AccessDecision{Decision: true}, (*model.AppError)(nil)).Once()
+
+	tests := []struct {
+		name      string
+		sessionID string
+		fileID    string
+		action    string
+		expected  bool
+	}{
+		{
+			name:     "missing session",
+			fileID:   fileInfo.Id,
+			action:   model.AccessControlPolicyActionDownloadFileAttachment,
+			expected: false,
+		},
+		{
+			name:      "invalid session",
+			sessionID: model.NewId(),
+			fileID:    fileInfo.Id,
+			action:    model.AccessControlPolicyActionDownloadFileAttachment,
+			expected:  false,
+		},
+		{
+			name:      "expired session",
+			sessionID: expiredSession.Id,
+			fileID:    fileInfo.Id,
+			action:    model.AccessControlPolicyActionDownloadFileAttachment,
+			expected:  false,
+		},
+		{
+			name:      "unknown file",
+			sessionID: activeSession.Id,
+			fileID:    model.NewId(),
+			action:    model.AccessControlPolicyActionDownloadFileAttachment,
+			expected:  false,
+		},
+		{
+			name:      "invalid action",
+			sessionID: activeSession.Id,
+			fileID:    fileInfo.Id,
+			action:    "invalid-action",
+			expected:  false,
+		},
+		{
+			name:      "policy deny",
+			sessionID: activeSession.Id,
+			fileID:    fileInfo.Id,
+			action:    model.AccessControlPolicyActionDownloadFileAttachment,
+			expected:  false,
+		},
+		{
+			name:      "policy allow with session attributes",
+			sessionID: activeSession.Id,
+			fileID:    fileInfo.Id,
+			action:    model.AccessControlPolicyActionUploadFileAttachment,
+			expected:  true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, tt.expected, fileActionAPI.HasPermissionToFileAction(tt.sessionID, tt.fileID, tt.action))
+		})
+	}
+	mockAccessControl.AssertExpectations(t)
+}
+
 func TestPluginAPIGetFileInfos(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
