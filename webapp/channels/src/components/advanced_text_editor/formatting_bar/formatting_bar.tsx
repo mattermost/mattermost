@@ -234,12 +234,13 @@ const FormattingBar = forwardRef<FormattingBarHandle, FormattingBarProps>((props
     const {formatMessage} = useIntl();
     const HiddenControlsButtonAriaLabel = formatMessage({id: 'accessibility.button.hidden_controls_button', defaultMessage: 'show hidden formatting options'});
 
-    const {x, y, strategy, update, context, refs: {setReference, setFloating}} = useFloating<HTMLButtonElement>({
+    const {x, y, strategy, update, context, refs} = useFloating<HTMLButtonElement>({
         open: showHiddenControls,
         onOpenChange: setShowHiddenControls,
         placement: 'top',
         middleware: [offset({mainAxis: 4})],
     });
+    const {setReference, setFloating} = refs;
 
     const click = useClick(context);
     const {getReferenceProps: getClickReferenceProps, getFloatingProps: getClickFloatingProps} = useInteractions([
@@ -364,6 +365,7 @@ const FormattingBar = forwardRef<FormattingBarHandle, FormattingBarProps>((props
                 timeout={250}
                 classNames='scale'
                 in={showHiddenControls}
+                nodeRef={refs.floating}
                 unmountOnExit={true}
             >
                 <HiddenControlsContainer

@@ -10,6 +10,7 @@ import {PlusIcon} from '@mattermost/compass-icons/components';
 import type {PropertyField} from '@mattermost/types/properties';
 
 import PropertyTypes from 'mattermost-redux/action_types/properties';
+import {DISPLAY_BANNER_TOP} from 'mattermost-redux/constants/properties';
 import {getAccessControlSettings} from 'mattermost-redux/selectors/entities/access_control';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
@@ -40,7 +41,6 @@ import {
     CLEARANCE_FIELD_DISPLAY_NAME,
     CLEARANCE_FIELD_NAME,
     DEFAULT_GLOBAL_BANNER,
-    DISPLAY_BANNER_TOP,
     actionsToGlobalBanner,
     fetchChannelClassificationField,
     fetchClassificationField,

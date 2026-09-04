@@ -163,7 +163,7 @@ PLUGIN_PACKAGES += mattermost-plugin-jira-v4.8.0
 PLUGIN_PACKAGES += mattermost-plugin-playbooks-v2.11.1
 PLUGIN_PACKAGES += mattermost-plugin-servicenow-v2.4.0
 PLUGIN_PACKAGES += mattermost-plugin-zoom-v1.13.0
-PLUGIN_PACKAGES += mattermost-plugin-agents-v2.6.0
+PLUGIN_PACKAGES += mattermost-plugin-agents-v2.6.1
 PLUGIN_PACKAGES += mattermost-plugin-boards-v9.4.0
 PLUGIN_PACKAGES += mattermost-plugin-user-survey-v1.1.1
 PLUGIN_PACKAGES += mattermost-plugin-mscalendar-v1.7.0
@@ -178,7 +178,7 @@ PLUGIN_PACKAGES += mattermost-plugin-dataminr-v2.0.0
 # the way we pre-package FIPS and non-FIPS plugins.
 ifeq ($(FIPS_ENABLED),true)
 	PLUGIN_PACKAGES  = mattermost-plugin-playbooks-v2.11.1%2B329b65c-fips
-	PLUGIN_PACKAGES += mattermost-plugin-agents-v2.6.0%2B7824854-fips
+	PLUGIN_PACKAGES += mattermost-plugin-agents-v2.6.1%2B0b1b771-fips
 	PLUGIN_PACKAGES += mattermost-plugin-boards-v9.4.0%2B4b7dd4b-fips
 endif
 
@@ -337,9 +337,12 @@ golang-versions: ## Install Golang versions used for compatibility testing (e.g.
 	done
 	export GO_COMPATIBILITY_TEST_VERSIONS="${GO_COMPATIBILITY_TEST_VERSIONS}"
 
-.PHONY: golangci-lint
-golangci-lint: setup-go-work ## Run golangci-lint on codebase
+.PHONY: install-golangci-lint
+install-golangci-lint:
 	$(GO) install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.12.2
+
+.PHONY: golangci-lint
+golangci-lint: setup-go-work install-golangci-lint ## Run golangci-lint on codebase
 ifeq ($(BUILD_ENTERPRISE_READY),true)
 	$(GOBIN)/golangci-lint run ./... ./public/... $(BUILD_ENTERPRISE_DIR)/...
 else
@@ -357,14 +360,16 @@ i18n-check: ## Exit on empty translation strings and translation source strings
 	$(GOBIN)/mmgotool i18n clean-empty --portal-dir="" --check
 	$(GOBIN)/mmgotool i18n check-empty-src --portal-dir=""
 
-.PHONY: store-mocks
-store-mocks: setup-go-work ## Creates mock files.
+.PHONY: install-mockery
+install-mockery:
 	$(GO) install github.com/vektra/mockery/v2/...@v2.53.4
+
+.PHONY: store-mocks
+store-mocks: setup-go-work install-mockery ## Creates mock files.
 	$(GOBIN)/mockery --config channels/store/.mockery.yaml
 
 .PHONY: cache-mocks
-cache-mocks: setup-go-work
-	$(GO) install github.com/vektra/mockery/v2/...@v2.53.4
+cache-mocks: setup-go-work install-mockery
 	$(GOBIN)/mockery --config platform/services/cache/.mockery.yaml
 
 
@@ -372,60 +377,57 @@ cache-mocks: setup-go-work
 store-layers: setup-go-work ## Generate layers for the store
 	$(GO) generate $(GOFLAGS) ./channels/store
 
-.PHONY: new-migration
-new-migration: ## Creates a new migration. Run with make new-migration name=<>
+.PHONY: install-morph
+install-morph:
 	$(GO) install github.com/mattermost/morph/cmd/morph@1e0640c
+
+.PHONY: new-migration
+new-migration: install-morph ## Creates a new migration. Run with make new-migration name=<>
 	@echo "Generating new migration for postgres"
 	$(GOBIN)/morph new script $(name) --driver postgres --dir channels/db/migrations --sequence
 
 .PHONY: filestore-mocks
-filestore-mocks: setup-go-work ## Creates mock files.
-	$(GO) install github.com/vektra/mockery/v2/...@v2.53.4
+filestore-mocks: setup-go-work install-mockery ## Creates mock files.
 	$(GOBIN)/mockery --config platform/shared/filestore/.mockery.yaml
 
 .PHONY: ldap-mocks
-ldap-mocks: setup-go-work ## Creates mock files for ldap.
-	$(GO) install github.com/vektra/mockery/v2/...@v2.53.4
+ldap-mocks: setup-go-work install-mockery ## Creates mock files for ldap.
 	$(GOBIN)/mockery --dir $(BUILD_ENTERPRISE_DIR)/ldap --all --inpackage --note 'Regenerate this file using `make ldap-mocks`.'
 
 .PHONY: plugin-mocks
-plugin-mocks: setup-go-work ## Creates mock files for plugins.
-	$(GO) install github.com/vektra/mockery/v2/...@v2.53.4
+plugin-mocks: setup-go-work install-mockery ## Creates mock files for plugins.
 	$(GOBIN)/mockery --config public/plugin/.mockery.yaml
 
 .PHONY: einterfaces-mocks
-einterfaces-mocks: setup-go-work ## Creates mock files for einterfaces.
-	$(GO) install github.com/vektra/mockery/v2/...@v2.53.4
+einterfaces-mocks: setup-go-work install-mockery ## Creates mock files for einterfaces.
 	$(GOBIN)/mockery --config einterfaces/.mockery.yaml
 
 .PHONY: searchengine-mocks
-searchengine-mocks: setup-go-work ## Creates mock files for searchengines.
-	$(GO) install github.com/vektra/mockery/v2/...@v2.53.4
+searchengine-mocks: setup-go-work install-mockery ## Creates mock files for searchengines.
 	$(GOBIN)/mockery --config platform/services/searchengine/.mockery.yaml
 
 .PHONY: sharedchannel-mocks
-sharedchannel-mocks: setup-go-work ## Creates mock files for shared channels.
-	$(GO) install github.com/vektra/mockery/v2/...@v2.53.4
+sharedchannel-mocks: setup-go-work install-mockery ## Creates mock files for shared channels.
 	$(GOBIN)/mockery --config platform/services/sharedchannel/.mockery.yaml
 
 .PHONY: misc-mocks
-misc-mocks: setup-go-work ## Creates mocks for misc interfaces.
-	$(GO) install github.com/vektra/mockery/v2/...@v2.53.4
+misc-mocks: setup-go-work install-mockery ## Creates mocks for misc interfaces.
 	$(GOBIN)/mockery --config channels/utils/.mockery.yaml
 
 .PHONY: email-mocks
-email-mocks: setup-go-work ## Creates mocks for misc interfaces.
-	$(GO) install github.com/vektra/mockery/v2/...@v2.53.4
+email-mocks: setup-go-work install-mockery ## Creates mocks for misc interfaces.
 	$(GOBIN)/mockery --config channels/app/email/.mockery.yaml
 
 .PHONY: platform-mocks
-platform-mocks: setup-go-work ## Creates mocks for platform interfaces.
-	$(GO) install github.com/vektra/mockery/v2/...@v2.53.4
+platform-mocks: setup-go-work install-mockery ## Creates mocks for platform interfaces.
 	$(GOBIN)/mockery --config channels/app/platform/.mockery.yaml
 
-.PHONY: mmctl-mocks
-mmctl-mocks: setup-go-work ## Creates mocks for mmctl
+.PHONY: install-mockgen
+install-mockgen:
 	$(GO) install github.com/golang/mock/mockgen@v1.6.0
+
+.PHONY: mmctl-mocks
+mmctl-mocks: setup-go-work install-mockgen ## Creates mocks for mmctl
 	$(GOBIN)/mockgen -destination=cmd/mmctl/mocks/client_mock.go -copyright_file=cmd/mmctl/mocks/copyright.txt -package=mocks github.com/mattermost/mattermost/server/v8/cmd/mmctl/client Client
 
 .PHONY: pluginapi
@@ -483,6 +485,18 @@ check-style: plugin-checker vet golangci-lint check-go-fix ## Runs style/lint ch
 .PHONY: gotestsum
 gotestsum:
 	$(GO) install gotest.tools/gotestsum@v1.13.0
+
+.PHONY: install-ci-tools
+install-ci-tools: gotestsum install-golangci-lint install-govet install-mockery install-mockgen install-morph install-msgp ## Install all tools required by CI
+
+.PHONY: go-cache
+go-cache: setup-go-work install-ci-tools ## Pre-warm Go module and build cache for CI
+	$(GO) mod download all
+	@(cd public && $(GO) mod download all)
+	$(GO) build ./...
+	@(cd public && $(GO) build ./...)
+	$(GO) test -run=^$$ -count=1 -short ./...
+	@(cd public && $(GO) test -run=^$$ -count=1 -short ./...)
 
 .PHONY: test-compile
 test-compile: setup-go-work gotestsum ## Compile tests.
@@ -938,9 +952,12 @@ ifeq ($(BUILD_ENTERPRISE_READY),true)
 	mv enterprise/external_imports.go.orig enterprise/external_imports.go
 endif
 
-.PHONY: vet
-vet: setup-go-work ## Run mattermost go vet specific checks
+.PHONY: install-govet
+install-govet:
 	cd ../tools/mattermost-govet && $(GO) install .
+
+.PHONY: vet
+vet: setup-go-work install-govet ## Run mattermost go vet specific checks
 	$(GO) vet -vettool=$(GOBIN)/mattermost-govet \
 		-structuredLogging \
 		-mlogFieldNaming \
@@ -974,18 +991,20 @@ ifeq ($(BUILD_ENTERPRISE_READY),true)
 endif
 
 .PHONY: vet-api
-vet-api: setup-go-work
 vet-api: export GO := $(GO)
 vet-api: export GOBIN := $(GOBIN)
 vet-api: export ROOT := $(ROOT)
-vet-api: ## Run mattermost go vet to verify api4 documentation, currently not passing
-	cd ../tools/mattermost-govet && $(GO) install .
+vet-api: setup-go-work install-govet ## Run mattermost go vet to verify api4 documentation, currently not passing
 	make -C ../api build
 	./scripts/vet-api-check.sh
 
+.PHONY: install-msgp
+install-msgp:
+	$(GO) install github.com/tinylib/msgp@v1.1.6
+
 .PHONY: gen-serialized
 gen-serialized:	export LICENSE_HEADER:=$(LICENSE_HEADER)
-gen-serialized: setup-go-work ## Generates serialization methods for hot structs
+gen-serialized: setup-go-work install-msgp ## Generates serialization methods for hot structs
 	# This tool only works at a file level, not at a package level.
 	# There will be some warnings about "unresolved identifiers",
 	# but that is because of the above problem. Since we are generating
@@ -993,7 +1012,6 @@ gen-serialized: setup-go-work ## Generates serialization methods for hot structs
 	# identifiers will be resolved. An alternative to remove the warnings
 	# would be to temporarily move all the structs to the same file,
 	# but that involves a lot of manual work.
-	$(GO) install github.com/tinylib/msgp@v1.1.6
 	$(GOBIN)/msgp -file=./public/model/utils.go -tests=false -o=./public/model/utils_serial_gen.go
 	@echo "$$LICENSE_HEADER" > tmp.go
 	@cat ./public/model/utils_serial_gen.go >> tmp.go

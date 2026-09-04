@@ -236,9 +236,9 @@ A Mattermost Enterprise license is required to connect to `/metrics` using HTTP.
 
 If enabled, you can run the profiler by
 
-`go tool pprof http://localhost:&lt;port&gt;/debug/pprof/profile?seconds=&lt;duration&gt;`
+`go tool pprof http://localhost:<port>/debug/pprof/profile?seconds=<duration>`
 
-where you can replace `localhost` with the server name. The profiling reports are available at `&lt;ip&gt;:&lt;port&gt;`, which include:
+where you can replace `localhost` with the server name. The profiling reports are available at `<ip>:<port>`, which include:
 
 - `/debug/pprof/profile?seconds=30` for CPU profiling
 - `/debug/pprof/cmdline` for command line profiling

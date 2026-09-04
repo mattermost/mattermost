@@ -52,6 +52,10 @@
     "translation": "A group-synced team cannot have a membership policy applied."
   },
   {
+    "id": "api.access_control.decision.unsupported_resource_type.app_error",
+    "translation": "Render-time access control decisions are not supported for resource type \"{{.Type}}\"."
+  },
+  {
     "id": "api.access_control_policy.channel_permission_policies.feature_disabled",
     "translation": "Channel-level permission policies feature is not enabled."
   },
@@ -5367,6 +5371,14 @@
     "translation": "An access control policy of a different type already exists for this ID."
   },
   {
+    "id": "app.access_control_decision.subject_mismatch.app_error",
+    "translation": "Subject does not match the authenticated session user."
+  },
+  {
+    "id": "app.access_control_decision.unsupported_action.app_error",
+    "translation": "Unsupported action for render decisions: {{.Action}}"
+  },
+  {
     "id": "app.acknowledgement.batch_save.app_error",
     "translation": "Failed to save the batch of acknowledgement objects"
   },
@@ -8813,10 +8825,6 @@
     "translation": "Property value failed validation."
   },
   {
-    "id": "app.reaction.bulk_get_for_post_ids.app_error",
-    "translation": "Unable to get reactions for post."
-  },
-  {
     "id": "app.reaction.delete_all_with_emoji_name.get_reactions.app_error",
     "translation": "Unable to get all reactions with this emoji name."
   },
@@ -10391,10 +10399,6 @@
     "translation": "{{.Backend}} aggregator worker failed due to the indexing job failing"
   },
   {
-    "id": "ent.elasticsearch.analysis_icu_required",
-    "translation": "Mattermost requires the analysis-icu plugin on every {{.Backend}} node. Install it on all nodes, then restart {{.Backend}}."
-  },
-  {
     "id": "ent.elasticsearch.backfill_posts_channel_type.error",
     "translation": "{{.Backend}} failed to backfill channel type on posts"
   },
@@ -10436,7 +10440,7 @@
   },
   {
     "id": "ent.elasticsearch.create_template_posts_if_not_exists.template_create_failed",
-    "translation": "Failed to create {{.Backend}} template for posts"
+    "translation": "Failed to create {{.Backend}} template for posts. Verify that the required analysis-icu plugin is installed on every {{.Backend}} node, then restart {{.Backend}}"
   },
   {
     "id": "ent.elasticsearch.create_template_users_if_not_exists.template_create_failed",
@@ -11211,6 +11215,26 @@
     "translation": "Invalid user id."
   },
   {
+    "id": "model.access_control_decision.is_valid.action_empty.app_error",
+    "translation": "Action names cannot be empty."
+  },
+  {
+    "id": "model.access_control_decision.is_valid.actions_too_many.app_error",
+    "translation": "Too many actions requested."
+  },
+  {
+    "id": "model.access_control_decision.is_valid.resource_id.app_error",
+    "translation": "Invalid resource id."
+  },
+  {
+    "id": "model.access_control_decision.is_valid.resource_type.app_error",
+    "translation": "Resource type is required."
+  },
+  {
+    "id": "model.access_control_decision.is_valid.subject_id.app_error",
+    "translation": "Invalid subject id."
+  },
+  {
     "id": "model.access_policy.inherit.already_imported.app_error",
     "translation": "The parent is already imported."
   },
@@ -11972,7 +11996,7 @@
   },
   {
     "id": "model.config.is_valid.dcr_redirect_uri_allowlist.app_error",
-    "translation": "DCR redirect URI allowlist contains an invalid pattern. Patterns must start with http:// or https:// and cannot be empty or whitespace."
+    "translation": "DCR redirect URI allowlist contains an invalid pattern. Each pattern must be a valid URI with a scheme and host (for example https://example.com/** or cursor://app/callback) and cannot be empty or whitespace."
   },
   {
     "id": "model.config.is_valid.directory.app_error",
