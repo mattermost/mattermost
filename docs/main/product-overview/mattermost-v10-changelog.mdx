@@ -1305,7 +1305,7 @@ If you upgrade from a release earlier than v10.0, please read the other [Importa
  - Added full support for @mentions in the values of fields in [message attachments](https://developers.mattermost.com/integrate/reference/message-attachments/).
 
 #### Administration
- - Added a new URL parameter called ``permanent`` to ``DELETE /api/v4/posts/&lt;post-id&gt;``, and set ``permanent`` to ``true`` in order to permanently delete a post and its attachments.
+ - Added a new URL parameter called ``permanent`` to ``DELETE /api/v4/posts/<post-id>``, and set ``permanent`` to ``true`` in order to permanently delete a post and its attachments.
  - Added Connected Workspaces (Beta) administration page to the System Console when Connected Workspaces are [enabled](https://docs.mattermost.com/onboard/connected-workspaces.html#enable-connected-workflows) for the server.
  - Added a team selector to accept connection invite flow in Connected Workspaces.
  - Restricted activation and deactivation of LDAP-managed users through both the System Console UI and Mattermost API.
@@ -1314,7 +1314,7 @@ If you upgrade from a release earlier than v10.0, please read the other [Importa
  - Improved log messages for cluster communication.
  - Information about deleted rows from the Data Retention job are now logged.
  - License details to logs are now emitted when added or removed.
- - Added a new mmctl command, ``mmctl post delete &lt;post-id&gt;``, in order to permanently delete a post and its attachments.
+ - Added a new mmctl command, ``mmctl post delete <post-id>``, in order to permanently delete a post and its attachments.
 
 #### Performance
  - Added metrics to prometheus to check the mobile versions for each session daily.
