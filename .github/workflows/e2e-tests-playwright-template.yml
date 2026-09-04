@@ -181,6 +181,8 @@ jobs:
           fetch-depth: 1
       - name: ci/setup-webapp-node-modules
         uses: ./.github/actions/webapp-setup
+        with:
+          read-only: "true"
       - name: ci/cache-playwright-deps
         # Caches node_modules + the rolled-up @mattermost/playwright-lib dist
         # so workers don't re-run rollup on every job.

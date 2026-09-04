@@ -247,6 +247,8 @@ jobs:
       - name: ci/setup-webapp-node-modules
         if: steps.probe.outputs.cache-hit != 'true'
         uses: ./.github/actions/webapp-setup
+        with:
+          read-only: "true"
       # Read-only restore of the registry cache warmed daily from master, so the
       # install below refetches as little as possible.
       - name: ci/restore-npm-cache
