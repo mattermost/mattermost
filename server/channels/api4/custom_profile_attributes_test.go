@@ -1918,18 +1918,17 @@ func TestOwnerManagedCPAFieldHumanValueWrites(t *testing.T) {
 	CheckCreatedStatus(t, resp)
 	require.NoError(t, err)
 	require.NotNil(t, created)
-	// Owner-managed fields pin PermissionValues to sysadmin so that if the
-	// owners list is ever dropped, the field stays admin-only instead of
-	// becoming writable by every member. Human writes are additionally blocked
-	// in the property-service hook (like the ldap/saml sync lock).
+	// Owner-managed conversion sets value.write to none (a grant restores
+	// write for a listed owner). Projected PermissionValues therefore reads
+	// none, not the create-path sysadmin pin; PermissionField stays sysadmin
+	// so dropping owners does not make the definition member-editable.
 	require.NotNil(t, created.PermissionValues)
-	assert.Equal(t, model.PermissionLevelSysadmin, *created.PermissionValues)
+	assert.Equal(t, model.PermissionLevelNone, *created.PermissionValues)
 	require.NotNil(t, created.PermissionField)
 	assert.Equal(t, model.PermissionLevelSysadmin, *created.PermissionField)
 
 	t.Run("member cannot write values on an owner-managed field", func(t *testing.T) {
-		// The sysadmin PermissionValues pin denies the member at the API
-		// permission layer, before reaching the property-service hook.
+		// value.write none denies the member at the API permission layer.
 		_, resp, err := th.Client.PatchCPAValues(context.Background(), map[string]json.RawMessage{
 			created.ID: json.RawMessage(`"member write"`),
 		})
