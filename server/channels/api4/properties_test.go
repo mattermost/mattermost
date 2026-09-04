@@ -724,6 +724,50 @@ func TestCreatePropertyField(t *testing.T) {
 		})
 	})
 
+	t.Run("admin can set permission level=creator on a post-object field", func(t *testing.T) {
+		creatorLevel := model.PermissionLevelCreator
+		field := &model.PropertyField{
+			Name:              model.NewId(),
+			Type:              model.PropertyFieldTypeText,
+			TargetType:        "channel",
+			TargetID:          th.BasicChannel.Id,
+			PermissionField:   &creatorLevel,
+			PermissionValues:  &creatorLevel,
+			PermissionOptions: &creatorLevel,
+		}
+
+		createdField, resp, err := th.SystemAdminClient.CreatePropertyField(context.Background(), group.Name, "post", field)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		require.NotNil(t, createdField.PermissionField)
+		require.Equal(t, model.PermissionLevelCreator, *createdField.PermissionField)
+		require.NotNil(t, createdField.PermissionValues)
+		require.Equal(t, model.PermissionLevelCreator, *createdField.PermissionValues)
+		require.NotNil(t, createdField.PermissionOptions)
+		require.Equal(t, model.PermissionLevelCreator, *createdField.PermissionOptions)
+	})
+
+	t.Run("permission level=creator on a user-object field should fail", func(t *testing.T) {
+		// User-object fields have no entity creator, so the level is rejected
+		// rather than silently resolving to admin.
+		creatorLevel := model.PermissionLevelCreator
+		memberLevel := model.PermissionLevelMember
+		field := &model.PropertyField{
+			Name:              model.NewId(),
+			Type:              model.PropertyFieldTypeText,
+			TargetType:        "channel",
+			TargetID:          th.BasicChannel.Id,
+			PermissionField:   &memberLevel,
+			PermissionValues:  &creatorLevel,
+			PermissionOptions: &memberLevel,
+		}
+
+		_, resp, err := th.SystemAdminClient.CreatePropertyField(context.Background(), group.Name, "user", field)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
 	t.Run("invalid group name should fail", func(t *testing.T) {
 		th.LoginBasic(t)
 
@@ -981,6 +1025,124 @@ func TestCreatePropertyField(t *testing.T) {
 		_, resp, err := th.Client.CreatePropertyField(context.Background(), v1Group.Name, "post", field)
 		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
+	})
+
+	t.Run("a non-scope-admin cannot pin the creator permission level", func(t *testing.T) {
+		// Only a caller who administers the field's scope may configure
+		// permission levels; everyone else has all three pinned to the object
+		// type's default, so a submitted creator level is discarded rather
+		// than honoured. th.BasicUser is a plain channel_user in
+		// th.BasicChannel here.
+		th.LoginBasic(t)
+
+		creatorLevel := model.PermissionLevelCreator
+		field := &model.PropertyField{
+			Name:              model.NewId(),
+			Type:              model.PropertyFieldTypeText,
+			TargetType:        "channel",
+			TargetID:          th.BasicChannel.Id,
+			PermissionField:   &creatorLevel,
+			PermissionValues:  &creatorLevel,
+			PermissionOptions: &creatorLevel,
+		}
+
+		created, resp, err := th.Client.CreatePropertyField(context.Background(), group.Name, "post", field)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		require.Equal(t, model.PermissionLevelMember, *created.PermissionField)
+		require.Equal(t, model.PermissionLevelMember, *created.PermissionValues)
+		require.Equal(t, model.PermissionLevelMember, *created.PermissionOptions)
+	})
+
+	t.Run("channel admin can create an admin-managed field with creator-set values", func(t *testing.T) {
+		// A channel admin defines a channel-scoped field whose definition and
+		// options only the channel's admins may manage, and whose values each
+		// object's creator may set on their own object.
+		channelAdmin := th.CreateUser(t)
+		th.LinkUserToTeam(t, channelAdmin, th.BasicTeam)
+		_, appErr := th.App.AddUserToChannel(th.Context, channelAdmin, th.BasicChannel, false)
+		require.Nil(t, appErr)
+		_, appErr = th.App.UpdateChannelMemberRoles(th.Context, th.BasicChannel.Id, channelAdmin.Id,
+			model.ChannelUserRoleId+" "+model.ChannelAdminRoleId)
+		require.Nil(t, appErr)
+
+		client := th.CreateClient()
+		_, _, err := client.Login(context.Background(), channelAdmin.Email, channelAdmin.Password)
+		require.NoError(t, err)
+
+		adminLevel := model.PermissionLevelAdmin
+		creatorLevel := model.PermissionLevelCreator
+		field := &model.PropertyField{
+			Name:              model.NewId(),
+			Type:              model.PropertyFieldTypeSelect,
+			TargetType:        "channel",
+			TargetID:          th.BasicChannel.Id,
+			PermissionField:   &adminLevel,
+			PermissionValues:  &creatorLevel,
+			PermissionOptions: &adminLevel,
+		}
+
+		created, resp, err := client.CreatePropertyField(context.Background(), group.Name, "post", field)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		require.Equal(t, model.PermissionLevelAdmin, *created.PermissionField)
+		require.Equal(t, model.PermissionLevelCreator, *created.PermissionValues)
+		require.Equal(t, model.PermissionLevelAdmin, *created.PermissionOptions)
+
+		// Re-read: the pin happens before the store write, so echoing the
+		// request body back would look identical to a genuine persist.
+		fields, resp, err := client.GetPropertyFields(context.Background(), group.Name, "post", model.PropertyFieldSearch{
+			TargetType: "channel",
+			TargetID:   th.BasicChannel.Id,
+			PerPage:    200,
+		})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		var fetched *model.PropertyField
+		for _, f := range fields {
+			if f.ID == created.ID {
+				fetched = f
+				break
+			}
+		}
+		require.NotNil(t, fetched, "the created field should be readable back")
+		require.Equal(t, model.PermissionLevelAdmin, *fetched.PermissionField)
+		require.Equal(t, model.PermissionLevelCreator, *fetched.PermissionValues)
+		require.Equal(t, model.PermissionLevelAdmin, *fetched.PermissionOptions)
+	})
+
+	t.Run("system admin can create an admin-managed field with creator-set values", func(t *testing.T) {
+		// The same shape provisioned by a system admin: definition and options
+		// managed by the channel's admins, values settable by each object's
+		// creator.
+		adminLevel := model.PermissionLevelAdmin
+		creatorLevel := model.PermissionLevelCreator
+		field := &model.PropertyField{
+			Name:       model.NewId(),
+			Type:       model.PropertyFieldTypeSelect,
+			TargetType: "channel",
+			TargetID:   th.BasicChannel.Id,
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []map[string]any{
+					{"name": "confidential"},
+					{"name": "public"},
+				},
+			},
+			PermissionField:   &adminLevel,
+			PermissionValues:  &creatorLevel,
+			PermissionOptions: &adminLevel,
+		}
+
+		created, resp, err := th.SystemAdminClient.CreatePropertyField(context.Background(), group.Name, "post", field)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		require.Equal(t, model.PermissionLevelAdmin, *created.PermissionField)
+		require.Equal(t, model.PermissionLevelCreator, *created.PermissionValues)
+		require.Equal(t, model.PermissionLevelAdmin, *created.PermissionOptions)
 	})
 }
 
@@ -3008,6 +3170,55 @@ func TestPatchPropertyField(t *testing.T) {
 		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
 	})
+
+	t.Run("field creator can patch their own field", func(t *testing.T) {
+		creatorLevel := model.PermissionLevelCreator
+		field, appErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+			Name:              model.NewId(),
+			Type:              model.PropertyFieldTypeText,
+			GroupID:           group.ID,
+			ObjectType:        "post",
+			TargetType:        "channel",
+			TargetID:          th.BasicChannel.Id,
+			CreatedBy:         th.BasicUser.Id,
+			PermissionField:   &creatorLevel,
+			PermissionValues:  &sysadminLevel,
+			PermissionOptions: &creatorLevel,
+		}, false, "")
+		require.Nil(t, appErr)
+
+		th.LoginBasic(t)
+
+		newName := model.NewId()
+		patched, resp, err := th.Client.PatchPropertyField(context.Background(), group.Name, "post", field.ID, &model.PropertyFieldPatch{Name: &newName})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Equal(t, newName, patched.Name)
+	})
+
+	t.Run("non-creator member cannot patch a creator-gated field", func(t *testing.T) {
+		creatorLevel := model.PermissionLevelCreator
+		field, appErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+			Name:              model.NewId(),
+			Type:              model.PropertyFieldTypeText,
+			GroupID:           group.ID,
+			ObjectType:        "post",
+			TargetType:        "channel",
+			TargetID:          th.BasicChannel.Id,
+			CreatedBy:         th.BasicUser.Id,
+			PermissionField:   &creatorLevel,
+			PermissionValues:  &sysadminLevel,
+			PermissionOptions: &creatorLevel,
+		}, false, "")
+		require.Nil(t, appErr)
+
+		th.LoginBasic2(t)
+
+		newName := model.NewId()
+		_, resp, err := th.Client.PatchPropertyField(context.Background(), group.Name, "post", field.ID, &model.PropertyFieldPatch{Name: &newName})
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
 }
 
 func TestDeletePropertyField(t *testing.T) {
@@ -3229,6 +3440,55 @@ func TestDeletePropertyField(t *testing.T) {
 		resp, err := th.Client.DeletePropertyField(context.Background(), v1Group.Name, "post", model.NewId())
 		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
+	})
+
+	t.Run("field creator can delete their own field", func(t *testing.T) {
+		// permission_field backs this handler as well as the patch handler, so
+		// the creator level covers deletion too. Intended, and pinned here so
+		// it is not mistaken for a bug and "fixed" later.
+		creatorLevel := model.PermissionLevelCreator
+		field, appErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+			Name:              model.NewId(),
+			Type:              model.PropertyFieldTypeText,
+			GroupID:           group.ID,
+			ObjectType:        "post",
+			TargetType:        "channel",
+			TargetID:          th.BasicChannel.Id,
+			CreatedBy:         th.BasicUser.Id,
+			PermissionField:   &creatorLevel,
+			PermissionValues:  &sysadminLevel,
+			PermissionOptions: &creatorLevel,
+		}, false, "")
+		require.Nil(t, appErr)
+
+		th.LoginBasic(t)
+
+		resp, err := th.Client.DeletePropertyField(context.Background(), group.Name, "post", field.ID)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+	})
+
+	t.Run("non-creator member cannot delete a creator-gated field", func(t *testing.T) {
+		creatorLevel := model.PermissionLevelCreator
+		field, appErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+			Name:              model.NewId(),
+			Type:              model.PropertyFieldTypeText,
+			GroupID:           group.ID,
+			ObjectType:        "post",
+			TargetType:        "channel",
+			TargetID:          th.BasicChannel.Id,
+			CreatedBy:         th.BasicUser.Id,
+			PermissionField:   &creatorLevel,
+			PermissionValues:  &sysadminLevel,
+			PermissionOptions: &creatorLevel,
+		}, false, "")
+		require.Nil(t, appErr)
+
+		th.LoginBasic2(t)
+
+		resp, err := th.Client.DeletePropertyField(context.Background(), group.Name, "post", field.ID)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
 	})
 }
 
@@ -3556,6 +3816,275 @@ func TestGetPropertyValues(t *testing.T) {
 			require.Error(t, err)
 			CheckBadRequestStatus(t, resp)
 		})
+	})
+}
+
+func TestPatchPropertyValuesPostCreator(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.PostAttributes = true
+	}).InitBasic(t)
+
+	group, err := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_values_creator", Version: model.PropertyGroupVersionV2})
+	require.Nil(t, err)
+
+	creatorLevel := model.PermissionLevelCreator
+	memberLevel := model.PermissionLevelMember
+	sysadminLevel := model.PermissionLevelSysadmin
+
+	creatorField, appErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+		Name:              model.NewId(),
+		Type:              model.PropertyFieldTypeText,
+		GroupID:           group.ID,
+		ObjectType:        "post",
+		TargetType:        "system",
+		PermissionField:   &sysadminLevel,
+		PermissionValues:  &creatorLevel,
+		PermissionOptions: &sysadminLevel,
+	}, false, "")
+	require.Nil(t, appErr)
+
+	memberField, appErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+		Name:              model.NewId(),
+		Type:              model.PropertyFieldTypeText,
+		GroupID:           group.ID,
+		ObjectType:        "post",
+		TargetType:        "system",
+		PermissionField:   &sysadminLevel,
+		PermissionValues:  &memberLevel,
+		PermissionOptions: &sysadminLevel,
+	}, false, "")
+	require.Nil(t, appErr)
+
+	// th.BasicPost is authored by the team admin (InitBasic creates it before
+	// LoginBasic), who would pass through the admin arm and so prove nothing
+	// about the creator arm. Author an explicit post as BasicUser, who is a
+	// plain channel_user here. Both BasicUser and BasicUser2 are members of
+	// BasicChannel, so denials land on the creator check rather than on
+	// hasTargetAccess.
+	ownPost, _, appErr := th.App.CreatePost(th.Context, &model.Post{
+		UserId:    th.BasicUser.Id,
+		ChannelId: th.BasicChannel.Id,
+		Message:   "authored by BasicUser",
+	}, th.BasicChannel, model.CreatePostFlags{})
+	require.Nil(t, appErr)
+
+	// A post BasicUser authored in a channel they have since left. They remain
+	// its creator forever, but lose create_post on the channel — so the outer
+	// hasTargetAccess gate rejects before the creator check is ever consulted.
+	leftChannel := th.CreatePublicChannel(t)
+	_, appErr = th.App.AddUserToChannel(th.Context, th.BasicUser, leftChannel, false)
+	require.Nil(t, appErr)
+	orphanPost, _, appErr := th.App.CreatePost(th.Context, &model.Post{
+		UserId:    th.BasicUser.Id,
+		ChannelId: leftChannel.Id,
+		Message:   "authored then left",
+	}, leftChannel, model.CreatePostFlags{})
+	require.Nil(t, appErr)
+	appErr = th.App.RemoveUserFromChannel(th.Context, th.BasicUser.Id, "", leftChannel)
+	require.Nil(t, appErr)
+
+	channelAdmin := th.CreateUser(t)
+	th.LinkUserToTeam(t, channelAdmin, th.BasicTeam)
+	_, appErr = th.App.AddUserToChannel(th.Context, channelAdmin, th.BasicChannel, false)
+	require.Nil(t, appErr)
+	_, appErr = th.App.UpdateChannelMemberRoles(th.Context, th.BasicChannel.Id, channelAdmin.Id,
+		model.ChannelUserRoleId+" "+model.ChannelAdminRoleId)
+	require.Nil(t, appErr)
+
+	teamAdminInChannel := th.CreateUser(t)
+	th.LinkUserToTeam(t, teamAdminInChannel, th.BasicTeam)
+	_, appErr = th.App.AddUserToChannel(th.Context, teamAdminInChannel, th.BasicChannel, false)
+	require.Nil(t, appErr)
+	_, appErr = th.App.UpdateTeamMemberRoles(th.Context, th.BasicTeam.Id, teamAdminInChannel.Id,
+		model.TeamUserRoleId+" "+model.TeamAdminRoleId)
+	require.Nil(t, appErr)
+
+	teamAdminOutsideChannel := th.CreateUser(t)
+	th.LinkUserToTeam(t, teamAdminOutsideChannel, th.BasicTeam)
+	_, appErr = th.App.UpdateTeamMemberRoles(th.Context, th.BasicTeam.Id, teamAdminOutsideChannel.Id,
+		model.TeamUserRoleId+" "+model.TeamAdminRoleId)
+	require.Nil(t, appErr)
+
+	// One client per caller so the table can name the caller directly instead
+	// of switching a shared client's session between cases.
+	login := func(u *model.User) *model.Client4 {
+		client := th.CreateClient()
+		_, _, err := client.Login(context.Background(), u.Email, u.Password)
+		require.NoError(t, err)
+		return client
+	}
+
+	authorClient := login(th.BasicUser)
+	nonAuthorClient := login(th.BasicUser2)
+	channelAdminClient := login(channelAdmin)
+	teamAdminInChannelClient := login(teamAdminInChannel)
+	teamAdminOutsideChannelClient := login(teamAdminOutsideChannel)
+
+	creatorItem := []model.PropertyValuePatchItem{
+		{FieldID: creatorField.ID, Value: json.RawMessage(`"tagged"`)},
+	}
+
+	testCases := []struct {
+		name     string
+		client   *model.Client4
+		targetID string
+		items    []model.PropertyValuePatchItem
+		allowed  bool
+		errorID  string
+	}{
+		{
+			name:     "author can set values on their own post",
+			client:   authorClient,
+			targetID: ownPost.Id,
+			items:    creatorItem,
+			allowed:  true,
+		},
+		{
+			// Specifically the inner permission gate, not hasTargetAccess:
+			// BasicUser2 is a channel member and may post there.
+			name:     "channel member who did not author the post is rejected by the values check",
+			client:   nonAuthorClient,
+			targetID: ownPost.Id,
+			items:    creatorItem,
+			allowed:  false,
+			errorID:  "api.property_value.patch.no_values_permission.app_error",
+		},
+		{
+			name:     "channel admin can set values on someone else's post",
+			client:   channelAdminClient,
+			targetID: ownPost.Id,
+			items:    creatorItem,
+			allowed:  true,
+		},
+		{
+			name:     "team admin who is a channel member can set values on someone else's post",
+			client:   teamAdminInChannelClient,
+			targetID: ownPost.Id,
+			items:    creatorItem,
+			allowed:  true,
+		},
+		{
+			// Rejected by hasTargetAccess, not by the creator check: without
+			// channel membership there is no create_post on the channel. The
+			// error id is what distinguishes the two gates.
+			name:     "team admin who is not a channel member is rejected by the outer target gate",
+			client:   teamAdminOutsideChannelClient,
+			targetID: ownPost.Id,
+			items:    creatorItem,
+			allowed:  false,
+			errorID:  "api.context.permissions.app_error",
+		},
+		{
+			name:     "system admin can set values on someone else's post",
+			client:   th.SystemAdminClient,
+			targetID: ownPost.Id,
+			items:    creatorItem,
+			allowed:  true,
+		},
+		{
+			// creator narrows within hasTargetAccess, it does not replace it.
+			// No errorID: this is the outer gate's permission error, whose id
+			// depends on the channel type's write permission.
+			name:     "author who left the channel is rejected by the outer target gate",
+			client:   authorClient,
+			targetID: orphanPost.Id,
+			items:    creatorItem,
+			allowed:  false,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			values, resp, err := tc.client.PatchPropertyValues(context.Background(), group.Name, "post", tc.targetID, tc.items)
+
+			if !tc.allowed {
+				require.Error(t, err)
+				CheckForbiddenStatus(t, resp)
+				if tc.errorID != "" {
+					CheckErrorID(t, err, tc.errorID)
+				}
+				return
+			}
+
+			require.NoError(t, err)
+			CheckOKStatus(t, resp)
+			require.Len(t, values, len(tc.items))
+		})
+	}
+
+	// Kept out of the table above: this asserts the absence of a side effect
+	// rather than a permission outcome, and it issues its own patch so it still
+	// holds when run in isolation.
+	t.Run("a denied item rejects the whole batch and writes nothing", func(t *testing.T) {
+		// The handler checks every item before any upsert, so a batch mixing an
+		// allowed member field with a denied creator field must not persist the
+		// allowed half.
+		items := []model.PropertyValuePatchItem{
+			{FieldID: memberField.ID, Value: json.RawMessage(`"allowed"`)},
+			{FieldID: creatorField.ID, Value: json.RawMessage(`"denied"`)},
+		}
+		_, resp, err := nonAuthorClient.PatchPropertyValues(context.Background(), group.Name, "post", ownPost.Id, items)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+		CheckErrorID(t, err, "api.property_value.patch.no_values_permission.app_error")
+
+		values, resp, err := authorClient.GetPropertyValues(context.Background(), group.Name, "post", ownPost.Id, model.PropertyValueSearch{PerPage: 60})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		for _, v := range values {
+			require.NotEqual(t, memberField.ID, v.FieldID, "the allowed item of the rejected batch must not have been written")
+		}
+	})
+
+	t.Run("guest who authored the post can set values on it", func(t *testing.T) {
+		prevLicense := th.App.Srv().License()
+		prevGuestAccounts := *th.App.Config().GuestAccountsSettings.Enable
+		t.Cleanup(func() {
+			th.App.Srv().SetLicense(prevLicense)
+			th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = prevGuestAccounts })
+		})
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = true })
+		th.App.Srv().SetLicense(model.NewTestLicense())
+
+		id := model.NewId()
+		guestPassword := model.NewTestPassword()
+		guest, appErr := th.App.CreateGuest(th.Context, &model.User{
+			Email:         "success+" + id + "@simulator.amazonses.com",
+			Username:      "un_" + id,
+			Nickname:      "nn_" + id,
+			Password:      guestPassword,
+			EmailVerified: true,
+		})
+		require.Nil(t, appErr)
+		th.LinkUserToTeam(t, guest, th.BasicTeam)
+		th.AddUserToChannel(t, guest, th.BasicChannel)
+		require.True(t, guest.IsGuest(), "the fixture must be a guest, or this case proves nothing")
+
+		guestPost, _, appErr := th.App.CreatePost(th.Context, &model.Post{
+			UserId:    guest.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   "authored by the guest",
+		}, th.BasicChannel, model.CreatePostFlags{})
+		require.Nil(t, appErr)
+
+		guestClient := th.CreateClient()
+		_, _, loginErr := guestClient.Login(context.Background(), guest.Email, guestPassword)
+		require.NoError(t, loginErr)
+
+		values, resp, err := guestClient.PatchPropertyValues(context.Background(), group.Name, "post", guestPost.Id, creatorItem)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Len(t, values, len(creatorItem))
+
+		// The grant is authorship, not guest-ness. ownPost is authored by
+		// BasicUser in the same channel, so this denial lands on the inner
+		// values check rather than on channel access — the error id is what
+		// separates the two gates.
+		_, resp, err = guestClient.PatchPropertyValues(context.Background(), group.Name, "post", ownPost.Id, creatorItem)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+		CheckErrorID(t, err, "api.property_value.patch.no_values_permission.app_error")
 	})
 }
 
