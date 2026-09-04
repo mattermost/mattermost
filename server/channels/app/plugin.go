@@ -252,6 +252,15 @@ func (ch *Channels) initPlugins(rctx request.CTX, pluginDir, webappPluginDir str
 
 	ch.srv.RemoveLicenseListener(ch.pluginLicenseListenerID)
 	ch.pluginLicenseListenerID = ch.srv.AddLicenseListener(func(oldLicense, newLicense *model.License) {
+		// Add-on plugins are gated on the license (see getPluginStateOverride), so a
+		// license change has to re-evaluate which plugins should be active. Config
+		// changes get this from the config listener above, but a license upload does
+		// not change the config, so no config listener ever fires for it.
+		//
+		// This runs before the hook below so that OnLicenseChanged is delivered to
+		// the set of plugins the new license actually permits.
+		ch.syncPluginsActiveState()
+
 		ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
 			hooks.OnLicenseChanged(oldLicense, newLicense)
 			return true
@@ -1255,6 +1264,15 @@ func (ch *Channels) getPluginStateOverride(pluginID string) (bool, bool) {
 	case model.PluginIdApps:
 		// Tie Apps proxy disabled status to the feature flag.
 		if !ch.cfgSvc.Config().FeatureFlags.AppsEnabled {
+			return true, false
+		}
+	}
+
+	// Add-on plugins are purchased alongside the license and only run when the
+	// license grants the matching entitlement. This overrides PluginStates, so an
+	// admin cannot enable an unlicensed add-on by editing config.
+	if addOn, ok := model.PluginAddOnRequirements[pluginID]; ok {
+		if !ch.srv.License().HasAddOn(addOn) {
 			return true, false
 		}
 	}

@@ -4,11 +4,13 @@
 package model
 
 import (
+	"encoding/json"
 	"strings"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestLicenseFeaturesToMap(t *testing.T) {
@@ -534,6 +536,128 @@ func TestLicenseHasMHPNS(t *testing.T) {
 			assert.Equal(t, testCase.expectedValue, testCase.license.HasMHPNS())
 		})
 	}
+}
+
+func TestLicenseHasAddOn(t *testing.T) {
+	testCases := []struct {
+		description   string
+		license       *License
+		addOn         string
+		expectedValue bool
+	}{
+		{
+			"nil license",
+			nil,
+			AddOnCrossGuard,
+			false,
+		},
+		{
+			"nil add-ons slice",
+			&License{},
+			AddOnCrossGuard,
+			false,
+		},
+		{
+			"empty add-ons slice",
+			&License{AddOns: []string{}},
+			AddOnCrossGuard,
+			false,
+		},
+		{
+			"different add-on granted",
+			&License{AddOns: []string{"something-else"}},
+			AddOnCrossGuard,
+			false,
+		},
+		{
+			"exact match",
+			&License{AddOns: []string{AddOnCrossGuard}},
+			AddOnCrossGuard,
+			true,
+		},
+		{
+			"match among several",
+			&License{AddOns: []string{"something-else", AddOnCrossGuard, "another"}},
+			AddOnCrossGuard,
+			true,
+		},
+		{
+			"case-insensitive match",
+			&License{AddOns: []string{"CrossGuard"}},
+			AddOnCrossGuard,
+			true,
+		},
+		{
+			// A prefix must not satisfy the entitlement, or a future
+			// "crossguard-premium" add-on would silently unlock "crossguard".
+			"longer name is not a match",
+			&License{AddOns: []string{"crossguard-premium"}},
+			AddOnCrossGuard,
+			false,
+		},
+		{
+			"shorter name is not a match",
+			&License{AddOns: []string{"cross"}},
+			AddOnCrossGuard,
+			false,
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.description, func(t *testing.T) {
+			assert.Equal(t, testCase.expectedValue, testCase.license.HasAddOn(testCase.addOn))
+		})
+	}
+}
+
+func TestLicenseAddOnsJSON(t *testing.T) {
+	t.Run("round trips", func(t *testing.T) {
+		var license License
+		err := json.Unmarshal([]byte(`{"add_ons": ["crossguard"]}`), &license)
+		require.NoError(t, err)
+		assert.Equal(t, []string{"crossguard"}, license.AddOns)
+		assert.True(t, license.HasAddOn(AddOnCrossGuard))
+	})
+
+	t.Run("absent key yields no add-ons", func(t *testing.T) {
+		var license License
+		err := json.Unmarshal([]byte(`{"sku_short_name": "advanced"}`), &license)
+		require.NoError(t, err)
+		assert.Nil(t, license.AddOns)
+		assert.False(t, license.HasAddOn(AddOnCrossGuard))
+	})
+
+	t.Run("unrecognized add-on is ignored, not rejected", func(t *testing.T) {
+		// Forward compatibility: a license issued for an add-on this build does not
+		// know about must still validate, otherwise every new add-on would require a
+		// server upgrade before any license naming it could be uploaded.
+		var license License
+		err := json.Unmarshal([]byte(`{"add_ons": ["not-a-real-addon"]}`), &license)
+		require.NoError(t, err)
+		assert.False(t, license.HasAddOn(AddOnCrossGuard))
+	})
+
+	t.Run("NewTestLicenseWithAddOns grants the add-on", func(t *testing.T) {
+		license := NewTestLicenseWithAddOns(AddOnCrossGuard)
+		assert.True(t, license.HasAddOn(AddOnCrossGuard))
+		assert.False(t, license.HasAddOn("another"))
+
+		assert.False(t, NewTestLicense().HasAddOn(AddOnCrossGuard))
+	})
+}
+
+func TestPluginAddOnRequirements(t *testing.T) {
+	for pluginID, addOn := range PluginAddOnRequirements {
+		t.Run(pluginID, func(t *testing.T) {
+			assert.True(t, IsValidPluginId(pluginID), "plugin id must be valid")
+			assert.NotEmpty(t, addOn, "add-on name must not be empty")
+			assert.Equal(t, strings.ToLower(addOn), addOn, "add-on name should be lower case for consistency")
+		})
+	}
+
+	t.Run("crossguard is registered", func(t *testing.T) {
+		assert.Equal(t, AddOnCrossGuard, PluginAddOnRequirements[PluginIdCrossGuard])
+	})
 }
 
 func TestMinimumProfessionalLicense(t *testing.T) {

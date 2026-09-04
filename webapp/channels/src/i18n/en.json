@@ -2793,6 +2793,7 @@
   "admin.permissions.teamScheme.schemeNamePlaceholder": "Scheme Name",
   "admin.permissions.teamScheme.selectTeamsDescription": "Select teams where permission exceptions are required.",
   "admin.permissions.teamScheme.selectTeamsTitle": "Select teams to override permissions",
+  "admin.plugin.addOn.notLicensedWarning": "This plugin is a licensed add-on. Your license does not include it, so it cannot be enabled. Contact your Mattermost account team to purchase it.",
   "admin.plugin.backToPlugins": "Go back to the Plugins",
   "admin.plugin.cluster_instance": "Cluster Instance",
   "admin.plugin.customSection.pluginDisabledWarning": "In order to view this section, enable the plugin and click Save.",
