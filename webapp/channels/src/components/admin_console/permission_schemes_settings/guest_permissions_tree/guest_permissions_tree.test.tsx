@@ -32,6 +32,7 @@ describe('components/admin_console/permission_schemes_settings/guest_permissions
             SkuShortName: LicenseSkus.Professional,
             IsLicensed: 'true',
         },
+        config: {},
     };
 
     test('should render guest permissions tree with headers', () => {
@@ -143,6 +144,47 @@ describe('components/admin_console/permission_schemes_settings/guest_permissions
             const calls = PermissionGroup.mock.calls;
             const permissions = calls[0][0].permissions as Array<Permission | string>;
             verifyDefaultPermissions(permissions, false);
+        });
+    });
+
+    describe('space read permission', () => {
+        const renderedPermissionIds = () => {
+            const permissions = PermissionGroup.mock.calls[0][0].permissions as Array<Permission | string>;
+            return permissions.map((p) => (typeof p === 'string' ? p : p.id));
+        };
+
+        test('is absent while the Docs feature flag is off', () => {
+            renderWithContext(<GuestPermissionsTree {...defaultProps}/>);
+
+            expect(renderedPermissionIds()).not.toContain('guest_read_space');
+        });
+
+        test('is appended last when the flag is on', () => {
+            renderWithContext(
+                <GuestPermissionsTree
+                    {...defaultProps}
+                    config={{...defaultProps.config, FeatureFlagEnableDocs: 'true'}}
+                />,
+            );
+
+            const permissionIds = renderedPermissionIds();
+            expect(permissionIds).toContain('guest_read_space');
+            expect(permissionIds[permissionIds.length - 1]).toStrictEqual('guest_read_space');
+        });
+
+        test('is combined over read_space alone when the flag is on', () => {
+            renderWithContext(
+                <GuestPermissionsTree
+                    {...defaultProps}
+                    config={{...defaultProps.config, FeatureFlagEnableDocs: 'true'}}
+                />,
+            );
+
+            const permissions = PermissionGroup.mock.calls[0][0].permissions as Array<Permission | string>;
+            const readSpace = permissions.find((p) => typeof p === 'object' && p.id === 'guest_read_space') as Permission;
+            expect(readSpace).toBeDefined();
+            expect(readSpace.combined).toBe(true);
+            expect(readSpace.permissions).toStrictEqual(['read_space']);
         });
     });
 

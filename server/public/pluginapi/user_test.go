@@ -284,3 +284,42 @@ func TestHasTeamUserPermission(t *testing.T) {
 	ok := client.User.HasPermissionToTeam("1", "2", &model.Permission{Id: "3"})
 	require.True(t, ok)
 }
+
+func TestFilterWithTeamPermission(t *testing.T) {
+	t.Run("returns the granted subset", func(t *testing.T) {
+		api := &plugintest.API{}
+		defer api.AssertExpectations(t)
+		client := pluginapi.NewClient(api, &plugintest.Driver{})
+
+		api.On("FilterUsersWithTeamPermission", "1", []string{"2", "3"}, &model.Permission{Id: "4"}).Return([]string{"3"}, nil)
+
+		granted, err := client.User.FilterWithTeamPermission("1", []string{"2", "3"}, &model.Permission{Id: "4"})
+		require.NoError(t, err)
+		require.Equal(t, []string{"3"}, granted)
+	})
+
+	t.Run("an empty answer is an empty slice", func(t *testing.T) {
+		api := &plugintest.API{}
+		defer api.AssertExpectations(t)
+		client := pluginapi.NewClient(api, &plugintest.Driver{})
+
+		api.On("FilterUsersWithTeamPermission", "1", []string{"2"}, &model.Permission{Id: "4"}).Return(nil, nil)
+
+		granted, err := client.User.FilterWithTeamPermission("1", []string{"2"}, &model.Permission{Id: "4"})
+		require.NoError(t, err)
+		require.Equal(t, []string{}, granted)
+	})
+
+	t.Run("failure", func(t *testing.T) {
+		api := &plugintest.API{}
+		defer api.AssertExpectations(t)
+		client := pluginapi.NewClient(api, &plugintest.Driver{})
+
+		appErr := newAppError()
+		api.On("FilterUsersWithTeamPermission", "1", []string{"2"}, &model.Permission{Id: "4"}).Return(nil, appErr)
+
+		granted, err := client.User.FilterWithTeamPermission("1", []string{"2"}, &model.Permission{Id: "4"})
+		require.Equal(t, appErr, err)
+		require.Nil(t, granted)
+	})
+}

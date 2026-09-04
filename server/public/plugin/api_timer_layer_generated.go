@@ -1090,6 +1090,13 @@ func (api *apiTimerLayer) HasPermissionToTeam(userID, teamID string, permission 
 	return _returnsA
 }
 
+func (api *apiTimerLayer) FilterUsersWithTeamPermission(teamID string, userIDs []string, permission *model.Permission) ([]string, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.FilterUsersWithTeamPermission(teamID, userIDs, permission)
+	api.recordTime(startTime, "FilterUsersWithTeamPermission", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
 func (api *apiTimerLayer) HasPermissionToChannel(userID, channelId string, permission *model.Permission) bool {
 	startTime := timePkg.Now()
 	_returnsA := api.apiImpl.HasPermissionToChannel(userID, channelId, permission)
@@ -1102,6 +1109,27 @@ func (api *apiTimerLayer) RolesGrantPermission(roleNames []string, permissionId 
 	_returnsA := api.apiImpl.RolesGrantPermission(roleNames, permissionId)
 	api.recordTime(startTime, "RolesGrantPermission", true)
 	return _returnsA
+}
+
+func (api *apiTimerLayer) GetSchemeByName(name string) (*model.Scheme, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.GetSchemeByName(name)
+	api.recordTime(startTime, "GetSchemeByName", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) GetOrCreatePluginChannelScheme(user, admin, guest []string) (*model.Scheme, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.GetOrCreatePluginChannelScheme(user, admin, guest)
+	api.recordTime(startTime, "GetOrCreatePluginChannelScheme", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) GetSchemeForChannel(channelID string) (scheme *model.Scheme, guestRole *model.Role, userRole *model.Role, adminRole *model.Role, err *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB, _returnsC, _returnsD, _returnsE := api.apiImpl.GetSchemeForChannel(channelID)
+	api.recordTime(startTime, "GetSchemeForChannel", _returnsE == nil)
+	return _returnsA, _returnsB, _returnsC, _returnsD, _returnsE
 }
 
 func (api *apiTimerLayer) LogDebug(msg string, keyValuePairs ...any) {

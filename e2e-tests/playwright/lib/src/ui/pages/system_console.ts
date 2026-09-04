@@ -120,4 +120,9 @@ export default class SystemConsolePage {
         await this.page.goto('/admin_console/plugins/plugin_management');
         await this.page.waitForLoadState('networkidle');
     }
+
+    async gotoPermissionsSystemScheme() {
+        await this.page.goto('/admin_console/user_management/permissions/system_scheme');
+        await this.page.waitForLoadState('networkidle');
+    }
 }

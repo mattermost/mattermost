@@ -47,6 +47,14 @@ export default class PermissionsTree extends React.PureComponent<Props, State> {
     };
 
     private ADDITIONAL_VALUES: AdditionalValues;
+
+    // The unfiltered source list. updateGroups derives this.groups from it on
+    // every run, so a group hidden by one config state (for example, the
+    // flag-gated spaces group) can reappear when a later config shows it.
+    private allGroups: Group[];
+
+    // The groups updateGroups reaches by name, resolved once from allGroups and retained.
+    private namedGroups: Record<string, Group>;
     private groups: Group[];
     constructor(props: Props) {
         super(props);
@@ -66,7 +74,7 @@ export default class PermissionsTree extends React.PureComponent<Props, State> {
             },
         };
 
-        this.groups = [
+        this.allGroups = [
             {
                 id: 'teams',
                 permissions: [
@@ -199,20 +207,46 @@ export default class PermissionsTree extends React.PureComponent<Props, State> {
                     Permissions.RESTORE_CUSTOM_GROUP,
                 ],
             },
+
+            {
+                id: 'spaces',
+                permissions: [
+                    Permissions.READ_SPACE,
+                    Permissions.CREATE_SPACE,
+                    Permissions.MANAGE_SPACE,
+                    Permissions.DELETE_SPACE,
+                ],
+                isVisible: (license, config) => config?.FeatureFlagEnableDocs === 'true',
+            },
         ];
+
+        // Resolved by id rather than by array position, and retained rather than repeated:
+        // updateGroups renames the teams group under team_scope, so a lookup by id on a later run
+        // would no longer find it.
+        const groupById = (id: string) => this.allGroups.find((group) => group.id === id) as Group;
+        this.namedGroups = {
+            teams: groupById('teams'),
+            publicChannels: groupById('public_channel'),
+            privateChannels: groupById('private_channel'),
+            posts: groupById('posts'),
+            integrations: groupById('integrations'),
+            sharedChannels: groupById('manage_shared_channels'),
+            customGroups: groupById('custom_groups'),
+        };
+        this.groups = this.allGroups;
         this.updateGroups();
     }
 
     updateGroups = () => {
         const {config, scope, license, role} = this.props;
 
-        const teamsGroup = this.groups[0];
-        const publicChannelsGroup = this.groups[1];
-        const privateChannelsGroup = this.groups[2];
-        const postsGroup = this.groups[7];
-        const integrationsGroup = this.groups[8];
-        const sharedChannelsGroup = this.groups[9];
-        const customGroupsGroup = this.groups[10];
+        const teamsGroup = this.namedGroups.teams;
+        const publicChannelsGroup = this.namedGroups.publicChannels;
+        const privateChannelsGroup = this.namedGroups.privateChannels;
+        const postsGroup = this.namedGroups.posts;
+        const integrationsGroup = this.namedGroups.integrations;
+        const sharedChannelsGroup = this.namedGroups.sharedChannels;
+        const customGroupsGroup = this.namedGroups.customGroups;
 
         if (config.EnableIncomingWebhooks === 'true') {
             const incomingWebhookGroup = {
@@ -280,8 +314,8 @@ export default class PermissionsTree extends React.PureComponent<Props, State> {
         if (config.EnableGuestAccounts === 'true' && !teamsGroup.permissions.includes(Permissions.INVITE_GUEST)) {
             teamsGroup.permissions.push(Permissions.INVITE_GUEST);
         }
-        if (scope === 'team_scope' && this.groups[0].id !== 'teams_team_scope') {
-            this.groups[0].id = 'teams_team_scope';
+        if (scope === 'team_scope' && teamsGroup.id !== 'teams_team_scope') {
+            teamsGroup.id = 'teams_team_scope';
         }
         if (license?.IsLicensed === 'true' && (license?.LDAPGroups === 'true' || config.EnableCustomGroups === 'true') && !postsGroup.permissions.includes(Permissions.USE_GROUP_MENTIONS)) {
             postsGroup.permissions.push(Permissions.USE_GROUP_MENTIONS);
@@ -338,9 +372,9 @@ export default class PermissionsTree extends React.PureComponent<Props, State> {
             teamsGroup.permissions.push(Permissions.MANAGE_TEAM_ACCESS_RULES);
         }
 
-        this.groups = this.groups.filter((group) => {
+        this.groups = this.allGroups.filter((group) => {
             if (group.isVisible) {
-                return group.isVisible(this.props.license);
+                return group.isVisible(this.props.license, this.props.config);
             }
 
             return true;

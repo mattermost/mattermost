@@ -6732,6 +6732,37 @@ func (s *apiRPCServer) HasPermissionToTeam(args *Z_HasPermissionToTeamArgs, retu
 	return nil
 }
 
+type Z_FilterUsersWithTeamPermissionArgs struct {
+	A string
+	B []string
+	C *model.Permission
+}
+
+type Z_FilterUsersWithTeamPermissionReturns struct {
+	A []string
+	B *model.AppError
+}
+
+func (g *apiRPCClient) FilterUsersWithTeamPermission(teamID string, userIDs []string, permission *model.Permission) ([]string, *model.AppError) {
+	_args := &Z_FilterUsersWithTeamPermissionArgs{teamID, userIDs, permission}
+	_returns := &Z_FilterUsersWithTeamPermissionReturns{}
+	if err := g.client.Call("Plugin.FilterUsersWithTeamPermission", _args, _returns); err != nil {
+		log.Printf("RPC call to FilterUsersWithTeamPermission API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) FilterUsersWithTeamPermission(args *Z_FilterUsersWithTeamPermissionArgs, returns *Z_FilterUsersWithTeamPermissionReturns) error {
+	if hook, ok := s.impl.(interface {
+		FilterUsersWithTeamPermission(teamID string, userIDs []string, permission *model.Permission) ([]string, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.FilterUsersWithTeamPermission(args.A, args.B, args.C)
+	} else {
+		return encodableError(fmt.Errorf("API FilterUsersWithTeamPermission called but not implemented."))
+	}
+	return nil
+}
+
 type Z_HasPermissionToChannelArgs struct {
 	A string
 	B string
@@ -6787,6 +6818,98 @@ func (s *apiRPCServer) RolesGrantPermission(args *Z_RolesGrantPermissionArgs, re
 		returns.A = hook.RolesGrantPermission(args.A, args.B)
 	} else {
 		return encodableError(fmt.Errorf("API RolesGrantPermission called but not implemented."))
+	}
+	return nil
+}
+
+type Z_GetSchemeByNameArgs struct {
+	A string
+}
+
+type Z_GetSchemeByNameReturns struct {
+	A *model.Scheme
+	B *model.AppError
+}
+
+func (g *apiRPCClient) GetSchemeByName(name string) (*model.Scheme, *model.AppError) {
+	_args := &Z_GetSchemeByNameArgs{name}
+	_returns := &Z_GetSchemeByNameReturns{}
+	if err := g.client.Call("Plugin.GetSchemeByName", _args, _returns); err != nil {
+		log.Printf("RPC call to GetSchemeByName API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) GetSchemeByName(args *Z_GetSchemeByNameArgs, returns *Z_GetSchemeByNameReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetSchemeByName(name string) (*model.Scheme, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.GetSchemeByName(args.A)
+	} else {
+		return encodableError(fmt.Errorf("API GetSchemeByName called but not implemented."))
+	}
+	return nil
+}
+
+type Z_GetOrCreatePluginChannelSchemeArgs struct {
+	A []string
+	B []string
+	C []string
+}
+
+type Z_GetOrCreatePluginChannelSchemeReturns struct {
+	A *model.Scheme
+	B *model.AppError
+}
+
+func (g *apiRPCClient) GetOrCreatePluginChannelScheme(user, admin, guest []string) (*model.Scheme, *model.AppError) {
+	_args := &Z_GetOrCreatePluginChannelSchemeArgs{user, admin, guest}
+	_returns := &Z_GetOrCreatePluginChannelSchemeReturns{}
+	if err := g.client.Call("Plugin.GetOrCreatePluginChannelScheme", _args, _returns); err != nil {
+		log.Printf("RPC call to GetOrCreatePluginChannelScheme API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) GetOrCreatePluginChannelScheme(args *Z_GetOrCreatePluginChannelSchemeArgs, returns *Z_GetOrCreatePluginChannelSchemeReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetOrCreatePluginChannelScheme(user, admin, guest []string) (*model.Scheme, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.GetOrCreatePluginChannelScheme(args.A, args.B, args.C)
+	} else {
+		return encodableError(fmt.Errorf("API GetOrCreatePluginChannelScheme called but not implemented."))
+	}
+	return nil
+}
+
+type Z_GetSchemeForChannelArgs struct {
+	A string
+}
+
+type Z_GetSchemeForChannelReturns struct {
+	A *model.Scheme
+	B *model.Role
+	C *model.Role
+	D *model.Role
+	E *model.AppError
+}
+
+func (g *apiRPCClient) GetSchemeForChannel(channelID string) (scheme *model.Scheme, guestRole *model.Role, userRole *model.Role, adminRole *model.Role, err *model.AppError) {
+	_args := &Z_GetSchemeForChannelArgs{channelID}
+	_returns := &Z_GetSchemeForChannelReturns{}
+	if err := g.client.Call("Plugin.GetSchemeForChannel", _args, _returns); err != nil {
+		log.Printf("RPC call to GetSchemeForChannel API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B, _returns.C, _returns.D, _returns.E
+}
+
+func (s *apiRPCServer) GetSchemeForChannel(args *Z_GetSchemeForChannelArgs, returns *Z_GetSchemeForChannelReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetSchemeForChannel(channelID string) (scheme *model.Scheme, guestRole *model.Role, userRole *model.Role, adminRole *model.Role, err *model.AppError)
+	}); ok {
+		returns.A, returns.B, returns.C, returns.D, returns.E = hook.GetSchemeForChannel(args.A)
+	} else {
+		return encodableError(fmt.Errorf("API GetSchemeForChannel called but not implemented."))
 	}
 	return nil
 }

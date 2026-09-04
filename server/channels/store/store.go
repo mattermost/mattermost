@@ -158,6 +158,11 @@ type TeamStore interface {
 	GetMember(rctx request.CTX, teamID string, userID string) (*model.TeamMember, error)
 	GetMembers(teamID string, offset int, limit int, teamMembersGetOptions *model.TeamMembersGetOptions) ([]*model.TeamMember, error)
 	GetMembersByIds(teamID string, userIds []string, restrictions *model.ViewUsersRestrictions) ([]*model.TeamMember, error)
+	// GetMembersByIdsFromMaster is GetMembersByIds on the primary, for a caller whose
+	// answer must agree with GetMember: a membership ended moments earlier still reads
+	// as active on a lagging replica, and a caller deciding authority from the batch
+	// would count a user the per-request gates already deny.
+	GetMembersByIdsFromMaster(teamID string, userIds []string) ([]*model.TeamMember, error)
 	GetTotalMemberCount(teamID string, restrictions *model.ViewUsersRestrictions) (int64, error)
 	GetActiveMemberCount(teamID string, restrictions *model.ViewUsersRestrictions) (int64, error)
 	GetTeamsForUser(rctx request.CTX, userID, excludeTeamID string, includeDeleted bool) ([]*model.TeamMember, error)
@@ -891,6 +896,11 @@ type RoleStore interface {
 	GetAll() ([]*model.Role, error)
 	GetByName(rctx request.CTX, name string) (*model.Role, error)
 	GetByNames(names []string) ([]*model.Role, error)
+	// GetByNamesFromMaster reads on the primary and is served by no cache layer,
+	// where GetByNames is answered from the local role cache before the store is
+	// consulted. The space guards need both: a grant a peer node wrote would
+	// otherwise be hidden by this node's cache entry, or by a lagging replica.
+	GetByNamesFromMaster(names []string) ([]*model.Role, error)
 	Delete(roleID string) (*model.Role, error)
 	PermanentDeleteAll() error
 
@@ -908,8 +918,23 @@ type RoleStore interface {
 
 type SchemeStore interface {
 	Save(scheme *model.Scheme) (*model.Scheme, error)
+	// SaveChannelSchemeWithRoles creates a channel scheme and its three generated
+	// roles, carrying exactly the given permission sets, in one transaction: the
+	// scheme is never visible with other permissions, and a failure leaves no
+	// partial rows behind.
+	SaveChannelSchemeWithRoles(scheme *model.Scheme, user, admin, guest []string) (*model.Scheme, error)
 	Get(schemeID string) (*model.Scheme, error)
+	// GetFromMaster reads on the primary, so a scheme created moments earlier cannot
+	// be missed and a soft-deleted one cannot read as live.
+	GetFromMaster(schemeID string) (*model.Scheme, error)
+	// GetForChannelFromMaster returns the scheme directly assigned to channelID. The lookup does
+	// not filter on channel type and reads the primary for plugin read-after-write consistency.
+	GetForChannelFromMaster(channelID string) (*model.Scheme, error)
 	GetByName(schemeName string) (*model.Scheme, error)
+	// GetByNameFromMaster is GetByName on the primary. A plugin that loses a race to
+	// create a scheme adopts, by name, the row the other insert created, which on a
+	// lagging replica would read as absent and fail instead of adopting.
+	GetByNameFromMaster(schemeName string) (*model.Scheme, error)
 	GetAllPage(scope string, offset int, limit int) ([]*model.Scheme, error)
 	Delete(schemeID string) (*model.Scheme, error)
 	PermanentDeleteAll() error

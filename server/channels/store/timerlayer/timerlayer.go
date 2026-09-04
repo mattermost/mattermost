@@ -10078,6 +10078,22 @@ func (s *TimerLayerRoleStore) GetByNames(names []string) ([]*model.Role, error) 
 	return result, err
 }
 
+func (s *TimerLayerRoleStore) GetByNamesFromMaster(names []string) ([]*model.Role, error) {
+	start := time.Now()
+
+	result, err := s.RoleStore.GetByNamesFromMaster(names)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("RoleStore.GetByNamesFromMaster", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerRoleStore) PermanentDeleteAll() error {
 	start := time.Now()
 
@@ -10558,6 +10574,54 @@ func (s *TimerLayerSchemeStore) GetByName(schemeName string) (*model.Scheme, err
 	return result, err
 }
 
+func (s *TimerLayerSchemeStore) GetByNameFromMaster(schemeName string) (*model.Scheme, error) {
+	start := time.Now()
+
+	result, err := s.SchemeStore.GetByNameFromMaster(schemeName)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("SchemeStore.GetByNameFromMaster", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerSchemeStore) GetForChannelFromMaster(channelID string) (*model.Scheme, error) {
+	start := time.Now()
+
+	result, err := s.SchemeStore.GetForChannelFromMaster(channelID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("SchemeStore.GetForChannelFromMaster", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerSchemeStore) GetFromMaster(schemeID string) (*model.Scheme, error) {
+	start := time.Now()
+
+	result, err := s.SchemeStore.GetFromMaster(schemeID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("SchemeStore.GetFromMaster", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerSchemeStore) PermanentDeleteAll() error {
 	start := time.Now()
 
@@ -10586,6 +10650,22 @@ func (s *TimerLayerSchemeStore) Save(scheme *model.Scheme) (*model.Scheme, error
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("SchemeStore.Save", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerSchemeStore) SaveChannelSchemeWithRoles(scheme *model.Scheme, user []string, admin []string, guest []string) (*model.Scheme, error) {
+	start := time.Now()
+
+	result, err := s.SchemeStore.SaveChannelSchemeWithRoles(scheme, user, admin, guest)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("SchemeStore.SaveChannelSchemeWithRoles", success, elapsed)
 	}
 	return result, err
 }
@@ -12025,6 +12105,22 @@ func (s *TimerLayerTeamStore) GetMembersByIds(teamID string, userIds []string, r
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("TeamStore.GetMembersByIds", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerTeamStore) GetMembersByIdsFromMaster(teamID string, userIds []string) ([]*model.TeamMember, error) {
+	start := time.Now()
+
+	result, err := s.TeamStore.GetMembersByIdsFromMaster(teamID, userIds)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("TeamStore.GetMembersByIdsFromMaster", success, elapsed)
 	}
 	return result, err
 }

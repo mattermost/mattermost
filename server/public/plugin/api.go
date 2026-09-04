@@ -1028,6 +1028,16 @@ type API interface {
 	// Minimum server version: 5.3
 	HasPermissionToTeam(userID, teamID string, permission *model.Permission) bool
 
+	// FilterUsersWithTeamPermission returns the subset of userIDs holding the permission at team
+	// scope, resolved for each user exactly as HasPermissionToTeam resolves it: an active team
+	// membership whose roles grant it, or a system role that grants it. Input order is kept and a
+	// repeated id is returned once.
+	//
+	// @tag User
+	// @tag Team
+	// Minimum server version: 11.11
+	FilterUsersWithTeamPermission(teamID string, userIDs []string, permission *model.Permission) ([]string, *model.AppError)
+
 	// HasPermissionToChannel check if the user has the permission at channel scope.
 	//
 	// @tag User
@@ -1039,6 +1049,40 @@ type API interface {
 	//
 	// Minimum server version: 6.3
 	RolesGrantPermission(roleNames []string, permissionId string) bool
+
+	// GetSchemeByName gets a scheme by its unique name.
+	//
+	// @tag Scheme
+	// Minimum server version: 11.11
+	GetSchemeByName(name string) (*model.Scheme, *model.AppError)
+
+	// GetOrCreatePluginChannelScheme resolves the channel scheme whose generated
+	// user, admin and guest roles grant exactly the given permission sets,
+	// creating it on first use. Two calls with the same normalized permission
+	// sets return the same scheme rather than creating one scheme per channel —
+	// but only when made by the same plugin: the scheme's name is derived from
+	// both the calling plugin's identity (carried by the request, not an
+	// argument) and the permission sets, so two plugins requesting identical
+	// permissions still get separate schemes.
+	//
+	// The scheme and its three roles are created atomically, so the scheme is
+	// complete when returned. Normal role-write APIs reject later changes; request
+	// another permission set to resolve a different scheme.
+	//
+	// Only channel-scoped permissions are accepted.
+	//
+	// @tag Scheme
+	// Minimum server version: 11.11
+	GetOrCreatePluginChannelScheme(user, admin, guest []string) (*model.Scheme, *model.AppError)
+
+	// GetSchemeForChannel returns the channel's directly assigned scheme and its generated guest,
+	// user and admin roles. It resolves ordinary and opaque channel types from the channel ID and
+	// returns not found when the channel has no scheme of its own.
+	//
+	// @tag Scheme
+	// @tag Channel
+	// Minimum server version: 11.11
+	GetSchemeForChannel(channelID string) (scheme *model.Scheme, guestRole *model.Role, userRole *model.Role, adminRole *model.Role, err *model.AppError)
 
 	// LogDebug writes a log message to the Mattermost server log file.
 	// Appropriate context such as the plugin name will already be added as fields so plugins

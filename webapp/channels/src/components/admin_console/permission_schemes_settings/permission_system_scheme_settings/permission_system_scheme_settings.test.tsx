@@ -182,6 +182,60 @@ describe('components/admin_console/permission_schemes_settings/permission_system
         expect(editRole).toHaveBeenCalledTimes(11);
     });
 
+    test('should preserve the team-scoped space permissions across a save', async () => {
+        // The save path rebuilds team_user/team_guest/channel_user by filtering the
+        // aggregated all_users/guests role through PermissionsScope, so a space
+        // permission missing (or misclassified) in that map would be silently
+        // dropped from -- or leaked into -- a role the admin never touched.
+        // team_admin is saved from state unfiltered (handleSubmit passes it straight
+        // through to editRole), so it never exercises PermissionsScope and is
+        // excluded here.
+        const editRole = jest.fn().mockImplementation(() => Promise.resolve({data: {}}));
+        const ref = React.createRef<InstanceType<typeof PermissionSystemSchemeSettings>>();
+        renderWithContext(
+            <PermissionSystemSchemeSettings
+                {...defaultProps}
+                roles={{
+                    ...defaultProps.roles,
+                    team_user: {...defaultRole, name: 'team_user', permissions: [Permissions.READ_SPACE, Permissions.CREATE_SPACE, Permissions.MANAGE_SPACE, Permissions.DELETE_SPACE]},
+                    team_guest: {...defaultRole, name: 'team_guest', permissions: [Permissions.READ_SPACE]},
+                    channel_user: {...defaultRole, name: 'channel_user', permissions: [Permissions.READ_SPACE]},
+                }}
+                actions={{...defaultProps.actions, editRole}}
+                ref={ref}
+            />,
+        );
+
+        await act(async () => {
+            await (ref.current as any).handleSubmit();
+        });
+
+        const savedRole = (name: string) => editRole.mock.calls.map((call) => call[0]).find((role) => role.name === name);
+
+        // Every space permission is team_scope, so all four must pass the
+        // all_users -> team_user filter, which keeps only permissions whose
+        // PermissionsScope entry is 'team_scope'.
+        expect(savedRole('team_user').permissions).toEqual(expect.arrayContaining([
+            Permissions.READ_SPACE,
+            Permissions.CREATE_SPACE,
+            Permissions.MANAGE_SPACE,
+            Permissions.DELETE_SPACE,
+        ]));
+
+        // READ_SPACE is team_scope, not channel_scope, so it must NOT survive the
+        // all_users -> channel_user filter even though it was present on the
+        // source channel_user role. This proves the filter discriminates by scope
+        // value rather than merely by presence in the map.
+        expect(savedRole('channel_user').permissions).not.toEqual(expect.arrayContaining([Permissions.READ_SPACE]));
+
+        // Exactly once: the guest branch re-adds every stored guest permission absent
+        // from GUEST_INCLUDED_PERMISSIONS (guest_permissions_tree/index.tsx, the list
+        // the guest tree renders). read_space has a PermissionsScope entry and is in
+        // that list, so the scope split places it and the re-add skips it.
+        const guestPermissions = savedRole('team_guest').permissions;
+        expect(guestPermissions.filter((p: string) => p === Permissions.READ_SPACE)).toHaveLength(1);
+    });
+
     test('should save roles based on license', async () => {
         const license = {
             IsLicensed: 'true',
@@ -328,6 +382,35 @@ describe('components/admin_console/permission_schemes_settings/permission_system
         expect(ref.current!.state.roles.channel_admin.permissions).toBe(DefaultRolePermissions.channel_admin);
         expect(ref.current!.state.roles.team_admin.permissions).toBe(DefaultRolePermissions.team_admin);
         expect(ref.current!.state.roles.system_admin.permissions?.length).toBe(defaultProps.roles.system_admin.permissions.length);
+    });
+
+    test('should restore the space permissions the server grants by default', () => {
+        // resetDefaults replaces each role's permissions wholesale, so anything
+        // missing from DefaultRolePermissions is revoked on the next save. These
+        // mirror model.MakeDefaultRoles in server/public/model/role.go: all_users
+        // gains read/create, team_admin gains manage/delete, and guests gains
+        // read. Asserted by content: a comparison against the constant itself
+        // holds however the constant drifts.
+        const ref = React.createRef<InstanceType<typeof PermissionSystemSchemeSettings>>();
+        renderWithContext(
+            <PermissionSystemSchemeSettings
+                {...defaultProps}
+                ref={ref}
+            />,
+        );
+        act(() => {
+            (ref.current as any).resetDefaults();
+        });
+
+        expect(ref.current!.state.roles.all_users.permissions).toEqual(
+            expect.arrayContaining([Permissions.READ_SPACE, Permissions.CREATE_SPACE]),
+        );
+        expect(ref.current!.state.roles.team_admin.permissions).toEqual(
+            expect.arrayContaining([Permissions.MANAGE_SPACE, Permissions.DELETE_SPACE]),
+        );
+        expect(ref.current!.state.roles.guests.permissions).toEqual(
+            expect.arrayContaining([Permissions.READ_SPACE]),
+        );
     });
 
     test('should set moderated permissions on team/channel admins', () => {

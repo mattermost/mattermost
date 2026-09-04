@@ -108,6 +108,43 @@ func TestMigration(t *testing.T) {
 	assert.Contains(t, role.Permissions, model.PermissionUseGroupMentions.Id)
 }
 
+// ResetPermissionsSystem purges and reseeds the space presets and capability roles the same way
+// it does the rest of the permissions system: both space migration markers are present before the
+// reset (seeded at boot), and present again afterward because DoAppMigrations replays the seeding
+// once ResetPermissionsSystem clears the markers along with every scheme and role.
+func TestResetPermissionsSystem(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	require.NoError(t, th.App.SetPhase2PermissionsMigrationStatus(true))
+
+	requireMarkerPresent := func(t *testing.T, key string) {
+		t.Helper()
+		_, err := th.App.Srv().Store().System().GetByName(key)
+		require.NoError(t, err)
+	}
+
+	requireMarkerPresent(t, SpaceRolesCreationMigrationKey)
+	requireMarkerPresent(t, SpaceSchemesCreationMigrationKey)
+
+	appErr := th.App.ResetPermissionsSystem()
+	require.Nil(t, appErr)
+
+	requireMarkerPresent(t, SpaceRolesCreationMigrationKey)
+	requireMarkerPresent(t, SpaceSchemesCreationMigrationKey)
+
+	for _, name := range []string{model.SchemeNameSpaceContribute, model.SchemeNameSpaceComment, model.SchemeNameSpaceReadOnly} {
+		scheme, appErr := th.App.GetSchemeByName(name)
+		require.Nil(t, appErr, name)
+		assert.NotEmpty(t, scheme.Id, name)
+	}
+
+	for _, roleName := range model.SpaceCapabilityRoles {
+		role, appErr := th.App.GetRoleByName(th.Context, roleName)
+		require.Nil(t, appErr, roleName)
+		assert.NotEmpty(t, role.Id, roleName)
+	}
+}
+
 func withMigrationMarkedComplete(t *testing.T, th *TestHelper, f func()) {
 	// Mark the migration as done.
 	_, err := th.App.Srv().Store().System().PermanentDeleteByName(model.MigrationKeyAdvancedPermissionsPhase2)

@@ -12669,6 +12669,27 @@ func (s *RetryLayerRoleStore) GetByNames(names []string) ([]*model.Role, error) 
 
 }
 
+func (s *RetryLayerRoleStore) GetByNamesFromMaster(names []string) ([]*model.Role, error) {
+
+	tries := 0
+	for {
+		result, err := s.RoleStore.GetByNamesFromMaster(names)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerRoleStore) PermanentDeleteAll() error {
 
 	tries := 0
@@ -13284,6 +13305,69 @@ func (s *RetryLayerSchemeStore) GetByName(schemeName string) (*model.Scheme, err
 
 }
 
+func (s *RetryLayerSchemeStore) GetByNameFromMaster(schemeName string) (*model.Scheme, error) {
+
+	tries := 0
+	for {
+		result, err := s.SchemeStore.GetByNameFromMaster(schemeName)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerSchemeStore) GetForChannelFromMaster(channelID string) (*model.Scheme, error) {
+
+	tries := 0
+	for {
+		result, err := s.SchemeStore.GetForChannelFromMaster(channelID)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerSchemeStore) GetFromMaster(schemeID string) (*model.Scheme, error) {
+
+	tries := 0
+	for {
+		result, err := s.SchemeStore.GetFromMaster(schemeID)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerSchemeStore) PermanentDeleteAll() error {
 
 	tries := 0
@@ -13310,6 +13394,27 @@ func (s *RetryLayerSchemeStore) Save(scheme *model.Scheme) (*model.Scheme, error
 	tries := 0
 	for {
 		result, err := s.SchemeStore.Save(scheme)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerSchemeStore) SaveChannelSchemeWithRoles(scheme *model.Scheme, user []string, admin []string, guest []string) (*model.Scheme, error) {
+
+	tries := 0
+	for {
+		result, err := s.SchemeStore.SaveChannelSchemeWithRoles(scheme, user, admin, guest)
 		if err == nil {
 			return result, nil
 		}
@@ -15185,6 +15290,27 @@ func (s *RetryLayerTeamStore) GetMembersByIds(teamID string, userIds []string, r
 	tries := 0
 	for {
 		result, err := s.TeamStore.GetMembersByIds(teamID, userIds, restrictions)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerTeamStore) GetMembersByIdsFromMaster(teamID string, userIds []string) ([]*model.TeamMember, error) {
+
+	tries := 0
+	for {
+		result, err := s.TeamStore.GetMembersByIdsFromMaster(teamID, userIds)
 		if err == nil {
 			return result, nil
 		}

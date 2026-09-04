@@ -417,6 +417,15 @@ func (a *App) updateTeamMemberRolesInternal(rctx request.CTX, teamID string, use
 			return nil, err
 		}
 		if !role.SchemeManaged {
+			// The space capability roles carry channel-scoped page
+			// permissions and are excluded from BuiltInSchemeManagedRoleIDs so
+			// they can be part of ExplicitRoles on a space's backing channel. A
+			// team member is never a space backing channel, so the guard always
+			// refuses here.
+			if model.IsSpaceCapabilityRole(roleName) {
+				logRefusedSpaceCapabilityRole(rctx, "UpdateTeamMemberRoles", roleName)
+				return nil, model.NewAppError("UpdateTeamMemberRoles", "api.team.update_team_member_roles.space_role.app_error", nil, "role_name="+roleName, http.StatusBadRequest)
+			}
 			// The role is not scheme-managed, so it's OK to apply it to the explicit roles field.
 			newExplicitRoles = append(newExplicitRoles, roleName)
 		} else {
@@ -1136,6 +1145,18 @@ func (a *App) GetTeamMembersByIds(teamID string, userIDs []string, restrictions 
 	teamMembers, err := a.Srv().Store().Team().GetMembersByIds(teamID, userIDs, restrictions)
 	if err != nil {
 		return nil, model.NewAppError("GetTeamMembersByIds", "app.team.get_members_by_ids.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	return teamMembers, nil
+}
+
+// GetTeamMembersByIdsFromMaster is GetTeamMembersByIds on the primary, for a caller that
+// resolves authority from the result and so must not see a membership a replica has yet to
+// catch up on.
+func (a *App) GetTeamMembersByIdsFromMaster(teamID string, userIDs []string) ([]*model.TeamMember, *model.AppError) {
+	teamMembers, err := a.Srv().Store().Team().GetMembersByIdsFromMaster(teamID, userIDs)
+	if err != nil {
+		return nil, model.NewAppError("GetTeamMembersByIdsFromMaster", "app.team.get_members_by_ids.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return teamMembers, nil

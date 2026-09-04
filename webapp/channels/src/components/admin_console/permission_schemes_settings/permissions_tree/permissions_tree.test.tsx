@@ -186,6 +186,45 @@ describe('components/admin_console/permission_schemes_settings/permission_tree',
         expect(groups[9].id).toStrictEqual('custom_groups');
     });
 
+    describe('spaces permission group', () => {
+        test('is absent while the Docs feature flag is off', () => {
+            renderWithContext(
+                <PermissionsTree {...defaultProps}/>,
+            );
+
+            const groups = PermissionGroup.mock.calls[0][0].permissions as Array<Group | Permission>;
+            expect(groups.map((group) => group.id)).not.toContain('spaces');
+        });
+
+        test('carries the four team-scoped space permissions when the flag is on', () => {
+            renderWithContext(
+                <PermissionsTree
+                    {...defaultProps}
+                    config={{...defaultProps.config, FeatureFlagEnableDocs: 'true'}}
+                />,
+            );
+
+            const groups = PermissionGroup.mock.calls[0][0].permissions as Array<Group | Permission>;
+            const spaces = groups.find((group) => group.id === 'spaces');
+            expect(spaces).toBeDefined();
+            expect(spaces!.permissions).toStrictEqual(['read_space', 'create_space', 'manage_space', 'delete_space']);
+        });
+
+        test('is appended last, so the index-based group lookups are unaffected', () => {
+            renderWithContext(
+                <PermissionsTree
+                    {...defaultProps}
+                    config={{...defaultProps.config, FeatureFlagEnableDocs: 'true'}}
+                />,
+            );
+
+            const groups = PermissionGroup.mock.calls[0][0].permissions as Array<Group | Permission>;
+            expect(groups[6].id).toStrictEqual('posts');
+            expect(groups[9].id).toStrictEqual('custom_groups');
+            expect(groups[groups.length - 1].id).toStrictEqual('spaces');
+        });
+    });
+
     describe('should show playbook permissions', () => {
         describe('for non-enterprise license', () => {
             ['', LicenseSkus.E10, LicenseSkus.Starter, LicenseSkus.Professional].forEach((licenseSku) => test(licenseSku, () => {

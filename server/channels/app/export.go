@@ -329,6 +329,12 @@ func (a *App) exportRolesAndSchemes(rctx request.CTX, job *model.Job, writer io.
 func (a *App) exportRoles(rctx request.CTX, job *model.Job, writer io.Writer, schemeRoles map[string]bool, allRoles []*model.Role) *model.AppError {
 	var cnt int
 	for _, role := range allRoles {
+		// Every server seeds the space capability roles by migration, so
+		// a server importing this file already has its own; an exported copy
+		// would only compete with them.
+		if model.IsSpaceCapabilityRole(role.Name) {
+			continue
+		}
 		// We skip any roles that will be included as part of custom schemes.
 		if !schemeRoles[role.Name] {
 			if err := a.exportWriteLine(writer, importLineFromRole(role)); err != nil {
@@ -381,6 +387,15 @@ func (a *App) exportSchemes(rctx request.CTX, job *model.Job, writer io.Writer, 
 				schemeRolesMap[scheme.DefaultChannelAdminRole] = true
 				schemeRolesMap[scheme.DefaultChannelUserRole] = true
 				schemeRolesMap[scheme.DefaultChannelGuestRole] = true
+			}
+
+			// Preset and plugin-pool schemes are server-owned and recreated locally.
+			// Import reserves both name shapes, so exporting either would make the
+			// destination reject the file. Their generated roles are recorded above,
+			// keeping them out of the standalone role export too.
+			if scheme.Scope == model.SchemeScopeChannel &&
+				(model.IsSpaceSchemeName(scheme.Name) || model.IsPluginChannelSchemeName(scheme.Name)) {
+				continue
 			}
 
 			if err := a.exportWriteLine(writer, importLineFromScheme(scheme, rolesMap)); err != nil {

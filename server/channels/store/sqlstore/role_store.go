@@ -262,6 +262,14 @@ func (s *SqlRoleStore) GetByName(rctx request.CTX, name string) (*model.Role, er
 }
 
 func (s *SqlRoleStore) GetByNames(names []string) ([]*model.Role, error) {
+	return s.getByNames(names, false)
+}
+
+func (s *SqlRoleStore) GetByNamesFromMaster(names []string) ([]*model.Role, error) {
+	return s.getByNames(names, true)
+}
+
+func (s *SqlRoleStore) getByNames(names []string, fromMaster bool) ([]*model.Role, error) {
 	if len(names) == 0 {
 		return []*model.Role{}, nil
 	}
@@ -272,7 +280,12 @@ func (s *SqlRoleStore) GetByNames(names []string) ([]*model.Role, error) {
 		return nil, errors.Wrap(err, "role_tosql")
 	}
 
-	rows, err := s.GetReplica().Query(queryString, args...)
+	db := s.GetReplica()
+	if fromMaster {
+		db = s.GetMaster()
+	}
+
+	rows, err := db.Query(queryString, args...)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to find Roles")
 	}

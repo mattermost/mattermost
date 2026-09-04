@@ -355,4 +355,24 @@ export const groupRolesStrings: Record<string, Record<string, MessageDescriptor>
             defaultMessage: 'Add, edit, delete and sort bookmarks',
         },
     }),
+    spaces: defineMessages({
+        name: {
+            id: 'admin.permissions.group.spaces.name',
+            defaultMessage: 'Spaces',
+        },
+        description: {
+            id: 'admin.permissions.group.spaces.description',
+            defaultMessage: 'View, create and manage Docs spaces. The permissions a member holds inside a space are set in the space itself, not here.',
+        },
+    }),
+    guest_read_space: defineMessages({
+        name: {
+            id: 'admin.permissions.group.guest_read_space.name',
+            defaultMessage: 'View spaces',
+        },
+        description: {
+            id: 'admin.permissions.group.guest_read_space.description',
+            defaultMessage: 'View spaces in teams the guest belongs to. Guests are read-only in every space they can see.',
+        },
+    }),
 };

@@ -22,6 +22,7 @@ func TestRoleStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	t.Run("GetAll", func(t *testing.T) { testRoleStoreGetAll(t, rctx, ss) })
 	t.Run("GetByName", func(t *testing.T) { testRoleStoreGetByName(t, rctx, ss) })
 	t.Run("GetNames", func(t *testing.T) { testRoleStoreGetByNames(t, rctx, ss) })
+	t.Run("GetNamesFromMaster", func(t *testing.T) { testRoleStoreGetByNamesFromMaster(t, rctx, ss) })
 	t.Run("Delete", func(t *testing.T) { testRoleStoreDelete(t, rctx, ss) })
 	t.Run("PermanentDeleteAll", func(t *testing.T) { testRoleStorePermanentDeleteAll(t, rctx, ss) })
 	t.Run("LowerScopedChannelSchemeRoles_AllChannelSchemeRoles", func(t *testing.T) { testRoleStoreLowerScopedChannelSchemeRoles(t, rctx, ss) })
@@ -347,6 +348,54 @@ func testRoleStoreGetByNames(t *testing.T, rctx request.CTX, ss store.Store) {
 	assert.Contains(t, roles6, d1)
 	assert.NotContains(t, roles6, d2)
 	assert.NotContains(t, roles6, d3)
+}
+
+func testRoleStoreGetByNamesFromMaster(t *testing.T, rctx request.CTX, ss store.Store) {
+	// Save some roles to test with.
+	r1 := &model.Role{
+		Name:        model.NewId(),
+		DisplayName: model.NewId(),
+		Description: model.NewId(),
+		Permissions: []string{
+			"invite_user",
+			"create_public_channel",
+			"add_user_to_team",
+		},
+		SchemeManaged: false,
+	}
+	r2 := &model.Role{
+		Name:        model.NewId(),
+		DisplayName: model.NewId(),
+		Description: model.NewId(),
+		Permissions: []string{
+			"read_channel",
+			"create_public_channel",
+			"add_user_to_team",
+		},
+		SchemeManaged: false,
+	}
+
+	d1, err := ss.Role().Save(r1)
+	assert.NoError(t, err)
+	assert.Len(t, d1.Id, 26)
+
+	d2, err := ss.Role().Save(r2)
+	assert.NoError(t, err)
+	assert.Len(t, d2.Id, 26)
+
+	// Get a mix of known and unknown names: only the known roles come back.
+	n1 := []string{r1.Name, model.NewId(), r2.Name}
+	roles1, err := ss.Role().GetByNamesFromMaster(n1)
+	assert.NoError(t, err)
+	assert.Len(t, roles1, 2)
+	assert.Contains(t, roles1, d1)
+	assert.Contains(t, roles1, d2)
+
+	// An empty name list short-circuits to an empty, non-nil slice.
+	roles2, err := ss.Role().GetByNamesFromMaster([]string{})
+	assert.NoError(t, err)
+	assert.NotNil(t, roles2)
+	assert.Empty(t, roles2)
 }
 
 func testRoleStoreDelete(t *testing.T, rctx request.CTX, ss store.Store) {

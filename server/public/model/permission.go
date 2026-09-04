@@ -5,6 +5,7 @@ package model
 
 import (
 	"net/http"
+	"slices"
 	"strings"
 )
 
@@ -424,6 +425,30 @@ var PermissionManageOutgoingOAuthConnections *Permission
 var PermissionManageOwnAgent *Permission
 var PermissionManageOthersAgent *Permission
 var ModeratedBookmarkPermissions []*Permission
+
+var channelScopedPermissionIDs map[string]bool
+
+// IsChannelScopedPermissionID reports whether id is a channel-scoped permission.
+// A channel scheme's generated roles resolve only where the scheme is attached,
+// so this is the outer bound on what such a role may be asked to grant.
+func IsChannelScopedPermissionID(id string) bool {
+	return channelScopedPermissionIDs[id]
+}
+
+// NormalizePermissions returns the permission ids sorted and deduplicated, so
+// two sets can be compared or hashed without caring how either was assembled.
+func NormalizePermissions(permissions []string) []string {
+	return slices.Compact(slices.Sorted(slices.Values(permissions)))
+}
+
+// PermissionIDs returns the ids of the given permissions, preserving order.
+func PermissionIDs(permissions []*Permission) []string {
+	ids := make([]string, len(permissions))
+	for i, p := range permissions {
+		ids[i] = p.Id
+	}
+	return ids
+}
 
 func initializePermissions() {
 	PermissionInviteUser = &Permission{
@@ -2380,6 +2405,8 @@ func initializePermissions() {
 		PermissionScopeSystem,
 	}
 
+	initializeSpacePermissions()
+
 	SysconsoleReadPermissions = []*Permission{
 		PermissionSysconsoleReadAboutEditionAndLicense,
 		PermissionSysconsoleReadBilling,
@@ -2610,6 +2637,7 @@ func initializePermissions() {
 		PermissionPublicPlaybookCreate,
 		PermissionPrivatePlaybookCreate,
 	}
+	TeamScopedPermissions = append(TeamScopedPermissions, spaceTeamScopedPermissions...)
 
 	ChannelScopedPermissions := []*Permission{
 		PermissionUseSlashCommands,
@@ -2657,6 +2685,7 @@ func initializePermissions() {
 		PermissionManagePrivateChannelDiscoverability,
 		PermissionManageChannelJoinRequests,
 	}
+	ChannelScopedPermissions = append(ChannelScopedPermissions, SpaceChannelScopedPermissions...)
 
 	GroupScopedPermissions := []*Permission{
 		PermissionManageCustomGroupMembers,
@@ -2726,6 +2755,11 @@ func initializePermissions() {
 	AllPermissions = append(AllPermissions, GroupScopedPermissions...)
 	AllPermissions = append(AllPermissions, PlaybookScopedPermissions...)
 	AllPermissions = append(AllPermissions, RunScopedPermissions...)
+
+	channelScopedPermissionIDs = make(map[string]bool, len(ChannelScopedPermissions))
+	for _, p := range ChannelScopedPermissions {
+		channelScopedPermissionIDs[p.Id] = true
+	}
 
 	ChannelModeratedPermissions = []string{
 		PermissionCreatePost.Id,

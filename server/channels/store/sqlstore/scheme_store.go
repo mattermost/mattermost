@@ -62,7 +62,7 @@ func (s *SqlSchemeStore) Save(scheme *model.Scheme) (_ *model.Scheme, err error)
 		}
 		defer finalizeTransactionX(transaction, &terr)
 
-		newScheme, terr := s.createScheme(scheme, transaction)
+		newScheme, terr := s.createScheme(scheme, nil, transaction)
 		if terr != nil {
 			return nil, terr
 		}
@@ -99,7 +99,59 @@ func (s *SqlSchemeStore) Save(scheme *model.Scheme) (_ *model.Scheme, err error)
 	return scheme, nil
 }
 
-func (s *SqlSchemeStore) createScheme(scheme *model.Scheme, transaction *sqlxTxWrapper) (*model.Scheme, error) {
+// channelSchemeRolePermissions carries the permission sets committed with a new channel scheme,
+// preventing a partially configured scheme from becoming visible.
+type channelSchemeRolePermissions struct {
+	User  []string
+	Admin []string
+	Guest []string
+}
+
+// SaveChannelSchemeWithRoles creates a channel scheme and its three generated roles,
+// carrying exactly user, admin and guest, in one transaction: the scheme is never
+// visible with other permissions, and a failure leaves no partial rows behind.
+//
+// This path only creates: the scheme must carry no Id.
+func (s *SqlSchemeStore) SaveChannelSchemeWithRoles(scheme *model.Scheme, user, admin, guest []string) (_ *model.Scheme, err error) {
+	if scheme.Id != "" {
+		return nil, store.NewErrInvalidInput("Scheme", "Id", scheme.Id)
+	}
+	if scheme.Scope != model.SchemeScopeChannel {
+		return nil, store.NewErrInvalidInput("Scheme", "Scope", scheme.Scope)
+	}
+
+	transaction, err := s.GetMaster().Begin()
+	if err != nil {
+		return nil, errors.Wrap(err, "begin_transaction")
+	}
+	defer finalizeTransactionX(transaction, &err)
+
+	// createScheme stamps generated fields onto its argument. Work on a copy so a
+	// failed attempt leaves the caller's scheme untouched and a retry stays valid.
+	candidate := *scheme
+	newScheme, err := s.createScheme(&candidate, &channelSchemeRolePermissions{
+		User:  user,
+		Admin: admin,
+		Guest: guest,
+	}, transaction)
+	if err != nil {
+		return nil, err
+	}
+	if err = transaction.Commit(); err != nil {
+		return nil, errors.Wrap(err, "commit_transaction")
+	}
+	return newScheme, nil
+}
+
+// createScheme writes a scheme and all of its generated roles in one transaction.
+//
+// rolePermissions is optional. When nil, a channel scheme's generated user and
+// guest roles are derived from the global channel roles, and its admin role is
+// written with an empty permission set. When supplied, those three sets are
+// written verbatim instead — replacing the derived permissions rather than adding
+// to them, so none of the moderated channel permissions the global roles carry
+// remain on the new roles.
+func (s *SqlSchemeStore) createScheme(scheme *model.Scheme, rolePermissions *channelSchemeRolePermissions, transaction *sqlxTxWrapper) (*model.Scheme, error) {
 	// Generate the scheme ID up front so it can be recorded on each created role.
 	scheme.Id = model.NewId()
 	if scheme.Name == "" {
@@ -120,7 +172,16 @@ func (s *SqlSchemeStore) createScheme(scheme *model.Scheme, transaction *sqlxTxW
 		model.RunMemberRoleId,
 	}
 	defaultRoles := make(map[string]*model.Role)
-	roles, err := s.SqlStore.Role().GetByNames(defaultRoleNames)
+	// Only the verbatim-permissions path reads the primary: it runs during boot
+	// seeding and HA insert races, where a replica may not have the default role
+	// rows yet. Ordinary scheme creation keeps the cached replica read.
+	var roles []*model.Role
+	var err error
+	if rolePermissions != nil {
+		roles, err = s.SqlStore.Role().GetByNamesFromMaster(defaultRoleNames)
+	} else {
+		roles, err = s.SqlStore.Role().GetByNames(defaultRoleNames)
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -247,7 +308,9 @@ func (s *SqlSchemeStore) createScheme(scheme *model.Scheme, transaction *sqlxTxW
 			SchemeId:      &scheme.Id,
 		}
 
-		if scheme.Scope == model.SchemeScopeChannel {
+		if rolePermissions != nil {
+			channelAdminRole.Permissions = rolePermissions.Admin
+		} else if scheme.Scope == model.SchemeScopeChannel {
 			channelAdminRole.Permissions = []string{}
 		}
 
@@ -266,7 +329,9 @@ func (s *SqlSchemeStore) createScheme(scheme *model.Scheme, transaction *sqlxTxW
 			SchemeId:      &scheme.Id,
 		}
 
-		if scheme.Scope == model.SchemeScopeChannel {
+		if rolePermissions != nil {
+			channelUserRole.Permissions = rolePermissions.User
+		} else if scheme.Scope == model.SchemeScopeChannel {
 			channelUserRole.Permissions = filterModerated(channelUserRole.Permissions)
 		}
 
@@ -285,7 +350,9 @@ func (s *SqlSchemeStore) createScheme(scheme *model.Scheme, transaction *sqlxTxW
 			SchemeId:      &scheme.Id,
 		}
 
-		if scheme.Scope == model.SchemeScopeChannel {
+		if rolePermissions != nil {
+			channelGuestRole.Permissions = rolePermissions.Guest
+		} else if scheme.Scope == model.SchemeScopeChannel {
 			channelGuestRole.Permissions = filterModerated(channelGuestRole.Permissions)
 		}
 
@@ -325,9 +392,39 @@ func filterModerated(permissions []string) []string {
 }
 
 func (s *SqlSchemeStore) Get(schemeId string) (*model.Scheme, error) {
+	return s.get(schemeId, false)
+}
+
+func (s *SqlSchemeStore) GetFromMaster(schemeId string) (*model.Scheme, error) {
+	return s.get(schemeId, true)
+}
+
+func (s *SqlSchemeStore) GetForChannelFromMaster(channelID string) (*model.Scheme, error) {
+	var scheme model.Scheme
+	query := s.schemeSelectQuery.Where(sq.Expr(
+		"Id = (SELECT SchemeId FROM Channels WHERE Channels.Id = ?)",
+		channelID,
+	))
+
+	if err := s.GetMaster().GetBuilder(&scheme, query); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, store.NewErrNotFound("Scheme", fmt.Sprintf("channelId=%s", channelID))
+		}
+		return nil, errors.Wrapf(err, "failed to get Scheme for channelId=%s", channelID)
+	}
+	return &scheme, nil
+}
+
+func (s *SqlSchemeStore) get(schemeId string, fromMaster bool) (*model.Scheme, error) {
 	var scheme model.Scheme
 	query := s.schemeSelectQuery.Where(sq.Eq{"Id": schemeId})
-	if err := s.GetReplica().GetBuilder(&scheme, query); err != nil {
+
+	db := s.GetReplica()
+	if fromMaster {
+		db = s.GetMaster()
+	}
+
+	if err := db.GetBuilder(&scheme, query); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Scheme", fmt.Sprintf("schemeId=%s", schemeId))
 		}
@@ -337,9 +434,23 @@ func (s *SqlSchemeStore) Get(schemeId string) (*model.Scheme, error) {
 }
 
 func (s *SqlSchemeStore) GetByName(schemeName string) (*model.Scheme, error) {
+	return s.getByName(schemeName, false)
+}
+
+func (s *SqlSchemeStore) GetByNameFromMaster(schemeName string) (*model.Scheme, error) {
+	return s.getByName(schemeName, true)
+}
+
+func (s *SqlSchemeStore) getByName(schemeName string, fromMaster bool) (*model.Scheme, error) {
 	var scheme model.Scheme
 	query := s.schemeSelectQuery.Where(sq.Eq{"Name": schemeName})
-	if err := s.GetReplica().GetBuilder(&scheme, query); err != nil {
+
+	db := s.GetReplica()
+	if fromMaster {
+		db = s.GetMaster()
+	}
+
+	if err := db.GetBuilder(&scheme, query); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Scheme", fmt.Sprintf("schemeName=%s", schemeName))
 		}

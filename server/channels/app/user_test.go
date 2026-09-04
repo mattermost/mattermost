@@ -2365,6 +2365,106 @@ func TestDemoteUserToGuest(t *testing.T) {
 		assert.False(t, channelMember.SchemeAdmin)
 		assert.True(t, channelMember.SchemeGuest)
 	})
+
+	// Must strip a space capability role held as an explicit member role.
+	// Demoting a user only resets the member's scheme flags; a capability role
+	// left in ExplicitRoles would keep granting page access to the new guest.
+	t.Run("Must strip a space capability role from an explicit space membership", func(t *testing.T) {
+		user := th.CreateUser(t)
+		th.LinkUserToTeam(t, user, th.BasicTeam)
+
+		space := saveSpaceChannelWithScheme(t, th, "")
+		_, err := th.App.Srv().Store().Channel().SaveMember(th.Context, &model.ChannelMember{
+			ChannelId:     space.Id,
+			UserId:        user.Id,
+			NotifyProps:   model.GetDefaultChannelNotifyProps(),
+			SchemeUser:    true,
+			ExplicitRoles: model.SpacePageEditorRoleId,
+		})
+		require.NoError(t, err)
+		th.App.Srv().Store().Channel().InvalidateAllChannelMembersForUser(user.Id)
+
+		appErr := th.App.DemoteUserToGuest(th.Context, user)
+		require.Nil(t, appErr)
+
+		member, appErr := th.App.GetChannelMember(th.Context, space.Id, user.Id)
+		require.Nil(t, appErr)
+		assert.NotContains(t, member.ExplicitRoles, model.SpacePageEditorRoleId)
+		assert.False(t, member.SchemeUser)
+		assert.True(t, member.SchemeGuest)
+	})
+}
+
+// The revocation runs ahead of the demotion, so a failure to reach a space
+// membership must both report an error and leave the user un-demoted: a guest who
+// kept a capability role cannot be demoted again to clear it.
+func TestDemoteUserToGuestSpaceRevocationFailure(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	setupDemoteMocks := func(t *testing.T) (*TestHelper, *storemocks.TeamStore, *storemocks.ChannelStore, *storemocks.UserStore) {
+		th := SetupWithStoreMock(t)
+		mockStore := th.App.Srv().Store().(*storemocks.Store)
+
+		mockUserStore := storemocks.UserStore{}
+		mockUserStore.On("DemoteUserToGuest", mock.Anything, "userID").Return(&model.User{Id: "userID", Roles: model.SystemGuestRoleId}, nil)
+		mockUserStore.On("InvalidateProfileCacheForUser", "userID").Return()
+		mockUserStore.On("InvalidateProfilesInChannelCacheByUser", "userID").Return()
+
+		mockSessionStore := storemocks.SessionStore{}
+		mockSessionStore.On("GetSessions", mock.Anything, "userID").Return(nil, errors.New("session listing failed"))
+
+		mockTeamStore := storemocks.TeamStore{}
+		mockChannelStore := storemocks.ChannelStore{}
+		mockChannelStore.On("InvalidateAllChannelMembersForUser", "userID").Return()
+
+		mockStore.On("User").Return(&mockUserStore)
+		mockStore.On("Session").Return(&mockSessionStore)
+		mockStore.On("Team").Return(&mockTeamStore)
+		mockStore.On("Channel").Return(&mockChannelStore)
+
+		var err error
+		th.App.ch.srv.userService, err = users.New(users.ServiceConfig{
+			UserStore:    &mockUserStore,
+			SessionStore: &mockSessionStore,
+			OAuthStore:   &storemocks.OAuthStore{},
+			ConfigFn:     th.App.ch.srv.platform.Config,
+			LicenseFn:    th.App.ch.srv.License,
+		})
+		require.NoError(t, err)
+
+		return th, &mockTeamStore, &mockChannelStore, &mockUserStore
+	}
+
+	t.Run("space channel listing failure fails the demotion", func(t *testing.T) {
+		th, mockTeamStore, mockChannelStore, mockUserStore := setupDemoteMocks(t)
+
+		mockTeamStore.On("GetTeamsForUser", mock.Anything, "userID", "", true).Return([]*model.TeamMember{{TeamId: "teamID", UserId: "userID"}}, nil)
+		mockChannelStore.On("GetTeamSpaceChannelsForUser", "teamID", "userID").Return(nil, errors.New("space listing failed"))
+
+		appErr := th.App.DemoteUserToGuest(th.Context, &model.User{Id: "userID"})
+		require.NotNil(t, appErr, "an unrevoked space capability role must not be reported as a completed demotion")
+		require.Equal(t, "app.user.revoke_space_capability_roles.app_error", appErr.Id)
+		mockTeamStore.AssertCalled(t, "GetTeamsForUser", mock.Anything, "userID", "", true)
+		mockChannelStore.AssertCalled(t, "GetTeamSpaceChannelsForUser", "teamID", "userID")
+
+		// The user must be left demotable, so the guest conversion never runs.
+		mockUserStore.AssertNotCalled(t, "DemoteUserToGuest", mock.Anything, "userID")
+	})
+
+	t.Run("team listing failure fails the demotion", func(t *testing.T) {
+		th, mockTeamStore, mockChannelStore, mockUserStore := setupDemoteMocks(t)
+
+		mockTeamStore.On("GetTeamsForUser", mock.Anything, "userID", "", true).Return(nil, errors.New("team listing failed"))
+
+		appErr := th.App.DemoteUserToGuest(th.Context, &model.User{Id: "userID"})
+		require.NotNil(t, appErr, "space capability roles are stripped per team, so an unlisted team leaves them attached")
+		require.Equal(t, "app.user.revoke_space_capability_roles.app_error", appErr.Id)
+		mockTeamStore.AssertCalled(t, "GetTeamsForUser", mock.Anything, "userID", "", true)
+
+		// The revocation is reached through the team listing, so nothing downstream of it runs.
+		mockChannelStore.AssertNotCalled(t, "GetTeamSpaceChannelsForUser", mock.Anything, "userID")
+		mockUserStore.AssertNotCalled(t, "DemoteUserToGuest", mock.Anything, "userID")
+	})
 }
 
 func TestDeactivateGuests(t *testing.T) {
@@ -3236,4 +3336,199 @@ func TestConsumeTokenOnce(t *testing.T) {
 		require.Nil(t, consumedToken)
 		assert.Equal(t, http.StatusNotFound, appErr.StatusCode)
 	})
+}
+
+// Turning a user into a guest through a plain role update skips DemoteUserToGuest, so the
+// authority a space membership carries — the capability roles in its explicit roles and the
+// scheme flags the space admin tier and the guest redaction are gated on — is revoked on this
+// path too.
+func TestUpdateUserRolesToGuestRevokesSpaceAuthority(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	require.NoError(t, th.App.SetPhase2PermissionsMigrationStatus(true))
+
+	user := th.CreateUser(t)
+	th.LinkUserToTeam(t, user, th.BasicTeam)
+	contribute := getSeededSpaceScheme(t, th, model.SchemeNameSpaceContribute)
+	space := saveSpaceChannelWithScheme(t, th, contribute.Id)
+	_, err := th.App.Srv().Store().Channel().SaveMember(th.Context, &model.ChannelMember{
+		ChannelId:     space.Id,
+		UserId:        user.Id,
+		NotifyProps:   model.GetDefaultChannelNotifyProps(),
+		SchemeUser:    true,
+		SchemeAdmin:   true,
+		ExplicitRoles: model.SpacePageEditorRoleId,
+	})
+	require.NoError(t, err)
+	th.App.Srv().Store().Channel().InvalidateAllChannelMembersForUser(user.Id)
+
+	has, _ := th.App.HasPermissionToChannel(th.Context, user.Id, space.Id, model.PermissionAdminSpace)
+	require.True(t, has)
+	has, _ = th.App.HasPermissionToChannel(th.Context, user.Id, space.Id, model.PermissionEditPage)
+	require.True(t, has)
+
+	updated, appErr := th.App.UpdateUserRoles(th.Context, user.Id, model.SystemGuestRoleId, false)
+	require.Nil(t, appErr)
+	require.True(t, updated.IsGuest())
+
+	member, appErr := th.App.GetChannelMember(th.Context, space.Id, user.Id)
+	require.Nil(t, appErr)
+	assert.NotContains(t, member.ExplicitRoles, model.SpacePageEditorRoleId)
+	assert.False(t, member.SchemeAdmin, "a guest must not keep the space admin tier")
+	assert.False(t, member.SchemeUser)
+	assert.True(t, member.SchemeGuest)
+
+	has, _ = th.App.HasPermissionToChannel(th.Context, user.Id, space.Id, model.PermissionAdminSpace)
+	assert.False(t, has, "leftover SchemeAdmin would still compose admin_space")
+	has, _ = th.App.HasPermissionToChannel(th.Context, user.Id, space.Id, model.PermissionEditPage)
+	assert.False(t, has, "a leftover capability role would still compose edit_page")
+	has, _ = th.App.HasPermissionToChannel(th.Context, user.Id, space.Id, model.PermissionReadPage)
+	assert.True(t, has, "the scheme guest role still grants the read floor")
+}
+
+// A space admin holding an extra capability role must lose both halves of that
+// authority on DemoteUserToGuest: SchemeAdmin (the admin tier) and the leftover
+// ExplicitRoles token (which core still composes after SchemeGuest is set).
+func TestDemoteUserToGuestWhileSpaceAdmin(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	require.NoError(t, th.App.SetPhase2PermissionsMigrationStatus(true))
+
+	user := th.CreateUser(t)
+	th.LinkUserToTeam(t, user, th.BasicTeam)
+	contribute := getSeededSpaceScheme(t, th, model.SchemeNameSpaceContribute)
+	space := saveSpaceChannelWithScheme(t, th, contribute.Id)
+	_, err := th.App.Srv().Store().Channel().SaveMember(th.Context, &model.ChannelMember{
+		ChannelId:     space.Id,
+		UserId:        user.Id,
+		NotifyProps:   model.GetDefaultChannelNotifyProps(),
+		SchemeUser:    true,
+		SchemeAdmin:   true,
+		ExplicitRoles: model.SpacePageEditorRoleId,
+	})
+	require.NoError(t, err)
+	th.App.Srv().Store().Channel().InvalidateAllChannelMembersForUser(user.Id)
+
+	has, _ := th.App.HasPermissionToChannel(th.Context, user.Id, space.Id, model.PermissionAdminSpace)
+	require.True(t, has)
+	has, _ = th.App.HasPermissionToChannel(th.Context, user.Id, space.Id, model.PermissionEditPage)
+	require.True(t, has)
+
+	require.Nil(t, th.App.DemoteUserToGuest(th.Context, user))
+
+	member, appErr := th.App.GetChannelMember(th.Context, space.Id, user.Id)
+	require.Nil(t, appErr)
+	assert.NotContains(t, member.ExplicitRoles, model.SpacePageEditorRoleId)
+	assert.False(t, member.SchemeAdmin)
+	assert.False(t, member.SchemeUser)
+	assert.True(t, member.SchemeGuest)
+
+	has, _ = th.App.HasPermissionToChannel(th.Context, user.Id, space.Id, model.PermissionAdminSpace)
+	assert.False(t, has)
+	has, _ = th.App.HasPermissionToChannel(th.Context, user.Id, space.Id, model.PermissionEditPage)
+	assert.False(t, has)
+	has, _ = th.App.HasPermissionToChannel(th.Context, user.Id, space.Id, model.PermissionReadPage)
+	assert.True(t, has)
+}
+
+// A space's creator holds admin_space through the SchemeAdmin flag alone, with no capability role in
+// ExplicitRoles. The sibling cases all seed a capability role too, so this one covers the
+// SchemeAdmin-only membership: converting it to a guest must remove admin_space and leave only
+// read_page.
+//
+// The scheme flags are cleared by the store-level demotion for every one of the user's channel
+// members, so these assertions hold whether or not revokeSpaceAuthorityFromMember runs. This case
+// checks the permissions a former space admin is left with, not the revocation path itself.
+func TestDemoteUserToGuestWhileSpaceAdminWithoutCapabilityRole(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	require.NoError(t, th.App.SetPhase2PermissionsMigrationStatus(true))
+
+	user := th.CreateUser(t)
+	th.LinkUserToTeam(t, user, th.BasicTeam)
+	contribute := getSeededSpaceScheme(t, th, model.SchemeNameSpaceContribute)
+	space := saveSpaceChannelWithScheme(t, th, contribute.Id)
+	_, err := th.App.Srv().Store().Channel().SaveMember(th.Context, &model.ChannelMember{
+		ChannelId:   space.Id,
+		UserId:      user.Id,
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+		SchemeUser:  true,
+		SchemeAdmin: true,
+	})
+	require.NoError(t, err)
+	th.App.Srv().Store().Channel().InvalidateAllChannelMembersForUser(user.Id)
+
+	member, appErr := th.App.GetChannelMember(th.Context, space.Id, user.Id)
+	require.Nil(t, appErr)
+	require.Empty(t, member.ExplicitRoles, "the fixture must carry no capability role")
+	has, _ := th.App.HasPermissionToChannel(th.Context, user.Id, space.Id, model.PermissionAdminSpace)
+	require.True(t, has)
+
+	require.Nil(t, th.App.DemoteUserToGuest(th.Context, user))
+
+	member, appErr = th.App.GetChannelMember(th.Context, space.Id, user.Id)
+	require.Nil(t, appErr)
+	assert.False(t, member.SchemeAdmin)
+	assert.False(t, member.SchemeUser)
+	assert.True(t, member.SchemeGuest)
+
+	has, _ = th.App.HasPermissionToChannel(th.Context, user.Id, space.Id, model.PermissionAdminSpace)
+	assert.False(t, has)
+	has, _ = th.App.HasPermissionToChannel(th.Context, user.Id, space.Id, model.PermissionReadPage)
+	assert.True(t, has)
+}
+
+// The revocation walks every team the user belongs to and every space membership
+// within each team, so a user holding capability roles on several spaces — two in
+// one team and one in another — loses all of them, not only the first membership
+// the walk reaches.
+func TestDemoteUserToGuestRevokesEverySpaceMembership(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	require.NoError(t, th.App.SetPhase2PermissionsMigrationStatus(true))
+
+	user := th.CreateUser(t)
+	th.LinkUserToTeam(t, user, th.BasicTeam)
+	otherTeam := th.CreateTeam(t)
+	th.LinkUserToTeam(t, user, otherTeam)
+
+	otherTeamSpace, err := th.App.Srv().Store().Channel().Save(th.Context, &model.Channel{
+		TeamId:      otherTeam.Id,
+		DisplayName: "Space",
+		Name:        "space-" + model.NewId(),
+		Type:        model.ChannelTypeSpace,
+	}, -1)
+	require.NoError(t, err)
+
+	memberships := []struct {
+		space *model.Channel
+		role  string
+	}{
+		{saveSpaceChannelWithScheme(t, th, ""), model.SpacePageEditorRoleId},
+		{saveSpaceChannelWithScheme(t, th, ""), model.SpacePageCreatorRoleId},
+		{otherTeamSpace, model.SpacePageCommenterRoleId},
+	}
+	for _, m := range memberships {
+		_, err := th.App.Srv().Store().Channel().SaveMember(th.Context, &model.ChannelMember{
+			ChannelId:     m.space.Id,
+			UserId:        user.Id,
+			NotifyProps:   model.GetDefaultChannelNotifyProps(),
+			SchemeUser:    true,
+			SchemeAdmin:   true,
+			ExplicitRoles: m.role,
+		})
+		require.NoError(t, err)
+	}
+	th.App.Srv().Store().Channel().InvalidateAllChannelMembersForUser(user.Id)
+
+	require.Nil(t, th.App.DemoteUserToGuest(th.Context, user))
+
+	for _, m := range memberships {
+		member, appErr := th.App.GetChannelMember(th.Context, m.space.Id, user.Id)
+		require.Nil(t, appErr)
+		assert.NotContains(t, member.ExplicitRoles, m.role, "space %s kept %s", m.space.Id, m.role)
+		assert.False(t, member.SchemeAdmin, "space %s kept SchemeAdmin", m.space.Id)
+		assert.False(t, member.SchemeUser, "space %s kept SchemeUser", m.space.Id)
+		assert.True(t, member.SchemeGuest)
+	}
 }

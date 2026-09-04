@@ -138,6 +138,7 @@ export type ClientConfig = {
     FeatureFlagSessionAttributes: string;
     FeatureFlagPostAttributes: string;
     FeatureFlagDiscoverableChannels: string;
+    FeatureFlagEnableDocs: string;
     FeatureFlagRecurringScheduledPosts: string;
 
     ForgotPasswordLink: string;

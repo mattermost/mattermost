@@ -76,6 +76,10 @@ func (a *App) CreateScheme(scheme *model.Scheme) (*model.Scheme, *model.AppError
 		return nil, err
 	}
 
+	if appErr := a.checkSpaceSchemeName("CreateScheme", scheme.Name); appErr != nil {
+		return nil, appErr
+	}
+
 	// Clear any user-provided values for trusted properties.
 	scheme.DefaultTeamAdminRole = ""
 	scheme.DefaultTeamUserRole = ""
@@ -126,6 +130,10 @@ func (a *App) UpdateScheme(scheme *model.Scheme) (*model.Scheme, *model.AppError
 		return nil, err
 	}
 
+	if appErr := a.checkSpaceSchemeUpdate(scheme); appErr != nil {
+		return nil, appErr
+	}
+
 	scheme, err := a.Srv().Store().Scheme().Save(scheme)
 	if err != nil {
 		var invErr *store.ErrInvalidInput
@@ -145,6 +153,10 @@ func (a *App) UpdateScheme(scheme *model.Scheme) (*model.Scheme, *model.AppError
 func (a *App) DeleteScheme(schemeId string) (*model.Scheme, *model.AppError) {
 	if err := a.IsPhase2MigrationCompleted(); err != nil {
 		return nil, err
+	}
+
+	if appErr := a.checkSpaceSchemeDelete(schemeId); appErr != nil {
+		return nil, appErr
 	}
 
 	scheme, err := a.Srv().Store().Scheme().Delete(schemeId)

@@ -39,6 +39,34 @@ func NewPluginAPI(a *App, rctx request.CTX, manifest *model.Manifest) *PluginAPI
 	}
 }
 
+// checkCustomPermissionsSchemesLicense applies the same entitlement as the scheme
+// REST handlers, so reaching a scheme through a plugin does not skip it: a license
+// covers a capability, not the transport that reaches it.
+func (api *PluginAPI) checkCustomPermissionsSchemesLicense() error {
+	license := api.GetLicense()
+	if license == nil ||
+		(license.SkuShortName != model.LicenseShortSkuProfessional &&
+			(license.Features == nil || license.Features.CustomPermissionsSchemes == nil || !*license.Features.CustomPermissionsSchemes)) {
+		return errors.New("license does not support custom permissions schemes")
+	}
+	return nil
+}
+
+// checkPluginChannelSchemeGuestPermissionsLicense requires the guest-permissions
+// entitlement when the requested guest role grants any permission. It must run
+// before the scheme is saved: the guest role is stored together with the scheme,
+// and stored generated roles are immutable.
+func checkPluginChannelSchemeGuestPermissionsLicense(license *model.License, guest []string) *model.AppError {
+	if len(guest) == 0 {
+		return nil
+	}
+
+	if license == nil || license.Features == nil || license.Features.GuestAccountsPermissions == nil || !*license.Features.GuestAccountsPermissions {
+		return model.NewAppError("PluginAPI.GetOrCreatePluginChannelScheme", "app.scheme.plugin_scheme.guest_license.app_error", nil, "", http.StatusNotImplemented)
+	}
+	return nil
+}
+
 func (api *PluginAPI) checkLDAPLicense() error {
 	license := api.GetLicense()
 	if license == nil || !*license.Features.LDAPGroups {
@@ -733,7 +761,20 @@ func (api *PluginAPI) GetChannelMembersForUser(_, userID string, page, perPage i
 }
 
 func (api *PluginAPI) UpdateChannelMemberRoles(channelID, userID, newRoles string) (*model.ChannelMember, *model.AppError) {
-	return api.app.UpdateChannelMemberRoles(api.ctx, channelID, userID, newRoles)
+	channel, err := api.resolveChannel(channelID)
+	if err != nil {
+		return nil, err
+	}
+	ctx := api.ctx
+	if channel.IsSpace() {
+		// The role update re-reads the member before writing. The Docs plugin's
+		// add-member paths add a member and then update their roles in the same
+		// request (space creation promotes the creator right after adding them),
+		// so the re-read must find that just-written membership on a lagging
+		// replica.
+		ctx = RequestContextWithMaster(api.ctx)
+	}
+	return api.app.UpdateChannelMemberRoles(ctx, channelID, userID, newRoles)
 }
 
 func (api *PluginAPI) UpdateChannelMemberNotifications(channelID, userID string, notifications map[string]string) (*model.ChannelMember, *model.AppError) {
@@ -1262,6 +1303,32 @@ func (api *PluginAPI) HasPermissionToChannel(userID, channelID string, permissio
 
 func (api *PluginAPI) RolesGrantPermission(roleNames []string, permissionId string) bool {
 	return api.app.RolesGrantPermission(roleNames, permissionId)
+}
+
+func (api *PluginAPI) FilterUsersWithTeamPermission(teamID string, userIDs []string, permission *model.Permission) ([]string, *model.AppError) {
+	return api.app.FilterUsersWithTeamPermission(api.ctx, teamID, userIDs, permission)
+}
+
+func (api *PluginAPI) GetSchemeByName(name string) (*model.Scheme, *model.AppError) {
+	return api.app.getSchemeByNameFromMaster(name)
+}
+
+func (api *PluginAPI) GetOrCreatePluginChannelScheme(user, admin, guest []string) (*model.Scheme, *model.AppError) {
+	// This creates or reuses a custom channel scheme, so it carries the same custom
+	// permissions schemes entitlement as the REST scheme handlers. A non-empty guest
+	// role also requires the guest-permissions entitlement. The plugin id comes from
+	// this API instance rather than from caller input.
+	if err := api.checkCustomPermissionsSchemesLicense(); err != nil {
+		return nil, model.NewAppError("PluginAPI.GetOrCreatePluginChannelScheme", "app.scheme.plugin_scheme.scheme_license.app_error", nil, "", http.StatusNotImplemented).Wrap(err)
+	}
+	if appErr := checkPluginChannelSchemeGuestPermissionsLicense(api.GetLicense(), guest); appErr != nil {
+		return nil, appErr
+	}
+	return api.app.GetOrCreatePluginChannelScheme(api.manifest.Id, user, admin, guest)
+}
+
+func (api *PluginAPI) GetSchemeForChannel(channelID string) (scheme *model.Scheme, guestRole, userRole, adminRole *model.Role, err *model.AppError) {
+	return api.app.GetSchemeForChannel(api.ctx, channelID)
 }
 
 func (api *PluginAPI) UpdateUserRoles(userID string, newRoles string) (*model.User, *model.AppError) {

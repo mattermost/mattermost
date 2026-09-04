@@ -7051,6 +7051,7 @@ func TestPatchChannelModerations(t *testing.T) {
 
 		mockSchemeStore := mocks.SchemeStore{}
 		mockSchemeStore.On("Get", mock.Anything).Return(scheme, nil)
+		mockSchemeStore.On("GetFromMaster", mock.AnythingOfType("string")).Return(scheme, nil)
 		mockSchemeStore.On("Save", mock.Anything).Return(scheme, nil)
 		mockSchemeStore.On("Delete", mock.Anything).Return(scheme, nil)
 		mockStore.On("Scheme").Return(&mockSchemeStore)

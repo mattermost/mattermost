@@ -1233,14 +1233,18 @@ func TestExportRoles(t *testing.T) {
 	t.Run("custom roles", func(t *testing.T) {
 		th1 := Setup(t).InitBasic(t)
 
-		exportedRoles, appErr := th1.App.GetAllRoles()
+		// Permissions are copied from a named role rather than an arbitrary entry
+		// of GetAllRoles, whose order the store does not fix. Landing on a space
+		// role would put a channel-scoped space permission on a custom role, which
+		// the scope guard rejects.
+		sourceRole, appErr := th1.App.GetRoleByName(th1.Context, model.TeamUserRoleId)
 		require.Nil(t, appErr)
-		require.NotEmpty(t, exportedRoles)
+		require.NotEmpty(t, sourceRole.Permissions)
 
 		customRole, appErr := th1.App.CreateRole(&model.Role{
 			Name:        "custom_role",
 			DisplayName: "custom_role",
-			Permissions: exportedRoles[0].Permissions,
+			Permissions: sourceRole.Permissions,
 		})
 		require.Nil(t, appErr)
 
@@ -1267,6 +1271,27 @@ func TestExportRoles(t *testing.T) {
 	})
 }
 
+// nonSpaceSchemes drops the space preset schemes, which the boot seeding creates
+// on every server and bulk export deliberately skips. They are present before any
+// test does anything, so the assertions below filter them out to see only the
+// schemes the test itself created.
+func nonSpaceSchemes(schemes []*model.Scheme) []*model.Scheme {
+	filtered := make([]*model.Scheme, 0, len(schemes))
+	for _, scheme := range schemes {
+		if !model.IsSpaceSchemeName(scheme.Name) {
+			filtered = append(filtered, scheme)
+		}
+	}
+	return filtered
+}
+
+// seededSpaceRoles counts the roles the space seeding migrations add to every
+// server: the space capability roles, plus the three generated channel roles
+// each preset scheme carries.
+func seededSpaceRoles() int {
+	return len(model.SpaceCapabilityRoles) + len(model.SpaceSchemeNames)*3
+}
+
 func TestExportSchemes(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("no schemes", func(t *testing.T) {
@@ -1277,13 +1302,13 @@ func TestExportSchemes(t *testing.T) {
 		err := th1.App.Srv().Store().System().Save(&model.System{Name: model.MigrationKeyAdvancedPermissionsPhase2, Value: "true"})
 		require.NoError(t, err)
 
-		schemes, err := th1.App.Srv().Store().Scheme().GetAllPage(model.SchemeScopeChannel, 0, 1)
+		schemes, err := th1.App.Srv().Store().Scheme().GetAllPage(model.SchemeScopeChannel, 0, 100)
 		require.NoError(t, err)
-		require.Empty(t, schemes)
+		require.Empty(t, nonSpaceSchemes(schemes))
 
-		schemes, err = th1.App.Srv().Store().Scheme().GetAllPage(model.SchemeScopeTeam, 0, 1)
+		schemes, err = th1.App.Srv().Store().Scheme().GetAllPage(model.SchemeScopeTeam, 0, 100)
 		require.NoError(t, err)
-		require.Empty(t, schemes)
+		require.Empty(t, nonSpaceSchemes(schemes))
 
 		var b bytes.Buffer
 		appErr := th1.App.BulkExport(th1.Context, &b, "", nil, model.BulkExportOpts{
@@ -1302,13 +1327,13 @@ func TestExportSchemes(t *testing.T) {
 		require.Nil(t, appErr)
 		require.Equal(t, 0, i)
 
-		schemes, err = th2.App.Srv().Store().Scheme().GetAllPage(model.SchemeScopeChannel, 0, 1)
+		schemes, err = th2.App.Srv().Store().Scheme().GetAllPage(model.SchemeScopeChannel, 0, 100)
 		require.NoError(t, err)
-		require.Empty(t, schemes)
+		require.Empty(t, nonSpaceSchemes(schemes))
 
-		schemes, err = th2.App.Srv().Store().Scheme().GetAllPage(model.SchemeScopeTeam, 0, 1)
+		schemes, err = th2.App.Srv().Store().Scheme().GetAllPage(model.SchemeScopeTeam, 0, 100)
 		require.NoError(t, err)
-		require.Empty(t, schemes)
+		require.Empty(t, nonSpaceSchemes(schemes))
 	})
 
 	t.Run("skip export", func(t *testing.T) {
@@ -1346,6 +1371,58 @@ func TestExportSchemes(t *testing.T) {
 		require.NotNil(t, appErr)
 	})
 
+	t.Run("skip server-owned plugin schemes", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		err := th.App.Srv().Store().System().Save(&model.System{Name: model.MigrationKeyAdvancedPermissionsPhase2, Value: "true"})
+		require.NoError(t, err)
+
+		scheme, appErr := th.App.GetOrCreatePluginChannelScheme(
+			"com.example.plugin",
+			[]string{model.PermissionReadPage.Id},
+			[]string{model.PermissionAdminSpace.Id},
+			nil,
+		)
+		require.Nil(t, appErr)
+
+		var b bytes.Buffer
+		appErr = th.App.BulkExport(th.Context, &b, "", nil, model.BulkExportOpts{
+			IncludeRolesAndSchemes: true,
+		})
+		require.Nil(t, appErr)
+
+		assert.NotContains(t, b.String(), scheme.Name)
+		assert.NotContains(t, b.String(), scheme.DefaultChannelUserRole)
+		assert.NotContains(t, b.String(), scheme.DefaultChannelAdminRole)
+		assert.NotContains(t, b.String(), scheme.DefaultChannelGuestRole)
+	})
+
+	t.Run("skip space presets and capability roles", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		err := th.App.Srv().Store().System().Save(&model.System{Name: model.MigrationKeyAdvancedPermissionsPhase2, Value: "true"})
+		require.NoError(t, err)
+
+		var b bytes.Buffer
+		appErr := th.App.BulkExport(th.Context, &b, "", nil, model.BulkExportOpts{
+			IncludeRolesAndSchemes: true,
+		})
+		require.Nil(t, appErr)
+
+		output := b.String()
+		for _, name := range model.SpaceSchemeNames {
+			scheme, appErr := th.App.GetSchemeByName(name)
+			require.Nil(t, appErr, name)
+			assert.NotContains(t, output, name)
+			assert.NotContains(t, output, scheme.DefaultChannelUserRole)
+			assert.NotContains(t, output, scheme.DefaultChannelAdminRole)
+			assert.NotContains(t, output, scheme.DefaultChannelGuestRole)
+		}
+		for _, roleName := range model.SpaceCapabilityRoles {
+			assert.NotContains(t, output, roleName)
+		}
+	})
+
 	t.Run("export channel scheme", func(t *testing.T) {
 		th1 := Setup(t).InitBasic(t)
 
@@ -1354,7 +1431,9 @@ func TestExportSchemes(t *testing.T) {
 		err := th1.App.Srv().Store().System().Save(&model.System{Name: model.MigrationKeyAdvancedPermissionsPhase2, Value: "true"})
 		require.NoError(t, err)
 
-		builtInRoles := 24
+		// The space seeding migrations add their roles to every server, so the
+		// pre-scheme baseline is the historical built-in count plus those.
+		builtInRoles := 24 + seededSpaceRoles()
 		defaultChannelSchemeRoles := 3
 
 		// Verify the roles count is expected prior to scheme creation.
@@ -1451,7 +1530,9 @@ func TestExportSchemes(t *testing.T) {
 		err := th1.App.Srv().Store().System().Save(&model.System{Name: model.MigrationKeyAdvancedPermissionsPhase2, Value: "true"})
 		require.NoError(t, err)
 
-		builtInRoles := 24
+		// The space seeding migrations add their roles to every server, so the
+		// pre-scheme baseline is the historical built-in count plus those.
+		builtInRoles := 24 + seededSpaceRoles()
 		defaultTeamSchemeRoles := 10
 
 		// Verify the roles count is expected prior to scheme creation.

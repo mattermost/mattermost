@@ -28,6 +28,8 @@ const (
 	SharedChannelManagerRoleCreationMigrationKey   = "SystemSharedChannelManagerRoleCreationMigrationComplete"
 	ContentExtractionConfigDefaultTrueMigrationKey = "ContentExtractionConfigDefaultTrueMigrationComplete"
 	PlaybookRolesCreationMigrationKey              = "PlaybookRolesCreationMigrationComplete"
+	SpaceRolesCreationMigrationKey                 = "SpaceRolesCreationMigrationComplete"
+	SpaceSchemesCreationMigrationKey               = "SpaceSchemesCreationMigrationComplete"
 	FirstAdminSetupCompleteKey                     = model.SystemFirstAdminSetupComplete
 	remainingSchemaMigrationsKey                   = "RemainingSchemaMigrations"
 	postPriorityConfigDefaultTrueMigrationKey      = "PostPriorityConfigDefaultTrueMigrationComplete"
@@ -1358,10 +1360,17 @@ func (s *Server) doAppMigrations() {
 		{"System Console Roles Creation Migration", func() error { return s.doSystemConsoleRolesCreationMigration(rctx) }},
 		{"Custom Group Admin Role Creation Migration", func() error { return s.doCustomGroupAdminRoleCreationMigration(rctx) }},
 		{"Shared Channel Manager Role Creation Migration", func() error { return s.doSharedChannelManagerRoleCreationMigration(rctx) }},
+		{"Space Roles Creation Migration", func() error { return s.doSpaceRolesCreationMigration(rctx) }},
 		// This migration always run after dependent migrations such as the guest roles migration.
 		{"Permissions Migrations", s.doPermissionsMigrations},
 		{"Content Extraction Config Default True Migration", s.doContentExtractionConfigDefaultTrueMigration},
 		{"Playbooks Roles Creation Migration", func() error { return s.doPlaybooksRolesCreationMigration(rctx) }},
+		// Runs after the generic permissions migrations so they never rewrite the
+		// exact role sets created atomically with the space presets. Also after the
+		// playbooks roles migration: creating a scheme of any scope loads every
+		// default role name, the playbook and run roles included, and fails if one is
+		// missing — on an upgrade those rows exist only once that migration has run.
+		{"Space Schemes Creation Migration", s.doSpaceSchemesCreationMigration},
 		{"First Admin Setup Complete Migration", s.doFirstAdminSetupCompleteMigration},
 		{"Remaining Schema Migrations", s.doRemainingSchemaMigrations},
 		{"Post Priority Config Default True Migration", s.doPostPriorityConfigDefaultTrueMigration},

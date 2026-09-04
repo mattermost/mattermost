@@ -13,6 +13,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
 func (a *App) SessionHasPermissionTo(session model.Session, permission *model.Permission) bool {
@@ -316,6 +317,99 @@ func (a *App) HasPermissionToTeam(rctx request.CTX, askingUserId string, teamID 
 	return a.HasPermissionTo(rctx, askingUserId, permission)
 }
 
+// FilterUsersWithTeamPermission returns the subset of userIDs holding permission in teamID,
+// resolved for each user the way HasPermissionToTeam resolves it: an active team membership
+// whose roles grant it, or a system role that grants it — except that a deactivated account
+// is dropped even when those roles would still grant. Callers use this to decide who is still
+// reachable (the last holder of an authority, the recipients of an event); deactivation
+// revokes sessions but leaves TeamMembers and system roles in place, so matching
+// HasPermissionToTeam alone would keep counting a user who cannot authenticate.
+// The team memberships and the user rows are each read in one query, so the answer for a
+// whole audience does not cost one lookup per user. Input order is kept and a repeated id
+// is returned once.
+//
+// Both the membership and account-liveness reads are primary-backed, and the latter bypasses
+// the profile cache. Stale membership or account state could otherwise keep counting a user
+// every per-request gate already denies.
+func (a *App) FilterUsersWithTeamPermission(rctx request.CTX, teamID string, userIDs []string, permission *model.Permission) ([]string, *model.AppError) {
+	granted := make([]string, 0, len(userIDs))
+	if teamID == "" || len(userIDs) == 0 {
+		return granted, nil
+	}
+
+	members, appErr := a.GetTeamMembersByIdsFromMaster(teamID, userIDs)
+	if appErr != nil {
+		return nil, appErr
+	}
+	grantedByTeam := make(map[string]bool, len(members))
+	for _, member := range members {
+		if a.RolesGrantPermission(member.GetRoles(), permission.Id) {
+			grantedByTeam[member.UserId] = true
+		}
+	}
+
+	ordered := make([]string, 0, len(userIDs))
+	remaining := make([]string, 0, len(userIDs))
+	seen := make(map[string]bool, len(userIDs))
+	for _, userID := range userIDs {
+		if userID == "" || seen[userID] {
+			continue
+		}
+		seen[userID] = true
+		ordered = append(ordered, userID)
+		if !grantedByTeam[userID] {
+			remaining = append(remaining, userID)
+		}
+	}
+
+	if len(ordered) == 0 {
+		return granted, nil
+	}
+
+	// Every unique id is loaded, not only remaining: a deactivated team member is granted
+	// by the membership walk above and would otherwise skip the user read entirely.
+	// Account liveness is part of this authority answer, so use the same primary-backed
+	// snapshot as the membership read above and bypass the profile cache. A cached or
+	// replica-backed profile can still report an account as active immediately after it is
+	// deactivated, which would keep counting it as reachable.
+	users, err := a.Srv().Store().User().GetProfileByIds(
+		RequestContextWithMaster(rctx),
+		ordered,
+		&store.UserGetByIdsOpts{},
+		false,
+	)
+	if err != nil {
+		return nil, model.NewAppError("FilterUsersWithTeamPermission", "app.user.get_profiles.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	active := make(map[string]*model.User, len(users))
+	for _, user := range users {
+		if user.DeleteAt == 0 {
+			active[user.Id] = user
+		}
+	}
+
+	grantedBySystem := make(map[string]bool, len(remaining))
+	for _, userID := range remaining {
+		user := active[userID]
+		if user == nil {
+			continue
+		}
+		if a.RolesGrantPermission(user.GetRoles(), permission.Id) {
+			grantedBySystem[user.Id] = true
+		}
+	}
+
+	for _, userID := range ordered {
+		if active[userID] == nil {
+			continue
+		}
+		if grantedByTeam[userID] || grantedBySystem[userID] {
+			granted = append(granted, userID)
+		}
+	}
+	return granted, nil
+}
+
 // HasPermissionToChannel determines if the specified user has the given permission on the provided channel.
 //
 // Returns:
@@ -324,6 +418,10 @@ func (a *App) HasPermissionToTeam(rctx request.CTX, askingUserId string, teamID 
 //
 // hasPermission: true if the user has the specified permission for the channel, otherwise false.
 // isMember: used for auditing access without membership. True if the user is a member of the channel, otherwise false.
+//
+// A channel-scoped space permission is answered from the caller's channel membership alone. No
+// system role grants one, system_admin included, so a caller who is not a member of the space is
+// denied. A caller that admits a system admin unconditionally resolves that itself.
 func (a *App) HasPermissionToChannel(rctx request.CTX, askingUserId string, channelID string, permission *model.Permission) (hasPermission bool, isMember bool) {
 	if channelID == "" || askingUserId == "" {
 		return false, false
@@ -344,6 +442,15 @@ func (a *App) HasPermissionToChannel(rctx request.CTX, askingUserId string, chan
 				return true, isMember
 			}
 		}
+	}
+
+	// A space's backing channel is invisible to GetChannel, so the fallbacks below would answer
+	// from the caller's system roles — which carry these permissions on system_admin, and on any
+	// space scheme role assigned as a system role — and grant on every space at once, to
+	// non-members. Membership is the whole answer for these. SessionHasPermissionToChannel
+	// already answers false for a space.
+	if model.IsSpaceChannelScopedPermissionID(permission.Id) {
+		return false, isMember
 	}
 
 	channel, appErr := a.GetChannel(rctx, channelID)

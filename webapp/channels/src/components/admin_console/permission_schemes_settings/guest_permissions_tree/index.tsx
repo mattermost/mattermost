@@ -4,7 +4,7 @@
 import {connect} from 'react-redux';
 
 import Permissions from 'mattermost-redux/constants/permissions';
-import {getLicense} from 'mattermost-redux/selectors/entities/general';
+import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
 
 import type {GlobalState} from 'types/store';
 
@@ -22,11 +22,20 @@ export const GUEST_INCLUDED_PERMISSIONS = [
     Permissions.USE_CHANNEL_MENTIONS,
     Permissions.USE_GROUP_MENTIONS,
     Permissions.CREATE_POST,
+
+    // Rendered only while the Docs feature flag is on, but listed
+    // unconditionally. Membership here must not depend on the flag:
+    // PermissionSystemSchemeSettings.handleSubmit splits the aggregated
+    // guest permissions by scope, then re-adds every stored guest permission
+    // absent from this list, so a permission that has a PermissionsScope
+    // entry but is missing from this list is written to the saved role twice.
+    Permissions.READ_SPACE,
 ];
 
 function mapStateToProps(state: GlobalState) {
     const license = getLicense(state);
-    return {license};
+    const config = getConfig(state);
+    return {license, config};
 }
 
 export default connect(mapStateToProps)(GuestPermissionsTree);

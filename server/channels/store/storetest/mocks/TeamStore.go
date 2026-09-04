@@ -662,6 +662,36 @@ func (_m *TeamStore) GetMembersByIds(teamID string, userIds []string, restrictio
 	return r0, r1
 }
 
+// GetMembersByIdsFromMaster provides a mock function with given fields: teamID, userIds
+func (_m *TeamStore) GetMembersByIdsFromMaster(teamID string, userIds []string) ([]*model.TeamMember, error) {
+	ret := _m.Called(teamID, userIds)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetMembersByIdsFromMaster")
+	}
+
+	var r0 []*model.TeamMember
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, []string) ([]*model.TeamMember, error)); ok {
+		return rf(teamID, userIds)
+	}
+	if rf, ok := ret.Get(0).(func(string, []string) []*model.TeamMember); ok {
+		r0 = rf(teamID, userIds)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.TeamMember)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, []string) error); ok {
+		r1 = rf(teamID, userIds)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetTeamMembersForExport provides a mock function with given fields: userID
 func (_m *TeamStore) GetTeamMembersForExport(userID string) ([]*model.TeamMemberForExport, error) {
 	ret := _m.Called(userID)

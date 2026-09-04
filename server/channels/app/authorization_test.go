@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"slices"
 	"strconv"
 	"strings"
 	"testing"
@@ -163,6 +164,88 @@ func TestHasPermissionToTeam(t *testing.T) {
 	assert.True(t, th.App.HasPermissionToTeam(th.Context, th.SystemAdminUser.Id, th.BasicTeam.Id, model.PermissionListTeamChannels))
 	th.RemoveUserFromTeam(t, th.SystemAdminUser, th.BasicTeam)
 	assert.True(t, th.App.HasPermissionToTeam(th.Context, th.SystemAdminUser.Id, th.BasicTeam.Id, model.PermissionListTeamChannels))
+}
+
+// FilterUsersWithTeamPermission must agree with HasPermissionToTeam for every id it is given: an
+// active member whose team scheme grants the permission is kept, a member whose team scheme
+// withholds it and a removed member are dropped, and a system admin is kept without a membership.
+func TestFilterUsersWithTeamPermission(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	require.NoError(t, th.App.SetPhase2PermissionsMigrationStatus(true))
+
+	// A team whose scheme's user role does not grant read_space, so an active membership there
+	// does not confer the permission.
+	scheme := th.SetupTeamScheme(t)
+	th.RemovePermissionFromRole(t, model.PermissionReadSpace.Id, scheme.DefaultTeamUserRole)
+	restrictedTeam := th.CreateTeam(t)
+	restrictedTeam.SchemeId = &scheme.Id
+	_, appErr := th.App.UpdateTeamScheme(restrictedTeam)
+	require.Nil(t, appErr)
+
+	member := th.BasicUser
+	restricted := th.CreateUser(t)
+	th.LinkUserToTeam(t, restricted, restrictedTeam)
+	removed := th.CreateUser(t)
+	th.LinkUserToTeam(t, removed, th.BasicTeam)
+	th.RemoveUserFromTeam(t, removed, th.BasicTeam)
+	stranger := th.CreateUser(t)
+
+	t.Run("default team scheme", func(t *testing.T) {
+		ids := []string{member.Id, removed.Id, stranger.Id, th.SystemAdminUser.Id, member.Id, model.NewId()}
+		granted, appErr := th.App.FilterUsersWithTeamPermission(th.Context, th.BasicTeam.Id, ids, model.PermissionReadSpace)
+		require.Nil(t, appErr)
+		assert.Equal(t, []string{member.Id, th.SystemAdminUser.Id}, granted)
+		for _, id := range ids {
+			assert.Equal(t, slices.Contains(granted, id), th.App.HasPermissionToTeam(th.Context, id, th.BasicTeam.Id, model.PermissionReadSpace), id)
+		}
+	})
+
+	t.Run("team scheme without read_space", func(t *testing.T) {
+		require.True(t, th.App.HasPermissionToTeam(th.Context, restricted.Id, restrictedTeam.Id, model.PermissionViewTeam),
+			"the membership itself is active")
+		granted, appErr := th.App.FilterUsersWithTeamPermission(th.Context, restrictedTeam.Id, []string{restricted.Id, th.SystemAdminUser.Id}, model.PermissionReadSpace)
+		require.Nil(t, appErr)
+		assert.Equal(t, []string{th.SystemAdminUser.Id}, granted)
+		assert.False(t, th.App.HasPermissionToTeam(th.Context, restricted.Id, restrictedTeam.Id, model.PermissionReadSpace))
+	})
+
+	t.Run("duplicate granted id is returned once, order preserved", func(t *testing.T) {
+		granted, appErr := th.App.FilterUsersWithTeamPermission(th.Context, th.BasicTeam.Id,
+			[]string{member.Id, member.Id, stranger.Id}, model.PermissionReadSpace)
+		require.Nil(t, appErr)
+		assert.Equal(t, []string{member.Id}, granted)
+	})
+
+	t.Run("nothing to filter", func(t *testing.T) {
+		granted, appErr := th.App.FilterUsersWithTeamPermission(th.Context, th.BasicTeam.Id, nil, model.PermissionReadSpace)
+		require.Nil(t, appErr)
+		assert.Equal(t, []string{}, granted)
+		granted, appErr = th.App.FilterUsersWithTeamPermission(th.Context, "", []string{member.Id}, model.PermissionReadSpace)
+		require.Nil(t, appErr)
+		assert.Equal(t, []string{}, granted)
+	})
+
+	t.Run("deactivated accounts are omitted even when their roles still grant", func(t *testing.T) {
+		deactivatedMember := th.CreateUser(t)
+		th.LinkUserToTeam(t, deactivatedMember, th.BasicTeam)
+		_, appErr := th.App.UpdateActive(th.Context, deactivatedMember, false)
+		require.Nil(t, appErr)
+
+		deactivatedAdmin := th.CreateUser(t)
+		_, appErr = th.App.UpdateUserRoles(th.Context, deactivatedAdmin.Id, model.SystemAdminRoleId, false)
+		require.Nil(t, appErr)
+		_, appErr = th.App.UpdateActive(th.Context, deactivatedAdmin, false)
+		require.Nil(t, appErr)
+
+		require.True(t, th.App.HasPermissionToTeam(th.Context, deactivatedMember.Id, th.BasicTeam.Id, model.PermissionReadSpace),
+			"HasPermissionToTeam does not consult account deactivation; the team membership still grants")
+
+		granted, appErr := th.App.FilterUsersWithTeamPermission(th.Context, th.BasicTeam.Id,
+			[]string{member.Id, deactivatedMember.Id, deactivatedAdmin.Id, th.SystemAdminUser.Id}, model.PermissionReadSpace)
+		require.Nil(t, appErr)
+		assert.Equal(t, []string{member.Id, th.SystemAdminUser.Id}, granted)
+	})
 }
 
 func TestSessionHasPermissionToTeams(t *testing.T) {
