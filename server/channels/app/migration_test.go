@@ -934,6 +934,80 @@ func TestChannelImportSkipsLastAdminDemotion(t *testing.T) {
 }
 
 // ────────────────────────────────────────────────────────────────────────────
+// USR-04: a source user's pre-existing DeleteAt survives a scoped import
+//
+// Reason: createDeactivated forces every newly-created user to be deactivated
+// via UpdateActive, which unconditionally stamps DeleteAt to "now". A user who
+// was already deactivated at the source (e.g. left the company well before the
+// migration) must keep their original DeleteAt rather than having it silently
+// overwritten with the import timestamp.
+// ────────────────────────────────────────────────────────────────────────────
+
+func TestChannelImportPreservesSourceDeleteAt(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	teamName := model.NewRandomTeamName()
+	chanName := model.NewId()
+	username := model.NewUsername()
+	const sourceDeleteAt int64 = 1700000000000 // historical, well before "now"
+
+	var sb strings.Builder
+	enc := json.NewEncoder(&sb)
+
+	version := 1
+	scope := imports.ExportScopeAdditional{TeamName: teamName, ChannelName: chanName}
+	scopeJSON, err := json.Marshal(scope)
+	require.NoError(t, err)
+
+	require.NoError(t, enc.Encode(imports.LineImportData{
+		Type:    "version",
+		Version: &version,
+		Info:    &imports.VersionInfoImportData{Generator: "test", Version: "1.0", Created: "2024-01-01T00:00:00Z", Additional: scopeJSON},
+	}))
+	require.NoError(t, enc.Encode(imports.LineImportData{
+		Type: "team",
+		Team: &imports.TeamImportData{Name: new(teamName), DisplayName: new("T"), Type: new("O")},
+	}))
+	chanType := model.ChannelTypeOpen
+	require.NoError(t, enc.Encode(imports.LineImportData{
+		Type:    "channel",
+		Channel: &imports.ChannelImportData{Team: new(teamName), Name: new(chanName), DisplayName: new("C"), Type: &chanType},
+	}))
+
+	deleteAt := sourceDeleteAt
+	require.NoError(t, enc.Encode(imports.LineImportData{
+		Type: "user",
+		User: &imports.UserImportData{
+			Username: new(username),
+			Email:    new(username + "@mig-test.example.com"),
+			DeleteAt: &deleteAt,
+			Teams: &[]imports.UserTeamImportData{{
+				Name:     new(teamName),
+				Channels: &[]imports.UserChannelImportData{{Name: new(chanName)}},
+			}},
+		},
+	}))
+
+	ts := int64(1700000001000)
+	require.NoError(t, enc.Encode(imports.LineImportData{
+		Type: "post",
+		Post: &imports.PostImportData{
+			Team: new(teamName), Channel: new(chanName), User: new(username),
+			Message: new("hello"), CreateAt: &ts,
+		},
+	}))
+
+	_, appErr := th.App.BulkImport(th.Context, strings.NewReader(sb.String()), nil, false, 1)
+	require.Nil(t, appErr, "import must succeed")
+
+	u, appErr2 := th.App.GetUserByUsername(username)
+	require.Nil(t, appErr2, "user must have been created")
+	assert.Equal(t, sourceDeleteAt, u.DeleteAt,
+		"user's original DeleteAt must survive, not be overwritten with the import timestamp")
+}
+
+// ────────────────────────────────────────────────────────────────────────────
 // IMP-03: Post count on dest exactly matches source after channel migration
 // ────────────────────────────────────────────────────────────────────────────
 

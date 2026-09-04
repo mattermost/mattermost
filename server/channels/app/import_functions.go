@@ -709,7 +709,11 @@ func (a *App) importUser(rctx request.CTX, data *imports.UserImportData, dryRun 
 			rctx.Logger().Warn("Encountered error saving tutorial preference", mlog.Err(err))
 		}
 
-		if createDeactivated {
+		if createDeactivated && savedUser.DeleteAt == 0 {
+			// UpdateActive always stamps DeleteAt to the current time, which would
+			// clobber a legitimate historical DeleteAt the source already supplied
+			// (e.g. a user who was deactivated well before the migration). Only
+			// call it when the account isn't already deactivated.
 			if _, appErr := a.UpdateActive(rctx, savedUser, false); appErr != nil {
 				return appErr
 			}

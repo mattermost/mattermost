@@ -2037,6 +2037,38 @@ func TestImportUserScopedMatching(t *testing.T) {
 		assert.NotZero(t, shell.DeleteAt, "unmatched SSO identity should produce a deactivated shell")
 	})
 
+	t.Run("auth_data mismatch with pre-existing source DeleteAt — historical value survives, not overwritten with import time", func(t *testing.T) {
+		// Same SSO-mismatch shell-creation path as above, but the source also supplies
+		// its own DeleteAt (the user was already deactivated at the source before the
+		// migration). createDeactivated forces this shell to be deactivated regardless,
+		// but it must preserve the source's historical timestamp rather than stamping
+		// "now" — this is the same fix as TestChannelImportPreservesSourceDeleteAt,
+		// exercised here via the SSO-mismatch branch instead of the plain-missing-user one.
+		samlAuthData := model.NewId()
+		ldapAuthData := model.NewId()
+		destUser := th.CreateUser(t)
+		_, err := th.App.Srv().Store().User().UpdateAuthData(destUser.Id, model.UserAuthServiceSaml, &samlAuthData, "", false)
+		require.NoError(t, err)
+
+		const sourceDeleteAt int64 = 1700000000000 // historical, well before "now"
+		srcUsername := model.NewUsername()
+		data := imports.UserImportData{
+			Username:    &srcUsername,
+			Email:       ptrStr(model.NewId() + "@example.com"),
+			AuthService: ptrStr(model.UserAuthServiceLdap),
+			AuthData:    &ldapAuthData,
+			DeleteAt:    new(sourceDeleteAt),
+		}
+		report := &imports.ImportReport{}
+		appErr := th.App.importUser(th.Context, &data, false, true, report)
+		require.Nil(t, appErr)
+
+		shell, err := th.App.Srv().Store().User().GetByUsername(srcUsername)
+		require.NoError(t, err)
+		assert.Equal(t, sourceDeleteAt, shell.DeleteAt,
+			"shell's original DeleteAt must survive, not be overwritten with the import timestamp")
+	})
+
 	t.Run("SSO user in non-scoped import falls back to username when auth_data not found", func(t *testing.T) {
 		// deactivateMissingUsers=false (full-server import / backup-restore): auth_data is tried
 		// first, but if no match is found the import falls back to username so existing
