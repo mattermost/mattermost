@@ -368,3 +368,83 @@ func TestMigrateBackfillPropertyPermissions_LinkedFieldInheritsTemplateMasking(t
 	require.NotNil(t, updatedLinked.Permissions)
 	assert.Nil(t, updatedLinked.Permissions.Masking)
 }
+
+func grantAllowFor(t *testing.T, p *model.Permissions, ownerType, ownerID string) []string {
+	t.Helper()
+	require.NotNil(t, p)
+	for _, grant := range p.Grants {
+		if grant.Type == ownerType && grant.ID == ownerID {
+			return grant.Allow
+		}
+	}
+	require.FailNowf(t, "missing grant", "no grant for %s %s", ownerType, ownerID)
+	return nil
+}
+
+// TestMigrateBackfillPropertyPermissions_LinkedFieldDropsOptionReadGrant
+// converts a template and a linked field that share an owner. The conversion
+// drops option.read from the linked field's grant (a linked field cannot
+// grant read of the template's option scheme) and PropertyField.IsValid
+// refuses the row if that drop is missed, so this is the path a broken drop
+// would first fail on at startup rather than in a model unit test.
+func TestMigrateBackfillPropertyPermissions_LinkedFieldDropsOptionReadGrant(t *testing.T) {
+	th := Setup(t).RegisterCPAPropertyGroup(t)
+
+	const ownerID = "owner-user"
+	owners := []model.PropertyOwner{{Type: model.PropertyOwnerTypeUser, ID: ownerID}}
+
+	template := createLegacyPropertyField(t, th, th.Context, &model.PropertyField{
+		GroupID:    th.CPAGroupID,
+		Name:       "owned-template",
+		Type:       model.PropertyFieldTypeSelect,
+		ObjectType: model.PropertyFieldObjectTypeTemplate,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
+		Attrs: model.StringInterface{
+			model.PropertyAttrsOwners: owners,
+		},
+	})
+
+	// Created straight through the store, bypassing the service: template has
+	// already been stripped back to a legacy-shaped row with no Permissions,
+	// which the create-time gate on a linked field can only read as "nothing
+	// declared yet" -- not yet backfilled is not a state any caller's create
+	// request can reach in production, since the startup backfill always runs
+	// first, so there is nothing for the gate to authorize against here either.
+	linked := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+		GroupID:       th.CPAGroupID,
+		Name:          "owned-linked-field",
+		Type:          model.PropertyFieldTypeText,
+		ObjectType:    model.PropertyFieldObjectTypeUser,
+		TargetType:    string(model.PropertyFieldTargetLevelSystem),
+		LinkedFieldID: &template.ID,
+		Attrs: model.StringInterface{
+			model.PropertyAttrsOwners: owners,
+		},
+	})
+
+	converted, skipped, err := th.service.MigrateBackfillPropertyPermissions(th.Context)
+	require.NoError(t, err)
+	assert.Equal(t, 2, converted)
+	assert.Equal(t, 0, skipped)
+
+	updatedTemplate, err := th.service.GetPropertyField(th.Context, th.CPAGroupID, template.ID)
+	require.NoError(t, err)
+	assert.ElementsMatch(t, []string{
+		model.PropertyActionFieldWrite,
+		model.PropertyActionOptionRead,
+		model.PropertyActionOptionWrite,
+		model.PropertyActionValueRead,
+		model.PropertyActionValueWrite,
+	}, grantAllowFor(t, updatedTemplate.Permissions, model.PropertyOwnerTypeUser, ownerID))
+
+	updatedLinked, err := th.service.GetPropertyField(th.Context, th.CPAGroupID, linked.ID)
+	require.NoError(t, err)
+	linkedAllow := grantAllowFor(t, updatedLinked.Permissions, model.PropertyOwnerTypeUser, ownerID)
+	assert.NotContains(t, linkedAllow, model.PropertyActionOptionRead)
+	assert.ElementsMatch(t, []string{
+		model.PropertyActionFieldWrite,
+		model.PropertyActionOptionWrite,
+		model.PropertyActionValueRead,
+		model.PropertyActionValueWrite,
+	}, linkedAllow)
+}
