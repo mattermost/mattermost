@@ -216,11 +216,13 @@ func maskingFromLegacy(field *PropertyField, restrictions *Restrictions, opts Le
 
 	if field.ObjectType == PropertyFieldObjectTypeUser &&
 		(restrictions.Value.Write == PermissionLevelMember || restrictions.Value.Write == PermissionLevelEveryone) {
-		// A caller who can edit their own holdings on a masked user field could
-		// widen their own view by writing into it; validateMaskingForField refuses
-		// that combination outright, so raise the tier instead of producing an
-		// invalid object. A protected field's value.write was already zeroed above
-		// and never reaches here as member or everyone.
+		// Unreachable for a field that passed ValidatePropertyFieldAccessMode:
+		// shared_only requires protected, and a protected field's value.write was
+		// zeroed above. This is the fail-safe for a row that reached the conversion
+		// without passing that validator — a caller who can edit their own holdings
+		// on a masked user field could widen their own view by writing into it, and
+		// validateMaskingForField refuses that combination outright, so raise the
+		// tier rather than emit an object the model would reject.
 		restrictions.Value.Write = PermissionLevelAdmin
 	}
 
