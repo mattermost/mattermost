@@ -232,7 +232,7 @@ func (se *slowExtractor) Name() string { return "slowExtractor" }
 
 func (se *slowExtractor) Match(filename string) bool { return true }
 
-func (se *slowExtractor) Extract(filename string, r io.ReadSeeker, _ int64, _ *ExtractionBudget) (string, error) {
+func (se *slowExtractor) Extract(_ context.Context, filename string, r io.ReadSeeker, _ int64, _ *ExtractionBudget) (string, error) {
 	defer func() {
 		if se.done != nil {
 			close(se.done)
@@ -345,7 +345,7 @@ func (pe *panickingExtractor) Name() string { return "panickingExtractor" }
 
 func (pe *panickingExtractor) Match(filename string) bool { return true }
 
-func (pe *panickingExtractor) Extract(filename string, r io.ReadSeeker, _ int64, _ *ExtractionBudget) (string, error) {
+func (pe *panickingExtractor) Extract(_ context.Context, filename string, r io.ReadSeeker, _ int64, _ *ExtractionBudget) (string, error) {
 	panic("boom")
 }
 
@@ -370,7 +370,7 @@ func (be *blockingExtractor) Name() string { return "blockingExtractor" }
 
 func (be *blockingExtractor) Match(filename string) bool { return true }
 
-func (be *blockingExtractor) Extract(filename string, r io.ReadSeeker, _ int64, _ *ExtractionBudget) (string, error) {
+func (be *blockingExtractor) Extract(_ context.Context, filename string, r io.ReadSeeker, _ int64, _ *ExtractionBudget) (string, error) {
 	close(be.started)
 	<-be.release
 	if be.done != nil {
