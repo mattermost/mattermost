@@ -468,28 +468,25 @@ func (h *AccessControlHook) PostGetPropertyFieldOptions(rctx request.CTX, field 
 		return options, nil
 	}
 	callerID := h.extractCallerID(rctx)
-	if field.Permissions != nil {
-		scope := h.extractActingAsScope(rctx)
-		if !h.permissionsAllows(rctx, field, callerID, scope, model.PropertyActionOptionRead, "") {
-			return []*model.PropertyFieldOption{}, nil
-		}
-
-		c := maskingContextFromRequest(rctx)
-		fm, err := c.resolve(h, rctx, field)
-		if err != nil {
-			return nil, fmt.Errorf("failed to resolve field %s's masking: %w", field.ID, err)
-		}
-		if fm.masking == nil || h.exempt(rctx, fm.masking.Except, callerID) {
-			return options, nil
-		}
-		return h.filterMaskedOptionPage(rctx, c, field, fm, options, callerID)
+	scope := h.extractActingAsScope(rctx)
+	if !h.permissionsAllows(rctx, field, callerID, scope, model.PropertyActionOptionRead, "") {
+		return []*model.PropertyFieldOption{}, nil
+	}
+	if field.Permissions == nil {
+		// Unconverted row: the ladder already admitted this caller (a
+		// local-mode admin). There is no masking object to apply.
+		return options, nil
 	}
 
-	// Every group-managed field has carried a converted permissions object
-	// since the migration backfill, and the create/update path populates it
-	// too; unreached in production. Fails closed rather than serving options
-	// under an access mode nothing sets any more.
-	return []*model.PropertyFieldOption{}, nil
+	c := maskingContextFromRequest(rctx)
+	fm, err := c.resolve(h, rctx, field)
+	if err != nil {
+		return nil, fmt.Errorf("failed to resolve field %s's masking: %w", field.ID, err)
+	}
+	if fm.masking == nil || h.exempt(rctx, fm.masking.Except, callerID) {
+		return options, nil
+	}
+	return h.filterMaskedOptionPage(rctx, c, field, fm, options, callerID)
 }
 
 // MayShowAnyPropertyFieldOptions answers, without paging through a field's
@@ -516,15 +513,12 @@ func (h *AccessControlHook) MayShowAnyPropertyFieldOptions(rctx request.CTX, fie
 	if !enforced {
 		return true, nil
 	}
-	// Unreached in production for the same reason PostGetPropertyFieldOptions'
-	// tail is, and fails closed the same way.
-	if field.Permissions == nil {
-		return false, nil
-	}
-
 	callerID := h.extractCallerID(rctx)
 	if !h.permissionsAllows(rctx, field, callerID, h.extractActingAsScope(rctx), model.PropertyActionOptionRead, "") {
 		return false, nil
+	}
+	if field.Permissions == nil {
+		return true, nil
 	}
 
 	c := maskingContextFromRequest(rctx)
@@ -1362,34 +1356,32 @@ func (h *AccessControlHook) getCallerOptionIDsForField(groupID, fieldID, callerI
 // callers that read one field at a time still build one, of one field, so
 // there is a single path through the masking resolution.
 func (h *AccessControlHook) applyFieldReadAccessControl(rctx request.CTX, c maskingContext, field *model.PropertyField, callerID string) *model.PropertyField {
-	if field.Permissions != nil {
-		scope := h.extractActingAsScope(rctx)
-		if h.permissionsAllows(rctx, field, callerID, scope, model.PropertyActionOptionRead, "") {
-			fm, err := c.resolve(h, rctx, field)
-			if err != nil {
-				rctx.Logger().Error(
-					"Hiding a property field's options because its masking could not be resolved",
-					mlog.String("field_id", field.ID),
-					mlog.Err(err),
-				)
-				return h.hiddenOptionsFieldCopy(field)
-			}
-			if fm.masking == nil || h.exempt(rctx, fm.masking.Except, callerID) {
-				return field
-			}
-			return h.maskFieldOptions(rctx, c, field, fm, callerID)
-		}
+	scope := h.extractActingAsScope(rctx)
+	if !h.permissionsAllows(rctx, field, callerID, scope, model.PropertyActionOptionRead, "") {
 		// Denied: the field itself is still returned -- field.read is left
-		// unenforced -- only its option list is hidden.
+		// unenforced -- only its option list is hidden. An unconverted
+		// row (Permissions == nil) takes this arm for every machine and
+		// ordinary human; a local-mode admin is admitted by the ladder
+		// even without a permissions object, so policy authoring can
+		// still see the option names a rank comparison desugars against.
 		return h.hiddenOptionsFieldCopy(field)
 	}
-
-	// Every group-managed field has carried a converted permissions object
-	// since the migration backfill, and the create/update path populates it
-	// too; unreached in production. Fails closed the same way the denied
-	// branch above does, rather than falling back to an access mode nothing
-	// sets any more.
-	return h.hiddenOptionsFieldCopy(field)
+	if field.Permissions == nil {
+		return field
+	}
+	fm, err := c.resolve(h, rctx, field)
+	if err != nil {
+		rctx.Logger().Error(
+			"Hiding a property field's options because its masking could not be resolved",
+			mlog.String("field_id", field.ID),
+			mlog.Err(err),
+		)
+		return h.hiddenOptionsFieldCopy(field)
+	}
+	if fm.masking == nil || h.exempt(rctx, fm.masking.Except, callerID) {
+		return field
+	}
+	return h.maskFieldOptions(rctx, c, field, fm, callerID)
 }
 
 // applyFieldReadAccessControlToList applies read access control to a list of
@@ -1468,34 +1460,30 @@ func (h *AccessControlHook) applyValueReadAccessControl(rctx request.CTX, values
 			return nil, fmt.Errorf("applyValueReadAccessControl: field not found for value %s", value.ID)
 		}
 
-		if field.Permissions != nil {
-			if !h.permissionsAllows(rctx, field, callerID, scope, model.PropertyActionValueRead, value.TargetID) {
-				continue
-			}
-
-			fm, err := mc.resolve(h, rctx, field)
-			if err != nil {
-				return nil, fmt.Errorf("applyValueReadAccessControl: %w", err)
-			}
-			if fm.masking == nil || h.exempt(rctx, fm.masking.Except, callerID) {
-				filtered = append(filtered, value)
-				continue
-			}
-			maskedValue, err := h.maskValue(rctx, mc, field, fm, value, callerID)
-			if err != nil {
-				// Hide rather than fail the read: what one value's filter could not
-				// establish must not turn into an error for the whole list.
-				logMaskingFailure(rctx, field, value, err)
-			} else if maskedValue != nil {
-				filtered = append(filtered, maskedValue)
-			}
+		if !h.permissionsAllows(rctx, field, callerID, scope, model.PropertyActionValueRead, value.TargetID) {
+			continue
+		}
+		if field.Permissions == nil {
+			filtered = append(filtered, value)
 			continue
 		}
 
-		// Every group-managed field has carried a converted permissions object
-		// since the migration backfill, and the create/update path populates it
-		// too; unreached in production. Fails closed by dropping the value,
-		// rather than falling back to an access mode nothing sets any more.
+		fm, err := mc.resolve(h, rctx, field)
+		if err != nil {
+			return nil, fmt.Errorf("applyValueReadAccessControl: %w", err)
+		}
+		if fm.masking == nil || h.exempt(rctx, fm.masking.Except, callerID) {
+			filtered = append(filtered, value)
+			continue
+		}
+		maskedValue, err := h.maskValue(rctx, mc, field, fm, value, callerID)
+		if err != nil {
+			// Hide rather than fail the read: what one value's filter could not
+			// establish must not turn into an error for the whole list.
+			logMaskingFailure(rctx, field, value, err)
+		} else if maskedValue != nil {
+			filtered = append(filtered, maskedValue)
+		}
 	}
 
 	return filtered, nil

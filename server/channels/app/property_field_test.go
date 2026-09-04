@@ -1788,3 +1788,75 @@ func TestPropertyFieldGraphConversion(t *testing.T) {
 		assert.Equal(t, model.PropertyFieldTypeMultiselect, updated.Type)
 	})
 }
+
+func TestGetPropertyFieldUnconvertedRankOptions(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+
+	group, appErr := th.App.GetPropertyGroup(th.Context, model.AccessControlPropertyGroupName)
+	require.Nil(t, appErr)
+
+	created, err := th.Store.PropertyField().Create(&model.PropertyField{
+		GroupID:    group.ID,
+		Name:       "clearance_" + model.NewId()[:8],
+		Type:       model.PropertyFieldTypeRank,
+		ObjectType: model.PropertyFieldObjectTypeUser,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
+		Attrs: model.StringInterface{
+			model.PropertyFieldAttributeOptions: []any{
+				map[string]any{"id": model.NewId(), "name": "Public", "rank": 1},
+				map[string]any{"id": model.NewId(), "name": "Secret", "rank": 2},
+			},
+		},
+	})
+	require.NoError(t, err)
+	require.Nil(t, created.Permissions)
+
+	asAdmin, appErr := th.App.GetPropertyField(th.Context, group.ID, created.ID)
+	require.Nil(t, appErr)
+	require.ElementsMatch(t, []string{"Public", "Secret"}, rankOptionNames(t, asAdmin))
+
+	asUser, appErr := th.App.GetPropertyField(RequestContextWithCallerID(th.Context, th.BasicUser.Id), group.ID, created.ID)
+	require.Nil(t, appErr)
+	assert.Empty(t, rankOptionNames(t, asUser), "ordinary callers still fail closed on an unconverted field")
+}
+
+func rankOptionNames(t *testing.T, field *model.PropertyField) []string {
+	t.Helper()
+	raw, ok := field.Attrs[model.PropertyFieldAttributeOptions].([]any)
+	if !ok {
+		return nil
+	}
+	names := make([]string, 0, len(raw))
+	for _, item := range raw {
+		opt, ok := item.(map[string]any)
+		require.True(t, ok)
+		name, _ := opt["name"].(string)
+		names = append(names, name)
+	}
+	return names
+}
+
+func TestDeletePropertyFieldSAMLMapped(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+
+	group, appErr := th.App.GetPropertyGroup(th.Context, model.AccessControlPropertyGroupName)
+	require.Nil(t, appErr)
+
+	cpa := &model.CPAField{
+		PropertyField: model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "dept_" + model.NewId()[:8],
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+		},
+		Attrs: model.CPAAttrs{SAML: "department"},
+	}
+	created, appErr := th.App.CreatePropertyField(th.Context, cpa.ToPropertyField(), false, "")
+	require.Nil(t, appErr)
+
+	syncCtx := RequestContextWithCallerID(th.Context, model.CallerIDSAMLSync)
+	require.Nil(t, th.App.DeletePropertyField(syncCtx, group.ID, created.ID, false, ""))
+}
