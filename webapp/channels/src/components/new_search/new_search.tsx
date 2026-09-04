@@ -15,6 +15,7 @@ import {
 import React, {useEffect, useState, useRef, useCallback} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
+import {useLocation} from 'react-router-dom';
 import styled from 'styled-components';
 
 import {isDesktopApp, getDesktopVersion, isMacApp} from '@mattermost/shared/utils/user_agent';
@@ -31,6 +32,7 @@ import a11yController from 'utils/a11y_controller_instance';
 import {focusElement} from 'utils/a11y_utils';
 import {RootHtmlPortalId, Constants} from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
+import {isBackstageRoute} from 'utils/path';
 import {isServerVersionGreaterThanOrEqualTo} from 'utils/server_version';
 
 import SearchBox from './search_box';
@@ -123,6 +125,7 @@ const NewSearch = (): JSX.Element => {
     const myTeams = useSelector(getMyTeams);
 
     const dispatch = useDispatch();
+    const {pathname} = useLocation();
     const [focused, setFocused] = useState<boolean>(false);
     const [currentChannel, setCurrentChannel] = useState('');
     const searchBoxRef = useRef<HTMLDivElement | null>(null);
@@ -163,7 +166,7 @@ const NewSearch = (): JSX.Element => {
             }
 
             if (Keyboard.cmdOrCtrlPressed(e) && Keyboard.isKeyPressed(e, Constants.KeyCodes.F)) {
-                if (!isDesktop && !e.shiftKey) {
+                if (isBackstageRoute(pathname) || (!isDesktop && !e.shiftKey)) {
                     return;
                 }
 
@@ -182,7 +185,7 @@ const NewSearch = (): JSX.Element => {
         return () => {
             document.removeEventListener('keydown', handleKeyDown);
         };
-    }, [currentChannelName]);
+    }, [currentChannelName, pathname]);
 
     useEffect(() => {
         const handleClick = (e: MouseEvent) => {
