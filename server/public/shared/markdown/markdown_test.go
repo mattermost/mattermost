@@ -20,9 +20,9 @@ func TestParse(t *testing.T) {
 	})
 
 	t.Run("SetMaxPostSize raises the cap so a previously rejected input is parsed", func(t *testing.T) {
+		SetMaxPostRunes(defaultMaxPostRunes)
 		defer SetMaxPostRunes(defaultMaxPostRunes)
 
-		SetMaxPostRunes(defaultMaxPostRunes)
 		markdown := strings.Repeat("a", MaxLen()+1)
 
 		document, _ := Parse(markdown)
@@ -32,6 +32,8 @@ func TestParse(t *testing.T) {
 
 		document, _ = Parse(markdown)
 		assert.NotEmpty(t, document.Children)
+
+		SetMaxPostRunes(defaultMaxPostRunes)
 	})
 
 	t.Run("nesting depth is bounded regardless of how deeply a single line nests", func(t *testing.T) {

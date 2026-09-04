@@ -294,7 +294,7 @@ func (b *permissionsBackfill) resolveTemplate(rctx request.CTX, groupID, templat
 		return permissions, nil
 	}
 
-	template, err := b.service.getPropertyField(groupID, templateID)
+	template, err := b.service.getPropertyField(rctx, groupID, templateID)
 	if err != nil {
 		return nil, fmt.Errorf("permissionsBackfill: failed to resolve template %q: %w", templateID, err)
 	}

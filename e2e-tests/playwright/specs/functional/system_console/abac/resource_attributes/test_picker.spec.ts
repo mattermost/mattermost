@@ -86,13 +86,13 @@ test.describe('ABAC resource.attributes - test picker', {tag: ['@abac', '@abac_r
             name: `Picker ${pw.random.id()}`,
             expression: `user.attributes.${attr} == resource.attributes.${attr}`,
         });
+        cleanups.push(() => deleteParentPolicy(adminClient, policyId));
 
         // Fail fast if the editor won't see the attribute (keeps the Test button disabled).
         await assertAccessControlAutocompleteContains(adminClient, [attr]);
 
         const {systemConsolePage} = await pw.testBrowser.login(adminUser);
         const page = systemConsolePage.page;
-        cleanups.push(() => deleteParentPolicy(adminClient, policyId));
         await openPolicyEditor(page, policyId);
 
         const testButton = page.getByRole('button', {name: /test access rule/i});

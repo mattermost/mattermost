@@ -164,7 +164,7 @@ describe('UserPropertyValues', () => {
         renderComponent({...baseField, type: 'graph'});
 
         const option = screen.getByText('Option 1');
-        expect(option.closest('div[aria-disabled]')).toBeInTheDocument();
+        expect(option.closest('div[aria-disabled="true"]')).toBeInTheDocument();
         expect(screen.getByText('Option 2')).toBeInTheDocument();
     });
 

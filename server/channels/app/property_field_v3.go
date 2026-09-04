@@ -17,7 +17,7 @@ import (
 // caller's group is still on the v2 payload, which has no place for
 // Permissions at all.
 func (a *App) ShapePropertyFieldForCaller(rctx request.CTX, session model.Session, field *model.PropertyField, serveV3 bool) *model.PropertyField {
-	roles := sync.OnceValue(func() []string { return a.propertyCallerRoles(session.UserId) })
+	roles := sync.OnceValue(func() []string { return a.propertyCallerRoles(rctx, session.UserId) })
 	return a.shapePropertyFieldForCaller(rctx, session, field, serveV3, make(map[string]*model.PropertyField), roles)
 }
 
@@ -27,7 +27,7 @@ func (a *App) ShapePropertyFieldForCaller(rctx request.CTX, session model.Sessio
 // most once no matter how many fields need them.
 func (a *App) ShapePropertyFieldsForCaller(rctx request.CTX, session model.Session, fields []*model.PropertyField, serveV3 bool) []*model.PropertyField {
 	templates := make(map[string]*model.PropertyField)
-	roles := sync.OnceValue(func() []string { return a.propertyCallerRoles(session.UserId) })
+	roles := sync.OnceValue(func() []string { return a.propertyCallerRoles(rctx, session.UserId) })
 	shaped := make([]*model.PropertyField, len(fields))
 	for i, field := range fields {
 		shaped[i] = a.shapePropertyFieldForCaller(rctx, session, field, serveV3, templates, roles)

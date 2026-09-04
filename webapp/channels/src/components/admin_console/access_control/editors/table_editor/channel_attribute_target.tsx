@@ -72,13 +72,15 @@ export function channelAttributeMenuItems(
 }
 
 // The button label shown when the row compares against a channel attribute
-// (target mode): a monospace "[] Channel: X" chip. The bracket glyph marks it
+// (target mode): a "[] Channel: X" chip. The bracket glyph marks it
 // as a channel-attribute reference (as opposed to a literal value). Rendered as
 // the first child of the button's inner wrapper, next to the chevron.
 export function SelectedChannelAttributeLabel({field, fallbackName}: {field?: UserPropertyField; fallbackName: string}): JSX.Element {
     return (
         <span className='value-selector-menu-button__target-label'>
-            <CodeBracketsIcon size={12}/>
+            {/* 14, not 12: the glyph fills 16 of the icon's 24-unit viewBox, so
+                14 renders the brackets at the design's 9px. */}
+            <CodeBracketsIcon size={14}/>
 
             {/* Own element so a long display name ellipsizes: text-overflow
                 applies to the text's own box, not to the chip's flex items. */}

@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedDate, FormattedMessage, FormattedTime, injectIntl} from 'react-intl';
+import {defineMessage, FormattedDate, FormattedMessage, FormattedTime, injectIntl} from 'react-intl';
 import type {WrappedComponentProps} from 'react-intl';
 
 import {Button} from '@mattermost/shared/components/button';
@@ -14,6 +14,7 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 import * as UserUtils from 'mattermost-redux/utils/user_utils';
 
 import ConfirmModal from 'components/confirm_modal';
+import CopyText from 'components/copy_text';
 import ExternalLink from 'components/external_link';
 import SaveButton from 'components/save_button';
 import SettingItemMax from 'components/setting_item_max';
@@ -28,6 +29,7 @@ const SECTION_TOKENS = 'tokens';
 const TOKEN_CREATING = 'creating';
 const TOKEN_CREATED = 'created';
 const TOKEN_NOT_CREATING = 'not_creating';
+const copyTokenMessage = defineMessage({id: 'integrations.copy_token', defaultMessage: 'Copy Token'});
 
 const APPROACHING_EXPIRY_DAYS = 7;
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
@@ -500,13 +502,19 @@ class UserAccessTokenSection extends React.PureComponent<Props, State> {
                             />
                         </div>
                     ) : (
-                        <strong className='word-break--all'>
-                            <FormattedMessage
-                                id='user.settings.tokens.token'
-                                defaultMessage='Access Token: '
+                        <>
+                            <strong className='word-break--all'>
+                                <FormattedMessage
+                                    id='user.settings.tokens.token'
+                                    defaultMessage='Access Token: '
+                                />
+                                {state.newToken!.token}
+                            </strong>
+                            <CopyText
+                                label={copyTokenMessage}
+                                value={state.newToken!.token!}
                             />
-                            {state.newToken!.token}
-                        </strong>
+                        </>
                     )}
                 </div>
             ),
@@ -1130,6 +1138,10 @@ class UserAccessTokenSection extends React.PureComponent<Props, State> {
                         />
                         {this.state.newToken!.token}
                     </strong>
+                    <CopyText
+                        label={copyTokenMessage}
+                        value={this.state.newToken!.token!}
+                    />
                 </div>
             );
         } else {

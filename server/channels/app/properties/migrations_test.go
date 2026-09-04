@@ -295,7 +295,7 @@ func TestMigrateBackfillPropertyPermissions_OversizedOptions(t *testing.T) {
 	// A field with no permissions object is refused at the hook, so read
 	// through the store accessor the backfill itself uses to see what was
 	// persisted, same as the check after MigrateBackfillPropertyPermissions.
-	before, err := th.service.getPropertyField(th.CPAGroupID, field.ID)
+	before, err := th.service.getPropertyField(th.Context, th.CPAGroupID, field.ID)
 	require.NoError(t, err)
 	requireOptionsWithheld(t, before)
 
@@ -308,7 +308,7 @@ func TestMigrateBackfillPropertyPermissions_OversizedOptions(t *testing.T) {
 	// withholds options via HideOptions — a different reason than the one
 	// under test. Read through the store accessor the backfill uses to see
 	// what was persisted.
-	updated, err := th.service.getPropertyField(th.CPAGroupID, field.ID)
+	updated, err := th.service.getPropertyField(th.Context, th.CPAGroupID, field.ID)
 	require.NoError(t, err)
 	assert.NotNil(t, updated.Permissions)
 	requireOptionsWithheld(t, updated)

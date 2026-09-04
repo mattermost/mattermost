@@ -4,7 +4,6 @@
 package properties
 
 import (
-	"context"
 	"encoding/json"
 	"errors"
 	"slices"
@@ -71,9 +70,9 @@ type countingPropertyFieldStore struct {
 	linkedFields int
 }
 
-func (c *countingPropertyFieldStore) Get(ctx context.Context, groupID, id string) (*model.PropertyField, error) {
+func (c *countingPropertyFieldStore) Get(rctx request.CTX, groupID, id string) (*model.PropertyField, error) {
 	c.gets++
-	return c.PropertyFieldStore.Get(ctx, groupID, id)
+	return c.PropertyFieldStore.Get(rctx, groupID, id)
 }
 
 func (c *countingPropertyFieldStore) GetLinkedFields(fieldIDs, excludeIDs []string) ([]*model.PropertyField, error) {
@@ -162,7 +161,7 @@ func TestResolveFieldMasking(t *testing.T) {
 		template := newTemplate("Template-Unmasked")
 		linked := newLinkedField("Linked-Unmasked", template.ID)
 
-		fm, err := h.resolveFieldMasking(linked)
+		fm, err := h.resolveFieldMasking(th.Context, linked)
 		require.NoError(t, err)
 		assert.Nil(t, fm.masking)
 	})
@@ -170,7 +169,7 @@ func TestResolveFieldMasking(t *testing.T) {
 	t.Run("field with its own empty masking and no template: holdings are itself", func(t *testing.T) {
 		field := setMasking(newUserField("Standalone-Masked"), &model.Masking{})
 
-		fm, err := h.resolveFieldMasking(field)
+		fm, err := h.resolveFieldMasking(th.Context, field)
 		require.NoError(t, err)
 		require.NotNil(t, fm.masking)
 		assert.Equal(t, field.ID, fm.holdingsFieldID)
@@ -182,7 +181,7 @@ func TestResolveFieldMasking(t *testing.T) {
 		template = setMasking(template, &model.Masking{MaskByFieldID: holdings.ID})
 		linked := newLinkedFieldDirect("Linked-UsesTemplateHoldings", template.ID)
 
-		fm, err := h.resolveFieldMasking(linked)
+		fm, err := h.resolveFieldMasking(th.Context, linked)
 		require.NoError(t, err)
 		require.NotNil(t, fm.masking)
 		assert.Equal(t, holdings.ID, fm.holdingsFieldID)
@@ -208,7 +207,7 @@ func TestResolveFieldMasking(t *testing.T) {
 			LinkedFieldID: &source.ID,
 		})
 
-		fm, err := h.resolveFieldMasking(linked)
+		fm, err := h.resolveFieldMasking(th.Context, linked)
 		require.NoError(t, err)
 		require.NotNil(t, fm.masking)
 		assert.Equal(t, linked.ID, fm.holdingsFieldID)
@@ -229,7 +228,7 @@ func TestResolveFieldMasking(t *testing.T) {
 		// ignores it regardless of what a save would allow.
 		linked.Permissions = &model.Permissions{Masking: &model.Masking{}}
 
-		fm, err := h.resolveFieldMasking(linked)
+		fm, err := h.resolveFieldMasking(th.Context, linked)
 		require.NoError(t, err)
 		require.NotNil(t, fm.masking)
 		assert.Equal(t, template.Permissions.Masking, fm.masking)
@@ -241,7 +240,7 @@ func TestResolveFieldMasking(t *testing.T) {
 		linked := newLinkedField("Linked-OwnMaskingOnUnmaskedTemplate", template.ID)
 		linked.Permissions = &model.Permissions{Masking: &model.Masking{}}
 
-		fm, err := h.resolveFieldMasking(linked)
+		fm, err := h.resolveFieldMasking(th.Context, linked)
 		require.NoError(t, err)
 		assert.Nil(t, fm.masking)
 	})
@@ -251,7 +250,7 @@ func TestResolveFieldMasking(t *testing.T) {
 		holdings := newLinkedField("Holdings-Field", template.ID)
 		template = setMasking(template, &model.Masking{MaskByFieldID: holdings.ID})
 
-		fm, err := h.resolveFieldMasking(template)
+		fm, err := h.resolveFieldMasking(th.Context, template)
 		require.NoError(t, err)
 		require.NotNil(t, fm.masking)
 		assert.Equal(t, holdings.ID, fm.holdingsFieldID)
@@ -268,9 +267,9 @@ func TestResolveFieldMasking(t *testing.T) {
 		t.Cleanup(func() { th.service.fieldStore = counter.PropertyFieldStore })
 
 		c := newMaskingContext()
-		fm1, err := c.resolve(h, linked)
+		fm1, err := c.resolve(h, th.Context, linked)
 		require.NoError(t, err)
-		fm2, err := c.resolve(h, linked)
+		fm2, err := c.resolve(h, th.Context, linked)
 		require.NoError(t, err)
 
 		assert.Equal(t, fm1, fm2)
@@ -288,8 +287,8 @@ func TestExempt(t *testing.T) {
 		t.Cleanup(func() { th.service.setPluginCheckerForTests(nil) })
 
 		except := []model.Identity{{Type: model.PropertyOwnerTypePlugin, ID: "plugin-a"}}
-		assert.True(t, h.exempt(except, "plugin-a"))
-		assert.False(t, h.exempt(except, "plugin-b"))
+		assert.True(t, h.exempt(th.Context, except, "plugin-a"))
+		assert.False(t, h.exempt(th.Context, except, "plugin-b"))
 	})
 
 	t.Run("the LDAP sync caller matches a service/ldap entry, the SAML sync caller a service/saml entry", func(t *testing.T) {
@@ -297,21 +296,21 @@ func TestExempt(t *testing.T) {
 			{Type: model.PropertyOwnerTypeService, ID: model.PropertyFieldAttrLDAP},
 			{Type: model.PropertyOwnerTypeService, ID: model.PropertyFieldAttrSAML},
 		}
-		assert.True(t, h.exempt(except, model.CallerIDLDAPSync))
-		assert.True(t, h.exempt(except, model.CallerIDSAMLSync))
+		assert.True(t, h.exempt(th.Context, except, model.CallerIDLDAPSync))
+		assert.True(t, h.exempt(th.Context, except, model.CallerIDSAMLSync))
 	})
 
 	t.Run("a user entry exempts that user id and nobody else", func(t *testing.T) {
 		userID := model.NewId()
 		except := []model.Identity{{Type: model.PropertyOwnerTypeUser, ID: userID}}
-		assert.True(t, h.exempt(except, userID))
-		assert.False(t, h.exempt(except, model.NewId()))
+		assert.True(t, h.exempt(th.Context, except, userID))
+		assert.False(t, h.exempt(th.Context, except, model.NewId()))
 	})
 
 	t.Run("a role entry exempts a caller holding that role and not a caller without it", func(t *testing.T) {
 		holder := model.NewId()
 		other := model.NewId()
-		th.service.setRoleListerForTests(func(userID string) []string {
+		th.service.setRoleListerForTests(func(_ request.CTX, userID string) []string {
 			if userID == holder {
 				return []string{"content_reviewer"}
 			}
@@ -320,33 +319,33 @@ func TestExempt(t *testing.T) {
 		t.Cleanup(func() { th.service.setRoleListerForTests(nil) })
 
 		except := []model.Identity{{Type: model.PropertyOwnerTypeRole, ID: "content_reviewer"}}
-		assert.True(t, h.exempt(except, holder))
-		assert.False(t, h.exempt(except, other))
+		assert.True(t, h.exempt(th.Context, except, holder))
+		assert.False(t, h.exempt(th.Context, except, other))
 	})
 
 	t.Run("a nil role lister exempts nobody by role; neither does a failing lookup", func(t *testing.T) {
 		except := []model.Identity{{Type: model.PropertyOwnerTypeRole, ID: "content_reviewer"}}
 
 		th.service.setRoleListerForTests(nil)
-		assert.False(t, h.exempt(except, model.NewId()))
+		assert.False(t, h.exempt(th.Context, except, model.NewId()))
 
 		// A failing lookup surfaces to the hook as an empty role list, the
 		// same shape propertyCallerRoles returns for a.GetUser erroring.
-		th.service.setRoleListerForTests(func(userID string) []string { return nil })
+		th.service.setRoleListerForTests(func(_ request.CTX, userID string) []string { return nil })
 		t.Cleanup(func() { th.service.setRoleListerForTests(nil) })
-		assert.False(t, h.exempt(except, model.NewId()))
+		assert.False(t, h.exempt(th.Context, except, model.NewId()))
 	})
 
 	t.Run("an except list carrying no role entry never calls the lister", func(t *testing.T) {
 		calls := 0
-		th.service.setRoleListerForTests(func(userID string) []string {
+		th.service.setRoleListerForTests(func(_ request.CTX, userID string) []string {
 			calls++
 			return nil
 		})
 		t.Cleanup(func() { th.service.setRoleListerForTests(nil) })
 
 		except := []model.Identity{{Type: model.PropertyOwnerTypeUser, ID: model.NewId()}}
-		assert.False(t, h.exempt(except, model.NewId()))
+		assert.False(t, h.exempt(th.Context, except, model.NewId()))
 		assert.Equal(t, 0, calls)
 	})
 
@@ -355,9 +354,9 @@ func TestExempt(t *testing.T) {
 		t.Cleanup(func() { th.service.setPluginCheckerForTests(nil) })
 
 		except := []model.Identity{{Type: model.PropertyOwnerTypePlugin, ID: "*"}}
-		assert.False(t, h.exempt(except, "any-plugin"))
-		assert.False(t, h.exempt(except, ""))
-		assert.False(t, h.exempt(except, model.CallerIDLocalAdmin))
+		assert.False(t, h.exempt(th.Context, except, "any-plugin"))
+		assert.False(t, h.exempt(th.Context, except, ""))
+		assert.False(t, h.exempt(th.Context, except, model.CallerIDLocalAdmin))
 	})
 
 	t.Run("a linked field's own except exempts nobody when its masked template lists nobody", func(t *testing.T) {
@@ -396,10 +395,10 @@ func TestExempt(t *testing.T) {
 		})
 		linked.Permissions = &model.Permissions{Masking: &model.Masking{Except: []model.Identity{{Type: model.PropertyOwnerTypeUser, ID: attacker}}}}
 
-		fm, err := h.resolveFieldMasking(linked)
+		fm, err := h.resolveFieldMasking(th.Context, linked)
 		require.NoError(t, err)
 		require.NotNil(t, fm.masking)
-		assert.False(t, h.exempt(fm.masking.Except, attacker))
+		assert.False(t, h.exempt(th.Context, fm.masking.Except, attacker))
 	})
 }
 
@@ -1256,7 +1255,7 @@ func TestMaskFieldOptions(t *testing.T) {
 
 		retrieved, err := th.service.GetPropertyField(RequestContextWithCallerID(th.Context, caller), th.CPAGroupID, field.ID)
 		require.NoError(t, err)
-		requireOptionsHidden(t, retrieved)
+		requireWithheldOptionsHidden(t, retrieved)
 	})
 
 	t.Run("a graph resolution failure hides the options and logs, never falling through to the unfiltered list", func(t *testing.T) {
@@ -1562,7 +1561,7 @@ func TestMaskOptionPage(t *testing.T) {
 		// (masking-empty) Permissions object for the permission gate to run at
 		// all -- a nil Permissions falls through to the legacy access_mode
 		// path instead.
-		linked, err := th.service.createPropertyField(&model.PropertyField{
+		linked, err := th.service.createPropertyField(th.Context, &model.PropertyField{
 			GroupID:       th.CPAGroupID,
 			Name:          "Mask-Picker-Linked",
 			Type:          model.PropertyFieldTypeText,
@@ -1635,7 +1634,7 @@ func TestMaskOptionPage(t *testing.T) {
 		// the linked field the way a real create does, but skips the
 		// create-time gate on a masked template, which needs a caller holding
 		// field.write on it -- not what this test is about.
-		linked, err := th.service.createPropertyField(&model.PropertyField{
+		linked, err := th.service.createPropertyField(th.Context, &model.PropertyField{
 			GroupID:       th.CPAGroupID,
 			Name:          "Mask-Listing-Once-Linked",
 			Type:          model.PropertyFieldTypeText,
@@ -1663,7 +1662,11 @@ func TestMaskOptionPage(t *testing.T) {
 		page, err := th.service.GetFieldOptions(RequestContextWithCallerID(th.Context, caller), linked, 0, "", 1)
 		require.NoError(t, err)
 		assert.ElementsMatch(t, []string{"Program D"}, listedNames(page))
-		assert.Equal(t, 1, fieldCounter.gets, "the masking template is resolved once for the whole listing, not once per page of rows scanned")
+		// Two field reads for the whole listing: the field the listing is aimed
+		// at, and its masking template. Neither repeats per page -- resolving
+		// the template per page would make it one more for each of the four
+		// pages scanned.
+		assert.Equal(t, 2, fieldCounter.gets, "the masking template is resolved once for the whole listing, not once per page of rows scanned")
 		assert.Equal(t, 1, valueCounter.searches, "the caller's holdings are searched once for the whole listing, not once per page of rows scanned")
 	})
 

@@ -4,7 +4,6 @@
 package sqlstore
 
 import (
-	"context"
 	"database/sql"
 	"fmt"
 
@@ -13,6 +12,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
@@ -47,7 +47,7 @@ func (s *SqlPropertyFieldStore) Create(field *model.PropertyField) (*model.Prope
 	}
 
 	if field.Permissions != nil && field.Permissions.Masking != nil && field.Permissions.Masking.MaskByFieldID != "" {
-		if err := s.ValidateMaskByFieldID(context.Background(), field.GroupID, field.ID, field.Permissions.Masking.MaskByFieldID); err != nil {
+		if err := s.ValidateMaskByFieldID(request.EmptyContext(s.logger), field.GroupID, field.ID, field.Permissions.Masking.MaskByFieldID); err != nil {
 			return nil, errors.Wrap(err, "property_field_create_validate_mask_by_field_id")
 		}
 	}
@@ -85,14 +85,14 @@ func (s *SqlPropertyFieldStore) Create(field *model.PropertyField) (*model.Prope
 	return field, nil
 }
 
-func (s *SqlPropertyFieldStore) Get(ctx context.Context, groupID, id string) (*model.PropertyField, error) {
+func (s *SqlPropertyFieldStore) Get(rctx request.CTX, groupID, id string) (*model.PropertyField, error) {
 	builder := s.tableSelectQuery.Where(sq.Eq{"id": id})
 
 	if groupID != "" {
 		builder = builder.Where(sq.Eq{"GroupID": groupID})
 	}
 
-	db := s.DBXFromContext(ctx)
+	db := s.DBXFromContext(rctx.Context())
 
 	var field model.PropertyField
 	if err := db.GetBuilder(&field, builder); err != nil {
@@ -114,8 +114,8 @@ func (s *SqlPropertyFieldStore) Get(ctx context.Context, groupID, id string) (*m
 // object_type:user (the only holder type resolved today), and be linked back
 // to fieldID. The shape-only half (template-only, must resolve holdings
 // somewhere) is checked without a store by Masking.isValid.
-func (s *SqlPropertyFieldStore) ValidateMaskByFieldID(ctx context.Context, groupID, fieldID, maskByFieldID string) error {
-	target, err := s.Get(store.WithMaster(ctx), groupID, maskByFieldID)
+func (s *SqlPropertyFieldStore) ValidateMaskByFieldID(rctx request.CTX, groupID, fieldID, maskByFieldID string) error {
+	target, err := s.Get(RequestContextWithMaster(rctx), groupID, maskByFieldID)
 	if err != nil {
 		var notFound *store.ErrNotFound
 		if errors.As(err, &notFound) {
@@ -147,17 +147,17 @@ func (s *SqlPropertyFieldStore) ValidateMaskByFieldID(ctx context.Context, group
 // returns an arbitrary match (the query has no ORDER BY/LIMIT). Use
 // GetFieldByNameForObjectType for a deterministic result. Retained because it
 // is exposed on the (stable) plugin API.
-func (s *SqlPropertyFieldStore) GetFieldByName(ctx context.Context, groupID, targetID, name string) (*model.PropertyField, error) {
-	return s.getFieldByName(ctx, s.fieldByNameQuery(groupID, targetID, name), name)
+func (s *SqlPropertyFieldStore) GetFieldByName(rctx request.CTX, groupID, targetID, name string) (*model.PropertyField, error) {
+	return s.getFieldByName(rctx, s.fieldByNameQuery(groupID, targetID, name), name)
 }
 
 // GetFieldByNameForObjectType retrieves a single property field by group,
 // target, object type, and name. objectType is matched exactly — including the
 // empty string, which is itself a valid object type, not a match-any wildcard —
 // so together with the typed unique index the result is deterministic.
-func (s *SqlPropertyFieldStore) GetFieldByNameForObjectType(ctx context.Context, groupID, targetID, objectType, name string) (*model.PropertyField, error) {
+func (s *SqlPropertyFieldStore) GetFieldByNameForObjectType(rctx request.CTX, groupID, targetID, objectType, name string) (*model.PropertyField, error) {
 	builder := s.fieldByNameQuery(groupID, targetID, name).Where(sq.Eq{"ObjectType": objectType})
-	return s.getFieldByName(ctx, builder, name)
+	return s.getFieldByName(rctx, builder, name)
 }
 
 func (s *SqlPropertyFieldStore) fieldByNameQuery(groupID, targetID, name string) sq.SelectBuilder {
@@ -168,8 +168,8 @@ func (s *SqlPropertyFieldStore) fieldByNameQuery(groupID, targetID, name string)
 		Where(sq.Eq{"DeleteAt": 0})
 }
 
-func (s *SqlPropertyFieldStore) getFieldByName(ctx context.Context, builder sq.SelectBuilder, name string) (*model.PropertyField, error) {
-	db := s.DBXFromContext(ctx)
+func (s *SqlPropertyFieldStore) getFieldByName(rctx request.CTX, builder sq.SelectBuilder, name string) (*model.PropertyField, error) {
+	db := s.DBXFromContext(rctx.Context())
 
 	var field model.PropertyField
 	if err := db.GetBuilder(&field, builder); err != nil {
@@ -186,14 +186,14 @@ func (s *SqlPropertyFieldStore) getFieldByName(ctx context.Context, builder sq.S
 	return &field, nil
 }
 
-func (s *SqlPropertyFieldStore) GetMany(ctx context.Context, groupID string, ids []string) ([]*model.PropertyField, error) {
+func (s *SqlPropertyFieldStore) GetMany(rctx request.CTX, groupID string, ids []string) ([]*model.PropertyField, error) {
 	builder := s.tableSelectQuery.Where(sq.Eq{"id": ids})
 
 	if groupID != "" {
 		builder = builder.Where(sq.Eq{"GroupID": groupID})
 	}
 
-	db := s.DBXFromContext(ctx)
+	db := s.DBXFromContext(rctx.Context())
 
 	fields := []*model.PropertyField{}
 	if err := db.SelectBuilder(&fields, builder); err != nil {
@@ -265,12 +265,12 @@ func (s *SqlPropertyFieldStore) CountForTarget(groupID, targetType, targetID str
 	return count, nil
 }
 
-func (s *SqlPropertyFieldStore) GetForGroup(ctx context.Context, groupID string) ([]*model.PropertyField, error) {
+func (s *SqlPropertyFieldStore) GetForGroup(rctx request.CTX, groupID string) ([]*model.PropertyField, error) {
 	builder := s.tableSelectQuery.
 		Where(sq.Eq{"GroupID": groupID}).
 		Where(sq.Eq{"DeleteAt": 0})
 
-	db := s.DBXFromContext(ctx)
+	db := s.DBXFromContext(rctx.Context())
 
 	fields := []*model.PropertyField{}
 	if err := db.SelectBuilder(&fields, builder); err != nil {
@@ -457,7 +457,7 @@ func (s *SqlPropertyFieldStore) Update(groupID string, fields []*model.PropertyF
 		}
 
 		if field.Permissions != nil && field.Permissions.Masking != nil && field.Permissions.Masking.MaskByFieldID != "" {
-			if maskErr := s.ValidateMaskByFieldID(context.Background(), field.GroupID, field.ID, field.Permissions.Masking.MaskByFieldID); maskErr != nil {
+			if maskErr := s.ValidateMaskByFieldID(request.EmptyContext(s.logger), field.GroupID, field.ID, field.Permissions.Masking.MaskByFieldID); maskErr != nil {
 				return nil, errors.Wrap(maskErr, "property_field_update_validate_mask_by_field_id")
 			}
 		}
@@ -557,8 +557,6 @@ func (s *SqlPropertyFieldStore) Update(groupID string, fields []*model.PropertyF
 		}
 	}
 
-	// Bring each field's option rows in line with the option list it was
-	// submitted with.
 	changedFieldIDs, err := s.syncPropertyFieldOptions(transaction, fields, updateTime)
 	if err != nil {
 		return nil, errors.Wrap(err, "property_field_update_options")
@@ -955,7 +953,7 @@ func (s *SqlPropertyFieldStore) syncPropertyFieldGrants(transaction *sqlxTxWrapp
 // GetFieldsByGrant returns the IDs of fields where (ownerType, ownerID) holds a
 // grant for action, used by delegated-admin and system-console tooling to
 // answer "which fields can this caller act on".
-func (s *SqlPropertyFieldStore) GetFieldsByGrant(ctx context.Context, ownerType, ownerID, action string) ([]string, error) {
+func (s *SqlPropertyFieldStore) GetFieldsByGrant(rctx request.CTX, ownerType, ownerID, action string) ([]string, error) {
 	builder := s.getQueryBuilder().
 		Select("DISTINCT FieldID").
 		From("PropertyFieldGrants").
@@ -963,7 +961,7 @@ func (s *SqlPropertyFieldStore) GetFieldsByGrant(ctx context.Context, ownerType,
 		OrderBy("FieldID")
 
 	fieldIDs := []string{}
-	if err := s.DBXFromContext(ctx).SelectBuilder(&fieldIDs, builder); err != nil {
+	if err := s.DBXFromContext(rctx.Context()).SelectBuilder(&fieldIDs, builder); err != nil {
 		return nil, errors.Wrap(err, "property_field_get_fields_by_grant")
 	}
 
@@ -973,7 +971,7 @@ func (s *SqlPropertyFieldStore) GetFieldsByGrant(ctx context.Context, ownerType,
 // GetGrantsForField reconstructs a field's grants from the normalized
 // PropertyFieldGrants table, one model.Grant per (type, id) pair with Allow
 // populated from its aggregated actions.
-func (s *SqlPropertyFieldStore) GetGrantsForField(ctx context.Context, fieldID string) ([]model.Grant, error) {
+func (s *SqlPropertyFieldStore) GetGrantsForField(rctx request.CTX, fieldID string) ([]model.Grant, error) {
 	query, args, err := s.getQueryBuilder().
 		Select("Type", "ID", "Array_Agg(Action ORDER BY Action) as Actions").
 		From("PropertyFieldGrants").
@@ -985,7 +983,7 @@ func (s *SqlPropertyFieldStore) GetGrantsForField(ctx context.Context, fieldID s
 		return nil, errors.Wrap(err, "property_field_get_grants_for_field_tosql")
 	}
 
-	rows, err := s.DBXFromContext(ctx).Query(query, args...)
+	rows, err := s.DBXFromContext(rctx.Context()).Query(query, args...)
 	if err != nil {
 		return nil, errors.Wrap(err, "property_field_get_grants_for_field_query")
 	}
@@ -1008,7 +1006,7 @@ func (s *SqlPropertyFieldStore) GetGrantsForField(ctx context.Context, fieldID s
 
 // HasGrantForIdentity returns whether (ownerType, ownerID) holds a grant on any
 // field, used by delegated-admin's quick "does this user hold any grant" check.
-func (s *SqlPropertyFieldStore) HasGrantForIdentity(ctx context.Context, ownerType, ownerID string) (bool, error) {
+func (s *SqlPropertyFieldStore) HasGrantForIdentity(rctx request.CTX, ownerType, ownerID string) (bool, error) {
 	builder := s.getQueryBuilder().
 		Select("1").
 		Prefix("SELECT EXISTS (").
@@ -1017,7 +1015,7 @@ func (s *SqlPropertyFieldStore) HasGrantForIdentity(ctx context.Context, ownerTy
 		Suffix(")")
 
 	var exists bool
-	if err := s.DBXFromContext(ctx).GetBuilder(&exists, builder); err != nil {
+	if err := s.DBXFromContext(rctx.Context()).GetBuilder(&exists, builder); err != nil {
 		return false, errors.Wrap(err, "property_field_has_grant_for_identity")
 	}
 

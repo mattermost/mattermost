@@ -114,6 +114,30 @@ func (h *graphSharedOnlyHelper) visibleOptions(t *testing.T, callerID string, va
 	return optionIDs
 }
 
+// visibleOptionsBatch reads several values back in one call as the given
+// caller, the path a batch read of a field's values takes, and reports the
+// options each was shown by target ID. A target left out of the result was
+// hidden from the caller entirely.
+func (h *graphSharedOnlyHelper) visibleOptionsBatch(t *testing.T, callerID string, values ...*model.PropertyValue) map[string][]string {
+	t.Helper()
+
+	ids := make([]string, len(values))
+	for i, value := range values {
+		ids[i] = value.ID
+	}
+
+	retrieved, err := h.th.service.GetPropertyValues(RequestContextWithCallerID(h.th.Context, callerID), h.th.CPAGroupID, ids)
+	require.NoError(t, err)
+
+	byTarget := make(map[string][]string, len(retrieved))
+	for _, value := range retrieved {
+		var optionIDs []string
+		require.NoError(t, json.Unmarshal(value.Value, &optionIDs))
+		byTarget[value.TargetID] = optionIDs
+	}
+	return byTarget
+}
+
 // listedOptions lists one page of a field's options as the given caller, from the
 // option rows rather than from the list a field read carries inline.
 func (h *graphSharedOnlyHelper) listedOptions(t *testing.T, callerID string, field *model.PropertyField, cursorCreateAt int64, cursorID string, perPage int) []*model.PropertyFieldOption {
@@ -273,6 +297,41 @@ func TestGraphSharedOnly_Value(t *testing.T) {
 		assert.ElementsMatch(t, []string{"Air Program", "Sea Program"},
 			namesOf(ids, h.visibleOptions(t, "test-plugin", target)))
 	})
+}
+
+// TestGraphSharedOnly_ValueBatch covers what a single caller sees of several
+// targets' values on one shared_only graph field read in one batch. Reading a
+// batch is what lets the caller's own holdings and the coverage walk be reused
+// across targets instead of redone per target, and this asserts that reuse
+// never leaks one target's options into another's answer or changes what any
+// individual target's value masks to on its own -- see TestGraphSharedOnly_Value
+// for the single-value form of each of these cases.
+func TestGraphSharedOnly_ValueBatch(t *testing.T) {
+	h := setupGraphSharedOnly(t)
+	field, ids := h.newField(t, "programs-value-batch", programHierarchy, programNames...)
+
+	caller := model.NewId()
+	h.assign(t, field.ID, caller, ids["F-18 Program"])
+
+	covered := h.assign(t, field.ID, model.NewId(), ids["F-18 Program"])
+	below := h.assign(t, field.ID, model.NewId(), ids["Fighter Jet Program"])
+	unrelated := h.assign(t, field.ID, model.NewId(), ids["Sea Program"])
+	several := h.assign(t, field.ID, model.NewId(),
+		ids["F-18 Program"], ids["Air Program"], ids["Sea Program"])
+
+	visible := h.visibleOptionsBatch(t, caller, covered, below, unrelated, several)
+
+	assert.Equal(t, []string{"F-18 Program"}, namesOf(ids, visible[covered.TargetID]),
+		"a target the caller covers directly is shown as it stands")
+	// Nothing is narrowed to the caller's own part of it: an option the caller
+	// holds no claim to at-or-above is not shown, so a target marked only with
+	// one drops out of the batch exactly as an unrelated branch does.
+	_, belowVisible := visible[below.TargetID]
+	assert.False(t, belowVisible, "a target above the caller's own option drops out rather than being narrowed to it")
+	_, unrelatedVisible := visible[unrelated.TargetID]
+	assert.False(t, unrelatedVisible, "a target on an unrelated branch drops out of the batch")
+	assert.Equal(t, []string{"F-18 Program"}, namesOf(ids, visible[several.TargetID]),
+		"a target holding several options at once is still answered on its own")
 }
 
 // TestGraphSharedOnly_ValueMultiParent covers the shape a hierarchy has once an
@@ -465,12 +524,17 @@ func TestGraphSharedOnly_OptionList(t *testing.T) {
 
 		// The source plugin is told, which is what makes this masking rather than the
 		// endpoint simply never reporting a hierarchy.
-		for _, option := range h.listedOptions(t, "test-plugin", field, 0, "", 100) {
+		unmasked := h.listedOptions(t, "test-plugin", field, 0, "", 100)
+		require.Len(t, unmasked, 4)
+		found := false
+		for _, option := range unmasked {
 			if option.ID == ids["F-18 Program"] {
+				found = true
 				require.NotNil(t, option.Parents)
 				assert.Equal(t, []string{"Fighter Jet Program"}, *option.Parents)
 			}
 		}
+		require.True(t, found, "F-18 Program must be in the unmasked listing")
 	})
 
 	t.Run("a caller with unrestricted read access is not masked at all", func(t *testing.T) {
@@ -531,6 +595,29 @@ func TestGraphSharedOnly_OptionListPaged(t *testing.T) {
 		"paging one option at a time reaches every option the caller covers, in the field's own order")
 }
 
+// TestGraphSharedOnly_OptionListNothingVisible covers the short circuit that
+// stops the listing before it scans a field nothing in it is visible in: a
+// caller holding nothing for the field gets an empty, non-nil page without a
+// single row read, and a caller who does hold something is unaffected by the
+// short circuit and still pages to everything they cover.
+func TestGraphSharedOnly_OptionListNothingVisible(t *testing.T) {
+	h := setupGraphSharedOnly(t)
+	field, ids := h.newField(t, "programs-options-nothing-visible", programHierarchy, programNames...)
+
+	t.Run("a caller holding nothing for the field is shown an empty, non-nil page", func(t *testing.T) {
+		assert.Empty(t, h.listedOptions(t, model.NewId(), field, 0, "", 100))
+	})
+
+	t.Run("a caller who holds something still pages to everything they cover", func(t *testing.T) {
+		caller := model.NewId()
+		h.assign(t, field.ID, caller, ids["Fighter Jet Program"])
+
+		assert.ElementsMatch(t, []string{"Fighter Jet Program", "F-18 Program"},
+			listedNames(h.listedOptions(t, caller, field, 0, "", 100)),
+			"the short circuit must not fire for a caller the scan would show something to")
+	})
+}
+
 // TestGraphSharedOnly_OptionListOptionsOmitted covers the size this field type
 // exists for: a hierarchy with more options than a field read inlines. The listing
 // comes from the option rows, so it is unaffected — which matters because for such
@@ -580,7 +667,7 @@ func TestGraphSharedOnly_OptionListOptionsOmitted(t *testing.T) {
 	// above is what answers instead.
 	read, err := h.th.service.GetPropertyField(RequestContextWithCallerID(h.th.Context, caller), h.th.CPAGroupID, field.ID)
 	require.NoError(t, err)
-	requireOptionsHidden(t, read)
+	requireWithheldOptionsHidden(t, read)
 }
 
 // TestGraphSharedOnly_FieldOptionList covers the option list a field read carries

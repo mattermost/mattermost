@@ -6,6 +6,7 @@ import React from 'react';
 import type {PropertyField, PropertyFieldOption, PropertyValue} from '@mattermost/types/properties';
 
 import {Client4} from 'mattermost-redux/client';
+import {ACCESS_CONTROL_PROPERTY_GROUP, DISPLAY_BANNER_BOTTOM, DISPLAY_BANNER_TOP} from 'mattermost-redux/constants/properties';
 
 import {act, renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 
@@ -22,17 +23,15 @@ import {
     CLASSIFICATIONS_CHANNEL_OBJECT_TYPE,
     CLASSIFICATIONS_FIELD_TARGET_ID,
     CLASSIFICATIONS_FIELD_TARGET_TYPE,
-    CLASSIFICATIONS_GROUP_NAME,
     CLASSIFICATIONS_SYSTEM_FIELD_NAME,
     CLASSIFICATIONS_SYSTEM_OBJECT_TYPE,
     CLASSIFICATIONS_SYSTEM_VALUE_TARGET_ID,
     CLASSIFICATIONS_TEMPLATE_FIELD_NAME,
     CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE,
+    CLASSIFICATIONS_GROUP_NAME,
     CLASSIFICATIONS_USER_OBJECT_TYPE,
     CLEARANCE_FIELD_DISPLAY_NAME,
     CLEARANCE_FIELD_NAME,
-    DISPLAY_BANNER_BOTTOM,
-    DISPLAY_BANNER_TOP,
 } from './utils';
 import type {ClassificationLevel} from './utils/presets';
 import {PRESET_CUSTOM, presets} from './utils/presets';
@@ -42,10 +41,15 @@ const BASE_STATE = {entities: {users: {currentUserId: MOCK_USER_ID}}};
 
 jest.mock('mattermost-redux/client');
 
+const mockHistoryPush = jest.fn();
+jest.mock('utils/browser_history', () => ({
+    getHistory: () => ({push: mockHistoryPush}),
+}));
+
 function makePropertyField(overrides: Partial<PropertyField> = {}): PropertyField {
     return {
         id: 'field1',
-        group_id: CLASSIFICATIONS_GROUP_NAME,
+        group_id: ACCESS_CONTROL_PROPERTY_GROUP,
         name: CLASSIFICATIONS_TEMPLATE_FIELD_NAME,
         type: 'rank',
         attrs: {options: []},
@@ -64,7 +68,7 @@ function makePropertyField(overrides: Partial<PropertyField> = {}): PropertyFiel
 function makeLinkedField(overrides: Partial<PropertyField> = {}): PropertyField {
     return {
         id: 'linked_field1',
-        group_id: CLASSIFICATIONS_GROUP_NAME,
+        group_id: ACCESS_CONTROL_PROPERTY_GROUP,
         name: CLASSIFICATIONS_SYSTEM_FIELD_NAME,
         type: 'rank',
         attrs: {actions: []},
@@ -84,7 +88,7 @@ function makeLinkedField(overrides: Partial<PropertyField> = {}): PropertyField 
 function makeChannelLinkedField(overrides: Partial<PropertyField> = {}): PropertyField {
     return {
         id: 'channel_field1',
-        group_id: CLASSIFICATIONS_GROUP_NAME,
+        group_id: ACCESS_CONTROL_PROPERTY_GROUP,
         name: CLASSIFICATIONS_CHANNEL_FIELD_NAME,
         type: 'rank',
         attrs: {},
@@ -122,7 +126,7 @@ function makeUserLinkedField(overrides: Partial<PropertyField> = {}): PropertyFi
     };
 }
 
-// State with ABAC enabled, which reveals the Classification Enforcement section.
+// State with ABAC enabled, which reveals the clearance attribute checkbox.
 const ABAC_STATE = {
     entities: {
         users: {currentUserId: MOCK_USER_ID},
@@ -135,7 +139,7 @@ function makeSystemValue(fieldId: string, optionId: string): PropertyValue<strin
         id: 'value1',
         target_id: CLASSIFICATIONS_SYSTEM_VALUE_TARGET_ID,
         target_type: CLASSIFICATIONS_SYSTEM_OBJECT_TYPE,
-        group_id: CLASSIFICATIONS_GROUP_NAME,
+        group_id: ACCESS_CONTROL_PROPERTY_GROUP,
         field_id: fieldId,
         value: optionId,
         create_at: 3000,
@@ -386,7 +390,7 @@ describe('fetchChannelClassificationField', () => {
         expect(result).toEqual(expected);
         expect(Client4.getPropertyFields).toHaveBeenCalledTimes(1);
         expect(Client4.getPropertyFields).toHaveBeenCalledWith(
-            CLASSIFICATIONS_GROUP_NAME,
+            ACCESS_CONTROL_PROPERTY_GROUP,
             CLASSIFICATIONS_CHANNEL_OBJECT_TYPE,
             CLASSIFICATIONS_FIELD_TARGET_TYPE,
             '',
@@ -526,7 +530,7 @@ describe('ClassificationMarkings component', () => {
         });
 
         renderWithContext(<ClassificationMarkings/>, ABAC_STATE);
-        await screen.findByText('Classification Enforcement');
+        await screen.findByTestId('clearanceAttributeCheckbox');
 
         expect(screen.getByTestId('clearanceAttributeCheckbox')).toBeChecked();
         expect(
@@ -539,6 +543,19 @@ describe('ClassificationMarkings component', () => {
             await screen.findByRole('heading', {name: 'Classification markings are informational only'}),
         ).toBeInTheDocument();
         await act(async () => {});
+    });
+
+    test('should navigate to the membership policies page from the clearance help text', async () => {
+        const field = makePropertyField({attrs: {options: [{id: 'lvl1', name: 'UNCLASSIFIED', color: '#007A33', rank: 1}]}});
+        jest.spyOn(Client4, 'getPropertyFields').mockImplementation(async (_group, objectType) => {
+            return objectType === CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE ? [field] : [];
+        });
+
+        renderWithContext(<ClassificationMarkings/>, ABAC_STATE);
+        await screen.findByTestId('clearanceAttributeCheckbox');
+
+        await userEvent.setup().click(screen.getByText('membership policy'));
+        expect(mockHistoryPush).toHaveBeenCalledWith('/admin_console/system_attributes/membership_policies');
     });
 
     test('should render disabled state when no existing field', async () => {
@@ -774,7 +791,7 @@ describe('ClassificationMarkings component', () => {
 
         await waitFor(() => {
             expect(Client4.patchPropertyField).toHaveBeenCalledWith(
-                CLASSIFICATIONS_GROUP_NAME,
+                ACCESS_CONTROL_PROPERTY_GROUP,
                 CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE,
                 'field1',
                 expect.objectContaining({
@@ -1026,7 +1043,7 @@ describe('GlobalClassificationIndicators section', () => {
         await waitFor(() => {
             // Template field patched without global_banner in attrs.
             expect(Client4.patchPropertyField).toHaveBeenCalledWith(
-                CLASSIFICATIONS_GROUP_NAME,
+                ACCESS_CONTROL_PROPERTY_GROUP,
                 CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE,
                 'field1',
                 expect.objectContaining({
@@ -1044,7 +1061,7 @@ describe('GlobalClassificationIndicators section', () => {
 
             // Linked field patched with updated actions (top_and_bottom).
             expect(Client4.patchPropertyField).toHaveBeenCalledWith(
-                CLASSIFICATIONS_GROUP_NAME,
+                ACCESS_CONTROL_PROPERTY_GROUP,
                 CLASSIFICATIONS_SYSTEM_OBJECT_TYPE,
                 'linked_field1',
                 expect.objectContaining({
@@ -1095,7 +1112,7 @@ describe('GlobalClassificationIndicators section', () => {
         await waitFor(() => {
             // Template field saved without global_banner.
             expect(Client4.patchPropertyField).toHaveBeenCalledWith(
-                CLASSIFICATIONS_GROUP_NAME,
+                ACCESS_CONTROL_PROPERTY_GROUP,
                 CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE,
                 'field1',
                 expect.not.objectContaining({
@@ -1105,7 +1122,7 @@ describe('GlobalClassificationIndicators section', () => {
 
             // Linked field patched with empty actions (banner disabled).
             expect(Client4.patchPropertyField).toHaveBeenCalledWith(
-                CLASSIFICATIONS_GROUP_NAME,
+                ACCESS_CONTROL_PROPERTY_GROUP,
                 CLASSIFICATIONS_SYSTEM_OBJECT_TYPE,
                 'linked_field1',
                 expect.objectContaining({
@@ -1214,7 +1231,7 @@ describe('Channel classification linked field branches', () => {
 
         await waitFor(() => {
             expect(createSpy).toHaveBeenCalledWith(
-                CLASSIFICATIONS_GROUP_NAME,
+                ACCESS_CONTROL_PROPERTY_GROUP,
                 CLASSIFICATIONS_CHANNEL_OBJECT_TYPE,
                 expect.objectContaining({
                     name: CLASSIFICATIONS_CHANNEL_FIELD_NAME,
@@ -1301,7 +1318,7 @@ describe('Channel classification linked field branches', () => {
         const createSpy = jest.spyOn(Client4, 'createPropertyField').mockResolvedValue(createdClearance);
 
         const {store} = renderWithContext(<ClassificationMarkings/>, ABAC_STATE);
-        await screen.findByText('Classification Enforcement');
+        await screen.findByTestId('clearanceAttributeCheckbox');
 
         const user = userEvent.setup();
         await user.click(screen.getByTestId('clearanceAttributeCheckbox'));
@@ -1358,12 +1375,12 @@ describe('Channel classification linked field branches', () => {
         const deleteSpy = jest.spyOn(Client4, 'deletePropertyField').mockResolvedValue({status: 'OK'});
 
         renderWithContext(<ClassificationMarkings/>, ABAC_STATE);
-        await screen.findByText('Classification Enforcement');
+        await screen.findByTestId('clearanceAttributeCheckbox');
 
         const user = userEvent.setup();
         const checkbox = screen.getByTestId('clearanceAttributeCheckbox');
         expect(checkbox).toBeChecked();
-        await user.click(checkbox); // uncheck
+        await user.click(checkbox);
         await user.click(await screen.findByText('Save'));
 
         await waitFor(() => {

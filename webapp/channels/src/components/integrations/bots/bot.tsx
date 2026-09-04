@@ -3,7 +3,7 @@
 
 import React from 'react';
 import type {ChangeEvent, SyntheticEvent, ReactNode} from 'react';
-import {FormattedMessage} from 'react-intl';
+import {defineMessage, FormattedMessage} from 'react-intl';
 import {Link} from 'react-router-dom';
 
 import {Button} from '@mattermost/shared/components/button';
@@ -14,11 +14,14 @@ import type {UserProfile, UserAccessToken} from '@mattermost/types/users';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import ConfirmModal from 'components/confirm_modal';
+import CopyText from 'components/copy_text';
 import Markdown from 'components/markdown';
 import SaveButton from 'components/save_button';
 import WarningIcon from 'components/widgets/icons/fa_warning_icon';
 
 import * as Utils from 'utils/utils';
+
+const copyTokenMessage = defineMessage({id: 'integrations.copy_token', defaultMessage: 'Copy Token'});
 
 export function matchesFilter(bot: BotType, filter?: string, owner?: UserProfile): boolean {
     if (!filter) {
@@ -307,6 +310,8 @@ export default class Bot extends React.PureComponent<Props, State> {
             );
         });
 
+        const isProtectedBot = Boolean(this.props.bot.system_owned);
+
         let options;
         if (ownerUsername !== 'plugin') {
             options = (
@@ -321,23 +326,27 @@ export default class Bot extends React.PureComponent<Props, State> {
                             defaultMessage='Create New Token'
                         />
                     </button>
-                    {' - '}
-                    <Link to={`/${this.props.team.name}/integrations/bots/edit?id=${this.props.bot.user_id}`}>
-                        <FormattedMessage
-                            id='bots.manage.edit'
-                            defaultMessage='Edit'
-                        />
-                    </Link>
-                    {' - '}
-                    <button
-                        className='style--none color--link'
-                        onClick={this.disableBot}
-                    >
-                        <FormattedMessage
-                            id='bot.manage.disable'
-                            defaultMessage='Disable'
-                        />
-                    </button>
+                    {!isProtectedBot && (
+                        <>
+                            {' - '}
+                            <Link to={`/${this.props.team.name}/integrations/bots/edit?id=${this.props.bot.user_id}`}>
+                                <FormattedMessage
+                                    id='bots.manage.edit'
+                                    defaultMessage='Edit'
+                                />
+                            </Link>
+                            {' - '}
+                            <button
+                                className='style--none color--link'
+                                onClick={this.disableBot}
+                            >
+                                <FormattedMessage
+                                    id='bot.manage.disable'
+                                    defaultMessage='Disable'
+                                />
+                            </button>
+                        </>
+                    )}
                 </div>
             );
         }
@@ -465,6 +474,10 @@ export default class Bot extends React.PureComponent<Props, State> {
                         />
                         {this.state.token.token}
                     </strong>
+                    <CopyText
+                        label={copyTokenMessage}
+                        value={this.state.token.token}
+                    />
                     <div className='mt-2'>
                         <Button
                             emphasis='primary'
@@ -482,7 +495,14 @@ export default class Bot extends React.PureComponent<Props, State> {
         }
 
         let managedBy;
-        if (this.props.fromApp) {
+        if (isProtectedBot) {
+            managedBy = (
+                <FormattedMessage
+                    id='bots.managed_by.system'
+                    defaultMessage='Managed by Mattermost'
+                />
+            );
+        } else if (this.props.fromApp) {
             managedBy = (
                 <FormattedMessage
                     id='bots.managed_by.app'

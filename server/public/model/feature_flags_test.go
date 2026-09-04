@@ -26,6 +26,14 @@ func TestFeatureFlagsSetDefaults(t *testing.T) {
 		require.Equal(t, "false", m["ClassificationMarkings"])
 	})
 
+	t.Run("ChannelAttributes should default to false and serialize correctly", func(t *testing.T) {
+		require.False(t, f.ChannelAttributes)
+		require.Equal(t, "false", f.ToMap()["ChannelAttributes"])
+
+		f.ChannelAttributes = true
+		require.Equal(t, "true", f.ToMap()["ChannelAttributes"])
+	})
+
 	t.Run("MmBlocksEnabled defaults to true", func(t *testing.T) {
 		require.True(t, f.MmBlocksEnabled)
 		require.Equal(t, "true", f.ToMap()["MmBlocksEnabled"])
@@ -64,6 +72,25 @@ func TestFeatureFlagsSetDefaults_AttributeValueMasking(t *testing.T) {
 	require.Equal(t, "true", flags.ToMap()["AttributeValueMasking"])
 }
 
+func TestFeatureFlagsSetDefaults_RecurringScheduledPosts(t *testing.T) {
+	var flags FeatureFlags
+	flags.SetDefaults()
+
+	require.False(t, flags.RecurringScheduledPosts, "RecurringScheduledPosts should default to false")
+	require.Equal(t, "false", flags.ToMap()["RecurringScheduledPosts"])
+
+	flags.RecurringScheduledPosts = true
+	require.Equal(t, "true", flags.ToMap()["RecurringScheduledPosts"])
+}
+
+func TestFeatureFlagsSetDefaults_PostAttributes(t *testing.T) {
+	var flags FeatureFlags
+	flags.SetDefaults()
+
+	require.False(t, flags.PostAttributes, "PostAttributes should default to false")
+	require.Equal(t, "false", flags.ToMap()["PostAttributes"])
+}
+
 func TestFeatureFlagsSetDefaults_PropertyFieldRank(t *testing.T) {
 	var flags FeatureFlags
 	flags.SetDefaults()
@@ -78,6 +105,14 @@ func TestFeatureFlagsSetDefaults_PropertyFieldGraph(t *testing.T) {
 
 	require.False(t, flags.PropertyFieldGraph, "PropertyFieldGraph should default to false")
 	require.Equal(t, "false", flags.ToMap()["PropertyFieldGraph"])
+}
+
+func TestFeatureFlagsSetDefaults_TeamMembershipAccessControl(t *testing.T) {
+	var flags FeatureFlags
+	flags.SetDefaults()
+
+	require.True(t, flags.TeamMembershipAccessControl, "TeamMembershipAccessControl should default to true")
+	require.Equal(t, "true", flags.ToMap()["TeamMembershipAccessControl"])
 }
 
 // TestFeatureFlagsPermissionPoliciesDependencies pins down the

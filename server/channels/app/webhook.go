@@ -921,7 +921,7 @@ func (a *App) HandleIncomingWebhook(rctx request.CTX, hookID string, req *model.
 
 	uchan := make(chan store.StoreResult[*model.User], 1)
 	go func() {
-		user, err := a.Srv().Store().User().Get(context.Background(), hook.UserId)
+		user, err := a.Srv().Store().User().Get(rctx, hook.UserId)
 		uchan <- store.StoreResult[*model.User]{Data: user, NErr: err}
 		close(uchan)
 	}()

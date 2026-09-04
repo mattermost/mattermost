@@ -24,9 +24,58 @@
     }
 }
 
+.GlobalAttributesTable__attribute {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+// Ellipsis-truncation lives here (not on the shared td rule in list_table.scss) so it applies
+// only to the name line — leaving every ordinary row's truncation behavior unchanged — while
+// the classification-only subtitle below is free to wrap onto its own line(s).
 .GlobalAttributesTable__name {
+    overflow: hidden;
     color: var(--center-channel-color);
     font-weight: variables.$font-weight--semibold;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.GlobalAttributesTable__name--classification {
+    color: rgba(var(--center-channel-color-rgb), 0.56);
+}
+
+.GlobalAttributesTable__subtitle {
+    color: rgba(var(--center-channel-color-rgb), 0.64);
+    font-size: 12px;
+    white-space: normal;
+}
+
+.GlobalAttributesTable__subtitle--classification {
+    color: rgba(var(--center-channel-color-rgb), 0.56);
+}
+
+.GlobalAttributesTable__link--classification {
+    display: inline-flex;
+    width: 32px;
+    height: 32px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    color: rgba(var(--center-channel-color-rgb), 0.64);
+    text-decoration: none;
+
+    &:hover {
+        background-color: rgba(var(--center-channel-color-rgb), 0.08);
+        color: var(--center-channel-color);
+    }
+
+    &:focus-visible {
+        background-color: rgba(var(--center-channel-color-rgb), 0.08);
+        color: var(--center-channel-color);
+        outline: 2px solid var(--button-bg);
+        outline-offset: 2px;
+    }
 }
 
 .GlobalAttributesTable__empty {
@@ -49,6 +98,15 @@
     td.actions,
     th.actions {
         text-align: right;
+    }
+
+    // table-layout is auto (never overridden), so max-width here is what
+    // actually caps this column -- the inner .GlobalAttributesTable__name
+    // span's own ellipsis-truncation rule only kicks in once the column
+    // itself is this narrow.
+    td.attribute,
+    th.attribute {
+        max-width: 65ch;
     }
 
     table.adminConsoleListTable thead tr th {

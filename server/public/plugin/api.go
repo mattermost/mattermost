@@ -1764,6 +1764,74 @@ type API interface {
 	// @tag Audit
 	// Minimum server version: 10.10
 	LogAuditRecWithLevel(rec *model.AuditRecord, level mlog.Level)
+
+	// EvaluateAccessControl evaluates whether userID may perform action on the
+	// plugin-owned resource (resourceType, resourceID). resourceType must be
+	// "<callingPluginID>:<type>". The reply follows the OpenID AuthZEN
+	// evaluation response: Decision plus an optional Context.
+	//
+	// AccessDecision.IsNoPolicy() reports that the server positively determined
+	// no policy governs the resource — resolved even when the access control
+	// engine is unavailable — so the caller can safely apply its own defaults
+	// instead of treating the allow as an explicit grant. Any returned error
+	// means the decision could not be computed and the plugin MUST fail closed
+	// (deny).
+	//
+	// @tag AccessControl
+	// Minimum server version: 11.10
+	EvaluateAccessControl(userID, resourceType, resourceID, action string) (*model.AccessDecision, *model.AppError)
+
+	// SaveAccessControlPolicy creates or updates a policy whose Type is
+	// "<callingPluginID>:<type>". Version is forced to v0.5 and Active to
+	// true. policy.ID must be the resource's stable 26-char ID.
+	//
+	// @tag AccessControl
+	// Minimum server version: 11.10
+	SaveAccessControlPolicy(actingUserID string, policy *model.AccessControlPolicy) (*model.AccessControlPolicy, *model.AppError)
+
+	// GetAccessControlPolicy returns the policy stored under id. Returns a
+	// not-found error if no policy exists OR the stored policy's type is not
+	// owned by the calling plugin (fail closed, no existence leak).
+	//
+	// @tag AccessControl
+	// Minimum server version: 11.10
+	GetAccessControlPolicy(id string) (*model.AccessControlPolicy, *model.AppError)
+
+	// DeleteAccessControlPolicy deletes the policy stored under id after
+	// verifying the stored policy's type equals resourceType and is owned by
+	// the calling plugin. Type mismatches return a not-found error (fail closed).
+	//
+	// @tag AccessControl
+	// Minimum server version: 11.10
+	DeleteAccessControlPolicy(actingUserID, resourceType, id string) *model.AppError
+
+	// CheckAccessControlExpression compiles and lints a CEL expression; an
+	// empty slice means the expression is valid.
+	//
+	// @tag AccessControl
+	// Minimum server version: 11.10
+	CheckAccessControlExpression(actingUserID, resourceType, expression string) ([]model.CELExpressionError, *model.AppError)
+
+	// QueryUsersForAccessControlExpression returns users matching the
+	// expression (test modal support for policy editors).
+	//
+	// @tag AccessControl
+	// Minimum server version: 11.10
+	QueryUsersForAccessControlExpression(actingUserID, resourceType, expression, term, cursorID string, limit int) (*model.AccessControlPolicyTestResponse, *model.AppError)
+
+	// GetAccessControlFieldsAutocomplete returns CPA fields for editor
+	// autocomplete, filtered by the acting user's attribute visibility.
+	//
+	// @tag AccessControl
+	// Minimum server version: 11.10
+	GetAccessControlFieldsAutocomplete(actingUserID, after string, limit int) ([]*model.PropertyField, *model.AppError)
+
+	// GetAccessControlVisualAST converts a CEL expression to the visual
+	// (table) AST.
+	//
+	// @tag AccessControl
+	// Minimum server version: 11.10
+	GetAccessControlVisualAST(actingUserID, resourceType, expression string) (*model.VisualExpression, *model.AppError)
 }
 
 var handshake = plugin.HandshakeConfig{

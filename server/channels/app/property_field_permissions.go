@@ -206,7 +206,7 @@ func (a *App) propertyGrantForHuman(rctx request.CTX, userID string, field *mode
 		return nil
 	}
 
-	for _, role := range a.propertyCallerRoles(userID) {
+	for _, role := range a.propertyCallerRoles(rctx, userID) {
 		if grant := permissions.MatchingGrant(model.PropertyOwnerTypeRole, role, "", action); grant != nil {
 			return grant
 		}
@@ -219,8 +219,8 @@ func (a *App) propertyGrantForHuman(rctx request.CTX, userID string, field *mode
 // (properties.PropertyRoleLister) are both matched against, so the gate and
 // the exemption cannot disagree about what a caller is. A lookup that fails
 // yields no roles rather than erroring into a match.
-func (a *App) propertyCallerRoles(userID string) []string {
-	user, appErr := a.GetUser(userID)
+func (a *App) propertyCallerRoles(rctx request.CTX, userID string) []string {
+	user, appErr := a.GetUser(rctx, userID)
 	if appErr != nil {
 		return nil
 	}

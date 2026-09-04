@@ -62,7 +62,7 @@ func (h *SessionAttributesHook) PreUpdatePropertyField(rctx request.CTX, groupID
 	if !h.manages(groupID) || isSystemCaller(rctx) {
 		return field, nil
 	}
-	if err := h.validateUpdate(field); err != nil {
+	if err := h.validateUpdate(rctx, field); err != nil {
 		return nil, err
 	}
 	return field, nil
@@ -73,15 +73,15 @@ func (h *SessionAttributesHook) PreUpdatePropertyFields(rctx request.CTX, groupI
 		return fields, nil
 	}
 	for _, field := range fields {
-		if err := h.validateUpdate(field); err != nil {
+		if err := h.validateUpdate(rctx, field); err != nil {
 			return nil, err
 		}
 	}
 	return fields, nil
 }
 
-func (h *SessionAttributesHook) validateUpdate(incoming *model.PropertyField) error {
-	existing, err := h.propertyService.getPropertyFieldFromMaster(h.groupID, incoming.ID)
+func (h *SessionAttributesHook) validateUpdate(rctx request.CTX, incoming *model.PropertyField) error {
+	existing, err := h.propertyService.getPropertyFieldFromMaster(rctx, h.groupID, incoming.ID)
 	if err != nil {
 		return err
 	}

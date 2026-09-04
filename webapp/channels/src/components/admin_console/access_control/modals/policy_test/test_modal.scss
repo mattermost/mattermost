@@ -11,11 +11,12 @@
 
         // The members-step search (SearchableUserList's default filter row) is
         // matched to the channel-picker search so the two steps line up: same
-        // 16px inset, same 12px top offset, same bordered input with an inset
-        // magnify icon. The default row has no icon element, so it's drawn with
-        // a ::before (compass-icons magnify glyph).
+        // 32px inset (the .modal-header gutter, so the search lines up with the
+        // title above it), same 12px top offset, same bordered input with an
+        // inset magnify icon. The default row has no icon element, so it's drawn
+        // with a ::before (compass-icons magnify glyph).
         .filter-row {
-            padding: 0 16px;
+            padding: 0 32px;
             margin: 12px 0 10px;
         }
 
@@ -27,8 +28,12 @@
         .filter-row .col-xs-12 {
             position: relative;
 
+            // z-index lifts the glyph above the input, whose opaque
+            // background would otherwise paint over it and leave the 38px
+            // padding below looking like unexplained blank space.
             &::before {
                 position: absolute;
+                z-index: 1;
                 top: 50%;
                 left: 12px;
                 color: rgba(var(--center-channel-color-rgb), 0.56);
@@ -54,29 +59,26 @@
         }
     }
 
-    // The back button sits in the header's left padding gutter (absolute) so
-    // the title text stays at the same x-position as the channel-picker step's
-    // title — no horizontal jump when switching steps.
+    // The back button leads the title in normal flow, so it starts at the
+    // .modal-header gutter (32px) like every other element in the modal. Pulling
+    // it out of flow into that gutter instead would keep the title at the same
+    // x-position across steps, but the gutter is only as wide as the button plus
+    // its gap, leaving the arrow flush against the modal edge.
     &__title {
-        position: relative;
         display: flex;
         align-items: center;
+        gap: 8px;
     }
 
     &__back {
-        position: absolute;
-        top: 50%;
-        right: 100%;
         display: inline-flex;
         align-items: center;
         justify-content: center;
         padding: 0;
         border: none;
-        margin-right: 8px;
         background: transparent;
         color: rgba(var(--center-channel-color-rgb), 0.75);
         cursor: pointer;
-        transform: translateY(-50%);
 
         &:hover {
             color: var(--center-channel-color);
@@ -99,11 +101,11 @@
     flex-direction: column;
 
     // Matched to the members-step search (see .GenericModal__body .filter-row):
-    // same 16px inset, 12px top, bordered input with an inset magnify icon.
+    // same 32px inset, 12px top, bordered input with an inset magnify icon.
     &__search {
         position: relative;
         flex: 0 0 auto;
-        margin: 12px 16px 10px;
+        margin: 12px 32px 10px;
 
         .icon-magnify {
             position: absolute;
@@ -147,7 +149,9 @@
         display: flex;
         width: 100%;
         align-items: center;
-        padding: 8px 16px;
+
+        // 32px matches .more-modal__row, the members step's list row.
+        padding: 8px 32px;
         border: none;
         background: transparent;
         cursor: pointer;

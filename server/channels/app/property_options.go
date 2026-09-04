@@ -108,7 +108,7 @@ func (a *App) DeletePropertyFieldOptions(rctx request.CTX, field *model.Property
 // cannot read back a cache entry the event was announcing the end of. This is the
 // ordering the field write path uses, for the same reason.
 func (a *App) propertyFieldOptionsChanged(rctx request.CTX, field *model.PropertyField, connectionID string) {
-	current, dependents, err := a.Srv().propertyService.FieldWithDependents(field)
+	current, dependents, err := a.Srv().propertyService.FieldWithDependents(rctx, field)
 	if err != nil {
 		// The field the change named is still invalidated, from the caller's copy:
 		// dropping a cache entry that did not need dropping costs a recompile,
@@ -123,12 +123,27 @@ func (a *App) propertyFieldOptionsChanged(rctx request.CTX, field *model.Propert
 			mlog.Err(err),
 		)
 		a.invalidatePolicyCachesForOptionChange(rctx, field.ID)
+		// Unconditional, unlike the success path below, which can see whether any
+		// field involved is one the AttributeView materializes. Here nothing can:
+		// a template carries object type "template" and its user-scoped dependents
+		// are exactly what could not be read, so testing the caller's copy would
+		// skip the invalidation in the case most likely to need it. The cost of
+		// invalidating when nothing was affected is one matview refresh.
+		a.invalidateAllUserAttributeCaches()
 		return
 	}
 
 	a.invalidatePolicyCachesForOptionChange(rctx, current.ID)
 	for _, dependent := range dependents {
 		a.invalidatePolicyCachesForOptionChange(rctx, dependent.ID)
+	}
+
+	// The matview resolves an object's stored option IDs to names through
+	// PropertyOptions, so an option write changes what every subject resolves to
+	// without touching a single PropertyValues row -- which is what the per-user
+	// epoch is computed from, so it cannot see this on its own.
+	if current.ObjectType == model.PropertyFieldObjectTypeUser || anyUserObjectType(dependents) {
+		a.invalidateAllUserAttributeCaches()
 	}
 
 	a.publishPropertyFieldEvent(rctx, model.WebsocketEventPropertyFieldUpdated, current, connectionID)

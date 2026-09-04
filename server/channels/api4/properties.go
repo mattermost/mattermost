@@ -24,7 +24,9 @@ func (api *API) InitProperties() {
 	if api.srv.Config().FeatureFlags.IntegratedBoards ||
 		api.srv.Config().FeatureFlags.ManagedChannelCategories ||
 		api.srv.Config().FeatureFlags.ClassificationMarkings ||
-		api.srv.Config().FeatureFlags.SessionAttributes {
+		api.srv.Config().FeatureFlags.SessionAttributes ||
+		api.srv.Config().FeatureFlags.PostAttributes ||
+		api.srv.Config().FeatureFlags.ChannelAttributes {
 		api.BaseRoutes.PropertyFields.Handle("", api.APISessionRequired(getPropertyFields)).Methods(http.MethodGet)
 		api.BaseRoutes.PropertyFieldsSearch.Handle("", api.APISessionRequired(searchPropertyFields)).Methods(http.MethodPost)
 		api.BaseRoutes.PropertyValues.Handle("", api.APISessionRequired(getPropertyValues)).Methods(http.MethodGet)
@@ -1028,8 +1030,7 @@ func hasTargetAccess(c *Context, objectType, targetID string, write bool) bool {
 // caller who holds nothing and is shown nothing. That fails closed, which is
 // correct, but it is also the exact answer a legitimate caller who shares
 // nothing with the target gets, so a handler that forgets looks like masking
-// doing its job and nothing anywhere says otherwise. The properties read
-// handlers shipped that way.
+// doing its job and nothing anywhere says otherwise.
 //
 // There is no structural guard, and there is deliberately no log either: the
 // property service cannot tell a request that forgot to tag itself from a

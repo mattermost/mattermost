@@ -89,7 +89,7 @@ func (api *PluginAPI) UnregisterCommand(teamID, trigger string) error {
 }
 
 func (api *PluginAPI) ExecuteSlashCommand(commandArgs *model.CommandArgs) (*model.CommandResponse, error) {
-	user, appErr := api.app.GetUser(commandArgs.UserId)
+	user, appErr := api.app.GetUser(api.ctx, commandArgs.UserId)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -266,7 +266,7 @@ func (api *PluginAPI) CreateUser(user *model.User) (*model.User, *model.AppError
 }
 
 func (api *PluginAPI) DeleteUser(userID string) *model.AppError {
-	user, err := api.app.GetUser(userID)
+	user, err := api.app.GetUser(api.ctx, userID)
 	if err != nil {
 		return err
 	}
@@ -283,7 +283,7 @@ func (api *PluginAPI) GetUsersByIds(usersID []string) ([]*model.User, *model.App
 }
 
 func (api *PluginAPI) GetUser(userID string) (*model.User, *model.AppError) {
-	return api.app.GetUser(userID)
+	return api.app.GetUser(api.ctx, userID)
 }
 
 func (api *PluginAPI) GetUserByEmail(email string) (*model.User, *model.AppError) {
@@ -420,7 +420,7 @@ func (api *PluginAPI) RemoveUserCustomStatus(userID string) *model.AppError {
 }
 
 func (api *PluginAPI) GetUserCustomStatus(userID string) (*model.CustomStatus, *model.AppError) {
-	return api.app.GetCustomStatus(userID)
+	return api.app.GetCustomStatus(api.ctx, userID)
 }
 
 func (api *PluginAPI) GetUsersInChannel(channelID, sortBy string, page, perPage int) ([]*model.User, *model.AppError) {
@@ -447,7 +447,7 @@ func (api *PluginAPI) GetLDAPUserAttributes(userID string, attributes []string) 
 		return nil, model.NewAppError("GetLdapUserAttributes", "ent.ldap.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	user, err := api.app.GetUser(userID)
+	user, err := api.app.GetUser(api.ctx, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -1014,7 +1014,7 @@ func (api *PluginAPI) UpdatePost(post *model.Post) (*model.Post, *model.AppError
 }
 
 func (api *PluginAPI) GetProfileImage(userID string) ([]byte, *model.AppError) {
-	user, err := api.app.GetUser(userID)
+	user, err := api.app.GetUser(api.ctx, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -1024,7 +1024,7 @@ func (api *PluginAPI) GetProfileImage(userID string) ([]byte, *model.AppError) {
 }
 
 func (api *PluginAPI) SetProfileImage(userID string, data []byte) *model.AppError {
-	if _, err := api.app.GetUser(userID); err != nil {
+	if _, err := api.app.GetUser(api.ctx, userID); err != nil {
 		return err
 	}
 
@@ -1248,7 +1248,7 @@ func (api *PluginAPI) SendToastMessage(userID, connectionID, message string, opt
 }
 
 func (api *PluginAPI) HasPermissionTo(userID string, permission *model.Permission) bool {
-	return api.app.HasPermissionTo(userID, permission)
+	return api.app.HasPermissionTo(api.ctx, userID, permission)
 }
 
 func (api *PluginAPI) HasPermissionToTeam(userID, teamID string, permission *model.Permission) bool {
@@ -1291,7 +1291,7 @@ func (api *PluginAPI) CreateBot(bot *model.Bot) (*model.Bot, *model.AppError) {
 		bot.OwnerId = api.id
 	}
 	// Bots cannot be owners of other bots
-	if user, err := api.app.GetUser(bot.OwnerId); err == nil {
+	if user, err := api.app.GetUser(api.ctx, bot.OwnerId); err == nil {
 		if user.IsBot {
 			return nil, model.NewAppError("CreateBot", "plugin_api.bot_cant_create_bot", nil, "", http.StatusBadRequest)
 		}
@@ -1557,7 +1557,7 @@ func (api *PluginAPI) RequestTrialLicense(requesterID string, users int, termsAc
 		return model.NewAppError("RequestTrialLicense", "api.restricted_system_admin", nil, "", http.StatusForbidden)
 	}
 
-	return api.app.Channels().RequestTrialLicense(requesterID, users, termsAccepted, receiveEmailsAccepted)
+	return api.app.Channels().RequestTrialLicense(api.ctx, requesterID, users, termsAccepted, receiveEmailsAccepted)
 }
 
 // GetCloudLimits returns any limits associated with the cloud instance
@@ -1786,22 +1786,14 @@ func (api *PluginAPI) CountPropertyFieldsForTarget(groupID, targetType, targetID
 	return count, nil
 }
 
-// propertyFieldForOptions reads the field an option call names, as the caller
-// is allowed to see it. What the caller may then do with its options is decided
-// against the field as the store has it, by the property service.
-func (api *PluginAPI) propertyFieldForOptions(rctx request.CTX, groupID, fieldID string) (*model.PropertyField, error) {
+func (api *PluginAPI) GetPropertyFieldOptions(groupID, fieldID string, cursorCreateAt int64, cursorID string, perPage int) ([]*model.PropertyFieldOption, error) {
+	rctx := api.psaPluginContext()
+	// The field read here is the field as the caller may see it. What the caller may
+	// then do with its options is decided against the field as the store has it, by
+	// the property service.
 	field, appErr := api.app.GetPropertyField(rctx, groupID, fieldID)
 	if appErr != nil {
 		return nil, appErr
-	}
-	return field, nil
-}
-
-func (api *PluginAPI) GetPropertyFieldOptions(groupID, fieldID string, cursorCreateAt int64, cursorID string, perPage int) ([]*model.PropertyFieldOption, error) {
-	rctx := api.psaPluginContext()
-	field, err := api.propertyFieldForOptions(rctx, groupID, fieldID)
-	if err != nil {
-		return nil, err
 	}
 
 	options, appErr := api.app.GetPropertyFieldOptions(rctx, field, cursorCreateAt, cursorID, perPage)
@@ -1813,9 +1805,9 @@ func (api *PluginAPI) GetPropertyFieldOptions(groupID, fieldID string, cursorCre
 
 func (api *PluginAPI) CreatePropertyFieldOptions(groupID, fieldID string, options []*model.PropertyFieldOption) ([]*model.PropertyFieldOption, error) {
 	rctx := api.psaPluginContext()
-	field, err := api.propertyFieldForOptions(rctx, groupID, fieldID)
-	if err != nil {
-		return nil, err
+	field, appErr := api.app.GetPropertyField(rctx, groupID, fieldID)
+	if appErr != nil {
+		return nil, appErr
 	}
 
 	// No connection to exclude from the event a change publishes: a plugin is not
@@ -1829,9 +1821,9 @@ func (api *PluginAPI) CreatePropertyFieldOptions(groupID, fieldID string, option
 
 func (api *PluginAPI) UpdatePropertyFieldOptions(groupID, fieldID string, options []*model.PropertyFieldOption) ([]*model.PropertyFieldOption, error) {
 	rctx := api.psaPluginContext()
-	field, err := api.propertyFieldForOptions(rctx, groupID, fieldID)
-	if err != nil {
-		return nil, err
+	field, appErr := api.app.GetPropertyField(rctx, groupID, fieldID)
+	if appErr != nil {
+		return nil, appErr
 	}
 
 	// The options as they stood are dropped: they exist for the audit record the
@@ -1845,9 +1837,9 @@ func (api *PluginAPI) UpdatePropertyFieldOptions(groupID, fieldID string, option
 
 func (api *PluginAPI) DeletePropertyFieldOptions(groupID, fieldID string, optionIDs []string) error {
 	rctx := api.psaPluginContext()
-	field, err := api.propertyFieldForOptions(rctx, groupID, fieldID)
-	if err != nil {
-		return err
+	field, appErr := api.app.GetPropertyField(rctx, groupID, fieldID)
+	if appErr != nil {
+		return appErr
 	}
 
 	if _, appErr := api.app.DeletePropertyFieldOptions(rctx, field, optionIDs, ""); appErr != nil {
@@ -1988,6 +1980,38 @@ func (api *PluginAPI) DeletePropertyValuesForField(groupID, fieldID string) erro
 		return appErr
 	}
 	return nil
+}
+
+func (api *PluginAPI) EvaluateAccessControl(userID, resourceType, resourceID, action string) (*model.AccessDecision, *model.AppError) {
+	return api.app.EvaluatePluginAccessRequest(api.ctx, api.id, userID, resourceType, resourceID, action)
+}
+
+func (api *PluginAPI) SaveAccessControlPolicy(actingUserID string, policy *model.AccessControlPolicy) (*model.AccessControlPolicy, *model.AppError) {
+	return api.app.SavePluginAccessControlPolicy(api.ctx, api.id, actingUserID, policy)
+}
+
+func (api *PluginAPI) GetAccessControlPolicy(id string) (*model.AccessControlPolicy, *model.AppError) {
+	return api.app.GetPluginAccessControlPolicy(api.ctx, api.id, id)
+}
+
+func (api *PluginAPI) DeleteAccessControlPolicy(actingUserID, resourceType, id string) *model.AppError {
+	return api.app.DeletePluginAccessControlPolicy(api.ctx, api.id, actingUserID, resourceType, id)
+}
+
+func (api *PluginAPI) CheckAccessControlExpression(actingUserID, resourceType, expression string) ([]model.CELExpressionError, *model.AppError) {
+	return api.app.CheckPluginAccessControlExpression(api.ctx, api.id, actingUserID, resourceType, expression)
+}
+
+func (api *PluginAPI) QueryUsersForAccessControlExpression(actingUserID, resourceType, expression, term, cursorID string, limit int) (*model.AccessControlPolicyTestResponse, *model.AppError) {
+	return api.app.QueryUsersForPluginAccessControlExpression(api.ctx, api.id, actingUserID, resourceType, expression, term, cursorID, limit)
+}
+
+func (api *PluginAPI) GetAccessControlFieldsAutocomplete(actingUserID, after string, limit int) ([]*model.PropertyField, *model.AppError) {
+	return api.app.GetPluginAccessControlFieldsAutocomplete(api.ctx, api.id, actingUserID, after, limit)
+}
+
+func (api *PluginAPI) GetAccessControlVisualAST(actingUserID, resourceType, expression string) (*model.VisualExpression, *model.AppError) {
+	return api.app.GetPluginAccessControlVisualAST(api.ctx, api.id, actingUserID, resourceType, expression)
 }
 
 func (api *PluginAPI) UpsertPropertyValuesWithOptions(values []*model.PropertyValue, options model.PropertyRequestOptions) ([]*model.PropertyValue, error) {

@@ -397,10 +397,7 @@ describe('components/AdminSidebar', () => {
                     Secret: 'office365Secret',
                     Scope: 'scope',
                 } as Office365Settings,
-                FeatureFlags: {
-                    CustomProfileAttributes: true,
-                    CloudDedicatedExportUI: true,
-                },
+                FeatureFlags: {},
             },
             adminDefinition: AdminDefinition,
             buildEnterpriseReady: true,
@@ -530,10 +527,7 @@ describe('components/AdminSidebar', () => {
                     Secret: 'office365Secret',
                     Scope: 'scope',
                 } as Office365Settings,
-                FeatureFlags: {
-                    CustomProfileAttributes: true,
-                    CloudDedicatedExportUI: true,
-                },
+                FeatureFlags: {},
             },
             adminDefinition: AdminDefinition,
             buildEnterpriseReady: true,

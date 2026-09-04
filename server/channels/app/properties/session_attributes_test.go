@@ -15,7 +15,6 @@ func TestSessionAttributesHook(t *testing.T) {
 	th := Setup(t)
 	group := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV2)
 	th.service.AddHook(NewSessionAttributesHook(th.service, group.ID))
-
 	systemCallerContext := RequestContextWithCallerID(th.Context, model.CallerIDSessionAttributesSystem)
 
 	createField := func() *model.PropertyField {

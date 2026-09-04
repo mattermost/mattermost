@@ -100,11 +100,11 @@ func maskingContextFromRequest(rctx request.CTX) maskingContext {
 // resolve returns the masking that applies to field and where its holdings
 // live, computing it once per field ID for the lifetime of the
 // maskingContext.
-func (c maskingContext) resolve(h *AccessControlHook, field *model.PropertyField) (fieldMasking, error) {
+func (c maskingContext) resolve(h *AccessControlHook, rctx request.CTX, field *model.PropertyField) (fieldMasking, error) {
 	if fm, ok := c.fieldMasking[field.ID]; ok {
 		return fm, nil
 	}
-	fm, err := h.resolveFieldMasking(field)
+	fm, err := h.resolveFieldMasking(rctx, field)
 	if err != nil {
 		return fieldMasking{}, err
 	}
@@ -147,10 +147,10 @@ func (c maskingContext) callerOptionIDsForHoldings(h *AccessControlHook, groupID
 // resolveFieldMasking answers what masks field and where the caller's
 // holdings for it are read from. An unmasked field resolves to a zero
 // fieldMasking (masking is nil).
-func (h *AccessControlHook) resolveFieldMasking(field *model.PropertyField) (fieldMasking, error) {
+func (h *AccessControlHook) resolveFieldMasking(rctx request.CTX, field *model.PropertyField) (fieldMasking, error) {
 	target := field
 	if field.LinkedFieldID != nil && *field.LinkedFieldID != "" {
-		template, err := h.propertyService.getPropertyField(field.GroupID, *field.LinkedFieldID)
+		template, err := h.propertyService.getPropertyField(rctx, field.GroupID, *field.LinkedFieldID)
 		if err != nil {
 			return fieldMasking{}, errors.Wrapf(err, "failed to resolve masking template %q for field %q", *field.LinkedFieldID, field.ID)
 		}
@@ -195,7 +195,7 @@ func (h *AccessControlHook) resolveFieldMasking(field *model.PropertyField) (fie
 // machine and not a real user ID, so it is only exempt when except names it
 // explicitly as a user entry -- masking does not inherit the ladder's
 // local-admin bypass.
-func (h *AccessControlHook) exempt(except []model.Identity, callerID string) bool {
+func (h *AccessControlHook) exempt(rctx request.CTX, except []model.Identity, callerID string) bool {
 	if callerID == "" || len(except) == 0 {
 		return false
 	}
@@ -226,7 +226,7 @@ func (h *AccessControlHook) exempt(except []model.Identity, callerID string) boo
 	if !hasRoleEntry || h.roleLister == nil {
 		return false
 	}
-	for _, role := range h.roleLister(callerID) {
+	for _, role := range h.roleLister(rctx, callerID) {
 		for _, id := range except {
 			if id.Type == model.PropertyOwnerTypeRole && id.ID == role {
 				return true
@@ -278,7 +278,7 @@ func logMaskingFailure(rctx request.CTX, field *model.PropertyField, value *mode
 // maskOptionValue answers select, multiselect, rank and graph alike: the
 // value the caller may see is the value's own option IDs narrowed to the
 // ones visibleOptionIDs reports true for -- exact membership for select,
-// multiselect and rank, coveredBy for graph, the same rule the two
+// multiselect and rank, CoveredBy for graph, the same rule the two
 // option-list filters (maskFieldOptions, filterMaskedOptionPage) already use.
 // select and rank hold at most one option, so the narrowed set has at most
 // one element; multiselect's and graph's may have several. A caller holding
@@ -332,11 +332,11 @@ func (h *AccessControlHook) maskOptionValue(rctx request.CTX, c maskingContext, 
 }
 
 // visibleOptionIDs answers, for a field already known to carry masking, which
-// of candidateOptionIDs callerID may see: a graph field asks coveredBy -- one
+// of candidateOptionIDs callerID may see: a graph field asks CoveredBy -- one
 // of the caller's own held options is at-or-above the candidate -- and every
 // other option-supporting type asks exact membership in what the caller
 // holds, the same holdings maskOptionValue checks a value's own options
-// against. A caller holding nothing sees nothing, without asking coveredBy at
+// against. A caller holding nothing sees nothing, without asking CoveredBy at
 // all.
 func (c maskingContext) visibleOptionIDs(h *AccessControlHook, rctx request.CTX, field *model.PropertyField, fm fieldMasking, candidateOptionIDs []string, callerID string) (map[string]bool, error) {
 	callerOptionIDs, err := c.callerOptionIDsForHoldings(h, field.GroupID, fm.holdingsFieldID, callerID, field.Type)
@@ -348,7 +348,7 @@ func (c maskingContext) visibleOptionIDs(h *AccessControlHook, rctx request.CTX,
 	}
 
 	if field.Type == model.PropertyFieldTypeGraph {
-		return h.propertyService.coveredBy(rctx, field, candidateOptionIDs, slices.Collect(maps.Keys(callerOptionIDs)))
+		return h.propertyService.CoveredBy(rctx, field, candidateOptionIDs, slices.Collect(maps.Keys(callerOptionIDs)))
 	}
 
 	visible := make(map[string]bool, len(candidateOptionIDs))
@@ -378,9 +378,7 @@ func (h *AccessControlHook) maskFieldOptions(rctx request.CTX, c maskingContext,
 	// field as-is would hand an unentitled caller the option count, which on a
 	// masked field is itself controlled information.
 	if model.PropertyFieldOptionsOmitted(field.Attrs) {
-		filteredField := h.copyPropertyField(field)
-		filteredField.HideOptions()
-		return filteredField
+		return h.hiddenOptionsFieldCopy(field)
 	}
 
 	if field.Attrs == nil {
@@ -402,9 +400,7 @@ func (h *AccessControlHook) maskFieldOptions(rctx request.CTX, c maskingContext,
 			mlog.String("field_id", field.ID),
 			mlog.Err(err),
 		)
-		filteredField := h.copyPropertyField(field)
-		filteredField.HideOptions()
-		return filteredField
+		return h.hiddenOptionsFieldCopy(field)
 	}
 
 	filteredOptions := []any{}
@@ -553,11 +549,11 @@ func (c maskingContext) primeStoredValue(fieldID, targetID string, value *model.
 // can only refuse a write the gate would otherwise allow, never grant one it
 // denied.
 func (h *AccessControlHook) checkValueWriteVisibility(rctx request.CTX, mc maskingContext, field *model.PropertyField, callerID, valueTargetID string) error {
-	fm, err := mc.resolve(h, field)
+	fm, err := mc.resolve(h, rctx, field)
 	if err != nil {
 		return err
 	}
-	if fm.masking == nil || h.exempt(fm.masking.Except, callerID) {
+	if fm.masking == nil || h.exempt(rctx, fm.masking.Except, callerID) {
 		return nil
 	}
 

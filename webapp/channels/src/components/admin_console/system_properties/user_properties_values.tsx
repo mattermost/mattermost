@@ -11,10 +11,12 @@ import type {CreatableProps} from 'react-select/creatable';
 import CreatableSelect from 'react-select/creatable';
 
 import {SyncIcon, PowerPlugOutlineIcon} from '@mattermost/compass-icons/components';
-import {supportsOptions, type PropertyFieldOption} from '@mattermost/types/properties';
+import {supportsOptions, valueRefersToOptions, type PropertyFieldOption} from '@mattermost/types/properties';
 import {type UserPropertyField} from '@mattermost/types/properties_user';
 
 import {getPluginDisplayName} from 'selectors/plugins';
+
+import {useIsFieldOrphaned} from 'components/common/hooks/use_field_orphaned';
 
 import Constants from 'utils/constants';
 import {isKeyPressed} from 'utils/keyboard';
@@ -22,7 +24,6 @@ import {isKeyPressed} from 'utils/keyboard';
 import type {GlobalState} from 'types/store';
 
 import {DangerText} from './controls';
-import {useIsFieldOrphaned} from './orphaned_fields_utils';
 import './user_properties_values.scss';
 import {useAttributeLinkModal} from './user_properties_dot_menu';
 import UserPropertyRankValues from './user_properties_rank_values';
@@ -238,7 +239,7 @@ const UserPropertyValues = ({
     // which a graph field whose options the server withheld could not meet.
     const isGraph = field.type === 'graph';
 
-    if (!supportsOptions(field) && !isGraph) {
+    if (!valueRefersToOptions(field)) {
         return (
             <span className='user-property-field-values'>
                 {'-'}

@@ -45,23 +45,6 @@ var propertyOptionEdgeColumns = []string{"FieldID", "ChildOptionID", "ParentOpti
 // worth avoiding on its own account.
 const maxOptionIDsPerQuery = 10000
 
-// MutateOptionEdges changes one graph field's hierarchy without touching the
-// options themselves: the parent links to remove and the parent links to add,
-// applied together. A caller that gets an error changed nothing.
-//
-// An edge that is already there is not added again and an edge that is not there
-// is not removed, so a caller asserting what an option's parents should be does
-// not have to work out which of them are new. An edge in both lists ends up
-// present: the removals are applied first.
-//
-// This is the hierarchy-only case of MutateOptions, whose documentation covers
-// the compare-and-swap on the field's UpdateAt, what the structural checks are,
-// and what is deliberately not checked. Both endpoints of an added edge have to
-// be options the field already owns, since this change creates none.
-func (s *SqlPropertyFieldStore) MutateOptionEdges(groupID, fieldID string, expectedUpdateAt int64, add, remove []*model.PropertyOptionEdge) error {
-	return s.MutateOptions(groupID, fieldID, expectedUpdateAt, nil, add, remove)
-}
-
 // bumpFieldForOptionChange marks a field as changed because something about its
 // options changed, and refuses to do so if the row no longer carries the UpdateAt
 // the caller read.
@@ -174,9 +157,12 @@ func (s *SqlPropertyFieldStore) GetOptionParentEdges(fieldID string, childOption
 	return s.optionParentEdges(s.GetMaster(), fieldID, childOptionIDs)
 }
 
-// optionParentEdges is GetOptionParentEdges against a given connection, for the
-// one caller that asks inside the transaction it is about to write in and so must
-// see that transaction's own uncommitted work.
+// optionParentEdges is GetOptionParentEdges against a given connection. The
+// caller picks the connection because it is the one that knows whether the
+// answer has to include its own uncommitted work (applyOptionParentLinks, inside
+// the transaction it is about to write in), has to match the master
+// (GetOptionsByID), or may lag (GetFieldOptions, reading a page from a
+// replica).
 func (s *SqlPropertyFieldStore) optionParentEdges(db sqlxExecutor, fieldID string, childOptionIDs []string) ([]*model.PropertyOptionEdge, error) {
 	if len(childOptionIDs) == 0 {
 		return nil, nil
@@ -417,9 +403,13 @@ func (s *SqlPropertyFieldStore) requireOwnedOptions(db sqlxExecutor, fieldID str
 	if err != nil {
 		return err
 	}
+	existingSet := make(map[string]bool, len(existing))
+	for _, id := range existing {
+		existingSet[id] = true
+	}
 
 	for _, optionID := range optionIDs {
-		if !slices.Contains(existing, optionID) {
+		if !existingSet[optionID] {
 			return store.NewErrInvalidInput("PropertyOptionEdge", "option_id", optionID).
 				Wrap(errors.Errorf("field %s has no live option %s of its own", fieldID, optionID))
 		}
@@ -440,16 +430,21 @@ func (s *SqlPropertyFieldStore) deletePropertyOptionEdgesForOptions(transaction 
 		return nil
 	}
 
-	builder := s.getQueryBuilder().
-		Delete("PropertyOptionEdges").
-		Where(sq.Eq{"FieldID": fieldID}).
-		Where(sq.Or{
-			sq.Eq{"ChildOptionID": optionIDs},
-			sq.Eq{"ParentOptionID": optionIDs},
-		})
+	// Each option ID is bound twice (child and parent) plus FieldID once, so the
+	// chunk has to stay under half of maxOptionIDsPerQuery.
+	chunkSize := (maxOptionIDsPerQuery - 1) / 2
+	for batch := range slices.Chunk(optionIDs, chunkSize) {
+		builder := s.getQueryBuilder().
+			Delete("PropertyOptionEdges").
+			Where(sq.Eq{"FieldID": fieldID}).
+			Where(sq.Or{
+				sq.Eq{"ChildOptionID": batch},
+				sq.Eq{"ParentOptionID": batch},
+			})
 
-	if _, err := transaction.ExecBuilder(builder); err != nil {
-		return errors.Wrap(err, "property_option_edges_delete_for_options_exec")
+		if _, err := transaction.ExecBuilder(builder); err != nil {
+			return errors.Wrap(err, "property_option_edges_delete_for_options_exec")
+		}
 	}
 	return nil
 }

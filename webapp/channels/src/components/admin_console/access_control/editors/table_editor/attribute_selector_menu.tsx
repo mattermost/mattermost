@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import type {ComponentType} from 'react';
 import React, {useMemo, useState, useEffect, useCallback, useRef} from 'react';
 import {useIntl} from 'react-intl';
 
@@ -17,9 +16,6 @@ import {
     InformationOutlineIcon,
     SyncIcon,
     ShieldAlertOutlineIcon,
-    MonitorIcon,
-    CellphoneIcon,
-    GlobeIcon,
     SortAscendingIcon,
     SitemapIcon,
 } from '@mattermost/compass-icons/components';
@@ -28,6 +24,8 @@ import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
 import {isSessionAttributeField} from '@mattermost/types/properties_user';
 
+import {PLATFORM_ICONS, platformLabels} from 'components/admin_console/session_attributes/platform_icons';
+import {getSessionAttrs} from 'components/admin_console/session_attributes/utils';
 import * as Menu from 'components/menu';
 
 import {getUserPropertyFieldLabel} from 'utils/properties';
@@ -79,12 +77,6 @@ export const AttributeIcon = (props: IconProps & {attribute?: UserPropertyField}
         }
     }
     return <MenuVariantIcon {...iconProps}/>;
-};
-
-const PLATFORM_ICONS: Record<string, ComponentType<IconProps>> = {
-    desktop: MonitorIcon,
-    mobile: CellphoneIcon,
-    browser: GlobeIcon,
 };
 
 interface AttributeSelectorProps {
@@ -183,7 +175,7 @@ const AttributeSelectorMenu = ({currentAttribute, currentAttributeObjectType, av
         const isSynced = option.attrs?.ldap || option.attrs?.saml;
         const allowed = isSessionAttribute || isNative || hasControlledAttributeValues(option) || enableUserManagedAttributes;
 
-        const platforms = isSessionAttribute ? (option.attrs?.platforms ?? []) : [];
+        const platforms = isSessionAttribute ? getSessionAttrs(option).platforms : [];
 
         const menuItem = (
             <Menu.Item
@@ -212,13 +204,24 @@ const AttributeSelectorMenu = ({currentAttribute, currentAttributeObjectType, av
                     <>
                         {platforms.map((platform) => {
                             const PlatformIcon = PLATFORM_ICONS[platform];
-                            return PlatformIcon ? (
-                                <PlatformIcon
+                            if (!PlatformIcon) {
+                                return null;
+                            }
+                            const platformLabel = formatMessage(platformLabels[platform]);
+                            return (
+                                <WithTooltip
                                     key={platform}
-                                    size={16}
-                                    color='var(--button-bg)'
-                                />
-                            ) : null;
+                                    title={platformLabel}
+                                >
+                                    <span className='attribute-selector-platform-icon'>
+                                        <PlatformIcon
+                                            size={16}
+                                            color='var(--button-bg)'
+                                            aria-label={platformLabel}
+                                        />
+                                    </span>
+                                </WithTooltip>
+                            );
                         })}
                         {hasSpaces && (
                             <InformationOutlineIcon
@@ -291,7 +294,9 @@ const AttributeSelectorMenu = ({currentAttribute, currentAttributeObjectType, av
                 children: (
                     <>
                         <AttributeIcon attribute={selectedAttributeObject}/>
-                        {selectedAttributeLabel}
+                        <WithTooltip title={selectedAttributeLabel}>
+                            <span className='field-selector-menu-button__label'>{selectedAttributeLabel}</span>
+                        </WithTooltip>
                     </>
                 ),
                 dataTestId: 'attributeSelectorMenuButton',

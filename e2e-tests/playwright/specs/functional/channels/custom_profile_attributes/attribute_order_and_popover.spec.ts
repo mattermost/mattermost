@@ -22,7 +22,6 @@ test(
     async ({pw}) => {
         await pw.ensureLicense();
         await pw.skipIfNoLicense();
-        await pw.skipIfFeatureFlagNotSet('CustomProfileAttributes', true);
         const {adminClient, team, user, userClient} = await pw.initSetup();
         const suffix = pw.random.id();
         const labels = [`First ${suffix}`, `Second ${suffix}`, `Third ${suffix}`];
@@ -64,7 +63,6 @@ test(
     async ({pw}) => {
         await pw.ensureLicense();
         await pw.skipIfNoLicense();
-        await pw.skipIfFeatureFlagNotSet('CustomProfileAttributes', true);
         const {adminClient, team, user, userClient} = await pw.initSetup();
         const suffix = pw.random.id();
         const attributes: CustomProfileAttribute[] = Array.from({length: 10}, (_, index) => ({

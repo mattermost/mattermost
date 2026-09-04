@@ -119,7 +119,13 @@ function PermissionPolicyDetails({
     sessionAttributesEnabled,
 }: PermissionPolicyDetailsProps): JSX.Element {
     const [policyName, setPolicyName] = useState(policy?.name || '');
-    const [expression, setExpression] = useState(policy?.rules?.[0]?.expression || '');
+
+    // Not seeded from `policy`: the list leaves the search endpoint's copy in the
+    // store, and search returns rules in their stored form — a rank comparison is
+    // stored desugared as `_rank_ge(...)`, which /cel/visual_ast rejects, so the
+    // editor would fire a doomed parse on mount. fetchPolicy below is the only
+    // source; it also sets the name, role and permissions seeded here.
+    const [expression, setExpression] = useState('');
     const [selectedRole, setSelectedRole] = useState(policy?.roles?.[0] || 'system_user');
     const [selectedPermissions, setSelectedPermissions] = useState<string[]>(
         getPermissionActions(policy?.rules || []),
@@ -132,6 +138,7 @@ function PermissionPolicyDetails({
     const [attributesLoaded, setAttributesLoaded] = useState(false);
     const [showDeleteConfirmationModal, setShowDeleteConfirmationModal] = useState(false);
     const [pageLoaded, setPageLoaded] = useState(false);
+    const [loadFailed, setLoadFailed] = useState(false);
     const [showTest, setShowTest] = useState(false);
 
     const {formatMessage} = useIntl();
@@ -181,6 +188,8 @@ function PermissionPolicyDetails({
     // are recognized as simple and open in table mode.
 
     const loadPage = async (): Promise<void> => {
+        setLoadFailed(false);
+
         // Permission policies can reference resource.attributes.* (the accessed
         // channel), so request channel fields too.
         const fieldsPromise = abacActions.getAccessControlFields('', 100, true).then((result) => {
@@ -193,6 +202,7 @@ function PermissionPolicyDetails({
         if (policyId) {
             const policyPromise = actions.fetchPolicy(policyId).then((result: ActionResult) => {
                 if (result.error) {
+                    setLoadFailed(true);
                     setServerError(result.error.message || formatMessage({
                         id: 'admin.permission_policies.edit.error.load',
                         defaultMessage: 'Failed to load policy',
@@ -337,7 +347,23 @@ function PermissionPolicyDetails({
                     />
                 </div>
             </AdminHeader>
-            {pageLoaded ? (
+            {pageLoaded && loadFailed && (
+                <div className='admin-console__wrapper'>
+                    <div className='admin-console__content'>
+                        <div className='admin-console__warning-notice'>
+                            <SectionNotice
+                                type='danger'
+                                title={formatMessage({
+                                    id: 'admin.permission_policies.edit.error.load',
+                                    defaultMessage: 'Failed to load policy',
+                                })}
+                                text={serverError}
+                            />
+                        </div>
+                    </div>
+                </div>
+            )}
+            {pageLoaded && !loadFailed && (
                 <>
                     <div className='admin-console__wrapper'>
                         <div className='admin-console__content'>
@@ -854,7 +880,8 @@ function PermissionPolicyDetails({
                         )}
                     </div>
                 </>
-            ) : (
+            )}
+            {!pageLoaded && (
                 <div className='admin-console__wrapper'>
                     <div className='admin-console__content'/>
                 </div>

@@ -27,8 +27,7 @@ type SqlAttributesStore struct {
 // attributeViewsByObjectType is the single source of truth for the
 // object-type-to-materialized-view mapping: both the per-type lookup and the
 // refresh sweep read it, so adding an object type cannot leave a new view
-// perpetually stale. The view is per-object-type (migration 000212) so a
-// refresh of one type's attributes doesn't recompute the others.
+// perpetually stale.
 var attributeViewsByObjectType = map[string]string{
 	model.PropertyFieldObjectTypeChannel: "ChannelAttributeView",
 	model.PropertyFieldObjectTypeUser:    "UserAttributeView",
@@ -86,7 +85,7 @@ func newSqlAttributesStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterf
 }
 
 func (s *SqlAttributesStore) RefreshAttributes() error {
-	// Both per-object-type views (migration 000212) refresh on one cadence, so a
+	// Both per-object-type views (migration 000216) refresh on one cadence, so a
 	// caller does not have to know which object types it is about to read. They
 	// refresh in separate statements, though, so this is not an atomic snapshot:
 	// a read straddling a refresh can see the two views a generation apart. Every
@@ -279,6 +278,36 @@ func (s *SqlAttributesStore) GetChannelMembersToRemove(rctx request.CTX, channel
 
 	return members, nil
 }
+
+// Count folded in alongside the max to catch soft deletes: dropping a value that isn't the most
+// recently updated leaves MAX(UpdateAt) unchanged, and the stale ETag would keep matching.
+func (s *SqlAttributesStore) GetUserPropertyValuesEpoch(rctx request.CTX, userID string) (string, error) {
+	query, args, err := s.getQueryBuilder().
+		Select("COALESCE(MAX(UpdateAt), 0) AS MaxUpdateAt", "COUNT(*) AS Total").
+		From("PropertyValues").
+		Where(sq.Eq{"TargetID": userID}).
+		Where("DeleteAt = 0").
+		ToSql()
+	if err != nil {
+		return "", errors.Wrap(err, "GetUserPropertyValuesEpoch: failed to build query")
+	}
+
+	var epoch struct {
+		MaxUpdateAt int64
+		Total       int64
+	}
+	// Master, not replica: the caller invalidates this key right after the write commits, so a
+	// lagging replica would re-cache the pre-write epoch and the client would keep 304ing onto
+	// content sanitized under the old attributes until the entry expires.
+	if err := s.GetMaster().Get(&epoch, query, args...); err != nil {
+		return "", errors.Wrap(err, "GetUserPropertyValuesEpoch: query failed")
+	}
+	return fmt.Sprintf("%d-%d", epoch.MaxUpdateAt, epoch.Total), nil
+}
+
+// No-op at the SQL layer; the per-user epoch is cached in and invalidated by the local cache layer.
+func (s *SqlAttributesStore) InvalidateUserPropertyValuesEpoch(userID string) {}
+func (s *SqlAttributesStore) ClearUserPropertyValuesEpochCache()              {}
 
 func (s *SqlAttributesStore) GetTeamMembersToRemove(rctx request.CTX, teamID string, opts model.SubjectSearchOptions) ([]*model.TeamMember, error) {
 	query := s.getQueryBuilder().

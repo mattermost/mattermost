@@ -47,8 +47,7 @@ func NewMigrator(settings model.SqlSettings, logger mlog.LoggerIFace, dryRun boo
 		return nil, fmt.Errorf("error while getting DB version: %w", err)
 	}
 
-	ok, err := ss.ensureMinimumDBVersion(ver)
-	if !ok {
+	if err = ss.checkVersion(ver); err != nil {
 		return nil, fmt.Errorf("error while checking DB version: %w", err)
 	}
 

@@ -13,7 +13,7 @@ import {compassIconForName} from 'components/channel_type_icon';
 import {SearchableChannelList} from 'components/searchable_channel_list';
 
 import {type MockIntl} from 'tests/helpers/intl-test-helper';
-import {renderWithContext, screen} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
 import {Filter} from './browse_channels/browse_channels';
 
@@ -48,10 +48,12 @@ describe('components/SearchableChannelList', () => {
         toggleArchivedChannels: jest.fn(),
         closeModal: jest.fn(),
         hideJoinedChannelsPreference: jest.fn(),
+        hideArchivedChannelsPreference: jest.fn(),
         changeFilter: jest.fn(),
         myChannelMemberships: {},
         canShowArchivedChannels: false,
         rememberHideJoinedChannelsChecked: false,
+        rememberHideArchivedChannelsChecked: true,
         noResultsText: <>{'no channel found'}</>,
         filter: Filter.All,
         intl: {
@@ -96,6 +98,48 @@ describe('components/SearchableChannelList', () => {
         // We verify this by checking the search prop was called correctly
         // and the component renders without errors
         expect(baseProps.search).toBeDefined();
+    });
+
+    test('renders the Hide Archived checkbox reflecting the persisted preference', () => {
+        renderWithContext(
+            <SearchableChannelList {...baseProps}/>,
+            initialState,
+        );
+
+        const hideArchived = screen.getByLabelText('Hide archived channels');
+        expect(hideArchived).toBeInTheDocument();
+        expect(hideArchived).toHaveAttribute('aria-checked', 'true');
+    });
+
+    test('does not render the Hide Archived checkbox when the Archived filter is active', () => {
+        renderWithContext(
+            <SearchableChannelList
+                {...baseProps}
+                filter={Filter.Archived}
+            />,
+            initialState,
+        );
+
+        expect(screen.queryByLabelText('Hide archived channels')).not.toBeInTheDocument();
+    });
+
+    test('clicking the Hide Archived checkbox toggles the preference', async () => {
+        const hideArchivedChannelsPreference = jest.fn();
+        renderWithContext(
+            <SearchableChannelList
+                {...baseProps}
+                rememberHideArchivedChannelsChecked={false}
+                hideArchivedChannelsPreference={hideArchivedChannelsPreference}
+            />,
+            initialState,
+        );
+
+        const hideArchived = screen.getByLabelText('Hide archived channels');
+        expect(hideArchived).toHaveAttribute('aria-checked', 'false');
+
+        await userEvent.click(hideArchived);
+
+        expect(hideArchivedChannelsPreference).toHaveBeenCalledWith(true);
     });
 
     test('should render ArchiveOutlineIcon for archived public channels', () => {

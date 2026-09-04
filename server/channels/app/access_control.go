@@ -19,7 +19,33 @@ import (
 )
 
 const attributeViewRefreshInterval = 30 * time.Second
+
 const accessControlChildPolicySearchLimit = 1000
+
+// attributeBasedAccessControlEnabled must stay the exact predicate the enforcement paths use, with
+// no license check, so the render-ETag and cache-invalidation gates can never be narrower than the
+// sanitization they keep in step with.
+func attributeBasedAccessControlEnabled(cfg *model.Config) bool {
+	return cfg.FeatureFlags.PermissionPolicies &&
+		cfg.AccessControlSettings.EnableAttributeBasedAccessControl != nil &&
+		*cfg.AccessControlSettings.EnableAttributeBasedAccessControl
+}
+
+func (a *App) attributeBasedAccessControlEnabled() bool {
+	return attributeBasedAccessControlEnabled(a.Config())
+}
+
+// clearABACRenderCachesOnFlip drops both render-ETag epoch caches when ABAC is toggled: they are
+// only invalidated while ABAC is active, so a change made while it was off would leave a stale
+// epoch for the switch back on to serve.
+func (ch *Channels) clearABACRenderCachesOnFlip(prevCfg, cfg *model.Config) {
+	if attributeBasedAccessControlEnabled(prevCfg) == attributeBasedAccessControlEnabled(cfg) {
+		return
+	}
+
+	ch.srv.Store().AccessControlPolicy().ClearEtagCache()
+	ch.srv.Store().Attributes().ClearUserPropertyValuesEpochCache()
+}
 
 // ResourceAttributesInPoliciesEnabled reports whether access rules may compare a
 // user's attributes against the accessed channel's. It gates authoring only: the
@@ -137,7 +163,7 @@ func (a *App) CreateOrUpdateAccessControlPolicy(rctx request.CTX, policy *model.
 	// callers may intentionally set rules they don't match, mirroring the
 	// masking self-inclusion exemption below.
 	if policy.Type == model.AccessControlPolicyTypeTeam {
-		if session := rctx.Session(); session != nil && session.UserId != "" && !a.HasPermissionTo(session.UserId, model.PermissionManageSystem) {
+		if session := rctx.Session(); session != nil && session.UserId != "" && !a.HasPermissionTo(rctx, session.UserId, model.PermissionManageSystem) {
 			for _, rule := range policy.Rules {
 				if appErr := a.ValidateTeamAdminSelfInclusion(rctx, session.UserId, rule.Expression); appErr != nil {
 					return nil, appErr
@@ -186,7 +212,7 @@ func (a *App) CreateOrUpdateAccessControlPolicy(rctx request.CTX, policy *model.
 		// (e.g., creating a "Clearance == Top Secret" rule without holding that
 		// clearance themselves). Masking and write-path value validation still
 		// apply to system admins above.
-		if !a.HasPermissionTo(callerID, model.PermissionManageSystem) {
+		if !a.HasPermissionTo(rctx, callerID, model.PermissionManageSystem) {
 			if appErr := a.checkSelfInclusion(rctx, policy, callerID, mergedHidden); appErr != nil {
 				return nil, appErr
 			}
@@ -207,6 +233,8 @@ func (a *App) CreateOrUpdateAccessControlPolicy(rctx request.CTX, policy *model.
 	case model.AccessControlPolicyTypeParent:
 		a.publishChannelPolicyEnforcedForChannelPoliciesWithImport(rctx, policy.ID)
 		a.publishTeamPolicyEnforcedForTeamPoliciesWithImport(rctx, policy.ID)
+	case model.AccessControlPolicyTypePermission:
+		a.publishPermissionPolicyUpdate(rctx)
 	}
 
 	return policy, nil
@@ -500,6 +528,8 @@ func (a *App) DeleteAccessControlPolicy(rctx request.CTX, id string) *model.AppE
 	case policy.Type == model.AccessControlPolicyTypeParent:
 		a.publishChannelPolicyEnforcedUpdatesForChannels(rctx, affectedChannelIDs)
 		a.publishTeamPolicyEnforcedUpdatesForTeams(rctx, affectedTeamIDs)
+	case policy.Type == model.AccessControlPolicyTypePermission:
+		a.publishPermissionPolicyUpdate(rctx)
 	}
 
 	return nil
@@ -725,6 +755,19 @@ func (p protectedCPAAttributes) isEmpty() bool {
 	return len(p.user) == 0 && len(p.resource) == 0
 }
 
+// set returns the protected-name set for a CPA object type, or nil for an
+// object type that never surfaces in a simulation trace.
+func (p protectedCPAAttributes) set(objectType string) map[string]struct{} {
+	switch objectType {
+	case model.PropertyFieldObjectTypeUser:
+		return p.user
+	case model.PropertyFieldObjectTypeChannel:
+		return p.resource
+	default:
+		return nil
+	}
+}
+
 // RedactSimulationAttributesForCaller strips attribute values from a
 // PolicySimulationResponse on every surface the picker exposes
 // (top-level user/session Attributes maps AND the per-leaf
@@ -798,14 +841,17 @@ func (a *App) RedactSimulationAttributesForCaller(rctx request.CTX, resp *model.
 	redactProtectedEvaluationTreeActualValues(resp, protected)
 }
 
-// protectedCPAFieldNamesForCaller returns the set of CPA field names
-// whose contents must be hidden from a non-system-admin caller. The
-// set includes both `visibility: hidden` fields and any field whose
-// `access_mode` is not public (source_only / shared_only). The
+// protectedCPAFieldNamesForCaller returns, per attribute root, the set of
+// CPA field names whose contents must be hidden from a non-system-admin
+// caller. The set includes both `visibility: hidden` fields and any field
+// whose `access_mode` is not public (source_only / shared_only). The
 // simulator's UserAttributeView populates its per-user map keyed by
-// `pf.Name` (see db/migrations/postgres/000213_move_property_options_to_table.up.sql),
+// `pf.Name` (see db/migrations/postgres/000221_add_graph_to_attribute_views.up.sql,
+// which recreates the views 000216 split by object type),
 // and the evaluation-tree walker likewise records `user.attributes.<name>`
-// on each leaf — so matching by name is correct for both.
+// on each leaf — so matching by name is correct for the user set. Channel
+// fields are matched the same way, by name, against their own set: the
+// walker records those as `resource.attributes.<name>`.
 func (a *App) protectedCPAFieldNamesForCaller(rctx request.CTX) (protectedCPAAttributes, error) {
 	protected := protectedCPAAttributes{
 		user:     map[string]struct{}{},
@@ -819,30 +865,17 @@ func (a *App) protectedCPAFieldNamesForCaller(rctx request.CTX) (protectedCPAAtt
 
 	propertyFields, appErr := a.SearchPropertyFields(rctx, group.ID, model.PropertyFieldSearchOpts{
 		ObjectTypes: []string{model.PropertyFieldObjectTypeUser, model.PropertyFieldObjectTypeChannel},
-		PerPage:     2*model.AccessControlGroupFieldLimit + 5,
+		PerPage:     model.AccessControlGroupFieldLimit + 5,
 	})
 	if appErr != nil {
 		return protected, appErr
-	}
-
-	// setFor returns the protected-name set for a field's object type, or
-	// nil for object types that never surface in a simulation trace.
-	setFor := func(objectType string) map[string]struct{} {
-		switch objectType {
-		case model.PropertyFieldObjectTypeUser:
-			return protected.user
-		case model.PropertyFieldObjectTypeChannel:
-			return protected.resource
-		default:
-			return nil
-		}
 	}
 
 	for _, pf := range propertyFields {
 		if pf == nil {
 			continue
 		}
-		set := setFor(pf.ObjectType)
+		set := protected.set(pf.ObjectType)
 		if set == nil {
 			continue
 		}
@@ -972,16 +1005,18 @@ func stripProtectedAttributes(resp *model.PolicySimulationResponse, protected ma
 // EvaluationTree (and the per-rule subtrees attached under
 // MergedRules) on every result and session decision in `resp`. For
 // each leaf node whose `Attribute` references a protected CPA field
-// (path format `user.attributes.<name>`), the leaf's `ActualValue`
-// is blanked.
+// (path format `user.attributes.<name>` or `resource.attributes.<name>`),
+// the leaf's `ActualValue` is blanked.
 //
 // Why ActualValue and nothing else:
 //   - `Attribute` is the path; it already appears in the rule's
 //     `Expression`, which the channel admin can see.
 //   - `ExpectedValue` is the literal from the rule (e.g. `"il5"`),
-//     not the user's data — also already in `Expression`.
-//   - `ActualValue` is the only field that records the target user's
-//     concrete attribute value. That's the one we must redact.
+//     not the user's or channel's data — also already in `Expression`.
+//   - `ActualValue` is the only field that records the target's
+//     concrete attribute value — the user's for a `user.attributes.*`
+//     leaf, the accessed channel's for a `resource.attributes.*` leaf.
+//     That's the one we must redact.
 func redactProtectedEvaluationTreeActualValues(resp *model.PolicySimulationResponse, protected protectedCPAAttributes) {
 	if resp == nil || protected.isEmpty() {
 		return
@@ -1042,21 +1077,12 @@ func isProtectedAttributePath(path string, protected protectedCPAAttributes) boo
 	if path == "" || protected.isEmpty() {
 		return false
 	}
-	if name, ok := strings.CutPrefix(path, userAttributesPathPrefix); ok {
-		if name == "" {
-			return false
-		}
-		_, found := protected.user[name]
-		return found
+	objectType, name, ok := splitCPAAttribute(path)
+	if !ok {
+		return false
 	}
-	if name, ok := strings.CutPrefix(path, resourceAttributesPathPrefix); ok {
-		if name == "" {
-			return false
-		}
-		_, found := protected.resource[name]
-		return found
-	}
-	return false
+	_, found := protected.set(objectType)[name]
+	return found
 }
 
 // clearAllSimulationAttributes wipes every top-level user-level and
@@ -1766,13 +1792,13 @@ func (a *App) SearchAccessControlPolicies(rctx request.CTX, opts model.AccessCon
 	return policies, total, nil
 }
 
-func (a *App) GetAccessControlPolicyAttributes(rctx request.CTX, channelID string, action string) (map[string][]string, *model.AppError) {
+func (a *App) GetAccessControlPolicyAttributes(rctx request.CTX, resourceID string, action string) (map[string][]string, *model.AppError) {
 	acs := a.Srv().ch.AccessControl
 	if acs == nil {
 		return nil, model.NewAppError("GetChannelAccessControlAttributes", "app.pap.get_channel_access_control_attributes.app_error", nil, "Policy Administration Point is not initialized", http.StatusNotImplemented)
 	}
 
-	attributes, appErr := acs.GetPolicyRuleAttributes(rctx, channelID, action)
+	attributes, appErr := acs.GetPolicyRuleAttributes(rctx, resourceID, action)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -1790,19 +1816,38 @@ func (a *App) GetAccessControlPolicyAttributes(rctx request.CTX, channelID strin
 		return map[string][]string{}, nil
 	}
 
+	// Generate a map of native fields, since they do not reside in the Property Store.
+	nativeFieldsByName := make(map[string]*model.PropertyField)
+	for _, f := range model.NativeUserAttributeFields(cpaGroup.ID) {
+		nativeFieldsByName[f.Name] = f
+	}
+
 	for fieldName := range attributes {
 		// Read directly from the store so this security filter sees the raw
 		// access_mode, unaffected by property read hooks for the request caller.
-		field, fieldErr := a.Srv().Store().PropertyField().GetFieldByNameForObjectType(rctx.Context(), cpaGroup.ID, "", model.PropertyFieldObjectTypeUser, fieldName)
+		field, fieldErr := a.Srv().Store().PropertyField().GetFieldByNameForObjectType(rctx, cpaGroup.ID, "", model.PropertyFieldObjectTypeUser, fieldName)
 		if fieldErr != nil {
-			delete(attributes, fieldName)
-			continue
+			// If the error is due to not being found, we won't skip to the next field just yet
+			// in case it is a native field
+			var nfErr *store.ErrNotFound
+			notFound := errors.As(fieldErr, &nfErr)
+			if !notFound {
+				delete(attributes, fieldName)
+				continue
+			}
+
+			//If property wasn't found, check if this is a Native Field.
+			field = nativeFieldsByName[fieldName]
+			if field == nil {
+				delete(attributes, fieldName)
+				continue
+			}
 		}
 		// Same store bypass for a linked field's template: a linked field's own
 		// Masking is always nil, so its effective mode must follow the template
 		// to see a masked scheme (effectiveAccessModeUsing).
 		mode := effectiveAccessModeUsing(field, func(id string) (*model.PropertyField, error) {
-			return a.Srv().Store().PropertyField().Get(rctx.Context(), cpaGroup.ID, id)
+			return a.Srv().Store().PropertyField().Get(rctx, cpaGroup.ID, id)
 		})
 		switch mode {
 		case model.PropertyAccessModeSourceOnly, model.PropertyAccessModeSharedOnly:
@@ -1897,6 +1942,7 @@ func (a *App) UpdateAccessControlPoliciesActive(rctx request.CTX, updates []mode
 		return nil, model.NewAppError("UpdateAccessControlPoliciesActive", "app.pap.update_access_control_policies_active.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
+	permissionPolicyChanged := false
 	for _, policy := range policies {
 		switch policy.Type {
 		case model.AccessControlPolicyTypeChannel:
@@ -1906,7 +1952,12 @@ func (a *App) UpdateAccessControlPoliciesActive(rctx request.CTX, updates []mode
 		case model.AccessControlPolicyTypeParent:
 			a.publishChannelPolicyEnforcedForChannelPoliciesWithImport(rctx, policy.ID)
 			a.publishTeamPolicyEnforcedForTeamPoliciesWithImport(rctx, policy.ID)
+		case model.AccessControlPolicyTypePermission:
+			permissionPolicyChanged = true
 		}
+	}
+	if permissionPolicyChanged {
+		a.publishPermissionPolicyUpdate(rctx)
 	}
 
 	return policies, nil
@@ -2192,6 +2243,7 @@ func (a *App) HydrateTeamsPolicyActions(rctx request.CTX, teams []*model.Team) *
 // only need to refresh access control state — not run the full
 // channel_updated reducer/router pipeline.
 func (a *App) publishChannelPolicyEnforcedUpdate(rctx request.CTX, channelID string) {
+	a.Srv().Store().AccessControlPolicy().InvalidateEtagForChannel(channelID)
 	a.Srv().Store().Channel().InvalidateChannel(channelID)
 
 	channel, appErr := a.GetChannel(rctx, channelID)
@@ -2227,6 +2279,16 @@ func (a *App) publishChannelPolicyEnforcedUpdate(rctx request.CTX, channelID str
 
 	messageWs := model.NewWebSocketEvent(model.WebsocketEventChannelAccessControlUpdated, "", channel.Id, "", nil, "")
 	messageWs.Add("channel", string(channelJSON))
+	a.Publish(messageWs)
+}
+
+// publishPermissionPolicyUpdate broadcasts a system-scoped permission policy change.
+// TypePermission policies are global, so no channel ID is included in the event.
+func (a *App) publishPermissionPolicyUpdate(rctx request.CTX) {
+	// Permission policies are system-scoped, so every channel's render-ETag epoch folds them in.
+	// Clear the whole epoch cache rather than a single channel key.
+	a.Srv().Store().AccessControlPolicy().ClearEtagCache()
+	messageWs := model.NewWebSocketEvent(model.WebsocketEventPermissionPolicyUpdated, "", "", "", nil, "")
 	a.Publish(messageWs)
 }
 
@@ -2354,7 +2416,7 @@ type ValidateAccessControlPolicyPermissionOptions struct {
 
 func (a *App) ValidateAccessControlPolicyPermissionWithOptions(rctx request.CTX, userID, policyID string, opts ValidateAccessControlPolicyPermissionOptions) *model.AppError {
 	// System admins can manage any policy
-	if a.HasPermissionTo(userID, model.PermissionManageSystem) {
+	if a.HasPermissionTo(rctx, userID, model.PermissionManageSystem) {
 		return nil
 	}
 
@@ -2433,7 +2495,7 @@ func (a *App) isSystemPolicyAppliedToChannel(rctx request.CTX, policyID, channel
 // ValidateChannelAccessControlPolicyCreation validates if a user can create a channel-specific access control policy
 func (a *App) ValidateChannelAccessControlPolicyCreation(rctx request.CTX, userID string, policy *model.AccessControlPolicy) *model.AppError {
 	// System admins can create any type of policy
-	if a.HasPermissionTo(userID, model.PermissionManageSystem) {
+	if a.HasPermissionTo(rctx, userID, model.PermissionManageSystem) {
 		return nil
 	}
 
@@ -2587,7 +2649,7 @@ func (a *App) BuildAccessControlSubject(rctx request.CTX, userID string, roles s
 	// user.isbot / user.createat) for runtime PDP evaluation. a.GetUser is the
 	// cached user read and already resolves IsBot via the Bots join, so this is
 	// a single (usually cache-hit) lookup per subject build.
-	user, appErr := a.GetUser(userID)
+	user, appErr := a.GetUser(rctx, userID)
 	if appErr != nil {
 		// Fail closed: a native-attribute policy must not silently evaluate
 		// against zero-valued natives if the user read fails. The caller
@@ -2635,7 +2697,7 @@ func (a *App) BuildAccessControlSubjectForSession(rctx request.CTX, channelID st
 		return nil, appErr
 	}
 
-	attrs, appErr := a.GetSessionAttributes(rctx.Session().Id)
+	attrs, appErr := a.GetSessionAttributes(rctx, rctx.Session().Id)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -2759,6 +2821,27 @@ func ResolveSystemRole(roles string) string {
 	return model.SystemUserRoleId
 }
 
+// invalidateAttributeViewCache forces the next refreshAttributeViewIfStale call to refresh.
+//
+// Deliberately not rate-limited: the REFRESH happens on the read side, so a bulk writer with no
+// evaluations in between still costs one refresh, while deferring a write loses it — a client asks
+// for a render decision once per change event and never re-asks.
+//
+// The marker is node-local and the matview shared, so in HA only the writing node gets live
+// visibility; elsewhere the bound stays the periodic one until this grows a cluster message.
+func (a *App) invalidateAttributeViewCache() {
+	ch := a.Srv().Channels()
+
+	if ch.attributeViewRefreshMut.TryLock() {
+		ch.attributeViewRefreshLast = time.Time{}
+		ch.attributeViewRefreshMut.Unlock()
+	} else {
+		// The in-flight refresh may have read the DB before this write landed, and it will
+		// overwrite the timer on completion, so flag a follow-up for the next caller.
+		ch.attributeViewNeedsRefresh.Store(true)
+	}
+}
+
 // refreshAttributeViewIfStale refreshes the attribute materialized views if the
 // last refresh was more than attributeViewRefreshInterval ago. The refresh is
 // non-blocking: if another goroutine is already refreshing, this call returns
@@ -2771,7 +2854,8 @@ func (a *App) refreshAttributeViewIfStale(rctx request.CTX) {
 	}
 	defer ch.attributeViewRefreshMut.Unlock()
 
-	if time.Since(ch.attributeViewRefreshLast) < attributeViewRefreshInterval {
+	needsRefresh := ch.attributeViewNeedsRefresh.Swap(false)
+	if !needsRefresh && time.Since(ch.attributeViewRefreshLast) < attributeViewRefreshInterval {
 		return
 	}
 

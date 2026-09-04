@@ -4,7 +4,6 @@
 package app
 
 import (
-	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -311,7 +310,7 @@ type countingPropertyFieldStore struct {
 	gets int
 }
 
-func (c *countingPropertyFieldStore) Get(ctx context.Context, groupID, id string) (*model.PropertyField, error) {
+func (c *countingPropertyFieldStore) Get(rctx request.CTX, groupID, id string) (*model.PropertyField, error) {
 	c.gets++
-	return c.PropertyFieldStore.Get(ctx, groupID, id)
+	return c.PropertyFieldStore.Get(rctx, groupID, id)
 }

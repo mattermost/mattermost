@@ -6,7 +6,6 @@
 package store
 
 import (
-	"context"
 	"database/sql"
 	"time"
 
@@ -80,7 +79,7 @@ type Store interface {
 	TotalMasterDbConnections() int
 	TotalReadDbConnections() int
 	TotalSearchDbConnections() int
-	GetDiagnostics(ctx context.Context) (*DatabaseDiagnostics, error)
+	GetDiagnostics(rctx request.CTX) (*DatabaseDiagnostics, error)
 	ReplicaLagTime() error
 	ReplicaLagAbs() error
 	CheckIntegrity() <-chan model.IntegrityCheckResult
@@ -249,6 +248,7 @@ type ChannelStore interface {
 	GetMembers(opts model.ChannelMembersGetOptions) (model.ChannelMembers, error)
 	GetMember(rctx request.CTX, channelID string, userID string) (*model.ChannelMember, error)
 	GetMemberLastViewedAt(rctx request.CTX, channelID string, userID string) (int64, error)
+	GetMembersWithLastViewedAtSince(rctx request.CTX, channelID string, since int64, afterUserID string, limit int) ([]*model.ChannelMemberLastViewed, error)
 	GetChannelMembersTimezones(channelID string) ([]model.StringMap, error)
 	GetAllChannelMembersForUser(rctx request.CTX, userID string, allowFromCache bool, includeDeleted bool) (map[string]string, error)
 	GetChannelsMemberCount(channelIDs []string) (map[string]int64, error)
@@ -340,7 +340,7 @@ type ChannelStore interface {
 
 type ChannelMemberHistoryStore interface {
 	LogJoinEvent(userID string, channelID string, joinTime int64) error
-	LogLeaveEvent(userID string, channelID string, leaveTime int64) error
+	LogLeaveEvent(rctx request.CTX, userID string, channelID string, leaveTime int64) error
 	GetEverMembersInChannel(channelID string, userIDs []string) ([]string, error)
 	GetUsersInChannelDuring(startTime int64, endTime int64, channelID []string) ([]*model.ChannelMemberHistoryResult, error)
 	GetChannelsWithActivityDuring(startTime int64, endTime int64) ([]string, error)
@@ -460,7 +460,7 @@ type UserStore interface {
 	UpdateMfaActive(userID string, active bool) error
 	StoreMfaUsedTimestamps(userID string, ts []int) error
 	GetMfaUsedTimestamps(userID string) ([]int, error)
-	Get(ctx context.Context, id string) (*model.User, error)
+	Get(rctx request.CTX, id string) (*model.User, error)
 	GetMany(rctx request.CTX, ids []string) ([]*model.User, error)
 	GetAll() ([]*model.User, error)
 	ClearCaches()
@@ -469,7 +469,7 @@ type UserStore interface {
 	GetProfilesInChannel(options *model.UserGetOptions) ([]*model.User, error)
 	GetProfilesInChannelByStatus(options *model.UserGetOptions) ([]*model.User, error)
 	GetProfilesInChannelByAdmin(options *model.UserGetOptions) ([]*model.User, error)
-	GetAllProfilesInChannel(ctx context.Context, channelID string, allowFromCache bool) (map[string]*model.User, error)
+	GetAllProfilesInChannel(rctx request.CTX, channelID string, allowFromCache bool) (map[string]*model.User, error)
 	GetProfilesNotInChannel(teamID string, channelID string, groupConstrained bool, offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, error)
 	GetProfilesWithoutTeam(options *model.UserGetOptions) ([]*model.User, error)
 	GetProfilesByUsernames(usernames []string, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, error)
@@ -522,8 +522,8 @@ type UserStore interface {
 	Count(options model.UserCountOptions) (int64, error)
 	GetTeamGroupUsers(teamID string) ([]*model.User, error)
 	GetChannelGroupUsers(channelID string) ([]*model.User, error)
-	PromoteGuestToUser(userID string) error
-	DemoteUserToGuest(userID string) (*model.User, error)
+	PromoteGuestToUser(rctx request.CTX, userID string) error
+	DemoteUserToGuest(rctx request.CTX, userID string) (*model.User, error)
 	DeactivateGuests() ([]string, error)
 	DeactivateMagicLinkGuests() ([]string, error)
 	AutocompleteUsersInChannel(rctx request.CTX, teamID, channelID, term string, options *model.UserSearchOptions) (*model.UserAutocompleteInChannel, error)
@@ -815,12 +815,11 @@ type ReactionStore interface {
 	GetForPostSince(postID string, since int64, excludeRemoteID string, inclDeleted bool) ([]*model.Reaction, error)
 	GetUniqueCountForPost(postID string) (int, error)
 	ExistsOnPost(postID string, emojiName string) (bool, error)
-	DeleteAllWithEmojiName(emojiName string) error
-	BulkGetForPosts(postIds []string) ([]*model.Reaction, error)
+	DeleteAllWithEmojiName(rctx request.CTX, emojiName string) error
 	GetSingle(userID, postID, remoteID, emojiName string) (*model.Reaction, error)
 	DeleteOrphanedRowsByIds(r *model.RetentionIdsForDeletion) (int64, error)
 	PermanentDeleteBatch(endTime int64, limit int64) (int64, error)
-	PermanentDeleteByUser(userID string) error
+	PermanentDeleteByUser(rctx request.CTX, userID string) error
 }
 
 type JobStore interface {
@@ -890,7 +889,7 @@ type RoleStore interface {
 	SavePreservingUnknownPermissions(role *model.Role) (*model.Role, error)
 	Get(roleID string) (*model.Role, error)
 	GetAll() ([]*model.Role, error)
-	GetByName(ctx context.Context, name string) (*model.Role, error)
+	GetByName(rctx request.CTX, name string) (*model.Role, error)
 	GetByNames(names []string) ([]*model.Role, error)
 	Delete(roleID string) (*model.Role, error)
 	PermanentDeleteAll() error
@@ -1169,13 +1168,14 @@ type ViewStore interface {
 
 type ScheduledPostStore interface {
 	GetMaxMessageSize() int
-	CreateScheduledPost(scheduledPost *model.ScheduledPost) (*model.ScheduledPost, error)
-	GetScheduledPostsForUser(userId, teamId string) ([]*model.ScheduledPost, error)
-	GetPendingScheduledPosts(beforeTime, afterTime int64, lastScheduledPostId string, perPage uint64) ([]*model.ScheduledPost, error)
+	CreateScheduledPost(rctx request.CTX, scheduledPost *model.ScheduledPost) (*model.ScheduledPost, error)
+	GetScheduledPostsForUser(rctx request.CTX, userId, teamId string) ([]*model.ScheduledPost, error)
+	GetPendingScheduledPosts(rctx request.CTX, beforeTime, afterTime int64, lastScheduledPostId string, perPage uint64) ([]*model.ScheduledPost, error)
 	PermanentlyDeleteScheduledPosts(scheduledPostIDs []string) error
-	UpdatedScheduledPost(scheduledPost *model.ScheduledPost) error
-	Get(scheduledPostId string) (*model.ScheduledPost, error)
-	UpdateOldScheduledPosts(beforeTime int64) error
+	UpdatedScheduledPost(rctx request.CTX, scheduledPost *model.ScheduledPost) error
+	UpdateRecurringScheduledPosts(rctx request.CTX, scheduledPosts []*model.ScheduledPost) error
+	Get(rctx request.CTX, scheduledPostId string) (*model.ScheduledPost, error)
+	UpdateOldScheduledPosts(rctx request.CTX, beforeTime int64) error
 	PermanentDeleteByUser(userId string) error
 }
 
@@ -1188,12 +1188,12 @@ type PropertyGroupStore interface {
 
 type PropertyFieldStore interface {
 	Create(field *model.PropertyField) (*model.PropertyField, error)
-	Get(ctx context.Context, groupID, id string) (*model.PropertyField, error)
-	ValidateMaskByFieldID(ctx context.Context, groupID, fieldID, maskByFieldID string) error
-	GetMany(ctx context.Context, groupID string, ids []string) ([]*model.PropertyField, error)
-	GetFieldByName(ctx context.Context, groupID, targetID, name string) (*model.PropertyField, error)
-	GetFieldByNameForObjectType(ctx context.Context, groupID, targetID, objectType, name string) (*model.PropertyField, error)
-	GetForGroup(ctx context.Context, groupID string) ([]*model.PropertyField, error)
+	Get(rctx request.CTX, groupID, id string) (*model.PropertyField, error)
+	ValidateMaskByFieldID(rctx request.CTX, groupID, fieldID, maskByFieldID string) error
+	GetMany(rctx request.CTX, groupID string, ids []string) ([]*model.PropertyField, error)
+	GetFieldByName(rctx request.CTX, groupID, targetID, name string) (*model.PropertyField, error)
+	GetFieldByNameForObjectType(rctx request.CTX, groupID, targetID, objectType, name string) (*model.PropertyField, error)
+	GetForGroup(rctx request.CTX, groupID string) ([]*model.PropertyField, error)
 	CountForGroup(groupID string, includeDeleted bool) (int64, error)
 	CountForGroupObjectType(groupID, objectType string, includeDeleted bool) (int64, error)
 	CountForTarget(groupID, targetType, targetID string, includeDeleted bool) (int64, error)
@@ -1207,7 +1207,6 @@ type PropertyFieldStore interface {
 	CountOptions(fieldID string) (int, error)
 	MutateOptions(groupID, fieldID string, expectedUpdateAt int64, upsert []*model.PropertyFieldOption, add, remove []*model.PropertyOptionEdge) error
 	DeleteOptions(groupID, fieldID string, expectedUpdateAt int64, optionIDs []string) error
-	MutateOptionEdges(groupID, fieldID string, expectedUpdateAt int64, add, remove []*model.PropertyOptionEdge) error
 	GetOptionEdges(fieldID string) ([]*model.PropertyOptionEdge, error)
 	GetOptionChildEdges(fieldID string, parentOptionIDs []string) ([]*model.PropertyOptionEdge, error)
 	GetOptionParentEdges(fieldID string, childOptionIDs []string) ([]*model.PropertyOptionEdge, error)
@@ -1219,9 +1218,9 @@ type PropertyFieldStore interface {
 	Update(groupID string, fields []*model.PropertyField, expectedUpdateAts map[string]int64) ([]*model.PropertyField, error)
 	Delete(groupID string, id string) error
 	CheckPropertyNameConflict(field *model.PropertyField, excludeID string) (model.PropertyFieldTargetLevel, error)
-	GetFieldsByGrant(ctx context.Context, ownerType, ownerID, action string) ([]string, error)
-	GetGrantsForField(ctx context.Context, fieldID string) ([]model.Grant, error)
-	HasGrantForIdentity(ctx context.Context, ownerType, ownerID string) (bool, error)
+	GetFieldsByGrant(rctx request.CTX, ownerType, ownerID, action string) ([]string, error)
+	GetGrantsForField(rctx request.CTX, fieldID string) ([]model.Grant, error)
+	HasGrantForIdentity(rctx request.CTX, ownerType, ownerID string) (bool, error)
 }
 
 type PropertyValueStore interface {
@@ -1259,6 +1258,20 @@ type AccessControlPolicyStore interface {
 	// channel-list reads to avoid an N+1 against AccessControlPolicies.
 	// Empty input returns an empty map and fires no SQL.
 	GetActionsForPolicies(rctx request.CTX, policyIDs []string) (map[string]map[string]bool, error)
+
+	// GetEtagEpoch returns an opaque epoch over the system-scoped permission policies plus the
+	// given channel's own policy row; an empty channelID covers only the former. Deletion-
+	// sensitive, so it moves even when the newest policy is not the one that changed.
+	GetEtagEpoch(rctx request.CTX, channelID string) (string, error)
+
+	// InvalidateEtagForChannel drops the cached render-ETag epoch for a single channel's policy.
+	// Call after that channel's policy changes. No-op outside the local cache layer.
+	InvalidateEtagForChannel(channelID string)
+
+	// ClearEtagCache drops all cached render-ETag epochs. Call after a system-scoped permission
+	// policy changes, since every channel's epoch aggregates the permission set. No-op outside
+	// the local cache layer.
+	ClearEtagCache()
 }
 
 type AttributesStore interface {
@@ -1266,7 +1279,19 @@ type AttributesStore interface {
 	GetSubject(rctx request.CTX, ID, groupID, objectType string) (*model.Subject, error)
 	SearchUsers(rctx request.CTX, opts model.SubjectSearchOptions) ([]*model.User, int64, error)
 	GetChannelMembersToRemove(rctx request.CTX, channelID string, opts model.SubjectSearchOptions) ([]*model.ChannelMember, error)
+	// GetUserPropertyValuesEpoch returns the per-user epoch for ABAC-aware post-list ETags.
+	// Deletion-sensitive, so soft-deleting any value moves it.
+	GetUserPropertyValuesEpoch(rctx request.CTX, userID string) (string, error)
 	GetTeamMembersToRemove(rctx request.CTX, teamID string, opts model.SubjectSearchOptions) ([]*model.TeamMember, error)
+
+	// InvalidateUserPropertyValuesEpoch drops the cached property-values epoch for a single user.
+	// Call after that user's property values change. No-op outside the local cache layer.
+	InvalidateUserPropertyValuesEpoch(userID string)
+
+	// ClearUserPropertyValuesEpochCache drops all cached property-values epochs. Call after a
+	// change that can affect many users at once (e.g. deleting a field). No-op outside the local
+	// cache layer.
+	ClearUserPropertyValuesEpochCache()
 }
 
 type SessionAttributeStore interface {

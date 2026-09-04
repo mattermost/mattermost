@@ -366,6 +366,7 @@ const DEPLOYMENT_HIDDEN = new Set([
   'server/docker-troubleshooting',                         // → troubleshooting
   'server/trouble_mysql',                                  // → troubleshooting
   'server/trouble-postgres',                               // → troubleshooting
+  'server/fips-migration',                                 // cross-linked only; sidebar home is the Migration hub (administration-guide/manage/admin/migration)
 ]);
 
 // ---------------------------------------------------------------------------
@@ -506,6 +507,7 @@ const ADMIN_MANAGE_GROUPS = {
       {label: 'Attribute-Based Access Control', landing: 'admin/attribute-based-access-control', items: [
         'admin/abac-system-wide-policies',
         'admin/abac-team-channel-policies',
+        'admin/abac-team-membership',
         'admin/abac-channel-access-rules',
       ]},
     ],
@@ -543,6 +545,7 @@ const ADMIN_MANAGE_GROUPS = {
   },
   cloudWorkspace: {
     label: 'Cloud Workspace Management',
+    landing: 'cloud-workspace-management',
     items: [
       'cloud-data-export',
       'cloud-data-residency',
@@ -594,7 +597,7 @@ const ADMIN_MANAGE_ORDER = [
 const ADMIN_MANAGE_HIDDEN = new Set([
   'admin/user-management', 'admin/user-provisioning', 'admin/user-attributes', 'team-channel-members',
   'admin/attribute-based-access-control', 'admin/abac-system-wide-policies',
-  'admin/abac-team-channel-policies', 'admin/abac-channel-access-rules',
+  'admin/abac-team-channel-policies', 'admin/abac-team-membership', 'admin/abac-channel-access-rules',
   'admin/server-configuration', 'admin/server-maintenance', 'code-signing-custom-builds',
   'command-line-tools', 'mmctl-command-line-tool',
   'admin/monitoring-and-performance', 'statistics', 'telemetry',
@@ -809,6 +812,7 @@ const ADMIN_ONBOARD_GROUPS = {
     landing: 'migrating-to-mattermost',
     items: [
       'migrate-from-slack',
+      'migrate-from-rocketchat',
       'migrate-gitlab-omnibus',
       'migration-announcement-email',
     ],
@@ -840,7 +844,7 @@ const ADMIN_ONBOARD_HIDDEN = new Set([
   'guest-accounts', 'delegated-granular-administration', 'advanced-permissions',
   'advanced-permissions-backend-infrastructure',
   'user-provisioning-workflows', 'bulk-loading-data', 'connected-workspaces',
-  'migrating-to-mattermost', 'migrate-from-slack', 'migrate-gitlab-omnibus',
+  'migrating-to-mattermost', 'migrate-from-slack', 'migrate-from-rocketchat', 'migrate-gitlab-omnibus',
   'migration-announcement-email',
 ]);
 
@@ -883,6 +887,10 @@ const ADMIN_SCALE_ORDER = [
 // that Scale's 7 remaining files are listed flat (directly known via
 // ADMIN_SCALE_ORDER) rather than nested inside a sub-group.
 const ADMIN_SCALE_HIDDEN = new Set([]);
+
+const ADMIN_ROOT_ORDER = ['Configure', 'Comply', 'Onboard', 'Manage', 'Upgrade', 'Scale'];
+
+const ENDUSER_ROOT_ORDER = ['Access', 'Collaborate', 'Workflow Automation', 'Project Management', 'AI Agents', 'Preferences'];
 
 // ---------------------------------------------------------------------------
 // Integrations Guide — manual grouping override.
@@ -1054,12 +1062,52 @@ function buildCategory(absDir, docsRelDir) {
   }
 
   const label =
-    (indexFile && readFm(join(absDir, indexFile), 'title')) ||
+    (indexFile && (readFm(join(absDir, indexFile), 'sidebar_label') || readFm(join(absDir, indexFile), 'title'))) ||
     humanize(basename(absDir));
 
   if (!categoryLink && items.length === 0) return null;
 
   return {type: 'category', label, collapsed: true, ...(categoryLink ? {link: categoryLink} : {}), items};
+}
+
+// The content sub-directory a category was built from (e.g. 'comply' for
+// administration-guide/comply/), read off its landing page or first doc.
+// Used by buildAdminGuideSidebar/buildEndUserGuideSidebar below to find the
+// Configure/Manage/Onboard/Scale/Collaborate sub-category to regroup,
+// independent of its (label-based) display text.
+function categoryDirName(cat) {
+  if (cat.link && cat.link.id) return cat.link.id.split('/')[1];
+  const items = cat.items || [];
+  const firstDoc = items.find((c) => c.type === 'doc' && c.id);
+  if (firstDoc) return firstDoc.id.split('/')[1];
+  // Regrouped categories (e.g. Onboard) hold only sub-groups at the top level.
+  for (const it of items) {
+    if (it.type !== 'category') continue;
+    const nested = categoryDirName(it);
+    if (nested) return nested;
+  }
+  return null;
+}
+
+// Reorder a guide's top-level categories by label. Anything not named in
+// `order` keeps its relative position at the end.
+function orderRootCategories(sectionCat, order, sectionLabel) {
+  const rank = new Map(order.map((label, i) => [label, i]));
+  const listed = [];
+  const rest = [];
+  for (const it of sectionCat.items) {
+    if (it.type === 'category' && rank.has(it.label)) listed.push(it);
+    else rest.push(it);
+  }
+  listed.sort((a, b) => rank.get(a.label) - rank.get(b.label));
+
+  const missing = order.filter((label) => !listed.some((it) => it.label === label));
+  if (missing.length > 0) {
+    console.warn(`[sidebar] WARN: ${sectionLabel} root order names categor(y/ies) that don't exist: ${missing.join(', ')}`);
+  }
+
+  sectionCat.items = [...listed, ...rest];
+  return sectionCat;
 }
 
 // Pull every doc label from an auto-generated category so a manual ordering
@@ -1471,14 +1519,7 @@ function buildAdminGuideSidebar(autoCat) {
   let foundScale = false;
   for (const it of autoCat.items) {
     if (it.type !== 'category') continue;
-    let dirName = null;
-    if (it.link && it.link.id) {
-      dirName = it.link.id.split('/')[1];
-    }
-    if (!dirName && it.items) {
-      const firstDoc = it.items.find((c) => c.type === 'doc' && c.id);
-      if (firstDoc) dirName = firstDoc.id.split('/')[1];
-    }
+    const dirName = categoryDirName(it);
     if (dirName === 'configure') {
       regroupAdminConfigure(it);
       foundConfigure = true;
@@ -1505,6 +1546,8 @@ function buildAdminGuideSidebar(autoCat) {
   if (!foundScale) {
     console.warn('[sidebar] WARN: Administration Guide "Scale" sub-category not found — ADMIN_SCALE_GROUPS override was not applied.');
   }
+
+  orderRootCategories(autoCat, ADMIN_ROOT_ORDER, 'Administration Guide');
   return autoCat;
 }
 
@@ -1673,15 +1716,7 @@ function buildEndUserGuideSidebar(autoCat) {
   let foundCollaborate = false;
   for (const it of autoCat.items) {
     if (it.type !== 'category') continue;
-    let dirName = null;
-    if (it.link && it.link.id) {
-      dirName = it.link.id.split('/')[1];
-    }
-    if (!dirName && it.items) {
-      const firstDoc = it.items.find((c) => c.type === 'doc' && c.id);
-      if (firstDoc) dirName = firstDoc.id.split('/')[1];
-    }
-    if (dirName === 'collaborate') {
+    if (categoryDirName(it) === 'collaborate') {
       regroupCollaborate(it);
       foundCollaborate = true;
     }
@@ -1690,6 +1725,7 @@ function buildEndUserGuideSidebar(autoCat) {
     console.warn('[sidebar] WARN: End User Guide "Collaborate" sub-category not found — COLLABORATE_GROUPS override was not applied.');
   }
 
+  orderRootCategories(autoCat, ENDUSER_ROOT_ORDER, 'End User Guide');
   return autoCat;
 }
 

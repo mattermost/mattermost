@@ -30,6 +30,21 @@ func setupTeamABACEnforcement(t *testing.T) *TestHelper {
 	return th
 }
 
+// setupTeamABACPrereqsFlagOff enables the license and config prerequisites but
+// leaves the TeamMembershipAccessControl flag off, so a governed team exercises
+// the kill-switch branch with everything else in place.
+func setupTeamABACPrereqsFlagOff(t *testing.T) *TestHelper {
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.TeamMembershipAccessControl = false
+	}).InitBasic(t)
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.AccessControlSettings.EnableAttributeBasedAccessControl = true
+	})
+	require.True(t, th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced)))
+	t.Cleanup(func() { th.App.Srv().SetLicense(nil) })
+	return th
+}
+
 func setMockACS(t *testing.T, th *TestHelper) *mocks.AccessControlServiceInterface {
 	t.Helper()
 	mockACS := &mocks.AccessControlServiceInterface{}
@@ -240,10 +255,16 @@ func TestFilterNonQualifyingTeamsForUser(t *testing.T) {
 	}
 
 	t.Run("feature flag off is a no-op pass-through", func(t *testing.T) {
-		thOff := Setup(t).InitBasic(t) // flag defaults off
+		// Prerequisites on, flag off, team governed by a policy: only the
+		// kill switch keeps this a pass-through.
+		thOff := setupTeamABACPrereqsFlagOff(t)
 		team := thOff.CreateTeam(t)
+		saveTestTeamPolicy(t, thOff, team.Id, model.AccessControlPolicyActionMembership)
+		reloaded, err := thOff.App.Srv().Store().Team().Get(team.Id)
+		require.NoError(t, err)
+		require.True(t, reloaded.PolicyEnforced, "team must be policy-governed so only the flag keeps it a pass-through")
 		user := thOff.CreateUser(t)
-		out, dropped, appErr := thOff.App.FilterNonQualifyingTeamsForUser(thOff.Context, []*model.Team{team}, user.Id)
+		out, dropped, appErr := thOff.App.FilterNonQualifyingTeamsForUser(thOff.Context, []*model.Team{reloaded}, user.Id)
 		require.Nil(t, appErr)
 		require.Zero(t, dropped)
 		require.Len(t, out, 1)
@@ -398,11 +419,21 @@ func TestAnnotateRecommendedTeamsForUser(t *testing.T) {
 	}
 
 	t.Run("feature flag off is a no-op", func(t *testing.T) {
-		thOff := Setup(t).InitBasic(t)
+		// Prerequisites on, flag off, public governed team (otherwise
+		// recommend-eligible): only the kill switch suppresses the tag.
+		thOff := setupTeamABACPrereqsFlagOff(t)
 		team := thOff.CreateTeam(t)
+		team.AllowOpenInvite = true
+		updated, appErr := thOff.App.UpdateTeam(team)
+		require.Nil(t, appErr)
+		saveTestTeamPolicy(t, thOff, updated.Id, model.AccessControlPolicyActionMembership)
+		reloaded, err := thOff.App.Srv().Store().Team().Get(updated.Id)
+		require.NoError(t, err)
+		require.True(t, reloaded.PolicyEnforced, "team must be policy-governed so only the flag suppresses the tag")
+		require.True(t, reloaded.AllowOpenInvite)
 		user := thOff.CreateUser(t)
-		thOff.App.AnnotateRecommendedTeamsForUser(thOff.Context, []*model.Team{team}, user.Id)
-		require.False(t, team.Recommended)
+		thOff.App.AnnotateRecommendedTeamsForUser(thOff.Context, []*model.Team{reloaded}, user.Id)
+		require.False(t, reloaded.Recommended)
 	})
 
 	t.Run("non-governed team is never recommended and never evaluated", func(t *testing.T) {

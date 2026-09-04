@@ -255,6 +255,10 @@ func TestNewSyncsMarkdownMaxLenWithMaxPostSize(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
 
-	maxPostSize := th.Service.MaxPostSize()
-	assert.Equal(t, 4*maxPostSize, markdown.MaxLen())
+	// markdown.SetMaxPostRunes is package-global; parallel tests (including
+	// markdown's own tests) can overwrite it between Setup and this check.
+	require.Eventually(t, func() bool {
+		maxPostSize := th.Service.MaxPostSize()
+		return markdown.MaxLen() == 4*maxPostSize
+	}, 5*time.Second, 10*time.Millisecond)
 }

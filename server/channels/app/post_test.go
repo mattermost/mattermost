@@ -877,7 +877,7 @@ func TestImageProxy(t *testing.T) {
 	mockUserStore := storemocks.UserStore{}
 	mockUserStore.On("Count", mock.Anything).Return(int64(10), nil)
 	mockPostStore := storemocks.PostStore{}
-	mockPostStore.On("GetMaxPostSize").Return(65535, nil)
+	mockPostStore.On("GetMaxPostSize").Return(model.PostMessageMaxBytesV2, nil)
 	mockSystemStore := storemocks.SystemStore{}
 	mockSystemStore.On("GetByName", "UpgradedFromTE").Return(&model.System{Name: "UpgradedFromTE", Value: "false"}, nil)
 	mockSystemStore.On("GetByName", "InstallationDate").Return(&model.System{Name: "InstallationDate", Value: "10"}, nil)
@@ -894,48 +894,12 @@ func TestImageProxy(t *testing.T) {
 
 	th.App.ch.imageProxy = imageproxy.MakeImageProxy(th.Server.platform, th.Server.HTTPService(), th.Server.Log())
 
-	testHMACKey := model.NewTestPassword()
-
 	for name, tc := range map[string]struct {
 		ProxyType              string
-		ProxyURL               string
-		ProxyOptions           string
 		ImageURL               string
 		ProxiedImageURL        string
 		ProxiedRemovedImageURL string
 	}{
-		"atmos/camo": {
-			ProxyType:              model.ImageProxyTypeAtmosCamo,
-			ProxyURL:               "https://127.0.0.1",
-			ProxyOptions:           testHMACKey,
-			ImageURL:               "http://mydomain.com/myimage",
-			ProxiedRemovedImageURL: "http://mydomain.com/myimage",
-			ProxiedImageURL:        "http://mymattermost.com/api/v4/image?url=http%3A%2F%2Fmydomain.com%2Fmyimage",
-		},
-		"atmos/camo_SameSite": {
-			ProxyType:              model.ImageProxyTypeAtmosCamo,
-			ProxyURL:               "https://127.0.0.1",
-			ProxyOptions:           testHMACKey,
-			ImageURL:               "http://mymattermost.com/myimage",
-			ProxiedRemovedImageURL: "http://mymattermost.com/myimage",
-			ProxiedImageURL:        "http://mymattermost.com/myimage",
-		},
-		"atmos/camo_PathOnly": {
-			ProxyType:              model.ImageProxyTypeAtmosCamo,
-			ProxyURL:               "https://127.0.0.1",
-			ProxyOptions:           testHMACKey,
-			ImageURL:               "/myimage",
-			ProxiedRemovedImageURL: "http://mymattermost.com/myimage",
-			ProxiedImageURL:        "http://mymattermost.com/myimage",
-		},
-		"atmos/camo_EmptyImageURL": {
-			ProxyType:              model.ImageProxyTypeAtmosCamo,
-			ProxyURL:               "https://127.0.0.1",
-			ProxyOptions:           testHMACKey,
-			ImageURL:               "",
-			ProxiedRemovedImageURL: "",
-			ProxiedImageURL:        "",
-		},
 		"local": {
 			ProxyType:              model.ImageProxyTypeLocal,
 			ImageURL:               "http://mydomain.com/myimage",
@@ -965,8 +929,6 @@ func TestImageProxy(t *testing.T) {
 			th.App.UpdateConfig(func(cfg *model.Config) {
 				cfg.ImageProxySettings.Enable = new(true)
 				cfg.ImageProxySettings.ImageProxyType = new(tc.ProxyType)
-				cfg.ImageProxySettings.RemoteImageProxyOptions = new(tc.ProxyOptions)
-				cfg.ImageProxySettings.RemoteImageProxyURL = new(tc.ProxyURL)
 			})
 
 			post := &model.Post{
@@ -1164,9 +1126,7 @@ func TestCreatePost(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.SiteURL = "http://mymattermost.com"
 			*cfg.ImageProxySettings.Enable = true
-			*cfg.ImageProxySettings.ImageProxyType = "atmos/camo"
-			*cfg.ImageProxySettings.RemoteImageProxyURL = "https://127.0.0.1"
-			*cfg.ImageProxySettings.RemoteImageProxyOptions = model.NewTestPassword()
+			*cfg.ImageProxySettings.ImageProxyType = "local"
 		})
 
 		th.App.ch.imageProxy = imageproxy.MakeImageProxy(th.Server.platform, th.Server.HTTPService(), th.Server.Log())
@@ -1566,7 +1526,7 @@ func TestCreatePost(t *testing.T) {
 		th := Setup(t).InitBasic(t)
 
 		bot := th.CreateBot(t)
-		botUser, appErr := th.App.GetUser(bot.UserId)
+		botUser, appErr := th.App.GetUser(th.Context, bot.UserId)
 		require.Nil(t, appErr)
 		th.LinkUserToTeam(t, botUser, th.BasicTeam)
 		_, appErr = th.App.AddUserToChannel(th.Context, botUser, th.BasicChannel, false)
@@ -1611,7 +1571,7 @@ func TestCreatePost(t *testing.T) {
 		th := Setup(t).InitBasic(t)
 
 		bot := th.CreateBot(t)
-		botUser, appErr := th.App.GetUser(bot.UserId)
+		botUser, appErr := th.App.GetUser(th.Context, bot.UserId)
 		require.Nil(t, appErr)
 		th.LinkUserToTeam(t, botUser, th.BasicTeam)
 		_, appErr = th.App.AddUserToChannel(th.Context, botUser, th.BasicChannel, false)
@@ -1749,7 +1709,7 @@ func TestCreatePost(t *testing.T) {
 		th := Setup(t).InitBasic(t)
 
 		bot := th.CreateBot(t)
-		botUser, appErr := th.App.GetUser(bot.UserId)
+		botUser, appErr := th.App.GetUser(th.Context, bot.UserId)
 		require.Nil(t, appErr)
 		th.LinkUserToTeam(t, botUser, th.BasicTeam)
 		_, appErr = th.App.AddUserToChannel(th.Context, botUser, th.BasicChannel, false)
@@ -1770,7 +1730,7 @@ func TestCreatePost(t *testing.T) {
 		th := Setup(t).InitBasic(t)
 
 		bot := th.CreateBot(t)
-		botUser, appErr := th.App.GetUser(bot.UserId)
+		botUser, appErr := th.App.GetUser(th.Context, bot.UserId)
 		require.Nil(t, appErr)
 		th.LinkUserToTeam(t, botUser, th.BasicTeam)
 		_, appErr = th.App.AddUserToChannel(th.Context, botUser, th.BasicChannel, false)
@@ -1797,7 +1757,7 @@ func TestCreatePost(t *testing.T) {
 		})
 
 		bot := th.CreateBot(t)
-		botUser, appErr := th.App.GetUser(bot.UserId)
+		botUser, appErr := th.App.GetUser(th.Context, bot.UserId)
 		require.Nil(t, appErr)
 		th.LinkUserToTeam(t, botUser, th.BasicTeam)
 		_, appErr = th.App.AddUserToChannel(th.Context, botUser, th.BasicChannel, false)
@@ -1825,7 +1785,7 @@ func TestCreatePost(t *testing.T) {
 		th := Setup(t).InitBasic(t)
 
 		bot := th.CreateBot(t)
-		botUser, appErr := th.App.GetUser(bot.UserId)
+		botUser, appErr := th.App.GetUser(th.Context, bot.UserId)
 		require.Nil(t, appErr)
 
 		dm, appErr := th.App.createDirectChannel(th.Context, botUser.Id, th.BasicUser2.Id)
@@ -1854,7 +1814,7 @@ func TestCreatePost(t *testing.T) {
 		th := Setup(t).InitBasic(t)
 
 		bot := th.CreateBot(t)
-		botUser, appErr := th.App.GetUser(bot.UserId)
+		botUser, appErr := th.App.GetUser(th.Context, bot.UserId)
 		require.Nil(t, appErr)
 		_, _, appErr = th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, botUser.Id, "")
 		require.Nil(t, appErr)
@@ -1886,7 +1846,7 @@ func TestCreatePost(t *testing.T) {
 
 		th.AddUserToChannel(t, th.BasicUser2, th.BasicChannel)
 		bot := th.CreateBot(t)
-		botUser, appErr := th.App.GetUser(bot.UserId)
+		botUser, appErr := th.App.GetUser(th.Context, bot.UserId)
 		require.Nil(t, appErr)
 		th.LinkUserToTeam(t, botUser, th.BasicTeam)
 		_, appErr = th.App.AddUserToChannel(th.Context, botUser, th.BasicChannel, false)
@@ -2029,9 +1989,7 @@ func TestPatchPost(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.SiteURL = "http://mymattermost.com"
 			*cfg.ImageProxySettings.Enable = true
-			*cfg.ImageProxySettings.ImageProxyType = "atmos/camo"
-			*cfg.ImageProxySettings.RemoteImageProxyURL = "https://127.0.0.1"
-			*cfg.ImageProxySettings.RemoteImageProxyOptions = model.NewTestPassword()
+			*cfg.ImageProxySettings.ImageProxyType = "local"
 		})
 
 		th.App.ch.imageProxy = imageproxy.MakeImageProxy(th.Server.platform, th.Server.HTTPService(), th.Server.Log())
@@ -2224,7 +2182,7 @@ func TestCreatePostAsUser(t *testing.T) {
 
 		bot := th.CreateBot(t)
 
-		botUser, appErr := th.App.GetUser(bot.UserId)
+		botUser, appErr := th.App.GetUser(th.Context, bot.UserId)
 		require.Nil(t, appErr)
 
 		th.LinkUserToTeam(t, botUser, th.BasicTeam)
@@ -2255,7 +2213,7 @@ func TestCreatePostAsUser(t *testing.T) {
 
 		bot := th.CreateBot(t)
 
-		botUser, appErr := th.App.GetUser(bot.UserId)
+		botUser, appErr := th.App.GetUser(th.Context, bot.UserId)
 		require.Nil(t, appErr)
 
 		th.LinkUserToTeam(t, botUser, th.BasicTeam)
@@ -2490,9 +2448,7 @@ func TestUpdatePost(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.SiteURL = "http://mymattermost.com"
 			*cfg.ImageProxySettings.Enable = true
-			*cfg.ImageProxySettings.ImageProxyType = "atmos/camo"
-			*cfg.ImageProxySettings.RemoteImageProxyURL = "https://127.0.0.1"
-			*cfg.ImageProxySettings.RemoteImageProxyOptions = model.NewTestPassword()
+			*cfg.ImageProxySettings.ImageProxyType = "local"
 		})
 
 		th.App.ch.imageProxy = imageproxy.MakeImageProxy(th.Server.platform, th.Server.HTTPService(), th.Server.Log())
@@ -5450,6 +5406,110 @@ func TestPermanentDeletePost(t *testing.T) {
 	})
 }
 
+func TestCleanUpAfterPostDeletion(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	appErr := th.App.JoinChannel(th.Context, th.BasicChannel, th.BasicUser.Id)
+	require.Nil(t, appErr)
+	appErr = th.App.JoinChannel(th.Context, th.BasicChannel, th.BasicUser2.Id)
+	require.Nil(t, appErr)
+
+	waitForPostDeleted := func(t *testing.T, messages chan *model.WebSocketEvent) *model.WebSocketEvent {
+		t.Helper()
+
+		select {
+		case received := <-messages:
+			return received
+		case <-time.After(10 * time.Second):
+			require.Fail(t, "Did not receive websocket message in time")
+			return nil
+		}
+	}
+
+	t.Run("post_deleted broadcast to channel members strips action integrations", func(t *testing.T) {
+		post, _, appErr := th.App.CreatePost(th.Context, &model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   "interactive message",
+			Props: model.StringInterface{
+				model.PostPropsAttachments: []*model.MessageAttachment{
+					{
+						Text: "hello",
+						Actions: []*model.PostAction{
+							{
+								Type: model.PostActionTypeButton,
+								Name: "action",
+								Integration: &model.PostActionIntegration{
+									URL:     "http://localhost:8065/secret-endpoint",
+									Context: map[string]any{"secret_marker": "s3cr3t"},
+								},
+							},
+						},
+					},
+				},
+			},
+		}, th.BasicChannel, model.CreatePostFlags{})
+		require.Nil(t, appErr)
+
+		memberMessages, closeMemberWS := connectFakeWebSocket(t, th, th.BasicUser2.Id, "", []model.WebsocketEventType{model.WebsocketEventPostDeleted})
+		defer closeMemberWS()
+
+		_, appErr = th.App.DeletePost(th.Context, post.Id, th.BasicUser.Id)
+		require.Nil(t, appErr)
+
+		memberEvent := waitForPostDeleted(t, memberMessages)
+		memberPostJSON, ok := memberEvent.GetData()["post"].(string)
+		require.True(t, ok)
+		assert.NotContains(t, memberPostJSON, "secret-endpoint")
+		assert.NotContains(t, memberPostJSON, "secret_marker")
+		assert.Nil(t, memberEvent.GetData()["delete_by"])
+
+		var memberPost model.Post
+		require.NoError(t, json.Unmarshal([]byte(memberPostJSON), &memberPost))
+		require.Equal(t, post.Id, memberPost.Id)
+		memberAttachments := memberPost.Attachments()
+		require.Len(t, memberAttachments, 1)
+		require.Len(t, memberAttachments[0].Actions, 1)
+		assert.Equal(t, "action", memberAttachments[0].Actions[0].Name, "non-secret attachment data must be preserved")
+		assert.Nil(t, memberAttachments[0].Actions[0].Integration)
+	})
+
+	t.Run("post_deleted broadcast to channel members strips mm_blocks_actions secrets", func(t *testing.T) {
+		post, _, appErr := th.App.CreatePost(th.Context, &model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   "blocks message",
+		}, th.BasicChannel, model.CreatePostFlags{})
+		require.Nil(t, appErr)
+
+		post.AddProp(model.PostPropsMmBlocksActions, map[string]any{
+			"mm_blocks_act": map[string]any{
+				"type":    model.MmBlocksActionTypeExternal,
+				"url":     "http://localhost:8065/secret-endpoint",
+				"context": map[string]any{"secret_marker": "s3cr3t"},
+			},
+		})
+
+		memberMessages, closeMemberWS := connectFakeWebSocket(t, th, th.BasicUser2.Id, "", []model.WebsocketEventType{model.WebsocketEventPostDeleted})
+		defer closeMemberWS()
+
+		appErr = th.App.CleanUpAfterPostDeletion(th.Context, post, th.BasicUser.Id)
+		require.Nil(t, appErr)
+
+		memberEvent := waitForPostDeleted(t, memberMessages)
+		memberPostJSON, ok := memberEvent.GetData()["post"].(string)
+		require.True(t, ok)
+		assert.NotContains(t, memberPostJSON, "secret-endpoint")
+		assert.NotContains(t, memberPostJSON, "secret_marker")
+
+		var memberPost model.Post
+		require.NoError(t, json.Unmarshal([]byte(memberPostJSON), &memberPost))
+		assert.Equal(t, post.Id, memberPost.Id)
+		assert.Nil(t, memberPost.GetProp(model.PostPropsMmBlocksActions))
+	})
+}
+
 func TestSendTestMessage(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
@@ -6350,7 +6410,7 @@ func TestBurnOnReadRestrictionsForDMsAndBots(t *testing.T) {
 		require.Nil(t, appErr)
 
 		// Get the bot user
-		botUser, appErr := th.App.GetUser(createdBot.UserId)
+		botUser, appErr := th.App.GetUser(th.Context, createdBot.UserId)
 		require.Nil(t, appErr)
 		require.True(t, botUser.IsBot)
 
@@ -6399,7 +6459,7 @@ func TestBurnOnReadRestrictionsForDMsAndBots(t *testing.T) {
 		require.Nil(t, appErr)
 
 		// Get the bot user
-		botUser, appErr := th.App.GetUser(createdBot.UserId)
+		botUser, appErr := th.App.GetUser(th.Context, createdBot.UserId)
 		require.Nil(t, appErr)
 		require.True(t, botUser.IsBot)
 
@@ -6703,5 +6763,75 @@ func TestGetPostsForView(t *testing.T) {
 		require.Nil(t, appErr)
 		require.NotNil(t, postList)
 		assert.Empty(t, postList.Posts)
+	})
+}
+
+func TestAppendABACEtag(t *testing.T) {
+	const base = "16.2.3.abcdefghij.1700000000000"
+
+	setup := func(t *testing.T, abacEnabled bool) (*TestHelper, *storemocks.AccessControlPolicyStore, *storemocks.AttributesStore) {
+		th := SetupConfigWithStoreMock(t, func(cfg *model.Config) {
+			cfg.FeatureFlags.PermissionPolicies = true
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(abacEnabled)
+		})
+		mockStore := th.App.Srv().Store().(*storemocks.Store)
+
+		mockACP := &storemocks.AccessControlPolicyStore{}
+		mockStore.On("AccessControlPolicy").Return(mockACP).Maybe()
+
+		mockAttributes := &storemocks.AttributesStore{}
+		mockStore.On("Attributes").Return(mockAttributes).Maybe()
+
+		return th, mockACP, mockAttributes
+	}
+
+	t.Run("returns the base ETag untouched and reads no store when ABAC is off", func(t *testing.T) {
+		th, mockACP, mockAttributes := setup(t, false)
+
+		assert.Equal(t, base, th.App.AppendABACEtag(base, model.NewId(), model.NewId()))
+
+		mockACP.AssertNotCalled(t, "GetEtagEpoch", mock.Anything, mock.Anything)
+		mockAttributes.AssertNotCalled(t, "GetUserPropertyValuesEpoch", mock.Anything, mock.Anything)
+	})
+
+	t.Run("folds both epochs in when ABAC is on", func(t *testing.T) {
+		th, mockACP, mockAttributes := setup(t, true)
+		userID := model.NewId()
+		channelID := model.NewId()
+
+		mockACP.On("GetEtagEpoch", mock.Anything, channelID).Return("111-2", nil).Once()
+		mockAttributes.On("GetUserPropertyValuesEpoch", mock.Anything, userID).Return("222-3", nil).Once()
+
+		assert.Equal(t, base+".111-2.222-3", th.App.AppendABACEtag(base, userID, channelID))
+
+		mockACP.AssertExpectations(t)
+		mockAttributes.AssertExpectations(t)
+	})
+
+	t.Run("skips the attribute epoch when there is no user in scope", func(t *testing.T) {
+		th, mockACP, mockAttributes := setup(t, true)
+		channelID := model.NewId()
+
+		mockACP.On("GetEtagEpoch", mock.Anything, channelID).Return("111-2", nil).Once()
+
+		assert.Equal(t, base+".111-2."+unknownABACEtagEpoch, th.App.AppendABACEtag(base, "", channelID))
+
+		mockAttributes.AssertNotCalled(t, "GetUserPropertyValuesEpoch", mock.Anything, mock.Anything)
+	})
+
+	t.Run("a store failure yields an ETag that cannot match the healthy one", func(t *testing.T) {
+		th, mockACP, mockAttributes := setup(t, true)
+		userID := model.NewId()
+		channelID := model.NewId()
+
+		mockACP.On("GetEtagEpoch", mock.Anything, channelID).Return("", errors.New("boom")).Twice()
+		mockAttributes.On("GetUserPropertyValuesEpoch", mock.Anything, userID).Return("222-3", nil).Twice()
+
+		etag := th.App.AppendABACEtag(base, userID, channelID)
+
+		assert.NotEqual(t, base, etag, "a failed epoch lookup must not collapse back onto the ungated ETag")
+		assert.Contains(t, etag, unknownABACEtagEpoch)
+		assert.NotEqual(t, etag, th.App.AppendABACEtag(base, userID, channelID),
+			"two failed lookups must not produce the same ETag, or a policy change between them would 304")
 	})
 }

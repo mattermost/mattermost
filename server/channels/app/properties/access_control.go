@@ -48,7 +48,7 @@ type PropertyLadderChecker func(rctx request.CTX, userID string, field *model.Pr
 // import the app package to compute this itself, so it arrives as an
 // injected function pointed at the app-layer lookup. A nil lister, or one
 // whose lookup fails, must be treated as no roles held.
-type PropertyRoleLister func(userID string) []string
+type PropertyRoleLister func(rctx request.CTX, userID string) []string
 
 // AccessControlHook implements the PropertyHook interface to enforce a
 // field's Permissions object: machines by matching grants, humans by the
@@ -167,7 +167,7 @@ func (h *AccessControlHook) PreCreatePropertyField(rctx request.CTX, field *mode
 // unreachable from its linked fields, which would then take their write
 // levels from whatever the creator submitted or the api4 default pin.
 func (h *AccessControlHook) validateAndInheritLinkedFieldSecurity(rctx request.CTX, callerID string, field *model.PropertyField) error {
-	source, err := h.propertyService.getPropertyFieldFromMaster("", *field.LinkedFieldID)
+	source, err := h.propertyService.getPropertyFieldFromMaster(rctx, "", *field.LinkedFieldID)
 	if err != nil {
 		if store.IsErrNotFound(err) {
 			return model.NewAppError(
@@ -275,7 +275,7 @@ func (h *AccessControlHook) PreUpdatePropertyField(rctx request.CTX, groupID str
 
 	callerID := h.extractCallerID(rctx)
 
-	existingField, err := h.propertyService.getPropertyField(groupID, field.ID)
+	existingField, err := h.propertyService.getPropertyField(rctx, groupID, field.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -327,7 +327,7 @@ func (h *AccessControlHook) PreUpdatePropertyFields(rctx request.CTX, groupID st
 		fieldIDs[i] = field.ID
 	}
 
-	existingFields, err := h.propertyService.getPropertyFields(groupID, fieldIDs)
+	existingFields, err := h.propertyService.getPropertyFields(rctx, groupID, fieldIDs)
 	if err != nil {
 		return nil, err
 	}
@@ -387,7 +387,7 @@ func (h *AccessControlHook) PreDeletePropertyField(rctx request.CTX, groupID str
 
 	callerID := h.extractCallerID(rctx)
 
-	existingField, err := h.propertyService.getPropertyField(groupID, id)
+	existingField, err := h.propertyService.getPropertyField(rctx, groupID, id)
 	if err != nil {
 		return err
 	}
@@ -475,11 +475,11 @@ func (h *AccessControlHook) PostGetPropertyFieldOptions(rctx request.CTX, field 
 		}
 
 		c := maskingContextFromRequest(rctx)
-		fm, err := c.resolve(h, field)
+		fm, err := c.resolve(h, rctx, field)
 		if err != nil {
 			return nil, fmt.Errorf("failed to resolve field %s's masking: %w", field.ID, err)
 		}
-		if fm.masking == nil || h.exempt(fm.masking.Except, callerID) {
+		if fm.masking == nil || h.exempt(rctx, fm.masking.Except, callerID) {
 			return options, nil
 		}
 		return h.filterMaskedOptionPage(rctx, c, field, fm, options, callerID)
@@ -490,6 +490,57 @@ func (h *AccessControlHook) PostGetPropertyFieldOptions(rctx request.CTX, field 
 	// too; unreached in production. Fails closed rather than serving options
 	// under an access mode nothing sets any more.
 	return []*model.PropertyFieldOption{}, nil
+}
+
+// MayShowAnyPropertyFieldOptions answers, without paging through a field's
+// option rows, whether the caller may ever see anything from its listing. It
+// decides on the same permissions object and the same masking resolution as
+// PostGetPropertyFieldOptions, so the two cannot drift into disagreeing about
+// the same caller: false here means exactly what that method would hand back
+// an empty page for, on every page rather than only the one asked.
+//
+// Two answers are knowable without a page. A caller option.read refuses is
+// served nothing on any page. So is a caller of a masked field whose holdings
+// are empty, since masking shows only what overlaps them -- and that is the
+// caller a large hierarchy would otherwise be scanned in full for. A caller
+// with holdings may still cover none of a particular page, which is the
+// scan's answer to give, so this returns true and lets it run.
+func (h *AccessControlHook) MayShowAnyPropertyFieldOptions(rctx request.CTX, field *model.PropertyField) (bool, error) {
+	if field == nil {
+		return true, nil
+	}
+	enforced, err := h.isGroupEnforced(field.GroupID)
+	if err != nil {
+		return false, err
+	}
+	if !enforced {
+		return true, nil
+	}
+	// Unreached in production for the same reason PostGetPropertyFieldOptions'
+	// tail is, and fails closed the same way.
+	if field.Permissions == nil {
+		return false, nil
+	}
+
+	callerID := h.extractCallerID(rctx)
+	if !h.permissionsAllows(rctx, field, callerID, h.extractActingAsScope(rctx), model.PropertyActionOptionRead, "") {
+		return false, nil
+	}
+
+	c := maskingContextFromRequest(rctx)
+	fm, err := c.resolve(h, rctx, field)
+	if err != nil {
+		return false, fmt.Errorf("failed to resolve field %s's masking: %w", field.ID, err)
+	}
+	if fm.masking == nil || h.exempt(rctx, fm.masking.Except, callerID) {
+		return true, nil
+	}
+
+	held, err := c.callerOptionIDsForHoldings(h, field.GroupID, fm.holdingsFieldID, callerID, field.Type)
+	if err != nil {
+		return false, fmt.Errorf("failed to read the caller's own options of masked field %s: %w", field.ID, err)
+	}
+	return len(held) > 0, nil
 }
 
 // PostGetPropertyField applies read access control to a single field.
@@ -539,7 +590,7 @@ func (h *AccessControlHook) PreCreatePropertyValue(rctx request.CTX, value *mode
 
 	callerID := h.extractCallerID(rctx)
 
-	field, err := h.propertyService.getPropertyField(value.GroupID, value.FieldID)
+	field, err := h.propertyService.getPropertyField(rctx, value.GroupID, value.FieldID)
 	if err != nil {
 		return nil, err
 	}
@@ -568,7 +619,7 @@ func (h *AccessControlHook) PreCreatePropertyValues(rctx request.CTX, values []*
 	callerID := h.extractCallerID(rctx)
 	scope := h.extractActingAsScope(rctx)
 
-	fieldMap, err := h.getFieldsForValues(values)
+	fieldMap, err := h.getFieldsForValues(rctx, values)
 	if err != nil {
 		return nil, err
 	}
@@ -600,7 +651,7 @@ func (h *AccessControlHook) PreUpdatePropertyValue(rctx request.CTX, groupID str
 
 	callerID := h.extractCallerID(rctx)
 
-	field, err := h.propertyService.getPropertyField(groupID, value.FieldID)
+	field, err := h.propertyService.getPropertyField(rctx, groupID, value.FieldID)
 	if err != nil {
 		return nil, err
 	}
@@ -629,7 +680,7 @@ func (h *AccessControlHook) PreUpdatePropertyValues(rctx request.CTX, groupID st
 	callerID := h.extractCallerID(rctx)
 	scope := h.extractActingAsScope(rctx)
 
-	fieldMap, err := h.getFieldsForValues(values)
+	fieldMap, err := h.getFieldsForValues(rctx, values)
 	if err != nil {
 		return nil, err
 	}
@@ -661,7 +712,7 @@ func (h *AccessControlHook) PreUpsertPropertyValue(rctx request.CTX, value *mode
 
 	callerID := h.extractCallerID(rctx)
 
-	field, err := h.propertyService.getPropertyField(value.GroupID, value.FieldID)
+	field, err := h.propertyService.getPropertyField(rctx, value.GroupID, value.FieldID)
 	if err != nil {
 		return nil, err
 	}
@@ -690,7 +741,7 @@ func (h *AccessControlHook) PreUpsertPropertyValues(rctx request.CTX, values []*
 	callerID := h.extractCallerID(rctx)
 	scope := h.extractActingAsScope(rctx)
 
-	fieldMap, err := h.getFieldsForValues(values)
+	fieldMap, err := h.getFieldsForValues(rctx, values)
 	if err != nil {
 		return nil, err
 	}
@@ -727,7 +778,7 @@ func (h *AccessControlHook) PreDeletePropertyValue(rctx request.CTX, groupID str
 		return err
 	}
 
-	field, err := h.propertyService.getPropertyField(groupID, value.FieldID)
+	field, err := h.propertyService.getPropertyField(rctx, groupID, value.FieldID)
 	if err != nil {
 		return err
 	}
@@ -803,7 +854,7 @@ func (h *AccessControlHook) PreDeletePropertyValuesForTarget(rctx request.CTX, g
 		fieldIDSlice = append(fieldIDSlice, fieldID)
 	}
 
-	fields, err := h.propertyService.getPropertyFields(groupID, fieldIDSlice)
+	fields, err := h.propertyService.getPropertyFields(rctx, groupID, fieldIDSlice)
 	if err != nil {
 		return err
 	}
@@ -836,7 +887,7 @@ func (h *AccessControlHook) PreDeletePropertyValuesForField(rctx request.CTX, gr
 
 	callerID := h.extractCallerID(rctx)
 
-	field, err := h.propertyService.getPropertyField(groupID, fieldID)
+	field, err := h.propertyService.getPropertyField(rctx, groupID, fieldID)
 	if err != nil {
 		return err
 	}
@@ -1230,6 +1281,29 @@ func (h *AccessControlHook) copyPropertyField(field *model.PropertyField) *model
 	return &copied
 }
 
+// hiddenOptionsFieldCopy returns a copy of field with its option list hidden,
+// for a caller who may not read it. A field whose type carries no options is
+// copied untouched: HideOptions would otherwise give it an empty option list
+// it never had.
+//
+// The withheld-options marker is restored after hiding, because the store
+// keys its option reconciliation on that marker to tell "this field has no
+// options" from "this field has too many to inline". A masked field that lost
+// it could not be written back at all: a read-modify-write would look
+// identical to a caller asserting the field has no options. options_count
+// stays deleted -- on a masked field the count is controlled information too.
+func (h *AccessControlHook) hiddenOptionsFieldCopy(field *model.PropertyField) *model.PropertyField {
+	if !field.Type.SupportsOptions() {
+		return h.copyPropertyField(field)
+	}
+	hidden := h.copyPropertyField(field)
+	hidden.HideOptions()
+	if model.PropertyFieldOptionsOmitted(field.Attrs) {
+		hidden.Attrs[model.PropertyFieldAttributeOptionsOmitted] = true
+	}
+	return hidden
+}
+
 // getCallerOptionIDsForField retrieves the caller's values for a field and extracts all option IDs.
 func (h *AccessControlHook) getCallerOptionIDsForField(groupID, fieldID, callerID string, fieldType model.PropertyFieldType) (map[string]struct{}, error) {
 	callerValues, err := h.getCallerValuesForField(groupID, fieldID, callerID)
@@ -1267,31 +1341,23 @@ func (h *AccessControlHook) applyFieldReadAccessControl(rctx request.CTX, c mask
 	if field.Permissions != nil {
 		scope := h.extractActingAsScope(rctx)
 		if h.permissionsAllows(rctx, field, callerID, scope, model.PropertyActionOptionRead, "") {
-			fm, err := c.resolve(h, field)
+			fm, err := c.resolve(h, rctx, field)
 			if err != nil {
 				rctx.Logger().Error(
 					"Hiding a property field's options because its masking could not be resolved",
 					mlog.String("field_id", field.ID),
 					mlog.Err(err),
 				)
-				filteredField := h.copyPropertyField(field)
-				if field.Type.SupportsOptions() {
-					filteredField.HideOptions()
-				}
-				return filteredField
+				return h.hiddenOptionsFieldCopy(field)
 			}
-			if fm.masking == nil || h.exempt(fm.masking.Except, callerID) {
+			if fm.masking == nil || h.exempt(rctx, fm.masking.Except, callerID) {
 				return field
 			}
 			return h.maskFieldOptions(rctx, c, field, fm, callerID)
 		}
 		// Denied: the field itself is still returned -- field.read is left
 		// unenforced -- only its option list is hidden.
-		filteredField := h.copyPropertyField(field)
-		if field.Type.SupportsOptions() {
-			filteredField.HideOptions()
-		}
-		return filteredField
+		return h.hiddenOptionsFieldCopy(field)
 	}
 
 	// Every group-managed field has carried a converted permissions object
@@ -1299,11 +1365,7 @@ func (h *AccessControlHook) applyFieldReadAccessControl(rctx request.CTX, c mask
 	// too; unreached in production. Fails closed the same way the denied
 	// branch above does, rather than falling back to an access mode nothing
 	// sets any more.
-	filteredField := h.copyPropertyField(field)
-	if field.Type.SupportsOptions() {
-		filteredField.HideOptions()
-	}
-	return filteredField
+	return h.hiddenOptionsFieldCopy(field)
 }
 
 // applyFieldReadAccessControlToList applies read access control to a list of
@@ -1328,7 +1390,7 @@ func (h *AccessControlHook) applyFieldReadAccessControlToList(rctx request.CTX, 
 }
 
 // getFieldsForValues fetches all unique fields associated with the given values.
-func (h *AccessControlHook) getFieldsForValues(values []*model.PropertyValue) (map[string]*model.PropertyField, error) {
+func (h *AccessControlHook) getFieldsForValues(rctx request.CTX, values []*model.PropertyValue) (map[string]*model.PropertyField, error) {
 	if len(values) == 0 {
 		return make(map[string]*model.PropertyField), nil
 	}
@@ -1348,7 +1410,7 @@ func (h *AccessControlHook) getFieldsForValues(values []*model.PropertyValue) (m
 			fieldIDSlice = append(fieldIDSlice, fieldID)
 		}
 
-		fields, err := h.propertyService.getPropertyFields(groupID, fieldIDSlice)
+		fields, err := h.propertyService.getPropertyFields(rctx, groupID, fieldIDSlice)
 		if err != nil {
 			return nil, fmt.Errorf("failed to fetch fields for values: %w", err)
 		}
@@ -1367,7 +1429,7 @@ func (h *AccessControlHook) applyValueReadAccessControl(rctx request.CTX, values
 		return values, nil
 	}
 
-	fieldMap, err := h.getFieldsForValues(values)
+	fieldMap, err := h.getFieldsForValues(rctx, values)
 	if err != nil {
 		return nil, fmt.Errorf("applyValueReadAccessControl: %w", err)
 	}
@@ -1387,11 +1449,11 @@ func (h *AccessControlHook) applyValueReadAccessControl(rctx request.CTX, values
 				continue
 			}
 
-			fm, err := mc.resolve(h, field)
+			fm, err := mc.resolve(h, rctx, field)
 			if err != nil {
 				return nil, fmt.Errorf("applyValueReadAccessControl: %w", err)
 			}
-			if fm.masking == nil || h.exempt(fm.masking.Except, callerID) {
+			if fm.masking == nil || h.exempt(rctx, fm.masking.Except, callerID) {
 				filtered = append(filtered, value)
 				continue
 			}

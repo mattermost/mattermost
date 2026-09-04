@@ -10,8 +10,11 @@ import (
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
+	storemocks "github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
 
@@ -80,6 +83,72 @@ func TestAccessControlAttributeValidationHook(t *testing.T) {
 		assert.NotEmpty(t, created.ID)
 	})
 
+	t.Run("allows classification and smart label actions on create", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "field_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+			ObjectType: "channel",
+			Attrs: model.StringInterface{model.PropertyFieldAttrActions: []any{
+				model.PropertyFieldActionDisplayBannerTop,
+				model.PropertyFieldActionDisplayLabelHeader,
+				model.PropertyFieldActionDisplayLabelInfo,
+			}},
+		}
+		created, createErr := th.service.CreatePropertyField(th.Context, field)
+		require.NoError(t, createErr)
+		require.Equal(t, []any{
+			model.PropertyFieldActionDisplayBannerTop,
+			model.PropertyFieldActionDisplayLabelHeader,
+			model.PropertyFieldActionDisplayLabelInfo,
+		}, created.Attrs[model.PropertyFieldAttrActions])
+	})
+
+	// The classification banner is the only production writer of actions today,
+	// on a system-object linked field. Its exact round trip has to keep working:
+	// this validation is new, the banner is not.
+	t.Run("classification banner actions round-trip through create, patch, and clear", func(t *testing.T) {
+		field, createErr := th.service.CreatePropertyField(th.Context, &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "field_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+			ObjectType: "system",
+			Attrs: model.StringInterface{model.PropertyFieldAttrActions: []any{
+				model.PropertyFieldActionDisplayBannerTop,
+				model.PropertyFieldActionDisplayBannerBottom,
+			}},
+		})
+		require.NoError(t, createErr)
+
+		field.Attrs = model.StringInterface{model.PropertyFieldAttrActions: []any{model.PropertyFieldActionDisplayBannerTop}}
+		updated, _, updateErr := th.service.UpdatePropertyField(th.Context, group.ID, field)
+		require.NoError(t, updateErr)
+		require.Equal(t, []any{model.PropertyFieldActionDisplayBannerTop}, updated.Attrs[model.PropertyFieldAttrActions])
+
+		// Disabling the banner sends an empty list, which clears the key rather
+		// than storing []. Both read as "no actions" client-side.
+		updated.Attrs = model.StringInterface{model.PropertyFieldAttrActions: []any{}}
+		cleared, _, clearErr := th.service.UpdatePropertyField(th.Context, group.ID, updated)
+		require.NoError(t, clearErr)
+		require.NotContains(t, cleared.Attrs, model.PropertyFieldAttrActions)
+	})
+
+	t.Run("rejects invalid actions on create", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "field_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+			ObjectType: "channel",
+			Attrs:      model.StringInterface{model.PropertyFieldAttrActions: []any{"unknown"}},
+		}
+		_, createErr := th.service.CreatePropertyField(th.Context, field)
+		require.Error(t, createErr)
+		assert.Contains(t, createErr.Error(), "unknown action")
+	})
+
 	t.Run("rejects invalid visibility on update", func(t *testing.T) {
 		field := th.CreatePropertyFieldDirect(t, &model.PropertyField{
 			GroupID:    group.ID,
@@ -93,6 +162,49 @@ func TestAccessControlAttributeValidationHook(t *testing.T) {
 		_, _, updateErr := th.service.UpdatePropertyField(th.Context, group.ID, field)
 		require.Error(t, updateErr)
 		assert.Contains(t, updateErr.Error(), "visibility")
+	})
+
+	t.Run("rejects invalid actions on update", func(t *testing.T) {
+		field := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "field_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+			ObjectType: "channel",
+		})
+
+		field.Attrs = model.StringInterface{model.PropertyFieldAttrActions: []any{"unknown"}}
+		_, _, updateErr := th.service.UpdatePropertyField(th.Context, group.ID, field)
+		require.Error(t, updateErr)
+		assert.Contains(t, updateErr.Error(), "unknown action")
+	})
+
+	// Mirrors the lenient grandfather for Name: attrs are merged on PATCH, so a
+	// field carrying an actions value that is no longer valid has to stay editable
+	// on every other attr rather than needing delete/recreate to fix.
+	t.Run("grandfathers an untouched invalid actions value on update", func(t *testing.T) {
+		field := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "field_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+			ObjectType: "channel",
+			Attrs:      model.StringInterface{model.PropertyFieldAttrActions: []any{"retired_action"}},
+		})
+
+		field.Attrs = model.StringInterface{
+			model.PropertyFieldAttrActions:     []any{"retired_action"},
+			model.PropertyFieldAttrDisplayName: "Renamed",
+		}
+		updated, _, updateErr := th.service.UpdatePropertyField(th.Context, group.ID, field)
+		require.NoError(t, updateErr)
+		assert.Equal(t, "Renamed", updated.Attrs[model.PropertyFieldAttrDisplayName])
+
+		// Changing actions still gets the strict check.
+		field.Attrs = model.StringInterface{model.PropertyFieldAttrActions: []any{"retired_action", "unknown"}}
+		_, _, updateErr = th.service.UpdatePropertyField(th.Context, group.ID, field)
+		require.Error(t, updateErr)
+		assert.Contains(t, updateErr.Error(), "unknown action")
 	})
 
 	t.Run("skips validation for unmanaged groups", func(t *testing.T) {
@@ -495,7 +607,7 @@ func TestAccessControlAttributeValidationHook(t *testing.T) {
 		// adding a type and forgetting to validate its values is a failure rather
 		// than a field whose values nothing checks at all, and calling the check
 		// directly is the only way to reach it.
-		err := hook.validateValueAgainstField(
+		_, err := hook.validateValueAgainstField(
 			&model.PropertyField{ID: model.NewId(), GroupID: group.ID, Type: "spline"},
 			&model.PropertyValue{Value: json.RawMessage(`"anything"`)},
 		)
@@ -1140,7 +1252,7 @@ func TestAccessControlAttributeValidationHookManagedAuthorization(t *testing.T) 
 	adminUserID := model.NewId()
 	regularUserID := model.NewId()
 
-	permChecker := func(userID string, perm *model.Permission) bool {
+	permChecker := func(_ request.CTX, userID string, perm *model.Permission) bool {
 		return userID == adminUserID && perm.Id == model.PermissionManageSystem.Id
 	}
 
@@ -1625,7 +1737,7 @@ func TestAccessControlAttributeValidationHookSync(t *testing.T) {
 	require.NoError(t, err)
 
 	adminUserID := model.NewId()
-	permChecker := func(userID string, perm *model.Permission) bool {
+	permChecker := func(_ request.CTX, userID string, perm *model.Permission) bool {
 		return userID == adminUserID && perm.Id == model.PermissionManageSystem.Id
 	}
 
@@ -1816,7 +1928,7 @@ func TestAccessControlAttributeValidationHook_Owners(t *testing.T) {
 	group, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "test_owner_validation", Version: model.PropertyGroupVersionV2})
 	require.NoError(t, err)
 
-	hook := NewAccessControlAttributeValidationHook(th.service, func(userID string, _ *model.Permission) bool {
+	hook := NewAccessControlAttributeValidationHook(th.service, func(_ request.CTX, userID string, _ *model.Permission) bool {
 		return userID == "admin-user"
 	}, group.ID)
 	th.service.AddHook(hook)
@@ -2075,4 +2187,126 @@ func TestAccessControlAttributeValidationHook_Owners(t *testing.T) {
 		require.Error(t, createErr)
 		assert.Contains(t, createErr.Error(), "owner id exceeds max length")
 	})
+}
+
+// TestAccessControlAttributeValidationHookBatchesOptionLookups pins the cost of
+// validating a batch: however many values in it reference the same
+// option-bearing field, that field's existence check must reach the store
+// exactly once. A mocked PropertyFieldStore that fails the test on a second
+// call to GetExistingOptionIDs for the same field is what catches a
+// regression back to one call per value.
+func TestAccessControlAttributeValidationHookBatchesOptionLookups(t *testing.T) {
+	groupID := model.NewId()
+
+	fieldA := &model.PropertyField{ID: model.NewId(), GroupID: groupID, Type: model.PropertyFieldTypeSelect}
+	fieldB := &model.PropertyField{ID: model.NewId(), GroupID: groupID, Type: model.PropertyFieldTypeMultiselect}
+
+	optionA1, optionA2 := model.NewId(), model.NewId()
+	optionB1, optionB2 := model.NewId(), model.NewId()
+
+	mockFieldStore := &storemocks.PropertyFieldStore{}
+	mockFieldStore.On("GetMany", mock.Anything, groupID, mock.Anything).
+		Return([]*model.PropertyField{fieldA, fieldB}, nil)
+	mockFieldStore.On("GetExistingOptionIDs", fieldA, []string{optionA1, optionA2}).
+		Return([]string{optionA1, optionA2}, nil).Once()
+	mockFieldStore.On("GetExistingOptionIDs", fieldB, []string{optionB1, optionB2}).
+		Return([]string{optionB1, optionB2}, nil).Once()
+
+	ps, err := New(ServiceConfig{
+		PropertyGroupStore: &storemocks.PropertyGroupStore{},
+		PropertyFieldStore: mockFieldStore,
+		PropertyValueStore: &storemocks.PropertyValueStore{},
+	})
+	require.NoError(t, err)
+
+	hook := NewAccessControlAttributeValidationHook(ps, nil, groupID)
+
+	values := []*model.PropertyValue{
+		{GroupID: groupID, FieldID: fieldA.ID, Value: json.RawMessage(`"` + optionA1 + `"`)},
+		{GroupID: groupID, FieldID: fieldB.ID, Value: json.RawMessage(`["` + optionB1 + `","` + optionB2 + `"]`)},
+		{GroupID: groupID, FieldID: fieldA.ID, Value: json.RawMessage(`"` + optionA2 + `"`)},
+	}
+
+	require.NoError(t, hook.validateValues(request.TestContext(t), values))
+
+	// .Once() above already fails the test if either field is looked up
+	// twice; this additionally confirms both expected calls actually fired.
+	mockFieldStore.AssertExpectations(t)
+}
+
+// TestAccessControlAttributeValidationHookDedupesOptionLookup pins that a batch
+// naming the same option on the same field more than once still looks it up
+// only once per ID: a duplicated ID list would eventually push a large batch's
+// store query past PostgreSQL's bind parameter limit.
+func TestAccessControlAttributeValidationHookDedupesOptionLookup(t *testing.T) {
+	groupID := model.NewId()
+
+	field := &model.PropertyField{ID: model.NewId(), GroupID: groupID, Type: model.PropertyFieldTypeSelect}
+	optionID := model.NewId()
+
+	mockFieldStore := &storemocks.PropertyFieldStore{}
+	mockFieldStore.On("GetMany", mock.Anything, groupID, mock.Anything).
+		Return([]*model.PropertyField{field}, nil)
+	mockFieldStore.On("GetExistingOptionIDs", field, []string{optionID}).
+		Return([]string{optionID}, nil).Once()
+
+	ps, err := New(ServiceConfig{
+		PropertyGroupStore: &storemocks.PropertyGroupStore{},
+		PropertyFieldStore: mockFieldStore,
+		PropertyValueStore: &storemocks.PropertyValueStore{},
+	})
+	require.NoError(t, err)
+
+	hook := NewAccessControlAttributeValidationHook(ps, nil, groupID)
+
+	values := []*model.PropertyValue{
+		{GroupID: groupID, FieldID: field.ID, Value: json.RawMessage(`"` + optionID + `"`)},
+		{GroupID: groupID, FieldID: field.ID, Value: json.RawMessage(`"` + optionID + `"`)},
+	}
+
+	require.NoError(t, hook.validateValues(request.TestContext(t), values))
+
+	// The mocked call's exact one-element slice already fails the test if the
+	// duplicate reaches the store; .Once() confirms it was still called at all.
+	mockFieldStore.AssertExpectations(t)
+}
+
+// TestAccessControlAttributeValidationHookOptionLookupStoreFailure pins that a
+// GetExistingOptionIDs failure fails the whole batch with that store error, rather
+// than being read as an empty "existing" set that reports every pending option as
+// missing.
+func TestAccessControlAttributeValidationHookOptionLookupStoreFailure(t *testing.T) {
+	groupID := model.NewId()
+
+	field := &model.PropertyField{ID: model.NewId(), GroupID: groupID, Type: model.PropertyFieldTypeSelect}
+	optionID := model.NewId()
+
+	storeErr := fmt.Errorf("connection refused")
+
+	mockFieldStore := &storemocks.PropertyFieldStore{}
+	mockFieldStore.On("GetMany", mock.Anything, groupID, mock.Anything).
+		Return([]*model.PropertyField{field}, nil)
+	mockFieldStore.On("GetExistingOptionIDs", field, []string{optionID}).
+		Return(nil, storeErr).Once()
+
+	ps, err := New(ServiceConfig{
+		PropertyGroupStore: &storemocks.PropertyGroupStore{},
+		PropertyFieldStore: mockFieldStore,
+		PropertyValueStore: &storemocks.PropertyValueStore{},
+	})
+	require.NoError(t, err)
+
+	hook := NewAccessControlAttributeValidationHook(ps, nil, groupID)
+
+	values := []*model.PropertyValue{
+		{GroupID: groupID, FieldID: field.ID, Value: json.RawMessage(`"` + optionID + `"`)},
+	}
+
+	validateErr := hook.validateValues(request.TestContext(t), values)
+	require.Error(t, validateErr)
+	assert.ErrorIs(t, validateErr, storeErr, "the store failure must remain in the chain")
+	assert.NotErrorIs(t, validateErr, ErrInvalidValue, "a store failure must not be read as a missing option")
+	assert.NotContains(t, validateErr.Error(), "does not exist")
+
+	mockFieldStore.AssertExpectations(t)
 }

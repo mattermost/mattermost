@@ -9,6 +9,7 @@ import {defineMessage, FormattedMessage, useIntl} from 'react-intl';
 
 import {ArrowDownBoldCircleOutlineIcon, ArrowDownIcon, ArrowUpBoldCircleOutlineIcon, ArrowUpIcon, CheckAllIcon, CheckIcon, ClockOutlineIcon, ElementOfIcon, EqualIcon, FunctionIcon, NotEqualVariantIcon} from '@mattermost/compass-icons/components';
 import type IconProps from '@mattermost/compass-icons/components/props';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {IDMappedObjects} from '@mattermost/types/utilities';
 
 import * as Menu from 'components/menu';
@@ -70,6 +71,10 @@ const OperatorSelectorMenu = ({currentOperator, disabled, onChange, attributeTyp
         return getOperatorDescriptor(currentOperator);
     }, [currentOperator]);
 
+    const currentOperatorLabel = useMemo(() => {
+        return formatMessage(currentOperatorDescriptor.label);
+    }, [currentOperatorDescriptor, formatMessage]);
+
     const CurrentOperatorIcon = currentOperatorDescriptor.icon;
 
     const onFilterChange = React.useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
@@ -127,7 +132,9 @@ const OperatorSelectorMenu = ({currentOperator, disabled, onChange, attributeTyp
                             size={18}
                             color='rgba(var(--center-channel-color-rgb), 0.64)'
                         />
-                        <FormattedMessage {...currentOperatorDescriptor.label}/>
+                        <WithTooltip title={currentOperatorLabel}>
+                            <span className='field-selector-menu-button__label'>{currentOperatorLabel}</span>
+                        </WithTooltip>
                     </>
                 ),
                 dataTestId: 'operatorSelectorMenuButton',
@@ -300,6 +307,54 @@ const OPERATOR_DESCRIPTORS: IDMappedObjects<OperatorDescriptor> = {
         label: defineMessage({
             id: 'admin.access_control.table_editor.operator.younger_than',
             defaultMessage: 'younger than (days)',
+        }),
+    },
+    [OperatorLabel.IN_CIDR]: {
+        id: OperatorLabel.IN_CIDR,
+        icon: FunctionIcon,
+        label: defineMessage({
+            id: 'admin.access_control.table_editor.operator.in_cidr',
+            defaultMessage: 'in IP range',
+        }),
+    },
+    [OperatorLabel.VERSION_IS]: {
+        id: OperatorLabel.VERSION_IS,
+        icon: EqualIcon,
+        label: defineMessage({
+            id: 'admin.access_control.table_editor.operator.version_is',
+            defaultMessage: 'version is',
+        }),
+    },
+    [OperatorLabel.VERSION_GREATER_THAN]: {
+        id: OperatorLabel.VERSION_GREATER_THAN,
+        icon: GreaterThanIcon,
+        label: defineMessage({
+            id: 'admin.access_control.table_editor.operator.version_greater_than',
+            defaultMessage: 'version is greater than',
+        }),
+    },
+    [OperatorLabel.VERSION_AT_LEAST]: {
+        id: OperatorLabel.VERSION_AT_LEAST,
+        icon: GreaterThanOrEqualIcon,
+        label: defineMessage({
+            id: 'admin.access_control.table_editor.operator.version_at_least',
+            defaultMessage: 'version is at least',
+        }),
+    },
+    [OperatorLabel.VERSION_LESS_THAN]: {
+        id: OperatorLabel.VERSION_LESS_THAN,
+        icon: LessThanIcon,
+        label: defineMessage({
+            id: 'admin.access_control.table_editor.operator.version_less_than',
+            defaultMessage: 'version is less than',
+        }),
+    },
+    [OperatorLabel.VERSION_AT_MOST]: {
+        id: OperatorLabel.VERSION_AT_MOST,
+        icon: LessThanOrEqualIcon,
+        label: defineMessage({
+            id: 'admin.access_control.table_editor.operator.version_at_most',
+            defaultMessage: 'version is at most',
         }),
     },
 
