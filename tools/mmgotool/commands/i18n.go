@@ -145,7 +145,7 @@ func extractSrcStrings(enterpriseDir, mattermostDir, modelDir, pluginDir, portal
 	return i18nStrings
 }
 
-func extractCmdF(command *cobra.Command, args []string) error {
+func extractCmdF(command *cobra.Command, args []string) (err error) {
 	skipDynamic, err := command.Flags().GetBool("skip-dynamic")
 	if err != nil {
 		return errors.New("invalid skip-dynamic parameter")
@@ -234,17 +234,17 @@ func extractCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer f.Close()
+	defer func() {
+		if closeErr := f.Close(); err == nil {
+			err = closeErr
+		}
+	}()
 
 	encoder := json.NewEncoder(f)
 	encoder.SetIndent("", "  ")
 	encoder.SetEscapeHTML(false)
-	err = encoder.Encode(result)
-	if err != nil {
-		return err
-	}
 
-	return nil
+	return encoder.Encode(result)
 }
 
 func checkCmdF(command *cobra.Command, args []string) error {
@@ -503,7 +503,7 @@ func extractForConstants(name string, valueNode ast.Expr) *string {
 
 }
 
-func extractFromPath(path string, info os.FileInfo, err error, i18nStrings map[string]bool) error {
+func extractFromPath(path string, _ os.FileInfo, _ error, i18nStrings map[string]bool) error {
 	if strings.HasSuffix(path, "model/client4.go") {
 		return nil
 	}
@@ -530,7 +530,7 @@ func extractFromPath(path string, info os.FileInfo, err error, i18nStrings map[s
 	}
 
 	ast.Inspect(f, func(n ast.Node) bool {
-		var id *string = nil
+		var id *string
 
 		switch expr := n.(type) {
 		case *ast.CallExpr:
@@ -540,14 +540,11 @@ func extractFromPath(path string, info os.FileInfo, err error, i18nStrings map[s
 				if id == nil {
 					return true
 				}
-				break
 			case *ast.Ident:
 				id = extractByFuncName(fun.Name, expr.Args)
-				break
 			default:
 				return true
 			}
-			break
 		case *ast.GenDecl:
 			if expr.Tok == token.CONST {
 				for _, spec := range expr.Specs {
