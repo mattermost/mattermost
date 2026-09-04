@@ -6,6 +6,8 @@ import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {useIntl, FormattedMessage, defineMessage} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
+import {PlaylistCheckIcon} from '@mattermost/compass-icons/components';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {FileSearchResultItem as FileSearchResultItemType} from '@mattermost/types/files';
 import type {Post} from '@mattermost/types/posts';
 
@@ -490,17 +492,28 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
                     )}
                     right={isMentionActivityPanel ? (
                         <div className='right-anchor'>
-                            <ThreadTabButton
-                                id='mentionSidebarMarkAllAsRead'
-                                className='Button___large'
-                                disabled={!hasUnreadActivity}
-                                onClick={() => dispatch(markAllPlatformNotificationsAsRead())}
+                            <WithTooltip
+                                title={intl.formatMessage({
+                                    id: 'rhs_notification_activity.mark_all_as_read',
+                                    defaultMessage: 'Mark all as read',
+                                })}
                             >
-                                <FormattedMessage
-                                    id='rhs_notification_activity.mark_all_as_read'
-                                    defaultMessage='Mark all as read'
-                                />
-                            </ThreadTabButton>
+                                <ThreadTabButton
+                                    id='mentionSidebarMarkAllAsRead'
+                                    aria-label={intl.formatMessage({
+                                        id: 'rhs_notification_activity.mark_all_as_read',
+                                        defaultMessage: 'Mark all as read',
+                                    })}
+                                    className='Button___large Button___icon'
+                                    disabled={!hasUnreadActivity}
+                                    marginTop={true}
+                                    onClick={() => dispatch(markAllPlatformNotificationsAsRead())}
+                                >
+                                    <span className='icon'>
+                                        <PlaylistCheckIcon size={18}/>
+                                    </span>
+                                </ThreadTabButton>
+                            </WithTooltip>
                         </div>
                     ) : undefined}
                 />

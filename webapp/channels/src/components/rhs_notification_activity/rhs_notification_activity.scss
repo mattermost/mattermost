@@ -61,11 +61,6 @@
         align-items: center;
 
         .Button {
-            padding: 4px 0;
-            font-size: 12px;
-            font-weight: 600;
-            white-space: nowrap;
-
             &:disabled {
                 cursor: not-allowed;
                 opacity: 0.5;
