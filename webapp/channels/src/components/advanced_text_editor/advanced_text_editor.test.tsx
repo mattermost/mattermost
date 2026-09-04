@@ -211,6 +211,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
 
     describe('keyDown behavior', () => {
         it('ESC should blur the input', async () => {
+            jest.useFakeTimers();
             renderWithContext(
                 <AdvancedTextEditor
                     {...baseProps}
@@ -227,7 +228,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             );
             const textbox = screen.getByTestId('post_textbox');
 
-            await userEvent.type(textbox, 'something{escape}');
+            await userEvent.type(textbox, 'something{escape}', {advanceTimers: jest.advanceTimersByTime});
 
             expect(textbox).not.toHaveFocus();
             expect(mockedUpdateDraft).not.toHaveBeenCalled();
