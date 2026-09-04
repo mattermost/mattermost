@@ -427,6 +427,36 @@ func (_m *PropertyFieldStore) GetFieldOptions(field *model.PropertyField, cursor
 	return r0, r1
 }
 
+// GetFieldsByGrant provides a mock function with given fields: rctx, ownerType, ownerID, action
+func (_m *PropertyFieldStore) GetFieldsByGrant(rctx request.CTX, ownerType string, ownerID string, action string) ([]string, error) {
+	ret := _m.Called(rctx, ownerType, ownerID, action)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetFieldsByGrant")
+	}
+
+	var r0 []string
+	var r1 error
+	if rf, ok := ret.Get(0).(func(request.CTX, string, string, string) ([]string, error)); ok {
+		return rf(rctx, ownerType, ownerID, action)
+	}
+	if rf, ok := ret.Get(0).(func(request.CTX, string, string, string) []string); ok {
+		r0 = rf(rctx, ownerType, ownerID, action)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]string)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(request.CTX, string, string, string) error); ok {
+		r1 = rf(rctx, ownerType, ownerID, action)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetForGroup provides a mock function with given fields: rctx, groupID
 func (_m *PropertyFieldStore) GetForGroup(rctx request.CTX, groupID string) ([]*model.PropertyField, error) {
 	ret := _m.Called(rctx, groupID)
@@ -450,6 +480,36 @@ func (_m *PropertyFieldStore) GetForGroup(rctx request.CTX, groupID string) ([]*
 
 	if rf, ok := ret.Get(1).(func(request.CTX, string) error); ok {
 		r1 = rf(rctx, groupID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetGrantsForField provides a mock function with given fields: rctx, fieldID
+func (_m *PropertyFieldStore) GetGrantsForField(rctx request.CTX, fieldID string) ([]model.Grant, error) {
+	ret := _m.Called(rctx, fieldID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetGrantsForField")
+	}
+
+	var r0 []model.Grant
+	var r1 error
+	if rf, ok := ret.Get(0).(func(request.CTX, string) ([]model.Grant, error)); ok {
+		return rf(rctx, fieldID)
+	}
+	if rf, ok := ret.Get(0).(func(request.CTX, string) []model.Grant); ok {
+		r0 = rf(rctx, fieldID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]model.Grant)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(request.CTX, string) error); ok {
+		r1 = rf(rctx, fieldID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -787,6 +847,34 @@ func (_m *PropertyFieldStore) GetOptionsByName(field *model.PropertyField, names
 	return r0, r1
 }
 
+// HasGrantForIdentity provides a mock function with given fields: rctx, ownerType, ownerID
+func (_m *PropertyFieldStore) HasGrantForIdentity(rctx request.CTX, ownerType string, ownerID string) (bool, error) {
+	ret := _m.Called(rctx, ownerType, ownerID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for HasGrantForIdentity")
+	}
+
+	var r0 bool
+	var r1 error
+	if rf, ok := ret.Get(0).(func(request.CTX, string, string) (bool, error)); ok {
+		return rf(rctx, ownerType, ownerID)
+	}
+	if rf, ok := ret.Get(0).(func(request.CTX, string, string) bool); ok {
+		r0 = rf(rctx, ownerType, ownerID)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	if rf, ok := ret.Get(1).(func(request.CTX, string, string) error); ok {
+		r1 = rf(rctx, ownerType, ownerID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // MutateOptions provides a mock function with given fields: groupID, fieldID, expectedUpdateAt, upsert, add, remove
 func (_m *PropertyFieldStore) MutateOptions(groupID string, fieldID string, expectedUpdateAt int64, upsert []*model.PropertyFieldOption, add []*model.PropertyOptionEdge, remove []*model.PropertyOptionEdge) error {
 	ret := _m.Called(groupID, fieldID, expectedUpdateAt, upsert, add, remove)
@@ -863,6 +951,24 @@ func (_m *PropertyFieldStore) Update(groupID string, fields []*model.PropertyFie
 	}
 
 	return r0, r1
+}
+
+// ValidateMaskByFieldID provides a mock function with given fields: rctx, groupID, fieldID, maskByFieldID
+func (_m *PropertyFieldStore) ValidateMaskByFieldID(rctx request.CTX, groupID string, fieldID string, maskByFieldID string) error {
+	ret := _m.Called(rctx, groupID, fieldID, maskByFieldID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ValidateMaskByFieldID")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(request.CTX, string, string, string) error); ok {
+		r0 = rf(rctx, groupID, fieldID, maskByFieldID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
 }
 
 // NewPropertyFieldStore creates a new instance of PropertyFieldStore. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

@@ -3569,6 +3569,102 @@ func TestPluginAPICreatePropertyField(t *testing.T) {
 	})
 }
 
+// TestPluginAPIGetPropertyFieldProjectsLegacyPermissions asserts that a
+// plugin -- a v2 caller with no version negotiation -- reads Protected,
+// PermissionField/Values/Options and owners computed from a field's
+// permissions object, on every read method, even for a field whose legacy
+// columns were never written directly.
+func TestPluginAPIGetPropertyFieldProjectsLegacyPermissions(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	api := th.SetupPluginAPI()
+
+	// api.RegisterPropertyGroup hardcodes v1, which never holds a permissions
+	// object, so register the v2 group directly through the app layer.
+	group, appErr := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{
+		Name:    "plugin_projection_" + model.NewId(),
+		Version: model.PropertyGroupVersionV2,
+	})
+	require.Nil(t, appErr)
+
+	ownerID := model.NewId()
+	field, sErr := th.Store.PropertyField().Create(&model.PropertyField{
+		GroupID:    group.ID,
+		Name:       "projected field",
+		Type:       model.PropertyFieldTypeText,
+		ObjectType: model.PropertyFieldObjectTypeUser,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
+		Permissions: &model.Permissions{
+			Restrictions: &model.Restrictions{
+				Field:  model.WriteOnly{Write: model.PermissionLevelNone},
+				Value:  model.ReadWrite{Read: model.PermissionLevelEveryone, Write: model.PermissionLevelMember},
+				Option: model.ReadWrite{Read: model.PermissionLevelEveryone, Write: model.PermissionLevelAdmin},
+			},
+			Grants: []model.Grant{
+				{Identity: model.Identity{Type: model.PropertyOwnerTypeUser, ID: ownerID}, Allow: []string{model.PropertyActionValueWrite}},
+			},
+		},
+	})
+	require.NoError(t, sErr)
+
+	assertProjected := func(t *testing.T, got *model.PropertyField) {
+		t.Helper()
+		require.NotNil(t, got)
+		assert.True(t, got.Protected)
+		require.NotNil(t, got.PermissionField)
+		assert.Equal(t, model.PermissionLevelNone, *got.PermissionField)
+		require.NotNil(t, got.PermissionValues)
+		assert.Equal(t, model.PermissionLevelMember, *got.PermissionValues)
+		require.NotNil(t, got.PermissionOptions)
+		assert.Equal(t, model.PermissionLevelAdmin, *got.PermissionOptions)
+		owners := model.GetPropertyFieldOwners(got)
+		require.Len(t, owners, 1)
+		assert.Equal(t, ownerID, owners[0].ID)
+	}
+
+	t.Run("GetPropertyField", func(t *testing.T) {
+		got, err := api.GetPropertyField(group.ID, field.ID)
+		require.NoError(t, err)
+		assertProjected(t, got)
+	})
+
+	t.Run("GetPropertyFields", func(t *testing.T) {
+		got, err := api.GetPropertyFields(group.ID, []string{field.ID})
+		require.NoError(t, err)
+		require.Len(t, got, 1)
+		assertProjected(t, got[0])
+	})
+
+	t.Run("SearchPropertyFields", func(t *testing.T) {
+		got, err := api.SearchPropertyFields(group.ID, model.PropertyFieldSearchOpts{GroupID: group.ID, PerPage: 10})
+		require.NoError(t, err)
+		require.Len(t, got, 1)
+		assertProjected(t, got[0])
+	})
+
+	t.Run("GetPropertyFieldByName", func(t *testing.T) {
+		got, err := api.GetPropertyFieldByName(group.ID, "", field.Name)
+		require.NoError(t, err)
+		assertProjected(t, got)
+	})
+
+	// Store hydration fills the dropped Protected/Permission* columns from
+	// Permissions so a load-modify-save does not look like a legacy-column
+	// change. Attrs (owners, access_mode) are still projected only on the
+	// plugin/v2 copy via ProjectLegacyPermissions.
+	stored, appErr := th.App.GetPropertyField(th.Context, group.ID, field.ID)
+	require.Nil(t, appErr)
+	require.NotNil(t, stored)
+	assert.True(t, stored.Protected)
+	require.NotNil(t, stored.PermissionField)
+	assert.Equal(t, model.PermissionLevelNone, *stored.PermissionField)
+	require.NotNil(t, stored.PermissionValues)
+	assert.Equal(t, model.PermissionLevelMember, *stored.PermissionValues)
+	require.NotNil(t, stored.PermissionOptions)
+	assert.Equal(t, model.PermissionLevelAdmin, *stored.PermissionOptions)
+}
+
 func TestPluginAPIPropertyValueWithOptions(t *testing.T) {
 	mainHelper.Parallel(t)
 

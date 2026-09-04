@@ -123,154 +123,6 @@ func TestGraphAncestors(t *testing.T) {
 	})
 }
 
-func TestGraphClampToCoverage(t *testing.T) {
-	th := Setup(t)
-
-	t.Run("an option the holder covers stands, one they do not is replaced", func(t *testing.T) {
-		graph := setupGraph(t, th, []string{"Air", "Fighter Jet", "F-18"}, map[string][]string{
-			"Fighter Jet": {"Air"},
-			"F-18":        {"Fighter Jet"},
-		})
-
-		// Alice holds F-18 and is being told about an object marked Fighter Jet.
-		// She has no claim to the rest of the Fighter Jet program, so what she is
-		// told is her own part of it.
-		visible, err := th.service.clampToCoverage(th.Context, graph.field, graph.of("Fighter Jet"), graph.of("F-18"), nil)
-		require.NoError(t, err)
-		require.Equal(t, []string{"F-18"}, graph.named(visible))
-
-		// The other way round she covers it outright and it stands as it is.
-		visible, err = th.service.clampToCoverage(th.Context, graph.field, graph.of("F-18"), graph.of("Fighter Jet"), nil)
-		require.NoError(t, err)
-		require.Equal(t, []string{"F-18"}, graph.named(visible))
-
-		// Including when it is exactly what she holds.
-		visible, err = th.service.clampToCoverage(th.Context, graph.field, graph.of("F-18"), graph.of("F-18"), nil)
-		require.NoError(t, err)
-		require.Equal(t, []string{"F-18"}, graph.named(visible))
-	})
-
-	t.Run("a batch shares coverage and descents across calls", func(t *testing.T) {
-		graph := setupGraph(t, th, []string{"Air", "Fighter Jet", "F-18"}, map[string][]string{
-			"Fighter Jet": {"Air"},
-			"F-18":        {"Fighter Jet"},
-		})
-
-		batch := &graphClampBatch{}
-		first, err := th.service.clampToCoverage(th.Context, graph.field, graph.of("Fighter Jet"), graph.of("F-18"), batch)
-		require.NoError(t, err)
-		require.Equal(t, []string{"F-18"}, graph.named(first))
-		require.NotNil(t, batch.covered)
-		require.NotNil(t, batch.below)
-
-		second, err := th.service.clampToCoverage(th.Context, graph.field, graph.of("Fighter Jet"), graph.of("F-18"), batch)
-		require.NoError(t, err)
-		require.Equal(t, []string{"F-18"}, graph.named(second))
-	})
-
-	t.Run("options are clamped one at a time", func(t *testing.T) {
-		graph := setupGraph(t, th, []string{"Air", "Fighter Jet", "F-18", "Sea"}, map[string][]string{
-			"Fighter Jet": {"Air"},
-			"F-18":        {"Fighter Jet"},
-		})
-
-		// One option covered outright, one replaced by what the holder covers below
-		// it, and one with nothing covered below it at all -- which contributes
-		// nothing rather than hiding the other two.
-		visible, err := th.service.clampToCoverage(th.Context, graph.field,
-			graph.of("F-18", "Air", "Sea"), graph.of("Fighter Jet"), nil)
-		require.NoError(t, err)
-		require.ElementsMatch(t, []string{"F-18", "Fighter Jet"}, graph.named(visible))
-	})
-
-	t.Run("nothing the holder covers leaves nothing to see", func(t *testing.T) {
-		graph := setupGraph(t, th, []string{"Air", "Fighter Jet", "Sea"}, map[string][]string{
-			"Fighter Jet": {"Air"},
-		})
-
-		// A holder on a separate branch covers no part of the Air program, and the
-		// answer is nothing at all rather than the option they hold.
-		visible, err := th.service.clampToCoverage(th.Context, graph.field, graph.of("Fighter Jet"), graph.of("Sea"), nil)
-		require.NoError(t, err)
-		require.Empty(t, visible)
-
-		// A holder of nothing is the same case, as is an object marked with
-		// nothing.
-		visible, err = th.service.clampToCoverage(th.Context, graph.field, graph.of("Air"), nil, nil)
-		require.NoError(t, err)
-		require.Empty(t, visible)
-
-		visible, err = th.service.clampToCoverage(th.Context, graph.field, nil, graph.of("Air"), nil)
-		require.NoError(t, err)
-		require.Empty(t, visible)
-	})
-
-	t.Run("an option the field does not have is not visible to anyone", func(t *testing.T) {
-		graph := setupGraph(t, th, []string{"Air", "Fighter Jet"}, map[string][]string{
-			"Fighter Jet": {"Air"},
-		})
-
-		// A value naming an option that has since been deleted covers nothing and
-		// has nothing below it, so a holder of the root is told nothing about it
-		// -- the one holder who is told everything else.
-		visible, err := th.service.clampToCoverage(th.Context, graph.field, []string{model.NewId()}, graph.of("Air"), nil)
-		require.NoError(t, err)
-		require.Empty(t, visible)
-
-		// And a holder of an option the field does not have covers nothing.
-		visible, err = th.service.clampToCoverage(th.Context, graph.field, graph.of("Air"), []string{model.NewId()}, nil)
-		require.NoError(t, err)
-		require.Empty(t, visible)
-	})
-
-	t.Run("a replacement reachable by two routes is reported once", func(t *testing.T) {
-		//   Air ─┬─ Fighter Jet ─┬─ F-18
-		//        └─ Carrier Air ─┘
-		// Descending from Air reaches F-18 down both branches.
-		graph := setupGraph(t, th, []string{"Air", "Fighter Jet", "Carrier Air", "F-18"}, map[string][]string{
-			"Fighter Jet": {"Air"},
-			"Carrier Air": {"Air"},
-			"F-18":        {"Fighter Jet", "Carrier Air"},
-		})
-
-		visible, err := th.service.clampToCoverage(th.Context, graph.field, graph.of("Air"), graph.of("F-18"), nil)
-		require.NoError(t, err)
-		require.Equal(t, []string{"F-18"}, graph.named(visible))
-	})
-
-	t.Run("a replacement reports only the options nothing else in it accounts for", func(t *testing.T) {
-		//   Air ─┬─ Fighter Jet ── F-18
-		//        └─────────────────┘
-		// F-18 hangs off Air directly as well as under Fighter Jet, so descending
-		// from Air stops at both Fighter Jet and F-18 without either branch
-		// noticing the other. Fighter Jet is above F-18, and a holder told about
-		// Fighter Jet has been told about F-18 already.
-		graph := setupGraph(t, th, []string{"Air", "Fighter Jet", "F-18"}, map[string][]string{
-			"Fighter Jet": {"Air"},
-			"F-18":        {"Air", "Fighter Jet"},
-		})
-
-		visible, err := th.service.clampToCoverage(th.Context, graph.field, graph.of("Air"), graph.of("Fighter Jet", "F-18"), nil)
-		require.NoError(t, err)
-		require.Equal(t, []string{"Fighter Jet"}, graph.named(visible))
-	})
-
-	t.Run("a field of another type has no hierarchy to clamp against", func(t *testing.T) {
-		multiselect := th.CreatePropertyFieldDirect(t, &model.PropertyField{
-			GroupID:    model.NewId(),
-			Name:       "Flat-" + model.NewId(),
-			Type:       model.PropertyFieldTypeMultiselect,
-			ObjectType: model.PropertyFieldObjectTypeTemplate,
-			TargetType: string(model.PropertyFieldTargetLevelSystem),
-			Attrs:      model.StringInterface{"options": []any{map[string]any{"id": model.NewId(), "name": "Air"}}},
-		})
-
-		visible, err := th.service.clampToCoverage(th.Context, multiselect, []string{"a"}, []string{"a"}, nil)
-		require.Error(t, err)
-		require.Empty(t, visible, "a refusal shows nothing, not the options it was asked about")
-	})
-}
-
 func TestGraphWouldCreateCycle(t *testing.T) {
 	th := Setup(t)
 
@@ -539,18 +391,23 @@ func TestGraphResolutionThroughLinkedField(t *testing.T) {
 	})
 	derived := &graphFixture{field: linked, ids: graph.ids}
 
-	// A holder of Air is told about F-18 unchanged, since Air is above it.
-	visible, err := th.service.clampToCoverage(th.Context, derived.field, derived.of("F-18"), derived.of("Air"), nil)
+	// A holder of Air covers F-18, because Air is above it -- resolved through
+	// the template's edges, which the linked field owns none of.
+	covered, err := th.service.CoveredBy(th.Context, derived.field, derived.of("F-18"), derived.of("Air"))
 	require.NoError(t, err)
-	require.Equal(t, []string{"F-18"}, derived.named(visible))
+	require.True(t, covered[derived.ids["F-18"]])
 
-	// The other way round, a holder of F-18 is told only their own part of Air.
-	visible, err = th.service.clampToCoverage(th.Context, derived.field, derived.of("Air"), derived.of("F-18"), nil)
+	// The other way round, a holder of F-18 does not cover Air: coverage runs
+	// one way, and a linked field resolving against its own ID would have found
+	// neither direction.
+	covered, err = th.service.CoveredBy(th.Context, derived.field, derived.of("Air"), derived.of("F-18"))
 	require.NoError(t, err)
-	require.Equal(t, []string{"F-18"}, derived.named(visible))
+	require.False(t, covered[derived.ids["Air"]])
 
-	// And a holder of Fighter Jet, one level up, sees their own part instead.
-	visible, err = th.service.clampToCoverage(th.Context, derived.field, derived.of("Air"), derived.of("Fighter Jet"), nil)
+	// A holder of Fighter Jet covers F-18 below it and not Air above it, so the
+	// walk stops where the hierarchy says rather than at the field boundary.
+	covered, err = th.service.CoveredBy(th.Context, derived.field, derived.of("F-18", "Air"), derived.of("Fighter Jet"))
 	require.NoError(t, err)
-	require.Equal(t, []string{"Fighter Jet"}, derived.named(visible))
+	require.True(t, covered[derived.ids["F-18"]])
+	require.False(t, covered[derived.ids["Air"]])
 }

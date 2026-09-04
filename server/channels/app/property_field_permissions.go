@@ -1,0 +1,260 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+package app
+
+import (
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
+)
+
+// PropertyPermissionBasis records how a property field permission decision
+// was reached, so a value or definition write can log the basis it was
+// allowed on: the caller identity, and either the matching grant or the
+// satisfied restrictions tier.
+type PropertyPermissionBasis struct {
+	Action     string
+	CallerType string
+	CallerID   string
+
+	// Tier is the satisfied restrictions tier, empty when a grant allowed it
+	// instead.
+	Tier model.PermissionLevel
+
+	// GrantID, GrantScope, and GrantWildcard are set when a grant allowed the
+	// action. GrantWildcard is grant.ID == "*".
+	GrantID       string
+	GrantScope    string
+	GrantWildcard bool
+
+	// Unrestricted is true when a local-mode session bypassed the check.
+	Unrestricted bool
+
+	Allowed bool
+
+	// HoldingsChange is true when a write on a masked field changed the
+	// caller's own holdings, since that widens what the caller can
+	// subsequently read. Left false here; only the audit site that knows
+	// which object a value was written to can set it.
+	HoldingsChange bool
+}
+
+// decidePropertyFieldPermission answers whether userID may perform action on
+// field, unioning the human restrictions ladder with any grant naming the
+// caller: the most permissive result across both, since the model is
+// grant-only and has no deny. A field with no Permissions (a PSAv1 field,
+// which cannot hold one) satisfies no tier and matches no grant, so every
+// action is denied.
+func (a *App) decidePropertyFieldPermission(rctx request.CTX, userID string, field *model.PropertyField, action, valueTargetID string) PropertyPermissionBasis {
+	basis := PropertyPermissionBasis{
+		Action:     action,
+		CallerType: model.PropertyOwnerTypeUser,
+		CallerID:   userID,
+	}
+	if field == nil || userID == "" {
+		return basis
+	}
+
+	if tier, ok := a.propertyRestrictionsAllow(rctx, userID, field, action, valueTargetID); ok {
+		basis.Tier = tier
+		basis.Allowed = true
+		return basis
+	}
+
+	if grant := a.propertyGrantForHuman(rctx, userID, field, action); grant != nil {
+		basis.GrantID = grant.ID
+		basis.GrantWildcard = grant.ID == "*"
+		basis.Allowed = true
+		return basis
+	}
+
+	logPropertyFieldPermissionDenied(rctx, basis, field)
+	return basis
+}
+
+// logPropertyFieldPermissionDenied logs a denied decision at debug: an
+// ordinary field denies almost everyone almost every action by default (an
+// omitted restrictions leaf means none), so logging a denial any louder
+// would bury the signal that matters.
+func logPropertyFieldPermissionDenied(rctx request.CTX, basis PropertyPermissionBasis, field *model.PropertyField) {
+	rctx.Logger().Debug("Property field permission denied",
+		mlog.String("caller_id", basis.CallerID),
+		mlog.String("field_id", field.ID),
+		mlog.String("action", basis.Action),
+		mlog.String("required_tier", string(requiredPermissionTierFor(field, basis.Action))),
+	)
+}
+
+// requiredPermissionTierFor reports the permission tier configured for
+// action on field, for the denial log: the restrictions ladder's tier when
+// the field carries Permissions, else none — a PSAv1 field, which can't
+// carry one.
+func requiredPermissionTierFor(field *model.PropertyField, action string) model.PermissionLevel {
+	if field.Permissions != nil {
+		return field.Permissions.Restrictions.TierFor(action)
+	}
+	return model.PermissionLevelNone
+}
+
+// PropertyPermissionBasisFor derives the basis on which the caller named on
+// rctx would be allowed action against field. It exists for an audit sink
+// that runs after the store write, in a separate hook call from the one that
+// made the original decision: the property service calls
+// ps.runPreCreatePropertyValue and then ps.runPostCreatePropertyValue with the
+// same rctx, so a value stashed in its context by the pre-hook does not
+// survive to the post-hook. Deriving instead of carrying is sound because the
+// decision is a pure function of the caller identity, the acting-as scope,
+// the stored field, and the action, none of which a value write changes.
+func (a *App) PropertyPermissionBasisFor(rctx request.CTX, field *model.PropertyField, action, valueTargetID string) PropertyPermissionBasis {
+	basis := PropertyPermissionBasis{Action: action}
+
+	callerID, _ := CallerIDFromRequestContext(rctx)
+	basis.CallerID = callerID
+	if callerID == "" {
+		// Fail closed: an unattributable write is recorded as unattributed,
+		// never as allowed by something.
+		return basis
+	}
+
+	if callerID == model.CallerIDLocalAdmin {
+		basis.Unrestricted = true
+		basis.Allowed = true
+		return basis
+	}
+
+	if field == nil {
+		// Nothing to derive a basis from; already-denied basis, same as
+		// decidePropertyFieldPermission's nil-field handling.
+		return basis
+	}
+
+	// Mirror AccessControlHook.isMachineCaller (plugin, LDAP sync, SAML
+	// sync, or a system subsystem) so the audit basis and the enforcement
+	// gate cannot disagree about a caller. An installed plugin's ID could
+	// otherwise match a wildcard ("*") plugin grant even when the caller
+	// is actually a human, since Permissions.MatchingGrant honours the
+	// wildcard against any ID.
+	switch {
+	case a.IsInstalledPlugin(callerID):
+		scope := model.PropertyRequestOptionsFromContext(rctx.Context()).ActingAsScope
+		// A machine caller has no role, so the ladder never applies and a
+		// grant is the whole answer — never fall through to the human
+		// decision below, which would run a.GetUser against a manifest ID
+		// and log a spurious denial.
+		return basisFromMatchingGrant(basis, field.Permissions, model.PropertyOwnerTypePlugin, callerID, scope, action)
+	case callerID == model.CallerIDLDAPSync:
+		return basisFromMatchingGrant(basis, field.Permissions, model.PropertyOwnerTypeService, model.PropertyFieldAttrLDAP, "", action)
+	case callerID == model.CallerIDSAMLSync:
+		return basisFromMatchingGrant(basis, field.Permissions, model.PropertyOwnerTypeService, model.PropertyFieldAttrSAML, "", action)
+	default:
+		if group, ok := model.SystemCallerOwnedGroup(callerID); ok {
+			return basisFromMatchingGrant(basis, field.Permissions, model.PropertyOwnerTypeService, group, "", action)
+		}
+	}
+
+	return a.decidePropertyFieldPermission(rctx, callerID, field, action, valueTargetID)
+}
+
+// basisFromMatchingGrant matches callerType/callerID/scope/action against
+// permissions' grants and, on a match, fills basis with it. It returns basis
+// unchanged (denied) when nothing matches.
+func basisFromMatchingGrant(basis PropertyPermissionBasis, permissions *model.Permissions, callerType, callerID, scope, action string) PropertyPermissionBasis {
+	grant := permissions.MatchingGrant(callerType, callerID, scope, action)
+	if grant == nil {
+		return basis
+	}
+	basis.CallerType = callerType
+	basis.GrantID = grant.ID
+	basis.GrantScope = scope
+	basis.GrantWildcard = grant.ID == "*"
+	basis.Allowed = true
+	return basis
+}
+
+// propertyGrantForHuman matches a human caller against field's grants: an
+// unscoped user grant naming their ID, or a role grant naming a role they
+// hold. Machine grants (plugin/service) are never matched here — a session
+// user is not a plugin, and matching one would let a user borrow an
+// integration's access. A human carries no acting-as scope, so grants are
+// matched with an empty scope; a scoped grant will not match.
+//
+// A grant does not lift the object-level check: hasTargetAccess runs first at
+// the API layer, so a role grant naming a compliance officer only reaches
+// objects they can already access.
+func (a *App) propertyGrantForHuman(rctx request.CTX, userID string, field *model.PropertyField, action string) *model.Grant {
+	permissions := field.Permissions
+	if permissions == nil {
+		// A PSAv1 field can't hold Permissions at all, so it reaches here
+		// with nil rather than an empty Grants list.
+		return nil
+	}
+	if grant := permissions.MatchingGrant(model.PropertyOwnerTypeUser, userID, "", action); grant != nil {
+		return grant
+	}
+
+	// Only look up the caller's roles when the field actually carries a role
+	// grant, so the ordinary field pays no store read.
+	hasRoleGrant := false
+	for _, g := range permissions.Grants {
+		if g.Type == model.PropertyOwnerTypeRole {
+			hasRoleGrant = true
+			break
+		}
+	}
+	if !hasRoleGrant {
+		return nil
+	}
+
+	for _, role := range a.propertyCallerRoles(rctx, userID) {
+		if grant := permissions.MatchingGrant(model.PropertyOwnerTypeRole, role, "", action); grant != nil {
+			return grant
+		}
+	}
+	return nil
+}
+
+// propertyCallerRoles returns the role names userID holds, the same names a
+// role grant (propertyGrantForHuman) and a masking except role entry
+// (properties.PropertyRoleLister) are both matched against, so the gate and
+// the exemption cannot disagree about what a caller is. A lookup that fails
+// yields no roles rather than erroring into a match.
+func (a *App) propertyCallerRoles(rctx request.CTX, userID string) []string {
+	user, appErr := a.GetUser(rctx, userID)
+	if appErr != nil {
+		return nil
+	}
+	return user.GetRoles()
+}
+
+// propertyRestrictionsAllow evaluates the human restrictions ladder for action
+// against field's Permissions. It returns the tier that was satisfied and
+// whether it was, so a caller recording an audit basis does not have to look
+// the tier up a second time.
+func (a *App) propertyRestrictionsAllow(rctx request.CTX, userID string, field *model.PropertyField, action, valueTargetID string) (model.PermissionLevel, bool) {
+	if field == nil || userID == "" {
+		return model.PermissionLevelNone, false
+	}
+
+	// field.Permissions is itself optional, so its Restrictions can't be read
+	// through it directly without a nil check first.
+	var restrictions *model.Restrictions
+	if field.Permissions != nil {
+		restrictions = field.Permissions.Restrictions
+	}
+	tier := restrictions.TierFor(action)
+	if tier == model.PermissionLevelNone {
+		return model.PermissionLevelNone, false
+	}
+
+	var satisfied bool
+	if model.PropertyActionMeasuredAgainstValueObject(action) {
+		satisfied = a.hasPropertyFieldValuePermissionLevel(rctx, userID, field, valueTargetID, tier)
+	} else {
+		satisfied = a.hasPropertyFieldPermissionLevel(rctx, userID, field, tier)
+	}
+	if !satisfied {
+		return model.PermissionLevelNone, false
+	}
+	return tier, true
+}

@@ -421,7 +421,8 @@ func TestAccessControlHookGroupScoping(t *testing.T) {
 		updated.Name = "attempt-update"
 		_, _, err = th.service.UpdatePropertyField(rctxPlugin2, th.CPAGroupID, updated)
 		require.Error(t, err)
-		assert.Contains(t, err.Error(), "protected")
+		// plugin-2 holds no field.write grant on a field whose source is plugin-1.
+		assert.Contains(t, err.Error(), "field write")
 	})
 
 	t.Run("access control NOT enforced for unmanaged group", func(t *testing.T) {

@@ -10,7 +10,6 @@ import (
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/v8/channels/app/properties"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/stretchr/testify/require"
 )
@@ -77,6 +76,70 @@ func TestDoSetupManagedCategoryProperties(t *testing.T) {
 		data, sysErr := th.Store.System().GetByName(managedCategorySetupDoneKey)
 		require.NoError(t, sysErr)
 		require.Equal(t, managedCategoryMigrationVersion, data.Value)
+	})
+
+	t.Run("upgrading a field written before the permissions object existed", func(t *testing.T) {
+		th := Setup(t)
+
+		group, appErr := th.App.GetPropertyGroup(th.Context, model.ManagedCategoryPropertyGroupName)
+		require.Nil(t, appErr)
+
+		fields, appErr := th.App.SearchPropertyFields(th.Context, group.ID, model.PropertyFieldSearchOpts{PerPage: 100})
+		require.Nil(t, appErr)
+		require.Len(t, fields, 1)
+
+		// Roll the field back to the shape a pre-effort install's row is in:
+		// legacy columns only, no permissions object at all. The hook refuses
+		// that outright regardless of caller, so doSetupManagedCategoryProperties'
+		// own subsequent read would fail here without ConvertSystemOwnedFields
+		// running ahead of it.
+		expectedUpdateAts := make(map[string]int64, len(fields))
+		for _, f := range fields {
+			expectedUpdateAts[f.ID] = f.UpdateAt
+			f.Permissions = nil
+		}
+		_, err := th.Store.PropertyField().Update(group.ID, fields, expectedUpdateAts)
+		require.NoError(t, err)
+
+		require.NoError(t, th.Server.doSetupManagedCategoryProperties())
+
+		after, appErr := th.App.SearchPropertyFields(th.Context, group.ID, model.PropertyFieldSearchOpts{PerPage: 100})
+		require.Nil(t, appErr)
+		require.Len(t, after, 1)
+		for _, f := range after {
+			require.NotNil(t, f.Permissions, "field %q must be converted", f.Name)
+			require.NotNil(t,
+				f.Permissions.MatchingGrant(model.PropertyOwnerTypeService, model.ManagedCategoryPropertyGroupName, "", model.PropertyActionFieldWrite),
+				"field %q must carry the managed_category service grant", f.Name)
+		}
+	})
+
+	t.Run("subsequent boot after admin revokes service grant does not put it back", func(t *testing.T) {
+		th := Setup(t)
+
+		group, appErr := th.App.GetPropertyGroup(th.Context, model.ManagedCategoryPropertyGroupName)
+		require.Nil(t, appErr)
+
+		fields, appErr := th.App.SearchPropertyFields(th.Context, group.ID, model.PropertyFieldSearchOpts{PerPage: 100})
+		require.Nil(t, appErr)
+		require.Len(t, fields, 1)
+
+		field := fields[0]
+		revoked := *field.Permissions
+		revoked.Grants = nil
+		field.Permissions = &revoked
+		expectedUpdateAts := map[string]int64{field.ID: field.UpdateAt}
+		_, err := th.Store.PropertyField().Update(group.ID, []*model.PropertyField{field}, expectedUpdateAts)
+		require.NoError(t, err)
+
+		require.NoError(t, th.Server.doSetupManagedCategoryProperties())
+
+		after, appErr := th.App.SearchPropertyFields(th.Context, group.ID, model.PropertyFieldSearchOpts{PerPage: 100})
+		require.Nil(t, appErr)
+		require.Len(t, after, 1)
+		require.Nil(t,
+			after[0].Permissions.MatchingGrant(model.PropertyOwnerTypeService, model.ManagedCategoryPropertyGroupName, "", model.PropertyActionFieldWrite),
+			"subsequent boot must not re-add a revoked service grant")
 	})
 }
 
@@ -363,6 +426,87 @@ func TestCPADisplayNameBackfill_BackfillsProtectedSourceOnlyField(t *testing.T) 
 	require.Equal(t, "true", data.Value)
 }
 
+// clearPropertyPermissionsBackfillMarker removes the System-key marker for the
+// property permissions backfill, the same way clearCPABackfillMarker does for
+// the CPA display_name backfill: Setup(t) has already run this migration once,
+// so without clearing it the test would pass on the short-circuit rather than
+// on the conversion.
+func clearPropertyPermissionsBackfillMarker(t *testing.T, th *TestHelper) {
+	t.Helper()
+	_, err := th.Store.System().PermanentDeleteByName(propertyPermissionsBackfillKey)
+	require.NoError(t, err, "failed to clear property permissions backfill marker for test isolation")
+}
+
+func TestPropertyPermissionsBackfill_NoExistingFields(t *testing.T) {
+	th := Setup(t)
+
+	clearPropertyPermissionsBackfillMarker(t, th)
+
+	err := th.Server.doSetupPropertyPermissionsBackfill(th.Context)
+	require.NoError(t, err)
+
+	data, sysErr := th.Store.System().GetByName(propertyPermissionsBackfillKey)
+	require.NoError(t, sysErr)
+	require.NotNil(t, data)
+	require.Equal(t, "true", data.Value)
+}
+
+func TestPropertyPermissionsBackfill_Idempotent(t *testing.T) {
+	th := Setup(t)
+	// LicenseCheckHook gates writes to the access_control group on an
+	// Enterprise license; the seed CreatePropertyField call below would
+	// otherwise be rejected with app.property.license_error.
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+
+	clearPropertyPermissionsBackfillMarker(t, th)
+
+	group, appErr := th.App.GetPropertyGroup(th.Context, model.AccessControlPropertyGroupName)
+	require.Nil(t, appErr)
+
+	field, appErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+		GroupID:    group.ID,
+		Name:       "department",
+		Type:       model.PropertyFieldTypeText,
+		ObjectType: model.PropertyFieldObjectTypeUser,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
+	}, false, "")
+	require.Nil(t, appErr)
+
+	// Create defaults a permissions object onto the row (including the
+	// ambient plugin * grant). Strip it so this test is actually exercising
+	// the backfill rather than the create path.
+	stored, storeErr := th.Store.PropertyField().Get(th.Context, group.ID, field.ID)
+	require.NoError(t, storeErr)
+	stored.Permissions = nil
+	_, storeErr = th.Store.PropertyField().Update(group.ID, []*model.PropertyField{stored}, nil)
+	require.NoError(t, storeErr)
+	stripped, storeErr := th.Store.PropertyField().Get(th.Context, group.ID, field.ID)
+	require.NoError(t, storeErr)
+	require.Nil(t, stripped.Permissions, "seed invariant: field must start the backfill with no permissions object")
+
+	err := th.Server.doSetupPropertyPermissionsBackfill(th.Context)
+	require.NoError(t, err)
+
+	data, sysErr := th.Store.System().GetByName(propertyPermissionsBackfillKey)
+	require.NoError(t, sysErr)
+	require.Equal(t, "true", data.Value)
+
+	converted, appErr := th.App.GetPropertyField(th.Context, group.ID, field.ID)
+	require.Nil(t, appErr)
+	require.NotNil(t, converted.Permissions, "field must carry a permissions object after the backfill runs")
+	firstUpdateAt := converted.UpdateAt
+
+	// Second run: the idempotency check fires immediately, so it must neither
+	// change the converted object nor rewrite the row.
+	err = th.Server.doSetupPropertyPermissionsBackfill(th.Context)
+	require.NoError(t, err)
+
+	unchanged, appErr := th.App.GetPropertyField(th.Context, group.ID, field.ID)
+	require.Nil(t, appErr)
+	require.Equal(t, converted.Permissions, unchanged.Permissions, "second run must not alter the converted permissions object")
+	require.Equal(t, firstUpdateAt, unchanged.UpdateAt, "second run must not re-write the field row")
+}
+
 var expectedOSPlatformOptions = []string{"macos", "windows", "linux", "ios", "android"}
 
 func sessionAttributeFieldByName(t *testing.T, th *TestHelper, groupID, name string) *model.PropertyField {
@@ -500,7 +644,7 @@ func TestDoSetupSessionAttributesProperties(t *testing.T) {
 		field := sessionAttributeFieldByName(t, th, group.ID, model.SessionAttributesPropertyFieldOSPlatform)
 		field.Type = model.PropertyFieldTypeText
 		delete(field.Attrs, model.PropertyFieldAttributeOptions)
-		_, _, _, err := th.Server.propertyService.UpdatePropertyFields(properties.SystemCallerContext(th.Context), group.ID, []*model.PropertyField{field})
+		_, _, _, err := th.Server.propertyService.UpdatePropertyFields(RequestContextWithCallerID(th.Context, model.CallerIDSessionAttributesSystem), group.ID, []*model.PropertyField{field})
 		require.NoError(t, err)
 
 		require.NoError(t, th.Server.doSetupSessionAttributesProperties())
@@ -548,7 +692,7 @@ func TestDoSetupSessionAttributesProperties(t *testing.T) {
 		// System-caller context, same as the seed and the sibling upgrade
 		// subtests: SessionAttributesHook otherwise reads the existing field
 		// through RequestContextWithMaster, which panics on a nil rctx.
-		_, _, _, err := th.Server.propertyService.UpdatePropertyFields(properties.SystemCallerContext(th.Context), group.ID, []*model.PropertyField{field})
+		_, _, _, err := th.Server.propertyService.UpdatePropertyFields(RequestContextWithCallerID(th.Context, model.CallerIDSessionAttributesSystem), group.ID, []*model.PropertyField{field})
 		require.NoError(t, err)
 
 		before := sessionAttributeOptionIDsByName(t, sessionAttributeFieldByName(t, th, group.ID, model.SessionAttributesPropertyFieldUserAgentPlatform))
@@ -596,7 +740,7 @@ func TestDoSetupSessionAttributesProperties(t *testing.T) {
 
 		field := sessionAttributeFieldByName(t, th, group.ID, model.SessionAttributesPropertyFieldIPAddress)
 		delete(field.Attrs, model.NativeAttributeAttrOperators)
-		_, _, _, err := th.Server.propertyService.UpdatePropertyFields(properties.SystemCallerContext(th.Context), group.ID, []*model.PropertyField{field})
+		_, _, _, err := th.Server.propertyService.UpdatePropertyFields(RequestContextWithCallerID(th.Context, model.CallerIDSessionAttributesSystem), group.ID, []*model.PropertyField{field})
 		require.NoError(t, err)
 
 		require.NoError(t, th.Server.doSetupSessionAttributesProperties())
@@ -632,6 +776,42 @@ func TestDoSetupSessionAttributesProperties(t *testing.T) {
 		fields, appErr := th.App.SearchPropertyFields(th.Context, group.ID, model.PropertyFieldSearchOpts{PerPage: 100})
 		require.Nil(t, appErr)
 		require.Len(t, fields, expectedFieldCount)
+	})
+
+	t.Run("upgrading a field written before the permissions object existed", func(t *testing.T) {
+		th := Setup(t)
+
+		group, appErr := th.App.GetPropertyGroup(th.Context, model.SessionAttributesPropertyGroupName)
+		require.Nil(t, appErr)
+
+		fields, appErr := th.App.SearchPropertyFields(th.Context, group.ID, model.PropertyFieldSearchOpts{PerPage: 100})
+		require.Nil(t, appErr)
+		require.Len(t, fields, expectedFieldCount)
+
+		// Roll every field back to the shape a pre-effort install's row is in:
+		// legacy columns only, no permissions object at all. The hook refuses
+		// that outright regardless of caller, so seedSessionAttributeFields'
+		// own subsequent search and update would fail here without
+		// ConvertSystemOwnedFields running ahead of them.
+		expectedUpdateAts := make(map[string]int64, len(fields))
+		for _, f := range fields {
+			expectedUpdateAts[f.ID] = f.UpdateAt
+			f.Permissions = nil
+		}
+		_, err := th.Store.PropertyField().Update(group.ID, fields, expectedUpdateAts)
+		require.NoError(t, err)
+
+		require.NoError(t, th.Server.doSetupSessionAttributesProperties())
+
+		after, appErr := th.App.SearchPropertyFields(th.Context, group.ID, model.PropertyFieldSearchOpts{PerPage: 100})
+		require.Nil(t, appErr)
+		require.Len(t, after, expectedFieldCount)
+		for _, f := range after {
+			require.NotNil(t, f.Permissions, "field %q must be converted", f.Name)
+			require.NotNil(t,
+				f.Permissions.MatchingGrant(model.PropertyOwnerTypeService, model.SessionAttributesPropertyGroupName, "", model.PropertyActionFieldWrite),
+				"field %q must carry the session_attributes service grant", f.Name)
+		}
 	})
 }
 
@@ -761,6 +941,45 @@ func TestDoSetupBoardsProperties(t *testing.T) {
 
 		idsAfter := optionIDsByName(t, statusAfter.Attrs)
 		require.Equal(t, idsBefore, idsAfter, "v2 upgrade must preserve every existing option ID")
+	})
+
+	t.Run("upgrading a field written before the permissions object existed", func(t *testing.T) {
+		th := Setup(t)
+
+		group, appErr := th.App.GetPropertyGroup(th.Context, model.BoardsPropertyGroupName)
+		require.Nil(t, appErr)
+
+		fields, appErr := th.App.SearchPropertyFields(th.Context, group.ID, model.PropertyFieldSearchOpts{PerPage: 100})
+		require.Nil(t, appErr)
+		require.Len(t, fields, 2)
+
+		// Roll every field back to the shape a pre-effort install's row is in:
+		// legacy columns only, no permissions object at all. The hook refuses
+		// that outright regardless of caller, so doSetupBoardsProperties' own
+		// subsequent search and update would fail here without
+		// ConvertSystemOwnedFields running ahead of them.
+		expectedUpdateAts := make(map[string]int64, len(fields))
+		for _, f := range fields {
+			expectedUpdateAts[f.ID] = f.UpdateAt
+			f.Permissions = nil
+		}
+		_, err := th.Store.PropertyField().Update(group.ID, fields, expectedUpdateAts)
+		require.NoError(t, err)
+
+		sysErr := th.Store.System().SaveOrUpdate(&model.System{Name: boardsPropertySetupDoneKey, Value: "v1"})
+		require.NoError(t, sysErr)
+
+		require.NoError(t, th.Server.doSetupBoardsProperties())
+
+		after, appErr := th.App.SearchPropertyFields(th.Context, group.ID, model.PropertyFieldSearchOpts{PerPage: 100})
+		require.Nil(t, appErr)
+		require.Len(t, after, 2)
+		for _, f := range after {
+			require.NotNil(t, f.Permissions, "field %q must be converted", f.Name)
+			require.NotNil(t,
+				f.Permissions.MatchingGrant(model.PropertyOwnerTypeService, model.BoardsPropertyGroupName, "", model.PropertyActionFieldWrite),
+				"field %q must carry the boards service grant", f.Name)
+		}
 	})
 }
 

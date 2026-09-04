@@ -1182,9 +1182,9 @@ func TestAccessControlAttributeValidationHook(t *testing.T) {
 
 	t.Run("sanitizeAndValidateOptions writes back canonical []any of map[string]any", func(t *testing.T) {
 		// Downstream readers (asOptionSlice, EnsureOptionIDs, store-layer
-		// serialization) expect the canonical loose-typed shape. Writing back
-		// a typed PropertyOptions slice from the hook used to break the linked-
-		// options diff on every no-op patch — see commit bc15075016.
+		// serialization) expect the canonical loose-typed shape. A typed
+		// PropertyOptions slice from the hook breaks the linked-options diff
+		// on every no-op patch — see commit bc15075016.
 		field := &model.PropertyField{
 			GroupID:    group.ID,
 			Name:       "field_" + model.NewId(),

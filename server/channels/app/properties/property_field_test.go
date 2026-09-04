@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -573,20 +574,434 @@ func TestCreatePropertyField(t *testing.T) {
 	})
 }
 
-func TestUpdatePropertyField(t *testing.T) {
+func TestCreatePropertyFieldDefaultsPermissions(t *testing.T) {
 	th := Setup(t).RegisterCPAPropertyGroup(t)
 	rctx := th.Context
+
+	t.Run("a field created with only legacy columns comes back with the equivalent restrictions and reports the same GetAccessMode as before", func(t *testing.T) {
+		// A plain group, not the CPA one: the access_control group's create
+		// hook pins the three legacy permission levels to sysadmin/by-object-type
+		// defaults before this field ever reaches the conversion this asserts,
+		// which would test that hook instead of the conversion itself.
+		otherGroup := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV2)
+		adminLevel := model.PermissionLevelAdmin
+		memberLevel := model.PermissionLevelMember
+		field := &model.PropertyField{
+			GroupID:           otherGroup.ID,
+			Name:              "legacy-defaults-" + model.NewId(),
+			Type:              model.PropertyFieldTypeText,
+			ObjectType:        model.PropertyFieldObjectTypeUser,
+			TargetType:        string(model.PropertyFieldTargetLevelSystem),
+			PermissionField:   &adminLevel,
+			PermissionValues:  &memberLevel,
+			PermissionOptions: &memberLevel,
+		}
+		wantAccessMode := field.GetAccessMode()
+
+		result, err := th.service.CreatePropertyField(rctx, field)
+		require.NoError(t, err)
+
+		require.NotNil(t, result.Permissions)
+		assert.Equal(t, wantAccessMode, result.GetAccessMode())
+		assert.Equal(t, model.PermissionLevelAdmin, result.Permissions.Restrictions.Field.Write)
+		assert.Equal(t, model.PermissionLevelMember, result.Permissions.Restrictions.Value.Write)
+		assert.Equal(t, model.PermissionLevelEveryone, result.Permissions.Restrictions.Value.Read)
+		assert.Equal(t, model.PermissionLevelMember, result.Permissions.Restrictions.Option.Write)
+		assert.Equal(t, model.PermissionLevelEveryone, result.Permissions.Restrictions.Option.Read)
+	})
+
+	t.Run("a field created with an explicit permissions object comes back with it untouched", func(t *testing.T) {
+		permissions := &model.Permissions{
+			Restrictions: &model.Restrictions{
+				Field:  model.WriteOnly{Write: model.PermissionLevelAdmin},
+				Option: model.ReadWrite{Read: model.PermissionLevelEveryone, Write: model.PermissionLevelAdmin},
+				Value:  model.ReadWrite{Read: model.PermissionLevelEveryone, Write: model.PermissionLevelMember},
+			},
+			Grants: []model.Grant{},
+		}
+		field := &model.PropertyField{
+			GroupID:     th.CPAGroupID,
+			Name:        "explicit-permissions-" + model.NewId(),
+			Type:        model.PropertyFieldTypeText,
+			ObjectType:  model.PropertyFieldObjectTypeUser,
+			TargetType:  string(model.PropertyFieldTargetLevelSystem),
+			Permissions: permissions,
+		}
+
+		result, err := th.service.CreatePropertyField(rctx, field)
+		require.NoError(t, err)
+		assert.Equal(t, permissions, result.Permissions)
+	})
+
+	t.Run("a field created by a plugin caller comes back carrying a plugin grant for that plugin", func(t *testing.T) {
+		th.service.setPluginCheckerForTests(func(pluginID string) bool { return pluginID == "test-plugin" })
+		t.Cleanup(func() { th.service.setPluginCheckerForTests(nil) })
+		rctxPlugin := RequestContextWithCallerID(rctx, "test-plugin")
+
+		field := &model.PropertyField{
+			GroupID:    th.CPAGroupID,
+			Name:       "plugin-owned-" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+		}
+
+		result, err := th.service.CreatePropertyField(rctxPlugin, field)
+		require.NoError(t, err)
+
+		require.NotNil(t, result.Permissions)
+		assert.Contains(t, result.Permissions.Grants, model.Grant{
+			Identity: model.Identity{Type: model.PropertyOwnerTypePlugin, ID: "test-plugin"},
+			Allow: []string{
+				model.PropertyActionFieldWrite,
+				model.PropertyActionOptionRead,
+				model.PropertyActionOptionWrite,
+				model.PropertyActionValueRead,
+				model.PropertyActionValueWrite,
+			},
+		})
+	})
+
+	t.Run("a linked create off a shared_only template comes back with Masking nil and its option.read no more permissive than the template's", func(t *testing.T) {
+		th.service.setPluginCheckerForTests(func(pluginID string) bool { return pluginID == "test-plugin" })
+		t.Cleanup(func() { th.service.setPluginCheckerForTests(nil) })
+		rctxPlugin := RequestContextWithCallerID(rctx, "test-plugin")
+
+		template, err := th.service.CreatePropertyField(rctxPlugin, &model.PropertyField{
+			GroupID:    th.CPAGroupID,
+			Name:       "shared-only-template-" + model.NewId(),
+			Type:       model.PropertyFieldTypeSelect,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Attrs: model.StringInterface{
+				model.PropertyAttrsAccessMode: model.PropertyAccessModeSharedOnly,
+				model.PropertyAttrsProtected:  true,
+			},
+		})
+		require.NoError(t, err)
+		require.NotNil(t, template.Permissions)
+		require.NotNil(t, template.Permissions.Masking)
+
+		// Only the source plugin may link a field to a protected template, so
+		// the linked field is created by the same caller as the template.
+		linked, err := th.service.CreatePropertyField(rctxPlugin, &model.PropertyField{
+			GroupID:       th.CPAGroupID,
+			Name:          "linked-off-shared-only-" + model.NewId(),
+			Type:          model.PropertyFieldTypeSelect,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			LinkedFieldID: &template.ID,
+		})
+		require.NoError(t, err)
+
+		require.NotNil(t, linked.Permissions)
+		assert.Nil(t, linked.Permissions.Masking)
+
+		templateOptionRead := template.Permissions.Restrictions.TierFor(model.PropertyActionOptionRead)
+		linkedOptionRead := linked.Permissions.Restrictions.TierFor(model.PropertyActionOptionRead)
+		assert.True(t, linkedOptionRead.AtMostAsPermissiveAs(templateOptionRead))
+	})
+
+	t.Run("a field with an empty ObjectType comes back with Permissions nil", func(t *testing.T) {
+		group := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV1)
+		field := &model.PropertyField{
+			ObjectType: "",
+			GroupID:    group.ID,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Type:       model.PropertyFieldTypeText,
+			Name:       "psav1-no-permissions-" + model.NewId(),
+		}
+
+		result, err := th.service.CreatePropertyField(rctx, field)
+		require.NoError(t, err)
+		assert.Nil(t, result.Permissions)
+	})
+}
+
+func TestUpdatePropertyFieldTranslatesLegacyPermissionKeys(t *testing.T) {
+	th := Setup(t).RegisterCPAPropertyGroup(t)
+	rctx := th.Context
+
+	// field.write on these fields is pinned to sysadmin (the same column
+	// pinning every access_control field gets), and the hook judges a human
+	// caller's field.write against that tier once the field carries
+	// Permissions -- an administrator reaching this service call directly,
+	// the way these tests do, needs the same standing an api4 caller would
+	// already have through SessionPropertyFieldEditBasis.
+	// defaultLadderCheckerForTests treats every caller as an ordinary member,
+	// so a definition edit in this test needs its own checker.
+	th.service.setLadderCheckerForTests(func(_ request.CTX, _ string, field *model.PropertyField, action, _ string) bool {
+		if field.Permissions == nil {
+			return false
+		}
+		return model.PermissionLevelSysadmin.AtMostAsPermissiveAs(field.Permissions.Restrictions.TierFor(action))
+	})
+	t.Cleanup(func() { th.service.setLadderCheckerForTests(nil) })
+	rctxAdmin := RequestContextWithCallerID(rctx, model.NewId())
+
+	t.Run("a PSAv1 field updated through updatePropertyFields still has nil Permissions and the update still succeeds", func(t *testing.T) {
+		v1Group := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV1)
+		field, err := th.service.CreatePropertyField(rctx, &model.PropertyField{
+			GroupID:    v1Group.ID,
+			Name:       "psav1-update-" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+		})
+		require.NoError(t, err)
+		require.Nil(t, field.Permissions)
+
+		field.Name = "psav1-update-renamed-" + model.NewId()
+		updated, _, err := th.service.UpdatePropertyField(rctx, v1Group.ID, field)
+		require.NoError(t, err)
+		assert.Equal(t, field.Name, updated.Name)
+		assert.Nil(t, updated.Permissions)
+	})
+
+	t.Run("resubmitting a field unchanged leaves stored permissions byte-identical, masking included", func(t *testing.T) {
+		// PermissionField/PermissionOptions are set explicitly to what the
+		// column-pinning hook would assign, even though CreatePropertyFieldDirect
+		// bypasses that hook: an update always runs it, so an unpinned field
+		// created this way would appear to have gained a legacy key the
+		// moment it takes its first trip through UpdatePropertyField.
+		sysadminLevel := model.PermissionLevelSysadmin
+		adminLevel := model.PermissionLevelAdmin
+		exemptUser := model.NewId()
+		field := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:           th.CPAGroupID,
+			Name:              "masked-roundtrip-" + model.NewId(),
+			Type:              model.PropertyFieldTypeSelect,
+			ObjectType:        model.PropertyFieldObjectTypeUser,
+			TargetType:        string(model.PropertyFieldTargetLevelSystem),
+			PermissionField:   &sysadminLevel,
+			PermissionOptions: &sysadminLevel,
+			PermissionValues:  &adminLevel,
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{
+					Field:  model.WriteOnly{Write: model.PermissionLevelSysadmin},
+					Value:  model.ReadWrite{Read: model.PermissionLevelEveryone, Write: model.PermissionLevelAdmin},
+					Option: model.ReadWrite{Read: model.PermissionLevelEveryone, Write: model.PermissionLevelSysadmin},
+				},
+				// mask_by_field_id may only be set on a template; this is an
+				// unlinked user-object field, so it resolves its own holdings
+				// and this test only needs the except list to round-trip.
+				Masking: &model.Masking{
+					Except: []model.Identity{{Type: model.PropertyOwnerTypeUser, ID: exemptUser}},
+				},
+			},
+		})
+
+		updated, _, err := th.service.UpdatePropertyField(rctxAdmin, th.CPAGroupID, field)
+		require.NoError(t, err)
+		assert.Equal(t, field.Permissions, updated.Permissions)
+	})
+
+	t.Run("changing permission_values on a v2 submission moves restrictions.value.write", func(t *testing.T) {
+		memberLevel := model.PermissionLevelMember
+		field, err := th.service.CreatePropertyField(rctx, &model.PropertyField{
+			GroupID:          th.CPAGroupID,
+			Name:             "v2-permvalues-" + model.NewId(),
+			Type:             model.PropertyFieldTypeText,
+			ObjectType:       model.PropertyFieldObjectTypeUser,
+			TargetType:       string(model.PropertyFieldTargetLevelSystem),
+			PermissionValues: &memberLevel,
+		})
+		require.NoError(t, err)
+		require.Equal(t, model.PermissionLevelMember, field.Permissions.Restrictions.Value.Write)
+
+		adminLevel := model.PermissionLevelAdmin
+		field.PermissionValues = &adminLevel
+		updated, _, err := th.service.UpdatePropertyField(rctxAdmin, th.CPAGroupID, field)
+		require.NoError(t, err)
+		assert.Equal(t, model.PermissionLevelAdmin, updated.Permissions.Restrictions.Value.Write)
+	})
+
+	t.Run("an owner submitted with no allow keeps its stored grant's actions; a new owner with no allow gets all five", func(t *testing.T) {
+		field, err := th.service.CreatePropertyField(rctx, &model.PropertyField{
+			GroupID:    th.CPAGroupID,
+			Name:       "owner-allow-fill-" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Attrs: model.StringInterface{
+				model.PropertyAttrsOwners: []model.PropertyOwner{
+					{Type: model.PropertyOwnerTypePlugin, ID: "owner-allow-fill-plugin", Allow: []string{model.PropertyActionValueRead, model.PropertyActionValueWrite}},
+				},
+			},
+		})
+		require.NoError(t, err)
+
+		grantFor := func(permissions *model.Permissions, id string) *model.Grant {
+			for i := range permissions.Grants {
+				if permissions.Grants[i].ID == id {
+					return &permissions.Grants[i]
+				}
+			}
+			return nil
+		}
+		stored := grantFor(field.Permissions, "owner-allow-fill-plugin")
+		require.NotNil(t, stored)
+		require.Len(t, stored.Allow, 2)
+
+		field.Attrs[model.PropertyAttrsOwners] = []model.PropertyOwner{
+			{Type: model.PropertyOwnerTypePlugin, ID: "owner-allow-fill-plugin"},
+			{Type: model.PropertyOwnerTypePlugin, ID: "owner-allow-fill-new"},
+		}
+		updated, _, err := th.service.UpdatePropertyField(rctxAdmin, th.CPAGroupID, field)
+		require.NoError(t, err)
+
+		existingOwner := grantFor(updated.Permissions, "owner-allow-fill-plugin")
+		require.NotNil(t, existingOwner)
+		assert.Len(t, existingOwner.Allow, 2, "an identity already holding a grant keeps its stored action list when the submission leaves Allow empty")
+
+		newOwner := grantFor(updated.Permissions, "owner-allow-fill-new")
+		require.NotNil(t, newOwner)
+		assert.Len(t, newOwner.Allow, 5, "an identity with nothing stored keeps the all-five conversion default")
+	})
+
+	t.Run("reconverting a masked field keeps its stored masking whole, a v3-added except entry included", func(t *testing.T) {
+		th.service.setPluginCheckerForTests(func(pluginID string) bool { return pluginID == "mask-source-plugin" })
+		t.Cleanup(func() { th.service.setPluginCheckerForTests(nil) })
+		rctxPlugin := RequestContextWithCallerID(rctx, "mask-source-plugin")
+
+		// PermissionValues is set explicitly (not left for the column-pinning
+		// hook's object-type default of member) because shared_only and a
+		// member-writable value column are mutually exclusive under the
+		// still-live legacy validator, and this field is updated again below.
+		sysadminLevel := model.PermissionLevelSysadmin
+		field, err := th.service.CreatePropertyField(rctxPlugin, &model.PropertyField{
+			GroupID:          th.CPAGroupID,
+			Name:             "masked-preserve-" + model.NewId(),
+			Type:             model.PropertyFieldTypeSelect,
+			ObjectType:       model.PropertyFieldObjectTypeUser,
+			TargetType:       string(model.PropertyFieldTargetLevelSystem),
+			PermissionValues: &sysadminLevel,
+			Attrs: model.StringInterface{
+				model.PropertyAttrsAccessMode: model.PropertyAccessModeSharedOnly,
+				model.PropertyAttrsProtected:  true,
+			},
+		})
+		require.NoError(t, err)
+		require.NotNil(t, field.Permissions.Masking)
+		pluginExempt := model.Identity{Type: model.PropertyOwnerTypePlugin, ID: "mask-source-plugin"}
+		require.Equal(t, []model.Identity{pluginExempt}, field.Permissions.Masking.Except)
+
+		// A v3 caller widens the except list beyond anything the legacy attrs
+		// could produce. No legacy key changes here, so this must land
+		// untouched -- the round-trip guarantee rule 2 relies on.
+		//
+		// The store no longer returns the permission columns, so leftover
+		// create-time levels (sysadmin) would compare as a change against
+		// the projected none this protected field actually stored. Copy the
+		// projected columns so this update looks like a read-modify-write.
+		stewardID := model.NewId()
+		augmentedMasking := *field.Permissions.Masking
+		augmentedMasking.Except = append(append([]model.Identity{}, field.Permissions.Masking.Except...),
+			model.Identity{Type: model.PropertyOwnerTypeUser, ID: stewardID})
+		augmented := *field.Permissions
+		augmented.Masking = &augmentedMasking
+		field.Permissions = &augmented
+		projected := model.ProjectLegacyPermissions(field)
+		field.Protected = projected.Protected
+		field.PermissionField = projected.PermissionField
+		field.PermissionValues = projected.PermissionValues
+		field.PermissionOptions = projected.PermissionOptions
+		field, _, err = th.service.UpdatePropertyField(rctxPlugin, th.CPAGroupID, field)
+		require.NoError(t, err)
+		require.Len(t, field.Permissions.Masking.Except, 2)
+
+		// Touch a legacy key unrelated to masking so the update reconverts,
+		// and confirm the reconversion does not flatten the widened except
+		// list back down to only what the legacy attrs alone would produce.
+		adminLevel := model.PermissionLevelAdmin
+		field.PermissionValues = &adminLevel
+		updated, _, err := th.service.UpdatePropertyField(rctxPlugin, th.CPAGroupID, field)
+		require.NoError(t, err)
+		require.NotNil(t, updated.Permissions.Masking)
+		assert.ElementsMatch(t, field.Permissions.Masking.Except, updated.Permissions.Masking.Except)
+	})
+
+	t.Run("turning off access_mode on a field whose masking hides data the caller cannot see is refused", func(t *testing.T) {
+		th.service.setPluginCheckerForTests(func(pluginID string) bool { return pluginID == "refuse-mask-plugin" })
+		t.Cleanup(func() { th.service.setPluginCheckerForTests(nil) })
+		rctxPlugin := RequestContextWithCallerID(rctx, "refuse-mask-plugin")
+
+		sysadminLevel := model.PermissionLevelSysadmin
+		field, err := th.service.CreatePropertyField(rctxPlugin, &model.PropertyField{
+			GroupID:          th.CPAGroupID,
+			Name:             "masked-refuse-clear-" + model.NewId(),
+			Type:             model.PropertyFieldTypeSelect,
+			ObjectType:       model.PropertyFieldObjectTypeUser,
+			TargetType:       string(model.PropertyFieldTargetLevelSystem),
+			PermissionValues: &sysadminLevel,
+			Attrs: model.StringInterface{
+				model.PropertyAttrsAccessMode: model.PropertyAccessModeSharedOnly,
+				model.PropertyAttrsProtected:  true,
+			},
+		})
+		require.NoError(t, err)
+		require.NotEmpty(t, field.Permissions.Masking.Except)
+
+		field.Attrs[model.PropertyAttrsAccessMode] = model.PropertyAccessModePublic
+		updated, _, err := th.service.UpdatePropertyField(rctxPlugin, th.CPAGroupID, field)
+		require.Error(t, err)
+		assert.Nil(t, updated)
+		appErr, ok := err.(*model.AppError)
+		require.True(t, ok)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+		assert.Equal(t, "app.property_field.update.masking_discarded.app_error", appErr.Id)
+	})
+
+	t.Run("turning off access_mode on a field whose masking hides nothing unmasks it", func(t *testing.T) {
+		// Built directly rather than through CreatePropertyField: a plugin is
+		// the only caller allowed to set the protected attr, and a plugin
+		// creating a shared_only field always gets an except entry of its
+		// own -- there would be no way to construct the empty-masking case
+		// this asserts through that path.
+		field := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:    th.CPAGroupID,
+			Name:       "masked-empty-clear-" + model.NewId(),
+			Type:       model.PropertyFieldTypeSelect,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Attrs: model.StringInterface{
+				model.PropertyAttrsAccessMode: model.PropertyAccessModeSharedOnly,
+				model.PropertyAttrsProtected:  true,
+			},
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{
+					Field: model.WriteOnly{Write: model.PermissionLevelSysadmin},
+					Value: model.ReadWrite{Read: model.PermissionLevelEveryone},
+				},
+				Masking: &model.Masking{},
+			},
+		})
+		require.NotNil(t, field.Permissions.Masking)
+		require.Empty(t, field.Permissions.Masking.Except)
+		require.Empty(t, field.Permissions.Masking.MaskByFieldID)
+
+		field.Attrs[model.PropertyAttrsAccessMode] = model.PropertyAccessModePublic
+		field.Attrs[model.PropertyAttrsProtected] = false
+		updated, _, err := th.service.UpdatePropertyField(rctxAdmin, th.CPAGroupID, field)
+		require.NoError(t, err)
+		assert.Nil(t, updated.Permissions.Masking)
+	})
+}
+
+func TestUpdatePropertyField(t *testing.T) {
+	th := Setup(t).RegisterCPAPropertyGroup(t)
+	rctx := RequestContextWithCallerID(th.Context, model.NewId())
 
 	t.Run("updating non-name fields should not trigger conflict check", func(t *testing.T) {
 		groupID := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV2).ID
 
 		// Create a property
 		field := th.CreatePropertyFieldDirect(t, &model.PropertyField{
-			ObjectType: "channel",
-			GroupID:    groupID,
-			TargetType: string(model.PropertyFieldTargetLevelSystem),
-			Type:       model.PropertyFieldTypeText,
-			Name:       "NoConflictCheck",
+			Permissions: openPermissions(),
+			ObjectType:  "channel",
+			GroupID:     groupID,
+			TargetType:  string(model.PropertyFieldTargetLevelSystem),
+			Type:        model.PropertyFieldTypeText,
+			Name:        "NoConflictCheck",
 			Attrs: map[string]any{
 				"key": "original",
 			},
@@ -607,11 +1022,12 @@ func TestUpdatePropertyField(t *testing.T) {
 
 		// Create a property
 		field := th.CreatePropertyFieldDirect(t, &model.PropertyField{
-			ObjectType: "channel",
-			GroupID:    groupID,
-			TargetType: string(model.PropertyFieldTargetLevelSystem),
-			Type:       model.PropertyFieldTypeText,
-			Name:       "OriginalName",
+			Permissions: openPermissions(),
+			ObjectType:  "channel",
+			GroupID:     groupID,
+			TargetType:  string(model.PropertyFieldTargetLevelSystem),
+			Type:        model.PropertyFieldTypeText,
+			Name:        "OriginalName",
 		})
 
 		// Update name to non-conflicting value
@@ -627,21 +1043,23 @@ func TestUpdatePropertyField(t *testing.T) {
 
 		// Create a team-level property
 		th.CreatePropertyFieldDirect(t, &model.PropertyField{
-			ObjectType: "channel",
-			GroupID:    groupID,
-			TargetType: string(model.PropertyFieldTargetLevelTeam),
-			TargetID:   team.Id,
-			Type:       model.PropertyFieldTypeText,
-			Name:       "ExistingTeamProp",
+			Permissions: openPermissions(),
+			ObjectType:  "channel",
+			GroupID:     groupID,
+			TargetType:  string(model.PropertyFieldTargetLevelTeam),
+			TargetID:    team.Id,
+			Type:        model.PropertyFieldTypeText,
+			Name:        "ExistingTeamProp",
 		})
 
 		// Create a system-level property with different name
 		systemField := th.CreatePropertyFieldDirect(t, &model.PropertyField{
-			ObjectType: "channel",
-			GroupID:    groupID,
-			TargetType: string(model.PropertyFieldTargetLevelSystem),
-			Type:       model.PropertyFieldTypeText,
-			Name:       "SystemProp",
+			Permissions: openPermissions(),
+			ObjectType:  "channel",
+			GroupID:     groupID,
+			TargetType:  string(model.PropertyFieldTargetLevelSystem),
+			Type:        model.PropertyFieldTypeText,
+			Name:        "SystemProp",
 		})
 
 		// Try to update system-level to name that conflicts with team-level
@@ -663,22 +1081,24 @@ func TestUpdatePropertyField(t *testing.T) {
 
 		// Create a channel-level property in a regular channel
 		th.CreatePropertyFieldDirect(t, &model.PropertyField{
-			ObjectType: "channel",
-			GroupID:    groupID,
-			TargetType: string(model.PropertyFieldTargetLevelChannel),
-			TargetID:   channel.Id,
-			Type:       model.PropertyFieldTypeText,
-			Name:       "ChannelProp",
+			Permissions: openPermissions(),
+			ObjectType:  "channel",
+			GroupID:     groupID,
+			TargetType:  string(model.PropertyFieldTargetLevelChannel),
+			TargetID:    channel.Id,
+			Type:        model.PropertyFieldTypeText,
+			Name:        "ChannelProp",
 		})
 
 		// Create a channel-level property in a DM channel with different name
 		dmField := th.CreatePropertyFieldDirect(t, &model.PropertyField{
-			ObjectType: "channel",
-			GroupID:    groupID,
-			TargetType: string(model.PropertyFieldTargetLevelChannel),
-			TargetID:   dmChannel.Id,
-			Type:       model.PropertyFieldTypeText,
-			Name:       "DMProp",
+			Permissions: openPermissions(),
+			ObjectType:  "channel",
+			GroupID:     groupID,
+			TargetType:  string(model.PropertyFieldTargetLevelChannel),
+			TargetID:    dmChannel.Id,
+			Type:        model.PropertyFieldTypeText,
+			Name:        "DMProp",
 		})
 
 		// Update DM property to same name as regular channel property - should succeed
@@ -695,21 +1115,23 @@ func TestUpdatePropertyField(t *testing.T) {
 
 		// Create a system-level property
 		th.CreatePropertyFieldDirect(t, &model.PropertyField{
-			ObjectType: "channel",
-			GroupID:    groupID,
-			TargetType: string(model.PropertyFieldTargetLevelSystem),
-			Type:       model.PropertyFieldTypeText,
-			Name:       "ExistingSystemProp",
+			Permissions: openPermissions(),
+			ObjectType:  "channel",
+			GroupID:     groupID,
+			TargetType:  string(model.PropertyFieldTargetLevelSystem),
+			Type:        model.PropertyFieldTypeText,
+			Name:        "ExistingSystemProp",
 		})
 
 		// Create a team-level property with different name
 		teamField := th.CreatePropertyFieldDirect(t, &model.PropertyField{
-			ObjectType: "channel",
-			GroupID:    groupID,
-			TargetType: string(model.PropertyFieldTargetLevelTeam),
-			TargetID:   team.Id,
-			Type:       model.PropertyFieldTypeText,
-			Name:       "TeamProp",
+			Permissions: openPermissions(),
+			ObjectType:  "channel",
+			GroupID:     groupID,
+			TargetType:  string(model.PropertyFieldTargetLevelTeam),
+			TargetID:    team.Id,
+			Type:        model.PropertyFieldTypeText,
+			Name:        "TeamProp",
 		})
 
 		// Try to update team-level to name that conflicts with system-level
@@ -732,21 +1154,23 @@ func TestUpdatePropertyField(t *testing.T) {
 		// Create two channel-level properties with the same name in different channels
 		// (no conflict since channel-level properties in different channels don't conflict)
 		th.CreatePropertyFieldDirect(t, &model.PropertyField{
-			ObjectType: "channel",
-			GroupID:    groupID,
-			TargetType: string(model.PropertyFieldTargetLevelChannel),
-			TargetID:   channel1.Id,
-			Type:       model.PropertyFieldTypeText,
-			Name:       "SharedName",
+			Permissions: openPermissions(),
+			ObjectType:  "channel",
+			GroupID:     groupID,
+			TargetType:  string(model.PropertyFieldTargetLevelChannel),
+			TargetID:    channel1.Id,
+			Type:        model.PropertyFieldTypeText,
+			Name:        "SharedName",
 		})
 
 		channel2Field := th.CreatePropertyFieldDirect(t, &model.PropertyField{
-			ObjectType: "channel",
-			GroupID:    groupID,
-			TargetType: string(model.PropertyFieldTargetLevelChannel),
-			TargetID:   channel2.Id,
-			Type:       model.PropertyFieldTypeText,
-			Name:       "SharedName",
+			Permissions: openPermissions(),
+			ObjectType:  "channel",
+			GroupID:     groupID,
+			TargetType:  string(model.PropertyFieldTargetLevelChannel),
+			TargetID:    channel2.Id,
+			Type:        model.PropertyFieldTypeText,
+			Name:        "SharedName",
 		})
 
 		// Try to update channel2's property to system-level - should conflict with channel1's property
@@ -771,21 +1195,23 @@ func TestUpdatePropertyField(t *testing.T) {
 		// Create two channel-level properties with the same name in different channels
 		// (no conflict since channel-level properties in different channels don't conflict)
 		th.CreatePropertyFieldDirect(t, &model.PropertyField{
-			ObjectType: "channel",
-			GroupID:    groupID,
-			TargetType: string(model.PropertyFieldTargetLevelChannel),
-			TargetID:   channel1.Id,
-			Type:       model.PropertyFieldTypeText,
-			Name:       "SharedName",
+			Permissions: openPermissions(),
+			ObjectType:  "channel",
+			GroupID:     groupID,
+			TargetType:  string(model.PropertyFieldTargetLevelChannel),
+			TargetID:    channel1.Id,
+			Type:        model.PropertyFieldTypeText,
+			Name:        "SharedName",
 		})
 
 		channel2Field := th.CreatePropertyFieldDirect(t, &model.PropertyField{
-			ObjectType: "channel",
-			GroupID:    groupID,
-			TargetType: string(model.PropertyFieldTargetLevelChannel),
-			TargetID:   channel2.Id,
-			Type:       model.PropertyFieldTypeText,
-			Name:       "SharedName",
+			Permissions: openPermissions(),
+			ObjectType:  "channel",
+			GroupID:     groupID,
+			TargetType:  string(model.PropertyFieldTargetLevelChannel),
+			TargetID:    channel2.Id,
+			Type:        model.PropertyFieldTypeText,
+			Name:        "SharedName",
 		})
 
 		// Update channel2's property TargetID to channel1 - should conflict
@@ -804,6 +1230,8 @@ func TestUpdatePropertyField(t *testing.T) {
 		groupID := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV1).ID
 
 		// Create a legacy property (no ObjectType)
+		// No Permissions object: a PSAv1 field cannot hold one, and its v1 group
+		// is not enforced by the hook, so it needs none.
 		field := th.CreatePropertyFieldDirect(t, &model.PropertyField{
 			ObjectType: "", // Legacy
 			GroupID:    groupID,
@@ -824,11 +1252,12 @@ func TestUpdatePropertyField(t *testing.T) {
 
 		// Create a property
 		field := th.CreatePropertyFieldDirect(t, &model.PropertyField{
-			ObjectType: "channel",
-			GroupID:    groupID,
-			TargetType: string(model.PropertyFieldTargetLevelSystem),
-			Type:       model.PropertyFieldTypeText,
-			Name:       "SameName",
+			Permissions: openPermissions(),
+			ObjectType:  "channel",
+			GroupID:     groupID,
+			TargetType:  string(model.PropertyFieldTargetLevelSystem),
+			Type:        model.PropertyFieldTypeText,
+			Name:        "SameName",
 		})
 
 		// Update with same name should succeed (no actual change to name)
@@ -841,7 +1270,7 @@ func TestUpdatePropertyField(t *testing.T) {
 
 func TestLinkedPropertyFields(t *testing.T) {
 	th := Setup(t).RegisterCPAPropertyGroup(t)
-	rctx := th.Context
+	rctx := RequestContextWithCallerID(th.Context, model.NewId())
 	group := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV2)
 
 	// Helper to create a source template field with select options
@@ -859,6 +1288,7 @@ func TestLinkedPropertyFields(t *testing.T) {
 					map[string]any{"id": model.NewId(), "name": "Option B"},
 				},
 			},
+			Permissions: openPermissions(),
 		})
 	}
 
@@ -883,6 +1313,324 @@ func TestLinkedPropertyFields(t *testing.T) {
 		linkedOpts := linked.Attrs[model.PropertyFieldAttributeOptions]
 		require.NotNil(t, linkedOpts)
 		assert.Equal(t, sourceOpts, linkedOpts)
+	})
+
+	t.Run("create linked field refuses a supplied option list", func(t *testing.T) {
+		source := createSourceField(t, "SuppliedOptsSource-"+model.NewId())
+
+		_, err := th.service.CreatePropertyField(rctx, &model.PropertyField{
+			GroupID:       group.ID,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Name:          "SuppliedOptsLinked-" + model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			LinkedFieldID: &source.ID,
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{"id": model.NewId(), "name": "Own Option"},
+				},
+			},
+		})
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "takes its option list from that template")
+	})
+
+	t.Run("create legacy linked field refuses a supplied option list", func(t *testing.T) {
+		legacyGroup := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV1)
+		fakeSourceID := model.NewId()
+
+		_, err := th.service.CreatePropertyField(rctx, &model.PropertyField{
+			GroupID:       legacyGroup.ID,
+			ObjectType:    "", // Legacy
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Name:          "LegacySuppliedOptsLinked-" + model.NewId(),
+			Type:          model.PropertyFieldTypeGraph,
+			LinkedFieldID: &fakeSourceID,
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{"id": model.NewId(), "name": "Own Option"},
+				},
+			},
+		})
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "takes its option list from that field")
+
+		_, err = th.service.CreatePropertyField(rctx, &model.PropertyField{
+			GroupID:       legacyGroup.ID,
+			ObjectType:    "", // Legacy
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Name:          "LegacySuppliedOptsLinkedSelect-" + model.NewId(),
+			Type:          model.PropertyFieldTypeSelect,
+			LinkedFieldID: &fakeSourceID,
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{"id": model.NewId(), "name": "Own Option"},
+				},
+			},
+		})
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "takes its option list from that field")
+	})
+
+	t.Run("create legacy linked field with no options succeeds", func(t *testing.T) {
+		legacyGroup := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV1)
+		fakeSourceID := model.NewId()
+
+		linked, err := th.service.CreatePropertyField(rctx, &model.PropertyField{
+			GroupID:       legacyGroup.ID,
+			ObjectType:    "", // Legacy
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Name:          "LegacyLinkedNoOpts-" + model.NewId(),
+			Type:          model.PropertyFieldTypeGraph,
+			LinkedFieldID: &fakeSourceID,
+		})
+		require.NoError(t, err)
+
+		reloaded, err := th.service.GetPropertyField(rctx, legacyGroup.ID, linked.ID)
+		require.NoError(t, err)
+		require.NotNil(t, reloaded.LinkedFieldID)
+		assert.Equal(t, fakeSourceID, *reloaded.LinkedFieldID)
+	})
+
+	t.Run("create legacy field with options and no link succeeds", func(t *testing.T) {
+		legacyGroup := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV1)
+
+		field, err := th.service.CreatePropertyField(rctx, &model.PropertyField{
+			GroupID:    legacyGroup.ID,
+			ObjectType: "", // Legacy
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Name:       "LegacyOptsNoLink-" + model.NewId(),
+			Type:       model.PropertyFieldTypeSelect,
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{"id": model.NewId(), "name": "Own Option"},
+				},
+			},
+		})
+		require.NoError(t, err)
+
+		reloaded, err := th.service.GetPropertyField(rctx, legacyGroup.ID, field.ID)
+		require.NoError(t, err)
+		assert.NotNil(t, reloaded.Attrs[model.PropertyFieldAttributeOptions])
+	})
+
+	t.Run("update refuses linking a legacy field that already carries its own options", func(t *testing.T) {
+		legacyGroup := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV1)
+
+		field, err := th.service.CreatePropertyField(rctx, &model.PropertyField{
+			GroupID:    legacyGroup.ID,
+			ObjectType: "", // Legacy
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Name:       "LegacyOptsThenLink-" + model.NewId(),
+			Type:       model.PropertyFieldTypeSelect,
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{"id": model.NewId(), "name": "Own Option"},
+				},
+			},
+		})
+		require.NoError(t, err)
+
+		fakeSourceID := model.NewId()
+		field.LinkedFieldID = &fakeSourceID
+		_, _, err = th.service.UpdatePropertyField(rctx, legacyGroup.ID, field)
+		require.Error(t, err)
+		appErr, ok := err.(*model.AppError)
+		require.True(t, ok)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+		assert.Contains(t, appErr.Error(), "creation time")
+	})
+
+	t.Run("update refuses giving a linked legacy field its own options", func(t *testing.T) {
+		legacyGroup := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV1)
+		fakeSourceID := model.NewId()
+
+		field, err := th.service.CreatePropertyField(rctx, &model.PropertyField{
+			GroupID:       legacyGroup.ID,
+			ObjectType:    "", // Legacy
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Name:          "LegacyLinkThenOpts-" + model.NewId(),
+			Type:          model.PropertyFieldTypeGraph,
+			LinkedFieldID: &fakeSourceID,
+		})
+		require.NoError(t, err)
+
+		field.Attrs = model.StringInterface{
+			model.PropertyFieldAttributeOptions: []any{
+				map[string]any{"id": model.NewId(), "name": "New Option"},
+			},
+		}
+		_, _, err = th.service.UpdatePropertyField(rctx, legacyGroup.ID, field)
+		require.Error(t, err)
+		appErr, ok := err.(*model.AppError)
+		require.True(t, ok)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+		assert.Contains(t, appErr.Error(), "cannot modify options of a linked field")
+	})
+
+	t.Run("update refuses re-linking a legacy field to a different source", func(t *testing.T) {
+		legacyGroup := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV1)
+		fakeSourceID := model.NewId()
+
+		field, err := th.service.CreatePropertyField(rctx, &model.PropertyField{
+			GroupID:       legacyGroup.ID,
+			ObjectType:    "", // Legacy
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Name:          "LegacyRelink-" + model.NewId(),
+			Type:          model.PropertyFieldTypeGraph,
+			LinkedFieldID: &fakeSourceID,
+		})
+		require.NoError(t, err)
+
+		otherSourceID := model.NewId()
+		field.LinkedFieldID = &otherSourceID
+		_, _, err = th.service.UpdatePropertyField(rctx, legacyGroup.ID, field)
+		require.Error(t, err)
+		appErr, ok := err.(*model.AppError)
+		require.True(t, ok)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+		assert.Contains(t, appErr.Error(), "cannot change link target")
+	})
+
+	t.Run("update with an empty LinkedFieldID on an unlinked legacy field still canonicalizes to nil", func(t *testing.T) {
+		legacyGroup := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV1)
+
+		field, err := th.service.CreatePropertyField(rctx, &model.PropertyField{
+			GroupID:    legacyGroup.ID,
+			ObjectType: "", // Legacy
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Name:       "LegacyEmptyLink-" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+		})
+		require.NoError(t, err)
+
+		empty := ""
+		field.LinkedFieldID = &empty
+		_, _, err = th.service.UpdatePropertyField(rctx, legacyGroup.ID, field)
+		require.NoError(t, err)
+
+		reloaded, err := th.service.GetPropertyField(rctx, legacyGroup.ID, field.ID)
+		require.NoError(t, err)
+		assert.Nil(t, reloaded.LinkedFieldID)
+	})
+
+	t.Run("update renaming a legacy field with nothing link-related still succeeds", func(t *testing.T) {
+		legacyGroup := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV1)
+
+		field, err := th.service.CreatePropertyField(rctx, &model.PropertyField{
+			GroupID:    legacyGroup.ID,
+			ObjectType: "", // Legacy
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Name:       "LegacyRename-" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+		})
+		require.NoError(t, err)
+
+		newName := "LegacyRenamed-" + model.NewId()
+		field.Name = newName
+		_, _, err = th.service.UpdatePropertyField(rctx, legacyGroup.ID, field)
+		require.NoError(t, err)
+
+		reloaded, err := th.service.GetPropertyField(rctx, legacyGroup.ID, field.ID)
+		require.NoError(t, err)
+		assert.Equal(t, newName, reloaded.Name)
+	})
+
+	t.Run("update refuses changing the type of a linked legacy field", func(t *testing.T) {
+		legacyGroup := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV1)
+		fakeSourceID := model.NewId()
+
+		field, err := th.service.CreatePropertyField(rctx, &model.PropertyField{
+			GroupID:       legacyGroup.ID,
+			ObjectType:    "", // Legacy
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Name:          "LegacyLinkedTypeChange-" + model.NewId(),
+			Type:          model.PropertyFieldTypeSelect,
+			LinkedFieldID: &fakeSourceID,
+		})
+		require.NoError(t, err)
+
+		field.Type = model.PropertyFieldTypeText
+		_, _, err = th.service.UpdatePropertyField(rctx, legacyGroup.ID, field)
+		require.Error(t, err)
+		appErr, ok := err.(*model.AppError)
+		require.True(t, ok)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+		assert.Contains(t, appErr.Error(), "cannot modify type of a linked field")
+	})
+
+	t.Run("update still allows changing the type of an unlinked legacy field", func(t *testing.T) {
+		legacyGroup := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV1)
+
+		field, err := th.service.CreatePropertyField(rctx, &model.PropertyField{
+			GroupID:    legacyGroup.ID,
+			ObjectType: "", // Legacy
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Name:       "LegacyUnlinkedTypeChange-" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+		})
+		require.NoError(t, err)
+
+		field.Type = model.PropertyFieldTypeSelect
+		_, _, err = th.service.UpdatePropertyField(rctx, legacyGroup.ID, field)
+		require.NoError(t, err)
+
+		reloaded, err := th.service.GetPropertyField(rctx, legacyGroup.ID, field.ID)
+		require.NoError(t, err)
+		assert.Equal(t, model.PropertyFieldTypeSelect, reloaded.Type)
+	})
+
+	t.Run("update refuses changing the type of a legacy field other fields link to", func(t *testing.T) {
+		legacyGroup := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV1)
+
+		source, err := th.service.CreatePropertyField(rctx, &model.PropertyField{
+			GroupID:    legacyGroup.ID,
+			ObjectType: "", // Legacy
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Name:       "LegacySource-" + model.NewId(),
+			Type:       model.PropertyFieldTypeSelect,
+		})
+		require.NoError(t, err)
+
+		_, err = th.service.CreatePropertyField(rctx, &model.PropertyField{
+			GroupID:       legacyGroup.ID,
+			ObjectType:    "", // Legacy
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Name:          "LegacyDependent-" + model.NewId(),
+			Type:          model.PropertyFieldTypeSelect,
+			LinkedFieldID: &source.ID,
+		})
+		require.NoError(t, err)
+
+		source.Type = model.PropertyFieldTypeText
+		_, _, err = th.service.UpdatePropertyField(rctx, legacyGroup.ID, source)
+		require.Error(t, err)
+		appErr, ok := err.(*model.AppError)
+		require.True(t, ok)
+		assert.Equal(t, http.StatusConflict, appErr.StatusCode)
+		assert.Contains(t, appErr.Error(), "cannot change type of a field with active linked dependents")
+
+		reloaded, err := th.service.GetPropertyField(rctx, legacyGroup.ID, source.ID)
+		require.NoError(t, err)
+		assert.Equal(t, model.PropertyFieldTypeSelect, reloaded.Type)
+	})
+
+	t.Run("create linked field with an empty option list succeeds", func(t *testing.T) {
+		source := createSourceField(t, "EmptyOptsSource-"+model.NewId())
+
+		linked, err := th.service.CreatePropertyField(rctx, &model.PropertyField{
+			GroupID:       group.ID,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Name:          "EmptyOptsLinked-" + model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			LinkedFieldID: &source.ID,
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{},
+			},
+		})
+		require.NoError(t, err)
+		assert.Equal(t, source.Attrs[model.PropertyFieldAttributeOptions], linked.Attrs[model.PropertyFieldAttributeOptions])
 	})
 
 	t.Run("create linked field rejects non-existent source", func(t *testing.T) {
@@ -981,6 +1729,204 @@ func TestLinkedPropertyFields(t *testing.T) {
 		})
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "target_type")
+	})
+
+	t.Run("create linked field rejects option.read more permissive than template's", func(t *testing.T) {
+		source := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:    group.ID,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Type:       model.PropertyFieldTypeSelect,
+			Name:       "CeilingSource-" + model.NewId(),
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{"id": model.NewId(), "name": "Option A"},
+				},
+			},
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelMember}, Field: model.WriteOnly{Write: model.PermissionLevelEveryone}},
+			},
+		})
+
+		_, err := th.service.CreatePropertyField(rctx, &model.PropertyField{
+			GroupID:       group.ID,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Name:          "CeilingLoose-" + model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			LinkedFieldID: &source.ID,
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelEveryone}, Field: model.WriteOnly{Write: model.PermissionLevelEveryone}},
+			},
+		})
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "option.read")
+	})
+
+	t.Run("create linked field allows option.read equal to or tighter than template's", func(t *testing.T) {
+		source := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:    group.ID,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Type:       model.PropertyFieldTypeSelect,
+			Name:       "CeilingEqualSource-" + model.NewId(),
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{"id": model.NewId(), "name": "Option A"},
+				},
+			},
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelMember}, Field: model.WriteOnly{Write: model.PermissionLevelEveryone}},
+			},
+		})
+
+		equal, err := th.service.CreatePropertyField(rctx, &model.PropertyField{
+			GroupID:       group.ID,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Name:          "CeilingEqual-" + model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			LinkedFieldID: &source.ID,
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelMember}, Field: model.WriteOnly{Write: model.PermissionLevelEveryone}},
+			},
+		})
+		require.NoError(t, err)
+		require.NotNil(t, equal)
+
+		tighter, err := th.service.CreatePropertyField(rctx, &model.PropertyField{
+			GroupID:       group.ID,
+			ObjectType:    model.PropertyFieldObjectTypeChannel,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Name:          "CeilingTighter-" + model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			LinkedFieldID: &source.ID,
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelAdmin}, Field: model.WriteOnly{Write: model.PermissionLevelEveryone}},
+			},
+		})
+		require.NoError(t, err)
+		require.NotNil(t, tighter)
+	})
+
+	// A template carrying no permissions object is a row the conversion backfill
+	// has not reached. Linking to one is refused outright, so the option.read
+	// ceiling against such a template is only reachable on the update path --
+	// where the gate measures the field being updated, not the template.
+	t.Run("linking to a template with no permissions object is refused", func(t *testing.T) {
+		source := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:    group.ID,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Type:       model.PropertyFieldTypeSelect,
+			Name:       "NoPermsSource-" + model.NewId(),
+		})
+
+		_, err := th.service.CreatePropertyField(rctx, &model.PropertyField{
+			GroupID:       group.ID,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Name:          "NoPermsLinked-" + model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			LinkedFieldID: &source.ID,
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelMember}, Field: model.WriteOnly{Write: model.PermissionLevelEveryone}},
+			},
+		})
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "protected template")
+
+		// Submitting no permissions at all does not get past the gate either: it
+		// measures the template, not what the linked field is asking for.
+		_, err = th.service.CreatePropertyField(rctx, &model.PropertyField{
+			GroupID:       group.ID,
+			ObjectType:    model.PropertyFieldObjectTypeChannel,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Name:          "NoPermsUnset-" + model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			LinkedFieldID: &source.ID,
+		})
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "protected template")
+	})
+
+	t.Run("updating a field linked to a template with no permissions object ceilings option.read at none", func(t *testing.T) {
+		source := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:    group.ID,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Type:       model.PropertyFieldTypeSelect,
+			Name:       "NoPermsUpdateSource-" + model.NewId(),
+		})
+
+		// Created directly, the way a row predating the backfill looks: the hook
+		// would refuse this link today.
+		linked := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:       group.ID,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Type:          model.PropertyFieldTypeSelect,
+			Name:          "NoPermsUpdateLinked-" + model.NewId(),
+			LinkedFieldID: &source.ID,
+			Permissions:   openPermissions(),
+		})
+
+		linked.Permissions = &model.Permissions{
+			Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelMember}, Field: model.WriteOnly{Write: model.PermissionLevelEveryone}},
+		}
+		_, _, err := th.service.UpdatePropertyField(rctx, group.ID, linked)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "option.read")
+	})
+
+	t.Run("create linked field ceiling is confined to option.read", func(t *testing.T) {
+		source := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:    group.ID,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Type:       model.PropertyFieldTypeSelect,
+			Name:       "ConfinedSource-" + model.NewId(),
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{"id": model.NewId(), "name": "Option A"},
+				},
+			},
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelMember}, Field: model.WriteOnly{Write: model.PermissionLevelEveryone}},
+			},
+		})
+
+		linked, err := th.service.CreatePropertyField(rctx, &model.PropertyField{
+			GroupID:       group.ID,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Name:          "ConfinedLinked-" + model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			LinkedFieldID: &source.ID,
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{
+					Option: model.ReadWrite{Read: model.PermissionLevelMember},
+					Value:  model.ReadWrite{Read: model.PermissionLevelEveryone},
+				},
+			},
+		})
+		require.NoError(t, err)
+		require.NotNil(t, linked)
+	})
+
+	t.Run("create unlinked field with option.read everyone is unaffected", func(t *testing.T) {
+		unlinked, err := th.service.CreatePropertyField(rctx, &model.PropertyField{
+			GroupID:    group.ID,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Name:       "Unlinked-" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelEveryone}, Field: model.WriteOnly{Write: model.PermissionLevelEveryone}},
+			},
+		})
+		require.NoError(t, err)
+		require.NotNil(t, unlinked)
 	})
 
 	t.Run("update linked field blocks type change", func(t *testing.T) {
@@ -1163,6 +2109,7 @@ func TestLinkedPropertyFields(t *testing.T) {
 					map[string]any{"name": "Fighter Jet Program", "parents": []string{"Air Program"}},
 				},
 			},
+			Permissions: openPermissions(),
 		})
 
 		linked := th.CreatePropertyField(t, rctx, &model.PropertyField{
@@ -1279,11 +2226,12 @@ func TestLinkedPropertyFields(t *testing.T) {
 	t.Run("update blocks setting LinkedFieldID on non-linked field", func(t *testing.T) {
 		// Create a regular (non-linked) field
 		regular := th.CreatePropertyField(t, rctx, &model.PropertyField{
-			GroupID:    group.ID,
-			ObjectType: model.PropertyFieldObjectTypeUser,
-			TargetType: string(model.PropertyFieldTargetLevelSystem),
-			Name:       "Regular-" + model.NewId(),
-			Type:       model.PropertyFieldTypeSelect,
+			GroupID:     group.ID,
+			ObjectType:  model.PropertyFieldObjectTypeUser,
+			TargetType:  string(model.PropertyFieldTargetLevelSystem),
+			Name:        "Regular-" + model.NewId(),
+			Type:        model.PropertyFieldTypeSelect,
+			Permissions: openPermissions(),
 		})
 
 		require.Nil(t, regular.LinkedFieldID)
@@ -1320,6 +2268,620 @@ func TestLinkedPropertyFields(t *testing.T) {
 		require.True(t, ok)
 		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
 		assert.Contains(t, appErr.Error(), "cannot change link target")
+	})
+
+	t.Run("update linked field rejects option.read raised past template's ceiling", func(t *testing.T) {
+		source := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:    group.ID,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Type:       model.PropertyFieldTypeSelect,
+			Name:       "UpdateCeilingSource-" + model.NewId(),
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{"id": model.NewId(), "name": "Option A"},
+				},
+			},
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelMember}, Field: model.WriteOnly{Write: model.PermissionLevelEveryone}},
+			},
+		})
+
+		linked := th.CreatePropertyField(t, rctx, &model.PropertyField{
+			GroupID:       group.ID,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Name:          "UpdateCeilingLinked-" + model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			LinkedFieldID: &source.ID,
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelAdmin}, Field: model.WriteOnly{Write: model.PermissionLevelEveryone}},
+			},
+		})
+
+		linked.Permissions.Restrictions.Option.Read = model.PermissionLevelEveryone
+		_, _, err := th.service.UpdatePropertyField(rctx, group.ID, linked)
+		require.Error(t, err)
+		appErr, ok := err.(*model.AppError)
+		require.True(t, ok)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+		assert.Contains(t, appErr.Error(), "option.read")
+
+		linked.Permissions.Restrictions.Option.Read = model.PermissionLevelSysadmin
+		result, _, err := th.service.UpdatePropertyField(rctx, group.ID, linked)
+		require.NoError(t, err)
+		assert.Equal(t, model.PermissionLevelSysadmin, result.Permissions.Restrictions.Option.Read)
+	})
+
+	t.Run("update linked field reads the template for the ceiling check only when a Permissions object is supplied", func(t *testing.T) {
+		source := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:    group.ID,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Type:       model.PropertyFieldTypeSelect,
+			Name:       "UpdateNoPermsSource-" + model.NewId(),
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{"id": model.NewId(), "name": "Option A"},
+				},
+			},
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelMember}, Field: model.WriteOnly{Write: model.PermissionLevelEveryone}},
+			},
+		})
+
+		linked := th.CreatePropertyField(t, rctx, &model.PropertyField{
+			GroupID:       group.ID,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Name:          "UpdateNoPermsLinked-" + model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			LinkedFieldID: &source.ID,
+		})
+
+		counter := &countingPropertyFieldStore{PropertyFieldStore: th.service.fieldStore}
+		th.service.fieldStore = counter
+		t.Cleanup(func() { th.service.fieldStore = counter.PropertyFieldStore })
+
+		// Create now defaults a Permissions object onto every field, so linked
+		// arrives from th.CreatePropertyField carrying one; nil it back out to
+		// exercise the "no Permissions object submitted" case this asserts.
+		linked.Permissions = nil
+		linked.Name = "UpdateNoPermsLinked-Renamed-" + model.NewId()
+		// Every update costs one read of the field being updated: the hook needs
+		// the stored copy to gate the write against, and it now runs for this
+		// group. That read is the baseline both cases below are measured from;
+		// the template read is the one this asserts is conditional.
+		before := counter.gets
+		result, _, err := th.service.UpdatePropertyField(rctx, group.ID, linked)
+		require.NoError(t, err)
+		assert.Equal(t, linked.Name, result.Name)
+		assert.Equal(t, before+1, counter.gets, "no Permissions object on the update must not read the template")
+
+		linked.Permissions = &model.Permissions{
+			Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelSysadmin}, Field: model.WriteOnly{Write: model.PermissionLevelEveryone}},
+		}
+		before = counter.gets
+		_, _, err = th.service.UpdatePropertyField(rctx, group.ID, linked)
+		require.NoError(t, err)
+		assert.Equal(t, before+2, counter.gets, "an update carrying a Permissions object must read the template to check the ceiling")
+	})
+
+	t.Run("tightening template's option.read past a dependent's tier is refused", func(t *testing.T) {
+		template := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:    group.ID,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Type:       model.PropertyFieldTypeSelect,
+			Name:       "TemplateCeilingSource-" + model.NewId(),
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{"id": model.NewId(), "name": "Option A"},
+				},
+			},
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelMember}, Field: model.WriteOnly{Write: model.PermissionLevelEveryone}},
+			},
+		})
+
+		dependent := th.CreatePropertyField(t, rctx, &model.PropertyField{
+			GroupID:       group.ID,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Name:          "TemplateCeilingDependent-" + model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			LinkedFieldID: &template.ID,
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelMember}, Field: model.WriteOnly{Write: model.PermissionLevelEveryone}},
+			},
+		})
+
+		template.Permissions.Restrictions.Option.Read = model.PermissionLevelSysadmin
+		_, _, err := th.service.UpdatePropertyField(rctx, group.ID, template)
+		require.Error(t, err)
+		appErr, ok := err.(*model.AppError)
+		require.True(t, ok)
+		assert.Equal(t, http.StatusConflict, appErr.StatusCode)
+		assert.Contains(t, appErr.Error(), dependent.ID)
+
+		reloaded, err := th.service.GetPropertyField(rctx, group.ID, template.ID)
+		require.NoError(t, err)
+		assert.Equal(t, model.PermissionLevelMember, reloaded.Permissions.Restrictions.Option.Read)
+	})
+
+	t.Run("tightening template's option.read to match a dependent's tier succeeds", func(t *testing.T) {
+		template := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:    group.ID,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Type:       model.PropertyFieldTypeSelect,
+			Name:       "TemplateCeilingEqualSource-" + model.NewId(),
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{"id": model.NewId(), "name": "Option A"},
+				},
+			},
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelMember}, Field: model.WriteOnly{Write: model.PermissionLevelEveryone}},
+			},
+		})
+
+		th.CreatePropertyField(t, rctx, &model.PropertyField{
+			GroupID:       group.ID,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Name:          "TemplateCeilingEqualDependent-" + model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			LinkedFieldID: &template.ID,
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelSysadmin}, Field: model.WriteOnly{Write: model.PermissionLevelEveryone}},
+			},
+		})
+
+		template.Permissions.Restrictions.Option.Read = model.PermissionLevelSysadmin
+		result, _, err := th.service.UpdatePropertyField(rctx, group.ID, template)
+		require.NoError(t, err)
+		assert.Equal(t, model.PermissionLevelSysadmin, result.Permissions.Restrictions.Option.Read)
+	})
+
+	t.Run("clearing template's Permissions object counts as tightening to none", func(t *testing.T) {
+		template := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:    group.ID,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Type:       model.PropertyFieldTypeSelect,
+			Name:       "TemplateClearSource-" + model.NewId(),
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{"id": model.NewId(), "name": "Option A"},
+				},
+			},
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelMember}, Field: model.WriteOnly{Write: model.PermissionLevelEveryone}},
+			},
+		})
+
+		th.CreatePropertyField(t, rctx, &model.PropertyField{
+			GroupID:       group.ID,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Name:          "TemplateClearDependent-" + model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			LinkedFieldID: &template.ID,
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelMember}, Field: model.WriteOnly{Write: model.PermissionLevelEveryone}},
+			},
+		})
+
+		template.Permissions = nil
+		_, _, err := th.service.UpdatePropertyField(rctx, group.ID, template)
+		require.Error(t, err)
+		appErr, ok := err.(*model.AppError)
+		require.True(t, ok)
+		assert.Equal(t, http.StatusConflict, appErr.StatusCode)
+	})
+
+	t.Run("loosening template's option.read is unaffected by a dependent's tier", func(t *testing.T) {
+		template := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:    group.ID,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Type:       model.PropertyFieldTypeSelect,
+			Name:       "TemplateLoosenSource-" + model.NewId(),
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{"id": model.NewId(), "name": "Option A"},
+				},
+			},
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelSysadmin}, Field: model.WriteOnly{Write: model.PermissionLevelEveryone}},
+			},
+		})
+
+		th.CreatePropertyField(t, rctx, &model.PropertyField{
+			GroupID:       group.ID,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Name:          "TemplateLoosenDependent-" + model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			LinkedFieldID: &template.ID,
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelSysadmin}, Field: model.WriteOnly{Write: model.PermissionLevelEveryone}},
+			},
+		})
+
+		template.Permissions.Restrictions.Option.Read = model.PermissionLevelMember
+		result, _, err := th.service.UpdatePropertyField(rctx, group.ID, template)
+		require.NoError(t, err)
+		assert.Equal(t, model.PermissionLevelMember, result.Permissions.Restrictions.Option.Read)
+	})
+
+	t.Run("tightening a template with no dependents succeeds", func(t *testing.T) {
+		template := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:    group.ID,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Type:       model.PropertyFieldTypeSelect,
+			Name:       "TemplateNoDependentsSource-" + model.NewId(),
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{"id": model.NewId(), "name": "Option A"},
+				},
+			},
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelMember}, Field: model.WriteOnly{Write: model.PermissionLevelEveryone}},
+			},
+		})
+
+		template.Permissions.Restrictions.Option.Read = model.PermissionLevelSysadmin
+		result, _, err := th.service.UpdatePropertyField(rctx, group.ID, template)
+		require.NoError(t, err)
+		assert.Equal(t, model.PermissionLevelSysadmin, result.Permissions.Restrictions.Option.Read)
+	})
+
+	t.Run("tightening template while renaming leaves option.read alone succeeds", func(t *testing.T) {
+		template := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:    group.ID,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Type:       model.PropertyFieldTypeSelect,
+			Name:       "TemplateRenameSource-" + model.NewId(),
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{"id": model.NewId(), "name": "Option A"},
+				},
+			},
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelMember}, Field: model.WriteOnly{Write: model.PermissionLevelEveryone}},
+			},
+		})
+
+		th.CreatePropertyField(t, rctx, &model.PropertyField{
+			GroupID:       group.ID,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Name:          "TemplateRenameDependent-" + model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			LinkedFieldID: &template.ID,
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelMember}, Field: model.WriteOnly{Write: model.PermissionLevelEveryone}},
+			},
+		})
+
+		template.Name = "TemplateRenameSource-Renamed-" + model.NewId()
+		result, _, err := th.service.UpdatePropertyField(rctx, group.ID, template)
+		require.NoError(t, err)
+		assert.Equal(t, template.Name, result.Name)
+	})
+
+	t.Run("only a template update that tightens option.read queries its dependents", func(t *testing.T) {
+		template := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:    group.ID,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Type:       model.PropertyFieldTypeSelect,
+			Name:       "TemplateQueryCostSource-" + model.NewId(),
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{"id": model.NewId(), "name": "Option A"},
+				},
+			},
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelMember}, Field: model.WriteOnly{Write: model.PermissionLevelEveryone}},
+			},
+		})
+
+		th.CreatePropertyField(t, rctx, &model.PropertyField{
+			GroupID:       group.ID,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Name:          "TemplateQueryCostDependent-" + model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			LinkedFieldID: &template.ID,
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelMember}, Field: model.WriteOnly{Write: model.PermissionLevelEveryone}},
+			},
+		})
+
+		counter := &countingPropertyFieldStore{PropertyFieldStore: th.service.fieldStore}
+		th.service.fieldStore = counter
+		t.Cleanup(func() { th.service.fieldStore = counter.PropertyFieldStore })
+
+		template.Name = "TemplateQueryCostSource-Renamed-" + model.NewId()
+		before := counter.linkedFields
+		_, _, err := th.service.UpdatePropertyField(rctx, group.ID, template)
+		require.NoError(t, err)
+		assert.Equal(t, before, counter.linkedFields, "leaving option.read alone must not query dependents")
+
+		template.Permissions.Restrictions.Option.Read = model.PermissionLevelSysadmin
+		before = counter.linkedFields
+		_, _, err = th.service.UpdatePropertyField(rctx, group.ID, template)
+		require.Error(t, err)
+		assert.Equal(t, before+1, counter.linkedFields, "tightening option.read must query dependents")
+	})
+
+	t.Run("moving a template and its dependent in the same call is checked against each other, not the stored rows", func(t *testing.T) {
+		template := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:    group.ID,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Type:       model.PropertyFieldTypeSelect,
+			Name:       "BatchCeilingSource-" + model.NewId(),
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{"id": model.NewId(), "name": "Option A"},
+				},
+			},
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelEveryone}, Field: model.WriteOnly{Write: model.PermissionLevelEveryone}},
+			},
+		})
+
+		dependent := th.CreatePropertyField(t, rctx, &model.PropertyField{
+			GroupID:       group.ID,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Name:          "BatchCeilingDependent-" + model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			LinkedFieldID: &template.ID,
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelMember}, Field: model.WriteOnly{Write: model.PermissionLevelEveryone}},
+			},
+		})
+
+		template.Permissions.Restrictions.Option.Read = model.PermissionLevelMember
+		dependent.Permissions.Restrictions.Option.Read = model.PermissionLevelEveryone
+		_, _, _, err := th.service.UpdatePropertyFields(rctx, group.ID, []*model.PropertyField{template, dependent})
+		require.Error(t, err)
+		appErr, ok := err.(*model.AppError)
+		require.True(t, ok)
+		assert.Equal(t, http.StatusConflict, appErr.StatusCode)
+
+		reloadedTemplate, err := th.service.GetPropertyField(rctx, group.ID, template.ID)
+		require.NoError(t, err)
+		assert.Equal(t, model.PermissionLevelEveryone, reloadedTemplate.Permissions.Restrictions.Option.Read, "template tier must not have changed")
+
+		reloadedDependent, err := th.service.GetPropertyField(rctx, group.ID, dependent.ID)
+		require.NoError(t, err)
+		assert.Equal(t, model.PermissionLevelMember, reloadedDependent.Permissions.Restrictions.Option.Read, "dependent tier must not have changed")
+	})
+
+	t.Run("tightening a template and its dependent together in the same call succeeds", func(t *testing.T) {
+		template := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:    group.ID,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Type:       model.PropertyFieldTypeSelect,
+			Name:       "BatchTightenSource-" + model.NewId(),
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{"id": model.NewId(), "name": "Option A"},
+				},
+			},
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelMember}, Field: model.WriteOnly{Write: model.PermissionLevelEveryone}},
+			},
+		})
+
+		dependent := th.CreatePropertyField(t, rctx, &model.PropertyField{
+			GroupID:       group.ID,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Name:          "BatchTightenDependent-" + model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			LinkedFieldID: &template.ID,
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelMember}, Field: model.WriteOnly{Write: model.PermissionLevelEveryone}},
+			},
+		})
+
+		template.Permissions.Restrictions.Option.Read = model.PermissionLevelSysadmin
+		dependent.Permissions.Restrictions.Option.Read = model.PermissionLevelSysadmin
+		_, _, _, err := th.service.UpdatePropertyFields(rctx, group.ID, []*model.PropertyField{template, dependent})
+		require.NoError(t, err)
+
+		reloadedTemplate, err := th.service.GetPropertyField(rctx, group.ID, template.ID)
+		require.NoError(t, err)
+		assert.Equal(t, model.PermissionLevelSysadmin, reloadedTemplate.Permissions.Restrictions.Option.Read)
+
+		reloadedDependent, err := th.service.GetPropertyField(rctx, group.ID, dependent.ID)
+		require.NoError(t, err)
+		assert.Equal(t, model.PermissionLevelSysadmin, reloadedDependent.Permissions.Restrictions.Option.Read)
+	})
+
+	t.Run("tightening a template while unlinking its dependent in the same call succeeds", func(t *testing.T) {
+		template := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:    group.ID,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Type:       model.PropertyFieldTypeSelect,
+			Name:       "BatchUnlinkSource-" + model.NewId(),
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{"id": model.NewId(), "name": "Option A"},
+				},
+			},
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelMember}, Field: model.WriteOnly{Write: model.PermissionLevelEveryone}},
+			},
+		})
+
+		dependent := th.CreatePropertyField(t, rctx, &model.PropertyField{
+			GroupID:       group.ID,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Name:          "BatchUnlinkDependent-" + model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			LinkedFieldID: &template.ID,
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelMember}, Field: model.WriteOnly{Write: model.PermissionLevelEveryone}},
+			},
+		})
+
+		template.Permissions.Restrictions.Option.Read = model.PermissionLevelSysadmin
+		dependent.LinkedFieldID = nil
+		_, _, _, err := th.service.UpdatePropertyFields(rctx, group.ID, []*model.PropertyField{template, dependent})
+		require.NoError(t, err)
+
+		reloadedTemplate, err := th.service.GetPropertyField(rctx, group.ID, template.ID)
+		require.NoError(t, err)
+		assert.Equal(t, model.PermissionLevelSysadmin, reloadedTemplate.Permissions.Restrictions.Option.Read)
+
+		reloadedDependent, err := th.service.GetPropertyField(rctx, group.ID, dependent.ID)
+		require.NoError(t, err)
+		assert.Nil(t, reloadedDependent.LinkedFieldID)
+	})
+
+	t.Run("a batch carrying both a linked field and its template checks the ceiling without reading the template from the store", func(t *testing.T) {
+		template := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:    group.ID,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Type:       model.PropertyFieldTypeSelect,
+			Name:       "BatchNoGetSource-" + model.NewId(),
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{"id": model.NewId(), "name": "Option A"},
+				},
+			},
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelMember}, Field: model.WriteOnly{Write: model.PermissionLevelEveryone}},
+			},
+		})
+
+		dependent := th.CreatePropertyField(t, rctx, &model.PropertyField{
+			GroupID:       group.ID,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Name:          "BatchNoGetDependent-" + model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			LinkedFieldID: &template.ID,
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelMember}, Field: model.WriteOnly{Write: model.PermissionLevelEveryone}},
+			},
+		})
+
+		counter := &countingPropertyFieldStore{PropertyFieldStore: th.service.fieldStore}
+		th.service.fieldStore = counter
+		t.Cleanup(func() { th.service.fieldStore = counter.PropertyFieldStore })
+
+		template.Permissions.Restrictions.Option.Read = model.PermissionLevelSysadmin
+		dependent.Permissions.Restrictions.Option.Read = model.PermissionLevelSysadmin
+		before := counter.gets
+		_, _, _, err := th.service.UpdatePropertyFields(rctx, group.ID, []*model.PropertyField{template, dependent})
+		require.NoError(t, err)
+		assert.Equal(t, before, counter.gets, "the template's row is already in the call, so the linked-field side must not read the store for it")
+	})
+
+	t.Run("a deleted dependent does not block its template from tightening", func(t *testing.T) {
+		template := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:    group.ID,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Type:       model.PropertyFieldTypeSelect,
+			Name:       "TemplateDeletedDependentSource-" + model.NewId(),
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{"id": model.NewId(), "name": "Option A"},
+				},
+			},
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelMember}, Field: model.WriteOnly{Write: model.PermissionLevelEveryone}},
+			},
+		})
+
+		dependent := th.CreatePropertyField(t, rctx, &model.PropertyField{
+			GroupID:       group.ID,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Name:          "TemplateDeletedDependent-" + model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			LinkedFieldID: &template.ID,
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelMember}, Field: model.WriteOnly{Write: model.PermissionLevelEveryone}},
+			},
+		})
+
+		require.NoError(t, th.service.DeletePropertyField(rctx, group.ID, dependent.ID))
+
+		template.Permissions.Restrictions.Option.Read = model.PermissionLevelSysadmin
+		result, _, err := th.service.UpdatePropertyField(rctx, group.ID, template)
+		require.NoError(t, err)
+		assert.Equal(t, model.PermissionLevelSysadmin, result.Permissions.Restrictions.Option.Read)
+	})
+
+	t.Run("unlinking a field while raising option.read past the old template's ceiling succeeds", func(t *testing.T) {
+		source := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:    group.ID,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Type:       model.PropertyFieldTypeSelect,
+			Name:       "UnlinkCeilingSource-" + model.NewId(),
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{"id": model.NewId(), "name": "Option A"},
+				},
+			},
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelMember}, Field: model.WriteOnly{Write: model.PermissionLevelEveryone}},
+			},
+		})
+
+		linked := th.CreatePropertyField(t, rctx, &model.PropertyField{
+			GroupID:       group.ID,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Name:          "UnlinkCeilingLinked-" + model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			LinkedFieldID: &source.ID,
+		})
+
+		linked.LinkedFieldID = nil
+		linked.Permissions = &model.Permissions{
+			Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelEveryone}, Field: model.WriteOnly{Write: model.PermissionLevelEveryone}},
+		}
+		result, _, err := th.service.UpdatePropertyField(rctx, group.ID, linked)
+		require.NoError(t, err)
+		assert.Nil(t, result.LinkedFieldID)
+		assert.Equal(t, model.PermissionLevelEveryone, result.Permissions.Restrictions.Option.Read)
+	})
+
+	t.Run("update to an unlinked field with option.read everyone is unaffected", func(t *testing.T) {
+		unlinked := th.CreatePropertyField(t, rctx, &model.PropertyField{
+			GroupID:     group.ID,
+			ObjectType:  model.PropertyFieldObjectTypeUser,
+			TargetType:  string(model.PropertyFieldTargetLevelSystem),
+			Name:        "UpdateUnlinked-" + model.NewId(),
+			Type:        model.PropertyFieldTypeText,
+			Permissions: openPermissions(),
+		})
+
+		unlinked.Permissions = &model.Permissions{
+			Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelEveryone}, Field: model.WriteOnly{Write: model.PermissionLevelEveryone}},
+		}
+		result, _, err := th.service.UpdatePropertyField(rctx, group.ID, unlinked)
+		require.NoError(t, err)
+		assert.Equal(t, model.PermissionLevelEveryone, result.Permissions.Restrictions.Option.Read)
 	})
 
 	t.Run("linked CPA field with LinkedFieldID behaves correctly", func(t *testing.T) {
@@ -1376,6 +2938,7 @@ func TestLinkedPropertyFields(t *testing.T) {
 					map[string]any{"id": optCID, "name": "Option C", "color": "green"},
 				},
 			},
+			Permissions: openPermissions(),
 		})
 
 		linked := th.CreatePropertyField(t, rctx, &model.PropertyField{
@@ -1449,6 +3012,7 @@ func TestLinkedPropertyFields(t *testing.T) {
 					map[string]any{"id": model.NewId(), "name": "Y"},
 				},
 			},
+			Permissions: openPermissions(),
 		})
 
 		// Linking from group B to a template in group A must fail

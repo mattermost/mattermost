@@ -3367,8 +3367,16 @@
     "translation": "Unable to change that many property field options. Only {{.Max}} options can be changed at once."
   },
   {
+    "id": "api.property_field.patch.invalid_permissions.app_error",
+    "translation": "The submitted permissions object is invalid."
+  },
+  {
     "id": "api.property_field.patch.legacy_field.app_error",
     "translation": "Cannot patch a v1 property field via this API."
+  },
+  {
+    "id": "api.property_field.patch.permissions_not_supported.app_error",
+    "translation": "This property group does not support submitting a permissions object."
   },
   {
     "id": "api.property_field.update.no_field_permission.app_error",
@@ -7973,10 +7981,6 @@
     "translation": "Could not mask policy expression."
   },
   {
-    "id": "app.pap.masking.ambiguous_sibling.app_error",
-    "translation": "Multiple user attributes link the same template, so channel-attribute visibility cannot be determined unambiguously."
-  },
-  {
     "id": "app.pap.masking.graph_value_unmarshal.app_error",
     "translation": "Could not read the caller's graph field value."
   },
@@ -8705,6 +8709,10 @@
     "translation": "Invalid input provided."
   },
   {
+    "id": "app.property_field.linked_option_read_ceiling.app_error",
+    "translation": "A linked field's option.read tier ({{.FieldTier}}) cannot be more permissive than its template ({{.TemplateID}})'s tier ({{.TemplateTier}})."
+  },
+  {
     "id": "app.property_field.managed_admin.permission.app_error",
     "translation": "You do not have permission to mark this property field as admin-managed."
   },
@@ -8777,8 +8785,16 @@
     "translation": "Cannot modify type of a linked field. Type is inherited from the source."
   },
   {
+    "id": "app.property_field.update.masking_discarded.app_error",
+    "translation": "Cannot change this field's access mode because it contains data the caller may not read."
+  },
+  {
     "id": "app.property_field.update.name_conflict.app_error",
     "translation": "Cannot update property to \"{{.Name}}\": a property with this name already exists at the {{.ConflictLevel}} level."
+  },
+  {
+    "id": "app.property_field.update.option_read_ceiling_dependents.app_error",
+    "translation": "Cannot update: linked field {{.DependentID}} is at option.read tier {{.DependentTier}}, which would exceed the new tier {{.NewTier}}."
   },
   {
     "id": "app.property_field.update.options_withheld.app_error",

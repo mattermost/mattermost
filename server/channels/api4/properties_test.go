@@ -7,6 +7,7 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"reflect"
 	"testing"
 	"time"
 
@@ -668,6 +669,22 @@ func TestCreatePropertyField(t *testing.T) {
 		CheckBadRequestStatus(t, resp)
 	})
 
+	t.Run("v3 group with flag off falls back to v2 and returns 201", func(t *testing.T) {
+		v3Group, appErr := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_v3_create", Version: model.PropertyGroupVersionV3})
+		require.Nil(t, appErr)
+		require.NotNil(t, v3Group)
+
+		field := &model.PropertyField{
+			Name:       model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+		}
+
+		_, resp, err := th.SystemAdminClient.CreatePropertyField(context.Background(), v3Group.Name, "post", field)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+	})
+
 	t.Run("v1 group should return 404", func(t *testing.T) {
 		v1Group, appErr := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_v1_create", Version: model.PropertyGroupVersionV1})
 		require.Nil(t, appErr)
@@ -683,6 +700,256 @@ func TestCreatePropertyField(t *testing.T) {
 		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
 	})
+
+	t.Run("create with permissions against a group not serving v3 is rejected", func(t *testing.T) {
+		field := &model.PropertyField{
+			Name:       model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{
+					Field: model.WriteOnly{Write: model.PermissionLevelMember},
+				},
+			},
+		}
+
+		_, resp, err := th.SystemAdminClient.CreatePropertyField(context.Background(), group.Name, "post", field)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("create with permissions against a v3 group with the flag on is stored, with no field.write to check", func(t *testing.T) {
+		v3Group, appErr := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_v3_create_permissions", Version: model.PropertyGroupVersionV3})
+		require.Nil(t, appErr)
+		require.NotNil(t, v3Group)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.PropertyFieldPermissionsV3 = true
+		})
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.PropertyFieldPermissionsV3 = false
+		})
+
+		field := &model.PropertyField{
+			Name:       model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{
+					// There is no existing field yet to hold field.write on, so a
+					// creator setting their own new field's permissions is legal
+					// regardless of what the restrictions say.
+					Field: model.WriteOnly{Write: model.PermissionLevelSysadmin},
+				},
+			},
+		}
+
+		created, resp, err := th.SystemAdminClient.CreatePropertyField(context.Background(), v3Group.Name, "post", field)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+		require.NotNil(t, created.Permissions)
+	})
+}
+
+func TestServePropertyFieldPermissionsPayload(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.IntegratedBoards = true
+		cfg.FeatureFlags.PropertyFieldPermissionsV3 = true
+	}).InitBasic(t)
+
+	v3Group, appErr := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_v3_permissions_payload", Version: model.PropertyGroupVersionV3})
+	require.Nil(t, appErr)
+	require.NotNil(t, v3Group)
+
+	v2Group, appErr := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_v2_permissions_payload", Version: model.PropertyGroupVersionV2})
+	require.Nil(t, appErr)
+	require.NotNil(t, v2Group)
+
+	newFieldWithPermissions := func(t *testing.T, groupID string) *model.PropertyField {
+		t.Helper()
+		field := &model.PropertyField{
+			Name:       model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			GroupID:    groupID,
+			ObjectType: "post",
+			TargetType: "system",
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{
+					Field: model.WriteOnly{Write: model.PermissionLevelSysadmin},
+				},
+				Grants: []model.Grant{
+					{
+						Identity: model.Identity{Type: model.PropertyOwnerTypeUser, ID: model.NewId()},
+						Allow:    []string{model.PropertyActionValueWrite},
+					},
+				},
+			},
+		}
+		created, err := th.App.CreatePropertyField(th.Context, field, false, "")
+		require.Nil(t, err)
+		require.NotNil(t, created.Permissions)
+		return created
+	}
+
+	t.Run("v2 group carries no permissions key", func(t *testing.T) {
+		field := newFieldWithPermissions(t, v2Group.ID)
+
+		th.LoginBasic(t)
+		fields, resp, err := th.Client.SearchPropertyFields(context.Background(), v2Group.Name, model.PropertyFieldSearch{
+			ObjectTypes: []string{"post"},
+			TargetType:  "system",
+			PerPage:     200,
+		})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		found := findPropertyFieldByID(fields, field.ID)
+		require.NotNil(t, found)
+		require.Nil(t, found.Permissions)
+	})
+
+	t.Run("v3 group with the flag off carries no permissions key", func(t *testing.T) {
+		field := newFieldWithPermissions(t, v3Group.ID)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.PropertyFieldPermissionsV3 = false
+		})
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.PropertyFieldPermissionsV3 = true
+		})
+
+		th.LoginBasic(t)
+		fields, resp, err := th.Client.SearchPropertyFields(context.Background(), v3Group.Name, model.PropertyFieldSearch{
+			ObjectTypes: []string{"post"},
+			TargetType:  "system",
+			PerPage:     200,
+		})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		found := findPropertyFieldByID(fields, field.ID)
+		require.NotNil(t, found)
+		require.Nil(t, found.Permissions)
+	})
+
+	t.Run("v3 group with the flag on serves the full object to an admin and a stripped one to a member", func(t *testing.T) {
+		field := newFieldWithPermissions(t, v3Group.ID)
+
+		adminFields, resp, err := th.SystemAdminClient.SearchPropertyFields(context.Background(), v3Group.Name, model.PropertyFieldSearch{
+			ObjectTypes: []string{"post"},
+			TargetType:  "system",
+			PerPage:     200,
+		})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		adminView := findPropertyFieldByID(adminFields, field.ID)
+		require.NotNil(t, adminView)
+		require.NotNil(t, adminView.Permissions)
+		require.False(t, adminView.Permissions.Filtered)
+		require.Len(t, adminView.Permissions.Grants, 1)
+
+		th.LoginBasic(t)
+		memberFields, resp, err := th.Client.SearchPropertyFields(context.Background(), v3Group.Name, model.PropertyFieldSearch{
+			ObjectTypes: []string{"post"},
+			TargetType:  "system",
+			PerPage:     200,
+		})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		memberView := findPropertyFieldByID(memberFields, field.ID)
+		require.NotNil(t, memberView)
+		require.NotNil(t, memberView.Permissions)
+		require.True(t, memberView.Permissions.Filtered)
+		require.Empty(t, memberView.Permissions.Grants)
+	})
+
+	t.Run("create and patch responses carry the shaped object too", func(t *testing.T) {
+		field := &model.PropertyField{
+			Name:       model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: "post",
+			TargetType: "system",
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{
+					Field: model.WriteOnly{Write: model.PermissionLevelSysadmin},
+				},
+				Grants: []model.Grant{},
+			},
+		}
+		created, resp, err := th.SystemAdminClient.CreatePropertyField(context.Background(), v3Group.Name, "post", field)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+		require.NotNil(t, created.Permissions)
+		require.False(t, created.Permissions.Filtered)
+
+		newName := model.NewId()
+		patch := &model.PropertyFieldPatch{Name: &newName}
+		patched, resp, err := th.SystemAdminClient.PatchPropertyField(context.Background(), v3Group.Name, "post", created.ID, patch)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.NotNil(t, patched.Permissions)
+		require.False(t, patched.Permissions.Filtered)
+	})
+
+	t.Run("websocket event carries no permissions at all", func(t *testing.T) {
+		th.LoginBasic(t)
+		webSocketClient := th.CreateConnectedWebSocketClient(t)
+
+		field := &model.PropertyField{
+			Name:       model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			GroupID:    v3Group.ID,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: "system",
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{
+					Field: model.WriteOnly{Write: model.PermissionLevelSysadmin},
+				},
+				Grants: []model.Grant{
+					{Identity: model.Identity{Type: model.PropertyOwnerTypeUser, ID: model.NewId()}, Allow: []string{model.PropertyActionValueWrite}},
+				},
+				Masking: &model.Masking{
+					Except: []model.Identity{{Type: model.PropertyOwnerTypeUser, ID: model.NewId()}},
+				},
+			},
+		}
+
+		createdField, resp, err := th.SystemAdminClient.CreatePropertyField(context.Background(), v3Group.Name, model.PropertyFieldObjectTypeUser, field)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+		require.NotNil(t, createdField.Permissions)
+
+		var receivedField model.PropertyField
+		require.Eventually(t, func() bool {
+			select {
+			case event := <-webSocketClient.EventChannel:
+				if event.EventType() == model.WebsocketEventPropertyFieldCreated {
+					fieldData, ok := event.GetData()["property_field"].(string)
+					require.True(t, ok)
+					require.NoError(t, json.Unmarshal([]byte(fieldData), &receivedField))
+					return true
+				}
+			default:
+				return false
+			}
+			return false
+		}, 5*time.Second, 100*time.Millisecond)
+
+		require.Equal(t, createdField.ID, receivedField.ID)
+		require.Nil(t, receivedField.Permissions)
+	})
+}
+
+func findPropertyFieldByID(fields []*model.PropertyField, id string) *model.PropertyField {
+	for _, f := range fields {
+		if f.ID == id {
+			return f
+		}
+	}
+	return nil
 }
 
 func TestGetPropertyFields(t *testing.T) {
@@ -910,6 +1177,18 @@ func TestGetPropertyFields(t *testing.T) {
 		for _, f := range fields {
 			require.NotEqual(t, createdOtherField.ID, f.ID, "Field from other group should not be returned")
 		}
+	})
+
+	t.Run("v3 group with flag off falls back to v2 and returns 200", func(t *testing.T) {
+		th.LoginBasic(t)
+
+		v3Group, appErr := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_v3_get_fields", Version: model.PropertyGroupVersionV3})
+		require.Nil(t, appErr)
+		require.NotNil(t, v3Group)
+
+		_, resp, err := th.Client.GetPropertyFields(context.Background(), v3Group.Name, "post", model.PropertyFieldSearch{PerPage: 60, TargetType: "system"})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
 	})
 
 	t.Run("v1 group should return 404", func(t *testing.T) {
@@ -1824,6 +2103,21 @@ func TestSearchPropertyFields(t *testing.T) {
 		require.ElementsMatch(t, []string{postTeamAField.ID, chanTeamAField.ID}, fieldIDs(fields))
 	})
 
+	t.Run("v3 group with flag off falls back to v2 and returns 200", func(t *testing.T) {
+		th.LoginBasic(t)
+
+		v3Group, appErr := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_v3_search_fields", Version: model.PropertyGroupVersionV3})
+		require.Nil(t, appErr)
+		require.NotNil(t, v3Group)
+
+		_, resp, err := th.Client.SearchPropertyFields(context.Background(), v3Group.Name, model.PropertyFieldSearch{
+			ObjectTypes: []string{model.PropertyFieldObjectTypePost},
+			TeamID:      th.BasicTeam.Id,
+		})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+	})
+
 	t.Run("v1 group returns 404", func(t *testing.T) {
 		v1Group, appErr := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_v1_search_fields", Version: model.PropertyGroupVersionV1})
 		require.Nil(t, appErr)
@@ -2595,6 +2889,233 @@ func TestPatchPropertyField(t *testing.T) {
 		require.NotNil(t, updatedField.Attrs["options"])
 	})
 
+	t.Run("submitted permissions is gated on field.write", func(t *testing.T) {
+		v3PermissionsGroup, appErr := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_v3_patch_field_permissions", Version: model.PropertyGroupVersionV3})
+		require.Nil(t, appErr)
+		require.NotNil(t, v3PermissionsGroup)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.PropertyFieldPermissionsV3 = true
+		})
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.PropertyFieldPermissionsV3 = false
+		})
+
+		newFieldWithPermissions := func(t *testing.T) *model.PropertyField {
+			t.Helper()
+			field := &model.PropertyField{
+				Name:       model.NewId(),
+				Type:       model.PropertyFieldTypeText,
+				GroupID:    v3PermissionsGroup.ID,
+				ObjectType: model.PropertyFieldObjectTypeUser,
+				TargetType: "system",
+				Permissions: &model.Permissions{
+					Restrictions: &model.Restrictions{
+						Field:  model.WriteOnly{Write: model.PermissionLevelSysadmin},
+						Value:  model.ReadWrite{Read: model.PermissionLevelMember, Write: model.PermissionLevelSysadmin},
+						Option: model.ReadWrite{Read: model.PermissionLevelMember, Write: model.PermissionLevelSysadmin},
+					},
+					Grants: []model.Grant{
+						{Identity: model.Identity{Type: model.PropertyOwnerTypeUser, ID: model.NewId()}, Allow: []string{model.PropertyActionValueWrite}},
+					},
+					Masking: &model.Masking{
+						Except: []model.Identity{{Type: model.PropertyOwnerTypeUser, ID: model.NewId()}},
+					},
+				},
+			}
+			created, appErr := th.App.CreatePropertyField(th.Context, field, false, "")
+			require.Nil(t, appErr)
+			require.NotNil(t, created.Permissions)
+			return created
+		}
+
+		newGrantsPatch := func(t *testing.T) *model.PermissionsPatch {
+			t.Helper()
+			grants, err := json.Marshal([]model.Grant{
+				{Identity: model.Identity{Type: model.PropertyOwnerTypeUser, ID: model.NewId()}, Allow: []string{model.PropertyActionValueRead}},
+			})
+			require.NoError(t, err)
+			return &model.PermissionsPatch{Grants: grants}
+		}
+
+		t.Run("member without field.write is refused and the field is unchanged", func(t *testing.T) {
+			createdField := newFieldWithPermissions(t)
+
+			th.LoginBasic(t)
+			patch := &model.PropertyFieldPatch{Permissions: newGrantsPatch(t)}
+			_, resp, err := th.Client.PatchPropertyField(context.Background(), v3PermissionsGroup.Name, model.PropertyFieldObjectTypeUser, createdField.ID, patch)
+			require.Error(t, err)
+			CheckForbiddenStatus(t, resp)
+
+			stored, appErr := th.App.GetPropertyField(th.Context, v3PermissionsGroup.ID, createdField.ID)
+			require.Nil(t, appErr)
+			require.Equal(t, createdField.Permissions, stored.Permissions)
+		})
+
+		t.Run("admin's submission is stored", func(t *testing.T) {
+			createdField := newFieldWithPermissions(t)
+
+			patch := &model.PropertyFieldPatch{Permissions: newGrantsPatch(t)}
+			updated, resp, err := th.SystemAdminClient.PatchPropertyField(context.Background(), v3PermissionsGroup.Name, model.PropertyFieldObjectTypeUser, createdField.ID, patch)
+			require.NoError(t, err)
+			CheckOKStatus(t, resp)
+			require.NotNil(t, updated.Permissions)
+			require.Len(t, updated.Permissions.Grants, 1)
+			require.Equal(t, []string{model.PropertyActionValueRead}, updated.Permissions.Grants[0].Allow)
+		})
+
+		t.Run("permissions absent leaves the stored object untouched", func(t *testing.T) {
+			createdField := newFieldWithPermissions(t)
+
+			newName := model.NewId()
+			patch := &model.PropertyFieldPatch{Name: &newName}
+			updated, resp, err := th.SystemAdminClient.PatchPropertyField(context.Background(), v3PermissionsGroup.Name, model.PropertyFieldObjectTypeUser, createdField.ID, patch)
+			require.NoError(t, err)
+			CheckOKStatus(t, resp)
+			require.Equal(t, newName, updated.Name)
+			require.Equal(t, createdField.Permissions, updated.Permissions)
+		})
+
+		t.Run("masking null clears masking and leaves restrictions and grants untouched", func(t *testing.T) {
+			createdField := newFieldWithPermissions(t)
+
+			patch := &model.PropertyFieldPatch{Permissions: &model.PermissionsPatch{Masking: json.RawMessage("null")}}
+			updated, resp, err := th.SystemAdminClient.PatchPropertyField(context.Background(), v3PermissionsGroup.Name, model.PropertyFieldObjectTypeUser, createdField.ID, patch)
+			require.NoError(t, err)
+			CheckOKStatus(t, resp)
+			require.Nil(t, updated.Permissions.Masking)
+			require.Equal(t, createdField.Permissions.Restrictions, updated.Permissions.Restrictions)
+			require.Equal(t, createdField.Permissions.Grants, updated.Permissions.Grants)
+		})
+
+		t.Run("a submitted filtered true is refused", func(t *testing.T) {
+			createdField := newFieldWithPermissions(t)
+
+			patch := &model.PropertyFieldPatch{Permissions: &model.PermissionsPatch{Filtered: true}}
+			_, resp, err := th.SystemAdminClient.PatchPropertyField(context.Background(), v3PermissionsGroup.Name, model.PropertyFieldObjectTypeUser, createdField.ID, patch)
+			require.Error(t, err)
+			CheckBadRequestStatus(t, resp)
+		})
+
+		t.Run("submission against a v2 group is rejected", func(t *testing.T) {
+			v2Field := &model.PropertyField{
+				Name:              model.NewId(),
+				Type:              model.PropertyFieldTypeText,
+				GroupID:           group.ID,
+				ObjectType:        "post",
+				TargetType:        "system",
+				PermissionField:   &memberLevel,
+				PermissionValues:  &memberLevel,
+				PermissionOptions: &memberLevel,
+			}
+			createdField, appErr := th.App.CreatePropertyField(th.Context, v2Field, false, "")
+			require.Nil(t, appErr)
+
+			patch := &model.PropertyFieldPatch{Permissions: newGrantsPatch(t)}
+			_, resp, err := th.SystemAdminClient.PatchPropertyField(context.Background(), group.Name, "post", createdField.ID, patch)
+			require.Error(t, err)
+			CheckBadRequestStatus(t, resp)
+		})
+
+		t.Run("a patch carrying both options and permissions is routed to field.write, not option.write", func(t *testing.T) {
+			newOptionsField := func(t *testing.T) *model.PropertyField {
+				t.Helper()
+				field := &model.PropertyField{
+					Name:       model.NewId(),
+					Type:       model.PropertyFieldTypeSelect,
+					GroupID:    v3PermissionsGroup.ID,
+					ObjectType: model.PropertyFieldObjectTypeUser,
+					TargetType: "system",
+					Attrs: model.StringInterface{
+						"options": []map[string]any{
+							{"id": model.NewId(), "name": "Option 1"},
+						},
+					},
+					Permissions: &model.Permissions{
+						Restrictions: &model.Restrictions{
+							Field:  model.WriteOnly{Write: model.PermissionLevelSysadmin},
+							Option: model.ReadWrite{Read: model.PermissionLevelMember, Write: model.PermissionLevelMember},
+							Value:  model.ReadWrite{Read: model.PermissionLevelMember, Write: model.PermissionLevelMember},
+						},
+					},
+				}
+				created, appErr := th.App.CreatePropertyField(th.Context, field, false, "")
+				require.Nil(t, appErr)
+				require.NotNil(t, created.Permissions)
+				return created
+			}
+
+			t.Run("options plus permissions is refused and the field is unchanged", func(t *testing.T) {
+				createdField := newOptionsField(t)
+
+				th.LoginBasic(t)
+				newOptionID := model.NewId()
+				patch := &model.PropertyFieldPatch{
+					Attrs: &model.StringInterface{
+						"options": []map[string]any{
+							{"id": newOptionID, "name": "New Option"},
+						},
+					},
+					Permissions: newGrantsPatch(t),
+				}
+				_, resp, err := th.Client.PatchPropertyField(context.Background(), v3PermissionsGroup.Name, model.PropertyFieldObjectTypeUser, createdField.ID, patch)
+				require.Error(t, err)
+				CheckForbiddenStatus(t, resp)
+
+				stored, appErr := th.App.GetPropertyField(th.Context, v3PermissionsGroup.ID, createdField.ID)
+				require.Nil(t, appErr)
+				require.Equal(t, createdField.Attrs, stored.Attrs)
+				require.Equal(t, createdField.Permissions, stored.Permissions)
+			})
+
+			t.Run("options alone is allowed and the new option list is stored", func(t *testing.T) {
+				createdField := newOptionsField(t)
+
+				th.LoginBasic(t)
+				newOptionID := model.NewId()
+				patch := &model.PropertyFieldPatch{
+					Attrs: &model.StringInterface{
+						"options": []map[string]any{
+							{"id": newOptionID, "name": "New Option"},
+						},
+					},
+				}
+				updated, resp, err := th.Client.PatchPropertyField(context.Background(), v3PermissionsGroup.Name, model.PropertyFieldObjectTypeUser, createdField.ID, patch)
+				require.NoError(t, err)
+				CheckOKStatus(t, resp)
+				require.NotNil(t, updated.Attrs["options"])
+			})
+		})
+	})
+
+	t.Run("v3 group with flag off falls back to v2 and returns 200", func(t *testing.T) {
+		v3Group, appErr := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_v3_patch_field", Version: model.PropertyGroupVersionV3})
+		require.Nil(t, appErr)
+		require.NotNil(t, v3Group)
+
+		field := &model.PropertyField{
+			Name:              model.NewId(),
+			Type:              model.PropertyFieldTypeText,
+			GroupID:           v3Group.ID,
+			ObjectType:        "post",
+			TargetType:        "system",
+			PermissionField:   &memberLevel,
+			PermissionValues:  &memberLevel,
+			PermissionOptions: &memberLevel,
+		}
+		createdField, appErr := th.App.CreatePropertyField(th.Context, field, false, "")
+		require.Nil(t, appErr)
+
+		th.LoginBasic(t)
+		newName := model.NewId()
+		patch := &model.PropertyFieldPatch{Name: &newName}
+
+		updatedField, resp, err := th.Client.PatchPropertyField(context.Background(), v3Group.Name, "post", createdField.ID, patch)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Equal(t, newName, updatedField.Name)
+	})
+
 	t.Run("v1 group should return 404", func(t *testing.T) {
 		v1Group, appErr := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_v1_patch_field", Version: model.PropertyGroupVersionV1})
 		require.Nil(t, appErr)
@@ -2779,6 +3300,30 @@ func TestDeletePropertyField(t *testing.T) {
 		}, 5*time.Second, 100*time.Millisecond)
 	})
 
+	t.Run("v3 group with flag off falls back to v2 and returns 200", func(t *testing.T) {
+		v3Group, appErr := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_v3_delete_field", Version: model.PropertyGroupVersionV3})
+		require.Nil(t, appErr)
+		require.NotNil(t, v3Group)
+
+		field := &model.PropertyField{
+			Name:              model.NewId(),
+			Type:              model.PropertyFieldTypeText,
+			GroupID:           v3Group.ID,
+			ObjectType:        "post",
+			TargetType:        "system",
+			PermissionField:   &memberLevel,
+			PermissionValues:  &memberLevel,
+			PermissionOptions: &memberLevel,
+		}
+		createdField, appErr := th.App.CreatePropertyField(th.Context, field, false, "")
+		require.Nil(t, appErr)
+
+		th.LoginBasic(t)
+		resp, err := th.Client.DeletePropertyField(context.Background(), v3Group.Name, "post", createdField.ID)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+	})
+
 	t.Run("v1 group should return 404", func(t *testing.T) {
 		v1Group, appErr := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_v1_delete_field", Version: model.PropertyGroupVersionV1})
 		require.Nil(t, appErr)
@@ -2795,14 +3340,14 @@ func TestIsOptionsOnlyPatch(t *testing.T) {
 		patch := &model.PropertyFieldPatch{
 			Name: new("new name"),
 		}
-		require.False(t, isOptionsOnlyPatch(patch))
+		require.False(t, isOptionsOnlyPatch(patch, false, true))
 	})
 
 	t.Run("empty attrs is not options-only", func(t *testing.T) {
 		patch := &model.PropertyFieldPatch{
 			Attrs: &model.StringInterface{},
 		}
-		require.False(t, isOptionsOnlyPatch(patch))
+		require.False(t, isOptionsOnlyPatch(patch, false, true))
 	})
 
 	t.Run("attrs with only options is options-only", func(t *testing.T) {
@@ -2811,7 +3356,16 @@ func TestIsOptionsOnlyPatch(t *testing.T) {
 				"options": []any{},
 			},
 		}
-		require.True(t, isOptionsOnlyPatch(patch))
+		require.True(t, isOptionsOnlyPatch(patch, false, true))
+	})
+
+	t.Run("attrs with only options but nothing actually changed is not options-only", func(t *testing.T) {
+		patch := &model.PropertyFieldPatch{
+			Attrs: &model.StringInterface{
+				"options": []any{},
+			},
+		}
+		require.False(t, isOptionsOnlyPatch(patch, false, false))
 	})
 
 	t.Run("attrs with options and other keys is not options-only", func(t *testing.T) {
@@ -2821,7 +3375,7 @@ func TestIsOptionsOnlyPatch(t *testing.T) {
 				"other":   "value",
 			},
 		}
-		require.False(t, isOptionsOnlyPatch(patch))
+		require.False(t, isOptionsOnlyPatch(patch, false, true))
 	})
 
 	t.Run("name change with options is not options-only", func(t *testing.T) {
@@ -2831,7 +3385,7 @@ func TestIsOptionsOnlyPatch(t *testing.T) {
 				"options": []any{},
 			},
 		}
-		require.False(t, isOptionsOnlyPatch(patch))
+		require.False(t, isOptionsOnlyPatch(patch, false, true))
 	})
 
 	t.Run("type change is not options-only", func(t *testing.T) {
@@ -2839,7 +3393,7 @@ func TestIsOptionsOnlyPatch(t *testing.T) {
 		patch := &model.PropertyFieldPatch{
 			Type: &newType,
 		}
-		require.False(t, isOptionsOnlyPatch(patch))
+		require.False(t, isOptionsOnlyPatch(patch, false, true))
 	})
 }
 
@@ -2995,6 +3549,18 @@ func TestGetPropertyValues(t *testing.T) {
 		for _, v := range page1 {
 			require.False(t, page0IDs[v.ID], "Second page should not contain values from first page")
 		}
+	})
+
+	t.Run("v3 group with flag off falls back to v2 and returns 200", func(t *testing.T) {
+		th.LoginBasic(t)
+
+		v3Group, appErr := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_v3_get_values", Version: model.PropertyGroupVersionV3})
+		require.Nil(t, appErr)
+		require.NotNil(t, v3Group)
+
+		_, resp, err := th.Client.GetPropertyValues(context.Background(), v3Group.Name, "post", th.BasicPost.Id, model.PropertyValueSearch{PerPage: 60})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
 	})
 
 	t.Run("v1 group should return 404", func(t *testing.T) {
@@ -3528,6 +4094,35 @@ func TestPatchPropertyValues(t *testing.T) {
 		_, resp, err := th.Client.PatchPropertyValues(context.Background(), group.Name, "post", targetID, items)
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("v3 group with flag off falls back to v2 and returns 200", func(t *testing.T) {
+		v3Group, appErr := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_v3_patch_values", Version: model.PropertyGroupVersionV3})
+		require.Nil(t, appErr)
+		require.NotNil(t, v3Group)
+
+		field := &model.PropertyField{
+			Name:              model.NewId(),
+			Type:              model.PropertyFieldTypeText,
+			GroupID:           v3Group.ID,
+			ObjectType:        "post",
+			TargetType:        "system",
+			PermissionField:   &memberLevel,
+			PermissionValues:  &memberLevel,
+			PermissionOptions: &memberLevel,
+		}
+		createdField, appErr := th.App.CreatePropertyField(th.Context, field, false, "")
+		require.Nil(t, appErr)
+
+		th.LoginBasic(t)
+		items := []model.PropertyValuePatchItem{
+			{FieldID: createdField.ID, Value: json.RawMessage(`"test"`)},
+		}
+
+		values, resp, err := th.Client.PatchPropertyValues(context.Background(), v3Group.Name, "post", th.BasicPost.Id, items)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Len(t, values, 1)
 	})
 
 	t.Run("v1 group should return 404", func(t *testing.T) {
@@ -5317,4 +5912,109 @@ func TestSystemObjectType(t *testing.T) {
 		require.Error(t, patchErr)
 		CheckNotFoundStatus(t, resp)
 	})
+}
+
+// isOptionsOnlyPatch decides which permission a patch is gated on at this
+// layer; model.PropertyFieldChangeIsOptionsOnly decides the same thing inside
+// the enforcement hook, which never sees the patch and has to compare the
+// merged field against the stored one. If the two ever disagree, one layer
+// allows what the other refuses. This asserts they agree on every shape of
+// patch that reaches the handler.
+func TestOptionsOnlyPatchAgreesWithFieldComparison(t *testing.T) {
+	// One fixed option ID: stored() is called twice, so a fresh model.NewId()
+	// per call would make the two fields differ before any patch was applied.
+	storedOptionID := model.NewId()
+
+	stored := func() *model.PropertyField {
+		return &model.PropertyField{
+			ID:         "fieldid",
+			GroupID:    "groupid",
+			Name:       "Programs",
+			Type:       model.PropertyFieldTypeSelect,
+			ObjectType: "user",
+			TargetType: "system",
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{"id": storedOptionID, "name": "Air"},
+				},
+				"visibility": "always",
+			},
+		}
+	}
+
+	newOptions := []any{map[string]any{"id": model.NewId(), "name": "Sea"}}
+	storedPermissions := &model.Permissions{Restrictions: &model.Restrictions{
+		Field: model.WriteOnly{Write: model.PermissionLevelSysadmin},
+	}}
+
+	testCases := []struct {
+		name string
+		// permissions the field already carries, if any
+		permissions *model.Permissions
+		patch       *model.PropertyFieldPatch
+	}{
+		{"options alone", nil, &model.PropertyFieldPatch{
+			Attrs: &model.StringInterface{model.PropertyFieldAttributeOptions: newOptions},
+		}},
+		{"options plus a sibling attr", nil, &model.PropertyFieldPatch{
+			Attrs: &model.StringInterface{model.PropertyFieldAttributeOptions: newOptions, "visibility": "hidden"},
+		}},
+		{"options plus a name", nil, &model.PropertyFieldPatch{
+			Name:  model.NewPointer("Renamed"),
+			Attrs: &model.StringInterface{model.PropertyFieldAttributeOptions: newOptions},
+		}},
+		{"options plus permissions that change something", storedPermissions, &model.PropertyFieldPatch{
+			Attrs:       &model.StringInterface{model.PropertyFieldAttributeOptions: newOptions},
+			Permissions: &model.PermissionsPatch{Restrictions: json.RawMessage(`{"field":{"write":"member"}}`)},
+		}},
+		{"options plus a permissions echo", storedPermissions, &model.PropertyFieldPatch{
+			Attrs:       &model.StringInterface{model.PropertyFieldAttributeOptions: newOptions},
+			Permissions: &model.PermissionsPatch{Restrictions: json.RawMessage(`{"field":{"write":"sysadmin"}}`)},
+		}},
+		{"a sibling attr alone", nil, &model.PropertyFieldPatch{
+			Attrs: &model.StringInterface{"visibility": "hidden"},
+		}},
+		{"a name alone", nil, &model.PropertyFieldPatch{
+			Name: model.NewPointer("Renamed"),
+		}},
+		{"no attrs at all", nil, &model.PropertyFieldPatch{}},
+		{"an unchanged options echo", nil, &model.PropertyFieldPatch{
+			Attrs: &model.StringInterface{model.PropertyFieldAttributeOptions: []any{
+				map[string]any{"id": storedOptionID, "name": "Air"},
+			}},
+		}},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			existing := stored()
+			existing.Permissions = tc.permissions
+			patched := stored()
+			patched.Permissions = tc.permissions
+
+			// Mirror patchPropertyField: resolve the permissions patch first,
+			// decide whether it changed anything, then apply the rest.
+			permissionsChanged := false
+			if tc.patch.Permissions != nil {
+				applied, err := tc.patch.Permissions.ApplyTo(patched.Permissions)
+				require.NoError(t, err)
+				permissionsChanged = !reflect.DeepEqual(patched.Permissions, applied)
+				patched.Permissions = applied
+			}
+
+			optionsChanged := false
+			if tc.patch.Attrs != nil {
+				if newOptions, ok := (*tc.patch.Attrs)[model.PropertyFieldAttributeOptions]; ok {
+					optionsChanged = !reflect.DeepEqual(existing.Attrs[model.PropertyFieldAttributeOptions], newOptions)
+				}
+			}
+
+			patched.Patch(tc.patch, true)
+
+			require.Equal(t,
+				isOptionsOnlyPatch(tc.patch, permissionsChanged, optionsChanged),
+				model.PropertyFieldChangeIsOptionsOnly(existing, patched),
+				"the api4 patch check and the hook's field comparison must agree")
+		})
+	}
 }

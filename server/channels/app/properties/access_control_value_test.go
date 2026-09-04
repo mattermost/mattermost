@@ -94,40 +94,7 @@ func TestCreatePropertyValue_WriteAccessControl(t *testing.T) {
 		createdValue, err := th.service.CreatePropertyValue(rctxPlugin2, value)
 		require.Error(t, err)
 		assert.Nil(t, createdValue)
-		assert.Contains(t, err.Error(), "protected")
-	})
-
-	t.Run("non-CPA group routes directly to PropertyService without access control", func(t *testing.T) {
-		nonCpaGroup, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "other_group_value_create", Version: model.PropertyGroupVersionV2})
-		require.NoError(t, err)
-
-		field := &model.PropertyField{
-			GroupID: nonCpaGroup.ID,
-			Name:    "Non-CPA Value Protected",
-			Type:    model.PropertyFieldTypeText,
-			Attrs: model.StringInterface{
-				model.PropertyAttrsProtected:      true,
-				model.PropertyAttrsSourcePluginID: "plugin-1",
-			},
-			ObjectType: model.PropertyFieldObjectTypeUser,
-			TargetType: string(model.PropertyFieldTargetLevelSystem),
-		}
-
-		created, err := th.service.CreatePropertyField(rctxPlugin1, field)
-		require.NoError(t, err)
-
-		// Create value with different plugin - should be allowed (no access control)
-		value := &model.PropertyValue{
-			GroupID:    nonCpaGroup.ID,
-			FieldID:    created.ID,
-			TargetType: "user",
-			TargetID:   model.NewId(),
-			Value:      json.RawMessage(`"test value"`),
-		}
-
-		createdValue, err := th.service.CreatePropertyValue(rctxPlugin2, value)
-		require.NoError(t, err)
-		assert.NotNil(t, createdValue)
+		assert.Contains(t, err.Error(), "value.write")
 	})
 }
 
@@ -187,7 +154,7 @@ func TestDeletePropertyValue_WriteAccessControl(t *testing.T) {
 
 		err = th.service.DeletePropertyValue(rctxPlugin2, th.CPAGroupID, createdValue.ID)
 		require.Error(t, err)
-		assert.Contains(t, err.Error(), "protected")
+		assert.Contains(t, err.Error(), "value.write")
 	})
 }
 
@@ -256,7 +223,7 @@ func TestDeletePropertyValuesForTarget_WriteAccessControl(t *testing.T) {
 		// Try to delete with plugin2 (should fail)
 		err = th.service.DeletePropertyValuesForTarget(rctxPlugin2, th.CPAGroupID, "user", targetID)
 		require.Error(t, err)
-		assert.Contains(t, err.Error(), "protected")
+		assert.Contains(t, err.Error(), "value.write")
 
 		// Verify values still exist
 		values, err := th.service.SearchPropertyValues(rctxPlugin1, th.CPAGroupID, model.PropertyValueSearchOpts{
@@ -300,7 +267,10 @@ func TestGetPropertyValueReadAccess(t *testing.T) {
 		field, err := th.service.CreatePropertyField(rctxAnon, field)
 		require.NoError(t, err)
 
-		// Create value
+		// Create value. An anonymous caller can create nothing once the field
+		// carries permissions -- fail-closed applies to writes as much as
+		// reads -- so the value needs an identified writer even though this
+		// subtest is about who may read it.
 		textValue, jsonErr := json.Marshal("test value")
 		require.NoError(t, jsonErr)
 		value := &model.PropertyValue{
@@ -310,7 +280,7 @@ func TestGetPropertyValueReadAccess(t *testing.T) {
 			TargetID:   userID1,
 			Value:      textValue,
 		}
-		value, err = th.service.CreatePropertyValue(rctxAnon, value)
+		value, err = th.service.CreatePropertyValue(rctx1, value)
 		require.NoError(t, err)
 
 		// Plugin 1 can read
@@ -332,11 +302,12 @@ func TestGetPropertyValueReadAccess(t *testing.T) {
 		require.NotNil(t, retrieved)
 		assert.Equal(t, value.ID, retrieved.ID)
 
-		// Anonymous caller can read
+		// An anonymous caller is refused outright, regardless of the field's
+		// own access mode -- there is no identity to judge against a grant or
+		// the ladder. A denied read is filtered silently rather than erroring.
 		retrieved, err = th.service.GetPropertyValue(rctxAnon, th.CPAGroupID, value.ID)
 		require.NoError(t, err)
-		require.NotNil(t, retrieved)
-		assert.Equal(t, value.ID, retrieved.ID)
+		assert.Nil(t, retrieved)
 	})
 
 	t.Run("source_only field value - only source plugin can read", func(t *testing.T) {
@@ -684,50 +655,6 @@ func TestGetPropertyValueReadAccess(t *testing.T) {
 		require.NoError(t, err)
 		assert.Nil(t, retrieved)
 	})
-
-	t.Run("non-CPA group routes directly to PropertyService without filtering", func(t *testing.T) {
-		nonCpaGroup, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "other_group_value_read", Version: model.PropertyGroupVersionV2})
-		require.NoError(t, err)
-
-		field := &model.PropertyField{
-			GroupID:    nonCpaGroup.ID,
-			Name:       "non-cpa-value-source-only",
-			Type:       model.PropertyFieldTypeText,
-			ObjectType: model.PropertyFieldObjectTypeUser,
-			TargetType: string(model.PropertyFieldTargetLevelSystem),
-			Attrs: model.StringInterface{
-				model.PropertyAttrsAccessMode:     model.PropertyAccessModeSourceOnly,
-				model.PropertyAttrsProtected:      true,
-				model.PropertyAttrsSourcePluginID: pluginID1,
-			},
-		}
-
-		created, err := th.service.CreatePropertyField(rctxTestPlugin, field)
-		require.NoError(t, err)
-
-		targetID := model.NewId()
-		value := &model.PropertyValue{
-			GroupID:    nonCpaGroup.ID,
-			FieldID:    created.ID,
-			TargetType: "user",
-			TargetID:   targetID,
-			Value:      json.RawMessage(`"visible"`),
-		}
-		createdValue, err := th.service.CreatePropertyValue(rctxTestPlugin, value)
-		require.NoError(t, err)
-
-		// Other plugin can read (no filtering, goes directly to PropertyService)
-		rctx2Local := RequestContextWithCallerID(th.Context, "plugin-2")
-		retrieved, err := th.service.GetPropertyValue(rctx2Local, nonCpaGroup.ID, createdValue.ID)
-		require.NoError(t, err)
-		assert.NotNil(t, retrieved)
-
-		// User can also read (no filtering, goes directly to PropertyService)
-		rctxUser := RequestContextWithCallerID(th.Context, model.NewId())
-		retrievedByUser, err := th.service.GetPropertyValue(rctxUser, nonCpaGroup.ID, createdValue.ID)
-		require.NoError(t, err)
-		assert.NotNil(t, retrievedByUser)
-	})
 }
 
 func TestGetPropertyValuesReadAccess(t *testing.T) {
@@ -785,7 +712,10 @@ func TestGetPropertyValuesReadAccess(t *testing.T) {
 			TargetID:   userID,
 			Value:      publicValue,
 		}
-		publicPropValue, err = th.service.CreatePropertyValue(rctxAnon, publicPropValue)
+		// An anonymous caller can create nothing once the field carries
+		// permissions -- fail-closed applies to writes too -- so this needs an
+		// identified writer even though the subtest is about who may read it.
+		publicPropValue, err = th.service.CreatePropertyValue(rctx1, publicPropValue)
 		require.NoError(t, err)
 
 		sourceOnlyValue, jsonErr := json.Marshal("secret")
@@ -866,10 +796,13 @@ func TestSearchPropertyValuesReadAccess(t *testing.T) {
 		sourceOnlyField, err = th.service.CreatePropertyField(rctx1, sourceOnlyField)
 		require.NoError(t, err)
 
-		// Create values for both fields
+		// Create values for both fields. An anonymous caller can create
+		// nothing once the field carries permissions, so the public value
+		// needs an identified writer even though this subtest is about who
+		// may read it.
 		publicValue, jsonErr := json.Marshal("public data")
 		require.NoError(t, jsonErr)
-		_, err = th.service.CreatePropertyValue(rctxAnon, &model.PropertyValue{
+		_, err = th.service.CreatePropertyValue(rctx1, &model.PropertyValue{
 			GroupID:    th.CPAGroupID,
 			FieldID:    publicField.ID,
 			TargetType: "user",
@@ -1150,7 +1083,7 @@ func TestCreatePropertyValues_WriteAccessControl(t *testing.T) {
 		created, err := th.service.CreatePropertyValues(rctx2, values)
 		require.Error(t, err)
 		assert.Nil(t, created)
-		assert.Contains(t, err.Error(), "protected")
+		assert.Contains(t, err.Error(), "a value write")
 
 		// Verify neither value was created
 		results, err := th.service.SearchPropertyValues(rctx1, th.CPAGroupID, model.PropertyValueSearchOpts{
@@ -1287,56 +1220,6 @@ func TestCreatePropertyValues_WriteAccessControl(t *testing.T) {
 		assert.Contains(t, err.Error(), "mixed group IDs in batch")
 	})
 
-	t.Run("non-CPA group routes directly to PropertyService without access control", func(t *testing.T) {
-		// Register a non-CPA group
-		nonCpaGroup, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "other_group_bulk", Version: model.PropertyGroupVersionV2})
-		require.NoError(t, err)
-
-		// Create two fields in non-CPA group
-		field1 := &model.PropertyField{
-			GroupID:    nonCpaGroup.ID,
-			Name:       "non-cpa-bulk-field-1",
-			Type:       model.PropertyFieldTypeText,
-			ObjectType: model.PropertyFieldObjectTypeUser,
-			TargetType: string(model.PropertyFieldTargetLevelSystem),
-		}
-		field2 := &model.PropertyField{
-			GroupID:    nonCpaGroup.ID,
-			Name:       "non-cpa-bulk-field-2",
-			Type:       model.PropertyFieldTypeText,
-			ObjectType: model.PropertyFieldObjectTypeUser,
-			TargetType: string(model.PropertyFieldTargetLevelSystem),
-		}
-
-		created1, err := th.service.CreatePropertyField(rctx1, field1)
-		require.NoError(t, err)
-		created2, err := th.service.CreatePropertyField(rctx1, field2)
-		require.NoError(t, err)
-
-		// Create values for both fields with different plugin - should be allowed (no access control)
-		targetID := model.NewId()
-		values := []*model.PropertyValue{
-			{
-				GroupID:    nonCpaGroup.ID,
-				FieldID:    created1.ID,
-				TargetType: "user",
-				TargetID:   targetID,
-				Value:      json.RawMessage(`"value1"`),
-			},
-			{
-				GroupID:    nonCpaGroup.ID,
-				FieldID:    created2.ID,
-				TargetType: "user",
-				TargetID:   targetID,
-				Value:      json.RawMessage(`"value2"`),
-			},
-		}
-
-		createdValues, err := th.service.CreatePropertyValues(rctx2, values)
-		require.NoError(t, err)
-		assert.Len(t, createdValues, 2)
-	})
-
 	t.Run("mixed CPA and non-CPA groups are rejected before access control", func(t *testing.T) {
 		// Register a non-CPA group
 		nonCpaGroup, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "other_group_mixed", Version: model.PropertyGroupVersionV2})
@@ -1466,7 +1349,7 @@ func TestUpdatePropertyValue_WriteAccessControl(t *testing.T) {
 		updated, err := th.service.UpdatePropertyValue(rctxPlugin2, th.CPAGroupID, createdValue)
 		require.Error(t, err)
 		assert.Nil(t, updated)
-		assert.Contains(t, err.Error(), "protected")
+		assert.Contains(t, err.Error(), "a value write")
 	})
 
 	t.Run("any caller can update values for non-protected field", func(t *testing.T) {
@@ -1622,7 +1505,7 @@ func TestUpdatePropertyValues_WriteAccessControl(t *testing.T) {
 		updated, err := th.service.UpdatePropertyValues(rctx2, th.CPAGroupID, createdValues)
 		require.Error(t, err)
 		assert.Nil(t, updated)
-		assert.Contains(t, err.Error(), "protected")
+		assert.Contains(t, err.Error(), "value.write")
 
 		// Verify values were NOT updated
 		retrieved, err := th.service.GetPropertyValues(rctx1, th.CPAGroupID, []string{createdValues[0].ID, createdValues[1].ID})
@@ -1685,7 +1568,7 @@ func TestUpdatePropertyValues_WriteAccessControl(t *testing.T) {
 		updated, err := th.service.UpdatePropertyValues(rctx2, th.CPAGroupID, createdValues)
 		require.Error(t, err)
 		assert.Nil(t, updated)
-		assert.Contains(t, err.Error(), "protected")
+		assert.Contains(t, err.Error(), "value.write")
 
 		// Verify NO values were updated (atomic failure)
 		retrieved, err := th.service.GetPropertyValues(rctx1, th.CPAGroupID, []string{createdValues[0].ID, createdValues[1].ID})
@@ -1762,7 +1645,7 @@ func TestUpdatePropertyValues_WriteAccessControl(t *testing.T) {
 		updated, err := th.service.UpdatePropertyValues(rctx1, th.CPAGroupID, []*model.PropertyValue{createdValue1, createdValue2})
 		require.Error(t, err)
 		assert.Nil(t, updated)
-		assert.Contains(t, err.Error(), "protected")
+		assert.Contains(t, err.Error(), "value.write")
 
 		// Verify NO values were updated (atomic failure)
 		retrieved, err := th.service.GetPropertyValues(rctx1, th.CPAGroupID, []string{createdValue1.ID, createdValue2.ID})
@@ -1779,7 +1662,7 @@ func TestUpdatePropertyValues_WriteAccessControl(t *testing.T) {
 		updated, err = th.service.UpdatePropertyValues(rctx2, th.CPAGroupID, []*model.PropertyValue{createdValue1, createdValue2})
 		require.Error(t, err)
 		assert.Nil(t, updated)
-		assert.Contains(t, err.Error(), "protected")
+		assert.Contains(t, err.Error(), "value.write")
 
 		// Verify still NO values were updated
 		retrieved, err = th.service.GetPropertyValues(rctx1, th.CPAGroupID, []string{createdValue1.ID, createdValue2.ID})
@@ -1883,7 +1766,7 @@ func TestUpsertPropertyValue_WriteAccessControl(t *testing.T) {
 		upserted, err := th.service.UpsertPropertyValue(rctxPlugin2, value)
 		require.Error(t, err)
 		assert.Nil(t, upserted)
-		assert.Contains(t, err.Error(), "protected")
+		assert.Contains(t, err.Error(), "a value write")
 	})
 }
 
@@ -1998,7 +1881,7 @@ func TestUpsertPropertyValues_WriteAccessControl(t *testing.T) {
 		upserted, err := th.service.UpsertPropertyValues(rctx2, values)
 		require.Error(t, err)
 		assert.Nil(t, upserted)
-		assert.Contains(t, err.Error(), "protected")
+		assert.Contains(t, err.Error(), "value.write")
 
 		// Verify no values were created
 		retrieved, err := th.service.SearchPropertyValues(rctx1, th.CPAGroupID, model.PropertyValueSearchOpts{
@@ -2057,7 +1940,7 @@ func TestUpsertPropertyValues_WriteAccessControl(t *testing.T) {
 		upserted, err := th.service.UpsertPropertyValues(rctx2, values)
 		require.Error(t, err)
 		assert.Nil(t, upserted)
-		assert.Contains(t, err.Error(), "protected")
+		assert.Contains(t, err.Error(), "value.write")
 
 		// Verify no values were created (atomic failure)
 		retrieved, err := th.service.SearchPropertyValues(rctx1, th.CPAGroupID, model.PropertyValueSearchOpts{
@@ -2123,7 +2006,7 @@ func TestUpsertPropertyValues_WriteAccessControl(t *testing.T) {
 		upserted, err := th.service.UpsertPropertyValues(rctx1, values)
 		require.Error(t, err)
 		assert.Nil(t, upserted)
-		assert.Contains(t, err.Error(), "protected")
+		assert.Contains(t, err.Error(), "value.write")
 
 		// Verify no values were created (atomic failure)
 		retrieved, err := th.service.SearchPropertyValues(rctx1, th.CPAGroupID, model.PropertyValueSearchOpts{
@@ -2140,7 +2023,7 @@ func TestUpsertPropertyValues_WriteAccessControl(t *testing.T) {
 		upserted, err = th.service.UpsertPropertyValues(rctx2, values)
 		require.Error(t, err)
 		assert.Nil(t, upserted)
-		assert.Contains(t, err.Error(), "protected")
+		assert.Contains(t, err.Error(), "value.write")
 
 		// Verify still no values were created
 		retrieved, err = th.service.SearchPropertyValues(rctx1, th.CPAGroupID, model.PropertyValueSearchOpts{
@@ -2173,13 +2056,20 @@ func TestUpsertPropertyValues_WriteAccessControl(t *testing.T) {
 	})
 }
 
-func TestUpsertPropertyValue_SyncLock(t *testing.T) {
+// TestUpsertPropertyValue_ServiceGrant covers a field carrying a service grant
+// for "ldap" or "saml": writable only by the matching sync caller. The grant
+// matcher's own tests already cover matching in general, so this is one case
+// for the converted restriction plus grant, not one per caller/field pair.
+func TestUpsertPropertyValue_ServiceGrant(t *testing.T) {
 	th := Setup(t)
 
-	group, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "test_sync_lock", Version: model.PropertyGroupVersionV1})
+	// v2, not v1: the hook enforces by group version, and a v1 field cannot
+	// carry a permissions object in production, so a v1 group here would pass
+	// the writes below through unchecked instead of exercising the service grant.
+	group, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "test_service_grant", Version: model.PropertyGroupVersionV2})
 	require.NoError(t, err)
 
-	hook := NewAccessControlHook(th.service, nil, group.ID)
+	hook := NewAccessControlHook(th.service, nil, nil, nil)
 	th.service.AddHook(hook)
 
 	ldapField := th.CreatePropertyFieldDirect(t, &model.PropertyField{
@@ -2188,125 +2078,47 @@ func TestUpsertPropertyValue_SyncLock(t *testing.T) {
 		Type:       model.PropertyFieldTypeText,
 		TargetType: "system",
 		ObjectType: "user",
-		Attrs:      model.StringInterface{model.PropertyFieldAttrLDAP: "cn"},
-	})
-
-	samlField := th.CreatePropertyFieldDirect(t, &model.PropertyField{
-		GroupID:    group.ID,
-		Name:       "saml_field_" + model.NewId(),
-		Type:       model.PropertyFieldTypeText,
-		TargetType: "system",
-		ObjectType: "user",
-		Attrs:      model.StringInterface{model.PropertyFieldAttrSAML: "displayName"},
-	})
-
-	nonSyncedField := th.CreatePropertyFieldDirect(t, &model.PropertyField{
-		GroupID:    group.ID,
-		Name:       "normal_field_" + model.NewId(),
-		Type:       model.PropertyFieldTypeText,
-		TargetType: "system",
-		ObjectType: "user",
+		Permissions: &model.Permissions{
+			Grants: []model.Grant{{
+				Identity: model.Identity{Type: model.PropertyOwnerTypeService, ID: model.PropertyFieldAttrLDAP},
+				Allow:    []string{model.PropertyActionValueWrite},
+			}},
+		},
 	})
 
 	targetID := model.NewId()
-
-	t.Run("blocks upsert on LDAP-synced field without caller ID", func(t *testing.T) {
-		value := &model.PropertyValue{
-			GroupID:    group.ID,
-			FieldID:    ldapField.ID,
-			TargetID:   targetID,
-			TargetType: "user",
-			Value:      json.RawMessage(`"test"`),
-		}
-		_, upsertErr := th.service.UpsertPropertyValue(th.Context, value)
-		require.Error(t, upsertErr)
-		assert.Contains(t, upsertErr.Error(), "ldap sync")
-	})
-
-	t.Run("allows LDAP sync service to upsert LDAP-synced field", func(t *testing.T) {
-		rctx := RequestContextWithCallerID(th.Context, model.CallerIDLDAPSync)
-		value := &model.PropertyValue{
+	newValue := func() *model.PropertyValue {
+		return &model.PropertyValue{
 			GroupID:    group.ID,
 			FieldID:    ldapField.ID,
 			TargetID:   targetID,
 			TargetType: "user",
 			Value:      json.RawMessage(`"John Doe"`),
 		}
-		result, upsertErr := th.service.UpsertPropertyValue(rctx, value)
-		require.NoError(t, upsertErr)
-		assert.NotEmpty(t, result.ID)
-	})
+	}
 
-	t.Run("blocks SAML sync service from writing LDAP-synced field", func(t *testing.T) {
-		rctx := RequestContextWithCallerID(th.Context, model.CallerIDSAMLSync)
-		value := &model.PropertyValue{
-			GroupID:    group.ID,
-			FieldID:    ldapField.ID,
-			TargetID:   targetID,
-			TargetType: "user",
-			Value:      json.RawMessage(`"wrong caller"`),
-		}
-		_, upsertErr := th.service.UpsertPropertyValue(rctx, value)
-		require.Error(t, upsertErr)
-		assert.Contains(t, upsertErr.Error(), "ldap sync")
-	})
-
-	t.Run("allows SAML sync service to upsert SAML-synced field", func(t *testing.T) {
-		rctx := RequestContextWithCallerID(th.Context, model.CallerIDSAMLSync)
-		value := &model.PropertyValue{
-			GroupID:    group.ID,
-			FieldID:    samlField.ID,
-			TargetID:   targetID,
-			TargetType: "user",
-			Value:      json.RawMessage(`"Jane Doe"`),
-		}
-		result, upsertErr := th.service.UpsertPropertyValue(rctx, value)
-		require.NoError(t, upsertErr)
-		assert.NotEmpty(t, result.ID)
-	})
-
-	t.Run("blocks regular user from writing SAML-synced field", func(t *testing.T) {
-		value := &model.PropertyValue{
-			GroupID:    group.ID,
-			FieldID:    samlField.ID,
-			TargetID:   targetID,
-			TargetType: "user",
-			Value:      json.RawMessage(`"sneaky"`),
-		}
-		_, upsertErr := th.service.UpsertPropertyValue(th.Context, value)
-		require.Error(t, upsertErr)
-		assert.Contains(t, upsertErr.Error(), "saml sync")
-	})
-
-	t.Run("allows regular user to upsert non-synced field", func(t *testing.T) {
-		value := &model.PropertyValue{
-			GroupID:    group.ID,
-			FieldID:    nonSyncedField.ID,
-			TargetID:   targetID,
-			TargetType: "user",
-			Value:      json.RawMessage(`"hello"`),
-		}
-		result, upsertErr := th.service.UpsertPropertyValue(th.Context, value)
-		require.NoError(t, upsertErr)
-		assert.NotEmpty(t, result.ID)
-	})
-
-	t.Run("sync lock applies to batch upsert", func(t *testing.T) {
-		values := []*model.PropertyValue{
-			{
-				GroupID:    group.ID,
-				FieldID:    ldapField.ID,
-				TargetID:   targetID,
-				TargetType: "user",
-				Value:      json.RawMessage(`"batch test"`),
-			},
-		}
-		_, upsertErr := th.service.UpsertPropertyValues(th.Context, values)
-		require.Error(t, upsertErr)
-		assert.Contains(t, upsertErr.Error(), "ldap sync")
-
-		// Same batch with the right caller should succeed
+	t.Run("allows LDAP sync service to upsert the field its grant names", func(t *testing.T) {
 		rctx := RequestContextWithCallerID(th.Context, model.CallerIDLDAPSync)
+		result, upsertErr := th.service.UpsertPropertyValue(rctx, newValue())
+		require.NoError(t, upsertErr)
+		assert.NotEmpty(t, result.ID)
+	})
+
+	t.Run("blocks SAML sync service, which holds no grant on this field", func(t *testing.T) {
+		rctx := RequestContextWithCallerID(th.Context, model.CallerIDSAMLSync)
+		_, upsertErr := th.service.UpsertPropertyValue(rctx, newValue())
+		require.Error(t, upsertErr)
+		assert.ErrorIs(t, upsertErr, ErrAccessDenied)
+	})
+
+	t.Run("service grant applies to batch upsert", func(t *testing.T) {
+		values := []*model.PropertyValue{newValue()}
+
+		rctx := RequestContextWithCallerID(th.Context, model.CallerIDSAMLSync)
+		_, upsertErr := th.service.UpsertPropertyValues(rctx, values)
+		require.Error(t, upsertErr)
+
+		rctx = RequestContextWithCallerID(th.Context, model.CallerIDLDAPSync)
 		results, upsertErr := th.service.UpsertPropertyValues(rctx, values)
 		require.NoError(t, upsertErr)
 		assert.Len(t, results, 1)
@@ -2372,6 +2184,16 @@ func TestDeletePropertyValuesForField_WriteAccessControl(t *testing.T) {
 	})
 
 	t.Run("non-source plugin cannot delete values for protected field", func(t *testing.T) {
+		// plugin-2 must be a registered plugin here, or it is classified as a
+		// human and takes the documented human bypass in
+		// PreDeletePropertyValuesForField -- that split decides this case.
+		th.service.setPluginCheckerForTests(func(pluginID string) bool {
+			return pluginID == "plugin-1" || pluginID == "plugin-2"
+		})
+		t.Cleanup(func() {
+			th.service.setPluginCheckerForTests(func(pluginID string) bool { return pluginID == "plugin-1" })
+		})
+
 		// Create a protected field
 		field := &model.PropertyField{
 			GroupID:    th.CPAGroupID,
@@ -2400,7 +2222,7 @@ func TestDeletePropertyValuesForField_WriteAccessControl(t *testing.T) {
 		// Different plugin cannot delete values
 		err = th.service.DeletePropertyValuesForField(rctxPlugin2, th.CPAGroupID, created.ID)
 		require.Error(t, err)
-		assert.Contains(t, err.Error(), "protected")
+		assert.Contains(t, err.Error(), "value.write")
 
 		// Verify value still exists
 		retrieved, err := th.service.SearchPropertyValues(rctxPlugin1, th.CPAGroupID, model.PropertyValueSearchOpts{

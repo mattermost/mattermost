@@ -70,6 +70,10 @@ type PropertyOwner struct {
 	ID     string   `json:"id"`
 	Type   string   `json:"type"`
 	Scopes []string `json:"scopes"`
+	// Allow lists the actions this owner may perform. Empty means every action
+	// enumerated in validPropertyActions — the legacy shape had no way to say
+	// less, so an owner written before this field existed keeps its full access.
+	Allow []string `json:"allow,omitempty"`
 }
 
 // IsValidPropertyOwnerType reports whether the given owner type is recognized.
@@ -150,17 +154,35 @@ func IsPropertyFieldProtected(field *PropertyField) bool {
 	return ok && protected
 }
 
-// GetAccessMode returns the field's access mode. Returns the public mode (empty
-// string) when no access_mode is configured or the field has no attrs at all.
+// GetAccessMode returns the field's own access mode -- never a linked
+// field's template; a caller that must follow the template for a linked
+// field with no masking of its own needs the App layer, which alone can read
+// it.
+//
+// Computed from Permissions when non-nil: a set Masking means shared_only
+// (masking is what shared_only became); else either read tier resolving to
+// none means source_only; else public. Reads the tiers through
+// Restrictions.TierFor, which is nil-receiver safe, so a Permissions with no
+// Restrictions reports source_only rather than panicking.
+//
+// A field with no Permissions object reports public here. Unconverted
+// PSAv2/v3 rows are fail-closed by effectiveAccessModeUsing (shared_only).
+// PSAv1 fields cannot hold a permissions object; callers that still need
+// their Attrs access_mode should use LegacyAccessMode.
 func (f *PropertyField) GetAccessMode() string {
-	if f.Attrs == nil {
-		return PropertyAccessModePublic
+	if f.Permissions != nil {
+		switch {
+		case f.Permissions.Masking != nil:
+			return PropertyAccessModeSharedOnly
+		case f.Permissions.Restrictions.TierFor(PropertyActionValueRead) == PermissionLevelNone ||
+			f.Permissions.Restrictions.TierFor(PropertyActionOptionRead) == PermissionLevelNone:
+			return PropertyAccessModeSourceOnly
+		default:
+			return PropertyAccessModePublic
+		}
 	}
-	accessMode, ok := f.Attrs[PropertyAttrsAccessMode].(string)
-	if !ok {
-		return PropertyAccessModePublic
-	}
-	return accessMode
+
+	return PropertyAccessModePublic
 }
 
 // ValidatePropertyFieldAccessMode validates that the access_mode attribute is valid

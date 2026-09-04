@@ -4,7 +4,6 @@
 package properties
 
 import (
-	"context"
 	"net/http"
 	"reflect"
 
@@ -33,18 +32,16 @@ func (h *SessionAttributesHook) manages(groupID string) bool {
 	return groupID == h.groupID
 }
 
-type systemCallerKey struct{}
-
-func SystemCallerContext(rctx request.CTX) request.CTX {
-	return rctx.WithContext(context.WithValue(rctx.Context(), systemCallerKey{}, true))
-}
-
+// isSystemCaller reports whether this is the setup migration that seeds and
+// upgrades this group's schema, which is the only writer allowed past the locks
+// below. It names itself with model.CallerIDSessionAttributesSystem; an
+// unidentified caller, nil context included, is refused like any other.
 func isSystemCaller(rctx request.CTX) bool {
 	if rctx == nil {
 		return false
 	}
-	isSystemCaller, _ := rctx.Context().Value(systemCallerKey{}).(bool)
-	return isSystemCaller
+	callerID, _ := model.CallerIDFromContext(rctx.Context())
+	return callerID == model.CallerIDSessionAttributesSystem
 }
 
 func (h *SessionAttributesHook) PreCreatePropertyField(rctx request.CTX, field *model.PropertyField) (*model.PropertyField, error) {

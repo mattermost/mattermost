@@ -8,6 +8,7 @@ import (
 	"errors"
 	"maps"
 	"net/http"
+	"reflect"
 	"strconv"
 	"strings"
 
@@ -45,15 +46,15 @@ func (api *API) InitProperties() {
 	}
 }
 
-// getV2Group resolves c.Params.GroupName to a PSAv2 property group.
-// On any error (not found, or not a v2 group) it sets c.Err and returns nil.
-func getV2Group(c *Context, callerName string) *model.PropertyGroup {
+// getPropertyAPIGroup resolves c.Params.GroupName to a PSAv2/PSAv3 property group.
+// On any error (not found, or not a v2/v3 group) it sets c.Err and returns nil.
+func getPropertyAPIGroup(c *Context, callerName string) *model.PropertyGroup {
 	group, appErr := c.App.GetPropertyGroup(c.AppContext, c.Params.GroupName)
 	if appErr != nil {
 		c.Err = appErr
 		return nil
 	}
-	if !group.IsPSAv2() {
+	if !group.IsPSAv2() && !group.IsPSAv3() {
 		c.Err = model.NewAppError(callerName, "api.property.v2_group_not_found.app_error", nil, "", http.StatusNotFound)
 		return nil
 	}
@@ -68,13 +69,20 @@ func getV2Group(c *Context, callerName string) *model.PropertyGroup {
 	return group
 }
 
+// servesV3 reports whether group's payload should carry the shaped
+// Permissions object -- both the group's own version and the rollout flag
+// have to agree, so a v3 group with the flag off still serves the v2 shape.
+func servesV3(c *Context, group *model.PropertyGroup) bool {
+	return group.IsPSAv3() && c.App.Config().FeatureFlags.PropertyFieldPermissionsV3
+}
+
 func createPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequireGroupName().RequireObjectType()
 	if c.Err != nil {
 		return
 	}
 
-	group := getV2Group(c, "createPropertyField")
+	group := getPropertyAPIGroup(c, "createPropertyField")
 	if c.Err != nil {
 		return
 	}
@@ -92,10 +100,29 @@ func createPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterAuditableToAuditRec(auditRec, "property_field", field)
 
-	rctx := app.RequestContextWithCallerID(c.AppContext, sessionCallerID(c))
+	// There is no existing field to decide a basis against here -- creation
+	// is its own question, not a field.write -- so only the caller identity
+	// and whether it bypassed the decision are recorded.
+	callerID := sessionCallerID(c)
+	model.AddEventParameterToAuditRec(auditRec, "caller_id", callerID)
+	if callerID == model.CallerIDLocalAdmin {
+		model.AddEventParameterToAuditRec(auditRec, "basis_unrestricted", true)
+	}
+
+	rctx := app.RequestContextWithCallerID(c.AppContext, callerID)
 
 	if field.Protected {
 		c.Err = model.NewAppError("createPropertyField", "api.property_field.create.protected_via_api.app_error", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	// A group not serving the v3 payload has no place for a permissions
+	// object in its shape, so accepting one would store something the
+	// caller was never shown. There is no existing field to hold field.write
+	// on yet, so a creator setting their own new field's permissions stays
+	// legal by design -- only the shape is checked here.
+	if field.Permissions != nil && !servesV3(c, group) {
+		c.Err = model.NewAppError("createPropertyField", "api.property_field.patch.permissions_not_supported.app_error", nil, "", http.StatusBadRequest)
 		return
 	}
 
@@ -176,8 +203,10 @@ func createPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddEventResultState(createdField)
 	auditRec.AddEventObjectType("property_field")
 
+	shapedField := c.App.ShapePropertyFieldForCaller(rctx, *c.AppContext.Session(), createdField, servesV3(c, group))
+
 	w.WriteHeader(http.StatusCreated)
-	if err := json.NewEncoder(w).Encode(createdField); err != nil {
+	if err := json.NewEncoder(w).Encode(shapedField); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
@@ -188,7 +217,7 @@ func getPropertyFields(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	group := getV2Group(c, "getPropertyFields")
+	group := getPropertyAPIGroup(c, "getPropertyFields")
 	if c.Err != nil {
 		return
 	}
@@ -253,7 +282,7 @@ func searchPropertyFields(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	group := getV2Group(c, "searchPropertyFields")
+	group := getPropertyAPIGroup(c, "searchPropertyFields")
 	if c.Err != nil {
 		return
 	}
@@ -354,7 +383,9 @@ func searchPropertyFieldsCore(c *Context, w http.ResponseWriter, group *model.Pr
 
 	auditRec.Success()
 
-	if err := json.NewEncoder(w).Encode(fields); err != nil {
+	shapedFields := c.App.ShapePropertyFieldsForCaller(rctx, *c.AppContext.Session(), fields, servesV3(c, group))
+
+	if err := json.NewEncoder(w).Encode(shapedFields); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
@@ -434,7 +465,7 @@ func patchPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	group := getV2Group(c, "patchPropertyField")
+	group := getPropertyAPIGroup(c, "patchPropertyField")
 	if c.Err != nil {
 		return
 	}
@@ -487,23 +518,73 @@ func patchPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Permissions rides its own patch type (PermissionsPatch) rather than
+	// Patch's field-by-field copy, so it is resolved here -- before the
+	// permission branching below, which needs to know whether it changed
+	// anything. Absent leaves the stored object alone, null clears it, an
+	// object replaces it outright. The result is held back and only assigned
+	// once the caller has been gated.
+	patchedPermissions := existingField.Permissions
+	permissionsChanged := false
+	if patch.Permissions != nil {
+		if !servesV3(c, group) {
+			c.Err = model.NewAppError("patchPropertyField", "api.property_field.patch.permissions_not_supported.app_error", nil, "", http.StatusBadRequest)
+			return
+		}
+
+		applied, err := patch.Permissions.ApplyTo(existingField.Permissions)
+		if err != nil {
+			c.Err = model.NewAppError("patchPropertyField", "api.property_field.patch.invalid_permissions.app_error", nil, err.Error(), http.StatusBadRequest)
+			return
+		}
+		patchedPermissions = applied
+		// Keyed on effect, not on the key being present. An inbound key is
+		// applied only where it differs from what the caller was shown, so a
+		// permissions object that round-trips unchanged is an echo and gates
+		// nothing. This also keeps this decision in step with the
+		// enforcement hook's, which sees only the merged field and so can only
+		// judge by effect (model.PropertyFieldChangeIsOptionsOnly) -- if the two
+		// disagree, one layer allows what the other refuses.
+		permissionsChanged = !reflect.DeepEqual(existingField.Permissions, applied)
+	}
+
+	// Mirrors permissionsChanged above: an options-only patch is gated on
+	// option.write only when the submitted option list actually differs from
+	// what is stored, not merely because it is the only attr present.
+	optionsChanged := false
+	if patch.Attrs != nil {
+		if newOptions, ok := (*patch.Attrs)[model.PropertyFieldAttributeOptions]; ok {
+			optionsChanged = !reflect.DeepEqual(existingField.Attrs[model.PropertyFieldAttributeOptions], newOptions)
+		}
+	}
+
 	// Permission branching (session-bound): options-only patches use a
 	// narrower permission than full edits.
-	isOptionsOnly := isOptionsOnlyPatch(patch)
+	isOptionsOnly := isOptionsOnlyPatch(patch, permissionsChanged, optionsChanged)
 	if isOptionsOnly && !existingField.Type.SupportsOptions() {
 		isOptionsOnly = false
 	}
+	// basis_action distinguishes the two paths through this handler, since
+	// otherwise they log near-identical meta.
+	patchAction := model.PropertyActionFieldWrite
+	var basis app.PropertyPermissionBasis
 	if isOptionsOnly {
-		if !c.App.SessionHasPermissionToManagePropertyFieldOptions(rctx, *c.AppContext.Session(), existingField) {
+		patchAction = model.PropertyActionOptionWrite
+		basis = c.App.SessionPropertyFieldOptionsBasis(rctx, *c.AppContext.Session(), existingField)
+		if !basis.Allowed {
 			c.Err = model.NewAppError("patchPropertyField", "api.property_field.update.no_options_permission.app_error", nil, "", http.StatusForbidden)
 			return
 		}
 	} else {
-		if !c.App.SessionHasPermissionToEditPropertyField(rctx, *c.AppContext.Session(), existingField) {
+		basis = c.App.SessionPropertyFieldEditBasis(rctx, *c.AppContext.Session(), existingField)
+		if !basis.Allowed {
 			c.Err = model.NewAppError("patchPropertyField", "api.property_field.update.no_field_permission.app_error", nil, "", http.StatusForbidden)
 			return
 		}
 	}
+
+	model.AddEventParameterToAuditRec(auditRec, "basis_action", patchAction)
+	addPropertyPermissionBasisMeta(auditRec, basis)
 
 	// Capture original state for audit before the in-place patch. Attrs is
 	// shallow-copied because Patch mutates it.
@@ -514,6 +595,7 @@ func patchPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	auditRec.AddEventPriorState(&orig)
 
+	existingField.Permissions = patchedPermissions
 	existingField.Patch(patch, true)
 	existingField.UpdatedBy = c.AppContext.Session().UserId
 	connectionID := r.Header.Get(model.ConnectionId)
@@ -528,7 +610,9 @@ func patchPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddEventResultState(updatedField)
 	auditRec.AddEventObjectType("property_field")
 
-	if err := json.NewEncoder(w).Encode(updatedField); err != nil {
+	shapedField := c.App.ShapePropertyFieldForCaller(rctx, *c.AppContext.Session(), updatedField, servesV3(c, group))
+
+	if err := json.NewEncoder(w).Encode(shapedField); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
@@ -539,7 +623,7 @@ func deletePropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	group := getV2Group(c, "deletePropertyField")
+	group := getPropertyAPIGroup(c, "deletePropertyField")
 	if c.Err != nil {
 		return
 	}
@@ -561,10 +645,14 @@ func deletePropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToEditPropertyField(rctx, *c.AppContext.Session(), existingField) {
+	// Deleting a definition is a field.write -- there is no separate delete
+	// cell in the permission grid.
+	basis := c.App.SessionPropertyFieldEditBasis(rctx, *c.AppContext.Session(), existingField)
+	if !basis.Allowed {
 		c.Err = model.NewAppError("deletePropertyField", "api.property_field.delete.no_permission.app_error", nil, "", http.StatusForbidden)
 		return
 	}
+	addPropertyPermissionBasisMeta(auditRec, basis)
 
 	auditRec.AddEventPriorState(existingField)
 
@@ -615,7 +703,7 @@ func getSystemPropertyValues(c *Context, w http.ResponseWriter, r *http.Request)
 }
 
 func getPropertyValuesCore(c *Context, w http.ResponseWriter, r *http.Request, objectType, targetID string) {
-	group := getV2Group(c, "getPropertyValues")
+	group := getPropertyAPIGroup(c, "getPropertyValues")
 	if c.Err != nil {
 		return
 	}
@@ -731,7 +819,7 @@ func patchSystemPropertyValues(c *Context, w http.ResponseWriter, r *http.Reques
 }
 
 func patchPropertyValuesCore(c *Context, w http.ResponseWriter, r *http.Request, objectType, targetID string) {
-	group := getV2Group(c, "patchPropertyValues")
+	group := getPropertyAPIGroup(c, "patchPropertyValues")
 	if c.Err != nil {
 		return
 	}
@@ -957,11 +1045,38 @@ func sessionCallerID(c *Context) string {
 	return session.UserId
 }
 
-// isOptionsOnlyPatch checks if the patch only modifies the options attribute.
-// Returns true if the only change is to attrs.options.
-func isOptionsOnlyPatch(patch *model.PropertyFieldPatch) bool {
-	// If any field property (besides attrs) is being updated, it's not options-only
-	if patch.Name != nil || patch.Type != nil || patch.TargetID != nil || patch.TargetType != nil || patch.LinkedFieldID != nil {
+// addPropertyPermissionBasisMeta records which rule allowed a definition
+// write, the same keys the value-write audit sink records for a value write,
+// so one query over the audit log answers "what allowed this" for either.
+// Empty fields are omitted so a record says only what applied.
+func addPropertyPermissionBasisMeta(auditRec *model.AuditRecord, basis app.PropertyPermissionBasis) {
+	if basis.Tier != "" {
+		model.AddEventParameterToAuditRec(auditRec, "basis_tier", string(basis.Tier))
+	}
+	if basis.GrantID != "" {
+		model.AddEventParameterToAuditRec(auditRec, "basis_grant_id", basis.GrantID)
+	}
+	if basis.GrantScope != "" {
+		model.AddEventParameterToAuditRec(auditRec, "basis_grant_scope", basis.GrantScope)
+	}
+	if basis.GrantWildcard {
+		model.AddEventParameterToAuditRec(auditRec, "basis_grant_wildcard", true)
+	}
+	if basis.Unrestricted {
+		model.AddEventParameterToAuditRec(auditRec, "basis_unrestricted", true)
+	}
+}
+
+// permissionsChanged and optionsChanged say whether the patch's permissions
+// object and option list, once applied, actually differ from what is stored.
+// Both must be keyed on effect rather than the key's presence: a permissions
+// or options value that round-trips unchanged decides nothing and is judged
+// like any other unchanged key, and keying on presence instead would disagree
+// with the enforcement hook, which only ever sees the merged field and so can
+// only judge by effect (model.PropertyFieldChangeIsOptionsOnly).
+func isOptionsOnlyPatch(patch *model.PropertyFieldPatch, permissionsChanged, optionsChanged bool) bool {
+	// If any field property (besides attrs) is being updated, it's not options-only.
+	if patch.Name != nil || patch.Type != nil || patch.TargetID != nil || patch.TargetType != nil || patch.LinkedFieldID != nil || permissionsChanged {
 		return false
 	}
 
@@ -976,7 +1091,13 @@ func isOptionsOnlyPatch(patch *model.PropertyFieldPatch) bool {
 		return false
 	}
 
-	// If attrs has only the "options" key, it's an options-only update
+	// If attrs has only the "options" key, and the option list actually
+	// changed, it's an options-only update. An unchanged options echo decides
+	// nothing, same as an unchanged permissions echo above -- without
+	// optionsChanged here, a resubmission of the stored option list under the
+	// "options" key alone would be classified option-only by presence while
+	// the hook's field comparison finds nothing changed and falls back to
+	// field.write, and the two layers would disagree.
 	_, hasOptions := attrs[model.PropertyFieldAttributeOptions]
-	return len(attrs) == 1 && hasOptions
+	return len(attrs) == 1 && hasOptions && optionsChanged
 }

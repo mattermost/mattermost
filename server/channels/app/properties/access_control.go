@@ -3,29 +3,12 @@
 
 package properties
 
-// This file implements access control for property fields and values using three key mechanisms:
-//
-// 1. Protected Fields (protected attribute):
-//    - Protected fields can only be modified by their source plugin (identified by source_plugin_id)
-//    - Non-protected fields can be modified by any caller with appropriate access
-//
-// 2. Access Mode (access_mode attribute):
-//    - Controls read access to field metadata (like options) and values
-//    - Three modes:
-//      * Public (empty string, default): Everyone can read all data
-//      * Source-only: Only the source plugin can read full field options and values; others see empty options and no values
-//      * Shared-only: Callers can only see field options and values they share with the target
-//                     (Example: If Alice selected Apples and Bananas, and Bob selected Bananas and Oranges,
-//                      then Alice querying Bob's values would only see Bananas)
-
 import (
-	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"maps"
 	"net/http"
-	"slices"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -49,17 +32,37 @@ const (
 // Returns true if the plugin exists and is installed, false otherwise.
 type PluginChecker func(pluginID string) bool
 
-// AccessControlHook implements the PropertyHook interface to enforce access
-// control based on caller identity. It checks protected fields, plugin
-// ownership, and access modes (public, source-only, shared-only).
+// PropertyLadderChecker answers whether userID may perform action on field,
+// as the union of the human restrictions ladder with any grant naming the
+// caller as a user or one of their roles. The properties package cannot
+// import the app package to compute this itself -- resolving a role needs
+// channel/team membership -- so it arrives as an injected function pointed at
+// the app-layer decision. A nil checker means no ladder is available and
+// must deny rather than allow.
+type PropertyLadderChecker func(rctx request.CTX, userID string, field *model.PropertyField, action, valueTargetID string) bool
+
+// PropertyRoleLister answers which role names userID holds, the same names a
+// role grant is matched against (propertyGrantForHuman) and a masking except
+// role entry is matched against, so the exemption and the permission gate
+// cannot disagree about what a caller is. The properties package cannot
+// import the app package to compute this itself, so it arrives as an
+// injected function pointed at the app-layer lookup. A nil lister, or one
+// whose lookup fails, must be treated as no roles held.
+type PropertyRoleLister func(rctx request.CTX, userID string) []string
+
+// AccessControlHook implements the PropertyHook interface to enforce a
+// field's Permissions object: machines by matching grants, humans by the
+// injected ladder checker, and masked fields by filtering reads and refusing
+// a write the caller cannot fully see.
 //
-// The hook only applies to groups whose IDs are in managedGroupIDs. Operations
-// on other groups pass through without access control checks.
+// The hook only applies to PSAv2/PSAv3 property groups (isGroupEnforced).
+// Operations on a PSAv1 group pass through without access control checks.
 type AccessControlHook struct {
 	BasePropertyHook
 	propertyService *PropertyService
 	pluginChecker   PluginChecker
-	managedGroupIDs map[string]struct{}
+	ladderChecker   PropertyLadderChecker
+	roleLister      PropertyRoleLister
 }
 
 // Compile-time check that AccessControlHook implements PropertyHook.
@@ -70,24 +73,36 @@ var _ PropertyHook = (*AccessControlHook)(nil)
 // needed during access control checks. The pluginChecker function is used to
 // verify plugin installation status when checking access to protected fields.
 // Pass nil for pluginChecker if plugin checking is not needed (e.g., in tests).
-// managedGroupIDs lists the property group IDs that this hook enforces access
-// control for. Operations on groups not in this list are passed through.
-func NewAccessControlHook(ps *PropertyService, pluginChecker PluginChecker, managedGroupIDs ...string) *AccessControlHook {
-	ids := make(map[string]struct{}, len(managedGroupIDs))
-	for _, id := range managedGroupIDs {
-		ids[id] = struct{}{}
-	}
+// The ladderChecker function answers the human half of a permissions decision
+// (restrictions ladder plus user/role grants); pass nil where no permissions
+// fields are under test.
+// The roleLister function answers which roles a human caller holds, for
+// matching a masking except list's role entries; pass nil where no masking
+// with a role exemption is under test.
+func NewAccessControlHook(ps *PropertyService, pluginChecker PluginChecker, ladderChecker PropertyLadderChecker, roleLister PropertyRoleLister) *AccessControlHook {
 	return &AccessControlHook{
 		propertyService: ps,
 		pluginChecker:   pluginChecker,
-		managedGroupIDs: ids,
+		ladderChecker:   ladderChecker,
+		roleLister:      roleLister,
 	}
 }
 
-// isGroupManaged checks whether the given group ID is managed by this hook.
-func (h *AccessControlHook) isGroupManaged(groupID string) bool {
-	_, ok := h.managedGroupIDs[groupID]
-	return ok
+// isGroupEnforced reports whether groupID names a PSAv2 or PSAv3 property
+// group. A PSAv1 field cannot hold a permissions object at all
+// (PropertyField.IsValid), and enforceFieldGroupVersionMatch already makes
+// "v1 group" and "field that cannot hold permissions" the same set, so
+// gating on group version -- rather than an allowlist of group IDs -- is an
+// exact test for which groups this hook has anything to decide on. A group
+// ID that fails to resolve has no fields to protect, so the error is
+// returned rather than treated as unenforced: an unresolved group ID must
+// not fail open.
+func (h *AccessControlHook) isGroupEnforced(groupID string) (bool, error) {
+	group, err := h.propertyService.GroupByID(groupID)
+	if err != nil {
+		return false, err
+	}
+	return group.IsPSAv2() || group.IsPSAv3(), nil
 }
 
 // Field Pre-Hooks
@@ -98,7 +113,11 @@ func (h *AccessControlHook) isGroupManaged(groupID string) bool {
 // When linking to a source template, security attributes are validated and
 // inherited from the source.
 func (h *AccessControlHook) PreCreatePropertyField(rctx request.CTX, field *model.PropertyField) (*model.PropertyField, error) {
-	if !h.isGroupManaged(field.GroupID) {
+	enforced, err := h.isGroupEnforced(field.GroupID)
+	if err != nil {
+		return nil, err
+	}
+	if !enforced {
 		return field, nil
 	}
 
@@ -137,10 +156,16 @@ func (h *AccessControlHook) PreCreatePropertyField(rctx request.CTX, field *mode
 	return field, nil
 }
 
-// validateAndInheritLinkedFieldSecurity enforces that linked fields inherit
-// the source template's security posture. If the source is protected, only
-// the source plugin may create linked fields. Security attrs (protected,
-// source_plugin_id, access_mode) are copied from the source onto the field.
+// validateAndInheritLinkedFieldSecurity gates and seeds a linked field's
+// permissions from its template. The two are independent: the gate applies
+// only when the template's reads are restricted at all -- linking to an open
+// template requires no permission on it, so gating every link would refuse
+// callers who could already see everything the template holds. The
+// inheritance runs for every template, restricted or not, whenever the
+// caller supplied no permissions of its own: tying it to the gate would
+// leave an open template's own write levels (say, field.write: sysadmin)
+// unreachable from its linked fields, which would then take their write
+// levels from whatever the creator submitted or the api4 default pin.
 func (h *AccessControlHook) validateAndInheritLinkedFieldSecurity(rctx request.CTX, callerID string, field *model.PropertyField) error {
 	source, err := h.propertyService.getPropertyFieldFromMaster(rctx, "", *field.LinkedFieldID)
 	if err != nil {
@@ -156,38 +181,95 @@ func (h *AccessControlHook) validateAndInheritLinkedFieldSecurity(rctx request.C
 		return fmt.Errorf("failed to get linked source field %q: %w", *field.LinkedFieldID, err)
 	}
 
-	if source.Attrs == nil || !model.IsPropertyFieldProtected(source) {
-		return nil
+	if templateReadsAreRestricted(source) {
+		scope := h.extractActingAsScope(rctx)
+		if !h.permissionsAllows(rctx, source, callerID, scope, model.PropertyActionFieldWrite, "") {
+			return model.NewAppError(
+				"CreatePropertyField",
+				"app.property_field.create.linked_source_protected.app_error",
+				nil,
+				"only the source plugin can create linked fields from a protected template",
+				http.StatusForbidden,
+			)
+		}
 	}
 
-	sourcePluginID := h.getSourcePluginID(source)
-	if sourcePluginID == "" || callerID != sourcePluginID {
-		return model.NewAppError(
-			"CreatePropertyField",
-			"app.property_field.create.linked_source_protected.app_error",
-			nil,
-			"only the source plugin can create linked fields from a protected template",
-			http.StatusForbidden,
-		)
+	if field.Permissions == nil && source.Permissions != nil {
+		// Masking is never inherited: a linked field cannot declare its own
+		// (PropertyField.IsValid refuses one) and the read path resolves it from
+		// the template regardless. option.read is dropped from every inherited
+		// grant for the same reason -- it reads the template's own option
+		// scheme, never a right the identity held over this field.
+		field.Permissions = &model.Permissions{
+			Restrictions: source.Permissions.Restrictions,
+			Grants:       linkedFieldGrantsFrom(source.Permissions.Grants),
+		}
 	}
 
-	if field.Attrs == nil {
-		field.Attrs = make(model.StringInterface)
-	}
-
-	field.Attrs[model.PropertyAttrsProtected] = true
-	field.Attrs[model.PropertyAttrsSourcePluginID] = sourcePluginID
-	if v, ok := source.Attrs[model.PropertyAttrsAccessMode]; ok {
-		field.Attrs[model.PropertyAttrsAccessMode] = v
+	// source_plugin_id is identity metadata, not a permission, so it is copied
+	// regardless of whether the template's reads are restricted; the
+	// immutability check on update reads it from every linked field.
+	if sourcePluginID := h.getSourcePluginID(source); sourcePluginID != "" {
+		if field.Attrs == nil {
+			field.Attrs = make(model.StringInterface)
+		}
+		field.Attrs[model.PropertyAttrsSourcePluginID] = sourcePluginID
 	}
 
 	return nil
 }
 
+// templateReadsAreRestricted reports whether source has anything worth
+// gating a link to: an explicit read filter, or a read tier below everyone.
+// A nil Permissions object -- unreached in production, since the backfill
+// converted every stored PSAv2/v3 field and the create path defaults one onto
+// every new one -- fails closed rather than treating "nothing to check" as
+// "nothing to protect". Linking to such a field is therefore refused outright,
+// which is the fail-closed answer for a row the conversion did not reach.
+func templateReadsAreRestricted(source *model.PropertyField) bool {
+	if source.Permissions == nil {
+		return true
+	}
+	if source.Permissions.Masking != nil {
+		return true
+	}
+	restrictions := source.Permissions.Restrictions
+	return restrictions.TierFor(model.PropertyActionValueRead) != model.PermissionLevelEveryone ||
+		restrictions.TierFor(model.PropertyActionOptionRead) != model.PermissionLevelEveryone
+}
+
+// linkedFieldGrantsFrom copies source's grants with option.read removed from
+// every Allow -- a linked field's option.read reads the template's own
+// scheme, so a grant conferring it there was never a right over this field
+// (PropertyField.IsValid refuses one outright). A grant left with an empty
+// Allow is dropped rather than kept invalid; the identity still holds
+// option.read by way of its grant on the template itself.
+func linkedFieldGrantsFrom(source []model.Grant) []model.Grant {
+	grants := make([]model.Grant, 0, len(source))
+	for _, g := range source {
+		allow := make([]string, 0, len(g.Allow))
+		for _, action := range g.Allow {
+			if action != model.PropertyActionOptionRead {
+				allow = append(allow, action)
+			}
+		}
+		if len(allow) == 0 {
+			continue
+		}
+		g.Allow = allow
+		grants = append(grants, g)
+	}
+	return grants
+}
+
 // PreUpdatePropertyField enforces access control on field updates.
 // Checks write access and ensures source_plugin_id is not changed.
 func (h *AccessControlHook) PreUpdatePropertyField(rctx request.CTX, groupID string, field *model.PropertyField) (*model.PropertyField, error) {
-	if !h.isGroupManaged(groupID) {
+	enforced, err := h.isGroupEnforced(groupID)
+	if err != nil {
+		return nil, err
+	}
+	if !enforced {
 		return field, nil
 	}
 
@@ -198,7 +280,7 @@ func (h *AccessControlHook) PreUpdatePropertyField(rctx request.CTX, groupID str
 		return nil, err
 	}
 
-	if err := h.enforceFieldUpdateAccess(existingField, field, callerID); err != nil {
+	if err := h.enforceFieldUpdateAccess(rctx, existingField, field, callerID); err != nil {
 		return nil, err
 	}
 
@@ -206,12 +288,18 @@ func (h *AccessControlHook) PreUpdatePropertyField(rctx request.CTX, groupID str
 		return nil, err
 	}
 
-	if err := h.validateProtectedFieldUpdate(field, callerID); err != nil {
-		return nil, err
+	accessModeChanged, protectedChanged := legacyValidatorGates(field, existingField)
+
+	if protectedChanged {
+		if err := h.validateProtectedFieldUpdate(field, callerID); err != nil {
+			return nil, err
+		}
 	}
 
-	if err := model.ValidatePropertyFieldAccessMode(field); err != nil {
-		return nil, fmt.Errorf("%s: %w", err.Error(), ErrInvalidAccessMode)
+	if accessModeChanged {
+		if err := model.ValidatePropertyFieldAccessMode(field); err != nil {
+			return nil, fmt.Errorf("%s: %w", err.Error(), ErrInvalidAccessMode)
+		}
 	}
 
 	return field, nil
@@ -220,7 +308,14 @@ func (h *AccessControlHook) PreUpdatePropertyField(rctx request.CTX, groupID str
 // PreUpdatePropertyFields enforces access control on batch field updates.
 // Checks write access for all fields atomically before allowing any updates.
 func (h *AccessControlHook) PreUpdatePropertyFields(rctx request.CTX, groupID string, fields []*model.PropertyField) ([]*model.PropertyField, error) {
-	if len(fields) == 0 || !h.isGroupManaged(groupID) {
+	if len(fields) == 0 {
+		return fields, nil
+	}
+	enforced, err := h.isGroupEnforced(groupID)
+	if err != nil {
+		return nil, err
+	}
+	if !enforced {
 		return fields, nil
 	}
 
@@ -248,7 +343,7 @@ func (h *AccessControlHook) PreUpdatePropertyFields(rctx request.CTX, groupID st
 			return nil, fmt.Errorf("field %s: %w", field.ID, ErrFieldNotFound)
 		}
 
-		if err := h.enforceFieldUpdateAccess(existingField, field, callerID); err != nil {
+		if err := h.enforceFieldUpdateAccess(rctx, existingField, field, callerID); err != nil {
 			return nil, fmt.Errorf("field %s: %w", field.ID, err)
 		}
 
@@ -256,12 +351,18 @@ func (h *AccessControlHook) PreUpdatePropertyFields(rctx request.CTX, groupID st
 			return nil, fmt.Errorf("field %s: %w", field.ID, err)
 		}
 
-		if err := h.validateProtectedFieldUpdate(field, callerID); err != nil {
-			return nil, fmt.Errorf("field %s: %w", field.ID, err)
+		accessModeChanged, protectedChanged := legacyValidatorGates(field, existingField)
+
+		if protectedChanged {
+			if err := h.validateProtectedFieldUpdate(field, callerID); err != nil {
+				return nil, fmt.Errorf("field %s: %w", field.ID, err)
+			}
 		}
 
-		if err := model.ValidatePropertyFieldAccessMode(field); err != nil {
-			return nil, fmt.Errorf("field %s: %s: %w", field.ID, err.Error(), ErrInvalidAccessMode)
+		if accessModeChanged {
+			if err := model.ValidatePropertyFieldAccessMode(field); err != nil {
+				return nil, fmt.Errorf("field %s: %s: %w", field.ID, err.Error(), ErrInvalidAccessMode)
+			}
 		}
 	}
 
@@ -276,7 +377,11 @@ func (h *AccessControlHook) PreCountPropertyFields(_ request.CTX, _ string) erro
 
 // PreDeletePropertyField enforces access control on field deletion.
 func (h *AccessControlHook) PreDeletePropertyField(rctx request.CTX, groupID string, id string) error {
-	if !h.isGroupManaged(groupID) {
+	enforced, err := h.isGroupEnforced(groupID)
+	if err != nil {
+		return err
+	}
+	if !enforced {
 		return nil
 	}
 
@@ -287,7 +392,7 @@ func (h *AccessControlHook) PreDeletePropertyField(rctx request.CTX, groupID str
 		return err
 	}
 
-	return h.checkFieldDeleteAccess(existingField, callerID)
+	return h.checkFieldDeleteAccess(rctx, existingField, callerID)
 }
 
 // PostUpdatePropertyFields is a no-op for access control; cleanup of dependent
@@ -300,160 +405,150 @@ func (h *AccessControlHook) PostUpdatePropertyFields(_ request.CTX, _ string, _,
 
 // Field option hooks
 
-// PreChangePropertyFieldOptions gates a change to a field's options with the
-// rules that gate a change to the field itself. A field's options are part of
-// its definition: stated as the field's own option list they are written through
-// PreUpdatePropertyField, and the answer cannot depend on which of the two paths
-// a caller took -- otherwise the options endpoint is a way around the protected
-// flag and the owners list.
+// PreChangePropertyFieldOptions gates a change to a field's options on
+// option.write, which is measured at the field's own target for this
+// operation. The same answer has to come out of the other path to a field's
+// options, a field update carrying nothing but a new option list, which
+// enforceFieldUpdateAccess routes here's equivalent; otherwise one of the two
+// endpoints is a way around the other.
 //
-// The field is the one the store has, and it stands for both sides of the
-// update: an option change alters no attribute of the field, so there is no
-// incoming copy to judge, and in particular no owners list a caller could be
-// adding itself to.
+// The field is the one the store has. An option change alters no attribute of
+// the field, so there is no incoming copy to judge, and in particular no owners
+// list a caller could be adding itself to.
 func (h *AccessControlHook) PreChangePropertyFieldOptions(rctx request.CTX, field *model.PropertyField) error {
-	if field == nil || !h.isGroupManaged(field.GroupID) {
+	if field == nil {
 		return nil
 	}
-	return h.enforceFieldUpdateAccess(field, field, h.extractCallerID(rctx))
+	enforced, err := h.isGroupEnforced(field.GroupID)
+	if err != nil {
+		return err
+	}
+	if !enforced {
+		return nil
+	}
+	return h.enforceOptionWriteAccess(rctx, field, h.extractCallerID(rctx))
 }
 
-// PostGetPropertyFieldOptions applies the field's read access mode to a page of
-// its options, which are otherwise read straight from their own rows and so
-// reach none of the filtering a field read applies to the option list it carries
+// enforceOptionWriteAccess answers option.write for a caller changing a field's
+// option list. Separate from enforceFieldUpdateAccess because the two name
+// different grid cells: a field configured field.write: sysadmin with
+// option.write: member delegates option management to members without letting
+// them touch the definition, and gating options as a field write would make
+// that configuration unusable.
+func (h *AccessControlHook) enforceOptionWriteAccess(rctx request.CTX, field *model.PropertyField, callerID string) error {
+	if field.Permissions == nil {
+		// The same fail-closed arm enforceFieldUpdateAccess has, for the same
+		// reason: every PSAv2/v3 field has carried a converted object since the
+		// backfill, so this is unreached in production.
+		return fmt.Errorf("field %s carries no permissions object: %w", field.ID, ErrAccessDenied)
+	}
+	if h.permissionsAllows(rctx, field, callerID, "", model.PropertyActionOptionWrite, "") {
+		return nil
+	}
+	return fmt.Errorf("field %s refuses caller %q an option write: %w", field.ID, callerID, ErrAccessDenied)
+}
+
+// PostGetPropertyFieldOptions applies the field's read access to a page of its
+// options, which are otherwise read straight from their own rows and so reach
+// none of the filtering a field read applies to the option list it carries
 // inline.
 //
-// A shared_only graph field's page is filtered to the options the caller covers,
-// which is the same rule filterSharedOnlyGraphValueBatch applies to that field's
-// values. It is the one type whose options this can be answered for from the rows
-// alone: covering is a relation between options, so a page of them can be judged
-// without knowing anything about the caller beyond what they hold.
-//
-// Every other caller without unrestricted read access is served nothing. For a
-// source_only field that is the same answer the field read gives -- its option
-// list is emptied for everyone but the source plugin. For a shared_only field of
-// a flat type it is a stricter one: the field read filters that list down to the
-// options the caller holds themselves, and the equivalent here would have to
-// intersect every page against the caller's holdings for no gain over reading the
-// field. Serving them unfiltered would answer a question the field read refuses.
+// Gated on option.read, then -- when the field is also masked -- the page is
+// filtered to what the caller may see via filterMaskedOptionPage, the same
+// overlap rule a value read applies.
 func (h *AccessControlHook) PostGetPropertyFieldOptions(rctx request.CTX, field *model.PropertyField, options []*model.PropertyFieldOption) ([]*model.PropertyFieldOption, error) {
-	if field == nil || !h.isGroupManaged(field.GroupID) {
+	if field == nil {
+		return options, nil
+	}
+	enforced, err := h.isGroupEnforced(field.GroupID)
+	if err != nil {
+		return nil, err
+	}
+	if !enforced {
 		return options, nil
 	}
 	callerID := h.extractCallerID(rctx)
-	if h.hasUnrestrictedFieldReadAccess(field, callerID) {
+	scope := h.extractActingAsScope(rctx)
+	if !h.permissionsAllows(rctx, field, callerID, scope, model.PropertyActionOptionRead, "") {
+		return []*model.PropertyFieldOption{}, nil
+	}
+	if field.Permissions == nil {
+		// Unconverted row: the ladder already admitted this caller (a
+		// local-mode admin). There is no masking object to apply.
 		return options, nil
 	}
-	if field.Type == model.PropertyFieldTypeGraph && h.getAccessMode(field) == model.PropertyAccessModeSharedOnly {
-		return h.filterSharedOnlyGraphOptionPage(rctx, field, options, callerID)
-	}
-	return []*model.PropertyFieldOption{}, nil
-}
 
-// filterSharedOnlyGraphOptionPage keeps the options in one page of a graph
-// field's hierarchy that the caller covers -- one of the caller's own options is
-// at-or-above it -- and drops the rest. So a caller marked with one program in a
-// family is shown that program and everything it is made of, and nothing about
-// the rest of the family or about what sits above their own part of it.
-//
-// The page is what is judged, not the caller's reach: asking which of these
-// options the caller covers is one walk up from the page, whereas building the
-// set of options the caller covers walks down from their holdings and can be the
-// whole hierarchy. Both describe the same answer; only one of them is bounded by
-// the page size. Because the test is per option and the basis is the caller's own
-// holdings, two pages of the same listing are filtered against the same thing.
-//
-// A failure to resolve the hierarchy is returned rather than answered with an
-// empty page. Every other shared_only path hides and logs because it has nowhere
-// to put a failure, but a listing does: an empty page here is indistinguishable
-// from a field with no options, which is the confusion the option rows exist to
-// stop being possible.
-func (h *AccessControlHook) filterSharedOnlyGraphOptionPage(rctx request.CTX, field *model.PropertyField, options []*model.PropertyFieldOption, callerID string) ([]*model.PropertyFieldOption, error) {
-	if len(options) == 0 {
-		return []*model.PropertyFieldOption{}, nil
-	}
-
-	held, err := h.getCallerOptionIDsForField(field.GroupID, field.ID, callerID, field.Type)
+	c := maskingContextFromRequest(rctx)
+	fm, err := c.resolve(h, rctx, field)
 	if err != nil {
-		return nil, fmt.Errorf("failed to read the caller's own options of graph field %s: %w", field.ID, err)
+		return nil, fmt.Errorf("failed to resolve field %s's masking: %w", field.ID, err)
 	}
-	if len(held) == 0 {
-		return []*model.PropertyFieldOption{}, nil
+	if fm.masking == nil || h.exempt(rctx, fm.masking.Except, callerID) {
+		return options, nil
 	}
-
-	pageIDs := make([]string, 0, len(options))
-	for _, option := range options {
-		pageIDs = append(pageIDs, option.ID)
-	}
-
-	covered, err := h.propertyService.CoveredBy(rctx, field, pageIDs, slices.Collect(maps.Keys(held)))
-	if err != nil {
-		return nil, fmt.Errorf("failed to establish which of graph field %s's options the caller may see: %w", field.ID, err)
-	}
-
-	shown := []*model.PropertyFieldOption{}
-	for _, option := range options {
-		if !covered[option.ID] {
-			continue
-		}
-		// The parents come off. They are reported by name, and an option's parent
-		// is by definition above it -- so a caller holding an option exactly, and
-		// therefore covering it and nothing above it, would learn the name of the
-		// option it hangs under. That is the name the value masking withholds. An
-		// absent parents key means "not reported", which is what the write path
-		// reads it as (resolveOptionParents leaves an option's links alone when it
-		// is missing), where an empty list would mean "this is a root" and a caller
-		// writing the option back would cut it loose. Reporting the parents the
-		// caller also covers would be better and needs the parents by identifier,
-		// which only the store has.
-		visible := *option
-		visible.Parents = nil
-		shown = append(shown, &visible)
-	}
-	return shown, nil
+	return h.filterMaskedOptionPage(rctx, c, field, fm, options, callerID)
 }
 
 // MayShowAnyPropertyFieldOptions answers, without paging through a field's
 // option rows, whether the caller may ever see anything from its listing. It
-// shares hasUnrestrictedFieldReadAccess and getAccessMode with
-// PostGetPropertyFieldOptions rather than restating them, so the two cannot
-// drift into disagreeing about the same caller: false here means exactly what
-// that method would hand back an empty page for, on every page rather than
-// only the one asked.
+// decides on the same permissions object and the same masking resolution as
+// PostGetPropertyFieldOptions, so the two cannot drift into disagreeing about
+// the same caller: false here means exactly what that method would hand back
+// an empty page for, on every page rather than only the one asked.
 //
-// A shared_only graph field is the one case answerable without a page:
-// covering is a relation between the caller's own options and the field's, so
-// whether the caller covers anything does not depend on which page of the
-// hierarchy is asked. Every other caller without unrestricted read access --
-// a source_only field's non-source caller, or a shared_only field of a flat
-// type -- is served nothing regardless of holdings, which
-// PostGetPropertyFieldOptions already answers unconditionally.
+// Two answers are knowable without a page. A caller option.read refuses is
+// served nothing on any page. So is a caller of a masked field whose holdings
+// are empty, since masking shows only what overlaps them -- and that is the
+// caller a large hierarchy would otherwise be scanned in full for. A caller
+// with holdings may still cover none of a particular page, which is the
+// scan's answer to give, so this returns true and lets it run.
 func (h *AccessControlHook) MayShowAnyPropertyFieldOptions(rctx request.CTX, field *model.PropertyField) (bool, error) {
-	if field == nil || !h.isGroupManaged(field.GroupID) {
+	if field == nil {
+		return true, nil
+	}
+	enforced, err := h.isGroupEnforced(field.GroupID)
+	if err != nil {
+		return false, err
+	}
+	if !enforced {
 		return true, nil
 	}
 	callerID := h.extractCallerID(rctx)
-	if h.hasUnrestrictedFieldReadAccess(field, callerID) {
-		return true, nil
-	}
-	if field.Type != model.PropertyFieldTypeGraph || h.getAccessMode(field) != model.PropertyAccessModeSharedOnly {
+	if !h.permissionsAllows(rctx, field, callerID, h.extractActingAsScope(rctx), model.PropertyActionOptionRead, "") {
 		return false, nil
 	}
-	held, err := h.getCallerOptionIDsForField(field.GroupID, field.ID, callerID, field.Type)
+	if field.Permissions == nil {
+		return true, nil
+	}
+
+	c := maskingContextFromRequest(rctx)
+	fm, err := c.resolve(h, rctx, field)
 	if err != nil {
-		return false, fmt.Errorf("failed to read the caller's own options of graph field %s: %w", field.ID, err)
+		return false, fmt.Errorf("failed to resolve field %s's masking: %w", field.ID, err)
+	}
+	if fm.masking == nil || h.exempt(rctx, fm.masking.Except, callerID) {
+		return true, nil
+	}
+
+	held, err := c.callerOptionIDsForHoldings(h, field.GroupID, fm.holdingsFieldID, callerID, field.Type)
+	if err != nil {
+		return false, fmt.Errorf("failed to read the caller's own options of masked field %s: %w", field.ID, err)
 	}
 	return len(held) > 0, nil
 }
 
 // PostGetPropertyField applies read access control to a single field.
 func (h *AccessControlHook) PostGetPropertyField(rctx request.CTX, field *model.PropertyField) (*model.PropertyField, error) {
-	if !h.isGroupManaged(field.GroupID) {
+	enforced, err := h.isGroupEnforced(field.GroupID)
+	if err != nil {
+		return nil, err
+	}
+	if !enforced {
 		return field, nil
 	}
 
 	callerID := h.extractCallerID(rctx)
-	return h.applyFieldReadAccessControl(rctx, field, callerID), nil
+	return h.applyFieldReadAccessControl(rctx, newMaskingContext(), field, callerID), nil
 }
 
 // PostGetPropertyFields applies read access control to a list of fields.
@@ -463,7 +558,11 @@ func (h *AccessControlHook) PostGetPropertyFields(rctx request.CTX, fields []*mo
 		return fields, nil
 	}
 
-	if !h.isGroupManaged(fields[0].GroupID) {
+	enforced, err := h.isGroupEnforced(fields[0].GroupID)
+	if err != nil {
+		return nil, err
+	}
+	if !enforced {
 		return fields, nil
 	}
 
@@ -475,7 +574,11 @@ func (h *AccessControlHook) PostGetPropertyFields(rctx request.CTX, fields []*mo
 
 // PreCreatePropertyValue enforces write access and sync locking on the value's field before creation.
 func (h *AccessControlHook) PreCreatePropertyValue(rctx request.CTX, value *model.PropertyValue) (*model.PropertyValue, error) {
-	if !h.isGroupManaged(value.GroupID) {
+	enforced, err := h.isGroupEnforced(value.GroupID)
+	if err != nil {
+		return nil, err
+	}
+	if !enforced {
 		return value, nil
 	}
 
@@ -486,7 +589,7 @@ func (h *AccessControlHook) PreCreatePropertyValue(rctx request.CTX, value *mode
 		return nil, err
 	}
 
-	if err := h.checkValueWriteAccess(field, callerID, h.extractActingAsScope(rctx)); err != nil {
+	if err := h.checkValueWriteAccess(rctx, newMaskingContext(), field, callerID, h.extractActingAsScope(rctx), value.TargetID); err != nil {
 		return nil, err
 	}
 
@@ -496,23 +599,33 @@ func (h *AccessControlHook) PreCreatePropertyValue(rctx request.CTX, value *mode
 // PreCreatePropertyValues enforces write access and sync locking for all fields atomically before creation.
 // All values in a batch share the same GroupID (enforced by the public API).
 func (h *AccessControlHook) PreCreatePropertyValues(rctx request.CTX, values []*model.PropertyValue) ([]*model.PropertyValue, error) {
-	if len(values) == 0 || !h.isGroupManaged(values[0].GroupID) {
+	if len(values) == 0 {
+		return values, nil
+	}
+	enforced, err := h.isGroupEnforced(values[0].GroupID)
+	if err != nil {
+		return nil, err
+	}
+	if !enforced {
 		return values, nil
 	}
 
 	callerID := h.extractCallerID(rctx)
+	scope := h.extractActingAsScope(rctx)
 
 	fieldMap, err := h.getFieldsForValues(rctx, values)
 	if err != nil {
 		return nil, err
 	}
 
+	cache := make(valueWriteAccessCache)
+	mc := newMaskingContext()
 	for _, value := range values {
 		field, exists := fieldMap[value.FieldID]
 		if !exists {
 			return nil, fmt.Errorf("field %s: %w", value.FieldID, ErrFieldNotFound)
 		}
-		if err := h.checkValueWriteAccess(field, callerID, h.extractActingAsScope(rctx)); err != nil {
+		if err := cache.check(h, rctx, mc, field, callerID, scope, value.TargetID); err != nil {
 			return nil, fmt.Errorf("field %s: %w", value.FieldID, err)
 		}
 	}
@@ -522,7 +635,11 @@ func (h *AccessControlHook) PreCreatePropertyValues(rctx request.CTX, values []*
 
 // PreUpdatePropertyValue enforces write access and sync locking on the value's field before update.
 func (h *AccessControlHook) PreUpdatePropertyValue(rctx request.CTX, groupID string, value *model.PropertyValue) (*model.PropertyValue, error) {
-	if !h.isGroupManaged(groupID) {
+	enforced, err := h.isGroupEnforced(groupID)
+	if err != nil {
+		return nil, err
+	}
+	if !enforced {
 		return value, nil
 	}
 
@@ -533,7 +650,7 @@ func (h *AccessControlHook) PreUpdatePropertyValue(rctx request.CTX, groupID str
 		return nil, err
 	}
 
-	if err := h.checkValueWriteAccess(field, callerID, h.extractActingAsScope(rctx)); err != nil {
+	if err := h.checkValueWriteAccess(rctx, newMaskingContext(), field, callerID, h.extractActingAsScope(rctx), value.TargetID); err != nil {
 		return nil, err
 	}
 
@@ -543,23 +660,33 @@ func (h *AccessControlHook) PreUpdatePropertyValue(rctx request.CTX, groupID str
 // PreUpdatePropertyValues enforces write access and sync locking for all fields atomically before update.
 // All values in a batch share the same GroupID (enforced by the public API).
 func (h *AccessControlHook) PreUpdatePropertyValues(rctx request.CTX, groupID string, values []*model.PropertyValue) ([]*model.PropertyValue, error) {
-	if len(values) == 0 || !h.isGroupManaged(groupID) {
+	if len(values) == 0 {
+		return values, nil
+	}
+	enforced, err := h.isGroupEnforced(groupID)
+	if err != nil {
+		return nil, err
+	}
+	if !enforced {
 		return values, nil
 	}
 
 	callerID := h.extractCallerID(rctx)
+	scope := h.extractActingAsScope(rctx)
 
 	fieldMap, err := h.getFieldsForValues(rctx, values)
 	if err != nil {
 		return nil, err
 	}
 
+	cache := make(valueWriteAccessCache)
+	mc := newMaskingContext()
 	for _, value := range values {
 		field, exists := fieldMap[value.FieldID]
 		if !exists {
 			return nil, fmt.Errorf("field %s: %w", value.FieldID, ErrFieldNotFound)
 		}
-		if err := h.checkValueWriteAccess(field, callerID, h.extractActingAsScope(rctx)); err != nil {
+		if err := cache.check(h, rctx, mc, field, callerID, scope, value.TargetID); err != nil {
 			return nil, fmt.Errorf("field %s: %w", value.FieldID, err)
 		}
 	}
@@ -569,7 +696,11 @@ func (h *AccessControlHook) PreUpdatePropertyValues(rctx request.CTX, groupID st
 
 // PreUpsertPropertyValue enforces write access and sync locking on the value's field before upsert.
 func (h *AccessControlHook) PreUpsertPropertyValue(rctx request.CTX, value *model.PropertyValue) (*model.PropertyValue, error) {
-	if !h.isGroupManaged(value.GroupID) {
+	enforced, err := h.isGroupEnforced(value.GroupID)
+	if err != nil {
+		return nil, err
+	}
+	if !enforced {
 		return value, nil
 	}
 
@@ -580,7 +711,7 @@ func (h *AccessControlHook) PreUpsertPropertyValue(rctx request.CTX, value *mode
 		return nil, err
 	}
 
-	if err := h.checkValueWriteAccess(field, callerID, h.extractActingAsScope(rctx)); err != nil {
+	if err := h.checkValueWriteAccess(rctx, newMaskingContext(), field, callerID, h.extractActingAsScope(rctx), value.TargetID); err != nil {
 		return nil, err
 	}
 
@@ -590,23 +721,33 @@ func (h *AccessControlHook) PreUpsertPropertyValue(rctx request.CTX, value *mode
 // PreUpsertPropertyValues enforces write access and sync locking for all fields atomically before upsert.
 // All values in a batch share the same GroupID (enforced by the public API).
 func (h *AccessControlHook) PreUpsertPropertyValues(rctx request.CTX, values []*model.PropertyValue) ([]*model.PropertyValue, error) {
-	if len(values) == 0 || !h.isGroupManaged(values[0].GroupID) {
+	if len(values) == 0 {
+		return values, nil
+	}
+	enforced, err := h.isGroupEnforced(values[0].GroupID)
+	if err != nil {
+		return nil, err
+	}
+	if !enforced {
 		return values, nil
 	}
 
 	callerID := h.extractCallerID(rctx)
+	scope := h.extractActingAsScope(rctx)
 
 	fieldMap, err := h.getFieldsForValues(rctx, values)
 	if err != nil {
 		return nil, err
 	}
 
+	cache := make(valueWriteAccessCache)
+	mc := newMaskingContext()
 	for _, value := range values {
 		field, exists := fieldMap[value.FieldID]
 		if !exists {
 			return nil, fmt.Errorf("field %s: %w", value.FieldID, ErrFieldNotFound)
 		}
-		if err := h.checkValueWriteAccess(field, callerID, h.extractActingAsScope(rctx)); err != nil {
+		if err := cache.check(h, rctx, mc, field, callerID, scope, value.TargetID); err != nil {
 			return nil, fmt.Errorf("field %s: %w", value.FieldID, err)
 		}
 	}
@@ -616,7 +757,11 @@ func (h *AccessControlHook) PreUpsertPropertyValues(rctx request.CTX, values []*
 
 // PreDeletePropertyValue enforces write access before deleting a value.
 func (h *AccessControlHook) PreDeletePropertyValue(rctx request.CTX, groupID string, id string) error {
-	if !h.isGroupManaged(groupID) {
+	enforced, err := h.isGroupEnforced(groupID)
+	if err != nil {
+		return err
+	}
+	if !enforced {
 		return nil
 	}
 
@@ -632,20 +777,29 @@ func (h *AccessControlHook) PreDeletePropertyValue(rctx request.CTX, groupID str
 		return err
 	}
 
-	return h.checkValueWriteAccess(field, callerID, h.extractActingAsScope(rctx))
+	// value is already loaded, so hand it to the visibility check directly
+	// rather than paying a second read for the same row.
+	mc := newMaskingContext()
+	mc.primeStoredValue(field.ID, value.TargetID, value)
+
+	return h.checkValueWriteAccess(rctx, mc, field, callerID, h.extractActingAsScope(rctx), value.TargetID)
 }
 
 // PreDeletePropertyValuesForTarget enforces write access for all affected fields
 // before deleting all values for a target.
 func (h *AccessControlHook) PreDeletePropertyValuesForTarget(rctx request.CTX, groupID string, targetType string, targetID string) error {
-	if !h.isGroupManaged(groupID) {
+	if enforced, err := h.isGroupEnforced(groupID); err != nil {
+		return err
+	} else if !enforced {
 		return nil
 	}
 
 	callerID := h.extractCallerID(rctx)
 
-	// Collect unique field IDs across all values without loading all values into memory
-	fieldIDs := make(map[string]struct{})
+	// Collect one value per field for targetID -- the deletion this hook is
+	// gating -- so checkValueWriteVisibility can judge each field's write
+	// without a second read for the row already in hand.
+	fieldValues := make(map[string]*model.PropertyValue)
 	var cursor model.PropertyValueSearchCursor
 	iterations := 0
 
@@ -671,7 +825,7 @@ func (h *AccessControlHook) PreDeletePropertyValuesForTarget(rctx request.CTX, g
 		}
 
 		for _, value := range values {
-			fieldIDs[value.FieldID] = struct{}{}
+			fieldValues[value.FieldID] = value
 		}
 
 		if len(values) < propertyAccessPaginationPageSize {
@@ -685,12 +839,12 @@ func (h *AccessControlHook) PreDeletePropertyValuesForTarget(rctx request.CTX, g
 		}
 	}
 
-	if len(fieldIDs) == 0 {
+	if len(fieldValues) == 0 {
 		return nil
 	}
 
-	fieldIDSlice := make([]string, 0, len(fieldIDs))
-	for fieldID := range fieldIDs {
+	fieldIDSlice := make([]string, 0, len(fieldValues))
+	for fieldID := range fieldValues {
 		fieldIDSlice = append(fieldIDSlice, fieldID)
 	}
 
@@ -699,8 +853,15 @@ func (h *AccessControlHook) PreDeletePropertyValuesForTarget(rctx request.CTX, g
 		return err
 	}
 
+	mc := newMaskingContext()
+	for fieldID, value := range fieldValues {
+		mc.primeStoredValue(fieldID, targetID, value)
+	}
+
+	cache := make(valueWriteAccessCache)
+	scope := h.extractActingAsScope(rctx)
 	for _, field := range fields {
-		if err := h.checkValueWriteAccess(field, callerID, h.extractActingAsScope(rctx)); err != nil {
+		if err := cache.check(h, rctx, mc, field, callerID, scope, targetID); err != nil {
 			return fmt.Errorf("field %s: %w", field.ID, err)
 		}
 	}
@@ -710,7 +871,11 @@ func (h *AccessControlHook) PreDeletePropertyValuesForTarget(rctx request.CTX, g
 
 // PreDeletePropertyValuesForField enforces write access before deleting all values for a field.
 func (h *AccessControlHook) PreDeletePropertyValuesForField(rctx request.CTX, groupID string, fieldID string) error {
-	if !h.isGroupManaged(groupID) {
+	enforced, err := h.isGroupEnforced(groupID)
+	if err != nil {
+		return err
+	}
+	if !enforced {
 		return nil
 	}
 
@@ -721,7 +886,17 @@ func (h *AccessControlHook) PreDeletePropertyValuesForField(rctx request.CTX, gr
 		return err
 	}
 
-	return h.checkValueWriteAccess(field, callerID, h.extractActingAsScope(rctx))
+	// This clears every value the field has across every object, so there is no
+	// single object to measure value.write against here -- an empty target would
+	// resolve as a denied channel/team membership check for anyone but a
+	// sysadmin, refusing a legitimate cascade. A human caller's authority for
+	// this operation comes from the field-level write gate on the delete path
+	// (PreDeletePropertyField / enforceFieldUpdateAccess), not from here.
+	if !h.isMachineCaller(callerID) {
+		return nil
+	}
+
+	return h.checkValueWriteAccess(rctx, newMaskingContext(), field, callerID, h.extractActingAsScope(rctx), "")
 }
 
 // Value Post-Hooks
@@ -732,7 +907,11 @@ func (h *AccessControlHook) PostGetPropertyValue(rctx request.CTX, value *model.
 	if value == nil {
 		return nil, nil
 	}
-	if !h.isGroupManaged(value.GroupID) {
+	enforced, err := h.isGroupEnforced(value.GroupID)
+	if err != nil {
+		return nil, err
+	}
+	if !enforced {
 		return value, nil
 	}
 
@@ -754,7 +933,14 @@ func (h *AccessControlHook) PostGetPropertyValue(rctx request.CTX, value *model.
 // Values the caller doesn't have access to are silently filtered out.
 // All values in a batch share the same GroupID (enforced by the public API).
 func (h *AccessControlHook) PostGetPropertyValues(rctx request.CTX, values []*model.PropertyValue) ([]*model.PropertyValue, error) {
-	if len(values) == 0 || !h.isGroupManaged(values[0].GroupID) {
+	if len(values) == 0 {
+		return values, nil
+	}
+	enforced, err := h.isGroupEnforced(values[0].GroupID)
+	if err != nil {
+		return nil, err
+	}
+	if !enforced {
 		return values, nil
 	}
 
@@ -782,20 +968,28 @@ func (h *AccessControlHook) isCallerPlugin(callerID string) bool {
 }
 
 // isMachineCaller reports whether the caller is a machine actor (an installed
-// plugin or a built-in sync service) rather than a human. Owner-list
-// enforcement applies only to machine callers; human callers (session users
-// and local admins) are governed by the API-layer permission levels.
+// plugin, a built-in sync service, or a system subsystem's setup migration)
+// rather than a human. A system caller holds no position in any scheme, so
+// the restrictions ladder is meaningless for it -- like a plugin or a sync
+// service, it acts only by matching a grant. Humans are judged by the
+// injected ladder checker; machines match grants only.
 func (h *AccessControlHook) isMachineCaller(callerID string) bool {
-	return h.isCallerPlugin(callerID) ||
+	if h.isCallerPlugin(callerID) ||
 		callerID == model.CallerIDLDAPSync ||
-		callerID == model.CallerIDSAMLSync
+		callerID == model.CallerIDSAMLSync {
+		return true
+	}
+	_, isSystem := model.SystemCallerOwnedGroup(callerID)
+	return isSystem
 }
 
 // callerOwnerIdentity maps a machine caller (and its acting-as scope) to the
 // owner identity it would match in a field's owners list. A built-in sync
 // service is a singleton (one LDAP, one SAML), so its owner type is "service"
-// and it carries no scope; for a plugin the manifest ID is the owner ID and the
-// scope is whatever the plugin declared on the request context.
+// and it carries no scope; a system subsystem is the same shape, keyed by the
+// group name it owns rather than a fixed attr name; for a plugin the manifest
+// ID is the owner ID and the scope is whatever the plugin declared on the
+// request context.
 func (h *AccessControlHook) callerOwnerIdentity(callerID, scope string) (ownerID, ownerType, effectiveScope string) {
 	switch callerID {
 	case model.CallerIDLDAPSync:
@@ -803,97 +997,102 @@ func (h *AccessControlHook) callerOwnerIdentity(callerID, scope string) (ownerID
 	case model.CallerIDSAMLSync:
 		return model.PropertyFieldAttrSAML, model.PropertyOwnerTypeService, ""
 	default:
+		if group, ok := model.SystemCallerOwnedGroup(callerID); ok {
+			return group, model.PropertyOwnerTypeService, ""
+		}
 		return callerID, model.PropertyOwnerTypePlugin, scope
 	}
 }
 
-// effectiveOwners returns the owners list used for value-write access checks on
-// an owner-managed field. Explicit owners from the attrs blob are augmented
-// with implicit service owners derived from attrs.ldap / attrs.saml so a field
-// can be written by both a listed plugin/scope and its legacy sync source.
-// Implicit service owners are only added when explicit owners are present;
-// legacy synced-only fields continue through checkSyncLock instead.
-func (h *AccessControlHook) effectiveOwners(field *model.PropertyField) []model.PropertyOwner {
-	owners := model.GetPropertyFieldOwners(field)
-	if len(owners) == 0 || field.Attrs == nil {
-		return owners
-	}
-
-	if ldap, _ := field.Attrs[model.PropertyFieldAttrLDAP].(string); ldap != "" {
-		owners = append(owners, model.PropertyOwner{
-			ID:   model.PropertyFieldAttrLDAP,
-			Type: model.PropertyOwnerTypeService,
-		})
-	}
-	if saml, _ := field.Attrs[model.PropertyFieldAttrSAML].(string); saml != "" {
-		owners = append(owners, model.PropertyOwner{
-			ID:   model.PropertyFieldAttrSAML,
-			Type: model.PropertyOwnerTypeService,
-		})
-	}
-	return owners
+// permissionsGrantAllows reports whether a machine caller may perform action
+// on field under its typed permissions object. A machine caller has no human
+// role, so the restrictions ladder never applies to it: the decision is
+// grant-only, with nothing to fall back on when no grant matches. Callers
+// must confirm isMachineCaller first -- callerOwnerIdentity's default branch
+// assumes a plugin, and a human's user ID would otherwise be resolved as one.
+func (h *AccessControlHook) permissionsGrantAllows(field *model.PropertyField, callerID, scope, action string) bool {
+	ownerID, ownerType, effectiveScope := h.callerOwnerIdentity(callerID, scope)
+	return field.Permissions.MatchingGrant(ownerType, ownerID, effectiveScope, action) != nil
 }
 
-// checkOwnerValueWriteAccess enforces a field's owners list on a value write.
-// A machine caller is allowed only if it is a listed owner (matching ID and
-// type) whose scopes contain the caller's acting-as scope. An owner with an
-// empty scopes list is not restricted by scope and may write for any scope.
-//
-// Human callers are always rejected: an owner-managed field's values are
-// authoritative to the owning integration, so no session user — including
-// sysadmins — may overwrite them. This mirrors checkSyncLock for ldap/saml
-// fields and is the sole write authority for owner-managed fields (their
-// PermissionValues are left at the normal default and are not consulted here).
-func (h *AccessControlHook) checkOwnerValueWriteAccess(field *model.PropertyField, callerID, scope string) error {
-	if !h.isMachineCaller(callerID) {
-		return fmt.Errorf("field %s is owner-managed and cannot be modified by human caller %q: %w", field.ID, callerID, ErrAccessDenied)
+// permissionsAllows answers whether a caller may read or write a field
+// carrying a typed permissions object. A machine caller is judged by
+// its grants alone -- the restrictions ladder never applies to it. A human
+// caller is judged by the injected ladderChecker, which already answers the
+// union of the ladder and the caller's user/role grants as one bool, so this
+// function's only job is splitting machine from human.
+func (h *AccessControlHook) permissionsAllows(rctx request.CTX, field *model.PropertyField, callerID, scope, action, valueTargetID string) bool {
+	if callerID == "" || field == nil {
+		return false
+	}
+	if h.permissionsAllowsOn(rctx, field, callerID, scope, action, valueTargetID) {
+		return true
+	}
+	// A linked field cannot carry an option.read grant (IsValid refuses it;
+	// conversion strips it). Machine callers are grant-only, so option.read
+	// for a linked field is the grant they hold on the template — the same
+	// identity still "holds option.read by way of its grant on the template
+	// itself" (linkedFieldGrantsFrom). Humans are judged by the linked
+	// field's own option.read tier and must not inherit the template's.
+	if action != model.PropertyActionOptionRead || !h.isMachineCaller(callerID) ||
+		field.LinkedFieldID == nil || *field.LinkedFieldID == "" {
+		return false
+	}
+	template, err := h.propertyService.getPropertyField(rctx, field.GroupID, *field.LinkedFieldID)
+	if err != nil || template == nil || template.Permissions == nil {
+		return false
+	}
+	return h.permissionsAllowsOn(rctx, template, callerID, scope, action, valueTargetID)
+}
+
+func (h *AccessControlHook) permissionsAllowsOn(rctx request.CTX, field *model.PropertyField, callerID, scope, action, valueTargetID string) bool {
+	if h.isMachineCaller(callerID) {
+		if field.Permissions == nil {
+			return false
+		}
+		return h.permissionsGrantAllows(field, callerID, scope, action)
+	}
+	if h.ladderChecker == nil {
+		return false
+	}
+	return h.ladderChecker(rctx, callerID, field, action, valueTargetID)
+}
+
+// enforceFieldUpdateAccess gates a field-definition update. A machine caller
+// needs a field.write grant on the stored (existing) field -- so it cannot
+// grant itself the write in the same patch that uses it -- and a human caller
+// is judged by the same permissions object, via the injected ladder checker.
+// updated is accepted but never consulted, for the same reason: judging the
+// field being written would let a caller author its own way past the check.
+func (h *AccessControlHook) enforceFieldUpdateAccess(rctx request.CTX, existing, updated *model.PropertyField, callerID string) error {
+	// An update that changes nothing but the option list is an option write, not
+	// a field write, and has to be answered the same way the options endpoint
+	// answers it. channels/api4's patchPropertyField already routes such a patch
+	// to option.write (isOptionsOnlyPatch); the hook sees only the merged field,
+	// so it derives the same distinction by comparing. Without this the two
+	// layers decide about different grid cells and a field delegating option
+	// management to members is allowed at api4 and refused here.
+	if model.PropertyFieldChangeIsOptionsOnly(existing, updated) {
+		return h.enforceOptionWriteAccess(rctx, existing, callerID)
 	}
 
-	ownerID, ownerType, effectiveScope := h.callerOwnerIdentity(callerID, scope)
-	for _, owner := range h.effectiveOwners(field) {
-		if owner.Type == ownerType && owner.ID == ownerID &&
-			(len(owner.Scopes) == 0 || slices.Contains(owner.Scopes, effectiveScope)) {
+	if existing.Permissions != nil {
+		if h.isMachineCaller(callerID) {
+			if h.permissionsGrantAllows(existing, callerID, "", model.PropertyActionFieldWrite) {
+				return nil
+			}
+			return fmt.Errorf("field %s carries permissions and caller %q matches no field.write grant: %w", existing.ID, callerID, ErrAccessDenied)
+		}
+		if h.permissionsAllows(rctx, existing, callerID, "", model.PropertyActionFieldWrite, "") {
 			return nil
 		}
+		return fmt.Errorf("field %s refuses caller %q a field write: %w", existing.ID, callerID, ErrAccessDenied)
 	}
 
-	return fmt.Errorf("field %s is owner-managed and caller %q acting as scope %q is not an owner with a matching scope: %w", field.ID, callerID, effectiveScope, ErrAccessDenied)
-}
-
-// isListedOwner reports whether the machine caller matches an explicit owner
-// entry on the field (by id and type). Scope is not consulted: being a listed
-// owner is what authorizes managing the field; scope only gates value writes.
-func (h *AccessControlHook) isListedOwner(field *model.PropertyField, callerID string) bool {
-	ownerID, ownerType, _ := h.callerOwnerIdentity(callerID, "")
-	for _, owner := range model.GetPropertyFieldOwners(field) {
-		if owner.Type == ownerType && owner.ID == ownerID {
-			return true
-		}
-	}
-	return false
-}
-
-// enforceFieldUpdateAccess gates a field-definition update.
-//
-// Owner-managed fields allow a machine caller only if it is a listed owner
-// (checked against the stored owners, so a non-owner cannot add itself). A
-// listed owner may edit the whole definition including the owners attr. Human
-// callers pass through to the API-layer sysadmin pin.
-//
-// For non-owner-managed fields, machine callers may not add owners, and legacy
-// protected / source_plugin_id rules continue to apply.
-func (h *AccessControlHook) enforceFieldUpdateAccess(existing, updated *model.PropertyField, callerID string) error {
-	if model.HasPropertyFieldOwners(existing) {
-		if h.isMachineCaller(callerID) && !h.isListedOwner(existing, callerID) {
-			return fmt.Errorf("field %s is owner-managed and can only be modified by an administrator or a listed owner: %w", existing.ID, ErrAccessDenied)
-		}
-		return nil
-	}
-
-	if h.isMachineCaller(callerID) && model.HasPropertyFieldOwners(updated) {
-		return fmt.Errorf("owners can only be set by an administrator: %w", ErrAccessDenied)
-	}
-	return h.checkLegacyFieldWriteAccess(existing, callerID)
+	// Unreached in production: every PSAv2/v3 field carries a converted
+	// permissions object from backfill or create/update. Fail closed rather
+	// than deciding from Attrs owners or source_plugin_id.
+	return fmt.Errorf("field %s carries no permissions object: %w", existing.ID, ErrAccessDenied)
 }
 
 // getSourcePluginID extracts the source_plugin_id from a PropertyField's attrs.
@@ -903,35 +1102,6 @@ func (h *AccessControlHook) getSourcePluginID(field *model.PropertyField) string
 	}
 	sourcePluginID, _ := field.Attrs[model.PropertyAttrsSourcePluginID].(string)
 	return sourcePluginID
-}
-
-// getAccessMode extracts the access_mode from a PropertyField's attrs.
-func (h *AccessControlHook) getAccessMode(field *model.PropertyField) string {
-	if field.Attrs == nil {
-		return model.PropertyAccessModePublic
-	}
-	accessMode, ok := field.Attrs[model.PropertyAttrsAccessMode].(string)
-	if !ok {
-		return model.PropertyAccessModePublic
-	}
-	return accessMode
-}
-
-// hasUnrestrictedFieldReadAccess checks if the given caller can read a PropertyField without restrictions.
-// Returns true if the caller has unrestricted read access (public field or source plugin).
-func (h *AccessControlHook) hasUnrestrictedFieldReadAccess(field *model.PropertyField, callerID string) bool {
-	accessMode := h.getAccessMode(field)
-
-	if accessMode == model.PropertyAccessModePublic {
-		return true
-	}
-
-	sourcePluginID := h.getSourcePluginID(field)
-	if sourcePluginID != "" && sourcePluginID == callerID {
-		return true
-	}
-
-	return false
 }
 
 // ensureSourcePluginIDUnchanged checks that the source_plugin_id attribute hasn't changed between fields.
@@ -964,99 +1134,67 @@ func (h *AccessControlHook) validateProtectedFieldUpdate(updatedField *model.Pro
 	return nil
 }
 
-// checkLegacyFieldWriteAccess enforces the protected / source_plugin_id rules on
-// a non-owner-managed field. Owner-managed fields are gated by
-// enforceFieldUpdateAccess; callers must confirm the field has no owners before
-// calling this.
-// IMPORTANT: Always pass the existing field fetched from the database, not a field provided by the caller.
-func (h *AccessControlHook) checkLegacyFieldWriteAccess(field *model.PropertyField, callerID string) error {
-	if !model.IsPropertyFieldProtected(field) {
-		return nil
-	}
-
-	sourcePluginID := h.getSourcePluginID(field)
-	if sourcePluginID == "" {
-		return fmt.Errorf("field %s is protected, but has no associated source plugin: %w", field.ID, ErrAccessDenied)
-	}
-
-	if sourcePluginID != callerID {
-		return fmt.Errorf("field %s is protected and can only be modified by source plugin '%s': %w", field.ID, sourcePluginID, ErrAccessDenied)
-	}
-
-	return nil
-}
-
 // checkFieldDeleteAccess checks if the given caller can delete a PropertyField.
+// There is no separate delete action, so deleting a definition is judged as a
+// field.write.
 // IMPORTANT: Always pass the existing field fetched from the database, not a field provided by the caller.
-func (h *AccessControlHook) checkFieldDeleteAccess(field *model.PropertyField, callerID string) error {
-	if model.HasPropertyFieldOwners(field) {
-		if h.isMachineCaller(callerID) && !h.isListedOwner(field, callerID) {
-			return fmt.Errorf("field %s is owner-managed and can only be deleted by an administrator or a listed owner: %w", field.ID, ErrAccessDenied)
+func (h *AccessControlHook) checkFieldDeleteAccess(rctx request.CTX, field *model.PropertyField, callerID string) error {
+	if field.Permissions != nil {
+		if h.isMachineCaller(callerID) {
+			if h.permissionsGrantAllows(field, callerID, "", model.PropertyActionFieldWrite) {
+				return nil
+			}
+			return fmt.Errorf("field %s carries permissions and caller %q matches no field.write grant: %w", field.ID, callerID, ErrAccessDenied)
 		}
-		return nil
+		if h.permissionsAllows(rctx, field, callerID, "", model.PropertyActionFieldWrite, "") {
+			return nil
+		}
+		return fmt.Errorf("field %s refuses caller %q a field delete: %w", field.ID, callerID, ErrAccessDenied)
 	}
 
-	if !model.IsPropertyFieldProtected(field) {
-		return nil
-	}
-
-	sourcePluginID := h.getSourcePluginID(field)
-	if sourcePluginID == "" {
-		return nil
-	}
-
-	if h.pluginChecker != nil && !h.pluginChecker(sourcePluginID) {
-		return nil
-	}
-
-	if sourcePluginID != callerID {
-		return fmt.Errorf("field %s is protected and can only be modified by source plugin '%s': %w", field.ID, sourcePluginID, ErrAccessDenied)
-	}
-
-	return nil
+	// Unreached in production: every PSAv2/v3 field carries a converted
+	// permissions object from backfill or create/update. Fail closed rather
+	// than deciding from Attrs owners or source_plugin_id.
+	return fmt.Errorf("field %s carries no permissions object: %w", field.ID, ErrAccessDenied)
 }
 
-// checkSyncLock checks whether the caller is allowed to write values for a
-// synced field. Synced fields have an ldap or saml attr set, and only the
-// corresponding sync service (identified by well-known caller IDs) may write
-// their values.
-func (h *AccessControlHook) checkSyncLock(field *model.PropertyField, callerID string) error {
-	syncSource := model.GetPropertyFieldSyncSource(field)
-	if syncSource == "" {
-		return nil
-	}
+// valueWriteAccessCache memoizes checkValueWriteAccess within one hook call
+// that gates several values or fields at once. The human arm resolves role
+// and channel/team membership on every call, so without this a batch write
+// on one field and target would repeat that resolution once per value.
+type valueWriteAccessCache map[[2]string]error
 
-	// Map sync source to the expected caller ID
-	var expectedCallerID string
-	switch syncSource {
-	case "ldap":
-		expectedCallerID = model.CallerIDLDAPSync
-	case "saml":
-		expectedCallerID = model.CallerIDSAMLSync
-	default:
-		return fmt.Errorf("field %s has unknown sync source %q: %w", field.ID, syncSource, ErrInvalidFieldAttrs)
-	}
-
-	if callerID != expectedCallerID {
-		return fmt.Errorf("field %s is managed by %s sync and cannot be modified by caller %q: %w", field.ID, syncSource, callerID, ErrSyncLocked)
-	}
-
-	return nil
-}
-
-// checkValueWriteAccess gates a value write. When the field declares an owners
-// list, the owner check (with scope matching) supersedes the legacy
-// protected-field and sync-lock checks. Otherwise it falls back to today's
-// behaviour.
-func (h *AccessControlHook) checkValueWriteAccess(field *model.PropertyField, callerID, scope string) error {
-	if model.HasPropertyFieldOwners(field) {
-		return h.checkOwnerValueWriteAccess(field, callerID, scope)
-	}
-
-	if err := h.checkLegacyFieldWriteAccess(field, callerID); err != nil {
+func (c valueWriteAccessCache) check(h *AccessControlHook, rctx request.CTX, mc maskingContext, field *model.PropertyField, callerID, scope, valueTargetID string) error {
+	key := [2]string{field.ID, valueTargetID}
+	if err, ok := c[key]; ok {
 		return err
 	}
-	return h.checkSyncLock(field, callerID)
+	err := h.checkValueWriteAccess(rctx, mc, field, callerID, scope, valueTargetID)
+	c[key] = err
+	return err
+}
+
+// checkValueWriteAccess gates a value write: a machine caller is allowed only
+// by a matching value.write grant, and a human caller is judged against
+// valueTargetID, the object the value hangs off. Once either has admitted the
+// write, a masked field still gets a say: checkValueWriteVisibility refuses it
+// if the caller cannot see the whole of what is already stored there.
+func (h *AccessControlHook) checkValueWriteAccess(rctx request.CTX, mc maskingContext, field *model.PropertyField, callerID, scope, valueTargetID string) error {
+	if field.Permissions != nil {
+		if h.isMachineCaller(callerID) {
+			if !h.permissionsGrantAllows(field, callerID, scope, model.PropertyActionValueWrite) {
+				return fmt.Errorf("field %s carries permissions and caller %q acting as scope %q matches no value.write grant: %w", field.ID, callerID, scope, ErrAccessDenied)
+			}
+		} else if !h.permissionsAllows(rctx, field, callerID, scope, model.PropertyActionValueWrite, valueTargetID) {
+			return fmt.Errorf("field %s refuses caller %q a value write on target %q: %w", field.ID, callerID, valueTargetID, ErrAccessDenied)
+		}
+		return h.checkValueWriteVisibility(rctx, mc, field, callerID, valueTargetID)
+	}
+
+	// Unreached in production: every PSAv2/v3 field carries a converted
+	// permissions object from backfill or create/update. Fail closed rather
+	// than deciding from Attrs owners, protected, or a sync source.
+	return fmt.Errorf("field %s carries no permissions object: %w", field.ID, ErrAccessDenied)
 }
 
 // getCallerValuesForField retrieves all property values for the caller on a specific field.
@@ -1148,7 +1286,7 @@ func (h *AccessControlHook) extractOptionIDsFromValue(fieldType model.PropertyFi
 // copyPropertyField returns a copy of a PropertyField with a fresh Attrs map.
 // The Attrs copy is shallow: nested slices/maps (notably Attrs["options"])
 // share backing storage with the original. That is safe today because
-// filterSharedOnlyFieldOptions replaces Attrs["options"] wholesale rather
+// maskFieldOptions (masking.go) replaces Attrs["options"] wholesale rather
 // than mutating in place. A future hook that mutates a nested value in the
 // returned copy would also mutate the caller's original — deep-copy those
 // entries if that changes.
@@ -1161,20 +1299,27 @@ func (h *AccessControlHook) copyPropertyField(field *model.PropertyField) *model
 	return &copied
 }
 
-// maskedFieldCopy copies and masks a field the way every read-path masking
-// branch does, except it restores the withheld-options marker HideOptions
-// deletes. The store's option reconciliation keys on that marker to tell "no
-// options" from "options too many to inline", so a masked field that lost it
-// could never be written back — a read-modify-write would look identical to a
-// caller asserting the field has no options. options_count stays deleted: on a
-// shared_only field the count is controlled information too.
-func (h *AccessControlHook) maskedFieldCopy(field *model.PropertyField) *model.PropertyField {
-	masked := h.copyPropertyField(field)
-	masked.HideOptions()
-	if model.PropertyFieldOptionsOmitted(field.Attrs) {
-		masked.Attrs[model.PropertyFieldAttributeOptionsOmitted] = true
+// hiddenOptionsFieldCopy returns a copy of field with its option list hidden,
+// for a caller who may not read it. A field whose type carries no options is
+// copied untouched: HideOptions would otherwise give it an empty option list
+// it never had.
+//
+// The withheld-options marker is restored after hiding, because the store
+// keys its option reconciliation on that marker to tell "this field has no
+// options" from "this field has too many to inline". A masked field that lost
+// it could not be written back at all: a read-modify-write would look
+// identical to a caller asserting the field has no options. options_count
+// stays deleted -- on a masked field the count is controlled information too.
+func (h *AccessControlHook) hiddenOptionsFieldCopy(field *model.PropertyField) *model.PropertyField {
+	if !field.Type.SupportsOptions() {
+		return h.copyPropertyField(field)
 	}
-	return masked
+	hidden := h.copyPropertyField(field)
+	hidden.HideOptions()
+	if model.PropertyFieldOptionsOmitted(field.Attrs) {
+		hidden.Attrs[model.PropertyFieldAttributeOptionsOmitted] = true
+	}
+	return hidden
 }
 
 // getCallerOptionIDsForField retrieves the caller's values for a field and extracts all option IDs.
@@ -1201,419 +1346,60 @@ func (h *AccessControlHook) getCallerOptionIDsForField(groupID, fieldID, callerI
 	return callerOptionIDs, nil
 }
 
-// filterSharedOnlyFieldOptions filters a field's options to only include those the caller has values for.
-//
-// Two types answer it with more than exact membership, because for them one
-// option stands for others:
-//
-//   - A rank field exposes every option at or below the caller's own rank
-//     ("everything at your rank and lower"), so a higher-cleared caller sees the
-//     full ladder up to their level. See filterSharedOnlyRankFieldOptions.
-//   - A graph field exposes every option the caller covers -- one of the caller's
-//     own options is at-or-above it -- which is the rule
-//     filterSharedOnlyGraphValueBatch applies to the same field's values.
-//
-// This is the option list a field read carries inline, which a field with more
-// than model.PropertyFieldMaxHydratedOptions options does not have at all; a
-// graph field is expected to be past that. The options endpoint is what lists
-// such a field's hierarchy, and it is filtered by the same rule from the option
-// rows -- see filterSharedOnlyGraphOptionPage.
-func (h *AccessControlHook) filterSharedOnlyFieldOptions(rctx request.CTX, field *model.PropertyField, callerID string) *model.PropertyField {
-	if !field.Type.SupportsOptions() {
-		return field
-	}
-
-	if field.Type == model.PropertyFieldTypeRank {
-		return h.filterSharedOnlyRankFieldOptions(field, callerID)
-	}
-
-	// Options withheld: the read left the list out because the field has more
-	// than model.PropertyFieldMaxHydratedOptions of them, so there is nothing to
-	// intersect the caller's holdings against. Hide the lot — returning the field
-	// as-is would hand an unentitled caller the option count, which on a
-	// shared_only field is itself controlled information.
-	if model.PropertyFieldOptionsOmitted(field.Attrs) {
-		return h.maskedFieldCopy(field)
-	}
-
-	callerOptionIDs, err := h.getCallerOptionIDsForField(field.GroupID, field.ID, callerID, field.Type)
-	if err != nil || len(callerOptionIDs) == 0 {
-		return h.maskedFieldCopy(field)
-	}
-
-	if field.Attrs == nil {
-		return field
-	}
-	optionsArr, ok := field.Attrs[model.PropertyFieldAttributeOptions]
-	if !ok {
-		return field
-	}
-
-	optionsSlice, ok := optionsArr.([]any)
-	if !ok {
-		return field
-	}
-
-	// Which of the options in the list this caller may see. A graph field asks the
-	// hierarchy; every other type asks whether the caller holds the option itself.
-	var visible map[string]bool
-	if field.Type == model.PropertyFieldTypeGraph {
-		covered, err := h.propertyService.CoveredBy(rctx, field,
-			extractOptionIDList(optionsSlice), slices.Collect(maps.Keys(callerOptionIDs)))
-		if err != nil {
-			rctx.Logger().Error(
-				"Hiding a graph property field's options because which of them the caller may see could not be established",
-				mlog.String("field_id", field.ID),
-				mlog.Err(err),
-			)
-			return h.maskedFieldCopy(field)
-		}
-		visible = covered
-	} else {
-		visible = make(map[string]bool, len(callerOptionIDs))
-		for optionID := range callerOptionIDs {
-			visible[optionID] = true
-		}
-	}
-
-	filteredOptions := []any{}
-	for _, opt := range optionsSlice {
-		optMap, ok := opt.(map[string]any)
-		if !ok {
-			continue
-		}
-		optID, ok := optMap["id"].(string)
-		if !ok {
-			continue
-		}
-		if visible[optID] {
-			filteredOptions = append(filteredOptions, opt)
-		}
-	}
-
-	filteredField := h.copyPropertyField(field)
-	filteredField.Attrs[model.PropertyFieldAttributeOptions] = filteredOptions
-	return filteredField
-}
-
-// filterSharedOnlyRankFieldOptions filters a rank field's options to those at
-// or below the caller's own rank, rather than the exact-match intersection
-// used for select/multiselect. A caller who holds no value for the field (and
-// therefore has no rank) sees no options.
-func (h *AccessControlHook) filterSharedOnlyRankFieldOptions(field *model.PropertyField, callerID string) *model.PropertyField {
-	// Options withheld: same reasoning as filterSharedOnlyFieldOptions. The rank
-	// map below would come back empty, which reads as "the caller has no
-	// clearance" and hides every option anyway — but it would leave the option
-	// count on the field, so hide explicitly instead.
-	if model.PropertyFieldOptionsOmitted(field.Attrs) {
-		return h.maskedFieldCopy(field)
-	}
-
-	// Bail out before building the rank map or the caller-rank store lookup when
-	// there are no options to filter: an absent or malformed options array has
-	// nothing to hide, so the field is returned untouched.
-	if field.Attrs == nil {
-		return field
-	}
-	optionsArr, ok := field.Attrs[model.PropertyFieldAttributeOptions]
-	if !ok {
-		return field
-	}
-	optionsSlice, ok := optionsArr.([]any)
-	if !ok {
-		return field
-	}
-
-	rankByID := buildOptionRankMap(field)
-	callerRank, ok := h.callerRankForField(field, callerID, rankByID)
-	if !ok {
-		filteredField := h.copyPropertyField(field)
-		filteredField.Attrs[model.PropertyFieldAttributeOptions] = []any{}
-		return filteredField
-	}
-
-	filteredOptions := []any{}
-	for _, opt := range optionsSlice {
-		optMap, ok := opt.(map[string]any)
-		if !ok {
-			continue
-		}
-		optID, ok := optMap["id"].(string)
-		if !ok {
-			continue
-		}
-		rank, ok := rankByID[optID]
-		if !ok {
-			continue
-		}
-		if rank <= callerRank {
-			filteredOptions = append(filteredOptions, opt)
-		}
-	}
-
-	filteredField := h.copyPropertyField(field)
-	filteredField.Attrs[model.PropertyFieldAttributeOptions] = filteredOptions
-	return filteredField
-}
-
-// callerRankForField returns the rank the caller holds for a rank field, using
-// the already-built option-ID-to-rank map. A rank field is select-shaped (a
-// single value per user), so the caller has at most one option; we take it.
-// ok is false when the caller has no value for the field or the option carries
-// no rank, in which case the caller has no clearance and sees nothing.
-func (h *AccessControlHook) callerRankForField(field *model.PropertyField, callerID string, rankByID map[string]int) (int, bool) {
-	callerOptionIDs, err := h.getCallerOptionIDsForField(field.GroupID, field.ID, callerID, field.Type)
-	if err != nil || len(callerOptionIDs) == 0 {
-		return 0, false
-	}
-
-	var callerOptionID string
-	for id := range callerOptionIDs {
-		callerOptionID = id
-		break
-	}
-
-	rank, ok := rankByID[callerOptionID]
-	return rank, ok
-}
-
-// buildOptionRankMap returns a map of option ID to rank for a rank field.
-// Options without a rank are skipped.
-//
-// An empty map means "no option has a rank", which every caller reads as "the
-// caller holds no clearance" and answers by hiding. That is the right answer for
-// a field whose options were withheld from the read because it has more than
-// model.PropertyFieldMaxHydratedOptions of them: the ranks needed to decide what
-// the caller may see are simply not here, and on a masking path missing data
-// hides rather than shows. Stated as its own branch so a future reader does not
-// "fix" the empty map into something permissive.
-func buildOptionRankMap(field *model.PropertyField) map[string]int {
-	out := map[string]int{}
-	if field.Attrs == nil {
-		return out
-	}
-	if model.PropertyFieldOptionsOmitted(field.Attrs) {
-		return out
-	}
-	rawOpts, ok := field.Attrs[model.PropertyFieldAttributeOptions]
-	if !ok {
-		return out
-	}
-	opts, err := model.NewPropertyOptionsFromFieldAttrs[*model.CustomProfileAttributesSelectOption](rawOpts)
-	if err != nil {
-		return out
-	}
-	for _, o := range opts {
-		if o.Rank == nil {
-			continue
-		}
-		out[o.ID] = *o.Rank
-	}
-	return out
-}
-
-// filterSharedOnlyValue computes the intersection of caller and target values for shared_only fields.
-// Returns the filtered value or nil if there's no intersection. Graph values do
-// not come through here: applyValueReadAccessControl masks a field's whole
-// batch of them at once, in filterSharedOnlyGraphValueBatch.
-//   - rank: clearance-style. The caller sees the option at the highest rank they share with the
-//     target — the target's own value when its rank is at or below the caller's, otherwise the
-//     value clamped down to the option at the caller's own rank. See filterSharedOnlyRankValue.
-//   - select / multiselect: per-value intersection (a multi-value field may return a subset).
-//   - text / date / user / any other primitive type: binary — visible only if the caller's
-//     stored value equals the target's value exactly. Otherwise nil.
-//
-// The binary path is what protects scenarios like LDAP/SAML-synced text codenames whose
-// existence is itself controlled information: a caller who doesn't hold the same value
-// must not see the target's value through any read endpoint.
-func (h *AccessControlHook) filterSharedOnlyValue(field *model.PropertyField, value *model.PropertyValue, callerID string) *model.PropertyValue {
-	if field.Type == model.PropertyFieldTypeRank {
-		return h.filterSharedOnlyRankValue(field, value, callerID)
-	}
-
-	if field.Type != model.PropertyFieldTypeSelect && field.Type != model.PropertyFieldTypeMultiselect {
-		return h.filterSharedOnlyScalarValue(field, value, callerID)
-	}
-
-	callerOptionIDs, err := h.getCallerOptionIDsForField(field.GroupID, field.ID, callerID, field.Type)
-	if err != nil || len(callerOptionIDs) == 0 {
-		return nil
-	}
-
-	targetOptionIDs, err := h.extractOptionIDsFromValue(field.Type, value.Value)
-	if err != nil || targetOptionIDs == nil || len(targetOptionIDs) == 0 {
-		return nil
-	}
-
-	intersection := []string{}
-	for targetID := range targetOptionIDs {
-		if _, exists := callerOptionIDs[targetID]; exists {
-			intersection = append(intersection, targetID)
-		}
-	}
-
-	if len(intersection) == 0 {
-		return nil
-	}
-
-	filteredValue := *value
-
-	switch field.Type {
-	case model.PropertyFieldTypeSelect:
-		jsonValue, err := json.Marshal(intersection[0])
-		if err != nil {
-			return nil
-		}
-		filteredValue.Value = jsonValue
-		return &filteredValue
-
-	case model.PropertyFieldTypeMultiselect:
-		jsonValue, err := json.Marshal(intersection)
-		if err != nil {
-			return nil
-		}
-		filteredValue.Value = jsonValue
-		return &filteredValue
-
-	default:
-		return nil
-	}
-}
-
-// filterSharedOnlyRankValue returns the target's value clamped to the highest
-// rank the caller shares with the target: the target's own value when its rank
-// is at or below the caller's, otherwise the value rewritten to the option at
-// the caller's own rank. The caller therefore always learns the highest level
-// they have in common ("what can we talk about, and at what level") rather than
-// seeing nothing when the target outranks them, but never sees a rank above
-// their own. This differs from select/multiselect, which require an exact
-// option match. A caller who holds no value of their own (and therefore has no
-// rank) sees nothing. A rank field is select-shaped, so the target has at most
-// one option.
-func (h *AccessControlHook) filterSharedOnlyRankValue(field *model.PropertyField, value *model.PropertyValue, callerID string) *model.PropertyValue {
-	rankByID := buildOptionRankMap(field)
-	callerRank, ok := h.callerRankForField(field, callerID, rankByID)
-	if !ok {
-		return nil
-	}
-
-	targetOptionIDs, err := h.extractOptionIDsFromValue(field.Type, value.Value)
-	if err != nil || len(targetOptionIDs) == 0 {
-		return nil
-	}
-
-	for targetID := range targetOptionIDs {
-		targetRank, ok := rankByID[targetID]
-		if !ok {
-			continue
-		}
-		if targetRank <= callerRank {
-			filtered := *value
-			return &filtered
-		}
-		// The target outranks the caller: clamp the value down to the option at
-		// the caller's own rank, the highest rung they share with the target.
-		return h.clampRankValueToRank(value, rankByID, callerRank)
-	}
-	return nil
-}
-
-// clampRankValueToRank returns a copy of value rewritten to the rank field's
-// option at the given rank. Ranks are unique per field, so exactly one option
-// matches. Returns nil if no option carries the rank (not expected, since the
-// rank is taken from an existing option) or the rewrite fails.
-func (h *AccessControlHook) clampRankValueToRank(value *model.PropertyValue, rankByID map[string]int, rank int) *model.PropertyValue {
-	var optionID string
-	for id, r := range rankByID {
-		if r == rank {
-			optionID = id
-			break
-		}
-	}
-	if optionID == "" {
-		return nil
-	}
-
-	jsonValue, err := json.Marshal(optionID)
-	if err != nil {
-		return nil
-	}
-
-	clamped := *value
-	clamped.Value = jsonValue
-	return &clamped
-}
-
-// logHiddenGraphValue records a value that was hidden because what the caller may
-// see of it could not be worked out. Hiding is the only safe answer, and it is
-// also the answer for a caller who genuinely shares nothing with the target — so
-// without a log there is nothing anywhere to tell a broken hierarchy from a
-// working one.
-func logHiddenGraphValue(rctx request.CTX, field *model.PropertyField, value *model.PropertyValue, err error) {
-	rctx.Logger().Error(
-		"Hiding a graph property value because what the caller may see of it could not be established",
-		mlog.String("field_id", field.ID),
-		mlog.String("value_id", value.ID),
-		mlog.Err(err),
-	)
-}
-
-// filterSharedOnlyScalarValue applies binary masking to a non-option field's value:
-// returns the value as-is if the caller's own stored value for the same field equals
-// the target's value, otherwise nil. Caller and target may legitimately store nothing,
-// in which case the value is hidden.
-func (h *AccessControlHook) filterSharedOnlyScalarValue(field *model.PropertyField, value *model.PropertyValue, callerID string) *model.PropertyValue {
-	if value == nil || len(value.Value) == 0 {
-		return nil
-	}
-
-	callerValues, err := h.getCallerValuesForField(field.GroupID, field.ID, callerID)
-	if err != nil || len(callerValues) == 0 {
-		return nil
-	}
-
-	for _, cv := range callerValues {
-		if bytes.Equal(cv.Value, value.Value) {
-			filtered := *value
-			return &filtered
-		}
-	}
-	return nil
-}
-
 // applyFieldReadAccessControl applies read access control to a single field.
-// Returns the field with options filtered based on the caller's access permissions.
-// - Public fields: returned as-is
-// - Any access mode when the caller is the field's source plugin: returned as-is
-// - Shared-only fields: returned with options filtered using filterSharedOnlyFieldOptions
-// - Source-only or unknown access modes: returned with empty options (secure default)
-func (h *AccessControlHook) applyFieldReadAccessControl(rctx request.CTX, field *model.PropertyField, callerID string) *model.PropertyField {
-	if h.hasUnrestrictedFieldReadAccess(field, callerID) {
+// A caller who holds option.read gets the field back, its option list
+// filtered to what masking allows them to see; a caller who does not is
+// still given the field itself -- field.read is left unenforced -- with its
+// option list hidden.
+//
+// c is the masking context for the batch this field read is part of --
+// callers that read one field at a time still build one, of one field, so
+// there is a single path through the masking resolution.
+func (h *AccessControlHook) applyFieldReadAccessControl(rctx request.CTX, c maskingContext, field *model.PropertyField, callerID string) *model.PropertyField {
+	scope := h.extractActingAsScope(rctx)
+	if !h.permissionsAllows(rctx, field, callerID, scope, model.PropertyActionOptionRead, "") {
+		// Denied: the field itself is still returned -- field.read is left
+		// unenforced -- only its option list is hidden. An unconverted
+		// row (Permissions == nil) takes this arm for every machine and
+		// ordinary human; a local-mode admin is admitted by the ladder
+		// even without a permissions object, so policy authoring can
+		// still see the option names a rank comparison desugars against.
+		return h.hiddenOptionsFieldCopy(field)
+	}
+	if field.Permissions == nil {
 		return field
 	}
-
-	accessMode := h.getAccessMode(field)
-
-	if accessMode == model.PropertyAccessModeSharedOnly {
-		return h.filterSharedOnlyFieldOptions(rctx, field, callerID)
+	fm, err := c.resolve(h, rctx, field)
+	if err != nil {
+		rctx.Logger().Error(
+			"Hiding a property field's options because its masking could not be resolved",
+			mlog.String("field_id", field.ID),
+			mlog.Err(err),
+		)
+		return h.hiddenOptionsFieldCopy(field)
 	}
-
-	// Source-only or unknown: return with empty options (secure default)
-	if field.Type.SupportsOptions() {
-		return h.maskedFieldCopy(field)
+	if fm.masking == nil || h.exempt(rctx, fm.masking.Except, callerID) {
+		return field
 	}
-	return h.copyPropertyField(field)
+	return h.maskFieldOptions(rctx, c, field, fm, callerID)
 }
 
-// applyFieldReadAccessControlToList applies read access control to a list of fields.
+// applyFieldReadAccessControlToList applies read access control to a list of
+// fields, sharing one masking context across the batch: a holdings search a
+// field's masking needs runs once for every field that shares the same
+// holdings field, and each field's masking is resolved once rather than once
+// per call into it. The template lookup a linked field's resolution makes is
+// not shared -- maskingContext has no template cache -- so fields linked to
+// the same template each pay their own template read.
 func (h *AccessControlHook) applyFieldReadAccessControlToList(rctx request.CTX, fields []*model.PropertyField, callerID string) []*model.PropertyField {
 	if len(fields) == 0 {
 		return fields
 	}
 
+	c := newMaskingContext()
 	filtered := make([]*model.PropertyField, 0, len(fields))
 	for _, field := range fields {
-		filtered = append(filtered, h.applyFieldReadAccessControl(rctx, field, callerID))
+		filtered = append(filtered, h.applyFieldReadAccessControl(rctx, c, field, callerID))
 	}
 
 	return filtered
@@ -1664,153 +1450,41 @@ func (h *AccessControlHook) applyValueReadAccessControl(rctx request.CTX, values
 		return nil, fmt.Errorf("applyValueReadAccessControl: %w", err)
 	}
 
-	// Graph values needing shared_only masking are grouped by field and masked
-	// together: the caller's own holdings for the field, and the coverage
-	// question over the union of every value's options, are the same regardless
-	// of how many of the field's values are in this batch. See
-	// filterSharedOnlyGraphValueBatch.
-	graphValuesByField := make(map[string][]*model.PropertyValue)
+	scope := h.extractActingAsScope(rctx)
+	mc := newMaskingContext()
+
+	filtered := make([]*model.PropertyValue, 0, len(values))
 	for _, value := range values {
 		field, exists := fieldMap[value.FieldID]
 		if !exists {
 			return nil, fmt.Errorf("applyValueReadAccessControl: field not found for value %s", value.ID)
 		}
-		if field.Type == model.PropertyFieldTypeGraph &&
-			h.getAccessMode(field) == model.PropertyAccessModeSharedOnly &&
-			!h.hasUnrestrictedFieldReadAccess(field, callerID) {
-			graphValuesByField[field.ID] = append(graphValuesByField[field.ID], value)
+
+		if !h.permissionsAllows(rctx, field, callerID, scope, model.PropertyActionValueRead, value.TargetID) {
+			continue
 		}
-	}
-
-	maskedGraphValues := make(map[string]*model.PropertyValue, len(values))
-	for fieldID, fieldValues := range graphValuesByField {
-		masked := h.filterSharedOnlyGraphValueBatch(rctx, fieldMap[fieldID], fieldValues, callerID)
-		maps.Copy(maskedGraphValues, masked)
-	}
-
-	filtered := make([]*model.PropertyValue, 0, len(values))
-	for _, value := range values {
-		field := fieldMap[value.FieldID]
-		accessMode := h.getAccessMode(field)
-
-		if h.hasUnrestrictedFieldReadAccess(field, callerID) {
+		if field.Permissions == nil {
 			filtered = append(filtered, value)
-		} else if accessMode == model.PropertyAccessModeSharedOnly {
-			var filteredValue *model.PropertyValue
-			if field.Type == model.PropertyFieldTypeGraph {
-				filteredValue = maskedGraphValues[value.ID] // absent means masked away entirely
-			} else {
-				filteredValue = h.filterSharedOnlyValue(field, value, callerID)
-			}
-			if filteredValue != nil {
-				filtered = append(filtered, filteredValue)
-			}
+			continue
 		}
-		// For source_only mode where caller is not the source, skip the value
+
+		fm, err := mc.resolve(h, rctx, field)
+		if err != nil {
+			return nil, fmt.Errorf("applyValueReadAccessControl: %w", err)
+		}
+		if fm.masking == nil || h.exempt(rctx, fm.masking.Except, callerID) {
+			filtered = append(filtered, value)
+			continue
+		}
+		maskedValue, err := h.maskValue(rctx, mc, field, fm, value, callerID)
+		if err != nil {
+			// Hide rather than fail the read: what one value's filter could not
+			// establish must not turn into an error for the whole list.
+			logMaskingFailure(rctx, field, value, err)
+		} else if maskedValue != nil {
+			filtered = append(filtered, maskedValue)
+		}
 	}
 
 	return filtered, nil
-}
-
-// filterSharedOnlyGraphValueBatch masks a batch of shared_only graph values that
-// all belong to the same field, by running each through clampToCoverage: every
-// option the caller covers -- one of their own options is at-or-above it --
-// shows as it stands, and every option they do not cover is replaced by the
-// options below it that they do cover. An option with nothing covered below it
-// is left out, and a value left with no options at all is left out of the
-// returned map entirely.
-//
-// So a caller holding one program in a family sees a target marked with the
-// whole family as marked with their own part of it: enough to know they have
-// something in common, and nothing about the parts of the family they hold no
-// claim to. A caller holding nothing for the field sees nothing.
-//
-// The caller's own held options are read once and reused for every value in the
-// batch, and the coverage question is asked once over the union of every
-// value's option identifiers rather than once per value, through the
-// graphClampBatch every clampToCoverage call below shares. Each value is still
-// answered on its own -- an option one value holds is never used to decide what
-// is visible in another.
-//
-// A value that fails to mask -- an unreadable target, a lookup that errors -- is
-// logged and left out of the returned map rather than treated as an error of the
-// batch: hiding the value is the answer, as it is everywhere else in this file.
-//
-// The option list inlined into the field is not consulted, so a field with more
-// options than a read inlines (model.PropertyFieldMaxHydratedOptions) masks
-// exactly like any other: the hierarchy is read from the option rows, and a
-// graph field is expected to be well past that cap.
-func (h *AccessControlHook) filterSharedOnlyGraphValueBatch(rctx request.CTX, field *model.PropertyField, values []*model.PropertyValue, callerID string) map[string]*model.PropertyValue {
-	callerOptionIDs, err := h.getCallerOptionIDsForField(field.GroupID, field.ID, callerID, field.Type)
-	if err != nil {
-		for _, value := range values {
-			logHiddenGraphValue(rctx, field, value, err)
-		}
-		return nil
-	}
-	if len(callerOptionIDs) == 0 {
-		return nil
-	}
-	heldOptionIDs := slices.Collect(maps.Keys(callerOptionIDs))
-
-	targetOptionIDsByValue := make(map[string]map[string]struct{}, len(values))
-	union := map[string]struct{}{}
-	for _, value := range values {
-		targetOptionIDs, extractErr := h.extractOptionIDsFromValue(field.Type, value.Value)
-		if extractErr != nil {
-			logHiddenGraphValue(rctx, field, value, extractErr)
-			continue
-		}
-		if len(targetOptionIDs) == 0 {
-			continue
-		}
-		targetOptionIDsByValue[value.ID] = targetOptionIDs
-		for optionID := range targetOptionIDs {
-			union[optionID] = struct{}{}
-		}
-	}
-	if len(union) == 0 {
-		return nil
-	}
-
-	covered, err := h.propertyService.CoveredBy(rctx, field, slices.Collect(maps.Keys(union)), heldOptionIDs)
-	if err != nil {
-		for _, value := range values {
-			logHiddenGraphValue(rctx, field, value, err)
-		}
-		return nil
-	}
-	batch := &graphClampBatch{covered: covered, below: map[string][]string{}}
-
-	masked := make(map[string]*model.PropertyValue, len(values))
-	for _, value := range values {
-		targetOptionIDs, ok := targetOptionIDsByValue[value.ID]
-		if !ok {
-			continue
-		}
-
-		visible, err := h.propertyService.clampToCoverage(rctx, field, slices.Collect(maps.Keys(targetOptionIDs)), heldOptionIDs, batch)
-		if err != nil {
-			logHiddenGraphValue(rctx, field, value, err)
-			continue
-		}
-		if len(visible) == 0 {
-			continue
-		}
-
-		// visible is already sorted, by the same rule clampToCoverage gives: the
-		// same holdings must mask the same value to the same answer every time it
-		// is read.
-		jsonValue, err := json.Marshal(visible)
-		if err != nil {
-			logHiddenGraphValue(rctx, field, value, err)
-			continue
-		}
-
-		filtered := *value
-		filtered.Value = jsonValue
-		masked[value.ID] = &filtered
-	}
-
-	return masked
 }

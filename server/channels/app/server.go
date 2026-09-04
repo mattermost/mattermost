@@ -280,7 +280,7 @@ func NewServer(options ...Option) (*Server, error) {
 
 	// Register builtin property groups before creating hooks that reference them
 	if err = s.propertyService.RegisterBuiltinGroups([]*model.PropertyGroup{
-		{Name: model.AccessControlPropertyGroupName, Version: model.PropertyGroupVersionV2, SchemaVersion: model.AccessControlPropertyGroupSchemaVersion},
+		{Name: model.AccessControlPropertyGroupName, Version: model.PropertyGroupVersionV3, SchemaVersion: model.AccessControlPropertyGroupSchemaVersion},
 		{Name: model.SessionAttributesPropertyGroupName, Version: model.PropertyGroupVersionV2},
 		{Name: model.ContentFlaggingGroupName, Version: model.PropertyGroupVersionV1},
 		{Name: model.BoardsPropertyGroupName, Version: model.PropertyGroupVersionV2},
@@ -328,10 +328,15 @@ func NewServer(options ...Option) (*Server, error) {
 	}, cpaGroup.ID)
 	s.propertyService.AddHook(licenseCheckHook)
 
-	accessControlHook := properties.NewAccessControlHook(s.propertyService, func(pluginID string) bool {
-		_, err := s.ch.GetPluginStatus(pluginID)
-		return err == nil
-	}, cpaGroup.ID)
+	accessControlHook := properties.NewAccessControlHook(s.propertyService, app.IsInstalledPlugin, func(rctx request.CTX, userID string, field *model.PropertyField, action, valueTargetID string) bool {
+		// Local-mode (unrestricted) sessions are tagged with
+		// CallerIDLocalAdmin by the HTTP layer; grant them without a
+		// user lookup, as permChecker below does for its own case.
+		if userID == model.CallerIDLocalAdmin {
+			return true
+		}
+		return app.decidePropertyFieldPermission(rctx, userID, field, action, valueTargetID).Allowed
+	}, app.propertyCallerRoles)
 	s.propertyService.AddHook(accessControlHook)
 
 	// Attribute validation hook — validates visibility, sort_order on fields,

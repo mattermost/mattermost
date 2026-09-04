@@ -35,7 +35,7 @@ func propertyFieldForOptions(c *Context, callerName string) (*model.PropertyFiel
 		return nil, nil
 	}
 
-	group := getV2Group(c, callerName)
+	group := getPropertyAPIGroup(c, callerName)
 	if c.Err != nil {
 		return nil, nil
 	}

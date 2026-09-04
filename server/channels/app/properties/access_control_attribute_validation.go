@@ -446,11 +446,11 @@ func rankSortKey(rank *int) int {
 //     caller ID (e.g. internal callers with no session on rctx) are
 //     treated as non-admin and rejected.
 //   - When the field is owner-managed, PermissionValues is pinned to sysadmin.
-//     Human value writes are already blocked authoritatively by
-//     checkOwnerValueWriteAccess in the property-service hook, but pinning
-//     sysadmin here is the safe fallback: if the owners list is ever dropped,
-//     the field defaults to admin-only rather than becoming writable by every
-//     member.
+//     Human value writes are already blocked authoritatively by the converted
+//     restriction (PermissionsFromLegacy forces value.write to none for an
+//     owner-managed field), but pinning sysadmin here is the safe fallback: if
+//     the owners list is ever dropped, the field defaults to admin-only rather
+//     than becoming writable by every member.
 //   - Otherwise, PermissionValues is left as-is when set, and default-filled
 //     by ObjectType when nil (member for user fields, sysadmin for system
 //     and template). Caller pins are never downgraded.

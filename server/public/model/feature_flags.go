@@ -138,6 +138,13 @@ type FeatureFlags struct {
 	// the flag does and does not restrict.
 	PropertyFieldGraph bool
 
+	// FEATURE_FLAG_REMOVAL: PropertyFieldPermissionsV3 - Remove this when the feature is GA.
+	// Gates whether the server serves the v3 property field payload: the typed
+	// `permissions` object, stripped per caller, and the write rules that go with
+	// it. A v3 group with this off keeps serving the v2 columns-and-attrs shape.
+	// It does not gate the conversion of stored settings, which runs regardless.
+	PropertyFieldPermissionsV3 bool
+
 	TeamMembershipAccessControl bool
 
 	// Enable channel attributes (Smart Labels, banners) powered by the Properties API.
@@ -231,6 +238,8 @@ func (f *FeatureFlags) SetDefaults() {
 	f.PropertyFieldRank = true
 
 	f.PropertyFieldGraph = false
+
+	f.PropertyFieldPermissionsV3 = false
 
 	f.ChannelAttributes = false
 

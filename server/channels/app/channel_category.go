@@ -309,7 +309,7 @@ func (a *App) SetChannelManagedCategory(rctx request.CTX, channelID, categoryNam
 		Value:      nameJSON,
 	}
 
-	if _, appErr := a.UpsertPropertyValues(rctx, []*model.PropertyValue{value}, model.PropertyFieldObjectTypeChannel, channelID, ""); appErr != nil {
+	if _, appErr := a.UpsertPropertyValues(rctxWithSessionCallerID(rctx), []*model.PropertyValue{value}, model.PropertyFieldObjectTypeChannel, channelID, ""); appErr != nil {
 		return model.NewAppError("SetChannelManagedCategory", "app.managed_category.set.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
 	}
 
@@ -317,6 +317,8 @@ func (a *App) SetChannelManagedCategory(rctx request.CTX, channelID, categoryNam
 }
 
 func (a *App) ClearChannelManagedCategory(rctx request.CTX, channelID string) *model.AppError {
+	rctx = rctxWithSessionCallerID(rctx)
+
 	values, appErr := a.SearchPropertyValues(rctx, a.Channels().managedCategoryGroupID, model.PropertyValueSearchOpts{
 		FieldID:   a.Channels().managedCategoryFieldID,
 		TargetIDs: []string{channelID},
@@ -335,6 +337,29 @@ func (a *App) ClearChannelManagedCategory(rctx request.CTX, channelID string) *m
 	}
 
 	return nil
+}
+
+// rctxWithSessionCallerID tags rctx with the property-service caller ID the
+// access control hook needs, taken from the request's session. Both managed
+// category entry points reach here through a session-backed context (the
+// channel-patch handler and channel creation), so the session's user ID is
+// always the right caller to attribute the write to; a local-mode session
+// (empty UserId, full privileges) is tagged CallerIDLocalAdmin instead,
+// matching how api4's sessionCallerID does it for other property writes.
+func rctxWithSessionCallerID(rctx request.CTX) request.CTX {
+	session := rctx.Session()
+	if session.IsUnrestricted() {
+		return RequestContextWithCallerID(rctx, model.CallerIDLocalAdmin)
+	}
+	if session.UserId != "" {
+		return RequestContextWithCallerID(rctx, session.UserId)
+	}
+	// No session means the caller is not an HTTP request: the plugin API has
+	// already tagged the plugin's manifest ID on the context it hands in.
+	// Overwriting that with an empty caller would have the hook refuse the
+	// write, and CreateChannel logs and drops that error, so the channel would
+	// quietly come back with no managed category at all.
+	return rctx
 }
 
 // GetVisibleManagedCategoryMappings returns a map of channelID -> categoryName for all channels
@@ -357,7 +382,10 @@ func (a *App) GetVisibleManagedCategoryMappings(rctx request.CTX, teamID string)
 		channelIDs = append(channelIDs, ch.Id)
 	}
 
-	values, appErr := a.SearchPropertyValues(rctx, a.Channels().managedCategoryGroupID, model.PropertyValueSearchOpts{
+	// Tagged like the write and the clear: this read goes through the access
+	// control hook, and an untagged context names nobody, which filters every
+	// value out and hands back an empty map instead of the caller's categories.
+	values, appErr := a.SearchPropertyValues(rctxWithSessionCallerID(rctx), a.Channels().managedCategoryGroupID, model.PropertyValueSearchOpts{
 		FieldID:   a.Channels().managedCategoryFieldID,
 		TargetIDs: channelIDs,
 		PerPage:   len(channelIDs),

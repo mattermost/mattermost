@@ -151,23 +151,6 @@ func requireWritableOptions(field *model.PropertyField) error {
 	if field.Type == model.PropertyFieldTypeRank {
 		return optionsChangeRefused("the options of a rank field carry an order that is set by writing them as the field's option list")
 	}
-
-	// A graph field's option set is owned by exactly one field, and this is one of
-	// the two checks that make it so -- the other being that an edge never crosses
-	// fields. A local option on a field linking to a graph template could never be
-	// given a parent from the template's hierarchy, so it could only form a second
-	// hierarchy permanently disconnected from the one the field exists to serve:
-	// covered by nothing but itself, and therefore granting nothing.
-	//
-	// field.Type is read from the field as stored, which matters: a field created
-	// with a link to a graph template arrives with no mention of the graph type
-	// anywhere in the request, because its type is copied from the template later.
-	// A check reading the type from a request would not see this case at all.
-	if field.Type == model.PropertyFieldTypeGraph && optionSourceID(field) != "" {
-		return optionsChangeRefused(
-			"field %s serves the option hierarchy of the template it links to and cannot own options of its own; change them on field %s instead",
-			field.ID, optionSourceID(field))
-	}
 	return nil
 }
 
@@ -254,12 +237,17 @@ func (ps *PropertyService) GetFieldOptions(rctx request.CTX, field *model.Proper
 		return nil, err
 	}
 
+	// One masking context is shared across every page of rows this loop reads,
+	// so a caller's holdings and the field's masking template resolve once for
+	// the whole listing rather than once per page scanned -- the early exit
+	// below resolves the same masking, so it goes on the context too.
+	rctx = withMaskingContext(rctx, newMaskingContext())
+
 	// Asked once for the whole listing, before the loop pays for a single row: a
-	// caller of a source_only field but its source plugin, and a caller of a
-	// shared_only field who holds nothing for it, will see nothing on any page,
-	// and a hook can say so without reading one. An empty page answers them
-	// exactly as the scan below would have, at the cost of one call instead of a
-	// scan of the whole field.
+	// caller option.read refuses, and a caller of a masked field who holds
+	// nothing for it, will see nothing on any page, and a hook can say so
+	// without reading one. An empty page answers them exactly as the scan below
+	// would have, at the cost of one call instead of a scan of the whole field.
 	if may, err := ps.runMayShowAnyPropertyFieldOptions(rctx, field); err != nil {
 		return nil, err
 	} else if !may {
@@ -322,6 +310,21 @@ func (ps *PropertyService) CreateFieldOptions(rctx request.CTX, field *model.Pro
 	if err != nil {
 		return nil, err
 	}
+
+	// A linked field serves the option list of the field it links to and owns no
+	// part of it -- the same reason the field-create path refuses a payload that
+	// carries options for a linked field, so the two paths answer alike. Graph is
+	// the strongest case: a local option on a field linking to a graph template
+	// could never be given a parent from the template's hierarchy, so it could only
+	// form a second hierarchy permanently disconnected from the one the field
+	// exists to serve, covered by nothing but itself and granting nothing. But the
+	// rule holds for every type a field can link with, not only graph.
+	if optionSourceID(field) != "" {
+		return nil, optionsChangeRefused(
+			"field %s serves the option hierarchy of the template it links to and cannot own options of its own; change them on field %s instead",
+			field.ID, optionSourceID(field))
+	}
+
 	if err := prepareOptionPayload(field, options, false); err != nil {
 		return nil, err
 	}
@@ -340,9 +343,8 @@ func (ps *PropertyService) CreateFieldOptions(rctx request.CTX, field *model.Pro
 		}
 	}
 
-	// Every name in the payload is new, so any option already carrying one is a
-	// collision. Checked against the effective set: a name that an inherited option
-	// already has would make the two indistinguishable as a reference.
+	// Every name in the payload is new, so any option the field already owns under
+	// that name is a collision.
 	names := make([]string, 0, len(options))
 	for _, option := range options {
 		names = append(names, option.Name)

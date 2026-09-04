@@ -66,11 +66,13 @@ func TestGetPropertyFieldReadAccess(t *testing.T) {
 		assert.Equal(t, created.ID, retrieved.ID)
 		assert.Len(t, retrieved.Attrs[model.PropertyFieldAttributeOptions].([]any), 2)
 
-		// Anonymous caller can read
+		// An anonymous caller is refused outright, regardless of the field's
+		// own access mode -- there is no identity to judge against a grant or
+		// the ladder, so its options come back filtered to nothing.
 		retrieved, err = th.service.GetPropertyField(rctxAnon, th.CPAGroupID, created.ID)
 		require.NoError(t, err)
 		assert.Equal(t, created.ID, retrieved.ID)
-		assert.Len(t, retrieved.Attrs[model.PropertyFieldAttributeOptions].([]any), 2)
+		assert.Empty(t, retrieved.Attrs[model.PropertyFieldAttributeOptions])
 	})
 
 	t.Run("source_only field - source plugin gets all options", func(t *testing.T) {
@@ -286,37 +288,6 @@ func TestGetPropertyFieldReadAccess(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, created.ID, retrieved.ID)
 		assert.Empty(t, retrieved.Attrs[model.PropertyFieldAttributeOptions].([]any))
-	})
-
-	t.Run("non-CPA group routes directly to PropertyService without filtering", func(t *testing.T) {
-		nonCpaGroup, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "other_group_routing_read", Version: model.PropertyGroupVersionV2})
-		require.NoError(t, err)
-
-		field := &model.PropertyField{
-			GroupID:    nonCpaGroup.ID,
-			Name:       "routing-test-non-cpa-source-only",
-			Type:       model.PropertyFieldTypeSelect,
-			ObjectType: model.PropertyFieldObjectTypeUser,
-			TargetType: string(model.PropertyFieldTargetLevelSystem),
-			Attrs: model.StringInterface{
-				model.PropertyAttrsAccessMode:     model.PropertyAccessModeSourceOnly,
-				model.PropertyAttrsProtected:      true,
-				model.PropertyAttrsSourcePluginID: pluginID1,
-				model.PropertyFieldAttributeOptions: []any{
-					map[string]any{"id": "opt1", "value": "Option 1"},
-					map[string]any{"id": "opt2", "value": "Option 2"},
-				},
-			},
-		}
-		rctx1 := RequestContextWithCallerID(th.Context, pluginID1)
-		created, err := th.service.CreatePropertyField(rctx1, field)
-		require.NoError(t, err)
-
-		// Other plugin sees ALL options (no filtering, goes directly to PropertyService)
-		rctx2 := RequestContextWithCallerID(th.Context, "plugin-2")
-		retrieved, err := th.service.GetPropertyField(rctx2, nonCpaGroup.ID, created.ID)
-		require.NoError(t, err)
-		assert.Len(t, retrieved.Attrs[model.PropertyFieldAttributeOptions].([]any), 2)
 	})
 
 	t.Run("field with no attrs defaults to public", func(t *testing.T) {
@@ -812,25 +783,6 @@ func TestCreatePropertyField_AccessControl(t *testing.T) {
 		assert.True(t, created.Attrs[model.PropertyAttrsProtected].(bool))
 		assert.Equal(t, model.PropertyAccessModeSourceOnly, created.Attrs[model.PropertyAttrsAccessMode])
 	})
-
-	t.Run("non-CPA group routes directly to PropertyService without setting source_plugin_id", func(t *testing.T) {
-		nonCpaGroup, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "other_group_create", Version: model.PropertyGroupVersionV2})
-		require.NoError(t, err)
-
-		field := &model.PropertyField{
-			GroupID:    nonCpaGroup.ID,
-			Name:       model.NewId(),
-			Type:       model.PropertyFieldTypeText,
-			ObjectType: model.PropertyFieldObjectTypeUser,
-			TargetType: string(model.PropertyFieldTargetLevelSystem),
-		}
-
-		rctx := RequestContextWithCallerID(th.Context, "plugin-2")
-		created, err := th.service.CreatePropertyField(rctx, field)
-		require.NoError(t, err)
-		assert.NotNil(t, created)
-		assert.Nil(t, created.Attrs[model.PropertyAttrsSourcePluginID])
-	})
 }
 
 // TestUpdatePropertyField_WriteAccessControl tests write access control for field updates
@@ -903,8 +855,9 @@ func TestUpdatePropertyField_WriteAccessControl(t *testing.T) {
 		updated, _, err := th.service.UpdatePropertyField(rctxPlugin2, th.CPAGroupID, created)
 		require.Error(t, err)
 		assert.Nil(t, updated)
-		assert.Contains(t, err.Error(), "protected")
-		assert.Contains(t, err.Error(), "plugin-1")
+		// plugin-2 holds no field.write grant on a field whose source is plugin-1.
+		assert.Contains(t, err.Error(), "field.write")
+		assert.Contains(t, err.Error(), "plugin-2")
 	})
 
 	t.Run("denies empty callerID updating protected field", func(t *testing.T) {
@@ -926,7 +879,8 @@ func TestUpdatePropertyField_WriteAccessControl(t *testing.T) {
 		updated, _, err := th.service.UpdatePropertyField(rctxAnon, th.CPAGroupID, created)
 		require.Error(t, err)
 		assert.Nil(t, updated)
-		assert.Contains(t, err.Error(), "protected")
+		// permissionsAllows fails closed on an empty caller ID.
+		assert.Contains(t, err.Error(), "field write")
 	})
 
 	t.Run("prevents changing source_plugin_id", func(t *testing.T) {
@@ -1000,33 +954,6 @@ func TestUpdatePropertyField_WriteAccessControl(t *testing.T) {
 		require.NoError(t, err)
 		assert.True(t, model.IsPropertyFieldProtected(updated))
 	})
-
-	t.Run("non-CPA group routes directly to PropertyService without access control", func(t *testing.T) {
-		nonCpaGroup, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "other_group_update", Version: model.PropertyGroupVersionV2})
-		require.NoError(t, err)
-
-		field := &model.PropertyField{
-			GroupID: nonCpaGroup.ID,
-			Name:    "Non-CPA Protected",
-			Type:    model.PropertyFieldTypeText,
-			Attrs: model.StringInterface{
-				model.PropertyAttrsProtected:      true,
-				model.PropertyAttrsSourcePluginID: "plugin-1",
-			},
-			ObjectType: model.PropertyFieldObjectTypeUser,
-			TargetType: string(model.PropertyFieldTargetLevelSystem),
-		}
-
-		created, err := th.service.CreatePropertyField(rctxPlugin1, field)
-		require.NoError(t, err)
-
-		// Update with different plugin - should be allowed (no access control)
-		created.Name = "Updated by Plugin2"
-		updated, _, err := th.service.UpdatePropertyField(rctxPlugin2, nonCpaGroup.ID, created)
-		require.NoError(t, err)
-		assert.NotNil(t, updated)
-		assert.Equal(t, "Updated by Plugin2", updated.Name)
-	})
 }
 
 // TestUpdatePropertyFields_BulkWriteAccessControl tests bulk field updates with atomic access checking
@@ -1084,7 +1011,8 @@ func TestUpdatePropertyFields_BulkWriteAccessControl(t *testing.T) {
 		updated, _, _, err := th.service.UpdatePropertyFields(rctxPlugin2, th.CPAGroupID, []*model.PropertyField{created1, created2})
 		require.Error(t, err)
 		assert.Nil(t, updated)
-		assert.Contains(t, err.Error(), "protected")
+		// plugin-2 holds no field.write grant on the protected field, so the batch fails.
+		assert.Contains(t, err.Error(), "field.write")
 
 		// Verify neither was updated
 		check1, err := th.service.GetPropertyField(rctxPlugin1, th.CPAGroupID, created1.ID)
@@ -1129,6 +1057,94 @@ func TestUpdatePropertyFields_BulkWriteAccessControl(t *testing.T) {
 	})
 }
 
+// TestUpdatePropertyField_LegacyValidatorGates covers the round trip a v2
+// caller makes when it reads a masked field's projected legacy view and
+// submits it straight back: the two legacy validators the hook still runs
+// must judge only the key the caller actually asked to change, or an
+// unchanged echo trips a rule meant to catch a real edit. A real edit to the
+// same key must still be refused.
+func TestUpdatePropertyField_LegacyValidatorGates(t *testing.T) {
+	th := Setup(t).RegisterCPAPropertyGroup(t)
+	th.service.setLadderCheckerForTests(sysadminLadderCheckerForTests)
+	t.Cleanup(func() { th.service.setLadderCheckerForTests(defaultLadderCheckerForTests) })
+
+	rctx := RequestContextWithCallerID(th.Context, model.NewId())
+
+	// newMaskedField creates a field the way a v3 caller configures one --
+	// Permissions set directly, with no legacy Attrs of its own. Masked,
+	// admin-only field.write and member-writable values project to
+	// access_mode: shared_only, protected: false, permission_values: member,
+	// none of which any raw stored column agrees with, since this field was
+	// never expressed through the legacy shape.
+	newMaskedField := func(name string) *model.PropertyField {
+		created, err := th.service.CreatePropertyField(th.Context, &model.PropertyField{
+			GroupID:    th.CPAGroupID,
+			Name:       name,
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{
+					Value:  model.ReadWrite{Read: model.PermissionLevelEveryone, Write: model.PermissionLevelMember},
+					Option: model.ReadWrite{Read: model.PermissionLevelEveryone},
+					Field:  model.WriteOnly{Write: model.PermissionLevelAdmin},
+				},
+				Masking: &model.Masking{},
+			},
+		})
+		require.NoError(t, err)
+		require.Equal(t, model.PropertyAccessModeSharedOnly, created.GetAccessMode())
+		return created
+	}
+
+	// echoedUpdate builds the field a v2 caller would submit after reading
+	// created through the legacy projection and sending it straight back
+	// unchanged -- Permissions absent, the way a caller that never speaks the
+	// v3 shape submits a whole-field update.
+	echoedUpdate := func(created *model.PropertyField) *model.PropertyField {
+		projected := model.ProjectLegacyPermissions(created)
+		echoed := *created
+		echoed.Permissions = nil
+		echoed.Attrs = projected.Attrs
+		echoed.Protected = projected.Protected
+		echoed.PermissionField = projected.PermissionField
+		echoed.PermissionValues = projected.PermissionValues
+		echoed.PermissionOptions = projected.PermissionOptions
+		return &echoed
+	}
+
+	t.Run("UpdatePropertyField accepts an unchanged legacy echo", func(t *testing.T) {
+		created := newMaskedField("Echo-Single")
+
+		// Without the gate, this 400s: "access mode 'shared_only' requires the
+		// field to be protected" -- the projection's own protected: false.
+		updated, _, err := th.service.UpdatePropertyField(rctx, th.CPAGroupID, echoedUpdate(created))
+		require.NoError(t, err)
+		assert.Equal(t, model.PropertyAccessModeSharedOnly, updated.GetAccessMode())
+	})
+
+	t.Run("UpdatePropertyFields accepts an unchanged legacy echo", func(t *testing.T) {
+		created := newMaskedField("Echo-Batch")
+
+		updated, _, _, err := th.service.UpdatePropertyFields(rctx, th.CPAGroupID, []*model.PropertyField{echoedUpdate(created)})
+		require.NoError(t, err)
+		require.Len(t, updated, 1)
+		assert.Equal(t, model.PropertyAccessModeSharedOnly, updated[0].GetAccessMode())
+	})
+
+	t.Run("a real access_mode edit is still refused", func(t *testing.T) {
+		created := newMaskedField("Echo-RealEdit")
+		submitted := echoedUpdate(created)
+		submitted.Attrs[model.PropertyAttrsAccessMode] = model.PropertyAccessModeSourceOnly
+		delete(submitted.Attrs, model.PropertyAttrsProtected)
+
+		updated, _, err := th.service.UpdatePropertyField(rctx, th.CPAGroupID, submitted)
+		require.Error(t, err)
+		assert.Nil(t, updated)
+		assert.Contains(t, err.Error(), "requires the field to be protected")
+	})
+}
+
 // TestDeletePropertyField_WriteAccessControl tests write access control for field deletion
 func TestDeletePropertyField_WriteAccessControl(t *testing.T) {
 	th := Setup(t).RegisterCPAPropertyGroup(t)
@@ -1141,6 +1157,13 @@ func TestDeletePropertyField_WriteAccessControl(t *testing.T) {
 		field := &model.PropertyField{GroupID: th.CPAGroupID, Name: "Unprotected", Type: model.PropertyFieldTypeText, ObjectType: model.PropertyFieldObjectTypeUser, TargetType: string(model.PropertyFieldTargetLevelSystem)}
 		created, err := th.service.CreatePropertyField(rctxPlugin1, field)
 		require.NoError(t, err)
+
+		// plugin-2 isn't registered here, so it takes the human path, and
+		// field.write is pinned to sysadmin for every access_control field.
+		// The default test ladder only admits a member, so this install is
+		// what lets the administrator through.
+		th.service.setLadderCheckerForTests(sysadminLadderCheckerForTests)
+		t.Cleanup(func() { th.service.setLadderCheckerForTests(defaultLadderCheckerForTests) })
 
 		err = th.service.DeletePropertyField(rctxPlugin2, th.CPAGroupID, created.ID)
 		require.NoError(t, err)
@@ -1184,31 +1207,7 @@ func TestDeletePropertyField_WriteAccessControl(t *testing.T) {
 
 		err = th.service.DeletePropertyField(rctxPlugin2, th.CPAGroupID, created.ID)
 		require.Error(t, err)
-		assert.Contains(t, err.Error(), "protected")
-	})
-
-	t.Run("non-CPA group routes directly to PropertyService without access control", func(t *testing.T) {
-		nonCpaGroup, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "other_group_delete", Version: model.PropertyGroupVersionV2})
-		require.NoError(t, err)
-
-		field := &model.PropertyField{
-			GroupID: nonCpaGroup.ID,
-			Name:    "Non-CPA Delete Protected",
-			Type:    model.PropertyFieldTypeText,
-			Attrs: model.StringInterface{
-				model.PropertyAttrsProtected:      true,
-				model.PropertyAttrsSourcePluginID: "plugin-1",
-			},
-			ObjectType: model.PropertyFieldObjectTypeUser,
-			TargetType: string(model.PropertyFieldTargetLevelSystem),
-		}
-
-		created, err := th.service.CreatePropertyField(rctxPlugin1, field)
-		require.NoError(t, err)
-
-		// Delete with different plugin - should be allowed (no access control)
-		err = th.service.DeletePropertyField(rctxPlugin2, nonCpaGroup.ID, created.ID)
-		require.NoError(t, err)
+		assert.Contains(t, err.Error(), "a field delete")
 	})
 }
 
@@ -1240,6 +1239,11 @@ func TestDeletePropertyField_OrphanedFieldDeletion(t *testing.T) {
 			return false
 		})
 
+		// "admin-user" isn't a registered plugin, so it takes the human path,
+		// and field.write is pinned to sysadmin for every access_control field.
+		th.service.setLadderCheckerForTests(sysadminLadderCheckerForTests)
+		t.Cleanup(func() { th.service.setLadderCheckerForTests(defaultLadderCheckerForTests) })
+
 		err = th.service.DeletePropertyField(RequestContextWithCallerID(th.Context, "admin-user"), th.CPAGroupID, created.ID)
 		require.NoError(t, err)
 	})
@@ -1264,8 +1268,7 @@ func TestDeletePropertyField_OrphanedFieldDeletion(t *testing.T) {
 
 		err = th.service.DeletePropertyField(RequestContextWithCallerID(th.Context, "admin-user"), th.CPAGroupID, created.ID)
 		require.Error(t, err)
-		assert.Contains(t, err.Error(), "protected")
-		assert.Contains(t, err.Error(), "installed-plugin")
+		assert.Contains(t, err.Error(), "a field delete")
 
 		err = th.service.DeletePropertyField(RequestContextWithCallerID(th.Context, "installed-plugin"), th.CPAGroupID, created.ID)
 		require.NoError(t, err)
@@ -1299,7 +1302,7 @@ func TestDeletePropertyField_OrphanedFieldDeletion(t *testing.T) {
 		updated, _, err := th.service.UpdatePropertyField(RequestContextWithCallerID(th.Context, "admin-user"), th.CPAGroupID, created)
 		require.Error(t, err)
 		assert.Nil(t, updated)
-		assert.Contains(t, err.Error(), "protected")
+		assert.Contains(t, err.Error(), "a field write")
 	})
 }
 

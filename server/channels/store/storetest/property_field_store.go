@@ -4,6 +4,7 @@
 package storetest
 
 import (
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"slices"
@@ -20,12 +21,17 @@ import (
 
 func TestPropertyFieldStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	t.Run("CreatePropertyField", func(t *testing.T) { testCreatePropertyField(t, rctx, ss) })
+	t.Run("CreatePropertyFieldPermissions", func(t *testing.T) { testCreatePropertyFieldPermissions(t, rctx, ss, s) })
+	t.Run("ReverseLookupGrants", func(t *testing.T) { testReverseLookupGrants(t, rctx, ss) })
+	t.Run("ValidateMaskByFieldID", func(t *testing.T) { testValidateMaskByFieldID(t, rctx, ss) })
 	t.Run("GetPropertyField", func(t *testing.T) { testGetPropertyField(t, rctx, ss, s) })
 	t.Run("GetManyPropertyFields", func(t *testing.T) { testGetManyPropertyFields(t, rctx, ss) })
 	t.Run("GetFieldByName", func(t *testing.T) { testGetFieldByName(t, rctx, ss) })
 	t.Run("GetFieldByNameForObjectType", func(t *testing.T) { testGetFieldByNameForObjectType(t, rctx, ss) })
 	t.Run("UpdatePropertyField", func(t *testing.T) { testUpdatePropertyField(t, rctx, ss) })
+	t.Run("UpdatePropertyFieldPermissions", func(t *testing.T) { testUpdatePropertyFieldPermissions(t, rctx, ss, s) })
 	t.Run("DeletePropertyField", func(t *testing.T) { testDeletePropertyField(t, rctx, ss, s) })
+	t.Run("DeletePropertyFieldPermissions", func(t *testing.T) { testDeletePropertyFieldPermissions(t, rctx, ss, s) })
 	t.Run("SearchPropertyFields", func(t *testing.T) { testSearchPropertyFields(t, rctx, ss, s) })
 	t.Run("CountForGroup", func(t *testing.T) { testCountForGroup(t, rctx, ss) })
 	t.Run("CheckPropertyNameConflict", func(t *testing.T) { testCheckPropertyNameConflict(t, rctx, ss) })
@@ -198,6 +204,266 @@ func testCreatePropertyField(t *testing.T, rctx request.CTX, ss store.Store) {
 	})
 }
 
+func testCreatePropertyFieldPermissions(t *testing.T, _ request.CTX, ss store.Store, s SqlStore) {
+	countGrants := func(t *testing.T, fieldID string) int {
+		t.Helper()
+		var count int
+		require.NoError(t, s.GetMaster().Get(&count,
+			"SELECT COUNT(*) FROM PropertyFieldGrants WHERE FieldID = $1", fieldID))
+		return count
+	}
+
+	t.Run("should store one grants row per action in each grant's allow list", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID:    model.NewId(),
+			Name:       "Field with grants",
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Permissions: &model.Permissions{
+				Grants: []model.Grant{
+					{
+						Identity: model.Identity{Type: model.PropertyOwnerTypeRole, ID: "system_admin"},
+						Allow:    []string{model.PropertyActionValueWrite, model.PropertyActionOptionWrite},
+					},
+					{
+						Identity: model.Identity{Type: model.PropertyOwnerTypeUser, ID: model.NewId()},
+						Allow:    []string{model.PropertyActionValueRead},
+					},
+				},
+			},
+		}
+
+		created, err := ss.PropertyField().Create(field)
+		require.NoError(t, err)
+		require.Equal(t, 3, countGrants(t, created.ID))
+
+		type grantRow struct {
+			Type   string `db:"type"`
+			ID     string `db:"id"`
+			Action string `db:"action"`
+		}
+		var rows []grantRow
+		require.NoError(t, s.GetMaster().Select(&rows,
+			"SELECT Type, ID, Action FROM PropertyFieldGrants WHERE FieldID = $1", created.ID))
+
+		require.ElementsMatch(t, []grantRow{
+			{Type: model.PropertyOwnerTypeRole, ID: "system_admin", Action: model.PropertyActionValueWrite},
+			{Type: model.PropertyOwnerTypeRole, ID: "system_admin", Action: model.PropertyActionOptionWrite},
+			{Type: model.PropertyOwnerTypeUser, ID: rows[2].ID, Action: model.PropertyActionValueRead},
+		}, rows)
+	})
+
+	t.Run("should store NULL permissions and no grants when Permissions is nil", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID: model.NewId(),
+			Name:    "Field without permissions",
+			Type:    model.PropertyFieldTypeText,
+		}
+
+		created, err := ss.PropertyField().Create(field)
+		require.NoError(t, err)
+		require.Zero(t, countGrants(t, created.ID))
+
+		var stored sql.NullString
+		require.NoError(t, s.GetMaster().Get(&stored,
+			"SELECT Permissions FROM PropertyFields WHERE ID = $1", created.ID))
+		require.False(t, stored.Valid)
+	})
+}
+
+func testReverseLookupGrants(t *testing.T, rctx request.CTX, ss store.Store) {
+	roleID := model.NewId()
+	userID := model.NewId()
+
+	field := &model.PropertyField{
+		GroupID:    model.NewId(),
+		Name:       "Field with grants",
+		Type:       model.PropertyFieldTypeText,
+		ObjectType: model.PropertyFieldObjectTypeTemplate,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
+		Permissions: &model.Permissions{
+			Grants: []model.Grant{
+				{
+					Identity: model.Identity{Type: model.PropertyOwnerTypeRole, ID: roleID},
+					Allow:    []string{model.PropertyActionValueWrite, model.PropertyActionOptionWrite},
+				},
+				{
+					Identity: model.Identity{Type: model.PropertyOwnerTypeUser, ID: userID},
+					Allow:    []string{model.PropertyActionValueRead},
+				},
+			},
+		},
+	}
+	created, err := ss.PropertyField().Create(field)
+	require.NoError(t, err)
+
+	otherField := &model.PropertyField{
+		GroupID: model.NewId(),
+		Name:    "Field without grants",
+		Type:    model.PropertyFieldTypeText,
+	}
+	_, err = ss.PropertyField().Create(otherField)
+	require.NoError(t, err)
+
+	t.Run("GetFieldsByGrant", func(t *testing.T) {
+		fieldIDs, err := ss.PropertyField().GetFieldsByGrant(rctx, model.PropertyOwnerTypeRole, roleID, model.PropertyActionValueWrite)
+		require.NoError(t, err)
+		require.Equal(t, []string{created.ID}, fieldIDs)
+
+		fieldIDs, err = ss.PropertyField().GetFieldsByGrant(rctx, model.PropertyOwnerTypeRole, roleID, model.PropertyActionValueRead)
+		require.NoError(t, err)
+		require.Empty(t, fieldIDs)
+	})
+
+	t.Run("GetGrantsForField", func(t *testing.T) {
+		grants, err := ss.PropertyField().GetGrantsForField(rctx, created.ID)
+		require.NoError(t, err)
+		require.ElementsMatch(t, []model.Grant{
+			{
+				Identity: model.Identity{Type: model.PropertyOwnerTypeRole, ID: roleID},
+				Allow:    []string{model.PropertyActionOptionWrite, model.PropertyActionValueWrite},
+			},
+			{
+				Identity: model.Identity{Type: model.PropertyOwnerTypeUser, ID: userID},
+				Allow:    []string{model.PropertyActionValueRead},
+			},
+		}, grants)
+
+		grants, err = ss.PropertyField().GetGrantsForField(rctx, model.NewId())
+		require.NoError(t, err)
+		require.Empty(t, grants)
+	})
+
+	t.Run("HasGrantForIdentity", func(t *testing.T) {
+		has, err := ss.PropertyField().HasGrantForIdentity(rctx, model.PropertyOwnerTypeUser, userID)
+		require.NoError(t, err)
+		require.True(t, has)
+
+		has, err = ss.PropertyField().HasGrantForIdentity(rctx, model.PropertyOwnerTypeUser, model.NewId())
+		require.NoError(t, err)
+		require.False(t, has)
+	})
+}
+
+func testValidateMaskByFieldID(t *testing.T, _ request.CTX, ss store.Store) {
+	groupID := model.NewId()
+
+	t.Run("mask_by_field_id referencing a non-existent field is rejected", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID:    groupID,
+			Name:       "Missing target template",
+			Type:       model.PropertyFieldTypeSelect,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Permissions: &model.Permissions{
+				Masking: &model.Masking{MaskByFieldID: model.NewId()},
+			},
+		}
+		_, err := ss.PropertyField().Create(field)
+		require.ErrorContains(t, err, "non-existent field")
+	})
+
+	userField, err := ss.PropertyField().Create(&model.PropertyField{
+		GroupID:    groupID,
+		Name:       "Unlinked holdings field",
+		Type:       model.PropertyFieldTypeText,
+		ObjectType: model.PropertyFieldObjectTypeUser,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
+	})
+	require.NoError(t, err)
+
+	t.Run("mask_by_field_id referencing a field not linked to this template is rejected", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID:    groupID,
+			Name:       "Unlinked template",
+			Type:       model.PropertyFieldTypeSelect,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Permissions: &model.Permissions{
+				Masking: &model.Masking{MaskByFieldID: userField.ID},
+			},
+		}
+		_, err := ss.PropertyField().Create(field)
+		require.ErrorContains(t, err, "not linked")
+	})
+
+	t.Run("mask_by_field_id referencing a non-user field is rejected", func(t *testing.T) {
+		otherTemplate, err := ss.PropertyField().Create(&model.PropertyField{
+			GroupID:    groupID,
+			Name:       "Other template",
+			Type:       model.PropertyFieldTypeSelect,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+		})
+		require.NoError(t, err)
+
+		field := &model.PropertyField{
+			GroupID:    groupID,
+			Name:       "Template masked by a template",
+			Type:       model.PropertyFieldTypeSelect,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Permissions: &model.Permissions{
+				Masking: &model.Masking{MaskByFieldID: otherTemplate.ID},
+			},
+		}
+		_, err = ss.PropertyField().Create(field)
+		require.ErrorContains(t, err, "object_type:user")
+	})
+
+	t.Run("mask_by_field_id referencing a deleted field is rejected", func(t *testing.T) {
+		deletedUserField, err := ss.PropertyField().Create(&model.PropertyField{
+			GroupID:    groupID,
+			Name:       "Deleted holdings field",
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+		})
+		require.NoError(t, err)
+		require.NoError(t, ss.PropertyField().Delete(groupID, deletedUserField.ID))
+
+		field := &model.PropertyField{
+			GroupID:    groupID,
+			Name:       "Template masked by a deleted field",
+			Type:       model.PropertyFieldTypeSelect,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Permissions: &model.Permissions{
+				Masking: &model.Masking{MaskByFieldID: deletedUserField.ID},
+			},
+		}
+		_, err = ss.PropertyField().Create(field)
+		require.ErrorContains(t, err, "deleted field")
+	})
+
+	t.Run("mask_by_field_id referencing a live, linked user field is accepted", func(t *testing.T) {
+		template, err := ss.PropertyField().Create(&model.PropertyField{
+			GroupID:    groupID,
+			Name:       "Linked template",
+			Type:       model.PropertyFieldTypeSelect,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+		})
+		require.NoError(t, err)
+
+		linkedFieldID := template.ID
+		linkedUserField, err := ss.PropertyField().Create(&model.PropertyField{
+			GroupID:       groupID,
+			Name:          "Linked holdings field",
+			Type:          model.PropertyFieldTypeText,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			LinkedFieldID: &linkedFieldID,
+		})
+		require.NoError(t, err)
+
+		template.Permissions = &model.Permissions{Masking: &model.Masking{MaskByFieldID: linkedUserField.ID}}
+		_, err = ss.PropertyField().Update("", []*model.PropertyField{template}, nil)
+		require.NoError(t, err)
+	})
+}
+
 // insertPropertyFieldWithNullColumns inserts a property field row that
 // simulates a record created before the migrations that added Protected,
 // Permission*, CreatedBy, and UpdatedBy columns. Those columns are left
@@ -275,10 +541,7 @@ func testGetPropertyField(t *testing.T, rctx request.CTX, ss store.Store, s SqlS
 		require.Equal(t, fieldID, field.ID)
 		require.Empty(t, field.CreatedBy)
 		require.Empty(t, field.UpdatedBy)
-		require.False(t, field.Protected)
-		require.Nil(t, field.PermissionField)
-		require.Nil(t, field.PermissionValues)
-		require.Nil(t, field.PermissionOptions)
+		require.Nil(t, field.Permissions)
 	})
 }
 
@@ -999,6 +1262,83 @@ func testUpdatePropertyField(t *testing.T, rctx request.CTX, ss store.Store) {
 	})
 }
 
+func testUpdatePropertyFieldPermissions(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
+	countGrants := func(t *testing.T, fieldID string) int {
+		t.Helper()
+		var count int
+		require.NoError(t, s.GetMaster().Get(&count,
+			"SELECT COUNT(*) FROM PropertyFieldGrants WHERE FieldID = $1", fieldID))
+		return count
+	}
+
+	t.Run("should sync grants and the permissions column to match the updated field", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID:    model.NewId(),
+			Name:       "Field with grants",
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Permissions: &model.Permissions{
+				Grants: []model.Grant{
+					{
+						Identity: model.Identity{Type: model.PropertyOwnerTypeRole, ID: "system_admin"},
+						Allow:    []string{model.PropertyActionValueWrite},
+					},
+				},
+			},
+		}
+		created, err := ss.PropertyField().Create(field)
+		require.NoError(t, err)
+		require.Equal(t, 1, countGrants(t, created.ID))
+
+		created.Permissions = &model.Permissions{
+			Grants: []model.Grant{
+				{
+					Identity: model.Identity{Type: model.PropertyOwnerTypeUser, ID: model.NewId()},
+					Allow:    []string{model.PropertyActionValueRead, model.PropertyActionOptionRead},
+				},
+			},
+		}
+		_, err = ss.PropertyField().Update("", []*model.PropertyField{created}, nil)
+		require.NoError(t, err)
+		require.Equal(t, 2, countGrants(t, created.ID))
+
+		fetched, err := ss.PropertyField().Get(rctx, "", created.ID)
+		require.NoError(t, err)
+		require.Equal(t, created.Permissions, fetched.Permissions)
+	})
+
+	t.Run("should delete all grants and store NULL when permissions is cleared", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID:    model.NewId(),
+			Name:       "Field losing its grants",
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Permissions: &model.Permissions{
+				Grants: []model.Grant{
+					{
+						Identity: model.Identity{Type: model.PropertyOwnerTypeRole, ID: "system_admin"},
+						Allow:    []string{model.PropertyActionValueWrite},
+					},
+				},
+			},
+		}
+		created, err := ss.PropertyField().Create(field)
+		require.NoError(t, err)
+		require.Equal(t, 1, countGrants(t, created.ID))
+
+		created.Permissions = nil
+		_, err = ss.PropertyField().Update("", []*model.PropertyField{created}, nil)
+		require.NoError(t, err)
+		require.Zero(t, countGrants(t, created.ID))
+
+		fetched, err := ss.PropertyField().Get(rctx, "", created.ID)
+		require.NoError(t, err)
+		require.Nil(t, fetched.Permissions)
+	})
+}
+
 func testDeletePropertyField(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	t.Run("should fail on nonexisting field", func(t *testing.T) {
 		err := ss.PropertyField().Delete("", model.NewId())
@@ -1160,6 +1500,41 @@ func testDeletePropertyField(t *testing.T, rctx request.CTX, ss store.Store, s S
 		edges, err := ss.PropertyField().GetOptionEdges(field.ID)
 		require.NoError(t, err)
 		require.Len(t, edges, 1)
+	})
+}
+
+func testDeletePropertyFieldPermissions(t *testing.T, _ request.CTX, ss store.Store, s SqlStore) {
+	t.Run("should remove grants when the field is deleted", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID:    model.NewId(),
+			Name:       "Field with grants to delete",
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Permissions: &model.Permissions{
+				Grants: []model.Grant{
+					{
+						Identity: model.Identity{Type: model.PropertyOwnerTypeRole, ID: "system_admin"},
+						Allow:    []string{model.PropertyActionValueWrite},
+					},
+				},
+			},
+		}
+
+		created, err := ss.PropertyField().Create(field)
+		require.NoError(t, err)
+
+		var before int
+		require.NoError(t, s.GetMaster().Get(&before,
+			"SELECT COUNT(*) FROM PropertyFieldGrants WHERE FieldID = $1", created.ID))
+		require.Equal(t, 1, before)
+
+		require.NoError(t, ss.PropertyField().Delete("", created.ID))
+
+		var after int
+		require.NoError(t, s.GetMaster().Get(&after,
+			"SELECT COUNT(*) FROM PropertyFieldGrants WHERE FieldID = $1", created.ID))
+		require.Zero(t, after)
 	})
 }
 

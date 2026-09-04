@@ -11,6 +11,13 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestContext_CarriesLocalAdminCaller(t *testing.T) {
+	rctx := TestContext(t)
+	id, ok := model.CallerIDFromContext(rctx.Context())
+	require.True(t, ok)
+	assert.Equal(t, model.CallerIDLocalAdmin, id)
+}
+
 func TestContext_WithConnectionId(t *testing.T) {
 	t.Run("returns new context with connection id", func(t *testing.T) {
 		originalCtx := TestContext(t)

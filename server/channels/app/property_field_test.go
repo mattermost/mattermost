@@ -89,6 +89,36 @@ func TestCreatePropertyField(t *testing.T) {
 		assert.True(t, created.Protected)
 	})
 
+	t.Run("legacy keys round trip via projection with no store columns behind them", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID:           groupID,
+			Name:              "Legacy Stored Untouched",
+			Type:              model.PropertyFieldTypeText,
+			ObjectType:        model.PropertyFieldObjectTypeChannel,
+			TargetType:        string(model.PropertyFieldTargetLevelSystem),
+			Protected:         true,
+			PermissionField:   model.NewPointer(model.PermissionLevelNone),
+			PermissionValues:  model.NewPointer(model.PermissionLevelMember),
+			PermissionOptions: model.NewPointer(model.PermissionLevelSysadmin),
+		}
+
+		created, appErr := th.App.CreatePropertyField(th.Context, field, true, "")
+		require.Nil(t, appErr)
+		require.NotEmpty(t, created.ID)
+
+		fetched, appErr := th.App.GetPropertyField(th.Context, groupID, created.ID)
+		require.Nil(t, appErr)
+		shaped := th.App.ShapePropertyFieldsForCaller(th.Context, model.Session{}, []*model.PropertyField{fetched}, false)
+		require.Len(t, shaped, 1)
+		assert.True(t, shaped[0].Protected)
+		require.NotNil(t, shaped[0].PermissionField)
+		assert.Equal(t, model.PermissionLevelNone, *shaped[0].PermissionField)
+		require.NotNil(t, shaped[0].PermissionValues)
+		assert.Equal(t, model.PermissionLevelMember, *shaped[0].PermissionValues)
+		require.NotNil(t, shaped[0].PermissionOptions)
+		assert.Equal(t, model.PermissionLevelSysadmin, *shaped[0].PermissionOptions)
+	})
+
 	t.Run("should reject creating an invalid protected field even with bypass", func(t *testing.T) {
 		// Protected field without permissions (validation requires permissions.field = "none")
 		field := &model.PropertyField{
@@ -1757,4 +1787,76 @@ func TestPropertyFieldGraphConversion(t *testing.T) {
 		require.Nil(t, appErr)
 		assert.Equal(t, model.PropertyFieldTypeMultiselect, updated.Type)
 	})
+}
+
+func TestGetPropertyFieldUnconvertedRankOptions(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+
+	group, appErr := th.App.GetPropertyGroup(th.Context, model.AccessControlPropertyGroupName)
+	require.Nil(t, appErr)
+
+	created, err := th.Store.PropertyField().Create(&model.PropertyField{
+		GroupID:    group.ID,
+		Name:       "clearance_" + model.NewId()[:8],
+		Type:       model.PropertyFieldTypeRank,
+		ObjectType: model.PropertyFieldObjectTypeUser,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
+		Attrs: model.StringInterface{
+			model.PropertyFieldAttributeOptions: []any{
+				map[string]any{"id": model.NewId(), "name": "Public", "rank": 1},
+				map[string]any{"id": model.NewId(), "name": "Secret", "rank": 2},
+			},
+		},
+	})
+	require.NoError(t, err)
+	require.Nil(t, created.Permissions)
+
+	asAdmin, appErr := th.App.GetPropertyField(th.Context, group.ID, created.ID)
+	require.Nil(t, appErr)
+	require.ElementsMatch(t, []string{"Public", "Secret"}, rankOptionNames(t, asAdmin))
+
+	asUser, appErr := th.App.GetPropertyField(RequestContextWithCallerID(th.Context, th.BasicUser.Id), group.ID, created.ID)
+	require.Nil(t, appErr)
+	assert.Empty(t, rankOptionNames(t, asUser), "ordinary callers still fail closed on an unconverted field")
+}
+
+func rankOptionNames(t *testing.T, field *model.PropertyField) []string {
+	t.Helper()
+	raw, ok := field.Attrs[model.PropertyFieldAttributeOptions].([]any)
+	if !ok {
+		return nil
+	}
+	names := make([]string, 0, len(raw))
+	for _, item := range raw {
+		opt, ok := item.(map[string]any)
+		require.True(t, ok)
+		name, _ := opt["name"].(string)
+		names = append(names, name)
+	}
+	return names
+}
+
+func TestDeletePropertyFieldSAMLMapped(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+
+	group, appErr := th.App.GetPropertyGroup(th.Context, model.AccessControlPropertyGroupName)
+	require.Nil(t, appErr)
+
+	cpa := &model.CPAField{
+		PropertyField: model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "dept_" + model.NewId()[:8],
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+		},
+		Attrs: model.CPAAttrs{SAML: "department"},
+	}
+	created, appErr := th.App.CreatePropertyField(th.Context, cpa.ToPropertyField(), false, "")
+	require.Nil(t, appErr)
+
+	syncCtx := RequestContextWithCallerID(th.Context, model.CallerIDSAMLSync)
+	require.Nil(t, th.App.DeletePropertyField(syncCtx, group.ID, created.ID, false, ""))
 }

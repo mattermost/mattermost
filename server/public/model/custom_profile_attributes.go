@@ -259,6 +259,11 @@ func (c *CPAField) ToPropertyField() *PropertyField {
 }
 
 func NewCPAFieldFromPropertyField(pf *PropertyField) (*CPAField, error) {
+	// A field carrying permissions is decided from those alone; project them
+	// back onto the legacy attrs so a CPA caller keeps reading protected,
+	// access_mode and owners as before, computed rather than stored.
+	pf = ProjectLegacyPermissions(pf)
+
 	attrsJSON, err := json.Marshal(pf.Attrs)
 	if err != nil {
 		return nil, err
@@ -274,6 +279,7 @@ func NewCPAFieldFromPropertyField(pf *PropertyField) (*CPAField, error) {
 		PropertyField: *pf,
 		Attrs:         attrs,
 	}
+	cpaField.Permissions = nil
 
 	return cpaField, nil
 }
