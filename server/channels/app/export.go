@@ -603,7 +603,13 @@ func (a *App) exportAllUsers(rctx request.CTX, job *model.Job, writer io.Writer,
 				return profilePictures, model.NewAppError("exportAllUsers", "app.team.get_by_name.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 			}
 			for _, channelName := range channelNames {
-				channel, err := a.Srv().Store().Channel().GetByName(team.Id, channelName, false)
+				var channel *model.Channel
+				var err error
+				if includeArchivedChannels {
+					channel, err = a.Srv().Store().Channel().GetByNameIncludeDeleted(team.Id, channelName, false)
+				} else {
+					channel, err = a.Srv().Store().Channel().GetByName(team.Id, channelName, false)
+				}
 				if err != nil {
 					var nfErr *store.ErrNotFound
 					if errors.As(err, &nfErr) {

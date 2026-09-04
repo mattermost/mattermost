@@ -665,6 +665,62 @@ func TestExportBotPostsIncluded(t *testing.T) {
 }
 
 // ────────────────────────────────────────────────────────────────────────────
+// EXP-06: a channel-scoped export with --include-archived-channels still
+// finds an archived target channel's members, instead of silently dropping
+// them from the export
+//
+// Reason: exportAllUsers' channel-scoped fast path looked up the channel via
+// Channel().GetByName(..., false), whose wrapper always hardcodes
+// includeDeleted=false regardless of includeArchivedChannels — the "false"
+// argument at the call site is actually allowFromCache, not a deleted-
+// inclusion flag. So an archived channel could never be found here even with
+// --include-archived-channels, silently leaving channelMemberIDs empty for
+// it — which meant any user whose ONLY connection to the export was
+// membership in that one archived channel got excluded from the user export
+// entirely (the fast path treats "not a known member/author" as irrelevant),
+// breaking post-authorship resolution for them on import.
+// ────────────────────────────────────────────────────────────────────────────
+
+func TestExportChannelScopedArchivedChannelMembersIncluded(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	archivedChan := th.CreateChannel(t, th.BasicTeam)
+	loneUser := th.CreateUser(t)
+	th.LinkUserToTeam(t, loneUser, th.BasicTeam)
+	th.AddUserToChannel(t, loneUser, archivedChan)
+
+	post := &model.Post{UserId: loneUser.Id, ChannelId: archivedChan.Id, Message: "post in soon-to-be-archived channel"}
+	_, _, appErr := th.App.CreatePost(th.Context, post, archivedChan, model.CreatePostFlags{SetOnline: false})
+	require.Nil(t, appErr)
+
+	appErr = th.App.DeleteChannel(th.Context, archivedChan, th.SystemAdminUser.Id)
+	require.Nil(t, appErr)
+
+	var buf bytes.Buffer
+	appErr = th.App.BulkExport(th.Context, &buf, "", nil, model.BulkExportOpts{
+		TeamName:                th.BasicTeam.Name,
+		ChannelName:             archivedChan.Name,
+		IncludeArchivedChannels: true,
+	})
+	require.Nil(t, appErr)
+
+	hasUserRecord := false
+	scanner := bufio.NewScanner(&buf)
+	for scanner.Scan() {
+		var line imports.LineImportData
+		if err := json.Unmarshal(scanner.Bytes(), &line); err != nil {
+			continue
+		}
+		if line.Type == "user" && line.User != nil && *line.User.Username == loneUser.Username {
+			hasUserRecord = true
+		}
+	}
+	require.NoError(t, scanner.Err())
+	assert.True(t, hasUserRecord, "user whose only membership is in the archived target channel must still be exported")
+}
+
+// ────────────────────────────────────────────────────────────────────────────
 // EXP-05: Threaded replies nested in export JSONL
 // ────────────────────────────────────────────────────────────────────────────
 
