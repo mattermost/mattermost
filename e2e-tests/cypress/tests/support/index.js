@@ -28,6 +28,7 @@ import './ldap_commands';
 import './ldap_server_commands';
 import './notification_commands';
 import './okta_commands';
+import './react_warnings';
 import './saml_commands';
 import './shell';
 import './task_commands';

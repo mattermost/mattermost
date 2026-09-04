@@ -32,7 +32,31 @@ const writeToFile = ({filename, fixturesFolder, data = ''}) => {
     return null;
 };
 
+/**
+ * Append React development warnings (e.g. those emitted by StrictMode) captured during a test to a
+ * log file so they can be collected after the run. Each entry is written as a single JSON line.
+ * @param {string} spec - the spec file the warnings were captured in
+ * @param {Array<{method: string, test: string, message: string}>} warnings - captured warnings
+ */
+const appendReactWarnings = ({spec, warnings = []}) => {
+    if (!warnings.length) {
+        return null;
+    }
+
+    const folder = path.resolve(__dirname, '../../logs');
+    if (!fs.existsSync(folder)) {
+        fs.mkdirSync(folder, {recursive: true});
+    }
+
+    const filePath = `${folder}/react-warnings.log`;
+    const lines = warnings.map((warning) => JSON.stringify({spec, ...warning})).join('\n') + '\n';
+
+    fs.appendFileSync(filePath, lines);
+    return null;
+};
+
 module.exports = {
     fileExist,
     writeToFile,
+    appendReactWarnings,
 };

@@ -26,7 +26,12 @@ const targetIsStats = NPM_TARGET === 'stats';
 const targetIsDevServer = NPM_TARGET?.startsWith('dev-server');
 const targetIsEsLint = !targetIsBuild && !targetIsRun && !targetIsDevServer;
 
-const DEV = targetIsRun || targetIsStats || targetIsDevServer;
+// Allow forcing a development-mode build even when invoked through the `build` script. This is used to
+// produce a bundle that keeps React's development-only warnings (such as those emitted by StrictMode)
+// so that they can be surfaced when running E2E tests against a production-style server image.
+const forceDevBuild = process.env.MM_WEBAPP_DEV_BUILD === 'true';
+
+const DEV = targetIsRun || targetIsStats || targetIsDevServer || forceDevBuild;
 
 const STANDARD_EXCLUDE = [
     /node_modules/,
