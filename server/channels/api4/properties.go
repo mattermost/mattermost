@@ -1061,9 +1061,6 @@ func addPropertyPermissionBasisMeta(auditRec *model.AuditRecord, basis app.Prope
 	if basis.GrantWildcard {
 		model.AddEventParameterToAuditRec(auditRec, "basis_grant_wildcard", true)
 	}
-	if basis.Legacy {
-		model.AddEventParameterToAuditRec(auditRec, "basis_legacy", true)
-	}
 	if basis.Unrestricted {
 		model.AddEventParameterToAuditRec(auditRec, "basis_unrestricted", true)
 	}

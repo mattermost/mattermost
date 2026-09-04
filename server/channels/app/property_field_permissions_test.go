@@ -232,7 +232,6 @@ func TestDecidePropertyFieldPermission(t *testing.T) {
 		assert.True(t, basis.Allowed)
 		assert.Equal(t, model.PermissionLevelEveryone, basis.Tier)
 		assert.Empty(t, basis.GrantID)
-		assert.False(t, basis.Legacy)
 	})
 
 	t.Run("restrictions deny and a matching user grant lists the action", func(t *testing.T) {
@@ -386,7 +385,6 @@ func TestDecidePropertyFieldPermission(t *testing.T) {
 		} {
 			basis := th.App.decidePropertyFieldPermission(th.Context, th.SystemAdminUser.Id, field, action, "")
 			assert.False(t, basis.Allowed, "action %s should be denied", action)
-			assert.False(t, basis.Legacy)
 		}
 
 		field.Permissions = &model.Permissions{
@@ -396,7 +394,6 @@ func TestDecidePropertyFieldPermission(t *testing.T) {
 		}
 		basis := th.App.decidePropertyFieldPermission(th.Context, th.SystemAdminUser.Id, field, model.PropertyActionFieldWrite, "")
 		assert.True(t, basis.Allowed)
-		assert.False(t, basis.Legacy)
 	})
 }
 
@@ -671,7 +668,6 @@ func TestPropertyPermissionBasisFor(t *testing.T) {
 		} {
 			basis := th.App.PropertyPermissionBasisFor(rctx, field, action, "")
 			assert.False(t, basis.Allowed, "action %s should be denied", action)
-			assert.False(t, basis.Legacy)
 		}
 	})
 
@@ -736,7 +732,6 @@ func TestPropertyPermissionBasisFor(t *testing.T) {
 		assert.False(t, basis.Allowed)
 		assert.Empty(t, basis.Tier)
 		assert.Empty(t, basis.GrantID)
-		assert.False(t, basis.Legacy)
 	})
 
 	t.Run("a nil field is denied without panicking", func(t *testing.T) {
@@ -744,7 +739,6 @@ func TestPropertyPermissionBasisFor(t *testing.T) {
 		require.NotPanics(t, func() {
 			basis := th.App.PropertyPermissionBasisFor(rctx, nil, model.PropertyActionFieldWrite, "")
 			assert.False(t, basis.Allowed)
-			assert.False(t, basis.Legacy)
 		})
 	})
 }

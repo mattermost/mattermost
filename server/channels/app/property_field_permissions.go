@@ -28,11 +28,6 @@ type PropertyPermissionBasis struct {
 	GrantScope    string
 	GrantWildcard bool
 
-	// Legacy is true when the field carried no Permissions, so the legacy
-	// columns decided the outcome instead of the field's restrictions tier
-	// or a matching grant.
-	Legacy bool
-
 	// Unrestricted is true when a local-mode session bypassed the check.
 	Unrestricted bool
 
@@ -88,7 +83,6 @@ func logPropertyFieldPermissionDenied(rctx request.CTX, basis PropertyPermission
 		mlog.String("field_id", field.ID),
 		mlog.String("action", basis.Action),
 		mlog.String("required_tier", string(requiredPermissionTierFor(field, basis.Action))),
-		mlog.Bool("legacy", basis.Legacy),
 	)
 }
 
