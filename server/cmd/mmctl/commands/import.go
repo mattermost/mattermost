@@ -417,26 +417,33 @@ func importProcessCmdF(c client.Client, command *cobra.Command, args []string) e
 	return nil
 }
 
-// findImportCheckpoint searches recent import jobs for a failed run of the
-// given file that has a checkpoint stored. Also checks for a prior successful
-// run to derive the total line count for percentage display.
+// staleInProgressThreshold is how long an import_process job must have gone
+// without a checkpoint update before findImportCheckpoint treats a job still
+// marked "in_progress" as abandoned (e.g. the server process was killed) rather
+// than genuinely still running. A hard process kill never transitions the job
+// to JobStatusError — only a recovered panic does — so without this, a
+// checkpoint saved by a crashed job would never be found.
+const staleInProgressThreshold = 10 * time.Minute
+
+// findImportCheckpoint searches recent import jobs for an interrupted run of
+// the given file that has a checkpoint stored — either a job that failed
+// outright, or one still marked "in_progress" whose last checkpoint update is
+// old enough to indicate the process died rather than being genuinely still
+// running. Also checks for a prior successful run to derive the total line
+// count for percentage display.
 // Returns (checkpoint, checkpointFile, totalLines). totalLines is 0 if unknown.
 func findImportCheckpoint(c client.Client, importFile string) (int, string, int) {
-	jobs, _, err := c.GetJobs(context.TODO(), model.JobTypeImportProcess, model.JobStatusError, 0, 10)
-	if err != nil {
-		return 0, "", 0
-	}
-	for _, job := range jobs {
+	extract := func(job *model.Job) (int, string, int, bool) {
 		if job.Data["import_file"] != importFile {
-			continue
+			return 0, "", 0, false
 		}
 		cpStr := job.Data["checkpoint"]
 		if cpStr == "" {
-			continue
+			return 0, "", 0, false
 		}
 		n, err := strconv.Atoi(cpStr)
 		if err != nil || n <= 0 {
-			continue
+			return 0, "", 0, false
 		}
 		// total_lines is stored by the pre-creation pass at the start of the
 		// import — available even on first failure, no prior successful run needed.
@@ -446,8 +453,31 @@ func findImportCheckpoint(c client.Client, importFile string) (int, string, int)
 				totalLines = tl
 			}
 		}
-		return n, job.Data["checkpoint_file"], totalLines
+		return n, job.Data["checkpoint_file"], totalLines, true
 	}
+
+	if jobs, _, err := c.GetJobs(context.TODO(), model.JobTypeImportProcess, model.JobStatusError, 0, 10); err == nil {
+		for _, job := range jobs {
+			if n, file, total, ok := extract(job); ok {
+				return n, file, total
+			}
+		}
+	}
+
+	if jobs, _, err := c.GetJobs(context.TODO(), model.JobTypeImportProcess, model.JobStatusInProgress, 0, 10); err == nil {
+		staleBefore := model.GetMillis() - staleInProgressThreshold.Milliseconds()
+		for _, job := range jobs {
+			if job.LastActivityAt > staleBefore {
+				// Recently active — likely still genuinely running; don't offer to
+				// resume it out from under itself.
+				continue
+			}
+			if n, file, total, ok := extract(job); ok {
+				return n, file, total
+			}
+		}
+	}
+
 	return 0, "", 0
 }
 

@@ -218,6 +218,10 @@ func (s *MmctlUnitTestSuite) TestImportProcessCmdF() {
 			GetJobs(context.TODO(), model.JobTypeImportProcess, model.JobStatusError, 0, 10).
 			Return(nil, &model.Response{}, nil).
 			Times(1)
+		s.client.EXPECT().
+			GetJobs(context.TODO(), model.JobTypeImportProcess, model.JobStatusInProgress, 0, 10).
+			Return(nil, &model.Response{}, nil).
+			Times(1)
 	}
 
 	s.Run("default workers", func() {
@@ -497,6 +501,79 @@ func (s *MmctlUnitTestSuite) TestImportProcessCmdF() {
 		s.Require().NotNil(err)
 		s.Contains(err.Error(), "nosuchid")
 		s.Empty(printer.GetLines())
+	})
+}
+
+// TestFindImportCheckpoint covers the fix for a hard-killed import_process job
+// (OOM, container restart) never transitioning to JobStatusError — only a
+// recovered Go panic does that. Without also checking JobStatusInProgress
+// jobs, a checkpoint saved by a crashed job would never be found on retry.
+func (s *MmctlUnitTestSuite) TestFindImportCheckpoint() {
+	importFile := "import.zip"
+
+	s.Run("finds checkpoint on a failed job", func() {
+		mockJob := &model.Job{
+			Data: map[string]string{
+				"import_file":     importFile,
+				"checkpoint":      "42",
+				"checkpoint_file": importFile,
+			},
+		}
+		s.client.EXPECT().
+			GetJobs(context.TODO(), model.JobTypeImportProcess, model.JobStatusError, 0, 10).
+			Return([]*model.Job{mockJob}, &model.Response{}, nil).
+			Times(1)
+
+		checkpoint, checkpointFile, _ := findImportCheckpoint(s.client, importFile)
+		s.Equal(42, checkpoint)
+		s.Equal(importFile, checkpointFile)
+	})
+
+	s.Run("finds checkpoint on a stale in_progress job (process was killed)", func() {
+		s.client.EXPECT().
+			GetJobs(context.TODO(), model.JobTypeImportProcess, model.JobStatusError, 0, 10).
+			Return(nil, &model.Response{}, nil).
+			Times(1)
+
+		staleJob := &model.Job{
+			LastActivityAt: model.GetMillis() - (2 * staleInProgressThreshold).Milliseconds(),
+			Data: map[string]string{
+				"import_file":     importFile,
+				"checkpoint":      "17",
+				"checkpoint_file": importFile,
+			},
+		}
+		s.client.EXPECT().
+			GetJobs(context.TODO(), model.JobTypeImportProcess, model.JobStatusInProgress, 0, 10).
+			Return([]*model.Job{staleJob}, &model.Response{}, nil).
+			Times(1)
+
+		checkpoint, checkpointFile, _ := findImportCheckpoint(s.client, importFile)
+		s.Equal(17, checkpoint)
+		s.Equal(importFile, checkpointFile)
+	})
+
+	s.Run("ignores a recently-active in_progress job — likely still genuinely running", func() {
+		s.client.EXPECT().
+			GetJobs(context.TODO(), model.JobTypeImportProcess, model.JobStatusError, 0, 10).
+			Return(nil, &model.Response{}, nil).
+			Times(1)
+
+		freshJob := &model.Job{
+			LastActivityAt: model.GetMillis(),
+			Data: map[string]string{
+				"import_file":     importFile,
+				"checkpoint":      "17",
+				"checkpoint_file": importFile,
+			},
+		}
+		s.client.EXPECT().
+			GetJobs(context.TODO(), model.JobTypeImportProcess, model.JobStatusInProgress, 0, 10).
+			Return([]*model.Job{freshJob}, &model.Response{}, nil).
+			Times(1)
+
+		checkpoint, _, _ := findImportCheckpoint(s.client, importFile)
+		s.Equal(0, checkpoint, "a job that's still actively checkpointing must not be offered for resume")
 	})
 }
 
