@@ -55,6 +55,8 @@ type OwnProps = {
     shouldHighlight?: boolean;
     location: keyof typeof Locations;
     preventClickInteraction?: boolean;
+    hideSearchChannelHeader?: boolean;
+    hideNotificationPostHeader?: boolean;
 };
 
 function isFirstReply(post: Post, previousPost?: Post | null): boolean {

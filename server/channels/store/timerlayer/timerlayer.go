@@ -44,6 +44,7 @@ type TimerLayer struct {
 	NotifyAdminStore                store.NotifyAdminStore
 	OAuthStore                      store.OAuthStore
 	OutgoingOAuthConnectionStore    store.OutgoingOAuthConnectionStore
+	PlatformNotificationStore       store.PlatformNotificationStore
 	PluginStore                     store.PluginStore
 	PostStore                       store.PostStore
 	PostAcknowledgementStore        store.PostAcknowledgementStore
@@ -183,6 +184,10 @@ func (s *TimerLayer) OAuth() store.OAuthStore {
 
 func (s *TimerLayer) OutgoingOAuthConnection() store.OutgoingOAuthConnectionStore {
 	return s.OutgoingOAuthConnectionStore
+}
+
+func (s *TimerLayer) PlatformNotification() store.PlatformNotificationStore {
+	return s.PlatformNotificationStore
 }
 
 func (s *TimerLayer) Plugin() store.PluginStore {
@@ -452,6 +457,11 @@ type TimerLayerOAuthStore struct {
 
 type TimerLayerOutgoingOAuthConnectionStore struct {
 	store.OutgoingOAuthConnectionStore
+	Root *TimerLayer
+}
+
+type TimerLayerPlatformNotificationStore struct {
+	store.PlatformNotificationStore
 	Root *TimerLayer
 }
 
@@ -6781,6 +6791,102 @@ func (s *TimerLayerOutgoingOAuthConnectionStore) UpdateConnection(rctx request.C
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("OutgoingOAuthConnectionStore.UpdateConnection", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerPlatformNotificationStore) Delete(userID string, id string) error {
+	start := time.Now()
+
+	err := s.PlatformNotificationStore.Delete(userID, id)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PlatformNotificationStore.Delete", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerPlatformNotificationStore) DeleteAllForUser(userID string) error {
+	start := time.Now()
+
+	err := s.PlatformNotificationStore.DeleteAllForUser(userID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PlatformNotificationStore.DeleteAllForUser", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerPlatformNotificationStore) GetForUser(userID string) ([]*model.PlatformNotification, error) {
+	start := time.Now()
+
+	result, err := s.PlatformNotificationStore.GetForUser(userID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PlatformNotificationStore.GetForUser", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerPlatformNotificationStore) PermanentDeleteByUser(userID string) error {
+	start := time.Now()
+
+	err := s.PlatformNotificationStore.PermanentDeleteByUser(userID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PlatformNotificationStore.PermanentDeleteByUser", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerPlatformNotificationStore) ReplaceAllForUser(userID string, notifications []*model.PlatformNotification) error {
+	start := time.Now()
+
+	err := s.PlatformNotificationStore.ReplaceAllForUser(userID, notifications)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PlatformNotificationStore.ReplaceAllForUser", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerPlatformNotificationStore) Upsert(notification *model.PlatformNotification) (*model.PlatformNotification, error) {
+	start := time.Now()
+
+	result, err := s.PlatformNotificationStore.Upsert(notification)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PlatformNotificationStore.Upsert", success, elapsed)
 	}
 	return result, err
 }
@@ -15636,6 +15742,7 @@ func New(childStore store.Store, metrics einterfaces.MetricsInterface) *TimerLay
 	newStore.NotifyAdminStore = &TimerLayerNotifyAdminStore{NotifyAdminStore: childStore.NotifyAdmin(), Root: &newStore}
 	newStore.OAuthStore = &TimerLayerOAuthStore{OAuthStore: childStore.OAuth(), Root: &newStore}
 	newStore.OutgoingOAuthConnectionStore = &TimerLayerOutgoingOAuthConnectionStore{OutgoingOAuthConnectionStore: childStore.OutgoingOAuthConnection(), Root: &newStore}
+	newStore.PlatformNotificationStore = &TimerLayerPlatformNotificationStore{PlatformNotificationStore: childStore.PlatformNotification(), Root: &newStore}
 	newStore.PluginStore = &TimerLayerPluginStore{PluginStore: childStore.Plugin(), Root: &newStore}
 	newStore.PostStore = &TimerLayerPostStore{PostStore: childStore.Post(), Root: &newStore}
 	newStore.PostAcknowledgementStore = &TimerLayerPostAcknowledgementStore{PostAcknowledgementStore: childStore.PostAcknowledgement(), Root: &newStore}

@@ -23,7 +23,7 @@ import Search from 'components/search/index';
 import RhsPlugin from 'plugins/rhs_plugin';
 import a11yController from 'utils/a11y_controller_instance';
 import {focusElement, getFirstFocusableChild} from 'utils/a11y_utils';
-import Constants from 'utils/constants';
+import Constants, {RHSStates} from 'utils/constants';
 import {cmdOrCtrlPressed, isKeyPressed} from 'utils/keyboard';
 
 import type {RhsState} from 'types/store/rhs';
@@ -57,6 +57,7 @@ export type Props = {
         showPinnedPosts: (channelId: string) => void;
         openRHSSearch: () => void;
         closeRightHandSide: () => void;
+        goBack: () => void;
         openAtPrevious: (previous: Partial<Props> | undefined) => void;
         updateSearchTerms: (terms: string) => void;
         showChannelFiles: (channelId: string) => void;
@@ -226,12 +227,17 @@ export default class SidebarRight extends React.PureComponent<Props, State> {
             this.props.actions.setRhsExpanded(false);
         }
 
-        // close when changing products or teams
-        if (
-            (prevProps.teamId && this.props.teamId !== prevProps.teamId) ||
-            this.props.productId !== prevProps.productId
-        ) {
-            this.props.actions.closeRightHandSide();
+        // close when changing products or teams, except for the notifications sidebar
+        const teamChanged = Boolean(prevProps.teamId && this.props.teamId !== prevProps.teamId);
+        const productChanged = this.props.productId !== prevProps.productId;
+        if (teamChanged || productChanged) {
+            if (teamChanged && this.props.isRecentMentions) {
+                // keep the activity/mentions panel open across team switches
+            } else if (teamChanged && this.props.postRightVisible && this.props.previousRhsState === RHSStates.MENTION) {
+                this.props.actions.goBack();
+            } else {
+                this.props.actions.closeRightHandSide();
+            }
         }
 
         this.setPrevious();

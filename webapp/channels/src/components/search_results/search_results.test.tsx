@@ -6,6 +6,8 @@ import React from 'react';
 
 import {DATE_LINE} from 'mattermost-redux/utils/post_list';
 
+import {markAllPlatformNotificationsAsRead} from 'actions/views/rhs';
+
 import SearchResults, {arePropsEqual} from 'components/search_results/search_results';
 import type {Props} from 'components/search_results/search_results';
 
@@ -14,6 +16,8 @@ import {getHistory} from 'utils/browser_history';
 import {popoutRhsSearch} from 'utils/popouts/popout_windows';
 import {TestHelper} from 'utils/test_helper';
 
+import type {PlatformNotificationRecord} from 'types/store/rhs';
+
 jest.mock('utils/popouts/popout_windows', () => ({
     popoutRhsSearch: jest.fn(),
     canPopout: () => true,
@@ -21,6 +25,20 @@ jest.mock('utils/popouts/popout_windows', () => ({
 
 jest.mock('utils/browser_history', () => ({
     getHistory: jest.fn(() => ({push: jest.fn()})),
+}));
+
+jest.mock('actions/views/rhs', () => ({
+    ...jest.requireActual('actions/views/rhs'),
+    markAllPlatformNotificationsAsRead: jest.fn(() => ({type: 'MOCK_MARK_ALL_PLATFORM_NOTIFICATIONS_READ'})),
+}));
+
+jest.mock('actions/views/platform_notification_activity', () => ({
+    fillPlatformNotificationActivity: jest.fn(() => ({type: 'MOCK_FILL_PLATFORM_NOTIFICATION_ACTIVITY'})),
+}));
+
+jest.mock('components/rhs_notification_activity/rhs_notification_activity', () => ({
+    __esModule: true,
+    default: () => <div data-testid='rhs-notification-activity'/>,
 }));
 
 jest.mock('components/search_results_header', () => ({
@@ -116,7 +134,10 @@ describe('components/SearchResults', () => {
         setSearchFilterType: jest.fn(),
         updateSearchTeam: jest.fn(),
         updateSearchTerms: jest.fn(),
-        dispatch: jest.fn(),
+        mentionRhsPanel: 'activity',
+        platformNotifications: [],
+        setMentionRhsPanel: jest.fn(),
+        searchRecentMentions: jest.fn(),
     };
 
     beforeEach(() => {
@@ -220,6 +241,54 @@ describe('components/SearchResults', () => {
 
             const counter = container.querySelector('.messages-tab .counter');
             expect(counter?.textContent).toBe('1+');
+        });
+    });
+
+    describe('notification activity mark all as read', () => {
+        const unreadRecord: PlatformNotificationRecord = {
+            id: 'n1',
+            recordedAt: 100,
+            postId: 'post1',
+            channelId: 'channel1',
+            teamId: 'team1',
+            channelDisplayName: 'Town Square',
+            contextLabel: 'Mention',
+            permalinkUrl: '/permalink',
+            isThreadReply: false,
+            previewBody: '@alice: hello',
+        };
+
+        test('shows the action on the activity tab when there are unread notifications', () => {
+            const {getByRole} = renderSearchResults({
+                isMentionSearch: true,
+                mentionRhsPanel: 'activity',
+                platformNotifications: [unreadRecord],
+            });
+
+            const button = getByRole('button', {name: 'Mark all as read'});
+            expect(button).toBeEnabled();
+            button.click();
+            expect(markAllPlatformNotificationsAsRead).toHaveBeenCalled();
+        });
+
+        test('disables the action when every notification is already read', () => {
+            const {getByRole} = renderSearchResults({
+                isMentionSearch: true,
+                mentionRhsPanel: 'activity',
+                platformNotifications: [{...unreadRecord, readAt: 200}],
+            });
+
+            expect(getByRole('button', {name: 'Mark all as read'})).toBeDisabled();
+        });
+
+        test('hides the action on the mentions tab', () => {
+            const {queryByRole} = renderSearchResults({
+                isMentionSearch: true,
+                mentionRhsPanel: 'mentions',
+                platformNotifications: [unreadRecord],
+            });
+
+            expect(queryByRole('button', {name: 'Mark all as read'})).not.toBeInTheDocument();
         });
     });
 

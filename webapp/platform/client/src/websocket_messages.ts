@@ -11,6 +11,7 @@ import type {CustomEmoji} from '@mattermost/types/emojis';
 import type {Group, GroupMember as GroupMemberType} from '@mattermost/types/groups';
 import type {OpenDialogRequest} from '@mattermost/types/integrations';
 import type {Job} from '@mattermost/types/jobs';
+import type {PlatformNotification} from '@mattermost/types/platform_notifications';
 import type {PluginManifest} from '@mattermost/types/plugins';
 import type {Post, PostAcknowledgement as PostAcknowledgementType} from '@mattermost/types/posts';
 import type {PreferenceType} from '@mattermost/types/preferences';
@@ -118,6 +119,22 @@ export type PostDraft =
     BaseWebSocketMessage<WebSocketEvents.DraftCreated | WebSocketEvents.DraftUpdated | WebSocketEvents.DraftDeleted, {
         draft: JsonEncodedValue<Draft>;
     }>;
+
+export type PlatformNotificationUpserted =
+    BaseWebSocketMessage<WebSocketEvents.PlatformNotificationUpserted, {
+        notification: JsonEncodedValue<PlatformNotification>;
+    }>;
+
+export type PlatformNotificationDeleted =
+    BaseWebSocketMessage<WebSocketEvents.PlatformNotificationDeleted, {
+        id: string;
+    }>;
+
+export type PlatformNotificationsCleared =
+    BaseWebSocketMessage<WebSocketEvents.PlatformNotificationsCleared>;
+
+export type PlatformNotificationsReplaced =
+    BaseWebSocketMessage<WebSocketEvents.PlatformNotificationsReplaced>;
 
 export type PersistentNotificationTriggered =
     BaseWebSocketMessage<WebSocketEvents.PersistentNotificationTriggered, {

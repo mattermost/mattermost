@@ -5,15 +5,21 @@ import {MarkUnread} from 'mattermost-redux/constants/channels';
 
 import testConfigureStore from 'tests/test_store';
 import {getHistory} from 'utils/browser_history';
-import Constants, {NotificationLevels, UserStatuses} from 'utils/constants';
+import Constants, {ActionTypes, NotificationLevels, UserStatuses} from 'utils/constants';
 import * as NotificationSounds from 'utils/notification_sounds';
 import * as utils from 'utils/notifications';
 import {getFocusedPopoutInfo} from 'utils/popouts/focus';
 
-import {sendDesktopNotification, isDesktopSoundEnabled, getDesktopNotificationSound} from './notification_actions';
+import {sendDesktopNotification, isDesktopSoundEnabled, getDesktopNotificationSound, recordPlatformNotificationForActivity} from './notification_actions';
 
 jest.mock('utils/popouts/focus', () => ({
     getFocusedPopoutInfo: jest.fn(() => null),
+}));
+
+jest.mock('utils/platform_notification_activity_storage', () => ({
+    upsertPlatformNotificationOnServer: jest.fn().mockResolvedValue(undefined),
+    syncPlatformNotificationActivityToStorage: jest.fn(),
+    isPlatformNotificationDismissed: jest.fn(() => false),
 }));
 
 describe('notification_actions', () => {
@@ -191,6 +197,7 @@ describe('notification_actions', () => {
                     },
                     rhs: {
                         isSidebarOpen: true,
+                        platformNotifications: [],
                     },
                 },
                 plugins: {
@@ -793,5 +800,226 @@ describe('getDesktopNotificationSound', () => {
         const channelMember2 = {};
         const user2 = {};
         expect(getDesktopNotificationSound(channelMember2, user2)).toBe('Bing');
+    });
+});
+
+describe('recordPlatformNotificationForActivity', () => {
+    let baseState;
+    let msgProps;
+    let post;
+
+    beforeEach(() => {
+        post = {
+            id: 'post_id',
+            user_id: 'user_id',
+            root_id: '',
+            channel_id: 'channel_id',
+            props: {from_webhook: false},
+            message: 'Where is Jessica Hyde?',
+        };
+
+        msgProps = {
+            post: JSON.stringify(post),
+            channel_display_name: 'Utopia',
+            channel_type: 'O',
+            team_id: 'team_id',
+            mentions: JSON.stringify(['current_user_id']),
+        };
+
+        baseState = {
+            entities: {
+                general: {
+                    config: {
+                        CollapsedThreads: 'default_off',
+                    },
+                },
+                users: {
+                    currentUserId: 'current_user_id',
+                    statuses: {
+                        current_user_id: 'online',
+                    },
+                    profiles: {
+                        user_id: {
+                            id: 'user_id',
+                            username: 'username',
+                        },
+                        current_user_id: {
+                            id: 'current_user_id',
+                            notify_props: {
+                                desktop: NotificationLevels.ALL,
+                            },
+                            username: 'currentusername',
+                        },
+                    },
+                },
+                teams: {
+                    currentTeamId: 'team_id',
+                    teams: {
+                        team_id: {
+                            id: 'team_id',
+                            name: 'team',
+                        },
+                    },
+                    myMembers: {},
+                },
+                channels: {
+                    currentChannelId: 'channel_id',
+                    channels: {
+                        channel_id: {
+                            id: 'channel_id',
+                            team_id: 'team_id',
+                            display_name: 'Utopia',
+                            name: 'utopia',
+                            type: 'O',
+                        },
+                        dm_channel: {
+                            id: 'dm_channel',
+                            type: 'D',
+                            display_name: 'direct',
+                            name: 'direct',
+                        },
+                        gm_channel: {
+                            id: 'gm_channel',
+                            type: 'G',
+                            display_name: 'group',
+                            name: 'group',
+                        },
+                    },
+                    myMembers: {
+                        channel_id: {
+                            id: 'current_user_id',
+                            notify_props: {
+                                desktop: NotificationLevels.ALL,
+                            },
+                        },
+                        dm_channel: {
+                            id: 'current_user_id',
+                            notify_props: {
+                                desktop: NotificationLevels.MENTION,
+                            },
+                        },
+                        gm_channel: {
+                            id: 'current_user_id',
+                            notify_props: {
+                                desktop: NotificationLevels.MENTION,
+                            },
+                        },
+                    },
+                },
+                preferences: {
+                    myPreferences: {},
+                },
+            },
+            views: {
+                browser: {
+                    focused: true,
+                },
+                rhs: {
+                    platformNotifications: [],
+                },
+            },
+            websocket: {
+                connectionId: 'connection_id',
+            },
+        };
+    });
+
+    function recordedNotifications(store) {
+        return store.getActions().filter((action) => action.type === ActionTypes.RECORD_PLATFORM_NOTIFICATION);
+    }
+
+    test('records a channel mention in Activity', () => {
+        const store = testConfigureStore(baseState);
+        const result = store.dispatch(recordPlatformNotificationForActivity(post, msgProps));
+
+        expect(result.data).toBe(true);
+        expect(recordedNotifications(store)[0].data).toEqual(expect.objectContaining({
+            postId: 'post_id',
+            channelId: 'channel_id',
+            isMention: true,
+            isDirectMessage: false,
+            isGroupMessage: false,
+        }));
+    });
+
+    test('records DMs and GMs even when desktop prefs are mentions-only', () => {
+        const store = testConfigureStore(baseState);
+        const dmResult = store.dispatch(recordPlatformNotificationForActivity({
+            ...post,
+            id: 'dm_post',
+            channel_id: 'dm_channel',
+        }, {
+            ...msgProps,
+            channel_type: 'D',
+            channel_display_name: 'direct',
+            mentions: JSON.stringify([]),
+        }));
+        expect(dmResult.data).toBe(true);
+
+        const gmStore = testConfigureStore({
+            ...baseState,
+            entities: {
+                ...baseState.entities,
+                users: {
+                    ...baseState.entities.users,
+                    profilesInChannel: {
+                        gm_channel: new Set(['current_user_id']),
+                    },
+                },
+            },
+        });
+        const gmResult = gmStore.dispatch(recordPlatformNotificationForActivity({
+            ...post,
+            id: 'gm_post',
+            channel_id: 'gm_channel',
+        }, {
+            ...msgProps,
+            channel_type: 'G',
+            channel_display_name: 'group',
+            mentions: JSON.stringify([]),
+        }));
+        expect(gmResult.data).toBe(true);
+
+        expect(recordedNotifications(store)[0].data).toEqual(expect.objectContaining({
+            postId: 'dm_post',
+            isDirectMessage: true,
+            isGroupMessage: false,
+        }));
+        expect(recordedNotifications(gmStore)[0].data).toEqual(expect.objectContaining({
+            postId: 'gm_post',
+            isDirectMessage: false,
+            isGroupMessage: true,
+        }));
+    });
+
+    test('skips own posts, system messages, and silent notifications', () => {
+        const store = testConfigureStore(baseState);
+
+        expect(store.dispatch(recordPlatformNotificationForActivity({
+            ...post,
+            user_id: 'current_user_id',
+        }, msgProps)).data).toBe(false);
+
+        expect(store.dispatch(recordPlatformNotificationForActivity({
+            ...post,
+            id: 'system_post',
+            type: 'system_join_channel',
+        }, msgProps)).data).toBe(false);
+
+        expect(store.dispatch(recordPlatformNotificationForActivity({
+            ...post,
+            id: 'silent_post',
+            props: {silent_notification: true},
+        }, msgProps)).data).toBe(false);
+
+        expect(recordedNotifications(store)).toHaveLength(0);
+    });
+
+    test('still records Activity when the channel is already open', () => {
+        const store = testConfigureStore(baseState);
+        const result = store.dispatch(recordPlatformNotificationForActivity(post, msgProps));
+
+        expect(result.data).toBe(true);
+        expect(recordedNotifications(store)).toHaveLength(1);
     });
 });

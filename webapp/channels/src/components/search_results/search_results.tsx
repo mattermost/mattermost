@@ -4,8 +4,10 @@
 import classNames from 'classnames';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {useIntl, FormattedMessage, defineMessage} from 'react-intl';
-import {useSelector} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 
+import {PlaylistCheckIcon} from '@mattermost/compass-icons/components';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {FileSearchResultItem as FileSearchResultItemType} from '@mattermost/types/files';
 import type {Post} from '@mattermost/types/posts';
 
@@ -15,6 +17,7 @@ import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {isDateLine, getDateForDateLine} from 'mattermost-redux/utils/post_list';
 
+import {markAllPlatformNotificationsAsRead} from 'actions/views/rhs';
 import {getFilesDropdownPluginMenuItems} from 'selectors/plugins';
 import {getSearchTeam} from 'selectors/rhs';
 
@@ -23,14 +26,18 @@ import FileSearchResultItem from 'components/file_search_results';
 import NoResultsIndicator from 'components/no_results_indicator/no_results_indicator';
 import {NoResultsVariant} from 'components/no_results_indicator/types';
 import DateSeparator from 'components/post_view/date_separator';
+import RhsNotificationActivity from 'components/rhs_notification_activity/rhs_notification_activity';
 import {getSearchPopoutTitle} from 'components/rhs_search_popout/title';
 import type {SearchFilterType} from 'components/search/types';
 import SearchHint from 'components/search_hint/search_hint';
 import SearchResultsHeader from 'components/search_results_header';
+import ThreadTabButton from 'components/threading/common/button';
+import Header from 'components/widgets/header';
 import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
 
 import {searchHintOptions, DataSearchTypes, RHSStates} from 'utils/constants';
 import {isFileAttachmentsEnabled} from 'utils/file_utils';
+import {isPlatformNotificationMarkedRead} from 'utils/platform_notification_unread';
 import {popoutRhsSearch} from 'utils/popouts/popout_windows';
 
 import type {RhsState, SearchType} from 'types/store/rhs';
@@ -43,6 +50,7 @@ import SearchLimitsBanner from './search_limits_banner';
 import type {OwnProps, PropsFromRedux} from './index';
 
 import './search_results.scss';
+import '../rhs_notification_activity/rhs_notification_activity.scss';
 
 const GET_MORE_BUFFER = 30;
 
@@ -81,6 +89,7 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
     const currentTeam = useSelector(getCurrentTeam);
     const searchTeamId = useSelector(getSearchTeam);
     const intl = useIntl();
+    const dispatch = useDispatch();
 
     useEffect(() => {
         if (props.searchFilterType !== 'all') {
@@ -168,6 +177,10 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
         handleSearchHintSelection,
         searchFilterType,
         setSearchFilterType,
+        mentionRhsPanel,
+        platformNotifications,
+        setMentionRhsPanel,
+        searchRecentMentions,
     } = props;
 
     const noResults = (!results || !Array.isArray(results) || results.length === 0);
@@ -198,8 +211,8 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
         noResultsProps.variant = NoResultsVariant.Mentions;
 
         titleDescriptor = defineMessage({
-            id: 'search_header.title2',
-            defaultMessage: 'Recent Mentions',
+            id: 'search_header.notifications',
+            defaultMessage: 'Notifications',
         });
     } else if (isFlaggedPosts) {
         noResultsProps.variant = NoResultsVariant.FlaggedPosts;
@@ -265,6 +278,9 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
 
     const formattedTitle = intl.formatMessage(titleDescriptor);
 
+    const isMentionActivityPanel = isMentionSearch && mentionRhsPanel === 'activity';
+    const hasUnreadActivity = platformNotifications.some((record) => !isPlatformNotificationMarkedRead(record));
+
     const handleOptionSelection = (term: string): void => {
         handleSearchHintSelection?.();
         updateSearchTerms(term);
@@ -297,6 +313,12 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
     }, [isMentionSearch, isFlaggedPosts, isPinnedPosts, isChannelFiles, intl, searchTerms, searchType, currentTeam?.name, currentChannel?.name, searchTeamId]);
 
     switch (true) {
+    case isMentionActivityPanel:
+        contentItems = (
+            <RhsNotificationActivity notifications={platformNotifications}/>
+        );
+        loadingMorePostsComponent = null;
+        break;
     case isLoading:
         contentItems = (
             <div className='sidebar--right__subheader a11y__section'>
@@ -404,7 +426,9 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
     return (
         <div
             id='searchContainer'
-            className='SearchResults sidebar-right__body'
+            className={classNames('SearchResults sidebar-right__body', {
+                'SearchResults--notifications': isMentionSearch,
+            })}
         >
             <SearchResultsHeader
                 newWindowHandler={newWindowHandler}
@@ -412,8 +436,86 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
                 <h2 id='rhsPanelTitle'>
                     {formattedTitle}
                 </h2>
-                {props.channelDisplayName && <div className='sidebar--right__title__channel'>{props.channelDisplayName}</div>}
+                {props.channelDisplayName && !isMentionSearch && (
+                    <div className='sidebar--right__title__channel'>{props.channelDisplayName}</div>
+                )}
             </SearchResultsHeader>
+            {isMentionSearch && (
+                <Header
+                    className='NotificationSidebarTabs'
+                    heading={(
+                        <div
+                            className='tab-buttons-list'
+                            role='tablist'
+                            aria-label={intl.formatMessage({
+                                id: 'search_header.notifications_tabs.label',
+                                defaultMessage: 'Notification sidebar sections',
+                            })}
+                        >
+                            <div className='tab-button-wrapper'>
+                                <ThreadTabButton
+                                    id='mentionSidebarTabActivity'
+                                    className='Button___large Margined'
+                                    isActive={mentionRhsPanel === 'activity'}
+                                    role='tab'
+                                    aria-controls='mentionSidebarTabPanel'
+                                    aria-selected={mentionRhsPanel === 'activity'}
+                                    onClick={() => setMentionRhsPanel('activity')}
+                                >
+                                    <FormattedMessage
+                                        id='search_header.notifications_tab.activity'
+                                        defaultMessage='Activity'
+                                    />
+                                </ThreadTabButton>
+                            </div>
+                            <div className='tab-button-wrapper'>
+                                <ThreadTabButton
+                                    id='mentionSidebarTabMentions'
+                                    className='Button___large Margined'
+                                    isActive={mentionRhsPanel === 'mentions'}
+                                    role='tab'
+                                    aria-controls='mentionSidebarTabPanel'
+                                    aria-selected={mentionRhsPanel === 'mentions'}
+                                    onClick={() => {
+                                        setMentionRhsPanel('mentions');
+                                        searchRecentMentions();
+                                    }}
+                                >
+                                    <FormattedMessage
+                                        id='search_header.notifications_tab.mentions'
+                                        defaultMessage='Mentions'
+                                    />
+                                </ThreadTabButton>
+                            </div>
+                        </div>
+                    )}
+                    right={isMentionActivityPanel ? (
+                        <div className='right-anchor'>
+                            <WithTooltip
+                                title={intl.formatMessage({
+                                    id: 'rhs_notification_activity.mark_all_as_read',
+                                    defaultMessage: 'Mark all as read',
+                                })}
+                            >
+                                <ThreadTabButton
+                                    id='mentionSidebarMarkAllAsRead'
+                                    aria-label={intl.formatMessage({
+                                        id: 'rhs_notification_activity.mark_all_as_read',
+                                        defaultMessage: 'Mark all as read',
+                                    })}
+                                    className='Button___large Button___icon'
+                                    disabled={!hasUnreadActivity}
+                                    onClick={() => dispatch(markAllPlatformNotificationsAsRead())}
+                                >
+                                    <span className='icon'>
+                                        <PlaylistCheckIcon size={18}/>
+                                    </span>
+                                </ThreadTabButton>
+                            </WithTooltip>
+                        </div>
+                    ) : undefined}
+                />
+            )}
             {isMessagesSearch &&
                 <MessageOrFileSelector
                     selected={searchType}
@@ -453,8 +555,12 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
                     className={classNames([
                         'search-items-container post-list__table a11y__region',
                         {
-                            'no-results': (noResults && searchType === DataSearchTypes.MESSAGES_SEARCH_TYPE) || (noFileResults && (searchType === DataSearchTypes.FILES_SEARCH_TYPE || isChannelFiles)),
+                            'no-results':
+                                ((noResults && searchType === DataSearchTypes.MESSAGES_SEARCH_TYPE) ||
+                                    (noFileResults && (searchType === DataSearchTypes.FILES_SEARCH_TYPE || isChannelFiles))) &&
+                                !(isMentionSearch && mentionRhsPanel === 'activity'),
                             'channel-files-container': isChannelFiles,
+                            'notification-activity-container': isMentionActivityPanel,
                         },
                     ])}
                     data-a11y-sort-order='3'
@@ -468,7 +574,7 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
                     })}
                 >
                     <div
-                        id={`${searchType}Panel`}
+                        id={isMentionSearch ? 'mentionSidebarTabPanel' : `${searchType}Panel`}
                         className='files-or-messages-panel'
                     >
                         {contentItems}

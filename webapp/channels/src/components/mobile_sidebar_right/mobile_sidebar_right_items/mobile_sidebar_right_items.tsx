@@ -168,7 +168,7 @@ export class MobileSidebarRightItems extends React.PureComponent<Props> {
                         onClick={this.onRecentMentionItemClick}
                         icon={
                             <i
-                                className='icon icon-at'
+                                className='icon icon-bell-outline'
                                 style={{color: 'var(--sidebar-text)'}}
                             />
                         }

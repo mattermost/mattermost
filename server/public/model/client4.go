@@ -477,6 +477,10 @@ func (c *Client4) draftsRoute() clientRoute {
 	return newClientRoute("drafts")
 }
 
+func (c *Client4) userPlatformNotificationsRoute(userId string) clientRoute {
+	return c.userRoute(userId).Join("platform_notifications")
+}
+
 func (c *Client4) emojisRoute() clientRoute {
 	return newClientRoute("emoji")
 }
@@ -5954,6 +5958,51 @@ func (c *Client4) DeleteDraft(ctx context.Context, userId, channelId, rootId str
 	}
 	defer closeBody(r)
 	return DecodeJSONFromResponse[*Draft](r)
+}
+
+func (c *Client4) GetPlatformNotifications(ctx context.Context, userId string) ([]*PlatformNotification, *Response, error) {
+	r, err := c.doAPIGet(ctx, c.userPlatformNotificationsRoute(userId), "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[[]*PlatformNotification](r)
+}
+
+func (c *Client4) UpsertPlatformNotification(ctx context.Context, userId string, notification *PlatformNotification) (*PlatformNotification, *Response, error) {
+	r, err := c.doAPIPostJSON(ctx, c.userPlatformNotificationsRoute(userId), notification)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*PlatformNotification](r)
+}
+
+func (c *Client4) ReplacePlatformNotifications(ctx context.Context, userId string, notifications []*PlatformNotification) ([]*PlatformNotification, *Response, error) {
+	r, err := c.doAPIPutJSON(ctx, c.userPlatformNotificationsRoute(userId), notifications)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[[]*PlatformNotification](r)
+}
+
+func (c *Client4) DeletePlatformNotification(ctx context.Context, userId, notificationId string) (*Response, error) {
+	r, err := c.doAPIDelete(ctx, c.userPlatformNotificationsRoute(userId).Join(notificationId))
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return BuildResponse(r), nil
+}
+
+func (c *Client4) ClearPlatformNotifications(ctx context.Context, userId string) (*Response, error) {
+	r, err := c.doAPIDelete(ctx, c.userPlatformNotificationsRoute(userId))
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return BuildResponse(r), nil
 }
 
 // Commands Section
