@@ -32,7 +32,7 @@ func (pe *pdfExtractor) Match(filename string) bool {
 	return supportedExtensions[extension]
 }
 
-func (pe *pdfExtractor) Extract(ctx context.Context, filename string, r io.ReadSeeker, maxFileSize int64) (out string, outErr error) {
+func (pe *pdfExtractor) Extract(ctx context.Context, filename string, r io.ReadSeeker, maxFileSize int64, _ *ExtractionBudget) (out string, outErr error) {
 	defer func() {
 		if r := recover(); r != nil {
 			out = ""
