@@ -252,6 +252,93 @@ func TestUserPreUpdate(t *testing.T) {
 	}
 }
 
+func TestUserGetMentionKeys(t *testing.T) {
+	u := User{NotifyProps: map[string]string{MentionKeysNotifyProp: "  Alpha  ,\tBETA\n,,  "}}
+	assert.Equal(t, []string{"alpha", "beta"}, u.GetMentionKeys())
+}
+
+func TestUserMentionKeysLimits(t *testing.T) {
+	// An oversized key count survives PreUpdate intact, for IsValid to reject.
+	// Asserted against the stored value: GetMentionKeys caps on read, so it
+	// cannot distinguish a capped write from an uncapped one.
+	keys := make([]string, MentionKeysMaxCount+10)
+	for i := range keys {
+		keys[i] = fmt.Sprintf("key%d", i)
+	}
+	u := User{NotifyProps: map[string]string{MentionKeysNotifyProp: strings.Join(keys, ",")}}
+	u.PreUpdate()
+	assert.Equal(t, strings.Join(keys, ","), u.NotifyProps[MentionKeysNotifyProp])
+	assert.True(t, MentionKeysExceedLimits(u.NotifyProps[MentionKeysNotifyProp]))
+
+	// An oversized byte length likewise survives PreUpdate intact.
+	keyA := strings.Repeat("a", MentionKeysMaxLength/2+1)
+	keyB := strings.Repeat("b", MentionKeysMaxLength/2+1)
+	u2 := User{NotifyProps: map[string]string{MentionKeysNotifyProp: keyA + "," + keyB}}
+	u2.PreUpdate()
+	assert.Equal(t, keyA+","+keyB, u2.NotifyProps[MentionKeysNotifyProp])
+	assert.True(t, MentionKeysExceedLimits(u2.NotifyProps[MentionKeysNotifyProp]))
+
+	// GetMentionKeys truncates at MentionKeysMaxCount without PreUpdate.
+	bigKeys := make([]string, MentionKeysMaxCount+5)
+	for i := range bigKeys {
+		bigKeys[i] = fmt.Sprintf("k%d", i)
+	}
+	u3 := User{NotifyProps: map[string]string{MentionKeysNotifyProp: strings.Join(bigKeys, ",")}}
+	assert.Len(t, u3.GetMentionKeys(), MentionKeysMaxCount)
+
+	// GetMentionKeys also truncates by byte length: a few very long keys must not
+	// exceed MentionKeysMaxLength total bytes in the returned slice.
+	longKey := strings.Repeat("a", MentionKeysMaxLength/2+1)
+	u4 := User{NotifyProps: map[string]string{
+		MentionKeysNotifyProp: longKey + "," + longKey + "," + longKey,
+	}}
+	got4 := u4.GetMentionKeys()
+	totalLen := 0
+	for i, k := range got4 {
+		if i > 0 {
+			totalLen++
+		}
+		totalLen += len(k)
+	}
+	assert.LessOrEqual(t, totalLen, MentionKeysMaxLength)
+
+	// A value that normalizes away to nothing is still rejected on raw length,
+	// otherwise it would be accepted and stored at any size.
+	assert.True(t, MentionKeysExceedLimits(strings.Repeat(",", MentionKeysMaxLength+1)))
+	assert.True(t, MentionKeysExceedLimits(strings.Repeat(" , ", MentionKeysMaxLength)))
+	u5 := User{NotifyProps: map[string]string{
+		MentionKeysNotifyProp: strings.Repeat(",", MentionKeysMaxLength+1),
+	}}
+	assert.Empty(t, u5.GetMentionKeys())
+
+	// A raw value at the limit that normalizes within it is still accepted.
+	assert.False(t, MentionKeysExceedLimits(strings.Repeat("a", MentionKeysMaxLength)))
+	assert.False(t, MentionKeysExceedLimits(""))
+
+	// Keys joining to exactly MentionKeysMaxLength are all kept; one byte more
+	// and the last no longer fits.
+	const n = 3
+	exact := make([]string, n)
+	for i := range exact {
+		exact[i] = strings.Repeat("a", (MentionKeysMaxLength-(n-1))/n)
+	}
+	atLimit := strings.Join(exact, ",")
+	require.Equal(t, MentionKeysMaxLength, len(atLimit))
+
+	u6 := User{NotifyProps: map[string]string{MentionKeysNotifyProp: atLimit}}
+	assert.Len(t, u6.GetMentionKeys(), n)
+
+	u7 := User{NotifyProps: map[string]string{MentionKeysNotifyProp: atLimit + "a"}}
+	assert.Len(t, u7.GetMentionKeys(), n-1)
+
+	// Lowercasing grows some runes, so a raw value inside the byte limit can
+	// still normalize past it.
+	grows := strings.Repeat("\u023a", 20000)
+	require.LessOrEqual(t, len(grows), MentionKeysMaxLength)
+	require.Greater(t, len(strings.ToLower(grows)), MentionKeysMaxLength)
+	assert.True(t, MentionKeysExceedLimits(grows))
+}
+
 func TestUserUpdateMentionKeysFromUsername(t *testing.T) {
 	user := User{Username: "user"}
 	user.SetDefaultNotifications()
@@ -344,6 +431,54 @@ func TestUserIsValid(t *testing.T) {
 	user.Roles = strings.Repeat("a", UserRolesMaxLength+1)
 	appErr = user.IsValid()
 	require.True(t, HasExpectedUserIsValidError(appErr, "roles_limit", user.Id, user.Roles), "expected user is valid error: %s", appErr.Error())
+	user.Roles = ""
+
+	// over the byte-length limit
+	user.NotifyProps = map[string]string{
+		MentionKeysNotifyProp: strings.Repeat("a", MentionKeysMaxLength+1),
+	}
+	appErr = user.IsValid()
+	require.True(t, HasExpectedUserIsValidError(appErr, "mention_keys", user.Id, ""), "expected mention_keys error: %s", appErr.Error())
+
+	// blank padding within the raw limit must not trigger the limit
+	user.NotifyProps = map[string]string{
+		MentionKeysNotifyProp: strings.Repeat(",", MentionKeysMaxLength),
+	}
+	require.Nil(t, user.IsValid())
+
+	// blank padding beyond the raw limit is rejected on length alone
+	user.NotifyProps = map[string]string{
+		MentionKeysNotifyProp: strings.Repeat(",", MentionKeysMaxLength+1),
+	}
+	appErr = user.IsValid()
+	require.True(t, HasExpectedUserIsValidError(appErr, "mention_keys", user.Id, ""), "expected mention_keys error: %s", appErr.Error())
+
+	// over the key-count limit
+	keys := make([]string, MentionKeysMaxCount+1)
+	for i := range keys {
+		keys[i] = "k"
+	}
+	user.NotifyProps = map[string]string{
+		MentionKeysNotifyProp: strings.Join(keys, ","),
+	}
+	appErr = user.IsValid()
+	require.True(t, HasExpectedUserIsValidError(appErr, "mention_keys", user.Id, ""), "expected mention_keys error: %s", appErr.Error())
+
+	// blank padding must not trigger the count limit
+	user.NotifyProps = map[string]string{
+		MentionKeysNotifyProp: strings.Repeat(",", MentionKeysMaxCount+1),
+	}
+	require.Nil(t, user.IsValid())
+
+	// empty mention_keys is fine
+	user.NotifyProps = map[string]string{MentionKeysNotifyProp: ""}
+	require.Nil(t, user.IsValid())
+
+	// exactly at the count limit is fine
+	user.NotifyProps = map[string]string{
+		MentionKeysNotifyProp: strings.Join(keys[:MentionKeysMaxCount], ","),
+	}
+	require.Nil(t, user.IsValid())
 }
 
 func TestUserSanitizeInput(t *testing.T) {
