@@ -1741,6 +1741,11 @@ func (a *App) ExtractContentFromFileInfo(rctx request.CTX, fileInfo *model.FileI
 		if len(text) > maxContentExtractionSize {
 			text = text[0:maxContentExtractionSize]
 		}
+		// The Content column is UTF-8, and the database rejects anything else.
+		// The truncation above cuts at a byte offset and can split a rune, and
+		// an extractor can return bytes that are not valid UTF-8 to begin with,
+		// so drop what cannot be stored rather than losing the whole document.
+		text = strings.ToValidUTF8(text, "")
 		if storeErr := a.Srv().Store().FileInfo().SetContent(rctx, fileInfo.Id, text); storeErr != nil {
 			return errors.Wrap(storeErr, "failed to save the extracted file content")
 		}
