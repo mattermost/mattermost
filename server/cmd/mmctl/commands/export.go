@@ -216,6 +216,14 @@ func exportCreateCmdF(c client.Client, command *cobra.Command, args []string) er
 	// Resolve --channel-id (comma-separated IDs → names).
 	// When no teams are specified, the team is inferred from each channel's TeamId.
 	// When teams are specified, each channel must belong to one of them.
+	//
+	// explicitTeamsProvided is captured once, before this loop, rather than
+	// re-checking len(resolvedTeams) on each iteration — addTeam mutates
+	// resolvedTeams as a side effect of inference, so re-checking it inline
+	// would make the first --channel-id's inferred team look like an
+	// "explicitly specified" team by the time the second --channel-id (from a
+	// different team) is processed, incorrectly rejecting it.
+	explicitTeamsProvided := len(resolvedTeams) > 0
 	var resolvedChannelNames []string
 	for _, id := range splitTrimComma(channelIDFlag) {
 		channel, _, err := c.GetChannel(context.TODO(), id)
@@ -225,7 +233,7 @@ func exportCreateCmdF(c client.Client, command *cobra.Command, args []string) er
 		if channel == nil {
 			return fmt.Errorf("channel with ID %q not found", id)
 		}
-		if len(resolvedTeams) == 0 {
+		if !explicitTeamsProvided {
 			// Infer team from the channel.
 			team, _, err := c.GetTeam(context.TODO(), channel.TeamId, "")
 			if err != nil {

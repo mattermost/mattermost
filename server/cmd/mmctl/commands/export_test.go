@@ -455,6 +455,46 @@ func (s *MmctlUnitTestSuite) TestExportCreateCmdF() {
 		s.Empty(printer.GetLines())
 	})
 
+	s.Run("two --channel-id values from different teams, no --team given, both infer successfully", func() {
+		// Regression: addTeam mutates resolvedTeams as a side effect of
+		// inferring the first channel's team, which used to make the loop
+		// think a team had been "explicitly specified" by the time the second
+		// channel (from a different team) was processed, incorrectly
+		// rejecting it with "does not belong to any of the specified teams".
+		printer.Clean()
+		mockTeam1 := &model.Team{Id: "teamid1", Name: "myteam"}
+		mockTeam2 := &model.Team{Id: "teamid2", Name: "otherteam"}
+		mockChannel1 := &model.Channel{Id: "chanid1", Name: "mychannel", TeamId: "teamid1"}
+		mockChannel2 := &model.Channel{Id: "chanid2", Name: "otherchannel", TeamId: "teamid2"}
+		mockJob := &model.Job{
+			Type: model.JobTypeExportProcess,
+			Data: map[string]string{
+				"include_attachments":       "true",
+				"include_roles_and_schemes": "true",
+				"team_name":                 "myteam,otherteam",
+				"channel_name":              "mychannel,otherchannel",
+			},
+		}
+
+		s.client.EXPECT().GetChannel(context.TODO(), "chanid1").Return(mockChannel1, &model.Response{}, nil).Times(1)
+		s.client.EXPECT().GetChannel(context.TODO(), "chanid2").Return(mockChannel2, &model.Response{}, nil).Times(1)
+		s.client.EXPECT().GetTeam(context.TODO(), "teamid1", "").Return(mockTeam1, &model.Response{}, nil).Times(1)
+		s.client.EXPECT().GetTeam(context.TODO(), "teamid2", "").Return(mockTeam2, &model.Response{}, nil).Times(1)
+		s.client.EXPECT().CreateJob(context.TODO(), mockJob).Return(mockJob, &model.Response{}, nil).Times(1)
+
+		cmd := &cobra.Command{}
+		cmd.Flags().String("team-name", "", "")
+		cmd.Flags().String("team-id", "", "")
+		cmd.Flags().String("channel-name", "", "")
+		cmd.Flags().String("channel-id", "chanid1,chanid2", "")
+
+		err := exportCreateCmdF(s.client, cmd, nil)
+		s.Require().Nil(err)
+		s.Len(printer.GetLines(), 1)
+		s.Empty(printer.GetErrorLines())
+		s.Equal(mockJob, printer.GetLines()[0].(*model.Job))
+	})
+
 	s.Run("--team and --team-id are mutually exclusive", func() {
 		printer.Clean()
 
