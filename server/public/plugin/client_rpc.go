@@ -7,13 +7,16 @@ package plugin
 
 import (
 	"bytes"
+	"context"
 	"database/sql"
 	"database/sql/driver"
 	"encoding/gob"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"log"
+	"net"
 	"net/http"
 	"net/rpc"
 	"net/url"
@@ -58,6 +61,17 @@ import (
 
 var hookNameToId = make(map[string]int)
 
+var errPluginHTTPStreamUnsupported = errors.New("PluginHTTPStream is unsupported")
+
+// rpcMuxBroker captures the MuxBroker operations used by HTTP RPC so tests can
+// exercise stream setup and cancellation without a plugin process.
+type rpcMuxBroker interface {
+	NextId() uint32
+	Accept(uint32) (net.Conn, error)
+	Dial(uint32) (net.Conn, error)
+	AcceptAndServe(uint32, any)
+}
+
 // hooksRPCClient is the client-side RPC proxy that runs in the Mattermost server process and connects to the [hooksRPCServer] on the plugin side.
 // It implements the Hooks interface and forwards hook invocations to plugins running in
 // separate processes via RPC.
@@ -71,10 +85,11 @@ var hookNameToId = make(map[string]int)
 type hooksRPCClient struct {
 	client      *rpc.Client
 	log         *mlog.Logger
-	muxBroker   *plugin.MuxBroker
+	muxBroker   rpcMuxBroker
 	apiImpl     API
 	driver      Driver
 	implemented [TotalHooksID]bool
+	contextHTTP bool
 	doneWg      sync.WaitGroup
 }
 
@@ -119,8 +134,9 @@ func (p *hooksPlugin) Client(b *plugin.MuxBroker, client *rpc.Client) (any, erro
 //
 // This is created during plugin activation and injected into the plugin via SetAPI().
 type apiRPCClient struct {
-	client    *rpc.Client
-	muxBroker *plugin.MuxBroker
+	client      *rpc.Client
+	muxBroker   rpcMuxBroker
+	contextHTTP bool
 }
 
 // apiRPCServer is the server-side RPC handler that runs in the Mattermost server process and receives requests from [apiRPCClient].
@@ -131,7 +147,7 @@ type apiRPCClient struct {
 // channels, and configuration through a well-defined API boundary.
 type apiRPCServer struct {
 	impl      API
-	muxBroker *plugin.MuxBroker
+	muxBroker rpcMuxBroker
 }
 
 // ErrorString is a fallback for sending unregistered implementations of the error interface across
@@ -292,13 +308,17 @@ func (s *hooksRPCServer) Implemented(args struct{}, reply *[]string) error {
 	return encodableError(nil)
 }
 
+// ContextHTTP is advertised in both directions: args enable plugin-to-server API calls,
+// while returns enable server-to-plugin hooks. Older peers decode the missing field as false.
 type Z_OnActivateArgs struct {
 	APIMuxId    uint32
 	DriverMuxId uint32
+	ContextHTTP bool
 }
 
 type Z_OnActivateReturns struct {
-	A error
+	A           error
+	ContextHTTP bool
 }
 
 func (g *hooksRPCClient) OnActivate() error {
@@ -320,12 +340,14 @@ func (g *hooksRPCClient) OnActivate() error {
 	_args := &Z_OnActivateArgs{
 		APIMuxId:    muxId,
 		DriverMuxId: nextID,
+		ContextHTTP: true,
 	}
 	_returns := &Z_OnActivateReturns{}
 
 	if err := g.client.Call("Plugin.OnActivate", _args, _returns); err != nil {
 		g.log.Error("RPC call to OnActivate plugin failed.", mlog.Err(err))
 	}
+	g.contextHTTP = _returns.ContextHTTP
 	return _returns.A
 }
 
@@ -341,9 +363,11 @@ func (s *hooksRPCServer) OnActivate(args *Z_OnActivateArgs, returns *Z_OnActivat
 	}
 
 	s.apiRPCClient = &apiRPCClient{
-		client:    rpc.NewClient(connection),
-		muxBroker: s.muxBroker,
+		client:      rpc.NewClient(connection),
+		muxBroker:   s.muxBroker,
+		contextHTTP: args.ContextHTTP,
 	}
+	returns.ContextHTTP = true
 
 	dbClient := &dbRPCClient{
 		client: rpc.NewClient(conn2),
@@ -451,6 +475,8 @@ type Z_ServeHTTPArgs struct {
 	Request              *HTTPRequestSubset
 	Context              *Context
 	RequestBodyStream    uint32
+	RequestContextStream uint32
+	RequestContext       rpcRequestContext
 }
 
 func (g *hooksRPCClient) ServeHTTP(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -458,15 +484,61 @@ func (g *hooksRPCClient) ServeHTTP(c *Context, w http.ResponseWriter, r *http.Re
 		http.NotFound(w, r)
 		return
 	}
+	contextAware := g.contextHTTP && r.Context().Done() != nil
+	if contextAware && r.Context().Err() != nil {
+		if r.Body != nil {
+			_ = r.Body.Close()
+		}
+		return
+	}
 
-	serveHTTPStreamId := g.muxBroker.NextId()
+	responseStreamID := g.muxBroker.NextId()
+	requestContextStreamID := uint32(0)
+	if contextAware {
+		requestContextStreamID = g.muxBroker.NextId()
+	}
+	requestBodyStreamID := uint32(0)
+	if r.Body != nil {
+		requestBodyStreamID = g.muxBroker.NextId()
+	}
+
+	responseStream := &rpcStreamCloser{}
+	requestContextStream := &rpcStreamCloser{}
+	requestBodyStream := &rpcStreamCloser{}
+	closeStreams := func() {
+		if contextAware {
+			if err := r.Context().Err(); err != nil {
+				_ = requestContextStream.Cancel(err)
+			} else {
+				_ = requestContextStream.Close()
+			}
+		}
+		_ = responseStream.Close()
+		_ = requestBodyStream.Close()
+		if r.Body != nil {
+			_ = r.Body.Close()
+		}
+	}
+
+	if contextAware {
+		go func() {
+			connection, err := g.muxBroker.Accept(requestContextStreamID)
+			if err != nil {
+				return
+			}
+			requestContextStream.Set(connection)
+		}()
+	}
+
 	go func() {
-		connection, err := g.muxBroker.Accept(serveHTTPStreamId)
-		if err != nil {
-			g.log.Error("Plugin failed to ServeHTTP, muxBroker couldn't accept connection", mlog.Uint("serve_http_stream_id", serveHTTPStreamId), mlog.Err(err))
+		connection, err := g.muxBroker.Accept(responseStreamID)
+		if err != nil || !responseStream.Set(connection) {
+			if err != nil {
+				g.log.Error("Plugin failed to ServeHTTP, muxBroker couldn't accept connection", mlog.Uint("serve_http_stream_id", responseStreamID), mlog.Err(err))
+			}
 			return
 		}
-		defer connection.Close()
+		defer responseStream.Close()
 
 		rpcServer := rpc.NewServer()
 		if err := rpcServer.RegisterName("Plugin", &httpResponseWriterRPCServer{w: w, log: g.log}); err != nil {
@@ -476,17 +548,17 @@ func (g *hooksRPCClient) ServeHTTP(c *Context, w http.ResponseWriter, r *http.Re
 		rpcServer.ServeConn(connection)
 	}()
 
-	requestBodyStreamId := uint32(0)
-	if r.Body != nil {
-		requestBodyStreamId = g.muxBroker.NextId()
+	if requestBodyStreamID != 0 {
 		go func() {
-			bodyConnection, err := g.muxBroker.Accept(requestBodyStreamId)
-			if err != nil {
-				g.log.Error("Plugin failed to ServeHTTP, muxBroker couldn't Accept request body connection", mlog.Err(err))
+			connection, err := g.muxBroker.Accept(requestBodyStreamID)
+			if err != nil || !requestBodyStream.Set(connection) {
+				if err != nil {
+					g.log.Error("Plugin failed to ServeHTTP, muxBroker couldn't Accept request body connection", mlog.Err(err))
+				}
 				return
 			}
-			defer bodyConnection.Close()
-			serveIOReader(r.Body, bodyConnection)
+			defer requestBodyStream.Close()
+			serveIOReader(r.Body, connection)
 		}()
 	}
 
@@ -502,18 +574,43 @@ func (g *hooksRPCClient) ServeHTTP(c *Context, w http.ResponseWriter, r *http.Re
 		RequestURI: r.RequestURI,
 	}
 
-	if err := g.client.Call("Plugin.ServeHTTP", Z_ServeHTTPArgs{
+	args := &Z_ServeHTTPArgs{
 		Context:              c,
-		ResponseWriterStream: serveHTTPStreamId,
+		ResponseWriterStream: responseStreamID,
 		Request:              forwardedRequest,
-		RequestBodyStream:    requestBodyStreamId,
-	}, nil); err != nil {
-		g.log.Error("Plugin failed to ServeHTTP, RPC call failed", mlog.Err(err))
-		http.Error(w, "500 internal server error", http.StatusInternalServerError)
+		RequestBodyStream:    requestBodyStreamID,
+		RequestContextStream: requestContextStreamID,
+		RequestContext:       newRPCRequestContext(r.Context()),
+	}
+	if !contextAware {
+		if err := g.client.Call("Plugin.ServeHTTP", args, nil); err != nil {
+			g.log.Error("Plugin failed to ServeHTTP, RPC call failed", mlog.Err(err))
+			http.Error(w, "500 internal server error", http.StatusInternalServerError)
+		}
+		return
+	}
+
+	call := g.client.Go("Plugin.ServeHTTP", args, &struct{}{}, make(chan *rpc.Call, 1))
+
+	select {
+	case completed := <-call.Done:
+		closeStreams()
+		if completed.Error != nil && r.Context().Err() == nil {
+			g.log.Error("Plugin failed to ServeHTTP, RPC call failed", mlog.Err(completed.Error))
+			http.Error(w, "500 internal server error", http.StatusInternalServerError)
+		}
+	case <-r.Context().Done():
+		closeStreams()
 	}
 }
 
 func (s *hooksRPCServer) ServeHTTP(args *Z_ServeHTTPArgs, returns *struct{}) error {
+	requestCtx, cleanupContext, err := openRPCRequestContext(s.muxBroker, args.RequestContextStream, args.RequestContext)
+	if err != nil {
+		return err
+	}
+	defer cleanupContext()
+
 	connection, err := s.muxBroker.Dial(args.ResponseWriterStream)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "[ERROR] Can't connect to remote response writer stream, error: %v", err.Error())
@@ -530,12 +627,15 @@ func (s *hooksRPCServer) ServeHTTP(args *Z_ServeHTTPArgs, returns *struct{}) err
 			return err
 		}
 		r.Body = connectIOReader(connection)
+		if args.RequestContextStream != 0 {
+			r.Body = newContextReadCloser(requestCtx, r.Body, nil)
+		}
 	} else {
 		r.Body = io.NopCloser(&bytes.Buffer{})
 	}
 	defer r.Body.Close()
 
-	httpReq := r.GetHTTPRequest()
+	httpReq := r.GetHTTPRequest().WithContext(requestCtx)
 
 	if hook, ok := s.impl.(interface {
 		ServeHTTP(c *Context, w http.ResponseWriter, r *http.Request)
@@ -564,9 +664,11 @@ type Z_PluginHTTPReturns struct {
 
 // New streaming structs
 type Z_PluginHTTPStreamArgs struct {
-	ResponseBodyStream uint32
-	Request            *HTTPRequestSubset
-	RequestBodyStream  uint32
+	ResponseBodyStream   uint32
+	Request              *HTTPRequestSubset
+	RequestBodyStream    uint32
+	RequestContextStream uint32
+	RequestContext       rpcRequestContext
 }
 
 type Z_PluginHTTPStreamReturns struct {
@@ -575,53 +677,106 @@ type Z_PluginHTTPStreamReturns struct {
 }
 
 func (g *apiRPCClient) PluginHTTP(request *http.Request) *http.Response {
+	return g.pluginHTTP(request, g.pluginHTTPStream)
+}
+
+func (g *apiRPCClient) pluginHTTP(request *http.Request, stream func(*http.Request, bool) (*http.Response, error)) *http.Response {
+	contextAware := request.Context().Done() != nil && g.contextHTTP
+	if request.Context().Done() != nil {
+		if request.Context().Err() != nil {
+			if request.Body != nil {
+				_ = request.Body.Close()
+			}
+			return nil
+		}
+	}
+
 	// Try to use the streaming version first (if server supports it)
 	// Fall back to buffered version if not available (signaled by nil)
-	response, err := g.pluginHTTPStream(request)
+	response, err := stream(request, contextAware)
+	if errors.Is(err, errPluginHTTPStreamUnsupported) {
+		return g.pluginHTTPBuffered(request)
+	}
 	if err != nil {
 		// If we error for some other reason other than stream not being
 		// implemented just report and fail
 		log.Print(err.Error())
 		return nil
 	}
-	if response != nil {
-		return response
-	}
-
-	// Fallback to buffered version
-	return g.pluginHTTPBuffered(request)
+	return response
 }
 
 // pluginHTTPStream attempts to use the new streaming endpoint
-func (g *apiRPCClient) pluginHTTPStream(request *http.Request) (*http.Response, error) {
-	// Set up request body stream
-	requestBodyStreamId := uint32(0)
+func (g *apiRPCClient) pluginHTTPStream(request *http.Request, contextAware bool) (*http.Response, error) {
+	requestContextStreamID := uint32(0)
+	if contextAware {
+		requestContextStreamID = g.muxBroker.NextId()
+	}
+	responseBodyStreamID := g.muxBroker.NextId()
+	requestBodyStreamID := uint32(0)
 	if request.Body != nil {
-		requestBodyStreamId = g.muxBroker.NextId()
+		requestBodyStreamID = g.muxBroker.NextId()
+	}
+
+	requestContextStream := &rpcStreamCloser{}
+	responseBodyStream := &rpcStreamCloser{}
+	requestBodyStream := &rpcStreamCloser{}
+	var requestBodyCloseOnce sync.Once
+	closeRequestBody := func() {
+		requestBodyCloseOnce.Do(func() {
+			if request.Body != nil {
+				_ = request.Body.Close()
+			}
+		})
+	}
+	cleanup := func() {
+		if err := request.Context().Err(); err != nil {
+			_ = requestContextStream.Cancel(err)
+		} else {
+			_ = requestContextStream.Close()
+		}
+		_ = responseBodyStream.Close()
+		_ = requestBodyStream.Close()
+		closeRequestBody()
+	}
+
+	if contextAware {
 		go func() {
-			bodyConnection, err := g.muxBroker.Accept(requestBodyStreamId)
+			connection, err := g.muxBroker.Accept(requestContextStreamID)
 			if err != nil {
-				log.Printf("Plugin failed to accept request body connection for PluginHTTPStream: %s", err.Error())
 				return
 			}
-			defer bodyConnection.Close()
-			serveIOReader(request.Body, bodyConnection)
+			requestContextStream.Set(connection)
 		}()
 	}
 
-	// Set up response body stream
-	responseBodyStreamId := g.muxBroker.NextId()
-	responsePipe := make(chan io.ReadCloser, 1)
+	if requestBodyStreamID != 0 {
+		go func() {
+			connection, err := g.muxBroker.Accept(requestBodyStreamID)
+			if err != nil || !requestBodyStream.Set(connection) {
+				if err != nil {
+					log.Printf("Plugin failed to accept request body connection for PluginHTTPStream: %s", err.Error())
+				}
+				return
+			}
+			defer requestBodyStream.Close()
+			defer closeRequestBody()
+			serveIOReader(request.Body, connection)
+		}()
+	}
 
+	type responseBodyResult struct {
+		body io.ReadCloser
+		err  error
+	}
+	responseBodyResultChannel := make(chan responseBodyResult, 1)
 	go func() {
-		connection, err := g.muxBroker.Accept(responseBodyStreamId)
-		if err != nil {
-			log.Printf("Plugin failed to accept response body connection for PluginHTTPStream: %s", err.Error())
-			responsePipe <- nil
+		connection, err := g.muxBroker.Accept(responseBodyStreamID)
+		if err != nil || !responseBodyStream.Set(connection) {
+			responseBodyResultChannel <- responseBodyResult{err: err}
 			return
 		}
-		// Don't close connection here - it will be closed when response body is read
-		responsePipe <- connectIOReader(connection)
+		responseBodyResultChannel <- responseBodyResult{body: connectIOReader(connection)}
 	}()
 
 	forwardedRequest := &HTTPRequestSubset{
@@ -636,31 +791,71 @@ func (g *apiRPCClient) pluginHTTPStream(request *http.Request) (*http.Response, 
 		RequestURI: request.RequestURI,
 	}
 
-	_args := &Z_PluginHTTPStreamArgs{
-		ResponseBodyStream: responseBodyStreamId,
-		Request:            forwardedRequest,
-		RequestBodyStream:  requestBodyStreamId,
+	args := &Z_PluginHTTPStreamArgs{
+		ResponseBodyStream:   responseBodyStreamID,
+		Request:              forwardedRequest,
+		RequestBodyStream:    requestBodyStreamID,
+		RequestContextStream: requestContextStreamID,
+		RequestContext:       newRPCRequestContext(request.Context()),
 	}
 
-	_returns := &Z_PluginHTTPStreamReturns{}
-	if err := g.client.Call("Plugin.PluginHTTPStream", _args, _returns); err != nil {
-		// If the method doesn't exist, return nil to trigger fallback
-		if err.Error() == "rpc: can't find method Plugin.PluginHTTPStream" {
+	returns := &Z_PluginHTTPStreamReturns{}
+	if contextAware {
+		call := g.client.Go("Plugin.PluginHTTPStream", args, returns, make(chan *rpc.Call, 1))
+		select {
+		case completed := <-call.Done:
+			if completed.Error != nil || returns.StatusCode == 0 || request.Context().Err() != nil {
+				cleanup()
+				if completed.Error != nil && request.Context().Err() == nil {
+					return nil, fmt.Errorf("RPC call to PluginHTTPStream API failed: %w", completed.Error)
+				}
+				return nil, nil
+			}
+		case <-request.Context().Done():
+			cleanup()
 			return nil, nil
+		}
+	} else if err := g.client.Call("Plugin.PluginHTTPStream", args, returns); err != nil {
+		if err.Error() == "rpc: can't find method Plugin.PluginHTTPStream" {
+			return nil, errPluginHTTPStreamUnsupported
 		}
 		return nil, fmt.Errorf("RPC call to PluginHTTPStream API failed: %w", err)
 	}
 
-	// Wait for response body reader
-	responseBody := <-responsePipe
-	if responseBody == nil {
-		return nil, fmt.Errorf("Failed to get response body stream for PluginHTTPStream")
+	var result responseBodyResult
+	if contextAware {
+		select {
+		case result = <-responseBodyResultChannel:
+			if request.Context().Err() != nil {
+				cleanup()
+				return nil, nil
+			}
+		case <-request.Context().Done():
+			cleanup()
+			return nil, nil
+		}
+	} else {
+		result = <-responseBodyResultChannel
+	}
+	if result.err != nil || result.body == nil {
+		if contextAware {
+			cleanup()
+		}
+		if result.err != nil {
+			return nil, fmt.Errorf("failed to get response body stream for PluginHTTPStream: %w", result.err)
+		}
+		return nil, errors.New("failed to get response body stream for PluginHTTPStream")
 	}
 
-	// Create response with streamed body
+	responseBody := result.body
+	responseCtx := context.Background()
+	if contextAware {
+		responseCtx = request.Context()
+	}
+	responseBody = newContextReadCloser(responseCtx, responseBody, cleanup)
 	response := &http.Response{
-		StatusCode: _returns.StatusCode,
-		Header:     _returns.Header,
+		StatusCode: returns.StatusCode,
+		Header:     returns.Header,
 		Body:       responseBody,
 		Proto:      request.Proto,
 		ProtoMajor: request.ProtoMajor,
@@ -712,8 +907,14 @@ func (g *apiRPCClient) pluginHTTPBuffered(request *http.Request) *http.Response 
 }
 
 func (s *apiRPCServer) PluginHTTPStream(args *Z_PluginHTTPStreamArgs, returns *Z_PluginHTTPStreamReturns) error {
+	requestCtx, cleanupContext, err := openRPCRequestContext(s.muxBroker, args.RequestContextStream, args.RequestContext)
+	if err != nil {
+		return encodableError(fmt.Errorf("can't connect to remote request context stream: %w", err))
+	}
+
 	responseConnection, err := s.muxBroker.Dial(args.ResponseBodyStream)
 	if err != nil {
+		cleanupContext()
 		return encodableError(fmt.Errorf("can't connect to remote response body stream: %w", err))
 	}
 
@@ -722,14 +923,19 @@ func (s *apiRPCServer) PluginHTTPStream(args *Z_PluginHTTPStreamArgs, returns *Z
 	if args.RequestBodyStream != 0 {
 		requestConnection, err := s.muxBroker.Dial(args.RequestBodyStream)
 		if err != nil {
+			cleanupContext()
+			_ = responseConnection.Close()
 			return encodableError(fmt.Errorf("can't connect to remote request body stream: %w", err))
 		}
 		r.Body = connectIOReader(requestConnection)
+		if args.RequestContextStream != 0 {
+			r.Body = newContextReadCloser(requestCtx, r.Body, nil)
+		}
 	} else {
 		r.Body = io.NopCloser(&bytes.Buffer{})
 	}
 
-	httpReq := r.GetHTTPRequest()
+	httpReq := r.GetHTTPRequest().WithContext(requestCtx)
 
 	// Call the PluginHTTP implementation
 	if hook, ok := s.impl.(interface {
@@ -740,23 +946,28 @@ func (s *apiRPCServer) PluginHTTPStream(args *Z_PluginHTTPStreamArgs, returns *Z
 			returns.StatusCode = response.StatusCode
 			returns.Header = response.Header
 
-			// Connect to response body stream and stream the response body
+			// Return status and headers with the RPC response, but keep streaming the body
+			// asynchronously until completion or cancellation.
 			go func() {
+				defer cleanupContext()
 				defer r.Body.Close()
 				if response.Body != nil {
-					// Stream the response body through the connection
 					if _, err := io.Copy(responseConnection, response.Body); err != nil {
 						log.Printf("error streaming response body: %s", err.Error())
 					}
 					response.Body.Close()
 				}
-				responseConnection.Close()
+				_ = responseConnection.Close()
 			}()
 		} else {
-			r.Body.Close()
+			cleanupContext()
+			_ = r.Body.Close()
+			_ = responseConnection.Close()
 		}
 	} else {
-		r.Body.Close()
+		cleanupContext()
+		_ = r.Body.Close()
+		_ = responseConnection.Close()
 		return encodableError(fmt.Errorf("API PluginHTTP called but not implemented"))
 	}
 

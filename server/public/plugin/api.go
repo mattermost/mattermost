@@ -1113,7 +1113,12 @@ type API interface {
 	// Minimum server version: 5.10
 	PermanentDeleteBot(botUserId string) *model.AppError
 
-	// PluginHTTP allows inter-plugin requests to plugin APIs.
+	// PluginHTTP allows inter-plugin requests to plugin APIs. Deadlines and cancellation attached to
+	// request.Context() are propagated to updated destination plugins. If the context ends before
+	// response headers arrive, PluginHTTP returns nil and the caller can inspect request.Context().Err().
+	// If it ends after headers arrive, reads from the response body return the context error.
+	// Context propagation requires Mattermost server v12.0 or later.
+	// Calls to older servers retain legacy behavior and may not return promptly after cancellation.
 	//
 	// Minimum server version: 5.18
 	PluginHTTP(request *http.Request) *http.Response

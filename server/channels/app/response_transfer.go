@@ -4,11 +4,13 @@
 package app
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"net/http"
 	"strconv"
 	"strings"
+	"sync"
 )
 
 type PluginResponseWriter struct {
@@ -16,6 +18,7 @@ type PluginResponseWriter struct {
 	headers       http.Header
 	statusCode    int
 	ResponseReady chan struct{}
+	readyOnce     sync.Once
 }
 
 func NewPluginResponseWriter(pw *io.PipeWriter) *PluginResponseWriter {
@@ -35,11 +38,7 @@ func (rt *PluginResponseWriter) Header() http.Header {
 
 // markResponseReady safely closes the ResponseReady channel if not already closed
 func (rt *PluginResponseWriter) markResponseReady() {
-	select {
-	case <-rt.ResponseReady:
-	default:
-		close(rt.ResponseReady)
-	}
+	rt.readyOnce.Do(func() { close(rt.ResponseReady) })
 }
 
 func (rt *PluginResponseWriter) Write(data []byte) (int, error) {
@@ -74,14 +73,15 @@ func parseContentLength(cl string) int64 {
 	return n
 }
 
-func (rt *PluginResponseWriter) GenerateResponse(pr *io.PipeReader) *http.Response {
+func (rt *PluginResponseWriter) GenerateResponse(ctx context.Context, pr *io.PipeReader, cancel context.CancelFunc) *http.Response {
+	body := newPluginResponseBody(ctx, cancel, pr)
 	res := &http.Response{
 		Proto:      "HTTP/1.1",
 		ProtoMajor: 1,
 		ProtoMinor: 1,
 		StatusCode: rt.statusCode,
 		Header:     rt.headers.Clone(),
-		Body:       pr,
+		Body:       body,
 	}
 
 	if res.StatusCode == 0 {
@@ -96,13 +96,56 @@ func (rt *PluginResponseWriter) GenerateResponse(pr *io.PipeReader) *http.Respon
 }
 
 func (rt *PluginResponseWriter) CloseWithError(err error) error {
-	// Ensure ResponseReady is closed to prevent deadlock
 	rt.markResponseReady()
 	return rt.pipeWriter.CloseWithError(err)
 }
 
 func (rt *PluginResponseWriter) Close() error {
-	// Ensure ResponseReady is closed to prevent deadlock
 	rt.markResponseReady()
 	return rt.pipeWriter.Close()
+}
+
+type pluginResponseBody struct {
+	ctx    context.Context
+	cancel context.CancelFunc
+	reader *io.PipeReader
+	stop   func() bool
+}
+
+func newPluginResponseBody(ctx context.Context, cancel context.CancelFunc, reader *io.PipeReader) io.ReadCloser {
+	body := &pluginResponseBody{ctx: ctx, cancel: cancel, reader: reader}
+	body.stop = context.AfterFunc(ctx, func() {
+		_ = body.closeWithError(ctx.Err(), false)
+	})
+	return body
+}
+
+func (b *pluginResponseBody) Read(p []byte) (int, error) {
+	if err := b.ctx.Err(); err != nil {
+		_ = b.closeWithError(err, false)
+		return 0, err
+	}
+
+	n, err := b.reader.Read(p)
+	if ctxErr := b.ctx.Err(); ctxErr != nil {
+		_ = b.closeWithError(ctxErr, false)
+		return 0, ctxErr
+	}
+	if err != nil {
+		_ = b.Close()
+	}
+	return n, err
+}
+
+func (b *pluginResponseBody) Close() error {
+	return b.closeWithError(nil, true)
+}
+
+func (b *pluginResponseBody) closeWithError(err error, stopContext bool) error {
+	if stopContext && b.stop != nil {
+		b.stop()
+	}
+	closeErr := b.reader.CloseWithError(err)
+	b.cancel()
+	return closeErr
 }

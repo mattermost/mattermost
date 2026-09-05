@@ -5,6 +5,7 @@ package app
 
 import (
 	"bytes"
+	"context"
 	_ "embed"
 	"encoding/json"
 	"errors"
@@ -1942,6 +1943,568 @@ func TestInterpluginPluginHTTP(t *testing.T) {
 	require.NoError(t, err)
 	_, ret := hooks.MessageWillBePosted(nil, nil)
 	assert.Equal(t, "ok", ret)
+}
+
+func TestInterpluginPluginHTTPContext(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+	const testTimeout = 10 * time.Second
+
+	setupMultiPluginAPITest(t,
+		[]string{
+			// The destination plugin exposes blocking handlers and reports what its request context observes.
+			`
+		package main
+
+		import (
+			"context"
+			"fmt"
+			"io"
+			"net/http"
+			"time"
+
+			"github.com/mattermost/mattermost/server/public/plugin"
+		)
+
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+			events chan string
+		}
+
+		func (p *MyPlugin) ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Request) {
+			switch r.URL.Path {
+			case "/deadline-expire":
+				deadline, ok := r.Context().Deadline()
+				if !ok || time.Until(deadline) <= 0 || time.Until(deadline) > 5*time.Second {
+					p.events <- "deadline:missing"
+					return
+				}
+				<-r.Context().Done()
+				p.events <- "deadline:" + r.Context().Err().Error()
+			case "/wait":
+				p.events <- "wait:started"
+				<-r.Context().Done()
+				p.events <- "wait:" + r.Context().Err().Error()
+			case "/stream":
+				w.WriteHeader(http.StatusOK)
+				_, _ = w.Write([]byte("start"))
+				w.(http.Flusher).Flush()
+				<-r.Context().Done()
+				p.events <- "stream:" + r.Context().Err().Error()
+				_, _ = w.Write([]byte("late"))
+			case "/headers-only":
+				w.WriteHeader(http.StatusAccepted)
+				<-r.Context().Done()
+			case "/body-close":
+				w.WriteHeader(http.StatusOK)
+				_, _ = w.Write([]byte("start"))
+				w.(http.Flusher).Flush()
+				<-r.Context().Done()
+				_, err := w.Write([]byte("late"))
+				p.events <- fmt.Sprintf("body-close:context-canceled=%t,write-failed=%t", r.Context().Err() == context.Canceled, err != nil)
+			case "/upload":
+				p.events <- "upload:started"
+				_, _ = io.ReadAll(r.Body)
+				<-r.Context().Done()
+				p.events <- "upload:" + r.Context().Err().Error()
+				_, _ = w.Write([]byte("uploaded"))
+			case "/direct":
+				p.events <- "direct:started"
+				_, _ = io.ReadAll(r.Body)
+				<-r.Context().Done()
+				p.events <- "direct:" + r.Context().Err().Error()
+			case "/ok":
+				w.WriteHeader(http.StatusCreated)
+				body, _ := io.ReadAll(r.Body)
+				_, _ = w.Write(body)
+			case "/event":
+				select {
+				case event := <-p.events:
+					_, _ = w.Write([]byte(event))
+				case <-r.Context().Done():
+				}
+			}
+		}
+
+		func main() {
+			plugin.ClientMain(&MyPlugin{events: make(chan string, 1)})
+		}
+		`,
+			// The caller plugin exercises PluginHTTP from the other side of the RPC boundary.
+			`
+		package main
+
+		import (
+			"context"
+			"fmt"
+			"io"
+			"net/http"
+			"strings"
+			"sync"
+			"time"
+
+			"github.com/mattermost/mattermost/server/public/model"
+			"github.com/mattermost/mattermost/server/public/plugin"
+		)
+
+		const testTimeout = 10 * time.Second
+
+		type blockingBody struct {
+			closed chan struct{}
+			once sync.Once
+		}
+
+		func (b *blockingBody) Read(p []byte) (int, error) {
+			<-b.closed
+			return 0, io.EOF
+		}
+
+		func (b *blockingBody) Close() error {
+			b.once.Do(func() { close(b.closed) })
+			return nil
+		}
+
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+		}
+
+		func (p *MyPlugin) expectServerEvent(expected string) error {
+			ctx, cancel := context.WithTimeout(context.Background(), testTimeout)
+			defer cancel()
+			request, err := http.NewRequestWithContext(ctx, http.MethodGet, "/contextserver/event", nil)
+			if err != nil {
+				return err
+			}
+			response := p.API.PluginHTTP(request)
+			if response == nil {
+				return fmt.Errorf("event %q returned no response", expected)
+			}
+			body, err := io.ReadAll(response.Body)
+			_ = response.Body.Close()
+			if err != nil {
+				return fmt.Errorf("event %q failed: %w", expected, err)
+			}
+			if string(body) != expected {
+				return fmt.Errorf("event: got %q, expected %q", body, expected)
+			}
+			return nil
+		}
+
+		func (p *MyPlugin) MessageWillBePosted(c *plugin.Context, post *model.Post) (*model.Post, string) {
+			// A response becomes available when headers are written, not when the handler returns.
+			headersCtx, headersCancel := context.WithCancel(context.Background())
+			req, err := http.NewRequestWithContext(headersCtx, http.MethodGet, "/contextserver/headers-only", nil)
+			if err != nil {
+				return nil, err.Error()
+			}
+			headersResponse := make(chan *http.Response, 1)
+			go func(headersRequest *http.Request) {
+				headersResponse <- p.API.PluginHTTP(headersRequest)
+			}(req)
+			var resp *http.Response
+			select {
+			case resp = <-headersResponse:
+				if resp == nil || resp.StatusCode != http.StatusAccepted {
+					headersCancel()
+					return nil, "headers-only response was not ready before its body"
+				}
+			case <-time.After(testTimeout):
+				headersCancel()
+				return nil, "headers-only response timed out"
+			}
+			headersCancel()
+			_ = resp.Body.Close()
+
+			expiryCtx, expiryCancel := context.WithTimeout(context.Background(), time.Second)
+			defer expiryCancel()
+			req, _ = http.NewRequestWithContext(expiryCtx, http.MethodGet, "/contextserver/deadline-expire", nil)
+			resp = p.API.PluginHTTP(req)
+			<-expiryCtx.Done()
+			if expiryCtx.Err() != context.DeadlineExceeded {
+				return nil, fmt.Sprintf("deadline context error: %v", expiryCtx.Err())
+			}
+			// The independently reconstructed deadline may let the remote handler finish first.
+			if resp != nil {
+				_ = resp.Body.Close()
+			}
+			if err = p.expectServerEvent("deadline:" + context.DeadlineExceeded.Error()); err != nil {
+				return nil, err.Error()
+			}
+
+			// Cancellation before headers returns no response.
+			cancelCtx, cancel := context.WithCancel(context.Background())
+			req, _ = http.NewRequestWithContext(cancelCtx, http.MethodGet, "/contextserver/wait", nil)
+			waitResponse := make(chan *http.Response, 1)
+			go func(waitRequest *http.Request) {
+				waitResponse <- p.API.PluginHTTP(waitRequest)
+			}(req)
+			if err = p.expectServerEvent("wait:started"); err != nil {
+				cancel()
+				return nil, err.Error()
+			}
+			cancel()
+			select {
+			case resp = <-waitResponse:
+			case <-time.After(testTimeout):
+				return nil, "cancellation before headers timed out"
+			}
+			if resp != nil {
+				return nil, "cancellation before headers failed"
+			}
+			if err = p.expectServerEvent("wait:" + context.Canceled.Error()); err != nil {
+				return nil, err.Error()
+			}
+
+			// After headers, cancellation reaches both the response body and the remote handler.
+			streamCtx, streamCancel := context.WithCancel(context.Background())
+			req, _ = http.NewRequestWithContext(streamCtx, http.MethodGet, "/contextserver/stream", nil)
+			resp = p.API.PluginHTTP(req)
+			if resp == nil {
+				return nil, "stream response is nil"
+			}
+			firstChunk := make([]byte, len("start"))
+			if _, err = io.ReadFull(resp.Body, firstChunk); err != nil || string(firstChunk) != "start" {
+				return nil, fmt.Sprintf("initial stream read: %q, %v", firstChunk, err)
+			}
+			streamCancel()
+			readErrCh := make(chan error, 1)
+			go func() {
+				_, readErr := resp.Body.Read(make([]byte, 1))
+				readErrCh <- readErr
+			}()
+			select {
+			case err = <-readErrCh:
+				if err != context.Canceled {
+					return nil, fmt.Sprintf("stream cancellation error: %v", err)
+				}
+			case <-time.After(testTimeout):
+				return nil, "stream cancellation timed out"
+			}
+			_ = resp.Body.Close()
+			if err = p.expectServerEvent("stream:" + context.Canceled.Error()); err != nil {
+				return nil, err.Error()
+			}
+
+			streamDeadlineCtx, streamDeadlineCancel := context.WithTimeout(context.Background(), time.Second)
+			defer streamDeadlineCancel()
+			req, _ = http.NewRequestWithContext(streamDeadlineCtx, http.MethodGet, "/contextserver/stream", nil)
+			resp = p.API.PluginHTTP(req)
+			if resp == nil {
+				return nil, "deadline stream response is nil"
+			}
+			if _, err = io.ReadFull(resp.Body, firstChunk); err != nil || string(firstChunk) != "start" {
+				return nil, fmt.Sprintf("deadline stream initial read: %q, %v", firstChunk, err)
+			}
+			readErrCh = make(chan error, 1)
+			go func() {
+				_, readErr := resp.Body.Read(make([]byte, 1))
+				readErrCh <- readErr
+			}()
+			select {
+			case err = <-readErrCh:
+				if err != context.DeadlineExceeded && err != io.EOF {
+					return nil, fmt.Sprintf("stream deadline error: %v", err)
+				}
+			case <-time.After(testTimeout):
+				return nil, "stream deadline timed out"
+			}
+			<-streamDeadlineCtx.Done()
+			if streamDeadlineCtx.Err() != context.DeadlineExceeded {
+				return nil, fmt.Sprintf("stream context error: %v", streamDeadlineCtx.Err())
+			}
+			_ = resp.Body.Close()
+			if err = p.expectServerEvent("stream:" + context.DeadlineExceeded.Error()); err != nil {
+				return nil, err.Error()
+			}
+
+			// Closing a response body cancels the remote handler.
+			bodyCloseCtx, bodyCloseCancel := context.WithCancel(context.Background())
+			defer bodyCloseCancel()
+			req, _ = http.NewRequestWithContext(bodyCloseCtx, http.MethodGet, "/contextserver/body-close", nil)
+			resp = p.API.PluginHTTP(req)
+			if resp == nil {
+				return nil, "body-close response is nil"
+			}
+			if _, err = io.ReadFull(resp.Body, firstChunk); err != nil {
+				return nil, fmt.Sprintf("body-close initial read: %v", err)
+			}
+			_ = resp.Body.Close()
+			if err = p.expectServerEvent("body-close:context-canceled=true,write-failed=true"); err != nil {
+				return nil, err.Error()
+			}
+
+			// Cancellation must unblock a handler reading the request body.
+			uploadCtx, uploadCancel := context.WithCancel(context.Background())
+			uploadBody := &blockingBody{closed: make(chan struct{})}
+			req, _ = http.NewRequestWithContext(uploadCtx, http.MethodPost, "/contextserver/upload", uploadBody)
+			uploadResponse := make(chan *http.Response, 1)
+			go func(uploadRequest *http.Request) {
+				uploadResponse <- p.API.PluginHTTP(uploadRequest)
+			}(req)
+			if err = p.expectServerEvent("upload:started"); err != nil {
+				uploadCancel()
+				return nil, err.Error()
+			}
+			uploadCancel()
+			select {
+			case resp = <-uploadResponse:
+			case <-time.After(testTimeout):
+				return nil, "upload cancellation timed out"
+			}
+			if resp != nil {
+				return nil, "upload cancellation returned a response"
+			}
+			select {
+			case <-uploadBody.closed:
+			case <-time.After(testTimeout):
+				return nil, "upload body was not closed"
+			}
+			if err = p.expectServerEvent("upload:" + context.Canceled.Error()); err != nil {
+				return nil, err.Error()
+			}
+
+			// A canceled request must not poison the shared RPC connection.
+			okCtx, okCancel := context.WithTimeout(context.Background(), testTimeout)
+			defer okCancel()
+			req, _ = http.NewRequestWithContext(okCtx, http.MethodPost, "/contextserver/ok", strings.NewReader("body"))
+			resp = p.API.PluginHTTP(req)
+			if resp == nil {
+				return nil, "request after cancellation is nil"
+			}
+			body, err := io.ReadAll(resp.Body)
+			_ = resp.Body.Close()
+			if err != nil || resp.StatusCode != http.StatusCreated || string(body) != "body" {
+				return nil, fmt.Sprintf("request after cancellation: %d, %q, %v", resp.StatusCode, body, err)
+			}
+
+			return nil, "ok"
+		}
+
+		func main() {
+			plugin.ClientMain(&MyPlugin{})
+		}
+		`,
+		},
+		[]string{
+			`{"id": "contextserver", "server": {"executable": "backend.exe"}}`,
+			`{"id": "contextclient", "server": {"executable": "backend.exe"}}`,
+		},
+		[]string{"contextserver", "contextclient"},
+		true,
+		th.App,
+		th.Context,
+	)
+
+	hooks, err := th.App.GetPluginsEnvironment().HooksForPlugin("contextclient")
+	require.NoError(t, err)
+	_, result := hooks.MessageWillBePosted(nil, nil)
+	require.Equal(t, "ok", result)
+
+	requestCtx, cancelRequest := context.WithCancel(context.Background())
+	t.Cleanup(cancelRequest)
+
+	// Leave the pipe unwritten so cancellation, rather than EOF, releases the remote read.
+	bodyReader, bodyWriter := io.Pipe()
+	t.Cleanup(func() {
+		_ = bodyReader.Close()
+		_ = bodyWriter.Close()
+	})
+	req, err := http.NewRequestWithContext(requestCtx, http.MethodPost, "/direct", bodyReader)
+	require.NoError(t, err)
+	requestDone := make(chan struct{})
+	go func() {
+		th.App.ServeInternalPluginRequest("", httptest.NewRecorder(), req, "", "contextserver")
+		close(requestDone)
+	}()
+	requireServerEvent := func(expected string) {
+		eventCtx, eventCancel := context.WithTimeout(context.Background(), testTimeout)
+		defer eventCancel()
+		eventRequest, eventErr := http.NewRequestWithContext(eventCtx, http.MethodGet, "/event", nil)
+		require.NoError(t, eventErr)
+		eventRecorder := httptest.NewRecorder()
+		th.App.ServeInternalPluginRequest("", eventRecorder, eventRequest, "", "contextserver")
+		require.Equal(t, expected, eventRecorder.Body.String())
+	}
+
+	requireServerEvent("direct:started")
+	cancelRequest()
+	select {
+	case <-requestDone:
+	case <-time.After(testTimeout):
+		require.FailNow(t, "direct server-to-plugin cancellation timed out")
+	}
+
+	requireServerEvent("direct:" + context.Canceled.Error())
+	_, writeErr := bodyWriter.Write([]byte("late"))
+	require.ErrorIs(t, writeErr, io.ErrClosedPipe)
+}
+
+func TestInterpluginPluginHTTPCancellationWithLegacyDestination(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+	markerPath := filepath.Join(t.TempDir(), "legacy-serve-http-started")
+
+	legacyPluginCode := fmt.Sprintf(`
+		package main
+
+		import (
+			"net/rpc"
+			"os"
+
+			hplugin "github.com/hashicorp/go-plugin"
+			mmplugin "github.com/mattermost/mattermost/server/public/plugin"
+		)
+
+			const markerPath = %q
+
+		type legacyHooksPlugin struct{}
+
+		func (p *legacyHooksPlugin) Server(b *hplugin.MuxBroker) (any, error) {
+			return &legacyHooksServer{muxBroker: b}, nil
+		}
+
+		func (p *legacyHooksPlugin) Client(b *hplugin.MuxBroker, client *rpc.Client) (any, error) {
+			return nil, nil
+		}
+
+		type legacyHooksServer struct {
+			muxBroker *hplugin.MuxBroker
+		}
+
+		type LegacyOnActivateArgs struct {
+			APIMuxId    uint32
+			DriverMuxId uint32
+		}
+
+		type LegacyOnActivateReturns struct {
+			A error
+		}
+
+		type LegacyServeHTTPArgs struct {
+			ResponseWriterStream uint32
+			Request              *mmplugin.HTTPRequestSubset
+			Context              *mmplugin.Context
+			RequestBodyStream    uint32
+		}
+
+		func (s *legacyHooksServer) Implemented(args struct{}, reply *[]string) error {
+			*reply = []string{"ServeHTTP"}
+			return nil
+		}
+
+		func (s *legacyHooksServer) OnActivate(args *LegacyOnActivateArgs, returns *LegacyOnActivateReturns) error {
+			apiConnection, err := s.muxBroker.Dial(args.APIMuxId)
+			if err != nil {
+				return err
+			}
+			driverConnection, err := s.muxBroker.Dial(args.DriverMuxId)
+			if err != nil {
+				_ = apiConnection.Close()
+				return err
+			}
+			_ = apiConnection.Close()
+			_ = driverConnection.Close()
+			return nil
+		}
+
+		func (s *legacyHooksServer) ServeHTTP(args *LegacyServeHTTPArgs, returns *struct{}) error {
+			if err := os.WriteFile(markerPath, []byte("started"), 0600); err != nil {
+				return err
+			}
+			select {}
+		}
+
+		func main() {
+			hplugin.Serve(&hplugin.ServeConfig{
+				HandshakeConfig: hplugin.HandshakeConfig{
+					ProtocolVersion:  1,
+					MagicCookieKey:   "MATTERMOST_PLUGIN",
+					MagicCookieValue: "Securely message teams, anywhere.",
+				},
+				Plugins: map[string]hplugin.Plugin{"hooks": &legacyHooksPlugin{}},
+			})
+		}
+	`, markerPath)
+
+	callerPluginCode := fmt.Sprintf(`
+		package main
+
+		import (
+			"context"
+			"net/http"
+			"os"
+			"time"
+
+			"github.com/mattermost/mattermost/server/public/model"
+			"github.com/mattermost/mattermost/server/public/plugin"
+		)
+
+		const markerPath = %q
+		const testTimeout = 10 * time.Second
+
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+		}
+
+		func (p *MyPlugin) MessageWillBePosted(c *plugin.Context, post *model.Post) (*model.Post, string) {
+			ctx, cancel := context.WithCancel(context.Background())
+			request, err := http.NewRequestWithContext(ctx, http.MethodGet, "/legacycontextserver/wait", nil)
+			if err != nil {
+				return nil, err.Error()
+			}
+			responseCh := make(chan *http.Response, 1)
+			go func() {
+				responseCh <- p.API.PluginHTTP(request)
+			}()
+
+			started := false
+			for waitStarted := time.Now(); time.Since(waitStarted) < testTimeout; time.Sleep(20 * time.Millisecond) {
+				if _, statErr := os.Stat(markerPath); statErr == nil {
+					started = true
+					break
+				}
+			}
+			if !started {
+				cancel()
+				return nil, "legacy destination did not start"
+			}
+
+			cancel()
+			select {
+			case response := <-responseCh:
+				if response != nil {
+					return nil, "legacy destination cancellation returned a response"
+				}
+			case <-time.After(testTimeout):
+				return nil, "legacy destination kept caller blocked after cancellation"
+			}
+			if p.API.GetServerVersion() == "" {
+				return nil, "caller API connection was unusable after cancellation"
+			}
+			return nil, "ok"
+		}
+
+		func main() {
+			plugin.ClientMain(&MyPlugin{})
+		}
+	`, markerPath)
+
+	setupMultiPluginAPITest(t,
+		[]string{legacyPluginCode, callerPluginCode},
+		[]string{
+			`{"id": "legacycontextserver", "server": {"executable": "backend.exe"}}`,
+			`{"id": "legacycontextclient", "server": {"executable": "backend.exe"}}`,
+		},
+		[]string{"legacycontextserver", "legacycontextclient"},
+		true,
+		th.App,
+		th.Context,
+	)
+
+	hooks, err := th.App.GetPluginsEnvironment().HooksForPlugin("legacycontextclient")
+	require.NoError(t, err)
+	_, result := hooks.MessageWillBePosted(nil, nil)
+	require.Equal(t, "ok", result)
 }
 
 func TestInterpluginPluginHTTPWithBodyAfterWriteHeader(t *testing.T) {
