@@ -1,0 +1,116 @@
+<h1 class="markdown__heading">Code Syntax Highlighting</h1><p>Verify the following code blocks render as code blocks and highlight properly. </p>
+<h3 class="markdown__heading">Diff</h3><div class="post-code"><span class="post-code__language">Diff</span><div class="hljs"><div class="post-code__line-numbers">1
+2
+3
+4
+5
+6
+7
+8
+9
+10</div><code><span class="hljs-comment">*** /path/to/original    ''timestamp''</span>
+<span class="hljs-comment">--- /path/to/new    ''timestamp''</span>
+<span class="hljs-comment">***************</span>
+<span class="hljs-comment">*** 1 ****</span>
+<span class="hljs-addition">! This is a line.</span>
+<span class="hljs-comment">--- 1 ---</span>
+<span class="hljs-addition">! This is a replacement line.</span>
+It is important to spell
+<span class="hljs-deletion">-removed line</span>
+<span class="hljs-addition">+new line</span></code></div></div><h3 class="markdown__heading">Makefile</h3><div class="post-code"><span class="post-code__language">Makefile</span><div class="hljs"><div class="post-code__line-numbers">1
+2
+3
+4
+5</div><code>CC=gcc
+CFLAGS=-I.
+
+<span class="hljs-section">hellomake: hellomake.o hellofunc.o</span>
+     <span class="hljs-variable">$(CC)</span> -o hellomake hellomake.o hellofunc.o -I.</code></div></div><h3 class="markdown__heading">JSON</h3><div class="post-code"><span class="post-code__language">JSON</span><div class="hljs"><div class="post-code__line-numbers">1
+2
+3</div><code>{<span class="hljs-attr">"employees"</span>:[
+    {<span class="hljs-attr">"firstName"</span>:<span class="hljs-string">"John"</span>, <span class="hljs-attr">"lastName"</span>:<span class="hljs-string">"Doe"</span>},
+]}</code></div></div><h3 class="markdown__heading">Markdown</h3><div class="post-code"><span class="post-code__language">Markdown</span><div class="hljs"><div class="post-code__line-numbers">1
+2
+3</div><code><span class="hljs-strong">**bold**</span> 
+<span class="hljs-emphasis">*italics*</span> 
+[<span class="hljs-string">link</span>](<span class="hljs-link">www.example.com</span>)</code></div></div><h3 class="markdown__heading">JavaScript</h3><div class="post-code"><span class="post-code__language">JavaScript</span><div class="hljs"><div class="post-code__line-numbers">1</div><code><span class="hljs-built_in">document</span>.write(<span class="hljs-string">'Hello, world!'</span>);</code></div></div><h3 class="markdown__heading">CSS</h3><div class="post-code"><span class="post-code__language">CSS</span><div class="hljs"><div class="post-code__line-numbers">1
+2
+3</div><code><span class="hljs-selector-tag">body</span> {
+    <span class="hljs-attribute">background-color</span>: red;
+}</code></div></div><h3 class="markdown__heading">Objective C</h3><div class="post-code"><span class="post-code__language">Objective C</span><div class="hljs"><div class="post-code__line-numbers">1
+2
+3
+4
+5
+6</div><code><span class="hljs-meta">#import <span class="hljs-meta-string">&lt;stdio.h&gt;</span></span>
+
+<span class="hljs-keyword">int</span> main (<span class="hljs-keyword">void</span>)
+{
+    printf (<span class="hljs-string">"Hello world!\n"</span>);
+}</code></div></div><h3 class="markdown__heading">Python</h3><div class="post-code"><span class="post-code__language">Python</span><div class="hljs"><div class="post-code__line-numbers">1</div><code><span class="hljs-built_in">print</span> <span class="hljs-string">"Hello, world!"</span></code></div></div><h3 class="markdown__heading">XML</h3><div class="post-code"><span class="post-code__language">HTML, XML</span><div class="hljs"><div class="post-code__line-numbers">1
+2
+3
+4
+5</div><code><span class="hljs-tag">&lt;<span class="hljs-name">employees</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">employee</span>&gt;</span>
+        <span class="hljs-tag">&lt;<span class="hljs-name">firstName</span>&gt;</span>John<span class="hljs-tag">&lt;/<span class="hljs-name">firstName</span>&gt;</span> <span class="hljs-tag">&lt;<span class="hljs-name">lastName</span>&gt;</span>Doe<span class="hljs-tag">&lt;/<span class="hljs-name">lastName</span>&gt;</span>
+    <span class="hljs-tag">&lt;/<span class="hljs-name">employee</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">employees</span>&gt;</span></code></div></div><h3 class="markdown__heading">Perl</h3><div class="post-code"><span class="post-code__language">Perl</span><div class="hljs"><div class="post-code__line-numbers">1</div><code><span class="hljs-keyword">print</span> <span class="hljs-string">"Hello, World!\n"</span>;</code></div></div><h3 class="markdown__heading">Bash</h3><div class="post-code"><span class="post-code__language">Bash</span><div class="hljs"><div class="post-code__line-numbers">1</div><code><span class="hljs-built_in">echo</span> <span class="hljs-string">"Hello World"</span></code></div></div><h3 class="markdown__heading">PHP</h3><div class="post-code"><span class="post-code__language">PHP</span><div class="hljs"><div class="post-code__line-numbers">1</div><code> <span class="hljs-meta">&lt;?php</span> <span class="hljs-keyword">echo</span> <span class="hljs-string">'&lt;p&gt;Hello World&lt;/p&gt;'</span>; <span class="hljs-meta">?&gt;</span> </code></div></div><h3 class="markdown__heading">CoffeeScript</h3><div class="post-code"><span class="post-code__language">CoffeeScript</span><div class="hljs"><div class="post-code__line-numbers">1</div><code><span class="hljs-built_in">console</span>.log(“Hello world!”);</code></div></div><h3 class="markdown__heading">C</h3><div class="post-code"><span class="post-code__language">C#</span><div class="hljs"><div class="post-code__line-numbers">1
+2
+3
+4
+5
+6
+7
+8</div><code><span class="hljs-keyword">using</span> System;
+<span class="hljs-keyword">class</span> <span class="hljs-title">Program</span>
+{
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">Main</span>(<span class="hljs-params"><span class="hljs-built_in">string</span>[] args</span>)</span>
+    {
+        Console.WriteLine(<span class="hljs-string">"Hello, world!"</span>);
+    }
+}</code></div></div><h3 class="markdown__heading">C++</h3><div class="post-code"><span class="post-code__language">C/C++</span><div class="hljs"><div class="post-code__line-numbers">1
+2
+3
+4
+5
+6
+7</div><code><span class="hljs-meta">#<span class="hljs-meta-keyword">include</span> <span class="hljs-meta-string">&lt;iostream.h&gt;</span></span>
+
+main()
+{
+    <span class="hljs-built_in">cout</span> &lt;&lt; <span class="hljs-string">"Hello World!"</span>;
+    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;
+}</code></div></div><h3 class="markdown__heading">SQL</h3><div class="post-code"><span class="post-code__language">SQL</span><div class="hljs"><div class="post-code__line-numbers">1
+2</div><code><span class="hljs-keyword">SELECT</span> column_name,column_name
+<span class="hljs-keyword">FROM</span> table_name;</code></div></div><h3 class="markdown__heading">Go</h3><div class="post-code"><span class="post-code__language">Go</span><div class="hljs"><div class="post-code__line-numbers">1
+2
+3
+4
+5</div><code><span class="hljs-keyword">package</span> main
+<span class="hljs-keyword">import</span> <span class="hljs-string">"fmt"</span>
+<span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">main</span><span class="hljs-params">()</span></span> {
+    fmt.Println(<span class="hljs-string">"Hello, 世界"</span>)
+}</code></div></div><h3 class="markdown__heading">Ruby</h3><div class="post-code"><span class="post-code__language">Ruby</span><div class="hljs"><div class="post-code__line-numbers">1</div><code>puts <span class="hljs-string">"Hello, world!"</span></code></div></div><h3 class="markdown__heading">Java</h3><div class="post-code"><span class="post-code__language">Java</span><div class="hljs"><div class="post-code__line-numbers">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12</div><code><span class="hljs-keyword">import</span> javax.swing.JFrame;  <span class="hljs-comment">//Importing class JFrame</span>
+<span class="hljs-keyword">import</span> javax.swing.JLabel;  <span class="hljs-comment">//Importing class JLabel</span>
+<span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">HelloWorld</span> </span>{
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">main</span><span class="hljs-params">(String[] args)</span> </span>{
+        JFrame frame = <span class="hljs-keyword">new</span> JFrame();           <span class="hljs-comment">//Creating frame</span>
+        frame.setTitle(<span class="hljs-string">"Hi!"</span>);                 <span class="hljs-comment">//Setting title frame</span>
+        frame.add(<span class="hljs-keyword">new</span> JLabel(<span class="hljs-string">"Hello, world!"</span>));<span class="hljs-comment">//Adding text to frame</span>
+        frame.pack();                          <span class="hljs-comment">//Setting size to smallest</span>
+        frame.setLocationRelativeTo(<span class="hljs-keyword">null</span>);     <span class="hljs-comment">//Centering frame</span>
+        frame.setVisible(<span class="hljs-keyword">true</span>);                <span class="hljs-comment">//Showing frame</span>
+    }
+}</code></div></div><h3 class="markdown__heading">Latex Equation</h3><div class="post-body--code tex"><span class="katex-display fleqn"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mfrac><mi>d</mi><mrow><mi>d</mi><mi>x</mi></mrow></mfrac><mrow><mo fence="true">(</mo><msubsup><mo>∫</mo><mn>0</mn><mi>x</mi></msubsup><mi>f</mi><mo stretchy="false">(</mo><mi>u</mi><mo stretchy="false">)</mo><mtext> </mtext><mi>d</mi><mi>u</mi><mo fence="true">)</mo></mrow><mo>=</mo><mi>f</mi><mo stretchy="false">(</mo><mi>x</mi><mo stretchy="false">)</mo><mi mathvariant="normal">.</mi></mrow><annotation encoding="application/x-tex">\frac{d}{dx}\left( \int_{0}^{x} f(u)\,du\right)=f(x).</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:2.40003em;vertical-align:-0.95003em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.37144em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal">d</span><span class="mord mathnormal">x</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal">d</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.686em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="minner"><span class="mopen delimcenter" style="top:0em;"><span class="delimsizing size3">(</span></span><span class="mop"><span class="mop op-symbol large-op" style="margin-right:0.44445em;position:relative;top:-0.0011249999999999316em;">∫</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.414292em;"><span style="top:-1.7880500000000001em;margin-left:-0.44445em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">0</span></span></span></span><span style="top:-3.8129000000000004em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">x</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.9119499999999999em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathnormal" style="margin-right:0.10764em;">f</span><span class="mopen">(</span><span class="mord mathnormal">u</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathnormal">d</span><span class="mord mathnormal">u</span><span class="mclose delimcenter" style="top:0em;"><span class="delimsizing size3">)</span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.10764em;">f</span><span class="mopen">(</span><span class="mord mathnormal">x</span><span class="mclose">)</span><span class="mord">.</span></span></span></span></span></div>

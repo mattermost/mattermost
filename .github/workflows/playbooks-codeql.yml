@@ -1,0 +1,50 @@
+name: Playbooks CodeQL
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - "core-plugins/mattermost-plugin-playbooks/**"
+  pull_request:
+    branches: [master]
+    paths:
+      - "core-plugins/mattermost-plugin-playbooks/**"
+  schedule:
+    - cron: "43 14 * * 2" # Weekly on Tuesdays
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+    working-directory: core-plugins/mattermost-plugin-playbooks
+
+jobs:
+  analyze:
+    permissions:
+      security-events: write # for github/codeql-action/autobuild to send a status report
+    name: Playbooks / Analyze (${{ matrix.language }})
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        language: ["go", "javascript"]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v4
+        with:
+          languages: ${{ matrix.language }}
+          debug: false
+          config-file: ./core-plugins/mattermost-plugin-playbooks/.github/codeql/codeql-config.yml
+
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v4
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v4

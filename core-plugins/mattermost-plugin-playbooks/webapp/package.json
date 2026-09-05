@@ -1,0 +1,199 @@
+{
+  "private": true,
+  "engines": {
+    "node": "20.x || 22.x || >=24.0.0",
+    "npm": ">=10.1.0"
+  },
+  "dependencies": {
+    "@apollo/client": "3.7.3",
+    "@floating-ui/react": "0.26.28",
+    "@mattermost/client": "10.9.0",
+    "@mattermost/compass-icons": "0.1.32",
+    "@mattermost/types": "10.9.0",
+    "@mdi/js": "^6.5.95",
+    "@mdi/react": "1.5.0",
+    "@tanstack/react-table": "8.10.7",
+    "@tippyjs/react": "4.2.6",
+    "chart.js": "3.8.2",
+    "chartjs-plugin-annotation": "2.1.2",
+    "chrono-node": "2.8.0",
+    "core-js": "3.20.2",
+    "css-vars-ponyfill": "2.4.9",
+    "debounce": "1.2.1",
+    "graphql": "16.9.0",
+    "js-trim-multiline-string": "^1.0.8",
+    "lodash": "4.17.21",
+    "luxon": "3.6.1",
+    "mattermost-redux": "10.9.0",
+    "parse-duration": "2.1.4",
+    "qs": "6.14.1",
+    "react": "^18.2.0",
+    "react-chartjs-2": "4.3.1",
+    "react-custom-scrollbars": "4.2.1",
+    "react-dom": "^18.2.0",
+    "react-infinite-scroll-component": "^6.1.0",
+    "react-infinite-scroller": "1.2.6",
+    "react-intl": "7.1.11",
+    "react-redux": "7.2.6",
+    "react-router-dom": "5.3.4",
+    "react-router-hash-link": "2.4.3",
+    "react-select": "4.3.1",
+    "react-use": "17.3.2",
+    "redux": "4.1.2",
+    "styled-components": "5.3.7",
+    "typescript": "5.6.3"
+  },
+  "devDependencies": {
+    "@babel/core": "7.26.10",
+    "@babel/preset-env": "7.21.5",
+    "@babel/preset-react": "7.18.6",
+    "@babel/preset-typescript": "7.21.5",
+    "@formatjs/cli": "4.7.0",
+    "@graphql-codegen/cli": "2.16.3",
+    "@graphql-codegen/client-preset": "1.2.5",
+    "@pmmmwh/react-refresh-webpack-plugin": "^0.5.4",
+    "@stylistic/eslint-plugin": "3.1.0",
+    "@testing-library/react-hooks": "8.0.0",
+    "@types/debounce": "1.2.1",
+    "@types/history": "4.7.8",
+    "@types/jest": "27.4.0",
+    "@types/lodash": "4.14.178",
+    "@types/luxon": "3.6.2",
+    "@types/qs": "6.9.7",
+    "@types/react": "^18.2.0",
+    "@types/react-beautiful-dnd": "13.1.2",
+    "@types/react-custom-scrollbars": "4.0.10",
+    "@types/react-dom": "^18.2.0",
+    "@types/react-infinite-scroller": "1.2.3",
+    "@types/react-redux": "7.1.21",
+    "@types/react-router-dom": "5.3.3",
+    "@types/react-router-hash-link": "2.4.5",
+    "@types/react-select": "3.1.2",
+    "@types/react-test-renderer": "18.0.0",
+    "@types/redux-mock-store": "1.0.3",
+    "@types/shallow-equals": "1.0.0",
+    "@types/styled-components": "5.1.26",
+    "@typescript-eslint/eslint-plugin": "8.32.0",
+    "@typescript-eslint/parser": "8.32.0",
+    "@webpack-cli/serve": "1.6.0",
+    "babel-eslint": "10.1.0",
+    "babel-jest": "27.5.1",
+    "babel-loader": "8.2.3",
+    "babel-plugin-add-react-displayname": "0.0.5",
+    "babel-plugin-formatjs": "10.3.14",
+    "babel-plugin-styled-components": "2.1.4",
+    "babel-plugin-typescript-to-proptypes": "2.1.0",
+    "classnames": "2.3.1",
+    "css-loader": "6.5.1",
+    "eslint": "8.57.0",
+    "eslint-import-resolver-webpack": "0.13.8",
+    "eslint-plugin-formatjs": "4.13.3",
+    "eslint-plugin-header": "3.1.1",
+    "eslint-plugin-import": "2.25.4",
+    "eslint-plugin-import-newlines": "1.3.0",
+    "eslint-plugin-no-relative-import-paths": "1.6.1",
+    "eslint-plugin-react": "7.37.5",
+    "eslint-plugin-react-hooks": "4.6.0",
+    "eslint-plugin-unused-imports": "4.1.4",
+    "file-loader": "^6.2.0",
+    "identity-obj-proxy": "3.0.0",
+    "jest": "29.7.0",
+    "jest-canvas-mock": "2.3.1",
+    "jest-environment-jsdom": "29.7.0",
+    "jest-junit": "13.0.0",
+    "postcss-styled-syntax": "0.7.1",
+    "process": "0.11.10",
+    "react-beautiful-dnd": "13.1.0",
+    "react-bootstrap": "1.6.1",
+    "react-refresh": "0.11.0",
+    "react-test-renderer": "18.2.0",
+    "redux-mock-store": "1.5.4",
+    "redux-thunk": "2.4.1",
+    "sass": "1.46.0",
+    "sass-loader": "12.4.0",
+    "style-loader": "3.3.1",
+    "stylelint": "16.19.1",
+    "stylelint-config-idiomatic-order": "10.0.0",
+    "stylelint-config-standard": "38.0.0",
+    "ts-prune": "0.10.3",
+    "webpack": "5.65.0",
+    "webpack-cli": "4.9.1",
+    "webpack-dev-server": "4.15.1"
+  },
+  "overrides": {
+    "react-custom-scrollbars": {
+      "react": "18.2.0",
+      "react-dom": "18.2.0"
+    }
+  },
+  "scripts": {
+    "build": "webpack --mode=production --stats-error-details",
+    "build:watch": "webpack --mode=production --watch",
+    "debug": "webpack --mode=development",
+    "debug:watch": "webpack --mode=development --watch",
+    "dev-server": "webpack serve --mode=development",
+    "lint": "npm run lint:eslint && npm run lint:stylelint",
+    "lint:eslint": "eslint --ext .js,.jsx,.tsx,.ts . --quiet --cache",
+    "lint:stylelint": "stylelint './src/**/*.{ts,tsx,css,scss}' --cache --quiet",
+    "fix": "npm run fix:eslint && npm run fix:stylelint",
+    "fix:eslint": "eslint --ext .js,.jsx,.tsx,.ts . --quiet --fix --cache",
+    "fix:stylelint": "stylelint './src/**/*.{ts,tsx,css,scss}' --fix --cache --quiet",
+    "test": "jest --forceExit --detectOpenHandles --verbose",
+    "test:watch": "jest --watch",
+    "test-ci": "jest --ci --forceExit --detectOpenHandles --maxWorkers=2",
+    "check-types": "tsc",
+    "extract": "formatjs extract \"src/**/*.{ts,tsx}\" --ignore \"**/*.d.ts\" --id-interpolation-pattern '[sha512:contenthash:base64:6]' --format simple --out-file i18n/en.json",
+    "graphql": "graphql-codegen --config graphql_gen.ts",
+    "report-unused-exports": "ts-prune"
+  },
+  "jest": {
+    "testPathIgnorePatterns": [
+      "/node_modules/"
+    ],
+    "testEnvironment": "jsdom",
+    "clearMocks": true,
+    "collectCoverageFrom": [
+      "src/**/*.{js,jsx}"
+    ],
+    "coverageReporters": [
+      "lcov",
+      "text-summary"
+    ],
+    "moduleNameMapper": {
+      "^.+\\.(jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$": "identity-obj-proxy",
+      "^.+\\.(css|less|scss)$": "identity-obj-proxy",
+      "^.*i18n.*\\.(json)$": "<rootDir>/tests/i18n_mock.json",
+      "^bundle-loader\\?lazy\\!(.*)$": "$1",
+      "^mattermost-redux\\/(.*)$": "<rootDir>/node_modules/mattermost-redux/lib/$1"
+    },
+    "moduleDirectories": [
+      "<rootDir>",
+      "node_modules"
+    ],
+    "moduleFileExtensions": [
+      "ts",
+      "tsx",
+      "js",
+      "jsx"
+    ],
+    "reporters": [
+      "default",
+      "jest-junit"
+    ],
+    "transform": {
+      "^.+\\.(js|jsx|ts|tsx|mjs)$": "babel-jest"
+    },
+    "transformIgnorePatterns": [
+      "node_modules/(?!react-native|react-router|serialize-error|parse-duration)"
+    ],
+    "setupFiles": [
+      "jest-canvas-mock"
+    ],
+    "testEnvironmentOptions": {
+      "url": "http://localhost:8065"
+    }
+  },
+  "jest-junit": {
+    "output": "build/test-results.xml"
+  }
+}

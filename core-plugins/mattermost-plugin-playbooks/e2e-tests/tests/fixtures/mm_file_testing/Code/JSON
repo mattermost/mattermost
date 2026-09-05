@@ -1,0 +1,80 @@
+{ 
+  "fathers" : [ 
+    { 
+      "id" : 0,
+      "married" : false,
+      "name" : "Gary Johnson",
+      "sons" : null,
+      "daughters" : [ 
+        { 
+          "age" : 7,
+          "name" : "Laura"
+          },
+        { 
+          "age" : 1,
+          "name" : "Karen"
+          }
+        ]
+      },
+    { 
+      "id" : 1,
+      "married" : true,
+      "name" : "Michael Taylor",
+      "sons" : null,
+      "daughters" : [ 
+        { 
+          "age" : 13,
+          "name" : "Sandra"
+          },
+        { 
+          "age" : 7,
+          "name" : "Cynthia"
+          },
+        { 
+          "age" : 8,
+          "name" : "Mary"
+          }
+        ]
+      },
+    { 
+      "id" : 2,
+      "married" : false,
+      "name" : "Steven Martin",
+      "sons" : null,
+      "daughters" : [ 
+        { 
+          "age" : 16,
+          "name" : "Betty"
+          }
+        ]
+      },
+    { 
+      "id" : 3,
+      "married" : true,
+      "name" : "Ronald Gonzalez",
+      "sons" : null,
+      "daughters" : [
+        ]
+      },
+    { 
+      "id" : 4,
+      "married" : false,
+      "name" : "Paul Taylor",
+      "sons" : null,
+      "daughters" : [ 
+        { 
+          "age" : 27,
+          "name" : "Laura"
+          }
+        ]
+      },
+    { 
+      "id" : 5,
+      "married" : false,
+      "name" : "Gary Smith",
+      "sons" : null,
+      "daughters" : [
+        ]
+      }
+    ]
+  }

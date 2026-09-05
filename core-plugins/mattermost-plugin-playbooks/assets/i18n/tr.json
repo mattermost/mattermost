@@ -1,0 +1,230 @@
+[
+    {
+        "id": "app.user.digest.tasks.zero_assigned",
+        "translation": "Atanmış bir göreviniz yok."
+    },
+    {
+        "id": "app.user.digest.tasks.num_assigned_due_until_today",
+        "translation": {
+            "one": "Süresi dolmuş {{.Count}} atanmış göreviniz var:",
+            "other": "Süresi dolmuş {{.Count}} atanmış göreviniz var:"
+        }
+    },
+    {
+        "id": "app.user.digest.tasks.num_assigned",
+        "translation": {
+            "one": "{{.Count}} atanmış göreviniz var:",
+            "other": "{{.Count}} atanmış göreviniz var:"
+        }
+    },
+    {
+        "id": "app.user.digest.tasks.heading",
+        "translation": "Atanmış görevleriniz"
+    },
+    {
+        "id": "app.user.digest.tasks.due_yesterday",
+        "translation": "Süresi dün doldu"
+    },
+    {
+        "id": "app.user.digest.tasks.due_x_days_ago",
+        "translation": "Süresi {{.Count}} gün önce doldu"
+    },
+    {
+        "id": "app.user.digest.tasks.due_today",
+        "translation": "Süresi bugün dolacak"
+    },
+    {
+        "id": "app.user.digest.tasks.due_in_x_days",
+        "translation": {
+            "one": "{{.Count}} gün içinde süresi dolacak",
+            "other": "{{.Count}} gün içinde süresi dolacak"
+        }
+    },
+    {
+        "id": "app.user.digest.tasks.due_after_today",
+        "translation": {
+            "one": "Bugünden sonra süresi dolacak **{{.Count}} göreviniz var**.",
+            "other": "Bugünden sonra süresi dolacak **{{.Count}} göreviniz var**."
+        }
+    },
+    {
+        "id": "app.user.digest.tasks.all_tasks_command",
+        "translation": "Tüm görevlerinizi görüntülemek için `/playbook todo` kullanın."
+    },
+    {
+        "id": "app.user.digest.runs_in_progress.zero_in_progress",
+        "translation": "Süren 0 çalışmanız var."
+    },
+    {
+        "id": "app.user.digest.runs_in_progress.num_in_progress",
+        "translation": {
+            "one": "Süren {{.Count}} çalışmanız var:",
+            "other": "Süren {{.Count}} çalışmanız var:"
+        }
+    },
+    {
+        "id": "app.user.digest.runs_in_progress.heading",
+        "translation": "Süren çalışmalar"
+    },
+    {
+        "id": "app.user.digest.overdue_status_updates.zero_overdue",
+        "translation": "0 çalışma gecikmeniz var."
+    },
+    {
+        "id": "app.user.digest.overdue_status_updates.num_overdue",
+        "translation": {
+            "one": "Bir durum güncellemesi için {{.Count}} çalışma gecikmeniz var:",
+            "other": "Bir durum güncellemesi için {{.Count}} çalışma gecikmeniz var:"
+        }
+    },
+    {
+        "id": "app.user.digest.overdue_status_updates.heading",
+        "translation": "Gecikmiş durum güncellemeleri"
+    },
+    {
+        "id": "app.command.execute.error",
+        "translation": "Komut yürütülemedi."
+    },
+    {
+        "id": "app.user.run.request_update",
+        "translation": "@here — @{{.Name}}, [{{.RunName}}]({{.RunURL}}) için bir durum güncellemesi istedi. \n"
+    },
+    {
+        "id": "app.user.run.request_get_involved",
+        "translation": "@here — @{{.Name}} bu oyuna katılmak istiyor. Oyuna katılabilmesi için lütfen onu bu kanala ekleyin.\n"
+    },
+    {
+        "id": "app.user.run.retro_publish",
+        "translation": "@{{.Name}} bir geçmiş değerlendirmesi yayınladı\n[Geçmiş değerlendirmesine bakın]({{.URL}})\n"
+    },
+    {
+        "id": "app.user.run.joined_run_channel_private_participate",
+        "translation": "@{{.Name}} oyuna katıldı. Bu özel kanala otomatik olarak eklenmedi, ancak kanalın herhangi bir üyesi onu katılmaya davet edebilir.\n"
+    },
+    {
+        "id": "app.user.run.joined_run_channel_private_add_participant",
+        "translation": "@{{.Name}}, @{{.RequesterName}} tarafından oyuna eklendi. @{{.RequesterName}} bir kanal üyesi olmadığından ve kanal özel olduğundan otomatik olarak kanala eklenmedi.\n"
+    },
+    {
+        "id": "app.user.run.request_join_channel",
+        "translation": "@{{.Name}} bir oyun katılımcısı ve bu kanala katılmak istiyor. Kanalın herhangi bir üyesi onu çağırabilir.\n"
+    },
+    {
+        "id": "app.user.run.status_enable",
+        "translation": "@{{.Username}}, [{{.RunName}}]({{.RunURL}}) için durum güncellemelerini etkinleştirdi"
+    },
+    {
+        "id": "app.user.run.status_disable",
+        "translation": "@{{.Username}}, [{{.RunName}}]({{.RunURL}}) için durum güncellemelerini devre dışı bıraktı"
+    },
+    {
+        "id": "app.user.run.add_to_timeline.title",
+        "translation": "Oyun zaman akışına ekle"
+    },
+    {
+        "id": "app.user.run.add_to_timeline.summary.placeholder",
+        "translation": "Zaman akışında görüntülenecek kısa açıklama"
+    },
+    {
+        "id": "app.user.run.add_to_timeline.summary.help",
+        "translation": "En fazla 64 karakter"
+    },
+    {
+        "id": "app.user.run.add_to_timeline.summary",
+        "translation": "Özet"
+    },
+    {
+        "id": "app.user.run.add_to_timeline.submit_label",
+        "translation": "Oyun zaman akışı ekle"
+    },
+    {
+        "id": "app.user.run.add_to_timeline.playbook_run",
+        "translation": "Senaryo oyunu"
+    },
+    {
+        "id": "app.user.run.add_checklist_item.title",
+        "translation": "Yeni görev ekle"
+    },
+    {
+        "id": "app.user.run.add_checklist_item.submit_label",
+        "translation": "Görev ekle"
+    },
+    {
+        "id": "app.user.run.add_checklist_item.name",
+        "translation": "Ad"
+    },
+    {
+        "id": "app.user.run.add_checklist_item.description",
+        "translation": "Açıklama"
+    },
+    {
+        "id": "app.user.new_run.title",
+        "translation": "Senaryoyu oyna"
+    },
+    {
+        "id": "app.user.new_run.submit_label",
+        "translation": "Oyunu başlat"
+    },
+    {
+        "id": "app.user.new_run.run_name",
+        "translation": "Oyun adı"
+    },
+    {
+        "id": "app.user.new_run.playbook",
+        "translation": "Senaryo"
+    },
+    {
+        "id": "app.user.new_run.new_playbook",
+        "translation": "Kendi senaryonuzu oluşturmak için [buraya tıklayın]({{.RunURL}})."
+    },
+    {
+        "id": "app.user.new_run.intro",
+        "translation": "**Sahibi** {{.Username}}"
+    },
+    {
+        "id": "app.user.run.confirm_finish.num_outstanding",
+        "translation": {
+            "one": "Bekleyen **{{.Count}} görev** var. *{{.RunName}}* oyununu tüm katılımcılar için tamamlamak istediğinize emin misiniz?",
+            "other": "Bekleyen **{{.Count}} görev** var. *{{.RunName}}* oyununu tüm katılımcılar için tamamlamak istediğinize emin misiniz?"
+        }
+    },
+    {
+        "id": "app.user.run.update_status.finish_run.placeholder",
+        "translation": "Ayrıca oyunu da tamamlanmış olarak işaretle"
+    },
+    {
+        "id": "app.user.run.update_status.finish_run",
+        "translation": "Oyunu tamamla"
+    },
+    {
+        "id": "app.user.run.confirm_finish.title",
+        "translation": "Oyunu tamamlamayı onayla"
+    },
+    {
+        "id": "app.user.run.confirm_finish.submit_label",
+        "translation": "Oyunu tamamla"
+    },
+    {
+        "id": "app.user.run.update_status.title",
+        "translation": "Durum güncellemesi"
+    },
+    {
+        "id": "app.user.run.update_status.submit_label",
+        "translation": "Gönder"
+    },
+    {
+        "id": "app.user.run.update_status.reminder_for_next_update",
+        "translation": "Sonraki güncelleme anımsatıcısı"
+    },
+    {
+        "id": "app.user.run.update_status.num_channel",
+        "translation": {
+            "one": "Paydaşlara bir güncelleme duyurun. Bu gönderi {{.Count}} kanalında yayınlanacak.",
+            "other": "Paydaşlara bir güncelleme duyurun. Bu gönderi {{.Count}} kanalında yayınlanacak."
+        }
+    },
+    {
+        "id": "app.user.run.update_status.change_since_last_update",
+        "translation": "Son güncellemeden sonraki değişiklik"
+    }
+]
