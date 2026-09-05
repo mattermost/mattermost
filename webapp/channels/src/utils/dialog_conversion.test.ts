@@ -155,6 +155,8 @@ describe('dialog_conversion', () => {
         it('should map select fields correctly', () => {
             expect(getFieldType({type: DialogElementTypes.SELECT} as DialogElement)).toBe('static_select');
             expect(getFieldType({type: DialogElementTypes.RADIO} as DialogElement)).toBe('radio');
+            expect(getFieldType({type: DialogElementTypes.CHECKBOX_GROUP} as DialogElement)).toBe('checkbox_group');
+            expect(getFieldType({type: DialogElementTypes.CHECKBOX_MATRIX} as DialogElement)).toBe('checkbox_matrix');
         });
 
         it('should map select fields with data_source correctly', () => {
@@ -1360,6 +1362,63 @@ describe('dialog_conversion', () => {
             });
         });
 
+        it('should flag a required checkbox_group left empty in enhanced mode', () => {
+            const values = {
+                reasons: [],
+            } as unknown as AppFormValues;
+
+            const elements: DialogElement[] = [
+                {
+                    name: 'reasons',
+                    type: 'checkbox_group',
+                    display_name: 'Reasons',
+                    optional: false,
+                    options: [
+                        {text: 'Reason 1', value: 'r1'},
+                        {text: 'Reason 2', value: 'r2'},
+                    ],
+                } as DialogElement,
+            ];
+
+            const {submission, errors} = convertAppFormValuesToDialogSubmission(
+                values,
+                elements,
+                enhancedOptions,
+            );
+
+            // An empty array is not null/undefined, so the required check must be
+            // enforced here rather than silently submitting [].
+            expect(errors).toHaveLength(1);
+            expect(errors[0].field).toBe('reasons');
+            expect(errors[0].code).toBe(ValidationErrorCode.REQUIRED);
+            expect(submission).toEqual({reasons: []});
+        });
+
+        it('should not flag an optional checkbox_group left empty', () => {
+            const values = {
+                reasons: [],
+            } as unknown as AppFormValues;
+
+            const elements: DialogElement[] = [
+                {
+                    name: 'reasons',
+                    type: 'checkbox_group',
+                    display_name: 'Reasons',
+                    optional: true,
+                    options: [{text: 'Reason 1', value: 'r1'}],
+                } as DialogElement,
+            ];
+
+            const {submission, errors} = convertAppFormValuesToDialogSubmission(
+                values,
+                elements,
+                enhancedOptions,
+            );
+
+            expect(errors).toHaveLength(0);
+            expect(submission).toEqual({reasons: []});
+        });
+
         it('should handle multiselect field without options validation', () => {
             const values = {
                 multiselect_field: ['user1', 'user2'], // Primitive values (already processed by extractPrimitiveValues)
@@ -1488,6 +1547,82 @@ describe('dialog_conversion', () => {
             expect(submission).toEqual({
                 radio_object: 'optA',
                 radio_string: 'optB',
+            });
+        });
+
+        it('should handle checkbox_group field values', () => {
+            const values = {
+                waiver_reasons: ['reason_1', 'reason_3'],
+            } as unknown as AppFormValues;
+
+            const elements: DialogElement[] = [
+                {
+                    name: 'waiver_reasons',
+                    type: 'checkbox_group',
+                    display_name: 'Reasons',
+                    optional: false,
+                } as DialogElement,
+            ];
+
+            const {submission, errors} = convertAppFormValuesToDialogSubmission(
+                values,
+                elements,
+                legacyOptions,
+            );
+
+            expect(errors).toHaveLength(0);
+            expect(submission).toEqual({
+                waiver_reasons: ['reason_1', 'reason_3'],
+            });
+        });
+
+        it('should submit empty array for optional checkbox_group with no value', () => {
+            const values = {} as unknown as AppFormValues;
+
+            const elements: DialogElement[] = [
+                {
+                    name: 'waiver_reasons',
+                    type: 'checkbox_group',
+                    display_name: 'Reasons',
+                    optional: true,
+                } as DialogElement,
+            ];
+
+            const {submission, errors} = convertAppFormValuesToDialogSubmission(
+                values,
+                elements,
+                legacyOptions,
+            );
+
+            expect(errors).toHaveLength(0);
+            expect(submission).toEqual({
+                waiver_reasons: [],
+            });
+        });
+
+        it('should handle checkbox_matrix field values', () => {
+            const values = {
+                waiver_severity: ['reason_1:high,severe', 'reason_3:high'],
+            } as unknown as AppFormValues;
+
+            const elements: DialogElement[] = [
+                {
+                    name: 'waiver_severity',
+                    type: 'checkbox_matrix',
+                    display_name: 'Severity',
+                    optional: false,
+                } as DialogElement,
+            ];
+
+            const {submission, errors} = convertAppFormValuesToDialogSubmission(
+                values,
+                elements,
+                legacyOptions,
+            );
+
+            expect(errors).toHaveLength(0);
+            expect(submission).toEqual({
+                waiver_severity: ['reason_1:high,severe', 'reason_3:high'],
             });
         });
 

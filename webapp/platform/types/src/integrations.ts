@@ -209,6 +209,14 @@ export type DialogElement = {
         manual_time_entry?: boolean;
     };
 
+    label_position?: 'before' | 'after';
+
+    matrix_config?: {
+        rows: Array<{text: string; value: string}>;
+        columns: Array<{text: string; value: string}>;
+        row_selection?: 'multiple' | 'single';
+    };
+
     // Action button configuration (type "action_button")
     action_button?: {
         url: string;

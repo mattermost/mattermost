@@ -854,6 +854,13 @@ function fieldsAsElements(fields?: AppField[]): DialogElement[] {
         subtype: f.subtype,
         optional: !f.is_required,
         datetime_config: f.datetime_config,
+        options: f.options?.map((opt) => ({text: opt.label, value: opt.value})),
+        matrix_config: f.matrix_config ? {
+            rows: f.matrix_config.rows?.map((row) => ({text: row.label, value: row.value})),
+            columns: f.matrix_config.columns?.map((col) => ({text: col.label, value: col.value})),
+            row_selection: f.matrix_config.row_selection,
+        } : undefined,
+        label_position: f.label_position,
     })) as DialogElement[];
 }
 

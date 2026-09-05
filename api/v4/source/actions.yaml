@@ -55,13 +55,42 @@
                         Input elements, see
                         https://docs.mattermost.com/developer/interactive-dialogs.html#elements.
                         Supported element types include `text`, `textarea`, `select`,
-                        `radio`, `bool`, and `action_button`. An `action_button` element
-                        (minimum server version 11.10) renders a clickable button — fields:
-                        `name`, `display_name`, `type` set to "action_button", and an
-                        `action_button` object with a required `url` (must be a valid lookup
-                        URL) and optional `context` (string map). Clicking it calls
-                        `POST /api/v4/actions/dialogs/execute`. `action_button` elements are
-                        not included in the dialog submission payload.
+                        `radio`, `bool`, `checkbox_group`, `checkbox_matrix`, and
+                        `action_button`.
+
+
+                        An `action_button` element (minimum server version 11.10) renders a
+                        clickable button — fields: `name`, `display_name`, `type` set to
+                        "action_button", and an `action_button` object with a required `url`
+                        (must be a valid lookup URL) and optional `context` (string map).
+                        Clicking it calls `POST /api/v4/actions/dialogs/execute`.
+                        `action_button` elements are not included in the dialog submission
+                        payload.
+
+
+                        A `checkbox_group` element (minimum server version 11.10) renders a
+                        multi-select list of checkboxes. It uses `options` (array of `{text,
+                        value}`, up to 50) and an optional `default` of comma-separated option
+                        values. It must not set `data_source` or `placeholder`. The submitted
+                        value is an array of the selected option values.
+
+
+                        A `checkbox_matrix` element (minimum server version 11.10) renders a
+                        grid of checkboxes. Instead of `options` it uses a `matrix_config`
+                        object with `rows` and `columns` (each an array of `{text, value}`;
+                        up to 30 rows and 10 columns) and an optional `row_selection` of
+                        `"multiple"` (default) or `"single"` (at most one column selectable
+                        per row). The optional `default` is a `;`-separated list of
+                        `"rowValue:col1,col2"` entries. It must not set `options`,
+                        `data_source`, or `placeholder`. The submitted value is an array of
+                        the same `"rowValue:col1,col2"` entries. Row and column values must
+                        not contain `:`, `,`, or `;`.
+
+
+                        `checkbox_group`, `radio`, and `bool` elements accept an optional
+                        `label_position` of `"before"` or `"after"` (default `"after"`)
+                        controlling whether the option label renders before or after its
+                        input.
                       items:
                         type: object
                     submit_label:

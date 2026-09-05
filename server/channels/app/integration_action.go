@@ -601,6 +601,28 @@ func (a *App) ExecuteDialogAction(rctx request.CTX, userID string, req model.Exe
 	// Drain response body to allow HTTP connection reuse
 	_, _ = io.Copy(io.Discard, io.LimitReader(resp.Body, MaxDialogResponseSize))
 
+	// DoActionRequest routes plugin-relative URLs ("/plugins/...") through
+	// DoLocalRequest, which never inspects the plugin handler's response status, so a
+	// failing action arrives here with appErr == nil. Checking it here rather than in
+	// DoActionRequest keeps the change scoped to dialog actions: the other
+	// DoActionRequest callers parse the response body and would change behaviour.
+	//
+	// Without this the client is told the action succeeded, so an action_button's error
+	// state is unreachable no matter what the integration returns.
+	if resp.StatusCode != http.StatusOK {
+		// Mirrors the status mapping DoActionRequest applies to non-plugin URLs:
+		// preserve the retry-carrying 429/503, map other 5xx to 502 since the failure
+		// is upstream of MM, and sanitize everything else to 400.
+		status := http.StatusBadRequest
+		switch {
+		case resp.StatusCode == http.StatusTooManyRequests, resp.StatusCode == http.StatusServiceUnavailable:
+			status = resp.StatusCode
+		case resp.StatusCode >= 500:
+			status = http.StatusBadGateway
+		}
+		return "", model.NewAppError("ExecuteDialogAction", "api.post.do_action.action_integration.app_error", nil, fmt.Sprintf("status=%v", resp.StatusCode), status)
+	}
+
 	return clientTriggerId, nil
 }
 
