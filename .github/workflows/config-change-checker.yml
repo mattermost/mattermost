@@ -16,7 +16,13 @@ name: Config Change Checker
 
 on:
   pull_request:
-    types: [opened, synchronize, reopened]
+    # `edited` is included so a description rewritten after the last push — by a
+    # human, or by another bot appending its own section — is re-checked and the
+    # auto-detected notes restored. Without it the notes are lost permanently,
+    # since nothing re-runs until the next commit. Description updates made by
+    # this workflow use GITHUB_TOKEN, and GITHUB_TOKEN-authored events do not
+    # trigger further workflow runs, so this cannot loop.
+    types: [opened, synchronize, reopened, edited]
     paths:
       - 'server/public/model/config.go'
       - 'server/channels/api4/**'
@@ -34,10 +40,16 @@ jobs:
   check-release-notes:
     name: Detect release-note-worthy changes
     runs-on: ubuntu-latest
-    # Skip bot-authored PRs (Dependabot, mattermost-bot, etc.) — they will
-    # not touch these paths intentionally and cannot receive description updates
-    # via GITHUB_TOKEN anyway (fork-like restrictions apply to most bots).
-    if: github.event.pull_request.user.type != 'Bot'
+    # Only same-repository pull requests can be updated: GitHub issues a
+    # read-only GITHUB_TOKEN for pull requests opened from a fork, so the
+    # description PATCH would fail. Dependabot runs under the same restriction.
+    #
+    # Bot-authored PRs from branches in this repository (e.g. cursor[bot]) are
+    # deliberately NOT skipped — they routinely change the watched paths and
+    # the token can update their descriptions normally.
+    if: >-
+      github.event.pull_request.head.repo.full_name == github.repository
+      && github.event.pull_request.user.login != 'dependabot[bot]'
 
     permissions:
       pull-requests: write   # needed to update the PR description
