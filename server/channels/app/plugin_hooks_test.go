@@ -1188,6 +1188,92 @@ func TestActiveHooks(t *testing.T) {
 	})
 }
 
+func TestOnConfigurationChangeConcurrentDispatch(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	// The hook only sleeps when a marker value is set so that plugin
+	// activation and test setup config changes stay fast.
+	sleepingPluginCode := `
+	package main
+
+	import (
+		"time"
+
+		"github.com/mattermost/mattermost/server/public/plugin"
+	)
+
+	type MyPlugin struct {
+		plugin.MattermostPlugin
+	}
+
+	func (p *MyPlugin) OnConfigurationChange() error {
+		cfg := p.API.GetConfig()
+		if cfg != nil && cfg.TeamSettings.SiteName != nil && *cfg.TeamSettings.SiteName == "sleep-now" {
+			time.Sleep(2 * time.Second)
+		}
+		return nil
+	}
+
+	func main() {
+		plugin.ClientMain(&MyPlugin{})
+	}
+	`
+
+	tearDown, pluginIDs, activationErrors := SetAppEnvironmentWithPlugins(t,
+		[]string{sleepingPluginCode, sleepingPluginCode, sleepingPluginCode, sleepingPluginCode}, th.App, th.NewPluginAPI)
+	defer tearDown()
+
+	require.Len(t, pluginIDs, 4)
+	for _, activationErr := range activationErrors {
+		require.NoError(t, activationErr)
+	}
+
+	t.Run("hooks run concurrently through the config listener", func(t *testing.T) {
+		start := time.Now()
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.TeamSettings.SiteName = model.NewPointer("sleep-now")
+		})
+		elapsed := time.Since(start)
+
+		// Serial dispatch would take at least 8s (4 plugins x 2s); concurrent
+		// dispatch is bounded by the slowest plugin. Leave headroom for CI.
+		require.GreaterOrEqual(t, elapsed, 2*time.Second)
+		require.Less(t, elapsed, 6*time.Second)
+	})
+
+	// Buffered so abandoned hook closures never block on send.
+	hooksDone := make(chan struct{}, len(pluginIDs))
+
+	t.Run("wait is bounded for slow hooks", func(t *testing.T) {
+		env := th.App.GetPluginsEnvironment()
+		require.NotNil(t, env)
+
+		start := time.Now()
+		env.RunMultiPluginHookConcurrent(func(hooks plugin.Hooks, _ *model.Manifest) {
+			// No assertions here: this closure outlives the subtest when the
+			// wait limit expires.
+			_ = hooks.OnConfigurationChange()
+			hooksDone <- struct{}{}
+		}, plugin.OnConfigurationChangeID, 500*time.Millisecond)
+		elapsed := time.Since(start)
+
+		// SiteName is still "sleep-now", so each hook sleeps 2s, exceeding the
+		// 500ms wait limit; the dispatch must return without waiting for them.
+		require.Less(t, elapsed, 2*time.Second)
+	})
+
+	// Wait for the abandoned hooks from the bounded-wait subtest to finish
+	// before tearing down the plugin environment.
+	for range pluginIDs {
+		select {
+		case <-hooksDone:
+		case <-time.After(10 * time.Second):
+			require.Fail(t, "abandoned hooks did not finish")
+		}
+	}
+}
+
 func TestHookMetrics(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t, StartMetrics)
