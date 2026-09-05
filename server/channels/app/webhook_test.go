@@ -1558,6 +1558,55 @@ func TestOutgoingWebhookRequestDeadline(t *testing.T) {
 	assert.Equal(t, httpservice.RequestTimeout, th.App.Srv().pushNotificationClient.Timeout)
 }
 
+// The shared outgoingWebhookClient no longer imposes a client timeout, so shutdown must cancel
+// in-flight outgoing integration requests through their context instead of blocking on the full
+// configured OutgoingIntegrationRequestsTimeout.
+func TestOutgoingIntegrationRequestCancelledOnShutdown(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	s, err := newServerWithConfig(t, func(cfg *model.Config) {
+		*cfg.ServiceSettings.ListenAddress = "localhost:0"
+		cfg.ServiceSettings.AllowedUntrustedInternalConnections = new("127.0.0.1")
+		// Large enough that shutdown would visibly hang if the request were not cancelled.
+		cfg.ServiceSettings.OutgoingIntegrationRequestsTimeout = new(int64(3600))
+	})
+	require.NoError(t, err)
+	require.NoError(t, s.Start())
+
+	app := New(ServerConnector(s.Channels()))
+
+	started := make(chan struct{})
+	blocking := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		close(started)
+		<-r.Context().Done()
+	}))
+	defer blocking.Close()
+
+	// Mimic the real outgoing webhook dispatch, which runs inside Srv().Go and is waited on by
+	// Shutdown.
+	requestReturned := make(chan struct{})
+	s.Go(func() {
+		defer close(requestReturned)
+		_, _ = app.doOutgoingWebhookRequest(blocking.URL, strings.NewReader(""), "application/json", nil)
+	})
+
+	<-started
+
+	done := make(chan struct{})
+	go func() {
+		s.Shutdown()
+		close(done)
+	}()
+
+	select {
+	case <-done:
+	case <-time.After(30 * time.Second):
+		t.Fatal("Shutdown blocked on an in-flight outgoing integration request instead of cancelling it")
+	}
+
+	<-requestReturned
+}
+
 func TestDoOutgoingWebhookRequest(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)

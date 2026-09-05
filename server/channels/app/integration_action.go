@@ -82,7 +82,7 @@ func (a *App) DoPostActionWithCookie(rctx request.CTX, postID, actionId, userID,
 		mlog.String("team_id", upstreamRequest.TeamId),
 	)
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(*a.Config().ServiceSettings.OutgoingIntegrationRequestsTimeout)*time.Second)
+	ctx, cancel := context.WithTimeout(a.Srv().Platform().GoContext(), time.Duration(*a.Config().ServiceSettings.OutgoingIntegrationRequestsTimeout)*time.Second)
 	defer cancel()
 	resp, appErr := a.DoActionRequest(rctx.WithContext(ctx), setup.upstreamURL, requestJSON)
 	if appErr != nil {
@@ -496,7 +496,7 @@ func (a *App) SubmitInteractiveDialog(rctx request.CTX, request model.SubmitDial
 		mlog.Bool("cancelled", request.Cancelled),
 	)
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(*a.Config().ServiceSettings.OutgoingIntegrationRequestsTimeout)*time.Second)
+	ctx, cancel := context.WithTimeout(a.Srv().Platform().GoContext(), time.Duration(*a.Config().ServiceSettings.OutgoingIntegrationRequestsTimeout)*time.Second)
 	defer cancel()
 	resp, appErr := a.DoActionRequest(rctx.WithContext(ctx), url, b)
 	if appErr != nil {
@@ -593,7 +593,7 @@ func (a *App) ExecuteDialogAction(rctx request.CTX, userID string, req model.Exe
 		mlog.String("team_id", req.TeamId),
 	)
 
-	timeoutCtx, cancel := context.WithTimeout(context.Background(), time.Duration(*a.Config().ServiceSettings.OutgoingIntegrationRequestsTimeout)*time.Second)
+	timeoutCtx, cancel := context.WithTimeout(a.Srv().Platform().GoContext(), time.Duration(*a.Config().ServiceSettings.OutgoingIntegrationRequestsTimeout)*time.Second)
 	defer cancel()
 	resp, appErr := a.DoActionRequest(rctx.WithContext(timeoutCtx), req.URL, requestJSON)
 	if appErr != nil {
@@ -632,7 +632,7 @@ func (a *App) LookupInteractiveDialog(rctx request.CTX, request model.SubmitDial
 		mlog.String("team_id", request.TeamId),
 	)
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(*a.Config().ServiceSettings.OutgoingIntegrationRequestsTimeout)*time.Second)
+	ctx, cancel := context.WithTimeout(a.Srv().Platform().GoContext(), time.Duration(*a.Config().ServiceSettings.OutgoingIntegrationRequestsTimeout)*time.Second)
 	defer cancel()
 	resp, appErr := a.DoActionRequest(rctx.WithContext(ctx), url, b)
 	if appErr != nil {

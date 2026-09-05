@@ -4,6 +4,7 @@
 package platform
 
 import (
+	"context"
 	"crypto/ecdsa"
 	"errors"
 	"fmt"
@@ -109,6 +110,12 @@ type PlatformService struct {
 	goroutineExitSignal chan struct{}
 	goroutineBuffered   chan struct{}
 
+	// goroutineCtx is cancelled when the server begins shutting down. Long-running background
+	// requests (e.g. outgoing integration requests) derive their context from it so shutdown can
+	// cancel them instead of blocking on their full configured timeout.
+	goroutineCtx    context.Context
+	goroutineCancel context.CancelFunc
+
 	// Document content extraction runs on a dedicated, bounded worker pool so
 	// that expensive extractions cannot saturate the generic worker pool and
 	// block the request goroutines that dispatch them.
@@ -175,6 +182,8 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 		statusUpdateExitSignal:    make(chan struct{}),
 		statusUpdateDoneSignal:    make(chan struct{}),
 	}
+
+	ps.goroutineCtx, ps.goroutineCancel = context.WithCancel(context.Background())
 
 	// Assume the first user account has not been created yet. A call to the DB will later check if this is really the case.
 	ps.isFirstUserAccount.Store(true)
@@ -601,6 +610,12 @@ func (ps *PlatformService) Shutdown() error {
 	// Stop the document extraction workers and wait for any in-flight
 	// extraction to finish before closing the store it depends on.
 	ps.stopExtractionWorkers()
+
+	// Cancel in-flight background requests (e.g. outgoing integration requests) derived from
+	// goroutineCtx so shutdown isn't blocked by their full configured timeout.
+	if ps.goroutineCancel != nil {
+		ps.goroutineCancel()
+	}
 
 	// we need to wait the goroutines to finish before closing the store
 	// and this needs to be called after hub stop because hub generates goroutines
