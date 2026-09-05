@@ -487,6 +487,10 @@ func NormalizeUsername(username string) string {
 	return strings.ToLower(username)
 }
 
+func NormalizeNickname(nickname string) string {
+	return nickname[max(0, len(nickname)-UserNicknameMaxRunes):]
+}
+
 func NormalizeEmail(email string) string {
 	return strings.ToLower(email)
 }
@@ -513,6 +517,7 @@ func (u *User) PreSave(hasher UserPasswordHasher) *AppError {
 	u.Nickname = SanitizeUnicode(u.Nickname)
 
 	u.Username = NormalizeUsername(u.Username)
+	u.Nickname = NormalizeNickname(u.Nickname)
 	u.Email = NormalizeEmail(u.Email)
 
 	if u.CreateAt == 0 {
