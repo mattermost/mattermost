@@ -23,6 +23,13 @@ const smileEmoji = {
     short_names: 'smile',
     name: 'smile',
 };
+const umbrellaWithRainDropsEmoji = {
+    unified: '2614',
+    short_names: [
+        'umbrella_with_rain_drops',
+    ],
+    name: 'UMBRELLA WITH RAIN DROPS',
+};
 const thumbsupEmoji = {
     name: 'THUMBS UP SIGN',
     unified: '1F44D',
@@ -172,6 +179,31 @@ describe('getFilteredEmojis', () => {
         ];
 
         expect(getFilteredEmojis(allEmojis as any, filter, recentEmojisString, userSkinTone)).toEqual(filteredResults);
+    });
+
+    test('Should match emojis when the filter uses spaces instead of underscores', () => {
+        const allEmojis = {
+            smile: smileEmoji,
+            thumbsup: thumbsupEmoji,
+            umbrella_with_rain_drops: umbrellaWithRainDropsEmoji,
+        };
+        const recentEmojisString: string[] = [];
+        const userSkinTone = '';
+
+        expect(getFilteredEmojis(allEmojis as any, 'umbrella with rain drops', recentEmojisString, userSkinTone)).toStrictEqual([umbrellaWithRainDropsEmoji]);
+        expect(getFilteredEmojis(allEmojis as any, 'with rain', recentEmojisString, userSkinTone)).toStrictEqual([umbrellaWithRainDropsEmoji]);
+        expect(getFilteredEmojis(allEmojis as any, 'umbrella  with  rain', recentEmojisString, userSkinTone)).toStrictEqual([umbrellaWithRainDropsEmoji]);
+    });
+
+    test('Should keep matching emojis when the filter uses underscores', () => {
+        const allEmojis = {
+            smile: smileEmoji,
+            umbrella_with_rain_drops: umbrellaWithRainDropsEmoji,
+        };
+        const recentEmojisString: string[] = [];
+        const userSkinTone = '';
+
+        expect(getFilteredEmojis(allEmojis as any, 'umbrella_with_rain_drops', recentEmojisString, userSkinTone)).toStrictEqual([umbrellaWithRainDropsEmoji]);
     });
 
     test('Should return correct order of result when filter is applied and contains recently used emojis', () => {
@@ -402,6 +434,24 @@ describe('createCategoryAndEmojiRows', () => {
             thumbsup: thumbsupEmoji,
         };
         expect(createCategoryAndEmojiRows(allEmojis as any, [] as any, '', '')).toEqual([[], []]);
+    });
+
+    test('Should treat a whitespace-only filter the same as an empty filter', () => {
+        const allEmojis = {
+            smile: smileEmoji,
+            thumbsup: thumbsupEmoji,
+        };
+
+        const categories = {
+            'people-body': {
+                id: 'people-body',
+                name: 'people-body',
+                emojiIds: ['smile', 'thumbsup'],
+            },
+        };
+
+        expect(createCategoryAndEmojiRows(allEmojis as any, categories as any, '   ', '')).
+            toEqual(createCategoryAndEmojiRows(allEmojis as any, categories as any, '', ''));
     });
 
     test('Should return search results on filter is on', () => {
