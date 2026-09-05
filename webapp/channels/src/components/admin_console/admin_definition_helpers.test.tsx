@@ -46,6 +46,38 @@ describe('AdminDefinitionHelpers - stateEqualsOrDefault', () => {
     });
 });
 
+describe('AdminDefinitionHelpers - licensedForAddOn', () => {
+    const checker = it.licensedForAddOn('crossguard');
+
+    test('should return false when unlicensed', () => {
+        expect(checker({}, {}, {IsLicensed: 'false', AddOns: 'crossguard'})).toBe(false);
+        expect(checker({}, {}, undefined)).toBe(false);
+    });
+
+    test('should return false when licensed without any add-ons', () => {
+        expect(checker({}, {}, {IsLicensed: 'true'})).toBe(false);
+        expect(checker({}, {}, {IsLicensed: 'true', AddOns: ''})).toBe(false);
+    });
+
+    test('should return true when the add-on is granted', () => {
+        expect(checker({}, {}, {IsLicensed: 'true', AddOns: 'crossguard'})).toBe(true);
+    });
+
+    test('should return true when the add-on is one of several', () => {
+        expect(checker({}, {}, {IsLicensed: 'true', AddOns: 'other,crossguard,another'})).toBe(true);
+    });
+
+    test('should not match on a substring', () => {
+        // A future 'crossguard-premium' add-on must not satisfy 'crossguard'.
+        expect(checker({}, {}, {IsLicensed: 'true', AddOns: 'crossguard-premium'})).toBe(false);
+        expect(checker({}, {}, {IsLicensed: 'true', AddOns: 'cross'})).toBe(false);
+    });
+
+    test('should match case-insensitively', () => {
+        expect(checker({}, {}, {IsLicensed: 'true', AddOns: 'CrossGuard'})).toBe(true);
+    });
+});
+
 describe('AdminDefinitionHelpers - validators.numberInRange', () => {
     const validate = validators.numberInRange(0, 60, 'out of range');
 

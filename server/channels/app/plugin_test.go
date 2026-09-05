@@ -1292,4 +1292,136 @@ func TestGetPluginStateOverride(t *testing.T) {
 			require.False(t, value)
 		})
 	})
+
+	t.Run("add-on override", func(t *testing.T) {
+		t.Run("without a license", func(t *testing.T) {
+			mainHelper.Parallel(t)
+			th2 := Setup(t)
+			require.Nil(t, th2.App.Srv().RemoveLicense())
+
+			overrides, value := th2.App.ch.getPluginStateOverride(model.PluginIdCrossGuard)
+			require.True(t, overrides)
+			require.False(t, value)
+		})
+
+		t.Run("with a license that does not grant the add-on", func(t *testing.T) {
+			mainHelper.Parallel(t)
+			th2 := Setup(t)
+			th2.App.Srv().SetLicense(model.NewTestLicense())
+
+			overrides, value := th2.App.ch.getPluginStateOverride(model.PluginIdCrossGuard)
+			require.True(t, overrides)
+			require.False(t, value)
+		})
+
+		t.Run("with a license granting a different add-on", func(t *testing.T) {
+			mainHelper.Parallel(t)
+			th2 := Setup(t)
+			th2.App.Srv().SetLicense(model.NewTestLicenseWithAddOns("some-other-addon"))
+
+			overrides, value := th2.App.ch.getPluginStateOverride(model.PluginIdCrossGuard)
+			require.True(t, overrides)
+			require.False(t, value)
+		})
+
+		t.Run("with a license granting the add-on", func(t *testing.T) {
+			mainHelper.Parallel(t)
+			th2 := Setup(t)
+			th2.App.Srv().SetLicense(model.NewTestLicenseWithAddOns(model.AddOnCrossGuard))
+
+			overrides, value := th2.App.ch.getPluginStateOverride(model.PluginIdCrossGuard)
+			require.False(t, overrides)
+			require.False(t, value)
+		})
+
+		t.Run("plugins outside the registry are unaffected by add-on entitlements", func(t *testing.T) {
+			mainHelper.Parallel(t)
+			th2 := Setup(t)
+			th2.App.Srv().SetLicense(model.NewTestLicenseWithAddOns(model.AddOnCrossGuard))
+
+			overrides, value := th2.App.ch.getPluginStateOverride("testplugin")
+			require.False(t, overrides)
+			require.False(t, value)
+		})
+	})
+}
+
+// TestAddOnPluginLicenseGate covers the end-to-end behaviour of an add-on plugin as
+// the license changes, without any accompanying config change. The activation
+// transitions here depend on the plugin license listener calling
+// syncPluginsActiveState; a license upload does not alter the config, so no config
+// listener ever fires for it.
+func TestAddOnPluginLicenseGate(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.PluginSettings.Enable = true
+		*cfg.PluginSettings.RequirePluginSignature = false
+	})
+
+	env := th.App.GetPluginsEnvironment()
+	require.NotNil(t, env)
+
+	// A webapp component is enough to make the plugin activatable; without either a
+	// server or a webapp component activation fails and the plugin parks in
+	// PluginStateFailedToStart rather than exercising the gate.
+	bundlePath := "webapp/crossguard_bundle.js"
+	manifest := &model.Manifest{
+		Id:      model.PluginIdCrossGuard,
+		Version: "0.0.1",
+		Webapp:  &model.ManifestWebapp{BundlePath: bundlePath},
+	}
+	manifestJSON, jsonErr := json.Marshal(manifest)
+	require.NoError(t, jsonErr)
+
+	_, appErr := th.App.ch.installPluginLocally(
+		makeInMemoryGzipTarFile(t, []testFile{
+			{"plugin.json", string(manifestJSON)},
+			{bundlePath, "console.log('crossguard');"},
+		}),
+		installPluginLocallyOnlyIfNew,
+	)
+	checkNoError(t, appErr)
+
+	requireState := func(t *testing.T, expected int) {
+		t.Helper()
+
+		statuses, err := env.Statuses()
+		require.NoError(t, err)
+		require.Len(t, statuses, 1)
+		require.Equal(t, model.PluginIdCrossGuard, statuses[0].PluginId)
+		require.Equal(t, expected, statuses[0].State)
+	}
+
+	// Enable the plugin in config. This fires the config listener and syncs active
+	// state, but the add-on override should keep the plugin off.
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.PluginSettings.PluginStates[model.PluginIdCrossGuard] = &model.PluginState{Enable: true}
+	})
+	require.Nil(t, th.App.Srv().RemoveLicense())
+
+	t.Run("enabled in config but unlicensed stays inactive", func(t *testing.T) {
+		requireState(t, model.PluginStateNotRunning)
+	})
+
+	t.Run("a license without the add-on leaves it inactive", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicense())
+		requireState(t, model.PluginStateNotRunning)
+	})
+
+	t.Run("granting the add-on activates it with no config change", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicenseWithAddOns(model.AddOnCrossGuard))
+		requireState(t, model.PluginStateRunning)
+	})
+
+	t.Run("removing the license deactivates it", func(t *testing.T) {
+		require.Nil(t, th.App.Srv().RemoveLicense())
+		requireState(t, model.PluginStateNotRunning)
+	})
+
+	t.Run("re-granting the add-on reactivates it", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicenseWithAddOns(model.AddOnCrossGuard))
+		requireState(t, model.PluginStateRunning)
+	})
 }
