@@ -139,7 +139,7 @@
         padding: 0;
 
         .filtered-user-list {
-            height: 500px;
+            height: calc(90vh - 180px);
         }
 
         .more-modal__row {
