@@ -190,9 +190,10 @@ type legacyRPCServer struct {
 }
 
 type testHooksRPCMuxBroker struct {
-	nextID  uint32
-	mutex   sync.Mutex
-	streams map[uint32]chan net.Conn
+	nextID       uint32
+	mutex        sync.Mutex
+	streams      map[uint32]chan net.Conn
+	acceptErrors map[uint32]error
 }
 
 func newTestHooksRPCMuxBroker() *testHooksRPCMuxBroker {
@@ -205,6 +206,9 @@ func (b *testHooksRPCMuxBroker) NextId() uint32 {
 }
 
 func (b *testHooksRPCMuxBroker) Accept(id uint32) (net.Conn, error) {
+	if err := b.acceptErrors[id]; err != nil {
+		return nil, err
+	}
 	hostConnection, pluginConnection := net.Pipe()
 	b.stream(id) <- pluginConnection
 	return hostConnection, nil
@@ -262,6 +266,42 @@ func (s *legacyRPCServer) PluginHTTP(args *Z_PluginHTTPArgs, returns *Z_PluginHT
 	returns.Response = &http.Response{StatusCode: http.StatusOK}
 	returns.ResponseBody = []byte("legacy")
 	return nil
+}
+
+type successfulPluginHTTPStreamRPCServer struct{}
+
+func (s *successfulPluginHTTPStreamRPCServer) PluginHTTPStream(args *Z_PluginHTTPStreamArgs, returns *Z_PluginHTTPStreamReturns) error {
+	returns.StatusCode = http.StatusOK
+	return nil
+}
+
+func TestPluginHTTPStreamResponseSetupFailureClosesRequestBody(t *testing.T) {
+	muxBroker := newTestHooksRPCMuxBroker()
+	muxBroker.acceptErrors = map[uint32]error{1: errors.New("response stream failed")}
+
+	serverConnection, clientConnection := net.Pipe()
+	server := rpc.NewServer()
+	require.NoError(t, server.RegisterName("Plugin", &successfulPluginHTTPStreamRPCServer{}))
+	go server.ServeConn(serverConnection)
+
+	client := rpc.NewClient(clientConnection)
+	defer client.Close()
+	body := &blockingReadCloser{closed: make(chan struct{})}
+	request, err := http.NewRequestWithContext(context.Background(), http.MethodPost, "/plugin/path", body)
+	require.NoError(t, err)
+
+	response, err := (&apiRPCClient{client: client, muxBroker: muxBroker}).pluginHTTPStream(request, false)
+	require.Nil(t, response)
+	require.ErrorContains(t, err, "response stream failed")
+	select {
+	case <-body.closed:
+	default:
+		require.FailNow(t, "request body was not closed after response stream setup failed")
+	}
+
+	requestConnection, err := muxBroker.Dial(2)
+	require.NoError(t, err)
+	require.NoError(t, requestConnection.Close())
 }
 
 func (s *legacyRPCServer) ServeHTTP(args *LegacyServeHTTPArgs, returns *struct{}) error {

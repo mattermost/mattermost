@@ -842,9 +842,7 @@ func (g *apiRPCClient) pluginHTTPStream(request *http.Request, contextAware bool
 		result = <-responseBodyResultChannel
 	}
 	if result.err != nil || result.body == nil {
-		if contextAware {
-			cleanup()
-		}
+		cleanup()
 		if result.err != nil {
 			return nil, fmt.Errorf("failed to get response body stream for PluginHTTPStream: %w", result.err)
 		}
