@@ -59,14 +59,13 @@ Cypress.Commands.add('uiOpenSystemConsoleMenu', uiOpenSystemConsoleMenu);
 
 function uiGetSystemConsoleButton(): ChainableT<JQuery> {
     return cy.get('.admin-sidebar').
-        findByRole('button', {name: 'Menu Icon'});
+        findByRole('button', {name: 'Admin Console Menu'});
 }
 
 Cypress.Commands.add('uiGetSystemConsoleButton', uiGetSystemConsoleButton);
 
 function uiGetSystemConsoleMenu(): ChainableT<JQuery> {
-    return cy.get('.admin-sidebar').
-        find('.dropdown-menu').
+    return cy.findByRole('menu', {name: 'Admin Console Menu'}).
         should('be.visible');
 }
 
