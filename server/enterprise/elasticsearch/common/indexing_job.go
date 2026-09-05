@@ -442,8 +442,7 @@ func (worker *IndexerWorker) BulkIndexPosts(posts []*model.PostForIndexing, prog
 		if post.Type == model.PostTypeBurnOnRead {
 			continue
 		}
-		// FIXME(IntegratedBoardMVP): Temporarily excluded
-		if post.Type == model.PostTypeCard {
+		if post.Type == model.PostTypeCard && !worker.jobServer.Config().FeatureFlags.IntegratedBoards {
 			continue
 		}
 

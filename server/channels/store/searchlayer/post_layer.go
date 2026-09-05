@@ -25,8 +25,7 @@ func (s SearchPostStore) indexPost(rctx request.CTX, post *model.Post) {
 				if post.Type == model.PostTypeBurnOnRead {
 					return
 				}
-				// FIXME(IntegratedBoardMVP): Temporarily excluded
-				if post.Type == model.PostTypeCard {
+				if post.Type == model.PostTypeCard && !s.rootStore.getConfig().FeatureFlags.IntegratedBoards {
 					return
 				}
 				channel, chanErr := s.rootStore.Channel().Get(post.ChannelId, true)
