@@ -1109,6 +1109,36 @@ describe('SystemUserDetail', () => {
                 expect(mockPageAll).not.toHaveBeenCalled();
             });
 
+            test('G22b: adding a live option to a stale multiselect still emits the ghost id', async () => {
+                // G22 only fences confirm-modal wording (print the id, not
+                // "Value unavailable"). It is green even when the control
+                // drops the ghost from the *new* side -- Jules R1, qa_stale_multi.
+                // This is the keep: chip, new-side summary, and PATCH must
+                // still name ghost-1 after a live option is added.
+                const field = {
+                    ...buildCPAField({options: staleOptions}),
+                    type: 'multiselect',
+                } as UserPropertyField;
+                const saveCustomProfileAttribute = jest.fn().mockResolvedValue({data: {}});
+
+                renderDetail(field, ['opt-1', 'ghost-1'], {propOverrides: {saveCustomProfileAttribute}});
+                await waitForLoadingToFinish();
+
+                expect(fieldContainer()).toHaveTextContent('Alpha');
+                expect(fieldContainer()).toHaveTextContent('ghost-1');
+
+                const changesList = await addGammaAndSave();
+                expect(changesList).toHaveTextContent('Alpha, ghost-1 → Alpha, ghost-1, Gamma');
+                expect(changesList).not.toHaveTextContent('Value unavailable');
+
+                await userEvent.click(await screen.findByRole('button', {name: 'Save Changes'}));
+                await waitFor(() => expect(saveCustomProfileAttribute).toHaveBeenCalledWith(
+                    user.id,
+                    'cpa-1',
+                    ['opt-1', 'ghost-1', 'opt-3'],
+                ));
+            });
+
             test('G23: prints the id for a stale graph value when the flag is off', async () => {
                 // Definition of Done, line 2: with the flag off this file must
                 // behave exactly as it did before Phase 5, and before Phase 5

@@ -1537,14 +1537,13 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                     if (Array.isArray(attributeValue)) {
                         return attributeValue.map((value) => {
                             const option = attribOptions.find((o) => o.id === value);
-                            if (option) {
-                                return {label: option?.name, value: option?.id};
-                            }
-                            if (optionsOmitted) {
-                                return {label: value, value};
-                            }
-                            return null;
-                        }).filter((value) => value != null);
+
+                            // Keep unresolved ids. Filtering them here under-counts
+                            // the collapsed row and, once the section is edited,
+                            // ReactSelect's next onChange would persist a shrunk
+                            // value. The id is the fallback label.
+                            return {label: option?.name ?? value, value};
+                        });
                     }
 
                     // Handle single select

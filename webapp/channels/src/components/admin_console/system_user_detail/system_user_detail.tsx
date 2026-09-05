@@ -82,11 +82,14 @@ const CPAMultiSelect: React.FC<CPAMultiSelectProps> = ({
         label: option.name,
     }));
 
-    // Transform selected values to ReactSelect format
+    // Branch on held ids, not on "is this id in the option list". A deleted
+    // option is still assigned; dropping it here removes the chip and, on the
+    // next onChange, silently shrinks the saved value. The id is the fallback
+    // label when the name no longer resolves.
     const selectedOptions = selectedValues.map((selectedId) => {
         const option = options.find((opt) => opt.id === selectedId);
-        return option ? {value: option.id, label: option.name} : null;
-    }).filter((opt): opt is {value: string; label: string} => opt !== null);
+        return {value: selectedId, label: option?.name ?? selectedId};
+    });
 
     return (
         <ReactSelect

@@ -698,10 +698,10 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
 
         renderWithContext(<UserSettingsGeneral {...props}/>);
 
-        // Should only display the option that still exists
-        expect(await screen.findByText('Option 1')).toBeInTheDocument();
-        expect(screen.queryByText('Option 2')).not.toBeInTheDocument();
-        expect(screen.queryByText('Option 3')).not.toBeInTheDocument();
+        // Live name plus raw ids for the deleted options. Dropping the ids
+        // here is the collapsed-row under-count Jules filed on qa_stale_multi.
+        // FormattedList joins them into one describe node.
+        expect(await screen.findByText('Option 1, opt2, and opt3')).toBeInTheDocument();
     });
 
     test('should handle editing select with removed options', async () => {
@@ -782,17 +782,16 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
 
         renderWithContext(<UserSettingsGeneral {...props}/>);
 
-        // Should only show the valid option
         expect(await screen.findByText('Option 1')).toBeInTheDocument();
-        expect(screen.queryByText('Option 2')).not.toBeInTheDocument();
+        expect(screen.getByText('opt2')).toBeInTheDocument();
 
-        // Add another valid option and save
+        // Add another live option and save. The ghost id must still be
+        // emitted -- "just add another option" used to persist a shrink.
         await userEvent.click(await screen.findByText('Option 1'));
         await userEvent.click(await screen.findByText('Option 3'));
         await userEvent.click(screen.getByRole('button', {name: 'Save'}));
 
-        // Should save with only the valid options
-        expect(saveCustomProfileAttribute).toHaveBeenCalledWith('user_id', 'field1', ['opt1', 'opt3']);
+        expect(saveCustomProfileAttribute).toHaveBeenCalledWith('user_id', 'field1', ['opt1', 'opt2', 'opt3']);
     });
 
     test('should still show a select value when options are omitted', async () => {
