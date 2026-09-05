@@ -18,6 +18,7 @@ import {openModal} from 'actions/views/modals';
 
 import useGetAgentsBridgeEnabled from 'components/common/hooks/useGetAgentsBridgeEnabled';
 import useGetFeatureFlagValue from 'components/common/hooks/useGetFeatureFlagValue';
+import useSuppressRHS from 'components/common/hooks/useSuppressRHS';
 import CreateRecapModal from 'components/create_recap_modal';
 
 import {ModalIdentifiers} from 'utils/constants';
@@ -76,6 +77,8 @@ const Recaps = () => {
     const scheduledRecaps = useSelector(getAllScheduledRecaps);
     const hasNoRecaps = !isLoading && allRecaps.length === 0;
 
+    useSuppressRHS({preserveGlobalViews: true});
+
     // Sync activeTab with URL query parameter changes (e.g., when navigating via history.push)
     useEffect(() => {
         const urlTab = isValidTab(tabParam) ? tabParam : 'unread';
@@ -84,6 +87,9 @@ const Recaps = () => {
 
     useEffect(() => {
         dispatch(selectLhsItem(LhsItemType.Page, LhsPage.Recaps));
+    }, [dispatch]);
+
+    useEffect(() => {
         const fetchData = async () => {
             try {
                 const result = await dispatch(getRecaps(0, 60));

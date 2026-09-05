@@ -120,7 +120,6 @@ describe('components/threading/global_threads', () => {
     });
 
     test.each([
-        RHSStates.PLUGIN,
         RHSStates.MENTION,
         RHSStates.SEARCH,
         RHSStates.FLAG,
@@ -132,6 +131,7 @@ describe('components/threading/global_threads', () => {
     });
 
     test.each([
+        RHSStates.PLUGIN,
         RHSStates.PIN,
         RHSStates.CHANNEL_INFO,
         RHSStates.CHANNEL_FILES,
@@ -169,6 +169,31 @@ describe('components/threading/global_threads', () => {
             <AppBarPluginComponent component={channelHeaderButton}/>,
         );
 
+        expect(getIsRhsOpen(store.getState())).toBe(false);
+
+        await userEvent.click(screen.getByRole('button'));
+
+        expect(getIsRhsOpen(store.getState())).toBe(true);
+        expect(getRhsState(store.getState())).toBe(RHSStates.PLUGIN);
+        expect(getPluggableId(store.getState())).toBe(rhsComponentId);
+    });
+
+    test('should reopen a leftover plugin RHS from the App Bar after Threads suppresses it', async () => {
+        const channelHeaderButton: ChannelHeaderButtonAction = {
+            id: 'the_channel_header_button_id',
+            pluginId,
+            icon: <i className='icon icon-test'/>,
+            dropdownText: 'Test Plugin',
+            tooltipText: 'Test Plugin',
+            action: () => store.dispatch(toggleRHSPlugin(rhsComponentId)),
+        };
+
+        await renderGlobalThreads(
+            RHSStates.PLUGIN,
+            <AppBarPluginComponent component={channelHeaderButton}/>,
+        );
+
+        expect(store.getState().views.rhsSuppressed).toBe(true);
         expect(getIsRhsOpen(store.getState())).toBe(false);
 
         await userEvent.click(screen.getByRole('button'));

@@ -27,6 +27,7 @@ import {
     getSearchType,
     getSearchTerms,
     getRhsState,
+    getIsRhsOpen,
     getPluggableId,
     getFilesSearchExtFilter,
     getPreviousRhsState,
@@ -311,7 +312,7 @@ export function toggleRHSPlugin(pluggableId: string): ActionFunc<boolean> {
     return (dispatch, getState) => {
         const state = getState();
 
-        if (getPluggableId(state) === pluggableId) {
+        if (getPluggableId(state) === pluggableId && getIsRhsOpen(state)) {
             dispatch(hideRHSPlugin(pluggableId));
             return {data: false};
         }

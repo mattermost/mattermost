@@ -11,10 +11,10 @@ import {getStatusForUserId} from 'mattermost-redux/selectors/entities/users';
 import {displayUsername} from 'mattermost-redux/utils/user_utils';
 
 import {selectLhsItem} from 'actions/views/lhs';
-import {suppressRHS, unsuppressRHS} from 'actions/views/rhs';
 import type {Draft} from 'selectors/drafts';
 import {makeGetDrafts} from 'selectors/drafts';
 
+import useSuppressRHS from 'components/common/hooks/useSuppressRHS';
 import DraftList from 'components/drafts/draft_list';
 
 import type {GlobalState} from 'types/store';
@@ -42,15 +42,10 @@ function Drafts() {
     const teammateNameDisplaySetting = useSelector(getTeammateNameDisplaySetting);
     const userDisplayName = useMemo(() => displayUsername(currentUser, teammateNameDisplaySetting), [currentUser, teammateNameDisplaySetting]);
 
-    // When Drafts component mounts, select Drafts in the LHS
-    // and suppress the RHS and restore RHS when component unmounts
+    useSuppressRHS();
+
     useEffect(() => {
         dispatch(selectLhsItem(LhsItemType.Page, LhsPage.Drafts));
-        dispatch(suppressRHS);
-
-        return () => {
-            dispatch(unsuppressRHS);
-        };
     }, [dispatch]);
 
     if (scheduledPostsEnabled) {
