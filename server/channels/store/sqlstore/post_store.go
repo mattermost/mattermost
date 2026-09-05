@@ -2302,6 +2302,9 @@ func (s *SqlPostStore) search(logger mlog.LoggerIFace, teamId string, userId str
 		terms = wildCardRegex.ReplaceAllLiteralString(terms, ":* ")
 		excludedTerms = wildCardRegex.ReplaceAllLiteralString(excludedTerms, ":* ")
 
+		terms = expandSignedNumberTokens(terms)
+		excludedTerms = expandSignedNumberTokens(excludedTerms)
+
 		// Replace spaces with to_tsquery symbols
 		replaceSpaces := func(input string, excludedInput bool) string {
 			if input == "" {
