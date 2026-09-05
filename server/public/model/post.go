@@ -839,8 +839,14 @@ func (o *Post) propsIsValid() error {
 	return multiErr.ErrorOrNil()
 }
 
+// IsSystemMessagePostType reports whether the given post type string is reserved for
+// system-generated messages.
+func IsSystemMessagePostType(postType string) bool {
+	return strings.HasPrefix(postType, PostSystemMessagePrefix)
+}
+
 func (o *Post) IsSystemMessage() bool {
-	return len(o.Type) >= len(PostSystemMessagePrefix) && o.Type[:len(PostSystemMessagePrefix)] == PostSystemMessagePrefix
+	return IsSystemMessagePostType(o.Type)
 }
 
 // IsRemote returns true if the post originated on a remote cluster.
