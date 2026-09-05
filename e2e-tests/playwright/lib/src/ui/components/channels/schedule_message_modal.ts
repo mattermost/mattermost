@@ -4,6 +4,8 @@
 import type {Locator} from '@playwright/test';
 import {expect} from '@playwright/test';
 
+import {getDayPickerDayCell} from '../day_picker';
+
 export default class ScheduleMessageModal {
     readonly container: Locator;
     readonly dateButton: Locator;
@@ -29,27 +31,8 @@ export default class ScheduleMessageModal {
         await expect(this.container).toBeVisible();
     }
 
-    getDaySuffix(day: number): string {
-        if (day > 3 && day < 21) {
-            return 'th';
-        }
-
-        switch (day % 10) {
-            case 1:
-                return 'st';
-            case 2:
-                return 'nd';
-            case 3:
-                return 'rd';
-            default:
-                return 'th';
-        }
-    }
-
-    dateLocator(day: number, month: string, dayOfWeek: string) {
-        const daySuffix = this.getDaySuffix(day);
-        const name = `${day}${daySuffix} ${month} (${dayOfWeek})`;
-        return this.container.getByRole('button', {name});
+    dateLocator(day: number) {
+        return getDayPickerDayCell(this.container, day);
     }
 
     async selectDate(dayFromToday: number = 0) {
@@ -64,9 +47,8 @@ export default class ScheduleMessageModal {
 
         const day = pacificDate.getDate();
         const month = pacificDate.toLocaleString('default', {month: 'long'});
-        const dayOfWeek = pacificDate.toLocaleDateString('en-US', {weekday: 'long'});
 
-        const dateLocator = this.dateLocator(day, month, dayOfWeek);
+        const dateLocator = this.dateLocator(day);
 
         const isMonthChanged = pacificDate.getMonth() !== originDate.getMonth();
         if (!(await dateLocator.isVisible()) && isMonthChanged) {

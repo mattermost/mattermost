@@ -12,11 +12,10 @@ import {
     useClick,
     useDismiss,
     useFloating,
-    useId,
     useInteractions,
     useRole,
 } from '@floating-ui/react';
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useId, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
 import {Button} from '@mattermost/shared/components/button';
@@ -59,7 +58,7 @@ export default function SessionAttributeEditorButton({userId, displayName, field
     // `aria-labelledby` points to it, removing the duplicate
     // aria-label on both the trigger and the panel — assistive tech
     // now reads the heading text rather than re-announcing the
-    // pencil button's label twice. Floating UI's useId guarantees
+    // pencil button's label twice. React's useId guarantees
     // uniqueness across simultaneously-open editors (one per row).
     const titleId = useId();
 
