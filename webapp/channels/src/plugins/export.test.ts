@@ -17,6 +17,16 @@ describe('window.Components exposes plugin modals', () => {
     });
 });
 
+describe('window.Components exposes user avatar components', () => {
+    test('Avatar is defined', () => {
+        expect((window as any).Components.Avatar).toBeDefined();
+    });
+
+    test('Avatars is defined', () => {
+        expect((window as any).Components.Avatars).toBeDefined();
+    });
+});
+
 describe('window.Components exposes ABAC policy editors', () => {
     test('AccessControlTableEditor is defined', () => {
         expect((window as any).Components.AccessControlTableEditor).toBeDefined();
