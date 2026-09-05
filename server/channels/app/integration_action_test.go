@@ -1846,8 +1846,9 @@ func TestGetPostActionClient(t *testing.T) {
 	}
 
 	// DoActionRequest's callers put OutgoingIntegrationRequestsTimeout on the request context, so
-	// the client must not add a timeout of its own that would cap a value configured above
-	// httpservice.RequestTimeout.
+	// when a deadline is present the client must not add a timeout of its own that would cap a
+	// value configured above httpservice.RequestTimeout. A request without a deadline instead
+	// falls back to the configured timeout so it never runs unbounded.
 	t.Run("client timeout", func(t *testing.T) {
 		const configuredTimeout = 60 * time.Second
 
@@ -1873,7 +1874,7 @@ func TestGetPostActionClient(t *testing.T) {
 			assert.Zero(t, client.Timeout, "url: %s", rawURL)
 
 			client = th.App.getPostActionClient(th.Context, inURL, req)
-			assert.Zero(t, client.Timeout, "url: %s", rawURL)
+			assert.Equal(t, configuredTimeout, client.Timeout, "url: %s", rawURL)
 		}
 	})
 }

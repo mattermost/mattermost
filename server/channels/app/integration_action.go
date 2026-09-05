@@ -183,7 +183,8 @@ func (a *App) DoActionRequest(rctx request.CTX, rawURL string, body []byte) (*ht
 // getPostActionClient returns the client used to call an integration action. Callers of
 // DoActionRequest give the request a deadline derived from
 // ServiceSettings.OutgoingIntegrationRequestsTimeout, so the client adds no timeout of its own,
-// which would cap a configured value above httpservice.RequestTimeout.
+// which would cap a configured value above httpservice.RequestTimeout. A request that arrives
+// without a deadline still gets the configured timeout instead of running unbounded.
 func (a *App) getPostActionClient(rctx request.CTX, inURL *url.URL, req *http.Request) *http.Client {
 	// Allow access to plugin routes for action buttons
 	var httpClient *http.Client
@@ -195,6 +196,11 @@ func (a *App) getPostActionClient(rctx request.CTX, inURL *url.URL, req *http.Re
 	} else {
 		httpClient = a.HTTPService().MakeClientWithoutTimeout(false)
 	}
+
+	if _, ok := rctx.Context().Deadline(); !ok {
+		httpClient.Timeout = time.Duration(*a.Config().ServiceSettings.OutgoingIntegrationRequestsTimeout) * time.Second
+	}
+
 	return httpClient
 }
 
