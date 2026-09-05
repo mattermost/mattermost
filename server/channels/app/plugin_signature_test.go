@@ -123,6 +123,25 @@ func TestVerifySignature(t *testing.T) {
 	})
 }
 
+// TestVerifyPluginMBEHardCodedKey verifies that verifyPlugin rewinds both readers after the
+// official Mattermost key fails and accepts a bundle signed by the MBE demo key.
+func TestVerifyPluginMBEHardCodedKey(t *testing.T) {
+	mainHelper.Parallel(t)
+	path, _ := fileutils.FindDir("tests")
+	logger := mlog.CreateConsoleTestLogger(t)
+	th := Setup(t)
+
+	pluginFile, err := os.Open(filepath.Join(path, "testplugin.tar.gz"))
+	require.NoError(t, err)
+	defer pluginFile.Close()
+
+	signatureFile, err := os.Open(filepath.Join(path, "testplugin-mbe-dev.tar.gz.asc"))
+	require.NoError(t, err)
+	defer signatureFile.Close()
+
+	require.Nil(t, th.App.ch.verifyPlugin(logger, pluginFile, signatureFile))
+}
+
 func TestVerifySignatureMFIPluginPublicKey(t *testing.T) {
 	mainHelper.Parallel(t)
 	path, _ := fileutils.FindDir("tests")
