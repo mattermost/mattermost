@@ -103,7 +103,7 @@ export type Props = {
         markPostAsUnread: (post: Post, location: string) => void;
         emitShortcutReactToLastPostFrom: (emittedFrom: 'CENTER' | 'RHS_ROOT' | 'NO_WHERE') => void;
         selectPost: (post: Post) => void;
-        selectPostFromRightHandSideSearch: (post: Post) => void;
+        selectPostFromRightHandSideSearch: (post: Post, highlightPost?: boolean) => void;
         removePost: (post: Post) => void;
         closeRightHandSide: () => void;
         selectPostCard: (post: Post) => void;
@@ -466,8 +466,8 @@ function PostComponent(props: Props) {
             getHistory().replace(`/_popout/thread/${props.teamName}/${post.root_id || post.id}?returnTo=${returnTo}`);
             return;
         }
-        selectPostFromRightHandSideSearch(post);
-    }, [post, props.teamName, selectPostFromRightHandSideSearch, isSearchPopoutWindow]);
+        selectPostFromRightHandSideSearch(post, props.location === Locations.SEARCH);
+    }, [post, props.teamName, selectPostFromRightHandSideSearch, isSearchPopoutWindow, props.location]);
 
     const handleThreadClick = useCallback((e: React.MouseEvent) => {
         if (isSearchPopoutWindow || props.currentTeam?.id === teamId) {

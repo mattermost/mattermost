@@ -27,6 +27,7 @@ import {
     getSearchType,
     getSearchTerms,
     getRhsState,
+    getHighlightedPostId,
     getPluggableId,
     getFilesSearchExtFilter,
     getPreviousRhsState,
@@ -116,8 +117,35 @@ export function goBack(): ActionFuncAsync<boolean> {
     };
 }
 
-export function selectPostFromRightHandSideSearch(post: Post) {
-    return selectPostWithPreviousState(post);
+export function selectPostFromRightHandSideSearch(post: Post, highlightPost = false): ActionFunc<boolean> {
+    return (dispatch, getState) => {
+        const state = getState();
+        const previousRhsState = getRhsState(state);
+
+        if (!highlightPost) {
+            // Drop any highlight left over from a previous selection so it
+            // doesn't carry into the newly opened thread.
+            if (getHighlightedPostId(state)) {
+                debouncedClearHighlightReply.cancel();
+                dispatch(batchActions([
+                    clearHighlightReply,
+                    selectPost(post, previousRhsState),
+                ]));
+            } else {
+                dispatch(selectPost(post, previousRhsState));
+            }
+            return {data: true};
+        }
+
+        dispatch(batchActions([
+            selectPost(post, previousRhsState),
+            highlightReply(post),
+        ]));
+
+        debouncedClearHighlightReply(dispatch);
+
+        return {data: true};
+    };
 }
 
 export function selectPostFromRightHandSideSearchByPostId(postId: string): ActionFuncAsync<boolean> {
