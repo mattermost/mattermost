@@ -1,6 +1,6 @@
 # [![Mattermost logo](https://user-images.githubusercontent.com/7205829/137170381-fe86eef0-bccc-4fdd-8e92-b258884ebdd7.png)](https://mattermost.com)
 
-[Mattermost](https://mattermost.com) is an open core, self-hosted collaboration platform that offers chat, workflow automation, voice calling, screen sharing, and AI integration. This repo is the primary source for core development on the Mattermost platform; it's written in Go and React, runs as a single Linux binary, and relies on PostgreSQL. A new compiled version is released under an MIT license every month on the 16th.
+[Mattermost](https://mattermost.com) is an open-core, self-hosted collaboration platform that offers chat, workflow automation, voice calling, screen sharing, and AI integration. This repo is the primary source for core development on the Mattermost platform; it's written in Go and uses React, runs as a single Linux binary, and relies on PostgreSQL. A new compiled version is released under the MIT license every month on the 16th.
 
 [Deploy Mattermost on-premises](https://mattermost.com/deploy/?utm_source=github-mattermost-server-readme), or [try it for free in the cloud](https://mattermost.com/sign-up/?utm_source=github-mattermost-server-readme).
 
@@ -16,9 +16,9 @@ Other useful resources:
 
 - [Download and Install Mattermost](https://docs.mattermost.com/guides/deployment.html) - Install, setup, and configure your own Mattermost instance.
 - [Product documentation](https://docs.mattermost.com/) - Learn how to run a Mattermost instance and take advantage of all the features.
-- [Developer documentation](https://developers.mattermost.com/) - Contribute code to Mattermost or build an integration via APIs, Webhooks, slash commands, Apps, and plugins.
+- [Developer documentation](https://developers.mattermost.com/) - Contribute code to Mattermost or build an integration via APIs, webhooks, slash commands, Apps, and plugins.
 
-Table of contents
+Table of Contents
 =================
 
 - [Install Mattermost](#install-mattermost)
@@ -42,7 +42,7 @@ Other install guides:
 - [Deploy Mattermost on Docker](https://docs.mattermost.com/install/install-docker.html)
 - [Mattermost Omnibus](https://docs.mattermost.com/install/installing-mattermost-omnibus.html)
 - [Install Mattermost from Tar](https://docs.mattermost.com/install/install-tar.html)
-- [Ubuntu 20.04 LTS](https://docs.mattermost.com/install/installing-ubuntu-2004-LTS.html)
+- [Ubuntu 20.04 LTS](https://docs.mattermost.com/install/installing-ubuntu-20.04-LTS.html)
 - [Kubernetes](https://docs.mattermost.com/install/install-kubernetes.html)
 - [Helm](https://docs.mattermost.com/install/install-kubernetes.html#installing-the-operators-via-helm)
 - [More server install guides](https://docs.mattermost.com/guides/deployment.html)
