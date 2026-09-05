@@ -8,7 +8,7 @@ export function getBrowserTimezone() {
     return new Intl.DateTimeFormat().resolvedOptions().timeZone;
 }
 
-export function getBrowserUtcOffset() {
+export function getBrowserUtcOffset() { 
     return moment().utcOffset();
 }
 
