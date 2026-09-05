@@ -12,6 +12,10 @@ is_true() {
   esac
 }
 
+is_git_work_tree() {
+  [ "$(git -C "${1:-}" rev-parse --is-inside-work-tree 2>/dev/null)" = "true" ]
+}
+
 ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
 cd "$ROOT"
 
@@ -220,6 +224,10 @@ enterprise_build_dir() {
   esac
 }
 
+default_enterprise_checkout() {
+  realpath -m "$ROOT/../enterprise"
+}
+
 find_enterprise_checkout() {
   local candidates=()
   if [ -n "${ENTERPRISE_CHECKOUT_DIR:-}" ]; then
@@ -228,16 +236,22 @@ find_enterprise_checkout() {
   if [ -n "${ENTERPRISE_DIR:-}" ]; then
     candidates+=("$ENTERPRISE_DIR")
   fi
+  if [ -n "${BUILD_ENTERPRISE_DIR:-}" ]; then
+    case "$BUILD_ENTERPRISE_DIR" in
+      /*) candidates+=("$BUILD_ENTERPRISE_DIR") ;;
+      *) candidates+=("$ROOT/server/$BUILD_ENTERPRISE_DIR") ;;
+    esac
+  fi
 
   candidates+=(
-    "$ROOT/../enterprise"
+    "$(default_enterprise_checkout)"
     "$ROOT/../../enterprise"
     "$HOME/enterprise"
   )
 
   local candidate
   for candidate in "${candidates[@]}"; do
-    if git -C "$candidate" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    if is_git_work_tree "$candidate"; then
       realpath -m "$candidate"
       return 0
     fi
@@ -246,18 +260,253 @@ find_enterprise_checkout() {
   return 1
 }
 
-verify_enterprise_checkout() {
+enterprise_clone_url() {
+  printf 'https://github.com/mattermost/enterprise.git\n'
+}
+
+requested_enterprise_branch() {
+  local branch
+  if [ -n "${ENTERPRISE_BRANCH:-}" ]; then
+    branch="$ENTERPRISE_BRANCH"
+  elif ! branch="$(git -C "$ROOT" symbolic-ref --quiet --short HEAD 2>/dev/null)"; then
+    return 1
+  fi
+  if ! git check-ref-format --branch "$branch" >/dev/null 2>&1; then
+    return 1
+  fi
+
+  printf '%s\n' "$branch"
+}
+
+enterprise_branch_exists() {
+  local branch="$1"
+  local url
+  url="$(enterprise_clone_url)"
+
+  GIT_TERMINAL_PROMPT=0 git ls-remote --exit-code --heads "$url" "refs/heads/$branch" >/dev/null 2>&1 && return 0
+  local status=$?
+  if [ "$status" -eq 2 ]; then
+    return 1
+  fi
+
+  if ! command -v gh >/dev/null 2>&1; then
+    return 2
+  fi
+
+  local exists
+  if ! exists="$(
+    gh api graphql \
+      -f query="query(\$qualifiedName: String!) { repository(owner: \"mattermost\", name: \"enterprise\") { ref(qualifiedName: \$qualifiedName) { id } } }" \
+      -f qualifiedName="refs/heads/$branch" \
+      --jq '.data.repository.ref != null' 2>/dev/null
+  )"; then
+    return 2
+  fi
+
+  [ "$exists" = "true" ]
+}
+
+matching_enterprise_branch() {
+  local branch
+  if ! branch="$(requested_enterprise_branch)"; then
+    log "No valid Enterprise branch was requested; using Enterprise's default branch."
+    return 1
+  fi
+
+  local status
+  if enterprise_branch_exists "$branch"; then
+    printf '%s\n' "$branch"
+    return 0
+  else
+    status=$?
+  fi
+
+  if [ "$status" -eq 1 ]; then
+    log "Enterprise branch $branch does not exist; using Enterprise's default branch."
+    return 1
+  fi
+
+  log "Could not verify Enterprise branch $branch; attempting it before the default branch."
+  printf '%s\n' "$branch"
+}
+
+can_clone_into() {
+  local dest="$1"
+  local parent
+  parent="$(dirname "$dest")"
+  if [ ! -d "$parent" ] || [ ! -w "$parent" ] || [ ! -x "$parent" ]; then
+    return 1
+  fi
+  if [ -L "$dest" ]; then
+    return 1
+  fi
+  if [ ! -e "$dest" ]; then
+    return 0
+  fi
+  if is_git_work_tree "$dest"; then
+    return 0
+  fi
+  if [ ! -d "$dest" ] || [ ! -w "$dest" ] || [ ! -x "$dest" ]; then
+    return 1
+  fi
+
+  local entries
+  if ! entries="$(ls -A "$dest" 2>/dev/null)"; then
+    return 1
+  fi
+  [ -z "$entries" ]
+}
+
+publish_enterprise_checkout() {
+  local source="$1"
+  local dest="$2"
+
+  if mv -T -n "$source" "$dest" && [ ! -e "$source" ]; then
+    return 0
+  fi
+
+  rm -rf "$source"
+  if is_git_work_tree "$dest"; then
+    log "Another process populated Enterprise checkout at $dest; reusing it."
+    return 0
+  fi
+
+  log "Could not publish Enterprise checkout at $dest."
+  return 1
+}
+
+clone_enterprise_ref() {
+  local dest="$1"
+  local url="$2"
+  shift 2
+  local clone_args=("$@")
+  local temp
+
+  if ! temp="$(mktemp -d "$(dirname "$dest")/.enterprise-clone.XXXXXX")"; then
+    return 1
+  fi
+  if GIT_TERMINAL_PROMPT=0 git clone "${clone_args[@]}" "$url" "$temp"; then
+    publish_enterprise_checkout "$temp" "$dest"
+    return $?
+  fi
+  rm -rf "$temp"
+
+  if ! command -v gh >/dev/null 2>&1; then
+    return 1
+  fi
+
+  log "git clone failed; retrying with GitHub CLI."
+  if ! temp="$(mktemp -d "$(dirname "$dest")/.enterprise-clone.XXXXXX")"; then
+    return 1
+  fi
+  if gh repo clone mattermost/enterprise "$temp" -- "${clone_args[@]}"; then
+    publish_enterprise_checkout "$temp" "$dest"
+    return $?
+  fi
+  rm -rf "$temp"
+  return 1
+}
+
+enterprise_clone_dest() {
+  local sibling
+  sibling="$(default_enterprise_checkout)"
+  if can_clone_into "$sibling"; then
+    printf '%s\n' "$sibling"
+    return 0
+  fi
+
+  realpath -m "$HOME/enterprise"
+}
+
+clone_enterprise_checkout() {
+  local dest="$1"
+  local url
+  url="$(enterprise_clone_url)"
+
+  if [ -z "$dest" ] || [ "$dest" = "/" ] || [ "$(basename "$dest")" != "enterprise" ]; then
+    log "Refusing unsafe enterprise clone dest: ${dest:-<empty>}"
+    return 1
+  fi
+
+  if ! can_clone_into "$dest"; then
+    log "Refusing unusable enterprise clone dest: $dest"
+    return 1
+  fi
+
+  if [ -e "$dest" ]; then
+    if is_git_work_tree "$dest"; then
+      return 0
+    fi
+    rmdir "$dest"
+  fi
+
+  log "Enterprise checkout missing; cloning mattermost/enterprise into $dest."
+  log "Git-triggered automations stay single-repo; repositoryDependencies only scopes the GitHub token."
+  mkdir -p "$(dirname "$dest")"
+
+  local clone_args=(--depth 1 --single-branch)
+  local branch
+  if branch="$(matching_enterprise_branch)"; then
+    clone_args+=(--branch "$branch")
+    log "Trying matching Enterprise branch $branch."
+  fi
+
+  if clone_enterprise_ref "$dest" "$url" "${clone_args[@]}"; then
+    return 0
+  fi
+
+  if [ -n "${branch:-}" ]; then
+    log "Could not clone matching Enterprise branch $branch; retrying with the default branch."
+    clone_args=(--depth 1 --single-branch)
+    clone_enterprise_ref "$dest" "$url" "${clone_args[@]}" && return 0
+  fi
+
+  log "Failed to clone mattermost/enterprise. repositoryDependencies must include github.com/mattermost/enterprise so the GitHub token can access it."
+  return 1
+}
+
+persist_build_enterprise_dir() {
+  local target="$1"
+  export BUILD_ENTERPRISE_DIR="$target"
+
+  local default_target
+  default_target="$(default_enterprise_checkout)"
+  if [ "$target" = "$default_target" ]; then
+    return 0
+  fi
+
+  local override="$ROOT/server/config.override.mk"
+  if [ -f "$override" ] && grep -q '^BUILD_ENTERPRISE_DIR' "$override"; then
+    return 0
+  fi
+
+  printf 'BUILD_ENTERPRISE_DIR := %s\n' "$target" >> "$override"
+  log "Wrote BUILD_ENTERPRISE_DIR to $override so make uses the cloned checkout."
+}
+
+ensure_enterprise_checkout() {
   if is_true "${CLOUD_AGENT_SKIP_ENTERPRISE:-false}"; then
     log "Skipping enterprise verification because CLOUD_AGENT_SKIP_ENTERPRISE is set."
     return 0
   fi
 
   local target
-  if ! target="$(find_enterprise_checkout)"; then
-    log "Enterprise checkout not found. Ensure the Cursor multi-repo environment includes github.com/mattermost/enterprise."
+  if target="$(find_enterprise_checkout)"; then
+    persist_build_enterprise_dir "$target"
+    log "Enterprise checkout ready at $target."
+    return 0
+  fi
+
+  local dest
+  dest="$(enterprise_clone_dest)"
+  clone_enterprise_checkout "$dest"
+  target="$(realpath -m "$dest")"
+  if ! is_git_work_tree "$target"; then
+    log "Enterprise clone completed but checkout was not found at $dest."
     return 1
   fi
 
+  persist_build_enterprise_dir "$target"
   log "Enterprise checkout ready at $target."
 }
 
@@ -320,7 +569,7 @@ hydrate_playwright_dependencies() {
 
 ensure_go
 ensure_node
-verify_enterprise_checkout
+ensure_enterprise_checkout
 hydrate_go_dependencies
 hydrate_webapp_dependencies
 hydrate_playwright_dependencies
