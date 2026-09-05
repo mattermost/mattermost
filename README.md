@@ -40,7 +40,7 @@ Table of contents
 Other install guides:
 
 - [Deploy Mattermost on Docker](https://docs.mattermost.com/install/install-docker.html)
-- [Mattermost Omnibus](https://docs.mattermost.com/install/installing-mattermost-omnibus.html)
+- [Deploy Mattermost on Linux](https://docs.mattermost.com/deployment-guide/server/deploy-linux.html)
 - [Install Mattermost from Tar](https://docs.mattermost.com/install/install-tar.html)
 - [Ubuntu 20.04 LTS](https://docs.mattermost.com/install/installing-ubuntu-2004-LTS.html)
 - [Kubernetes](https://docs.mattermost.com/install/install-kubernetes.html)
