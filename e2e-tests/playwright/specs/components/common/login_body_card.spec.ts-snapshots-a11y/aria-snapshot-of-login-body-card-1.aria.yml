@@ -1,0 +1,8 @@
+- paragraph: Log in
+- text: Email or Username
+- textbox "Email or Username"
+- textbox "Password"
+- button "Show password"
+- link "Forgot your password?":
+  - /url: /reset_password
+- button "Log in"
