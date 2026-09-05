@@ -1,0 +1,233 @@
+---
+name: "E2E Tests (verified commit)"
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "Branch or tag name (e.g. master, release-11.5, v11.5.0, v11.5.0-rc1). Must be master, release-*, or v* tag."
+        required: true
+        type: string
+      commit_sha:
+        description: "Commit SHA to verify (optional, defaults to HEAD of ref)"
+        required: false
+        type: string
+
+env:
+  REPORT_WEBHOOK_URL: ${{ secrets.MM_E2E_REPORT_WEBHOOK_URL }}
+
+jobs:
+  verify-commit:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: ci/validate-inputs
+        env:
+          COMMIT_SHA: ${{ inputs.commit_sha }}
+          REF: ${{ inputs.ref }}
+        run: |
+          # Validate ref: must be master, release-*, or v* tag
+          if [[ "$REF" != "master" && ! "$REF" =~ ^release- && ! "$REF" =~ ^v[0-9]+ ]]; then
+            echo "::error::Ref must be master, a release branch (release-*), or a release tag (v*)."
+            exit 1
+          fi
+
+          if [ -n "$COMMIT_SHA" ] && ! [[ "$COMMIT_SHA" =~ ^[0-9a-fA-F]{40}$ ]]; then
+            echo "::error::Invalid commit SHA format. Must be a 40-character hex string."
+            exit 1
+          fi
+
+      - name: ci/resolve-commit-sha
+        id: resolve-sha
+        env:
+          GH_TOKEN: ${{ github.token }}
+          COMMIT_SHA: ${{ inputs.commit_sha }}
+          REF: ${{ inputs.ref }}
+        run: |
+          # Verify ref exists and get its HEAD SHA
+          echo "Resolving HEAD of ref: $REF"
+          REF_HEAD_SHA=$(gh api repos/${{ github.repository }}/commits/${REF} --jq '.sha')
+          if [ -z "$REF_HEAD_SHA" ]; then
+            echo "::error::Could not resolve ref '${REF}' to a commit SHA."
+            exit 1
+          fi
+          echo "Ref HEAD: $REF_HEAD_SHA"
+
+          if [ -n "$COMMIT_SHA" ]; then
+            # Verify the provided commit exists in the ref's history
+            COMMIT_IN_REF=$(gh api repos/${{ github.repository }}/compare/${REF}...${COMMIT_SHA} --jq '.status' 2>/dev/null || echo "error")
+            if [[ "$COMMIT_IN_REF" != "identical" && "$COMMIT_IN_REF" != "behind" ]]; then
+              echo "::error::Commit ${COMMIT_SHA} is not part of ${REF} (status: ${COMMIT_IN_REF})."
+              exit 1
+            fi
+            echo "Commit ${COMMIT_SHA} is part of ${REF} (status: ${COMMIT_IN_REF})"
+            echo "commit_sha=$COMMIT_SHA" >> $GITHUB_OUTPUT
+          else
+            echo "Using HEAD of ${REF}: $REF_HEAD_SHA"
+            echo "commit_sha=$REF_HEAD_SHA" >> $GITHUB_OUTPUT
+          fi
+          echo "ref=$REF" >> $GITHUB_OUTPUT
+
+      - name: ci/check-user-permission
+        id: check-permission
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ACTOR: ${{ github.actor }}
+        run: |
+          # Check if user has write permission to the repository
+          PERMISSION=$(gh api repos/${{ github.repository }}/collaborators/${ACTOR}/permission --jq '.permission' 2>/dev/null || echo "none")
+          if [[ "$PERMISSION" != "admin" && "$PERMISSION" != "write" ]]; then
+            echo "User ${ACTOR} doesn't have write permission to the repository (permission: ${PERMISSION})"
+            exit 1
+          fi
+          echo "User ${ACTOR} has ${PERMISSION} permission to the repository"
+
+      - name: ci/find-and-update-e2e-contexts
+        id: update-contexts
+        env:
+          GH_TOKEN: ${{ github.token }}
+          COMMIT_SHA: ${{ steps.resolve-sha.outputs.commit_sha }}
+        run: |
+          # Find all e2e-test contexts with failed status on this commit
+          FAILED_CONTEXTS=$(gh api repos/${{ github.repository }}/commits/${COMMIT_SHA}/statuses --paginate \
+            --jq '[.[] | select(.context | startswith("e2e-test/")) | select(.state == "failure")] | unique_by(.context)')
+
+          UPDATED=""
+          SKIPPED=""
+          WEBHOOK_DATA="[]"
+
+          if [ "$FAILED_CONTEXTS" == "[]" ] || [ -z "$FAILED_CONTEXTS" ]; then
+            echo "No failed e2e-test contexts found for commit ${COMMIT_SHA}"
+            SKIPPED="- No failed e2e-test contexts found\n"
+          else
+            echo "$FAILED_CONTEXTS" | jq -c '.[]' | while IFS= read -r STATUS_JSON; do
+              CONTEXT_NAME=$(echo "$STATUS_JSON" | jq -r '.context')
+              CURRENT_DESC=$(echo "$STATUS_JSON" | jq -r '.description // ""')
+              CURRENT_URL=$(echo "$STATUS_JSON" | jq -r '.target_url // ""')
+
+              echo "Updating: $CONTEXT_NAME"
+              echo "  Current: $CURRENT_DESC (failure)"
+
+              # Build new description
+              if [ -n "$CURRENT_DESC" ]; then
+                NEW_DESC="(verified) ${CURRENT_DESC}"
+              else
+                NEW_DESC="(verified)"
+              fi
+
+              echo "  New: $NEW_DESC (success)"
+
+              # Update status via GitHub API
+              gh api repos/${{ github.repository }}/statuses/${COMMIT_SHA} \
+                -f state=success \
+                -f context="$CONTEXT_NAME" \
+                -f description="$NEW_DESC" \
+                -f target_url="$CURRENT_URL"
+
+              echo "  Updated to success"
+              echo "${CONTEXT_NAME}" >> /tmp/updated_contexts.txt
+
+              # Collect data for webhook
+              echo "$STATUS_JSON" | jq -c \
+                --arg description "$CURRENT_DESC" \
+                '{context: .context, description: $description, report_url: (.target_url // "")}' >> /tmp/webhook_items.txt
+            done
+
+            # Read back collected data
+            if [ -f /tmp/updated_contexts.txt ]; then
+              while IFS= read -r ctx; do
+                UPDATED="${UPDATED}- ${ctx}\n"
+              done < /tmp/updated_contexts.txt
+            fi
+
+            if [ -f /tmp/webhook_items.txt ]; then
+              WEBHOOK_DATA=$(jq -s '.' /tmp/webhook_items.txt)
+            fi
+          fi
+
+          echo "updated<<EOF" >> $GITHUB_OUTPUT
+          echo -e "$UPDATED" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+          echo "skipped<<EOF" >> $GITHUB_OUTPUT
+          echo -e "$SKIPPED" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+          echo "webhook_data<<EOF" >> $GITHUB_OUTPUT
+          echo "$WEBHOOK_DATA" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: ci/build-webhook-message
+        if: env.REPORT_WEBHOOK_URL != '' && steps.update-contexts.outputs.updated != ''
+        id: webhook-message
+        env:
+          WEBHOOK_DATA: ${{ steps.update-contexts.outputs.webhook_data }}
+        run: |
+          MESSAGE_TEXT=""
+
+          while IFS= read -r item; do
+            [ -z "$item" ] && continue
+            CONTEXT=$(echo "$item" | jq -r '.context')
+            DESCRIPTION=$(echo "$item" | jq -r '.description')
+            REPORT_URL=$(echo "$item" | jq -r '.report_url')
+
+            MESSAGE_TEXT="${MESSAGE_TEXT}- **${CONTEXT}**: ${DESCRIPTION}, [view report](${REPORT_URL})\n"
+          done < <(echo "$WEBHOOK_DATA" | jq -c '.[]')
+
+          {
+            echo "message_text<<EOF"
+            echo -e "$MESSAGE_TEXT"
+            echo "EOF"
+          } >> $GITHUB_OUTPUT
+
+      - name: ci/send-webhook-notification
+        if: env.REPORT_WEBHOOK_URL != '' && steps.update-contexts.outputs.updated != ''
+        env:
+          REPORT_WEBHOOK_URL: ${{ env.REPORT_WEBHOOK_URL }}
+          MESSAGE_TEXT: ${{ steps.webhook-message.outputs.message_text }}
+          COMMIT_SHA: ${{ steps.resolve-sha.outputs.commit_sha }}
+          REF: ${{ steps.resolve-sha.outputs.ref }}
+          SENDER: ${{ github.actor }}
+        run: |
+          PAYLOAD=$(jq -n \
+            --arg username "E2E Test" \
+            --arg icon_url "https://mattermost.com/wp-content/uploads/2022/02/icon_WS.png" \
+            --arg text "**:white_check_mark: E2E Tests Verified (commit)**\n\nBy: \`@${SENDER}\`\nRef: \`${REF}\`\nCommit: \`${COMMIT_SHA:0:7}\`\n\n${MESSAGE_TEXT}" \
+            --arg color "#2DC72D" \
+            '{username: $username, icon_url: $icon_url, text: $text, props: {card: $text, color: $color}}')
+
+          curl -X POST -H "Content-Type: application/json" -d "$PAYLOAD" "$REPORT_WEBHOOK_URL"
+
+      - name: ci/write-job-summary
+        if: always()
+        env:
+          UPDATED: ${{ steps.update-contexts.outputs.updated }}
+          SKIPPED: ${{ steps.update-contexts.outputs.skipped }}
+          COMMIT_SHA: ${{ steps.resolve-sha.outputs.commit_sha }}
+          REF: ${{ steps.resolve-sha.outputs.ref }}
+        run: |
+          {
+            echo "## E2E Tests Verified (commit)"
+            echo ""
+            echo "**Ref:** \`${REF}\`"
+            echo "**Commit:** \`${COMMIT_SHA}\`"
+            echo "**Action:** \`verified\`"
+            echo ""
+
+            if [ -n "$UPDATED" ]; then
+              echo "### Updated Contexts"
+              echo ""
+              echo -e "$UPDATED"
+              echo ""
+            else
+              echo "### No Contexts Updated"
+              echo ""
+              echo "No e2e-test contexts were in failure state for this commit."
+              echo ""
+            fi
+
+            if [ -n "$SKIPPED" ]; then
+              echo "### Skipped Contexts"
+              echo ""
+              echo -e "$SKIPPED"
+            fi
+          } >> $GITHUB_STEP_SUMMARY
