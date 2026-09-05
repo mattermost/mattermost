@@ -16,6 +16,10 @@ test(
         // # Initialize setup
         const {team, adminUser, adminClient} = await pw.initSetup();
 
+        // # Turn off email invitations, which replace the no-results message asserted below with an
+        // # invite-to-team prompt
+        await adminClient.patchConfig({ServiceSettings: {EnableEmailInvitations: false}});
+
         // # Create a channel in the team
         const channel = await adminClient.createChannel(
             pw.random.channel({

@@ -82,6 +82,12 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
           IMAGE_TAG: ${{ steps.check.outputs.image_tag }}
+          # Same-repo PRs dispatch from the head ref so the PR's allowlist is used.
+          # Fork PRs must use the base ref: --ref resolves in this repository, and a
+          # fork-local name can miss or collide with an unrelated branch here.
+          WORKFLOW_REF: ${{ github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref || github.event.pull_request.base.ref }}
         run: |
-          echo "Triggering E2E tests for PR #${PR_NUMBER} with mattermostdevelopment/mattermost-enterprise-edition:${IMAGE_TAG}"
-          gh workflow run e2e-tests-ci.yml --field pr_number="${PR_NUMBER}"
+          # Run the workflow from the PR head so resolve-pr uses this PR's
+          # check-e2e-test-only allowlist (master's copy may lag).
+          echo "Triggering E2E tests for PR #${PR_NUMBER} with mattermostdevelopment/mattermost-enterprise-edition:${IMAGE_TAG} (workflow ref: ${WORKFLOW_REF})"
+          gh workflow run e2e-tests-ci.yml --ref "${WORKFLOW_REF}" --field pr_number="${PR_NUMBER}"

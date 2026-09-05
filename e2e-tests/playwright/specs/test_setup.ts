@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {test as setup} from '@mattermost/playwright-lib';
+import {isUpgradePathProjectSelected, test as setup} from '@mattermost/playwright-lib';
 
 setup('ensure plugins are loaded', async ({pw}) => {
     // Ensure all products as plugin are installed and active.
@@ -14,6 +14,12 @@ setup('ensure server deployment', async ({pw}) => {
 });
 
 setup('ensure ABAC is configured', async ({pw}) => {
+    // Upgrade-path runs do not exercise ABAC; patching AccessControlSettings on older
+    // from-images also logs unrecognized sysconsole permission tags and attachment-sanitization noise.
+    if (isUpgradePathProjectSelected()) {
+        return;
+    }
+
     // Enable ABAC and the Department attribute once for the entire test run.
     // Individual tests call pw.skipIfNoLicense() and handle the unlicensed case themselves.
     // Use getAdminClient (not initSetup) to avoid calling updateConfig(defaultConfig)
