@@ -8,7 +8,6 @@ import {useSelector, useDispatch} from 'react-redux';
 
 import {GenericModal} from '@mattermost/components';
 
-import {getPrevTrialLicense} from 'mattermost-redux/actions/admin';
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
 import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 
@@ -27,6 +26,7 @@ import {ModalIdentifiers, AboutLinks, LicenseLinks} from 'utils/constants';
 import type {GlobalState} from 'types/store';
 
 import './feature_restricted_modal.scss';
+import {tryGetPrevTrialLicense} from 'actions/license';
 
 type FeatureRestrictedModalProps = {
     titleAdminPreTrial: string;
@@ -55,7 +55,7 @@ const FeatureRestrictedModal = ({
     const dispatch = useDispatch();
 
     useEffect(() => {
-        dispatch(getPrevTrialLicense());
+        dispatch(tryGetPrevTrialLicense());
     }, []);
 
     const prevTrialLicense = useSelector((state: GlobalState) => state.entities.admin.prevTrialLicense);

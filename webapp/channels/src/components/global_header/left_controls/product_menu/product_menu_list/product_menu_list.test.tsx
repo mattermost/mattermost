@@ -58,7 +58,7 @@ describe('components/global/product_switcher_menu', () => {
         enableCustomUserGroups: false,
         actions: {
             openModal: jest.fn(),
-            getPrevTrialLicense: jest.fn(),
+            tryGetPrevTrialLicense: jest.fn(),
         },
     };
 
