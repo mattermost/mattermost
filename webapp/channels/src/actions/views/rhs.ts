@@ -211,12 +211,6 @@ export function performSearch(terms: string, teamId: string, isMentionSearch?: b
         let searchTerms = terms;
         const extensionsFilters = getFilesSearchExtFilter(getState());
 
-        const extensions = extensionsFilters?.map((ext) => `ext:${ext}`).join(' ');
-        let termsWithExtensionsFilters = searchTerms;
-        if (extensions?.trim().length > 0) {
-            termsWithExtensionsFilters += ` ${extensions}`;
-        }
-
         if (isMentionSearch) {
             // For mentions, perform a specific search by quoting all terms.
             // This ensures terms split by dashes or other symbols are treated as a single unit.
@@ -225,6 +219,12 @@ export function performSearch(terms: string, teamId: string, isMentionSearch?: b
                 termsArr[i] = `"${termsArr[i]}"`;
             }
             searchTerms = termsArr.join(' ');
+        }
+
+        const extensions = extensionsFilters?.map((ext) => `ext:${ext}`).join(' ');
+        let termsWithExtensionsFilters = searchTerms;
+        if (extensions?.trim().length > 0) {
+            termsWithExtensionsFilters += ` ${extensions}`;
         }
 
         // timezone offset in seconds
