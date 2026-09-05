@@ -34,6 +34,7 @@ import './task_commands';
 import './ui';
 import './ui_commands'; // soon to deprecate
 import {DEFAULT_TEAM} from './constants';
+import {shouldFailOnPageError} from './page_error';
 import {getDefaultConfig} from './api/system';
 
 Cypress.dayjs = dayjs;
@@ -99,10 +100,8 @@ Cypress.on('test:after:run', (test, runnable) => {
     }
 });
 
-// Turn off all uncaught exception handling
-Cypress.on('uncaught:exception', () => {
-    return false;
-});
+// Uncaught exceptions are ignored unless CYPRESS_failOnPageError opts into them.
+Cypress.on('uncaught:exception', (error) => shouldFailOnPageError(error));
 
 before(() => {
     // # Clear localforage state

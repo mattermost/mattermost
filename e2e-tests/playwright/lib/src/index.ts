@@ -12,6 +12,14 @@ export {setupFileServer} from './file_server';
 export {decomposeKorean, koreanTestPhrase, typeHangulCharacterWithIme, typeHangulWithIme} from './ime';
 export {type SizeObservation, type SizeWatcher, watchElementSize} from './layout_shift';
 export {duration, getRandomId, wait, newTestPassword} from './util';
+export {
+    formatPageErrors,
+    getPageErrors,
+    resetPageErrors,
+    shouldFailOnPageError,
+    watchForPageErrors,
+} from './page_error';
+export type {PageError} from './page_error';
 export {LicenseSkus, appsPluginId, callsPluginId, playbooksPluginId} from './constant';
 
 export {
