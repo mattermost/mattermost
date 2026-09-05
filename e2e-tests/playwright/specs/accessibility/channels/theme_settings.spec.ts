@@ -50,6 +50,12 @@ test('Theme settings should be keyboard accessible', async ({axe, pw}) => {
     // * The theme section should be open
     await displaySettings.verifySectionIsExpanded('theme');
 
+    // * The auto-switch checkbox should be focused first
+    await expect(page.getByLabel('Automatically switch between light and dark themes')).toBeFocused();
+
+    // # Tab past the auto-switch checkbox and section header
+    await page.keyboard.press('Tab');
+
     // * The Premade Themes option should be focused
     await expect(page.getByLabel('Premade Themes')).toBeFocused();
 
