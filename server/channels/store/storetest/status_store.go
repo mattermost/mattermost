@@ -23,6 +23,43 @@ func TestStatusStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore)
 	t.Run("Get", func(t *testing.T) { testStatusGet(t, rctx, ss, s) })
 	t.Run("GetByIds", func(t *testing.T) { testStatusGetByIds(t, rctx, ss, s) })
 	t.Run("SaveOrUpdateMany", func(t *testing.T) { testSaveOrUpdateMany(t, rctx, ss) })
+	t.Run("ResetAll", func(t *testing.T) { testStatusResetAll(t, rctx, ss) })
+}
+
+func testStatusResetAll(t *testing.T, _ request.CTX, ss store.Store) {
+	automaticOnline := &model.Status{UserId: model.NewId(), Status: model.StatusOnline, Manual: false, LastActivityAt: model.GetMillis()}
+	pinnedOnline := &model.Status{UserId: model.NewId(), Status: model.StatusOnline, Manual: true, LastActivityAt: model.GetMillis()}
+	manualAway := &model.Status{UserId: model.NewId(), Status: model.StatusAway, Manual: true, LastActivityAt: model.GetMillis()}
+	manualDND := &model.Status{UserId: model.NewId(), Status: model.StatusDnd, Manual: true, LastActivityAt: model.GetMillis()}
+
+	for _, status := range []*model.Status{automaticOnline, pinnedOnline, manualAway, manualDND} {
+		require.NoError(t, ss.Status().SaveOrUpdate(status))
+	}
+
+	require.NoError(t, ss.Status().ResetAll())
+
+	got, err := ss.Status().Get(automaticOnline.UserId)
+	require.NoError(t, err)
+	assert.Equal(t, model.StatusOffline, got.Status, "an automatic status should be reset")
+
+	// A pinned online claims more availability than reality, so a restart clears it. Manual
+	// must be cleared too, otherwise the row becomes a manual offline and would block the
+	// user from being brought back online when they reconnect.
+	got, err = ss.Status().Get(pinnedOnline.UserId)
+	require.NoError(t, err)
+	assert.Equal(t, model.StatusOffline, got.Status, "a pinned online should not survive a restart")
+	assert.False(t, got.Manual, "the pin should be cleared rather than left as a manual offline")
+
+	// Every other manual status describes less availability than reality, so it is preserved.
+	got, err = ss.Status().Get(manualAway.UserId)
+	require.NoError(t, err)
+	assert.Equal(t, model.StatusAway, got.Status, "a manual away should survive a restart")
+	assert.True(t, got.Manual)
+
+	got, err = ss.Status().Get(manualDND.UserId)
+	require.NoError(t, err)
+	assert.Equal(t, model.StatusDnd, got.Status, "a manual dnd should survive a restart")
+	assert.True(t, got.Manual)
 }
 
 func testSaveOrUpdateMany(t *testing.T, _ request.CTX, ss store.Store) {
