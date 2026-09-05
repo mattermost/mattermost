@@ -26,6 +26,9 @@ const (
 	AuditEventTeamMembershipAdded        = "teamMembershipAdded"        // user auto-added to a team by its membership policy
 	AuditEventTeamMembershipRemoved      = "teamMembershipRemoved"      // user removed from a team by its membership policy
 	AuditEventTeamCascadedChannelRemoval = "teamCascadedChannelRemoval" // channel membership dropped as a cascade of a policy-driven team removal
+
+	AuditEventChannelMembershipAdded   = "channelMembershipAdded"   // user auto-added to a channel by its membership policy
+	AuditEventChannelMembershipRemoved = "channelMembershipRemoved" // user removed from a channel by its membership policy
 )
 
 // Audit & Certificates

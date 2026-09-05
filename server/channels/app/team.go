@@ -1238,6 +1238,14 @@ func (a *App) GetTeamUnread(teamID, userID string) (*model.TeamUnread, *model.Ap
 }
 
 func (a *App) RemoveUserFromTeam(rctx request.CTX, teamID string, userID string, requestorId string) *model.AppError {
+	return a.removeUserFromTeam(rctx, teamID, userID, requestorId, nil)
+}
+
+// removeUserFromTeam is RemoveUserFromTeam with the ABAC membership sync's audit
+// context attached, so a policy-driven removal can stamp the job id and the
+// revision the sync evaluated against onto the audit records it emits. Callers
+// outside the membership sync pass a nil syncCtx.
+func (a *App) removeUserFromTeam(rctx request.CTX, teamID string, userID string, requestorId string, syncCtx *accessControlSyncContext) *model.AppError {
 	tchan := make(chan store.StoreResult[*model.Team], 1)
 	go func() {
 		team, err := a.Srv().Store().Team().Get(teamID)
@@ -1276,7 +1284,7 @@ func (a *App) RemoveUserFromTeam(rctx request.CTX, teamID string, userID string,
 	}
 	user := userChanResult.Data
 
-	if err := a.LeaveTeam(rctx, team, user, requestorId); err != nil {
+	if err := a.leaveTeam(rctx, team, user, requestorId, syncCtx); err != nil {
 		return err
 	}
 
@@ -1329,6 +1337,12 @@ func (a *App) postProcessTeamMemberLeave(rctx request.CTX, teamMember *model.Tea
 }
 
 func (a *App) LeaveTeam(rctx request.CTX, team *model.Team, user *model.User, requestorId string) *model.AppError {
+	return a.leaveTeam(rctx, team, user, requestorId, nil)
+}
+
+// leaveTeam is LeaveTeam with the ABAC membership sync's audit context attached;
+// see removeUserFromTeam.
+func (a *App) leaveTeam(rctx request.CTX, team *model.Team, user *model.User, requestorId string, syncCtx *accessControlSyncContext) *model.AppError {
 	teamMember, err := a.GetTeamMember(rctx, team.Id, user.Id)
 	if err != nil {
 		return model.NewAppError("LeaveTeam", "api.team.remove_user_from_team.missing.app_error", nil, "", http.StatusBadRequest).Wrap(err)
@@ -1355,9 +1369,32 @@ func (a *App) LeaveTeam(rctx request.CTX, team *model.Team, user *model.User, re
 	// a per-channel cascade record referencing it; an ordinary or non-policy
 	// leave records nothing here.
 	policyDriven := team.PolicyEnforced && requestorId == ""
-	var cascadeParentEventID string
+	var removalAudit accessControlTeamRemovalAudit
+	removalStatus := model.AuditStatusFail
 	if policyDriven {
-		cascadeParentEventID = model.NewId()
+		removalAudit = accessControlTeamRemovalAudit{
+			teamID:  team.Id,
+			userID:  user.Id,
+			eventID: model.NewId(),
+		}
+		switch {
+		case syncCtx != nil:
+			// The sync resolved the revision once for the whole team, so every
+			// user it removes in this run records the same one.
+			removalAudit.jobID = syncCtx.jobID
+			removalAudit.policyRevision = syncCtx.policyRevision
+		case a.accessControlAuditLoggingEnabled():
+			removalAudit.policyRevision = a.accessControlPolicyRevision(rctx, team.Id)
+		}
+
+		// Every cascade record below points at this one through parent_event_id,
+		// and the removal can still be abandoned at any of the failure exits in
+		// between. Defer the parent so it is written on all of them, leaving no
+		// cascade referencing a record that was never emitted. It stays a failure
+		// until the team membership is actually gone.
+		defer func() {
+			a.logAccessControlTeamRemoval(rctx, removalAudit, removalStatus)
+		}()
 	}
 
 	for _, channel := range channelList {
@@ -1367,12 +1404,7 @@ func (a *App) LeaveTeam(rctx request.CTX, team *model.Team, user *model.User, re
 				return appErr
 			}
 			if policyDriven {
-				rec := a.MakeAuditRecord(rctx, model.AuditEventTeamCascadedChannelRemoval, model.AuditStatusSuccess)
-				model.AddEventParameterToAuditRec(rec, "user_id", user.Id)
-				model.AddEventParameterToAuditRec(rec, "team_id", team.Id)
-				model.AddEventParameterToAuditRec(rec, "channel_id", channel.Id)
-				model.AddEventParameterToAuditRec(rec, "parent_event_id", cascadeParentEventID)
-				a.LogAuditRec(rctx, rec, nil)
+				a.logAccessControlTeamCascadedChannelRemoval(rctx, removalAudit, channel.Id)
 			}
 		}
 	}
@@ -1388,6 +1420,9 @@ func (a *App) LeaveTeam(rctx request.CTX, team *model.Team, user *model.User, re
 		a.invalidateCacheForChannelMembers(channel.Id)
 		if appErr := a.removeChannelMembership(rctx, user.Id, channel.Id, "LeaveTeam"); appErr != nil {
 			return appErr
+		}
+		if policyDriven {
+			a.logAccessControlTeamCascadedChannelRemoval(rctx, removalAudit, channel.Id)
 		}
 	}
 
@@ -1415,20 +1450,10 @@ func (a *App) LeaveTeam(rctx request.CTX, team *model.Team, user *model.User, re
 	}
 
 	removeErr := a.ch.srv.teamService.RemoveTeamMember(rctx, teamMember)
-	if policyDriven {
-		auditStatus := model.AuditStatusSuccess
-		if removeErr != nil {
-			auditStatus = model.AuditStatusFail
-		}
-		rec := a.MakeAuditRecord(rctx, model.AuditEventTeamMembershipRemoved, auditStatus)
-		model.AddEventParameterToAuditRec(rec, "event_id", cascadeParentEventID)
-		model.AddEventParameterToAuditRec(rec, "user_id", user.Id)
-		model.AddEventParameterToAuditRec(rec, "team_id", team.Id)
-		a.LogAuditRec(rctx, rec, nil)
-	}
 	if removeErr != nil {
 		return model.NewAppError("RemoveTeamMemberFromTeam", "app.team.save_member.save.app_error", nil, "", http.StatusInternalServerError).Wrap(removeErr)
 	}
+	removalStatus = model.AuditStatusSuccess
 
 	if err := a.postProcessTeamMemberLeave(rctx, teamMember, requestorId); err != nil {
 		return err
