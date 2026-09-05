@@ -65,6 +65,7 @@
         .settings-content {
             display: flex;
             overflow: visible !important; // This is necessary to override the overflow hidden from the modal for emoji list
+            min-width: 0; // allow wide nested content (e.g. admin list tables) to scroll internally instead of expanding the modal
             flex: 1;
             flex-direction: column;
             padding: 0 32px;
