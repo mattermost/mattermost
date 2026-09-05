@@ -691,8 +691,8 @@ func (g *apiRPCClient) pluginHTTP(request *http.Request, stream func(*http.Reque
 		}
 	}
 
-	// Try to use the streaming version first (if server supports it)
-	// Fall back to buffered version if not available (signaled by nil)
+	// Try streaming first. Only a missing streaming endpoint triggers the legacy
+	// buffered fallback; a nil response may instead indicate cancellation.
 	response, err := stream(request, contextAware)
 	if errors.Is(err, errPluginHTTPStreamUnsupported) {
 		return g.pluginHTTPBuffered(request)
@@ -800,6 +800,8 @@ func (g *apiRPCClient) pluginHTTPStream(request *http.Request, contextAware bool
 	}
 
 	returns := &Z_PluginHTTPStreamReturns{}
+	// The RPC reply carries status and headers. Cancellation before it arrives
+	// means no response can be returned.
 	if contextAware {
 		call := g.client.Go("Plugin.PluginHTTPStream", args, returns, make(chan *rpc.Call, 1))
 		select {
@@ -822,6 +824,8 @@ func (g *apiRPCClient) pluginHTTPStream(request *http.Request, contextAware bool
 		return nil, fmt.Errorf("RPC call to PluginHTTPStream API failed: %w", err)
 	}
 
+	// The response body arrives over a separate mux stream, so cancellation must
+	// also be honored while waiting for that connection.
 	var result responseBodyResult
 	if contextAware {
 		select {

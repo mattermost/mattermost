@@ -105,6 +105,9 @@ func (rt *PluginResponseWriter) Close() error {
 	return rt.pipeWriter.Close()
 }
 
+// pluginResponseBody ties the request lifetime to the returned response body.
+// Context cancellation unblocks reads, while closing the body cancels any
+// remaining destination work.
 type pluginResponseBody struct {
 	ctx    context.Context
 	cancel context.CancelFunc
