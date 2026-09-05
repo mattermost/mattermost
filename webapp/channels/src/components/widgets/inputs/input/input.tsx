@@ -225,13 +225,17 @@ const Input = React.forwardRef((
         const placeholderValue = formatAsString(formatMessage, focused ? (label && placeholder) || label : label || placeholder);
         const ariaLabel = formatAsString(formatMessage, label || placeholder);
 
+        // Omit `value` when unset so defaultValue can keep the field uncontrolled.
+        // Passing value={undefined} still makes React treat the input as controlled
+        // and re-assert an empty string on render, which wipes IME composition (MM-70289).
+        const valueProps = value === undefined || value === null ? {} : {value};
+
         if (otherProps.type === 'textarea') {
             return (
                 <textarea
                     ref={ref as React.RefObject<HTMLTextAreaElement>}
                     id={inputId}
                     className={classNames('Input form-control', inputSize, inputClassName, {Input__focus: showLegend})}
-                    value={value}
                     placeholder={placeholderValue}
                     aria-label={ariaLabel}
                     aria-describedby={customInputLabel ? errorId : undefined}
@@ -239,6 +243,7 @@ const Input = React.forwardRef((
                     rows={rows || 3}
                     name={name}
                     disabled={disabled}
+                    {...valueProps}
                     {...otherProps}
                     maxLength={limit ? undefined : maxLength}
                     onFocus={handleOnFocus}
@@ -251,13 +256,13 @@ const Input = React.forwardRef((
                 ref={ref as React.RefObject<HTMLInputElement>}
                 id={inputId}
                 className={classNames('Input form-control', inputSize, inputClassName, {Input__focus: showLegend})}
-                value={value}
                 placeholder={placeholderValue}
                 aria-label={ariaLabel}
                 aria-describedby={customInputLabel ? errorId : undefined}
                 aria-invalid={error || hasError}
                 name={name}
                 disabled={disabled}
+                {...valueProps}
                 {...otherProps}
                 maxLength={limit ? undefined : maxLength}
                 onFocus={handleOnFocus}
