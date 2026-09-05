@@ -192,12 +192,14 @@ func (a *App) getPostActionClient(rctx request.CTX, inURL *url.URL, req *http.Re
 	siteURL, _ := url.Parse(*a.Config().ServiceSettings.SiteURL)
 	if inURL.Hostname() == siteURL.Hostname() && strings.HasPrefix(path.Clean(inURL.Path), path.Join(subpath, "plugins")) {
 		req.Header.Set(model.HeaderAuth, "Bearer "+rctx.Session().Token)
-		httpClient = a.HTTPService().MakeClientWithoutTimeout(true)
+		httpClient = a.HTTPService().MakeClient(true)
 	} else {
-		httpClient = a.HTTPService().MakeClientWithoutTimeout(false)
+		httpClient = a.HTTPService().MakeClient(false)
 	}
 
-	if _, ok := rctx.Context().Deadline(); !ok {
+	if _, ok := rctx.Context().Deadline(); ok {
+		httpClient.Timeout = 0
+	} else {
 		httpClient.Timeout = time.Duration(*a.Config().ServiceSettings.OutgoingIntegrationRequestsTimeout) * time.Second
 	}
 
