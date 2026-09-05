@@ -900,6 +900,14 @@ func (api *PluginAPI) CreatePost(post *model.Post) (*model.Post, *model.AppError
 	}
 
 	silent := post.HasSilentNotification()
+	// Display-identity props (override_username/override_icon_url/
+	// override_icon_emoji/webhook_display_name) are not captured here: plugins
+	// don't get them re-injected by CreatePost (scoped to FromIncomingWebhook
+	// only — see the re-injection block in app/post.go), since no render path
+	// honors from_plugin the way it honors from_webhook. SanitizeProps below
+	// strips whatever the plugin set on post.Props like any other
+	// non-federated caller. Plugins are a trusted server surface (arbitrary
+	// UserId, system types, etc.); we do not clear RemoteId here.
 	post.SanitizeProps()
 
 	post, _, appErr = api.app.CreatePost(api.ctx, post, channel, model.CreatePostFlags{
@@ -1006,7 +1014,15 @@ func (api *PluginAPI) UpdatePost(post *model.Post) (*model.Post, *model.AppError
 		}
 		allowMmBlocksActionsUpdate = true
 	}
-	post, _, appErr := api.app.UpdatePost(api.ctx, post, &model.UpdatePostOptions{SafeUpdate: false, AllowMmBlocksActionsUpdate: allowMmBlocksActionsUpdate})
+
+	// Display-identity props are not granted AllowIdentityPropsUpdate: no
+	// render path honors a plugin-authored override (see CreatePost above), so
+	// SanitizeProps' default strip-and-preserve-from-old behavior applies to
+	// plugin edits like any other non-federated caller.
+	post, _, appErr := api.app.UpdatePost(api.ctx, post, &model.UpdatePostOptions{
+		SafeUpdate:                 false,
+		AllowMmBlocksActionsUpdate: allowMmBlocksActionsUpdate,
+	})
 	if post != nil {
 		post = post.ForPlugin()
 	}

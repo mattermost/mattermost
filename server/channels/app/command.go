@@ -71,17 +71,52 @@ func (a *App) CreateCommandPost(rctx request.CTX, post *model.Post, teamID strin
 	}
 
 	if response.ResponseType == model.CommandResponseTypeInChannel {
-		// Bot-style (non-builtin) command responses are flagged via from_webhook by HandleCommandResponsePost.
-		// Strip the prop here and pass the marker through the server-set FromIncomingWebhook flag so
-		// SanitizeProps does not drop it on save.
+		// Bot-style (non-builtin) command responses are flagged via from_webhook by
+		// HandleCommandResponsePost, which also sets override_username/override_icon_url
+		// from the slash command and response configuration. A command response's
+		// free-form Props (copied onto the post via post.SetProps in
+		// HandleCommandResponsePost) can additionally carry override_icon_emoji.
+		// Strip these props here and forward them through CreatePostFlags so
+		// SanitizeProps cannot drop them on save and the values land on the post
+		// only under verified integration authority (FromIncomingWebhook flag).
+		// webhook_display_name is not a slash command concept and is
+		// intentionally not forwarded.
 		fromWebhook := post.GetProp(model.PostPropsFromWebhook) == "true"
 		if fromWebhook {
 			post.DelProp(model.PostPropsFromWebhook)
+		}
+		overrideUsername, _ := post.GetProp(model.PostPropsOverrideUsername).(string)
+		if overrideUsername != "" {
+			post.DelProp(model.PostPropsOverrideUsername)
+		}
+		overrideIconURL, _ := post.GetProp(model.PostPropsOverrideIconURL).(string)
+		if overrideIconURL != "" {
+			post.DelProp(model.PostPropsOverrideIconURL)
+		}
+		overrideIconEmoji, _ := post.GetProp(model.PostPropsOverrideIconEmoji).(string)
+		if overrideIconEmoji != "" {
+			post.DelProp(model.PostPropsOverrideIconEmoji)
+		}
+		// HandleCommandResponsePost gates command.Username / response.Username and
+		// command.IconURL / response.IconURL on the EnablePostUsernameOverride /
+		// EnablePostIconOverride configs upstream, but a slash command response can
+		// also drop override_* directly into response.Props (carried onto post.Props
+		// via post.SetProps). Apply the same gates here so the response.Props pathway
+		// cannot bypass admin intent. Symmetric with CreateWebhookPost.
+		if !*a.Config().ServiceSettings.EnablePostUsernameOverride {
+			overrideUsername = ""
+		}
+		if !*a.Config().ServiceSettings.EnablePostIconOverride {
+			overrideIconURL = ""
+			overrideIconEmoji = ""
 		}
 		createdPost, _, appErr := a.CreatePostMissingChannelWithFlags(rctx, post, model.CreatePostFlags{
 			TriggerWebhooks:     true,
 			SetOnline:           true,
 			FromIncomingWebhook: fromWebhook,
+			OverrideUsername:    overrideUsername,
+			OverrideIconURL:     overrideIconURL,
+			OverrideIconEmoji:   overrideIconEmoji,
 		})
 		if appErr != nil {
 			return nil, appErr

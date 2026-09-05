@@ -1706,6 +1706,105 @@ func TestPluginCreatePostAddsFromPluginProp(t *testing.T) {
 	assert.Equal(t, "true", actualPost.GetProp(model.PostPropsFromPlugin))
 }
 
+func TestPluginCreatePostAlwaysStripsUsernameIconOverride(t *testing.T) {
+	// Plugin-authored override_* is always stripped, regardless of
+	// EnablePostUsernameOverride/EnablePostIconOverride: no render path
+	// (GetSenderName, user_profile.tsx, post_profile_picture.tsx, avatar.tsx,
+	// commented_on.tsx) honors from_plugin the way it honors from_webhook, so
+	// CreatePost's re-injection is scoped to FromIncomingWebhook only. The
+	// config toggle must not be able to reactivate a capability plugins never
+	// have.
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	api := th.SetupPluginAPI()
+
+	t.Run("stripped with overrides disabled (default)", func(t *testing.T) {
+		post, err := api.CreatePost(&model.Post{
+			Message:   "test",
+			ChannelId: th.BasicChannel.Id,
+			UserId:    th.BasicUser.Id,
+			Props: model.StringInterface{
+				model.PostPropsOverrideUsername:  "PluginBot",
+				model.PostPropsOverrideIconURL:   "http://plugin/icon.png",
+				model.PostPropsOverrideIconEmoji: ":plugin:",
+			},
+		})
+		require.Nil(t, err)
+
+		actualPost, err := api.GetPost(post.Id)
+		require.Nil(t, err)
+		assert.Nil(t, actualPost.GetProp(model.PostPropsOverrideUsername))
+		assert.Nil(t, actualPost.GetProp(model.PostPropsOverrideIconURL))
+		assert.Nil(t, actualPost.GetProp(model.PostPropsOverrideIconEmoji))
+	})
+
+	t.Run("still stripped with overrides enabled", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.EnablePostUsernameOverride = true
+			*cfg.ServiceSettings.EnablePostIconOverride = true
+		})
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.EnablePostUsernameOverride = false
+			*cfg.ServiceSettings.EnablePostIconOverride = false
+		})
+
+		post, err := api.CreatePost(&model.Post{
+			Message:   "test",
+			ChannelId: th.BasicChannel.Id,
+			UserId:    th.BasicUser.Id,
+			Props: model.StringInterface{
+				model.PostPropsOverrideUsername:  "PluginBot",
+				model.PostPropsOverrideIconURL:   "http://plugin/icon.png",
+				model.PostPropsOverrideIconEmoji: ":plugin:",
+			},
+		})
+		require.Nil(t, err)
+
+		actualPost, err := api.GetPost(post.Id)
+		require.Nil(t, err)
+		assert.Nil(t, actualPost.GetProp(model.PostPropsOverrideUsername), "config toggle must not reactivate plugin override display")
+		assert.Nil(t, actualPost.GetProp(model.PostPropsOverrideIconURL))
+		assert.Nil(t, actualPost.GetProp(model.PostPropsOverrideIconEmoji))
+	})
+}
+
+func TestPluginUpdatePostAlwaysStripsUsernameIconOverride(t *testing.T) {
+	// Same as CreatePost: PluginAPI.UpdatePost is not granted
+	// AllowIdentityPropsUpdate, so a plugin's edit gets the default
+	// strip-and-preserve-from-old behavior like any other non-federated
+	// caller, regardless of the config toggle.
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.EnablePostUsernameOverride = true
+		*cfg.ServiceSettings.EnablePostIconOverride = true
+	})
+
+	api := th.SetupPluginAPI()
+
+	created, err := api.CreatePost(&model.Post{
+		Message:   "test",
+		ChannelId: th.BasicChannel.Id,
+		UserId:    th.BasicUser.Id,
+	})
+	require.Nil(t, err)
+	require.Nil(t, created.GetProp(model.PostPropsOverrideUsername), "sanity: no override on the original post")
+
+	edit := created.Clone()
+	edit.Message = "test edited"
+	edit.AddProp(model.PostPropsOverrideUsername, "NewName")
+	edit.AddProp(model.PostPropsOverrideIconURL, "http://plugin/new-icon.png")
+
+	updated, err := api.UpdatePost(edit)
+	require.Nil(t, err)
+
+	assert.Equal(t, "test edited", updated.Message)
+	assert.Nil(t, updated.GetProp(model.PostPropsOverrideUsername), "plugin edit must not be able to inject a new override, even with the config enabled")
+	assert.Nil(t, updated.GetProp(model.PostPropsOverrideIconURL))
+}
+
 func TestPluginCreatePostSilentNotification(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)

@@ -448,21 +448,26 @@ func (a *App) CreateWebhookPost(rctx request.CTX, userID string, channel *model.
 		metrics.IncrementWebhookPost()
 	}
 
+	// Compute effective display-identity values once, then pass them via
+	// CreatePostFlags. SanitizeProps strips override_* and webhook_display_name
+	// on every locally-originated post so a forged payload cannot impersonate;
+	// CreatePost re-injects these values under verified integration authority
+	// (FromIncomingWebhook flag) — see app/post.go.
+	var effectiveOverrideUsername, effectiveOverrideIconURL, effectiveOverrideIconEmoji string
 	if *a.Config().ServiceSettings.EnablePostUsernameOverride {
 		if overrideUsername != "" {
-			post.AddProp(model.PostPropsOverrideUsername, overrideUsername)
+			effectiveOverrideUsername = overrideUsername
 		} else {
-			post.AddProp(model.PostPropsOverrideUsername, model.DefaultWebhookUsername)
+			effectiveOverrideUsername = model.DefaultWebhookUsername
 		}
 	}
-
 	if *a.Config().ServiceSettings.EnablePostIconOverride {
-		if overrideIconURL != "" {
-			post.AddProp(model.PostPropsOverrideIconURL, overrideIconURL)
-		}
-		if overrideIconEmoji != "" {
-			post.AddProp(model.PostPropsOverrideIconEmoji, overrideIconEmoji)
-		}
+		effectiveOverrideIconURL = overrideIconURL
+		effectiveOverrideIconEmoji = overrideIconEmoji
+	}
+	var effectiveWebhookDisplayName string
+	if v, ok := props[model.PostPropsWebhookDisplayName].(string); ok {
+		effectiveWebhookDisplayName = v
 	}
 
 	if len(props) > 0 {
@@ -473,9 +478,12 @@ func (a *App) CreateWebhookPost(rctx request.CTX, userID string, channel *model.
 					model.ParseMessageAttachment(post, attachments)
 				}
 			case model.PostPropsOverrideIconURL,
+				model.PostPropsOverrideIconEmoji,
 				model.PostPropsOverrideUsername,
+				model.PostPropsWebhookDisplayName,
 				model.PostPropsFromWebhook:
-			// Do nothing
+			// Do nothing — display-identity props are carried via CreatePostFlags
+			// above and re-injected by CreatePost under verified authority.
 			default:
 				post.AddProp(key, val)
 			}
@@ -501,6 +509,10 @@ func (a *App) CreateWebhookPost(rctx request.CTX, userID string, channel *model.
 			SilentNotification:   silent,
 			FromIncomingWebhook:  true,
 			AllowMmBlocksActions: split.GetProp(model.PostPropsMmBlocksActions) != nil,
+			OverrideUsername:     effectiveOverrideUsername,
+			OverrideIconURL:      effectiveOverrideIconURL,
+			OverrideIconEmoji:    effectiveOverrideIconEmoji,
+			WebhookDisplayName:   effectiveWebhookDisplayName,
 		}
 		created, _, err := a.CreatePost(rctx, split, channel, flags)
 		if err != nil {
