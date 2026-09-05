@@ -1576,11 +1576,18 @@ func TestOutgoingIntegrationRequestCancelledOnShutdown(t *testing.T) {
 	app := New(ServerConnector(s.Channels()))
 
 	started := make(chan struct{})
+	// release unblocks the handler if the request is never cancelled, so a test failure reports
+	// cleanly instead of leaving blocking.Close() waiting until the go test timeout.
+	release := make(chan struct{})
 	blocking := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		close(started)
-		<-r.Context().Done()
+		select {
+		case <-r.Context().Done():
+		case <-release:
+		}
 	}))
 	defer blocking.Close()
+	defer close(release)
 
 	// Mimic the real outgoing webhook dispatch, which runs inside Srv().Go and is waited on by
 	// Shutdown.
@@ -1601,7 +1608,7 @@ func TestOutgoingIntegrationRequestCancelledOnShutdown(t *testing.T) {
 	select {
 	case <-done:
 	case <-time.After(30 * time.Second):
-		t.Fatal("Shutdown blocked on an in-flight outgoing integration request instead of cancelling it")
+		require.Fail(t, "Shutdown blocked on an in-flight outgoing integration request instead of cancelling it")
 	}
 
 	<-requestReturned
