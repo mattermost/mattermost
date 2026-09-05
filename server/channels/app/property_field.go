@@ -44,6 +44,21 @@ func propertyFieldBroadcastParams(rctx request.CTX, field *model.PropertyField) 
 	}
 }
 
+func propertyFieldBroadcastPayload(field *model.PropertyField) *model.PropertyField {
+	if field == nil || !field.Type.SupportsOptions() || field.GetAccessMode() == model.PropertyAccessModePublic {
+		return field
+	}
+
+	filtered := *field
+	filtered.Attrs = make(model.StringInterface, len(field.Attrs)+1)
+	for k, v := range field.Attrs {
+		filtered.Attrs[k] = v
+	}
+	filtered.Attrs[model.PropertyFieldAttributeOptions] = []any{}
+
+	return &filtered
+}
+
 func (a *App) publishPropertyFieldEvent(rctx request.CTX, eventType model.WebsocketEventType, field *model.PropertyField, connectionID string) {
 	if field == nil || field.IsPSAv1() {
 		return
@@ -52,7 +67,7 @@ func (a *App) publishPropertyFieldEvent(rctx request.CTX, eventType model.Websoc
 	if !ok {
 		return
 	}
-	fieldJSON, err := json.Marshal(field)
+	fieldJSON, err := json.Marshal(propertyFieldBroadcastPayload(field))
 	if err != nil {
 		rctx.Logger().Warn("Failed to encode property field to JSON", mlog.Err(err))
 		return
