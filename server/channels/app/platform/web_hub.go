@@ -78,23 +78,24 @@ var hubSemaphoreCount = runtime.NumCPU() * 4
 type Hub struct {
 	// connectionCount should be kept first.
 	// See https://github.com/mattermost/mattermost-server/pull/7281
-	connectionCount int64
-	platform        *PlatformService
-	connectionIndex int
-	register        chan *webConnRegisterMessage
-	unregister      chan *WebConn
-	broadcast       chan *model.WebSocketEvent
-	stop            chan struct{}
-	didStop         chan struct{}
-	invalidateUser  chan string
-	invalidateAll   chan struct{}
-	activity        chan *webConnActivityMessage
-	directMsg       chan *webConnDirectMessage
-	explicitStop    bool
-	checkRegistered chan *webConnSessionMessage
-	checkConn       chan *webConnCheckMessage
-	connCount       chan *webConnCountMessage
-	broadcastHooks  map[string]BroadcastHook
+	connectionCount    int64
+	platform           *PlatformService
+	connectionIndex    int
+	register           chan *webConnRegisterMessage
+	unregister         chan *WebConn
+	broadcast          chan *model.WebSocketEvent
+	stop               chan struct{}
+	didStop            chan struct{}
+	invalidateUser     chan string
+	invalidateAll      chan struct{}
+	invalidateAllCache chan struct{}
+	activity           chan *webConnActivityMessage
+	directMsg          chan *webConnDirectMessage
+	explicitStop       bool
+	checkRegistered    chan *webConnSessionMessage
+	checkConn          chan *webConnCheckMessage
+	connCount          chan *webConnCountMessage
+	broadcastHooks     map[string]BroadcastHook
 
 	// Hub-specific semaphore for limiting concurrent goroutines
 	hubSemaphore chan struct{}
@@ -103,20 +104,21 @@ type Hub struct {
 // newWebHub creates a new Hub.
 func newWebHub(ps *PlatformService) *Hub {
 	return &Hub{
-		platform:        ps,
-		register:        make(chan *webConnRegisterMessage),
-		unregister:      make(chan *WebConn),
-		broadcast:       make(chan *model.WebSocketEvent, broadcastQueueSize),
-		stop:            make(chan struct{}),
-		didStop:         make(chan struct{}),
-		invalidateUser:  make(chan string),
-		invalidateAll:   make(chan struct{}),
-		activity:        make(chan *webConnActivityMessage),
-		directMsg:       make(chan *webConnDirectMessage),
-		checkRegistered: make(chan *webConnSessionMessage),
-		checkConn:       make(chan *webConnCheckMessage),
-		connCount:       make(chan *webConnCountMessage),
-		hubSemaphore:    make(chan struct{}, hubSemaphoreCount),
+		platform:           ps,
+		register:           make(chan *webConnRegisterMessage),
+		unregister:         make(chan *WebConn),
+		broadcast:          make(chan *model.WebSocketEvent, broadcastQueueSize),
+		stop:               make(chan struct{}),
+		didStop:            make(chan struct{}),
+		invalidateUser:     make(chan string),
+		invalidateAll:      make(chan struct{}),
+		invalidateAllCache: make(chan struct{}),
+		activity:           make(chan *webConnActivityMessage),
+		directMsg:          make(chan *webConnDirectMessage),
+		checkRegistered:    make(chan *webConnSessionMessage),
+		checkConn:          make(chan *webConnCheckMessage),
+		connCount:          make(chan *webConnCountMessage),
+		hubSemaphore:       make(chan struct{}, hubSemaphoreCount),
 	}
 }
 
@@ -467,10 +469,30 @@ func (h *Hub) InvalidateUser(userID string) {
 }
 
 // InvalidateAll invalidates the cached session state of every WebConn
-// registered with this hub. Global counterpart of InvalidateUser.
+// registered with this hub, and clears their session tokens so they can
+// never re-authenticate on this connection again. This is intentionally
+// destructive and should only be used when every session on the server is
+// actually being revoked (e.g. "revoke all sessions for all users"), since
+// clearing the token permanently prevents the WebConn from re-validating
+// against the store. Global counterpart of InvalidateUser.
 func (h *Hub) InvalidateAll() {
 	select {
 	case h.invalidateAll <- struct{}{}:
+	case <-h.stop:
+	}
+}
+
+// InvalidateAllCache resets the cached session state (but not the session
+// token) of every WebConn registered with this hub. Unlike InvalidateAll,
+// this does not clear the session token, so on next use each WebConn
+// re-validates its session against the store: unaffected/valid sessions
+// transparently re-authenticate, while sessions that were actually revoked
+// in the store correctly stop being treated as authenticated. Suitable for
+// routine, non-revocation cache purges that must not permanently break
+// unrelated connections.
+func (h *Hub) InvalidateAllCache() {
+	select {
+	case h.invalidateAllCache <- struct{}{}:
 	case <-h.stop:
 	}
 }
@@ -684,6 +706,18 @@ func (h *Hub) Start() {
 				for webConn := range connIndex.All() {
 					webConn.InvalidateCache()
 					webConn.SetSessionToken("")
+				}
+				if *h.platform.Config().ServiceSettings.EnableWebHubChannelIteration {
+					connIndex.clearChannels()
+				}
+			case <-h.invalidateAllCache:
+				// Like invalidateAll, but leaves the session token intact
+				// so the next IsBasicAuthenticated check re-fetches the
+				// session from the store instead of permanently failing.
+				// Used for routine cache purges that aren't an actual
+				// mass session revocation.
+				for webConn := range connIndex.All() {
+					webConn.InvalidateCache()
 				}
 				if *h.platform.Config().ServiceSettings.EnableWebHubChannelIteration {
 					connIndex.clearChannels()

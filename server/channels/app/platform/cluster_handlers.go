@@ -125,11 +125,32 @@ func (ps *PlatformService) invalidateWebConnSessionCacheForUserSkipClusterSend(u
 
 // invalidateWebConnSessionCacheForAllUsersSkipClusterSend signals
 // every hub on this node to invalidate the cached session state of
-// all of its WebConns. Companion to ClearAllUsersSessionCacheLocal.
+// all of its WebConns, and clears their session tokens so they cannot
+// re-authenticate on this connection again. This is intentionally
+// destructive and is only appropriate when every session on the server
+// is actually being revoked (e.g. "revoke all sessions for all users").
+// Companion to ClearAllUsersSessionCacheLocal.
 func (ps *PlatformService) invalidateWebConnSessionCacheForAllUsersSkipClusterSend() {
 	for _, hub := range ps.hubs {
 		if hub != nil {
 			hub.InvalidateAll()
+		}
+	}
+}
+
+// softInvalidateWebConnSessionCacheForAllUsersSkipClusterSend signals every
+// hub on this node to reset the cached session state of all of its
+// WebConns, without clearing their session tokens. This forces each WebConn
+// to re-validate its session against the store on next use: sessions that
+// are still valid transparently re-authenticate, while sessions that were
+// actually revoked correctly stop being treated as authenticated. Unlike
+// invalidateWebConnSessionCacheForAllUsersSkipClusterSend, this is safe to
+// use for routine, non-revocation cache purges since it never permanently
+// breaks unrelated, still-valid connections.
+func (ps *PlatformService) softInvalidateWebConnSessionCacheForAllUsersSkipClusterSend() {
+	for _, hub := range ps.hubs {
+		if hub != nil {
+			hub.InvalidateAllCache()
 		}
 	}
 }
@@ -139,6 +160,7 @@ func (ps *PlatformService) InvalidateAllCachesSkipSend() *model.AppError {
 	if err := ps.ClearAllUsersSessionCacheLocal(); err != nil {
 		ps.logger.Error("Failed to purge session cache", mlog.Err(err))
 	}
+	ps.softInvalidateWebConnSessionCacheForAllUsersSkipClusterSend()
 	if err := ps.statusCache.Purge(); err != nil {
 		ps.logger.Warn("Failed to clear the status cache", mlog.Err(err))
 	}
