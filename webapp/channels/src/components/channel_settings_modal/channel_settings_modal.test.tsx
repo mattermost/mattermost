@@ -106,8 +106,13 @@ jest.mock('./channel_settings_info_tab', () => {
 });
 
 jest.mock('./channel_settings_configuration_tab', () => {
-    return function MockConfigTab(): JSX.Element {
-        return <div data-testid='config-tab'>{'Configuration Tab Content'}</div>;
+    return function MockConfigTab({canManageBanner, canManageJoinLeaveMessages}: {canManageBanner?: boolean; canManageJoinLeaveMessages?: boolean}): JSX.Element {
+        return (
+            <div data-testid='config-tab'>
+                {canManageBanner && <div data-testid='banner-section'>{'Banner'}</div>}
+                {canManageJoinLeaveMessages && <div data-testid='join-leave-section'>{'JoinLeave'}</div>}
+            </div>
+        );
     };
 });
 
@@ -474,35 +479,63 @@ describe('ChannelSettingsModal', () => {
         expect(screen.queryByRole('tab', {name: /archive channel/i})).not.toBeInTheDocument();
     });
 
-    it('should not show configuration tab with no license', async () => {
+    it('should not show banner section without enterprise advanced license', async () => {
         const testState = makeTestState();
 
         renderWithContext(<ChannelSettingsModal {...baseProps}/>, testState);
-        expect(screen.queryByTestId('configuration-tab-button')).not.toBeInTheDocument();
+        await userEvent.click(screen.getByTestId('configuration-tab-button'));
+        expect(screen.queryByTestId('banner-section')).not.toBeInTheDocument();
     });
 
-    it('should not show configuration tab with professional license', async () => {
+    it('should not show banner section with professional license', async () => {
         const testState = makeTestState();
         testState.entities.general.license.SkuShortName = 'professional';
 
         renderWithContext(<ChannelSettingsModal {...baseProps}/>, testState);
-        expect(screen.queryByTestId('configuration-tab-button')).not.toBeInTheDocument();
+        await userEvent.click(screen.getByTestId('configuration-tab-button'));
+        expect(screen.queryByTestId('banner-section')).not.toBeInTheDocument();
     });
 
-    it('should not show configuration tab with enterprise license', async () => {
+    it('should not show banner section with enterprise license', async () => {
         const testState = makeTestState();
         testState.entities.general.license.SkuShortName = 'enterprise';
 
         renderWithContext(<ChannelSettingsModal {...baseProps}/>, testState);
-        expect(screen.queryByTestId('configuration-tab-button')).not.toBeInTheDocument();
+        await userEvent.click(screen.getByTestId('configuration-tab-button'));
+        expect(screen.queryByTestId('banner-section')).not.toBeInTheDocument();
     });
 
-    it('should show configuration tab when enterprise advanced license', async () => {
+    it('should show banner section when enterprise advanced license', async () => {
         const testState = makeTestState();
         testState.entities.general.license.SkuShortName = 'advanced';
 
         renderWithContext(<ChannelSettingsModal {...baseProps}/>, testState);
-        expect(screen.getByTestId('configuration-tab-button')).toBeInTheDocument();
+        await userEvent.click(screen.getByTestId('configuration-tab-button'));
+        expect(screen.getByTestId('banner-section')).toBeInTheDocument();
+    });
+
+    it('should show join/leave section on open channel regardless of license', async () => {
+        const testState = makeTestState();
+
+        renderWithContext(<ChannelSettingsModal {...baseProps}/>, testState);
+        await userEvent.click(screen.getByTestId('configuration-tab-button'));
+        expect(screen.getByTestId('join-leave-section')).toBeInTheDocument();
+    });
+
+    it('should not show configuration tab for DM channel (join/leave not applicable to DMs)', async () => {
+        const testState = makeTestState();
+        testState.entities.channels.channels[channelId].type = General.DM_CHANNEL;
+
+        renderWithContext(<ChannelSettingsModal {...baseProps}/>, testState);
+        expect(screen.queryByTestId('configuration-tab-button')).not.toBeInTheDocument();
+    });
+
+    it('should not show configuration tab for GM channel (join/leave not applicable to GMs)', async () => {
+        const testState = makeTestState();
+        testState.entities.channels.channels[channelId].type = General.GM_CHANNEL;
+
+        renderWithContext(<ChannelSettingsModal {...baseProps}/>, testState);
+        expect(screen.queryByTestId('configuration-tab-button')).not.toBeInTheDocument();
     });
 
     it('should show configuration tab when Connected Workspaces enabled and user has manage_shared_channels', async () => {
