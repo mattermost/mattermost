@@ -21,7 +21,7 @@ test.describe('Burn-on-Read Restrictions', () => {
         await receiverPage.goto(team.name, `@${sender.username}`);
         await receiverPage.toBeVisible();
 
-        const borPost = await receiverPage.getLastPost();
+        const borPost = await receiverPage.centerView.getConcealedBorPost();
         await borPost.concealedPlaceholder.clickToReveal();
         await borPost.concealedPlaceholder.waitForReveal();
 
@@ -50,7 +50,7 @@ test.describe('Burn-on-Read Restrictions', () => {
         await receiverPage.goto(team.name, `@${sender.username}`);
         await receiverPage.toBeVisible();
 
-        const borPost = await receiverPage.getLastPost();
+        const borPost = await receiverPage.centerView.getConcealedBorPost();
         await borPost.concealedPlaceholder.clickToReveal();
         await borPost.concealedPlaceholder.waitForReveal();
 
@@ -72,9 +72,10 @@ test.describe('Burn-on-Read Restrictions', () => {
         await senderPage.goto(team.name, `@${receiver.username}`);
         await senderPage.toBeVisible();
         await senderPage.centerView.postCreate.toggleBurnOnRead();
-        await senderPage.postMessage(`No edit test ${pw.random.id()}`);
+        const message = `No edit test ${pw.random.id()}`;
+        await senderPage.postMessage(message);
 
-        const borPost = await senderPage.getLastPost();
+        const borPost = await senderPage.centerView.getPostByText(message);
 
         await borPost.hover();
         await borPost.postMenu.openDotMenu();
@@ -100,7 +101,7 @@ test.describe('Burn-on-Read Restrictions', () => {
         await receiverPage.goto(team.name, `@${sender.username}`);
         await receiverPage.toBeVisible();
 
-        const borPost = await receiverPage.getLastPost();
+        const borPost = await receiverPage.centerView.getConcealedBorPost();
         await borPost.concealedPlaceholder.clickToReveal();
         await borPost.concealedPlaceholder.waitForReveal();
 
@@ -128,7 +129,7 @@ test.describe('Burn-on-Read Restrictions', () => {
         await receiverPage.goto(team.name, `@${sender.username}`);
         await receiverPage.toBeVisible();
 
-        const borPost = await receiverPage.getLastPost();
+        const borPost = await receiverPage.centerView.getConcealedBorPost();
         await borPost.concealedPlaceholder.clickToReveal();
         await borPost.concealedPlaceholder.waitForReveal();
 
@@ -156,7 +157,7 @@ test.describe('Burn-on-Read Restrictions', () => {
         await receiverPage.goto(team.name, `@${sender.username}`);
         await receiverPage.toBeVisible();
 
-        const borPost = await receiverPage.getLastPost();
+        const borPost = await receiverPage.centerView.getConcealedBorPost();
         await borPost.concealedPlaceholder.clickToReveal();
         await borPost.concealedPlaceholder.waitForReveal();
 
@@ -178,9 +179,10 @@ test.describe('Burn-on-Read Restrictions', () => {
         await senderPage.goto(team.name, `@${receiver.username}`);
         await senderPage.toBeVisible();
         await senderPage.centerView.postCreate.toggleBurnOnRead();
-        await senderPage.postMessage(`Sender copy link test ${pw.random.id()}`);
+        const message = `Sender copy link test ${pw.random.id()}`;
+        await senderPage.postMessage(message);
 
-        const borPost = await senderPage.getLastPost();
+        const borPost = await senderPage.centerView.getPostByText(message);
 
         await borPost.hover();
         await borPost.postMenu.openDotMenu();
@@ -206,7 +208,7 @@ test.describe('Burn-on-Read Restrictions', () => {
         await receiverPage.goto(team.name, `@${sender.username}`);
         await receiverPage.toBeVisible();
 
-        const borPost = await receiverPage.getLastPost();
+        const borPost = await receiverPage.centerView.getConcealedBorPost();
         await borPost.concealedPlaceholder.clickToReveal();
         await borPost.concealedPlaceholder.waitForReveal();
 
@@ -235,7 +237,7 @@ test.describe('Burn-on-Read Restrictions', () => {
         await receiverPage.goto(team.name, `@${sender.username}`);
         await receiverPage.toBeVisible();
 
-        const borPost = await receiverPage.getLastPost();
+        const borPost = await receiverPage.centerView.getConcealedBorPost();
         await borPost.concealedPlaceholder.clickToReveal();
         await borPost.concealedPlaceholder.waitForReveal();
 
@@ -266,7 +268,7 @@ test.describe('Burn-on-Read Restrictions', () => {
         await receiverPage.goto(team.name, `@${sender.username}`);
         await receiverPage.toBeVisible();
 
-        const borPost = await receiverPage.getLastPost();
+        const borPost = await receiverPage.centerView.getConcealedBorPost();
         await borPost.concealedPlaceholder.clickToReveal();
         await borPost.concealedPlaceholder.waitForReveal();
 

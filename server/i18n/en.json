@@ -7509,6 +7509,10 @@
     "translation": "Invalid Email Notify Prop value for user."
   },
   {
+    "id": "app.import.validate_user_import_data.notify_props_mention_keys_invalid.error",
+    "translation": "Invalid mention_keys Notify Prop for user: exceeds the limit of {{.MaxCount}} keys or {{.MaxLength}} bytes."
+  },
+  {
     "id": "app.import.validate_user_import_data.notify_props_mobile_invalid.error",
     "translation": "Invalid Mobile Notify Prop value for user."
   },
@@ -8823,10 +8827,6 @@
   {
     "id": "app.property_value.validate.app_error",
     "translation": "Property value failed validation."
-  },
-  {
-    "id": "app.reaction.bulk_get_for_post_ids.app_error",
-    "translation": "Unable to get reactions for post."
   },
   {
     "id": "app.reaction.delete_all_with_emoji_name.get_reactions.app_error",
@@ -10403,10 +10403,6 @@
     "translation": "{{.Backend}} aggregator worker failed due to the indexing job failing"
   },
   {
-    "id": "ent.elasticsearch.analysis_icu_required",
-    "translation": "Mattermost requires the analysis-icu plugin on every {{.Backend}} node. Install it on all nodes, then restart {{.Backend}}."
-  },
-  {
     "id": "ent.elasticsearch.backfill_posts_channel_type.error",
     "translation": "{{.Backend}} failed to backfill channel type on posts"
   },
@@ -10448,7 +10444,7 @@
   },
   {
     "id": "ent.elasticsearch.create_template_posts_if_not_exists.template_create_failed",
-    "translation": "Failed to create {{.Backend}} template for posts"
+    "translation": "Failed to create {{.Backend}} template for posts. Verify that the required analysis-icu plugin is installed on every {{.Backend}} node, then restart {{.Backend}}"
   },
   {
     "id": "ent.elasticsearch.create_template_users_if_not_exists.template_create_failed",
@@ -12004,7 +12000,7 @@
   },
   {
     "id": "model.config.is_valid.dcr_redirect_uri_allowlist.app_error",
-    "translation": "DCR redirect URI allowlist contains an invalid pattern. Patterns must start with http:// or https:// and cannot be empty or whitespace."
+    "translation": "DCR redirect URI allowlist contains an invalid pattern. Each pattern must be a valid URI with a scheme and host (for example https://example.com/** or cursor://app/callback) and cannot be empty or whitespace."
   },
   {
     "id": "model.config.is_valid.directory.app_error",
@@ -13613,6 +13609,10 @@
   {
     "id": "model.user.is_valid.marshal.app_error",
     "translation": "Failed to encode field to JSON"
+  },
+  {
+    "id": "model.user.is_valid.mention_keys.app_error",
+    "translation": "Invalid mention_keys: exceeds the limit of {{.MaxCount}} keys or {{.MaxLength}} bytes."
   },
   {
     "id": "model.user.is_valid.nickname.app_error",

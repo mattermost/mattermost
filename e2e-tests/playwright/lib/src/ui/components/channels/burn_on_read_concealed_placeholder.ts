@@ -30,6 +30,8 @@ export default class BurnOnReadConcealedPlaceholder {
      * The container itself is the clickable button
      */
     async clickToReveal() {
+        await expect(this.container).toBeAttached();
+        await expect(this.container).toBeEnabled();
         await this.container.click();
     }
 

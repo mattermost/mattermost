@@ -52,7 +52,7 @@ test(
         await channelsPage.toBeVisible();
 
         // # Type a channel mention in the message input to trigger autocomplete
-        await channelsPage.centerView.postCreate.writeMessage('~gamma');
+        await channelsPage.centerView.postCreate.typeMessage('~gamma');
 
         // # Wait for the suggestion list to appear
         const suggestionList = channelsPage.centerView.postCreate.suggestionList;

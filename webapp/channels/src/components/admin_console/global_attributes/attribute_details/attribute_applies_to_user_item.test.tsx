@@ -66,6 +66,19 @@ describe('AttributeAppliesToUserItem', () => {
         expect(screen.getByTestId('attributeAppliesToRow-user-remove')).toBeDisabled();
     });
 
+    it('wraps the toggle in a tooltip explaining the lock reason when lockedTooltip is provided, and omits the wrap otherwise', () => {
+        const {rerender} = renderComponent({disabled: true, lockedTooltip: 'Managed by a plugin'});
+        expect(screen.getByTestId('attributeAppliesToRow-user-toggleLockWrap')).toBeInTheDocument();
+
+        rerender(
+            <AttributeAppliesToUserItem
+                onRemove={onRemove}
+                disabled={true}
+            />,
+        );
+        expect(screen.queryByTestId('attributeAppliesToRow-user-toggleLockWrap')).not.toBeInTheDocument();
+    });
+
     it('makes no Client4 calls and no data-mutating dispatch', async () => {
         const createPropertyField = jest.spyOn(Client4, 'createPropertyField');
         const deletePropertyField = jest.spyOn(Client4, 'deletePropertyField');
