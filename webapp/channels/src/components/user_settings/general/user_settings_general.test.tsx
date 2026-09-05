@@ -1741,5 +1741,34 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
             expect(screen.queryByTestId('customProfileAttributeGraph_field1')).not.toBeInTheDocument();
             expect(mockPageAll).not.toHaveBeenCalled();
         });
+
+        test('A20: flag-off omitted graph field prints ids in the collapsed row', async () => {
+            const {collapse} = renderSettings(
+                [buildAttribute({options_omitted: true})],
+                {field1: ['opt1', 'opt2']},
+                {flagOn: false},
+            );
+
+            await screen.findByText(OMITTED_COPY);
+            collapse();
+
+            expect(await screen.findByText(/opt1/)).toBeInTheDocument();
+            expect(collapsedRow()).toHaveTextContent('opt1');
+            expect(screen.queryByText('2 values selected')).not.toBeInTheDocument();
+        });
+
+        test('A21: collapsed omitted multiselect prints ids, never a graph count', async () => {
+            const {collapse} = renderSettings(
+                [buildAttribute({options_omitted: true}, 'multiselect')],
+                {field1: ['opt1', 'opt2']},
+            );
+
+            await screen.findByText(OMITTED_COPY);
+            collapse();
+
+            expect(await screen.findByText(/opt1/)).toBeInTheDocument();
+            expect(collapsedRow()).toHaveTextContent('opt1');
+            expect(screen.queryByText('2 values selected')).not.toBeInTheDocument();
+        });
     });
 });
