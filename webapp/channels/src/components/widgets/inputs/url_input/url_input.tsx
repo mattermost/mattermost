@@ -5,6 +5,7 @@ import classNames from 'classnames';
 import React, {useEffect, useState} from 'react';
 import {useIntl} from 'react-intl';
 
+import {Button} from '@mattermost/shared/components/button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import {getShortenedURL} from 'utils/url';
@@ -22,6 +23,8 @@ type URLInputProps = {
     shortenLength?: number;
     error?: string;
     className?: string;
+    readOnly?: boolean;
+    helpText?: string;
     onChange?: (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
     onBlur?: (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
 };
@@ -35,6 +38,8 @@ function UrlInput({
     shortenLength,
     error,
     className,
+    readOnly,
+    helpText,
     onChange,
     onBlur,
 }: URLInputProps) {
@@ -48,10 +53,12 @@ function UrlInput({
         }
     }, [error]);
 
-    const fullPath = `${base}/${path ? `${path}/` : ''}`;
-    const fullURL = `${fullPath}${editing ? '' : pathInfo}`;
-    const isShortenedURL = shortenLength && fullURL.length > shortenLength;
     const hasError = Boolean(error);
+    const isEditing = !readOnly && (editing || hasError);
+
+    const fullPath = `${base}/${path ? `${path}/` : ''}`;
+    const fullURL = `${fullPath}${isEditing ? '' : pathInfo}`;
+    const isShortenedURL = shortenLength && fullURL.length > shortenLength;
 
     const handleOnInputChange = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         event.preventDefault();
@@ -104,7 +111,7 @@ function UrlInput({
                 ) : (
                     urlInputLabel
                 )}
-                {(editing || hasError) && (
+                {isEditing && (
                     <Input
                         data-testid='channelURLInput'
                         name='url-input'
@@ -123,17 +130,27 @@ function UrlInput({
                         aria-describedby='url-input-error'
                     />
                 )}
-                <button
-                    className={classNames('url-input-button', {disabled: hasError})}
-                    disabled={hasError}
-                    onClick={handleOnButtonClick}
-                    onKeyDown={handlePropagateKeyDown}
-                >
-                    <span className='url-input-button-label'>
-                        {editing ? formatMessage({id: 'url_input.buttonLabel.done', defaultMessage: 'Done'}) : formatMessage({id: 'url_input.buttonLabel.edit', defaultMessage: 'Edit'})}
-                    </span>
-                </button>
+                {!readOnly && (
+                    <Button
+                        className={classNames('url-input-button', {disabled: hasError})}
+                        disabled={hasError}
+                        emphasis='quaternary'
+                        size='xs'
+                        type='button'
+                        onClick={handleOnButtonClick}
+                        onKeyDown={handlePropagateKeyDown}
+                    >
+                        <span className='url-input-button-label'>
+                            {editing ? formatMessage({id: 'url_input.buttonLabel.done', defaultMessage: 'Done'}) : formatMessage({id: 'url_input.buttonLabel.edit', defaultMessage: 'Edit'})}
+                        </span>
+                    </Button>
+                )}
             </div>
+            {helpText && (
+                <div className='url-input-help-text'>
+                    {helpText}
+                </div>
+            )}
             {error && (
                 <div className='url-input-error'>
                     <i className='icon icon-alert-outline'/>
