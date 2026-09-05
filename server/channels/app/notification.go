@@ -48,6 +48,16 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 		return []string{}, nil
 	}
 
+	// A post in a non-message backing channel (e.g. a Docs space comment) reaches no chat
+	// surface at all. The websocket payloads below are channel-scoped and carry the full post,
+	// so no read gate can filter them; email and push would deliver the body to a recipient who
+	// has no chat context for it; and mention parsing, thread autofollow, and mention-count
+	// updates would put unread state on a channel that no chat client lists. Notification
+	// delivery for these posts belongs to the owning feature, not to the chat pipeline.
+	if channel.IsSpace() {
+		return []string{}, nil
+	}
+
 	suppressNotifications := post.IsNotificationSuppressed()
 
 	isCRTAllowed := *a.Config().ServiceSettings.CollapsedThreads != model.CollapsedThreadsDisabled
@@ -1042,12 +1052,19 @@ func (a *App) RemoveNotifications(rctx request.CTX, post *model.Post, channel *m
 				}
 				auditRec.Success()
 
-				message := model.NewWebSocketEvent(model.WebsocketEventThreadUpdated, team.Id, "", userID, nil, "")
-				message.Add("thread", string(payload))
-				message.Add("previous_unread_mentions", previousUnreadMentions)
-				message.Add("previous_unread_replies", previousUnreadReplies)
+				// The thread_updated payload carries the root post; a non-message backing
+				// channel's thread must not reach chat clients. A backing channel does not
+				// reach this point today: SendNotifications returns early for one, so its
+				// threads never accrue the unread mentions this loop requires. Kept as a
+				// backstop so the broadcast stays withheld if that changes.
+				if !channel.IsSpace() {
+					message := model.NewWebSocketEvent(model.WebsocketEventThreadUpdated, team.Id, "", userID, nil, "")
+					message.Add("thread", string(payload))
+					message.Add("previous_unread_mentions", previousUnreadMentions)
+					message.Add("previous_unread_replies", previousUnreadReplies)
 
-				a.Publish(message)
+					a.Publish(message)
+				}
 			}
 		}
 	}

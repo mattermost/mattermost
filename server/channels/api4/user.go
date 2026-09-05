@@ -4153,7 +4153,9 @@ func unfollowThreadByUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
-	if ok, _ := c.App.SessionHasPermissionToReadPost(c.AppContext, *c.AppContext.Session(), c.Params.ThreadId); !ok {
+	// Unfollow deliberately skips the backing-channel rejection the other thread routes carry:
+	// a member already following a backing-channel thread must be able to stop following it.
+	if ok, _ := c.App.SessionHasPermissionToReadPostAllowBacking(c.AppContext, *c.AppContext.Session(), c.Params.ThreadId); !ok {
 		c.SetPermissionError(model.PermissionReadChannelContent)
 		return
 	}

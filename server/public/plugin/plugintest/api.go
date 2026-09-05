@@ -50,6 +50,26 @@ func (_m *API) AddChannelMember(channelId string, userID string) (*model.Channel
 	return r0, r1
 }
 
+// AddChannelsToRetentionPolicy provides a mock function with given fields: policyId, channelIds
+func (_m *API) AddChannelsToRetentionPolicy(policyId string, channelIds []string) *model.AppError {
+	ret := _m.Called(policyId, channelIds)
+
+	if len(ret) == 0 {
+		panic("no return value specified for AddChannelsToRetentionPolicy")
+	}
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(string, []string) *model.AppError); ok {
+		r0 = rf(policyId, channelIds)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
+}
+
 // AddReaction provides a mock function with given fields: reaction
 func (_m *API) AddReaction(reaction *model.Reaction) (*model.Reaction, *model.AppError) {
 	ret := _m.Called(reaction)
@@ -4676,6 +4696,26 @@ func (_m *API) LogWarn(msg string, keyValuePairs ...interface{}) {
 	_m.Called(_ca...)
 }
 
+// MoveThreadsToBackingChannel provides a mock function with given fields: rootIds, channelId
+func (_m *API) MoveThreadsToBackingChannel(rootIds []string, channelId string) *model.AppError {
+	ret := _m.Called(rootIds, channelId)
+
+	if len(ret) == 0 {
+		panic("no return value specified for MoveThreadsToBackingChannel")
+	}
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func([]string, string) *model.AppError); ok {
+		r0 = rf(rootIds, channelId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
+}
+
 // OpenInteractiveDialog provides a mock function with given fields: dialog
 func (_m *API) OpenInteractiveDialog(dialog model.OpenDialogRequest) *model.AppError {
 	ret := _m.Called(dialog)
@@ -5083,6 +5123,26 @@ func (_m *API) RegisterPropertyGroup(name string) (*model.PropertyGroup, error) 
 	}
 
 	return r0, r1
+}
+
+// RemoveChannelsFromRetentionPolicy provides a mock function with given fields: policyId, channelIds
+func (_m *API) RemoveChannelsFromRetentionPolicy(policyId string, channelIds []string) *model.AppError {
+	ret := _m.Called(policyId, channelIds)
+
+	if len(ret) == 0 {
+		panic("no return value specified for RemoveChannelsFromRetentionPolicy")
+	}
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(string, []string) *model.AppError); ok {
+		r0 = rf(policyId, channelIds)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
 }
 
 // RemovePlugin provides a mock function with given fields: id

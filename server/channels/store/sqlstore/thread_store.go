@@ -69,14 +69,16 @@ type SqlThreadStore struct {
 func (s *SqlThreadStore) ClearCaches() {
 }
 
-// channelMembershipPredicate filters out ThreadMemberships whose user is no
-// longer a member of the thread's channel. DM/GM threads have an empty
-// ThreadTeamId and are exempt because their access is intrinsic to the
-// channel members.
+// channelMembershipPredicate keeps chat-visible thread memberships whose user still belongs to
+// the channel. DM/GM threads have an empty ThreadTeamId and are exempt from the membership check
+// because their access is intrinsic to the channel members.
 func channelMembershipPredicate() sq.Sqlizer {
-	return sq.Or{
-		sq.Eq{"Threads.ThreadTeamId": ""},
-		sq.Expr("EXISTS (SELECT 1 FROM ChannelMembers WHERE ChannelMembers.ChannelId = Threads.ChannelId AND ChannelMembers.UserId = ThreadMemberships.UserId)"),
+	return sq.And{
+		sq.Or{
+			sq.Eq{"Threads.ThreadTeamId": ""},
+			sq.Expr("EXISTS (SELECT 1 FROM ChannelMembers WHERE ChannelMembers.ChannelId = Threads.ChannelId AND ChannelMembers.UserId = ThreadMemberships.UserId)"),
+		},
+		nonMessageBackingThreadExclusion(),
 	}
 }
 
@@ -131,6 +133,21 @@ func (s *SqlThreadStore) Get(id string) (*model.Thread, error) {
 		return nil, errors.Wrapf(err, "failed to get thread with id=%s", id)
 	}
 	return &thread, nil
+}
+
+// nonMessageBackingThreadExclusion keeps threads that live in a non-message backing channel
+// (e.g. a Docs space comment thread) out of the chat thread surfaces — the list, the unread
+// counts, and team-wide mark-all-read. It is a null-safe NOT EXISTS rather than a Channels join
+// or a bare NOT IN: several callers reach Threads through a LeftJoin from ThreadMemberships, so
+// Threads.ChannelId is NULL for a membership whose Threads row is gone — a state retention's
+// PermanentDeleteBatch produces — and a join or NOT IN would silently drop those ordinary chat
+// threads from every count.
+func nonMessageBackingThreadExclusion() sq.Sqlizer {
+	subquery := sq.Select("1").
+		From("Channels").
+		Where("Channels.Id = Threads.ChannelId").
+		Where(sq.Eq{"Channels.Type": nonMessageBackingChannelTypes})
+	return sq.Expr("NOT EXISTS (?)", subquery)
 }
 
 func (s *SqlThreadStore) getTotalThreadsQuery(userId, teamId string, opts model.GetUserThreadsOpts) sq.SelectBuilder {
@@ -682,6 +699,7 @@ func (s *SqlThreadStore) MarkAllAsReadByTeam(userId, teamId string) error {
 		Where("Threads.PostId = ThreadMemberships.PostId").
 		Where(sq.Eq{"ThreadMemberships.UserId": userId}).
 		Where(sq.Or{sq.Eq{"Threads.ThreadTeamId": teamId}, sq.Eq{"Threads.ThreadTeamId": ""}}).
+		Where(nonMessageBackingThreadExclusion()).
 		Set("LastViewed", timestamp).
 		Set("UnreadMentions", 0).
 		Set("LastUpdated", timestamp)

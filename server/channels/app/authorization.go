@@ -204,8 +204,43 @@ func (a *App) SessionHasPermissionToGroup(session model.Session, groupID string,
 	return a.SessionHasPermissionTo(session, permission)
 }
 
+// getPostChannel resolves the channel that owns postID and maps store failures to an AppError.
+// The read is replica-first and reaches the primary only when the replica has no row, so a
+// caller that needs the channel a just-committed write landed on cannot rely on it. Callers
+// decide whether the resolved channel type is valid for their operation.
+func (a *App) getPostChannel(where, postID string) (*model.Channel, *model.AppError) {
+	channel, err := a.Srv().Store().Channel().GetForPost(postID)
+	if err == nil {
+		return channel, nil
+	}
+	status := http.StatusInternalServerError
+	messageID := "app.channel.get.app_error"
+	if errors.Is(err, sql.ErrNoRows) {
+		status = http.StatusNotFound
+		messageID = "app.user.get_threads_for_user.not_found"
+	}
+	return nil, model.NewAppError(where, messageID, nil, "failed to classify post channel", status).Wrap(err)
+}
+
 func (a *App) SessionHasPermissionToChannelByPost(session model.Session, postID string, permission *model.Permission) bool {
 	if postID == "" {
+		return false
+	}
+
+	// A post in a non-message backing channel (e.g. a Docs space) is not reachable through
+	// chat authorization. The rejection comes before the membership question — membership in a
+	// backing channel grants no chat permission on its posts — and fails closed for post-id
+	// routes core has not written yet.
+	channel, appErr := a.getPostChannel("SessionHasPermissionToChannelByPost", postID)
+	if appErr != nil {
+		// Preserve the existing system-permission fallback for an id that names no post. Other
+		// lookup failures fail closed because the channel type could not be classified.
+		if appErr.StatusCode == http.StatusNotFound {
+			return a.SessionHasPermissionTo(session, permission)
+		}
+		return false
+	}
+	if channel.IsSpace() {
 		return false
 	}
 
@@ -215,25 +250,41 @@ func (a *App) SessionHasPermissionToChannelByPost(session model.Session, postID 
 		}
 	}
 
-	if channel, err := a.Srv().Store().Channel().GetForPost(postID); err == nil {
-		if channel.TeamId != "" {
-			return a.SessionHasPermissionToTeam(session, channel.TeamId, permission)
-		}
+	if channel.TeamId != "" {
+		return a.SessionHasPermissionToTeam(session, channel.TeamId, permission)
 	}
 
 	return a.SessionHasPermissionTo(session, permission)
 }
 
 func (a *App) SessionHasPermissionToReadPost(rctx request.CTX, session model.Session, postID string) (hasPErmission bool, isMember bool) {
+	return a.sessionHasPermissionToReadPost(rctx, session, postID, false)
+}
+
+// SessionHasPermissionToReadPostAllowBacking is SessionHasPermissionToReadPost without the
+// non-message-backing-channel rejection. It exists for the thread unfollow route alone: a member
+// already following a backing-channel thread must be able to stop, and a membership written
+// before the rejection shipped would otherwise be permanently stranded.
+func (a *App) SessionHasPermissionToReadPostAllowBacking(rctx request.CTX, session model.Session, postID string) (hasPermission bool, isMember bool) {
+	return a.sessionHasPermissionToReadPost(rctx, session, postID, true)
+}
+
+func (a *App) sessionHasPermissionToReadPost(rctx request.CTX, session model.Session, postID string, allowBacking bool) (hasPermission bool, isMember bool) {
 	if postID == "" {
 		return false, false
 	}
 
-	channel, err := a.Srv().Store().Channel().GetForPost(postID)
-	if err != nil {
-		// Original implementation (SessionHasPermissionToChannelByPost) still checks for
-		// general permissions even if the channel is not found, and some tests rely on this behavior.
-		return a.SessionHasPermissionTo(session, model.PermissionReadChannelContent), false
+	channel, appErr := a.getPostChannel("SessionHasPermissionToReadPost", postID)
+	if appErr != nil {
+		// Match the historical behavior for a missing post while failing closed when an existing
+		// post cannot be classified because of a store failure.
+		if appErr.StatusCode == http.StatusNotFound {
+			return a.SessionHasPermissionTo(session, model.PermissionReadChannelContent), false
+		}
+		return false, false
+	}
+	if !allowBacking && channel.IsSpace() {
+		return false, false
 	}
 
 	return a.SessionHasPermissionToReadChannel(rctx, session, channel)
@@ -355,13 +406,23 @@ func (a *App) HasPermissionToChannel(rctx request.CTX, askingUserId string, chan
 }
 
 func (a *App) HasPermissionToChannelByPost(rctx request.CTX, askingUserId string, postID string, permission *model.Permission) bool {
+	channel, appErr := a.getPostChannel("HasPermissionToChannelByPost", postID)
+	if appErr != nil {
+		if appErr.StatusCode == http.StatusNotFound {
+			return a.HasPermissionTo(rctx, askingUserId, permission)
+		}
+		return false
+	}
+	if channel.IsSpace() {
+		return false
+	}
 	if channelMember, err := a.Srv().Store().Channel().GetMemberForPost(postID, askingUserId); err == nil {
 		if a.RolesGrantPermission(channelMember.GetRoles(), permission.Id) {
 			return true
 		}
 	}
 
-	if channel, err := a.Srv().Store().Channel().GetForPost(postID); err == nil {
+	if channel.TeamId != "" {
 		return a.HasPermissionToTeam(rctx, askingUserId, channel.TeamId, permission)
 	}
 

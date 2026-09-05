@@ -45,13 +45,10 @@ var messageChannelTypes = []model.ChannelType{
 
 // nonMessageBackingChannelTypes is the deny-list for queries that filter by channel ID or
 // team+user rather than by type, so the messageChannelTypes allow-list does not apply to them.
-// A backing channel type must be added here when it writes real posts to the backing channel;
-// otherwise TotalMsgCount grows and the channel generates unread badges and push notifications
-// in the chat UI. Backing channel types that never write posts are already invisible in these
-// queries without an explicit filter and do not need to be listed here.
-var nonMessageBackingChannelTypes = []model.ChannelType{
-	model.ChannelTypeSpace,
-}
+// A type belongs on the model's list once it writes real posts to its backing channel; without
+// the filter TotalMsgCount grows and the channel generates unread badges and push notifications
+// in the chat UI. Types that never write posts are already invisible to these queries.
+var nonMessageBackingChannelTypes = model.NonMessageBackingChannelTypes
 
 // nonMessageBackingChannelTypesNotIn returns a "NOT IN (...)" SQL clause and its args for use
 // in raw SQL queries, keeping those callers in sync with the deny-list.
@@ -3179,6 +3176,11 @@ func (s SqlChannelStore) GetChannelsWithTeamDataByIds(channelIDs []string, inclu
 	return channels, nil
 }
 
+// GetForPost is an authorization primitive: callers use the returned channel type to keep posts
+// in non-message backing channels out of chat. A channel's type never changes, so a replica hit
+// classifies correctly; only a miss is ambiguous — the row may exist on master and be unreplicated
+// — and re-reading that case from master keeps replica lag from turning an unknown classification
+// into a permissive fallback.
 func (s SqlChannelStore) GetForPost(postId string) (*model.Channel, error) {
 	query := s.getQueryBuilder().
 		Select(channelSliceColumns(true, "Channels")...).
@@ -3196,6 +3198,9 @@ func (s SqlChannelStore) GetForPost(postId string) (*model.Channel, error) {
 	channel := model.Channel{}
 
 	err = s.GetReplica().Get(&channel, queryString, argss...)
+	if errors.Is(err, sql.ErrNoRows) {
+		err = s.GetMaster().Get(&channel, queryString, argss...)
+	}
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to get Channel with postId=%s", postId)
 	}

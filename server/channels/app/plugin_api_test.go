@@ -4000,6 +4000,288 @@ func TestPluginAPICreateSpaceAndAddMember(t *testing.T) {
 	require.Equal(t, http.StatusNotFound, appErr.StatusCode)
 }
 
+// createSpaceChannelWithMember seeds a space backing channel and a membership directly at the
+// store, the same fixture TestPluginAPIChannelMemberNotificationsRejectSpace uses.
+func createSpaceChannelWithMember(t *testing.T, th *TestHelper, userID string) *model.Channel {
+	t.Helper()
+	space := &model.Channel{
+		TeamId:      th.BasicTeam.Id,
+		DisplayName: "Space",
+		Name:        "space-" + model.NewId(),
+		Type:        model.ChannelTypeSpace,
+	}
+	space, nErr := th.App.Srv().Store().Channel().Save(th.Context, space, -1)
+	require.NoError(t, nErr)
+	_, nErr = th.App.Srv().Store().Channel().SaveMember(th.Context, &model.ChannelMember{
+		ChannelId:   space.Id,
+		UserId:      userID,
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+		SchemeUser:  true,
+	})
+	require.NoError(t, nErr)
+	// The raw store write bypasses the app layer's cache maintenance, so the member-roles cache
+	// must be dropped by hand or role resolution sees a stale membership set.
+	th.App.Srv().Store().Channel().InvalidateAllChannelMembersForUser(userID)
+	return space
+}
+
+func TestPluginAPIPostMutationsOnSpaceChannel(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := Setup(t).InitBasic(t)
+	api := th.SetupPluginAPI()
+	space := createSpaceChannelWithMember(t, th, th.BasicUser.Id)
+
+	newSpacePost := func(t *testing.T) *model.Post {
+		post, appErr := api.CreatePost(&model.Post{
+			ChannelId: space.Id,
+			UserId:    th.BasicUser.Id,
+			Message:   "space comment",
+		})
+		require.Nil(t, appErr)
+		return post
+	}
+
+	t.Run("CreatePost resolves the space backing channel", func(t *testing.T) {
+		post := newSpacePost(t)
+		require.Equal(t, space.Id, post.ChannelId)
+
+		stored, appErr := th.App.GetSinglePost(th.Context, post.Id, false)
+		require.Nil(t, appErr)
+		require.Equal(t, space.Id, stored.ChannelId)
+	})
+
+	t.Run("UpdatePost resolves the space backing channel", func(t *testing.T) {
+		post := newSpacePost(t)
+		post.Message = "edited space comment"
+
+		updated, appErr := api.UpdatePost(post)
+		require.Nil(t, appErr)
+		require.Equal(t, "edited space comment", updated.Message)
+	})
+
+	t.Run("DeletePost resolves the space backing channel and completes the deletion", func(t *testing.T) {
+		post := newSpacePost(t)
+
+		appErr := api.DeletePost(post.Id)
+		require.Nil(t, appErr)
+
+		deleted, err := th.App.Srv().Store().Post().GetSingle(th.Context, post.Id, true)
+		require.NoError(t, err)
+		require.NotZero(t, deleted.DeleteAt)
+	})
+
+	t.Run("the exported app methods still refuse a space-channel post", func(t *testing.T) {
+		// REST callers reach the exported wrappers, which resolve through the generic
+		// allow-listed GetChannel; a space-channel post must stay unreachable there.
+		post := newSpacePost(t)
+
+		post.Message = "rest edit"
+		_, _, appErr := th.App.UpdatePost(th.Context, post, nil)
+		require.NotNil(t, appErr)
+		require.Equal(t, http.StatusNotFound, appErr.StatusCode)
+
+		_, appErr = th.App.DeletePost(th.Context, post.Id, th.BasicUser.Id)
+		require.NotNil(t, appErr)
+		require.Equal(t, http.StatusNotFound, appErr.StatusCode)
+	})
+}
+
+func TestAppMoveThreadsToBackingChannel(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := Setup(t).InitBasic(t)
+	api := th.SetupPluginAPI()
+	source := createSpaceChannelWithMember(t, th, th.BasicUser.Id)
+	target := createSpaceChannelWithMember(t, th, th.BasicUser.Id)
+
+	counters := func(t *testing.T, channelID string) (int64, int64) {
+		t.Helper()
+		channel, appErr := th.App.GetChannelOfType(th.Context, channelID, model.ChannelTypeSpace)
+		require.Nil(t, appErr)
+		return channel.TotalMsgCount, channel.TotalMsgCountRoot
+	}
+
+	newPost := func(t *testing.T, channelID, rootID, message string) *model.Post {
+		t.Helper()
+		post, appErr := api.CreatePost(&model.Post{
+			ChannelId: channelID,
+			RootId:    rootID,
+			UserId:    th.BasicUser.Id,
+			Message:   message,
+		})
+		require.Nil(t, appErr)
+		return post
+	}
+
+	t.Run("moves the whole thread with counters and thread metadata", func(t *testing.T) {
+		root := newPost(t, source.Id, "", "root")
+		liveReply := newPost(t, source.Id, root.Id, "live reply")
+		deletedReply := newPost(t, source.Id, root.Id, "deleted reply")
+		require.Nil(t, api.DeletePost(deletedReply.Id))
+
+		// An edit-history row moves with the thread but never counted toward a channel.
+		root.Message = "root edited"
+		_, appErr := api.UpdatePost(root)
+		require.Nil(t, appErr)
+		history, appErr := th.App.GetEditHistoryForPost(root.Id)
+		require.Nil(t, appErr)
+		require.NotEmpty(t, history)
+
+		sourceCount, sourceRootCount := counters(t, source.Id)
+		targetCount, targetRootCount := counters(t, target.Id)
+
+		require.Nil(t, th.App.MoveThreadsToBackingChannel(th.Context, []string{root.Id}, target.Id))
+
+		for _, id := range []string{root.Id, liveReply.Id, deletedReply.Id, history[0].Id} {
+			moved, err := th.App.Srv().Store().Post().GetSingle(th.Context, id, true)
+			require.NoError(t, err)
+			require.Equal(t, target.Id, moved.ChannelId, "post %s must move", id)
+		}
+
+		thread, err := th.App.Srv().Store().Thread().Get(root.Id)
+		require.NoError(t, err)
+		require.Equal(t, target.Id, thread.ChannelId)
+
+		// The three counted rows (root + both replies — deletion never decremented) move; the
+		// history row is excluded from the deltas.
+		gotSourceCount, gotSourceRootCount := counters(t, source.Id)
+		gotTargetCount, gotTargetRootCount := counters(t, target.Id)
+		require.Equal(t, sourceCount-3, gotSourceCount)
+		require.Equal(t, sourceRootCount-1, gotSourceRootCount)
+		require.Equal(t, targetCount+3, gotTargetCount)
+		require.Equal(t, targetRootCount+1, gotTargetRootCount)
+
+		t.Run("a re-run is a no-op", func(t *testing.T) {
+			require.Nil(t, th.App.MoveThreadsToBackingChannel(th.Context, []string{root.Id}, target.Id))
+			count, rootCount := counters(t, target.Id)
+			require.Equal(t, gotTargetCount, count)
+			require.Equal(t, gotTargetRootCount, rootCount)
+		})
+	})
+
+	t.Run("a reply id is rejected: moving it would split its thread", func(t *testing.T) {
+		root := newPost(t, source.Id, "", "root")
+		reply := newPost(t, source.Id, root.Id, "reply")
+
+		appErr := th.App.MoveThreadsToBackingChannel(th.Context, []string{reply.Id}, target.Id)
+		require.NotNil(t, appErr)
+		require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+	})
+
+	t.Run("a non-backing target reads as not-found", func(t *testing.T) {
+		root := newPost(t, source.Id, "", "root")
+
+		appErr := th.App.MoveThreadsToBackingChannel(th.Context, []string{root.Id}, th.BasicChannel.Id)
+		require.NotNil(t, appErr)
+		require.Equal(t, http.StatusNotFound, appErr.StatusCode)
+	})
+
+	t.Run("a non-backing source is rejected", func(t *testing.T) {
+		chatPost := th.CreatePost(t, th.BasicChannel)
+
+		appErr := th.App.MoveThreadsToBackingChannel(th.Context, []string{chatPost.Id}, target.Id)
+		require.NotNil(t, appErr)
+		require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+
+		stored, err := th.App.Srv().Store().Post().GetSingle(th.Context, chatPost.Id, true)
+		require.NoError(t, err)
+		require.Equal(t, th.BasicChannel.Id, stored.ChannelId, "the rejected move must not touch the post")
+	})
+
+	t.Run("a chat post's edit-history row is rejected, not silently moved", func(t *testing.T) {
+		// A root's history row carries RootId = '' and would pass a roots-only check while
+		// contributing no counter delta — the combination that once let it slip past the
+		// channel-type gate.
+		chatPost := th.CreatePost(t, th.BasicChannel)
+		chatPost.Message = "edited chat message"
+		_, _, appErr := th.App.UpdatePost(th.Context, chatPost, nil)
+		require.Nil(t, appErr)
+		history, appErr := th.App.GetEditHistoryForPost(chatPost.Id)
+		require.Nil(t, appErr)
+		require.NotEmpty(t, history)
+
+		appErr = th.App.MoveThreadsToBackingChannel(th.Context, []string{history[0].Id}, target.Id)
+		require.NotNil(t, appErr)
+		require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+
+		stored, err := th.App.Srv().Store().Post().GetSingle(th.Context, history[0].Id, true)
+		require.NoError(t, err)
+		require.Equal(t, th.BasicChannel.Id, stored.ChannelId, "the snapshot must stay in its chat channel")
+	})
+
+	t.Run("the batch cap is enforced", func(t *testing.T) {
+		oversized := make([]string, moveThreadsToBackingChannelMaxBatch+1)
+		for i := range oversized {
+			oversized[i] = model.NewId()
+		}
+		appErr := th.App.MoveThreadsToBackingChannel(th.Context, oversized, target.Id)
+		require.NotNil(t, appErr)
+		require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+		require.Equal(t, "app.post.move_threads_to_backing_channel.batch_too_large.app_error", appErr.Id, "the cap must be what rejects, not another bad request")
+	})
+
+	t.Run("a batch at exactly the cap is accepted", func(t *testing.T) {
+		// Unknown ids are skipped, so the batch reaches the store and returns without moving
+		// anything: what is under test is that the cap rejects only what exceeds it.
+		atCap := make([]string, moveThreadsToBackingChannelMaxBatch)
+		for i := range atCap {
+			atCap[i] = model.NewId()
+		}
+		require.Nil(t, th.App.MoveThreadsToBackingChannel(th.Context, atCap, target.Id))
+	})
+
+	t.Run("an empty batch is a no-op", func(t *testing.T) {
+		require.Nil(t, th.App.MoveThreadsToBackingChannel(th.Context, nil, target.Id))
+		require.Nil(t, th.App.MoveThreadsToBackingChannel(th.Context, []string{}, target.Id))
+	})
+
+	t.Run("the plugin API surface reaches it", func(t *testing.T) {
+		root := newPost(t, source.Id, "", "root via api")
+		require.Nil(t, api.MoveThreadsToBackingChannel([]string{root.Id}, target.Id))
+		moved, err := th.App.Srv().Store().Post().GetSingle(th.Context, root.Id, true)
+		require.NoError(t, err)
+		require.Equal(t, target.Id, moved.ChannelId)
+	})
+}
+
+// TestPostWithChannelRejectsMismatchedChannel pins the invariant on the pre-resolved-channel
+// helpers: a trusted caller cannot act on a post through a channel that is not the post's.
+func TestPostWithChannelRejectsMismatchedChannel(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := Setup(t).InitBasic(t)
+	post := th.CreatePost(t, th.BasicChannel)
+	other := th.CreateChannel(t, th.BasicTeam)
+
+	t.Run("update", func(t *testing.T) {
+		post.Message = "edited"
+		_, _, appErr := th.App.updatePostWithChannel(th.Context, post, nil, other)
+		require.NotNil(t, appErr)
+		require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+		require.Equal(t, "app.post.pre_resolved_channel_mismatch.app_error", appErr.Id)
+	})
+
+	t.Run("delete", func(t *testing.T) {
+		_, appErr := th.App.deletePostWithChannel(th.Context, post.Id, "", other)
+		require.NotNil(t, appErr)
+		require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+		require.Equal(t, "app.post.pre_resolved_channel_mismatch.app_error", appErr.Id)
+
+		// The rejection must precede the mutation: the post is untouched.
+		stored, err := th.App.Srv().Store().Post().GetSingle(th.Context, post.Id, true)
+		require.NoError(t, err)
+		require.Zero(t, stored.DeleteAt)
+	})
+
+	t.Run("cleanup", func(t *testing.T) {
+		appErr := th.App.cleanUpAfterPostDeletionWithChannel(th.Context, post, "", other)
+		require.NotNil(t, appErr)
+		require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+		require.Equal(t, "app.post.pre_resolved_channel_mismatch.app_error", appErr.Id)
+	})
+}
+
 func TestPluginAPIChannelMemberNotificationsRejectSpace(t *testing.T) {
 	mainHelper.Parallel(t)
 
@@ -4471,4 +4753,25 @@ func TestPluginAPIPropertyGroupDeprecatedName(t *testing.T) {
 		_, err := api.GetPropertyGroup("no_such_group")
 		require.Error(t, err)
 	})
+}
+
+// TestPluginAPIRetentionPolicyChannelWiring pins that each retention-policy plugin API reaches
+// its own app method. Without the data-retention service those methods refuse by name, so the
+// refusal identifies which one ran — a swapped or copy-pasted delegation moves the name.
+func TestPluginAPIRetentionPolicyChannelWiring(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := Setup(t)
+	api := th.SetupPluginAPI()
+	if th.App.DataRetention() != nil {
+		t.Skip("the refusal-by-name probe requires the data-retention service to be absent")
+	}
+
+	addErr := api.AddChannelsToRetentionPolicy(model.NewId(), []string{model.NewId()})
+	require.NotNil(t, addErr)
+	assert.Equal(t, "App.AddChannelsToRetentionPolicies", addErr.Where)
+
+	removeErr := api.RemoveChannelsFromRetentionPolicy(model.NewId(), []string{model.NewId()})
+	require.NotNil(t, removeErr)
+	assert.Equal(t, "App.RemoveChannelsFromRetentionPolicy", removeErr.Where)
 }

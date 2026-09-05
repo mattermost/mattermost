@@ -2536,6 +2536,34 @@ func TestUpdateThreadReadForUser(t *testing.T) {
 	})
 }
 
+func TestPostChannelChatGateFailsClosed(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+	realStore := th.App.Srv().Store()
+	mockStore := storemocks.Store{}
+	mockChannelStore := storemocks.ChannelStore{}
+	postID := model.NewId()
+	mockChannelStore.On("GetForPost", postID).Return(nil, errors.New("classification backend unavailable")).Times(3)
+	mockStore.On("Channel").Return(&mockChannelStore)
+	// The fixture's own CreatePost leaves an outgoing-webhook check running; an unstubbed
+	// subsystem reached from that goroutine panics outside the test goroutine and takes the
+	// whole binary down, so everything this test does not drive is forwarded to the real store.
+	mockStore.On("Webhook").Return(realStore.Webhook())
+	th.App.Srv().SetStore(&mockStore)
+	defer th.App.Srv().SetStore(realStore)
+
+	_, appErr := th.App.GetThreadForUser(th.Context, &model.ThreadMembership{PostId: postID}, false)
+	require.NotNil(t, appErr)
+	assert.Equal(t, http.StatusInternalServerError, appErr.StatusCode)
+
+	appErr = th.App.UpdateThreadFollowForUserFromChannelAdd(th.Context, model.NewId(), model.NewId(), postID)
+	require.NotNil(t, appErr)
+	assert.Equal(t, http.StatusInternalServerError, appErr.StatusCode)
+
+	_, appErr = th.App.UpdateThreadReadForUser(th.Context, model.NewId(), model.NewId(), model.NewId(), postID, model.GetMillis())
+	require.NotNil(t, appErr)
+	assert.Equal(t, http.StatusInternalServerError, appErr.StatusCode)
+}
+
 func TestGetThreadsForUserSanitizesRootPost(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
