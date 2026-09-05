@@ -15,15 +15,19 @@ describe('TextFormatting.Hashtags with default setting', () => {
         expect(TextFormatting.formatText('#ab', {}, emojiMap).trim()).toBe(
             '<p>#ab</p>',
         );
-
-        expect(TextFormatting.formatText('#123test', {}, emojiMap).trim()).toBe(
-            '<p>#123test</p>',
-        );
     });
 
     it('Hashtags', () => {
         expect(TextFormatting.formatText('#test', {}, emojiMap).trim()).toBe(
             "<p><a class='mention-link' href='#' data-hashtag='#test'>#test</a></p>",
+        );
+
+        // issue #33406: number-first hashtags (like #123test) must render as
+        // hashtags. The regression locked this case in as plain text via the
+        // hashtagRegex requiring \p{L} (letter) immediately after #. The fix
+        // widened that to [\p{L}\d].
+        expect(TextFormatting.formatText('#123test', {}, emojiMap).trim()).toBe(
+            "<p><a class='mention-link' href='#' data-hashtag='#123test'>#123test</a></p>",
         );
 
         expect(TextFormatting.formatText('#test123', {}, emojiMap).trim()).toBe(
