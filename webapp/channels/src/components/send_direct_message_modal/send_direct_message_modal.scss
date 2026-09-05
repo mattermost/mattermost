@@ -1,0 +1,40 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.SendDirectMessageModal__body {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.SendDirectMessageModal__textarea {
+    width: 100%;
+    min-height: 96px;
+    padding: 12px;
+    font-family: inherit;
+    font-size: 14px;
+    line-height: 20px;
+    resize: vertical;
+
+    &:focus {
+        border-color: rgb(var(--button-bg-rgb));
+        outline: 2px solid rgb(var(--button-bg-rgb));
+        outline-offset: 2px;
+    }
+
+    &:disabled {
+        opacity: 0.6;
+    }
+}
+
+.SendDirectMessageModal__error {
+    display: flex;
+    align-items: center;
+    color: rgb(var(--semantic-color-danger));
+    font-size: 12px;
+    gap: 6px;
+
+    i {
+        font-size: 14px;
+    }
+}
