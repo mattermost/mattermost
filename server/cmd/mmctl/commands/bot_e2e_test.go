@@ -401,20 +401,27 @@ func (s *MmctlE2ETestSuite) TestBotCreateCmdF() {
 	s.th.App.UpdateConfig(func(c *model.Config) { *c.ServiceSettings.EnableBotAccountCreation = true })
 	defer s.th.App.UpdateConfig(func(c *model.Config) { *c.ServiceSettings.EnableBotAccountCreation = createBots })
 
-	s.Run("MM-T3941 Create Bot with an access token", func() {
+	s.Run("Create Bot with an access token without permission", func() {
 		printer.Clean()
 
 		cmd := &cobra.Command{}
 		cmd.Flags().Bool("with-token", true, "")
 
-		err := botCreateCmdF(s.th.Client, cmd, []string{"testbot"})
+		username := model.NewUsername()
+		err := botCreateCmdF(s.th.Client, cmd, []string{username})
 		s.Require().Error(err)
+		s.Require().Contains(err.Error(), "permissions")
 		s.Require().Empty(printer.GetLines())
 		s.Require().Empty(printer.GetErrorLines())
+	})
 
+	s.RunForSystemAdminAndLocal("MM-T3941 Create Bot with an access token", func(c client.Client) {
 		printer.Clean()
 
-		err = botCreateCmdF(s.th.SystemAdminClient, cmd, []string{"testbot"})
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("with-token", true, "")
+
+		err := botCreateCmdF(c, cmd, []string{model.NewUsername()})
 		s.Require().NoError(err)
 		s.Require().Equal(2, len(printer.GetLines()))
 		bot, ok := printer.GetLines()[0].(*model.Bot)
