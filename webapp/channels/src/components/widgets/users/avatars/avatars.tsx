@@ -21,6 +21,8 @@ import {imageURLForUser} from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
 
+import {OverflowUsersPopoverController} from './overflow_users_popover';
+
 import './avatars.scss';
 
 type Props = {
@@ -28,6 +30,12 @@ type Props = {
     totalUsers?: number;
     size?: ComponentProps<typeof Avatar>['size'];
     fetchMissingUsers?: boolean;
+
+    /**
+     * Lets the "+N" chip open a list of the overflow users, each opening their
+     * profile popover. Opt-in, and additive: the chip keeps its hover tooltip.
+     */
+    canOpenOverflow?: boolean;
 };
 
 const OTHERS_DISPLAY_LIMIT = 99;
@@ -87,6 +95,7 @@ function Avatars({
     userIds,
     totalUsers,
     fetchMissingUsers = true,
+    canOpenOverflow = false,
 }: Props) {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
@@ -130,6 +139,19 @@ function Avatars({
         }
     }
 
+    // Only the named overflow ids can be listed, so a chip made entirely of
+    // `totalUsers` remainder degrades to the tooltip rather than opening empty.
+    const opensOverflowList = canOpenOverflow && overflowUserIds.length > 0;
+
+    const overflowChip = (
+        <Avatar
+            style={avatarStyle}
+            size={size}
+            tabIndex={opensOverflowList ? -1 : 0}
+            text={nonDisplayCount > OTHERS_DISPLAY_LIMIT ? `${OTHERS_DISPLAY_LIMIT}+` : `+${nonDisplayCount}`}
+        />
+    );
+
     return (
         <div
             className={`Avatars Avatars___${size}`}
@@ -143,16 +165,22 @@ function Avatars({
                 />
             ))}
             {Boolean(nonDisplayCount) && (
-                <WithTooltip
-                    title={overflowUsersTooltip}
-                >
-                    <Avatar
-                        style={avatarStyle}
-                        size={size}
-                        tabIndex={0}
-                        text={nonDisplayCount > OTHERS_DISPLAY_LIMIT ? `${OTHERS_DISPLAY_LIMIT}+` : `+${nonDisplayCount}`}
-                    />
-                </WithTooltip>
+                opensOverflowList ? (
+                    <OverflowUsersPopoverController
+                        userIds={overflowUserIds}
+                        unnamedCount={overflowUnnamedCount}
+                        className='style--none Avatars__overflowTrigger'
+                        tooltipTitle={overflowUsersTooltip}
+                    >
+                        {overflowChip}
+                    </OverflowUsersPopoverController>
+                ) : (
+                    <WithTooltip
+                        title={overflowUsersTooltip}
+                    >
+                        {overflowChip}
+                    </WithTooltip>
+                )
             )}
         </div>
     );

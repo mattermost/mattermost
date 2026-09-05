@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {screen, waitFor} from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import React from 'react';
 
 import {getMissingProfilesByIds} from 'mattermost-redux/actions/users';
@@ -148,6 +150,185 @@ describe('components/widgets/users/Avatars', () => {
 
         // The overflow avatar should exist with +2 text
         expect(container.querySelector('[data-content="+2"]')).toBeInTheDocument();
+    });
+
+    describe('canOpenOverflow', () => {
+        const overflowChip = (container: HTMLElement) => container.querySelector('[data-content="+2"]')!;
+
+        test('does not open a list from the overflow chip when not opted in', async () => {
+            const {container} = renderWithContext(
+                <Avatars
+                    size='xl'
+                    userIds={['1', '2', '3', '4', '5']}
+                />,
+                state,
+            );
+
+            await userEvent.click(overflowChip(container));
+
+            expect(screen.queryByRole('listitem')).not.toBeInTheDocument();
+        });
+
+        test('opens a list of the overflow users when opted in', async () => {
+            const {container} = renderWithContext(
+                <Avatars
+                    size='xl'
+                    userIds={['1', '2', '3', '4', '5']}
+                    canOpenOverflow={true}
+                />,
+                state,
+            );
+
+            await userEvent.click(overflowChip(container));
+
+            await waitFor(() => expect(screen.getAllByRole('listitem')).toHaveLength(2));
+
+            // Only the overflow users, not the three already displayed.
+            expect(screen.getByText('first.last4')).toBeInTheDocument();
+            expect(screen.getByText('first.last5')).toBeInTheDocument();
+            expect(screen.queryByText('first.last1')).not.toBeInTheDocument();
+        });
+
+        // The trigger wraps the chip, taking it out of the sibling selectors that give
+        // it its overlap offset. avatars.scss re-applies them via this class.
+        test('marks the trigger so the chip keeps its stack styling', () => {
+            const {container} = renderWithContext(
+                <Avatars
+                    size='xl'
+                    userIds={['1', '2', '3', '4', '5']}
+                    canOpenOverflow={true}
+                />,
+                state,
+            );
+
+            const trigger = container.querySelector('.Avatars > .Avatars__overflowTrigger');
+
+            expect(trigger).toBeInTheDocument();
+            expect(trigger!.querySelector('[data-content="+2"]')).toBeInTheDocument();
+        });
+
+        // makeIsEligibleForClick ignores clicks under a button ancestor, which is what
+        // keeps opening the list from also opening the surrounding post's thread.
+        test('renders the trigger as a button so the click does not reach the post', () => {
+            const {container} = renderWithContext(
+                <Avatars
+                    size='xl'
+                    userIds={['1', '2', '3', '4', '5']}
+                    canOpenOverflow={true}
+                />,
+                state,
+            );
+
+            const trigger = container.querySelector('.Avatars__overflowTrigger')!;
+
+            expect(trigger.tagName).toBe('BUTTON');
+            expect(trigger).toHaveAttribute('type', 'button');
+
+            // The trigger is the tab stop; the chip inside must not be a second one.
+            expect(trigger.querySelector('[data-content="+2"]')).toHaveAttribute('tabindex', '-1');
+        });
+
+        test('leaves the chip focusable when it is not a popover trigger', () => {
+            const {container} = renderWithContext(
+                <Avatars
+                    size='xl'
+                    userIds={['1', '2', '3', '4', '5']}
+                />,
+                state,
+            );
+
+            expect(container.querySelector('[data-content="+2"]')).toHaveAttribute('tabindex', '0');
+        });
+
+        // The popover is additive: hover still summarises the overflow.
+        test('keeps the hover tooltip when opted in', async () => {
+            const {container} = renderWithContext(
+                <Avatars
+                    size='xl'
+                    userIds={['1', '2', '3', '4', '5']}
+                    canOpenOverflow={true}
+                />,
+                state,
+            );
+
+            await userEvent.hover(overflowChip(container));
+
+            await waitFor(() => {
+                expect(screen.getByText('first.last4, first.last5')).toBeInTheDocument();
+            });
+        });
+
+        // avatars.scss holds the trigger's hover lift on [aria-expanded='true'];
+        // without it the trigger shrinks on mouse-out and drags the list with it.
+        test('marks the trigger expanded while the list is open', async () => {
+            const {container} = renderWithContext(
+                <Avatars
+                    size='xl'
+                    userIds={['1', '2', '3', '4', '5']}
+                    canOpenOverflow={true}
+                />,
+                state,
+            );
+
+            const trigger = container.querySelector('.Avatars__overflowTrigger')!;
+            expect(trigger).toHaveAttribute('aria-expanded', 'false');
+
+            await userEvent.click(overflowChip(container));
+
+            await waitFor(() => expect(trigger).toHaveAttribute('aria-expanded', 'true'));
+        });
+
+        test('closes on Escape', async () => {
+            const {container} = renderWithContext(
+                <Avatars
+                    size='xl'
+                    userIds={['1', '2', '3', '4', '5']}
+                    canOpenOverflow={true}
+                />,
+                state,
+            );
+
+            await userEvent.click(overflowChip(container));
+            await waitFor(() => expect(screen.getAllByRole('listitem')).toHaveLength(2));
+
+            await userEvent.keyboard('{Escape}');
+
+            await waitFor(() => expect(screen.queryByRole('listitem')).not.toBeInTheDocument());
+        });
+
+        // totalUsers can exceed the ids given, and those extra users cannot be listed.
+        test('does not open a list when every overflow user is unnamed', async () => {
+            const {container} = renderWithContext(
+                <Avatars
+                    size='xl'
+                    userIds={['1', '2', '3']}
+                    totalUsers={6}
+                    canOpenOverflow={true}
+                />,
+                state,
+            );
+
+            await userEvent.click(container.querySelector('[data-content="+3"]')!);
+
+            expect(screen.queryByRole('listitem')).not.toBeInTheDocument();
+        });
+
+        test('lists the named overflow users and reports the unnamed remainder', async () => {
+            const {container} = renderWithContext(
+                <Avatars
+                    size='xl'
+                    userIds={['1', '2', '3', '4', '5']}
+                    totalUsers={7}
+                    canOpenOverflow={true}
+                />,
+                state,
+            );
+
+            await userEvent.click(container.querySelector('[data-content="+4"]')!);
+
+            await waitFor(() => expect(screen.getAllByRole('listitem')).toHaveLength(2));
+            expect(screen.getByText('and 2 more people')).toBeInTheDocument();
+        });
     });
 
     test('should fetch missing users', () => {
