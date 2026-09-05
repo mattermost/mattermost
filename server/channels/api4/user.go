@@ -974,6 +974,11 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	if inTeamId != "" && !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), inTeamId, model.PermissionViewTeam) {
+		c.SetPermissionError(model.PermissionViewTeam)
+		return
+	}
+
 	restrictions, appErr := c.App.GetViewUsersRestrictions(c.AppContext, c.AppContext.Session().UserId)
 	if appErr != nil {
 		c.Err = appErr
@@ -1087,11 +1092,6 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 			profiles, appErr = c.App.GetUsersNotInTeamPage(notInTeamId, groupConstrainedBool, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin(), restrictions)
 		}
 	} else if inTeamId != "" {
-		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), inTeamId, model.PermissionViewTeam) {
-			c.SetPermissionError(model.PermissionViewTeam)
-			return
-		}
-
 		if sort == "last_activity_at" {
 			profiles, appErr = c.App.GetRecentlyActiveUsersForTeamPage(c.AppContext, inTeamId, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin(), restrictions)
 		} else if sort == "create_at" {
