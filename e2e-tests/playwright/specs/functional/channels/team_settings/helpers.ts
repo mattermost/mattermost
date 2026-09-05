@@ -130,6 +130,91 @@ export async function setUserAttribute(adminClient: Client4, userId: string, fie
     await adminClient.updateUserCustomProfileAttributesValues(userId, {[field.id]: value});
 }
 
+/**
+ * Wait until all `expectedUserIds` show up as matching `expression` via the
+ * access-control CEL test endpoint.
+ *
+ * Why this exists: ABAC queries (validateExpressionAgainstRequester,
+ * calculateMembershipChanges) read from a Postgres materialized view
+ * (`AttributeView`). The enterprise access-control service refreshes that view
+ * at most once every 30 seconds — so freshly-written CPA values are not visible
+ * until the next refresh tick. A test that writes a brand-new CPA value and
+ * then immediately clicks "Save" on a rule referencing that value will hit
+ * `requester_matches: false` and surface the self-exclusion modal instead of
+ * the membership-changes confirmation modal.
+ *
+ * Polling forces wall-clock time to advance; the next CEL query after the 30s
+ * gate elapses will refresh the view and pick up the new attribute values.
+ * Default timeout 45s = 30s gate + 15s headroom.
+ */
+export async function waitForAttributeViewToInclude(
+    adminClient: Client4,
+    expression: string,
+    expectedUserIds: string[],
+    timeoutMs = 45_000,
+    pollIntervalMs = 1_000,
+): Promise<void> {
+    const deadline = Date.now() + timeoutMs;
+    let lastSeen = new Set<string>();
+    while (Date.now() < deadline) {
+        const response: any = await (adminClient as any).doFetch(
+            `${adminClient.getBaseRoute()}/access_control_policies/cel/test`,
+            {
+                method: 'post',
+                body: JSON.stringify({
+                    expression,
+                    term: '',
+                    after: '',
+                    limit: 1000,
+                }),
+            },
+        );
+        lastSeen = new Set<string>((response?.users || []).map((u: any) => u.id));
+        if (expectedUserIds.every((id) => lastSeen.has(id))) {
+            return;
+        }
+        await new Promise((resolve) => setTimeout(resolve, pollIntervalMs));
+    }
+    const missing = expectedUserIds.filter((id) => !lastSeen.has(id));
+    throw new Error(
+        `AttributeView did not include users [${missing.join(', ')}] for expression "${expression}" within ${timeoutMs}ms`,
+    );
+}
+
+export async function waitForAttributeViewToExclude(
+    adminClient: Client4,
+    expression: string,
+    excludedUserIds: string[],
+    timeoutMs = 45_000,
+    pollIntervalMs = 1_000,
+): Promise<void> {
+    const deadline = Date.now() + timeoutMs;
+    let lastSeen = new Set<string>();
+    while (Date.now() < deadline) {
+        const response: any = await (adminClient as any).doFetch(
+            `${adminClient.getBaseRoute()}/access_control_policies/cel/test`,
+            {
+                method: 'post',
+                body: JSON.stringify({
+                    expression,
+                    term: '',
+                    after: '',
+                    limit: 1000,
+                }),
+            },
+        );
+        lastSeen = new Set<string>((response?.users || []).map((u: any) => u.id));
+        if (excludedUserIds.every((id) => !lastSeen.has(id))) {
+            return;
+        }
+        await new Promise((resolve) => setTimeout(resolve, pollIntervalMs));
+    }
+    const stillPresent = excludedUserIds.filter((id) => lastSeen.has(id));
+    throw new Error(
+        `AttributeView still includes users [${stillPresent.join(', ')}] for expression "${expression}" after ${timeoutMs}ms`,
+    );
+}
+
 export async function createPrivateChannel(client: Client4, teamId: string) {
     const id = Date.now().toString(36) + Math.random().toString(36).substring(2, 7);
     return client.createChannel({team_id: teamId, name: `abac-${id}`, display_name: `ABAC-${id}`, type: 'P'} as any);
@@ -144,11 +229,6 @@ export async function createGroupConstrainedPrivateChannel(client: Client4, team
         type: 'P',
         group_constrained: true,
     } as any);
-}
-
-export async function createPublicChannel(client: Client4, teamId: string) {
-    const id = Date.now().toString(36) + Math.random().toString(36).substring(2, 7);
-    return client.createChannel({team_id: teamId, name: `pub-${id}`, display_name: `PUB-${id}`, type: 'O'} as any);
 }
 
 export async function createTeamAdmin(adminClient: Client4, teamId: string) {

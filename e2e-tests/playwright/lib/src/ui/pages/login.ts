@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {Page, expect} from '@playwright/test';
-import {UserProfile} from '@mattermost/types/users';
+import type {UserProfile} from '@mattermost/types/users';
 
 import {components} from '@/ui/components';
 
