@@ -33,6 +33,37 @@ describe('codespan', () => {
     });
 });
 
+describe('listitem', () => {
+    test('should render tight task list items as checkboxes', () => {
+        const renderer = new Renderer({}, {});
+
+        expect(renderer.listitem('[x] Completed task')).toBe(
+            '<li class="list-item--task-list"><input type="checkbox" disabled="disabled" checked="checked" /> Completed task</li>',
+        );
+        expect(renderer.listitem('[ ] Incomplete task')).toBe(
+            '<li class="list-item--task-list"><input type="checkbox" disabled="disabled" /> Incomplete task</li>',
+        );
+    });
+
+    test('should render loose task list items wrapped in paragraphs as checkboxes', () => {
+        const renderer = new Renderer({}, {});
+
+        expect(renderer.listitem('<p>[x] Completed task</p>')).toBe(
+            '<li class="list-item--task-list"><input type="checkbox" disabled="disabled" checked="checked" /> <p>Completed task</p></li>',
+        );
+        expect(renderer.listitem('<p>[ ] Incomplete task</p>')).toBe(
+            '<li class="list-item--task-list"><input type="checkbox" disabled="disabled" /> <p>Incomplete task</p></li>',
+        );
+    });
+
+    test('should not treat a pipe character as a task checkbox marker', () => {
+        const renderer = new Renderer({}, {});
+
+        expect(renderer.listitem('[|] not a task')).toBe('<li>[|] not a task</li>');
+        expect(renderer.listitem('<p>[|] not a task</p>')).toBe('<li><p>[|] not a task</p></li>');
+    });
+});
+
 describe('link (mmaction://)', () => {
     // mmaction:// links are rendered as plain anchors here; the conversion to
     // <InlineActionButton> happens in messageHtmlToComponent. Validation lives
