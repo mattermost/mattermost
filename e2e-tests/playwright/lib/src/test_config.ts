@@ -193,6 +193,18 @@ export class TestConfig {
 // Create a singleton instance
 export const testConfig = new TestConfig();
 
+/**
+ * Resolve a path against the live server URL. Playwright's config `baseURL` is fixed when the
+ * worker starts; after `restartMattermostContainer()` remaps the host port, relative `page.goto`
+ * calls would still hit the stale port unless they go through this helper (or an absolute URL).
+ */
+export function resolveAppUrl(pathOrUrl: string): string {
+    if (/^[a-z][a-z0-9+.-]*:/i.test(pathOrUrl)) {
+        return pathOrUrl;
+    }
+    return new URL(pathOrUrl, testConfig.baseURL).href;
+}
+
 function parseBool(actualValue: string | undefined, defaultValue: boolean) {
     return actualValue ? actualValue === 'true' : defaultValue;
 }
