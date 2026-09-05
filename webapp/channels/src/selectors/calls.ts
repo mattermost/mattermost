@@ -4,10 +4,13 @@
 import semver from 'semver';
 
 import type {CallsConfig, UserSessionState} from '@mattermost/calls-common/lib/types';
+import type {Channel} from '@mattermost/types/channels';
+import type {ClientLicense} from '@mattermost/types/config';
 
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 
-import {suitePluginIds} from 'utils/constants';
+import {Constants, suitePluginIds} from 'utils/constants';
+import {isMinimumProfessionalLicense} from 'utils/license_utils';
 
 import type {GlobalState} from 'types/store';
 
@@ -60,4 +63,22 @@ export function callsChannelExplicitlyEnabled(state: GlobalState, channelId: str
 export function callsChannelExplicitlyDisabled(state: GlobalState, channelId: string) {
     const enabled = getCallsChannelState(state, channelId).enabled;
     return (typeof enabled !== 'undefined') && !enabled;
+}
+
+export function shouldShowCallsInChannel(license: ClientLicense, channelType?: Channel['type']) {
+    if (channelType === Constants.DM_CHANNEL) {
+        return true;
+    }
+    return isMinimumProfessionalLicense(license);
+}
+
+export function filterCallsPluginComponents<T extends {pluginId: string}>(
+    components: T[],
+    license: ClientLicense,
+    channelType?: Channel['type'],
+): T[] {
+    if (shouldShowCallsInChannel(license, channelType)) {
+        return components;
+    }
+    return components.filter((component) => component.pluginId !== suitePluginIds.calls);
 }
