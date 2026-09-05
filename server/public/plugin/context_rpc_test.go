@@ -291,6 +291,9 @@ func TestPluginHTTPStreamResponseSetupFailureClosesRequestBody(t *testing.T) {
 	require.NoError(t, err)
 
 	response, err := (&apiRPCClient{client: client, muxBroker: muxBroker}).pluginHTTPStream(request, false)
+	if response != nil && response.Body != nil {
+		require.NoError(t, response.Body.Close())
+	}
 	require.Nil(t, response)
 	require.ErrorContains(t, err, "response stream failed")
 	select {
