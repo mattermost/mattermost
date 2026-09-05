@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 )
 
 type LogEntry struct {
@@ -48,5 +49,5 @@ func (f LogEntry) String() string {
 		sb.WriteString(f.Message)
 	}
 
-	return sb.String()
+	return printer.SanitizeForTerminal(sb.String())
 }
