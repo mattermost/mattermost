@@ -1,0 +1,199 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+@use "./log_viewer";
+
+.PlainLogViewer {
+    @include log_viewer.viewer-shell;
+
+    // Padding and wrapping come from .admin-console__filters-rows, matching the
+    // System Users filter row.
+    &__filters {
+        column-gap: 12px;
+
+        .inputWithMenu input.form-control {
+            width: 140px;
+        }
+    }
+
+    &__filters-spacer {
+        flex: 1;
+    }
+
+    // Log content area
+    &__content {
+        overflow: auto;
+        flex: 1;
+        border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+        font-family: log_viewer.$mono-font;
+        font-size: 12px;
+        line-height: 20px;
+
+        &--wrap {
+            .PlainLogViewer__line-text {
+                white-space: pre-wrap;
+                word-break: break-all;
+            }
+        }
+
+        // Line numbers via CSS pseudo-element (not selectable)
+        &--numbered {
+            .PlainLogViewer__line {
+                &::before {
+                    display: inline-block;
+                    width: 56px;
+                    flex-shrink: 0;
+                    padding-right: 12px;
+                    border-right: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+                    margin-right: 12px;
+                    color: rgba(var(--center-channel-color-rgb), 0.4);
+                    content: attr(data-line-number);
+                    text-align: right;
+                    user-select: none;
+                }
+            }
+        }
+    }
+
+    &__line {
+        display: flex;
+        padding: 0 24px;
+        color: var(--center-channel-color);
+        white-space: nowrap;
+
+        &--error {
+            background: rgba(var(--semantic-color-danger), 0.06);
+        }
+
+        &--warn {
+            background: rgba(var(--semantic-color-warning), 0.06);
+        }
+
+        &:hover {
+            background: rgba(var(--center-channel-color-rgb), 0.04);
+        }
+    }
+
+    &__line-text {
+        min-width: 0;
+        flex: 1;
+        white-space: nowrap;
+    }
+
+    // JSON lines use highlight.js via the .hljs class — themed by the user's code theme CSS.
+    // Override the background that hljs themes set so it inherits from the log viewer.
+    .hljs {
+        padding: 0;
+        background: transparent;
+    }
+
+    // ============================
+    // Syntax highlighting: Plain log
+    // ============================
+
+    &__log-timestamp {
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+    }
+
+    &__log-level {
+        font-weight: 700;
+
+        &--error {
+            color: rgb(var(--semantic-color-danger));
+        }
+
+        &--warn {
+            color: rgb(var(--semantic-color-warning));
+        }
+
+        &--info {
+            color: rgb(var(--semantic-color-info));
+        }
+
+        &--debug {
+            color: rgba(var(--center-channel-color-rgb), 0.56);
+        }
+    }
+
+    &__log-key {
+        color: var(--link-color);
+    }
+
+    &__log-equals {
+        color: rgba(var(--center-channel-color-rgb), 0.4);
+    }
+
+    // Loading and empty states
+    &__placeholder {
+        @include log_viewer.viewer-placeholder;
+
+        font-family: 'Open Sans', sans-serif;
+    }
+
+    // Footer
+    &__footer {
+        @include log_viewer.viewer-footer;
+    }
+
+    &__footer-info {
+        white-space: nowrap;
+    }
+
+    &__footer-controls {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px;
+    }
+
+    &__pagination {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    &__page-num {
+        min-width: 32px;
+        padding: 0 8px;
+    }
+
+    // Go to page input
+    &__goto-page {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        white-space: nowrap;
+
+        // Undo the global bootstrap label styling
+        label {
+            margin: 0;
+            font-weight: inherit;
+        }
+    }
+
+    &__goto-input {
+        width: 64px;
+        height: 32px;
+        padding: 0 8px;
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+        border-radius: var(--radius-s);
+
+        -moz-appearance: textfield;
+        background: var(--center-channel-bg);
+        color: var(--center-channel-color);
+        font-size: 14px;
+
+        &:focus-visible {
+            border-color: var(--button-bg);
+            box-shadow: inset 0 0 0 1px var(--button-bg);
+            outline: none;
+        }
+
+        // Hide number input spinners
+        &::-webkit-inner-spin-button,
+        &::-webkit-outer-spin-button {
+            margin: 0;
+            appearance: none;
+        }
+    }
+}
