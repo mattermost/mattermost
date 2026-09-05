@@ -4,7 +4,9 @@
     .channel-switcher,
     .channel-invite {
         &.modal-dialog {
-            margin-top: calc(50vh - 240px);
+            // Vertical centering is handled by the GenericModal (flex) so the modal
+            // stays centered in the view regardless of its height.
+            margin-top: 0;
         }
 
         .modal-header {
@@ -32,7 +34,8 @@
 
     .channel-switcher__suggestion-box {
         position: relative;
-        height: 362px;
+        height: 662px;
+        max-height: calc(100vh - 220px);
         padding: 0;
 
         .input-wrapper {
