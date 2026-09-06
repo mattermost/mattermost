@@ -7,6 +7,7 @@ import {defineMessages, FormattedMessage, useIntl} from 'react-intl';
 
 import {ChevronDownIcon, ProductChannelsIcon} from '@mattermost/compass-icons/components';
 import {Button} from '@mattermost/shared/components/button';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import {resourceTypeLabels} from './attribute_applies_to_constants';
 import type {AttributeAppliesToChannelItemProps} from './attribute_applies_to_constants';
@@ -25,7 +26,7 @@ const BODY_ID = 'attribute-applies-to-channel-panel';
 // array index, which misattributes state when a row is removed from the
 // middle of the list). Remove is only reachable once expanded -- there is no
 // collapsed-row remove affordance.
-function AttributeAppliesToChannelItem({config, onConfigChange, ordered, disabled = false, onRemove}: AttributeAppliesToChannelItemProps): JSX.Element {
+function AttributeAppliesToChannelItem({config, onConfigChange, ordered, disabled = false, lockedTooltip, onRemove}: AttributeAppliesToChannelItemProps): JSX.Element {
     const intl = useIntl();
     const {formatMessage} = intl;
     const [isOpen, setIsOpen] = useState(false);
@@ -37,38 +38,52 @@ function AttributeAppliesToChannelItem({config, onConfigChange, ordered, disable
     const summary = useMemo(() => summarizeChannelResource(config, intl), [config, intl]);
     const toggleLabel = formatMessage(isOpen ? messages.collapseLabel : messages.expandLabel, {label});
 
+    const toggleButton = (
+        <Button
+            type='button'
+            emphasis='quaternary'
+            className='AttributeAppliesToItem__toggle'
+            onClick={() => setIsOpen((prev) => !prev)}
+            disabled={disabled}
+            aria-expanded={isOpen}
+            aria-controls={BODY_ID}
+            aria-label={toggleLabel}
+            data-testid='attributeAppliesToRow-channel-toggle'
+        >
+            <ChevronDownIcon
+                size={16}
+                className={classNames('AttributeAppliesToItem__chevron', {'AttributeAppliesToItem__chevron--open': isOpen})}
+            />
+            <ProductChannelsIcon size={18}/>
+            <span className='AttributeAppliesToItem__label'>{label}</span>
+            {!isOpen && (
+                <span
+                    className='AttributeAppliesToItem__summary'
+                    data-testid='attributeAppliesToRow-channel-summary'
+                >
+                    {summary}
+                </span>
+            )}
+        </Button>
+    );
+
     return (
         <div
             className={classNames('AttributeAppliesToItem', {'AttributeAppliesToItem--open': isOpen})}
             data-testid='attributeAppliesToRow-channel'
         >
             <div className='AttributeAppliesToItem__header'>
-                <Button
-                    type='button'
-                    emphasis='quaternary'
-                    className='AttributeAppliesToItem__toggle'
-                    onClick={() => setIsOpen((prev) => !prev)}
-                    disabled={disabled}
-                    aria-expanded={isOpen}
-                    aria-controls={BODY_ID}
-                    aria-label={toggleLabel}
-                    data-testid='attributeAppliesToRow-channel-toggle'
-                >
-                    <ChevronDownIcon
-                        size={16}
-                        className={classNames('AttributeAppliesToItem__chevron', {'AttributeAppliesToItem__chevron--open': isOpen})}
-                    />
-                    <ProductChannelsIcon size={18}/>
-                    <span className='AttributeAppliesToItem__label'>{label}</span>
-                    {!isOpen && (
+                {lockedTooltip ? (
+                    <WithTooltip title={lockedTooltip}>
                         <span
-                            className='AttributeAppliesToItem__summary'
-                            data-testid='attributeAppliesToRow-channel-summary'
+                            // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- WithTooltip's useFocus only fires on its cloned child; without this the disabled toggle is unreachable by keyboard, so the tooltip explaining the lock is mouse-only
+                            tabIndex={0}
+                            data-testid='attributeAppliesToRow-channel-toggleLockWrap'
                         >
-                            {summary}
+                            {toggleButton}
                         </span>
-                    )}
-                </Button>
+                    </WithTooltip>
+                ) : toggleButton}
                 {isOpen && (
                     <Button
                         type='button'

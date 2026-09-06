@@ -58,13 +58,13 @@ While Prometheus and Grafana may be installed on the same server as Mattermost, 
           - targets: ["<hostname1>:<port>", "<hostname2>:<port>"]
     ```
 
-3.  Replace the `&lt;hostname1&gt;:&lt;port&gt;` parameter with your Mattermost host IP address and port to scrape the data. It connects to `/metrics` using HTTP.
+3.  Replace the `<hostname1>:<port>` parameter with your Mattermost host IP address and port to scrape the data. It connects to `/metrics` using HTTP.
 
 4.  In the Mattermost System Console, go to **Environment \> Performance Monitoring** to set **Enable Performance Monitoring** to **true**, then specify the **Listen Address** (port-only, e.g., `8067`), and select **Save**. See our [Configuration Settings](/administration-guide/configure/environment-configuration-settings#performance-monitoring) documentation for details.
 
     ![Enable performance monitoring options in the System Console by going to Environment \> Performance Monitoring, then specifying a listen address.](/images/perf_monitoring_system_console.png)
 
-5.  To test that the server is running, go to `&lt;ip&gt;:&lt;port&gt;/metrics`.
+5.  To test that the server is running, go to `<ip>:<port>/metrics`.
 
 <Note>
 
@@ -73,7 +73,7 @@ A Mattermost Enterprise license is required to connect to `/metrics` using HTTP.
 </Note>
 
 6.  Finally, run `vi prometheus.yml` to finish configuring Prometheus. For starting the Prometheus service, read the [comprehensive guides provided by Prometheus](https://prometheus.io/docs/prometheus/latest/getting_started/).
-7.  Once the service has started, you can access the data in `&lt;localhost&gt;:&lt;port&gt;/graph`. While you can use the Prometheus service to create graphs, we'll focus on creating metric and analytics dashboards in Grafana.
+7.  Once the service has started, you can access the data in `<localhost>:<port>/graph`. While you can use the Prometheus service to create graphs, we'll focus on creating metric and analytics dashboards in Grafana.
 
 <Tip>
 
