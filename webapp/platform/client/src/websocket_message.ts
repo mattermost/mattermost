@@ -20,6 +20,10 @@ export type WebSocketMessage = (
     Messages.PostReaction |
     Messages.PostAcknowledgement |
     Messages.PostDraft |
+    Messages.PlatformNotificationUpserted |
+    Messages.PlatformNotificationDeleted |
+    Messages.PlatformNotificationsCleared |
+    Messages.PlatformNotificationsReplaced |
     Messages.PersistentNotificationTriggered |
     Messages.ScheduledPost |
     Messages.PostTranslationUpdated |

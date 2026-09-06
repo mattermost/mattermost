@@ -9,7 +9,7 @@ exports[`components/global/AtMentionsButton should match snapshot 1`] = `
     class="HeaderIconButton"
   >
     <i
-      class="icon-at"
+      class="icon-bell-outline"
     />
   </button>
 </div>

@@ -12,8 +12,8 @@ export function getSearchPopoutTitle(mode: string): MessageDescriptor {
     switch (mode) {
     case RHSStates.MENTION:
         return defineMessage({
-            id: 'rhs_search_popout.title.mentions',
-            defaultMessage: 'Recent Mentions - {serverName}',
+            id: 'rhs_search_popout.title.notifications',
+            defaultMessage: 'Notifications - {serverName}',
         });
     case RHSStates.FLAG:
         return defineMessage({

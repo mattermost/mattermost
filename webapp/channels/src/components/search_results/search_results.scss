@@ -1,3 +1,19 @@
+.SearchResults--notifications {
+    .search-item__container {
+        &:hover,
+        &:focus-within {
+            background-color: rgba(var(--center-channel-color-rgb), 0.04);
+        }
+
+        .post {
+            &:not(.post--editing):hover,
+            &.post--hovered {
+                background-color: transparent;
+            }
+        }
+    }
+}
+
 .SearchResults {
     .messages-or-files {
         .active {

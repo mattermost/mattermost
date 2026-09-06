@@ -31,6 +31,8 @@ describe('Reducers.RHS', () => {
         editChannelMembers: false,
         shouldFocusRHS: false,
         searchTeam: null,
+        mentionRhsPanel: 'activity',
+        platformNotifications: [],
     };
 
     test('Initial state', () => {
@@ -645,6 +647,8 @@ describe('Reducers.RHS', () => {
             editChannelMembers: false,
             shouldFocusRHS: false,
             searchTeam: null,
+            mentionRhsPanel: 'activity',
+            platformNotifications: [],
         };
 
         const nextState = rhsReducer(state, {type: ActionTypes.SUPPRESS_RHS});
@@ -653,5 +657,114 @@ describe('Reducers.RHS', () => {
             ...state,
             isSidebarExpanded: false,
         });
+    });
+
+    test('records and clears platform notifications', () => {
+        const recorded = rhsReducer(
+            {},
+            {
+                type: ActionTypes.RECORD_PLATFORM_NOTIFICATION,
+                data: {
+                    id: 'n1',
+                    recordedAt: 100,
+                    postId: 'post1',
+                    channelId: 'channel1',
+                    teamId: 'team1',
+                    channelDisplayName: 'Town Square',
+                    contextLabel: 'Mention',
+                    permalinkUrl: '/permalink',
+                    isThreadReply: false,
+                    previewBody: '@alice: hello',
+                },
+            },
+        );
+
+        expect(recorded.platformNotifications).toHaveLength(1);
+        expect(recorded.platformNotifications[0].postId).toBe('post1');
+
+        const cleared = rhsReducer(recorded, {type: ActionTypes.CLEAR_PLATFORM_NOTIFICATIONS});
+        expect(cleared.platformNotifications).toEqual([]);
+
+        const replaced = rhsReducer(recorded, {
+            type: ActionTypes.RECONCILE_PLATFORM_NOTIFICATIONS,
+            data: [],
+        });
+        expect(replaced.platformNotifications).toEqual([]);
+    });
+
+    test('marks a platform notification unread', () => {
+        const recorded = rhsReducer(
+            {},
+            {
+                type: ActionTypes.RECORD_PLATFORM_NOTIFICATION,
+                data: {
+                    id: 'n1',
+                    recordedAt: 100,
+                    postId: 'post1',
+                    channelId: 'channel1',
+                    teamId: 'team1',
+                    channelDisplayName: 'Town Square',
+                    contextLabel: 'Mention',
+                    permalinkUrl: '/permalink',
+                    isThreadReply: false,
+                    previewBody: '@alice: hello',
+                    readAt: 200,
+                },
+            },
+        );
+
+        const unread = rhsReducer(recorded, {
+            type: ActionTypes.MARK_PLATFORM_NOTIFICATION_UNREAD,
+            data: 'n1',
+        });
+
+        expect(unread.platformNotifications[0].readAt).toBeUndefined();
+    });
+
+    test('marks all platform notifications read', () => {
+        const recorded = rhsReducer(
+            {},
+            {
+                type: ActionTypes.RECORD_PLATFORM_NOTIFICATION,
+                data: {
+                    id: 'n1',
+                    recordedAt: 100,
+                    postId: 'post1',
+                    channelId: 'channel1',
+                    teamId: 'team1',
+                    channelDisplayName: 'Town Square',
+                    contextLabel: 'Mention',
+                    permalinkUrl: '/permalink',
+                    isThreadReply: false,
+                    previewBody: '@alice: hello',
+                },
+            },
+        );
+        const withRead = rhsReducer(recorded, {
+            type: ActionTypes.RECORD_PLATFORM_NOTIFICATION,
+            data: {
+                id: 'n2',
+                recordedAt: 200,
+                postId: 'post2',
+                channelId: 'channel1',
+                teamId: 'team1',
+                channelDisplayName: 'Town Square',
+                contextLabel: 'Mention',
+                permalinkUrl: '/permalink',
+                isThreadReply: false,
+                previewBody: '@bob: hi',
+                readAt: 300,
+            },
+        });
+
+        const marked = rhsReducer(withRead, {
+            type: ActionTypes.MARK_ALL_PLATFORM_NOTIFICATIONS_READ,
+            data: 400,
+        });
+
+        const unreadRecord = marked.platformNotifications.find((record) => record.id === 'n1');
+        const alreadyRead = marked.platformNotifications.find((record) => record.id === 'n2');
+        expect(unreadRecord.readAt).toBe(400);
+        expect(alreadyRead.readAt).toBe(300);
     });
 });

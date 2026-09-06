@@ -8,7 +8,7 @@ import {batchActions} from 'redux-batched-actions';
 import type {Post} from '@mattermost/types/posts';
 
 import {SearchTypes} from 'mattermost-redux/action_types';
-import {getChannel} from 'mattermost-redux/actions/channels';
+import {getChannel, markChannelAsRead} from 'mattermost-redux/actions/channels';
 import {getPostsByIds, getPost as fetchPost} from 'mattermost-redux/actions/posts';
 import {
     clearSearch,
@@ -17,11 +17,12 @@ import {
     searchPostsWithParams,
     searchFilesWithParams,
 } from 'mattermost-redux/actions/search';
+import {updateThreadRead} from 'mattermost-redux/actions/threads';
 import {getCurrentChannelId, getCurrentChannelNameForSearchShortcut, getChannel as getChannelSelector} from 'mattermost-redux/selectors/entities/channels';
 import {getLatestInteractablePostId, getPost} from 'mattermost-redux/selectors/entities/posts';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
-import {getCurrentUserMentionKeys} from 'mattermost-redux/selectors/entities/users';
+import {getCurrentUserMentionKeys, getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import {
     getSearchType,
@@ -31,16 +32,277 @@ import {
     getFilesSearchExtFilter,
     getPreviousRhsState,
     getSearchTeam,
+    getPlatformNotifications,
 } from 'selectors/rhs';
 
 import {SidebarSize} from 'components/resizable_sidebar/constants';
 
+import {getHistory} from 'utils/browser_history';
 import {ActionTypes, RHSStates, Constants} from 'utils/constants';
 import {Mark, Measure, measureAndReport} from 'utils/performance_telemetry';
+import {
+    consolidateThreadReplyNotifications,
+    enrichPlatformNotificationRecords,
+    getThreadRootId,
+} from 'utils/platform_notification_activity_merge';
+import {
+    clearPlatformNotificationsOnServer,
+    deletePlatformNotificationOnServer,
+    fetchPlatformNotificationsFromServer,
+    migrateLocalPlatformNotificationsToServer,
+    readPlatformNotificationActivityFromStorage,
+    rememberDismissedPlatformNotifications,
+    syncPlatformNotificationActivityToServer,
+    syncPlatformNotificationActivityToStorage,
+    upsertPlatformNotificationOnServer,
+} from 'utils/platform_notification_activity_storage';
+import {isPlatformNotificationMarkedRead} from 'utils/platform_notification_unread';
+import {getPostURL} from 'utils/post_utils';
 import {getBrowserUtcOffset, getUtcOffsetForTimeZone} from 'utils/timezone';
 
 import type {ActionFunc, ActionFuncAsync, ThunkActionFunc} from 'types/store';
-import type {RhsState} from 'types/store/rhs';
+import type {MentionRhsPanel, PlatformNotificationRecord, RhsState} from 'types/store/rhs';
+
+import {fillPlatformNotificationActivity} from './platform_notification_activity';
+
+export function setMentionRhsPanel(panel: MentionRhsPanel) {
+    return {
+        type: ActionTypes.SET_MENTION_RHS_PANEL,
+        panel,
+    };
+}
+
+export function hydratePlatformNotificationActivity(skipServerSync = false, replace = false): ActionFuncAsync<boolean> {
+    return async (dispatch, getState) => {
+        const state = getState();
+        const userId = getCurrentUserId(state);
+        if (!userId) {
+            return {data: false};
+        }
+
+        let list: PlatformNotificationRecord[] = [];
+        let shouldSyncToServer = false;
+
+        try {
+            list = await fetchPlatformNotificationsFromServer(userId);
+        } catch (error) {
+            console.warn('Failed to load platform notifications from server', error); // eslint-disable-line no-console
+            list = readPlatformNotificationActivityFromStorage(state, userId);
+            shouldSyncToServer = list.length > 0;
+        }
+
+        const localRecords = readPlatformNotificationActivityFromStorage(state, userId);
+        if (localRecords.length > 0) {
+            try {
+                await migrateLocalPlatformNotificationsToServer(state, userId);
+                list = await fetchPlatformNotificationsFromServer(userId);
+            } catch {
+                const mergedById = new Map<string, PlatformNotificationRecord>();
+                for (const record of [...list, ...localRecords]) {
+                    mergedById.set(record.id, record);
+                }
+                list = Array.from(mergedById.values());
+                shouldSyncToServer = true;
+            }
+        }
+
+        if (list.length === 0) {
+            if (replace) {
+                dispatch({type: ActionTypes.CLEAR_PLATFORM_NOTIFICATIONS});
+                return {data: true};
+            }
+            return dispatch(fillPlatformNotificationActivity());
+        }
+
+        const enriched = enrichPlatformNotificationRecords(getState(), list);
+        const consolidated = consolidateThreadReplyNotifications(enriched);
+        dispatch({
+            type: replace ? ActionTypes.RECONCILE_PLATFORM_NOTIFICATIONS : ActionTypes.HYDRATE_PLATFORM_NOTIFICATIONS,
+            data: consolidated,
+        });
+        syncPlatformNotificationActivityToStorage(getState(), getPlatformNotifications(getState()));
+
+        try {
+            if (!skipServerSync && shouldSyncToServer) {
+                await syncPlatformNotificationActivityToServer(getState(), consolidated);
+            }
+        } catch {
+            // best effort
+        }
+
+        if (!replace) {
+            await dispatch(fillPlatformNotificationActivity());
+        }
+
+        return {data: true};
+    };
+}
+
+export function clearPlatformNotificationRecord(recordId: string): ActionFuncAsync<boolean> {
+    return async (dispatch, getState) => {
+        const removed = getPlatformNotifications(getState()).find((record) => record.id === recordId);
+        dispatch({
+            type: ActionTypes.REMOVE_PLATFORM_NOTIFICATION,
+            data: recordId,
+        });
+        if (removed) {
+            rememberDismissedPlatformNotifications(getState(), [removed.postId, removed.threadRootId].filter((id): id is string => Boolean(id)));
+        }
+        syncPlatformNotificationActivityToStorage(getState(), getPlatformNotifications(getState()));
+
+        try {
+            await deletePlatformNotificationOnServer(getState(), recordId);
+        } catch {
+            // best effort
+        }
+
+        return {data: true};
+    };
+}
+
+export function markPlatformNotificationAsRead(record: PlatformNotificationRecord, syncChannel = true): ActionFuncAsync<boolean> {
+    return async (dispatch, getState) => {
+        if (syncChannel) {
+            const state = getState();
+            const currentUserId = getCurrentUserId(state);
+            const currentTeamId = record.teamId || getCurrentTeamId(state);
+            const threadRootId = getThreadRootId(record);
+
+            if (record.isThreadReply && threadRootId && currentUserId && currentTeamId) {
+                await dispatch(updateThreadRead(currentUserId, currentTeamId, threadRootId, Date.now()));
+            } else if (record.channelId) {
+                dispatch(markChannelAsRead(record.channelId));
+            }
+        }
+
+        const readAt = Date.now();
+        dispatch({
+            type: ActionTypes.MARK_PLATFORM_NOTIFICATION_READ,
+            data: {
+                id: record.id,
+                readAt,
+            },
+        });
+        syncPlatformNotificationActivityToStorage(getState(), getPlatformNotifications(getState()));
+
+        try {
+            await upsertPlatformNotificationOnServer(getState(), {...record, readAt});
+        } catch {
+            // best effort
+        }
+
+        return {data: true};
+    };
+}
+
+export function markAllPlatformNotificationsAsRead(): ActionFuncAsync<boolean> {
+    return async (dispatch, getState) => {
+        const unread = getPlatformNotifications(getState()).filter((record) => !isPlatformNotificationMarkedRead(record));
+        if (unread.length === 0) {
+            return {data: false};
+        }
+
+        const readAt = Date.now();
+        dispatch({
+            type: ActionTypes.MARK_ALL_PLATFORM_NOTIFICATIONS_READ,
+            data: readAt,
+        });
+        syncPlatformNotificationActivityToStorage(getState(), getPlatformNotifications(getState()));
+
+        await Promise.all(unread.map(async (record) => {
+            try {
+                await upsertPlatformNotificationOnServer(getState(), {...record, readAt});
+            } catch {
+                // best effort
+            }
+        }));
+
+        return {data: true};
+    };
+}
+
+export function markPlatformNotificationAsUnread(record: PlatformNotificationRecord): ActionFuncAsync<boolean> {
+    return async (dispatch, getState) => {
+        dispatch({
+            type: ActionTypes.MARK_PLATFORM_NOTIFICATION_UNREAD,
+            data: record.id,
+        });
+        syncPlatformNotificationActivityToStorage(getState(), getPlatformNotifications(getState()));
+
+        try {
+            await upsertPlatformNotificationOnServer(getState(), {...record, readAt: undefined});
+        } catch {
+            // best effort
+        }
+
+        return {data: true};
+    };
+}
+
+export function clearAllPlatformNotificationRecords(): ActionFuncAsync<boolean> {
+    return async (dispatch, getState) => {
+        const current = getPlatformNotifications(getState());
+        rememberDismissedPlatformNotifications(
+            getState(),
+            current.flatMap((record) => [record.postId, record.threadRootId].filter((id): id is string => Boolean(id))),
+            Date.now(),
+        );
+        dispatch({type: ActionTypes.CLEAR_PLATFORM_NOTIFICATIONS});
+        syncPlatformNotificationActivityToStorage(getState(), []);
+
+        try {
+            await clearPlatformNotificationsOnServer(getState());
+        } catch {
+            // best effort
+        }
+
+        return {data: true};
+    };
+}
+
+export function reconcilePlatformNotificationActivity(): ActionFuncAsync<boolean> {
+    return async (dispatch, getState) => {
+        const state = getState();
+        const notifications = getPlatformNotifications(state);
+        if (notifications.length === 0) {
+            return {data: false};
+        }
+
+        const enriched = enrichPlatformNotificationRecords(state, notifications);
+        const consolidated = consolidateThreadReplyNotifications(enriched);
+        const beforeById = new Map(notifications.map((record) => [record.id, record]));
+        const changed = consolidated.length !== notifications.length ||
+            consolidated.some((record) => {
+                const existing = beforeById.get(record.id);
+                if (!existing) {
+                    return true;
+                }
+                return existing.postId !== record.postId ||
+                    existing.replyCount !== record.replyCount ||
+                    existing.threadRootId !== record.threadRootId ||
+                    existing.participantUserIds?.join(',') !== record.participantUserIds?.join(',');
+            }) ||
+            notifications.some((record) => !consolidated.some((next) => next.id === record.id));
+
+        if (!changed) {
+            return {data: false};
+        }
+
+        dispatch({
+            type: ActionTypes.RECONCILE_PLATFORM_NOTIFICATIONS,
+            data: consolidated,
+        });
+        syncPlatformNotificationActivityToStorage(getState(), getPlatformNotifications(getState()));
+
+        try {
+            await syncPlatformNotificationActivityToServer(getState(), consolidated);
+        } catch {
+            // best effort
+        }
+
+        return {data: true};
+    };
+}
 
 function selectPostWithPreviousState(post: Post, previousRhsState?: RhsState): ActionFunc<boolean> {
     return (dispatch, getState) => {
@@ -124,6 +386,43 @@ export function selectPostFromRightHandSideSearchByPostId(postId: string): Actio
     return async (dispatch, getState) => {
         const post = getPost(getState(), postId);
         return dispatch(selectPostFromRightHandSideSearch(post));
+    };
+}
+
+export function openPlatformNotificationRecord(record: PlatformNotificationRecord): ActionFuncAsync<boolean> {
+    return async (dispatch, getState) => {
+        const state = getState();
+        const threadRootId = getThreadRootId(record);
+        const targetPostId = record.isThreadReply && threadRootId ? threadRootId : record.postId;
+
+        let post: Post | undefined = getPost(state, targetPostId);
+        if (!post) {
+            const result = await dispatch(fetchPost(targetPostId));
+            post = result.data;
+        }
+
+        if (!post || post.state === 'DELETED' || post.delete_at !== 0) {
+            return {data: false};
+        }
+
+        let channel = getChannelSelector(state, post.channel_id);
+        if (!channel) {
+            const channelResult = await dispatch(getChannel(post.channel_id));
+            channel = channelResult.data;
+        }
+
+        if (!channel) {
+            return {data: false};
+        }
+
+        await dispatch(markPlatformNotificationAsRead(record));
+
+        const postURL = getPostURL(getState(), post);
+        if (postURL) {
+            getHistory().push(postURL);
+        }
+
+        return {data: true};
     };
 }
 
@@ -260,7 +559,7 @@ export function showSearchResults(isMentionSearch = false): ThunkActionFunc<unkn
         dispatch(updateSearchResultsTerms(searchTerms));
         dispatch(updateSearchResultsType(searchType));
 
-        return dispatch(performSearch(searchTerms, teamId));
+        return dispatch(performSearch(searchTerms, teamId, isMentionSearch));
     };
 }
 
@@ -457,7 +756,7 @@ export function showChannelFiles(channelId: string): ActionFuncAsync<boolean> {
     };
 }
 
-export function showMentions(): ActionFunc<boolean> {
+export function searchRecentMentions(): ActionFunc<boolean> {
     return (dispatch, getState) => {
         const termKeys = getCurrentUserMentionKeys(getState()).filter(({key}) => {
             return key !== '@channel' && key !== '@all' && key !== '@here';
@@ -466,15 +765,24 @@ export function showMentions(): ActionFunc<boolean> {
         const terms = termKeys.map(({key}) => key).join(' ').trim() + ' ';
 
         dispatch(performSearch(terms, '', true));
+        dispatch({
+            type: ActionTypes.UPDATE_RHS_SEARCH_TERMS,
+            terms,
+        });
+
+        return {data: true};
+    };
+}
+
+export function showMentions(): ActionFunc<boolean> {
+    return (dispatch) => {
+        dispatch(searchRecentMentions());
         dispatch(batchActions([
-            {
-                type: ActionTypes.UPDATE_RHS_SEARCH_TERMS,
-                terms,
-            },
             {
                 type: ActionTypes.UPDATE_RHS_STATE,
                 state: RHSStates.MENTION,
             },
+            setMentionRhsPanel('activity'),
         ]));
 
         return {data: true};
@@ -577,10 +885,11 @@ export const debouncedClearHighlightReply = debounce((dispatch) => {
     return dispatch(clearHighlightReply);
 }, Constants.PERMALINK_FADEOUT);
 
-export function selectPostAndHighlight(post: Post): ActionFunc {
-    return (dispatch) => {
+export function selectPostAndHighlight(post: Post, previousRhsState?: RhsState): ActionFunc {
+    return (dispatch, getState) => {
+        const rhsState = previousRhsState || getRhsState(getState());
         dispatch(batchActions([
-            selectPost(post),
+            selectPost(post, rhsState),
             highlightReply(post),
         ]));
 

@@ -13,6 +13,8 @@ import {closeRightHandSide} from 'actions/views/rhs';
 import RhsHeaderPost from 'components/rhs_header_post';
 import ThreadViewer from 'components/threading/thread_viewer';
 
+import {RHSStates} from 'utils/constants';
+
 import type {FakePost, RhsState} from 'types/store/rhs';
 
 type Props = {
@@ -31,11 +33,15 @@ const RhsThread = ({
     const dispatch = useDispatch();
 
     useEffect(() => {
-        if (channel?.team_id && channel.team_id !== currentTeam?.id) {
+        if (channel?.team_id && currentTeam?.id && channel.team_id !== currentTeam.id) {
+            if (previousRhsState === RHSStates.MENTION) {
+                return;
+            }
+
             // if team-scoped and mismatched team, close rhs
             dispatch(closeRightHandSide());
         }
-    }, [currentTeam, channel, dispatch]);
+    }, [currentTeam, channel, dispatch, previousRhsState]);
 
     if (selected == null || !channel) {
         return (

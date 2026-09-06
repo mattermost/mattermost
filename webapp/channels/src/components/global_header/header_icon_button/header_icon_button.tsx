@@ -11,12 +11,14 @@ type HeaderIconButtonProps = React.HTMLAttributes<HTMLButtonElement> & {
 
     active?: boolean;
     toggled?: boolean;
+    unread?: boolean;
 };
 
 const HeaderIconButton = React.forwardRef<HTMLButtonElement, HeaderIconButtonProps>(({
     icon = 'mattermost',
     active,
     toggled,
+    unread,
     ...otherProps
 }, ref) => {
     return (
@@ -25,10 +27,12 @@ const HeaderIconButton = React.forwardRef<HTMLButtonElement, HeaderIconButtonPro
             className={classNames('HeaderIconButton', {
                 'HeaderIconButton--toggled': toggled,
                 'HeaderIconButton--active': active,
+                'HeaderIconButton--unread': unread,
             })}
             {...otherProps}
         >
             <i className={`icon-${icon}`}/>
+            {unread && <span className='HeaderIconButton__unread'/>}
         </button>
     );
 });

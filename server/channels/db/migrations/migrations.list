@@ -429,3 +429,7 @@ channels/db/migrations/postgres/000216_split_attribute_view_by_object_type.down.
 channels/db/migrations/postgres/000216_split_attribute_view_by_object_type.up.sql
 channels/db/migrations/postgres/000217_resize_message_columns.down.sql
 channels/db/migrations/postgres/000217_resize_message_columns.up.sql
+channels/db/migrations/postgres/000218_create_user_platform_notifications.down.sql
+channels/db/migrations/postgres/000218_create_user_platform_notifications.up.sql
+channels/db/migrations/postgres/000219_create_user_platform_notifications_userid_recordedat_index.down.sql
+channels/db/migrations/postgres/000219_create_user_platform_notifications_userid_recordedat_index.up.sql
