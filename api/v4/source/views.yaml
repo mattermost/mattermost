@@ -329,6 +329,15 @@
             type: integer
             default: 60
             maximum: 200
+        - name: includePropertyGroups
+          in: query
+          description: >
+            Comma-separated list of property group names whose values should be hydrated onto each
+            post's metadata. Only **PSAv2** groups are accepted; passing a legacy v1 group returns
+            404.
+          required: false
+          schema:
+            type: string
       responses:
         "200":
           description: Post list retrieval successful

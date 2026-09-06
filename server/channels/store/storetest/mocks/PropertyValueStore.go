@@ -6,6 +6,7 @@ package mocks
 
 import (
 	model "github.com/mattermost/mattermost/server/public/model"
+	request "github.com/mattermost/mattermost/server/public/shared/request"
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -188,9 +189,9 @@ func (_m *PropertyValueStore) GetMany(groupID string, ids []string) ([]*model.Pr
 	return r0, r1
 }
 
-// SearchPropertyValues provides a mock function with given fields: opts
-func (_m *PropertyValueStore) SearchPropertyValues(opts model.PropertyValueSearchOpts) ([]*model.PropertyValue, error) {
-	ret := _m.Called(opts)
+// SearchPropertyValues provides a mock function with given fields: rctx, opts
+func (_m *PropertyValueStore) SearchPropertyValues(rctx request.CTX, opts model.PropertyValueSearchOpts) ([]*model.PropertyValue, error) {
+	ret := _m.Called(rctx, opts)
 
 	if len(ret) == 0 {
 		panic("no return value specified for SearchPropertyValues")
@@ -198,19 +199,19 @@ func (_m *PropertyValueStore) SearchPropertyValues(opts model.PropertyValueSearc
 
 	var r0 []*model.PropertyValue
 	var r1 error
-	if rf, ok := ret.Get(0).(func(model.PropertyValueSearchOpts) ([]*model.PropertyValue, error)); ok {
-		return rf(opts)
+	if rf, ok := ret.Get(0).(func(request.CTX, model.PropertyValueSearchOpts) ([]*model.PropertyValue, error)); ok {
+		return rf(rctx, opts)
 	}
-	if rf, ok := ret.Get(0).(func(model.PropertyValueSearchOpts) []*model.PropertyValue); ok {
-		r0 = rf(opts)
+	if rf, ok := ret.Get(0).(func(request.CTX, model.PropertyValueSearchOpts) []*model.PropertyValue); ok {
+		r0 = rf(rctx, opts)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.PropertyValue)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(model.PropertyValueSearchOpts) error); ok {
-		r1 = rf(opts)
+	if rf, ok := ret.Get(1).(func(request.CTX, model.PropertyValueSearchOpts) error); ok {
+		r1 = rf(rctx, opts)
 	} else {
 		r1 = ret.Error(1)
 	}

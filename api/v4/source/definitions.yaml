@@ -945,6 +945,20 @@ components:
             Any acknowledgements made to this point.
           items:
             $ref: "#/components/schemas/PostAcknowledgement"
+        property_values:
+          type: array
+          description: >
+            The property values attached to this post for the property group named in the
+            `includePropertyGroups` query parameter. Present only when that parameter was
+            supplied, the lookup succeeded, and the post has at least one value in that group.
+          items:
+            $ref: "#/components/schemas/PropertyValue"
+        property_values_unavailable:
+          type: boolean
+          description: >
+            Present and `true` when the lookup of this post's property values failed; omitted
+            otherwise. It does **not** mean the post has no property values, it means they could
+            not be retrieved, and `property_values` is therefore absent or incomplete.
     TeamMap:
       type: object
       description: A mapping of teamIds to teams.

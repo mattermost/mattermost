@@ -304,7 +304,7 @@ func (h *AccessControlHook) PostGetPropertyField(rctx request.CTX, field *model.
 	}
 
 	callerID := h.extractCallerID(rctx)
-	return h.applyFieldReadAccessControl(field, callerID), nil
+	return h.applyFieldReadAccessControl(rctx, field, callerID), nil
 }
 
 // PostGetPropertyFields applies read access control to a list of fields.
@@ -319,7 +319,7 @@ func (h *AccessControlHook) PostGetPropertyFields(rctx request.CTX, fields []*mo
 	}
 
 	callerID := h.extractCallerID(rctx)
-	return h.applyFieldReadAccessControlToList(fields, callerID), nil
+	return h.applyFieldReadAccessControlToList(rctx, fields, callerID), nil
 }
 
 // Value Pre-Hooks
@@ -516,7 +516,7 @@ func (h *AccessControlHook) PreDeletePropertyValuesForTarget(rctx request.CTX, g
 			opts.Cursor = cursor
 		}
 
-		values, err := h.propertyService.searchPropertyValues(groupID, opts)
+		values, err := h.propertyService.searchPropertyValues(rctx, groupID, opts)
 		if err != nil {
 			return err
 		}
@@ -911,7 +911,7 @@ func (h *AccessControlHook) checkValueWriteAccess(field *model.PropertyField, ca
 }
 
 // getCallerValuesForField retrieves all property values for the caller on a specific field.
-func (h *AccessControlHook) getCallerValuesForField(groupID, fieldID, callerID string) ([]*model.PropertyValue, error) {
+func (h *AccessControlHook) getCallerValuesForField(rctx request.CTX, groupID, fieldID, callerID string) ([]*model.PropertyValue, error) {
 	if callerID == "" {
 		return []*model.PropertyValue{}, nil
 	}
@@ -936,7 +936,7 @@ func (h *AccessControlHook) getCallerValuesForField(groupID, fieldID, callerID s
 			opts.Cursor = cursor
 		}
 
-		values, err := h.propertyService.searchPropertyValues(groupID, opts)
+		values, err := h.propertyService.searchPropertyValues(rctx, groupID, opts)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get caller values for field: %w", err)
 		}
@@ -1010,8 +1010,8 @@ func (h *AccessControlHook) copyPropertyField(field *model.PropertyField) *model
 }
 
 // getCallerOptionIDsForField retrieves the caller's values for a field and extracts all option IDs.
-func (h *AccessControlHook) getCallerOptionIDsForField(groupID, fieldID, callerID string, fieldType model.PropertyFieldType) (map[string]struct{}, error) {
-	callerValues, err := h.getCallerValuesForField(groupID, fieldID, callerID)
+func (h *AccessControlHook) getCallerOptionIDsForField(rctx request.CTX, groupID, fieldID, callerID string, fieldType model.PropertyFieldType) (map[string]struct{}, error) {
+	callerValues, err := h.getCallerValuesForField(rctx, groupID, fieldID, callerID)
 	if err != nil {
 		return make(map[string]struct{}), err
 	}
@@ -1039,16 +1039,16 @@ func (h *AccessControlHook) getCallerOptionIDsForField(groupID, fieldID, callerI
 // field exposes every option at or below the caller's own rank ("everything at
 // your rank and lower"), so a higher-cleared caller sees the full ladder up to
 // their level. See filterSharedOnlyRankFieldOptions.
-func (h *AccessControlHook) filterSharedOnlyFieldOptions(field *model.PropertyField, callerID string) *model.PropertyField {
+func (h *AccessControlHook) filterSharedOnlyFieldOptions(rctx request.CTX, field *model.PropertyField, callerID string) *model.PropertyField {
 	if !field.Type.SupportsOptions() {
 		return field
 	}
 
 	if field.Type == model.PropertyFieldTypeRank {
-		return h.filterSharedOnlyRankFieldOptions(field, callerID)
+		return h.filterSharedOnlyRankFieldOptions(rctx, field, callerID)
 	}
 
-	callerOptionIDs, err := h.getCallerOptionIDsForField(field.GroupID, field.ID, callerID, field.Type)
+	callerOptionIDs, err := h.getCallerOptionIDsForField(rctx, field.GroupID, field.ID, callerID, field.Type)
 	if err != nil || len(callerOptionIDs) == 0 {
 		filteredField := h.copyPropertyField(field)
 		filteredField.Attrs[model.PropertyFieldAttributeOptions] = []any{}
@@ -1092,7 +1092,7 @@ func (h *AccessControlHook) filterSharedOnlyFieldOptions(field *model.PropertyFi
 // or below the caller's own rank, rather than the exact-match intersection
 // used for select/multiselect. A caller who holds no value for the field (and
 // therefore has no rank) sees no options.
-func (h *AccessControlHook) filterSharedOnlyRankFieldOptions(field *model.PropertyField, callerID string) *model.PropertyField {
+func (h *AccessControlHook) filterSharedOnlyRankFieldOptions(rctx request.CTX, field *model.PropertyField, callerID string) *model.PropertyField {
 	// Bail out before building the rank map or the caller-rank store lookup when
 	// there are no options to filter: an absent or malformed options array has
 	// nothing to hide, so the field is returned untouched.
@@ -1109,7 +1109,7 @@ func (h *AccessControlHook) filterSharedOnlyRankFieldOptions(field *model.Proper
 	}
 
 	rankByID := buildOptionRankMap(field)
-	callerRank, ok := h.callerRankForField(field, callerID, rankByID)
+	callerRank, ok := h.callerRankForField(rctx, field, callerID, rankByID)
 	if !ok {
 		filteredField := h.copyPropertyField(field)
 		filteredField.Attrs[model.PropertyFieldAttributeOptions] = []any{}
@@ -1145,8 +1145,8 @@ func (h *AccessControlHook) filterSharedOnlyRankFieldOptions(field *model.Proper
 // single value per user), so the caller has at most one option; we take it.
 // ok is false when the caller has no value for the field or the option carries
 // no rank, in which case the caller has no clearance and sees nothing.
-func (h *AccessControlHook) callerRankForField(field *model.PropertyField, callerID string, rankByID map[string]int) (int, bool) {
-	callerOptionIDs, err := h.getCallerOptionIDsForField(field.GroupID, field.ID, callerID, field.Type)
+func (h *AccessControlHook) callerRankForField(rctx request.CTX, field *model.PropertyField, callerID string, rankByID map[string]int) (int, bool) {
+	callerOptionIDs, err := h.getCallerOptionIDsForField(rctx, field.GroupID, field.ID, callerID, field.Type)
 	if err != nil || len(callerOptionIDs) == 0 {
 		return 0, false
 	}
@@ -1197,16 +1197,16 @@ func buildOptionRankMap(field *model.PropertyField) map[string]int {
 // The binary path is what protects scenarios like LDAP/SAML-synced text codenames whose
 // existence is itself controlled information: a caller who doesn't hold the same value
 // must not see the target's value through any read endpoint.
-func (h *AccessControlHook) filterSharedOnlyValue(field *model.PropertyField, value *model.PropertyValue, callerID string) *model.PropertyValue {
+func (h *AccessControlHook) filterSharedOnlyValue(rctx request.CTX, field *model.PropertyField, value *model.PropertyValue, callerID string) *model.PropertyValue {
 	if field.Type == model.PropertyFieldTypeRank {
-		return h.filterSharedOnlyRankValue(field, value, callerID)
+		return h.filterSharedOnlyRankValue(rctx, field, value, callerID)
 	}
 
 	if field.Type != model.PropertyFieldTypeSelect && field.Type != model.PropertyFieldTypeMultiselect {
-		return h.filterSharedOnlyScalarValue(field, value, callerID)
+		return h.filterSharedOnlyScalarValue(rctx, field, value, callerID)
 	}
 
-	callerOptionIDs, err := h.getCallerOptionIDsForField(field.GroupID, field.ID, callerID, field.Type)
+	callerOptionIDs, err := h.getCallerOptionIDsForField(rctx, field.GroupID, field.ID, callerID, field.Type)
 	if err != nil || len(callerOptionIDs) == 0 {
 		return nil
 	}
@@ -1261,9 +1261,9 @@ func (h *AccessControlHook) filterSharedOnlyValue(field *model.PropertyField, va
 // option match. A caller who holds no value of their own (and therefore has no
 // rank) sees nothing. A rank field is select-shaped, so the target has at most
 // one option.
-func (h *AccessControlHook) filterSharedOnlyRankValue(field *model.PropertyField, value *model.PropertyValue, callerID string) *model.PropertyValue {
+func (h *AccessControlHook) filterSharedOnlyRankValue(rctx request.CTX, field *model.PropertyField, value *model.PropertyValue, callerID string) *model.PropertyValue {
 	rankByID := buildOptionRankMap(field)
-	callerRank, ok := h.callerRankForField(field, callerID, rankByID)
+	callerRank, ok := h.callerRankForField(rctx, field, callerID, rankByID)
 	if !ok {
 		return nil
 	}
@@ -1319,12 +1319,12 @@ func (h *AccessControlHook) clampRankValueToRank(value *model.PropertyValue, ran
 // returns the value as-is if the caller's own stored value for the same field equals
 // the target's value, otherwise nil. Caller and target may legitimately store nothing,
 // in which case the value is hidden.
-func (h *AccessControlHook) filterSharedOnlyScalarValue(field *model.PropertyField, value *model.PropertyValue, callerID string) *model.PropertyValue {
+func (h *AccessControlHook) filterSharedOnlyScalarValue(rctx request.CTX, field *model.PropertyField, value *model.PropertyValue, callerID string) *model.PropertyValue {
 	if value == nil || len(value.Value) == 0 {
 		return nil
 	}
 
-	callerValues, err := h.getCallerValuesForField(field.GroupID, field.ID, callerID)
+	callerValues, err := h.getCallerValuesForField(rctx, field.GroupID, field.ID, callerID)
 	if err != nil || len(callerValues) == 0 {
 		return nil
 	}
@@ -1344,7 +1344,7 @@ func (h *AccessControlHook) filterSharedOnlyScalarValue(field *model.PropertyFie
 // - Any access mode when the caller is the field's source plugin: returned as-is
 // - Shared-only fields: returned with options filtered using filterSharedOnlyFieldOptions
 // - Source-only or unknown access modes: returned with empty options (secure default)
-func (h *AccessControlHook) applyFieldReadAccessControl(field *model.PropertyField, callerID string) *model.PropertyField {
+func (h *AccessControlHook) applyFieldReadAccessControl(rctx request.CTX, field *model.PropertyField, callerID string) *model.PropertyField {
 	if h.hasUnrestrictedFieldReadAccess(field, callerID) {
 		return field
 	}
@@ -1352,7 +1352,7 @@ func (h *AccessControlHook) applyFieldReadAccessControl(field *model.PropertyFie
 	accessMode := h.getAccessMode(field)
 
 	if accessMode == model.PropertyAccessModeSharedOnly {
-		return h.filterSharedOnlyFieldOptions(field, callerID)
+		return h.filterSharedOnlyFieldOptions(rctx, field, callerID)
 	}
 
 	// Source-only or unknown: return with empty options (secure default)
@@ -1364,14 +1364,14 @@ func (h *AccessControlHook) applyFieldReadAccessControl(field *model.PropertyFie
 }
 
 // applyFieldReadAccessControlToList applies read access control to a list of fields.
-func (h *AccessControlHook) applyFieldReadAccessControlToList(fields []*model.PropertyField, callerID string) []*model.PropertyField {
+func (h *AccessControlHook) applyFieldReadAccessControlToList(rctx request.CTX, fields []*model.PropertyField, callerID string) []*model.PropertyField {
 	if len(fields) == 0 {
 		return fields
 	}
 
 	filtered := make([]*model.PropertyField, 0, len(fields))
 	for _, field := range fields {
-		filtered = append(filtered, h.applyFieldReadAccessControl(field, callerID))
+		filtered = append(filtered, h.applyFieldReadAccessControl(rctx, field, callerID))
 	}
 
 	return filtered
@@ -1434,7 +1434,7 @@ func (h *AccessControlHook) applyValueReadAccessControl(rctx request.CTX, values
 		if h.hasUnrestrictedFieldReadAccess(field, callerID) {
 			filtered = append(filtered, value)
 		} else if accessMode == model.PropertyAccessModeSharedOnly {
-			filteredValue := h.filterSharedOnlyValue(field, value, callerID)
+			filteredValue := h.filterSharedOnlyValue(rctx, field, value, callerID)
 			if filteredValue != nil {
 				filtered = append(filtered, filteredValue)
 			}

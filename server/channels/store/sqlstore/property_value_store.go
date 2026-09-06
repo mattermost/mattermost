@@ -11,6 +11,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
@@ -134,7 +135,7 @@ func (s *SqlPropertyValueStore) GetMany(groupID string, ids []string) ([]*model.
 	return values, nil
 }
 
-func (s *SqlPropertyValueStore) SearchPropertyValues(opts model.PropertyValueSearchOpts) ([]*model.PropertyValue, error) {
+func (s *SqlPropertyValueStore) SearchPropertyValues(rctx request.CTX, opts model.PropertyValueSearchOpts) ([]*model.PropertyValue, error) {
 	if err := opts.IsValid(); err != nil {
 		return nil, fmt.Errorf("opts is invalid: %w", err)
 	}
@@ -204,7 +205,7 @@ func (s *SqlPropertyValueStore) SearchPropertyValues(opts model.PropertyValueSea
 	}
 
 	var values []*model.PropertyValue
-	if err := s.GetReplica().SelectBuilder(&values, builder); err != nil {
+	if err := s.DBXFromContext(rctx.Context()).SelectBuilder(&values, builder); err != nil {
 		return nil, errors.Wrap(err, "property_value_search_query")
 	}
 

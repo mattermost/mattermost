@@ -74,6 +74,13 @@ func TestMapPropertyServiceError(t *testing.T) {
 			expectDetail:   true,
 		},
 		{
+			name:           "target field limit reached",
+			sentinel:       properties.ErrTargetFieldLimitReached,
+			expectedID:     "app.property_field.create.target_limit_reached.app_error",
+			expectedStatus: http.StatusUnprocessableEntity,
+			expectDetail:   true,
+		},
+		{
 			name:           "license required",
 			sentinel:       properties.ErrLicenseRequired,
 			expectedID:     "app.property.license_error",

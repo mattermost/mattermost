@@ -8831,10 +8831,10 @@ func (s *TimerLayerPropertyValueStore) GetMany(groupID string, ids []string) ([]
 	return result, err
 }
 
-func (s *TimerLayerPropertyValueStore) SearchPropertyValues(opts model.PropertyValueSearchOpts) ([]*model.PropertyValue, error) {
+func (s *TimerLayerPropertyValueStore) SearchPropertyValues(rctx request.CTX, opts model.PropertyValueSearchOpts) ([]*model.PropertyValue, error) {
 	start := time.Now()
 
-	result, err := s.PropertyValueStore.SearchPropertyValues(opts)
+	result, err := s.PropertyValueStore.SearchPropertyValues(rctx, opts)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {

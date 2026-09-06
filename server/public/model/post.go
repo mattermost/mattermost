@@ -453,6 +453,17 @@ type GetPostsSinceForSyncOptions struct {
 	ExcludedPostTypes                 []string // post types to exclude from sync
 }
 
+// GetPostOptions are the options for fetching a single post. Its plural sibling
+// GetPostsOptions covers the list endpoints.
+type GetPostOptions struct {
+	// IncludeDeleted returns the post even if it is soft-deleted.
+	IncludeDeleted bool
+
+	// IncludePropertyGroups names the property groups whose values should be hydrated onto the
+	// post's metadata.
+	IncludePropertyGroups []string
+}
+
 type GetPostsOptions struct {
 	UserId                   string
 	ChannelId                string
@@ -474,6 +485,9 @@ type GetPostsOptions struct {
 	// the app layer when the burn-on-read feature is enabled, so it adds no query
 	// overhead otherwise.
 	ExcludeExpiredBurnOnReadPosts bool
+	// IncludePropertyGroups names a single PSAv2 property group whose values should be hydrated
+	// onto each post's metadata. Empty means no hydration.
+	IncludePropertyGroups string
 }
 
 type PostCountOptions struct {
@@ -1458,6 +1472,11 @@ type PreparePostForClientOpts struct {
 	IncludePriority bool
 	RetainContent   bool
 	IncludeDeleted  bool
+
+	// PropertyGroupID, when set, hydrates each post's property values for that group onto
+	// Metadata.PropertyValues. Empty means no hydration, so the zero value is always safe and
+	// callers opt in rather than out.
+	PropertyGroupID string
 }
 
 // ReportPostOptions contains options for querying posts for reporting/compliance purposes
