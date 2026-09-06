@@ -679,6 +679,15 @@ func (a *App) hasPropertyFieldPermissionLevel(rctx request.CTX, userID string, f
 		case string(model.PropertyFieldTargetLevelChannel):
 			return a.hasChannelPropertyAdmin(rctx, userID, field.TargetID)
 		}
+	case model.PermissionLevelCreator:
+		// The entity gated here is the field definition itself, so its creator
+		// is CreatedBy — not the creator of whatever the field is scoped to.
+		if field.CreatedBy != "" && field.CreatedBy == userID {
+			return true
+		}
+		// Falls back to the admin arm above rather than restating the
+		// per-TargetType cascade. Terminates: the admin case never recurses.
+		return a.hasPropertyFieldPermissionLevel(rctx, userID, field, model.PermissionLevelAdmin)
 	}
 	return false
 }
@@ -695,6 +704,8 @@ func (a *App) hasPropertyFieldValuePermissionLevel(rctx request.CTX, userID stri
 		return a.HasPermissionTo(rctx, userID, model.PermissionManageSystem)
 	case model.PermissionLevelAdmin:
 		return a.hasPropertyFieldValueAdmin(rctx, userID, field, valueTargetID)
+	case model.PermissionLevelCreator:
+		return a.hasPropertyFieldValueCreator(rctx, userID, field, valueTargetID)
 	case model.PermissionLevelMember:
 		return a.hasPropertyFieldValueScopeAccess(rctx, userID, field, valueTargetID)
 	case model.PermissionLevelNone:
@@ -732,6 +743,56 @@ func (a *App) hasPropertyFieldValueAdmin(rctx request.CTX, userID string, field 
 		return a.hasPropertyFieldPermissionLevel(rctx, userID, field, model.PermissionLevelAdmin)
 	}
 	return false
+}
+
+// hasPropertyFieldValueCreator reports whether the user created the value's
+// target object, or otherwise administers it. Only post- and channel-object
+// fields reach here; model validation rejects PermissionLevelCreator on every
+// other object type. The creator arm is checked first so an author tagging
+// their own post resolves with a single store read and no role evaluation.
+func (a *App) hasPropertyFieldValueCreator(rctx request.CTX, userID string, field *model.PropertyField, valueTargetID string) bool {
+	switch field.ObjectType {
+	case model.PropertyFieldObjectTypePost:
+		post, err := a.Srv().Store().Post().GetSingle(rctx, valueTargetID, false)
+		if err != nil {
+			rctx.Logger().Warn("Failed to look up post for property value creator check",
+				mlog.String("post_id", valueTargetID),
+				mlog.String("user_id", userID),
+				mlog.String("field_id", field.ID),
+				mlog.Err(err),
+			)
+			return false
+		}
+		if post.UserId != "" && post.UserId == userID {
+			return true
+		}
+	case model.PropertyFieldObjectTypeChannel:
+		channel, appErr := a.GetChannel(rctx, valueTargetID)
+		if appErr != nil {
+			rctx.Logger().Warn("Failed to look up channel for property value creator check",
+				mlog.String("channel_id", valueTargetID),
+				mlog.String("user_id", userID),
+				mlog.String("field_id", field.ID),
+				mlog.Err(appErr),
+			)
+			return false
+		}
+		// Group channels carry no CreatorId, so an empty userID must never
+		// match it. Direct channels DO have one: the store stamps the
+		// initiating user.
+		if channel.CreatorId != "" && channel.CreatorId == userID {
+			return true
+		}
+	default:
+		// Unreachable via validated fields. Deny rather than fall through to
+		// the admin arm, so a future object type must opt in consciously.
+		return false
+	}
+
+	// A lookup failure above returns false rather than falling through: if the
+	// target cannot be read here, the admin arm cannot resolve it either, so
+	// continuing would only buy a second failed lookup and a second warning.
+	return a.hasPropertyFieldValueAdmin(rctx, userID, field, valueTargetID)
 }
 
 // hasPropertyFieldValueScopeAccess reports whether the user can write the
