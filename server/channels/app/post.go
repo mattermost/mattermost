@@ -367,7 +367,9 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 	pluginContext := pluginContext(rctx)
 
 	if post.Type != model.PostTypeBurnOnRead {
-		newPost, guardErr := a.runGuardedMessageWillBePosted(rctx, post)
+		newPost, guardErr := runGuardedPostHookForChannel(channel, post, func(post *model.Post) (*model.Post, *model.AppError) {
+			return a.runGuardedMessageWillBePosted(rctx, post)
+		})
 		if guardErr != nil {
 			return nil, false, guardErr
 		}
@@ -744,7 +746,9 @@ func (a *App) handlePostEvents(rctx request.CTX, post *model.Post, user *model.U
 		})
 	}
 
-	if triggerWebhooks && post.Type != model.PostTypeBurnOnRead {
+	// Outgoing webhooks are a chat integration surface; a non-message backing channel's posts
+	// do not trigger them.
+	if triggerWebhooks && post.Type != model.PostTypeBurnOnRead && !channel.IsSpace() {
 		a.Srv().Go(func() {
 			if err := a.handleWebhookEvents(rctx, post, team, channel, user); err != nil {
 				rctx.Logger().Error("Failed to handle webhook event", mlog.String("user_id", user.Id), mlog.String("post_id", post.Id), mlog.Err(err))
@@ -848,13 +852,62 @@ func (a *App) DeleteEphemeralPost(rctx request.CTX, userID, postID string) {
 }
 
 func (a *App) UpdatePost(rctx request.CTX, receivedUpdatedPost *model.Post, updatePostOptions *model.UpdatePostOptions) (*model.Post, bool, *model.AppError) {
+	return a.updatePostWithChannel(rctx, receivedUpdatedPost, updatePostOptions, nil)
+}
+
+// runGuardedPostHookForChannel applies a guarded create/update hook while preserving the owning
+// feature's identity fields on a non-message backing channel. Such a hook may replace the message
+// or reject the post, but cannot replace its caller-supplied id, channel, root, or ownership props.
+// Clone shares the props map, the file ids, and the metadata, so the snapshot detaches all three
+// before an in-process hook can mutate them through the live post.
+func runGuardedPostHookForChannel(channel *model.Channel, post *model.Post, hook func(*model.Post) (*model.Post, *model.AppError)) (*model.Post, *model.AppError) {
+	if !channel.IsSpace() {
+		return hook(post)
+	}
+
+	preHookPost := post.Clone()
+	preHookPost.SetProps(maps.Clone(post.GetProps()))
+	preHookPost.FileIds = slices.Clone(post.FileIds)
+	if post.Metadata != nil {
+		preHookPost.Metadata = post.Metadata.Copy()
+	}
+	newPost, appErr := hook(post)
+	if appErr != nil {
+		return nil, appErr
+	}
+	preHookPost.Message = newPost.Message
+	return preHookPost, nil
+}
+
+// resolvePostChannel returns preResolved after verifying that it belongs to the post, or performs
+// the ordinary channel lookup when preResolved is nil. The verification is shared by every post
+// mutation path that accepts the plugin API's backing-channel resolution.
+func (a *App) resolvePostChannel(rctx request.CTX, where, postChannelID string, preResolved *model.Channel) (*model.Channel, *model.AppError) {
+	if preResolved == nil {
+		return a.GetChannel(rctx, postChannelID)
+	}
+	if preResolved.Id != postChannelID {
+		return nil, model.NewAppError(where, "app.post.pre_resolved_channel_mismatch.app_error", nil, "channel_id="+preResolved.Id+", post_channel_id="+postChannelID, http.StatusBadRequest)
+	}
+	return preResolved, nil
+}
+
+// updatePostWithChannel is UpdatePost with an optional pre-resolved channel. A nil channel is
+// resolved through GetChannel, whose generic lookup excludes opaque backing channel types (e.g.
+// space) — the path every REST caller takes. The plugin API passes the channel it resolved through
+// the backing-type fallback so plugins can update posts in backing channels. A non-nil channel
+// must match the post's own ChannelId; a trusted caller cannot act on a post through a channel
+// that is not the post's.
+func (a *App) updatePostWithChannel(rctx request.CTX, receivedUpdatedPost *model.Post, updatePostOptions *model.UpdatePostOptions, channel *model.Channel) (*model.Post, bool, *model.AppError) {
 	if updatePostOptions == nil {
 		updatePostOptions = model.DefaultUpdatePostOptions()
 	}
 
 	receivedUpdatedPost.SanitizeProps()
 
-	postLists, nErr := a.Srv().Store().Post().Get(rctx, receivedUpdatedPost.Id, model.GetPostsOptions{}, "", a.Config().GetSanitizeOptions())
+	// From master: the update rewrites every column, ChannelId included, so a replica that has
+	// not yet caught up with a move would send the post back to its previous channel.
+	postLists, nErr := a.Srv().Store().Post().Get(RequestContextWithMaster(rctx), receivedUpdatedPost.Id, model.GetPostsOptions{}, "", a.Config().GetSanitizeOptions())
 	if nErr != nil {
 		var nfErr *store.ErrNotFound
 		var invErr *store.ErrInvalidInput
@@ -889,7 +942,7 @@ func (a *App) UpdatePost(rctx request.CTX, receivedUpdatedPost *model.Post, upda
 		return nil, false, appErr
 	}
 
-	channel, appErr := a.GetChannel(rctx, oldPost.ChannelId)
+	channel, appErr = a.resolvePostChannel(rctx, "UpdatePost", oldPost.ChannelId, channel)
 	if appErr != nil {
 		return nil, false, appErr
 	}
@@ -976,7 +1029,9 @@ func (a *App) UpdatePost(rctx request.CTX, receivedUpdatedPost *model.Post, upda
 
 	if newPost.Type != model.PostTypeBurnOnRead {
 		var appErr2 *model.AppError
-		newPost, appErr2 = a.runGuardedMessageWillBeUpdated(rctx, newPost, oldPost)
+		newPost, appErr2 = runGuardedPostHookForChannel(channel, newPost, func(newPost *model.Post) (*model.Post, *model.AppError) {
+			return a.runGuardedMessageWillBeUpdated(rctx, newPost, oldPost)
+		})
 		if appErr2 != nil {
 			return nil, false, appErr2
 		}
@@ -1054,11 +1109,15 @@ func (a *App) UpdatePost(rctx request.CTX, receivedUpdatedPost *model.Post, upda
 
 	a.applyPostWillBeConsumedHook(rctx, &rpost)
 
-	message := model.NewWebSocketEvent(model.WebsocketEventPostEdited, "", rpost.ChannelId, "", nil, "")
+	// A post_edited event carries the whole post; a non-message backing channel's posts must
+	// not reach chat clients, and a channel-scoped payload cannot be filtered by any read gate.
+	if !channel.IsSpace() {
+		message := model.NewWebSocketEvent(model.WebsocketEventPostEdited, "", rpost.ChannelId, "", nil, "")
 
-	appErr = a.publishWebsocketEventForPost(rctx, rpost, message)
-	if appErr != nil {
-		return nil, false, appErr
+		appErr = a.publishWebsocketEventForPost(rctx, rpost, message)
+		if appErr != nil {
+			return nil, false, appErr
+		}
 	}
 
 	a.invalidateCacheForChannelPosts(rpost.ChannelId)
@@ -2019,12 +2078,19 @@ func (a *App) GetPostsForChannelAroundLastUnread(rctx request.CTX, channelID, us
 }
 
 func (a *App) DeletePost(rctx request.CTX, postID, deleteByID string) (*model.Post, *model.AppError) {
+	return a.deletePostWithChannel(rctx, postID, deleteByID, nil)
+}
+
+// deletePostWithChannel is DeletePost with an optional pre-resolved channel; see
+// updatePostWithChannel for the contract. The channel is forwarded into the post-deletion cleanup,
+// whose own resolution would otherwise fail on a backing channel after the row is already deleted.
+func (a *App) deletePostWithChannel(rctx request.CTX, postID, deleteByID string, channel *model.Channel) (*model.Post, *model.AppError) {
 	post, err := a.Srv().Store().Post().GetSingle(sqlstore.RequestContextWithMaster(rctx), postID, false)
 	if err != nil {
 		return nil, model.NewAppError("DeletePost", "app.post.get.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
-	channel, appErr := a.GetChannel(rctx, post.ChannelId)
+	channel, appErr := a.resolvePostChannel(rctx, "DeletePost", post.ChannelId, channel)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -2069,12 +2135,73 @@ func (a *App) DeletePost(rctx request.CTX, postID, deleteByID string) (*model.Po
 		}
 	}
 
-	appErr = a.CleanUpAfterPostDeletion(rctx, post, deleteByID)
+	appErr = a.cleanUpAfterPostDeletionWithChannel(rctx, post, deleteByID, channel)
 	if appErr != nil {
 		return nil, appErr
 	}
 
 	return post, nil
+}
+
+// moveThreadsToBackingChannelMaxBatch caps the number of root posts one
+// MoveThreadsToBackingChannel call may move; callers drive larger sets a batch at a time.
+const moveThreadsToBackingChannelMaxBatch = 500
+
+// getNonMessageBackingChannel resolves channelID when it names a non-message backing channel,
+// and reports not-found otherwise. The generic channel lookup excludes backing types, and the
+// type-filtered one takes a single type, so each backing type is asked for in turn. Read from
+// master by the caller that passes a master context: a caller may move posts into a channel it
+// just created.
+func (a *App) getNonMessageBackingChannel(rctx request.CTX, channelID string) (*model.Channel, *model.AppError) {
+	for _, channelType := range model.NonMessageBackingChannelTypes {
+		channel, appErr := a.GetChannelOfType(rctx, channelID, channelType)
+		if appErr == nil {
+			return channel, nil
+		}
+		if appErr.StatusCode != http.StatusNotFound {
+			return nil, appErr
+		}
+	}
+	return nil, model.NewAppError("getNonMessageBackingChannel", "app.channel.get.existing.app_error", map[string]any{"channel_id": channelID}, "", http.StatusNotFound)
+}
+
+// MoveThreadsToBackingChannel moves the given root posts — each with its full thread of replies and
+// edit history — into channelID, in place: ids, timestamps, and reactions are preserved. The
+// move is restricted to non-message backing channels (e.g. a Docs space) on both sides, the
+// scope under which the store's skipped LastPostAt recompute is safe — backing channels carry
+// no chat unread surfaces.
+func (a *App) MoveThreadsToBackingChannel(rctx request.CTX, rootIDs []string, channelID string) *model.AppError {
+	if len(rootIDs) == 0 {
+		return nil
+	}
+	if len(rootIDs) > moveThreadsToBackingChannelMaxBatch {
+		return model.NewAppError("MoveThreadsToBackingChannel", "app.post.move_threads_to_backing_channel.batch_too_large.app_error", map[string]any{"MaxBatch": moveThreadsToBackingChannelMaxBatch}, "", http.StatusBadRequest)
+	}
+
+	channel, appErr := a.getNonMessageBackingChannel(RequestContextWithMaster(rctx), channelID)
+	if appErr != nil {
+		return appErr
+	}
+
+	sources, err := a.Srv().Store().Post().MoveThreadsToBackingChannel(rctx, rootIDs, channel.Id, channel.TeamId)
+	if err != nil {
+		var invErr *store.ErrInvalidInput
+		var nfErr *store.ErrNotFound
+		switch {
+		case errors.As(err, &invErr):
+			return model.NewAppError("MoveThreadsToBackingChannel", "app.post.move_threads_to_backing_channel.invalid_input.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+		case errors.As(err, &nfErr):
+			return model.NewAppError("MoveThreadsToBackingChannel", "app.post.move_threads_to_backing_channel.not_found.app_error", nil, "", http.StatusNotFound).Wrap(err)
+		default:
+			return model.NewAppError("MoveThreadsToBackingChannel", "app.post.move_threads_to_backing_channel.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+	}
+
+	a.invalidateCacheForChannelPosts(channel.Id)
+	for _, source := range sources {
+		a.invalidateCacheForChannelPosts(source)
+	}
+	return nil
 }
 
 func (a *App) deleteDraftsAssociatedWithPost(rctx request.CTX, channel *model.Channel, post *model.Post) {
@@ -3403,31 +3530,42 @@ func (a *App) PermanentDeletePost(rctx request.CTX, postID, deleteByID string) *
 }
 
 func (a *App) CleanUpAfterPostDeletion(rctx request.CTX, post *model.Post, deleteByID string) *model.AppError {
-	channel, appErr := a.GetChannel(rctx, post.ChannelId)
+	return a.cleanUpAfterPostDeletionWithChannel(rctx, post, deleteByID, nil)
+}
+
+// cleanUpAfterPostDeletionWithChannel is CleanUpAfterPostDeletion with an optional pre-resolved
+// channel; see updatePostWithChannel for the contract.
+func (a *App) cleanUpAfterPostDeletionWithChannel(rctx request.CTX, post *model.Post, deleteByID string, channel *model.Channel) *model.AppError {
+	channel, appErr := a.resolvePostChannel(rctx, "CleanUpAfterPostDeletion", post.ChannelId, channel)
 	if appErr != nil {
 		return appErr
 	}
 
-	postJSON, err := json.Marshal(post)
-	if err != nil {
-		return model.NewAppError("DeletePost", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	// A post_deleted event carries the whole post; a non-message backing channel's posts must
+	// not reach chat clients. Build both event payloads only when they will be published; payload
+	// serialization must not block the remaining cleanup for a feature-owned backing post.
+	if !channel.IsSpace() {
+		postJSON, err := json.Marshal(post)
+		if err != nil {
+			return model.NewAppError("DeletePost", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+
+		sanitizedPostJSON, jsonErr := post.ToJSON()
+		if jsonErr != nil {
+			return model.NewAppError("DeletePost", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
+		}
+
+		userMessage := model.NewWebSocketEvent(model.WebsocketEventPostDeleted, "", post.ChannelId, "", nil, "")
+		userMessage.Add("post", sanitizedPostJSON)
+		userMessage.GetBroadcast().ContainsSanitizedData = true
+		a.Publish(userMessage)
+
+		adminMessage := model.NewWebSocketEvent(model.WebsocketEventPostDeleted, "", post.ChannelId, "", nil, "")
+		adminMessage.Add("post", string(postJSON))
+		adminMessage.Add("delete_by", deleteByID)
+		adminMessage.GetBroadcast().ContainsSensitiveData = true
+		a.Publish(adminMessage)
 	}
-
-	sanitizedPostJSON, jsonErr := post.ToJSON()
-	if jsonErr != nil {
-		return model.NewAppError("DeletePost", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
-	}
-
-	userMessage := model.NewWebSocketEvent(model.WebsocketEventPostDeleted, "", post.ChannelId, "", nil, "")
-	userMessage.Add("post", sanitizedPostJSON)
-	userMessage.GetBroadcast().ContainsSanitizedData = true
-	a.Publish(userMessage)
-
-	adminMessage := model.NewWebSocketEvent(model.WebsocketEventPostDeleted, "", post.ChannelId, "", nil, "")
-	adminMessage.Add("post", string(postJSON))
-	adminMessage.Add("delete_by", deleteByID)
-	adminMessage.GetBroadcast().ContainsSensitiveData = true
-	a.Publish(adminMessage)
 
 	a.Srv().Go(func() {
 		a.deleteFlaggedPosts(rctx, post.Id)
@@ -3443,7 +3581,7 @@ func (a *App) CleanUpAfterPostDeletion(rctx request.CTX, post *model.Post, delet
 	})
 
 	a.Srv().Go(func() {
-		if err = a.RemoveNotifications(rctx, post, channel); err != nil {
+		if err := a.RemoveNotifications(rctx, post, channel); err != nil {
 			rctx.Logger().Error("DeletePost failed to delete notification", mlog.Err(err))
 		}
 	})

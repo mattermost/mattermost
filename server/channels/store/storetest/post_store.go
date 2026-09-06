@@ -72,6 +72,8 @@ func TestPostStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	t.Run("GetNthRecentPostTime", func(t *testing.T) { testGetNthRecentPostTime(t, rctx, ss) })
 	t.Run("GetEditHistoryForPost", func(t *testing.T) { testGetEditHistoryForPost(t, rctx, ss) })
 	t.Run("RestoreContentFlaggedPost", func(t *testing.T) { testRestoreContentFlaggedPost(t, rctx, ss) })
+	t.Run("MoveThreadsToBackingChannel", func(t *testing.T) { testPostStoreMoveThreadsToBackingChannel(t, rctx, ss) })
+	t.Run("SaveCallerSuppliedID", func(t *testing.T) { testPostStoreSaveCallerSuppliedID(t, rctx, ss) })
 }
 
 func testPostStoreSave(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -6379,5 +6381,317 @@ func testDeleteAllPostRemindersForPost(t *testing.T, rctx request.CTX, ss store.
 		err = s.GetMaster().Get(&count, `SELECT COUNT(*) FROM PostReminders WHERE PostId=?`, p1.Id)
 		require.NoError(t, err)
 		require.Equal(t, 0, count)
+	})
+}
+
+func testPostStoreMoveThreadsToBackingChannel(t *testing.T, rctx request.CTX, ss store.Store) {
+	newChannel := func(t *testing.T, teamID string, channelType model.ChannelType) *model.Channel {
+		t.Helper()
+		channel, err := ss.Channel().Save(rctx, &model.Channel{
+			TeamId:      teamID,
+			DisplayName: "Move target",
+			Name:        "move-" + model.NewId(),
+			Type:        channelType,
+		}, -1)
+		require.NoError(t, err)
+		return channel
+	}
+
+	newSpace := func(t *testing.T, teamID string) *model.Channel {
+		return newChannel(t, teamID, model.ChannelTypeSpace)
+	}
+
+	newOpen := func(t *testing.T, teamID string) *model.Channel {
+		return newChannel(t, teamID, model.ChannelTypeOpen)
+	}
+
+	newPost := func(t *testing.T, channelID, rootID string) *model.Post {
+		t.Helper()
+		post, err := ss.Post().Save(rctx, &model.Post{
+			ChannelId: channelID,
+			RootId:    rootID,
+			UserId:    model.NewId(),
+			Message:   NewTestID(),
+		})
+		require.NoError(t, err)
+		return post
+	}
+
+	// The generic channel lookup excludes backing types, so a space channel's counters are read
+	// through the post-anchored lookup, which does not filter by type. The anchor post must be
+	// one the move leaves in place.
+	counts := func(t *testing.T, anchorPostID string) (int64, int64) {
+		t.Helper()
+		channel, err := ss.Channel().GetForPost(anchorPostID)
+		require.NoError(t, err)
+		return channel.TotalMsgCount, channel.TotalMsgCountRoot
+	}
+
+	t.Run("attachments follow their post to the new channel", func(t *testing.T) {
+		// FileInfo denormalizes its post's channel, and file search scopes results by joining
+		// channel membership through that column, so a row left behind would be readable by the
+		// source channel's members instead of the target's.
+		teamID := model.NewId()
+		source := newSpace(t, teamID)
+		target := newSpace(t, teamID)
+		root := newPost(t, source.Id, "")
+		reply := newPost(t, source.Id, root.Id)
+
+		rootFile, err := ss.FileInfo().Save(rctx, &model.FileInfo{
+			Id:        model.NewId(),
+			PostId:    root.Id,
+			ChannelId: source.Id,
+			CreatorId: root.UserId,
+			Path:      "root.txt",
+		})
+		require.NoError(t, err)
+		replyFile, err := ss.FileInfo().Save(rctx, &model.FileInfo{
+			Id:        model.NewId(),
+			PostId:    reply.Id,
+			ChannelId: source.Id,
+			CreatorId: reply.UserId,
+			Path:      "reply.png",
+		})
+		require.NoError(t, err)
+
+		_, err = ss.Post().MoveThreadsToBackingChannel(rctx, []string{root.Id}, target.Id, teamID)
+		require.NoError(t, err)
+
+		movedRootFile, err := ss.FileInfo().Get(rootFile.Id)
+		require.NoError(t, err)
+		assert.Equal(t, target.Id, movedRootFile.ChannelId)
+		movedReplyFile, err := ss.FileInfo().Get(replyFile.Id)
+		require.NoError(t, err)
+		assert.Equal(t, target.Id, movedReplyFile.ChannelId, "a reply's attachment moves with the thread")
+	})
+
+	t.Run("an empty batch is a no-op", func(t *testing.T) {
+		sources, err := ss.Post().MoveThreadsToBackingChannel(rctx, nil, model.NewId(), model.NewId())
+		require.NoError(t, err)
+		assert.Empty(t, sources)
+	})
+
+	t.Run("a reply id is rejected: moving it would split its thread", func(t *testing.T) {
+		teamID := model.NewId()
+		source := newSpace(t, teamID)
+		target := newSpace(t, teamID)
+		root := newPost(t, source.Id, "")
+		reply := newPost(t, source.Id, root.Id)
+
+		_, err := ss.Post().MoveThreadsToBackingChannel(rctx, []string{reply.Id}, target.Id, teamID)
+		require.Error(t, err)
+		var invErr *store.ErrInvalidInput
+		require.True(t, errors.As(err, &invErr))
+
+		moved, err := ss.Post().GetSingle(rctx, root.Id, false)
+		require.NoError(t, err)
+		assert.Equal(t, source.Id, moved.ChannelId, "a rejected batch must not move anything")
+	})
+
+	t.Run("an edit-history id is rejected: a snapshot moves with its post, never alone", func(t *testing.T) {
+		teamID := model.NewId()
+		source := newSpace(t, teamID)
+		target := newSpace(t, teamID)
+		root := newPost(t, source.Id, "")
+
+		edited := root.Clone()
+		edited.Message = "edited"
+		_, err := ss.Post().Update(rctx, edited, root.Clone())
+		require.NoError(t, err)
+		history, err := ss.Post().GetEditHistoryForPost(root.Id)
+		require.NoError(t, err)
+		require.Len(t, history, 1)
+
+		_, err = ss.Post().MoveThreadsToBackingChannel(rctx, []string{history[0].Id}, target.Id, teamID)
+		require.Error(t, err)
+		var invErr *store.ErrInvalidInput
+		require.True(t, errors.As(err, &invErr))
+	})
+
+	t.Run("an unknown id is skipped rather than failing the batch", func(t *testing.T) {
+		teamID := model.NewId()
+		target := newSpace(t, teamID)
+
+		sources, err := ss.Post().MoveThreadsToBackingChannel(rctx, []string{model.NewId()}, target.Id, teamID)
+		require.NoError(t, err)
+		assert.Empty(t, sources)
+	})
+
+	t.Run("a non-space target is refused", func(t *testing.T) {
+		teamID := model.NewId()
+		source := newSpace(t, teamID)
+		target := newOpen(t, teamID)
+		root := newPost(t, source.Id, "")
+
+		_, err := ss.Post().MoveThreadsToBackingChannel(rctx, []string{root.Id}, target.Id, teamID)
+		require.Error(t, err)
+		var invErr *store.ErrInvalidInput
+		require.True(t, errors.As(err, &invErr))
+	})
+
+	t.Run("a non-space source is refused", func(t *testing.T) {
+		teamID := model.NewId()
+		source := newOpen(t, teamID)
+		target := newSpace(t, teamID)
+		root := newPost(t, source.Id, "")
+
+		_, err := ss.Post().MoveThreadsToBackingChannel(rctx, []string{root.Id}, target.Id, teamID)
+		require.Error(t, err)
+		var invErr *store.ErrInvalidInput
+		require.True(t, errors.As(err, &invErr))
+
+		stayed, err := ss.Post().GetSingle(rctx, root.Id, false)
+		require.NoError(t, err)
+		assert.Equal(t, source.Id, stayed.ChannelId)
+	})
+
+	t.Run("a missing target reads as not-found", func(t *testing.T) {
+		teamID := model.NewId()
+		source := newSpace(t, teamID)
+		root := newPost(t, source.Id, "")
+
+		_, err := ss.Post().MoveThreadsToBackingChannel(rctx, []string{root.Id}, model.NewId(), teamID)
+		require.Error(t, err)
+		var nfErr *store.ErrNotFound
+		require.True(t, errors.As(err, &nfErr))
+	})
+
+	t.Run("the whole thread moves with its history, counters, and Threads row", func(t *testing.T) {
+		teamID := model.NewId()
+		targetTeamID := model.NewId()
+		source := newSpace(t, teamID)
+		target := newSpace(t, targetTeamID)
+
+		// Anchors stay behind in each channel so the counters remain readable after the move.
+		sourceAnchor := newPost(t, source.Id, "")
+		targetAnchor := newPost(t, target.Id, "")
+
+		root := newPost(t, source.Id, "")
+		reply := newPost(t, source.Id, root.Id)
+
+		// An edit on the reply leaves a history row, which must travel with the thread but must
+		// not move a counter: it never counted toward the source channel.
+		edited := reply.Clone()
+		edited.Message = "edited reply"
+		_, err := ss.Post().Update(rctx, edited, reply.Clone())
+		require.NoError(t, err)
+		history, err := ss.Post().GetEditHistoryForPost(reply.Id)
+		require.NoError(t, err)
+		require.Len(t, history, 1)
+
+		sourceBefore, sourceRootBefore := counts(t, sourceAnchor.Id)
+		targetBefore, targetRootBefore := counts(t, targetAnchor.Id)
+
+		sources, err := ss.Post().MoveThreadsToBackingChannel(rctx, []string{root.Id}, target.Id, targetTeamID)
+		require.NoError(t, err)
+		assert.Equal(t, []string{source.Id}, sources, "the caller invalidates the source's post cache")
+
+		for _, id := range []string{root.Id, reply.Id, history[0].Id} {
+			moved, getErr := ss.Post().GetSingle(rctx, id, true)
+			require.NoError(t, getErr)
+			assert.Equal(t, target.Id, moved.ChannelId, "every row of the thread moves")
+		}
+
+		thread, err := ss.Thread().Get(root.Id)
+		require.NoError(t, err)
+		require.NotNil(t, thread)
+		assert.Equal(t, target.Id, thread.ChannelId)
+		assert.Equal(t, targetTeamID, thread.TeamId, "the denormalized team id follows the channel")
+
+		sourceAfter, sourceRootAfter := counts(t, sourceAnchor.Id)
+		targetAfter, targetRootAfter := counts(t, targetAnchor.Id)
+		assert.Equal(t, sourceBefore-2, sourceAfter, "the root and the reply leave the source; the history row never counted")
+		assert.Equal(t, sourceRootBefore-1, sourceRootAfter)
+		assert.Equal(t, targetBefore+2, targetAfter)
+		assert.Equal(t, targetRootBefore+1, targetRootAfter)
+
+		t.Run("a re-run over already-moved rows moves no counter twice", func(t *testing.T) {
+			sourceRerun, sourceRootRerun := counts(t, sourceAnchor.Id)
+			targetRerun, targetRootRerun := counts(t, targetAnchor.Id)
+
+			_, err := ss.Post().MoveThreadsToBackingChannel(rctx, []string{root.Id}, target.Id, targetTeamID)
+			require.NoError(t, err)
+
+			sourceEnd, sourceRootEnd := counts(t, sourceAnchor.Id)
+			targetEnd, targetRootEnd := counts(t, targetAnchor.Id)
+			assert.Equal(t, sourceRerun, sourceEnd)
+			assert.Equal(t, sourceRootRerun, sourceRootEnd)
+			assert.Equal(t, targetRerun, targetEnd)
+			assert.Equal(t, targetRootRerun, targetRootEnd)
+		})
+	})
+
+	t.Run("threads from two sources report both source channels", func(t *testing.T) {
+		teamID := model.NewId()
+		sourceA := newSpace(t, teamID)
+		sourceB := newSpace(t, teamID)
+		target := newSpace(t, teamID)
+
+		rootA := newPost(t, sourceA.Id, "")
+		rootB := newPost(t, sourceB.Id, "")
+
+		sources, err := ss.Post().MoveThreadsToBackingChannel(rctx, []string{rootA.Id, rootB.Id}, target.Id, teamID)
+		require.NoError(t, err)
+		assert.ElementsMatch(t, []string{sourceA.Id, sourceB.Id}, sources)
+	})
+}
+
+// testPostStoreSaveCallerSuppliedID pins the split in the pre-set-id rejection: a chat channel
+// keeps it, while a non-message backing channel accepts the id its trusted feature caller
+// allocated, so a create that errors after the save has committed can be resolved by reading the
+// row back. A test on the accepting side alone would pass with the rejection removed outright.
+func testPostStoreSaveCallerSuppliedID(t *testing.T, rctx request.CTX, ss store.Store) {
+	newChannel := func(t *testing.T, channelType model.ChannelType) *model.Channel {
+		t.Helper()
+		channel, err := ss.Channel().Save(rctx, &model.Channel{
+			TeamId:      model.NewId(),
+			DisplayName: "Caller-supplied id",
+			Name:        "supplied-" + model.NewId(),
+			Type:        channelType,
+		}, -1)
+		require.NoError(t, err)
+		return channel
+	}
+
+	t.Run("a backing channel keeps the id the caller allocated", func(t *testing.T) {
+		channel := newChannel(t, model.ChannelTypeSpace)
+		id := model.NewId()
+
+		saved, err := ss.Post().Save(rctx, &model.Post{
+			Id:        id,
+			ChannelId: channel.Id,
+			UserId:    model.NewId(),
+			Message:   NewTestID(),
+		})
+		require.NoError(t, err)
+		assert.Equal(t, id, saved.Id)
+
+		read, err := ss.Post().GetSingle(rctx, id, false)
+		require.NoError(t, err)
+		assert.Equal(t, id, read.Id)
+	})
+
+	t.Run("a chat channel still refuses a pre-set id", func(t *testing.T) {
+		channel := newChannel(t, model.ChannelTypeOpen)
+
+		_, err := ss.Post().Save(rctx, &model.Post{
+			Id:        model.NewId(),
+			ChannelId: channel.Id,
+			UserId:    model.NewId(),
+			Message:   NewTestID(),
+		})
+		require.Error(t, err)
+		var invErr *store.ErrInvalidInput
+		require.ErrorAs(t, err, &invErr)
+	})
+
+	t.Run("an unallocated id on no channel at all is refused", func(t *testing.T) {
+		_, err := ss.Post().Save(rctx, &model.Post{
+			Id:        model.NewId(),
+			ChannelId: model.NewId(),
+			UserId:    model.NewId(),
+			Message:   NewTestID(),
+		})
+		require.Error(t, err)
 	})
 }

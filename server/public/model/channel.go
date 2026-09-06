@@ -12,6 +12,7 @@ import (
 	"io"
 	"net/http"
 	"regexp"
+	"slices"
 	"sort"
 	"strings"
 	"unicode/utf8"
@@ -442,6 +443,21 @@ func (o *Channel) IsBoard() bool {
 
 func (o *Channel) IsSpace() bool {
 	return o.Type == ChannelTypeSpace
+}
+
+// NonMessageBackingChannelTypes are the channel types that back a feature storing its content
+// as posts while presenting no chat surface of its own: no notifications, no chat websocket
+// events, no thread list, and no unread state. Queries that answer a chat question exclude them,
+// and operations that are correct only in the absence of that bookkeeping — an in-place thread
+// move among them — accept nothing else. Board types are absent deliberately: they are not
+// message channels either, but nothing suppresses their chat surfaces today.
+var NonMessageBackingChannelTypes = []ChannelType{
+	ChannelTypeSpace,
+}
+
+// IsNonMessageBacking reports whether the type is one of NonMessageBackingChannelTypes.
+func (t ChannelType) IsNonMessageBacking() bool {
+	return slices.Contains(NonMessageBackingChannelTypes, t)
 }
 
 // IsMessageChannel reports whether the channel is one of the message-bearing

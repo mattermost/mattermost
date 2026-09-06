@@ -3084,7 +3084,29 @@ func (a *App) GetThreadMembershipForUser(userId, threadId string) (*model.Thread
 	return threadMembership, nil
 }
 
+// checkThreadIsChatVisible rejects a thread whose post belongs to a non-message backing channel.
+// Keep this check at the app boundary: store-level thread reads are also used by internal
+// notification and feature-owned flows that still need the underlying row.
+func (a *App) checkThreadIsChatVisible(where, threadID string) *model.AppError {
+	channel, appErr := a.getPostChannel(where, threadID)
+	if appErr != nil {
+		return appErr
+	}
+	if channel.IsSpace() {
+		return model.NewAppError(where, "app.user.get_threads_for_user.not_found", nil, "backing channel thread", http.StatusNotFound)
+	}
+	return nil
+}
+
 func (a *App) GetThreadForUser(rctx request.CTX, threadMembership *model.ThreadMembership, extended bool) (*model.ThreadResponse, *model.AppError) {
+	// A thread in a non-message backing channel (e.g. a Docs space comment thread) is not a
+	// chat thread: its membership row stays, but the chat read surfaces report not-found. The
+	// exclusion lives here rather than in the store because internal callers — the notification
+	// fan-out among them — read the store directly and must keep seeing the row.
+	if appErr := a.checkThreadIsChatVisible("GetThreadForUser", threadMembership.PostId); appErr != nil {
+		return nil, appErr
+	}
+
 	thread, nErr := a.Srv().Store().Thread().GetThreadForUser(rctx, threadMembership, extended, a.IsPostPriorityEnabled())
 	if nErr != nil {
 		var nfErr *store.ErrNotFound
@@ -3149,6 +3171,11 @@ func (a *App) UpdateThreadFollowForUser(userID, teamID, threadID string, state b
 }
 
 func (a *App) UpdateThreadFollowForUserFromChannelAdd(rctx request.CTX, userID, teamID, threadID string) *model.AppError {
+	// Reject before MaintainMembership: a channel-add route must not create chat follow state for
+	// a feature-owned backing thread and then fail later while computing chat mention state.
+	if appErr := a.checkThreadIsChatVisible("UpdateThreadFollowForUserFromChannelAdd", threadID); appErr != nil {
+		return appErr
+	}
 	opts := store.ThreadMembershipOpts{
 		Following:             true,
 		IncrementMentions:     false,
@@ -3231,6 +3258,9 @@ func (a *App) UpdateThreadReadForUserByPost(rctx request.CTX, currentSessionId, 
 }
 
 func (a *App) UpdateThreadReadForUser(rctx request.CTX, currentSessionId, userID, teamID, threadID string, timestamp int64) (*model.ThreadResponse, *model.AppError) {
+	if appErr := a.checkThreadIsChatVisible("UpdateThreadReadForUser", threadID); appErr != nil {
+		return nil, appErr
+	}
 	user, err := a.GetUser(rctx, userID)
 	if err != nil {
 		return nil, err

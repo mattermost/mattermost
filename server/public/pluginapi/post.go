@@ -77,6 +77,18 @@ func (p *PostService) DeletePost(postID string) error {
 	return normalizeAppErr(p.api.DeletePost(postID))
 }
 
+// MoveThreadsToBackingChannel moves the given root posts — each with its full thread of replies
+// and edit history — into channelID, in place: ids, timestamps, and reactions are preserved.
+// Both the target and every channel the threads currently live in must be a non-message backing
+// channel (model.NonMessageBackingChannelTypes). Every id must name a root post; an id that
+// matches no post moves nothing and does not fail the call. Batches are capped server-side;
+// callers drive larger sets a batch at a time.
+//
+// Minimum server version: 11.11
+func (p *PostService) MoveThreadsToBackingChannel(rootIDs []string, channelID string) error {
+	return normalizeAppErr(p.api.MoveThreadsToBackingChannel(rootIDs, channelID))
+}
+
 // SendEphemeralPost creates an ephemeral post.
 //
 // Minimum server version: 5.2
