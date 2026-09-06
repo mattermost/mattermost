@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import type {ComponentType} from 'react';
+import type {ComponentType, ReactNode} from 'react';
 import React, {useMemo} from 'react';
 import {defineMessages, FormattedMessage, useIntl} from 'react-intl';
 
@@ -24,6 +24,18 @@ import './attribute_applies_to.scss';
 type Props = {
     appliesTo: ResourceObjectType[];
     disabled?: boolean;
+
+    // Distinct from `disabled` -- driven purely by plugin ownership, not by
+    // saving/in-flight state, since hiding+reappearing the trigger on every
+    // save would be a distracting layout shift for the normal editing path.
+    // When true, both "Add resource" triggers are omitted entirely (not
+    // merely disabled).
+    hideAddResource?: boolean;
+
+    // Explains WHY existing rows' toggle is disabled, when the reason isn't
+    // the transient `saving` state -- threaded straight through to each row's
+    // AttributeAppliesToItemProps.lockedTooltip. Undefined renders no tooltip.
+    lockedTooltip?: ReactNode;
     onAdd: (type: ResourceObjectType) => void;
     onRemove: (type: ResourceObjectType) => void;
 };
@@ -45,7 +57,7 @@ const RESOURCE_TYPE_ITEM_COMPONENTS: Record<ResourceObjectType, ComponentType<At
 // Holds no selection state of its own -- "available" picker options are
 // derived purely from props on every render. Makes no data-mutating dispatch
 // calls, no Client4/API calls (see R6 -- the page owns all of that).
-function AttributeAppliesTo({appliesTo, disabled = false, onAdd, onRemove}: Props): JSX.Element {
+function AttributeAppliesTo({appliesTo, disabled = false, hideAddResource = false, lockedTooltip, onAdd, onRemove}: Props): JSX.Element {
     const {formatMessage} = useIntl();
 
     const availableTypes = useMemo(
@@ -105,7 +117,7 @@ function AttributeAppliesTo({appliesTo, disabled = false, onAdd, onRemove}: Prop
                             {...messages.subtitle}
                         />
                     </div>
-                    {availableTypes.length > 0 && renderAddResourceMenu(
+                    {availableTypes.length > 0 && !hideAddResource && renderAddResourceMenu(
                         ATTRIBUTE_APPLIES_TO_ADD_HEADER_TRIGGER_ID,
                         'attributeAppliesToAddResourceButtonHeader',
                         formatMessage(messages.addResourceHeader),
@@ -122,9 +134,9 @@ function AttributeAppliesTo({appliesTo, disabled = false, onAdd, onRemove}: Prop
                                 <FormattedMessage {...messages.emptyStateHeading}/>
                             </h5>
                             <p className='AttributeAppliesTo__emptyStateHelperText'>
-                                <FormattedMessage {...messages.emptyStateHelperText}/>
+                                <FormattedMessage {...(hideAddResource ? messages.emptyStateHelperTextPluginOwned : messages.emptyStateHelperText)}/>
                             </p>
-                            {availableTypes.length > 0 && renderAddResourceMenu(
+                            {availableTypes.length > 0 && !hideAddResource && renderAddResourceMenu(
                                 'attribute-applies-to-add-inline',
                                 'attributeAppliesToAddResourceButtonInline',
                                 formatMessage(messages.addResourceHeader),
@@ -140,12 +152,13 @@ function AttributeAppliesTo({appliesTo, disabled = false, onAdd, onRemove}: Prop
                                         <Item
                                             key={type}
                                             disabled={disabled}
+                                            lockedTooltip={lockedTooltip}
                                             onRemove={() => onRemove(type)}
                                         />
                                     );
                                 })}
                             </div>
-                            {availableTypes.length > 0 && renderAddResourceMenu(
+                            {availableTypes.length > 0 && !hideAddResource && renderAddResourceMenu(
                                 'attribute-applies-to-add-inline',
                                 'attributeAppliesToAddResourceButtonInline',
                                 formatMessage(messages.addResourceInline),
@@ -168,6 +181,10 @@ const messages = defineMessages({
     emptyStateHelperText: {
         id: 'admin.global_attributes.attribute_details.applies_to.empty_state.helper_text',
         defaultMessage: 'Add a resource to apply this attribute to users, channels, or posts.',
+    },
+    emptyStateHelperTextPluginOwned: {
+        id: 'admin.global_attributes.attribute_details.applies_to.empty_state.helper_text_plugin_owned',
+        defaultMessage: "Resources for plugin-managed attributes can't be added here.",
     },
     addResourceHeader: {id: 'admin.global_attributes.attribute_details.applies_to.add_resource_header', defaultMessage: 'Add resource'},
     addResourceInline: {id: 'admin.global_attributes.attribute_details.applies_to.add_resource_inline', defaultMessage: 'Add another resource'},
