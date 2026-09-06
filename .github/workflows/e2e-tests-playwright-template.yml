@@ -338,7 +338,7 @@ jobs:
           # /api/v1/tests/evidence serves back unauthenticated.
           environment-metadata: |
             {
-              "server_edition": "${{ inputs.server_edition }}",
+              "server_edition": "${{ inputs.server_edition || 'enterprise' }}",
               "server": "${{ inputs.server }}",
               "server_image_tag": "${{ inputs.server_image_tag }}",
               "server_image_repo": "${{ inputs.server_image_repo }}",
