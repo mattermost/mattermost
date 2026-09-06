@@ -320,7 +320,7 @@ jobs:
         working-directory: e2e-tests/playwright
         run: npx playwright test --project=setup
       - name: ci/dispatch-run
-        uses: mattermost/mattermost-test-system-io/.github/actions/test-system-io-dispatch-run@1631d8fcea24f4545a0b3b7f77e41c2fe0be4418 # 2026-07-28
+        uses: mattermost/mattermost-test-system-io/.github/actions/test-system-io-dispatch-run@dfd8749f22573ac5b8f000bd9561d3d058b18c29 # 2026-09-06, mattermost-test-system-io#114
         with:
           use-staging: ${{ vars.E2E_USE_STAGING_TEST_IO_URL != 'false' }}
           framework: playwright
@@ -331,6 +331,23 @@ jobs:
           gh-job-name: dispatch-run-${{ matrix.worker_index }}
           playwright-retries: ${{ inputs.playwright_retries }}
           playwright-project: ${{ inputs.playwright_project }}
+          # Lets a consumer reproducing a failure (human or automation) start
+          # its own server the same way this one ran, instead of guessing at
+          # defaults that may not match. Never put MM_LICENSE itself here —
+          # this lands in report_groups.environment_metadata, which
+          # /api/v1/tests/evidence serves back unauthenticated.
+          environment-metadata: |
+            {
+              "server_edition": "${{ inputs.server_edition }}",
+              "server": "${{ inputs.server }}",
+              "server_image_tag": "${{ inputs.server_image_tag }}",
+              "server_image_repo": "${{ inputs.server_image_repo }}",
+              "playwright_project": "${{ inputs.playwright_project }}",
+              "playwright_retries": ${{ inputs.playwright_retries }},
+              "licensed": ${{ secrets.MM_LICENSE != '' }},
+              "testcontainers": ${{ env.PW_USE_TESTCONTAINERS == 'true' }},
+              "testcontainers_services": "${{ env.PW_TESTCONTAINERS_SERVICES }}"
+            }
       - name: ci/upload-debug-artifacts
         if: always()
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0

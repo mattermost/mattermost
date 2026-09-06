@@ -370,7 +370,7 @@ jobs:
         working-directory: e2e-tests
         run: make start-server
       - name: ci/dispatch-run
-        uses: mattermost/mattermost-test-system-io/.github/actions/test-system-io-dispatch-run@1631d8fcea24f4545a0b3b7f77e41c2fe0be4418 # 2026-07-28
+        uses: mattermost/mattermost-test-system-io/.github/actions/test-system-io-dispatch-run@dfd8749f22573ac5b8f000bd9561d3d058b18c29 # 2026-09-06, mattermost-test-system-io#114
         with:
           use-staging: ${{ vars.E2E_USE_STAGING_TEST_IO_URL != 'false' }}
           framework: cypress
@@ -379,6 +379,20 @@ jobs:
           artifacts-root: ${{ github.workspace }}/worker-artifacts
           github-token: ${{ secrets.GITHUB_TOKEN }}
           gh-job-name: dispatch-run-${{ matrix.worker_index }}
+          # Lets a consumer reproducing a failure (human or automation) start
+          # its own server the same way this one ran, instead of guessing at
+          # defaults that may not match. Never put MM_LICENSE itself here —
+          # this lands in report_groups.environment_metadata, which
+          # /api/v1/tests/evidence serves back unauthenticated.
+          environment-metadata: |
+            {
+              "server_edition": "${{ inputs.server_edition }}",
+              "server": "${{ inputs.server }}",
+              "server_image_tag": "${{ inputs.server_image_tag }}",
+              "server_image_repo": "${{ inputs.server_image_repo }}",
+              "enabled_docker_services": "${{ inputs.enabled_docker_services }}",
+              "licensed": ${{ secrets.MM_LICENSE != '' }}
+            }
       - name: ci/cloud-teardown
         if: always()
         working-directory: e2e-tests
