@@ -320,7 +320,7 @@ jobs:
         working-directory: e2e-tests/playwright
         run: npx playwright test --project=setup
       - name: ci/dispatch-run
-        uses: mattermost/mattermost-test-system-io/.github/actions/test-system-io-dispatch-run@dfd8749f22573ac5b8f000bd9561d3d058b18c29 # 2026-09-06, mattermost-test-system-io#114
+        uses: mattermost/mattermost-test-system-io/.github/actions/test-system-io-dispatch-run@b49ae5aa883eb1077b3781cee4e868d8e1bd1aa6 # 2026-09-06, mattermost-test-system-io#114
         with:
           use-staging: ${{ vars.E2E_USE_STAGING_TEST_IO_URL != 'false' }}
           framework: playwright
