@@ -41,6 +41,7 @@ export default {
         'node:fs',
         'node:fs/promises',
         'node:os',
+        'node:crypto',
         'node:url',
         'node:util',
         'mime-types',
