@@ -1,6 +1,5 @@
 # mmctl Development Guide
 
 ## Tests
-- Shared package-level command vars (e.g. `SystemNukeUsersCmd`, `SystemSetBusyCmd`) leak state across tests/subtests when reused. When a test helper binds one, use `t.Cleanup` to reset both `cmd.Context()` and every flag back to its default (`f.Value.Set(f.DefValue)`, `f.Changed = false`).
-- Don't re-declare flags in tests that duplicate what a command's `init()` already registers (e.g. `output-file`, `confirm`, `seconds`). Bind the real command var instead of redeclaring flags on a bare `cobra.Command`.
+- Use `newTestCmd` to get a command for a handler test, passing the real package-level command var (e.g. `SystemNukeUsersCmd`, `SystemSetBusyCmd`). It resets context and flags to default on cleanup, so reused command vars don't leak state across tests/subtests, and you don't need to re-declare flags the command's `init()` already registers.
 - Scope test fixtures to the narrowest test that needs them — a var used only by one test's subtests belongs at that test's scope, not package level.
