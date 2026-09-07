@@ -9,6 +9,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
 func (s *Server) clusterInstallPluginHandler(msg *model.ClusterMessage) {
@@ -54,6 +55,17 @@ func (s *Server) clusterPluginEventHandler(msg *model.ClusterMessage) {
 	})
 }
 
+func (s *Server) clusterReloadSamlHandler(msg *model.ClusterMessage) {
+	saml := s.Channels().Saml
+	if saml == nil {
+		return
+	}
+
+	if err := saml.ConfigureSP(request.EmptyContext(s.Log())); err != nil {
+		s.Log().Error("An error occurred while configuring SAML Service Provider", mlog.Err(err))
+	}
+}
+
 // registerClusterHandlers registers the cluster message handlers that are handled by the server.
 //
 // The cluster event handlers are spread across this function and NewLocalCacheLayer.
@@ -63,6 +75,7 @@ func (s *Server) registerClusterHandlers() {
 	s.platform.RegisterClusterMessageHandler(model.ClusterEventRemovePlugin, s.clusterRemovePluginHandler)
 	s.platform.RegisterClusterMessageHandler(model.ClusterEventPluginEvent, s.clusterPluginEventHandler)
 	s.platform.RegisterClusterMessageHandler(clusterEventInvalidateChannelGuardCache, s.Channels().clusterInvalidateGuardCacheHandler)
+	s.platform.RegisterClusterMessageHandler(model.ClusterEventReloadSaml, s.clusterReloadSamlHandler)
 
 	s.platform.RegisterClusterHandlers()
 }
