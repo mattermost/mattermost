@@ -576,10 +576,11 @@ func (a *App) HasPermissionToReadChannelRBACOnly(rctx request.CTX, userID string
 // Private/DM/GM channels resolve only for members (via the content-read check). Public channels
 // on a team the user does not belong to stay unresolved, preventing cross-team disclosure.
 func (a *App) HasPermissionToResolveChannelMention(rctx request.CTX, userID string, channel *model.Channel) bool {
-	if !a.HasPermissionToAccessChannel(rctx, userID, channel) {
-		return false
-	}
+	return a.hasPermissionToResolveChannelMentionRBAC(rctx, userID, channel) &&
+		a.HasPermissionToAccessChannel(rctx, userID, channel)
+}
 
+func (a *App) hasPermissionToResolveChannelMentionRBAC(rctx request.CTX, userID string, channel *model.Channel) bool {
 	if ok, _ := a.HasPermissionToChannelRBACOnly(rctx, userID, channel.Id, model.PermissionReadChannelContent); ok {
 		return true
 	}
@@ -592,10 +593,11 @@ func (a *App) HasPermissionToResolveChannelMention(rctx request.CTX, userID stri
 }
 
 func (a *App) HasPermissionToChannelMemberCount(rctx request.CTX, userID string, channel *model.Channel) bool {
-	if !a.HasPermissionToAccessChannel(rctx, userID, channel) {
-		return false
-	}
+	return a.hasPermissionToChannelMemberCountRBAC(rctx, userID, channel) &&
+		a.HasPermissionToAccessChannel(rctx, userID, channel)
+}
 
+func (a *App) hasPermissionToChannelMemberCountRBAC(rctx request.CTX, userID string, channel *model.Channel) bool {
 	if ok, _ := a.HasPermissionToChannelRBACOnly(rctx, userID, channel.Id, model.PermissionReadChannelContent); ok {
 		return true
 	}

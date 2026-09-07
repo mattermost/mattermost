@@ -4,6 +4,7 @@
 package app
 
 import (
+	"fmt"
 	"net/http"
 	"testing"
 
@@ -308,4 +309,30 @@ func TestBuildPushNotificationMessageAccessChannel(t *testing.T) {
 		msg := build(t, h)
 		require.Contains(t, msg.Message, h.th.BasicPost.Message)
 	})
+}
+
+// TestAccessChannelRenderMatchesEnforcement pins the invariant the render-decision
+// registry's own doc comment asserts: a render "allowed" can never disagree with
+// what enforcement would decide. The client uses the render decision to lay out
+// affordances; if it drifted, the UI would offer a channel the gate then refuses,
+// or hide one it would have allowed.
+func TestAccessChannelRenderMatchesEnforcement(t *testing.T) {
+	for _, want := range []bool{true, false} {
+		t.Run(fmt.Sprintf("pdp=%v", want), func(t *testing.T) {
+			h := setupAccessChannelTest(t)
+			mockACS := h.mockACS(t)
+			governed(mockACS)
+			decides(mockACS, want)
+
+			resp, appErr := h.th.App.SearchAllowedActionsForCurrentUser(h.rctx, model.ActionSearchRequest{
+				Resource: model.Resource{Type: model.AccessControlPolicyTypeChannel, ID: h.th.BasicChannel.Id},
+				Actions:  []string{model.AccessControlPolicyActionAccessChannel},
+			})
+			require.Nil(t, appErr)
+
+			enforced := h.th.App.HasPermissionToAccessChannel(h.rctx, h.th.BasicUser.Id, h.th.BasicChannel)
+			require.Equal(t, want, enforced)
+			require.Equal(t, enforced, resp.Decisions[model.AccessControlPolicyActionAccessChannel].Allowed)
+		})
+	}
 }
