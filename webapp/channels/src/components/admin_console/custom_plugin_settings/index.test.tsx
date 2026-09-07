@@ -899,10 +899,11 @@ describe('custom plugin sections and settings', () => {
             name: 'Cross Guard',
         };
 
-        const renderAddOnPlugin = (license: Record<string, string>) => {
+        const renderAddOnPlugin = (license: Record<string, string>, consoleAccess = baseProps.consoleAccess) => {
             const props = {
                 ...baseProps,
                 license,
+                consoleAccess,
                 match: {params: {plugin_id: 'crossguard'}} as match<{plugin_id: string}>,
             };
 
@@ -941,6 +942,22 @@ describe('custom plugin sections and settings', () => {
 
             expect(screen.getByTestId('PluginSettings.PluginStates.crossguard.Enable-button')).toBeInTheDocument();
             expect(screen.queryByText(addOnBannerText)).not.toBeInTheDocument();
+        });
+
+        it('keeps the explanation visible to a read-only admin', () => {
+            // buildBannerSetting renders nothing for a disabled setting, so applying
+            // the plugin-write predicate to the banner would leave this page with no
+            // toggle and no reason given.
+            renderAddOnPlugin(
+                {IsLicensed: 'true'},
+                {
+                    ...baseProps.consoleAccess,
+                    write: {...baseProps.consoleAccess.write, plugins: false},
+                },
+            );
+
+            expect(screen.getByText(addOnBannerText)).toBeInTheDocument();
+            expect(screen.queryByTestId('PluginSettings.PluginStates.crossguard.Enable-button')).not.toBeInTheDocument();
         });
 
         it('does not match an add-on on a substring', () => {

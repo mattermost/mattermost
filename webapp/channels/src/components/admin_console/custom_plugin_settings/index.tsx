@@ -206,6 +206,16 @@ function makeGetPluginSchema() {
             }
 
             const checkDisableSetting = (s: Partial<AdminDefinitionSetting>) => {
+                // Banners are informational, and buildBannerSetting renders nothing at
+                // all for a disabled setting rather than rendering it inert. Applying
+                // the write-permission predicate would therefore hide the explanation
+                // from a read-only admin instead of just making it non-actionable,
+                // which for an unlicensed add-on leaves a page with no toggle and no
+                // reason given.
+                if (s.type === Constants.SettingsTypes.TYPE_BANNER) {
+                    return;
+                }
+
                 if (s.isDisabled) {
                     s.isDisabled = it.any(s.isDisabled, it.not(it.userHasWritePermissionOnResource('plugins')));
                 } else {
