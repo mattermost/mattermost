@@ -3,6 +3,8 @@
 
 package model
 
+import "strings"
+
 const (
 	PluginIdPlaybooks     = "playbooks"
 	PluginIdFocalboard    = "focalboard"
@@ -19,16 +21,28 @@ const (
 	AddOnCrossGuard = "crossguard"
 )
 
-// PluginAddOnRequirements maps a plugin id to the add-on entitlement its license
+// pluginAddOnRequirements maps a plugin id to the add-on entitlement its license
 // must grant before the server will activate it. Plugins absent from this map are
 // not add-ons and activate normally.
 //
-// This mapping is deliberately held server-side rather than declared by the plugin
-// manifest: a gate declared by the artifact being gated could be removed by
-// repackaging the bundle.
+// Keys must be lower case. Look up through PluginRequiredAddOn, which normalizes:
+// IsValidPluginId permits mixed case, so an exact-match lookup would let a bundle
+// re-declare its id as "CrossGuard" and miss the gate entirely.
+//
+// Held server-side rather than declared by the plugin manifest, because a gate
+// declared by the artifact being gated could be removed by repackaging the bundle.
+// Unexported for the same reason: it decides a paid entitlement, so it should not
+// be reassignable by anything importing the public module.
 //
 // To add a new add-on: add its plugin id constant, its add-on name constant, and
 // one entry here. Nothing else in the server needs to change.
-var PluginAddOnRequirements = map[string]string{
+var pluginAddOnRequirements = map[string]string{
 	PluginIdCrossGuard: AddOnCrossGuard,
+}
+
+// PluginRequiredAddOn reports which add-on entitlement a plugin requires, and
+// whether it requires one at all. Plugin id matching is case-insensitive.
+func PluginRequiredAddOn(pluginID string) (string, bool) {
+	addOn, ok := pluginAddOnRequirements[strings.ToLower(pluginID)]
+	return addOn, ok
 }

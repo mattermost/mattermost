@@ -298,15 +298,16 @@ func TestGetClientLicenseAddOns(t *testing.T) {
 		require.Equal(t, "crossguard,another", props["AddOns"])
 	})
 
-	t.Run("stripped by sanitization", func(t *testing.T) {
-		// Only the System Console consumes add-ons, so non-admins must not be told
-		// which add-ons the customer purchased.
+	t.Run("survives sanitization", func(t *testing.T) {
+		// The license_changed websocket event broadcasts the sanitized license and
+		// the webapp reducer replaces the license object wholesale, so anything
+		// stripped here disappears from the System Console after a license change.
+		// Do not add AddOns to the delete list in GetSanitizedClientLicense.
 		props := GetClientLicense(newLicense(model.AddOnCrossGuard))
 		require.Equal(t, "crossguard", props["AddOns"])
 
 		sanitized := GetSanitizedClientLicense(props)
-		_, ok := sanitized["AddOns"]
-		require.False(t, ok, "AddOns must not survive sanitization")
+		require.Equal(t, "crossguard", sanitized["AddOns"], "AddOns must survive sanitization")
 	})
 }
 

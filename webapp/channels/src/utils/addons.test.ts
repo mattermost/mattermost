@@ -17,6 +17,20 @@ describe('utils/addons', () => {
             expect(getRequiredAddOn('playbooks')).toBeUndefined();
             expect(getRequiredAddOn('')).toBeUndefined();
         });
+
+        test('should match the plugin id case-insensitively', () => {
+            // Mirrors model.PluginRequiredAddOn; IsValidPluginId permits mixed case.
+            expect(getRequiredAddOn('CrossGuard')).toEqual('crossguard');
+            expect(getRequiredAddOn('CROSSGUARD')).toEqual('crossguard');
+        });
+
+        test('should not resolve ids that collide with Object.prototype members', () => {
+            // 'constructor', 'toString' and 'valueOf' are all valid plugin ids.
+            expect(getRequiredAddOn('constructor')).toBeUndefined();
+            expect(getRequiredAddOn('toString')).toBeUndefined();
+            expect(getRequiredAddOn('valueOf')).toBeUndefined();
+            expect(getRequiredAddOn('hasOwnProperty')).toBeUndefined();
+        });
     });
 
     describe('licenseHasAddOn', () => {
@@ -52,6 +66,16 @@ describe('utils/addons', () => {
         test('should return false for plugins that are not add-ons, regardless of license', () => {
             expect(isUnlicensedAddOn('playbooks', undefined)).toBe(false);
             expect(isUnlicensedAddOn('playbooks', licensed('crossguard'))).toBe(false);
+        });
+
+        test('should not crash or misreport on Object.prototype-colliding ids', () => {
+            expect(isUnlicensedAddOn('constructor', undefined)).toBe(false);
+            expect(isUnlicensedAddOn('toString', licensed('crossguard'))).toBe(false);
+        });
+
+        test('should treat a mixed-case add-on id as an add-on', () => {
+            expect(isUnlicensedAddOn('CrossGuard', undefined)).toBe(true);
+            expect(isUnlicensedAddOn('CrossGuard', licensed('crossguard'))).toBe(false);
         });
 
         test('should return true for an add-on the license does not grant', () => {

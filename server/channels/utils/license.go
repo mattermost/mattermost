@@ -286,9 +286,14 @@ func GetSanitizedClientLicense(l map[string]string) map[string]string {
 	delete(sanitizedLicense, "StartsAt")
 	delete(sanitizedLicense, "ExpiresAt")
 	delete(sanitizedLicense, "SkuName")
-	// Purchased add-ons are only consumed by the System Console, so there is no
-	// reason to tell every user on the server what the customer bought.
-	delete(sanitizedLicense, "AddOns")
+
+	// AddOns must NOT be stripped here. Only identity and date fields are removed
+	// above; every entitlement field (LDAP, SAML, Compliance, Users, ...) survives,
+	// and add-ons are entitlements. Stripping one matters because the
+	// license_changed websocket event broadcasts this sanitized map and the webapp
+	// reducer replaces the license object wholesale, so a stripped field is lost
+	// from the System Console after any license change. Reducing what this endpoint
+	// exposes is tracked as a whole in MM-68045.
 
 	return sanitizedLicense
 }

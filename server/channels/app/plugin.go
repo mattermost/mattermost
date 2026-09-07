@@ -258,7 +258,12 @@ func (ch *Channels) initPlugins(rctx request.CTX, pluginDir, webappPluginDir str
 		// not change the config, so no config listener ever fires for it.
 		//
 		// This runs before the hook below so that OnLicenseChanged is delivered to
-		// the set of plugins the new license actually permits.
+		// the set of plugins the new license actually permits. The consequence is
+		// that a revoked add-on is deactivated before the hook dispatches, so it
+		// sees OnDeactivate rather than OnLicenseChanged. That is unavoidable:
+		// RunMultiPluginHook only reaches active plugins, so hook-then-sync would
+		// just lose the grant direction instead, where the plugin is not yet
+		// running when the hook fires.
 		ch.syncPluginsActiveState()
 
 		ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
@@ -456,6 +461,14 @@ func (ch *Channels) enablePlugin(id string) *model.AppError {
 
 	if manifest == nil {
 		return model.NewAppError("EnablePlugin", "app.plugin.not_installed.app_error", nil, "", http.StatusNotFound)
+	}
+
+	// Reject up front rather than writing Enable: true and letting
+	// syncPluginsActiveState immediately deactivate it again, which would report
+	// success for a plugin that cannot run. Deliberately scoped to add-ons: the
+	// other getPluginStateOverride case (Apps) keeps its existing behaviour.
+	if addOn, isAddOn := model.PluginRequiredAddOn(id); isAddOn && !ch.srv.License().HasAddOn(addOn) {
+		return model.NewAppError("EnablePlugin", "app.plugin.addon_not_licensed.app_error", map[string]any{"AddOn": addOn}, "", http.StatusForbidden)
 	}
 
 	ch.cfgSvc.UpdateConfig(func(cfg *model.Config) {
@@ -1271,7 +1284,7 @@ func (ch *Channels) getPluginStateOverride(pluginID string) (bool, bool) {
 	// Add-on plugins are purchased alongside the license and only run when the
 	// license grants the matching entitlement. This overrides PluginStates, so an
 	// admin cannot enable an unlicensed add-on by editing config.
-	if addOn, ok := model.PluginAddOnRequirements[pluginID]; ok {
+	if addOn, ok := model.PluginRequiredAddOn(pluginID); ok {
 		if !ch.srv.License().HasAddOn(addOn) {
 			return true, false
 		}

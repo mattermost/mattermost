@@ -646,17 +646,38 @@ func TestLicenseAddOnsJSON(t *testing.T) {
 	})
 }
 
-func TestPluginAddOnRequirements(t *testing.T) {
-	for pluginID, addOn := range PluginAddOnRequirements {
+func TestPluginRequiredAddOn(t *testing.T) {
+	for pluginID, addOn := range pluginAddOnRequirements {
 		t.Run(pluginID, func(t *testing.T) {
 			assert.True(t, IsValidPluginId(pluginID), "plugin id must be valid")
 			assert.NotEmpty(t, addOn, "add-on name must not be empty")
 			assert.Equal(t, strings.ToLower(addOn), addOn, "add-on name should be lower case for consistency")
+			assert.Equal(t, strings.ToLower(pluginID), pluginID, "registry keys must be lower case so PluginRequiredAddOn can normalize")
 		})
 	}
 
 	t.Run("crossguard is registered", func(t *testing.T) {
-		assert.Equal(t, AddOnCrossGuard, PluginAddOnRequirements[PluginIdCrossGuard])
+		addOn, ok := PluginRequiredAddOn(PluginIdCrossGuard)
+		assert.True(t, ok)
+		assert.Equal(t, AddOnCrossGuard, addOn)
+	})
+
+	t.Run("plugin id matching is case-insensitive", func(t *testing.T) {
+		// IsValidPluginId permits mixed case, so an exact-match lookup would let a
+		// repackaged bundle declaring "CrossGuard" slip past the gate.
+		for _, id := range []string{"CrossGuard", "CROSSGUARD", "cRoSsGuArD"} {
+			addOn, ok := PluginRequiredAddOn(id)
+			assert.True(t, ok, "expected %q to require an add-on", id)
+			assert.Equal(t, AddOnCrossGuard, addOn)
+		}
+	})
+
+	t.Run("plugins outside the registry require nothing", func(t *testing.T) {
+		for _, id := range []string{PluginIdPlaybooks, "", "crossguard-premium", "cross"} {
+			addOn, ok := PluginRequiredAddOn(id)
+			assert.False(t, ok, "expected %q to require no add-on", id)
+			assert.Empty(t, addOn)
+		}
 	})
 }
 

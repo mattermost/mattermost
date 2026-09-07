@@ -18,9 +18,16 @@ export const pluginAddOnRequirements: Record<string, string> = {
 
 /**
  * Returns the add-on a plugin requires, or undefined if it is not an add-on.
+ *
+ * Keys are lower case and the plugin id is normalized before lookup, mirroring
+ * model.PluginRequiredAddOn on the server, since IsValidPluginId permits mixed
+ * case. Object.hasOwn guards against ids that collide with Object.prototype
+ * members ('constructor', 'toString'), which are also valid plugin ids and would
+ * otherwise resolve to an inherited value.
  */
 export function getRequiredAddOn(pluginId: string): string | undefined {
-    return pluginAddOnRequirements[pluginId];
+    const key = pluginId.toLowerCase();
+    return Object.hasOwn(pluginAddOnRequirements, key) ? pluginAddOnRequirements[key] : undefined;
 }
 
 /**
