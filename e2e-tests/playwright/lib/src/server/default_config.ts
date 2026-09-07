@@ -91,7 +91,7 @@ const onPremServerConfig = (): Partial<TestAdminConfig> => {
 };
 
 // Should be based only from the generated default config from ./server via "make config-reset"
-// Based on v11.7 server
+// Based on v11.8 server
 const defaultServerConfig: AdminConfig = {
     ServiceSettings: {
         SiteURL: '',
@@ -783,20 +783,27 @@ const defaultServerConfig: AdminConfig = {
         ExperimentalAuditSettingsSystemConsoleUI: true,
         CustomProfileAttributes: true,
         AttributeBasedAccessControl: true,
-        PermissionPolicies: true,
+        AttributeValueMasking: false,
+        PermissionPolicies: false,
+        ChannelPermissionPolicies: false,
+        PolicySimulation: false,
         ContentFlagging: true,
         InteractiveDialogAppsForm: true,
         EnableMattermostEntry: true,
         MobileSSOCodeExchange: false,
+        EnableShiftEscapeToMarkAllRead: false,
         AutoTranslation: true,
+        ClassificationMarkings: true,
         BurnOnRead: true,
         EnableAIPluginBridge: false,
         EnableAIRecaps: false,
-        ClassificationMarkings: true,
         IntegratedBoards: false,
         CJKSearch: false,
+        AggregatePluginMetrics: false,
         ManagedChannelCategories: false,
-        MobileEphemeralMode: true,
+        SessionAttributes: false,
+        DiscoverableChannels: false,
+        MobileEphemeralMode: false,
     },
     ImportSettings: {
         Directory: './import',
@@ -825,8 +832,8 @@ const defaultServerConfig: AdminConfig = {
         MemberSyncBatchSize: 20,
     },
     AccessControlSettings: {
-        EnableAttributeBasedAccessControl: true,
-        EnableUserManagedAttributes: true,
+        EnableAttributeBasedAccessControl: false,
+        EnableUserManagedAttributes: false,
     },
     ContentFlaggingSettings: {
         EnableContentFlagging: true,
