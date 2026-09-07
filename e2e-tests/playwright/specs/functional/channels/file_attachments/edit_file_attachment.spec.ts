@@ -124,7 +124,7 @@ test('MM-T5654_3 should be able to edit post message originally containing files
     const originalMessage = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit';
 
     const {user} = await pw.initSetup();
-    const {channelsPage} = await pw.testBrowser.login(user);
+    const {channelsPage, page} = await pw.testBrowser.login(user);
 
     await channelsPage.goto();
     await channelsPage.toBeVisible();
@@ -136,7 +136,8 @@ test('MM-T5654_3 should be able to edit post message originally containing files
     await post.postMenu.toBeVisible();
 
     // open the dot menu
-    await post.postMenu.dotMenuButton.click();
+    await post.postMenu.clickOnDotMenu();
+    await moveMouseToCenter(page);
     await channelsPage.postDotMenu.toBeVisible();
     await channelsPage.postDotMenu.editMenuItem.click();
     await channelsPage.centerView.postEdit.toBeVisible();
@@ -152,7 +153,7 @@ test('MM-T5654_4 should be able to add files when editing a post', async ({pw}) 
     const originalMessage = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit';
 
     const {user} = await pw.initSetup();
-    const {channelsPage} = await pw.testBrowser.login(user);
+    const {channelsPage, page} = await pw.testBrowser.login(user);
 
     await channelsPage.goto();
     await channelsPage.toBeVisible();
@@ -164,7 +165,8 @@ test('MM-T5654_4 should be able to add files when editing a post', async ({pw}) 
     await post.postMenu.toBeVisible();
 
     // open the dot menu
-    await post.postMenu.dotMenuButton.click();
+    await post.postMenu.clickOnDotMenu();
+    await moveMouseToCenter(page);
     await channelsPage.postDotMenu.toBeVisible();
     await channelsPage.postDotMenu.editMenuItem.click();
     await channelsPage.centerView.postEdit.toBeVisible();
@@ -178,7 +180,10 @@ test('MM-T5654_4 should be able to add files when editing a post', async ({pw}) 
     await updatedPost.toContainText('sample_text_file.txt');
 
     // now we'll add multiple files
-    await post.postMenu.dotMenuButton.click();
+    await updatedPost.hover();
+    await updatedPost.postMenu.toBeVisible();
+    await updatedPost.postMenu.clickOnDotMenu();
+    await moveMouseToCenter(page);
     await channelsPage.postDotMenu.toBeVisible();
     await channelsPage.postDotMenu.editMenuItem.click();
     await channelsPage.centerView.postEdit.toBeVisible();
@@ -233,7 +238,7 @@ test('MM-T5655_1 removing message content and files should delete the post', asy
     const originalMessage = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit';
 
     const {user} = await pw.initSetup();
-    const {channelsPage} = await pw.testBrowser.login(user);
+    const {channelsPage, page} = await pw.testBrowser.login(user);
 
     await channelsPage.goto();
     await channelsPage.toBeVisible();
@@ -246,7 +251,8 @@ test('MM-T5655_1 removing message content and files should delete the post', asy
 
     await post.hover();
     await post.postMenu.toBeVisible();
-    await post.postMenu.dotMenuButton.click();
+    await post.postMenu.clickOnDotMenu();
+    await moveMouseToCenter(page);
 
     await channelsPage.postDotMenu.toBeVisible();
     await channelsPage.postDotMenu.editMenuItem.click();
@@ -306,7 +312,7 @@ test('MM-T5656_1 should be able to restore previously edited post version that c
     const newMessage = 'New Message';
 
     const {user} = await pw.initSetup();
-    const {channelsPage} = await pw.testBrowser.login(user);
+    const {channelsPage, page} = await pw.testBrowser.login(user);
 
     await channelsPage.goto();
     await channelsPage.toBeVisible();
@@ -319,7 +325,8 @@ test('MM-T5656_1 should be able to restore previously edited post version that c
 
     await post.hover();
     await post.postMenu.toBeVisible();
-    await post.postMenu.dotMenuButton.click();
+    await post.postMenu.clickOnDotMenu();
+    await moveMouseToCenter(page);
 
     await channelsPage.postDotMenu.toBeVisible();
     await channelsPage.postDotMenu.editMenuItem.click();
