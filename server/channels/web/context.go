@@ -52,7 +52,7 @@ func (c *Context) LogAuditRecWithLevel(rec *model.AuditRecord, level mlog.Level)
 	if c.Err != nil {
 		rec.AddErrorCode(c.Err.StatusCode)
 		rec.AddErrorDesc(c.Err.Error())
-		if c.Err.Id == "api.context.permissions.app_error" {
+		if c.Err.Id == "api.context.permissions.app_error" || c.Err.Id == "api.channel.access_channel.abac_denied.app_error" {
 			level = app.LevelPerms
 		}
 		rec.Fail()
@@ -283,6 +283,23 @@ func NewJSONEncodingError(err error) *model.AppError {
 
 func (c *Context) SetPermissionError(permissions ...*model.Permission) {
 	c.Err = model.MakePermissionError(c.AppContext.Session(), permissions)
+}
+
+// SetChannelPermissionError reports a denied channel permission, distinguishing an
+// ABAC access_channel denial from an ordinary one.
+//
+// Clients need the two apart: "you were removed from this channel" and "you cannot
+// view this channel right now" call for different messages, and only the second one
+// can resolve itself when the session or the user's attributes change. Falls back to
+// the generic permission error whenever the policy was not what denied.
+func (c *Context) SetChannelPermissionError(channelID string, permissions ...*model.Permission) {
+	if app.ChannelAccessDeniedByPolicy(c.AppContext, channelID) {
+		c.Err = model.NewAppError("Permissions", "api.channel.access_channel.abac_denied.app_error", nil,
+			"userId="+c.AppContext.Session().UserId+", channelId="+channelID, http.StatusForbidden)
+		return
+	}
+
+	c.SetPermissionError(permissions...)
 }
 
 func (c *Context) SetSiteURLHeader(url string) {

@@ -13,4 +13,12 @@ import (
 // an action on a resource based on the resource policy.
 type PolicyDecisionPointInterface interface {
 	AccessEvaluation(rctx request.CTX, accessRequest model.AccessRequest) (model.AccessDecision, *model.AppError)
+
+	// ActionHasPermissionPolicy reports whether any active system-scoped permission
+	// policy declares the given action. Enforcement gates use it as a cheap negative:
+	// when no policy governs the action, there is nothing to decide and no subject
+	// needs building. Implementations MUST report "governed" alongside any error, so
+	// a caller that ignores the error falls through to a full evaluation instead of
+	// skipping one that would have denied.
+	ActionHasPermissionPolicy(rctx request.CTX, action string) (bool, *model.AppError)
 }

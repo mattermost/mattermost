@@ -264,6 +264,10 @@
     "translation": "Please add me to teams and channels you want me to interact in. To do this, use the browser or Mattermost Desktop App."
   },
   {
+    "id": "api.channel.access_channel.abac_denied.app_error",
+    "translation": "You do not currently have access to this channel."
+  },
+  {
     "id": "api.channel.add_guest.added",
     "translation": "%v added to the channel as guest by %v."
   },
@@ -8135,6 +8139,10 @@
   {
     "id": "app.pdp.access_evaluation.permission_policy.app_error",
     "translation": "Failed to evaluate permission policy."
+  },
+  {
+    "id": "app.pdp.action_has_permission_policy.app_error",
+    "translation": "Could not determine whether permission policies govern this action."
   },
   {
     "id": "app.plugin.cluster.save_config.app_error",

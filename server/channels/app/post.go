@@ -2826,7 +2826,14 @@ func (a *App) GetPostIfAuthorized(rctx request.CTX, postID string, session *mode
 		return nil, err, false
 	}
 
-	ok, isMember := a.SessionHasPermissionToReadChannel(rctx, *session, channel)
+	// The ABAC access_channel policy is evaluated first and on its own, because the
+	// public-channel fallback below reaches the team level: checking it afterwards
+	// would let a denied session read any open channel on its team.
+	if !a.HasPermissionToAccessChannel(rctx, session.UserId, channel) {
+		return nil, model.MakePermissionError(session, []*model.Permission{model.PermissionReadChannelContent}), false
+	}
+
+	ok, isMember := a.SessionHasPermissionToReadChannelRBACOnly(rctx, *session, channel)
 	if !ok {
 		if channel.Type == model.ChannelTypeOpen && !*a.Config().ComplianceSettings.Enable {
 			if !a.SessionHasPermissionToTeam(*session, channel.TeamId, model.PermissionReadPublicChannel) {
