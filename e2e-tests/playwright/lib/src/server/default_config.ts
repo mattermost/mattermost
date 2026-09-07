@@ -3,6 +3,7 @@
 
 import merge from 'deepmerge';
 import type {
+    AccessControlSettings,
     AdminConfig,
     ClusterSettings,
     EmailSettings,
@@ -26,6 +27,7 @@ export function mergeWithOnPremServerConfig(overrides: Partial<AdminConfig>): Ad
 }
 
 type TestAdminConfig = {
+    AccessControlSettings: Partial<AccessControlSettings>;
     ClusterSettings: Partial<ClusterSettings>;
     EmailSettings: Partial<EmailSettings>;
     ExperimentalSettings: Partial<ExperimentalSettings>;
@@ -39,6 +41,10 @@ type TestAdminConfig = {
 // On-prem setting that is different from the default
 const onPremServerConfig = (): Partial<TestAdminConfig> => {
     return {
+        AccessControlSettings: {
+            EnableAttributeBasedAccessControl: true,
+            EnableUserManagedAttributes: true,
+        },
         ClusterSettings: {
             Enable: testConfig.haClusterEnabled,
             ClusterName: testConfig.haClusterName,
@@ -91,7 +97,7 @@ const onPremServerConfig = (): Partial<TestAdminConfig> => {
 };
 
 // Should be based only from the generated default config from ./server via "make config-reset"
-// Based on v11.7 server
+// Based on v11.9 server
 const defaultServerConfig: AdminConfig = {
     ServiceSettings: {
         SiteURL: '',
@@ -256,7 +262,7 @@ const defaultServerConfig: AdminConfig = {
     SqlSettings: {
         DriverName: 'postgres',
         DataSource:
-            'postgres://mmuser:mostest@localhost/mattermost_test?sslmode=disable\u0026connect_timeout=10\u0026binary_parameters=yes',
+            'postgres://mmuser:mostest@localhost/mattermost_test?sslmode=disable&connect_timeout=10&binary_parameters=yes',
         DataSourceReplicas: [],
         DataSourceSearchReplicas: [],
         MaxIdleConns: 50,
@@ -784,20 +790,29 @@ const defaultServerConfig: AdminConfig = {
         ExperimentalAuditSettingsSystemConsoleUI: true,
         CustomProfileAttributes: true,
         AttributeBasedAccessControl: true,
+        AttributeValueMasking: true,
         PermissionPolicies: true,
+        ChannelPermissionPolicies: true,
+        PolicySimulation: true,
         ContentFlagging: true,
         EnableMattermostEntry: true,
         MobileSSOCodeExchange: false,
+        EnableShiftEscapeToMarkAllRead: false,
         AutoTranslation: true,
+        ClassificationMarkings: true,
         BurnOnRead: true,
         EnableAIPluginBridge: false,
         EnableAIRecaps: false,
-        ClassificationMarkings: true,
-        PropertyFieldRank: true,
         IntegratedBoards: false,
         CJKSearch: true,
+        AggregatePluginMetrics: false,
         ManagedChannelCategories: false,
-        MobileEphemeralMode: true,
+        SessionAttributes: false,
+        DiscoverableChannels: false,
+        MobileEphemeralMode: false,
+        PropertyFieldRank: true,
+        TeamMembershipAccessControl: false,
+        EnableMFIPluginSignaturePublicKey: true,
     },
     ImportSettings: {
         Directory: './import',
@@ -826,8 +841,8 @@ const defaultServerConfig: AdminConfig = {
         MemberSyncBatchSize: 20,
     },
     AccessControlSettings: {
-        EnableAttributeBasedAccessControl: true,
-        EnableUserManagedAttributes: true,
+        EnableAttributeBasedAccessControl: false,
+        EnableUserManagedAttributes: false,
         TrustProxyDeviceIdentityHeader: false,
         EnforceDeviceIDConsistency: false,
     },
