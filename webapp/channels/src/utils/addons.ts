@@ -7,10 +7,10 @@ import type {ClientLicense} from '@mattermost/types/config';
  * Maps a plugin id to the add-on entitlement its license must grant before the
  * server will activate it. Plugins absent from this map are not add-ons.
  *
- * This mirrors model.PluginAddOnRequirements in
+ * This mirrors the registry behind model.PluginRequiredAddOn in
  * server/public/model/plugin_constants.go and must be kept in sync with it.
- * The server-side map is authoritative: it gates activation, while this one only
- * gates what the System Console offers.
+ * The server-side registry is authoritative: it gates activation, while this one
+ * only gates what the System Console offers.
  */
 export const pluginAddOnRequirements: Record<string, string> = {
     crossguard: 'crossguard',

@@ -23,6 +23,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin"
+	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/testlib"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
@@ -1480,6 +1481,13 @@ func TestEnablePluginAddOnLicenseCheck(t *testing.T) {
 		// would silently activate the plugin as soon as any license was applied.
 		state := th.App.Config().PluginSettings.PluginStates[model.PluginIdCrossGuard]
 		require.True(t, state == nil || !state.Enable)
+
+		// The message must actually name the missing entitlement: an add-on name
+		// need not match the plugin id, so it is what tells the admin what to buy.
+		// Guards the AddOn param and the {{.AddOn}} placeholder from drifting apart,
+		// since a missing placeholder drops the param silently.
+		appErr.Translate(i18n.GetUserTranslations("en"))
+		require.Contains(t, appErr.Message, model.AddOnCrossGuard)
 	})
 
 	t.Run("allows a licensed add-on", func(t *testing.T) {

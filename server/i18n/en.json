@@ -8106,7 +8106,7 @@
   },
   {
     "id": "app.plugin.addon_not_licensed.app_error",
-    "translation": "This plugin is a licensed add-on and your license does not include it."
+    "translation": "This plugin requires the {{.AddOn}} add-on, which your license does not include."
   },
   {
     "id": "app.plugin.cluster.save_config.app_error",
