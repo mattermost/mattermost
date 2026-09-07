@@ -164,6 +164,10 @@ type FeatureFlags struct {
 
 	// FEATURE_FLAG_REMOVAL: RecurringScheduledPosts - Remove this when the feature is GA.
 	RecurringScheduledPosts bool
+
+	// Gates post delivery audit logging. Enabling it requires a server restart, since it
+	// controls whether the /api/v4/delivery_tracking routes are registered.
+	PostDeliveryTracking bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -225,11 +229,13 @@ func (f *FeatureFlags) SetDefaults() {
 
 	f.MmBlocksEnabled = true
 
-	f.EnableConcurrentReact = false
+	f.EnableConcurrentReact = true
 
 	f.EnableMFIPluginSignaturePublicKey = true
 
 	f.RecurringScheduledPosts = false
+
+	f.PostDeliveryTracking = false
 }
 
 // isValid rejects feature flag combinations that are no longer supported.

@@ -221,7 +221,7 @@ Ensure the desktop app is closed before proceeding with a silent installation. B
 
 <Note>
 
-\- Replace `&lt;version&gt;` with the actual version number (e.g., `v6.3.0`). - From v6.1.0, the MSI installs per-machine by default, requiring administrator privileges.
+\- Replace `<version>` with the actual version number (e.g., `v6.3.0`). - From v6.1.0, the MSI installs per-machine by default, requiring administrator privileges.
 
 </Note>
 
@@ -231,8 +231,8 @@ From version v5.9.0 of the Mattermost desktop app, the following silent MSI inst
 
 Use the `APPLICATIONFOLDER` parameter to specify an installation directory for the MSI installation:
 
-- **Command Prompt:** `msiexec /i mattermost-desktop-v6.3.0-x64.msi APPLICATIONFOLDER="&lt;install directory&gt;"`
-- **PowerShell:** `Start-Process -FilePath "$env:systemroot\system32\msiexec.exe" -ArgumentList '/i mattermost-desktop-v6.3.0-x64.msi APPLICATIONFOLDER="&lt;install directory&gt;"'`
+- **Command Prompt:** `msiexec /i mattermost-desktop-v6.3.0-x64.msi APPLICATIONFOLDER="<install directory>"`
+- **PowerShell:** `Start-Process -FilePath "$env:systemroot\system32\msiexec.exe" -ArgumentList '/i mattermost-desktop-v6.3.0-x64.msi APPLICATIONFOLDER="<install directory>"'`
 
 Change this command as new versions of the Mattermost Desktop App are released.
 
