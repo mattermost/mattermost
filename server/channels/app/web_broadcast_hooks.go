@@ -26,6 +26,7 @@ const (
 	broadcastBurnOnReadReaction = "burn_on_read_reaction"
 	broadcastAbacFiles          = "abac_files"
 	broadcastOnlyChannelAdmins  = "only_channel_admins"
+	broadcastAccessChannel      = "access_channel"
 )
 
 func (s *Server) makeBroadcastHooks() map[string]platform.BroadcastHook {
@@ -39,6 +40,7 @@ func (s *Server) makeBroadcastHooks() map[string]platform.BroadcastHook {
 		broadcastBurnOnReadReaction: &burnOnReadReactionBroadcastHook{},
 		broadcastAbacFiles:          &abacFilesBroadcastHook{},
 		broadcastOnlyChannelAdmins:  &onlyChannelAdminsBroadcastHook{},
+		broadcastAccessChannel:      &accessChannelBroadcastHook{},
 	}
 }
 
@@ -529,6 +531,44 @@ func (h *onlyChannelAdminsBroadcastHook) Process(msg *platform.HookedWebSocketEv
 	}
 
 	if !slices.Contains(adminUserIDs, webConn.UserId) {
+		msg.Event().Reject()
+	}
+	return nil
+}
+
+// accessChannelBroadcastHook drops a channel-scoped event for any recipient the
+// ABAC access_channel policy denies.
+//
+// The channel gates cover what a session can fetch, but a post arriving over the
+// websocket was never fetched — without this, a session that has lost access keeps
+// receiving the channel's traffic until it reloads. Rejecting is honoured before
+// the event burns a sequence number or enters the reconnect replay queue, so a
+// dropped event leaves no gap for the client to notice.
+type accessChannelBroadcastHook struct{}
+
+func useAccessChannelHook(message *model.WebSocketEvent, channelID string) {
+	message.GetBroadcast().AddHook(broadcastAccessChannel, map[string]any{
+		"channel_id": channelID,
+	})
+}
+
+func (h *accessChannelBroadcastHook) Process(msg *platform.HookedWebSocketEvent, webConn *platform.WebConn, args map[string]any) error {
+	channelID, err := getTypedArg[string](args, "channel_id")
+	if err != nil {
+		return errors.Wrap(err, "Invalid channel_id value passed to accessChannelBroadcastHook")
+	}
+
+	// A rule may reference the session's device or network, so the evaluation needs
+	// this connection's session. Fail closed without one: an unauthenticated
+	// connection has nothing to evaluate and must not receive the event.
+	session := webConn.GetSession()
+	if session == nil {
+		msg.Event().Reject()
+		return nil
+	}
+
+	rctx := request.EmptyContext(webConn.Platform.Log()).WithSession(session)
+	if !webConn.Suite.HasPermissionToAccessChannelByID(rctx, webConn.UserId, channelID) {
 		msg.Event().Reject()
 	}
 	return nil

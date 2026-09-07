@@ -1167,9 +1167,22 @@ func (a *App) publishWebsocketEventForPost(rctx request.CTX, post *model.Post, m
 	}
 
 	a.setupBroadcastHookForAbacFiles(post, message)
+	a.setupBroadcastHookForAccessChannel(post.ChannelId, message)
 
 	a.Publish(message)
 	return nil
+}
+
+// setupBroadcastHookForAccessChannel registers accessChannelBroadcastHook on a
+// channel-scoped event so each recipient's access_channel policy is evaluated
+// before the event reaches them. A no-op while the feature is inert, so the hub
+// pays nothing on the common path.
+func (a *App) setupBroadcastHookForAccessChannel(channelID string, message *model.WebSocketEvent) {
+	if channelID == "" || !a.accessChannelEnforcementActive() {
+		return
+	}
+
+	useAccessChannelHook(message, channelID)
 }
 
 // setupBroadcastHookForAbacFiles registers abacFilesBroadcastHook when ABAC is active and
@@ -3471,12 +3484,14 @@ func (a *App) CleanUpAfterPostDeletion(rctx request.CTX, post *model.Post, delet
 	userMessage := model.NewWebSocketEvent(model.WebsocketEventPostDeleted, "", post.ChannelId, "", nil, "")
 	userMessage.Add("post", sanitizedPostJSON)
 	userMessage.GetBroadcast().ContainsSanitizedData = true
+	a.setupBroadcastHookForAccessChannel(post.ChannelId, userMessage)
 	a.Publish(userMessage)
 
 	adminMessage := model.NewWebSocketEvent(model.WebsocketEventPostDeleted, "", post.ChannelId, "", nil, "")
 	adminMessage.Add("post", string(postJSON))
 	adminMessage.Add("delete_by", deleteByID)
 	adminMessage.GetBroadcast().ContainsSensitiveData = true
+	a.setupBroadcastHookForAccessChannel(post.ChannelId, adminMessage)
 	a.Publish(adminMessage)
 
 	a.Srv().Go(func() {

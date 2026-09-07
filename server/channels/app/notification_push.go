@@ -800,6 +800,19 @@ func (a *App) BuildPushNotificationMessage(rctx request.CTX, contentsConfig stri
 ) (*model.PushNotification, *model.AppError) {
 	var msg *model.PushNotification
 
+	// A push notification delivers the post's content without the recipient asking
+	// for it, so it must not carry the body of a channel the access_channel policy
+	// hides. The evaluation runs against whatever session attributes are cached, and
+	// a recipient with none is treated as denied — a notification is content leaving
+	// the server, not a request to be authorized.
+	//
+	// The notification still goes out, downgraded: the device fetches the message by
+	// id, and that fetch re-runs the gate live. Where id-loaded is unavailable the
+	// generic form is the fallback, which carries no body either.
+	if !a.HasPermissionToAccessChannel(rctx, user.Id, channel) {
+		contentsConfig = model.IdLoadedNotification
+	}
+
 	notificationInterface := a.ch.Notification
 	if (notificationInterface == nil || notificationInterface.CheckLicense() != nil) && contentsConfig == model.IdLoadedNotification {
 		contentsConfig = model.GenericNotification

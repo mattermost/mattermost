@@ -266,3 +266,46 @@ func TestHasPermissionToAccessChannelByID(t *testing.T) {
 		require.False(t, h.th.App.HasPermissionToAccessChannelByID(h.rctx, h.th.BasicUser.Id, h.th.BasicChannel.Id))
 	})
 }
+
+// TestBuildPushNotificationMessageAccessChannel pins the notification contract: a
+// push carries the post body without the recipient asking for it, so a denied
+// channel must downgrade to an id-only payload rather than being suppressed. The
+// device then fetches by id, and that fetch re-runs the gate live.
+func TestBuildPushNotificationMessageAccessChannel(t *testing.T) {
+	build := func(t *testing.T, h *accessChannelHarness) *model.PushNotification {
+		t.Helper()
+		msg, appErr := h.th.App.BuildPushNotificationMessage(
+			h.rctx,
+			model.FullNotification,
+			h.th.BasicPost,
+			h.th.BasicUser,
+			h.th.BasicChannel,
+			h.th.BasicChannel.Name,
+			h.th.BasicUser.Username,
+			true, false, "",
+		)
+		require.Nil(t, appErr)
+		return msg
+	}
+
+	t.Run("a denied recipient gets no post content", func(t *testing.T) {
+		h := setupAccessChannelTest(t)
+		mockACS := h.mockACS(t)
+		governed(mockACS)
+		decides(mockACS, false)
+
+		msg := build(t, h)
+		require.NotEmpty(t, msg.PostId, "the notification still goes out, just without the body")
+		require.NotContains(t, msg.Message, h.th.BasicPost.Message)
+	})
+
+	t.Run("an allowed recipient gets the full content", func(t *testing.T) {
+		h := setupAccessChannelTest(t)
+		mockACS := h.mockACS(t)
+		governed(mockACS)
+		decides(mockACS, true)
+
+		msg := build(t, h)
+		require.Contains(t, msg.Message, h.th.BasicPost.Message)
+	})
+}

@@ -1156,3 +1156,56 @@ func TestSetupBroadcastHookForAbacFiles(t *testing.T) {
 		assert.Empty(t, hooks, "AccessControl is nil in test env — hook not registered")
 	})
 }
+
+func TestAccessChannelBroadcastHook_Process(t *testing.T) {
+	mainHelper.Parallel(t)
+	hook := &accessChannelBroadcastHook{}
+
+	userID := model.NewId()
+	channelID := model.NewId()
+
+	makeMessage := func() *platform.HookedWebSocketEvent {
+		event := model.NewWebSocketEvent(model.WebsocketEventPosted, "", channelID, "", nil, "")
+		return platform.MakeHookedWebSocketEvent(event)
+	}
+
+	makeWebConn := func(t *testing.T, allowed bool, withSession bool) *platform.WebConn {
+		t.Helper()
+		mockSuite := &platform_mocks.SuiteIFace{}
+		mockSuite.On("HasPermissionToAccessChannelByID", mock.Anything, userID, channelID).Return(allowed).Maybe()
+		wc := &platform.WebConn{
+			UserId:   userID,
+			Platform: &platform.PlatformService{},
+			Suite:    mockSuite,
+		}
+		if withSession {
+			wc.SetSession(&model.Session{UserId: userID, Roles: model.SystemUserRoleId})
+		}
+		return wc
+	}
+
+	t.Run("allowed recipient receives the event", func(t *testing.T) {
+		msg := makeMessage()
+		require.NoError(t, hook.Process(msg, makeWebConn(t, true, true), map[string]any{"channel_id": channelID}))
+		assert.False(t, msg.Event().IsRejected())
+	})
+
+	t.Run("denied recipient has the event dropped", func(t *testing.T) {
+		msg := makeMessage()
+		require.NoError(t, hook.Process(msg, makeWebConn(t, false, true), map[string]any{"channel_id": channelID}))
+		assert.True(t, msg.Event().IsRejected())
+	})
+
+	t.Run("a connection with no session is dropped", func(t *testing.T) {
+		// A rule may reference the session, so there is nothing to evaluate and
+		// nothing that justifies delivering the event.
+		msg := makeMessage()
+		require.NoError(t, hook.Process(msg, makeWebConn(t, true, false), map[string]any{"channel_id": channelID}))
+		assert.True(t, msg.Event().IsRejected())
+	})
+
+	t.Run("a malformed arg is an error, not a silent delivery", func(t *testing.T) {
+		msg := makeMessage()
+		require.Error(t, hook.Process(msg, makeWebConn(t, true, true), map[string]any{"channel_id": 42}))
+	})
+}

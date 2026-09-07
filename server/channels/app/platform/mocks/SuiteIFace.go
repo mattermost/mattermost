@@ -48,6 +48,24 @@ func (_m *SuiteIFace) GetSession(token string) (*model.Session, *model.AppError)
 	return r0, r1
 }
 
+// HasPermissionToAccessChannelByID provides a mock function with given fields: rctx, userID, channelID
+func (_m *SuiteIFace) HasPermissionToAccessChannelByID(rctx request.CTX, userID string, channelID string) bool {
+	ret := _m.Called(rctx, userID, channelID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for HasPermissionToAccessChannelByID")
+	}
+
+	var r0 bool
+	if rf, ok := ret.Get(0).(func(request.CTX, string, string) bool); ok {
+		r0 = rf(rctx, userID, channelID)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	return r0
+}
+
 // HasPermissionToFileAction provides a mock function with given fields: rctx, userID, roles, channelID, action
 func (_m *SuiteIFace) HasPermissionToFileAction(rctx request.CTX, userID string, roles string, channelID string, action string) bool {
 	ret := _m.Called(rctx, userID, roles, channelID, action)
