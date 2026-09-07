@@ -138,7 +138,7 @@ Per worker, within one from-version:
 
 So the upgraded server does not stop at the harness — it goes on to run the normal suite, which is the coverage this pipeline exists for. Nothing sits between the two: no `--project=setup`, no re-patching, no restart, since an upgrade that needed the suite's setup re-run before the server was usable would not be a passing upgrade. The upgrade specs never enter the queue themselves: `upgrade-specs/` sits outside the Playwright `testDir`, so `dispatch-begin` cannot enqueue them.
 
-**Statuses are exactly the matrix.** A 4-entry matrix posts 4 contexts, `e2e-test/playwright-full/{edition}/upgrade-from-{contextLabel}`, each covering that version's harness *and* its post-upgrade suite — posted pending by its `dispatch-begin` and resolved by its `report`. There is no aggregate context.
+**Statuses match the matrix.** A 4-entry matrix posts 4 contexts, `e2e-test/playwright-full/{edition}/upgrade-from-{contextLabel}`, each covering that version's harness *and* its post-upgrade suite — posted pending by its `dispatch-begin` and resolved by its `report`. There is no aggregate context. An empty matrix is the exception: the workflow posts a single `upgrade-from-none` context and never invokes the template.
 
 Each worker upgrades its own server (a server cannot be shared across runners), so the harness runs `workers` times per from-version and the pipeline costs `matrix size × workers` runners. `workers` defaults to 20, matching the full suite, and is an input; workers get 60m (vs the full suite's 30m) to cover the harness's two image pulls and swap on top of their share of the suite.
 
