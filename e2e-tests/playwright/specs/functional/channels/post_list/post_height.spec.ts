@@ -280,8 +280,8 @@ test.describe('Post height', () => {
         },
         {
             name: 'post with an SVG Markdown image',
-            // Either Chrome preloads the SVG's dimensions early or Firefox doesn't allocate the height properly
-            skipProjects: ['firefox'],
+            // As of MM-67372, the server no longer provides dimensions for external SVGs
+            skipProjects: ['chrome', 'firefox', 'ipad'],
             getSeedOptions: (baseUrl) => ({
                 message: `![icon](${baseUrl}/icon.svg)`,
             }),
