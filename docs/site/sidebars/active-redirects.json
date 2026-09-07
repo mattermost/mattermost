@@ -3735,7 +3735,7 @@
     },
     {
       "from": "/guides/install-deploy-upgrade-scale",
-      "to": "//deployment-guide/deployment-architecture"
+      "to": "/deployment-guide/deployment-architecture"
     },
     {
       "from": "/guides/integration",
@@ -4087,7 +4087,7 @@
     },
     {
       "from": "/overview/index.html",
-      "to": "/ "
+      "to": "/"
     },
     {
       "from": "/overview/integrations",
