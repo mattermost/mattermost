@@ -66,7 +66,7 @@ func (s *MmctlUnitTestSuite) TestGetBusyCmd() {
 			Return(sbs, &model.Response{}, nil).
 			Times(1)
 
-		err := getBusyCmdF(s.client, newTestCmd(s.T(), nil), []string{})
+		err := getBusyCmdF(s.client, newTestCmd(s.T(), SystemGetBusyCmd), []string{})
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(sbs, printer.GetLines()[0])
@@ -85,7 +85,7 @@ func (s *MmctlUnitTestSuite) TestGetBusyCmd() {
 			Return(sbs, &model.Response{}, nil).
 			Times(1)
 
-		err := getBusyCmdF(s.client, newTestCmd(s.T(), nil), []string{})
+		err := getBusyCmdF(s.client, newTestCmd(s.T(), SystemGetBusyCmd), []string{})
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(sbs, printer.GetLines()[0])
@@ -100,7 +100,7 @@ func (s *MmctlUnitTestSuite) TestGetBusyCmd() {
 			Return(nil, &model.Response{}, errors.New("mock error")).
 			Times(1)
 
-		err := getBusyCmdF(s.client, newTestCmd(s.T(), nil), []string{})
+		err := getBusyCmdF(s.client, newTestCmd(s.T(), SystemGetBusyCmd), []string{})
 		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -131,7 +131,7 @@ func (s *MmctlUnitTestSuite) TestSetBusyCmd() {
 	s.Run("SetBusy with missing arg", func() {
 		printer.Clean()
 
-		err := setBusyCmdF(s.client, newTestCmd(s.T(), nil), []string{})
+		err := setBusyCmdF(s.client, newTestCmd(s.T(), SystemSetBusyCmd), []string{})
 		s.Require().Error(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().Len(printer.GetLines(), 0)
@@ -159,7 +159,7 @@ func (s *MmctlUnitTestSuite) TestClearBusyCmd() {
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
-		err := clearBusyCmdF(s.client, newTestCmd(s.T(), nil), []string{})
+		err := clearBusyCmdF(s.client, newTestCmd(s.T(), SystemClearBusyCmd), []string{})
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(map[string]string{"status": "ok"}, printer.GetLines()[0])
@@ -174,7 +174,7 @@ func (s *MmctlUnitTestSuite) TestClearBusyCmd() {
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, errors.New("mock error")).
 			Times(1)
 
-		err := clearBusyCmdF(s.client, newTestCmd(s.T(), nil), []string{})
+		err := clearBusyCmdF(s.client, newTestCmd(s.T(), SystemClearBusyCmd), []string{})
 		s.Require().Error(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().Len(printer.GetLines(), 0)
@@ -192,7 +192,7 @@ func (s *MmctlUnitTestSuite) TestServerVersionCmd() {
 			Return("", &model.Response{ServerVersion: expectedVersion}, nil).
 			Times(1)
 
-		err := systemVersionCmdF(s.client, newTestCmd(s.T(), nil), []string{})
+		err := systemVersionCmdF(s.client, newTestCmd(s.T(), SystemVersionCmd), []string{})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().Len(printer.GetLines(), 1)
@@ -208,7 +208,7 @@ func (s *MmctlUnitTestSuite) TestServerVersionCmd() {
 			Return("", &model.Response{}, errors.New("mock error")).
 			Times(1)
 
-		err := systemVersionCmdF(s.client, newTestCmd(s.T(), nil), []string{})
+		err := systemVersionCmdF(s.client, newTestCmd(s.T(), SystemVersionCmd), []string{})
 		s.Require().Error(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().Len(printer.GetLines(), 0)
@@ -232,7 +232,7 @@ func (s *MmctlUnitTestSuite) TestServerStatusCmd() {
 			Return(expectedStatus, &model.Response{}, nil).
 			Times(1)
 
-		err := systemStatusCmdF(s.client, newTestCmd(s.T(), nil), []string{})
+		err := systemStatusCmdF(s.client, newTestCmd(s.T(), SystemStatusCmd), []string{})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().Len(printer.GetLines(), 1)
@@ -249,7 +249,7 @@ func (s *MmctlUnitTestSuite) TestServerStatusCmd() {
 			Return(expectedStatus, &model.Response{}, nil).
 			Times(1)
 
-		err := systemStatusCmdF(s.client, newTestCmd(s.T(), nil), []string{})
+		err := systemStatusCmdF(s.client, newTestCmd(s.T(), SystemStatusCmd), []string{})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().Len(printer.GetLines(), 1)
@@ -265,7 +265,7 @@ func (s *MmctlUnitTestSuite) TestServerStatusCmd() {
 			Return(nil, &model.Response{}, errors.New("mock error")).
 			Times(1)
 
-		err := systemStatusCmdF(s.client, newTestCmd(s.T(), nil), []string{})
+		err := systemStatusCmdF(s.client, newTestCmd(s.T(), SystemStatusCmd), []string{})
 		s.Require().Error(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().Len(printer.GetLines(), 0)
@@ -284,7 +284,7 @@ func (s *MmctlUnitTestSuite) TestServerStatusCmd() {
 			Return(emptyDbStatus, &model.Response{}, nil).
 			Times(1)
 
-		err := systemStatusCmdF(s.client, newTestCmd(s.T(), nil), []string{})
+		err := systemStatusCmdF(s.client, newTestCmd(s.T(), SystemStatusCmd), []string{})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().Len(printer.GetLines(), 1)
@@ -303,7 +303,7 @@ func (s *MmctlUnitTestSuite) TestServerStatusCmd() {
 			Return(emptyDbStatus, &model.Response{}, nil).
 			Times(1)
 
-		err := systemStatusCmdF(s.client, newTestCmd(s.T(), nil), []string{})
+		err := systemStatusCmdF(s.client, newTestCmd(s.T(), SystemStatusCmd), []string{})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().Len(printer.GetLines(), 1)
@@ -323,7 +323,7 @@ func (s *MmctlUnitTestSuite) TestServerStatusCmd() {
 			Return(unhealthyStatus, &model.Response{}, nil).
 			Times(1)
 
-		err := systemStatusCmdF(s.client, newTestCmd(s.T(), nil), []string{})
+		err := systemStatusCmdF(s.client, newTestCmd(s.T(), SystemStatusCmd), []string{})
 		s.Require().Error(err)
 		s.Require().Contains(err.Error(), "server status is unhealthy")
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -345,7 +345,7 @@ func (s *MmctlUnitTestSuite) TestServerStatusCmd() {
 			Return(unhealthyStatus, &model.Response{}, nil).
 			Times(1)
 
-		err := systemStatusCmdF(s.client, newTestCmd(s.T(), nil), []string{})
+		err := systemStatusCmdF(s.client, newTestCmd(s.T(), SystemStatusCmd), []string{})
 		s.Require().Error(err)
 		s.Require().Contains(err.Error(), "database status is unhealthy")
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -367,7 +367,7 @@ func (s *MmctlUnitTestSuite) TestServerStatusCmd() {
 			Return(unhealthyStatus, &model.Response{}, nil).
 			Times(1)
 
-		err := systemStatusCmdF(s.client, newTestCmd(s.T(), nil), []string{})
+		err := systemStatusCmdF(s.client, newTestCmd(s.T(), SystemStatusCmd), []string{})
 		s.Require().Error(err)
 		s.Require().Contains(err.Error(), "filestore status is unhealthy")
 		s.Require().Len(printer.GetErrorLines(), 0)

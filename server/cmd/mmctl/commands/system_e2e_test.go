@@ -23,7 +23,7 @@ func (s *MmctlE2ETestSuite) TestGetBusyCmd() {
 	s.Run("MM-T3979 Should fail when regular user attempts to get server busy status", func() {
 		printer.Clean()
 
-		err := getBusyCmdF(s.th.Client, newTestCmd(s.T(), nil), nil)
+		err := getBusyCmdF(s.th.Client, newTestCmd(s.T(), SystemGetBusyCmd), nil)
 		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -32,7 +32,7 @@ func (s *MmctlE2ETestSuite) TestGetBusyCmd() {
 	s.RunForSystemAdminAndLocal("MM-T3956 Get server busy status", func(c client.Client) {
 		printer.Clean()
 
-		err := getBusyCmdF(c, newTestCmd(s.T(), nil), nil)
+		err := getBusyCmdF(c, newTestCmd(s.T(), SystemGetBusyCmd), nil)
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetLines(), 1)
 		state, ok := printer.GetLines()[0].(*model.ServerBusyState)
@@ -160,7 +160,7 @@ func (s *MmctlE2ETestSuite) TestClearBusyCmd() {
 	s.Run("MM-T3981 Should fail when regular user attempts to clear server busy status", func() {
 		printer.Clean()
 
-		err := clearBusyCmdF(s.th.Client, newTestCmd(s.T(), nil), nil)
+		err := clearBusyCmdF(s.th.Client, newTestCmd(s.T(), SystemClearBusyCmd), nil)
 		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -169,7 +169,7 @@ func (s *MmctlE2ETestSuite) TestClearBusyCmd() {
 	s.RunForSystemAdminAndLocal("MM-T3958 Clear server status to busy", func(c client.Client) {
 		printer.Clean()
 
-		err := clearBusyCmdF(c, newTestCmd(s.T(), nil), nil)
+		err := clearBusyCmdF(c, newTestCmd(s.T(), SystemClearBusyCmd), nil)
 		s.Require().NoError(err)
 		defer func() {
 			s.th.App.Srv().Platform().Busy.Set(time.Minute)

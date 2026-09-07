@@ -27,34 +27,28 @@ var EnableEnterpriseTests string
 
 // newTestCmd returns a cobra.Command whose context is bound to the test's
 // lifetime, mirroring the context cobra assigns to a command during real
-// execution (see Command.ExecuteContext). Pass one of the package's real
-// command vars (e.g. SystemSupportPacketCmd) to reuse its already-registered
-// flags instead of re-declaring them on a bare command; pass nil for a
-// command with no flags.
+// execution (see Command.ExecuteContext). base is one of the package's real
+// command vars (e.g. SystemSupportPacketCmd, SystemGetBusyCmd), reusing its
+// already-registered flags instead of re-declaring them on a bare command.
 //
-// When base is non-nil, its context and flag values are restored once the
-// test completes, so mutating the shared command in one test (e.g. via
-// cmd.Flags().Set(...)) can't leak into a later test or into a real dispatch
-// through cobra's Execute/ExecuteContext, which only assigns a fresh context
-// when one isn't already set.
+// base's context and flag values are restored once the test completes, so
+// mutating the shared command in one test (e.g. via cmd.Flags().Set(...))
+// can't leak into a later test or into a real dispatch through cobra's
+// Execute/ExecuteContext, which only assigns a fresh context when one isn't
+// already set.
 func newTestCmd(t *testing.T, base *cobra.Command) *cobra.Command {
-	cmd := base
-	if cmd == nil {
-		cmd = &cobra.Command{}
-	} else {
-		t.Cleanup(func() {
-			// A nil context is intentional here: it restores cobra's own "no
-			// context assigned yet" sentinel (see Command.ExecuteC), so the next
-			// real dispatch gets a fresh context instead of this test's.
-			cmd.SetContext(nil) //nolint:staticcheck
-			cmd.Flags().VisitAll(func(f *pflag.Flag) {
-				_ = f.Value.Set(f.DefValue)
-				f.Changed = false
-			})
+	t.Cleanup(func() {
+		// A nil context is intentional here: it restores cobra's own "no
+		// context assigned yet" sentinel (see Command.ExecuteC), so the next
+		// real dispatch gets a fresh context instead of this test's.
+		base.SetContext(nil) //nolint:staticcheck
+		base.Flags().VisitAll(func(f *pflag.Flag) {
+			_ = f.Value.Set(f.DefValue)
+			f.Changed = false
 		})
-	}
-	cmd.SetContext(t.Context())
-	return cmd
+	})
+	base.SetContext(t.Context())
+	return base
 }
 
 type MmctlUnitTestSuite struct {
