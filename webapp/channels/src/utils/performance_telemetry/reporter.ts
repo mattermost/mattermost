@@ -80,6 +80,7 @@ export default class PerformanceReporter {
 
     private observer: PerformanceObserver;
     private reportTimeout: number | undefined;
+    private disconnected = false;
 
     // These values are protected instead of private so that they can be modified by unit tests
     protected reportPeriodBase = 60 * 1000;
@@ -170,9 +171,12 @@ export default class PerformanceReporter {
     }
 
     /**
-     * This method is for testing only because we can't clean up the callbacks registered with web-vitals.
+     * web-vitals has no way to unregister a callback, so a disconnected reporter has to keep
+     * ignoring the metrics it still receives rather than stop receiving them.
      */
-    protected disconnect() {
+    public disconnect() {
+        this.disconnected = true;
+
         removeEventListener('visibilitychange', this.handleVisibilityChange);
 
         clearTimeout(this.reportTimeout);
@@ -181,6 +185,7 @@ export default class PerformanceReporter {
         this.observer.disconnect();
 
         this.desktopOffListener?.();
+        this.desktopOffListener = undefined;
     }
 
     protected handleObservations(list: PerformanceObserverEntryList) {
@@ -244,6 +249,10 @@ export default class PerformanceReporter {
     }
 
     private handleWebVital(metric: Metric) {
+        if (this.disconnected) {
+            return;
+        }
+
         let labels: Record<string, string> | undefined;
 
         if (isLCPMetric(metric)) {

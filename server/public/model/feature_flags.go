@@ -155,8 +155,6 @@ type FeatureFlags struct {
 	// being unreachable.
 	ClusterGracefulDrain bool
 
-	ChannelBookmarks bool
-
 	// Enable React concurrent rendering
 	EnableConcurrentReact bool
 
@@ -227,9 +225,7 @@ func (f *FeatureFlags) SetDefaults() {
 
 	f.MmBlocksEnabled = true
 
-	f.ChannelBookmarks = true
-
-	f.EnableConcurrentReact = false
+	f.EnableConcurrentReact = true
 
 	f.EnableMFIPluginSignaturePublicKey = true
 

@@ -252,6 +252,40 @@ func (ch *Channels) installPluginToFilestore(manifest *model.Manifest, bundle, s
 	return nil
 }
 
+func newPluginInstallConflictAppError(existingManifest, uploadedManifest *model.Manifest) *model.AppError {
+	// Installing only validates the plugin id, so the uploaded name and homepage may be missing.
+	// Fall back to the installed plugin's metadata to keep the plugin identifiable.
+	name := uploadedManifest.Name
+	if name == "" {
+		name = existingManifest.Name
+	}
+	homepageURL := uploadedManifest.HomepageURL
+	if homepageURL == "" {
+		homepageURL = existingManifest.HomepageURL
+	}
+
+	direction := model.PluginInstallConflictVersionDirection(existingManifest, uploadedManifest)
+
+	// The confirmation dialog reads this from AppError.Props, which is returned to clients even when
+	// developer mode is off. Keep it to plugin metadata that is safe for any admin client to see.
+	props := model.StringMap{
+		model.PluginInstallConflictPropPluginID:         uploadedManifest.Id,
+		model.PluginInstallConflictPropPluginName:       name,
+		model.PluginInstallConflictPropHomepageURL:      homepageURL,
+		model.PluginInstallConflictPropExistingVersion:  existingManifest.Version,
+		model.PluginInstallConflictPropUploadedVersion:  uploadedManifest.Version,
+		model.PluginInstallConflictPropVersionDirection: direction,
+	}
+
+	// DetailedError is only for the server log; the client reads Props instead.
+	details := fmt.Sprintf("plugin %q conflict: existing version %q, uploaded version %q (%s)", uploadedManifest.Id, existingManifest.Version, uploadedManifest.Version, direction)
+
+	appErr := model.NewAppError("installExtractedPlugin", "app.plugin.install_id.app_error", nil, details, http.StatusBadRequest)
+	appErr.Props = props
+
+	return appErr
+}
+
 // InstallMarketplacePlugin installs a plugin listed in the marketplace server. It will get the
 // plugin bundle from the prepackaged folder, if available, or remotely if EnableRemoteMarketplace
 // is true.
@@ -451,7 +485,7 @@ func (ch *Channels) installExtractedPlugin(manifest *model.Manifest, fromPluginD
 	if existingManifest != nil {
 		// Return an error if already installed and strategy disallows installation.
 		if installationStrategy == installPluginLocallyOnlyIfNew {
-			return nil, model.NewAppError("installExtractedPlugin", "app.plugin.install_id.app_error", nil, "", http.StatusBadRequest)
+			return nil, newPluginInstallConflictAppError(existingManifest, manifest)
 		}
 
 		// Skip installation if already installed and newer.

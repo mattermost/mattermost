@@ -58,18 +58,22 @@ export default function CardGrid({
   }
 
   return (
-    <div className={`${styles.grid} ${styles[`cols${columns}`]}`}>
-      {cards.map((c, i) => (
-        <Link key={`${c.to}-${i}`} to={c.to} className={styles.card}>
-          {c.icon && <span className={`${styles.icon} mm-compass-${c.icon}`} aria-hidden />}
-          <div className={styles.body}>
-            <div className={styles.title}>{c.title}</div>
-            <p className={styles.description}>{c.description}</p>
-            {c.meta && <span className={styles.meta}>{c.meta}</span>}
-          </div>
-          <span className={styles.arrow} aria-hidden>→</span>
-        </Link>
-      ))}
+    // Wrapper establishes a size query container for the column-count
+    // breakpoints in styles.module.css.
+    <div className={styles.gridContainer}>
+      <div className={`${styles.grid} ${styles[`cols${columns}`]}`}>
+        {cards.map((c, i) => (
+          <Link key={`${c.to}-${i}`} to={c.to} className={styles.card}>
+            {c.icon && <span className={`${styles.icon} mm-compass-${c.icon}`} aria-hidden />}
+            <div className={styles.body}>
+              <div className={styles.title}>{c.title}</div>
+              <p className={styles.description}>{c.description}</p>
+              {c.meta && <span className={styles.meta}>{c.meta}</span>}
+            </div>
+            <span className={styles.arrow} aria-hidden>→</span>
+          </Link>
+        ))}
+      </div>
     </div>
   );
 }

@@ -289,7 +289,7 @@ func (w *searchEngineWatcher) startIfInactive(ctx context.Context, timer *time.T
 
 	if err := w.engine.Start(ctx); err != nil {
 		s.consecutiveFailures++
-		w.ps.Log().Warn("Search engine watcher: Start() failed, will retry",
+		w.ps.Log().Error("Search engine watcher: Start() failed, will retry",
 			mlog.Err(err),
 			mlog.Int("consecutive_failures", s.consecutiveFailures),
 			mlog.Duration("next_backoff", s.backoff),

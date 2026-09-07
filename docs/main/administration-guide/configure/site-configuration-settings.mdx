@@ -597,32 +597,6 @@ Changing this configuration setting changes the default client language for user
 </tbody>
 </table>
 
-### Enable experimental locales
-
-Enable work in progress languages in Mattermost to review translations and identify translation gaps.
-
-<table>
-<colgroup>
-<col style={{width: '36%'}} />
-<col style={{width: '63%'}} />
-</colgroup>
-<tbody>
-<tr>
-<td><ul><li><strong>true</strong>: Work in progress languages are available in Mattermost in addition to officially supported languages.</li><li><strong>false</strong>: <strong>(Default)</strong> Only officially supported languages are available in Mattermost.</li></ul></td>
-<td><ul><li>System Config path: <strong>Site Configuration &gt; Localization</strong></li><li><code>config.json</code> setting: <code>LocalizationSettings</code> &gt; <code>EnableExperimentalLocales</code> &gt; <code>false</code></li><li>Environment variable: <code>MM_LOCALIZATIONETTINGS_ENABLEEXPERIMENTALLOCALES</code></li></ul></td>
-</tr>
-</tbody>
-</table>
-
-<Note>
-
-- Cloud system admins can request this configuration setting to be enabled for their instance by contacting their Mattermost Account Manager.
-- Work in progress languages may be incomplete. Strings missing translations display in US English.
-- Currently, only web and desktop app product strings are impacted by this configuration setting. Server and mobile product strings aren't impacted by this setting.
-- See the [language](/end-user-guide/preferences/manage-your-display-options#language) documentation for details on selecting a language preference in Mattermost.
-
-</Note>
-
 ------------------------------------------------------------------------------------------------------------------------
 
 ## Auto-translation
@@ -819,11 +793,13 @@ Access the following configuration settings in the System Console by going to **
 
 <table>
 <colgroup>
-<col style={{width: '100%'}} />
+<col style={{width: '48%'}} />
+<col style={{width: '51%'}} />
 </colgroup>
 <tbody>
 <tr>
-<td><dl><dt>This setting determines whether a user can open a direct message channel with anyone on the Mattermost server or only to members of the same team. This setting only affects the options presented in the user interface. It does not affect permissions on the backend server. | - System Config path: <strong>Site Configuration &gt; Users and Teams</strong> |</dt><dd><div class="line-block">- <code>config.json</code> setting: <code>TeamSettings</code> &gt; <code>RestrictDirectMessage</code>|</div></dd><dt>- <strong>Any user on the Mattermost server</strong>: <strong>(Default)</strong> Users can send a direct message to any user through the <strong>Direct Messages &gt; More</strong> menu. <code>config.json</code> setting: <code>"any"</code> | - Environment variable: <code>MM_TEAMSETTINGS_RESTRICTDIRECTMESSAGE</code> |</dt><dd><div class="line-block">                                                                       |</div></dd></dl><ul><li><strong>Any member of the team</strong>: The <strong>Direct Messages &gt; More</strong> menu only allows direct messages to users on the same team. Pressing <a href="mm-kbd:">Ctrl</a> <a href="mm-kbd:">K</a> on Windows or Linux, or <a href="mm-kbd:">⌘</a> <a href="mm-kbd:">K</a> on Mac, only lists other users on the team currently being viewed. A user who is a member of multiple teams can only send direct messages to the team that is being viewed. However, the user can receive messages from other teams, regardless of the team currently being viewed. <code>config.json</code> setting: <code>"team"</code> |</li></ul></td>
+<td><p>This setting determines whether a user can open a direct message channel with anyone on the Mattermost server or only to members of the same team. This setting only affects the options presented in the user interface. It does not affect permissions on the backend server.</p><ul><li><strong>Any user on the Mattermost server</strong>: <strong>(Default)</strong> Users can send a direct message to any user through the <strong>Direct Messages &gt; More</strong> menu. <code>config.json</code> setting: <code>"any"</code></li><li><strong>Any member of the team</strong>: The <strong>Direct Messages &gt; More</strong> menu only allows direct messages to users on the same team. Pressing <kbd>Ctrl</kbd> <kbd>K</kbd> on Windows or Linux, or <kbd>⌘</kbd> <kbd>K</kbd> on Mac, only lists other users on the team currently being viewed. A user who is a member of multiple teams can only send direct messages to the team that is being viewed. However, the user can receive messages from other teams, regardless of the team currently being viewed. <code>config.json</code> setting: <code>"team"</code></li></ul></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Users and Teams</strong></li><li><code>config.json</code> setting: <code>TeamSettings</code> &gt; <code>RestrictDirectMessage</code></li><li>Environment variable: <code>MM_TEAMSETTINGS_RESTRICTDIRECTMESSAGE</code></li></ul></td>
 </tr>
 </tbody>
 </table>
@@ -832,11 +808,13 @@ Access the following configuration settings in the System Console by going to **
 
 <table>
 <colgroup>
-<col style={{width: '100%'}} />
+<col style={{width: '48%'}} />
+<col style={{width: '51%'}} />
 </colgroup>
 <tbody>
 <tr>
-<td>This setting determines how names appear in posts and under the <strong>Direct Messages</strong> list. | - System Config path: <strong>Site Configuration &gt; Users and Teams</strong> | Users can change this setting in their interface under <strong>Settings &gt; Display &gt; | - ``config.json`` setting: ``TeamSettings`` &gt; ``TeammateNameDisplay`` &gt; ``username`` | Teammate Name Display</strong>, unless this setting is locked by a system admin | - Environment variable: <code>MM_TEAMSETTINGS_TEAMMATENAMEDISPLAY</code> | via the <strong>Lock teammate name display for all users</strong> configuration setting. | | | | - <strong>Show username</strong>: <strong>(Default for self-hosted deployments)</strong> Displays usernames. | | <code>config.json</code> option: <code>"username"</code>. | | - <strong>Show nickname if one exists...</strong>: Displays the user's nickname. If the user doesn't have a | | nickname, their full name is displayed. If the user doesn't have a full name, their username | | is displayed. <code>config.json</code> option: <code>"nickname_full_name"</code>. | | - <strong>Show first and last name</strong>: <strong>(Default for Cloud deployments)</strong> Displays user's full name. | | If the user doesn't have a full name, their username is displayed. Recommended when using | | <a href="/administration-guide/onboard/sso-saml">SAML</a> or | <a href="/administration-guide/onboard/ad-ldap">LDAP</a> if first name and last name | attributes are configured. <code>config.json</code> option: <code>"full_name"</code>. | |</td>
+<td><p>This setting determines how names appear in posts and under the <strong>Direct Messages</strong> list. Users can change this setting in their interface under <strong>Settings &gt; Display &gt; Teammate Name Display</strong>, unless this setting is locked by a system admin via the <strong>Lock teammate name display for all users</strong> configuration setting.</p><ul><li><strong>Show username</strong>: <strong>(Default for self-hosted deployments)</strong> Displays usernames. <code>config.json</code> option: <code>"username"</code>.</li><li><strong>Show nickname if one exists...</strong>: Displays the user's nickname. If the user doesn't have a nickname, their full name is displayed. If the user doesn't have a full name, their username is displayed. <code>config.json</code> option: <code>"nickname_full_name"</code>.</li><li><strong>Show first and last name</strong>: <strong>(Default for Cloud deployments)</strong> Displays user's full name. If the user doesn't have a full name, their username is displayed. Recommended when using <a href="/administration-guide/onboard/sso-saml">SAML</a> or <a href="/administration-guide/onboard/ad-ldap">LDAP</a> if first name and last name attributes are configured. <code>config.json</code> option: <code>"full_name"</code>.</li></ul></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Users and Teams</strong></li><li><code>config.json</code> setting: <code>TeamSettings</code> &gt; <code>TeammateNameDisplay</code> &gt; <code>username</code></li><li>Environment variable: <code>MM_TEAMSETTINGS_TEAMMATENAMEDISPLAY</code></li></ul></td>
 </tr>
 </tbody>
 </table>
@@ -1145,6 +1123,54 @@ Cloud admins can't modify this configuration setting.
 
 </Note>
 
+### Email batching buffer size
+
+<table>
+<colgroup>
+<col style={{width: '49%'}} />
+<col style={{width: '50%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>Specify the maximum number of notifications batched into a single email.</p><p>Numerical input. Default is <code>256</code>.</p></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Notifications</strong></li><li><code>config.json</code> setting: <code>EmailSettings</code> &gt; <code>EmailBatchingBufferSize</code> &gt; <code>256</code></li><li>Environment variable: <code>MM_EMAILSETTINGS_EMAILBATCHINGBUFFERSIZE</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+<Note>
+
+- Cloud admins can't modify this configuration setting.
+- This setting only applies when [email batching](#enable-email-batching) is enabled.
+- We recommend increasing the buffer size from the default value if you see the following error in the Mattermost logs: `Email batching job's receiving buffer was full. Please increase the EmailBatchingBufferSize. Falling back to sending immediate mail.` Increasing this value will ensure emails are queued up, without impacting server performance.
+- Notifications are sent immediately when the receiving buffer is full.
+
+</Note>
+
+### Email batching interval
+
+<table>
+<colgroup>
+<col style={{width: '49%'}} />
+<col style={{width: '50%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>Specify the maximum frequency, in seconds, which the batching job checks for new notifications.</p><p>Numerical input in seconds. Default is <code>30</code>.</p></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Notifications</strong></li><li><code>config.json</code> setting: <code>EmailSettings</code> &gt; <code>EmailBatchingInterval</code> &gt; <code>30</code></li><li>Environment variable: <code>MM_EMAILSETTINGS_EMAILBATCHINGINTERVAL</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+<Note>
+
+- Cloud admins can't modify this configuration setting.
+- This setting only applies when [email batching](#enable-email-batching) is enabled.
+- Longer batching intervals may increase performance.
+- Notifications are sent immediately when the receiving buffer is full. If that occurs, increase [Email batching buffer size](#email-batching-buffer-size).
+
+</Note>
+
 ### Email notification contents
 
 <PlanAvailability slug="ent-plus" />
@@ -1158,6 +1184,21 @@ Cloud admins can't modify this configuration setting.
 <tr>
 <td><ul><li><strong>Send full message contents</strong>: <strong>(Default)</strong> Email notifications include the full message contents, along with the name of the sender and the channel. <code>config.json</code> setting: <code>"full"</code></li><li><strong>Send generic description with only sender name</strong>: Only the name of the sender and team name are included in email notifications. Use this option if Mattermost contains confidential information and policy dictates it cannot be stored in email. <code>config.json</code> setting: <code>"generic"</code></li></ul></td>
 <td><ul><li>System Config path: <strong>Site Configuration &gt; Notifications</strong></li><li><code>config.json</code> setting: <code>EmailSettings</code> &gt; <code>EmailNotificationContentsType</code></li><li>Environment variable: <code>MM_EMAILSETTINGS_EMAILNOTIFICATIONCONTENTSTYPE</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Use channel name in email notifications
+
+<table>
+<colgroup>
+<col style={{width: '66%'}} />
+<col style={{width: '33%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><ul><li><strong>true</strong>: Channel and team name appears in email notification subject lines. Useful for servers using only one team.</li><li><strong>false</strong>: <strong>(Default)</strong> Only team name appears in email notification subject line.</li></ul></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Notifications</strong></li><li><code>config.json</code> setting: <code>EmailSettings</code> &gt; <code>UseChannelInEmailNotifications</code> &gt; <code>false</code></li><li>Environment variable: <code>MM_EMAILSETTINGS_USECHANNELINEMAILNOTIFICATIONS</code></li></ul></td>
 </tr>
 </tbody>
 </table>
@@ -1611,7 +1652,7 @@ Disabling this feature prevents users from sending new burn-on-read messages. On
 
 <Important>
 
-The server must be connected to the internet to generate previews. This connection can be established through a [firewall or outbound proxy](/deployment-guide/server/preparations#outbound-proxy-configuration) if necessary.
+The server must be connected to the internet to generate previews. This connection can be established through a [firewall or outbound proxy](/deployment-guide/server/prepare-network#outbound-proxy-configuration) if necessary.
 
 </Important>
 

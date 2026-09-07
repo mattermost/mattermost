@@ -26,7 +26,8 @@ on:
         required: false
         type: boolean
         default: false
-      go-version:
+      build-server-tag:
+        description: "Build image tag (e.g. go1.26.3-node24.11.1)"
         required: true
         type: string
       fips-enabled:
@@ -90,7 +91,6 @@ jobs:
       INPUT_ENABLECOVERAGE: ${{ inputs.enablecoverage }}
       INPUT_FIPS_ENABLED: ${{ inputs.fips-enabled }}
       INPUT_FULLYPARALLEL: ${{ inputs.fullyparallel }}
-      INPUT_GO_VERSION: ${{ inputs.go-version }}
       INPUT_LOGSARTIFACT: ${{ inputs.logsartifact }}
       INPUT_NAME: ${{ inputs.name }}
       INPUT_PR_NUMBER: ${{ github.event.pull_request.number }}
@@ -114,7 +114,7 @@ jobs:
         id: buildenv
         uses: ./.github/actions/load-buildenv
         with:
-          go-version: ${{ inputs.go-version }}
+          build-server-tag: ${{ inputs.build-server-tag }}
           fips-enabled: ${{ inputs.fips-enabled }}
 
       - name: Restore test timing data
@@ -180,7 +180,7 @@ jobs:
         if: inputs.shard-total > 1
         uses: actions/setup-go@4b73464bb391d4059bd26b0524d20df3927bd417 # v6.3.0
         with:
-          go-version: ${{ inputs.go-version }}
+          go-version-file: server/.go-version
 
       - name: Split tests across shards
         if: inputs.shard-total > 1
