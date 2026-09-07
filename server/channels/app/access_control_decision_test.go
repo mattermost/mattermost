@@ -312,15 +312,15 @@ func TestSearchAllowedActionsForCurrentUser(t *testing.T) {
 	})
 }
 
-// With ViewChannelABACPermission off, asking for view_channel is a 400 and
+// With AccessChannelABACPermission off, asking for access_channel is a 400 and
 // discovery mode must not list it. The flag has to be set through SetupConfig:
 // UpdateConfig silently drops FeatureFlags writes, so setting it there would
 // make this pass without testing anything.
-func TestSearchAllowedActionsViewChannelFlagOff(t *testing.T) {
+func TestSearchAllowedActionsAccessChannelFlagOff(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupConfig(t, func(cfg *model.Config) {
 		cfg.FeatureFlags.PermissionPolicies = true
-		cfg.FeatureFlags.ViewChannelABACPermission = false
+		cfg.FeatureFlags.AccessChannelABACPermission = false
 	}).InitBasic(t)
 
 	session, appErr := th.App.CreateSession(th.Context, &model.Session{UserId: th.BasicUser.Id, Props: model.StringMap{}})
@@ -332,7 +332,7 @@ func TestSearchAllowedActionsViewChannelFlagOff(t *testing.T) {
 	t.Run("targeted mode rejects the action", func(t *testing.T) {
 		_, appErr := th.App.SearchAllowedActionsForCurrentUser(rctx, model.ActionSearchRequest{
 			Resource: channelResource,
-			Actions:  []string{model.AccessControlPolicyActionViewChannel},
+			Actions:  []string{model.AccessControlPolicyActionAccessChannel},
 		})
 		require.NotNil(t, appErr)
 		require.Equal(t, 400, appErr.StatusCode)
@@ -344,7 +344,7 @@ func TestSearchAllowedActionsViewChannelFlagOff(t *testing.T) {
 			Resource: channelResource,
 			Actions: []string{
 				model.AccessControlPolicyActionUploadFileAttachment,
-				model.AccessControlPolicyActionViewChannel,
+				model.AccessControlPolicyActionAccessChannel,
 			},
 		})
 		require.NotNil(t, appErr)
@@ -356,23 +356,23 @@ func TestSearchAllowedActionsViewChannelFlagOff(t *testing.T) {
 			Resource: channelResource,
 		})
 		require.Nil(t, appErr)
-		require.NotContains(t, resp.Decisions, model.AccessControlPolicyActionViewChannel)
+		require.NotContains(t, resp.Decisions, model.AccessControlPolicyActionAccessChannel)
 		// Positive control: an empty decision set would otherwise satisfy the
 		// assertion above without proving anything.
 		require.Contains(t, resp.Decisions, model.AccessControlPolicyActionUploadFileAttachment)
 		for _, r := range resp.Results {
-			require.NotEqual(t, model.AccessControlPolicyActionViewChannel, r.Action.Name)
+			require.NotEqual(t, model.AccessControlPolicyActionAccessChannel, r.Action.Name)
 		}
 	})
 }
 
-// With the flag on, view_channel is queryable, appears in discovery, defaults
+// With the flag on, access_channel is queryable, appears in discovery, defaults
 // to allowed while ABAC is inactive, and fails closed on a PDP error.
-func TestSearchAllowedActionsViewChannelFlagOn(t *testing.T) {
+func TestSearchAllowedActionsAccessChannelFlagOn(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupConfig(t, func(cfg *model.Config) {
 		cfg.FeatureFlags.PermissionPolicies = true
-		cfg.FeatureFlags.ViewChannelABACPermission = true
+		cfg.FeatureFlags.AccessChannelABACPermission = true
 	}).InitBasic(t)
 
 	session, appErr := th.App.CreateSession(th.Context, &model.Session{UserId: th.BasicUser.Id, Props: model.StringMap{}})
@@ -397,10 +397,10 @@ func TestSearchAllowedActionsViewChannelFlagOn(t *testing.T) {
 
 		resp, appErr := th.App.SearchAllowedActionsForCurrentUser(rctx, model.ActionSearchRequest{
 			Resource: channelResource,
-			Actions:  []string{model.AccessControlPolicyActionViewChannel},
+			Actions:  []string{model.AccessControlPolicyActionAccessChannel},
 		})
 		require.Nil(t, appErr)
-		d := resp.Decisions[model.AccessControlPolicyActionViewChannel]
+		d := resp.Decisions[model.AccessControlPolicyActionAccessChannel]
 		require.True(t, d.Allowed)
 		require.True(t, d.Evaluated)
 		require.Empty(t, d.Reason)
@@ -415,7 +415,7 @@ func TestSearchAllowedActionsViewChannelFlagOn(t *testing.T) {
 			Resource: channelResource,
 		})
 		require.Nil(t, appErr)
-		require.Contains(t, resp.Decisions, model.AccessControlPolicyActionViewChannel)
+		require.Contains(t, resp.Decisions, model.AccessControlPolicyActionAccessChannel)
 		require.Contains(t, resp.Decisions, model.AccessControlPolicyActionUploadFileAttachment)
 		require.Contains(t, resp.Decisions, model.AccessControlPolicyActionDownloadFileAttachment)
 	})
@@ -430,10 +430,10 @@ func TestSearchAllowedActionsViewChannelFlagOn(t *testing.T) {
 
 		resp, appErr := th.App.SearchAllowedActionsForCurrentUser(rctx, model.ActionSearchRequest{
 			Resource: channelResource,
-			Actions:  []string{model.AccessControlPolicyActionViewChannel},
+			Actions:  []string{model.AccessControlPolicyActionAccessChannel},
 		})
 		require.Nil(t, appErr)
-		d := resp.Decisions[model.AccessControlPolicyActionViewChannel]
+		d := resp.Decisions[model.AccessControlPolicyActionAccessChannel]
 		require.False(t, d.Allowed)
 		require.True(t, d.Evaluated)
 		require.Equal(t, model.RenderDecisionReasonRestrictedByPolicy, d.Reason)
@@ -445,15 +445,15 @@ func TestSearchAllowedActionsViewChannelFlagOn(t *testing.T) {
 		})
 		mockACS := withMockACS(t)
 		mockACS.On("AccessEvaluation", mock.Anything, mock.MatchedBy(func(req model.AccessRequest) bool {
-			return req.Action == model.AccessControlPolicyActionViewChannel
+			return req.Action == model.AccessControlPolicyActionAccessChannel
 		})).Return(model.AccessDecision{Decision: false}, (*model.AppError)(nil))
 
 		resp, appErr := th.App.SearchAllowedActionsForCurrentUser(rctx, model.ActionSearchRequest{
 			Resource: channelResource,
-			Actions:  []string{model.AccessControlPolicyActionViewChannel},
+			Actions:  []string{model.AccessControlPolicyActionAccessChannel},
 		})
 		require.Nil(t, appErr)
-		require.False(t, resp.Decisions[model.AccessControlPolicyActionViewChannel].Allowed)
+		require.False(t, resp.Decisions[model.AccessControlPolicyActionAccessChannel].Allowed)
 		require.Empty(t, resp.Results)
 	})
 }

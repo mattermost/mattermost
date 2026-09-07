@@ -319,7 +319,7 @@ describe('components/admin_console/permission_policies/policy_details/Permission
     });
 });
 
-describe('components/admin_console/permission_policies/policy_details/PermissionPolicyDetails — View Channel', () => {
+describe('components/admin_console/permission_policies/policy_details/PermissionPolicyDetails — Access Channel', () => {
     const mockFetchPolicy = jest.fn();
     const mockCreatePolicy = jest.fn();
     const mockGetAccessControlFields = jest.fn();
@@ -352,7 +352,7 @@ describe('components/admin_console/permission_policies/policy_details/Permission
             general: {
                 config: {
                     FeatureFlagPermissionPolicies: 'true',
-                    FeatureFlagViewChannelABACPermission: enabled ? 'true' : 'false',
+                    FeatureFlagAccessChannelABACPermission: enabled ? 'true' : 'false',
                 },
             },
         },
@@ -419,22 +419,22 @@ describe('components/admin_console/permission_policies/policy_details/Permission
         });
     };
 
-    test('does not offer View Channel when the flag is off', async () => {
+    test('does not offer Access Channel when the flag is off', async () => {
         await renderAndOpenMenu(false);
 
-        expect(document.getElementById('pp-add-permission-view_channel')).toBeNull();
+        expect(document.getElementById('pp-add-permission-access_channel')).toBeNull();
         expect(document.getElementById('pp-add-permission-upload_file_attachment')).not.toBeNull();
     });
 
-    test('offers View Channel when the flag is on', async () => {
+    test('offers Access Channel when the flag is on', async () => {
         await renderAndOpenMenu(true);
 
-        expect(document.getElementById('pp-add-permission-view_channel')).not.toBeNull();
+        expect(document.getElementById('pp-add-permission-access_channel')).not.toBeNull();
     });
 
-    test('confirms before saving a policy that carries view_channel', async () => {
+    test('confirms before saving a policy that carries access_channel', async () => {
         await renderAndOpenMenu(true);
-        await pickPermission('View Channel');
+        await pickPermission('Access Channel');
 
         await userEvent.click(screen.getByText('Save'));
 
@@ -447,13 +447,13 @@ describe('components/admin_console/permission_policies/policy_details/Permission
             expect(mockCreatePolicy).toHaveBeenCalledTimes(1);
         });
         expect(mockCreatePolicy.mock.calls[0][0].rules[0].actions).toEqual(
-            expect.arrayContaining(['download_file_attachment', 'view_channel']),
+            expect.arrayContaining(['download_file_attachment', 'access_channel']),
         );
     });
 
     test('cancelling the confirmation leaves the policy unsaved', async () => {
         await renderAndOpenMenu(true);
-        await pickPermission('View Channel');
+        await pickPermission('Access Channel');
 
         await userEvent.click(screen.getByText('Save'));
         await screen.findByText('Save this policy?');
@@ -462,7 +462,7 @@ describe('components/admin_console/permission_policies/policy_details/Permission
         expect(mockCreatePolicy).not.toHaveBeenCalled();
     });
 
-    test('does not confirm when the flag is off, even for a stored view_channel policy', async () => {
+    test('does not confirm when the flag is off, even for a stored access_channel policy', async () => {
         // The server would 501 the save, so the dialog would only be a scary
         // prompt in front of an error.
         mockFetchPolicy.mockResolvedValue({
@@ -471,7 +471,7 @@ describe('components/admin_console/permission_policies/policy_details/Permission
                 name: 'Policy 1',
                 roles: ['system_user'],
                 rules: [{
-                    actions: ['download_file_attachment', 'view_channel'],
+                    actions: ['download_file_attachment', 'access_channel'],
                     expression: 'user.attributes.teams == "engineering"',
                 }],
             },

@@ -6,7 +6,7 @@ import React from 'react';
 import {
     ACCESS_CONTROL_ACTION_DOWNLOAD_FILE,
     ACCESS_CONTROL_ACTION_UPLOAD_FILE,
-    ACCESS_CONTROL_ACTION_VIEW_CHANNEL,
+    ACCESS_CONTROL_ACTION_ACCESS_CHANNEL,
     ACCESS_CONTROL_CHANNEL_ROLE_ADMIN,
     ACCESS_CONTROL_CHANNEL_ROLE_USER,
 } from '@mattermost/types/access_control';
@@ -613,7 +613,7 @@ describe('components/channel_settings_modal/ChannelSettingsPermissionsPolicyTab'
     });
 });
 
-describe('components/channel_settings_modal/ChannelSettingsPermissionsPolicyTab — View Channel', () => {
+describe('components/channel_settings_modal/ChannelSettingsPermissionsPolicyTab — Access Channel', () => {
     const baseProps = {
         channel: TestHelper.getChannelMock({
             id: 'channel_id',
@@ -630,7 +630,7 @@ describe('components/channel_settings_modal/ChannelSettingsPermissionsPolicyTab 
             general: {
                 config: {
                     FeatureFlagPermissionPolicies: 'true',
-                    FeatureFlagViewChannelABACPermission: enabled ? 'true' : 'false',
+                    FeatureFlagAccessChannelABACPermission: enabled ? 'true' : 'false',
                 },
             },
             users: {
@@ -685,27 +685,27 @@ describe('components/channel_settings_modal/ChannelSettingsPermissionsPolicyTab 
         await screen.findByTestId('table-editor');
     };
 
-    test('does not offer the View Channel row when the flag is off', async () => {
+    test('does not offer the Access Channel row when the flag is off', async () => {
         await openEditor(false);
 
-        expect(screen.queryByTestId(`cpp-add-permission-${ACCESS_CONTROL_ACTION_VIEW_CHANNEL}`)).not.toBeInTheDocument();
+        expect(screen.queryByTestId(`cpp-add-permission-${ACCESS_CONTROL_ACTION_ACCESS_CHANNEL}`)).not.toBeInTheDocument();
         expect(screen.getByTestId(`cpp-add-permission-${ACCESS_CONTROL_ACTION_UPLOAD_FILE}`)).toBeInTheDocument();
     });
 
-    test('offers the View Channel row when the flag is on', async () => {
+    test('offers the Access Channel row when the flag is on', async () => {
         await openEditor(true);
 
-        expect(screen.getByTestId(`cpp-add-permission-${ACCESS_CONTROL_ACTION_VIEW_CHANNEL}`)).toBeInTheDocument();
+        expect(screen.getByTestId(`cpp-add-permission-${ACCESS_CONTROL_ACTION_ACCESS_CHANNEL}`)).toBeInTheDocument();
     });
 
-    test('a view_channel rule requires confirmation before saving', async () => {
+    test('an access_channel rule requires confirmation before saving', async () => {
         await openEditor(true);
 
         act(() => {
             const {calls} = (TableEditor as unknown as jest.Mock).mock;
             calls[calls.length - 1][0].onChange('user.attributes.department == "eng"');
         });
-        await userEvent.click(screen.getByTestId(`cpp-add-permission-${ACCESS_CONTROL_ACTION_VIEW_CHANNEL}`));
+        await userEvent.click(screen.getByTestId(`cpp-add-permission-${ACCESS_CONTROL_ACTION_ACCESS_CHANNEL}`));
         await userEvent.type(screen.getByTestId('permissions-policy-editor-name'), 'Managed devices only');
         await userEvent.click(screen.getByTestId('permissions-policy-editor-save'));
 
@@ -721,7 +721,7 @@ describe('components/channel_settings_modal/ChannelSettingsPermissionsPolicyTab 
             expect(mockActions.saveChannelPolicy).toHaveBeenCalledTimes(1);
         });
         const saved = mockActions.saveChannelPolicy.mock.calls[0][0];
-        expect(saved.rules[0].actions).toContain(ACCESS_CONTROL_ACTION_VIEW_CHANNEL);
+        expect(saved.rules[0].actions).toContain(ACCESS_CONTROL_ACTION_ACCESS_CHANNEL);
     });
 
     test('cancelling the confirmation leaves the policy unsaved', async () => {
@@ -731,7 +731,7 @@ describe('components/channel_settings_modal/ChannelSettingsPermissionsPolicyTab 
             const {calls} = (TableEditor as unknown as jest.Mock).mock;
             calls[calls.length - 1][0].onChange('user.attributes.department == "eng"');
         });
-        await userEvent.click(screen.getByTestId(`cpp-add-permission-${ACCESS_CONTROL_ACTION_VIEW_CHANNEL}`));
+        await userEvent.click(screen.getByTestId(`cpp-add-permission-${ACCESS_CONTROL_ACTION_ACCESS_CHANNEL}`));
         await userEvent.type(screen.getByTestId('permissions-policy-editor-name'), 'Managed devices only');
         await userEvent.click(screen.getByTestId('permissions-policy-editor-save'));
 

@@ -35,7 +35,7 @@ const ROLE_LABELS: Record<string, string> = {
 const ACTION_LABELS: Record<string, string> = {
     download_file_attachment: 'Download Files',
     upload_file_attachment: 'Upload Files',
-    view_channel: 'View Channel',
+    access_channel: 'Access Channel',
 };
 
 function getActionsLabel(policy: AccessControlPolicy): string {

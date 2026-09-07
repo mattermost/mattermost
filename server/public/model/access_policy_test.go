@@ -1548,31 +1548,31 @@ func TestInheritV0_5Rejected(t *testing.T) {
 	require.Empty(t, child.Imports)
 }
 
-// TestViewChannelAction covers how view_channel validates. It is a permission
+// TestAccessChannelAction covers how access_channel validates. It is a permission
 // action, so a v0.4 channel policy needs a channel role and a unique rule name
 // for it. A v0.3 system permission policy needs neither.
-func TestViewChannelAction(t *testing.T) {
+func TestAccessChannelAction(t *testing.T) {
 	t.Run("is a permission action", func(t *testing.T) {
-		require.True(t, IsPermissionAction(AccessControlPolicyActionViewChannel))
-		require.True(t, allowedActionsV0_3[AccessControlPolicyActionViewChannel])
+		require.True(t, IsPermissionAction(AccessControlPolicyActionAccessChannel))
+		require.True(t, allowedActionsV0_3[AccessControlPolicyActionAccessChannel])
 	})
 
-	t.Run("HasViewChannelAction", func(t *testing.T) {
+	t.Run("HasAccessChannelAction", func(t *testing.T) {
 		var nilPolicy *AccessControlPolicy
-		require.False(t, nilPolicy.HasViewChannelAction())
+		require.False(t, nilPolicy.HasAccessChannelAction())
 
 		fileOnly := &AccessControlPolicy{Rules: []AccessControlPolicyRule{{
 			Actions: []string{AccessControlPolicyActionUploadFileAttachment},
 		}}}
-		require.False(t, fileOnly.HasViewChannelAction())
+		require.False(t, fileOnly.HasAccessChannelAction())
 		require.True(t, fileOnly.HasPermissionRuleAction())
 
 		// The action can be on any rule, and can share one with the file actions.
 		mixed := &AccessControlPolicy{Rules: []AccessControlPolicyRule{
 			{Actions: []string{AccessControlPolicyActionMembership}},
-			{Actions: []string{AccessControlPolicyActionUploadFileAttachment, AccessControlPolicyActionViewChannel}},
+			{Actions: []string{AccessControlPolicyActionUploadFileAttachment, AccessControlPolicyActionAccessChannel}},
 		}}
-		require.True(t, mixed.HasViewChannelAction())
+		require.True(t, mixed.HasAccessChannelAction())
 		require.True(t, mixed.HasPermissionRuleAction())
 	})
 
@@ -1585,7 +1585,7 @@ func TestViewChannelAction(t *testing.T) {
 			Version:  AccessControlPolicyVersionV0_3,
 			Roles:    []string{SystemUserRoleId},
 			Rules: []AccessControlPolicyRule{{
-				Actions:    []string{AccessControlPolicyActionViewChannel},
+				Actions:    []string{AccessControlPolicyActionAccessChannel},
 				Expression: `user.session.device_type == "desktop"`,
 			}},
 		}
@@ -1601,7 +1601,7 @@ func TestViewChannelAction(t *testing.T) {
 			Version:  AccessControlPolicyVersionV0_3,
 			Roles:    []string{SystemUserRoleId},
 			Rules: []AccessControlPolicyRule{{
-				Actions:    []string{AccessControlPolicyActionViewChannel},
+				Actions:    []string{AccessControlPolicyActionAccessChannel},
 				Expression: `user.session.ip_address.inCIDR("10.0.0.0/8")`,
 			}},
 		}
@@ -1623,7 +1623,7 @@ func TestViewChannelAction(t *testing.T) {
 			Rules: []AccessControlPolicyRule{{
 				Name:       "Members on managed devices only",
 				Role:       ChannelUserRoleId,
-				Actions:    []string{AccessControlPolicyActionViewChannel},
+				Actions:    []string{AccessControlPolicyActionAccessChannel},
 				Expression: `user.attributes.dept == "eng"`,
 			}},
 		}
@@ -1640,7 +1640,7 @@ func TestViewChannelAction(t *testing.T) {
 				Name: "Managed devices only",
 				Role: ChannelUserRoleId,
 				Actions: []string{
-					AccessControlPolicyActionViewChannel,
+					AccessControlPolicyActionAccessChannel,
 					AccessControlPolicyActionUploadFileAttachment,
 					AccessControlPolicyActionDownloadFileAttachment,
 				},
@@ -1659,7 +1659,7 @@ func TestViewChannelAction(t *testing.T) {
 			Rules: []AccessControlPolicyRule{{
 				Name:       "Mixed",
 				Role:       ChannelUserRoleId,
-				Actions:    []string{AccessControlPolicyActionMembership, AccessControlPolicyActionViewChannel},
+				Actions:    []string{AccessControlPolicyActionMembership, AccessControlPolicyActionAccessChannel},
 				Expression: "true",
 			}},
 		}
@@ -1676,7 +1676,7 @@ func TestViewChannelAction(t *testing.T) {
 			Version:  AccessControlPolicyVersionV0_4,
 			Rules: []AccessControlPolicyRule{{
 				Name:       "No role",
-				Actions:    []string{AccessControlPolicyActionViewChannel},
+				Actions:    []string{AccessControlPolicyActionAccessChannel},
 				Expression: "true",
 			}},
 		}
@@ -1695,13 +1695,13 @@ func TestViewChannelAction(t *testing.T) {
 				{
 					Name:       "Duplicate",
 					Role:       ChannelUserRoleId,
-					Actions:    []string{AccessControlPolicyActionViewChannel},
+					Actions:    []string{AccessControlPolicyActionAccessChannel},
 					Expression: "true",
 				},
 				{
 					Name:       "Duplicate",
 					Role:       ChannelGuestRoleId,
-					Actions:    []string{AccessControlPolicyActionViewChannel},
+					Actions:    []string{AccessControlPolicyActionAccessChannel},
 					Expression: "true",
 				},
 			},
@@ -1726,7 +1726,7 @@ func TestViewChannelAction(t *testing.T) {
 				Rules: []AccessControlPolicyRule{{
 					Name:       "Viewing",
 					Role:       ChannelUserRoleId,
-					Actions:    []string{AccessControlPolicyActionViewChannel},
+					Actions:    []string{AccessControlPolicyActionAccessChannel},
 					Expression: "true",
 				}},
 			}
@@ -1743,17 +1743,17 @@ func TestViewChannelAction(t *testing.T) {
 				Revision: 0,
 				Version:  AccessControlPolicyVersionV0_3,
 				Rules: []AccessControlPolicyRule{{
-					Actions:    []string{AccessControlPolicyActionViewChannel},
+					Actions:    []string{AccessControlPolicyActionAccessChannel},
 					Expression: "true",
 				}},
 			}
 			err := policy.IsValid()
 			require.NotNil(t, err)
-			require.Equal(t, "model.access_policy.is_valid.actions.view_channel_type.app_error", err.Id)
+			require.Equal(t, "model.access_policy.is_valid.actions.access_channel_type.app_error", err.Id)
 		})
 
 		t.Run("membership is still allowed on a v0.3 "+policyType+" policy", func(t *testing.T) {
-			// The new v0.3 guard must be scoped to view_channel only.
+			// The new v0.3 guard must be scoped to access_channel only.
 			policy := &AccessControlPolicy{
 				ID:       NewId(),
 				Type:     policyType,
@@ -1780,7 +1780,7 @@ func TestViewChannelAction(t *testing.T) {
 			Version:  AccessControlPolicyVersionV0_5,
 			Rules: []AccessControlPolicyRule{{
 				Role:       ChannelUserRoleId,
-				Actions:    []string{AccessControlPolicyActionViewChannel},
+				Actions:    []string{AccessControlPolicyActionAccessChannel},
 				Expression: "true",
 			}},
 		}

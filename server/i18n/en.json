@@ -56,6 +56,10 @@
     "translation": "Render-time access control decisions are not supported for resource type \"{{.Type}}\"."
   },
   {
+    "id": "api.access_control_policy.access_channel.feature_disabled",
+    "translation": "Access Channel permission policies feature is not enabled."
+  },
+  {
     "id": "api.access_control_policy.channel_permission_policies.feature_disabled",
     "translation": "Channel-level permission policies feature is not enabled."
   },
@@ -82,10 +86,6 @@
   {
     "id": "api.access_control_policy.team_membership.feature_disabled",
     "translation": "Team membership access control feature is not enabled."
-  },
-  {
-    "id": "api.access_control_policy.view_channel.feature_disabled",
-    "translation": "View Channel permission policies feature is not enabled."
   },
   {
     "id": "api.acknowledgement.delete.archived_channel.app_error",
@@ -11283,6 +11283,10 @@
     "translation": "Could not inherit access control policy."
   },
   {
+    "id": "model.access_policy.is_valid.actions.access_channel_type.app_error",
+    "translation": "The Access Channel action is only allowed on permission and channel policies."
+  },
+  {
     "id": "model.access_policy.is_valid.actions.app_error",
     "translation": "Action(s) is not valid."
   },
@@ -11293,10 +11297,6 @@
   {
     "id": "model.access_policy.is_valid.actions.permission_type.app_error",
     "translation": "Permission action rules are only allowed on channel policies."
-  },
-  {
-    "id": "model.access_policy.is_valid.actions.view_channel_type.app_error",
-    "translation": "The View Channel action is only allowed on permission and channel policies."
   },
   {
     "id": "model.access_policy.is_valid.id.app_error",

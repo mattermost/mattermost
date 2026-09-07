@@ -11,7 +11,7 @@ import type {AccessControlPolicy, AccessControlPolicyRule} from '@mattermost/typ
 import {
     ACCESS_CONTROL_ACTION_DOWNLOAD_FILE,
     ACCESS_CONTROL_ACTION_UPLOAD_FILE,
-    ACCESS_CONTROL_ACTION_VIEW_CHANNEL,
+    ACCESS_CONTROL_ACTION_ACCESS_CHANNEL,
     ACCESS_CONTROL_CHANNEL_ROLE_ADMIN,
     ACCESS_CONTROL_CHANNEL_ROLE_GUEST,
     ACCESS_CONTROL_CHANNEL_ROLE_USER,
@@ -27,13 +27,13 @@ import type {Channel} from '@mattermost/types/channels';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
 
 import {getAccessControlSettings} from 'mattermost-redux/selectors/entities/access_control';
-import {getFeatureFlagValue, isPolicySimulationEnabled, isViewChannelABACPermissionEnabled} from 'mattermost-redux/selectors/entities/general';
+import {getFeatureFlagValue, isPolicySimulationEnabled, isAccessChannelABACPermissionEnabled} from 'mattermost-redux/selectors/entities/general';
 import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 
 import {mergeSessionAttributes} from 'components/admin_console/access_control/editors/shared';
 import TableEditor from 'components/admin_console/access_control/editors/table_editor/table_editor';
 import SimulateAccessModal from 'components/admin_console/access_control/modals/simulate_access/simulate_access_modal';
-import ViewChannelConfirmModal from 'components/admin_console/permission_policies/modals/view_channel_confirm_modal';
+import AccessChannelConfirmModal from 'components/admin_console/permission_policies/modals/access_channel_confirm_modal';
 import * as Menu from 'components/menu';
 import SaveChangesPanel, {type SaveChangesPanelState} from 'components/widgets/modals/components/save_changes_panel';
 
@@ -106,13 +106,13 @@ const actionMessages = defineMessages({
         id: 'channel_settings.permissions_policy.action.download.description',
         defaultMessage: 'Allow users to download attached files from this channel',
     },
-    viewChannelLabel: {
-        id: 'channel_settings.permissions_policy.action.view_channel',
-        defaultMessage: 'View channel',
+    accessChannelLabel: {
+        id: 'channel_settings.permissions_policy.action.access_channel',
+        defaultMessage: 'Access channel',
     },
-    viewChannelDescription: {
-        id: 'channel_settings.permissions_policy.action.view_channel.description',
-        defaultMessage: 'Allow users to see the channel and its content',
+    accessChannelDescription: {
+        id: 'channel_settings.permissions_policy.action.access_channel.description',
+        defaultMessage: 'Allow users to access the channel and its content',
     },
 });
 
@@ -137,13 +137,13 @@ const AVAILABLE_ROLES: RoleDefinition[] = [
 const AVAILABLE_PERMISSIONS: PermissionDefinition[] = [
     {value: ACCESS_CONTROL_ACTION_UPLOAD_FILE, label: actionMessages.uploadLabel, description: actionMessages.uploadDescription},
     {value: ACCESS_CONTROL_ACTION_DOWNLOAD_FILE, label: actionMessages.downloadLabel, description: actionMessages.downloadDescription},
-    {value: ACCESS_CONTROL_ACTION_VIEW_CHANNEL, label: actionMessages.viewChannelLabel, description: actionMessages.viewChannelDescription},
+    {value: ACCESS_CONTROL_ACTION_ACCESS_CHANNEL, label: actionMessages.accessChannelLabel, description: actionMessages.accessChannelDescription},
 ];
 
 const ACTION_LABEL_IDS: Record<string, MessageDescriptor> = {
     [ACCESS_CONTROL_ACTION_UPLOAD_FILE]: actionMessages.uploadLabel,
     [ACCESS_CONTROL_ACTION_DOWNLOAD_FILE]: actionMessages.downloadLabel,
-    [ACCESS_CONTROL_ACTION_VIEW_CHANNEL]: actionMessages.viewChannelLabel,
+    [ACCESS_CONTROL_ACTION_ACCESS_CHANNEL]: actionMessages.accessChannelLabel,
 };
 
 type EditableRule = {
@@ -194,9 +194,9 @@ function ChannelSettingsPermissionsPolicyTab({
     // hiding the UI here keeps the author from clicking a button
     // that would only surface a backend error.
     const policySimulationEnabled = useSelector(isPolicySimulationEnabled);
-    const viewChannelEnabled = useSelector(isViewChannelABACPermissionEnabled);
+    const accessChannelEnabled = useSelector(isAccessChannelABACPermissionEnabled);
 
-    const [showViewChannelConfirmModal, setShowViewChannelConfirmModal] = useState(false);
+    const [showAccessChannelConfirmModal, setShowAccessChannelConfirmModal] = useState(false);
     const [isSavingPolicy, setIsSavingPolicy] = useState(false);
 
     // Guards against a second save while the first request is in flight; a
@@ -612,12 +612,12 @@ function ChannelSettingsPermissionsPolicyTab({
         // Only confirm when the save can actually succeed. With the flag off the
         // server returns 501, so confirming first would just add a scary dialog
         // in front of an error.
-        if (viewChannelEnabled && rules.some((r) => r.actions.includes(ACCESS_CONTROL_ACTION_VIEW_CHANNEL))) {
-            setShowViewChannelConfirmModal(true);
+        if (accessChannelEnabled && rules.some((r) => r.actions.includes(ACCESS_CONTROL_ACTION_ACCESS_CHANNEL))) {
+            setShowAccessChannelConfirmModal(true);
             return;
         }
         await commitSave();
-    }, [commitSave, rules, viewChannelEnabled]);
+    }, [commitSave, rules, accessChannelEnabled]);
 
     const handleCancel = useCallback(() => {
         try {
@@ -697,7 +697,7 @@ function ChannelSettingsPermissionsPolicyTab({
                 onCommit={commitDraft}
                 buildSimulationPolicy={buildSimulationPolicy}
                 policySimulationEnabled={policySimulationEnabled}
-                viewChannelEnabled={viewChannelEnabled}
+                accessChannelEnabled={accessChannelEnabled}
             />
         );
     }
@@ -957,17 +957,17 @@ function ChannelSettingsPermissionsPolicyTab({
                 />
             )}
 
-            {showViewChannelConfirmModal && (
-                <ViewChannelConfirmModal
+            {showAccessChannelConfirmModal && (
+                <AccessChannelConfirmModal
                     show={true}
                     isStacked={true}
                     isSaving={isSavingPolicy}
-                    onHide={() => setShowViewChannelConfirmModal(false)}
+                    onHide={() => setShowAccessChannelConfirmModal(false)}
                     onConfirm={async () => {
                         // Close after the request, not before, so the dialog's
                         // buttons are disabled while it runs.
                         await commitSave();
-                        setShowViewChannelConfirmModal(false);
+                        setShowAccessChannelConfirmModal(false);
                     }}
                 />
             )}
@@ -1005,10 +1005,10 @@ type PermissionRuleEditorProps = {
     policySimulationEnabled: boolean;
 
     /**
-     * Whether the View Channel row is offered. When false, saving a policy
-     * that carries view_channel would return 501.
+     * Whether the Access Channel row is offered. When false, saving a policy
+     * that carries access_channel would return 501.
      */
-    viewChannelEnabled: boolean;
+    accessChannelEnabled: boolean;
 };
 
 function PermissionRuleEditor({
@@ -1025,7 +1025,7 @@ function PermissionRuleEditor({
     onCommit,
     buildSimulationPolicy,
     policySimulationEnabled,
-    viewChannelEnabled,
+    accessChannelEnabled,
 }: PermissionRuleEditorProps) {
     const {formatMessage} = useIntl();
 
@@ -1058,7 +1058,7 @@ function PermissionRuleEditor({
 
     const selectedRoleDef = AVAILABLE_ROLES.find((r) => r.value === draft.role);
     const availableToAdd = AVAILABLE_PERMISSIONS.filter(
-        (p) => !draft.actions.includes(p.value) && (p.value !== ACCESS_CONTROL_ACTION_VIEW_CHANNEL || viewChannelEnabled),
+        (p) => !draft.actions.includes(p.value) && (p.value !== ACCESS_CONTROL_ACTION_ACCESS_CHANNEL || accessChannelEnabled),
     );
 
     return (

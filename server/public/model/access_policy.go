@@ -49,7 +49,7 @@ const (
 	AccessControlPolicyActionMembership             = "membership"
 	AccessControlPolicyActionUploadFileAttachment   = "upload_file_attachment"
 	AccessControlPolicyActionDownloadFileAttachment = "download_file_attachment"
-	AccessControlPolicyActionViewChannel            = "view_channel"
+	AccessControlPolicyActionAccessChannel          = "access_channel"
 
 	AccessControlPolicyScopeTeam = "team"
 )
@@ -58,7 +58,7 @@ var allowedActionsV0_3 = map[string]bool{
 	AccessControlPolicyActionMembership:             true,
 	AccessControlPolicyActionUploadFileAttachment:   true,
 	AccessControlPolicyActionDownloadFileAttachment: true,
-	AccessControlPolicyActionViewChannel:            true,
+	AccessControlPolicyActionAccessChannel:          true,
 }
 
 // allowedChannelRolesV0_4 is the set of channel-scoped roles that may appear
@@ -75,7 +75,7 @@ var allowedChannelRolesV0_4 = map[string]bool{
 var allowedPermissionActionsV0_4 = map[string]bool{
 	AccessControlPolicyActionUploadFileAttachment:   true,
 	AccessControlPolicyActionDownloadFileAttachment: true,
-	AccessControlPolicyActionViewChannel:            true,
+	AccessControlPolicyActionAccessChannel:          true,
 }
 
 // IsPermissionAction reports whether the given action is a non-membership
@@ -151,16 +151,16 @@ func (p *AccessControlPolicy) HasPermissionRuleAction() bool {
 	return false
 }
 
-// HasViewChannelAction reports whether any rule on this policy carries the
-// view_channel action. API4 uses it to gate the action behind its own
-// ViewChannelABACPermission flag, for every policy type. Safe to call on a
+// HasAccessChannelAction reports whether any rule on this policy carries the
+// access_channel action. API4 uses it to gate the action behind its own
+// AccessChannelABACPermission flag, for every policy type. Safe to call on a
 // nil policy.
-func (p *AccessControlPolicy) HasViewChannelAction() bool {
+func (p *AccessControlPolicy) HasAccessChannelAction() bool {
 	if p == nil {
 		return false
 	}
 	for i := range p.Rules {
-		if slices.Contains(p.Rules[i].Actions, AccessControlPolicyActionViewChannel) {
+		if slices.Contains(p.Rules[i].Actions, AccessControlPolicyActionAccessChannel) {
 			return true
 		}
 	}
@@ -476,16 +476,16 @@ func (p *AccessControlPolicy) accessPolicyVersionV0_3() *AppError {
 		if slices.Contains(rule.Actions, AccessControlPolicyActionMembership) && strings.Contains(rule.Expression, "user.session") {
 			return NewAppError("AccessControlPolicy.IsValid", "model.access_policy.is_valid.session_attribute_on_membership.app_error", nil, "", 400)
 		}
-		// view_channel only makes sense where the policy resolves to a channel:
+		// access_channel only makes sense where the policy resolves to a channel:
 		// a system permission policy, or a channel resource policy. On a parent
 		// or team policy the rule would be stored under the unscoped rule key
 		// and evaluated for the wrong subjects. v0.4 already rejects every
 		// permission action outside channel policies; v0.3 has no such check,
-		// and tightening it for view_channel alone avoids changing how existing
+		// and tightening it for access_channel alone avoids changing how existing
 		// file-action policies validate.
-		if slices.Contains(rule.Actions, AccessControlPolicyActionViewChannel) &&
+		if slices.Contains(rule.Actions, AccessControlPolicyActionAccessChannel) &&
 			p.Type != AccessControlPolicyTypePermission && p.Type != AccessControlPolicyTypeChannel {
-			return NewAppError("AccessControlPolicy.IsValid", "model.access_policy.is_valid.actions.view_channel_type.app_error", nil, fmt.Sprintf("view_channel is not allowed on %s policies", p.Type), 400)
+			return NewAppError("AccessControlPolicy.IsValid", "model.access_policy.is_valid.actions.access_channel_type.app_error", nil, fmt.Sprintf("access_channel is not allowed on %s policies", p.Type), 400)
 		}
 	}
 

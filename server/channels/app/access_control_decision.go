@@ -40,12 +40,12 @@ var renderableABACActions = map[string]renderableActionConfig{
 		DefaultWhenInactive: true,
 		FailClosedOnError:   true,
 	},
-	model.AccessControlPolicyActionViewChannel: {
+	model.AccessControlPolicyActionAccessChannel: {
 		ResourceType:        model.AccessControlPolicyTypeChannel,
 		DefaultWhenInactive: true,
 		FailClosedOnError:   true,
 		Enabled: func(cfg *model.Config) bool {
-			return cfg.FeatureFlags.IsViewChannelABACPermissionEnabled()
+			return cfg.FeatureFlags.IsAccessChannelABACPermissionEnabled()
 		},
 	},
 }
