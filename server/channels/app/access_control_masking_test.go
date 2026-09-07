@@ -1254,3 +1254,64 @@ func TestMaskSimulationPolicyLiteralsForCaller_CompoundOrPreserved(t *testing.T)
 	assert.Equal(t, blame.EvaluationTree.Expression, blame.Expression)
 	mockACS.AssertExpectations(t)
 }
+
+// TestAppMaskingResolver_SharedOnlyRank pins the resolver's options-vs-text split
+// to Type.SupportsOptions(), the same predicate maskConditionValues uses. A rank
+// field's literals are option names, and the read path hands back the options at
+// or below the caller's own rank — so a caller must be able to name any of them
+// in a policy expression.
+func TestAppMaskingResolver_SharedOnlyRank(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+	rctx := request.TestContext(t)
+
+	cpaGroup, appErr := th.App.GetPropertyGroup(rctx, model.AccessControlPropertyGroupName)
+	require.Nil(t, appErr)
+
+	callerID := model.NewId()
+	optPublic, optSecret, optTopSecret := model.NewId(), model.NewId(), model.NewId()
+
+	// Store-level Create bypasses the CPA access-control hook, which admits only
+	// an installed plugin for protected fields. Reads still filter per caller.
+	fieldName := celSafeName()
+	field, err := th.Store.PropertyField().Create(&model.PropertyField{
+		GroupID:    cpaGroup.ID,
+		Name:       fieldName,
+		Type:       model.PropertyFieldTypeRank,
+		ObjectType: model.PropertyFieldObjectTypeUser,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
+		Attrs: model.StringInterface{
+			model.PropertyFieldAttributeOptions: []any{
+				map[string]any{"id": optPublic, "name": "Public", "rank": 1},
+				map[string]any{"id": optSecret, "name": "Secret", "rank": 2},
+				map[string]any{"id": optTopSecret, "name": "TopSecret", "rank": 3},
+			},
+			// shared_only requires protected (ValidatePropertyFieldAccessMode).
+			model.PropertyAttrsProtected:  true,
+			model.PropertyAttrsAccessMode: model.PropertyAccessModeSharedOnly,
+		},
+	})
+	require.NoError(t, err)
+
+	// The caller holds Secret, so the read path admits Secret and below.
+	_, err = th.Store.PropertyValue().Create(&model.PropertyValue{
+		TargetID:   callerID,
+		TargetType: model.PropertyValueTargetTypeUser,
+		GroupID:    cpaGroup.ID,
+		FieldID:    field.ID,
+		Value:      json.RawMessage(`"` + optSecret + `"`),
+	})
+	require.NoError(t, err)
+
+	resolver, appErr := newMaskingResolver(th.App, rctx, callerID)
+	require.Nil(t, appErr)
+
+	info, resolveErr := resolver.Resolve(fieldName)
+	require.NoError(t, resolveErr)
+	require.Equal(t, model.MaskingFieldAccessSharedOnly, info.Access)
+
+	assert.False(t, info.IsValueHidden("Secret"), "the caller's own rank must be nameable")
+	assert.False(t, info.IsValueHidden("Public"), "a rank below the caller's must be nameable")
+	assert.True(t, info.IsValueHidden("TopSecret"), "a rank above the caller's stays hidden")
+}
