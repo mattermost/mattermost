@@ -369,6 +369,59 @@ jobs:
       - name: ci/start-server
         working-directory: e2e-tests
         run: make start-server
+      # Builds environment_metadata with jq rather than by interpolating into a
+      # JSON string literal. See the identical step in
+      # e2e-tests-playwright-template.yml for the full rationale: a
+      # workflow_call default does not apply to an empty input, and an unquoted
+      # interpolation of one produces a document that does not parse — taking
+      # every other field down with it rather than degrading to "".
+      #
+      # Never put MM_LICENSE itself here — this lands in
+      # report_groups.environment_metadata, which /api/v1/tests/evidence serves
+      # back unauthenticated. license_secret_present is a boolean and says only
+      # whether the secret was configured on this runner; it is deliberately
+      # NOT named "licensed", because it does not report whether the server was
+      # actually licensed.
+      - name: ci/resolve-environment-metadata
+        id: environment-metadata
+        env:
+          SERVER_EDITION: ${{ inputs.server_edition || 'enterprise' }}
+          SERVER: ${{ inputs.server }}
+          SERVER_IMAGE: ${{ env.SERVER_IMAGE }}
+          SERVER_IMAGE_TAG: ${{ inputs.server_image_tag }}
+          SERVER_IMAGE_REPO: ${{ inputs.server_image_repo }}
+          ENABLED_DOCKER_SERVICES: ${{ inputs.enabled_docker_services }}
+          TEST_TYPE: ${{ inputs.test_type }}
+          RETEST_ON_FAIL: ${{ inputs.retest_on_fail }}
+          WORKER_INDEX: ${{ matrix.worker_index }}
+          LICENSE_SECRET_PRESENT: ${{ secrets.MM_LICENSE != '' }}
+        run: |
+          set -euo pipefail
+
+          # The digest of the image that actually ran. server_image_tag is very
+          # often the mutable "master", and SERVER_IMAGE is computed by a
+          # ternary the consumer never sees (server_edition 'fips' resolves to
+          # mattermost-enterprise-fips-edition, 'team' to
+          # mattermost-team-edition). Without the resolved name and its digest,
+          # a reproduction can run against a different binary than the one that
+          # failed while believing it matched.
+          #
+          # Read after ci/start-server, so the image has been pulled.
+          # Best-effort throughout: metadata is diagnostic, and losing a whole
+          # E2E run over a missing digest is the worse outcome.
+          SERVER_IMAGE_DIGEST=""
+          if docker image inspect "$SERVER_IMAGE" >/dev/null 2>&1; then
+            SERVER_IMAGE_DIGEST="$(docker image inspect --format '{{index .RepoDigests 0}}' "$SERVER_IMAGE" 2>/dev/null || true)"
+            if [ -z "$SERVER_IMAGE_DIGEST" ]; then
+              SERVER_IMAGE_DIGEST="$(docker image inspect --format '{{.Id}}' "$SERVER_IMAGE" 2>/dev/null || true)"
+            fi
+          fi
+
+          CYPRESS_VERSION="$(npx --no-install cypress --version --component package 2>/dev/null | head -1 || true)"
+
+          METADATA="$(jq -n -c             --arg server_edition "$SERVER_EDITION"             --arg server "$SERVER"             --arg server_image "$SERVER_IMAGE"             --arg server_image_digest "$SERVER_IMAGE_DIGEST"             --arg server_image_tag "$SERVER_IMAGE_TAG"             --arg server_image_repo "$SERVER_IMAGE_REPO"             --arg enabled_docker_services "$ENABLED_DOCKER_SERVICES"             --arg test_type "$TEST_TYPE"             --arg cypress_version "$CYPRESS_VERSION"             --argjson retest_on_fail "${RETEST_ON_FAIL:-null}"             --argjson worker_index "${WORKER_INDEX:-null}"             --argjson license_secret_present "${LICENSE_SECRET_PRESENT:-false}"             '$ARGS.named')"
+
+          echo "metadata=$METADATA" >> "$GITHUB_OUTPUT"
       - name: ci/dispatch-run
         uses: mattermost/mattermost-test-system-io/.github/actions/test-system-io-dispatch-run@b49ae5aa883eb1077b3781cee4e868d8e1bd1aa6 # 2026-09-06, mattermost-test-system-io#114
         with:
@@ -381,18 +434,9 @@ jobs:
           gh-job-name: dispatch-run-${{ matrix.worker_index }}
           # Lets a consumer reproducing a failure (human or automation) start
           # its own server the same way this one ran, instead of guessing at
-          # defaults that may not match. Never put MM_LICENSE itself here —
-          # this lands in report_groups.environment_metadata, which
-          # /api/v1/tests/evidence serves back unauthenticated.
-          environment-metadata: |
-            {
-              "server_edition": "${{ inputs.server_edition || 'enterprise' }}",
-              "server": "${{ inputs.server }}",
-              "server_image_tag": "${{ inputs.server_image_tag }}",
-              "server_image_repo": "${{ inputs.server_image_repo }}",
-              "enabled_docker_services": "${{ inputs.enabled_docker_services }}",
-              "licensed": ${{ secrets.MM_LICENSE != '' }}
-            }
+          # defaults that may not match. Built by ci/resolve-environment-metadata
+          # above; see that step for why it is not a JSON string literal.
+          environment-metadata: ${{ steps.environment-metadata.outputs.metadata }}
       - name: ci/cloud-teardown
         if: always()
         working-directory: e2e-tests

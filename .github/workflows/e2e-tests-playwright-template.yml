@@ -319,6 +319,88 @@ jobs:
       - name: ci/prepare-playwright
         working-directory: e2e-tests/playwright
         run: npx playwright test --project=setup
+      # Builds environment_metadata with jq rather than by interpolating into a
+      # JSON string literal.
+      #
+      # String concatenation put every field one empty value away from taking
+      # the whole document down. A workflow_call default does not apply to an
+      # input that is passed as an empty string (only to one that is omitted),
+      # and `"playwright_retries": ${{ inputs.playwright_retries }}` was
+      # unquoted — so the first caller passing it empty produced
+      # `"playwright_retries": ,`, which is not JSON. Every other field would
+      # have degraded to "" on its own; this one took the document with it, and
+      # a consumer reproducing a failure would get no metadata at all rather
+      # than one blank field. Commit 6598863 fixed the same class of bug for
+      # server_edition.
+      #
+      # With --arg, a value's content cannot change the document's shape: jq
+      # quotes and escapes it. Booleans and numbers go through --argjson with
+      # an explicit fallback, so an empty input becomes null rather than a
+      # syntax error.
+      #
+      # Never put MM_LICENSE itself here — this lands in
+      # report_groups.environment_metadata, which /api/v1/tests/evidence serves
+      # back unauthenticated. license_secret_present is a boolean and says only
+      # whether the secret was configured on this runner; it is deliberately
+      # NOT named "licensed", because it does not report whether the server was
+      # actually licensed.
+      - name: ci/resolve-environment-metadata
+        id: environment-metadata
+        # npx resolves the workspace's own Playwright install from here.
+        working-directory: e2e-tests/playwright
+        env:
+          SERVER_EDITION: ${{ inputs.server_edition || 'enterprise' }}
+          SERVER: ${{ inputs.server }}
+          SERVER_IMAGE: ${{ env.SERVER_IMAGE }}
+          SERVER_IMAGE_TAG: ${{ inputs.server_image_tag }}
+          SERVER_IMAGE_REPO: ${{ inputs.server_image_repo }}
+          PLAYWRIGHT_PROJECT: ${{ inputs.playwright_project }}
+          PLAYWRIGHT_RETRIES: ${{ inputs.playwright_retries }}
+          RETEST_ON_FAIL: ${{ inputs.retest_on_fail }}
+          WORKER_INDEX: ${{ matrix.worker_index }}
+          ENABLED_DOCKER_SERVICES: ${{ inputs.enabled_docker_services }}
+          LICENSE_SECRET_PRESENT: ${{ secrets.MM_LICENSE != '' }}
+        run: |
+          set -euo pipefail
+
+          # The digest of the image that actually ran.
+          #
+          # server_image_tag is very often the mutable "master", and SERVER_IMAGE
+          # is computed by a ternary the consumer never sees (server_edition
+          # 'fips' resolves to mattermost-enterprise-fips-edition, 'team' to
+          # mattermost-team-edition). Without the resolved name and its digest, a
+          # reproduction can run against a different binary than the one that
+          # failed while believing it matched — which makes "verified N/N against
+          # a real server" unsound, because the N runs and the failure were not
+          # against the same server.
+          #
+          # Read after ci/prepare-playwright, so testcontainers has pulled the
+          # image. RepoDigests is empty for a locally built image; fall back to
+          # the local image ID, and to empty when the image is not present at
+          # all. This step must never fail the run: metadata is diagnostic, and
+          # losing a whole E2E run over a missing digest is a worse outcome than
+          # recording an empty one.
+          SERVER_IMAGE_DIGEST=""
+          if docker image inspect "$SERVER_IMAGE" >/dev/null 2>&1; then
+            SERVER_IMAGE_DIGEST="$(docker image inspect --format '{{index .RepoDigests 0}}' "$SERVER_IMAGE" 2>/dev/null || true)"
+            if [ -z "$SERVER_IMAGE_DIGEST" ]; then
+              SERVER_IMAGE_DIGEST="$(docker image inspect --format '{{.Id}}' "$SERVER_IMAGE" 2>/dev/null || true)"
+            fi
+          fi
+
+          # Versions decide whether a reproduction is comparable at all: a
+          # selector timeout under one browser build is not the same failure as
+          # the same timeout under another. `install --dry-run` reports the
+          # browser build this Playwright version pins without downloading
+          # anything. Both are best-effort for the same reason as the digest.
+          PLAYWRIGHT_VERSION="$(npx --no-install playwright --version 2>/dev/null || true)"
+          BROWSER_VERSION="$(npx --no-install playwright install --dry-run chromium 2>/dev/null             | sed -n 's/^browser: *//p' | head -1 || true)"
+
+          # --argjson for the non-strings, each with an explicit fallback so an
+          # empty input yields null instead of breaking the parse.
+          METADATA="$(jq -n -c             --arg server_edition "$SERVER_EDITION"             --arg server "$SERVER"             --arg server_image "$SERVER_IMAGE"             --arg server_image_digest "$SERVER_IMAGE_DIGEST"             --arg server_image_tag "$SERVER_IMAGE_TAG"             --arg server_image_repo "$SERVER_IMAGE_REPO"             --arg playwright_project "$PLAYWRIGHT_PROJECT"             --arg playwright_version "$PLAYWRIGHT_VERSION"             --arg browser_version "$BROWSER_VERSION"             --arg enabled_docker_services "$ENABLED_DOCKER_SERVICES"             --arg testcontainers_services "${PW_TESTCONTAINERS_SERVICES:-}"             --argjson playwright_retries "${PLAYWRIGHT_RETRIES:-null}"             --argjson retest_on_fail "${RETEST_ON_FAIL:-null}"             --argjson worker_index "${WORKER_INDEX:-null}"             --argjson license_secret_present "${LICENSE_SECRET_PRESENT:-false}"             --argjson testcontainers "$([ "${PW_USE_TESTCONTAINERS:-}" = "true" ] && echo true || echo false)"             --argjson testcontainers_reuse "$([ "${PW_TESTCONTAINERS_REUSE:-}" = "true" ] && echo true || echo false)"             '$ARGS.named')"
+
+          echo "metadata=$METADATA" >> "$GITHUB_OUTPUT"
       - name: ci/dispatch-run
         uses: mattermost/mattermost-test-system-io/.github/actions/test-system-io-dispatch-run@b49ae5aa883eb1077b3781cee4e868d8e1bd1aa6 # 2026-09-06, mattermost-test-system-io#114
         with:
@@ -333,21 +415,9 @@ jobs:
           playwright-project: ${{ inputs.playwright_project }}
           # Lets a consumer reproducing a failure (human or automation) start
           # its own server the same way this one ran, instead of guessing at
-          # defaults that may not match. Never put MM_LICENSE itself here —
-          # this lands in report_groups.environment_metadata, which
-          # /api/v1/tests/evidence serves back unauthenticated.
-          environment-metadata: |
-            {
-              "server_edition": "${{ inputs.server_edition || 'enterprise' }}",
-              "server": "${{ inputs.server }}",
-              "server_image_tag": "${{ inputs.server_image_tag }}",
-              "server_image_repo": "${{ inputs.server_image_repo }}",
-              "playwright_project": "${{ inputs.playwright_project }}",
-              "playwright_retries": ${{ inputs.playwright_retries }},
-              "licensed": ${{ secrets.MM_LICENSE != '' }},
-              "testcontainers": ${{ env.PW_USE_TESTCONTAINERS == 'true' }},
-              "testcontainers_services": "${{ env.PW_TESTCONTAINERS_SERVICES }}"
-            }
+          # defaults that may not match. Built by ci/resolve-environment-metadata
+          # above; see that step for why it is not a JSON string literal.
+          environment-metadata: ${{ steps.environment-metadata.outputs.metadata }}
       - name: ci/upload-debug-artifacts
         if: always()
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
