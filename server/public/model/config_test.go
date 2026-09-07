@@ -192,6 +192,34 @@ func TestSupportSettingsIsValid(t *testing.T) {
 	})
 }
 
+func TestClusterSettingsIsValid(t *testing.T) {
+	t.Run("defaults are valid", func(t *testing.T) {
+		settings := &ClusterSettings{}
+		settings.SetDefaults()
+
+		require.Nil(t, settings.isValid())
+	})
+
+	t.Run("gossip port must be a valid port number", func(t *testing.T) {
+		settings := &ClusterSettings{
+			GossipPort: NewPointer(0),
+		}
+		settings.SetDefaults()
+
+		appErr := settings.isValid()
+		require.NotNil(t, appErr)
+		require.Equal(t, "model.config.is_valid.cluster_gossip_port.app_error", appErr.Id)
+
+		settings.GossipPort = NewPointer(65536)
+		appErr = settings.isValid()
+		require.NotNil(t, appErr)
+		require.Equal(t, "model.config.is_valid.cluster_gossip_port.app_error", appErr.Id)
+
+		settings.GossipPort = NewPointer(8074)
+		require.Nil(t, settings.isValid())
+	})
+}
+
 func TestAnnouncementSettingsIsValid(t *testing.T) {
 	t.Run("defaults are valid", func(t *testing.T) {
 		settings := &AnnouncementSettings{}
@@ -1561,6 +1589,12 @@ func customRelaySettings(name, value string) *GlobalRelayMessageExportSettings {
 	}
 }
 
+func customRelaySettingsWithPort(port string) *GlobalRelayMessageExportSettings {
+	settings := customRelaySettings("", "")
+	settings.CustomSMTPPort = new(port)
+	return settings
+}
+
 func TestMessageExportSettingsGlobalRelaySettings(t *testing.T) {
 	tests := []struct {
 		name    string
@@ -1578,6 +1612,29 @@ func TestMessageExportSettingsGlobalRelaySettings(t *testing.T) {
 			},
 			false,
 			"",
+		},
+		{
+			"Email address containing '@' but failing stricter validation",
+			&GlobalRelayMessageExportSettings{
+				CustomerType: new(GlobalrelayCustomerTypeA9),
+				EmailAddress: new("notanemail@"),
+				SMTPUsername: new("SomeUsername"),
+				SMTPPassword: new("SomePassword"),
+			},
+			false,
+			"model.config.is_valid.message_export.global_relay.email_address.app_error",
+		},
+		{
+			"Custom SMTP port out of range",
+			customRelaySettingsWithPort("65536"),
+			false,
+			"model.config.is_valid.message_export.global_relay.custom_smtp_port.app_error",
+		},
+		{
+			"Custom SMTP port non-numeric",
+			customRelaySettingsWithPort("not-a-port"),
+			false,
+			"model.config.is_valid.message_export.global_relay.custom_smtp_port.app_error",
 		},
 		{
 			"Missing smtp username",
