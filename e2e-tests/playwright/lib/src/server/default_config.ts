@@ -99,7 +99,7 @@ const onPremServerConfig = (): Partial<TestAdminConfig> => {
 };
 
 // Should be based only from the generated default config from ./server via "make config-reset"
-// Based on v11.9 server
+// Based on v11.10 server
 const defaultServerConfig: AdminConfig = {
     ServiceSettings: {
         SiteURL: '',
@@ -794,10 +794,7 @@ const defaultServerConfig: AdminConfig = {
     FeatureFlags: {
         TestFeature: 'off',
         TestBoolFeature: false,
-        EnableRemoteClusterService: false,
         EnableSharedChannelsDMs: false,
-        EnableSharedChannelsPlugins: true,
-        EnableSharedChannelsMemberSync: false,
         EnableSyncAllUsersForRemoteCluster: false,
         AppsEnabled: false,
         NormalizeLdapDNs: false,
@@ -807,10 +804,10 @@ const defaultServerConfig: AdminConfig = {
         CloudDedicatedExportUI: false,
         NotificationMonitoring: true,
         CustomProfileAttributes: true,
-        AttributeValueMasking: false,
-        PermissionPolicies: false,
-        ChannelPermissionPolicies: false,
-        PolicySimulation: false,
+        AttributeValueMasking: true,
+        PermissionPolicies: true,
+        ChannelPermissionPolicies: true,
+        PolicySimulation: true,
         ContentFlagging: true,
         EnableMattermostEntry: true,
         MobileSSOCodeExchange: false,
@@ -820,16 +817,20 @@ const defaultServerConfig: AdminConfig = {
         BurnOnRead: true,
         EnableAIPluginBridge: false,
         EnableAIRecaps: false,
-        IntegratedBoards: true,
+        IntegratedBoards: false,
         CJKSearch: true,
         AggregatePluginMetrics: false,
         ManagedChannelCategories: false,
         SessionAttributes: false,
         DiscoverableChannels: false,
         MobileEphemeralMode: false,
-        PropertyFieldRank: false,
+        PropertyFieldRank: true,
         TeamMembershipAccessControl: true,
         MmBlocksEnabled: true,
+        ClusterGracefulDrain: true,
+        ChannelBookmarks: true,
+        EnableConcurrentReact: false,
+        EnableMFIPluginSignaturePublicKey: true,
     },
     ImportSettings: {
         Directory: './import',
@@ -863,6 +864,7 @@ const defaultServerConfig: AdminConfig = {
         EnableChannelPolicyIndicators: true,
         TrustProxyDeviceIdentityHeader: false,
         EnforceDeviceIDConsistency: false,
+        SyncJobIntervalSeconds: 3600,
     },
     ContentFlaggingSettings: {
         EnableContentFlagging: false,

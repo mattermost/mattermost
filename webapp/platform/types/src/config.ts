@@ -1066,6 +1066,7 @@ export type AccessControlSettings = {
     EnableChannelPolicyIndicators: boolean;
     TrustProxyDeviceIdentityHeader: boolean;
     EnforceDeviceIDConsistency: boolean;
+    SyncJobIntervalSeconds: number;
 };
 
 export type ContentFlaggingNotificationSettings = {
