@@ -250,6 +250,65 @@ func (a *App) FilterChannelIDsByAccess(rctx request.CTX, userID string, channelI
 	return filtered
 }
 
+// FilterChannelsByAccess drops the channels the access_channel policy denies for
+// the user, returning the input untouched while the feature is inert.
+//
+// Discovery surfaces need this because a denied channel must leave no trace: a
+// name in Browse Channels or an autocomplete hit is enough to tell a session that
+// a channel it cannot read exists.
+func (a *App) FilterChannelsByAccess(rctx request.CTX, userID string, channels []*model.Channel) []*model.Channel {
+	if len(channels) == 0 || !a.accessChannelEnforcementActive() {
+		return channels
+	}
+
+	filtered := make([]*model.Channel, 0, len(channels))
+	for _, channel := range channels {
+		if a.HasPermissionToAccessChannel(rctx, userID, channel) {
+			filtered = append(filtered, channel)
+		}
+	}
+	return filtered
+}
+
+// FilterChannelListByAccess is FilterChannelsByAccess for the standard list shape.
+func (a *App) FilterChannelListByAccess(rctx request.CTX, userID string, channels model.ChannelList) model.ChannelList {
+	return model.ChannelList(a.FilterChannelsByAccess(rctx, userID, channels))
+}
+
+// FilterChannelListWithTeamDataByAccess filters the team-data list shape used by
+// autocomplete and the admin channel search, reporting how many entries were
+// dropped so a paginated caller can shrink its total to match what it returned.
+func (a *App) FilterChannelListWithTeamDataByAccess(rctx request.CTX, userID string, channels model.ChannelListWithTeamData) (model.ChannelListWithTeamData, int) {
+	if len(channels) == 0 || !a.accessChannelEnforcementActive() {
+		return channels, 0
+	}
+
+	filtered := make(model.ChannelListWithTeamData, 0, len(channels))
+	for _, channel := range channels {
+		if a.HasPermissionToAccessChannel(rctx, userID, &channel.Channel) {
+			filtered = append(filtered, channel)
+		}
+	}
+	return filtered, len(channels) - len(filtered)
+}
+
+// FilterChannelMembersWithTeamDataByAccess drops the membership rows whose channel
+// the access_channel policy denies. The rows themselves are untouched — the user
+// keeps their membership, and it reappears when access returns.
+func (a *App) FilterChannelMembersWithTeamDataByAccess(rctx request.CTX, userID string, members model.ChannelMembersWithTeamData) model.ChannelMembersWithTeamData {
+	if len(members) == 0 || !a.accessChannelEnforcementActive() {
+		return members
+	}
+
+	filtered := make(model.ChannelMembersWithTeamData, 0, len(members))
+	for _, member := range members {
+		if a.HasPermissionToAccessChannelByID(rctx, userID, member.ChannelId) {
+			filtered = append(filtered, member)
+		}
+	}
+	return filtered
+}
+
 // HasPermissionToAccessChannelByID resolves the channel before evaluating, for the
 // gates that only carry an ID.
 //

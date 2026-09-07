@@ -2423,6 +2423,8 @@ func (a *App) GetChannelsForTeamForUser(rctx request.CTX, teamID string, userID 
 			mlog.Err(appErr),
 		)
 	}
+
+	channels = a.FilterChannelListByAccess(rctx, userID, channels)
 	return channels, nil
 }
 
@@ -2497,7 +2499,9 @@ func (a *App) GetDeletedChannels(rctx request.CTX, teamID string, offset int, li
 		}
 	}
 
-	return list, nil
+	// Archiving a channel deletes its own policy row, so only a system-scoped
+	// permission policy can still hide one here.
+	return a.FilterChannelListByAccess(rctx, userID, list), nil
 }
 
 func (a *App) GetChannelsUserNotIn(rctx request.CTX, teamID string, userID string, offset int, limit int) (model.ChannelList, *model.AppError) {
@@ -2505,7 +2509,7 @@ func (a *App) GetChannelsUserNotIn(rctx request.CTX, teamID string, userID strin
 	if err != nil {
 		return nil, model.NewAppError("GetChannelsUserNotIn", "app.channel.get_more_channels.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	return channels, nil
+	return a.FilterChannelListByAccess(rctx, userID, channels), nil
 }
 
 func (a *App) GetPublicChannelsByIdsForTeam(rctx request.CTX, teamID string, channelIDs []string) (model.ChannelList, *model.AppError) {
@@ -2520,7 +2524,11 @@ func (a *App) GetPublicChannelsByIdsForTeam(rctx request.CTX, teamID string, cha
 		}
 	}
 
-	return list, nil
+	// A denied channel must leave no trace on a discovery surface: a name in
+	// Browse Channels or a search hit tells a session that a channel it cannot
+	// read exists. These functions take no userID, and every caller is
+	// session-driven.
+	return a.FilterChannelListByAccess(rctx, rctx.Session().UserId, list), nil
 }
 
 func (a *App) GetPublicChannelsForTeam(rctx request.CTX, teamID string, offset int, limit int) (model.ChannelList, *model.AppError) {
@@ -2529,7 +2537,11 @@ func (a *App) GetPublicChannelsForTeam(rctx request.CTX, teamID string, offset i
 		return nil, model.NewAppError("GetPublicChannelsForTeam", "app.channel.get_public_channels.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	return list, nil
+	// A denied channel must leave no trace on a discovery surface: a name in
+	// Browse Channels or a search hit tells a session that a channel it cannot
+	// read exists. These functions take no userID, and every caller is
+	// session-driven.
+	return a.FilterChannelListByAccess(rctx, rctx.Session().UserId, list), nil
 }
 
 func (a *App) GetPrivateChannelsForTeam(rctx request.CTX, teamID string, offset int, limit int) (model.ChannelList, *model.AppError) {
@@ -3395,6 +3407,7 @@ func (a *App) AutocompleteChannels(rctx request.CTX, userID, term string) (model
 	if appErr != nil {
 		return nil, appErr
 	}
+	channelList, _ = a.FilterChannelListWithTeamDataByAccess(rctx, userID, channelList)
 	return channelList, nil
 }
 
@@ -3411,6 +3424,8 @@ func (a *App) AutocompleteChannelsForTeam(rctx request.CTX, teamID, userID, term
 	if err != nil {
 		return nil, model.NewAppError("AutocompleteChannels", "app.channel.search.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
+
+	channelList = a.FilterChannelListByAccess(rctx, userID, channelList)
 
 	return a.FilterChannelListForUserVisibility(rctx, channelList, userID)
 }
@@ -3429,6 +3444,8 @@ func (a *App) AutocompleteChannelsForTeamFiltered(rctx request.CTX, teamID, user
 		return nil, model.NewAppError("AutocompleteChannelsForTeamFiltered", "app.channel.search.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
+	channelList = a.FilterChannelListByAccess(rctx, userID, channelList)
+
 	return a.FilterChannelListForUserVisibility(rctx, channelList, userID)
 }
 
@@ -3442,7 +3459,7 @@ func (a *App) AutocompleteChannelsForSearch(rctx request.CTX, teamID string, use
 		return nil, model.NewAppError("AutocompleteChannelsForSearch", "app.channel.search.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	return channelList, nil
+	return a.FilterChannelListByAccess(rctx, userID, channelList), nil
 }
 
 // SearchAllChannels returns a list of channels, the total count of the results of the search (if the paginate search option is true), and an error.
@@ -3492,6 +3509,12 @@ func (a *App) SearchChannels(rctx request.CTX, teamID string, term string) (mode
 		return nil, model.NewAppError("SearchChannels", "app.channel.search.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
+	// A denied channel must leave no trace on a discovery surface: a name in
+	// Browse Channels or a search hit tells a session that a channel it cannot
+	// read exists. These functions take no userID, and every caller is
+	// session-driven.
+	channelList = a.FilterChannelListByAccess(rctx, rctx.Session().UserId, channelList)
+
 	// Hydrate policy actions so search results carry the same action map as the
 	// bootstrap channel list; otherwise a search would overwrite a hydrated
 	// channel in the frontend store with an unhydrated copy. No-op without a
@@ -3515,6 +3538,8 @@ func (a *App) SearchChannelsForUser(rctx request.CTX, userID, teamID, term strin
 	if err != nil {
 		return nil, model.NewAppError("SearchChannelsForUser", "app.channel.search.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
+
+	channelList = a.FilterChannelListByAccess(rctx, userID, channelList)
 
 	// Hydrate policy actions so search results carry the same action map as the
 	// bootstrap channel list; otherwise a search would overwrite a hydrated

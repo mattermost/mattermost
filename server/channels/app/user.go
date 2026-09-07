@@ -23,6 +23,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	putils "github.com/mattermost/mattermost/server/public/utils"
 	"github.com/mattermost/mattermost/server/v8/channels/app/email"
 	"github.com/mattermost/mattermost/server/v8/channels/app/imaging"
 	"github.com/mattermost/mattermost/server/v8/channels/app/password/hashers"
@@ -3039,7 +3040,7 @@ func (a *App) GetThreadsForUser(rctx request.CTX, userID, teamID string, options
 
 	if !options.TotalsOnly {
 		eg.Go(func() error {
-			threads, err := a.Srv().Store().Thread().GetThreadsForUser(rctx, userID, teamID, options)
+			threads, err := a.threadsForUserPage(rctx, userID, teamID, options)
 			if err != nil {
 				return errors.Wrapf(err, "failed to get threads for user id=%s", userID)
 			}
@@ -3068,6 +3069,61 @@ func (a *App) GetThreadsForUser(rctx request.CTX, userID, teamID string, options
 	a.populatePostListTranslations(rctx, list)
 
 	return &result, nil
+}
+
+// threadsForUserPage reads one page of the user's threads, dropping those whose
+// channel the access_channel policy denies.
+//
+// The thread list has no channel-permission filter of its own: the store scopes it
+// by ChannelMembers, and an ABAC-denied user keeps their membership, so threads
+// from hidden channels would surface. Because filtering happens after the store
+// has already paginated, the page is topped up from the cursor — a short page is
+// how the client recognises the end of the list.
+//
+// The unread totals alongside this list are deliberately left as the store
+// computed them, matching how the channel unread aggregates behave.
+func (a *App) threadsForUserPage(rctx request.CTX, userID, teamID string, options model.GetUserThreadsOpts) ([]*model.ThreadResponse, error) {
+	fetch := func(opts model.GetUserThreadsOpts) ([]*model.ThreadResponse, error) {
+		return a.Srv().Store().Thread().GetThreadsForUser(rctx, userID, teamID, opts)
+	}
+
+	if !a.accessChannelEnforcementActive() {
+		return fetch(options)
+	}
+
+	// Ascending pages walk forward from After, descending ones back from Before.
+	// Advancing the same field the caller used keeps the direction intact.
+	advance := func(opts model.GetUserThreadsOpts, page []*model.ThreadResponse) model.GetUserThreadsOpts {
+		last := page[len(page)-1].PostId
+		if opts.After != "" {
+			opts.After = last
+		} else {
+			opts.Before = last
+		}
+		return opts
+	}
+
+	want := int(options.PageSize)
+	threads, truncated, err := putils.FetchUntil(options, want, fetch,
+		func(thread *model.ThreadResponse) bool {
+			return thread.Post != nil && a.HasPermissionToAccessChannelByID(rctx, userID, thread.Post.ChannelId)
+		},
+		func(page []*model.ThreadResponse) model.GetUserThreadsOpts {
+			return advance(options, page)
+		},
+	)
+	if err != nil {
+		return nil, err
+	}
+	if truncated {
+		rctx.Logger().Warn("Gave up filling a page of threads; the policy denies most of this user's channels",
+			mlog.String("user_id", userID),
+			mlog.String("team_id", teamID),
+			mlog.Int("rounds", putils.FetchUntilMaxRounds),
+		)
+	}
+
+	return threads, nil
 }
 
 func (a *App) GetThreadMembershipForUser(userId, threadId string) (*model.ThreadMembership, *model.AppError) {

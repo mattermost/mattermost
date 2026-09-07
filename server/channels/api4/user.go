@@ -3762,6 +3762,7 @@ func getChannelMembersForUser(c *Context, w http.ResponseWriter, r *http.Request
 		for i := range members {
 			members[i].SanitizeForCurrentUser(currentUserId)
 		}
+		members = c.App.FilterChannelMembersWithTeamDataByAccess(c.AppContext, c.Params.UserId, members)
 
 		if err := json.NewEncoder(w).Encode(members); err != nil {
 			c.Logger.Warn("Error while writing response", mlog.Err(err))
@@ -3798,6 +3799,13 @@ func getChannelMembersForUser(c *Context, w http.ResponseWriter, r *http.Request
 
 		currentUserId := c.AppContext.Session().UserId
 		for _, member := range members {
+			// Withholding the membership row keeps the denied channel absent from
+			// the client without touching the row itself. Filtered here, not in the
+			// app layer: the cursor advance and the short-page test below must see
+			// the raw page or the whole list would truncate at the first denial.
+			if !c.App.HasPermissionToAccessChannelByID(c.AppContext, c.Params.UserId, member.ChannelId) {
+				continue
+			}
 			// Sanitize each member before encoding in the stream
 			member.SanitizeForCurrentUser(currentUserId)
 			if err := enc.Encode(member); err != nil {

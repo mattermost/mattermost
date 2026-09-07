@@ -1496,6 +1496,11 @@ func getChannelsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 	enc := json.NewEncoder(w)
+	// Filtering happens here rather than in the app layer for two reasons: the
+	// cursor advance and the "short page means done" test below both have to see the
+	// raw page, or one denied channel would silently truncate the whole sidebar; and
+	// the response is already streaming, so nothing can be retracted once written.
+	wroteAny := false
 	for {
 		channels, err := c.App.GetChannelsForUser(c.AppContext, c.Params.UserId, c.Params.IncludeDeleted, lastDeleteAt, pageSize, fromChannelID)
 		if err != nil {
@@ -1514,22 +1519,19 @@ func getChannelsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		// intermediary comma between sets
-		if fromChannelID != "" {
-			if _, err := w.Write([]byte(`,`)); err != nil {
-				c.Logger.Warn("Error while writing response", mlog.Err(err))
+		for _, ch := range channels {
+			if !c.App.HasPermissionToAccessChannel(c.AppContext, c.Params.UserId, ch) {
+				continue
 			}
-		}
-
-		for i, ch := range channels {
-			if err := enc.Encode(ch); err != nil {
-				c.Logger.Warn("Error while writing response", mlog.Err(err))
-			}
-			if i < len(channels)-1 {
+			if wroteAny {
 				if _, err := w.Write([]byte(`,`)); err != nil {
 					c.Logger.Warn("Error while writing response", mlog.Err(err))
 				}
 			}
+			if err := enc.Encode(ch); err != nil {
+				c.Logger.Warn("Error while writing response", mlog.Err(err))
+			}
+			wroteAny = true
 		}
 
 		if len(channels) < pageSize {
