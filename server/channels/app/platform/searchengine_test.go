@@ -117,9 +117,18 @@ func TestRunSearchEngineWatcher(t *testing.T) {
 			"watcher should have transitioned to health phase after Start succeeds")
 
 		require.NoError(t, w.ps.Logger().Flush())
-		logText := logBuffer.String()
-		testlib.AssertLog(t, strings.NewReader(logText), mlog.LvlError.Name, "Search engine watcher: Start() failed, will retry")
-		testlib.AssertNoLog(t, strings.NewReader(logText), mlog.LvlWarn.Name, "Search engine watcher: Start() failed, will retry")
+		// release-11.7's testlib.AssertNoLog matches on message only, so it cannot
+		// distinguish error vs warn for the same text. Check levels explicitly.
+		var foundError, foundWarn bool
+		for _, entry := range testlib.ParseLogEntries(t, strings.NewReader(logBuffer.String())) {
+			if entry.Msg != "Search engine watcher: Start() failed, will retry" {
+				continue
+			}
+			foundError = foundError || entry.Level == mlog.LvlError.Name
+			foundWarn = foundWarn || entry.Level == mlog.LvlWarn.Name
+		}
+		require.True(t, foundError, "expected error log for Start() failure retry")
+		require.False(t, foundWarn, "did not expect warn log for Start() failure retry")
 	})
 
 	t.Run("exponential backoff with cap", func(t *testing.T) {
