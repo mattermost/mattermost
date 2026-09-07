@@ -36,21 +36,29 @@ type channelAccessMemoKey struct{}
 // attaches the channel-scoped role, so a subject is only valid for the one
 // channel it was built for.
 type channelAccessMemo struct {
-	mu        sync.Mutex
-	decisions map[string]bool
+	mu sync.Mutex
+	// Keyed by user *and* channel: one request can ask about more than one user —
+	// a webhook's owner, a notification's recipient — and reusing the first
+	// answer for everybody would hand one user another's decision.
+	decisions map[channelAccessKey]bool
 }
 
-func (m *channelAccessMemo) get(channelID string) (allowed bool, ok bool) {
+type channelAccessKey struct {
+	userID    string
+	channelID string
+}
+
+func (m *channelAccessMemo) get(key channelAccessKey) (allowed bool, ok bool) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	allowed, ok = m.decisions[channelID]
+	allowed, ok = m.decisions[key]
 	return allowed, ok
 }
 
-func (m *channelAccessMemo) set(channelID string, allowed bool) {
+func (m *channelAccessMemo) set(key channelAccessKey, allowed bool) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	m.decisions[channelID] = allowed
+	m.decisions[key] = allowed
 }
 
 func getChannelAccessMemo(rctx request.CTX) *channelAccessMemo {
@@ -77,7 +85,7 @@ func WithChannelAccessMemo(rctx request.CTX) request.CTX {
 	if getChannelAccessMemo(rctx) != nil {
 		return rctx
 	}
-	memo := &channelAccessMemo{decisions: map[string]bool{}}
+	memo := &channelAccessMemo{decisions: map[channelAccessKey]bool{}}
 	return rctx.WithContext(context.WithValue(rctx.Context(), channelAccessMemoKey{}, memo))
 }
 
@@ -91,7 +99,8 @@ func ChannelAccessDeniedByPolicy(rctx request.CTX, channelID string) bool {
 	if memo == nil {
 		return false
 	}
-	allowed, ok := memo.get(channelID)
+	// The requesting session is the only user whose denial the response is about.
+	allowed, ok := memo.get(channelAccessKey{userID: rctx.Session().UserId, channelID: channelID})
 	return ok && !allowed
 }
 
@@ -145,15 +154,16 @@ func (a *App) HasPermissionToAccessChannel(rctx request.CTX, userID string, chan
 	}
 
 	memo := getChannelAccessMemo(rctx)
+	key := channelAccessKey{userID: userID, channelID: channel.Id}
 	if memo != nil {
-		if allowed, ok := memo.get(channel.Id); ok {
+		if allowed, ok := memo.get(key); ok {
 			return allowed
 		}
 	}
 
 	allowed := a.evaluateAccessChannel(rctx, userID, channel)
 	if memo != nil {
-		memo.set(channel.Id, allowed)
+		memo.set(key, allowed)
 	}
 	return allowed
 }

@@ -161,6 +161,24 @@ func TestHasPermissionToAccessChannel(t *testing.T) {
 		mockACS.AssertNumberOfCalls(t, "AccessEvaluation", 3)
 	})
 
+	t.Run("does not reuse one user's decision for another", func(t *testing.T) {
+		// One request can ask about more than one user — a webhook's owner, a
+		// notification's recipient — so the memo has to be keyed by both.
+		h := setupAccessChannelTest(t)
+		mockACS := h.mockACS(t)
+		governed(mockACS)
+		mockACS.On("AccessEvaluation", mock.Anything, mock.MatchedBy(func(req model.AccessRequest) bool {
+			return req.Subject.ID == h.th.BasicUser.Id
+		})).Return(model.AccessDecision{Decision: true}, (*model.AppError)(nil))
+		mockACS.On("AccessEvaluation", mock.Anything, mock.Anything).
+			Return(model.AccessDecision{Decision: false}, (*model.AppError)(nil))
+
+		require.True(t, h.th.App.HasPermissionToAccessChannel(h.rctx, h.th.BasicUser.Id, h.th.BasicChannel))
+		require.False(t, h.th.App.HasPermissionToAccessChannel(h.rctx, h.th.BasicUser2.Id, h.th.BasicChannel),
+			"the second user must get their own decision, not the first user's")
+		mockACS.AssertNumberOfCalls(t, "AccessEvaluation", 2)
+	})
+
 	t.Run("records the denial for the error contract", func(t *testing.T) {
 		h := setupAccessChannelTest(t)
 		mockACS := h.mockACS(t)
