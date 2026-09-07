@@ -140,6 +140,7 @@ import {isGuest} from 'mattermost-redux/utils/user_utils';
 
 import {handlePostExpired} from 'actions/burn_on_read_deletion';
 import {handleBurnOnReadPostRevealed, handleBurnOnReadAllRevealed} from 'actions/burn_on_read_websocket';
+import {reconcileChannelAccess, startChannelAccessRefresh, stopChannelAccessRefresh} from 'actions/channel_access';
 import {loadChannelsForCurrentUser} from 'actions/channel_actions';
 import {
     getTeamsUsage,
@@ -245,6 +246,11 @@ export function initialize() {
     WebSocketClient.addCloseListener(handleClose);
 
     WebSocketClient.initialize(connUrl, undefined, true);
+
+    // A rule may reference the session's device or network, so access can change
+    // with nothing on the server to broadcast. Nothing but a periodic re-check
+    // would notice.
+    dispatch(startChannelAccessRefresh());
 }
 
 export function close() {
@@ -255,6 +261,8 @@ export function close() {
     WebSocketClient.removeReconnectListener(reconnect);
     WebSocketClient.removeMissedMessageListener(restart);
     WebSocketClient.removeCloseListener(handleClose);
+
+    stopChannelAccessRefresh();
 }
 
 const pluginReconnectHandlers: Record<string, () => void> = {};
@@ -297,6 +305,11 @@ export function reconnect() {
             dispatch(handleRefreshAppsBindings());
         }
 
+        // A session's access can change while it was disconnected — a rule may
+        // depend on the network it is now on — so reconcile rather than only
+        // re-fetch: fetchAllMyTeamsChannels adds what is visible but never drops
+        // what no longer is.
+        dispatch(reconcileChannelAccess());
         dispatch(fetchAllMyTeamsChannels());
         if (isScheduledPostsEnabled(state)) {
             dispatch(fetchTeamScheduledPosts(currentTeamId, true, true));
@@ -915,6 +928,7 @@ export function handleChannelAccessControlUpdatedEvent(msg: WebSocketMessages.Ch
 
         doDispatch(invalidateRenderDecisionsForChannel(channel.id));
         doDispatch(refreshPostsAfterPolicyChange(channel.id));
+        doDispatch(reconcileChannelAccess());
     };
 }
 
@@ -944,6 +958,7 @@ export function handlePermissionPolicyUpdatedEvent(): ThunkActionFunc<void> {
 
         doDispatch(clearRenderDecisions());
         doDispatch(refreshPostsAfterPolicyChange());
+        doDispatch(reconcileChannelAccess());
     };
 }
 
