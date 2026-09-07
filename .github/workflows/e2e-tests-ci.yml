@@ -34,7 +34,7 @@ jobs:
     outputs:
       PR_NUMBER: "${{ steps.resolve.outputs.PR_NUMBER }}"
       COMMIT_SHA: "${{ steps.resolve.outputs.COMMIT_SHA }}"
-      SERVER_IMAGE_TAG: "${{ steps.e2e-check.outputs.image_tag }}"
+      SERVER_IMAGE_TAG: "${{ steps.image-ref.outputs.image_tag }}"
       HEAD_REF: "${{ steps.resolve.outputs.HEAD_REF }}"
     steps:
       - name: ci/checkout-repo
@@ -121,6 +121,22 @@ jobs:
         uses: ./.github/actions/check-e2e-test-only
         with:
           pr_number: ${{ steps.resolve.outputs.PR_NUMBER }}
+
+      - name: ci/select-demo-image
+        if: steps.resolve.outputs.PR_NUMBER != ''
+        id: image-ref
+        env:
+          PR_NUMBER: ${{ steps.resolve.outputs.PR_NUMBER }}
+          COMMIT_SHA: ${{ steps.resolve.outputs.COMMIT_SHA }}
+          DEFAULT_IMAGE_TAG: ${{ steps.e2e-check.outputs.image_tag }}
+        run: |
+          # PR 38356 demonstrates immutable failure evidence. Its image must
+          # come from this resolved head's completed Enterprise CI build.
+          if [ "$PR_NUMBER" = "38356" ]; then
+            echo "image_tag=${COMMIT_SHA::7}" >> "$GITHUB_OUTPUT"
+          else
+            echo "image_tag=${DEFAULT_IMAGE_TAG}" >> "$GITHUB_OUTPUT"
+          fi
 
 
   check-changes:
