@@ -429,3 +429,5 @@ channels/db/migrations/postgres/000216_split_attribute_view_by_object_type.down.
 channels/db/migrations/postgres/000216_split_attribute_view_by_object_type.up.sql
 channels/db/migrations/postgres/000217_resize_message_columns.down.sql
 channels/db/migrations/postgres/000217_resize_message_columns.up.sql
+channels/db/migrations/postgres/000218_create_post_delivery_tracking_channels.down.sql
+channels/db/migrations/postgres/000218_create_post_delivery_tracking_channels.up.sql
