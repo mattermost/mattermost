@@ -4625,7 +4625,7 @@
   },
   {
     "id": "api.post.check_for_out_of_channel_groups_mentions.message.one",
-    "translation": "@{{.Username}} non sono stati avvisati di questa citazione poiché non sono nel canale. Non possono essere aggiunti al canale poiché non sono membro dei gruppi collegati. Per aggiungere gli utenti al canale aggiungerli a uno dei gruppi collegati."
+    "translation": "@{{.Username}} non è stato avvisato di questa citazione poiché non è nel canale. Non può essere aggiunto al canale poiché non è membro dei gruppi collegati. Per aggiungere l'utente al canale aggiungerlo a uno dei gruppi collegati."
   },
   {
     "id": "api.push_notification.disabled.app_error",

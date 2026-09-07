@@ -5041,7 +5041,7 @@
   },
   {
     "id": "api.post.check_for_out_of_channel_groups_mentions.message.one",
-    "translation": "@{{.Username}} nu au fost notificate prin această mențiune deoarece nu se află în canal. El nu pot fi adăugat la canal deoarece nu face parte din grupurile conectate. Pentru a îl adăuga la acest canal, acesta trebuie adăugat la grupurile conectate."
+    "translation": "@{{.Username}} nu a primit o notificare prin această mențiune deoarece nu se află în canal. Adăugarea sa la canal nu este posibilă deoarece nu face parte din grupurile conectate. Pentru adăugarea la acest canal, este necesară mai întâi includerea în grupurile conectate."
   },
   {
     "id": "api.post.check_for_out_of_channel_groups_mentions.message.multiple",
