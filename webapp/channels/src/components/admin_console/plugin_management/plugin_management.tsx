@@ -198,6 +198,11 @@ type PluginItemProps = {
     hasSettings: boolean;
     appsFeatureFlagEnabled: boolean;
     isDisabled?: boolean;
+
+    // Whether PluginSettings.PluginStates says this plugin is enabled, which can
+    // disagree with pluginStatus.active when getPluginStateOverride forces a
+    // plugin off (an unlicensed add-on, or Apps with its flag off).
+    configEnabled: boolean;
 };
 
 const messages = defineMessages({
@@ -254,12 +259,17 @@ const PluginItem = ({
     hasSettings,
     appsFeatureFlagEnabled,
     isDisabled,
+    configEnabled,
 }: PluginItemProps) => {
     let activateButton: React.ReactNode;
     const activating = pluginStatus.state === PluginState.PLUGIN_STATE_STARTING;
     const deactivating = pluginStatus.state === PluginState.PLUGIN_STATE_STOPPING;
 
-    if (pluginStatus.active) {
+    // Key the control on the config flag as well as runtime state, because that is
+    // what it mutates. A plugin forced off by getPluginStateOverride sits at
+    // NotRunning with Enable still true in config, and keying purely on
+    // pluginStatus.active left the admin an Enable link and no way to clear it.
+    if (pluginStatus.active || configEnabled) {
         activateButton = (
             <a
                 data-plugin-id={pluginStatus.id}
@@ -1157,6 +1167,7 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
                         hasSettings={hasSettings}
                         appsFeatureFlagEnabled={this.props.appsFeatureFlagEnabled}
                         isDisabled={this.props.isDisabled}
+                        configEnabled={Boolean(this.props.config.PluginSettings?.PluginStates?.[pluginStatus.id]?.Enable)}
                     />
                 );
             });

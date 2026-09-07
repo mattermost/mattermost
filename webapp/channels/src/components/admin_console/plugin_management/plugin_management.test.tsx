@@ -920,4 +920,49 @@ describe('components/PluginManagement', () => {
 
         expect(screen.getByText('Settings')).toBeInTheDocument();
     });
+
+    describe('plugins forced off by a state override', () => {
+        // getPluginStateOverride can hold a plugin at NotRunning while config still
+        // says Enable: true (an unlicensed add-on, or Apps with its flag off).
+        // Keying the control on pluginStatus.active alone left the admin an Enable
+        // link and no way to clear the flag.
+        const renderWithPluginState = (configEnabled: boolean) => {
+            const props = {
+                ...defaultProps,
+                config: {
+                    ...defaultProps.config,
+                    PluginSettings: {
+                        ...defaultProps.config.PluginSettings,
+                        PluginStates: configEnabled ? {plugin_0: {Enable: true}} : {},
+                    },
+                },
+            };
+            const ref = React.createRef<InstanceType<typeof PluginManagement>>();
+            renderWithContext(
+                <PluginManagement
+                    {...props}
+                    ref={ref}
+                />,
+            );
+            act(() => {
+                ref.current!.setState({loading: false} as any);
+            });
+        };
+
+        test('offers Disable when config says enabled but the plugin is not running', () => {
+            renderWithPluginState(true);
+
+            const row = screen.getByTestId('plugin_0');
+            expect(row).toHaveTextContent('Disable');
+            expect(row).not.toHaveTextContent('Enable');
+        });
+
+        test('still offers Enable when config says disabled and the plugin is not running', () => {
+            renderWithPluginState(false);
+
+            const row = screen.getByTestId('plugin_0');
+            expect(row).toHaveTextContent('Enable');
+            expect(row).not.toHaveTextContent('Disable');
+        });
+    });
 });
