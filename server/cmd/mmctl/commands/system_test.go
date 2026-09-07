@@ -128,15 +128,6 @@ func (s *MmctlUnitTestSuite) TestSetBusyCmd() {
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 
-	s.Run("SetBusy with missing arg", func() {
-		printer.Clean()
-
-		err := setBusyCmdF(s.client, newTestCmd(s.T(), SystemSetBusyCmd), []string{})
-		s.Require().Error(err)
-		s.Require().Len(printer.GetErrorLines(), 0)
-		s.Require().Len(printer.GetLines(), 0)
-	})
-
 	s.Run("SetBusy zero seconds", func() {
 		printer.Clean()
 

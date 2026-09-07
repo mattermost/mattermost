@@ -133,10 +133,12 @@ func (s *MmctlE2ETestSuite) SetupMessageExportTestHelper() *api4.TestHelper {
 // helper facilitates checking both
 func (s *MmctlE2ETestSuite) RunForSystemAdminAndLocal(testName string, fn func(client.Client)) {
 	s.Run(testName+"/SystemAdminClient", func() {
+		printer.Clean()
 		fn(s.th.SystemAdminClient)
 	})
 
 	s.Run(testName+"/LocalClient", func() {
+		printer.Clean()
 		fn(s.th.LocalClient)
 	})
 }
@@ -145,14 +147,17 @@ func (s *MmctlE2ETestSuite) RunForSystemAdminAndLocal(testName string, fn func(c
 // registered in the TestHelper
 func (s *MmctlE2ETestSuite) RunForAllClients(testName string, fn func(client.Client)) {
 	s.Run(testName+"/Client", func() {
+		printer.Clean()
 		fn(s.th.Client)
 	})
 
 	s.Run(testName+"/SystemAdminClient", func() {
+		printer.Clean()
 		fn(s.th.SystemAdminClient)
 	})
 
 	s.Run(testName+"/LocalClient", func() {
+		printer.Clean()
 		fn(s.th.LocalClient)
 	})
 }

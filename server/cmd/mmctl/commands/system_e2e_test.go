@@ -30,8 +30,6 @@ func (s *MmctlE2ETestSuite) TestGetBusyCmd() {
 	})
 
 	s.RunForSystemAdminAndLocal("MM-T3956 Get server busy status", func(c client.Client) {
-		printer.Clean()
-
 		err := getBusyCmdF(c, newTestCmd(s.T(), SystemGetBusyCmd), nil)
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetLines(), 1)
@@ -136,8 +134,6 @@ func (s *MmctlE2ETestSuite) TestSetBusyCmd() {
 	})
 
 	s.RunForSystemAdminAndLocal("MM-T3957 Set server status to busy", func(c client.Client) {
-		printer.Clean()
-
 		err := setBusyCmdF(c, cmd, nil)
 		s.Require().NoError(err)
 		defer func() {
@@ -167,8 +163,6 @@ func (s *MmctlE2ETestSuite) TestClearBusyCmd() {
 	})
 
 	s.RunForSystemAdminAndLocal("MM-T3958 Clear server status to busy", func(c client.Client) {
-		printer.Clean()
-
 		err := clearBusyCmdF(c, newTestCmd(s.T(), SystemClearBusyCmd), nil)
 		s.Require().NoError(err)
 		defer func() {
