@@ -241,8 +241,9 @@ func TestStartPostsTemplateFailureDoesNotCreateProcessors(t *testing.T) {
 		switch {
 		case r.Method == http.MethodGet && r.URL.Path == "/":
 			_, _ = w.Write([]byte(`{"name":"test","version":{"number":"8.19.0"}}`))
-		case r.Method == http.MethodGet && r.URL.Path == "/_nodes/plugins":
-			_, _ = w.Write([]byte(`{"_nodes":{"total":2,"successful":1,"failed":1},"nodes":{"node-1":{"name":"node-1","plugins":[]}}}`))
+		case r.Method == http.MethodGet && r.URL.Path == "/_cat/plugins":
+			// Plugin inventory is optional and must not prevent the real template check.
+			w.WriteHeader(http.StatusInternalServerError)
 		case r.Method == http.MethodPut && strings.Contains(r.URL.Path, "/_index_template/"):
 			w.WriteHeader(http.StatusBadRequest)
 			_, _ = w.Write([]byte(`{"error":{"type":"illegal_argument_exception","reason":"composable template [posts] template after composition is invalid","caused_by":{"type":"illegal_argument_exception","reason":"Custom Analyzer [mm_lowercaser] failed to find tokenizer under name [icu_tokenizer]"}},"status":400}`))
@@ -268,23 +269,24 @@ func TestStartPostsTemplateFailureDoesNotCreateProcessors(t *testing.T) {
 	appErr := es.Start(context.Background())
 	require.NotNil(t, appErr)
 	require.Contains(t, appErr.Error(), "failed to find tokenizer under name [icu_tokenizer]")
+	require.Contains(t, appErr.Error(), "Verify that the required analysis-icu plugin is installed on every elasticsearch node")
 	require.Equal(t, int32(0), es.ready.Load())
 	require.Nil(t, es.bulkProcessor)
 	require.Nil(t, es.syncBulkProcessor)
 }
 
-func TestStartWithoutAnalysisICUReturnsExplicitError(t *testing.T) {
-	templateRequested := make(chan struct{}, 1)
+func TestStartWithoutPluginInventoryUsesTemplateValidation(t *testing.T) {
+	templateRequested := make(chan string, 4)
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.Header().Set("X-Elastic-Product", "Elasticsearch")
 		switch {
 		case r.Method == http.MethodGet && r.URL.Path == "/":
 			_, _ = w.Write([]byte(`{"name":"test","version":{"number":"8.19.0"}}`))
-		case r.Method == http.MethodGet && r.URL.Path == "/_nodes/plugins":
-			_, _ = w.Write([]byte(`{"_nodes":{"total":2,"successful":2,"failed":0},"nodes":{"node-1":{"name":"node-1","plugins":[{"name":"analysis-icu"}]},"node-2":{"name":"node-2","plugins":[]}}}`))
+		case r.Method == http.MethodGet && r.URL.Path == "/_cat/plugins":
+			_, _ = w.Write([]byte(`[]`))
 		case r.Method == http.MethodPut && strings.Contains(r.URL.Path, "/_index_template/"):
-			templateRequested <- struct{}{}
+			templateRequested <- strings.TrimPrefix(r.URL.Path, "/_index_template/")
 			_, _ = w.Write([]byte(`{"acknowledged":true}`))
 		default:
 			w.WriteHeader(http.StatusInternalServerError)
@@ -304,16 +306,14 @@ func TestStartWithoutAnalysisICUReturnsExplicitError(t *testing.T) {
 	es := &ElasticsearchInterfaceImpl{Platform: th.Server.Platform()}
 	defer func() { require.Nil(t, es.Stop()) }()
 	appErr := es.Start(context.Background())
-	require.NotNil(t, appErr)
-	require.Equal(t, "ent.elasticsearch.analysis_icu_required", appErr.Id)
-	require.Equal(t, int32(0), es.ready.Load())
-	require.Nil(t, es.bulkProcessor)
-	require.Nil(t, es.syncBulkProcessor)
-	select {
-	case <-templateRequested:
-		require.Fail(t, "template creation should not be attempted without analysis-icu on every node")
-	default:
+	require.Nil(t, appErr)
+	require.Equal(t, int32(1), es.ready.Load())
+	require.Len(t, templateRequested, 4)
+	requestedTemplates := make([]string, 0, 4)
+	for range 4 {
+		requestedTemplates = append(requestedTemplates, <-templateRequested)
 	}
+	require.ElementsMatch(t, []string{common.IndexBasePosts, common.IndexBaseChannels, common.IndexBaseUsers, common.IndexBaseFiles}, requestedTemplates)
 }
 
 // missingCJKPluginsWarning mirrors the warning Start logs when no CJK analyzer plugin is detected.
@@ -323,7 +323,7 @@ const missingCJKPluginsWarning = "EnableCJKAnalyzers is set but no CJK analyzer 
 // of plugin names and recording the posts template and search request bodies.
 func pluginsHandler(t *testing.T, recorder *common.ClusterRecorder, nodePlugins ...[]string) http.HandlerFunc {
 	info := infoHandler("8.19.0")
-	nodesInfo := common.NodesPluginsResponse(nodePlugins...)
+	catPlugins := common.CatPluginsResponse(nodePlugins...)
 
 	readBody := func(w http.ResponseWriter, r *http.Request) ([]byte, bool) {
 		body, err := io.ReadAll(r.Body)
@@ -340,8 +340,8 @@ func pluginsHandler(t *testing.T, recorder *common.ClusterRecorder, nodePlugins 
 		switch {
 		case r.Method == http.MethodGet && r.URL.Path == "/":
 			info(w, r)
-		case r.Method == http.MethodGet && r.URL.Path == "/_nodes/plugins":
-			_, _ = fmt.Fprint(w, nodesInfo)
+		case r.Method == http.MethodGet && r.URL.Path == "/_cat/plugins":
+			_, _ = fmt.Fprint(w, catPlugins)
 		case r.Method == http.MethodPut && strings.Contains(r.URL.Path, "/_index_template/"):
 			body, ok := readBody(w, r)
 			if !ok {
@@ -484,17 +484,6 @@ func TestCJKAnalyzersWithoutAnyCJKPlugin(t *testing.T) {
 
 	require.NoError(t, th.TestLogger.Flush())
 	testlib.AssertLog(t, th.LogBuffer, mlog.LvlWarn.Name, missingCJKPluginsWarning)
-}
-
-// TestAnalysisICURequirementAcceptsPrefixedNames covers the per-node analysis-icu requirement when
-// only some of the nodes report the plugin under a prefixed name.
-func TestAnalysisICURequirementAcceptsPrefixedNames(t *testing.T) {
-	recorder := &common.ClusterRecorder{}
-	_, es := setupCJKCluster(t, recorder, []string{"opensearch-analysis-icu"}, []string{"analysis-icu"})
-
-	require.Nil(t, es.Start(context.Background()))
-	require.Equal(t, int32(1), es.ready.Load())
-	require.NotEmpty(t, recorder.PostsTemplate(), "no posts index template was created")
 }
 
 func TestWrapElasticsearchTemplateError(t *testing.T) {
