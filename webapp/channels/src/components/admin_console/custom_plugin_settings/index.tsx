@@ -161,13 +161,11 @@ function makeGetPluginSchema() {
                     }];
                     settings = [];
                 } else if (sections.length > 0) {
-                    // Keep a lightweight top section only when the schema still has a footer to show; the footer text itself renders generically for the whole sections list.
-                    if (plugin.settings_schema?.footer) {
-                        sections.unshift({
-                            key: pluginEnabledConfigKey + '.Section',
-                            settings: [pluginEnableSetting],
-                        });
-                    }
+                    // The enable setting is hidden but must still be part of the schema so its config value seeds the form state; otherwise stateIsFalse(pluginEnabledConfigKey) reads undefined and disables every setting.
+                    sections.unshift({
+                        key: pluginEnabledConfigKey + '.Section',
+                        settings: [pluginEnableSetting],
+                    });
                 } else {
                     // Otherwise we retain existing behaviour and add the setting in front.
                     settings.unshift(pluginEnableSetting);
