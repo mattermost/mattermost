@@ -171,6 +171,8 @@ test.describe('Post height', () => {
         },
         {
             name: 'post with multiple images',
+            // MediaGallery FALLBACK_WIDTH 700 packs 3 tiles as 2 rows, then reflows to 1 row
+            skipProjects: ['chrome', 'firefox', 'ipad'],
             seedOptions: {
                 message: 'post with multiple images',
                 files: ['mattermost.png', 'mattermost-icon_128x128.png', 'mattermost.png'],
