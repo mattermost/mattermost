@@ -31,6 +31,15 @@ import {testConfig} from '@/test_config';
 // MM_LICENSE (if set) is passed straight through: the server reads it directly at startup
 // (platform.LoadLicense), so it boots already licensed instead of needing an authenticated upload
 // call after the fact.
+export function resolveMattermostBootEnv(extraEnv: Record<string, string> = {}): Record<string, string> {
+    return {
+        ...SERVER_ENV_BASELINE,
+        ...testConfig.serverEnv,
+        ...extraEnv,
+        ...structuralEnv(),
+    };
+}
+
 function structuralEnv(): Record<string, string> {
     return {
         MM_SQLSETTINGS_DRIVERNAME: 'postgres',
@@ -68,12 +77,7 @@ export async function startMattermostContainer(
     networkName: string,
     extraEnv: Record<string, string> = {},
 ): Promise<StartedTestContainer> {
-    const env: Record<string, string> = {
-        ...SERVER_ENV_BASELINE,
-        ...testConfig.serverEnv,
-        ...extraEnv,
-        ...structuralEnv(),
-    };
+    const env = resolveMattermostBootEnv(extraEnv);
 
     return startWithRetry('server', async () => {
         let builder = new GenericContainer(testConfig.serverImage)
