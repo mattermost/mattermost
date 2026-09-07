@@ -550,32 +550,6 @@ func (a *App) validateUserAccessTokenExpiry(token *model.UserAccessToken) *model
 	return nil
 }
 
-// resolveBotOwner returns the bot and its owning user for a bot's user id.
-// owner is nil (with no error) when the bot is the system-owned bot or its
-// owner no longer exists (e.g. a plugin-owned bot, whose OwnerId is a plugin
-// ID rather than a user ID) — both cases mean there's no PAT-policy-relevant
-// human owner behind the bot.
-func (a *App) resolveBotOwner(rctx request.CTX, botUserId string) (owner *model.User, bot *model.Bot, appErr *model.AppError) {
-	bot, appErr = a.GetBot(rctx, botUserId, true)
-	if appErr != nil {
-		return nil, nil, appErr
-	}
-	if bot.Username == model.BotSystemBotUsername {
-		return nil, bot, nil
-	}
-
-	owner, err := a.Srv().Store().User().Get(rctx, bot.OwnerId)
-	if err != nil {
-		var nfErr *store.ErrNotFound
-		if errors.As(err, &nfErr) {
-			return nil, bot, nil
-		}
-		return nil, nil, model.NewAppError("resolveBotOwner", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	return owner, bot, nil
-}
-
 // userAccessTokenExpiryPolicyApplies reports whether the PAT expiry policy
 // applies to tokens owned by user. It applies to every non-bot user and to
 // user-owned bots; plugin-owned and system bots are exempt.
