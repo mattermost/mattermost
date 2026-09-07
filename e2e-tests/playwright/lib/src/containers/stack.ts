@@ -358,9 +358,10 @@ export async function restartMattermostContainer(env: Record<string, string>): P
     testConfig.mattermostContainerId = mattermost.getId();
     clearClientCache();
 
-    appendEnvFile(`restart requested by ${describeCurrentTest()} — env ${JSON.stringify(env)}`);
+    const redactedEnv = redactServerEnv(env);
+    appendEnvFile(`restart requested by ${describeCurrentTest()} — env ${JSON.stringify(redactedEnv)}`);
 
-    logTestcontainers(`restarted server (${testConfig.serverImage}) with ${JSON.stringify(env)}.`);
+    logTestcontainers(`restarted server (${testConfig.serverImage}) with ${JSON.stringify(redactedEnv)}.`);
     await logServerImageAge(testConfig.serverImage);
 }
 
@@ -537,6 +538,10 @@ function redactServerEnvValue(key: string, value: string): string {
         return value.replace(/:([^:@/]+)@/, ':***@');
     }
     return value;
+}
+
+function redactServerEnv(env: Record<string, string>): Record<string, string> {
+    return Object.fromEntries(Object.entries(env).map(([key, value]) => [key, redactServerEnvValue(key, value)]));
 }
 
 function formatServerEnvSummary(): string {

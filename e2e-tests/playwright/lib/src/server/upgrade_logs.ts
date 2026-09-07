@@ -94,7 +94,7 @@ async function writeDockerLogs(containerId: string, outPath: string, highlightsP
     }
 }
 
-/** Finds a still-running Testcontainers-labeled container whose image matches `imagePattern`. */
+/** Finds a Testcontainers-labeled container, including stopped ones, whose image matches `imagePattern`. */
 async function findLabeledContainerId(imagePattern: RegExp): Promise<string | undefined> {
     try {
         const {stdout} = await execFileAsync('docker', [
