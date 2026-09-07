@@ -44,8 +44,11 @@ test(
         await membersMenuItem.click();
 
         // # Click the Add people button
-        const addButton = page.getByRole('button', {name: 'Add people'});
-        await addButton.click();
+        const membersRhs = page.locator('#rhsContainer');
+        await expect(membersRhs).toBeVisible();
+        const addMembers = membersRhs.locator('button.add-members');
+        await expect(addMembers).toBeEnabled();
+        await addMembers.click();
 
         // * Verify the Add people dialog is visible
         const dialog = page.getByRole('dialog').first();
@@ -88,14 +91,12 @@ test(
 
         // # Search for an invalid text
         await searchInput.fill('somethingwhichdoesnotexist');
-        await pw.wait(pw.duration.half_sec);
 
         // * Check if the no results message is displayed with proper accessibility
+        const noResultsMessage = dialog.getByText(/No matches found|No results found matching/i);
+        await expect(noResultsMessage).toBeVisible();
         const noResultsWrapper = dialog.locator('.multi-select__wrapper');
         await expect(noResultsWrapper).toHaveAttribute('aria-live', 'polite');
-        const noResultsMessage = dialog.locator('.no-channel-message .primary-message');
-        await expect(noResultsMessage).toBeVisible();
-        await expect(noResultsMessage).toContainText('No results found matching');
     },
 );
 
@@ -140,8 +141,11 @@ test(
         await membersMenuItem.click();
 
         // # Click the Add people button
-        const addButton = page.getByRole('button', {name: 'Add people'});
-        await addButton.click();
+        const membersRhs = page.locator('#rhsContainer');
+        await expect(membersRhs).toBeVisible();
+        const addMembers = membersRhs.locator('button.add-members');
+        await expect(addMembers).toBeEnabled();
+        await addMembers.click();
 
         // * Verify the Add people dialog is visible
         const dialog = page.getByRole('dialog').first();

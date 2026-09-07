@@ -44,6 +44,15 @@ describe('AdminConsoleIndex.generateIndex', () => {
             'site_config/customization',
             'authentication/password',
         ]);
+        expect(idx.search('batching')).toEqual([
+            'environment/notifications',
+        ]);
+        expect(idx.search('Email Batching Buffer Size')).toEqual([
+            'environment/notifications',
+        ]);
+        expect(idx.search('subject lines')).toEqual([
+            'environment/notifications',
+        ]);
         expect(idx.search('deactivation')).toEqual([
             'authentication/saml',
             'site_config/users_and_teams',
@@ -92,7 +101,7 @@ describe('AdminConsoleIndex.generateIndex', () => {
 
         const idx = generateIndex(AdminDefinition, intl, {[samplePlugin1.id]: samplePlugin1, [samplePlugin2.id]: samplePlugin2});
 
-        expect(idx.search('random')).toEqual(['site_config/users_and_teams', 'plugin_Some-random-plugin', 'site_config/public_links']);
+        expect(idx.search('random')).toEqual(['plugin_Some-random-plugin', 'site_config/users_and_teams', 'site_config/public_links']);
         expect(idx.search('autolink')).toEqual(['plugin_mattermost-autolink']);
     });
 });

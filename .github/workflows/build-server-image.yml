@@ -8,11 +8,17 @@ on:
     paths:
       - server/build/Dockerfile.buildenv
       - server/build/Dockerfile.buildenv-fips
+      - server/build/buildenv-tag.sh
+      - server/.go-version
+      - .nvmrc
       - .github/workflows/build-server-image.yml
   pull_request:
     paths:
       - server/build/Dockerfile.buildenv
       - server/build/Dockerfile.buildenv-fips
+      - server/build/buildenv-tag.sh
+      - server/.go-version
+      - .nvmrc
       - .github/workflows/build-server-image.yml
   workflow_dispatch:
 
@@ -52,11 +58,11 @@ jobs:
         run: |
           docker run --rm mattermost/mattermost-build-server:test /bin/sh -c "go version && node --version"
 
-      - name: buildenv/calculate-golang-version
-        id: go
+      - name: buildenv/calculate-tag
+        id: tag
         run: |
-          GO_VERSION=$(docker run --rm mattermost/mattermost-build-server:test go version | awk '{print $3}' | sed 's/go//')
-          echo "GO_VERSION=${GO_VERSION}" >> "${GITHUB_OUTPUT}"
+          tag=$(./server/build/buildenv-tag.sh)
+          echo "TAG=${tag}" >> "${GITHUB_OUTPUT}"
 
       - name: buildenv/push
         if: github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/heads/release-')
@@ -67,7 +73,7 @@ jobs:
           load: false
           push: true
           pull: true
-          tags: mattermost/mattermost-build-server:${{ steps.go.outputs.GO_VERSION }}
+          tags: mattermost/mattermost-build-server:${{ steps.tag.outputs.TAG }}
 
   build-image-fips:
     permissions:
@@ -103,11 +109,11 @@ jobs:
         run: |
           docker run --rm --entrypoint bash mattermost/mattermost-build-server-fips:test -c "go version && node --version"
 
-      - name: buildenv/calculate-golang-version
-        id: go
+      - name: buildenv/calculate-tag
+        id: tag
         run: |
-          GO_VERSION=$(docker run --rm --entrypoint bash mattermost/mattermost-build-server-fips:test -c "go version" | awk '{print $3}' | sed 's/go//')
-          echo "GO_VERSION=${GO_VERSION}" >> "${GITHUB_OUTPUT}"
+          tag=$(./server/build/buildenv-tag.sh)
+          echo "TAG=${tag}" >> "${GITHUB_OUTPUT}"
 
       - name: buildenv/push
         if: github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/heads/release-')
@@ -118,4 +124,4 @@ jobs:
           load: false
           push: true
           pull: true
-          tags: mattermost/mattermost-build-server-fips:${{ steps.go.outputs.GO_VERSION }}
+          tags: mattermost/mattermost-build-server-fips:${{ steps.tag.outputs.TAG }}

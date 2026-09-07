@@ -114,22 +114,17 @@ func (r *ClusterRecorder) ResetSearches() {
 	r.searchBodies = nil
 }
 
-// NodesPluginsResponse builds a response for the node info plugins metric, reporting one node per
-// given list of plugin names.
-func NodesPluginsResponse(nodePlugins ...[]string) string {
-	nodes := make([]string, 0, len(nodePlugins))
+// CatPluginsResponse builds a response for the CAT plugins API. As in a real CAT plugins response,
+// nodes with no plugins have no rows.
+func CatPluginsResponse(nodePlugins ...[]string) string {
+	plugins := make([]string, 0)
 	for i, pluginNames := range nodePlugins {
-		plugins := make([]string, 0, len(pluginNames))
 		for _, name := range pluginNames {
-			plugins = append(plugins, fmt.Sprintf(`{"name":%q}`, name))
+			plugins = append(plugins, fmt.Sprintf(`{"id":%q,"component":%q}`, fmt.Sprintf("node-%d", i+1), name))
 		}
-
-		name := fmt.Sprintf("node-%d", i+1)
-		nodes = append(nodes, fmt.Sprintf(`%q:{"name":%q,"plugins":[%s]}`, name, name, strings.Join(plugins, ",")))
 	}
 
-	return fmt.Sprintf(`{"_nodes":{"total":%d,"successful":%d,"failed":0},"nodes":{%s}}`,
-		len(nodePlugins), len(nodePlugins), strings.Join(nodes, ","))
+	return fmt.Sprintf("[%s]", strings.Join(plugins, ","))
 }
 
 type indexTemplateRequest struct {
