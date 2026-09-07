@@ -64,7 +64,7 @@ See [this blog post](https://mattermost.com/blog/mattermost-v11-11-is-now-availa
  - Pre-packaged GitHub plugin version [v2.8.0](https://github.com/mattermost/mattermost-plugin-github/releases/tag/v2.8.0).
  - Pre-packaged Jira plugin version [v4.8.0](https://github.com/mattermost/mattermost-plugin-jira/releases/tag/v4.8.0).
  - Pre-packaged Calls plugin version [v1.12.3](https://github.com/mattermost/mattermost-plugin-calls/releases/tag/v1.12.3).
- - Pre-packaged Agents plugin version [2.6.0](https://github.com/mattermost/mattermost-plugin-agents/releases/tag/v2.6.0).
+ - Pre-packaged Agents plugin version [2.6.1](https://github.com/mattermost/mattermost-plugin-agents/releases/tag/v2.6.1).
  - Added a "Hide Archived" toggle to the **Browse Channels** modal that hides archived channels by default.
  - Added a red warning callout in the System Console that appears beneath certain settings (SAML Verify Signature/Enable Encryption, Enable Insecure Outgoing Connections, Enable Developer Mode, Enable Testing Commands, wildcard CORS, and skipping SMTP/AD-LDAP certificate verification) when they are configured to a value that is not recommended for production.
  - Added weekly recurring scheduled posts so users can schedule messages that repeat weekly and keep their recurring schedule when rescheduled.
@@ -93,6 +93,14 @@ See [this blog post](https://mattermost.com/blog/mattermost-v11-11-is-now-availa
  - Updated account type switch handling.
  - Updated [Slack import](https://docs.mattermost.com/administration-guide/onboard/migrate-from-slack.html) to handle user matching differently depending on the import type.
  - Servers whose license includes the hosted push notification service (HPNS) now automatically switch the Push Notification Server setting from the test endpoint (https://push-test.mattermost.com) to the hosted endpoint (https://global.push.mattermost.com). When the license no longer includes HPNS, any Mattermost-hosted endpoint (global, regional, or legacy) is switched back to the test endpoint. Custom endpoints and environment-variable-managed values are never modified.
+ - OAuth Dynamic Client Registration (DCR) redirect URI validation now accepts custom (non-HTTP) URI schemes such as cursor:// in addition to http:// and https://, for both the DCR Redirect URI Allowlist config setting and redirect URIs supplied at client registration, unblocking desktop OAuth clients.
+ - Truncated PDF text extraction to a specific limit.
+ - Editing an outgoing OAuth connection now requires re-entering the client secret before validating or saving.
+ - Updated how error details are formatted for session and OAuth authorization flows.
+ - Updated AD/LDAP test connection handling to require re-entering the bind password when connection settings change.
+ - Mention keywords are now limited to 500 keys and 50,000 bytes total. Users or imports that exceed these limits will receive a descriptive error.
+ - Updated how user presence status responses are serialized.
+ - Updated golang.org/x/image to v0.45.0 and msgpack fork to cap byte-string allocations to address security vulnerabilities.
 
 #### Plugins/Integrations
  - Added plugin APIs for attribute-based access control: plugins can evaluate access decisions (``EvaluateAccessControl``) and manage policies for plugin-owned resource types (``SaveAccessControlPolicy``, ``GetAccessControlPolicy``, ``DeleteAccessControlPolicy``, ``CheckAccessControlExpression``, ``QueryUsersForAccessControlExpression``, ``GetAccessControlFieldsAutocomplete``, ``GetAccessControlVisualAST``). Plugin resource types are keyed as ``<plugin ID>:<resource type>`` with plugin-defined actions, and access decisions follow the AuthZEN shape (boolean decision plus context) with a no-policy fallback reported via the decision context. Requires an Enterprise Advanced license with attribute-based access control enabled.
@@ -142,6 +150,12 @@ See [this blog post](https://mattermost.com/blog/mattermost-v11-11-is-now-availa
  - Fixed an issue in which policies with protected Rank Attributes would result in every member being removed from the enforced channel or team.
  - Fixed an issue with public channel permalinks so that clicking them joins the channel when compliance is enabled, while still hiding permalink previews for non-members.
  - Fixed an issue where a message could be sent to the previously viewed channel after navigating with the ``/msg`` slash command or the **Ctrl/Cmd+K** channel switcher.
+ - Fixed an issue where OAuth requests did not check the server's outbound connection restrictions.
+ - Fixed Elasticsearch and OpenSearch startup on AWS managed domains that omit plugin data from the Nodes Info API.
+ - Fixed an issue with user profile update handling.
+ - Fixed an issue in which policies containing Rank attributes with 'shared-only' access mode were unable to be created by users.
+ - Fixed an issue where a plugin request body wasn't properly validated.
+ - Fixed an issue where team admins could accidentally update roles incorrectly.
 
 ### API Changes
  - Updated ``getFile`` API validation to check for content reviewer earlier.
@@ -153,6 +167,7 @@ See [this blog post](https://mattermost.com/blog/mattermost-v11-11-is-now-availa
  - Added ``POST /resume (resumeScheduledRecap)`` API endpoint.
  - Added ``PUT / (updateScheduledRecap)`` API endpoint.
  - Added a new API file ``scheduled_recap.go``.
+ - Removed the unneeded ``POST /api/v4/posts/ids/reactions`` endpoint.
 
 ### WebSocket Event Changes
  - Added permission-scoped WebSocket delivery for ``job_updated`` events.
