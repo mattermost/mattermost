@@ -85,115 +85,87 @@ npm run playwright-ui
 
 ## Upgrade-path testing
 
-Boots an older server version against a real database, swaps the running server to a newer image in place (same network, same Postgres), and re-checks via the **Client4 API** (plus Playwright `request` for authenticated file/avatar downloads) that migrations completed and prior data survived. Only supported in `testcontainers` mode, since "upgrade" means recreating the Mattermost container with a different image while leaving Postgres running.
+Boots an older server image, seeds it, then replaces only the Mattermost container with a newer image while the same Postgres keeps running, and re-verifies through the **Client4 API** that migrations completed and prior data survived. Testcontainers mode only, since that in-place container swap is the whole mechanism.
 
-UI smoke is intentionally **not** part of the upgrade projects — older images ship older webapps, so master POMs/testids are unreliable against `release-X.Y`. Functional UI coverage stays in the normal chrome/CI projects.
+The upgrade projects make no UI assertions: older images ship older webapps, so master POMs and testids cannot be trusted against `release-X.Y`. UI coverage comes from the normal suite, which CI runs afterwards against the upgraded server.
 
 ### How it works
 
-- **The swap.** `pw.upgradeServerImage(image)` (`lib/src/server/version.ts`) points `testConfig.serverImage` at a different image and calls the same `restartMattermostContainer()` used by `pw.ensureMinio()`/`pw.ensureFeatureFlag()`/etc. — stop the current Mattermost container, start a fresh one on the same network. Postgres, and anything else, is never touched, so its data survives the swap untouched.
-- **Two phases** (`playwright.config.ts`): `upgrade-from` boots fresh on `PW_UPGRADE_FROM_SERVER_IMAGE`, runs `setup`, and seeds actors/content via Client4; a separate `upgrade-swap-to` → `upgrade-to` invocation adopts that stack (skipping `setup`), swaps up to `SERVER_IMAGE`, and re-verifies survival via Client4. The from-phase Mattermost container uses Testcontainers `withReuse()` so Ryuk does not reap it when the from process exits.
-- **Each phase selects its specs by path.** `upgrade-from` has `testDir: 'upgrade-specs/from'` and `upgrade-to` has `testDir: 'upgrade-specs/to'`, so a spec's directory is what puts it in a phase — add a file to `upgrade-specs/to/` and the to-phase picks it up. The `@upgrade-from` / `@upgrade-to` tags are kept for bookkeeping (reports, ad-hoc `--grep`); no project filters on them.
-- **API-first harness.** `upgrade-specs/from/upgrade_from.spec.ts` and `upgrade-specs/to/upgrade_to.spec.ts` use Client4 / PlaywrightClient4 for posts, channels, DMs/GMs, search, license, and plugins — no POM/UI. Authenticated binary downloads (attachments, profile images, plugin bundles) use Playwright's `request` fixture. Browser login is allowed only via Playwright API (`loginByAPI`) when a real browser session is required; otherwise stay on Client4 / PlaywrightClient4. Helpers live in `upgrade-specs/upgrade_fixtures.ts`.
-- **Shared actors across phases.** Fixed (non-random) team/user/channel names are looked up idempotently, plus `.upgrade_baseline.json` (written by `upgrade-from`, read by `upgrade-to`) for version identity, license state, plugin state, and post/channel IDs across the swap.
-- **Same env on swap as from.** `upgrade-swap-to` restarts the to-image with the same boot env as upgrade-from (including host `MM_LICENSE` when set). Plugin enablement is **not** forced via env — upgrade-from enables playbooks via API and records state in the baseline; upgrade-to asserts license + plugin state match.
-- **Plugin state hands back to the suite.** The harness owns plugin state for its own phases — upgrade-from installs the demo plugin and upgrade-to asserts it survived — so global setup's plugin reset is skipped there. The first normal spec that runs afterwards deactivates it, back to the set a fresh install has, since an active demo plugin overrides the webapp's attachment button and breaks every UI file-upload spec.
-- **Server config survives the swap.** The config store lives in Postgres (`MM_CONFIG` set to the SQL datasource in `lib/src/containers/mattermost_container.ts`), a supported production deployment mode, so the to-image inherits and migrates the config the from-image was running. `/mattermost/config` is a Dockerfile `VOLUME`, so a file-backed config would instead be factory-reset by every container replacement — including the swap, which would leave the upgraded server on its own shipped defaults.
-- **Local file storage survives the swap too.** The Mattermost container's `/mattermost/data` is bind-mounted to a fixed `local_storage/` directory (`lib/src/containers/constants.ts`'s `LOCAL_STORAGE_DIR`) instead of Docker's default anonymous volume, which would otherwise be discarded along with the old container on every swap. Cleared only on a genuinely fresh boot, left alone when a later process adopts an already-running stack.
-- **Phase container logs.** `pw.saveUpgradePhaseLogs('from'|'to')` writes Mattermost/Postgres docker logs under `logs/upgrade/` (plus a migration/license/panic highlights file and a copy of `.upgrade_baseline.json` on from). From-image logs must be captured before swap-to replaces the container — teardown-only collection would only ever see the to-image. CI uploads `logs/` via `ci/upload-debug-artifacts`.
+Three projects in `playwright.config.ts`, each selecting its specs by directory (`upgrade-specs/from`, `upgrade-specs/to`). The `@upgrade-from` / `@upgrade-to` tags are bookkeeping for reports and ad-hoc `--grep`; no project filters on them.
+
+| Project           | Does                                                                                                                    |
+| ----------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| `upgrade-from`    | Boots fresh on `PW_UPGRADE_FROM_SERVER_IMAGE`, runs `setup`, seeds content via Client4, writes `.upgrade_baseline.json` |
+| `upgrade-swap-to` | Restarts the container on `SERVER_IMAGE` with the same boot env as from, including host `MM_LICENSE`                    |
+| `upgrade-to`      | Re-verifies every baseline slice against the upgraded server                                                            |
+
+- **The swap.** `pw.upgradeServerImage(image)` (`lib/src/server/version.ts`) repoints `testConfig.serverImage` and calls the same `restartMattermostContainer()` used by `pw.ensureMinio()` — stop the Mattermost container, start a fresh one on the same network. Postgres is never touched.
+- **State that must survive lives outside the container.** Config is stored in Postgres (`MM_CONFIG` set to the SQL datasource in `lib/src/containers/mattermost_container.ts`, a supported production mode) and `/mattermost/data` is bind-mounted to `local_storage/` (`lib/src/containers/constants.ts`). Both are Docker volumes by default, so the swap would otherwise factory-reset the config and discard uploads.
+- **API-first harness.** `upgrade-specs/{from,to}/*.spec.ts` use Client4 / PlaywrightClient4 — no POMs. Authenticated binary downloads use Playwright's `request` fixture; browser login only via `loginByAPI` when a real session is needed. Helpers in `upgrade-specs/upgrade_fixtures.ts`.
+- **Continuity across phases.** Fixed (non-random) team/user/channel names are looked up idempotently, plus `.upgrade_baseline.json` for version identity, license, plugin state, and post/channel IDs. The from-phase container uses Testcontainers `withReuse()` so Ryuk does not reap it when that process exits.
+- **Plugins are driven by API, not env.** upgrade-from enables playbooks and installs the demo plugin, upgrade-to asserts both survived, and global setup's plugin reset is skipped for those phases. The first normal spec afterwards deactivates the demo plugin, which otherwise overrides the webapp's attachment button and breaks every UI file-upload spec.
+- **Phase logs.** `pw.saveUpgradePhaseLogs('from'|'to')` writes Mattermost/Postgres docker logs to `logs/upgrade/`, plus a migration/license/panic highlights file. The from-image has to be captured before swap-to replaces the container. CI uploads `logs/` via `ci/upload-debug-artifacts`.
 
 ### Run locally
 
-Leaves the stack up between the two commands so you can inspect it. `test:upgrade:from` requires a clean slate — if `.env.testcontainers` exists from a prior run, tear the stack down first. `upgrade-to` reuses that stack, which needs `testcontainers.reuse.enable=true` in `~/.testcontainers.properties` (see `lib/README.md`).
+The stack stays up between the two commands so you can inspect it. `test:upgrade:from` requires a clean slate — tear down any leftover stack first. `upgrade-to` adopts that stack, which needs `testcontainers.reuse.enable=true` in `~/.testcontainers.properties` (see `lib/README.md`).
 
 ```bash
-# Tear down any leftover stack before starting a new upgrade-from run
 npm run testcontainers:down
 
-# First: boots fresh on PW_UPGRADE_FROM_SERVER_IMAGE (the older from-image).
-# Use a release-* tag (e.g. release-11.9) — patch tags like 11.9.1 are not published on Docker Hub.
-# Run `node script/resolve_upgrade_matrix.mjs` to see which tags CI uses.
-# Phase 1 — optional MM_LICENSE seeds a licensed server; baseline records license details
+# Phase 1 — boots fresh on the older from-image. Use a release-* tag; patch tags like 11.9.1 are
+# not published. `node script/resolve_upgrade_matrix.mjs` prints the tags CI uses.
+# MM_LICENSE is optional; when set, the baseline records license details.
 MM_LICENSE=<your-license-key> \
   PW_UPGRADE_FROM_SERVER_IMAGE=mattermostdevelopment/mattermost-enterprise-edition:release-11.9 \
   npm run test:upgrade:from
 
-# Phase 2 — swaps to `SERVER_IMAGE` (defaults to `:master` if unset) with the same env as from
-# (pass MM_LICENSE again when the from-phase used it).
+# Phase 2 — swaps to SERVER_IMAGE (defaults to :master) with the same env as from.
 MM_LICENSE=<your-license-key> \
   SERVER_IMAGE=mattermostdevelopment/mattermost-enterprise-edition:master \
   npm run test:upgrade:to
 
-# Clean up when done
 npm run testcontainers:down
 ```
 
-Both env vars can also be set once in a local `.env` file instead of on the command line.
+Both env vars can live in a local `.env` file instead of the command line.
 
 ### CI
 
-CI doesn't test one fixed older version — it tests a rolling matrix: the last 3 minor releases, plus any release still within its Extended Support (ESR) window. `script/resolve_upgrade_matrix.mjs` resolves this at run time instead of it being hardcoded anywhere:
-
-- The current version and last-3-minors come from this checkout's own `server/public/model/version.go`.
-- Support-end dates and ESR status are fetched live from the published releases table on `master`, since those lapse as calendar time passes and a stale branch checkout shouldn't be trusted to reflect that.
-
-Each resolved entry includes ESR metadata for commit-status context:
-
-```json
-{
-    "dockerTag": "release-10.11",
-    "minor": "10.11",
-    "patch": "10.11.22",
-    "isESR": true,
-    "contextLabel": "release-10.11-esr"
-}
-```
-
-Run it standalone to see what it resolves to:
+CI tests a rolling matrix rather than one fixed version: the last 3 minor releases plus any release still in its Extended Support (ESR) window. `script/resolve_upgrade_matrix.mjs` resolves it at run time — last-3-minors from this checkout's `server/public/model/version.go`, support-end dates and ESR status fetched live from the published releases table on `master`, since those lapse with calendar time and a stale branch should not be trusted for them.
 
 ```bash
 node script/resolve_upgrade_matrix.mjs
+# [{"dockerTag":"release-10.11","minor":"10.11","patch":"10.11.22","isESR":true,"contextLabel":"release-10.11-esr"}, ...]
 ```
 
-Rolling-upgrade coverage runs in a **separate pipeline** from the normal Playwright full suite, not inside `e2e-tests-playwright-template.yml`, and splits across two workflows:
+Rolling upgrades run in a **separate pipeline** from the normal full suite, not inside `e2e-tests-playwright-template.yml`:
 
 - `e2e-tests-playwright-rolling-upgrades.yml` resolves the matrix and calls the template once per from-version, in parallel.
-- `e2e-tests-playwright-rolling-upgrades-template.yml` tests **one** from-version, given that version's image and the to-image. It owns that version's Test System IO run, its dispatch workers, and its commit status.
+- `e2e-tests-playwright-rolling-upgrades-template.yml` tests **one** from-version, and owns that version's Test System IO run, dispatch workers, and commit status.
 
-Within one from-version, each of its `workers` (default 20, same as the full suite) runs:
+Each of a version's `workers` (default 20, same as the full suite) runs `--project=upgrade-from`, then `--project=upgrade-to`, then `dispatch-run` for its share of the normal suite. Nothing is re-prepared in between — no `setup`, no re-patching, no restart — so the suite exercises a server that reached the to-image by upgrading. An upgrade that needed the suite's setup re-run to be usable would not be a passing upgrade, which is why that step is absent. The upgrade specs themselves live in `upgrade-specs/`, outside `testDir`, so `dispatch-begin` never sees them.
 
-1. `npx playwright test --project=upgrade-from` — boots on the from-image, seeds the baseline
-2. `npx playwright test --project=upgrade-to` — swaps to the to-image, re-verifies the baseline
-3. `dispatch-run` — pull specs from this from-version's queue and run them against the just-upgraded server
-
-The point of step 3 is that the upgraded server keeps working after the harness is done, so the normal suite exercises a server that got there by upgrading rather than by booting fresh. Nothing is re-prepared in between — no `--project=setup`, no re-patching, no restart. An upgrade that needed the suite's setup re-run before the server was usable would not be a passing upgrade, so leaving that step out is part of what the pipeline asserts. The upgrade specs themselves never go through Test System IO: they live in `upgrade-specs/`, outside `testDir`, so `dispatch-begin` cannot see them.
-
-Every worker upgrades its own server, since a server cannot be shared across runners. So the harness runs `workers` times per from-version, and the pipeline costs `matrix size × workers` runners. Workers get a 60m timeout to cover the harness plus their share of the suite.
-
-Step 3 is skipped when the harness fails, and there is no `testcontainers:down` first — the runner is fresh, so `upgrade-from`'s clean-slate guard has nothing to trip over. Locally you still need it, since a previous run leaves the stack up.
+Every worker upgrades its own server, since a server cannot be shared across runners: the harness runs `workers` times per from-version and the pipeline costs `matrix size × workers` runners, each on a 60m timeout. `dispatch-run` is skipped when the harness fails. No `testcontainers:down` first — the runner is fresh, so the clean-slate guard has nothing to trip over.
 
 **When it runs**
 
-| Pipeline                        | Rolling upgrades                                                                                                                                                  |
-| ------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| PR (automated)                  | On when the diff touches `upgrade-specs/`, `lib/`, `playwright.config.ts`, `script/resolve_upgrade_matrix.mjs`, or either rolling-upgrade workflow; off otherwise |
-| PR (manual `workflow_dispatch`) | Opt-in via **Run rolling upgrades** checkbox                                                                                                                      |
-| Merge to `master` / `release-*` | On automatically                                                                                                                                                  |
-| Release cut                     | On automatically                                                                                                                                                  |
-| Ad-hoc                          | **Run workflow** on _E2E Tests - Playwright Rolling Upgrades_                                                                                                     |
+| Pipeline                        | Rolling upgrades                                                                                                                                   |
+| ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| PR (automated)                  | On when the diff touches `upgrade-specs/`, `lib/`, `playwright.config.ts`, `script/resolve_upgrade_matrix.mjs`, or either rolling-upgrade workflow |
+| PR (manual `workflow_dispatch`) | Opt-in via **Run rolling upgrades** checkbox                                                                                                       |
+| Merge to `master` / `release-*` | Off — too expensive per merge                                                                                                                      |
+| Release cut                     | On automatically                                                                                                                                   |
+| Ad-hoc                          | **Run workflow** on _E2E Tests - Playwright Rolling Upgrades_; no PR needed — pick a ref, to-image tag, edition, and worker count                  |
 
-The ad-hoc path needs no PR: pick a ref, optionally a to-image tag (defaults to `master`), edition, and worker count, and it posts statuses on that ref's HEAD.
-
-**Commit statuses** — one per matrix entry, so a matrix of `release-11.10`, `release-11.9`, `release-11.8`, `release-11.7-esr` produces exactly four contexts. When `resolve_upgrade_matrix.mjs` returns `[]`, no matrix jobs run and the workflow posts exactly one context, `e2e-test/playwright-full/{edition}/upgrade-from-none`. All sit under `e2e-test/playwright-full/{edition}/upgrade-from-*`, which is how the verified-label and override-status workflows discover them:
+**Commit statuses** — one per matrix entry and nothing else, so a 4-entry matrix produces exactly 4 contexts. When the resolver returns `[]`, no matrix jobs run and the workflow posts a single `upgrade-from-none` context instead. All sit under `e2e-test/playwright-full/{edition}/upgrade-from-*`, which is how the verified-label and override-status workflows discover them:
 
 | Context                     | Covers                                                                         |
 | --------------------------- | ------------------------------------------------------------------------------ |
 | `upgrade-from-release-11.9` | that from-version's harness and post-upgrade suite (ESR entries append `-esr`) |
 | `upgrade-from-none`         | resolver returned an empty matrix; nothing ran                                 |
 
-There is no "skipped" context: when rolling upgrades are not requested, the job never starts and posts nothing. This pipeline is deliberately not gated on the generic `should_run` — its own trigger set already decides, and the `.mjs` resolver falls outside `should_run`'s `^e2e-tests/.*\.(ts|tsx|js|jsx)$` pattern, so deferring to it would drop runs that were asked for.
-
-The normal full suite continues to use `e2e-test/playwright-full/enterprise` (no `/upgrade-from-…` suffix).
+There is no "skipped" context: when rolling upgrades are not requested the job never starts and posts nothing. The pipeline is deliberately not gated on the generic `should_run` — its own triggers already decide, and the `.mjs` resolver falls outside `should_run`'s `^e2e-tests/.*\.(ts|tsx|js|jsx)$` pattern, so deferring to it would drop requested runs. The normal full suite keeps using `e2e-test/playwright-full/enterprise`, with no `/upgrade-from-…` suffix.
 
 ## Visual Testing
 
