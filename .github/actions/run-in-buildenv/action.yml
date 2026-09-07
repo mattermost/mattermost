@@ -14,8 +14,8 @@ inputs:
   run:
     description: "Bash script to execute inside the container"
     required: true
-  go-version:
-    description: "Go version to use (e.g. 1.24.3). Defaults to the version in server/.go-version."
+  build-server-tag:
+    description: "Build image tag. Defaults to server/build/buildenv-tag.sh."
     required: false
     default: ""
   fips-enabled:
@@ -30,20 +30,22 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Read Go version
+    - name: Read build image tag
+      id: tag
       shell: bash
       env:
-        GO_VERSION_INPUT: ${{ inputs.go-version }}
+        TAG_INPUT: ${{ inputs.build-server-tag }}
       run: |
-        if [[ -n "${GO_VERSION_INPUT}" ]]; then
-          echo "GO_VERSION=${GO_VERSION_INPUT}" >> "${GITHUB_ENV}"
+        if [[ -n "${TAG_INPUT}" ]]; then
+          tag="${TAG_INPUT}"
         else
-          echo "GO_VERSION=$(cat server/.go-version)" >> "${GITHUB_ENV}"
+          tag=$(./server/build/buildenv-tag.sh)
         fi
+        echo "tag=${tag}" >> "${GITHUB_OUTPUT}"
     - uses: ./.github/actions/load-buildenv
       id: buildenv
       with:
-        go-version: ${{ env.GO_VERSION }}
+        build-server-tag: ${{ steps.tag.outputs.tag }}
         fips-enabled: ${{ inputs.fips-enabled }}
     - name: Run in buildenv
       shell: bash

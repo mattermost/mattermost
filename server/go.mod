@@ -50,7 +50,7 @@ require (
 	github.com/mattermost/mattermost-plugin-ai v1.14.2
 	github.com/mattermost/mattermost/server/public v0.4.3
 	github.com/mattermost/morph v1.1.0
-	github.com/mattermost/pdf v0.0.0-20260728101013-cd8a834041c4
+	github.com/mattermost/pdf v0.0.0-20260828123129-5b7509a6ca01
 	github.com/mattermost/rsc v0.0.0-20160330161541-bbaefb05eaa0
 	github.com/mattermost/squirrel v0.5.0
 	github.com/mholt/archives v0.1.5
@@ -232,4 +232,4 @@ require (
 )
 
 // See MM-66167, MM-68222 for more details.
-replace github.com/vmihailenco/msgpack/v5 => github.com/mattermost/msgpack/v5 v5.0.0-20260408165622-cadfad56a815
+replace github.com/vmihailenco/msgpack/v5 => github.com/mattermost/msgpack/v5 v5.0.0-20260813205620-e158e8d3647e

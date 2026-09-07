@@ -29,6 +29,7 @@ export type WysiwygEditorProps = {
     channelId: string;
     rootId?: string;
     disabled?: boolean;
+    readOnly?: boolean;
     id?: string;
     useCtrlSend?: boolean;
     sendCodeBlockOnCtrlEnter?: boolean;

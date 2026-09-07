@@ -438,6 +438,119 @@ describe('components/FileUpload', () => {
         expect(baseProps.onFileUploadChange).toHaveBeenCalledWith();
     });
 
+    describe('disabledByPolicy', () => {
+        // jest-dom's toBeDisabled() only recognises the native attribute, and the button uses
+        // aria-disabled so the tooltip still opens. Playwright's accepts either, so e2e is fine.
+        test('renders the button visible but disabled, and keeps its id', () => {
+            const {container} = renderWithContext(
+                <FileUpload
+                    {...baseProps}
+                    disabledByPolicy={true}
+                />,
+            );
+
+            const button = container.querySelector('#fileUploadButton');
+            expect(button).toBeVisible();
+            expect(button).toHaveAttribute('aria-disabled', 'true');
+        });
+
+        test('does not open the file picker when the disabled button is clicked', () => {
+            const ref = React.createRef<FileUploadClass>();
+            const {container} = renderWithContext(
+                <FileUpload
+                    {...baseProps}
+                    disabledByPolicy={true}
+                    ref={ref}
+                />,
+            );
+
+            const click = jest.fn();
+            (ref.current!.fileInput as any).current = {click};
+
+            (container.querySelector('#fileUploadButton') as HTMLButtonElement).click();
+
+            expect(click).not.toHaveBeenCalled();
+        });
+
+        test('renders nothing when RBAC also denies uploads', () => {
+            const {container} = renderWithContext(
+                <FileUpload
+                    {...baseProps}
+                    canUploadFiles={false}
+                    disabledByPolicy={true}
+                />,
+            );
+
+            expect(container.querySelector('#fileUploadButton')).toBeNull();
+        });
+
+        test('keeps the attachment control rendered and disabled when plugins register upload methods', () => {
+            const pluginMethod = {
+                id: 'pluginmethodid',
+                pluginId: 'pluginid',
+                text: 'Upload from somewhere',
+                action: jest.fn(),
+                icon: <i/>,
+            };
+
+            const {container} = renderWithContext(
+                <FileUpload
+                    {...baseProps}
+                    pluginFileUploadMethods={[pluginMethod]}
+                    disabledByPolicy={true}
+                />,
+            );
+
+            const button = container.querySelector('#fileUploadButton');
+            expect(button).toBeVisible();
+            expect(button).toHaveAttribute('aria-disabled', 'true');
+        });
+
+        test('blocks the drop path, not only the button', () => {
+            const ref = React.createRef<FileUploadClass>();
+            renderWithContext(
+                <FileUpload
+                    {...baseProps}
+                    disabledByPolicy={true}
+                    ref={ref}
+                />,
+            );
+
+            const e = {dataTransfer: {files: [{name: 'file1.pdf'}]}} as unknown as DragEvent<HTMLInputElement>;
+            const instance = ref.current!;
+            instance.uploadFiles = jest.fn();
+            instance.handleDrop(e);
+
+            expect(instance.uploadFiles).not.toHaveBeenCalled();
+            expect(baseProps.onUploadError).toHaveBeenCalledWith('File uploads are restricted in this channel');
+        });
+
+        test('blocks the paste path, not only the button', () => {
+            const event = new Event('paste');
+            event.preventDefault = jest.fn();
+            const getAsFile = jest.fn().mockReturnValue(new File(['test'], 'test.png'));
+            (event as any).clipboardData = {items: [{getAsFile, kind: 'file', name: 'test.png'}], types: ['image/png'], getData: () => {}};
+
+            const ref = React.createRef<FileUploadClass>();
+            renderWithContext(
+                <FileUpload
+                    {...baseProps}
+                    disabledByPolicy={true}
+                    ref={ref}
+                />,
+            );
+
+            const instance = ref.current!;
+            jest.spyOn(instance, 'containsEventTarget').mockReturnValue(true);
+            const spy = jest.spyOn(instance, 'checkPluginHooksAndUploadFiles');
+
+            document.dispatchEvent(event);
+
+            expect(spy).not.toHaveBeenCalled();
+            expect(baseProps.onUploadError).toHaveBeenCalledWith('File uploads are restricted in this channel');
+        });
+    });
+
     test('FilesWillUploadHook - should reject all files', () => {
         const pluginHook = () => {
             return {files: null};

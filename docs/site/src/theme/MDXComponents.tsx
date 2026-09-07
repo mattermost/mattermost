@@ -2,7 +2,7 @@
 // in any .mdx file without an import.
 
 import MDXComponents from '@theme-original/MDXComponents';
-import {Note, Tip, Important, Warning, Security} from '@site/src/components/Callout';
+import {Note, Tip, Important, Attention, Warning, Security} from '@site/src/components/Callout';
 import PlanBadge from '@site/src/components/PlanBadge';
 import PlanAvailability from '@site/src/components/PlanAvailability';
 import EditionAvailability from '@site/src/components/EditionAvailability';
@@ -32,6 +32,7 @@ export default {
   Note,
   Tip,
   Important,
+  Attention,
   Warning,
   Security,
   PlanBadge,

@@ -80,6 +80,25 @@ export default class ChannelsCenterView {
     }
 
     /**
+     * Return the Center post whose body contains the given text.
+     */
+    async getPostByText(text: string) {
+        const post = this.container.getByTestId('postView').filter({hasText: text}).last();
+        await expect(post).toBeVisible();
+        return new ChannelsPost(post);
+    }
+
+    /**
+     * Return the concealed BoR post, pinned by post id so the locator survives reveal.
+     */
+    async getConcealedBorPost() {
+        const placeholder = this.container.getByTestId(/^burn-on-read-concealed-/).last();
+        await expect(placeholder).toBeVisible();
+        const testId = await placeholder.getAttribute('data-testid');
+        return this.getPostById((testId || '').replace('burn-on-read-concealed-', ''));
+    }
+
+    /**
      * Return the ID of the last post in the Center
      */
     async getLastPostID() {

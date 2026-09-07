@@ -1,0 +1,15 @@
+.PHONY: all test golangci-lint check-style
+
+export GOBIN ?= $(PWD)/bin
+GO ?= go
+
+all: test
+
+test:
+	$(GO) test ./...
+
+golangci-lint:
+	$(GO) install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.12.2
+	$(GOBIN)/golangci-lint run ./...
+
+check-style: golangci-lint

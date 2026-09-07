@@ -133,6 +133,9 @@ type FeatureFlags struct {
 
 	TeamMembershipAccessControl bool
 
+	// Enable channel attributes (Smart Labels, banners) powered by the Properties API.
+	ChannelAttributes bool
+
 	// FEATURE_FLAG_REMOVAL: ResourceAttributesInPolicies - Remove this when the
 	// feature is GA. Gates access rules that compare a user's attributes against
 	// the accessed channel's (resource.attributes.*): when off, the autocomplete
@@ -151,8 +154,6 @@ type FeatureFlags struct {
 	// leave message finishes propagating and spam the logs with errors about the peer
 	// being unreachable.
 	ClusterGracefulDrain bool
-
-	ChannelBookmarks bool
 
 	// Enable React concurrent rendering
 	EnableConcurrentReact bool
@@ -220,11 +221,11 @@ func (f *FeatureFlags) SetDefaults() {
 
 	f.PropertyFieldRank = true
 
+	f.ChannelAttributes = false
+
 	f.MmBlocksEnabled = true
 
-	f.ChannelBookmarks = true
-
-	f.EnableConcurrentReact = false
+	f.EnableConcurrentReact = true
 
 	f.EnableMFIPluginSignaturePublicKey = true
 
