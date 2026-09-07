@@ -344,6 +344,32 @@ func (a *App) GetBot(rctx request.CTX, botUserId string, includeDeleted bool) (*
 	return bot, nil
 }
 
+// resolveBotOwner returns the bot and its owning user for a bot's user id.
+// owner is nil (with no error) when the bot is the system-owned bot or when its
+// owner is not a user account: a plugin-owned bot's OwnerId is a plugin ID, so
+// the user lookup returns not-found. Both cases mean there's no human owner
+// behind the bot.
+func (a *App) resolveBotOwner(rctx request.CTX, botUserId string) (owner *model.User, bot *model.Bot, appErr *model.AppError) {
+	bot, appErr = a.GetBot(rctx, botUserId, true)
+	if appErr != nil {
+		return nil, nil, appErr
+	}
+	if bot.Username == model.BotSystemBotUsername {
+		return nil, bot, nil
+	}
+
+	owner, err := a.Srv().Store().User().Get(rctx, bot.OwnerId)
+	if err != nil {
+		var nfErr *store.ErrNotFound
+		if errors.As(err, &nfErr) {
+			return nil, bot, nil
+		}
+		return nil, nil, model.NewAppError("resolveBotOwner", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	return owner, bot, nil
+}
+
 // GetBots returns the requested page of bots.
 func (a *App) GetBots(rctx request.CTX, options *model.BotGetOptions) (model.BotList, *model.AppError) {
 	bots, err := a.Srv().Store().Bot().GetAll(options)
