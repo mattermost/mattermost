@@ -1016,7 +1016,7 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		profiles, appErr = c.App.GetUsersWithoutTeamPage(userGetOptions, c.IsSystemAdmin())
 	} else if notInChannelId != "" {
 		if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), notInChannelId, model.PermissionReadChannel); !ok {
-			c.SetPermissionError(model.PermissionReadChannel)
+			c.SetChannelPermissionError(notInChannelId, model.PermissionReadChannel)
 			return
 		}
 
@@ -1105,7 +1105,7 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	} else if inChannelId != "" {
 		if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), inChannelId, model.PermissionReadChannel); !ok {
-			c.SetPermissionError(model.PermissionReadChannel)
+			c.SetChannelPermissionError(inChannelId, model.PermissionReadChannel)
 			return
 		}
 
@@ -1313,14 +1313,14 @@ func searchUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if props.InChannelId != "" {
 		if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), props.InChannelId, model.PermissionReadChannel); !ok {
-			c.SetPermissionError(model.PermissionReadChannel)
+			c.SetChannelPermissionError(props.InChannelId, model.PermissionReadChannel)
 			return
 		}
 	}
 
 	if props.NotInChannelId != "" {
 		if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), props.NotInChannelId, model.PermissionReadChannel); !ok {
-			c.SetPermissionError(model.PermissionReadChannel)
+			c.SetChannelPermissionError(props.NotInChannelId, model.PermissionReadChannel)
 			return
 		}
 	}
@@ -1409,7 +1409,7 @@ func autocompleteUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if channelId != "" {
 		if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channelId, model.PermissionReadChannel); !ok {
-			c.SetPermissionError(model.PermissionReadChannel)
+			c.SetChannelPermissionError(channelId, model.PermissionReadChannel)
 			return
 		}
 	}
@@ -3942,7 +3942,7 @@ func getThreadForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	ok, isMember := c.App.SessionHasPermissionToReadPost(c.AppContext, *c.AppContext.Session(), c.Params.ThreadId)
 	if !ok {
-		c.SetPermissionError(model.PermissionReadChannelContent)
+		c.SetPostChannelPermissionError(c.Params.ThreadId, model.PermissionReadChannelContent)
 		return
 	}
 	extendedStr := r.URL.Query().Get("extended")
@@ -4077,7 +4077,7 @@ func updateReadStateThreadByUser(c *Context, w http.ResponseWriter, r *http.Requ
 	}
 	ok, isMember := c.App.SessionHasPermissionToReadPost(c.AppContext, *c.AppContext.Session(), c.Params.ThreadId)
 	if !ok {
-		c.SetPermissionError(model.PermissionReadChannelContent)
+		c.SetPostChannelPermissionError(c.Params.ThreadId, model.PermissionReadChannelContent)
 		return
 	}
 
@@ -4118,7 +4118,7 @@ func setUnreadThreadByPostId(c *Context, w http.ResponseWriter, r *http.Request)
 
 	ok, isMember := c.App.SessionHasPermissionToReadPost(c.AppContext, *c.AppContext.Session(), c.Params.ThreadId)
 	if !ok {
-		c.SetPermissionError(model.PermissionReadChannelContent)
+		c.SetPostChannelPermissionError(c.Params.ThreadId, model.PermissionReadChannelContent)
 		return
 	}
 	if !isMember {
@@ -4163,7 +4163,7 @@ func unfollowThreadByUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if ok, _ := c.App.SessionHasPermissionToReadPost(c.AppContext, *c.AppContext.Session(), c.Params.ThreadId); !ok {
-		c.SetPermissionError(model.PermissionReadChannelContent)
+		c.SetPostChannelPermissionError(c.Params.ThreadId, model.PermissionReadChannelContent)
 		return
 	}
 
@@ -4196,7 +4196,7 @@ func followThreadByUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if ok, _ := c.App.SessionHasPermissionToReadPost(c.AppContext, *c.AppContext.Session(), c.Params.ThreadId); !ok {
-		c.SetPermissionError(model.PermissionReadChannelContent)
+		c.SetPostChannelPermissionError(c.Params.ThreadId, model.PermissionReadChannelContent)
 		return
 	}
 

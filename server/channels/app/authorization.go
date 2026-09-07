@@ -182,29 +182,31 @@ func (a *App) SessionHasPermissionToChannels(rctx request.CTX, session model.Ses
 		return true
 	}
 
-	// Every channel must exist, and this runs before the role short-circuits so an
-	// empty or unknown ID can never reach the policy evaluation below.
-	channels := make([]*model.Channel, 0, len(channelIDs))
-	for _, channelID := range channelIDs {
-		if channelID == "" {
-			return false
-		}
-
-		channel, appErr := a.GetChannel(rctx, channelID)
-		if appErr != nil {
-			return false
-		}
-		channels = append(channels, channel)
-	}
-
-	for _, channel := range channels {
-		if !a.HasPermissionToAccessChannel(rctx, session.UserId, channel) {
-			return false
+	// access_channel is evaluated before the role short-circuits below, because it
+	// applies to unrestricted and system-admin sessions too. Skipped entirely while
+	// inert, so the existence check below stays exactly where it was.
+	if a.accessChannelEnforcementActive() {
+		for _, channelID := range channelIDs {
+			if !a.HasPermissionToAccessChannelByID(rctx, session.UserId, channelID) {
+				return false
+			}
 		}
 	}
 
 	if session.IsUnrestricted() || a.RolesGrantPermission(session.GetUserRoles(), model.PermissionManageSystem.Id) {
 		return true
+	}
+
+	// make sure all channels exist, otherwise return false.
+	for _, channelID := range channelIDs {
+		if channelID == "" {
+			return false
+		}
+
+		_, appErr := a.GetChannel(rctx, channelID)
+		if appErr != nil {
+			return false
+		}
 	}
 
 	// if System Roles (i.e. Admin, TeamAdmin) allow permissions
@@ -258,15 +260,17 @@ func (a *App) SessionHasPermissionToChannelByPost(rctx request.CTX, session mode
 		return false
 	}
 
-	channel, channelErr := a.Srv().Store().Channel().GetForPost(postID)
-	if channelErr == nil {
+	if a.accessChannelEnforcementActive() {
+		channel, err := a.Srv().Store().Channel().GetForPost(postID)
+		if err != nil {
+			// The fallbacks below have no channel to evaluate access_channel
+			// against, so granting on a team- or system-wide permission would
+			// bypass the policy.
+			return false
+		}
 		if !a.HasPermissionToAccessChannel(rctx, session.UserId, channel) {
 			return false
 		}
-	} else if a.accessChannelEnforcementActive() {
-		// The permissive fallbacks below have no channel to evaluate against, so
-		// they would be a hole while the policy is being enforced.
-		return false
 	}
 
 	if channelMember, err := a.Srv().Store().Channel().GetMemberForPost(postID, session.UserId); err == nil {
@@ -275,8 +279,10 @@ func (a *App) SessionHasPermissionToChannelByPost(rctx request.CTX, session mode
 		}
 	}
 
-	if channelErr == nil && channel.TeamId != "" {
-		return a.SessionHasPermissionToTeam(session, channel.TeamId, permission)
+	if channel, err := a.Srv().Store().Channel().GetForPost(postID); err == nil {
+		if channel.TeamId != "" {
+			return a.SessionHasPermissionToTeam(session, channel.TeamId, permission)
+		}
 	}
 
 	return a.SessionHasPermissionTo(session, permission)
@@ -398,7 +404,7 @@ func (a *App) HasPermissionToChannel(rctx request.CTX, askingUserId string, chan
 		return false, isMember
 	}
 
-	return a.hasPermissionToAccessChannelByID(rctx, askingUserId, channelID), isMember
+	return a.HasPermissionToAccessChannelByID(rctx, askingUserId, channelID), isMember
 }
 
 // HasPermissionToChannelRBACOnly is HasPermissionToChannel without the ABAC

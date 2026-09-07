@@ -372,7 +372,7 @@ func executeCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// Checks that user is a member of the specified channel, and that they have permission to create a post in it.
 	if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), commandArgs.ChannelId, model.PermissionCreatePost); !ok {
-		c.SetPermissionError(model.PermissionCreatePost)
+		c.SetChannelPermissionError(commandArgs.ChannelId, model.PermissionCreatePost)
 		return
 	}
 

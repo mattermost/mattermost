@@ -56,6 +56,13 @@ func generateFlaggedPostReport(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
+	// Both reports have only ever been gated on team reviewer status, so a reviewer
+	// could pull one — file bytes included, in the ZIP's case — for a channel they
+	// are not in and the policy hides from them. Reviewers are not exempt here.
+	if !requireChannelAccess(c, channel) {
+		return
+	}
+
 	checkChannelFlaggable(c, channel)
 	if c.Err != nil {
 		return
@@ -135,6 +142,13 @@ func generatePostExposureReport(c *Context, w http.ResponseWriter, r *http.Reque
 	channel, appErr := c.App.GetChannel(c.AppContext, post.ChannelId)
 	if appErr != nil {
 		c.Err = appErr
+		return
+	}
+
+	// Both reports have only ever been gated on team reviewer status, so a reviewer
+	// could pull one — file bytes included, in the ZIP's case — for a channel they
+	// are not in and the policy hides from them. Reviewers are not exempt here.
+	if !requireChannelAccess(c, channel) {
 		return
 	}
 

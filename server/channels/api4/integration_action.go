@@ -91,12 +91,12 @@ func doPostAction(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		if ok, _ := c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel); !ok {
-			c.SetPermissionError(model.PermissionReadChannelContent)
+			c.SetChannelPermissionError(channel.Id, model.PermissionReadChannelContent)
 			return
 		}
 	} else {
 		if ok, _ := c.App.SessionHasPermissionToReadPost(c.AppContext, *c.AppContext.Session(), c.Params.PostId); !ok {
-			c.SetPermissionError(model.PermissionReadChannelContent)
+			c.SetPostChannelPermissionError(c.Params.PostId, model.PermissionReadChannelContent)
 			return
 		}
 	}
@@ -160,7 +160,7 @@ func submitDialog(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if ok, _ := c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel); !ok {
-		c.SetPermissionError(model.PermissionReadChannelContent)
+		c.SetChannelPermissionError(channel.Id, model.PermissionReadChannelContent)
 		return
 	}
 
@@ -217,7 +217,7 @@ func executeDialogAction(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if ok, _ := c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel); !ok {
-		c.SetPermissionError(model.PermissionReadChannelContent)
+		c.SetChannelPermissionError(channel.Id, model.PermissionReadChannelContent)
 		return
 	}
 
@@ -279,7 +279,7 @@ func lookupDialog(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if ok, _ := c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel); !ok {
-		c.SetPermissionError(model.PermissionReadChannelContent)
+		c.SetChannelPermissionError(channel.Id, model.PermissionReadChannelContent)
 		return
 	}
 

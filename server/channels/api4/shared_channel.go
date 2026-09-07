@@ -264,7 +264,7 @@ func getSharedChannelRemotes(c *Context, w http.ResponseWriter, r *http.Request)
 	}
 
 	if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionReadChannel); !ok {
-		c.SetPermissionError(model.PermissionReadChannel)
+		c.SetChannelPermissionError(c.Params.ChannelId, model.PermissionReadChannel)
 		return
 	}
 

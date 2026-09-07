@@ -2830,7 +2830,8 @@ func (a *App) GetPostIfAuthorized(rctx request.CTX, postID string, session *mode
 	// public-channel fallback below reaches the team level: checking it afterwards
 	// would let a denied session read any open channel on its team.
 	if !a.HasPermissionToAccessChannel(rctx, session.UserId, channel) {
-		return nil, model.MakePermissionError(session, []*model.Permission{model.PermissionReadChannelContent}), false
+		return nil, model.NewAppError("GetPostIfAuthorized", "api.channel.access_channel.abac_denied.app_error", nil,
+			"userId="+session.UserId+", channelId="+channel.Id, http.StatusForbidden), false
 	}
 
 	ok, isMember := a.SessionHasPermissionToReadChannelRBACOnly(rctx, *session, channel)

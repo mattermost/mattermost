@@ -302,6 +302,17 @@ func (c *Context) SetChannelPermissionError(channelID string, permissions ...*mo
 	c.SetPermissionError(permissions...)
 }
 
+// SetPostChannelPermissionError is SetChannelPermissionError for the handlers that
+// carry only a post id. Resolving the post's channel costs one read, taken only on
+// the denial path; an unresolvable post falls back to the generic error.
+func (c *Context) SetPostChannelPermissionError(postID string, permissions ...*model.Permission) {
+	channelID := ""
+	if post, appErr := c.App.GetSinglePost(c.AppContext, postID, true); appErr == nil {
+		channelID = post.ChannelId
+	}
+	c.SetChannelPermissionError(channelID, permissions...)
+}
+
 func (c *Context) SetSiteURLHeader(url string) {
 	c.siteURLHeader = strings.TrimRight(url, "/")
 }

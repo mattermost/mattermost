@@ -115,7 +115,7 @@ func createPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 		hasPermission, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), field.TargetID, model.PermissionCreatePost)
 		if !hasPermission {
-			c.SetPermissionError(model.PermissionCreatePost)
+			c.SetChannelPermissionError(field.TargetID, model.PermissionCreatePost)
 			return
 		}
 	case "team":
@@ -363,7 +363,7 @@ func resolveScopeAndCheckPermissions(c *Context, opts *model.PropertyFieldSearch
 	case opts.ChannelID != "":
 		hasPermission, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), opts.ChannelID, model.PermissionReadChannel)
 		if !hasPermission {
-			c.SetPermissionError(model.PermissionReadChannel)
+			c.SetChannelPermissionError(opts.ChannelID, model.PermissionReadChannel)
 			return false
 		}
 		channel, appErr := c.App.GetChannel(c.AppContext, opts.ChannelID)
@@ -391,7 +391,7 @@ func resolveScopeAndCheckPermissions(c *Context, opts *model.PropertyFieldSearch
 			}
 			hasPermission, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), opts.TargetIDs[0], model.PermissionReadChannel)
 			if !hasPermission {
-				c.SetPermissionError(model.PermissionReadChannel)
+				c.SetChannelPermissionError(opts.TargetIDs[0], model.PermissionReadChannel)
 				return false
 			}
 		case model.PropertyFieldTargetLevelTeam:
@@ -830,7 +830,7 @@ func hasTargetAccess(c *Context, objectType, targetID string, write bool) bool {
 		if !write {
 			hasPermission, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), targetID, model.PermissionReadChannel)
 			if !hasPermission {
-				c.SetPermissionError(model.PermissionReadChannel)
+				c.SetChannelPermissionError(targetID, model.PermissionReadChannel)
 				return false
 			}
 		} else {
@@ -851,7 +851,7 @@ func hasTargetAccess(c *Context, objectType, targetID string, write bool) bool {
 			}
 			hasPermission, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), targetID, perm)
 			if !hasPermission {
-				c.SetPermissionError(perm)
+				c.SetChannelPermissionError(targetID, perm)
 				return false
 			}
 		}
@@ -867,7 +867,7 @@ func hasTargetAccess(c *Context, objectType, targetID string, write bool) bool {
 		}
 		hasPermission, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), post.ChannelId, perm)
 		if !hasPermission {
-			c.SetPermissionError(perm)
+			c.SetChannelPermissionError(post.ChannelId, perm)
 			return false
 		}
 	case model.PropertyFieldObjectTypeUser:

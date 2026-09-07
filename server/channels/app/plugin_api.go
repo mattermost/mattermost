@@ -1265,7 +1265,10 @@ func (api *PluginAPI) HasPermissionToTeam(userID, teamID string, permission *mod
 }
 
 func (api *PluginAPI) HasPermissionToChannel(userID, channelID string, permission *model.Permission) bool {
-	ok, _ := api.app.HasPermissionToChannel(api.ctx, userID, channelID, permission)
+	// RBACOnly: plugins own their surfaces and are out of scope for access_channel,
+	// so their answer must not shift under them. A plugin that wants the policy
+	// consulted needs an explicit API for it.
+	ok, _ := api.app.HasPermissionToChannelRBACOnly(api.ctx, userID, channelID, permission)
 	return ok
 }
 

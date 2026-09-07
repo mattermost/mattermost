@@ -104,7 +104,9 @@ func userCreatePostPermissionCheckWithApp(rctx request.CTX, a *App, userId, chan
 	} else if channel, err := a.GetChannel(rctx, channelId); err == nil {
 		// Temporary permission check method until advanced permissions, please do not copy
 		if channel.Type == model.ChannelTypeOpen && a.HasPermissionToTeam(rctx, userId, channel.TeamId, model.PermissionCreatePostPublic) {
-			hasPermission = true
+			// The team-level fallback bypasses the channel gate, so the ABAC policy
+			// has to be checked here too.
+			hasPermission = a.HasPermissionToAccessChannel(rctx, userId, channel)
 		}
 	}
 

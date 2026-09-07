@@ -229,14 +229,35 @@ func (a *App) buildAccessChannelSubject(rctx request.CTX, userID, channelID stri
 	return a.BuildAccessControlSubject(rctx, userID, user.Roles, channelID)
 }
 
-// hasPermissionToAccessChannelByID resolves the channel before evaluating, for the
+// FilterChannelIDsByAccess drops the channel IDs the access_channel policy denies
+// for the user, returning the input untouched while the feature is inert.
+//
+// Used where a denial has to suppress rather than fail: marking a batch of
+// channels read must still mark the ones the user can see. The channels the user
+// keeps their membership and unread counts in are unaffected — nothing is written
+// for a dropped channel, and nothing is removed.
+func (a *App) FilterChannelIDsByAccess(rctx request.CTX, userID string, channelIDs []string) []string {
+	if len(channelIDs) == 0 || !a.accessChannelEnforcementActive() {
+		return channelIDs
+	}
+
+	filtered := make([]string, 0, len(channelIDs))
+	for _, channelID := range channelIDs {
+		if a.HasPermissionToAccessChannelByID(rctx, userID, channelID) {
+			filtered = append(filtered, channelID)
+		}
+	}
+	return filtered
+}
+
+// HasPermissionToAccessChannelByID resolves the channel before evaluating, for the
 // gates that only carry an ID.
 //
 // A channel that does not exist is allowed: the policy-administration endpoints
 // pass policy IDs through the channel gates, and a team or parent policy has no
 // channel behind it. Any other lookup failure denies, because a channel that may
 // be governed must not be waved through on an infrastructure error.
-func (a *App) hasPermissionToAccessChannelByID(rctx request.CTX, userID, channelID string) bool {
+func (a *App) HasPermissionToAccessChannelByID(rctx request.CTX, userID, channelID string) bool {
 	if channelID == "" || !a.accessChannelEnforcementActive() {
 		return true
 	}

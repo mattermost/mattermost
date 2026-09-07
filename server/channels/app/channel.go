@@ -3564,6 +3564,20 @@ func (a *App) MarkTeamChannelsAndThreadsViewed(rctx request.CTX, teamID string, 
 		return nil, model.NewAppError("MarkTeamChannelsAndThreadsViewed", "app.channel.get_channels_by_team_with_unreads_and_with_mentions.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
+	// Marking a whole team read must not move the marker on a channel the
+	// access_channel policy hides. Dropping it here keeps its unread and mention
+	// counts intact, so they are waiting when access returns. Filtering times
+	// covers the thread update, the websocket payload and the response together.
+	if a.accessChannelEnforcementActive() {
+		channelsToView = a.FilterChannelIDsByAccess(rctx, userID, channelsToView)
+		channelsToClearPushNotifications = a.FilterChannelIDsByAccess(rctx, userID, channelsToClearPushNotifications)
+		for channelID := range times {
+			if !a.HasPermissionToAccessChannelByID(rctx, userID, channelID) {
+				delete(times, channelID)
+			}
+		}
+	}
+
 	// times already contains every channel the user belongs to in this team, including
 	// fully-read ones. We pass the full set to the thread store because a CRT-enabled
 	// user can have unread thread replies in a channel whose channel-level counters are

@@ -1201,7 +1201,7 @@ func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 			permission = model.PermissionManagePublicChannelMembers
 		}
 		if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), NotAssociatedToChannelID, permission); !ok {
-			c.SetPermissionError(permission)
+			c.SetChannelPermissionError(NotAssociatedToChannelID, permission)
 			return
 		}
 		opts.NotAssociatedToChannel = NotAssociatedToChannelID
@@ -1220,7 +1220,7 @@ func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 			permission = model.PermissionManagePublicChannelMembers
 		}
 		if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), ChannelIDForMemberCount, permission); !ok {
-			c.SetPermissionError(permission)
+			c.SetChannelPermissionError(ChannelIDForMemberCount, permission)
 			return
 		}
 		opts.IncludeChannelMemberCount = ChannelIDForMemberCount

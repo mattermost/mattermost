@@ -248,13 +248,13 @@ func TestHasPermissionToAccessChannelByID(t *testing.T) {
 		h := setupAccessChannelTest(t)
 		mockACS := h.mockACS(t)
 
-		require.True(t, h.th.App.hasPermissionToAccessChannelByID(h.rctx, h.th.BasicUser.Id, model.NewId()))
+		require.True(t, h.th.App.HasPermissionToAccessChannelByID(h.rctx, h.th.BasicUser.Id, model.NewId()))
 		mockACS.AssertNotCalled(t, "AccessEvaluation", mock.Anything, mock.Anything)
 	})
 
 	t.Run("allows an empty channel id", func(t *testing.T) {
 		h := setupAccessChannelTest(t)
-		require.True(t, h.th.App.hasPermissionToAccessChannelByID(h.rctx, h.th.BasicUser.Id, ""))
+		require.True(t, h.th.App.HasPermissionToAccessChannelByID(h.rctx, h.th.BasicUser.Id, ""))
 	})
 
 	t.Run("evaluates a channel that does exist", func(t *testing.T) {
@@ -263,6 +263,6 @@ func TestHasPermissionToAccessChannelByID(t *testing.T) {
 		governed(mockACS)
 		decides(mockACS, false)
 
-		require.False(t, h.th.App.hasPermissionToAccessChannelByID(h.rctx, h.th.BasicUser.Id, h.th.BasicChannel.Id))
+		require.False(t, h.th.App.HasPermissionToAccessChannelByID(h.rctx, h.th.BasicUser.Id, h.th.BasicChannel.Id))
 	})
 }
