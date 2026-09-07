@@ -54,7 +54,7 @@ On **Virtual Machine Settings** tab, configure the following:
 2.  **Public IP address:** Typically **create new**. You must set a **DNS prefix** (label) that is **globally unique** in Azure; it forms part of your URL. This DNS will allow public access to your workspace. It is important that you do not already have a matching DNS name within your Azure subscription, or your deployment may fail later in the process.
 3.  **Virtual network:** **Create new** with the suggested address space, or attach an existing VNet and subnet that meet the constraints. Using a new virtual network avoids collisions with overlapping address spaces in the same subscription.
 
-The portal may show a preview of your URL in the form `https://&lt;dns-label&gt;.&lt;region&gt;.cloudapp.azure.com`. That is the address you will use once TLS and Mattermost are ready.
+The portal may show a preview of your URL in the form `https://<dns-label>.<region>.cloudapp.azure.com`. That is the address you will use once TLS and Mattermost are ready.
 
 ## Step 4: Review and create
 
@@ -64,11 +64,11 @@ Review settings, accept any **Marketplace** terms if prompted, then select **Cre
 
 - In the Azure portal, open the **resource group** you used.
 
-- Open the **Public IP address** resource (often named `&lt;your-vm-name&gt;-ip` unless you changed it).
+- Open the **Public IP address** resource (often named `<your-vm-name>-ip` unless you changed it).
 
 - Under **Essentials**, note the **DNS name**. Your site URL is:
 
-  `https://&lt;dns-label&gt;.&lt;region&gt;.cloudapp.azure.com`
+  `https://<dns-label>.<region>.cloudapp.azure.com`
 
   Example: `https://myorg.eastus.cloudapp.azure.com`
 

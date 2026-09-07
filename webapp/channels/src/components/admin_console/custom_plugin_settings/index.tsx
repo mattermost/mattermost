@@ -1,0 +1,259 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+import React from 'react';
+import type {MessageDescriptor} from 'react-intl';
+import {defineMessage} from 'react-intl';
+import {connect} from 'react-redux';
+
+import type {PluginRedux, PluginSetting, PluginSettingSection} from '@mattermost/types/plugins';
+
+import {createSelector} from 'mattermost-redux/selectors/create_selector';
+import {appsFeatureFlagEnabled} from 'mattermost-redux/selectors/entities/apps';
+import {isCurrentLicenseCloud} from 'mattermost-redux/selectors/entities/cloud';
+import {getLicense} from 'mattermost-redux/selectors/entities/general';
+import {getRoles} from 'mattermost-redux/selectors/entities/roles';
+
+import {getAdminConsoleCustomComponents, getAdminConsoleCustomSections} from 'selectors/admin_console';
+
+import usePluginStatusesSync from 'components/common/hooks/usePluginStatusesSync';
+
+import {isUnlicensedAddOn} from 'utils/addons';
+import {appsPluginID} from 'utils/apps';
+import {Constants} from 'utils/constants';
+
+import type {GlobalState} from 'types/store';
+import type {AdminConsolePluginComponent, AdminConsolePluginCustomSection} from 'types/store/plugins';
+
+import CustomPluginSettings from './custom_plugin_settings';
+import getEnablePluginSetting from './enable_plugin_setting';
+
+import {it} from '../admin_definition_helpers';
+import {escapePathPart, getPluginEnabledConfigKey} from '../schema_admin_settings';
+import type {AdminDefinitionSetting, AdminDefinitionSubSectionSchema, AdminDefinitionConfigSchemaSection} from '../types';
+
+type OwnProps = {match: {params: {plugin_id: string}}};
+
+function makeGetPluginSchema() {
+    return createSelector(
+        'makeGetPluginSchema',
+        (state: GlobalState, pluginId: string) => state.entities.admin.plugins?.[pluginId],
+        (state: GlobalState, pluginId: string) => getAdminConsoleCustomComponents(state, pluginId),
+        (state: GlobalState, pluginId: string) => getAdminConsoleCustomSections(state, pluginId),
+        (state) => appsFeatureFlagEnabled(state),
+        isCurrentLicenseCloud,
+        getLicense,
+        (plugin: PluginRedux | undefined, customComponents: Record<string, AdminConsolePluginComponent>, customSections: Record<string, AdminConsolePluginCustomSection>, appsFeatureFlagIsEnabled, isCloudLicense, license) => {
+            if (!plugin) {
+                return null;
+            }
+
+            // A licensed add-on the license does not grant cannot be activated by the
+            // server, so offering the enable toggle would only produce a setting that
+            // silently fails to take effect.
+            const unlicensedAddOn = isUnlicensedAddOn(plugin.id, license);
+
+            const escapedPluginId = escapePathPart(plugin.id);
+            const pluginEnabledConfigKey = getPluginEnabledConfigKey(plugin.id);
+
+            const parsePluginSettings = (settings: PluginSetting[]) => {
+                return settings.map((setting) => {
+                    const key = setting.key.toLowerCase();
+                    let component = null;
+                    let bannerType = '';
+                    let type = setting.type;
+                    let displayName: string | MessageDescriptor = setting.display_name;
+                    let isDisabled = it.any(it.stateIsFalse(pluginEnabledConfigKey), it.not(it.userHasWritePermissionOnResource('plugins')));
+
+                    if (customComponents[key]) {
+                        component = customComponents[key].component;
+                        type = Constants.SettingsTypes.TYPE_CUSTOM;
+                    } else if (setting.type === Constants.SettingsTypes.TYPE_CUSTOM) {
+                        // Show a warning banner to enable the plugin in order to display the custom component.
+                        type = Constants.SettingsTypes.TYPE_BANNER;
+                        displayName = defineMessage({id: 'admin.plugin.customSetting.pluginDisabledWarning', defaultMessage: 'In order to view this setting, enable the plugin.'});
+                        bannerType = 'warning';
+                        isDisabled = it.any(
+                            it.all(Boolean(plugin.active), it.stateIsTrue(pluginEnabledConfigKey)),
+                            it.not(it.userHasWritePermissionOnResource('plugins')),
+                        );
+                    }
+
+                    const isHidden = () => {
+                        return (isCloudLicense && setting.hosting === 'on-prem') ||
+                            (!isCloudLicense && setting.hosting === 'cloud');
+                    };
+
+                    return {
+                        ...setting,
+                        type,
+                        key: 'PluginSettings.Plugins.' + escapedPluginId + '.' + key,
+                        help_text_markdown: true,
+                        label: displayName,
+                        translate: Boolean(plugin.translate),
+                        isDisabled,
+                        isHidden,
+                        banner_type: bannerType,
+                        component,
+                        showTitle: customComponents[key] ? customComponents[key].options.showTitle : false,
+                    } as AdminDefinitionSetting;
+                });
+            };
+
+            const parsePluginSettingSections = (sections: PluginSettingSection[]) => {
+                return sections.map((section) => {
+                    const key = section.key.toLowerCase();
+                    let component;
+                    let settings: AdminDefinitionSetting[] = [];
+                    if (section.custom) {
+                        if (customSections[key]) {
+                            component = customSections[key]?.component;
+                            settings = parsePluginSettings(section.settings);
+                        } else if (section.fallback) {
+                            settings = parsePluginSettings(section.settings);
+                        } else {
+                            // Show warning banner for custom sections when the plugin is disabled and there's no fallback.
+                            settings = [{
+                                key: key + 'disabledWarning',
+                                type: Constants.SettingsTypes.TYPE_BANNER,
+                                label: defineMessage({
+                                    id: 'admin.plugin.customSection.pluginDisabledWarning',
+                                    defaultMessage: 'In order to view this section, enable the plugin.',
+                                }),
+                                banner_type: 'warning',
+                            }];
+                        }
+                    } else {
+                        settings = parsePluginSettings(section.settings);
+                    }
+
+                    return {
+                        key,
+                        title: section.title,
+                        subtitle: section.subtitle,
+                        settings,
+                        header: section.header,
+                        footer: section.footer,
+                        component,
+                    } as AdminDefinitionConfigSchemaSection;
+                });
+            };
+
+            let sections: AdminDefinitionConfigSchemaSection[] = [];
+            let settings: AdminDefinitionSetting[] = [];
+            if (plugin.settings_schema?.sections?.length) {
+                sections = parsePluginSettingSections(plugin.settings_schema.sections);
+            }
+            if (plugin.settings_schema?.settings?.length) {
+                settings = parsePluginSettings(plugin.settings_schema.settings);
+            }
+
+            if (unlicensedAddOn) {
+                // Replace the enable toggle with an explanation. Without this the page
+                // renders with no toggle at all, which reads as a broken settings page.
+                const addOnBanner = {
+                    key: 'admin.plugin.addOn.notLicensedWarning',
+                    type: Constants.SettingsTypes.TYPE_BANNER,
+                    label: defineMessage({id: 'admin.plugin.addOn.notLicensedWarning', defaultMessage: 'This plugin is a licensed add-on. Your license does not include it, so it cannot be enabled. Contact your Mattermost account team to purchase it.'}),
+                    banner_type: 'warning' as const,
+                };
+
+                sections = [{
+                    key: pluginEnabledConfigKey + '.Section',
+                    settings: [addOnBanner],
+                }];
+                settings = [];
+            } else if (plugin.id !== appsPluginID || appsFeatureFlagIsEnabled) {
+                const pluginEnableSetting = getEnablePluginSetting(plugin) as AdminDefinitionSetting;
+
+                const hasAllCustomSectionsDisabled = Boolean(plugin.settings_schema?.sections?.length) && plugin.settings_schema?.sections?.every((s) => s.custom && !customSections[s.key.toLowerCase()]);
+                const anyCustomSectionAllowsFallback = plugin.settings_schema?.sections?.some((s) => s.custom && s.fallback);
+
+                if (plugin.settings_schema && hasAllCustomSectionsDisabled && !anyCustomSectionAllowsFallback) {
+                    // If the plugin is composed of purely custom sections (e.g. Calls), it's disabled (custom components are not found), and none allow a fallback, we show a single warning. When a section allows a fallback we render the sections instead, so fallback-enabled ones stay configurable.
+                    const warningBanner = {
+                        key: 'admin.plugin.customSections.pluginDisabledWarning',
+                        type: Constants.SettingsTypes.TYPE_BANNER,
+                        label: defineMessage({id: 'admin.plugin.customSections.pluginDisabledWarning', defaultMessage: 'In order to view and configure plugin settings, enable the plugin.'}),
+                        banner_type: 'warning' as const,
+                    };
+
+                    sections = [{
+                        key: pluginEnabledConfigKey + '.Section',
+                        settings: [pluginEnableSetting, warningBanner],
+                    }];
+                    settings = [];
+                } else if (sections.length > 0) {
+                    // Keep a lightweight top section only when the schema still has a footer to show; the footer text itself renders generically for the whole sections list.
+                    if (plugin.settings_schema?.footer) {
+                        sections.unshift({
+                            key: pluginEnabledConfigKey + '.Section',
+                            settings: [pluginEnableSetting],
+                        });
+                    }
+                } else {
+                    // Otherwise we retain existing behaviour and add the setting in front.
+                    settings.unshift(pluginEnableSetting);
+                }
+            }
+
+            if (sections.length > 0 && settings.length > 0) {
+                sections.unshift({
+                    key: pluginEnabledConfigKey + '.Section',
+                    settings,
+                });
+                settings = [];
+            }
+
+            const checkDisableSetting = (s: Partial<AdminDefinitionSetting>) => {
+                if (s.isDisabled) {
+                    s.isDisabled = it.any(s.isDisabled, it.not(it.userHasWritePermissionOnResource('plugins')));
+                } else {
+                    s.isDisabled = it.not(it.userHasWritePermissionOnResource('plugins'));
+                }
+            };
+
+            if (sections.length > 0) {
+                sections.forEach((section) => section.settings.forEach(checkDisableSetting));
+            } else {
+                settings.forEach(checkDisableSetting);
+            }
+
+            return {
+                ...plugin.settings_schema,
+                id: plugin.id,
+                stateKey: plugin.id,
+                name: plugin.name,
+                header: undefined,
+                settings: sections.length > 0 ? undefined : settings,
+                sections: sections.length > 0 ? sections : undefined,
+                translate: Boolean(plugin.translate),
+            } as AdminDefinitionSubSectionSchema;
+        },
+    );
+}
+
+function makeMapStateToProps() {
+    const getPluginSchema = makeGetPluginSchema();
+
+    return (state: GlobalState, ownProps: OwnProps) => {
+        const pluginId = ownProps.match.params.plugin_id;
+
+        return {
+            schema: getPluginSchema(state, pluginId),
+            roles: getRoles(state),
+            plugin: state.entities.admin.plugins?.[pluginId],
+            pluginStatus: state.entities.admin.pluginStatuses?.[pluginId],
+            pluginVersion: state.entities.admin.pluginStatuses?.[pluginId]?.version,
+        };
+    };
+}
+
+const ConnectedCustomPluginSettings = connect(makeMapStateToProps)(CustomPluginSettings);
+
+// Wrap the legacy class-based settings component so it can subscribe to plugin status changes
+// and refetch on demand while the page is mounted.
+export default function CustomPluginSettingsWithStatusesSync(props: React.ComponentProps<typeof ConnectedCustomPluginSettings>) {
+    usePluginStatusesSync();
+    return <ConnectedCustomPluginSettings {...props}/>;
+}

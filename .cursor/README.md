@@ -8,8 +8,8 @@ The Docker build context is `.cursor/` only. The Dockerfile intentionally does n
 
 - Ubuntu 24.04.
 - Docker CE 28.5.2 with `fuse-overlayfs` and `iptables-legacy`, matching Cursor's Docker-in-Cloud guidance for complex compose setups.
-- Go 1.25.9 from `server/.go-version`.
-- Node 24.11.1/npm 11 via nvm, matching `.nvmrc` and `webapp/package.json`.
+- Go from `server/.go-version` (currently 1.26.7). The install hook installs that version if the image is stale or the agent did not boot from this Dockerfile.
+- Node from `.nvmrc` (currently 24.11, image pin 24.11.1) via nvm. The install hook installs that version if the image is stale or the agent did not boot from this Dockerfile.
 - Browser runtime libraries for the Playwright e2e suite.
 - AWS CLI v2 for S3 uploads.
 - Common Mattermost build/test tools: `make`, `jq`, `xmlsec1`, `pgloader`, Git LFS, GitHub CLI, Python 3, and build essentials.
