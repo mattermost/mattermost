@@ -111,6 +111,36 @@ describe('Client4', () => {
         });
     });
 
+    describe('access control field autocomplete', () => {
+        let client: Client4;
+
+        beforeEach(() => {
+            client = new Client4();
+            client.setUrl('http://mattermost.example.com');
+        });
+
+        test('getAccessControlFields sends include_resource_fields when requested', async () => {
+            const fields = [{id: 'f1', name: 'classification'}];
+            nock(client.getBaseRoute()).
+                get('/access_control_policies/cel/autocomplete/fields').
+                query({after: '', limit: '100', include_resource_fields: 'true'}).
+                reply(200, fields);
+
+            const result = await client.getAccessControlFields('', 100, undefined, undefined, true);
+            expect(result).toEqual(fields);
+        });
+
+        test('getAccessControlFields omits include_resource_fields by default', async () => {
+            nock(client.getBaseRoute()).
+                get('/access_control_policies/cel/autocomplete/fields').
+                query((q) => q.include_resource_fields === undefined && q.after === '' && q.limit === '100').
+                reply(200, []);
+
+            const result = await client.getAccessControlFields('', 100);
+            expect(result).toEqual([]);
+        });
+    });
+
     describe('content flagging routes', () => {
         let client: Client4;
 

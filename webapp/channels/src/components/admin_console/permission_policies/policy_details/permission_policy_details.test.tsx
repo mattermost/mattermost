@@ -83,6 +83,8 @@ describe('components/admin_console/permission_policies/policy_details/Permission
         TrustProxyDeviceIdentityHeader: false,
         EnforceDeviceIDConsistency: false,
         EnableAccessControlAuditLogging: false,
+        SyncJobIntervalSeconds: 3600,
+        AttributeRefreshIntervalSeconds: 30,
     };
 
     const baseProps = {
@@ -151,6 +153,28 @@ describe('components/admin_console/permission_policies/policy_details/Permission
 
     afterEach(() => {
         jest.clearAllMocks();
+    });
+
+    test('shows the load failure and hides the editor when fetchPolicy errors, even with a store-copy policy prop', async () => {
+        mockFetchPolicy.mockResolvedValue({error: {message: 'failed'}});
+
+        renderWithContext(
+            <PermissionPolicyDetails
+                {...baseProps}
+                policy={{
+                    id: 'policy1',
+                    name: 'Policy 1',
+                    roles: ['system_user'],
+                    rules: [{actions: ['download_file_attachment'], expression: 'user.attributes.teams == "engineering"'}],
+                    type: 'permission',
+                }}
+            />,
+        );
+
+        expect(await screen.findByText('Failed to load policy')).toBeInTheDocument();
+        expect(screen.getByText('failed')).toBeInTheDocument();
+        expect(screen.queryByTestId('table-editor')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('cel-editor')).not.toBeInTheDocument();
     });
 
     test('merges the fetched enabled session attributes into the table-mode picker', async () => {

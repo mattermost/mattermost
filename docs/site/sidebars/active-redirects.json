@@ -1,23 +1,13 @@
 {
   "_meta": {
-    "source": "docs-site/scripts/migrate-main-docs/redirects.json",
-    "active": 691,
-    "missing_target": 217,
-    "dropped_anchored_from": 1113,
-    "total_internal": 2021
+    "maintained": "by hand",
+    "note": "Legacy Sphinx URL redirects, originally bulk-extracted during the docs migration. Add new entries at the end of the array. `from` must be unique and must not contain an anchor; `to` should point at a page that exists, or the redirect silently dead-ends.",
+    "active": 757
   },
   "redirects": [
     {
       "from": "/about/accessibility-compliance-policy",
       "to": "/product-overview/accessibility-compliance-policy"
-    },
-    {
-      "from": "/about/cloud-supported-integrations",
-      "to": "/product-overview/cloud-supported-integrations"
-    },
-    {
-      "from": "/about/common-esr-support-rst",
-      "to": "/product-overview/common-esr-support-rst"
     },
     {
       "from": "/about/desktop",
@@ -48,16 +38,8 @@
       "to": "/product-overview/cloud-vpc-private-connectivity"
     },
     {
-      "from": "/about/common-esr-support-upgrade",
-      "to": "/product-overview/common-esr-support-upgrade"
-    },
-    {
-      "from": "/about/common-esr-support",
-      "to": "/product-overview/common-esr-support"
-    },
-    {
       "from": "/about/corporate-directory-integration",
-      "to": "/product-overview/corporate-directory-integration"
+      "to": "/administration-guide/onboard/corporate-directory-integration"
     },
     {
       "from": "/about/deprecated-features",
@@ -149,7 +131,11 @@
     },
     {
       "from": "/about/on-prem-skype-for-business-replacement",
-      "to": "/use-case-guide/on-prem-skype-for-business-replacement"
+      "to": "/use-case-guide/use-cases-index"
+    },
+    {
+      "from": "/use-case-guide/on-prem-skype-for-business-replacement",
+      "to": "/use-case-guide/use-cases-index"
     },
     {
       "from": "/about/out-of-band-incident-response",
@@ -177,7 +163,7 @@
     },
     {
       "from": "/about/security/dependency-vulnerability-analysis",
-      "to": "/security-guide/dependency-vulnerability-analysis"
+      "to": "/security-guide/security-guide-index"
     },
     {
       "from": "/about/security/mobile-security",
@@ -429,7 +415,11 @@
     },
     {
       "from": "/collaborate/view-system-information",
-      "to": "/end-user-guide/collaborate/view-system-information"
+      "to": "/end-user-guide/view-system-information"
+    },
+    {
+      "from": "/end-user-guide/collaborate/view-system-information",
+      "to": "/end-user-guide/view-system-information"
     },
     {
       "from": "/administration/announcement-banner",
@@ -925,7 +915,7 @@
     },
     {
       "from": "/deploy/manual-postgres-migration",
-      "to": "/deployment-guide/manual-postgres-migration"
+      "to": "/administration-guide/manage/admin/manual-postgres-migration"
     },
     {
       "from": "/deploy/mobile-appconfig",
@@ -989,11 +979,11 @@
     },
     {
       "from": "/deploy/postgres-migration-assist-tool",
-      "to": "/deployment-guide/postgres-migration-assist-tool"
+      "to": "/administration-guide/manage/admin/postgres-migration-assist-tool"
     },
     {
       "from": "/deploy/postgres-migration",
-      "to": "/deployment-guide/postgres-migration"
+      "to": "/administration-guide/manage/admin/postgres-migration"
     },
     {
       "from": "/deploy/quick-start-evaluation",
@@ -1037,7 +1027,7 @@
     },
     {
       "from": "/deploy/server/orchestration",
-      "to": "/deployment-guide/server/orchestration"
+      "to": "/get-help/deployment-solution-programs"
     },
     {
       "from": "/deploy/server/prepare-mattermost-mysql-database",
@@ -1053,7 +1043,7 @@
     },
     {
       "from": "/deploy/server/trouble-postgres",
-      "to": "/deployment-guide/server/trouble-postgres"
+      "to": "/deployment-guide/server/prepare-database"
     },
     {
       "from": "/deploy/server/trouble_mysql",
@@ -1149,11 +1139,11 @@
     },
     {
       "from": "/deployment/elasticsearch",
-      "to": "/deployment-guide/reference-architecture/scale/elasticsearch-setup"
+      "to": "/deployment-guide/scale/elasticsearch-setup"
     },
     {
       "from": "/deployment/enterprise-deployment-guide",
-      "to": "/deployment-guide/reference-architecture/scale/scaling-for-enterprise"
+      "to": "/deployment-guide/scale/scaling-for-enterprise"
     },
     {
       "from": "/deployment/guest-accounts",
@@ -1161,7 +1151,7 @@
     },
     {
       "from": "/deployment/ha",
-      "to": "/deployment-guide/reference-architecture/scale/high-availability-cluster-based-deployment"
+      "to": "/deployment-guide/server/high-availability-cluster-based-deployment"
     },
     {
       "from": "/deployment/metrics",
@@ -1181,7 +1171,7 @@
     },
     {
       "from": "/deployment/scaling",
-      "to": "/deployment-guide/reference-architecture/scale/scaling-for-enterprise"
+      "to": "/deployment-guide/scale/scaling-for-enterprise"
     },
     {
       "from": "/deployment/sso-ldap",
@@ -1297,7 +1287,7 @@
     },
     {
       "from": "/guides/playbooks",
-      "to": "/end-user-guide/workflow-automation"
+      "to": "/end-user-guide/workflow-automation/workflow-automation-index"
     },
     {
       "from": "/guides/welcome-to-mattermost",
@@ -1405,7 +1395,7 @@
     },
     {
       "from": "/incident-collaboration/launching-playbooks",
-      "to": "/end-user-guide/workflow-automation"
+      "to": "/end-user-guide/workflow-automation/workflow-automation-index"
     },
     {
       "from": "/incident-collaboration/overview",
@@ -1413,7 +1403,7 @@
     },
     {
       "from": "/incident-collaboration/playbook-planning",
-      "to": "/end-user-guide/workflow-automation"
+      "to": "/end-user-guide/workflow-automation/workflow-automation-index"
     },
     {
       "from": "/incident-collaboration/review-and-refine",
@@ -1421,7 +1411,7 @@
     },
     {
       "from": "/incident-collaboration/running-playbooks",
-      "to": "/end-user-guide/workflow-automation"
+      "to": "/end-user-guide/workflow-automation/workflow-automation-index"
     },
     {
       "from": "/incident-collaboration/refining-and-improving",
@@ -1429,7 +1419,7 @@
     },
     {
       "from": "/incident-collaboration/setting-up-playbooks",
-      "to": "/end-user-guide/workflow-automation"
+      "to": "/end-user-guide/workflow-automation/workflow-automation-index"
     },
     {
       "from": "/install/desktop-app-managed-resources",
@@ -1465,7 +1455,7 @@
     },
     {
       "from": "/install/trouble-postgres",
-      "to": "/deployment-guide/server/trouble-postgres"
+      "to": "/deployment-guide/server/prepare-database"
     },
     {
       "from": "/install/trouble_mysql",
@@ -1853,7 +1843,7 @@
     },
     {
       "from": "/manage/admin/server-configuration",
-      "to": "/administration-guide/manage/admin/server-configuration"
+      "to": "/administration-guide/configure/configure-index"
     },
     {
       "from": "/manage/admin/server-maintenance",
@@ -1869,7 +1859,7 @@
     },
     {
       "from": "/manage/admin/user-provisioning",
-      "to": "/administration-guide/manage/admin/user-provisioning"
+      "to": "/administration-guide/onboard/onboard-index"
     },
     {
       "from": "/manage/cloud-byok",
@@ -2104,10 +2094,6 @@
       "to": "/administration-guide/onboard/certificate-based-authentication"
     },
     {
-      "from": "/onboard/common-converting-oauth-to-openidconnect",
-      "to": "/administration-guide/onboard/common-converting-oauth-to-openidconnect"
-    },
-    {
       "from": "/onboard/connected-workspaces",
       "to": "/administration-guide/onboard/connected-workspaces"
     },
@@ -2229,7 +2215,7 @@
     },
     {
       "from": "/overview/auth",
-      "to": "/product-overview/corporate-directory-integration"
+      "to": "/administration-guide/onboard/corporate-directory-integration"
     },
     {
       "from": "/overview/authentication",
@@ -2249,11 +2235,11 @@
     },
     {
       "from": "/playbooks/setting-up-playbooks",
-      "to": "/end-user-guide/workflow-automation"
+      "to": "/end-user-guide/workflow-automation/workflow-automation-index"
     },
     {
       "from": "/playbooks/running-playbooks",
-      "to": "/end-user-guide/workflow-automation"
+      "to": "/end-user-guide/workflow-automation/workflow-automation-index"
     },
     {
       "from": "/playbooks/refining-and-improving",
@@ -2261,7 +2247,7 @@
     },
     {
       "from": "/playbooks/customize-a-playbook",
-      "to": "/end-user-guide/workflow-automation"
+      "to": "/end-user-guide/workflow-automation/workflow-automation-index"
     },
     {
       "from": "/playbooks/customize-a-run",
@@ -2309,7 +2295,7 @@
     },
     {
       "from": "/playbooks/get-started-with-playbooks",
-      "to": "/end-user-guide/workflow-automation"
+      "to": "/end-user-guide/workflow-automation/workflow-automation-index"
     },
     {
       "from": "/preferences/manage-your-calls-preferences",
@@ -2413,7 +2399,7 @@
     },
     {
       "from": "/scale/additional-ha-considerations",
-      "to": "/deployment-guide/reference-architecture/scale/additional-ha-considerations"
+      "to": "/deployment-guide/scale/additional-ha-considerations"
     },
     {
       "from": "/scale/collect-performance-metrics",
@@ -2421,7 +2407,7 @@
     },
     {
       "from": "/scale/common-configure-mattermost-for-enterprise-search",
-      "to": "/deployment-guide/reference-architecture/scale/common-configure-mattermost-for-enterprise-search"
+      "to": "/deployment-guide/scale/common-configure-mattermost-for-enterprise-search"
     },
     {
       "from": "/scale/deploy-prometheus-grafana-for-performance-monitoring",
@@ -2429,7 +2415,7 @@
     },
     {
       "from": "/scale/elasticsearch-setup",
-      "to": "/deployment-guide/reference-architecture/scale/elasticsearch-setup"
+      "to": "/deployment-guide/scale/elasticsearch-setup"
     },
     {
       "from": "/scale/ensuring-releases-perform-at-scale",
@@ -2437,23 +2423,23 @@
     },
     {
       "from": "/scale/enterprise-search",
-      "to": "/deployment-guide/reference-architecture/scale/enterprise-search"
+      "to": "/deployment-guide/scale/enterprise-search"
     },
     {
       "from": "/scale/estimated-storage-per-user-per-month",
-      "to": "/deployment-guide/reference-architecture/scale/estimated-storage-per-user-per-month"
+      "to": "/deployment-guide/scale/estimated-storage-per-user-per-month"
     },
     {
       "from": "/scale/high-availability-cluster-based-deployment",
-      "to": "/deployment-guide/reference-architecture/scale/high-availability-cluster-based-deployment"
+      "to": "/deployment-guide/server/high-availability-cluster-based-deployment"
     },
     {
       "from": "/scale/lifetime-storage",
-      "to": "/deployment-guide/reference-architecture/scale/lifetime-storage"
+      "to": "/deployment-guide/scale/lifetime-storage"
     },
     {
       "from": "/scale/opensearch-setup",
-      "to": "/deployment-guide/reference-architecture/scale/opensearch-setup"
+      "to": "/deployment-guide/scale/opensearch-setup"
     },
     {
       "from": "/scale/performance-alerting",
@@ -2473,79 +2459,79 @@
     },
     {
       "from": "/scale/redis",
-      "to": "/deployment-guide/reference-architecture/scale/redis"
+      "to": "/deployment-guide/scale/redis"
     },
     {
       "from": "/scale/scale-to-100000-users",
-      "to": "/deployment-guide/reference-architecture/scale/scale-to-100000-users"
+      "to": "/deployment-guide/scale/scale-to-100000-users"
     },
     {
       "from": "/scale/scale-to-15000-users",
-      "to": "/deployment-guide/reference-architecture/scale/scale-to-15000-users"
+      "to": "/deployment-guide/scale/scale-to-15000-users"
     },
     {
       "from": "/scale/scale-to-200-users",
-      "to": "/deployment-guide/reference-architecture/scale/scale-to-200-users"
+      "to": "/deployment-guide/scale/scale-to-200-users"
     },
     {
       "from": "/scale/scale-to-2000-users",
-      "to": "/deployment-guide/reference-architecture/scale/scale-to-2000-users"
+      "to": "/deployment-guide/scale/scale-to-2000-users"
     },
     {
       "from": "/scale/scale-to-200000-users",
-      "to": "/deployment-guide/reference-architecture/scale/scale-to-200000-users"
+      "to": "/deployment-guide/scale/scale-to-200000-users"
     },
     {
       "from": "/scale/scale-to-30000-users",
-      "to": "/deployment-guide/reference-architecture/scale/scale-to-30000-users"
+      "to": "/deployment-guide/scale/scale-to-30000-users"
     },
     {
       "from": "/scale/scale-to-50000-users",
-      "to": "/deployment-guide/reference-architecture/scale/scale-to-50000-users"
+      "to": "/deployment-guide/scale/scale-to-50000-users"
     },
     {
       "from": "/scale/scale-to-80000-users",
-      "to": "/deployment-guide/reference-architecture/scale/scale-to-80000-users"
+      "to": "/deployment-guide/scale/scale-to-80000-users"
     },
     {
       "from": "/scale/scale-to-90000-users",
-      "to": "/deployment-guide/reference-architecture/scale/scale-to-90000-users"
+      "to": "/deployment-guide/scale/scale-to-90000-users"
     },
     {
       "from": "/scale/scaling-for-enterprise",
-      "to": "/deployment-guide/reference-architecture/scale/scaling-for-enterprise"
+      "to": "/deployment-guide/scale/scaling-for-enterprise"
     },
     {
       "from": "/scale/high-availability-cluster",
-      "to": "/deployment-guide/reference-architecture/scale/high-availability-cluster-based-deployment"
+      "to": "/deployment-guide/server/high-availability-cluster-based-deployment"
     },
     {
       "from": "/scale/scale-to-100-users",
-      "to": "/deployment-guide/reference-architecture/scale/scale-to-200-users"
+      "to": "/deployment-guide/scale/scale-to-200-users"
     },
     {
       "from": "/scale/scale-to-1000-users",
-      "to": "/deployment-guide/reference-architecture/scale/scale-to-2000-users"
+      "to": "/deployment-guide/scale/scale-to-2000-users"
     },
     {
       "from": "/scale/scale-to-25000-users",
-      "to": "/deployment-guide/reference-architecture/scale/scale-to-30000-users"
+      "to": "/deployment-guide/scale/scale-to-30000-users"
     },
     {
       "from": "/scale/scale-to-70000-users",
-      "to": "/deployment-guide/reference-architecture/scale/scale-to-80000-users"
+      "to": "/deployment-guide/scale/scale-to-80000-users"
     },
     {
       "from": "/scale/scale-to-79000-users",
-      "to": "/deployment-guide/reference-architecture/scale/scale-to-80000-users"
+      "to": "/deployment-guide/scale/scale-to-80000-users"
     },
     {
       "from": "/scale/scale-to-88000-users",
-      "to": "/deployment-guide/reference-architecture/scale/scale-to-90000-users"
+      "to": "/deployment-guide/scale/scale-to-90000-users"
     },
     {
       "from": "/scale/elasticsearch",
-      "to": "/deployment-guide/reference-architecture/scale/elasticsearch-setup"
+      "to": "/deployment-guide/scale/elasticsearch-setup"
     },
     {
       "from": "/guides/agents",
@@ -2553,27 +2539,27 @@
     },
     {
       "from": "/guides/cloud-workspace-management",
-      "to": "/administration-guide/cloud-workspace-management"
+      "to": "/administration-guide/manage/cloud-workspace-management"
     },
     {
       "from": "/guides/compliance-with-mattermost",
-      "to": "/administration-guide/compliance-with-mattermost"
+      "to": "/administration-guide/comply/comply-index"
     },
     {
       "from": "/guides/deployment-troubleshooting",
-      "to": "/deployment-guide/deployment-troubleshooting"
+      "to": "/deployment-guide/server/troubleshooting"
     },
     {
       "from": "/guides/messaging-collaboration",
-      "to": "/end-user-guide/messaging-collaboration"
+      "to": "/end-user-guide/collaborate/collaborate-index"
     },
     {
       "from": "/guides/preferences",
-      "to": "/end-user-guide/preferences"
+      "to": "/end-user-guide/preferences/preferences-index"
     },
     {
       "from": "/guides/project-task-management",
-      "to": "/end-user-guide/project-task-management"
+      "to": "/end-user-guide/project-management/project-management-index"
     },
     {
       "from": "/guides/secure-mattermost",
@@ -2581,11 +2567,39 @@
     },
     {
       "from": "/guides/upgrade-mattermost",
-      "to": "/administration-guide/upgrade-mattermost"
+      "to": "/administration-guide/upgrade/upgrade-index"
     },
     {
       "from": "/guides/workflow-automation",
-      "to": "/end-user-guide/workflow-automation"
+      "to": "/end-user-guide/workflow-automation/workflow-automation-index"
+    },
+    {
+      "from": "/administration-guide/cloud-workspace-management",
+      "to": "/administration-guide/manage/cloud-workspace-management"
+    },
+    {
+      "from": "/administration-guide/compliance-with-mattermost",
+      "to": "/administration-guide/comply/comply-index"
+    },
+    {
+      "from": "/administration-guide/upgrade-mattermost",
+      "to": "/administration-guide/upgrade/upgrade-index"
+    },
+    {
+      "from": "/end-user-guide/messaging-collaboration",
+      "to": "/end-user-guide/collaborate/collaborate-index"
+    },
+    {
+      "from": "/end-user-guide/preferences",
+      "to": "/end-user-guide/preferences/preferences-index"
+    },
+    {
+      "from": "/end-user-guide/project-task-management",
+      "to": "/end-user-guide/project-management/project-management-index"
+    },
+    {
+      "from": "/end-user-guide/workflow-automation",
+      "to": "/end-user-guide/workflow-automation/workflow-automation-index"
     },
     {
       "from": "/guides/about-mattermost",
@@ -2798,6 +2812,226 @@
     {
       "from": "/administration-guide/configure/calls-metrics-monitoring",
       "to": "/deployment-guide/calls/calls-metrics-monitoring"
+    },
+    {
+      "from": "/deployment-guide/reference-architecture/application-architecture",
+      "to": "/deployment-guide/application-architecture"
+    },
+    {
+      "from": "/deployment-guide/reference-architecture/deployment-scenarios/air-gapped-deployment",
+      "to": "/deployment-guide/deployment-scenarios/air-gapped-deployment"
+    },
+    {
+      "from": "/deployment-guide/reference-architecture/deployment-scenarios/deploy-ddil-operations",
+      "to": "/deployment-guide/deployment-scenarios/deploy-ddil-operations"
+    },
+    {
+      "from": "/deployment-guide/reference-architecture/deployment-scenarios/deploy-mission-partner",
+      "to": "/deployment-guide/deployment-scenarios/deploy-mission-partner"
+    },
+    {
+      "from": "/deployment-guide/reference-architecture/deployment-scenarios/deploy-oob",
+      "to": "/deployment-guide/deployment-scenarios/deploy-oob"
+    },
+    {
+      "from": "/deployment-guide/reference-architecture/deployment-scenarios/deploy-sovereign-collaboration",
+      "to": "/deployment-guide/deployment-scenarios/deploy-sovereign-collaboration"
+    },
+    {
+      "from": "/deployment-guide/reference-architecture/deployment-scenarios/deployment-scenarios-index",
+      "to": "/deployment-guide/deployment-scenarios/deployment-scenarios-index"
+    },
+    {
+      "from": "/deployment-guide/reference-architecture/reference-architecture-index",
+      "to": "/deployment-guide/deployment-scenarios/deployment-scenarios-index"
+    },
+    {
+      "from": "/security-guide/dependency-vulnerability-analysis",
+      "to": "/security-guide/security-guide-index"
+    },
+    {
+      "from": "/security-guide/compliance-frameworks",
+      "to": "/security-guide/security-guide-index"
+    },
+    {
+      "from": "/security-guide/compliance-frameworks/disa-stig",
+      "to": "/security-guide/security-guide-index"
+    },
+    {
+      "from": "/security-guide/compliance-frameworks/dod-il-4-5",
+      "to": "/security-guide/security-guide-index"
+    },
+    {
+      "from": "/administration-guide/manage/admin/server-configuration",
+      "to": "/administration-guide/configure/configure-index"
+    },
+    {
+      "from": "/administration-guide/manage/admin/user-provisioning",
+      "to": "/administration-guide/onboard/onboard-index"
+    },
+    {
+      "from": "/administration-guide/scale/additional-ha-considerations",
+      "to": "/deployment-guide/scale/additional-ha-considerations"
+    },
+    {
+      "from": "/administration-guide/scale/backing-storage-benchmarks",
+      "to": "/deployment-guide/scale/backing-storage-benchmarks"
+    },
+    {
+      "from": "/administration-guide/scale/common-configure-mattermost-for-enterprise-search",
+      "to": "/deployment-guide/scale/common-configure-mattermost-for-enterprise-search"
+    },
+    {
+      "from": "/administration-guide/scale/elasticsearch-setup",
+      "to": "/deployment-guide/scale/elasticsearch-setup"
+    },
+    {
+      "from": "/administration-guide/scale/enterprise-search",
+      "to": "/deployment-guide/scale/enterprise-search"
+    },
+    {
+      "from": "/administration-guide/scale/estimated-storage-per-user-per-month",
+      "to": "/deployment-guide/scale/estimated-storage-per-user-per-month"
+    },
+    {
+      "from": "/administration-guide/scale/high-availability-cluster-based-deployment",
+      "to": "/deployment-guide/server/high-availability-cluster-based-deployment"
+    },
+    {
+      "from": "/deployment-guide/scale/high-availability-cluster-based-deployment",
+      "to": "/deployment-guide/server/high-availability-cluster-based-deployment"
+    },
+    {
+      "from": "/administration-guide/scale/lifetime-storage",
+      "to": "/deployment-guide/scale/lifetime-storage"
+    },
+    {
+      "from": "/administration-guide/scale/opensearch-setup",
+      "to": "/deployment-guide/scale/opensearch-setup"
+    },
+    {
+      "from": "/administration-guide/scale/redis",
+      "to": "/deployment-guide/scale/redis"
+    },
+    {
+      "from": "/administration-guide/scale/scale-to-100000-users",
+      "to": "/deployment-guide/scale/scale-to-100000-users"
+    },
+    {
+      "from": "/administration-guide/scale/scale-to-15000-users",
+      "to": "/deployment-guide/scale/scale-to-15000-users"
+    },
+    {
+      "from": "/administration-guide/scale/scale-to-200-users",
+      "to": "/deployment-guide/scale/scale-to-200-users"
+    },
+    {
+      "from": "/administration-guide/scale/scale-to-2000-users",
+      "to": "/deployment-guide/scale/scale-to-2000-users"
+    },
+    {
+      "from": "/administration-guide/scale/scale-to-200000-users",
+      "to": "/deployment-guide/scale/scale-to-200000-users"
+    },
+    {
+      "from": "/administration-guide/scale/scale-to-30000-users",
+      "to": "/deployment-guide/scale/scale-to-30000-users"
+    },
+    {
+      "from": "/administration-guide/scale/scale-to-50000-users",
+      "to": "/deployment-guide/scale/scale-to-50000-users"
+    },
+    {
+      "from": "/administration-guide/scale/scale-to-80000-users",
+      "to": "/deployment-guide/scale/scale-to-80000-users"
+    },
+    {
+      "from": "/administration-guide/scale/scale-to-90000-users",
+      "to": "/deployment-guide/scale/scale-to-90000-users"
+    },
+    {
+      "from": "/administration-guide/scale/scaling-for-enterprise",
+      "to": "/deployment-guide/scale/scaling-for-enterprise"
+    },
+    {
+      "from": "/administration-guide/scale/server-architecture",
+      "to": "/deployment-guide/scale/server-architecture"
+    },
+    {
+      "from": "/deployment-guide/server/orchestration",
+      "to": "/get-help/deployment-solution-programs"
+    },
+    {
+      "from": "/deployment-guide/deployment-troubleshooting",
+      "to": "/deployment-guide/server/troubleshooting"
+    },
+    {
+      "from": "/deployment-guide/server/trouble-postgres",
+      "to": "/deployment-guide/server/prepare-database"
+    },
+    {
+      "from": "/about/cloud-subscriptions",
+      "to": "/product-overview/cloud-subscriptions"
+    },
+    {
+      "from": "/collaborate/format-messages",
+      "to": "/end-user-guide/collaborate/format-messages"
+    },
+    {
+      "from": "/configure/environment-configuration-settings",
+      "to": "/administration-guide/configure/environment-configuration-settings"
+    },
+    {
+      "from": "/deployment/admin-roles",
+      "to": "/administration-guide/onboard/delegated-granular-administration"
+    },
+    {
+      "from": "/deployment/ldap-group-sync",
+      "to": "/administration-guide/onboard/ad-ldap-groups-synchronization"
+    },
+    {
+      "from": "/guides/administration",
+      "to": "/administration-guide/administration-guide-index"
+    },
+    {
+      "from": "/preferences/manage-your-notifications",
+      "to": "/end-user-guide/preferences/manage-your-notifications"
+    },
+    {
+      "from": "/messaging/formatting-text",
+      "to": "/end-user-guide/collaborate/format-messages"
+    },
+    {
+      "from": "/configure/authentication-configuration-settings",
+      "to": "/administration-guide/configure/authentication-configuration-settings"
+    },
+    {
+      "from": "/comply/audit-log",
+      "to": "/administration-guide/comply/embedded-json-audit-log-schema"
+    },
+    {
+      "from": "/administration/compliance",
+      "to": "/administration-guide/comply/comply-index"
+    },
+    {
+      "from": "/configure/reporting-configuration-settings",
+      "to": "/administration-guide/configure/reporting-configuration-settings"
+    },
+    {
+      "from": "/install/software-hardware-requirements",
+      "to": "/deployment-guide/software-hardware-requirements"
+    },
+    {
+      "from": "/configure/site-configuration-settings",
+      "to": "/administration-guide/configure/site-configuration-settings"
+    },
+    {
+      "from": "/onboard/ad-ldap-groups-synchronization",
+      "to": "/administration-guide/onboard/ad-ldap-groups-synchronization"
+    },
+    {
+      "from": "/developer/bot-accounts",
+      "to": "/developers/integrate/reference/bot-accounts"
     }
   ]
 }

@@ -249,6 +249,14 @@ func (ch *Channels) initPlugins(rctx request.CTX, pluginDir, webappPluginDir str
 			return true
 		}, plugin.OnConfigurationChangeID)
 	})
+
+	ch.srv.RemoveLicenseListener(ch.pluginLicenseListenerID)
+	ch.pluginLicenseListenerID = ch.srv.AddLicenseListener(func(oldLicense, newLicense *model.License) {
+		ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
+			hooks.OnLicenseChanged(oldLicense, newLicense)
+			return true
+		}, plugin.OnLicenseChangedID)
+	})
 	ch.pluginsLock.Unlock()
 
 	ch.syncPluginsActiveState()
@@ -359,6 +367,8 @@ func (ch *Channels) ShutDownPlugins() {
 
 	ch.RemoveConfigListener(ch.pluginConfigListenerID)
 	ch.pluginConfigListenerID = ""
+	ch.srv.RemoveLicenseListener(ch.pluginLicenseListenerID)
+	ch.pluginLicenseListenerID = ""
 	ch.srv.RemoveClusterLeaderChangedListener(ch.pluginClusterLeaderListenerID)
 	ch.pluginClusterLeaderListenerID = ""
 

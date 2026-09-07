@@ -284,7 +284,7 @@ func localGetUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := c.App.GetUser(c.Params.UserId)
+	user, err := c.App.GetUser(c.AppContext, c.Params.UserId)
 	if err != nil {
 		c.Err = err
 		return
@@ -325,7 +325,7 @@ func localDeleteUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord(model.AuditEventLocalDeleteUser, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 
-	user, err := c.App.GetUser(userId)
+	user, err := c.App.GetUser(c.AppContext, userId)
 	if err != nil {
 		c.Err = err
 		return

@@ -31,7 +31,13 @@ jest.mock('@tiptap/react', () => {
                     blur: () => undefined,
                     insertContent: () => undefined,
                 },
-                setEditable: () => undefined,
+
+                // Mirrors the real library: an update is emitted unless the caller opts out.
+                setEditable: (_editable: boolean, emitUpdate = true) => {
+                    if (emitUpdate) {
+                        config?.onUpdate?.({editor: base});
+                    }
+                },
                 getJSON: () => ({type: 'doc', content: [{type: 'paragraph', content: [{type: 'text', text: 'hi'}]}]}),
                 view: {dom: globalThis.document.createElement('div')},
 
@@ -77,10 +83,13 @@ jest.mock('@tiptap/react', () => {
     };
 });
 
-jest.mock('./wysiwyg_suggestion_list', () => ({
-    __esModule: true,
-    default: () => null,
-}));
+jest.mock('./wysiwyg_suggestion_list', () => {
+    const ReactMock = require('react') as typeof import('react');
+    return {
+        __esModule: true,
+        default: () => ReactMock.createElement('div', {'data-testid': 'suggestion-list'}),
+    };
+});
 
 import WysiwygEditor from './wysiwyg_editor';
 
@@ -477,6 +486,141 @@ describe('WysiwygEditor', () => {
         );
 
         expect(ref.current!.hasContentError()).toBe(false);
+    });
+
+    describe('readOnly', () => {
+        const domAttributes = () => mockCapturedConfig.current?.editorProps?.attributes?.();
+
+        test('an editable editor is a textbox that is not disabled', () => {
+            renderWithContext(<WysiwygEditor {...baseProps}/>);
+
+            expect(mockCapturedConfig.current?.editable).toBe(true);
+            expect(domAttributes()).toMatchObject({role: 'textbox', 'aria-disabled': 'false'});
+        });
+
+        test('disabled is a textbox the user is locked out of', () => {
+            const {container} = renderWithContext(
+                <WysiwygEditor
+                    {...baseProps}
+                    disabled={true}
+                />,
+            );
+
+            expect(mockCapturedConfig.current?.editable).toBe(false);
+            expect(domAttributes()).toMatchObject({role: 'textbox', 'aria-disabled': 'true', 'data-disabled': 'true'});
+            expect(container.querySelector('.WysiwygEditor--disabled')).not.toBeNull();
+        });
+
+        test('readOnly is content: not editable, and not announced as a control', () => {
+            const {container} = renderWithContext(
+                <WysiwygEditor
+                    {...baseProps}
+                    readOnly={true}
+                />,
+            );
+
+            expect(mockCapturedConfig.current?.editable).toBe(false);
+
+            const attributes = domAttributes();
+            expect(attributes).not.toHaveProperty('role');
+            expect(attributes).not.toHaveProperty('aria-disabled');
+            expect(attributes).not.toHaveProperty('data-disabled');
+            expect(container.querySelector('.WysiwygEditor--disabled')).toBeNull();
+        });
+
+        test('readOnly keeps an id addressable for callers that pass one', () => {
+            renderWithContext(
+                <WysiwygEditor
+                    {...baseProps}
+                    readOnly={true}
+                    id='page-body'
+                />,
+            );
+
+            expect(domAttributes()).toMatchObject({id: 'page-body', 'data-testid': 'page-body'});
+        });
+
+        test('readOnly wins over disabled, so a caller passing both gets content', () => {
+            const {container} = renderWithContext(
+                <WysiwygEditor
+                    {...baseProps}
+                    disabled={true}
+                    readOnly={true}
+                />,
+            );
+
+            expect(domAttributes()).not.toHaveProperty('aria-disabled');
+            expect(container.querySelector('.WysiwygEditor--disabled')).toBeNull();
+        });
+
+        test('readOnly leaves out the suggestion list, which has nothing to complete', () => {
+            const {queryByTestId, rerender} = renderWithContext(
+                <WysiwygEditor
+                    {...baseProps}
+                    readOnly={true}
+                />,
+            );
+
+            expect(queryByTestId('suggestion-list')).toBeNull();
+
+            rerender(<WysiwygEditor {...baseProps}/>);
+            expect(queryByTestId('suggestion-list')).not.toBeNull();
+        });
+
+        test('readOnly holds against insertText, which a handle holder can still reach for', () => {
+            jest.useFakeTimers();
+            const onChange = jest.fn();
+            const ref = React.createRef<React.ComponentRef<typeof WysiwygEditor>>();
+
+            renderWithContext(
+                <WysiwygEditor
+                    {...baseProps}
+                    ref={ref}
+                    onChange={onChange}
+                    readOnly={true}
+                />,
+            );
+
+            mockChainCalls.current = [];
+            ref.current!.insertText(':smile:');
+            jest.runAllTimers();
+
+            expect(mockChainCalls.current).toHaveLength(0);
+            expect(onChange).not.toHaveBeenCalled();
+
+            jest.useRealTimers();
+        });
+
+        test('switching in and out of readOnly is not an edit', () => {
+            jest.useFakeTimers();
+            const onChange = jest.fn();
+
+            const {rerender} = renderWithContext(
+                <WysiwygEditor
+                    {...baseProps}
+                    onChange={onChange}
+                />,
+            );
+
+            rerender(
+                <WysiwygEditor
+                    {...baseProps}
+                    onChange={onChange}
+                    readOnly={true}
+                />,
+            );
+            rerender(
+                <WysiwygEditor
+                    {...baseProps}
+                    onChange={onChange}
+                />,
+            );
+            jest.runAllTimers();
+
+            expect(onChange).not.toHaveBeenCalled();
+
+            jest.useRealTimers();
+        });
     });
 
     describe('Enter inside a heading', () => {

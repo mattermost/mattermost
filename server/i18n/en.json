@@ -52,6 +52,10 @@
     "translation": "A group-synced team cannot have a membership policy applied."
   },
   {
+    "id": "api.access_control.decision.unsupported_resource_type.app_error",
+    "translation": "Render-time access control decisions are not supported for resource type \"{{.Type}}\"."
+  },
+  {
     "id": "api.access_control_policy.channel_permission_policies.feature_disabled",
     "translation": "Channel-level permission policies feature is not enabled."
   },
@@ -2210,6 +2214,14 @@
     "translation": "Failed to read the flagged post report file information."
   },
   {
+    "id": "api.delivery_tracking.error.feature_flag",
+    "translation": "Post delivery audit logging is not enabled on this server."
+  },
+  {
+    "id": "api.delivery_tracking.error.license",
+    "translation": "Your license does not support post delivery audit logging."
+  },
+  {
     "id": "api.draft.create_draft.can_not_draft_to_deleted.error",
     "translation": "Can not save draft to deleted channel"
   },
@@ -2635,6 +2647,10 @@
   {
     "id": "api.ldap.invalid_test_type.app_error",
     "translation": "Invalid test type: {{.TestType}}"
+  },
+  {
+    "id": "api.ldap.test.reenter_password",
+    "translation": "The AD/LDAP connection settings have changed. Please re-enter the bind password to test the connection."
   },
   {
     "id": "api.ldap_group.not_found",
@@ -4888,7 +4904,7 @@
   },
   {
     "id": "api.user.login.remote_users.login.error",
-    "translation": "Login failed because remote users are not allow to log in."
+    "translation": "Login failed because remote users are not allowed to log in."
   },
   {
     "id": "api.user.login.use_auth_service.app_error",
@@ -5365,6 +5381,14 @@
   {
     "id": "app.access_control.plugin.type_conflict.app_error",
     "translation": "An access control policy of a different type already exists for this ID."
+  },
+  {
+    "id": "app.access_control_decision.subject_mismatch.app_error",
+    "translation": "Subject does not match the authenticated session user."
+  },
+  {
+    "id": "app.access_control_decision.unsupported_action.app_error",
+    "translation": "Unsupported action for render decisions: {{.Action}}"
   },
   {
     "id": "app.acknowledgement.batch_save.app_error",
@@ -6609,6 +6633,22 @@
     "translation": "Unable to fetch existing scheduled post from database."
   },
   {
+    "id": "app.delivery_tracking.dm_gm_not_allowed.app_error",
+    "translation": "Direct and group messages cannot be selected for post delivery audit logging."
+  },
+  {
+    "id": "app.delivery_tracking.get_config.app_error",
+    "translation": "Failed to read the post delivery audit logging settings from the database."
+  },
+  {
+    "id": "app.delivery_tracking.invalid_channel.app_error",
+    "translation": "One or more of the selected channels could not be found."
+  },
+  {
+    "id": "app.delivery_tracking.save_config.app_error",
+    "translation": "Failed to save the post delivery audit logging settings to the database."
+  },
+  {
     "id": "app.desktop_token.generateServerToken.invalid_or_expired",
     "translation": "Token does not exist or is expired"
   },
@@ -6730,7 +6770,7 @@
   },
   {
     "id": "app.export.generate_presigned_url.config.app_error",
-    "translation": "This actions requires the use of a dedicated export store."
+    "translation": "This action requires the use of a dedicated export store."
   },
   {
     "id": "app.export.generate_presigned_url.direct_download.app_error",
@@ -7497,6 +7537,10 @@
     "translation": "Invalid Email Notify Prop value for user."
   },
   {
+    "id": "app.import.validate_user_import_data.notify_props_mention_keys_invalid.error",
+    "translation": "Invalid mention_keys Notify Prop for user: exceeds the limit of {{.MaxCount}} keys or {{.MaxLength}} bytes."
+  },
+  {
     "id": "app.import.validate_user_import_data.notify_props_mobile_invalid.error",
     "translation": "Invalid Mobile Notify Prop value for user."
   },
@@ -7538,7 +7582,7 @@
   },
   {
     "id": "app.import.validate_user_import_data.username_missing.error",
-    "translation": "Missing require user property: username."
+    "translation": "Missing required user property: username."
   },
   {
     "id": "app.import.validate_user_teams_import_data.invalid_auth_service.error",
@@ -7941,6 +7985,14 @@
     "translation": "Could not mask policy expression."
   },
   {
+    "id": "app.pap.masking.ambiguous_sibling.app_error",
+    "translation": "Multiple user attributes link the same template, so channel-attribute visibility cannot be determined unambiguously."
+  },
+  {
+    "id": "app.pap.masking.unknown_object_type.app_error",
+    "translation": "Cannot resolve attribute visibility for an unknown object type."
+  },
+  {
     "id": "app.pap.merge_expression.app_error",
     "translation": "Could not merge policy expression with stored masked values."
   },
@@ -7985,8 +8037,16 @@
     "translation": "A policy with this name already exists. Please choose a different name."
   },
   {
+    "id": "app.pap.save_policy.parent_resource_attributes_team_assigned",
+    "translation": "This access rule uses channel attributes, which teams do not have. Remove the teams assigned to this policy before saving."
+  },
+  {
     "id": "app.pap.save_policy.resolver_error",
     "translation": "Could not initialise attribute resolver for policy save."
+  },
+  {
+    "id": "app.pap.save_policy.resource_attributes_disabled",
+    "translation": "Access rules cannot use channel attributes on this server. This capability is not enabled."
   },
   {
     "id": "app.pap.save_policy.rule_name_unique.app_error",
@@ -7997,12 +8057,20 @@
     "translation": "You do not satisfy one or more conditions in this policy."
   },
   {
+    "id": "app.pap.save_policy.team_resource_attributes",
+    "translation": "This access rule uses channel attributes, which teams do not have. Access rules with channel attributes can only be applied to channels."
+  },
+  {
     "id": "app.pap.search_access_control_policies.app_error",
     "translation": "Could not search access control policies."
   },
   {
     "id": "app.pap.simulate.attribute_refresh",
     "translation": "Failed to refresh attributes for the simulation."
+  },
+  {
+    "id": "app.pap.simulate.channel_required_for_resource",
+    "translation": "A channel is required to simulate a policy that references channel attributes."
   },
   {
     "id": "app.pap.simulate.compile_failed",
@@ -8787,10 +8855,6 @@
   {
     "id": "app.property_value.validate.app_error",
     "translation": "Property value failed validation."
-  },
-  {
-    "id": "app.reaction.bulk_get_for_post_ids.app_error",
-    "translation": "Unable to get reactions for post."
   },
   {
     "id": "app.reaction.delete_all_with_emoji_name.get_reactions.app_error",
@@ -9744,7 +9808,7 @@
   },
   {
     "id": "app.user.get_known_users.get_users.app_error",
-    "translation": "Unable to get know users from the database."
+    "translation": "Unable to get known users from the database."
   },
   {
     "id": "app.user.get_new_users.app_error",
@@ -10367,10 +10431,6 @@
     "translation": "{{.Backend}} aggregator worker failed due to the indexing job failing"
   },
   {
-    "id": "ent.elasticsearch.analysis_icu_required",
-    "translation": "Mattermost requires the analysis-icu plugin on every {{.Backend}} node. Install it on all nodes, then restart {{.Backend}}."
-  },
-  {
     "id": "ent.elasticsearch.backfill_posts_channel_type.error",
     "translation": "{{.Backend}} failed to backfill channel type on posts"
   },
@@ -10412,7 +10472,7 @@
   },
   {
     "id": "ent.elasticsearch.create_template_posts_if_not_exists.template_create_failed",
-    "translation": "Failed to create {{.Backend}} template for posts"
+    "translation": "Failed to create {{.Backend}} template for posts. Verify that the required analysis-icu plugin is installed on every {{.Backend}} node, then restart {{.Backend}}"
   },
   {
     "id": "ent.elasticsearch.create_template_users_if_not_exists.template_create_failed",
@@ -11187,6 +11247,26 @@
     "translation": "Invalid user id."
   },
   {
+    "id": "model.access_control_decision.is_valid.action_empty.app_error",
+    "translation": "Action names cannot be empty."
+  },
+  {
+    "id": "model.access_control_decision.is_valid.actions_too_many.app_error",
+    "translation": "Too many actions requested."
+  },
+  {
+    "id": "model.access_control_decision.is_valid.resource_id.app_error",
+    "translation": "Invalid resource id."
+  },
+  {
+    "id": "model.access_control_decision.is_valid.resource_type.app_error",
+    "translation": "Resource type is required."
+  },
+  {
+    "id": "model.access_control_decision.is_valid.subject_id.app_error",
+    "translation": "Invalid subject id."
+  },
+  {
     "id": "model.access_policy.inherit.already_imported.app_error",
     "translation": "The parent is already imported."
   },
@@ -11887,10 +11967,6 @@
     "translation": "Cache type must be either lru or redis."
   },
   {
-    "id": "model.config.is_valid.client_side_cert_enable.app_error",
-    "translation": "Certificate-based authentication has been removed. Please disable ClientSideCertEnable to continue."
-  },
-  {
     "id": "model.config.is_valid.cluster_email_batching.app_error",
     "translation": "Unable to enable email batching when clustering is enabled."
   },
@@ -11952,7 +12028,7 @@
   },
   {
     "id": "model.config.is_valid.dcr_redirect_uri_allowlist.app_error",
-    "translation": "DCR redirect URI allowlist contains an invalid pattern. Patterns must start with http:// or https:// and cannot be empty or whitespace."
+    "translation": "DCR redirect URI allowlist contains an invalid pattern. Each pattern must be a valid URI with a scheme and host (for example https://example.com/** or cursor://app/callback) and cannot be empty or whitespace."
   },
   {
     "id": "model.config.is_valid.directory.app_error",
@@ -12043,20 +12119,12 @@
     "translation": "RedisAddress must be specified for redis cache type."
   },
   {
-    "id": "model.config.is_valid.encrypt_sql.app_error",
-    "translation": "Invalid at rest encrypt key for SQL settings. Must be 32 chars or more."
-  },
-  {
     "id": "model.config.is_valid.experimental_audit_settings.file_name_empty",
     "translation": "When audit file logging is enabled, a file name must be specified."
   },
   {
     "id": "model.config.is_valid.experimental_audit_settings.file_name_is_directory",
     "translation": "The file name must not be a directory."
-  },
-  {
-    "id": "model.config.is_valid.experimental_view_archived_channels.app_error",
-    "translation": "Hiding archived channels is no longer supported. Make these channels private and remove members instead."
   },
   {
     "id": "model.config.is_valid.export.directory.app_error",
@@ -12581,6 +12649,18 @@
   {
     "id": "model.dcr.is_valid.unsupported_auth_method.app_error",
     "translation": "Unsupported token_endpoint_auth_method supplied."
+  },
+  {
+    "id": "model.delivery_tracking.is_valid.all_channels.app_error",
+    "translation": "Select at least one channel to record deliveries in."
+  },
+  {
+    "id": "model.delivery_tracking.is_valid.channel_id.app_error",
+    "translation": "Invalid channel ID provided in the post delivery audit logging settings."
+  },
+  {
+    "id": "model.delivery_tracking.is_valid.missing_toggle.app_error",
+    "translation": "The post delivery audit logging settings are incomplete."
   },
   {
     "id": "model.draft.is_valid.channel_id.app_error",
@@ -13569,6 +13649,10 @@
   {
     "id": "model.user.is_valid.marshal.app_error",
     "translation": "Failed to encode field to JSON"
+  },
+  {
+    "id": "model.user.is_valid.mention_keys.app_error",
+    "translation": "Invalid mention_keys: exceeds the limit of {{.MaxCount}} keys or {{.MaxLength}} bytes."
   },
   {
     "id": "model.user.is_valid.nickname.app_error",

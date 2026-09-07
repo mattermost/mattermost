@@ -50,6 +50,7 @@ type Channels struct {
 	pluginsLock                   sync.RWMutex
 	pluginsEnvironment            *plugin.Environment
 	pluginConfigListenerID        string
+	pluginLicenseListenerID       string
 	pluginClusterLeaderListenerID string
 
 	// guardCache caches ChannelGuards rows by ChannelId -> []*store.ChannelGuard.
@@ -83,8 +84,9 @@ type Channels struct {
 	AccessControl    einterfaces.AccessControlServiceInterface
 	Intune           einterfaces.IntuneInterface
 
-	attributeViewRefreshMut  sync.Mutex
-	attributeViewRefreshLast time.Time
+	attributeViewRefreshMut   sync.Mutex
+	attributeViewRefreshLast  time.Time
+	attributeViewNeedsRefresh atomic.Bool
 
 	// These are used to prevent concurrent upload requests
 	// for a given upload session which could cause inconsistencies
@@ -304,6 +306,8 @@ func (ch *Channels) Start() error {
 			}
 		}
 	})
+
+	ch.AddConfigListener(ch.clearABACRenderCachesOnFlip)
 
 	// TODO: This should be moved to the platform service.
 	if err := ch.srv.platform.EnsureAsymmetricSigningKey(); err != nil {

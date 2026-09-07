@@ -80,7 +80,7 @@
         "EnableAPITeamDeletion": true,
         "EnableAPITriggerAdminNotifications": false,
         "EnableAPIUserDeletion": false,
-        "ExperimentalEnableHardenedMode": false,
+        "EnableHardenedMode": false,
         "ExperimentalStrictCSRFEnforcement": false,
         "EnableEmailInvitations": true,
         "DisableBotsWhenOwnerIsDeactivated": true,
@@ -150,7 +150,6 @@
         "ConnMaxLifetimeMilliseconds": 3600000,
         "ConnMaxIdleTimeMilliseconds": 300000,
         "Trace": false,
-        "AtRestEncryptKey": "",
         "QueryTimeout": 30,
         "AnalyticsQueryTimeout": 300,
         "DisableDatabaseSearch": false,
@@ -567,7 +566,6 @@
     "GuestAccountsSettings": {
         "Enable": true,
         "HideTags": false,
-        "AllowEmailAccounts": true,
         "EnforceMultifactorAuthentication": false,
         "RestrictCreationToDomains": ""
     },

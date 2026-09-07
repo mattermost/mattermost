@@ -65,7 +65,7 @@ func (a *App) requestJoinChannelGuard(rctx request.CTX, user *model.User, channe
 // admin review, or nil when the user was added directly to the channel (the
 // caller can detect this via the `joined` return value).
 func (a *App) RequestJoinChannel(rctx request.CTX, userID, channelID, message string) (joined bool, req *model.ChannelJoinRequest, appErr *model.AppError) {
-	user, appErr := a.GetUser(userID)
+	user, appErr := a.GetUser(rctx, userID)
 	if appErr != nil {
 		return false, nil, appErr
 	}

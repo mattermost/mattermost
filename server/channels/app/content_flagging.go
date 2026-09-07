@@ -96,7 +96,7 @@ func (a *App) FlagPost(rctx request.CTX, post *model.Post, teamId, reportingUser
 		return model.NewAppError("FlagPost", "app.data_spillage.get_group.error", nil, "", http.StatusInternalServerError).Wrap(appErr)
 	}
 
-	reportingUser, appErr := a.GetUser(reportingUserId)
+	reportingUser, appErr := a.GetUser(rctx, reportingUserId)
 	if appErr != nil {
 		return appErr
 	}
@@ -338,7 +338,7 @@ func (a *App) createContentReviewPost(rctx request.CTX, flaggedPostId, teamId, r
 		return appErr
 	}
 
-	reportingUser, appErr := a.GetUser(reportingUserId)
+	reportingUser, appErr := a.GetUser(rctx, reportingUserId)
 	if appErr != nil {
 		return appErr
 	}
@@ -353,7 +353,7 @@ func (a *App) createContentReviewPost(rctx request.CTX, flaggedPostId, teamId, r
 		return appErr
 	}
 
-	flaggedPostAuthor, appErr := a.GetUser(flaggedPostAuthorId)
+	flaggedPostAuthor, appErr := a.GetUser(rctx, flaggedPostAuthorId)
 	if appErr != nil {
 		return appErr
 	}
@@ -523,7 +523,7 @@ func (a *App) getAllUsersInTeamForRoles(teamId string, systemRoles, teamRoles []
 }
 
 func (a *App) sendContentFlaggingConfirmationMessage(rctx request.CTX, flaggingUserId, flaggedPostAuthorId, channelID string) *model.AppError {
-	flaggedPostAuthor, appErr := a.GetUser(flaggedPostAuthorId)
+	flaggedPostAuthor, appErr := a.GetUser(rctx, flaggedPostAuthorId)
 	if appErr != nil {
 		return appErr
 	}
@@ -986,6 +986,7 @@ func (a *App) KeepFlaggedPost(rctx request.CTX, actionRequest *model.FlagContent
 
 	if postHiddenByContentFlagging {
 		message := model.NewWebSocketEvent(model.WebsocketEventPostEdited, "", flaggedPost.ChannelId, "", nil, "")
+		a.markPostDeliveryForBroadcast(rctx, message, flaggedPost)
 		appErr = a.publishWebsocketEventForPost(rctx, flaggedPost, message)
 		if appErr != nil {
 			rctx.Logger().Warn("Failed to publish websocket event for post edit while keeping flagged post", mlog.Err(appErr), mlog.String("post_id", flaggedPost.Id))
@@ -1216,7 +1217,7 @@ func (a *App) postAssignReviewerMessage(rctx request.CTX, contentFlaggingGroupId
 		return nil, nil
 	}
 
-	reviewerUser, appErr := a.GetUser(reviewerId)
+	reviewerUser, appErr := a.GetUser(rctx, reviewerId)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -1225,7 +1226,7 @@ func (a *App) postAssignReviewerMessage(rctx request.CTX, contentFlaggingGroupId
 	if reviewerId == assignedById {
 		assignedByUser = reviewerUser
 	} else {
-		assignedByUser, appErr = a.GetUser(assignedById)
+		assignedByUser, appErr = a.GetUser(rctx, assignedById)
 		if appErr != nil {
 			return nil, appErr
 		}
@@ -1236,7 +1237,7 @@ func (a *App) postAssignReviewerMessage(rctx request.CTX, contentFlaggingGroupId
 }
 
 func (a *App) postDeletePostReviewerMessage(rctx request.CTX, flaggedPostId, actorUserId, comment, contentFlaggingGroupId string) ([]*model.Post, *model.AppError) {
-	actorUser, appErr := a.GetUser(actorUserId)
+	actorUser, appErr := a.GetUser(rctx, actorUserId)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -1250,7 +1251,7 @@ func (a *App) postDeletePostReviewerMessage(rctx request.CTX, flaggedPostId, act
 }
 
 func (a *App) postKeepPostReviewerMessage(rctx request.CTX, flaggedPostId, actorUserId, comment, contentFlaggingGroupId string) ([]*model.Post, *model.AppError) {
-	actorUser, appErr := a.GetUser(actorUserId)
+	actorUser, appErr := a.GetUser(rctx, actorUserId)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -1373,7 +1374,7 @@ func (a *App) postReviewerMessage(rctx request.CTX, message, contentFlaggingGrou
 			T := i18n.GetUserTranslations("")
 			// Fetch reviewer user to get their locale
 			reviewerUserId := channel.GetOtherUserIdForDM(reviewerPost.UserId)
-			reviewer, userErr := a.GetUser(reviewerUserId)
+			reviewer, userErr := a.GetUser(rctx, reviewerUserId)
 			if userErr != nil {
 				rctx.Logger().Error("Failed to get reviewer user for localization, falling back to default locale", mlog.Err(userErr), mlog.String("user_id", reviewerPost.UserId))
 			} else {
