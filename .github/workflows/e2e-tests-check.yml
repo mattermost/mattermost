@@ -85,3 +85,87 @@ jobs:
         run: |
           echo "Triggering E2E tests for PR #${PR_NUMBER} with mattermostdevelopment/mattermost-enterprise-edition:${IMAGE_TAG}"
           gh workflow run e2e-tests-ci.yml --field pr_number="${PR_NUMBER}"
+
+  # Every cross-repo `uses:` pin in the E2E workflows must name a commit that is
+  # on that repository's default branch.
+  #
+  # A pin to a commit that only exists on an open pull request's branch works
+  # right up until that branch is force-pushed or deleted — at which point the
+  # SHA becomes unresolvable and GitHub fails the `uses:` step. That does not
+  # fail one job: it fails every E2E run in this repository, on every branch,
+  # with an error that names a commit in a repository most people here cannot
+  # see. There is no way to detect it from inside a run, because the run cannot
+  # start.
+  #
+  # The pins on this branch currently point at a commit on
+  # mattermost-test-system-io#114. This job is expected to FAIL until that pull
+  # request merges and the pins are moved to a commit on its default branch.
+  # That failure is the point: it is a visible, actionable gate on merging this
+  # branch, rather than an outage discovered later by everyone at once.
+  pinned-action-commits:
+    name: check/pinned-action-commits
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - name: ci/checkout-repo
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: ci/check-pins-are-on-default-branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+
+          # Scoped to mattermost-owned repositories. Third-party actions are
+          # pinned to the commit behind a release tag, which is not always on
+          # the upstream default branch and is not ours to police; the risk this
+          # guards against is a pin we control pointing at our own open PR.
+          mapfile -t pins < <(
+            grep -rhoE 'uses: *mattermost/[A-Za-z0-9_.-]+/[^@ ]+@[0-9a-f]{40}' .github/workflows/ \
+              | sed -E 's/^uses: *//' \
+              | sort -u
+          )
+
+          if [ "${#pins[@]}" -eq 0 ]; then
+            echo "No mattermost-owned pinned actions found."
+            exit 0
+          fi
+
+          failed=0
+          for pin in "${pins[@]}"; do
+            ref="${pin##*@}"
+            path="${pin%@*}"
+            owner="$(echo "$path" | cut -d/ -f1)"
+            repo="$(echo "$path" | cut -d/ -f2)"
+
+            default_branch="$(gh api "repos/${owner}/${repo}" --jq .default_branch)"
+
+            # compare base...head reports "identical" when the two are the same
+            # commit and "behind" when head is an ancestor of base. Anything
+            # else ("ahead", "diverged") means the commit is not on the default
+            # branch, and a 404 means it is not reachable at all.
+            status="$(gh api "repos/${owner}/${repo}/compare/${default_branch}...${ref}" --jq .status 2>/dev/null || echo "unreachable")"
+
+            case "$status" in
+              identical|behind)
+                echo "ok        ${owner}/${repo}@${ref:0:8} is on ${default_branch} (${status})"
+                ;;
+              unreachable)
+                echo "FAIL      ${owner}/${repo}@${ref:0:8} is not reachable — the branch it was on may have been force-pushed or deleted"
+                echo "          referenced as: ${pin}"
+                failed=1
+                ;;
+              *)
+                echo "FAIL      ${owner}/${repo}@${ref:0:8} is NOT on ${default_branch} (${status})"
+                echo "          referenced as: ${pin}"
+                echo "          A commit that exists only on a pull-request branch stops resolving the"
+                echo "          moment that branch is force-pushed, breaking every E2E run repo-wide."
+                failed=1
+                ;;
+            esac
+          done
+
+          exit "$failed"
