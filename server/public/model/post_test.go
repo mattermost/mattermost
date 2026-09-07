@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"reflect"
 	"strings"
 	"sync"
 	"testing"
@@ -345,6 +346,28 @@ func TestPostPatch_ContainsIntegrationsReservedProps(t *testing.T) {
 	postPatch2 := &PostPatch{}
 	keys2 := postPatch2.ContainsIntegrationsReservedProps()
 	require.Len(t, keys2, 0)
+}
+
+func TestPostPatchIsEmpty(t *testing.T) {
+	// The api4 post edit time limit derives its check from IsEmpty, so a field IsEmpty does not
+	// account for silently escapes that limit. Add new fields here and to IsEmpty together.
+	require.Equal(t, 5, reflect.TypeFor[PostPatch]().NumField())
+
+	for name, patch := range map[string]PostPatch{
+		"is pinned":     {IsPinned: new(true)},
+		"message":       {Message: new("edited")},
+		"props":         {Props: &StringInterface{"foo": "bar"}},
+		"file ids":      {FileIds: &StringArray{"fileid"}},
+		"has reactions": {HasReactions: new(true)},
+	} {
+		t.Run(name, func(t *testing.T) {
+			require.False(t, patch.IsEmpty())
+		})
+	}
+
+	t.Run("no fields set", func(t *testing.T) {
+		require.True(t, (&PostPatch{}).IsEmpty())
+	})
 }
 
 func TestPost_AttachmentsEqual(t *testing.T) {
