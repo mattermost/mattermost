@@ -24,7 +24,13 @@ import {
 
 // Editing in Channel Info is admin-only, whatever an attribute's own setter tier
 // says: useIsChannelAttributeAdmin gates the pencil, canSet only narrows further.
-async function promoteToChannelAdmin(pw: PlaywrightExtended, adminClient: Client4, team: Team, channelId: string, prefix: string) {
+async function promoteToChannelAdmin(
+    pw: PlaywrightExtended,
+    adminClient: Client4,
+    team: Team,
+    channelId: string,
+    prefix: string,
+) {
     const channelAdmin = await pw.createNewUserProfile(adminClient, {prefix});
     await adminClient.addToTeam(team.id, channelAdmin.id);
     await adminClient.addToChannel(channelAdmin.id, channelId);
@@ -56,7 +62,13 @@ test.describe('Channel attribute editing', {tag: ['@channel_attributes']}, () =>
             created.push(note);
 
             const channel = await createChannelForAttributes(adminClient, team, `edit-text-${suffix}`);
-            const channelAdmin = await promoteToChannelAdmin(pw, adminClient, team, channel.id, `chanadmin-note-${suffix}`);
+            const channelAdmin = await promoteToChannelAdmin(
+                pw,
+                adminClient,
+                team,
+                channel.id,
+                `chanadmin-note-${suffix}`,
+            );
             await setChannelValue(adminClient, channel.id, note, 'first draft');
 
             const {channelsPage} = await pw.testBrowser.login(channelAdmin);
@@ -101,7 +113,13 @@ test.describe('Channel attribute editing', {tag: ['@channel_attributes']}, () =>
             created.push(note);
 
             const channel = await createChannelForAttributes(adminClient, team, `edit-commit-${suffix}`);
-            const channelAdmin = await promoteToChannelAdmin(pw, adminClient, team, channel.id, `chanadmin-commit-${suffix}`);
+            const channelAdmin = await promoteToChannelAdmin(
+                pw,
+                adminClient,
+                team,
+                channel.id,
+                `chanadmin-commit-${suffix}`,
+            );
             await setChannelValue(adminClient, channel.id, note, 'original');
 
             const {channelsPage} = await pw.testBrowser.login(channelAdmin);
@@ -151,7 +169,13 @@ test.describe('Channel attribute editing', {tag: ['@channel_attributes']}, () =>
             created.push(caveats);
 
             const channel = await createChannelForAttributes(adminClient, team, `edit-multi-${suffix}`);
-            const channelAdmin = await promoteToChannelAdmin(pw, adminClient, team, channel.id, `chanadmin-caveats-${suffix}`);
+            const channelAdmin = await promoteToChannelAdmin(
+                pw,
+                adminClient,
+                team,
+                channel.id,
+                `chanadmin-caveats-${suffix}`,
+            );
             await setChannelValue(adminClient, channel.id, caveats, [optionId(caveats, 'NOFORN')]);
 
             const {channelsPage} = await pw.testBrowser.login(channelAdmin);
@@ -207,7 +231,13 @@ test.describe('Channel attribute editing', {tag: ['@channel_attributes']}, () =>
             created.push(note);
 
             const channel = await createChannelForAttributes(adminClient, team, `edit-fail-${suffix}`);
-            const channelAdmin = await promoteToChannelAdmin(pw, adminClient, team, channel.id, `chanadmin-fail-${suffix}`);
+            const channelAdmin = await promoteToChannelAdmin(
+                pw,
+                adminClient,
+                team,
+                channel.id,
+                `chanadmin-fail-${suffix}`,
+            );
             await setChannelValue(adminClient, channel.id, note, 'kept');
 
             const {page, channelsPage} = await pw.testBrowser.login(channelAdmin);
@@ -267,7 +297,13 @@ test.describe('Channel attribute editing', {tag: ['@channel_attributes']}, () =>
             // attribute to become required after the channel exists. That is also how a
             // real server gets there, when an admin marks an attribute required later.
             const channel = await createChannelForAttributes(adminClient, team, `edit-lock-${suffix}`);
-            const channelAdmin = await promoteToChannelAdmin(pw, adminClient, team, channel.id, `chanadmin-lock-${suffix}`);
+            const channelAdmin = await promoteToChannelAdmin(
+                pw,
+                adminClient,
+                team,
+                channel.id,
+                `chanadmin-lock-${suffix}`,
+            );
 
             // The lock bites only once a value exists, so an empty one is still fillable.
             const marking = await createAttribute(adminClient, attributeName('locked_once', suffix), {
@@ -326,7 +362,13 @@ test.describe('Channel attribute editing', {tag: ['@channel_attributes']}, () =>
             created.push(adminOnly);
 
             const channel = await createChannelForAttributes(adminClient, team, `edit-tier-${suffix}`);
-            const channelAdmin = await promoteToChannelAdmin(pw, adminClient, team, channel.id, `chanadmin-tier-${suffix}`);
+            const channelAdmin = await promoteToChannelAdmin(
+                pw,
+                adminClient,
+                team,
+                channel.id,
+                `chanadmin-tier-${suffix}`,
+            );
             await adminClient.addToChannel(user.id, channel.id);
 
             // # Look at it as the channel admin
@@ -385,10 +427,20 @@ test.describe('Channel attribute editing', {tag: ['@channel_attributes']}, () =>
             });
             created.push(optional);
 
-            const channel = await createChannelForAttributes(adminClient, team, `edit-admin-lists-${suffix}`, undefined, [
-                {field_id: required.id, value: optionId(required, 'DRAFT')},
-            ]);
-            const channelAdmin = await promoteToChannelAdmin(pw, adminClient, team, channel.id, `chanadmin-lists-${suffix}`);
+            const channel = await createChannelForAttributes(
+                adminClient,
+                team,
+                `edit-admin-lists-${suffix}`,
+                undefined,
+                [{field_id: required.id, value: optionId(required, 'DRAFT')}],
+            );
+            const channelAdmin = await promoteToChannelAdmin(
+                pw,
+                adminClient,
+                team,
+                channel.id,
+                `chanadmin-lists-${suffix}`,
+            );
 
             const {channelsPage} = await pw.testBrowser.login(channelAdmin);
             await channelsPage.goto(team.name, channel.name);
@@ -439,9 +491,13 @@ test.describe('Channel attribute editing', {tag: ['@channel_attributes']}, () =>
             });
             created.push(optional);
 
-            const channel = await createChannelForAttributes(adminClient, team, `edit-member-hides-${suffix}`, undefined, [
-                {field_id: required.id, value: optionId(required, 'DRAFT')},
-            ]);
+            const channel = await createChannelForAttributes(
+                adminClient,
+                team,
+                `edit-member-hides-${suffix}`,
+                undefined,
+                [{field_id: required.id, value: optionId(required, 'DRAFT')}],
+            );
             await adminClient.addToChannel(user.id, channel.id);
 
             const {channelsPage} = await pw.testBrowser.login(user);

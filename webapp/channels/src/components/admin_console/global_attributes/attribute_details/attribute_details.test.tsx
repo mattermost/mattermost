@@ -11,10 +11,10 @@ import type {PropertyField} from '@mattermost/types/properties';
 
 import {Client4} from 'mattermost-redux/client';
 import {DISPLAY_LABEL_HEADER} from 'mattermost-redux/constants/properties';
-import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
 
 import ModalController from 'components/modal_controller';
 
+import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
 import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 
 import AttributeDetails from './attribute_details';
