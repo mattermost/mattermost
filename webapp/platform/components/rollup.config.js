@@ -13,6 +13,10 @@ const externals = [
     ...Object.keys(packagejson.peerDependencies || {}),
     'lodash/throttle',
     'react',
+
+    // react-dom is only a devDependency here, so without this it gets bundled into dist and the
+    // web app ends up running two copies of the renderer.
+    'react-dom',
     'mattermost-redux',
     'reselect',
 ];

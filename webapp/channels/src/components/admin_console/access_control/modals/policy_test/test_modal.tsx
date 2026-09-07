@@ -74,7 +74,8 @@ function TestResultsModal({
             return;
         }
         if (result?.data) {
-            const newUsers = result.data.users;
+            // Plugin RPC (gob) can turn an empty users slice into null on the wire.
+            const newUsers = result.data.users ?? [];
             if (reset) {
                 setUsers(newUsers);
             } else {
@@ -92,7 +93,7 @@ function TestResultsModal({
         // The picker step defers the initial fetch until a channel is chosen
         // (handled in handleChannelSelected).
         if (!requireChannel) {
-            fetchUsers('', '');
+            fetchUsers(term, '', true);
         }
     }, []);
 
