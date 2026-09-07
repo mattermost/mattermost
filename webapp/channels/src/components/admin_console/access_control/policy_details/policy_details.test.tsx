@@ -75,7 +75,6 @@ describe('components/admin_console/access_control/policy_details/PolicyDetails',
             TrustProxyDeviceIdentityHeader: false,
             EnforceDeviceIDConsistency: false,
             SyncJobIntervalSeconds: 3600,
-            AttributeRefreshIntervalSeconds: 30,
         },
         channels: [
             {id: 'channel1', name: 'Channel 1', display_name: 'Channel 1', team_display_name: 'Team 1', type: 'O'} as ChannelWithTeamData,

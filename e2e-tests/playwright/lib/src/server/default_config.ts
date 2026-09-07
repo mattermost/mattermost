@@ -865,7 +865,6 @@ const defaultServerConfig: AdminConfig = {
         TrustProxyDeviceIdentityHeader: false,
         EnforceDeviceIDConsistency: false,
         SyncJobIntervalSeconds: 3600,
-        AttributeRefreshIntervalSeconds: 30,
     },
     ContentFlaggingSettings: {
         EnableContentFlagging: false,
