@@ -14,6 +14,11 @@ type DeliveryTrackingStore struct {
 	mock.Mock
 }
 
+// ClearCaches provides a mock function with no fields
+func (_m *DeliveryTrackingStore) ClearCaches() {
+	_m.Called()
+}
+
 // GetTrackedChannelIDs provides a mock function with given fields: rctx
 func (_m *DeliveryTrackingStore) GetTrackedChannelIDs(rctx request.CTX) ([]string, error) {
 	ret := _m.Called(rctx)
@@ -37,6 +42,62 @@ func (_m *DeliveryTrackingStore) GetTrackedChannelIDs(rctx request.CTX) ([]strin
 
 	if rf, ok := ret.Get(1).(func(request.CTX) error); ok {
 		r1 = rf(rctx)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// IsChannelTrackable provides a mock function with given fields: rctx, channelID
+func (_m *DeliveryTrackingStore) IsChannelTrackable(rctx request.CTX, channelID string) (bool, error) {
+	ret := _m.Called(rctx, channelID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for IsChannelTrackable")
+	}
+
+	var r0 bool
+	var r1 error
+	if rf, ok := ret.Get(0).(func(request.CTX, string) (bool, error)); ok {
+		return rf(rctx, channelID)
+	}
+	if rf, ok := ret.Get(0).(func(request.CTX, string) bool); ok {
+		r0 = rf(rctx, channelID)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	if rf, ok := ret.Get(1).(func(request.CTX, string) error); ok {
+		r1 = rf(rctx, channelID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// IsChannelTracked provides a mock function with given fields: rctx, channelID
+func (_m *DeliveryTrackingStore) IsChannelTracked(rctx request.CTX, channelID string) (bool, error) {
+	ret := _m.Called(rctx, channelID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for IsChannelTracked")
+	}
+
+	var r0 bool
+	var r1 error
+	if rf, ok := ret.Get(0).(func(request.CTX, string) (bool, error)); ok {
+		return rf(rctx, channelID)
+	}
+	if rf, ok := ret.Get(0).(func(request.CTX, string) bool); ok {
+		r0 = rf(rctx, channelID)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	if rf, ok := ret.Get(1).(func(request.CTX, string) error); ok {
+		r1 = rf(rctx, channelID)
 	} else {
 		r1 = ret.Error(1)
 	}

@@ -4,8 +4,10 @@
 package sqlstore
 
 import (
+	stderrors "errors"
 	"slices"
 
+	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/shared/request"
@@ -59,6 +61,10 @@ func (s *SqlDeliveryTrackingStore) SaveTrackedChannelIDs(rctx request.CTX, chann
 	return nil
 }
 
+// ClearCaches is a no-op; only the local cache layer holds a cache.
+func (s *SqlDeliveryTrackingStore) ClearCaches() {
+}
+
 func (s *SqlDeliveryTrackingStore) GetTrackedChannelIDs(rctx request.CTX) ([]string, error) {
 	query := s.getQueryBuilder().
 		Select("ChannelId").
@@ -70,4 +76,35 @@ func (s *SqlDeliveryTrackingStore) GetTrackedChannelIDs(rctx request.CTX) ([]str
 	}
 
 	return channelIDs, nil
+}
+
+func (s *SqlDeliveryTrackingStore) IsChannelTracked(rctx request.CTX, channelID string) (bool, error) {
+	query := s.getQueryBuilder().
+		Select("1").
+		From("PostDeliveryTrackingChannels").
+		Where(sq.Eq{"ChannelId": channelID}).
+		Limit(1)
+
+	var exists []int
+	if err := s.DBXFromContext(rctx.Context()).SelectBuilder(&exists, query); err != nil {
+		return false, errors.Wrapf(err, "SqlDeliveryTrackingStore.IsChannelTracked failed for channel_id=%s", channelID)
+	}
+
+	return len(exists) > 0, nil
+}
+
+// IsChannelTrackable reads through the channel store rather than querying Channels directly, so
+// that the cache layer's override resolves it from the channel cache. Unknown channels, including
+// types that do not carry posts, are not trackable.
+func (s *SqlDeliveryTrackingStore) IsChannelTrackable(rctx request.CTX, channelID string) (bool, error) {
+	channel, err := s.SqlStore.Channel().Get(channelID, true)
+	if err != nil {
+		var nfErr *store.ErrNotFound
+		if !stderrors.As(err, &nfErr) {
+			return false, errors.Wrapf(err, "SqlDeliveryTrackingStore.IsChannelTrackable failed for channel_id=%s", channelID)
+		}
+		return false, nil
+	}
+
+	return !channel.IsGroupOrDirect(), nil
 }
