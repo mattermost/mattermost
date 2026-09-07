@@ -257,14 +257,24 @@ func (ch *Channels) initPlugins(rctx request.CTX, pluginDir, webappPluginDir str
 		// changes get this from the config listener above, but a license upload does
 		// not change the config, so no config listener ever fires for it.
 		//
-		// This runs before the hook below so that OnLicenseChanged is delivered to
-		// the set of plugins the new license actually permits. The consequence is
+		// Only the add-on set feeds that decision, and SetLicense fires this
+		// listener far more often than the set changes: a single upload fires it
+		// twice (SaveLicense, then InvalidateAllCaches reaching LoadLicense), and it
+		// fires again on every cache purge and on the daily expiration check,
+		// usually with an identical license. Skip the sync in that case, since it
+		// walks the plugin directory and activates or deactivates every installed
+		// plugin synchronously on the caller's goroutine.
+		//
+		// The sync runs before the hook below so that OnLicenseChanged is delivered
+		// to the set of plugins the new license actually permits. The consequence is
 		// that a revoked add-on is deactivated before the hook dispatches, so it
 		// sees OnDeactivate rather than OnLicenseChanged. That is unavoidable:
 		// RunMultiPluginHook only reaches active plugins, so hook-then-sync would
 		// just lose the grant direction instead, where the plugin is not yet
 		// running when the hook fires.
-		ch.syncPluginsActiveState()
+		if !addOnEntitlementsEqual(oldLicense, newLicense) {
+			ch.syncPluginsActiveState()
+		}
 
 		ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
 			hooks.OnLicenseChanged(oldLicense, newLicense)
@@ -1270,6 +1280,27 @@ func getIcon(iconPath string) (string, error) {
 	}
 
 	return fmt.Sprintf("data:image/svg+xml;base64,%s", base64.StdEncoding.EncodeToString(icon)), nil
+}
+
+// addOnEntitlementsEqual reports whether two licenses grant the same set of
+// add-ons, which is the only part of a license that getPluginStateOverride
+// consults. Comparison is case- and order-insensitive to match License.HasAddOn.
+func addOnEntitlementsEqual(oldLicense, newLicense *model.License) bool {
+	normalize := func(l *model.License) []string {
+		if l == nil {
+			return nil
+		}
+
+		addOns := make([]string, 0, len(l.AddOns))
+		for _, addOn := range l.AddOns {
+			addOns = append(addOns, strings.ToLower(addOn))
+		}
+		slices.Sort(addOns)
+
+		return slices.Compact(addOns)
+	}
+
+	return slices.Equal(normalize(oldLicense), normalize(newLicense))
 }
 
 func (ch *Channels) getPluginStateOverride(pluginID string) (bool, bool) {

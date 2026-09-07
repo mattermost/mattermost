@@ -29,13 +29,21 @@ const (
 // IsValidPluginId permits mixed case, so an exact-match lookup would let a bundle
 // re-declare its id as "CrossGuard" and miss the gate entirely.
 //
-// Held server-side rather than declared by the plugin manifest, because a gate
-// declared by the artifact being gated could be removed by repackaging the bundle.
-// Unexported for the same reason: it decides a paid entitlement, so it should not
-// be reassignable by anything importing the public module.
+// Held server-side rather than declared by the plugin manifest so the mapping is
+// not editable in the artifact it governs, and unexported so it is not
+// reassignable by anything importing the public module.
+//
+// This is a policy control, not a tamper boundary. The key is the manifest id,
+// which the bundle itself supplies, so rebuilding an add-on under a different id
+// evades the gate no matter where the registry lives, and nothing stops that while
+// PluginSettings.RequirePluginSignature defaults to false. What the gate does
+// guarantee is that an unlicensed add-on cannot be enabled through config, the API
+// or the System Console.
 //
 // To add a new add-on: add its plugin id constant, its add-on name constant, and
-// one entry here. Nothing else in the server needs to change.
+// one entry here. The System Console keeps a mirror of this registry in
+// webapp/channels/src/utils/addons.ts which must be updated to match; nothing
+// enforces that today.
 var pluginAddOnRequirements = map[string]string{
 	PluginIdCrossGuard: AddOnCrossGuard,
 }

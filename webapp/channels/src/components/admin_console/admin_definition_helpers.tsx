@@ -13,7 +13,6 @@ import store from 'stores/redux_store';
 
 import RestrictedIndicator from 'components/widgets/menu/menu_items/restricted_indicator';
 
-import {licenseHasAddOn} from 'utils/addons';
 import {CloudProducts, getLicenseTier, LicenseSkus} from 'utils/constants';
 import {isCloudLicense} from 'utils/license_utils';
 
@@ -58,7 +57,6 @@ export const it = {
     isFreeEdition: (config: Partial<AdminConfig>, state: any, license?: ClientLicense) => license?.IsLicensed !== 'true' || license?.SkuShortName === LicenseSkus.Entry,
     cloudLicensed: (config: Partial<AdminConfig>, state: any, license?: ClientLicense) => Boolean(license?.IsLicensed && isCloudLicense(license)),
     licensedForFeature: (feature: string) => (config: Partial<AdminConfig>, state: any, license?: ClientLicense) => Boolean(license?.IsLicensed && license[feature] === 'true'),
-    licensedForAddOn: (addOn: string) => (config: Partial<AdminConfig>, state: any, license?: ClientLicense) => licenseHasAddOn(license, addOn),
     licensedForSku: (skuName: string) => (config: Partial<AdminConfig>, state: any, license?: ClientLicense) => Boolean(license?.IsLicensed && license.SkuShortName === skuName),
     minLicenseTier: (skuName: string) => (config: Partial<AdminConfig>, state: any, license?: ClientLicense) => Boolean(license?.IsLicensed && getLicenseTier(license.SkuShortName) >= getLicenseTier(skuName)),
     licensedForCloudStarter: (config: Partial<AdminConfig>, state: any, license?: ClientLicense) => Boolean(license?.IsLicensed && isCloudLicense(license) && license.SkuShortName === LicenseSkus.Starter),

@@ -1362,6 +1362,39 @@ func TestGetPluginStateOverride(t *testing.T) {
 	})
 }
 
+func TestAddOnEntitlementsEqual(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	withAddOns := func(addOns ...string) *model.License {
+		return &model.License{AddOns: addOns}
+	}
+
+	testCases := []struct {
+		description string
+		oldLicense  *model.License
+		newLicense  *model.License
+		expected    bool
+	}{
+		{"both nil", nil, nil, true},
+		{"nil and no add-ons", nil, withAddOns(), true},
+		{"nil and an add-on", nil, withAddOns("crossguard"), false},
+		{"an add-on and nil", withAddOns("crossguard"), nil, false},
+		{"identical", withAddOns("crossguard"), withAddOns("crossguard"), true},
+		{"differing case", withAddOns("crossguard"), withAddOns("CrossGuard"), true},
+		{"differing order", withAddOns("a", "b"), withAddOns("b", "a"), true},
+		{"duplicates only", withAddOns("a"), withAddOns("a", "a"), true},
+		{"added", withAddOns("a"), withAddOns("a", "b"), false},
+		{"removed", withAddOns("a", "b"), withAddOns("a"), false},
+		{"replaced", withAddOns("a"), withAddOns("b"), false},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.description, func(t *testing.T) {
+			require.Equal(t, testCase.expected, addOnEntitlementsEqual(testCase.oldLicense, testCase.newLicense))
+		})
+	}
+}
+
 // TestAddOnPluginLicenseGate covers the end-to-end behaviour of an add-on plugin as
 // the license changes, without any accompanying config change. The activation
 // transitions here depend on the plugin license listener calling

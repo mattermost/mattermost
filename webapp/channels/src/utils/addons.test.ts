@@ -74,12 +74,11 @@ describe('utils/addons', () => {
         });
 
         test('should treat a mixed-case add-on id as an add-on', () => {
-            expect(isUnlicensedAddOn('CrossGuard', undefined)).toBe(true);
+            expect(isUnlicensedAddOn('CrossGuard', licensed())).toBe(true);
             expect(isUnlicensedAddOn('CrossGuard', licensed('crossguard'))).toBe(false);
         });
 
         test('should return true for an add-on the license does not grant', () => {
-            expect(isUnlicensedAddOn('crossguard', undefined)).toBe(true);
             expect(isUnlicensedAddOn('crossguard', licensed())).toBe(true);
             expect(isUnlicensedAddOn('crossguard', licensed('other'))).toBe(true);
         });
@@ -87,6 +86,18 @@ describe('utils/addons', () => {
         test('should return false for an add-on the license grants', () => {
             expect(isUnlicensedAddOn('crossguard', licensed('crossguard'))).toBe(false);
             expect(isUnlicensedAddOn('crossguard', licensed('CrossGuard'))).toBe(false);
+        });
+
+        test('should return false while the license is still loading', () => {
+            // The license starts as {} before getLicenseConfig resolves. Reporting
+            // "unlicensed" then would flash the banner at a licensed admin.
+            expect(isUnlicensedAddOn('crossguard', {})).toBe(false);
+            expect(isUnlicensedAddOn('crossguard', undefined)).toBe(false);
+        });
+
+        test('should report unlicensed once the license has loaded without the add-on', () => {
+            expect(isUnlicensedAddOn('crossguard', {IsLicensed: 'false'})).toBe(true);
+            expect(isUnlicensedAddOn('crossguard', {IsLicensed: 'true'})).toBe(true);
         });
     });
 

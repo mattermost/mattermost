@@ -51,12 +51,29 @@ export function licenseHasAddOn(license: ClientLicense | undefined, addOn: strin
 }
 
 /**
+ * Reports whether the client license has been fetched yet. It starts as {} and is
+ * populated asynchronously, and GetClientLicense always sets IsLicensed (to
+ * 'false' when there is no license), so its presence is the discriminator.
+ */
+function isLicenseLoaded(license: ClientLicense | undefined): boolean {
+    return license?.IsLicensed !== undefined;
+}
+
+/**
  * Reports whether a plugin is a licensed add-on that the current license does not
  * grant. False for plugins that are not add-ons.
+ *
+ * Also false while the license is still loading. Treating that window as
+ * unlicensed would flash "your license does not include it" at a licensed admin
+ * who deep-links to the plugin's settings page, before flipping to the toggle.
  */
 export function isUnlicensedAddOn(pluginId: string, license: ClientLicense | undefined): boolean {
     const addOn = getRequiredAddOn(pluginId);
     if (!addOn) {
+        return false;
+    }
+
+    if (!isLicenseLoaded(license)) {
         return false;
     }
 
