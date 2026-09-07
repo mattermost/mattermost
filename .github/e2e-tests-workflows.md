@@ -336,7 +336,7 @@ Where `<phase>` is `cypress-smoke`, `cypress-full`, `playwright-smoke`, or `play
 
 - Pass rate: `100%` if all pass, otherwise one decimal (e.g., `99.5%`)
 - Aliases only present for release cuts
-- `image_tag:` is the target/to server image; rolling upgrades also keep `from:` for the from-version label
+- `image_tag:` is the target/to server image. Rolling upgrades put the from-version in the context name only, not in the description.
 
 ### Failure behavior
 
