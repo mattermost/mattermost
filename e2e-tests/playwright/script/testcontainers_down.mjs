@@ -71,17 +71,14 @@ const networkName = readTestcontainersNetworkName();
 archiveEnvFile();
 
 if (containerIds.length === 0) {
-    // eslint-disable-next-line no-console
     console.log('No Testcontainers-managed containers found (nothing to remove).');
 } else {
     collectLogs(containerIds);
 
-    // eslint-disable-next-line no-console
     console.log(`Removing ${containerIds.length} Testcontainers-managed container(s): ${containerIds.join(', ')}`);
     execSync(`docker rm -f ${containerIds.join(' ')}`, {stdio: 'inherit'});
 
     if (networkName) {
-        // eslint-disable-next-line no-console
         console.log(`Removing Testcontainers-managed network: ${networkName}`);
         run(`docker network rm ${networkName}`);
     }
