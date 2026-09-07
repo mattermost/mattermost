@@ -112,6 +112,10 @@ export async function startStack(): Promise<void> {
     testConfig.bootEnvOverrides = defaultBootEnv();
 
     // Bind-mounted local storage persists across container restarts; reset only on a fresh boot.
+    // Mattermost runs as UID 2000 and creates 0750 dirs (see makeLocalStorageHostReadable). The
+    // host workspace is a different user, so this empty mount must be world-writable or the
+    // server cannot create those dirs. Host chown to 2000 is not reliable (non-root CI, rootless
+    // Docker, Docker Desktop UID mapping).
     fs.rmSync(LOCAL_STORAGE_DIR, {recursive: true, force: true});
     fs.mkdirSync(LOCAL_STORAGE_DIR);
     fs.chmodSync(LOCAL_STORAGE_DIR, 0o777);
@@ -544,6 +548,17 @@ function redactServerEnv(env: Record<string, string>): Record<string, string> {
     return Object.fromEntries(Object.entries(env).map(([key, value]) => [key, redactServerEnvValue(key, value)]));
 }
 
+function redactEnvFileForArchive(contents: string): string {
+    return contents.replace(/^PW_TESTCONTAINERS_BOOT_ENV='(.*)'$/gm, (_match, json: string) => {
+        try {
+            const parsed = JSON.parse(json) as Record<string, string>;
+            return `PW_TESTCONTAINERS_BOOT_ENV='${JSON.stringify(redactServerEnv(parsed))}'`;
+        } catch {
+            return "PW_TESTCONTAINERS_BOOT_ENV='{}'";
+        }
+    });
+}
+
 function formatServerEnvSummary(): string {
     const env = resolveMattermostBootEnv(testConfig.bootEnvOverrides);
     const lines = Object.entries(env)
@@ -625,6 +640,8 @@ function envFileLines(label: string): string[] {
         `PW_TESTCONTAINERS_MATTERMOST_CONTAINER_ID=${testConfig.mattermostContainerId}`,
         // Persist the image currently running (separate from process SERVER_IMAGE / to-image).
         `PW_TESTCONTAINERS_SERVER_IMAGE=${testConfig.serverImage}`,
+        // Unredacted: the next process reads this back into bootEnvOverrides so upgrade-to and
+        // pw.ensure*() can adopt the running server. CI artifacts get a redacted copy via archiveEnvFile.
         `PW_TESTCONTAINERS_BOOT_ENV='${JSON.stringify(testConfig.bootEnvOverrides)}'`,
         '',
     ];
@@ -648,14 +665,16 @@ function appendEnvFile(label: string): void {
     fs.appendFileSync(ENV_FILE_PATH, envFileLines(label).join('\n') + '\n', 'utf-8');
 }
 
-// Preserves the full restart history as a debug artifact before it's deleted — logs/ is already
-// what CI's upload-debug-artifacts step picks up, so this needs no separate wiring.
+// Preserves restart history as a debug artifact before it's deleted — logs/ is what CI's
+// upload-debug-artifacts step picks up. Boot-env secrets stay in the live .env.testcontainers
+// (needed to adopt the stack) and are redacted in this copy.
 function archiveEnvFile(): void {
     if (!fs.existsSync(ENV_FILE_PATH)) {
         return;
     }
     fs.mkdirSync(LOG_DIR, {recursive: true});
-    fs.copyFileSync(ENV_FILE_PATH, path.join(LOG_DIR, 'testcontainers_env_history.log'));
+    const redacted = redactEnvFileForArchive(fs.readFileSync(ENV_FILE_PATH, 'utf-8'));
+    fs.writeFileSync(path.join(LOG_DIR, 'testcontainers_env_history.log'), redacted, 'utf-8');
 }
 
 function removeEnvFile(): void {
