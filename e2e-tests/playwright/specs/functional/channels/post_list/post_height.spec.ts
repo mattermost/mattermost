@@ -44,7 +44,7 @@ test.describe('Post height', () => {
             ServiceSettings: {
                 EnableSVGs: true,
                 EnableLinkPreviews: true,
-                AllowedUntrustedInternalConnections: `localhost 127.0.0.1 ${new URL(fileServerUrl).hostname}`,
+                AllowedUntrustedInternalConnections: new URL(fileServerUrl).hostname,
             },
         });
 
@@ -171,6 +171,8 @@ test.describe('Post height', () => {
         },
         {
             name: 'post with multiple images',
+            // MediaGallery FALLBACK_WIDTH 700 packs 3 tiles as 2 rows, then reflows to 1 row
+            skipProjects: ['chrome', 'firefox', 'ipad'],
             seedOptions: {
                 message: 'post with multiple images',
                 files: ['mattermost.png', 'mattermost-icon_128x128.png', 'mattermost.png'],
@@ -280,8 +282,8 @@ test.describe('Post height', () => {
         },
         {
             name: 'post with an SVG Markdown image',
-            // Either Chrome preloads the SVG's dimensions early or Firefox doesn't allocate the height properly
-            skipProjects: ['firefox'],
+            // As of MM-67372, the server no longer provides dimensions for external SVGs
+            skipProjects: ['chrome', 'firefox', 'ipad'],
             getSeedOptions: (baseUrl) => ({
                 message: `![icon](${baseUrl}/icon.svg)`,
             }),
