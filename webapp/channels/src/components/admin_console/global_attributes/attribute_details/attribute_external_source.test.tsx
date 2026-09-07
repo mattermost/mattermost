@@ -43,6 +43,15 @@ describe('AttributeExternalSource', () => {
         expect(screen.getByRole('menuitem', {name: /^SAML/})).toBeInTheDocument();
     });
 
+    it('disables the add-source trigger when disableAdding is set, without disabling an existing chip\'s edit/remove actions', () => {
+        renderComponent({ldapAttr: 'department', disableAdding: true});
+
+        expect(screen.getByTestId('attributeExternalSourceTrigger')).toBeDisabled();
+        expect(screen.getByTestId('attributeExternalSourceTriggerLockWrap')).toBeInTheDocument();
+        expect(screen.getByTestId('attributeExternalSourceChip-ldap-edit')).not.toBeDisabled();
+        expect(screen.getByTestId('attributeExternalSourceChip-ldap-remove')).not.toBeDisabled();
+    });
+
     it('renders a chip for a linked source prefixed by Synced with, and offers only the remaining source', async () => {
         renderComponent({ldapAttr: 'department'});
 

@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useEffect} from 'react';
+import React, {useEffect, useRef} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 import {CSSTransition} from 'react-transition-group';
@@ -130,6 +130,7 @@ const Completed = (props: Props): JSX.Element => {
     const {dismissAction} = props;
 
     const dispatch = useDispatch();
+    const wrapperRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         dispatch(getPrevTrialLicense());
@@ -155,10 +156,11 @@ const Completed = (props: Props): JSX.Element => {
         <>
             <CSSTransition
                 in={true}
+                nodeRef={wrapperRef}
                 timeout={150}
                 classNames='fade'
             >
-                <CompletedWrapper>
+                <CompletedWrapper ref={wrapperRef}>
                     <img
                         src={completedImg}
                         alt={'completed tasks image'}

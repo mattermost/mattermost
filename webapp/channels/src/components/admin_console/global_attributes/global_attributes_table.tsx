@@ -11,14 +11,13 @@ import {useDispatch, useSelector} from 'react-redux';
 import {Link} from 'react-router-dom';
 
 import type {ClientError} from '@mattermost/client';
-import {ChevronDownCircleOutlineIcon, ContentCopyIcon, DotsHorizontalIcon, FormatListBulletedIcon, MenuVariantIcon, OpenInNewIcon, PencilOutlineIcon, PowerPlugOutlineIcon, SortAscendingIcon, SyncIcon, TrashCanOutlineIcon} from '@mattermost/compass-icons/components';
+import {ChevronDownCircleOutlineIcon, ContentCopyIcon, DotsHorizontalIcon, EyeOutlineIcon, FormatListBulletedIcon, MenuVariantIcon, OpenInNewIcon, PencilOutlineIcon, PowerPlugOutlineIcon, SortAscendingIcon, SyncIcon, TrashCanOutlineIcon} from '@mattermost/compass-icons/components';
 import type IconProps from '@mattermost/compass-icons/components/props';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {FieldType, PropertyField, PropertyFieldOption} from '@mattermost/types/properties';
 import {supportsOptions} from '@mattermost/types/properties';
 
 import PropertyTypes from 'mattermost-redux/action_types/properties';
-import {getPluginStatuses} from 'mattermost-redux/actions/admin';
 import {fetchPropertyFields} from 'mattermost-redux/actions/properties';
 import {getConfig as getAdminConfig} from 'mattermost-redux/selectors/entities/admin';
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
@@ -33,15 +32,16 @@ import {
     CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE,
 } from 'components/admin_console/classification_markings/utils';
 import AlertBanner from 'components/alert_banner';
-import {useIsFieldOrphaned} from 'components/common/hooks/use_field_orphaned';
+import {useIsFieldOrphaned, usePluginInventoryLoaded} from 'components/common/hooks/use_field_orphaned';
 import LoadingScreen from 'components/loading_screen';
 import * as Menu from 'components/menu';
 
+import {getHistory} from 'utils/browser_history';
 import {LicenseSkus} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
 
-import {GLOBAL_ATTRIBUTES_GROUP_NAME, GLOBAL_ATTRIBUTES_OBJECT_TYPE, GLOBAL_ATTRIBUTES_TARGET_TYPE} from './constants';
+import {attributeDetailsRoute, GLOBAL_ATTRIBUTES_GROUP_NAME, GLOBAL_ATTRIBUTES_OBJECT_TYPE, GLOBAL_ATTRIBUTES_TARGET_TYPE} from './constants';
 import {useGlobalAttributeFieldDelete} from './global_attribute_delete_modal';
 import {deleteAttributeField} from './utils';
 
@@ -231,8 +231,9 @@ function ActionsCell({field, isClassificationRow, isMobileView, pluginInventoryL
     // that is how an admin cleans up what the plugin left behind.
     // Not short-circuited into the hook call, which has to run unconditionally.
     const fieldLooksOrphaned = useIsFieldOrphaned(field);
+    const isPluginOwned = getSourceKind(field) === 'plugin';
     const isOrphaned = pluginInventoryLoaded && fieldLooksOrphaned;
-    const isPluginManaged = getSourceKind(field) === 'plugin' && !isOrphaned;
+    const isPluginManaged = isPluginOwned && !isOrphaned;
 
     const handleConfirmed = useCallback(async () => {
         onDeleteError(null);
@@ -290,14 +291,9 @@ function ActionsCell({field, isClassificationRow, isMobileView, pluginInventoryL
         >
             <Menu.Item
                 id={`${menuId}-edit`}
-                disabled={true}
-                leadingElement={<PencilOutlineIcon size={18}/>}
-                labels={(
-                    <>
-                        <span><FormattedMessage {...actionsLabels.edit}/></span>
-                        <span><FormattedMessage {...actionsLabels.comingSoon}/></span>
-                    </>
-                )}
+                leadingElement={isPluginOwned ? <EyeOutlineIcon size={18}/> : <PencilOutlineIcon size={18}/>}
+                onClick={() => getHistory().push(attributeDetailsRoute(field.id))}
+                labels={<FormattedMessage {...(isPluginOwned ? actionsLabels.view : actionsLabels.edit)}/>}
             />
             <Menu.Item
                 id={`${menuId}-duplicate`}
@@ -386,7 +382,6 @@ export default function GlobalAttributesTable() {
     // live in the admin plugin statuses, which nothing else on this page loads.
     // Fetched once, and only when a plugin-owned row is actually present.
     const hasPluginOwnedFields = useMemo(() => fields.some((field) => Boolean(field.attrs?.source_plugin_id)), [fields]);
-    const pluginStatusesRequested = useRef(false);
 
     // Whether the plugin inventory is known yet. This gates the orphan check
     // rather than the Source column, which degrades harmlessly to the plugin ID:
@@ -398,16 +393,7 @@ export default function GlobalAttributesTable() {
     // than resolved: a failed fetch still leaves the inventory as good as it will
     // get, and staying false forever would strand genuine leftovers as
     // undeletable.
-    const [pluginInventoryLoaded, setPluginInventoryLoaded] = useState(false);
-
-    useEffect(() => {
-        if (!hasPluginOwnedFields || pluginStatusesRequested.current) {
-            return;
-        }
-
-        pluginStatusesRequested.current = true;
-        dispatch(getPluginStatuses()).finally(() => setPluginInventoryLoaded(true));
-    }, [dispatch, hasPluginOwnedFields]);
+    const pluginInventoryLoaded = usePluginInventoryLoaded(hasPluginOwnedFields);
 
     const handleDeleteModalExited = useCallback(() => setDeleteModalExited(true), []);
 
@@ -635,6 +621,7 @@ export const actionsLabels = defineMessages({
     tooltip: {id: 'admin.global_attributes.table.actions.tooltip', defaultMessage: 'More actions'},
     menuLabel: {id: 'admin.global_attributes.table.actions.menu_label', defaultMessage: 'Select an action'},
     edit: {id: 'admin.global_attributes.table.actions.edit', defaultMessage: 'Edit attribute'},
+    view: {id: 'admin.global_attributes.table.actions.view', defaultMessage: 'View attribute'},
     duplicate: {id: 'admin.global_attributes.table.actions.duplicate', defaultMessage: 'Duplicate attribute'},
     delete: {id: 'admin.global_attributes.table.actions.delete', defaultMessage: 'Delete attribute'},
     comingSoon: {id: 'admin.global_attributes.table.actions.coming_soon', defaultMessage: 'Coming soon'},

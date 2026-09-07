@@ -32,7 +32,7 @@ import (
 const (
 	PostActionTypeButton              = "button"
 	PostActionTypeSelect              = "select"
-	DialogTitleMaxLength              = 24
+	DialogTitleMaxLength              = 80
 	DialogElementDisplayNameMaxLength = 24
 	DialogElementNameMaxLength        = 300
 	DialogElementHelpTextMaxLength    = 150
