@@ -1139,8 +1139,11 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
                 // pinned to sysadmin (enforceGroupPermissions never downgrades a caller pin) --
                 // if this ever starts reading 'member', the server-side ratchet has been fixed
                 // elsewhere; update/remove this assertion and the plan's "Known limitation"
-                // section together.
-                expect(userField?.permission_values).toBe('sysadmin');
+                // section together. permission_values isn't part of the shared PropertyField
+                // type (no webapp production code reads/writes it -- this feature uses
+                // attrs.managed, not PermissionValues), so it's cast locally here rather than
+                // widening the shared type for one test-only assertion.
+                expect((userField as unknown as {permission_values?: string} | undefined)?.permission_values).toBe('sysadmin');
             } finally {
                 await deleteAppliesToAttributeAndLinkedFieldsIfExists(adminClient, name);
             }

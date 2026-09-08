@@ -20,11 +20,6 @@ export type FieldValueType =
     'phone' |
     '';
 
-// PSAv2 access-level values for PermissionField/PermissionValues/PermissionOptions below.
-// 'admin' resolves to the admin of the field's target (sysadmin for system targets, team
-// admin for team targets, channel admin for channel targets) -- see server/public/model/property_field.go.
-export type PermissionLevel = 'none' | 'sysadmin' | 'member' | 'admin';
-
 export type PropertyField = {
     id: string;
     group_id: string;
@@ -39,13 +34,6 @@ export type PropertyField = {
     object_type: string;
     linked_field_id?: string;
     protected?: boolean;
-
-    // PSAv2-only. Not surfaced by any webapp UI today -- typed here only so callers
-    // (e.g. tests reading a raw admin-API response) can reference the field the server
-    // already returns, not as an invitation to start writing it from the webapp.
-    permission_field?: PermissionLevel;
-    permission_values?: PermissionLevel;
-    permission_options?: PermissionLevel;
     create_at: number;
     update_at: number;
     delete_at: number;
