@@ -23,24 +23,17 @@ func writeCatalog(t *testing.T, dir, name, body string) string {
 	return p
 }
 
-// catalogs writes an en.json plus one locale file into a fresh i18n directory,
-// and returns the locale file's path alongside the parsed en.json.
-func catalogs(t *testing.T, localeName, en, locale string) (string, map[string]Item) {
+// source parses an en.json body into the items a catalog is checked against.
+func source(t *testing.T, en string) map[string]Item {
 	t.Helper()
 
-	dir := filepath.Join(t.TempDir(), "i18n")
-	require.NoError(t, os.MkdirAll(dir, 0700))
-
-	enPath := writeCatalog(t, dir, "en.json", en)
-	localePath := writeCatalog(t, dir, localeName, locale)
-
-	items, err := loadItems(enPath)
+	items, err := loadItems([]byte(en))
 	require.NoError(t, err)
 
-	return localePath, items
+	return items
 }
 
-func TestVerifyLocaleFile(t *testing.T) {
+func TestVerifyLocale(t *testing.T) {
 	t.Parallel()
 
 	// A pluralized source and a plain source, so each case can pick the shape
@@ -194,8 +187,7 @@ func TestVerifyLocaleFile(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			localePath, en := catalogs(t, tc.localeName, tc.en, tc.locale)
-			problems, warnings := verifyLocaleFile(localePath, en, tc.warnMissingIDs)
+			problems, warnings := verifyLocale(tc.localeName, []byte(tc.locale), source(t, tc.en), tc.warnMissingIDs)
 
 			if tc.problem == "" {
 				assert.Empty(t, problems, "expected no problems")
@@ -212,41 +204,39 @@ func TestVerifyLocaleFile(t *testing.T) {
 	}
 }
 
-// A file whose name is not a language the runtime recognizes is rejected by the
-// loader itself, before any of the catalog checks run. This is also what makes
-// the "no CLDR plural spec" branch in verifyLocaleFile unreachable: the loader
-// derives the language with language.Parse, which only yields one when a plural
-// spec exists for the same tag.
-func TestVerifyLocaleFileUnknownLocale(t *testing.T) {
+// The runtime loader rejects these before any of the catalog checks run, which
+// is what makes the "no CLDR plural spec" branch unreachable: it derives the
+// language with language.Parse, which only yields one when a plural spec exists
+// for the same tag.
+func TestVerifyLocaleUnknownLocale(t *testing.T) {
 	t.Parallel()
 
-	localePath, en := catalogs(t, "xx.json",
-		`[{"id":"a.b","translation":"hi"}]`,
-		`[{"id":"a.b","translation":"hi"}]`)
+	const catalog = `[{"id":"a.b","translation":"hi"}]`
 
-	problems, _ := verifyLocaleFile(localePath, en, false)
-	assert.Contains(t, strings.Join(problems, "\n"), "rejected by the runtime translation loader")
+	for _, name := range []string{"xx.json", "notes.json", "README.json"} {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			problems, _ := verifyLocale(name, []byte(catalog), source(t, catalog), false)
+			assert.Contains(t, strings.Join(problems, "\n"), "rejected by the runtime translation loader")
+		})
+	}
 }
 
 // Each file is loaded into its own bundle, so a defect in one locale can never
 // be masked by another having already been loaded, in either order.
-func TestVerifyLocaleFileIsOrderIndependent(t *testing.T) {
+func TestVerifyLocaleIsOrderIndependent(t *testing.T) {
 	t.Parallel()
 
 	const en = `[{"id":"a.b","translation":{"one":"{{.User}} is here","other":"{{.User}} are here"}}]`
+	const good = `[{"id":"a.b","translation":{"one":"{{.User}} ist da","other":"{{.User}} sind da"}}]`
+	const bad = `[{"id":"a.b","translation":{"one":"{{.User}} est ici","other":""}}]`
 
-	dir := filepath.Join(t.TempDir(), "i18n")
-	require.NoError(t, os.MkdirAll(dir, 0700))
-	enPath := writeCatalog(t, dir, "en.json", en)
-	good := writeCatalog(t, dir, "de.json", `[{"id":"a.b","translation":{"one":"{{.User}} ist da","other":"{{.User}} sind da"}}]`)
-	bad := writeCatalog(t, dir, "fr.json", `[{"id":"a.b","translation":{"one":"{{.User}} est ici","other":""}}]`)
+	items := source(t, en)
 
-	items, err := loadItems(enPath)
-	require.NoError(t, err)
-
-	badFirst, _ := verifyLocaleFile(bad, items, false)
-	_, _ = verifyLocaleFile(good, items, false)
-	badSecond, _ := verifyLocaleFile(bad, items, false)
+	badFirst, _ := verifyLocale("fr.json", []byte(bad), items, false)
+	_, _ = verifyLocale("de.json", []byte(good), items, false)
+	badSecond, _ := verifyLocale("fr.json", []byte(bad), items, false)
 
 	assert.NotEmpty(t, badFirst)
 	assert.Equal(t, badFirst, badSecond, "the same file must report the same problems regardless of what was checked before it")
@@ -302,5 +292,39 @@ func TestVerifyCmd(t *testing.T) {
 		err := run(t, serverDir)
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "error(s) across 1 locale files")
+	})
+
+	t.Run("a stray json file is reported", func(t *testing.T) {
+		serverDir := setup(t, `[{"id":"a.b","translation":"{{.User}} est ici"}]`)
+		writeCatalog(t, filepath.Join(serverDir, "i18n"), "notes.json", "{not even json")
+		require.NoError(t, VerifyCmd.Flags().Set("server-dir", serverDir))
+		require.NoError(t, VerifyCmd.Flags().Set("warn-missing-ids", "false"))
+
+		err := run(t, serverDir)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "error(s) across 2 locale files")
+	})
+
+	// The symlink target is a loadable catalog, so root is the only thing that
+	// can fail this.
+	t.Run("a catalog symlinked out of the translation directory is refused", func(t *testing.T) {
+		serverDir := setup(t, `[{"id":"a.b","translation":"{{.User}} est ici"}]`)
+		outside := writeCatalog(t, t.TempDir(), "de.json", `[{"id":"a.b","translation":"{{.User}} ist da"}]`)
+		require.NoError(t, os.Symlink(outside, filepath.Join(serverDir, "i18n", "de.json")))
+		require.NoError(t, VerifyCmd.Flags().Set("server-dir", serverDir))
+		require.NoError(t, VerifyCmd.Flags().Set("warn-missing-ids", "false"))
+
+		err := run(t, serverDir)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "error(s) across 2 locale files")
+	})
+
+	t.Run("a missing translation directory is reported against the path", func(t *testing.T) {
+		require.NoError(t, VerifyCmd.Flags().Set("server-dir", filepath.Join(t.TempDir(), "nope")))
+		require.NoError(t, VerifyCmd.Flags().Set("warn-missing-ids", "false"))
+
+		err := run(t, "")
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "failed to open translation directory")
 	})
 }

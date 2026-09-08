@@ -11,6 +11,7 @@ import (
 	"go/ast"
 	"go/parser"
 	"go/token"
+	"io/fs"
 	"log"
 	"os"
 	"path"
@@ -843,17 +844,12 @@ func templateTokens(raw json.RawMessage) map[string]bool {
 	return out
 }
 
-// loadItems reads a locale catalog and keys its entries by translation ID. The
-// catalogs are JSON arrays, so this is what lets a caller look an ID up in one
-// catalog while walking another.
-func loadItems(filename string) (map[string]Item, error) {
-	raw, err := os.ReadFile(filename)
-	if err != nil {
-		return nil, err
-	}
-
+// loadItems keys a locale catalog's entries by translation ID. The catalogs are
+// JSON arrays, so this is what lets a caller look an ID up in one catalog while
+// walking another.
+func loadItems(raw []byte) (map[string]Item, error) {
 	var list []Item
-	if err = json.Unmarshal(raw, &list); err != nil {
+	if err := json.Unmarshal(raw, &list); err != nil {
 		return nil, err
 	}
 
@@ -886,26 +882,26 @@ func pluralCategories(locale string) map[language.Plural]bool {
 	return categories
 }
 
-// verifyLocaleFile checks one non-English catalog against the en.json items in
-// en, returning the defects found and, separately, the ids the catalog has yet
-// to translate. Whether a missing id is a defect or merely a warning is the
-// caller's choice, via warnMissingIDs.
-func verifyLocaleFile(filename string, en map[string]Item, warnMissingIDs bool) (problems, warnings []string) {
-	name := filepath.Base(filename)
+// verifyLocale checks one non-English catalog, raw, against the en.json
+// items in en, returning the defects found and, separately, the ids the catalog
+// has yet to translate. Whether a missing id is a defect or merely a warning is
+// the caller's choice, via warnMissingIDs.
+func verifyLocale(name string, raw []byte, en map[string]Item, warnMissingIDs bool) (problems, warnings []string) {
 	locale := strings.TrimSuffix(name, ".json")
 
 	// The strongest check available: the loader the server actually runs at
-	// startup. It rejects invalid JSON, plural categories the locale does not
-	// have, and any translation that fails to parse as a text/template.
+	// startup. It rejects a name that is not exactly one language, invalid
+	// JSON, plural categories the locale does not have, and any translation
+	// that fails to parse as a text/template.
 	//
 	// A fresh bundle per file, rather than the package-global one, so that a
 	// locale cannot mask a defect in another and so the checks are order
 	// independent and safe to run in parallel.
-	if err := bundle.New().LoadTranslationFile(filename); err != nil {
+	if err := bundle.New().ParseTranslationFileBytes(name, raw); err != nil {
 		return []string{fmt.Sprintf("%s: rejected by the runtime translation loader: %v", name, err)}, nil
 	}
 
-	items, err := loadItems(filename)
+	items, err := loadItems(raw)
 	if err != nil {
 		return []string{fmt.Sprintf("%s: %v", name, err)}, nil
 	}
@@ -1013,7 +1009,7 @@ func verifyLocaleFile(filename string, en map[string]Item, warnMissingIDs bool) 
 }
 
 // verifyCmdF is the entry point for `mmgotool i18n verify`. It loads
-// server-dir's en.json as the source of truth, runs verifyLocaleFile over every
+// server-dir's en.json as the source of truth, runs verifyLocale over every
 // other catalog beside it, and prints the pooled warnings and defects sorted,
 // so the report is stable across runs and diffable between them.
 //
@@ -1030,27 +1026,46 @@ func verifyCmdF(command *cobra.Command, args []string) error {
 	}
 
 	translationDir := path.Join(mattermostDir, "i18n")
-	en, err := loadItems(path.Join(translationDir, "en.json"))
+
+	root, err := os.OpenRoot(translationDir)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to open translation directory %q: %w", translationDir, err)
+	}
+	defer root.Close()
+
+	enRaw, err := root.ReadFile("en.json")
+	if err != nil {
+		return fmt.Errorf("failed to read the source catalog in %q: %w", translationDir, err)
+	}
+	en, err := loadItems(enRaw)
+	if err != nil {
+		return fmt.Errorf("failed to parse the source catalog in %q: %w", translationDir, err)
 	}
 
-	dirEntries, err := os.ReadDir(translationDir)
+	dirEntries, err := fs.ReadDir(root.FS(), ".")
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to list translation directory %q: %w", translationDir, err)
 	}
 
 	var problems, warnings []string
 	checked := 0
 	for _, dirEntry := range dirEntries {
-		if dirEntry.IsDir() || filepath.Ext(dirEntry.Name()) != ".json" || dirEntry.Name() == "en.json" {
+		name := dirEntry.Name()
+		if dirEntry.IsDir() || filepath.Ext(name) != ".json" || name == "en.json" {
 			continue
 		}
 
 		checked++
-		fileProblems, fileWarnings := verifyLocaleFile(path.Join(translationDir, dirEntry.Name()), en, warnMissingIDs)
-		problems = append(problems, fileProblems...)
-		warnings = append(warnings, fileWarnings...)
+
+		raw, err := root.ReadFile(name)
+		if err != nil {
+			problems = append(problems, fmt.Sprintf("%s: %v", name, err))
+			continue
+		}
+
+		localeProblems, localeWarnings := verifyLocale(name, raw, en, warnMissingIDs)
+		problems = append(problems, localeProblems...)
+		warnings = append(warnings, localeWarnings...)
 	}
 
 	// Map iteration order is random, so sort for a stable, diffable report.
