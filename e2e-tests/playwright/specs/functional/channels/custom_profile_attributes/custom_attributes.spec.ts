@@ -5,11 +5,10 @@ import type {Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 import type {Channel} from '@mattermost/types/channels';
 import type {Client4} from '@mattermost/client';
-import type {UserPropertyField} from '@mattermost/types/properties_user';
 
 import {expect, test} from '@mattermost/playwright-lib';
 
-import type {CustomProfileAttribute} from './helpers';
+import type {CpaFieldsMap, CustomProfileAttribute} from './helpers';
 import {
     setupCustomProfileAttributeFields,
     setupCustomProfileAttributeValues,
@@ -66,7 +65,7 @@ let team: Team;
 let user: UserProfile;
 let otherUser: UserProfile;
 let testChannel: Channel;
-let attributeFieldsMap: Record<string, UserPropertyField>;
+let attributeFieldsMap: CpaFieldsMap;
 let adminClient: Client4;
 let userClient: Client4;
 
@@ -101,11 +100,14 @@ test.afterEach(async () => {
     if (!adminClient || !attributeFieldsMap) {
         return;
     }
-    for (const id of Object.keys(attributeFieldsMap)) {
+    for (const id of attributeFieldsMap.ownedIds) {
         try {
             await adminClient.deleteCustomProfileAttributeField(id);
-        } catch {
-            // already gone
+        } catch (error) {
+            const status = (error as {status_code?: number}).status_code;
+            if (status !== 404) {
+                throw error;
+            }
         }
     }
 });
