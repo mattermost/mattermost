@@ -81,6 +81,31 @@ The Mattermost server is expected at `http://localhost:8065`. The webapp dev ser
 - Playwright dependencies are installed with `cd e2e-tests/playwright && npm ci`.
 - For full Playwright compose flows, use the existing `e2e-tests` Makefile and scripts. Docker Compose is available in the Cloud Agent image.
 
+### Playwright rolling-upgrade tests
+
+Rolling-upgrade coverage lives in its own CI pipeline (`e2e-tests-playwright-rolling-upgrades.yml`),
+not in `e2e-tests-playwright-template.yml`. Locally, only the harness runs, and `upgrade-to` adopts
+the stack `upgrade-from` created, so Testcontainers reuse must be on
+(`echo testcontainers.reuse.enable=true >> ~/.testcontainers.properties`; see
+`e2e-tests/playwright/lib/README.md`):
+
+```bash
+cd e2e-tests/playwright
+npm run testcontainers:down
+MM_LICENSE=<key> PW_UPGRADE_FROM_SERVER_IMAGE=mattermostdevelopment/mattermost-enterprise-edition:release-11.9 npm run test:upgrade:from
+SERVER_IMAGE=mattermostdevelopment/mattermost-enterprise-edition:master npm run test:upgrade:to
+npm run testcontainers:down
+```
+
+- `script/resolve_upgrade_matrix.mjs` prints the from-version matrix (`dockerTag`, `isESR`,
+  `contextLabel`), or `[]` when none are supported.
+- CI runs on release cut and on demand via the workflow's **Run workflow** button — not on merge. A
+  PR runs it by enabling `run_rolling_upgrades` on a manual `e2e-tests-ci.yml` dispatch, or
+  automatically when it touches the harness.
+- The entry workflow calls the template once per from-version. Each worker upgrades, then continues
+  into the full suite with no re-preparation, so the suite runs against an upgraded server. One
+  commit status per from-version.
+
 ## Browser Verification
 
 Use the `computerUse` subagent's desktop (Chrome is preinstalled) for browser automation and screenshots. Prefer verifying UI changes against the running local Mattermost instance before opening or updating a PR.

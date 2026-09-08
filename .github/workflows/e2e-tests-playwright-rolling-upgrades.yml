@@ -1,0 +1,268 @@
+---
+name: E2E Tests - Playwright Rolling Upgrades
+on:
+  # Designed for merge to master/release-* and release cut, which call this workflow. The manual
+  # trigger is here so the same coverage can be run on demand from the Actions UI — e.g. to
+  # re-check a from-version after a resolver or harness change — without needing a PR.
+  workflow_dispatch:
+    inputs:
+      server_image_tag:
+        description: "Server image tag to upgrade TO (e.g. master, release-11.10, or a short SHA)"
+        type: string
+        required: false
+        default: master
+      server_edition:
+        description: "Server edition"
+        type: choice
+        required: false
+        default: enterprise
+        options:
+          - enterprise
+          - fips
+          - team
+      commit_sha:
+        description: "Commit SHA to report status on (defaults to the selected ref's HEAD)"
+        type: string
+        required: false
+      workers:
+        description: "Dispatch workers"
+        type: number
+        required: false
+        default: 20
+
+  workflow_call:
+    inputs:
+      commit_sha:
+        type: string
+        required: true
+      enable_reporting:
+        type: boolean
+        required: false
+        default: false
+      server:
+        type: string
+        required: false
+        default: onprem
+      report_type:
+        type: string
+        required: false
+      pr_number:
+        type: string
+        required: false
+      server_image_tag:
+        type: string
+        required: false
+        description: "Server image tag (e.g., master or short SHA)"
+      server_edition:
+        type: string
+        required: false
+        description: "Server edition: enterprise (default), fips, or team"
+      server_image_repo:
+        type: string
+        required: false
+        default: mattermostdevelopment
+        description: "Docker registry: mattermostdevelopment (default) or mattermost"
+      server_image_aliases:
+        type: string
+        required: false
+        description: "Comma-separated alias tags for context name (e.g., 'release-11.4, release-11')"
+      ref_branch:
+        type: string
+        required: false
+        description: "Source branch name for webhook messages (e.g., 'master' or 'release-11.4')"
+      workers:
+        type: number
+        required: false
+        default: 20
+        description: "Dispatch workers"
+    secrets:
+      MM_LICENSE:
+        required: false
+      REPORT_WEBHOOK_URL:
+        required: false
+      # Declared so the manual-run fallback below is well-typed. Callers never pass these — under
+      # workflow_call they resolve to empty and MM_LICENSE / REPORT_WEBHOOK_URL win; under
+      # workflow_dispatch there is no caller, and these resolve to the repo secrets directly.
+      MM_E2E_TEST_LICENSE_ONPREM_ENT:
+        required: false
+      MM_E2E_REPORT_WEBHOOK_URL:
+        required: false
+
+permissions: {}
+
+jobs:
+  generate-build-variables:
+    runs-on: ubuntu-24.04
+    outputs:
+      branch: "${{ steps.build-vars.outputs.branch }}"
+      build_id: "${{ steps.build-vars.outputs.build_id }}"
+      commit_sha: "${{ steps.build-vars.outputs.commit_sha }}"
+      server_image_tag: "${{ steps.build-vars.outputs.server_image_tag }}"
+      server_image: "${{ steps.build-vars.outputs.server_image }}"
+      server_image_base: "${{ steps.build-vars.outputs.server_image_base }}"
+      context_suffix: "${{ steps.build-vars.outputs.context_suffix }}"
+    steps:
+      - name: ci/generate-build-variables
+        id: build-vars
+        env:
+          # Callers always pass commit_sha; a manual UI run may not, so fall back to the ref it ran on.
+          COMMIT_SHA: ${{ inputs.commit_sha || github.sha }}
+          INPUT_REF_BRANCH: ${{ inputs.ref_branch || github.ref_name }}
+          INPUT_REPORT_TYPE: ${{ inputs.report_type }}
+          INPUT_SERVER_EDITION: ${{ inputs.server_edition }}
+          INPUT_SERVER_IMAGE_ALIASES: ${{ inputs.server_image_aliases }}
+          INPUT_SERVER_IMAGE_REPO: ${{ inputs.server_image_repo }}
+          INPUT_SERVER_IMAGE_TAG: ${{ inputs.server_image_tag }}
+          PR_NUMBER: ${{ inputs.pr_number }}
+          RUN_ATTEMPT: ${{ github.run_attempt }}
+          RUN_ID: ${{ github.run_id }}
+        run: |
+          echo "commit_sha=${COMMIT_SHA}" >> $GITHUB_OUTPUT
+
+          if [ -n "$INPUT_SERVER_IMAGE_TAG" ]; then
+            SERVER_IMAGE_TAG="$INPUT_SERVER_IMAGE_TAG"
+          else
+            SERVER_IMAGE_TAG="${COMMIT_SHA::7}"
+          fi
+
+          if ! [[ "$SERVER_IMAGE_TAG" =~ ^[a-zA-Z0-9._-]+$ ]]; then
+            echo "::error::Invalid server_image_tag format: ${SERVER_IMAGE_TAG}"
+            exit 1
+          fi
+          echo "server_image_tag=${SERVER_IMAGE_TAG}" >> $GITHUB_OUTPUT
+
+          REF_BRANCH="${INPUT_REF_BRANCH}"
+          if [ -n "$PR_NUMBER" ]; then
+            echo "branch=pr-${PR_NUMBER}" >> $GITHUB_OUTPUT
+          elif [ -n "$REF_BRANCH" ]; then
+            echo "branch=${REF_BRANCH}" >> $GITHUB_OUTPUT
+          else
+            echo "branch=commit-${COMMIT_SHA::7}" >> $GITHUB_OUTPUT
+          fi
+
+          EDITION="${INPUT_SERVER_EDITION}"
+          REPO="${INPUT_SERVER_IMAGE_REPO}"
+          REPO="${REPO:-mattermostdevelopment}"
+          case "$EDITION" in
+            fips) IMAGE_NAME="mattermost-enterprise-fips-edition" ;;
+            team) IMAGE_NAME="mattermost-team-edition" ;;
+            *)    IMAGE_NAME="mattermost-enterprise-edition" ;;
+          esac
+          SERVER_IMAGE="${REPO}/${IMAGE_NAME}:${SERVER_IMAGE_TAG}"
+          echo "server_image=${SERVER_IMAGE}" >> $GITHUB_OUTPUT
+          # Repo + image name without a tag, so the matrix job below can build each from-image
+          # reference by appending that entry's dockerTag. From- and to-images must come from the
+          # same repo and edition for the swap to be a like-for-like upgrade.
+          echo "server_image_base=${REPO}/${IMAGE_NAME}" >> $GITHUB_OUTPUT
+
+          ALIASES="${INPUT_SERVER_IMAGE_ALIASES}"
+          if [ -n "$ALIASES" ] && ! [[ "$ALIASES" =~ ^[a-zA-Z0-9._,\ -]+$ ]]; then
+            echo "::error::Invalid server_image_aliases format: ${ALIASES}"
+            exit 1
+          fi
+
+          if [ -n "$EDITION" ] && [ "$EDITION" != "enterprise" ]; then
+            echo "build_id=${RUN_ID}_${RUN_ATTEMPT}-${SERVER_IMAGE_TAG}-playwright-rolling-upgrades-onprem-${EDITION}" >> $GITHUB_OUTPUT
+          else
+            echo "build_id=${RUN_ID}_${RUN_ATTEMPT}-${SERVER_IMAGE_TAG}-playwright-rolling-upgrades-onprem-ent" >> $GITHUB_OUTPUT
+          fi
+
+          REPORT_TYPE="${INPUT_REPORT_TYPE}"
+          case "$REPORT_TYPE" in
+            MASTER) echo "context_suffix=/master" >> $GITHUB_OUTPUT ;;
+            RELEASE) echo "context_suffix=/release" >> $GITHUB_OUTPUT ;;
+            RELEASE_CUT) echo "context_suffix=/release-cut" >> $GITHUB_OUTPUT ;;
+            *) echo "context_suffix=" >> $GITHUB_OUTPUT ;;
+          esac
+
+  # Which older versions to upgrade FROM is a runtime question — the last 3 minors plus whatever
+  # is still in an ESR window, both of which move with the calendar. Resolving it here rather than
+  # in the template keeps the template a single-from-version workflow.
+  resolve-matrix:
+    needs:
+      - generate-build-variables
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      statuses: write
+    outputs:
+      matrix: ${{ steps.upgrade-matrix.outputs.matrix }}
+      matrix_empty: ${{ steps.upgrade-matrix.outputs.matrix_empty }}
+    steps:
+      - name: ci/checkout-repo
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+          ref: ${{ needs.generate-build-variables.outputs.commit_sha }}
+          fetch-depth: 1
+      - name: ci/resolve-upgrade-matrix
+        id: upgrade-matrix
+        working-directory: e2e-tests/playwright
+        run: |
+          MATRIX=$(node script/resolve_upgrade_matrix.mjs)
+          echo "matrix=${MATRIX}" >> "$GITHUB_OUTPUT"
+          if [ "$(echo "$MATRIX" | jq 'length')" -eq 0 ]; then
+            echo "matrix_empty=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "matrix_empty=false" >> "$GITHUB_OUTPUT"
+          fi
+      - name: ci/post-empty-matrix-status
+        if: steps.upgrade-matrix.outputs.matrix_empty == 'true'
+        env:
+          COMMIT_SHA: ${{ needs.generate-build-variables.outputs.commit_sha }}
+          CONTEXT_NAME: "e2e-test/playwright-full/${{ inputs.server_edition || 'enterprise' }}/upgrade-from-none${{ needs.generate-build-variables.outputs.context_suffix }}"
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+        run: |
+          # No supported from-versions left. Nothing to upgrade from, so no per-from-version
+          # context will ever be posted for this run — this is the only signal.
+          gh api "repos/${GITHUB_REPOSITORY}/statuses/${COMMIT_SHA}" \
+            -f state=success \
+            -f context="${CONTEXT_NAME}" \
+            -f description="No supported from-versions — rolling upgrade coverage skipped" \
+            -f target_url="https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+          echo "Posted success for ${CONTEXT_NAME}"
+
+  # One template invocation per resolved from-version, in parallel. Each one owns its own test
+  # system io run and its own commit status, so the statuses this workflow produces are exactly
+  # the matrix entries: 4 resolved versions means 4 `upgrade-from-<label>` contexts and nothing
+  # else.
+  playwright-rolling-upgrades:
+    needs:
+      - generate-build-variables
+      - resolve-matrix
+    if: needs.resolve-matrix.outputs.matrix_empty != 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJSON(needs.resolve-matrix.outputs.matrix) }}
+    permissions:
+      contents: read
+      statuses: write
+      id-token: write
+      pull-requests: write
+    uses: ./.github/workflows/e2e-tests-playwright-rolling-upgrades-template.yml
+    with:
+      # The two images that define this upgrade: from `dockerTag` (this matrix entry) to
+      # `server_image_tag`, same repo and edition on both sides.
+      upgrade_from_server_image: "${{ needs.generate-build-variables.outputs.server_image_base }}:${{ matrix.dockerTag }}"
+      upgrade_from_context_label: ${{ matrix.contextLabel }}
+      context_name: "e2e-test/playwright-full/${{ inputs.server_edition || 'enterprise' }}/upgrade-from-${{ matrix.contextLabel }}${{ needs.generate-build-variables.outputs.context_suffix }}"
+      workers: ${{ inputs.workers }}
+      commit_sha: ${{ needs.generate-build-variables.outputs.commit_sha }}
+      branch: ${{ needs.generate-build-variables.outputs.branch }}
+      build_id: ${{ needs.generate-build-variables.outputs.build_id }}
+      server_image_tag: ${{ needs.generate-build-variables.outputs.server_image_tag }}
+      server_edition: ${{ inputs.server_edition }}
+      server_image_repo: ${{ inputs.server_image_repo || 'mattermostdevelopment' }}
+      server_image_aliases: ${{ inputs.server_image_aliases }}
+      enable_reporting: ${{ inputs.enable_reporting == true }}
+      report_type: ${{ inputs.report_type }}
+      ref_branch: ${{ inputs.ref_branch }}
+      pr_number: ${{ inputs.pr_number }}
+    secrets:
+      # Callers forward these; a manual UI run has no caller, so fall back to the repo secrets the
+      # e2e entry workflows would otherwise have passed.
+      MM_LICENSE: ${{ secrets.MM_LICENSE || secrets.MM_E2E_TEST_LICENSE_ONPREM_ENT }}
+      REPORT_WEBHOOK_URL: ${{ secrets.REPORT_WEBHOOK_URL || secrets.MM_E2E_REPORT_WEBHOOK_URL }}
