@@ -43,7 +43,13 @@ func getUserStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := json.NewEncoder(w).Encode(statusMap[0]); err != nil {
+	js, jsonErr := statusMap[0].ToJSON()
+	if jsonErr != nil {
+		c.Err = model.NewAppError("getUserStatus", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
+		return
+	}
+
+	if _, err := w.Write(js); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
@@ -72,7 +78,7 @@ func getUserStatusesByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	js, err := json.Marshal(statuses)
+	js, err := model.StatusListToJSON(statuses)
 	if err != nil {
 		c.Err = model.NewAppError("getUserStatusesByIds", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
