@@ -359,11 +359,22 @@ i18n-verify: ## Verify the non-English translation files against en.json
 	cd ../tools/mmgotool && $(GO) install .
 	$(GOBIN)/mmgotool i18n verify --warn-missing-ids
 
+.PHONY: i18n-extract-authoring
+i18n-extract-authoring: ## Sync i18n-authoring/en-with-description.json with i18n/en.json
+	cd ../tools/mmgotool && $(GO) install .
+	$(GOBIN)/mmgotool i18n extract-authoring
+
+.PHONY: i18n-extract-authoring-check
+i18n-extract-authoring-check: ## Fail if i18n-authoring/en-with-description.json has drifted from i18n/en.json
+	cd ../tools/mmgotool && $(GO) install .
+	$(GOBIN)/mmgotool i18n extract-authoring --check
+
 .PHONY: i18n-check
 i18n-check: ## Exit on empty translation strings and translation source strings
 	cd ../tools/mmgotool && $(GO) install .
 	$(GOBIN)/mmgotool i18n clean-empty --portal-dir="" --check
 	$(GOBIN)/mmgotool i18n check-empty-src --portal-dir=""
+	$(GOBIN)/mmgotool i18n extract-authoring --check
 
 .PHONY: install-mockery
 install-mockery:
