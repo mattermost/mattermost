@@ -165,6 +165,33 @@ func TestVerifyLocale(t *testing.T) {
 			problem:    `plural category "one" is not used by this locale`,
 		},
 
+		// An empty translation renders the raw translation id, exactly as a
+		// missing id does, so it is reported for the same reason and under the
+		// same flag.
+		{
+			name:       "empty translation is an error by default",
+			localeName: "fr.json",
+			en:         enPlain,
+			locale:     `[{"id":"a.b","translation":""}]`,
+			problem:    "a.b: empty translation",
+		},
+		{
+			name:           "empty translation is a warning under warn-missing-ids",
+			localeName:     "fr.json",
+			en:             enPlain,
+			locale:         `[{"id":"a.b","translation":""}]`,
+			warnMissingIDs: true,
+			warning:        "a.b: empty translation",
+		},
+		{
+			// A language that separates where English uses a word: " " is the
+			// translation, not the absence of one.
+			name:       "whitespace-only translation is a real translation",
+			localeName: "zh-CN.json",
+			en:         `[{"id":"a.b","translation":"at"}]`,
+			locale:     `[{"id":"a.b","translation":" "}]`,
+		},
+
 		// An empty form renders the raw translation id, so it is worse than no
 		// translation at all.
 		{

@@ -80,7 +80,7 @@ var CheckEmptySrcCmd = &cobra.Command{
 var VerifyCmd = &cobra.Command{
 	Use:     "verify",
 	Short:   "Verify the non-English translation files against en.json",
-	Long:    "Checks every non-English file in i18n/ against i18n/en.json: it must load through the same go-i18n loader the server runs at startup, hold exactly the ids en.json holds, interpolate exactly the {{.Fields}} the source interpolates, and define exactly the CLDR plural categories its locale uses.",
+	Long:    "Checks every non-English file in i18n/ against i18n/en.json: it must load through the same go-i18n loader the server runs at startup, hold exactly the ids en.json holds with none left empty, interpolate exactly the {{.Fields}} the source interpolates, and define exactly the CLDR plural categories its locale uses.",
 	Example: "  i18n verify",
 	// A verification failure is a normal outcome, not a usage error.
 	SilenceUsage: true,
@@ -125,7 +125,7 @@ func init() {
 	CheckEmptySrcCmd.Flags().String("enterprise-dir", "../../enterprise", "Path to folder with the Mattermost enterprise source code")
 	CheckEmptySrcCmd.Flags().String("server-dir", "./", "Path to folder with the Mattermost server source code")
 
-	VerifyCmd.Flags().Bool("warn-missing-ids", false, "Report ids missing from a locale as warnings instead of errors")
+	VerifyCmd.Flags().Bool("warn-missing-ids", false, "Report ids missing from a locale, or present but untranslated, as warnings instead of errors")
 	VerifyCmd.Flags().String("server-dir", "./", "Path to folder with the Mattermost server source code")
 	ExtractAuthoringCmd.Flags().Bool("check", false, "Throw exit code if the authoring file is out of date instead of rewriting it")
 	ExtractAuthoringCmd.Flags().String("server-dir", "./", "Path to folder with the Mattermost server source code")
@@ -906,8 +906,8 @@ func pluralCategories(locale string) map[language.Plural]bool {
 
 // verifyLocale checks one non-English catalog, raw, against the en.json
 // items in en, returning the defects found and, separately, the ids the catalog
-// has yet to translate. Whether a missing id is a defect or merely a warning is
-// the caller's choice, via warnMissingIDs.
+// has yet to translate, whether by absence or by an empty value. Whether that is
+// a defect or merely a warning is the caller's choice, via warnMissingIDs.
 func verifyLocale(name string, raw []byte, en map[string]Item, warnMissingIDs bool) (problems, warnings []string) {
 	locale := strings.TrimSuffix(name, ".json")
 
@@ -952,6 +952,23 @@ func verifyLocale(name string, raw []byte, en map[string]Item, warnMissingIDs bo
 		source, ok := en[id]
 		if !ok {
 			problems = append(problems, fmt.Sprintf("%s: %s: extra id not in en.json", name, id))
+			continue
+		}
+
+		// An empty translation is how the translation pipeline marks an id as
+		// present but not yet translated. newTemplate("") yields a nil
+		// template, so bundle.translate returns the id -- exactly what a
+		// missing id does -- and it has to be reported for the same reason.
+		// Whitespace is deliberately not empty: " " is a real translation in a
+		// language that separates where English uses a word.
+		var text string
+		if json.Unmarshal(item.Translation, &text) == nil && text == "" {
+			msg := fmt.Sprintf("%s: %s: empty translation", name, id)
+			if warnMissingIDs {
+				warnings = append(warnings, msg)
+			} else {
+				problems = append(problems, msg)
+			}
 			continue
 		}
 
