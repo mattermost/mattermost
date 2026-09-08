@@ -2,7 +2,7 @@
   "_meta": {
     "maintained": "by hand",
     "note": "Legacy Sphinx URL redirects, originally bulk-extracted during the docs migration. Add new entries at the end of the array. `from` must be unique and must not contain an anchor; `to` should point at a page that exists, or the redirect silently dead-ends.",
-    "active": 741
+    "active": 1038
   },
   "redirects": [
     {
@@ -2843,7 +2843,7 @@
     },
     {
       "from": "/deployment-guide/reference-architecture/reference-architecture-index",
-      "to": "/deployment-guide/deployment-scenarios/deployment-scenarios-index"
+      "to": "/deployment-guide/deployment-architecture"
     },
     {
       "from": "/security-guide/dependency-vulnerability-analysis",
@@ -2867,7 +2867,7 @@
     },
     {
       "from": "/administration-guide/manage/admin/user-provisioning",
-      "to": "/administration-guide/onboard/onboard-index"
+      "to": "/administration-guide/onboard/user-provisioning-workflows"
     },
     {
       "from": "/administration-guide/scale/additional-ha-considerations",
@@ -2967,7 +2967,1195 @@
     },
     {
       "from": "/deployment-guide/server/trouble-postgres",
+      "to": "/deployment-guide/server/prepare-database#troubleshooting"
+    },
+    {
+      "from": "/about/cloud-subscriptions",
+      "to": "/product-overview/cloud-subscriptions"
+    },
+    {
+      "from": "/collaborate/format-messages",
+      "to": "/end-user-guide/collaborate/format-messages"
+    },
+    {
+      "from": "/configure/environment-configuration-settings",
+      "to": "/administration-guide/configure/environment-configuration-settings"
+    },
+    {
+      "from": "/deployment/admin-roles",
+      "to": "/administration-guide/onboard/delegated-granular-administration"
+    },
+    {
+      "from": "/deployment/ldap-group-sync",
+      "to": "/administration-guide/onboard/ad-ldap-groups-synchronization"
+    },
+    {
+      "from": "/guides/administration",
+      "to": "/administration-guide/administration-guide-index"
+    },
+    {
+      "from": "/preferences/manage-your-notifications",
+      "to": "/end-user-guide/preferences/manage-your-notifications"
+    },
+    {
+      "from": "/messaging/formatting-text",
+      "to": "/end-user-guide/collaborate/format-messages"
+    },
+    {
+      "from": "/configure/authentication-configuration-settings",
+      "to": "/administration-guide/configure/authentication-configuration-settings"
+    },
+    {
+      "from": "/comply/audit-log",
+      "to": "/administration-guide/comply/embedded-json-audit-log-schema"
+    },
+    {
+      "from": "/administration/compliance",
+      "to": "/administration-guide/comply/comply-index"
+    },
+    {
+      "from": "/configure/reporting-configuration-settings",
+      "to": "/administration-guide/configure/reporting-configuration-settings"
+    },
+    {
+      "from": "/install/software-hardware-requirements",
+      "to": "/deployment-guide/software-hardware-requirements"
+    },
+    {
+      "from": "/configure/site-configuration-settings",
+      "to": "/administration-guide/configure/site-configuration-settings"
+    },
+    {
+      "from": "/onboard/ad-ldap-groups-synchronization",
+      "to": "/administration-guide/onboard/ad-ldap-groups-synchronization"
+    },
+    {
+      "from": "/developer/bot-accounts",
+      "to": "/developers/integrate/reference/bot-accounts"
+    },
+    {
+      "from": "/about/certifications-and-compliance",
+      "to": "/product-overview/certifications-and-compliance"
+    },
+    {
+      "from": "/about/common-esr-support",
+      "to": "/product-overview/common-esr-support"
+    },
+    {
+      "from": "/about/embed-mattermost-app-within-microsoft-teams",
+      "to": "/integrations-guide/mattermost-mission-collaboration-for-m365"
+    },
+    {
+      "from": "/about/embed-mattermost-within-microsoft-teams",
+      "to": "/integrations-guide/mattermost-mission-collaboration-for-m365"
+    },
+    {
+      "from": "/about/faq-business",
+      "to": "/product-overview/faq-license"
+    },
+    {
+      "from": "/about/faq-design-decisions",
+      "to": "/product-overview/frequently-asked-questions"
+    },
+    {
+      "from": "/about/faq-high-trust",
+      "to": "/product-overview/frequently-asked-questions"
+    },
+    {
+      "from": "/about/faq-illicit-use",
+      "to": "/product-overview/frequently-asked-questions"
+    },
+    {
+      "from": "/about/faq-license",
+      "to": "/product-overview/faq-license"
+    },
+    {
+      "from": "/about/faq-product",
+      "to": "/end-user-guide/access/client-availability"
+    },
+    {
+      "from": "/about/faq-use-cases",
+      "to": "/use-case-guide/use-cases-index"
+    },
+    {
+      "from": "/about/install-mattermost-app-in-microsoft-teams",
+      "to": "/integrations-guide/mattermost-mission-collaboration-for-m365"
+    },
+    {
+      "from": "/about/install-mattermost-for-microsoft-teams-plugin",
+      "to": "/integrations-guide/mattermost-mission-collaboration-for-m365"
+    },
+    {
+      "from": "/about/mattermost-customizable-ai-bot-framework",
+      "to": "/administration-guide/configure/agents-admin-guide"
+    },
+    {
+      "from": "/about/mattermost-customizable-chatgpt-bot-framework",
+      "to": "/administration-guide/configure/agents-admin-guide"
+    },
+    {
+      "from": "/about/mattermost-for-microsoft-teams",
+      "to": "/integrations-guide/microsoft-teams-sync"
+    },
+    {
+      "from": "/about/mattermost-google-calendar-integration",
+      "to": "/integrations-guide/popular-integrations"
+    },
+    {
+      "from": "/about/mattermost-v9-changelog",
+      "to": "/product-overview/unsupported-legacy-releases"
+    },
+    {
+      "from": "/about/orchestration",
+      "to": "/get-help/deployment-solution-programs"
+    },
+    {
+      "from": "/about/plans",
+      "to": "/product-overview/plans"
+    },
+    {
+      "from": "/about/setup-mattermost-google-calendar-plugin",
+      "to": "/integrations-guide/popular-integrations"
+    },
+    {
+      "from": "/administration/audit-log",
+      "to": "/administration-guide/comply/embedded-json-audit-log-schema"
+    },
+    {
+      "from": "/administration/bulk-export",
+      "to": "/administration-guide/manage/bulk-export-tool"
+    },
+    {
+      "from": "/administration/devops-command-center",
+      "to": "/end-user-guide/workflow-automation/workflow-automation-index"
+    },
+    {
+      "from": "/administration/generating-support-packet",
+      "to": "/administration-guide/manage/admin/generating-support-packet"
+    },
+    {
+      "from": "/administration/health-check",
+      "to": "/administration-guide/manage/configure-health-check-probes"
+    },
+    {
+      "from": "/administration/important-upgrade-notes",
+      "to": "/administration-guide/upgrade/important-upgrade-notes"
+    },
+    {
+      "from": "/administration/mmctl-cli-tool",
+      "to": "/administration-guide/manage/mmctl-command-line-tool"
+    },
+    {
+      "from": "/administration/performance-alerting-guide",
+      "to": "/administration-guide/scale/deploy-prometheus-grafana-for-performance-monitoring"
+    },
+    {
+      "from": "/administration/plugins",
+      "to": "/integrations-guide/plugins"
+    },
+    {
+      "from": "/administration/release-definitions",
+      "to": "/product-overview/release-policy"
+    },
+    {
+      "from": "/administration/scripts",
+      "to": "/"
+    },
+    {
+      "from": "/agents/docs/upgrading_to_2.0",
+      "to": "/administration-guide/configure/agents-admin-guide"
+    },
+    {
+      "from": "/boards/share-and-collaborate",
+      "to": "/end-user-guide/project-management/share-and-collaborate"
+    },
+    {
+      "from": "/channels/about-teams-channels-messages",
+      "to": "/end-user-guide/collaborate/collaborate-index"
+    },
+    {
+      "from": "/channels/channels-settings",
+      "to": "/end-user-guide/collaborate/collaborate-within-channels"
+    },
+    {
+      "from": "/channels/extend-channels-functionality",
+      "to": "/end-user-guide/collaborate/collaborate-within-channels"
+    },
+    {
+      "from": "/channels/format-messages",
+      "to": "/end-user-guide/collaborate/format-messages"
+    },
+    {
+      "from": "/channels/interact-with-channels",
+      "to": "/end-user-guide/collaborate/collaborate-within-channels"
+    },
+    {
+      "from": "/channels/keyboard-accessibility",
+      "to": "/end-user-guide/collaborate/keyboard-accessibility"
+    },
+    {
+      "from": "/channels/keyboard-shortcuts-for-channels",
+      "to": "/end-user-guide/collaborate/keyboard-shortcuts#channel-navigation"
+    },
+    {
+      "from": "/channels/make-calls",
+      "to": "/end-user-guide/collaborate/make-calls"
+    },
+    {
+      "from": "/channels/react-to-messages",
+      "to": "/end-user-guide/collaborate/react-with-emojis-gifs"
+    },
+    {
+      "from": "/channels/run-slash-commands",
+      "to": "/integrations-guide/run-slash-commands"
+    },
+    {
+      "from": "/channels/set-channel-preferences",
+      "to": "/end-user-guide/collaborate/collaborate-within-channels"
+    },
+    {
+      "from": "/channels/syntax-highlighting",
+      "to": "/end-user-guide/collaborate/format-messages"
+    },
+    {
+      "from": "/channels/use-mattermost-google-calendar-plugin",
+      "to": "/integrations-guide/popular-integrations"
+    },
+    {
+      "from": "/cloud/cloud-administration/cloud-compliance",
+      "to": "/administration-guide/manage/cloud-workspace-management"
+    },
+    {
+      "from": "/cloud/cloud-administration/saml-technical",
+      "to": "/administration-guide/onboard/sso-saml-technical"
+    },
+    {
+      "from": "/cloud/cloud-administration/sso-saml",
+      "to": "/administration-guide/onboard/sso-saml"
+    },
+    {
+      "from": "/cloud/cloud-billing/cloud-billing",
+      "to": "/product-overview/cloud-subscriptions"
+    },
+    {
+      "from": "/cloud/cloud-integrations",
+      "to": "/integrations-guide/integrations-guide-index"
+    },
+    {
+      "from": "/cloud/cloud-integrations/cloud-slash-commands",
+      "to": "/integrations-guide/slash-commands"
+    },
+    {
+      "from": "/collaborate/chat-with-ai-copilot",
+      "to": "/administration-guide/configure/agents-admin-guide"
+    },
+    {
+      "from": "/collaborate/collaborate-within-embedded-microsoft-teams",
+      "to": "/integrations-guide/mattermost-mission-collaboration-for-m365"
+    },
+    {
+      "from": "/collaborate/keyboard-accessibility",
+      "to": "/end-user-guide/collaborate/keyboard-accessibility"
+    },
+    {
+      "from": "/collaborate/keyboard-shortcuts",
+      "to": "/end-user-guide/collaborate/keyboard-shortcuts"
+    },
+    {
+      "from": "/collaborate/make-calls",
+      "to": "/end-user-guide/collaborate/make-calls"
+    },
+    {
+      "from": "/collaborate/run-slash-commands",
+      "to": "/integrations-guide/run-slash-commands"
+    },
+    {
+      "from": "/collaborate/syntax-highlighting",
+      "to": "/end-user-guide/collaborate/format-messages"
+    },
+    {
+      "from": "/collaborate/team-keyboard-shortcuts",
+      "to": "/end-user-guide/collaborate/team-keyboard-shortcuts"
+    },
+    {
+      "from": "/collaborate/use-mattermost-google-calendar-plugin",
+      "to": "/integrations-guide/popular-integrations"
+    },
+    {
+      "from": "/comply/compliance-monitoring",
+      "to": "/administration-guide/comply/compliance-monitoring"
+    },
+    {
+      "from": "/comply/embedded-json-audit-log-schema",
+      "to": "/administration-guide/comply/embedded-json-audit-log-schema"
+    },
+    {
+      "from": "/configure/bulk-loading-about",
+      "to": "/administration-guide/onboard/bulk-loading-data"
+    },
+    {
+      "from": "/configure/bulk-loading-common-issues",
+      "to": "/administration-guide/onboard/bulk-loading-data"
+    },
+    {
+      "from": "/configure/bulk-loading-data-format",
+      "to": "/administration-guide/onboard/bulk-loading-data"
+    },
+    {
+      "from": "/configure/bulk-loading-troubleshooting",
+      "to": "/administration-guide/onboard/bulk-loading-data"
+    },
+    {
+      "from": "/configure/calls-rtcd-ent-only",
+      "to": "/deployment-guide/calls/calls-rtcd-setup"
+    },
+    {
+      "from": "/configure/compliance-configuration-settings",
+      "to": "/administration-guide/configure/compliance-configuration-settings"
+    },
+    {
+      "from": "/configure/config-ssl-http2-apache2",
+      "to": "/deployment-guide/server/preparations"
+    },
+    {
+      "from": "/configure/configuring-cloudfront-to-host-mattermost-static-assets",
+      "to": "/deployment-guide/server/server-deployment-planning"
+    },
+    {
+      "from": "/configure/deprecated-configuration-settings",
+      "to": "/administration-guide/configure/deprecated-configuration-settings"
+    },
+    {
+      "from": "/configure/developer-mode-configuration-settings",
+      "to": "/administration-guide/configure/environment-configuration-settings"
+    },
+    {
+      "from": "/configure/elasticsearch-configuration-settings",
+      "to": "/administration-guide/configure/environment-configuration-settings"
+    },
+    {
+      "from": "/configure/email-templates",
+      "to": "/administration-guide/configure/email-templates"
+    },
+    {
+      "from": "/configure/enable-ai-copilot",
+      "to": "/administration-guide/configure/agents-admin-guide"
+    },
+    {
+      "from": "/configure/experimental-configuration-settings",
+      "to": "/administration-guide/configure/experimental-configuration-settings"
+    },
+    {
+      "from": "/configure/file-storage-configuration-settings",
+      "to": "/administration-guide/configure/environment-configuration-settings"
+    },
+    {
+      "from": "/configure/high-availability-configuration-settings",
+      "to": "/administration-guide/configure/environment-configuration-settings"
+    },
+    {
+      "from": "/configure/image-proxy-configuration-settings",
+      "to": "/administration-guide/configure/environment-configuration-settings"
+    },
+    {
+      "from": "/configure/install-mattermost-for-microsoft-teams-plugin",
+      "to": "/integrations-guide/microsoft-teams-sync"
+    },
+    {
+      "from": "/configure/integrations-configuration-settings",
+      "to": "/administration-guide/configure/integrations-configuration-settings"
+    },
+    {
+      "from": "/configure/logging-configuration-settings",
+      "to": "/administration-guide/configure/environment-configuration-settings"
+    },
+    {
+      "from": "/configure/optimize-your-workspace",
+      "to": "/administration-guide/configure/optimize-your-workspace"
+    },
+    {
+      "from": "/configure/performance-monitoring-configuration-settings",
+      "to": "/administration-guide/configure/environment-configuration-settings"
+    },
+    {
+      "from": "/configure/plugins-configuration-settings",
+      "to": "/administration-guide/configure/plugins-configuration-settings"
+    },
+    {
+      "from": "/configure/push-notification-server-configuration-settings",
+      "to": "/administration-guide/configure/push-notification-server-configuration-settings"
+    },
+    {
+      "from": "/configure/rate-limiting-configuration-settings",
+      "to": "/administration-guide/configure/rate-limiting-configuration-settings"
+    },
+    {
+      "from": "/configure/run-bulk-loading-command",
+      "to": "/administration-guide/onboard/bulk-loading-data"
+    },
+    {
+      "from": "/configure/session-lengths-configuration-settings",
+      "to": "/administration-guide/configure/environment-configuration-settings"
+    },
+    {
+      "from": "/configure/smtp-configuration-settings",
+      "to": "/administration-guide/configure/environment-configuration-settings"
+    },
+    {
+      "from": "/configure/user-management-configuration-settings",
+      "to": "/administration-guide/configure/user-management-configuration-settings"
+    },
+    {
+      "from": "/configure/using-outbound-proxy",
+      "to": "/deployment-guide/server/server-deployment-planning"
+    },
+    {
+      "from": "/configure/web-server-configuration-settings",
+      "to": "/administration-guide/configure/environment-configuration-settings"
+    },
+    {
+      "from": "/deploy/application-architecture",
+      "to": "/deployment-guide/application-architecture"
+    },
+    {
+      "from": "/deploy/configure-app-framework",
+      "to": "/integrations-guide/plugins"
+    },
+    {
+      "from": "/deploy/deployment-overview",
+      "to": "/deployment-guide/application-architecture"
+    },
+    {
+      "from": "/deploy/server/air-gapped-deployment",
+      "to": "/deployment-guide/air-gapped-operations"
+    },
+    {
+      "from": "/deploy/server/containers/install-aws-beanstalk",
+      "to": "/deployment-guide/server/deploy-containers"
+    },
+    {
+      "from": "/deploy/server/deploy-oob",
+      "to": "/deployment-guide/deployment-scenarios/deploy-oob"
+    },
+    {
+      "from": "/deploy/server/linux/deploy-tar",
+      "to": "/deployment-guide/server/linux/deploy-tar"
+    },
+    {
+      "from": "/deploy/server/linux/deploy-ubuntu",
+      "to": "/deployment-guide/server/linux/deploy-ubuntu"
+    },
+    {
+      "from": "/deploy/server/preparations",
+      "to": "/deployment-guide/server/preparations"
+    },
+    {
+      "from": "/deploy/server/server-architecture",
+      "to": "/deployment-guide/application-architecture"
+    },
+    {
+      "from": "/deploy/server/server-deployment-planning",
+      "to": "/deployment-guide/server/server-deployment-planning"
+    },
+    {
+      "from": "/deploy/server/setting-up-socket-based-mattermost-database",
+      "to": "/deployment-guide/server/preparations"
+    },
+    {
+      "from": "/deploy/software-hardware-requirements",
+      "to": "/deployment-guide/software-hardware-requirements"
+    },
+    {
+      "from": "/deployment-guide/manual-postgres-migration",
+      "to": "/administration-guide/manage/admin/manual-postgres-migration"
+    },
+    {
+      "from": "/deployment-guide/postgres-migration-assist-tool",
+      "to": "/administration-guide/manage/admin/postgres-migration-assist-tool"
+    },
+    {
+      "from": "/deployment-guide/postgres-migration",
+      "to": "/administration-guide/manage/admin/postgres-migration"
+    },
+    {
+      "from": "/deployment-guide/server/containers/install-docker",
+      "to": "/deployment-guide/server/deploy-containers"
+    },
+    {
+      "from": "/deployment-guide/server/kubernetes/deploy-k8s-aks",
+      "to": "/deployment-guide/server/deploy-kubernetes"
+    },
+    {
+      "from": "/deployment/atlassian-integrations",
+      "to": "/integrations-guide/jira"
+    },
+    {
+      "from": "/deployment/bot-integrations",
+      "to": "/developers/integrate/reference/bot-accounts"
+    },
+    {
+      "from": "/deployment/bots",
+      "to": "/developers/integrate/reference/bot-accounts"
+    },
+    {
+      "from": "/deployment/bulk-loading",
+      "to": "/administration-guide/onboard/bulk-loading-data"
+    },
+    {
+      "from": "/deployment/ci-cd-tools",
+      "to": "/deployment-guide/deployment-guide-index"
+    },
+    {
+      "from": "/deployment/cluster-310",
+      "to": "/deployment-guide/deployment-guide-index"
+    },
+    {
+      "from": "/deployment/cluster",
+      "to": "/deployment-guide/server/high-availability-cluster-based-deployment"
+    },
+    {
+      "from": "/deployment/customize-email",
+      "to": "/administration-guide/configure/email-templates"
+    },
+    {
+      "from": "/deployment/customize-mattermost",
+      "to": "/administration-guide/configure/customize-mattermost"
+    },
+    {
+      "from": "/deployment/deployment",
+      "to": "/deployment-guide/deployment-guide-index"
+    },
+    {
+      "from": "/deployment/incident-response-and-monitoring",
+      "to": "/end-user-guide/workflow-automation/workflow-automation-index"
+    },
+    {
+      "from": "/deployment/ldap-group-constrained-team-channel",
+      "to": "/administration-guide/onboard/managing-team-channel-membership-using-ad-ldap-sync-groups"
+    },
+    {
+      "from": "/deployment/microsoft-integrations",
+      "to": "/administration-guide/onboard/managing-team-channel-membership-using-ad-ldap-sync-groups"
+    },
+    {
+      "from": "/deployment/permissions-backend",
+      "to": "/administration-guide/onboard/advanced-permissions-backend-infrastructure"
+    },
+    {
+      "from": "/deployment/pre-sales",
+      "to": "/"
+    },
+    {
+      "from": "/deployment/productivity-tools",
+      "to": "/integrations-guide/popular-integrations"
+    },
+    {
+      "from": "/deployment/video-and-audio-calling",
+      "to": "/end-user-guide/collaborate/audio-and-screensharing#video-conferencing-integrations"
+    },
+    {
+      "from": "/deployment/webrtc",
+      "to": "/end-user-guide/collaborate/make-calls#webrtc-internals-chrome-and-firefox-only"
+    },
+    {
+      "from": "/developer/api-development-version4",
+      "to": "/api"
+    },
+    {
+      "from": "/developer/api.html",
+      "to": "/api"
+    },
+    {
+      "from": "/developer/api4",
+      "to": "/api"
+    },
+    {
+      "from": "/developer/before-you-get-started",
+      "to": "/developers/integrate/getting-started"
+    },
+    {
+      "from": "/developer/contribution-guide",
+      "to": "/developers/contribute"
+    },
+    {
+      "from": "/developer/core-developer-handbook",
+      "to": "/"
+    },
+    {
+      "from": "/developer/dev-setup-archlinux",
+      "to": "/developers/contribute/developer-setup"
+    },
+    {
+      "from": "/developer/dev-setup-centos-7",
+      "to": "/developers/contribute/developer-setup"
+    },
+    {
+      "from": "/developer/dev-setup-compiling",
+      "to": "/developers/contribute/developer-setup"
+    },
+    {
+      "from": "/developer/dev-setup-osx",
+      "to": "/developers/contribute/developer-setup"
+    },
+    {
+      "from": "/developer/dev-setup-troubleshooting",
+      "to": "/developers/contribute/developer-setup"
+    },
+    {
+      "from": "/developer/dev-setup-ubuntu-1604",
+      "to": "/developers/contribute/developer-setup"
+    },
+    {
+      "from": "/developer/dev-setup-windows",
+      "to": "/developers/contribute/developer-setup"
+    },
+    {
+      "from": "/developer/dev-setup",
+      "to": "/developers/contribute/developer-setup"
+    },
+    {
+      "from": "/developer/developer-flow",
+      "to": "/developers/contribute/more-info/server/developer-workflow"
+    },
+    {
+      "from": "/developer/developer-setup",
+      "to": "/developers/contribute/developer-setup"
+    },
+    {
+      "from": "/developer/fx-guidelines",
+      "to": "/developers/contribute/why-contribute"
+    },
+    {
+      "from": "/developer/interactive-dialogs",
+      "to": "/developers/integrate/plugins/interactive-dialogs"
+    },
+    {
+      "from": "/developer/interactive-message-buttons",
+      "to": "/developers/integrate/plugins/interactive-messages"
+    },
+    {
+      "from": "/developer/interactive-messages",
+      "to": "/developers/integrate/plugins/interactive-messages"
+    },
+    {
+      "from": "/developer/localization-process",
+      "to": "/"
+    },
+    {
+      "from": "/developer/localization",
+      "to": "/"
+    },
+    {
+      "from": "/developer/mobile-developer-setup",
+      "to": "/developers/contribute/more-info/mobile/developer-setup"
+    },
+    {
+      "from": "/developer/oauth-2-0-applications",
+      "to": "/developers/integrate/apps/authentication/oauth2"
+    },
+    {
+      "from": "/developer/personal-access-token",
+      "to": "/developers/integrate/reference/personal-access-token"
+    },
+    {
+      "from": "/developer/personal-access-tokens",
+      "to": "/developers/integrate/reference/personal-access-token"
+    },
+    {
+      "from": "/developer/redux-to-flow",
+      "to": "/developers/contribute"
+    },
+    {
+      "from": "/developer/redux",
+      "to": "/developers/contribute"
+    },
+    {
+      "from": "/developer/running-mattermost",
+      "to": "/developers/contribute/more-info/server/developer-workflow"
+    },
+    {
+      "from": "/developer/slash-commands",
+      "to": "/developers/integrate/slash-commands"
+    },
+    {
+      "from": "/developer/toolkit",
+      "to": "/"
+    },
+    {
+      "from": "/developer/web-service",
+      "to": "/"
+    },
+    {
+      "from": "/developer/webapp-component",
+      "to": "/developers/contribute/more-info/webapp"
+    },
+    {
+      "from": "/developer/webapp-end-to-end-testing",
+      "to": "/developers/contribute/more-info/webapp/e2e-testing"
+    },
+    {
+      "from": "/developer/webapp-to-redux",
+      "to": "/developers/contribute/more-info/webapp"
+    },
+    {
+      "from": "/developer/webhooks-incoming",
+      "to": "/developers/integrate/webhooks/incoming"
+    },
+    {
+      "from": "/developer/webhooks-outgoing",
+      "to": "/developers/integrate/webhooks/outgoing"
+    },
+    {
+      "from": "/end-user-guide/collaborate/client-availability",
+      "to": "/end-user-guide/access/client-availability"
+    },
+    {
+      "from": "/getting-started/architecture-overview",
+      "to": "/deployment-guide/application-architecture"
+    },
+    {
+      "from": "/getting-started/implementation-plan",
+      "to": "/deployment-guide/server/server-deployment-planning"
+    },
+    {
+      "from": "/getting-started/implementation_plan",
+      "to": "/deployment-guide/server/server-deployment-planning"
+    },
+    {
+      "from": "/guides/admin",
+      "to": "/administration-guide/administration-guide-index"
+    },
+    {
+      "from": "/guides/developer",
+      "to": "/developers"
+    },
+    {
+      "from": "/guides/get-started-with-administration",
+      "to": "/administration-guide/administration-guide-index"
+    },
+    {
+      "from": "/guides/install-deploy-upgrade-scale",
+      "to": "/deployment-guide/deployment-architecture"
+    },
+    {
+      "from": "/guides/integration",
+      "to": "/integrations-guide/integrations-guide-index"
+    },
+    {
+      "from": "/guides/microsoft-integrations",
+      "to": "/integrations-guide/popular-integrations#microsoft-integrations"
+    },
+    {
+      "from": "/guides/other-administration-resources",
+      "to": "/administration-guide/administration-guide-index"
+    },
+    {
+      "from": "/guides/pre-built-integrations",
+      "to": "/integrations-guide/popular-integrations"
+    },
+    {
+      "from": "/guides/prepare-for-your-mattermost-deployment",
+      "to": "/deployment-guide/server/server-deployment-planning"
+    },
+    {
+      "from": "/guides/self-hosted-administration",
+      "to": "/administration-guide/administration-guide-index"
+    },
+    {
+      "from": "/guides/server-deployment",
+      "to": "/deployment-guide/server/server-deployment-planning"
+    },
+    {
+      "from": "/help/apps/desktop-mvp",
+      "to": "/developers/contribute/more-info/mvp"
+    },
+    {
+      "from": "/help/getting-started/about-teams-channels-messages",
+      "to": "/end-user-guide/collaborate/collaborate-index"
+    },
+    {
+      "from": "/help/getting-started/access-your-workspace",
+      "to": "/end-user-guide/access/access-your-workspace"
+    },
+    {
+      "from": "/help/getting-started/accessibility",
+      "to": "/end-user-guide/collaborate/keyboard-accessibility"
+    },
+    {
+      "from": "/help/getting-started/configuring-notifications",
+      "to": "/end-user-guide/preferences/manage-your-notifications"
+    },
+    {
+      "from": "/help/getting-started/organizing-your-sidebar",
+      "to": "/end-user-guide/preferences/manage-your-sidebar-options"
+    },
+    {
+      "from": "/help/getting-started/setting-your-status-availability",
+      "to": "/end-user-guide/preferences/set-your-status-availability"
+    },
+    {
+      "from": "/help/messaging/emoji",
+      "to": "/end-user-guide/collaborate/react-with-emojis-gifs"
+    },
+    {
+      "from": "/help/messaging/executing-commands",
+      "to": "/integrations-guide/run-slash-commands"
+    },
+    {
+      "from": "/help/messaging/formatting-text",
+      "to": "/end-user-guide/collaborate/format-messages"
+    },
+    {
+      "from": "/help/messaging/keyboard-shortcuts",
+      "to": "/end-user-guide/collaborate/keyboard-shortcuts"
+    },
+    {
+      "from": "/help/settings/account-settings",
+      "to": "/end-user-guide/preferences/manage-your-profile"
+    },
+    {
+      "from": "/help/settings/channel-settings",
+      "to": "/end-user-guide/collaborate/collaborate-within-channels"
+    },
+    {
+      "from": "/help/settings/custom-emoji",
+      "to": "/end-user-guide/collaborate/react-with-emojis-gifs"
+    },
+    {
+      "from": "/help/settings/integration-settings",
+      "to": "/integrations-guide/integrations-guide-index"
+    },
+    {
+      "from": "/install/config-cloudfront",
+      "to": "/deployment-guide/server/deploy-server"
+    },
+    {
+      "from": "/install/deploy-cloudron",
+      "to": "/deployment-guide/server/deploy-server"
+    },
+    {
+      "from": "/install/docker-local-machine",
+      "to": "/deployment-guide/server/deploy-server"
+    },
+    {
+      "from": "/install/ee-install",
+      "to": "/deployment-guide/server/deploy-server"
+    },
+    {
+      "from": "/install/heroku",
+      "to": "/deployment-guide/server/deploy-server"
+    },
+    {
+      "from": "/install/outbound-proxy",
+      "to": "/deployment-guide/server/prepare-network"
+    },
+    {
+      "from": "/install/prepare-mattermost-database",
       "to": "/deployment-guide/server/prepare-database"
+    },
+    {
+      "from": "/install/prod-docker",
+      "to": "/deployment-guide/server/deploy-kubernetes"
+    },
+    {
+      "from": "/install/prod-windows-2012",
+      "to": "/deployment-guide/server/deploy-server"
+    },
+    {
+      "from": "/install/requirements",
+      "to": "/deployment-guide/software-hardware-requirements"
+    },
+    {
+      "from": "/install/self-managed-changelog",
+      "to": "/product-overview/unsupported-legacy-releases"
+    },
+    {
+      "from": "/install/setting-up-aws-elastic-beanstalk-docker",
+      "to": "/deployment-guide/server/preparations"
+    },
+    {
+      "from": "/install/setting-up-socket-based-mattermost-database",
+      "to": "/deployment-guide/server/preparations"
+    },
+    {
+      "from": "/install/sockets-db",
+      "to": "/deployment-guide/server/preparations"
+    },
+    {
+      "from": "/install/transport-encryption/config-cluster",
+      "to": "/deployment-guide/transport-encryption#configuring-cluster-transport-encryption"
+    },
+    {
+      "from": "/install/transport-encryption/config-database",
+      "to": "/deployment-guide/transport-encryption#configuring-database-transport-encryption"
+    },
+    {
+      "from": "/install/transport-encryption/config-mattermost",
+      "to": "/deployment-guide/transport-encryption#configuring-mattermost"
+    },
+    {
+      "from": "/install/transport-encryption/config",
+      "to": "/deployment-guide/transport-encryption"
+    },
+    {
+      "from": "/integrate/ms-teams-interoperability",
+      "to": "/administration-guide/configure/plugins-configuration-settings#ms-teams"
+    },
+    {
+      "from": "/integrations-guide/pre-built-integrations",
+      "to": "/integrations-guide/popular-integrations"
+    },
+    {
+      "from": "/integrations/cloud-bot-accounts",
+      "to": "/administration-guide/configure/integrations-configuration-settings#bot-accounts"
+    },
+    {
+      "from": "/integrations/cloud-embedding",
+      "to": "/administration-guide/configure/integrations-configuration-settings#embedding"
+    },
+    {
+      "from": "/integrations/cloud-incoming-webhooks",
+      "to": "/integrations-guide/incoming-webhooks"
+    },
+    {
+      "from": "/integrations/cloud-outgoing-webhooks",
+      "to": "/integrations-guide/outgoing-webhooks"
+    },
+    {
+      "from": "/integrations/cloud-slash-commands",
+      "to": "/integrations-guide/slash-commands"
+    },
+    {
+      "from": "/integrations/embedding",
+      "to": "/administration-guide/configure/integrations-configuration-settings#embedding"
+    },
+    {
+      "from": "/integrations/jira",
+      "to": "/integrations-guide/jira"
+    },
+    {
+      "from": "/integrations/webhook",
+      "to": "/integrations-guide/webhook-integrations"
+    },
+    {
+      "from": "/integrations/zapier",
+      "to": "/developers/integrate/zapier-integration"
+    },
+    {
+      "from": "/integrations/zoom",
+      "to": "/integrations-guide/zoom"
+    },
+    {
+      "from": "/manage/admin/generating-support-packet",
+      "to": "/administration-guide/manage/admin/generating-support-packet"
+    },
+    {
+      "from": "/manage/bulk-export-data",
+      "to": "/administration-guide/manage/bulk-export-tool"
+    },
+    {
+      "from": "/manage/bulk-export-tool",
+      "to": "/administration-guide/manage/bulk-export-tool"
+    },
+    {
+      "from": "/manage/cloud-billing",
+      "to": "/product-overview/cloud-subscriptions"
+    },
+    {
+      "from": "/manage/cloud-data-export",
+      "to": "/administration-guide/manage/cloud-data-export"
+    },
+    {
+      "from": "/manage/common-support-packet",
+      "to": "/administration-guide/manage/admin/generating-support-packet#contents-of-a-support-packet"
+    },
+    {
+      "from": "/manage/generating-support-packet",
+      "to": "/administration-guide/manage/admin/generating-support-packet"
+    },
+    {
+      "from": "/manage/logging",
+      "to": "/administration-guide/manage/logging"
+    },
+    {
+      "from": "/manage/scripts",
+      "to": "/"
+    },
+    {
+      "from": "/manage/workspace-usage",
+      "to": "/administration-guide/manage/cloud-workspace-management"
+    },
+    {
+      "from": "/messaging/accessing-your-workspace",
+      "to": "/end-user-guide/access/access-your-workspace"
+    },
+    {
+      "from": "/messaging/channel-preferences",
+      "to": "/end-user-guide/collaborate/collaborate-within-channels"
+    },
+    {
+      "from": "/messaging/channel-settings",
+      "to": "/end-user-guide/collaborate/collaborate-within-channels"
+    },
+    {
+      "from": "/messaging/common-navigating-mattermost-products",
+      "to": "/"
+    },
+    {
+      "from": "/messaging/configuring-notifications",
+      "to": "/end-user-guide/preferences/manage-your-notifications"
+    },
+    {
+      "from": "/messaging/executing-slash-commands",
+      "to": "/integrations-guide/run-slash-commands"
+    },
+    {
+      "from": "/messaging/keyboard-accessibility",
+      "to": "/end-user-guide/collaborate/keyboard-accessibility"
+    },
+    {
+      "from": "/messaging/keyboard-shortcuts",
+      "to": "/end-user-guide/collaborate/keyboard-shortcuts"
+    },
+    {
+      "from": "/messaging/manage-channels-settings",
+      "to": "/end-user-guide/collaborate/collaborate-within-channels"
+    },
+    {
+      "from": "/messaging/manage-profile-settings",
+      "to": "/end-user-guide/preferences/manage-your-profile"
+    },
+    {
+      "from": "/messaging/managing-account-settings",
+      "to": "/end-user-guide/preferences/preferences-index"
+    },
+    {
+      "from": "/messaging/navigating-mattermost",
+      "to": "/end-user-guide/collaborate/keyboard-accessibility"
+    },
+    {
+      "from": "/messaging/organizing-your-sidebar",
+      "to": "/end-user-guide/preferences/manage-your-sidebar-options"
+    },
+    {
+      "from": "/messaging/setting-your-status-availability",
+      "to": "/end-user-guide/preferences/set-your-status-availability"
+    },
+    {
+      "from": "/messaging/using-emoji",
+      "to": "/end-user-guide/collaborate/react-with-emojis-gifs"
+    },
+    {
+      "from": "/messaging/using-emojis",
+      "to": "/end-user-guide/collaborate/react-with-emojis-gifs"
+    },
+    {
+      "from": "/onboard/advanced-permissions-backend-infrastructure",
+      "to": "/administration-guide/onboard/advanced-permissions-backend-infrastructure"
+    },
+    {
+      "from": "/onboard/bulk-loading-data",
+      "to": "/administration-guide/onboard/bulk-loading-data"
+    },
+    {
+      "from": "/onboard/common-converting-oauth-to-openidconnect",
+      "to": "/administration-guide/onboard/common-converting-oauth-to-openidconnect"
+    },
+    {
+      "from": "/onboard/delegated-granular-administration",
+      "to": "/administration-guide/onboard/delegated-granular-administration"
+    },
+    {
+      "from": "/onboard/sso-saml-before-you-begin",
+      "to": "/administration-guide/onboard/sso-saml"
+    },
+    {
+      "from": "/onboard/sso-saml-onelogin",
+      "to": "/administration-guide/onboard/sso-saml-onelogin"
+    },
+    {
+      "from": "/onboard/system-admin-roles",
+      "to": "/administration-guide/onboard/delegated-granular-administration"
+    },
+    {
+      "from": "/overview/architecture",
+      "to": "/deployment-guide/application-architecture"
+    },
+    {
+      "from": "/overview/compliance",
+      "to": "/product-overview/certifications-and-compliance"
+    },
+    {
+      "from": "/overview/index.html",
+      "to": "/"
+    },
+    {
+      "from": "/overview/integrations",
+      "to": "/integrations-guide/integrations-guide-index"
+    },
+    {
+      "from": "/overview/product",
+      "to": "/"
+    },
+    {
+      "from": "/overview/security",
+      "to": "/security-guide/security-guide-index"
+    },
+    {
+      "from": "/playbooks/navigating-mattermost-playbooks",
+      "to": "/end-user-guide/workflow-automation/workflow-automation-index"
+    },
+    {
+      "from": "/preferences/manage-your-profile",
+      "to": "/end-user-guide/preferences/manage-your-profile"
+    },
+    {
+      "from": "/preferences/manage-your-security-preferences",
+      "to": "/end-user-guide/preferences/manage-your-security-preferences"
+    },
+    {
+      "from": "/preferences/set-your-status-availability",
+      "to": "/end-user-guide/preferences/set-your-status-availability"
+    },
+    {
+      "from": "/product-overview/corporate-directory-integration",
+      "to": "/administration-guide/onboard/corporate-directory-integration"
+    },
+    {
+      "from": "/product-overview/faq-business",
+      "to": "/product-overview/faq-license"
+    },
+    {
+      "from": "/samples/index.html",
+      "to": "/"
+    },
+    {
+      "from": "/scale/backing-storage-benchmarks",
+      "to": "/deployment-guide/scale/backing-storage-benchmarks"
+    },
+    {
+      "from": "/upgrade/important-upgrade-notes",
+      "to": "/administration-guide/upgrade/important-upgrade-notes"
+    },
+    {
+      "from": "/welcome/add-people",
+      "to": "/administration-guide/configure/user-management-configuration-settings"
+    },
+    {
+      "from": "/welcome/get-started-mattermost-channels",
+      "to": "/end-user-guide/collaborate/collaborate-within-channels"
+    },
+    {
+      "from": "/welcome/manage-your-profile",
+      "to": "/end-user-guide/preferences/manage-your-profile"
+    },
+    {
+      "from": "/welcome/set-your-status-availability",
+      "to": "/end-user-guide/preferences/set-your-status-availability"
+    },
+    {
+      "from": "/welcome/team-keyboard-shortcuts",
+      "to": "/end-user-guide/collaborate/team-keyboard-shortcuts"
     }
   ]
 }
