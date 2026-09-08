@@ -3,7 +3,7 @@
 
 import Tippy from '@tippyjs/react';
 import classNames from 'classnames';
-import React, {useRef} from 'react';
+import React, {useRef, type JSX} from 'react';
 import {FormattedMessage} from 'react-intl';
 import type {Placement} from 'tippy.js';
 

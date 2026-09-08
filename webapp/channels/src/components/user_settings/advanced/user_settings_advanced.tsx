@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import type {ReactNode} from 'react';
+import type {JSX, ReactNode} from 'react';
 import {FormattedMessage, defineMessages} from 'react-intl';
 
 import {isMac} from '@mattermost/shared/utils/user_agent';
