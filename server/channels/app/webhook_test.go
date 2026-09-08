@@ -19,6 +19,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/httpservice"
 	"github.com/mattermost/mattermost/server/v8/channels/testlib"
 )
 
@@ -1504,6 +1505,113 @@ func (r InfiniteReader) Read(p []byte) (n int, err error) {
 	}
 
 	return len(p), nil
+}
+
+// deadlineRecorder records the deadline carried by the request reaching the transport, which is
+// the effective limit on the request: the earlier of the client timeout and the context deadline.
+type deadlineRecorder struct {
+	next        http.RoundTripper
+	deadline    time.Time
+	hasDeadline bool
+}
+
+func (r *deadlineRecorder) RoundTrip(req *http.Request) (*http.Response, error) {
+	r.deadline, r.hasDeadline = req.Context().Deadline()
+
+	return r.next.RoundTrip(req)
+}
+
+// Outgoing webhooks and slash commands share Srv().outgoingWebhookClient and give every request a
+// deadline of OutgoingIntegrationRequestsTimeout, so a timeout on the client itself would cap a
+// value configured above httpservice.RequestTimeout.
+func TestOutgoingWebhookRequestDeadline(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.ServiceSettings.AllowedUntrustedInternalConnections = new("127.0.0.1")
+		cfg.ServiceSettings.OutgoingIntegrationRequestsTimeout = new(int64(60))
+	})
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		_, err := io.Copy(w, strings.NewReader(`{"text": "Hello, World!"}`))
+		require.NoError(t, err)
+	}))
+	defer server.Close()
+
+	client := th.App.Srv().outgoingWebhookClient
+	recorder := &deadlineRecorder{next: client.Transport}
+	client.Transport = recorder
+	t.Cleanup(func() { client.Transport = recorder.next })
+
+	resp, err := th.App.doOutgoingWebhookRequest(server.URL, strings.NewReader(""), "application/json", nil)
+	require.NoError(t, err)
+	require.NotNil(t, resp)
+	require.NotNil(t, resp.Text)
+	assert.Equal(t, "Hello, World!", *resp.Text)
+
+	require.True(t, recorder.hasDeadline, "the request should carry the configured deadline")
+	assert.Greater(t, time.Until(recorder.deadline), httpservice.RequestTimeout,
+		"the configured timeout must not be capped by a client timeout")
+
+	// Clients that are not used for outgoing integration requests keep the default timeout.
+	assert.Equal(t, httpservice.RequestTimeout, th.App.Srv().pushNotificationClient.Timeout)
+}
+
+// The shared outgoingWebhookClient no longer imposes a client timeout, so shutdown must cancel
+// in-flight outgoing integration requests through their context instead of blocking on the full
+// configured OutgoingIntegrationRequestsTimeout.
+func TestOutgoingIntegrationRequestCancelledOnShutdown(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	s, err := newServerWithConfig(t, func(cfg *model.Config) {
+		*cfg.ServiceSettings.ListenAddress = "localhost:0"
+		cfg.ServiceSettings.AllowedUntrustedInternalConnections = new("127.0.0.1")
+		// Large enough that shutdown would visibly hang if the request were not cancelled.
+		cfg.ServiceSettings.OutgoingIntegrationRequestsTimeout = new(int64(3600))
+	})
+	require.NoError(t, err)
+	require.NoError(t, s.Start())
+
+	app := New(ServerConnector(s.Channels()))
+
+	started := make(chan struct{})
+	// release unblocks the handler if the request is never cancelled, so a test failure reports
+	// cleanly instead of leaving blocking.Close() waiting until the go test timeout.
+	release := make(chan struct{})
+	blocking := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		close(started)
+		select {
+		case <-r.Context().Done():
+		case <-release:
+		}
+	}))
+	defer blocking.Close()
+	defer close(release)
+
+	// Mimic the real outgoing webhook dispatch, which runs inside Srv().Go and is waited on by
+	// Shutdown.
+	requestReturned := make(chan struct{})
+	s.Go(func() {
+		defer close(requestReturned)
+		_, _ = app.doOutgoingWebhookRequest(blocking.URL, strings.NewReader(""), "application/json", nil)
+	})
+
+	<-started
+
+	done := make(chan struct{})
+	go func() {
+		s.Shutdown()
+		close(done)
+	}()
+
+	select {
+	case <-done:
+	case <-time.After(30 * time.Second):
+		require.Fail(t, "Shutdown blocked on an in-flight outgoing integration request instead of cancelling it")
+	}
+
+	<-requestReturned
 }
 
 func TestDoOutgoingWebhookRequest(t *testing.T) {

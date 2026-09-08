@@ -36,7 +36,7 @@ const SearchChannelSuggestion = React.forwardRef<HTMLLIElement, Props>(({
         botTag: null,
     });
 
-    let icon: React.ReactElement | null = null;
+    let icon: React.ReactElement<any> | null = null;
     let name = '';
     let description = '';
 
