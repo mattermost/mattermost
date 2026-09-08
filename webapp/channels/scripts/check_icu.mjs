@@ -35,7 +35,7 @@
  * react-intl falls back to the source message.
  *
  * Usage:
- *   node scripts/check_icu.mjs <en.json> [--warn-missing-keys] <locale.json...>
+ *   node scripts/check_icu.mjs <i18n-dir> [--warn-missing-keys]
  */
 
 import fs from 'fs';
@@ -47,16 +47,44 @@ import path from 'path';
 const reactIntlRequire = createRequire(import.meta.resolve('react-intl'));
 const {parse} = await import(pathToFileURL(reactIntlRequire.resolve('@formatjs/icu-messageformat-parser')).href);
 
+const SOURCE = 'en.json';
+
 const argv = process.argv.slice(2);
 const warnMissingKeys = argv.includes('--warn-missing-keys');
-const [enPath, ...localePaths] = argv.filter((a) => a !== '--warn-missing-keys');
+const [i18nDir, ...extra] = argv.filter((a) => a !== '--warn-missing-keys');
 
-if (!enPath || localePaths.length === 0) {
-    console.error('usage: node scripts/check_icu.mjs <en.json> [--warn-missing-keys] <locale.json...>');
+if (!i18nDir || extra.length) {
+    console.error('usage: node scripts/check_icu.mjs <i18n-dir> [--warn-missing-keys]');
     process.exit(2);
 }
 
-const en = JSON.parse(fs.readFileSync(enPath, 'utf8'));
+const readCatalog = (name) => fs.readFileSync(path.join(i18nDir, name), 'utf8');
+
+// Sorted because readdir order is filesystem dependent, and the report has to
+// be stable across runs and diffable between them.
+let localeNames;
+try {
+    localeNames = fs.readdirSync(i18nDir, {withFileTypes: true}).
+        filter((entry) => entry.isFile() && path.extname(entry.name) === '.json' && entry.name !== SOURCE).
+        map((entry) => entry.name).
+        sort();
+} catch (e) {
+    console.error(`cannot read the i18n directory ${i18nDir}: ${e.message}`);
+    process.exit(2);
+}
+
+if (localeNames.length === 0) {
+    console.error(`no locale catalogs beside ${SOURCE} in ${i18nDir}`);
+    process.exit(2);
+}
+
+let en;
+try {
+    en = JSON.parse(readCatalog(SOURCE));
+} catch (e) {
+    console.error(`cannot read ${path.join(i18nDir, SOURCE)}: ${e.message}`);
+    process.exit(2);
+}
 
 // A lone ASCII apostrophe before < or { opens an ICU quoted literal that
 // swallows the tag or variable. A doubled one does not: '' is the escape for a
@@ -135,16 +163,14 @@ for (const [key, message] of Object.entries(en)) {
     try {
         enArgs.set(key, argTypes(parse(message, {ignoreTag: false, requiresOtherClause: true})));
     } catch (e) {
-        errors.push(`${path.basename(enPath)}:${key}: source does not parse: ${e.message}`);
+        errors.push(`${SOURCE}:${key}: source does not parse: ${e.message}`);
     }
 }
 
-for (const localePath of localePaths) {
-    const name = path.basename(localePath);
-
+for (const name of localeNames) {
     let data;
     try {
-        data = JSON.parse(fs.readFileSync(localePath, 'utf8'));
+        data = JSON.parse(readCatalog(name));
     } catch (e) {
         errors.push(`${name}: invalid JSON: ${e.message}`);
         continue;
@@ -158,7 +184,7 @@ for (const localePath of localePaths) {
 
     for (const [key, message] of Object.entries(data)) {
         if (!(key in en)) {
-            errors.push(`${name}:${key}: extra key not in ${path.basename(enPath)}`);
+            errors.push(`${name}:${key}: extra key not in ${SOURCE}`);
             continue;
         }
         if (typeof message !== 'string') {
@@ -232,8 +258,8 @@ if (warnings.length) {
 
 if (errors.length) {
     console.error(errors.join('\n'));
-    console.error(`\n${errors.length} error(s) across ${localePaths.length} locale file(s)`);
+    console.error(`\n${errors.length} error(s) across ${localeNames.length} locale file(s)`);
     process.exit(1);
 }
 
-console.log(`OK: ${localePaths.length} locale files checked against ${enPath}`);
+console.log(`OK: ${localeNames.length} locale files checked against ${path.join(i18nDir, SOURCE)}`);

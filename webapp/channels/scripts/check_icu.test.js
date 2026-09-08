@@ -17,24 +17,20 @@ const path = require('path');
 const SCRIPT = path.join(__dirname, 'check_icu.mjs');
 
 /**
- * Write a source catalog and one or more locale catalogs to a temp dir, run the
- * checker over them, and return its exit code and output. A catalog may be an
- * object, or a string when the case needs to be malformed.
+ * Write a source catalog and one or more locale catalogs to a temp i18n dir, run
+ * the checker over that directory, and return its exit code and output. A
+ * catalog may be an object, or a string when the case needs to be malformed.
  */
-function check(en, locales, {warnMissingKeys = false} = {}) {
+function check(en, locales, {warnMissingKeys = false, extraFiles = {}} = {}) {
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'check-icu-'));
     const serialize = (body) => (typeof body === 'string' ? body : JSON.stringify(body));
 
-    const enPath = path.join(dir, 'en.json');
-    fs.writeFileSync(enPath, serialize(en));
+    fs.writeFileSync(path.join(dir, 'en.json'), serialize(en));
+    for (const [name, body] of Object.entries({...locales, ...extraFiles})) {
+        fs.writeFileSync(path.join(dir, name), serialize(body));
+    }
 
-    const localePaths = Object.entries(locales).map(([name, body]) => {
-        const p = path.join(dir, name);
-        fs.writeFileSync(p, serialize(body));
-        return p;
-    });
-
-    const args = [SCRIPT, enPath, ...(warnMissingKeys ? ['--warn-missing-keys'] : []), ...localePaths];
+    const args = [SCRIPT, dir, ...(warnMissingKeys ? ['--warn-missing-keys'] : [])];
     const result = spawnSync(process.execPath, args, {encoding: 'utf8'});
 
     return {code: result.status, stdout: result.stdout, stderr: result.stderr};
@@ -302,12 +298,56 @@ describe('check_icu', () => {
     describe('cli', () => {
         test.each([
             ['no arguments', []],
-            ['only a source catalog', ['en.json']],
+            ['more than one directory', ['a', 'b']],
         ])('exits 2 on %s', (_label, args) => {
             const result = spawnSync(process.execPath, [SCRIPT, ...args], {encoding: 'utf8'});
 
             expect(result.status).toBe(2);
             expect(result.stderr).toContain('usage:');
+        });
+
+        test('exits 2 on a directory that does not exist', () => {
+            const missing = path.join(os.tmpdir(), 'check-icu-does-not-exist');
+            const result = spawnSync(process.execPath, [SCRIPT, missing], {encoding: 'utf8'});
+
+            expect(result.status).toBe(2);
+            expect(result.stderr).toContain('cannot read the i18n directory');
+        });
+
+        test('exits 2 when en.json is missing or malformed', () => {
+            const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'check-icu-'));
+            fs.writeFileSync(path.join(dir, 'fr.json'), '{}');
+
+            const missing = spawnSync(process.execPath, [SCRIPT, dir], {encoding: 'utf8'});
+            expect(missing.status).toBe(2);
+            expect(missing.stderr).toContain('cannot read');
+
+            fs.writeFileSync(path.join(dir, 'en.json'), '{not json');
+            const malformed = spawnSync(process.execPath, [SCRIPT, dir], {encoding: 'utf8'});
+            expect(malformed.status).toBe(2);
+            expect(malformed.stderr).toContain('cannot read');
+        });
+
+        test('exits 2 when the directory holds no locale catalogs', () => {
+            const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'check-icu-'));
+            fs.writeFileSync(path.join(dir, 'en.json'), '{}');
+
+            const result = spawnSync(process.execPath, [SCRIPT, dir], {encoding: 'utf8'});
+
+            expect(result.status).toBe(2);
+            expect(result.stderr).toContain('no locale catalogs');
+        });
+
+        // src/i18n holds i18n.ts and a CLAUDE.OPTIONAL.md beside the catalogs.
+        test('walks only the sibling json catalogs, and never en.json', () => {
+            const {code, stdout} = check(
+                {'a.b': 'Hello'},
+                {'fr.json': {'a.b': 'Bonjour'}},
+                {extraFiles: {'i18n.ts': 'export default 1;', 'notes.md': 'hi'}},
+            );
+
+            expect(code).toBe(0);
+            expect(stdout).toContain('OK: 1 locale files checked');
         });
 
         test('reports every locale file, not just the first that fails', () => {
