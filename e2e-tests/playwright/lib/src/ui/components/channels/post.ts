@@ -12,8 +12,9 @@ import ThreadFooter from './thread_footer';
 
 import {duration, wait} from '@/util';
 
-/** A pending_post_id ("<userId>:<timestamp>"), which the webapp uses until the server acks the post. */
-const PENDING_POST_ID_RE = /^[a-z0-9]{26}:\d+$/;
+// "<26-char id>:<timestamp>" — a pending_post_id before the server acks, but also the permanent
+// DOM id of a combined post (see ChannelsCenterView.postById). Indistinguishable by shape.
+const SUFFIXED_POST_ID_RE = /^([a-z0-9]{26}):\d+$/;
 
 // Both assert the positive case first: a lone "placeholder is absent" check also passes
 // against a region that has not rendered at all.
@@ -99,12 +100,14 @@ export default class ChannelsPost {
     /**
      * Returns the post's permanent ID.
      *
-     * A just-sent post renders optimistically under its pending_post_id until the server acks it
-     * and swaps in the real one, and a pending_post_id parses to the author's ID rather than the
-     * post's. So retry briefly to give the ack time to land.
+     * A just-sent post renders optimistically under its pending_post_id, which is the author's ID,
+     * not the post's — so retry briefly to give the server ack time to land. A combined post is
+     * suffixed the same way but is already permanent, so fall back to the prefix rather than
+     * failing: waiting cannot improve it.
      */
     async getId(attempts = 3) {
         let id: string | null = null;
+        let postId = '';
 
         for (let attempt = 0; attempt < attempts; attempt++) {
             if (attempt > 0) {
@@ -112,14 +115,19 @@ export default class ChannelsPost {
             }
 
             id = await this.container.getAttribute('id');
-            const postId = (id ?? '').substring('post_'.length);
+            postId = (id ?? '').substring('post_'.length);
 
-            if (postId && !PENDING_POST_ID_RE.test(postId)) {
+            if (postId && !SUFFIXED_POST_ID_RE.test(postId)) {
                 return postId;
             }
         }
 
-        throw new Error(`No permanent post ID found after ${attempts} attempts, last saw id="${id}".`);
+        const suffixed = SUFFIXED_POST_ID_RE.exec(postId);
+        if (suffixed) {
+            return suffixed[1];
+        }
+
+        throw new Error(`No post ID found after ${attempts} attempts, last saw id="${id}".`);
     }
 
     async getProfileImage(username: string) {

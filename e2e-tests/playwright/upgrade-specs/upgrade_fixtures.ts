@@ -627,17 +627,27 @@ export function clearUpgradeFromContextCache(): void {
     upgradeFromContextCache = undefined;
 }
 
-/** Idempotently ensures shared upgrade actors/channels and returns API clients for from-phase tests. */
-export async function loadUpgradeFromContext(pw: {
-    getAdminClient: () => Promise<{adminClient: Client4}>;
-    makeClient: (user: UserProfile) => Promise<{client: Client4 | undefined}>;
-}): Promise<UpgradeFromContext> {
+/**
+ * Idempotently ensures shared upgrade actors/channels and returns API clients for from-phase tests.
+ *
+ * `patchConfig: false` skips the config patch for the to-phase, where writing settings before
+ * asserting them would repair anything the upgrade dropped instead of reporting it.
+ */
+export async function loadUpgradeFromContext(
+    pw: {
+        getAdminClient: () => Promise<{adminClient: Client4}>;
+        makeClient: (user: UserProfile) => Promise<{client: Client4 | undefined}>;
+    },
+    {patchConfig = true}: {patchConfig?: boolean} = {},
+): Promise<UpgradeFromContext> {
     if (upgradeFromContextCache) {
         return upgradeFromContextCache;
     }
 
     const {adminClient} = await pw.getAdminClient();
-    await ensureUpgradeServerConfig(adminClient);
+    if (patchConfig) {
+        await ensureUpgradeServerConfig(adminClient);
+    }
 
     const team = await ensureUpgradeTeam(adminClient);
     const user = await ensureUpgradeUser(adminClient, team.id, seeder.UPGRADE_USER);
@@ -705,7 +715,8 @@ export async function loadUpgradeToContext(pw: {
     makeClient: (user: UserProfile) => Promise<{client: Client4 | undefined}>;
 }): Promise<UpgradeToContext> {
     const baseline = readUpgradeBaseline();
-    const ctx = await loadUpgradeFromContext(pw);
+    // Read-only: verification must observe the config the upgrade produced, not a repaired one.
+    const ctx = await loadUpgradeFromContext(pw, {patchConfig: false});
     return {
         ...ctx,
         baseline,

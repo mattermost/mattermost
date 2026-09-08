@@ -117,7 +117,7 @@ jobs:
           RUN_ATTEMPT: ${{ github.run_attempt }}
           RUN_ID: ${{ github.run_id }}
         run: |
-          echo "commit_sha=${COMMIT_SHA}" >> $GITHUB_OUTPUT
+          echo "commit_sha=${COMMIT_SHA}" >> "$GITHUB_OUTPUT"
 
           if [ -n "$INPUT_SERVER_IMAGE_TAG" ]; then
             SERVER_IMAGE_TAG="$INPUT_SERVER_IMAGE_TAG"
@@ -129,15 +129,15 @@ jobs:
             echo "::error::Invalid server_image_tag format: ${SERVER_IMAGE_TAG}"
             exit 1
           fi
-          echo "server_image_tag=${SERVER_IMAGE_TAG}" >> $GITHUB_OUTPUT
+          echo "server_image_tag=${SERVER_IMAGE_TAG}" >> "$GITHUB_OUTPUT"
 
           REF_BRANCH="${INPUT_REF_BRANCH}"
           if [ -n "$PR_NUMBER" ]; then
-            echo "branch=pr-${PR_NUMBER}" >> $GITHUB_OUTPUT
+            echo "branch=pr-${PR_NUMBER}" >> "$GITHUB_OUTPUT"
           elif [ -n "$REF_BRANCH" ]; then
-            echo "branch=${REF_BRANCH}" >> $GITHUB_OUTPUT
+            echo "branch=${REF_BRANCH}" >> "$GITHUB_OUTPUT"
           else
-            echo "branch=commit-${COMMIT_SHA::7}" >> $GITHUB_OUTPUT
+            echo "branch=commit-${COMMIT_SHA::7}" >> "$GITHUB_OUTPUT"
           fi
 
           EDITION="${INPUT_SERVER_EDITION}"
@@ -149,11 +149,11 @@ jobs:
             *)    IMAGE_NAME="mattermost-enterprise-edition" ;;
           esac
           SERVER_IMAGE="${REPO}/${IMAGE_NAME}:${SERVER_IMAGE_TAG}"
-          echo "server_image=${SERVER_IMAGE}" >> $GITHUB_OUTPUT
+          echo "server_image=${SERVER_IMAGE}" >> "$GITHUB_OUTPUT"
           # Repo + image name without a tag, so the matrix job below can build each from-image
           # reference by appending that entry's dockerTag. From- and to-images must come from the
           # same repo and edition for the swap to be a like-for-like upgrade.
-          echo "server_image_base=${REPO}/${IMAGE_NAME}" >> $GITHUB_OUTPUT
+          echo "server_image_base=${REPO}/${IMAGE_NAME}" >> "$GITHUB_OUTPUT"
 
           ALIASES="${INPUT_SERVER_IMAGE_ALIASES}"
           if [ -n "$ALIASES" ] && ! [[ "$ALIASES" =~ ^[a-zA-Z0-9._,\ -]+$ ]]; then
@@ -162,17 +162,17 @@ jobs:
           fi
 
           if [ -n "$EDITION" ] && [ "$EDITION" != "enterprise" ]; then
-            echo "build_id=${RUN_ID}_${RUN_ATTEMPT}-${SERVER_IMAGE_TAG}-playwright-rolling-upgrades-onprem-${EDITION}" >> $GITHUB_OUTPUT
+            echo "build_id=${RUN_ID}_${RUN_ATTEMPT}-${SERVER_IMAGE_TAG}-playwright-rolling-upgrades-onprem-${EDITION}" >> "$GITHUB_OUTPUT"
           else
-            echo "build_id=${RUN_ID}_${RUN_ATTEMPT}-${SERVER_IMAGE_TAG}-playwright-rolling-upgrades-onprem-ent" >> $GITHUB_OUTPUT
+            echo "build_id=${RUN_ID}_${RUN_ATTEMPT}-${SERVER_IMAGE_TAG}-playwright-rolling-upgrades-onprem-ent" >> "$GITHUB_OUTPUT"
           fi
 
           REPORT_TYPE="${INPUT_REPORT_TYPE}"
           case "$REPORT_TYPE" in
-            MASTER) echo "context_suffix=/master" >> $GITHUB_OUTPUT ;;
-            RELEASE) echo "context_suffix=/release" >> $GITHUB_OUTPUT ;;
-            RELEASE_CUT) echo "context_suffix=/release-cut" >> $GITHUB_OUTPUT ;;
-            *) echo "context_suffix=" >> $GITHUB_OUTPUT ;;
+            MASTER) echo "context_suffix=/master" >> "$GITHUB_OUTPUT" ;;
+            RELEASE) echo "context_suffix=/release" >> "$GITHUB_OUTPUT" ;;
+            RELEASE_CUT) echo "context_suffix=/release-cut" >> "$GITHUB_OUTPUT" ;;
+            *) echo "context_suffix=" >> "$GITHUB_OUTPUT" ;;
           esac
 
   # Which older versions to upgrade FROM is a runtime question — the last 3 minors plus whatever

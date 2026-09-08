@@ -32,7 +32,7 @@ PW_USE_TESTCONTAINERS=true PW_TESTCONTAINERS_SERVICES=minio,openldap npm run tes
 PW_USE_TESTCONTAINERS=true SERVER_IMAGE=mattermostdevelopment/mattermost-enterprise-edition:<tag> npm run test
 
 # Pass arbitrary MM_* config overrides as comma-separated KEY=VALUE pairs
-PW_USE_TESTCONTAINERS=true MM_ENV=MM_LICENSE=<your-license-key> npm run test
+PW_USE_TESTCONTAINERS=true MM_ENV=MM_LICENSE='<your-license-key>' npm run test
 ```
 
 Containers are reused across invocations by default (`PW_TESTCONTAINERS_REUSE=true`) instead of being recreated every run — tear the stack down explicitly when you're done with `npm run testcontainers:down`. Set `PW_TESTCONTAINERS_REUSE=false` for a one-off run that tears itself down when it finishes. Use `npm run testcontainers:up` to just bring the stack up (or confirm an existing one's still reachable) without running any tests.
@@ -116,12 +116,12 @@ npm run testcontainers:down
 # Phase 1 — boots fresh on the older from-image. Use a release-* tag; patch tags like 11.9.1 are
 # not published. `node script/resolve_upgrade_matrix.mjs` prints the tags CI uses.
 # MM_LICENSE is optional; when set, the baseline records license details.
-MM_LICENSE=<your-license-key> \
+MM_LICENSE='<your-license-key>' \
   PW_UPGRADE_FROM_SERVER_IMAGE=mattermostdevelopment/mattermost-enterprise-edition:release-11.9 \
   npm run test:upgrade:from
 
 # Phase 2 — swaps to SERVER_IMAGE (defaults to :master) with the same env as from.
-MM_LICENSE=<your-license-key> \
+MM_LICENSE='<your-license-key>' \
   SERVER_IMAGE=mattermostdevelopment/mattermost-enterprise-edition:master \
   npm run test:upgrade:to
 
@@ -150,13 +150,13 @@ Every worker upgrades its own server, since a server cannot be shared across run
 
 **When it runs**
 
-| Pipeline                        | Rolling upgrades                                                                                                                                   |
-| ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
-| PR (automated)                  | On when the diff touches `upgrade-specs/`, `lib/`, `playwright.config.ts`, `script/resolve_upgrade_matrix.mjs`, or either rolling-upgrade workflow |
-| PR (manual `workflow_dispatch`) | Opt-in via **Run rolling upgrades** checkbox                                                                                                       |
-| Merge to `master` / `release-*` | Off — too expensive per merge                                                                                                                      |
-| Release cut                     | On automatically                                                                                                                                   |
-| Ad-hoc                          | **Run workflow** on _E2E Tests - Playwright Rolling Upgrades_; no PR needed — pick a ref, to-image tag, edition, and worker count                  |
+| Pipeline                        | Rolling upgrades                                                                                                                                                                                                    |
+| ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| PR (automated)                  | On when the diff touches `upgrade-specs/`, `lib/`, `playwright.config.ts`, `package.json`, `package-lock.json`, `script/resolve_upgrade_matrix.mjs`, `e2e-tests-playwright.yml`, or either rolling-upgrade workflow |
+| PR (manual `workflow_dispatch`) | Opt-in via **Run rolling upgrades** checkbox                                                                                                                                                                        |
+| Merge to `master` / `release-*` | Off — too expensive per merge                                                                                                                                                                                       |
+| Release cut                     | On automatically                                                                                                                                                                                                    |
+| Ad-hoc                          | **Run workflow** on _E2E Tests - Playwright Rolling Upgrades_; no PR needed — pick a ref, to-image tag, edition, and worker count                                                                                   |
 
 **Commit statuses** — one per matrix entry and nothing else, so a 4-entry matrix produces exactly 4 contexts. When the resolver returns `[]`, no matrix jobs run and the workflow posts a single `upgrade-from-none` context instead. All sit under `e2e-test/playwright-full/{edition}/upgrade-from-*`, which is how the verified-label and override-status workflows discover them:
 

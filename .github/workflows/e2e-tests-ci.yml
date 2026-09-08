@@ -224,7 +224,7 @@ jobs:
           if [ "$INPUT_RUN_ROLLING_UPGRADES" = "true" ]; then
             echo "Manual rolling-upgrades opt-in detected"
             SHOULD_RUN_ROLLING_UPGRADES="true"
-          elif echo "$CHANGED_FILES" | grep -qE '^e2e-tests/playwright/(upgrade-specs/|lib/|script/resolve_upgrade_matrix\.mjs|playwright\.config\.ts|package\.json)'; then
+          elif echo "$CHANGED_FILES" | grep -qE '^e2e-tests/playwright/(upgrade-specs/|lib/|script/resolve_upgrade_matrix\.mjs|playwright\.config\.ts|package(-lock)?\.json)'; then
             echo "Found Playwright upgrade-path harness changes"
             SHOULD_RUN_ROLLING_UPGRADES="true"
           elif echo "$CHANGED_FILES" | grep -qE '^\.github/workflows/e2e-tests-playwright(\.yml|-rolling-upgrades)'; then

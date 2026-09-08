@@ -92,7 +92,7 @@ the stack `upgrade-from` created, so Testcontainers reuse must be on
 ```bash
 cd e2e-tests/playwright
 npm run testcontainers:down
-MM_LICENSE=<key> PW_UPGRADE_FROM_SERVER_IMAGE=mattermostdevelopment/mattermost-enterprise-edition:release-11.9 npm run test:upgrade:from
+MM_LICENSE='<your-license-key>' PW_UPGRADE_FROM_SERVER_IMAGE=mattermostdevelopment/mattermost-enterprise-edition:release-11.9 npm run test:upgrade:from
 SERVER_IMAGE=mattermostdevelopment/mattermost-enterprise-edition:master npm run test:upgrade:to
 npm run testcontainers:down
 ```
