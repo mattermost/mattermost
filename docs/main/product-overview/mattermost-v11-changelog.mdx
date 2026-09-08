@@ -440,6 +440,7 @@ See [this blog post](https://mattermost.com/blog/mattermost-v11-9-is-now-availab
   - Editing an outgoing OAuth connection now requires re-entering the client secret before validating or saving.
   - Truncated PDF text extraction to a specific limit.
   - Removed the unneeded ``POST /api/v4/posts/ids/reactions`` endpoint.
+  - Mention keywords are now limited to 500 keys and 50,000 bytes in total. Users or imports that exceed these limits receive a descriptive error.
   - Updated `getFile` API validation to check for content reviewer earlier.
   - Updated Slack import to handle user matching differently depending on the import type.
   - Updated the local image proxy to enforce a maximum size limit when fetching images directly.
