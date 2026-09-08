@@ -130,6 +130,18 @@ type ErrorKind =
     'applies_to_name_conflict' |
     'applies_to_limit_reached';
 
+// The error kinds whose banner copy interpolates {resources} -- share one
+// flat formatMessage(errorMessages[errorKind], {resources}) call. Kept as a
+// Set (module scope, not rebuilt per render) rather than a chain of ===
+// comparisons at the call site.
+const RESOURCE_INTERPOLATED_ERROR_KINDS = new Set<ErrorKind>([
+    'applies_to_failed',
+    'applies_to_remove_failed',
+    'applies_to_remove_partial_save',
+    'applies_to_partial_save',
+    'applies_to_config_save_failed',
+]);
+
 function errorKindFromError(error: unknown): ErrorKind {
     const serverErrorId = (error as ClientError | undefined)?.server_error_id;
     switch (serverErrorId) {
@@ -1044,7 +1056,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
     // has no notion of "User Attribute" to say, since that framing is
     // specific to this feature's CPA-namespace overlap.
     let errorContent: React.ReactNode = null;
-    if (errorKind === 'applies_to_failed' || errorKind === 'applies_to_remove_failed' || errorKind === 'applies_to_remove_partial_save' || errorKind === 'applies_to_partial_save' || errorKind === 'applies_to_config_save_failed') {
+    if (errorKind && RESOURCE_INTERPOLATED_ERROR_KINDS.has(errorKind)) {
         errorContent = formatMessage(errorMessages[errorKind], {resources: resourceTypeListLabel(failedResourceTypes ?? [], formatMessage)});
     } else if (errorKind === 'applies_to_rollback_failed') {
         const resources = resourceTypeListLabel(failedResourceTypes ?? [], formatMessage);
