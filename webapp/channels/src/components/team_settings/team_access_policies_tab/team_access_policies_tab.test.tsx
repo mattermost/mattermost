@@ -24,6 +24,7 @@ describe('TeamAccessPoliciesTab', () => {
             EnableChannelPolicyIndicators: true,
             TrustProxyDeviceIdentityHeader: false,
             EnforceDeviceIDConsistency: false,
+            SyncJobIntervalSeconds: 3600,
         },
         areThereUnsavedChanges: false,
         setAreThereUnsavedChanges: jest.fn(),
