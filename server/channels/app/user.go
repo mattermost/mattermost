@@ -3202,6 +3202,7 @@ func (a *App) UpdateThreadFollowForUserFromChannelAdd(rctx request.CTX, userID, 
 	message.Add("thread", string(payload))
 	message.Add("previous_unread_replies", int64(0))
 	message.Add("previous_unread_mentions", int64(0))
+	a.markPostDeliveryForBroadcast(rctx, message, userThread.Post)
 
 	auditRec := a.MakeAuditRecord(rctx, model.AuditEventWebsocketPost, model.AuditStatusSuccess)
 	defer a.LogAuditRec(rctx, auditRec, nil)

@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {ComponentType} from 'react';
+import type {ComponentType, ReactNode} from 'react';
 import type {MessageDescriptor} from 'react-intl';
 import {defineMessages} from 'react-intl';
 
@@ -23,6 +23,12 @@ export const ALL_RESOURCE_TYPES: ResourceObjectType[] = ['user', 'channel', 'pos
 // interchangeably in its render switch.
 export type AttributeAppliesToItemProps = {
     disabled?: boolean;
+
+    // Explains WHY the row's toggle is disabled, when the reason isn't the
+    // transient in-flight `saving` state -- mirrors the Type/Unique-Name
+    // lock tooltip convention on the parent page. Undefined (the `saving`
+    // case) renders no tooltip, matching today's existing behavior.
+    lockedTooltip?: ReactNode;
     onRemove: () => void;
 };
 
