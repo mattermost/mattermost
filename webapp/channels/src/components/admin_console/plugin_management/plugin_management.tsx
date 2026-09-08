@@ -199,9 +199,6 @@ type PluginItemProps = {
     appsFeatureFlagEnabled: boolean;
     isDisabled?: boolean;
 
-    // Whether PluginSettings.PluginStates says this plugin is enabled, which can
-    // disagree with pluginStatus.active when getPluginStateOverride forces a
-    // plugin off (an unlicensed add-on, or Apps with its flag off).
     configEnabled: boolean;
 };
 
@@ -265,10 +262,9 @@ const PluginItem = ({
     const activating = pluginStatus.state === PluginState.PLUGIN_STATE_STARTING;
     const deactivating = pluginStatus.state === PluginState.PLUGIN_STATE_STOPPING;
 
-    // Key the control on the config flag as well as runtime state, because that is
-    // what it mutates. A plugin forced off by getPluginStateOverride sits at
-    // NotRunning with Enable still true in config, and keying purely on
-    // pluginStatus.active left the admin an Enable link and no way to clear it.
+    // Key on the config flag too, since that is what the control mutates. A plugin
+    // forced off by getPluginStateOverride sits at NotRunning with Enable still
+    // true, leaving the admin an Enable link and no way to clear it.
     if (pluginStatus.active || configEnabled) {
         activateButton = (
             <a

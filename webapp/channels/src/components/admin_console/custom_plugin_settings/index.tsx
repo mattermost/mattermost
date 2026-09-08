@@ -48,9 +48,6 @@ function makeGetPluginSchema() {
                 return null;
             }
 
-            // A licensed add-on the license does not grant cannot be activated by the
-            // server, so offering the enable toggle would only produce a setting that
-            // silently fails to take effect.
             const unlicensedAddOn = isUnlicensedAddOn(plugin.id, license);
 
             const escapedPluginId = escapePathPart(plugin.id);
@@ -149,8 +146,7 @@ function makeGetPluginSchema() {
             }
 
             if (unlicensedAddOn) {
-                // Replace the enable toggle with an explanation. Without this the page
-                // renders with no toggle at all, which reads as a broken settings page.
+                // Without this the page renders with no toggle at all.
                 const addOnBanner = {
                     key: 'admin.plugin.addOn.notLicensedWarning',
                     type: Constants.SettingsTypes.TYPE_BANNER,
@@ -206,12 +202,9 @@ function makeGetPluginSchema() {
             }
 
             const checkDisableSetting = (s: Partial<AdminDefinitionSetting>) => {
-                // Banners are informational, and buildBannerSetting renders nothing at
-                // all for a disabled setting rather than rendering it inert. Applying
-                // the write-permission predicate would therefore hide the explanation
-                // from a read-only admin instead of just making it non-actionable,
-                // which for an unlicensed add-on leaves a page with no toggle and no
-                // reason given.
+                // buildBannerSetting renders nothing for a disabled setting rather
+                // than rendering it inert, so the predicate would hide the
+                // explanation from a read-only admin instead of just greying it out.
                 if (s.type === Constants.SettingsTypes.TYPE_BANNER) {
                     return;
                 }

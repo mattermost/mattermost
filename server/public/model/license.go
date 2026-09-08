@@ -96,12 +96,9 @@ type License struct {
 	ExtraUsers *int           `json:"extra_users"`
 	SignupJWT  *string        `json:"signup_jwt"`
 	Limits     *LicenseLimits `json:"limits"`
-	// AddOns lists entitlements purchased alongside the license, naming products
-	// that are not part of any SKU tier. Names that this server does not recognize
-	// are ignored rather than rejected, so a license issued for a newer add-on
-	// still validates on an older server.
-	//
-	// Read via HasAddOn rather than inspecting the slice directly.
+	// AddOns names products purchased alongside the license that are not part of
+	// any SKU tier. Unrecognized names are ignored, so a license issued for a newer
+	// add-on still validates here. Read it through HasAddOn.
 	AddOns []string `json:"add_ons"`
 }
 
@@ -444,13 +441,9 @@ func (l *License) HasMHPNS() bool {
 	return l != nil && l.Features != nil && l.Features.MHPNS != nil && *l.Features.MHPNS
 }
 
-// HasAddOn reports whether the license grants the named add-on. Add-ons are
-// purchased alongside the license and are independent of the SKU tier, so this
-// deliberately does not fall back to a minimum-license check the way the
-// SKU-derived feature helpers above do.
-//
-// Matching is case-insensitive because licenses are produced by a separate
-// system and casing drift there should not silently void an entitlement.
+// HasAddOn reports whether the license grants the named add-on. Unlike the
+// SKU-derived helpers above, this deliberately has no minimum-license fallback:
+// an add-on is bought separately from the tier.
 func (l *License) HasAddOn(addOn string) bool {
 	if l == nil {
 		return false
@@ -504,8 +497,7 @@ func NewTestLicenseWithFalseDefaults(features ...string) *License {
 	return ret
 }
 
-// NewTestLicenseWithAddOns returns a license that expires in the future and grants
-// the given add-ons.
+// NewTestLicenseWithAddOns returns a test license granting the given add-ons.
 func NewTestLicenseWithAddOns(addOns ...string) *License {
 	ret := NewTestLicense()
 	ret.AddOns = addOns

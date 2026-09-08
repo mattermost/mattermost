@@ -301,10 +301,8 @@ func TestGetClientLicenseAddOns(t *testing.T) {
 	})
 
 	t.Run("survives sanitization", func(t *testing.T) {
-		// The license_changed websocket event broadcasts the sanitized license and
-		// the webapp reducer replaces the license object wholesale, so anything
-		// stripped here disappears from the System Console after a license change.
-		// Do not add AddOns to the delete list in GetSanitizedClientLicense.
+		// Anything stripped here disappears from the System Console after a license
+		// change. Do not add AddOns to the delete list.
 		props := GetClientLicense(newLicense(model.AddOnCrossGuard))
 		require.Equal(t, "crossguard", props["AddOns"])
 

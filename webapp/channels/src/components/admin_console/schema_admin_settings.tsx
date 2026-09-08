@@ -381,10 +381,8 @@ export class SchemaAdminSettings extends React.PureComponent<SchemaAdminSettings
         const pluginState = this.props.pluginStatus?.state ?? (this.props.plugin.active ? PluginState.PLUGIN_STATE_RUNNING : PluginState.PLUGIN_STATE_NOT_RUNNING);
         const description = (this.props.plugin.description || this.props.pluginStatus?.description || '').trim();
 
-        // The server refuses to activate an add-on the license does not grant, so an
-        // enable control here would only ever produce a 403. The settings list shows
-        // an explanation in place of the toggle; leaving this button would contradict
-        // it. See utils/addons and getPluginStateOverride on the server.
+        // Enabling an unlicensed add-on only ever returns 403, and the settings list
+        // already shows an explanation in place of the toggle.
         const unlicensedAddOn = isUnlicensedAddOn(this.props.plugin.id, this.props.license);
 
         return (

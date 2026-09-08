@@ -922,10 +922,8 @@ describe('components/PluginManagement', () => {
     });
 
     describe('plugins forced off by a state override', () => {
-        // getPluginStateOverride can hold a plugin at NotRunning while config still
-        // says Enable: true (an unlicensed add-on, or Apps with its flag off).
-        // Keying the control on pluginStatus.active alone left the admin an Enable
-        // link and no way to clear the flag.
+        // getPluginStateOverride holds a plugin at NotRunning with Enable still true
+        // in config, which left the admin no way to clear the flag.
         const renderWithPluginState = (configEnabled: boolean) => {
             const props = {
                 ...defaultProps,

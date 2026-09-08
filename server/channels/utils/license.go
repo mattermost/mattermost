@@ -266,8 +266,8 @@ func GetClientLicense(l *model.License) map[string]string {
 		props["IsTrial"] = strconv.FormatBool(l.IsTrial)
 		props["IsGovSku"] = strconv.FormatBool(l.IsGovSku)
 		props["IsNonProduction"] = strconv.FormatBool(l.IsNonProduction)
-		// Consumers must split on "," rather than substring match, so that an
-		// add-on named "crossguard" is not satisfied by "crossguard-premium".
+		// Consumers must split on "," not substring match, so "crossguard" is not
+		// satisfied by "crossguard-premium".
 		props["AddOns"] = strings.Join(l.AddOns, ",")
 	}
 
@@ -287,13 +287,11 @@ func GetSanitizedClientLicense(l map[string]string) map[string]string {
 	delete(sanitizedLicense, "ExpiresAt")
 	delete(sanitizedLicense, "SkuName")
 
-	// AddOns must NOT be stripped here. Only identity and date fields are removed
-	// above; every entitlement field (LDAP, SAML, Compliance, Users, ...) survives,
-	// and add-ons are entitlements. Stripping one matters because the
-	// license_changed websocket event broadcasts this sanitized map and the webapp
-	// reducer replaces the license object wholesale, so a stripped field is lost
-	// from the System Console after any license change. Reducing what this endpoint
-	// exposes is tracked as a whole in MM-68045.
+	// Do not strip AddOns. Only identity and date fields are removed above;
+	// entitlements survive, and add-ons are entitlements. The license_changed
+	// websocket event broadcasts this map and the webapp replaces its license
+	// object wholesale, so anything stripped here is lost from the System Console
+	// after any license change. Narrowing this endpoint is tracked in MM-68045.
 
 	return sanitizedLicense
 }

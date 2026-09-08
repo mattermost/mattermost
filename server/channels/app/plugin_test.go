@@ -1347,8 +1347,7 @@ func TestGetPluginStateOverride(t *testing.T) {
 		})
 
 		t.Run("a mixed-case plugin id does not bypass the gate", func(t *testing.T) {
-			// IsValidPluginId permits uppercase, so a repackaged bundle could
-			// otherwise re-declare its id to miss an exact-match lookup.
+			// IsValidPluginId permits uppercase.
 			mainHelper.Parallel(t)
 			th2 := Setup(t)
 			require.Nil(t, th2.App.Srv().RemoveLicense())
@@ -1395,11 +1394,8 @@ func TestAddOnEntitlementsEqual(t *testing.T) {
 	}
 }
 
-// TestAddOnPluginLicenseGate covers the end-to-end behaviour of an add-on plugin as
-// the license changes, without any accompanying config change. The activation
-// transitions here depend on the plugin license listener calling
-// syncPluginsActiveState; a license upload does not alter the config, so no config
-// listener ever fires for it.
+// Covers activation as the license changes with no accompanying config change,
+// which no config listener would ever fire for.
 func TestAddOnPluginLicenseGate(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
@@ -1412,9 +1408,8 @@ func TestAddOnPluginLicenseGate(t *testing.T) {
 	env := th.App.GetPluginsEnvironment()
 	require.NotNil(t, env)
 
-	// A webapp component is enough to make the plugin activatable; without either a
-	// server or a webapp component activation fails and the plugin parks in
-	// PluginStateFailedToStart rather than exercising the gate.
+	// Without a server or webapp component the plugin parks in
+	// PluginStateFailedToStart and never reaches the gate.
 	bundlePath := "webapp/crossguard_bundle.js"
 	manifest := &model.Manifest{
 		Id:      model.PluginIdCrossGuard,
@@ -1443,8 +1438,6 @@ func TestAddOnPluginLicenseGate(t *testing.T) {
 		require.Equal(t, expected, statuses[0].State)
 	}
 
-	// Enable the plugin in config. This fires the config listener and syncs active
-	// state, but the add-on override should keep the plugin off.
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		cfg.PluginSettings.PluginStates[model.PluginIdCrossGuard] = &model.PluginState{Enable: true}
 	})
@@ -1510,15 +1503,13 @@ func TestEnablePluginAddOnLicenseCheck(t *testing.T) {
 		require.Equal(t, "app.plugin.addon_not_licensed.app_error", appErr.Id)
 		require.Equal(t, http.StatusForbidden, appErr.StatusCode)
 
-		// The config write must not have happened, otherwise a stale Enable: true
-		// would silently activate the plugin as soon as any license was applied.
+		// A stale Enable: true would activate the plugin on the next license change.
 		state := th.App.Config().PluginSettings.PluginStates[model.PluginIdCrossGuard]
 		require.True(t, state == nil || !state.Enable)
 
-		// The message must actually name the missing entitlement: an add-on name
-		// need not match the plugin id, so it is what tells the admin what to buy.
-		// Guards the AddOn param and the {{.AddOn}} placeholder from drifting apart,
-		// since a missing placeholder drops the param silently.
+		// An add-on name need not match the plugin id, so it is what tells the admin
+		// what to buy.
+		// A missing {{.AddOn}} placeholder drops the param silently.
 		appErr.Translate(i18n.GetUserTranslations("en"))
 		require.Contains(t, appErr.Message, model.AddOnCrossGuard)
 	})
@@ -1534,8 +1525,7 @@ func TestEnablePluginAddOnLicenseCheck(t *testing.T) {
 	t.Run("disabling still works after the license lapses", func(t *testing.T) {
 		require.Nil(t, th.App.Srv().RemoveLicense())
 
-		// The admin must be able to clear a stale Enable: true left behind when a
-		// license lapses, so the gate deliberately does not block disabling.
+		// The gate must not block disabling, or a stale Enable: true is unclearable.
 		appErr := th.App.DisablePlugin(model.PluginIdCrossGuard)
 		require.Nil(t, appErr)
 		require.False(t, th.App.Config().PluginSettings.PluginStates[model.PluginIdCrossGuard].Enable)

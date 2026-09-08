@@ -588,8 +588,7 @@ func TestLicenseHasAddOn(t *testing.T) {
 			true,
 		},
 		{
-			// A prefix must not satisfy the entitlement, or a future
-			// "crossguard-premium" add-on would silently unlock "crossguard".
+			// A prefix must not satisfy the entitlement.
 			"longer name is not a match",
 			&License{AddOns: []string{"crossguard-premium"}},
 			AddOnCrossGuard,
@@ -628,9 +627,8 @@ func TestLicenseAddOnsJSON(t *testing.T) {
 	})
 
 	t.Run("unrecognized add-on is ignored, not rejected", func(t *testing.T) {
-		// Forward compatibility: a license issued for an add-on this build does not
-		// know about must still validate, otherwise every new add-on would require a
-		// server upgrade before any license naming it could be uploaded.
+		// A license naming an unknown add-on must still validate, or every new
+		// add-on would need a server upgrade first.
 		var license License
 		err := json.Unmarshal([]byte(`{"add_ons": ["not-a-real-addon"]}`), &license)
 		require.NoError(t, err)
@@ -663,8 +661,7 @@ func TestPluginRequiredAddOn(t *testing.T) {
 	})
 
 	t.Run("plugin id matching is case-insensitive", func(t *testing.T) {
-		// IsValidPluginId permits mixed case, so an exact-match lookup would let a
-		// repackaged bundle declaring "CrossGuard" slip past the gate.
+		// IsValidPluginId permits mixed case.
 		for _, id := range []string{"CrossGuard", "CROSSGUARD", "cRoSsGuArD"} {
 			addOn, ok := PluginRequiredAddOn(id)
 			assert.True(t, ok, "expected %q to require an add-on", id)

@@ -19,7 +19,6 @@ describe('utils/addons', () => {
         });
 
         test('should match the plugin id case-insensitively', () => {
-            // Mirrors model.PluginRequiredAddOn; IsValidPluginId permits mixed case.
             expect(getRequiredAddOn('CrossGuard')).toEqual('crossguard');
             expect(getRequiredAddOn('CROSSGUARD')).toEqual('crossguard');
         });
@@ -89,8 +88,7 @@ describe('utils/addons', () => {
         });
 
         test('should return false while the license is still loading', () => {
-            // The license starts as {} before getLicenseConfig resolves. Reporting
-            // "unlicensed" then would flash the banner at a licensed admin.
+            // Reporting "unlicensed" while loading would flash the banner.
             expect(isUnlicensedAddOn('crossguard', {})).toBe(false);
             expect(isUnlicensedAddOn('crossguard', undefined)).toBe(false);
         });
@@ -103,7 +101,7 @@ describe('utils/addons', () => {
 
     describe('pluginAddOnRequirements', () => {
         test('every entry should have a non-empty add-on name', () => {
-            // Mirrors model.PluginAddOnRequirements on the server; the two must agree.
+            // Mirrors pluginAddOnRequirements on the server; the two must agree.
             Object.entries(pluginAddOnRequirements).forEach(([pluginId, addOn]) => {
                 expect(pluginId).not.toEqual('');
                 expect(addOn).not.toEqual('');
