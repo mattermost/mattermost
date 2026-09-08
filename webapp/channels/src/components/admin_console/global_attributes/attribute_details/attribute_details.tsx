@@ -470,7 +470,8 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                 // that today only applies to Channels), falling back to the same
                 // defaults in both cases.
                 const userField = linkedByType.user;
-                const loadedVisibility: FieldVisibility = (userField?.attrs?.visibility as FieldVisibility | undefined) ?? 'when_set';
+                const rawVisibility = userField?.attrs?.visibility;
+                const loadedVisibility: FieldVisibility = rawVisibility === 'always' || rawVisibility === 'when_set' || rawVisibility === 'hidden' ? rawVisibility : 'when_set';
                 const loadedManaged: UserManagedValue = userField?.attrs?.managed === 'admin' ? 'admin' : '';
                 setUserVisibility(loadedVisibility);
                 setUserManaged(loadedManaged);

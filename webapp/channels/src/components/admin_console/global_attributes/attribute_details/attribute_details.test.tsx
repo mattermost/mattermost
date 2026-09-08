@@ -1251,6 +1251,16 @@ describe('AttributeDetails', () => {
             expect(screen.getByTestId('attributeAppliesToUserWhoCanSet-admin')).toBeChecked();
         });
 
+        it('falls back to When set for an unexpected persisted visibility value, rather than leaving every segment unpressed', async () => {
+            mockLoadedField(makeTemplate(), [makeLinked('user', 'user-field', {attrs: {display_name: 'Department', visibility: 'not_a_real_value'}})]);
+
+            renderEdit();
+            await waitForForm();
+            await userEvent.click(screen.getByTestId('attributeAppliesToRow-user-toggle'));
+
+            expect(screen.getByTestId('attributeAppliesToUserProfileDisplay-when_set')).toHaveAttribute('aria-pressed', 'true');
+        });
+
         it('does not move focus to an Applies-to row when loading a field that already applies to every resource type', async () => {
             mockLoadedField(makeTemplate(), [
                 makeLinked('user', 'user-field'),
