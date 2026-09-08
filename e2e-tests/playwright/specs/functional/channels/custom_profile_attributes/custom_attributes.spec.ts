@@ -13,7 +13,6 @@ import type {CustomProfileAttribute} from './helpers';
 import {
     setupCustomProfileAttributeFields,
     setupCustomProfileAttributeValues,
-    deleteCustomProfileAttributes,
     verifyAttributeInPopover,
     verifyAttributeNotInPopover,
     updateCustomProfileAttributeVisibility,
@@ -27,25 +26,26 @@ import {
     TEST_MESSAGE,
 } from './helpers';
 
-// Custom attribute definitions
+// Unique names so this spec does not reuse test_setup's Department field.
+// Reusing it left visibility=hidden after MM-T5776 and hid all attributes on retry.
 const customAttributes: CustomProfileAttribute[] = [
     {
-        name: 'Department',
+        name: 'DepartmentCA',
         value: TEST_DEPARTMENT,
         type: 'text',
     },
     {
-        name: 'Location',
+        name: 'LocationCA',
         value: TEST_LOCATION,
         type: 'text',
     },
     {
-        name: 'Title',
+        name: 'TitleCA',
         value: TEST_TITLE,
         type: 'text',
     },
     {
-        name: 'Phone',
+        name: 'PhoneCA',
         value: TEST_PHONE,
         type: 'text',
         attrs: {
@@ -53,7 +53,7 @@ const customAttributes: CustomProfileAttribute[] = [
         },
     },
     {
-        name: 'Website',
+        name: 'WebsiteCA',
         value: TEST_URL,
         type: 'text',
         attrs: {
@@ -92,22 +92,22 @@ test.beforeEach(async ({pw}) => {
     // Add the test user to the test channel
     await adminClient.addToChannel(user.id, testChannel.id);
 
-    // Set up custom profile attribute fields
+    // Set values before login so the first client fetch includes them.
     attributeFieldsMap = await setupCustomProfileAttributeFields(adminClient, customAttributes);
-
-    // Login as the test user
-    const {page} = await pw.testBrowser.login(user);
-
-    // Set up initial values for custom profile attributes
     await setupCustomProfileAttributeValues(userClient, customAttributes, attributeFieldsMap);
-
-    // Visit the test channel
-    await page.goto(`/${team.name}/channels/${testChannel.name}`);
 });
 
-test.afterAll(async () => {
-    // Clean up by deleting custom profile attributes
-    await deleteCustomProfileAttributes(adminClient, attributeFieldsMap);
+test.afterEach(async () => {
+    if (!adminClient || !attributeFieldsMap) {
+        return;
+    }
+    for (const id of Object.keys(attributeFieldsMap)) {
+        try {
+            await adminClient.deleteCustomProfileAttributeField(id);
+        } catch {
+            // already gone
+        }
+    }
 });
 
 /**
@@ -122,7 +122,8 @@ test.afterAll(async () => {
 test('MM-T5773 Display custom profile attributes in profile popover @custom_profile_attributes', async ({pw}) => {
     // 1. Login as the test user
     const {channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto();
+    await channelsPage.goto(team.name, testChannel.name);
+    await channelsPage.toBeVisible();
 
     // 2. Post a message to make the user visible in the channel
     await channelsPage.postMessage(TEST_MESSAGE);
@@ -152,7 +153,8 @@ test('MM-T5773 Display custom profile attributes in profile popover @custom_prof
 test('MM-T5774 Do not display custom profile attributes if none exist @custom_profile_attributes', async ({pw}) => {
     // 1. Login as the other user
     const {channelsPage} = await pw.testBrowser.login(otherUser);
-    await channelsPage.goto();
+    await channelsPage.goto(team.name, testChannel.name);
+    await channelsPage.toBeVisible();
 
     // 2. Post a message to make the user visible in the channel
     await channelsPage.postMessage(TEST_MESSAGE);
@@ -180,7 +182,8 @@ test('MM-T5774 Do not display custom profile attributes if none exist @custom_pr
 test('MM-T5775 Update custom profile attributes when changed @custom_profile_attributes', async ({pw}) => {
     // 1. Login as the test user
     const {channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto();
+    await channelsPage.goto(team.name, testChannel.name);
+    await channelsPage.toBeVisible();
 
     // 2. Post a message to make the user visible in the channel
     await channelsPage.postMessage(TEST_MESSAGE);
@@ -202,20 +205,25 @@ test('MM-T5775 Update custom profile attributes when changed @custom_profile_att
     // 5. Update custom profile attributes
     const updatedAttributes: CustomProfileAttribute[] = [
         {
-            name: 'Department',
+            name: 'DepartmentCA',
             value: TEST_UPDATED_DEPARTMENT,
             type: 'text',
         },
         {
-            name: 'Location',
+            name: 'LocationCA',
             value: TEST_UPDATED_LOCATION,
             type: 'text',
         },
     ];
     await setupCustomProfileAttributeValues(userClient, updatedAttributes, attributeFieldsMap);
 
+    // Reload so the popover fetches the updated values.
+    await channelsPage.page.reload();
+    await channelsPage.toBeVisible();
+
     // 6. Open the profile popover again
-    await channelsPage.openProfilePopover(lastPost);
+    const lastPostAfterReload = await channelsPage.getLastPost();
+    await channelsPage.openProfilePopover(lastPostAfterReload);
 
     // * Verify updated attributes are displayed correctly
     for (const attribute of updatedAttributes) {
@@ -225,7 +233,7 @@ test('MM-T5775 Update custom profile attributes when changed @custom_profile_att
     }
 
     // * Verify non-updated attribute is still displayed correctly
-    await verifyAttributeInPopover(channelsPage, 'Title', TEST_TITLE);
+    await verifyAttributeInPopover(channelsPage, 'TitleCA', TEST_TITLE);
 });
 
 /**
@@ -242,11 +250,12 @@ test('MM-T5776 Hide custom profile attributes when visibility is set to hidden @
     pw,
 }) => {
     // 1. Update the visibility of the Department attribute to hidden
-    await updateCustomProfileAttributeVisibility(adminClient, attributeFieldsMap, 'Department', 'hidden');
+    await updateCustomProfileAttributeVisibility(adminClient, attributeFieldsMap, 'DepartmentCA', 'hidden');
 
     // 2. Login as the test user
     const {channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto();
+    await channelsPage.goto(team.name, testChannel.name);
+    await channelsPage.toBeVisible();
 
     // 3. Post a message to make the user visible in the channel
     await channelsPage.postMessage(TEST_MESSAGE);
@@ -256,10 +265,10 @@ test('MM-T5776 Hide custom profile attributes when visibility is set to hidden @
     await channelsPage.openProfilePopover(lastPost);
 
     // * Verify the Department attribute is not displayed
-    await verifyAttributeNotInPopover(channelsPage, 'Department');
+    await verifyAttributeNotInPopover(channelsPage, 'DepartmentCA');
 
     // * Verify other attributes are still displayed
-    await verifyAttributeInPopover(channelsPage, 'Location', TEST_LOCATION);
+    await verifyAttributeInPopover(channelsPage, 'LocationCA', TEST_LOCATION);
 });
 
 /**
@@ -276,11 +285,12 @@ test('MM-T5777 Always display custom profile attributes with visibility set to a
     pw,
 }) => {
     // 1. Update the visibility of the Title attribute to always
-    await updateCustomProfileAttributeVisibility(adminClient, attributeFieldsMap, 'Title', 'always');
+    await updateCustomProfileAttributeVisibility(adminClient, attributeFieldsMap, 'TitleCA', 'always');
 
     // 2. Login as the other user
     const {channelsPage} = await pw.testBrowser.login(otherUser);
-    await channelsPage.goto();
+    await channelsPage.goto(team.name, testChannel.name);
+    await channelsPage.toBeVisible();
 
     // 3. Post a message to make the user visible in the channel
     await channelsPage.postMessage(TEST_MESSAGE);
@@ -291,10 +301,10 @@ test('MM-T5777 Always display custom profile attributes with visibility set to a
 
     // * Verify custom attributes are displayed correctly
     for (const attribute of customAttributes) {
-        if (attribute.name === 'Title') {
+        if (attribute.name === 'TitleCA') {
             // * Verify the Title attribute is displayed even though it has no value
             const popover = channelsPage.userProfilePopover.container;
-            const nameElement = popover.getByText('Title', {exact: false});
+            const nameElement = popover.getByRole('heading', {name: 'TitleCA'});
             await expect(nameElement).toBeVisible();
         } else {
             await verifyAttributeNotInPopover(channelsPage, attribute.name);
@@ -317,7 +327,8 @@ test('MM-T5778 Display phone and URL type custom profile attributes correctly @c
 }) => {
     // 1. Login as the test user
     const {channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto();
+    await channelsPage.goto(team.name, testChannel.name);
+    await channelsPage.toBeVisible();
 
     // 2. Post a message to make the user visible in the channel
     await channelsPage.postMessage(TEST_MESSAGE);
@@ -327,10 +338,10 @@ test('MM-T5778 Display phone and URL type custom profile attributes correctly @c
     await channelsPage.openProfilePopover(lastPost);
 
     // * Verify the Phone attribute is displayed correctly
-    await verifyAttributeInPopover(channelsPage, 'Phone', TEST_PHONE);
+    await verifyAttributeInPopover(channelsPage, 'PhoneCA', TEST_PHONE);
 
     // * Verify the Website attribute is displayed correctly
-    await verifyAttributeInPopover(channelsPage, 'Website', TEST_URL);
+    await verifyAttributeInPopover(channelsPage, 'WebsiteCA', TEST_URL);
 });
 
 /**
@@ -348,7 +359,8 @@ test('MM-T5779 Verify phone and URL attributes are clickable in profile popover 
 }) => {
     // 1. Login as the test user
     const {channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto();
+    await channelsPage.goto(team.name, testChannel.name);
+    await channelsPage.toBeVisible();
 
     // 2. Post a message to make the user visible in the channel
     await channelsPage.postMessage(TEST_MESSAGE);
