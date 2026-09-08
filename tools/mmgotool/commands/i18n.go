@@ -1031,12 +1031,23 @@ func verifyCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return fmt.Errorf("failed to open translation directory %q: %w", translationDir, err)
 	}
-	defer root.Close()
+	defer func() {
+		_ = root.Close()
+	}()
 
 	enRaw, err := root.ReadFile("en.json")
 	if err != nil {
 		return fmt.Errorf("failed to read the source catalog in %q: %w", translationDir, err)
 	}
+
+	// en.json goes through the same runtime loader as every locale beside it.
+	// The server loads it at startup too, so a template or a plural form the
+	// loader rejects there has to fail here rather than pass as the source of
+	// truth every other catalog is checked against.
+	if err := bundle.New().ParseTranslationFileBytes("en.json", enRaw); err != nil {
+		return fmt.Errorf("the source catalog in %q was rejected by the runtime translation loader: %w", translationDir, err)
+	}
+
 	en, err := loadItems(enRaw)
 	if err != nil {
 		return fmt.Errorf("failed to parse the source catalog in %q: %w", translationDir, err)

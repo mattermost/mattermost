@@ -305,6 +305,20 @@ func TestVerifyCmd(t *testing.T) {
 		assert.Contains(t, err.Error(), "error(s) across 2 locale files")
 	})
 
+	t.Run("a source catalog the loader rejects fails the command", func(t *testing.T) {
+		serverDir := t.TempDir()
+		dir := filepath.Join(serverDir, "i18n")
+		require.NoError(t, os.MkdirAll(dir, 0700))
+		writeCatalog(t, dir, "en.json", `[{"id":"a.b","translation":"{{.User is here"}]`)
+		writeCatalog(t, dir, "fr.json", `[{"id":"a.b","translation":"{{.User}} est ici"}]`)
+		require.NoError(t, VerifyCmd.Flags().Set("server-dir", serverDir))
+		require.NoError(t, VerifyCmd.Flags().Set("warn-missing-ids", "false"))
+
+		err := run(t, serverDir)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "rejected by the runtime translation loader")
+	})
+
 	// The symlink target is a loadable catalog, so root is the only thing that
 	// can fail this.
 	t.Run("a catalog symlinked out of the translation directory is refused", func(t *testing.T) {
