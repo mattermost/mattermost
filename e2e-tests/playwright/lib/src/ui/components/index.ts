@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 // Shared / Global Components
+import AboutBuildModal from './about_build_modal';
 import Footer from './footer';
 import GlobalHeader from './global_header';
 import MainHeader from './main_header';
@@ -90,6 +91,7 @@ import Users from './system_console/sections/user_management/users';
 
 const components = {
     // Shared / Global
+    AboutBuildModal,
     Footer,
     GlobalHeader,
     MainHeader,
@@ -182,6 +184,7 @@ export {
     components,
 
     // Shared / Global
+    AboutBuildModal,
     Footer,
     GlobalHeader,
     MainHeader,
