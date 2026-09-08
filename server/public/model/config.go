@@ -5460,7 +5460,8 @@ func SanitizeDataSource(driverName, dataSource string) (string, error) {
 
 	u, err := url.Parse(dataSource)
 	if err != nil {
-		return "", err
+		// Deliberately discard the parse error: it embeds the raw data source.
+		return "", errors.New("invalid data source: malformed postgres:// connection string")
 	}
 	u.User = url.UserPassword(SanitizedPassword, SanitizedPassword)
 
