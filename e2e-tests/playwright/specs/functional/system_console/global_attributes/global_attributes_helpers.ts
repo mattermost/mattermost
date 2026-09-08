@@ -145,6 +145,7 @@ export async function createLinkedDependentField(
     sourceFieldId: string,
     type: string,
     objectType: ResourceObjectType = 'user',
+    attrs?: Record<string, unknown>,
 ) {
     return adminClient.createPropertyField(PROPERTY_GROUP, objectType, {
         name,
@@ -152,6 +153,7 @@ export async function createLinkedDependentField(
         target_type: TARGET_TYPE,
         target_id: '',
         linked_field_id: sourceFieldId,
+        ...(attrs ? {attrs} : {}),
     } as Parameters<Client4['createPropertyField']>[2]);
 }
 

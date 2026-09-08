@@ -9,13 +9,14 @@ import {defineMessages, FormattedMessage, useIntl} from 'react-intl';
 import {PlusIcon} from '@mattermost/compass-icons/components';
 import type {ButtonEmphasis} from '@mattermost/shared/components/button';
 import {buttonClassNames} from '@mattermost/shared/components/button';
+import type {FieldVisibility} from '@mattermost/types/properties';
 
 import Card from 'components/card/card';
 import * as Menu from 'components/menu';
 
 import AttributeAppliesToChannelItem from './attribute_applies_to_channel_item';
 import {ALL_RESOURCE_TYPES, ATTRIBUTE_APPLIES_TO_ADD_HEADER_TRIGGER_ID, RESOURCE_TYPE_ICONS, resourceTypeLabels} from './attribute_applies_to_constants';
-import type {AttributeAppliesToItemProps, ResourceObjectType} from './attribute_applies_to_constants';
+import type {AttributeAppliesToItemProps, ResourceObjectType, UserManagedValue} from './attribute_applies_to_constants';
 import AttributeAppliesToPostItem from './attribute_applies_to_post_item';
 import AttributeAppliesToUserItem from './attribute_applies_to_user_item';
 
@@ -38,6 +39,14 @@ type Props = {
     lockedTooltip?: ReactNode;
     onAdd: (type: ResourceObjectType) => void;
     onRemove: (type: ResourceObjectType) => void;
+
+    // Users-only config, forwarded to AttributeAppliesToUserItem alone (see the
+    // render loop below) -- Channels/Posts get their own config props when their
+    // own tickets land. See plans/mm-69869-applies-to-users-config.md.
+    userVisibility?: FieldVisibility;
+    onUserVisibilityChange?: (visibility: FieldVisibility) => void;
+    userManaged?: UserManagedValue;
+    onUserManagedChange?: (managed: UserManagedValue) => void;
 };
 
 // Every entry here must implement AttributeAppliesToItemProps exactly --
@@ -57,7 +66,18 @@ const RESOURCE_TYPE_ITEM_COMPONENTS: Record<ResourceObjectType, ComponentType<At
 // Holds no selection state of its own -- "available" picker options are
 // derived purely from props on every render. Makes no data-mutating dispatch
 // calls, no Client4/API calls (see R6 -- the page owns all of that).
-function AttributeAppliesTo({appliesTo, disabled = false, hideAddResource = false, lockedTooltip, onAdd, onRemove}: Props): JSX.Element {
+function AttributeAppliesTo({
+    appliesTo,
+    disabled = false,
+    hideAddResource = false,
+    lockedTooltip,
+    onAdd,
+    onRemove,
+    userVisibility,
+    onUserVisibilityChange,
+    userManaged,
+    onUserManagedChange,
+}: Props): JSX.Element {
     const {formatMessage} = useIntl();
 
     const availableTypes = useMemo(
@@ -148,12 +168,19 @@ function AttributeAppliesTo({appliesTo, disabled = false, hideAddResource = fals
                             <div className='AttributeAppliesTo__list'>
                                 {appliesTo.map((type) => {
                                     const Item = RESOURCE_TYPE_ITEM_COMPONENTS[type];
+                                    const userProps = type === 'user' ? {
+                                        visibility: userVisibility,
+                                        onVisibilityChange: onUserVisibilityChange,
+                                        managed: userManaged,
+                                        onManagedChange: onUserManagedChange,
+                                    } : {};
                                     return (
                                         <Item
                                             key={type}
                                             disabled={disabled}
                                             lockedTooltip={lockedTooltip}
                                             onRemove={() => onRemove(type)}
+                                            {...userProps}
                                         />
                                     );
                                 })}

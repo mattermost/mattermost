@@ -3,18 +3,25 @@
 
 import classNames from 'classnames';
 import React, {useState, type JSX} from 'react';
+import type {MessageDescriptor} from 'react-intl';
 import {defineMessages, FormattedMessage, useIntl} from 'react-intl';
 
 import {AccountOutlineIcon, ChevronDownIcon} from '@mattermost/compass-icons/components';
 import {Button} from '@mattermost/shared/components/button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
+import type {FieldVisibility} from '@mattermost/types/properties';
+
+import RadioButtonGroup from 'components/common/radio_group';
 
 import {resourceTypeLabels} from './attribute_applies_to_constants';
-import type {AttributeAppliesToItemProps} from './attribute_applies_to_constants';
+import type {AttributeAppliesToItemProps, UserManagedValue} from './attribute_applies_to_constants';
 
 import './attribute_applies_to_item.scss';
 
 const BODY_ID = 'attribute-applies-to-user-panel';
+
+// Order matches the screenshot's pill row: Always | When set | Hidden.
+const PROFILE_DISPLAY_VALUES: FieldVisibility[] = ['always', 'when_set', 'hidden'];
 
 // The Users row of the Applies-to list -- owns its own expand/collapse state
 // (deliberately not the shared Accordion component, see the plan's Decisions
@@ -23,9 +30,21 @@ const BODY_ID = 'attribute-applies-to-user-panel';
 // index, which misattributes state when a row is removed from the middle of
 // the list). Remove is only reachable once expanded -- there is no
 // collapsed-row remove affordance.
-function AttributeAppliesToUserItem({disabled = false, lockedTooltip, onRemove}: AttributeAppliesToItemProps): JSX.Element {
+function AttributeAppliesToUserItem({
+    disabled = false,
+    lockedTooltip,
+    onRemove,
+    visibility = 'when_set',
+    onVisibilityChange,
+    managed = '',
+    onManagedChange,
+}: AttributeAppliesToItemProps): JSX.Element {
     const {formatMessage} = useIntl();
     const [isOpen, setIsOpen] = useState(false);
+
+    const handleManagedChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        onManagedChange?.(e.target.value as UserManagedValue);
+    };
 
     const label = formatMessage(resourceTypeLabels.user);
     const toggleLabel = formatMessage(isOpen ? messages.collapseLabel : messages.expandLabel, {label});
@@ -92,9 +111,55 @@ function AttributeAppliesToUserItem({disabled = false, lockedTooltip, onRemove}:
                     data-testid='attributeAppliesToRow-user-body'
                 >
                     <div className='AttributeAppliesToItem__row'>
-                        <span>
-                            <FormattedMessage {...messages.bodyPlaceholder}/>
+                        <span className='AttributeAppliesToItem__label'>
+                            <FormattedMessage {...messages.profileDisplayLabel}/>
                         </span>
+                        <div
+                            className='AttributeAppliesToItem__profileDisplaySegments'
+                            role='group'
+                            aria-label={formatMessage(messages.profileDisplayLabel)}
+                        >
+                            {PROFILE_DISPLAY_VALUES.map((value) => (
+                                <button
+                                    key={value}
+                                    type='button'
+                                    className={classNames('AttributeAppliesToItem__profileDisplaySegment', {
+                                        'AttributeAppliesToItem__profileDisplaySegment--active': visibility === value,
+                                    })}
+                                    aria-pressed={visibility === value}
+                                    disabled={disabled}
+                                    data-testid={`attributeAppliesToUserProfileDisplay-${value}`}
+                                    onClick={() => onVisibilityChange?.(value)}
+                                >
+                                    <FormattedMessage {...profileDisplayValueMessages[value]}/>
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                    <div className='AttributeAppliesToItem__row'>
+                        <span className='AttributeAppliesToItem__label'>
+                            <FormattedMessage {...messages.whoCanSetLabel}/>
+                        </span>
+                        <RadioButtonGroup
+                            id='attribute-applies-to-user-who-can-set'
+                            testId='attributeAppliesToUserWhoCanSet'
+                            value={managed}
+                            onChange={handleManagedChange}
+                            isDisabled={disabled ? () => true : null}
+                            sideLegend={{matchVal: 'admin', text: formatMessage(messages.whoCanSetAdminHelp)}}
+                            values={[
+                                {
+                                    key: <FormattedMessage {...messages.whoCanSetMemberLabel}/>,
+                                    value: '',
+                                    testId: 'attributeAppliesToUserWhoCanSet-member',
+                                },
+                                {
+                                    key: <FormattedMessage {...messages.whoCanSetAdminLabel}/>,
+                                    value: 'admin',
+                                    testId: 'attributeAppliesToUserWhoCanSet-admin',
+                                },
+                            ]}
+                        />
                     </div>
                 </div>
             )}
@@ -108,8 +173,39 @@ const messages = defineMessages({
     expandLabel: {id: 'admin.global_attributes.attribute_details.applies_to.item.expand', defaultMessage: 'Expand {label}'},
     collapseLabel: {id: 'admin.global_attributes.attribute_details.applies_to.item.collapse', defaultMessage: 'Collapse {label}'},
     removeLabel: {id: 'admin.global_attributes.attribute_details.applies_to.item.remove', defaultMessage: 'Remove resource'},
-    bodyPlaceholder: {
-        id: 'admin.global_attributes.attribute_details.applies_to.item.body_placeholder',
-        defaultMessage: 'No additional settings for this resource yet.',
+    profileDisplayLabel: {
+        id: 'admin.global_attributes.attribute_details.applies_to.item.user.profile_display.label',
+        defaultMessage: 'Profile display',
+    },
+    whoCanSetLabel: {
+        id: 'admin.global_attributes.attribute_details.applies_to.item.user.who_can_set.label',
+        defaultMessage: 'Who can set the value',
+    },
+    whoCanSetMemberLabel: {
+        id: 'admin.global_attributes.attribute_details.applies_to.item.user.who_can_set.member.label',
+        defaultMessage: 'Member',
+    },
+    whoCanSetAdminLabel: {
+        id: 'admin.global_attributes.attribute_details.applies_to.item.user.who_can_set.admin.label',
+        defaultMessage: 'System Administrator',
+    },
+    whoCanSetAdminHelp: {
+        id: 'admin.global_attributes.attribute_details.applies_to.item.user.who_can_set.admin.help',
+        defaultMessage: 'Only System Administrators can set this value. Members will see it as read-only on their profile.',
+    },
+});
+
+const profileDisplayValueMessages: Record<FieldVisibility, MessageDescriptor> = defineMessages({
+    always: {
+        id: 'admin.global_attributes.attribute_details.applies_to.item.user.profile_display.always.label',
+        defaultMessage: 'Always',
+    },
+    when_set: {
+        id: 'admin.global_attributes.attribute_details.applies_to.item.user.profile_display.when_set.label',
+        defaultMessage: 'When set',
+    },
+    hidden: {
+        id: 'admin.global_attributes.attribute_details.applies_to.item.user.profile_display.hidden.label',
+        defaultMessage: 'Hidden',
     },
 });

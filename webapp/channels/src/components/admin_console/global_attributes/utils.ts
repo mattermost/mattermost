@@ -187,12 +187,20 @@ export function deleteAttributeField(fieldId: string): Promise<unknown> {
 // Decisions table). objectType is the resource type ('user'/'channel'/'post'),
 // a URL path segment on the generic property-fields endpoint, not a separate
 // route.
+//
+// extraAttrs merges additional attrs onto the request -- used to bundle a
+// Users row's Profile display/Who-can-set-the-value config directly into the
+// create request when that row is new this session, per the ticket's explicit
+// instruction to never create bare and immediately patch
+// (plans/mm-69869-applies-to-users-config.md). undefined for Channels/Posts,
+// which have no config panel yet.
 export function createLinkedAttributeField(
     objectType: ResourceObjectType,
     name: string,
     fieldType: AttributeFieldType,
     displayName: string,
     linkedFieldId: string,
+    extraAttrs?: Record<string, unknown>,
 ): Promise<PropertyField> {
     return Client4.createPropertyField(GLOBAL_ATTRIBUTES_GROUP_NAME, objectType, {
         name,
@@ -202,6 +210,7 @@ export function createLinkedAttributeField(
         linked_field_id: linkedFieldId,
         attrs: {
             display_name: displayName.trim() || undefined,
+            ...extraAttrs,
         },
     });
 }
@@ -211,4 +220,18 @@ export function createLinkedAttributeField(
 // deleting a template with active linked dependents.
 export function deleteLinkedAttributeField(objectType: ResourceObjectType, fieldId: string): Promise<unknown> {
     return Client4.deletePropertyField(GLOBAL_ATTRIBUTES_GROUP_NAME, objectType, fieldId);
+}
+
+// PATCHes a linked field's config for an already-persisted Applies-to
+// resource (e.g. a Users row's Profile display/Who-can-set-the-value, changed
+// after the row itself was already saved). Attrs are merge-patched
+// (mergeAttrs=true on the server, same as updateAttributeField above) -- only
+// the keys present in `attrs` are updated, everything else on the field is
+// left untouched.
+export function updateLinkedAttributeField(
+    objectType: ResourceObjectType,
+    fieldId: string,
+    attrs: Record<string, unknown>,
+): Promise<PropertyField> {
+    return Client4.patchPropertyField(GLOBAL_ATTRIBUTES_GROUP_NAME, objectType, fieldId, {attrs});
 }
