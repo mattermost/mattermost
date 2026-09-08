@@ -26,6 +26,93 @@ on:
 permissions: {}
 
 jobs:
+  # Shadow reports only. The existing check-changes and E2E dispatch jobs stay independent.
+  impact-gate-advisory:
+    needs: resolve-pr
+    if: needs.resolve-pr.outputs.PR_NUMBER != ''
+    permissions:
+      contents: read
+      pull-requests: read
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    continue-on-error: true
+    steps:
+      - name: ci/freeze-advisory-inputs
+        id: identity
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ needs.resolve-pr.outputs.PR_NUMBER }}
+          EXPECTED_HEAD: ${{ needs.resolve-pr.outputs.COMMIT_SHA }}
+        run: |
+          set -euo pipefail
+          [[ "$PR_NUMBER" =~ ^[0-9]+$ ]]
+          [[ "$EXPECTED_HEAD" =~ ^[0-9a-f]{40}$ ]]
+          PR_DATA=$(gh api "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}")
+          HEAD_SHA=$(jq -er '.head.sha' <<< "$PR_DATA")
+          BASE_SHA=$(jq -er '.base.sha' <<< "$PR_DATA")
+          [[ "$HEAD_SHA" = "$EXPECTED_HEAD" ]]
+          [[ "$BASE_SHA" =~ ^[0-9a-f]{40}$ ]]
+          echo "head_sha=$HEAD_SHA" >> "$GITHUB_OUTPUT"
+          echo "base_sha=$BASE_SHA" >> "$GITHUB_OUTPUT"
+
+      - name: ci/checkout-reviewed-planner
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          repository: yasserfaraazkhan/impact-gate
+          ref: 41657f86630a10ad048f0cf544cfdd109a1d3923
+          path: impact-gate-planner
+          persist-credentials: false
+
+      - name: ci/checkout-advisory-source
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          ref: ${{ steps.identity.outputs.head_sha }}
+          fetch-depth: 0
+          path: impact-gate-source
+          persist-credentials: false
+
+      - name: ci/setup-advisory-node
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
+        with:
+          node-version: "22"
+
+      - name: ci/build-reviewed-planner
+        working-directory: impact-gate-planner
+        run: |
+          set -euo pipefail
+          env -i PATH="$PATH" NPM_CONFIG_USERCONFIG=/dev/null NPM_CONFIG_CACHE="$RUNNER_TEMP/impact-gate-npm" \
+            npm ci --ignore-scripts --no-audit --no-fund
+          env -i PATH="$PATH" NPM_CONFIG_USERCONFIG=/dev/null npm run build:cjs
+
+      - name: ci/plan-existing-specs
+        env:
+          BASE_SHA: ${{ steps.identity.outputs.base_sha }}
+          HEAD_SHA: ${{ steps.identity.outputs.head_sha }}
+        run: |
+          set -euo pipefail
+          [[ "$(git -C impact-gate-source rev-parse HEAD)" = "$HEAD_SHA" ]]
+          [[ "$(git -C impact-gate-planner rev-parse HEAD)" = "41657f86630a10ad048f0cf544cfdd109a1d3923" ]]
+          mkdir -p impact-gate-reports
+          for SUITE in cypress-full-enterprise playwright-full-enterprise; do
+            REPORT="impact-gate-reports/${SUITE}.json"
+            env -i PATH="$PATH" GIT_CONFIG_NOSYSTEM=1 GIT_CONFIG_GLOBAL=/dev/null \
+              node impact-gate-planner/dist/cli.js plan --advisory --json \
+              --config impact-gate-planner/examples/mattermost/advisory.config.json \
+              --path "$GITHUB_WORKSPACE/impact-gate-source" --since "$BASE_SHA" --suite "$SUITE" > "$REPORT"
+            jq --arg sourceRunId "github:${GITHUB_REPOSITORY}:${GITHUB_RUN_ID}:${GITHUB_RUN_ATTEMPT}" \
+              '.sourceRunId = $sourceRunId' "$REPORT" > "${REPORT}.tmp"
+            mv "${REPORT}.tmp" "$REPORT"
+          done
+
+      - name: ci/upload-advisory-plans
+        if: always()
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        with:
+          name: impact-gate-advisory-41657f8-${{ github.run_id }}-${{ github.run_attempt }}
+          path: impact-gate-reports/*.json
+          if-no-files-found: error
+          retention-days: 30
+
   resolve-pr:
     permissions:
       contents: read
