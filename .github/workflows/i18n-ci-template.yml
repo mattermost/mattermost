@@ -79,6 +79,6 @@ jobs:
           go-version-file: tools/mmgotool/go.mod
 
       - name: ci/i18n-verify
-        working-directory: tools/mmgotool
+        working-directory: server
         run: |
-          go run . i18n verify --server-dir=../../server --warn-missing-ids
+          make i18n-verify
