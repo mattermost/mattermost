@@ -1,5 +1,6 @@
 import {appendFile, mkdir, writeFile} from 'node:fs/promises';
 import {join} from 'node:path';
+import {stripVTControlCharacters} from 'node:util';
 import {invariant, main, required, shaPattern, validateWorkflow} from './triage-lib.mjs';
 import {statusMatches} from './triage-diagnose.mjs';
 import {legacyObservations} from './triage-pr-observations.mjs';
@@ -7,7 +8,7 @@ import {legacyObservations} from './triage-pr-observations.mjs';
 const origins = new Set(['https://test-io.test.mattermost.com', 'https://staging-test-io.test.mattermost.com']);
 const selectorKeys = ['repository', 'commit_sha', 'gh_run_id', 'gh_run_attempt', 'name'];
 const failure = new Set(['failure', 'error', 'timed_out', 'cancelled', 'action_required', 'startup_failure']);
-const compact = value => String(value ?? '').replace(/[\r\n<>@`|]/g, ' ').slice(0, 500).replace(/[\\[\]()!*_#]/g, '\\$&');
+const compact = value => stripVTControlCharacters(String(value ?? '')).replace(/[\x00-\x1f\x7f<>@`|]/g, ' ').slice(0, 500).replace(/[\\[\]()!*_#]/g, '\\$&');
 
 export function prNumber(value) {
     invariant(/^[1-9][0-9]{0,9}$/.test(String(value)), 'pr_number must be a positive integer');
@@ -291,7 +292,7 @@ export function renderPR(result) {
         lines.push('', `## ${compact(suite.status.context)}`);
         if (suite.error) { lines.push(compact(suite.error)); continue; }
         lines.push(`Run ${suite.run.id}, attempt ${suite.run.run_attempt}.`);
-        if (suite.status.state === 'success' && failure.has(suite.run.conclusion)) lines.push('**Status inconsistency: the E2E status is green but its linked workflow failed.**');
+        if (suite.status.state === 'success' && failure.has(suite.run.conclusion)) lines.push("**The overall E2E workflow failed; this suite's commit status is green.**");
         lines.push(`Worker reports: ${suite.worker_reports.received ?? 'unknown'}/${suite.worker_reports.expected ?? 'unknown'}; all received and complete: ${suite.worker_reports.complete}.`);
         lines.push(`Raw evidence complete: ${suite.raw.data?.complete === true}; trusted source: ${suite.raw.data?.trusted_source === true}.`);
         for (const key of ['raw', 'clustered', 'orchestration', 'legacy', 'detail']) if (suite[key]) lines.push(`- ${key}: ${suite[key].available ? 'available in JSON artifact' : compact(suite[key].reason)}`);

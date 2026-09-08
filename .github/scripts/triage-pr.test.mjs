@@ -69,7 +69,7 @@ test('green status never hides a failed workflow or incomplete upload', async ()
         return url.includes('/triage/run-evidence?') ? {...value, complete: false, reports: [{id: 'one'}], group: {...value.group, total_reports_expected: 2}} : value;
     }});
     assert.equal(result.suites.length, 1);
-    assert.match(renderPR(result), /status is green but its linked workflow failed/);
+    assert.match(renderPR(result), /overall E2E workflow failed; this suite's commit status is green/);
     assert.match(renderPR(result), /Worker reports: 1\/2; all received and complete: false/);
 });
 test('status pagination collects E2E contexts after a full first page', async () => {
@@ -178,11 +178,12 @@ test('claimed trusted upload revision must match the linked GitHub workflow revi
 test('the summary selects the final failed execution error and labels retry history', async () => {
     const result = await analyzePR({repository,number:9,gh:githubWithMaster(),read:legacyRead()});
     const test = result.suites[0].tests[0];
-    test.rows.unshift({error_message:'old timeout',retry_count:0,final_execution:false});
+    test.rows.unshift({error_message:'\u001b[31mold timeout\u001b[0m',retry_count:0,final_execution:false});
     assert.match(renderPR(result),/Final error: same error/);
     assert.doesNotMatch(renderPR(result),/Final error: old timeout/);
     test.observation = 'retry_survivor';
     assert.match(renderPR(result),/Observed failed-attempt error: old timeout/);
+    assert.doesNotMatch(renderPR(result),/\u001b/);
 });
 test('a deleted head repository is unavailable, not assumed to be a fork', async () => {
     const result = await analyzePR({repository,number:9,gh:github({pull:{...pr,head:{...pr.head,repo:null}},statuses:[]})});
