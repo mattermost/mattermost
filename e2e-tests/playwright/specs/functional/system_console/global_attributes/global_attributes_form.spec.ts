@@ -1143,7 +1143,9 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
                 // type (no webapp production code reads/writes it -- this feature uses
                 // attrs.managed, not PermissionValues), so it's cast locally here rather than
                 // widening the shared type for one test-only assertion.
-                expect((userField as unknown as {permission_values?: string} | undefined)?.permission_values).toBe('sysadmin');
+                expect((userField as unknown as {permission_values?: string} | undefined)?.permission_values).toBe(
+                    'sysadmin',
+                );
             } finally {
                 await deleteAppliesToAttributeAndLinkedFieldsIfExists(adminClient, name);
             }
