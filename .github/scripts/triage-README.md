@@ -1,6 +1,8 @@
-# Mattermost triage callers
+# Mattermost E2E triage and master repair
 
 These workflows run in shadow mode and never merge a PR or write an E2E success status. The existing manual approval workflow remains authoritative. Master failures are observations, not proof of PR innocence.
+
+The delivery scope is two outcomes: evidence-backed automatic clearance of unrelated PR E2E failures, and periodic verified test repairs proposed as PRs. The first is not implemented by the current shadow policy. The repair implementation below still needs credentialed live acceptance and default-branch activation. Impact Gate, Test Analysis integration and Jira are not dependencies of these two workflows.
 
 ## Activation
 
@@ -9,7 +11,7 @@ Land the reviewed scripts/workflows on master first. The mechanical policy uses 
 Configure repository variables:
 
 - `MM_TRIAGE_ENABLED=true`: diagnosis on failed workflow completion and every 15 minutes.
-- `MM_TRIAGE_REPAIR_ENABLED=true`: latest eligible master discovery followed by one claimed repair; every 15 minutes or manual dispatch.
+- `MM_TRIAGE_REPAIR_ENABLED=true`: latest eligible master discovery followed by one claimed repair; daily at 03:00 UTC or manual dispatch.
 - `MM_TRIAGE_TSIO_URL`: trusted API URL ending `/api/v1` (choose staging explicitly for shadow rollout).
 - `MM_TRIAGE_SET_STATUS`: defaults `false`; `true` fails explicitly during shadow-v1. There is no success-status implementation or permission.
 - `MM_TRIAGE_PROVIDER=openai` and `MM_TRIAGE_MODEL`: an enabled model supporting Responses structured JSON output. This Guardian provider is independent of the existing Cursor diagnosis workflow.
@@ -22,15 +24,15 @@ Secrets and trust:
 - Guardian requires `MM_TRIAGE_OPENAI_API_KEY`. It makes real calls to the [OpenAI Responses API structured outputs interface](https://platform.openai.com/docs/guides/structured-outputs). It sends the single test source and reproduction evidence; the provider has no tools or workspace authority. It first returns `repair`, `product_suspect`, or `blocked`. Only `repair` permits a second source-replacement request.
 - `MM_E2E_TEST_LICENSE_ONPREM_ENT` is required when the recorded run had a license. The provider and isolated candidate process never receive the license; the original trusted setup installs it on the test server.
 - Optional `MM_TRIAGE_GITHUB_TOKEN` is a GitHub App/user token with contents/PR write access. Without it, the workflow token must be permitted to create PRs; PR events created by `GITHUB_TOKEN` do not start other workflows, so a human must initiate any additional PR CI. Neither token can authorize automatic merge here.
-- Add real E2E owners to trusted `CODEOWNERS`. The repository currently has no E2E owner rules. Discovery fails visibly rather than inventing an owner. Repair queue tickets are optional; quarantine remains governed by the separate mandatory owner/ticket/expiry API.
+- This PR adds `@yasserfaraazkhan` as the user-approved reviewer for Cypress and Playwright under `CODEOWNERS`. Those rules must be on trusted master before activation. Discovery fails visibly when no owner matches. No tracking ticket or Jira configuration is required for test repair.
 
 ## Evidence and execution
 
-Discovery reads complete, nontruncated master reports and asks the server to derive the failed test identity. It verifies the exact GitHub merge workflow run/attempt and master ancestry. The API additionally requires immutable verified master upload provenance and a pullable recorded `server_image_digest`/`image_digest`. It rejects unsupported/ambiguous identities. Only the newest observed `(framework, suite, stable_key)` is enqueued. Existing product-suspect observations go directly to the deduplicating defect endpoint, including uncertain Jira submission reconciliation; they never enter test repair again.
+Discovery reads complete, nontruncated master reports and asks the server to derive the failed test identity. It verifies the exact GitHub merge workflow run/attempt and master ancestry. The API additionally requires immutable verified master upload provenance and a pullable recorded `server_image_digest`/`image_digest`. It rejects unsupported/ambiguous identities. Only the newest observed `(framework, suite, stable_key)` is enqueued. Existing product-suspect observations remain a durable human handoff and do not invoke Jira or enter test repair again.
 
 The workflow revision and tested commit are separate identities: master E2E uses `workflow_dispatch`, whose `inputs.commit_sha` can differ from the workflow's GitHub/OIDC SHA. Every report shard must carry the same verified source workflow revision, repository, ref, run, attempt, workflow and event; any Begin receipt supplying the shard count must match these claims and the immutable tested commit. The server returns that revision as `source_workflow_sha`. Guardian compares it to the source GitHub run's `head_sha`, then independently checks the tested commit's master ancestry. Existing queued items without this source field stop explicitly and need fresh evidence; historical rows are not retrospectively attested.
 
-The controller atomically claims work and renews its lease every 30 seconds. It checks out the recorded master test commit into an isolated directory and validates current CODEOWNERS. It pulls the recorded server image by digest, checks its architecture and the image ID of the actual running server, and requires the recorded framework version. Mutable image tags and bare local image IDs are rejected.
+The controller atomically claims work and renews its lease every 30 seconds. It rejects stale master claims before expensive execution. It checks out the recorded master test commit into an isolated directory and validates current CODEOWNERS. It pulls the recorded server image by digest, checks its architecture and the image ID of the actual running server, and requires the recorded framework version. Mutable image tags and bare local image IDs are rejected.
 
 The supported runtime is a nonroot Linux x64 GitHub runner with Docker. Playwright uses the repository's original Testcontainers setup; Cypress uses `make cloud-init` and `make start-server` with the recorded service set. Cloud-server runs and unknown frameworks/projects fail explicitly. Playwright Chrome, Firefox and iPad projects are supported; Cypress supports the recorded default Electron project. A trusted Cypress wrapper carries allowlisted Compose bootstrap/expose settings into the current Cypress configuration. A trusted Playwright wrapper preserves project/test/use settings and disables its global setup after the host has prepared the exact stack.
 
@@ -42,7 +44,7 @@ The mechanical CI policy blocks syntactic skips/only/fixme, new skip/ignore tags
 
 PR publication uses one deterministic branch per queue item. Each GitHub mutation checks live lease ownership and is cancellable. Uncertain ref/PR responses are reconciled with GET rather than blindly creating another PR. Once a PR exists its receipt is persisted before the reviewer request, so a review-request failure does not requeue it. Unresolved publication uncertainty stays visible for reconciliation. Branches and reused PRs must retain the recorded test commit as their sole parent. Master must still equal that verified commit when publication begins, before PR creation, and before recording the receipt; a matching spec alone cannot establish that its fixtures, setup or product behavior stayed unchanged. Even unrelated master merges currently require fresh evidence and revalidation. A GitHub ref can still advance after the last read; human review and normal PR CI remain required.
 
-A product-suspect decision first completes the repair claim terminally, then invokes the defect endpoint. It invokes no patch provider or test edit and leaves the test red. Jira uncertainty remains an API-owned reconciliation state; the caller never infers resolution from a local copy. The metrics step reads actual GitHub PR state and reports observed opened/merged/open/closed-without-merge counts; truncated queue results are labeled as a subset. No escaped-release metric is inferred.
+A product-suspect decision completes the repair claim terminally with an explicit request for the assigned owner to investigate. It invokes no patch provider, tracker or test edit and leaves the test red. The metrics step reads actual GitHub PR state and reports observed opened/merged/open/closed-without-merge counts; truncated queue results are labeled as a subset. No escaped-release metric is inferred.
 
 ## Local checks
 

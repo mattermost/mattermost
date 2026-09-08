@@ -19,13 +19,14 @@ export function provider(env = process.env, fetcher = fetch) {
     return {
         async diagnose(evidence) {
             const r = await invoke('diagnosis', evidence, schema({decision: {type: 'string', enum: ['repair', 'product_suspect', 'blocked']}, account: {type: 'string'}}));
-            invariant(['repair', 'product_suspect', 'blocked'].includes(r.decision) && typeof r.account === 'string' && r.account.length >= 30 && r.account.length <= 6000, 'Invalid provider diagnosis');
+            invariant(r && ['repair', 'product_suspect', 'blocked'].includes(r.decision) && typeof r.account === 'string' && r.account.length >= 30 && r.account.length <= 6000, 'Invalid provider diagnosis');
             invariant(Object.keys(r).every(k => ['decision', 'account'].includes(k)), 'Diagnosis must not contain an edit');
             return r;
         },
         async propose(evidence) {
             const r = await invoke('repair', evidence, schema({account: {type: 'string'}, source: {type: 'string'}}));
-            invariant(typeof r.source === 'string' && r.source.length > 0 && r.source.length <= 250000 && typeof r.account === 'string' && r.account.length >= 30 && r.account.length <= 6000, 'Invalid bounded replacement source');
+            invariant(r && typeof r.source === 'string' && r.source.length > 0 && r.source.length <= 250000 && typeof r.account === 'string' && r.account.length >= 30 && r.account.length <= 6000, 'Invalid bounded replacement source');
+            invariant(Object.keys(r).every(k => ['account', 'source'].includes(k)), 'Proposal contains unexpected fields');
             return r;
         },
     };

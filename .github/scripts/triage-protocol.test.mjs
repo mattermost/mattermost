@@ -59,10 +59,10 @@ test('CODEOWNERS uses last matching rule and refuses missing ownership', () => {
     assert.throws(() => ownerFor(owners, 'e2e-tests/playwright/specs/private/a.spec.ts'));
     assert.throws(() => ownerFor('/server/ @server', 'e2e-tests/x'));
 });
-test('product suspect durably completes before defect; never invokes repair', async () => {
+test('product suspect durably records human action without tracker or repair', async () => {
     const calls = [];
     await disposition({decision: 'product_suspect', account: 'Evidence of product behavior'}, {complete: async o => calls.push(o), defect: async () => calls.push('defect'), repair: async () => assert.fail('test edit called')});
-    assert.deepEqual(calls, ['product_suspect', 'defect']);
+    assert.deepEqual(calls, ['product_suspect']);
 });
 test('terminal completion failure prevents Jira submission', async () => {
     await assert.rejects(disposition({decision: 'product_suspect', account: 'evidence'}, {complete: async () => {throw Error('lost lease');}, defect: async () => assert.fail(), repair: async () => assert.fail()}), /lost lease/);
@@ -238,7 +238,7 @@ test('Cypress sandbox carries trusted bootstrap configuration through a safe exp
     const expose = cypressRuntime({services: {cypress: {environment: {CYPRESS_firstTest: 'true', CYPRESS_resetBeforeTest: 'true', CYPRESS_dbConnection: 'postgres://test/test', CYPRESS_ldapServer: 'localhost', AUTOMATION_DASHBOARD_TOKEN: 'secret', CYPRESS_customSecret: 'secret'}}}}, 'enterprise');
     assert.deepEqual(expose, {firstTest: true, resetBeforeTest: true, dbConnection: 'postgres://test/test', ldapServer: 'localhost', serverEdition: 'E20'});
 });
-test('discovery enqueues only latest stable-key observation and reconciles product defects', async () => {
+test('discovery enqueues only latest stable-key observation without tracker dependency', async () => {
     const {discover} = await import('./triage-queue.mjs'); const calls = [];
     const summaries = ['new', 'old'].map(id => ({...group, id, branch: 'master', status: 'completed', created_at: new Date().toISOString()}));
     const tsio = async (path, body) => {
@@ -247,12 +247,11 @@ test('discovery enqueues only latest stable-key observation and reconciles produ
         if (path.startsWith('/tests/evidence?')) return {complete: true, truncated: false, failure_count: 1, group: {...group, id: path.endsWith('new') ? 'new' : 'old', framework: 'playwright', branch: 'master', gh_pr_number: null}};
         if (path.startsWith('/triage/attribution?')) return {tests: [{framework: 'playwright', file: 'specs/x.spec.ts', stable_key: 'MM-T1'}]};
         if (path === '/triage/repairs/enqueue') {assert.equal(body.report_group_id, 'new'); assert.equal(body.ticket, undefined); return {item: {id: 'repair', state: 'product_suspect', lease_token: 'new-token', owner: '@qa'}};}
-        if (path === '/triage/repairs/repair/defect') {assert.equal(body.lease_token, 'new-token'); return {};}
         assert.fail(path);
     };
     await discover({tsio, gh: async () => ({...workflow, path: '.github/workflows/e2e-tests-on-merge.yml'}), repository, git: async () => ({}), owners: async () => '/e2e-tests/ @qa'});
     assert.equal(calls.filter(c => c.path === '/triage/repairs/enqueue').length, 1);
-    assert.equal(calls.filter(c => c.path === '/triage/repairs/repair/defect').length, 1);
+    assert.equal(calls.filter(c => c.path.endsWith('/defect')).length, 0);
 });
 test('repair counters inspect actual GitHub merged state and deduplicate recorded URLs', async () => {
     const {observeRepairs} = await import('./triage-metrics.mjs'); let reads = 0;

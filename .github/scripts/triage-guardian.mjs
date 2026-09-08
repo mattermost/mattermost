@@ -7,15 +7,19 @@ import {harness, verifyClean} from './triage-harness.mjs';
 import {checkSource} from './triage-policy.mjs';
 import {ownerFor, codeowners} from './triage-queue.mjs';
 
-export async function disposition(diagnosis, {complete, defect, repair}) {
+export async function disposition(diagnosis, {complete, repair}) {
     if (diagnosis.decision === 'product_suspect') {
-        // Terminal queue outcome FIRST. Defect endpoint never reactivates the repair path.
-        await complete('product_suspect', diagnosis.account);
-        return defect(diagnosis.account);
+        // Durable human handoff; no tracker credentials or test-edit request.
+        return complete('product_suspect', `${diagnosis.account}\n\nHuman action required: the assigned owner must investigate the possible product defect and resolve this queue item. The test remains unchanged and red.`);
     }
     if (diagnosis.decision === 'blocked') return complete('blocked', diagnosis.account);
     invariant(diagnosis.decision === 'repair', 'Unknown diagnosis decision');
     return repair(diagnosis.account);
+}
+export async function currentRepairMaster(gh, item) {
+    const latest = await gh('/git/ref/heads/master');
+    invariant(latest.object.sha === item.commit_sha, 'Master revision changed since reproduction; fresh master evidence and revalidation required');
+    return latest;
 }
 export async function publishRepair({gh, item, file, source, original, account, evidenceURL, count, fence = async () => {}, signal, onPublished = async () => {}}) {
     // One branch per logical queue item, across attempts. Uncertain API responses
@@ -27,11 +31,7 @@ export async function publishRepair({gh, item, file, source, original, account, 
         invariant(matches.length <= 1, 'Multiple repair PRs require human reconciliation');
         return matches[0];
     };
-    const currentMaster = async () => {
-        const latest = await gh('/git/ref/heads/master');
-        invariant(latest.object.sha === item.commit_sha, 'Master revision changed since reproduction; fresh master evidence and revalidation required');
-        return latest;
-    };
+    const currentMaster = () => currentRepairMaster(gh, item);
     const mutate = async (path, body) => { await fence(); if (path === '/pulls') await currentMaster(); return gh(path, body, 'POST', signal); };
     const latest = await currentMaster();
     const contents = await gh(`/contents/${file}?ref=${latest.object.sha}`);
@@ -99,6 +99,9 @@ export async function guardian(env = process.env) {
         await beat(); invariant(!heartbeatError, 'Initial lease heartbeat failed');
         const sourceRun = await gh(`/actions/runs/${item.gh_run_id}/attempts/${item.gh_run_attempt}`);
         validateWorkflow(sourceRun, repository, {master: true, source: item});
+        // Apply the publication freshness rule before cloning, installing or
+        // reproducing an old queue item against a historical server image.
+        await currentRepairMaster(gh, item);
         const cwd = await mkdtemp(join(tmpdir(), 'mattermost-guardian-'));
         await run('git', ['clone', '--no-checkout', '--', `https://github.com/${repository}.git`, cwd], {signal: abort.signal});
         await run('git', ['merge-base', '--is-ancestor', item.commit_sha, 'origin/master'], {cwd, signal: abort.signal});
@@ -113,7 +116,7 @@ export async function guardian(env = process.env) {
         const evidence = {test: {framework: item.framework, file, full_title: item.full_title, stable_key: item.stable_key}, image_digest: item.image_digest, commit_sha: item.commit_sha, reproduction: baseline, source: original};
         const diagnosis = await propose.diagnose(evidence);
         await artifact(output, 'diagnosis.json', diagnosis);
-        await disposition(diagnosis, {complete, defect: account => tsio(`/triage/repairs/${item.id}/defect`, {lease_token: item.lease_token, summary: `E2E caught possible product defect: ${item.stable_key}`.slice(0, 200), description: `${account}\n\nTest preserved red. Reproduction: ${evidenceURL}\nDigest: ${item.image_digest}\nCommit: ${item.commit_sha}\nOwner: ${item.owner}`}), repair: async (account) => {
+        await disposition(diagnosis, {complete, repair: async (account) => {
             const proposal = await propose.propose({...evidence, diagnosis: account});
             invariant(proposal.source !== original, 'Provider proposed no change');
             const policy = checkSource(original, proposal.source, file, {strict: true}); await artifact(output, 'edit-policy.json', policy);

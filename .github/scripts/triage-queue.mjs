@@ -1,4 +1,3 @@
-import {readFile} from 'node:fs/promises';
 import {clients, main, recentReports, validateWorkflow, selector, query, invariant, run, testPath} from './triage-lib.mjs';
 
 // CODEOWNERS last-match semantics for GitHub-supported *, ** and ? patterns.
@@ -41,8 +40,7 @@ export async function discover({tsio, gh, repository, cwd = process.cwd(), git =
             for (const test of attribution.tests) {
                 const key = `${g.framework}:${g.name}:${test.stable_key}`; if (seen.has(key)) continue; seen.add(key);
                 const file = testPath(test.framework, test.file);
-                const queued = await tsio('/triage/repairs/enqueue', {report_group_id: g.id, stable_key: test.stable_key, owner: ownerFor(ownership, file)});
-                if (queued.item?.state === 'product_suspect' && queued.item.lease_token) await tsio(`/triage/repairs/${queued.item.id}/defect`, {lease_token: queued.item.lease_token, summary: `Recurring product-suspect E2E failure: ${test.stable_key}`.slice(0, 200), description: `Previously diagnosed product-suspect test remains unchanged and red. New/current verified master report: ${g.id}. Exact run: https://github.com/${repository}/actions/runs/${g.gh_run_id}/attempts/${g.gh_run_attempt}. Owner: ${queued.item.owner}. Reconcile live unresolved Jira issues before any creation.`});
+                await tsio('/triage/repairs/enqueue', {report_group_id: g.id, stable_key: test.stable_key, owner: ownerFor(ownership, file)});
             }
         } catch (error) { errors.push(`${summary.id}: ${error.message}`); }
     }
