@@ -1,4 +1,4 @@
-name: E2E Triage Shadow
+name: E2E PR Triage
 on:
   workflow_run:
     workflows: ["E2E Tests (pull request)", "E2E Tests (master/release - merge)", "E2E Tests (release cut)"]
@@ -6,14 +6,54 @@ on:
   schedule:
     - cron: '*/15 * * * *'
   workflow_dispatch:
+    inputs:
+      pr_number:
+        description: 'PR number to analyze (fork or same repository); empty reconciles recent failures'
+        required: false
+        type: string
 permissions: {}
 concurrency:
   group: e2e-triage-shadow
   cancel-in-progress: false
 jobs:
+  analyze-pr:
+    if: github.event_name == 'workflow_dispatch' && inputs.pr_number != ''
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      actions: read
+      checks: read
+      pull-requests: read
+      statuses: read
+    steps:
+      # Execute this maintainer-selected workflow revision, never the target PR checkout.
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+          sparse-checkout: .github/scripts
+      - uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238
+        with:
+          node-version: '24.11.1'
+      - name: Analyze current PR E2E evidence
+        run: node .github/scripts/triage-pr.mjs
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ inputs.pr_number }}
+          TRIAGE_ARTIFACTS: ${{ runner.temp }}/pr-triage
+      - name: Preserve analysis and source evidence
+        if: always()
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f
+        with:
+          name: pr-triage-${{ inputs.pr_number }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/pr-triage
+          if-no-files-found: warn
+          retention-days: 30
   diagnose:
     if: >-
       vars.MM_TRIAGE_ENABLED == 'true' && github.ref == 'refs/heads/master' &&
+      inputs.pr_number == '' &&
       (github.event_name != 'workflow_run' ||
       contains(fromJSON('["failure","startup_failure","timed_out","cancelled"]'), github.event.workflow_run.conclusion))
     runs-on: ubuntu-24.04

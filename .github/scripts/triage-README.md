@@ -4,6 +4,33 @@ These workflows run in shadow mode and never merge a PR or write an E2E success 
 
 The delivery scope is two outcomes: evidence-backed automatic clearance of unrelated PR E2E failures, and periodic verified test repairs proposed as PRs. The first is not implemented by the current shadow policy. The repair implementation below still needs credentialed live acceptance and default-branch activation. Impact Gate, Test Analysis integration and Jira are not dependencies of these two workflows.
 
+## Analyze a PR by number
+
+After this workflow is reviewed and merged to master, open **Actions → E2E PR Triage → Run workflow**, select master and enter `pr_number`, for example `38407`. The equivalent command is:
+
+```sh
+gh workflow run e2e-triage-shadow.yml --repo mattermost/mattermost --ref master -f pr_number=38407
+```
+
+This manual path supports same-repository and fork PRs through GitHub's read APIs. It executes the selected workflow's scripts and never checks out or executes the target PR. It needs only the workflow's read-only GitHub token. Cursor, a model credential and a TSIO write key are not required. Empty input retains the existing recent-failure reconciliation path and its activation flag.
+
+The job saves `analysis.md` and `analysis.json` as an artifact and writes the human-readable result to its job summary. It reads the current PR head/base, paginated changed files and latest E2E commit statuses/check runs. It follows supported Cypress/Playwright enterprise/FIPS report links to production or staging and binds the full tested commit, workflow run and attempt. Older report links without an attempt are accepted only when GitHub confirms the original attempt. Changed heads, statuses or workflow attempts invalidate the result. Incomplete/binary/oversized patches are labeled, never presented as a complete diff.
+
+It preserves original failures and verifies worker-report counts independently. Orchestration's final execution determines whether a test still fails or survived a retry, including retries on another worker. If orchestration is missing, raw report outcomes describe only that worker. Production's older consolidated/orchestration APIs are supported; they cannot establish verified upload provenance. A green status does not hide a failed linked workflow or missing reports.
+
+For final failures it searches at most 1,000 recent report groups and considers up to three prior master candidates, preferring the exact PR base; older candidates must be ancestors of that base. The artifact records the chosen run and comparison limits. It compares full file/title/project and the final error. Missing Playwright projects cannot support a cross-run match. The possible assessments are:
+
+| Assessment | What it establishes |
+| --- | --- |
+| `observed_flaky` | This test failed, then passed on retry in the recorded run. |
+| `observed_on_master` | The same test and final error also appear in the selected prior master run. |
+| `pr_suspect` | The final failed test's own file is changed by the PR and needs investigation. |
+| `unknown` | The available evidence cannot support the other observations. |
+
+None proves causality or authorizes a waiver. Environment comparability, the effect of product/fixture changes, and the commit that introduced a master defect remain unresolved. An AI review can propose a diagnosis; controlled reproduction or bisect is needed to establish a culprit commit. The disabled Cursor automation is not replaced with an AI diagnosis by this manual reader. AI provider reuse remains pending authorization. No comments, labels or check statuses are written by the manual path.
+
+Read-only live acceptance covered a same-repository final failure (#38407), a fork with no current E2E statuses (#38353), and a green-status/failed-workflow mismatch with only 32/40 Cypress worker reports (#38356). A failed fork is covered by fixtures, not a live acceptance run. Automatic clearance and a real generated repair PR remain unproved.
+
 ## Activation
 
 Land the reviewed scripts/workflows on master first. The mechanical policy uses `pull_request_target`, checks out the exact trusted base SHA, and reads the PR commit only as Git data; its first bootstrap PR cannot exercise a policy that is not on its base yet. Require the `E2E Mechanical Edit Policy / policy` check after that bootstrap. No PR source, install hook, artifact, or candidate policy is executed by this privileged event.
@@ -14,7 +41,7 @@ Configure repository variables:
 - `MM_TRIAGE_REPAIR_ENABLED=true`: latest eligible master discovery followed by one claimed repair; daily at 03:00 UTC or manual dispatch.
 - `MM_TRIAGE_TSIO_URL`: trusted API URL ending `/api/v1` (choose staging explicitly for shadow rollout).
 - `MM_TRIAGE_SET_STATUS`: defaults `false`; `true` fails explicitly during shadow-v1. There is no success-status implementation or permission.
-- `MM_TRIAGE_PROVIDER=openai` and `MM_TRIAGE_MODEL`: an enabled model supporting Responses structured JSON output. This Guardian provider is independent of the existing Cursor diagnosis workflow.
+- `MM_TRIAGE_PROVIDER=openai` and `MM_TRIAGE_MODEL`: an enabled model supporting Responses structured JSON output. The repair provider is independent of Cursor.
 - `MM_TRIAGE_CLEAN_RUNS`: defaults 5, minimum 3, maximum 20.
 
 Secrets and trust:
