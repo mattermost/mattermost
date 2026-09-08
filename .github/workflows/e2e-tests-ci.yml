@@ -121,6 +121,7 @@ jobs:
     outputs:
       PR_NUMBER: "${{ steps.resolve.outputs.PR_NUMBER }}"
       COMMIT_SHA: "${{ steps.resolve.outputs.COMMIT_SHA }}"
+      BASE_SHA: "${{ steps.resolve.outputs.BASE_SHA }}"
       SERVER_IMAGE_TAG: "${{ steps.image-ref.outputs.image_tag }}"
       HEAD_REF: "${{ steps.resolve.outputs.HEAD_REF }}"
     steps:
@@ -128,8 +129,13 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: false
+          ref: ${{ github.workflow_sha }}
           fetch-depth: 0
 
+      - name: ci/setup-scope-node
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
+        with:
+          node-version: "22"
       - name: ci/resolve-pr-and-commit
         id: resolve
         env:
@@ -137,76 +143,15 @@ jobs:
           GITHUB_REPOSITORY: ${{ github.repository }}
           INPUT_PR_NUMBER: ${{ inputs.pr_number }}
           INPUT_COMMIT_SHA: ${{ inputs.commit_sha }}
-        run: |
-          # Validate inputs
-          if [ -n "$INPUT_PR_NUMBER" ] && ! [[ "$INPUT_PR_NUMBER" =~ ^[0-9]+$ ]]; then
-            echo "::error::Invalid PR number format. Must be numeric."
-            exit 1
-          fi
-          if [ -n "$INPUT_COMMIT_SHA" ] && ! [[ "$INPUT_COMMIT_SHA" =~ ^[a-f0-9]{7,40}$ ]]; then
-            echo "::error::Invalid commit SHA format. Must be 7-40 hex characters."
-            exit 1
-          fi
-
-          # Manual trigger: PR number provided, resolve commit SHA from PR head
-          if [ -n "$INPUT_PR_NUMBER" ]; then
-            echo "Manual trigger: resolving commit SHA from PR #${INPUT_PR_NUMBER}"
-            PR_DATA=$(gh api "repos/${GITHUB_REPOSITORY}/pulls/${INPUT_PR_NUMBER}")
-            COMMIT_SHA=$(echo "$PR_DATA" | jq -r '.head.sha')
-
-            if [ -z "$COMMIT_SHA" ] || [ "$COMMIT_SHA" = "null" ]; then
-              echo "::error::Could not resolve commit SHA for PR #${INPUT_PR_NUMBER}"
-              exit 1
-            fi
-
-            echo "PR_NUMBER=${INPUT_PR_NUMBER}" >> $GITHUB_OUTPUT
-            echo "COMMIT_SHA=${COMMIT_SHA}" >> $GITHUB_OUTPUT
-            echo "HEAD_REF=$(echo "$PR_DATA" | jq -r '.head.ref')" >> $GITHUB_OUTPUT
-            exit 0
-          fi
-
-          # Argo Events trigger: commit SHA provided, resolve PR number
-          if [ -n "$INPUT_COMMIT_SHA" ]; then
-            echo "Automated trigger: resolving PR number from commit ${INPUT_COMMIT_SHA}"
-            PR_DATA=$(gh api "repos/${GITHUB_REPOSITORY}/commits/${INPUT_COMMIT_SHA}/pulls" \
-              --jq '.[0] // empty' 2>/dev/null || echo "")
-            PR_NUMBER=$(echo "$PR_DATA" | jq -r '.number // empty' 2>/dev/null || echo "")
-            if [ -z "$PR_NUMBER" ]; then
-              echo "::error::No PR found for commit ${INPUT_COMMIT_SHA}. This workflow is for PRs only."
-              exit 1
-            fi
-
-            echo "Found PR #${PR_NUMBER} for commit ${INPUT_COMMIT_SHA}"
-
-            # Skip if PR is already merged to master or a release branch.
-            # The e2e-tests-on-merge workflow handles post-merge E2E tests.
-            PR_MERGED=$(echo "$PR_DATA" | jq -r '.merged_at // empty' 2>/dev/null || echo "")
-            PR_BASE_REF=$(echo "$PR_DATA" | jq -r '.base.ref // empty' 2>/dev/null || echo "")
-            if [ -n "$PR_MERGED" ]; then
-              if [ "$PR_BASE_REF" = "master" ] || [[ "$PR_BASE_REF" =~ ^release-[0-9]+\.[0-9]+$ ]]; then
-                echo "PR #${PR_NUMBER} is already merged to ${PR_BASE_REF}. Skipping - handled by e2e-tests-on-merge workflow."
-                echo "PR_NUMBER=" >> $GITHUB_OUTPUT
-                echo "COMMIT_SHA=" >> $GITHUB_OUTPUT
-                echo "HEAD_REF=" >> $GITHUB_OUTPUT
-                exit 0
-              fi
-            fi
-
-            echo "PR_NUMBER=${PR_NUMBER}" >> $GITHUB_OUTPUT
-            echo "COMMIT_SHA=${INPUT_COMMIT_SHA}" >> $GITHUB_OUTPUT
-            echo "HEAD_REF=$(echo "$PR_DATA" | jq -r '.head.ref // empty' 2>/dev/null || echo "")" >> $GITHUB_OUTPUT
-            exit 0
-          fi
-
-          # Neither provided
-          echo "::error::Either pr_number or commit_sha must be provided"
-          exit 1
+        run: node .github/scripts/e2e-resolve-pr.mjs
 
       - name: ci/check-e2e-test-only
         if: steps.resolve.outputs.PR_NUMBER != ''
         id: e2e-check
         uses: ./.github/actions/check-e2e-test-only
         with:
+          base_sha: ${{ steps.resolve.outputs.BASE_SHA }}
+          head_sha: ${{ steps.resolve.outputs.COMMIT_SHA }}
           pr_number: ${{ steps.resolve.outputs.PR_NUMBER }}
 
       - name: ci/select-demo-image
@@ -241,79 +186,27 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: false
-          ref: ${{ needs.resolve-pr.outputs.COMMIT_SHA }}
+          # Execute the policy from the workflow revision, never the tested PR.
+          ref: ${{ github.workflow_sha }}
           fetch-depth: 0
+      - name: ci/setup-scope-node
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
+        with:
+          node-version: "22"
       - name: ci/check-relevant-changes
         id: check
         env:
-          GH_TOKEN: ${{ github.token }}
-          GITHUB_REPOSITORY: ${{ github.repository }}
-          PR_NUMBER: ${{ needs.resolve-pr.outputs.PR_NUMBER }}
+          BASE_SHA: ${{ needs.resolve-pr.outputs.BASE_SHA }}
           COMMIT_SHA: ${{ needs.resolve-pr.outputs.COMMIT_SHA }}
           INPUT_PR_NUMBER: ${{ inputs.pr_number }}
           HEAD_REF: ${{ needs.resolve-pr.outputs.HEAD_REF }}
         run: |
-          # Get the base branch of the PR and changed files
-          BASE_SHA=$(gh api "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}" --jq '.base.sha')
-          CHANGED_FILES=$(git diff --name-only "${BASE_SHA}...${COMMIT_SHA}")
-
-          echo "Changed files:"
-          echo "$CHANGED_FILES"
-
-          # Determine should_run for regular E2E tests
-          if [ -n "$INPUT_PR_NUMBER" ]; then
-            # Manual trigger: always run E2E tests
-            echo "Manual trigger detected - skipping file change check for regular E2E"
-            SHOULD_RUN="true"
-          else
-            # Automated trigger: check for relevant file changes
-            echo "Automated trigger detected - checking for relevant file changes"
-            SHOULD_RUN="false"
-
-            if echo "$CHANGED_FILES" | grep -qE '^server/.*\.go$'; then
-              echo "Found server Go file changes"
-              SHOULD_RUN="true"
-            fi
-
-            if echo "$CHANGED_FILES" | grep -qE '^webapp/.*\.(ts|tsx|js|jsx)$'; then
-              echo "Found webapp TypeScript/JavaScript file changes"
-              SHOULD_RUN="true"
-            fi
-
-            if echo "$CHANGED_FILES" | grep -qE '^e2e-tests/.*\.(ts|tsx|js|jsx)$'; then
-              echo "Found e2e-tests TypeScript/JavaScript file changes"
-              SHOULD_RUN="true"
-            fi
-
-            if echo "$CHANGED_FILES" | grep -qE '^\.github/workflows/e2e-.*\.yml$'; then
-              echo "Found E2E CI workflow file changes"
-              SHOULD_RUN="true"
-            fi
-          fi
-
-          echo "should_run=${SHOULD_RUN}" >> $GITHUB_OUTPUT
-          echo "Should run E2E tests: ${SHOULD_RUN}"
-
-          # Check for FIPS-related conditions
-          SHOULD_RUN_FIPS="false"
-
-          if echo "$HEAD_REF" | grep -iqE 'fips'; then
-            echo "Branch name '$HEAD_REF' contains 'fips'"
-            SHOULD_RUN_FIPS="true"
-          fi
-
-          if echo "$CHANGED_FILES" | grep -qE '(^|/)go\.mod$'; then
-            echo "Found go.mod file changes"
-            SHOULD_RUN_FIPS="true"
-          fi
-
-          if echo "$CHANGED_FILES" | grep -qE '^server/build/Dockerfile\.buildenv-fips$'; then
-            echo "Found FIPS Dockerfile changes"
-            SHOULD_RUN_FIPS="true"
-          fi
-
-          echo "should_run_fips=${SHOULD_RUN_FIPS}" >> $GITHUB_OUTPUT
-          echo "Should run FIPS E2E tests: ${SHOULD_RUN_FIPS}"
+          set -euo pipefail
+          [[ "$BASE_SHA" =~ ^[a-f0-9]{40}$ && "$COMMIT_SHA" =~ ^[a-f0-9]{40}$ ]]
+          git fetch --no-tags origin "$BASE_SHA" "$COMMIT_SHA"
+          ARGS=(--base "$BASE_SHA" --head "$COMMIT_SHA" --head-ref "$HEAD_REF")
+          if [ -n "$INPUT_PR_NUMBER" ]; then ARGS+=(--manual); fi
+          node .github/scripts/e2e-change-scope.mjs "${ARGS[@]}"
 
   e2e-cypress:
     needs:

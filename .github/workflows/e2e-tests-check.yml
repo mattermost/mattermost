@@ -8,6 +8,8 @@ on:
       - "webapp/platform/eslint-plugin/**"
       - "webapp/platform/types/**"
       - ".github/workflows/e2e-*.yml"
+      - ".github/scripts/e2e-*.mjs"
+      - ".github/actions/check-e2e-test-only/**"
 
 permissions:
   actions: write
@@ -15,6 +17,19 @@ permissions:
   pull-requests: read
 
 jobs:
+  change-scope-policy:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f
+        with:
+          node-version: "22"
+      - run: node --test .github/scripts/e2e-change-scope.test.mjs .github/scripts/e2e-resolve-pr.test.mjs
+
   check:
     runs-on: ubuntu-24.04
     steps:

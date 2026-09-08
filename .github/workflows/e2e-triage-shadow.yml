@@ -1,0 +1,42 @@
+name: E2E Triage Shadow
+on:
+  workflow_run:
+    workflows: ["E2E Tests (pull request)", "E2E Tests (master/release - merge)", "E2E Tests (release cut)"]
+    types: [completed]
+  schedule:
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
+permissions: {}
+concurrency:
+  group: e2e-triage-shadow
+  cancel-in-progress: false
+jobs:
+  diagnose:
+    if: >-
+      vars.MM_TRIAGE_ENABLED == 'true' && github.ref == 'refs/heads/master' &&
+      (github.event_name != 'workflow_run' ||
+      contains(fromJSON('["failure","startup_failure","timed_out","cancelled"]'), github.event.workflow_run.conclusion))
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      actions: read
+      pull-requests: write
+      id-token: write
+    steps:
+      # Privileged commenter executes only the trusted default-branch scripts.
+      # Never download/execute PR artifacts or check out workflow_run.head_sha.
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          ref: master
+          persist-credentials: false
+          sparse-checkout: .github/scripts
+      - uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238
+        with:
+          node-version: '24.11.1'
+      - run: node .github/scripts/triage-diagnose.mjs
+        env:
+          TSIO_URL: ${{ vars.MM_TRIAGE_TSIO_URL }}
+          TSIO_TRIAGE_API_KEY: ${{ secrets.TSIO_TRIAGE_API_KEY }}
+          GH_TOKEN: ${{ github.token }}
+          MM_TRIAGE_SET_STATUS: ${{ vars.MM_TRIAGE_SET_STATUS || 'false' }}
