@@ -827,7 +827,7 @@ describe('admin_console/team_channel_settings/team/TeamDetails', () => {
 
     test('shows the auto-add checkbox when a policy is enforced and ABAC is supported', async () => {
         const getTeamAccessControlPolicy = jest.fn().mockResolvedValue({
-            data: {policy: {id: '123', type: 'team', imports: ['parent1'], rules: [], active: false}, enforced: true},
+            data: {policy: {id: '123', type: 'team', imports: ['parent1'], rules: []}, enforced: true},
         });
         const getAccessControlPolicy = jest.fn().mockResolvedValue({
             data: {id: 'parent1', name: 'Engineering Policy', type: 'parent', rules: []},
@@ -846,9 +846,17 @@ describe('admin_console/team_channel_settings/team/TeamDetails', () => {
         expect(screen.getByTestId('auto-add-members-checkbox')).not.toBeChecked();
     });
 
-    test('auto-add checkbox reflects the active flag from the server policy', async () => {
+    test('auto-add checkbox reflects the flag on the server policy membership rule', async () => {
         const getTeamAccessControlPolicy = jest.fn().mockResolvedValue({
-            data: {policy: {id: '123', type: 'team', imports: ['parent1'], rules: [], active: true}, enforced: true},
+            data: {
+                policy: {
+                    id: '123',
+                    type: 'team',
+                    imports: ['parent1'],
+                    rules: [{actions: ['membership'], expression: '', metadata: {auto_add: 'always'}}],
+                },
+                enforced: true,
+            },
         });
         const getAccessControlPolicy = jest.fn().mockResolvedValue({
             data: {id: 'parent1', name: 'Engineering Policy', type: 'parent', rules: []},
@@ -868,7 +876,7 @@ describe('admin_console/team_channel_settings/team/TeamDetails', () => {
 
     test('shows the ABAC save confirmation modal when toggling auto-add and clicking Save', async () => {
         const getTeamAccessControlPolicy = jest.fn().mockResolvedValue({
-            data: {policy: {id: '123', type: 'team', imports: ['parent1'], rules: [], active: false}, enforced: true},
+            data: {policy: {id: '123', type: 'team', imports: ['parent1'], rules: []}, enforced: true},
         });
         const getAccessControlPolicy = jest.fn().mockResolvedValue({
             data: {id: 'parent1', name: 'Engineering Policy', type: 'parent', rules: []},
@@ -900,7 +908,7 @@ describe('admin_console/team_channel_settings/team/TeamDetails', () => {
 
     test('shows empty-team warning in save confirmation when all members would be removed', async () => {
         const getTeamAccessControlPolicy = jest.fn().mockResolvedValue({
-            data: {policy: {id: '123', type: 'team', imports: ['parent1'], rules: [], active: false}, enforced: true},
+            data: {policy: {id: '123', type: 'team', imports: ['parent1'], rules: []}, enforced: true},
         });
         const getAccessControlPolicy = jest.fn().mockResolvedValue({
             data: {id: 'parent1', name: 'Engineering Policy', type: 'parent', rules: []},
@@ -932,7 +940,7 @@ describe('admin_console/team_channel_settings/team/TeamDetails', () => {
         // scopes to a team, so the count must match all users then intersect with current
         // members — here 2 of 3 members qualify, so exactly 1 is affected.
         const getTeamAccessControlPolicy = jest.fn().mockResolvedValue({
-            data: {policy: {id: '123', type: 'team', imports: ['parent1'], rules: [], active: false}, enforced: true},
+            data: {policy: {id: '123', type: 'team', imports: ['parent1'], rules: []}, enforced: true},
         });
         const getAccessControlPolicy = jest.fn().mockResolvedValue({
             data: {
@@ -982,7 +990,7 @@ describe('admin_console/team_channel_settings/team/TeamDetails', () => {
 
     test('pages through all team members so counts are correct past the first page', async () => {
         const getTeamAccessControlPolicy = jest.fn().mockResolvedValue({
-            data: {policy: {id: '123', type: 'team', imports: ['parent1'], rules: [], active: false}, enforced: true},
+            data: {policy: {id: '123', type: 'team', imports: ['parent1'], rules: []}, enforced: true},
         });
         const getAccessControlPolicy = jest.fn().mockResolvedValue({
             data: {
@@ -1320,12 +1328,11 @@ describe('admin_console/team_channel_settings/team/TeamDetails', () => {
 
     test('persists auto-add flag and triggers team sync job on confirmation', async () => {
         const getTeamAccessControlPolicy = jest.fn().mockResolvedValue({
-            data: {policy: {id: '123', type: 'team', imports: ['parent1'], rules: [], active: false}, enforced: true},
+            data: {policy: {id: '123', type: 'team', imports: ['parent1'], rules: []}, enforced: true},
         });
         const getAccessControlPolicy = jest.fn().mockResolvedValue({
             data: {id: 'parent1', name: 'Engineering Policy', type: 'parent', rules: []},
         });
-        const updateAccessControlPoliciesActive = jest.fn().mockResolvedValue({data: {}});
         const createAccessControlTeamSyncJob = jest.fn().mockResolvedValue({data: {}});
         const saveTeamAccessPolicy = jest.fn().mockResolvedValue({data: {}});
         const getTeamStats = jest.fn().mockResolvedValue({data: {total_member_count: 5}});
@@ -1338,7 +1345,6 @@ describe('admin_console/team_channel_settings/team/TeamDetails', () => {
                 ...baseProps.actions,
                 getTeamAccessControlPolicy,
                 getAccessControlPolicy,
-                updateAccessControlPoliciesActive,
                 createAccessControlTeamSyncJob,
                 saveTeamAccessPolicy,
                 getTeamStats,
@@ -1360,22 +1366,26 @@ describe('admin_console/team_channel_settings/team/TeamDetails', () => {
 
         await userEvent.click(screen.getByText('Apply'));
 
+        // Auto-add rides along on the policy write rather than a second call.
         await waitFor(() => {
-            expect(updateAccessControlPoliciesActive).toHaveBeenCalledWith([{id: '123', active: true}]);
+            expect(saveTeamAccessPolicy).toHaveBeenCalledWith(expect.objectContaining({
+                id: '123',
+                imports: ['parent1'],
+                rules: [expect.objectContaining({metadata: {auto_add: 'always'}})],
+            }));
         });
         await waitFor(() => {
             expect(createAccessControlTeamSyncJob).toHaveBeenCalledWith({policy_id: '123'});
         });
     });
 
-    test('toggling auto-add on a parent-governed team persists the team child active on save', async () => {
+    test('toggling auto-add on a parent-governed team persists it on the team child on save', async () => {
         const getTeamAccessControlPolicy = jest.fn().mockResolvedValue({
-            data: {policy: {id: '123', type: 'team', imports: ['parent1'], rules: [], active: false}, enforced: true},
+            data: {policy: {id: '123', type: 'team', imports: ['parent1'], rules: []}, enforced: true},
         });
         const getAccessControlPolicy = jest.fn().mockResolvedValue({
-            data: {id: 'parent1', name: 'Engineering Policy', type: 'parent', rules: [], active: false},
+            data: {id: 'parent1', name: 'Engineering Policy', type: 'parent', rules: []},
         });
-        const updateAccessControlPoliciesActive = jest.fn().mockResolvedValue({data: {}});
         const saveTeamAccessPolicy = jest.fn().mockResolvedValue({data: {}});
         const patchTeam = jest.fn().mockResolvedValue({data: {}});
         const props = {
@@ -1386,7 +1396,6 @@ describe('admin_console/team_channel_settings/team/TeamDetails', () => {
                 ...baseProps.actions,
                 getTeamAccessControlPolicy,
                 getAccessControlPolicy,
-                updateAccessControlPoliciesActive,
                 saveTeamAccessPolicy,
                 patchTeam,
             },
@@ -1398,7 +1407,7 @@ describe('admin_console/team_channel_settings/team/TeamDetails', () => {
         });
 
         // Parent-governed team: the rules-section checkbox is reachable and flips the
-        // team child's active without touching the parent policy.
+        // team child's auto-add without touching the parent policy.
         const autoAdd = screen.getByTestId('auto-add-members-checkbox');
         expect(autoAdd).not.toBeChecked();
         await userEvent.click(autoAdd);
@@ -1408,10 +1417,14 @@ describe('admin_console/team_channel_settings/team/TeamDetails', () => {
         // Saving rule changes surfaces the Apply membership policy confirmation.
         await userEvent.click(document.getElementById('confirmModalButton')!);
 
+        // Only the team child is written, carrying the mode on its membership
+        // rule; the parent policy is untouched.
         await waitFor(() => {
-            expect(updateAccessControlPoliciesActive).toHaveBeenCalledWith([{id: '123', active: true}]);
+            expect(saveTeamAccessPolicy).toHaveBeenCalledWith(expect.objectContaining({
+                id: '123',
+                rules: [{actions: ['membership'], expression: 'user.department == "Engineering"', metadata: {auto_add: 'always'}}],
+            }));
         });
-        expect(saveTeamAccessPolicy).toHaveBeenCalled();
     });
 
     test('linking a parent policy does not seed auto-add from the parent active flag', async () => {

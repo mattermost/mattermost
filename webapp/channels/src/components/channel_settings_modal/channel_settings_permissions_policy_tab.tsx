@@ -191,7 +191,6 @@ function ChannelSettingsPermissionsPolicyTab({
     const [originalAllRules, setOriginalAllRules] = useState<AccessControlPolicyRule[]>([]);
     const [originalMembershipExpression, setOriginalMembershipExpression] = useState('');
     const [originalImports, setOriginalImports] = useState<string[]>([]);
-    const [originalActive, setOriginalActive] = useState<boolean>(false);
 
     const [rules, setRules] = useState<EditableRule[]>([]);
     const [originalRulesJSON, setOriginalRulesJSON] = useState<string>('[]');
@@ -297,7 +296,6 @@ function ChannelSettingsPermissionsPolicyTab({
                 setOriginalAllRules(allRules);
                 setOriginalMembershipExpression(getMembershipRule(allRules)?.expression || '');
                 setOriginalImports(result.data.imports || []);
-                setOriginalActive(Boolean(result.data.active));
                 setRules(editable);
                 setOriginalRulesJSON(JSON.stringify(editable.map(fromEditable)));
                 setLoadError('');
@@ -310,7 +308,6 @@ function ChannelSettingsPermissionsPolicyTab({
                 setOriginalAllRules([]);
                 setOriginalMembershipExpression('');
                 setOriginalImports([]);
-                setOriginalActive(false);
                 setRules([]);
                 setOriginalRulesJSON('[]');
                 setLoadError('');
@@ -517,12 +514,11 @@ function ChannelSettingsPermissionsPolicyTab({
                 return SAVE_RESULT_ERROR;
             }
 
-            setOriginalAllRules([]);
-
             // Mirror the Membership Policy tab's empty-delete path: once the
-            // channel policy is gone, the next save in this tab session must
-            // not re-POST the stale active flag from the deleted policy.
-            setOriginalActive(false);
+            // channel policy is gone, the next save in this tab session must not
+            // re-POST anything from it. Clearing the rules covers auto-add too,
+            // since the mode rides on the membership rule.
+            setOriginalAllRules([]);
             setOriginalRulesJSON(JSON.stringify(persistedPermissionRules));
             return SAVE_RESULT_SAVED;
         }
@@ -539,10 +535,6 @@ function ChannelSettingsPermissionsPolicyTab({
             // would silently drop them.
             version: ACCESS_CONTROL_POLICY_VERSION_V0_4,
 
-            // Active flag is owned by the Membership Policy tab; pass through
-            // whatever value the loaded policy had so saving permission rules
-            // never silently changes membership auto-sync state.
-            active: originalActive,
             revision: 1,
             created_at: Date.now(),
             rules: finalRules,
@@ -571,7 +563,7 @@ function ChannelSettingsPermissionsPolicyTab({
             }));
             return SAVE_RESULT_ERROR;
         }
-    }, [actions, originalAllRules, originalMembershipExpression, originalImports, originalActive, channel.id, channel.display_name, formatMessage]);
+    }, [actions, originalAllRules, originalMembershipExpression, originalImports, channel.id, channel.display_name, formatMessage]);
 
     const handleSaveChanges = useCallback(async () => {
         const result = await persistRules(rules);
