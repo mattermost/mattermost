@@ -7,6 +7,8 @@ import {FormattedMessage} from 'react-intl';
 import {GenericModal} from '@mattermost/components';
 import {Button} from '@mattermost/shared/components/button';
 
+import type {TargetScope} from 'components/admin_console/access_control/modals/simulate_access/role_applicability';
+
 import './access_channel_confirm_modal.scss';
 
 type Props = {
@@ -14,6 +16,7 @@ type Props = {
     onHide: () => void;
     onConfirm: () => void;
     isSaving?: boolean;
+    targetScope: TargetScope;
 
     // Set when opened from inside another modal (Channel Settings) so this
     // one stacks instead of replacing its parent.
@@ -30,6 +33,7 @@ export default function AccessChannelConfirmModal({
     show,
     onHide,
     onConfirm,
+    targetScope,
     isSaving = false,
     isStacked = false,
 }: Props): JSX.Element {
@@ -75,10 +79,17 @@ export default function AccessChannelConfirmModal({
         >
             <div className='AccessChannelConfirmModal__body'>
                 <p>
-                    <FormattedMessage
-                        id='admin.permission_policies.access_channel_confirm.body_scope'
-                        defaultMessage='This policy controls Access Channel across every channel in the workspace.'
-                    />
+                    {targetScope === 'channel' ? (
+                        <FormattedMessage
+                            id='admin.permission_policies.access_channel_confirm.body_scope_channel'
+                            defaultMessage='This policy controls Access Channel for this channel only.'
+                        />
+                    ) : (
+                        <FormattedMessage
+                            id='admin.permission_policies.access_channel_confirm.body_scope_workspace'
+                            defaultMessage='This policy controls Access Channel across every channel in the workspace, except direct messages and group messages.'
+                        />
+                    )}
                 </p>
                 <p>
                     <FormattedMessage

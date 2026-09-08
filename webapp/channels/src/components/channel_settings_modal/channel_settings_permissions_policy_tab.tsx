@@ -960,6 +960,7 @@ function ChannelSettingsPermissionsPolicyTab({
             {showAccessChannelConfirmModal && (
                 <AccessChannelConfirmModal
                     show={true}
+                    targetScope='channel'
                     isStacked={true}
                     isSaving={isSavingPolicy}
                     onHide={() => setShowAccessChannelConfirmModal(false)}

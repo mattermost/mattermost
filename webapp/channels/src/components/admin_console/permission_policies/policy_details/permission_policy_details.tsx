@@ -895,6 +895,7 @@ function PermissionPolicyDetails({
                     {showAccessChannelConfirmModal && (
                         <AccessChannelConfirmModal
                             show={true}
+                            targetScope='system'
                             isSaving={saving}
                             onHide={() => setShowAccessChannelConfirmModal(false)}
                             onConfirm={async () => {
