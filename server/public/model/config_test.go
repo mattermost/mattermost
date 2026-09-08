@@ -2259,6 +2259,52 @@ func TestConfigSanitize(t *testing.T) {
 		expectedURL := "postgres://" + SanitizedPassword + ":" + SanitizedPassword + "@localhost:5432/mattermost_test?sslmode=disable"
 		assert.Equal(t, expectedURL, *c.SqlSettings.DataSource)
 	})
+
+	t.Run("partially sanitize every DataSource field", func(t *testing.T) {
+		dataSource := "postgres://mmuser:mostest_password@localhost:5432/mattermost_test?sslmode=disable"
+		expected := "postgres://" + SanitizedPassword + ":" + SanitizedPassword + "@localhost:5432/mattermost_test?sslmode=disable"
+
+		c := Config{}
+		c.SetDefaults()
+		c.SqlSettings.DataSource = NewPointer(dataSource)
+		c.SqlSettings.DataSourceReplicas = []string{dataSource}
+		c.SqlSettings.DataSourceSearchReplicas = []string{dataSource}
+		c.SqlSettings.ReplicaLagSettings = []*ReplicaLagSettings{{DataSource: NewPointer(dataSource)}}
+		c.Sanitize(nil, &SanitizeOptions{PartiallyRedactDataSources: true})
+
+		assert.Equal(t, expected, *c.SqlSettings.DataSource)
+		assert.Equal(t, []string{expected}, c.SqlSettings.DataSourceReplicas)
+		assert.Equal(t, []string{expected}, c.SqlSettings.DataSourceSearchReplicas)
+		require.Len(t, c.SqlSettings.ReplicaLagSettings, 1)
+		assert.Equal(t, expected, *c.SqlSettings.ReplicaLagSettings[0].DataSource)
+
+		out, err := json.Marshal(c)
+		require.NoError(t, err)
+		assert.NotContains(t, string(out), "mostest_password")
+	})
+
+	t.Run("fully sanitize keyword/value DataSource fields", func(t *testing.T) {
+		dataSource := "user=mmuser password=mostest_password host=localhost dbname=mattermost_test sslmode=disable"
+
+		c := Config{}
+		c.SetDefaults()
+		c.SqlSettings.DataSource = NewPointer(dataSource)
+		c.SqlSettings.DataSourceReplicas = []string{dataSource}
+		c.SqlSettings.DataSourceSearchReplicas = []string{dataSource}
+		c.SqlSettings.ReplicaLagSettings = []*ReplicaLagSettings{{DataSource: NewPointer(dataSource)}}
+		c.Sanitize(nil, &SanitizeOptions{PartiallyRedactDataSources: true})
+
+		assert.Equal(t, FakeSetting, *c.SqlSettings.DataSource)
+		assert.Equal(t, []string{FakeSetting}, c.SqlSettings.DataSourceReplicas)
+		assert.Equal(t, []string{FakeSetting}, c.SqlSettings.DataSourceSearchReplicas)
+		require.Len(t, c.SqlSettings.ReplicaLagSettings, 1)
+		assert.Equal(t, FakeSetting, *c.SqlSettings.ReplicaLagSettings[0].DataSource)
+
+		out, err := json.Marshal(c)
+		require.NoError(t, err)
+		assert.NotContains(t, string(out), "mostest_password")
+		assert.NotContains(t, string(out), "mmuser")
+	})
 }
 
 func TestPluginSettingsSanitize(t *testing.T) {
@@ -2554,6 +2600,62 @@ func TestSanitizeDataSource(t *testing.T) {
 			assert.Equal(t, tc.Sanitized, out)
 		}
 	})
+
+	t.Run("postgresql scheme", func(t *testing.T) {
+		out, err := SanitizeDataSource(DatabaseDriverPostgres, "postgresql://mmuser:mostest_password@localhost/dummy?sslmode=disable")
+		require.NoError(t, err)
+		assert.Equal(t, "postgresql://"+SanitizedPassword+":"+SanitizedPassword+"@localhost/dummy?sslmode=disable", out)
+	})
+
+	t.Run("unsupported data source formats", func(t *testing.T) {
+		testCases := []struct {
+			Name     string
+			Original string
+		}{
+			{
+				"keyword/value data source",
+				"user=mmuser password=mostest_password host=localhost dbname=mattermost sslmode=disable",
+			},
+			{
+				"keyword/value data source with quoted password",
+				"host=localhost user=mmuser password='mostest password' dbname=mattermost",
+			},
+			{
+				"keyword/value data source with passfile",
+				"host=localhost user=mmuser passfile=/etc/mattermost/.pgpass dbname=mattermost",
+			},
+			{
+				"keyword/value data source with no spaces around equals",
+				"host=localhost user=mmuser password=mostest_password",
+			},
+			{
+				"mysql style data source",
+				"mmuser:mostest_password@tcp(localhost:3306)/mattermost",
+			},
+			{
+				"scheme in the middle of the data source",
+				"dbname=mattermost fallback_application_name=postgres://mmuser:mostest_password@localhost",
+			},
+			{
+				"uppercase scheme",
+				"POSTGRES://mmuser:mostest_password@localhost",
+			},
+			{
+				"leading whitespace before scheme",
+				" postgres://mmuser:mostest_password@localhost",
+			},
+		}
+
+		for _, tc := range testCases {
+			t.Run(tc.Name, func(t *testing.T) {
+				out, err := SanitizeDataSource(DatabaseDriverPostgres, tc.Original)
+				require.Error(t, err)
+				assert.Empty(t, out)
+				assert.NotContains(t, err.Error(), "mostest_password")
+			})
+		}
+	})
+
 }
 
 func TestConfigFilteredByTag(t *testing.T) {

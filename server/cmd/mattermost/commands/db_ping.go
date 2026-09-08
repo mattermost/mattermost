@@ -75,7 +75,8 @@ func dbPingCmdF(command *cobra.Command, _ []string) error {
 
 	sanitized, err := sanitizePingDataSource(dsn)
 	if err != nil {
-		return err
+		logger.Warn("Failed to sanitize the database DSN. Falling back to fully redacting it.", mlog.Err(err))
+		sanitized = model.FakeSetting
 	}
 
 	db, err := dbsql.Open(model.DatabaseDriverPostgres, dsn)
