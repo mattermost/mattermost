@@ -25,7 +25,142 @@ on:
 
 permissions: {}
 
+env:
+  IMPACT_GATE_PLANNER_SHA: b67cb53d4149a1f719466fb21e3c0169b51c5b16
+
 jobs:
+  # Advisory jobs never control the existing full-suite dispatch or status writers.
+  impact-gate-advisory:
+    needs: [resolve-pr, check-changes]
+    if: needs.resolve-pr.outputs.PR_NUMBER != ''
+    permissions:
+      contents: read
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    continue-on-error: true
+    steps:
+      - name: ci/checkout-reviewed-planner
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          repository: yasserfaraazkhan/impact-gate
+          ref: ${{ env.IMPACT_GATE_PLANNER_SHA }}
+          path: impact-gate-planner
+          persist-credentials: false
+      - name: ci/checkout-advisory-source
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          ref: ${{ needs.resolve-pr.outputs.COMMIT_SHA }}
+          fetch-depth: 0
+          path: impact-gate-source
+          persist-credentials: false
+      - name: ci/setup-advisory-node
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
+        with:
+          node-version: "22"
+      - name: ci/build-reviewed-planner
+        working-directory: impact-gate-planner
+        run: |
+          set -euo pipefail
+          env -i PATH="$PATH" NPM_CONFIG_USERCONFIG=/dev/null NPM_CONFIG_CACHE="$RUNNER_TEMP/impact-gate-npm" \
+            npm ci --ignore-scripts --no-audit --no-fund
+          env -i PATH="$PATH" NPM_CONFIG_USERCONFIG=/dev/null npm run build:cjs
+      - name: ci/plan-existing-specs
+        env:
+          BASE_SHA: ${{ needs.resolve-pr.outputs.BASE_SHA }}
+          HEAD_SHA: ${{ needs.resolve-pr.outputs.COMMIT_SHA }}
+          PLAN_FIPS: ${{ needs.check-changes.outputs.should_run_fips }}
+        run: |
+          set -euo pipefail
+          [[ "$BASE_SHA" =~ ^[a-f0-9]{40}$ && "$HEAD_SHA" =~ ^[a-f0-9]{40}$ ]]
+          [[ "$(git -C impact-gate-source rev-parse HEAD)" = "$HEAD_SHA" ]]
+          [[ "$(git -C impact-gate-planner rev-parse HEAD)" = "$IMPACT_GATE_PLANNER_SHA" ]]
+          git -C impact-gate-source fetch --no-tags origin "$BASE_SHA"
+          mkdir -p impact-gate-reports
+          SUITES=(cypress-full-enterprise playwright-full-enterprise)
+          if [ "$PLAN_FIPS" = "true" ]; then SUITES+=(cypress-full-fips playwright-full-fips); fi
+          for SUITE in "${SUITES[@]}"; do
+            REPORT="impact-gate-reports/${SUITE}.json"
+            env -i PATH="$PATH" GIT_CONFIG_NOSYSTEM=1 GIT_CONFIG_GLOBAL=/dev/null \
+              node impact-gate-planner/dist/cli.js plan --advisory --json \
+              --config impact-gate-planner/examples/mattermost/advisory.config.json \
+              --path "$GITHUB_WORKSPACE/impact-gate-source" --since "$BASE_SHA" --suite "$SUITE" > "$REPORT"
+            jq --arg sourceRunId "github:${GITHUB_REPOSITORY}:${GITHUB_RUN_ID}:${GITHUB_RUN_ATTEMPT}" \
+              '.sourceRunId = $sourceRunId' "$REPORT" > "${REPORT}.tmp"
+            mv "${REPORT}.tmp" "$REPORT"
+          done
+          node --input-type=module <<'NODE'
+          import {readFileSync, readdirSync, writeFileSync} from 'node:fs';
+          import {createHash} from 'node:crypto';
+          const e = process.env;
+          const plans = readdirSync('impact-gate-reports').filter(file => file.endsWith('.json')).sort().map(file => ({file, suite: file.slice(0, -5), sha256: createHash('sha256').update(readFileSync(`impact-gate-reports/${file}`)).digest('hex')}));
+          writeFileSync('impact-gate-reports/provenance.json', JSON.stringify({planner_sha: e.IMPACT_GATE_PLANNER_SHA, repository: e.GITHUB_REPOSITORY, tested_sha: e.HEAD_SHA, base_sha: e.BASE_SHA, workflow_sha: e.GITHUB_SHA, run_id: e.GITHUB_RUN_ID, run_attempt: e.GITHUB_RUN_ATTEMPT, plans}, null, 2));
+          NODE
+      - name: ci/upload-advisory-plans
+        if: always()
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        with:
+          name: impact-gate-advisory-${{ env.IMPACT_GATE_PLANNER_SHA }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: impact-gate-reports/*.json
+          if-no-files-found: error
+          retention-days: 30
+
+  impact-gate-comparison:
+    needs: [resolve-pr, impact-gate-advisory, e2e-cypress, e2e-playwright, e2e-cypress-fips, e2e-playwright-fips]
+    if: always() && needs.resolve-pr.outputs.PR_NUMBER != ''
+    permissions:
+      contents: read
+      actions: read
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    continue-on-error: true
+    steps:
+      - name: ci/checkout-trusted-comparison
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          ref: ${{ github.workflow_sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: ci/checkout-reviewed-configuration
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          repository: yasserfaraazkhan/impact-gate
+          ref: ${{ env.IMPACT_GATE_PLANNER_SHA }}
+          path: impact-gate-planner
+          persist-credentials: false
+      - name: ci/setup-comparison-node
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
+        with:
+          node-version: "22"
+      - name: ci/download-current-attempt-plans
+        continue-on-error: true
+        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8.0.0
+        with:
+          name: impact-gate-advisory-${{ env.IMPACT_GATE_PLANNER_SHA }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: impact-gate-reports
+      - name: ci/compare-selection-and-execution
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BASE_SHA: ${{ needs.resolve-pr.outputs.BASE_SHA }}
+          TESTED_SHA: ${{ needs.resolve-pr.outputs.COMMIT_SHA }}
+          IMPACT_GATE_PLANS: impact-gate-reports
+          IMPACT_GATE_CONFIG: impact-gate-planner/examples/mattermost/advisory.config.json
+          COMPARISON_OUTPUT: impact-gate-comparison
+          # Match the existing dispatch/report producer's environment selection.
+          TSIO_URL: ${{ (needs.resolve-pr.outputs.PR_NUMBER == '38356' || vars.E2E_USE_STAGING_TEST_IO_URL != 'false') && 'https://staging-test-io.test.mattermost.com/api/v1' || 'https://test-io.test.mattermost.com/api/v1' }}
+        run: |
+          set -euo pipefail
+          [[ "$BASE_SHA" =~ ^[a-f0-9]{40}$ && "$TESTED_SHA" =~ ^[a-f0-9]{40}$ ]]
+          git fetch --no-tags origin "$BASE_SHA" "$TESTED_SHA"
+          node .github/scripts/impact-gate-compare.mjs
+      - name: ci/upload-advisory-comparison
+        if: always()
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        with:
+          name: impact-gate-comparison-${{ github.run_id }}-${{ github.run_attempt }}
+          path: impact-gate-comparison/
+          if-no-files-found: error
+          retention-days: 30
+
   resolve-pr:
     permissions:
       contents: read

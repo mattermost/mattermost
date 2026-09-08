@@ -9,6 +9,7 @@ on:
       - "webapp/platform/types/**"
       - ".github/workflows/e2e-*.yml"
       - ".github/scripts/e2e-*.mjs"
+      - ".github/scripts/impact-gate-*.mjs"
       - ".github/actions/check-e2e-test-only/**"
 
 permissions:
@@ -28,7 +29,7 @@ jobs:
       - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f
         with:
           node-version: "22"
-      - run: node --test .github/scripts/e2e-change-scope.test.mjs .github/scripts/e2e-resolve-pr.test.mjs
+      - run: node --test .github/scripts/e2e-change-scope.test.mjs .github/scripts/e2e-resolve-pr.test.mjs .github/scripts/impact-gate-compare.test.mjs
 
   check:
     runs-on: ubuntu-24.04
