@@ -744,21 +744,27 @@ async function collectLogs(stack: StartedStack): Promise<void> {
         targets.map(async ([name, container]) => {
             const logStream = await container.logs();
             const outFile = fs.createWriteStream(path.join(LOG_DIR, `${name}.log`));
-            await new Promise<void>((resolve, reject) => {
-                logStream.pipe(outFile);
-                // Don't let a stalled log stream hold up teardown indefinitely.
-                const timer = setTimeout(() => {
-                    outFile.end();
-                    resolve();
-                }, 10_000);
-                logStream.on('end', () => {
+            await new Promise<void>((resolve) => {
+                let settled = false;
+                // container.logs() follows a running container, so a stack left running
+                // (PW_TESTCONTAINERS_REUSE=true) never emits 'end' on its own — unpipe and
+                // destroy the source before ending outFile so a chunk already in flight can't
+                // land on the closed destination and crash the process with ERR_STREAM_WRITE_AFTER_END.
+                const finish = () => {
+                    if (settled) {
+                        return;
+                    }
+                    settled = true;
                     clearTimeout(timer);
-                    resolve();
-                });
-                logStream.on('error', (error) => {
-                    clearTimeout(timer);
-                    reject(error);
-                });
+                    logStream.unpipe(outFile);
+                    logStream.destroy();
+                    outFile.end(resolve);
+                };
+                logStream.pipe(outFile, {end: false});
+                const timer = setTimeout(finish, 10_000);
+                logStream.on('end', finish);
+                logStream.on('error', finish);
+                outFile.on('error', finish);
             });
         }),
     );
