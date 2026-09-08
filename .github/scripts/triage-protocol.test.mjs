@@ -125,6 +125,15 @@ test('reconciliation includes all four failed conclusions across allowed workflo
     assert.equal(calls, 3); assert.equal(runs.length, 12);
 });
 test('untrusted master workflow rejected', () => { assert.throws(() => validateWorkflow(workflow, repository, {master: true})); });
+test('claimed master evidence binds the live workflow head separately from tested SHA', () => {
+    const master = {...workflow, path: '.github/workflows/e2e-tests-on-merge.yml', head_sha: 'b'.repeat(40)};
+    const source = {...group, source_workflow_sha: 'b'.repeat(40)};
+    validateWorkflow(master, repository, {master: true, source});
+    for (const mismatch of [
+        {...source, source_workflow_sha: sha}, {...source, source_workflow_sha: ''},
+        {...source, gh_run_id: '13'}, {...source, gh_run_attempt: '1'},
+    ]) assert.throws(() => validateWorkflow(master, repository, {master: true, source: mismatch}), /source.*identity|source.*revision/i);
+});
 test('configured live provider sends bounded tool-free structured request', async () => {
     let calls = 0;
     const p = provider({MM_TRIAGE_PROVIDER: 'openai', OPENAI_API_KEY: 'test', MM_TRIAGE_MODEL: 'configured-model'}, async (url, options) => {
@@ -186,6 +195,37 @@ test('lease loss before a GitHub mutation fences every remaining publication wri
     const mock = publicationMock(); let fences = 0;
     await assert.rejects(publishRepair({...mock.args, fence: async () => { if (++fences === 3) throw Error('lease lost'); }}), /lease lost/);
     assert.deepEqual(mock.calls.filter(c => c.method === 'POST').map(c => c.path), ['/git/trees', '/git/commits']);
+});
+test('master changes outside the target spec stop stale repair publication', async () => {
+    const mock = publicationMock();
+    const latest = 'c'.repeat(40);
+    const gh = async (path, ...args) => {
+        if (path === '/git/ref/heads/master') return {object: {sha: latest}};
+        // The spec stayed byte-identical while a fixture or helper was repaired.
+        if (path === `/contents/${mock.args.file}?ref=${latest}`) return {type: 'file', content: Buffer.from('original').toString('base64')};
+        return mock.args.gh(path, ...args);
+    };
+    await assert.rejects(publishRepair({...mock.args, gh}), /Master.*changed|master.*changed/);
+    assert.equal(mock.calls.filter(c => c.method === 'POST').length, 0);
+});
+test('an existing repair PR must retain the exact verified parent commit', async () => {
+    const mock = publicationMock(); let published = false;
+    const gh = async (path, ...args) => {
+        if (path.startsWith('/pulls?')) return [{number: 42, state: 'open', html_url: `https://github.com/${repository}/pull/42`, head: {sha: 'b'.repeat(40)}}];
+        if (path === `/git/commits/${'b'.repeat(40)}`) return {parents: [{sha: 'c'.repeat(40)}]};
+        return mock.args.gh(path, ...args);
+    };
+    await assert.rejects(publishRepair({...mock.args, gh, onPublished: async () => {published = true; await mock.args.onPublished();}}), /verified.*parent|parent.*verified/);
+    assert.equal(published, false);
+});
+test('master advancing during publication fences PR creation', async () => {
+    const mock = publicationMock(); let reads = 0;
+    const gh = async (path, ...args) => {
+        if (path === '/git/ref/heads/master' && ++reads > 1) return {object: {sha: 'c'.repeat(40)}};
+        return mock.args.gh(path, ...args);
+    };
+    await assert.rejects(publishRepair({...mock.args, gh}), /Master.*changed|master.*changed/);
+    assert.equal(mock.calls.filter(c => c.path === '/pulls').length, 0);
 });
 test('diagnosis comment renders baseline metrics without calling them innocent/red-run proof', async () => {
     const {comment} = await import('./triage-diagnose.mjs');

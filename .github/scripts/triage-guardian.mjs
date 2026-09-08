@@ -27,8 +27,13 @@ export async function publishRepair({gh, item, file, source, original, account, 
         invariant(matches.length <= 1, 'Multiple repair PRs require human reconciliation');
         return matches[0];
     };
-    const mutate = async (path, body) => { await fence(); return gh(path, body, 'POST', signal); };
-    const latest = await gh('/git/ref/heads/master');
+    const currentMaster = async () => {
+        const latest = await gh('/git/ref/heads/master');
+        invariant(latest.object.sha === item.commit_sha, 'Master revision changed since reproduction; fresh master evidence and revalidation required');
+        return latest;
+    };
+    const mutate = async (path, body) => { await fence(); if (path === '/pulls') await currentMaster(); return gh(path, body, 'POST', signal); };
+    const latest = await currentMaster();
     const contents = await gh(`/contents/${file}?ref=${latest.object.sha}`);
     invariant(contents.type === 'file' && Buffer.from(contents.content, 'base64').toString() === original, 'Master test changed since reproduction; human rebase/revalidation required');
     let pr = await findPR();
@@ -54,6 +59,9 @@ export async function publishRepair({gh, item, file, source, original, account, 
     invariant(files.length === 1 && files[0].filename === file, 'Repair PR includes unexpected files');
     const proposed = await gh(`/contents/${file}?ref=${pr.head.sha}`);
     invariant(Buffer.from(proposed.content, 'base64').toString() === source, 'Existing repair PR differs from currently verified source');
+    const publishedCommit = await gh(`/git/commits/${pr.head.sha}`);
+    invariant(publishedCommit.parents.length === 1 && publishedCommit.parents[0].sha === item.commit_sha, 'Repair PR parent differs from the verified commit');
+    await currentMaster();
     // Persist receipt before reviewer side effect, so review failures never requeue a second repair.
     try { await onPublished(pr); } catch (error) { error.publicationUncertain = true; throw error; }
     const owner = item.owner.replace(/^@/, '');
@@ -90,8 +98,7 @@ export async function guardian(env = process.env) {
     try {
         await beat(); invariant(!heartbeatError, 'Initial lease heartbeat failed');
         const sourceRun = await gh(`/actions/runs/${item.gh_run_id}/attempts/${item.gh_run_attempt}`);
-        validateWorkflow(sourceRun, repository, {master: true});
-        invariant(String(sourceRun.id) === String(item.gh_run_id) && String(sourceRun.run_attempt) === String(item.gh_run_attempt), 'Claim run/attempt mismatch');
+        validateWorkflow(sourceRun, repository, {master: true, source: item});
         const cwd = await mkdtemp(join(tmpdir(), 'mattermost-guardian-'));
         await run('git', ['clone', '--no-checkout', '--', `https://github.com/${repository}.git`, cwd], {signal: abort.signal});
         await run('git', ['merge-base', '--is-ancestor', item.commit_sha, 'origin/master'], {cwd, signal: abort.signal});

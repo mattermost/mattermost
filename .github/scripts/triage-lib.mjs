@@ -60,10 +60,14 @@ export async function recentReports(tsio, hours = 72) {
     }
     throw new Error('Report reconciliation exceeded 20000 groups; narrow interval or reconcile manually');
 }
-export function validateWorkflow(run, repository, {master = false} = {}) {
+export function validateWorkflow(run, repository, {master = false, source} = {}) {
     invariant(run.repository?.full_name === repository && workflows.has(run.path?.split('@')[0]), 'Untrusted workflow/repository');
     invariant(run.status === 'completed' && Number.isInteger(run.run_attempt) && run.run_attempt > 0 && shaPattern.test(run.head_sha), 'Incomplete or invalid GitHub run');
     if (master) invariant(run.path?.split('@')[0] === '.github/workflows/e2e-tests-on-merge.yml' && run.head_branch === 'master', 'Repair evidence must originate from the master merge workflow');
+    if (source) {
+        invariant(source.repository === repository && String(run.id) === String(source.gh_run_id) && String(run.run_attempt) === String(source.gh_run_attempt), 'Verified source run identity mismatch');
+        invariant(shaPattern.test(source.source_workflow_sha) && run.head_sha === source.source_workflow_sha, 'Verified source workflow revision missing or differs from GitHub run head; fresh evidence required');
+    }
 }
 export async function artifact(dir, name, data) { await mkdir(dir, {recursive: true}); await writeFile(`${dir}/${name}`, JSON.stringify(data, null, 2)); }
 export async function event() { return JSON.parse(await readFile(required(process.env, 'GITHUB_EVENT_PATH'), 'utf8')); }
