@@ -81,8 +81,8 @@ test.describe('ABAC resource.attributes - multiselect targets', {tag: ['@abac', 
         await waitForPolicySyncJob(adminClient, policyId);
 
         // SQL sync lane: the disjoint member is removed, the intersecting member
-        // stays, and the intersecting team-only user is auto-added — an active
-        // private-channel policy pulls in matching team members.
+        // stays, and the intersecting team-only user is auto-added — a
+        // private-channel policy with auto-add on pulls in matching team members.
         expect(await verifyUserInChannel(adminClient, matchInChannel.id, channel.id)).toBe(true);
         expect(await verifyUserInChannel(adminClient, nonMatch.id, channel.id)).toBe(false);
         expect(await verifyUserInChannel(adminClient, matchTeamOnly.id, channel.id)).toBe(true);
@@ -140,8 +140,8 @@ test.describe('ABAC resource.attributes - multiselect targets', {tag: ['@abac', 
         await waitForPolicySyncJob(adminClient, policyId);
 
         // SQL sync lane: the superset member stays, the member missing a required
-        // value is removed, and the exact-match team-only user is auto-added — an
-        // active private-channel policy pulls in matching team members.
+        // value is removed, and the exact-match team-only user is auto-added — a
+        // private-channel policy with auto-add on pulls in matching team members.
         expect(await verifyUserInChannel(adminClient, matchInChannel.id, channel.id)).toBe(true);
         expect(await verifyUserInChannel(adminClient, nonMatch.id, channel.id)).toBe(false);
         expect(await verifyUserInChannel(adminClient, matchTeamOnly.id, channel.id)).toBe(true);

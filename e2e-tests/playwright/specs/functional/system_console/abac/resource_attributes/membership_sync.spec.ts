@@ -79,11 +79,11 @@ test.describe('ABAC resource.attributes - membership sync', {tag: ['@abac', '@ab
         await triggerSyncJob(adminClient, policyId);
         await waitForPolicySyncJob(adminClient, policyId);
 
-        // SQL sync lane on a private channel with an active policy:
+        // SQL sync lane on a private channel with an auto-add policy:
         //  - the non-matching (eu) member is removed,
         //  - the matching (us) member stays,
         //  - the matching (us) user who was only in the team is auto-added —
-        //    an active private-channel policy pulls in matching team members.
+        //    a private-channel policy with auto-add on pulls in matching team members.
         expect(await verifyUserInChannel(adminClient, matchingUserInChannel.id, channel.id)).toBe(true);
         expect(await verifyUserInChannel(adminClient, nonMatchingUserInChannel.id, channel.id)).toBe(false);
         expect(await verifyUserInChannel(adminClient, matchingUserNotInChannel.id, channel.id)).toBe(true);
