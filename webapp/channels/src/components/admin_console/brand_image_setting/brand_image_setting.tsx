@@ -120,8 +120,9 @@ const BrandImageSetting = ({
     }, [handleSave, registerSaveAction, unRegisterSaveAction]);
 
     useEffect(() => {
+        setBrandImagePreview('');
+
         if (!brandImage) {
-            setBrandImagePreview('');
             return undefined;
         }
 
