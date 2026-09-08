@@ -10126,5 +10126,4010 @@
   {
     "id": "api.access_control_policy.get_channels.limit.app_error",
     "translation": "Обмеження на кількість каналів недійсне."
+  },
+  {
+    "id": "api.access_control.assign.team_group_constrained",
+    "translation": "До команди, синхронізованої з групою, не можна застосувати політику членства."
+  },
+  {
+    "id": "api.access_control_policy.channel_permission_policies.feature_disabled",
+    "translation": "Функцію політик дозволів на рівні каналів не ввімкнено."
+  },
+  {
+    "id": "api.access_control_policy.get_fields.limit.app_error",
+    "translation": "Обмеження на кількість полів недійсне."
+  },
+  {
+    "id": "api.access_control_policy.permission_policies.feature_disabled",
+    "translation": "Функцію політик дозволів не ввімкнено."
+  },
+  {
+    "id": "api.access_control_policy.policy_simulation.feature_disabled",
+    "translation": "Функцію симуляції політик не ввімкнено."
+  },
+  {
+    "id": "api.access_control_policy.simulate.users_out_of_scope.app_error",
+    "translation": "Усі користувачі в симуляції мають бути учасниками команди або каналу, зазначених у запиті."
+  },
+  {
+    "id": "api.access_control_policy.team_membership.feature_disabled",
+    "translation": "Функцію контролю доступу до членства в команді не ввімкнено."
+  },
+  {
+    "id": "api.admin.test_azure.missing_azure_field",
+    "translation": "Налаштування Azure Blob Storage відсутнє або недійсне."
+  },
+  {
+    "id": "api.ai_bridge_test_helper.disabled.app_error",
+    "translation": "Тестовий помічник Bridge вимкнено."
+  },
+  {
+    "id": "api.channel.add_user.to.channel.abac_subject_build_failed.app_error",
+    "translation": "Не вдалося сформувати суб'єкт контролю доступу для користувача."
+  },
+  {
+    "id": "api.channel.board_channel.app_error",
+    "translation": "Канали дошок недоступні через кінцеві точки /channels. Натомість використовуйте API /boards."
+  },
+  {
+    "id": "api.channel.bookmark.board.readonly.app_error",
+    "translation": "Закладки дошок керуються функцією дошок, і їх не можна створювати, оновлювати або видаляти через API закладок."
+  },
+  {
+    "id": "api.channel.discoverable_join_request.already_member.app_error",
+    "translation": "Ви вже є учасником цього каналу."
+  },
+  {
+    "id": "api.channel.discoverable_join_request.archived.app_error",
+    "translation": "Не можна надіслати запит на приєднання до архівованого каналу."
+  },
+  {
+    "id": "api.channel.discoverable_join_request.discoverable_requires_approval.app_error",
+    "translation": "Для приєднання до цього каналу потрібне схвалення адміністратора. Будь ласка, надішліть запит через вікно «Перегляд каналів»."
+  },
+  {
+    "id": "api.channel.discoverable_join_request.duplicate.app_error",
+    "translation": "У вас уже є запит на приєднання до цього каналу, що очікує на розгляд."
+  },
+  {
+    "id": "api.channel.discoverable_join_request.feature_disabled.app_error",
+    "translation": "Доступні для виявлення канали не ввімкнено на цьому сервері."
+  },
+  {
+    "id": "api.channel.discoverable_join_request.guest.app_error",
+    "translation": "Гості не можуть надсилати запити на приєднання до доступних для виявлення приватних каналів."
+  },
+  {
+    "id": "api.channel.discoverable_join_request.invalid_patch.app_error",
+    "translation": "Недійсне оновлення запиту на приєднання до каналу."
+  },
+  {
+    "id": "api.channel.discoverable_join_request.not_discoverable.app_error",
+    "translation": "Цей канал недоступний для виявлення."
+  },
+  {
+    "id": "api.channel.discoverable_join_request.not_pending.app_error",
+    "translation": "Запит на приєднання вже не очікує на розгляд."
+  },
+  {
+    "id": "api.channel.discoverable_join_request.not_private.app_error",
+    "translation": "Лише приватні канали приймають запити на приєднання."
+  },
+  {
+    "id": "api.channel.discoverable_join_request.policy_denied.app_error",
+    "translation": "Ви не відповідаєте правилам доступу, необхідним для приєднання до цього каналу."
+  },
+  {
+    "id": "api.channel.discoverable_join_request.shared.app_error",
+    "translation": "Спільні канали не приймають запитів на приєднання через функцію виявлення каналів."
+  },
+  {
+    "id": "api.channel.get_channel.flagged_post_mismatch.app_error",
+    "translation": "Ідентифікатор каналу не збігається з ідентифікатором каналу позначеного допису."
+  },
+  {
+    "id": "api.channel.patch_channel_moderations_for_channel.restricted_permission.app_error",
+    "translation": "Не можна додати дозвіл, обмежений схемою дозволів команди або системи."
+  },
+  {
+    "id": "api.channel.patch_update_channel.auto_translation_restricted.app_error",
+    "translation": "Автоматичний переклад не дозволений для цього каналу."
+  },
+  {
+    "id": "api.channel.patch_update_channel.cannot_update_managed_category.app_error",
+    "translation": "Не можна оновити керовану категорію для цього каналу без відповідних дозволів."
+  },
+  {
+    "id": "api.channel.patch_update_channel.feature_not_available.app_error",
+    "translation": "Функція автоматичного перекладу недоступна."
+  },
+  {
+    "id": "api.channel.patch_update_channel.group_constrained_not_allowed.app_error",
+    "translation": "Вам не дозволено встановлювати group_constrained для цього типу каналу."
+  },
+  {
+    "id": "api.channel.patch_update_channel.no_changes.app_error",
+    "translation": "Запит на оновлення не містить змін."
+  },
+  {
+    "id": "api.channel.patch_update_channel.restricted_dm.app_error",
+    "translation": "Не можна оновити обмежений канал приватних повідомлень."
+  },
+  {
+    "id": "api.channel.post_update_channel_autotranslation_message.create_post.error",
+    "translation": "Не вдалося опублікувати повідомлення про оновлення автоматичного перекладу."
+  },
+  {
+    "id": "api.channel.post_update_channel_autotranslation_message.disabled",
+    "translation": "@%s вимкнув(ла) автоматичний переклад для цього каналу. Усі нові повідомлення відображатимуться мовою оригіналу."
+  },
+  {
+    "id": "api.channel.post_update_channel_autotranslation_message.enabled",
+    "translation": "@%s увімкнув(ла) автоматичний переклад для цього каналу. Усі нові повідомлення відображатимуться вашою бажаною мовою."
+  },
+  {
+    "id": "api.channel.post_update_channel_autotranslation_message.retrieve_user.error",
+    "translation": "Не вдалося отримати користувача під час оновлення статусу автоматичного перекладу"
+  },
+  {
+    "id": "api.channel.set_members.group_constrained.app_error",
+    "translation": "Не можна встановлювати учасників для каналу, обмеженого групами."
+  },
+  {
+    "id": "api.channel.set_members.policy_enforced.app_error",
+    "translation": "Не можна встановлювати учасників для каналу, керованого політикою."
+  },
+  {
+    "id": "api.channel.set_members.type.app_error",
+    "translation": "Не можна встановлювати учасників для цього типу каналу."
+  },
+  {
+    "id": "api.channel.space_channel.app_error",
+    "translation": "Канали просторів недоступні через кінцеві точки /channels. Натомість використовуйте API просторів."
+  },
+  {
+    "id": "api.channel.update_channel.policy_enforced_type_conversion.app_error",
+    "translation": "До цього каналу застосовано політику членства на основі атрибутів. Видаліть політику, перш ніж перетворювати канал з публічного на приватний або навпаки."
+  },
+  {
+    "id": "api.channel.update_channel_member_autotranslation.channel_not_enabled.app_error",
+    "translation": "Автоматичний переклад не ввімкнено для цього каналу."
+  },
+  {
+    "id": "api.channel.update_channel_member_autotranslation.feature_not_available.app_error",
+    "translation": "Автоматичний переклад недоступний."
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.guest_and_admin.app_error",
+    "translation": "Некоректне оновлення учасника каналу: користувач повинен бути гостем або адміністратором, але не обома."
+  },
+  {
+    "id": "api.command.execute_command.provided_site_url_different.app_error",
+    "translation": "Ім'я хоста запиту відрізняється від налаштованого SiteURL. Для URL-адреси відповіді швидкої команди буде використано налаштований SiteURL."
+  },
+  {
+    "id": "api.command.execute_command.restricted_dm.error",
+    "translation": "Неможливо публікувати в обмеженому каналі приватних повідомлень"
+  },
+  {
+    "id": "api.command.execute_command.site_url_required.app_error",
+    "translation": "Для використання швидких команд необхідно налаштувати SiteURL"
+  },
+  {
+    "id": "api.command.move_command.creator_no_permission.app_error",
+    "translation": "Немає дозволу на переміщення команди"
+  },
+  {
+    "id": "api.command_groupmsg.invalid_user.app_error",
+    "translation": {
+      "one": "Не вдалося знайти користувача: {{.Users}}",
+      "few": "Не вдалося знайти користувачів: {{.Users}}",
+      "many": "Не вдалося знайти користувачів: {{.Users}}",
+      "other": "Не вдалося знайти користувачів: {{.Users}}"
+    }
+  },
+  {
+    "id": "api.command_invite.user_already_in_channel.app_error",
+    "translation": {
+      "one": "{{.User}} вже знаходиться в каналі.",
+      "few": "{{.User}} вже знаходяться в каналі.",
+      "many": "{{.User}} вже знаходяться в каналі.",
+      "other": "{{.User}} вже знаходяться в каналі."
+    }
+  },
+  {
+    "id": "api.command_mobile_logs.cross_user_unavailable.app_error",
+    "translation": "Неможливо змінити налаштування журналів мобільного застосунку для цього користувача."
+  },
+  {
+    "id": "api.command_mobile_logs.desc",
+    "translation": "Керуйте вкладенням журналів мобільного застосунку для себе або іншого користувача."
+  },
+  {
+    "id": "api.command_mobile_logs.disabled",
+    "translation": "Вкладення журналів мобільного застосунку тепер вимкнено для {{.User}}."
+  },
+  {
+    "id": "api.command_mobile_logs.enabled",
+    "translation": "Вкладення журналів мобільного застосунку тепер увімкнено для {{.User}}."
+  },
+  {
+    "id": "api.command_mobile_logs.hint",
+    "translation": "[on|off|status] [@username]"
+  },
+  {
+    "id": "api.command_mobile_logs.name",
+    "translation": "mobile-logs"
+  },
+  {
+    "id": "api.command_mobile_logs.status_off",
+    "translation": "Вкладення журналів мобільного застосунку наразі вимкнено для {{.User}}."
+  },
+  {
+    "id": "api.command_mobile_logs.status_on",
+    "translation": "Вкладення журналів мобільного застосунку наразі увімкнено для {{.User}}."
+  },
+  {
+    "id": "api.command_mobile_logs.update_error.app_error",
+    "translation": "Не вдалося оновити налаштування вкладення журналів мобільного застосунку. Будь ласка, спробуйте ще раз."
+  },
+  {
+    "id": "api.command_mobile_logs.usage",
+    "translation": "Використання: /mobile-logs [on|off|status] [@username]"
+  },
+  {
+    "id": "api.command_mobile_logs.user_not_found.app_error",
+    "translation": "Не вдалося знайти користувача \"{{.Username}}\"."
+  },
+  {
+    "id": "api.command_mobile_logs.you",
+    "translation": "вас"
+  },
+  {
+    "id": "api.command_share.service_inactive",
+    "translation": "Службу спільних каналів увімкнено, але вона не активна."
+  },
+  {
+    "id": "api.context.invalid_body.app_error",
+    "translation": "Недійсні властивості допису."
+  },
+  {
+    "id": "api.context.session_cookie_not_allowed.app_error",
+    "translation": "Автентифікація на основі cookie не дозволена для цієї кінцевої точки. Будь ласка, використовуйте автентифікацію на основі заголовка."
+  },
+  {
+    "id": "api.data_spillage.error.comment_required",
+    "translation": "Будь ласка, додайте коментар із поясненням, чому ви позначаєте це повідомлення."
+  },
+  {
+    "id": "api.data_spillage.error.comment_too_long",
+    "translation": "Причина поміщення повідомлення на карантин не може перевищувати {{.MaxLength}} символів."
+  },
+  {
+    "id": "api.data_spillage.error.disabled",
+    "translation": "Функцію обробки витоку даних вимкнено."
+  },
+  {
+    "id": "api.data_spillage.error.invalid_channel_type",
+    "translation": "Обробка витоку даних недоступна для каналів приватних і групових повідомлень."
+  },
+  {
+    "id": "api.data_spillage.error.invalid_post_type",
+    "translation": "Поміщення на карантин допису типу '{{.PostType}}' не дозволено."
+  },
+  {
+    "id": "api.data_spillage.error.license",
+    "translation": "Ваша ліцензія не підтримує обробку витоку даних."
+  },
+  {
+    "id": "api.data_spillage.error.not_available_on_team",
+    "translation": "Функцію обробки витоку даних не ввімкнено для цієї команди."
+  },
+  {
+    "id": "api.data_spillage.error.post_not_in_progress",
+    "translation": "Щоб зберегти або видалити допис на карантині, він має бути в статусі «очікує» або «призначено»."
+  },
+  {
+    "id": "api.data_spillage.error.reason_invalid",
+    "translation": "Вказано невідому причину поміщення повідомлення на карантин."
+  },
+  {
+    "id": "api.data_spillage.error.reason_required",
+    "translation": "Будь ласка, виберіть причину поміщення цього повідомлення на карантин."
+  },
+  {
+    "id": "api.data_spillage.error.user_not_reviewer",
+    "translation": "Цей користувач не є рецензентом вмісту."
+  },
+  {
+    "id": "api.data_spillage.exposure.write.app_error",
+    "translation": "Не вдалося записати звіт про розкриття допису."
+  },
+  {
+    "id": "api.data_spillage.report.open.app_error",
+    "translation": "Не вдалося відкрити згенерований файл звіту про позначені дописи."
+  },
+  {
+    "id": "api.data_spillage.report.stat.app_error",
+    "translation": "Не вдалося прочитати інформацію про файл звіту про позначені дописи."
+  },
+  {
+    "id": "api.draft.create_draft.can_not_draft_to_restricted_dm.error",
+    "translation": "Неможливо зберегти чернетку в обмеженому каналі приватних повідомлень"
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.subject",
+    "translation": {
+      "one": "[{{.SiteName}}] Нове сповіщення за {{.Day}} {{.Month}} {{.Year}}",
+      "few": "[{{.SiteName}}] Нові сповіщення за {{.Day}} {{.Month}} {{.Year}}",
+      "many": "[{{.SiteName}}] Нові сповіщення за {{.Day}} {{.Month}} {{.Year}}",
+      "other": "[{{.SiteName}}] Нові сповіщення за {{.Day}} {{.Month}} {{.Year}}"
+    }
+  },
+  {
+    "id": "api.emoji.upload.too_many_frames.app_error",
+    "translation": "Не вдалося створити емодзі. Анімований GIF повинен мати не більше {{.MaxFrames}} кадрів."
+  },
+  {
+    "id": "api.encoding_error",
+    "translation": "Виникла помилка під час кодування JSON для відповіді API"
+  },
+  {
+    "id": "api.file.get_file.abac_denied.app_error",
+    "translation": "Ви не маєте необхідного доступу для завантаження цього файлу."
+  },
+  {
+    "id": "api.file.get_file.invalid_flagged_post.app_error",
+    "translation": "Вказано невідповідний ідентифікатор позначеного допису."
+  },
+  {
+    "id": "api.file.get_file.plugin_hook_timeout",
+    "translation": "Час очікування хука плагіна вичерпано"
+  },
+  {
+    "id": "api.file.get_file.rejected_by_plugin",
+    "translation": "Завантаження файлу відхилено плагіном"
+  },
+  {
+    "id": "api.file.get_file_info.app_error",
+    "translation": "Не вдалося отримати інформацію про файл."
+  },
+  {
+    "id": "api.file.get_file_preview.rejected_by_plugin",
+    "translation": "Завантаження попереднього перегляду файлу відхилено плагіном"
+  },
+  {
+    "id": "api.file.get_file_thumbnail.rejected_by_plugin",
+    "translation": "Завантаження мініатюри файлу відхилено плагіном"
+  },
+  {
+    "id": "api.file.get_public_file.rejected_by_plugin",
+    "translation": "Завантаження публічного файлу відхилено плагіном"
+  },
+  {
+    "id": "api.file.test_connection_auth.app_error",
+    "translation": "Не вдалося пройти автентифікацію у сховищі файлів. Перевірте свої облікові дані та налаштування автентифікації."
+  },
+  {
+    "id": "api.file.test_connection_no_bucket.app_error",
+    "translation": "Налаштований bucket або контейнер не існує. Перевірте конфігурацію файлового сховища та дозволи."
+  },
+  {
+    "id": "api.file.test_connection_settings_nil.app_error",
+    "translation": "Налаштування файлового сховища мають невизначені значення."
+  },
+  {
+    "id": "api.file.test_connection_unsupported_driver.app_error",
+    "translation": "Непідтримуваний драйвер файлового сховища \"{{.Driver}}\". Підтримувані значення: \"local\", \"amazons3\" та \"azureblob\"."
+  },
+  {
+    "id": "api.file.upload_file.abac_denied.app_error",
+    "translation": "Ви не маєте необхідного доступу для завантаження файлів до цього каналу."
+  },
+  {
+    "id": "api.file.upload_file.get_channel.app_error",
+    "translation": "Неможливо завантажити файл до обмеженого приватного повідомлення"
+  },
+  {
+    "id": "api.file.upload_file.restricted_dm.error",
+    "translation": "Неможливо завантажити файл до обмеженого приватного повідомлення"
+  },
+  {
+    "id": "api.license.add_license.wrong_environment_production.app_error",
+    "translation": "Це виробнича ліцензія, але цей сервер працює в тестовому середовищі або середовищі розробки. Виробничі ліцензії можна використовувати лише на виробничих серверах."
+  },
+  {
+    "id": "api.license.add_license.wrong_environment_test.app_error",
+    "translation": "Це тестова ліцензія або ліцензія для розробки, але цей сервер працює у виробничому середовищі. Тестові ліцензії та ліцензії для розробки можна використовувати лише на тестових серверах або серверах для розробки."
+  },
+  {
+    "id": "api.license.parse_license.parse_form.app_error",
+    "translation": "Не вдалося розібрати форму завантаження ліцензії."
+  },
+  {
+    "id": "api.mark_all_as_read.disabled.app_error",
+    "translation": "Функцію «позначити все як прочитане» не ввімкнено."
+  },
+  {
+    "id": "api.oauth.allow_oauth.pkce_required_public.app_error",
+    "translation": "PKCE (Proof Key for Code Exchange) є обов'язковим для публічних OAuth-клієнтів, які використовують потік коду авторизації."
+  },
+  {
+    "id": "api.oauth.authorization_server_metadata.disabled.app_error",
+    "translation": "Постачальника послуг OAuth вимкнено."
+  },
+  {
+    "id": "api.oauth.authorization_server_metadata.invalid_url.app_error",
+    "translation": "Недійсна конфігурація URL для метаданих сервера авторизації."
+  },
+  {
+    "id": "api.oauth.authorization_server_metadata.site_url_required.app_error",
+    "translation": "Для надання метаданих сервера авторизації необхідно налаштувати URL-адресу сайту."
+  },
+  {
+    "id": "api.oauth.get_access_token.client_id_mismatch.app_error",
+    "translation": "invalid_grant: Грант токена не було видано цьому клієнту."
+  },
+  {
+    "id": "api.oauth.get_access_token.resource_mismatch.app_error",
+    "translation": "Невідповідність параметра resource між запитами авторизації та токена."
+  },
+  {
+    "id": "api.oauth.regenerate_secret.public_client.app_error",
+    "translation": "invalid_request: Неможливо повторно згенерувати секрет для публічних OAuth-клієнтів."
+  },
+  {
+    "id": "api.plugin.install.check_directory.app_error",
+    "translation": "Виникла помилка під час перевірки конфігурації каталогу плагінів."
+  },
+  {
+    "id": "api.plugin.install.directory_conflict.app_error",
+    "translation": "Неможливо встановити плагін: PluginSettings.Directory конфліктує з ImportSettings.Directory."
+  },
+  {
+    "id": "api.post.burn_post.user_not_in_channel.app_error",
+    "translation": "Ви не маєте дозволу знищити цей допис. Ви повинні бути учасником каналу."
+  },
+  {
+    "id": "api.post.create_post.burn_on_read.app_error",
+    "translation": "Виникла помилка під час створення допису, що зникає після прочитання."
+  },
+  {
+    "id": "api.post.create_post.can_not_post_in_restricted_dm.error",
+    "translation": "Неможливо опублікувати допис в обмеженому каналі приватних повідомлень."
+  },
+  {
+    "id": "api.post.create_post.card_type_disabled.app_error",
+    "translation": "Дописи типу «card» не ввімкнено на цьому сервері."
+  },
+  {
+    "id": "api.post.create_post.silent_notification.app_error",
+    "translation": "Лише дописи ботів, вебхуків, OAuth-застосунків і плагінів можна доставляти беззвучно."
+  },
+  {
+    "id": "api.post.create_post.silent_persistent_notification.app_error",
+    "translation": "Беззвучні дописи не можуть використовувати постійні сповіщення."
+  },
+  {
+    "id": "api.post.delete_post.can_not_delete_from_restricted_dm.error",
+    "translation": "Неможливо видалити допис в обмеженому каналі приватних повідомлень."
+  },
+  {
+    "id": "api.post.do_action.query.app_error",
+    "translation": "Недійсний запит дії."
+  },
+  {
+    "id": "api.post.fill_in_post_props.burn_on_read.bot_dm.app_error",
+    "translation": "Дописи, що зникають після прочитання, не дозволені в приватних повідомленнях з ботами або ШІ-агентами."
+  },
+  {
+    "id": "api.post.fill_in_post_props.burn_on_read.channel.app_error",
+    "translation": "Виникла помилка під час перевірки каналу для допису, що зникає після прочитання."
+  },
+  {
+    "id": "api.post.fill_in_post_props.burn_on_read.config.app_error",
+    "translation": "Дописи, що зникають після прочитання, не ввімкнено. Будь ласка, увімкніть прапорець функції та налаштування служби."
+  },
+  {
+    "id": "api.post.fill_in_post_props.burn_on_read.license.app_error",
+    "translation": "Дописи, що зникають після прочитання, потребують ліцензії Enterprise Advanced."
+  },
+  {
+    "id": "api.post.fill_in_post_props.burn_on_read.self_dm.app_error",
+    "translation": "Дописи, що зникають після прочитання, не дозволені в повідомленнях самому собі."
+  },
+  {
+    "id": "api.post.fill_in_post_props.burn_on_read.shared_channel.app_error",
+    "translation": "Дописи, що зникають після прочитання, не дозволені у спільних каналах."
+  },
+  {
+    "id": "api.post.fill_in_post_props.burn_on_read.user.app_error",
+    "translation": "Виникла помилка під час перевірки користувача для допису, що зникає після прочитання."
+  },
+  {
+    "id": "api.post.fill_in_post_props.invalid_ai_generated_user.app_error",
+    "translation": "Користувач для вмісту, згенерованого ШІ, має бути автором допису або ботом."
+  },
+  {
+    "id": "api.post.get_link_metadata_for_permalink.burn_on_read.app_error",
+    "translation": "Неможливо отримати метадані посилання для постійного посилання на допис, що зникає після прочитання."
+  },
+  {
+    "id": "api.post.get_message_for_notification.files_sent",
+    "translation": {
+      "one": "{{.Count}} файл відправлено: {{.Filenames}}",
+      "few": "{{.Count}} файли відправлено: {{.Filenames}}",
+      "many": "{{.Count}} файлів відправлено: {{.Filenames}}",
+      "other": "{{.Count}} файла відправлено: {{.Filenames}}"
+    }
+  },
+  {
+    "id": "api.post.get_message_for_notification.images_sent",
+    "translation": {
+      "one": "{{.Count}} зображення надіслано: {{.Filenames}}",
+      "few": "{{.Count}} зображення надіслано: {{.Filenames}}",
+      "many": "{{.Count}} зображень надіслано: {{.Filenames}}",
+      "other": "{{.Count}} зображення надіслано: {{.Filenames}}"
+    }
+  },
+  {
+    "id": "api.post.get_posts_for_reporting.channel_not_found",
+    "translation": "Канал не знайдено"
+  },
+  {
+    "id": "api.post.patch_post.can_not_update_burn_on_read_post.error",
+    "translation": "Дописи, що зникають після прочитання, не можна оновлювати."
+  },
+  {
+    "id": "api.post.patch_post.can_not_update_post_in_restricted_dm.error",
+    "translation": "Неможливо оновити допис в обмеженому каналі приватних повідомлень."
+  },
+  {
+    "id": "api.post.reveal_post.cannot_reveal_own_post.app_error",
+    "translation": "Ви не можете розкрити власний допис, що зникає після прочитання."
+  },
+  {
+    "id": "api.post.reveal_post.disabled.app_error",
+    "translation": "Функцію дописів, що зникають після прочитання, не ввімкнено, або вона потребує ліцензії Enterprise Advanced."
+  },
+  {
+    "id": "api.post.reveal_post.invalid_request.app_error",
+    "translation": "Недійсний запит: відсутній або недійсний заголовок X-Requested-With."
+  },
+  {
+    "id": "api.post.reveal_post.user_not_in_channel.app_error",
+    "translation": "Ви не маєте дозволу розкрити цей допис. Ви повинні бути учасником каналу."
+  },
+  {
+    "id": "api.post.update_post.burn_on_read.app_error",
+    "translation": "Дописи, що зникають після прочитання, не можна редагувати."
+  },
+  {
+    "id": "api.post.update_post.can_not_update_post_in_restricted_dm.error",
+    "translation": "Неможливо оновити допис в обмеженому каналі приватних повідомлень."
+  },
+  {
+    "id": "api.property.session_attributes.license.app_error",
+    "translation": "Атрибути сесії потребують ліцензії Enterprise Advanced."
+  },
+  {
+    "id": "api.property.v2_group_not_found.app_error",
+    "translation": "Вказану групу властивостей не знайдено."
+  },
+  {
+    "id": "api.property_field.create.invalid_target_type.app_error",
+    "translation": "Наданий тип цілі недійсний."
+  },
+  {
+    "id": "api.property_field.create.protected_via_api.app_error",
+    "translation": "Неможливо створити захищене поле властивості через API."
+  },
+  {
+    "id": "api.property_field.create.target_id_required.app_error",
+    "translation": "target_id є обов'язковим під час створення поля властивості з областю дії каналу або команди."
+  },
+  {
+    "id": "api.property_field.delete.no_permission.app_error",
+    "translation": "Ви не маєте дозволу на видалення цього поля властивості."
+  },
+  {
+    "id": "api.property_field.get.invalid_opts.app_error",
+    "translation": "Недійсні параметри пошуку полів властивостей."
+  },
+  {
+    "id": "api.property_field.get.invalid_target_type.app_error",
+    "translation": "Потрібен дійсний target_type (system, team або channel)."
+  },
+  {
+    "id": "api.property_field.get.scope_conflict.app_error",
+    "translation": "channel_id/team_id не можна поєднувати з target_type/target_id."
+  },
+  {
+    "id": "api.property_field.get.scope_required.app_error",
+    "translation": "Потрібен параметр області дії (channel_id, team_id або target_type)."
+  },
+  {
+    "id": "api.property_field.get.target_id_required.app_error",
+    "translation": "target_id є обов'язковим під час запиту за target_type каналу або команди."
+  },
+  {
+    "id": "api.property_field.get.target_type_required.app_error",
+    "translation": "target_type є обов'язковим, якщо вказано target_id."
+  },
+  {
+    "id": "api.property_field.invalid_patch.app_error",
+    "translation": "Недійсний патч поля властивості."
+  },
+  {
+    "id": "api.property_field.object_type_mismatch.app_error",
+    "translation": "Тип об'єкта поля властивості не відповідає URL."
+  },
+  {
+    "id": "api.property_field.patch.legacy_field.app_error",
+    "translation": "Неможливо оновити поле властивості v1 через цей API."
+  },
+  {
+    "id": "api.property_field.update.no_field_permission.app_error",
+    "translation": "Ви не маєте дозволу на редагування цього поля властивості."
+  },
+  {
+    "id": "api.property_field.update.no_options_permission.app_error",
+    "translation": "Ви не маєте дозволу керувати варіантами вибору для цього поля властивості."
+  },
+  {
+    "id": "api.property_value.get.invalid_opts.app_error",
+    "translation": "Недійсні параметри пошуку значень властивостей."
+  },
+  {
+    "id": "api.property_value.invalid_object_type.app_error",
+    "translation": "Наданий тип об'єкта недійсний."
+  },
+  {
+    "id": "api.property_value.patch.duplicate_field_id.app_error",
+    "translation": "Запит містить повторювані ідентифікатори полів."
+  },
+  {
+    "id": "api.property_value.patch.empty_body.app_error",
+    "translation": "Тіло запиту має містити принаймні одне оновлення значення властивості."
+  },
+  {
+    "id": "api.property_value.patch.field_not_found.app_error",
+    "translation": "Поле властивості {{.FieldID}} не знайдено в цій групі."
+  },
+  {
+    "id": "api.property_value.patch.invalid_field_id.app_error",
+    "translation": "Один або декілька ідентифікаторів полів у запиті недійсні."
+  },
+  {
+    "id": "api.property_value.patch.no_values_permission.app_error",
+    "translation": "Ви не маєте дозволу встановлювати значення для одного або декількох полів."
+  },
+  {
+    "id": "api.property_value.patch.too_many_items.request_error",
+    "translation": "Неможливо оновити таку кількість значень властивостей. За один раз можна оновити лише {{.Max}} значень властивостей."
+  },
+  {
+    "id": "api.property_value.system_use_dedicated_route.app_error",
+    "translation": "Системні значення мають використовувати спеціальну кінцеву точку системних значень."
+  },
+  {
+    "id": "api.property_value.template_no_values.app_error",
+    "translation": "Поля-шаблони не можуть мати значень."
+  },
+  {
+    "id": "api.reaction.delete.restricted_dm.error",
+    "translation": "Неможливо реагувати в обмеженому приватному повідомленні"
+  },
+  {
+    "id": "api.reaction.save.burn_on_read.app_error",
+    "translation": "Ви не можете реагувати на допис, що зникає після прочитання."
+  },
+  {
+    "id": "api.reaction.save.restricted_dm.error",
+    "translation": "Неможливо реагувати в обмеженому приватному повідомленні"
+  },
+  {
+    "id": "api.recap.disabled.app_error",
+    "translation": "Цю функцію не ввімкнено."
+  },
+  {
+    "id": "api.recap.permission_denied",
+    "translation": "Ви не маєте дозволу на доступ до цього підсумку."
+  },
+  {
+    "id": "api.remote_cluster.import_not_allowed.app_error",
+    "translation": "Імпорт віддаленого кластера не дозволено"
+  },
+  {
+    "id": "api.scheduled_recap.permission_denied",
+    "translation": "Ви не маєте дозволу на доступ до цього запланованого підсумку."
+  },
+  {
+    "id": "api.shared_channel.attachment.creator_id_required.app_error",
+    "translation": "FileInfo.CreatorId є обов'язковим."
+  },
+  {
+    "id": "api.shared_channel.attachment.data_required.app_error",
+    "translation": "Дані файлу є обов'язковими."
+  },
+  {
+    "id": "api.shared_channel.attachment.file_info_required.app_error",
+    "translation": "FileInfo є обов'язковим."
+  },
+  {
+    "id": "api.shared_channel.attachment.filename_required.app_error",
+    "translation": "FileInfo.Name є обов'язковим."
+  },
+  {
+    "id": "api.team.access_control.added.system_message",
+    "translation": "Вас додано до команди **{{.TeamName}}**, оскільки тепер ви відповідаєте її вимогам щодо членства."
+  },
+  {
+    "id": "api.team.access_control.removed.system_message",
+    "translation": "Вас видалено з команди **{{.TeamName}}**, оскільки ви більше не відповідаєте її вимогам щодо членства."
+  },
+  {
+    "id": "api.team.add_user.to.team.abac_subject_build_failed.app_error",
+    "translation": "Не вдалося сформувати суб'єкт контролю доступу для користувача."
+  },
+  {
+    "id": "api.team.add_user.to.team.rejected",
+    "translation": "Користувач не має необхідних атрибутів для приєднання до команди."
+  },
+  {
+    "id": "api.team.get_team.flagged_post_mismatch.app_error",
+    "translation": "Ідентифікатор команди не збігається з ідентифікатором команди позначеного допису."
+  },
+  {
+    "id": "api.team.invite_guests_to_channels.guest_magic_link_disabled.error",
+    "translation": "Магічне посилання для гостей не ввімкнено"
+  },
+  {
+    "id": "api.team.invite_members.account_deactivated.app_error",
+    "translation": "Обліковий запис, пов'язаний з {{.Addresses}}, було деактивовано. Будь ласка, зверніться до вашого системного адміністратора за деталями."
+  },
+  {
+    "id": "api.team.invite_members.profiles_disabled.app_error",
+    "translation": "Попереднє встановлення полів профілю в запрошеннях вимагає ввімкнення заблокованих полів профілю."
+  },
+  {
+    "id": "api.team.invite_members.profiles_graceful.app_error",
+    "translation": "Попереднє встановлення полів профілю в запрошеннях вимагає режиму graceful."
+  },
+  {
+    "id": "api.team.invite_members.profiles_license.app_error",
+    "translation": "Попереднє встановлення полів профілю в запрошеннях вимагає ліцензії Enterprise."
+  },
+  {
+    "id": "api.team.invite_members.username_taken.app_error",
+    "translation": "Ім'я користувача {{.Username}} вже зайняте."
+  },
+  {
+    "id": "api.team.update.group_constrained.policy_exists",
+    "translation": "Синхронізацію груп не можна ввімкнути для команди, до якої застосовано політику членства."
+  },
+  {
+    "id": "api.team.update_team_member_roles.guest_and_admin.app_error",
+    "translation": "Некоректне оновлення учасника команди: користувач повинен бути гостем або адміністратором, але не обома."
+  },
+  {
+    "id": "api.templates.guest_magic_link_body.footer.info",
+    "translation": "Цей лист надіслано вам, тому що хтось запросив посилання для входу в Mattermost. Якщо ви не надсилали такого запиту, можете спокійно проігнорувати цей лист."
+  },
+  {
+    "id": "api.templates.guest_magic_link_body.footer.title",
+    "translation": "Не запитували цей лист?"
+  },
+  {
+    "id": "api.templates.guest_magic_link_body.subtitle",
+    "translation": "Натисніть кнопку нижче, щоб увійти у свій обліковий запис. Пам'ятайте: не діліться цим посиланням ні з ким іншим."
+  },
+  {
+    "id": "api.templates.guest_magic_link_body.title",
+    "translation": "Увійдіть у Mattermost"
+  },
+  {
+    "id": "api.templates.guest_magic_link_subject",
+    "translation": "Увійдіть у {{ .SiteName }}"
+  },
+  {
+    "id": "api.templates.license_need_help.info",
+    "translation": "<a href=\"https://mattermost.com/contact-sales/\">Зверніться до експерта Mattermost</a>, щоб отримати допомогу з тарифними планами та варіантами поновлення."
+  },
+  {
+    "id": "api.templates.license_need_help.title",
+    "translation": "Потрібна допомога?"
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_subtitle_two",
+    "translation": "Поновіть ліцензію найближчим часом, щоб ваша команда могла й надалі користуватися цими перевагами."
+  },
+  {
+    "id": "api.templates.remove_expired_license.body.heading",
+    "translation": "Термін дії вашої ліцензії Mattermost закінчився"
+  },
+  {
+    "id": "api.templates.remove_expired_license.body.subtitle",
+    "translation": "Термін дії вашої ліцензії {{.SkuName}} для <a href=\"{{.SiteURL}}\">{{.SiteName}}</a> закінчився, і деякі функції може бути вимкнено."
+  },
+  {
+    "id": "api.templates.remove_expired_license.body.subtitle_two",
+    "translation": "Будь ласка, поновіть ліцензію зараз, щоб і надалі користуватися всіма можливостями Mattermost."
+  },
+  {
+    "id": "api.templates.user_access_token_rotated_body.info",
+    "translation": "Персональний токен доступу у вашому обліковому записі на {{ .SiteURL }} було повторно згенеровано. Попередній секрет токена більше не дійсний."
+  },
+  {
+    "id": "api.templates.user_access_token_rotated_body.title",
+    "translation": "Персональний токен доступу повторно згенеровано"
+  },
+  {
+    "id": "api.templates.user_access_token_rotated_subject",
+    "translation": "[{{ .SiteName }}] Персональний токен доступу повторно згенеровано"
+  },
+  {
+    "id": "api.upload.create.check_directory.app_error",
+    "translation": "Виникла помилка під час перевірки конфігурації каталогу імпорту."
+  },
+  {
+    "id": "api.upload.create.directory_conflict.app_error",
+    "translation": "Неможливо створити завантаження імпорту: ImportSettings.Directory конфліктує з PluginSettings.Directory."
+  },
+  {
+    "id": "api.user.attach_device_id.invalid_device_id.app_error",
+    "translation": "Недійсний ідентифікатор пристрою."
+  },
+  {
+    "id": "api.user.attach_device_id.invalid_voip_device_id.app_error",
+    "translation": "Недійсний ідентифікатор VoIP-пристрою."
+  },
+  {
+    "id": "api.user.check_user_password.invalid_hash.app_error",
+    "translation": "Формат хешованого пароля недійсний, і його не вдалося розібрати."
+  },
+  {
+    "id": "api.user.delete_channel.not_enabled.for_admin.app_error",
+    "translation": "Функцію остаточного видалення каналів не ввімкнено. Щоб використовувати цю команду, параметр ServiceSettings.EnableAPIChannelDeletion має бути встановлений у true. Докладніше див. https://mattermost.com/pl/environment-configuration-settings"
+  },
+  {
+    "id": "api.user.delete_team.not_enabled.for_admin.app_error",
+    "translation": "Функцію остаточного видалення команди не ввімкнено. Щоб використовувати цю команду, параметр ServiceSettings.EnableAPITeamDeletion має бути встановлений у true. Докладніше див. https://mattermost.com/pl/environment-configuration-settings."
+  },
+  {
+    "id": "api.user.delete_user.not_enabled.for_admin.app_error",
+    "translation": "Функцію остаточного видалення користувача не ввімкнено. Щоб використовувати цю команду, параметр ServiceSettings.EnableAPIUserDeletion має бути встановлений у true. Докладніше див. https://mattermost.com/pl/environment-configuration-settings."
+  },
+  {
+    "id": "api.user.demote_user_to_guest.bot_not_allowed.app_error",
+    "translation": "Облікові записи ботів не можна перетворити на гостьові облікові записи."
+  },
+  {
+    "id": "api.user.get_users_not_in_abac_team.access_control_unavailable.app_error",
+    "translation": "Служба контролю доступу недоступна. Неможливо відфільтрувати користувачів для команди з підтримкою ABAC."
+  },
+  {
+    "id": "api.user.guest_magic_link.expired_token.app_error",
+    "translation": "Термін дії цього посилання-запрошення минув."
+  },
+  {
+    "id": "api.user.guest_magic_link.invalid_token.app_error",
+    "translation": "Недійсне посилання-запрошення."
+  },
+  {
+    "id": "api.user.guest_magic_link.missing_token.app_error",
+    "translation": "Відсутній токен запрошення."
+  },
+  {
+    "id": "api.user.guest_magic_link.username_generation_failed.app_error",
+    "translation": "Не вдалося згенерувати унікальне ім'я користувача. Будь ласка, зверніться до свого системного адміністратора."
+  },
+  {
+    "id": "api.user.login.guest_magic_link.disabled.error",
+    "translation": "Вхід за магічним посиланням вимкнено."
+  },
+  {
+    "id": "api.user.login_by_intune.account_locked.app_error",
+    "translation": "Ваш обліковий запис було деактивовано. Будь ласка, зверніться до свого системного адміністратора."
+  },
+  {
+    "id": "api.user.login_by_intune.bot_login_forbidden.app_error",
+    "translation": "Облікові записи ботів не можуть входити за допомогою автентифікації Microsoft."
+  },
+  {
+    "id": "api.user.login_by_intune.not_available.app_error",
+    "translation": "Автентифікація Microsoft Intune недоступна."
+  },
+  {
+    "id": "api.user.login_by_intune.not_configured.app_error",
+    "translation": "Автентифікацію Microsoft Intune не налаштовано."
+  },
+  {
+    "id": "api.user.login_sso_code_exchange.deprecated.app_error",
+    "translation": "Ця кінцева точка застаріла та вимкнена. Будь ласка, оновіть свій мобільний додаток."
+  },
+  {
+    "id": "api.user.oauth.get_settings.app_error",
+    "translation": "Не вдалося отримати налаштування {{.Service}}"
+  },
+  {
+    "id": "api.user.oauth_to_email.integration_session.app_error",
+    "translation": "Неможливо перейти на автентифікацію електронною поштою, використовуючи інтеграційну сесію."
+  },
+  {
+    "id": "api.user.oauth_to_email.magic_link.app_error",
+    "translation": "Магічне посилання — єдиний доступний метод входу для цього облікового запису."
+  },
+  {
+    "id": "api.user.oauth_to_email.not_oauth_user.app_error",
+    "translation": "Неможливо перейти на автентифікацію електронною поштою, оскільки користувач не використовує автентифікацію OAuth або SAML."
+  },
+  {
+    "id": "api.user.patch_user.profile_field_locked.app_error",
+    "translation": "Поле {{.Field}} керується вашим системним адміністратором і не може бути змінене."
+  },
+  {
+    "id": "api.user.promote_guest_to_user.magic_link_enabled.app_error",
+    "translation": "Неможливо перетворити гостя на звичайного користувача, оскільки гість використовує автентифікацію за магічним посиланням."
+  },
+  {
+    "id": "api.user.rotate_user_access_token.disabled_token.app_error",
+    "translation": "Неможливо повторно згенерувати вимкнений токен доступу."
+  },
+  {
+    "id": "api.user.saml.relay_state_too_long.app_error",
+    "translation": "Стан ретрансляції SAML занадто довгий."
+  },
+  {
+    "id": "api.user.send_password_reset.guest_magic_link.app_error",
+    "translation": "Неможливо скинути пароль для гостьових облікових записів з магічним посиланням."
+  },
+  {
+    "id": "api.user.session_attributes.disabled.app_error",
+    "translation": "Атрибути сесії не ввімкнено."
+  },
+  {
+    "id": "api.user.update_password.magic_link.app_error",
+    "translation": "Неможливо оновити пароль для облікових записів з магічним посиланням."
+  },
+  {
+    "id": "api.user.update_user.profile_field_locked.app_error",
+    "translation": "Поле {{.Field}} керується вашим системним адміністратором і не може бути змінене."
+  },
+  {
+    "id": "api.user.upload_profile_user.profile_field_locked.app_error",
+    "translation": "Зображення профілю керується вашим системним адміністратором і не може бути змінене."
+  },
+  {
+    "id": "api.view.create.deleted_channel.app_error",
+    "translation": "Неможливо створити подання у видаленому каналі."
+  },
+  {
+    "id": "api.view.delete.channel_mismatch.app_error",
+    "translation": "Подання не належить до вказаного каналу."
+  },
+  {
+    "id": "api.view.delete.deleted_channel.app_error",
+    "translation": "Неможливо видалити подання у видаленому каналі."
+  },
+  {
+    "id": "api.view.get.channel_mismatch.app_error",
+    "translation": "Подання не належить до вказаного каналу."
+  },
+  {
+    "id": "api.view.get.deleted_channel.app_error",
+    "translation": "Неможливо отримати подання з видаленого каналу."
+  },
+  {
+    "id": "api.view.get_posts.channel_mismatch.app_error",
+    "translation": "Подання не належить до вказаного каналу."
+  },
+  {
+    "id": "api.view.get_posts.deleted_channel.app_error",
+    "translation": "Неможливо отримати дописи для подання з видаленого каналу."
+  },
+  {
+    "id": "api.view.list.deleted_channel.app_error",
+    "translation": "Неможливо отримати список подань для видаленого каналу."
+  },
+  {
+    "id": "api.view.update.channel_mismatch.app_error",
+    "translation": "Подання не належить до вказаного каналу."
+  },
+  {
+    "id": "api.view.update.deleted_channel.app_error",
+    "translation": "Неможливо оновити подання у видаленому каналі."
+  },
+  {
+    "id": "api.view.update_sort_order.deleted_channel.app_error",
+    "translation": "Неможливо оновити порядок сортування подань у видаленому каналі."
+  },
+  {
+    "id": "api.webhook.incoming.user_membership.app_error",
+    "translation": "Користувач вебхука має бути учасником цільової команди або каналу."
+  },
+  {
+    "id": "api.webhook.incoming.user_role.app_error",
+    "translation": "Ви не можете призначити вебхук користувачеві з вищими привілеями, ніж ваші власні."
+  },
+  {
+    "id": "app.access_control.build_subject.get_subject.app_error",
+    "translation": "Не вдалося отримати суб'єкт контролю доступу."
+  },
+  {
+    "id": "app.access_control.build_subject.group_id.app_error",
+    "translation": "Не вдалося отримати групу атрибутів контролю доступу."
+  },
+  {
+    "id": "app.access_control.get_channel_role.app_error",
+    "translation": "Не вдалося отримати роль користувача в каналі. Будь ласка, спробуйте ще раз."
+  },
+  {
+    "id": "app.access_control.get_session_attributes.app_error",
+    "translation": "Не вдалося отримати атрибути сесії."
+  },
+  {
+    "id": "app.access_control.insufficient_permissions",
+    "translation": "Ви не маєте дозволу на керування цією політикою контролю доступу."
+  },
+  {
+    "id": "app.access_control.plugin.evaluation_unavailable.app_error",
+    "translation": "Не вдалося оцінити контроль доступу для цього ресурсу."
+  },
+  {
+    "id": "app.access_control.plugin.invalid_acting_user.app_error",
+    "translation": "Користувач, який виконує дію, недійсний або не існує."
+  },
+  {
+    "id": "app.access_control.plugin.invalid_action.app_error",
+    "translation": "Ця дія не є припустимою дією контролю доступу."
+  },
+  {
+    "id": "app.access_control.plugin.invalid_id.app_error",
+    "translation": "До API контролю доступу передано недійсний ідентифікатор."
+  },
+  {
+    "id": "app.access_control.plugin.invalid_resource_type.app_error",
+    "translation": "Цей тип ресурсу не є припустимим типом ресурсу контролю доступу для плагінів."
+  },
+  {
+    "id": "app.access_control.plugin.policy_not_found.app_error",
+    "translation": "Політику контролю доступу не знайдено."
+  },
+  {
+    "id": "app.access_control.plugin.resource_type_forbidden.app_error",
+    "translation": "Плагін, який здійснює виклик, не володіє цим типом ресурсу."
+  },
+  {
+    "id": "app.access_control.plugin.type_conflict.app_error",
+    "translation": "Для цього ідентифікатора вже існує політика контролю доступу іншого типу."
+  },
+  {
+    "id": "app.acknowledgement.batch_save.app_error",
+    "translation": "Не вдалося зберегти пакет об'єктів підтвердження"
+  },
+  {
+    "id": "app.acknowledgement.delete.missing_post.app_error",
+    "translation": "Неможливо видалити підтвердження для відсутнього допису"
+  },
+  {
+    "id": "app.acknowledgement.save.missing_post.app_error",
+    "translation": "Неможливо зберегти підтвердження для відсутнього допису"
+  },
+  {
+    "id": "app.agents.get_agents.app_error",
+    "translation": "Не вдалося отримати агентів."
+  },
+  {
+    "id": "app.agents.get_agents.bridge_call_failed",
+    "translation": "Не вдалося виконати виклик до Bridge."
+  },
+  {
+    "id": "app.agents.get_services.app_error",
+    "translation": "Не вдалося отримати служби LLM."
+  },
+  {
+    "id": "app.agents.get_services.bridge_call_failed",
+    "translation": "Не вдалося виконати виклик до Bridge."
+  },
+  {
+    "id": "app.ai.summarize.agent_call_failed",
+    "translation": "Не вдалося виконати виклик до ШІ-агента."
+  },
+  {
+    "id": "app.ai.summarize.parse_failed",
+    "translation": "Не вдалося розібрати відповідь ШІ щодо підсумовування."
+  },
+  {
+    "id": "app.ai_bridge_test_helper.invalid_config",
+    "translation": "Недійсна конфігурація тестового помічника Bridge."
+  },
+  {
+    "id": "app.bot.update.internal_error",
+    "translation": "Не вдалося оновити бота."
+  },
+  {
+    "id": "app.bot.update_bot_active.protected_bot.app_error",
+    "translation": "Неможливо вимкнути бота, що належить системі."
+  },
+  {
+    "id": "app.burn_post.not_burn_on_read.app_error",
+    "translation": "Цей допис не є дописом, що зникає після прочитання, і його неможливо знищити."
+  },
+  {
+    "id": "app.burn_post.not_revealed.app_error",
+    "translation": "Цей допис, що зникає після прочитання, ще не було розкрито. Перед знищенням його потрібно розкрити."
+  },
+  {
+    "id": "app.burn_post.read_receipt.get.error",
+    "translation": "Виникла помилка під час отримання підтвердження прочитання."
+  },
+  {
+    "id": "app.burn_post.read_receipt.update.error",
+    "translation": "Виникла помилка під час оновлення підтвердження прочитання."
+  },
+  {
+    "id": "app.channel.add_user.to.channel.rejected_by_plugin",
+    "translation": "Додавання учасника каналу відхилено плагіном: {{.Reason}}"
+  },
+  {
+    "id": "app.channel.create_board_channel.boards_not_enabled.app_error",
+    "translation": "Функцію інтегрованих дощок (Boards) не ввімкнено."
+  },
+  {
+    "id": "app.channel.create_board_channel.internal_error",
+    "translation": "Не вдалося створити канал дошки."
+  },
+  {
+    "id": "app.channel.create_board_channel.invalid.app_error",
+    "translation": "Некоректні дані каналу дошки."
+  },
+  {
+    "id": "app.channel.create_board_channel.limit.app_error",
+    "translation": "Досягнуто максимальної кількості каналів на команду."
+  },
+  {
+    "id": "app.channel.create_channel.board_type.app_error",
+    "translation": "Канали дощок не можна створювати через CreateChannel. Використовуйте натомість API /boards."
+  },
+  {
+    "id": "app.channel.create_channel.space_type.app_error",
+    "translation": "Канали-простори не можна створювати через цю кінцеву точку."
+  },
+  {
+    "id": "app.channel.create_channel.spaces_not_enabled.app_error",
+    "translation": "Функцію Docs не ввімкнено."
+  },
+  {
+    "id": "app.channel.delete_channel.rejected_by_plugin",
+    "translation": "Архівування каналу відхилено плагіном: {{.Reason}}"
+  },
+  {
+    "id": "app.channel.get.app_error",
+    "translation": "Не вдалося отримати канал."
+  },
+  {
+    "id": "app.channel.get_channels_by_team_with_unreads_and_with_mentions.app_error",
+    "translation": "Не вдалося отримати канали з непрочитаним та згадками."
+  },
+  {
+    "id": "app.channel.get_common_teams.app_error",
+    "translation": "Помилка отримання спільних команд для каналу"
+  },
+  {
+    "id": "app.channel.join_request.get.app_error",
+    "translation": "Не вдалося завантажити запит на приєднання до каналу."
+  },
+  {
+    "id": "app.channel.join_request.not_found.app_error",
+    "translation": "Запит на приєднання до каналу не знайдено."
+  },
+  {
+    "id": "app.channel.join_request.save.app_error",
+    "translation": "Не вдалося зберегти запит на приєднання до каналу."
+  },
+  {
+    "id": "app.channel.join_request.update.app_error",
+    "translation": "Не вдалося оновити запит на приєднання до каналу."
+  },
+  {
+    "id": "app.channel.move_channel.space.app_error",
+    "translation": "Простори не можна переміщувати через цю кінцеву точку."
+  },
+  {
+    "id": "app.channel.restore_channel.rejected_by_plugin",
+    "translation": "Відновлення каналу відхилено плагіном: {{.Reason}}"
+  },
+  {
+    "id": "app.channel.save_member.app_error",
+    "translation": "Не вдалося зберегти учасника каналу."
+  },
+  {
+    "id": "app.channel.set_members.context_cancelled.app_error",
+    "translation": "Операцію встановлення учасників каналу було скасовано."
+  },
+  {
+    "id": "app.channel.set_members.empty_private.app_error",
+    "translation": "Не можна видалити всіх учасників із приватного каналу."
+  },
+  {
+    "id": "app.channel.set_members.get_current.app_error",
+    "translation": "Не вдалося отримати поточних учасників каналу."
+  },
+  {
+    "id": "app.channel.set_members.get_members.app_error",
+    "translation": "Не вдалося отримати учасників каналу для узгодження ролей."
+  },
+  {
+    "id": "app.channel.update_channel.plugin_type_mutation.app_error",
+    "translation": "Плагін {{.PluginID}} спробував змінити тип каналу через ChannelWillBeUpdated; зміни типу мають виконуватися через спеціальний механізм зміни типу"
+  },
+  {
+    "id": "app.channel.update_channel.rejected_by_plugin",
+    "translation": "Оновлення каналу відхилено плагіном: {{.Reason}}"
+  },
+  {
+    "id": "app.channel.update_channel_privacy.space.app_error",
+    "translation": "Приватність просторів не можна змінювати через цю кінцеву точку."
+  },
+  {
+    "id": "app.channel_guard.invalid_channel.app_error",
+    "translation": "Ідентифікатор каналу не є дійсним ідентифікатором каналу."
+  },
+  {
+    "id": "app.channel_guard.register.app_error",
+    "translation": "Не вдалося зареєструвати захист каналу."
+  },
+  {
+    "id": "app.channel_guard.register.empty_channel.app_error",
+    "translation": "Для реєстрації захисту каналу потрібен ідентифікатор каналу."
+  },
+  {
+    "id": "app.channel_guard.unregister.app_error",
+    "translation": "Не вдалося скасувати реєстрацію захисту каналу."
+  },
+  {
+    "id": "app.channel_guard.unregister.empty_channel.app_error",
+    "translation": "Для скасування реєстрації захисту каналу потрібен ідентифікатор каналу."
+  },
+  {
+    "id": "app.cloud.preview_modal_bucket_url_not_configured",
+    "translation": "URL-адресу бакета попереднього перегляду не налаштовано"
+  },
+  {
+    "id": "app.cloud.preview_modal_data_fetch_error",
+    "translation": "Не вдалося отримати дані модального вікна попереднього перегляду"
+  },
+  {
+    "id": "app.cloud.preview_modal_data_parse_error",
+    "translation": "Не вдалося розібрати дані модального вікна попереднього перегляду"
+  },
+  {
+    "id": "app.command.validatecommandtriggeruniqueness.internal_error",
+    "translation": "Вказане тригерне ключове слово вже існує."
+  },
+  {
+    "id": "app.compile_csv_chunks.write_error",
+    "translation": "Не вдалося записати дані CSV."
+  },
+  {
+    "id": "app.data_spillage.assign_reviewer.no_reviewer_field.app_error",
+    "translation": "Не знайдено поле властивості Reviewer ID."
+  },
+  {
+    "id": "app.data_spillage.assign_reviewer.update_status_property_value.app_error",
+    "translation": "Не вдалося оновити значення властивості «Статус» під час призначення рецензента."
+  },
+  {
+    "id": "app.data_spillage.assign_reviewer.upsert_property_value.app_error",
+    "translation": "Не вдалося призначити рецензента позначеного допису."
+  },
+  {
+    "id": "app.data_spillage.can_flag_post.in_progress",
+    "translation": "Неможливо помістити цей допис на карантин, оскільки він уже перебуває на карантині для перевірки."
+  },
+  {
+    "id": "app.data_spillage.can_flag_post.removed",
+    "translation": "Неможливо помістити цей допис на карантин, оскільки його було видалено під час попередньої перевірки."
+  },
+  {
+    "id": "app.data_spillage.can_flag_post.retained",
+    "translation": "Неможливо помістити цей допис на карантин, оскільки його було залишено під час попередньої перевірки."
+  },
+  {
+    "id": "app.data_spillage.can_flag_post.unknown",
+    "translation": "Неможливо помістити цей допис на карантин, оскільки його статус невідомий."
+  },
+  {
+    "id": "app.data_spillage.create_property_values.app_error",
+    "translation": "Не вдалося зберегти значення властивостей для позначеного допису."
+  },
+  {
+    "id": "app.data_spillage.exposure.column.email",
+    "translation": "Електронна пошта"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.is_deactivated",
+    "translation": "Деактивовано"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.is_guest",
+    "translation": "Гість"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.is_remote",
+    "translation": "Віддалений користувач"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.last_activity_at",
+    "translation": "Час останньої активності користувача (YYYY-MM-DDTHH:MM:SSZ)"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.last_viewed_at",
+    "translation": "Останній перегляд каналу (YYYY-MM-DDTHH:MM:SSZ)"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.user_id",
+    "translation": "Ідентифікатор користувача"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.username",
+    "translation": "Ім'я користувача"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.was_channel_member",
+    "translation": "Був учасником каналу"
+  },
+  {
+    "id": "app.data_spillage.exposure.edit_history_post.app_error",
+    "translation": "Неможливо створити звіт про розкриття для редакції з історії змін. Використовуйте ідентифікатор поточного допису."
+  },
+  {
+    "id": "app.data_spillage.exposure.get_channel_members.app_error",
+    "translation": "Не вдалося отримати історію членства в каналі для позначеного допису."
+  },
+  {
+    "id": "app.data_spillage.exposure.get_last_activity.app_error",
+    "translation": "Не вдалося отримати активність сесій для позначеного допису."
+  },
+  {
+    "id": "app.data_spillage.exposure.get_possible_viewers.app_error",
+    "translation": "Не вдалося отримати стан прочитання каналу для позначеного допису."
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.channel",
+    "translation": "Канал"
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.generated_at",
+    "translation": "Час створення"
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.post_id",
+    "translation": "Ідентифікатор допису"
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.report_version",
+    "translation": "Версія звіту"
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.total_users",
+    "translation": "Усього користувачів"
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.window_end",
+    "translation": "Час позначення"
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.window_start",
+    "translation": "Час створення допису"
+  },
+  {
+    "id": "app.data_spillage.exposure.missing_reporting_time.app_error",
+    "translation": "Для позначеного допису не записано час повідомлення, тому неможливо визначити вікно розкриття."
+  },
+  {
+    "id": "app.data_spillage.exposure.unsupported_channel_type.app_error",
+    "translation": "Звіти про розкриття не підтримуються для приватних і групових повідомлень."
+  },
+  {
+    "id": "app.data_spillage.exposure.value.never_viewed",
+    "translation": "Н/Д"
+  },
+  {
+    "id": "app.data_spillage.exposure.value.no",
+    "translation": "Ні"
+  },
+  {
+    "id": "app.data_spillage.exposure.value.no_sessions",
+    "translation": "Сесій не знайдено"
+  },
+  {
+    "id": "app.data_spillage.exposure.value.unknown",
+    "translation": "Невідомо"
+  },
+  {
+    "id": "app.data_spillage.exposure.value.yes",
+    "translation": "Так"
+  },
+  {
+    "id": "app.data_spillage.flag_post.marshal_comment.app_error",
+    "translation": "Не вдалося серіалізувати коментар користувача, який позначив допис"
+  },
+  {
+    "id": "app.data_spillage.flag_post.marshal_reason.app_error",
+    "translation": "Не вдалося серіалізувати причину, вказану користувачем, який позначив допис"
+  },
+  {
+    "id": "app.data_spillage.flag_post_confirmation.message",
+    "translation": "Повідомлення від @{{.username}} було поміщено на карантин для перевірки. Ви отримаєте сповіщення, щойно його перевірить рецензент."
+  },
+  {
+    "id": "app.data_spillage.get_group.error",
+    "translation": "Не вдалося отримати групу властивостей позначення вмісту."
+  },
+  {
+    "id": "app.data_spillage.get_reviewer_settings.app_error",
+    "translation": "Не вдалося отримати налаштування рецензентів вмісту з бази даних"
+  },
+  {
+    "id": "app.data_spillage.get_status_property.app_error",
+    "translation": "Не вдалося отримати поле властивості «Статус»."
+  },
+  {
+    "id": "app.data_spillage.get_thread_replies.app_error",
+    "translation": "Не вдалося отримати відповіді обговорення для позначеного допису."
+  },
+  {
+    "id": "app.data_spillage.get_users_in_team.app_error",
+    "translation": "Не вдалося виконати пошук рецензентів у команді."
+  },
+  {
+    "id": "app.data_spillage.keep_flag_post.marshal_comment.app_error",
+    "translation": "Не вдалося серіалізувати коментар рецензента"
+  },
+  {
+    "id": "app.data_spillage.keep_post.status_update.app_error",
+    "translation": "Не вдалося оновити статус позначеного допису під час відновлення позначеного допису "
+  },
+  {
+    "id": "app.data_spillage.keep_post.undelete.app_error",
+    "translation": "Не вдалося оновити допис у базі даних під час спроби відновити позначений допис і пов'язані дані."
+  },
+  {
+    "id": "app.data_spillage.marshal_property_values.app_error",
+    "translation": "Не вдалося серіалізувати значення властивостей позначення вмісту для надсилання в події WebSocket."
+  },
+  {
+    "id": "app.data_spillage.missing_flagged_post_id_field.app_error",
+    "translation": "Не вдалося знайти поле властивості Flagged Post ID."
+  },
+  {
+    "id": "app.data_spillage.missing_manage_by_field.app_error",
+    "translation": "Не вдалося знайти поле властивості Manage By."
+  },
+  {
+    "id": "app.data_spillage.missing_reporting_user_id_field.app_error",
+    "translation": "Не вдалося знайти поле користувача, який повідомив."
+  },
+  {
+    "id": "app.data_spillage.missing_reporting_user_id_property_value.app_error",
+    "translation": "Не вдалося знайти значення поля користувача, який повідомив."
+  },
+  {
+    "id": "app.data_spillage.missing_status_field.app_error",
+    "translation": "Не вдалося знайти поле властивості «Статус»."
+  },
+  {
+    "id": "app.data_spillage.no_status_property.app_error",
+    "translation": "Неможливо отримати позначений допис, оскільки допис не позначено."
+  },
+  {
+    "id": "app.data_spillage.permanently_delete.marshal_comment.app_error",
+    "translation": "Не вдалося серіалізувати коментар рецензента"
+  },
+  {
+    "id": "app.data_spillage.permanently_delete.update_property_value.app_error",
+    "translation": "Не вдалося оновити статус позначеного допису під час його остаточного видалення."
+  },
+  {
+    "id": "app.data_spillage.report.cleared",
+    "translation": "Очищено"
+  },
+  {
+    "id": "app.data_spillage.report.close.app_error",
+    "translation": "Не вдалося закрити файл звіту про позначений допис."
+  },
+  {
+    "id": "app.data_spillage.report.column.detail",
+    "translation": "Деталі"
+  },
+  {
+    "id": "app.data_spillage.report.column.status",
+    "translation": "Статус"
+  },
+  {
+    "id": "app.data_spillage.report.column.step",
+    "translation": "Крок"
+  },
+  {
+    "id": "app.data_spillage.report.detail.deleted",
+    "translation": "Видалено."
+  },
+  {
+    "id": "app.data_spillage.report.detail.failed_retrieve_edit_history",
+    "translation": "Не вдалося отримати історію редагувань."
+  },
+  {
+    "id": "app.data_spillage.report.detail.file_attachments_info_ids",
+    "translation": "**Ідентифікатори записів файлів:** {{.FileInfoIDs}}"
+  },
+  {
+    "id": "app.data_spillage.report.detail.file_names",
+    "translation": {
+      "one": "Видалено {{.Count}} файл із диска.",
+      "few": "Видалено {{.Count}} файли з диска.",
+      "many": "Видалено {{.Count}} файлів із диска.",
+      "other": "Видалено {{.Count}} файлу з диска."
+    }
+  },
+  {
+    "id": "app.data_spillage.report.detail.no_data_found",
+    "translation": "Даних не знайдено."
+  },
+  {
+    "id": "app.data_spillage.report.detail.no_files",
+    "translation": "Файлів не знайдено."
+  },
+  {
+    "id": "app.data_spillage.report.detail.no_rows_to_delete",
+    "translation": "Немає рядків для видалення."
+  },
+  {
+    "id": "app.data_spillage.report.detail.post_scrubbed_deleted",
+    "translation": "Допис очищено та видалено."
+  },
+  {
+    "id": "app.data_spillage.report.detail.revisions_cleared",
+    "translation": {
+      "one": "Очищено {{.Count}} редакцію з {{.Total}}.",
+      "few": "Очищено {{.Count}} редакції з {{.Total}}.",
+      "many": "Очищено {{.Count}} редакцій з {{.Total}}.",
+      "other": "Очищено {{.Count}} редакції з {{.Total}}."
+    }
+  },
+  {
+    "id": "app.data_spillage.report.detail.thread_data_deleted",
+    "translation": "Обговорення, реакції та пов'язані дані видалено."
+  },
+  {
+    "id": "app.data_spillage.report.error_log",
+    "translation": "Журнал помилок"
+  },
+  {
+    "id": "app.data_spillage.report.generated",
+    "translation": "Згенеровано:"
+  },
+  {
+    "id": "app.data_spillage.report.incomplete_warning",
+    "translation": "Видалення допису не завершено. Перегляньте журнал помилок і зверніться до системного адміністратора для усунення проблеми вручну."
+  },
+  {
+    "id": "app.data_spillage.report.post_id",
+    "translation": "Ідентифікатор допису:"
+  },
+  {
+    "id": "app.data_spillage.report.revision",
+    "translation": "Редакція"
+  },
+  {
+    "id": "app.data_spillage.report.revisions_found",
+    "translation": "Знайдено редакцій:"
+  },
+  {
+    "id": "app.data_spillage.report.status.failed",
+    "translation": "Невдало"
+  },
+  {
+    "id": "app.data_spillage.report.status.not_applicable",
+    "translation": "Не застосовно"
+  },
+  {
+    "id": "app.data_spillage.report.status.partial",
+    "translation": "Частково"
+  },
+  {
+    "id": "app.data_spillage.report.status.removed",
+    "translation": "Видалено"
+  },
+  {
+    "id": "app.data_spillage.report.status.unknown",
+    "translation": "Невідомо"
+  },
+  {
+    "id": "app.data_spillage.report.step.acknowledgements",
+    "translation": "Підтвердження"
+  },
+  {
+    "id": "app.data_spillage.report.step.edit_histories",
+    "translation": "Історія редагувань"
+  },
+  {
+    "id": "app.data_spillage.report.step.file_attachments",
+    "translation": "Файлові вкладення"
+  },
+  {
+    "id": "app.data_spillage.report.step.fileinfo_rows",
+    "translation": "Записи файлових вкладень"
+  },
+  {
+    "id": "app.data_spillage.report.step.persistent_notifications",
+    "translation": "Постійні сповіщення"
+  },
+  {
+    "id": "app.data_spillage.report.step.post_itself",
+    "translation": "Запис допису"
+  },
+  {
+    "id": "app.data_spillage.report.step.priority_data",
+    "translation": "Метадані пріоритету"
+  },
+  {
+    "id": "app.data_spillage.report.step.reminders",
+    "translation": "Нагадування"
+  },
+  {
+    "id": "app.data_spillage.report.step.thread_data",
+    "translation": "Обговорення, відповіді та реакції"
+  },
+  {
+    "id": "app.data_spillage.report.summary",
+    "translation": "Підсумок"
+  },
+  {
+    "id": "app.data_spillage.report.sync.app_error",
+    "translation": "Не вдалося синхронізувати файл звіту про позначений допис на диск."
+  },
+  {
+    "id": "app.data_spillage.report.tempfile.app_error",
+    "translation": "Не вдалося створити тимчасовий файл для звіту про позначений допис."
+  },
+  {
+    "id": "app.data_spillage.report.title",
+    "translation": "Звіт про видалення допису"
+  },
+  {
+    "id": "app.data_spillage.report.total_steps",
+    "translation": "Усього кроків:"
+  },
+  {
+    "id": "app.data_spillage.report.write_edit_yaml.app_error",
+    "translation": "Не вдалося записати запис історії редагувань до звіту про позначений допис."
+  },
+  {
+    "id": "app.data_spillage.report.write_exposure_csv.app_error",
+    "translation": "Не вдалося додати звіт про розкриття до звіту про позначений допис."
+  },
+  {
+    "id": "app.data_spillage.report.write_metadata_yaml.app_error",
+    "translation": "Не вдалося записати метадані до звіту про позначений допис."
+  },
+  {
+    "id": "app.data_spillage.report.write_post_yaml.app_error",
+    "translation": "Не вдалося записати деталі допису до звіту про позначений допис."
+  },
+  {
+    "id": "app.data_spillage.report.write_review_yaml.app_error",
+    "translation": "Не вдалося записати деталі перевірки вмісту до звіту про позначений допис."
+  },
+  {
+    "id": "app.data_spillage.report.zip_close.app_error",
+    "translation": "Не вдалося закрити архів звіту про позначений допис."
+  },
+  {
+    "id": "app.data_spillage.report.zip_copy.app_error",
+    "translation": "Не вдалося скопіювати вміст вкладення до архіву звіту про позначений допис."
+  },
+  {
+    "id": "app.data_spillage.report.zip_create.app_error",
+    "translation": "Не вдалося створити запис в архіві звіту про позначений допис."
+  },
+  {
+    "id": "app.data_spillage.save_reviewer_settings.app_error",
+    "translation": "Не вдалося зберегти налаштування рецензентів вмісту в базі даних."
+  },
+  {
+    "id": "app.data_spillage.search_common_reviewers.app_error",
+    "translation": "Не вдалося виконати пошук за запитом серед спільних рецензентів."
+  },
+  {
+    "id": "app.data_spillage.search_property_fields.app_error",
+    "translation": "Не вдалося виконати пошук полів властивостей позначення вмісту."
+  },
+  {
+    "id": "app.data_spillage.search_property_values.app_error",
+    "translation": "Не вдалося отримати значення властивостей позначення вмісту допису з бази даних."
+  },
+  {
+    "id": "app.data_spillage.search_reviewer_posts.app_error",
+    "translation": "Не вдалося виконати пошук дописів рецензентів для позначеного допису."
+  },
+  {
+    "id": "app.data_spillage.search_status_property.app_error",
+    "translation": "Не вдалося виконати пошук значень властивостей для позначеного допису."
+  },
+  {
+    "id": "app.data_spillage.search_sysadmin_reviewers.app_error",
+    "translation": "Не вдалося виконати пошук за запитом серед рецензентів — системних адміністраторів."
+  },
+  {
+    "id": "app.data_spillage.search_team_admin_reviewers.app_error",
+    "translation": "Не вдалося виконати пошук за запитом серед рецензентів — адміністраторів команди."
+  },
+  {
+    "id": "app.data_spillage.search_team_reviewers.app_error",
+    "translation": "Не вдалося виконати пошук за запитом серед рецензентів команди."
+  },
+  {
+    "id": "app.data_spillage.set_thread_replies_properties.app_error",
+    "translation": "Не вдалося встановити значення властивостей для відповідей обговорення позначеного допису."
+  },
+  {
+    "id": "app.draft.upsert.rejected_by_plugin",
+    "translation": "Чернетку відхилено плагіном: {{.Reason}}"
+  },
+  {
+    "id": "app.export.generate_presigned_url.config.app_error",
+    "translation": "Ця дія потребує використання виділеного сховища експорту."
+  },
+  {
+    "id": "app.export.generate_presigned_url.direct_download.app_error",
+    "translation": "Пряме завантаження експортів доступне лише в Mattermost Cloud."
+  },
+  {
+    "id": "app.export.generate_presigned_url.driver.app_error",
+    "translation": "Драйвер вашого сховища експорту не підтримує генерування підписаних URL-адрес."
+  },
+  {
+    "id": "app.export.generate_presigned_url.fileexist.app_error",
+    "translation": "Не вдалося перевірити, чи існує файл."
+  },
+  {
+    "id": "app.export.generate_presigned_url.link.app_error",
+    "translation": "Не вдалося згенерувати підписану URL-адресу."
+  },
+  {
+    "id": "app.export.generate_presigned_url.notfound.app_error",
+    "translation": "Файл експорту не знайдено."
+  },
+  {
+    "id": "app.file_info.not_found",
+    "translation": "Файл не знайдено у файловому сховищі за вказаним шляхом."
+  },
+  {
+    "id": "app.file_info.remove_file.app_error",
+    "translation": "Не вдалося видалити файл із файлового сховища."
+  },
+  {
+    "id": "app.group.create_syncable_memberships.error",
+    "translation": "Не вдалося створити синхронізовані членства групи."
+  },
+  {
+    "id": "app.group.delete_invalid_syncable_memberships.error",
+    "translation": "Не вдалося видалити недійсні синхронізовані членства групи."
+  },
+  {
+    "id": "app.group.user_not_found",
+    "translation": "Помилка оновлення групи. Користувача з іменем користувача \"{{.Username}}\" не знайдено."
+  },
+  {
+    "id": "app.import.import_bot.lookup_error",
+    "translation": "Не вдалося знайти існуючого бота"
+  },
+  {
+    "id": "app.import.import_bot.user_not_found.error",
+    "translation": "Користувача для бота не знайдено"
+  },
+  {
+    "id": "app.import.import_direct_channel.save_member.error",
+    "translation": "Не вдалося зберегти учасника каналу під час імпорту каналу приватних повідомлень"
+  },
+  {
+    "id": "app.import.validate_attachment_import_data.invalid_path.error",
+    "translation": "Не вдалося перевірити дані вкладення для імпорту. Неприпустимий шлях: \"{{.Path}}\""
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.attachment.error",
+    "translation": "Не вдалося перевірити дані вкладення допису в приватних повідомленнях."
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.thread_follower.error",
+    "translation": "Не вдалося перевірити дані підписника обговорення для допису в приватних повідомленнях."
+  },
+  {
+    "id": "app.import.validate_emoji_import_data.invalid_image_path.error",
+    "translation": "Поле зображення емодзі для імпорту містить неприпустимий шлях: \"{{.Path}}\""
+  },
+  {
+    "id": "app.import.validate_post_import_data.attachment.error",
+    "translation": "Не вдалося перевірити дані вкладення допису."
+  },
+  {
+    "id": "app.import.validate_post_import_data.thread_follower.error",
+    "translation": "Не вдалося перевірити дані підписника обговорення для допису."
+  },
+  {
+    "id": "app.import.validate_reply_import_data.attachment.error",
+    "translation": "Не вдалося перевірити дані вкладення відповіді."
+  },
+  {
+    "id": "app.import.validate_thread_follower_data.empty.error",
+    "translation": "Дані підписника для імпорту порожні."
+  },
+  {
+    "id": "app.import.validate_thread_follower_data.user_missing.error",
+    "translation": "Відсутня необхідна властивість підписника: user."
+  },
+  {
+    "id": "app.import.validate_user_import_data.channel_guest_missing_system_guest_role.error",
+    "translation": "Користувач має ролі гостя в каналах, але не є системним гостем."
+  },
+  {
+    "id": "app.import.validate_user_import_data.invalid_image_path.error",
+    "translation": "Шлях до зображення профілю користувача недійсний: \"{{.Path}}\""
+  },
+  {
+    "id": "app.import.validate_user_import_data.system_guest_missing_channel_guest_roles.error",
+    "translation": "Користувач є системним гостем, але не має ролей гостя в усіх каналах. Кількість каналів із роллю гостя: {{.ChannelGuestCount}}, всього каналів: {{.TotalChannels}}."
+  },
+  {
+    "id": "app.import.validate_user_import_data.system_guest_missing_team_guest_roles.error",
+    "translation": "Користувач є системним гостем, але не має ролей гостя в усіх командах. Кількість команд із роллю гостя: {{.TeamGuestCount}}, всього команд: {{.TotalTeams}}."
+  },
+  {
+    "id": "app.import.validate_user_import_data.team_guest_missing_system_guest_role.error",
+    "translation": "Користувач має ролі гостя в командах, але не є системним гостем."
+  },
+  {
+    "id": "app.limits.get_app_limits.single_channel_guest_count.store_error",
+    "translation": "Не вдалося отримати кількість гостей з одним каналом."
+  },
+  {
+    "id": "app.lookup_interactive_dialog.decode_json_error",
+    "translation": "Сталася помилка декодування відповіді JSON від пошуку інтерактивного діалогу."
+  },
+  {
+    "id": "app.lookup_interactive_dialog.json_error",
+    "translation": "Сталася помилка обробки відповіді JSON від пошуку інтерактивного діалогу."
+  },
+  {
+    "id": "app.lookup_interactive_dialog.read_body_error",
+    "translation": "Сталася помилка читання тіла відповіді від пошуку інтерактивного діалогу."
+  },
+  {
+    "id": "app.managed_category.clear.app_error",
+    "translation": "Не вдалося прибрати керовану категорію з каналу."
+  },
+  {
+    "id": "app.managed_category.dm_gm_not_allowed.app_error",
+    "translation": "Канали приватних і групових повідомлень не можна призначати керованій категорії."
+  },
+  {
+    "id": "app.managed_category.empty_name.app_error",
+    "translation": "Назва керованої категорії не може бути порожньою."
+  },
+  {
+    "id": "app.managed_category.get_mappings.app_error",
+    "translation": "Не вдалося отримати зіставлення керованих категорій."
+  },
+  {
+    "id": "app.managed_category.search.app_error",
+    "translation": "Не вдалося виконати пошук керованої категорії для каналу."
+  },
+  {
+    "id": "app.managed_category.set.app_error",
+    "translation": "Не вдалося встановити керовану категорію для каналу."
+  },
+  {
+    "id": "app.notify_expiring_access_tokens.dm",
+    "translation": "Термін дії вашого персонального токена доступу \"{{.Description}}\" спливе через {{.Days}} днів або раніше. Відкрийте **Профіль > Безпека**, щоб повторно згенерувати його, перш ніж він перестане працювати."
+  },
+  {
+    "id": "app.notify_expiring_access_tokens.dm_final",
+    "translation": "Термін дії вашого персонального токена доступу \"{{.Description}}\" спливе протягом 24 годин. Відкрийте **Профіль > Безпека**, щоб повторно згенерувати його, перш ніж він перестане працювати."
+  },
+  {
+    "id": "app.notify_expiring_access_tokens.unnamed_token",
+    "translation": "(без опису)"
+  },
+  {
+    "id": "app.pap.access_control.channel_default",
+    "translation": "Політики членства не можна застосовувати до стандартних каналів команди."
+  },
+  {
+    "id": "app.pap.access_control.channel_group_constrained",
+    "translation": "Канал обмежений групою, і до нього не можна застосувати політики контролю доступу."
+  },
+  {
+    "id": "app.pap.access_control.channel_shared",
+    "translation": "До спільних каналів не можна застосувати політику контролю доступу."
+  },
+  {
+    "id": "app.pap.access_control.channel_type_not_supported",
+    "translation": "Політики контролю доступу можна застосовувати лише до публічних або приватних каналів."
+  },
+  {
+    "id": "app.pap.access_control.insufficient_channel_permissions",
+    "translation": "Ви не маєте дозволу керувати контролем доступу для цього каналу."
+  },
+  {
+    "id": "app.pap.access_control.insufficient_permissions",
+    "translation": "Ви не маєте дозволу керувати цією політикою контролю доступу."
+  },
+  {
+    "id": "app.pap.assign_access_control_policy_to_channels.app_error",
+    "translation": "Не вдалося призначити політику контролю доступу каналам."
+  },
+  {
+    "id": "app.pap.assign_access_control_policy_to_teams.app_error",
+    "translation": "Не вдалося призначити політику контролю доступу командам."
+  },
+  {
+    "id": "app.pap.check_expression.app_error",
+    "translation": "Не вдалося перевірити вираз."
+  },
+  {
+    "id": "app.pap.create_access_control_policy.app_error",
+    "translation": "Не вдалося створити політику контролю доступу."
+  },
+  {
+    "id": "app.pap.delete_access_control_policy.app_error",
+    "translation": "Не вдалося видалити політику контролю доступу."
+  },
+  {
+    "id": "app.pap.delete_policy.app_error",
+    "translation": "Неможливо видалити політику контролю доступу."
+  },
+  {
+    "id": "app.pap.delete_policy.masked_values",
+    "translation": "Ви не можете видалити цю політику, оскільки вона містить значення атрибутів, які ви не маєте дозволу переглядати."
+  },
+  {
+    "id": "app.pap.expression_to_visual_ast.app_error",
+    "translation": "Не вдалося згенерувати візуальне AST з виразу."
+  },
+  {
+    "id": "app.pap.get_access_control_auto_complete.app_error",
+    "translation": "Не вдалося отримати автозаповнення для контролю доступу."
+  },
+  {
+    "id": "app.pap.get_all_access_control_policies.app_error",
+    "translation": "Не вдалося отримати політики контролю доступу."
+  },
+  {
+    "id": "app.pap.get_channel_access_control_attributes.app_error",
+    "translation": "Не вдалося отримати атрибути для каналу."
+  },
+  {
+    "id": "app.pap.get_channel_members_to_remove.app_error",
+    "translation": "Не вдалося отримати учасників каналу для видалення."
+  },
+  {
+    "id": "app.pap.get_masked_visual_ast.app_error",
+    "translation": "Не вдалося згенерувати замасковане візуальне AST з виразу."
+  },
+  {
+    "id": "app.pap.get_policies_for_field_ids.app_error",
+    "translation": "Не вдалося отримати політики для вказаних ідентифікаторів полів."
+  },
+  {
+    "id": "app.pap.get_policy.app_error",
+    "translation": "Не вдалося отримати політику контролю доступу."
+  },
+  {
+    "id": "app.pap.get_policy_attributes.app_error",
+    "translation": "Не вдалося отримати атрибути для політики."
+  },
+  {
+    "id": "app.pap.get_team_members_to_remove.app_error",
+    "translation": "Не вдалося отримати учасників команди для видалення."
+  },
+  {
+    "id": "app.pap.has_masked_values.app_error",
+    "translation": "Не вдалося визначити замасковані значення для виразу політики."
+  },
+  {
+    "id": "app.pap.hydrate_actions.app_error",
+    "translation": "Не вдалося завантажити набір дій, оголошений політикою контролю доступу каналу."
+  },
+  {
+    "id": "app.pap.init.app_error",
+    "translation": "Не вдалося ініціалізувати службу контролю доступу."
+  },
+  {
+    "id": "app.pap.is_ready.app_error",
+    "translation": "Служба контролю доступу не готова."
+  },
+  {
+    "id": "app.pap.mask_expression.app_error",
+    "translation": "Не вдалося замаскувати вираз політики."
+  },
+  {
+    "id": "app.pap.masking.ambiguous_sibling.app_error",
+    "translation": "Кілька атрибутів користувача пов'язані з одним шаблоном, тому видимість атрибута каналу неможливо визначити однозначно."
+  },
+  {
+    "id": "app.pap.masking.unknown_object_type.app_error",
+    "translation": "Неможливо визначити видимість атрибута для невідомого типу об'єкта."
+  },
+  {
+    "id": "app.pap.merge_expression.app_error",
+    "translation": "Не вдалося об'єднати вираз політики зі збереженими замаскованими значеннями."
+  },
+  {
+    "id": "app.pap.missing_attribute.app_error",
+    "translation": "У виразі відсутній атрибут."
+  },
+  {
+    "id": "app.pap.normalize_policy.app_error",
+    "translation": "Не вдалося нормалізувати вираз політики."
+  },
+  {
+    "id": "app.pap.query_expression.app_error",
+    "translation": "Не вдалося виконати запит за виразом."
+  },
+  {
+    "id": "app.pap.rehydrate_rank.app_error",
+    "translation": "Не вдалося відновити рангові оператори у виразі політики."
+  },
+  {
+    "id": "app.pap.save_policy.app_error",
+    "translation": "Не вдається зберегти політику контролю доступу."
+  },
+  {
+    "id": "app.pap.save_policy.forbidden",
+    "translation": "Ви не маєте дозволу вносити цю зміну до політики."
+  },
+  {
+    "id": "app.pap.save_policy.invalid_value",
+    "translation": "Вираз політики містить недозволене значення."
+  },
+  {
+    "id": "app.pap.save_policy.masked_condition_deleted",
+    "translation": "Умову, що містила замасковані значення, було видалено. Будь ласка, перезавантажте політику та спробуйте ще раз."
+  },
+  {
+    "id": "app.pap.save_policy.masked_token_in_expression",
+    "translation": "Вираз політики містить значення-заповнювач, яке не вдалося розпізнати. Будь ласка, перезавантажте політику та спробуйте ще раз."
+  },
+  {
+    "id": "app.pap.save_policy.name_exists.app_error",
+    "translation": "Політика з такою назвою вже існує. Будь ласка, виберіть іншу назву."
+  },
+  {
+    "id": "app.pap.save_policy.parent_resource_attributes_team_assigned",
+    "translation": "Це правило доступу використовує атрибути каналу, яких команди не мають. Перед збереженням вилучіть команди, призначені цій політиці."
+  },
+  {
+    "id": "app.pap.save_policy.resolver_error",
+    "translation": "Не вдалося ініціалізувати обробник атрибутів для збереження політики."
+  },
+  {
+    "id": "app.pap.save_policy.resource_attributes_disabled",
+    "translation": "Правила доступу не можуть використовувати атрибути каналу на цьому сервері. Цю можливість не ввімкнено."
+  },
+  {
+    "id": "app.pap.save_policy.rule_name_unique.app_error",
+    "translation": "Назви правил дозволів мають бути унікальними в межах політики."
+  },
+  {
+    "id": "app.pap.save_policy.self_exclusion",
+    "translation": "Ви не відповідаєте одній або кільком умовам цієї політики."
+  },
+  {
+    "id": "app.pap.save_policy.team_resource_attributes",
+    "translation": "Це правило доступу використовує атрибути каналу, яких команди не мають. Правила доступу з атрибутами каналу можна застосовувати лише до каналів."
+  },
+  {
+    "id": "app.pap.search_access_control_policies.app_error",
+    "translation": "Не вдалося виконати пошук політик контролю доступу."
+  },
+  {
+    "id": "app.pap.simulate.attribute_refresh",
+    "translation": "Не вдалося оновити атрибути для симуляції."
+  },
+  {
+    "id": "app.pap.simulate.channel_required_for_resource",
+    "translation": "Щоб змоделювати політику, яка посилається на атрибути каналу, потрібно вибрати канал."
+  },
+  {
+    "id": "app.pap.simulate.compile_failed",
+    "translation": "Не вдалося скомпілювати політику для симуляції."
+  },
+  {
+    "id": "app.pap.simulate.feature_disabled",
+    "translation": "Функція політик дозволів наразі вимкнена."
+  },
+  {
+    "id": "app.pap.simulate.invalid_policy",
+    "translation": "Політика недійсна."
+  },
+  {
+    "id": "app.pap.simulate.missing_actions",
+    "translation": "Для симуляції потрібна принаймні одна дія."
+  },
+  {
+    "id": "app.pap.simulate.missing_channel_id",
+    "translation": "Для симуляції політики на рівні каналу потрібен канал."
+  },
+  {
+    "id": "app.pap.simulate.missing_policy",
+    "translation": "Для симуляції потрібна політика."
+  },
+  {
+    "id": "app.pap.simulate.missing_users",
+    "translation": "Для симуляції потрібен принаймні один користувач."
+  },
+  {
+    "id": "app.pap.simulate.resolver_error",
+    "translation": "Не вдалося ініціалізувати обробник атрибутів для симуляції політики."
+  },
+  {
+    "id": "app.pap.simulate.too_many_users",
+    "translation": "Запитано забагато користувачів. Максимально дозволено {{.Max}}."
+  },
+  {
+    "id": "app.pap.simulate.unavailable",
+    "translation": "Policy Administration Point не ініціалізовано."
+  },
+  {
+    "id": "app.pap.simulate.unsupported_type",
+    "translation": "Тип політики \"{{.Type}}\" не підтримується симулятором."
+  },
+  {
+    "id": "app.pap.unassign_access_control_policy_from_channels.app_error",
+    "translation": "Не вдалося скасувати призначення політики контролю доступу для каналів."
+  },
+  {
+    "id": "app.pap.unassign_access_control_policy_from_teams.app_error",
+    "translation": "Не вдалося скасувати призначення політики контролю доступу для команд."
+  },
+  {
+    "id": "app.pap.update_access_control_policies_active.app_error",
+    "translation": "Не вдалося оновити статус активності політик контролю доступу."
+  },
+  {
+    "id": "app.pdp.access_evaluation.app_error",
+    "translation": "Не вдалося оцінити політику контролю доступу."
+  },
+  {
+    "id": "app.pdp.access_evaluation.permission_policy.app_error",
+    "translation": "Не вдалося оцінити політику дозволів."
+  },
+  {
+    "id": "app.plugin.guard_hook_failed.app_error",
+    "translation": "Операцію відхилено: не вдалося викликати хук плагіна {{.PluginID}}, який контролює операцію"
+  },
+  {
+    "id": "app.plugin.inactive_guard.app_error",
+    "translation": "Операцію відхилено: необхідний плагін не активний"
+  },
+  {
+    "id": "app.post.get_post.app_error",
+    "translation": "Сталася помилка під час отримання вмісту допису, що зникає після прочитання."
+  },
+  {
+    "id": "app.post.get_posts_for_reporting.app_error",
+    "translation": "Не вдалося отримати дописи для звітування."
+  },
+  {
+    "id": "app.post.get_posts_for_reporting.invalid_input_error",
+    "translation": "Не вдалося отримати дописи для звітування. Неправильні вхідні дані."
+  },
+  {
+    "id": "app.post.get_posts_for_reporting.license_error",
+    "translation": "Ваша ліцензія не підтримує звітування за дописами."
+  },
+  {
+    "id": "app.post.get_posts_for_view.app_error",
+    "translation": "Не вдалося отримати дописи для перегляду."
+  },
+  {
+    "id": "app.post.rewrite.agent_call_failed",
+    "translation": "Не вдалося викликати ШІ-агента."
+  },
+  {
+    "id": "app.post.rewrite.empty_response",
+    "translation": "Порожня відповідь від ШІ."
+  },
+  {
+    "id": "app.post.rewrite.invalid_action",
+    "translation": "Недійсна дія переписування."
+  },
+  {
+    "id": "app.post.rewrite.parse_response_failed",
+    "translation": "Не вдалося розібрати відповідь ШІ щодо переписування."
+  },
+  {
+    "id": "app.post_priority.delete_for_post.app_error",
+    "translation": "Не вдалося остаточно видалити дані пріоритету допису з бази даних."
+  },
+  {
+    "id": "app.post_prority.get_for_post_with_context.app_error",
+    "translation": "Не вдалося отримати пріоритет для допису з контекстом"
+  },
+  {
+    "id": "app.property.access_denied.app_error",
+    "translation": "Ви не маєте дозволу на виконання цієї операції."
+  },
+  {
+    "id": "app.property.invalid_access_mode.app_error",
+    "translation": "Атрибут access_mode недійсний."
+  },
+  {
+    "id": "app.property.license_error",
+    "translation": "Ваша ліцензія не підтримує цю групу властивостей."
+  },
+  {
+    "id": "app.property.not_found.app_error",
+    "translation": "Вказаної властивості не існує."
+  },
+  {
+    "id": "app.property.sync_lock.app_error",
+    "translation": "Це поле властивості керується зовнішньою синхронізацією, і його не можна змінювати напряму."
+  },
+  {
+    "id": "app.property_field.count_for_group.app_error",
+    "translation": "Не вдалося порахувати поля властивостей для групи."
+  },
+  {
+    "id": "app.property_field.count_for_target.app_error",
+    "translation": "Не вдалося порахувати поля властивостей для цільового об'єкта."
+  },
+  {
+    "id": "app.property_field.create.app_error",
+    "translation": "Не вдалося створити поле властивості."
+  },
+  {
+    "id": "app.property_field.create.group_limit_reached.app_error",
+    "translation": "Досягнуто максимальної кількості полів властивостей для цієї групи."
+  },
+  {
+    "id": "app.property_field.create.limit_reached.app_error",
+    "translation": "Досягнуто максимальної кількості полів властивостей для цього типу об'єктів."
+  },
+  {
+    "id": "app.property_field.create.linked_source_cross_group.app_error",
+    "translation": "Неможливо створити зв'язок із полем з іншої групи."
+  },
+  {
+    "id": "app.property_field.create.linked_source_deleted.app_error",
+    "translation": "Зв'язане джерельне поле було видалено."
+  },
+  {
+    "id": "app.property_field.create.linked_source_is_linked.app_error",
+    "translation": "Неможливо створити зв'язок із полем, яке саме є зв'язаним. Ланцюжки не дозволені."
+  },
+  {
+    "id": "app.property_field.create.linked_source_not_found.app_error",
+    "translation": "Зв'язане джерельне поле не знайдено."
+  },
+  {
+    "id": "app.property_field.create.linked_source_not_template.app_error",
+    "translation": "Зв'язуватися можна лише з полями-шаблонами."
+  },
+  {
+    "id": "app.property_field.create.linked_source_protected.app_error",
+    "translation": "Лише плагін-джерело може створювати зв'язані поля із захищеного шаблону."
+  },
+  {
+    "id": "app.property_field.create.linked_target_type_mismatch.app_error",
+    "translation": "Тип цілі зв'язаного поля має збігатися з типом цілі джерельного шаблону."
+  },
+  {
+    "id": "app.property_field.create.name_conflict.app_error",
+    "translation": "Неможливо створити властивість \"{{.Name}}\": властивість із такою назвою вже існує на рівні {{.ConflictLevel}}."
+  },
+  {
+    "id": "app.property_field.create.protected.app_error",
+    "translation": "Неможливо створити захищене поле властивості."
+  },
+  {
+    "id": "app.property_field.create.template_cannot_be_linked.app_error",
+    "translation": "Поля-шаблони не можуть мати зв'язаного поля."
+  },
+  {
+    "id": "app.property_field.delete.app_error",
+    "translation": "Не вдалося видалити поле властивості."
+  },
+  {
+    "id": "app.property_field.delete.get_existing.app_error",
+    "translation": "Не вдалося отримати поле властивості для видалення."
+  },
+  {
+    "id": "app.property_field.delete.has_linked_dependents.app_error",
+    "translation": "Неможливо видалити поле з активними зв'язаними залежними полями. Спочатку розірвіть зв'язок або видаліть залежні поля."
+  },
+  {
+    "id": "app.property_field.delete.not_found.app_error",
+    "translation": "Поле властивості не знайдено."
+  },
+  {
+    "id": "app.property_field.delete.protected.app_error",
+    "translation": "Неможливо видалити захищене поле властивості."
+  },
+  {
+    "id": "app.property_field.get.app_error",
+    "translation": "Не вдалося отримати поле властивості."
+  },
+  {
+    "id": "app.property_field.get_by_name.app_error",
+    "translation": "Не вдалося отримати поле властивості за назвою."
+  },
+  {
+    "id": "app.property_field.get_for_group.app_error",
+    "translation": "Не вдалося отримати поля властивостей для групи."
+  },
+  {
+    "id": "app.property_field.get_many.app_error",
+    "translation": "Не вдалося отримати поля властивостей."
+  },
+  {
+    "id": "app.property_field.invalid_attrs.app_error",
+    "translation": "Недійсні атрибути поля властивості."
+  },
+  {
+    "id": "app.property_field.invalid_input.app_error",
+    "translation": "Надано неправильні вхідні дані."
+  },
+  {
+    "id": "app.property_field.managed_admin.permission.app_error",
+    "translation": "Ви не маєте дозволу позначати це поле властивості як кероване адміністратором."
+  },
+  {
+    "id": "app.property_field.not_found.app_error",
+    "translation": "Вказаного поля властивості не існує."
+  },
+  {
+    "id": "app.property_field.rank_disabled.app_error",
+    "translation": "Поля властивостей типу «ранг» не ввімкнено."
+  },
+  {
+    "id": "app.property_field.search.app_error",
+    "translation": "Не вдалося виконати пошук полів властивостей."
+  },
+  {
+    "id": "app.property_field.update.app_error",
+    "translation": "Не вдалося оновити поля властивостей."
+  },
+  {
+    "id": "app.property_field.update.cannot_change_link_target.app_error",
+    "translation": "Неможливо змінити ціль зв'язку. Спочатку розірвіть зв'язок, а потім створіть нове зв'язане поле."
+  },
+  {
+    "id": "app.property_field.update.cannot_link_existing.app_error",
+    "translation": "Неможливо встановити linked_field_id для існуючого поля. Його можна встановити лише під час створення."
+  },
+  {
+    "id": "app.property_field.update.conflict.app_error",
+    "translation": "Не вдалося оновити поле властивості через конфлікт. Будь ласка, спробуйте ще раз."
+  },
+  {
+    "id": "app.property_field.update.get_existing.app_error",
+    "translation": "Не вдалося отримати поля властивостей для оновлення."
+  },
+  {
+    "id": "app.property_field.update.linked_options_change.app_error",
+    "translation": "Неможливо змінити варіанти зв'язаного поля. Варіанти успадковуються від джерела."
+  },
+  {
+    "id": "app.property_field.update.linked_type_change.app_error",
+    "translation": "Неможливо змінити тип зв'язаного поля. Тип успадковується від джерела."
+  },
+  {
+    "id": "app.property_field.update.name_conflict.app_error",
+    "translation": "Неможливо перейменувати властивість на \"{{.Name}}\": властивість із такою назвою вже існує на рівні {{.ConflictLevel}}."
+  },
+  {
+    "id": "app.property_field.update.protected.app_error",
+    "translation": "Неможливо оновити захищене поле властивості."
+  },
+  {
+    "id": "app.property_field.update.type_change_with_dependents.app_error",
+    "translation": "Неможливо змінити тип поля з активними зв'язаними залежними полями."
+  },
+  {
+    "id": "app.property_field.version_mismatch.app_error",
+    "translation": "Версії поля властивості та групи несумісні."
+  },
+  {
+    "id": "app.property_group.get.app_error",
+    "translation": "Не вдалося отримати групу властивостей."
+  },
+  {
+    "id": "app.property_group.register.app_error",
+    "translation": "Не вдалося зареєструвати групу властивостей."
+  },
+  {
+    "id": "app.property_value.create.app_error",
+    "translation": "Не вдалося створити значення властивості."
+  },
+  {
+    "id": "app.property_value.create_many.app_error",
+    "translation": "Не вдалося створити значення властивостей."
+  },
+  {
+    "id": "app.property_value.delete.app_error",
+    "translation": "Не вдалося видалити значення властивості."
+  },
+  {
+    "id": "app.property_value.delete_for_field.app_error",
+    "translation": "Не вдалося видалити значення властивостей для поля."
+  },
+  {
+    "id": "app.property_value.delete_for_target.app_error",
+    "translation": "Не вдалося видалити значення властивостей для цільового об'єкта."
+  },
+  {
+    "id": "app.property_value.get.app_error",
+    "translation": "Не вдалося отримати значення властивості."
+  },
+  {
+    "id": "app.property_value.get_many.app_error",
+    "translation": "Не вдалося отримати значення властивостей."
+  },
+  {
+    "id": "app.property_value.invalid_input.app_error",
+    "translation": "Надано неправильні вхідні дані."
+  },
+  {
+    "id": "app.property_value.resolve_broadcast_params.unknown_object_type.app_error",
+    "translation": "Нерозпізнаний тип об'єкта \"{{.ObjectType}}\" для трансляції значення властивості."
+  },
+  {
+    "id": "app.property_value.search.app_error",
+    "translation": "Не вдалося виконати пошук значень властивостей."
+  },
+  {
+    "id": "app.property_value.template_no_values.app_error",
+    "translation": "Поля-шаблони не можуть мати значень."
+  },
+  {
+    "id": "app.property_value.update.app_error",
+    "translation": "Не вдалося оновити значення властивості."
+  },
+  {
+    "id": "app.property_value.update_many.app_error",
+    "translation": "Не вдалося оновити значення властивостей."
+  },
+  {
+    "id": "app.property_value.upsert.app_error",
+    "translation": "Не вдалося створити або оновити значення властивостей."
+  },
+  {
+    "id": "app.property_value.upsert.duplicate_field_id.app_error",
+    "translation": "Дубльований ідентифікатор поля в пакеті значень властивостей."
+  },
+  {
+    "id": "app.property_value.upsert.field_not_found.app_error",
+    "translation": "Поле властивості {{.FieldID}} не знайдено."
+  },
+  {
+    "id": "app.property_value.upsert.invalid_field_id.app_error",
+    "translation": "Недійсний ідентифікатор поля властивості."
+  },
+  {
+    "id": "app.property_value.upsert.mixed_groups.app_error",
+    "translation": "Усі значення властивостей у пакеті мають належати до однієї групи властивостей."
+  },
+  {
+    "id": "app.property_value.upsert.object_type_mismatch.app_error",
+    "translation": "Тип об'єкта поля властивості не відповідає запиту."
+  },
+  {
+    "id": "app.property_value.upsert_many.app_error",
+    "translation": "Не вдалося створити або оновити значення властивостей."
+  },
+  {
+    "id": "app.property_value.validate.app_error",
+    "translation": "Значення властивості не пройшло перевірку."
+  },
+  {
+    "id": "app.recap.cooldown_active.app_error",
+    "translation": "Політика вашої організації вимагає {{.CooldownMinutes}} хвилин між підсумками. Ви зможете створити наступний підсумок через {{.RetryAfterMinutes}} хвилин."
+  },
+  {
+    "id": "app.recap.cooldown_check_failed.app_error",
+    "translation": "Не вдалося перевірити статус періоду очікування."
+  },
+  {
+    "id": "app.recap.delete.app_error",
+    "translation": "Не вдалося видалити підсумок."
+  },
+  {
+    "id": "app.recap.delete_channels.app_error",
+    "translation": "Не вдалося видалити канали підсумку."
+  },
+  {
+    "id": "app.recap.get.app_error",
+    "translation": "Не вдалося отримати підсумок."
+  },
+  {
+    "id": "app.recap.get_channel.app_error",
+    "translation": "Не вдалося отримати канал."
+  },
+  {
+    "id": "app.recap.get_channels.app_error",
+    "translation": "Не вдалося отримати канали підсумку."
+  },
+  {
+    "id": "app.recap.get_daily_count.app_error",
+    "translation": "Не вдалося перевірити ліміти підсумків."
+  },
+  {
+    "id": "app.recap.get_last_viewed.app_error",
+    "translation": "Не вдалося отримати мітку часу останнього перегляду."
+  },
+  {
+    "id": "app.recap.get_team.app_error",
+    "translation": "Не вдалося отримати команду."
+  },
+  {
+    "id": "app.recap.list.app_error",
+    "translation": "Не вдалося отримати підсумки."
+  },
+  {
+    "id": "app.recap.mark_read.app_error",
+    "translation": "Не вдалося позначити підсумок як прочитаний."
+  },
+  {
+    "id": "app.recap.mark_viewed.app_error",
+    "translation": "Не вдалося позначити підсумки як переглянуті."
+  },
+  {
+    "id": "app.recap.max_channels_exceeded.app_error",
+    "translation": "Політика вашої організації обмежує підсумки до {{.Limit}} каналів. Ви запросили {{.Requested}} каналів."
+  },
+  {
+    "id": "app.recap.max_recaps_reached.app_error",
+    "translation": "Політика вашої організації дозволяє не більше {{.Limit}} підсумків на день. Будь ласка, спробуйте знову завтра."
+  },
+  {
+    "id": "app.recap.permission_denied",
+    "translation": "Немає дозволу на підсумок."
+  },
+  {
+    "id": "app.recap.save.app_error",
+    "translation": "Не вдалося зберегти підсумок."
+  },
+  {
+    "id": "app.recap.save_channel.app_error",
+    "translation": "Не вдалося зберегти канал підсумку."
+  },
+  {
+    "id": "app.recap.sum_daily_posts.app_error",
+    "translation": "Не вдалося перевірити використання дописів для підсумків."
+  },
+  {
+    "id": "app.recap.update.app_error",
+    "translation": "Не вдалося оновити підсумок."
+  },
+  {
+    "id": "app.reveal_post.cannot_reveal_own_post.app_error",
+    "translation": "Ви не можете відкрити власний допис, що зникає після прочитання."
+  },
+  {
+    "id": "app.reveal_post.missing_expire_at.app_error",
+    "translation": "У дописі, що зникає після прочитання, відсутній обов'язковий час закінчення терміну дії."
+  },
+  {
+    "id": "app.reveal_post.not_burn_on_read.app_error",
+    "translation": "Цей допис не є дописом, що зникає після прочитання, і його не можна відкрити."
+  },
+  {
+    "id": "app.reveal_post.post_expired.app_error",
+    "translation": "Термін дії цього допису, що зникає після прочитання, минув, і його більше не можна відкрити."
+  },
+  {
+    "id": "app.reveal_post.read_receipt.get.error",
+    "translation": "Сталася помилка під час отримання підтвердження прочитання."
+  },
+  {
+    "id": "app.reveal_post.read_receipt.get_unread_count.error",
+    "translation": "Не вдалося отримати кількість непрочитаного для підтвердження прочитання."
+  },
+  {
+    "id": "app.reveal_post.read_receipt.save.error",
+    "translation": "Сталася помилка під час збереження підтвердження прочитання."
+  },
+  {
+    "id": "app.reveal_post.read_receipt_expired.error",
+    "translation": "Ваш доступ до цього допису, що зникає після прочитання, закінчився."
+  },
+  {
+    "id": "app.role.send_updated_role_event.app_error",
+    "translation": "Сталася помилка під час трансляції оновлення ролі."
+  },
+  {
+    "id": "app.role.send_updated_role_event.unknown_scope",
+    "translation": "Сталася помилка під час трансляції оновлення ролі: невідома область схеми."
+  },
+  {
+    "id": "app.save_scheduled_post.restricted_dm.error",
+    "translation": "Неможливо запланувати допис в обмеженому приватному повідомленні"
+  },
+  {
+    "id": "app.scheduled_post.failed_message_detail",
+    "translation": {
+      "one": "- {{.Count}} у каналі {{.ChannelName}}. Причина: {{.ErrorReason}}",
+      "few": "- {{.Count}} у каналі {{.ChannelName}}. Причина: {{.ErrorReason}}",
+      "many": "- {{.Count}} у каналі {{.ChannelName}}. Причина: {{.ErrorReason}}",
+      "other": "- {{.Count}} у каналі {{.ChannelName}}. Причина: {{.ErrorReason}}"
+    }
+  },
+  {
+    "id": "app.scheduled_post.failed_messages",
+    "translation": {
+      "one": "Не вдалося надіслати {{.Count}} запланований допис.",
+      "few": "Не вдалося надіслати {{.Count}} заплановані дописи.",
+      "many": "Не вдалося надіслати {{.Count}} запланованих дописів.",
+      "other": "Не вдалося надіслати {{.Count}} запланованого допису."
+    }
+  },
+  {
+    "id": "app.scheduled_post.recurring_disabled.app_error",
+    "translation": "Повторювані заплановані дописи вимкнено на цьому сервері."
+  },
+  {
+    "id": "app.scheduled_post.save.rejected_by_plugin",
+    "translation": "Запланований допис відхилено плагіном: {{.Reason}}"
+  },
+  {
+    "id": "app.scheduled_post.update.rejected_by_plugin",
+    "translation": "Оновлення запланованого допису відхилено плагіном: {{.Reason}}"
+  },
+  {
+    "id": "app.scheduled_recap.compute_next_run.app_error",
+    "translation": "Не вдалося обчислити наступний запуск запланованого підсумку."
+  },
+  {
+    "id": "app.scheduled_recap.create.app_error",
+    "translation": "Не вдалося створити запланований підсумок."
+  },
+  {
+    "id": "app.scheduled_recap.delete.app_error",
+    "translation": "Не вдалося видалити запланований підсумок."
+  },
+  {
+    "id": "app.scheduled_recap.get.app_error",
+    "translation": "Не вдалося отримати запланований підсумок."
+  },
+  {
+    "id": "app.scheduled_recap.get_unreads.app_error",
+    "translation": "Не вдалося отримати канали з непрочитаним для запланованого підсумку."
+  },
+  {
+    "id": "app.scheduled_recap.list.app_error",
+    "translation": "Не вдалося отримати заплановані підсумки."
+  },
+  {
+    "id": "app.scheduled_recap.max_channels_exceeded.app_error",
+    "translation": "Політика вашої організації обмежує підсумки до {{.Limit}} каналів. Ви запросили {{.Requested}} каналів."
+  },
+  {
+    "id": "app.scheduled_recap.max_scheduled_reached.app_error",
+    "translation": "Політика вашої організації дозволяє не більше {{.Limit}} запланованих підсумків. Будь ласка, видаліть існуючий запланований підсумок, перш ніж створювати новий."
+  },
+  {
+    "id": "app.scheduled_recap.no_channels.app_error",
+    "translation": "Запланований підсумок має включати принаймні один канал."
+  },
+  {
+    "id": "app.scheduled_recap.pause.app_error",
+    "translation": "Не вдалося призупинити запланований підсумок."
+  },
+  {
+    "id": "app.scheduled_recap.resume.app_error",
+    "translation": "Не вдалося відновити запланований підсумок."
+  },
+  {
+    "id": "app.scheduled_recap.save_recap.app_error",
+    "translation": "Не вдалося зберегти підсумок для запланованого підсумку."
+  },
+  {
+    "id": "app.scheduled_recap.update.app_error",
+    "translation": "Не вдалося оновити запланований підсумок."
+  },
+  {
+    "id": "app.session.revoke_other_sessions.empty_device_id.app_error",
+    "translation": "Ідентифікатор пристрою не може бути порожнім."
+  },
+  {
+    "id": "app.session.revoke_other_sessions.empty_voip_device_id.app_error",
+    "translation": "Ідентифікатор VoIP-пристрою не може бути порожнім."
+  },
+  {
+    "id": "app.session_attributes.field_immutable.app_error",
+    "translation": "Поля атрибутів сесії не можна створювати або видаляти; змінювати можна лише їхні enabled, ttl_seconds та grace_period_seconds."
+  },
+  {
+    "id": "app.submit_interactive_dialog.file_not_owned",
+    "translation": "Файл {{.FileId}} не належить користувачу, який надіслав форму."
+  },
+  {
+    "id": "app.submit_interactive_dialog.get_file_info_error",
+    "translation": "Не вдалося перевірити надіслані ідентифікатори файлів."
+  },
+  {
+    "id": "app.submit_interactive_dialog.invalid_file_id",
+    "translation": "Файл {{.FileId}} недійсний або недоступний."
+  },
+  {
+    "id": "app.submit_interactive_dialog.invalid_response",
+    "translation": "Отримано недійсну відповідь від надсилання інтерактивного діалогу."
+  },
+  {
+    "id": "app.submit_interactive_dialog.too_many_file_ids",
+    "translation": "Надіслано забагато ідентифікаторів файлів. Максимально дозволено {{.Max}}."
+  },
+  {
+    "id": "app.submit_interactive_dialog.too_many_submission_ids",
+    "translation": "Забагато значень у форматі ідентифікаторів у надісланих даних. Максимально дозволено {{.Max}}."
+  },
+  {
+    "id": "app.system.data_spillage_bot.bot_displayname",
+    "translation": "Бот контролю витоку даних"
+  },
+  {
+    "id": "app.team.access_policies.channel_not_found.app_error",
+    "translation": "Один або кілька каналів не знайдено."
+  },
+  {
+    "id": "app.team.access_policies.channel_wrong_team.app_error",
+    "translation": "Канал {{.ChannelId}} не належить до цієї команди."
+  },
+  {
+    "id": "app.team.access_policies.channels_required.app_error",
+    "translation": "Потрібен принаймні один канал."
+  },
+  {
+    "id": "app.team.access_policies.ownership_check.app_error",
+    "translation": "Не вдалося перевірити належність політики цій команді."
+  },
+  {
+    "id": "app.team.access_policies.reconcile_scope.app_error",
+    "translation": "Не вдалося узгодити область команди в політиці."
+  },
+  {
+    "id": "app.team.access_policies.self_exclusion.app_error",
+    "translation": "Ви не можете створити політику, яка виключала б вас самих."
+  },
+  {
+    "id": "app.team.access_policies.validation_error.app_error",
+    "translation": "Не вдалося перевірити правила політики."
+  },
+  {
+    "id": "app.team.join_user_to_team.rejected_by_plugin",
+    "translation": "Додавання учасника команди відхилено плагіном: {{.Reason}}"
+  },
+  {
+    "id": "app.toast.send_toast_message.message.app_error",
+    "translation": "Потрібно вказати повідомлення"
+  },
+  {
+    "id": "app.toast.send_toast_message.user_id.app_error",
+    "translation": "Потрібно вказати ідентифікатор користувача"
+  },
+  {
+    "id": "app.update_scheduled_post.convert_to_post.error",
+    "translation": "Не вдалося перетворити запланований допис у формат допису."
+  },
+  {
+    "id": "app.upload.create.cannot_upload_to_restricted_dm.error",
+    "translation": "Неможливо завантажити файл до обмеженого приватного повідомлення."
+  },
+  {
+    "id": "app.upload.gen_file_info.invalid_filename.app_error",
+    "translation": "Недійсне ім'я файлу."
+  },
+  {
+    "id": "app.user.analytics_get_single_channel_guest_count.app_error",
+    "translation": "Не вдалося отримати кількість гостей з одним каналом для аналітики."
+  },
+  {
+    "id": "app.user.check_user_password.failed_migration",
+    "translation": "Не вдалося перенести пароль користувача на новітній метод хешування."
+  },
+  {
+    "id": "app.user.check_user_password.failed_update",
+    "translation": "Не вдалося оновити пароль користувача."
+  },
+  {
+    "id": "app.user.update_active.license_user_limit.exceeded",
+    "translation": "Не вдалося активувати користувача. Кількість користувачів на сервері перевищує максимум за ліцензією. ERROR_LICENSED_USERS_LIMIT_EXCEEDED."
+  },
+  {
+    "id": "app.user_access_token.count_non_compliant.app_error",
+    "translation": "Не вдалося порахувати персональні токени доступу, які порушують політику максимального терміну дії."
+  },
+  {
+    "id": "app.user_access_token.expired",
+    "translation": "Термін дії персонального токена доступу закінчився."
+  },
+  {
+    "id": "app.user_access_token.expired_deleted_notification",
+    "translation": "Термін дії вашого персонального токена доступу \"{{.Description}}\" закінчився, і його було видалено. Відкрийте **Профіль → Безпека**, щоб створити новий токен."
+  },
+  {
+    "id": "app.user_access_token.expires_at_in_past.app_error",
+    "translation": "Надане значення expires_at знаходиться в минулому."
+  },
+  {
+    "id": "app.user_access_token.expires_at_required.app_error",
+    "translation": "Персональні токени доступу повинні мати дату закінчення терміну дії, оскільки сервер застосовує максимальний термін дії токенів."
+  },
+  {
+    "id": "app.user_access_token.expires_at_too_far.app_error",
+    "translation": "Надане значення expires_at перевищує налаштований максимальний термін дії персонального токена доступу ({{.Days}} днів)."
+  },
+  {
+    "id": "app.user_access_token.get_expiring.app_error",
+    "translation": "Не вдалося отримати персональні токени доступу, термін дії яких спливає."
+  },
+  {
+    "id": "app.user_access_token.revoke_non_compliant.no_policy.app_error",
+    "translation": "Максимальний термін дії персональних токенів доступу не налаштовано, тому немає невідповідних токенів для відкликання."
+  },
+  {
+    "id": "app.user_access_token.revoke_non_compliant.partial.app_error",
+    "translation": "Ліміт пакета було досягнуто до того, як усі невідповідні токени було відкликано. Запустіть операцію ще раз, щоб продовжити."
+  },
+  {
+    "id": "app.user_access_token.rotate.app_error",
+    "translation": "Не вдалося повторно згенерувати токен доступу."
+  },
+  {
+    "id": "app.view.count_for_channel.app_error",
+    "translation": "Не вдалося порахувати подання для каналу."
+  },
+  {
+    "id": "app.view.create.app_error",
+    "translation": "Не вдалося створити подання."
+  },
+  {
+    "id": "app.view.create.count.app_error",
+    "translation": "Не вдалося порахувати подання для каналу."
+  },
+  {
+    "id": "app.view.create.limit.app_error",
+    "translation": "Цей канал досяг максимальної кількості подань."
+  },
+  {
+    "id": "app.view.create.nil_view.app_error",
+    "translation": "Потрібно вказати подання."
+  },
+  {
+    "id": "app.view.delete.app_error",
+    "translation": "Не вдалося видалити подання."
+  },
+  {
+    "id": "app.view.delete.nil_view.app_error",
+    "translation": "Потрібно вказати подання."
+  },
+  {
+    "id": "app.view.delete.not_found.app_error",
+    "translation": "Подання не знайдено."
+  },
+  {
+    "id": "app.view.get.app_error",
+    "translation": "Не вдалося отримати подання."
+  },
+  {
+    "id": "app.view.get.not_found.app_error",
+    "translation": "Подання не знайдено."
+  },
+  {
+    "id": "app.view.get_for_channel.app_error",
+    "translation": "Не вдалося отримати подання для цього каналу."
+  },
+  {
+    "id": "app.view.get_for_channel.invalid_input.app_error",
+    "translation": "Неправильні вхідні дані при отриманні подань для каналу."
+  },
+  {
+    "id": "app.view.update.app_error",
+    "translation": "Не вдалося оновити подання."
+  },
+  {
+    "id": "app.view.update.nil_view.app_error",
+    "translation": "Потрібно вказати подання."
+  },
+  {
+    "id": "app.view.update.not_found.app_error",
+    "translation": "Подання не знайдено."
+  },
+  {
+    "id": "app.view.update_sort_order.app_error",
+    "translation": "Не вдалося оновити порядок сортування подань."
+  },
+  {
+    "id": "app.view.update_sort_order.invalid_input.app_error",
+    "translation": "Неправильні вхідні дані для оновлення порядку сортування подань."
+  },
+  {
+    "id": "app.view.update_sort_order.not_found.app_error",
+    "translation": "Подання не знайдено."
+  },
+  {
+    "id": "ent.access_control.job_data_conversion.app_error",
+    "translation": "Не вдалося витягти дані з попереднього завдання."
+  },
+  {
+    "id": "ent.access_control.sync_job.app_error",
+    "translation": "Не вдалося виконати завдання синхронізації контролю доступу."
+  },
+  {
+    "id": "ent.autotranslation.add_task.missing_object_id",
+    "translation": "Завдання перекладу має містити ідентифікатор об'єкта."
+  },
+  {
+    "id": "ent.autotranslation.add_task.missing_object_type",
+    "translation": "Завдання перекладу має містити тип об'єкта."
+  },
+  {
+    "id": "ent.autotranslation.add_task.nil_task",
+    "translation": "Завдання перекладу не може бути null."
+  },
+  {
+    "id": "ent.autotranslation.add_task.worker_stopped",
+    "translation": "Неможливо додати завдання перекладу, оскільки обробник було зупинено."
+  },
+  {
+    "id": "ent.autotranslation.create_translation_failed",
+    "translation": "Не вдалося створити переклад."
+  },
+  {
+    "id": "ent.autotranslation.detect_language.nil_context",
+    "translation": "Для визначення мови потрібен контекст."
+  },
+  {
+    "id": "ent.autotranslation.detect_language.text_too_large",
+    "translation": "Текст перевищує максимальний розмір для визначення мови."
+  },
+  {
+    "id": "ent.autotranslation.detect_remote.error",
+    "translation": "Не вдалося визначити мову за допомогою постачальника перекладу."
+  },
+  {
+    "id": "ent.autotranslation.extract_content.mask_error",
+    "translation": "Не вдалося замаскувати вміст для перекладу."
+  },
+  {
+    "id": "ent.autotranslation.extract_post.nil_post",
+    "translation": "Об'єкт допису не може бути null."
+  },
+  {
+    "id": "ent.autotranslation.feature_unavailable",
+    "translation": "Автоматичний переклад недоступний. Будь ласка, зверніться до вашого системного адміністратора щодо оновлення корпоративної ліцензії."
+  },
+  {
+    "id": "ent.autotranslation.invalid_input",
+    "translation": "Надано недійсний код мови."
+  },
+  {
+    "id": "ent.autotranslation.mask_verification_failed",
+    "translation": "Не вдалося оновити переклад новими значеннями маскування."
+  },
+  {
+    "id": "ent.autotranslation.no_translatable_content",
+    "translation": "Вміст не містить тексту, який можна перекласти."
+  },
+  {
+    "id": "ent.autotranslation.provider_not_available",
+    "translation": "Постачальник перекладу недоступний."
+  },
+  {
+    "id": "ent.autotranslation.provider_not_initialized",
+    "translation": "Постачальника перекладу не ініціалізовано."
+  },
+  {
+    "id": "ent.autotranslation.store_error",
+    "translation": "Не вдалося обробити запит на автоматичний переклад."
+  },
+  {
+    "id": "ent.autotranslation.unmask.missing_mask",
+    "translation": "Переклад містить нерозпізнані токени."
+  },
+  {
+    "id": "ent.autotranslation.unmask.orphan_token",
+    "translation": "Переклад містить недійсні токени."
+  },
+  {
+    "id": "ent.autotranslation.validate_content.invalid_json",
+    "translation": "Не вдалося розібрати вміст JSON."
+  },
+  {
+    "id": "ent.autotranslation.validate_content.invalid_type",
+    "translation": "Непідтримуваний тип вмісту для перекладу."
+  },
+  {
+    "id": "ent.autotranslation.validate_content.nil_content",
+    "translation": "Вміст не може бути null."
+  },
+  {
+    "id": "ent.autotranslation.validate_content.text_too_large",
+    "translation": "Вміст перевищує максимальний розмір для перекладу."
+  },
+  {
+    "id": "ent.autotranslation.validate_id.empty",
+    "translation": "Обов'язковий ідентифікатор не може бути порожнім."
+  },
+  {
+    "id": "ent.autotranslation.validate_id.invalid",
+    "translation": "Недійсний формат ідентифікатора."
+  },
+  {
+    "id": "ent.elasticsearch.backfill_posts_channel_type.error",
+    "translation": "{{.Backend}} не вдалося заповнити тип каналу в дописах"
+  },
+  {
+    "id": "ent.elasticsearch.create_processor.bulk_processor_create_failed",
+    "translation": "Не вдалося створити пакетний обробник Elasticsearch"
+  },
+  {
+    "id": "ent.elasticsearch.create_processor.sync_bulk_processor_create_failed",
+    "translation": "Не вдалося створити синхронний пакетний обробник Elasticsearch"
+  },
+  {
+    "id": "ent.elasticsearch.delete_files_batch.error",
+    "translation": "Не вдалося видалити пакет файлів"
+  },
+  {
+    "id": "ent.elasticsearch.healthcheck.not_started.app_error",
+    "translation": "{{.Backend}} не запущено."
+  },
+  {
+    "id": "ent.elasticsearch.healthcheck.unreachable.app_error",
+    "translation": "Помилка перевірки стану {{.Backend}}: не вдалося завершити перевірку."
+  },
+  {
+    "id": "ent.elasticsearch.indexer.do_job.bulk_failures.error",
+    "translation": "Завдання індексації завершено, але {{.NumFailed}} документ(ів) було відхилено пошуковим бекендом і не проіндексовано"
+  },
+  {
+    "id": "ent.elasticsearch.indexer.do_job.create_bulk_processor.error",
+    "translation": "Обробнику індексації не вдалося ініціалізувати пакетний обробник"
+  },
+  {
+    "id": "ent.elasticsearch.update_posts_channel_type.error",
+    "translation": "{{.Backend}} не вдалося оновити тип каналу в дописах"
+  },
+  {
+    "id": "ent.intune.login.account_not_found.app_error",
+    "translation": "Ваш обліковий запис ще не повністю налаштовано. Будь ласка, спочатку увійдіть у Mattermost через браузер або десктопний застосунок."
+  },
+  {
+    "id": "ent.intune.login.extract_auth_data.app_error",
+    "translation": "Помилка автентифікації. Будь ласка, спробуйте ще раз або зверніться до вашого системного адміністратора."
+  },
+  {
+    "id": "ent.intune.login.not_configured.app_error",
+    "translation": "Автентифікацію Microsoft Intune не налаштовано."
+  },
+  {
+    "id": "ent.intune.validate_token.invalid_tenant_id.app_error",
+    "translation": "Помилка автентифікації. Недійсна конфігурація."
+  },
+  {
+    "id": "ent.intune.validate_token.invalid_token.app_error",
+    "translation": "Помилка автентифікації. Будь ласка, спробуйте ще раз."
+  },
+  {
+    "id": "ent.intune.validate_token.jwks_init.app_error",
+    "translation": "Не вдалося ініціалізувати службу автентифікації. Будь ласка, зверніться до вашого системного адміністратора."
+  },
+  {
+    "id": "ent.intune.validate_token.missing_claims.app_error",
+    "translation": "Помилка автентифікації. Відсутня обов'язкова інформація про користувача."
+  },
+  {
+    "id": "ent.intune.validate_token.token_expired.app_error",
+    "translation": "Термін дії сесії автентифікації закінчився. Будь ласка, спробуйте увійти ще раз."
+  },
+  {
+    "id": "ent.ldap.connection.test_failed",
+    "translation": "Помилка перевірки з'єднання LDAP. Сервер: {{.Server}}:{{.Port}}, ConnectionSecurity: {{.ConnectionType}}, PrivateKeyFilename: {{.PrivateKeyFilename}}, PublicCertificateFilename: {{.PublicCertFilename}}, BindUsername: {{.BindUsername}}. Помилка: {{.Error}}"
+  },
+  {
+    "id": "ent.push_proxy.delete.app_error",
+    "translation": "Не вдалося видалити токен автентифікації push-проксі."
+  },
+  {
+    "id": "ent.push_proxy.generate.bad_status.app_error",
+    "translation": "Не вдалося отримати токен автентифікації від сервера push-проксі."
+  },
+  {
+    "id": "ent.push_proxy.generate.create_request.app_error",
+    "translation": "Не вдалося створити HTTP-запит для автентифікації push-проксі."
+  },
+  {
+    "id": "ent.push_proxy.generate.empty_token.app_error",
+    "translation": "Push-проксі повернув порожній токен автентифікації."
+  },
+  {
+    "id": "ent.push_proxy.generate.encrypt.app_error",
+    "translation": "Не вдалося зашифрувати дані для автентифікації push-проксі."
+  },
+  {
+    "id": "ent.push_proxy.generate.http_request.app_error",
+    "translation": "Не вдалося надіслати HTTP-запит до push-проксі."
+  },
+  {
+    "id": "ent.push_proxy.generate.marshal.app_error",
+    "translation": "Не вдалося серіалізувати дані для автентифікації push-проксі."
+  },
+  {
+    "id": "ent.push_proxy.generate.marshal_request.app_error",
+    "translation": "Не вдалося серіалізувати тіло запиту для автентифікації push-проксі."
+  },
+  {
+    "id": "ent.push_proxy.generate.no_key.app_error",
+    "translation": "Немає ключа шифрування для автентифікації push-проксі."
+  },
+  {
+    "id": "ent.push_proxy.generate.parse_response.app_error",
+    "translation": "Не вдалося розібрати відповідь від кінцевої точки автентифікації push-проксі."
+  },
+  {
+    "id": "ent.push_proxy.generate.save_system.app_error",
+    "translation": "Не вдалося зберегти токен автентифікації."
+  },
+  {
+    "id": "ent.push_proxy.worker.interface_nil.app_error",
+    "translation": "Інтерфейс push-проксі має значення nil."
+  },
+  {
+    "id": "model.access_policy.inherit.already_imported.app_error",
+    "translation": "Батьківську політику вже імпортовано."
+  },
+  {
+    "id": "model.access_policy.inherit.parent_type.app_error",
+    "translation": "Імпорти мають вказувати на батьківську політику членства."
+  },
+  {
+    "id": "model.access_policy.inherit.permission.app_error",
+    "translation": "Політики дозволів не можуть успадковувати правила від інших політик."
+  },
+  {
+    "id": "model.access_policy.inherit.version.app_error",
+    "translation": "Не вдалося успадкувати політику контролю доступу."
+  },
+  {
+    "id": "model.access_policy.is_valid.actions.app_error",
+    "translation": "Дії недійсні."
+  },
+  {
+    "id": "model.access_policy.is_valid.actions.membership_combined.app_error",
+    "translation": "Членство не можна поєднувати з іншими діями в одному правилі."
+  },
+  {
+    "id": "model.access_policy.is_valid.actions.permission_type.app_error",
+    "translation": "Правила з діями дозволів допускаються лише в політиках каналів."
+  },
+  {
+    "id": "model.access_policy.is_valid.plugin_type.app_error",
+    "translation": "Некоректна політика контролю доступу: тип не є припустимим типом ресурсу плагіна."
+  },
+  {
+    "id": "model.access_policy.is_valid.roles.app_error",
+    "translation": "Політики дозволів мають застосовуватися рівно до однієї ролі."
+  },
+  {
+    "id": "model.access_policy.is_valid.rule_name.app_error",
+    "translation": "Правила дозволів повинні мати непорожню назву, що не перевищує максимальну довжину для політики."
+  },
+  {
+    "id": "model.access_policy.is_valid.rule_name_unique.app_error",
+    "translation": "Назви правил дозволів мають бути унікальними в межах політики."
+  },
+  {
+    "id": "model.access_policy.is_valid.rule_role.app_error",
+    "translation": "Недійсна роль для правила."
+  },
+  {
+    "id": "model.access_policy.is_valid.scope.app_error",
+    "translation": "Недійсне значення області дії для цієї політики контролю доступу."
+  },
+  {
+    "id": "model.access_policy.is_valid.scope_id.app_error",
+    "translation": "Ідентифікатор області дії має бути дійсним ідентифікатором, коли область дії встановлено."
+  },
+  {
+    "id": "model.access_policy.is_valid.scope_id_without_scope.app_error",
+    "translation": "Ідентифікатор області дії не може бути встановлений без області дії."
+  },
+  {
+    "id": "model.access_policy.is_valid.session_attribute_on_membership.app_error",
+    "translation": "Правила членства не можуть посилатися на атрибути сесії (user.session). Використовуйте натомість політику дозволів."
+  },
+  {
+    "id": "model.acknowledgement.is_valid.channel_id.app_error",
+    "translation": "Недійсний ідентифікатор каналу."
+  },
+  {
+    "id": "model.authorize.is_valid.code_challenge.app_error",
+    "translation": "Під час використання PKCE потрібен code challenge."
+  },
+  {
+    "id": "model.authorize.is_valid.code_challenge.format.app_error",
+    "translation": "Code challenge має бути закодований у форматі base64url (з використанням символів A-Z, a-z, 0-9, -, _)."
+  },
+  {
+    "id": "model.authorize.is_valid.code_challenge.length.app_error",
+    "translation": "Code challenge має містити від 43 до 128 символів."
+  },
+  {
+    "id": "model.authorize.is_valid.code_challenge_method.app_error",
+    "translation": "Під час використання PKCE потрібно вказати метод code challenge."
+  },
+  {
+    "id": "model.authorize.is_valid.code_challenge_method.unsupported.app_error",
+    "translation": "Підтримується лише метод code challenge 'S256'."
+  },
+  {
+    "id": "model.authorize.is_valid.resource.has_fragment.app_error",
+    "translation": "Параметр resource не може містити компонент фрагмента."
+  },
+  {
+    "id": "model.authorize.is_valid.resource.invalid_uri.app_error",
+    "translation": "Параметр resource має бути дійсним URI."
+  },
+  {
+    "id": "model.authorize.is_valid.resource.length.app_error",
+    "translation": "Параметр resource не може перевищувати 512 символів."
+  },
+  {
+    "id": "model.authorize.is_valid.resource.not_absolute.app_error",
+    "translation": "Параметр resource має бути абсолютним URI."
+  },
+  {
+    "id": "model.authorize.validate_pkce.not_used_in_auth.app_error",
+    "translation": "Надано верифікатор коду PKCE, але PKCE не використовувався під час авторизації."
+  },
+  {
+    "id": "model.authorize.validate_pkce.public_client_required.app_error",
+    "translation": "PKCE (Proof Key for Code Exchange) є обов'язковим для публічних клієнтів."
+  },
+  {
+    "id": "model.authorize.validate_pkce.verification_failed.app_error",
+    "translation": "Верифікатор коду PKCE не відповідає code challenge."
+  },
+  {
+    "id": "model.authorize.validate_pkce.verifier_required.app_error",
+    "translation": "Верифікатор коду PKCE є обов'язковим, коли використовується PKCE."
+  },
+  {
+    "id": "model.channel.is_valid.banner_info.background_color.invalid.app_error",
+    "translation": "Колір банера каналу має бути дійсним шістнадцятковим кольором (напр., #FF0000 або #F00)"
+  },
+  {
+    "id": "model.channel.is_valid.discoverable.app_error",
+    "translation": "Лише приватні канали можна позначати як доступні для виявлення."
+  },
+  {
+    "id": "model.channel.is_valid.group_constrained.app_error",
+    "translation": "Лише публічні та приватні канали можуть бути обмежені групами."
+  },
+  {
+    "id": "model.channel.is_valid_board.display_name.app_error",
+    "translation": "Відображуване ім'я дошки не може бути порожнім."
+  },
+  {
+    "id": "model.channel.is_valid_board.team_id.app_error",
+    "translation": "Канали-дошки мають належати команді."
+  },
+  {
+    "id": "model.channel.is_valid_board.type.app_error",
+    "translation": "Тип каналу має бути BO (відкрита дошка) або BP (приватна дошка)."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.board.file_id.app_error",
+    "translation": "Закладки на дошки не можуть посилатися на файл."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.board.image_url.app_error",
+    "translation": "Закладки на дошки не можуть встановлювати URL-адресу зображення."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.board.link_url.app_error",
+    "translation": "URL-адреса посилання закладки на дошку має бути відносним шляхом сайту, що починається з /, не повинна містити :// і не повинна перевищувати максимальну довжину."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.board.target_id.app_error",
+    "translation": "Закладки на дошки потребують дійсного ідентифікатора цілі."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.target_id.app_error",
+    "translation": "Ідентифікатор цілі дозволений лише для типів закладок, що посилаються на інший об'єкт."
+  },
+  {
+    "id": "model.channel_join_request.is_valid.channel_id.app_error",
+    "translation": "Недійсний ідентифікатор каналу."
+  },
+  {
+    "id": "model.channel_join_request.is_valid.create_at.app_error",
+    "translation": "Поле \"Створено\" повинно містити правильний час."
+  },
+  {
+    "id": "model.channel_join_request.is_valid.denial_reason.app_error",
+    "translation": "Причина відмови занадто довга."
+  },
+  {
+    "id": "model.channel_join_request.is_valid.denial_reason_status.app_error",
+    "translation": "Причину відмови можна вказати лише для відхиленого запиту на приєднання."
+  },
+  {
+    "id": "model.channel_join_request.is_valid.id.app_error",
+    "translation": "Недійсний ідентифікатор."
+  },
+  {
+    "id": "model.channel_join_request.is_valid.message.app_error",
+    "translation": "Повідомлення запиту на приєднання занадто довге."
+  },
+  {
+    "id": "model.channel_join_request.is_valid.reviewed_by.app_error",
+    "translation": "Недійсний ідентифікатор рецензента."
+  },
+  {
+    "id": "model.channel_join_request.is_valid.reviewer.app_error",
+    "translation": "Затверджений або відхилений запит на приєднання має містити відомості про рецензента та час розгляду."
+  },
+  {
+    "id": "model.channel_join_request.is_valid.status.app_error",
+    "translation": "Недійсний статус запиту на приєднання."
+  },
+  {
+    "id": "model.channel_join_request.is_valid.update_at.app_error",
+    "translation": "Час для оновлення має бути дійсним."
+  },
+  {
+    "id": "model.channel_join_request.is_valid.user_id.app_error",
+    "translation": "Недійсний ідентифікатор користувача."
+  },
+  {
+    "id": "model.cluster.is_valid.site_url.app_error",
+    "translation": "SiteURL має бути встановлений."
+  },
+  {
+    "id": "model.command_response.is_valid.attachment.app_error",
+    "translation": "Недійсне вкладення."
+  },
+  {
+    "id": "model.command_response.is_valid.goto_location.app_error",
+    "translation": "Недійсне значення goto_location."
+  },
+  {
+    "id": "model.command_response.is_valid.icon_url.app_error",
+    "translation": "Недійсна URL-адреса значка."
+  },
+  {
+    "id": "model.command_response.is_valid.response_type.app_error",
+    "translation": "Недійсний тип відповіді."
+  },
+  {
+    "id": "model.config.is_valid.access_control_attribute_refresh_interval.app_error",
+    "translation": "Некоректний інтервал оновлення атрибутів контролю доступу. Має бути більшим або рівним 0."
+  },
+  {
+    "id": "model.config.is_valid.access_control_sync_interval.app_error",
+    "translation": "Некоректний інтервал завдання синхронізації контролю доступу. Має становити щонайменше 60 секунд."
+  },
+  {
+    "id": "model.config.is_valid.ai_recap.cooldown_minutes.app_error",
+    "translation": "Недійсне значення хвилин очікування між підсумками ШІ. Має бути більшим або рівним 0."
+  },
+  {
+    "id": "model.config.is_valid.ai_recap.max_channels_per_recap.app_error",
+    "translation": "Недійсне значення максимальної кількості каналів на підсумок ШІ. Має бути більшим або рівним 1, або -1 для необмеженої кількості."
+  },
+  {
+    "id": "model.config.is_valid.ai_recap.max_posts_per_day.app_error",
+    "translation": "Недійсне значення максимальної кількості дописів на день для підсумків ШІ. Має бути більшим або рівним 1, або -1 для необмеженої кількості."
+  },
+  {
+    "id": "model.config.is_valid.ai_recap.max_posts_per_recap.app_error",
+    "translation": "Недійсне значення максимальної кількості дописів на підсумок ШІ. Має бути більшим або рівним 1, або -1 для необмеженої кількості."
+  },
+  {
+    "id": "model.config.is_valid.ai_recap.max_recaps_per_day.app_error",
+    "translation": "Недійсне значення максимальної кількості підсумків ШІ на день. Має бути більшим або рівним 1, або -1 для необмеженої кількості."
+  },
+  {
+    "id": "model.config.is_valid.ai_recap.max_scheduled_recaps.app_error",
+    "translation": "Недійсне значення максимальної кількості запланованих підсумків ШІ. Має бути більшим або рівним 1, або -1 для необмеженої кількості."
+  },
+  {
+    "id": "model.config.is_valid.ai_recap.max_tokens_per_recap.app_error",
+    "translation": "Недійсне значення максимальної кількості токенів на підсумок ШІ. Має бути більшим або рівним 1, або -1 для необмеженої кількості."
+  },
+  {
+    "id": "model.config.is_valid.atmos_camo_image_proxy_removed.app_error",
+    "translation": "Тип проксі зображень 'atmos/camo' було вилучено в Mattermost v12.0. Встановіть для ImageProxySettings.ImageProxyType значення 'local' або встановіть для ImageProxySettings.Enable значення false, щоб вимкнути проксі зображень."
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.agents.llm_service_id.app_error",
+    "translation": "Недійсна конфігурація агентів автоперекладу: сервіс ШІ не може бути порожнім."
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.libretranslate.url.app_error",
+    "translation": "URL-адреса LibreTranslate має бути дійсною URL-адресою та починатися з http:// або https://."
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.provider.app_error",
+    "translation": "Недійсний постачальник автоперекладу: не може бути порожнім."
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.provider.unsupported.app_error",
+    "translation": "Непідтримуваний постачальник автоперекладу."
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.timeout.app_error",
+    "translation": "Недійсний таймаут для налаштувань автоперекладу. Має бути додатним числом."
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.workers.app_error",
+    "translation": "Значення Workers має бути від 1 до 64."
+  },
+  {
+    "id": "model.config.is_valid.azure_auth_mode.app_error",
+    "translation": "Недійсний режим автентифікації Azure {{.Value}}. Має бути 'shared_key' або 'default_credential'."
+  },
+  {
+    "id": "model.config.is_valid.azure_cloud.app_error",
+    "translation": "Недійсне значення {{.Value}} для {{.Setting}}. Має бути 'commercial', 'government' або 'custom'."
+  },
+  {
+    "id": "model.config.is_valid.azure_custom_endpoint.app_error",
+    "translation": "{{.Setting}} має бути встановлено, коли відповідне значення AzureCloud — 'custom'."
+  },
+  {
+    "id": "model.config.is_valid.azure_storage_account.app_error",
+    "translation": "Недійсне значення {{.Value}} для {{.Setting}}. Ім'я облікового запису сховища Azure має містити від 3 до 24 символів і лише малі літери та цифри."
+  },
+  {
+    "id": "model.config.is_valid.azure_timeout.app_error",
+    "translation": "Неправильне значення таймауту {{.Value}}. Має бути додатне число."
+  },
+  {
+    "id": "model.config.is_valid.content_flagging.common_reviewers_not_set.app_error",
+    "translation": "Коли увімкнено \"Однакові рецензенти для всіх команд\", необхідно вказати спільних рецензентів або додаткових рецензентів."
+  },
+  {
+    "id": "model.config.is_valid.content_flagging.reasons_not_set.app_error",
+    "translation": "Причини для позначення вмісту не можуть бути порожніми."
+  },
+  {
+    "id": "model.config.is_valid.content_flagging.team_reviewers_not_set.app_error",
+    "translation": "Під час встановлення \"Увімкнено\" для команди необхідно вказати рецензентів команди або додаткових рецензентів."
+  },
+  {
+    "id": "model.config.is_valid.dcr_redirect_uri_allowlist.app_error",
+    "translation": "Список дозволених URI перенаправлення DCR містить недійсний шаблон. Шаблони мають починатися з http:// або https:// і не можуть бути порожніми чи складатися з пробілів."
+  },
+  {
+    "id": "model.config.is_valid.directory_traversal.app_error",
+    "translation": "Послідовності обходу шляху (\"..\") не дозволені в {{.Setting}}. Знайдено \"{{.Value}}\"."
+  },
+  {
+    "id": "model.config.is_valid.directory_whitespace.app_error",
+    "translation": "Виявлено пробіли на початку або в кінці значення {{.Setting}}. Знайдено \"{{.Value}}\"."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.enable_cjk_analyzers.app_error",
+    "translation": "Параметр {{.Searching}} має бути увімкнений, якщо {{.EnableCJKAnalyzers}} увімкнено"
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_name_empty",
+    "translation": "Коли увімкнено журналювання аудиту у файл, необхідно вказати ім'я файлу."
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_name_is_directory",
+    "translation": "Ім'я файлу не повинно бути каталогом."
+  },
+  {
+    "id": "model.config.is_valid.export_azure_auth_mode.app_error",
+    "translation": "Недійсний режим автентифікації Azure {{.Value}} для виділеного сховища експорту. Має бути 'shared_key' або 'default_credential'."
+  },
+  {
+    "id": "model.config.is_valid.export_azure_timeout.app_error",
+    "translation": "Неправильне значення таймауту {{.Value}}. Має бути додатне число."
+  },
+  {
+    "id": "model.config.is_valid.extract_content_timeout.app_error",
+    "translation": "Недійсний таймаут вилучення вмісту для налаштувань файлів. Має бути цілим числом секунд, більшим або рівним нулю."
+  },
+  {
+    "id": "model.config.is_valid.feature_flags.apps_enabled.app_error",
+    "translation": "Функціональний прапорець AppsEnabled більше не підтримується і має бути вимкнений."
+  },
+  {
+    "id": "model.config.is_valid.feature_flags.move_threads_enabled.app_error",
+    "translation": "Функціональний прапорець MoveThreadsEnabled більше не підтримується і має бути вимкнений."
+  },
+  {
+    "id": "model.config.is_valid.guest_accounts.cannot_enforce_multifactor_authentication_when_guest_magic_link_is_enabled.app_error",
+    "translation": "Ви не можете вимагати багатофакторну автентифікацію для гостьових облікових записів, коли увімкнено автентифікацію за магічним посиланням."
+  },
+  {
+    "id": "model.config.is_valid.intune_auth_service.app_error",
+    "translation": "Intune MAM Auth Service є обов'язковим, коли Intune увімкнено."
+  },
+  {
+    "id": "model.config.is_valid.intune_auth_service_invalid.app_error",
+    "translation": "Intune MAM Auth Service має бути 'office365' або 'saml'."
+  },
+  {
+    "id": "model.config.is_valid.intune_client_id.app_error",
+    "translation": "Intune MAM Client ID є обов'язковим, коли Intune увімкнено."
+  },
+  {
+    "id": "model.config.is_valid.intune_client_id_format.app_error",
+    "translation": "Intune MAM Client ID має бути дійсним UUID."
+  },
+  {
+    "id": "model.config.is_valid.intune_requires_office365.app_error",
+    "translation": "Intune MAM вимагає, щоб OpenID Connect (Office 365) було увімкнено, коли Auth Service встановлено в 'office365'."
+  },
+  {
+    "id": "model.config.is_valid.intune_requires_saml.app_error",
+    "translation": "Intune MAM вимагає, щоб SAML було увімкнено, коли Auth Service встановлено в 'saml'."
+  },
+  {
+    "id": "model.config.is_valid.intune_tenant_id.app_error",
+    "translation": "Intune MAM Tenant ID є обов'язковим, коли Intune увімкнено."
+  },
+  {
+    "id": "model.config.is_valid.intune_tenant_id_format.app_error",
+    "translation": "Intune MAM Tenant ID має бути дійсним UUID."
+  },
+  {
+    "id": "model.config.is_valid.lock_profile_fields.app_error",
+    "translation": "Недійсне налаштування блокування полів профілю. Має бути 'none', 'name_and_username' або 'all'."
+  },
+  {
+    "id": "model.config.is_valid.max_personal_access_token_lifetime_days.app_error",
+    "translation": "Недійсне значення MaximumPersonalAccessTokenLifetimeDays. Має бути від 0 (без обмежень) до {{.Max}} днів."
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.custom_header_incomplete.app_error",
+    "translation": "Для експорту повідомлень GlobalRelaySettings.CustomHeaderName і CustomHeaderValue мають бути задані обидва або обидва залишені порожніми."
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.custom_header_name.app_error",
+    "translation": "Для експорту повідомлень GlobalRelaySettings.CustomHeaderName має бути коректною назвою заголовка без пробілів, двокрапок, роздільників чи розривів рядків."
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.custom_header_reserved.app_error",
+    "translation": "Для експорту повідомлень GlobalRelaySettings.CustomHeaderName не повинна повторювати заголовок, який експорт Global Relay записує самостійно."
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.custom_header_value.app_error",
+    "translation": "Для експорту повідомлень GlobalRelaySettings.CustomHeaderValue не повинно містити керуючих символів або розривів рядків."
+  },
+  {
+    "id": "model.config.is_valid.minimum_desktop_app_version.app_error",
+    "translation": "Недійсний номер версії. Має бути дійсною семантичною версією (напр., 5.0.0)."
+  },
+  {
+    "id": "model.config.is_valid.mobile_ephemeral_mode.auto_cache_cleanup.app_error",
+    "translation": "Недійсне значення автоматичного очищення кешу. Має бути від {{.Min}} до {{.Max}} днів."
+  },
+  {
+    "id": "model.config.is_valid.mobile_ephemeral_mode.disconnection_timeout.app_error",
+    "translation": "Недійсне значення таймауту відключення. Має бути від {{.Min}} до {{.Max}} секунд."
+  },
+  {
+    "id": "model.config.is_valid.mobile_ephemeral_mode.offline_persistence.app_error",
+    "translation": "Недійсне значення таймера офлайн-збереження. Має бути від {{.Min}} до {{.Max}} годин."
+  },
+  {
+    "id": "model.config.is_valid.native_app_settings.download_link.app_error",
+    "translation": "Одне або кілька посилань для завантаження застосунку не є дійсними URL-адресами."
+  },
+  {
+    "id": "model.config.is_valid.notification_settings.invalid_event",
+    "translation": "Вказано недійсну подію позначення вмісту."
+  },
+  {
+    "id": "model.config.is_valid.notification_settings.invalid_target",
+    "translation": "Вказано недійсну ціль події позначення вмісту."
+  },
+  {
+    "id": "model.config.is_valid.notification_settings.reviewer_flagged_notification_disabled",
+    "translation": "Сповіщення про новий позначений допис не можна вимкнути для рецензентів."
+  },
+  {
+    "id": "model.config.is_valid.sql_analytics_query_timeout.app_error",
+    "translation": "Недійсний таймаут аналітичних запитів для налаштувань SQL. Має бути додатним числом."
+  },
+  {
+    "id": "model.cpa_field.name.invalid_charset.app_error",
+    "translation": "Недійсне ім'я поля CPA '{{.Name}}': має відповідати ^[A-Za-z_][A-Za-z0-9_]*$ (правило ідентифікаторів CEL)."
+  },
+  {
+    "id": "model.cpa_field.name.reserved_word.app_error",
+    "translation": "Недійсне ім'я поля CPA '{{.Name}}': це зарезервоване слово CEL, яке не можна використовувати як ідентифікатор поля."
+  },
+  {
+    "id": "model.dcr.is_valid.client_name.app_error",
+    "translation": "Ім'я клієнта має містити не більше 64 символів."
+  },
+  {
+    "id": "model.dcr.is_valid.client_uri_format.app_error",
+    "translation": "Недійсний формат URI клієнта."
+  },
+  {
+    "id": "model.dcr.is_valid.client_uri_length.app_error",
+    "translation": "URI клієнта має містити менше 256 символів."
+  },
+  {
+    "id": "model.dcr.is_valid.redirect_uri_format.app_error",
+    "translation": "Недійсний формат URI перенаправлення."
+  },
+  {
+    "id": "model.dcr.is_valid.redirect_uris.app_error",
+    "translation": "Потрібен принаймні один URI перенаправлення."
+  },
+  {
+    "id": "model.dcr.is_valid.unsupported_auth_method.app_error",
+    "translation": "Надано непідтримуваний token_endpoint_auth_method."
+  },
+  {
+    "id": "model.file_info.is_valid.name.app_error",
+    "translation": "Недійсне значення для name."
+  },
+  {
+    "id": "model.log_filter.is_valid.date_from.app_error",
+    "translation": "Некоректний фільтр date_from. Очікуваний формат \"{{.Layout}}\"."
+  },
+  {
+    "id": "model.log_filter.is_valid.date_to.app_error",
+    "translation": "Некоректний фільтр date_to. Очікуваний формат \"{{.Layout}}\"."
+  },
+  {
+    "id": "model.member.is_valid.profile_email.app_error",
+    "translation": "Електронна пошта профілю відсутня у списку запрошених адрес електронної пошти"
+  },
+  {
+    "id": "model.member.is_valid.profile_email_duplicate.app_error",
+    "translation": "Профілі запрошення повинні мати унікальні адреси електронної пошти"
+  },
+  {
+    "id": "model.member.is_valid.profile_first_name.app_error",
+    "translation": "Недійсне ім'я у профілі запрошення"
+  },
+  {
+    "id": "model.member.is_valid.profile_last_name.app_error",
+    "translation": "Недійсне прізвище у профілі запрошення"
+  },
+  {
+    "id": "model.member.is_valid.profile_nil.app_error",
+    "translation": "Профіль запрошення не може бути null"
+  },
+  {
+    "id": "model.member.is_valid.profile_username.app_error",
+    "translation": "Недійсне ім'я користувача у профілі запрошення"
+  },
+  {
+    "id": "model.member.is_valid.profile_username_duplicate.app_error",
+    "translation": "Профілі запрошення повинні мати унікальні імена користувачів"
+  },
+  {
+    "id": "model.oauth.validate_grant.credentials.app_error",
+    "translation": "Недійсні облікові дані клієнта."
+  },
+  {
+    "id": "model.oauth.validate_grant.pkce_required.app_error",
+    "translation": "PKCE (Proof Key for Code Exchange) є обов'язковим для публічних клієнтів."
+  },
+  {
+    "id": "model.oauth.validate_grant.public_client_refresh_token.app_error",
+    "translation": "Публічні клієнти не можуть використовувати тип гранту refresh token."
+  },
+  {
+    "id": "model.oauth.validate_grant.public_client_secret.app_error",
+    "translation": "Публічні клієнти не повинні надавати секрет клієнта."
+  },
+  {
+    "id": "model.post.decode_cursor.invalid_base64",
+    "translation": "Недійсний формат курсора: не вдалося декодувати base64."
+  },
+  {
+    "id": "model.post.decode_cursor.invalid_exclude_system_posts",
+    "translation": "Недійсний формат курсора: exclude_system_posts має бути булевим значенням."
+  },
+  {
+    "id": "model.post.decode_cursor.invalid_format",
+    "translation": "Недійсний формат курсора: очікувалося 8 частин."
+  },
+  {
+    "id": "model.post.decode_cursor.invalid_include_deleted",
+    "translation": "Недійсний формат курсора: include_deleted має бути булевим значенням."
+  },
+  {
+    "id": "model.post.decode_cursor.invalid_timestamp",
+    "translation": "Недійсний формат курсора: мітка часу має бути цілим числом."
+  },
+  {
+    "id": "model.post.decode_cursor.invalid_version",
+    "translation": "Недійсний формат курсора: версія має бути цілим числом."
+  },
+  {
+    "id": "model.post.decode_cursor.unsupported_version",
+    "translation": "Непідтримувана версія курсора."
+  },
+  {
+    "id": "model.post.query_params.invalid_channel_id",
+    "translation": "Недійсний ідентифікатор каналу."
+  },
+  {
+    "id": "model.post.query_params.invalid_cursor_id",
+    "translation": "Недійсний ідентифікатор курсора."
+  },
+  {
+    "id": "model.post.query_params.invalid_sort_direction",
+    "translation": "Недійсний напрямок сортування."
+  },
+  {
+    "id": "model.post.query_params.invalid_time_field",
+    "translation": "Недійсне поле часу."
+  },
+  {
+    "id": "model.property_group.is_valid.app_error",
+    "translation": "Недійсна група властивостей: {{.FieldName}} ({{.Reason}})."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.repeat_files.app_error",
+    "translation": "Повторювані заплановані дописи не можуть містити вкладених файлів."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.repeat_timezone.app_error",
+    "translation": "Заплановані дописи з щотижневим повторенням потребують коректного часового поясу."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.repeat_timezone_invalid.app_error",
+    "translation": "Некоректний часовий пояс для повторюваного запланованого допису."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.repeat_type.app_error",
+    "translation": "Некоректний тип повторення для запланованого допису."
+  },
+  {
+    "id": "model.scheduled_recap.compute_next_run.days_of_week.app_error",
+    "translation": "Недійсні дні тижня для запланованого підсумку."
+  },
+  {
+    "id": "model.scheduled_recap.compute_next_run.no_valid_day.app_error",
+    "translation": "Не знайдено дійсного дня для запланованого підсумку."
+  },
+  {
+    "id": "model.scheduled_recap.compute_next_run.time_format.app_error",
+    "translation": "Недійсний формат часу запланованого підсумку."
+  },
+  {
+    "id": "model.scheduled_recap.compute_next_run.timezone.app_error",
+    "translation": "Недійсний часовий пояс запланованого підсумку."
+  },
+  {
+    "id": "model.scheduled_recap.is_valid.agent_id.app_error",
+    "translation": "Запланований підсумок повинен мати ідентифікатор агента."
+  },
+  {
+    "id": "model.scheduled_recap.is_valid.channel_id.app_error",
+    "translation": "Недійсний ідентифікатор каналу запланованого підсумку."
+  },
+  {
+    "id": "model.scheduled_recap.is_valid.channel_ids_empty.app_error",
+    "translation": "Запланований підсумок повинен включати принаймні один канал у разі використання конкретних каналів."
+  },
+  {
+    "id": "model.scheduled_recap.is_valid.channel_mode.app_error",
+    "translation": "Недійсний режим каналів запланованого підсумку."
+  },
+  {
+    "id": "model.scheduled_recap.is_valid.custom_instructions_length.app_error",
+    "translation": "Користувацькі інструкції запланованого підсумку перевищують максимальну довжину."
+  },
+  {
+    "id": "model.scheduled_recap.is_valid.days_of_week.app_error",
+    "translation": "Недійсні дні тижня для запланованого підсумку."
+  },
+  {
+    "id": "model.scheduled_recap.is_valid.id.app_error",
+    "translation": "Запланований підсумок повинен мати ідентифікатор."
+  },
+  {
+    "id": "model.scheduled_recap.is_valid.time_of_day.app_error",
+    "translation": "Недійсний час доби запланованого підсумку."
+  },
+  {
+    "id": "model.scheduled_recap.is_valid.time_period.app_error",
+    "translation": "Недійсний часовий період запланованого підсумку."
+  },
+  {
+    "id": "model.scheduled_recap.is_valid.timezone.app_error",
+    "translation": "Недійсний часовий пояс запланованого підсумку."
+  },
+  {
+    "id": "model.scheduled_recap.is_valid.title_empty.app_error",
+    "translation": "Заголовок запланованого підсумку не може бути порожнім."
+  },
+  {
+    "id": "model.scheduled_recap.is_valid.title_length.app_error",
+    "translation": "Заголовок запланованого підсумку перевищує максимальну довжину."
+  },
+  {
+    "id": "model.scheduled_recap.is_valid.user_id.app_error",
+    "translation": "Запланований підсумок повинен мати ідентифікатор користувача."
+  },
+  {
+    "id": "model.translation.is_valid.lang.app_error",
+    "translation": "Недійсний код мови. Використовуйте стандартний код ISO, наприклад 'en', 'ja' або 'fr'."
+  },
+  {
+    "id": "model.translation.is_valid.nil.app_error",
+    "translation": "Об'єкт перекладу не може бути null."
+  },
+  {
+    "id": "model.translation.is_valid.object_id.app_error",
+    "translation": "Недійсний ідентифікатор об'єкта."
+  },
+  {
+    "id": "model.translation.is_valid.object_json.app_error",
+    "translation": "Недійсний JSON об'єкта."
+  },
+  {
+    "id": "model.translation.is_valid.object_type.app_error",
+    "translation": "Недійсний тип об'єкта."
+  },
+  {
+    "id": "model.translation.is_valid.provider.app_error",
+    "translation": "Недійсний постачальник перекладу."
+  },
+  {
+    "id": "model.translation.is_valid.text.app_error",
+    "translation": "Недійсний текст перекладу."
+  },
+  {
+    "id": "model.translation.is_valid.type.app_error",
+    "translation": "Недійсний тип перекладу."
+  },
+  {
+    "id": "model.translation.is_valid.type_invalid.app_error",
+    "translation": "Недійсний тип перекладу. Має бути 'string' або 'object'."
+  },
+  {
+    "id": "model.user_access_token.is_valid.expires_at.app_error",
+    "translation": "Недійсне значення expires_at: має бути нулем або додатною міткою часу Unix у мілісекундах."
+  },
+  {
+    "id": "model.user_report_options.is_valid.invalid_guest_filter",
+    "translation": "Вказаний фільтр гостей недійсний."
+  },
+  {
+    "id": "model.view.is_valid.channel_id.app_error",
+    "translation": "Недійсний ідентифікатор каналу подання."
+  },
+  {
+    "id": "model.view.is_valid.create_at.app_error",
+    "translation": "Недійсний час створення подання."
+  },
+  {
+    "id": "model.view.is_valid.creator_id.app_error",
+    "translation": "Недійсний ідентифікатор автора подання."
+  },
+  {
+    "id": "model.view.is_valid.description.app_error",
+    "translation": "Опис подання занадто довгий."
+  },
+  {
+    "id": "model.view.is_valid.id.app_error",
+    "translation": "Недійсний ідентифікатор подання."
+  },
+  {
+    "id": "model.view.is_valid.props.kanban_column_id.app_error",
+    "translation": "Стовпець Kanban має недійсний або відсутній ідентифікатор."
+  },
+  {
+    "id": "model.view.is_valid.props.kanban_column_name.app_error",
+    "translation": "Назва стовпця Kanban не може бути порожньою."
+  },
+  {
+    "id": "model.view.is_valid.props.kanban_column_options.app_error",
+    "translation": "Стовпець Kanban повинен мати принаймні один ідентифікатор опції."
+  },
+  {
+    "id": "model.view.is_valid.props.kanban_columns_empty.app_error",
+    "translation": "Подання Kanban повинно мати принаймні один стовпець."
+  },
+  {
+    "id": "model.view.is_valid.props.kanban_columns_max.app_error",
+    "translation": "Подання Kanban перевищує максимальну кількість стовпців."
+  },
+  {
+    "id": "model.view.is_valid.props.kanban_field_id.app_error",
+    "translation": "Подання Kanban повинно посилатися на дійсний ідентифікатор поля властивості."
+  },
+  {
+    "id": "model.view.is_valid.props.kanban_invalid.app_error",
+    "translation": "Подання Kanban має недійсну структуру props."
+  },
+  {
+    "id": "model.view.is_valid.props.kanban_required.app_error",
+    "translation": "Подання Kanban потребує props із конфігурацією group_by."
+  },
+  {
+    "id": "model.view.is_valid.title.app_error",
+    "translation": "Заголовок подання є обов'язковим і має містити менше 256 символів."
+  },
+  {
+    "id": "model.view.is_valid.type.app_error",
+    "translation": "Недійсний тип подання."
+  },
+  {
+    "id": "model.view.is_valid.update_at.app_error",
+    "translation": "Недійсний час оновлення подання."
+  },
+  {
+    "id": "plugin.api.update_post.mm_blocks_actions.app_error",
+    "translation": "Недійсні mm_blocks_actions в оновленні допису плагіна."
+  },
+  {
+    "id": "plugin_api.channel.space_notify_props.app_error",
+    "translation": "Notify props не можна встановлювати для каналів типу space."
+  },
+  {
+    "id": "shared_channel.system_message.no_longer_shared",
+    "translation": "Цей канал більше не є спільним з {{.WorkspaceName}}."
+  },
+  {
+    "id": "shared_channel.system_message.no_longer_shared_unknown",
+    "translation": "Цей канал більше не є спільним з іншим робочим простором."
+  },
+  {
+    "id": "shared_channel.system_message.now_shared",
+    "translation": "Цей канал тепер є спільним з {{.WorkspaceName}}."
+  },
+  {
+    "id": "web.error.unsupported_desktop_app.assistance",
+    "translation": "Зверніться до системного адміністратора, якщо вам потрібна додаткова допомога."
+  },
+  {
+    "id": "web.error.unsupported_desktop_app.download_button",
+    "translation": "Завантажити оновлений додаток"
+  },
+  {
+    "id": "web.error.unsupported_desktop_app.footer_about",
+    "translation": "Про програму"
+  },
+  {
+    "id": "web.error.unsupported_desktop_app.footer_help",
+    "translation": "Довідка"
+  },
+  {
+    "id": "web.error.unsupported_desktop_app.footer_privacy",
+    "translation": "Політика конфіденційності"
+  },
+  {
+    "id": "web.error.unsupported_desktop_app.footer_terms",
+    "translation": "Умови"
+  },
+  {
+    "id": "web.error.unsupported_desktop_app.message",
+    "translation": "Версія вашого десктопного додатка {{.SiteName}} ({{.CurrentVersion}}) нижча за мінімально необхідну версію ({{.MinimumVersion}}). Будь ласка, оновіть додаток або відкрийте {{.SiteName}} у веббраузері, щоб продовжити."
+  },
+  {
+    "id": "web.error.unsupported_desktop_app.title",
+    "translation": "Потрібне оновлення"
   }
 ]

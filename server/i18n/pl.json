@@ -13230,5 +13230,906 @@
   {
     "id": "model.channel_join_request.is_valid.channel_id.app_error",
     "translation": "Nieprawidłowy identyfikator kanału."
+  },
+  {
+    "id": "api.channel.space_channel.app_error",
+    "translation": "Kanały przestrzeni nie są dostępne poprzez punkty końcowe /channels. Zamiast tego należy użyć API przestrzeni."
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.guest_and_admin.app_error",
+    "translation": "Nieprawidłowa aktualizacja członka kanału: użytkownik musi być gościem albo administratorem, ale nie jednym i drugim jednocześnie."
+  },
+  {
+    "id": "api.command_groupmsg.invalid_user.app_error",
+    "translation": {
+      "one": "Nie można znaleźć użytkownika: {{.Users}}",
+      "few": "Nie można znaleźć użytkowników: {{.Users}}",
+      "many": "Nie można znaleźć użytkowników: {{.Users}}",
+      "other": "Nie można znaleźć użytkowników: {{.Users}}"
+    }
+  },
+  {
+    "id": "api.command_invite.user_already_in_channel.app_error",
+    "translation": {
+      "one": "{{.User}} jest już na kanale.",
+      "few": "{{.User}} są już na kanale.",
+      "many": "{{.User}} są już na kanale.",
+      "other": "{{.User}} są już na kanale."
+    }
+  },
+  {
+    "id": "api.context.invalid_body.app_error",
+    "translation": "Nieprawidłowe właściwości postu."
+  },
+  {
+    "id": "api.data_spillage.error.invalid_channel_type",
+    "translation": "Obsługa wycieków danych nie jest dostępna dla kanałów wiadomości bezpośrednich i grupowych."
+  },
+  {
+    "id": "api.data_spillage.exposure.write.app_error",
+    "translation": "Nie udało się zapisać raportu ekspozycji posta."
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.subject",
+    "translation": {
+      "one": "[{{.SiteName}}] Nowe powiadomienie z dnia {{.Day}} {{.Month}} {{.Year}}",
+      "few": "[{{.SiteName}}] Nowe powiadomienia z dnia {{.Day}} {{.Month}} {{.Year}}",
+      "many": "[{{.SiteName}}] Nowe powiadomienia z dnia {{.Day}} {{.Month}} {{.Year}}",
+      "other": "[{{.SiteName}}] Nowe powiadomienia z dnia {{.Day}} {{.Month}} {{.Year}}"
+    }
+  },
+  {
+    "id": "api.license.add_license.wrong_environment_production.app_error",
+    "translation": "To jest licencja produkcyjna, ale ten serwer działa w środowisku testowym lub deweloperskim. Licencje produkcyjne mogą być używane tylko na serwerach produkcyjnych."
+  },
+  {
+    "id": "api.license.add_license.wrong_environment_test.app_error",
+    "translation": "To jest licencja testowa lub deweloperska, ale ten serwer działa w środowisku produkcyjnym. Licencje testowe lub deweloperskie mogą być używane tylko na serwerach testowych lub deweloperskich."
+  },
+  {
+    "id": "api.post.create_post.silent_notification.app_error",
+    "translation": "Tylko posty botów, webhooków, aplikacji OAuth i wtyczek mogą być dostarczane bezgłośnie."
+  },
+  {
+    "id": "api.post.create_post.silent_persistent_notification.app_error",
+    "translation": "Ciche posty nie mogą korzystać z trwałych powiadomień."
+  },
+  {
+    "id": "api.post.get_message_for_notification.files_sent",
+    "translation": {
+      "one": "{{.Count}} plik wysłany: {{.Filenames}}",
+      "few": "Wysłano {{.Count}} pliki: {{.Filenames}}",
+      "many": "Wysłano {{.Count}} plików: {{.Filenames}}",
+      "other": "Wysłano {{.Count}} pliku: {{.Filenames}}"
+    }
+  },
+  {
+    "id": "api.post.get_message_for_notification.images_sent",
+    "translation": {
+      "one": "{{.Count}} obraz wysłany: {{.Filenames}}",
+      "few": "Wysłano {{.Count}} obrazy: {{.Filenames}}",
+      "many": "Wysłano {{.Count}} obrazów: {{.Filenames}}",
+      "other": "Wysłano {{.Count}} obrazu: {{.Filenames}}"
+    }
+  },
+  {
+    "id": "api.scheduled_recap.permission_denied",
+    "translation": "Nie masz uprawnień dostępu do tego zaplanowanego podsumowania."
+  },
+  {
+    "id": "api.team.access_control.added.system_message",
+    "translation": "Zostałeś dodany do zespołu **{{.TeamName}}**, ponieważ spełniasz teraz jego wymagania członkostwa."
+  },
+  {
+    "id": "api.team.access_control.removed.system_message",
+    "translation": "Zostałeś usunięty z zespołu **{{.TeamName}}**, ponieważ nie spełniasz już jego wymagań członkostwa."
+  },
+  {
+    "id": "api.team.invite_members.account_deactivated.app_error",
+    "translation": "Konto powiązane z adresem {{.Addresses}} zostało dezaktywowane. Skontaktuj się z administratorem systemu, aby uzyskać szczegółowe informacje."
+  },
+  {
+    "id": "api.team.invite_members.profiles_disabled.app_error",
+    "translation": "Wstępne ustawianie pól profilu w zaproszeniach wymaga włączenia zablokowanych pól profilu."
+  },
+  {
+    "id": "api.team.invite_members.profiles_graceful.app_error",
+    "translation": "Wstępne ustawianie pól profilu w zaproszeniach wymaga trybu graceful."
+  },
+  {
+    "id": "api.team.invite_members.profiles_license.app_error",
+    "translation": "Wstępne ustawianie pól profilu w zaproszeniach wymaga licencji Enterprise."
+  },
+  {
+    "id": "api.team.invite_members.username_taken.app_error",
+    "translation": "Nazwa użytkownika {{.Username}} jest już zajęta."
+  },
+  {
+    "id": "api.team.update_team_member_roles.guest_and_admin.app_error",
+    "translation": "Nieprawidłowa aktualizacja członka zespołu: użytkownik musi być gościem albo administratorem, ale nie jednym i drugim jednocześnie."
+  },
+  {
+    "id": "api.templates.user_access_token_rotated_body.info",
+    "translation": "Osobisty token dostępu na Twoim koncie na {{ .SiteURL }} został wygenerowany ponownie. Poprzedni sekret tokenu jest już nieważny."
+  },
+  {
+    "id": "api.templates.user_access_token_rotated_body.title",
+    "translation": "Osobisty token dostępu został wygenerowany ponownie"
+  },
+  {
+    "id": "api.templates.user_access_token_rotated_subject",
+    "translation": "[{{ .SiteName }}] Osobisty token dostępu został wygenerowany ponownie"
+  },
+  {
+    "id": "api.user.oauth_to_email.integration_session.app_error",
+    "translation": "Nie można przełączyć się na uwierzytelnianie adresem e-mail w ramach sesji integracji."
+  },
+  {
+    "id": "api.user.patch_user.profile_field_locked.app_error",
+    "translation": "Pole {{.Field}} jest zarządzane przez administratora systemu i nie może zostać zmienione."
+  },
+  {
+    "id": "api.user.rotate_user_access_token.disabled_token.app_error",
+    "translation": "Nie można ponownie wygenerować wyłączonego tokena dostępu."
+  },
+  {
+    "id": "api.user.saml.relay_state_too_long.app_error",
+    "translation": "Stan przekazywania (relay state) SAML jest zbyt długi."
+  },
+  {
+    "id": "api.user.update_user.profile_field_locked.app_error",
+    "translation": "Pole {{.Field}} jest zarządzane przez administratora systemu i nie może zostać zmienione."
+  },
+  {
+    "id": "api.user.upload_profile_user.profile_field_locked.app_error",
+    "translation": "Zdjęcie profilowe jest zarządzane przez administratora systemu i nie może zostać zmienione."
+  },
+  {
+    "id": "app.access_control.plugin.evaluation_unavailable.app_error",
+    "translation": "Nie udało się ocenić kontroli dostępu dla tego zasobu."
+  },
+  {
+    "id": "app.access_control.plugin.invalid_acting_user.app_error",
+    "translation": "Użytkownik wykonujący operację jest nieprawidłowy lub nie istnieje."
+  },
+  {
+    "id": "app.access_control.plugin.invalid_action.app_error",
+    "translation": "Ta akcja nie jest prawidłową akcją kontroli dostępu."
+  },
+  {
+    "id": "app.access_control.plugin.invalid_id.app_error",
+    "translation": "Nieprawidłowy identyfikator przekazany do API kontroli dostępu."
+  },
+  {
+    "id": "app.access_control.plugin.invalid_resource_type.app_error",
+    "translation": "Ten typ zasobu nie jest prawidłowym typem zasobu kontroli dostępu dla wtyczek."
+  },
+  {
+    "id": "app.access_control.plugin.policy_not_found.app_error",
+    "translation": "Nie znaleziono polityki kontroli dostępu."
+  },
+  {
+    "id": "app.access_control.plugin.resource_type_forbidden.app_error",
+    "translation": "Wywołująca wtyczka nie jest właścicielem tego typu zasobu."
+  },
+  {
+    "id": "app.access_control.plugin.type_conflict.app_error",
+    "translation": "Dla tego identyfikatora istnieje już polityka kontroli dostępu innego typu."
+  },
+  {
+    "id": "app.bot.update_bot_active.protected_bot.app_error",
+    "translation": "Nie można wyłączyć bota należącego do systemu."
+  },
+  {
+    "id": "app.channel.create_channel.space_type.app_error",
+    "translation": "Kanałów typu Space nie można tworzyć za pomocą tego punktu końcowego."
+  },
+  {
+    "id": "app.channel.create_channel.spaces_not_enabled.app_error",
+    "translation": "Funkcja Docs nie jest włączona."
+  },
+  {
+    "id": "app.channel.move_channel.space.app_error",
+    "translation": "Kanałów typu Space nie można przenosić za pomocą tego punktu końcowego."
+  },
+  {
+    "id": "app.channel.update_channel_privacy.space.app_error",
+    "translation": "Prywatności kanałów typu Space nie można zmieniać za pomocą tego punktu końcowego."
+  },
+  {
+    "id": "app.data_spillage.exposure.column.email",
+    "translation": "Adres e-mail"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.is_deactivated",
+    "translation": "Dezaktywowany"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.is_guest",
+    "translation": "Gość"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.is_remote",
+    "translation": "Użytkownik zdalny"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.last_activity_at",
+    "translation": "Czas ostatniej aktywności użytkownika (YYYY-MM-DDTHH:MM:SSZ)"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.last_viewed_at",
+    "translation": "Ostatnie wyświetlenie kanału (YYYY-MM-DDTHH:MM:SSZ)"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.user_id",
+    "translation": "ID użytkownika"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.username",
+    "translation": "Nazwa użytkownika"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.was_channel_member",
+    "translation": "Był członkiem kanału"
+  },
+  {
+    "id": "app.data_spillage.exposure.edit_history_post.app_error",
+    "translation": "Nie można wygenerować raportu ekspozycji dla wersji z historii edycji. Użyj identyfikatora bieżącego posta."
+  },
+  {
+    "id": "app.data_spillage.exposure.get_channel_members.app_error",
+    "translation": "Nie udało się pobrać historii członkostwa w kanale dla oznaczonego posta."
+  },
+  {
+    "id": "app.data_spillage.exposure.get_last_activity.app_error",
+    "translation": "Nie udało się pobrać aktywności sesji dla oznaczonego posta."
+  },
+  {
+    "id": "app.data_spillage.exposure.get_possible_viewers.app_error",
+    "translation": "Nie udało się pobrać stanu odczytu kanału dla oznaczonego posta."
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.channel",
+    "translation": "Kanał"
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.generated_at",
+    "translation": "Wygenerowano"
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.post_id",
+    "translation": "ID posta"
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.report_version",
+    "translation": "Wersja raportu"
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.total_users",
+    "translation": "Łączna liczba użytkowników"
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.window_end",
+    "translation": "Oznaczono post"
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.window_start",
+    "translation": "Utworzono post"
+  },
+  {
+    "id": "app.data_spillage.exposure.missing_reporting_time.app_error",
+    "translation": "Oznaczony post nie ma zapisanego czasu zgłoszenia, więc nie można ustalić okna ekspozycji."
+  },
+  {
+    "id": "app.data_spillage.exposure.unsupported_channel_type.app_error",
+    "translation": "Raporty ekspozycji nie są obsługiwane dla wiadomości bezpośrednich i grupowych."
+  },
+  {
+    "id": "app.data_spillage.exposure.value.never_viewed",
+    "translation": "Nd."
+  },
+  {
+    "id": "app.data_spillage.exposure.value.no",
+    "translation": "Nie"
+  },
+  {
+    "id": "app.data_spillage.exposure.value.no_sessions",
+    "translation": "Nie znaleziono sesji"
+  },
+  {
+    "id": "app.data_spillage.exposure.value.unknown",
+    "translation": "Nieznane"
+  },
+  {
+    "id": "app.data_spillage.exposure.value.yes",
+    "translation": "Tak"
+  },
+  {
+    "id": "app.data_spillage.report.detail.file_names",
+    "translation": {
+      "one": "Usunięto {{.Count}} plik z dysku.",
+      "few": "Usunięto {{.Count}} pliki z dysku.",
+      "many": "Usunięto {{.Count}} plików z dysku.",
+      "other": "Usunięto {{.Count}} pliku z dysku."
+    }
+  },
+  {
+    "id": "app.data_spillage.report.detail.revisions_cleared",
+    "translation": {
+      "one": "Wyczyszczono {{.Count}} wersję z {{.Total}}.",
+      "few": "Wyczyszczono {{.Count}} wersje z {{.Total}}.",
+      "many": "Wyczyszczono {{.Count}} wersji z {{.Total}}.",
+      "other": "Wyczyszczono {{.Count}} wersji z {{.Total}}."
+    }
+  },
+  {
+    "id": "app.data_spillage.report.write_exposure_csv.app_error",
+    "translation": "Nie udało się dołączyć raportu ekspozycji do raportu oznaczonego posta."
+  },
+  {
+    "id": "app.export.generate_presigned_url.config.app_error",
+    "translation": "Ta operacja wymaga użycia dedykowanego magazynu eksportu."
+  },
+  {
+    "id": "app.export.generate_presigned_url.direct_download.app_error",
+    "translation": "Bezpośrednie pobieranie eksportów jest dostępne wyłącznie w Mattermost Cloud."
+  },
+  {
+    "id": "app.export.generate_presigned_url.driver.app_error",
+    "translation": "Sterownik Twojego magazynu eksportu nie obsługuje generowania podpisanych adresów URL."
+  },
+  {
+    "id": "app.export.generate_presigned_url.fileexist.app_error",
+    "translation": "Nie można sprawdzić, czy plik istnieje."
+  },
+  {
+    "id": "app.export.generate_presigned_url.link.app_error",
+    "translation": "Nie można wygenerować podpisanego adresu URL."
+  },
+  {
+    "id": "app.export.generate_presigned_url.notfound.app_error",
+    "translation": "Nie znaleziono pliku eksportu."
+  },
+  {
+    "id": "app.notify_expiring_access_tokens.dm",
+    "translation": "Twój osobisty token dostępu \"{{.Description}}\" wygaśnie za {{.Days}} dni lub wcześniej. Otwórz **Profil > Bezpieczeństwo**, aby wygenerować go ponownie, zanim przestanie działać."
+  },
+  {
+    "id": "app.notify_expiring_access_tokens.dm_final",
+    "translation": "Twój osobisty token dostępu \"{{.Description}}\" wygaśnie w ciągu 24 godzin. Otwórz **Profil > Bezpieczeństwo**, aby wygenerować go ponownie, zanim przestanie działać."
+  },
+  {
+    "id": "app.notify_expiring_access_tokens.unnamed_token",
+    "translation": "(brak opisu)"
+  },
+  {
+    "id": "app.pap.masking.ambiguous_sibling.app_error",
+    "translation": "Wiele atrybutów użytkownika odwołuje się do tego samego szablonu, więc nie można jednoznacznie ustalić widoczności atrybutu kanału."
+  },
+  {
+    "id": "app.pap.masking.unknown_object_type.app_error",
+    "translation": "Nie można ustalić widoczności atrybutu dla nieznanego typu obiektu."
+  },
+  {
+    "id": "app.pap.save_policy.parent_resource_attributes_team_assigned",
+    "translation": "Ta reguła dostępu używa atrybutów kanału, których zespoły nie posiadają. Przed zapisaniem usuń zespoły przypisane do tej polityki."
+  },
+  {
+    "id": "app.pap.save_policy.resource_attributes_disabled",
+    "translation": "Reguły dostępu na tym serwerze nie mogą używać atrybutów kanału. Ta funkcja nie jest włączona."
+  },
+  {
+    "id": "app.pap.save_policy.team_resource_attributes",
+    "translation": "Ta reguła dostępu używa atrybutów kanału, których zespoły nie posiadają. Reguły dostępu z atrybutami kanału można stosować wyłącznie do kanałów."
+  },
+  {
+    "id": "app.pap.simulate.channel_required_for_resource",
+    "translation": "Do symulacji polityki odwołującej się do atrybutów kanału wymagane jest wskazanie kanału."
+  },
+  {
+    "id": "app.recap.cooldown_active.app_error",
+    "translation": "Polityka Twojej organizacji wymaga {{.CooldownMinutes}} minut przerwy między podsumowaniami. Możesz utworzyć kolejne podsumowanie za {{.RetryAfterMinutes}} minut."
+  },
+  {
+    "id": "app.recap.cooldown_check_failed.app_error",
+    "translation": "Nie udało się sprawdzić statusu czasu oczekiwania."
+  },
+  {
+    "id": "app.recap.get_daily_count.app_error",
+    "translation": "Nie udało się sprawdzić limitów podsumowań."
+  },
+  {
+    "id": "app.recap.max_channels_exceeded.app_error",
+    "translation": "Polityka Twojej organizacji ogranicza podsumowania do {{.Limit}} kanałów. Zażądano {{.Requested}} kanałów."
+  },
+  {
+    "id": "app.recap.max_recaps_reached.app_error",
+    "translation": "Polityka Twojej organizacji ogranicza liczbę podsumowań do {{.Limit}} dziennie. Spróbuj ponownie jutro."
+  },
+  {
+    "id": "app.recap.sum_daily_posts.app_error",
+    "translation": "Nie udało się sprawdzić wykorzystania postów przez podsumowania."
+  },
+  {
+    "id": "app.scheduled_post.failed_message_detail",
+    "translation": {
+      "one": "- {{.Count}} w kanale {{.ChannelName}}. Powód: {{.ErrorReason}}",
+      "few": "- {{.Count}} w kanale {{.ChannelName}}. Powód: {{.ErrorReason}}",
+      "many": "- {{.Count}} w kanale {{.ChannelName}}. Powód: {{.ErrorReason}}",
+      "other": "- {{.Count}} w kanale {{.ChannelName}}. Powód: {{.ErrorReason}}"
+    }
+  },
+  {
+    "id": "app.scheduled_post.failed_messages",
+    "translation": {
+      "one": "Nie udało się wysłać {{.Count}} zaplanowanego posta.",
+      "few": "Nie udało się wysłać {{.Count}} zaplanowanych postów.",
+      "many": "Nie udało się wysłać {{.Count}} zaplanowanych postów.",
+      "other": "Nie udało się wysłać {{.Count}} zaplanowanego posta."
+    }
+  },
+  {
+    "id": "app.scheduled_post.recurring_disabled.app_error",
+    "translation": "Cykliczne zaplanowane posty są wyłączone na tym serwerze."
+  },
+  {
+    "id": "app.scheduled_recap.compute_next_run.app_error",
+    "translation": "Nie można obliczyć następnego uruchomienia zaplanowanego podsumowania."
+  },
+  {
+    "id": "app.scheduled_recap.create.app_error",
+    "translation": "Nie można utworzyć zaplanowanego podsumowania."
+  },
+  {
+    "id": "app.scheduled_recap.delete.app_error",
+    "translation": "Nie można usunąć zaplanowanego podsumowania."
+  },
+  {
+    "id": "app.scheduled_recap.get.app_error",
+    "translation": "Nie można uzyskać zaplanowanego podsumowania."
+  },
+  {
+    "id": "app.scheduled_recap.get_unreads.app_error",
+    "translation": "Nie można uzyskać nieprzeczytanych kanałów dla zaplanowanego podsumowania."
+  },
+  {
+    "id": "app.scheduled_recap.list.app_error",
+    "translation": "Nie można uzyskać zaplanowanych podsumowań."
+  },
+  {
+    "id": "app.scheduled_recap.max_channels_exceeded.app_error",
+    "translation": "Polityka Twojej organizacji ogranicza podsumowania do {{.Limit}} kanałów. Zażądano {{.Requested}} kanałów."
+  },
+  {
+    "id": "app.scheduled_recap.max_scheduled_reached.app_error",
+    "translation": "Polityka Twojej organizacji ogranicza liczbę zaplanowanych podsumowań do {{.Limit}}. Usuń istniejące zaplanowane podsumowanie przed utworzeniem nowego."
+  },
+  {
+    "id": "app.scheduled_recap.no_channels.app_error",
+    "translation": "Zaplanowane podsumowanie musi obejmować co najmniej jeden kanał."
+  },
+  {
+    "id": "app.scheduled_recap.pause.app_error",
+    "translation": "Nie można wstrzymać zaplanowanego podsumowania."
+  },
+  {
+    "id": "app.scheduled_recap.resume.app_error",
+    "translation": "Nie można wznowić zaplanowanego podsumowania."
+  },
+  {
+    "id": "app.scheduled_recap.save_recap.app_error",
+    "translation": "Nie można zapisać podsumowania dla zaplanowanego podsumowania."
+  },
+  {
+    "id": "app.scheduled_recap.update.app_error",
+    "translation": "Nie można zaktualizować zaplanowanego podsumowania."
+  },
+  {
+    "id": "app.submit_interactive_dialog.file_not_owned",
+    "translation": "Plik {{.FileId}} nie należy do użytkownika przesyłającego formularz."
+  },
+  {
+    "id": "app.submit_interactive_dialog.get_file_info_error",
+    "translation": "Nie można zweryfikować przesłanych identyfikatorów plików."
+  },
+  {
+    "id": "app.submit_interactive_dialog.invalid_file_id",
+    "translation": "Plik {{.FileId}} jest nieprawidłowy lub niedostępny."
+  },
+  {
+    "id": "app.submit_interactive_dialog.too_many_file_ids",
+    "translation": "Przesłano zbyt wiele identyfikatorów plików. Maksymalna dozwolona liczba to {{.Max}}."
+  },
+  {
+    "id": "app.submit_interactive_dialog.too_many_submission_ids",
+    "translation": "Zbyt wiele wartości w formacie identyfikatora w przesłanych danych. Maksymalna dozwolona liczba to {{.Max}}."
+  },
+  {
+    "id": "app.user_access_token.count_non_compliant.app_error",
+    "translation": "Nie można policzyć osobistych tokenów dostępu naruszających politykę maksymalnego okresu ważności."
+  },
+  {
+    "id": "app.user_access_token.expired_deleted_notification",
+    "translation": "Twój osobisty token dostępu \"{{.Description}}\" wygasł i został usunięty. Otwórz **Profil → Bezpieczeństwo**, aby utworzyć nowy token."
+  },
+  {
+    "id": "app.user_access_token.get_expiring.app_error",
+    "translation": "Nie można pobrać wygasających osobistych tokenów dostępu."
+  },
+  {
+    "id": "app.user_access_token.revoke_non_compliant.no_policy.app_error",
+    "translation": "Nie skonfigurowano maksymalnego okresu ważności osobistych tokenów dostępu, więc nie ma niezgodnych tokenów do unieważnienia."
+  },
+  {
+    "id": "app.user_access_token.revoke_non_compliant.partial.app_error",
+    "translation": "Osiągnięto limit partii, zanim udało się unieważnić wszystkie niezgodne tokeny. Uruchom operację ponownie, aby kontynuować."
+  },
+  {
+    "id": "app.user_access_token.rotate.app_error",
+    "translation": "Nie można ponownie wygenerować tokenu dostępu."
+  },
+  {
+    "id": "model.access_policy.is_valid.plugin_type.app_error",
+    "translation": "Nieprawidłowa polityka kontroli dostępu: typ nie jest prawidłowym typem zasobu wtyczki."
+  },
+  {
+    "id": "model.channel_join_request.is_valid.create_at.app_error",
+    "translation": "Utworzono dnia musi zawierać prawidłowy czas."
+  },
+  {
+    "id": "model.channel_join_request.is_valid.denial_reason.app_error",
+    "translation": "Powód odmowy jest za długi."
+  },
+  {
+    "id": "model.channel_join_request.is_valid.denial_reason_status.app_error",
+    "translation": "Powód odmowy można ustawić tylko dla odrzuconej prośby o dołączenie."
+  },
+  {
+    "id": "model.channel_join_request.is_valid.id.app_error",
+    "translation": "Nieprawidłowy identyfikator."
+  },
+  {
+    "id": "model.channel_join_request.is_valid.message.app_error",
+    "translation": "Wiadomość w prośbie o dołączenie jest za długa."
+  },
+  {
+    "id": "model.channel_join_request.is_valid.reviewed_by.app_error",
+    "translation": "Nieprawidłowy identyfikator recenzenta."
+  },
+  {
+    "id": "model.channel_join_request.is_valid.reviewer.app_error",
+    "translation": "Zatwierdzona lub odrzucona prośba o dołączenie musi mieć zapisanego recenzenta i czas weryfikacji."
+  },
+  {
+    "id": "model.channel_join_request.is_valid.status.app_error",
+    "translation": "Nieprawidłowy status prośby o dołączenie."
+  },
+  {
+    "id": "model.channel_join_request.is_valid.update_at.app_error",
+    "translation": "Zaktualizowano dnia musi być prawidłowym czasem."
+  },
+  {
+    "id": "model.channel_join_request.is_valid.user_id.app_error",
+    "translation": "Nieprawidłowy identyfikator użytkownika."
+  },
+  {
+    "id": "model.cluster.is_valid.site_url.app_error",
+    "translation": "SiteURL musi być ustawiony."
+  },
+  {
+    "id": "model.command_response.is_valid.attachment.app_error",
+    "translation": "Nieprawidłowy załącznik."
+  },
+  {
+    "id": "model.command_response.is_valid.goto_location.app_error",
+    "translation": "Nieprawidłowa lokalizacja goto."
+  },
+  {
+    "id": "model.command_response.is_valid.icon_url.app_error",
+    "translation": "Nieprawidłowy adres URL ikony."
+  },
+  {
+    "id": "model.command_response.is_valid.response_type.app_error",
+    "translation": "Nieprawidłowy typ odpowiedzi."
+  },
+  {
+    "id": "model.config.is_valid.access_control_attribute_refresh_interval.app_error",
+    "translation": "Nieprawidłowy interwał odświeżania atrybutów kontroli dostępu. Musi być większy lub równy 0."
+  },
+  {
+    "id": "model.config.is_valid.access_control_sync_interval.app_error",
+    "translation": "Nieprawidłowy interwał zadania synchronizacji kontroli dostępu. Musi wynosić co najmniej 60 sekund."
+  },
+  {
+    "id": "model.config.is_valid.ai_recap.cooldown_minutes.app_error",
+    "translation": "Nieprawidłowa liczba minut odstępu dla podsumowań AI. Musi być większa lub równa 0."
+  },
+  {
+    "id": "model.config.is_valid.ai_recap.max_channels_per_recap.app_error",
+    "translation": "Nieprawidłowa maksymalna liczba kanałów na podsumowanie AI. Musi być większa lub równa 1 albo -1 dla braku limitu."
+  },
+  {
+    "id": "model.config.is_valid.ai_recap.max_posts_per_day.app_error",
+    "translation": "Nieprawidłowa maksymalna dzienna liczba postów dla podsumowań AI. Musi być większa lub równa 1 albo -1 dla braku limitu."
+  },
+  {
+    "id": "model.config.is_valid.ai_recap.max_posts_per_recap.app_error",
+    "translation": "Nieprawidłowa maksymalna liczba postów na podsumowanie AI. Musi być większa lub równa 1 albo -1 dla braku limitu."
+  },
+  {
+    "id": "model.config.is_valid.ai_recap.max_recaps_per_day.app_error",
+    "translation": "Nieprawidłowa maksymalna dzienna liczba podsumowań AI. Musi być większa lub równa 1 albo -1 dla braku limitu."
+  },
+  {
+    "id": "model.config.is_valid.ai_recap.max_scheduled_recaps.app_error",
+    "translation": "Nieprawidłowa maksymalna liczba zaplanowanych podsumowań AI. Musi być większa lub równa 1 albo -1 dla braku limitu."
+  },
+  {
+    "id": "model.config.is_valid.ai_recap.max_tokens_per_recap.app_error",
+    "translation": "Nieprawidłowa maksymalna liczba tokenów na podsumowanie AI. Musi być większa lub równa 1 albo -1 dla braku limitu."
+  },
+  {
+    "id": "model.config.is_valid.atmos_camo_image_proxy_removed.app_error",
+    "translation": "Typ proxy obrazów 'atmos/camo' został usunięty w Mattermost v12.0. Ustaw ImageProxySettings.ImageProxyType na 'local' albo ustaw ImageProxySettings.Enable na false, aby wyłączyć proxy obrazów."
+  },
+  {
+    "id": "model.config.is_valid.azure_auth_mode.app_error",
+    "translation": "Nieprawidłowy tryb uwierzytelniania Azure {{.Value}}. Musi być 'shared_key' lub 'default_credential'."
+  },
+  {
+    "id": "model.config.is_valid.azure_cloud.app_error",
+    "translation": "Nieprawidłowa wartość {{.Value}} dla {{.Setting}}. Musi być 'commercial', 'government' lub 'custom'."
+  },
+  {
+    "id": "model.config.is_valid.azure_custom_endpoint.app_error",
+    "translation": "{{.Setting}} musi być ustawione, gdy odpowiadająca mu wartość AzureCloud to 'custom'."
+  },
+  {
+    "id": "model.config.is_valid.azure_storage_account.app_error",
+    "translation": "Nieprawidłowa wartość {{.Value}} dla {{.Setting}}. Nazwa konta magazynu Azure musi mieć od 3 do 24 znaków i zawierać tylko małe litery i cyfry."
+  },
+  {
+    "id": "model.config.is_valid.azure_timeout.app_error",
+    "translation": "Nieprawidłowa wartość limitu czasu {{.Value}}. Powinna być liczbą dodatnią."
+  },
+  {
+    "id": "model.config.is_valid.directory_traversal.app_error",
+    "translation": "Sekwencje przechodzenia ścieżki (\"..\") nie są dozwolone w {{.Setting}}. Znaleziono \"{{.Value}}\"."
+  },
+  {
+    "id": "model.config.is_valid.export_azure_auth_mode.app_error",
+    "translation": "Nieprawidłowy tryb uwierzytelniania Azure {{.Value}} dla dedykowanego magazynu eksportu. Musi być 'shared_key' lub 'default_credential'."
+  },
+  {
+    "id": "model.config.is_valid.export_azure_timeout.app_error",
+    "translation": "Nieprawidłowa wartość limitu czasu {{.Value}}. Powinna być liczbą dodatnią."
+  },
+  {
+    "id": "model.config.is_valid.extract_content_timeout.app_error",
+    "translation": "Nieprawidłowy limit czasu wyodrębniania zawartości dla ustawień plików. Musi być liczbą całkowitą sekund większą lub równą zero."
+  },
+  {
+    "id": "model.config.is_valid.feature_flags.apps_enabled.app_error",
+    "translation": "Flaga funkcji AppsEnabled nie jest już obsługiwana i musi zostać wyłączona."
+  },
+  {
+    "id": "model.config.is_valid.feature_flags.move_threads_enabled.app_error",
+    "translation": "Flaga funkcji MoveThreadsEnabled nie jest już obsługiwana i musi zostać wyłączona."
+  },
+  {
+    "id": "model.config.is_valid.lock_profile_fields.app_error",
+    "translation": "Nieprawidłowe ustawienie blokady pól profilu. Musi być 'none', 'name_and_username' lub 'all'."
+  },
+  {
+    "id": "model.config.is_valid.max_personal_access_token_lifetime_days.app_error",
+    "translation": "Nieprawidłowa wartość MaximumPersonalAccessTokenLifetimeDays. Musi być pomiędzy 0 (bez limitu) a {{.Max}} dni."
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.custom_header_incomplete.app_error",
+    "translation": "Ustawienia eksportu wiadomości GlobalRelaySettings.CustomHeaderName i CustomHeaderValue muszą być oba wypełnione albo oba pozostawione puste."
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.custom_header_name.app_error",
+    "translation": "Ustawienie eksportu wiadomości GlobalRelaySettings.CustomHeaderName musi być prawidłową nazwą nagłówka, bez spacji, dwukropków, separatorów ani znaków końca wiersza."
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.custom_header_reserved.app_error",
+    "translation": "Ustawienie eksportu wiadomości GlobalRelaySettings.CustomHeaderName nie może powielać nagłówka, który eksport Global Relay już zapisuje."
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.custom_header_value.app_error",
+    "translation": "Ustawienie eksportu wiadomości GlobalRelaySettings.CustomHeaderValue nie może zawierać znaków sterujących ani znaków końca wiersza."
+  },
+  {
+    "id": "model.config.is_valid.mobile_ephemeral_mode.auto_cache_cleanup.app_error",
+    "translation": "Nieprawidłowa wartość automatycznego czyszczenia pamięci podręcznej. Musi być pomiędzy {{.Min}} a {{.Max}} dni."
+  },
+  {
+    "id": "model.config.is_valid.mobile_ephemeral_mode.disconnection_timeout.app_error",
+    "translation": "Nieprawidłowa wartość limitu czasu rozłączenia. Musi być pomiędzy {{.Min}} a {{.Max}} sekund."
+  },
+  {
+    "id": "model.config.is_valid.mobile_ephemeral_mode.offline_persistence.app_error",
+    "translation": "Nieprawidłowa wartość licznika trwałości Offline. Musi być pomiędzy {{.Min}} a {{.Max}} godzin."
+  },
+  {
+    "id": "model.cpa_field.name.invalid_charset.app_error",
+    "translation": "Nieprawidłowa nazwa pola CPA '{{.Name}}': musi pasować do ^[A-Za-z_][A-Za-z0-9_]*$ (reguła identyfikatora CEL)."
+  },
+  {
+    "id": "model.cpa_field.name.reserved_word.app_error",
+    "translation": "Nieprawidłowa nazwa pola CPA '{{.Name}}': jest to słowo zastrzeżone CEL i nie może być używane jako identyfikator pola."
+  },
+  {
+    "id": "model.log_filter.is_valid.date_from.app_error",
+    "translation": "Nieprawidłowy filtr date_from. Oczekiwano formatu \"{{.Layout}}\"."
+  },
+  {
+    "id": "model.log_filter.is_valid.date_to.app_error",
+    "translation": "Nieprawidłowy filtr date_to. Oczekiwano formatu \"{{.Layout}}\"."
+  },
+  {
+    "id": "model.member.is_valid.profile_email.app_error",
+    "translation": "Adres e-mail profilu nie znajduje się na liście zapraszanych adresów e-mail"
+  },
+  {
+    "id": "model.member.is_valid.profile_email_duplicate.app_error",
+    "translation": "Profile zaproszeń muszą mieć unikalne adresy e-mail"
+  },
+  {
+    "id": "model.member.is_valid.profile_first_name.app_error",
+    "translation": "Nieprawidłowe imię w profilu zaproszenia"
+  },
+  {
+    "id": "model.member.is_valid.profile_last_name.app_error",
+    "translation": "Nieprawidłowe nazwisko w profilu zaproszenia"
+  },
+  {
+    "id": "model.member.is_valid.profile_nil.app_error",
+    "translation": "Profil zaproszenia nie może mieć wartości null"
+  },
+  {
+    "id": "model.member.is_valid.profile_username.app_error",
+    "translation": "Nieprawidłowa nazwa użytkownika w profilu zaproszenia"
+  },
+  {
+    "id": "model.member.is_valid.profile_username_duplicate.app_error",
+    "translation": "Profile zaproszeń muszą mieć unikalne nazwy użytkowników"
+  },
+  {
+    "id": "model.scheduled_post.is_valid.repeat_files.app_error",
+    "translation": "Cykliczne zaplanowane posty nie mogą zawierać załączników."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.repeat_timezone.app_error",
+    "translation": "Cotygodniowe zaplanowane posty wymagają prawidłowej strefy czasowej."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.repeat_timezone_invalid.app_error",
+    "translation": "Nieprawidłowa strefa czasowa dla cyklicznego zaplanowanego posta."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.repeat_type.app_error",
+    "translation": "Nieprawidłowy typ powtarzania dla zaplanowanego posta."
+  },
+  {
+    "id": "model.scheduled_recap.compute_next_run.days_of_week.app_error",
+    "translation": "Nieprawidłowe dni tygodnia zaplanowanego podsumowania."
+  },
+  {
+    "id": "model.scheduled_recap.compute_next_run.no_valid_day.app_error",
+    "translation": "Nie znaleziono prawidłowego dnia dla zaplanowanego podsumowania."
+  },
+  {
+    "id": "model.scheduled_recap.compute_next_run.time_format.app_error",
+    "translation": "Nieprawidłowy format czasu zaplanowanego podsumowania."
+  },
+  {
+    "id": "model.scheduled_recap.compute_next_run.timezone.app_error",
+    "translation": "Nieprawidłowa strefa czasowa zaplanowanego podsumowania."
+  },
+  {
+    "id": "model.scheduled_recap.is_valid.agent_id.app_error",
+    "translation": "Zaplanowane podsumowanie musi mieć identyfikator agenta."
+  },
+  {
+    "id": "model.scheduled_recap.is_valid.channel_id.app_error",
+    "translation": "Nieprawidłowy identyfikator kanału zaplanowanego podsumowania."
+  },
+  {
+    "id": "model.scheduled_recap.is_valid.channel_ids_empty.app_error",
+    "translation": "Zaplanowane podsumowanie musi obejmować co najmniej jeden kanał, gdy używane są określone kanały."
+  },
+  {
+    "id": "model.scheduled_recap.is_valid.channel_mode.app_error",
+    "translation": "Nieprawidłowy tryb kanałów zaplanowanego podsumowania."
+  },
+  {
+    "id": "model.scheduled_recap.is_valid.custom_instructions_length.app_error",
+    "translation": "Niestandardowe instrukcje zaplanowanego podsumowania przekraczają maksymalną długość."
+  },
+  {
+    "id": "model.scheduled_recap.is_valid.days_of_week.app_error",
+    "translation": "Nieprawidłowe dni tygodnia zaplanowanego podsumowania."
+  },
+  {
+    "id": "model.scheduled_recap.is_valid.id.app_error",
+    "translation": "Zaplanowane podsumowanie musi mieć identyfikator."
+  },
+  {
+    "id": "model.scheduled_recap.is_valid.time_of_day.app_error",
+    "translation": "Nieprawidłowa pora dnia zaplanowanego podsumowania."
+  },
+  {
+    "id": "model.scheduled_recap.is_valid.time_period.app_error",
+    "translation": "Nieprawidłowy okres zaplanowanego podsumowania."
+  },
+  {
+    "id": "model.scheduled_recap.is_valid.timezone.app_error",
+    "translation": "Nieprawidłowa strefa czasowa zaplanowanego podsumowania."
+  },
+  {
+    "id": "model.scheduled_recap.is_valid.title_empty.app_error",
+    "translation": "Tytuł zaplanowanego podsumowania nie może być pusty."
+  },
+  {
+    "id": "model.scheduled_recap.is_valid.title_length.app_error",
+    "translation": "Tytuł zaplanowanego podsumowania przekracza maksymalną długość."
+  },
+  {
+    "id": "model.scheduled_recap.is_valid.user_id.app_error",
+    "translation": "Zaplanowane podsumowanie musi mieć identyfikator użytkownika."
+  },
+  {
+    "id": "model.user_access_token.is_valid.expires_at.app_error",
+    "translation": "Nieprawidłowa wartość expires_at, musi być równa zero lub być dodatnim uniksowym znacznikiem czasu w milisekundach."
+  },
+  {
+    "id": "model.view.is_valid.props.kanban_column_id.app_error",
+    "translation": "Kolumna Kanban ma nieprawidłowy lub brakujący identyfikator."
+  },
+  {
+    "id": "model.view.is_valid.props.kanban_column_name.app_error",
+    "translation": "Nazwa kolumny Kanban nie może być pusta."
+  },
+  {
+    "id": "model.view.is_valid.props.kanban_column_options.app_error",
+    "translation": "Kolumna Kanban musi mieć co najmniej jeden identyfikator opcji."
+  },
+  {
+    "id": "model.view.is_valid.props.kanban_columns_empty.app_error",
+    "translation": "Widok Kanban musi mieć co najmniej jedną kolumnę."
+  },
+  {
+    "id": "model.view.is_valid.props.kanban_columns_max.app_error",
+    "translation": "Widok Kanban przekracza maksymalną liczbę kolumn."
+  },
+  {
+    "id": "model.view.is_valid.props.kanban_field_id.app_error",
+    "translation": "Widok Kanban musi odwoływać się do prawidłowego identyfikatora pola właściwości."
+  },
+  {
+    "id": "model.view.is_valid.props.kanban_invalid.app_error",
+    "translation": "Widok Kanban ma nieprawidłową strukturę właściwości (props)."
+  },
+  {
+    "id": "model.view.is_valid.props.kanban_required.app_error",
+    "translation": "Widok Kanban wymaga właściwości (props) z konfiguracją group_by."
+  },
+  {
+    "id": "plugin.api.update_post.mm_blocks_actions.app_error",
+    "translation": "Nieprawidłowe mm_blocks_actions w aktualizacji posta przez wtyczkę."
+  },
+  {
+    "id": "plugin_api.channel.space_notify_props.app_error",
+    "translation": "Właściwości powiadomień (notify props) nie mogą być ustawiane na kanałach typu space."
+  },
+  {
+    "id": "shared_channel.system_message.no_longer_shared",
+    "translation": "Ten kanał nie jest już udostępniany {{.WorkspaceName}}."
+  },
+  {
+    "id": "shared_channel.system_message.now_shared",
+    "translation": "Ten kanał jest teraz udostępniany {{.WorkspaceName}}."
   }
 ]
