@@ -1442,11 +1442,17 @@ func addGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	seen := make(map[string]bool, len(newMembers.UserIds))
 	for _, userID := range newMembers.UserIds {
 		if !model.IsValidId(userID) {
 			c.SetInvalidParamWithDetails("user_id", fmt.Sprintf("UserID %s is invalid", userID))
 			return
 		}
+		if seen[userID] {
+			c.SetInvalidParamWithDetails("user_id", fmt.Sprintf("UserID %s is duplicated", userID))
+			return
+		}
+		seen[userID] = true
 	}
 
 	auditRec := c.MakeAuditRecord(model.AuditEventAddGroupMembers, model.AuditStatusFail)
