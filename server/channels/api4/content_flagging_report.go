@@ -85,8 +85,9 @@ func generateFlaggedPostReport(c *Context, w http.ResponseWriter, r *http.Reques
 		}
 	}()
 
-	model.AddEventParameterToAuditRec(auditRec, "attachments_omitted", omittedAttachments > 0)
-	model.AddEventParameterToAuditRec(auditRec, "omitted_attachment_count", omittedAttachments)
+	if omittedAttachments > 0 {
+		model.AddEventParameterToAuditRec(auditRec, "omitted_attachment_count", omittedAttachments)
+	}
 
 	f, err := os.Open(reportPath)
 	if err != nil {

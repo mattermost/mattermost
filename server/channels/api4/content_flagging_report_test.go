@@ -11,6 +11,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/goccy/go-yaml"
@@ -558,17 +559,29 @@ func TestGenerateFlaggedPostReportAttachmentsOmittedAudit(t *testing.T) {
 	appErr := setBasicCommonReviewerConfig(th)
 	require.Nil(t, appErr)
 
-	post, _ := uploadFileAndCreatePost(t, th, client)
-	flagPostViaAPI(t, client, post.Id)
+	omittedPost, _ := uploadFileAndCreatePost(t, th, client)
+	flagPostViaAPI(t, client, omittedPost.Id)
 
-	mockACS := &mocks.AccessControlServiceInterface{}
+	completePost, _ := uploadFileAndCreatePost(t, th, client)
+	flagPostViaAPI(t, client, completePost.Id)
+
 	original := th.App.Srv().Channels().AccessControl
-	th.App.Srv().Channels().AccessControl = mockACS
 	defer func() { th.App.Srv().Channels().AccessControl = original }()
-	mockACS.On("AccessEvaluation", mock.Anything, mock.Anything).
-		Return(model.AccessDecision{Decision: false}, (*model.AppError)(nil))
 
-	_, resp, err := client.GenerateFlaggedPostReport(context.Background(), post.Id, &model.FlagContentActionRequest{})
+	setDownloadDecision := func(allowed bool) {
+		mockACS := &mocks.AccessControlServiceInterface{}
+		mockACS.On("AccessEvaluation", mock.Anything, mock.Anything).
+			Return(model.AccessDecision{Decision: allowed}, (*model.AppError)(nil))
+		th.App.Srv().Channels().AccessControl = mockACS
+	}
+
+	setDownloadDecision(false)
+	_, resp, err := client.GenerateFlaggedPostReport(context.Background(), omittedPost.Id, &model.FlagContentActionRequest{})
+	require.NoError(t, err)
+	require.Equal(t, http.StatusOK, resp.StatusCode)
+
+	setDownloadDecision(true)
+	_, resp, err = client.GenerateFlaggedPostReport(context.Background(), completePost.Id, &model.FlagContentActionRequest{})
 	require.NoError(t, err)
 	require.Equal(t, http.StatusOK, resp.StatusCode)
 
@@ -579,11 +592,27 @@ func TestGenerateFlaggedPostReportAttachmentsOmittedAudit(t *testing.T) {
 	require.NoError(t, err)
 	require.NotEmpty(t, data)
 
-	entry := FindAuditEntry(string(data), "generateFlaggedPostReport", th.BasicUser.Id)
-	require.NotNil(t, entry, "should find a generateFlaggedPostReport audit entry")
-	require.Equal(t, "success", entry.Status)
-	require.Equal(t, true, entry.Parameters["attachments_omitted"])
-	require.EqualValues(t, 1, entry.Parameters["omitted_attachment_count"])
+	omittedEntry := FindAuditEntry(auditLinesForPost(string(data), omittedPost.Id), "generateFlaggedPostReport", th.BasicUser.Id)
+	require.NotNil(t, omittedEntry, "should find a generateFlaggedPostReport audit entry for the trimmed report")
+	require.Equal(t, "success", omittedEntry.Status)
+	require.EqualValues(t, 1, omittedEntry.Parameters["omitted_attachment_count"])
+
+	completeEntry := FindAuditEntry(auditLinesForPost(string(data), completePost.Id), "generateFlaggedPostReport", th.BasicUser.Id)
+	require.NotNil(t, completeEntry, "should find a generateFlaggedPostReport audit entry for the complete report")
+	require.Equal(t, "success", completeEntry.Status)
+	require.NotContains(t, completeEntry.Parameters, "omitted_attachment_count", "a complete report has no omission to record")
+}
+
+// auditLinesForPost narrows the audit log to the entries mentioning postID, so that
+// FindAuditEntry - which returns the first match - can be pointed at a single request.
+func auditLinesForPost(data, postID string) string {
+	var lines []string
+	for line := range strings.SplitSeq(data, "\n") {
+		if strings.Contains(line, postID) {
+			lines = append(lines, line)
+		}
+	}
+	return strings.Join(lines, "\n")
 }
 
 func TestGenerateFlaggedPostReportEvaluatesSessionAttributes(t *testing.T) {
