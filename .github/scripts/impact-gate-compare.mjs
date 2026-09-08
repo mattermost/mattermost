@@ -201,11 +201,32 @@ export function compareSuite({plan, evidence, detail, orchestration}, {config, i
         if (!last || !terminal[unit.state].has(last.status) || last.reported_at !== unit.outcome_set_at || (valid.length > 1 && valid.at(-2).reported_at === last.reported_at)) {reasons.push(`Ambiguous/missing terminal attempt: ${path}`); continue;}
         if (!Array.isArray(last.test_cases) || (last.status !== 'skipped' && last.test_cases.length === 0)) {reasons.push(`Missing terminal test cases: ${path}`); continue;}
         requireThat(last.test_cases.every((test) => validTestIdentity(test, unit.spec_path)), 'Test file/title/project/status mismatch');
-        const failed = last.test_cases.filter((test) => failures.has(test.status));
+        let terminalTests = last.test_cases;
+        if (suite.framework === 'playwright') {
+            // The pinned producer emits every in-process retry as a separate
+            // row. Normalize within this lease/spec and validated project only;
+            // raw rows above remain available for report-member consistency.
+            const byTitle = new Map();
+            for (const test of last.test_cases) {
+                if (!byTitle.has(test.full_title)) byTitle.set(test.full_title, []);
+                byTitle.get(test.full_title).push(test);
+            }
+            const retries = [...byTitle.values()].map((rows) => rows.sort((left, right) => left.retry_count - right.retry_count));
+            if (retries.some((rows) => rows.some((test, index) => !Number.isInteger(test.retry_count) || test.retry_count !== index || test.title !== rows[0].title))) {
+                reasons.push(`Ambiguous or incomplete Playwright retry evidence: ${path}`);
+                continue;
+            }
+            if (retries.some((rows) => rows.at(-1).status === 'skipped' && rows.some((test) => failures.has(test.status)))) {
+                reasons.push(`Unresolved failure before skipped Playwright retry: ${path}`);
+                continue;
+            }
+            terminalTests = retries.map((rows) => rows.at(-1));
+        }
+        const failed = terminalTests.filter((test) => failures.has(test.status));
         if (unit.state === 'completed_fail' && !failed.length) {reasons.push(`Final failed spec lacks test-level failure evidence: ${path}`); continue;}
         if (unit.state !== 'completed_fail' && failed.length) {reasons.push(`Terminal unit/test outcomes disagree: ${path}`); continue;}
         if (failed.length) finalFailures.push({file: path, included: selection.has(path), tests: failed.map((test) => ({full_title: test.full_title, status: test.status})), attempt_id: last.id, causal_regression: 'unknown'});
-        else if (unit.state === 'completed_pass' && (valid.some((attempt) => attempt.status === 'failed') || last.test_cases.some((test) => test.status === 'flaky'))) retrySurvivors.push({file: path, included: selection.has(path), counted_as_final_failure: false});
+        else if (unit.state === 'completed_pass' && (last.status === 'flaky' || valid.some((attempt) => attempt.status === 'failed') || terminalTests.some((test) => test.status === 'flaky'))) retrySurvivors.push({file: path, included: selection.has(path), counted_as_final_failure: false});
     }
     // Independent report failures cannot disappear from the dispatch evidence.
     // Members expose titles, not reliable file identities: demand one matching

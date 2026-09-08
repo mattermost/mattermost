@@ -24,7 +24,7 @@ function fixture(framework = 'cypress', variant = 'enterprise') {
     const common = {id: `${framework === 'cypress' ? '1' : '2'}1234567-1234-1234-1234-123456789abc`, repository: identity.repository, commit_sha: identity.tested_sha, gh_run_id: identity.run_id, gh_run_attempt: identity.run_attempt, name: suite.id, framework, status: 'completed'};
     const evidence = {complete: true, truncated: false, cluster_count: 1, failure_count: 2, group: {...common, total_reports_expected: count, reports_registered: count, reports_complete: count, environment_metadata: {server: 'onprem', server_edition: variant, playwright_project: suite.project, test_type: 'full'}}, clusters: [{member_count: 2, members: [{stable_key: 'reused-key', full_title: 'Failed behavior', status: 'failed'}, {stable_key: 'other-key', full_title: 'Retry survivor', status: 'flaky'}], representative: {file: 'another-spec.js', full_title: 'Another cluster representative'}}]};
     const detail = {...common, commit: identity.tested_sha, total_reports_expected: count, reports: jobs.jobs.slice(0, count).map((job) => ({id: `report-${job.id}`, status: 'complete', gh_job_id: String(job.id), gh_job_name: job.name}))};
-    const units = paths.map((path, i) => ({spec_path: path, state: ['completed_fail', 'completed_pass', 'completed_skipped'][i], current_lease: null, outcome_set_at: '2026-09-08T00:00:01Z', attempts: [{id: `attempt-${i}`, spec_path: path, gh_job_id: String(jobs.jobs[i].id), gh_job_name: jobs.jobs[i].name, reported_at: '2026-09-08T00:00:01Z', expired: false, late_report: false, status: ['failed', 'flaky', 'skipped'][i], test_cases: [{full_title: ['Failed behavior', 'Retry survivor', 'Skipped behavior'][i], status: ['failed', 'flaky', 'skipped'][i]}]}]}));
+    const units = paths.map((path, i) => ({spec_path: path, state: ['completed_fail', 'completed_pass', 'completed_skipped'][i], current_lease: null, outcome_set_at: '2026-09-08T00:00:01Z', attempts: [{id: `attempt-${i}`, spec_path: path, gh_job_id: String(jobs.jobs[i].id), gh_job_name: jobs.jobs[i].name, reported_at: '2026-09-08T00:00:01Z', expired: false, late_report: false, status: ['failed', 'flaky', 'skipped'][i], test_cases: [{full_title: ['Failed behavior', 'Retry survivor', 'Skipped behavior'][i], status: ['failed', 'flaky', 'skipped'][i], retry_count: 0}]}]}));
     const orchestration = {...common, total_units: units.length, counts: {pending: 0, leased: 0, abandoned: 0, retest_eligible: 0, completed_fail: 1, completed_pass: 1, completed_skipped: 1}, units};
     return {input: {plan, evidence, detail, orchestration}, shared: {config, identity, jobs, context}};
 }
@@ -156,6 +156,100 @@ describe('advisory comparison provenance and worker completeness', () => {
         f.input.evidence.complete = false;
         const markdown = summaryMarkdown({suites: [compare(f), compare(fixture('playwright'))]});
         assert.ok(markdown.indexOf('| playwright-full-enterprise') < markdown.indexOf('cypress-full-enterprise:'));
+    });
+});
+
+describe('Playwright in-process retry evidence', () => {
+    function withRetries(rows, status = 'flaky', framework = 'playwright') {
+        const f = fixture(framework);
+        const unit = f.input.orchestration.units[0];
+        unit.state = status === 'failed' ? 'completed_fail' : status === 'skipped' ? 'completed_skipped' : 'completed_pass';
+        unit.attempts[0].status = status;
+        unit.attempts[0].test_cases = rows.map((row) => ({full_title: 'Failed behavior', ...row}));
+        f.input.orchestration.counts.completed_fail = status === 'failed' ? 1 : 0;
+        f.input.orchestration.counts.completed_pass = status === 'failed' || status === 'skipped' ? 1 : 2;
+        f.input.orchestration.counts.completed_skipped = status === 'skipped' ? 2 : 1;
+        return f;
+    }
+
+    it('uses the final retry result while retaining earlier failed rows for report membership', () => {
+        const f = withRetries([{status: 'failed', retry_count: 0}, {status: 'passed', retry_count: 1}]);
+        const raw = structuredClone(f.input.orchestration.units[0].attempts[0].test_cases);
+        const result = compare(f);
+        assert.equal(result.status, 'complete');
+        assert.equal(result.observed_failure_selection_recall.total, 0);
+        assert.equal(result.observed_failure_selection_recall.rate, null);
+        assert.equal(result.retry_survivors_excluded.length, 2);
+        assert.deepEqual(f.input.orchestration.units[0].attempts[0].test_cases, raw, 'Raw attempt history must remain intact');
+    });
+
+    for (const first of ['failed', 'passed']) it(`retains a final failed retry after an earlier ${first} result`, () => {
+        const result = compare(withRetries([{status: first, retry_count: 0}, {status: 'failed', retry_count: 1}], 'failed'));
+        assert.equal(result.status, 'complete');
+        assert.equal(result.observed_failure_selection_recall.total, 1);
+        assert.deepEqual(result.final_failures_observed[0].tests, [{full_title: 'Failed behavior', status: 'failed'}]);
+    });
+
+    it('keeps a final failed retry unavailable when the producer aggregates an earlier pass as flaky', () => {
+        const result = compare(withRetries([{status: 'passed', retry_count: 0}, {status: 'failed', retry_count: 1}]));
+        assert.equal(result.status, 'unavailable');
+        assert.equal(result.observed_failure_selection_recall.total, null);
+        assert.match(result.unavailable_reasons.join('; '), /outcomes disagree/);
+    });
+
+    for (const failure of ['failed', 'timedOut', 'interrupted']) for (const aggregate of ['flaky', 'skipped']) {
+        it(`${failure} remains unresolved when a skipped retry is aggregated as ${aggregate}`, () => {
+            const result = compare(withRetries([{status: failure, retry_count: 0}, {status: 'skipped', retry_count: 1}], aggregate));
+            assert.equal(result.status, 'unavailable');
+            assert.equal(result.observed_failure_selection_recall.total, null);
+            assert.match(result.unavailable_reasons.join('; '), /skipped.*retry/i);
+        });
+    }
+
+    for (const [name, counters] of [
+        ['missing', [0, undefined]], ['duplicate', [0, 0]], ['gapped', [0, 2]],
+        ['noninteger', [0, 1.5]], ['string', [0, '1']], ['no initial result', [1]],
+    ]) it(`keeps ${name} retry counters unavailable`, () => {
+        const result = compare(withRetries(counters.map((retry_count, index) => ({retry_count, status: index === counters.length - 1 ? 'passed' : 'failed'}))));
+        assert.equal(result.status, 'unavailable');
+        assert.equal(result.observed_failure_selection_recall.total, null);
+        assert.match(result.unavailable_reasons.join('; '), /retry.*evidence/i);
+    });
+
+    it('does not allow a pass for a different full title to clear a failed test', () => {
+        const result = compare(withRetries([{status: 'failed', retry_count: 0}, {full_title: 'Different test', status: 'passed', retry_count: 0}]));
+        assert.equal(result.status, 'unavailable');
+        assert.match(result.unavailable_reasons.join('; '), /outcomes disagree/);
+    });
+
+    it('rejects conflicting short titles within the same full-title retry group', () => {
+        const result = compare(withRetries([{title: 'First test', status: 'failed', retry_count: 0}, {title: 'Different test', status: 'passed', retry_count: 1}]));
+        assert.equal(result.status, 'unavailable');
+        assert.match(result.unavailable_reasons.join('; '), /retry.*evidence/i);
+    });
+
+    for (const [field, value] of [['file', 'specs/different.spec.ts'], ['project', 'firefox']]) it(`rejects a retry row with conflicting ${field}`, () => {
+        const f = withRetries([{status: 'failed', retry_count: 0}, {status: 'passed', retry_count: 1, [field]: value}]);
+        assert.throws(() => compare(f), /file\/title\/project\/status mismatch/);
+    });
+
+    it('counts a flaky terminal attempt as a retry survivor even when raw final rows are passed', () => {
+        const result = compare(withRetries([{status: 'passed', retry_count: 0}]));
+        assert.equal(result.status, 'complete');
+        assert.equal(result.retry_survivors_excluded.length, 2);
+    });
+
+    it('does not reinterpret Cypress rows using the Playwright retry contract', () => {
+        const result = compare(withRetries([{status: 'failed', retry_count: 0}, {status: 'passed', retry_count: 1}], 'flaky', 'cypress'));
+        assert.equal(result.status, 'unavailable');
+        assert.match(result.unavailable_reasons.join('; '), /outcomes disagree/);
+    });
+
+    it('preserves a Cypress summarized flaky row with retry_count 1', () => {
+        const result = compare(withRetries([{status: 'flaky', retry_count: 1}], 'flaky', 'cypress'));
+        assert.equal(result.status, 'complete');
+        assert.equal(result.observed_failure_selection_recall.total, 0);
+        assert.equal(result.retry_survivors_excluded.length, 2);
     });
 });
 
