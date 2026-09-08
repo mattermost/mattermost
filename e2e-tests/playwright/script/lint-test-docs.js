@@ -11,7 +11,6 @@
  * - Action/Verification comments
  */
 
-/* eslint-disable @typescript-eslint/no-require-imports */
 /* eslint-disable import/order */
 
 const fs = require('fs');

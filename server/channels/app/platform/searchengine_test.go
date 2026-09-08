@@ -76,6 +76,8 @@ func setupWatcherTest(t *testing.T) (*searchEngineWatcher, *searchenginemocks.Se
 func TestRunSearchEngineWatcher(t *testing.T) {
 	t.Run("retries Start on failure then transitions to health phase", func(t *testing.T) {
 		w, engineMock := setupWatcherTest(t)
+		var logBuffer mlog.Buffer
+		require.NoError(t, mlog.AddWriterTarget(w.ps.Logger(), &logBuffer, true, mlog.StdAll...))
 
 		engineMock.On("IsEnabled").Return(true).Maybe()
 
@@ -113,6 +115,20 @@ func TestRunSearchEngineWatcher(t *testing.T) {
 			return healthChecked.Load() == 1
 		}, 2*time.Second, 5*time.Millisecond,
 			"watcher should have transitioned to health phase after Start succeeds")
+
+		require.NoError(t, w.ps.Logger().Flush())
+		// release-11.7's testlib.AssertNoLog matches on message only, so it cannot
+		// distinguish error vs warn for the same text. Check levels explicitly.
+		var foundError, foundWarn bool
+		for _, entry := range testlib.ParseLogEntries(t, strings.NewReader(logBuffer.String())) {
+			if entry.Msg != "Search engine watcher: Start() failed, will retry" {
+				continue
+			}
+			foundError = foundError || entry.Level == mlog.LvlError.Name
+			foundWarn = foundWarn || entry.Level == mlog.LvlWarn.Name
+		}
+		require.True(t, foundError, "expected error log for Start() failure retry")
+		require.False(t, foundWarn, "did not expect warn log for Start() failure retry")
 	})
 
 	t.Run("exponential backoff with cap", func(t *testing.T) {

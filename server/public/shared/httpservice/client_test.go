@@ -95,6 +95,39 @@ func TestHTTPClient(t *testing.T) {
 	})
 }
 
+func TestNewTransportForInternalConnections(t *testing.T) {
+	// httptest servers listen on a loopback address, which is a reserved range.
+	mockHTTP := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer mockHTTP.Close()
+
+	u, err := url.Parse(mockHTTP.URL)
+	require.NoError(t, err)
+	host := u.Hostname()
+
+	t.Run("blocks reserved IP ranges when the allowlist is empty", func(t *testing.T) {
+		c := NewHTTPClient(NewTransportForInternalConnections(false, ""))
+		_, err := c.Get(mockHTTP.URL)
+		require.IsType(t, &url.Error{}, err)
+		require.Contains(t, err.(*url.Error).Err.Error(), "address forbidden")
+	})
+
+	t.Run("allows a host named in the allowlist", func(t *testing.T) {
+		c := NewHTTPClient(NewTransportForInternalConnections(false, host))
+		resp, err := c.Get(mockHTTP.URL)
+		require.NoError(t, err)
+		resp.Body.Close()
+	})
+
+	t.Run("allows a CIDR range named in the allowlist", func(t *testing.T) {
+		c := NewHTTPClient(NewTransportForInternalConnections(false, "127.0.0.0/8 ::1/128"))
+		resp, err := c.Get(mockHTTP.URL)
+		require.NoError(t, err)
+		resp.Body.Close()
+	})
+}
+
 func TestHTTPClientWithProxy(t *testing.T) {
 	proxy := createProxyServer()
 	defer proxy.Close()
