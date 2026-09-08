@@ -22,7 +22,7 @@ Platform and OS scope reflects reported and tested environments and may not repr
   - Updated how error details are formatted for session and OAuth authorization flows.
   - Updated AD/LDAP test connection handling to require re-entering the bind password when connection settings change.
   - Updated how user presence status responses are serialized.
-  - Updated the msgpack fork to cap byte-string allocations to address a security vulnerability.
+  - Updated the msgpack fork to cap byte-string allocations.
   - Fixed an issue where a plugin request body wasn't properly validated.
   - Fixed an issue where team admins could accidentally update roles incorrectly.
   - Fixed an issue where OAuth requests did not check the server's outbound connection restrictions.
@@ -229,7 +229,7 @@ See [this blog post](https://mattermost.com/blog/mattermost-v11-10-is-now-availa
   - Updated how error details are formatted for session and OAuth authorization flows.
   - Updated AD/LDAP test connection handling to require re-entering the bind password when connection settings change.
   - Updated how user presence status responses are serialized.
-  - Updated the msgpack fork to cap byte-string allocations to address a security vulnerability.
+  - Updated the msgpack fork to cap byte-string allocations.
   - Fixed an issue where a plugin request body wasn't properly validated.
   - Fixed an issue where OAuth requests did not check the server's outbound connection restrictions.
   - Editing an outgoing OAuth connection now requires re-entering the client secret before validating or saving.
@@ -668,7 +668,7 @@ See [this blog post](https://mattermost.com/blog/mattermost-v11-8-0-is-now-avail
   - Updated how error details are formatted for session and OAuth authorization flows.
   - Updated AD/LDAP test connection handling to require re-entering the bind password when connection settings change.
   - Updated how user presence status responses are serialized.
-  - Updated the msgpack fork to cap byte-string allocations to address a security vulnerability.
+  - Updated the msgpack fork to cap byte-string allocations.
   - Fixed an issue with user profile update handling.
   - Fixed an issue where a plugin request body wasn't properly validated.
   - Fixed an issue where team admins could accidentally update roles incorrectly.
@@ -678,7 +678,6 @@ See [this blog post](https://mattermost.com/blog/mattermost-v11-8-0-is-now-avail
   - Mention keywords are now limited to 500 keys and 50,000 bytes in total. Users or imports that exceed these limits receive a descriptive error.
   - Fixed Elasticsearch and OpenSearch startup on AWS managed domains that omit plugin data from the Nodes Info API.
   - Fixed an issue where the Korean ``nori`` analyzer was never applied when the search cluster reported the plugin under a prefixed component name, such as ``opensearch-analysis-nori`` on AWS OpenSearch Service.
-  - Updated dependencies.
   - Mattermost v11.7.11 contains no database or functional changes.
 - **11.7.10, released 2026-08-26**
   - Mattermost v11.7.10 contains low to high severity level security fixes. [Upgrading](https://docs.mattermost.com/upgrade/upgrading-mattermost-server.html) to this release is recommended. Details will be posted on our [security updates page](https://mattermost.com/security-updates/) 30 days after release as per the [Mattermost Responsible Disclosure Policy](https://mattermost.com/security-vulnerability-report/).
