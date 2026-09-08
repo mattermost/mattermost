@@ -12410,5 +12410,1723 @@
   {
     "id": "api.channel.board_channel.app_error",
     "translation": "Board channels zijn niet toegankelijk via /channels eindpunten. Gebruik in plaats daarvan de /boards API."
+  },
+  {
+    "id": "api.channel.bookmark.board.readonly.app_error",
+    "translation": "Boardbladwijzers worden beheerd door de boards-functie en kunnen niet via de bladwijzer-API worden aangemaakt, bijgewerkt of verwijderd."
+  },
+  {
+    "id": "api.channel.discoverable_join_request.already_member.app_error",
+    "translation": "Je bent al lid van dit kanaal."
+  },
+  {
+    "id": "api.channel.discoverable_join_request.archived.app_error",
+    "translation": "Je kan niet vragen om lid te worden van een gearchiveerd kanaal."
+  },
+  {
+    "id": "api.channel.discoverable_join_request.discoverable_requires_approval.app_error",
+    "translation": "Voor dit kanaal is goedkeuring van een beheerder vereist om lid te worden. Stuur een verzoek via het venster Blader door kanalen."
+  },
+  {
+    "id": "api.channel.discoverable_join_request.duplicate.app_error",
+    "translation": "Je hebt al een openstaand verzoek om lid te worden van dit kanaal."
+  },
+  {
+    "id": "api.channel.discoverable_join_request.feature_disabled.app_error",
+    "translation": "Vindbare kanalen zijn niet ingeschakeld op deze server."
+  },
+  {
+    "id": "api.channel.discoverable_join_request.guest.app_error",
+    "translation": "Gasten kunnen niet vragen om lid te worden van vindbare privé-kanalen."
+  },
+  {
+    "id": "api.channel.discoverable_join_request.invalid_patch.app_error",
+    "translation": "Ongeldige update voor het verzoek om lid te worden van het kanaal."
+  },
+  {
+    "id": "api.channel.discoverable_join_request.not_discoverable.app_error",
+    "translation": "Dit kanaal is niet vindbaar."
+  },
+  {
+    "id": "api.channel.discoverable_join_request.not_pending.app_error",
+    "translation": "Het lidmaatschapsverzoek is niet langer in behandeling."
+  },
+  {
+    "id": "api.channel.discoverable_join_request.not_private.app_error",
+    "translation": "Alleen privé-kanalen accepteren lidmaatschapsverzoeken."
+  },
+  {
+    "id": "api.channel.discoverable_join_request.policy_denied.app_error",
+    "translation": "Je voldoet niet aan de toegangsregels die vereist zijn om lid te worden van dit kanaal."
+  },
+  {
+    "id": "api.channel.discoverable_join_request.shared.app_error",
+    "translation": "Gedeelde kanalen accepteren geen vindbare lidmaatschapsverzoeken."
+  },
+  {
+    "id": "api.channel.patch_update_channel.group_constrained_not_allowed.app_error",
+    "translation": "Je mag group_constrained niet instellen op dit kanaaltype."
+  },
+  {
+    "id": "api.channel.space_channel.app_error",
+    "translation": "Spacekanalen zijn niet toegankelijk via de /channels-endpoints. Gebruik in plaats daarvan de spaces-API."
+  },
+  {
+    "id": "api.channel.update_channel.policy_enforced_type_conversion.app_error",
+    "translation": "Op dit kanaal is een attribuutgebaseerd lidmaatschapsbeleid toegepast. Verwijder het beleid voordat je het kanaal omzet tussen publiek en privé."
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.guest_and_admin.app_error",
+    "translation": "Ongeldige wijziging van kanaallid: een gebruiker moet een gast of een beheerder zijn, maar niet allebei."
+  },
+  {
+    "id": "api.context.invalid_body.app_error",
+    "translation": "Ongeldige props voor het bericht."
+  },
+  {
+    "id": "api.data_spillage.error.invalid_channel_type",
+    "translation": "Data Spillage Handling is niet beschikbaar voor privé-berichten en groepsberichtkanalen."
+  },
+  {
+    "id": "api.data_spillage.exposure.write.app_error",
+    "translation": "Kan het blootstellingsrapport voor het bericht niet schrijven."
+  },
+  {
+    "id": "api.data_spillage.report.open.app_error",
+    "translation": "Kan het gegenereerde rapportbestand van gemarkeerde berichten niet openen."
+  },
+  {
+    "id": "api.data_spillage.report.stat.app_error",
+    "translation": "Kan de bestandsinformatie van het rapport van gemarkeerde berichten niet lezen."
+  },
+  {
+    "id": "api.emoji.upload.too_many_frames.app_error",
+    "translation": "Kan emoticon niet aanmaken. Een geanimeerde GIF mag maximaal {{.MaxFrames}} frames hebben."
+  },
+  {
+    "id": "api.file.test_connection_auth.app_error",
+    "translation": "Kan niet verifiëren bij de bestandsopslag-backend. Controleer je inloggegevens en authenticatie-instellingen."
+  },
+  {
+    "id": "api.file.test_connection_no_bucket.app_error",
+    "translation": "De geconfigureerde bucket of container bestaat niet. Controleer je bestandsopslagconfiguratie en rechten."
+  },
+  {
+    "id": "api.file.test_connection_settings_nil.app_error",
+    "translation": "Bestandsopslaginstellingen bevatten niet-ingestelde waarden."
+  },
+  {
+    "id": "api.file.test_connection_unsupported_driver.app_error",
+    "translation": "Niet-ondersteund bestandsopslag-stuurprogramma \"{{.Driver}}\". Ondersteunde waarden zijn \"local\", \"amazons3\" en \"azureblob\"."
+  },
+  {
+    "id": "api.license.add_license.wrong_environment_production.app_error",
+    "translation": "Dit is een productielicentie, maar deze server draait in een test- of ontwikkelomgeving. Productielicenties kunnen alleen worden gebruikt op productieservers."
+  },
+  {
+    "id": "api.license.add_license.wrong_environment_test.app_error",
+    "translation": "Dit is een test- of ontwikkellicentie, maar deze server draait in een productieomgeving. Test- of ontwikkellicenties kunnen alleen worden gebruikt op test- of ontwikkelservers."
+  },
+  {
+    "id": "api.license.parse_license.parse_form.app_error",
+    "translation": "Kon het uploadformulier van de licentie niet verwerken."
+  },
+  {
+    "id": "api.mark_all_as_read.disabled.app_error",
+    "translation": "De functie 'alles als gelezen markeren' is niet ingeschakeld."
+  },
+  {
+    "id": "api.post.create_post.silent_notification.app_error",
+    "translation": "Alleen berichten van bots, webhooks, OAuth-apps en plugins kunnen stil worden bezorgd."
+  },
+  {
+    "id": "api.post.create_post.silent_persistent_notification.app_error",
+    "translation": "Stille berichten kunnen geen blijvende meldingen gebruiken."
+  },
+  {
+    "id": "api.post.do_action.query.app_error",
+    "translation": "Ongeldige actiequery."
+  },
+  {
+    "id": "api.property.session_attributes.license.app_error",
+    "translation": "Voor sessieattributen is een Enterprise Advanced-licentie vereist."
+  },
+  {
+    "id": "api.property.v2_group_not_found.app_error",
+    "translation": "De opgegeven eigenschapsgroep is niet gevonden."
+  },
+  {
+    "id": "api.property_field.get.invalid_opts.app_error",
+    "translation": "Ongeldige zoekopties voor eigenschapvelden."
+  },
+  {
+    "id": "api.property_field.get.scope_conflict.app_error",
+    "translation": "channel_id/team_id kan niet worden gecombineerd met target_type/target_id."
+  },
+  {
+    "id": "api.property_field.get.scope_required.app_error",
+    "translation": "Een scopeparameter (channel_id, team_id of target_type) is vereist."
+  },
+  {
+    "id": "api.property_field.get.target_type_required.app_error",
+    "translation": "Een target_type is vereist wanneer target_id is opgegeven."
+  },
+  {
+    "id": "api.property_value.get.invalid_opts.app_error",
+    "translation": "Ongeldige zoekopties voor eigenschapswaarden."
+  },
+  {
+    "id": "api.property_value.patch.field_not_found.app_error",
+    "translation": "Eigenschapveld {{.FieldID}} is niet gevonden in deze groep."
+  },
+  {
+    "id": "api.property_value.system_use_dedicated_route.app_error",
+    "translation": "Systeemwaarden moeten het speciale endpoint voor systeemwaarden gebruiken."
+  },
+  {
+    "id": "api.property_value.template_no_values.app_error",
+    "translation": "Sjabloonvelden kunnen geen waarden hebben."
+  },
+  {
+    "id": "api.scheduled_recap.permission_denied",
+    "translation": "Je hebt geen rechten voor toegang tot deze geplande samenvatting."
+  },
+  {
+    "id": "api.team.access_control.added.system_message",
+    "translation": "Je bent toegevoegd aan het team **{{.TeamName}}** omdat je nu aan de lidmaatschapsvereisten voldoet."
+  },
+  {
+    "id": "api.team.access_control.removed.system_message",
+    "translation": "Je bent verwijderd uit het team **{{.TeamName}}** omdat je niet langer aan de lidmaatschapsvereisten voldoet."
+  },
+  {
+    "id": "api.team.add_user.to.team.abac_subject_build_failed.app_error",
+    "translation": "Kan het toegangscontroleonderwerp voor de gebruiker niet samenstellen."
+  },
+  {
+    "id": "api.team.add_user.to.team.rejected",
+    "translation": "Gebruiker heeft niet de vereiste attributen om lid te worden van het team."
+  },
+  {
+    "id": "api.team.invite_members.account_deactivated.app_error",
+    "translation": "Het account dat hoort bij {{.Addresses}} is gedeactiveerd. Neem contact op met je systeembeheerder voor meer informatie."
+  },
+  {
+    "id": "api.team.invite_members.profiles_disabled.app_error",
+    "translation": "Voor het vooraf instellen van profielvelden op uitnodigingen moeten vergrendelde profielvelden zijn ingeschakeld."
+  },
+  {
+    "id": "api.team.invite_members.profiles_graceful.app_error",
+    "translation": "Voor het vooraf instellen van profielvelden op uitnodigingen is graceful mode vereist."
+  },
+  {
+    "id": "api.team.invite_members.profiles_license.app_error",
+    "translation": "Voor het vooraf instellen van profielvelden op uitnodigingen is een Enterprise-licentie vereist."
+  },
+  {
+    "id": "api.team.invite_members.username_taken.app_error",
+    "translation": "De gebruikersnaam {{.Username}} is al in gebruik."
+  },
+  {
+    "id": "api.team.update.group_constrained.policy_exists",
+    "translation": "Groepssynchronisatie kan niet worden ingeschakeld op een team waarop een lidmaatschapsbeleid is toegepast."
+  },
+  {
+    "id": "api.team.update_team_member_roles.guest_and_admin.app_error",
+    "translation": "Ongeldige wijziging van teamlid: een gebruiker moet een gast of een beheerder zijn, maar niet allebei."
+  },
+  {
+    "id": "api.templates.user_access_token_rotated_body.info",
+    "translation": "Een persoonlijk toegangstoken van je account op {{ .SiteURL }} is opnieuw gegenereerd. Het vorige tokengeheim is niet langer geldig."
+  },
+  {
+    "id": "api.templates.user_access_token_rotated_body.title",
+    "translation": "Persoonlijk toegangstoken opnieuw gegenereerd"
+  },
+  {
+    "id": "api.templates.user_access_token_rotated_subject",
+    "translation": "[{{ .SiteName }}] Persoonlijk toegangstoken opnieuw gegenereerd"
+  },
+  {
+    "id": "api.user.attach_device_id.invalid_device_id.app_error",
+    "translation": "Ongeldige apparaat-ID."
+  },
+  {
+    "id": "api.user.attach_device_id.invalid_voip_device_id.app_error",
+    "translation": "Ongeldige VoIP-apparaat-ID."
+  },
+  {
+    "id": "api.user.demote_user_to_guest.bot_not_allowed.app_error",
+    "translation": "Botaccounts kunnen niet worden omgezet naar gastaccounts."
+  },
+  {
+    "id": "api.user.get_users_not_in_abac_team.access_control_unavailable.app_error",
+    "translation": "Toegangscontroleservice is niet beschikbaar. Kan gebruikers niet filteren voor een team met ABAC ingeschakeld."
+  },
+  {
+    "id": "api.user.oauth_to_email.integration_session.app_error",
+    "translation": "Kan niet overschakelen naar e-mailauthenticatie vanuit een integratiesessie."
+  },
+  {
+    "id": "api.user.patch_user.profile_field_locked.app_error",
+    "translation": "Het veld {{.Field}} wordt beheerd door je systeembeheerder en kan niet worden gewijzigd."
+  },
+  {
+    "id": "api.user.rotate_user_access_token.disabled_token.app_error",
+    "translation": "Kan een uitgeschakeld toegangstoken niet opnieuw genereren."
+  },
+  {
+    "id": "api.user.saml.relay_state_too_long.app_error",
+    "translation": "De SAML-relaystatus is te lang."
+  },
+  {
+    "id": "api.user.session_attributes.disabled.app_error",
+    "translation": "Sessieattributen zijn niet ingeschakeld."
+  },
+  {
+    "id": "api.user.update_user.profile_field_locked.app_error",
+    "translation": "Het veld {{.Field}} wordt beheerd door je systeembeheerder en kan niet worden gewijzigd."
+  },
+  {
+    "id": "api.user.upload_profile_user.profile_field_locked.app_error",
+    "translation": "De profielfoto wordt beheerd door je systeembeheerder en kan niet worden gewijzigd."
+  },
+  {
+    "id": "api.webhook.incoming.user_membership.app_error",
+    "translation": "De webhookgebruiker moet lid zijn van het doelteam of doelkanaal."
+  },
+  {
+    "id": "api.webhook.incoming.user_role.app_error",
+    "translation": "Je kan geen webhook toewijzen aan een gebruiker met hogere bevoegdheden dan jijzelf."
+  },
+  {
+    "id": "app.access_control.get_channel_role.app_error",
+    "translation": "Kan de kanaalrol voor de gebruiker niet ophalen. Probeer het opnieuw."
+  },
+  {
+    "id": "app.access_control.get_session_attributes.app_error",
+    "translation": "Het ophalen van de sessieattributen is mislukt."
+  },
+  {
+    "id": "app.access_control.plugin.evaluation_unavailable.app_error",
+    "translation": "De toegangscontrole kon voor deze bron niet worden geëvalueerd."
+  },
+  {
+    "id": "app.access_control.plugin.invalid_acting_user.app_error",
+    "translation": "De handelende gebruiker is ongeldig of bestaat niet."
+  },
+  {
+    "id": "app.access_control.plugin.invalid_action.app_error",
+    "translation": "De actie is geen geldige toegangscontroleactie."
+  },
+  {
+    "id": "app.access_control.plugin.invalid_id.app_error",
+    "translation": "Ongeldige identifier opgegeven aan de toegangscontrole-API."
+  },
+  {
+    "id": "app.access_control.plugin.invalid_resource_type.app_error",
+    "translation": "Het brontype is geen geldig brontype voor plugin-toegangscontrole."
+  },
+  {
+    "id": "app.access_control.plugin.policy_not_found.app_error",
+    "translation": "Toegangscontrolebeleid niet gevonden."
+  },
+  {
+    "id": "app.access_control.plugin.resource_type_forbidden.app_error",
+    "translation": "De aanroepende plugin is geen eigenaar van dit brontype."
+  },
+  {
+    "id": "app.access_control.plugin.type_conflict.app_error",
+    "translation": "Er bestaat voor deze ID al een toegangscontrolebeleid van een ander type."
+  },
+  {
+    "id": "app.bot.update.internal_error",
+    "translation": "Kan de bot niet bijwerken."
+  },
+  {
+    "id": "app.bot.update_bot_active.protected_bot.app_error",
+    "translation": "Een bot die eigendom is van het systeem kan niet worden uitgeschakeld."
+  },
+  {
+    "id": "app.channel.create_board_channel.boards_not_enabled.app_error",
+    "translation": "De geïntegreerde Boards-functie is niet ingeschakeld."
+  },
+  {
+    "id": "app.channel.create_board_channel.internal_error",
+    "translation": "Kan het boardkanaal niet aanmaken."
+  },
+  {
+    "id": "app.channel.create_board_channel.invalid.app_error",
+    "translation": "Ongeldige gegevens voor boardkanaal."
+  },
+  {
+    "id": "app.channel.create_board_channel.limit.app_error",
+    "translation": "Het maximale aantal kanalen per team is bereikt."
+  },
+  {
+    "id": "app.channel.create_channel.board_type.app_error",
+    "translation": "Boardkanalen kunnen niet via CreateChannel worden aangemaakt. Gebruik in plaats daarvan de /boards-API."
+  },
+  {
+    "id": "app.channel.create_channel.space_type.app_error",
+    "translation": "Space-kanalen kunnen niet via dit endpoint worden aangemaakt."
+  },
+  {
+    "id": "app.channel.create_channel.spaces_not_enabled.app_error",
+    "translation": "De functie Docs is niet ingeschakeld."
+  },
+  {
+    "id": "app.channel.get_channels_by_team_with_unreads_and_with_mentions.app_error",
+    "translation": "Kan kanalen met ongelezen berichten en vermeldingen niet ophalen."
+  },
+  {
+    "id": "app.channel.join_request.get.app_error",
+    "translation": "Laden van het verzoek om lid te worden van het kanaal is mislukt."
+  },
+  {
+    "id": "app.channel.join_request.not_found.app_error",
+    "translation": "Verzoek om lid te worden van het kanaal niet gevonden."
+  },
+  {
+    "id": "app.channel.join_request.save.app_error",
+    "translation": "Opslaan van het verzoek om lid te worden van het kanaal is mislukt."
+  },
+  {
+    "id": "app.channel.join_request.update.app_error",
+    "translation": "Bijwerken van het verzoek om lid te worden van het kanaal is mislukt."
+  },
+  {
+    "id": "app.channel.move_channel.space.app_error",
+    "translation": "Spaces kunnen niet via dit endpoint worden verplaatst."
+  },
+  {
+    "id": "app.channel.restore_channel.rejected_by_plugin",
+    "translation": "Herstellen van kanaal geweigerd door plugin: {{.Reason}}"
+  },
+  {
+    "id": "app.channel.save_member.app_error",
+    "translation": "Kan kanaallid niet opslaan."
+  },
+  {
+    "id": "app.channel.update_channel.plugin_type_mutation.app_error",
+    "translation": "Plugin {{.PluginID}} probeerde het kanaaltype te wijzigen via ChannelWillBeUpdated; typewijzigingen moeten via het speciale pad voor typewijzigingen verlopen"
+  },
+  {
+    "id": "app.channel.update_channel.rejected_by_plugin",
+    "translation": "Kanaalupdate geweigerd door plugin: {{.Reason}}"
+  },
+  {
+    "id": "app.channel.update_channel_privacy.space.app_error",
+    "translation": "De privacy van Spaces kan niet via dit endpoint worden gewijzigd."
+  },
+  {
+    "id": "app.channel_guard.invalid_channel.app_error",
+    "translation": "Kanaal-ID is geen geldige kanaalidentificatie."
+  },
+  {
+    "id": "app.channel_guard.register.app_error",
+    "translation": "Kan de channel guard niet registreren."
+  },
+  {
+    "id": "app.channel_guard.register.empty_channel.app_error",
+    "translation": "Kanaal-ID is vereist om een channel guard te registreren."
+  },
+  {
+    "id": "app.channel_guard.unregister.app_error",
+    "translation": "Kan de registratie van de channel guard niet ongedaan maken."
+  },
+  {
+    "id": "app.channel_guard.unregister.empty_channel.app_error",
+    "translation": "Kanaal-ID is vereist om de registratie van een channel guard ongedaan te maken."
+  },
+  {
+    "id": "app.compile_csv_chunks.write_error",
+    "translation": "Fout bij het schrijven van CSV-gegevens."
+  },
+  {
+    "id": "app.data_spillage.exposure.column.email",
+    "translation": "E-mail"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.is_deactivated",
+    "translation": "Gedeactiveerd"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.is_guest",
+    "translation": "Gast"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.is_remote",
+    "translation": "Externe gebruiker"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.last_activity_at",
+    "translation": "Tijd laatste activiteit gebruiker (YYYY-MM-DDTHH:MM:SSZ)"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.last_viewed_at",
+    "translation": "Kanaal laatst bekeken op (YYYY-MM-DDTHH:MM:SSZ)"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.user_id",
+    "translation": "Gebruikers-ID"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.username",
+    "translation": "Gebruikersnaam"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.was_channel_member",
+    "translation": "Was kanaallid"
+  },
+  {
+    "id": "app.data_spillage.exposure.edit_history_post.app_error",
+    "translation": "Kan geen blootstellingsrapport genereren voor een revisie uit de bewerkingsgeschiedenis. Gebruik de ID van het huidige bericht."
+  },
+  {
+    "id": "app.data_spillage.exposure.get_channel_members.app_error",
+    "translation": "Kan de geschiedenis van het kanaallidmaatschap voor het gemarkeerde bericht niet ophalen."
+  },
+  {
+    "id": "app.data_spillage.exposure.get_last_activity.app_error",
+    "translation": "Kan de sessieactiviteit voor het gemarkeerde bericht niet ophalen."
+  },
+  {
+    "id": "app.data_spillage.exposure.get_possible_viewers.app_error",
+    "translation": "Kan de leesstatus van het kanaal voor het gemarkeerde bericht niet ophalen."
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.channel",
+    "translation": "Kanaal"
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.generated_at",
+    "translation": "Gegenereerd op"
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.post_id",
+    "translation": "Bericht-ID"
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.report_version",
+    "translation": "Rapportversie"
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.total_users",
+    "translation": "Totaal aantal gebruikers"
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.window_end",
+    "translation": "Gemarkeerd op"
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.window_start",
+    "translation": "Bericht aangemaakt op"
+  },
+  {
+    "id": "app.data_spillage.exposure.missing_reporting_time.app_error",
+    "translation": "Voor het gemarkeerde bericht is geen meldingstijd vastgelegd, waardoor het blootstellingsvenster niet kan worden bepaald."
+  },
+  {
+    "id": "app.data_spillage.exposure.unsupported_channel_type.app_error",
+    "translation": "Blootstellingsrapporten worden niet ondersteund voor privé-berichten en groepsberichten."
+  },
+  {
+    "id": "app.data_spillage.exposure.value.never_viewed",
+    "translation": "N.v.t."
+  },
+  {
+    "id": "app.data_spillage.exposure.value.no",
+    "translation": "Nee"
+  },
+  {
+    "id": "app.data_spillage.exposure.value.no_sessions",
+    "translation": "Geen sessies gevonden"
+  },
+  {
+    "id": "app.data_spillage.exposure.value.unknown",
+    "translation": "Onbekend"
+  },
+  {
+    "id": "app.data_spillage.exposure.value.yes",
+    "translation": "Ja"
+  },
+  {
+    "id": "app.data_spillage.report.cleared",
+    "translation": "Gewist"
+  },
+  {
+    "id": "app.data_spillage.report.close.app_error",
+    "translation": "Fout bij het sluiten van het rapportbestand van het gemarkeerde bericht."
+  },
+  {
+    "id": "app.data_spillage.report.column.detail",
+    "translation": "Detail"
+  },
+  {
+    "id": "app.data_spillage.report.column.status",
+    "translation": "Status"
+  },
+  {
+    "id": "app.data_spillage.report.column.step",
+    "translation": "Stap"
+  },
+  {
+    "id": "app.data_spillage.report.detail.deleted",
+    "translation": "Verwijderd."
+  },
+  {
+    "id": "app.data_spillage.report.detail.failed_retrieve_edit_history",
+    "translation": "Fout bij het ophalen van de bewerkingsgeschiedenis."
+  },
+  {
+    "id": "app.data_spillage.report.detail.file_attachments_info_ids",
+    "translation": "**File Info-ID's:** {{.FileInfoIDs}}"
+  },
+  {
+    "id": "app.data_spillage.report.detail.file_names",
+    "translation": {
+      "one": "{{.Count}} bestand van schijf verwijderd.",
+      "other": "{{.Count}} bestanden van schijf verwijderd."
+    }
+  },
+  {
+    "id": "app.data_spillage.report.detail.no_data_found",
+    "translation": "Geen gegevens gevonden."
+  },
+  {
+    "id": "app.data_spillage.report.detail.no_files",
+    "translation": "Geen bestanden gevonden."
+  },
+  {
+    "id": "app.data_spillage.report.detail.no_rows_to_delete",
+    "translation": "Geen rijen om te verwijderen."
+  },
+  {
+    "id": "app.data_spillage.report.detail.post_scrubbed_deleted",
+    "translation": "Bericht opgeschoond en verwijderd."
+  },
+  {
+    "id": "app.data_spillage.report.detail.revisions_cleared",
+    "translation": {
+      "one": "{{.Count}} revisie van {{.Total}} gewist.",
+      "other": "{{.Count}} revisies van {{.Total}} gewist."
+    }
+  },
+  {
+    "id": "app.data_spillage.report.detail.thread_data_deleted",
+    "translation": "Draadjes, reacties en bijbehorende gegevens verwijderd."
+  },
+  {
+    "id": "app.data_spillage.report.error_log",
+    "translation": "Foutenlogboek"
+  },
+  {
+    "id": "app.data_spillage.report.generated",
+    "translation": "Gegenereerd:"
+  },
+  {
+    "id": "app.data_spillage.report.incomplete_warning",
+    "translation": "Verwijderen van bericht onvolledig. Bekijk het foutenlogboek en escaleer naar een systeembeheerder voor handmatige herstelacties."
+  },
+  {
+    "id": "app.data_spillage.report.post_id",
+    "translation": "Bericht-ID:"
+  },
+  {
+    "id": "app.data_spillage.report.revision",
+    "translation": "Revisie"
+  },
+  {
+    "id": "app.data_spillage.report.revisions_found",
+    "translation": "Gevonden revisies:"
+  },
+  {
+    "id": "app.data_spillage.report.status.failed",
+    "translation": "Mislukt"
+  },
+  {
+    "id": "app.data_spillage.report.status.not_applicable",
+    "translation": "Niet van toepassing"
+  },
+  {
+    "id": "app.data_spillage.report.status.partial",
+    "translation": "Gedeeltelijk"
+  },
+  {
+    "id": "app.data_spillage.report.status.removed",
+    "translation": "Verwijderd"
+  },
+  {
+    "id": "app.data_spillage.report.status.unknown",
+    "translation": "Onbekend"
+  },
+  {
+    "id": "app.data_spillage.report.step.acknowledgements",
+    "translation": "Bevestigingen"
+  },
+  {
+    "id": "app.data_spillage.report.step.edit_histories",
+    "translation": "Bewerkingsgeschiedenis"
+  },
+  {
+    "id": "app.data_spillage.report.step.file_attachments",
+    "translation": "Bestandsbijlagen"
+  },
+  {
+    "id": "app.data_spillage.report.step.fileinfo_rows",
+    "translation": "Records van bestandsbijlagen"
+  },
+  {
+    "id": "app.data_spillage.report.step.persistent_notifications",
+    "translation": "Blijvende meldingen"
+  },
+  {
+    "id": "app.data_spillage.report.step.post_itself",
+    "translation": "Berichtrecord"
+  },
+  {
+    "id": "app.data_spillage.report.step.priority_data",
+    "translation": "Prioriteitsmetadata"
+  },
+  {
+    "id": "app.data_spillage.report.step.reminders",
+    "translation": "Herinneringen"
+  },
+  {
+    "id": "app.data_spillage.report.step.thread_data",
+    "translation": "Draadje, antwoorden en reacties"
+  },
+  {
+    "id": "app.data_spillage.report.summary",
+    "translation": "Samenvatting"
+  },
+  {
+    "id": "app.data_spillage.report.sync.app_error",
+    "translation": "Fout bij het synchroniseren van het rapportbestand van het gemarkeerde bericht naar schijf."
+  },
+  {
+    "id": "app.data_spillage.report.tempfile.app_error",
+    "translation": "Fout bij het aanmaken van een tijdelijk bestand voor het rapport van het gemarkeerde bericht."
+  },
+  {
+    "id": "app.data_spillage.report.title",
+    "translation": "Rapport berichtverwijdering"
+  },
+  {
+    "id": "app.data_spillage.report.total_steps",
+    "translation": "Totaal aantal stappen:"
+  },
+  {
+    "id": "app.data_spillage.report.write_edit_yaml.app_error",
+    "translation": "Fout bij het schrijven van een bewerkingsgeschiedenis-item naar het rapport van het gemarkeerde bericht."
+  },
+  {
+    "id": "app.data_spillage.report.write_exposure_csv.app_error",
+    "translation": "Kan het blootstellingsrapport niet toevoegen aan het rapport van het gemarkeerde bericht."
+  },
+  {
+    "id": "app.data_spillage.report.write_metadata_yaml.app_error",
+    "translation": "Fout bij het schrijven van metadata naar het rapport van het gemarkeerde bericht."
+  },
+  {
+    "id": "app.data_spillage.report.write_post_yaml.app_error",
+    "translation": "Fout bij het schrijven van berichtdetails naar het rapport van het gemarkeerde bericht."
+  },
+  {
+    "id": "app.data_spillage.report.write_review_yaml.app_error",
+    "translation": "Fout bij het schrijven van de details van de inhoudsbeoordeling naar het rapport van het gemarkeerde bericht."
+  },
+  {
+    "id": "app.data_spillage.report.zip_close.app_error",
+    "translation": "Fout bij het sluiten van het rapportarchief van het gemarkeerde bericht."
+  },
+  {
+    "id": "app.data_spillage.report.zip_copy.app_error",
+    "translation": "Fout bij het kopiëren van de bijlage-inhoud naar het rapportarchief van het gemarkeerde bericht."
+  },
+  {
+    "id": "app.data_spillage.report.zip_create.app_error",
+    "translation": "Fout bij het aanmaken van een item in het rapportarchief van het gemarkeerde bericht."
+  },
+  {
+    "id": "app.draft.upsert.rejected_by_plugin",
+    "translation": "Concept geweigerd door plugin: {{.Reason}}"
+  },
+  {
+    "id": "app.export.generate_presigned_url.config.app_error",
+    "translation": "Voor deze actie is een speciale exportopslag vereist."
+  },
+  {
+    "id": "app.export.generate_presigned_url.direct_download.app_error",
+    "translation": "Rechtstreeks downloaden van exports is alleen beschikbaar in Mattermost Cloud."
+  },
+  {
+    "id": "app.export.generate_presigned_url.driver.app_error",
+    "translation": "Het stuurprogramma van je exportopslag ondersteunt het genereren van presigned URL's niet."
+  },
+  {
+    "id": "app.export.generate_presigned_url.fileexist.app_error",
+    "translation": "Kan niet controleren of het bestand bestaat."
+  },
+  {
+    "id": "app.export.generate_presigned_url.link.app_error",
+    "translation": "Kan de presigned URL niet genereren."
+  },
+  {
+    "id": "app.export.generate_presigned_url.notfound.app_error",
+    "translation": "Het exportbestand is niet gevonden."
+  },
+  {
+    "id": "app.file_info.not_found",
+    "translation": "Bestand niet gevonden in de bestandsopslag op het pad."
+  },
+  {
+    "id": "app.file_info.remove_file.app_error",
+    "translation": "Fout bij het verwijderen van het bestand uit de bestandsopslag."
+  },
+  {
+    "id": "app.import.import_bot.lookup_error",
+    "translation": "Fout bij het opzoeken van bestaande bot"
+  },
+  {
+    "id": "app.import.import_bot.user_not_found.error",
+    "translation": "Gebruiker voor bot niet gevonden"
+  },
+  {
+    "id": "app.import.import_direct_channel.save_member.error",
+    "translation": "Fout bij het opslaan van kanaallid tijdens import van direct kanaal"
+  },
+  {
+    "id": "app.notify_expiring_access_tokens.dm",
+    "translation": "Je persoonlijke toegangstoken \"{{.Description}}\" verloopt over {{.Days}} dagen of minder. Open **Profiel > Beveiliging** om het opnieuw te genereren voordat het niet meer werkt."
+  },
+  {
+    "id": "app.notify_expiring_access_tokens.dm_final",
+    "translation": "Je persoonlijke toegangstoken \"{{.Description}}\" verloopt binnen 24 uur. Open **Profiel > Beveiliging** om het opnieuw te genereren voordat het niet meer werkt."
+  },
+  {
+    "id": "app.notify_expiring_access_tokens.unnamed_token",
+    "translation": "(geen beschrijving)"
+  },
+  {
+    "id": "app.pap.access_control.channel_default",
+    "translation": "Lidmaatschapsbeleid kan niet worden toegepast op standaardkanalen van een team."
+  },
+  {
+    "id": "app.pap.access_control.channel_type_not_supported",
+    "translation": "Toegangscontrolebeleid kan alleen worden toegepast op publieke of privé-kanalen."
+  },
+  {
+    "id": "app.pap.assign_access_control_policy_to_teams.app_error",
+    "translation": "Kan toegangscontrolebeleid niet toewijzen aan teams."
+  },
+  {
+    "id": "app.pap.delete_policy.masked_values",
+    "translation": "Je kunt dit beleid niet verwijderen omdat het attribuutwaarden bevat die je niet mag bekijken."
+  },
+  {
+    "id": "app.pap.get_masked_visual_ast.app_error",
+    "translation": "Kon geen gemaskeerde visuele AST uit expressie genereren."
+  },
+  {
+    "id": "app.pap.get_team_members_to_remove.app_error",
+    "translation": "Kon de te verwijderen teamleden niet ophalen."
+  },
+  {
+    "id": "app.pap.has_masked_values.app_error",
+    "translation": "Kon gemaskeerde waarden voor beleidsexpressie niet bepalen."
+  },
+  {
+    "id": "app.pap.hydrate_actions.app_error",
+    "translation": "Kon de actieset die door het toegangscontrolebeleid van het kanaal is gedeclareerd niet laden."
+  },
+  {
+    "id": "app.pap.mask_expression.app_error",
+    "translation": "Kon beleidsexpressie niet maskeren."
+  },
+  {
+    "id": "app.pap.masking.ambiguous_sibling.app_error",
+    "translation": "Meerdere gebruikersattributen verwijzen naar hetzelfde sjabloon, waardoor de zichtbaarheid van het kanaalattribuut niet eenduidig kan worden bepaald."
+  },
+  {
+    "id": "app.pap.masking.unknown_object_type.app_error",
+    "translation": "Kan de zichtbaarheid van attributen voor een onbekend objecttype niet bepalen."
+  },
+  {
+    "id": "app.pap.merge_expression.app_error",
+    "translation": "Kon beleidsexpressie niet samenvoegen met opgeslagen gemaskeerde waarden."
+  },
+  {
+    "id": "app.pap.rehydrate_rank.app_error",
+    "translation": "Kon rangorde-operatoren in beleidsexpressie niet herstellen."
+  },
+  {
+    "id": "app.pap.save_policy.forbidden",
+    "translation": "Je hebt niet het recht om deze wijziging in het beleid aan te brengen."
+  },
+  {
+    "id": "app.pap.save_policy.invalid_value",
+    "translation": "De beleidsexpressie bevat een waarde die niet is toegestaan."
+  },
+  {
+    "id": "app.pap.save_policy.masked_condition_deleted",
+    "translation": "Een voorwaarde met gemaskeerde waarden is verwijderd. Laad het beleid opnieuw en probeer het nogmaals."
+  },
+  {
+    "id": "app.pap.save_policy.masked_token_in_expression",
+    "translation": "De beleidsexpressie bevat een placeholderwaarde die niet kon worden omgezet. Laad het beleid opnieuw en probeer het nogmaals."
+  },
+  {
+    "id": "app.pap.save_policy.parent_resource_attributes_team_assigned",
+    "translation": "Deze toegangsregel gebruikt kanaalattributen, die teams niet hebben. Verwijder de teams die aan dit beleid zijn toegewezen voordat je opslaat."
+  },
+  {
+    "id": "app.pap.save_policy.resolver_error",
+    "translation": "Kon attribuutresolver niet initialiseren voor het opslaan van het beleid."
+  },
+  {
+    "id": "app.pap.save_policy.resource_attributes_disabled",
+    "translation": "Toegangsregels kunnen op deze server geen kanaalattributen gebruiken. Deze mogelijkheid is niet ingeschakeld."
+  },
+  {
+    "id": "app.pap.save_policy.rule_name_unique.app_error",
+    "translation": "Namen van rechtenregels moeten uniek zijn binnen het beleid."
+  },
+  {
+    "id": "app.pap.save_policy.self_exclusion",
+    "translation": "Je voldoet niet aan een of meer voorwaarden in dit beleid."
+  },
+  {
+    "id": "app.pap.save_policy.team_resource_attributes",
+    "translation": "Deze toegangsregel gebruikt kanaalattributen, die teams niet hebben. Toegangsregels met kanaalattributen kunnen alleen op kanalen worden toegepast."
+  },
+  {
+    "id": "app.pap.simulate.attribute_refresh",
+    "translation": "Vernieuwen van attributen voor de simulatie is mislukt."
+  },
+  {
+    "id": "app.pap.simulate.channel_required_for_resource",
+    "translation": "Er is een kanaal vereist om een beleid te simuleren dat naar kanaalattributen verwijst."
+  },
+  {
+    "id": "app.pap.simulate.compile_failed",
+    "translation": "Compileren van het beleid voor simulatie is mislukt."
+  },
+  {
+    "id": "app.pap.simulate.feature_disabled",
+    "translation": "De functie voor rechtenbeleid is momenteel uitgeschakeld."
+  },
+  {
+    "id": "app.pap.simulate.invalid_policy",
+    "translation": "Het beleid is niet geldig."
+  },
+  {
+    "id": "app.pap.simulate.missing_actions",
+    "translation": "Er is minstens één actie vereist voor simulatie."
+  },
+  {
+    "id": "app.pap.simulate.missing_channel_id",
+    "translation": "Een kanaal is vereist om een kanaalgebonden beleid te simuleren."
+  },
+  {
+    "id": "app.pap.simulate.missing_policy",
+    "translation": "Een beleid is vereist voor simulatie."
+  },
+  {
+    "id": "app.pap.simulate.missing_users",
+    "translation": "Er is minstens één gebruiker vereist voor simulatie."
+  },
+  {
+    "id": "app.pap.simulate.resolver_error",
+    "translation": "Kon attribuutresolver niet initialiseren voor beleidssimulatie."
+  },
+  {
+    "id": "app.pap.simulate.too_many_users",
+    "translation": "Te veel gebruikers aangevraagd. Het maximum is {{.Max}}."
+  },
+  {
+    "id": "app.pap.simulate.unavailable",
+    "translation": "Policy Administration Point is niet geïnitialiseerd."
+  },
+  {
+    "id": "app.pap.simulate.unsupported_type",
+    "translation": "Beleidstype \"{{.Type}}\" wordt niet ondersteund door de simulator."
+  },
+  {
+    "id": "app.pap.unassign_access_control_policy_from_teams.app_error",
+    "translation": "Kon toegangscontrolebeleid niet weghalen van de teams."
+  },
+  {
+    "id": "app.plugin.guard_hook_failed.app_error",
+    "translation": "Bewerking geweigerd: hook-aanroep van claimende plugin {{.PluginID}} is mislukt"
+  },
+  {
+    "id": "app.plugin.inactive_guard.app_error",
+    "translation": "Bewerking geweigerd: een vereiste plugin is niet actief"
+  },
+  {
+    "id": "app.property.access_denied.app_error",
+    "translation": "Je hebt niet het recht om deze bewerking uit te voeren."
+  },
+  {
+    "id": "app.property.invalid_access_mode.app_error",
+    "translation": "Het attribuut access_mode is ongeldig."
+  },
+  {
+    "id": "app.property.license_error",
+    "translation": "Je licentie ondersteunt deze eigenschapgroep niet."
+  },
+  {
+    "id": "app.property.not_found.app_error",
+    "translation": "De opgegeven eigenschap bestaat niet."
+  },
+  {
+    "id": "app.property.sync_lock.app_error",
+    "translation": "Dit eigenschapveld wordt beheerd door externe synchronisatie en kan niet rechtstreeks worden gewijzigd."
+  },
+  {
+    "id": "app.property_field.create.group_limit_reached.app_error",
+    "translation": "Het maximale aantal eigenschapvelden voor deze groep is bereikt."
+  },
+  {
+    "id": "app.property_field.create.limit_reached.app_error",
+    "translation": "Het maximale aantal eigenschapvelden voor dit objecttype is bereikt."
+  },
+  {
+    "id": "app.property_field.create.linked_source_cross_group.app_error",
+    "translation": "Kan niet koppelen aan een veld in een andere groep."
+  },
+  {
+    "id": "app.property_field.create.linked_source_deleted.app_error",
+    "translation": "Het gekoppelde bronveld is verwijderd."
+  },
+  {
+    "id": "app.property_field.create.linked_source_is_linked.app_error",
+    "translation": "Kan niet koppelen aan een veld dat zelf gekoppeld is. Kettingen zijn niet toegestaan."
+  },
+  {
+    "id": "app.property_field.create.linked_source_not_found.app_error",
+    "translation": "Het gekoppelde bronveld is niet gevonden."
+  },
+  {
+    "id": "app.property_field.create.linked_source_not_template.app_error",
+    "translation": "Kan alleen koppelen aan sjabloonvelden."
+  },
+  {
+    "id": "app.property_field.create.linked_source_protected.app_error",
+    "translation": "Alleen de bronplugin kan gekoppelde velden aanmaken vanuit een beschermd sjabloon."
+  },
+  {
+    "id": "app.property_field.create.linked_target_type_mismatch.app_error",
+    "translation": "Het doeltype van het gekoppelde veld moet overeenkomen met het doeltype van het bronsjabloon."
+  },
+  {
+    "id": "app.property_field.create.template_cannot_be_linked.app_error",
+    "translation": "Sjabloonvelden kunnen geen gekoppeld veld hebben."
+  },
+  {
+    "id": "app.property_field.delete.has_linked_dependents.app_error",
+    "translation": "Kan een veld met actieve gekoppelde afhankelijke velden niet verwijderen. Ontkoppel of verwijder eerst de afhankelijke velden."
+  },
+  {
+    "id": "app.property_field.get_for_group.app_error",
+    "translation": "Kan eigenschapvelden voor groep niet ophalen."
+  },
+  {
+    "id": "app.property_field.invalid_attrs.app_error",
+    "translation": "Ongeldige attributen van eigenschapveld."
+  },
+  {
+    "id": "app.property_field.managed_admin.permission.app_error",
+    "translation": "Je hebt niet het recht om dit eigenschapveld te markeren als beheerd door beheerders."
+  },
+  {
+    "id": "app.property_field.not_found.app_error",
+    "translation": "Het opgegeven eigenschapveld bestaat niet."
+  },
+  {
+    "id": "app.property_field.rank_disabled.app_error",
+    "translation": "Rank-eigenschapvelden zijn niet ingeschakeld."
+  },
+  {
+    "id": "app.property_field.update.cannot_change_link_target.app_error",
+    "translation": "Kan koppelingsdoel niet wijzigen. Ontkoppel eerst en maak daarna een nieuw gekoppeld veld aan."
+  },
+  {
+    "id": "app.property_field.update.cannot_link_existing.app_error",
+    "translation": "Kan linked_field_id niet instellen op een bestaand veld. Dit kan alleen bij het aanmaken worden ingesteld."
+  },
+  {
+    "id": "app.property_field.update.conflict.app_error",
+    "translation": "Kan eigenschapveld niet bijwerken vanwege een conflict. Probeer het opnieuw."
+  },
+  {
+    "id": "app.property_field.update.linked_options_change.app_error",
+    "translation": "Kan opties van een gekoppeld veld niet wijzigen. Opties worden overgenomen van de bron."
+  },
+  {
+    "id": "app.property_field.update.linked_type_change.app_error",
+    "translation": "Kan type van een gekoppeld veld niet wijzigen. Het type wordt overgenomen van de bron."
+  },
+  {
+    "id": "app.property_field.update.type_change_with_dependents.app_error",
+    "translation": "Kan type van een veld met actieve gekoppelde afhankelijke velden niet wijzigen."
+  },
+  {
+    "id": "app.property_field.version_mismatch.app_error",
+    "translation": "De versies van het eigenschapveld en de groep zijn niet compatibel."
+  },
+  {
+    "id": "app.property_value.template_no_values.app_error",
+    "translation": "Sjabloonvelden kunnen geen waarden hebben."
+  },
+  {
+    "id": "app.property_value.upsert.duplicate_field_id.app_error",
+    "translation": "Dubbele veld-ID in batch van eigenschapwaarden."
+  },
+  {
+    "id": "app.property_value.upsert.field_not_found.app_error",
+    "translation": "Eigenschapveld {{.FieldID}} is niet gevonden."
+  },
+  {
+    "id": "app.property_value.upsert.invalid_field_id.app_error",
+    "translation": "Ongeldige eigenschapveld-ID."
+  },
+  {
+    "id": "app.property_value.upsert.mixed_groups.app_error",
+    "translation": "Alle eigenschapwaarden in een batch moeten tot dezelfde eigenschapgroep behoren."
+  },
+  {
+    "id": "app.property_value.upsert.object_type_mismatch.app_error",
+    "translation": "Het objecttype van het eigenschapveld komt niet overeen met het verzoek."
+  },
+  {
+    "id": "app.property_value.validate.app_error",
+    "translation": "Eigenschapwaarde heeft de validatie niet doorstaan."
+  },
+  {
+    "id": "app.recap.cooldown_active.app_error",
+    "translation": "Het beleid van je organisatie vereist {{.CooldownMinutes}} minuten tussen samenvattingen. Je kunt over {{.RetryAfterMinutes}} minuten een nieuwe samenvatting maken."
+  },
+  {
+    "id": "app.recap.cooldown_check_failed.app_error",
+    "translation": "Kon de status van de afkoelperiode niet controleren."
+  },
+  {
+    "id": "app.recap.get_daily_count.app_error",
+    "translation": "Kon de limieten voor samenvattingen niet controleren."
+  },
+  {
+    "id": "app.recap.mark_viewed.app_error",
+    "translation": "Het is niet gelukt om de samenvattingen als bekeken te markeren."
+  },
+  {
+    "id": "app.recap.max_channels_exceeded.app_error",
+    "translation": "Het beleid van je organisatie beperkt samenvattingen tot {{.Limit}} kanalen. Je hebt {{.Requested}} kanalen aangevraagd."
+  },
+  {
+    "id": "app.recap.max_recaps_reached.app_error",
+    "translation": "Het beleid van je organisatie staat maximaal {{.Limit}} samenvattingen per dag toe. Probeer het morgen opnieuw."
+  },
+  {
+    "id": "app.recap.sum_daily_posts.app_error",
+    "translation": "Kon het berichtgebruik van samenvattingen niet controleren."
+  },
+  {
+    "id": "app.scheduled_post.recurring_disabled.app_error",
+    "translation": "Terugkerende geplande berichten zijn uitgeschakeld op deze server."
+  },
+  {
+    "id": "app.scheduled_post.save.rejected_by_plugin",
+    "translation": "Gepland bericht geweigerd door plugin: {{.Reason}}"
+  },
+  {
+    "id": "app.scheduled_post.update.rejected_by_plugin",
+    "translation": "Update van gepland bericht geweigerd door plugin: {{.Reason}}"
+  },
+  {
+    "id": "app.scheduled_recap.compute_next_run.app_error",
+    "translation": "Kan de volgende geplande uitvoering van de samenvatting niet berekenen."
+  },
+  {
+    "id": "app.scheduled_recap.create.app_error",
+    "translation": "Kan geplande samenvatting niet aanmaken."
+  },
+  {
+    "id": "app.scheduled_recap.delete.app_error",
+    "translation": "Kan geplande samenvatting niet verwijderen."
+  },
+  {
+    "id": "app.scheduled_recap.get.app_error",
+    "translation": "Kan geplande samenvatting niet ophalen."
+  },
+  {
+    "id": "app.scheduled_recap.get_unreads.app_error",
+    "translation": "Kan ongelezen kanalen voor geplande samenvatting niet ophalen."
+  },
+  {
+    "id": "app.scheduled_recap.list.app_error",
+    "translation": "Kan geplande samenvattingen niet ophalen."
+  },
+  {
+    "id": "app.scheduled_recap.max_channels_exceeded.app_error",
+    "translation": "Het beleid van je organisatie beperkt samenvattingen tot {{.Limit}} kanalen. Je hebt {{.Requested}} kanalen aangevraagd."
+  },
+  {
+    "id": "app.scheduled_recap.max_scheduled_reached.app_error",
+    "translation": "Het beleid van je organisatie staat maximaal {{.Limit}} geplande samenvattingen toe. Verwijder een bestaande geplande samenvatting voordat je een nieuwe aanmaakt."
+  },
+  {
+    "id": "app.scheduled_recap.no_channels.app_error",
+    "translation": "Geplande samenvatting moet minstens één kanaal bevatten."
+  },
+  {
+    "id": "app.scheduled_recap.pause.app_error",
+    "translation": "Kan geplande samenvatting niet pauzeren."
+  },
+  {
+    "id": "app.scheduled_recap.resume.app_error",
+    "translation": "Kan geplande samenvatting niet hervatten."
+  },
+  {
+    "id": "app.scheduled_recap.save_recap.app_error",
+    "translation": "Kan samenvatting voor geplande samenvatting niet opslaan."
+  },
+  {
+    "id": "app.scheduled_recap.update.app_error",
+    "translation": "Kan geplande samenvatting niet bijwerken."
+  },
+  {
+    "id": "app.session.revoke_other_sessions.empty_device_id.app_error",
+    "translation": "Apparaat-id mag niet leeg zijn."
+  },
+  {
+    "id": "app.session.revoke_other_sessions.empty_voip_device_id.app_error",
+    "translation": "VoIP-apparaat-id mag niet leeg zijn."
+  },
+  {
+    "id": "app.session_attributes.field_immutable.app_error",
+    "translation": "Sessieattribuutvelden kunnen niet worden aangemaakt of verwijderd, en alleen hun enabled, ttl_seconds en grace_period_seconds mogen worden gewijzigd."
+  },
+  {
+    "id": "app.submit_interactive_dialog.file_not_owned",
+    "translation": "Bestand {{.FileId}} behoort niet toe aan de indienende gebruiker."
+  },
+  {
+    "id": "app.submit_interactive_dialog.get_file_info_error",
+    "translation": "Kan ingediende bestands-ID's niet valideren."
+  },
+  {
+    "id": "app.submit_interactive_dialog.invalid_file_id",
+    "translation": "Bestand {{.FileId}} is ongeldig of ontoegankelijk."
+  },
+  {
+    "id": "app.submit_interactive_dialog.too_many_file_ids",
+    "translation": "Te veel bestands-ID's ingediend. Het maximum is {{.Max}}."
+  },
+  {
+    "id": "app.submit_interactive_dialog.too_many_submission_ids",
+    "translation": "Te veel ID-achtige waarden in de indiening. Het maximum is {{.Max}}."
+  },
+  {
+    "id": "app.upload.gen_file_info.invalid_filename.app_error",
+    "translation": "Ongeldige bestandsnaam."
+  },
+  {
+    "id": "app.user_access_token.count_non_compliant.app_error",
+    "translation": "Kan de persoonlijke toegangstokens die het beleid voor maximale levensduur overschrijden niet tellen."
+  },
+  {
+    "id": "app.user_access_token.expired",
+    "translation": "Het persoonlijke toegangstoken is verlopen."
+  },
+  {
+    "id": "app.user_access_token.expired_deleted_notification",
+    "translation": "Je persoonlijke toegangstoken \"{{.Description}}\" is verlopen en verwijderd. Open **Profiel → Beveiliging** om een nieuw token aan te maken."
+  },
+  {
+    "id": "app.user_access_token.expires_at_in_past.app_error",
+    "translation": "De opgegeven expires_at ligt in het verleden."
+  },
+  {
+    "id": "app.user_access_token.expires_at_required.app_error",
+    "translation": "Persoonlijke toegangstokens moeten een vervaldatum bevatten, omdat de server een maximale levensduur voor tokens afdwingt."
+  },
+  {
+    "id": "app.user_access_token.expires_at_too_far.app_error",
+    "translation": "De opgegeven expires_at overschrijdt de geconfigureerde maximale levensduur voor persoonlijke toegangstokens ({{.Days}} dagen)."
+  },
+  {
+    "id": "app.user_access_token.get_expiring.app_error",
+    "translation": "Kan de bijna verlopen persoonlijke toegangstokens niet ophalen."
+  },
+  {
+    "id": "app.user_access_token.revoke_non_compliant.no_policy.app_error",
+    "translation": "Er is geen maximale levensduur voor persoonlijke toegangstokens geconfigureerd, dus er zijn geen niet-conforme tokens om in te trekken."
+  },
+  {
+    "id": "app.user_access_token.revoke_non_compliant.partial.app_error",
+    "translation": "De batchlimiet is bereikt voordat alle niet-conforme tokens konden worden ingetrokken. Voer de bewerking opnieuw uit om door te gaan."
+  },
+  {
+    "id": "app.user_access_token.rotate.app_error",
+    "translation": "Kan het toegangstoken niet opnieuw genereren."
+  },
+  {
+    "id": "ent.elasticsearch.delete_files_batch.error",
+    "translation": "Verwijderen van de bestandenbatch is mislukt"
+  },
+  {
+    "id": "ent.elasticsearch.indexer.do_job.bulk_failures.error",
+    "translation": "Indexeertaak voltooid, maar {{.NumFailed}} document(en) zijn geweigerd door de zoekbackend en niet geïndexeerd"
+  },
+  {
+    "id": "ent.elasticsearch.indexer.do_job.create_bulk_processor.error",
+    "translation": "Indexeerworker kon de bulkprocessor niet initialiseren"
+  },
+  {
+    "id": "model.access_policy.inherit.parent_type.app_error",
+    "translation": "Imports moeten gericht zijn op een bovenliggend lidmaatschapsbeleid."
+  },
+  {
+    "id": "model.access_policy.is_valid.actions.membership_combined.app_error",
+    "translation": "Lidmaatschap kan niet worden gecombineerd met andere acties in dezelfde regel."
+  },
+  {
+    "id": "model.access_policy.is_valid.actions.permission_type.app_error",
+    "translation": "Regels met rechtenacties zijn alleen toegestaan in kanaalbeleid."
+  },
+  {
+    "id": "model.access_policy.is_valid.plugin_type.app_error",
+    "translation": "Ongeldig toegangscontrolebeleid: het type is geen geldig plugin-brontype."
+  },
+  {
+    "id": "model.access_policy.is_valid.rule_name.app_error",
+    "translation": "Rechtenregels vereisen een niet-lege naam binnen de maximale lengte van het beleid."
+  },
+  {
+    "id": "model.access_policy.is_valid.rule_name_unique.app_error",
+    "translation": "Namen van rechtenregels moeten uniek zijn binnen het beleid."
+  },
+  {
+    "id": "model.access_policy.is_valid.rule_role.app_error",
+    "translation": "Ongeldige rol voor de regel."
+  },
+  {
+    "id": "model.access_policy.is_valid.session_attribute_on_membership.app_error",
+    "translation": "Lidmaatschapsregels kunnen niet verwijzen naar sessieattributen (user.session). Gebruik in plaats daarvan een rechtenbeleid."
+  },
+  {
+    "id": "model.channel.is_valid.discoverable.app_error",
+    "translation": "Alleen privé-kanalen kunnen als vindbaar worden gemarkeerd."
+  },
+  {
+    "id": "model.channel.is_valid.group_constrained.app_error",
+    "translation": "Alleen publieke en privé-kanalen kunnen groepsgebonden zijn."
+  },
+  {
+    "id": "model.channel.is_valid_board.display_name.app_error",
+    "translation": "De weergavenaam van het bord mag niet leeg zijn."
+  },
+  {
+    "id": "model.channel.is_valid_board.team_id.app_error",
+    "translation": "Bordkanalen moeten bij een team horen."
+  },
+  {
+    "id": "model.channel.is_valid_board.type.app_error",
+    "translation": "Het kanaaltype moet BO (open bord) of BP (privébord) zijn."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.board.file_id.app_error",
+    "translation": "Bordbladwijzers kunnen niet naar een bestand verwijzen."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.board.image_url.app_error",
+    "translation": "Bordbladwijzers kunnen geen afbeeldings-URL instellen."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.board.link_url.app_error",
+    "translation": "De link-URL van een bordbladwijzer moet een site-relatief pad zijn dat begint met /, mag geen :// bevatten en mag de maximale lengte niet overschrijden."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.board.target_id.app_error",
+    "translation": "Bordbladwijzers vereisen een geldig doel-id."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.target_id.app_error",
+    "translation": "Doel-id is alleen toegestaan voor bladwijzertypen die naar een andere entiteit verwijzen."
+  },
+  {
+    "id": "model.channel_join_request.is_valid.channel_id.app_error",
+    "translation": "Ongeldig kanaal-id."
+  },
+  {
+    "id": "model.channel_join_request.is_valid.create_at.app_error",
+    "translation": "Create at moet een geldige tijd zijn."
+  },
+  {
+    "id": "model.channel_join_request.is_valid.denial_reason.app_error",
+    "translation": "De reden van afwijzing is te lang."
+  },
+  {
+    "id": "model.channel_join_request.is_valid.denial_reason_status.app_error",
+    "translation": "Een reden van afwijzing kan alleen worden ingesteld op een afgewezen lidmaatschapsverzoek."
+  },
+  {
+    "id": "model.channel_join_request.is_valid.id.app_error",
+    "translation": "Ongeldig Id."
+  },
+  {
+    "id": "model.channel_join_request.is_valid.message.app_error",
+    "translation": "Het bericht bij het lidmaatschapsverzoek is te lang."
+  },
+  {
+    "id": "model.channel_join_request.is_valid.reviewed_by.app_error",
+    "translation": "Ongeldig beoordelaars-id."
+  },
+  {
+    "id": "model.channel_join_request.is_valid.reviewer.app_error",
+    "translation": "Een goedgekeurd of afgewezen lidmaatschapsverzoek moet de beoordelaar en het beoordelingstijdstip vastleggen."
+  },
+  {
+    "id": "model.channel_join_request.is_valid.status.app_error",
+    "translation": "Ongeldige status van lidmaatschapsverzoek."
+  },
+  {
+    "id": "model.channel_join_request.is_valid.update_at.app_error",
+    "translation": "Update at moet een geldige tijd zijn."
+  },
+  {
+    "id": "model.channel_join_request.is_valid.user_id.app_error",
+    "translation": "Ongeldig gebruikers-id."
+  },
+  {
+    "id": "model.cluster.is_valid.site_url.app_error",
+    "translation": "SiteURL moet worden ingesteld."
+  },
+  {
+    "id": "model.command_response.is_valid.attachment.app_error",
+    "translation": "Ongeldige bijlage."
+  },
+  {
+    "id": "model.command_response.is_valid.goto_location.app_error",
+    "translation": "Ongeldige goto-locatie."
+  },
+  {
+    "id": "model.command_response.is_valid.icon_url.app_error",
+    "translation": "Ongeldige pictogram-URL."
+  },
+  {
+    "id": "model.command_response.is_valid.response_type.app_error",
+    "translation": "Ongeldig antwoordtype."
+  },
+  {
+    "id": "model.config.is_valid.access_control_attribute_refresh_interval.app_error",
+    "translation": "Ongeldig vernieuwingsinterval voor toegangscontroleattributen. Moet groter dan of gelijk aan 0 zijn."
+  },
+  {
+    "id": "model.config.is_valid.access_control_sync_interval.app_error",
+    "translation": "Ongeldig interval voor de synchronisatietaak van de toegangscontrole. Moet minstens 60 seconden zijn."
+  },
+  {
+    "id": "model.config.is_valid.ai_recap.cooldown_minutes.app_error",
+    "translation": "Ongeldig aantal minuten afkoeltijd voor AI-samenvattingen. Moet groter dan of gelijk zijn aan 0."
+  },
+  {
+    "id": "model.config.is_valid.ai_recap.max_channels_per_recap.app_error",
+    "translation": "Ongeldig maximum aantal kanalen per AI-samenvatting. Moet groter dan of gelijk zijn aan 1, of -1 voor onbeperkt."
+  },
+  {
+    "id": "model.config.is_valid.ai_recap.max_posts_per_day.app_error",
+    "translation": "Ongeldig maximum aantal berichten per dag voor AI-samenvattingen. Moet groter dan of gelijk zijn aan 1, of -1 voor onbeperkt."
+  },
+  {
+    "id": "model.config.is_valid.ai_recap.max_posts_per_recap.app_error",
+    "translation": "Ongeldig maximum aantal berichten per AI-samenvatting. Moet groter dan of gelijk zijn aan 1, of -1 voor onbeperkt."
+  },
+  {
+    "id": "model.config.is_valid.ai_recap.max_recaps_per_day.app_error",
+    "translation": "Ongeldig maximum aantal AI-samenvattingen per dag. Moet groter dan of gelijk zijn aan 1, of -1 voor onbeperkt."
+  },
+  {
+    "id": "model.config.is_valid.ai_recap.max_scheduled_recaps.app_error",
+    "translation": "Ongeldig maximum aantal geplande AI-samenvattingen. Moet groter dan of gelijk zijn aan 1, of -1 voor onbeperkt."
+  },
+  {
+    "id": "model.config.is_valid.ai_recap.max_tokens_per_recap.app_error",
+    "translation": "Ongeldig maximum aantal tokens per AI-samenvatting. Moet groter dan of gelijk zijn aan 1, of -1 voor onbeperkt."
+  },
+  {
+    "id": "model.config.is_valid.atmos_camo_image_proxy_removed.app_error",
+    "translation": "Het afbeeldingsproxytype 'atmos/camo' is verwijderd in Mattermost v12.0. Stel ImageProxySettings.ImageProxyType in op 'local', of stel ImageProxySettings.Enable in op false om de afbeeldingsproxy uit te schakelen."
+  },
+  {
+    "id": "model.config.is_valid.azure_auth_mode.app_error",
+    "translation": "Ongeldige Azure-authenticatiemodus {{.Value}}. Moet 'shared_key' of 'default_credential' zijn."
+  },
+  {
+    "id": "model.config.is_valid.azure_cloud.app_error",
+    "translation": "Ongeldige waarde {{.Value}} voor {{.Setting}}. Moet 'commercial', 'government' of 'custom' zijn."
+  },
+  {
+    "id": "model.config.is_valid.azure_custom_endpoint.app_error",
+    "translation": "{{.Setting}} moet worden ingesteld wanneer de bijbehorende AzureCloud-waarde 'custom' is."
+  },
+  {
+    "id": "model.config.is_valid.azure_storage_account.app_error",
+    "translation": "Ongeldige waarde {{.Value}} voor {{.Setting}}. De naam van het Azure-opslagaccount moet 3 tot 24 tekens lang zijn en mag alleen kleine letters en cijfers bevatten."
+  },
+  {
+    "id": "model.config.is_valid.azure_timeout.app_error",
+    "translation": "Ongeldige time-outwaarde {{.Value}}. Moet een positief getal zijn."
+  },
+  {
+    "id": "model.config.is_valid.directory_traversal.app_error",
+    "translation": "Padtraversal-reeksen (\"..\") zijn niet toegestaan in {{.Setting}}. \"{{.Value}}\" gevonden."
+  },
+  {
+    "id": "model.config.is_valid.export_azure_auth_mode.app_error",
+    "translation": "Ongeldige Azure-authenticatiemodus {{.Value}} voor de speciale exportopslag. Moet 'shared_key' of 'default_credential' zijn."
+  },
+  {
+    "id": "model.config.is_valid.export_azure_timeout.app_error",
+    "translation": "Ongeldige time-outwaarde {{.Value}}. Moet een positief getal zijn."
+  },
+  {
+    "id": "model.config.is_valid.extract_content_timeout.app_error",
+    "translation": "Ongeldige time-out voor inhoudsextractie in de bestandsinstellingen. Moet een geheel aantal seconden groter dan of gelijk aan nul zijn."
+  },
+  {
+    "id": "model.config.is_valid.feature_flags.apps_enabled.app_error",
+    "translation": "De functievlag AppsEnabled wordt niet langer ondersteund en moet worden uitgeschakeld."
+  },
+  {
+    "id": "model.config.is_valid.feature_flags.move_threads_enabled.app_error",
+    "translation": "De functievlag MoveThreadsEnabled wordt niet langer ondersteund en moet worden uitgeschakeld."
+  },
+  {
+    "id": "model.config.is_valid.lock_profile_fields.app_error",
+    "translation": "Ongeldige instelling voor het vergrendelen van profielvelden. Moet 'none', 'name_and_username' of 'all' zijn."
+  },
+  {
+    "id": "model.config.is_valid.max_personal_access_token_lifetime_days.app_error",
+    "translation": "Ongeldige MaximumPersonalAccessTokenLifetimeDays. Moet tussen 0 (onbeperkt) en {{.Max}} dagen liggen."
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.custom_header_incomplete.app_error",
+    "translation": "Bij het exporteren van berichten moeten GlobalRelaySettings.CustomHeaderName en CustomHeaderValue allebei zijn ingesteld, of allebei leeg blijven."
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.custom_header_name.app_error",
+    "translation": "Bij het exporteren van berichten moet GlobalRelaySettings.CustomHeaderName een geldige headernaam zijn zonder spaties, dubbele punten, scheidingstekens of regeleinden."
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.custom_header_reserved.app_error",
+    "translation": "Bij het exporteren van berichten mag GlobalRelaySettings.CustomHeaderName geen header hergebruiken die de Global Relay-export zelf al schrijft."
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.custom_header_value.app_error",
+    "translation": "Bij het exporteren van berichten mag GlobalRelaySettings.CustomHeaderValue geen stuurtekens of regeleinden bevatten."
+  },
+  {
+    "id": "model.config.is_valid.mobile_ephemeral_mode.auto_cache_cleanup.app_error",
+    "translation": "Ongeldige waarde voor Auto Cache Cleanup. Moet tussen {{.Min}} en {{.Max}} dagen liggen."
+  },
+  {
+    "id": "model.config.is_valid.mobile_ephemeral_mode.disconnection_timeout.app_error",
+    "translation": "Ongeldige waarde voor Disconnection Timeout. Moet tussen {{.Min}} en {{.Max}} seconden liggen."
+  },
+  {
+    "id": "model.config.is_valid.mobile_ephemeral_mode.offline_persistence.app_error",
+    "translation": "Ongeldige waarde voor Offline Persistence Timer. Moet tussen {{.Min}} en {{.Max}} uur liggen."
+  },
+  {
+    "id": "model.cpa_field.name.invalid_charset.app_error",
+    "translation": "Ongeldige CPA-veldnaam '{{.Name}}': moet voldoen aan ^[A-Za-z_][A-Za-z0-9_]*$ (CEL-identifierregel)."
+  },
+  {
+    "id": "model.cpa_field.name.reserved_word.app_error",
+    "translation": "Ongeldige CPA-veldnaam '{{.Name}}': dit is een gereserveerd woord in CEL en kan niet als veldidentifier worden gebruikt."
+  },
+  {
+    "id": "model.file_info.is_valid.name.app_error",
+    "translation": "Ongeldige waarde voor name."
+  },
+  {
+    "id": "model.log_filter.is_valid.date_from.app_error",
+    "translation": "Ongeldig date_from-filter. Verwachte indeling: \"{{.Layout}}\"."
+  },
+  {
+    "id": "model.log_filter.is_valid.date_to.app_error",
+    "translation": "Ongeldig date_to-filter. Verwachte indeling: \"{{.Layout}}\"."
+  },
+  {
+    "id": "model.member.is_valid.profile_email.app_error",
+    "translation": "Profiel-e-mailadres staat niet in de lijst met uitgenodigde e-mailadressen"
+  },
+  {
+    "id": "model.member.is_valid.profile_email_duplicate.app_error",
+    "translation": "Uitnodigingsprofielen moeten unieke e-mailadressen hebben"
+  },
+  {
+    "id": "model.member.is_valid.profile_first_name.app_error",
+    "translation": "Ongeldige voornaam in uitnodigingsprofiel"
+  },
+  {
+    "id": "model.member.is_valid.profile_last_name.app_error",
+    "translation": "Ongeldige achternaam in uitnodigingsprofiel"
+  },
+  {
+    "id": "model.member.is_valid.profile_nil.app_error",
+    "translation": "Uitnodigingsprofiel kan niet null zijn"
+  },
+  {
+    "id": "model.member.is_valid.profile_username.app_error",
+    "translation": "Ongeldige gebruikersnaam in uitnodigingsprofiel"
+  },
+  {
+    "id": "model.member.is_valid.profile_username_duplicate.app_error",
+    "translation": "Uitnodigingsprofielen moeten unieke gebruikersnamen hebben"
+  },
+  {
+    "id": "model.property_group.is_valid.app_error",
+    "translation": "Ongeldige eigenschapsgroep: {{.FieldName}} ({{.Reason}})."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.repeat_files.app_error",
+    "translation": "Terugkerende geplande berichten kunnen geen bijlagen bevatten."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.repeat_timezone.app_error",
+    "translation": "Wekelijks terugkerende geplande berichten vereisen een geldige tijdzone."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.repeat_timezone_invalid.app_error",
+    "translation": "Ongeldige tijdzone voor terugkerend gepland bericht."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.repeat_type.app_error",
+    "translation": "Ongeldig herhalingstype voor gepland bericht."
+  },
+  {
+    "id": "model.scheduled_recap.compute_next_run.days_of_week.app_error",
+    "translation": "Ongeldige weekdagen voor de geplande samenvatting."
+  },
+  {
+    "id": "model.scheduled_recap.compute_next_run.no_valid_day.app_error",
+    "translation": "Geen geldige dag gevonden voor de geplande samenvatting."
+  },
+  {
+    "id": "model.scheduled_recap.compute_next_run.time_format.app_error",
+    "translation": "Ongeldige tijdnotatie voor de geplande samenvatting."
+  },
+  {
+    "id": "model.scheduled_recap.compute_next_run.timezone.app_error",
+    "translation": "Ongeldige tijdzone voor de geplande samenvatting."
+  },
+  {
+    "id": "model.scheduled_recap.is_valid.agent_id.app_error",
+    "translation": "Een geplande samenvatting moet een agent-id hebben."
+  },
+  {
+    "id": "model.scheduled_recap.is_valid.channel_id.app_error",
+    "translation": "Ongeldig kanaal-id voor de geplande samenvatting."
+  },
+  {
+    "id": "model.scheduled_recap.is_valid.channel_ids_empty.app_error",
+    "translation": "Een geplande samenvatting moet ten minste één kanaal bevatten wanneer specifieke kanalen worden gebruikt."
+  },
+  {
+    "id": "model.scheduled_recap.is_valid.channel_mode.app_error",
+    "translation": "Ongeldige kanaalmodus voor de geplande samenvatting."
+  },
+  {
+    "id": "model.scheduled_recap.is_valid.custom_instructions_length.app_error",
+    "translation": "De aangepaste instructies van de geplande samenvatting overschrijden de maximale lengte."
+  },
+  {
+    "id": "model.scheduled_recap.is_valid.days_of_week.app_error",
+    "translation": "Ongeldige weekdagen voor de geplande samenvatting."
+  },
+  {
+    "id": "model.scheduled_recap.is_valid.id.app_error",
+    "translation": "Een geplande samenvatting moet een ID hebben."
+  },
+  {
+    "id": "model.scheduled_recap.is_valid.time_of_day.app_error",
+    "translation": "Ongeldig tijdstip van de dag voor de geplande samenvatting."
+  },
+  {
+    "id": "model.scheduled_recap.is_valid.time_period.app_error",
+    "translation": "Ongeldige tijdsperiode voor de geplande samenvatting."
+  },
+  {
+    "id": "model.scheduled_recap.is_valid.timezone.app_error",
+    "translation": "Ongeldige tijdzone voor de geplande samenvatting."
+  },
+  {
+    "id": "model.scheduled_recap.is_valid.title_empty.app_error",
+    "translation": "De titel van de geplande samenvatting kan niet leeg zijn."
+  },
+  {
+    "id": "model.scheduled_recap.is_valid.title_length.app_error",
+    "translation": "De titel van de geplande samenvatting overschrijdt de maximale lengte."
+  },
+  {
+    "id": "model.scheduled_recap.is_valid.user_id.app_error",
+    "translation": "Een geplande samenvatting moet een gebruikers-id hebben."
+  },
+  {
+    "id": "model.user_access_token.is_valid.expires_at.app_error",
+    "translation": "Ongeldige expires_at, moet nul of een positieve Unix-tijdstempel in milliseconden zijn."
+  },
+  {
+    "id": "model.view.is_valid.props.kanban_column_id.app_error",
+    "translation": "Kanban-kolom heeft een ongeldig of ontbrekend ID."
+  },
+  {
+    "id": "model.view.is_valid.props.kanban_column_name.app_error",
+    "translation": "De naam van een Kanban-kolom mag niet leeg zijn."
+  },
+  {
+    "id": "model.view.is_valid.props.kanban_column_options.app_error",
+    "translation": "Een Kanban-kolom moet ten minste één optie-ID hebben."
+  },
+  {
+    "id": "model.view.is_valid.props.kanban_columns_empty.app_error",
+    "translation": "Een Kanban-weergave moet ten minste één kolom hebben."
+  },
+  {
+    "id": "model.view.is_valid.props.kanban_columns_max.app_error",
+    "translation": "De Kanban-weergave overschrijdt het maximale aantal kolommen."
+  },
+  {
+    "id": "model.view.is_valid.props.kanban_field_id.app_error",
+    "translation": "Een Kanban-weergave moet naar een geldig eigenschapsveld-ID verwijzen."
+  },
+  {
+    "id": "model.view.is_valid.props.kanban_invalid.app_error",
+    "translation": "De Kanban-weergave heeft een ongeldige props-structuur."
+  },
+  {
+    "id": "model.view.is_valid.props.kanban_required.app_error",
+    "translation": "Een Kanban-weergave vereist props met een group_by-configuratie."
+  },
+  {
+    "id": "plugin.api.update_post.mm_blocks_actions.app_error",
+    "translation": "Ongeldige mm_blocks_actions in plugin-berichtupdate."
+  },
+  {
+    "id": "plugin_api.channel.space_notify_props.app_error",
+    "translation": "Notify props kunnen niet worden ingesteld op space-kanalen."
+  },
+  {
+    "id": "shared_channel.system_message.no_longer_shared",
+    "translation": "Dit kanaal wordt niet langer gedeeld met {{.WorkspaceName}}."
+  },
+  {
+    "id": "shared_channel.system_message.now_shared",
+    "translation": "Dit kanaal wordt nu gedeeld met {{.WorkspaceName}}."
   }
 ]

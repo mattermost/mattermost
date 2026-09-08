@@ -10412,5 +10412,3697 @@
   {
     "id": "web.incoming_webhook.parse_multipart.app_error",
     "translation": "웹훅 {{.hook_id}}에 대한 멀티파트 양식을 구문 분석하지 못했습니다."
+  },
+  {
+    "id": "api.access_control.assign.team_group_constrained",
+    "translation": "그룹 동기화된 팀에는 멤버십 정책을 적용할 수 없습니다."
+  },
+  {
+    "id": "api.access_control_policy.channel_permission_policies.feature_disabled",
+    "translation": "채널 수준 권한 정책 기능이 활성화되어 있지 않습니다."
+  },
+  {
+    "id": "api.access_control_policy.permission_policies.feature_disabled",
+    "translation": "권한 정책 기능이 활성화되어 있지 않습니다."
+  },
+  {
+    "id": "api.access_control_policy.policy_simulation.feature_disabled",
+    "translation": "정책 시뮬레이션 기능이 활성화되어 있지 않습니다."
+  },
+  {
+    "id": "api.access_control_policy.simulate.users_out_of_scope.app_error",
+    "translation": "시뮬레이션의 모든 사용자는 요청에 포함된 팀 또는 채널의 구성원이어야 합니다."
+  },
+  {
+    "id": "api.access_control_policy.team_membership.feature_disabled",
+    "translation": "팀 멤버십 액세스 제어 기능이 활성화되어 있지 않습니다."
+  },
+  {
+    "id": "api.admin.test_azure.missing_azure_field",
+    "translation": "Azure Blob Storage 설정이 누락되었거나 유효하지 않습니다."
+  },
+  {
+    "id": "api.ai_bridge_test_helper.disabled.app_error",
+    "translation": "브리지 테스트 헬퍼가 비활성화되어 있습니다."
+  },
+  {
+    "id": "api.channel.add_user.to.channel.abac_subject_build_failed.app_error",
+    "translation": "사용자에 대한 액세스 제어 주체를 생성하지 못했습니다."
+  },
+  {
+    "id": "api.channel.board_channel.app_error",
+    "translation": "보드 채널은 /channels 엔드포인트를 통해 접근할 수 없습니다. 대신 /boards API를 사용해 주십시오."
+  },
+  {
+    "id": "api.channel.bookmark.board.readonly.app_error",
+    "translation": "보드 북마크는 보드 기능에서 관리되며 북마크 API를 통해 생성, 업데이트 또는 삭제할 수 없습니다."
+  },
+  {
+    "id": "api.channel.discoverable_join_request.already_member.app_error",
+    "translation": "이미 이 채널의 구성원입니다."
+  },
+  {
+    "id": "api.channel.discoverable_join_request.archived.app_error",
+    "translation": "보관된 채널에는 참여 요청을 할 수 없습니다."
+  },
+  {
+    "id": "api.channel.discoverable_join_request.discoverable_requires_approval.app_error",
+    "translation": "이 채널에 참여하려면 관리자 승인이 필요합니다. 채널 둘러보기 모달에서 요청을 보내 주십시오."
+  },
+  {
+    "id": "api.channel.discoverable_join_request.duplicate.app_error",
+    "translation": "이미 이 채널에 대한 참여 요청이 대기 중입니다."
+  },
+  {
+    "id": "api.channel.discoverable_join_request.feature_disabled.app_error",
+    "translation": "이 서버에서는 검색 가능한 채널 기능이 활성화되어 있지 않습니다."
+  },
+  {
+    "id": "api.channel.discoverable_join_request.guest.app_error",
+    "translation": "게스트는 검색 가능한 비공개 채널에 참여 요청을 할 수 없습니다."
+  },
+  {
+    "id": "api.channel.discoverable_join_request.invalid_patch.app_error",
+    "translation": "채널 참여 요청에 대한 업데이트가 유효하지 않습니다."
+  },
+  {
+    "id": "api.channel.discoverable_join_request.not_discoverable.app_error",
+    "translation": "이 채널은 검색 가능한 채널이 아닙니다."
+  },
+  {
+    "id": "api.channel.discoverable_join_request.not_pending.app_error",
+    "translation": "해당 참여 요청은 더 이상 대기 중이 아닙니다."
+  },
+  {
+    "id": "api.channel.discoverable_join_request.not_private.app_error",
+    "translation": "비공개 채널만 참여 요청을 받을 수 있습니다."
+  },
+  {
+    "id": "api.channel.discoverable_join_request.policy_denied.app_error",
+    "translation": "이 채널에 참여하는 데 필요한 액세스 규칙을 충족하지 않습니다."
+  },
+  {
+    "id": "api.channel.discoverable_join_request.shared.app_error",
+    "translation": "공유 채널은 검색 가능한 채널 참여 요청을 받지 않습니다."
+  },
+  {
+    "id": "api.channel.get_channel.flagged_post_mismatch.app_error",
+    "translation": "채널 ID가 신고된 게시물의 채널 ID와 일치하지 않습니다."
+  },
+  {
+    "id": "api.channel.patch_channel_moderations_for_channel.restricted_permission.app_error",
+    "translation": "팀 또는 시스템 권한 스키마에서 제한된 권한은 추가할 수 없습니다."
+  },
+  {
+    "id": "api.channel.patch_update_channel.auto_translation_restricted.app_error",
+    "translation": "이 채널에서는 자동 번역이 허용되지 않습니다."
+  },
+  {
+    "id": "api.channel.patch_update_channel.cannot_update_managed_category.app_error",
+    "translation": "올바른 권한 없이 이 채널의 관리되는 카테고리를 업데이트할 수 없습니다."
+  },
+  {
+    "id": "api.channel.patch_update_channel.feature_not_available.app_error",
+    "translation": "자동 번역 기능을 사용할 수 없습니다."
+  },
+  {
+    "id": "api.channel.patch_update_channel.group_constrained_not_allowed.app_error",
+    "translation": "이 채널 유형에는 group_constrained를 설정할 수 없습니다."
+  },
+  {
+    "id": "api.channel.patch_update_channel.no_changes.app_error",
+    "translation": "패치에 변경 사항이 없습니다."
+  },
+  {
+    "id": "api.channel.patch_update_channel.restricted_dm.app_error",
+    "translation": "제한된 쪽지 채널은 업데이트할 수 없습니다."
+  },
+  {
+    "id": "api.channel.post_update_channel_autotranslation_message.create_post.error",
+    "translation": "자동 번역 업데이트 메시지를 게시하지 못했습니다."
+  },
+  {
+    "id": "api.channel.post_update_channel_autotranslation_message.disabled",
+    "translation": "@%s님이 이 채널의 자동 번역을 비활성화했습니다. 이제 모든 새 메시지가 원본 언어로 표시됩니다."
+  },
+  {
+    "id": "api.channel.post_update_channel_autotranslation_message.enabled",
+    "translation": "@%s님이 이 채널의 자동 번역을 활성화했습니다. 이제 모든 새 메시지가 선호하는 언어로 표시됩니다."
+  },
+  {
+    "id": "api.channel.post_update_channel_autotranslation_message.retrieve_user.error",
+    "translation": "자동 번역 상태를 업데이트하는 중 사용자를 가져오지 못했습니다"
+  },
+  {
+    "id": "api.channel.set_members.group_constrained.app_error",
+    "translation": "그룹 제약이 적용된 채널에는 구성원을 설정할 수 없습니다."
+  },
+  {
+    "id": "api.channel.set_members.policy_enforced.app_error",
+    "translation": "정책이 적용된 채널에는 구성원을 설정할 수 없습니다."
+  },
+  {
+    "id": "api.channel.set_members.type.app_error",
+    "translation": "이 채널 유형에는 구성원을 설정할 수 없습니다."
+  },
+  {
+    "id": "api.channel.space_channel.app_error",
+    "translation": "스페이스 채널은 /channels 엔드포인트를 통해 접근할 수 없습니다. 대신 스페이스 API를 사용해 주십시오."
+  },
+  {
+    "id": "api.channel.update_channel.policy_enforced_type_conversion.app_error",
+    "translation": "이 채널에는 속성 기반 멤버십 정책이 적용되어 있습니다. 공개/비공개 전환 전에 정책을 제거해 주십시오."
+  },
+  {
+    "id": "api.channel.update_channel_member_autotranslation.channel_not_enabled.app_error",
+    "translation": "이 채널에서는 자동 번역이 활성화되어 있지 않습니다."
+  },
+  {
+    "id": "api.channel.update_channel_member_autotranslation.feature_not_available.app_error",
+    "translation": "자동 번역을 사용할 수 없습니다."
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.guest_and_admin.app_error",
+    "translation": "잘못된 채널 구성원 업데이트입니다. 사용자는 게스트이거나 관리자여야 하며, 둘 다일 수는 없습니다."
+  },
+  {
+    "id": "api.command.execute_command.provided_site_url_different.app_error",
+    "translation": "요청 호스트 이름이 설정된 SiteURL과 다릅니다. 슬래시 명령어 응답 URL에는 설정된 SiteURL이 사용됩니다."
+  },
+  {
+    "id": "api.command.execute_command.restricted_dm.error",
+    "translation": "제한된 쪽지에는 게시할 수 없습니다"
+  },
+  {
+    "id": "api.command.execute_command.site_url_required.app_error",
+    "translation": "슬래시 명령어를 사용하려면 SiteURL이 설정되어 있어야 합니다"
+  },
+  {
+    "id": "api.command.move_command.creator_no_permission.app_error",
+    "translation": "명령어를 이동할 권한이 없습니다"
+  },
+  {
+    "id": "api.command_mobile_logs.cross_user_unavailable.app_error",
+    "translation": "해당 사용자의 모바일 로그 설정을 변경할 수 없습니다."
+  },
+  {
+    "id": "api.command_mobile_logs.desc",
+    "translation": "자신 또는 다른 사용자의 모바일 앱 로그 첨부를 관리합니다."
+  },
+  {
+    "id": "api.command_mobile_logs.disabled",
+    "translation": "{{.User}}의 모바일 앱 로그 첨부가 비활성화되었습니다."
+  },
+  {
+    "id": "api.command_mobile_logs.enabled",
+    "translation": "{{.User}}의 모바일 앱 로그 첨부가 활성화되었습니다."
+  },
+  {
+    "id": "api.command_mobile_logs.hint",
+    "translation": "[on|off|status] [@username]"
+  },
+  {
+    "id": "api.command_mobile_logs.name",
+    "translation": "mobile-logs"
+  },
+  {
+    "id": "api.command_mobile_logs.status_off",
+    "translation": "{{.User}}의 모바일 앱 로그 첨부가 현재 비활성화되어 있습니다."
+  },
+  {
+    "id": "api.command_mobile_logs.status_on",
+    "translation": "{{.User}}의 모바일 앱 로그 첨부가 현재 활성화되어 있습니다."
+  },
+  {
+    "id": "api.command_mobile_logs.update_error.app_error",
+    "translation": "모바일 앱 로그 첨부 설정을 업데이트하지 못했습니다. 다시 시도해 주십시오."
+  },
+  {
+    "id": "api.command_mobile_logs.usage",
+    "translation": "사용법: /mobile-logs [on|off|status] [@username]"
+  },
+  {
+    "id": "api.command_mobile_logs.user_not_found.app_error",
+    "translation": "\"{{.Username}}\" 사용자를 찾을 수 없습니다."
+  },
+  {
+    "id": "api.command_mobile_logs.you",
+    "translation": "나"
+  },
+  {
+    "id": "api.context.invalid_body.app_error",
+    "translation": "유효하지 않은 게시물 props입니다."
+  },
+  {
+    "id": "api.context.session_cookie_not_allowed.app_error",
+    "translation": "이 엔드포인트에서는 쿠키 기반 인증이 허용되지 않습니다. 헤더 기반 인증을 사용해 주십시오."
+  },
+  {
+    "id": "api.data_spillage.error.comment_required",
+    "translation": "이 메시지를 신고하는 이유를 설명하는 코멘트를 추가해 주십시오."
+  },
+  {
+    "id": "api.data_spillage.error.comment_too_long",
+    "translation": "메시지 격리 사유는 {{.MaxLength}}자를 초과할 수 없습니다."
+  },
+  {
+    "id": "api.data_spillage.error.disabled",
+    "translation": "데이터 유출 처리 기능이 비활성화되어 있습니다."
+  },
+  {
+    "id": "api.data_spillage.error.invalid_channel_type",
+    "translation": "데이터 유출 처리는 쪽지 및 그룹 메시지 채널에서는 사용할 수 없습니다."
+  },
+  {
+    "id": "api.data_spillage.error.invalid_post_type",
+    "translation": "'{{.PostType}}' 유형의 게시물은 격리할 수 없습니다."
+  },
+  {
+    "id": "api.data_spillage.error.license",
+    "translation": "라이선스가 데이터 유출 처리를 지원하지 않습니다."
+  },
+  {
+    "id": "api.data_spillage.error.not_available_on_team",
+    "translation": "이 팀에서는 데이터 유출 처리 기능이 활성화되어 있지 않습니다."
+  },
+  {
+    "id": "api.data_spillage.error.post_not_in_progress",
+    "translation": "격리된 게시물을 유지하거나 제거하려면 대기 중 또는 할당됨 상태여야 합니다."
+  },
+  {
+    "id": "api.data_spillage.error.reason_invalid",
+    "translation": "메시지 격리에 대해 알 수 없는 사유가 지정되었습니다."
+  },
+  {
+    "id": "api.data_spillage.error.reason_required",
+    "translation": "이 메시지를 격리하는 사유를 선택해 주십시오."
+  },
+  {
+    "id": "api.data_spillage.error.user_not_reviewer",
+    "translation": "해당 사용자는 콘텐츠 검토자가 아닙니다."
+  },
+  {
+    "id": "api.data_spillage.exposure.write.app_error",
+    "translation": "게시물 노출 보고서를 작성하지 못했습니다."
+  },
+  {
+    "id": "api.data_spillage.report.open.app_error",
+    "translation": "생성된 신고 게시물 보고서 파일을 열지 못했습니다."
+  },
+  {
+    "id": "api.data_spillage.report.stat.app_error",
+    "translation": "신고 게시물 보고서 파일 정보를 읽지 못했습니다."
+  },
+  {
+    "id": "api.draft.create_draft.can_not_draft_to_restricted_dm.error",
+    "translation": "제한된 쪽지 채널에는 초안을 저장할 수 없습니다"
+  },
+  {
+    "id": "api.emoji.upload.too_many_frames.app_error",
+    "translation": "이모지를 생성할 수 없습니다. 애니메이션 GIF는 최대 {{.MaxFrames}}개의 프레임만 가질 수 있습니다."
+  },
+  {
+    "id": "api.encoding_error",
+    "translation": "API 응답을 JSON으로 인코딩하는 중 오류가 발생했습니다"
+  },
+  {
+    "id": "api.file.get_file.abac_denied.app_error",
+    "translation": "이 파일을 다운로드하는 데 필요한 액세스 권한이 없습니다."
+  },
+  {
+    "id": "api.file.get_file.invalid_flagged_post.app_error",
+    "translation": "일치하지 않는 신고 게시물 ID가 지정되었습니다."
+  },
+  {
+    "id": "api.file.get_file.plugin_hook_timeout",
+    "translation": "플러그인 훅 시간이 초과되었습니다"
+  },
+  {
+    "id": "api.file.get_file.rejected_by_plugin",
+    "translation": "플러그인이 파일 다운로드를 거부했습니다"
+  },
+  {
+    "id": "api.file.get_file_info.app_error",
+    "translation": "파일 정보를 가져오지 못했습니다."
+  },
+  {
+    "id": "api.file.get_file_preview.rejected_by_plugin",
+    "translation": "플러그인이 파일 미리보기 다운로드를 거부했습니다"
+  },
+  {
+    "id": "api.file.get_file_thumbnail.rejected_by_plugin",
+    "translation": "플러그인이 파일 썸네일 다운로드를 거부했습니다"
+  },
+  {
+    "id": "api.file.get_public_file.rejected_by_plugin",
+    "translation": "플러그인이 공개 파일 다운로드를 거부했습니다"
+  },
+  {
+    "id": "api.file.test_connection_auth.app_error",
+    "translation": "파일 저장소 백엔드에 인증할 수 없습니다. 자격 증명과 인증 설정을 확인해 주십시오."
+  },
+  {
+    "id": "api.file.test_connection_no_bucket.app_error",
+    "translation": "설정된 버킷 또는 컨테이너가 존재하지 않습니다. 파일 저장소 설정과 권한을 확인해 주십시오."
+  },
+  {
+    "id": "api.file.test_connection_settings_nil.app_error",
+    "translation": "파일 저장소 설정에 설정되지 않은 값이 있습니다."
+  },
+  {
+    "id": "api.file.test_connection_unsupported_driver.app_error",
+    "translation": "지원되지 않는 파일 저장소 드라이버 \"{{.Driver}}\"입니다. 지원되는 값은 \"local\", \"amazons3\", \"azureblob\"입니다."
+  },
+  {
+    "id": "api.file.upload_file.abac_denied.app_error",
+    "translation": "이 채널에 파일을 업로드하는 데 필요한 액세스 권한이 없습니다."
+  },
+  {
+    "id": "api.file.upload_file.get_channel.app_error",
+    "translation": "제한된 쪽지에는 파일을 업로드할 수 없습니다"
+  },
+  {
+    "id": "api.file.upload_file.restricted_dm.error",
+    "translation": "제한된 쪽지에는 파일을 업로드할 수 없습니다"
+  },
+  {
+    "id": "api.license.add_license.wrong_environment_production.app_error",
+    "translation": "이것은 프로덕션 라이선스이지만 이 서버는 테스트 또는 개발 환경에서 실행 중입니다. 프로덕션 라이선스는 프로덕션 서버에서만 사용할 수 있습니다."
+  },
+  {
+    "id": "api.license.add_license.wrong_environment_test.app_error",
+    "translation": "이것은 테스트 또는 개발 라이선스이지만 이 서버는 프로덕션 환경에서 실행 중입니다. 테스트 또는 개발 라이선스는 테스트 또는 개발 서버에서만 사용할 수 있습니다."
+  },
+  {
+    "id": "api.license.parse_license.parse_form.app_error",
+    "translation": "라이선스 업로드 폼을 파싱할 수 없습니다."
+  },
+  {
+    "id": "api.mark_all_as_read.disabled.app_error",
+    "translation": "모두 읽음으로 표시 기능이 활성화되어 있지 않습니다."
+  },
+  {
+    "id": "api.oauth.allow_oauth.pkce_required_public.app_error",
+    "translation": "인증 코드 흐름을 사용하는 공개 OAuth 클라이언트에는 PKCE(Proof Key for Code Exchange)가 필요합니다."
+  },
+  {
+    "id": "api.oauth.authorization_server_metadata.disabled.app_error",
+    "translation": "OAuth 서비스 제공자가 비활성화되어 있습니다."
+  },
+  {
+    "id": "api.oauth.authorization_server_metadata.invalid_url.app_error",
+    "translation": "인증 서버 메타데이터에 대한 URL 구성이 유효하지 않습니다."
+  },
+  {
+    "id": "api.oauth.authorization_server_metadata.site_url_required.app_error",
+    "translation": "인증 서버 메타데이터를 제공하려면 사이트 URL이 설정되어 있어야 합니다."
+  },
+  {
+    "id": "api.oauth.get_access_token.client_id_mismatch.app_error",
+    "translation": "invalid_grant: 토큰 승인이 이 클라이언트에 발급된 것이 아닙니다."
+  },
+  {
+    "id": "api.oauth.get_access_token.resource_mismatch.app_error",
+    "translation": "인증 요청과 토큰 요청 간에 resource 매개변수가 일치하지 않습니다."
+  },
+  {
+    "id": "api.oauth.regenerate_secret.public_client.app_error",
+    "translation": "invalid_request: 공개 OAuth 클라이언트의 시크릿은 재생성할 수 없습니다."
+  },
+  {
+    "id": "api.plugin.install.check_directory.app_error",
+    "translation": "플러그인 디렉터리 설정을 확인하는 중 오류가 발생했습니다."
+  },
+  {
+    "id": "api.plugin.install.directory_conflict.app_error",
+    "translation": "플러그인을 설치할 수 없습니다: PluginSettings.Directory가 ImportSettings.Directory와 충돌합니다."
+  },
+  {
+    "id": "api.post.burn_post.user_not_in_channel.app_error",
+    "translation": "이 게시물을 소각할 권한이 없습니다. 채널의 구성원이어야 합니다."
+  },
+  {
+    "id": "api.post.create_post.burn_on_read.app_error",
+    "translation": "읽은 후 삭제 게시물을 생성하는 중 오류가 발생했습니다."
+  },
+  {
+    "id": "api.post.create_post.can_not_post_in_restricted_dm.error",
+    "translation": "제한된 쪽지 채널에는 게시할 수 없습니다."
+  },
+  {
+    "id": "api.post.create_post.card_type_disabled.app_error",
+    "translation": "이 서버에서는 카드 게시물이 활성화되어 있지 않습니다."
+  },
+  {
+    "id": "api.post.create_post.silent_notification.app_error",
+    "translation": "봇, 웹훅, OAuth 앱, 플러그인 게시물만 무음으로 전달될 수 있습니다."
+  },
+  {
+    "id": "api.post.create_post.silent_persistent_notification.app_error",
+    "translation": "무음 게시물에는 영구 알림을 사용할 수 없습니다."
+  },
+  {
+    "id": "api.post.delete_post.can_not_delete_from_restricted_dm.error",
+    "translation": "제한된 쪽지 채널에서는 게시물을 삭제할 수 없습니다."
+  },
+  {
+    "id": "api.post.do_action.query.app_error",
+    "translation": "유효하지 않은 액션 쿼리입니다."
+  },
+  {
+    "id": "api.post.fill_in_post_props.burn_on_read.bot_dm.app_error",
+    "translation": "봇 또는 AI 에이전트와의 쪽지에서는 읽은 후 삭제 게시물을 사용할 수 없습니다."
+  },
+  {
+    "id": "api.post.fill_in_post_props.burn_on_read.channel.app_error",
+    "translation": "읽은 후 삭제 게시물에 대한 채널을 검증하는 중 오류가 발생했습니다."
+  },
+  {
+    "id": "api.post.fill_in_post_props.burn_on_read.config.app_error",
+    "translation": "읽은 후 삭제 게시물이 활성화되어 있지 않습니다. 기능 플래그와 서비스 설정을 활성화해 주십시오."
+  },
+  {
+    "id": "api.post.fill_in_post_props.burn_on_read.license.app_error",
+    "translation": "읽은 후 삭제 게시물에는 Enterprise Advanced 라이선스가 필요합니다."
+  },
+  {
+    "id": "api.post.fill_in_post_props.burn_on_read.self_dm.app_error",
+    "translation": "자기 자신에게 보내는 메시지에서는 읽은 후 삭제 게시물을 사용할 수 없습니다."
+  },
+  {
+    "id": "api.post.fill_in_post_props.burn_on_read.shared_channel.app_error",
+    "translation": "공유 채널에서는 읽은 후 삭제 게시물을 사용할 수 없습니다."
+  },
+  {
+    "id": "api.post.fill_in_post_props.burn_on_read.user.app_error",
+    "translation": "읽은 후 삭제 게시물에 대한 사용자를 검증하는 중 오류가 발생했습니다."
+  },
+  {
+    "id": "api.post.fill_in_post_props.invalid_ai_generated_user.app_error",
+    "translation": "AI 생성 사용자는 게시물 작성자 또는 봇이어야 합니다."
+  },
+  {
+    "id": "api.post.get_link_metadata_for_permalink.burn_on_read.app_error",
+    "translation": "읽은 후 삭제 게시물의 영구 링크에 대한 링크 메타데이터를 가져올 수 없습니다."
+  },
+  {
+    "id": "api.post.get_posts_for_reporting.channel_not_found",
+    "translation": "채널을 찾을 수 없습니다"
+  },
+  {
+    "id": "api.post.patch_post.can_not_update_burn_on_read_post.error",
+    "translation": "읽은 후 삭제 게시물은 수정할 수 없습니다."
+  },
+  {
+    "id": "api.post.patch_post.can_not_update_post_in_restricted_dm.error",
+    "translation": "제한된 쪽지 채널에서는 게시물을 수정할 수 없습니다."
+  },
+  {
+    "id": "api.post.reveal_post.cannot_reveal_own_post.app_error",
+    "translation": "자신의 읽은 후 삭제 게시물은 공개할 수 없습니다."
+  },
+  {
+    "id": "api.post.reveal_post.disabled.app_error",
+    "translation": "읽은 후 삭제 기능이 활성화되어 있지 않거나 Enterprise Advanced 라이선스가 필요합니다."
+  },
+  {
+    "id": "api.post.reveal_post.invalid_request.app_error",
+    "translation": "유효하지 않은 요청: X-Requested-With 헤더가 없거나 유효하지 않습니다."
+  },
+  {
+    "id": "api.post.reveal_post.user_not_in_channel.app_error",
+    "translation": "이 게시물을 공개할 권한이 없습니다. 채널의 구성원이어야 합니다."
+  },
+  {
+    "id": "api.post.update_post.burn_on_read.app_error",
+    "translation": "읽은 후 삭제 게시물은 수정할 수 없습니다."
+  },
+  {
+    "id": "api.post.update_post.can_not_update_post_in_restricted_dm.error",
+    "translation": "제한된 쪽지 채널에서는 게시물을 수정할 수 없습니다."
+  },
+  {
+    "id": "api.property.session_attributes.license.app_error",
+    "translation": "세션 속성 기능에는 Enterprise Advanced 라이선스가 필요합니다."
+  },
+  {
+    "id": "api.property.v2_group_not_found.app_error",
+    "translation": "지정한 속성 그룹을 찾을 수 없습니다."
+  },
+  {
+    "id": "api.property_field.create.invalid_target_type.app_error",
+    "translation": "제공된 대상 유형이 유효하지 않습니다."
+  },
+  {
+    "id": "api.property_field.create.protected_via_api.app_error",
+    "translation": "보호된 속성 필드는 API를 통해 생성할 수 없습니다."
+  },
+  {
+    "id": "api.property_field.create.target_id_required.app_error",
+    "translation": "채널 또는 팀 범위의 속성 필드를 생성할 때는 target_id가 필요합니다."
+  },
+  {
+    "id": "api.property_field.delete.no_permission.app_error",
+    "translation": "이 속성 필드를 삭제할 권한이 없습니다."
+  },
+  {
+    "id": "api.property_field.get.invalid_opts.app_error",
+    "translation": "속성 필드 검색 옵션이 유효하지 않습니다."
+  },
+  {
+    "id": "api.property_field.get.invalid_target_type.app_error",
+    "translation": "유효한 target_type(system, team 또는 channel)이 필요합니다."
+  },
+  {
+    "id": "api.property_field.get.scope_conflict.app_error",
+    "translation": "channel_id/team_id는 target_type/target_id와 함께 사용할 수 없습니다."
+  },
+  {
+    "id": "api.property_field.get.scope_required.app_error",
+    "translation": "범위 매개변수(channel_id, team_id 또는 target_type)가 필요합니다."
+  },
+  {
+    "id": "api.property_field.get.target_id_required.app_error",
+    "translation": "channel 또는 team target_type으로 조회할 때는 target_id가 필요합니다."
+  },
+  {
+    "id": "api.property_field.get.target_type_required.app_error",
+    "translation": "target_id를 제공할 때는 target_type이 필요합니다."
+  },
+  {
+    "id": "api.property_field.invalid_patch.app_error",
+    "translation": "속성 필드 패치가 유효하지 않습니다."
+  },
+  {
+    "id": "api.property_field.object_type_mismatch.app_error",
+    "translation": "속성 필드의 개체 유형이 URL과 일치하지 않습니다."
+  },
+  {
+    "id": "api.property_field.patch.legacy_field.app_error",
+    "translation": "v1 속성 필드는 이 API를 통해 패치할 수 없습니다."
+  },
+  {
+    "id": "api.property_field.update.no_field_permission.app_error",
+    "translation": "이 속성 필드를 수정할 권한이 없습니다."
+  },
+  {
+    "id": "api.property_field.update.no_options_permission.app_error",
+    "translation": "이 속성 필드의 옵션을 관리할 권한이 없습니다."
+  },
+  {
+    "id": "api.property_value.get.invalid_opts.app_error",
+    "translation": "속성 값 검색 옵션이 유효하지 않습니다."
+  },
+  {
+    "id": "api.property_value.invalid_object_type.app_error",
+    "translation": "제공된 개체 유형이 유효하지 않습니다."
+  },
+  {
+    "id": "api.property_value.patch.duplicate_field_id.app_error",
+    "translation": "요청에 중복된 필드 ID가 포함되어 있습니다."
+  },
+  {
+    "id": "api.property_value.patch.empty_body.app_error",
+    "translation": "요청 본문에는 하나 이상의 속성 값 업데이트가 포함되어야 합니다."
+  },
+  {
+    "id": "api.property_value.patch.field_not_found.app_error",
+    "translation": "이 그룹에서 속성 필드 {{.FieldID}}을(를) 찾을 수 없습니다."
+  },
+  {
+    "id": "api.property_value.patch.invalid_field_id.app_error",
+    "translation": "요청에 유효하지 않은 필드 ID가 하나 이상 있습니다."
+  },
+  {
+    "id": "api.property_value.patch.no_values_permission.app_error",
+    "translation": "하나 이상의 필드에 값을 설정할 권한이 없습니다."
+  },
+  {
+    "id": "api.property_value.patch.too_many_items.request_error",
+    "translation": "그렇게 많은 속성 값을 업데이트할 수 없습니다. 한 번에 최대 {{.Max}}개의 속성 값만 업데이트할 수 있습니다."
+  },
+  {
+    "id": "api.property_value.system_use_dedicated_route.app_error",
+    "translation": "시스템 값은 전용 시스템 값 엔드포인트를 사용해야 합니다."
+  },
+  {
+    "id": "api.property_value.template_no_values.app_error",
+    "translation": "템플릿 필드에는 값을 설정할 수 없습니다."
+  },
+  {
+    "id": "api.reaction.delete.restricted_dm.error",
+    "translation": "제한된 쪽지에서는 반응할 수 없습니다."
+  },
+  {
+    "id": "api.reaction.save.burn_on_read.app_error",
+    "translation": "읽은 후 삭제 게시물에는 반응할 수 없습니다."
+  },
+  {
+    "id": "api.reaction.save.restricted_dm.error",
+    "translation": "제한된 쪽지에서는 반응할 수 없습니다."
+  },
+  {
+    "id": "api.recap.disabled.app_error",
+    "translation": "이 기능은 활성화되어 있지 않습니다."
+  },
+  {
+    "id": "api.recap.permission_denied",
+    "translation": "이 리캡에 접근할 권한이 없습니다."
+  },
+  {
+    "id": "api.scheduled_recap.permission_denied",
+    "translation": "이 예약된 리캡에 접근할 권한이 없습니다."
+  },
+  {
+    "id": "api.shared_channel.attachment.creator_id_required.app_error",
+    "translation": "FileInfo.CreatorId는 필수입니다."
+  },
+  {
+    "id": "api.shared_channel.attachment.data_required.app_error",
+    "translation": "파일 데이터는 필수입니다."
+  },
+  {
+    "id": "api.shared_channel.attachment.file_info_required.app_error",
+    "translation": "FileInfo는 필수입니다."
+  },
+  {
+    "id": "api.shared_channel.attachment.filename_required.app_error",
+    "translation": "FileInfo.Name은 필수입니다."
+  },
+  {
+    "id": "api.team.access_control.added.system_message",
+    "translation": "이제 구성원 요구 사항을 충족하므로 **{{.TeamName}}** 팀에 추가되었습니다."
+  },
+  {
+    "id": "api.team.access_control.removed.system_message",
+    "translation": "더 이상 구성원 요구 사항을 충족하지 않으므로 **{{.TeamName}}** 팀에서 제거되었습니다."
+  },
+  {
+    "id": "api.team.add_user.to.team.abac_subject_build_failed.app_error",
+    "translation": "사용자에 대한 액세스 제어 주체를 생성하지 못했습니다."
+  },
+  {
+    "id": "api.team.add_user.to.team.rejected",
+    "translation": "사용자에게 팀에 참여하는 데 필요한 속성이 없습니다."
+  },
+  {
+    "id": "api.team.get_team.flagged_post_mismatch.app_error",
+    "translation": "팀 ID가 신고된 게시물의 팀 ID와 일치하지 않습니다."
+  },
+  {
+    "id": "api.team.invite_guests_to_channels.guest_magic_link_disabled.error",
+    "translation": "게스트 매직 링크가 활성화되어 있지 않습니다"
+  },
+  {
+    "id": "api.team.invite_members.account_deactivated.app_error",
+    "translation": "{{.Addresses}}에 연결된 계정이 비활성화되었습니다. 자세한 내용은 시스템 관리자에게 문의하세요."
+  },
+  {
+    "id": "api.team.invite_members.profiles_disabled.app_error",
+    "translation": "초대에서 프로필 필드를 미리 설정하려면 잠긴 프로필 필드가 활성화되어 있어야 합니다."
+  },
+  {
+    "id": "api.team.invite_members.profiles_graceful.app_error",
+    "translation": "초대에서 프로필 필드를 미리 설정하려면 graceful 모드가 필요합니다."
+  },
+  {
+    "id": "api.team.invite_members.profiles_license.app_error",
+    "translation": "초대에서 프로필 필드를 미리 설정하려면 Enterprise 라이선스가 필요합니다."
+  },
+  {
+    "id": "api.team.invite_members.username_taken.app_error",
+    "translation": "사용자 이름 {{.Username}}은(는) 이미 사용 중입니다."
+  },
+  {
+    "id": "api.team.update.group_constrained.policy_exists",
+    "translation": "구성원 정책이 적용된 팀에서는 그룹 동기화를 활성화할 수 없습니다."
+  },
+  {
+    "id": "api.team.update_team_member_roles.guest_and_admin.app_error",
+    "translation": "잘못된 팀 구성원 업데이트입니다. 사용자는 게스트이거나 관리자여야 하며, 둘 다일 수는 없습니다."
+  },
+  {
+    "id": "api.templates.email_footer_v2",
+    "translation": "© 2015 - {{ .CurrentYear }} Mattermost, Inc. 2100 Geng Road, Suite 210, Palo Alto, CA, 94303"
+  },
+  {
+    "id": "api.templates.guest_magic_link_body.footer.info",
+    "translation": "누군가 Mattermost 로그인 링크를 요청하여 이 이메일이 발송되었습니다. 요청한 적이 없다면 이 이메일을 무시하셔도 됩니다."
+  },
+  {
+    "id": "api.templates.guest_magic_link_body.footer.title",
+    "translation": "이 이메일을 요청하지 않으셨나요?"
+  },
+  {
+    "id": "api.templates.guest_magic_link_body.subtitle",
+    "translation": "아래 버튼을 클릭하여 계정에 로그인하세요. 이 링크를 다른 사람과 공유하지 마세요."
+  },
+  {
+    "id": "api.templates.guest_magic_link_body.title",
+    "translation": "Mattermost에 로그인"
+  },
+  {
+    "id": "api.templates.guest_magic_link_subject",
+    "translation": "{{ .SiteName }}에 로그인"
+  },
+  {
+    "id": "api.templates.license_need_help.info",
+    "translation": "요금제 및 갱신 옵션에 대한 도움이 필요하시면 <a href=\"https://mattermost.com/contact-sales/\">Mattermost 전문가와 상담</a>하세요."
+  },
+  {
+    "id": "api.templates.license_need_help.title",
+    "translation": "도움이 필요하신가요?"
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_subject",
+    "translation": "{{.SkuName}} 라이선스 갱신 기간이 다가오고 있습니다"
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_subtitle",
+    "translation": "<a href=\"{{.SiteURL}}\">{{.SiteName}}</a>의 {{.SkuName}} 라이선스가 {{.Days}}일 후에 만료될 예정입니다. Mattermost가 제공하는 안전하고 미션 크리티컬한 협업을 잘 활용하고 계시길 바랍니다."
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_subtitle_two",
+    "translation": "팀이 이러한 혜택을 계속 누릴 수 있도록 곧 갱신해 주세요."
+  },
+  {
+    "id": "api.templates.remove_expired_license.body.heading",
+    "translation": "Mattermost 라이선스가 만료되었습니다"
+  },
+  {
+    "id": "api.templates.remove_expired_license.body.subtitle",
+    "translation": "<a href=\"{{.SiteURL}}\">{{.SiteName}}</a>의 {{.SkuName}} 라이선스가 만료되어 일부 기능이 비활성화될 수 있습니다."
+  },
+  {
+    "id": "api.templates.remove_expired_license.body.subtitle_two",
+    "translation": "Mattermost의 모든 기능을 계속 사용하려면 지금 라이선스를 갱신해 주세요."
+  },
+  {
+    "id": "api.templates.remove_expired_license.subject",
+    "translation": "{{.SkuName}} 라이선스가 만료되었습니다"
+  },
+  {
+    "id": "api.templates.user_access_token_rotated_body.info",
+    "translation": "{{ .SiteURL }} 계정의 개인 액세스 토큰이 재생성되었습니다. 이전 토큰 시크릿은 더 이상 유효하지 않습니다."
+  },
+  {
+    "id": "api.templates.user_access_token_rotated_body.title",
+    "translation": "개인 액세스 토큰이 재생성되었습니다"
+  },
+  {
+    "id": "api.templates.user_access_token_rotated_subject",
+    "translation": "[{{ .SiteName }}] 개인 액세스 토큰이 재생성되었습니다"
+  },
+  {
+    "id": "api.upload.create.check_directory.app_error",
+    "translation": "가져오기 디렉터리 구성을 확인하는 중 오류가 발생했습니다."
+  },
+  {
+    "id": "api.upload.create.directory_conflict.app_error",
+    "translation": "가져오기 업로드를 생성할 수 없습니다: ImportSettings.Directory가 PluginSettings.Directory와 충돌합니다."
+  },
+  {
+    "id": "api.user.attach_device_id.invalid_device_id.app_error",
+    "translation": "유효하지 않은 기기 ID입니다."
+  },
+  {
+    "id": "api.user.attach_device_id.invalid_voip_device_id.app_error",
+    "translation": "유효하지 않은 VoIP 기기 ID입니다."
+  },
+  {
+    "id": "api.user.check_user_password.invalid_hash.app_error",
+    "translation": "해시된 비밀번호의 형식이 유효하지 않아 구문 분석할 수 없습니다."
+  },
+  {
+    "id": "api.user.delete_channel.not_enabled.for_admin.app_error",
+    "translation": "영구 채널 삭제 기능이 활성화되어 있지 않습니다. 이 명령을 사용하려면 ServiceSettings.EnableAPIChannelDeletion을 true로 설정해야 합니다. 자세한 내용은 https://mattermost.com/pl/environment-configuration-settings 를 참고하세요"
+  },
+  {
+    "id": "api.user.delete_team.not_enabled.for_admin.app_error",
+    "translation": "영구 팀 삭제 기능이 활성화되어 있지 않습니다. 이 명령을 사용하려면 ServiceSettings.EnableAPITeamDeletion을 true로 설정해야 합니다. 자세한 내용은 https://mattermost.com/pl/environment-configuration-settings 를 참고하세요."
+  },
+  {
+    "id": "api.user.delete_user.not_enabled.for_admin.app_error",
+    "translation": "영구 사용자 삭제 기능이 활성화되어 있지 않습니다. 이 명령을 사용하려면 ServiceSettings.EnableAPIUserDeletion을 true로 설정해야 합니다. 자세한 내용은 https://mattermost.com/pl/environment-configuration-settings 를 참고하세요."
+  },
+  {
+    "id": "api.user.demote_user_to_guest.bot_not_allowed.app_error",
+    "translation": "봇 계정은 게스트 계정으로 변환할 수 없습니다."
+  },
+  {
+    "id": "api.user.get_users_not_in_abac_team.access_control_unavailable.app_error",
+    "translation": "액세스 제어 서비스를 사용할 수 없습니다. ABAC 사용 팀에 대해 사용자를 필터링할 수 없습니다."
+  },
+  {
+    "id": "api.user.guest_magic_link.expired_token.app_error",
+    "translation": "이 초대 링크가 만료되었습니다."
+  },
+  {
+    "id": "api.user.guest_magic_link.invalid_token.app_error",
+    "translation": "유효하지 않은 초대 링크입니다."
+  },
+  {
+    "id": "api.user.guest_magic_link.missing_token.app_error",
+    "translation": "초대 토큰이 없습니다."
+  },
+  {
+    "id": "api.user.guest_magic_link.username_generation_failed.app_error",
+    "translation": "고유한 사용자 이름을 생성할 수 없습니다. 시스템 관리자에게 문의하세요."
+  },
+  {
+    "id": "api.user.login.guest_magic_link.disabled.error",
+    "translation": "매직 링크를 통한 로그인이 비활성화되어 있습니다."
+  },
+  {
+    "id": "api.user.login_by_intune.account_locked.app_error",
+    "translation": "계정이 비활성화되었습니다. 시스템 관리자에게 문의하세요."
+  },
+  {
+    "id": "api.user.login_by_intune.bot_login_forbidden.app_error",
+    "translation": "봇 계정은 Microsoft 인증을 사용하여 로그인할 수 없습니다."
+  },
+  {
+    "id": "api.user.login_by_intune.not_available.app_error",
+    "translation": "Microsoft Intune 인증을 사용할 수 없습니다."
+  },
+  {
+    "id": "api.user.login_by_intune.not_configured.app_error",
+    "translation": "Microsoft Intune 인증이 구성되어 있지 않습니다."
+  },
+  {
+    "id": "api.user.login_sso_code_exchange.deprecated.app_error",
+    "translation": "이 엔드포인트는 더 이상 사용되지 않으며 비활성화되었습니다. 모바일 앱을 업데이트해 주세요."
+  },
+  {
+    "id": "api.user.oauth.get_settings.app_error",
+    "translation": "{{.Service}} 설정을 가져오지 못했습니다"
+  },
+  {
+    "id": "api.user.oauth_to_email.integration_session.app_error",
+    "translation": "통합 세션으로는 이메일 인증으로 전환할 수 없습니다."
+  },
+  {
+    "id": "api.user.oauth_to_email.magic_link.app_error",
+    "translation": "매직 링크는 이 계정에서 사용할 수 있는 유일한 로그인 방법입니다."
+  },
+  {
+    "id": "api.user.oauth_to_email.not_oauth_user.app_error",
+    "translation": "사용자가 OAuth 또는 SAML 인증을 사용하고 있지 않으므로 이메일 인증으로 전환할 수 없습니다."
+  },
+  {
+    "id": "api.user.patch_user.profile_field_locked.app_error",
+    "translation": "{{.Field}} 필드는 시스템 관리자가 관리하므로 변경할 수 없습니다."
+  },
+  {
+    "id": "api.user.promote_guest_to_user.magic_link_enabled.app_error",
+    "translation": "게스트가 매직 링크 인증을 사용하므로 일반 사용자로 변환할 수 없습니다."
+  },
+  {
+    "id": "api.user.rotate_user_access_token.disabled_token.app_error",
+    "translation": "비활성화된 액세스 토큰은 재생성할 수 없습니다."
+  },
+  {
+    "id": "api.user.saml.relay_state_too_long.app_error",
+    "translation": "SAML 릴레이 상태가 너무 깁니다."
+  },
+  {
+    "id": "api.user.send_password_reset.guest_magic_link.app_error",
+    "translation": "게스트 매직 링크 계정의 비밀번호는 재설정할 수 없습니다."
+  },
+  {
+    "id": "api.user.session_attributes.disabled.app_error",
+    "translation": "세션 속성이 활성화되어 있지 않습니다."
+  },
+  {
+    "id": "api.user.update_password.magic_link.app_error",
+    "translation": "매직 링크 계정의 비밀번호는 업데이트할 수 없습니다."
+  },
+  {
+    "id": "api.user.update_user.profile_field_locked.app_error",
+    "translation": "{{.Field}} 필드는 시스템 관리자가 관리하므로 변경할 수 없습니다."
+  },
+  {
+    "id": "api.user.upload_profile_user.profile_field_locked.app_error",
+    "translation": "프로필 사진은 시스템 관리자가 관리하므로 변경할 수 없습니다."
+  },
+  {
+    "id": "api.view.create.deleted_channel.app_error",
+    "translation": "삭제된 채널에는 보기를 생성할 수 없습니다."
+  },
+  {
+    "id": "api.view.delete.channel_mismatch.app_error",
+    "translation": "보기가 지정된 채널에 속해 있지 않습니다."
+  },
+  {
+    "id": "api.view.delete.deleted_channel.app_error",
+    "translation": "삭제된 채널의 보기는 삭제할 수 없습니다."
+  },
+  {
+    "id": "api.view.get.channel_mismatch.app_error",
+    "translation": "보기가 지정된 채널에 속해 있지 않습니다."
+  },
+  {
+    "id": "api.view.get.deleted_channel.app_error",
+    "translation": "삭제된 채널에서 보기를 가져올 수 없습니다."
+  },
+  {
+    "id": "api.view.get_posts.channel_mismatch.app_error",
+    "translation": "보기가 지정된 채널에 속해 있지 않습니다."
+  },
+  {
+    "id": "api.view.get_posts.deleted_channel.app_error",
+    "translation": "삭제된 채널에서 보기의 게시물을 가져올 수 없습니다."
+  },
+  {
+    "id": "api.view.list.deleted_channel.app_error",
+    "translation": "삭제된 채널의 보기 목록은 가져올 수 없습니다."
+  },
+  {
+    "id": "api.view.update.channel_mismatch.app_error",
+    "translation": "보기가 지정된 채널에 속해 있지 않습니다."
+  },
+  {
+    "id": "api.view.update.deleted_channel.app_error",
+    "translation": "삭제된 채널의 보기는 업데이트할 수 없습니다."
+  },
+  {
+    "id": "api.view.update_sort_order.deleted_channel.app_error",
+    "translation": "삭제된 채널에서는 보기 정렬 순서를 업데이트할 수 없습니다."
+  },
+  {
+    "id": "api.webhook.incoming.user_membership.app_error",
+    "translation": "웹훅 사용자는 대상 팀 또는 채널의 구성원이어야 합니다."
+  },
+  {
+    "id": "api.webhook.incoming.user_role.app_error",
+    "translation": "자신보다 높은 권한을 가진 사용자에게 웹훅을 할당할 수 없습니다."
+  },
+  {
+    "id": "app.access_control.build_subject.get_subject.app_error",
+    "translation": "액세스 제어 주체를 가져오지 못했습니다."
+  },
+  {
+    "id": "app.access_control.build_subject.group_id.app_error",
+    "translation": "액세스 제어 속성 그룹을 가져오지 못했습니다."
+  },
+  {
+    "id": "app.access_control.get_channel_role.app_error",
+    "translation": "사용자의 채널 역할을 가져올 수 없습니다. 다시 시도해 주세요."
+  },
+  {
+    "id": "app.access_control.get_session_attributes.app_error",
+    "translation": "세션 속성을 가져오지 못했습니다."
+  },
+  {
+    "id": "app.access_control.plugin.evaluation_unavailable.app_error",
+    "translation": "이 리소스에 대한 액세스 제어를 평가할 수 없습니다."
+  },
+  {
+    "id": "app.access_control.plugin.invalid_acting_user.app_error",
+    "translation": "행위 사용자가 유효하지 않거나 존재하지 않습니다."
+  },
+  {
+    "id": "app.access_control.plugin.invalid_action.app_error",
+    "translation": "해당 작업은 유효한 액세스 제어 작업이 아닙니다."
+  },
+  {
+    "id": "app.access_control.plugin.invalid_id.app_error",
+    "translation": "액세스 제어 API에 잘못된 식별자가 전달되었습니다."
+  },
+  {
+    "id": "app.access_control.plugin.invalid_resource_type.app_error",
+    "translation": "해당 리소스 유형은 유효한 플러그인 액세스 제어 리소스 유형이 아닙니다."
+  },
+  {
+    "id": "app.access_control.plugin.policy_not_found.app_error",
+    "translation": "액세스 제어 정책을 찾을 수 없습니다."
+  },
+  {
+    "id": "app.access_control.plugin.resource_type_forbidden.app_error",
+    "translation": "호출한 플러그인은 이 리소스 유형을 소유하고 있지 않습니다."
+  },
+  {
+    "id": "app.access_control.plugin.type_conflict.app_error",
+    "translation": "이 ID로 된 다른 유형의 액세스 제어 정책이 이미 존재합니다."
+  },
+  {
+    "id": "app.agents.get_agents.app_error",
+    "translation": "에이전트를 가져오지 못했습니다."
+  },
+  {
+    "id": "app.agents.get_agents.bridge_call_failed",
+    "translation": "브리지 호출에 실패했습니다."
+  },
+  {
+    "id": "app.agents.get_services.app_error",
+    "translation": "LLM 서비스를 가져오지 못했습니다."
+  },
+  {
+    "id": "app.agents.get_services.bridge_call_failed",
+    "translation": "브리지 호출에 실패했습니다."
+  },
+  {
+    "id": "app.ai.summarize.agent_call_failed",
+    "translation": "AI 에이전트 호출에 실패했습니다."
+  },
+  {
+    "id": "app.ai.summarize.parse_failed",
+    "translation": "AI 요약 응답을 구문 분석하지 못했습니다."
+  },
+  {
+    "id": "app.ai_bridge_test_helper.invalid_config",
+    "translation": "AI 브리지 테스트 도우미에 대한 구성이 유효하지 않습니다."
+  },
+  {
+    "id": "app.bot.update.internal_error",
+    "translation": "봇을 업데이트할 수 없습니다."
+  },
+  {
+    "id": "app.bot.update_bot_active.protected_bot.app_error",
+    "translation": "시스템 소유 봇은 비활성화할 수 없습니다."
+  },
+  {
+    "id": "app.burn_post.not_burn_on_read.app_error",
+    "translation": "이 게시물은 읽은 후 삭제 게시물이 아니므로 소각할 수 없습니다."
+  },
+  {
+    "id": "app.burn_post.not_revealed.app_error",
+    "translation": "이 읽은 후 삭제 게시물은 아직 공개되지 않았습니다. 소각하기 전에 먼저 공개해야 합니다."
+  },
+  {
+    "id": "app.burn_post.read_receipt.get.error",
+    "translation": "읽음 확인을 가져오는 중 오류가 발생했습니다."
+  },
+  {
+    "id": "app.burn_post.read_receipt.update.error",
+    "translation": "읽음 확인을 업데이트하는 중 오류가 발생했습니다."
+  },
+  {
+    "id": "app.channel.add_user.to.channel.rejected_by_plugin",
+    "translation": "플러그인이 채널 구성원 추가를 거부했습니다: {{.Reason}}"
+  },
+  {
+    "id": "app.channel.create_board_channel.boards_not_enabled.app_error",
+    "translation": "통합 Boards 기능이 활성화되어 있지 않습니다."
+  },
+  {
+    "id": "app.channel.create_board_channel.internal_error",
+    "translation": "보드 채널을 생성할 수 없습니다."
+  },
+  {
+    "id": "app.channel.create_board_channel.invalid.app_error",
+    "translation": "보드 채널 데이터가 잘못되었습니다."
+  },
+  {
+    "id": "app.channel.create_board_channel.limit.app_error",
+    "translation": "팀당 최대 채널 수에 도달했습니다."
+  },
+  {
+    "id": "app.channel.create_channel.board_type.app_error",
+    "translation": "보드 채널은 CreateChannel을 통해 생성할 수 없습니다. 대신 /boards API를 사용하세요."
+  },
+  {
+    "id": "app.channel.create_channel.space_type.app_error",
+    "translation": "스페이스 채널은 이 엔드포인트를 통해 생성할 수 없습니다."
+  },
+  {
+    "id": "app.channel.create_channel.spaces_not_enabled.app_error",
+    "translation": "Docs 기능이 활성화되어 있지 않습니다."
+  },
+  {
+    "id": "app.channel.delete_channel.rejected_by_plugin",
+    "translation": "플러그인이 채널 보관을 거부했습니다: {{.Reason}}"
+  },
+  {
+    "id": "app.channel.get.existing.app_error",
+    "translation": "기존 채널 {{.channel_id}}을(를) 찾을 수 없습니다."
+  },
+  {
+    "id": "app.channel.get.find.app_error",
+    "translation": "채널 {{.channel_id}}을(를) 찾는 중 오류가 발생했습니다."
+  },
+  {
+    "id": "app.channel.get_channels_by_team_with_unreads_and_with_mentions.app_error",
+    "translation": "읽지 않은 메시지와 멘션이 포함된 채널을 가져올 수 없습니다."
+  },
+  {
+    "id": "app.channel.get_common_teams.app_error",
+    "translation": "채널의 공통 팀을 가져오는 중 오류가 발생했습니다."
+  },
+  {
+    "id": "app.channel.join_request.get.app_error",
+    "translation": "채널 참여 요청을 불러오지 못했습니다."
+  },
+  {
+    "id": "app.channel.join_request.not_found.app_error",
+    "translation": "채널 참여 요청을 찾을 수 없습니다."
+  },
+  {
+    "id": "app.channel.join_request.save.app_error",
+    "translation": "채널 참여 요청을 저장하지 못했습니다."
+  },
+  {
+    "id": "app.channel.join_request.update.app_error",
+    "translation": "채널 참여 요청을 업데이트하지 못했습니다."
+  },
+  {
+    "id": "app.channel.move_channel.space.app_error",
+    "translation": "스페이스는 이 엔드포인트를 통해 이동할 수 없습니다."
+  },
+  {
+    "id": "app.channel.restore_channel.rejected_by_plugin",
+    "translation": "플러그인이 채널 복원을 거부했습니다: {{.Reason}}"
+  },
+  {
+    "id": "app.channel.save_member.app_error",
+    "translation": "채널 구성원을 저장할 수 없습니다."
+  },
+  {
+    "id": "app.channel.set_members.context_cancelled.app_error",
+    "translation": "채널 구성원 설정 작업이 취소되었습니다."
+  },
+  {
+    "id": "app.channel.set_members.empty_private.app_error",
+    "translation": "비공개 채널에서 모든 구성원을 제거할 수 없습니다."
+  },
+  {
+    "id": "app.channel.set_members.get_current.app_error",
+    "translation": "현재 채널 구성원을 가져올 수 없습니다."
+  },
+  {
+    "id": "app.channel.set_members.get_members.app_error",
+    "translation": "역할 조정을 위해 채널 구성원을 가져올 수 없습니다."
+  },
+  {
+    "id": "app.channel.update_channel.plugin_type_mutation.app_error",
+    "translation": "플러그인 {{.PluginID}}이(가) ChannelWillBeUpdated를 통해 채널 유형을 변경하려고 했습니다. 유형 변경은 전용 유형 변경 경로를 통해서만 가능합니다"
+  },
+  {
+    "id": "app.channel.update_channel.rejected_by_plugin",
+    "translation": "플러그인이 채널 업데이트를 거부했습니다: {{.Reason}}"
+  },
+  {
+    "id": "app.channel.update_channel_privacy.space.app_error",
+    "translation": "스페이스는 이 엔드포인트를 통해 공개 여부를 변경할 수 없습니다."
+  },
+  {
+    "id": "app.channel_guard.invalid_channel.app_error",
+    "translation": "채널 ID가 유효한 채널 식별자가 아닙니다."
+  },
+  {
+    "id": "app.channel_guard.register.app_error",
+    "translation": "채널 가드를 등록할 수 없습니다."
+  },
+  {
+    "id": "app.channel_guard.register.empty_channel.app_error",
+    "translation": "채널 가드를 등록하려면 채널 ID가 필요합니다."
+  },
+  {
+    "id": "app.channel_guard.unregister.app_error",
+    "translation": "채널 가드 등록을 해제할 수 없습니다."
+  },
+  {
+    "id": "app.channel_guard.unregister.empty_channel.app_error",
+    "translation": "채널 가드 등록을 해제하려면 채널 ID가 필요합니다."
+  },
+  {
+    "id": "app.command.validatecommandtriggeruniqueness.internal_error",
+    "translation": "지정한 트리거 키워드가 이미 존재합니다."
+  },
+  {
+    "id": "app.compile_csv_chunks.write_error",
+    "translation": "CSV 데이터를 작성하지 못했습니다."
+  },
+  {
+    "id": "app.data_spillage.assign_reviewer.no_reviewer_field.app_error",
+    "translation": "검토자 ID 속성 필드를 찾을 수 없습니다."
+  },
+  {
+    "id": "app.data_spillage.assign_reviewer.update_status_property_value.app_error",
+    "translation": "검토자를 설정하는 중 상태 속성 값을 업데이트하지 못했습니다."
+  },
+  {
+    "id": "app.data_spillage.assign_reviewer.upsert_property_value.app_error",
+    "translation": "신고된 게시물의 검토자를 설정하지 못했습니다."
+  },
+  {
+    "id": "app.data_spillage.can_flag_post.in_progress",
+    "translation": "이 게시물은 이미 검토를 위해 격리되어 있으므로 격리할 수 없습니다."
+  },
+  {
+    "id": "app.data_spillage.can_flag_post.removed",
+    "translation": "이 게시물은 이전 검토에서 제거되었으므로 격리할 수 없습니다."
+  },
+  {
+    "id": "app.data_spillage.can_flag_post.retained",
+    "translation": "이 게시물은 이전 검토에서 유지되었으므로 격리할 수 없습니다."
+  },
+  {
+    "id": "app.data_spillage.can_flag_post.unknown",
+    "translation": "이 게시물은 상태를 알 수 없으므로 격리할 수 없습니다."
+  },
+  {
+    "id": "app.data_spillage.create_property_values.app_error",
+    "translation": "신고된 게시물의 속성 값을 저장할 수 없습니다."
+  },
+  {
+    "id": "app.data_spillage.exposure.column.email",
+    "translation": "이메일"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.is_deactivated",
+    "translation": "비활성화됨"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.is_guest",
+    "translation": "게스트"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.is_remote",
+    "translation": "원격 사용자"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.last_activity_at",
+    "translation": "사용자 마지막 활동 시간 (YYYY-MM-DDTHH:MM:SSZ)"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.last_viewed_at",
+    "translation": "채널 마지막 조회 시간 (YYYY-MM-DDTHH:MM:SSZ)"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.user_id",
+    "translation": "사용자 ID"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.username",
+    "translation": "사용자 이름"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.was_channel_member",
+    "translation": "채널 구성원 여부"
+  },
+  {
+    "id": "app.data_spillage.exposure.edit_history_post.app_error",
+    "translation": "편집 기록의 이전 버전에 대해서는 노출 보고서를 생성할 수 없습니다. 현재 게시물 ID를 사용하세요."
+  },
+  {
+    "id": "app.data_spillage.exposure.get_channel_members.app_error",
+    "translation": "신고된 게시물의 채널 멤버십 기록을 가져오지 못했습니다."
+  },
+  {
+    "id": "app.data_spillage.exposure.get_last_activity.app_error",
+    "translation": "신고된 게시물에 대한 세션 활동을 가져오지 못했습니다."
+  },
+  {
+    "id": "app.data_spillage.exposure.get_possible_viewers.app_error",
+    "translation": "신고된 게시물의 채널 읽음 상태를 가져오지 못했습니다."
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.channel",
+    "translation": "채널"
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.generated_at",
+    "translation": "생성 시간"
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.post_id",
+    "translation": "게시물 ID"
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.report_version",
+    "translation": "보고서 버전"
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.total_users",
+    "translation": "전체 사용자 수"
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.window_end",
+    "translation": "신고 시간"
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.window_start",
+    "translation": "게시물 작성 시간"
+  },
+  {
+    "id": "app.data_spillage.exposure.missing_reporting_time.app_error",
+    "translation": "신고된 게시물에 신고 시간이 기록되어 있지 않아 노출 기간을 확인할 수 없습니다."
+  },
+  {
+    "id": "app.data_spillage.exposure.unsupported_channel_type.app_error",
+    "translation": "쪽지와 그룹 메시지에 대해서는 노출 보고서를 지원하지 않습니다."
+  },
+  {
+    "id": "app.data_spillage.exposure.value.never_viewed",
+    "translation": "해당 없음"
+  },
+  {
+    "id": "app.data_spillage.exposure.value.no",
+    "translation": "아니요"
+  },
+  {
+    "id": "app.data_spillage.exposure.value.no_sessions",
+    "translation": "세션을 찾을 수 없음"
+  },
+  {
+    "id": "app.data_spillage.exposure.value.unknown",
+    "translation": "알 수 없음"
+  },
+  {
+    "id": "app.data_spillage.exposure.value.yes",
+    "translation": "예"
+  },
+  {
+    "id": "app.data_spillage.flag_post.marshal_comment.app_error",
+    "translation": "신고한 사용자의 의견을 직렬화하지 못했습니다"
+  },
+  {
+    "id": "app.data_spillage.flag_post.marshal_reason.app_error",
+    "translation": "신고한 사용자의 사유를 직렬화하지 못했습니다"
+  },
+  {
+    "id": "app.data_spillage.flag_post_confirmation.message",
+    "translation": "@{{.username}}님의 메시지가 검토를 위해 격리되었습니다. 검토자가 검토를 완료하면 알림을 받게 됩니다."
+  },
+  {
+    "id": "app.data_spillage.get_group.error",
+    "translation": "콘텐츠 신고 속성 그룹을 가져올 수 없습니다."
+  },
+  {
+    "id": "app.data_spillage.get_reviewer_settings.app_error",
+    "translation": "데이터베이스에서 콘텐츠 검토자 설정을 가져오지 못했습니다"
+  },
+  {
+    "id": "app.data_spillage.get_status_property.app_error",
+    "translation": "상태 속성 필드를 가져오지 못했습니다."
+  },
+  {
+    "id": "app.data_spillage.get_thread_replies.app_error",
+    "translation": "신고된 게시물의 스레드 답글을 가져오지 못했습니다."
+  },
+  {
+    "id": "app.data_spillage.get_users_in_team.app_error",
+    "translation": "팀에서 검토자를 검색하지 못했습니다."
+  },
+  {
+    "id": "app.data_spillage.keep_flag_post.marshal_comment.app_error",
+    "translation": "검토자 의견을 직렬화하지 못했습니다"
+  },
+  {
+    "id": "app.data_spillage.keep_post.status_update.app_error",
+    "translation": "신고된 게시물 삭제를 취소하는 중 게시물 상태를 업데이트하지 못했습니다 "
+  },
+  {
+    "id": "app.data_spillage.keep_post.undelete.app_error",
+    "translation": "신고된 게시물 및 관련 데이터의 삭제를 취소하는 중 데이터베이스에서 게시물을 업데이트하지 못했습니다."
+  },
+  {
+    "id": "app.data_spillage.marshal_property_values.app_error",
+    "translation": "WebSocket 이벤트로 전송할 콘텐츠 신고 속성 값을 직렬화하지 못했습니다."
+  },
+  {
+    "id": "app.data_spillage.missing_flagged_post_id_field.app_error",
+    "translation": "신고된 게시물 ID 속성 필드를 찾을 수 없습니다."
+  },
+  {
+    "id": "app.data_spillage.missing_manage_by_field.app_error",
+    "translation": "Manage By 속성 필드를 찾을 수 없습니다."
+  },
+  {
+    "id": "app.data_spillage.missing_reporting_user_id_field.app_error",
+    "translation": "신고 사용자 필드를 찾을 수 없습니다."
+  },
+  {
+    "id": "app.data_spillage.missing_reporting_user_id_property_value.app_error",
+    "translation": "신고 사용자 필드의 값을 찾을 수 없습니다."
+  },
+  {
+    "id": "app.data_spillage.missing_status_field.app_error",
+    "translation": "상태 속성 필드를 찾을 수 없습니다."
+  },
+  {
+    "id": "app.data_spillage.no_status_property.app_error",
+    "translation": "게시물이 신고되지 않았으므로 신고된 게시물 정보를 가져올 수 없습니다."
+  },
+  {
+    "id": "app.data_spillage.permanently_delete.marshal_comment.app_error",
+    "translation": "검토자 의견을 직렬화하지 못했습니다"
+  },
+  {
+    "id": "app.data_spillage.permanently_delete.update_property_value.app_error",
+    "translation": "신고된 게시물을 영구 삭제하는 중 게시물 상태를 업데이트하지 못했습니다."
+  },
+  {
+    "id": "app.data_spillage.report.cleared",
+    "translation": "지워짐"
+  },
+  {
+    "id": "app.data_spillage.report.close.app_error",
+    "translation": "신고된 게시물 보고서 파일을 닫지 못했습니다."
+  },
+  {
+    "id": "app.data_spillage.report.column.detail",
+    "translation": "세부 정보"
+  },
+  {
+    "id": "app.data_spillage.report.column.status",
+    "translation": "상태"
+  },
+  {
+    "id": "app.data_spillage.report.column.step",
+    "translation": "단계"
+  },
+  {
+    "id": "app.data_spillage.report.detail.deleted",
+    "translation": "삭제되었습니다."
+  },
+  {
+    "id": "app.data_spillage.report.detail.failed_retrieve_edit_history",
+    "translation": "편집 기록을 가져오지 못했습니다."
+  },
+  {
+    "id": "app.data_spillage.report.detail.file_attachments_info_ids",
+    "translation": "**파일 정보 ID:** {{.FileInfoIDs}}"
+  },
+  {
+    "id": "app.data_spillage.report.detail.file_names",
+    "translation": {
+      "other": "디스크에서 파일 {{.Count}}개를 제거했습니다."
+    }
+  },
+  {
+    "id": "app.data_spillage.report.detail.no_data_found",
+    "translation": "데이터가 없습니다."
+  },
+  {
+    "id": "app.data_spillage.report.detail.no_files",
+    "translation": "파일이 없습니다."
+  },
+  {
+    "id": "app.data_spillage.report.detail.no_rows_to_delete",
+    "translation": "삭제할 행이 없습니다."
+  },
+  {
+    "id": "app.data_spillage.report.detail.post_scrubbed_deleted",
+    "translation": "게시물 내용이 지워지고 삭제되었습니다."
+  },
+  {
+    "id": "app.data_spillage.report.detail.revisions_cleared",
+    "translation": {
+      "other": "총 {{.Total}}개 중 수정본 {{.Count}}개를 지웠습니다."
+    }
+  },
+  {
+    "id": "app.data_spillage.report.detail.thread_data_deleted",
+    "translation": "스레드, 반응 및 관련 데이터가 삭제되었습니다."
+  },
+  {
+    "id": "app.data_spillage.report.error_log",
+    "translation": "오류 로그"
+  },
+  {
+    "id": "app.data_spillage.report.generated",
+    "translation": "생성 시각:"
+  },
+  {
+    "id": "app.data_spillage.report.incomplete_warning",
+    "translation": "게시물 삭제가 완료되지 않았습니다. 오류 로그를 확인하고 시스템 관리자에게 수동 조치를 요청하세요."
+  },
+  {
+    "id": "app.data_spillage.report.post_id",
+    "translation": "게시물 ID:"
+  },
+  {
+    "id": "app.data_spillage.report.revision",
+    "translation": "수정본"
+  },
+  {
+    "id": "app.data_spillage.report.revisions_found",
+    "translation": "발견된 수정본:"
+  },
+  {
+    "id": "app.data_spillage.report.status.failed",
+    "translation": "실패"
+  },
+  {
+    "id": "app.data_spillage.report.status.not_applicable",
+    "translation": "해당 없음"
+  },
+  {
+    "id": "app.data_spillage.report.status.partial",
+    "translation": "부분 완료"
+  },
+  {
+    "id": "app.data_spillage.report.status.removed",
+    "translation": "제거됨"
+  },
+  {
+    "id": "app.data_spillage.report.status.unknown",
+    "translation": "알 수 없음"
+  },
+  {
+    "id": "app.data_spillage.report.step.acknowledgements",
+    "translation": "확인 응답"
+  },
+  {
+    "id": "app.data_spillage.report.step.edit_histories",
+    "translation": "편집 기록"
+  },
+  {
+    "id": "app.data_spillage.report.step.file_attachments",
+    "translation": "첨부 파일"
+  },
+  {
+    "id": "app.data_spillage.report.step.fileinfo_rows",
+    "translation": "첨부 파일 레코드"
+  },
+  {
+    "id": "app.data_spillage.report.step.persistent_notifications",
+    "translation": "영구 알림"
+  },
+  {
+    "id": "app.data_spillage.report.step.post_itself",
+    "translation": "게시물 레코드"
+  },
+  {
+    "id": "app.data_spillage.report.step.priority_data",
+    "translation": "우선순위 메타데이터"
+  },
+  {
+    "id": "app.data_spillage.report.step.reminders",
+    "translation": "리마인더"
+  },
+  {
+    "id": "app.data_spillage.report.step.thread_data",
+    "translation": "스레드, 답글 및 반응"
+  },
+  {
+    "id": "app.data_spillage.report.summary",
+    "translation": "요약"
+  },
+  {
+    "id": "app.data_spillage.report.sync.app_error",
+    "translation": "신고된 게시물 보고서 파일을 디스크에 동기화하지 못했습니다."
+  },
+  {
+    "id": "app.data_spillage.report.tempfile.app_error",
+    "translation": "신고된 게시물 보고서용 임시 파일을 생성하지 못했습니다."
+  },
+  {
+    "id": "app.data_spillage.report.title",
+    "translation": "게시물 삭제 보고서"
+  },
+  {
+    "id": "app.data_spillage.report.total_steps",
+    "translation": "전체 단계:"
+  },
+  {
+    "id": "app.data_spillage.report.write_edit_yaml.app_error",
+    "translation": "신고된 게시물 보고서에 편집 기록 항목을 작성하지 못했습니다."
+  },
+  {
+    "id": "app.data_spillage.report.write_exposure_csv.app_error",
+    "translation": "노출 보고서를 신고 게시물 보고서에 기록하지 못했습니다."
+  },
+  {
+    "id": "app.data_spillage.report.write_metadata_yaml.app_error",
+    "translation": "신고된 게시물 보고서에 메타데이터를 작성하지 못했습니다."
+  },
+  {
+    "id": "app.data_spillage.report.write_post_yaml.app_error",
+    "translation": "신고된 게시물 보고서에 게시물 세부 정보를 작성하지 못했습니다."
+  },
+  {
+    "id": "app.data_spillage.report.write_review_yaml.app_error",
+    "translation": "신고된 게시물 보고서에 콘텐츠 검토 세부 정보를 작성하지 못했습니다."
+  },
+  {
+    "id": "app.data_spillage.report.zip_close.app_error",
+    "translation": "신고된 게시물 보고서 아카이브를 닫지 못했습니다."
+  },
+  {
+    "id": "app.data_spillage.report.zip_copy.app_error",
+    "translation": "첨부 파일 내용을 신고된 게시물 보고서 아카이브에 복사하지 못했습니다."
+  },
+  {
+    "id": "app.data_spillage.report.zip_create.app_error",
+    "translation": "신고된 게시물 보고서 아카이브에 항목을 생성하지 못했습니다."
+  },
+  {
+    "id": "app.data_spillage.save_reviewer_settings.app_error",
+    "translation": "콘텐츠 검토자 설정을 데이터베이스에 저장하지 못했습니다."
+  },
+  {
+    "id": "app.data_spillage.search_common_reviewers.app_error",
+    "translation": "공통 검토자에서 검색어를 검색하지 못했습니다."
+  },
+  {
+    "id": "app.data_spillage.search_property_fields.app_error",
+    "translation": "콘텐츠 신고 속성 필드를 검색하지 못했습니다."
+  },
+  {
+    "id": "app.data_spillage.search_property_values.app_error",
+    "translation": "데이터베이스에서 게시물의 콘텐츠 신고 속성 값을 가져오지 못했습니다."
+  },
+  {
+    "id": "app.data_spillage.search_reviewer_posts.app_error",
+    "translation": "신고된 게시물의 검토자 게시물을 검색하지 못했습니다."
+  },
+  {
+    "id": "app.data_spillage.search_status_property.app_error",
+    "translation": "신고된 게시물의 속성 값을 검색하지 못했습니다."
+  },
+  {
+    "id": "app.data_spillage.search_sysadmin_reviewers.app_error",
+    "translation": "시스템 관리자 검토자에서 검색어를 검색하지 못했습니다."
+  },
+  {
+    "id": "app.data_spillage.search_team_admin_reviewers.app_error",
+    "translation": "팀 관리자 검토자에서 검색어를 검색하지 못했습니다."
+  },
+  {
+    "id": "app.data_spillage.search_team_reviewers.app_error",
+    "translation": "팀 검토자에서 검색어를 검색하지 못했습니다."
+  },
+  {
+    "id": "app.data_spillage.set_thread_replies_properties.app_error",
+    "translation": "신고된 게시물의 스레드 답글에 속성 값을 설정하지 못했습니다."
+  },
+  {
+    "id": "app.draft.upsert.rejected_by_plugin",
+    "translation": "플러그인이 초안을 거부했습니다: {{.Reason}}"
+  },
+  {
+    "id": "app.export.generate_presigned_url.config.app_error",
+    "translation": "이 작업에는 전용 내보내기 저장소가 필요합니다."
+  },
+  {
+    "id": "app.export.generate_presigned_url.direct_download.app_error",
+    "translation": "내보내기 파일의 직접 다운로드는 Mattermost Cloud에서만 사용할 수 있습니다."
+  },
+  {
+    "id": "app.export.generate_presigned_url.driver.app_error",
+    "translation": "사용 중인 내보내기 저장소 드라이버는 서명된 URL 생성을 지원하지 않습니다."
+  },
+  {
+    "id": "app.export.generate_presigned_url.fileexist.app_error",
+    "translation": "파일이 존재하는지 확인할 수 없습니다."
+  },
+  {
+    "id": "app.export.generate_presigned_url.link.app_error",
+    "translation": "서명된 URL을 생성할 수 없습니다."
+  },
+  {
+    "id": "app.export.generate_presigned_url.notfound.app_error",
+    "translation": "내보내기 파일을 찾을 수 없습니다."
+  },
+  {
+    "id": "app.file_info.not_found",
+    "translation": "파일 저장소의 해당 경로에서 파일을 찾을 수 없습니다."
+  },
+  {
+    "id": "app.file_info.remove_file.app_error",
+    "translation": "파일 저장소에서 파일을 제거하지 못했습니다."
+  },
+  {
+    "id": "app.import.import_bot.lookup_error",
+    "translation": "기존 봇을 조회하지 못했습니다"
+  },
+  {
+    "id": "app.import.import_bot.user_not_found.error",
+    "translation": "봇에 해당하는 사용자를 찾을 수 없습니다"
+  },
+  {
+    "id": "app.import.import_direct_channel.save_member.error",
+    "translation": "개인 채널 가져오기 중 채널 구성원을 저장하지 못했습니다"
+  },
+  {
+    "id": "app.import.validate_user_import_data.channel_guest_missing_system_guest_role.error",
+    "translation": "사용자에게 채널 게스트 역할이 있지만 시스템 게스트가 아닙니다."
+  },
+  {
+    "id": "app.import.validate_user_import_data.system_guest_missing_channel_guest_roles.error",
+    "translation": "사용자가 시스템 게스트이지만 모든 채널에서 채널 게스트 역할을 갖고 있지 않습니다. 채널 게스트 수: {{.ChannelGuestCount}}, 전체 채널 수: {{.TotalChannels}}."
+  },
+  {
+    "id": "app.import.validate_user_import_data.system_guest_missing_team_guest_roles.error",
+    "translation": "사용자가 시스템 게스트이지만 모든 팀에서 팀 게스트 역할을 갖고 있지 않습니다. 팀 게스트 수: {{.TeamGuestCount}}, 전체 팀 수: {{.TotalTeams}}."
+  },
+  {
+    "id": "app.import.validate_user_import_data.team_guest_missing_system_guest_role.error",
+    "translation": "사용자에게 팀 게스트 역할이 있지만 시스템 게스트가 아닙니다."
+  },
+  {
+    "id": "app.limits.get_app_limits.single_channel_guest_count.store_error",
+    "translation": "단일 채널 게스트 수를 가져오지 못했습니다."
+  },
+  {
+    "id": "app.managed_category.clear.app_error",
+    "translation": "채널에서 관리 카테고리를 해제하지 못했습니다."
+  },
+  {
+    "id": "app.managed_category.dm_gm_not_allowed.app_error",
+    "translation": "개인 메시지 및 그룹 메시지 채널은 관리 카테고리에 할당할 수 없습니다."
+  },
+  {
+    "id": "app.managed_category.empty_name.app_error",
+    "translation": "관리 카테고리 이름은 비워 둘 수 없습니다."
+  },
+  {
+    "id": "app.managed_category.get_mappings.app_error",
+    "translation": "관리 카테고리 매핑을 가져오지 못했습니다."
+  },
+  {
+    "id": "app.managed_category.search.app_error",
+    "translation": "채널의 관리 카테고리를 검색하지 못했습니다."
+  },
+  {
+    "id": "app.managed_category.set.app_error",
+    "translation": "채널에 관리 카테고리를 설정하지 못했습니다."
+  },
+  {
+    "id": "app.notify_expiring_access_tokens.dm",
+    "translation": "개인 액세스 토큰 \"{{.Description}}\"이(가) {{.Days}}일 이내에 만료됩니다. 작동이 중지되기 전에 **프로필 > 보안**에서 토큰을 다시 생성하세요."
+  },
+  {
+    "id": "app.notify_expiring_access_tokens.dm_final",
+    "translation": "개인 액세스 토큰 \"{{.Description}}\"이(가) 24시간 이내에 만료됩니다. 작동이 중지되기 전에 **프로필 > 보안**에서 토큰을 다시 생성하세요."
+  },
+  {
+    "id": "app.notify_expiring_access_tokens.unnamed_token",
+    "translation": "(설명 없음)"
+  },
+  {
+    "id": "app.pap.access_control.channel_default",
+    "translation": "멤버십 정책은 팀 기본 채널에 적용할 수 없습니다."
+  },
+  {
+    "id": "app.pap.access_control.channel_type_not_supported",
+    "translation": "액세스 제어 정책은 공개 또는 비공개 채널에만 적용할 수 있습니다."
+  },
+  {
+    "id": "app.pap.assign_access_control_policy_to_teams.app_error",
+    "translation": "팀에 액세스 제어 정책을 할당할 수 없습니다."
+  },
+  {
+    "id": "app.pap.delete_policy.masked_values",
+    "translation": "이 정책에는 볼 수 있는 권한이 없는 속성 값이 포함되어 있으므로 삭제할 수 없습니다."
+  },
+  {
+    "id": "app.pap.get_masked_visual_ast.app_error",
+    "translation": "표현식에서 마스킹된 시각적 AST를 생성할 수 없습니다."
+  },
+  {
+    "id": "app.pap.get_policies_for_field_ids.app_error",
+    "translation": "지정된 필드 ID에 대한 정책을 가져올 수 없습니다."
+  },
+  {
+    "id": "app.pap.get_team_members_to_remove.app_error",
+    "translation": "제거할 팀 구성원을 가져올 수 없습니다."
+  },
+  {
+    "id": "app.pap.has_masked_values.app_error",
+    "translation": "정책 표현식의 마스킹된 값을 확인할 수 없습니다."
+  },
+  {
+    "id": "app.pap.hydrate_actions.app_error",
+    "translation": "채널의 액세스 제어 정책에 선언된 작업 집합을 불러올 수 없습니다."
+  },
+  {
+    "id": "app.pap.mask_expression.app_error",
+    "translation": "정책 표현식을 마스킹할 수 없습니다."
+  },
+  {
+    "id": "app.pap.masking.ambiguous_sibling.app_error",
+    "translation": "여러 사용자 속성이 동일한 템플릿에 연결되어 있어 채널 속성의 가시성을 명확하게 확인할 수 없습니다."
+  },
+  {
+    "id": "app.pap.masking.unknown_object_type.app_error",
+    "translation": "알 수 없는 객체 유형에 대해서는 속성 가시성을 확인할 수 없습니다."
+  },
+  {
+    "id": "app.pap.merge_expression.app_error",
+    "translation": "정책 표현식을 저장된 마스킹 값과 병합할 수 없습니다."
+  },
+  {
+    "id": "app.pap.rehydrate_rank.app_error",
+    "translation": "정책 표현식의 순위 연산자를 복원할 수 없습니다."
+  },
+  {
+    "id": "app.pap.save_policy.forbidden",
+    "translation": "이 정책을 변경할 수 있는 권한이 없습니다."
+  },
+  {
+    "id": "app.pap.save_policy.invalid_value",
+    "translation": "정책 표현식에 허용되지 않는 값이 포함되어 있습니다."
+  },
+  {
+    "id": "app.pap.save_policy.masked_condition_deleted",
+    "translation": "마스킹된 값이 포함된 조건이 삭제되었습니다. 정책을 다시 불러온 후 다시 시도하세요."
+  },
+  {
+    "id": "app.pap.save_policy.masked_token_in_expression",
+    "translation": "정책 표현식에 확인할 수 없는 자리 표시자 값이 포함되어 있습니다. 정책을 다시 불러온 후 다시 시도하세요."
+  },
+  {
+    "id": "app.pap.save_policy.name_exists.app_error",
+    "translation": "같은 이름의 정책이 이미 존재합니다. 다른 이름을 선택하세요."
+  },
+  {
+    "id": "app.pap.save_policy.parent_resource_attributes_team_assigned",
+    "translation": "이 액세스 규칙은 팀에는 없는 채널 속성을 사용합니다. 저장하기 전에 이 정책에 할당된 팀을 제거하세요."
+  },
+  {
+    "id": "app.pap.save_policy.resolver_error",
+    "translation": "정책 저장을 위한 속성 리졸버를 초기화할 수 없습니다."
+  },
+  {
+    "id": "app.pap.save_policy.resource_attributes_disabled",
+    "translation": "이 서버에서는 액세스 규칙에 채널 속성을 사용할 수 없습니다. 이 기능이 활성화되어 있지 않습니다."
+  },
+  {
+    "id": "app.pap.save_policy.rule_name_unique.app_error",
+    "translation": "권한 규칙 이름은 정책 내에서 고유해야 합니다."
+  },
+  {
+    "id": "app.pap.save_policy.self_exclusion",
+    "translation": "이 정책의 조건 중 하나 이상을 충족하지 않습니다."
+  },
+  {
+    "id": "app.pap.save_policy.team_resource_attributes",
+    "translation": "이 액세스 규칙은 팀에는 없는 채널 속성을 사용합니다. 채널 속성을 사용하는 액세스 규칙은 채널에만 적용할 수 있습니다."
+  },
+  {
+    "id": "app.pap.simulate.attribute_refresh",
+    "translation": "시뮬레이션을 위한 속성을 새로 고치지 못했습니다."
+  },
+  {
+    "id": "app.pap.simulate.channel_required_for_resource",
+    "translation": "채널 속성을 참조하는 정책을 시뮬레이션하려면 채널이 필요합니다."
+  },
+  {
+    "id": "app.pap.simulate.compile_failed",
+    "translation": "시뮬레이션을 위한 정책을 컴파일하지 못했습니다."
+  },
+  {
+    "id": "app.pap.simulate.feature_disabled",
+    "translation": "권한 정책 기능이 현재 비활성화되어 있습니다."
+  },
+  {
+    "id": "app.pap.simulate.invalid_policy",
+    "translation": "정책이 유효하지 않습니다."
+  },
+  {
+    "id": "app.pap.simulate.missing_actions",
+    "translation": "시뮬레이션에는 하나 이상의 작업이 필요합니다."
+  },
+  {
+    "id": "app.pap.simulate.missing_channel_id",
+    "translation": "채널 범위 정책을 시뮬레이션하려면 채널이 필요합니다."
+  },
+  {
+    "id": "app.pap.simulate.missing_policy",
+    "translation": "시뮬레이션에는 정책이 필요합니다."
+  },
+  {
+    "id": "app.pap.simulate.missing_users",
+    "translation": "시뮬레이션에는 한 명 이상의 사용자가 필요합니다."
+  },
+  {
+    "id": "app.pap.simulate.resolver_error",
+    "translation": "정책 시뮬레이션을 위한 속성 리졸버를 초기화할 수 없습니다."
+  },
+  {
+    "id": "app.pap.simulate.too_many_users",
+    "translation": "요청한 사용자가 너무 많습니다. 최대 {{.Max}}명까지 허용됩니다."
+  },
+  {
+    "id": "app.pap.simulate.unavailable",
+    "translation": "정책 관리 지점(Policy Administration Point)이 초기화되지 않았습니다."
+  },
+  {
+    "id": "app.pap.simulate.unsupported_type",
+    "translation": "정책 유형 \"{{.Type}}\"은(는) 시뮬레이터에서 지원되지 않습니다."
+  },
+  {
+    "id": "app.pap.unassign_access_control_policy_from_teams.app_error",
+    "translation": "팀에서 액세스 제어 정책을 할당 해제할 수 없습니다."
+  },
+  {
+    "id": "app.pap.update_access_control_policies_active.app_error",
+    "translation": "액세스 제어 정책의 활성 상태를 업데이트할 수 없습니다."
+  },
+  {
+    "id": "app.pdp.access_evaluation.permission_policy.app_error",
+    "translation": "권한 정책을 평가하지 못했습니다."
+  },
+  {
+    "id": "app.plugin.guard_hook_failed.app_error",
+    "translation": "작업이 거부되었습니다: 요청한 플러그인 {{.PluginID}}의 훅 호출이 실패했습니다"
+  },
+  {
+    "id": "app.plugin.inactive_guard.app_error",
+    "translation": "작업이 거부되었습니다: 필요한 플러그인이 활성 상태가 아닙니다"
+  },
+  {
+    "id": "app.post.get_post.app_error",
+    "translation": "읽은 후 삭제 게시물 내용을 가져오는 중 오류가 발생했습니다."
+  },
+  {
+    "id": "app.post.get_posts_for_reporting.app_error",
+    "translation": "보고용 게시물을 가져올 수 없습니다."
+  },
+  {
+    "id": "app.post.get_posts_for_reporting.invalid_input_error",
+    "translation": "보고용 게시물을 가져올 수 없습니다. 잘못된 입력입니다."
+  },
+  {
+    "id": "app.post.get_posts_for_reporting.license_error",
+    "translation": "사용 중인 라이선스는 게시물 보고 기능을 지원하지 않습니다."
+  },
+  {
+    "id": "app.post.get_posts_for_view.app_error",
+    "translation": "보기에 표시할 게시물을 가져올 수 없습니다."
+  },
+  {
+    "id": "app.post.rewrite.agent_call_failed",
+    "translation": "AI 에이전트 호출에 실패했습니다."
+  },
+  {
+    "id": "app.post.rewrite.empty_response",
+    "translation": "AI로부터 빈 응답을 받았습니다."
+  },
+  {
+    "id": "app.post.rewrite.invalid_action",
+    "translation": "잘못된 다시 쓰기 작업입니다."
+  },
+  {
+    "id": "app.post.rewrite.parse_response_failed",
+    "translation": "AI의 다시 쓰기 응답을 구문 분석하지 못했습니다."
+  },
+  {
+    "id": "app.post_priority.delete_for_post.app_error",
+    "translation": "데이터베이스에서 게시물의 우선순위 데이터를 영구 삭제하지 못했습니다."
+  },
+  {
+    "id": "app.post_prority.get_for_post_with_context.app_error",
+    "translation": "컨텍스트를 사용하여 게시물의 우선순위를 가져올 수 없습니다"
+  },
+  {
+    "id": "app.property.access_denied.app_error",
+    "translation": "이 작업을 수행할 수 있는 권한이 없습니다."
+  },
+  {
+    "id": "app.property.invalid_access_mode.app_error",
+    "translation": "access_mode 속성이 유효하지 않습니다."
+  },
+  {
+    "id": "app.property.license_error",
+    "translation": "사용 중인 라이선스는 이 속성 그룹을 지원하지 않습니다."
+  },
+  {
+    "id": "app.property.not_found.app_error",
+    "translation": "지정한 속성이 존재하지 않습니다."
+  },
+  {
+    "id": "app.property.sync_lock.app_error",
+    "translation": "이 속성 필드는 외부 동기화로 관리되므로 직접 수정할 수 없습니다."
+  },
+  {
+    "id": "app.property_field.count_for_group.app_error",
+    "translation": "그룹의 속성 필드 수를 계산할 수 없습니다."
+  },
+  {
+    "id": "app.property_field.count_for_target.app_error",
+    "translation": "대상의 속성 필드 수를 계산할 수 없습니다."
+  },
+  {
+    "id": "app.property_field.create.app_error",
+    "translation": "속성 필드를 생성할 수 없습니다."
+  },
+  {
+    "id": "app.property_field.create.group_limit_reached.app_error",
+    "translation": "이 그룹의 최대 속성 필드 수에 도달했습니다."
+  },
+  {
+    "id": "app.property_field.create.limit_reached.app_error",
+    "translation": "이 개체 유형의 최대 속성 필드 수에 도달했습니다."
+  },
+  {
+    "id": "app.property_field.create.linked_source_cross_group.app_error",
+    "translation": "다른 그룹의 필드에는 연결할 수 없습니다."
+  },
+  {
+    "id": "app.property_field.create.linked_source_deleted.app_error",
+    "translation": "연결된 원본 필드가 삭제되었습니다."
+  },
+  {
+    "id": "app.property_field.create.linked_source_is_linked.app_error",
+    "translation": "이미 연결된 필드에는 연결할 수 없습니다. 연결 체인은 허용되지 않습니다."
+  },
+  {
+    "id": "app.property_field.create.linked_source_not_found.app_error",
+    "translation": "연결된 원본 필드를 찾을 수 없습니다."
+  },
+  {
+    "id": "app.property_field.create.linked_source_not_template.app_error",
+    "translation": "템플릿 필드에만 연결할 수 있습니다."
+  },
+  {
+    "id": "app.property_field.create.linked_source_protected.app_error",
+    "translation": "보호된 템플릿에서 연결된 필드를 생성할 수 있는 것은 원본 플러그인뿐입니다."
+  },
+  {
+    "id": "app.property_field.create.linked_target_type_mismatch.app_error",
+    "translation": "연결된 필드의 대상 유형은 원본 템플릿의 대상 유형과 일치해야 합니다."
+  },
+  {
+    "id": "app.property_field.create.name_conflict.app_error",
+    "translation": "속성 \"{{.Name}}\"을(를) 생성할 수 없습니다. 같은 이름의 속성이 {{.ConflictLevel}} 수준에 이미 존재합니다."
+  },
+  {
+    "id": "app.property_field.create.protected.app_error",
+    "translation": "보호된 속성 필드는 생성할 수 없습니다."
+  },
+  {
+    "id": "app.property_field.create.template_cannot_be_linked.app_error",
+    "translation": "템플릿 필드에는 연결된 필드를 지정할 수 없습니다."
+  },
+  {
+    "id": "app.property_field.delete.app_error",
+    "translation": "속성 필드를 삭제할 수 없습니다."
+  },
+  {
+    "id": "app.property_field.delete.get_existing.app_error",
+    "translation": "삭제할 속성 필드를 가져올 수 없습니다."
+  },
+  {
+    "id": "app.property_field.delete.has_linked_dependents.app_error",
+    "translation": "활성 연결 종속 필드가 있는 필드는 삭제할 수 없습니다. 먼저 종속 필드의 연결을 해제하거나 삭제하세요."
+  },
+  {
+    "id": "app.property_field.delete.not_found.app_error",
+    "translation": "속성 필드를 찾을 수 없습니다."
+  },
+  {
+    "id": "app.property_field.delete.protected.app_error",
+    "translation": "보호된 속성 필드는 삭제할 수 없습니다."
+  },
+  {
+    "id": "app.property_field.get.app_error",
+    "translation": "속성 필드를 가져올 수 없습니다."
+  },
+  {
+    "id": "app.property_field.get_by_name.app_error",
+    "translation": "이름으로 속성 필드를 가져올 수 없습니다."
+  },
+  {
+    "id": "app.property_field.get_for_group.app_error",
+    "translation": "그룹의 속성 필드를 가져올 수 없습니다."
+  },
+  {
+    "id": "app.property_field.get_many.app_error",
+    "translation": "속성 필드를 가져올 수 없습니다."
+  },
+  {
+    "id": "app.property_field.invalid_attrs.app_error",
+    "translation": "속성 필드의 속성이 유효하지 않습니다."
+  },
+  {
+    "id": "app.property_field.invalid_input.app_error",
+    "translation": "잘못된 입력이 제공되었습니다."
+  },
+  {
+    "id": "app.property_field.managed_admin.permission.app_error",
+    "translation": "이 속성 필드를 관리자 관리 필드로 표시할 수 있는 권한이 없습니다."
+  },
+  {
+    "id": "app.property_field.not_found.app_error",
+    "translation": "지정한 속성 필드가 존재하지 않습니다."
+  },
+  {
+    "id": "app.property_field.rank_disabled.app_error",
+    "translation": "순위 속성 필드가 활성화되어 있지 않습니다."
+  },
+  {
+    "id": "app.property_field.search.app_error",
+    "translation": "속성 필드를 검색할 수 없습니다."
+  },
+  {
+    "id": "app.property_field.update.app_error",
+    "translation": "속성 필드를 업데이트할 수 없습니다."
+  },
+  {
+    "id": "app.property_field.update.cannot_change_link_target.app_error",
+    "translation": "연결 대상을 변경할 수 없습니다. 먼저 연결을 해제한 후 새 연결 필드를 생성하세요."
+  },
+  {
+    "id": "app.property_field.update.cannot_link_existing.app_error",
+    "translation": "기존 필드에는 linked_field_id를 설정할 수 없습니다. 생성 시에만 설정할 수 있습니다."
+  },
+  {
+    "id": "app.property_field.update.conflict.app_error",
+    "translation": "충돌로 인해 속성 필드를 업데이트할 수 없습니다. 다시 시도하세요."
+  },
+  {
+    "id": "app.property_field.update.get_existing.app_error",
+    "translation": "업데이트할 속성 필드를 가져올 수 없습니다."
+  },
+  {
+    "id": "app.property_field.update.linked_options_change.app_error",
+    "translation": "연결된 필드의 옵션은 수정할 수 없습니다. 옵션은 원본에서 상속됩니다."
+  },
+  {
+    "id": "app.property_field.update.linked_type_change.app_error",
+    "translation": "연결된 필드의 유형은 수정할 수 없습니다. 유형은 원본에서 상속됩니다."
+  },
+  {
+    "id": "app.property_field.update.name_conflict.app_error",
+    "translation": "속성을 \"{{.Name}}\"(으)로 업데이트할 수 없습니다. 같은 이름의 속성이 {{.ConflictLevel}} 수준에 이미 존재합니다."
+  },
+  {
+    "id": "app.property_field.update.protected.app_error",
+    "translation": "보호된 속성 필드는 업데이트할 수 없습니다."
+  },
+  {
+    "id": "app.property_field.update.type_change_with_dependents.app_error",
+    "translation": "활성 연결 종속 필드가 있는 필드의 유형은 변경할 수 없습니다."
+  },
+  {
+    "id": "app.property_field.version_mismatch.app_error",
+    "translation": "속성 필드와 그룹의 버전이 호환되지 않습니다."
+  },
+  {
+    "id": "app.property_group.get.app_error",
+    "translation": "속성 그룹을 가져올 수 없습니다."
+  },
+  {
+    "id": "app.property_group.register.app_error",
+    "translation": "속성 그룹을 등록할 수 없습니다."
+  },
+  {
+    "id": "app.property_value.create.app_error",
+    "translation": "속성 값을 생성할 수 없습니다."
+  },
+  {
+    "id": "app.property_value.create_many.app_error",
+    "translation": "속성 값을 생성할 수 없습니다."
+  },
+  {
+    "id": "app.property_value.delete.app_error",
+    "translation": "속성 값을 삭제할 수 없습니다."
+  },
+  {
+    "id": "app.property_value.delete_for_field.app_error",
+    "translation": "필드의 속성 값을 삭제할 수 없습니다."
+  },
+  {
+    "id": "app.property_value.delete_for_target.app_error",
+    "translation": "대상의 속성 값을 삭제할 수 없습니다."
+  },
+  {
+    "id": "app.property_value.get.app_error",
+    "translation": "속성 값을 가져올 수 없습니다."
+  },
+  {
+    "id": "app.property_value.get_many.app_error",
+    "translation": "속성 값을 가져올 수 없습니다."
+  },
+  {
+    "id": "app.property_value.invalid_input.app_error",
+    "translation": "잘못된 입력이 제공되었습니다."
+  },
+  {
+    "id": "app.property_value.resolve_broadcast_params.unknown_object_type.app_error",
+    "translation": "속성 값 브로드캐스트에 대해 인식할 수 없는 개체 유형 \"{{.ObjectType}}\"입니다."
+  },
+  {
+    "id": "app.property_value.search.app_error",
+    "translation": "속성 값을 검색할 수 없습니다."
+  },
+  {
+    "id": "app.property_value.template_no_values.app_error",
+    "translation": "템플릿 필드에는 값을 지정할 수 없습니다."
+  },
+  {
+    "id": "app.property_value.update.app_error",
+    "translation": "속성 값을 업데이트할 수 없습니다."
+  },
+  {
+    "id": "app.property_value.update_many.app_error",
+    "translation": "속성 값을 업데이트할 수 없습니다."
+  },
+  {
+    "id": "app.property_value.upsert.app_error",
+    "translation": "속성 값을 업서트할 수 없습니다."
+  },
+  {
+    "id": "app.property_value.upsert.duplicate_field_id.app_error",
+    "translation": "속성 값 배치에 중복된 필드 ID가 있습니다."
+  },
+  {
+    "id": "app.property_value.upsert.field_not_found.app_error",
+    "translation": "속성 필드 {{.FieldID}}을(를) 찾을 수 없습니다."
+  },
+  {
+    "id": "app.property_value.upsert.invalid_field_id.app_error",
+    "translation": "속성 필드 ID가 유효하지 않습니다."
+  },
+  {
+    "id": "app.property_value.upsert.mixed_groups.app_error",
+    "translation": "한 배치의 모든 속성 값은 동일한 속성 그룹에 속해야 합니다."
+  },
+  {
+    "id": "app.property_value.upsert.object_type_mismatch.app_error",
+    "translation": "속성 필드의 개체 유형이 요청과 일치하지 않습니다."
+  },
+  {
+    "id": "app.property_value.upsert_many.app_error",
+    "translation": "속성 값을 업서트할 수 없습니다."
+  },
+  {
+    "id": "app.property_value.validate.app_error",
+    "translation": "속성 값이 유효성 검사를 통과하지 못했습니다."
+  },
+  {
+    "id": "app.recap.cooldown_active.app_error",
+    "translation": "조직의 정책에 따라 리캡 사이에 {{.CooldownMinutes}}분의 간격이 필요합니다. {{.RetryAfterMinutes}}분 후에 다른 리캡을 만들 수 있습니다."
+  },
+  {
+    "id": "app.recap.cooldown_check_failed.app_error",
+    "translation": "쿨다운 상태를 확인하지 못했습니다."
+  },
+  {
+    "id": "app.recap.delete.app_error",
+    "translation": "리캡을 삭제하지 못했습니다."
+  },
+  {
+    "id": "app.recap.delete_channels.app_error",
+    "translation": "리캡 채널을 삭제하지 못했습니다."
+  },
+  {
+    "id": "app.recap.get.app_error",
+    "translation": "리캡을 가져오지 못했습니다."
+  },
+  {
+    "id": "app.recap.get_channel.app_error",
+    "translation": "채널을 가져오지 못했습니다."
+  },
+  {
+    "id": "app.recap.get_channels.app_error",
+    "translation": "리캡 채널을 가져오지 못했습니다."
+  },
+  {
+    "id": "app.recap.get_daily_count.app_error",
+    "translation": "리캡 제한을 확인하지 못했습니다."
+  },
+  {
+    "id": "app.recap.get_last_viewed.app_error",
+    "translation": "마지막으로 본 타임스탬프를 가져오지 못했습니다."
+  },
+  {
+    "id": "app.recap.get_team.app_error",
+    "translation": "팀을 가져오지 못했습니다."
+  },
+  {
+    "id": "app.recap.list.app_error",
+    "translation": "리캡 목록을 가져오지 못했습니다."
+  },
+  {
+    "id": "app.recap.mark_read.app_error",
+    "translation": "리캡을 읽음으로 표시하지 못했습니다."
+  },
+  {
+    "id": "app.recap.mark_viewed.app_error",
+    "translation": "리캡을 읽음으로 표시하지 못했습니다."
+  },
+  {
+    "id": "app.recap.max_channels_exceeded.app_error",
+    "translation": "조직의 정책에 따라 리캡은 최대 {{.Limit}}개 채널로 제한됩니다. {{.Requested}}개 채널을 요청하셨습니다."
+  },
+  {
+    "id": "app.recap.max_recaps_reached.app_error",
+    "translation": "조직의 정책에 따라 하루에 최대 {{.Limit}}개의 리캡만 만들 수 있습니다. 내일 다시 시도해 주세요."
+  },
+  {
+    "id": "app.recap.permission_denied",
+    "translation": "리캡에 대한 권한이 없습니다."
+  },
+  {
+    "id": "app.recap.save.app_error",
+    "translation": "리캡을 저장하지 못했습니다."
+  },
+  {
+    "id": "app.recap.save_channel.app_error",
+    "translation": "리캡 채널을 저장하지 못했습니다."
+  },
+  {
+    "id": "app.recap.sum_daily_posts.app_error",
+    "translation": "리캡 게시물 사용량을 확인하지 못했습니다."
+  },
+  {
+    "id": "app.recap.update.app_error",
+    "translation": "리캡을 업데이트하지 못했습니다."
+  },
+  {
+    "id": "app.reveal_post.cannot_reveal_own_post.app_error",
+    "translation": "자신이 작성한 읽은 후 삭제 게시물은 열람할 수 없습니다."
+  },
+  {
+    "id": "app.reveal_post.missing_expire_at.app_error",
+    "translation": "읽은 후 삭제 게시물에 필수 만료 시간이 없습니다."
+  },
+  {
+    "id": "app.reveal_post.not_burn_on_read.app_error",
+    "translation": "이 게시물은 읽은 후 삭제 게시물이 아니므로 열람할 수 없습니다."
+  },
+  {
+    "id": "app.reveal_post.post_expired.app_error",
+    "translation": "이 읽은 후 삭제 게시물은 만료되어 더 이상 열람할 수 없습니다."
+  },
+  {
+    "id": "app.reveal_post.read_receipt.get.error",
+    "translation": "읽음 확인을 가져오는 중 오류가 발생했습니다."
+  },
+  {
+    "id": "app.reveal_post.read_receipt.get_unread_count.error",
+    "translation": "읽음 확인의 읽지 않음 수를 가져올 수 없습니다."
+  },
+  {
+    "id": "app.reveal_post.read_receipt.save.error",
+    "translation": "읽음 확인을 저장하는 중 오류가 발생했습니다."
+  },
+  {
+    "id": "app.reveal_post.read_receipt_expired.error",
+    "translation": "이 읽은 후 삭제 게시물에 대한 접근 권한이 만료되었습니다."
+  },
+  {
+    "id": "app.role.send_updated_role_event.app_error",
+    "translation": "역할 업데이트를 브로드캐스트하는 중 오류가 발생했습니다."
+  },
+  {
+    "id": "app.role.send_updated_role_event.unknown_scope",
+    "translation": "역할 업데이트를 브로드캐스트하는 중 오류가 발생했습니다: 알 수 없는 스키마 범위입니다."
+  },
+  {
+    "id": "app.save_scheduled_post.restricted_dm.error",
+    "translation": "제한된 쪽지에는 게시물을 예약할 수 없습니다"
+  },
+  {
+    "id": "app.scheduled_post.recurring_disabled.app_error",
+    "translation": "이 서버에서는 반복 예약 메시지가 비활성화되어 있습니다."
+  },
+  {
+    "id": "app.scheduled_post.save.rejected_by_plugin",
+    "translation": "플러그인이 예약된 메시지를 거부했습니다: {{.Reason}}"
+  },
+  {
+    "id": "app.scheduled_post.update.rejected_by_plugin",
+    "translation": "플러그인이 예약된 메시지 업데이트를 거부했습니다: {{.Reason}}"
+  },
+  {
+    "id": "app.scheduled_recap.compute_next_run.app_error",
+    "translation": "다음 예약된 리캡 실행 시간을 계산할 수 없습니다."
+  },
+  {
+    "id": "app.scheduled_recap.create.app_error",
+    "translation": "예약된 리캡을 만들 수 없습니다."
+  },
+  {
+    "id": "app.scheduled_recap.delete.app_error",
+    "translation": "예약된 리캡을 삭제할 수 없습니다."
+  },
+  {
+    "id": "app.scheduled_recap.get.app_error",
+    "translation": "예약된 리캡을 가져올 수 없습니다."
+  },
+  {
+    "id": "app.scheduled_recap.get_unreads.app_error",
+    "translation": "예약된 리캡에 대한 읽지 않은 채널을 가져올 수 없습니다."
+  },
+  {
+    "id": "app.scheduled_recap.list.app_error",
+    "translation": "예약된 리캡 목록을 가져올 수 없습니다."
+  },
+  {
+    "id": "app.scheduled_recap.max_channels_exceeded.app_error",
+    "translation": "조직의 정책에 따라 리캡은 최대 {{.Limit}}개 채널로 제한됩니다. {{.Requested}}개 채널을 요청하셨습니다."
+  },
+  {
+    "id": "app.scheduled_recap.max_scheduled_reached.app_error",
+    "translation": "조직의 정책에 따라 예약된 리캡은 최대 {{.Limit}}개로 제한됩니다. 새로 만들기 전에 기존 예약된 리캡을 삭제해 주세요."
+  },
+  {
+    "id": "app.scheduled_recap.no_channels.app_error",
+    "translation": "예약된 리캡에는 최소 한 개의 채널이 포함되어야 합니다."
+  },
+  {
+    "id": "app.scheduled_recap.pause.app_error",
+    "translation": "예약된 리캡을 일시 중지할 수 없습니다."
+  },
+  {
+    "id": "app.scheduled_recap.resume.app_error",
+    "translation": "예약된 리캡을 다시 시작할 수 없습니다."
+  },
+  {
+    "id": "app.scheduled_recap.save_recap.app_error",
+    "translation": "예약된 리캡의 리캡을 저장할 수 없습니다."
+  },
+  {
+    "id": "app.scheduled_recap.update.app_error",
+    "translation": "예약된 리캡을 업데이트할 수 없습니다."
+  },
+  {
+    "id": "app.session.revoke_other_sessions.empty_device_id.app_error",
+    "translation": "기기 ID는 비워 둘 수 없습니다."
+  },
+  {
+    "id": "app.session.revoke_other_sessions.empty_voip_device_id.app_error",
+    "translation": "VoIP 기기 ID는 비워 둘 수 없습니다."
+  },
+  {
+    "id": "app.session_attributes.field_immutable.app_error",
+    "translation": "세션 속성 필드는 생성하거나 삭제할 수 없으며, enabled, ttl_seconds, grace_period_seconds만 변경할 수 있습니다."
+  },
+  {
+    "id": "app.submit_interactive_dialog.file_not_owned",
+    "translation": "파일 {{.FileId}}은(는) 제출한 사용자의 파일이 아닙니다."
+  },
+  {
+    "id": "app.submit_interactive_dialog.get_file_info_error",
+    "translation": "제출된 파일 ID를 확인할 수 없습니다."
+  },
+  {
+    "id": "app.submit_interactive_dialog.invalid_file_id",
+    "translation": "파일 {{.FileId}}이(가) 유효하지 않거나 접근할 수 없습니다."
+  },
+  {
+    "id": "app.submit_interactive_dialog.invalid_response",
+    "translation": "대화형 대화 상자 제출에서 잘못된 응답을 받았습니다."
+  },
+  {
+    "id": "app.submit_interactive_dialog.too_many_file_ids",
+    "translation": "제출된 파일 ID가 너무 많습니다. 최대 {{.Max}}개까지 허용됩니다."
+  },
+  {
+    "id": "app.submit_interactive_dialog.too_many_submission_ids",
+    "translation": "제출된 데이터에 ID 형식의 값이 너무 많습니다. 최대 {{.Max}}개까지 허용됩니다."
+  },
+  {
+    "id": "app.system.data_spillage_bot.bot_displayname",
+    "translation": "데이터 유출 봇"
+  },
+  {
+    "id": "app.team.access_policies.channel_not_found.app_error",
+    "translation": "하나 이상의 채널을 찾을 수 없습니다."
+  },
+  {
+    "id": "app.team.access_policies.channel_wrong_team.app_error",
+    "translation": "채널 {{.ChannelId}}은(는) 이 팀에 속해 있지 않습니다."
+  },
+  {
+    "id": "app.team.access_policies.channels_required.app_error",
+    "translation": "최소 한 개의 채널이 필요합니다."
+  },
+  {
+    "id": "app.team.access_policies.ownership_check.app_error",
+    "translation": "이 팀에 대한 정책 소유권을 확인할 수 없습니다."
+  },
+  {
+    "id": "app.team.access_policies.reconcile_scope.app_error",
+    "translation": "정책의 팀 범위를 조정하지 못했습니다."
+  },
+  {
+    "id": "app.team.access_policies.self_exclusion.app_error",
+    "translation": "자신을 제외하는 정책은 만들 수 없습니다."
+  },
+  {
+    "id": "app.team.access_policies.validation_error.app_error",
+    "translation": "정책 규칙을 검증하지 못했습니다."
+  },
+  {
+    "id": "app.team.join_user_to_team.rejected_by_plugin",
+    "translation": "플러그인이 팀 구성원 추가를 거부했습니다: {{.Reason}}"
+  },
+  {
+    "id": "app.toast.send_toast_message.message.app_error",
+    "translation": "메시지는 필수입니다"
+  },
+  {
+    "id": "app.toast.send_toast_message.user_id.app_error",
+    "translation": "사용자 ID는 필수입니다"
+  },
+  {
+    "id": "app.update_scheduled_post.convert_to_post.error",
+    "translation": "예약된 메시지를 게시물 형식으로 변환할 수 없습니다."
+  },
+  {
+    "id": "app.upload.create.cannot_upload_to_restricted_dm.error",
+    "translation": "제한된 쪽지에는 파일을 업로드할 수 없습니다."
+  },
+  {
+    "id": "app.upload.gen_file_info.invalid_filename.app_error",
+    "translation": "잘못된 파일 이름입니다."
+  },
+  {
+    "id": "app.user.analytics_get_single_channel_guest_count.app_error",
+    "translation": "분석을 위한 단일 채널 게스트 수를 가져오지 못했습니다."
+  },
+  {
+    "id": "app.user.check_user_password.failed_migration",
+    "translation": "사용자 비밀번호를 최신 해싱 방식으로 마이그레이션하지 못했습니다."
+  },
+  {
+    "id": "app.user.check_user_password.failed_update",
+    "translation": "사용자 비밀번호를 업데이트하지 못했습니다."
+  },
+  {
+    "id": "app.user_access_token.count_non_compliant.app_error",
+    "translation": "최대 수명 정책을 위반하는 개인 액세스 토큰 수를 계산할 수 없습니다."
+  },
+  {
+    "id": "app.user_access_token.expired",
+    "translation": "개인 액세스 토큰이 만료되었습니다."
+  },
+  {
+    "id": "app.user_access_token.expired_deleted_notification",
+    "translation": "개인 액세스 토큰 \"{{.Description}}\"이(가) 만료되어 제거되었습니다. 새 토큰을 만들려면 **프로필 → 보안**을 여세요."
+  },
+  {
+    "id": "app.user_access_token.expires_at_in_past.app_error",
+    "translation": "제공된 expires_at이 과거 시점입니다."
+  },
+  {
+    "id": "app.user_access_token.expires_at_required.app_error",
+    "translation": "서버에서 최대 토큰 수명을 적용하므로 개인 액세스 토큰에는 만료 날짜가 포함되어야 합니다."
+  },
+  {
+    "id": "app.user_access_token.expires_at_too_far.app_error",
+    "translation": "제공된 expires_at이 구성된 최대 개인 액세스 토큰 수명({{.Days}}일)을 초과합니다."
+  },
+  {
+    "id": "app.user_access_token.get_expiring.app_error",
+    "translation": "만료 예정인 개인 액세스 토큰을 가져올 수 없습니다."
+  },
+  {
+    "id": "app.user_access_token.revoke_non_compliant.no_policy.app_error",
+    "translation": "최대 개인 액세스 토큰 수명이 구성되어 있지 않아 취소할 정책 위반 토큰이 없습니다."
+  },
+  {
+    "id": "app.user_access_token.revoke_non_compliant.partial.app_error",
+    "translation": "모든 정책 위반 토큰을 취소하기 전에 배치 제한에 도달했습니다. 계속하려면 작업을 다시 실행하세요."
+  },
+  {
+    "id": "app.user_access_token.rotate.app_error",
+    "translation": "액세스 토큰을 다시 생성할 수 없습니다."
+  },
+  {
+    "id": "app.view.count_for_channel.app_error",
+    "translation": "채널의 뷰 수를 계산하지 못했습니다."
+  },
+  {
+    "id": "app.view.create.app_error",
+    "translation": "뷰를 만들 수 없습니다."
+  },
+  {
+    "id": "app.view.create.count.app_error",
+    "translation": "채널의 뷰 수를 계산하지 못했습니다."
+  },
+  {
+    "id": "app.view.create.limit.app_error",
+    "translation": "이 채널은 최대 뷰 수에 도달했습니다."
+  },
+  {
+    "id": "app.view.create.nil_view.app_error",
+    "translation": "뷰는 필수입니다."
+  },
+  {
+    "id": "app.view.delete.app_error",
+    "translation": "뷰를 삭제할 수 없습니다."
+  },
+  {
+    "id": "app.view.delete.nil_view.app_error",
+    "translation": "뷰는 필수입니다."
+  },
+  {
+    "id": "app.view.delete.not_found.app_error",
+    "translation": "뷰를 찾을 수 없습니다."
+  },
+  {
+    "id": "app.view.get.app_error",
+    "translation": "뷰를 가져올 수 없습니다."
+  },
+  {
+    "id": "app.view.get.not_found.app_error",
+    "translation": "뷰를 찾을 수 없습니다."
+  },
+  {
+    "id": "app.view.get_for_channel.app_error",
+    "translation": "이 채널의 뷰를 가져올 수 없습니다."
+  },
+  {
+    "id": "app.view.get_for_channel.invalid_input.app_error",
+    "translation": "채널의 뷰를 가져올 때 잘못된 입력이 있습니다."
+  },
+  {
+    "id": "app.view.update.app_error",
+    "translation": "뷰를 업데이트할 수 없습니다."
+  },
+  {
+    "id": "app.view.update.nil_view.app_error",
+    "translation": "뷰는 필수입니다."
+  },
+  {
+    "id": "app.view.update.not_found.app_error",
+    "translation": "뷰를 찾을 수 없습니다."
+  },
+  {
+    "id": "app.view.update_sort_order.app_error",
+    "translation": "뷰 정렬 순서를 업데이트할 수 없습니다."
+  },
+  {
+    "id": "app.view.update_sort_order.invalid_input.app_error",
+    "translation": "뷰 정렬 순서 업데이트에 잘못된 입력이 있습니다."
+  },
+  {
+    "id": "app.view.update_sort_order.not_found.app_error",
+    "translation": "뷰를 찾을 수 없습니다."
+  },
+  {
+    "id": "ent.autotranslation.add_task.missing_object_id",
+    "translation": "번역 작업에는 개체 ID가 포함되어야 합니다."
+  },
+  {
+    "id": "ent.autotranslation.add_task.missing_object_type",
+    "translation": "번역 작업에는 개체 유형이 포함되어야 합니다."
+  },
+  {
+    "id": "ent.autotranslation.add_task.nil_task",
+    "translation": "번역 작업은 null일 수 없습니다."
+  },
+  {
+    "id": "ent.autotranslation.add_task.worker_stopped",
+    "translation": "워커가 중지되어 번역 작업을 추가할 수 없습니다."
+  },
+  {
+    "id": "ent.autotranslation.create_translation_failed",
+    "translation": "번역을 생성하지 못했습니다."
+  },
+  {
+    "id": "ent.autotranslation.detect_language.nil_context",
+    "translation": "언어 감지에는 컨텍스트가 필요합니다."
+  },
+  {
+    "id": "ent.autotranslation.detect_language.text_too_large",
+    "translation": "텍스트가 언어 감지 최대 크기를 초과합니다."
+  },
+  {
+    "id": "ent.autotranslation.detect_remote.error",
+    "translation": "번역 제공자를 사용하여 언어를 감지하지 못했습니다."
+  },
+  {
+    "id": "ent.autotranslation.extract_content.mask_error",
+    "translation": "번역을 위해 콘텐츠를 마스킹하지 못했습니다."
+  },
+  {
+    "id": "ent.autotranslation.extract_post.nil_post",
+    "translation": "게시물 개체는 null일 수 없습니다."
+  },
+  {
+    "id": "ent.autotranslation.feature_unavailable",
+    "translation": "자동 번역을 사용할 수 없습니다. 엔터프라이즈 라이선스 업그레이드에 대해 시스템 관리자에게 문의하세요."
+  },
+  {
+    "id": "ent.autotranslation.invalid_input",
+    "translation": "잘못된 언어 코드가 제공되었습니다."
+  },
+  {
+    "id": "ent.autotranslation.mask_verification_failed",
+    "translation": "새 마스크 값으로 번역을 업데이트하지 못했습니다."
+  },
+  {
+    "id": "ent.autotranslation.no_translatable_content",
+    "translation": "콘텐츠에 번역할 수 있는 텍스트가 없습니다."
+  },
+  {
+    "id": "ent.autotranslation.provider_not_available",
+    "translation": "번역 제공자를 사용할 수 없습니다."
+  },
+  {
+    "id": "ent.autotranslation.provider_not_initialized",
+    "translation": "번역 제공자가 초기화되지 않았습니다."
+  },
+  {
+    "id": "ent.autotranslation.store_error",
+    "translation": "자동 번역 요청을 처리할 수 없습니다."
+  },
+  {
+    "id": "ent.autotranslation.unmask.missing_mask",
+    "translation": "번역에 인식할 수 없는 토큰이 포함되어 있습니다."
+  },
+  {
+    "id": "ent.autotranslation.unmask.orphan_token",
+    "translation": "번역에 유효하지 않은 토큰이 포함되어 있습니다."
+  },
+  {
+    "id": "ent.autotranslation.validate_content.invalid_json",
+    "translation": "JSON 콘텐츠를 파싱할 수 없습니다."
+  },
+  {
+    "id": "ent.autotranslation.validate_content.invalid_type",
+    "translation": "번역이 지원되지 않는 콘텐츠 유형입니다."
+  },
+  {
+    "id": "ent.autotranslation.validate_content.nil_content",
+    "translation": "콘텐츠는 null일 수 없습니다."
+  },
+  {
+    "id": "ent.autotranslation.validate_content.text_too_large",
+    "translation": "콘텐츠가 번역 최대 크기를 초과합니다."
+  },
+  {
+    "id": "ent.autotranslation.validate_id.empty",
+    "translation": "필수 ID는 비워 둘 수 없습니다."
+  },
+  {
+    "id": "ent.autotranslation.validate_id.invalid",
+    "translation": "잘못된 ID 형식입니다."
+  },
+  {
+    "id": "ent.elasticsearch.backfill_posts_channel_type.error",
+    "translation": "{{.Backend}}이(가) 게시물의 채널 유형을 채우지 못했습니다"
+  },
+  {
+    "id": "ent.elasticsearch.delete_files_batch.error",
+    "translation": "파일 배치를 삭제하지 못했습니다"
+  },
+  {
+    "id": "ent.elasticsearch.healthcheck.not_started.app_error",
+    "translation": "{{.Backend}}이(가) 시작되지 않았습니다."
+  },
+  {
+    "id": "ent.elasticsearch.healthcheck.unreachable.app_error",
+    "translation": "{{.Backend}} 상태 확인 실패: 확인을 완료할 수 없습니다."
+  },
+  {
+    "id": "ent.elasticsearch.indexer.do_job.bulk_failures.error",
+    "translation": "인덱싱 작업이 완료되었지만 {{.NumFailed}}개의 문서가 검색 백엔드에서 거부되어 색인되지 않았습니다"
+  },
+  {
+    "id": "ent.elasticsearch.indexer.do_job.create_bulk_processor.error",
+    "translation": "인덱싱 워커가 대량 프로세서를 초기화하지 못했습니다"
+  },
+  {
+    "id": "ent.elasticsearch.search_posts.disabled",
+    "translation": "{{.Backend}} 검색이 이 서버에서 비활성화되어 있습니다"
+  },
+  {
+    "id": "ent.elasticsearch.update_posts_channel_type.error",
+    "translation": "{{.Backend}}이(가) 게시물의 채널 유형을 업데이트하지 못했습니다"
+  },
+  {
+    "id": "ent.intune.login.account_not_found.app_error",
+    "translation": "계정 설정이 아직 완료되지 않았습니다. 먼저 웹 또는 데스크톱 앱을 통해 Mattermost에 로그인해 주세요."
+  },
+  {
+    "id": "ent.intune.login.extract_auth_data.app_error",
+    "translation": "인증에 실패했습니다. 다시 시도하거나 시스템 관리자에게 문의하세요."
+  },
+  {
+    "id": "ent.intune.login.not_configured.app_error",
+    "translation": "Microsoft Intune 인증이 구성되어 있지 않습니다."
+  },
+  {
+    "id": "ent.intune.validate_token.invalid_tenant_id.app_error",
+    "translation": "인증에 실패했습니다. 잘못된 구성입니다."
+  },
+  {
+    "id": "ent.intune.validate_token.invalid_token.app_error",
+    "translation": "인증에 실패했습니다. 다시 시도해 주세요."
+  },
+  {
+    "id": "ent.intune.validate_token.jwks_init.app_error",
+    "translation": "인증 서비스 초기화에 실패했습니다. 시스템 관리자에게 문의하세요."
+  },
+  {
+    "id": "ent.intune.validate_token.missing_claims.app_error",
+    "translation": "인증에 실패했습니다. 필수 사용자 정보가 없습니다."
+  },
+  {
+    "id": "ent.intune.validate_token.token_expired.app_error",
+    "translation": "인증 세션이 만료되었습니다. 다시 로그인해 보세요."
+  },
+  {
+    "id": "ent.push_proxy.delete.app_error",
+    "translation": "푸시 프록시 인증 토큰을 삭제하지 못했습니다."
+  },
+  {
+    "id": "ent.push_proxy.generate.bad_status.app_error",
+    "translation": "푸시 프록시 서버에서 인증 토큰을 가져오지 못했습니다."
+  },
+  {
+    "id": "ent.push_proxy.generate.create_request.app_error",
+    "translation": "푸시 프록시 인증을 위한 HTTP 요청을 만들지 못했습니다."
+  },
+  {
+    "id": "ent.push_proxy.generate.empty_token.app_error",
+    "translation": "푸시 프록시가 빈 인증 토큰을 반환했습니다."
+  },
+  {
+    "id": "ent.push_proxy.generate.encrypt.app_error",
+    "translation": "푸시 프록시 인증을 위한 페이로드를 암호화하지 못했습니다."
+  },
+  {
+    "id": "ent.push_proxy.generate.http_request.app_error",
+    "translation": "푸시 프록시로 HTTP 요청을 보내지 못했습니다."
+  },
+  {
+    "id": "ent.push_proxy.generate.marshal.app_error",
+    "translation": "푸시 프록시 인증을 위한 페이로드를 마샬링하지 못했습니다."
+  },
+  {
+    "id": "ent.push_proxy.generate.marshal_request.app_error",
+    "translation": "푸시 프록시 인증을 위한 요청 본문을 마샬링하지 못했습니다."
+  },
+  {
+    "id": "ent.push_proxy.generate.no_key.app_error",
+    "translation": "푸시 프록시 인증에 사용할 수 있는 암호화 키가 없습니다."
+  },
+  {
+    "id": "ent.push_proxy.generate.parse_response.app_error",
+    "translation": "푸시 프록시 인증 엔드포인트의 응답을 파싱하지 못했습니다."
+  },
+  {
+    "id": "ent.push_proxy.generate.save_system.app_error",
+    "translation": "인증 토큰을 저장하지 못했습니다."
+  },
+  {
+    "id": "ent.push_proxy.worker.interface_nil.app_error",
+    "translation": "푸시 프록시 인터페이스가 nil입니다."
+  },
+  {
+    "id": "model.access_policy.inherit.parent_type.app_error",
+    "translation": "가져오기는 멤버십 상위 정책을 대상으로 해야 합니다."
+  },
+  {
+    "id": "model.access_policy.inherit.permission.app_error",
+    "translation": "권한 정책은 다른 정책에서 상속할 수 없습니다."
+  },
+  {
+    "id": "model.access_policy.is_valid.actions.app_error",
+    "translation": "작업이 유효하지 않습니다."
+  },
+  {
+    "id": "model.access_policy.is_valid.actions.membership_combined.app_error",
+    "translation": "멤버십은 같은 규칙에서 다른 작업과 함께 사용할 수 없습니다."
+  },
+  {
+    "id": "model.access_policy.is_valid.actions.permission_type.app_error",
+    "translation": "권한 작업 규칙은 채널 정책에서만 허용됩니다."
+  },
+  {
+    "id": "model.access_policy.is_valid.plugin_type.app_error",
+    "translation": "잘못된 액세스 제어 정책입니다. 유형이 유효한 플러그인 리소스 유형이 아닙니다."
+  },
+  {
+    "id": "model.access_policy.is_valid.roles.app_error",
+    "translation": "권한 정책은 정확히 하나의 역할에만 적용되어야 합니다."
+  },
+  {
+    "id": "model.access_policy.is_valid.rule_name.app_error",
+    "translation": "권한 규칙에는 정책 최대 길이 이내의 비어 있지 않은 이름이 필요합니다."
+  },
+  {
+    "id": "model.access_policy.is_valid.rule_name_unique.app_error",
+    "translation": "권한 규칙 이름은 정책 내에서 고유해야 합니다."
+  },
+  {
+    "id": "model.access_policy.is_valid.rule_role.app_error",
+    "translation": "규칙의 역할이 유효하지 않습니다."
+  },
+  {
+    "id": "model.access_policy.is_valid.scope.app_error",
+    "translation": "이 액세스 제어 정책의 범위 값이 유효하지 않습니다."
+  },
+  {
+    "id": "model.access_policy.is_valid.scope_id.app_error",
+    "translation": "범위가 설정된 경우 범위 ID는 유효한 ID여야 합니다."
+  },
+  {
+    "id": "model.access_policy.is_valid.scope_id_without_scope.app_error",
+    "translation": "범위 없이 범위 ID를 설정할 수 없습니다."
+  },
+  {
+    "id": "model.access_policy.is_valid.session_attribute_on_membership.app_error",
+    "translation": "멤버십 규칙은 세션 속성(user.session)을 참조할 수 없습니다. 대신 권한 정책을 사용하세요."
+  },
+  {
+    "id": "model.authorize.is_valid.code_challenge.app_error",
+    "translation": "PKCE를 사용할 때는 코드 챌린지가 필요합니다."
+  },
+  {
+    "id": "model.authorize.is_valid.code_challenge.format.app_error",
+    "translation": "코드 챌린지는 base64url로 인코딩되어야 합니다(A-Z, a-z, 0-9, -, _ 문자 사용)."
+  },
+  {
+    "id": "model.authorize.is_valid.code_challenge.length.app_error",
+    "translation": "코드 챌린지는 43자에서 128자 사이여야 합니다."
+  },
+  {
+    "id": "model.authorize.is_valid.code_challenge_method.app_error",
+    "translation": "PKCE를 사용할 때는 코드 챌린지 방식이 필요합니다."
+  },
+  {
+    "id": "model.authorize.is_valid.code_challenge_method.unsupported.app_error",
+    "translation": "'S256' 코드 챌린지 방식만 지원됩니다."
+  },
+  {
+    "id": "model.authorize.is_valid.resource.has_fragment.app_error",
+    "translation": "Resource 매개변수에는 프래그먼트 구성 요소를 포함할 수 없습니다."
+  },
+  {
+    "id": "model.authorize.is_valid.resource.invalid_uri.app_error",
+    "translation": "Resource 매개변수는 유효한 URI여야 합니다."
+  },
+  {
+    "id": "model.authorize.is_valid.resource.length.app_error",
+    "translation": "Resource 매개변수는 512자를 초과할 수 없습니다."
+  },
+  {
+    "id": "model.authorize.is_valid.resource.not_absolute.app_error",
+    "translation": "Resource 매개변수는 절대 URI여야 합니다."
+  },
+  {
+    "id": "model.authorize.validate_pkce.not_used_in_auth.app_error",
+    "translation": "PKCE 코드 검증자가 제공되었지만 권한 부여 과정에서 PKCE가 사용되지 않았습니다."
+  },
+  {
+    "id": "model.authorize.validate_pkce.public_client_required.app_error",
+    "translation": "퍼블릭 클라이언트에는 PKCE(Proof Key for Code Exchange)가 필요합니다."
+  },
+  {
+    "id": "model.authorize.validate_pkce.verification_failed.app_error",
+    "translation": "PKCE 코드 검증자가 코드 챌린지와 일치하지 않습니다."
+  },
+  {
+    "id": "model.authorize.validate_pkce.verifier_required.app_error",
+    "translation": "PKCE를 사용할 때는 PKCE 코드 검증자가 필요합니다."
+  },
+  {
+    "id": "model.channel.is_valid.discoverable.app_error",
+    "translation": "비공개 채널만 검색 가능으로 표시할 수 있습니다."
+  },
+  {
+    "id": "model.channel.is_valid.group_constrained.app_error",
+    "translation": "그룹 제한은 공개 채널과 비공개 채널에만 설정할 수 있습니다."
+  },
+  {
+    "id": "model.channel.is_valid_board.display_name.app_error",
+    "translation": "보드 표시 이름은 비워둘 수 없습니다."
+  },
+  {
+    "id": "model.channel.is_valid_board.team_id.app_error",
+    "translation": "보드 채널은 팀에 속해야 합니다."
+  },
+  {
+    "id": "model.channel.is_valid_board.type.app_error",
+    "translation": "채널 유형은 BO(공개 보드) 또는 BP(비공개 보드)여야 합니다."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.board.file_id.app_error",
+    "translation": "보드 북마크는 파일을 참조할 수 없습니다."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.board.image_url.app_error",
+    "translation": "보드 북마크에는 이미지 URL을 설정할 수 없습니다."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.board.link_url.app_error",
+    "translation": "보드 북마크 링크 URL은 /로 시작하는 사이트 상대 경로여야 하며, ://를 포함할 수 없고, 최대 길이를 초과할 수 없습니다."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.board.target_id.app_error",
+    "translation": "보드 북마크에는 유효한 대상 ID가 필요합니다."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.target_id.app_error",
+    "translation": "대상 ID는 다른 항목을 참조하는 북마크 유형에만 허용됩니다."
+  },
+  {
+    "id": "model.channel_join_request.is_valid.channel_id.app_error",
+    "translation": "잘못된 채널 ID입니다."
+  },
+  {
+    "id": "model.channel_join_request.is_valid.create_at.app_error",
+    "translation": "Create at은 유효한 시간이어야 합니다."
+  },
+  {
+    "id": "model.channel_join_request.is_valid.denial_reason.app_error",
+    "translation": "거부 사유가 너무 깁니다."
+  },
+  {
+    "id": "model.channel_join_request.is_valid.denial_reason_status.app_error",
+    "translation": "거부 사유는 거부된 참여 요청에만 설정할 수 있습니다."
+  },
+  {
+    "id": "model.channel_join_request.is_valid.id.app_error",
+    "translation": "잘못된 ID입니다."
+  },
+  {
+    "id": "model.channel_join_request.is_valid.message.app_error",
+    "translation": "참여 요청 메시지가 너무 깁니다."
+  },
+  {
+    "id": "model.channel_join_request.is_valid.reviewed_by.app_error",
+    "translation": "잘못된 검토자 ID입니다."
+  },
+  {
+    "id": "model.channel_join_request.is_valid.reviewer.app_error",
+    "translation": "승인되거나 거부된 참여 요청에는 검토자와 검토 시간이 기록되어야 합니다."
+  },
+  {
+    "id": "model.channel_join_request.is_valid.status.app_error",
+    "translation": "잘못된 참여 요청 상태입니다."
+  },
+  {
+    "id": "model.channel_join_request.is_valid.update_at.app_error",
+    "translation": "Update at은 유효한 시간이어야 합니다."
+  },
+  {
+    "id": "model.channel_join_request.is_valid.user_id.app_error",
+    "translation": "잘못된 사용자 ID입니다."
+  },
+  {
+    "id": "model.cluster.is_valid.site_url.app_error",
+    "translation": "SiteURL을 설정해야 합니다."
+  },
+  {
+    "id": "model.command_response.is_valid.attachment.app_error",
+    "translation": "잘못된 첨부 파일입니다."
+  },
+  {
+    "id": "model.command_response.is_valid.goto_location.app_error",
+    "translation": "잘못된 goto location입니다."
+  },
+  {
+    "id": "model.command_response.is_valid.icon_url.app_error",
+    "translation": "잘못된 아이콘 URL입니다."
+  },
+  {
+    "id": "model.command_response.is_valid.response_type.app_error",
+    "translation": "잘못된 응답 유형입니다."
+  },
+  {
+    "id": "model.config.is_valid.access_control_attribute_refresh_interval.app_error",
+    "translation": "액세스 제어 속성 새로 고침 간격이 잘못되었습니다. 0 이상이어야 합니다."
+  },
+  {
+    "id": "model.config.is_valid.access_control_sync_interval.app_error",
+    "translation": "액세스 제어 동기화 작업 간격이 잘못되었습니다. 최소 60초 이상이어야 합니다."
+  },
+  {
+    "id": "model.config.is_valid.ai_recap.cooldown_minutes.app_error",
+    "translation": "잘못된 AI 리캡 대기 시간(분)입니다. 0 이상이어야 합니다."
+  },
+  {
+    "id": "model.config.is_valid.ai_recap.max_channels_per_recap.app_error",
+    "translation": "잘못된 AI 리캡당 최대 채널 수입니다. 1 이상이거나 무제한인 경우 -1이어야 합니다."
+  },
+  {
+    "id": "model.config.is_valid.ai_recap.max_posts_per_day.app_error",
+    "translation": "잘못된 AI 리캡 일일 최대 게시물 수입니다. 1 이상이거나 무제한인 경우 -1이어야 합니다."
+  },
+  {
+    "id": "model.config.is_valid.ai_recap.max_posts_per_recap.app_error",
+    "translation": "잘못된 AI 리캡당 최대 게시물 수입니다. 1 이상이거나 무제한인 경우 -1이어야 합니다."
+  },
+  {
+    "id": "model.config.is_valid.ai_recap.max_recaps_per_day.app_error",
+    "translation": "잘못된 AI 리캡 일일 최대 리캡 수입니다. 1 이상이거나 무제한인 경우 -1이어야 합니다."
+  },
+  {
+    "id": "model.config.is_valid.ai_recap.max_scheduled_recaps.app_error",
+    "translation": "잘못된 AI 리캡 최대 예약 리캡 수입니다. 1 이상이거나 무제한인 경우 -1이어야 합니다."
+  },
+  {
+    "id": "model.config.is_valid.ai_recap.max_tokens_per_recap.app_error",
+    "translation": "잘못된 AI 리캡당 최대 토큰 수입니다. 1 이상이거나 무제한인 경우 -1이어야 합니다."
+  },
+  {
+    "id": "model.config.is_valid.atmos_camo_image_proxy_removed.app_error",
+    "translation": "'atmos/camo' 이미지 프록시 유형은 Mattermost v12.0에서 제거되었습니다. ImageProxySettings.ImageProxyType을 'local'로 설정하거나, 이미지 프록시를 사용하지 않으려면 ImageProxySettings.Enable을 false로 설정하세요."
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.agents.llm_service_id.app_error",
+    "translation": "잘못된 자동 번역 에이전트 구성입니다. AI 서비스는 비워둘 수 없습니다."
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.libretranslate.url.app_error",
+    "translation": "LibreTranslate URL은 유효한 URL이어야 하며 http:// 또는 https://로 시작해야 합니다."
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.provider.app_error",
+    "translation": "잘못된 자동 번역 제공자입니다. 비워둘 수 없습니다."
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.provider.unsupported.app_error",
+    "translation": "지원되지 않는 자동 번역 제공자입니다."
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.timeout.app_error",
+    "translation": "자동 번역 설정의 시간 초과 값이 잘못되었습니다. 양수여야 합니다."
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.workers.app_error",
+    "translation": "작업자 수는 1에서 64 사이여야 합니다."
+  },
+  {
+    "id": "model.config.is_valid.azure_auth_mode.app_error",
+    "translation": "잘못된 Azure 인증 모드 {{.Value}}입니다. 'shared_key' 또는 'default_credential'이어야 합니다."
+  },
+  {
+    "id": "model.config.is_valid.azure_cloud.app_error",
+    "translation": "{{.Setting}}에 대한 값 {{.Value}}이(가) 잘못되었습니다. 'commercial', 'government' 또는 'custom'이어야 합니다."
+  },
+  {
+    "id": "model.config.is_valid.azure_custom_endpoint.app_error",
+    "translation": "해당 AzureCloud 값이 'custom'인 경우 {{.Setting}}을(를) 설정해야 합니다."
+  },
+  {
+    "id": "model.config.is_valid.azure_storage_account.app_error",
+    "translation": "{{.Setting}}에 대한 값 {{.Value}}이(가) 잘못되었습니다. Azure 스토리지 계정 이름은 3~24자여야 하며 소문자와 숫자만 포함할 수 있습니다."
+  },
+  {
+    "id": "model.config.is_valid.azure_timeout.app_error",
+    "translation": "잘못된 시간 초과 값 {{.Value}}입니다. 양수여야 합니다."
+  },
+  {
+    "id": "model.config.is_valid.dcr_redirect_uri_allowlist.app_error",
+    "translation": "DCR 리디렉트 URI 허용 목록에 잘못된 패턴이 있습니다. 패턴은 http:// 또는 https://로 시작해야 하며 비어 있거나 공백일 수 없습니다."
+  },
+  {
+    "id": "model.config.is_valid.directory_traversal.app_error",
+    "translation": "{{.Setting}}에는 경로 탐색 시퀀스(\"..\")를 사용할 수 없습니다. \"{{.Value}}\"이(가) 발견되었습니다."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.enable_cjk_analyzers.app_error",
+    "translation": "{{.EnableCJKAnalyzers}}이(가) true로 설정된 경우 {{.Searching}} 설정도 true로 설정해야 합니다"
+  },
+  {
+    "id": "model.config.is_valid.export_azure_auth_mode.app_error",
+    "translation": "전용 내보내기 저장소에 대한 잘못된 Azure 인증 모드 {{.Value}}입니다. 'shared_key' 또는 'default_credential'이어야 합니다."
+  },
+  {
+    "id": "model.config.is_valid.export_azure_timeout.app_error",
+    "translation": "잘못된 시간 초과 값 {{.Value}}입니다. 양수여야 합니다."
+  },
+  {
+    "id": "model.config.is_valid.extract_content_timeout.app_error",
+    "translation": "파일 설정의 콘텐츠 추출 시간 초과 값이 잘못되었습니다. 0 이상의 정수(초)여야 합니다."
+  },
+  {
+    "id": "model.config.is_valid.feature_flags.apps_enabled.app_error",
+    "translation": "AppsEnabled 기능 플래그는 더 이상 지원되지 않으므로 비활성화해야 합니다."
+  },
+  {
+    "id": "model.config.is_valid.feature_flags.move_threads_enabled.app_error",
+    "translation": "MoveThreadsEnabled 기능 플래그는 더 이상 지원되지 않으므로 비활성화해야 합니다."
+  },
+  {
+    "id": "model.config.is_valid.guest_accounts.cannot_enforce_multifactor_authentication_when_guest_magic_link_is_enabled.app_error",
+    "translation": "매직 링크 인증이 활성화된 경우 게스트 계정에 다단계 인증을 강제할 수 없습니다."
+  },
+  {
+    "id": "model.config.is_valid.intune_auth_service.app_error",
+    "translation": "Intune이 활성화된 경우 Intune MAM 인증 서비스가 필요합니다."
+  },
+  {
+    "id": "model.config.is_valid.intune_auth_service_invalid.app_error",
+    "translation": "Intune MAM 인증 서비스는 'office365' 또는 'saml'이어야 합니다."
+  },
+  {
+    "id": "model.config.is_valid.intune_client_id.app_error",
+    "translation": "Intune이 활성화된 경우 Intune MAM 클라이언트 ID가 필요합니다."
+  },
+  {
+    "id": "model.config.is_valid.intune_client_id_format.app_error",
+    "translation": "Intune MAM 클라이언트 ID는 유효한 UUID여야 합니다."
+  },
+  {
+    "id": "model.config.is_valid.intune_requires_office365.app_error",
+    "translation": "인증 서비스가 'office365'로 설정된 경우 Intune MAM을 사용하려면 OpenID Connect(Office 365)가 활성화되어야 합니다."
+  },
+  {
+    "id": "model.config.is_valid.intune_requires_saml.app_error",
+    "translation": "인증 서비스가 'saml'로 설정된 경우 Intune MAM을 사용하려면 SAML이 활성화되어야 합니다."
+  },
+  {
+    "id": "model.config.is_valid.intune_tenant_id.app_error",
+    "translation": "Intune이 활성화된 경우 Intune MAM 테넌트 ID가 필요합니다."
+  },
+  {
+    "id": "model.config.is_valid.intune_tenant_id_format.app_error",
+    "translation": "Intune MAM 테넌트 ID는 유효한 UUID여야 합니다."
+  },
+  {
+    "id": "model.config.is_valid.lock_profile_fields.app_error",
+    "translation": "잘못된 프로필 필드 잠금 설정입니다. 'none', 'name_and_username' 또는 'all'이어야 합니다."
+  },
+  {
+    "id": "model.config.is_valid.max_personal_access_token_lifetime_days.app_error",
+    "translation": "잘못된 MaximumPersonalAccessTokenLifetimeDays입니다. 0(무제한)에서 {{.Max}}일 사이여야 합니다."
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.custom_header_incomplete.app_error",
+    "translation": "메시지 내보내기의 GlobalRelaySettings.CustomHeaderName과 CustomHeaderValue는 둘 다 설정하거나 둘 다 비워 두어야 합니다."
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.custom_header_name.app_error",
+    "translation": "메시지 내보내기의 GlobalRelaySettings.CustomHeaderName은 공백, 콜론, 구분 기호, 줄바꿈이 없는 유효한 헤더 이름이어야 합니다."
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.custom_header_reserved.app_error",
+    "translation": "메시지 내보내기의 GlobalRelaySettings.CustomHeaderName에는 Global Relay 내보내기가 이미 기록하는 헤더를 사용할 수 없습니다."
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.custom_header_value.app_error",
+    "translation": "메시지 내보내기의 GlobalRelaySettings.CustomHeaderValue에는 제어 문자나 줄바꿈이 포함될 수 없습니다."
+  },
+  {
+    "id": "model.config.is_valid.minimum_desktop_app_version.app_error",
+    "translation": "잘못된 버전 번호입니다. 유효한 시맨틱 버전(예: 5.0.0)이어야 합니다."
+  },
+  {
+    "id": "model.config.is_valid.mobile_ephemeral_mode.auto_cache_cleanup.app_error",
+    "translation": "잘못된 자동 캐시 정리 값입니다. {{.Min}}일에서 {{.Max}}일 사이여야 합니다."
+  },
+  {
+    "id": "model.config.is_valid.mobile_ephemeral_mode.disconnection_timeout.app_error",
+    "translation": "잘못된 연결 해제 시간 초과 값입니다. {{.Min}}초에서 {{.Max}}초 사이여야 합니다."
+  },
+  {
+    "id": "model.config.is_valid.mobile_ephemeral_mode.offline_persistence.app_error",
+    "translation": "잘못된 오프라인 지속성 타이머 값입니다. {{.Min}}시간에서 {{.Max}}시간 사이여야 합니다."
+  },
+  {
+    "id": "model.config.is_valid.native_app_settings.download_link.app_error",
+    "translation": "하나 이상의 앱 다운로드 링크가 유효한 URL이 아닙니다."
+  },
+  {
+    "id": "model.config.is_valid.sql_analytics_query_timeout.app_error",
+    "translation": "SQL 설정의 분석 쿼리 시간 초과 값이 잘못되었습니다. 양수여야 합니다."
+  },
+  {
+    "id": "model.cpa_field.name.invalid_charset.app_error",
+    "translation": "잘못된 CPA 필드 이름 '{{.Name}}': ^[A-Za-z_][A-Za-z0-9_]*$ (CEL 식별자 규칙)와 일치해야 합니다."
+  },
+  {
+    "id": "model.cpa_field.name.reserved_word.app_error",
+    "translation": "잘못된 CPA 필드 이름 '{{.Name}}': CEL 예약어이므로 필드 식별자로 사용할 수 없습니다."
+  },
+  {
+    "id": "model.dcr.is_valid.client_name.app_error",
+    "translation": "클라이언트 이름은 64자 이하여야 합니다."
+  },
+  {
+    "id": "model.dcr.is_valid.client_uri_format.app_error",
+    "translation": "잘못된 클라이언트 URI 형식입니다."
+  },
+  {
+    "id": "model.dcr.is_valid.client_uri_length.app_error",
+    "translation": "클라이언트 URI는 256자 미만이어야 합니다."
+  },
+  {
+    "id": "model.dcr.is_valid.redirect_uri_format.app_error",
+    "translation": "잘못된 리디렉트 URI 형식입니다."
+  },
+  {
+    "id": "model.dcr.is_valid.redirect_uris.app_error",
+    "translation": "리디렉트 URI가 하나 이상 필요합니다."
+  },
+  {
+    "id": "model.dcr.is_valid.unsupported_auth_method.app_error",
+    "translation": "지원되지 않는 token_endpoint_auth_method가 제공되었습니다."
+  },
+  {
+    "id": "model.file_info.is_valid.name.app_error",
+    "translation": "name에 대한 잘못된 값입니다."
+  },
+  {
+    "id": "model.log_filter.is_valid.date_from.app_error",
+    "translation": "date_from 필터가 잘못되었습니다. \"{{.Layout}}\" 형식이어야 합니다."
+  },
+  {
+    "id": "model.log_filter.is_valid.date_to.app_error",
+    "translation": "date_to 필터가 잘못되었습니다. \"{{.Layout}}\" 형식이어야 합니다."
+  },
+  {
+    "id": "model.member.is_valid.profile_email.app_error",
+    "translation": "프로필 이메일이 초대된 이메일 목록에 없습니다"
+  },
+  {
+    "id": "model.member.is_valid.profile_email_duplicate.app_error",
+    "translation": "초대 프로필의 이메일은 고유해야 합니다"
+  },
+  {
+    "id": "model.member.is_valid.profile_first_name.app_error",
+    "translation": "초대 프로필의 이름이 잘못되었습니다"
+  },
+  {
+    "id": "model.member.is_valid.profile_last_name.app_error",
+    "translation": "초대 프로필의 성이 잘못되었습니다"
+  },
+  {
+    "id": "model.member.is_valid.profile_nil.app_error",
+    "translation": "초대 프로필은 null일 수 없습니다"
+  },
+  {
+    "id": "model.member.is_valid.profile_username.app_error",
+    "translation": "초대 프로필의 사용자 이름이 잘못되었습니다"
+  },
+  {
+    "id": "model.member.is_valid.profile_username_duplicate.app_error",
+    "translation": "초대 프로필의 사용자 이름은 고유해야 합니다"
+  },
+  {
+    "id": "model.oauth.validate_grant.credentials.app_error",
+    "translation": "잘못된 클라이언트 자격 증명입니다."
+  },
+  {
+    "id": "model.oauth.validate_grant.pkce_required.app_error",
+    "translation": "퍼블릭 클라이언트에는 PKCE(Proof Key for Code Exchange)가 필요합니다."
+  },
+  {
+    "id": "model.oauth.validate_grant.public_client_refresh_token.app_error",
+    "translation": "퍼블릭 클라이언트는 리프레시 토큰 그랜트 유형을 사용할 수 없습니다."
+  },
+  {
+    "id": "model.oauth.validate_grant.public_client_secret.app_error",
+    "translation": "퍼블릭 클라이언트는 클라이언트 시크릿을 제공해서는 안 됩니다."
+  },
+  {
+    "id": "model.post.decode_cursor.invalid_base64",
+    "translation": "잘못된 커서 형식: base64를 디코딩할 수 없습니다."
+  },
+  {
+    "id": "model.post.decode_cursor.invalid_exclude_system_posts",
+    "translation": "잘못된 커서 형식: exclude_system_posts는 불리언이어야 합니다."
+  },
+  {
+    "id": "model.post.decode_cursor.invalid_format",
+    "translation": "잘못된 커서 형식: 8개의 부분이 필요합니다."
+  },
+  {
+    "id": "model.post.decode_cursor.invalid_include_deleted",
+    "translation": "잘못된 커서 형식: include_deleted는 불리언이어야 합니다."
+  },
+  {
+    "id": "model.post.decode_cursor.invalid_timestamp",
+    "translation": "잘못된 커서 형식: timestamp는 정수여야 합니다."
+  },
+  {
+    "id": "model.post.decode_cursor.invalid_version",
+    "translation": "잘못된 커서 형식: version은 정수여야 합니다."
+  },
+  {
+    "id": "model.post.decode_cursor.unsupported_version",
+    "translation": "지원되지 않는 커서 버전입니다."
+  },
+  {
+    "id": "model.post.query_params.invalid_channel_id",
+    "translation": "잘못된 채널 ID입니다."
+  },
+  {
+    "id": "model.post.query_params.invalid_cursor_id",
+    "translation": "잘못된 커서 ID입니다."
+  },
+  {
+    "id": "model.post.query_params.invalid_sort_direction",
+    "translation": "잘못된 정렬 방향입니다."
+  },
+  {
+    "id": "model.post.query_params.invalid_time_field",
+    "translation": "잘못된 시간 필드입니다."
+  },
+  {
+    "id": "model.property_group.is_valid.app_error",
+    "translation": "잘못된 속성 그룹입니다: {{.FieldName}} ({{.Reason}})."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.repeat_files.app_error",
+    "translation": "반복 예약 메시지에는 파일을 첨부할 수 없습니다."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.repeat_timezone.app_error",
+    "translation": "매주 반복되는 예약 메시지에는 유효한 시간대가 필요합니다."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.repeat_timezone_invalid.app_error",
+    "translation": "반복 예약 메시지의 시간대가 잘못되었습니다."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.repeat_type.app_error",
+    "translation": "예약 메시지의 반복 유형이 잘못되었습니다."
+  },
+  {
+    "id": "model.scheduled_recap.compute_next_run.days_of_week.app_error",
+    "translation": "예약된 리캡의 요일이 잘못되었습니다."
+  },
+  {
+    "id": "model.scheduled_recap.compute_next_run.no_valid_day.app_error",
+    "translation": "예약된 리캡에 유효한 요일을 찾을 수 없습니다."
+  },
+  {
+    "id": "model.scheduled_recap.compute_next_run.time_format.app_error",
+    "translation": "예약된 리캡의 시간 형식이 잘못되었습니다."
+  },
+  {
+    "id": "model.scheduled_recap.compute_next_run.timezone.app_error",
+    "translation": "예약된 리캡의 시간대가 잘못되었습니다."
+  },
+  {
+    "id": "model.scheduled_recap.is_valid.agent_id.app_error",
+    "translation": "예약된 리캡에는 에이전트 ID가 있어야 합니다."
+  },
+  {
+    "id": "model.scheduled_recap.is_valid.channel_id.app_error",
+    "translation": "예약된 리캡의 채널 ID가 잘못되었습니다."
+  },
+  {
+    "id": "model.scheduled_recap.is_valid.channel_ids_empty.app_error",
+    "translation": "특정 채널을 사용하는 경우 예약된 리캡에는 하나 이상의 채널이 포함되어야 합니다."
+  },
+  {
+    "id": "model.scheduled_recap.is_valid.channel_mode.app_error",
+    "translation": "예약된 리캡의 채널 모드가 잘못되었습니다."
+  },
+  {
+    "id": "model.scheduled_recap.is_valid.custom_instructions_length.app_error",
+    "translation": "예약된 리캡의 사용자 지정 지침이 최대 길이를 초과합니다."
+  },
+  {
+    "id": "model.scheduled_recap.is_valid.days_of_week.app_error",
+    "translation": "예약된 리캡의 요일이 잘못되었습니다."
+  },
+  {
+    "id": "model.scheduled_recap.is_valid.id.app_error",
+    "translation": "예약된 리캡에는 ID가 있어야 합니다."
+  },
+  {
+    "id": "model.scheduled_recap.is_valid.time_of_day.app_error",
+    "translation": "예약된 리캡의 시간이 잘못되었습니다."
+  },
+  {
+    "id": "model.scheduled_recap.is_valid.time_period.app_error",
+    "translation": "예약된 리캡의 기간이 잘못되었습니다."
+  },
+  {
+    "id": "model.scheduled_recap.is_valid.timezone.app_error",
+    "translation": "예약된 리캡의 시간대가 잘못되었습니다."
+  },
+  {
+    "id": "model.scheduled_recap.is_valid.title_empty.app_error",
+    "translation": "예약된 리캡 제목은 비워둘 수 없습니다."
+  },
+  {
+    "id": "model.scheduled_recap.is_valid.title_length.app_error",
+    "translation": "예약된 리캡 제목이 최대 길이를 초과합니다."
+  },
+  {
+    "id": "model.scheduled_recap.is_valid.user_id.app_error",
+    "translation": "예약된 리캡에는 사용자 ID가 있어야 합니다."
+  },
+  {
+    "id": "model.translation.is_valid.lang.app_error",
+    "translation": "잘못된 언어 코드입니다. 'en', 'ja', 'fr'와 같은 표준 ISO 코드를 사용하세요."
+  },
+  {
+    "id": "model.translation.is_valid.nil.app_error",
+    "translation": "번역 객체는 null일 수 없습니다."
+  },
+  {
+    "id": "model.translation.is_valid.object_id.app_error",
+    "translation": "잘못된 객체 ID입니다."
+  },
+  {
+    "id": "model.translation.is_valid.object_json.app_error",
+    "translation": "잘못된 객체 JSON입니다."
+  },
+  {
+    "id": "model.translation.is_valid.object_type.app_error",
+    "translation": "잘못된 객체 유형입니다."
+  },
+  {
+    "id": "model.translation.is_valid.provider.app_error",
+    "translation": "잘못된 번역 제공자입니다."
+  },
+  {
+    "id": "model.translation.is_valid.text.app_error",
+    "translation": "잘못된 번역 텍스트입니다."
+  },
+  {
+    "id": "model.translation.is_valid.type.app_error",
+    "translation": "잘못된 번역 유형입니다."
+  },
+  {
+    "id": "model.translation.is_valid.type_invalid.app_error",
+    "translation": "잘못된 번역 유형입니다. 'string' 또는 'object'여야 합니다."
+  },
+  {
+    "id": "model.user_access_token.is_valid.expires_at.app_error",
+    "translation": "잘못된 expires_at입니다. 0이거나 밀리초 단위의 양수 Unix 타임스탬프여야 합니다."
+  },
+  {
+    "id": "model.user_report_options.is_valid.invalid_guest_filter",
+    "translation": "제공된 게스트 필터가 유효하지 않습니다."
+  },
+  {
+    "id": "model.view.is_valid.channel_id.app_error",
+    "translation": "잘못된 뷰 채널 ID입니다."
+  },
+  {
+    "id": "model.view.is_valid.create_at.app_error",
+    "translation": "잘못된 뷰 생성 시간입니다."
+  },
+  {
+    "id": "model.view.is_valid.creator_id.app_error",
+    "translation": "잘못된 뷰 생성자 ID입니다."
+  },
+  {
+    "id": "model.view.is_valid.description.app_error",
+    "translation": "뷰 설명이 너무 깁니다."
+  },
+  {
+    "id": "model.view.is_valid.id.app_error",
+    "translation": "잘못된 뷰 ID입니다."
+  },
+  {
+    "id": "model.view.is_valid.props.kanban_column_id.app_error",
+    "translation": "Kanban 열의 ID가 잘못되었거나 없습니다."
+  },
+  {
+    "id": "model.view.is_valid.props.kanban_column_name.app_error",
+    "translation": "Kanban 열 이름은 비워둘 수 없습니다."
+  },
+  {
+    "id": "model.view.is_valid.props.kanban_column_options.app_error",
+    "translation": "Kanban 열에는 하나 이상의 옵션 ID가 있어야 합니다."
+  },
+  {
+    "id": "model.view.is_valid.props.kanban_columns_empty.app_error",
+    "translation": "Kanban 뷰에는 하나 이상의 열이 있어야 합니다."
+  },
+  {
+    "id": "model.view.is_valid.props.kanban_columns_max.app_error",
+    "translation": "Kanban 뷰가 최대 열 수를 초과합니다."
+  },
+  {
+    "id": "model.view.is_valid.props.kanban_field_id.app_error",
+    "translation": "Kanban 뷰는 유효한 속성 필드 ID를 참조해야 합니다."
+  },
+  {
+    "id": "model.view.is_valid.props.kanban_invalid.app_error",
+    "translation": "Kanban 뷰의 props 구조가 잘못되었습니다."
+  },
+  {
+    "id": "model.view.is_valid.props.kanban_required.app_error",
+    "translation": "Kanban 뷰에는 group_by 구성이 포함된 props가 필요합니다."
+  },
+  {
+    "id": "model.view.is_valid.title.app_error",
+    "translation": "뷰 제목은 필수이며 256자 미만이어야 합니다."
+  },
+  {
+    "id": "model.view.is_valid.type.app_error",
+    "translation": "잘못된 뷰 유형입니다."
+  },
+  {
+    "id": "model.view.is_valid.update_at.app_error",
+    "translation": "잘못된 뷰 수정 시간입니다."
+  },
+  {
+    "id": "plugin.api.update_post.mm_blocks_actions.app_error",
+    "translation": "플러그인 게시물 업데이트에 잘못된 mm_blocks_actions가 있습니다."
+  },
+  {
+    "id": "plugin_api.channel.space_notify_props.app_error",
+    "translation": "스페이스 채널에는 Notify props를 설정할 수 없습니다."
+  },
+  {
+    "id": "shared_channel.system_message.no_longer_shared",
+    "translation": "이 채널은 더 이상 {{.WorkspaceName}}과(와) 공유되지 않습니다."
+  },
+  {
+    "id": "shared_channel.system_message.no_longer_shared_unknown",
+    "translation": "이 채널은 더 이상 다른 워크스페이스와 공유되지 않습니다."
+  },
+  {
+    "id": "shared_channel.system_message.now_shared",
+    "translation": "이 채널은 이제 {{.WorkspaceName}}과(와) 공유됩니다."
+  },
+  {
+    "id": "web.command_webhook.command.app_error",
+    "translation": "{{.command_id}} 명령어를 찾을 수 없습니다."
+  },
+  {
+    "id": "web.command_webhook.parse.app_error",
+    "translation": "웹훅 {{.hook_id}}의 수신 데이터를 구문 분석할 수 없습니다."
+  },
+  {
+    "id": "web.error.unsupported_desktop_app.assistance",
+    "translation": "추가 도움이 필요하면 시스템 관리자에게 문의하세요."
+  },
+  {
+    "id": "web.error.unsupported_desktop_app.download_button",
+    "translation": "업데이트된 앱 다운로드"
+  },
+  {
+    "id": "web.error.unsupported_desktop_app.footer_about",
+    "translation": "정보"
+  },
+  {
+    "id": "web.error.unsupported_desktop_app.footer_help",
+    "translation": "도움말"
+  },
+  {
+    "id": "web.error.unsupported_desktop_app.footer_privacy",
+    "translation": "개인정보 처리방침"
+  },
+  {
+    "id": "web.error.unsupported_desktop_app.footer_terms",
+    "translation": "약관"
+  },
+  {
+    "id": "web.error.unsupported_desktop_app.message",
+    "translation": "사용 중인 {{.SiteName}} 데스크톱 앱 버전({{.CurrentVersion}})이 최소 요구 버전({{.MinimumVersion}})보다 낮습니다. 계속하려면 앱을 업데이트하거나 웹 브라우저에서 {{.SiteName}}을(를) 여세요."
+  },
+  {
+    "id": "web.error.unsupported_desktop_app.title",
+    "translation": "업데이트 필요"
+  },
+  {
+    "id": "web.incoming_webhook.channel_locked.app_error",
+    "translation": "이 웹훅은 요청된 채널 {{.channel_id}}에 게시할 권한이 없습니다"
   }
 ]

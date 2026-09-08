@@ -10474,5 +10474,3662 @@
   {
     "id": "api.channel.discoverable_join_request.archived.app_error",
     "translation": "Невозможно отправить запрос на присоединение к архивному каналу."
+  },
+  {
+    "id": "api.access_control.assign.team_group_constrained",
+    "translation": "К команде с синхронизацией по группам нельзя применить политику членства."
+  },
+  {
+    "id": "api.access_control_policy.channel_permission_policies.feature_disabled",
+    "translation": "Функция политик разрешений на уровне каналов не включена."
+  },
+  {
+    "id": "api.channel.discoverable_join_request.discoverable_requires_approval.app_error",
+    "translation": "Для присоединения к этому каналу требуется одобрение администратора. Пожалуйста, отправьте запрос из окна «Обзор каналов»."
+  },
+  {
+    "id": "api.channel.discoverable_join_request.duplicate.app_error",
+    "translation": "У вас уже есть ожидающий запрос на присоединение к этому каналу."
+  },
+  {
+    "id": "api.channel.discoverable_join_request.feature_disabled.app_error",
+    "translation": "Обнаруживаемые каналы не включены на этом сервере."
+  },
+  {
+    "id": "api.channel.discoverable_join_request.guest.app_error",
+    "translation": "Гости не могут запрашивать присоединение к обнаруживаемым частным каналам."
+  },
+  {
+    "id": "api.channel.discoverable_join_request.invalid_patch.app_error",
+    "translation": "Недопустимое обновление запроса на присоединение к каналу."
+  },
+  {
+    "id": "api.channel.discoverable_join_request.not_discoverable.app_error",
+    "translation": "Этот канал не является обнаруживаемым."
+  },
+  {
+    "id": "api.channel.discoverable_join_request.not_pending.app_error",
+    "translation": "Запрос на присоединение больше не ожидает рассмотрения."
+  },
+  {
+    "id": "api.channel.discoverable_join_request.not_private.app_error",
+    "translation": "Запросы на присоединение принимают только частные каналы."
+  },
+  {
+    "id": "api.channel.discoverable_join_request.policy_denied.app_error",
+    "translation": "Вы не соответствуете правилам доступа, необходимым для присоединения к этому каналу."
+  },
+  {
+    "id": "api.channel.discoverable_join_request.shared.app_error",
+    "translation": "Общие каналы не поддерживают запросы на присоединение через обнаружение."
+  },
+  {
+    "id": "api.channel.patch_update_channel.cannot_update_managed_category.app_error",
+    "translation": "Невозможно обновить управляемую категорию для этого канала без соответствующих разрешений."
+  },
+  {
+    "id": "api.channel.patch_update_channel.group_constrained_not_allowed.app_error",
+    "translation": "Вам не разрешено устанавливать group_constrained для этого типа канала."
+  },
+  {
+    "id": "api.channel.set_members.group_constrained.app_error",
+    "translation": "Невозможно задать участников канала, членство в котором ограничено группами."
+  },
+  {
+    "id": "api.channel.set_members.policy_enforced.app_error",
+    "translation": "Невозможно задать участников канала, управляемого политикой."
+  },
+  {
+    "id": "api.channel.set_members.type.app_error",
+    "translation": "Невозможно задать участников для этого типа канала."
+  },
+  {
+    "id": "api.channel.space_channel.app_error",
+    "translation": "Каналы пространств недоступны через эндпоинты /channels. Вместо этого используйте API пространств."
+  },
+  {
+    "id": "api.channel.update_channel.policy_enforced_type_conversion.app_error",
+    "translation": "К этому каналу применена политика членства на основе атрибутов. Удалите политику, прежде чем преобразовывать канал между публичным и частным."
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.guest_and_admin.app_error",
+    "translation": "Недопустимое обновление участника канала: пользователь должен быть гостем или администратором, но не обоими."
+  },
+  {
+    "id": "api.command.execute_command.provided_site_url_different.app_error",
+    "translation": "Имя хоста запроса отличается от настроенного SiteURL. Для URL ответа быстрой команды будет использован настроенный SiteURL."
+  },
+  {
+    "id": "api.command.execute_command.site_url_required.app_error",
+    "translation": "Для использования быстрых команд должен быть настроен SiteURL"
+  },
+  {
+    "id": "api.command_groupmsg.invalid_user.app_error",
+    "translation": {
+      "one": "Не удалось найти пользователя: {{.Users}}",
+      "few": "Не удалось найти пользователей: {{.Users}}",
+      "many": "Не удалось найти пользователей: {{.Users}}",
+      "other": "Не удалось найти пользователей: {{.Users}}"
+    }
+  },
+  {
+    "id": "api.command_invite.user_already_in_channel.app_error",
+    "translation": {
+      "one": "{{.User}} уже находится в канале.",
+      "few": "{{.User}} уже находятся в канале.",
+      "many": "{{.User}} уже находятся в канале.",
+      "other": "{{.User}} уже находятся в канале."
+    }
+  },
+  {
+    "id": "api.command_mobile_logs.cross_user_unavailable.app_error",
+    "translation": "Невозможно изменить настройки журналов мобильного приложения для этого пользователя."
+  },
+  {
+    "id": "api.command_mobile_logs.desc",
+    "translation": "Управление вложением журналов мобильного приложения для себя или другого пользователя."
+  },
+  {
+    "id": "api.command_mobile_logs.disabled",
+    "translation": "Вложение журналов мобильного приложения теперь отключено для {{.User}}."
+  },
+  {
+    "id": "api.command_mobile_logs.enabled",
+    "translation": "Вложение журналов мобильного приложения теперь включено для {{.User}}."
+  },
+  {
+    "id": "api.command_mobile_logs.hint",
+    "translation": "[on|off|status] [@username]"
+  },
+  {
+    "id": "api.command_mobile_logs.name",
+    "translation": "mobile-logs"
+  },
+  {
+    "id": "api.command_mobile_logs.status_off",
+    "translation": "Вложение журналов мобильного приложения сейчас отключено для {{.User}}."
+  },
+  {
+    "id": "api.command_mobile_logs.status_on",
+    "translation": "Вложение журналов мобильного приложения сейчас включено для {{.User}}."
+  },
+  {
+    "id": "api.command_mobile_logs.update_error.app_error",
+    "translation": "Не удалось обновить настройку вложения журналов мобильного приложения. Пожалуйста, попробуйте ещё раз."
+  },
+  {
+    "id": "api.command_mobile_logs.usage",
+    "translation": "Использование: /mobile-logs [on|off|status] [@username]"
+  },
+  {
+    "id": "api.command_mobile_logs.user_not_found.app_error",
+    "translation": "Не удалось найти пользователя \"{{.Username}}\"."
+  },
+  {
+    "id": "api.command_mobile_logs.you",
+    "translation": "вас"
+  },
+  {
+    "id": "api.context.invalid_body.app_error",
+    "translation": "Недопустимые свойства сообщения."
+  },
+  {
+    "id": "api.data_spillage.error.invalid_channel_type",
+    "translation": "Функция обработки утечки данных недоступна для каналов личных и групповых сообщений."
+  },
+  {
+    "id": "api.data_spillage.exposure.write.app_error",
+    "translation": "Не удалось записать отчёт о раскрытии сообщения."
+  },
+  {
+    "id": "api.data_spillage.report.open.app_error",
+    "translation": "Не удалось открыть сгенерированный файл отчёта о помеченных сообщениях."
+  },
+  {
+    "id": "api.data_spillage.report.stat.app_error",
+    "translation": "Не удалось прочитать информацию о файле отчёта о помеченных сообщениях."
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.subject",
+    "translation": {
+      "one": "[{{.SiteName}}] Новое уведомление за {{.Day}} {{.Month}}, {{.Year}}",
+      "few": "[{{.SiteName}}] Новые уведомления за {{.Day}} {{.Month}}, {{.Year}}",
+      "many": "[{{.SiteName}}] Новые уведомления за {{.Day}} {{.Month}}, {{.Year}}",
+      "other": "[{{.SiteName}}] Новые уведомления за {{.Day}} {{.Month}}, {{.Year}}"
+    }
+  },
+  {
+    "id": "api.emoji.upload.too_many_frames.app_error",
+    "translation": "Невозможно создать эмодзи. Анимированный GIF должен содержать не более {{.MaxFrames}} кадров."
+  },
+  {
+    "id": "api.file.get_file.abac_denied.app_error",
+    "translation": "У вас нет необходимого доступа для скачивания этого файла."
+  },
+  {
+    "id": "api.file.test_connection_auth.app_error",
+    "translation": "Не удалось пройти аутентификацию в бэкенде файлового хранилища. Проверьте учётные данные и настройки аутентификации."
+  },
+  {
+    "id": "api.file.test_connection_no_bucket.app_error",
+    "translation": "Настроенный бакет или контейнер не существует. Проверьте конфигурацию файлового хранилища и разрешения."
+  },
+  {
+    "id": "api.file.test_connection_settings_nil.app_error",
+    "translation": "В настройках файлового хранилища есть незаданные значения."
+  },
+  {
+    "id": "api.file.test_connection_unsupported_driver.app_error",
+    "translation": "Неподдерживаемый драйвер файлового хранилища \"{{.Driver}}\". Поддерживаемые значения: \"local\", \"amazons3\" и \"azureblob\"."
+  },
+  {
+    "id": "api.file.upload_file.abac_denied.app_error",
+    "translation": "У вас нет необходимого доступа для загрузки файлов в этот канал."
+  },
+  {
+    "id": "api.license.add_license.wrong_environment_production.app_error",
+    "translation": "Это производственная лицензия, но сервер работает в тестовой среде или среде разработки. Производственные лицензии могут использоваться только на производственных серверах."
+  },
+  {
+    "id": "api.license.add_license.wrong_environment_test.app_error",
+    "translation": "Это лицензия для тестирования или разработки, но сервер работает в производственной среде. Лицензии для тестирования или разработки могут использоваться только на тестовых серверах или серверах разработки."
+  },
+  {
+    "id": "api.license.parse_license.parse_form.app_error",
+    "translation": "Не удалось разобрать форму загрузки лицензии."
+  },
+  {
+    "id": "api.mark_all_as_read.disabled.app_error",
+    "translation": "Функция «Отметить все как прочитанные» не включена."
+  },
+  {
+    "id": "api.oauth.get_access_token.client_id_mismatch.app_error",
+    "translation": "invalid_grant: Токен был выдан не этому клиенту."
+  },
+  {
+    "id": "api.post.create_post.card_type_disabled.app_error",
+    "translation": "Сообщения типа «карточка» не включены на этом сервере."
+  },
+  {
+    "id": "api.post.create_post.silent_notification.app_error",
+    "translation": "Только сообщения ботов, вебхуков, OAuth-приложений и плагинов могут доставляться без уведомлений."
+  },
+  {
+    "id": "api.post.create_post.silent_persistent_notification.app_error",
+    "translation": "Беззвучные сообщения не могут использовать постоянные уведомления."
+  },
+  {
+    "id": "api.post.do_action.query.app_error",
+    "translation": "Недопустимый запрос действия."
+  },
+  {
+    "id": "api.post.fill_in_post_props.burn_on_read.shared_channel.app_error",
+    "translation": "Сообщения, сгорающие после прочтения, запрещены в общих каналах."
+  },
+  {
+    "id": "api.post.get_message_for_notification.files_sent",
+    "translation": {
+      "one": "{{.Count}} файл отправлен: {{.Filenames}}",
+      "few": "{{.Count}} файла отправлено: {{.Filenames}}",
+      "many": "{{.Count}} файлов отправлено: {{.Filenames}}",
+      "other": "{{.Count}} файла отправлено: {{.Filenames}}"
+    }
+  },
+  {
+    "id": "api.post.get_message_for_notification.images_sent",
+    "translation": {
+      "one": "{{.Count}} изображение отправлено: {{.Filenames}}",
+      "few": "{{.Count}} изображения отправлено: {{.Filenames}}",
+      "many": "{{.Count}} изображений отправлено: {{.Filenames}}",
+      "other": "{{.Count}} изображения отправлено: {{.Filenames}}"
+    }
+  },
+  {
+    "id": "api.post.reveal_post.invalid_request.app_error",
+    "translation": "Недопустимый запрос: отсутствует или недействителен заголовок X-Requested-With."
+  },
+  {
+    "id": "api.property.session_attributes.license.app_error",
+    "translation": "Для атрибутов сеанса требуется лицензия Enterprise Advanced."
+  },
+  {
+    "id": "api.property.v2_group_not_found.app_error",
+    "translation": "Указанная группа свойств не найдена."
+  },
+  {
+    "id": "api.property_field.create.invalid_target_type.app_error",
+    "translation": "Указанный тип цели недействителен."
+  },
+  {
+    "id": "api.property_field.create.protected_via_api.app_error",
+    "translation": "Невозможно создать защищённое поле свойства через API."
+  },
+  {
+    "id": "api.property_field.create.target_id_required.app_error",
+    "translation": "При создании поля свойства с областью действия канала или команды требуется target_id."
+  },
+  {
+    "id": "api.property_field.delete.no_permission.app_error",
+    "translation": "У вас нет разрешения на удаление этого поля свойства."
+  },
+  {
+    "id": "api.property_field.get.invalid_opts.app_error",
+    "translation": "Недопустимые параметры поиска полей свойств."
+  },
+  {
+    "id": "api.property_field.get.invalid_target_type.app_error",
+    "translation": "Требуется действительный target_type (system, team или channel)."
+  },
+  {
+    "id": "api.property_field.get.scope_conflict.app_error",
+    "translation": "channel_id/team_id нельзя сочетать с target_type/target_id."
+  },
+  {
+    "id": "api.property_field.get.scope_required.app_error",
+    "translation": "Требуется параметр области действия (channel_id, team_id или target_type)."
+  },
+  {
+    "id": "api.property_field.get.target_id_required.app_error",
+    "translation": "При запросе с target_type канала или команды требуется target_id."
+  },
+  {
+    "id": "api.property_field.get.target_type_required.app_error",
+    "translation": "Если указан target_id, требуется target_type."
+  },
+  {
+    "id": "api.property_field.invalid_patch.app_error",
+    "translation": "Недопустимый патч поля свойства."
+  },
+  {
+    "id": "api.property_field.object_type_mismatch.app_error",
+    "translation": "Тип объекта поля свойства не соответствует URL."
+  },
+  {
+    "id": "api.property_field.patch.legacy_field.app_error",
+    "translation": "Невозможно изменить поле свойства v1 через этот API."
+  },
+  {
+    "id": "api.property_field.update.no_field_permission.app_error",
+    "translation": "У вас нет разрешения на редактирование этого поля свойства."
+  },
+  {
+    "id": "api.property_field.update.no_options_permission.app_error",
+    "translation": "У вас нет разрешения на управление вариантами этого поля свойства."
+  },
+  {
+    "id": "api.property_value.get.invalid_opts.app_error",
+    "translation": "Недопустимые параметры поиска значений свойств."
+  },
+  {
+    "id": "api.property_value.invalid_object_type.app_error",
+    "translation": "Указанный тип объекта недействителен."
+  },
+  {
+    "id": "api.property_value.patch.duplicate_field_id.app_error",
+    "translation": "Запрос содержит повторяющиеся идентификаторы полей."
+  },
+  {
+    "id": "api.property_value.patch.empty_body.app_error",
+    "translation": "Тело запроса должно содержать хотя бы одно обновление значения свойства."
+  },
+  {
+    "id": "api.property_value.patch.field_not_found.app_error",
+    "translation": "Поле свойства {{.FieldID}} не найдено в этой группе."
+  },
+  {
+    "id": "api.property_value.patch.invalid_field_id.app_error",
+    "translation": "Один или несколько идентификаторов полей в запросе недействительны."
+  },
+  {
+    "id": "api.property_value.patch.no_values_permission.app_error",
+    "translation": "У вас нет разрешения на установку значений для одного или нескольких полей."
+  },
+  {
+    "id": "api.property_value.patch.too_many_items.request_error",
+    "translation": "Невозможно обновить столько значений свойств. За один раз можно обновить только {{.Max}} значений свойств."
+  },
+  {
+    "id": "api.property_value.system_use_dedicated_route.app_error",
+    "translation": "Системные значения должны использовать выделенную конечную точку системных значений."
+  },
+  {
+    "id": "api.property_value.template_no_values.app_error",
+    "translation": "Поля-шаблоны не могут иметь значений."
+  },
+  {
+    "id": "api.scheduled_recap.permission_denied",
+    "translation": "У вас нет разрешения на доступ к этой запланированной сводке."
+  },
+  {
+    "id": "api.shared_channel.attachment.creator_id_required.app_error",
+    "translation": "Требуется FileInfo.CreatorId."
+  },
+  {
+    "id": "api.shared_channel.attachment.data_required.app_error",
+    "translation": "Требуются данные файла."
+  },
+  {
+    "id": "api.shared_channel.attachment.file_info_required.app_error",
+    "translation": "Требуется FileInfo."
+  },
+  {
+    "id": "api.shared_channel.attachment.filename_required.app_error",
+    "translation": "Требуется FileInfo.Name."
+  },
+  {
+    "id": "api.team.access_control.added.system_message",
+    "translation": "Вы были добавлены в команду **{{.TeamName}}**, потому что теперь вы соответствуете её требованиям к членству."
+  },
+  {
+    "id": "api.team.access_control.removed.system_message",
+    "translation": "Вы были удалены из команды **{{.TeamName}}**, потому что больше не соответствуете её требованиям к членству."
+  },
+  {
+    "id": "api.team.add_user.to.team.abac_subject_build_failed.app_error",
+    "translation": "Не удалось сформировать субъект контроля доступа для пользователя."
+  },
+  {
+    "id": "api.team.add_user.to.team.rejected",
+    "translation": "У пользователя нет необходимых атрибутов, чтобы присоединиться к команде."
+  },
+  {
+    "id": "api.team.invite_members.account_deactivated.app_error",
+    "translation": "Учётная запись, связанная с {{.Addresses}}, была деактивирована. Пожалуйста, обратитесь к вашему системному администратору за подробностями."
+  },
+  {
+    "id": "api.team.invite_members.profiles_disabled.app_error",
+    "translation": "Для предустановки полей профиля в приглашениях необходимо включить заблокированные поля профиля."
+  },
+  {
+    "id": "api.team.invite_members.profiles_graceful.app_error",
+    "translation": "Предустановка полей профиля в приглашениях требует режима graceful."
+  },
+  {
+    "id": "api.team.invite_members.profiles_license.app_error",
+    "translation": "Для предустановки полей профиля в приглашениях требуется лицензия Enterprise."
+  },
+  {
+    "id": "api.team.invite_members.username_taken.app_error",
+    "translation": "Имя пользователя {{.Username}} уже занято."
+  },
+  {
+    "id": "api.team.update.group_constrained.policy_exists",
+    "translation": "Синхронизацию групп нельзя включить для команды, к которой применена политика членства."
+  },
+  {
+    "id": "api.team.update_team_member_roles.guest_and_admin.app_error",
+    "translation": "Недопустимое обновление участника команды: пользователь должен быть гостем или администратором, но не обоими."
+  },
+  {
+    "id": "api.templates.email_footer_v2",
+    "translation": "© 2015 - {{ .CurrentYear }} Mattermost, Inc. 2100 Geng Road, Suite 210, Palo Alto, CA, 94303"
+  },
+  {
+    "id": "api.templates.license_need_help.info",
+    "translation": "<a href=\"https://mattermost.com/contact-sales/\">Обратитесь к эксперту Mattermost</a> за помощью с тарифными планами и вариантами продления."
+  },
+  {
+    "id": "api.templates.license_need_help.title",
+    "translation": "Нужна помощь?"
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_subject",
+    "translation": "Ваша лицензия {{.SkuName}} подлежит продлению"
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_subtitle",
+    "translation": "Срок действия вашей лицензии {{.SkuName}} для <a href=\"{{.SiteURL}}\">{{.SiteName}}</a> истекает через {{.Days}} дн. Мы надеемся, что вам нравится безопасная совместная работа для критически важных задач, которую обеспечивает Mattermost."
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_subtitle_two",
+    "translation": "Продлите лицензию в ближайшее время, чтобы ваша команда могла продолжать пользоваться этими преимуществами."
+  },
+  {
+    "id": "api.templates.remove_expired_license.body.heading",
+    "translation": "Срок действия вашей лицензии Mattermost истёк"
+  },
+  {
+    "id": "api.templates.remove_expired_license.body.subtitle",
+    "translation": "Срок действия вашей лицензии {{.SkuName}} для <a href=\"{{.SiteURL}}\">{{.SiteName}}</a> истёк, и некоторые функции могут быть отключены."
+  },
+  {
+    "id": "api.templates.remove_expired_license.body.subtitle_two",
+    "translation": "Пожалуйста, продлите лицензию сейчас, чтобы продолжить пользоваться всеми возможностями Mattermost."
+  },
+  {
+    "id": "api.templates.remove_expired_license.subject",
+    "translation": "Срок действия вашей лицензии {{.SkuName}} истёк"
+  },
+  {
+    "id": "api.templates.user_access_token_rotated_body.info",
+    "translation": "Персональный токен доступа в вашей учётной записи на {{ .SiteURL }} был перевыпущен. Прежний секрет токена больше недействителен."
+  },
+  {
+    "id": "api.templates.user_access_token_rotated_body.title",
+    "translation": "Персональный токен доступа перевыпущен"
+  },
+  {
+    "id": "api.templates.user_access_token_rotated_subject",
+    "translation": "[{{ .SiteName }}] Персональный токен доступа перевыпущен"
+  },
+  {
+    "id": "api.user.attach_device_id.invalid_device_id.app_error",
+    "translation": "Недопустимый идентификатор устройства."
+  },
+  {
+    "id": "api.user.attach_device_id.invalid_voip_device_id.app_error",
+    "translation": "Недопустимый идентификатор VoIP-устройства."
+  },
+  {
+    "id": "api.user.demote_user_to_guest.bot_not_allowed.app_error",
+    "translation": "Учётные записи ботов нельзя преобразовать в гостевые учётные записи."
+  },
+  {
+    "id": "api.user.get_users_not_in_abac_team.access_control_unavailable.app_error",
+    "translation": "Служба контроля доступа недоступна. Невозможно отфильтровать пользователей для команды с поддержкой ABAC."
+  },
+  {
+    "id": "api.user.oauth_to_email.integration_session.app_error",
+    "translation": "Невозможно переключиться на аутентификацию по электронной почте при использовании сеанса интеграции."
+  },
+  {
+    "id": "api.user.patch_user.profile_field_locked.app_error",
+    "translation": "Поле {{.Field}} управляется вашим системным администратором и не может быть изменено."
+  },
+  {
+    "id": "api.user.rotate_user_access_token.disabled_token.app_error",
+    "translation": "Невозможно повторно сгенерировать отключённый токен доступа."
+  },
+  {
+    "id": "api.user.saml.relay_state_too_long.app_error",
+    "translation": "Значение RelayState в SAML слишком длинное."
+  },
+  {
+    "id": "api.user.session_attributes.disabled.app_error",
+    "translation": "Атрибуты сеанса не включены."
+  },
+  {
+    "id": "api.user.update_user.profile_field_locked.app_error",
+    "translation": "Поле {{.Field}} управляется вашим системным администратором и не может быть изменено."
+  },
+  {
+    "id": "api.user.upload_profile_user.profile_field_locked.app_error",
+    "translation": "Изображение профиля управляется вашим системным администратором и не может быть изменено."
+  },
+  {
+    "id": "api.view.create.deleted_channel.app_error",
+    "translation": "Невозможно создать представление в удалённом канале."
+  },
+  {
+    "id": "api.view.delete.channel_mismatch.app_error",
+    "translation": "Представление не принадлежит указанному каналу."
+  },
+  {
+    "id": "api.view.delete.deleted_channel.app_error",
+    "translation": "Невозможно удалить представление в удалённом канале."
+  },
+  {
+    "id": "api.view.get.channel_mismatch.app_error",
+    "translation": "Представление не принадлежит указанному каналу."
+  },
+  {
+    "id": "api.view.get.deleted_channel.app_error",
+    "translation": "Невозможно получить представление из удалённого канала."
+  },
+  {
+    "id": "api.view.get_posts.channel_mismatch.app_error",
+    "translation": "Представление не принадлежит указанному каналу."
+  },
+  {
+    "id": "api.view.get_posts.deleted_channel.app_error",
+    "translation": "Невозможно получить сообщения для представления из удалённого канала."
+  },
+  {
+    "id": "api.view.list.deleted_channel.app_error",
+    "translation": "Невозможно получить список представлений для удалённого канала."
+  },
+  {
+    "id": "api.view.update.channel_mismatch.app_error",
+    "translation": "Представление не принадлежит указанному каналу."
+  },
+  {
+    "id": "api.view.update.deleted_channel.app_error",
+    "translation": "Невозможно обновить представление в удалённом канале."
+  },
+  {
+    "id": "api.view.update_sort_order.deleted_channel.app_error",
+    "translation": "Невозможно обновить порядок сортировки представлений в удалённом канале."
+  },
+  {
+    "id": "api.webhook.incoming.user_membership.app_error",
+    "translation": "Пользователь вебхука должен быть участником целевой команды или канала."
+  },
+  {
+    "id": "api.webhook.incoming.user_role.app_error",
+    "translation": "Вы не можете назначить вебхук пользователю с более высокими привилегиями, чем ваши собственные."
+  },
+  {
+    "id": "app.access_control.build_subject.get_subject.app_error",
+    "translation": "Не удалось получить субъект контроля доступа."
+  },
+  {
+    "id": "app.access_control.build_subject.group_id.app_error",
+    "translation": "Не удалось получить группу атрибутов контроля доступа."
+  },
+  {
+    "id": "app.access_control.get_channel_role.app_error",
+    "translation": "Невозможно получить роль пользователя в канале. Пожалуйста, попробуйте ещё раз."
+  },
+  {
+    "id": "app.access_control.get_session_attributes.app_error",
+    "translation": "Не удалось получить атрибуты сеанса."
+  },
+  {
+    "id": "app.access_control.plugin.evaluation_unavailable.app_error",
+    "translation": "Не удалось выполнить проверку контроля доступа для этого ресурса."
+  },
+  {
+    "id": "app.access_control.plugin.invalid_acting_user.app_error",
+    "translation": "Действующий пользователь недействителен или не существует."
+  },
+  {
+    "id": "app.access_control.plugin.invalid_action.app_error",
+    "translation": "Действие не является допустимым действием контроля доступа."
+  },
+  {
+    "id": "app.access_control.plugin.invalid_id.app_error",
+    "translation": "В API контроля доступа передан недопустимый идентификатор."
+  },
+  {
+    "id": "app.access_control.plugin.invalid_resource_type.app_error",
+    "translation": "Тип ресурса не является допустимым типом ресурса контроля доступа для плагинов."
+  },
+  {
+    "id": "app.access_control.plugin.policy_not_found.app_error",
+    "translation": "Политика контроля доступа не найдена."
+  },
+  {
+    "id": "app.access_control.plugin.resource_type_forbidden.app_error",
+    "translation": "Вызывающий плагин не является владельцем этого типа ресурса."
+  },
+  {
+    "id": "app.access_control.plugin.type_conflict.app_error",
+    "translation": "Политика контроля доступа другого типа с этим идентификатором уже существует."
+  },
+  {
+    "id": "app.ai_bridge_test_helper.invalid_config",
+    "translation": "Недопустимая конфигурация тестового помощника моста ИИ."
+  },
+  {
+    "id": "app.bot.update.internal_error",
+    "translation": "Не удалось обновить бота."
+  },
+  {
+    "id": "app.bot.update_bot_active.protected_bot.app_error",
+    "translation": "Невозможно отключить системного бота."
+  },
+  {
+    "id": "app.channel.add_user.to.channel.rejected_by_plugin",
+    "translation": "Добавление участника канала отклонено плагином: {{.Reason}}"
+  },
+  {
+    "id": "app.channel.create_board_channel.boards_not_enabled.app_error",
+    "translation": "Функция Integrated Boards не включена."
+  },
+  {
+    "id": "app.channel.create_board_channel.internal_error",
+    "translation": "Не удалось создать канал доски."
+  },
+  {
+    "id": "app.channel.create_board_channel.invalid.app_error",
+    "translation": "Недопустимые данные канала доски."
+  },
+  {
+    "id": "app.channel.create_board_channel.limit.app_error",
+    "translation": "Достигнуто максимальное количество каналов в команде."
+  },
+  {
+    "id": "app.channel.create_channel.board_type.app_error",
+    "translation": "Каналы досок нельзя создавать через CreateChannel. Используйте API /boards."
+  },
+  {
+    "id": "app.channel.create_channel.space_type.app_error",
+    "translation": "Каналы-пространства нельзя создавать через эту конечную точку."
+  },
+  {
+    "id": "app.channel.create_channel.spaces_not_enabled.app_error",
+    "translation": "Функция Docs не включена."
+  },
+  {
+    "id": "app.channel.delete_channel.rejected_by_plugin",
+    "translation": "Архивация канала отклонена плагином: {{.Reason}}"
+  },
+  {
+    "id": "app.channel.get_channels_by_team_with_unreads_and_with_mentions.app_error",
+    "translation": "Не удалось получить каналы с непрочитанными сообщениями и упоминаниями."
+  },
+  {
+    "id": "app.channel.join_request.get.app_error",
+    "translation": "Не удалось загрузить запрос на присоединение к каналу."
+  },
+  {
+    "id": "app.channel.join_request.not_found.app_error",
+    "translation": "Запрос на присоединение к каналу не найден."
+  },
+  {
+    "id": "app.channel.join_request.save.app_error",
+    "translation": "Не удалось сохранить запрос на присоединение к каналу."
+  },
+  {
+    "id": "app.channel.join_request.update.app_error",
+    "translation": "Не удалось обновить запрос на присоединение к каналу."
+  },
+  {
+    "id": "app.channel.move_channel.space.app_error",
+    "translation": "Пространства нельзя перемещать через эту конечную точку."
+  },
+  {
+    "id": "app.channel.restore_channel.rejected_by_plugin",
+    "translation": "Восстановление канала отклонено плагином: {{.Reason}}"
+  },
+  {
+    "id": "app.channel.save_member.app_error",
+    "translation": "Не удалось сохранить участника канала."
+  },
+  {
+    "id": "app.channel.set_members.context_cancelled.app_error",
+    "translation": "Операция установки участников канала была отменена."
+  },
+  {
+    "id": "app.channel.set_members.empty_private.app_error",
+    "translation": "Нельзя удалить всех участников из частного канала."
+  },
+  {
+    "id": "app.channel.set_members.get_current.app_error",
+    "translation": "Не удалось получить текущих участников канала."
+  },
+  {
+    "id": "app.channel.set_members.get_members.app_error",
+    "translation": "Не удалось получить участников канала для согласования ролей."
+  },
+  {
+    "id": "app.channel.update_channel.plugin_type_mutation.app_error",
+    "translation": "Плагин {{.PluginID}} попытался изменить тип канала через ChannelWillBeUpdated; изменения типа должны выполняться через специальный механизм смены типа"
+  },
+  {
+    "id": "app.channel.update_channel.rejected_by_plugin",
+    "translation": "Обновление канала отклонено плагином: {{.Reason}}"
+  },
+  {
+    "id": "app.channel.update_channel_privacy.space.app_error",
+    "translation": "Приватность пространств нельзя изменить через эту конечную точку."
+  },
+  {
+    "id": "app.channel_guard.invalid_channel.app_error",
+    "translation": "Идентификатор канала не является допустимым идентификатором."
+  },
+  {
+    "id": "app.channel_guard.register.app_error",
+    "translation": "Не удалось зарегистрировать защиту канала."
+  },
+  {
+    "id": "app.channel_guard.register.empty_channel.app_error",
+    "translation": "Для регистрации защиты канала необходимо указать идентификатор канала."
+  },
+  {
+    "id": "app.channel_guard.unregister.app_error",
+    "translation": "Не удалось отменить регистрацию защиты канала."
+  },
+  {
+    "id": "app.channel_guard.unregister.empty_channel.app_error",
+    "translation": "Для отмены регистрации защиты канала необходимо указать идентификатор канала."
+  },
+  {
+    "id": "app.compile_csv_chunks.write_error",
+    "translation": "Не удалось записать данные CSV."
+  },
+  {
+    "id": "app.data_spillage.exposure.column.email",
+    "translation": "Электронная почта"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.is_deactivated",
+    "translation": "Деактивирован"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.is_guest",
+    "translation": "Гость"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.is_remote",
+    "translation": "Удалённый пользователь"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.last_activity_at",
+    "translation": "Время последней активности пользователя (YYYY-MM-DDTHH:MM:SSZ)"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.last_viewed_at",
+    "translation": "Последний просмотр канала (YYYY-MM-DDTHH:MM:SSZ)"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.user_id",
+    "translation": "Идентификатор пользователя"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.username",
+    "translation": "Имя пользователя"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.was_channel_member",
+    "translation": "Был участником канала"
+  },
+  {
+    "id": "app.data_spillage.exposure.edit_history_post.app_error",
+    "translation": "Невозможно создать отчёт о раскрытии для редакции из истории изменений. Используйте идентификатор текущего сообщения."
+  },
+  {
+    "id": "app.data_spillage.exposure.get_channel_members.app_error",
+    "translation": "Не удалось получить историю членства в канале для отмеченного сообщения."
+  },
+  {
+    "id": "app.data_spillage.exposure.get_last_activity.app_error",
+    "translation": "Не удалось получить данные об активности сеансов для отмеченного сообщения."
+  },
+  {
+    "id": "app.data_spillage.exposure.get_possible_viewers.app_error",
+    "translation": "Не удалось получить сведения о прочтении канала для отмеченного сообщения."
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.channel",
+    "translation": "Канал"
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.generated_at",
+    "translation": "Сформирован"
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.post_id",
+    "translation": "Идентификатор сообщения"
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.report_version",
+    "translation": "Версия отчёта"
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.total_users",
+    "translation": "Всего пользователей"
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.window_end",
+    "translation": "Отмечено"
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.window_start",
+    "translation": "Сообщение создано"
+  },
+  {
+    "id": "app.data_spillage.exposure.missing_reporting_time.app_error",
+    "translation": "Для отмеченного сообщения не записано время сообщения о проблеме, поэтому определить период раскрытия невозможно."
+  },
+  {
+    "id": "app.data_spillage.exposure.unsupported_channel_type.app_error",
+    "translation": "Отчёты о раскрытии не поддерживаются для личных и групповых сообщений."
+  },
+  {
+    "id": "app.data_spillage.exposure.value.never_viewed",
+    "translation": "Н/Д"
+  },
+  {
+    "id": "app.data_spillage.exposure.value.no",
+    "translation": "Нет"
+  },
+  {
+    "id": "app.data_spillage.exposure.value.no_sessions",
+    "translation": "Сеансы не найдены"
+  },
+  {
+    "id": "app.data_spillage.exposure.value.unknown",
+    "translation": "Неизвестно"
+  },
+  {
+    "id": "app.data_spillage.exposure.value.yes",
+    "translation": "Да"
+  },
+  {
+    "id": "app.data_spillage.report.cleared",
+    "translation": "Очищено"
+  },
+  {
+    "id": "app.data_spillage.report.close.app_error",
+    "translation": "Не удалось закрыть файл отчета об отмеченном сообщении."
+  },
+  {
+    "id": "app.data_spillage.report.column.detail",
+    "translation": "Подробности"
+  },
+  {
+    "id": "app.data_spillage.report.column.status",
+    "translation": "Статус"
+  },
+  {
+    "id": "app.data_spillage.report.column.step",
+    "translation": "Шаг"
+  },
+  {
+    "id": "app.data_spillage.report.detail.deleted",
+    "translation": "Удалено."
+  },
+  {
+    "id": "app.data_spillage.report.detail.failed_retrieve_edit_history",
+    "translation": "Не удалось получить историю редактирования."
+  },
+  {
+    "id": "app.data_spillage.report.detail.file_attachments_info_ids",
+    "translation": "**Идентификаторы записей файлов:** {{.FileInfoIDs}}"
+  },
+  {
+    "id": "app.data_spillage.report.detail.file_names",
+    "translation": {
+      "one": "С диска удалён {{.Count}} файл.",
+      "few": "С диска удалено {{.Count}} файла.",
+      "many": "С диска удалено {{.Count}} файлов.",
+      "other": "С диска удалено {{.Count}} файла."
+    }
+  },
+  {
+    "id": "app.data_spillage.report.detail.no_data_found",
+    "translation": "Данные не найдены."
+  },
+  {
+    "id": "app.data_spillage.report.detail.no_files",
+    "translation": "Файлы не найдены."
+  },
+  {
+    "id": "app.data_spillage.report.detail.no_rows_to_delete",
+    "translation": "Нет строк для удаления."
+  },
+  {
+    "id": "app.data_spillage.report.detail.post_scrubbed_deleted",
+    "translation": "Сообщение очищено и удалено."
+  },
+  {
+    "id": "app.data_spillage.report.detail.revisions_cleared",
+    "translation": {
+      "one": "Очищена {{.Count}} редакция из {{.Total}}.",
+      "few": "Очищены {{.Count}} редакции из {{.Total}}.",
+      "many": "Очищено {{.Count}} редакций из {{.Total}}.",
+      "other": "Очищено {{.Count}} редакции из {{.Total}}."
+    }
+  },
+  {
+    "id": "app.data_spillage.report.detail.thread_data_deleted",
+    "translation": "Обсуждения, реакции и связанные данные удалены."
+  },
+  {
+    "id": "app.data_spillage.report.error_log",
+    "translation": "Журнал ошибок"
+  },
+  {
+    "id": "app.data_spillage.report.generated",
+    "translation": "Сформирован:"
+  },
+  {
+    "id": "app.data_spillage.report.incomplete_warning",
+    "translation": "Удаление сообщения не завершено. Просмотрите журнал ошибок и обратитесь к системному администратору для ручного устранения проблемы."
+  },
+  {
+    "id": "app.data_spillage.report.post_id",
+    "translation": "Идентификатор сообщения:"
+  },
+  {
+    "id": "app.data_spillage.report.revision",
+    "translation": "Редакция"
+  },
+  {
+    "id": "app.data_spillage.report.revisions_found",
+    "translation": "Найдено редакций:"
+  },
+  {
+    "id": "app.data_spillage.report.status.failed",
+    "translation": "Сбой"
+  },
+  {
+    "id": "app.data_spillage.report.status.not_applicable",
+    "translation": "Неприменимо"
+  },
+  {
+    "id": "app.data_spillage.report.status.partial",
+    "translation": "Частично"
+  },
+  {
+    "id": "app.data_spillage.report.status.removed",
+    "translation": "Удалено"
+  },
+  {
+    "id": "app.data_spillage.report.status.unknown",
+    "translation": "Неизвестно"
+  },
+  {
+    "id": "app.data_spillage.report.step.acknowledgements",
+    "translation": "Подтверждения"
+  },
+  {
+    "id": "app.data_spillage.report.step.edit_histories",
+    "translation": "История редактирования"
+  },
+  {
+    "id": "app.data_spillage.report.step.file_attachments",
+    "translation": "Файловые вложения"
+  },
+  {
+    "id": "app.data_spillage.report.step.fileinfo_rows",
+    "translation": "Записи о файловых вложениях"
+  },
+  {
+    "id": "app.data_spillage.report.step.persistent_notifications",
+    "translation": "Постоянные уведомления"
+  },
+  {
+    "id": "app.data_spillage.report.step.post_itself",
+    "translation": "Запись сообщения"
+  },
+  {
+    "id": "app.data_spillage.report.step.priority_data",
+    "translation": "Метаданные приоритета"
+  },
+  {
+    "id": "app.data_spillage.report.step.reminders",
+    "translation": "Напоминания"
+  },
+  {
+    "id": "app.data_spillage.report.step.thread_data",
+    "translation": "Обсуждение, ответы и реакции"
+  },
+  {
+    "id": "app.data_spillage.report.summary",
+    "translation": "Сводка"
+  },
+  {
+    "id": "app.data_spillage.report.sync.app_error",
+    "translation": "Не удалось синхронизировать файл отчета об отмеченном сообщении с диском."
+  },
+  {
+    "id": "app.data_spillage.report.tempfile.app_error",
+    "translation": "Не удалось создать временный файл для отчета об отмеченном сообщении."
+  },
+  {
+    "id": "app.data_spillage.report.title",
+    "translation": "Отчет об удалении сообщения"
+  },
+  {
+    "id": "app.data_spillage.report.total_steps",
+    "translation": "Всего шагов:"
+  },
+  {
+    "id": "app.data_spillage.report.write_edit_yaml.app_error",
+    "translation": "Не удалось записать запись истории редактирования в отчет об отмеченном сообщении."
+  },
+  {
+    "id": "app.data_spillage.report.write_exposure_csv.app_error",
+    "translation": "Не удалось добавить отчёт о раскрытии в отчёт об отмеченном сообщении."
+  },
+  {
+    "id": "app.data_spillage.report.write_metadata_yaml.app_error",
+    "translation": "Не удалось записать метаданные в отчет об отмеченном сообщении."
+  },
+  {
+    "id": "app.data_spillage.report.write_post_yaml.app_error",
+    "translation": "Не удалось записать сведения о сообщении в отчет об отмеченном сообщении."
+  },
+  {
+    "id": "app.data_spillage.report.write_review_yaml.app_error",
+    "translation": "Не удалось записать сведения о проверке содержимого в отчет об отмеченном сообщении."
+  },
+  {
+    "id": "app.data_spillage.report.zip_close.app_error",
+    "translation": "Не удалось закрыть архив отчета об отмеченном сообщении."
+  },
+  {
+    "id": "app.data_spillage.report.zip_copy.app_error",
+    "translation": "Не удалось скопировать содержимое вложения в архив отчета об отмеченном сообщении."
+  },
+  {
+    "id": "app.data_spillage.report.zip_create.app_error",
+    "translation": "Не удалось создать запись в архиве отчета об отмеченном сообщении."
+  },
+  {
+    "id": "app.data_spillage.search_team_admin_reviewers.app_error",
+    "translation": "Не удалось выполнить поиск запроса среди рецензентов — администраторов команды."
+  },
+  {
+    "id": "app.data_spillage.search_team_reviewers.app_error",
+    "translation": "Не удалось выполнить поиск запроса среди рецензентов команды."
+  },
+  {
+    "id": "app.data_spillage.set_thread_replies_properties.app_error",
+    "translation": "Не удалось установить значения свойств для ответов обсуждения отмеченного сообщения."
+  },
+  {
+    "id": "app.delete_scheduled_post.get_scheduled_post.error",
+    "translation": "Невозможно получить существующее запланированное сообщение из базы данных."
+  },
+  {
+    "id": "app.draft.upsert.rejected_by_plugin",
+    "translation": "Черновик отклонён плагином: {{.Reason}}"
+  },
+  {
+    "id": "app.drafts.permanent_delete_by_user.app_error",
+    "translation": "Невозможно удалить черновики пользователя."
+  },
+  {
+    "id": "app.export.export_custom_emoji.mkdir.error",
+    "translation": "Невозможно создать каталог для изображений пользовательских эмодзи"
+  },
+  {
+    "id": "app.export.generate_presigned_url.config.app_error",
+    "translation": "Это действие требует использования выделенного хранилища экспорта."
+  },
+  {
+    "id": "app.export.generate_presigned_url.direct_download.app_error",
+    "translation": "Прямая загрузка экспортов доступна только в Mattermost Cloud."
+  },
+  {
+    "id": "app.export.generate_presigned_url.driver.app_error",
+    "translation": "Драйвер вашего хранилища экспорта не поддерживает создание предподписанных URL."
+  },
+  {
+    "id": "app.export.generate_presigned_url.fileexist.app_error",
+    "translation": "Не удалось проверить наличие файла."
+  },
+  {
+    "id": "app.export.generate_presigned_url.link.app_error",
+    "translation": "Не удалось создать предподписанный URL."
+  },
+  {
+    "id": "app.export.generate_presigned_url.notfound.app_error",
+    "translation": "Файл экспорта не найден."
+  },
+  {
+    "id": "app.file_info.delete_for_post_ids.app_error",
+    "translation": "Не удалось удалить запрошенные файлы из базы данных"
+  },
+  {
+    "id": "app.file_info.get_by_ids.app_error",
+    "translation": "Не удалось получить информацию о файлах по идентификаторам для истории редактирования сообщения."
+  },
+  {
+    "id": "app.file_info.get_by_post_id.app_error",
+    "translation": "Не удалось найти файлы для сообщения."
+  },
+  {
+    "id": "app.file_info.not_found",
+    "translation": "Файл не найден в хранилище файлов по указанному пути."
+  },
+  {
+    "id": "app.file_info.remove_file.app_error",
+    "translation": "Не удалось удалить файл из хранилища файлов."
+  },
+  {
+    "id": "app.group.create_syncable_memberships.error",
+    "translation": "Невозможно создать синхронизируемые членства группы."
+  },
+  {
+    "id": "app.group.delete_invalid_syncable_memberships.error",
+    "translation": "Невозможно удалить недействительные синхронизируемые членства группы."
+  },
+  {
+    "id": "app.group.user_not_found",
+    "translation": "Ошибка обновления группы. Пользователь с именем пользователя \"{{.Username}}\" не найден."
+  },
+  {
+    "id": "app.import.import_bot.lookup_error",
+    "translation": "Не удалось проверить наличие существующего бота"
+  },
+  {
+    "id": "app.import.import_bot.user_not_found.error",
+    "translation": "Пользователь для бота не найден"
+  },
+  {
+    "id": "app.import.import_direct_channel.save_member.error",
+    "translation": "Не удалось сохранить участника канала при импорте канала личных сообщений"
+  },
+  {
+    "id": "app.import.profile_image.open.app_error",
+    "translation": "Не удалось открыть файл изображения профиля: {{.FileName}}"
+  },
+  {
+    "id": "app.import.profile_image.read_data.app_error",
+    "translation": "Не удалось прочитать данные изображения профиля."
+  },
+  {
+    "id": "app.import.validate_attachment_import_data.invalid_path.error",
+    "translation": "Не удалось проверить данные импорта вложения. Недопустимый путь: \"{{.Path}}\""
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.attachment.error",
+    "translation": "Не удалось проверить данные вложения личного сообщения."
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.thread_follower.error",
+    "translation": "Не удалось проверить данные подписчиков обсуждения личного сообщения."
+  },
+  {
+    "id": "app.import.validate_emoji_import_data.invalid_image_path.error",
+    "translation": "Поле изображения импортируемого эмодзи содержит недопустимый путь: \"{{.Path}}\""
+  },
+  {
+    "id": "app.import.validate_post_import_data.attachment.error",
+    "translation": "Не удалось проверить данные вложения сообщения."
+  },
+  {
+    "id": "app.import.validate_post_import_data.thread_follower.error",
+    "translation": "Не удалось проверить данные подписчиков обсуждения сообщения."
+  },
+  {
+    "id": "app.import.validate_reply_import_data.attachment.error",
+    "translation": "Не удалось проверить данные вложения ответа."
+  },
+  {
+    "id": "app.import.validate_thread_follower_data.empty.error",
+    "translation": "Данные импорта подписчика пусты."
+  },
+  {
+    "id": "app.import.validate_thread_follower_data.user_missing.error",
+    "translation": "Отсутствует обязательное свойство follower: user."
+  },
+  {
+    "id": "app.import.validate_user_import_data.channel_guest_missing_system_guest_role.error",
+    "translation": "Пользователь имеет роли гостя канала, но не является системным гостем."
+  },
+  {
+    "id": "app.import.validate_user_import_data.invalid_image_path.error",
+    "translation": "Недопустимый путь к изображению профиля пользователя: \"{{.Path}}\""
+  },
+  {
+    "id": "app.import.validate_user_import_data.system_guest_missing_channel_guest_roles.error",
+    "translation": "Пользователь является системным гостем, но не имеет гостевых ролей во всех каналах. Количество каналов с гостевой ролью: {{.ChannelGuestCount}}, всего каналов: {{.TotalChannels}}."
+  },
+  {
+    "id": "app.import.validate_user_import_data.system_guest_missing_team_guest_roles.error",
+    "translation": "Пользователь является системным гостем, но не имеет гостевых ролей во всех командах. Количество команд с гостевой ролью: {{.TeamGuestCount}}, всего команд: {{.TotalTeams}}."
+  },
+  {
+    "id": "app.import.validate_user_import_data.team_guest_missing_system_guest_role.error",
+    "translation": "Пользователь имеет роли гостя команды, но не является системным гостем."
+  },
+  {
+    "id": "app.limits.get_app_limits.single_channel_guest_count.store_error",
+    "translation": "Не удалось получить количество гостей, состоящих только в одном канале."
+  },
+  {
+    "id": "app.lookup_interactive_dialog.decode_json_error",
+    "translation": "Произошла ошибка при декодировании JSON-ответа от поиска интерактивного диалога."
+  },
+  {
+    "id": "app.lookup_interactive_dialog.json_error",
+    "translation": "Произошла ошибка при обработке JSON-ответа от поиска интерактивного диалога."
+  },
+  {
+    "id": "app.lookup_interactive_dialog.read_body_error",
+    "translation": "Произошла ошибка при чтении тела ответа от поиска интерактивного диалога."
+  },
+  {
+    "id": "app.managed_category.clear.app_error",
+    "translation": "Не удалось убрать канал из управляемой категории."
+  },
+  {
+    "id": "app.managed_category.dm_gm_not_allowed.app_error",
+    "translation": "Каналы личных и групповых сообщений нельзя назначать в управляемую категорию."
+  },
+  {
+    "id": "app.managed_category.empty_name.app_error",
+    "translation": "Имя управляемой категории не может быть пустым."
+  },
+  {
+    "id": "app.managed_category.get_mappings.app_error",
+    "translation": "Не удалось получить сопоставления управляемых категорий."
+  },
+  {
+    "id": "app.managed_category.search.app_error",
+    "translation": "Не удалось выполнить поиск управляемой категории для канала."
+  },
+  {
+    "id": "app.managed_category.set.app_error",
+    "translation": "Не удалось назначить каналу управляемую категорию."
+  },
+  {
+    "id": "app.notifications.send_test_message.errors.no_channel",
+    "translation": "Невозможно получить личное сообщение с системным ботом"
+  },
+  {
+    "id": "app.notifications.send_test_message.errors.no_user",
+    "translation": "Невозможно получить пользователя"
+  },
+  {
+    "id": "app.notifications.send_test_message.message_body",
+    "translation": "Если вы получили это тестовое уведомление — всё работает!"
+  },
+  {
+    "id": "app.notify_expiring_access_tokens.dm",
+    "translation": "Срок действия вашего персонального токена доступа \"{{.Description}}\" истечёт через {{.Days}} дн. или раньше. Откройте **Профиль > Безопасность**, чтобы пересоздать его, пока он не перестал работать."
+  },
+  {
+    "id": "app.notify_expiring_access_tokens.dm_final",
+    "translation": "Срок действия вашего персонального токена доступа \"{{.Description}}\" истечёт в течение 24 часов. Откройте **Профиль > Безопасность**, чтобы пересоздать его, пока он не перестал работать."
+  },
+  {
+    "id": "app.notify_expiring_access_tokens.unnamed_token",
+    "translation": "(без описания)"
+  },
+  {
+    "id": "app.pap.access_control.channel_default",
+    "translation": "Политики членства нельзя применять к каналам команды по умолчанию."
+  },
+  {
+    "id": "app.pap.access_control.channel_group_constrained",
+    "translation": "Членство в канале управляется группами, поэтому к нему нельзя применять политики контроля доступа."
+  },
+  {
+    "id": "app.pap.access_control.channel_shared",
+    "translation": "К общим каналам нельзя применять политику контроля доступа."
+  },
+  {
+    "id": "app.pap.access_control.channel_type_not_supported",
+    "translation": "Политики контроля доступа можно применять только к публичным или частным каналам."
+  },
+  {
+    "id": "app.pap.access_control.insufficient_channel_permissions",
+    "translation": "У вас нет разрешения на управление контролем доступа для этого канала."
+  },
+  {
+    "id": "app.pap.access_control.insufficient_permissions",
+    "translation": "У вас нет разрешения на управление этой политикой контроля доступа."
+  },
+  {
+    "id": "app.pap.assign_access_control_policy_to_channels.app_error",
+    "translation": "Невозможно назначить политику контроля доступа каналам."
+  },
+  {
+    "id": "app.pap.assign_access_control_policy_to_teams.app_error",
+    "translation": "Невозможно назначить политику контроля доступа командам."
+  },
+  {
+    "id": "app.pap.check_expression.app_error",
+    "translation": "Не удалось проверить выражение."
+  },
+  {
+    "id": "app.pap.create_access_control_policy.app_error",
+    "translation": "Не удалось создать политику контроля доступа."
+  },
+  {
+    "id": "app.pap.delete_access_control_policy.app_error",
+    "translation": "Не удалось удалить политику контроля доступа."
+  },
+  {
+    "id": "app.pap.delete_policy.app_error",
+    "translation": "Невозможно удалить политику контроля доступа."
+  },
+  {
+    "id": "app.pap.delete_policy.masked_values",
+    "translation": "Вы не можете удалить эту политику, так как она содержит значения атрибутов, на просмотр которых у вас нет разрешения."
+  },
+  {
+    "id": "app.pap.expression_to_visual_ast.app_error",
+    "translation": "Не удалось сгенерировать визуальное AST из выражения."
+  },
+  {
+    "id": "app.pap.get_access_control_auto_complete.app_error",
+    "translation": "Не удалось получить автодополнение контроля доступа."
+  },
+  {
+    "id": "app.pap.get_all_access_control_policies.app_error",
+    "translation": "Не удалось получить политики контроля доступа."
+  },
+  {
+    "id": "app.pap.get_channel_access_control_attributes.app_error",
+    "translation": "Не удалось получить атрибуты для канала."
+  },
+  {
+    "id": "app.pap.get_channel_members_to_remove.app_error",
+    "translation": "Не удалось получить участников канала для удаления."
+  },
+  {
+    "id": "app.pap.get_masked_visual_ast.app_error",
+    "translation": "Не удалось сгенерировать замаскированное визуальное AST из выражения."
+  },
+  {
+    "id": "app.pap.get_policies_for_field_ids.app_error",
+    "translation": "Не удалось получить политики для указанных идентификаторов полей."
+  },
+  {
+    "id": "app.pap.get_policy.app_error",
+    "translation": "Невозможно получить политику контроля доступа."
+  },
+  {
+    "id": "app.pap.get_policy_attributes.app_error",
+    "translation": "Не удалось получить атрибуты для политики."
+  },
+  {
+    "id": "app.pap.get_team_members_to_remove.app_error",
+    "translation": "Не удалось получить участников команды для удаления."
+  },
+  {
+    "id": "app.pap.has_masked_values.app_error",
+    "translation": "Не удалось определить замаскированные значения для выражения политики."
+  },
+  {
+    "id": "app.pap.hydrate_actions.app_error",
+    "translation": "Не удалось загрузить набор действий, объявленный политикой контроля доступа канала."
+  },
+  {
+    "id": "app.pap.init.app_error",
+    "translation": "Невозможно инициализировать службу контроля доступа."
+  },
+  {
+    "id": "app.pap.is_ready.app_error",
+    "translation": "Служба контроля доступа не готова."
+  },
+  {
+    "id": "app.pap.mask_expression.app_error",
+    "translation": "Не удалось замаскировать выражение политики."
+  },
+  {
+    "id": "app.pap.masking.ambiguous_sibling.app_error",
+    "translation": "Несколько атрибутов пользователя связаны с одним и тем же шаблоном, поэтому однозначно определить видимость атрибута канала невозможно."
+  },
+  {
+    "id": "app.pap.masking.unknown_object_type.app_error",
+    "translation": "Невозможно определить видимость атрибута для неизвестного типа объекта."
+  },
+  {
+    "id": "app.pap.merge_expression.app_error",
+    "translation": "Не удалось объединить выражение политики с сохранёнными замаскированными значениями."
+  },
+  {
+    "id": "app.pap.missing_attribute.app_error",
+    "translation": "В выражении отсутствует атрибут."
+  },
+  {
+    "id": "app.pap.normalize_policy.app_error",
+    "translation": "Не удалось нормализовать выражение политики."
+  },
+  {
+    "id": "app.pap.query_expression.app_error",
+    "translation": "Не удалось выполнить запрос по выражению."
+  },
+  {
+    "id": "app.pap.rehydrate_rank.app_error",
+    "translation": "Не удалось восстановить ранговые операторы в выражении политики."
+  },
+  {
+    "id": "app.pap.save_policy.app_error",
+    "translation": "Невозможно сохранить политику контроля доступа."
+  },
+  {
+    "id": "app.pap.save_policy.forbidden",
+    "translation": "У вас нет разрешения на внесение этого изменения в политику."
+  },
+  {
+    "id": "app.pap.save_policy.invalid_value",
+    "translation": "Выражение политики содержит недопустимое значение."
+  },
+  {
+    "id": "app.pap.save_policy.masked_condition_deleted",
+    "translation": "Условие, содержащее замаскированные значения, было удалено. Пожалуйста, перезагрузите политику и попробуйте снова."
+  },
+  {
+    "id": "app.pap.save_policy.masked_token_in_expression",
+    "translation": "Выражение политики содержит значение-заполнитель, которое не удалось разрешить. Пожалуйста, перезагрузите политику и попробуйте снова."
+  },
+  {
+    "id": "app.pap.save_policy.name_exists.app_error",
+    "translation": "Политика с таким именем уже существует. Пожалуйста, выберите другое имя."
+  },
+  {
+    "id": "app.pap.save_policy.parent_resource_attributes_team_assigned",
+    "translation": "Это правило доступа использует атрибуты канала, которых нет у команд. Прежде чем сохранять, удалите команды, назначенные этой политике."
+  },
+  {
+    "id": "app.pap.save_policy.resolver_error",
+    "translation": "Не удалось инициализировать распознаватель атрибутов для сохранения политики."
+  },
+  {
+    "id": "app.pap.save_policy.resource_attributes_disabled",
+    "translation": "На этом сервере правила доступа не могут использовать атрибуты канала. Эта возможность не включена."
+  },
+  {
+    "id": "app.pap.save_policy.rule_name_unique.app_error",
+    "translation": "Имена правил разрешений должны быть уникальными в пределах политики."
+  },
+  {
+    "id": "app.pap.save_policy.self_exclusion",
+    "translation": "Вы не удовлетворяете одному или нескольким условиям этой политики."
+  },
+  {
+    "id": "app.pap.save_policy.team_resource_attributes",
+    "translation": "Это правило доступа использует атрибуты канала, которых нет у команд. Правила доступа с атрибутами канала можно применять только к каналам."
+  },
+  {
+    "id": "app.pap.search_access_control_policies.app_error",
+    "translation": "Не удалось выполнить поиск политик контроля доступа."
+  },
+  {
+    "id": "app.pap.simulate.attribute_refresh",
+    "translation": "Не удалось обновить атрибуты для симуляции."
+  },
+  {
+    "id": "app.pap.simulate.channel_required_for_resource",
+    "translation": "Для симуляции политики, которая ссылается на атрибуты канала, требуется указать канал."
+  },
+  {
+    "id": "app.pap.simulate.compile_failed",
+    "translation": "Не удалось скомпилировать политику для симуляции."
+  },
+  {
+    "id": "app.pap.simulate.feature_disabled",
+    "translation": "Функция политик разрешений в настоящее время отключена."
+  },
+  {
+    "id": "app.pap.simulate.invalid_policy",
+    "translation": "Политика недействительна."
+  },
+  {
+    "id": "app.pap.simulate.missing_actions",
+    "translation": "Для симуляции требуется хотя бы одно действие."
+  },
+  {
+    "id": "app.pap.simulate.missing_channel_id",
+    "translation": "Для симуляции политики уровня канала требуется указать канал."
+  },
+  {
+    "id": "app.pap.simulate.missing_policy",
+    "translation": "Для симуляции требуется политика."
+  },
+  {
+    "id": "app.pap.simulate.missing_users",
+    "translation": "Для симуляции требуется хотя бы один пользователь."
+  },
+  {
+    "id": "app.pap.simulate.resolver_error",
+    "translation": "Не удалось инициализировать распознаватель атрибутов для симуляции политики."
+  },
+  {
+    "id": "app.pap.simulate.too_many_users",
+    "translation": "Запрошено слишком много пользователей. Максимально допустимо {{.Max}}."
+  },
+  {
+    "id": "app.pap.simulate.unavailable",
+    "translation": "Policy Administration Point не инициализирован."
+  },
+  {
+    "id": "app.pap.simulate.unsupported_type",
+    "translation": "Тип политики \"{{.Type}}\" не поддерживается симулятором."
+  },
+  {
+    "id": "app.pap.unassign_access_control_policy_from_teams.app_error",
+    "translation": "Не удалось снять назначение политики контроля доступа с команд."
+  },
+  {
+    "id": "app.pdp.access_evaluation.permission_policy.app_error",
+    "translation": "Не удалось оценить политику разрешений."
+  },
+  {
+    "id": "app.plugin.guard_hook_failed.app_error",
+    "translation": "Операция отклонена: сбой вызова хука плагина {{.PluginID}}, контролирующего операцию"
+  },
+  {
+    "id": "app.plugin.inactive_guard.app_error",
+    "translation": "Операция отклонена: требуемый плагин не активен"
+  },
+  {
+    "id": "app.post.create_post.shared_dm_or_gm.app_error",
+    "translation": "Невозможно создать сообщение в личном или групповом сообщении с удалёнными пользователями"
+  },
+  {
+    "id": "app.post.get_post.app_error",
+    "translation": "Произошла ошибка при получении содержимого сообщения, сгорающего после прочтения."
+  },
+  {
+    "id": "app.post.get_posts_for_reporting.app_error",
+    "translation": "Невозможно получить сообщения для отчетности."
+  },
+  {
+    "id": "app.post.get_posts_for_reporting.invalid_input_error",
+    "translation": "Невозможно получить сообщения для отчетности. Неверный ввод."
+  },
+  {
+    "id": "app.post.get_posts_for_reporting.license_error",
+    "translation": "Ваша лицензия не поддерживает отчетность по сообщениям."
+  },
+  {
+    "id": "app.post.get_posts_for_view.app_error",
+    "translation": "Не удалось получить сообщения для отображения."
+  },
+  {
+    "id": "app.post.permanent_delete_post.error",
+    "translation": "Не удалось окончательно удалить сообщение."
+  },
+  {
+    "id": "app.post.restore_post_version.get_single.app_error",
+    "translation": "Не удалось получить старую версию сообщения."
+  },
+  {
+    "id": "app.post.restore_post_version.not_allowed.app_error",
+    "translation": "У вас нет соответствующих разрешений."
+  },
+  {
+    "id": "app.post.restore_post_version.not_an_history_item.app_error",
+    "translation": "Указанный идентификатор истории сообщения не соответствует ни одному элементу истории для данного сообщения."
+  },
+  {
+    "id": "app.post.restore_post_version.not_valid_post_history_item.app_error",
+    "translation": "Указанный идентификатор истории сообщения не соответствует элементу истории сообщений."
+  },
+  {
+    "id": "app.post.rewrite.agent_call_failed",
+    "translation": "Не удалось вызвать ИИ-агента."
+  },
+  {
+    "id": "app.post.rewrite.empty_response",
+    "translation": "Пустой ответ от ИИ."
+  },
+  {
+    "id": "app.post.rewrite.invalid_action",
+    "translation": "Недопустимое действие переписывания."
+  },
+  {
+    "id": "app.post.rewrite.parse_response_failed",
+    "translation": "Не удалось разобрать ответ ИИ на переписывание."
+  },
+  {
+    "id": "app.post.save.thread_membership.app_error",
+    "translation": "Невозможно сохранить участие в обсуждении для сообщения."
+  },
+  {
+    "id": "app.post_priority.delete_for_post.app_error",
+    "translation": "Не удалось окончательно удалить данные приоритета сообщения из базы данных."
+  },
+  {
+    "id": "app.post_prority.get_for_post_with_context.app_error",
+    "translation": "Невозможно получить приоритет для сообщения с контекстом"
+  },
+  {
+    "id": "app.property.access_denied.app_error",
+    "translation": "У вас нет разрешения на выполнение этой операции."
+  },
+  {
+    "id": "app.property.invalid_access_mode.app_error",
+    "translation": "Атрибут access_mode недействителен."
+  },
+  {
+    "id": "app.property.license_error",
+    "translation": "Ваша лицензия не поддерживает эту группу свойств."
+  },
+  {
+    "id": "app.property.not_found.app_error",
+    "translation": "Указанное свойство не существует."
+  },
+  {
+    "id": "app.property.sync_lock.app_error",
+    "translation": "Это поле свойства управляется внешней синхронизацией и не может быть изменено напрямую."
+  },
+  {
+    "id": "app.property_field.count_for_group.app_error",
+    "translation": "Невозможно подсчитать поля свойств для группы."
+  },
+  {
+    "id": "app.property_field.count_for_target.app_error",
+    "translation": "Невозможно подсчитать поля свойств для целевого объекта."
+  },
+  {
+    "id": "app.property_field.create.app_error",
+    "translation": "Невозможно создать поле свойства."
+  },
+  {
+    "id": "app.property_field.create.group_limit_reached.app_error",
+    "translation": "Достигнуто максимальное количество полей свойств для этой группы."
+  },
+  {
+    "id": "app.property_field.create.limit_reached.app_error",
+    "translation": "Достигнуто максимальное количество полей свойств для этого типа объекта."
+  },
+  {
+    "id": "app.property_field.create.linked_source_cross_group.app_error",
+    "translation": "Нельзя связать с полем из другой группы."
+  },
+  {
+    "id": "app.property_field.create.linked_source_deleted.app_error",
+    "translation": "Связанное исходное поле было удалено."
+  },
+  {
+    "id": "app.property_field.create.linked_source_is_linked.app_error",
+    "translation": "Нельзя связать с полем, которое само является связанным. Цепочки не допускаются."
+  },
+  {
+    "id": "app.property_field.create.linked_source_not_found.app_error",
+    "translation": "Связанное исходное поле не найдено."
+  },
+  {
+    "id": "app.property_field.create.linked_source_not_template.app_error",
+    "translation": "Связывать можно только с полями-шаблонами."
+  },
+  {
+    "id": "app.property_field.create.linked_source_protected.app_error",
+    "translation": "Только исходный плагин может создавать связанные поля из защищённого шаблона."
+  },
+  {
+    "id": "app.property_field.create.linked_target_type_mismatch.app_error",
+    "translation": "Целевой тип связанного поля должен совпадать с целевым типом исходного шаблона."
+  },
+  {
+    "id": "app.property_field.create.name_conflict.app_error",
+    "translation": "Невозможно создать свойство \"{{.Name}}\": свойство с таким именем уже существует на уровне {{.ConflictLevel}}."
+  },
+  {
+    "id": "app.property_field.create.protected.app_error",
+    "translation": "Нельзя создать защищённое поле свойства."
+  },
+  {
+    "id": "app.property_field.create.template_cannot_be_linked.app_error",
+    "translation": "Поля-шаблоны не могут иметь связанное поле."
+  },
+  {
+    "id": "app.property_field.delete.app_error",
+    "translation": "Невозможно удалить поле свойства."
+  },
+  {
+    "id": "app.property_field.delete.get_existing.app_error",
+    "translation": "Невозможно получить поле свойства для удаления."
+  },
+  {
+    "id": "app.property_field.delete.has_linked_dependents.app_error",
+    "translation": "Нельзя удалить поле с активными связанными зависимыми полями. Сначала отвяжите или удалите зависимые поля."
+  },
+  {
+    "id": "app.property_field.delete.not_found.app_error",
+    "translation": "Поле свойства не найдено."
+  },
+  {
+    "id": "app.property_field.delete.protected.app_error",
+    "translation": "Нельзя удалить защищённое поле свойства."
+  },
+  {
+    "id": "app.property_field.get.app_error",
+    "translation": "Невозможно получить поле свойства."
+  },
+  {
+    "id": "app.property_field.get_by_name.app_error",
+    "translation": "Невозможно получить поле свойства по имени."
+  },
+  {
+    "id": "app.property_field.get_for_group.app_error",
+    "translation": "Невозможно получить поля свойств для группы."
+  },
+  {
+    "id": "app.property_field.get_many.app_error",
+    "translation": "Невозможно получить поля свойств."
+  },
+  {
+    "id": "app.property_field.invalid_attrs.app_error",
+    "translation": "Недопустимые атрибуты поля свойства."
+  },
+  {
+    "id": "app.property_field.invalid_input.app_error",
+    "translation": "Предоставлен неверный ввод."
+  },
+  {
+    "id": "app.property_field.managed_admin.permission.app_error",
+    "translation": "У вас нет разрешения помечать это поле свойства как управляемое администратором."
+  },
+  {
+    "id": "app.property_field.not_found.app_error",
+    "translation": "Указанное поле свойства не существует."
+  },
+  {
+    "id": "app.property_field.rank_disabled.app_error",
+    "translation": "Ранговые поля свойств не включены."
+  },
+  {
+    "id": "app.property_field.search.app_error",
+    "translation": "Невозможно выполнить поиск полей свойств."
+  },
+  {
+    "id": "app.property_field.update.app_error",
+    "translation": "Невозможно обновить поля свойств."
+  },
+  {
+    "id": "app.property_field.update.cannot_change_link_target.app_error",
+    "translation": "Нельзя изменить цель связи. Сначала отвяжите поле, затем создайте новое связанное поле."
+  },
+  {
+    "id": "app.property_field.update.cannot_link_existing.app_error",
+    "translation": "Нельзя задать linked_field_id для существующего поля. Его можно задать только при создании."
+  },
+  {
+    "id": "app.property_field.update.conflict.app_error",
+    "translation": "Невозможно обновить поле свойства из-за конфликта. Пожалуйста, повторите попытку."
+  },
+  {
+    "id": "app.property_field.update.get_existing.app_error",
+    "translation": "Невозможно получить поля свойств для обновления."
+  },
+  {
+    "id": "app.property_field.update.linked_options_change.app_error",
+    "translation": "Нельзя изменять варианты связанного поля. Варианты наследуются от источника."
+  },
+  {
+    "id": "app.property_field.update.linked_type_change.app_error",
+    "translation": "Нельзя изменять тип связанного поля. Тип наследуется от источника."
+  },
+  {
+    "id": "app.property_field.update.name_conflict.app_error",
+    "translation": "Невозможно переименовать свойство в \"{{.Name}}\": свойство с таким именем уже существует на уровне {{.ConflictLevel}}."
+  },
+  {
+    "id": "app.property_field.update.protected.app_error",
+    "translation": "Нельзя обновить защищённое поле свойства."
+  },
+  {
+    "id": "app.property_field.update.type_change_with_dependents.app_error",
+    "translation": "Нельзя изменить тип поля с активными связанными зависимыми полями."
+  },
+  {
+    "id": "app.property_field.version_mismatch.app_error",
+    "translation": "Версии поля свойства и группы несовместимы."
+  },
+  {
+    "id": "app.property_group.get.app_error",
+    "translation": "Невозможно получить группу свойств."
+  },
+  {
+    "id": "app.property_group.register.app_error",
+    "translation": "Невозможно зарегистрировать группу свойств."
+  },
+  {
+    "id": "app.property_value.create.app_error",
+    "translation": "Невозможно создать значение свойства."
+  },
+  {
+    "id": "app.property_value.create_many.app_error",
+    "translation": "Невозможно создать значения свойств."
+  },
+  {
+    "id": "app.property_value.delete.app_error",
+    "translation": "Невозможно удалить значение свойства."
+  },
+  {
+    "id": "app.property_value.delete_for_field.app_error",
+    "translation": "Невозможно удалить значения свойств для поля."
+  },
+  {
+    "id": "app.property_value.delete_for_target.app_error",
+    "translation": "Невозможно удалить значения свойств для целевого объекта."
+  },
+  {
+    "id": "app.property_value.get.app_error",
+    "translation": "Невозможно получить значение свойства."
+  },
+  {
+    "id": "app.property_value.get_many.app_error",
+    "translation": "Невозможно получить значения свойств."
+  },
+  {
+    "id": "app.property_value.invalid_input.app_error",
+    "translation": "Предоставлен неверный ввод."
+  },
+  {
+    "id": "app.property_value.resolve_broadcast_params.unknown_object_type.app_error",
+    "translation": "Нераспознанный тип объекта \"{{.ObjectType}}\" для трансляции значения свойства."
+  },
+  {
+    "id": "app.property_value.search.app_error",
+    "translation": "Невозможно выполнить поиск значений свойств."
+  },
+  {
+    "id": "app.property_value.template_no_values.app_error",
+    "translation": "Поля-шаблоны не могут иметь значений."
+  },
+  {
+    "id": "app.property_value.update.app_error",
+    "translation": "Невозможно обновить значение свойства."
+  },
+  {
+    "id": "app.property_value.update_many.app_error",
+    "translation": "Невозможно обновить значения свойств."
+  },
+  {
+    "id": "app.property_value.upsert.app_error",
+    "translation": "Невозможно выполнить upsert значений свойств."
+  },
+  {
+    "id": "app.property_value.upsert.duplicate_field_id.app_error",
+    "translation": "Дублирующийся идентификатор поля в пакете значений свойств."
+  },
+  {
+    "id": "app.property_value.upsert.field_not_found.app_error",
+    "translation": "Поле свойства {{.FieldID}} не найдено."
+  },
+  {
+    "id": "app.property_value.upsert.invalid_field_id.app_error",
+    "translation": "Недопустимый идентификатор поля свойства."
+  },
+  {
+    "id": "app.property_value.upsert.mixed_groups.app_error",
+    "translation": "Все значения свойств в пакете должны принадлежать одной группе свойств."
+  },
+  {
+    "id": "app.property_value.upsert.object_type_mismatch.app_error",
+    "translation": "Тип объекта поля свойства не соответствует запросу."
+  },
+  {
+    "id": "app.property_value.upsert_many.app_error",
+    "translation": "Невозможно выполнить upsert значений свойств."
+  },
+  {
+    "id": "app.property_value.validate.app_error",
+    "translation": "Значение свойства не прошло проверку."
+  },
+  {
+    "id": "app.recap.cooldown_active.app_error",
+    "translation": "Политика вашей организации требует перерыва в {{.CooldownMinutes}} минут между сводками. Вы сможете создать новую сводку через {{.RetryAfterMinutes}} минут."
+  },
+  {
+    "id": "app.recap.cooldown_check_failed.app_error",
+    "translation": "Не удалось проверить статус перерыва между сводками."
+  },
+  {
+    "id": "app.recap.delete.app_error",
+    "translation": "Не удалось удалить сводку."
+  },
+  {
+    "id": "app.recap.delete_channels.app_error",
+    "translation": "Не удалось удалить каналы сводки."
+  },
+  {
+    "id": "app.recap.get.app_error",
+    "translation": "Не удалось получить сводку."
+  },
+  {
+    "id": "app.recap.get_channel.app_error",
+    "translation": "Не удалось получить канал."
+  },
+  {
+    "id": "app.recap.get_channels.app_error",
+    "translation": "Не удалось получить каналы сводки."
+  },
+  {
+    "id": "app.recap.get_daily_count.app_error",
+    "translation": "Не удалось проверить лимиты сводок."
+  },
+  {
+    "id": "app.recap.get_last_viewed.app_error",
+    "translation": "Не удалось получить метку времени последнего просмотра."
+  },
+  {
+    "id": "app.recap.get_team.app_error",
+    "translation": "Не удалось получить команду."
+  },
+  {
+    "id": "app.recap.list.app_error",
+    "translation": "Не удалось получить сводки."
+  },
+  {
+    "id": "app.recap.mark_read.app_error",
+    "translation": "Не удалось отметить сводку как прочитанную."
+  },
+  {
+    "id": "app.recap.mark_viewed.app_error",
+    "translation": "Не удалось отметить сводки как просмотренные."
+  },
+  {
+    "id": "app.recap.max_channels_exceeded.app_error",
+    "translation": "Политика вашей организации ограничивает сводки {{.Limit}} каналами. Вы запросили каналов: {{.Requested}}."
+  },
+  {
+    "id": "app.recap.max_recaps_reached.app_error",
+    "translation": "Политика вашей организации ограничивает количество сводок до {{.Limit}} в день. Пожалуйста, попробуйте снова завтра."
+  },
+  {
+    "id": "app.recap.permission_denied",
+    "translation": "Нет разрешения на доступ к сводке."
+  },
+  {
+    "id": "app.recap.save.app_error",
+    "translation": "Не удалось сохранить сводку."
+  },
+  {
+    "id": "app.recap.save_channel.app_error",
+    "translation": "Не удалось сохранить канал сводки."
+  },
+  {
+    "id": "app.recap.sum_daily_posts.app_error",
+    "translation": "Не удалось проверить использование сообщений в сводках."
+  },
+  {
+    "id": "app.recap.update.app_error",
+    "translation": "Не удалось обновить сводку."
+  },
+  {
+    "id": "app.reveal_post.cannot_reveal_own_post.app_error",
+    "translation": "Вы не можете открыть собственное сообщение, сгорающее после прочтения."
+  },
+  {
+    "id": "app.reveal_post.missing_expire_at.app_error",
+    "translation": "У сообщения, сгорающего после прочтения, отсутствует обязательное время истечения срока действия."
+  },
+  {
+    "id": "app.reveal_post.not_burn_on_read.app_error",
+    "translation": "Это сообщение не является сгорающим после прочтения и не может быть открыто."
+  },
+  {
+    "id": "app.reveal_post.post_expired.app_error",
+    "translation": "Срок действия этого сообщения, сгорающего после прочтения, истёк, и его больше нельзя открыть."
+  },
+  {
+    "id": "app.reveal_post.read_receipt.get.error",
+    "translation": "Произошла ошибка при получении отметки о прочтении."
+  },
+  {
+    "id": "app.reveal_post.read_receipt.get_unread_count.error",
+    "translation": "Невозможно получить количество непрочитанных для отметки о прочтении."
+  },
+  {
+    "id": "app.reveal_post.read_receipt.save.error",
+    "translation": "Произошла ошибка при сохранении отметки о прочтении."
+  },
+  {
+    "id": "app.reveal_post.read_receipt_expired.error",
+    "translation": "Ваш доступ к этому сообщению, сгорающему после прочтения, истёк."
+  },
+  {
+    "id": "app.role.send_updated_role_event.app_error",
+    "translation": "Произошла ошибка при рассылке обновления роли."
+  },
+  {
+    "id": "app.role.send_updated_role_event.unknown_scope",
+    "translation": "Произошла ошибка при рассылке обновления роли: неизвестная область действия схемы."
+  },
+  {
+    "id": "app.save_scheduled_post.restricted_dm.error",
+    "translation": "Невозможно запланировать сообщение в личном сообщении с ограниченным доступом"
+  },
+  {
+    "id": "app.scheduled_post.failed_message_detail",
+    "translation": {
+      "one": "- {{.Count}} в канале {{.ChannelName}}. Причина: {{.ErrorReason}}",
+      "few": "- {{.Count}} в канале {{.ChannelName}}. Причина: {{.ErrorReason}}",
+      "many": "- {{.Count}} в канале {{.ChannelName}}. Причина: {{.ErrorReason}}",
+      "other": "- {{.Count}} в канале {{.ChannelName}}. Причина: {{.ErrorReason}}"
+    }
+  },
+  {
+    "id": "app.scheduled_post.failed_messages",
+    "translation": {
+      "one": "Не удалось отправить {{.Count}} запланированное сообщение.",
+      "few": "Не удалось отправить {{.Count}} запланированных сообщения.",
+      "many": "Не удалось отправить {{.Count}} запланированных сообщений.",
+      "other": "Не удалось отправить {{.Count}} запланированных сообщения."
+    }
+  },
+  {
+    "id": "app.scheduled_post.recurring_disabled.app_error",
+    "translation": "Повторяющиеся запланированные сообщения отключены на этом сервере."
+  },
+  {
+    "id": "app.scheduled_post.save.rejected_by_plugin",
+    "translation": "Запланированное сообщение отклонено плагином: {{.Reason}}"
+  },
+  {
+    "id": "app.scheduled_post.update.rejected_by_plugin",
+    "translation": "Обновление запланированного сообщения отклонено плагином: {{.Reason}}"
+  },
+  {
+    "id": "app.scheduled_recap.compute_next_run.app_error",
+    "translation": "Невозможно вычислить время следующего запуска запланированной сводки."
+  },
+  {
+    "id": "app.scheduled_recap.create.app_error",
+    "translation": "Невозможно создать запланированную сводку."
+  },
+  {
+    "id": "app.scheduled_recap.delete.app_error",
+    "translation": "Невозможно удалить запланированную сводку."
+  },
+  {
+    "id": "app.scheduled_recap.get.app_error",
+    "translation": "Невозможно получить запланированную сводку."
+  },
+  {
+    "id": "app.scheduled_recap.get_unreads.app_error",
+    "translation": "Невозможно получить каналы с непрочитанными сообщениями для запланированной сводки."
+  },
+  {
+    "id": "app.scheduled_recap.list.app_error",
+    "translation": "Невозможно получить запланированные сводки."
+  },
+  {
+    "id": "app.scheduled_recap.max_channels_exceeded.app_error",
+    "translation": "Политика вашей организации ограничивает сводки {{.Limit}} каналами. Вы запросили каналов: {{.Requested}}."
+  },
+  {
+    "id": "app.scheduled_recap.max_scheduled_reached.app_error",
+    "translation": "Политика вашей организации ограничивает количество запланированных сводок до {{.Limit}}. Пожалуйста, удалите существующую запланированную сводку, прежде чем создавать новую."
+  },
+  {
+    "id": "app.scheduled_recap.no_channels.app_error",
+    "translation": "Запланированная сводка должна включать хотя бы один канал."
+  },
+  {
+    "id": "app.scheduled_recap.pause.app_error",
+    "translation": "Невозможно приостановить запланированную сводку."
+  },
+  {
+    "id": "app.scheduled_recap.resume.app_error",
+    "translation": "Невозможно возобновить запланированную сводку."
+  },
+  {
+    "id": "app.scheduled_recap.save_recap.app_error",
+    "translation": "Невозможно сохранить сводку для запланированной сводки."
+  },
+  {
+    "id": "app.scheduled_recap.update.app_error",
+    "translation": "Невозможно обновить запланированную сводку."
+  },
+  {
+    "id": "app.session.revoke_other_sessions.empty_device_id.app_error",
+    "translation": "Идентификатор устройства не может быть пустым."
+  },
+  {
+    "id": "app.session.revoke_other_sessions.empty_voip_device_id.app_error",
+    "translation": "Идентификатор VoIP-устройства не может быть пустым."
+  },
+  {
+    "id": "app.session_attributes.field_immutable.app_error",
+    "translation": "Поля атрибутов сеанса нельзя создавать или удалять; изменять можно только их свойства enabled, ttl_seconds и grace_period_seconds."
+  },
+  {
+    "id": "app.submit_interactive_dialog.decode_json_error",
+    "translation": "Произошла ошибка при декодировании JSON-ответа от отправки интерактивного диалога."
+  },
+  {
+    "id": "app.submit_interactive_dialog.file_not_owned",
+    "translation": "Файл {{.FileId}} не принадлежит пользователю, отправившему форму."
+  },
+  {
+    "id": "app.submit_interactive_dialog.get_file_info_error",
+    "translation": "Невозможно проверить отправленные идентификаторы файлов."
+  },
+  {
+    "id": "app.submit_interactive_dialog.invalid_file_id",
+    "translation": "Файл {{.FileId}} недействителен или недоступен."
+  },
+  {
+    "id": "app.submit_interactive_dialog.invalid_response",
+    "translation": "Получен недопустимый ответ от отправки интерактивного диалога."
+  },
+  {
+    "id": "app.submit_interactive_dialog.read_body_error",
+    "translation": "Произошла ошибка при чтении тела ответа от отправки интерактивного диалога."
+  },
+  {
+    "id": "app.submit_interactive_dialog.too_many_file_ids",
+    "translation": "Отправлено слишком много идентификаторов файлов. Максимально допустимо {{.Max}}."
+  },
+  {
+    "id": "app.submit_interactive_dialog.too_many_submission_ids",
+    "translation": "Слишком много значений в формате идентификаторов в отправленных данных. Максимально допустимо {{.Max}}."
+  },
+  {
+    "id": "app.system.data_spillage_bot.bot_displayname",
+    "translation": "Бот контроля утечек данных"
+  },
+  {
+    "id": "app.team.access_policies.channel_not_found.app_error",
+    "translation": "Один или несколько каналов не найдены."
+  },
+  {
+    "id": "app.team.access_policies.channel_wrong_team.app_error",
+    "translation": "Канал {{.ChannelId}} не принадлежит этой команде."
+  },
+  {
+    "id": "app.team.access_policies.channels_required.app_error",
+    "translation": "Требуется хотя бы один канал."
+  },
+  {
+    "id": "app.team.access_policies.ownership_check.app_error",
+    "translation": "Невозможно проверить принадлежность политики этой команде."
+  },
+  {
+    "id": "app.team.access_policies.reconcile_scope.app_error",
+    "translation": "Не удалось согласовать область действия команды в политике."
+  },
+  {
+    "id": "app.team.access_policies.self_exclusion.app_error",
+    "translation": "Вы не можете создать политику, которая исключила бы вас самих."
+  },
+  {
+    "id": "app.team.access_policies.validation_error.app_error",
+    "translation": "Не удалось проверить правила политики."
+  },
+  {
+    "id": "app.team.join_user_to_team.rejected_by_plugin",
+    "translation": "Добавление участника команды отклонено плагином: {{.Reason}}"
+  },
+  {
+    "id": "app.thread.get_threadmembers_for_export.app_error",
+    "translation": "Невозможно получить участников обсуждений для экспорта."
+  },
+  {
+    "id": "app.toast.send_toast_message.message.app_error",
+    "translation": "Требуется сообщение"
+  },
+  {
+    "id": "app.toast.send_toast_message.user_id.app_error",
+    "translation": "Требуется идентификатор пользователя"
+  },
+  {
+    "id": "app.update_scheduled_post.convert_to_post.error",
+    "translation": "Невозможно преобразовать запланированное сообщение в формат обычного сообщения."
+  },
+  {
+    "id": "app.update_scheduled_post.get_scheduled_post.error",
+    "translation": "Невозможно получить существующее запланированное сообщение из базы данных."
+  },
+  {
+    "id": "app.update_scheduled_post.update.error",
+    "translation": "Не удалось сохранить обновлённое запланированное сообщение в базе данных."
+  },
+  {
+    "id": "app.update_scheduled_post.update_permission.error",
+    "translation": "У вас нет разрешения на обновление этого ресурса."
+  },
+  {
+    "id": "app.upload.create.cannot_upload_to_restricted_dm.error",
+    "translation": "Невозможно загрузить файл в личное сообщение с ограниченным доступом."
+  },
+  {
+    "id": "app.upload.gen_file_info.invalid_filename.app_error",
+    "translation": "Недопустимое имя файла."
+  },
+  {
+    "id": "app.user.analytics_get_single_channel_guest_count.app_error",
+    "translation": "Не удалось получить количество гостей одного канала для аналитики."
+  },
+  {
+    "id": "app.user.check_user_password.failed_migration",
+    "translation": "Не удалось перенести пароль пользователя на новейший метод хеширования."
+  },
+  {
+    "id": "app.user.check_user_password.failed_update",
+    "translation": "Не удалось обновить пароль пользователя."
+  },
+  {
+    "id": "app.user.reset_password_failed_attempts.app_error",
+    "translation": "Не удалось сбросить счётчик неудачных попыток входа."
+  },
+  {
+    "id": "app.user.update_active.license_user_limit.exceeded",
+    "translation": "Невозможно активировать пользователя. На сервере превышено максимальное количество лицензированных пользователей. ERROR_LICENSED_USERS_LIMIT_EXCEEDED."
+  },
+  {
+    "id": "app.user_access_token.count_non_compliant.app_error",
+    "translation": "Невозможно подсчитать персональные токены доступа, нарушающие политику максимального срока действия."
+  },
+  {
+    "id": "app.user_access_token.expired",
+    "translation": "Срок действия персонального токена доступа истёк."
+  },
+  {
+    "id": "app.user_access_token.expired_deleted_notification",
+    "translation": "Срок действия вашего персонального токена доступа \"{{.Description}}\" истёк, и он был удалён. Откройте **Профиль → Безопасность**, чтобы создать новый токен."
+  },
+  {
+    "id": "app.user_access_token.expires_at_in_past.app_error",
+    "translation": "Указанное значение expires_at находится в прошлом."
+  },
+  {
+    "id": "app.user_access_token.expires_at_required.app_error",
+    "translation": "Персональные токены доступа должны включать дату истечения срока действия, поскольку сервер применяет максимальный срок действия токенов."
+  },
+  {
+    "id": "app.user_access_token.expires_at_too_far.app_error",
+    "translation": "Указанное значение expires_at превышает настроенный максимальный срок действия персонального токена доступа ({{.Days}} дн.)."
+  },
+  {
+    "id": "app.user_access_token.get_expiring.app_error",
+    "translation": "Невозможно получить персональные токены доступа с истекающим сроком действия."
+  },
+  {
+    "id": "app.user_access_token.revoke_non_compliant.no_policy.app_error",
+    "translation": "Максимальный срок действия персональных токенов доступа не настроен, поэтому нет нарушающих политику токенов для отзыва."
+  },
+  {
+    "id": "app.user_access_token.revoke_non_compliant.partial.app_error",
+    "translation": "Достигнут лимит пакета до того, как удалось отозвать все нарушающие политику токены. Запустите операцию ещё раз, чтобы продолжить."
+  },
+  {
+    "id": "app.user_access_token.rotate.app_error",
+    "translation": "Невозможно повторно сгенерировать токен доступа."
+  },
+  {
+    "id": "app.view.count_for_channel.app_error",
+    "translation": "Не удалось подсчитать представления для канала."
+  },
+  {
+    "id": "app.view.create.app_error",
+    "translation": "Невозможно создать представление."
+  },
+  {
+    "id": "app.view.create.count.app_error",
+    "translation": "Не удалось подсчитать представления для канала."
+  },
+  {
+    "id": "app.view.create.limit.app_error",
+    "translation": "Этот канал достиг максимального количества представлений."
+  },
+  {
+    "id": "app.view.create.nil_view.app_error",
+    "translation": "Требуется представление."
+  },
+  {
+    "id": "app.view.delete.app_error",
+    "translation": "Невозможно удалить представление."
+  },
+  {
+    "id": "app.view.delete.nil_view.app_error",
+    "translation": "Требуется представление."
+  },
+  {
+    "id": "app.view.delete.not_found.app_error",
+    "translation": "Представление не найдено."
+  },
+  {
+    "id": "app.view.get.app_error",
+    "translation": "Невозможно получить представление."
+  },
+  {
+    "id": "app.view.get.not_found.app_error",
+    "translation": "Представление не найдено."
+  },
+  {
+    "id": "app.view.get_for_channel.app_error",
+    "translation": "Невозможно получить представления для этого канала."
+  },
+  {
+    "id": "app.view.get_for_channel.invalid_input.app_error",
+    "translation": "Недопустимые входные данные при получении представлений канала."
+  },
+  {
+    "id": "app.view.update.app_error",
+    "translation": "Невозможно обновить представление."
+  },
+  {
+    "id": "app.view.update.nil_view.app_error",
+    "translation": "Требуется представление."
+  },
+  {
+    "id": "app.view.update.not_found.app_error",
+    "translation": "Представление не найдено."
+  },
+  {
+    "id": "app.view.update_sort_order.app_error",
+    "translation": "Невозможно обновить порядок сортировки представлений."
+  },
+  {
+    "id": "app.view.update_sort_order.invalid_input.app_error",
+    "translation": "Недопустимые входные данные для обновления порядка сортировки представлений."
+  },
+  {
+    "id": "app.view.update_sort_order.not_found.app_error",
+    "translation": "Представление не найдено."
+  },
+  {
+    "id": "ent.access_control.job_data_conversion.app_error",
+    "translation": "Не удалось извлечь данные из предыдущего задания."
+  },
+  {
+    "id": "ent.access_control.sync_job.app_error",
+    "translation": "Не удалось выполнить задание синхронизации контроля доступа."
+  },
+  {
+    "id": "ent.autotranslation.add_task.missing_object_id",
+    "translation": "Задача перевода должна включать идентификатор объекта."
+  },
+  {
+    "id": "ent.autotranslation.add_task.missing_object_type",
+    "translation": "Задача перевода должна включать тип объекта."
+  },
+  {
+    "id": "ent.autotranslation.add_task.nil_task",
+    "translation": "Задача перевода не может быть null."
+  },
+  {
+    "id": "ent.autotranslation.add_task.worker_stopped",
+    "translation": "Невозможно добавить задачу перевода, поскольку обработчик был остановлен."
+  },
+  {
+    "id": "ent.autotranslation.create_translation_failed",
+    "translation": "Не удалось создать перевод."
+  },
+  {
+    "id": "ent.autotranslation.detect_language.nil_context",
+    "translation": "Для определения языка требуется контекст."
+  },
+  {
+    "id": "ent.autotranslation.detect_language.text_too_large",
+    "translation": "Текст превышает максимальный размер для определения языка."
+  },
+  {
+    "id": "ent.autotranslation.detect_remote.error",
+    "translation": "Не удалось определить язык с помощью поставщика перевода."
+  },
+  {
+    "id": "ent.autotranslation.extract_content.mask_error",
+    "translation": "Не удалось замаскировать содержимое для перевода."
+  },
+  {
+    "id": "ent.autotranslation.extract_post.nil_post",
+    "translation": "Объект сообщения не может быть null."
+  },
+  {
+    "id": "ent.autotranslation.feature_unavailable",
+    "translation": "Автоперевод недоступен. Пожалуйста, обратитесь к системному администратору по поводу обновления корпоративной лицензии."
+  },
+  {
+    "id": "ent.autotranslation.invalid_input",
+    "translation": "Указан недопустимый код языка."
+  },
+  {
+    "id": "ent.autotranslation.mask_verification_failed",
+    "translation": "Не удалось обновить перевод новыми значениями маскировки."
+  },
+  {
+    "id": "ent.autotranslation.no_translatable_content",
+    "translation": "Содержимое не содержит текста для перевода."
+  },
+  {
+    "id": "ent.autotranslation.provider_not_available",
+    "translation": "Поставщик перевода недоступен."
+  },
+  {
+    "id": "ent.autotranslation.provider_not_initialized",
+    "translation": "Поставщик перевода не инициализирован."
+  },
+  {
+    "id": "ent.autotranslation.store_error",
+    "translation": "Невозможно обработать запрос автоперевода."
+  },
+  {
+    "id": "ent.autotranslation.unmask.missing_mask",
+    "translation": "Перевод содержит нераспознанные токены."
+  },
+  {
+    "id": "ent.autotranslation.unmask.orphan_token",
+    "translation": "Перевод содержит недопустимые токены."
+  },
+  {
+    "id": "ent.autotranslation.validate_content.invalid_json",
+    "translation": "Невозможно разобрать содержимое JSON."
+  },
+  {
+    "id": "ent.autotranslation.validate_content.invalid_type",
+    "translation": "Неподдерживаемый тип содержимого для перевода."
+  },
+  {
+    "id": "ent.autotranslation.validate_content.nil_content",
+    "translation": "Содержимое не может быть null."
+  },
+  {
+    "id": "ent.autotranslation.validate_content.text_too_large",
+    "translation": "Содержимое превышает максимальный размер для перевода."
+  },
+  {
+    "id": "ent.autotranslation.validate_id.empty",
+    "translation": "Обязательный идентификатор не может быть пустым."
+  },
+  {
+    "id": "ent.autotranslation.validate_id.invalid",
+    "translation": "Недопустимый формат идентификатора."
+  },
+  {
+    "id": "ent.elasticsearch.backfill_posts_channel_type.error",
+    "translation": "{{.Backend}} не удалось заполнить тип канала в сообщениях"
+  },
+  {
+    "id": "ent.elasticsearch.create_processor.bulk_processor_create_failed",
+    "translation": "Не удалось создать обработчик пакетной записи Elasticsearch"
+  },
+  {
+    "id": "ent.elasticsearch.create_processor.sync_bulk_processor_create_failed",
+    "translation": "Не удалось создать синхронный обработчик пакетной записи Elasticsearch"
+  },
+  {
+    "id": "ent.elasticsearch.delete_files_batch.error",
+    "translation": "Не удалось удалить пакет файлов"
+  },
+  {
+    "id": "ent.elasticsearch.healthcheck.not_started.app_error",
+    "translation": "{{.Backend}} не запущен."
+  },
+  {
+    "id": "ent.elasticsearch.healthcheck.unreachable.app_error",
+    "translation": "Сбой проверки работоспособности {{.Backend}}: не удалось завершить проверку."
+  },
+  {
+    "id": "ent.elasticsearch.indexer.do_job.bulk_failures.error",
+    "translation": "Задание индексирования завершено, но {{.NumFailed}} документ(ов) были отклонены поисковым бэкендом и не проиндексированы"
+  },
+  {
+    "id": "ent.elasticsearch.indexer.do_job.create_bulk_processor.error",
+    "translation": "Рабочему процессу индексирования не удалось инициализировать обработчик пакетной записи"
+  },
+  {
+    "id": "ent.elasticsearch.update_posts_channel_type.error",
+    "translation": "{{.Backend}} не удалось обновить тип канала в сообщениях"
+  },
+  {
+    "id": "ent.intune.login.account_not_found.app_error",
+    "translation": "Ваша учётная запись ещё не настроена полностью. Пожалуйста, сначала войдите в Mattermost через веб-приложение или приложение для компьютера."
+  },
+  {
+    "id": "ent.intune.login.extract_auth_data.app_error",
+    "translation": "Ошибка аутентификации. Пожалуйста, попробуйте снова или обратитесь к системному администратору."
+  },
+  {
+    "id": "ent.intune.login.not_configured.app_error",
+    "translation": "Аутентификация Microsoft Intune не настроена."
+  },
+  {
+    "id": "ent.intune.validate_token.invalid_tenant_id.app_error",
+    "translation": "Ошибка аутентификации. Недопустимая конфигурация."
+  },
+  {
+    "id": "ent.intune.validate_token.invalid_token.app_error",
+    "translation": "Ошибка аутентификации. Пожалуйста, попробуйте снова."
+  },
+  {
+    "id": "ent.intune.validate_token.jwks_init.app_error",
+    "translation": "Сбой инициализации службы аутентификации. Пожалуйста, обратитесь к системному администратору."
+  },
+  {
+    "id": "ent.intune.validate_token.missing_claims.app_error",
+    "translation": "Ошибка аутентификации. Отсутствуют обязательные сведения о пользователе."
+  },
+  {
+    "id": "ent.intune.validate_token.token_expired.app_error",
+    "translation": "Сеанс аутентификации истёк. Пожалуйста, попробуйте войти снова."
+  },
+  {
+    "id": "ent.ldap.connection.test_failed",
+    "translation": "Сбой проверки подключения LDAP. Сервер: {{.Server}}:{{.Port}}, ConnectionSecurity: {{.ConnectionType}}, PrivateKeyFilename: {{.PrivateKeyFilename}}, PublicCertificateFilename: {{.PublicCertFilename}}, BindUsername: {{.BindUsername}}. Ошибка: {{.Error}}"
+  },
+  {
+    "id": "ent.ldap.cpa_field_mapping.list_error",
+    "translation": "Не удалось получить поля CPA"
+  },
+  {
+    "id": "ent.ldap.do_login.invalid_id",
+    "translation": "Недопустимый идентификатор AD/LDAP"
+  },
+  {
+    "id": "ent.ldap.get_user_by_auth.app_error",
+    "translation": "Не удалось получить пользователя."
+  },
+  {
+    "id": "ent.ldap.update_cpa.empty_attribute",
+    "translation": "Пустое значение атрибута LDAP"
+  },
+  {
+    "id": "ent.ldap_groups.invalid_ldap_id",
+    "translation": "Недопустимый идентификатор AD/LDAP"
+  },
+  {
+    "id": "ent.message_export.actiance_export.calculate_channel_exports.activity_message",
+    "translation": "Вычисление активности каналов: обработано {{.NumCompleted}}/{{.NumChannels}} каналов."
+  },
+  {
+    "id": "ent.message_export.actiance_export.calculate_channel_exports.channel_message",
+    "translation": "Экспорт информации о каналах для {{.NumChannels}} каналов."
+  },
+  {
+    "id": "ent.message_export.calculate_channel_exports.app_error",
+    "translation": "Не удалось вычислить данные экспорта каналов."
+  },
+  {
+    "id": "ent.message_export.job_data_conversion.app_error",
+    "translation": "Не удалось преобразовать значение из поля данных задания."
+  },
+  {
+    "id": "ent.push_proxy.delete.app_error",
+    "translation": "Не удалось удалить токен аутентификации push-прокси."
+  },
+  {
+    "id": "ent.push_proxy.generate.bad_status.app_error",
+    "translation": "Не удалось получить токен аутентификации от сервера push-прокси."
+  },
+  {
+    "id": "ent.push_proxy.generate.create_request.app_error",
+    "translation": "Не удалось создать HTTP-запрос для аутентификации push-прокси."
+  },
+  {
+    "id": "ent.push_proxy.generate.empty_token.app_error",
+    "translation": "Push-прокси вернул пустой токен аутентификации."
+  },
+  {
+    "id": "ent.push_proxy.generate.encrypt.app_error",
+    "translation": "Не удалось зашифровать данные для аутентификации push-прокси."
+  },
+  {
+    "id": "ent.push_proxy.generate.http_request.app_error",
+    "translation": "Не удалось отправить HTTP-запрос push-прокси."
+  },
+  {
+    "id": "ent.push_proxy.generate.marshal.app_error",
+    "translation": "Не удалось сериализовать данные для аутентификации push-прокси."
+  },
+  {
+    "id": "ent.push_proxy.generate.marshal_request.app_error",
+    "translation": "Не удалось сериализовать тело запроса для аутентификации push-прокси."
+  },
+  {
+    "id": "ent.push_proxy.generate.no_key.app_error",
+    "translation": "Отсутствует ключ шифрования для аутентификации push-прокси."
+  },
+  {
+    "id": "ent.push_proxy.generate.parse_response.app_error",
+    "translation": "Не удалось разобрать ответ конечной точки аутентификации push-прокси."
+  },
+  {
+    "id": "ent.push_proxy.generate.save_system.app_error",
+    "translation": "Не удалось сохранить токен аутентификации."
+  },
+  {
+    "id": "ent.push_proxy.worker.interface_nil.app_error",
+    "translation": "Интерфейс push-прокси имеет значение nil."
+  },
+  {
+    "id": "ent.saml.cpa_field_mapping.list_error",
+    "translation": "Не удалось получить поля CPA"
+  },
+  {
+    "id": "ent.saml.login.ldap_user_missing",
+    "translation": "На сервере AD/LDAP не зарегистрирован пользователь, соответствующий пользователю SAML."
+  },
+  {
+    "id": "ent.saml.update_cpa.empty_attribute_statement",
+    "translation": "Выражение атрибутов утверждения SAML недействительно"
+  },
+  {
+    "id": "license_error.feature_unavailable",
+    "translation": "Функция недоступна для текущей лицензии"
+  },
+  {
+    "id": "license_error.feature_unavailable.specific",
+    "translation": "Функция {{.Feature}} недоступна для текущей лицензии"
+  },
+  {
+    "id": "model.access_policy.inherit.already_imported.app_error",
+    "translation": "Родительская политика уже импортирована."
+  },
+  {
+    "id": "model.access_policy.inherit.parent_type.app_error",
+    "translation": "Импорт должен указывать на родительскую политику членства."
+  },
+  {
+    "id": "model.access_policy.inherit.permission.app_error",
+    "translation": "Политики разрешений не могут наследовать от других политик."
+  },
+  {
+    "id": "model.access_policy.inherit.version.app_error",
+    "translation": "Не удалось унаследовать политику контроля доступа."
+  },
+  {
+    "id": "model.access_policy.is_valid.actions.app_error",
+    "translation": "Недопустимые действия."
+  },
+  {
+    "id": "model.access_policy.is_valid.actions.membership_combined.app_error",
+    "translation": "Действие Membership нельзя сочетать с другими действиями в одном правиле."
+  },
+  {
+    "id": "model.access_policy.is_valid.actions.permission_type.app_error",
+    "translation": "Правила с действиями разрешений допускаются только в политиках каналов."
+  },
+  {
+    "id": "model.access_policy.is_valid.id.app_error",
+    "translation": "Недопустимый идентификатор политики."
+  },
+  {
+    "id": "model.access_policy.is_valid.imports.app_error",
+    "translation": "Недопустимый список импортируемых политик."
+  },
+  {
+    "id": "model.access_policy.is_valid.name.app_error",
+    "translation": "Недопустимое имя политики."
+  },
+  {
+    "id": "model.access_policy.is_valid.plugin_type.app_error",
+    "translation": "Недопустимая политика контроля доступа: тип не является допустимым типом ресурса плагина."
+  },
+  {
+    "id": "model.access_policy.is_valid.revision.app_error",
+    "translation": "Недопустимая редакция политики."
+  },
+  {
+    "id": "model.access_policy.is_valid.roles.app_error",
+    "translation": "Политики разрешений должны применяться ровно к одной роли."
+  },
+  {
+    "id": "model.access_policy.is_valid.rule_name.app_error",
+    "translation": "Правила разрешений должны иметь непустое имя, не превышающее максимальную длину, допустимую политикой."
+  },
+  {
+    "id": "model.access_policy.is_valid.rule_name_unique.app_error",
+    "translation": "Имена правил разрешений должны быть уникальными в пределах политики."
+  },
+  {
+    "id": "model.access_policy.is_valid.rule_role.app_error",
+    "translation": "Недопустимая роль для правила."
+  },
+  {
+    "id": "model.access_policy.is_valid.rules.app_error",
+    "translation": "Недопустимые правила."
+  },
+  {
+    "id": "model.access_policy.is_valid.rules_imports.app_error",
+    "translation": "Политика должна либо импортировать правила, либо определять собственные."
+  },
+  {
+    "id": "model.access_policy.is_valid.scope.app_error",
+    "translation": "Недопустимое значение области действия для этой политики контроля доступа."
+  },
+  {
+    "id": "model.access_policy.is_valid.scope_id.app_error",
+    "translation": "Идентификатор области действия должен быть допустимым идентификатором, если область действия задана."
+  },
+  {
+    "id": "model.access_policy.is_valid.scope_id_without_scope.app_error",
+    "translation": "Идентификатор области действия нельзя задать без указания области действия."
+  },
+  {
+    "id": "model.access_policy.is_valid.session_attribute_on_membership.app_error",
+    "translation": "Правила членства не могут ссылаться на атрибуты сеанса (user.session). Вместо этого используйте политику разрешений."
+  },
+  {
+    "id": "model.access_policy.is_valid.type.app_error",
+    "translation": "Недопустимый тип политики."
+  },
+  {
+    "id": "model.access_policy.is_valid.version.app_error",
+    "translation": "Недопустимая версия для этой политики контроля доступа."
+  },
+  {
+    "id": "model.acknowledgement.is_valid.channel_id.app_error",
+    "translation": "Недопустимый идентификатор канала."
+  },
+  {
+    "id": "model.authorize.is_valid.code_challenge.app_error",
+    "translation": "При использовании PKCE требуется code challenge."
+  },
+  {
+    "id": "model.authorize.is_valid.code_challenge.format.app_error",
+    "translation": "Code challenge должен быть закодирован в формате base64url (допустимые символы: A-Z, a-z, 0-9, -, _)."
+  },
+  {
+    "id": "model.authorize.is_valid.code_challenge.length.app_error",
+    "translation": "Длина code challenge должна составлять от 43 до 128 символов."
+  },
+  {
+    "id": "model.authorize.is_valid.code_challenge_method.app_error",
+    "translation": "При использовании PKCE требуется метод code challenge."
+  },
+  {
+    "id": "model.authorize.is_valid.code_challenge_method.unsupported.app_error",
+    "translation": "Поддерживается только метод code challenge 'S256'."
+  },
+  {
+    "id": "model.authorize.is_valid.resource.has_fragment.app_error",
+    "translation": "Параметр resource не может содержать компонент фрагмента."
+  },
+  {
+    "id": "model.authorize.is_valid.resource.invalid_uri.app_error",
+    "translation": "Параметр resource должен быть допустимым URI."
+  },
+  {
+    "id": "model.authorize.is_valid.resource.length.app_error",
+    "translation": "Параметр resource не может превышать 512 символов."
+  },
+  {
+    "id": "model.authorize.is_valid.resource.not_absolute.app_error",
+    "translation": "Параметр resource должен быть абсолютным URI."
+  },
+  {
+    "id": "model.authorize.validate_pkce.not_used_in_auth.app_error",
+    "translation": "Передан code verifier PKCE, но PKCE не использовался при авторизации."
+  },
+  {
+    "id": "model.authorize.validate_pkce.public_client_required.app_error",
+    "translation": "Для публичных клиентов требуется PKCE (Proof Key for Code Exchange)."
+  },
+  {
+    "id": "model.authorize.validate_pkce.verification_failed.app_error",
+    "translation": "Code verifier PKCE не соответствует code challenge."
+  },
+  {
+    "id": "model.authorize.validate_pkce.verifier_required.app_error",
+    "translation": "При использовании PKCE требуется code verifier."
+  },
+  {
+    "id": "model.channel.is_valid.banner_info.background_color.empty.app_error",
+    "translation": "Цвет баннера канала не может быть пустым, когда баннер канала включён"
+  },
+  {
+    "id": "model.channel.is_valid.banner_info.background_color.invalid.app_error",
+    "translation": "Цвет баннера канала должен быть допустимым шестнадцатеричным цветом (например, #FF0000 или #F00)"
+  },
+  {
+    "id": "model.channel.is_valid.banner_info.channel_type.app_error",
+    "translation": "Баннер канала можно настроить только в публичных и частных каналах"
+  },
+  {
+    "id": "model.channel.is_valid.banner_info.text.empty.app_error",
+    "translation": "Текст баннера канала не может быть пустым, когда баннер канала включён"
+  },
+  {
+    "id": "model.channel.is_valid.banner_info.text.invalid_length.app_error",
+    "translation": "Текст баннера канала слишком длинный. Максимально допустимая длина — {{.maxLength}} символов."
+  },
+  {
+    "id": "model.channel.is_valid.discoverable.app_error",
+    "translation": "Только частные каналы можно сделать доступными для обнаружения."
+  },
+  {
+    "id": "model.channel.is_valid.group_constrained.app_error",
+    "translation": "Только публичные и частные каналы могут быть ограничены группами."
+  },
+  {
+    "id": "model.channel.is_valid_board.display_name.app_error",
+    "translation": "Отображаемое имя доски не должно быть пустым."
+  },
+  {
+    "id": "model.channel.is_valid_board.team_id.app_error",
+    "translation": "Каналы-доски должны принадлежать команде."
+  },
+  {
+    "id": "model.channel.is_valid_board.type.app_error",
+    "translation": "Тип канала должен быть BO (открытая доска) или BP (частная доска)."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.board.file_id.app_error",
+    "translation": "Закладки досок не могут ссылаться на файл."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.board.image_url.app_error",
+    "translation": "Закладки досок не могут задавать URL изображения."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.board.link_url.app_error",
+    "translation": "URL ссылки закладки доски должен быть относительным путём внутри сайта, начинающимся с /, не должен содержать :// и не должен превышать максимальную длину."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.board.target_id.app_error",
+    "translation": "Для закладок досок требуется допустимый идентификатор цели."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.target_id.app_error",
+    "translation": "Идентификатор цели допустим только для типов закладок, которые ссылаются на другую сущность."
+  },
+  {
+    "id": "model.channel_join_request.is_valid.channel_id.app_error",
+    "translation": "Недопустимый идентификатор канала."
+  },
+  {
+    "id": "model.channel_join_request.is_valid.create_at.app_error",
+    "translation": "\"Создано в\" должно быть корректным временем."
+  },
+  {
+    "id": "model.channel_join_request.is_valid.denial_reason.app_error",
+    "translation": "Причина отказа слишком длинная."
+  },
+  {
+    "id": "model.channel_join_request.is_valid.denial_reason_status.app_error",
+    "translation": "Причину отказа можно указать только для отклонённого запроса на присоединение."
+  },
+  {
+    "id": "model.channel_join_request.is_valid.id.app_error",
+    "translation": "Недопустимый идентификатор."
+  },
+  {
+    "id": "model.channel_join_request.is_valid.message.app_error",
+    "translation": "Сообщение запроса на присоединение слишком длинное."
+  },
+  {
+    "id": "model.channel_join_request.is_valid.reviewed_by.app_error",
+    "translation": "Недопустимый идентификатор проверяющего."
+  },
+  {
+    "id": "model.channel_join_request.is_valid.reviewer.app_error",
+    "translation": "Для одобренного или отклонённого запроса на присоединение должны быть записаны проверяющий и время проверки."
+  },
+  {
+    "id": "model.channel_join_request.is_valid.status.app_error",
+    "translation": "Недопустимый статус запроса на присоединение."
+  },
+  {
+    "id": "model.channel_join_request.is_valid.update_at.app_error",
+    "translation": "\"Обновлено в\" должно быть корректным временем."
+  },
+  {
+    "id": "model.channel_join_request.is_valid.user_id.app_error",
+    "translation": "Недопустимый идентификатор пользователя."
+  },
+  {
+    "id": "model.cluster.is_valid.site_url.app_error",
+    "translation": "SiteURL должен быть задан."
+  },
+  {
+    "id": "model.command_response.is_valid.attachment.app_error",
+    "translation": "Недопустимое вложение."
+  },
+  {
+    "id": "model.command_response.is_valid.goto_location.app_error",
+    "translation": "Недопустимое значение goto location."
+  },
+  {
+    "id": "model.command_response.is_valid.icon_url.app_error",
+    "translation": "Недопустимый URL значка."
+  },
+  {
+    "id": "model.command_response.is_valid.response_type.app_error",
+    "translation": "Недопустимый тип ответа."
+  },
+  {
+    "id": "model.config.is_valid.access_control_attribute_refresh_interval.app_error",
+    "translation": "Недопустимый интервал обновления атрибутов контроля доступа. Значение должно быть больше или равно 0."
+  },
+  {
+    "id": "model.config.is_valid.access_control_sync_interval.app_error",
+    "translation": "Недопустимый интервал задания синхронизации контроля доступа. Значение должно быть не менее 60 секунд."
+  },
+  {
+    "id": "model.config.is_valid.ai_recap.cooldown_minutes.app_error",
+    "translation": "Недопустимое значение времени ожидания между сводками ИИ в минутах. Должно быть больше или равно 0."
+  },
+  {
+    "id": "model.config.is_valid.ai_recap.max_channels_per_recap.app_error",
+    "translation": "Недопустимое максимальное количество каналов на сводку ИИ. Должно быть больше или равно 1, либо -1 для неограниченного количества."
+  },
+  {
+    "id": "model.config.is_valid.ai_recap.max_posts_per_day.app_error",
+    "translation": "Недопустимое максимальное количество сообщений в день для сводок ИИ. Должно быть больше или равно 1, либо -1 для неограниченного количества."
+  },
+  {
+    "id": "model.config.is_valid.ai_recap.max_posts_per_recap.app_error",
+    "translation": "Недопустимое максимальное количество сообщений на сводку ИИ. Должно быть больше или равно 1, либо -1 для неограниченного количества."
+  },
+  {
+    "id": "model.config.is_valid.ai_recap.max_recaps_per_day.app_error",
+    "translation": "Недопустимое максимальное количество сводок ИИ в день. Должно быть больше или равно 1, либо -1 для неограниченного количества."
+  },
+  {
+    "id": "model.config.is_valid.ai_recap.max_scheduled_recaps.app_error",
+    "translation": "Недопустимое максимальное количество запланированных сводок ИИ. Должно быть больше или равно 1, либо -1 для неограниченного количества."
+  },
+  {
+    "id": "model.config.is_valid.ai_recap.max_tokens_per_recap.app_error",
+    "translation": "Недопустимое максимальное количество токенов на сводку ИИ. Должно быть больше или равно 1, либо -1 для неограниченного количества."
+  },
+  {
+    "id": "model.config.is_valid.atmos_camo_image_proxy_removed.app_error",
+    "translation": "Тип прокси-сервера изображений 'atmos/camo' был удалён в Mattermost v12.0. Задайте для ImageProxySettings.ImageProxyType значение 'local' либо установите для ImageProxySettings.Enable значение false, чтобы отключить прокси-сервер изображений."
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.agents.llm_service_id.app_error",
+    "translation": "Недопустимая конфигурация агентов автоперевода: сервис ИИ не должен быть пустым."
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.libretranslate.url.app_error",
+    "translation": "URL LibreTranslate должен быть допустимым URL и начинаться с http:// или https://."
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.provider.app_error",
+    "translation": "Недопустимый поставщик автоперевода, не должен быть пустым."
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.provider.unsupported.app_error",
+    "translation": "Неподдерживаемый поставщик автоперевода."
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.timeout.app_error",
+    "translation": "Недопустимый тайм-аут в настройках автоперевода. Должно быть положительное число."
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.workers.app_error",
+    "translation": "Число рабочих процессов должно быть от 1 до 64."
+  },
+  {
+    "id": "model.config.is_valid.azure_auth_mode.app_error",
+    "translation": "Недопустимый режим аутентификации Azure {{.Value}}. Должно быть 'shared_key' или 'default_credential'."
+  },
+  {
+    "id": "model.config.is_valid.azure_cloud.app_error",
+    "translation": "Недопустимое значение {{.Value}} для {{.Setting}}. Должно быть 'commercial', 'government' или 'custom'."
+  },
+  {
+    "id": "model.config.is_valid.azure_custom_endpoint.app_error",
+    "translation": "{{.Setting}} должен быть задан, если соответствующее значение AzureCloud — 'custom'."
+  },
+  {
+    "id": "model.config.is_valid.azure_storage_account.app_error",
+    "translation": "Недопустимое значение {{.Value}} для {{.Setting}}. Имя учётной записи хранилища Azure должно содержать от 3 до 24 символов и состоять только из строчных букв и цифр."
+  },
+  {
+    "id": "model.config.is_valid.azure_timeout.app_error",
+    "translation": "Неверное значение тайм-аута {{.Value}}. Должно быть положительное число."
+  },
+  {
+    "id": "model.config.is_valid.content_flagging.common_reviewers_not_set.app_error",
+    "translation": "Если включён параметр \"Одни и те же проверяющие для всех команд\", необходимо задать общих или дополнительных проверяющих."
+  },
+  {
+    "id": "model.config.is_valid.content_flagging.reasons_not_set.app_error",
+    "translation": "Причины для отметки контента не могут быть пустыми."
+  },
+  {
+    "id": "model.config.is_valid.content_flagging.team_reviewers_not_set.app_error",
+    "translation": "Если для команды установлено значение \"Включено\", необходимо задать проверяющих команды или дополнительных проверяющих."
+  },
+  {
+    "id": "model.config.is_valid.dcr_redirect_uri_allowlist.app_error",
+    "translation": "Список разрешённых URI перенаправления DCR содержит недопустимый шаблон. Шаблоны должны начинаться с http:// или https:// и не могут быть пустыми или состоять из пробелов."
+  },
+  {
+    "id": "model.config.is_valid.directory_traversal.app_error",
+    "translation": "Последовательности обхода пути (\"..\") не допускаются в {{.Setting}}. Обнаружено \"{{.Value}}\"."
+  },
+  {
+    "id": "model.config.is_valid.directory_whitespace.app_error",
+    "translation": "Для {{.Setting}} обнаружены пробелы в начале или в конце. Найдено \"{{.Value}}\"."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.empty_index_prefix.app_error",
+    "translation": "IndexPrefix не может быть пустым, если задан GlobalSearchPrefix."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.enable_cjk_analyzers.app_error",
+    "translation": "Параметр {{.Searching}} должен быть установлен в true, когда {{.EnableCJKAnalyzers}} установлен в true"
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.incorrect_search_prefix.app_error",
+    "translation": "GlobalSearchPrefix {{.GlobalSearchPrefix}} должен быть префиксом IndexPrefix {{.IndexPrefix}}."
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_name_empty",
+    "translation": "Если включено ведение журнала аудита в файл, необходимо указать имя файла."
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_name_is_directory",
+    "translation": "Имя файла не должно быть каталогом."
+  },
+  {
+    "id": "model.config.is_valid.export_azure_auth_mode.app_error",
+    "translation": "Недопустимый режим аутентификации Azure {{.Value}} для выделенного хранилища экспорта. Должно быть 'shared_key' или 'default_credential'."
+  },
+  {
+    "id": "model.config.is_valid.export_azure_timeout.app_error",
+    "translation": "Неверное значение тайм-аута {{.Value}}. Должно быть положительное число."
+  },
+  {
+    "id": "model.config.is_valid.extract_content_timeout.app_error",
+    "translation": "Недопустимый тайм-аут извлечения содержимого для настроек файлов. Должно быть целое число секунд, большее или равное нулю."
+  },
+  {
+    "id": "model.config.is_valid.feature_flags.apps_enabled.app_error",
+    "translation": "Функциональный флаг AppsEnabled больше не поддерживается и должен быть отключён."
+  },
+  {
+    "id": "model.config.is_valid.feature_flags.move_threads_enabled.app_error",
+    "translation": "Функциональный флаг MoveThreadsEnabled больше не поддерживается и должен быть отключён."
+  },
+  {
+    "id": "model.config.is_valid.intune_auth_service.app_error",
+    "translation": "Служба аутентификации Intune MAM обязательна, когда Intune включён."
+  },
+  {
+    "id": "model.config.is_valid.intune_auth_service_invalid.app_error",
+    "translation": "Служба аутентификации Intune MAM должна быть либо 'office365', либо 'saml'."
+  },
+  {
+    "id": "model.config.is_valid.intune_client_id.app_error",
+    "translation": "Идентификатор клиента Intune MAM обязателен, когда Intune включён."
+  },
+  {
+    "id": "model.config.is_valid.intune_client_id_format.app_error",
+    "translation": "Идентификатор клиента Intune MAM должен быть допустимым UUID."
+  },
+  {
+    "id": "model.config.is_valid.intune_requires_office365.app_error",
+    "translation": "Intune MAM требует включения OpenID Connect (Office 365), когда служба аутентификации установлена в 'office365'."
+  },
+  {
+    "id": "model.config.is_valid.intune_requires_saml.app_error",
+    "translation": "Intune MAM требует включения SAML, когда служба аутентификации установлена в 'saml'."
+  },
+  {
+    "id": "model.config.is_valid.intune_tenant_id.app_error",
+    "translation": "Идентификатор арендатора Intune MAM обязателен, когда Intune включён."
+  },
+  {
+    "id": "model.config.is_valid.intune_tenant_id_format.app_error",
+    "translation": "Идентификатор арендатора Intune MAM должен быть допустимым UUID."
+  },
+  {
+    "id": "model.config.is_valid.ldap_max_login_attempts.app_error",
+    "translation": "Неверное максимальное количество попыток входа для настроек LDAP. Должно быть положительным числом."
+  },
+  {
+    "id": "model.config.is_valid.lock_profile_fields.app_error",
+    "translation": "Недопустимая настройка блокировки полей профиля. Должно быть 'none', 'name_and_username' или 'all'."
+  },
+  {
+    "id": "model.config.is_valid.max_personal_access_token_lifetime_days.app_error",
+    "translation": "Недопустимое значение MaximumPersonalAccessTokenLifetimeDays. Должно быть от 0 (без ограничения) до {{.Max}} дней."
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.custom_header_incomplete.app_error",
+    "translation": "Для экспорта сообщений параметры GlobalRelaySettings.CustomHeaderName и CustomHeaderValue должны быть либо оба заданы, либо оба оставлены пустыми."
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.custom_header_name.app_error",
+    "translation": "Для экспорта сообщений GlobalRelaySettings.CustomHeaderName должен быть допустимым именем заголовка без пробелов, двоеточий, разделителей и переносов строк."
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.custom_header_reserved.app_error",
+    "translation": "Для экспорта сообщений GlobalRelaySettings.CustomHeaderName не должен повторять заголовок, который экспорт Global Relay записывает самостоятельно."
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.custom_header_value.app_error",
+    "translation": "Для экспорта сообщений GlobalRelaySettings.CustomHeaderValue не должен содержать управляющих символов или переносов строк."
+  },
+  {
+    "id": "model.config.is_valid.metrics_client_side_user_id.app_error",
+    "translation": "Недопустимый идентификатор пользователя на стороне клиента: {{.Id}}"
+  },
+  {
+    "id": "model.config.is_valid.metrics_client_side_user_ids.app_error",
+    "translation": "Количество элементов в ClientSideUserIds {{.CurrentLength}} превышает максимальный предел {{.MaxLength}}."
+  },
+  {
+    "id": "model.config.is_valid.minimum_desktop_app_version.app_error",
+    "translation": "Недопустимый номер версии. Должен быть допустимой семантической версией (например, 5.0.0)."
+  },
+  {
+    "id": "model.config.is_valid.mobile_ephemeral_mode.auto_cache_cleanup.app_error",
+    "translation": "Недопустимое значение автоматической очистки кэша. Должно быть от {{.Min}} до {{.Max}} дней."
+  },
+  {
+    "id": "model.config.is_valid.mobile_ephemeral_mode.disconnection_timeout.app_error",
+    "translation": "Недопустимое значение тайм-аута отключения. Должно быть от {{.Min}} до {{.Max}} секунд."
+  },
+  {
+    "id": "model.config.is_valid.mobile_ephemeral_mode.offline_persistence.app_error",
+    "translation": "Недопустимое значение таймера автономного хранения. Должно быть от {{.Min}} до {{.Max}} часов."
+  },
+  {
+    "id": "model.config.is_valid.native_app_settings.download_link.app_error",
+    "translation": "Одна или несколько ссылок для загрузки приложений не являются допустимыми URL."
+  },
+  {
+    "id": "model.config.is_valid.notification_settings.invalid_event",
+    "translation": "Указано недопустимое событие отметки контента."
+  },
+  {
+    "id": "model.config.is_valid.notification_settings.invalid_target",
+    "translation": "Указана недопустимая цель события отметки контента."
+  },
+  {
+    "id": "model.config.is_valid.notification_settings.reviewer_flagged_notification_disabled",
+    "translation": "Уведомления о новых отмеченных сообщениях нельзя отключить для проверяющих."
+  },
+  {
+    "id": "model.config.is_valid.report_a_problem_link.invalid.app_error",
+    "translation": "Недопустимая ссылка для сообщения о проблеме. Должна быть допустимым URL и начинаться с http:// или https://."
+  },
+  {
+    "id": "model.config.is_valid.report_a_problem_link.missing.app_error",
+    "translation": "Ссылка для сообщения о проблеме обязательна."
+  },
+  {
+    "id": "model.config.is_valid.report_a_problem_mail.invalid.app_error",
+    "translation": "Недопустимый адрес электронной почты для сообщения о проблеме. Должен быть допустимым адресом электронной почты."
+  },
+  {
+    "id": "model.config.is_valid.report_a_problem_mail.missing.app_error",
+    "translation": "Адрес электронной почты для сообщения о проблеме обязателен."
+  },
+  {
+    "id": "model.config.is_valid.sql_analytics_query_timeout.app_error",
+    "translation": "Неверный тайм-аут аналитических запросов для настроек SQL. Должно быть положительное число."
+  },
+  {
+    "id": "model.config.is_valid.storage_class.app_error",
+    "translation": "Недопустимый класс хранилища {{.Value}}."
+  },
+  {
+    "id": "model.cpa_field.name.invalid_charset.app_error",
+    "translation": "Недопустимое имя поля CPA '{{.Name}}': должно соответствовать ^[A-Za-z_][A-Za-z0-9_]*$ (правило идентификаторов CEL)."
+  },
+  {
+    "id": "model.cpa_field.name.reserved_word.app_error",
+    "translation": "Недопустимое имя поля CPA '{{.Name}}': это зарезервированное слово CEL, и его нельзя использовать в качестве идентификатора поля."
+  },
+  {
+    "id": "model.dcr.is_valid.client_name.app_error",
+    "translation": "Имя клиента должно содержать не более 64 символов."
+  },
+  {
+    "id": "model.dcr.is_valid.client_uri_format.app_error",
+    "translation": "Недопустимый формат URI клиента."
+  },
+  {
+    "id": "model.dcr.is_valid.client_uri_length.app_error",
+    "translation": "URI клиента должен быть короче 256 символов."
+  },
+  {
+    "id": "model.dcr.is_valid.redirect_uri_format.app_error",
+    "translation": "Недопустимый формат URI перенаправления."
+  },
+  {
+    "id": "model.dcr.is_valid.redirect_uris.app_error",
+    "translation": "Требуется хотя бы один URI перенаправления."
+  },
+  {
+    "id": "model.dcr.is_valid.unsupported_auth_method.app_error",
+    "translation": "Указан неподдерживаемый token_endpoint_auth_method."
+  },
+  {
+    "id": "model.draft.is_valid.message_length.app_error",
+    "translation": "Свойство Message черновика превышает максимально допустимую длину."
+  },
+  {
+    "id": "model.file_info.is_valid.name.app_error",
+    "translation": "Недопустимое значение для name."
+  },
+  {
+    "id": "model.link_metadata.is_valid.url_length.app_error",
+    "translation": "Длина URL метаданных ссылки составляет {{ .Length }} символов, что превышает максимальный предел в {{ .MaxLength }} символов."
+  },
+  {
+    "id": "model.log_filter.is_valid.date_from.app_error",
+    "translation": "Недопустимый фильтр date_from. Ожидается формат \"{{.Layout}}\"."
+  },
+  {
+    "id": "model.log_filter.is_valid.date_to.app_error",
+    "translation": "Недопустимый фильтр date_to. Ожидается формат \"{{.Layout}}\"."
+  },
+  {
+    "id": "model.member.is_valid.profile_email.app_error",
+    "translation": "Адрес электронной почты профиля отсутствует в списке приглашаемых адресов"
+  },
+  {
+    "id": "model.member.is_valid.profile_email_duplicate.app_error",
+    "translation": "Профили приглашений должны иметь уникальные адреса электронной почты"
+  },
+  {
+    "id": "model.member.is_valid.profile_first_name.app_error",
+    "translation": "Недопустимое имя в профиле приглашения"
+  },
+  {
+    "id": "model.member.is_valid.profile_last_name.app_error",
+    "translation": "Недопустимая фамилия в профиле приглашения"
+  },
+  {
+    "id": "model.member.is_valid.profile_nil.app_error",
+    "translation": "Профиль приглашения не может быть null"
+  },
+  {
+    "id": "model.member.is_valid.profile_username.app_error",
+    "translation": "Недопустимое имя пользователя в профиле приглашения"
+  },
+  {
+    "id": "model.member.is_valid.profile_username_duplicate.app_error",
+    "translation": "Профили приглашений должны иметь уникальные имена пользователей"
+  },
+  {
+    "id": "model.oauth.validate_grant.credentials.app_error",
+    "translation": "Недопустимые учётные данные клиента."
+  },
+  {
+    "id": "model.oauth.validate_grant.pkce_required.app_error",
+    "translation": "Для публичных клиентов требуется PKCE (Proof Key for Code Exchange)."
+  },
+  {
+    "id": "model.oauth.validate_grant.public_client_refresh_token.app_error",
+    "translation": "Публичные клиенты не могут использовать тип гранта refresh token."
+  },
+  {
+    "id": "model.oauth.validate_grant.public_client_secret.app_error",
+    "translation": "Публичные клиенты не должны передавать секрет клиента."
+  },
+  {
+    "id": "model.post.decode_cursor.invalid_base64",
+    "translation": "Недопустимый формат курсора: не удалось декодировать base64."
+  },
+  {
+    "id": "model.post.decode_cursor.invalid_exclude_system_posts",
+    "translation": "Недопустимый формат курсора: exclude_system_posts должно быть логическим значением."
+  },
+  {
+    "id": "model.post.decode_cursor.invalid_format",
+    "translation": "Недопустимый формат курсора: ожидалось 8 частей."
+  },
+  {
+    "id": "model.post.decode_cursor.invalid_include_deleted",
+    "translation": "Недопустимый формат курсора: include_deleted должно быть логическим значением."
+  },
+  {
+    "id": "model.post.decode_cursor.invalid_timestamp",
+    "translation": "Недопустимый формат курсора: отметка времени должна быть целым числом."
+  },
+  {
+    "id": "model.post.decode_cursor.invalid_version",
+    "translation": "Недопустимый формат курсора: версия должна быть целым числом."
+  },
+  {
+    "id": "model.post.decode_cursor.unsupported_version",
+    "translation": "Неподдерживаемая версия курсора."
+  },
+  {
+    "id": "model.post.is_valid.message_length.app_error",
+    "translation": "Свойство Message сообщения превышает максимально допустимую длину."
+  },
+  {
+    "id": "model.post.query_params.invalid_channel_id",
+    "translation": "Некорректный идентификатор канала."
+  },
+  {
+    "id": "model.post.query_params.invalid_cursor_id",
+    "translation": "Некорректный идентификатор курсора."
+  },
+  {
+    "id": "model.post.query_params.invalid_sort_direction",
+    "translation": "Некорректное направление сортировки."
+  },
+  {
+    "id": "model.post.query_params.invalid_time_field",
+    "translation": "Некорректное поле времени."
+  },
+  {
+    "id": "model.property_field.is_valid.app_error",
+    "translation": "Недопустимое поле свойства: {{.FieldName}} ({{.Reason}})."
+  },
+  {
+    "id": "model.property_group.is_valid.app_error",
+    "translation": "Недопустимая группа свойств: {{.FieldName}} ({{.Reason}})."
+  },
+  {
+    "id": "model.property_value.is_valid.app_error",
+    "translation": "Недопустимое значение свойства: {{.FieldName}} ({{.Reason}})."
+  },
+  {
+    "id": "model.remote_cluster_invite.is_valid.remote_id.app_error",
+    "translation": "Недопустимый удалённый идентификатор."
+  },
+  {
+    "id": "model.remote_cluster_invite.is_valid.site_url.app_error",
+    "translation": "Недопустимый URL сайта."
+  },
+  {
+    "id": "model.remote_cluster_invite.is_valid.token.app_error",
+    "translation": "Неверный токен."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.empty_post.app_error",
+    "translation": "Невозможно запланировать пустое сообщение. Запланированное сообщение должно содержать хотя бы текст или вложенные файлы."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.id.app_error",
+    "translation": "Запланированное сообщение должно иметь идентификатор."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.processed_at.app_error",
+    "translation": "Недопустимое время обработки."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.repeat_files.app_error",
+    "translation": "Повторяющиеся запланированные сообщения не могут содержать вложенных файлов."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.repeat_timezone.app_error",
+    "translation": "Для еженедельно повторяющихся запланированных сообщений требуется корректный часовой пояс."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.repeat_timezone_invalid.app_error",
+    "translation": "Недопустимый часовой пояс для повторяющегося запланированного сообщения."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.repeat_type.app_error",
+    "translation": "Недопустимый тип повторения для запланированного сообщения."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.scheduled_at.app_error",
+    "translation": "Недопустимое время запланированной отправки."
+  },
+  {
+    "id": "model.scheduled_recap.compute_next_run.days_of_week.app_error",
+    "translation": "Недопустимые дни недели запланированной сводки."
+  },
+  {
+    "id": "model.scheduled_recap.compute_next_run.no_valid_day.app_error",
+    "translation": "Не найден подходящий день для запланированной сводки."
+  },
+  {
+    "id": "model.scheduled_recap.compute_next_run.time_format.app_error",
+    "translation": "Недопустимый формат времени запланированной сводки."
+  },
+  {
+    "id": "model.scheduled_recap.compute_next_run.timezone.app_error",
+    "translation": "Недопустимый часовой пояс запланированной сводки."
+  },
+  {
+    "id": "model.scheduled_recap.is_valid.agent_id.app_error",
+    "translation": "Запланированная сводка должна иметь идентификатор агента."
+  },
+  {
+    "id": "model.scheduled_recap.is_valid.channel_id.app_error",
+    "translation": "Недопустимый идентификатор канала запланированной сводки."
+  },
+  {
+    "id": "model.scheduled_recap.is_valid.channel_ids_empty.app_error",
+    "translation": "Запланированная сводка должна включать хотя бы один канал при использовании определённых каналов."
+  },
+  {
+    "id": "model.scheduled_recap.is_valid.channel_mode.app_error",
+    "translation": "Недопустимый режим каналов запланированной сводки."
+  },
+  {
+    "id": "model.scheduled_recap.is_valid.custom_instructions_length.app_error",
+    "translation": "Пользовательские инструкции запланированной сводки превышают максимальную длину."
+  },
+  {
+    "id": "model.scheduled_recap.is_valid.days_of_week.app_error",
+    "translation": "Недопустимые дни недели запланированной сводки."
+  },
+  {
+    "id": "model.scheduled_recap.is_valid.id.app_error",
+    "translation": "Запланированная сводка должна иметь идентификатор."
+  },
+  {
+    "id": "model.scheduled_recap.is_valid.time_of_day.app_error",
+    "translation": "Недопустимое время дня запланированной сводки."
+  },
+  {
+    "id": "model.scheduled_recap.is_valid.time_period.app_error",
+    "translation": "Недопустимый период времени запланированной сводки."
+  },
+  {
+    "id": "model.scheduled_recap.is_valid.timezone.app_error",
+    "translation": "Недопустимый часовой пояс запланированной сводки."
+  },
+  {
+    "id": "model.scheduled_recap.is_valid.title_empty.app_error",
+    "translation": "Заголовок запланированной сводки не может быть пустым."
+  },
+  {
+    "id": "model.scheduled_recap.is_valid.title_length.app_error",
+    "translation": "Заголовок запланированной сводки превышает максимальную длину."
+  },
+  {
+    "id": "model.scheduled_recap.is_valid.user_id.app_error",
+    "translation": "Запланированная сводка должна иметь идентификатор пользователя."
+  },
+  {
+    "id": "model.thread.is_valid.post_id.app_error",
+    "translation": "Некорректный идентификатор сообщения."
+  },
+  {
+    "id": "model.thread.is_valid.user_id.app_error",
+    "translation": "Некорректный идентификатор пользователя."
+  },
+  {
+    "id": "model.translation.is_valid.lang.app_error",
+    "translation": "Недопустимый код языка. Используйте стандартный код ISO, например 'en', 'ja' или 'fr'."
+  },
+  {
+    "id": "model.translation.is_valid.nil.app_error",
+    "translation": "Объект перевода не может быть null."
+  },
+  {
+    "id": "model.translation.is_valid.object_id.app_error",
+    "translation": "Недопустимый идентификатор объекта."
+  },
+  {
+    "id": "model.translation.is_valid.object_json.app_error",
+    "translation": "Недопустимый JSON объекта."
+  },
+  {
+    "id": "model.translation.is_valid.object_type.app_error",
+    "translation": "Недопустимый тип объекта."
+  },
+  {
+    "id": "model.translation.is_valid.provider.app_error",
+    "translation": "Недопустимый поставщик перевода."
+  },
+  {
+    "id": "model.translation.is_valid.text.app_error",
+    "translation": "Недопустимый текст перевода."
+  },
+  {
+    "id": "model.translation.is_valid.type.app_error",
+    "translation": "Недопустимый тип перевода."
+  },
+  {
+    "id": "model.translation.is_valid.type_invalid.app_error",
+    "translation": "Недопустимый тип перевода. Должно быть 'string' или 'object'."
+  },
+  {
+    "id": "model.user_access_token.is_valid.expires_at.app_error",
+    "translation": "Недопустимое значение expires_at, должно быть нулём или положительной отметкой времени Unix в миллисекундах."
+  },
+  {
+    "id": "model.user_report_options.is_valid.invalid_guest_filter",
+    "translation": "Указанный фильтр гостей недействителен."
+  },
+  {
+    "id": "model.view.is_valid.channel_id.app_error",
+    "translation": "Недопустимый идентификатор канала представления."
+  },
+  {
+    "id": "model.view.is_valid.create_at.app_error",
+    "translation": "Недопустимое время создания представления."
+  },
+  {
+    "id": "model.view.is_valid.creator_id.app_error",
+    "translation": "Недопустимый идентификатор создателя представления."
+  },
+  {
+    "id": "model.view.is_valid.description.app_error",
+    "translation": "Описание представления слишком длинное."
+  },
+  {
+    "id": "model.view.is_valid.id.app_error",
+    "translation": "Недопустимый идентификатор представления."
+  },
+  {
+    "id": "model.view.is_valid.props.kanban_column_id.app_error",
+    "translation": "Колонка Kanban имеет недопустимый или отсутствующий идентификатор."
+  },
+  {
+    "id": "model.view.is_valid.props.kanban_column_name.app_error",
+    "translation": "Название колонки Kanban не должно быть пустым."
+  },
+  {
+    "id": "model.view.is_valid.props.kanban_column_options.app_error",
+    "translation": "Колонка Kanban должна иметь хотя бы один идентификатор опции."
+  },
+  {
+    "id": "model.view.is_valid.props.kanban_columns_empty.app_error",
+    "translation": "Представление Kanban должно иметь хотя бы одну колонку."
+  },
+  {
+    "id": "model.view.is_valid.props.kanban_columns_max.app_error",
+    "translation": "Представление Kanban превышает максимальное количество колонок."
+  },
+  {
+    "id": "model.view.is_valid.props.kanban_field_id.app_error",
+    "translation": "Представление Kanban должно ссылаться на допустимый идентификатор поля свойства."
+  },
+  {
+    "id": "model.view.is_valid.props.kanban_invalid.app_error",
+    "translation": "Представление Kanban имеет недопустимую структуру props."
+  },
+  {
+    "id": "model.view.is_valid.props.kanban_required.app_error",
+    "translation": "Представлению Kanban требуются props с конфигурацией group_by."
+  },
+  {
+    "id": "model.view.is_valid.title.app_error",
+    "translation": "Заголовок представления обязателен и должен быть короче 256 символов."
+  },
+  {
+    "id": "model.view.is_valid.type.app_error",
+    "translation": "Недопустимый тип представления."
+  },
+  {
+    "id": "model.view.is_valid.update_at.app_error",
+    "translation": "Недопустимое время обновления представления."
+  },
+  {
+    "id": "plugin.api.update_post.mm_blocks_actions.app_error",
+    "translation": "Недопустимые mm_blocks_actions при обновлении сообщения плагином."
+  },
+  {
+    "id": "plugin_api.channel.space_notify_props.app_error",
+    "translation": "Свойства уведомлений нельзя задавать для каналов типа space."
+  },
+  {
+    "id": "shared_channel.system_message.no_longer_shared",
+    "translation": "Этот канал больше не является общим с {{.WorkspaceName}}."
+  },
+  {
+    "id": "shared_channel.system_message.now_shared",
+    "translation": "Этот канал теперь является общим с {{.WorkspaceName}}."
+  },
+  {
+    "id": "web.command_webhook.general.app_error",
+    "translation": "Не удалось обработать вебхук команды {{.hook_id}}."
+  },
+  {
+    "id": "web.error.unsupported_desktop_app.assistance",
+    "translation": "Обратитесь к системному администратору, если вам нужна дополнительная помощь."
+  },
+  {
+    "id": "web.error.unsupported_desktop_app.download_button",
+    "translation": "Скачать обновлённое приложение"
+  },
+  {
+    "id": "web.error.unsupported_desktop_app.footer_about",
+    "translation": "О программе"
+  },
+  {
+    "id": "web.error.unsupported_desktop_app.footer_help",
+    "translation": "Помощь"
+  },
+  {
+    "id": "web.error.unsupported_desktop_app.footer_privacy",
+    "translation": "Политика конфиденциальности"
+  },
+  {
+    "id": "web.error.unsupported_desktop_app.footer_terms",
+    "translation": "Условия"
+  },
+  {
+    "id": "web.error.unsupported_desktop_app.message",
+    "translation": "Версия вашего приложения {{.SiteName}} для компьютера ({{.CurrentVersion}}) ниже минимально необходимой версии ({{.MinimumVersion}}). Пожалуйста, обновите приложение или откройте {{.SiteName}} в веб-браузере, чтобы продолжить."
+  },
+  {
+    "id": "web.error.unsupported_desktop_app.title",
+    "translation": "Требуется обновление"
+  },
+  {
+    "id": "web.incoming_webhook.decode.app_error",
+    "translation": "Не удалось декодировать полезную нагрузку типа {{.media_type}} для входящего вебхука {{.hook_id}}."
+  },
+  {
+    "id": "web.incoming_webhook.general.app_error",
+    "translation": "Не удалось обработать полезную нагрузку типа {{.media_type}} для входящего вебхука {{.hook_id}}."
+  },
+  {
+    "id": "web.incoming_webhook.media_type.app_error",
+    "translation": "Не удалось разобрать тип содержимого входящего вебхука {{.hook_id}}."
+  },
+  {
+    "id": "web.incoming_webhook.parse_form.app_error",
+    "translation": "Не удалось разобрать форму для вебхука {{.hook_id}}."
+  },
+  {
+    "id": "web.incoming_webhook.parse_multipart.app_error",
+    "translation": "Не удалось разобрать multipart-форму для вебхука {{.hook_id}}."
   }
 ]
