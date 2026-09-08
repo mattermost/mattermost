@@ -11,7 +11,7 @@ import AdminHeader from 'components/widgets/admin_console/admin_header';
 
 import {getHistory} from 'utils/browser_history';
 
-import {ATTRIBUTE_DETAILS_ROUTE} from './attribute_details';
+import {ATTRIBUTE_DETAILS_ROUTE} from './constants';
 import GlobalAttributesTable from './global_attributes_table';
 
 import './global_attributes.scss';

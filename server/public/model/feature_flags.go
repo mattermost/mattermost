@@ -155,17 +155,16 @@ type FeatureFlags struct {
 	// being unreachable.
 	ClusterGracefulDrain bool
 
-	ChannelBookmarks bool
-
-	// Enable React concurrent rendering
-	EnableConcurrentReact bool
-
 	// Enable verifying plugin signatures against the MFI public key, in addition to the
 	// existing hard-coded Mattermost public key and any admin-configured public keys.
 	EnableMFIPluginSignaturePublicKey bool
 
 	// FEATURE_FLAG_REMOVAL: RecurringScheduledPosts - Remove this when the feature is GA.
 	RecurringScheduledPosts bool
+
+	// Gates post delivery audit logging. Enabling it requires a server restart, since it
+	// controls whether the /api/v4/delivery_tracking routes are registered.
+	PostDeliveryTracking bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -227,13 +226,11 @@ func (f *FeatureFlags) SetDefaults() {
 
 	f.MmBlocksEnabled = true
 
-	f.ChannelBookmarks = true
-
-	f.EnableConcurrentReact = false
-
 	f.EnableMFIPluginSignaturePublicKey = true
 
 	f.RecurringScheduledPosts = false
+
+	f.PostDeliveryTracking = false
 }
 
 // isValid rejects feature flag combinations that are no longer supported.
