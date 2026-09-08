@@ -2655,7 +2655,6 @@ func TestSanitizeDataSource(t *testing.T) {
 			})
 		}
 	})
-
 }
 
 func TestConfigFilteredByTag(t *testing.T) {
