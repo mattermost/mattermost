@@ -3,6 +3,9 @@ name: Check E2E Test Only
 description: Check if PR contains only E2E test changes and determine the appropriate docker image tag
 
 inputs:
+  base_ref:
+    description: Frozen PR base branch, when resolved with the commit SHAs
+    required: false
   base_sha:
     description: Base commit SHA (PR base)
     required: false
@@ -31,6 +34,7 @@ runs:
         GH_TOKEN: ${{ github.token }}
         GITHUB_REPOSITORY: ${{ github.repository }}
         INPUT_BASE_SHA: ${{ inputs.base_sha }}
+        INPUT_BASE_REF: ${{ inputs.base_ref }}
         INPUT_HEAD_SHA: ${{ inputs.head_sha }}
         INPUT_PR_NUMBER: ${{ inputs.pr_number }}
       run: |
@@ -47,7 +51,13 @@ runs:
             INPUT_HEAD_SHA="$CURRENT_HEAD"
           else
             # Never switch a frozen test/image identity to a later PR head.
-            [[ "$INPUT_HEAD_SHA" = "$CURRENT_HEAD" ]]
+            [[ "$INPUT_HEAD_SHA" = "$CURRENT_HEAD" ]] || { echo "PR head changed after resolution" >&2; exit 1; }
+            if [ -n "$INPUT_BASE_REF" ]; then
+              # Retargeting without a push must not switch the image branch.
+              [[ "$BASE_REF" = "$INPUT_BASE_REF" ]] || { echo "PR target branch changed after resolution" >&2; exit 1; }
+            else
+              [[ "$INPUT_BASE_SHA" = "$(jq -er '.base.sha' <<< "$PR_DATA")" ]] || { echo "PR base changed after resolution" >&2; exit 1; }
+            fi
           fi
         fi
         [[ "$INPUT_BASE_SHA" =~ ^[a-f0-9]{40}$ && "$INPUT_HEAD_SHA" =~ ^[a-f0-9]{40}$ ]]

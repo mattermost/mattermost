@@ -35,6 +35,7 @@ jobs:
       PR_NUMBER: "${{ steps.resolve.outputs.PR_NUMBER }}"
       COMMIT_SHA: "${{ steps.resolve.outputs.COMMIT_SHA }}"
       BASE_SHA: "${{ steps.resolve.outputs.BASE_SHA }}"
+      BASE_REF: "${{ steps.resolve.outputs.BASE_REF }}"
       SERVER_IMAGE_TAG: "${{ steps.image-ref.outputs.image_tag }}"
       HEAD_REF: "${{ steps.resolve.outputs.HEAD_REF }}"
     steps:
@@ -64,6 +65,7 @@ jobs:
         uses: ./.github/actions/check-e2e-test-only
         with:
           base_sha: ${{ steps.resolve.outputs.BASE_SHA }}
+          base_ref: ${{ steps.resolve.outputs.BASE_REF }}
           head_sha: ${{ steps.resolve.outputs.COMMIT_SHA }}
           pr_number: ${{ steps.resolve.outputs.PR_NUMBER }}
 
