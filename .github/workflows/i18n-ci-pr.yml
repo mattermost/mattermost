@@ -26,7 +26,6 @@ jobs:
   pr-ci:
     permissions:
       contents: read
-      actions: write
       id-token: write  # for chainguard (FIPS base image pull)
     uses: ./.github/workflows/i18n-ci-template.yml
     secrets:

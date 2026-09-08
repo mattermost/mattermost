@@ -30,7 +30,6 @@ jobs:
     runs-on: ubuntu-22.04
     permissions:
       contents: read
-      actions: write
       id-token: write  # for chainguard (FIPS base image pull)
     outputs:
       build-server-tag: ${{ steps.calculate.outputs.BUILD_SERVER_TAG }}
