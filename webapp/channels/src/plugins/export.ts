@@ -55,7 +55,7 @@ const openPricingModalForPlugins = () => {
 
 interface WindowWithLibraries {
     React: typeof import('react');
-    ReactDOM: typeof import('react-dom');
+    ReactDOM: typeof import('react-dom') & typeof import('react-dom/client');
     ReactIntl: typeof import('react-intl');
     Redux: typeof import('redux');
     ReactRedux: typeof import('react-redux');
@@ -132,7 +132,13 @@ declare let window: WindowWithLibraries;
 
 // Common libraries exposed on window for plugins to use as Webpack externals.
 window.React = require('react');
-window.ReactDOM = require('react-dom');
+
+const reactDom = require('react-dom');
+const reactDomClient = require('react-dom/client');
+
+// React 19 serves createRoot and hydrateRoot only from react-dom/client, but plugins built against
+// React 18 reach them through react-dom's root entry, so keep exposing both surfaces as one object.
+window.ReactDOM = {...reactDom, ...reactDomClient};
 window.ReactIntl = require('react-intl');
 window.Redux = require('redux');
 window.ReactRedux = require('react-redux');
