@@ -1905,9 +1905,9 @@ func TestSetActiveStatus(t *testing.T) {
 		require.Len(t, policies, 1, "expected one policy in response")
 		require.Equal(t, samplePolicy.ID, policies[0].ID, "expected policy ID to match")
 		// The deprecated active field maps onto the membership rule's auto-add
-		// setting; the reserved Active column is left alone.
+		// setting, and the shim mirrors it back for clients still reading it.
 		require.True(t, policies[0].AutoAddMembers(), "expected policy to auto-add members")
-		require.False(t, policies[0].Active, "expected the reserved active flag to be untouched")
+		require.True(t, policies[0].Active, "expected the response to mirror auto-add on the legacy field")
 	}, "SetActiveStatus with system admin")
 
 	t.Run("SetActiveStatus with channel admin for their channel", func(t *testing.T) {
@@ -2176,6 +2176,7 @@ func TestAccessControlPolicyAutoAddWire(t *testing.T) {
 			CheckOKStatus(t, resp)
 			require.Len(t, policies, 1)
 			require.Equal(t, autoAdd, policies[0].AutoAddMembers())
+			require.Equal(t, autoAdd, policies[0].Active, "the shim response mirrors auto-add on the legacy field")
 
 			stored := fetch(t)
 			require.Equal(t, autoAdd, stored.AutoAddMembers())

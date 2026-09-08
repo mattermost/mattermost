@@ -416,10 +416,11 @@ func (s *SqlAccessControlPolicyStore) deleteT(_ request.CTX, tx *sqlxTxWrapper, 
 }
 
 // SetMembershipAutoAdd sets the auto_add mode on each listed policy's membership
-// rule. Because the setting lives inside the Data JSONB the update is a
-// read-modify-write per policy, taken under a row lock so a concurrent rule edit
-// cannot be clobbered. Missing IDs are skipped rather than erroring, matching
-// the previous behaviour of the batch active-status update.
+// rule. Because the setting lives inside the Data JSONB this is a
+// read-modify-write: the rows are locked and read together, modified in memory,
+// and written back in a single statement so the locks are held for one round
+// trip rather than one per policy. Missing IDs are skipped rather than erroring,
+// matching the previous behaviour of the batch active-status update.
 //
 // Like the active-status update it replaces, this does not bump Revision or
 // write a history entry: toggling auto-add is a switch on an existing policy,
@@ -456,6 +457,8 @@ func (s *SqlAccessControlPolicyStore) SetMembershipAutoAdd(rctx request.CTX, lis
 	}
 
 	policies := make([]*model.AccessControlPolicy, len(stored))
+	dataCase := sq.Case("ID")
+	storedIDs := make([]string, len(stored))
 	for i := range stored {
 		policy, pErr := stored[i].toModel()
 		if pErr != nil {
@@ -479,15 +482,21 @@ func (s *SqlAccessControlPolicyStore) SetMembershipAutoAdd(rctx request.CTX, lis
 			data = AppendBinaryFlag(data)
 		}
 
+		dataCase = dataCase.When(sq.Expr("?", policy.ID), sq.Expr("?::jsonb", data))
+		storedIDs[i] = policy.ID
+		policies[i] = policy
+	}
+
+	// A CASE with no branches is invalid SQL, so skip the write when every
+	// requested ID was missing.
+	if len(stored) > 0 {
 		updateQuery := s.getQueryBuilder().
 			Update("AccessControlPolicies").
-			Set("Data", data).
-			Where(sq.Eq{"ID": policy.ID})
+			Set("Data", dataCase).
+			Where(sq.Eq{"ID": storedIDs})
 		if _, err = tx.ExecBuilder(updateQuery); err != nil {
-			return nil, errors.Wrapf(err, "failed to update policy with id=%s", policy.ID)
+			return nil, errors.Wrapf(err, "failed to update policies with ids=%v", storedIDs)
 		}
-
-		policies[i] = policy
 	}
 
 	if err = tx.Commit(); err != nil {

@@ -340,6 +340,7 @@ function PolicyDetails({
                         id: 'admin.access_control.policy.edit_policy.error.update_active_status',
                         defaultMessage: 'Error updating auto-add members: {error}',
                     }, {error: autoAddResult.error.message}));
+                    setShowConfirmationModal(false);
                     success = false;
                     return;
                 }

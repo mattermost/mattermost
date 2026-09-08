@@ -1021,6 +1021,12 @@ func setActiveStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	auditRec.Success()
 
+	// Clients on this endpoint still read auto-add off the active field, so
+	// mirror it in the response. The stored Active column is not written.
+	for _, p := range policies {
+		p.Active = p.AutoAddMembers()
+	}
+
 	if shouldRedactExpressions(c) {
 		for _, p := range policies {
 			c.App.MaskPolicyExpressions(c.AppContext, p, c.AppContext.Session().UserId)
