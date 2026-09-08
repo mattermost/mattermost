@@ -12,7 +12,11 @@ describe('components/admin_console/permission_policies/modals/AccessChannelConfi
         show: true,
         onHide: jest.fn(),
         onConfirm: jest.fn(),
+        targetScope: 'system' as const,
     };
+
+    const workspaceScopeCopy = 'This policy controls Access Channel across every channel in the workspace, except direct messages and group messages.';
+    const channelScopeCopy = 'This policy controls Access Channel for this channel only.';
 
     beforeEach(() => {
         jest.clearAllMocks();
@@ -22,7 +26,27 @@ describe('components/admin_console/permission_policies/modals/AccessChannelConfi
         renderWithContext(<AccessChannelConfirmModal {...baseProps}/>);
 
         expect(screen.getByText('Save this policy?')).toBeInTheDocument();
-        expect(screen.getByText('This policy controls Access Channel across every channel in the workspace.')).toBeInTheDocument();
+        expect(screen.getByText(workspaceScopeCopy)).toBeInTheDocument();
+        expect(screen.queryByText(channelScopeCopy)).not.toBeInTheDocument();
+        expect(screen.getByText('Any session that does not meet the conditions will lose access to channels covered by this policy.')).toBeInTheDocument();
+        expect(screen.getByText('Run Simulate rules first if you have not confirmed who this affects.')).toBeInTheDocument();
+    });
+
+    // A channel resource policy is saved with type 'channel' and id = channel.id,
+    // so it governs only that channel. Reporting workspace-wide reach here would
+    // overstate the blast radius of the save being confirmed.
+    test('scopes the copy to the single channel when saving a channel policy', () => {
+        renderWithContext(
+            <AccessChannelConfirmModal
+                {...baseProps}
+                targetScope='channel'
+            />,
+        );
+
+        expect(screen.getByText(channelScopeCopy)).toBeInTheDocument();
+        expect(screen.queryByText(workspaceScopeCopy)).not.toBeInTheDocument();
+
+        // Scope-independent copy still shows.
         expect(screen.getByText('Any session that does not meet the conditions will lose access to channels covered by this policy.')).toBeInTheDocument();
         expect(screen.getByText('Run Simulate rules first if you have not confirmed who this affects.')).toBeInTheDocument();
     });
