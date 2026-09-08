@@ -146,7 +146,7 @@ There is deliberately no `testcontainers:down` first — the runner is fresh, so
 
 **Commit status description** — written by the Test System IO summary, same shape as the full suite (`image_tag:` is the target/to image). The from-version needs no description field of its own: it is already in the context name, one context per version.
 
-**When it runs.** `e2e-tests-ci.yml`'s `check-changes` turns it on for a PR whose diff touches `e2e-tests/playwright/{upgrade-specs/,lib/,playwright.config.ts,script/resolve_upgrade_matrix.mjs}` or either `e2e-tests-playwright-rolling-upgrades*` workflow, and the manual dispatch has an opt-in checkbox. That decision is the only gate: unlike the full suite, this pipeline does not also consult `should_run`, because `should_run` matches `^e2e-tests/.*\.(ts|tsx|js|jsx)$` and would veto a run whose only change is the `.mjs` matrix resolver. Consequently there is no "skipped" status — when it is not requested, nothing is posted.
+**When it runs.** `e2e-tests-ci.yml`'s `check-changes` turns it on for a PR whose diff touches `e2e-tests/playwright/upgrade-specs/`, `e2e-tests/playwright/script/resolve_upgrade_matrix.mjs`, either `e2e-tests-playwright-rolling-upgrades*` workflow, or a server migration (`server/channels/db/migrations/`, `server/config/migrations/`, `server/channels/app/migrations.go`, `server/channels/app/permissions_migrations.go`, `server/public/model/version.go`). Everything else — including `e2e-tests/playwright/lib/` and `playwright.config.ts` — is unmatched and needs the manual dispatch's opt-in checkbox to run within this workflow. That decision is the only gate: unlike the full suite, this pipeline does not also consult `should_run`, because `should_run` matches `^e2e-tests/.*\.(ts|tsx|js|jsx)$` and would veto a run whose only change is the `.mjs` matrix resolver. Consequently there is no "skipped" status — when it is not requested, nothing is posted.
 
 Failed rolling-upgrade contexts are included when applying **E2E Tests/verified** or the override-status workflow (discovered by pattern `e2e-test/playwright-full/{edition}/upgrade-from-*`, same principle as full-suite contexts).
 
@@ -156,7 +156,7 @@ This pipeline is invoked from `e2e-tests-playwright.yml` when `run_rolling_upgra
 |---------|------------------------|
 | PR (Argo / automated) | `false` (default) |
 | PR (`workflow_dispatch`, manual) | Opt-in: **Run rolling upgrades** on `e2e-tests-ci.yml` |
-| Merge to `master` / `release-*` | `true` |
+| Merge to `master` / `release-*` | `false` — too expensive per merge |
 | Release cut | `true` |
 | Ad-hoc | n/a — **Run workflow** directly on `e2e-tests-playwright-rolling-upgrades.yml` |
 
