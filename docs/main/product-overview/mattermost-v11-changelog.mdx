@@ -64,7 +64,7 @@ See [this blog post](https://mattermost.com/blog/mattermost-v11-11-is-now-availa
  - Pre-packaged GitHub plugin version [v2.8.0](https://github.com/mattermost/mattermost-plugin-github/releases/tag/v2.8.0).
  - Pre-packaged Jira plugin version [v4.8.0](https://github.com/mattermost/mattermost-plugin-jira/releases/tag/v4.8.0).
  - Pre-packaged Calls plugin version [v1.12.3](https://github.com/mattermost/mattermost-plugin-calls/releases/tag/v1.12.3).
- - Pre-packaged Agents plugin version [2.6.1](https://github.com/mattermost/mattermost-plugin-agents/releases/tag/v2.6.1).
+ - Pre-packaged Agents plugin version [v2.6.1](https://github.com/mattermost/mattermost-plugin-agents/releases/tag/v2.6.1).
  - Added a "Hide Archived" toggle to the **Browse Channels** modal that hides archived channels by default.
  - Added a red warning callout in the System Console that appears beneath certain settings (SAML Verify Signature/Enable Encryption, Enable Insecure Outgoing Connections, Enable Developer Mode, Enable Testing Commands, wildcard CORS, and skipping SMTP/AD-LDAP certificate verification) when they are configured to a value that is not recommended for production.
  - Added weekly recurring scheduled posts so users can schedule messages that repeat weekly and keep their recurring schedule when rescheduled.
@@ -100,17 +100,20 @@ See [this blog post](https://mattermost.com/blog/mattermost-v11-11-is-now-availa
  - Updated AD/LDAP test connection handling to require re-entering the bind password when connection settings change.
  - Mention keywords are now limited to 500 keys and 50,000 bytes total. Users or imports that exceed these limits will receive a descriptive error.
  - Updated how user presence status responses are serialized.
- - Updated golang.org/x/image to v0.45.0 and msgpack fork to cap byte-string allocations to address security vulnerabilities.
+ - Updated ``golang.org/x/image`` to v0.45.0 and ``msgpack`` fork to cap byte-string allocations.
 
 #### Plugins/Integrations
  - Added plugin APIs for attribute-based access control: plugins can evaluate access decisions (``EvaluateAccessControl``) and manage policies for plugin-owned resource types (``SaveAccessControlPolicy``, ``GetAccessControlPolicy``, ``DeleteAccessControlPolicy``, ``CheckAccessControlExpression``, ``QueryUsersForAccessControlExpression``, ``GetAccessControlFieldsAutocomplete``, ``GetAccessControlVisualAST``). Plugin resource types are keyed as ``<plugin ID>:<resource type>`` with plugin-defined actions, and access decisions follow the AuthZEN shape (boolean decision plus context) with a no-policy fallback reported via the decision context. Requires an Enterprise Advanced license with attribute-based access control enabled.
  - Attribute-based access control policies can now be evaluated for plugin-owned resource types keyed as ``<plugin ID>:<resource type>``. Decisions follow the AuthZEN shape (boolean decision plus context), reporting a no-policy fallback via the decision context. Requires an Enterprise Advanced license.
- - Skip cluster sends after closing the gossip socket, avoiding unnecessary ERROR logs on shutdown.
+ - Skip cluster now sends after closing the gossip socket, avoiding unnecessary ERROR logs on shutdown.
 
 #### mmctl
  - Added a ``--name`` flag to the ``mmctl team rename`` command to change a team's name (its URL slug). The team update API (``PUT /api/v4/teams/{team_id}``) now applies a changed team name when the requester has the manage team permission.
  - Added a repeatable ``--file`` flag to the ``mmctl post create`` command to attach one or more local files to a post.
  - Added ``--active`` flag to ``mmctl user list`` to filter for active users only.
+
+#### Performance
+ - Benchmarking test results showed no significant difference: a -0.09% delta in the number of supported users for the new release, which lies within the ``[-5%, +5%]`` prediction interval. View the full raw data and methodology in our [Performance Reports repository](https://github.com/mattermost/performance-reports/tree/main/performance-comparisons/v11.11).
 
 ### Bug Fixes
  - Fixed an issue where the user interface briefly flashed when closing a stacked modal, such as the Decision details modal in a permission policy rule simulation.
@@ -149,7 +152,7 @@ See [this blog post](https://mattermost.com/blog/mattermost-v11-11-is-now-availa
  - Added Android as a selectable value of the ``user_agent_platform`` session attribute, and fixed Android sessions being reported with the Linux platform.
  - Fixed an issue in which policies with protected Rank Attributes would result in every member being removed from the enforced channel or team.
  - Fixed an issue with public channel permalinks so that clicking them joins the channel when compliance is enabled, while still hiding permalink previews for non-members.
- - Fixed an issue where a message could be sent to the previously viewed channel after navigating with the ``/msg`` slash command or the **Ctrl/Cmd+K** channel switcher.
+ - Fixed an issue where a message could be sent to the previously viewed channel after navigating with the ``/msg`` slash command or the **Ctrl/Cmd+K** channel switcher (reported on webapp, Chrome and MacOS).
  - Fixed an issue where OAuth requests did not check the server's outbound connection restrictions.
  - Fixed Elasticsearch and OpenSearch startup on AWS managed domains that omit plugin data from the Nodes Info API.
  - Fixed an issue in which policies containing Rank attributes with 'shared-only' access mode were unable to be created by users.
@@ -158,13 +161,13 @@ See [this blog post](https://mattermost.com/blog/mattermost-v11-11-is-now-availa
 
 ### API Changes
  - Updated ``getFile`` API validation to check for content reviewer earlier.
- - Added ``DELETE / (deleteScheduledRecap)`` API endpoint.
- - Added ``GET / (getScheduledRecap)`` API endpoint.
- - Added ``GET /limit_status (getRecapLimitStatus)`` API endpoint.
- - Added ``POST / (createScheduledRecap)`` API endpoint.
- - Added ``POST /pause (pauseScheduledRecap)`` API endpoint.
- - Added ``POST /resume (resumeScheduledRecap)`` API endpoint.
- - Added ``PUT / (updateScheduledRecap)`` API endpoint.
+ - Added ``DELETE /scheduled_recaps/{scheduled_recap_id} (deleteScheduledRecap)`` API endpoint.
+ - Added ``GET /recaps/limit_status (getRecapLimitStatus)`` API endpoint.
+ - Added ``GET /scheduled_recaps/{scheduled_recap_id} (getScheduledRecap)`` API endpoint.
+ - Added ``POST /scheduled_recaps (createScheduledRecap)`` API endpoint.
+ - Added ``POST /scheduled_recaps/{scheduled_recap_id}/pause (pauseScheduledRecap)`` API endpoint.
+ - Added ``POST /scheduled_recaps/{scheduled_recap_id}/resume (resumeScheduledRecap)`` API endpoint.
+ - Added ``PUT /scheduled_recaps/{scheduled_recap_id} (updateScheduledRecap)`` API endpoint.
  - Added a new API file ``scheduled_recap.go``.
  - Removed the unneeded ``POST /api/v4/posts/ids/reactions`` endpoint.
 
