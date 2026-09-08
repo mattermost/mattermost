@@ -75,6 +75,12 @@ i18n-extract-check: node_modules ## Checks if en.json is in sync with code
 
 	npm run i18n-extract:check
 
+.PHONY: lint-i18n
+lint-i18n: node_modules ## Lints translation files for ICU and consistency errors
+	@echo Linting i18n messages
+
+	npm run lint:i18n
+
 .PHONY: dist
 dist: node_modules ## Builds all web app packages
 	@echo Packaging Mattermost Web App

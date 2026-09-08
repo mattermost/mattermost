@@ -58,6 +58,10 @@ jobs:
         working-directory: webapp/channels
         run: |
           npm run i18n-extract:check
+      - name: ci/i18n-lint
+        working-directory: webapp/channels
+        run: |
+          npm run lint:i18n
 
   check-external-links:
     permissions:
