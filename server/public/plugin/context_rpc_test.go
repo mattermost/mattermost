@@ -18,8 +18,9 @@ import (
 	"testing/iotest"
 	"time"
 
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/stretchr/testify/require"
+
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
 const rpcTestTimeout = 10 * time.Second
@@ -349,7 +350,6 @@ func TestHooksRPCClientServeHTTPCancellationBeforeResponseStreamAcceptance(t *te
 	case <-time.After(time.Second):
 		require.FailNow(t, "ServeHTTP waited for a response stream that was not accepted")
 	}
-
 }
 
 type legacyRPCServer struct {
