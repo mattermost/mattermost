@@ -113,7 +113,7 @@ const menuId = 'user-property-field_dotmenu';
 
 // Menu.Item renders a second label child as help text under the primary label —
 // the same treatment the "Editable by users" item uses when it's locked.
-const withLinkedHelp = (label: ReactElement, isLinked: boolean, help: ReactNode): ReactElement => (isLinked ? (
+const withLinkedHelp = (label: ReactElement<any>, isLinked: boolean, help: ReactNode): ReactElement<any> => (isLinked ? (
     <>
         <span>{label}</span>
         <span>{help}</span>

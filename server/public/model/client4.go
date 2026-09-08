@@ -309,6 +309,10 @@ func (c *Client4) contentFlaggingRoute() clientRoute {
 	return newClientRoute("content_flagging")
 }
 
+func (c *Client4) deliveryTrackingRoute() clientRoute {
+	return newClientRoute("delivery_tracking")
+}
+
 func (c *Client4) postsEphemeralRoute() clientRoute {
 	return newClientRoute("posts").Join("ephemeral")
 }
@@ -3974,6 +3978,24 @@ func (c *Client4) GetContentFlaggingSettings(ctx context.Context) (*ContentFlagg
 	return DecodeJSONFromResponse[*ContentFlaggingSettingsRequest](r)
 }
 
+func (c *Client4) GetDeliveryTrackingConfig(ctx context.Context) (*DeliveryTrackingConfig, *Response, error) {
+	r, err := c.doAPIGet(ctx, c.deliveryTrackingRoute().Join("config"), "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*DeliveryTrackingConfig](r)
+}
+
+func (c *Client4) UpdateDeliveryTrackingConfig(ctx context.Context, config *DeliveryTrackingConfig) (*Response, error) {
+	r, err := c.doAPIPutJSON(ctx, c.deliveryTrackingRoute().Join("config"), config)
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return BuildResponse(r), nil
+}
+
 func (c *Client4) AssignContentFlaggingReviewer(ctx context.Context, postId, reviewerId string) (*Response, error) {
 	r, err := c.doAPIPost(ctx, c.contentFlaggingRoute().Join("post", postId, "assign", reviewerId), "")
 	if err != nil {
@@ -6335,16 +6357,6 @@ func (c *Client4) DeleteReaction(ctx context.Context, reaction *Reaction) (*Resp
 	}
 	defer closeBody(r)
 	return BuildResponse(r), nil
-}
-
-// FetchBulkReactions returns a map of postIds and corresponding reactions
-func (c *Client4) GetBulkReactions(ctx context.Context, postIds []string) (map[string][]*Reaction, *Response, error) {
-	r, err := c.doAPIPostJSON(ctx, c.postsRoute().Join("ids", "reactions"), postIds)
-	if err != nil {
-		return nil, BuildResponse(r), err
-	}
-	defer closeBody(r)
-	return DecodeJSONFromResponse[map[string][]*Reaction](r)
 }
 
 // Timezone Section

@@ -100,7 +100,7 @@ describe('Image Link Preview', () => {
         cy.visit(offTopicUrl);
 
         const markdownImageText = 'exampleImage';
-        const markdownImageSrc = 'https://docs.mattermost.com/_images/icon-76x76.png';
+        const markdownImageSrc = 'https://raw.githubusercontent.com/mattermost/mattermost/master/e2e-tests/cypress/tests/fixtures/mattermost-icon_128x128.png';
         const markdownImageSrcEncoded = encodeURIComponent(markdownImageSrc); // Since the url preview will be encoded string
         const messageWithMarkdownImage = `![${markdownImageText}](${markdownImageSrc}) an image plus some text that has [a link](https://example.com/)`;
 

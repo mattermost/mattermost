@@ -67,7 +67,7 @@ export interface WithTooltipProps {
     * Callback when the tooltip appears
    */
     onOpen?: () => void;
-    children: ReactElement;
+    children: ReactElement<any>;
 
     forcedPlacement?: Placement;
 }

@@ -20,42 +20,43 @@ The message formatting toolbar offers the following formatting options:
 <col style={{width: '53%'}} />
 <col style={{width: '46%'}} />
 </colgroup>
+<thead>
+<tr>
+<th>Formatting option</th>
+<th>Icon</th>
+</tr>
+</thead>
 <tbody>
 <tr>
-<td rowspan="2"><blockquote>
-<p><strong>Formatting option</strong></p>
-</blockquote>
-<dl>
-<dt>==================================================================================</dt>
-<dd>
-<p><a href="#use-markdown">Bold, italicize, or strike out text</a></p>
-</dd>
-</dl></td>
-<td rowspan="2"><blockquote>
-<p><strong>Icon</strong> |</p>
-</blockquote>
-<dl>
-<dt>=========================+</dt>
-<dd>
-<p><a href="mm-subst:bold-icon">bold-icon</a> | <a href="mm-subst:italics-icon">italics-icon</a> | <a href="mm-subst:strikeout-icon">strikeout-icon</a> |</p>
-</dd>
-</dl></td>
-</tr>
-<tr>
+<td><a href="#use-markdown">Bold, italicize, or strike out text</a></td>
+<td>
+<img src={useBaseUrl('/img/ui/format-bold_F0264.svg')} alt="Bold" className="theme-icon" />
+<img src={useBaseUrl('/img/ui/format-italic_F0277.svg')} alt="Italicize" className="theme-icon" />
+<img src={useBaseUrl('/img/ui/format-strikethrough-variant_F0281.svg')} alt="Strikeout" className="theme-icon" />
+</td>
 </tr>
 <tr>
 <td>Add <a href="#headings">headings</a>, <a href="#links">links</a>, or attachments</td>
-<td><a href="mm-subst:headings-icon">headings-icon</a> | <a href="mm-subst:copy-link-icon">copy-link-icon</a> | <a href="mm-subst:attachments-icon">attachments-icon</a> |</td>
+<td>
+<img src={useBaseUrl('/img/ui/format-header_E81D.svg')} alt="Headings" className="theme-icon" />
+<img src={useBaseUrl('/img/ui/link-variant_F0339.svg')} alt="Copy link" className="theme-icon" />
+<img src={useBaseUrl('/img/ui/paperclip_F03E2.svg')} alt="Attachments" className="theme-icon" />
+</td>
 </tr>
 <tr>
 <td>Format a numbered list, a bulleted list, quoted text, or text as code</td>
-<td><a href="mm-subst:numbered-icon">numbered-icon</a> | <a href="mm-subst:bullets-icon">bullets-icon</a> | <a href="mm-subst:quotes-icon">quotes-icon</a> | <a href="mm-subst:code-icon">code-icon</a> |</td>
+<td>
+<img src={useBaseUrl('/img/ui/format-list-numbered_F027B.svg')} alt="Numbered list" className="theme-icon" />
+<img src={useBaseUrl('/img/ui/format-list-bulleted_F0279.svg')} alt="Bulleted list" className="theme-icon" />
+<img src={useBaseUrl('/img/ui/format-quote-open_F0757.svg')} alt="Quoted text" className="theme-icon" />
+<img src={useBaseUrl('/img/ui/code-tags_F0174.svg')} alt="Code" className="theme-icon" />
+</td>
 </tr>
 <tr>
-<td colspan="2"><a href="/end-user-guide/collaborate/react-with-emojis-gifs">Add emojis or GIFs</a> | <a href="mm-subst:emoji-icon">emoji-icon</a> |</td>
+<td colspan="2"><a href="/end-user-guide/collaborate/react-with-emojis-gifs">Add emojis or GIFs</a> <img src={useBaseUrl('/img/ui/emoticon-outline_F01F2.svg')} alt="Emoji" className="theme-icon" /></td>
 </tr>
 <tr>
-<td colspan="2"><a href="/end-user-guide/collaborate/message-priority">Set message priority</a> | <a href="mm-subst:message-priority-icon">message-priority-icon</a></td>
+<td colspan="2"><a href="/end-user-guide/collaborate/message-priority">Set message priority</a> <img src={useBaseUrl('/img/ui/alert-circle-outline_F05D6.svg')} alt="Message priority" className="theme-icon" /></td>
 </tr>
 </tbody>
 </table>
@@ -195,7 +196,31 @@ Renders as:
 
 Creating a fixed-width code block is recommended for pasting multi-line blocks of code or other text output because it's easier to read with fixed-width font alignment. Examples include block text snippets, ASCII tables, and log files. Rendered code blocks include a **Copy** option to copy the contents of the code block.
 
-This can be accomplished by placing three backticks ```` ` on the line directly above and directly below your code:  .. code-block:: text ``<code> this is my code block </code>`.. tip::    Type three backticks```<code>, press \`Shift \<mm-kbd:\></code>\_\_ <kbd>Enter</kbd> on Windows or Linux, or <kbd>⇧</kbd> <kbd>↵</kbd> on Mac, `<type_your_code>`, press <kbd>Shift</kbd> <kbd>Enter</kbd> on Windows or Linux, or <kbd>⇧</kbd> <kbd>↵</kbd> on Mac again, then type three more backticks ```` `.   Or by indenting each line by four spaces:  .. code-block:: text        this is my       code block    ^^^^ 4x spaces  Syntax highlighting ^^^^^^^^^^^^^^^^^^^^  To add syntax highlighting, type the language to be highlighted after the ````\` at the beginning of the code block. Mattermost also offers four different code themes (GitHub, Solarized Dark, Solarized Light, and Monokai) that can be changed in **Settings \> Display \> Theme \> Custom Theme \> Center Channel Styles**.
+This can be accomplished by placing three backticks (```` ``` ````) on the line directly above and directly below your code:
+
+````text
+```
+this is my
+code block
+```
+````
+
+<Tip>
+
+Type three backticks (```` ``` ````), press <kbd>Shift</kbd> <kbd>Enter</kbd> on Windows or Linux, or <kbd>⇧</kbd> <kbd>↵</kbd> on Mac, `<type_your_code>`, press <kbd>Shift</kbd> <kbd>Enter</kbd> on Windows or Linux, or <kbd>⇧</kbd> <kbd>↵</kbd> on Mac again, then type three more backticks (```` ``` ````).
+
+</Tip>
+
+Or by indenting each line by four spaces:
+
+```text
+    this is my
+    code block
+```
+
+### Syntax highlighting
+
+To add syntax highlighting, type the language to be highlighted after the ```` ``` ```` at the beginning of the code block. Mattermost also offers four different code themes (GitHub, Solarized Dark, Solarized Light, and Monokai) that can be changed in **Settings \> Display \> Theme \> Custom Theme \> Center Channel Styles**.
 
 Supported languages and their aliases include:
 

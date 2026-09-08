@@ -144,7 +144,7 @@ export class MessageExportSettings extends OLDAdminSettings<BaseProps & WrappedC
                 message.push(
                     <FormattedMessage
                         id='admin.complianceExport.messagesExportedCount'
-                        defaultMessage='{count} messages exported.'
+                        defaultMessage='{count, plural, one {# message exported.} other {# messages exported.}}'
                         values={{
                             count: job.data.messages_exported,
                         }}
@@ -157,7 +157,7 @@ export class MessageExportSettings extends OLDAdminSettings<BaseProps & WrappedC
                         <div>
                             <FormattedMessage
                                 id='admin.complianceExport.warningCount.globalrelay'
-                                defaultMessage='{count} warning(s) encountered, see log for details'
+                                defaultMessage='{count, plural, one {# warning encountered, see log for details} other {# warnings encountered, see log for details}}'
                                 values={{
                                     count: job.data.warning_count,
                                 }}
@@ -169,7 +169,7 @@ export class MessageExportSettings extends OLDAdminSettings<BaseProps & WrappedC
                         <div>
                             <FormattedMessage
                                 id='admin.complianceExport.warningCount'
-                                defaultMessage='{count} warning(s) encountered, see warning.txt for details'
+                                defaultMessage='{count, plural, one {# warning encountered, see warning.txt for details} other {# warnings encountered, see warning.txt for details}}'
                                 values={{
                                     count: job.data.warning_count,
                                 }}
