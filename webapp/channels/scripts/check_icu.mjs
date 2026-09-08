@@ -11,6 +11,9 @@
  * than recording.
  *
  *   - the file is valid JSON and every value is a string
+ *   - no value is the empty string, which react-intl treats as falsy and
+ *     replaces with the English, so it reaches the user exactly as a missing key
+ *     does. --warn-missing-keys downgrades this too, for work in progress.
  *   - every value parses with @formatjs/icu-messageformat-parser, the parser
  *     react-intl runs in production, so "parses here" implies "parses there"
  *   - a translation never invents a variable the source does not have. An
@@ -30,9 +33,10 @@
  *
  * Key parity is a separate question from whether the entries that exist are
  * correct. An extra key, one en.json does not have, is always an error: nothing
- * will ever read it. A missing key is an error by default and a warning under
- * --warn-missing-keys, and is not a runtime defect either way, because
- * react-intl falls back to the source message.
+ * will ever read it. A missing key -- absent, or present but empty -- is an
+ * error by default and a warning under --warn-missing-keys, and is not a
+ * runtime defect either way, because react-intl falls back to the source
+ * message.
  *
  * Usage:
  *   node scripts/check_icu.mjs <i18n-dir> [--warn-missing-keys]
@@ -189,6 +193,16 @@ for (const name of localeNames) {
         }
         if (typeof message !== 'string') {
             errors.push(`${name}:${key}: value is not a string`);
+            continue;
+        }
+
+        // react-intl's formatMessage tests `if (!message)` before falling
+        // through to defaultMessage, and '' is falsy, so an empty translation
+        // renders the English exactly as a missing key does. Whitespace is
+        // deliberately not empty: ' ' is a real translation in a language that
+        // separates where English uses a word.
+        if (message === '') {
+            (warnMissingKeys ? warnings : errors).push(`${name}:${key}: empty translation`);
             continue;
         }
 

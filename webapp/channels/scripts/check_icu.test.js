@@ -132,6 +132,31 @@ describe('check_icu', () => {
             expect(stderr).toContain('fr.json:a.b: missing key');
             expect(stderr).toContain('1 warning(s)');
         });
+
+        // react-intl treats '' as falsy and falls back to the English, so an
+        // empty translation reaches the user exactly as a missing key does.
+        test('an empty translation is an error by default', () => {
+            const {code, stderr} = check({'a.b': 'Hello'}, {'fr.json': {'a.b': ''}});
+
+            expect(code).toBe(1);
+            expect(stderr).toContain('fr.json:a.b: empty translation');
+        });
+
+        test('an empty translation is a warning under --warn-missing-keys', () => {
+            const {code, stderr} = check({'a.b': 'Hello'}, {'fr.json': {'a.b': ''}}, {warnMissingKeys: true});
+
+            expect(code).toBe(0);
+            expect(stderr).toContain('fr.json:a.b: empty translation');
+            expect(stderr).toContain('1 warning(s)');
+        });
+
+        // ' ' is a real translation in a language that separates where English
+        // uses a word, and unlike '' it does reach the user.
+        test('a whitespace-only translation is a real translation', () => {
+            const {code} = check({'a.b': 'at'}, {'zh-CN.json': {'a.b': ' '}});
+
+            expect(code).toBe(0);
+        });
     });
 
     describe('variables and tags', () => {
