@@ -64,14 +64,14 @@ describe('AttributeAppliesToUserItem', () => {
         expect(onVisibilityChange).toHaveBeenCalledWith('hidden');
     });
 
-    it('Who can set the value: renders the managed prop as the selected option, shows help text explaining the System Administrator option, and calls onManagedChange on selection', async () => {
+    it('Who can set the value: renders the managed prop as the selected option, shows the static help caption, and calls onManagedChange on selection', async () => {
         const onManagedChange = jest.fn();
         renderComponent({managed: '', onManagedChange});
         await userEvent.click(screen.getByTestId('attributeAppliesToRow-user-toggle'));
 
         expect(screen.getByTestId('attributeAppliesToUserWhoCanSet-member')).toBeChecked();
         expect(screen.getByTestId('attributeAppliesToUserWhoCanSet-admin')).not.toBeChecked();
-        expect(screen.getByText('Only System Administrators can set this value. Members will see it as read-only on their profile.')).toBeInTheDocument();
+        expect(screen.getByText('Choose Member or System Administrator.')).toBeInTheDocument();
 
         await userEvent.click(screen.getByTestId('attributeAppliesToUserWhoCanSet-admin'));
         expect(onManagedChange).toHaveBeenCalledWith('admin');

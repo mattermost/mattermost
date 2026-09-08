@@ -134,3 +134,33 @@
         color: var(--center-channel-color);
     }
 }
+
+.AttributeAppliesToItem__whoCanSet {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.AttributeAppliesToItem__radioList {
+    display: flex;
+    min-height: 32px;
+    align-items: center;
+    gap: 16px;
+}
+
+.AttributeAppliesToItem__radioOption {
+    display: flex;
+    align-items: center;
+    margin: 0;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: normal;
+    gap: 8px;
+    line-height: 20px;
+}
+
+.AttributeAppliesToItem__helpText {
+    color: rgba(var(--center-channel-color-rgb), 0.56);
+    font-size: 12px;
+    line-height: 1.4;
+}

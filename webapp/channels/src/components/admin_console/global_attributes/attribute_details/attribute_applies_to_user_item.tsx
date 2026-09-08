@@ -11,10 +11,8 @@ import {Button} from '@mattermost/shared/components/button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {FieldVisibility} from '@mattermost/types/properties';
 
-import RadioButtonGroup from 'components/common/radio_group';
-
 import {resourceTypeLabels} from './attribute_applies_to_constants';
-import type {AttributeAppliesToItemProps, UserManagedValue} from './attribute_applies_to_constants';
+import type {AttributeAppliesToItemProps} from './attribute_applies_to_constants';
 
 import './attribute_applies_to_item.scss';
 
@@ -41,10 +39,6 @@ function AttributeAppliesToUserItem({
 }: AttributeAppliesToItemProps): JSX.Element {
     const {formatMessage} = useIntl();
     const [isOpen, setIsOpen] = useState(false);
-
-    const handleManagedChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        onManagedChange?.(e.target.value as UserManagedValue);
-    };
 
     const label = formatMessage(resourceTypeLabels.user);
     const toggleLabel = formatMessage(isOpen ? messages.collapseLabel : messages.expandLabel, {label});
@@ -140,26 +134,35 @@ function AttributeAppliesToUserItem({
                         <span className='AttributeAppliesToItem__label'>
                             <FormattedMessage {...messages.whoCanSetLabel}/>
                         </span>
-                        <RadioButtonGroup
-                            id='attribute-applies-to-user-who-can-set'
-                            testId='attributeAppliesToUserWhoCanSet'
-                            value={managed}
-                            onChange={handleManagedChange}
-                            isDisabled={disabled ? () => true : null}
-                            sideLegend={{matchVal: 'admin', text: formatMessage(messages.whoCanSetAdminHelp)}}
-                            values={[
-                                {
-                                    key: <FormattedMessage {...messages.whoCanSetMemberLabel}/>,
-                                    value: '',
-                                    testId: 'attributeAppliesToUserWhoCanSet-member',
-                                },
-                                {
-                                    key: <FormattedMessage {...messages.whoCanSetAdminLabel}/>,
-                                    value: 'admin',
-                                    testId: 'attributeAppliesToUserWhoCanSet-admin',
-                                },
-                            ]}
-                        />
+                        <div className='AttributeAppliesToItem__whoCanSet'>
+                            <div className='AttributeAppliesToItem__radioList'>
+                                <label className='AttributeAppliesToItem__radioOption'>
+                                    <input
+                                        type='radio'
+                                        name='attribute-applies-to-user-who-can-set'
+                                        checked={managed === ''}
+                                        disabled={disabled}
+                                        onChange={() => onManagedChange?.('')}
+                                        data-testid='attributeAppliesToUserWhoCanSet-member'
+                                    />
+                                    <FormattedMessage {...messages.whoCanSetMemberLabel}/>
+                                </label>
+                                <label className='AttributeAppliesToItem__radioOption'>
+                                    <input
+                                        type='radio'
+                                        name='attribute-applies-to-user-who-can-set'
+                                        checked={managed === 'admin'}
+                                        disabled={disabled}
+                                        onChange={() => onManagedChange?.('admin')}
+                                        data-testid='attributeAppliesToUserWhoCanSet-admin'
+                                    />
+                                    <FormattedMessage {...messages.whoCanSetAdminLabel}/>
+                                </label>
+                            </div>
+                            <div className='AttributeAppliesToItem__helpText'>
+                                <FormattedMessage {...messages.whoCanSetHelp}/>
+                            </div>
+                        </div>
                     </div>
                 </div>
             )}
@@ -189,9 +192,9 @@ const messages = defineMessages({
         id: 'admin.global_attributes.attribute_details.applies_to.item.user.who_can_set.admin.label',
         defaultMessage: 'System Administrator',
     },
-    whoCanSetAdminHelp: {
-        id: 'admin.global_attributes.attribute_details.applies_to.item.user.who_can_set.admin.help',
-        defaultMessage: 'Only System Administrators can set this value. Members will see it as read-only on their profile.',
+    whoCanSetHelp: {
+        id: 'admin.global_attributes.attribute_details.applies_to.item.user.who_can_set.help',
+        defaultMessage: 'Choose Member or System Administrator.',
     },
 });
 
