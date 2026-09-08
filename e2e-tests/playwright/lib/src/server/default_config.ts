@@ -783,7 +783,7 @@ const defaultServerConfig: AdminConfig = {
         ExperimentalAuditSettingsSystemConsoleUI: true,
         CustomProfileAttributes: true,
         AttributeBasedAccessControl: true,
-        PermissionPolicies: true,
+        PermissionPolicies: false,
         ContentFlagging: true,
         InteractiveDialogAppsForm: true,
         EnableMattermostEntry: true,
@@ -794,6 +794,7 @@ const defaultServerConfig: AdminConfig = {
         EnableAIRecaps: false,
         IntegratedBoards: false,
         CJKSearch: false,
+        ManagedChannelCategories: false,
     },
     ImportSettings: {
         Directory: './import',

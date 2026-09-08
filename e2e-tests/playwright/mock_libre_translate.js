@@ -3,7 +3,7 @@
 
 /* eslint-disable no-console */
 
-const {createServer} = require('http'); // eslint-disable-line @typescript-eslint/no-require-imports
+const {createServer} = require('http');
 
 const PORT = Number(process.env.PORT) || 3010;
 
