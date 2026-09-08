@@ -30,13 +30,14 @@ export async function resolvePR({repository, prNumber = '', commitSHA = '', gith
             assert(page < 20, 'Associated PR listing exceeded its bound');
         }
         assert(matches.length <= 1, 'Multiple current PRs share this commit; dispatch with an explicit PR number');
-        if (!matches.length) return {PR_NUMBER: '', COMMIT_SHA: '', BASE_SHA: '', HEAD_REF: '', reason: 'No open PR currently has this head; no status changed'};
+        if (!matches.length) return {PR_NUMBER: '', COMMIT_SHA: '', BASE_SHA: '', BASE_REF: '', HEAD_REF: '', reason: 'No open PR currently has this head; no status changed'};
         pr = await github(`/pulls/${matches[0].number}`);
         assert(pr.state === 'open' && !pr.merged_at && pr.head?.sha === commit, 'PR changed while resolving its test commit');
     }
     assert(pr.base?.repo?.full_name === repository && sha.test(pr.head?.sha) && sha.test(pr.base?.sha), 'Invalid PR repository/base/head identity');
     assert(typeof pr.head.ref === 'string' && pr.head.ref.length <= 1024 && !/[\r\n\0]/.test(pr.head.ref), 'Invalid PR branch identity');
-    return {PR_NUMBER: String(pr.number), COMMIT_SHA: pr.head.sha, BASE_SHA: pr.base.sha, HEAD_REF: pr.head.ref, reason: 'Frozen current PR head and base; workflow checkout is a separate identity'};
+    assert(typeof pr.base.ref === 'string' && pr.base.ref.length > 0 && pr.base.ref.length <= 1024 && !/[\r\n\0]/.test(pr.base.ref), 'Invalid PR base branch identity');
+    return {PR_NUMBER: String(pr.number), COMMIT_SHA: pr.head.sha, BASE_SHA: pr.base.sha, BASE_REF: pr.base.ref, HEAD_REF: pr.head.ref, reason: 'Frozen current PR head and base; workflow checkout is a separate identity'};
 }
 
 export async function main(env = process.env) {
@@ -52,7 +53,7 @@ export async function main(env = process.env) {
     };
     const result = await resolvePR({repository, prNumber: env.INPUT_PR_NUMBER || '', commitSHA: env.INPUT_COMMIT_SHA || '', github});
     assert(env.GITHUB_OUTPUT, 'GITHUB_OUTPUT is required');
-    appendFileSync(env.GITHUB_OUTPUT, ['PR_NUMBER', 'COMMIT_SHA', 'BASE_SHA', 'HEAD_REF'].map(key => `${key}=${result[key]}\n`).join(''));
+    appendFileSync(env.GITHUB_OUTPUT, ['PR_NUMBER', 'COMMIT_SHA', 'BASE_SHA', 'BASE_REF', 'HEAD_REF'].map(key => `${key}=${result[key]}\n`).join(''));
     console.log(JSON.stringify(result));
 }
 

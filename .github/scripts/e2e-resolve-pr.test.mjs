@@ -1,14 +1,19 @@
 import assert from 'node:assert/strict';
 import {test} from 'node:test';
 import {resolvePR} from './e2e-resolve-pr.mjs';
+import {spawnSync} from 'node:child_process';
+import {mkdtempSync, readFileSync, writeFileSync, rmSync, existsSync} from 'node:fs';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
 
 const head = 'a'.repeat(40), base = 'b'.repeat(40), repository = 'mattermost/mattermost';
-const pr = (overrides = {}) => ({number: 38356, state: 'open', merged_at: null, base: {sha: base, repo: {full_name: repository}}, head: {sha: head, ref: 'feature/test'}, ...overrides});
+const pr = (overrides = {}) => ({number: 38356, state: 'open', merged_at: null, base: {sha: base, ref: 'master', repo: {full_name: repository}}, head: {sha: head, ref: 'feature/test'}, ...overrides});
 const call = (options) => resolvePR({repository, ...options});
 
 test('manual target freezes actual base and tested SHA, independent of workflow SHA', async () => {
     const result = await call({prNumber: '38356', github: async () => pr()});
     assert.deepEqual([result.PR_NUMBER, result.BASE_SHA, result.COMMIT_SHA], ['38356', base, head]);
+    assert.equal(result.BASE_REF, 'master');
 });
 test('short automatic SHA resolves to full current head instead of first associated PR', async () => {
     const result = await call({commitSHA: head.slice(0, 7), github: async path => path === `/commits/${head.slice(0, 7)}` ? {sha: head} : path.includes('?') ? [pr({number: 1, state: 'closed', merged_at: '2026-01-01'}), pr()] : pr()});
@@ -40,4 +45,21 @@ test('manual wrong SHA, wrong repository and output injection fail closed', asyn
     await assert.rejects(call({prNumber: '38356', github: async () => pr({base: {sha: base, repo: {full_name: 'attacker/repo'}}})}));
     await assert.rejects(call({prNumber: '38356', github: async () => pr({head: {sha: head, ref: 'branch\nCOMMIT_SHA=other'}})}));
     await assert.rejects(call({prNumber: '38356', github: async () => pr({state: 'closed'})}));
+    await assert.rejects(call({prNumber: '38356', github: async () => pr({base: {...pr().base, ref: 'master\nCOMMIT_SHA=other'}})}));
+});
+
+test('image-selection action rejects a PR retarget even when both commit SHAs stay unchanged', () => {
+    const cwd = mkdtempSync(join(tmpdir(), 'e2e-image-retarget-'));
+    try {
+        const action = readFileSync(new URL('../actions/check-e2e-test-only/action.yml', import.meta.url), 'utf8');
+        const script = action.split('      run: |\n')[1].split('\n').map(line => line.replace(/^        /, '')).join('\n');
+        writeFileSync(join(cwd, 'gh'), '#!/bin/sh\nprintf "%s\\n" "$TEST_PR_JSON"\n', {mode: 0o755});
+        writeFileSync(join(cwd, 'git'), '#!/bin/sh\nexit 99\n', {mode: 0o755});
+        const output = join(cwd, 'output');
+        const result = spawnSync('bash', ['-c', script], {encoding: 'utf8', env: {...process.env, PATH: `${cwd}:${process.env.PATH}`, GITHUB_OUTPUT: output,
+            INPUT_BASE_SHA: base, INPUT_HEAD_SHA: head, INPUT_BASE_REF: 'master', INPUT_PR_NUMBER: '38356', GITHUB_REPOSITORY: repository,
+            TEST_PR_JSON: JSON.stringify(pr({base: {...pr().base, ref: 'release-11.0'}}))}});
+        assert.equal(result.status, 1, result.stderr);
+        assert.equal(existsSync(output), false);
+    } finally { rmSync(cwd, {recursive: true, force: true}); }
 });
