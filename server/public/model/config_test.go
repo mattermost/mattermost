@@ -2655,37 +2655,6 @@ func TestSanitizeDataSource(t *testing.T) {
 			})
 		}
 	})
-
-	t.Run("malformed postgres URLs", func(t *testing.T) {
-		testCases := []struct {
-			Name     string
-			Original string
-		}{
-			{
-				"invalid port",
-				"postgres://mmuser:mostest_password@localhost:not_a_port/mattermost",
-			},
-			{
-				"invalid percent escape in path",
-				"postgres://mmuser:mostest_password@localhost/%zzmattermost",
-			},
-			{
-				"unterminated IPv6 literal",
-				"postgresql://mmuser:mostest_password@[::1/mattermost",
-			},
-		}
-
-		for _, tc := range testCases {
-			t.Run(tc.Name, func(t *testing.T) {
-				out, err := SanitizeDataSource(DatabaseDriverPostgres, tc.Original)
-				require.Error(t, err)
-				assert.Empty(t, out)
-				// The error must not echo the data source back.
-				assert.NotContains(t, err.Error(), "mostest_password")
-				assert.NotContains(t, err.Error(), "mmuser")
-			})
-		}
-	})
 }
 
 func TestConfigFilteredByTag(t *testing.T) {

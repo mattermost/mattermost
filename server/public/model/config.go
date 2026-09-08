@@ -5331,7 +5331,7 @@ func (o *Config) Sanitize(pluginManifests []*Manifest, opts *SanitizeOptions) {
 		if opts.PartiallyRedactDataSources && driverName != "" {
 			sanitized, err := SanitizeDataSource(driverName, dataSource)
 			if err != nil {
-				mlog.Warn("Failed to sanitize "+fieldName+". Falling back to fully sanitizing the setting.", mlog.Err(err))
+				mlog.Warn("Failed to sanitize " + fieldName + ". Falling back to fully sanitizing the setting.")
 				return FakeSetting
 			}
 			return sanitized
@@ -5460,8 +5460,7 @@ func SanitizeDataSource(driverName, dataSource string) (string, error) {
 
 	u, err := url.Parse(dataSource)
 	if err != nil {
-		// Deliberately discard the parse error: it embeds the raw data source.
-		return "", errors.New("invalid data source: malformed postgres:// connection string")
+		return "", err
 	}
 	u.User = url.UserPassword(SanitizedPassword, SanitizedPassword)
 
