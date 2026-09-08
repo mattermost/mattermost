@@ -759,7 +759,7 @@ $sidebarOpacityAnimationDuration: 0.15s;
     }
 
     button.SidebarChannelGroupHeader_groupButton > div {
-        // This overrides react-beautiful-dnd's grab cursor
+        // This overrides @hello-pangea/dnd's grab cursor
         cursor: pointer;
     }
 
