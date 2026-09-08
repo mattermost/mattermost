@@ -29,7 +29,7 @@ export function readChanges({base, head, cwd = process.cwd()}) {
     if (!sha.test(mergeBase)) throw new Error('A single merge base is required');
     // Disabling rename detection includes both removed and added names, while
     // NUL delimiters preserve paths containing newlines. Git failures are fatal.
-    const raw = git('diff', '--name-only', '--no-renames', '-z', `${mergeBase}..${head}`, '--');
+    const raw = git('diff', '--name-only', '--no-renames', '--ignore-submodules=none', '-z', `${mergeBase}..${head}`, '--');
     if (raw && !raw.endsWith('\0')) throw new Error('Incomplete changed-file output');
     return {base_sha: base, merge_base_sha: mergeBase, head_sha: head, files: raw ? raw.slice(0, -1).split('\0') : []};
 }

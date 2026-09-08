@@ -76,6 +76,22 @@ test('crisscross history cannot choose an arbitrary merge base and emit a docs-o
         assert.throws(() => readChanges({base, head, cwd}), /single merge base/);
     } finally { rmSync(cwd, {recursive: true, force: true}); }
 });
+test('submodule ignore settings cannot conceal a changed dependency revision', () => {
+    const cwd = mkdtempSync(join(tmpdir(), 'e2e-scope-submodule-'));
+    const git = (...args) => execFileSync('git', args, {cwd, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe']}).trim();
+    try {
+        git('init'); git('config', 'user.name', 'Scope Test'); git('config', 'user.email', 'scope@example.invalid');
+        writeFileSync(join(cwd, '.gitmodules'), '[submodule "vendor"]\n path = vendor\n url = https://example.invalid/vendor\n ignore = all\n');
+        git('add', '.'); const tree = git('write-tree');
+        const first = git('commit-tree', tree, '-m', 'dependency one');
+        const second = git('commit-tree', tree, '-p', first, '-m', 'dependency two');
+        git('update-index', '--add', '--cacheinfo', `160000,${first},vendor`); git('commit', '-m', 'base'); const base = git('rev-parse', 'HEAD');
+        git('update-index', '--cacheinfo', `160000,${second},vendor`); writeFileSync(join(cwd, 'README.md'), 'docs'); git('add', 'README.md'); git('commit', '-m', 'head');
+        const result = readChanges({base, head: git('rev-parse', 'HEAD'), cwd});
+        assert.ok(result.files.includes('vendor'));
+        assert.equal(classifyChanges(result.files).should_run, true);
+    } finally { rmSync(cwd, {recursive: true, force: true}); }
+});
 test('malformed CLI arguments cannot emit a skip', () => {
     assert.throws(() => main(['--base', 'a'.repeat(40), '--base', 'b'.repeat(40)]));
     assert.throws(() => main(['--head']));
