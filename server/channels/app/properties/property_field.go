@@ -900,9 +900,11 @@ func (ps *PropertyService) translateLegacyPermissionKeys(rctx request.CTX, field
 // attrs, and the protected/owners/access_mode attrs -- differ from what is
 // already stored on existing.
 //
-// Protected and the three permission-level columns are no longer selected
-// from the store, so existing.Protected / Permission* are always the zero
-// value after a load. PermissionValues is compared against
+// The comparison runs against ProjectLegacyPermissions(existing) because
+// that is the v2 view a caller was shown and would echo back: for a converted
+// field the projection reports its permissions object, and for a field with no
+// permissions object the projection returns the field unchanged, so the
+// comparison falls through to the columns the store selects. PermissionValues is compared against
 // ProjectLegacyPermissions(existing) instead: that is the v2 view a caller
 // was shown and would echo back. Protected, PermissionField and
 // PermissionOptions are only compared that way when this group's update

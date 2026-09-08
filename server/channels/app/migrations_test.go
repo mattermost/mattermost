@@ -507,6 +507,39 @@ func TestPropertyPermissionsBackfill_Idempotent(t *testing.T) {
 	require.Equal(t, firstUpdateAt, unchanged.UpdateAt, "second run must not re-write the field row")
 }
 
+func TestPropertyPermissionsBackfillStoredColumns(t *testing.T) {
+	th := Setup(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+	clearPropertyPermissionsBackfillMarker(t, th)
+
+	group, appErr := th.App.GetPropertyGroup(th.Context, model.AccessControlPropertyGroupName)
+	require.Nil(t, appErr)
+
+	// Seed with raw SQL because no Go write path stores these columns independently of permissions,
+	// so a fixture that routes through the store cannot produce a faithful pre-upgrade row.
+	fieldID := model.NewId()
+	now := model.GetMillis()
+	_, err := th.Store.GetInternalMasterDB().Exec(
+		`INSERT INTO PropertyFields
+		(ID, GroupID, Name, Type, Attrs, TargetID, TargetType, ObjectType, CreateAt, UpdateAt, DeleteAt, PermissionField, PermissionValues, PermissionOptions)
+		VALUES ($1, $2, $3, 'text', '{}'::jsonb, '', 'system', 'user', $4, $5, 0, $6, $7, $8)`,
+		fieldID, group.ID, "legacy-columns-field", now, now, "admin", "member", "member",
+	)
+	require.NoError(t, err)
+
+	require.NoError(t, th.Server.doSetupPropertyPermissionsBackfill(th.Context))
+
+	got, err := th.Store.PropertyField().Get(th.Context, group.ID, fieldID)
+	require.NoError(t, err)
+	require.NotNil(t, got.Permissions)
+	require.NotNil(t, got.Permissions.Restrictions)
+	require.Equal(t, model.PermissionLevelAdmin, got.Permissions.Restrictions.Field.Write)
+	require.Equal(t, model.PermissionLevelMember, got.Permissions.Restrictions.Value.Write)
+	require.Equal(t, model.PermissionLevelMember, got.Permissions.Restrictions.Option.Write)
+	require.Equal(t, model.PermissionLevelEveryone, got.Permissions.Restrictions.Value.Read)
+	require.Equal(t, model.PermissionLevelEveryone, got.Permissions.Restrictions.Option.Read)
+}
+
 var expectedOSPlatformOptions = []string{"macos", "windows", "linux", "ios", "android"}
 
 func sessionAttributeFieldByName(t *testing.T, th *TestHelper, groupID, name string) *model.PropertyField {
