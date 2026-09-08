@@ -183,6 +183,175 @@ func TestHooksRPCClientServeHTTPAlreadyCanceled(t *testing.T) {
 	require.Zero(t, muxBroker.nextID, "canceled request allocated a mux stream")
 }
 
+type blockingResponseWriter struct {
+	header       http.Header
+	writeStarted chan struct{}
+	writeRelease chan struct{}
+}
+
+func (w *blockingResponseWriter) Header() http.Header {
+	return w.header
+}
+
+func (w *blockingResponseWriter) Write(p []byte) (int, error) {
+	close(w.writeStarted)
+	<-w.writeRelease
+	return len(p), nil
+}
+
+func (w *blockingResponseWriter) WriteHeader(statusCode int) {
+}
+
+type responseWritingRPCServer struct {
+	muxBroker rpcMuxBroker
+}
+
+func (s *responseWritingRPCServer) ServeHTTP(args *Z_ServeHTTPArgs, returns *struct{}) error {
+	_, cleanupContext, err := openRPCRequestContext(s.muxBroker, args.RequestContextStream, args.RequestContext)
+	if err != nil {
+		return err
+	}
+	defer cleanupContext()
+
+	connection, err := s.muxBroker.Dial(args.ResponseWriterStream)
+	if err != nil {
+		return err
+	}
+	responseWriter := connectHTTPResponseWriter(connection)
+	defer responseWriter.Close()
+
+	_, err = responseWriter.Write([]byte("response"))
+	return err
+}
+
+func TestHooksRPCClientServeHTTPCancellationWaitsForResponseWriter(t *testing.T) {
+	muxBroker := newTestHooksRPCMuxBroker()
+	serverConnection, clientConnection := net.Pipe()
+	server := rpc.NewServer()
+	require.NoError(t, server.RegisterName("Plugin", &responseWritingRPCServer{muxBroker: muxBroker}))
+	go server.ServeConn(serverConnection)
+
+	client := rpc.NewClient(clientConnection)
+	defer client.Close()
+	hooks := &hooksRPCClient{client: client, log: mlog.CreateConsoleTestLogger(t), muxBroker: muxBroker, contextHTTP: true}
+	hooks.implemented[ServeHTTPID] = true
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	request, err := http.NewRequestWithContext(ctx, http.MethodGet, "/plugin/path", nil)
+	require.NoError(t, err)
+	writeStarted := make(chan struct{})
+	writeRelease := make(chan struct{})
+	defer close(writeRelease)
+	writer := &blockingResponseWriter{
+		header:       make(http.Header),
+		writeStarted: writeStarted,
+		writeRelease: writeRelease,
+	}
+	serveHTTPDone := make(chan struct{})
+	go func() {
+		hooks.ServeHTTP(&Context{}, writer, request)
+		close(serveHTTPDone)
+	}()
+
+	select {
+	case <-writeStarted:
+	case <-time.After(rpcTestTimeout):
+		require.FailNow(t, "response write did not start")
+	}
+	cancel()
+	require.Never(t, func() bool {
+		select {
+		case <-serveHTTPDone:
+			return true
+		default:
+			return false
+		}
+	}, 100*time.Millisecond, 10*time.Millisecond, "ServeHTTP returned during an in-flight response write")
+
+	writeRelease <- struct{}{}
+	select {
+	case <-serveHTTPDone:
+	case <-time.After(rpcTestTimeout):
+		require.FailNow(t, "ServeHTTP did not return after the response write finished")
+	}
+}
+
+type stalledServeHTTPRPCServer struct {
+	started chan struct{}
+	release chan struct{}
+}
+
+func (s *stalledServeHTTPRPCServer) ServeHTTP(args *Z_ServeHTTPArgs, returns *struct{}) error {
+	close(s.started)
+	<-s.release
+	return nil
+}
+
+type delayedAcceptMuxBroker struct {
+	release chan struct{}
+	nextID  uint32
+}
+
+func (b *delayedAcceptMuxBroker) NextId() uint32 {
+	b.nextID++
+	return b.nextID
+}
+
+func (b *delayedAcceptMuxBroker) Accept(id uint32) (net.Conn, error) {
+	<-b.release
+	hostConnection, pluginConnection := net.Pipe()
+	_ = pluginConnection.Close()
+	return hostConnection, nil
+}
+
+func (b *delayedAcceptMuxBroker) AcceptAndServe(id uint32, server any) {
+}
+
+func (b *delayedAcceptMuxBroker) Dial(id uint32) (net.Conn, error) {
+	return nil, errors.New("unexpected Dial")
+}
+
+func TestHooksRPCClientServeHTTPCancellationBeforeResponseStreamAcceptance(t *testing.T) {
+	muxBroker := &delayedAcceptMuxBroker{release: make(chan struct{})}
+	serverConnection, clientConnection := net.Pipe()
+	server := rpc.NewServer()
+	serverStarted := make(chan struct{})
+	serverRelease := make(chan struct{})
+	defer close(serverRelease)
+	defer close(muxBroker.release)
+	require.NoError(t, server.RegisterName("Plugin", &stalledServeHTTPRPCServer{started: serverStarted, release: serverRelease}))
+	go server.ServeConn(serverConnection)
+
+	client := rpc.NewClient(clientConnection)
+	defer client.Close()
+	hooks := &hooksRPCClient{client: client, log: mlog.CreateConsoleTestLogger(t), muxBroker: muxBroker, contextHTTP: true}
+	hooks.implemented[ServeHTTPID] = true
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	request, err := http.NewRequestWithContext(ctx, http.MethodGet, "/plugin/path", nil)
+	require.NoError(t, err)
+	serveHTTPDone := make(chan struct{})
+	go func() {
+		hooks.ServeHTTP(&Context{}, httptest.NewRecorder(), request)
+		close(serveHTTPDone)
+	}()
+
+	select {
+	case <-serverStarted:
+	case <-time.After(rpcTestTimeout):
+		require.FailNow(t, "ServeHTTP RPC did not start")
+	}
+	cancel()
+	select {
+	case <-serveHTTPDone:
+	case <-time.After(time.Second):
+		require.FailNow(t, "ServeHTTP waited for a response stream that was not accepted")
+	}
+
+}
+
 type legacyRPCServer struct {
 	muxBroker        *testHooksRPCMuxBroker
 	serveHTTPStarted chan struct{}

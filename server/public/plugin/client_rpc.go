@@ -505,6 +505,8 @@ func (g *hooksRPCClient) ServeHTTP(c *Context, w http.ResponseWriter, r *http.Re
 	responseStream := &rpcStreamCloser{}
 	requestContextStream := &rpcStreamCloser{}
 	requestBodyStream := &rpcStreamCloser{}
+	responseConnectionAccepted := make(chan struct{})
+	responseRPCDone := make(chan struct{})
 	closeStreams := func() {
 		if contextAware {
 			if err := r.Context().Err(); err != nil {
@@ -517,6 +519,16 @@ func (g *hooksRPCClient) ServeHTTP(c *Context, w http.ResponseWriter, r *http.Re
 		_ = requestBodyStream.Close()
 		if r.Body != nil {
 			_ = r.Body.Close()
+		}
+
+		// Closing the connection stops new RPC calls, but ServeConn may still be finishing a call
+		// that uses w. If Accept already returned, wait for ServeConn to exit. Otherwise, Set will
+		// reject any connection accepted later.
+		select {
+		case <-responseConnectionAccepted:
+			<-responseRPCDone
+		case <-responseRPCDone:
+		default:
 		}
 	}
 
@@ -531,11 +543,14 @@ func (g *hooksRPCClient) ServeHTTP(c *Context, w http.ResponseWriter, r *http.Re
 	}
 
 	go func() {
+		defer close(responseRPCDone)
 		connection, err := g.muxBroker.Accept(responseStreamID)
-		if err != nil || !responseStream.Set(connection) {
-			if err != nil {
-				g.log.Error("Plugin failed to ServeHTTP, muxBroker couldn't accept connection", mlog.Uint("serve_http_stream_id", responseStreamID), mlog.Err(err))
-			}
+		if err != nil {
+			g.log.Error("Plugin failed to ServeHTTP, muxBroker couldn't accept connection", mlog.Uint("serve_http_stream_id", responseStreamID), mlog.Err(err))
+			return
+		}
+		close(responseConnectionAccepted)
+		if !responseStream.Set(connection) {
 			return
 		}
 		defer responseStream.Close()
