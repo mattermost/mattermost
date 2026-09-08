@@ -5,7 +5,7 @@ exports[`components/timestamp/Timestamp should be wrapped in SemanticTime and su
   <time
     aria-label="test label"
     class="test class"
-    datetime="2019-05-03T13:20:00.000"
+    datetime="2019-05-03T13:20:00.000+00:00"
   >
     Friday
   </time>

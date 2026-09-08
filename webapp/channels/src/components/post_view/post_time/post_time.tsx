@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import type {ComponentProps} from 'react';
 import {Link} from 'react-router-dom';
 
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
@@ -11,11 +10,13 @@ import {isMobile} from '@mattermost/shared/utils/user_agent';
 import * as GlobalActions from 'actions/global_actions';
 
 import Timestamp from 'components/timestamp';
+import type {TimestampVariant} from 'components/timestamp';
+import {
+    fullDateTimeTooltipDateFormat,
+    fullDateTimeTooltipTimeFormat,
+} from 'components/timestamp/full_datetime_tooltip_format';
 
 import {Locations} from 'utils/constants';
-
-const getTimeFormat: ComponentProps<typeof Timestamp>['useTime'] = (_, {hour, minute, second}) => ({hour, minute, second});
-const getDateFormat: ComponentProps<typeof Timestamp>['useDate'] = {weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'};
 
 type Props = {
 
@@ -37,13 +38,19 @@ type Props = {
      */
     postId: string;
     teamUrl: string;
-    timestampProps?: ComponentProps<typeof Timestamp>;
+
+    /*
+     * Which presentation of the viewer's preferred timestamp format to use.
+     * `compact` collapses to the shortest form for compact display and consecutive posts.
+     */
+    variant?: TimestampVariant;
 };
 
 export default class PostTime extends React.PureComponent<Props> {
     static defaultProps: Partial<Props> = {
         eventTime: 0,
         location: Locations.CENTER,
+        variant: 'post',
     };
 
     handleClick = () => {
@@ -59,15 +66,15 @@ export default class PostTime extends React.PureComponent<Props> {
             location,
             postId,
             teamUrl,
-            timestampProps = {},
+            variant = 'post',
         } = this.props;
 
         const postTime = (
             <Timestamp
                 value={eventTime}
                 className='post__time'
-                useDate={false}
-                {...timestampProps}
+                usePreferredFormat={true}
+                variant={variant}
             />
         );
 
@@ -93,11 +100,14 @@ export default class PostTime extends React.PureComponent<Props> {
         return (
             <WithTooltip
                 title={
+
+                    // The tooltip is always the full, unambiguous date and time regardless
+                    // of the viewer's preferred format.
                     <Timestamp
                         value={eventTime}
                         useSemanticOutput={false}
-                        useDate={getDateFormat}
-                        useTime={getTimeFormat}
+                        useDate={fullDateTimeTooltipDateFormat}
+                        useTime={fullDateTimeTooltipTimeFormat}
                     />
                 }
             >

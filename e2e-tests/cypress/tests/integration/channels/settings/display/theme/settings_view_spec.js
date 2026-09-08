@@ -30,21 +30,24 @@ describe('Settings > Display > Theme', () => {
 });
 
 function verifyMinDisplayView() {
-    cy.get('#themeTitle').should('be.visible', 'contain', 'Theme');
-    cy.get('#themeEdit').should('be.visible', 'contain', 'Edit');
+    cy.get('#themeTitle').should('be.visible').and('contain', 'Theme');
+    cy.get('#themeEdit').should('be.visible').and('contain', 'Edit');
 
-    cy.get('#clockTitle').should('be.visible', 'contain', 'Clock Display');
-    cy.get('#clockEdit').should('be.visible', 'contain', 'Edit');
+    cy.get('#date_and_timeTitle').should('be.visible').and('contain', 'Date and Time');
+    cy.get('#date_and_timeEdit').should('be.visible').and('contain', 'Edit');
 
-    cy.get('#name_formatTitle').scrollIntoView().should('be.visible', 'contain', 'Teammate Name Display');
-    cy.get('#name_formatEdit').should('be.visible', 'contain', 'Edit');
+    cy.get('#timezoneTitle').scrollIntoView().should('be.visible').and('contain', 'Timezone');
+    cy.get('#timezoneEdit').should('be.visible').and('contain', 'Edit');
+
+    cy.get('#name_formatTitle').scrollIntoView().should('be.visible').and('contain', 'Teammate Name Display');
+    cy.get('#name_formatEdit').should('be.visible').and('contain', 'Edit');
 
     cy.get('#collapseTitle').scrollIntoView().should('be.visible', 'contain', 'Default appearance of image previews');
-    cy.get('#collapseEdit').should('be.visible', 'contain', 'Edit');
+    cy.get('#collapseEdit').should('be.visible').and('contain', 'Edit');
 
-    cy.get('#message_displayTitle').scrollIntoView().should('be.visible', 'contain', 'Message Display');
-    cy.get('#message_displayEdit').should('be.visible', 'contain', 'Edit');
+    cy.get('#message_displayTitle').scrollIntoView().should('be.visible').and('contain', 'Message Display');
+    cy.get('#message_displayEdit').should('be.visible').and('contain', 'Edit');
 
-    cy.get('#languagesTitle').scrollIntoView().should('be.visible', 'contain', 'Language');
-    cy.get('#languagesEdit').should('be.visible', 'contain', 'Edit');
+    cy.get('#languagesTitle').scrollIntoView().should('be.visible').and('contain', 'Language');
+    cy.get('#languagesEdit').should('be.visible').and('contain', 'Edit');
 }

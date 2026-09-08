@@ -51,7 +51,7 @@ function getBasePropsAndState(): [Props, DeepPartial<GlobalState>] {
         lastPost: post,
         onCardClick: () => {},
         replyListIds: ['create-comment'],
-        useRelativeTimestamp: true,
+        showDate: false,
         isMobileView: false,
         isThreadView: false,
         newMessagesSeparatorActions: [],

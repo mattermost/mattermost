@@ -1,17 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {TimestampFormat} from '@mattermost/types/config';
+
 import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
 
 import type {GlobalState} from 'types/store';
 
-import * as Timestamp from './timestamp';
-
 import {mapStateToProps} from './index';
-
-const supportsHourCycleOg = Timestamp.supportsHourCycle;
-Object.defineProperty(Timestamp, 'supportsHourCycle', {get: () => supportsHourCycleOg});
-const supportsHourCycleSpy = jest.spyOn(Timestamp, 'supportsHourCycle', 'get');
 
 describe('mapStateToProps', () => {
     const currentUserId = 'user-id';
@@ -121,68 +117,52 @@ describe('mapStateToProps', () => {
         });
     });
 
-    describe('hour12, hourCycle unsupported', () => {
-        test('hour12 should be false when using military time', () => {
-            const testState = mergeObjects(initialState, {
-                entities: {
-                    preferences: {
-                        myPreferences: {
-                            'display_settings--use_military_time': {
-                                category: 'display_settings',
-                                name: 'use_military_time',
-                                user_id: currentUserId,
-                                value: 'true',
-                            },
-                        },
+    describe('usePreferredFormat', () => {
+        const configState = mergeObjects(initialState, {
+            entities: {
+                general: {
+                    config: {
+                        DateTimeDisplayFormat: TimestampFormat.DATE_AND_TIME,
                     },
                 },
-            });
-            supportsHourCycleSpy.mockReturnValueOnce(false);
-
-            const props = mapStateToProps(testState, {});
-            expect(props.hour12).toBe(false);
+            },
         });
 
-        test('hour12 should be true when not using military time', () => {
-            const testState = mergeObjects(initialState, {
-                entities: {
-                    preferences: {
-                        myPreferences: {
-                            'display_settings--use_military_time': {
-                                category: 'display_settings',
-                                name: 'use_military_time',
-                                user_id: currentUserId,
-                                value: 'false',
-                            },
-                        },
-                    },
-                },
-            });
-            supportsHourCycleSpy.mockReturnValueOnce(false);
+        test('derives no format props unless opted in', () => {
+            const props = mapStateToProps(configState, {});
 
-            const props = mapStateToProps(testState, {});
-            expect(props.hour12).toBe(true);
+            expect(props).not.toHaveProperty('useDate');
+            expect(props).not.toHaveProperty('useTime');
+            expect(props).not.toHaveProperty('ranges');
         });
 
-        test('hour12 should equal props.hour12 when defined', () => {
-            const testState = mergeObjects(initialState, {
-                entities: {
-                    preferences: {
-                        myPreferences: {
-                            'display_settings--use_military_time': {
-                                category: 'display_settings',
-                                name: 'use_military_time',
-                                user_id: currentUserId,
-                                value: 'false8',
-                            },
-                        },
-                    },
-                },
-            });
-            supportsHourCycleSpy.mockReturnValueOnce(false);
+        test('derives format props when opted in', () => {
+            const props = mapStateToProps(configState, {usePreferredFormat: true});
 
-            const props = mapStateToProps(testState, {hour12: false});
-            expect(props.hour12).toBe(false);
+            expect(props).toHaveProperty('useDate');
+            expect(props).toHaveProperty('useTime');
+            expect(props).toHaveProperty('ranges');
+        });
+
+        test('yields shallow-equal props across calls', () => {
+            // Timestamp is a PureComponent and connect compares stateProps shallowly.
+            // If any derived value got a fresh identity here, every timestamp in the app
+            // would re-render on every store change.
+            const first = mapStateToProps(configState, {usePreferredFormat: true}) as Record<string, unknown>;
+            const second = mapStateToProps(configState, {usePreferredFormat: true}) as Record<string, unknown>;
+
+            expect(Object.keys(first)).toEqual(Object.keys(second));
+            for (const key of Object.keys(first)) {
+                expect(second[key]).toBe(first[key]);
+            }
+        });
+
+        test('omits derived props the caller set explicitly', () => {
+            const useTime = {hour: '2-digit'} as const;
+            const props = mapStateToProps(configState, {usePreferredFormat: true, useTime}) as Record<string, unknown>;
+
+            expect(props).not.toHaveProperty('useTime');
+            expect(props).toHaveProperty('useDate');
         });
     });
 });

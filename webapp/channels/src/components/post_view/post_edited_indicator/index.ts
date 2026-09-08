@@ -11,14 +11,9 @@ import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
 import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
-import {getBool} from 'mattermost-redux/selectors/entities/preferences';
-import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 
 import {openShowEditHistory} from 'actions/views/rhs';
 
-import type {Props as TimestampProps} from 'components/timestamp/timestamp';
-
-import {Preferences} from 'utils/constants';
 import {isPostOwner, canEditPost} from 'utils/post_utils';
 
 import type {GlobalState} from 'types/store';
@@ -32,8 +27,6 @@ type OwnProps = {
 
 type StateProps = {
     postOwner?: boolean;
-    isMilitaryTime: boolean;
-    timeZone?: string;
     post?: Post;
     canEdit: boolean;
 };
@@ -53,12 +46,10 @@ function mapStateToProps(state: GlobalState, ownProps: OwnProps): StateProps {
     const config = getConfig(state);
     const channel = getChannel(state, post?.channel_id || '');
 
-    const timeZone: TimestampProps['timeZone'] = getCurrentTimezone(state);
     const postOwner = post ? isPostOwner(state, post) : undefined;
 
-    const isMilitaryTime = getBool(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.USE_MILITARY_TIME, false);
     const canEdit = post ? canEditPost(state, post, license, config, channel, currentUserId) : false;
-    return {isMilitaryTime, timeZone, postOwner, post, canEdit};
+    return {postOwner, post, canEdit};
 }
 
 function mapDispatchToProps(dispatch: Dispatch) {

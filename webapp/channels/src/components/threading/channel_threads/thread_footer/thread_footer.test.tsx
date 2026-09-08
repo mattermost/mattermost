@@ -220,6 +220,9 @@ describe('components/threading/channel_threads/thread_footer', () => {
             {useMockedStore: true},
         );
         expect(capturedTimestampProps).toHaveProperty('value', thread.last_reply_at);
+        expect(capturedTimestampProps).toMatchObject({
+            usePreferredFormat: true,
+        });
     });
 
     test('should have a reply button', async () => {

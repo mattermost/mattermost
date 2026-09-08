@@ -101,7 +101,10 @@ function Row({
                     )}
                 </div>
                 <Span>
-                    <Timestamp value={acknowledgedAt}/>
+                    <Timestamp
+                        value={acknowledgedAt}
+                        usePreferredFormat={true}
+                    />
                 </Span>
             </Info>
         </Item>

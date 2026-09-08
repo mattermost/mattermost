@@ -8,17 +8,27 @@ import type {FC, ReactNode, TimeHTMLAttributes} from 'react';
 export type Props = {
     value: Date;
     children?: ReactNode;
+    timeZone?: string;
 } & TimeHTMLAttributes<HTMLTimeElement>;
 
 const SemanticTime: FC<Props> = ({
     value,
     children,
+    timeZone,
     ...props
 }: Props) => {
+    const dateTime = timeZone ?
+        DateTime.fromJSDate(value, {zone: timeZone}) :
+        DateTime.fromJSDate(value).toLocal();
+
     return (
         <time
+
             {...props}
-            dateTime={DateTime.fromJSDate(value).toLocal().toISO({includeOffset: false})}
+
+            // The offset is required for this to name a single instant; without it the
+            // attribute is only a wall-clock reading and cannot be parsed unambiguously.
+            dateTime={dateTime.toISO()}
         >
             {children}
         </time>
