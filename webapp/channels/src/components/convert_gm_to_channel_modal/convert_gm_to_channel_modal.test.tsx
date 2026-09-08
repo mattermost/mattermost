@@ -20,6 +20,15 @@ import {LicenseSkus} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
 
+// The modal gates its content behind a mandatory 1200ms loading animation, so
+// assertions on that content need real headroom above it. The previous 1500ms
+// budget left only ~150ms of slack and timed out on loaded CI runners.
+const LOADING_TIMEOUT = 5000;
+
+// A 5s waitFor would consume the whole 5s default per-test budget on its own,
+// so raise it to leave room for the interactions that follow.
+jest.setTimeout(20000);
+
 describe('component/ConvertGmToChannelModal', () => {
     const user1 = TestHelper.fakeUserWithId();
     const user2 = TestHelper.fakeUserWithId();
@@ -65,6 +74,12 @@ describe('component/ConvertGmToChannelModal', () => {
         },
     };
 
+    beforeEach(() => {
+        // `mockResolvedValueOnce` queues are not consumed when a test fails before
+        // clicking Confirm, which would leak the queued response into the next test.
+        baseProps.actions.convertGroupMessageToPrivateChannel.mockReset();
+    });
+
     test('members part of multiple common teams', async () => {
         TestHelper.initBasic(Client4);
         nock(Client4.getBaseRoute()).
@@ -83,7 +98,7 @@ describe('component/ConvertGmToChannelModal', () => {
         // before it's content is rendered.
         await waitFor(
             () => expect(screen.queryByText('Conversation history will be visible to any channel members')).toBeInTheDocument(),
-            {timeout: 1500},
+            {timeout: LOADING_TIMEOUT},
         );
 
         expect(screen.queryByText('Select Team')).toBeInTheDocument();
@@ -109,7 +124,7 @@ describe('component/ConvertGmToChannelModal', () => {
         // before it's content is rendered.
         await waitFor(
             () => expect(screen.queryByText('Conversation history will be visible to any channel members')).toBeInTheDocument(),
-            {timeout: 1500},
+            {timeout: LOADING_TIMEOUT},
         );
 
         expect(screen.queryByText('Select Team')).not.toBeInTheDocument();
@@ -132,7 +147,7 @@ describe('component/ConvertGmToChannelModal', () => {
         // before it's content is rendered.
         await waitFor(
             () => expect(screen.queryByText('Unable to convert to a channel because group members are part of different teams')).toBeInTheDocument(),
-            {timeout: 1500},
+            {timeout: LOADING_TIMEOUT},
         );
 
         expect(screen.queryByText('Select Team')).not.toBeInTheDocument();
@@ -160,7 +175,7 @@ describe('component/ConvertGmToChannelModal', () => {
         // before it's content is rendered.
         await waitFor(
             () => expect(screen.queryByText('Conversation history will be visible to any channel members')).toBeInTheDocument(),
-            {timeout: 1500},
+            {timeout: LOADING_TIMEOUT},
         );
 
         const teamDropdown = screen.queryByText('Select Team');
@@ -221,7 +236,7 @@ describe('component/ConvertGmToChannelModal', () => {
                         'Conversation history will be visible to any channel members',
                     ),
                 ).toBeInTheDocument(),
-            {timeout: 1500},
+            {timeout: LOADING_TIMEOUT},
         );
 
         expect(screen.queryByPlaceholderText('Channel name')).toBeVisible();
@@ -251,7 +266,7 @@ describe('component/ConvertGmToChannelModal', () => {
 
         await waitFor(
             () => expect(screen.queryByText('Conversation history will be visible to any channel members')).toBeInTheDocument(),
-            {timeout: 1500},
+            {timeout: LOADING_TIMEOUT},
         );
 
         const channelNameInput = screen.queryByPlaceholderText('Channel name');
