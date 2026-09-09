@@ -16,6 +16,7 @@ export default class LoginPage {
     readonly loginInput;
     readonly loginPlaceholder;
     readonly loginWithAdLdapPlaceholder;
+    readonly samlLoginButton;
     readonly passwordInput;
     readonly passwordToggleButton;
     readonly signInButton;
@@ -34,7 +35,8 @@ export default class LoginPage {
         this.bodyCard = page.getByTestId('login-body-card');
         this.loginInput = page.locator('#input_loginId');
         this.loginPlaceholder = page.getByPlaceholder('Email or Username');
-        this.loginWithAdLdapPlaceholder = page.getByPlaceholder('Email, Username or AD/LDAP Username');
+        this.loginWithAdLdapPlaceholder = page.getByRole('textbox', {name: 'Email, Username or AD/LDAP Username'});
+        this.samlLoginButton = page.locator('#saml');
         this.passwordInput = page.locator('#input_password-input');
         this.passwordToggleButton = page.locator('#password_toggle');
         this.signInButton = page.getByRole('button', {name: 'Log in'});

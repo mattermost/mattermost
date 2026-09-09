@@ -12,6 +12,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 
 	"github.com/pkg/errors"
@@ -161,31 +162,6 @@ func (s *SqlReactionStore) GetUniqueCountForPost(postId string) (int, error) {
 	return int(count), nil
 }
 
-func (s *SqlReactionStore) BulkGetForPosts(postIds []string) ([]*model.Reaction, error) {
-	placeholder, values := constructArrayArgs(postIds)
-	var reactions []*model.Reaction
-
-	if err := s.GetReplica().Select(&reactions,
-		`SELECT
-				UserId,
-				PostId,
-				EmojiName,
-				CreateAt,
-				COALESCE(UpdateAt, CreateAt) As UpdateAt,
-				COALESCE(DeleteAt, 0) As DeleteAt,
-				RemoteId,
-				ChannelId
-			FROM
-				Reactions
-			WHERE
-				PostId IN `+placeholder+` AND COALESCE(DeleteAt, 0) = 0
-			ORDER BY
-				CreateAt`, values...); err != nil {
-		return nil, errors.Wrap(err, "failed to get Reactions")
-	}
-	return reactions, nil
-}
-
 func (s *SqlReactionStore) GetSingle(userID, postID, remoteID, emojiName string) (*model.Reaction, error) {
 	query := s.getQueryBuilder().
 		Select("UserId", "PostId", "EmojiName", "CreateAt",
@@ -208,7 +184,7 @@ func (s *SqlReactionStore) GetSingle(userID, postID, remoteID, emojiName string)
 	return reactions[0], nil
 }
 
-func (s *SqlReactionStore) DeleteAllWithEmojiName(emojiName string) error {
+func (s *SqlReactionStore) DeleteAllWithEmojiName(rctx request.CTX, emojiName string) error {
 	var reactions []*model.Reaction
 	now := model.GetMillis()
 
@@ -242,7 +218,7 @@ func (s *SqlReactionStore) DeleteAllWithEmojiName(emojiName string) error {
 	for _, reaction := range reactions {
 		_, err := s.GetMaster().Exec(UpdatePostHasReactionsOnDeleteQuery, now, reaction.PostId, reaction.PostId)
 		if err != nil {
-			mlog.Warn("Unable to update Post.HasReactions while removing reactions",
+			rctx.Logger().Warn("Unable to update Post.HasReactions while removing reactions",
 				mlog.String("post_id", reaction.PostId),
 				mlog.Err(err))
 		}
@@ -281,7 +257,7 @@ func (s *SqlReactionStore) permanentDeleteReactions(userId string) ([]string, er
 	return postIds, nil
 }
 
-func (s SqlReactionStore) PermanentDeleteByUser(userId string) error {
+func (s SqlReactionStore) PermanentDeleteByUser(rctx request.CTX, userId string) error {
 	now := model.GetMillis()
 
 	postIds, err := s.permanentDeleteReactions(userId)
@@ -298,7 +274,7 @@ func (s SqlReactionStore) PermanentDeleteByUser(userId string) error {
 	for _, postId := range postIds {
 		_, err = transaction.Exec(UpdatePostHasReactionsOnDeleteQuery, now, postId, postId)
 		if err != nil {
-			mlog.Warn("Unable to update Post.HasReactions while removing reactions",
+			rctx.Logger().Warn("Unable to update Post.HasReactions while removing reactions",
 				mlog.String("post_id", postId),
 				mlog.Err(err))
 		}

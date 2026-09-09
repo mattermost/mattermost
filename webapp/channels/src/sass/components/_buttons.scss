@@ -216,14 +216,13 @@ button {
         background-color: rgb(var(--button-bg-rgb));
         color: rgb(var(--button-color-rgb)) !important;
 
-        // These hover and active values are for things outside the app__body, the correct theme styles for the primary button are applied in utils.jsx
         &:hover, &.btn-force-hover {
-            background-color: #1a51c8;
+            background-color: color-mix(in srgb, var(--button-bg) 90%, #000);
         }
 
         &:active, &.btn-force-active,
         &:focus, &.btn-force-focus {
-            background-color: #184ab6;
+            background-color: color-mix(in srgb, var(--button-bg) 80%, #000);
         }
 
         &:disabled, &.btn-force-disabled,
@@ -381,9 +380,14 @@ button {
             }
         }
 
-        &:hover, &.btn-force-hover,
+        &:hover, &.btn-force-hover {
+            background: color-mix(in srgb, var(--error-text) 90%, #000);
+            color: variables.$white;
+        }
+
         &:focus, &.btn-force-focus,
         &:active, &.btn-force-active {
+            background: color-mix(in srgb, var(--error-text) 80%, #000);
             color: variables.$white;
         }
     }
@@ -392,6 +396,12 @@ button {
         padding: 7px 12px;
         border: none;
         background: transparent;
+
+        &:hover,
+        &:active {
+            background: var(--button-bg);
+            color: var(--button-color);
+        }
     }
 
     &.btn-inactive {

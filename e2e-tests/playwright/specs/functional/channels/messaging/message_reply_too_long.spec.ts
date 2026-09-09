@@ -7,9 +7,11 @@ import {expect, test} from '@mattermost/playwright-lib';
  * @objective Verify an overlong thread reply shows the character-count warning and is not posted.
  */
 test('MM-T106 Webapp: Message too long warning text', {tag: '@messaging'}, async ({pw}) => {
-    const {user, team} = await pw.initSetup();
+    const {user, team, adminClient} = await pw.initSetup();
+    // MaxPostSize is a computed client-config value, so read it rather than hardcoding.
+    const clientConfig = await adminClient.getClientConfig();
+    const maxReplyLength = parseInt(clientConfig.MaxPostSize, 10);
     const validReply = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. ';
-    const maxReplyLength = 16383;
     const tooLongReply = validReply.repeat(maxReplyLength / validReply.length + 1);
 
     // # Log in, open Off-Topic, post a root message, and open its thread

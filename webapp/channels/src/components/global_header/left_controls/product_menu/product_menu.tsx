@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useRef} from 'react';
+import React, {useRef, type JSX} from 'react';
 import {useIntl} from 'react-intl';
 import {useDispatch, useSelector, shallowEqual} from 'react-redux';
 import styled from 'styled-components';
@@ -9,6 +9,7 @@ import styled from 'styled-components';
 import {ProductsIcon} from '@mattermost/compass-icons/components';
 
 import {isFreeEdition as isFreeEditionSelector} from 'mattermost-redux/selectors/entities/general';
+import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 
 import {setProductMenuSwitcherOpen} from 'actions/views/product_menu';
 import {isSwitcherOpen} from 'selectors/views/product_menu';
@@ -22,7 +23,7 @@ import {
 import Menu from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 
-import {useCurrentProductId, useProducts, isChannels} from 'utils/products';
+import {getProductSwitcherLinkURL, useCurrentProductId, useProducts, isChannels} from 'utils/products';
 
 import type {GlobalState} from 'types/store';
 
@@ -77,6 +78,7 @@ const ProductMenu = (): JSX.Element => {
     const switcherOpen = useSelector(isSwitcherOpen);
     const menuRef = useRef<HTMLDivElement>(null);
     const currentProductID = useCurrentProductId();
+    const currentTeam = useSelector(getCurrentTeam);
     const isFreeEdition = useSelector(isFreeEditionSelector);
     const visibleSwitcherItems = useSelector(
         (state: GlobalState) => {
@@ -122,10 +124,16 @@ const ProductMenu = (): JSX.Element => {
     const productItems = products?.map((product) => {
         let tourTip;
 
+        const destination = getProductSwitcherLinkURL(product, currentTeam?.name);
+
+        if (destination === null) {
+            return null;
+        }
+
         return (
             <ProductMenuItem
                 key={product.id}
-                destination={product.switcherLinkURL}
+                destination={destination}
                 icon={product.switcherIcon}
                 text={product.switcherText}
                 active={product.id === currentProductID}

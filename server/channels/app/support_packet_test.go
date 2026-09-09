@@ -11,6 +11,7 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/goccy/go-yaml"
 	"github.com/stretchr/testify/assert"
@@ -24,6 +25,10 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
 	"github.com/mattermost/mattermost/server/v8/config"
 )
+
+// shortCPUProfileDuration keeps GenerateSupportPacket calls fast in tests
+// that don't care about the CPU profile's contents.
+var shortCPUProfileDuration = model.NewPointer(100 * time.Millisecond)
 
 func TestGenerateSupportPacket(t *testing.T) {
 	mainHelper.Parallel(t)
@@ -88,7 +93,8 @@ func TestGenerateSupportPacket(t *testing.T) {
 
 	t.Run("generate Support Packet with logs", func(t *testing.T) {
 		fileDatas := th.App.GenerateSupportPacket(th.Context, &model.SupportPacketOptions{
-			IncludeLogs: true,
+			CPUProfileDuration: shortCPUProfileDuration,
+			IncludeLogs:        true,
 		})
 		rFileNames := getFileNames(t, fileDatas)
 
@@ -97,7 +103,8 @@ func TestGenerateSupportPacket(t *testing.T) {
 
 	t.Run("generate Support Packet without logs", func(t *testing.T) {
 		fileDatas := th.App.GenerateSupportPacket(th.Context, &model.SupportPacketOptions{
-			IncludeLogs: false,
+			CPUProfileDuration: shortCPUProfileDuration,
+			IncludeLogs:        false,
 		})
 
 		rFileNames := getFileNames(t, fileDatas)
@@ -111,7 +118,8 @@ func TestGenerateSupportPacket(t *testing.T) {
 		t.Cleanup(genMockLogFiles)
 
 		fileDatas := th.App.GenerateSupportPacket(th.Context, &model.SupportPacketOptions{
-			IncludeLogs: true,
+			CPUProfileDuration: shortCPUProfileDuration,
+			IncludeLogs:        true,
 		})
 		rFileNames := getFileNames(t, fileDatas)
 
@@ -134,6 +142,7 @@ func TestGenerateSupportPacket(t *testing.T) {
 		mockStore.On("Job").Return(th.App.Srv().Store().Job())
 		mockStore.On("FileInfo").Return(th.App.Srv().Store().FileInfo())
 		mockStore.On("Webhook").Return(th.App.Srv().Store().Webhook())
+		mockStore.On("DeliveryTracking").Return(th.App.Srv().Store().DeliveryTracking())
 		mockStore.On("System").Return(th.App.Srv().Store().System())
 		mockStore.On("License").Return(th.App.Srv().Store().License())
 		mockStore.On("Command").Return(th.App.Srv().Store().Command())
@@ -158,7 +167,8 @@ func TestGenerateSupportPacket(t *testing.T) {
 		th.App.Srv().SetStore(&mockStore)
 
 		fileDatas := th.App.GenerateSupportPacket(th.Context, &model.SupportPacketOptions{
-			IncludeLogs: false,
+			CPUProfileDuration: shortCPUProfileDuration,
+			IncludeLogs:        false,
 		})
 		rFileNames := getFileNames(t, fileDatas)
 
@@ -199,7 +209,8 @@ func TestGenerateSupportPacket(t *testing.T) {
 		})
 
 		fileDatas := th.App.GenerateSupportPacket(th.Context, &model.SupportPacketOptions{
-			IncludeLogs: false,
+			CPUProfileDuration: shortCPUProfileDuration,
+			IncludeLogs:        false,
 		})
 		rFileNames := getFileNames(t, fileDatas)
 
@@ -215,8 +226,9 @@ func TestGenerateSupportPacket(t *testing.T) {
 		})
 
 		fileDatas := th.App.GenerateSupportPacket(th.Context, &model.SupportPacketOptions{
-			IncludeLogs:   false,
-			PluginPackets: []string{pluginID},
+			CPUProfileDuration: shortCPUProfileDuration,
+			IncludeLogs:        false,
+			PluginPackets:      []string{pluginID},
 		})
 		rFileNames := getFileNames(t, fileDatas)
 
@@ -232,7 +244,8 @@ func TestGenerateSupportPacket(t *testing.T) {
 		})
 
 		fileDatas := th.App.GenerateSupportPacket(th.Context, &model.SupportPacketOptions{
-			IncludeLogs: false,
+			CPUProfileDuration: shortCPUProfileDuration,
+			IncludeLogs:        false,
 		})
 		rFileNames := getFileNames(t, fileDatas)
 
@@ -255,7 +268,8 @@ func TestGenerateSupportPacket(t *testing.T) {
 		})
 
 		fileDatas := th.App.GenerateSupportPacket(th.Context, &model.SupportPacketOptions{
-			IncludeLogs: false,
+			CPUProfileDuration: shortCPUProfileDuration,
+			IncludeLogs:        false,
 		})
 
 		found := false

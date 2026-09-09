@@ -1,0 +1,178 @@
+<managedAppConfiguration>
+	<version>1.0.0.1</version>
+	<bundleId>com.mattermost.rn</bundleId>
+	<dict>
+		<string keyName="inAppPinCode">
+			<defaultValue>
+				<value>true</value> 
+			</defaultValue>
+		</string>
+		<string keyName="inAppSessionAuth">
+			<defaultValue>
+				<value>false</value> 
+			</defaultValue>
+		</string>
+        <string keyName="blurApplicationScreen">
+			<defaultValue>
+				<value>true</value> 
+			</defaultValue>
+		</string>
+		<string keyName="jailBreakDetection">
+			<defaultValue>
+				<value>true</value> 
+			</defaultValue>
+		</string>
+		<string keyName="copyAndPasteProtection">
+			<defaultValue>
+				<value>false</value> 
+			</defaultValue>
+		</string>
+		<string keyName="serverUrl">
+		</string>
+		<string keyName="allowOtherServers">
+			<defaultValue>
+				<value>true</value> 
+			</defaultValue>
+		</string>
+		<string keyName="username">
+			<defaultValue>
+				<userVariable value="emailAddress" />
+			</defaultValue>
+		</string>
+		<string keyName="vendor">
+			<defaultValue>
+				<value>Mattermost</value> 
+			</defaultValue>
+		</string>
+        <string keyName="useVPN">
+			<defaultValue>
+				<value>false</value> 
+			</defaultValue>
+		</string>
+        <string keyName="timeoutVPN">
+			<defaultValue>
+				<value>30</value> 
+			</defaultValue>
+		</string>
+	</dict>
+    <presentation defaultLocale="en-US">
+        <fieldGroup>
+            <name>
+                <!-- Language will be the next thing the Spec Creator Tool will support. Only English supported at the moment -->
+                <language value="en-US">Mobile Privacy</language>
+            </name>
+            <field keyName="inAppPinCode" type="input">
+                <label>
+                    <language value="en-US">in-App Pincode</language>
+                </label>
+                <description>
+                    <language value="en-US">Locks the app so the user needs to validate as the owner of the phone, it will prompt for fingerprint or passcode when the app first opens and when the app has been in the background for more than 5 minutes.</language>
+                </description>
+            </field>
+            <field keyName="inAppSessionAuth" type="input">
+                <label>
+                    <language value="en-US">in-App Session Authentication</language>
+                </label>
+                <description>
+                    <language value="en-US">Use the app’s internal browser for SSO instead of an external browser.</language>
+                </description>
+            </field>
+            <field keyName="blurApplicationScreen" type="input">
+                <label>
+                    <language value="en-US">Blur Application Screen</language>
+                </label>
+                <description>
+                    <language value="en-US">Protects app on screen information while the app is in the background.</language>
+                </description>
+            </field>
+        </fieldGroup>
+        <fieldGroup>
+            <name>
+                <!-- Language will be the next thing the Spec Creator Tool will support. Only English supported at the moment -->
+                <language value="en-US">OS Integrity</language>
+            </name>
+            <field keyName="jailBreakDetection" type="input">
+                <label>
+                    <language value="en-US">Jailbreak &#x2F; Root Detection</language>
+                </label>
+                <description>
+                    <language value="en-US">Disable app launch on Jailbroken or rooted devices.</language>
+                </description>
+            </field>
+        </fieldGroup>
+        <fieldGroup>
+            <name>
+                <!-- Language will be the next thing the Spec Creator Tool will support. Only English supported at the moment -->
+                <language value="en-US">Mobile Data Loss Prevention</language>
+            </name>
+            <field keyName="copyAndPasteProtection" type="input">
+                <label>
+                    <language value="en-US">Copy&amp;Paste Protection</language>
+                </label>
+                <description>
+                    <language value="en-US">Disables the ability to copy or paste from any input in the app.</language>
+                </description>
+            </field>
+        </fieldGroup>
+        <fieldGroup>
+            <name>
+                <!-- Language will be the next thing the Spec Creator Tool will support. Only English supported at the moment -->
+                <language value="en-US">Networking</language>
+            </name>
+            <field keyName="useVPN" type="input">
+                <label>
+                    <language value="en-US">Use VPN</language>
+                </label>
+                <description>
+                    <language value="en-US">Enable connection to the Mattermost Server to use a per-app VPN or VPN on-demand.</language>
+                </description>
+            </field>
+            <field keyName="timeoutVPN" type="input">
+                <label>
+                    <language value="en-US">VPN Timeout</language>
+                </label>
+                <description>
+                    <language value="en-US">Set how long the request waits (in seconds) for an initial VPN connection to establish before timeout.</language>
+                </description>
+            </field>
+        </fieldGroup>
+        <fieldGroup>
+            <name>
+                <!-- Language will be the next thing the Spec Creator Tool will support. Only English supported at the moment -->
+                <language value="en-US">Mattermost settings</language>
+            </name>
+            <field keyName="serverUrl" type="input">
+                <label>
+                    <language value="en-US">Mattermost Server URL</language>
+                </label>
+                <description>
+                    <language value="en-US">Set the Mattermost server URL users will be using as default.</language>
+                </description>
+            </field>
+            <field keyName="allowOtherServers" type="input">
+                <label>
+                    <language value="en-US">Allow Other Servers</language>
+                </label>
+                <description>
+                    <language value="en-US">Allow the user to change the above server URL.</language>
+                </description>
+            </field>
+            <field keyName="username" type="input">
+                <label>
+                    <language value="en-US">Default Username</language>
+                </label>
+                <description>
+                    <language value="en-US">Set the username or email address to use to authenticate against the Mattermost Server.</language>
+                </description>
+            </field>
+            <field keyName="vendor" type="input">
+                <label>
+                    <language value="en-US">EMM Vendor or Company Name</language>
+                </label>
+                <description>
+                    <language value="en-US">Name of the EMM vendor or company deploying the app so the users are aware the app is being protected.</language>
+                </description>
+            </field>
+        </fieldGroup>
+	</presentation>
+</managedAppConfiguration>

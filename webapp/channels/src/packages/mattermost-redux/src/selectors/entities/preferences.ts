@@ -322,10 +322,6 @@ export function getVisibleDmGmLimit(state: GlobalState, userPreferences?: Prefer
     return getInt(state, Preferences.CATEGORY_SIDEBAR_SETTINGS, Preferences.LIMIT_VISIBLE_DMS_GMS, defaultLimit, userPreferences);
 }
 
-export function onboardingTourTipsEnabled(state: GlobalState): boolean {
-    return getFeatureFlagValue(state, 'OnboardingTourTips') === 'true';
-}
-
 export function moveThreadsEnabled(state: GlobalState): boolean {
     return getFeatureFlagValue(state, 'MoveThreadsEnabled') === 'true' && getLicense(state).IsLicensed === 'true';
 }

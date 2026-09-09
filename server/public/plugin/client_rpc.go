@@ -227,6 +227,7 @@ func init() {
 	gob.Register(&model.AutocompleteTextArg{})
 	gob.Register(&model.PreviewPost{})
 	gob.Register(model.PropertyOptions[*model.PluginPropertyOption]{})
+	gob.Register([]model.PropertyOwner{})
 }
 
 // These enforce compile time checks to make sure types implement the interface

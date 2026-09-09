@@ -599,7 +599,6 @@ describe('components/ProfilePopover', () => {
             };
         });
 
-        initialState.entities!.general!.config!.FeatureFlagCustomProfileAttributes = 'true';
         initialState.entities!.general!.license = {
             IsLicensed: 'true',
             SkuShortName: 'enterprise',
@@ -628,7 +627,6 @@ describe('components/ProfilePopover', () => {
             };
         });
 
-        initialState.entities!.general!.config!.FeatureFlagCustomProfileAttributes = 'true';
         initialState.entities!.general!.license = {
             IsLicensed: 'true',
             SkuShortName: 'enterprise',
@@ -661,7 +659,6 @@ describe('components/ProfilePopover', () => {
             };
         });
 
-        initialState.entities!.general!.config!.FeatureFlagCustomProfileAttributes = 'true';
         initialState.entities!.general!.license = {
             IsLicensed: 'true',
             SkuShortName: 'enterprise',
@@ -689,7 +686,6 @@ describe('components/ProfilePopover', () => {
     test('should not display attributes if user attributes is null', async () => {
         const [props, initialState] = getBasePropsAndState();
 
-        initialState.entities!.general!.config!.FeatureFlagCustomProfileAttributes = 'true';
         initialState.entities!.general!.license = {
             IsLicensed: 'true',
             SkuShortName: 'enterprise',
@@ -716,7 +712,6 @@ describe('components/ProfilePopover', () => {
             };
         });
 
-        initialState.entities!.general!.config!.FeatureFlagCustomProfileAttributes = 'true';
         initialState.entities!.general!.license = {
             IsLicensed: 'false',
             SkuShortName: '',
@@ -744,7 +739,6 @@ describe('components/ProfilePopover', () => {
             };
         });
 
-        initialState.entities!.general!.config!.FeatureFlagCustomProfileAttributes = 'true';
         initialState.entities!.general!.license = {
             IsLicensed: 'true',
             SkuShortName: 'enterprise',

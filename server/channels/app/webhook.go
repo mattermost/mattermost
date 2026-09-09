@@ -111,6 +111,9 @@ func (a *App) TriggerWebhook(rctx request.CTX, payload *model.OutgoingWebhookPay
 		}
 	}
 
+	trackDelivery := a.deliveryTrackingEnabled()
+	var deliveryRecorded sync.Once
+
 	var wg sync.WaitGroup
 
 	for i := range hook.CallbackURLs {
@@ -165,6 +168,12 @@ func (a *App) TriggerWebhook(rctx request.CTX, payload *model.OutgoingWebhookPay
 				return
 			}
 
+			if trackDelivery {
+				deliveryRecorded.Do(func() {
+					a.RecordPostDeliveryToWebhook(rctx, hook.Id, post)
+				})
+			}
+
 			if webhookResp != nil && (webhookResp.Text != nil || len(webhookResp.Attachments) > 0) {
 				postRootId := ""
 				if webhookResp.ResponseType == model.OutgoingHookResponseTypeComment {
@@ -201,7 +210,7 @@ func (a *App) TriggerWebhook(rctx request.CTX, payload *model.OutgoingWebhookPay
 }
 
 func (a *App) doOutgoingWebhookRequest(url string, body io.Reader, contentType string, accessToken *model.OutgoingOAuthConnectionToken) (*model.OutgoingWebhookResponse, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(*a.Config().ServiceSettings.OutgoingIntegrationRequestsTimeout)*time.Second)
+	ctx, cancel := context.WithTimeout(a.Srv().Platform().GoContext(), time.Duration(*a.Config().ServiceSettings.OutgoingIntegrationRequestsTimeout)*time.Second)
 	defer cancel()
 
 	req, err := http.NewRequestWithContext(ctx, "POST", url, body)
@@ -921,7 +930,7 @@ func (a *App) HandleIncomingWebhook(rctx request.CTX, hookID string, req *model.
 
 	uchan := make(chan store.StoreResult[*model.User], 1)
 	go func() {
-		user, err := a.Srv().Store().User().Get(context.Background(), hook.UserId)
+		user, err := a.Srv().Store().User().Get(rctx, hook.UserId)
 		uchan <- store.StoreResult[*model.User]{Data: user, NErr: err}
 		close(uchan)
 	}()

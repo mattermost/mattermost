@@ -440,7 +440,7 @@ func (scs *Service) handleChannelCreation(invite channelInviteMsg, rc *model.Rem
 // database and if it fails, it will try to create it if is present in
 // the participantsMap
 func (scs *Service) getOrCreateUser(userID string, participantsMap map[string]*model.User, rc *model.RemoteCluster) (*model.User, error) {
-	user, err := scs.server.GetStore().User().Get(context.TODO(), userID)
+	user, err := scs.server.GetStore().User().Get(request.EmptyContext(scs.server.Log()), userID)
 	if err == nil {
 		return user, nil
 	}

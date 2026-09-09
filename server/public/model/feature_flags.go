@@ -4,6 +4,7 @@
 package model
 
 import (
+	"net/http"
 	"reflect"
 	"strconv"
 )
@@ -30,17 +31,9 @@ type FeatureFlags struct {
 	// Enable WYSIWYG text editor
 	WysiwygEditor bool
 
-	OnboardingTourTips bool
-
-	EnableExportDirectDownload bool
-
 	MoveThreadsEnabled bool
 
-	CloudDedicatedExportUI bool
-
 	NotificationMonitoring bool
-
-	CustomProfileAttributes bool
 
 	// Mask non-held attribute values in the policy editor for delegated admins.
 	AttributeValueMasking bool
@@ -89,6 +82,9 @@ type FeatureFlags struct {
 	// Enable classification markings for banners at the system and channel level
 	ClassificationMarkings bool
 
+	// Enable the Global Attributes management page in the System Console
+	GlobalAttributes bool
+
 	// Enable burn-on-read messages that automatically delete after viewing
 	BurnOnRead bool
 
@@ -102,6 +98,10 @@ type FeatureFlags struct {
 	// Enable the Integrated Boards feature within Mattermost channels
 	IntegratedBoards bool
 
+	// FEATURE_FLAG_REMOVAL: EnableDocs - Remove this when GA is released
+	// Enable the Docs (spaces and pages) feature within Mattermost channels
+	EnableDocs bool
+
 	// Enable LIKE-based CJK (Chinese, Japanese, Korean) search for PostgreSQL
 	CJKSearch bool
 
@@ -113,6 +113,9 @@ type FeatureFlags struct {
 
 	// Enable collection of request-provided session attributes (user agent, IP address, etc.).
 	SessionAttributes bool
+
+	// Gates the Post Attributes feature (post_attributes property group).
+	PostAttributes bool
 
 	// FEATURE_FLAG_REMOVAL: DiscoverableChannels - Remove this when the feature is GA.
 	// Gates the per-channel Discoverable toggle and the channel-join-request flow that lets
@@ -130,6 +133,19 @@ type FeatureFlags struct {
 
 	TeamMembershipAccessControl bool
 
+	// Enable channel attributes (Smart Labels, banners) powered by the Properties API.
+	ChannelAttributes bool
+
+	// FEATURE_FLAG_REMOVAL: ResourceAttributesInPolicies - Remove this when the
+	// feature is GA. Gates access rules that compare a user's attributes against
+	// the accessed channel's (resource.attributes.*): when off, the autocomplete
+	// endpoint omits channel-object-type fields, so no editor offers them, and
+	// saving a policy that references one is rejected. It does NOT gate
+	// evaluation — a rule stored while the flag was on keeps being enforced,
+	// because such rules deny on a missing channel value and silently dropping
+	// enforcement would empty every channel the policy governs.
+	ResourceAttributesInPolicies bool
+
 	// Enable the new mm_blocks Interactive Messages framework
 	MmBlocksEnabled bool
 
@@ -139,7 +155,16 @@ type FeatureFlags struct {
 	// being unreachable.
 	ClusterGracefulDrain bool
 
-	ChannelBookmarks bool
+	// Enable verifying plugin signatures against the MFI public key, in addition to the
+	// existing hard-coded Mattermost public key and any admin-configured public keys.
+	EnableMFIPluginSignaturePublicKey bool
+
+	// FEATURE_FLAG_REMOVAL: RecurringScheduledPosts - Remove this when the feature is GA.
+	RecurringScheduledPosts bool
+
+	// Gates post delivery audit logging. Enabling it requires a server restart, since it
+	// controls whether the /api/v4/delivery_tracking routes are registered.
+	PostDeliveryTracking bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -151,15 +176,12 @@ func (f *FeatureFlags) SetDefaults() {
 	f.AppsEnabled = false
 	f.NormalizeLdapDNs = false
 	f.WysiwygEditor = false
-	f.OnboardingTourTips = true
-	f.EnableExportDirectDownload = false
 	f.MoveThreadsEnabled = false
-	f.CloudDedicatedExportUI = false
 	f.NotificationMonitoring = true
-	f.CustomProfileAttributes = true
 	f.AttributeValueMasking = true
 	f.PermissionPolicies = true
-	f.TeamMembershipAccessControl = false
+	f.TeamMembershipAccessControl = true
+	f.ResourceAttributesInPolicies = false
 	f.ChannelPermissionPolicies = true
 	f.PolicySimulation = true
 	f.ContentFlagging = true
@@ -182,6 +204,8 @@ func (f *FeatureFlags) SetDefaults() {
 
 	f.IntegratedBoards = false
 
+	f.EnableDocs = false
+
 	f.CJKSearch = true
 
 	f.AggregatePluginMetrics = false
@@ -190,15 +214,40 @@ func (f *FeatureFlags) SetDefaults() {
 
 	f.SessionAttributes = false
 
+	f.PostAttributes = false
+
 	f.DiscoverableChannels = false
 
 	f.MobileEphemeralMode = false
 
 	f.PropertyFieldRank = true
 
+	f.ChannelAttributes = false
+
 	f.MmBlocksEnabled = true
 
-	f.ChannelBookmarks = true
+	f.EnableMFIPluginSignaturePublicKey = true
+
+	f.RecurringScheduledPosts = false
+
+	f.PostDeliveryTracking = false
+}
+
+// isValid rejects feature flag combinations that are no longer supported.
+func (f *FeatureFlags) isValid() *AppError {
+	// The Apps framework is being retired, so the server refuses to start
+	// while the AppsEnabled feature flag is enabled.
+	if f.AppsEnabled {
+		return NewAppError("FeatureFlags.IsValid", "model.config.is_valid.feature_flags.apps_enabled.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	// MoveThreadsEnabled is being retired in favor of Wrangler, so the server
+	// refuses to start while it is enabled.
+	if f.MoveThreadsEnabled {
+		return NewAppError("FeatureFlags.IsValid", "model.config.is_valid.feature_flags.move_threads_enabled.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	return nil
 }
 
 // IsChannelPermissionPoliciesEnabled reports whether channel-scope

@@ -37,7 +37,6 @@ describe('components/admin_console/jobs/table', () => {
             getJobsByType,
         },
         jobType: 'data_retention',
-        isSystemAdmin: true,
         jobs: [{
             create_at: 1540834294674,
             last_activity_at: 1540834294674,
@@ -206,40 +205,63 @@ describe('components/admin_console/jobs/table', () => {
         expect(button).toHaveLength(0);
     });
 
-    test('should poll for updates when user is not a system admin', () => {
+    test('should load jobs on mount without polling', () => {
         jest.useFakeTimers();
+        try {
+            renderWithContext(
+                <JobTable {...baseProps}/>,
+            );
 
-        renderWithContext(
-            <JobTable
-                {...baseProps}
-                isSystemAdmin={false}
-            />,
-        );
+            expect(getJobsByType).toHaveBeenCalledTimes(1);
 
-        expect(getJobsByType).toHaveBeenCalledTimes(1);
-
-        jest.advanceTimersByTime(15000);
-        expect(getJobsByType).toHaveBeenCalledTimes(2);
-
-        jest.useRealTimers();
+            jest.advanceTimersByTime(15000);
+            expect(getJobsByType).toHaveBeenCalledTimes(1);
+        } finally {
+            jest.useRealTimers();
+        }
     });
 
-    test('should not poll for updates when user is a system admin', () => {
-        jest.useFakeTimers();
-
-        renderWithContext(
+    test('shows a View details affordance and fires onRowClick when a row is clicked', async () => {
+        const onRowClick = jest.fn();
+        const {container} = renderWithContext(
             <JobTable
                 {...baseProps}
-                isSystemAdmin={true}
+                jobType='access_control_sync'
+                onRowClick={onRowClick}
             />,
         );
 
-        expect(getJobsByType).toHaveBeenCalledTimes(1);
+        expect(screen.getAllByText('View details').length).toBe(baseProps.jobs.length);
 
-        jest.advanceTimersByTime(15000);
-        expect(getJobsByType).toHaveBeenCalledTimes(1);
+        const firstRow = container.querySelector('tbody tr.clickable');
+        expect(firstRow).not.toBeNull();
+        await userEvent.click(firstRow!);
+        expect(onRowClick).toHaveBeenCalledWith(baseProps.jobs[0]);
+    });
 
-        jest.useRealTimers();
+    test('fires onRowClick when View details is activated via keyboard', async () => {
+        const onRowClick = jest.fn();
+        renderWithContext(
+            <JobTable
+                {...baseProps}
+                jobType='access_control_sync'
+                onRowClick={onRowClick}
+            />,
+        );
+
+        const viewDetailsButtons = screen.getAllByRole('button', {name: /View details/i});
+        viewDetailsButtons[0].focus();
+        await userEvent.keyboard('{Enter}');
+
+        expect(onRowClick).toHaveBeenCalledWith(baseProps.jobs[0]);
+    });
+
+    test('hides the View details affordance when onRowClick is not provided', () => {
+        renderWithContext(
+            <JobTable {...baseProps}/>,
+        );
+
+        expect(screen.queryByText('View details')).not.toBeInTheDocument();
     });
 
     test('add custom class', () => {

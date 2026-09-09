@@ -63,11 +63,6 @@ test.describe('System Console - Admin User Profile Editing', () => {
         await pw.ensureLicense();
         await pw.skipIfNoLicense();
 
-        // Fast-fail if CustomProfileAttributes feature flag is off — prevents a
-        // misleading 30 s timeout on the UI assertion and gives a clear skip reason.
-        // Note: default_config.ts sets this to true, so it should always pass in CI.
-        await pw.skipIfFeatureFlagNotSet('CustomProfileAttributes', true);
-
         // Self-isolating setup — avoid pw.initSetup()'s destructive
         // adminClient.updateConfig() full-config reset which wipes CPA fields mid-run
         // for other concurrent tests in the same worker pool. Create a uniquely-named
@@ -160,11 +155,9 @@ test.describe('System Console - Admin User Profile Editing', () => {
         testUser = await pw.createNewUserProfile(adminClient, {prefix: 'admin-edit-target-'});
         await adminClient.addToTeam(team.id, testUser.id);
 
-        // Pre-cleanup: delete any stale UAAE-prefixed fields from previous runs that
-        // may have leaked past afterEach (e.g. from a crashed test). The server enforces
-        // a 20-field limit; stale fields silently block creation of our fresh ones.
-        // The 'UAAE_' prefix is unique to this suite so deleting them is safe even when
-        // other test suites run concurrently on the same server.
+        // Pre-cleanup: delete stale UAAE-prefixed fields from previous runs of
+        // this suite. The prefix is unique to these tests; do not delete other
+        // suites' fields. attribute_order_and_popover now cleans up its own.
         try {
             const existingFields = await adminClient.getCustomProfileAttributeFields();
             const staleUaaeFields = existingFields.filter((f) => f.name.startsWith('UAAE_'));

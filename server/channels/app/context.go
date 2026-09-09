@@ -30,6 +30,14 @@ func CallerIDFromRequestContext(rctx request.CTX) (string, bool) {
 	return model.CallerIDFromContext(rctx.Context())
 }
 
+// requestContextWithCallerIDAndOptions adds the caller ID and the caller's
+// per-call property request options to a request.CTX.
+func requestContextWithCallerIDAndOptions(rctx request.CTX, callerID string, options model.PropertyRequestOptions) request.CTX {
+	ctx := model.WithCallerID(rctx.Context(), callerID)
+	ctx = model.WithPropertyRequestOptions(ctx, options)
+	return rctx.WithContext(ctx)
+}
+
 func pluginContext(rctx request.CTX) *plugin.Context {
 	context := &plugin.Context{
 		RequestId:      rctx.RequestId(),

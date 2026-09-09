@@ -422,7 +422,7 @@ func (a *App) tryExecuteCustomCommand(rctx request.CTX, args *model.CommandArgs,
 
 	userChan := make(chan store.StoreResult[*model.User], 1)
 	go func() {
-		user, err := a.Srv().Store().User().Get(context.Background(), args.UserId)
+		user, err := a.Srv().Store().User().Get(rctx, args.UserId)
 		userChan <- store.StoreResult[*model.User]{Data: user, NErr: err}
 		close(userChan)
 	}()
@@ -529,7 +529,7 @@ func (a *App) tryExecuteCustomCommand(rctx request.CTX, args *model.CommandArgs,
 }
 
 func (a *App) DoCommandRequest(rctx request.CTX, cmd *model.Command, p url.Values) (*model.Command, *model.CommandResponse, *model.AppError) {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(*a.Config().ServiceSettings.OutgoingIntegrationRequestsTimeout)*time.Second)
+	ctx, cancel := context.WithTimeout(a.Srv().Platform().GoContext(), time.Duration(*a.Config().ServiceSettings.OutgoingIntegrationRequestsTimeout)*time.Second)
 	defer cancel()
 
 	var accessToken *model.OutgoingOAuthConnectionToken

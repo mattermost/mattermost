@@ -779,6 +779,28 @@ Array [
                     ],
                     "type": "column_set",
                   },
+                  Object {
+                    "content": Array [
+                      Object {
+                        "text": "value without title",
+                        "type": "text",
+                      },
+                    ],
+                    "flow": "vertical",
+                    "gap": "none",
+                    "type": "container",
+                  },
+                  Object {
+                    "content": Array [
+                      Object {
+                        "text": "value with whitespace-only title",
+                        "type": "text",
+                      },
+                    ],
+                    "flow": "vertical",
+                    "gap": "none",
+                    "type": "container",
+                  },
                 ],
                 "flow": "vertical",
                 "gap": "medium",

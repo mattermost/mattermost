@@ -111,11 +111,16 @@ func (a *App) sendPushNotificationToAllSessions(rctx request.CTX, msg *model.Pus
 	}
 
 	originalTransportType := msg.Transport
-	a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
+	originalMessage := msg.DeepCopy()
+	a.ch.RunMultiHook(func(hooks plugin.Hooks, manifest *model.Manifest) bool {
 		var replacementNotification *model.PushNotification
 		replacementNotification, rejectionReason = hooks.NotificationWillBePushed(msg, userID)
 		if rejectionReason != "" {
-			rctx.Logger().Info("Notification cancelled by plugin.", mlog.String("rejection reason", rejectionReason))
+			rctx.Logger().Info("Notification cancelled by plugin.",
+				mlog.String("rejection_reason", rejectionReason),
+				mlog.String("plugin_id", manifest.Id),
+				mlog.String("user_id", userID),
+				mlog.String("channel_id", msg.ChannelId))
 			return false
 		}
 		if replacementNotification != nil {
@@ -128,7 +133,10 @@ func (a *App) sendPushNotificationToAllSessions(rctx request.CTX, msg *model.Pus
 				msg.Transport = originalTransportType
 			}
 
-			rctx.Logger().Info("Notification modified by plugin.")
+			rctx.Logger().Info("Notification modified by plugin.",
+				mlog.String("plugin_id", manifest.Id),
+				mlog.String("user_id", userID),
+				mlog.String("channel_id", msg.ChannelId))
 		}
 		return true
 	}, plugin.NotificationWillBePushedID)
@@ -159,6 +167,8 @@ func (a *App) sendPushNotificationToAllSessions(rctx request.CTX, msg *model.Pus
 		return appErr
 	}
 
+	recordDelivery := true
+
 	for _, session := range sessions {
 		// Don't send notifications to this session if it's expired or we want to skip it
 		if session.IsExpired() || (skipSessionId != "" && skipSessionId == session.Id) {
@@ -169,7 +179,7 @@ func (a *App) sendPushNotificationToAllSessions(rctx request.CTX, msg *model.Pus
 				mlog.String("reason", model.NotificationReasonSessionExpired),
 				mlog.String("user_id", session.UserId),
 				mlog.String("session_id", session.Id),
-				mlog.String("deviceId", model.RedactDeviceId(session.DeviceId)),
+				mlog.String("device_id", model.RedactDeviceId(session.DeviceId)),
 			)
 			continue
 		}
@@ -212,13 +222,13 @@ func (a *App) sendPushNotificationToAllSessions(rctx request.CTX, msg *model.Pus
 		}).SignedString(a.AsymmetricSigningKey())
 		if err != nil {
 			rctx.Logger().LogM(mlog.MlvlNotificationError, "Notification error",
-				mlog.String("ackId", tmpMessage.AckId),
+				mlog.String("ack_id", tmpMessage.AckId),
 				mlog.String("type", tmpMessage.Type),
-				mlog.String("userId", session.UserId),
-				mlog.String("postId", tmpMessage.PostId),
-				mlog.String("channelId", tmpMessage.ChannelId),
+				mlog.String("user_id", session.UserId),
+				mlog.String("post_id", tmpMessage.PostId),
+				mlog.String("channel_id", tmpMessage.ChannelId),
 				mlog.String("session_id", session.Id),
-				mlog.String("deviceId", model.RedactDeviceId(tmpMessage.DeviceId)),
+				mlog.String("device_id", model.RedactDeviceId(tmpMessage.DeviceId)),
 				mlog.String("status", err.Error()),
 			)
 			continue
@@ -242,10 +252,15 @@ func (a *App) sendPushNotificationToAllSessions(rctx request.CTX, msg *model.Pus
 				mlog.String("sub_type", string(tmpMessage.SubType)),
 				mlog.String("user_id", session.UserId),
 				mlog.String("session_id", session.Id),
-				mlog.String("deviceId", model.RedactDeviceId(tmpMessage.DeviceId)),
+				mlog.String("device_id", model.RedactDeviceId(tmpMessage.DeviceId)),
 				mlog.Err(err),
 			)
 			continue
+		}
+
+		if recordDelivery {
+			a.RecordPushDelivery(rctx, userID, originalMessage)
+			recordDelivery = false
 		}
 
 		rctx.Logger().LogM(mlog.MlvlNotificationTrace, "Notification sent to push proxy",
@@ -256,7 +271,7 @@ func (a *App) sendPushNotificationToAllSessions(rctx request.CTX, msg *model.Pus
 			mlog.String("sub_type", string(tmpMessage.SubType)),
 			mlog.String("user_id", session.UserId),
 			mlog.String("session_id", session.Id),
-			mlog.String("deviceId", model.RedactDeviceId(tmpMessage.DeviceId)),
+			mlog.String("device_id", model.RedactDeviceId(tmpMessage.DeviceId)),
 			mlog.String("status", model.PushSendSuccess),
 		)
 

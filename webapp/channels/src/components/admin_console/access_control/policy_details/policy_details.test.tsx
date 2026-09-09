@@ -3,12 +3,15 @@
 
 import React from 'react';
 
+import type {AccessControlPolicy} from '@mattermost/types/access_control';
 import type {ChannelWithTeamData} from '@mattermost/types/channels';
 
 import {useChannelAccessControlActions} from 'hooks/useChannelAccessControlActions';
 import {renderWithContext, screen, waitFor, userEvent} from 'tests/react_testing_utils';
 
 import PolicyDetails from './policy_details';
+
+import TableEditor from '../editors/table_editor/table_editor';
 
 jest.mock('utils/browser_history', () => ({
     getHistory: () => ({
@@ -42,6 +45,7 @@ jest.mock('hooks/useChannelAccessControlActions', () => ({
 }));
 
 const mockUseChannelAccessControlActions = useChannelAccessControlActions as jest.MockedFunction<typeof useChannelAccessControlActions>;
+const MockedTableEditor = TableEditor as jest.MockedFunction<typeof TableEditor>;
 
 describe('components/admin_console/access_control/policy_details/PolicyDetails', () => {
     const mockCreatePolicy = jest.fn();
@@ -68,8 +72,12 @@ describe('components/admin_console/access_control/policy_details/PolicyDetails',
         accessControlSettings: {
             EnableAttributeBasedAccessControl: true,
             EnableUserManagedAttributes: false,
+            EnableChannelPolicyIndicators: true,
             TrustProxyDeviceIdentityHeader: false,
             EnforceDeviceIDConsistency: false,
+            EnableAccessControlAuditLogging: false,
+            SyncJobIntervalSeconds: 3600,
+            AttributeRefreshIntervalSeconds: 30,
         },
         channels: [
             {id: 'channel1', name: 'Channel 1', display_name: 'Channel 1', team_display_name: 'Team 1', type: 'O'} as ChannelWithTeamData,
@@ -102,6 +110,7 @@ describe('components/admin_console/access_control/policy_details/PolicyDetails',
             createJob: mockCreateJob,
             getVisualAST: mockGetVisualAST,
             updateAccessControlPoliciesActive: mockUpdateAccessControlPoliciesActive,
+            getTeam: jest.fn().mockResolvedValue({data: null}),
         },
     };
 
@@ -218,6 +227,126 @@ describe('components/admin_console/access_control/policy_details/PolicyDetails',
 
         await waitFor(() => {
             expect(screen.queryByText('This policy contains restricted values')).not.toBeInTheDocument();
+        });
+    });
+
+    test('excludes session attributes from the attributes passed to the editor', async () => {
+        MockedTableEditor.mockClear();
+        mockGetAccessControlFields.mockResolvedValue({
+            data: [
+                {id: 'u1', name: 'department', group_id: 'cpa9q4w7m2x5c8v1b6n3k0jr5h', object_type: 'user', attrs: {managed: 'admin'}},
+                {id: 's1', name: 'network_name', group_id: 'nkpkzni6yjrjt8uktpbwkagoth', object_type: 'session', target_type: 'system', attrs: {}},
+            ],
+        });
+
+        renderWithContext(<PolicyDetails {...defaultProps}/>);
+
+        await waitFor(() => {
+            expect(screen.getByTestId('table-editor')).toBeInTheDocument();
+        });
+
+        const lastCall = MockedTableEditor.mock.calls[MockedTableEditor.mock.calls.length - 1][0];
+        const passedNames = lastCall.userAttributes.map((attr) => attr.name);
+        expect(passedNames).toContain('department');
+        expect(passedNames).not.toContain('network_name');
+    });
+
+    test('never hands the editor the stored marker form of a rank rule', async () => {
+        // Regression guard. The `policy` prop is the copy the policies list left
+        // in the store, and the list is filled by the search endpoint, which
+        // returns rules in their stored form: a rank comparison is stored
+        // desugared as `_rank_ge(...)`. /cel/visual_ast rejects that marker call,
+        // so seeding the editor with it fired a doomed parse whose failure flipped
+        // the editor into Advanced mode. Only fetchPolicy's rehydrated expression
+        // may reach the editor.
+        const storedForm = '_rank_ge(user.attributes.clearance, "Secret", "sxrgeknhajds3qdt5hhrm4fy3h")';
+        const rehydratedForm = 'user.attributes.clearance >= "Secret"';
+
+        MockedTableEditor.mockClear();
+        const props = {
+            ...defaultProps,
+            policy: {
+                id: 'policy1',
+                name: 'Policy 1',
+                type: 'parent',
+                rules: [{actions: ['membership'], expression: storedForm}],
+            } as unknown as AccessControlPolicy,
+            actions: {
+                ...defaultProps.actions,
+                fetchPolicy: jest.fn().mockResolvedValue({
+                    data: {
+                        id: 'policy1',
+                        name: 'Policy 1',
+                        rules: [{actions: ['membership'], expression: rehydratedForm}],
+                    },
+                }),
+            },
+        };
+
+        renderWithContext(<PolicyDetails {...props}/>);
+
+        await waitFor(() => {
+            const values = MockedTableEditor.mock.calls.map((call) => call[0].value);
+            expect(values).toContain(rehydratedForm);
+        });
+
+        const values = MockedTableEditor.mock.calls.map((call) => call[0].value);
+        expect(values).not.toContain(storedForm);
+    });
+
+    describe('channel attribute warning notice', () => {
+        const NOTICE_TITLE = 'Channels without this attribute lose all members';
+
+        // A channel with no value for a referenced channel attribute denies every
+        // member, so the notice fires as soon as the rule references a channel
+        // attribute — before any channel is assigned, without inspecting values.
+        const renderWithPolicy = (expression: string) => {
+            const props = {
+                ...defaultProps,
+                actions: {
+                    ...defaultProps.actions,
+                    fetchPolicy: jest.fn().mockResolvedValue({
+                        data: {
+                            id: 'policy1',
+                            name: 'Policy 1',
+                            rules: [{actions: ['membership'], expression}],
+                        },
+                    }),
+                    searchChannels: jest.fn().mockResolvedValue({
+                        data: {
+                            channels: [],
+                            total_count: 0,
+                        },
+                    }),
+                },
+            };
+            return renderWithContext(<PolicyDetails {...props}/>);
+        };
+
+        test('shows as soon as a channel attribute is referenced, before any channel is assigned', async () => {
+            renderWithPolicy('user.attributes.clearance == resource.attributes.minClearance');
+
+            expect(await screen.findByText(NOTICE_TITLE)).toBeInTheDocument();
+        });
+
+        test('stays hidden when the rule only references user attributes', async () => {
+            renderWithPolicy('user.attributes.clearance == "Secret"');
+
+            await waitFor(() => {
+                expect(screen.getByTestId('table-editor')).toBeInTheDocument();
+            });
+            expect(screen.queryByText(NOTICE_TITLE)).not.toBeInTheDocument();
+        });
+
+        test('stays hidden when resource.attributes appears only inside a string literal', async () => {
+            // referencesResourceAttributes strips quoted literals first, so a value
+            // that happens to spell an attribute path is not a reference.
+            renderWithPolicy('user.attributes.name == "resource.attributes.minClearance"');
+
+            await waitFor(() => {
+                expect(screen.getByTestId('table-editor')).toBeInTheDocument();
+            });
+            expect(screen.queryByText(NOTICE_TITLE)).not.toBeInTheDocument();
         });
     });
 
@@ -351,6 +480,128 @@ describe('components/admin_console/access_control/policy_details/PolicyDetails',
 
         await waitFor(() => {
             expect(mockDeletePolicy).toHaveBeenCalledWith('policy1');
+        });
+    });
+
+    test('should block deletion when the policy is assigned to teams (no channels)', async () => {
+        // team_count is stamped into policy Props by the GET handler. Teams are not
+        // editable from this editor, so a linked team must gate deletion the same way
+        // channels do — otherwise deleting orphans the team-type child policies.
+        const props = {
+            ...defaultProps,
+            policyId: 'policy1',
+            actions: {
+                ...defaultProps.actions,
+                deletePolicy: mockDeletePolicy.mockResolvedValue({data: {}}),
+                fetchPolicy: jest.fn().mockResolvedValue({
+                    data: {
+                        id: 'policy1',
+                        name: 'Policy 1',
+                        rules: [{expression: 'true'}],
+                        props: {team_count: 2, channel_count: 0, child_ids: ['t1', 't2']},
+                    },
+                }),
+
+                // No channels assigned — only teams gate the deletion.
+                searchChannels: mockSearchChannels.mockResolvedValue({data: {channels: [], total_count: 0}}),
+
+                // child_ids lists channels first, then teams; with no channels the
+                // ids are the two team ids, resolved to names for the warning list.
+                getTeam: jest.fn().
+                    mockResolvedValueOnce({data: {id: 't1', display_name: 'Engineering'}}).
+                    mockResolvedValueOnce({data: {id: 't2', display_name: 'Design'}}),
+            },
+        };
+
+        renderWithContext(<PolicyDetails {...props}/>);
+
+        await waitFor(() => {
+            expect(screen.getByText('Delete policy')).toBeInTheDocument();
+        });
+
+        // The has-resources subtitle is shown instead of the deletable subtitle.
+        expect(screen.getByText(/Remove all assigned resources/)).toBeInTheDocument();
+
+        // The linked-teams warning lists each team, linking to its System Console page.
+        await waitFor(() => {
+            expect(screen.getByText('This policy is assigned to teams - Deletion not allowed')).toBeInTheDocument();
+        });
+        const engineeringLink = screen.getByRole('link', {name: 'Engineering'});
+        expect(engineeringLink).toHaveAttribute('href', '/admin_console/user_management/teams/t1');
+        expect(screen.getByRole('link', {name: 'Design'})).toHaveAttribute('href', '/admin_console/user_management/teams/t2');
+
+        // Clicking Delete is a no-op — the confirmation modal never opens.
+        const deleteButtons = screen.getAllByText('Delete');
+        await userEvent.click(deleteButtons[deleteButtons.length - 1]);
+
+        expect(screen.queryByText('Confirm Policy Deletion')).not.toBeInTheDocument();
+        expect(mockDeletePolicy).not.toHaveBeenCalled();
+    });
+
+    test('clears a stale navigation-block flag on mount', async () => {
+        // A page that links here (e.g. the per-team System Console page) may have
+        // left navigationBlocked=true. If the editor inherits it, its own leave-guard
+        // raises a spurious "Discard changes?" prompt even though nothing was edited.
+        renderWithContext(<PolicyDetails {...defaultProps}/>);
+
+        await waitFor(() => {
+            expect(mockSetNavigationBlocked).toHaveBeenCalledWith(false);
+        });
+    });
+
+    // MM-64357: a value containing a quote character (e.g. the apostrophe in
+    // "Matt's Department") must still classify as a simple expression. These
+    // tests exercise the rendered component state Matty flagged as uncovered:
+    // whether the "Switch to Simple Mode" toggle is actually enabled/disabled,
+    // rather than calling isSimpleExpression directly.
+    describe('MM-64357 apostrophe values keep the mode toggle switchable', () => {
+        const renderWithLoadedExpression = (expression: string, attributeName: string) => {
+            // A single usable (LDAP-synced) attribute clears the no-usable-attributes
+            // gate so the toggle reflects the expression, not the attributes state.
+            mockGetAccessControlFields.mockResolvedValue({data: [{name: attributeName, attrs: {ldap: true}}]});
+            const props = {
+                ...defaultProps,
+                actions: {
+                    ...defaultProps.actions,
+                    fetchPolicy: jest.fn().mockResolvedValue({
+                        data: {
+                            id: 'policy1',
+                            name: 'Policy 1',
+                            rules: [{actions: ['*'], expression}],
+                        },
+                    }),
+                },
+            };
+            return renderWithContext(<PolicyDetails {...props}/>);
+        };
+
+        test('a double-quoted apostrophe value stays switchable back to Simple Mode', async () => {
+            renderWithLoadedExpression('user.attributes.department == "Matt\'s Department"', 'department');
+
+            // The editor opens in Simple mode; switch to Advanced to reach the
+            // "Switch to Simple Mode" toggle whose disabled state is the bug.
+            await userEvent.click(await screen.findByText('Switch to Advanced Mode'));
+
+            expect(screen.getByText('Switch to Simple Mode').closest('button')).toBeEnabled();
+        });
+
+        test('an apostrophe multiselect "has any of" group stays switchable back to Simple Mode', async () => {
+            renderWithLoadedExpression(
+                '("Matt\'s" in user.attributes.program || "Phoenix" in user.attributes.program)',
+                'program',
+            );
+
+            await userEvent.click(await screen.findByText('Switch to Advanced Mode'));
+
+            expect(screen.getByText('Switch to Simple Mode').closest('button')).toBeEnabled();
+        });
+
+        test('a genuinely complex expression still disables the toggle (negative control)', async () => {
+            renderWithLoadedExpression('size(user.attributes.roles) > 0', 'roles');
+
+            await userEvent.click(await screen.findByText('Switch to Advanced Mode'));
+
+            expect(screen.getByText('Switch to Simple Mode').closest('button')).toBeDisabled();
         });
     });
 });

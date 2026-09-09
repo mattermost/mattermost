@@ -9,15 +9,21 @@ import type {Channel, ChannelMembership} from '@mattermost/types/channels';
 import type {UserProfile} from '@mattermost/types/users';
 import type {RelationOneToOne} from '@mattermost/types/utilities';
 
-import {loadMyChannelMemberAndRole} from 'mattermost-redux/actions/channels';
+import {
+    countPendingChannelJoinRequests,
+    getChannelJoinRequests,
+    loadMyChannelMemberAndRole,
+} from 'mattermost-redux/actions/channels';
 import {fetchRemoteClusterInfo} from 'mattermost-redux/actions/shared_channels';
 import {Permissions} from 'mattermost-redux/constants';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {
+    canManageChannelJoinRequests,
     getCurrentChannel,
     getCurrentChannelStats,
     getMembersInCurrentChannel,
     getMyCurrentChannelMembership,
+    getPendingChannelJoinRequests,
     isCurrentChannelArchived,
 } from 'mattermost-redux/selectors/entities/channels';
 import {getTeammateNameDisplaySetting} from 'mattermost-redux/selectors/entities/preferences';
@@ -151,6 +157,7 @@ function mapStateToProps(state: GlobalState) {
     const editing = getIsEditingMembers(state);
 
     const currentUserIsChannelAdmin = currentUser && currentUser.scheme_admin;
+    const canManageJoinRequests = canManageChannelJoinRequests(state, channel);
 
     return {
         channel,
@@ -162,6 +169,8 @@ function mapStateToProps(state: GlobalState) {
         canManageMembers,
         channelMembers,
         editing,
+        canManageJoinRequests,
+        pendingJoinRequests: canManageJoinRequests ? getPendingChannelJoinRequests(state, channel.id) : [],
     } as Props;
 }
 
@@ -178,6 +187,8 @@ function mapDispatchToProps(dispatch: Dispatch<AnyAction>) {
             setEditChannelMembers,
             searchProfilesAndChannelMembers,
             fetchRemoteClusterInfo,
+            getChannelJoinRequests,
+            countPendingChannelJoinRequests,
         }, dispatch),
     };
 }

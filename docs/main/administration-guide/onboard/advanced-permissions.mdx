@@ -177,6 +177,25 @@ Example: As the default for the entire system, only allow users to edit their ow
 3.  In the **All Members**, **Channel Administrators**, and **Team Administrators** panels, in the **Manage Posts** section, check the box for **Edit Posts**.
 4.  From any panel, select the gear button to set the global time limit to `300` seconds.
 
+#### Restrict who can edit post attachments
+
+From Mattermost v11.8, system admins can use the **Edit Attachments** permission to control whether users can add or remove file attachments when editing posts.
+
+The **Edit Attachments** permission is separate from **Edit Own Posts**. Users with permission to edit a post can still update the post text, but they can't add or remove file attachments unless **Edit Attachments** is also enabled.
+
+By default, **Edit Attachments** is granted to users who have permission to edit posts.
+
+To allow users to edit post text without changing attachments:
+
+1.  Go to **System Console \> User Management \> Permissions**.
+2.  Select **Edit Scheme**.
+3.  In the applicable role panel, go to **Manage Posts**.
+4.  Enable **Edit Own Posts**.
+5.  Disable **Edit Attachments**.
+6.  Select **Save**.
+
+If a user sees **Post attachments cannot be edited** when editing a post, they don't have permission to add or remove attachments for that post.
+
 ### Integration management
 
 From Mattermost v11.2, the System Console provides enhanced controls for managing integrations (webhooks, slash commands, OAuth apps), including separate permissions for managing your own integrations versus other users' integrations.

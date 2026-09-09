@@ -7,7 +7,6 @@ import {useDispatch, useSelector} from 'react-redux';
 import {useParams} from 'react-router-dom';
 
 import {isDesktopApp} from '@mattermost/shared/utils/user_agent';
-import type {ChannelType} from '@mattermost/types/channels';
 
 import {fetchMyCategories} from 'mattermost-redux/actions/channel_categories';
 import {fetchChannelsAndMembers, getChannelStats} from 'mattermost-redux/actions/channels';
@@ -23,18 +22,11 @@ import LoadingScreen from 'components/loading_screen';
 import SidebarRight from 'components/sidebar_right';
 import UnreadsStatusHandler from 'components/unreads_status_handler';
 
-import Constants from 'utils/constants';
+import {getPopoutChannelTitle} from 'utils/popouts/popout_windows';
 import usePopoutFocus from 'utils/popouts/use_popout_focus';
 import usePopoutTitle from 'utils/popouts/use_popout_title';
 
 import './channel_popout.scss';
-
-export function getPopoutChannelTitle(channelType?: ChannelType) {
-    if (channelType === Constants.DM_CHANNEL || channelType === Constants.GM_CHANNEL) {
-        return {id: 'channel_popout.title.dm', defaultMessage: '{channelName} - {serverName}'};
-    }
-    return {id: 'channel_popout.title', defaultMessage: '{channelName} - {teamName} - {serverName}'};
-}
 
 export default function ChannelPopout() {
     const dispatch = useDispatch();

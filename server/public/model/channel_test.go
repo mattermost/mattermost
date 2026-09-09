@@ -194,6 +194,21 @@ func TestChannelIsValid(t *testing.T) {
 	require.NotNil(t, o.IsValid())
 }
 
+func TestChannelTypeSpace(t *testing.T) {
+	t.Run("IsValid accepts a space backing channel", func(t *testing.T) {
+		o := Channel{
+			Id:          NewId(),
+			CreateAt:    GetMillis(),
+			UpdateAt:    GetMillis(),
+			TeamId:      NewId(),
+			DisplayName: "Space",
+			Name:        "space-" + NewId(),
+			Type:        ChannelTypeSpace,
+		}
+		require.Nil(t, o.IsValid())
+	})
+}
+
 func TestChannelIsValidBoard(t *testing.T) {
 	t.Run("rejects non-board type", func(t *testing.T) {
 		c := &Channel{Type: ChannelTypeOpen, TeamId: NewId(), DisplayName: "Board"}

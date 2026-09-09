@@ -86,6 +86,66 @@ function fieldsReducer(
         return {byObjectType: nextByObjectType, byId: nextById};
     }
 
+    case PropertyTypes.RECEIVED_PROPERTY_FIELDS_FOR_SCOPE: {
+        // Authoritative full refetch for one (objectType, groupId) scope, dispatched
+        // only by fetchPropertyFields. Unlike RECEIVED_PROPERTY_FIELDS (an incremental
+        // merge, also used for single-field websocket create/update events, where
+        // replacing the whole scope would wipe out sibling fields), this replaces the
+        // bucket outright so fields deleted server-side between fetches don't linger.
+        //
+        // Keyed by (objectType, groupId) only, coarser than the actual fetch scope
+        // (groupName, objectType, targetType, targetId). Every current caller uses a
+        // fixed targetId per (objectType, groupId) pair; if a future caller varies
+        // targetId for the same pair, this key needs to widen too, or the two targets'
+        // fields will clobber each other.
+        const {objectType, groupId, fields}: {objectType: string; groupId: string; fields: PropertyField[]} = action.data;
+
+        const existingBucket = state.byObjectType[objectType]?.[groupId] ?? {};
+        const nextBucket: Record<string, PropertyField> = {};
+
+        for (const field of fields) {
+            if (isPSAv1PropertyField(field) || field.delete_at > 0) {
+                continue;
+            }
+            nextBucket[field.id] = field;
+        }
+
+        const existingIds = Object.keys(existingBucket);
+        const nextIds = Object.keys(nextBucket);
+
+        if (existingIds.length === 0 && nextIds.length === 0) {
+            return state;
+        }
+
+        const nextById = {...state.byId};
+        for (const id of existingIds) {
+            if (!nextBucket[id]) {
+                Reflect.deleteProperty(nextById, id);
+            }
+        }
+        for (const field of Object.values(nextBucket)) {
+            nextById[field.id] = field;
+        }
+
+        const nextByObjectType = {...state.byObjectType};
+        if (nextIds.length === 0) {
+            if (nextByObjectType[objectType]) {
+                nextByObjectType[objectType] = {...nextByObjectType[objectType]};
+                Reflect.deleteProperty(nextByObjectType[objectType], groupId);
+                if (Object.keys(nextByObjectType[objectType]).length === 0) {
+                    Reflect.deleteProperty(nextByObjectType, objectType);
+                }
+            }
+        } else {
+            nextByObjectType[objectType] = {
+                ...nextByObjectType[objectType],
+                [groupId]: nextBucket,
+            };
+        }
+
+        return {byObjectType: nextByObjectType, byId: nextById};
+    }
+
     case PropertyTypes.PROPERTY_FIELD_DELETED: {
         const {fieldId} = action.data;
         const field = state.byId[fieldId];

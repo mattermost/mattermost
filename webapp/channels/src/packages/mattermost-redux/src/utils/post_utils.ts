@@ -250,6 +250,15 @@ export function shouldUpdatePost(receivedPost: Post, storedPost?: Post): boolean
             return true;
         }
 
+        // A policy change strips or restores file metadata without touching update_at. Both sides
+        // must carry metadata: a response that omits it entirely (some endpoints do) must not
+        // clobber what's stored, which is what the check above guards in the other direction.
+        if (storedPost.metadata && receivedPost.metadata &&
+            (storedPost.metadata.redacted_file_count ?? 0) !== (receivedPost.metadata.redacted_file_count ?? 0)
+        ) {
+            return true;
+        }
+
         // The stored post is the same as the one we've received
         return false;
     }

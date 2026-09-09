@@ -365,7 +365,12 @@
 }
 
 .search-highlight {
-    background-color: variables.$yellow;
+    background-color: var(--mention-highlight-bg);
+    color: var(--mention-highlight-link);
+
+    > a {
+        color: inherit;
+    }
 }
 
 .search-hint__title {

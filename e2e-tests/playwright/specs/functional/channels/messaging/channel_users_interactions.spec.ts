@@ -41,5 +41,6 @@ test('MM-T216 scrolls to the bottom when sending a message', {tag: '@messaging'}
     // * Verify the newly sent message is the visible last post
     const lastPost = await channelsPage.getLastPost();
     await lastPost.toBeVisible();
+    await expect(lastPost.container).toBeInViewport();
     await expect(lastPost.messageText).toHaveText('message123');
 });

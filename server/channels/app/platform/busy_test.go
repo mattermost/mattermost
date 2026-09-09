@@ -177,3 +177,5 @@ func (c *ClusterMock) WebConnCountForUser(userID string) (int, *model.AppError) 
 func (c *ClusterMock) GetWSQueues(userID, connectionID string, seqNum int64) (map[string]*model.WSQueues, error) {
 	return nil, nil
 }
+
+func (c *ClusterMock) Shutdown() {}

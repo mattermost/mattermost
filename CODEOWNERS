@@ -1,3 +1,19 @@
 /webapp/channels/src/packages/mattermost-redux/src/store/configureStore.ts @hmhealey
 /server/channels/app/authentication.go @mattermost/product-security
 /server/channels/app/authorization.go @mattermost/product-security
+
+# Release-owned documentation. A review from either @mattermost/release-eng or
+# @mattermost/release-managers is required for changes to these pages.
+/docs/main/product-overview/*changelog.mdx @mattermost/release-eng @mattermost/release-managers
+/docs/main/product-overview/*release*.mdx @mattermost/release-eng @mattermost/release-managers
+/docs/main/product-overview/common-esr-support*.mdx @mattermost/release-eng @mattermost/release-managers
+/docs/main/product-overview/deprecated-features.mdx @mattermost/release-eng @mattermost/release-managers
+/docs/main/product-overview/server.mdx @mattermost/release-eng @mattermost/release-managers
+/docs/main/product-overview/version-archive.mdx @mattermost/release-eng @mattermost/release-managers
+/docs/main/administration-guide/upgrade/important-upgrade-notes.mdx @mattermost/release-eng @mattermost/release-managers
+/docs/main/administration-guide/upgrade/open-source-components.mdx @mattermost/release-eng @mattermost/release-managers
+/docs/main/administration-guide/upgrade/prepare-to-upgrade-mattermost.mdx @mattermost/release-eng @mattermost/release-managers
+/docs/main/deployment-guide/software-hardware-requirements.mdx @mattermost/release-eng @mattermost/release-managers
+/docs/main/deployment-guide/desktop/*install.mdx @mattermost/release-eng @mattermost/release-managers
+/docs/main/deployment-guide/server/linux/deploy-rhel.mdx @mattermost/release-eng @mattermost/release-managers
+/docs/main/deployment-guide/server/linux/deploy-tar.mdx @mattermost/release-eng @mattermost/release-managers

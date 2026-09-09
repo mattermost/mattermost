@@ -17,18 +17,33 @@ import (
 func (rcs *Service) PingNow(rc *model.RemoteCluster) {
 	online := rc.IsOnline()
 
-	if err := rcs.pingRemote(rc); err != nil {
+	pingErr := rcs.pingRemote(rc)
+	if pingErr != nil {
 		rcs.server.Log().LogM(mlog.MlvlRemoteClusterServiceWarn, "Remote cluster ping failed",
 			mlog.String("remote", rc.DisplayName),
-			mlog.String("remoteId", rc.RemoteId),
-			mlog.String("pluginId", rc.PluginID),
-			mlog.Err(err),
+			mlog.String("remote_id", rc.RemoteId),
+			mlog.String("plugin_id", rc.PluginID),
+			mlog.Err(pingErr),
 		)
 	}
 
-	if online != rc.IsOnline() {
-		if metrics := rcs.server.GetMetrics(); metrics != nil {
-			metrics.IncrementRemoteClusterConnStateChangeCounter(rc.RemoteId, rc.IsOnline())
+	pingSucceeded := pingErr == nil
+	hasPendingSync := false
+	if pingSucceeded {
+		// Consume the pending-sync-failure marker (if any). LoadAndDelete clears it so the
+		// map does not accumulate entries for remotes that have recovered.
+		_, hasPendingSync = rcs.syncFailedSinceLastPing.LoadAndDelete(rc.RemoteId)
+	}
+
+	// The connection-state-change counter tracks genuine online/offline transitions, so
+	// only bump it when IsOnline() actually flipped. The event itself must still fire on
+	// the pending-sync recovery path (online→online) to drive ForceSyncForRemote.
+	stateChanged := online != rc.IsOnline()
+	if stateChanged || (pingSucceeded && hasPendingSync) {
+		if stateChanged {
+			if metrics := rcs.server.GetMetrics(); metrics != nil {
+				metrics.IncrementRemoteClusterConnStateChangeCounter(rc.RemoteId, rc.IsOnline())
+			}
 		}
 		rcs.fireConnectionStateChgEvent(rc)
 	}
@@ -137,7 +152,7 @@ func (rcs *Service) pingRemote(rc *model.RemoteCluster) error {
 	if err := rcs.server.GetStore().RemoteCluster().SetLastPingAt(rc.RemoteId); err != nil {
 		rcs.server.Log().LogM(mlog.MlvlRemoteClusterServiceError, "Failed to update LastPingAt for remote cluster",
 			mlog.String("remote", rc.DisplayName),
-			mlog.String("remoteId", rc.RemoteId),
+			mlog.String("remote_id", rc.RemoteId),
 			mlog.Err(err),
 		)
 	}
@@ -154,11 +169,11 @@ func (rcs *Service) pingRemote(rc *model.RemoteCluster) error {
 
 	rcs.server.Log().Log(mlog.LvlRemoteClusterServiceDebug, "Remote cluster ping",
 		mlog.String("remote", rc.DisplayName),
-		mlog.String("remoteId", rc.RemoteId),
-		mlog.String("pluginId", rc.PluginID),
-		mlog.Int("SentAt", ping.SentAt),
-		mlog.Int("RecvAt", ping.RecvAt),
-		mlog.Int("Diff", ping.RecvAt-ping.SentAt),
+		mlog.String("remote_id", rc.RemoteId),
+		mlog.String("plugin_id", rc.PluginID),
+		mlog.Int("sent_at", ping.SentAt),
+		mlog.Int("recv_at", ping.RecvAt),
+		mlog.Int("diff", ping.RecvAt-ping.SentAt),
 	)
 	return nil
 }

@@ -3,7 +3,9 @@
 
 import type {ProductIdentifier} from '@mattermost/types/products';
 
-import {getCurrentProduct} from 'utils/products';
+import {createSelector} from 'mattermost-redux/selectors/create_selector';
+
+import {getCurrentProduct, isTeamScopedProduct} from 'utils/products';
 
 import type {GlobalState} from 'types/store';
 import type {ProductComponent} from 'types/store/plugins';
@@ -17,3 +19,9 @@ export function selectCurrentProductId(state: GlobalState, pathname: string): Pr
 }
 
 export const selectProducts = (state: GlobalState) => state.plugins.components.Product;
+
+export const selectTeamScopedProducts = createSelector(
+    'selectTeamScopedProducts',
+    selectProducts,
+    (products) => products.filter(isTeamScopedProduct),
+);

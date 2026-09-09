@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useRef} from 'react';
+import React, {useRef, type JSX} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
 
@@ -135,7 +135,10 @@ export default function MessagesOrFilesSelector(props: Props): JSX.Element {
                 )}
             </div>
             {props.crossTeamSearchEnabled && hasMoreThanOneTeam && (
-                <div className='team-selector-container'>
+                <div
+                    className='team-selector-container'
+                    data-testid='searchResultsTeamSelector'
+                >
                     <SelectTeam
                         selectedTeamId={searchTeam}
                         onTeamSelected={props.onTeamChange}

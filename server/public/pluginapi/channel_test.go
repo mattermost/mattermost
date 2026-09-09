@@ -25,6 +25,56 @@ func TestGetMembers(t *testing.T) {
 	})
 }
 
+func TestRestoreChannel(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		api := &plugintest.API{}
+		defer api.AssertExpectations(t)
+		client := pluginapi.NewClient(api, &plugintest.Driver{})
+
+		api.On("RestoreChannel", "channelID").Return(nil)
+
+		err := client.Channel.Restore("channelID")
+		require.NoError(t, err)
+	})
+
+	t.Run("failure", func(t *testing.T) {
+		api := &plugintest.API{}
+		defer api.AssertExpectations(t)
+		client := pluginapi.NewClient(api, &plugintest.Driver{})
+
+		api.On("RestoreChannel", "channelID").Return(newAppError())
+
+		err := client.Channel.Restore("channelID")
+		require.EqualError(t, err, "here: id, an error occurred")
+	})
+}
+
+func TestGetChannelOfType(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		api := &plugintest.API{}
+		defer api.AssertExpectations(t)
+		client := pluginapi.NewClient(api, &plugintest.Driver{})
+
+		expected := &model.Channel{Id: "channelID", Type: model.ChannelTypeSpace}
+		api.On("GetChannelOfType", "channelID", model.ChannelTypeSpace).Return(expected, nil)
+
+		channel, err := client.Channel.GetChannelOfType("channelID", model.ChannelTypeSpace)
+		require.NoError(t, err)
+		require.Equal(t, expected, channel)
+	})
+
+	t.Run("failure", func(t *testing.T) {
+		api := &plugintest.API{}
+		defer api.AssertExpectations(t)
+		client := pluginapi.NewClient(api, &plugintest.Driver{})
+
+		api.On("GetChannelOfType", "channelID", model.ChannelTypeSpace).Return(nil, newAppError())
+
+		_, err := client.Channel.GetChannelOfType("channelID", model.ChannelTypeSpace)
+		require.EqualError(t, err, "here: id, an error occurred")
+	})
+}
+
 func TestGetTeamChannelByName(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		api := &plugintest.API{}
@@ -129,6 +179,26 @@ func TestCreateChannel(t *testing.T) {
 
 		err := client.Channel.Create(c)
 		require.NoError(t, err)
+	})
+
+	t.Run("create space channel with replicas skips the wait", func(t *testing.T) {
+		api := &plugintest.API{}
+		defer api.AssertExpectations(t)
+		client := pluginapi.NewClient(api, &plugintest.Driver{})
+
+		c := &model.Channel{
+			Id:          model.NewId(),
+			Name:        "name",
+			DisplayName: "displayname",
+			Type:        model.ChannelTypeSpace,
+		}
+		// The generic GetChannel the replica wait polls excludes space channels, so waiting
+		// would always time out; Create must return without consulting the config or polling.
+		api.On("CreateChannel", c).Return(c, nil).Once()
+
+		err := client.Channel.Create(c)
+		require.NoError(t, err)
+		api.AssertNotCalled(t, "GetChannel", c.Id)
 	})
 
 	t.Run("create channel and wait once", func(t *testing.T) {

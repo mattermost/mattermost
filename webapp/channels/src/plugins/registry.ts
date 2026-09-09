@@ -1247,6 +1247,7 @@ export default class PluginRegistry {
         'showAppBar',
         'wrapped',
         'publicComponent',
+        'isTeamScoped',
     ], ({
         baseURL,
         switcherIcon,
@@ -1259,6 +1260,7 @@ export default class PluginRegistry {
         showAppBar = false,
         wrapped = true,
         publicComponent,
+        isTeamScoped = false,
     }: Omit<ProductComponent, 'id' | 'pluginId'>) => {
         const id = generateId();
 
@@ -1276,6 +1278,7 @@ export default class PluginRegistry {
             showAppBar,
             wrapped,
             publicComponent,
+            isTeamScoped,
         });
 
         return id;

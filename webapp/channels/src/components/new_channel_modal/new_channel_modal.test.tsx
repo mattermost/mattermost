@@ -4,10 +4,15 @@
 import React from 'react';
 
 import type {Channel} from '@mattermost/types/channels';
+import type {PropertyField} from '@mattermost/types/properties';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
 import {createChannel} from 'mattermost-redux/actions/channels';
+import {Client4} from 'mattermost-redux/client';
 import Permissions from 'mattermost-redux/constants/permissions';
+
+import useChannelAttributes from 'components/common/hooks/useChannelAttributes';
+import useClassificationMarkings from 'components/common/hooks/useClassificationMarkings';
 
 import {
     act,
@@ -39,6 +44,17 @@ jest.mock('plugins/pluggable', () => ({
 }));
 
 jest.mock('mattermost-redux/actions/channels');
+jest.mock('components/common/hooks/useClassificationMarkings', () => ({
+    __esModule: true,
+    default: jest.fn(() => ({available: false, loading: false, channelField: null, levels: []})),
+}));
+jest.mock('components/common/hooks/useChannelAttributes', () => ({
+    __esModule: true,
+    default: jest.fn(() => ({enabled: false, loading: false, failed: false, fields: []})),
+}));
+
+const mockedUseClassificationMarkings = useClassificationMarkings as jest.MockedFunction<typeof useClassificationMarkings>;
+const mockedUseChannelAttributes = useChannelAttributes as jest.MockedFunction<typeof useChannelAttributes>;
 
 describe('components/new_channel_modal', () => {
     const initialState: DeepPartial<GlobalState> = {
@@ -475,6 +491,103 @@ describe('components/new_channel_modal', () => {
             update_at: 0,
         }, '');
     });
+
+    // ---------------------------------------------------------------
+    // Discoverable Private Channels — toggle in Create modal
+    // ---------------------------------------------------------------
+
+    describe('Discoverable toggle', () => {
+        const stateWithDiscoverable: DeepPartial<GlobalState> = {
+            ...initialState,
+            entities: {
+                ...initialState.entities,
+                general: {
+                    ...initialState.entities!.general,
+                    config: {
+                        ...initialState.entities!.general!.config,
+                        FeatureFlagDiscoverableChannels: 'true',
+                    },
+                },
+                roles: {
+                    roles: {
+                        ...initialState.entities!.roles!.roles,
+                        team_user: {
+                            permissions: [
+                                Permissions.CREATE_PRIVATE_CHANNEL,
+                                Permissions.MANAGE_PRIVATE_CHANNEL_DISCOVERABILITY,
+                            ],
+                        },
+                    },
+                },
+            },
+        };
+
+        test('does not render when channel type is public', async () => {
+            renderWithContext(<NewChannelModal/>, stateWithDiscoverable);
+
+            // Default state on this fixture is Public — the toggle should be absent.
+            expect(screen.queryByTestId('new-channel-discoverable-section')).not.toBeInTheDocument();
+        });
+
+        test('does not render when feature flag is off', async () => {
+            renderWithContext(<NewChannelModal/>, initialState);
+
+            await userEvent.click(screen.getByText('Private Channel'));
+            expect(screen.queryByTestId('new-channel-discoverable-section')).not.toBeInTheDocument();
+        });
+
+        test('renders once Private is selected and FF is on', async () => {
+            renderWithContext(<NewChannelModal/>, stateWithDiscoverable);
+
+            await userEvent.click(screen.getByText('Private Channel'));
+            expect(screen.getByTestId('new-channel-discoverable-section')).toBeInTheDocument();
+            expect(screen.getByText(/Discoverable \(Users can request to join\)/)).toBeInTheDocument();
+            expect(screen.getByText(/Browse Channels, the channel switcher, and shared permalinks/)).toBeInTheDocument();
+        });
+
+        test('checked toggle sends discoverable: true to createChannel', async () => {
+            (createChannel as jest.Mock).mockReturnValue(() => Promise.resolve({data: {id: 'new_channel_id'}}));
+
+            renderWithContext(<NewChannelModal/>, stateWithDiscoverable);
+
+            await userEvent.type(screen.getByPlaceholderText('Enter a name for your new channel'), 'My channel');
+            await userEvent.click(screen.getByText('Private Channel'));
+
+            // Toggle the discoverable switch on
+            await userEvent.click(screen.getByTestId('newChannelDiscoverableToggle'));
+
+            await userEvent.click(screen.getByText('Create channel'));
+
+            await waitFor(() => {
+                expect(createChannel).toHaveBeenCalledWith(
+                    expect.objectContaining({type: 'P', discoverable: true}),
+                    '',
+                );
+            });
+        });
+
+        test('unchecked toggle omits discoverable from payload', async () => {
+            (createChannel as jest.Mock).mockReturnValue(() => Promise.resolve({data: {id: 'new_channel_id'}}));
+
+            renderWithContext(<NewChannelModal/>, stateWithDiscoverable);
+
+            await userEvent.type(screen.getByPlaceholderText('Enter a name for your new channel'), 'My channel');
+            await userEvent.click(screen.getByText('Private Channel'));
+
+            // Don't touch the toggle
+            await userEvent.click(screen.getByText('Create channel'));
+
+            await waitFor(() => {
+                expect(createChannel).toHaveBeenCalledWith(
+                    expect.objectContaining({type: 'P'}),
+                    '',
+                );
+            });
+            const calls = (createChannel as jest.Mock).mock.calls;
+            const payload = calls[calls.length - 1][0];
+            expect(payload).not.toHaveProperty('discoverable');
+        });
+    });
 });
 
 describe('components/new_channel_modal - plugin channel-type options', () => {
@@ -588,6 +701,7 @@ describe('components/new_channel_modal - plugin channel-type options', () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
+        mockedUseClassificationMarkings.mockReturnValue({available: false, loading: false, channelField: null, levels: []});
         (createChannel as jest.Mock).mockReturnValue(() => Promise.resolve({data: mockChannel, error: null}));
     });
 
@@ -678,9 +792,35 @@ describe('components/new_channel_modal - plugin channel-type options', () => {
             url: 'my-channel',
             purpose: '',
             type: 'plugin-option',
+            defaultCategoryName: undefined,
             managedCategoryName: undefined,
+            classificationId: undefined,
+            bannerText: undefined,
         }));
         expect(createChannel).not.toHaveBeenCalled();
+    });
+
+    test('passes classification fields to the plugin onCreate callback', async () => {
+        const onCreate = jest.fn().mockResolvedValue({status: 'created', channel: mockChannel});
+        mockedUseClassificationMarkings.mockReturnValue({
+            available: true,
+            loading: false,
+            channelField: null,
+            levels: [{id: 'secret', name: 'SECRET', color: '#C8102E', rank: 1}],
+        });
+        renderWithContext(<NewChannelModal/>, stateWithOption({onCreate}));
+
+        await userEvent.click(screen.getByText('Plugin Channel'));
+        await userEvent.click(screen.getByTestId('channelClassificationToggle-button'));
+        await userEvent.click(screen.getByRole('combobox'));
+        await userEvent.click(screen.getByText('SECRET'));
+        await userEvent.type(screen.getByRole('textbox', {name: 'Channel name'}), 'My Channel');
+        await userEvent.click(screen.getByRole('button', {name: /create channel/i}));
+
+        await waitFor(() => expect(onCreate).toHaveBeenCalledWith(expect.objectContaining({
+            classificationId: 'secret',
+            bannerText: '**SECRET**',
+        })));
     });
 
     test('CreateResult: deferred - modal closes without dispatching switchToChannel', async () => {
@@ -1156,5 +1296,121 @@ describe('components/new_channel_modal - plugin channel-type options', () => {
 
         expect(screen.queryByTestId('loadingSpinner')).not.toBeInTheDocument();
         expect(pluginButton.closest('button')).toHaveClass('selected');
+    });
+});
+
+describe('components/new_channel_modal - channel attributes', () => {
+    const createdChannel: Channel = {
+        id: 'new_channel_id',
+        create_at: 0,
+        update_at: 0,
+        delete_at: 0,
+        team_id: 'current_team_id',
+        type: 'O',
+        display_name: 'My Channel',
+        name: 'my-channel',
+        header: '',
+        purpose: '',
+        last_post_at: 0,
+        last_root_post_at: 0,
+        creator_id: '',
+        scheme_id: '',
+        group_constrained: false,
+    };
+
+    const program: PropertyField = {
+        id: 'f_program',
+        group_id: 'g_access_control',
+        name: 'program',
+        type: 'select',
+        target_id: '',
+        target_type: 'system',
+        object_type: 'channel',
+        attrs: {display_name: 'Program', options: [{id: 'opt_a', name: 'AURORA'}, {id: 'opt_b', name: 'BOREALIS'}]},
+        create_at: 1,
+        update_at: 1,
+        delete_at: 0,
+        created_by: '',
+        updated_by: '',
+    };
+
+    const state: DeepPartial<GlobalState> = {
+        entities: {
+            general: {config: {UseAnonymousURLs: 'false'}},
+            channels: {currentChannelId: 'current_channel_id', channels: {}, roles: {}},
+            teams: {
+                currentTeamId: 'current_team_id',
+                myMembers: {current_team_id: {roles: 'team_user'}},
+                teams: {current_team_id: {id: 'current_team_id', name: 'current-team'}},
+            },
+            preferences: {myPreferences: {}},
+            users: {currentUserId: 'current_user_id', profiles: {current_user_id: {roles: 'system_admin system_user'}}},
+            roles: {
+                roles: {
+                    team_user: {permissions: []},
+                    system_admin: {permissions: [Permissions.CREATE_PUBLIC_CHANNEL]},
+                    system_user: {permissions: []},
+                },
+            },
+        },
+    };
+
+    let patchPropertyValues: jest.SpyInstance;
+
+    beforeEach(() => {
+        jest.clearAllMocks();
+        mockedUseClassificationMarkings.mockReturnValue({available: false, loading: false, channelField: null, levels: []});
+        mockedUseChannelAttributes.mockReturnValue({enabled: true, loading: false, failed: false, fields: [program]});
+        (createChannel as jest.Mock).mockReturnValue(() => Promise.resolve({data: createdChannel, error: null}));
+        patchPropertyValues = jest.spyOn(Client4, 'patchPropertyValues').mockResolvedValue([]);
+    });
+
+    afterEach(() => {
+        patchPropertyValues.mockRestore();
+    });
+
+    async function fillAndSelect() {
+        await userEvent.type(screen.getByPlaceholderText('Enter a name for your new channel'), 'My Channel');
+        await userEvent.click(screen.getByText('Select a value'));
+        await userEvent.click(screen.getByText('AURORA'));
+    }
+
+    test('writes the selected attribute values against the channel that was just created', async () => {
+        renderWithContext(<NewChannelModal/>, state);
+
+        await fillAndSelect();
+        await userEvent.click(screen.getByText('Create channel'));
+
+        await waitFor(() => expect(patchPropertyValues).toHaveBeenCalledTimes(1));
+        expect(patchPropertyValues).toHaveBeenCalledWith(
+            'access_control',
+            'channel',
+            createdChannel.id,
+            [{field_id: program.id, value: 'opt_a'}],
+        );
+    });
+
+    test('writes nothing when no attribute was chosen', async () => {
+        renderWithContext(<NewChannelModal/>, state);
+
+        await userEvent.type(screen.getByPlaceholderText('Enter a name for your new channel'), 'My Channel');
+        await userEvent.click(screen.getByText('Create channel'));
+
+        await waitFor(() => expect(createChannel).toHaveBeenCalled());
+        expect(patchPropertyValues).not.toHaveBeenCalled();
+    });
+
+    test('keeps the channel and names the unsaved attribute when the write fails', async () => {
+        patchPropertyValues.mockRejectedValue(new Error('nope'));
+
+        renderWithContext(<NewChannelModal/>, state);
+
+        await fillAndSelect();
+        await userEvent.click(screen.getByText('Create channel'));
+
+        // The error has to name what was not saved, and the modal has to stop
+        // offering to create a second channel.
+        await waitFor(() => expect(screen.getByText(/these attributes were not saved: Program/)).toBeInTheDocument());
+        expect(screen.getByText('Go to channel')).toBeEnabled();
     });
 });

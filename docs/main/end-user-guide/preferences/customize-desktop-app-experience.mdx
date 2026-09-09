@@ -1,6 +1,7 @@
 ---
 title: "Customize your Desktop App experience"
 ---
+import useBaseUrl from '@docusaurus/useBaseUrl';
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
@@ -51,7 +52,7 @@ With the Mattermost desktop app in focus, select **Mattermost \> Settings...**
 </TabItem>
 <TabItem value="windows-linux" label="Windows/Linux">
 
-With the Mattermost desktop app in focus, select the **More** <img src="/img/ui/dots-vertical_F01D9.svg" alt="Use the More icon in the top left corner to access Mattermost desktop apps customization settings." className="theme-icon" /> icon in the top left of the menu bar and select **File \> Settings...**
+With the Mattermost desktop app in focus, select the **More** <img src={useBaseUrl('/img/ui/dots-vertical_F01D9.svg')} alt="Use the More icon in the top left corner to access Mattermost desktop apps customization settings." className="theme-icon" /> icon in the top left of the menu bar and select **File \> Settings...**
 
 ![Access Desktop App customization settings by selecting More in the top left corner, then selecting File \> Settings.](/images/desktop-app-settings.jpg)
 
@@ -65,6 +66,7 @@ With the Mattermost desktop app in focus, select the **More** <img src="/img/ui/
 - **Open app in full screen**: Configure the desktop app to open in fullscreen. Disable this setting to open the app in a windowed view.
 - **Synchronize Desktop App theme with server**: The desktop app theme automatically matches the theme set on your primary Mattermost server. Disable this setting to manage desktop app themes independently.
 - **Maximum number of open views**: From Desktop v6.0, set the maximum number of open tabs and windows per workspace. When a limit is set, Mattermost prompts you to close tabs or windows when the limit is exceeded. Leave this field blank for no maximum limit.
+- **Use native title bar** (Linux only): From Mattermost Desktop v6.2.0, render the desktop app with your Linux desktop environment's native title bar and window controls instead of the custom Mattermost title bar. Restart the desktop app to apply changes to this setting.
 
 ## Notifications
 

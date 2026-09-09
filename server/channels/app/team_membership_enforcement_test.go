@@ -30,6 +30,21 @@ func setupTeamABACEnforcement(t *testing.T) *TestHelper {
 	return th
 }
 
+// setupTeamABACPrereqsFlagOff enables the license and config prerequisites but
+// leaves the TeamMembershipAccessControl flag off, so a governed team exercises
+// the kill-switch branch with everything else in place.
+func setupTeamABACPrereqsFlagOff(t *testing.T) *TestHelper {
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.TeamMembershipAccessControl = false
+	}).InitBasic(t)
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.AccessControlSettings.EnableAttributeBasedAccessControl = true
+	})
+	require.True(t, th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced)))
+	t.Cleanup(func() { th.App.Srv().SetLicense(nil) })
+	return th
+}
+
 func setMockACS(t *testing.T, th *TestHelper) *mocks.AccessControlServiceInterface {
 	t.Helper()
 	mockACS := &mocks.AccessControlServiceInterface{}
@@ -240,10 +255,16 @@ func TestFilterNonQualifyingTeamsForUser(t *testing.T) {
 	}
 
 	t.Run("feature flag off is a no-op pass-through", func(t *testing.T) {
-		thOff := Setup(t).InitBasic(t) // flag defaults off
+		// Prerequisites on, flag off, team governed by a policy: only the
+		// kill switch keeps this a pass-through.
+		thOff := setupTeamABACPrereqsFlagOff(t)
 		team := thOff.CreateTeam(t)
+		saveTestTeamPolicy(t, thOff, team.Id, model.AccessControlPolicyActionMembership)
+		reloaded, err := thOff.App.Srv().Store().Team().Get(team.Id)
+		require.NoError(t, err)
+		require.True(t, reloaded.PolicyEnforced, "team must be policy-governed so only the flag keeps it a pass-through")
 		user := thOff.CreateUser(t)
-		out, dropped, appErr := thOff.App.FilterNonQualifyingTeamsForUser(thOff.Context, []*model.Team{team}, user.Id)
+		out, dropped, appErr := thOff.App.FilterNonQualifyingTeamsForUser(thOff.Context, []*model.Team{reloaded}, user.Id)
 		require.Nil(t, appErr)
 		require.Zero(t, dropped)
 		require.Len(t, out, 1)
@@ -367,4 +388,112 @@ func TestFilterNonQualifyingTeamsForUserErrorIsNotSwallowed(t *testing.T) {
 	// A non-existent requesting user makes GetUser fail; that error must bubble.
 	_, _, appErr := th.App.FilterNonQualifyingTeamsForUser(th.Context, []*model.Team{reloaded}, model.NewId())
 	require.NotNil(t, appErr)
+}
+
+func TestAnnotateRecommendedTeamsForUser(t *testing.T) {
+	th := setupTeamABACEnforcement(t)
+
+	publicGoverned := func(t *testing.T) *model.Team {
+		t.Helper()
+		team := th.CreateTeam(t)
+		team.AllowOpenInvite = true // public → advisory: eligible for the recommended tag
+		updated, appErr := th.App.UpdateTeam(team)
+		require.Nil(t, appErr)
+		saveTestTeamPolicy(t, th, updated.Id, model.AccessControlPolicyActionMembership)
+		reloaded, err := th.App.Srv().Store().Team().Get(updated.Id)
+		require.NoError(t, err)
+		require.True(t, reloaded.PolicyEnforced)
+		require.True(t, reloaded.AllowOpenInvite)
+		return reloaded
+	}
+
+	privateGoverned := func(t *testing.T) *model.Team {
+		t.Helper()
+		team := th.CreateTeam(t) // AllowOpenInvite defaults false → private/strict
+		saveTestTeamPolicy(t, th, team.Id, model.AccessControlPolicyActionMembership)
+		reloaded, err := th.App.Srv().Store().Team().Get(team.Id)
+		require.NoError(t, err)
+		require.True(t, reloaded.PolicyEnforced)
+		require.False(t, reloaded.AllowOpenInvite)
+		return reloaded
+	}
+
+	t.Run("feature flag off is a no-op", func(t *testing.T) {
+		// Prerequisites on, flag off, public governed team (otherwise
+		// recommend-eligible): only the kill switch suppresses the tag.
+		thOff := setupTeamABACPrereqsFlagOff(t)
+		team := thOff.CreateTeam(t)
+		team.AllowOpenInvite = true
+		updated, appErr := thOff.App.UpdateTeam(team)
+		require.Nil(t, appErr)
+		saveTestTeamPolicy(t, thOff, updated.Id, model.AccessControlPolicyActionMembership)
+		reloaded, err := thOff.App.Srv().Store().Team().Get(updated.Id)
+		require.NoError(t, err)
+		require.True(t, reloaded.PolicyEnforced, "team must be policy-governed so only the flag suppresses the tag")
+		require.True(t, reloaded.AllowOpenInvite)
+		user := thOff.CreateUser(t)
+		thOff.App.AnnotateRecommendedTeamsForUser(thOff.Context, []*model.Team{reloaded}, user.Id)
+		require.False(t, reloaded.Recommended)
+	})
+
+	t.Run("non-governed team is never recommended and never evaluated", func(t *testing.T) {
+		team := th.CreateTeam(t)
+		user := th.CreateUser(t)
+		acs := setMockACS(t, th)
+		th.App.AnnotateRecommendedTeamsForUser(th.Context, []*model.Team{team}, user.Id)
+		require.False(t, team.Recommended)
+		acs.AssertNotCalled(t, "AccessEvaluation", mock.Anything, mock.Anything)
+	})
+
+	t.Run("private governed team is never recommended and never evaluated", func(t *testing.T) {
+		team := privateGoverned(t)
+		user := th.CreateUser(t)
+		acs := setMockACS(t, th)
+		th.App.AnnotateRecommendedTeamsForUser(th.Context, []*model.Team{team}, user.Id)
+		require.False(t, team.Recommended)
+		acs.AssertNotCalled(t, "AccessEvaluation", mock.Anything, mock.Anything)
+	})
+
+	t.Run("public governed team is recommended to a qualifying non-member", func(t *testing.T) {
+		team := publicGoverned(t)
+		user := th.CreateUser(t)
+		acs := setMockACS(t, th)
+		acs.On("AccessEvaluation", mock.Anything, mock.Anything).Return(model.AccessDecision{Decision: true}, (*model.AppError)(nil))
+
+		th.App.AnnotateRecommendedTeamsForUser(th.Context, []*model.Team{team}, user.Id)
+		require.True(t, team.Recommended)
+	})
+
+	t.Run("public governed team is not recommended to a non-qualifying non-member", func(t *testing.T) {
+		team := publicGoverned(t)
+		user := th.CreateUser(t)
+		acs := setMockACS(t, th)
+		acs.On("AccessEvaluation", mock.Anything, mock.Anything).Return(model.AccessDecision{Decision: false}, (*model.AppError)(nil))
+
+		th.App.AnnotateRecommendedTeamsForUser(th.Context, []*model.Team{team}, user.Id)
+		require.False(t, team.Recommended)
+	})
+
+	t.Run("PDP error leaves the team not recommended (fail-secure)", func(t *testing.T) {
+		team := publicGoverned(t)
+		user := th.CreateUser(t)
+		acs := setMockACS(t, th)
+		acs.On("AccessEvaluation", mock.Anything, mock.Anything).
+			Return(model.AccessDecision{}, model.NewAppError("AccessEvaluation", "boom", nil, "", http.StatusInternalServerError))
+
+		th.App.AnnotateRecommendedTeamsForUser(th.Context, []*model.Team{team}, user.Id)
+		require.False(t, team.Recommended)
+	})
+
+	t.Run("existing member is not recommended and is never evaluated", func(t *testing.T) {
+		team := publicGoverned(t)
+		user := th.CreateUser(t)
+		_, err := th.App.Srv().Store().Team().SaveMember(th.Context, &model.TeamMember{TeamId: team.Id, UserId: user.Id}, *th.App.Config().TeamSettings.MaxUsersPerTeam)
+		require.NoError(t, err)
+
+		acs := setMockACS(t, th)
+		th.App.AnnotateRecommendedTeamsForUser(th.Context, []*model.Team{team}, user.Id)
+		require.False(t, team.Recommended)
+		acs.AssertNotCalled(t, "AccessEvaluation", mock.Anything, mock.Anything)
+	})
 }

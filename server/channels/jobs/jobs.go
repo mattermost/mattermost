@@ -61,6 +61,20 @@ func (srv *JobServer) CreateJobOnce(rctx request.CTX, jobType string, jobData ma
 	return job, nil
 }
 
+func (srv *JobServer) CreateJobOnceByTypeAndData(rctx request.CTX, jobType string, jobData map[string]string, data map[string]string) (*model.Job, *model.AppError) {
+	job, appErr := srv._createJob(rctx, jobType, jobData)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	savedJob, err := srv.Store.Job().SaveOnceByTypeAndData(job, data)
+	if err != nil {
+		return nil, model.NewAppError("CreateJob", "app.job.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	return savedJob, nil
+}
+
 func (srv *JobServer) _createJob(rctx request.CTX, jobType string, jobData map[string]string) (*model.Job, *model.AppError) {
 	job := model.Job{
 		Id:       model.NewId(),
@@ -125,7 +139,49 @@ func (srv *JobServer) publishJobStatus(job *model.Job, status string) {
 	}
 	message := model.NewWebSocketEvent(model.WebsocketEventJobUpdated, "", "", "", nil, "")
 	message.Add("job", string(jobJSON))
+
+	var permission *model.Permission
+	switch job.Type {
+	case model.JobTypeDataRetention:
+		permission = model.PermissionReadDataRetentionJob
+	case model.JobTypeMessageExport:
+		permission = model.PermissionReadComplianceExportJob
+	case model.JobTypeElasticsearchPostIndexing:
+		permission = model.PermissionReadElasticsearchPostIndexingJob
+	case model.JobTypeElasticsearchPostAggregation:
+		permission = model.PermissionReadElasticsearchPostAggregationJob
+	case model.JobTypeLdapSync:
+		permission = model.PermissionReadLdapSyncJob
+	case
+		model.JobTypeMigrations,
+		model.JobTypePlugins,
+		model.JobTypeProductNotices,
+		model.JobTypeExpiryNotify,
+		model.JobTypeActiveUsers,
+		model.JobTypeImportProcess,
+		model.JobTypeImportDelete,
+		model.JobTypeExportProcess,
+		model.JobTypeExportDelete,
+		model.JobTypeCloud,
+		model.JobTypeMobileSessionMetadata,
+		model.JobTypeExtractContent,
+		model.JobTypeCleanupExpiredAccessTokens:
+		permission = model.PermissionReadJobs
+	case model.JobTypeAccessControlSync:
+		permission = model.PermissionManageSystem
+	case model.JobTypeAccessControlTeamSync:
+		permission = model.PermissionManageTeamAccessRules
+	}
+	// TODO: ContainsSensitiveData is set unconditionally as a temporary workaround for mixed-version
+	// cluster rollouts. Older nodes don't know about RequiredPermissions and silently drop it when
+	// decoding the cluster message, so this makes them fail closed (sysadmin-only) instead of
+	// broadcasting the unfiltered job to everyone. ShouldSendEvent on upgraded nodes ignores
+	// ContainsSensitiveData whenever RequiredPermissions is set. Remove once permission-scoped
+	// WebSocket delivery no longer needs to interoperate with pre-MM-69403 nodes.
 	message.GetBroadcast().ContainsSensitiveData = true
+	if permission != nil {
+		message.GetBroadcast().RequiredPermissions = []string{permission.Id}
+	}
 	srv.publish(message)
 }
 

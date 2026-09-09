@@ -48,6 +48,11 @@ type Team struct {
 	PolicyEnforced bool            `json:"policy_enforced"`
 	PolicyActions  map[string]bool `json:"policy_actions,omitempty"` // hydrated lazily; nil when not hydrated
 	PolicyIsActive bool            `json:"policy_is_active"`
+
+	// Not persisted; a transient per-viewer hint set on public, policy-enforced
+	// teams the requesting user qualifies to join and is not already a member of.
+	// Never set on private teams. Carries no policy detail.
+	Recommended bool `json:"recommended,omitempty"`
 }
 
 // HasPolicyAction is nil-safe; returns false when PolicyActions is nil or empty.

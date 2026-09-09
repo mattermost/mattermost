@@ -11,13 +11,12 @@ import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId, getUser} from 'mattermost-redux/selectors/entities/users';
 import {getUserIdFromChannelName} from 'mattermost-redux/utils/channel_utils';
 
-import {getPopoutChannelTitle} from 'components/channel_popout/channel_popout';
 import * as Menu from 'components/menu';
 import PopoutMenuItem, {type PopoutMenuItemProps} from 'components/popout_menu_item';
 
 import {getChannelRoutePathAndIdentifier} from 'utils/channel_utils';
 import {Constants} from 'utils/constants';
-import {popoutChannel} from 'utils/popouts/popout_windows';
+import {getPopoutChannelTitle, popoutChannel} from 'utils/popouts/popout_windows';
 
 import type {GlobalState} from 'types/store';
 

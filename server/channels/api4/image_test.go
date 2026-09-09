@@ -43,27 +43,6 @@ func TestGetImage(t *testing.T) {
 		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
 	})
 
-	t.Run("atmos/camo", func(t *testing.T) {
-		imageURL := "http://foo.bar/baz.gif"
-		proxiedURL := "https://proxy.foo.bar/83d4d9ac78b76ce425ea67038826df867c62cc5c/687474703a2f2f666f6f2e6261722f62617a2e676966"
-
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.ImageProxySettings.Enable = new(true)
-			cfg.ImageProxySettings.ImageProxyType = new("atmos/camo")
-			cfg.ImageProxySettings.RemoteImageProxyOptions = new("7e5f3fab20b94782b43cdb022a66985ef28ba355df2c5d5da3c9a05e4b697bac")
-			cfg.ImageProxySettings.RemoteImageProxyURL = new("https://proxy.foo.bar")
-		})
-
-		r, err := http.NewRequest("GET", th.Client.APIURL+"/image?url="+url.QueryEscape(imageURL), nil)
-		require.NoError(t, err)
-		r.Header.Set(model.HeaderAuth, th.Client.AuthType+" "+th.Client.AuthToken)
-
-		resp, err := th.Client.HTTPClient.Do(r)
-		require.NoError(t, err)
-		assert.Equal(t, http.StatusFound, resp.StatusCode)
-		assert.Equal(t, proxiedURL, resp.Header.Get("Location"))
-	})
-
 	t.Run("local", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			cfg.ImageProxySettings.Enable = new(true)

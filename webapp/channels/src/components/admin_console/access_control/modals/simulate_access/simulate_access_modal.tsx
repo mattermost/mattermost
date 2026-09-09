@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState, type JSX} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
@@ -17,7 +17,7 @@ import type {
     PolicySimulationUserOverride,
 } from '@mattermost/types/access_control';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
-import {SESSION_ATTRIBUTES_GROUP_ID} from '@mattermost/types/properties_user';
+import {isSessionAttributeField} from '@mattermost/types/properties_user';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {simulatePolicyForUsers} from 'mattermost-redux/actions/access_control';
@@ -100,8 +100,8 @@ type Props = {
  *    "default session" entry when sessions are not returned (channel
  *    admin / no recent session).
  *  - Pencil icon opens an inline session-attribute editor whose fields
- *    are derived dynamically from accessControlFields filtered by
- *    SESSION_ATTRIBUTES_GROUP_ID. Apply marks the row dirty and the
+ *    are derived dynamically from accessControlFields filtered to the
+ *    session object type. Apply marks the row dirty and the
  *    re-run button must be clicked to re-evaluate.
  *  - X removes the row.
  *
@@ -172,7 +172,7 @@ function SimulateAccessModal({
         if (!accessControlFields) {
             return [];
         }
-        return accessControlFields.filter((f) => f.group_id === SESSION_ATTRIBUTES_GROUP_ID);
+        return accessControlFields.filter((f) => isSessionAttributeField(f));
     }, [accessControlFields]);
     const sessionAttributesEnabled = sessionAttributeFields.length > 0;
 

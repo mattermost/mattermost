@@ -3,6 +3,10 @@
 
 /* eslint-disable @typescript-eslint/no-require-imports */
 
+import type {JSX} from 'react';
+
+import type {PublishedEditorUtils, PublishedModalId, PublishedModalIdCandidate, PublishedModalProps, PublishedModalUtils} from '@mattermost/shared/types/global';
+
 import {favoriteChannel, unfavoriteChannel} from 'mattermost-redux/actions/channels';
 import {isFavoriteChannel} from 'mattermost-redux/selectors/entities/channels';
 
@@ -23,7 +27,6 @@ import PostMessagePreview from 'components/post_view/post_message_preview';
 import StartTrialFormModal from 'components/start_trial_form_modal';
 import ThreadViewer from 'components/threading/thread_viewer';
 import Timestamp from 'components/timestamp';
-import UserSettingsModal from 'components/user_settings/modal';
 import BotTag from 'components/widgets/tag/bot_tag';
 import Avatar from 'components/widgets/users/avatar';
 
@@ -37,7 +40,10 @@ import {formatText} from 'utils/text_formatting';
 import {useWebSocket, useWebSocketClient, WebSocketContext} from 'utils/use_websocket';
 import {imageURLForUser} from 'utils/utils';
 
+import {AccessControlCELEditor, AccessControlTableEditor} from './access_control_editors';
 import {openInteractiveDialog} from './interactive_dialog'; // This import has intentional side effects. Do not remove without research.
+import {publishedEditorUtils} from './published_editor';
+import {canOpenPublishedModal, openPublishedModal} from './published_modals';
 import {loadSharedDependency} from './shared_dependencies';
 import Textbox from './textbox';
 
@@ -64,7 +70,7 @@ interface WindowWithLibraries {
     openInteractiveDialog: typeof openInteractiveDialog;
     useNotifyAdmin: typeof useNotifyAdmin;
     WebappUtils: {
-        modals: {
+        modals: PublishedModalUtils & {
             openModal: typeof openModal;
             ModalIdentifiers: typeof ModalIdentifiers;
         };
@@ -87,6 +93,7 @@ interface WindowWithLibraries {
             canPopout: typeof canPopout;
             popoutRhsPlugin: typeof popoutRhsPlugin;
         };
+        editor: PublishedEditorUtils;
     };
     loadSharedDependency(request: string): unknown;
     openPricingModal: () => void;
@@ -107,6 +114,8 @@ interface WindowWithLibraries {
         DatePicker: typeof DatePicker;
         MenuItem: typeof Menu.Item;
         MenuSeparator: typeof Menu.Separator;
+        AccessControlTableEditor: typeof AccessControlTableEditor;
+        AccessControlCELEditor: typeof AccessControlCELEditor;
     };
     ProductApi: {
         useWebSocket: typeof useWebSocket;
@@ -151,18 +160,20 @@ window.PostUtils = {
 };
 window.openInteractiveDialog = openInteractiveDialog;
 window.useNotifyAdmin = useNotifyAdmin;
+
 window.WebappUtils = {
     get browserHistory() {
         return getHistory();
     },
-    modals: {openModal, ModalIdentifiers},
+    modals: {
+        openModal,
+        ModalIdentifiers,
+        openModalById: <K extends PublishedModalId>(modalId: K, dialogProps?: PublishedModalProps[K]) => openPublishedModal(modalId, dialogProps),
+        canOpenModalId: (modalId: PublishedModalIdCandidate) => canOpenPublishedModal(modalId),
+    },
     notificationSounds: {ring: NotificationSounds.ring, stopRing: NotificationSounds.stopRing},
     sendDesktopNotificationToMe: notifyMe,
-    openUserSettings: (dialogProps) => openModal({
-        modalId: ModalIdentifiers.USER_SETTINGS,
-        dialogType: UserSettingsModal,
-        dialogProps,
-    }),
+    openUserSettings: (dialogProps) => openPublishedModal('user_settings', dialogProps),
     channels: {favoriteChannel, unfavoriteChannel, isFavoriteChannel},
     popouts: {
         sendToParent,
@@ -171,6 +182,7 @@ window.WebappUtils = {
         canPopout,
         popoutRhsPlugin,
     },
+    editor: publishedEditorUtils,
 };
 window.loadSharedDependency = loadSharedDependency;
 
@@ -198,6 +210,8 @@ window.Components = {
     DatePicker,
     MenuItem: Menu.Item,
     MenuSeparator: Menu.Separator,
+    AccessControlTableEditor,
+    AccessControlCELEditor,
 };
 
 // This is a prototype of the Product API for use by internal plugins only while we transition to the proper architecture

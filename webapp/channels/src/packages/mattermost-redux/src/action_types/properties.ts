@@ -7,6 +7,7 @@ export default keyMirror({
 
     // Field actions
     RECEIVED_PROPERTY_FIELDS: null,
+    RECEIVED_PROPERTY_FIELDS_FOR_SCOPE: null,
     PROPERTY_FIELD_DELETED: null,
 
     // Value actions

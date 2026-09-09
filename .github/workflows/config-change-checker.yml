@@ -11,9 +11,9 @@
 #   • server/build/Dockerfile.buildenv    — Go runtime version changes
 #
 # No secrets needed — uses the built-in GITHUB_TOKEN.
- 
+
 name: Config Change Checker
- 
+
 on:
   pull_request:
     types: [opened, synchronize, reopened]
@@ -22,7 +22,7 @@ on:
       - 'server/channels/api4/**'
       - 'server/public/model/audit_events.go'
       - 'server/build/Dockerfile.buildenv'
- 
+
 # Cancel any in-progress run for the same PR when a new commit is pushed.
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -38,11 +38,11 @@ jobs:
     # not touch these paths intentionally and cannot receive description updates
     # via GITHUB_TOKEN anyway (fork-like restrictions apply to most bots).
     if: github.event.pull_request.user.type != 'Bot'
- 
+
     permissions:
       pull-requests: write   # needed to update the PR description
       contents: read
- 
+
     steps:
       - name: Checkout code
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
@@ -50,15 +50,15 @@ jobs:
           persist-credentials: false
           # Fetch enough history to diff against the base branch
           fetch-depth: 0
- 
+
       - name: Set up Python
         uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405  # v6.2.0
         with:
           python-version: '3.11'
- 
+
       - name: Install dependencies
         run: pip install requests==2.32.3 --quiet
- 
+
       - name: Detect changes and update PR description
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

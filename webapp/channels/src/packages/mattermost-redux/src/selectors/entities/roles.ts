@@ -128,7 +128,7 @@ export const getRolesById: (state: GlobalState) => Record<string, Role> = create
     },
 );
 
-const getMyPermissionsByTeam = createSelector(
+export const getMyPermissionsByTeam = createSelector(
     'getMyPermissionsByTeam',
     getMyTeamRoles,
     getRoles,
@@ -158,7 +158,7 @@ const getMyPermissionsByGroup = createSelector(
     },
 );
 
-const getMyPermissionsByChannel = createSelector(
+export const getMyPermissionsByChannel = createSelector(
     'getMyPermissionsByChannel',
     getMyChannelRoles,
     getRoles,

@@ -248,9 +248,13 @@ export function shouldFocusMainTextbox(e: React.KeyboardEvent | KeyboardEvent, a
         return false;
     }
 
-    // Do not focus if we're currently focused on a textarea or input
+    // Do not focus if we're currently focused on a textarea, an input, or a
+    // rich text editor
     const keepFocusTags = ['TEXTAREA', 'INPUT'];
     if (!activeElement || keepFocusTags.includes(activeElement.tagName)) {
+        return false;
+    }
+    if (activeElement.closest('[contenteditable="true"]')) {
         return false;
     }
 

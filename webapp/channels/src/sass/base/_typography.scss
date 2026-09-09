@@ -50,7 +50,7 @@ h1 {
 
 label {
     &.has-error {
-        color: variables.$red;
+        color: var(--error-text);
         font-weight: normal;
     }
 }

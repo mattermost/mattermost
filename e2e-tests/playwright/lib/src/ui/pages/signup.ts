@@ -25,6 +25,8 @@ export default class SignupPage {
     readonly emailError;
     readonly usernameError;
     readonly passwordError;
+    readonly adminChosenUsernameMessage;
+    readonly presetName;
 
     readonly header;
     readonly footer;
@@ -46,6 +48,8 @@ export default class SignupPage {
             'Usernames have to begin with a lowercase letter and be 3-22 characters long. You can use lowercase letters, numbers, periods, dashes, and underscores.',
         );
         this.passwordError = page.getByText(/Must be \d+-72 characters long\./);
+        this.adminChosenUsernameMessage = page.getByText('Your username was chosen by your admin.');
+        this.presetName = page.getByTestId('signup-body-card-preset-name');
 
         const signupBodyCard = page.getByTestId('signup-body-card');
         this.termsAndPrivacyCheckBox = signupBodyCard.getByRole('checkbox', {
@@ -68,8 +72,8 @@ export default class SignupPage {
         await expect(this.passwordInput).toBeVisible();
     }
 
-    async goto() {
-        await this.page.goto('/signup_user_complete');
+    async goto(url = '/signup_user_complete') {
+        await this.page.goto(url);
     }
 
     async create(user: {email: string; username: string; password: string}, waitForRedirect = true) {
@@ -82,5 +86,12 @@ export default class SignupPage {
         if (waitForRedirect) {
             await this.page.waitForNavigation();
         }
+    }
+
+    async createInvitedUser(password: string) {
+        await this.passwordInput.fill(password);
+        await this.termsAndPrivacyCheckBox.check();
+        await this.createAccountButton.click();
+        await this.page.waitForURL((url) => !url.pathname.startsWith('/signup_user_complete'));
     }
 }

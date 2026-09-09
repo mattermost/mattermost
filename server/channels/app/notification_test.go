@@ -442,7 +442,7 @@ func TestSendNotifications_SilentPostBroadcastsPosted(t *testing.T) {
 	th.AddUserToChannel(t, th.BasicUser2, th.BasicChannel)
 
 	bot := th.CreateBot(t)
-	botUser, appErr := th.App.GetUser(bot.UserId)
+	botUser, appErr := th.App.GetUser(th.Context, bot.UserId)
 	require.Nil(t, appErr)
 	th.LinkUserToTeam(t, botUser, th.BasicTeam)
 	_, appErr = th.App.AddUserToChannel(th.Context, botUser, th.BasicChannel, false)
@@ -481,7 +481,7 @@ func TestCreatePostSilentBroadcastsPostedWithProps(t *testing.T) {
 	th.AddUserToChannel(t, th.BasicUser2, th.BasicChannel)
 
 	bot := th.CreateBot(t)
-	botUser, appErr := th.App.GetUser(bot.UserId)
+	botUser, appErr := th.App.GetUser(th.Context, bot.UserId)
 	require.Nil(t, appErr)
 	th.LinkUserToTeam(t, botUser, th.BasicTeam)
 	_, appErr = th.App.AddUserToChannel(th.Context, botUser, th.BasicChannel, false)
@@ -521,7 +521,7 @@ func TestSendNotifications_SilentSkipsGroupMention(t *testing.T) {
 	th.AddUserToChannel(t, th.BasicUser2, th.BasicChannel)
 
 	bot := th.CreateBot(t)
-	botUser, appErr := th.App.GetUser(bot.UserId)
+	botUser, appErr := th.App.GetUser(th.Context, bot.UserId)
 	require.Nil(t, appErr)
 	th.LinkUserToTeam(t, botUser, th.BasicTeam)
 	_, appErr = th.App.AddUserToChannel(th.Context, botUser, th.BasicChannel, false)
@@ -566,7 +566,7 @@ func TestSendNotifications_SilentSkipsCRTFollowers(t *testing.T) {
 	th.AddUserToChannel(t, th.BasicUser2, th.BasicChannel)
 
 	bot := th.CreateBot(t)
-	botUser, appErr := th.App.GetUser(bot.UserId)
+	botUser, appErr := th.App.GetUser(th.Context, bot.UserId)
 	require.Nil(t, appErr)
 	th.LinkUserToTeam(t, botUser, th.BasicTeam)
 	_, appErr = th.App.AddUserToChannel(th.Context, botUser, th.BasicChannel, false)
@@ -2791,6 +2791,38 @@ func TestUserAllowsEmail(t *testing.T) {
 		}
 
 		assert.False(t, th.App.userAllowsEmail(th.Context, user, channelMemberNotifcationProps, &model.Post{Type: model.PostTypeAutoResponder}))
+	})
+}
+
+func TestUserAllowsEmailAccessControlTeamMembership(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	props := model.StringMap{
+		model.EmailNotifyProp:      model.ChannelNotifyDefault,
+		model.MarkUnreadNotifyProp: model.ChannelMarkUnreadAll,
+	}
+
+	t.Run("removal DM does not email", func(t *testing.T) {
+		user := th.CreateUser(t)
+		th.App.SetStatusOffline(user.Id, true, false)
+
+		assert.False(t, th.App.userAllowsEmail(th.Context, user, props, &model.Post{Type: model.PostTypeAccessControlTeamRemoval}))
+	})
+
+	t.Run("addition DM does not email", func(t *testing.T) {
+		user := th.CreateUser(t)
+		th.App.SetStatusOffline(user.Id, true, false)
+
+		assert.False(t, th.App.userAllowsEmail(th.Context, user, props, &model.Post{Type: model.PostTypeAccessControlTeamAddition}))
+	})
+
+	// Scoped to the two ABAC types: another system DM still emails.
+	t.Run("other system DM still emails", func(t *testing.T) {
+		user := th.CreateUser(t)
+		th.App.SetStatusOffline(user.Id, true, false)
+
+		assert.True(t, th.App.userAllowsEmail(th.Context, user, props, &model.Post{Type: model.PostTypeAddToTeam}))
 	})
 }
 

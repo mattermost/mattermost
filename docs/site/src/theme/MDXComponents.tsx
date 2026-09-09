@@ -2,7 +2,7 @@
 // in any .mdx file without an import.
 
 import MDXComponents from '@theme-original/MDXComponents';
-import {Note, Tip, Important, Warning, Security} from '@site/src/components/Callout';
+import {Note, Tip, Important, Attention, Warning, Security} from '@site/src/components/Callout';
 import PlanBadge from '@site/src/components/PlanBadge';
 import PlanAvailability from '@site/src/components/PlanAvailability';
 import EditionAvailability from '@site/src/components/EditionAvailability';
@@ -17,6 +17,11 @@ import Eyebrow from '@site/src/components/Eyebrow';
 import StatStrip from '@site/src/components/StatStrip';
 import MethodLegend from '@site/src/components/MethodLegend';
 import CardGrid from '@site/src/components/CardGrid';
+import UpgradeNotesFilter from '@site/src/components/UpgradeNotesFilter';
+import PluginGoDocs from '@site/src/components/PluginGoDocs';
+import PluginGoExample from '@site/src/components/PluginGoExample';
+import PluginJsDocs from '@site/src/components/PluginJsDocs';
+import PluginManifestDocs from '@site/src/components/PluginManifestDocs';
 // Globally available so migrated developer docs (Hugo `tabs` shortcode)
 // can use them without imports.
 import Tabs from '@theme/Tabs';
@@ -27,6 +32,7 @@ export default {
   Note,
   Tip,
   Important,
+  Attention,
   Warning,
   Security,
   PlanBadge,
@@ -43,6 +49,11 @@ export default {
   StatStrip,
   MethodLegend,
   CardGrid,
+  UpgradeNotesFilter,
+  PluginGoDocs,
+  PluginGoExample,
+  PluginJsDocs,
+  PluginManifestDocs,
   Tabs,
   TabItem,
 };

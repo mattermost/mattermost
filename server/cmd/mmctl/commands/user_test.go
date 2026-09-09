@@ -1798,6 +1798,57 @@ func (s *MmctlUnitTestSuite) TestListUserCmdF() {
 		s.Require().Equal(&mockUser3, printer.GetLines()[1])
 	})
 
+	s.Run("Listing all active users", func() {
+		printer.Clean()
+
+		email1 := "example1@example.com"
+		mockUser1 := model.User{Username: "ExampleUser1", Email: email1}
+		email2 := "example2@example.com"
+		mockUser2 := model.User{Username: "ExampleUser2", Email: email2}
+
+		cmd := ResetListUsersCmd(s.T())
+		s.Require().NoError(cmd.Flags().Set("per-page", "1"))
+		s.Require().NoError(cmd.Flags().Set("all", "true"))
+		s.Require().NoError(cmd.Flags().Set("active", "true"))
+
+		s.client.
+			EXPECT().
+			GetUsersWithCustomQueryParameters(context.TODO(), 0, 1, "active=true", "").
+			Return([]*model.User{&mockUser1}, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetUsersWithCustomQueryParameters(context.TODO(), 1, 1, "active=true", "").
+			Return([]*model.User{&mockUser2}, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetUsersWithCustomQueryParameters(context.TODO(), 2, 1, "active=true", "").
+			Return([]*model.User{}, &model.Response{}, nil).
+			Times(1)
+
+		err := listUsersCmdF(s.client, cmd, []string{})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 2)
+		s.Require().Equal(&mockUser1, printer.GetLines()[0])
+		s.Require().Equal(&mockUser2, printer.GetLines()[1])
+	})
+
+	s.Run("Fail to list users when both active and inactive flags are set", func() {
+		printer.Clean()
+
+		cmd := ResetListUsersCmd(s.T())
+		s.Require().NoError(cmd.Flags().Set("active", "true"))
+		s.Require().NoError(cmd.Flags().Set("inactive", "true"))
+
+		err := listUsersCmdF(s.client, cmd, []string{})
+		s.Require().Error(err)
+		s.Require().EqualError(err, "--active and --inactive flags cannot be used together")
+		s.Require().Empty(printer.GetLines())
+	})
+
 	s.Run("Listing inactive users with paging skipping 1 page", func() {
 		printer.Clean()
 

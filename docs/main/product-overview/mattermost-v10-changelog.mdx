@@ -17,12 +17,12 @@ Platform and OS scope reflects reported and tested environments and may not repr
 ## Release v10.12 - [Feature Release](https://docs.mattermost.com/product-overview/release-policy.html#release-types) \{#release-v10-12-feature-release}
 
 - **10.12.4, released 2025-11-21**
-  <Important>
+  <Attention>
 
   **Critical Fixes**
   - Mattermost v10.12.4 contains a Critical severity level security fix in the Jira plugin. [Upgrading](https://docs.mattermost.com/upgrade/upgrading-mattermost-server.html) to this release as soon as possible is highly recommended. Details will be posted on our [security updates page](https://mattermost.com/security-updates/) 30 days after release as per the [Mattermost Responsible Disclosure Policy](https://mattermost.com/security-vulnerability-report/).
 
-  </Important>
+  </Attention>
   - Pre-packaged Jira plugin version [v4.4.1](https://github.com/mattermost/mattermost-plugin-jira/releases/tag/v4.4.1).
   - Mattermost v10.12.4 contains no database or functional changes.
 - **10.12.3, released 2025-11-17**
@@ -32,12 +32,12 @@ Platform and OS scope reflects reported and tested environments and may not repr
   - Fixed a configuration retention issue where even active configuration got deleted.
   - Mattermost v10.12.3 contains no database or functional changes.
 - **10.12.2, released 2025-10-28**
-  <Important>
+  <Attention>
 
   **Critical Fixes**
   - Mattermost v10.12.2 contains Critical severity level security fixes. [Upgrading](https://docs.mattermost.com/upgrade/upgrading-mattermost-server.html) to this release as soon as possible is highly recommended. Details will be posted on our [security updates page](https://mattermost.com/security-updates/) 30 days after release as per the [Mattermost Responsible Disclosure Policy](https://mattermost.com/security-vulnerability-report/).
 
-  </Important>
+  </Attention>
   - Pre-packaged Boards plugin [v9.1.7](https://github.com/mattermost/mattermost-plugin-boards/releases/tag/v9.1.7).
   - Mattermost v10.12.2 contains no database or functional changes.
 - **10.12.1, released 2025-10-15**
@@ -85,6 +85,62 @@ If you upgrade from a release earlier than v10.10, please read the other [Import
 
 ## Release v10.11 - [Extended Support Release](https://docs.mattermost.com/product-overview/release-policy.html#release-types) \{#release-v10-11-extended-support-release}
 
+<Attention>
+
+**Known Issue**
+ - Customers should not upgrade from ``>=10.11.17`` to ``<=11.7.2`` due to a bug that causes an issue with database migration numbers. The bug is fixed in v11.7.3.
+
+</Attention>
+
+- **10.11.23, released 2026-08-13**
+  - Mattermost v10.11.23 contains low to high severity level security fixes. [Upgrading](https://docs.mattermost.com/upgrade/upgrading-mattermost-server.html) to this release is recommended. Details will be posted on our [security updates page](https://mattermost.com/security-updates/) 30 days after release as per the [Mattermost Responsible Disclosure Policy](https://mattermost.com/security-vulnerability-report/).
+  - Pre-packaged Boards plugin version [v9.2.7](https://github.com/mattermost/mattermost-plugin-boards/releases/tag/v9.2.7).
+  - Pre-packaged Playbooks plugin version [v2.4.8](https://github.com/mattermost/mattermost-plugin-playbooks/releases/tag/v2.4.8).
+  - Pre-packaged Calls plugin version [v1.11.6](https://github.com/mattermost/mattermost-plugin-calls/releases/tag/v1.11.6).
+  - Pre-packaged Microsoft Calendar plugin version [v1.6.2](https://github.com/mattermost/mattermost-plugin-mscalendar/releases/tag/v1.6.2).
+  - Fixed an issue where the data retention policy teams endpoint returned more team information than intended.
+  - Mattermost v10.11.23 contains no database schema changes.
+- **10.11.22, released 2026-07-17**
+  - Mattermost v10.11.22 contains low to high severity level security fixes. [Upgrading](https://docs.mattermost.com/upgrade/upgrading-mattermost-server.html) to this release is recommended. Details will be posted on our [security updates page](https://mattermost.com/security-updates/) 30 days after release as per the [Mattermost Responsible Disclosure Policy](https://mattermost.com/security-vulnerability-report/).
+  - Pre-packaged Playbooks plugin version [v2.4.7](https://github.com/mattermost/mattermost-plugin-playbooks/releases/tag/v2.4.7).
+  - Pre-packaged Jira plugin version [v4.7.1](https://github.com/mattermost/mattermost-plugin-jira/releases/tag/v4.7.1).
+  - Pre-packaged Boards plugin version [v9.2.6](https://github.com/mattermost/mattermost-plugin-boards/releases/tag/v9.2.6).
+  - Tightened validation when updating channel member roles via the API.
+  - Tightened authorization on the OAuth deauthorization and personal access token management endpoints.
+  - Mattermost v10.11.22 contains no database or functional changes.
+- **10.11.21, released 2026-06-26**
+  - Mattermost v10.11.21 contains low to medium severity level security fixes. [Upgrading](https://docs.mattermost.com/upgrade/upgrading-mattermost-server.html) to this release is recommended. Details will be posted on our [security updates page](https://mattermost.com/security-updates/) 30 days after release as per the [Mattermost Responsible Disclosure Policy](https://mattermost.com/security-vulnerability-report/).
+  - Pre-packaged GitLab plugin version [v1.12.3](https://github.com/mattermost/mattermost-plugin-gitlab/releases/tag/v1.12.3).
+  - Fixed custom emoji upload size and GIF frame limits.
+  - Fixed an issue where a transient file read failure while building a Global Relay compliance export could crash the server.
+  - Mattermost v10.11.21 contains the following functional and database changes:
+     - Added a new ``FileSettings.ExtractContentTimeout`` setting (default 10 seconds) that limits how long a single uploaded document's content extraction occupies a worker, and moved document content extraction to a dedicated, non-blocking worker pool so it no longer delays file uploads for other users. Added ``FileSettings.ExtractContentTimeout`` configuration setting.
+     - Removed orphaned ``threadmemberships`` rows where the user is no longer a channel member; irreversible data-only migration that may run slowly on large instances.
+- **10.11.20, released 2026-06-12**
+  - Mattermost v10.11.20 contains low to medium severity level security fixes. [Upgrading](https://docs.mattermost.com/upgrade/upgrading-mattermost-server.html) to this release is recommended. Details will be posted on our [security updates page](https://mattermost.com/security-updates/) 30 days after release as per the [Mattermost Responsible Disclosure Policy](https://mattermost.com/security-vulnerability-report/).
+  - Pre-packaged Playbooks plugin version [v2.4.6](https://github.com/mattermost/mattermost-plugin-playbooks/releases/tag/v2.4.6).
+  - Hardened the OAuth server provider's handling of deactivated users.
+  - Mattermost v10.11.20 contains no database or functional changes.
+- **10.11.19, released 2026-05-27**
+  - Mattermost v10.11.19 contains medium severity level security fixes. [Upgrading](https://docs.mattermost.com/upgrade/upgrading-mattermost-server.html) to this release is recommended. Details will be posted on our [security updates page](https://mattermost.com/security-updates/) 30 days after release as per the [Mattermost Responsible Disclosure Policy](https://mattermost.com/security-vulnerability-report/).
+  - Pre-packaged Agents plugin version [v1.14.2](https://github.com/mattermost/mattermost-plugin-agents/releases/tag/v1.14.2).
+  - Introduced a new permission ``Edit Attachments`` for controlling who can edit post attachments when editing a post. By default the permission is granted to whoever has edit post permission.
+  - Mattermost v10.11.19 contains no database or functional changes.
+- **10.11.18, released 2026-05-21**
+  - Mattermost v10.11.18 contains low to medium severity level security fixes. [Upgrading](https://docs.mattermost.com/upgrade/upgrading-mattermost-server.html) to this release is recommended. Details will be posted on our [security updates page](https://mattermost.com/security-updates/) 30 days after release as per the [Mattermost Responsible Disclosure Policy](https://mattermost.com/security-vulnerability-report/).
+  - Pre-packaged GitLab plugin version [v1.12.2](https://github.com/mattermost/mattermost-plugin-gitlab/releases/tag/v1.12.2).
+  - Pre-packaged Jira plugin version [v4.7.0](https://github.com/mattermost/mattermost-plugin-jira/releases/tag/v4.7.0).
+  - Fixed a regression with saving various masked fields from the System Console.
+  - Tightened session invalidation on the global session revocation path.
+  - POST ``/api/v4/users/{user_id}/demote`` now returns 400 when ``user_id`` is a bot account; bot accounts cannot be converted to guests.
+  - Mattermost v10.11.18 contains no database or functional changes.
+- **10.11.16 / 10.11.17, released 2026-05-13**
+  - Due to an unforeseen build issue, versions 10.11.16 and 10.11.17 were unintentionally created as identical releases.
+  - Mattermost v10.11.16 / v10.11.17 contain medium to high severity level security fixes. [Upgrading](https://docs.mattermost.com/upgrade/upgrading-mattermost-server.html) to this release is recommended. Details will be posted on our [security updates page](https://mattermost.com/security-updates/) 30 days after release as per the [Mattermost Responsible Disclosure Policy](https://mattermost.com/security-vulnerability-report/).
+  - Pre-packaged Playbooks plugin version [v2.4.5](https://github.com/mattermost/mattermost-plugin-playbooks/releases/tag/v2.4.5).
+  - Tightened authorization on the group syncable link and patch endpoints.
+  - Mattermost v10.11.16 & v10.11.17 contain the following database changes:
+    - Scoped the ``role_updated`` WebSocket events to the affected team/channel instead of broadcasting globally. No database downtime is expected for this upgrade. See the [Important Upgrade Notes](https://docs.mattermost.com/upgrade/important-upgrade-notes.html) for more details.
 - **10.11.15, released 2026-04-22**
   - Mattermost v10.11.15 contains medium to high severity level security fixes. [Upgrading](https://docs.mattermost.com/upgrade/upgrading-mattermost-server.html) to this release is recommended. Details will be posted on our [security updates page](https://mattermost.com/security-updates/) 30 days after release as per the [Mattermost Responsible Disclosure Policy](https://mattermost.com/security-vulnerability-report/).
   - Pre-packaged Zoom plugin version [v1.13.0](https://github.com/mattermost/mattermost-plugin-zoom/releases/tag/v1.13.0).
@@ -124,12 +180,12 @@ If you upgrade from a release earlier than v10.10, please read the other [Import
   - Fixed an issue where rate limiting was missing from the login endpoint (5 requests/second, 10 burst).
   - Mattermost v10.11.12 contains no database or functional changes.
 - **10.11.11, released 2026-02-13**
-<Important>
+<Attention>
 
 **Breaking Changes**
  - Photoshop Document (PSD) files are now no longer inline previewed, they are treated as regular file attachments.
 
-</Important>
+</Attention>
   - Mattermost v10.11.11 contains low to high severity level security fixes. [Upgrading](https://docs.mattermost.com/upgrade/upgrading-mattermost-server.html) to this release is recommended. Details will be posted on our [security updates page](https://mattermost.com/security-updates/) 30 days after release as per the [Mattermost Responsible Disclosure Policy](https://mattermost.com/security-vulnerability-report/).
   - Pre-packaged Boards plugin version [v9.2.2](https://github.com/mattermost/mattermost-plugin-boards/releases/tag/v9.2.2).
   - Fixed an issue where the channel URL got updated when the channel display name was changed.
@@ -160,12 +216,12 @@ If you upgrade from a release earlier than v10.10, please read the other [Import
   - Fixed an issue where pressing ``Shift+Up`` in the channel textbox to reply to a thread could cause the right‑hand sidebar (RHS) reply textbox to not focus.
   - Mattermost v10.11.9 contains no database or functional changes.
 - **10.11.8, released 2025-11-21**
-  <Important>
+  <Attention>
 
   **Critical Fixes**
   - Mattermost v10.11.8 contains a Critical severity level security fix in the Jira plugin. [Upgrading](https://docs.mattermost.com/upgrade/upgrading-mattermost-server.html) to this release as soon as possible is highly recommended. Details will be posted on our [security updates page](https://mattermost.com/security-updates/) 30 days after release as per the [Mattermost Responsible Disclosure Policy](https://mattermost.com/security-vulnerability-report/).
 
-  </Important>
+  </Attention>
   - Pre-packaged Jira plugin version [v4.4.1](https://github.com/mattermost/mattermost-plugin-jira/releases/tag/v4.4.1).
   - Mattermost v10.11.8 contains no database or functional changes.
 - **10.11.7, released 2025-11-17**
@@ -181,12 +237,12 @@ If you upgrade from a release earlier than v10.10, please read the other [Import
   - Pre-packaged MS Teams Meeting plugin version [v2.3.0](https://github.com/mattermost/mattermost-plugin-msteams-meetings/releases/tag/v2.3.0).
   - Mattermost v10.11.6 contains no database or functional changes.
 - **10.11.5, released 2025-10-28**
-  <Important>
+  <Attention>
 
   **Critical Fixes**
   - Mattermost v10.11.5 contains Critical severity level security fixes. [Upgrading](https://docs.mattermost.com/upgrade/upgrading-mattermost-server.html) to this release as soon as possible is highly recommended. Details will be posted on our [security updates page](https://mattermost.com/security-updates/) 30 days after release as per the [Mattermost Responsible Disclosure Policy](https://mattermost.com/security-vulnerability-report/).
 
-  </Important>
+  </Attention>
   - Pre-packaged Boards plugin [v9.1.7](https://github.com/mattermost/mattermost-plugin-boards/releases/tag/v9.1.7).
   - Mattermost v10.11.5 contains no database or functional changes.
 - **10.11.4, released 2025-10-15**
@@ -847,12 +903,12 @@ New setting options were added to ``config.json``. Below is a list of the additi
   - Fixed Go v1.23 incompatibility issues with plugins.
   - Mattermost v10.5.14 contains no database or functional changes.
 - **10.5.13, released 2025-10-28**
-  <Important>
+  <Attention>
 
   **Critical Fixes**
   - Mattermost v10.5.13 contains Critical severity level security fixes. [Upgrading](https://docs.mattermost.com/upgrade/upgrading-mattermost-server.html) to this release as soon as possible is highly recommended. Details will be posted on our [security updates page](https://mattermost.com/security-updates/) 30 days after release as per the [Mattermost Responsible Disclosure Policy](https://mattermost.com/security-vulnerability-report/).
 
-  </Important>
+  </Attention>
   - Pre-packaged Boards plugin [v9.1.7](https://github.com/mattermost/mattermost-plugin-boards/releases/tag/v9.1.7).
   - Mattermost v10.5.13 contains no database or functional changes.
 - **10.5.12, released 2025-10-15**
@@ -1249,7 +1305,7 @@ If you upgrade from a release earlier than v10.0, please read the other [Importa
  - Added full support for @mentions in the values of fields in [message attachments](https://developers.mattermost.com/integrate/reference/message-attachments/).
 
 #### Administration
- - Added a new URL parameter called ``permanent`` to ``DELETE /api/v4/posts/&lt;post-id&gt;``, and set ``permanent`` to ``true`` in order to permanently delete a post and its attachments.
+ - Added a new URL parameter called ``permanent`` to ``DELETE /api/v4/posts/<post-id>``, and set ``permanent`` to ``true`` in order to permanently delete a post and its attachments.
  - Added Connected Workspaces (Beta) administration page to the System Console when Connected Workspaces are [enabled](https://docs.mattermost.com/onboard/connected-workspaces.html#enable-connected-workflows) for the server.
  - Added a team selector to accept connection invite flow in Connected Workspaces.
  - Restricted activation and deactivation of LDAP-managed users through both the System Console UI and Mattermost API.
@@ -1258,7 +1314,7 @@ If you upgrade from a release earlier than v10.0, please read the other [Importa
  - Improved log messages for cluster communication.
  - Information about deleted rows from the Data Retention job are now logged.
  - License details to logs are now emitted when added or removed.
- - Added a new mmctl command, ``mmctl post delete &lt;post-id&gt;``, in order to permanently delete a post and its attachments.
+ - Added a new mmctl command, ``mmctl post delete <post-id>``, in order to permanently delete a post and its attachments.
 
 #### Performance
  - Added metrics to prometheus to check the mobile versions for each session daily.

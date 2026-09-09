@@ -43,9 +43,7 @@ func (s *Server) initPostMetadata() {
 	// Dump any cached links if the proxy settings have changed so image URLs can be updated
 	s.platform.AddConfigListener(func(before, after *model.Config) {
 		if (before.ImageProxySettings.Enable != after.ImageProxySettings.Enable) ||
-			(before.ImageProxySettings.ImageProxyType != after.ImageProxySettings.ImageProxyType) ||
-			(before.ImageProxySettings.RemoteImageProxyURL != after.ImageProxySettings.RemoteImageProxyURL) ||
-			(before.ImageProxySettings.RemoteImageProxyOptions != after.ImageProxySettings.RemoteImageProxyOptions) {
+			(before.ImageProxySettings.ImageProxyType != after.ImageProxySettings.ImageProxyType) {
 			if err := platform.PurgeLinkCache(); err != nil {
 				mlog.Warn("Failed to remove cached links when the proxy settings changed", mlog.Err(err))
 			}
@@ -182,7 +180,7 @@ func (a *App) OverrideIconURLIfEmoji(rctx request.CTX, post *model.Post) {
 	if emojiURL, err := a.GetEmojiStaticURL(rctx, emojiName); err == nil {
 		post.AddProp(model.PostPropsOverrideIconURL, emojiURL)
 	} else {
-		rctx.Logger().Warn("Failed to retrieve URL for overridden profile icon (emoji)", mlog.String("emojiName", emojiName), mlog.Err(err))
+		rctx.Logger().Warn("Failed to retrieve URL for overridden profile icon (emoji)", mlog.String("emoji_name", emojiName), mlog.Err(err))
 	}
 }
 
@@ -348,6 +346,8 @@ func (a *App) SanitizePostMetadataForUser(rctx request.CTX, post *model.Post, us
 					removePermalinkMetadataFromPost(post)
 					// Since we remove the permalink metadata, we return true for isMember
 					isMemberForPreviews = true
+				} else {
+					a.RecordPermalinkPreviewDelivery(rctx, userID, previewPost.Post, post)
 				}
 			}
 		}
@@ -450,7 +450,7 @@ func (a *App) sanitizeFileAttachmentsForUser(rctx request.CTX, post *model.Post,
 		return
 	}
 
-	user, err := a.GetUser(userID)
+	user, err := a.GetUser(rctx, userID)
 	if err != nil {
 		rctx.Logger().Warn("Failed to get user for file attachment sanitization, stripping attachments",
 			mlog.String("user_id", userID),
@@ -633,7 +633,7 @@ func (a *App) getImagesForPost(rctx request.CTX, post *model.Post, isNewPost boo
 			if !ok {
 				rctx.Logger().Warn("Could not read the image data: the data could not be casted to OpenGraph",
 					mlog.String("post_id", post.Id),
-					mlog.String("data type", fmt.Sprintf("%t", embed.Data)),
+					mlog.String("data_type", fmt.Sprintf("%t", embed.Data)),
 				)
 				continue
 			}
@@ -954,8 +954,7 @@ func (a *App) getLinkMetadataFromOEmbed(rctx request.CTX, requestURL string, pro
 	request.Header.Add("Accept", "application/json")
 	request.Header.Add("Accept-Language", *a.Config().LocalizationSettings.DefaultServerLocale)
 
-	client := a.HTTPService().MakeClient(false)
-	client.Timeout = time.Duration(*a.Config().ExperimentalSettings.LinkMetadataTimeoutMilliseconds) * time.Millisecond
+	client := a.makeLinkMetadataClient(rctx)
 
 	res, err := client.Do(request)
 	if err != nil {
@@ -992,16 +991,13 @@ func (a *App) getLinkMetadataForURL(rctx request.CTX, requestURL string) (*openg
 		request.Header.Add("Accept", "text/html;q=0.8")
 		request.Header.Add("Accept-Language", *a.Config().LocalizationSettings.DefaultServerLocale)
 
-		client := a.HTTPService().MakeClient(false)
-		client.Timeout = time.Duration(*a.Config().ExperimentalSettings.LinkMetadataTimeoutMilliseconds) * time.Millisecond
+		client := a.makeLinkMetadataClient(rctx)
 
 		var res *http.Response
 		res, err = client.Do(request)
 		if err != nil {
 			rctx.Logger().Warn("error fetching OG image data", mlog.Err(err))
-		}
-
-		if res != nil {
+		} else if res != nil {
 			body = res.Body
 			contentType = res.Header.Get("Content-Type")
 		}
@@ -1026,6 +1022,24 @@ func (a *App) getLinkMetadataForURL(rctx request.CTX, requestURL string) (*openg
 	og = model.TruncateOpenGraph(og) // remove unwanted length of texts
 
 	return og, image, err
+}
+
+func (a *App) makeLinkMetadataClient(rctx request.CTX) *http.Client {
+	client := a.HTTPService().MakeClient(false)
+	client.Timeout = time.Duration(*a.Config().ExperimentalSettings.LinkMetadataTimeoutMilliseconds) * time.Millisecond
+	client.CheckRedirect = func(req *http.Request, via []*http.Request) error {
+		if len(via) >= 10 {
+			return fmt.Errorf("stopped after %d redirects", len(via))
+		}
+
+		if !a.isLinkAllowedForPreview(rctx, req.URL.String()) {
+			return fmt.Errorf("redirect target %q is disabled for link previews", req.URL.Redacted())
+		}
+
+		return nil
+	}
+
+	return client
 }
 
 // resolveMetadataURL resolves a given URL relative to the server's site URL.

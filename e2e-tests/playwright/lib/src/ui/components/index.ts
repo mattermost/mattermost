@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 // Shared / Global Components
+import AboutBuildModal from './about_build_modal';
 import Footer from './footer';
 import GlobalHeader from './global_header';
 import MainHeader from './main_header';
@@ -43,6 +44,7 @@ import ImagePreviewModal from './channels/image_preview_modal';
 import LinkPreview from './channels/link_preview';
 import MembersInvitedModal from './channels/members_invited_modal';
 import MessagePriority from './channels/message_priority';
+import ChannelsMobileNavbar from './channels/mobile_navbar';
 import PostDotMenu from './channels/post_dot_menu';
 import PostMenu from './channels/post_menu';
 import PostReminderMenu from './channels/post_reminder_menu';
@@ -61,6 +63,7 @@ import TeamMenu from './channels/team_menu';
 import TeamSettingsModal from './channels/team_settings/team_settings_modal';
 import ThreadFooter from './channels/thread_footer';
 import UserProfilePopover from './channels/user_profile_popover';
+import WysiwygEditor from './channels/wysiwyg_editor';
 // Burn-on-Read Components
 import BurnOnReadBadge from './channels/burn_on_read_badge';
 import BurnOnReadTimerChip from './channels/burn_on_read_timer_chip';
@@ -90,6 +93,7 @@ import Users from './system_console/sections/user_management/users';
 
 const components = {
     // Shared / Global
+    AboutBuildModal,
     Footer,
     GlobalHeader,
     MainHeader,
@@ -132,6 +136,7 @@ const components = {
     LinkPreview,
     MembersInvitedModal,
     MessagePriority,
+    ChannelsMobileNavbar,
     PostDotMenu,
     PostMenu,
     PostReminderMenu,
@@ -150,6 +155,7 @@ const components = {
     TeamSettingsModal,
     ThreadFooter,
     UserProfilePopover,
+    WysiwygEditor,
 
     // Burn-on-Read
     BurnOnReadBadge,
@@ -182,6 +188,7 @@ export {
     components,
 
     // Shared / Global
+    AboutBuildModal,
     Footer,
     GlobalHeader,
     MainHeader,
@@ -224,6 +231,7 @@ export {
     LinkPreview,
     MembersInvitedModal,
     MessagePriority,
+    ChannelsMobileNavbar,
     PostDotMenu,
     PostMenu,
     PostReminderMenu,
@@ -242,6 +250,7 @@ export {
     TeamSettingsModal,
     ThreadFooter,
     UserProfilePopover,
+    WysiwygEditor,
 
     // Burn-on-Read
     BurnOnReadBadge,

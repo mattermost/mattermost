@@ -135,6 +135,18 @@ describe('aggregateDecisions', () => {
         )).toBe('denied');
     });
 
+    test('not-applicable when every action is no_session_data', () => {
+        const inapplicable = {
+            decision: true,
+            blame: [{source: POLICY_SIMULATION_BLAME_SOURCES.NO_SESSION_DATA}],
+        };
+        expect(aggregateDecisions(
+            ['a', 'b'],
+            {a: inapplicable, b: inapplicable},
+            false,
+        )).toBe('not-applicable');
+    });
+
     test('mixed no_applicable_rule + no_applicable_policy still rolls up to not-applicable', () => {
         // The two synthetic markers can co-occur on different
         // actions of the same row (e.g. one action falls outside

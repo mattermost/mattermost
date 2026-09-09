@@ -38,6 +38,7 @@ exports[`SystemUserDetail should match default snapshot 1`] = `
               aria-haspopup="dialog"
               class="status-wrapper style--none admin-user-card"
               style="border-radius: 50%; width: 128px; height: 128px;"
+              type="button"
             >
               <span
                 class="profile-icon "
@@ -133,6 +134,41 @@ exports[`SystemUserDetail should match default snapshot 1`] = `
                       aria-describedby="email-error"
                       aria-invalid="false"
                       class="form-control"
+                      type="text"
+                      value=""
+                    />
+                  </label>
+                </div>
+              </div>
+              <div
+                class="field-row"
+                data-testid="fieldRow"
+              >
+                <div
+                  class="field-column left"
+                  data-testid="fieldColumn"
+                >
+                  <label>
+                    First Name
+                    <input
+                      class="form-control"
+                      maxlength="64"
+                      placeholder="Enter first name"
+                      type="text"
+                      value=""
+                    />
+                  </label>
+                </div>
+                <div
+                  class="field-column right"
+                  data-testid="fieldColumn"
+                >
+                  <label>
+                    Last Name
+                    <input
+                      class="form-control"
+                      maxlength="64"
+                      placeholder="Enter last name"
                       type="text"
                       value=""
                     />
@@ -306,6 +342,7 @@ exports[`SystemUserDetail should match snapshot if MFA is enabled 1`] = `
               aria-haspopup="dialog"
               class="status-wrapper style--none admin-user-card"
               style="border-radius: 50%; width: 128px; height: 128px;"
+              type="button"
             >
               <span
                 class="profile-icon "
@@ -401,6 +438,41 @@ exports[`SystemUserDetail should match snapshot if MFA is enabled 1`] = `
                       aria-describedby="email-error"
                       aria-invalid="false"
                       class="form-control"
+                      type="text"
+                      value=""
+                    />
+                  </label>
+                </div>
+              </div>
+              <div
+                class="field-row"
+                data-testid="fieldRow"
+              >
+                <div
+                  class="field-column left"
+                  data-testid="fieldColumn"
+                >
+                  <label>
+                    First Name
+                    <input
+                      class="form-control"
+                      maxlength="64"
+                      placeholder="Enter first name"
+                      type="text"
+                      value=""
+                    />
+                  </label>
+                </div>
+                <div
+                  class="field-column right"
+                  data-testid="fieldColumn"
+                >
+                  <label>
+                    Last Name
+                    <input
+                      class="form-control"
+                      maxlength="64"
+                      placeholder="Enter last name"
                       type="text"
                       value=""
                     />
@@ -574,6 +646,7 @@ exports[`SystemUserDetail should not fetch CPA data if disabled 1`] = `
               aria-haspopup="dialog"
               class="status-wrapper style--none admin-user-card"
               style="border-radius: 50%; width: 128px; height: 128px;"
+              type="button"
             >
               <span
                 class="profile-icon "
@@ -669,6 +742,41 @@ exports[`SystemUserDetail should not fetch CPA data if disabled 1`] = `
                       aria-describedby="email-error"
                       aria-invalid="false"
                       class="form-control"
+                      type="text"
+                      value=""
+                    />
+                  </label>
+                </div>
+              </div>
+              <div
+                class="field-row"
+                data-testid="fieldRow"
+              >
+                <div
+                  class="field-column left"
+                  data-testid="fieldColumn"
+                >
+                  <label>
+                    First Name
+                    <input
+                      class="form-control"
+                      maxlength="64"
+                      placeholder="Enter first name"
+                      type="text"
+                      value=""
+                    />
+                  </label>
+                </div>
+                <div
+                  class="field-column right"
+                  data-testid="fieldColumn"
+                >
+                  <label>
+                    Last Name
+                    <input
+                      class="form-control"
+                      maxlength="64"
+                      placeholder="Enter last name"
                       type="text"
                       value=""
                     />
@@ -842,6 +950,7 @@ exports[`SystemUserDetail should not show manage user settings button when user 
               aria-haspopup="dialog"
               class="status-wrapper style--none admin-user-card"
               style="border-radius: 50%; width: 128px; height: 128px;"
+              type="button"
             >
               <span
                 class="profile-icon "
@@ -937,6 +1046,41 @@ exports[`SystemUserDetail should not show manage user settings button when user 
                       aria-describedby="email-error"
                       aria-invalid="false"
                       class="form-control"
+                      type="text"
+                      value=""
+                    />
+                  </label>
+                </div>
+              </div>
+              <div
+                class="field-row"
+                data-testid="fieldRow"
+              >
+                <div
+                  class="field-column left"
+                  data-testid="fieldColumn"
+                >
+                  <label>
+                    First Name
+                    <input
+                      class="form-control"
+                      maxlength="64"
+                      placeholder="Enter first name"
+                      type="text"
+                      value=""
+                    />
+                  </label>
+                </div>
+                <div
+                  class="field-column right"
+                  data-testid="fieldColumn"
+                >
+                  <label>
+                    Last Name
+                    <input
+                      class="form-control"
+                      maxlength="64"
+                      placeholder="Enter last name"
                       type="text"
                       value=""
                     />
@@ -1110,6 +1254,7 @@ exports[`SystemUserDetail should show manage user settings button as activated 1
               aria-haspopup="dialog"
               class="status-wrapper style--none admin-user-card"
               style="border-radius: 50%; width: 128px; height: 128px;"
+              type="button"
             >
               <span
                 class="profile-icon "
@@ -1205,6 +1350,41 @@ exports[`SystemUserDetail should show manage user settings button as activated 1
                       aria-describedby="email-error"
                       aria-invalid="false"
                       class="form-control"
+                      type="text"
+                      value=""
+                    />
+                  </label>
+                </div>
+              </div>
+              <div
+                class="field-row"
+                data-testid="fieldRow"
+              >
+                <div
+                  class="field-column left"
+                  data-testid="fieldColumn"
+                >
+                  <label>
+                    First Name
+                    <input
+                      class="form-control"
+                      maxlength="64"
+                      placeholder="Enter first name"
+                      type="text"
+                      value=""
+                    />
+                  </label>
+                </div>
+                <div
+                  class="field-column right"
+                  data-testid="fieldColumn"
+                >
+                  <label>
+                    Last Name
+                    <input
+                      class="form-control"
+                      maxlength="64"
+                      placeholder="Enter last name"
                       type="text"
                       value=""
                     />
@@ -1384,6 +1564,7 @@ exports[`SystemUserDetail should show manage user settings button as disabled wh
               aria-haspopup="dialog"
               class="status-wrapper style--none admin-user-card"
               style="border-radius: 50%; width: 128px; height: 128px;"
+              type="button"
             >
               <span
                 class="profile-icon "
@@ -1479,6 +1660,41 @@ exports[`SystemUserDetail should show manage user settings button as disabled wh
                       aria-describedby="email-error"
                       aria-invalid="false"
                       class="form-control"
+                      type="text"
+                      value=""
+                    />
+                  </label>
+                </div>
+              </div>
+              <div
+                class="field-row"
+                data-testid="fieldRow"
+              >
+                <div
+                  class="field-column left"
+                  data-testid="fieldColumn"
+                >
+                  <label>
+                    First Name
+                    <input
+                      class="form-control"
+                      maxlength="64"
+                      placeholder="Enter first name"
+                      type="text"
+                      value=""
+                    />
+                  </label>
+                </div>
+                <div
+                  class="field-column right"
+                  data-testid="fieldColumn"
+                >
+                  <label>
+                    Last Name
+                    <input
+                      class="form-control"
+                      maxlength="64"
+                      placeholder="Enter last name"
                       type="text"
                       value=""
                     />
@@ -1652,6 +1868,7 @@ exports[`SystemUserDetail should show the activate user button as disabled when 
               aria-haspopup="dialog"
               class="status-wrapper style--none admin-user-card"
               style="border-radius: 50%; width: 128px; height: 128px;"
+              type="button"
             >
               <span
                 class="profile-icon "
@@ -1749,6 +1966,43 @@ exports[`SystemUserDetail should show the activate user button as disabled when 
                       disabled=""
                       readonly=""
                       style="cursor: not-allowed;"
+                      type="text"
+                      value=""
+                    />
+                  </label>
+                </div>
+              </div>
+              <div
+                class="field-row"
+                data-testid="fieldRow"
+              >
+                <div
+                  class="field-column left"
+                  data-testid="fieldColumn"
+                >
+                  <label>
+                    First Name
+                    <input
+                      class="form-control"
+                      disabled=""
+                      placeholder="Enter first name"
+                      readonly=""
+                      type="text"
+                      value=""
+                    />
+                  </label>
+                </div>
+                <div
+                  class="field-column right"
+                  data-testid="fieldColumn"
+                >
+                  <label>
+                    Last Name
+                    <input
+                      class="form-control"
+                      disabled=""
+                      placeholder="Enter last name"
+                      readonly=""
                       type="text"
                       value=""
                     />

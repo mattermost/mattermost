@@ -34,7 +34,8 @@ test('MM-T187 Inline markdown images open preview window', {tag: '@messaging'}, 
 test('MM-T188 Inline markdown image that is a link, opens the link', {tag: '@messaging'}, async ({pw}) => {
     const {user, team} = await pw.initSetup();
     const linkUrl = 'https://www.google.com';
-    const imageUrl = 'https://docs.mattermost.com/_images/icon-76x76.png';
+    const imageUrl =
+        'https://raw.githubusercontent.com/mattermost/mattermost/master/e2e-tests/cypress/tests/fixtures/mattermost-icon_128x128.png';
     const label = 'Build Status';
 
     // # Log in and post a linked inline Markdown image

@@ -91,15 +91,13 @@ test('MM-T174 Autocomplete should close if tildes are deleted using backspace', 
     // * Verify channel autocomplete opens
     await expect(suggestions).toBeVisible();
 
-    // # Delete the tilde with Backspace
-    await editInput.press('Home');
-    await editInput.press('ArrowRight');
+    // # Delete the tilde with Backspace (the caret is already after the inserted tilde)
     await editInput.press('Backspace');
 
     // * Verify channel autocomplete closes
     await expect(suggestions).not.toBeVisible();
 
-    // # Finish editing
-    await editInput.press('Enter');
+    // # Save the edit
+    await channelsPage.centerView.postEdit.sendMessage();
     await channelsPage.centerView.postEdit.toNotBeVisible();
 });

@@ -61,21 +61,6 @@
     font-weight: 600;
 }
 
-.input__help {
-    margin: 10px 0 0 0;
-    color: inherit;
-    opacity: 0.8;
-    word-break: break-word;
-
-    &.dark {
-        opacity: 1;
-    }
-
-    &.error {
-        color: color.adjust(variables.$red, $lightness: -20%);
-    }
-}
-
 .form-horizontal {
     .modal-intro {
         margin: -10px 0 30px;
@@ -109,20 +94,13 @@
     }
 }
 
-.help-block {
-    margin: 10px 0 0;
-    color: variables.$dark-gray;
-    font-size: 0.95em;
-}
-
 .has-error {
-
-    .help-block,
+    .control-label,
     .radio,
     .checkbox,
     .radio-inline,
     .checkbox-inline {
-        color: variables.$red;
+        color: var(--error-text);
     }
 
     .form__label {
@@ -136,9 +114,13 @@
     &.radio-inline,
     &.checkbox-inline {
         label {
-            color: variables.$red;
+            color: var(--error-text);
         }
     }
+}
+
+.error-text {
+    color: var(--error-text);
 }
 
 .multi-select__radio {

@@ -17,14 +17,14 @@ The plugin manifest provides required metadata about the plugin, such as name an
 See the [manifest reference](/developers/integrate/plugins/manifest-reference) for more information.
 
 ### Server
-The server component of a plugin is written in Go and runs as a subprocess of the Mattermost server process. The Go code extends the [MattermostPlugin](https://godoc.org/github.com/mattermost/mattermost/server/public/plugin#MattermostPlugin) struct that contains an [API](/developers/integrate/reference/server/server-reference#API) and allows for the implementation of [Hook](/developers/integrate/reference/server/server-reference#Hooks) methods that enable the plugin to interact with the Mattermost server.
+The server component of a plugin is written in Go and runs as a subprocess of the Mattermost server process. The Go code extends the [MattermostPlugin](https://godoc.org/github.com/mattermost/mattermost/server/public/plugin#MattermostPlugin) struct that contains an [API](/developers/integrate/reference/server#API) and allows for the implementation of [Hook](/developers/integrate/reference/server#Hooks) methods that enable the plugin to interact with the Mattermost server.
 
 The sample plugin implements this simply in [plugin.go](https://github.com/mattermost/mattermost-plugin-starter-template/blob/master/server/plugin.go) and the demo plugin splits the API and hook usage throughout [multiple files](https://github.com/mattermost/mattermost-plugin-demo/tree/master/server).
 
 Read more about the server-side of plugins [here](/developers/integrate/plugins/components/server).
 
 ### Web/desktop app
-The web app component of a plugin is written in JavaScript with [React](https://react.dev/) and [Redux](https://redux.js.org/). The plugin's bundled JavaScript is included on the page and runs alongside the web app code as a [PluginClass](/developers/integrate/reference/webapp/webapp-reference#pluginclass) that has initialize and uninitialize methods available for implementation. The initialize function is passed through the [registry](/developers/integrate/reference/webapp/webapp-reference#registry) which allows the plugin to register React components, actions and hooks to modify and interact with the Mattermost web app.
+The web app component of a plugin is written in JavaScript with [React](https://react.dev/) and [Redux](https://redux.js.org/). The plugin's bundled JavaScript is included on the page and runs alongside the web app code as a [PluginClass](/developers/integrate/reference/webapp#pluginclass) that has initialize and uninitialize methods available for implementation. The initialize function is passed through the [registry](/developers/integrate/reference/webapp#registry) which allows the plugin to register React components, actions and hooks to modify and interact with the Mattermost web app.
 
 The sample plugin has a [shell of an implemented PluginClass](https://github.com/mattermost/mattermost-plugin-starter-template/blob/master/webapp/src/index.tsx), while the demo plugin [contains a more complete example](https://github.com/mattermost/mattermost-plugin-demo/blob/master/webapp/src/plugin.jsx).
 

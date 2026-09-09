@@ -129,6 +129,18 @@ describe('components/widgets/users/Avatar', () => {
         expect(avatar.src).toBe(initialSrc);
     });
 
+    test('should still render an img element after image load error', () => {
+        render(withIntl(
+            <Avatar url='test-url'/>,
+        ));
+
+        const avatar = screen.getByRole('img') as HTMLImageElement;
+
+        fireEvent.error(avatar);
+
+        expect(screen.getByRole('img')).toBeInTheDocument();
+    });
+
     describe('getAvatarWidth', () => {
         test('should return correct width for xxs size', () => {
             expect(getAvatarWidth('xxs')).toBe('16px');

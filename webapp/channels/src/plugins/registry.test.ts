@@ -7,6 +7,8 @@ import pluginsReducer from 'reducers/plugins';
 
 import {ActionTypes} from 'utils/constants';
 
+import type {ProductComponent} from 'types/store/plugins';
+
 import PluginRegistry from './registry';
 
 // Replace the module-singleton store so registry.ts dispatches into our real reducer store.
@@ -547,5 +549,46 @@ describe('PluginRegistry — registerComposerPlaceholder', () => {
         expect(registrations).toHaveLength(2);
         expect(registrations[0].pluginId).toBe('aaa_plugin');
         expect(registrations[1].pluginId).toBe('zzz_plugin');
+    });
+});
+
+describe('PluginRegistry — registerProduct', () => {
+    const PLUGIN_ID = 'test_plugin';
+
+    beforeEach(() => {
+        mockCurrentStore = createStore(pluginsReducer);
+    });
+
+    function getProducts() {
+        return mockCurrentStore.getState().components.Product;
+    }
+
+    const baseArgs: Omit<ProductComponent, 'id' | 'pluginId' | 'baseURL' | 'isTeamScoped'> = {
+        switcherIcon: 'shield-outline',
+        switcherText: 'Docs',
+        switcherLinkURL: '/spaces',
+        mainComponent: () => null,
+        headerCentreComponent: () => null,
+        headerRightComponent: () => null,
+        showTeamSidebar: false,
+        showAppBar: false,
+        wrapped: true,
+        publicComponent: () => null,
+    };
+
+    it('passes isTeamScoped through to the stored product when team-scoped', () => {
+        const registry = new PluginRegistry(PLUGIN_ID);
+        registry.registerProduct({...baseArgs, baseURL: '/spaces', isTeamScoped: true});
+
+        const products = getProducts();
+        expect(products).toHaveLength(1);
+        expect(products[0].isTeamScoped).toBe(true);
+    });
+
+    it('passes isTeamScoped through to the stored product when global', () => {
+        const registry = new PluginRegistry(PLUGIN_ID);
+        registry.registerProduct({...baseArgs, baseURL: '/boards', isTeamScoped: false});
+
+        expect(getProducts()[0].isTeamScoped).toBe(false);
     });
 });

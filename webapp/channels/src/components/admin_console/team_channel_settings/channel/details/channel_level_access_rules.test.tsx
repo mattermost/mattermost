@@ -39,6 +39,7 @@ jest.mock('../../../../channel_settings_modal/channel_access_rules_confirm_modal
 const mockAccessControlSettings = {
     EnableAttributeBasedAccessControl: true,
     EnableUserManagedAttributes: true,
+    EnableChannelPolicyIndicators: true,
 };
 
 jest.mock('mattermost-redux/selectors/entities/access_control', () => ({

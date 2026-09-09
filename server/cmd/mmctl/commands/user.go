@@ -388,6 +388,7 @@ func init() {
 	ListUsersCmd.Flags().Int("per-page", DefaultPageSize, "Number of users to be fetched")
 	ListUsersCmd.Flags().Bool("all", false, "Fetch all users. --page flag will be ignored if provided")
 	ListUsersCmd.Flags().String("team", "", "If supplied, only users belonging to this team will be listed")
+	ListUsersCmd.Flags().Bool("active", false, "If supplied, only users which are active will be fetched")
 	ListUsersCmd.Flags().Bool("inactive", false, "If supplied, only users which are inactive will be fetched")
 	ListUsersCmd.Flags().String("role", "", "If supplied, only users with the given role will be fetched")
 
@@ -806,6 +807,7 @@ func ResetListUsersCmd(t *testing.T) *cobra.Command {
 	require.NoError(t, ListUsersCmd.Flags().Set("all", "false"))
 	require.NoError(t, ListUsersCmd.Flags().Set("team", ""))
 	require.NoError(t, ListUsersCmd.Flags().Set("role", ""))
+	require.NoError(t, ListUsersCmd.Flags().Set("active", "false"))
 	require.NoError(t, ListUsersCmd.Flags().Set("inactive", "false"))
 
 	return ListUsersCmd
@@ -828,10 +830,17 @@ func listUsersCmdF(c client.Client, command *cobra.Command, args []string) error
 	if err != nil {
 		return err
 	}
-	// if inactive, DeletedAt != 0
+	// if active, DeleteAt == 0; if inactive, DeleteAt != 0
+	active, err := command.Flags().GetBool("active")
+	if err != nil {
+		return err
+	}
 	inactive, err := command.Flags().GetBool("inactive")
 	if err != nil {
 		return err
+	}
+	if active && inactive {
+		return errors.New("--active and --inactive flags cannot be used together")
 	}
 
 	roleName, err := command.Flags().GetString("role")
@@ -853,6 +862,9 @@ func listUsersCmdF(c client.Client, command *cobra.Command, args []string) error
 	}
 
 	params := url.Values{}
+	if active {
+		params.Add("active", "true")
+	}
 	if inactive {
 		params.Add("inactive", "true")
 	}

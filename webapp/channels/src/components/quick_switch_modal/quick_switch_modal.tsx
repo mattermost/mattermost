@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {type JSX} from 'react';
 import {FormattedMessage, injectIntl} from 'react-intl';
 import type {WrappedComponentProps} from 'react-intl';
 
@@ -40,6 +40,8 @@ export type Props = WrappedComponentProps & {
         joinChannelById: (channelId: string) => Promise<ActionResult>;
         switchToChannel: (channel: Channel) => Promise<ActionResult>;
         closeRightHandSide: () => void;
+        openRequestJoinModal: (channel: Channel) => void;
+        withdrawJoinRequest: (channelId: string) => Promise<ActionResult>;
     };
     focusOriginElement: string;
 };
@@ -125,8 +127,25 @@ export class QuickSwitchModal extends React.PureComponent<Props, State> {
         }
 
         if (this.state.mode === CHANNEL_MODE) {
-            const {joinChannelById, switchToChannel} = this.props.actions;
+            const {joinChannelById, switchToChannel, openRequestJoinModal, withdrawJoinRequest} = this.props.actions;
             const selectedChannel = selected.channel;
+
+            if (selected.discoverableNonMember && selectedChannel?.id) {
+                // Centralized here so both mouse and keyboard (ENTER) selection
+                // request or withdraw consistently.
+                if (selected.hasPendingJoinRequest) {
+                    // Keep the switcher open if the withdraw fails so the error
+                    // isn't silently dismissed and the user can retry.
+                    const result = await withdrawJoinRequest(selectedChannel.id);
+                    if (!('error' in result)) {
+                        this.hideOnSelect();
+                    }
+                    return;
+                }
+                openRequestJoinModal(selectedChannel);
+                this.hideOnSelect();
+                return;
+            }
 
             if (selected.type === Constants.MENTION_MORE_CHANNELS && selectedChannel.type === Constants.OPEN_CHANNEL) {
                 await joinChannelById(selectedChannel.id);

@@ -17,6 +17,7 @@ import {getAccessControlSettings} from 'mattermost-redux/selectors/entities/acce
 import {getChannelMessageCount} from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentUser, isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 
+import {excludeSessionAttributes} from 'components/admin_console/access_control/editors/shared';
 import TableEditor from 'components/admin_console/access_control/editors/table_editor/table_editor';
 import ConfirmModal from 'components/confirm_modal';
 import SystemPolicyIndicator from 'components/system_policy_indicator';
@@ -102,7 +103,7 @@ function ChannelSettingsAccessRulesTab({
             try {
                 const result = await actions.getAccessControlFields('', 100);
                 if (result.data) {
-                    setUserAttributes(result.data);
+                    setUserAttributes(excludeSessionAttributes(result.data));
                 }
                 setAttributesLoaded(true);
             } catch (error) {
@@ -465,7 +466,8 @@ function ChannelSettingsAccessRulesTab({
         } catch (error) {
             // eslint-disable-next-line no-console
             console.error('Failed to save access rules:', error);
-            setFormError(formatMessage({
+            const message = error instanceof Error ? error.message : '';
+            setFormError(message || formatMessage({
                 id: 'channel_settings.access_rules.save_error',
                 defaultMessage: 'Failed to save access rules',
             }));

@@ -181,6 +181,122 @@ describe('SystemUserDetail', () => {
             await userEventInstance.type(usernameInput, 'newusername');
             expect(defaultProps.setNavigationBlocked).toHaveBeenCalledWith(true);
         });
+
+        test.each([
+            ['first name', 'Enter first name'],
+            ['last name', 'Enter last name'],
+        ])('should detect %s changes and enable save', async (_fieldName, placeholder) => {
+            const userEventInstance = userEvent.setup();
+            const setNavigationBlocked = jest.fn();
+            renderWithContext(
+                <SystemUserDetail
+                    {...defaultProps}
+                    setNavigationBlocked={setNavigationBlocked}
+                />,
+            );
+
+            await waitForElementToBeRemoved(() => screen.queryAllByTestId('loadingSpinner'));
+
+            const input = screen.getByPlaceholderText(placeholder);
+            await userEventInstance.clear(input);
+            await userEventInstance.type(input, 'New Name');
+
+            expect(screen.getByRole('button', {name: 'Save'})).toBeEnabled();
+            expect(setNavigationBlocked).toHaveBeenCalledWith(true);
+        });
+    });
+
+    describe('name editing', () => {
+        const nameUser = {
+            ...user,
+            first_name: 'Old First',
+            last_name: 'Old Last',
+        };
+
+        test('should show name changes, trim values, and patch the user on save', async () => {
+            const userEventInstance = userEvent.setup();
+            const getNameUser = jest.fn().mockResolvedValue({data: nameUser, error: null});
+            const patchUser = jest.fn().mockImplementation((updatedUser: UserProfile) => Promise.resolve({data: updatedUser, error: null}));
+            renderWithContext(
+                <SystemUserDetail
+                    {...defaultProps}
+                    getUser={getNameUser}
+                    patchUser={patchUser}
+                />,
+            );
+
+            await waitForElementToBeRemoved(() => screen.queryAllByTestId('loadingSpinner'));
+
+            const firstNameInput = screen.getByPlaceholderText('Enter first name');
+            const lastNameInput = screen.getByPlaceholderText('Enter last name');
+            await userEventInstance.clear(firstNameInput);
+            await userEventInstance.type(firstNameInput, '  New First  ');
+            await userEventInstance.clear(lastNameInput);
+            await userEventInstance.type(lastNameInput, '  New Last  ');
+            await userEventInstance.click(screen.getByRole('button', {name: 'Save'}));
+
+            const changesList = await screen.findByTestId('changesList');
+            expect(changesList).toHaveTextContent('First Name: Old First → New First');
+            expect(changesList).toHaveTextContent('Last Name: Old Last → New Last');
+
+            await userEventInstance.click(screen.getByRole('button', {name: 'Save Changes'}));
+
+            await waitFor(() => {
+                expect(patchUser).toHaveBeenCalledWith(expect.objectContaining({
+                    first_name: 'New First',
+                    last_name: 'New Last',
+                }));
+            });
+        });
+
+        test('should translate empty values in the name change summary', async () => {
+            const userEventInstance = userEvent.setup();
+            const getNameUser = jest.fn().mockResolvedValue({data: nameUser, error: null});
+            renderWithContext(
+                <SystemUserDetail
+                    {...defaultProps}
+                    getUser={getNameUser}
+                />,
+                {},
+                {
+                    intlMessages: {
+                        'admin.userDetail.saveChangesModal.empty': '(translated empty)',
+                    },
+                },
+            );
+
+            await waitForElementToBeRemoved(() => screen.queryAllByTestId('loadingSpinner'));
+
+            await userEventInstance.clear(screen.getByPlaceholderText('Enter first name'));
+            await userEventInstance.click(screen.getByRole('button', {name: 'Save'}));
+
+            expect(await screen.findByTestId('changesList')).toHaveTextContent('First Name: Old First → (translated empty)');
+        });
+
+        test('should reset first and last names on cancel', async () => {
+            const userEventInstance = userEvent.setup();
+            const getNameUser = jest.fn().mockResolvedValue({data: nameUser, error: null});
+            renderWithContext(
+                <SystemUserDetail
+                    {...defaultProps}
+                    getUser={getNameUser}
+                />,
+            );
+
+            await waitForElementToBeRemoved(() => screen.queryAllByTestId('loadingSpinner'));
+
+            const firstNameInput = screen.getByPlaceholderText('Enter first name');
+            const lastNameInput = screen.getByPlaceholderText('Enter last name');
+            await userEventInstance.clear(firstNameInput);
+            await userEventInstance.type(firstNameInput, 'New First');
+            await userEventInstance.clear(lastNameInput);
+            await userEventInstance.type(lastNameInput, 'New Last');
+            await userEventInstance.click(screen.getByRole('button', {name: 'Cancel'}));
+
+            expect(firstNameInput).toHaveValue('Old First');
+            expect(lastNameInput).toHaveValue('Old Last');
+            expect(screen.getByRole('button', {name: 'Save'})).toBeDisabled();
+        });
     });
 
     describe('email validation', () => {
@@ -425,6 +541,27 @@ describe('SystemUserDetail', () => {
 
             const labelEl = await screen.findByTestId('user-detail-custom-attribute-label-cpa-1');
             expect(labelEl).toHaveTextContent('department');
+        });
+
+        test('should show owner management indicator for owner-managed CPA field', async () => {
+            const cpaField = buildCPAField({
+                owners: [{id: 'com.mattermost.scim', type: 'plugin', scopes: ['entra']}],
+            });
+            const props = {
+                ...defaultProps,
+                customProfileAttributeFields: [cpaField],
+                getCustomProfileAttributeFields: jest.fn().mockResolvedValue({data: [cpaField]}),
+            };
+
+            renderWithContext(<SystemUserDetail {...props}/>);
+
+            await waitForLoadingToFinish();
+
+            expect(screen.getByTestId('user-detail-cpa-field__owner-department-com.mattermost.scim')).toHaveTextContent('com.mattermost.scim: entra');
+            expect(screen.getByText('Synced with:')).toBeInTheDocument();
+
+            const input = screen.getByTestId('user-detail-custom-attribute-label-cpa-1').querySelector('input');
+            expect(input).toBeDisabled();
         });
     });
 });

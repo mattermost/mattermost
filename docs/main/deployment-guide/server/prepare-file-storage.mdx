@@ -1,0 +1,61 @@
+---
+title: "Set up file storage"
+sidebar_label: "Set up file storage"
+---
+Mattermost requires a file storage system for storing user files, images, and attachments. Choose one of the following before you install, because moving between them later means migrating existing files:
+
+- S3-compatible object storage (recommended)
+- Network file storage
+- Local file storage
+
+For guidance on how much storage to provision, see [backing storage benchmarks](/deployment-guide/scale/backing-storage-benchmarks).
+
+## S3-compatible object storage (Recommended)
+
+For production environments, we recommend using S3-compatible object storage such as:
+
+- Amazon S3
+- Digital Ocean Spaces
+- Other S3-compatible services
+
+When using S3 storage, you'll need:
+
+1.  A bucket created specifically for Mattermost
+2.  Access credentials (Access Key and Secret Key)
+3.  Appropriate bucket policies configured
+4.  The following information for configuration:
+    - Bucket name
+    - Region (if applicable)
+    - Access Key
+    - Secret Key
+    - Endpoint URL (for non-AWS S3 services)
+
+You configure these values in **System Console > Environment > File Storage**. See the [file storage configuration settings](/administration-guide/configure/environment-configuration-settings#file-storage) documentation for details.
+
+## Network file storage
+
+For production environments that cannot use S3-compatible object storage, we recommend using a Network Addressable Storage (NAS) solution with Network File System (NFS).
+
+You'll need to prepare an NFS server with a dedicated share for Mattermost (e.g. <code>/mnt/mattermost_data</code>) and mount it on all servers that will be running Mattermost.
+
+## Local file storage
+
+For simple deployments, you can use local file storage. However, we don't recommend this for production environments or multi-node deployments, because the files aren't shared between application servers and aren't covered by a separate backup target.
+
+1.  Create a directory for file storage:
+
+    ``` sh
+    sudo mkdir -p /opt/mattermost/data
+    ```
+
+2.  Set appropriate permissions:
+
+    ``` sh
+    sudo chown -R mattermost:mattermost /opt/mattermost/data
+    ```
+
+## Next steps
+
+- [Use an image proxy](/deployment-guide/server/image-proxy) to keep clients from contacting third-party servers directly when they load external images.
+- Set your [encryption at rest](/deployment-guide/encryption-options) approach for whichever storage system you chose.
+- Return to the [preparation checklist](/deployment-guide/server/preparations).

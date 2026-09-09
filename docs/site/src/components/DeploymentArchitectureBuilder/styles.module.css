@@ -359,7 +359,7 @@
   font-weight: 600;
   color: var(--mm-color-denim, #1E325C);
   background: var(--mm-denim-50, rgba(30, 50, 92, 0.05));
-  border-left: 2px solid var(--mm-color-marigold, #FFBC1F);
+  border-left: 2px solid var(--mm-color-denim, #1E325C);
   padding: 0.15rem 0.45rem;
   border-radius: 2px;
   white-space: nowrap;
@@ -368,6 +368,7 @@
 [data-theme='dark'] .miniFlow {
   color: var(--mm-color-white);
   background: rgba(255, 255, 255, 0.05);
+  border-left-color: var(--mm-denim-300, #8499C5);
 }
 
 .miniArrow {
@@ -388,12 +389,13 @@
   background: var(--mm-denim-50, rgba(30, 50, 92, 0.05));
   padding: 0.18rem 0.55rem;
   border-radius: 2px;
-  border-left: 2px solid var(--mm-color-marigold, #FFBC1F);
+  border-left: 2px solid var(--mm-color-denim, #1E325C);
 }
 
 [data-theme='dark'] .flow {
   background: rgba(255, 255, 255, 0.04);
   color: rgba(255, 255, 255, 0.78);
+  border-left-color: var(--mm-denim-300, #8499C5);
 }
 
 .flowArrow {
