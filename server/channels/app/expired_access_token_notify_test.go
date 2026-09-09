@@ -6,6 +6,7 @@ package app
 import (
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 
@@ -70,7 +71,7 @@ func TestNotifyExpiredAccessTokensDeleted(t *testing.T) {
 		const description = "ci-integration-token"
 
 		th.App.NotifyExpiredAccessTokensDeleted(th.Context, []*model.UserAccessToken{
-			{Id: model.NewId(), UserId: user.Id, Description: description},
+			{Id: model.NewId(), UserId: user.Id, Description: description, ExpiresAt: model.GetMillis()},
 		})
 
 		posts := notificationPostsFor(t, th, bot.UserId, user.Id, description)
@@ -87,7 +88,7 @@ func TestNotifyExpiredAccessTokensDeleted(t *testing.T) {
 		bot := th.CreateBot(t)
 
 		th.App.NotifyExpiredAccessTokensDeleted(th.Context, []*model.UserAccessToken{
-			{Id: model.NewId(), UserId: bot.UserId, Description: "bot-token"},
+			{Id: model.NewId(), UserId: bot.UserId, Description: "bot-token", ExpiresAt: model.GetMillis()},
 		})
 
 		posts := notificationPostsFor(t, th, systemBot.UserId, bot.OwnerId, "bot-token")
@@ -108,7 +109,7 @@ func TestNotifyExpiredAccessTokensDeleted(t *testing.T) {
 		require.Nil(t, appErr)
 
 		th.App.NotifyExpiredAccessTokensDeleted(th.Context, []*model.UserAccessToken{
-			{Id: model.NewId(), UserId: bot.UserId, Description: "plugin-bot-token"},
+			{Id: model.NewId(), UserId: bot.UserId, Description: "plugin-bot-token", ExpiresAt: model.GetMillis()},
 		})
 
 		require.Empty(t, dmPostsFromSystemBot(t, th, systemBot.UserId, bot.UserId))
@@ -125,10 +126,42 @@ func TestNotifyExpiredAccessTokensDeleted(t *testing.T) {
 		require.Nil(t, appErr)
 
 		th.App.NotifyExpiredAccessTokensDeleted(th.Context, []*model.UserAccessToken{
-			{Id: model.NewId(), UserId: user.Id, Description: "deactivated-token"},
+			{Id: model.NewId(), UserId: user.Id, Description: "deactivated-token", ExpiresAt: model.GetMillis()},
 		})
 
 		require.Empty(t, dmPostsFromSystemBot(t, th, bot.UserId, user.Id))
+	})
+
+	t.Run("long-expired token is skipped", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		bot, appErr := th.App.GetSystemBot(th.Context)
+		require.Nil(t, appErr)
+
+		user := th.CreateUser(t)
+		staleExpiry := model.GetMillis() - (expiredAccessTokenNotifyMaxAge + time.Hour).Milliseconds()
+
+		th.App.NotifyExpiredAccessTokensDeleted(th.Context, []*model.UserAccessToken{
+			{Id: model.NewId(), UserId: user.Id, Description: "stale-token", ExpiresAt: staleExpiry},
+		})
+
+		require.Empty(t, dmPostsFromSystemBot(t, th, bot.UserId, user.Id))
+	})
+
+	t.Run("token expired within the window is still notified", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		bot, appErr := th.App.GetSystemBot(th.Context)
+		require.Nil(t, appErr)
+
+		user := th.CreateUser(t)
+		recentExpiry := model.GetMillis() - (expiredAccessTokenNotifyMaxAge - time.Hour).Milliseconds()
+
+		th.App.NotifyExpiredAccessTokensDeleted(th.Context, []*model.UserAccessToken{
+			{Id: model.NewId(), UserId: user.Id, Description: "recent-token", ExpiresAt: recentExpiry},
+		})
+
+		require.Len(t, notificationPostsFor(t, th, bot.UserId, user.Id, "recent-token"), 1)
 	})
 
 	t.Run("unknown owner is skipped but processing continues", func(t *testing.T) {
@@ -142,8 +175,8 @@ func TestNotifyExpiredAccessTokensDeleted(t *testing.T) {
 		// First token references a user that does not exist (GetUser fails);
 		// the second is a valid active user that must still be notified.
 		th.App.NotifyExpiredAccessTokensDeleted(th.Context, []*model.UserAccessToken{
-			{Id: model.NewId(), UserId: model.NewId(), Description: "orphan-token"},
-			{Id: model.NewId(), UserId: user.Id, Description: "valid-token"},
+			{Id: model.NewId(), UserId: model.NewId(), Description: "orphan-token", ExpiresAt: model.GetMillis()},
+			{Id: model.NewId(), UserId: user.Id, Description: "valid-token", ExpiresAt: model.GetMillis()},
 		})
 
 		require.Len(t, notificationPostsFor(t, th, bot.UserId, user.Id, "valid-token"), 1)

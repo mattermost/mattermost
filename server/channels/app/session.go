@@ -570,12 +570,21 @@ func (a *App) userAccessTokenExpiryPolicyApplies(rctx request.CTX, user *model.U
 // lifetime policy when it applies to user, a no-op otherwise (e.g. for
 // plugin-owned bots).
 func (a *App) enforceUserAccessTokenExpiryPolicy(rctx request.CTX, user *model.User, candidate *model.UserAccessToken) *model.AppError {
-	policyApplies, appErr := a.userAccessTokenExpiryPolicyApplies(rctx, user)
-	if appErr != nil || !policyApplies {
-		return appErr
+	validationErr := a.validateUserAccessTokenExpiry(candidate)
+	if validationErr == nil {
+		return nil
 	}
 
-	return a.validateUserAccessTokenExpiry(candidate)
+	// Only a violating token needs the bot-owner lookup that decides exemption.
+	policyApplies, appErr := a.userAccessTokenExpiryPolicyApplies(rctx, user)
+	if appErr != nil {
+		return appErr
+	}
+	if !policyApplies {
+		return nil
+	}
+
+	return validationErr
 }
 
 // resolveAccessTokenNotificationRecipient returns the user who should be
