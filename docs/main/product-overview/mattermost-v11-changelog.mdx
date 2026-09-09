@@ -683,7 +683,9 @@ See [this blog post](https://mattermost.com/blog/mattermost-v11-8-0-is-now-avail
   - Fixed Elasticsearch and OpenSearch startup on AWS managed domains that omit plugin data from the Nodes Info API.
   - Fixed an issue where the Korean ``nori`` analyzer was never applied when the search cluster reported the plugin under a prefixed component name, such as ``opensearch-analysis-nori`` on AWS OpenSearch Service.
   - Improved performance of the bulk-indexing job for Elasticsearch and OpenSearch on very large ``FileInfo`` and ``Channels`` tables.
-  - Mattermost v11.7.11 contains no database or functional changes.
+  - Mattermost v11.7.11 contains the following database changes:
+    - Added composite index ``idx_channels_create_at_id`` on ``Channels`` (``CreateAt``, ``Id``) to accelerate cursor-based pagination; no downtime expected, minimal impact on concurrent operations.
+    - Added composite index ``idx_fileinfo_create_at_id`` on ``Fileinfo(CreateAt, Id``) using ``CONCURRENTLY`` to improve file query performance with no downtime impact.
 - **11.7.10, released 2026-08-26**
   - Mattermost v11.7.10 contains low to high severity level security fixes. [Upgrading](https://docs.mattermost.com/upgrade/upgrading-mattermost-server.html) to this release is recommended. Details will be posted on our [security updates page](https://mattermost.com/security-updates/) 30 days after release as per the [Mattermost Responsible Disclosure Policy](https://mattermost.com/security-vulnerability-report/).
   - Go runtime was updated from 1.25.10 to 1.26.7.
