@@ -128,7 +128,7 @@
   },
   "emoji": {
     "target": "emoji",
-    "note": "Repo is split: legacy strings use 'emoticono' (slight majority) while newer ones use 'emoji'. 'Emoji' is the modern es convention (WhatsApp, Slack, Discord) and RAE-accepted; invariable-ish plural 'emojis'."
+    "note": "Repo is split: legacy strings use 'emoticono' (slight majority) while newer ones use 'emoji'. Plural 'emojis'."
   },
   "custom emoji": {
     "target": "emoji personalizado"
@@ -241,7 +241,7 @@
   },
   "trigger word": {
     "target": "palabra de activación",
-    "note": "Legacy strings paraphrase as 'palabra que dispara la acción/el comando'; 'palabra de activación' is the concise glossary form consistent with that intent."
+    "note": "Legacy strings paraphrase as 'palabra que dispara la acción/el comando'."
   },
   "plugin": {
     "target": "plugin",
@@ -410,7 +410,7 @@
   },
   "read-only": {
     "target": "solo lectura",
-    "note": "Prefer un-accented 'solo' per current RAE; repo mixes 'solo' and 'sólo'."
+    "note": "Un-accented 'solo'; repo mixes 'solo' and 'sólo'."
   },
   "server": {
     "target": "servidor"

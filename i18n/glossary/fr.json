@@ -38,7 +38,7 @@
   },
   "SSO": {
     "target": "SSO",
-    "note": "When spelled out, use 'authentification unique (SSO)' per community rules; keep the abbreviation itself."
+    "note": "When spelled out, use 'authentification unique (SSO)'; keep the abbreviation itself."
   },
   "MFA": {
     "target": "MFA",
@@ -58,7 +58,7 @@
   },
   "Gossip": {
     "target": "Gossip",
-    "note": "Weblate glossary allows the clarification 'Bavardage (gossip protocol)'; never translate alone as 'bavardage'."
+    "note": "The clarification 'Bavardage (gossip protocol)' is acceptable; never translate alone as 'bavardage'."
   },
   "Actiance XML": {
     "target": "Actiance XML"
@@ -68,7 +68,7 @@
   },
   "System Console": {
     "target": "console système",
-    "note": "Feminine. Lowercase in running text per French rules; capitalize only as a menu item ('Console système')."
+    "note": "Feminine. Lowercase in running text; capitalize only as a menu item ('Console système')."
   },
   "marketplace": {
     "target": "place de marché",
@@ -84,7 +84,7 @@
   },
   "post": {
     "target": "message",
-    "note": "General rule from community glossary: translate 'post' as 'message'. Use 'publication' only for the root message of a thread or integration-posted content."
+    "note": "Use 'publication' only for the root message of a thread or integration-posted content."
   },
   "message": {
     "target": "message",
@@ -100,7 +100,7 @@
   },
   "direct message": {
     "target": "message personnel",
-    "note": "Webapp/server consistently use 'message personnel'; mobile inconsistently uses 'message direct'. Community rules mandate 'message personnel' and forbid 'message direct'/'DM'."
+    "note": "Webapp/server consistently use 'message personnel'; mobile inconsistently uses 'message direct'. Never 'message direct' or 'DM'."
   },
   "group message": {
     "target": "message de groupe",
@@ -112,7 +112,7 @@
   },
   "notification": {
     "target": "notification",
-    "note": "Feminine. Order: 'notification par e-mail', 'notifications push' — put 'notification' first per community rules."
+    "note": "Feminine. Order: 'notification par e-mail', 'notifications push' — put 'notification' first."
   },
   "pin": {
     "target": "épingler",
@@ -136,7 +136,7 @@
   },
   "emoji": {
     "target": "émoticône",
-    "note": "Feminine. Community rules prefer 'émoticône' over 'emoji'."
+    "note": "Feminine. Not 'emoji'."
   },
   "custom emoji": {
     "target": "émoticône personnalisée",
@@ -172,7 +172,7 @@
   },
   "guest": {
     "target": "utilisateur invité",
-    "note": "Community rules mandate 'utilisateur invité' (not 'invité' alone) to avoid awkward phrases like 'inviter des invités'."
+    "note": "Not 'invité' alone, which produces awkward phrases like 'inviter des invités'."
   },
   "member": {
     "target": "membre",
@@ -180,11 +180,11 @@
   },
   "user": {
     "target": "utilisateur",
-    "note": "Masculine; 'le masculin l'emporte' per community rules — no inclusive middot forms."
+    "note": "Masculine; no inclusive middot forms."
   },
   "system admin": {
     "target": "administrateur système",
-    "note": "Plural: 'administrateurs système' (invariable 'système') per community rules."
+    "note": "Plural: 'administrateurs système' (invariable 'système')."
   },
   "team admin": {
     "target": "administrateur d'équipe"
@@ -206,7 +206,7 @@
   },
   "join": {
     "target": "rejoindre",
-    "note": "For channels/teams/calls. 'joindre' is reserved for attaching files per community rules."
+    "note": "For channels/teams/calls. 'joindre' is reserved for attaching files."
   },
   "leave": {
     "target": "quitter"
@@ -260,7 +260,7 @@
   },
   "plugin": {
     "target": "plugin",
-    "note": "Kept in English (masculine) per Weblate glossary and existing translations."
+    "note": "Kept in English (masculine)."
   },
   "bot": {
     "target": "bot"
@@ -271,11 +271,11 @@
   },
   "permission": {
     "target": "permission",
-    "note": "Feminine. Community rules mandate 'permission' (not 'droit' or 'autorisation') for role capabilities."
+    "note": "Feminine. Not 'droit' or 'autorisation' for role capabilities."
   },
   "scheme": {
     "target": "schéma de permissions",
-    "note": "Permission-scheme sense per community rules. For URI/URL scheme use 'protocole URL' instead."
+    "note": "Permission-scheme sense. For URI/URL scheme use 'protocole URL' instead."
   },
   "license": {
     "target": "licence",
@@ -315,7 +315,7 @@
   },
   "unread": {
     "target": "non lu",
-    "note": "No hyphen per community rules; plural 'non lus'."
+    "note": "No hyphen; plural 'non lus'."
   },
   "attachment": {
     "target": "pièce jointe",
@@ -336,7 +336,7 @@
   },
   "channel purpose": {
     "target": "description du canal",
-    "note": "Community rules translate 'purpose' as 'description' in this context, not 'objet' or 'but'."
+    "note": "'purpose' is 'description' in this context, not 'objet' or 'but'."
   },
   "system message": {
     "target": "message système"
@@ -369,7 +369,7 @@
   },
   "personal access token": {
     "target": "jeton d'accès personnel",
-    "note": "'token' is always 'jeton' per community rules."
+    "note": "'token' is always 'jeton'."
   },
   "announcement banner": {
     "target": "bannière d'annonce"
@@ -405,7 +405,7 @@
   },
   "collapsed reply threads": {
     "target": "fils de discussion repliables",
-    "note": "Weblate glossary rendering; singular 'fil de discussion repliable'. Mobile has older inconsistent renderings."
+    "note": "Singular 'fil de discussion repliable'. Mobile has older inconsistent renderings."
   },
   "auto-translation": {
     "target": "traduction automatique",

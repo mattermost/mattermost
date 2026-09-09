@@ -13,7 +13,7 @@
   },
   "Channels": {
     "target": "Channels",
-    "note": "As a product name keep English (Weblate glossary marks this explicitly). The common noun 'channels' is 'Kanäle'."
+    "note": "As a product name keep English. The common noun 'channels' is 'Kanäle'."
   },
   "Playbooks": {
     "target": "Playbooks"
@@ -57,14 +57,14 @@
   },
   "Gossip": {
     "target": "Gossip",
-    "note": "Protocol name; never render literally. The Weblate glossary row 'Klatsch und Tratsch' is a literal mistranslation and must not be used."
+    "note": "Protocol name; never render literally. Never 'Klatsch und Tratsch'."
   },
   "Actiance XML": {
     "target": "Actiance XML"
   },
   "Global Relay": {
     "target": "Global Relay",
-    "note": "Export format written 'Global-Relay-EML' in the Weblate glossary when compounded."
+    "note": "Export format written 'Global-Relay-EML' when compounded."
   },
   "System Console": {
     "target": "Systemkonsole",
@@ -72,19 +72,19 @@
   },
   "marketplace": {
     "target": "Marktplatz",
-    "note": "Weblate glossary row contains the typo 'Martkplatz'; correct form is Marktplatz. Beware: the default channel 'Town Square' is also 'Marktplatz' in existing translations — disambiguate via context (Plugin-Marktplatz vs. channel name)."
+    "note": "Beware: the default channel 'Town Square' is also 'Marktplatz' in existing translations — disambiguate via context (Plugin-Marktplatz vs. channel name)."
   },
   "channel": {
     "target": "Kanal",
-    "note": "Masculine: der Kanal, Plural Kanäle. Mandated by the German community rules."
+    "note": "Masculine: der Kanal, Plural Kanäle."
   },
   "team": {
     "target": "Team",
-    "note": "Neuter: das Team. Mandated by the German community rules."
+    "note": "Neuter: das Team."
   },
   "post": {
     "target": "Nachricht",
-    "note": "German community rules mandate 'Nachricht' for post (same as message). A few newer server strings use 'Beitrag'; prefer Nachricht."
+    "note": "Same as message. A few newer server strings use 'Beitrag'."
   },
   "message": {
     "target": "Nachricht",
@@ -100,14 +100,14 @@
   },
   "direct message": {
     "target": "Direktnachricht",
-    "note": "Mandated by the German community rules. Abbreviation DM is not expanded in German UI; a few strings use 'direkte Nachricht' — prefer the compound."
+    "note": "Abbreviation DM is not expanded in German UI; a few strings use 'direkte Nachricht' — prefer the compound."
   },
   "group message": {
     "target": "Gruppennachricht"
   },
   "mention": {
     "target": "Erwähnung",
-    "note": "Verb: erwähnen. Mandated by the German community rules. '@mention' stays '@Erwähnung' or keeps the @username literal."
+    "note": "Verb: erwähnen. '@mention' stays '@Erwähnung' or keeps the @username literal."
   },
   "notification": {
     "target": "Benachrichtigung"
@@ -118,7 +118,7 @@
   },
   "bookmark": {
     "target": "Lesezeichen",
-    "note": "Neuter: das Lesezeichen. Verb usage: 'Lesezeichen hinzufügen'. Matches Weblate glossary."
+    "note": "Neuter: das Lesezeichen. Verb usage: 'Lesezeichen hinzufügen'."
   },
   "saved messages": {
     "target": "Gespeicherte Nachrichten",
@@ -175,11 +175,11 @@
   },
   "member": {
     "target": "Mitglied",
-    "note": "Neuter: das Mitglied, Plural Mitglieder. Mandated by the German community rules."
+    "note": "Neuter: das Mitglied, Plural Mitglieder."
   },
   "user": {
     "target": "Benutzer",
-    "note": "Mandated by the German community rules (not 'Nutzer', which appears sporadically)."
+    "note": "Not 'Nutzer', which appears sporadically."
   },
   "system admin": {
     "target": "Systemadministrator",
@@ -200,11 +200,11 @@
   },
   "sign out": {
     "target": "abmelden",
-    "note": "Both 'sign out' and 'log out' = abmelden (button: 'Abmelden'). Matches Weblate glossary."
+    "note": "Both 'sign out' and 'log out' = abmelden (button: 'Abmelden')."
   },
   "join": {
     "target": "beitreten",
-    "note": "Mandated by the German community rules. Takes dative: 'dem Kanal beitreten'."
+    "note": "Takes dative: 'dem Kanal beitreten'."
   },
   "leave": {
     "target": "verlassen",
@@ -236,7 +236,7 @@
   },
   "search": {
     "target": "Suche",
-    "note": "Verb: suchen; 'browse' = durchsuchen per Weblate glossary."
+    "note": "Verb: suchen; 'browse' = durchsuchen."
   },
   "integration": {
     "target": "Integration"
@@ -246,7 +246,7 @@
   },
   "webhook": {
     "target": "Webhook",
-    "note": "Masculine: der Webhook. Kept in English per Weblate glossary."
+    "note": "Masculine: der Webhook. Kept in English."
   },
   "incoming webhook": {
     "target": "Eingehender Webhook"
@@ -256,11 +256,11 @@
   },
   "trigger word": {
     "target": "Auslösewort",
-    "note": "Plural: Auslösewörter (per Weblate glossary). Command trigger word = Befehlsauslösewort."
+    "note": "Plural: Auslösewörter. Command trigger word = Befehlsauslösewort."
   },
   "plugin": {
     "target": "Plugin",
-    "note": "Neuter: das Plugin. Kept in English per Weblate glossary."
+    "note": "Neuter: das Plugin. Kept in English."
   },
   "bot": {
     "target": "Bot",
@@ -294,7 +294,7 @@
   },
   "subscription": {
     "target": "Abonnement",
-    "note": "Per Weblate glossary; informal 'Abo' appears in a few strings but prefer Abonnement."
+    "note": "Informal 'Abo' appears in a few strings."
   },
   "deactivate": {
     "target": "deaktivieren",
@@ -302,7 +302,7 @@
   },
   "invite": {
     "target": "einladen",
-    "note": "Verb per Weblate glossary; as a noun use 'Einladung'."
+    "note": "Verb; as a noun use 'Einladung'."
   },
   "invitation": {
     "target": "Einladung"
@@ -373,7 +373,7 @@
   },
   "announcement banner": {
     "target": "Ankündigungs-Banner",
-    "note": "Existing strings mix 'Ankündigungs-Banner' and 'Ankündigungsbanner'; prefer the hyphenated majority. Bare 'banner' = Banner (per Weblate glossary)."
+    "note": "Existing strings mix 'Ankündigungs-Banner' and 'Ankündigungsbanner'. Bare 'banner' = Banner."
   },
   "channel banner": {
     "target": "Kanal-Banner",

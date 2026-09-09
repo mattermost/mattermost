@@ -36,11 +36,11 @@
   },
   "LDAP": {
     "target": "LDAP",
-    "note": "Also AD/LDAP; never translate, per dutch-rules.md (product/protocol name)."
+    "note": "Also AD/LDAP; never translate (product/protocol name)."
   },
   "SSO": {
     "target": "SSO",
-    "note": "Per dutch-rules.md render spelled-out form as 'Single Sign-On (SSO)'; 'vereenvoudigde authenticatie' is not allowed."
+    "note": "Render the spelled-out form as 'Single Sign-On (SSO)'; never 'vereenvoudigde authenticatie'."
   },
   "MFA": {
     "target": "MFA"
@@ -59,7 +59,7 @@
   },
   "Gossip": {
     "target": "Gossip",
-    "note": "Protocol name; the Weblate glossary row 'Praatjes' is a mistranslation — keep English."
+    "note": "Protocol name; never 'Praatjes'."
   },
   "Actiance XML": {
     "target": "Actiance XML"
@@ -69,11 +69,11 @@
   },
   "System Console": {
     "target": "systeemconsole",
-    "note": "Majority rendering (28 vs 18 for 'Systeem console'); capitalize 'Systeemconsole' when used as a menu/UI-area name per dutch-rules.md capitalization rule."
+    "note": "Existing strings split 28 vs 18 with 'Systeem console'. Capitalize 'Systeemconsole' when used as a menu or UI-area name."
   },
   "marketplace": {
     "target": "marktplaats",
-    "note": "Per dutch-rules.md and Weblate glossary; 'Plugin Marketplace' = 'Plugin marktplaats'."
+    "note": "'Plugin Marketplace' = 'Plugin marktplaats'."
   },
   "channel": {
     "target": "kanaal",
@@ -85,7 +85,7 @@
   },
   "post": {
     "target": "bericht",
-    "note": "Per dutch-rules.md 'post' is an anglicism; use 'bericht'. Use 'publiceren' only for system/integration posts, 'versturen' for user messages."
+    "note": "'post' is an anglicism. Use 'publiceren' only for system/integration posts, 'versturen' for user messages."
   },
   "message": {
     "target": "bericht",
@@ -97,11 +97,11 @@
   },
   "reply": {
     "target": "antwoord",
-    "note": "Noun 'antwoord'; verb 'antwoorden'. Per dutch-rules.md you 'verzendt' (send) a reply."
+    "note": "Noun 'antwoord'; verb 'antwoorden'. You 'verzendt' (send) a reply."
   },
   "direct message": {
     "target": "privé-bericht",
-    "note": "Existing usage is split between 'privé-bericht' (majority, matches dutch-rules.md) and 'direct bericht'/'rechtstreeks bericht'; keep 'privé-bericht' and the derived 'privé-berichtkanaal'."
+    "note": "Existing usage is split between 'privé-bericht' (majority) and 'direct bericht'/'rechtstreeks bericht'. Derived form: 'privé-berichtkanaal'."
   },
   "group message": {
     "target": "groepsbericht",
@@ -109,11 +109,11 @@
   },
   "mention": {
     "target": "vermelding",
-    "note": "Noun 'vermelding' (plural 'vermeldingen'); verb 'vermelden'. Per dutch-rules.md."
+    "note": "Noun 'vermelding' (plural 'vermeldingen'); verb 'vermelden'."
   },
   "notification": {
     "target": "melding",
-    "note": "Per dutch-rules.md; put 'melding' last in compounds: e-mailmelding, pushmelding, bureaubladmelding. Avoid 'notificatie' (legacy inconsistency)."
+    "note": "Put 'melding' last in compounds: e-mailmelding, pushmelding, bureaubladmelding. Avoid 'notificatie' (legacy inconsistency)."
   },
   "pin": {
     "target": "vastmaken",
@@ -137,14 +137,14 @@
   },
   "emoji": {
     "target": "emoticon",
-    "note": "Per dutch-rules.md and majority usage (63 vs 33); 'emoji' also occurs — prefer 'emoticon' for consistency. Plural 'emoticons'."
+    "note": "Majority usage (63 vs 33); 'emoji' also occurs. Plural 'emoticons'."
   },
   "custom emoji": {
     "target": "aangepaste emoticon"
   },
   "reaction": {
     "target": "reactie",
-    "note": "Plural 'reacties'; verb 'reageren'. Distinct from a reply ('antwoord') per dutch-rules.md."
+    "note": "Plural 'reacties'; verb 'reageren'. Distinct from a reply ('antwoord')."
   },
   "status": {
     "target": "status"
@@ -171,7 +171,7 @@
   },
   "guest": {
     "target": "gast",
-    "note": "Majority in-product rendering; dutch-rules.md prefers 'gastgebruiker', which also appears in admin screens — both are in use, prefer 'gast' in short UI labels and 'gastgebruiker' when disambiguation from a visitor is needed."
+    "note": "Both 'gast' and 'gastgebruiker' are in use; 'gastgebruiker' appears in admin screens. Use 'gast' in short UI labels and 'gastgebruiker' when disambiguation from a visitor is needed."
   },
   "member": {
     "target": "lid",
@@ -183,7 +183,7 @@
   },
   "system admin": {
     "target": "systeembeheerder",
-    "note": "Per dutch-rules.md; plural 'systeembeheerders'."
+    "note": "Plural 'systeembeheerders'."
   },
   "team admin": {
     "target": "teambeheerder"
@@ -201,7 +201,7 @@
   },
   "sign out": {
     "target": "afmelden",
-    "note": "Use for both 'sign out' and 'log out', per Weblate glossary ('Log Out' = 'Afmelden')."
+    "note": "Use for both 'sign out' and 'log out' ('Log Out' = 'Afmelden')."
   },
   "join": {
     "target": "lid worden",
@@ -243,11 +243,11 @@
   },
   "slash command": {
     "target": "slash-opdracht",
-    "note": "Majority rendering (15 vs 9); dutch-rules.md prefers 'slash-commando'. Existing usage is inconsistent (slashopdracht, slash-opdracht, slash-commando) — standardize on 'slash-opdracht'."
+    "note": "Existing usage is inconsistent: slashopdracht, slash-opdracht (majority, 15 vs 9), slash-commando."
   },
   "webhook": {
     "target": "webhook",
-    "note": "Kept in English per Weblate glossary; plural 'webhooks'."
+    "note": "Kept in English; plural 'webhooks'."
   },
   "incoming webhook": {
     "target": "inkomende webhook"
@@ -257,7 +257,7 @@
   },
   "trigger word": {
     "target": "triggerwoord",
-    "note": "Per dutch-rules.md; existing usage is inconsistent ('activeer-woord', 'trigger woord') — standardize on 'triggerwoord'."
+    "note": "Existing usage is inconsistent: 'activeer-woord', 'trigger woord'."
   },
   "plugin": {
     "target": "plugin",
@@ -265,7 +265,7 @@
   },
   "bot": {
     "target": "bot",
-    "note": "Per dutch-rules.md keep 'bot'/'BOT'; 'bot account' = 'botaccount'."
+    "note": "Keep 'bot'/'BOT'; 'bot account' = 'botaccount'."
   },
   "role": {
     "target": "rol",
@@ -273,11 +273,11 @@
   },
   "permission": {
     "target": "recht",
-    "note": "Plural 'rechten', per dutch-rules.md ('Rechten heeft de voorkeur'); avoid 'machtigingen'/'permissies'/'toestemmingen' which appear inconsistently in older strings."
+    "note": "Plural 'rechten'. Avoid 'machtigingen'/'permissies'/'toestemmingen', which appear inconsistently in older strings."
   },
   "scheme": {
     "target": "schema",
-    "note": "Permission scheme = '(toestemmings)schema'; existing strings mostly use plain 'schema'. For URL scheme use 'URL-protocol' per dutch-rules.md."
+    "note": "Permission scheme = '(toestemmings)schema'; existing strings mostly use plain 'schema'. For URL scheme use 'URL-protocol'."
   },
   "license": {
     "target": "licentie"
@@ -307,7 +307,7 @@
   },
   "invitation": {
     "target": "uitnodiging",
-    "note": "Plural 'uitnodigingen'; e-mail invitations = 'e-mailuitnodigingen' (note 'e-mail' spelling per dutch-rules.md)."
+    "note": "Plural 'uitnodigingen'; e-mail invitations = 'e-mailuitnodigingen' (note the 'e-mail' spelling)."
   },
   "sidebar": {
     "target": "zijbalk"
@@ -317,7 +317,7 @@
   },
   "attachment": {
     "target": "bijlage",
-    "note": "Plural 'bijlagen'; verb 'attach' for files = 'toevoegen'/'bijvoegen' per dutch-rules.md, 'koppelen' otherwise."
+    "note": "Plural 'bijlagen'; verb 'attach' for files = 'toevoegen'/'bijvoegen', 'koppelen' otherwise."
   },
   "public channel": {
     "target": "publiek kanaal",
@@ -337,7 +337,7 @@
   },
   "channel purpose": {
     "target": "kanaaldoel",
-    "note": "Existing strings consistently use 'doel'/'kanaaldoel'; dutch-rules.md suggests 'beschrijving' in this context but repo usage wins."
+    "note": "Existing strings consistently use 'doel'/'kanaaldoel'; 'beschrijving' is an alternative in this context."
   },
   "system message": {
     "target": "systeembericht"
@@ -372,7 +372,7 @@
   },
   "personal access token": {
     "target": "persoonlijk toegangstoken",
-    "note": "'Token' stays untranslated per dutch-rules.md; avoid Weblate glossary's 'toegangsbewijs' (not used in product strings)."
+    "note": "'Token' stays untranslated; avoid 'toegangsbewijs', which is not used in product strings."
   },
   "announcement banner": {
     "target": "aankondigingsbanner"
@@ -419,7 +419,7 @@
   },
   "compliance export": {
     "target": "nalevingsexport",
-    "note": "Majority webapp rendering; 'compliance export' also kept English in some strings. Dutch-rules.md renders 'Beta' contexts as 'Experimenteel'."
+    "note": "'compliance export' is also kept in English in some strings. 'Beta' contexts render as 'Experimenteel'."
   },
   "access control": {
     "target": "toegangscontrole",
