@@ -15,9 +15,9 @@
     &.AsSubMenu {
         pointer-events: none;
         & .MuiPaper-root {
+            box-shadow: var(--elevation-5), 0 0 0 1px rgba(var(--center-channel-color-rgb), 0.12) inset;
             // Scrollbar lives on the paper; without this, hover passes through and closes the submenu.
             pointer-events: auto;
-            box-shadow: var(--elevation-5), 0 0 0 1px rgba(var(--center-channel-color-rgb), 0.12) inset;
         }
     }
 }
