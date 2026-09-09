@@ -972,7 +972,6 @@ func TestPatchConfig(t *testing.T) {
 				})
 			}
 		})
-
 	})
 
 	// Both logging subtests below run against this stored value.
