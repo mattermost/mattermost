@@ -55,7 +55,7 @@ test.describe('System Console - Membership Policy ranked operators', () => {
         if (field) {
             await deleteCustomProfileAttributes(adminClient, {
                 [field.id]: field,
-                __ownedIds: new Set([field.id]),
+                ownedIds: new Set([field.id]),
             } as any);
             field = undefined;
         }
@@ -100,10 +100,8 @@ test.describe('System Console - Membership Policy ranked operators', () => {
         if (!(await page.locator('[id^="attribute-selector-menu"]').isVisible({timeout: 2000}))) {
             await attributeButton.click();
         }
-        await page
-            .locator(`[id^="attribute-selector-menu"] li:has-text("${field!.name}")`)
-            .first()
-            .click({force: true});
+        await page.getByRole('menuitemradio', {name: field!.name, exact: true}).click();
+        await expect(attributeButton).toContainText(field!.name);
 
         // # Let the attribute menu and its backdrop fully close before opening the next menu
         await expect(page.locator('[id^="attribute-selector-menu"]')).toBeHidden();
@@ -164,10 +162,10 @@ test.describe('System Console - Membership Policy ranked operators', () => {
             if (!(await page.locator('[id^="attribute-selector-menu"]').isVisible({timeout: 2000}))) {
                 await page.locator('[data-testid="attributeSelectorMenuButton"]').first().click();
             }
-            await page
-                .locator(`[id^="attribute-selector-menu"] li:has-text("${field!.name}")`)
-                .first()
-                .click({force: true});
+            await page.getByRole('menuitemradio', {name: field!.name, exact: true}).click();
+            await expect(page.locator('[data-testid="attributeSelectorMenuButton"]').first()).toContainText(
+                field!.name,
+            );
             await expect(page.locator('[id^="attribute-selector-menu"]')).toBeHidden();
 
             // * Defaults to "is at least"
