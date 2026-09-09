@@ -5,7 +5,7 @@ import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
 import {getCurrentChannelId, getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
-import {getLicense, getFeatureFlagValue} from 'mattermost-redux/selectors/entities/general';
+import {getLicense} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentRelativeTeamUrl, getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 import {getStatusForUserId, getUser} from 'mattermost-redux/selectors/entities/users';
@@ -82,7 +82,7 @@ const ProfilePopover = ({
     const currentUserId = useSelector(getCurrentUserId);
     const license = useSelector((state: GlobalState) => getLicense(state));
     const isEnterprise = isEnterpriseLicense(license);
-    const enableCustomProfileAttributes = useSelector((state: GlobalState) => getFeatureFlagValue(state, 'CustomProfileAttributes') === 'true' && isEnterprise && !fromWebhook);
+    const enableCustomProfileAttributes = isEnterprise && !fromWebhook;
 
     const [loadingDMChannel, setLoadingDMChannel] = useState<string>();
 

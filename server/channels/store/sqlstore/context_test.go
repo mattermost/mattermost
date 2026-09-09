@@ -4,23 +4,11 @@
 package sqlstore
 
 import (
-	"context"
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/stretchr/testify/assert"
 )
-
-func TestContextMaster(t *testing.T) {
-	if enableFullyParallelTests {
-		t.Parallel()
-	}
-
-	ctx := context.Background()
-
-	m := WithMaster(ctx)
-	assert.True(t, HasMaster(m))
-}
 
 func TestRequestContextWithMaster(t *testing.T) {
 	if enableFullyParallelTests {

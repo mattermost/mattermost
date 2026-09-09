@@ -408,11 +408,6 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
         } = this.props;
         const renderPlaceholderOnly = this.props.renderPlaceholderOnly ?? false;
 
-        let ariaLabelImage = this.props.intl.formatMessage({id: 'file_attachment.thumbnail', defaultMessage: 'file thumbnail'});
-        if (fileInfo) {
-            ariaLabelImage += ` ${fileInfo.name}`.toLowerCase();
-        }
-
         let fallback;
 
         if (this.dimensionsAvailable(dimensions) && (!this.state.loaded || renderPlaceholderOnly)) {
@@ -432,7 +427,6 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
                     {this.renderImageLoaderIfNeeded()}
                     <img
                         role='presentation'
-                        aria-label={ariaLabelImage}
                         className={classNames('image-loading__placeholder', this.props.className)}
                         src={fallbackSrc}
                         height={height}
@@ -469,7 +463,6 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
         return (
             <div
                 className='file-preview__button'
-                onClick={this.handleImageClick}
                 style={{display}}
             >
                 <figure

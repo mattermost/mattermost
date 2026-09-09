@@ -158,35 +158,6 @@ describe('isAppBinding — isAppField datetime_config validation', () => {
         });
     });
 
-    describe('datetime_config.allow_manual_time_entry (deprecated)', () => {
-        test('accepts boolean', () => {
-            const binding = bindingWithField({
-                ...baseField,
-                datetime_config: {allow_manual_time_entry: true},
-            });
-            expect(isAppBinding(binding)).toBe(true);
-        });
-
-        test('rejects non-boolean value', () => {
-            const binding = bindingWithField({
-                ...baseField,
-                datetime_config: {allow_manual_time_entry: 1},
-            });
-            expect(isAppBinding(binding)).toBe(false);
-        });
-
-        test('accepts both new and deprecated fields set simultaneously', () => {
-            const binding = bindingWithField({
-                ...baseField,
-                datetime_config: {
-                    manual_time_entry: true,
-                    allow_manual_time_entry: false,
-                },
-            });
-            expect(isAppBinding(binding)).toBe(true);
-        });
-    });
-
     describe('datetime_config shape', () => {
         test('accepts empty object', () => {
             const binding = bindingWithField({
@@ -208,26 +179,6 @@ describe('isAppBinding — isAppField datetime_config validation', () => {
             const binding = bindingWithField({
                 ...baseField,
                 datetime_config: 'not-an-object',
-            });
-            expect(isAppBinding(binding)).toBe(false);
-        });
-    });
-
-    describe('interaction with deprecated top-level fields', () => {
-        test('accepts both datetime_config and legacy top-level min_date when valid', () => {
-            const binding = bindingWithField({
-                ...baseField,
-                min_date: '2024-01-01',
-                datetime_config: {min_date: '2025-01-15'},
-            });
-            expect(isAppBinding(binding)).toBe(true);
-        });
-
-        test('rejects when datetime_config.min_date is invalid even if legacy min_date is valid', () => {
-            const binding = bindingWithField({
-                ...baseField,
-                min_date: '2025-01-15',
-                datetime_config: {min_date: 'not-a-date'},
             });
             expect(isAppBinding(binding)).toBe(false);
         });

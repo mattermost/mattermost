@@ -10,16 +10,18 @@
   font-size: 0.95rem;
 }
 
-/* Plan-availability — flat denim-tinted strip, marigold flag on the left. */
+/* Plan-availability — flat denim-tinted strip, denim flag on the left
+ * (matches the Edition/Deployment/Attestation badge family). */
 .plan {
   padding: 0.55rem 0.85rem;
   background: var(--mm-denim-50, rgba(30, 50, 92, 0.05));
-  border-left: 3px solid var(--mm-color-marigold);
+  border-left: 3px solid var(--mm-color-denim, #1E325C);
   color: var(--mm-text-primary);
 }
 
 [data-theme='dark'] .plan {
-  background: rgba(255, 188, 31, 0.07);
+  background: rgba(255, 255, 255, 0.04);
+  border-left-color: var(--mm-denim-300, #8499C5);
   color: var(--mm-text-primary);
 }
 

@@ -71,6 +71,7 @@ export type Props = InviteState & {
     regenerateTeamInviteId: (teamId: string) => void;
     isAdmin: boolean;
     membershipPolicyEnforced: boolean;
+    membershipPolicyStrict: boolean;
     usersLoader: (value: string, callback: (users: UserProfile[]) => void) => Promise<UserProfile[]> | undefined;
     onChangeUsersEmails: (usersEmails: Array<UserProfile | string>) => void;
     isCloud: boolean;
@@ -278,20 +279,34 @@ export default function InviteView(props: Props) {
                         <AlertBanner
                             mode='info'
                             variant='app'
-                            title={
+                            title={props.membershipPolicyStrict ? (
                                 <FormattedMessage
                                     id='invite_modal.policy_enforced.title'
                                     defaultMessage='Team access is restricted by user attributes'
                                 />
-                            }
-                            message={
+                            ) : (
+                                <FormattedMessage
+                                    id='invite_modal.policy_advisory.title'
+                                    defaultMessage='This team has membership requirements'
+                                />
+                            )}
+                            message={props.membershipPolicyStrict ? (
                                 <FormattedMessage
                                     id='invite_modal.policy_enforced.description'
                                     defaultMessage='Only users who meet the membership requirements can be added to this team.'
                                 />
-                            }
+                            ) : (
+                                <FormattedMessage
+                                    id='invite_modal.policy_advisory.description'
+                                    defaultMessage='Users who do not meet them can still join, but will not be automatically added.'
+                                />
+                            )}
                         >
-                            {accessControlTags}
+                            {accessControlTags && (
+                                <div className='InviteView__policyBannerTags'>
+                                    {accessControlTags}
+                                </div>
+                            )}
                         </AlertBanner>
                     </div>
                 )}
@@ -376,10 +391,17 @@ export default function InviteView(props: Props) {
                         className='InviteView__inviteLinkWarning'
                         role='status'
                     >
-                        <FormattedMessage
-                            id='invite_modal.policy_enforced.link_warning'
-                            defaultMessage='People who use this link must meet the membership requirements to join.'
-                        />
+                        {props.membershipPolicyStrict ? (
+                            <FormattedMessage
+                                id='invite_modal.policy_enforced.link_warning'
+                                defaultMessage='People who use this link must meet the membership requirements to join.'
+                            />
+                        ) : (
+                            <FormattedMessage
+                                id='invite_modal.policy_advisory.link_warning'
+                                defaultMessage='People who use this link can join even if they do not meet the membership requirements, but will not be automatically added.'
+                            />
+                        )}
                     </span>
                 )}
                 {props.inviteType === InviteType.MEMBER && copyButton}

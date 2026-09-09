@@ -32,6 +32,9 @@ import './team_members_modal.scss';
 // non-holder sees only the generic notice. Rendered as a status region for a11y.
 function MembershipRequirementsBanner({team}: {team: Team}) {
     const isGoverned = Boolean(team.policy_enforced);
+
+    // Only private teams enforce strictly; public governance is advisory.
+    const isStrict = isGoverned && !team.allow_open_invite;
     const {structuredAttributes} = useAccessControlAttributes(EntityType.Team, team.id, isGoverned);
 
     if (!isGoverned) {
@@ -63,20 +66,34 @@ function MembershipRequirementsBanner({team}: {team: Team}) {
             <AlertBanner
                 mode='info'
                 variant='app'
-                title={
+                title={isStrict ? (
                     <FormattedMessage
                         id='team_member_modal.policy_enforced.title'
                         defaultMessage='Team access is restricted by user attributes'
                     />
-                }
-                message={
+                ) : (
+                    <FormattedMessage
+                        id='team_member_modal.policy_advisory.title'
+                        defaultMessage='This team has membership requirements'
+                    />
+                )}
+                message={isStrict ? (
                     <FormattedMessage
                         id='team_member_modal.policy_enforced.description'
                         defaultMessage='Only people who meet the membership requirements can be members of this team.'
                     />
-                }
+                ) : (
+                    <FormattedMessage
+                        id='team_member_modal.policy_advisory.description'
+                        defaultMessage='People who do not meet them can still join, but will not be automatically added.'
+                    />
+                )}
             >
-                {tags}
+                {tags && (
+                    <div className='teamMembersModal__policyBannerTags'>
+                        {tags}
+                    </div>
+                )}
             </AlertBanner>
         </div>
     );

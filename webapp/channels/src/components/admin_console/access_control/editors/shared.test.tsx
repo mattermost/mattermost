@@ -7,7 +7,7 @@ import type {UserPropertyField} from '@mattermost/types/properties_user';
 
 import {renderWithContext, screen} from 'tests/react_testing_utils';
 
-import {TestButton, celPrefixForField, excludeSessionAttributes, hasUsableAttributes, isSimpleCondition, isSimpleExpression, mergeSessionAttributes, toCELEditorAttributes, allowedOperatorLabelsForField, defaultOperatorForField, isNativeBooleanField, isNativeMethodOperator, isValidYoungerThanDaysValue, OperatorLabel} from './shared';
+import {TestButton, celPrefixForField, excludeSessionAttributes, hasUsableAttributes, isSimpleCondition, isSimpleExpression, mergeSessionAttributes, referencesResourceAttributes, toCELEditorAttributes, allowedOperatorLabelsForField, defaultOperatorForField, isNativeBooleanField, isFieldAdvertisedOperator, isNativeMethodOperator, isValidYoungerThanDaysValue, OperatorLabel} from './shared';
 
 const makeField = (name: string, attrs: Partial<UserPropertyField['attrs']>, type: UserPropertyField['type'] = 'text'): UserPropertyField => ({
     id: `id-${name}`,
@@ -344,6 +344,33 @@ describe('hasUsableAttributes', () => {
         expect(hasUsableAttributes(userAttributes, false)).toBe(true);
     });
 
+    test('should return true when attributes are owner-managed', () => {
+        const userAttributes: UserPropertyField[] = [
+            {
+                id: 'attr1',
+                name: 'department',
+                type: 'text',
+                group_id: 'custom_profile_attributes',
+                target_id: '',
+                target_type: '',
+                object_type: '',
+                attrs: {
+                    sort_order: 0,
+                    visibility: 'always',
+                    value_type: '',
+                    owners: [{id: 'com.example.plugin', type: 'plugin', scopes: []}],
+                },
+                create_at: 0,
+                update_at: 0,
+                delete_at: 0,
+                created_by: '',
+                updated_by: '',
+            },
+        ];
+
+        expect(hasUsableAttributes(userAttributes, false)).toBe(true);
+    });
+
     test('should return false when attributes exist but are not usable (not LDAP/SAML/admin/protected and EnableUserManagedAttributes is false)', () => {
         const userAttributes: UserPropertyField[] = [
             {
@@ -599,6 +626,12 @@ describe('isSimpleExpression / isSimpleCondition with session attributes', () =>
         expect(isSimpleExpression('user.attributes.dept == "Eng" && user.session.ip_address == "10.0.0.1"')).toBe(true);
     });
 
+    test('session inCIDR and version helpers are simple', () => {
+        expect(isSimpleCondition('user.session.ip_address.inCIDR("10.0.0.0/8")')).toBe(true);
+        expect(isSimpleCondition('user.session.os_version.versionGTE("6.0.0")')).toBe(true);
+        expect(isSimpleExpression('user.session.ip_address.inCIDR("10.0.0.0/8") && user.session.os_version.versionGTE("6.0.0")')).toBe(true);
+    });
+
     test('unknown namespaces are not simple', () => {
         expect(isSimpleCondition('user.bogus.x == "y"')).toBe(false);
         expect(isSimpleExpression('user.bogus.x == "y"')).toBe(false);
@@ -607,15 +640,38 @@ describe('isSimpleExpression / isSimpleCondition with session attributes', () =>
 
 describe('toCELEditorAttributes', () => {
     test('keeps native attributes (flagged) and drops unsafe CPA when user-managed is off', () => {
+        const owned: UserPropertyField = {
+            id: 'id-owned',
+            name: 'owned',
+            type: 'text',
+            group_id: 'custom_profile_attributes',
+            target_id: '',
+            target_type: '',
+            object_type: 'user',
+            attrs: {
+                sort_order: 0,
+                visibility: 'always',
+                value_type: '',
+                owners: [{id: 'com.example.plugin', type: 'plugin', scopes: []}],
+            },
+            create_at: 0,
+            update_at: 0,
+            delete_at: 0,
+            created_by: '',
+            updated_by: '',
+        };
+
         const fields = [
             makeField('email', {native: true, operators: ['==']}),
             makeField('unsafe', {}),
             makeField('synced', {ldap: 'ldap_field'}),
+            owned,
         ];
 
         expect(toCELEditorAttributes(fields, false)).toEqual([
             {attribute: 'email', values: [], isNative: true, objectType: 'user'},
             {attribute: 'synced', values: [], isNative: false, objectType: 'user'},
+            {attribute: 'owned', values: [], isNative: false, objectType: 'user'},
         ]);
     });
 
@@ -645,7 +701,13 @@ describe('allowedOperatorLabelsForField / defaultOperatorForField', () => {
         expect(defaultOperatorForField(field)).toBe('younger than');
     });
 
-    test('returns undefined for non-native fields and falls back to is/has any of', () => {
+    test('maps session attribute operator tokens to UI labels', () => {
+        const field = makeField('ip_address', {operators: ['==', 'inCIDR']});
+        expect(allowedOperatorLabelsForField(field)).toEqual(['is', 'in IP range']);
+        expect(defaultOperatorForField(field)).toBe('is');
+    });
+
+    test('returns undefined when attrs.operators is absent and falls back to is/has any of', () => {
         expect(allowedOperatorLabelsForField(makeField('dept', {}))).toBeUndefined();
         expect(defaultOperatorForField(makeField('dept', {}))).toBe('is');
         expect(defaultOperatorForField(makeField('skills', {}, 'multiselect'))).toBe('has any of');
@@ -679,6 +741,20 @@ describe('isValidYoungerThanDaysValue', () => {
     });
 });
 
+describe('isFieldAdvertisedOperator', () => {
+    test.each([
+        OperatorLabel.IN_CIDR,
+        OperatorLabel.VERSION_IS,
+        OperatorLabel.VERSION_GREATER_THAN,
+    ])('true for field-advertised operator %p', (op) => {
+        expect(isFieldAdvertisedOperator(op)).toBe(true);
+    });
+
+    test.each([OperatorLabel.IS, OperatorLabel.STARTS_WITH, OperatorLabel.YOUNGER_THAN])('false for generic operator %p', (op) => {
+        expect(isFieldAdvertisedOperator(op)).toBe(false);
+    });
+});
+
 describe('isNativeMethodOperator', () => {
     test('true for the native "younger than" operator', () => {
         expect(isNativeMethodOperator(OperatorLabel.YOUNGER_THAN)).toBe(true);
@@ -690,5 +766,24 @@ describe('isNativeMethodOperator', () => {
 
     test('false for an unknown operator token', () => {
         expect(isNativeMethodOperator('not an operator')).toBe(false);
+    });
+});
+
+describe('referencesResourceAttributes', () => {
+    test('true for an actual resource attribute reference', () => {
+        expect(referencesResourceAttributes('user.attributes.clearance >= resource.attributes.minClearance')).toBe(true);
+    });
+
+    test('false when the prefix only appears inside a quoted literal', () => {
+        expect(referencesResourceAttributes('user.attributes.note == "resource.attributes.minClearance"')).toBe(false);
+        expect(referencesResourceAttributes("user.attributes.note == 'resource.attributes.minClearance'")).toBe(false);
+    });
+
+    test('true when a real reference coexists with a quoted literal', () => {
+        expect(referencesResourceAttributes('user.attributes.note == "resource.attributes.x" && user.attributes.c >= resource.attributes.min')).toBe(true);
+    });
+
+    test('false for a resource-free expression', () => {
+        expect(referencesResourceAttributes('user.attributes.team == "Sales"')).toBe(false);
     });
 });

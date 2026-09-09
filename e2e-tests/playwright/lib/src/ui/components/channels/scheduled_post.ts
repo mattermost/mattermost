@@ -9,6 +9,7 @@ export default class ScheduledPost {
 
     readonly panelHeader;
     readonly panelBody;
+    readonly repeatsWeeklyTag;
 
     readonly postBody;
     readonly postHeader;
@@ -29,6 +30,7 @@ export default class ScheduledPost {
 
         this.panelHeader = container.getByTestId('draft-panel-header');
         this.panelBody = container.getByTestId('draft-panel-body');
+        this.repeatsWeeklyTag = container.getByText('Repeats weekly', {exact: true});
 
         this.postBody = container.getByTestId('draft-post-body');
         this.postHeader = container.getByTestId('draft-post-header');

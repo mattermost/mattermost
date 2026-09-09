@@ -30,8 +30,14 @@ export default class ChannelsHeader {
     }
 
     async openChannelMenu() {
-        await this.channelMenuDropdown.isVisible();
-        await this.channelMenuDropdown.click();
+        const page = this.container.page();
+        const mobileMenuButton = page.locator('#navbar #channelHeaderDropdownButton');
+        const mobileVisible = await mobileMenuButton.isVisible({timeout: 1000}).catch(() => false);
+        const menuButton = mobileVisible ? mobileMenuButton : this.channelMenuDropdown;
+
+        await expect(menuButton).toBeVisible();
+        await menuButton.scrollIntoViewIfNeeded();
+        await menuButton.click();
     }
 
     async openCalls() {

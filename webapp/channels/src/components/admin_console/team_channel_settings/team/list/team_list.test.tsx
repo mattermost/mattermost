@@ -232,6 +232,13 @@ describe('admin_console/team_channel_settings/team/TeamList', () => {
                 name: 'invite',
                 allow_open_invite: false,
             }),
+            TestHelper.getTeamMock({
+                id: '3',
+                display_name: 'Policy Team',
+                name: 'policy',
+                allow_open_invite: false,
+                policy_enforced: true,
+            }),
         ];
 
         const actions = {
@@ -255,11 +262,16 @@ describe('admin_console/team_channel_settings/team/TeamList', () => {
         // Verify management type is displayed using testid
         const openManagement = screen.getByTestId('openManagement');
         const inviteManagement = screen.getByTestId('inviteManagement');
+        const policyManagement = screen.getByTestId('policyManagement');
 
         expect(openManagement).toBeInTheDocument();
         expect(openManagement).toHaveTextContent('Anyone Can Join');
         expect(inviteManagement).toBeInTheDocument();
         expect(inviteManagement).toHaveTextContent('Invite Only');
+
+        // A policy-enforced team is distinguished from a plain invite-only team.
+        expect(policyManagement).toBeInTheDocument();
+        expect(policyManagement).toHaveTextContent('Attribute Based');
     });
 
     test('should display edit links for teams', async () => {

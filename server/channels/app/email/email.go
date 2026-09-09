@@ -454,7 +454,7 @@ func (es *Service) SendInviteEmails(rctx request.CTX, inviteData InviteEmailData
 	}
 
 	if rateLimited {
-		mlog.Error("rate limit exceeded", mlog.Duration("RetryAfter", result.RetryAfter), mlog.Duration("ResetAfter", result.ResetAfter), mlog.String("user_id", inviteData.SenderUserID),
+		mlog.Error("rate limit exceeded", mlog.Duration("retry_after", result.RetryAfter), mlog.Duration("reset_after", result.ResetAfter), mlog.String("user_id", inviteData.SenderUserID),
 			mlog.String("team_id", inviteData.Team.Id), mlog.String("retry_after_secs", fmt.Sprintf("%f", result.RetryAfter.Seconds())), mlog.String("reset_after_secs", fmt.Sprintf("%f", result.ResetAfter.Seconds())))
 		return RateLimitExceededError
 	}
@@ -547,7 +547,7 @@ func (es *Service) SendGuestInviteEmails(
 	}
 
 	if rateLimited {
-		mlog.Error("rate limit exceeded", mlog.Duration("RetryAfter", result.RetryAfter), mlog.Duration("ResetAfter", result.ResetAfter), mlog.String("user_id", senderUserId),
+		mlog.Error("rate limit exceeded", mlog.Duration("retry_after", result.RetryAfter), mlog.Duration("reset_after", result.ResetAfter), mlog.String("user_id", senderUserId),
 			mlog.String("team_id", team.Id), mlog.String("retry_after_secs", fmt.Sprintf("%f", result.RetryAfter.Seconds())), mlog.String("reset_after_secs", fmt.Sprintf("%f", result.ResetAfter.Seconds())))
 		return RateLimitExceededError
 	}
@@ -670,7 +670,7 @@ func (es *Service) SendMagicLinkEmailSelfService(
 	}
 
 	if rateLimited {
-		mlog.Error("rate limit exceeded", mlog.Duration("RetryAfter", result.RetryAfter), mlog.Duration("ResetAfter", result.ResetAfter), mlog.String("email", invite),
+		mlog.Error("rate limit exceeded", mlog.Duration("retry_after", result.RetryAfter), mlog.Duration("reset_after", result.ResetAfter), mlog.String("email", invite),
 			mlog.String("retry_after_secs", fmt.Sprintf("%f", result.RetryAfter.Seconds())), mlog.String("reset_after_secs", fmt.Sprintf("%f", result.ResetAfter.Seconds())))
 		return RateLimitExceededError
 	}
@@ -736,7 +736,7 @@ func (es *Service) SendInviteEmailsToTeamAndChannels(rctx request.CTX, inviteDat
 	}
 
 	if rateLimited {
-		mlog.Error("rate limit exceeded", mlog.Duration("RetryAfter", result.RetryAfter), mlog.Duration("ResetAfter", result.ResetAfter), mlog.String("user_id", inviteData.SenderUserID),
+		mlog.Error("rate limit exceeded", mlog.Duration("retry_after", result.RetryAfter), mlog.Duration("reset_after", result.ResetAfter), mlog.String("user_id", inviteData.SenderUserID),
 			mlog.String("team_id", inviteData.Team.Id), mlog.String("retry_after_secs", fmt.Sprintf("%f", result.RetryAfter.Seconds())), mlog.String("reset_after_secs", fmt.Sprintf("%f", result.ResetAfter.Seconds())))
 		return nil, RateLimitExceededError
 	}

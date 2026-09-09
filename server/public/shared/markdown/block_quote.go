@@ -34,8 +34,11 @@ func (b *BlockQuote) AddChild(openBlocks []Block) []Block {
 	return openBlocks
 }
 
-func blockQuoteStart(markdown string, indent int, r Range) []Block {
+func blockQuoteStart(markdown string, indent int, r Range, depth int) []Block {
 	if indent > 3 {
+		return nil
+	}
+	if depth >= maxNestingDepth {
 		return nil
 	}
 	s := markdown[r.Position:r.End]
@@ -54,7 +57,7 @@ func blockQuoteStart(markdown string, indent int, r Range) []Block {
 	indent, bytes := countIndentation(markdown, r)
 
 	ret := []Block{block}
-	if descendants := blockStartOrParagraph(markdown, indent, Range{r.Position + bytes, r.End}, nil, nil); descendants != nil {
+	if descendants := blockStartOrParagraph(markdown, indent, Range{r.Position + bytes, r.End}, nil, nil, depth+1); descendants != nil {
 		block.Children = append(block.Children, descendants[0])
 		ret = append(ret, descendants...)
 	}

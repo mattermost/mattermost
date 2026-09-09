@@ -12,7 +12,6 @@ exports[`components/MarkdownImage should match snapshot 1`] = `
         class="image-loading__container"
       >
         <img
-          aria-label="file thumbnail"
           class="image-loading__placeholder markdown-inline-img markdown-inline-img--loading"
           height="90"
           role="presentation"
@@ -168,7 +167,6 @@ exports[`components/MarkdownImage should match snapshot for broken link 1`] = `
         class="image-loading__container"
       >
         <img
-          aria-label="file thumbnail"
           class="image-loading__placeholder markdown-inline-img markdown-inline-img--loading"
           height="10"
           role="presentation"

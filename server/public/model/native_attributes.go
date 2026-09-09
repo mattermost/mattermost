@@ -73,10 +73,15 @@ func nativeAttributeField(groupID, name, displayName string, fieldType PropertyF
 // access-control autocomplete so the table/text editors can list them alongside
 // custom profile attributes.
 func NativeUserAttributeFields(groupID string) []*PropertyField {
+	// The options must be the gob-registered []any / map[string]any
+	// containers, not a concrete slice type: these fields cross the plugin
+	// RPC boundary inside PropertyField.Attrs, and an unregistered type
+	// (e.g. []map[string]string) fails gob encoding and shuts down the
+	// shared plugin API connection. The JSON output is identical either way.
 	boolSelectOptions := StringInterface{
-		PropertyFieldAttributeOptions: []map[string]string{
-			{"name": "true"},
-			{"name": "false"},
+		PropertyFieldAttributeOptions: []any{
+			map[string]any{"name": "true"},
+			map[string]any{"name": "false"},
 		},
 	}
 

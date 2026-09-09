@@ -155,8 +155,12 @@ test.describe('Team Members Modal - Membership Policy Banner', {tag: ['@abac', '
         const modal = page.locator('#teamMembersModal');
         await expect(modal).toBeVisible({timeout: 10000});
 
-        // * Banner present
-        await expect(modal.locator('.teamMembersModal__policyBanner')).toBeVisible({timeout: 10000});
+        // * Banner present with softened advisory copy (public team)
+        const banner = modal.locator('.teamMembersModal__policyBanner');
+        await expect(banner).toBeVisible({timeout: 10000});
+        await expect(banner.getByText('This team has membership requirements')).toBeVisible();
+        await expect(banner.getByText(/can still join, but will not be automatically added/i)).toBeVisible();
+        await expect(banner.getByText('Team access is restricted by user attributes')).toHaveCount(0);
     });
 
     test('MM-69100_37 ungoverned team does not show the policy banner in Team Members modal', async ({pw}) => {

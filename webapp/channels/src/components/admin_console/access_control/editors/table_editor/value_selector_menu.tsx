@@ -4,6 +4,7 @@
 import React from 'react';
 
 import type {PropertyFieldOption} from '@mattermost/types/properties';
+import type {UserPropertyField} from '@mattermost/types/properties_user';
 
 import MultiValueSelector from './multi_value_selector_menu';
 import SingleValueSelector from './single_value_selector_menu';
@@ -20,6 +21,13 @@ export interface TableRow {
     attribute_type: string;
     hasMaskedValues: boolean;
 
+    // When set, the right-hand side of the condition is the accessed channel's
+    // attribute (resource.attributes.<targetAttribute>) rather than a literal
+    // value; `values` is then ignored. Only meaningful for comparison operators
+    // and the multiselect list operators (has any of / has all of). The left
+    // side stays the requesting user's attribute.
+    targetAttribute?: string;
+
     // Native user attributes are referenced as `user.<name>` (vs `user.attributes.<name>`).
     isNative?: boolean;
 
@@ -34,6 +42,13 @@ export interface ValueSelectorMenuProps {
     options?: PropertyFieldOption[];
     allowCreateValue?: boolean;
     placeholder?: string;
+
+    // Comparable channel attributes offered as the right-hand side alongside
+    // literal values (the consolidated VALUES + CHANNEL ATTRIBUTES dropdown).
+    // Empty/undefined when the operator or attribute type has no target. When
+    // one is picked, the row switches to a resource.attributes.<name> target.
+    channelFields?: UserPropertyField[];
+    onSelectTarget?: (name: string) => void;
 }
 
 const ValueSelectorMenu = ({
@@ -43,6 +58,8 @@ const ValueSelectorMenu = ({
     options = [],
     allowCreateValue = false,
     placeholder,
+    channelFields = [],
+    onSelectTarget,
 }: ValueSelectorMenuProps) => {
     const isMultiOperator = isMultiValueOperator(row.operator);
 
@@ -56,6 +73,9 @@ const ValueSelectorMenu = ({
                 allowCreateValue={allowCreateValue}
                 placeholder={placeholder}
                 hasMaskedValues={row.hasMaskedValues}
+                channelFields={channelFields}
+                targetAttribute={row.targetAttribute}
+                onSelectTarget={onSelectTarget}
             />
         );
     }
@@ -69,6 +89,9 @@ const ValueSelectorMenu = ({
             allowCreateValue={allowCreateValue}
             placeholder={placeholder}
             hasMaskedValues={row.hasMaskedValues}
+            channelFields={channelFields}
+            targetAttribute={row.targetAttribute}
+            onSelectTarget={onSelectTarget}
         />
     );
 };

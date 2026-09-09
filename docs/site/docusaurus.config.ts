@@ -1,9 +1,9 @@
 import {themes as prismThemes} from 'prism-react-renderer';
 import type {Config} from '@docusaurus/types';
 import type * as Preset from '@docusaurus/preset-classic';
-// Active redirects (legacy Sphinx URLs → migrated MDX paths). Regenerated
-// by `node docs-site/scripts/gen-active-redirects.mjs` after content
-// changes; only entries whose target exists end up here.
+// Active redirects (legacy Sphinx URLs → migrated MDX paths). Bulk-extracted
+// during the docs migration, maintained by hand since — add entries directly
+// to the JSON when a page moves or is removed.
 import activeRedirects from './sidebars/active-redirects.json';
 
 // Multi-instance docs setup with three top-level navigations:
@@ -27,6 +27,13 @@ const algoliaThemeConfig =
           indexName: 'mattermost-docs',
           contextualSearch: true,
           searchPagePath: 'search',
+          searchParameters: {
+            optionalFilters: [
+              'docusaurus_tag:docs-documentation-current<score=3>',
+              'docusaurus_tag:docs-developers-current<score=2>',
+              'docusaurus_tag:docs-api-current<score=1>',
+            ],
+          },
         },
       }
     : {};

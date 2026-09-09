@@ -4,11 +4,14 @@
 import React from 'react';
 import {useIntl} from 'react-intl';
 
+import type {AdminConfig, ClientLicense} from '@mattermost/types/config';
+
 import BooleanSetting from 'components/admin_console/boolean_setting';
 
 import {renderLDAPSettingHelpText} from './ldap_helpers';
 import type {GeneralSettingProps} from './ldap_wizard';
 
+import ProductionWarning from '../production_warning';
 import {renderLabel} from '../schema_admin_settings';
 
 type BoolSettingProps = {
@@ -16,6 +19,9 @@ type BoolSettingProps = {
     onChange(id: string, value: any): void;
     disabled: boolean;
     setByEnv: boolean;
+    config: Partial<AdminConfig>;
+    state: {[x: string]: any};
+    license?: ClientLicense;
 } & GeneralSettingProps;
 
 const LDAPBooleanSetting = (props: BoolSettingProps) => {
@@ -26,7 +32,18 @@ const LDAPBooleanSetting = (props: BoolSettingProps) => {
     }
 
     const label = renderLabel(props.setting, props.schema, intl);
-    const helpText = renderLDAPSettingHelpText(props.setting, props.schema, Boolean(props.disabled));
+    const helpText = (
+        <>
+            <ProductionWarning
+                setting={props.setting}
+                config={props.config}
+                state={props.state}
+                license={props.license}
+                isDisabled={Boolean(props.disabled)}
+            />
+            {renderLDAPSettingHelpText(props.setting, props.schema, Boolean(props.disabled))}
+        </>
+    );
 
     return (
         <BooleanSetting

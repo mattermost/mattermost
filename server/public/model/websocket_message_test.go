@@ -178,8 +178,70 @@ func TestWebsocketBroadcastCopy(t *testing.T) {
 		TeamId:                "ccc",
 		ContainsSanitizedData: true,
 		ContainsSensitiveData: true,
+		RecordPostDelivery:    &PostDeliveryMarker{PostId: "ddd", ChannelId: "bbb", UserId: "eee"},
+		RequiredPermissions:   []string{PermissionReadDataRetentionJob.Id},
 	}
-	require.Equal(t, w, w.copy())
+	wCopy := w.copy()
+	require.Equal(t, w, wCopy)
+	require.NotSame(t, &w.RequiredPermissions[0], &wCopy.RequiredPermissions[0])
+}
+
+func TestWebSocketEventWithoutRecordPostDelivery(t *testing.T) {
+	t.Run("returns the same event when unmarked", func(t *testing.T) {
+		ev := NewWebSocketEvent(WebsocketEventPosted, "team", "channel", "", nil, "")
+
+		stripped, marker := ev.WithoutRecordPostDelivery()
+		require.Nil(t, marker)
+		require.Same(t, ev, stripped)
+	})
+
+	t.Run("strips the marker from a copy, leaving the original intact", func(t *testing.T) {
+		ev := NewWebSocketEvent(WebsocketEventPosted, "team", "channel", "", nil, "")
+		ev.GetBroadcast().RecordPostDelivery = &PostDeliveryMarker{
+			PostId:    "post-id",
+			ChannelId: "channel",
+			UserId:    "author-id",
+		}
+
+		stripped, marker := ev.WithoutRecordPostDelivery()
+		require.NotNil(t, marker)
+		require.Equal(t, "post-id", marker.PostId)
+		require.Equal(t, "channel", marker.ChannelId)
+		require.Equal(t, "author-id", marker.UserId)
+
+		require.Nil(t, stripped.GetBroadcast().RecordPostDelivery)
+		// Publish serializes the original for the cluster after the local broadcast, so the
+		// marker must survive on it.
+		require.NotNil(t, ev.GetBroadcast().RecordPostDelivery)
+	})
+
+	t.Run("crosses the cluster wire", func(t *testing.T) {
+		ev := NewWebSocketEvent(WebsocketEventPosted, "team", "channel", "", nil, "")
+		ev.GetBroadcast().RecordPostDelivery = &PostDeliveryMarker{
+			PostId:    "post-id",
+			ChannelId: "channel",
+			UserId:    "author-id",
+		}
+
+		data, err := ev.ToJSON()
+		require.NoError(t, err)
+
+		received, err := WebSocketEventFromJSON(bytes.NewReader(data))
+		require.NoError(t, err)
+		require.NotNil(t, received.GetBroadcast().RecordPostDelivery)
+		require.Equal(t, "post-id", received.GetBroadcast().RecordPostDelivery.PostId)
+	})
+
+	t.Run("is absent from the client frame", func(t *testing.T) {
+		ev := NewWebSocketEvent(WebsocketEventPosted, "team", "channel", "", nil, "")
+		ev.GetBroadcast().RecordPostDelivery = &PostDeliveryMarker{PostId: "post-id"}
+
+		stripped, _ := ev.WithoutRecordPostDelivery()
+		data, err := stripped.PrecomputeJSON().ToJSON()
+		require.NoError(t, err)
+		require.NotContains(t, string(data), "record_post_delivery")
+		require.NotContains(t, string(data), "post-id")
+	})
 }
 
 func TestPrecomputedWebSocketEventJSONCopy(t *testing.T) {
@@ -217,19 +279,21 @@ func TestWebSocketEventDeepCopy(t *testing.T) {
 		TeamId:                "ccc",
 		ContainsSanitizedData: true,
 		ContainsSensitiveData: true,
+		RequiredPermissions:   []string{PermissionReadDataRetentionJob.Id},
 		OmitConnectionId:      "ddd",
 	}
 
 	ev := NewWebSocketEvent("test", "team", "channel", "user", omitUsers, "ddd")
 
 	ev.Add("post", &Post{})
-	ev.SetBroadcast(broadcast)
+	ev = ev.SetBroadcast(broadcast)
 	ev = ev.PrecomputeJSON()
 
 	evCopy := ev.DeepCopy()
 	require.Equal(t, ev, evCopy)
 	AssertNotSameMap(t, ev.data, evCopy.data)
 	require.NotSame(t, ev.broadcast, evCopy.broadcast)
+	require.NotSame(t, &ev.broadcast.RequiredPermissions[0], &evCopy.broadcast.RequiredPermissions[0])
 	require.NotSame(t, ev.precomputedJSON, evCopy.precomputedJSON)
 
 	ev.Add("post", &Post{

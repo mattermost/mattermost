@@ -10,6 +10,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest"
 )
 
@@ -28,6 +29,7 @@ func TestGetPendingScheduledPostsReadsFromMaster(t *testing.T) {
 	}
 
 	logger := mlog.CreateTestLogger(t)
+	rctx := request.EmptyContext(logger)
 
 	masterSettings, err := makeSqlSettings(model.DatabaseDriverPostgres)
 	if err != nil {
@@ -67,7 +69,7 @@ func TestGetPendingScheduledPostsReadsFromMaster(t *testing.T) {
 		},
 		ScheduledAt: model.GetMillis(),
 	}
-	createdScheduledPost, err := store.ScheduledPost().CreateScheduledPost(scheduledPost)
+	createdScheduledPost, err := store.ScheduledPost().CreateScheduledPost(rctx, scheduledPost)
 	require.NoError(t, err)
 	require.NotEmpty(t, createdScheduledPost.Id)
 
@@ -78,7 +80,7 @@ func TestGetPendingScheduledPostsReadsFromMaster(t *testing.T) {
 
 	beforeTime := createdScheduledPost.ScheduledAt + 1000
 	afterTime := createdScheduledPost.ScheduledAt - (24 * 60 * 60 * 1000)
-	pending, err := store.ScheduledPost().GetPendingScheduledPosts(beforeTime, afterTime, "", 10)
+	pending, err := store.ScheduledPost().GetPendingScheduledPosts(rctx, beforeTime, afterTime, "", 10)
 	require.NoError(t, err)
 	require.Len(t, pending, 1, "pending posts must be read from master, not the empty replica")
 	require.Equal(t, createdScheduledPost.Id, pending[0].Id)

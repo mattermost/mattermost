@@ -114,9 +114,7 @@ func TestGetCPAValue(t *testing.T) {
 
 func TestDeleteCPAValues(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := SetupConfig(t, func(cfg *model.Config) {
-		cfg.FeatureFlags.CustomProfileAttributes = true
-	}).InitBasic(t)
+	th := Setup(t).InitBasic(t)
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
 
 	cpaGroup, groupErr := th.App.GetPropertyGroup(request.TestContext(t), model.AccessControlPropertyGroupName)

@@ -81,7 +81,8 @@ export function aggregateDecisions(
         if (dec.blame?.some((b) =>
             (
                 b.source === POLICY_SIMULATION_BLAME_SOURCES.NO_APPLICABLE_POLICY ||
-                b.source === POLICY_SIMULATION_BLAME_SOURCES.NO_APPLICABLE_RULE
+                b.source === POLICY_SIMULATION_BLAME_SOURCES.NO_APPLICABLE_RULE ||
+                b.source === POLICY_SIMULATION_BLAME_SOURCES.NO_SESSION_DATA
             ) &&
             b.outcome !== 'allow',
         )) {

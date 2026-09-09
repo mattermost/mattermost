@@ -67,7 +67,8 @@ const GlobalThreads = () => {
         if (!(
             rhsState === RHSStates.MENTION ||
             rhsState === RHSStates.SEARCH ||
-            rhsState === RHSStates.FLAG)
+            rhsState === RHSStates.FLAG ||
+            rhsState === RHSStates.PLUGIN)
         ) {
             dispatch(suppressRHS);
         }

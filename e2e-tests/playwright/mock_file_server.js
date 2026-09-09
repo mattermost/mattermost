@@ -14,7 +14,8 @@ const {createServer} = require('http');
 const fs = require('fs');
 const path = require('path');
 
-const PORT = Number(process.env.PORT) || 3011;
+// PORT=0 must request an ephemeral port — don't treat 0 as falsy and fall back to 3011.
+const PORT = process.env.PORT !== undefined && process.env.PORT !== '' ? Number(process.env.PORT) : 3011;
 const ASSET_DIR = process.env.ASSET_DIR || path.join(__dirname, 'asset');
 
 if (process.argv[2]) {
@@ -100,7 +101,9 @@ const server = createServer((req, res) => {
     });
 });
 
-server.listen(PORT, '127.0.0.1', () => {
+// Bind to all interfaces, not just loopback, so the Mattermost server container can reach this
+// over the Docker network in `testcontainers` mode.
+server.listen(PORT, () => {
     const address = server.address();
     const actualPort = typeof address === 'object' && address ? address.port : PORT;
     console.log(`File server serving ${ASSET_DIR} on port ${actualPort}!`);

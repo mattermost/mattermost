@@ -1,7 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {ComponentType, ForwardRefExoticComponent, KeyboardEvent, KeyboardEventHandler, ReactNode, ReactNodeArray, RefAttributes, RefObject} from 'react';
+import type {
+    ComponentType,
+    ForwardRefExoticComponent,
+    KeyboardEvent,
+    KeyboardEventHandler,
+    ReactNode,
+    RefAttributes,
+    RefObject,
+} from 'react';
 
 import type {Agent} from '@mattermost/types/agents';
 import type {Channel} from '@mattermost/types/channels';
@@ -21,7 +29,7 @@ export type ActionResult<Data = unknown, Error = unknown> = {
 
 export type WysiwygEditorProps = {
     value: string;
-    onChange: (markdown: string) => void;
+    onChange: (content: string) => void;
     onSubmit: () => void;
     onFocus?: () => void;
     onBlur?: () => void;
@@ -29,10 +37,21 @@ export type WysiwygEditorProps = {
     channelId: string;
     rootId?: string;
     disabled?: boolean;
+    readOnly?: boolean;
     id?: string;
     useCtrlSend?: boolean;
     sendCodeBlockOnCtrlEnter?: boolean;
     onKeyDown?: (e: KeyboardEvent<HTMLDivElement>) => void;
+
+    // 'json' reads and emits stringified ProseMirror JSON. Mount-only.
+    contentType?: 'markdown' | 'json';
+
+    // Mount-only. `any[]` so consumers don't need `@tiptap/core` transitively.
+    extensions?: any[];
+
+    // Any content error in 'json' mode, for the editor's lifetime. See
+    // hasContentError() for the autosave-gating contract.
+    onContentError?: (error: Error) => void;
 };
 
 export type SuggestionListProps = {
@@ -60,7 +79,7 @@ export type FormattingBarProps = {
     applyFormatting: (mode: PublishedMarkdownMode) => void;
     disableControls: boolean;
     location: string;
-    additionalControls?: ReactNodeArray;
+    additionalControls?: readonly ReactNode[];
     aiActionsMenu?: ReactNode;
 
     // Returns a Tiptap Editor. Left as `any` so plugins don't need `@tiptap/react`
@@ -121,6 +140,15 @@ export type PublishedWysiwygEditorHandle = {
     focus: () => void;
     blur: () => void;
     getInputBox: () => HTMLElement | null;
+
+    // Null until the mount effect runs, so a useLayoutEffect can still miss it.
+    // In 'json' mode use getJSON(); getMarkdown() isn't attached.
+    getEditor: () => any;
+
+    // True when the initial `value` failed to load in 'json' mode. Autosaving
+    // consumers must gate the first onChange on this, or the empty fallback
+    // overwrites the source. Load-only, so it can't stall a healthy session.
+    hasContentError: () => boolean;
 };
 
 export type PublishedFormattingBarHandle = {

@@ -5,6 +5,7 @@ package model
 
 import (
 	"fmt"
+	"slices"
 	"strings"
 
 	"github.com/mattermost/mattermost/server/public/utils/timeutils"
@@ -893,22 +894,38 @@ func IsBuiltInRole(roleName string) bool {
 	return builtInRoleSet[roleName]
 }
 
+// channelScopedBuiltInRoles are the built-in roles valid inside a channel-member role list.
+var channelScopedBuiltInRoles = []string{ChannelGuestRoleId, ChannelUserRoleId, ChannelAdminRoleId}
+
+// teamScopedBuiltInRoles are the built-in roles valid inside a team-member role list.
+var teamScopedBuiltInRoles = []string{TeamGuestRoleId, TeamUserRoleId, TeamAdminRoleId}
+
 // IsChannelScopedBuiltInRole returns true for the three built-in roles that are
 // valid inside a channel-member role list.
 func IsChannelScopedBuiltInRole(roleName string) bool {
-	return roleName == ChannelGuestRoleId || roleName == ChannelUserRoleId || roleName == ChannelAdminRoleId
+	return slices.Contains(channelScopedBuiltInRoles, roleName)
 }
 
 // IsValidChannelMemberRoles reports whether roles are valid for a channel member.
-// IsValidUserRoles is format validation only; this additionally rejects any built-in
-// role (per IsBuiltInRole) that is not channel-scoped.
 func IsValidChannelMemberRoles(channelMemberRoles string) bool {
-	if !IsValidUserRoles(channelMemberRoles) {
+	return IsValidMemberRoles(channelMemberRoles, channelScopedBuiltInRoles)
+}
+
+// IsValidTeamMemberRoles reports whether roles are valid for a team member.
+func IsValidTeamMemberRoles(teamMemberRoles string) bool {
+	return IsValidMemberRoles(teamMemberRoles, teamScopedBuiltInRoles)
+}
+
+// IsValidMemberRoles reports whether memberRoles are valid for a member. IsValidUserRoles
+// is format validation only; this additionally rejects any built-in role (per IsBuiltInRole)
+// that is not in validRoles.
+func IsValidMemberRoles(memberRoles string, validRoles []string) bool {
+	if !IsValidUserRoles(memberRoles) {
 		return false
 	}
 
-	for roleName := range strings.FieldsSeq(channelMemberRoles) {
-		if IsBuiltInRole(roleName) && !IsChannelScopedBuiltInRole(roleName) {
+	for roleName := range strings.FieldsSeq(memberRoles) {
+		if IsBuiltInRole(roleName) && !slices.Contains(validRoles, roleName) {
 			return false
 		}
 	}
@@ -1067,7 +1084,6 @@ func MakeDefaultRoles() map[string]*Role {
 		Permissions: []string{
 			PermissionRemoveUserFromTeam.Id,
 			PermissionManageTeam.Id,
-			PermissionImportTeam.Id,
 			PermissionManageTeamRoles.Id,
 			PermissionManageTeamAccessRules.Id,
 			PermissionManageChannelRoles.Id,

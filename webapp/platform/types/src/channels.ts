@@ -158,6 +158,32 @@ export type GetChannelJoinRequestsOptions = {
     per_page?: number;
 };
 
+export type ChannelJoinRequestPatch = {
+    status: 'approved' | 'denied';
+    denial_reason?: string;
+};
+
+export type ChannelJoinRequestApprovalResponse = {
+    status: 'approved';
+};
+
+// Slice of ChannelsState holding pending/past join requests by channel.
+//
+// `myPendingByChannel`: pending request that the current user has open against
+// a given channel, used by Browse rows and the Request to Join modal.
+// `byChannel`: admin-queue lists keyed by channel id (filled when an admin
+// opens the queue UI).
+// `countsByChannel`: pending count per channel, used by the indicator triad
+// on the channel header / LHS / RHS.
+// `myList`: the current user's pending requests across channels (My Pending
+// Requests tab).
+export type ChannelJoinRequestsState = {
+    myPendingByChannel: Record<string, ChannelJoinRequest>;
+    byChannel: Record<string, ChannelJoinRequest[]>;
+    countsByChannel: Record<string, number>;
+    myList: ChannelJoinRequest[];
+};
+
 export type ChannelMembership = {
     channel_id: string;
     user_id: string;
@@ -227,6 +253,7 @@ export type ChannelsState = {
     messageCounts: RelationOneToOne<Channel, ChannelMessageCount>;
     channelsMemberCount: Record<string, number>;
     restrictedDMs: RelationOneToOne<Channel, boolean>;
+    joinRequests: ChannelJoinRequestsState;
 };
 
 export type ChannelModeration = {

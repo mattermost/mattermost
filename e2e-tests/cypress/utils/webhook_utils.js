@@ -437,7 +437,9 @@ function getBasicDateTimeDialog(triggerId, webhookBaseUrl) {
                     placeholder: 'Select date and time',
                     help_text: 'Select the date and time for your meeting',
                     optional: false,
-                    time_interval: 60,
+                    datetime_config: {
+                        time_interval: 60,
+                    },
                 },
             ],
             submit_label: 'Submit',
@@ -465,7 +467,9 @@ function getMinDateConstraintDialog(triggerId, webhookBaseUrl) {
                     placeholder: 'Select a future date',
                     help_text: 'Must be today or later',
                     optional: true,
-                    min_date: 'today',
+                    datetime_config: {
+                        min_date: 'today',
+                    },
                 },
             ],
             submit_label: 'Submit',
@@ -493,7 +497,9 @@ function getCustomIntervalDialog(triggerId, webhookBaseUrl) {
                     placeholder: 'Select time (30min intervals)',
                     help_text: 'Time picker with 30-minute intervals',
                     optional: true,
-                    time_interval: 30,
+                    datetime_config: {
+                        time_interval: 30,
+                    },
                 },
             ],
             submit_label: 'Submit',

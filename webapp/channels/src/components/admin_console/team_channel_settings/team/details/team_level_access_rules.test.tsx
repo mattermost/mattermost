@@ -15,7 +15,10 @@ import TeamLevelAccessRules from './team_level_access_rules';
 jest.mock('components/admin_console/access_control/editors/table_editor/table_editor', () => {
     return function MockTableEditor(props: any) {
         return (
-            <div data-testid='table-editor'>
+            <div
+                data-testid='table-editor'
+                data-team-id={props.teamId ?? ''}
+            >
                 <input
                     data-testid='expression-input'
                     value={props.value}
@@ -92,8 +95,18 @@ describe('TeamLevelAccessRules', () => {
     it('should render the component with correct title and subtitle', () => {
         renderWithContext(<TeamLevelAccessRules {...defaultProps}/>);
 
-        expect(screen.getByText('Custom access rules')).toBeInTheDocument();
+        expect(screen.getByText('Team-specific membership rules')).toBeInTheDocument();
         expect(screen.getByText('User attributes and values as additional rules to restrict team membership')).toBeInTheDocument();
+    });
+
+    it('does not scope the access-rule test to team members (no teamId passed to the editor)', async () => {
+        renderWithContext(<TeamLevelAccessRules {...defaultProps}/>);
+
+        const editor = await screen.findByTestId('table-editor');
+
+        // teamId would scope "Test access rule" (and its count) to current team members;
+        // it must preview everyone who matches, workspace-wide, like the policy editor.
+        expect(editor).toHaveAttribute('data-team-id', '');
     });
 
     it('should render the TableEditor', async () => {
@@ -276,5 +289,203 @@ describe('TeamLevelAccessRules', () => {
         await userEvent.click(screen.getByTestId('trigger-parse-error'));
 
         expect(screen.getByText('Invalid expression syntax')).toBeInTheDocument();
+    });
+
+    it('should enable auto-sync checkbox for a parent-governed team even with no custom expression', async () => {
+        renderWithContext(
+            <TeamLevelAccessRules
+                {...defaultProps}
+                initialExpression=''
+                hasParentPolicies={true}
+            />,
+        );
+
+        await screen.findByTestId('table-editor');
+
+        expect(screen.getByRole('checkbox')).not.toBeDisabled();
+    });
+
+    it('should call onRulesChange with autoSync when toggled on a parent-only team', async () => {
+        const onRulesChange = jest.fn();
+        renderWithContext(
+            <TeamLevelAccessRules
+                {...defaultProps}
+                onRulesChange={onRulesChange}
+                initialExpression=''
+                hasParentPolicies={true}
+            />,
+        );
+
+        await screen.findByTestId('table-editor');
+
+        await userEvent.click(screen.getByRole('checkbox'));
+
+        expect(onRulesChange).toHaveBeenCalledWith(true, '', true);
+    });
+
+    it('should keep auto-sync checkbox disabled when neither a custom expression nor a parent policy exists', async () => {
+        renderWithContext(
+            <TeamLevelAccessRules
+                {...defaultProps}
+                initialExpression=''
+                hasParentPolicies={false}
+            />,
+        );
+
+        await screen.findByTestId('table-editor');
+
+        expect(screen.getByRole('checkbox')).toBeDisabled();
+    });
+
+    it('should disable auto-sync when isDisabled is true even if a parent policy governs the team', async () => {
+        renderWithContext(
+            <TeamLevelAccessRules
+                {...defaultProps}
+                isDisabled={true}
+                initialExpression=''
+                hasParentPolicies={true}
+            />,
+        );
+
+        await screen.findByTestId('table-editor');
+
+        expect(screen.getByRole('checkbox')).toBeDisabled();
+    });
+
+    it('should reset auto-sync to false when the last parent policy is removed and no custom rule remains', async () => {
+        const onRulesChange = jest.fn();
+        const {rerender} = renderWithContext(
+            <TeamLevelAccessRules
+                {...defaultProps}
+                onRulesChange={onRulesChange}
+                initialExpression=''
+                initialAutoSync={true}
+                hasParentPolicies={true}
+            />,
+        );
+
+        await screen.findByTestId('table-editor');
+        expect(screen.getByRole('checkbox')).toBeChecked();
+
+        // Unlinking the last parent leaves nothing to govern membership.
+        rerender(
+            <TeamLevelAccessRules
+                {...defaultProps}
+                onRulesChange={onRulesChange}
+                initialExpression=''
+                initialAutoSync={true}
+                hasParentPolicies={false}
+            />,
+        );
+
+        expect(screen.getByRole('checkbox')).not.toBeChecked();
+        expect(onRulesChange).toHaveBeenLastCalledWith(true, '', false);
+    });
+
+    it('keeps a persisted auto-sync checked when parent policies arrive after the auto-sync flag (staggered load)', async () => {
+        // fetchAccessControlPolicies commits the child policy's active flag and its
+        // parent imports in two separate network round-trips: initialAutoSync lands
+        // first, hasParentPolicies second. The empty-expression reset effect must not
+        // zero a persisted auto-sync during that window.
+        const {rerender} = renderWithContext(
+            <TeamLevelAccessRules
+                {...defaultProps}
+                initialExpression=''
+                initialAutoSync={false}
+                hasParentPolicies={false}
+            />,
+        );
+
+        await screen.findByTestId('table-editor');
+
+        // Commit 1: child.active (true) arrives; parents not yet loaded.
+        rerender(
+            <TeamLevelAccessRules
+                {...defaultProps}
+                initialExpression=''
+                initialAutoSync={true}
+                hasParentPolicies={false}
+            />,
+        );
+
+        // Commit 2: parent imports arrive.
+        rerender(
+            <TeamLevelAccessRules
+                {...defaultProps}
+                initialExpression=''
+                initialAutoSync={true}
+                hasParentPolicies={true}
+            />,
+        );
+
+        expect(screen.getByRole('checkbox')).toBeChecked();
+        expect(screen.getByRole('checkbox')).toBeEnabled();
+    });
+
+    it('removing the only rule clears it and turns auto-add off, reporting the change to the parent', async () => {
+        // A stateful parent that echoes reported values back as initial props, the way
+        // team_details persists them into its own state (stable onRulesChange). Exercises
+        // the full remove-the-only-rule path through that round-trip.
+        const reported: Array<{expression: string; autoSync: boolean}> = [];
+        const Harness = () => {
+            const [expr, setExpr] = React.useState('');
+            const [autoSync, setAutoSync] = React.useState(false);
+
+            // Staggered load: the rule + auto-add arrive after mount, like fetchAccessControlPolicies.
+            React.useEffect(() => {
+                setExpr('user.attributes.Department == "Engineering"');
+                setAutoSync(true);
+            }, []);
+
+            const onRulesChange = React.useCallback((_h: boolean, e: string, a: boolean) => {
+                reported.push({expression: e, autoSync: a});
+                setExpr(e);
+                setAutoSync(a);
+            }, []);
+
+            return (
+                <TeamLevelAccessRules
+                    team={mockTeam}
+                    userAttributes={mockUserAttributes}
+                    onRulesChange={onRulesChange}
+                    initialExpression={expr}
+                    initialAutoSync={autoSync}
+                    hasParentPolicies={false}
+                />
+            );
+        };
+
+        renderWithContext(<Harness/>);
+        await screen.findByTestId('table-editor');
+
+        // Auto-add loaded on with the rule present.
+        expect(screen.getByRole('checkbox')).toBeChecked();
+
+        // Remove the only rule.
+        await userEvent.clear(screen.getByTestId('expression-input'));
+
+        // Rule is gone, auto-add turns off and its checkbox is disabled (nothing to sync),
+        // and the parent was told the expression is empty with auto-add off.
+        expect(screen.getByTestId('expression-input')).toHaveValue('');
+        expect(screen.getByRole('checkbox')).not.toBeChecked();
+        expect(screen.getByRole('checkbox')).toBeDisabled();
+        expect(reported[reported.length - 1]).toEqual({expression: '', autoSync: false});
+    });
+
+    it('should not reset auto-sync to false for a parent-only team when the expression is empty', () => {
+        const onRulesChange = jest.fn();
+        renderWithContext(
+            <TeamLevelAccessRules
+                {...defaultProps}
+                onRulesChange={onRulesChange}
+                initialExpression=''
+                initialAutoSync={true}
+                hasParentPolicies={true}
+            />,
+        );
+
+        // A parent policy alone is enough to govern membership, so the empty-expression
+        // reset effect must not clear the auto-add flag.
+        expect(onRulesChange).toHaveBeenLastCalledWith(false, '', true);
     });
 });

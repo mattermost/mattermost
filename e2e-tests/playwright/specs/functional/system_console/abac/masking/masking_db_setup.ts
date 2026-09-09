@@ -14,22 +14,17 @@
  * Helpers use a one-shot `pg.Client` so we don't keep a connection pool open
  * for the lifetime of the test run, and use parameterized queries throughout.
  *
- * DB URL resolution order:
- *   1. MM_TEST_DB_URL env var
- *   2. default: postgres://mmuser:mostest@localhost/mattermost_test?sslmode=disable
+ * Connects via testConfig.postgresUrl, which resolves to the fixed localhost:5432 default in
+ * `external` mode (docker-compose's mapped port), or the Testcontainers-assigned host port in
+ * `testcontainers` mode.
  */
 
 import {Client} from 'pg';
 
-const DEFAULT_DB_URL =
-    'postgres://mmuser:mostest@localhost:5432/mattermost_test?sslmode=disable&connect_timeout=10&binary_parameters=yes';
-
-function resolveDbUrl(): string {
-    return process.env.MM_TEST_DB_URL ?? DEFAULT_DB_URL;
-}
+import {testConfig} from '@mattermost/playwright-lib';
 
 async function runQuery<T = unknown>(sql: string, params: unknown[] = []): Promise<T[]> {
-    const client = new Client({connectionString: resolveDbUrl()});
+    const client = new Client({connectionString: testConfig.postgresUrl});
     await client.connect();
     try {
         const result = await client.query(sql, params);
