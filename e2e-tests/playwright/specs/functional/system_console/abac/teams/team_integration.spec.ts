@@ -582,9 +582,12 @@ test.describe('ABAC - Team Membership console', {tag: ['@abac', '@team_membershi
         await enableTeamMembershipPolicies(adminClient);
         await ensureDepartmentAttribute(adminClient);
 
-        // # Private team; admin is NOT a member, only a Marketing user (doesn't match Engineering)
+        // # Private team; admin is NOT a member, only a Marketing user (doesn't match Engineering).
+        // Remove the admin (auto-added on create). A shared system admin may have
+        // Department=Engineering from another worker, which would hide the empty-team warning.
         const team = await createPrivateTeam(adminClient, suffix);
         createdTeamIds.push(team.id);
+        await adminClient.removeFromTeam(team.id, adminUser.id).catch(() => {});
         const mktUser = await adminClient.createUser(
             {
                 email: `mkt${suffix}@sample.mattermost.com`,

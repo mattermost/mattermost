@@ -30,6 +30,13 @@ export default class EditChannelHeaderModal {
         await expect(this.container).not.toBeVisible();
     }
 
+    async setHeaderWithEnter(header: string) {
+        await expect(this.input).toBeVisible();
+        await this.input.fill(header);
+        await this.input.press('Enter');
+        await expect(this.container).not.toBeVisible();
+    }
+
     async cancel() {
         await this.cancelButton.click();
         await expect(this.container).not.toBeVisible();

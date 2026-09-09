@@ -11,6 +11,7 @@ export default class ChannelsHeader {
     readonly channelMenuDropdown;
     readonly callButton: Locator;
     readonly pinnedMessagesButton: Locator;
+    readonly addChannelHeaderButton: Locator;
 
     constructor(container: Locator) {
         this.container = container;
@@ -19,6 +20,7 @@ export default class ChannelsHeader {
         this.channelMenuDropdown = container.locator('#channelHeaderDropdownButton');
         this.callButton = container.getByRole('button', {name: /call/i}).first();
         this.pinnedMessagesButton = container.locator('#channelHeaderPinButton');
+        this.addChannelHeaderButton = container.getByRole('button', {name: 'Add a channel header'});
     }
 
     async toBeVisible() {
@@ -48,5 +50,26 @@ export default class ChannelsHeader {
     async openPinnedMessages() {
         await expect(this.pinnedMessagesButton).toBeVisible();
         await this.pinnedMessagesButton.click();
+    }
+
+    async openAddChannelHeader() {
+        await this.container.hover();
+        await this.addChannelHeaderButton.click();
+    }
+
+    getHeaderText(text: string) {
+        return this.container.getByText(text, {exact: false});
+    }
+
+    getHeaderLink(name: string) {
+        return this.container.getByRole('link', {name});
+    }
+
+    getHeaderMention(name: string) {
+        return this.container.getByRole('button', {name});
+    }
+
+    getHeaderTooltip(text: string) {
+        return this.container.page().getByRole('tooltip').filter({hasText: text});
     }
 }
