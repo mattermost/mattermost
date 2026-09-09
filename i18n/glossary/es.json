@@ -405,8 +405,8 @@
     "note": "Existing server translation renders the default channel name as 'General' (not a literal translation); keep for consistency with created channels."
   },
   "Off-Topic": {
-    "target": "Fuera de tema",
-    "note": "Existing server translation is 'Fuera de Tópico', which is unidiomatic; Spanish sentence casing applies."
+    "target": "Fuera de Tópico",
+    "note": "Established default-channel name in server es.json; keep for consistency with existing channels. 'Fuera de tema' is more idiomatic but would rename the channel."
   },
   "read-only": {
     "target": "solo lectura",

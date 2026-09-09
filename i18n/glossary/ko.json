@@ -415,8 +415,8 @@
     "note": "Grounded in the only existing rendering; write with a space (타운 스퀘어), not 타운스퀘어."
   },
   "Off-Topic": {
-    "target": "오프토픽",
-    "note": "Grounded in the only existing rendering."
+    "target": "잡담",
+    "note": "Established default-channel name in server ko.json. '오프토픽' appears only in admin prose describing the channel."
   },
   "read-only": {
     "target": "읽기 전용"

@@ -393,7 +393,8 @@
     "target": "广场"
   },
   "Off-Topic": {
-    "target": "杂谈"
+    "target": "闲聊",
+    "note": "Established default-channel name in server zh-CN.json. '杂谈' appears only in admin prose describing the channel."
   },
   "read-only": {
     "target": "只读"

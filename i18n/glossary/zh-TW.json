@@ -396,7 +396,8 @@
     "target": "市民廣場"
   },
   "Off-Topic": {
-    "target": "話家常"
+    "target": "閒聊",
+    "note": "Established default-channel name in server zh-TW.json. '話家常' appears only in admin prose describing the channel."
   },
   "read-only": {
     "target": "唯讀"
