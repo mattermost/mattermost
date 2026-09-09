@@ -364,8 +364,8 @@
     "note": "Repo renders 'token' as 'kod' in this term (not 'jeton'/'belirteç')."
   },
   "announcement banner": {
-    "target": "duyuru şeridi",
-    "note": "Existing strings use 'duyuru bildirimi', which collides with 'notification' = 'bildirim'; a banner is a strip ('şerit'), not a notification."
+    "target": "duyuru bildirimi",
+    "note": "Existing strings use 'duyuru bildirimi', which collides with 'notification' = 'bildirim'. A form preserving the banner sense ('duyuru şeridi') is unattested in the catalogs and needs a Turkish reviewer."
   },
   "channel banner": {
     "target": "kanal duyurusu",
