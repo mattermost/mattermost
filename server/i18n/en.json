@@ -3363,6 +3363,14 @@
     "translation": "Cannot patch a v1 property field via this API."
   },
   {
+    "id": "api.property_field.patch.permission_values_invalid.app_error",
+    "translation": "permission_values must be either member or sysadmin."
+  },
+  {
+    "id": "api.property_field.patch.permission_values_not_linked.app_error",
+    "translation": "permission_values can only be set on a field linked to a template."
+  },
+  {
     "id": "api.property_field.update.no_field_permission.app_error",
     "translation": "You do not have permission to edit this property field."
   },

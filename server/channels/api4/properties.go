@@ -476,6 +476,25 @@ func patchPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// PermissionValues is only patchable on a Global-Attributes-linked field
+	// (any object type -- the "Who can set the value" control, MM-69869), and
+	// only to Member or Sysadmin. Requiring LinkedFieldID keeps this off
+	// standalone CPA 'user' fields, which can have a weaker (Member-level)
+	// PermissionField than a linked field's always-sysadmin one -- without
+	// this, a caller who can already edit a CPA field's definition could use
+	// this new capability to escalate its PermissionValues to sysadmin, or
+	// loosen another field's to member.
+	if patch.PermissionValues != nil {
+		if existingField.LinkedFieldID == nil {
+			c.Err = model.NewAppError("patchPropertyField", "api.property_field.patch.permission_values_not_linked.app_error", nil, "", http.StatusBadRequest)
+			return
+		}
+		if *patch.PermissionValues != model.PermissionLevelMember && *patch.PermissionValues != model.PermissionLevelSysadmin {
+			c.Err = model.NewAppError("patchPropertyField", "api.property_field.patch.permission_values_invalid.app_error", nil, "", http.StatusBadRequest)
+			return
+		}
+	}
+
 	// Permission branching (session-bound): options-only patches use a
 	// narrower permission than full edits.
 	isOptionsOnly := isOptionsOnlyPatch(patch)
@@ -927,8 +946,11 @@ func sessionCallerID(c *Context) string {
 // isOptionsOnlyPatch checks if the patch only modifies the options attribute.
 // Returns true if the only change is to attrs.options.
 func isOptionsOnlyPatch(patch *model.PropertyFieldPatch) bool {
-	// If any field property (besides attrs) is being updated, it's not options-only
-	if patch.Name != nil || patch.Type != nil || patch.TargetID != nil || patch.TargetType != nil || patch.LinkedFieldID != nil {
+	// If any field property (besides attrs) is being updated, it's not options-only.
+	// PermissionValues in particular must never ride through on the weaker
+	// options-permission check (SessionHasPermissionToManagePropertyFieldOptions,
+	// keyed on PermissionOptions) -- it requires the full-edit permission tier.
+	if patch.Name != nil || patch.Type != nil || patch.TargetID != nil || patch.TargetType != nil || patch.LinkedFieldID != nil || patch.PermissionValues != nil {
 		return false
 	}
 

@@ -11,7 +11,7 @@ import {useParams} from 'react-router-dom';
 import type {ClientError} from '@mattermost/client';
 import {buttonClassNames} from '@mattermost/shared/components/button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
-import type {FieldVisibility, PropertyField, PropertyFieldOption} from '@mattermost/types/properties';
+import type {FieldVisibility, PermissionLevel, PropertyField, PropertyFieldOption} from '@mattermost/types/properties';
 import {supportsOptions} from '@mattermost/types/properties';
 
 import {setNavigationBlocked} from 'actions/admin_actions';
@@ -808,6 +808,12 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
         // instruction) -- undefined for Channels/Posts, which have no config yet.
         const userConfigAttrs = {visibility: userVisibility, managed: userManaged};
 
+        // The field's actual write-permission tier, kept in sync with managed --
+        // sent as permission_values (top-level, not part of attrs) so the value
+        // CPA's own attrs.managed toggle promises is the value that's actually
+        // enforced (see plans/mm-69869-applies-to-users-config.md).
+        const userConfigPermissionValues: PermissionLevel = userManaged === 'admin' ? 'sysadmin' : 'member';
+
         if (isEditMode && fieldId) {
             const persisted = persistedLinkedFieldsRef.current;
             const toDelete = (Object.keys(persisted) as ResourceObjectType[]).filter((type) => !appliesTo.includes(type));
@@ -889,7 +895,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
             for (const type of toCreate) {
                 try {
                     // eslint-disable-next-line no-await-in-loop
-                    const linkedField = await createLinkedAttributeField(type, currentName, fieldType, displayName, fieldId, type === 'user' ? userConfigAttrs : undefined);
+                    const linkedField = await createLinkedAttributeField(type, currentName, fieldType, displayName, fieldId, type === 'user' ? userConfigAttrs : undefined, type === 'user' ? userConfigPermissionValues : undefined);
                     persistedLinkedFieldsRef.current[type] = linkedField;
                 } catch (error) {
                     const cpaErrorKind = type === 'user' ? appliesToErrorKindFromError(error) : null;
@@ -918,7 +924,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                     const existingUserField = persistedLinkedFieldsRef.current.user;
                     if (existingUserField) {
                         try {
-                            const updatedUserField = await updateLinkedAttributeField('user', existingUserField.id, userConfigAttrs);
+                            const updatedUserField = await updateLinkedAttributeField('user', existingUserField.id, userConfigAttrs, userConfigPermissionValues);
                             persistedLinkedFieldsRef.current.user = updatedUserField;
                             originalUserVisibilityRef.current = userVisibility;
                             originalUserManagedRef.current = userManaged;
@@ -966,7 +972,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
         for (const type of appliesTo) {
             try {
                 // eslint-disable-next-line no-await-in-loop
-                const linkedField = await createLinkedAttributeField(type, currentName, fieldType, displayName, templateField.id, type === 'user' ? userConfigAttrs : undefined);
+                const linkedField = await createLinkedAttributeField(type, currentName, fieldType, displayName, templateField.id, type === 'user' ? userConfigAttrs : undefined, type === 'user' ? userConfigPermissionValues : undefined);
                 createdLinkedFields.push({type, field: linkedField});
             } catch (error) {
                 // eslint-disable-next-line no-await-in-loop

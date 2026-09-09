@@ -1081,12 +1081,11 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
 
         /**
          * @objective Ensure changing config on an already-saved Users row issues its own patch
-         * (rather than needing a delete-and-recreate), and that the known one-way permission
-         * ratchet (see plans/mm-69869-applies-to-users-config.md) is documented rather than
-         * silently assumed away: unlocking back to Member updates attrs.managed but does not
-         * restore the field's actual permission_values.
+         * (rather than needing a delete-and-recreate), and that toggling Who can set the value
+         * updates both attrs.managed and the field's actual permission_values in both
+         * directions (MM-69869's fix for the one-way permission ratchet).
          */
-        test('updates config on an already-saved Users row via patch, and documents the permission ratchet on unlock', async ({
+        test('updates config on an already-saved Users row via patch, in both directions', async ({
             pw,
         }) => {
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
@@ -1120,6 +1119,7 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
                 let linkedFields = await fetchLinkedFieldsForTemplate(adminClient, template.id);
                 let userField = linkedFields.find((f) => f.object_type === 'user');
                 expect(userField?.attrs?.managed).toBe('admin');
+                expect(userField?.permission_values).toBe('sysadmin');
 
                 // # Switch it back to Member, save again
                 await page.getByTestId(`global-attribute-actions-${template.id}`).click();
@@ -1135,17 +1135,9 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
                 // * The UI-visible attrs.managed correctly round-trips to Member
                 expect(userField?.attrs?.managed).toBe('');
 
-                // * Known, accepted limitation: the field's actual permission_values stays
-                // pinned to sysadmin (enforceGroupPermissions never downgrades a caller pin) --
-                // if this ever starts reading 'member', the server-side ratchet has been fixed
-                // elsewhere; update/remove this assertion and the plan's "Known limitation"
-                // section together. permission_values isn't part of the shared PropertyField
-                // type (no webapp production code reads/writes it -- this feature uses
-                // attrs.managed, not PermissionValues), so it's cast locally here rather than
-                // widening the shared type for one test-only assertion.
-                expect((userField as unknown as {permission_values?: string} | undefined)?.permission_values).toBe(
-                    'sysadmin',
-                );
+                // * The field's actual write permission is unlocked back to member too (MM-69869
+                // fix) -- previously this stayed pinned to sysadmin (the one-way ratchet).
+                expect(userField?.permission_values).toBe('member');
             } finally {
                 await deleteAppliesToAttributeAndLinkedFieldsIfExists(adminClient, name);
             }

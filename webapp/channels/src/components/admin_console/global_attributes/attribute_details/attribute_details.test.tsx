@@ -835,6 +835,7 @@ describe('AttributeDetails', () => {
                 target_id: '',
                 linked_field_id: 'template-id',
                 attrs: {display_name: 'My Attribute', visibility: 'when_set', managed: ''},
+                permission_values: 'member',
             }));
             expect(createPropertyField).toHaveBeenNthCalledWith(3, 'access_control', 'channel', expect.objectContaining({
                 linked_field_id: 'template-id',
@@ -860,6 +861,7 @@ describe('AttributeDetails', () => {
             await waitFor(() => expect(mockHistoryPush).toHaveBeenCalled());
             expect(createPropertyField).toHaveBeenNthCalledWith(2, 'access_control', 'user', expect.objectContaining({
                 attrs: expect.objectContaining({visibility: 'always', managed: 'admin'}),
+                permission_values: 'sysadmin',
             }));
             expect(patchPropertyField).not.toHaveBeenCalled();
         });
@@ -1540,6 +1542,7 @@ describe('AttributeDetails', () => {
             await waitFor(() => expect(mockHistoryPush).toHaveBeenCalled());
             expect(patchPropertyField).toHaveBeenCalledWith('access_control', 'user', 'user-field', {
                 attrs: {visibility: 'hidden', managed: 'admin'},
+                permission_values: 'sysadmin',
             });
             expect(patchPropertyField.mock.calls.filter((call) => call[1] === 'user')).toHaveLength(1);
         });
