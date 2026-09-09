@@ -163,8 +163,8 @@
     "note": "Repo mixes 'Fuera de Oficina' and 'Fuera de la Oficina'; prefer 'Fuera de la oficina'."
   },
   "guest": {
-    "target": "huésped",
-    "note": "Majority rendering (~85 vs ~22 for 'invitado'). 'Invitado' also appears and collides with 'invite/invitar'; keep 'huésped' for the account type."
+    "target": "invitado",
+    "note": "Catalog majority is 'huésped' (112 vs 39), which reads as a hotel guest. Overlaps with invite = 'invitar'; context disambiguates the account type from the action."
   },
   "member": {
     "target": "miembro"

@@ -74,8 +74,8 @@
     "note": "Feminine. Lowercase in running text per French rules; capitalize only as a menu item ('Console système')."
   },
   "marketplace": {
-    "target": "marché",
-    "note": "Masculine. Existing webapp translations consistently use 'marché' (e.g. 'Activer le marché'); the community glossary suggests 'place de marché', which is clearer but not the current majority."
+    "target": "place de marché",
+    "note": "Masculine 'marché' alone means a physical market. Webapp strings use bare 'marché'; server strings already use 'place de marché'."
   },
   "channel": {
     "target": "canal",
