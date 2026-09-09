@@ -233,6 +233,29 @@ describe('components/integrations/bots/Bot', () => {
         expect(screen.queryByText(`Managed by ${owner.username}`)).not.toBeInTheDocument();
     });
 
+    it.each(['system-bot', 'content-review'])('protected system bot %s is exempt from the expiry policy', (username) => {
+        const bot = UtilsTestHelper.getBotMock({user_id: '1', owner_id: '1', username, system_owned: true});
+        const owner = UtilsTestHelper.getUserMock({id: bot.owner_id});
+        const user = UtilsTestHelper.getUserMock({id: bot.user_id});
+        renderWithContext(
+            <Bot
+                bot={bot}
+                owner={owner}
+                user={user}
+                accessTokens={{}}
+                team={team}
+                actions={actions}
+                fromApp={false}
+                maxLifetimeDays={30}
+            />,
+        );
+
+        fireEvent.click(screen.getByText('Create New Token'));
+
+        expect(document.getElementById('botTokenExpiry')).toBeNull();
+        expect(screen.queryByText('Tokens can be valid for up to 30 days.')).not.toBeInTheDocument();
+    });
+
     it('disabled protected system bot still offers a working Enable control for recovery', () => {
         const bot = UtilsTestHelper.getBotMock({user_id: 'protected-user-id', owner_id: '1', username: 'system-bot', system_owned: true});
         bot.delete_at = 100; // disabled
