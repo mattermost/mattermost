@@ -1,11 +1,49 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import React from 'react';
+import type {Root} from 'react-dom/client';
+
+import {act} from 'tests/react_testing_utils';
 import messageHtmlToComponent from 'utils/message_html_to_component';
 
 import './export';
 
 jest.mock('utils/message_html_to_component');
+
+describe('window.ReactDOM supports React 18 development client shims', () => {
+    test.each(['createRoot', 'hydrateRoot'])('%s mounts plugin content', async (method) => {
+        const reactDOM = (window as any).ReactDOM;
+        const {__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED: internals} = reactDOM;
+        const container = document.createElement('div');
+        const content = React.createElement('div', null, 'Plugin content');
+        let root: Root;
+
+        if (method === 'hydrateRoot') {
+            container.innerHTML = '<div>Plugin content</div>';
+        }
+
+        await act(async () => {
+            internals.usingClientEntryPoint = true;
+            try {
+                if (method === 'createRoot') {
+                    root = reactDOM.createRoot(container);
+                    root.render(content);
+                } else {
+                    root = reactDOM.hydrateRoot(container, content);
+                }
+            } finally {
+                internals.usingClientEntryPoint = false;
+            }
+        });
+
+        expect(container).toHaveTextContent('Plugin content');
+        expect(internals.usingClientEntryPoint).toBe(false);
+
+        await act(async () => root.unmount());
+        expect(container).toBeEmptyDOMElement();
+    });
+});
 
 describe('window.Components exposes plugin modals', () => {
     test('EditChannelHeaderModal is defined', () => {

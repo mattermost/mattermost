@@ -1,18 +1,21 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {createMemoryHistory} from 'history';
 import React from 'react';
 import {Route} from 'react-router-dom';
 
 import type {DeepPartial} from '@mattermost/types/utilities';
 
-import {renderHookWithContext, renderWithContext} from 'tests/react_testing_utils';
+import {act, renderHookWithContext, renderWithContext} from 'tests/react_testing_utils';
+import {getHistory} from 'utils/browser_history';
 import {TestHelper} from 'utils/test_helper';
 
 import type {GlobalState} from 'types/store';
 
 import {useThreadRouting} from './hooks';
+
+jest.unmock('react-router-dom');
+jest.unmock('utils/browser_history');
 
 describe('components/threading/hooks', () => {
     const mockUser = TestHelper.getUserMock();
@@ -38,10 +41,8 @@ describe('components/threading/hooks', () => {
         });
 
         describe('clear', () => {
-            const historyMock = (global as any).historyMock;
+            const history = getHistory();
 
-            // Captures clear from within a route match so that it can be called afterwards, the way
-            // an effect scheduled while the threads view was mounted would.
             const renderAtTeamAThreads = () => {
                 let clear: () => void = () => {};
 
@@ -50,34 +51,35 @@ describe('components/threading/hooks', () => {
                     return null;
                 };
 
+                history.push('/team-a/threads/thread-1');
+
                 renderWithContext(
                     <Route path='/:team/threads'><Probe/></Route>,
                     mockState,
-                    {history: createMemoryHistory({initialEntries: ['/team-a/threads/thread-1']})},
+                    {history},
                 );
 
-                return () => clear();
+                return clear;
             };
 
             beforeEach(() => {
-                historyMock.replace.mockClear();
+                history.replace('/team-a/channels/town-square');
             });
 
             test('should drop the selected thread while still on the threads route', () => {
-                historyMock.location.pathname = '/team-a/threads/thread-1';
+                const clear = renderAtTeamAThreads();
+                act(() => clear());
 
-                renderAtTeamAThreads()();
-
-                expect(historyMock.replace).toHaveBeenCalledWith('/team-a/threads');
+                expect(window.location.pathname).toBe('/team-a/threads');
             });
 
-            test('should not navigate back once the user has left the threads route', () => {
+            test.each(['/team-b', '/team-a/channels/town-square'])('should not navigate back after leaving for %s', (path) => {
                 const clear = renderAtTeamAThreads();
 
-                historyMock.location.pathname = '/team-b';
-                clear();
+                act(() => history.push(path));
+                act(() => clear());
 
-                expect(historyMock.replace).not.toHaveBeenCalled();
+                expect(window.location.pathname).toBe(path);
             });
         });
     });
