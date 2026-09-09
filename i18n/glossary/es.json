@@ -240,8 +240,8 @@
     "target": "webhook de salida"
   },
   "trigger word": {
-    "target": "palabra de activación",
-    "note": "Legacy strings paraphrase as 'palabra que dispara la acción/el comando'."
+    "target": "palabra disparadora",
+    "note": "Plural 'palabras disparadoras'. Server strings paraphrase as 'palabra que dispara / que desencadena la acción'."
   },
   "plugin": {
     "target": "plugin",
@@ -265,7 +265,7 @@
   },
   "seat": {
     "target": "puesto",
-    "note": "Repo is inconsistent ('sedes' [incorrect], 'puestos pagados', 'licencias para usuarios'); 'puesto' is the standard SaaS term."
+    "note": "Repo is inconsistent ('sedes' and 'asientos' [both incorrect], 'puestos pagados', 'Licencias para Usuarios'); 'puesto' is the standard SaaS term."
   },
   "trial": {
     "target": "prueba",
