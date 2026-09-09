@@ -3,8 +3,6 @@
 
 import React from 'react';
 
-import {generateId} from 'mattermost-redux/utils/helpers';
-
 import {fireEvent, renderWithContext, screen, waitFor} from 'tests/react_testing_utils';
 import {TestHelper as UtilsTestHelper} from 'utils/test_helper';
 import * as Utils from 'utils/utils';
