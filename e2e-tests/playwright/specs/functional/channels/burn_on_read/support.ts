@@ -1,19 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {Client4} from '@mattermost/client';
 import type {Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 
-import type {PlaywrightExtended} from '@mattermost/playwright-lib';
+import type {PlaywrightClient4, PlaywrightExtended} from '@mattermost/playwright-lib';
 
 export const BOR_TAG = '@burn_on_read';
 
 export type BorSetup = {
-    adminClient: Client4;
+    adminClient: PlaywrightClient4;
     adminUser: UserProfile;
     user: UserProfile;
-    userClient: Client4;
+    userClient: PlaywrightClient4;
     team: Team;
     offTopicUrl: string;
     townSquareUrl: string;
@@ -64,38 +63,11 @@ export async function setupBorTest(
  */
 export async function createSecondUser(
     pw: PlaywrightExtended,
-    adminClient: Client4,
+    adminClient: PlaywrightClient4,
     team: Team,
 ): Promise<UserProfile & {password: string}> {
-    const randomUser = await pw.random.user();
-    const user = await adminClient.createUser(randomUser, '', '');
-    (user as any).password = randomUser.password;
-    await adminClient.addToTeam(team.id, user.id);
+    const [user] = await adminClient.createUsers(team.id, 1);
     return user as UserProfile & {password: string};
-}
-
-/**
- * Create multiple users and add to team
- * @param pw Playwright extended fixture
- * @param adminClient Admin client for user creation
- * @param team Team to add users to
- * @param count Number of users to create
- * @returns Array of created users with passwords
- */
-export async function createMultipleUsers(
-    pw: PlaywrightExtended,
-    adminClient: Client4,
-    team: Team,
-    count: number,
-): Promise<Array<UserProfile & {password: string}>> {
-    const users: Array<UserProfile & {password: string}> = [];
-
-    for (let i = 0; i < count; i++) {
-        const user = await createSecondUser(pw, adminClient, team);
-        users.push(user);
-    }
-
-    return users;
 }
 
 /**

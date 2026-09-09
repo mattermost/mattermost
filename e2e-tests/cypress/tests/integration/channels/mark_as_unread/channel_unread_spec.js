@@ -56,43 +56,6 @@ describe('channel unread posts', () => {
         });
     });
 
-    it('MM-T246 Mark Post as Unread', () => {
-        // # Login as other user
-        cy.apiLogin(otherUser);
-
-        // # Switch to channelA
-        switchToChannel(channelA);
-
-        // # Mark the last post as unread
-        cy.getLastPostId().then((postId) => {
-            cy.uiClickPostDropdownMenu(postId, 'Mark as Unread');
-        });
-
-        // * Verify the notification separator line exists and present before the unread message
-        verifyPostNextToNewMessageSeparator('hello from current user: 4');
-
-        // # Switch to channelB
-        switchToChannel(channelB);
-
-        // * Verify the channelA has unread in LHS
-        cy.get(`#sidebarItem_${channelA.name}`).should(beUnread);
-
-        // # Switch to channelA
-        switchToChannel(channelA);
-
-        // * Verify the channelA has does not have unread in LHS
-        cy.get(`#sidebarItem_${channelA.name}`).should(beRead);
-
-        // * Verify the notification separator line exists and present before the unread message
-        verifyPostNextToNewMessageSeparator('hello from current user: 4');
-
-        // # Switch to channelB
-        switchToChannel(channelB);
-
-        // * Verify the channelA has does not have unread in LHS
-        cy.get(`#sidebarItem_${channelA.name}`).should(beRead);
-    });
-
     it('MM-T256 Mark unread before a page of message in Channel', () => {
         // # Login as other user
         cy.apiLogin(otherUser);

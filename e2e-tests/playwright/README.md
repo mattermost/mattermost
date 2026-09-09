@@ -40,6 +40,8 @@ Containers are reused across invocations by default (`PW_TESTCONTAINERS_REUSE=tr
 
 See `lib/README.md` for every available environment variable.
 
+`ENABLED_DOCKER_SERVICES` defaults to the base `postgres inbucket` set (plus the auto-added `playwright` and `webhook-interactions` services). Expand it only when a test needs an extra dependency (for example `minio` for file storage or `openldap` for LDAP).
+
 #### 2. Install dependencies and run the test.
 
 ```bash
