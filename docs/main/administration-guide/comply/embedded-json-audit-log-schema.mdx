@@ -564,6 +564,33 @@ From Mattermost v11.5.0, audit log entries for posts and content access events i
 
 </Note>
 
+### Post Delivery Events
+
+Mattermost v12.0 introduces the `postDelivered` audit log event, which records each delivery of a message's content to a user or an integration. It's emitted only when [post delivery audit logging](/administration-guide/comply/post-delivery-audit-logging) is enabled, which is disabled by default. Unlike the other audit log events on this page, `postDelivered` is emitted at the dedicated `audit-delivery` log level and so requires its own audit log target. See that page for the record format, the payload fields, and the full set of delivery mechanisms.
+
+<table style={{width: '85%'}}>
+<colgroup>
+<col style={{width: '28%'}} />
+<col style={{width: '56%'}} />
+</colgroup>
+<thead>
+<tr>
+<th><strong>Event Name</strong></th>
+<th><strong>Description</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>postDelivered</code></td>
+<td>Delivering post content to a user or integration</td>
+</tr>
+<tr>
+<td><code>updateDeliveryTrackingConfig</code></td>
+<td>Updating the post delivery audit logging configuration</td>
+</tr>
+</tbody>
+</table>
+
 ### Authentication and Security Events
 
 <table style={{width: '86%'}}>
