@@ -273,8 +273,8 @@
     "target": "giấy phép"
   },
   "seat": {
-    "target": "người dùng",
-    "note": "vi.json is inconsistent ('người dùng trả phí', 'chỗ', 'ghế người dùng'). Render seat counts as 'người dùng' (e.g. '{num} người dùng'); avoid literal 'ghế'."
+    "target": "chỗ",
+    "note": "A licensed slot, not a user: render seat counts as '{num} chỗ'. Existing strings are inconsistent ('người dùng trả phí', 'chỗ ngồi', 'ghế người dùng') and must not collapse to plain 'người dùng'."
   },
   "trial": {
     "target": "bản dùng thử",

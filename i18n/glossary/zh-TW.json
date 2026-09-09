@@ -248,8 +248,8 @@
     "note": "bot account → 機器人帳號."
   },
   "role": {
-    "target": "地位",
-    "note": "Majority in existing zh-TW permission strings (授予的地位); 角色 is the standard Taiwan software term and also appears — flagging as an inconsistency worth converging on 角色 in a future cleanup."
+    "target": "角色",
+    "note": "Existing permission strings use 地位 (授予的地位), which means social standing rather than a permission set."
   },
   "permission": {
     "target": "權限"

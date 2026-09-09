@@ -364,12 +364,12 @@
     "note": "Repo renders 'token' as 'kod' in this term (not 'jeton'/'belirteç')."
   },
   "announcement banner": {
-    "target": "duyuru bildirimi",
-    "note": "Existing strings are inconsistent ('Duyuru bildirimi', plain 'bildirim'). 'duyuru bildirimi' is the labeled form; 'duyuru şeridi' would be clearer but is not established."
+    "target": "duyuru şeridi",
+    "note": "Existing strings use 'duyuru bildirimi', which collides with 'notification' = 'bildirim'; a banner is a strip ('şerit'), not a notification."
   },
   "channel banner": {
-    "target": "kanal bildirimi",
-    "note": "Webapp majority is 'kanal bildirimi'; server strings use 'kanal duyurusu', which is arguably clearer (avoids collision with notifications) — flag for future harmonization."
+    "target": "kanal duyurusu",
+    "note": "Established in server strings. Webapp majority is 'kanal bildirimi', which collides with 'notification' = 'bildirim'."
   },
   "keyword": {
     "target": "anahtar sözcük"

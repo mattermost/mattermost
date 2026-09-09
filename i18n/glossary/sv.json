@@ -375,8 +375,8 @@
     "note": "Existing usage is split 50/50 between keeping 'Magic Link' and 'magisk länk'. Prefer the Swedish 'magisk länk' (en magisk länk, magiska länkar)."
   },
   "personal access token": {
-    "target": "personligt åtkomst-token",
-    "note": "As used in existing UI ('ett personligt åtkomst-token'). A cleaner compound would be 'personlig åtkomsttoken'; keep the existing form for consistency."
+    "target": "personlig åtkomsttoken",
+    "note": "Existing UI strings use the hyphenated 'personligt åtkomst-token'."
   },
   "announcement banner": {
     "target": "informationsbanner",
