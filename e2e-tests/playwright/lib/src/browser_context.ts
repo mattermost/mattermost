@@ -9,7 +9,6 @@ import type {Browser, BrowserContext} from '@playwright/test';
 import {request} from '@playwright/test';
 import type {UserProfile} from '@mattermost/types/users';
 
-import {watchForPageErrors} from './page_error';
 import {testConfig} from './test_config';
 import {pages} from './ui/pages';
 import {resolvePlaywrightPath} from './util';
@@ -34,7 +33,6 @@ export class TestBrowser {
         const context = await this.browser.newContext(options);
         await routeInternalBaseUrlToHost(context);
         const page = await context.newPage();
-        watchForPageErrors(page);
 
         const channelsPage = new pages.ChannelsPage(page);
         const systemConsolePage = new pages.SystemConsolePage(page);

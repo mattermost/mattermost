@@ -11,7 +11,6 @@ import store from 'stores/redux_store';
 import App from 'components/app';
 
 import {AnnouncementBarTypes} from 'utils/constants';
-import {installReactStrictModeDiagnostics} from 'utils/react_strict_mode';
 import {setCSRFFromCookie} from 'utils/utils';
 
 // Import our styles
@@ -58,14 +57,7 @@ function preRenderSetup(onPreRenderSetupReady: () => void) {
 function renderReactRootComponent() {
     const container = document.getElementById('root')!;
 
-    let app = <App/>;
-
-    if (REACT_STRICT_MODE) {
-        installReactStrictModeDiagnostics();
-        app = <React.StrictMode>{app}</React.StrictMode>;
-    }
-
-    ReactDOMClient.createRoot(container).render(app);
+    ReactDOMClient.createRoot(container).render(<App/>);
 }
 
 /**

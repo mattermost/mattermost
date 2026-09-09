@@ -390,7 +390,6 @@ generate_env_files() {
 	BROWSER
         HEADLESS
         REPO
-        CYPRESS_failOnPageError
         CYPRESS_pushNotificationServer
 	EOF
     # Adding service-specific cypress variables
@@ -439,7 +438,6 @@ generate_env_files() {
     mme2e_generate_envfile_from_var_names >.env.playwright <<-EOF
 	BRANCH
 	BUILD_ID
-	PW_FAIL_ON_PAGE_ERROR
 	EOF
     ;;
   none)

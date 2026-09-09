@@ -262,8 +262,6 @@ jobs:
       COMPOSITE_IDENTITY: ${{ needs.prepare-run.outputs.composite-identity-json }}
       MM_LICENSE: "${{ secrets.MM_LICENSE }}"
       TEST: playwright
-      # DO NOT MERGE: fail on React StrictMode violations during discovery.
-      PW_FAIL_ON_PAGE_ERROR: "strict-mode"
       BRANCH: "${{ inputs.branch }}"
       BUILD_ID: "${{ inputs.build_id }}"
       CI_BASE_URL: "full-test-${{ matrix.worker_index }}"
