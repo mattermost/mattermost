@@ -12,6 +12,7 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 const ImageMinimizerPlugin = require('image-minimizer-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const MonacoWebpackPlugin = require('monaco-editor-webpack-plugin');
+const TerserPlugin = require('terser-webpack-plugin');
 const webpack = require('webpack');
 const {ModuleFederationPlugin} = require('webpack').container;
 const WebpackPwaManifest = require('webpack-pwa-manifest');
@@ -27,6 +28,9 @@ const targetIsDevServer = NPM_TARGET?.startsWith('dev-server');
 const targetIsEsLint = !targetIsBuild && !targetIsRun && !targetIsDevServer;
 
 const DEV = targetIsRun || targetIsStats || targetIsDevServer;
+
+// DO NOT MERGE: enable StrictMode for this temporary E2E discovery run.
+const REACT_STRICT_MODE = process.env.MM_REACT_STRICT_MODE !== 'false';
 
 const STANDARD_EXCLUDE = [
     /node_modules/,
@@ -444,7 +448,15 @@ if (DEV) {
     config.optimization = {
         ...config.optimization,
         minimizer: [
-            '...',
+
+            // React derives component names from function and class names, so mangling them would
+            // leave every strict mode violation pointing at a one-letter component.
+            REACT_STRICT_MODE ? new TerserPlugin({
+                terserOptions: {
+                    keep_classnames: true,
+                    keep_fnames: true,
+                },
+            }) : '...',
             new ImageMinimizerPlugin({
                 minimizer: {
                     implementation: ImageMinimizerPlugin.sharpMinify,
@@ -468,8 +480,32 @@ if (DEV) {
     env.NODE_ENV = JSON.stringify('production');
 }
 
+if (!DEV && REACT_STRICT_MODE) {
+    console.log('Enabling React strict mode: linking against the React development runtime');
+
+    // Keep NODE_ENV=production to avoid Redux's development deep-freezing overhead.
+    // Absolute paths bypass package exports, which do not expose the development bundles.
+    const reactBuild = (packageName, file) => path.join(path.dirname(require.resolve(`${packageName}/package.json`)), 'cjs', file);
+
+    config.resolve.alias = {
+        ...config.resolve.alias,
+        react$: reactBuild('react', 'react.development.js'),
+        'react/jsx-runtime$': reactBuild('react', 'react-jsx-runtime.development.js'),
+        'react/jsx-dev-runtime$': reactBuild('react', 'react-jsx-dev-runtime.development.js'),
+        'react-dom$': reactBuild('react-dom', 'react-dom.development.js'),
+        'react-dom/client$': reactBuild('react-dom', 'react-dom-client.development.js'),
+        scheduler$: reactBuild('scheduler', 'scheduler.development.js'),
+    };
+
+    config.module.rules.push({
+        test: /[\\/]node_modules[\\/](react|react-dom|scheduler)[\\/]cjs[\\/][\w-]+\.development\.js$/,
+        loader: path.resolve(__dirname, 'scripts/react_development_build_loader.js'),
+    });
+}
+
 config.plugins.push(new webpack.DefinePlugin({
     'process.env': env,
+    REACT_STRICT_MODE: JSON.stringify(REACT_STRICT_MODE),
 }));
 
 if (targetIsDevServer) {

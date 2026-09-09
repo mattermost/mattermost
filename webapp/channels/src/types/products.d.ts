@@ -3,6 +3,8 @@
 
 declare const REMOTE_CONTAINERS: Record<string, string>;
 
+declare const REACT_STRICT_MODE: boolean;
+
 declare module 'boards' {
     // eslint-disable-next-line import/no-duplicates
     import {ProductPlugin} from 'plugins/products';

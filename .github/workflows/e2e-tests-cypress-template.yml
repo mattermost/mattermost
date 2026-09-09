@@ -320,6 +320,8 @@ jobs:
       MM_LICENSE: "${{ secrets.MM_LICENSE }}"
       ENABLED_DOCKER_SERVICES: "${{ inputs.enabled_docker_services }}"
       TEST: cypress
+      # DO NOT MERGE: fail on React StrictMode violations during discovery.
+      CYPRESS_failOnPageError: "strict-mode"
       # The dispatch adapter invokes `npx cypress run` directly (no
       # cross-env), so pin TZ here — several specs assume UTC.
       TZ: Etc/UTC
