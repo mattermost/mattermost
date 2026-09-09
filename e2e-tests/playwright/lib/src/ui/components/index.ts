@@ -40,6 +40,8 @@ import NewChannelModal from './channels/new_channel_modal';
 import FlagPostConfirmationDialog from './channels/flag_post_confirmation_dialog';
 import GenericConfirmModal from './channels/generic_confirm_modal';
 import InvitePeopleModal from './channels/invite_people_modal';
+import ImagePreviewModal from './channels/image_preview_modal';
+import LinkPreview from './channels/link_preview';
 import MembersInvitedModal from './channels/members_invited_modal';
 import MessagePriority from './channels/message_priority';
 import ChannelsMobileNavbar from './channels/mobile_navbar';
@@ -130,6 +132,8 @@ const components = {
     BrowseChannelsModal,
     GenericConfirmModal,
     InvitePeopleModal,
+    ImagePreviewModal,
+    LinkPreview,
     MembersInvitedModal,
     MessagePriority,
     ChannelsMobileNavbar,
@@ -223,6 +227,8 @@ export {
     DirectChannelsModal,
     GenericConfirmModal,
     InvitePeopleModal,
+    ImagePreviewModal,
+    LinkPreview,
     MembersInvitedModal,
     MessagePriority,
     ChannelsMobileNavbar,

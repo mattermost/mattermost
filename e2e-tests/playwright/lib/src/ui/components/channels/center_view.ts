@@ -152,6 +152,11 @@ export default class ChannelsCenterView {
         await expect(this.postById(id)).toContainText(text, {timeout});
     }
 
+    async toHaveNewMessagesSeparator() {
+        await expect(this.notificationSeparator).toBeVisible();
+        await expect(this.notificationSeparator).toContainText('New Messages');
+    }
+
     async clickOnLastEditedPost(postID: string | null) {
         if (postID) {
             await this.editedPostIcon(postID).click();
