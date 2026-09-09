@@ -132,11 +132,7 @@ Cypress.Commands.add('uiClickSidebarItem', (name) => {
     cy.uiGetSidebarItem(name).click({force: true});
 
     if (name === 'threads') {
-        cy.get('body').then((body) => {
-            if (body.find('#genericModalLabel').length > 0) {
-                cy.uiCloseModal('A new way to view and follow threads');
-            }
-        });
+        // CRT intro modal was removed in MM-66470; only wait for the threads view to settle.
         cy.get('#tutorial-threads-mobile-header span.Button_label').contains('Followed threads');
     } else {
         cy.findAllByTestId('postView').last().scrollIntoView().should('be.visible');
