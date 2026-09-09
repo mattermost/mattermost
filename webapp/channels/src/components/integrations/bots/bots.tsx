@@ -169,10 +169,10 @@ export default class Bots extends React.PureComponent<Props, State> {
 
         const promises = [];
         for (const bot of allBots) {
-            // We don't need to wait for this and we need to accept failure in the case where bot.owner_id is a plugin id
-            this.props.actions.getUser(bot.owner_id);
+            // A resolved owner is what marks a bot user-owned, so the row would render as
+            // plugin-owned (no expiry control) while this is still in flight.
+            promises.push(this.props.actions.getUser(bot.owner_id));
 
-            // We want to wait for these.
             promises.push(this.props.actions.getUser(bot.user_id));
             promises.push(this.props.actions.getUserAccessTokensForUser(bot.user_id));
         }
