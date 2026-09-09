@@ -5,6 +5,7 @@ package docextractor
 
 import (
 	"bytes"
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -17,7 +18,7 @@ func TestArchiveExtractorSkips7zip(t *testing.T) {
 	t.Run("7zip file with .7z extension returns empty string", func(t *testing.T) {
 		// Valid 7zip header (minimal)
 		sevenZipData := []byte{0x37, 0x7a, 0xbc, 0xaf, 0x27, 0x1c, 0x00, 0x00}
-		result, err := ae.Extract("test.7z", bytes.NewReader(sevenZipData), 0)
+		result, err := ae.Extract(context.Background(), "test.7z", bytes.NewReader(sevenZipData), 0)
 		require.NoError(t, err)
 		assert.Empty(t, result)
 	})
@@ -25,7 +26,7 @@ func TestArchiveExtractorSkips7zip(t *testing.T) {
 	t.Run("7zip content with wrong extension is still blocked", func(t *testing.T) {
 		// 7zip content disguised with .zip extension - should still be blocked via stream detection
 		sevenZipData := []byte{0x37, 0x7a, 0xbc, 0xaf, 0x27, 0x1c, 0x00, 0x00}
-		result, err := ae.Extract("malicious.zip", bytes.NewReader(sevenZipData), 0)
+		result, err := ae.Extract(context.Background(), "malicious.zip", bytes.NewReader(sevenZipData), 0)
 		require.NoError(t, err)
 		assert.Empty(t, result)
 	})
@@ -34,7 +35,7 @@ func TestArchiveExtractorSkips7zip(t *testing.T) {
 		junkPrefix := []byte{0x00, 0x00, 0x00, 0x00}
 		sevenZipSig := []byte{0x37, 0x7a, 0xbc, 0xaf, 0x27, 0x1c, 0x00, 0x00}
 		dataWithOffset := append(junkPrefix, sevenZipSig...)
-		result, err := ae.Extract("test.7z", bytes.NewReader(dataWithOffset), 0)
+		result, err := ae.Extract(context.Background(), "test.7z", bytes.NewReader(dataWithOffset), 0)
 		require.NoError(t, err)
 		assert.Empty(t, result)
 	})
@@ -46,7 +47,7 @@ func TestArchiveExtractorSkips7zip(t *testing.T) {
 		junkPrefix := []byte{0x00, 0x00, 0x00, 0x00}
 		sevenZipSig := []byte{0x37, 0x7a, 0xbc, 0xaf, 0x27, 0x1c, 0x00, 0x00}
 		dataWithOffset := append(junkPrefix, sevenZipSig...)
-		_, err := ae.Extract("malicious.zip", bytes.NewReader(dataWithOffset), 0)
+		_, err := ae.Extract(context.Background(), "malicious.zip", bytes.NewReader(dataWithOffset), 0)
 		assert.Error(t, err) // fails to extract as any valid archive format
 	})
 }

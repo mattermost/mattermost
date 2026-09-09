@@ -22,7 +22,6 @@ var whiteList = map[string]bool{
 	"getBotIconImage":                      true,
 	"getBots":                              true,
 	"getBrandImage":                        true,
-	"getBulkReactions":                     true,
 	"getChannel":                           true,
 	"getChannelByName":                     true,
 	"getChannelByNameForTeamName":          true,

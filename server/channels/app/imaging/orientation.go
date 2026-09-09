@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"image"
 	"io"
+	"slices"
 	"strings"
 
 	"github.com/bep/imagemeta"
@@ -35,8 +36,6 @@ const (
 	RotatedCW
 )
 
-var errStopDecoding = fmt.Errorf("stop decoding")
-
 // MakeImageUpright changes the orientation of the given image.
 func MakeImageUpright(img image.Image, orientation int) image.Image {
 	switch orientation {
@@ -59,49 +58,77 @@ func MakeImageUpright(img image.Image, orientation int) image.Image {
 	}
 }
 
-type fwSeeker struct {
+// bufReadSeeker wraps an io.Reader, buffering reads to support backward seeks
+// required by imagemeta's EXIF offset-based tag value decoding.
+type bufReadSeeker struct {
 	r   io.Reader
+	buf []byte
 	pos int64
 }
 
-func (f *fwSeeker) Read(p []byte) (int, error) {
-	n, err := f.r.Read(p)
-	if err != nil {
-		return n, err
+// maxExifScanSize prevents the buffer from growing over a reasonable limit;
+// EXIF data lives near the file start in all common formats.
+const maxExifScanSize = 10 * 1024 * 1024
+
+func (b *bufReadSeeker) Read(p []byte) (int, error) {
+	if b.pos < int64(len(b.buf)) {
+		n := copy(p, b.buf[b.pos:])
+		b.pos += int64(n)
+		return n, nil
 	}
-	f.pos += int64(n)
-	return n, nil
+	remaining := maxExifScanSize - int64(len(b.buf))
+	if remaining <= 0 {
+		return 0, fmt.Errorf("read exceeded %d-byte scan limit", maxExifScanSize)
+	}
+	if int64(len(p)) > remaining {
+		p = p[:remaining]
+	}
+	n, err := b.r.Read(p)
+	if n > 0 {
+		b.buf = append(b.buf, p[:n]...)
+		b.pos += int64(n)
+	}
+	return n, err
 }
 
-func (f *fwSeeker) Seek(offset int64, whence int) (int64, error) {
-	isForwardSeek := (whence == io.SeekStart && offset >= f.pos) ||
-		(whence == io.SeekCurrent && offset >= 0)
-
-	// We only support seeking forward.
-	if !isForwardSeek {
-		return 0, fmt.Errorf("seeking backwards is not supported")
+func (b *bufReadSeeker) Seek(offset int64, whence int) (int64, error) {
+	var newPos int64
+	switch whence {
+	case io.SeekStart:
+		newPos = offset
+	case io.SeekCurrent:
+		newPos = b.pos + offset
+	default:
+		return b.pos, fmt.Errorf("seek: unsupported whence %d", whence)
 	}
-
-	toRead := offset
-	if whence == io.SeekStart {
-		toRead -= f.pos
+	if newPos < 0 {
+		return b.pos, fmt.Errorf("seek: negative position %d", newPos)
 	}
-
-	// Seeking forward means we can simply discard the data.
-	n, err := io.CopyN(io.Discard, f.r, toRead)
-	if err != nil {
-		return n, fmt.Errorf("failed to seek: %w", err)
+	if newPos <= int64(len(b.buf)) {
+		b.pos = newPos
+		return b.pos, nil
 	}
-
-	f.pos += n
-
-	return f.pos, nil
+	if newPos > maxExifScanSize {
+		return b.pos, fmt.Errorf("seek: target %d exceeds %d-byte scan limit", newPos, maxExifScanSize)
+	}
+	// Seek forward past buffered data: read ahead into the buffer in-place.
+	toRead := int(newPos - int64(len(b.buf)))
+	oldLen := len(b.buf)
+	b.buf = slices.Grow(b.buf, toRead)[:oldLen+toRead]
+	n, err := io.ReadFull(b.r, b.buf[oldLen:])
+	b.buf = b.buf[:oldLen+n]
+	b.pos = int64(len(b.buf))
+	if errors.Is(err, io.ErrUnexpectedEOF) {
+		return b.pos, io.EOF
+	}
+	return b.pos, err
 }
 
 // GetImageOrientation reads the input data and returns the EXIF encoded
 // image orientation. Supported formats are JPEG, PNG, TIFF, and WebP.
-// Passing an io.ReadSeeker is preferable as we can't guarantee a plain
-// io.Reader will work for all formats (e.g. TIFF requires backwards seeking).
+// format accepts both bare names ("jpeg") and MIME-type strings ("image/jpeg").
+// Passing an io.ReadSeeker is preferable; plain io.Readers are wrapped in an
+// internal buffered seeker to support backward seeking required by some formats.
 func GetImageOrientation(input io.Reader, format string) (int, error) {
 	orientation := Upright
 
@@ -127,7 +154,7 @@ func GetImageOrientation(input io.Reader, format string) (int, error) {
 	if r, ok := input.(io.ReadSeeker); ok {
 		rs = r
 	} else {
-		rs = &fwSeeker{r: input}
+		rs = &bufReadSeeker{r: input}
 	}
 
 	opts := imagemeta.Options{
@@ -136,9 +163,7 @@ func GetImageOrientation(input io.Reader, format string) (int, error) {
 			if tag.Tag == "Orientation" {
 				if o, ok := tag.Value.(uint16); ok {
 					orientation = int(o)
-					// Stop decoding after we've found the orientation tag]
-					// since it's the only one we care about.
-					return errStopDecoding
+					return imagemeta.ErrStopWalking
 				}
 			}
 			return nil
@@ -151,7 +176,7 @@ func GetImageOrientation(input io.Reader, format string) (int, error) {
 		ImageFormat: imgFormat,
 	}
 
-	if err := imagemeta.Decode(opts); err != nil && !errors.Is(err, errStopDecoding) {
+	if _, err := imagemeta.Decode(opts); err != nil {
 		return Upright, fmt.Errorf("failed to decode exif data: %w", err)
 	}
 

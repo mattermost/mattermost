@@ -36,12 +36,12 @@ test.describe('Post height', () => {
             type: 'O',
         });
 
-        // # Enable SVG rendering and let the server fetch metadata from the local mock file server
+        // # Enable SVG rendering and let the server fetch metadata from the mock file server.
         await adminClient.patchConfig({
             ServiceSettings: {
                 EnableSVGs: true,
                 EnableLinkPreviews: true,
-                AllowedUntrustedInternalConnections: 'localhost 127.0.0.1',
+                AllowedUntrustedInternalConnections: new URL(fileServerUrl).hostname,
             },
         });
 
@@ -290,8 +290,6 @@ test.describe('Post height', () => {
         },
         {
             name: 'post with an image preview',
-            // CI on release-11.7 doesn't show these link previews, so disable the tests on the branch
-            skipProjects: ['chrome'],
             getSeedOptions: (baseUrl) => ({
                 message: `${baseUrl}/mattermost.png`,
             }),
@@ -303,8 +301,6 @@ test.describe('Post height', () => {
         },
         {
             name: 'post with a small image preview',
-            // CI on release-11.7 doesn't show these link previews, so disable the tests on the branch
-            skipProjects: ['chrome'],
             getSeedOptions: (baseUrl) => ({
                 message: `${baseUrl}/small-image.png`,
             }),
@@ -329,8 +325,6 @@ test.describe('Post height', () => {
         },
         {
             name: 'post with a wide image preview',
-            // CI on release-11.7 doesn't show these link previews, so disable the tests on the branch
-            skipProjects: ['chrome'],
             getSeedOptions: (baseUrl) => ({
                 message: `${baseUrl}/image-400x40.jpg`,
             }),
@@ -342,8 +336,6 @@ test.describe('Post height', () => {
         },
         {
             name: 'post with a tall image preview',
-            // CI on release-11.7 doesn't show these link previews, so disable the tests on the branch
-            skipProjects: ['chrome'],
             getSeedOptions: (baseUrl) => ({
                 message: `${baseUrl}/image-40x400.jpg`,
             }),
@@ -355,8 +347,6 @@ test.describe('Post height', () => {
         },
         {
             name: 'post with an OpenGraph preview',
-            // CI on release-11.7 doesn't show these link previews, so disable the tests on the branch
-            skipProjects: ['chrome'],
             getSeedOptions: (baseUrl) => ({
                 message: `${baseUrl}/opengraph.html`,
             }),
@@ -398,9 +388,6 @@ test.describe('Post height', () => {
                 if (testCase.additionalCheck) {
                     await testCase.additionalCheck({postComponent});
                 }
-
-                // # Wait for all network requests to finish
-                await page.waitForLoadState('networkidle');
 
                 // * Verify no height changes were detected
                 expect(await sizeWatcher.getObservations()).toHaveLength(1);

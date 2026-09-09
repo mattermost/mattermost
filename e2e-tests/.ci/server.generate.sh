@@ -59,7 +59,7 @@ services:
       MM_CONNECTEDWORKSPACESSETTINGS_ENABLEREMOTECLUSTERSERVICE: "true"
       MM_CONNECTEDWORKSPACESSETTINGS_ENABLESHAREDWORKSPACES: "true"
       MM_FEATUREFLAGS_ENABLEREMOTECLUSTERSERVICE: "true"
-      MM_SQLSETTINGS_DATASOURCE: "postgres://mmuser:mostest@localhost:5432/mattermost_test?sslmode=disable&connect_timeout=10&binary_parameters=yes"
+      MM_SQLSETTINGS_DATASOURCE: "postgres://mmuser:mostest_password@localhost:5432/mattermost_test?sslmode=disable&connect_timeout=10&binary_parameters=yes"
       MM_SQLSETTINGS_DRIVERNAME: "postgres"
       MM_EMAILSETTINGS_SMTPSERVER: "localhost"
       MM_CLUSTERSETTINGS_READONLYCONFIG: "false"
@@ -233,7 +233,7 @@ $(if mme2e_is_token_in_list "cypress" "$ENABLED_DOCKER_SERVICES"; then
       - "../../e2e-tests/.ci/.env.cypress"
     environment:
       CYPRESS_baseUrl: "http://localhost:8065"
-      CYPRESS_dbConnection: "postgres://mmuser:mostest@localhost:5432/mattermost_test?sslmode=disable&connect_timeout=10"
+      CYPRESS_dbConnection: "postgres://mmuser:mostest_password@localhost:5432/mattermost_test?sslmode=disable&connect_timeout=10"
       CYPRESS_smtpUrl: "http://localhost:9001"
       CYPRESS_webhookBaseUrl: "http://localhost:3000"
       CYPRESS_chromeWebSecurity: "false"
@@ -285,7 +285,7 @@ $(if mme2e_is_token_in_list "playwright" "$ENABLED_DOCKER_SERVICES"; then
     # shellcheck disable=SC2016
     echo '
   playwright:
-    image: mcr.microsoft.com/playwright:v1.59.1-noble
+    image: mcr.microsoft.com/playwright:v1.62.0-noble
     entrypoint: ["/bin/bash", "-c"]
     command:
       - |

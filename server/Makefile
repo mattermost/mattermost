@@ -158,12 +158,12 @@ PLUGIN_PACKAGES ?= $(PLUGIN_PACKAGES:)
 PLUGIN_PACKAGES += mattermost-plugin-calls-v1.11.6
 PLUGIN_PACKAGES += mattermost-plugin-github-v2.7.0
 PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.12.3
-PLUGIN_PACKAGES += mattermost-plugin-jira-v4.7.1
+PLUGIN_PACKAGES += mattermost-plugin-jira-v4.7.2
 PLUGIN_PACKAGES += mattermost-plugin-playbooks-v2.9.4
 PLUGIN_PACKAGES += mattermost-plugin-servicenow-v2.4.0
 PLUGIN_PACKAGES += mattermost-plugin-zoom-v1.13.0
-PLUGIN_PACKAGES += mattermost-plugin-agents-v2.0.7
-PLUGIN_PACKAGES += mattermost-plugin-boards-v9.2.7
+PLUGIN_PACKAGES += mattermost-plugin-agents-v2.0.8
+PLUGIN_PACKAGES += mattermost-plugin-boards-v9.2.8
 PLUGIN_PACKAGES += mattermost-plugin-user-survey-v1.1.1
 PLUGIN_PACKAGES += mattermost-plugin-mscalendar-v1.6.2
 PLUGIN_PACKAGES += mattermost-plugin-msteams-meetings-v2.4.1
@@ -176,8 +176,8 @@ PLUGIN_PACKAGES += mattermost-plugin-channel-export-v1.3.0
 # the way we pre-package FIPS and non-FIPS plugins.
 ifeq ($(FIPS_ENABLED),true)
 	PLUGIN_PACKAGES  = mattermost-plugin-playbooks-v2.9.4%2B39a72fa-fips
-	PLUGIN_PACKAGES += mattermost-plugin-agents-v2.0.7%2B7e9d095-fips
-	PLUGIN_PACKAGES += mattermost-plugin-boards-v9.2.7%2Bfccd738-fips
+	PLUGIN_PACKAGES += mattermost-plugin-agents-v2.0.8%2B1b17baf-fips
+	PLUGIN_PACKAGES += mattermost-plugin-boards-v9.2.8%2B6e21d1c-fips
 endif
 
 EE_PACKAGES=$(shell $(GO) list $(BUILD_ENTERPRISE_DIR)/...)
@@ -255,9 +255,9 @@ endif
 	docker compose rm start_dependencies
 	$(GO) run ./build/docker-compose-generator/main.go $(ENABLED_DOCKER_SERVICES) | docker compose -f docker-compose.makefile.yml -f /dev/stdin $(DOCKER_COMPOSE_OVERRIDE) run -T --rm start_dependencies
   ifneq (,$(findstring openldap,$(ENABLED_DOCKER_SERVICES)))
-	cat tests/custom-schema-objectID.ldif | docker compose -f docker-compose.makefile.yml $(DOCKER_COMPOSE_OVERRIDE) exec -T openldap bash -c 'ldapadd -Y EXTERNAL -H ldapi:/// -w mostest || true';
-	cat tests/custom-schema-cpa.ldif | docker compose -f docker-compose.makefile.yml ${DOCKER_COMPOSE_OVERRIDE} exec -T openldap bash -c 'ldapadd -Y EXTERNAL -H ldapi:/// -w mostest || true';
-	cat tests/${LDAP_DATA}-data.ldif | docker compose -f docker-compose.makefile.yml ${DOCKER_COMPOSE_OVERRIDE} exec -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest || true';
+	cat tests/custom-schema-objectID.ldif | docker compose -f docker-compose.makefile.yml $(DOCKER_COMPOSE_OVERRIDE) exec -T openldap bash -c 'ldapadd -Y EXTERNAL -H ldapi:/// -w mostest_password || true';
+	cat tests/custom-schema-cpa.ldif | docker compose -f docker-compose.makefile.yml ${DOCKER_COMPOSE_OVERRIDE} exec -T openldap bash -c 'ldapadd -Y EXTERNAL -H ldapi:/// -w mostest_password || true';
+	cat tests/${LDAP_DATA}-data.ldif | docker compose -f docker-compose.makefile.yml ${DOCKER_COMPOSE_OVERRIDE} exec -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest_password || true';
   endif
 endif
 
@@ -336,9 +336,9 @@ golang-versions: ## Install Golang versions used for compatibility testing (e.g.
 golangci-lint: setup-go-work ## Run golangci-lint on codebase
 	$(GO) install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.11.4
 ifeq ($(BUILD_ENTERPRISE_READY),true)
-	$(GOBIN)/golangci-lint run ./... ./public/... $(BUILD_ENTERPRISE_DIR)/...
+	$(GOBIN)/golangci-lint run --disable modernize ./... ./public/... $(BUILD_ENTERPRISE_DIR)/...
 else
-	$(GOBIN)/golangci-lint run ./... ./public/...
+	$(GOBIN)/golangci-lint run --disable modernize ./... ./public/...
 endif
 
 .PHONY: i18n-extract
@@ -717,7 +717,7 @@ run-node: export MM_SERVICESETTINGS_LISTENADDRESS=:8066
 run-node: export MM_SERVICESETTINGS_ENABLELOCALMODE=true
 run-node: export MM_SERVICESETTINGS_LOCALMODESOCKETLOCATION=/var/tmp/mattermost_local_node.socket
 run-node: export MM_SQLSETTINGS_DRIVERNAME=postgres
-run-node: export MM_SQLSETTINGS_DATASOURCE=postgres://mmuser:mostest@localhost/mattermost_node_test?sslmode=disable&sslmode=disable&connect_timeout=10&binary_parameters=yes
+run-node: export MM_SQLSETTINGS_DATASOURCE=postgres://mmuser:mostest_password@localhost/mattermost_node_test?sslmode=disable&sslmode=disable&connect_timeout=10&binary_parameters=yes
 
 run-node: setup-go-work start-docker ## Runs a shared channel node.
 	@echo Running mattermost node

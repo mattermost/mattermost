@@ -621,7 +621,7 @@ func TestIsBinaryParamEnabled(t *testing.T) {
 			store: SqlStore{
 				settings: &model.SqlSettings{
 					DriverName: model.NewPointer(model.DatabaseDriverPostgres),
-					DataSource: model.NewPointer("postgres://mmuser:mostest@localhost/loadtest?sslmode=disable\u0026binary_parameters=yes"),
+					DataSource: model.NewPointer("postgres://mmuser:mostest_password@localhost/loadtest?sslmode=disable\u0026binary_parameters=yes"),
 				},
 			},
 			expected: true,
@@ -630,7 +630,7 @@ func TestIsBinaryParamEnabled(t *testing.T) {
 			store: SqlStore{
 				settings: &model.SqlSettings{
 					DriverName: model.NewPointer(model.DatabaseDriverPostgres),
-					DataSource: model.NewPointer("postgres://mmuser:mostest@localhost/loadtest?sslmode=disable&binary_parameters=yes"),
+					DataSource: model.NewPointer("postgres://mmuser:mostest_password@localhost/loadtest?sslmode=disable&binary_parameters=yes"),
 				},
 			},
 			expected: true,
@@ -639,7 +639,7 @@ func TestIsBinaryParamEnabled(t *testing.T) {
 			store: SqlStore{
 				settings: &model.SqlSettings{
 					DriverName: model.NewPointer(model.DatabaseDriverPostgres),
-					DataSource: model.NewPointer("postgres://mmuser:mostest@localhost/loadtest?sslmode=disable"),
+					DataSource: model.NewPointer("postgres://mmuser:mostest_password@localhost/loadtest?sslmode=disable"),
 				},
 			},
 			expected: false,

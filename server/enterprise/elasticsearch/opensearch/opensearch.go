@@ -116,34 +116,20 @@ func (os *OpensearchInterfaceImpl) fetchServerInfo(ctx context.Context, client *
 	os.version = major
 	os.fullVersion = version
 
-	// Query every node because the CAT plugins API omits nodes with no plugins. Plugin information is
-	// also included in Support Packets. If it cannot be retrieved, preserve the existing best-effort
-	// behavior and let template creation report any resulting backend error.
-	resp, err := client.Nodes.Info(ctx, &opensearchapi.NodesInfoReq{Metrics: []string{"plugins"}})
+	// CAT plugins is used because internally it calls nodes, but for some reason AWS's nodes
+	// endpoint doesn't correctly return its list (but CAT does). However, CAT omits nodes with no
+	// plugins, so this inventory must not be used to prove cluster-wide absence.
+	resp, err := client.Cat.Plugins(ctx, nil)
 	if err != nil {
-		os.Platform.Log().Warn("Error retrieving opensearch node plugins", mlog.Err(err))
-		return nil
-	}
-	if resp.NodesInfo.Failed > 0 {
-		os.Platform.Log().Warn("Some opensearch nodes failed to return plugin information", mlog.Int("failed_nodes", resp.NodesInfo.Failed))
+		os.Platform.Log().Warn("Error retrieving opensearch plugins", mlog.Err(err))
 		return nil
 	}
 
 	os.plugins = nil
-	analysisICUInstalledOnEveryNode := true
-	for _, node := range resp.Nodes {
-		nodeHasAnalysisICU := false
-		for _, plugin := range node.Plugins {
-			os.plugins = append(os.plugins, plugin.Name)
-			if plugin.Name == "analysis-icu" {
-				nodeHasAnalysisICU = true
-			}
+	for _, plugin := range resp.Plugins {
+		if plugin.Component != "" {
+			os.plugins = append(os.plugins, plugin.Component)
 		}
-		analysisICUInstalledOnEveryNode = analysisICUInstalledOnEveryNode && nodeHasAnalysisICU
-	}
-
-	if len(resp.Nodes) > 0 && !analysisICUInstalledOnEveryNode {
-		return model.NewAppError("Opensearch.fetchServerInfo", "ent.elasticsearch.analysis_icu_required", map[string]any{"Backend": "OpenSearch"}, "", http.StatusInternalServerError)
 	}
 
 	return nil
@@ -177,13 +163,13 @@ func (os *OpensearchInterfaceImpl) Start(ctx context.Context) *model.AppError {
 	opts := []func(*types.IndexTemplateMapping){}
 	// Set up additional analyzers to use in the post index template if CJK analyzers are enabled
 	if *os.Platform.Config().ElasticsearchSettings.EnableCJKAnalyzers {
-		if slices.Contains(os.plugins, "analysis-nori") {
+		if common.HasAnalysisPlugin(os.plugins, "analysis-nori") {
 			opts = append(opts, common.WithNoriAnalyzer())
 		}
-		if slices.Contains(os.plugins, "analysis-kuromoji") {
+		if common.HasAnalysisPlugin(os.plugins, "analysis-kuromoji") {
 			opts = append(opts, common.WithKuromojiAnalyzer())
 		}
-		if slices.Contains(os.plugins, "analysis-smartcn") {
+		if common.HasAnalysisPlugin(os.plugins, "analysis-smartcn") {
 			opts = append(opts, common.WithSmartCNAnalyzer())
 		}
 
@@ -402,7 +388,7 @@ func (os *OpensearchInterfaceImpl) getPostIndexNames() ([]string, error) {
 		return nil, err
 	}
 	postIndexes := make([]string, 0)
-	for name := range indexes.Indices {
+	for name := range *indexes.IndicesGetRespData {
 		if strings.HasPrefix(name, *os.Platform.Config().ElasticsearchSettings.IndexPrefix+common.IndexBasePosts) {
 			postIndexes = append(postIndexes, name)
 		}
@@ -419,15 +405,15 @@ func (os *OpensearchInterfaceImpl) getFieldVariants(fieldName string, query stri
 		return variants
 	}
 
-	if slices.Contains(os.plugins, "analysis-nori") {
+	if common.HasAnalysisPlugin(os.plugins, "analysis-nori") {
 		variants = append(variants, fieldName+".nori")
 	}
 
-	if slices.Contains(os.plugins, "analysis-kuromoji") {
+	if common.HasAnalysisPlugin(os.plugins, "analysis-kuromoji") {
 		variants = append(variants, fieldName+".kuromoji")
 	}
 
-	if slices.Contains(os.plugins, "analysis-smartcn") {
+	if common.HasAnalysisPlugin(os.plugins, "analysis-smartcn") {
 		variants = append(variants, fieldName+".smartcn")
 	}
 
@@ -791,7 +777,7 @@ func (os *OpensearchInterfaceImpl) SearchPosts(channels model.ChannelList, searc
 	}
 
 	var searchResult searchResp
-	_, err = os.client.Client.Do(ctx, &opensearchapi.SearchReq{
+	_, err = os.client.Client.Do(ctx, http.MethodPost, &opensearchapi.SearchReq{
 		Indices: []string{common.SearchIndexName(os.Platform.Config().ElasticsearchSettings, common.IndexBasePosts+"*")},
 		Body:    bytes.NewReader(searchBuf),
 		Params: opensearchapi.SearchParams{
@@ -946,7 +932,7 @@ func (os *OpensearchInterfaceImpl) UpdatePostsChannelTypeByChannelId(rctx reques
 		rctx.Logger().Warn("UpdatePostsChannelTypeByChannelId had partial failures; consider a full bulk reindex to prevent missing posts",
 			mlog.String("channel_id", channelID),
 			mlog.Int("failure_count", len(response.Failures)),
-			mlog.Err(fmt.Errorf("first failure: %s", response.Failures[0])))
+			mlog.Err(fmt.Errorf("first failure: %v", response.Failures[0])))
 	}
 	rctx.Logger().Info("Posts channel_type updated", mlog.String("channel_id", channelID), mlog.String("channel_type", channelType), mlog.Int("updated", response.Updated))
 
@@ -1017,7 +1003,7 @@ func (os *OpensearchInterfaceImpl) BackfillPostsChannelType(rctx request.CTX, ch
 		rctx.Logger().Warn("BackfillPostsChannelType had partial failures; consider a full bulk reindex to prevent missing posts",
 			mlog.String("channel_type", channelType),
 			mlog.Int("failure_count", len(response.Failures)),
-			mlog.Err(fmt.Errorf("first failure: %s", response.Failures[0])))
+			mlog.Err(fmt.Errorf("first failure: %v", response.Failures[0])))
 	}
 	rctx.Logger().Info("Backfilled channel_type on posts", mlog.Int("updated", response.Updated), mlog.String("channel_type", channelType), mlog.Int("channel_count", len(channelIDs)))
 
@@ -1858,7 +1844,7 @@ func (os *OpensearchInterfaceImpl) DataRetentionDeleteIndexes(rctx request.CTX, 
 	if err != nil {
 		return model.NewAppError("Opensearch.DataRetentionDeleteIndexes", "ent.elasticsearch.data_retention_delete_indexes.get_indexes.error", map[string]any{"Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusInternalServerError).Wrap(err)
 	}
-	for index := range postIndexesResult.Indices {
+	for index := range *postIndexesResult.IndicesGetRespData {
 		if indexDate, err := time.Parse(dateFormat, index); err != nil {
 			rctx.Logger().Warn("Failed to parse date from posts index. Ignoring index.", mlog.String("index", index))
 		} else {

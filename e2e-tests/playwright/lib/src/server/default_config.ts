@@ -254,7 +254,7 @@ const defaultServerConfig: AdminConfig = {
     SqlSettings: {
         DriverName: 'postgres',
         DataSource:
-            'postgres://mmuser:mostest@localhost/mattermost_test?sslmode=disable\u0026connect_timeout=10\u0026binary_parameters=yes',
+            'postgres://mmuser:mostest_password@localhost/mattermost_test?sslmode=disable\u0026connect_timeout=10\u0026binary_parameters=yes',
         DataSourceReplicas: [],
         DataSourceSearchReplicas: [],
         MaxIdleConns: 50,
@@ -783,7 +783,7 @@ const defaultServerConfig: AdminConfig = {
         ExperimentalAuditSettingsSystemConsoleUI: true,
         CustomProfileAttributes: true,
         AttributeBasedAccessControl: true,
-        PermissionPolicies: true,
+        PermissionPolicies: false,
         ContentFlagging: true,
         InteractiveDialogAppsForm: true,
         EnableMattermostEntry: true,
@@ -794,6 +794,7 @@ const defaultServerConfig: AdminConfig = {
         EnableAIRecaps: false,
         IntegratedBoards: false,
         CJKSearch: false,
+        ManagedChannelCategories: false,
     },
     ImportSettings: {
         Directory: './import',

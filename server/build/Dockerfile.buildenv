@@ -1,4 +1,4 @@
-FROM mattermost/golang-bullseye:1.25.10@sha256:fcfc43854984deade99baafaf8dbce7b5a21408dcf8638d1e05e29d1501b632c
+FROM mattermost/golang-bullseye:1.26.7@sha256:725955a628618d9cc27633f9cd6b2dd2619b6982acfe4a7da307216c3efae461
 ARG NODE_VERSION=20.11.1
 
 RUN apt-get update && apt-get install -y make git apt-transport-https ca-certificates curl software-properties-common build-essential zip xmlsec1 jq pgloader gnupg

@@ -103,7 +103,7 @@ Supported service types: `openai`, `openaicompatible`, `azure`, `anthropic`, `as
 ### Key gotchas
 
 - **"TEAM EDITION" means no license, not no enterprise code.** The webapp shows "TEAM EDITION" when `license.IsLicensed === 'false'`, regardless of `BuildEnterpriseReady`. Fix: pass `MM_LICENSE="$TEST_LICENSE"` when starting the server. To verify enterprise code is loaded independently: check server logs for `"Enterprise Build", enterprise_build: true` or the API at `/api/v4/config/client?format=old` for `BuildEnterpriseReady: true`.
-- The server auto-generates `server/config/config.json` on first run; default SQL points to `postgres://mmuser:mostest@localhost/mattermost_test` matching Docker Compose.
+- The server auto-generates `server/config/config.json` on first run; default SQL points to `postgres://mmuser:mostest_password@localhost/mattermost_test` matching Docker Compose.
 - The first user created via `/api/v4/users` gets `system_admin` role automatically.
 - SMTP errors and plugin directory warnings on startup are expected in dev — non-blocking.
 - License errors in logs ("Failed to read license set in environment") are normal — enterprise features requiring a license won't be available but the server runs fine.

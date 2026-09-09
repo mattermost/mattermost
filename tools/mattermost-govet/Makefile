@@ -13,6 +13,6 @@ clean:
 
 golangci-lint:
 	$(GO) install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.11.4
-	$(GOBIN)/golangci-lint run ./...
+	$(GOBIN)/golangci-lint --disable modernize run ./...
 
 check-style: golangci-lint
