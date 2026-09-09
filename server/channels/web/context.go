@@ -281,17 +281,6 @@ func NewJSONEncodingError(err error) *model.AppError {
 	return appErr
 }
 
-// SetPermissionError reports a denied permission, distinguishing an ABAC
-// access_channel denial from an ordinary one so clients can tell "you cannot view
-// this channel right now" from "you were removed from this channel".
-//
-// The channel is not a parameter: it comes from the enforcement gate that denied it
-// earlier in this request. The gates evaluate RBAC first and short-circuit, and their
-// callers return immediately, so a recorded denial is by construction why we are
-// reporting an error now — which is what lets a new channel gate report the right id
-// without its author having to know. The permissions argument is only the label, so a
-// channel denial reported alongside a team-scoped permission is still a channel
-// denial (see getChannelByName, getChannelsMemberCount).
 func (c *Context) SetPermissionError(permissions ...*model.Permission) {
 	if channelID := app.ChannelAccessEnforcementDenial(c.AppContext); channelID != "" {
 		c.Err = model.NewAppError("Permissions", "api.channel.access_channel.abac_denied.app_error", nil,

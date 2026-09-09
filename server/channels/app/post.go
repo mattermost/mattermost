@@ -2837,9 +2837,6 @@ func (a *App) GetPostIfAuthorized(rctx request.CTX, postID string, session *mode
 		return nil, err, false
 	}
 
-	// Evaluated first and on its own: the public-channel fallback below answers at the
-	// team level, so checking afterwards would let a denied session read any open
-	// channel on its team.
 	if !a.HasPermissionToAccessChannel(rctx, session.UserId, channel) {
 		return nil, model.NewAppError("GetPostIfAuthorized", "api.channel.access_channel.abac_denied.app_error", nil,
 			"userId="+session.UserId+", channelId="+channel.Id, http.StatusForbidden), false

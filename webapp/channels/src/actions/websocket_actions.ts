@@ -140,7 +140,7 @@ import {isGuest} from 'mattermost-redux/utils/user_utils';
 
 import {handlePostExpired} from 'actions/burn_on_read_deletion';
 import {handleBurnOnReadPostRevealed, handleBurnOnReadAllRevealed} from 'actions/burn_on_read_websocket';
-import {reconcileChannelAccess, startChannelAccessRefresh, stopChannelAccessRefresh} from 'actions/channel_access';
+import {reconcileChannelAccess} from 'actions/channel_access';
 import {loadChannelsForCurrentUser} from 'actions/channel_actions';
 import {
     getTeamsUsage,
@@ -246,8 +246,6 @@ export function initialize() {
     WebSocketClient.addCloseListener(handleClose);
 
     WebSocketClient.initialize(connUrl, undefined, true);
-
-    dispatch(startChannelAccessRefresh());
 }
 
 export function close() {
@@ -258,8 +256,6 @@ export function close() {
     WebSocketClient.removeReconnectListener(reconnect);
     WebSocketClient.removeMissedMessageListener(restart);
     WebSocketClient.removeCloseListener(handleClose);
-
-    stopChannelAccessRefresh();
 }
 
 const pluginReconnectHandlers: Record<string, () => void> = {};

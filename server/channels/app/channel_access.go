@@ -15,15 +15,10 @@ import (
 
 type channelAccessMemoKey struct{}
 
-// channelAccessMemo memoises access_channel decisions for the lifetime of one
-// request. The channel gates nest — a post read goes through the post gate, the
-// read-channel gate and the channel gate — and list surfaces call them once per
-// post or per channel, so without the memo a single getPost would cost four PDP
-// round trips and a websocket fan-out one per recipient per mention.
-//
-// The built subject is deliberately not memoised: BuildAccessControlSubject
-// attaches the channel-scoped role, so a subject is only valid for the one
-// channel it was built for.
+type channelAccessKey struct {
+	userID    string
+	channelID string
+}
 type channelAccessMemo struct {
 	mu        sync.Mutex
 	decisions map[channelAccessKey]bool
@@ -33,11 +28,6 @@ type channelAccessMemo struct {
 	// decisions: filters and mention sanitisers record denials and still return
 	// 200, so a decision alone cannot say why a request is failing.
 	enforcementDenial string
-}
-
-type channelAccessKey struct {
-	userID    string
-	channelID string
 }
 
 func (m *channelAccessMemo) get(key channelAccessKey) (allowed bool, ok bool) {
@@ -74,10 +64,6 @@ func getChannelAccessMemo(rctx request.CTX) *channelAccessMemo {
 	return nil
 }
 
-// WithChannelAccessMemo installs the per-request access_channel memo. It cannot be
-// installed further down the stack: request.CTX values ride on a context that every
-// With* call clones, so a memo installed inside a callee is discarded when it
-// returns and the error contract never sees the denial.
 func WithChannelAccessMemo(rctx request.CTX) request.CTX {
 	if getChannelAccessMemo(rctx) != nil {
 		return rctx
@@ -86,11 +72,6 @@ func WithChannelAccessMemo(rctx request.CTX) request.CTX {
 	return rctx.WithContext(context.WithValue(rctx.Context(), channelAccessMemoKey{}, memo))
 }
 
-// ChannelAccessEnforcementDenial returns the channel an enforcement gate denied for
-// this request's session, or "" when none did. Because the gates short-circuit on
-// RBAC first and every caller returns on failure, a witness means the denial is why
-// the request is failing — which is what makes it safe to consult from
-// SetPermissionError, which does not know the channel.
 func ChannelAccessEnforcementDenial(rctx request.CTX) string {
 	memo := getChannelAccessMemo(rctx)
 	if memo == nil {
@@ -99,10 +80,6 @@ func ChannelAccessEnforcementDenial(rctx request.CTX) string {
 	return memo.getEnforcementDenial()
 }
 
-// EnforceAccessChannel is HasPermissionToAccessChannel for the call sites that
-// enforce, recording the denial so the API layer can report it with the distinct
-// error id. Suppression call sites keep using HasPermissionToAccessChannel, which
-// records nothing: they drop the channel and still succeed.
 func (a *App) EnforceAccessChannel(rctx request.CTX, userID string, channel *model.Channel) bool {
 	if a.HasPermissionToAccessChannel(rctx, userID, channel) {
 		return true
@@ -121,8 +98,6 @@ func (a *App) EnforceAccessChannelByID(rctx request.CTX, userID, channelID strin
 	return false
 }
 
-// Records only when the evaluated user is the one the response is about: an answer
-// about a third party must not be reported as the requester's own denial.
 func (a *App) noteAccessChannelEnforcementDenial(rctx request.CTX, userID, channelID string) {
 	if channelID == "" || userID != rctx.Session().UserId {
 		return
@@ -140,14 +115,6 @@ func (a *App) accessChannelEnforcementActive() bool {
 		a.Srv().Channels().AccessControl != nil
 }
 
-// HasPermissionToAccessChannel evaluates the ABAC access_channel action for a user on
-// a channel. It is ANDed into every channel permission gate rather than checked per
-// surface, because access_channel is a prerequisite for any interaction with a
-// channel — gating only read-shaped permissions would leave the write paths reachable
-// for a session that cannot see the channel.
-//
-// System admins and local-mode sessions are deliberately not exempt, matching
-// HasPermissionToFileAction; exempt call sites use the RBACOnly siblings instead.
 func (a *App) HasPermissionToAccessChannel(rctx request.CTX, userID string, channel *model.Channel) bool {
 	if channel == nil || userID == "" {
 		return true
@@ -220,11 +187,6 @@ func (a *App) evaluateAccessChannel(rctx request.CTX, userID string, channel *mo
 	return decision.Decision
 }
 
-// buildAccessChannelSubject assembles the subject for the user being evaluated.
-// Session attributes come only from the requesting session, so a caller asking about
-// a third party (a webhook, a notification decision, per-recipient fan-out) builds a
-// subject without them, and a rule referencing user.session.* denies rather than
-// evaluating against the caller's own device.
 func (a *App) buildAccessChannelSubject(rctx request.CTX, userID, channelID string) (*model.Subject, *model.AppError) {
 	if rctx.Session().UserId == userID {
 		return a.BuildAccessControlSubjectForSession(rctx, channelID)
@@ -297,11 +259,6 @@ func (a *App) FilterChannelMembersWithTeamDataByAccess(rctx request.CTX, userID 
 	return filtered
 }
 
-// HasPermissionToAccessChannelByID resolves the channel before evaluating.
-//
-// A channel that does not exist is allowed: the policy-administration endpoints pass
-// policy IDs through the channel gates, and a team or parent policy has no channel
-// behind it. Any other lookup failure denies.
 func (a *App) HasPermissionToAccessChannelByID(rctx request.CTX, userID, channelID string) bool {
 	if channelID == "" || !a.accessChannelEnforcementActive() {
 		return true

@@ -22,13 +22,6 @@ import {ModalIdentifiers} from 'utils/constants';
 
 import type {ThunkActionFunc} from 'types/store';
 
-// An access_channel rule can reference the session's device or network, so a session
-// can lose access with nothing on the server to broadcast. Only a periodic re-check
-// notices.
-export const ACCESS_CHANNEL_REFRESH_INTERVAL = 15 * 60 * 1000;
-
-let refreshIntervalId: ReturnType<typeof setInterval> | undefined;
-
 // DMs and GMs are exempt from access_channel on the server, so their absence from
 // a response never means "denied" and must not drop local data.
 function isGoverned(channel: Channel): boolean {
@@ -100,23 +93,4 @@ export function reconcileChannelAccess(): ThunkActionFunc<Promise<void>> {
             redirectUserToDefaultTeam();
         }
     };
-}
-
-export function startChannelAccessRefresh(): ThunkActionFunc<void> {
-    return (doDispatch, doGetState) => {
-        if (refreshIntervalId !== undefined || !isAccessChannelABACPermissionEnabled(doGetState())) {
-            return;
-        }
-
-        refreshIntervalId = setInterval(() => {
-            doDispatch(reconcileChannelAccess());
-        }, ACCESS_CHANNEL_REFRESH_INTERVAL);
-    };
-}
-
-export function stopChannelAccessRefresh(): void {
-    if (refreshIntervalId !== undefined) {
-        clearInterval(refreshIntervalId);
-        refreshIntervalId = undefined;
-    }
 }
