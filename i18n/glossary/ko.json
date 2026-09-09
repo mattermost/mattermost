@@ -29,7 +29,7 @@
   },
   "Markdown": {
     "target": "Markdown",
-    "note": "마크다운 is acceptable in prose, but existing UI keeps the English form."
+    "note": "Existing UI keeps the English form; 마크다운 appears in prose but the format name stays Markdown."
   },
   "OAuth": {
     "target": "OAuth"

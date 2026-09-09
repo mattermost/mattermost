@@ -390,7 +390,8 @@
     "target": "属性"
   },
   "onboarding": {
-    "target": "入职流程"
+    "target": "引导流程",
+    "note": "入职流程 means employee induction, not the product first-run experience. Established rendering is 引导 (开始引导流程)."
   },
   "Town Square": {
     "target": "广场"

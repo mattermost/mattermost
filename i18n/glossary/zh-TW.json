@@ -4,11 +4,11 @@
   },
   "Enterprise Edition": {
     "target": "Enterprise Edition",
-    "note": "Existing zh-TW UI renders the edition name as 企業版 in the About dialog; keep English when treated as a product name, 企業版 when the surrounding sentence is fully translated."
+    "note": "Existing zh-TW UI renders the edition name as 企業版 in the About dialog; keep the English product name."
   },
   "Team Edition": {
     "target": "Team Edition",
-    "note": "Existing zh-TW UI renders it as 團隊版 in the About dialog; same guidance as Enterprise Edition."
+    "note": "Existing zh-TW UI renders it as 團隊版 in the About dialog; keep the English product name."
   },
   "Mattermost Cloud": {
     "target": "Mattermost Cloud"
