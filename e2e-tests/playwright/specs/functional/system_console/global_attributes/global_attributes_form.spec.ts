@@ -1085,9 +1085,7 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
          * updates both attrs.managed and the field's actual permission_values in both
          * directions (MM-69869's fix for the one-way permission ratchet).
          */
-        test('updates config on an already-saved Users row via patch, in both directions', async ({
-            pw,
-        }) => {
+        test('updates config on an already-saved Users row via patch, in both directions', async ({pw}) => {
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
 
             const timestamp = Date.now();
