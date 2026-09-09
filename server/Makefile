@@ -162,7 +162,7 @@ PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.13.0
 PLUGIN_PACKAGES += mattermost-plugin-jira-v4.8.0
 PLUGIN_PACKAGES += mattermost-plugin-playbooks-v2.11.1
 PLUGIN_PACKAGES += mattermost-plugin-servicenow-v2.4.0
-PLUGIN_PACKAGES += mattermost-plugin-zoom-v1.13.0
+PLUGIN_PACKAGES += mattermost-plugin-zoom-v1.13.1
 PLUGIN_PACKAGES += mattermost-plugin-agents-v2.6.1
 PLUGIN_PACKAGES += mattermost-plugin-boards-v9.4.0
 PLUGIN_PACKAGES += mattermost-plugin-user-survey-v1.1.1
@@ -353,6 +353,11 @@ endif
 i18n-extract: ## Extract strings for translation from the source code
 	cd ../tools/mmgotool && $(GO) install .
 	$(GOBIN)/mmgotool i18n extract --portal-dir=""
+
+.PHONY: i18n-verify
+i18n-verify: ## Verify the non-English translation files against en.json
+	cd ../tools/mmgotool && $(GO) install .
+	$(GOBIN)/mmgotool i18n verify --warn-missing-ids
 
 .PHONY: i18n-check
 i18n-check: ## Exit on empty translation strings and translation source strings

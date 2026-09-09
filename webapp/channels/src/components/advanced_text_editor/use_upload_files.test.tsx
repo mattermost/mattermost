@@ -58,21 +58,21 @@ describe('useUploadFiles ABAC upload gate', () => {
     test('renders the upload control enabled when policy allows upload', () => {
         const {result} = renderUpload(stateWithDecision({allowed: true, evaluated: true}));
 
-        const [, fileUploadJSX] = result.current as [unknown, React.ReactElement];
+        const [, fileUploadJSX] = result.current as [unknown, React.ReactElement<any>];
         expect(fileUploadJSX.props.disabledByPolicy).toBe(false);
     });
 
     test('renders the upload control disabled when policy denies upload', () => {
         const {result} = renderUpload(stateWithDecision({allowed: false, evaluated: true}));
 
-        const [, fileUploadJSX] = result.current as [unknown, React.ReactElement];
+        const [, fileUploadJSX] = result.current as [unknown, React.ReactElement<any>];
         expect(fileUploadJSX.props.disabledByPolicy).toBe(true);
     });
 
     test('renders the upload control enabled while no decision is cached', () => {
         const {result} = renderUpload(stateWithDecision());
 
-        const [, fileUploadJSX] = result.current as [unknown, React.ReactElement];
+        const [, fileUploadJSX] = result.current as [unknown, React.ReactElement<any>];
         expect(fileUploadJSX.props.disabledByPolicy).toBe(false);
     });
 });
