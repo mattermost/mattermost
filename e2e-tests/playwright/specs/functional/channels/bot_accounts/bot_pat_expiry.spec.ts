@@ -3,7 +3,7 @@
 
 import type {Page} from '@playwright/test';
 
-import {expect, test} from '@mattermost/playwright-lib';
+import {expect, getAdminClient, test} from '@mattermost/playwright-lib';
 
 async function dismissWebpackOverlay(page: Page) {
     await page
@@ -15,6 +15,16 @@ async function dismissWebpackOverlay(page: Page) {
 }
 
 test.describe('Bot account personal access token expiry @bot_accounts @personal_access_tokens', () => {
+    // initSetup's config patch omits this key, so a value left behind breaks later PAT specs.
+    test.afterAll(async () => {
+        const {adminClient} = await getAdminClient();
+        await adminClient?.patchConfig({
+            ServiceSettings: {
+                MaximumPersonalAccessTokenLifetimeDays: 0,
+            },
+        });
+    });
+
     test('creates and regenerates a user-owned bot token under an enforced maximum lifetime', async ({pw}) => {
         test.setTimeout(120000);
         const {adminUser, adminClient, team} = await pw.initSetup();

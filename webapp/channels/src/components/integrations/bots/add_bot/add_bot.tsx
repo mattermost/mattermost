@@ -9,7 +9,6 @@ import {Link} from 'react-router-dom';
 import {buttonClassNames} from '@mattermost/shared/components/button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {Bot, BotPatch} from '@mattermost/types/bots';
-import type {ServerError} from '@mattermost/types/errors';
 import type {Team} from '@mattermost/types/teams';
 import type {UserAccessToken, UserProfile} from '@mattermost/types/users';
 
@@ -29,7 +28,6 @@ import {
     getExpiryValidationError,
     isoPlusDays,
     isExpiryPresetAllowed,
-    mapServerErrorIdToMessage,
     resolveTokenExpiresAt,
     todayIso,
 } from 'components/user_settings/security/user_access_token_section/user_access_token_section';
@@ -415,12 +413,7 @@ export default class AddBot extends React.PureComponent<Props, State> {
 
                 // On error just skip the confirmation because we have a bot without a token.
                 if (!tokenResult || tokenResult.error) {
-                    const serverError = tokenResult?.error as ServerError | undefined;
-                    const mapped = mapServerErrorIdToMessage(serverError?.server_error_id, this.props.maxLifetimeDays);
-                    if (mapped) {
-                        this.setState({adding: false, error: mapped});
-                        return;
-                    }
+                    this.updateRoles(data);
                     getHistory().push(`/${this.props.team.name}/integrations/bots`);
                     return;
                 }
