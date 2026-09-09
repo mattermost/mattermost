@@ -27,9 +27,6 @@ import {PRESET_CUSTOM, presets} from './presets';
 // endpoint and use the sentinel target_id 'system'.
 // ---------------------------------------------------------------------------
 
-// Property-field group for all classification-markings entities.
-export const CLASSIFICATIONS_GROUP_NAME = 'access_control';
-
 // Field-level target attributes shared by template, system, and channel fields.
 // `target_type` is always 'system'; `target_id` is empty for system-scoped
 // field definitions (the server canonicalizes both).
@@ -368,7 +365,7 @@ export async function fetchUserLinkedFields(templateFieldId: string): Promise<Pr
 
     while (fetched < maxItems) {
         const fields = await Client4.getPropertyFields( // eslint-disable-line no-await-in-loop
-            CLASSIFICATIONS_GROUP_NAME,
+            ACCESS_CONTROL_PROPERTY_GROUP,
             CLASSIFICATIONS_USER_OBJECT_TYPE,
             CLASSIFICATIONS_FIELD_TARGET_TYPE,
             CLASSIFICATIONS_FIELD_TARGET_ID,
@@ -393,7 +390,7 @@ export async function fetchUserLinkedFields(templateFieldId: string): Promise<Pr
 }
 
 export async function saveCreateUserLinkedField(templateFieldId: string, name: string, displayName: string): Promise<PropertyField> {
-    return Client4.createPropertyField(CLASSIFICATIONS_GROUP_NAME, CLASSIFICATIONS_USER_OBJECT_TYPE, {
+    return Client4.createPropertyField(ACCESS_CONTROL_PROPERTY_GROUP, CLASSIFICATIONS_USER_OBJECT_TYPE, {
         name,
         type: 'rank' as PropertyField['type'],
         target_type: CLASSIFICATIONS_FIELD_TARGET_TYPE,
@@ -410,5 +407,5 @@ export async function saveCreateUserLinkedField(templateFieldId: string, name: s
 }
 
 export async function saveDeleteUserLinkedField(fieldId: string): Promise<void> {
-    await Client4.deletePropertyField(CLASSIFICATIONS_GROUP_NAME, CLASSIFICATIONS_USER_OBJECT_TYPE, fieldId);
+    await Client4.deletePropertyField(ACCESS_CONTROL_PROPERTY_GROUP, CLASSIFICATIONS_USER_OBJECT_TYPE, fieldId);
 }
