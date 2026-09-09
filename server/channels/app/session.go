@@ -585,7 +585,7 @@ func (a *App) enforceUserAccessTokenExpiryPolicy(rctx request.CTX, user *model.U
 // owner is deactivated, the bot is plugin-owned or the system bot, or the
 // bot's owner is deactivated or no longer exists.
 func (a *App) resolveAccessTokenNotificationRecipient(rctx request.CTX, token *model.UserAccessToken) (recipient *model.User, bot *model.Bot, appErr *model.AppError) {
-	tokenUser, appErr := a.GetUser(token.UserId)
+	tokenUser, appErr := a.GetUser(rctx, token.UserId)
 	if appErr != nil {
 		return nil, nil, appErr
 	}
