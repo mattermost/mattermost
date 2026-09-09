@@ -215,6 +215,7 @@ describe('components/integrations/bots/Bot', () => {
                 team={team}
                 actions={actions}
                 fromApp={false}
+                maxLifetimeDays={0}
             />,
         );
 
@@ -248,6 +249,7 @@ describe('components/integrations/bots/Bot', () => {
                 team={team}
                 actions={actions}
                 fromApp={false}
+                maxLifetimeDays={0}
             />,
         );
 
