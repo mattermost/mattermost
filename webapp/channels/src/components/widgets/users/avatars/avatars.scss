@@ -49,12 +49,25 @@
             margin-left: var(--offset);
         }
 
+        // aria-expanded holds the lift while the trigger's popover is open. Both
+        // ProfilePopover and the overflow list set it. Without it the trigger
+        // shrinks back on mouse-out and the floating element anchored to it moves.
         &:hover,
-        &:focus {
+        &:focus,
+        &:focus-within,
+        &[aria-expanded='true'] {
             z-index: 1;
             box-shadow: var(--elevation-2);
             transform: scale(1.2);
         }
+    }
+
+    // The overflow trigger wraps the chip, so it — not the chip — is what the
+    // sibling offset and hover rules above match on.
+    > .Avatars__overflowTrigger {
+        display: inline-flex;
+        border-radius: 50%;
+        cursor: pointer;
     }
 
     .Avatar {
