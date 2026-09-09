@@ -26,7 +26,7 @@ const (
 // Defined here rather than depending on the full store interface so the
 // orchestration logic can be unit-tested with a small fake.
 type expiredTokenStore interface {
-	GetExpiredBefore(cutoff int64, limit int, includeAllTokens bool) ([]*model.UserAccessToken, error)
+	GetExpiredBefore(cutoff int64, limit int, includeUserOwnedTokens bool) ([]*model.UserAccessToken, error)
 	DeleteByIds(tokenIDs []string) (int64, error)
 }
 
@@ -84,7 +84,7 @@ func cleanupExpired(
 	store expiredTokenStore,
 	clearSessionCache func(userID string),
 	notifyExpired func(rctx request.CTX, tokens []*model.UserAccessToken),
-	includeAllTokens bool,
+	includeUserOwnedTokens bool,
 	cutoff int64,
 	limit int,
 	maxIter int,
@@ -92,7 +92,7 @@ func cleanupExpired(
 	var totalDeleted int64
 
 	for range maxIter {
-		expired, err := store.GetExpiredBefore(cutoff, limit, includeAllTokens)
+		expired, err := store.GetExpiredBefore(cutoff, limit, includeUserOwnedTokens)
 		if err != nil {
 			return err
 		}

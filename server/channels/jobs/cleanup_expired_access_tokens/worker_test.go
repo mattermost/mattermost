@@ -26,12 +26,12 @@ type fakeStore struct {
 	deleteCnt  int64
 	deleteErr  error
 	deletedIDs [][]string
-	includeAll []bool
+	includeUserOwned []bool
 }
 
-func (f *fakeStore) GetExpiredBefore(_ int64, _ int, includeAllTokens bool) ([]*model.UserAccessToken, error) {
+func (f *fakeStore) GetExpiredBefore(_ int64, _ int, includeUserOwnedTokens bool) ([]*model.UserAccessToken, error) {
 	f.getCalls++
-	f.includeAll = append(f.includeAll, includeAllTokens)
+	f.includeUserOwned = append(f.includeUserOwned, includeUserOwnedTokens)
 	if f.getErrAt != 0 && f.getCalls == f.getErrAt {
 		return nil, f.getErr
 	}
@@ -207,6 +207,6 @@ func TestCleanupExpired(t *testing.T) {
 
 		err := cleanupExpired(rctx, store, nopClearSession, nil, false, 9999, 1000, 10)
 		require.NoError(t, err)
-		require.Equal(t, []bool{false}, store.includeAll)
+		require.Equal(t, []bool{false}, store.includeUserOwned)
 	})
 }
