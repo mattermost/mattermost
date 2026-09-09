@@ -235,7 +235,7 @@ func (s SqlUserAccessTokenStore) UpdateTokenDisable(tokenId string) (err error) 
 
 // GetExpiredBefore returns active tokens whose non-zero ExpiresAt is less than
 // or equal to the provided cutoff (Unix milliseconds), up to the given limit.
-// When includeAllTokens is false, only bots owned by a user are returned. The
+// When includeUserOwnedTokens is false, only bots owned by a user are returned. The
 // secret Token column is intentionally NOT selected — callers use the returned
 // rows for metadata (audit logging, deletion) only.
 //
@@ -243,7 +243,7 @@ func (s SqlUserAccessTokenStore) UpdateTokenDisable(tokenId string) (err error) 
 // than relying on the int -> uint64 cast (which would otherwise wrap a
 // negative value into an enormous unsigned limit and effectively disable the
 // bound).
-func (s SqlUserAccessTokenStore) GetExpiredBefore(cutoff int64, limit int, includeAllTokens bool) ([]*model.UserAccessToken, error) {
+func (s SqlUserAccessTokenStore) GetExpiredBefore(cutoff int64, limit int, includeUserOwnedTokens bool) ([]*model.UserAccessToken, error) {
 	tokens := []*model.UserAccessToken{}
 
 	if limit <= 0 {
@@ -265,7 +265,7 @@ func (s SqlUserAccessTokenStore) GetExpiredBefore(cutoff int64, limit int, inclu
 		OrderBy("UserAccessTokens.ExpiresAt ASC").
 		Limit(uint64(limit))
 
-	if !includeAllTokens {
+	if !includeUserOwnedTokens {
 		query = query.
 			InnerJoin("Bots ON Bots.UserId = UserAccessTokens.UserId").
 			InnerJoin("Users BotOwners ON BotOwners.Id = Bots.OwnerId").
@@ -284,7 +284,7 @@ func (s SqlUserAccessTokenStore) GetExpiredBefore(cutoff int64, limit int, inclu
 // recipient that need a pre-expiry warning for one of the given day thresholds
 // (e.g. 7/3/1), ordered most-urgent first, up to the given limit. User-owned bot
 // tokens notify the bot owner. Plugin-owned bot tokens are excluded. When
-// includeAllTokens is false, non-bot tokens are also excluded.
+// includeUserOwnedTokens is false, non-bot tokens are also excluded.
 //
 // Only *actionable* rows are returned: for each threshold T a token qualifies
 // when it has entered the T-day bucket (ExpiresAt <= now + T days) and has not
@@ -304,7 +304,7 @@ func (s SqlUserAccessTokenStore) GetExpiredBefore(cutoff int64, limit int, inclu
 // hitting the DB rather than relying on the int -> uint64 cast (which would
 // otherwise wrap a negative value into an enormous unsigned limit and
 // effectively disable the bound).
-func (s SqlUserAccessTokenStore) GetExpiringTokens(now int64, thresholds []int, limit int, includeAllTokens bool) ([]*model.UserAccessToken, error) {
+func (s SqlUserAccessTokenStore) GetExpiringTokens(now int64, thresholds []int, limit int, includeUserOwnedTokens bool) ([]*model.UserAccessToken, error) {
 	tokens := []*model.UserAccessToken{}
 
 	if limit <= 0 || len(thresholds) == 0 {
@@ -348,7 +348,7 @@ func (s SqlUserAccessTokenStore) GetExpiringTokens(now int64, thresholds []int, 
 		sq.NotEq{"BotOwners.Id": nil},
 		sq.Eq{"BotOwners.DeleteAt": 0},
 	}
-	if includeAllTokens {
+	if includeUserOwnedTokens {
 		query = query.Where(sq.Or{
 			sq.And{
 				sq.Eq{"Bots.UserId": nil},
