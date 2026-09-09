@@ -141,15 +141,21 @@ func (ps *PropertyService) createPropertyField(rctx request.CTX, field *model.Pr
 		}
 
 		// Inherit permission levels from source template. PermissionValues is
-		// deliberately excluded here: Global Attributes lets an admin set "Who
-		// can set the value" per linked resource (attrs.managed / MM-69869),
-		// which would otherwise be permanently overridden by the template's
-		// own PermissionValues (templates default to sysadmin, per
+		// deliberately excluded here: callers can set write permission per
+		// linked resource independently of the source, which would otherwise
+		// be permanently overridden by the template's own PermissionValues
+		// (templates default to sysadmin, per
 		// DefaultPropertyFieldPermissionLevel) -- the caller-supplied value
 		// (already resolved to a sensible default by enforceGroupPermissions
 		// before this runs) is preserved instead. PermissionField/
 		// PermissionOptions stay inherited for every linked field -- only
-		// PermissionValues is safe to diverge from the template.
+		// PermissionValues is safe to diverge from the template. A caller
+		// outside that hook (no managed-group policy resolved a value) still
+		// gets the template's PermissionValues, same as the other two tiers,
+		// rather than being left with an unconfigurable nil.
+		if field.PermissionValues == nil {
+			field.PermissionValues = source.PermissionValues
+		}
 		if source.PermissionField != nil {
 			field.PermissionField = source.PermissionField
 		}

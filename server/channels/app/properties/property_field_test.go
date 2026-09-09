@@ -885,6 +885,33 @@ func TestLinkedPropertyFields(t *testing.T) {
 		assert.Equal(t, sourceOpts, linkedOpts)
 	})
 
+	t.Run("create linked field falls back to source PermissionValues when the caller leaves it unset", func(t *testing.T) {
+		sysadminLevel := model.PermissionLevelSysadmin
+		source := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:          group.ID,
+			ObjectType:       model.PropertyFieldObjectTypeTemplate,
+			TargetType:       string(model.PropertyFieldTargetLevelSystem),
+			Type:             model.PropertyFieldTypeText,
+			Name:             "Source-" + model.NewId(),
+			PermissionValues: &sysadminLevel,
+		})
+
+		linked, err := th.service.CreatePropertyField(rctx, &model.PropertyField{
+			GroupID:       group.ID,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Name:          "Linked-" + model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			LinkedFieldID: &source.ID,
+			// PermissionValues intentionally left nil -- this group has no
+			// policy hook to resolve one (unlike the CPA group), so the
+			// fallback to the source template's value is what's under test.
+		})
+		require.NoError(t, err)
+		require.NotNil(t, linked.PermissionValues)
+		assert.Equal(t, sysadminLevel, *linked.PermissionValues)
+	})
+
 	t.Run("create linked field rejects non-existent source", func(t *testing.T) {
 		fakeID := model.NewId()
 		_, err := th.service.CreatePropertyField(rctx, &model.PropertyField{
