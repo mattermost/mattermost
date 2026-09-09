@@ -10,8 +10,10 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -2355,6 +2357,314 @@ func TestDestinationChannelNameFailsWithTeamScopedExport(t *testing.T) {
 	)
 	require.NotNil(t, appErr, "should fail fast when export is team-scoped but not channel-scoped")
 	assert.Equal(t, "app.import.bulk_import.destination_channel_requires_channel_scope.error", appErr.Id)
+}
+
+// TestDestinationChannelNameFailsWithMultiTeamExport verifies that
+// --destination-channel-name is rejected for an export spanning several teams.
+// The export's channel filter is a flat name set rather than (team, channel)
+// pairs, so the same channel name can be exported from more than one team —
+// and rewriteChannelName matches on channel name alone, which would otherwise
+// rename it in every one of them.
+func TestDestinationChannelNameFailsWithMultiTeamExport(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	team2 := th.CreateTeam(t)
+	sharedName := "shared-" + model.NewId()
+	withSharedName := func(channel *model.Channel) {
+		channel.Name = sharedName
+		channel.DisplayName = sharedName
+	}
+	th.CreateChannel(t, th.BasicTeam, withSharedName)
+	th.CreateChannel(t, team2, withSharedName)
+
+	var buf bytes.Buffer
+	appErr := th.App.BulkExport(th.Context, &buf, "", nil, model.BulkExportOpts{
+		TeamName:    th.BasicTeam.Name + "," + team2.Name,
+		ChannelName: sharedName,
+	})
+	require.Nil(t, appErr)
+
+	_, appErr = th.App.BulkImportWithPathAndOpts(
+		th.Context,
+		&buf,
+		nil,
+		false,
+		false,
+		1,
+		"",
+		model.BulkImportOpts{DestinationChannelName: "renamed-channel"},
+	)
+	require.NotNil(t, appErr, "--destination-channel-name against a multi-team export must error rather than renaming the channel in every team")
+	assert.Equal(t, "app.import.bulk_import.destination_channel_requires_single_team_scope.error", appErr.Id)
+}
+
+// TestDestinationTeamNameFailsWithInferredMultiTeamExport covers the inferred-scope
+// path: an export carrying no ExportScopeAdditional metadata (e.g. produced by an
+// older binary) that turns out to contain several teams must fail once the second
+// team line is seen, rather than remapping only the first team.
+func TestDestinationTeamNameFailsWithInferredMultiTeamExport(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	var sb strings.Builder
+	enc := json.NewEncoder(&sb)
+
+	version := 1
+	require.NoError(t, enc.Encode(imports.LineImportData{
+		Type:    "version",
+		Version: &version,
+		Info: &imports.VersionInfoImportData{
+			Generator: "test",
+			Version:   "1.0",
+			Created:   "2024-01-01T00:00:00Z",
+		},
+	}))
+
+	for _, teamName := range []string{"mig-team-a-" + model.NewId(), "mig-team-b-" + model.NewId()} {
+		require.NoError(t, enc.Encode(imports.LineImportData{
+			Type: "team",
+			Team: &imports.TeamImportData{
+				Name:        model.NewPointer(teamName),
+				DisplayName: model.NewPointer("Mig Test Team"),
+				Type:        model.NewPointer("O"),
+			},
+		}))
+	}
+
+	_, appErr := th.App.BulkImportWithPathAndOpts(
+		th.Context,
+		strings.NewReader(sb.String()),
+		nil,
+		false,
+		false,
+		4,
+		"",
+		model.BulkImportOpts{DestinationTeamName: "mig-dest-" + model.NewId()},
+	)
+	require.NotNil(t, appErr, "--destination-team-name against a multi-team export must fail fast")
+	assert.Equal(t, "app.import.bulk_import.destination_team_requires_single_team_scope.error", appErr.Id)
+}
+
+// TestBulkImportKeepsLinesAfterNonFatalWorkerError guards the reader's hand-off
+// loop. The reader selects between queueing the line it holds and receiving a
+// worker error; when the error turns out to be non-fatal, the line must still be
+// queued. Skipping it silently drops that user, and later their posts too.
+//
+// Scoped imports make this routine rather than rare: migrating into a populated
+// destination produces an email/username collision per already-present user, and
+// stopOnError treats those as skip-and-continue.
+func TestBulkImportKeepsLinesAfterNonFatalWorkerError(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	// All the colliding lines come first, so their errors surface while the reader
+	// is still streaming the lines that must survive — that is when a dropped line
+	// is observable. Each collision is an independent chance to lose one.
+	const colliders = 25
+	const survivorCount = 25
+
+	var sb strings.Builder
+	enc := json.NewEncoder(&sb)
+
+	teamName := th.BasicTeam.Name
+	chanName := th.BasicChannel.Name
+
+	scope, err := json.Marshal(imports.ExportScopeAdditional{TeamName: teamName, ChannelName: chanName})
+	require.NoError(t, err)
+	version := 1
+	require.NoError(t, enc.Encode(imports.LineImportData{
+		Type:    "version",
+		Version: &version,
+		Info: &imports.VersionInfoImportData{
+			Generator:  "test",
+			Version:    "1.0",
+			Created:    "2024-01-01T00:00:00Z",
+			Additional: scope,
+		},
+	}))
+
+	userLine := func(t *testing.T, username, email string) {
+		t.Helper()
+		require.NoError(t, enc.Encode(imports.LineImportData{
+			Type: "user",
+			User: &imports.UserImportData{
+				Username: model.NewPointer(username),
+				Email:    model.NewPointer(email),
+				Teams: &[]imports.UserTeamImportData{{
+					Name:     model.NewPointer(teamName),
+					Channels: &[]imports.UserChannelImportData{{Name: model.NewPointer(chanName)}},
+				}},
+			},
+		}))
+	}
+
+	// A colliding line reuses an existing destination user's email under a new
+	// username, so the shell insert fails with email_exists — non-fatal, skipped.
+	for range colliders {
+		existing, appErr := th.App.CreateUser(th.Context, &model.User{
+			Email:    "collide-" + model.NewId() + "@mig-test.example.com",
+			Username: "existing-" + model.NewId(),
+			Password: "Password1!",
+		})
+		require.Nil(t, appErr)
+
+		userLine(t, "collider-"+model.NewId(), existing.Email)
+	}
+
+	var survivors []string
+	for range survivorCount {
+		survivor := "survivor-" + model.NewId()
+		survivors = append(survivors, survivor)
+		userLine(t, survivor, survivor+"@mig-test.example.com")
+	}
+
+	_, appErr := th.App.BulkImportWithPathAndOpts(
+		th.Context, strings.NewReader(sb.String()), nil, false, false, 4, "",
+		model.BulkImportOpts{},
+	)
+	require.Nil(t, appErr, "collisions are non-fatal, so the import as a whole must succeed")
+
+	var missing []string
+	for _, username := range survivors {
+		if _, err := th.App.Srv().Store().User().GetByUsername(username); err != nil {
+			missing = append(missing, username)
+		}
+	}
+	require.Empty(t, missing, "these users were in the import file but never imported")
+}
+
+// TestBulkImportDrainsWorkersOnEarlyReturn guards the early returns in bulkImport
+// that are taken after worker goroutines have already started. Returning without
+// closing linesChan leaves those workers blocked on it for the life of the
+// process, still holding a store lock and still writing rows.
+func TestBulkImportDrainsWorkersOnEarlyReturn(t *testing.T) {
+	// Deliberately not parallel: liveImportWorkers counts goroutines process-wide.
+	th := Setup(t).InitBasic(t)
+
+	liveImportWorkers := func() int {
+		buf := make([]byte, 1<<20)
+		n := runtime.Stack(buf, true)
+		return strings.Count(string(buf[:n]), "app.(*App).bulkImportWorker(")
+	}
+
+	versionLine := func(t *testing.T, enc *json.Encoder) {
+		t.Helper()
+		version := 1
+		require.NoError(t, enc.Encode(imports.LineImportData{
+			Type:    "version",
+			Version: &version,
+			Info: &imports.VersionInfoImportData{
+				Generator: "test",
+				Version:   "1.0",
+				Created:   "2024-01-01T00:00:00Z",
+			},
+		}))
+	}
+
+	teamLine := func(t *testing.T, enc *json.Encoder, name string) {
+		t.Helper()
+		require.NoError(t, enc.Encode(imports.LineImportData{
+			Type: "team",
+			Team: &imports.TeamImportData{
+				Name:        model.NewPointer(name),
+				DisplayName: model.NewPointer("Mig Test Team"),
+				Type:        model.NewPointer("O"),
+			},
+		}))
+	}
+
+	requireDrained := func(t *testing.T, jsonl string, opts model.BulkImportOpts) {
+		t.Helper()
+
+		before := liveImportWorkers()
+		_, appErr := th.App.BulkImportWithPathAndOpts(
+			th.Context, strings.NewReader(jsonl), nil, false, false, 4, "", opts,
+		)
+		require.NotNil(t, appErr, "this case is only meaningful if the import fails")
+
+		require.Eventually(t, func() bool {
+			return liveImportWorkers() <= before
+		}, 10*time.Second, 50*time.Millisecond, "bulkImport returned without draining its workers")
+	}
+
+	t.Run("corrupt line after workers started", func(t *testing.T) {
+		var sb strings.Builder
+		enc := json.NewEncoder(&sb)
+		versionLine(t, enc)
+		teamLine(t, enc, "mig-team-"+model.NewId())
+		sb.WriteString("{ this is not valid json\n")
+
+		requireDrained(t, sb.String(), model.BulkImportOpts{})
+	})
+
+	t.Run("multi-team export with a destination team remap", func(t *testing.T) {
+		var sb strings.Builder
+		enc := json.NewEncoder(&sb)
+		versionLine(t, enc)
+		teamLine(t, enc, "mig-team-a-"+model.NewId())
+		teamLine(t, enc, "mig-team-b-"+model.NewId())
+
+		requireDrained(t, sb.String(), model.BulkImportOpts{
+			DestinationTeamName: "mig-dest-" + model.NewId(),
+		})
+	})
+}
+
+// TestScopedExportOmitsCustomEmoji verifies that custom emoji — which are
+// instance-global rather than team-owned — stay out of a scoped export unless
+// explicitly requested, so migrating one team does not drag the source instance's
+// entire emoji library onto the destination.
+func TestScopedExportOmitsCustomEmoji(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.CreateEmoji(t)
+
+	// CreateArchive keeps exportCustomEmoji off the file-copying path, so the count
+	// doesn't depend on emoji images existing on disk for every emoji in the store.
+	countEmojiLines := func(t *testing.T, opts model.BulkExportOpts) int {
+		t.Helper()
+		opts.CreateArchive = true
+
+		var buf bytes.Buffer
+		appErr := th.App.BulkExport(th.Context, &buf, t.TempDir(), nil, opts)
+		require.Nil(t, appErr)
+
+		zipReader, err := zip.NewReader(bytes.NewReader(buf.Bytes()), int64(buf.Len()))
+		require.NoError(t, err)
+		jsonl, err := zipReader.Open("import.jsonl")
+		require.NoError(t, err)
+		defer jsonl.Close()
+
+		count := 0
+		scanner := bufio.NewScanner(jsonl)
+		for scanner.Scan() {
+			var line imports.LineImportData
+			require.NoError(t, json.Unmarshal(scanner.Bytes(), &line))
+			if line.Type == "emoji" {
+				count++
+			}
+		}
+		require.NoError(t, scanner.Err())
+
+		return count
+	}
+
+	t.Run("team-scoped export omits emoji", func(t *testing.T) {
+		require.Zero(t, countEmojiLines(t, model.BulkExportOpts{TeamName: th.BasicTeam.Name}))
+	})
+
+	t.Run("team-scoped export includes emoji when requested", func(t *testing.T) {
+		require.NotZero(t, countEmojiLines(t, model.BulkExportOpts{
+			TeamName:           th.BasicTeam.Name,
+			IncludeCustomEmoji: true,
+		}))
+	})
+
+	t.Run("full-instance export still includes emoji", func(t *testing.T) {
+		require.NotZero(t, countEmojiLines(t, model.BulkExportOpts{}))
+	})
 }
 
 // TestDestinationChannelNameRemapsChannel verifies the happy path: a channel-scoped

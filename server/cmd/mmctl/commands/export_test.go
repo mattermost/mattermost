@@ -38,6 +38,35 @@ func (s *MmctlUnitTestSuite) TestExportCreateCmdF() {
 		s.Equal(mockJob, printer.GetLines()[0].(*model.Job))
 	})
 
+	// The job-data key is a bare string shared with the export_process worker; a
+	// typo on either side would silently drop the flag, leaving no way to get
+	// custom emoji into a team- or channel-scoped export.
+	s.Run("create export including custom emoji", func() {
+		printer.Clean()
+		mockJob := &model.Job{
+			Type: model.JobTypeExportProcess,
+			Data: map[string]string{
+				"include_attachments":       "true",
+				"include_roles_and_schemes": "true",
+				"include_custom_emoji":      "true",
+			},
+		}
+
+		s.client.
+			EXPECT().
+			CreateJob(context.TODO(), mockJob).
+			Return(mockJob, &model.Response{}, nil).
+			Times(1)
+
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("include-custom-emoji", true, "")
+
+		err := exportCreateCmdF(s.client, cmd, nil)
+		s.Require().Nil(err)
+		s.Len(printer.GetLines(), 1)
+		s.Empty(printer.GetErrorLines())
+	})
+
 	s.Run("create export without attachments", func() {
 		printer.Clean()
 		mockJob := &model.Job{

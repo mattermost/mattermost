@@ -4809,6 +4809,103 @@ func testPostStoreGetParentsForExportAfter(t *testing.T, rctx request.CTX, ss st
 		assert.True(t, found, "post from target channel should be returned")
 		assert.False(t, foundOther, "post from other channel should be excluded by channel filter")
 	})
+
+	t.Run("with team name filter", func(t *testing.T) {
+		t2 := model.Team{}
+		t2.DisplayName = "Name"
+		t2.Name = NewTestID()
+		t2.Email = MakeEmail()
+		t2.Type = model.TeamOpen
+		_, err := ss.Team().Save(&t2)
+		require.NoError(t, err)
+
+		c3 := model.Channel{}
+		c3.TeamId = t2.Id
+		c3.DisplayName = "Channel3"
+		c3.Name = NewTestID()
+		c3.Type = model.ChannelTypeOpen
+		_, nErr := ss.Channel().Save(rctx, &c3, -1)
+		require.NoError(t, nErr)
+
+		p3 := &model.Post{}
+		p3.ChannelId = c3.Id
+		p3.UserId = u1.Id
+		p3.Message = NewTestID()
+		p3.CreateAt = 1000
+		p3, nErr = ss.Post().Save(rctx, p3)
+		require.NoError(t, nErr)
+
+		posts, err := ss.Post().GetParentsForExportAfter(10000, strings.Repeat("0", 26), true, t1.Name, "")
+		assert.NoError(t, err)
+
+		found := false
+		foundOtherTeam := false
+		for _, p := range posts {
+			if p.Id == p1.Id {
+				found = true
+				assert.Equal(t, t1.Name, p.TeamName)
+			}
+			if p.Id == p3.Id {
+				foundOtherTeam = true
+			}
+		}
+		assert.True(t, found, "post from target team should be returned")
+		assert.False(t, foundOtherTeam, "post from other team should be excluded by team filter")
+	})
+
+	t.Run("paginates past a page whose posts were all archived", func(t *testing.T) {
+		// An unscoped export selects post IDs without joining Channels/Teams, so a
+		// page can come back entirely archived and get dropped by the data query.
+		// The loop then has to advance afterId and fetch again; if it ever stops
+		// doing so, an export silently ends early at the first such page.
+		team := model.Team{}
+		team.DisplayName = "Name"
+		team.Name = NewTestID()
+		team.Email = MakeEmail()
+		team.Type = model.TeamOpen
+		_, err := ss.Team().Save(&team)
+		require.NoError(t, err)
+
+		channels := make([]*model.Channel, 2)
+		posts := make([]*model.Post, 2)
+		for i := range channels {
+			ch := model.Channel{}
+			ch.TeamId = team.Id
+			ch.DisplayName = "Channel"
+			ch.Name = NewTestID()
+			ch.Type = model.ChannelTypeOpen
+			saved, nErr := ss.Channel().Save(rctx, &ch, -1)
+			require.NoError(t, nErr)
+			channels[i] = saved
+
+			p := &model.Post{}
+			p.ChannelId = saved.Id
+			p.UserId = u1.Id
+			p.Message = NewTestID()
+			p.CreateAt = 1000
+			posts[i], nErr = ss.Post().Save(rctx, p)
+			require.NoError(t, nErr)
+		}
+
+		// Results are ordered by post Id, so archiving the channel of the lower-Id
+		// post guarantees the first page is the one that gets filtered out.
+		archivedIdx := 0
+		if posts[1].Id < posts[0].Id {
+			archivedIdx = 1
+		}
+		require.NoError(t, ss.Channel().Delete(channels[archivedIdx].Id, model.GetMillis()))
+
+		// Start immediately below the archived post: a 25-character prefix sorts
+		// before the full 26-character Id, so that post is the first page of one.
+		afterId := posts[archivedIdx].Id[:25]
+
+		exported, err := ss.Post().GetParentsForExportAfter(1, afterId, false, "", "")
+		require.NoError(t, err)
+		require.NotEmpty(t, exported, "a page holding only an archived post must advance rather than end the export")
+		for _, p := range exported {
+			assert.NotEqual(t, posts[archivedIdx].Id, p.Id, "archived post must not be exported")
+		}
+	})
 }
 
 func testPostStoreGetRepliesForExport(t *testing.T, rctx request.CTX, ss store.Store) {

@@ -15,6 +15,12 @@ type BulkExportOpts struct {
 	CreateArchive           bool
 	TeamName                string
 	ChannelName             string
+
+	// IncludeCustomEmoji forces the source instance's custom emoji into a scoped
+	// (team- or channel-filtered) export. Emoji are instance-global, so a scoped
+	// export omits them by default instead of carrying the whole emoji library.
+	// Ignored for full-instance exports, which always include custom emoji.
+	IncludeCustomEmoji bool
 }
 
 type BulkImportOpts struct {

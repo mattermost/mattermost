@@ -6969,6 +6969,10 @@
     "translation": "--destination-channel-name requires a single-channel export; this export contains multiple channels."
   },
   {
+    "id": "app.import.bulk_import.destination_channel_requires_single_team_scope.error",
+    "translation": "--destination-channel-name requires an export scoped to exactly one team, otherwise the channel name is ambiguous."
+  },
+  {
     "id": "app.import.bulk_import.destination_team_requires_single_team_scope.error",
     "translation": "--destination-team-name requires a single-team export; this export contains multiple teams."
   },

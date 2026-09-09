@@ -383,19 +383,35 @@ func importProcessCmdF(c client.Client, command *cobra.Command, args []string) e
 	// Check for a previous failed import of the same file with a checkpoint.
 	// If stdin is not a terminal (CI/pipes) skip the prompt entirely — auto-resuming
 	// on EOF would silently replay a partial import without the user's consent.
-	if checkpoint, checkpointFile, totalLines := findImportCheckpoint(c, importFile); checkpoint > 0 && checkpointFile == importFile && term.IsTerminal(int(os.Stdin.Fd())) {
+	if checkpoint, checkpointFile, totalLines, maybeRunning := findImportCheckpoint(c, importFile); checkpoint > 0 && checkpointFile == importFile && term.IsTerminal(int(os.Stdin.Fd())) {
+		progress := fmt.Sprintf("line %d", checkpoint)
 		if totalLines > 0 {
-			pct := float64(checkpoint) / float64(totalLines) * 100
-			printer.Print(fmt.Sprintf("\nA previous import of '%s' was interrupted at line %d of %d (%.0f%% complete).", importFile, checkpoint, totalLines, pct))
-		} else {
-			printer.Print(fmt.Sprintf("\nA previous import of '%s' was interrupted at line %d.", importFile, checkpoint))
+			progress = fmt.Sprintf("line %d of %d (%.0f%% complete)", checkpoint, totalLines, float64(checkpoint)/float64(totalLines)*100)
 		}
-		printer.Print("Resume from that point? Starting fresh will re-import everything from the beginning.")
-		fmt.Print("[Y/n]: ")
-		reader := bufio.NewReader(os.Stdin)
-		answer, _ := reader.ReadString('\n')
-		answer = strings.TrimSpace(strings.ToLower(answer))
-		if answer == "" || answer == "y" || answer == "yes" {
+
+		// Written straight to stderr, not through printer: printer buffers until the
+		// command returns, so a prompt sent through it would only appear after the
+		// operator had already answered.
+		//
+		// A job still marked in_progress may genuinely be running: checkpoints are
+		// only written at segment boundaries, so a large import can sit idle for
+		// longer than staleInProgressThreshold without being abandoned. Say so, and
+		// require an explicit yes rather than defaulting to resume.
+		resume := false
+		if maybeRunning {
+			fmt.Fprintf(os.Stderr, "\nAn import of '%s' is still marked in progress, with a checkpoint at %s.\n", importFile, progress)
+			fmt.Fprintln(os.Stderr, "It may still be running — checkpoints are only written between segments, so a large import can look idle for a long time. Check 'mmctl import job list' before continuing; resuming a live import duplicates its work.")
+			fmt.Fprintln(os.Stderr, "Resume from the checkpoint anyway? Answering no starts a fresh import from the beginning.")
+			fmt.Fprint(os.Stderr, "[y/N]: ")
+			resume = readYesNo(os.Stdin, false)
+		} else {
+			fmt.Fprintf(os.Stderr, "\nA previous import of '%s' failed at %s.\n", importFile, progress)
+			fmt.Fprintln(os.Stderr, "Resume from that point? Starting fresh will re-import everything from the beginning.")
+			fmt.Fprint(os.Stderr, "[Y/n]: ")
+			resume = readYesNo(os.Stdin, true)
+		}
+
+		if resume {
 			jobData["checkpoint"] = strconv.Itoa(checkpoint)
 			jobData["checkpoint_file"] = checkpointFile
 			printer.Print(fmt.Sprintf("Resuming from line %d.", checkpoint))
@@ -417,6 +433,22 @@ func importProcessCmdF(c client.Client, command *cobra.Command, args []string) e
 	return nil
 }
 
+// readYesNo reads a yes/no answer from in, falling back to def for anything that
+// isn't an explicit yes or no — a bare enter, or an EOF from closed stdin. Note
+// that def is returned for EOF too, so a caller whose risky answer is "yes" must
+// pass def=false to keep an answer the operator never gave from meaning consent.
+func readYesNo(in io.Reader, def bool) bool {
+	answer, _ := bufio.NewReader(in).ReadString('\n')
+	switch strings.TrimSpace(strings.ToLower(answer)) {
+	case "y", "yes":
+		return true
+	case "n", "no":
+		return false
+	default:
+		return def
+	}
+}
+
 // staleInProgressThreshold is how long an import_process job must have gone
 // without a checkpoint update before findImportCheckpoint treats a job still
 // marked "in_progress" as abandoned (e.g. the server process was killed) rather
@@ -431,8 +463,11 @@ const staleInProgressThreshold = 10 * time.Minute
 // old enough to indicate the process died rather than being genuinely still
 // running. Also checks for a prior successful run to derive the total line
 // count for percentage display.
-// Returns (checkpoint, checkpointFile, totalLines). totalLines is 0 if unknown.
-func findImportCheckpoint(c client.Client, importFile string) (int, string, int) {
+// Returns (checkpoint, checkpointFile, totalLines, maybeRunning). totalLines is 0
+// if unknown. maybeRunning is true when the checkpoint came from a job still
+// marked in_progress: staleInProgressThreshold can only guess that such a job was
+// abandoned, so resuming it may duplicate an import that is still running.
+func findImportCheckpoint(c client.Client, importFile string) (int, string, int, bool) {
 	extract := func(job *model.Job) (int, string, int, bool) {
 		if job.Data["import_file"] != importFile {
 			return 0, "", 0, false
@@ -459,7 +494,7 @@ func findImportCheckpoint(c client.Client, importFile string) (int, string, int)
 	if jobs, _, err := c.GetJobs(context.TODO(), model.JobTypeImportProcess, model.JobStatusError, 0, 10); err == nil {
 		for _, job := range jobs {
 			if n, file, total, ok := extract(job); ok {
-				return n, file, total
+				return n, file, total, false
 			}
 		}
 	}
@@ -473,12 +508,12 @@ func findImportCheckpoint(c client.Client, importFile string) (int, string, int)
 				continue
 			}
 			if n, file, total, ok := extract(job); ok {
-				return n, file, total
+				return n, file, total, true
 			}
 		}
 	}
 
-	return 0, "", 0
+	return 0, "", 0, false
 }
 
 func importJobShowCmdF(c client.Client, command *cobra.Command, args []string) error {

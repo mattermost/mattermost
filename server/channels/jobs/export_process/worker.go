@@ -53,6 +53,11 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface) *jobs.SimpleWorker {
 			opts.IncludeRolesAndSchemes = true
 		}
 
+		includeCustomEmoji, ok := job.Data["include_custom_emoji"]
+		if ok && includeCustomEmoji == "true" {
+			opts.IncludeCustomEmoji = true
+		}
+
 		teamName, ok := job.Data["team_name"]
 		if ok && teamName != "" {
 			opts.TeamName = teamName

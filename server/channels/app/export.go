@@ -199,10 +199,20 @@ func (a *App) BulkExport(rctx request.CTX, writer io.Writer, outPath string, job
 		return appErr
 	}
 
-	rctx.Logger().Info("Bulk export: exporting emoji")
-	emojiPaths, appErr := a.exportCustomEmoji(rctx, job, writer, outPath, "exported_emoji", !opts.CreateArchive)
-	if appErr != nil {
-		return appErr
+	// Custom emoji are instance-global, so exporting them all would drag the source
+	// instance's entire emoji library into a single-team or single-channel export.
+	var emojiPaths []string
+	if opts.IncludeCustomEmoji || (len(teamNames) == 0 && len(channelNames) == 0) {
+		rctx.Logger().Info("Bulk export: exporting emoji")
+		emojiPaths, appErr = a.exportCustomEmoji(rctx, job, writer, outPath, "exported_emoji", !opts.CreateArchive)
+		if appErr != nil {
+			return appErr
+		}
+	} else {
+		// Reactions and posts reference custom emoji by name only, so anything the
+		// exported content uses will render as literal :name: on a destination that
+		// doesn't already have it.
+		rctx.Logger().Warn("Bulk export: skipping instance-wide custom emoji for scoped export; re-run with --include-custom-emoji if the exported content references custom emoji")
 	}
 
 	// Direct channels and posts have no team affiliation; skip when exporting a team subset.

@@ -2797,7 +2797,11 @@ func (s *SqlPostStore) GetPostAuthorIDsForChannel(teamName string, channelName s
 }
 
 func (s *SqlPostStore) GetParentsForExportAfter(limit int, afterId string, includeArchivedChannel bool, teamNameFilter string, channelNameFilter string) ([]*model.PostForExport, error) {
-	needsScopeJoin := teamNameFilter != "" || channelNameFilter != "" || !includeArchivedChannel
+	// Only scoped exports need the Channels/Teams join in the ID-selection query.
+	// Archived-channel filtering is deliberately left to the data query below (and
+	// its retry loop) so that an unscoped full export keeps the cheap Posts-only
+	// index scan it has always used.
+	needsScopeJoin := teamNameFilter != "" || channelNameFilter != ""
 
 	excludeDeletedCond := sq.And{sq.Eq{"Teams.DeleteAt": 0}}
 	if !includeArchivedChannel {

@@ -115,6 +115,7 @@ func init() {
 	ExportCreateCmd.Flags().Bool("include-archived-channels", false, "Include archived channels in the export file.")
 	ExportCreateCmd.Flags().Bool("include-profile-pictures", false, "Include profile pictures in the export file.")
 	ExportCreateCmd.Flags().Bool("no-roles-and-schemes", false, "Exclude roles and custom permission schemes from the export file.")
+	ExportCreateCmd.Flags().Bool("include-custom-emoji", false, "Include the instance's custom emoji in a team- or channel-scoped export. Custom emoji are instance-wide, so scoped exports omit them by default. Full-instance exports always include them.")
 	ExportCreateCmd.Flags().String("team-name", "", "Export only the specified team(s) by name/slug. Accepts a comma-separated list. Mutually exclusive with --team-id.")
 	ExportCreateCmd.Flags().String("team-id", "", "Export only the specified team(s) by ID. Accepts a comma-separated list. Mutually exclusive with --team-name.")
 	ExportCreateCmd.Flags().String("channel-name", "", "Export only the specified channel(s) by name. Accepts a comma-separated list. Requires --team-name or --team-id. Mutually exclusive with --channel-id.")
@@ -158,6 +159,11 @@ func exportCreateCmdF(c client.Client, command *cobra.Command, args []string) er
 	includeArchivedChannels, _ := command.Flags().GetBool("include-archived-channels")
 	if includeArchivedChannels {
 		data["include_archived_channels"] = "true"
+	}
+
+	includeCustomEmoji, _ := command.Flags().GetBool("include-custom-emoji")
+	if includeCustomEmoji {
+		data["include_custom_emoji"] = "true"
 	}
 
 	includeProfilePictures, _ := command.Flags().GetBool("include-profile-pictures")

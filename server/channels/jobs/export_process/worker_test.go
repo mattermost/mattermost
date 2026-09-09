@@ -108,6 +108,48 @@ func TestMakeWorkerTeamAndChannelNameMapping(t *testing.T) {
 		require.True(t, app.receivedOpts.CreateArchive)
 	})
 
+	// The job-data key is a bare string shared with mmctl (see the --include-custom-emoji
+	// flag in cmd/mmctl/commands/export.go); a typo on either side would silently
+	// disable the only way to get emoji into a scoped export.
+	t.Run("include_custom_emoji is mapped into opts", func(t *testing.T) {
+		jobServer, mockStore := makeTestJobServer(t)
+		expectJobDataUpdate(mockStore)
+
+		app := newFakeExportApp(t)
+		worker := MakeWorker(jobServer, app)
+
+		job := &model.Job{
+			Id: model.NewId(),
+			Data: map[string]string{
+				"team_name":            "engineering",
+				"include_custom_emoji": "true",
+			},
+		}
+		expectWorkerJobCompletion(mockStore, job)
+
+		worker.DoJob(job)
+
+		require.True(t, app.receivedOpts.IncludeCustomEmoji)
+	})
+
+	t.Run("absent include_custom_emoji leaves emoji excluded", func(t *testing.T) {
+		jobServer, mockStore := makeTestJobServer(t)
+		expectJobDataUpdate(mockStore)
+
+		app := newFakeExportApp(t)
+		worker := MakeWorker(jobServer, app)
+
+		job := &model.Job{
+			Id:   model.NewId(),
+			Data: map[string]string{"team_name": "engineering"},
+		}
+		expectWorkerJobCompletion(mockStore, job)
+
+		worker.DoJob(job)
+
+		require.False(t, app.receivedOpts.IncludeCustomEmoji)
+	})
+
 	t.Run("missing team_name and channel_name leave opts empty", func(t *testing.T) {
 		jobServer, mockStore := makeTestJobServer(t)
 		expectJobDataUpdate(mockStore)

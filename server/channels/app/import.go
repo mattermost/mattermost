@@ -276,6 +276,19 @@ func (a *App) bulkImport(rctx request.CTX, jsonlReader io.Reader, attachmentsRea
 	var linesChan chan imports.LineImportWorkerData
 	lastLineType := ""
 
+	// drainWorkers closes the current segment's line channel and waits for its
+	// workers to exit. Every return path taken after workers have started must call
+	// it, or they stay blocked on the channel for the life of the process. Clearing
+	// linesChan keeps it non-nil only while workers are live, which makes this
+	// idempotent and any double close impossible.
+	drainWorkers := func() {
+		if linesChan != nil {
+			close(linesChan)
+			wg.Wait()
+			linesChan = nil
+		}
+	}
+
 	var attachedFiles map[string]*zip.File
 	if attachmentsReader != nil {
 		attachedFiles = make(map[string]*zip.File, len(attachmentsReader.File))
@@ -292,6 +305,7 @@ func (a *App) bulkImport(rctx request.CTX, jsonlReader io.Reader, attachmentsRea
 
 		var line imports.LineImportData
 		if err := json.Unmarshal(scanner.Bytes(), &line); err != nil {
+			drainWorkers()
 			return lineNumber, model.NewAppError("BulkImport", "app.import.bulk_import.json_decode.error", nil, "", http.StatusBadRequest).Wrap(err)
 		}
 
@@ -316,10 +330,10 @@ func (a *App) bulkImport(rctx request.CTX, jsonlReader io.Reader, attachmentsRea
 				} else {
 					sourceTeamName = scope.TeamName
 					sourceChannelName = scope.ChannelName
-					if destinationTeam != "" && strings.Contains(sourceTeamName, ",") {
+					if destinationTeam != "" && len(splitTrimNames(sourceTeamName)) > 1 {
 						return lineNumber, model.NewAppError("BulkImport", "app.import.bulk_import.destination_team_requires_single_team_scope.error", nil, "--destination-team-name requires a single-team export; this export contains multiple teams", http.StatusBadRequest)
 					}
-					if destinationChannel != "" && strings.Contains(sourceChannelName, ",") {
+					if destinationChannel != "" && len(splitTrimNames(sourceChannelName)) > 1 {
 						return lineNumber, model.NewAppError("BulkImport", "app.import.bulk_import.destination_channel_requires_single_channel_scope.error", nil, "--destination-channel-name requires a single-channel export; this export contains multiple channels", http.StatusBadRequest)
 					}
 					if scope.ChannelName != "" || scope.TeamName != "" {
@@ -346,6 +360,15 @@ func (a *App) bulkImport(rctx request.CTX, jsonlReader io.Reader, attachmentsRea
 				return lineNumber, model.NewAppError("BulkImport", "app.import.bulk_import.destination_channel_requires_channel_scope.error", nil, "--destination-channel-name requires a channel-scoped export", http.StatusBadRequest)
 			}
 
+			// A channel rename is only unambiguous within a single team. The export's
+			// channel filter is a flat name set rather than (team, channel) pairs, so
+			// the same channel name can be exported from several teams — and
+			// rewriteChannelName matches on channel name alone, which would rename it
+			// in every one of them.
+			if destinationChannel != "" && len(splitTrimNames(sourceTeamName)) != 1 {
+				return lineNumber, model.NewAppError("BulkImport", "app.import.bulk_import.destination_channel_requires_single_team_scope.error", nil, "--destination-channel-name requires an export scoped to exactly one team, otherwise the channel name is ambiguous", http.StatusBadRequest)
+			}
+
 			lastLineType = line.Type
 			continue
 		}
@@ -360,8 +383,12 @@ func (a *App) bulkImport(rctx request.CTX, jsonlReader io.Reader, attachmentsRea
 		}
 
 		if line.Type != lastLineType {
-			// Only clear the worker queue if is not the first data entry
-			if lineNumber != 2 {
+			// Only clear the worker queue if workers were already started for an
+			// earlier segment. Keying off linesChan rather than the line number is
+			// resume-safe: a resumed import skips post lines, so the first line that
+			// reaches here can be past line 2, which would leave linesChan nil and
+			// panic on close.
+			if linesChan != nil {
 				rctx.Logger().Info(
 					"Finished parsing segment, waiting for workers to finish",
 					mlog.String("old_segment", lastLineType),
@@ -369,8 +396,7 @@ func (a *App) bulkImport(rctx request.CTX, jsonlReader io.Reader, attachmentsRea
 				)
 
 				// Changing type. Clear out the worker queue before continuing.
-				close(linesChan)
-				wg.Wait()
+				drainWorkers()
 
 				// Check no errors occurred while waiting for the queue to empty.
 				for len(errorsChan) != 0 {
@@ -417,6 +443,10 @@ func (a *App) bulkImport(rctx request.CTX, jsonlReader io.Reader, attachmentsRea
 				// an older-binary full export), so the only way to catch this is
 				// noticing it here — same reasoning as the scoped multi-team guard
 				// above, just discovered one line later instead of at line 1.
+				//
+				// Workers for the "team" segment are already running at this point,
+				// so drain them before returning or they block on linesChan forever.
+				drainWorkers()
 				return lineNumber, model.NewAppError("BulkImport", "app.import.bulk_import.destination_team_requires_single_team_scope.error", nil, "--destination-team-name requires a single-team export; this export contains multiple teams", http.StatusBadRequest)
 			}
 		}
@@ -428,22 +458,25 @@ func (a *App) bulkImport(rctx request.CTX, jsonlReader io.Reader, attachmentsRea
 			rewriteChannelName(&line, sourceChannelName, destinationChannel)
 		}
 
-		select {
-		case linesChan <- imports.LineImportWorkerData{LineImportData: line, LineNumber: lineNumber}:
-		case err := <-errorsChan:
-			if stopOnError(rctx, err, deactivateMissingUsers) {
-				close(linesChan)
-				wg.Wait()
-				return err.LineNumber, err.Error
+		// Hand the line off, staying ready to receive worker errors so a full
+		// errorsChan can never deadlock the send. Keep retrying until the line is
+		// actually queued: a non-fatal error must not consume this iteration, or the
+		// line held here would be silently dropped and never imported.
+		for sent := false; !sent; {
+			select {
+			case linesChan <- imports.LineImportWorkerData{LineImportData: line, LineNumber: lineNumber}:
+				sent = true
+			case err := <-errorsChan:
+				if stopOnError(rctx, err, deactivateMissingUsers) {
+					drainWorkers()
+					return err.LineNumber, err.Error
+				}
 			}
 		}
 	}
 
 	// No more lines. Clear out the worker queue before continuing.
-	if linesChan != nil {
-		close(linesChan)
-	}
-	wg.Wait()
+	drainWorkers()
 
 	// Check no errors occurred while waiting for the queue to empty.
 	for len(errorsChan) != 0 {

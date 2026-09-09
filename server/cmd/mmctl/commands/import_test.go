@@ -504,6 +504,34 @@ func (s *MmctlUnitTestSuite) TestImportProcessCmdF() {
 	})
 }
 
+func (s *MmctlUnitTestSuite) TestReadYesNo() {
+	// EOF is spelled as an empty reader: ReadString returns "" with io.EOF, which
+	// must fall back to the default rather than counting as an answer.
+	testCases := []struct {
+		name     string
+		input    string
+		def      bool
+		expected bool
+	}{
+		{"explicit y", "y\n", false, true},
+		{"explicit yes", "YES\n", false, true},
+		{"explicit n", "n\n", true, false},
+		{"explicit no", "No\n", true, false},
+		{"surrounding whitespace is trimmed", "  y  \n", false, true},
+		{"bare enter takes the default", "\n", true, true},
+		{"bare enter takes a negative default", "\n", false, false},
+		{"unrecognised answer takes the default", "maybe\n", false, false},
+		{"eof takes the default", "", false, false},
+		{"eof cannot manufacture consent on a negative default", "", false, false},
+	}
+
+	for _, tc := range testCases {
+		s.Run(tc.name, func() {
+			s.Equal(tc.expected, readYesNo(strings.NewReader(tc.input), tc.def))
+		})
+	}
+}
+
 // TestFindImportCheckpoint covers the fix for a hard-killed import_process job
 // (OOM, container restart) never transitioning to JobStatusError — only a
 // recovered Go panic does that. Without also checking JobStatusInProgress
@@ -524,9 +552,10 @@ func (s *MmctlUnitTestSuite) TestFindImportCheckpoint() {
 			Return([]*model.Job{mockJob}, &model.Response{}, nil).
 			Times(1)
 
-		checkpoint, checkpointFile, _ := findImportCheckpoint(s.client, importFile)
+		checkpoint, checkpointFile, _, maybeRunning := findImportCheckpoint(s.client, importFile)
 		s.Equal(42, checkpoint)
 		s.Equal(importFile, checkpointFile)
+		s.False(maybeRunning, "a job in the error state has definitively stopped")
 	})
 
 	s.Run("finds checkpoint on a stale in_progress job (process was killed)", func() {
@@ -548,9 +577,10 @@ func (s *MmctlUnitTestSuite) TestFindImportCheckpoint() {
 			Return([]*model.Job{staleJob}, &model.Response{}, nil).
 			Times(1)
 
-		checkpoint, checkpointFile, _ := findImportCheckpoint(s.client, importFile)
+		checkpoint, checkpointFile, _, maybeRunning := findImportCheckpoint(s.client, importFile)
 		s.Equal(17, checkpoint)
 		s.Equal(importFile, checkpointFile)
+		s.True(maybeRunning, "an in_progress job is only guessed to be abandoned, so the caller must be warned it may still be running")
 	})
 
 	s.Run("ignores a recently-active in_progress job — likely still genuinely running", func() {
@@ -572,7 +602,7 @@ func (s *MmctlUnitTestSuite) TestFindImportCheckpoint() {
 			Return([]*model.Job{freshJob}, &model.Response{}, nil).
 			Times(1)
 
-		checkpoint, _, _ := findImportCheckpoint(s.client, importFile)
+		checkpoint, _, _, _ := findImportCheckpoint(s.client, importFile)
 		s.Equal(0, checkpoint, "a job that's still actively checkpointing must not be offered for resume")
 	})
 }
