@@ -25,6 +25,8 @@ import {filterAndSortTeamsByDisplayName} from 'utils/team_utils';
 
 import type {GlobalState} from 'types/store';
 
+import './admin_navbar_dropdown.scss';
+
 const AdminNavbarDropdown = () => {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
@@ -111,7 +113,7 @@ const AdminNavbarDropdown = () => {
                         key={'team_' + team.name}
                         id={'switchTo_' + team.name}
                         to={'/' + team.name}
-                        labels={<span>{team.display_name}</span>}
+                        labels={<span className='overflow--ellipsis whitespace--nowrap'>{team.display_name}</span>}
                     />
                 ))}
             </Menu.SubMenu>
