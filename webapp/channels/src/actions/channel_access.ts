@@ -22,8 +22,6 @@ import {ModalIdentifiers} from 'utils/constants';
 
 import type {ThunkActionFunc} from 'types/store';
 
-// DMs and GMs are exempt from access_channel on the server, so their absence from
-// a response never means "denied" and must not drop local data.
 function isGoverned(channel: Channel): boolean {
     return channel.type !== General.DM_CHANNEL && channel.type !== General.GM_CHANNEL;
 }
