@@ -1844,6 +1844,39 @@ func TestGetPostActionClient(t *testing.T) {
 			}
 		})
 	}
+
+	// DoActionRequest's callers put OutgoingIntegrationRequestsTimeout on the request context, so
+	// when a deadline is present the client must not add a timeout of its own that would cap a
+	// value configured above httpservice.RequestTimeout. A request without a deadline instead
+	// falls back to the configured timeout so it never runs unbounded.
+	t.Run("client timeout", func(t *testing.T) {
+		const configuredTimeout = 60 * time.Second
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.SiteURL = "http://localhost:8065"
+			cfg.ServiceSettings.OutgoingIntegrationRequestsTimeout = new(int64(configuredTimeout / time.Second))
+		})
+
+		deadlineCtx, cancel := context.WithTimeout(context.Background(), configuredTimeout)
+		defer cancel()
+
+		for _, rawURL := range []string{
+			"http://localhost:8065/plugins/myplugin/action", // trusted plugin route
+			"http://example.com/action",                     // untrusted external URL
+		} {
+			inURL, err := url.Parse(rawURL)
+			require.NoError(t, err)
+
+			req, err := http.NewRequest("POST", rawURL, nil)
+			require.NoError(t, err)
+
+			client := th.App.getPostActionClient(th.Context.WithContext(deadlineCtx), inURL, req)
+			assert.Zero(t, client.Timeout, "url: %s", rawURL)
+
+			client = th.App.getPostActionClient(th.Context, inURL, req)
+			assert.Equal(t, configuredTimeout, client.Timeout, "url: %s", rawURL)
+		}
+	})
 }
 
 func TestDoLocalRequest(t *testing.T) {
@@ -2531,7 +2564,7 @@ func buildMmBlocksActionsProp(id, url string, context map[string]any) map[string
 func setupBotInChannel(t *testing.T, th *TestHelper) *model.User {
 	t.Helper()
 	bot := th.CreateBot(t)
-	botUser, appErr := th.App.GetUser(bot.UserId)
+	botUser, appErr := th.App.GetUser(th.Context, bot.UserId)
 	require.Nil(t, appErr)
 	_, _, appErr = th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, botUser.Id, "")
 	require.Nil(t, appErr)

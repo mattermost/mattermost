@@ -89,7 +89,7 @@ func (api *PluginAPI) UnregisterCommand(teamID, trigger string) error {
 }
 
 func (api *PluginAPI) ExecuteSlashCommand(commandArgs *model.CommandArgs) (*model.CommandResponse, error) {
-	user, appErr := api.app.GetUser(commandArgs.UserId)
+	user, appErr := api.app.GetUser(api.ctx, commandArgs.UserId)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -266,7 +266,7 @@ func (api *PluginAPI) CreateUser(user *model.User) (*model.User, *model.AppError
 }
 
 func (api *PluginAPI) DeleteUser(userID string) *model.AppError {
-	user, err := api.app.GetUser(userID)
+	user, err := api.app.GetUser(api.ctx, userID)
 	if err != nil {
 		return err
 	}
@@ -283,7 +283,7 @@ func (api *PluginAPI) GetUsersByIds(usersID []string) ([]*model.User, *model.App
 }
 
 func (api *PluginAPI) GetUser(userID string) (*model.User, *model.AppError) {
-	return api.app.GetUser(userID)
+	return api.app.GetUser(api.ctx, userID)
 }
 
 func (api *PluginAPI) GetUserByEmail(email string) (*model.User, *model.AppError) {
@@ -420,7 +420,7 @@ func (api *PluginAPI) RemoveUserCustomStatus(userID string) *model.AppError {
 }
 
 func (api *PluginAPI) GetUserCustomStatus(userID string) (*model.CustomStatus, *model.AppError) {
-	return api.app.GetCustomStatus(userID)
+	return api.app.GetCustomStatus(api.ctx, userID)
 }
 
 func (api *PluginAPI) GetUsersInChannel(channelID, sortBy string, page, perPage int) ([]*model.User, *model.AppError) {
@@ -447,7 +447,7 @@ func (api *PluginAPI) GetLDAPUserAttributes(userID string, attributes []string) 
 		return nil, model.NewAppError("GetLdapUserAttributes", "ent.ldap.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	user, err := api.app.GetUser(userID)
+	user, err := api.app.GetUser(api.ctx, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -641,7 +641,9 @@ func (api *PluginAPI) SearchPostsInTeam(teamID string, paramsList []*model.Searc
 	if err != nil {
 		return nil, err
 	}
-	return postList.ForPlugin().ToSlice(), nil
+	pluginList := postList.ForPlugin()
+	api.app.RecordPostListDeliveryToPlugin(api.ctx, api.id, pluginList)
+	return pluginList.ToSlice(), nil
 }
 
 func (api *PluginAPI) SearchPostsInTeamForUser(teamID string, userID string, searchParams model.SearchParameter) (*model.PostSearchResults, *model.AppError) {
@@ -678,6 +680,7 @@ func (api *PluginAPI) SearchPostsInTeamForUser(teamID string, userID string, sea
 	results, _, appErr := api.app.SearchPostsForUser(api.ctx, terms, userID, teamID, isOrSearch, includeDeletedChannels, timeZoneOffset, page, perPage)
 	if results != nil {
 		results = results.ForPlugin()
+		api.app.RecordPostListDeliveryToPlugin(api.ctx, api.id, results.PostList)
 	}
 	return results, appErr
 }
@@ -949,6 +952,7 @@ func (api *PluginAPI) GetPostThread(postID string) (*model.PostList, *model.AppE
 	list, appErr := api.app.GetPostThread(api.ctx, postID, model.GetPostsOptions{}, "")
 	if list != nil {
 		list = list.ForPlugin()
+		api.app.RecordPostListDeliveryToPlugin(api.ctx, api.id, list)
 	}
 	return list, appErr
 }
@@ -957,6 +961,7 @@ func (api *PluginAPI) GetPost(postID string) (*model.Post, *model.AppError) {
 	post, appErr := api.app.GetSinglePost(api.ctx, postID, false)
 	if post != nil {
 		post = post.ForPlugin()
+		api.app.RecordPostDeliveryToPlugin(api.ctx, api.id, post)
 	}
 	return post, appErr
 }
@@ -965,6 +970,7 @@ func (api *PluginAPI) GetPostsSince(channelID string, time int64) (*model.PostLi
 	list, appErr := api.app.GetPostsSince(api.ctx, model.GetPostsSinceOptions{ChannelId: channelID, Time: time})
 	if list != nil {
 		list = list.ForPlugin()
+		api.app.RecordPostListDeliveryToPlugin(api.ctx, api.id, list)
 	}
 	return list, appErr
 }
@@ -973,6 +979,7 @@ func (api *PluginAPI) GetPostsAfter(channelID, postID string, page, perPage int)
 	list, appErr := api.app.GetPostsAfterPost(api.ctx, model.GetPostsOptions{ChannelId: channelID, PostId: postID, Page: page, PerPage: perPage})
 	if list != nil {
 		list = list.ForPlugin()
+		api.app.RecordPostListDeliveryToPlugin(api.ctx, api.id, list)
 	}
 	return list, appErr
 }
@@ -981,6 +988,7 @@ func (api *PluginAPI) GetPostsBefore(channelID, postID string, page, perPage int
 	list, appErr := api.app.GetPostsBeforePost(api.ctx, model.GetPostsOptions{ChannelId: channelID, PostId: postID, Page: page, PerPage: perPage})
 	if list != nil {
 		list = list.ForPlugin()
+		api.app.RecordPostListDeliveryToPlugin(api.ctx, api.id, list)
 	}
 	return list, appErr
 }
@@ -989,6 +997,7 @@ func (api *PluginAPI) GetPostsForChannel(channelID string, page, perPage int) (*
 	list, appErr := api.app.GetPostsPage(api.ctx, model.GetPostsOptions{ChannelId: channelID, Page: page, PerPage: perPage})
 	if list != nil {
 		list = list.ForPlugin()
+		api.app.RecordPostListDeliveryToPlugin(api.ctx, api.id, list)
 	}
 	return list, appErr
 }
@@ -1014,7 +1023,7 @@ func (api *PluginAPI) UpdatePost(post *model.Post) (*model.Post, *model.AppError
 }
 
 func (api *PluginAPI) GetProfileImage(userID string) ([]byte, *model.AppError) {
-	user, err := api.app.GetUser(userID)
+	user, err := api.app.GetUser(api.ctx, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -1024,7 +1033,7 @@ func (api *PluginAPI) GetProfileImage(userID string) ([]byte, *model.AppError) {
 }
 
 func (api *PluginAPI) SetProfileImage(userID string, data []byte) *model.AppError {
-	if _, err := api.app.GetUser(userID); err != nil {
+	if _, err := api.app.GetUser(api.ctx, userID); err != nil {
 		return err
 	}
 
@@ -1248,7 +1257,7 @@ func (api *PluginAPI) SendToastMessage(userID, connectionID, message string, opt
 }
 
 func (api *PluginAPI) HasPermissionTo(userID string, permission *model.Permission) bool {
-	return api.app.HasPermissionTo(userID, permission)
+	return api.app.HasPermissionTo(api.ctx, userID, permission)
 }
 
 func (api *PluginAPI) HasPermissionToTeam(userID, teamID string, permission *model.Permission) bool {
@@ -1291,7 +1300,7 @@ func (api *PluginAPI) CreateBot(bot *model.Bot) (*model.Bot, *model.AppError) {
 		bot.OwnerId = api.id
 	}
 	// Bots cannot be owners of other bots
-	if user, err := api.app.GetUser(bot.OwnerId); err == nil {
+	if user, err := api.app.GetUser(api.ctx, bot.OwnerId); err == nil {
 		if user.IsBot {
 			return nil, model.NewAppError("CreateBot", "plugin_api.bot_cant_create_bot", nil, "", http.StatusBadRequest)
 		}
@@ -1557,7 +1566,7 @@ func (api *PluginAPI) RequestTrialLicense(requesterID string, users int, termsAc
 		return model.NewAppError("RequestTrialLicense", "api.restricted_system_admin", nil, "", http.StatusForbidden)
 	}
 
-	return api.app.Channels().RequestTrialLicense(requesterID, users, termsAccepted, receiveEmailsAccepted)
+	return api.app.Channels().RequestTrialLicense(api.ctx, requesterID, users, termsAccepted, receiveEmailsAccepted)
 }
 
 // GetCloudLimits returns any limits associated with the cloud instance

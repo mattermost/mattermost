@@ -13,6 +13,8 @@ import (
 	elastic "github.com/elastic/go-elasticsearch/v8"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
 func newTestClient(t *testing.T, handler http.Handler) *elastic.TypedClient {
@@ -37,11 +39,12 @@ func infoHandler(version string) http.HandlerFunc {
 
 func TestCheckVersion(t *testing.T) {
 	tests := []struct {
-		name        string
-		version     string
-		wantVersion string
-		wantMajor   int
-		wantErrID   string
+		name            string
+		version         string
+		wantVersion     string
+		wantMajor       int
+		wantErrID       string
+		wantUnsupported bool
 	}{
 		{
 			name:        "ES 8 is supported",
@@ -56,14 +59,18 @@ func TestCheckVersion(t *testing.T) {
 			wantMajor:   9,
 		},
 		{
-			name:      "ES 7 is too old",
-			version:   "7.17.0",
-			wantErrID: "ent.elasticsearch.min_version.app_error",
+			name:            "ES 7 is too old, but allowed",
+			version:         "7.17.0",
+			wantVersion:     "7.17.0",
+			wantMajor:       7,
+			wantUnsupported: true,
 		},
 		{
-			name:      "ES 10 is too new",
-			version:   "10.0.0",
-			wantErrID: "ent.elasticsearch.max_version.app_error",
+			name:            "ES 10 is too new, but allowed",
+			version:         "10.0.0",
+			wantVersion:     "10.0.0",
+			wantMajor:       10,
+			wantUnsupported: true,
 		},
 		{
 			name:      "invalid version string",
@@ -74,15 +81,30 @@ func TestCheckVersion(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
+			logger := mlog.CreateConsoleTestLogger(t)
+			var buf mlog.Buffer
+			require.NoError(t, mlog.AddWriterTarget(logger, &buf, true, mlog.LvlError))
+
 			client := newTestClient(t, infoHandler(tc.version))
-			version, major, appErr := checkVersion(context.Background(), client)
+			version, major, appErr := checkVersion(context.Background(), client, logger)
+			require.NoError(t, logger.Flush())
+
 			if tc.wantErrID != "" {
 				require.NotNil(t, appErr)
 				assert.Equal(t, tc.wantErrID, appErr.Id)
+				return
+			}
+
+			require.Nil(t, appErr)
+			assert.Equal(t, tc.wantVersion, version)
+			assert.Equal(t, tc.wantMajor, major)
+			if tc.wantUnsupported {
+				assert.Contains(t, buf.String(), "Unsupported Elasticsearch version")
+				assert.Contains(t, buf.String(), fmt.Sprintf(`"version":%q`, tc.wantVersion))
+				assert.Contains(t, buf.String(), `"min_version":8`)
+				assert.Contains(t, buf.String(), `"max_version":9`)
 			} else {
-				require.Nil(t, appErr)
-				assert.Equal(t, tc.wantVersion, version)
-				assert.Equal(t, tc.wantMajor, major)
+				assert.Empty(t, buf.String())
 			}
 		})
 	}
@@ -98,7 +120,7 @@ func TestCheckVersionConnectionError(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	_, _, appErr := checkVersion(context.Background(), client)
+	_, _, appErr := checkVersion(context.Background(), client, mlog.CreateConsoleTestLogger(t))
 	require.NotNil(t, appErr)
 	assert.Equal(t, "ent.elasticsearch.start.get_server_version.app_error", appErr.Id)
 }

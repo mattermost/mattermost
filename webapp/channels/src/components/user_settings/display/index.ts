@@ -11,6 +11,7 @@ import {CollapsedThreads} from '@mattermost/types/config';
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {autoUpdateTimezone} from 'mattermost-redux/actions/timezone';
 import {patchUser, updateMe} from 'mattermost-redux/actions/users';
+import {General} from 'mattermost-redux/constants';
 import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
 import {
     get,
@@ -57,9 +58,16 @@ export function makeMapStateToProps() {
             lastActiveDisplay = false;
         }
 
+        // DefaultClientLocale is normalized to a supported locale server side by
+        // fixInvalidLocales, but user_settings_display reads the name off this
+        // value without a guard, so don't rely on an invariant three layers away
+        // to keep the settings modal from throwing.
         let userLocale = props.user.locale;
         if (!isLanguageAvailable(state, userLocale)) {
             userLocale = config.DefaultClientLocale as string;
+        }
+        if (!isLanguageAvailable(state, userLocale)) {
+            userLocale = General.DEFAULT_LOCALE;
         }
 
         return {

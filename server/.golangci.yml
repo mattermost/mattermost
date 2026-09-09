@@ -215,7 +215,6 @@ linters:
           platform/services/cache/lru_test.go|\
           platform/services/docextractor/combine.go|\
           platform/services/docextractor/pdf.go|\
-          platform/services/imageproxy/atmos_camo_test.go|\
           platform/services/imageproxy/local.go|\
           platform/services/imageproxy/local_test.go|\
           platform/services/remotecluster/invitation.go|\
@@ -228,7 +227,6 @@ linters:
           platform/services/sharedchannel/permalink_test.go|\
           platform/services/sharedchannel/sync_recv.go|\
           platform/services/sharedchannel/sync_send.go|\
-          platform/services/slackimport/slackimport.go|\
           platform/services/telemetry/telemetry.go|\
           platform/services/telemetry/telemetry_test.go|\
           platform/services/upgrader/upgrader_linux.go|\

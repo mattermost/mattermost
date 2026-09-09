@@ -56,7 +56,9 @@ Access the following configuration settings in the System Console by going to **
 
 <Note>
 
-\- LDAP and SAML users can always create a Mattermost account by logging in using LDAP or SAML user credentials, regardless of whether this configuration setting is enabled. - From Mattermost v10.9, email addresses enclosed in angle brackets (e.g., `[billy@example.com](mailto:billy@example.com)`) will be rejected. To avoid issues, ensure all user emails comply with the plain address format (e.g., `billy@example.com`). In addition, we strongly recommend taking proactive steps to audit and update Mattermost user data to align with this product change, as impacted users may face issues accessing Mattermost or managing their user profile. You can update these user emails manually using [mmctl user email](/administration-guide/manage/mmctl-command-line-tool#mmctl-user-email). - See the encryption options documentation for details on what [encryption methods](/deployment-guide/encryption-options#saml-encryption-support) Mattermost supports for SAML.
+- LDAP and SAML users can always create a Mattermost account by logging in using LDAP or SAML user credentials, regardless of whether this configuration setting is enabled.
+- From Mattermost v10.9, email addresses enclosed in angle brackets (e.g., `[billy@example.com](mailto:billy@example.com)`) will be rejected. To avoid issues, ensure all user emails comply with the plain address format (e.g., `billy@example.com`). In addition, we strongly recommend taking proactive steps to audit and update Mattermost user data to align with this product change, as impacted users may face issues accessing Mattermost or managing their user profile. You can update these user emails manually using [mmctl user email](/administration-guide/manage/mmctl-command-line-tool#mmctl-user-email).
+- See the [supported SAML encryption methods](#supported-saml-encryption-methods).
 
 </Note>
 
@@ -994,7 +996,7 @@ The [mmctl ldap sync](/administration-guide/manage/mmctl-command-line-tool#mmctl
 
 Access the following configuration settings in the System Console by going to **Authentication \> SAML 2.0**.
 
-See the encryption options documentation for details on what [encryption methods](/deployment-guide/encryption-options#saml-encryption-support) Mattermost supports for SAML.
+See the [supported SAML encryption methods](#supported-saml-encryption-methods).
 
 <Important>
 
@@ -1199,6 +1201,18 @@ For more information, see [AD/LDAP Setup](/administration-guide/onboard/ad-ldap)
 </tr>
 </tbody>
 </table>
+
+#### Supported SAML encryption methods
+
+Mattermost supports the following encryption methods for SAML:
+
+- aes128-gcm
+- aes192-gcm
+- aes256-gcm
+- aes128-cbc
+- aes256-cbc
+
+AES-192-GCM and AES-256-GCM support was introduced in Mattermost v10.9.
 
 ### Service provider private key
 
@@ -2266,7 +2280,7 @@ Access the following configuration settings in the System Console by going to **
 
 <Note>
 
-Guest billing depends on channel access. Guests in exactly one channel are treated as single-channel guests and don't count toward the primary paid seat count. They're free up to a 1:1 ratio with licensed seats. Guests in multiple channels continue to count as paid active users. Direct messages and group messages don't affect whether a guest is counted as a single-channel guest. See the [guest accounts](/administration-guide/onboard/guest-accounts) documentation for full details.
+Guest billing depends on channel access. Guests in exactly one active channel are treated as single-channel guests and don't count toward the primary paid seat count. They're free up to a 1:1 ratio with licensed seats. Guests in multiple active channels continue to count as activated users for billing purposes. Direct messages and group messages don't affect whether a guest is counted as a single-channel guest. Only active channels count toward guest channel access for billing. Archived channels are excluded. See the [guest accounts](/administration-guide/onboard/guest-accounts) documentation for full details.
 
 </Note>
 

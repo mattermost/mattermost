@@ -33,7 +33,7 @@ func (rcs *Service) ReceiveIncomingMsg(rc *model.RemoteCluster, msg model.Remote
 	for _, l := range listeners {
 		if err := callback(l, msg, &rcSanitized, &response); err != nil {
 			rcs.server.Log().LogM(mlog.MlvlRemoteClusterServiceError, "Error from remote cluster message listener",
-				mlog.String("msgId", msg.Id), mlog.String("topic", msg.Topic), mlog.String("remote", rc.DisplayName), mlog.Err(err))
+				mlog.String("msg_id", msg.Id), mlog.String("topic", msg.Topic), mlog.String("remote", rc.DisplayName), mlog.Err(err))
 
 			response.Status = ResponseStatusFail
 			response.Err = err.Error()

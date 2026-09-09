@@ -113,7 +113,7 @@ func (scs *Service) processMemberAdd(change *model.MembershipChangeMsg, channel 
 		}
 	} else {
 		// Fallback to existing lookup for users not in sync message
-		user, err = scs.server.GetStore().User().Get(rctx.Context(), change.UserId)
+		user, err = scs.server.GetStore().User().Get(rctx, change.UserId)
 		if err != nil {
 			return fmt.Errorf("cannot get user for channel add: %w", err)
 		}
@@ -166,7 +166,7 @@ func (scs *Service) processMemberRemove(change *model.MembershipChangeMsg, rc *m
 	}
 
 	rctx := request.EmptyContext(scs.server.Log())
-	user, userErr := scs.server.GetStore().User().Get(rctx.Context(), change.UserId)
+	user, userErr := scs.server.GetStore().User().Get(rctx, change.UserId)
 	if userErr != nil {
 		return fmt.Errorf("cannot get user for channel remove: %w", userErr)
 	}

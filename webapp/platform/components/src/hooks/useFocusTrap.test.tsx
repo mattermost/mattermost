@@ -55,6 +55,23 @@ function NestedFocusTrapsComponent() {
     );
 }
 
+// Mimics the mobile menu modal, where an ancestor sets `pointer-events: none`
+// and a descendant restores `pointer-events: auto` (see menu.scss `.menuModal`).
+function PointerEventsFocusTrapComponent() {
+    const containerRef = useRef<HTMLDivElement>(null);
+
+    useFocusTrap(true, containerRef);
+
+    return (
+        <div style={{pointerEvents: 'none'}} data-testid='pe-modal'>
+            <div ref={containerRef} style={{pointerEvents: 'auto'}} data-testid='pe-container'>
+                <button data-testid='pe-button1'>Button 1</button>
+                <button data-testid='pe-button2'>Button 2</button>
+            </div>
+        </div>
+    );
+}
+
 describe('useFocusTrap', () => {
     beforeEach(() => {
         // Create a div to hold our rendered components
@@ -255,5 +272,37 @@ describe('useFocusTrap', () => {
         // No errors should be thrown
         const container = screen.getByTestId('empty-container');
         expect(container).toBeInTheDocument();
+    });
+
+    // Regression test for MM-69557: the mobile menu fix sets `pointer-events: none`
+    // on an ancestor (`.menuModal`) and restores it on a descendant. The trap must
+    // keep treating the still-focusable descendants as focusable rather than
+    // filtering them out because an ancestor has `pointer-events: none`.
+    test('should trap focus for elements under an ancestor with pointer-events: none', () => {
+        // jsdom reports zero-size rects by default, which would mark every element
+        // hidden; give the buttons a non-zero size so visibility hinges on styles.
+        const rectSpy = jest.
+            spyOn(HTMLElement.prototype, 'getBoundingClientRect').
+            mockReturnValue({width: 100, height: 20, x: 0, y: 0, top: 0, left: 0, right: 100, bottom: 20, toJSON: () => ({})} as DOMRect);
+
+        // Restore the global spy in finally so a failed render or assertion
+        // cannot leak the mock into subsequent tests.
+        try {
+            render(<PointerEventsFocusTrapComponent />);
+
+            const button1 = screen.getByTestId('pe-button1');
+            const button2 = screen.getByTestId('pe-button2');
+
+            // Focus the last button, then Tab. The trap must cycle back to the first
+            // button, which only happens if both buttons were detected as focusable.
+            button2.focus();
+            expect(document.activeElement).toBe(button2);
+
+            document.dispatchEvent(new KeyboardEvent('keydown', {key: 'Tab', code: 'Tab', bubbles: true, cancelable: true}));
+
+            expect(document.activeElement).toBe(button1);
+        } finally {
+            rectSpy.mockRestore();
+        }
     });
 });

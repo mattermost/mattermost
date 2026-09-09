@@ -1,0 +1,103 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.AttributeExternalSource {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.AttributeExternalSource__synced {
+    display: flex;
+    min-height: 32px;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+}
+
+.AttributeExternalSource__syncedLabel {
+    color: rgba(var(--center-channel-color-rgb), 0.75);
+    font-size: 14px;
+    line-height: 20px;
+    white-space: nowrap;
+}
+
+// Full-width hairline between the Options help/editor and the "add" trigger.
+// Hidden once a source is linked, since the chips then occupy the Options
+// line and the trigger sits directly under them.
+.AttributeExternalSource__divider {
+    margin-bottom: 4px;
+}
+
+.AttributeExternalSource__chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.AttributeExternalSource__chip {
+    display: inline-flex;
+    height: 24px;
+    align-items: center;
+    padding: 0 6px 0 8px;
+    border-radius: 12px;
+    background: rgba(var(--center-channel-color-rgb), 0.08);
+    color: var(--center-channel-color);
+    font-size: 12px;
+    font-weight: 600;
+    gap: 6px;
+}
+
+.AttributeExternalSource__chipLabel {
+    line-height: 16px;
+}
+
+.AttributeExternalSource__chipAction {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2px;
+    border: none;
+    background: transparent;
+    color: var(--center-channel-color);
+    cursor: pointer;
+
+    &:hover {
+        background: rgba(var(--center-channel-color-rgb), 0.08);
+        color: var(--center-channel-color);
+    }
+
+    &:focus-visible {
+        background: rgba(var(--center-channel-color-rgb), 0.08);
+        color: var(--center-channel-color);
+        outline: 2px solid var(--button-bg);
+        outline-offset: 2px;
+    }
+}
+
+// Button shell (transparent at rest, no border, inline-flex sizing to
+// content) comes from buttonClassNames({emphasis: 'quaternary'}) -- this
+// rule must NOT set its own `display`, since a block-level `display: flex`
+// here would fight .btn's own `display: inline-flex` and, combined with
+// this trigger's flex-column parent defaulting every child to
+// align-self: stretch, stretch the button to the full row width instead of
+// sizing to its content. align-self: flex-start opts back out of that
+// stretch regardless of which `display` wins.
+// The hover-tint override is nested under the repeated .btn.btn-quaternary
+// classes (not just .AttributeExternalSource__trigger alone) so this
+// selector's specificity reliably beats _buttons.scss's own same-named rule,
+// regardless of stylesheet load order.
+.AttributeExternalSource__trigger {
+    align-items: center;
+    align-self: flex-start;
+    gap: 6px;
+
+    &.btn.btn-quaternary:hover {
+        background: rgba(var(--link-color-rgb), 0.08);
+    }
+
+    .icon {
+        color: inherit;
+        font-size: 16px;
+    }
+}

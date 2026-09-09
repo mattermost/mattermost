@@ -24,15 +24,17 @@ type Props = {
     channelId: string;
     disabled?: boolean;
     onSelect: (schedulingInfo: SchedulingInfo) => void;
+    allowRecurring: boolean;
 };
 
-export function SendPostOptions({disabled, onSelect, channelId}: Props) {
+export function SendPostOptions({disabled, onSelect, channelId, allowRecurring}: Props) {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
 
     const handleOnSelect = useCallback((e: React.FormEvent, scheduledAt: number) => {
+        // Not stopping propagation is load-bearing: in mobile view the menu is a modal that
+        // only dismisses once the click reaches the list wrapping the menu items.
         e.preventDefault();
-        e.stopPropagation();
 
         const schedulingInfo: SchedulingInfo = {
             scheduled_at: scheduledAt,
@@ -41,11 +43,7 @@ export function SendPostOptions({disabled, onSelect, channelId}: Props) {
         onSelect(schedulingInfo);
     }, [onSelect]);
 
-    const handleSelectCustomTime = useCallback((scheduledAt: number) => {
-        const schedulingInfo: SchedulingInfo = {
-            scheduled_at: scheduledAt,
-        };
-
+    const handleSelectCustomTime = useCallback((schedulingInfo: SchedulingInfo) => {
         onSelect(schedulingInfo);
         return Promise.resolve({});
     }, [onSelect]);
@@ -57,9 +55,10 @@ export function SendPostOptions({disabled, onSelect, channelId}: Props) {
             dialogProps: {
                 channelId,
                 onConfirm: handleSelectCustomTime,
+                allowRecurring,
             },
         }));
-    }, [channelId, dispatch, handleSelectCustomTime]);
+    }, [allowRecurring, channelId, dispatch, handleSelectCustomTime]);
 
     return (
         <Menu.Container

@@ -166,10 +166,13 @@ type Routes struct {
 
 	AuditLogs *mux.Router // 'api/v4/audit_logs'
 
-	AccessControlPolicies *mux.Router // 'api/v4/access_control_policies'
-	AccessControlPolicy   *mux.Router // 'api/v4/access_control_policies/{policy_id:[A-Za-z0-9]+}'
+	AccessControlPolicies  *mux.Router // 'api/v4/access_control_policies'
+	AccessControlPolicy    *mux.Router // 'api/v4/access_control_policies/{policy_id:[A-Za-z0-9]+}'
+	AccessControlDecisions *mux.Router // 'api/v4/access_control/decisions'
 
 	ContentFlagging *mux.Router // 'api/v4/content_flagging'
+
+	DeliveryTracking *mux.Router // 'api/v4/delivery_tracking'
 
 	Agents      *mux.Router // 'api/v4/agents'
 	LLMServices *mux.Router // 'api/v4/llmservices'
@@ -334,8 +337,11 @@ func Init(srv *app.Server) (*API, error) {
 
 	api.BaseRoutes.AccessControlPolicies = api.BaseRoutes.APIRoot.PathPrefix("/access_control_policies").Subrouter()
 	api.BaseRoutes.AccessControlPolicy = api.BaseRoutes.APIRoot.PathPrefix("/access_control_policies/{policy_id:[A-Za-z0-9]+}").Subrouter()
+	api.BaseRoutes.AccessControlDecisions = api.BaseRoutes.APIRoot.PathPrefix("/access_control/decisions").Subrouter()
 
 	api.BaseRoutes.ContentFlagging = api.BaseRoutes.APIRoot.PathPrefix("/content_flagging").Subrouter()
+
+	api.BaseRoutes.DeliveryTracking = api.BaseRoutes.APIRoot.PathPrefix("/delivery_tracking").Subrouter()
 
 	api.BaseRoutes.Agents = api.BaseRoutes.APIRoot.PathPrefix("/agents").Subrouter()
 	api.BaseRoutes.LLMServices = api.BaseRoutes.APIRoot.PathPrefix("/llmservices").Subrouter()
@@ -407,6 +413,7 @@ func Init(srv *app.Server) (*API, error) {
 	api.InitAuditLogging()
 	api.InitAccessControlPolicy()
 	api.InitContentFlagging()
+	api.InitDeliveryTracking()
 	api.InitAgents()
 	api.InitProperties()
 

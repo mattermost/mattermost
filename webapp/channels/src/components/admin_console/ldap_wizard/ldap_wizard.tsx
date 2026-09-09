@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useState, useMemo} from 'react';
+import React, {useCallback, useState, useMemo, type JSX} from 'react';
 import type {MessageDescriptor, WrappedComponentProps} from 'react-intl';
 import {FormattedMessage} from 'react-intl';
 
@@ -186,6 +186,9 @@ const LDAPWizard = (props: Props) => {
                 disabled={isDisabled(setting)}
                 setByEnv={isSetByEnv(setting.key!, props.environmentConfig)}
                 setting={setting}
+                config={props.config}
+                state={state}
+                license={props.license}
             />
         );
     };

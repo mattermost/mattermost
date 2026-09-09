@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"reflect"
 	"strings"
 	"sync"
 	"testing"
@@ -142,16 +143,28 @@ func TestPostPreSave(t *testing.T) {
 	o.Etag()
 }
 
+func TestIsSystemMessagePostType(t *testing.T) {
+	for _, tc := range []struct {
+		postType string
+		want     bool
+	}{
+		{"", false},
+		{"custom_foo", false},
+		{PostTypeJoinLeave, true},
+		{PostTypeJoinChannel, true},
+		{PostTypeDefault, false},
+		// case-sensitive: mixed-case prefix is not a system type
+		{"System_generic", false},
+		// whitespace is not trimmed
+		{" " + PostSystemMessagePrefix + "foo", false},
+	} {
+		require.Equal(t, tc.want, IsSystemMessagePostType(tc.postType), "postType=%q", tc.postType)
+	}
+}
+
 func TestPostIsSystemMessage(t *testing.T) {
-	post1 := Post{Message: "test_1"}
-	post1.PreSave()
-
-	require.False(t, post1.IsSystemMessage())
-
-	post2 := Post{Message: "test_2", Type: PostTypeJoinLeave}
-	post2.PreSave()
-
-	require.True(t, post2.IsSystemMessage())
+	require.False(t, (&Post{Message: "test_1"}).IsSystemMessage())
+	require.True(t, (&Post{Message: "test_2", Type: PostTypeJoinLeave}).IsSystemMessage())
 }
 
 func TestPostIsNotificationSuppressed(t *testing.T) {
@@ -333,6 +346,28 @@ func TestPostPatch_ContainsIntegrationsReservedProps(t *testing.T) {
 	postPatch2 := &PostPatch{}
 	keys2 := postPatch2.ContainsIntegrationsReservedProps()
 	require.Len(t, keys2, 0)
+}
+
+func TestPostPatchIsEmpty(t *testing.T) {
+	// The api4 post edit time limit derives its check from IsEmpty, so a field IsEmpty does not
+	// account for silently escapes that limit. Add new fields here and to IsEmpty together.
+	require.Equal(t, 5, reflect.TypeFor[PostPatch]().NumField())
+
+	for name, patch := range map[string]PostPatch{
+		"is pinned":     {IsPinned: new(true)},
+		"message":       {Message: new("edited")},
+		"props":         {Props: &StringInterface{"foo": "bar"}},
+		"file ids":      {FileIds: &StringArray{"fileid"}},
+		"has reactions": {HasReactions: new(true)},
+	} {
+		t.Run(name, func(t *testing.T) {
+			require.False(t, patch.IsEmpty())
+		})
+	}
+
+	t.Run("no fields set", func(t *testing.T) {
+		require.True(t, (&PostPatch{}).IsEmpty())
+	})
 }
 
 func TestPost_AttachmentsEqual(t *testing.T) {

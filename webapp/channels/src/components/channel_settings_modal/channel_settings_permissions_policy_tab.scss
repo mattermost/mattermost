@@ -427,3 +427,29 @@
         gap: 8px;
     }
 }
+
+/* The role and permission dropdowns render two-line options (title +
+ * description) through a MUI Popover that is portaled outside this modal, so
+ * these rules sit at the top level rather than nested under the modal class.
+ * The shared menu item keeps its label column at its content width, which lets
+ * a long description overflow the menu instead of wrapping. Allow the column to
+ * shrink and the description to wrap onto multiple lines. The `li.MuiMenuItem-root`
+ * qualifier is needed to outrank the emotion-generated menu item styles. */
+.ChannelSettingsModal__permissionsPolicyOptionMenu {
+    li.MuiMenuItem-root > .label-elements {
+        min-width: 0;
+        flex-shrink: 1;
+
+        > span {
+            overflow-wrap: anywhere;
+            white-space: normal;
+        }
+    }
+
+    /* Two-line options top-align the menu item's row, which leaves the
+     * trailing check icon stuck to the top. Center it against the full item
+     * height so it stays aligned even when the description wraps. */
+    li.MuiMenuItem-root > .trailing-elements {
+        align-self: center;
+    }
+}

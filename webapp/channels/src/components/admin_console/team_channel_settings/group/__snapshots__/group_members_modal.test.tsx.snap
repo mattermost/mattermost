@@ -9,127 +9,124 @@ exports[`admin_console/team_channel_settings/group/GroupList should match snapsh
     aria-hidden="true"
   />
   <div
-    role="none"
+    class="fade modal-backdrop in"
+  />
+  <div
+    aria-labelledby="groupMemberModalLabel"
+    aria-modal="true"
+    class="fade in modal"
+    id="groupMembersModal"
+    role="dialog"
+    style="display: block; padding-right: 0px;"
+    tabindex="-1"
   >
     <div
-      class="fade modal-backdrop in"
-    />
-    <div
-      aria-labelledby="groupMemberModalLabel"
-      class="fade in modal"
-      id="groupMembersModal"
-      role="dialog"
-      style="display: block; padding-right: 0px;"
-      tabindex="-1"
+      class="a11y__modal settings-modal modal-dialog"
     >
       <div
-        class="a11y__modal settings-modal modal-dialog"
+        class="modal-content"
+        role="document"
       >
         <div
-          class="modal-content"
-          role="document"
+          class="modal-header"
+        >
+          <button
+            aria-label="Close"
+            class="close"
+            type="button"
+          >
+            <span
+              aria-hidden="true"
+            >
+              ×
+            </span>
+            <span
+              class="sr-only"
+            >
+              Close
+            </span>
+          </button>
+          <h1
+            class="modal-title"
+            id="groupMemberModalLabel"
+          >
+            group_display_name
+          </h1>
+        </div>
+        <div
+          class="modal-body"
         >
           <div
-            class="modal-header"
-          >
-            <button
-              aria-label="Close"
-              class="close"
-              type="button"
-            >
-              <span
-                aria-hidden="true"
-              >
-                ×
-              </span>
-              <span
-                class="sr-only"
-              >
-                Close
-              </span>
-            </button>
-            <h1
-              class="modal-title"
-              id="groupMemberModalLabel"
-            >
-              group_display_name
-            </h1>
-          </div>
-          <div
-            class="modal-body"
+            class="MemberListGroup"
           >
             <div
-              class="MemberListGroup"
+              class="DataGrid"
+              data-testid="dataGrid"
             >
               <div
-                class="DataGrid"
-                data-testid="dataGrid"
+                class="DataGrid_search"
               >
                 <div
-                  class="DataGrid_search"
+                  class="DataGrid_searchBar"
                 >
-                  <div
-                    class="DataGrid_searchBar"
+                  <span
+                    aria-hidden="true"
+                    class="DataGrid_searchIcon"
                   >
-                    <span
-                      aria-hidden="true"
-                      class="DataGrid_searchIcon"
-                    >
-                      <i
-                        class="fa fa-search"
-                        title="Search Icon"
-                      />
-                    </span>
-                    <input
-                      data-testid="searchInput"
-                      placeholder="Search"
-                      type="text"
-                      value=""
-                    />
                     <i
-                      class="DataGrid_clearButton fa fa-times-circle hidden"
-                      data-testid="clear-search"
+                      class="fa fa-search"
+                      title="Search Icon"
                     />
-                  </div>
+                  </span>
+                  <input
+                    data-testid="searchInput"
+                    placeholder="Search"
+                    type="text"
+                    value=""
+                  />
+                  <i
+                    class="DataGrid_clearButton fa fa-times-circle hidden"
+                    data-testid="clear-search"
+                  />
                 </div>
+              </div>
+              <div
+                class="DataGrid_header"
+                data-testid="dataGrid-header"
+              />
+              <div
+                class="DataGrid_rows"
+                data-testid="dataGrid-rows"
+              >
                 <div
-                  class="DataGrid_header"
-                  data-testid="dataGrid-header"
-                />
-                <div
-                  class="DataGrid_rows"
-                  data-testid="dataGrid-rows"
+                  class="DataGrid_loading"
                 >
-                  <div
-                    class="DataGrid_loading"
+                  <span
+                    class="LoadingSpinner"
+                    data-testid="loadingSpinner"
+                    id="loadingSpinner"
                   >
                     <span
-                      class="LoadingSpinner"
-                      data-testid="loadingSpinner"
-                      id="loadingSpinner"
-                    >
-                      <span
-                        class="fa fa-spinner fa-fw fa-pulse spinner"
-                        title="Loading Icon"
-                      />
-                    </span>
-                    Loading
-                  </div>
+                      class="fa fa-spinner fa-fw fa-pulse spinner"
+                      title="Loading Icon"
+                    />
+                  </span>
+                  Loading
                 </div>
               </div>
             </div>
           </div>
-          <div
-            class="modal-footer"
+        </div>
+        <div
+          class="modal-footer"
+        >
+          <button
+            class="btn btn-primary"
+            id="closeModalButton"
+            type="button"
           >
-            <button
-              class="btn btn-primary"
-              id="closeModalButton"
-              type="button"
-            >
-              Close
-            </button>
-          </div>
+            Close
+          </button>
         </div>
       </div>
     </div>

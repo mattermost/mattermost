@@ -43,6 +43,7 @@ const (
 	ClusterEventInvalidateCacheForPostsUsage                ClusterEvent = "inv_posts_usage"
 	ClusterEventInvalidateCacheForTeams                     ClusterEvent = "inv_teams"
 	ClusterEventInvalidateCacheForContentFlagging           ClusterEvent = "inv_content_flagging"
+	ClusterEventInvalidateCacheForDeliveryTracking          ClusterEvent = "inv_delivery_tracking"
 	ClusterEventInvalidateCacheForSessionAttributes         ClusterEvent = "inv_session_attributes"
 	ClusterEventUpdateSessionAttributes                     ClusterEvent = "update_session_attributes"
 	ClusterEventInvalidateCacheForPropertyFields            ClusterEvent = "inv_property_fields"
@@ -56,6 +57,8 @@ const (
 	ClusterEventInvalidateCacheForTermsOfService            ClusterEvent = "inv_terms_of_service"
 	ClusterEventInvalidateCacheForUserAutoTranslation       ClusterEvent = "inv_user_autotranslation"
 	ClusterEventInvalidateCacheForPostTranslationEtag       ClusterEvent = "inv_post_translation_etag"
+	ClusterEventInvalidateCacheForAccessControlPolicyEtag   ClusterEvent = "inv_access_control_policy_etag"
+	ClusterEventInvalidateCacheForUserPropertyValuesEpoch   ClusterEvent = "inv_user_property_values_epoch"
 	ClusterEventAutoTranslationTask                         ClusterEvent = "autotranslation_task"
 	ClusterEventBusyStateChanged                            ClusterEvent = "busy_state_change"
 	// Note: if you are adding a new event, please also add it in the slice of

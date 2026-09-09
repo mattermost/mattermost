@@ -27,7 +27,7 @@ type TestPoolEntry struct {
 }
 
 func NewTestPool(logger mlog.LoggerIFace, driverName string, poolSize int) (*TestPool, error) {
-	logger.Info("Creating test store pool", mlog.Int("poolSize", poolSize))
+	logger.Info("Creating test store pool", mlog.Int("pool_size", poolSize))
 
 	entries := make(map[string]*TestPoolEntry, poolSize)
 
@@ -69,7 +69,7 @@ func (p *TestPool) Get(t testing.TB) *TestPoolEntry {
 	p.mut.Lock()
 	defer p.mut.Unlock()
 
-	p.logger.Info("Getting from test store pool", mlog.Int("poolSize", len(p.entries)))
+	p.logger.Info("Getting from test store pool", mlog.Int("pool_size", len(p.entries)))
 
 	var poolEntry *TestPoolEntry
 	for _, entry := range p.entries {
@@ -83,7 +83,7 @@ func (p *TestPool) Get(t testing.TB) *TestPoolEntry {
 		return nil
 	}
 
-	p.logger.Info("Got store from pool", mlog.String("datasource", *poolEntry.Settings.DataSource), mlog.Int("poolSize", len(p.entries)))
+	p.logger.Info("Got store from pool", mlog.String("datasource", *poolEntry.Settings.DataSource), mlog.Int("pool_size", len(p.entries)))
 
 	dataSource := *poolEntry.Settings.DataSource
 
@@ -91,7 +91,7 @@ func (p *TestPool) Get(t testing.TB) *TestPoolEntry {
 	t.Cleanup(func() {
 		p.mut.Lock()
 		defer p.mut.Unlock()
-		p.logger.Info("Returning to test store pool", mlog.String("datasource", dataSource), mlog.Int("poolSize", len(p.entries)))
+		p.logger.Info("Returning to test store pool", mlog.String("datasource", dataSource), mlog.Int("pool_size", len(p.entries)))
 		p.entries[dataSource] = poolEntry
 	})
 

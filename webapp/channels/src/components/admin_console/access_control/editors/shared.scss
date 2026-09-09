@@ -54,6 +54,14 @@
     }
 }
 
+// Positions the Test button on the right of an editor's action row.
+.access-control-test-controls {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    gap: 8px;
+}
+
 .editor__help-text {
     color: var(--center-channel-color-72);
     font-size: 12px;

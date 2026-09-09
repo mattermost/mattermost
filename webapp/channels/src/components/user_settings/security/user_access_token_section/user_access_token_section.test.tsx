@@ -53,7 +53,7 @@ describe('user_access_token_section helpers', () => {
 
     describe('mapServerErrorIdToMessage', () => {
         const renderNode = (node: React.ReactNode) => render(
-            <IntlProvider locale='en'>{node as React.ReactElement}</IntlProvider>,
+            <IntlProvider locale='en'>{node as React.ReactElement<any>}</IntlProvider>,
         ).container.textContent;
 
         test('maps expires_at_required (short and app_error variants)', () => {
@@ -259,6 +259,20 @@ describe('UserAccessTokenSection component', () => {
             expect(props.actions.createUserAccessToken).not.toHaveBeenCalled();
         });
 
+        test('shows a copy button for a newly created token secret', async () => {
+            const createUserAccessToken = jest.fn().mockResolvedValue({data: {id: 'created-token-id', description: 'my token', is_active: true, token: 'created-secret'}});
+            const {container} = renderSection({
+                actions: {...getBaseProps().actions, createUserAccessToken},
+            });
+
+            startCreating();
+            change(container, '#newTokenDescription', 'my token');
+            clickSave();
+
+            expect(await screen.findByText(/created-secret/)).toBeInTheDocument();
+            expect(screen.getByLabelText('Copy Token')).toBeInTheDocument();
+        });
+
         test('surfaces the expiry error inline and disables Save when a custom date is cleared, without clicking Save', () => {
             const {container} = renderSection();
             startCreating();
@@ -375,6 +389,7 @@ describe('UserAccessTokenSection component', () => {
 
             expect(setRequireConfirm).toHaveBeenCalledWith(true, expect.any(Function));
             expect(await screen.findByText(/new-secret/)).toBeInTheDocument();
+            expect(screen.getByLabelText('Copy Token')).toBeInTheDocument();
             expect(rotateUserAccessToken).toHaveBeenCalledWith('t1', undefined);
         });
 

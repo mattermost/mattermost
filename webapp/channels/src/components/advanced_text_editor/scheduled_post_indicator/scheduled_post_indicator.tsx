@@ -41,7 +41,7 @@ export default function ScheduledPostIndicator({location, channelId, postId, rem
     const currentTeamName = useSelector((state: GlobalState) => getCurrentTeam(state)?.name);
     const scheduledPostLinkURL = `/${currentTeamName}/scheduled_posts?target_id=${id}`;
 
-    if (!scheduledPostData?.count) {
+    if (!scheduledPostData) {
         return null;
     }
 
@@ -58,20 +58,20 @@ export default function ScheduledPostIndicator({location, channelId, postId, rem
 
     // display scheduled post's details of there is only one scheduled post
     if (scheduledPostData.count === 1 && scheduledPostData.scheduledPost) {
+        const scheduledPost = scheduledPostData.scheduledPost;
+        const dateTime = (
+            <Timestamp
+                value={scheduledPost.scheduled_at}
+                ranges={SCHEDULED_POST_TIME_RANGES}
+                useSemanticOutput={false}
+                useTime={scheduledPostTimeFormat}
+            />
+        );
         scheduledPostText = (
             <FormattedMessage
                 id='scheduled_post.channel_indicator.single'
                 defaultMessage='Message scheduled for {dateTime}.'
-                values={{
-                    dateTime: (
-                        <Timestamp
-                            value={scheduledPostData.scheduledPost.scheduled_at}
-                            ranges={SCHEDULED_POST_TIME_RANGES}
-                            useSemanticOutput={false}
-                            useTime={scheduledPostTimeFormat}
-                        />
-                    ),
-                }}
+                values={{dateTime}}
             />
         );
     }

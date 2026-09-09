@@ -4,7 +4,6 @@
 package sqlstore
 
 import (
-	"context"
 	"database/sql"
 	"testing"
 	"time"
@@ -18,10 +17,10 @@ import (
 )
 
 func TestGetDiagnostics(t *testing.T) {
-	StoreTest(t, func(t *testing.T, _ request.CTX, ss store.Store) {
+	StoreTest(t, func(t *testing.T, rctx request.CTX, ss store.Store) {
 		sqlStore := ss.(*SqlStore)
 
-		diagnostics, err := sqlStore.GetDiagnostics(context.Background())
+		diagnostics, err := sqlStore.GetDiagnostics(rctx)
 		require.NoError(t, err)
 		require.NotNil(t, diagnostics)
 
