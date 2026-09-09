@@ -6,6 +6,9 @@ package sqlstore
 import (
 	"database/sql"
 	"fmt"
+	"maps"
+	"slices"
+	"strings"
 
 	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
@@ -13,6 +16,12 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
+
+// protectedBotUsernames returns model.ProtectedBotUsernames as a sorted slice,
+// so callers get deterministic SQL placeholder ordering.
+func protectedBotUsernames() []string {
+	return slices.Sorted(maps.Keys(model.ProtectedBotUsernames))
+}
 
 type SqlUserAccessTokenStore struct {
 	*SqlStore
@@ -335,7 +344,7 @@ func (s SqlUserAccessTokenStore) GetExpiringTokens(now int64, thresholds []int, 
 
 	userOwnedBot := sq.And{
 		sq.NotEq{"Bots.UserId": nil},
-		sq.NotEq{"Users.Username": model.BotSystemBotUsername},
+		sq.NotEq{"Users.Username": protectedBotUsernames()},
 		sq.NotEq{"BotOwners.Id": nil},
 		sq.Eq{"BotOwners.DeleteAt": 0},
 	}
@@ -390,7 +399,7 @@ func (s SqlUserAccessTokenStore) CountNonCompliantExpiry(maxExpiresAt int64) (in
 			sq.Eq{"Bots.UserId": nil},
 			sq.And{
 				sq.NotEq{"BotOwners.Id": nil},
-				sq.NotEq{"BotUsers.Username": model.BotSystemBotUsername},
+				sq.NotEq{"BotUsers.Username": protectedBotUsernames()},
 			},
 		})
 
@@ -411,7 +420,16 @@ func (s SqlUserAccessTokenStore) DeleteNonCompliantExpiry(maxExpiresAt int64, li
 		return nil, nil
 	}
 
-	sql := `
+	usernames := protectedBotUsernames()
+	placeholders := make([]string, len(usernames))
+	args := make([]any, 0, len(usernames)+2)
+	args = append(args, maxExpiresAt, limit)
+	for i, username := range usernames {
+		placeholders[i] = fmt.Sprintf("$%d", len(args)+1)
+		args = append(args, username)
+	}
+
+	sql := fmt.Sprintf(`
 WITH to_delete AS (
     SELECT UserAccessTokens.Id, UserAccessTokens.Token, UserAccessTokens.UserId
     FROM UserAccessTokens
@@ -420,7 +438,7 @@ WITH to_delete AS (
     LEFT JOIN Users BotUsers ON BotUsers.Id = Bots.UserId
     WHERE (UserAccessTokens.ExpiresAt = 0 OR UserAccessTokens.ExpiresAt > $1)
       AND UserAccessTokens.IsActive = true
-      AND (Bots.UserId IS NULL OR (BotOwners.Id IS NOT NULL AND BotUsers.Username != $3))
+      AND (Bots.UserId IS NULL OR (BotOwners.Id IS NOT NULL AND BotUsers.Username NOT IN (%s)))
     LIMIT $2
 ),
 deleted_sessions AS (
@@ -432,10 +450,10 @@ deleted_tokens AS (
     WHERE Id IN (SELECT Id FROM to_delete)
     RETURNING UserId
 )
-SELECT UserId FROM deleted_tokens`
+SELECT UserId FROM deleted_tokens`, strings.Join(placeholders, ", "))
 
 	var userIDs []string
-	if err := s.GetMaster().Select(&userIDs, sql, maxExpiresAt, limit, model.BotSystemBotUsername); err != nil {
+	if err := s.GetMaster().Select(&userIDs, sql, args...); err != nil {
 		return nil, errors.Wrap(err, "failed to delete non-compliant UserAccessTokens")
 	}
 
