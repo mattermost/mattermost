@@ -115,6 +115,17 @@ type Props = {
      * adjust the z-index of the parent modal's backdrop.
      */
     isStacked?: boolean;
+
+    /**
+     * Optional header label id. Pass a unique value when this confirmation is
+     * shown alongside another GenericModal so the two do not share genericModalLabel.
+     */
+    modalHeaderTextId?: string;
+
+    /**
+     * Optional aria-labelledby. Defaults to GenericModal's genericModalLabel.
+     */
+    ariaLabelledby?: string;
 };
 
 const ConfirmModal = ({
@@ -139,6 +150,8 @@ const ConfirmModal = ({
     onCancel,
     onCheckboxChange,
     onExited,
+    modalHeaderTextId,
+    ariaLabelledby,
 }: Props) => {
     const [checked, setChecked] = useState(false);
 
@@ -216,6 +229,8 @@ const ConfirmModal = ({
             onExited={handleExited}
             compassDesign={true}
             modalHeaderText={title}
+            modalHeaderTextId={modalHeaderTextId}
+            ariaLabelledby={ariaLabelledby}
             isStacked={isStacked}
         >
             <div

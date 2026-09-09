@@ -83,6 +83,24 @@ describe('ConfirmModal', () => {
         expect(props.onCancel).toHaveBeenCalledWith(true);
     });
 
+    test('should use a unique accessible name when a custom header label is provided', () => {
+        const props = {
+            ...baseProps,
+            title: 'Discard Changes?',
+            confirmButtonText: 'Yes, Discard',
+            modalHeaderTextId: 'userSettingsConfirmModalLabel',
+            ariaLabelledby: 'userSettingsConfirmModalLabel',
+        };
+
+        const {getByRole} = renderWithContext(<ConfirmModal {...props}/>);
+        const dialog = getByRole('dialog', {name: 'Discard Changes?'});
+
+        expect(dialog).toBeVisible();
+        expect(dialog).toHaveAttribute('aria-labelledby', 'userSettingsConfirmModalLabel');
+        expect(document.getElementById('userSettingsConfirmModalLabel')).toHaveTextContent('Discard Changes?');
+        expect(document.getElementById('genericModalLabel')).not.toBeInTheDocument();
+    });
+
     test('should disable confirm button when confirmDisabled is true', () => {
         const props = {
             ...baseProps,

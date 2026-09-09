@@ -265,7 +265,7 @@ describe('discarding an unsaved theme preview', () => {
     };
 
     const settingsModal = () => document.getElementById('accountSettingsModal');
-    const confirmDialog = () => document.getElementById('confirmModal');
+    const confirmDialog = () => screen.getByRole('dialog', {name: 'Discard Changes?'});
     const discardMessage = () => screen.queryByText('You have unsaved changes, are you sure you want to discard them?');
     const closeSettingsModal = () => user.click(within(settingsModal()!).getByRole('button', {name: 'Close'}));
 
@@ -276,8 +276,11 @@ describe('discarding an unsaved theme preview', () => {
         await closeSettingsModal();
         settleTransitions();
 
+        expect(confirmDialog()).toBeVisible();
         expect(discardMessage()).toBeVisible();
         expect(settingsModal()).toBeInTheDocument();
+        expect(settingsModal()).toHaveAttribute('aria-labelledby', 'accountSettingsModalHeaderLabel');
+        expect(document.getElementById('confirmModal')).toHaveAttribute('aria-labelledby', 'userSettingsConfirmModalLabel');
         expect(onExited).not.toHaveBeenCalled();
         expect(applyTheme).toHaveBeenLastCalledWith(expect.objectContaining({type: 'Onyx'}));
     });
@@ -287,7 +290,7 @@ describe('discarding an unsaved theme preview', () => {
 
         await previewOnyxTheme();
         await closeSettingsModal();
-        await user.click(within(confirmDialog()!).getByRole('button', {name: 'Cancel'}));
+        await user.click(within(confirmDialog()).getByRole('button', {name: 'Cancel'}));
         settleTransitions();
 
         expect(discardMessage()).not.toBeInTheDocument();
@@ -307,7 +310,7 @@ describe('discarding an unsaved theme preview', () => {
 
         await previewOnyxTheme();
         await closeSettingsModal();
-        await user.click(within(confirmDialog()!).getByRole('button', {name: 'Yes, Discard'}));
+        await user.click(within(confirmDialog()).getByRole('button', {name: 'Yes, Discard'}));
         settleTransitions();
 
         expect(settingsModal()).not.toBeInTheDocument();

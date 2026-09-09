@@ -53,17 +53,16 @@ test(
         // # Close the settings modal
         await settingsModal.closeButton.click();
 
-        // * Verify the discard confirmation is shown. Both modals fall back to
-        // aria-labelledby='genericModalLabel' and duplicate that id, so the confirmation resolves
-        // its accessible name to the settings modal's title and cannot be found by role and name.
-        const confirmDialog = page.locator('#confirmModal');
+        // * Verify the discard confirmation is shown with its own accessible name
+        const confirmDialog = page.getByRole('dialog', {name: 'Discard Changes?'});
         await expect(confirmDialog).toBeVisible();
         await expect(confirmDialog).toContainText(discardMessage);
 
-        // * Verify the confirmation stays put instead of closing itself along with the settings modal
+        // * Verify the confirmation stays put instead of closing itself along with the settings modal.
+        // The settings dialog is aria-hidden while the confirmation is stacked, so locate it by id.
         await page.waitForTimeout(modalFadeMs * 3);
         await expect(confirmDialog).toBeVisible();
-        await expect(settingsModal.container).toBeVisible();
+        await expect(page.locator('#accountSettingsModal')).toBeVisible();
         await expect.poll(sidebarBg).toBe(onyxSidebarBg);
 
         // # Cancel the discard

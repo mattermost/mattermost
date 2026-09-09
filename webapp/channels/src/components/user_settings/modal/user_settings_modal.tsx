@@ -371,6 +371,8 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
                 // confirmation below down with it.
                 preventClose={true}
                 ariaLabel={modalTitle}
+                ariaLabelledby='accountSettingsModalHeaderLabel'
+                modalHeaderTextId='accountSettingsModalHeaderLabel'
                 compassDesign={true}
                 enforceFocus={this.state.enforceFocus}
                 bodyPadding={false}
@@ -437,6 +439,8 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
                     show={this.state.showConfirmModal}
                     onConfirm={this.handleConfirm}
                     onCancel={this.handleCancelConfirmation}
+                    modalHeaderTextId='userSettingsConfirmModalLabel'
+                    ariaLabelledby='userSettingsConfirmModalLabel'
                 />
             </GenericModal>
         );
