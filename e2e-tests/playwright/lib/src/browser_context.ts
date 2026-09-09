@@ -31,6 +31,7 @@ export class TestBrowser {
 
         // Sign in a user in new browser context
         const context = await this.browser.newContext(options);
+        await routeInternalBaseUrlToHost(context);
         const page = await context.newPage();
 
         const channelsPage = new pages.ChannelsPage(page);
@@ -72,6 +73,23 @@ export class TestBrowser {
         }
         this.contexts = [];
     }
+}
+
+/**
+ * Plugin webapp bundles build absolute URLs from ServiceSettings.SiteURL, which in `testcontainers`
+ * mode is a Docker network alias that only other containers can resolve. Left alone those fetches
+ * hang from the host browser, so anything waiting on network idle never settles. Rewrite them onto
+ * the host-mapped URL, which serves the same server. No-op in `external` mode, where the two match.
+ */
+async function routeInternalBaseUrlToHost(context: BrowserContext) {
+    const {internalBaseURL, baseURL} = testConfig;
+    if (internalBaseURL === baseURL) {
+        return;
+    }
+
+    await context.route(`${internalBaseURL}/**`, async (route) => {
+        await route.continue({url: route.request().url().replace(internalBaseURL, baseURL)});
+    });
 }
 
 export async function loginByAPI(loginId: string, password: string, token = '', ldapOnly = false) {
