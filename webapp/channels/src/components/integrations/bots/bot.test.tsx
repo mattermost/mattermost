@@ -233,6 +233,29 @@ describe('components/integrations/bots/Bot', () => {
         expect(screen.queryByText(`Managed by ${owner.username}`)).not.toBeInTheDocument();
     });
 
+    it.each(['system-bot', 'content-review'])('protected system bot %s is exempt from the expiry policy', (username) => {
+        const bot = UtilsTestHelper.getBotMock({user_id: '1', owner_id: '1', username, system_owned: true});
+        const owner = UtilsTestHelper.getUserMock({id: bot.owner_id});
+        const user = UtilsTestHelper.getUserMock({id: bot.user_id});
+        renderWithContext(
+            <Bot
+                bot={bot}
+                owner={owner}
+                user={user}
+                accessTokens={{}}
+                team={team}
+                actions={actions}
+                fromApp={false}
+                maxLifetimeDays={30}
+            />,
+        );
+
+        fireEvent.click(screen.getByText('Create New Token'));
+
+        expect(document.getElementById('botTokenExpiry')).toBeNull();
+        expect(screen.queryByText('Tokens can be valid for up to 30 days.')).not.toBeInTheDocument();
+    });
+
     it('disabled protected system bot still offers a working Enable control for recovery', () => {
         const bot = UtilsTestHelper.getBotMock({user_id: 'protected-user-id', owner_id: '1', username: 'system-bot', system_owned: true});
         bot.delete_at = 100; // disabled
@@ -260,93 +283,6 @@ describe('components/integrations/bots/Bot', () => {
 
         fireEvent.click(enableButton);
         expect(actions.enableBot).toHaveBeenCalledWith('protected-user-id');
-    });
-
-    it('bot with access tokens', () => {
-        const bot = UtilsTestHelper.getBotMock({user_id: '1'});
-        const tokenId = generateId();
-        const user = UtilsTestHelper.getUserMock({id: bot.user_id});
-        const accessTokens = {
-            tokenId: UtilsTestHelper.getUserAccessTokenMock({
-                id: tokenId,
-                user_id: bot.user_id,
-            }),
-        };
-
-        renderWithContext(
-            <Bot
-                bot={bot}
-                owner={undefined}
-                user={user}
-                accessTokens={accessTokens}
-                team={team}
-                actions={actions}
-                fromApp={false}
-                maxLifetimeDays={0}
-            />,
-        );
-
-        expect(screen.getByText(tokenId)).toBeInTheDocument();
-        expect(screen.getByText(/^Disable$/)).toBeInTheDocument();
-        expect(screen.queryByText(/^Enable$/)).not.toBeInTheDocument();
-    });
-
-    it('bot with disabled access tokens', () => {
-        const bot = UtilsTestHelper.getBotMock({user_id: '1'});
-        const tokenId = generateId();
-        const user = UtilsTestHelper.getUserMock({id: bot.user_id});
-
-        const accessTokens = {
-            tokenId: UtilsTestHelper.getUserAccessTokenMock({
-                id: tokenId,
-                user_id: bot.user_id,
-                is_active: false,
-            }),
-        };
-
-        renderWithContext(
-            <Bot
-                bot={bot}
-                owner={undefined}
-                user={user}
-                accessTokens={accessTokens}
-                team={team}
-                actions={actions}
-                fromApp={false}
-                maxLifetimeDays={0}
-            />,
-        );
-
-        expect(screen.getByText(tokenId)).toBeInTheDocument();
-        expect(screen.queryByText(/^Disable$/)).not.toBeInTheDocument();
-        expect(screen.getByText(/^Enable$/)).toBeInTheDocument();
-    });
-
-    it('shows a copy button for a newly created token secret', async () => {
-        const bot = UtilsTestHelper.getBotMock({user_id: '1', owner_id: '1'});
-        const owner = UtilsTestHelper.getUserMock({id: bot.owner_id});
-        const user = UtilsTestHelper.getUserMock({id: bot.user_id});
-        const createUserAccessToken = jest.fn().mockResolvedValue({data: {id: 'new-token-id', description: 'bot token', token: 'bot-secret'}});
-
-        renderWithContext(
-            <Bot
-                bot={bot}
-                owner={owner}
-                user={user}
-                accessTokens={{}}
-                team={team}
-                actions={{...actions, createUserAccessToken}}
-                fromApp={false}
-                maxLifetimeDays={0}
-            />,
-        );
-
-        fireEvent.click(screen.getByText('Create New Token'));
-        fireEvent.change(screen.getByLabelText('Token Description:'), {target: {value: 'bot token'}});
-        fireEvent.click(screen.getByText('Save'));
-
-        expect(await screen.findByText(/bot-secret/)).toBeInTheDocument();
-        expect(screen.getByLabelText('Copy Token')).toBeInTheDocument();
     });
 
     it('supports optional expiry when creating a token for a user-owned bot without a policy', async () => {

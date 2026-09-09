@@ -182,7 +182,12 @@ export default class Bot extends React.PureComponent<Props, State> {
         this.setState({confirmingId: ''});
     };
 
+    // Mirrors the server's resolveBotOwner: system-owned bots are exempt even though their
+    // OwnerId is a real sysadmin, and a plugin-owned bot's OwnerId never resolves to a user.
     isUserOwnedBot = (): boolean => {
+        if (this.props.bot.system_owned) {
+            return false;
+        }
         return Boolean(this.props.owner?.username) && !this.props.fromApp;
     };
 
