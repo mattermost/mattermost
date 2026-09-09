@@ -5216,6 +5216,33 @@ func TestLinkedProperties(t *testing.T) {
 		CheckBadRequestStatus(t, resp)
 	})
 
+	t.Run("patch PermissionValues on a field with an empty (non-nil) LinkedFieldID is rejected", func(t *testing.T) {
+		// LinkedFieldID = &"" is a degenerate, non-linked state: IsValid only
+		// validates the ID format when non-empty, so this passes validation and
+		// can be persisted (e.g. a caller explicitly sending linked_field_id:
+		// "" on create). The guard must treat this the same as nil -- not doing
+		// so would let a caller bypass the "must be linked" restriction on any
+		// standalone field that happens to carry an empty LinkedFieldID.
+		standaloneField := &model.PropertyField{
+			Name:              model.NewId(),
+			Type:              model.PropertyFieldTypeText,
+			GroupID:           group.ID,
+			ObjectType:        "user",
+			TargetType:        "system",
+			LinkedFieldID:     model.NewPointer(""),
+			PermissionField:   &memberLevel,
+			PermissionValues:  &memberLevel,
+			PermissionOptions: &memberLevel,
+		}
+		created, appErr := th.App.CreatePropertyField(th.Context, standaloneField, false, "")
+		require.Nil(t, appErr)
+
+		patch := &model.PropertyFieldPatch{PermissionValues: &sysadminLevel}
+		_, resp, err := th.SystemAdminClient.PatchPropertyField(context.Background(), group.Name, "user", created.ID, patch)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
 	t.Run("patch PermissionValues on a linked post field also takes effect", func(t *testing.T) {
 		sourceField := &model.PropertyField{
 			Name:              model.NewId(),

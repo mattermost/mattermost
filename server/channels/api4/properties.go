@@ -485,7 +485,7 @@ func patchPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 	// this new capability to escalate its PermissionValues to sysadmin, or
 	// loosen another field's to member.
 	if patch.PermissionValues != nil {
-		if existingField.LinkedFieldID == nil {
+		if existingField.LinkedFieldID == nil || *existingField.LinkedFieldID == "" {
 			c.Err = model.NewAppError("patchPropertyField", "api.property_field.patch.permission_values_not_linked.app_error", nil, "", http.StatusBadRequest)
 			return
 		}
