@@ -4,6 +4,8 @@
 import type {Locator} from '@playwright/test';
 import {expect} from '@playwright/test';
 
+export type ProfileSection = 'name' | 'username' | 'picture';
+
 export default class ProfileModal {
     readonly container: Locator;
 
@@ -17,6 +19,16 @@ export default class ProfileModal {
     readonly saveButton;
     readonly cancelButton;
 
+    readonly managedByAdminMessage;
+    readonly firstNameInput;
+    readonly lastNameInput;
+    readonly usernameInput;
+    readonly sectionHeadings;
+
+    readonly pictureFileInput;
+    readonly pictureSaveButton;
+    readonly pictureRemoveButton;
+
     constructor(container: Locator) {
         this.container = container;
 
@@ -29,6 +41,18 @@ export default class ProfileModal {
         this.closeButton = container.getByRole('button', {name: 'Close'});
         this.saveButton = container.locator('button:has-text("Save")');
         this.cancelButton = container.locator('button:has-text("Cancel")');
+        this.managedByAdminMessage = container.getByText(
+            'This field is managed by your System Admin. Contact them to request a change.',
+        );
+
+        this.firstNameInput = container.getByRole('textbox', {name: 'First Name'});
+        this.lastNameInput = container.getByRole('textbox', {name: 'Last Name'});
+        this.usernameInput = container.getByRole('textbox', {name: 'Username'});
+        this.sectionHeadings = this.profileSettingsTab.container.getByTestId('section-min').getByRole('heading');
+
+        this.pictureFileInput = container.getByTestId('uploadPicture');
+        this.pictureSaveButton = container.getByTestId('saveSettingPicture');
+        this.pictureRemoveButton = container.getByTestId('removeSettingPicture');
     }
 
     async toBeVisible() {
@@ -56,6 +80,54 @@ export default class ProfileModal {
     async closeModal() {
         await this.closeButton.click();
         await expect(this.container).not.toBeVisible();
+    }
+
+    getSectionEditButton(section: ProfileSection) {
+        return this.container.locator(`#${section}Edit`);
+    }
+
+    async openSection(section: ProfileSection) {
+        const editButton = this.getSectionEditButton(section);
+        await expect(editButton).toBeVisible();
+        await editButton.click();
+    }
+
+    async closeSection() {
+        await expect(this.cancelButton).toBeVisible();
+        await this.cancelButton.click();
+    }
+
+    getAttributeSection(label: string) {
+        return this.profileSettingsTab.container.getByTestId('section-min').filter({hasText: label});
+    }
+
+    getAttributeValue(label: string, value: string) {
+        return this.getAttributeSection(label).getByText(value, {exact: true});
+    }
+
+    async editAttribute(label: string) {
+        await this.getAttributeSection(label)
+            .getByRole('button', {name: `${label} Edit`, exact: true})
+            .click();
+        await expect(this.getAttributeInput(label)).toBeVisible();
+    }
+
+    getAttributeInput(label: string) {
+        return this.profileSettingsTab.container.getByRole('textbox', {name: label, exact: true});
+    }
+
+    /**
+     * Opens the "Profile Picture" section, uploads `filePath` directly to the file input
+     * (a real <input type="file">, no OS file-chooser dialog involved), and saves.
+     */
+    async uploadProfilePhoto(filePath: string) {
+        await this.openSection('picture');
+
+        await this.pictureFileInput.setInputFiles(filePath);
+        await expect(this.pictureSaveButton).toBeEnabled();
+        await this.pictureSaveButton.click();
+
+        await expect(this.getSectionEditButton('picture')).toBeVisible();
     }
 }
 
