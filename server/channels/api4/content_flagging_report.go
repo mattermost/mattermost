@@ -4,6 +4,7 @@
 package api4
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -103,6 +104,71 @@ func generateFlaggedPostReport(c *Context, w http.ResponseWriter, r *http.Reques
 	w.Header().Set("Content-Type", "application/zip")
 	w.Header().Set("Content-Disposition", fmt.Sprintf(`attachment; filename="%s"`, filename))
 	http.ServeContent(w, r, filename, stat.ModTime(), f)
+
+	auditRec.Success()
+}
+
+func generatePostExposureReport(c *Context, w http.ResponseWriter, r *http.Request) {
+	if c.Err != nil {
+		return
+	}
+
+	c.RequirePostId()
+	if c.Err != nil {
+		return
+	}
+
+	postId := c.Params.PostId
+	userId := c.AppContext.Session().UserId
+
+	auditRec := c.MakeAuditRecord(model.AuditEventGeneratePostExposureReport, model.AuditStatusFail)
+	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
+	model.AddEventParameterToAuditRec(auditRec, "flaggedPostId", postId)
+	model.AddEventParameterToAuditRec(auditRec, "userId", userId)
+
+	post, appErr := c.App.GetSinglePost(c.AppContext, postId, true)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	channel, appErr := c.App.GetChannel(c.AppContext, post.ChannelId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	requireTeamContentReviewer(c, userId, channel.TeamId)
+	if c.Err != nil {
+		return
+	}
+
+	requireFlaggedPost(c, postId)
+	if c.Err != nil {
+		return
+	}
+
+	report, appErr := c.App.ComputePostExposure(c.AppContext, postId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	var buf bytes.Buffer
+	if err := app.WritePostExposureCSV(&buf, report, c.AppContext.GetT()); err != nil {
+		c.Err = model.NewAppError("generatePostExposureReport", "api.data_spillage.exposure.write.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
+
+	c.App.NotifyReviewersOfPostExposureReportGeneration(c.AppContext, postId, userId)
+
+	filename := fmt.Sprintf("post-exposure-%s-%d.csv", postId, model.GetMillis())
+	w.Header().Set("Content-Type", "text/csv; charset=utf-8")
+	w.Header().Set("Content-Disposition", fmt.Sprintf(`attachment; filename="%s"`, filename))
+	if _, err := w.Write(buf.Bytes()); err != nil {
+		c.Logger.Warn("Failed to write post exposure report response", mlog.String("post_id", postId), mlog.Err(err))
+		return
+	}
 
 	auditRec.Success()
 }

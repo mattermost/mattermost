@@ -138,7 +138,7 @@ func (a *App) CreateTeam(rctx request.CTX, team *model.Team) (*model.Team, *mode
 }
 
 func (a *App) CreateTeamWithUser(rctx request.CTX, team *model.Team, userID string) (*model.Team, *model.AppError) {
-	user, err := a.GetUser(userID)
+	user, err := a.GetUser(rctx, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -875,7 +875,7 @@ func (a *App) JoinUserToTeam(rctx request.CTX, team *model.Team, user *model.Use
 
 	var actor *model.User
 	if userRequestorId != "" {
-		actor, _ = a.GetUser(userRequestorId)
+		actor, _ = a.GetUser(rctx, userRequestorId)
 	}
 
 	a.Srv().Go(func() {
@@ -1286,7 +1286,7 @@ func (a *App) RemoveUserFromTeam(rctx request.CTX, teamID string, userID string,
 func (a *App) postProcessTeamMemberLeave(rctx request.CTX, teamMember *model.TeamMember, requestorId string) *model.AppError {
 	var actor *model.User
 	if requestorId != "" {
-		actor, _ = a.GetUser(requestorId)
+		actor, _ = a.GetUser(rctx, requestorId)
 	}
 
 	a.Srv().Go(func() {

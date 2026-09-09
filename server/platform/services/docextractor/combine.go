@@ -44,7 +44,8 @@ func (ce *combineExtractor) Extract(ctx context.Context, filename string, r io.R
 				if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
 					return "", err
 				}
-				ce.logger.Warn("Unable to extract file content", mlog.String("file_name", filename), mlog.String("extractor", extractor.Name()), mlog.Err(err))
+
+				ce.logger.Warn("Unable to extract file content", mlog.String("extractor", extractor.Name()), mlog.Err(err))
 				continue
 			}
 			return text, nil

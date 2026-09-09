@@ -469,9 +469,6 @@ func TestMailServiceConfig(t *testing.T) {
 					EnablePreviewModeBanner:           new(bool),
 					SkipServerCertificateVerification: new(bool),
 					EmailNotificationContentsType:     new(string),
-					LoginButtonColor:                  new(string),
-					LoginButtonBorderColor:            new(string),
-					LoginButtonTextColor:              new(string),
 				},
 			}
 		},

@@ -2348,7 +2348,7 @@ func testChannelMembersToAdd(t *testing.T, rctx request.CTX, ss store.Store) {
 	require.Empty(t, channelMembers)
 
 	// Leaving Channel (ChannelMemberHistory) should still not return result
-	nErr = ss.ChannelMemberHistory().LogLeaveEvent(user.Id, channel.Id, model.GetMillis())
+	nErr = ss.ChannelMemberHistory().LogLeaveEvent(rctx, user.Id, channel.Id, model.GetMillis())
 	require.NoError(t, nErr)
 	channelMembers, err = ss.Group().ChannelMembersToAdd(0, nil, false)
 	require.NoError(t, err)
@@ -2366,7 +2366,7 @@ func testChannelMembersToAdd(t *testing.T, rctx request.CTX, ss store.Store) {
 	require.Len(t, channelMembers, 1)
 
 	// If reAddRemovedMembers is set to true, removed members should be added back in
-	nErr = ss.ChannelMemberHistory().LogLeaveEvent(user.Id, channel.Id, model.GetMillis())
+	nErr = ss.ChannelMemberHistory().LogLeaveEvent(rctx, user.Id, channel.Id, model.GetMillis())
 	require.NoError(t, nErr)
 	channelMembers, err = ss.Group().ChannelMembersToAdd(0, nil, true)
 	require.NoError(t, err)

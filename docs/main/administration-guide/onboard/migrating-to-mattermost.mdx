@@ -5,6 +5,8 @@ title: "Migration guide"
 
 Migrations help you move your Mattermost deployment or data from one environment to another with minimal disruption. Whether you’re transitioning your Mattermost server to new infrastructure, restructuring your database, or moving from another collaboration platform like Slack, this guide provides step-by-step instructions for each supported path. Use the sections below to quickly find the scenario that matches your needs and follow the recommended process to ensure a smooth migration.
 
+To change the database or container images an existing deployment runs on, see [data export and infrastructure migration](/administration-guide/manage/admin/migration) instead.
+
 [Book a live demo](https://mattermost.com/request-demo/) or [talk to a Mattermost expert](https://mattermost.com/contact-sales/) to explore tailored solutions for your organization's secure collaboration needs. Or try Mattermost yourself with a [1-hour preview](https://mattermost.com/sign-up/) for instant access to a live sandbox environment.
 
 ## Move Mattermost to a new server
@@ -34,6 +36,10 @@ Once your migration is complete and verified, you can optionally [upgrade the Te
 
 See the [Migrate from Slack](/administration-guide/onboard/migrate-from-slack) documentation for details on migrating from Slack to Mattermost.
 
+## Move from Rocket.Chat
+
+See the [Migrate from Rocket.Chat](/administration-guide/onboard/migrate-from-rocketchat) documentation for details on migrating from Rocket.Chat to Mattermost.
+
 ## Move from Jabber
 
 BrightScout helped a major U.S. Federal Agency rapidly migrate from Jabber to Mattermost and open sourced their Extract, Transform and Load (ETL) tool at [https://github.com/Brightscout/mattermost-etl](https://github.com/Brightscout/mattermost-etl). Read more about their [case study](https://mattermost.com/blog/u-s-federal-agency-migrates-from-jabber-to-mattermost-the-open-source-way/) online.
@@ -60,8 +66,8 @@ Migrating from bespoke messengers to Mattermost can be challenging. Because of t
 
 If your data in the bespoke messenger is vital, consider:
 
-1.  [Mattermost bulk load tool](/administration-guide/onboard/bulk-loading-data): Use the Mattermost bulk load tool to ETL from your bespoke system to Mattermost.
-2.  [Mattermost ETL framework from BrightScout](https://github.com/Brightscout/mattermost-etl): Consider the Mattermost ETL framework from BrightScout to custom-configure an adapter to plug in to the Bulk Load tool mentioned above.
+1.  [Mattermost bulk import tool](/administration-guide/onboard/bulk-loading-data): Use the Mattermost bulk import tool to ETL from your bespoke system to Mattermost.
+2.  [Mattermost ETL framework from BrightScout](https://github.com/Brightscout/mattermost-etl): Consider the Mattermost ETL framework from BrightScout to custom-configure an adapter to plug in to the bulk import tool mentioned above.
 3.  **Legacy Slack import:** If you only recently switched from Slack to a bespoke tool, consider going back to import the data and users from the old Slack instance directly into Mattermost, leveraging the extensive support for Slack-import provided.
 4.  **Export to Slack, then import to Mattermost:** [Export Flowdock, Campfire, Chatwork, Hall, or CSV files to Slack](https://slack.com/help/articles/217872578-Import-data-from-one-Slack-workspace-to-another) and then export to a Slack export file and import the file into Mattermost.
 

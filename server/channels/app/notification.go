@@ -30,15 +30,7 @@ func (a *App) canSendPushNotifications() bool {
 	}
 
 	pushServer := *a.Config().EmailSettings.PushNotificationServer
-	// Check for MHPNS servers (both current and legacy DNS aliases)
-	isMHPNSServer := pushServer == model.MHPNS ||
-		pushServer == model.MHPNSLegacyUS ||
-		pushServer == model.MHPNSLegacyDE ||
-		pushServer == model.MHPNSGlobal ||
-		pushServer == model.MHPNSUS ||
-		pushServer == model.MHPNSEU ||
-		pushServer == model.MHPNSAP
-	if license := a.Srv().License(); isMHPNSServer && (license == nil || !*license.Features.MHPNS) {
+	if model.IsMHPNSEndpoint(pushServer) && !a.Srv().License().HasMHPNS() {
 		a.Log().LogM(mlog.MlvlNotificationWarn, "Push notifications are disabled - license missing",
 			mlog.String("status", model.NotificationStatusNotSent),
 			mlog.String("reason", "push_disabled_license"),
@@ -705,6 +697,8 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 	message.Add("team_id", team.Id)
 	message.Add("set_online", setOnline)
 
+	a.markPostDeliveryForBroadcast(rctx, message, post)
+
 	if len(post.FileIds) != 0 && fchan != nil {
 		message.Add("otherFile", "true")
 
@@ -883,6 +877,7 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 					message.Add("thread", string(payload))
 					message.Add("previous_unread_mentions", previousUnreadMentions)
 					message.Add("previous_unread_replies", previousUnreadReplies)
+					a.markPostDeliveryForBroadcast(rctx, message, userThread.Post)
 
 					auditRec := a.MakeAuditRecord(rctx, model.AuditEventWebsocketPost, model.AuditStatusSuccess)
 					defer a.LogAuditRec(rctx, auditRec, nil)
@@ -1054,6 +1049,7 @@ func (a *App) RemoveNotifications(rctx request.CTX, post *model.Post, channel *m
 				message.Add("thread", string(payload))
 				message.Add("previous_unread_mentions", previousUnreadMentions)
 				message.Add("previous_unread_replies", previousUnreadReplies)
+				a.markPostDeliveryForBroadcast(rctx, message, userThread.Post)
 
 				a.Publish(message)
 			}
@@ -1080,7 +1076,7 @@ func (a *App) getExplicitMentionsAndKeywords(rctx request.CTX, post *model.Post,
 			if _, ok := profileMap[user1]; ok {
 				mentions.addMention(user1, DMMention)
 			} else {
-				a.Log().Debug("missing profile: DM user not in profiles", mlog.String("userId", user1), mlog.String("channelId", channel.Id))
+				a.Log().Debug("missing profile: DM user not in profiles", mlog.String("user_id", user1), mlog.String("channel_id", channel.Id))
 			}
 		}
 
@@ -1089,7 +1085,7 @@ func (a *App) getExplicitMentionsAndKeywords(rctx request.CTX, post *model.Post,
 				if _, ok := profileMap[user2]; ok {
 					mentions.addMention(user2, DMMention)
 				} else {
-					a.Log().Debug("missing profile: DM user not in profiles", mlog.String("userId", user2), mlog.String("channelId", channel.Id))
+					a.Log().Debug("missing profile: DM user not in profiles", mlog.String("user_id", user2), mlog.String("channel_id", channel.Id))
 				}
 			}
 		}
@@ -1105,7 +1101,7 @@ func (a *App) getExplicitMentionsAndKeywords(rctx request.CTX, post *model.Post,
 				if _, ok := profileMap[id]; ok {
 					mentions.addMention(id, GMMention)
 				} else {
-					a.Log().Debug("missing profile: GM user not in profiles", mlog.String("userId", id), mlog.String("channelId", channel.Id))
+					a.Log().Debug("missing profile: GM user not in profiles", mlog.String("user_id", id), mlog.String("channel_id", channel.Id))
 				}
 			}
 		}
@@ -1117,7 +1113,7 @@ func (a *App) getExplicitMentionsAndKeywords(rctx request.CTX, post *model.Post,
 				if _, ok := profileMap[addedUserId]; ok {
 					mentions.addMention(addedUserId, KeywordMention)
 				} else {
-					a.Log().Debug("missing profile: user added to channel not in profiles", mlog.String("userId", addedUserId), mlog.String("channelId", channel.Id))
+					a.Log().Debug("missing profile: user added to channel not in profiles", mlog.String("user_id", addedUserId), mlog.String("channel_id", channel.Id))
 				}
 			}
 		}

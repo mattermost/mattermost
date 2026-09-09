@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {useEffect, useState} from 'react';
+import {useLayoutEffect, useState} from 'react';
 import type {RefObject} from 'react';
 
 export type ContainerDimensions = {
@@ -12,7 +12,7 @@ export type ContainerDimensions = {
 export function useContainerDimensions(ref: RefObject<HTMLElement>): ContainerDimensions {
     const [dimensions, setDimensions] = useState<ContainerDimensions>({width: 0, height: 0});
 
-    useEffect(() => {
+    useLayoutEffect(() => {
         const node = ref.current;
         if (!node) {
             return undefined;

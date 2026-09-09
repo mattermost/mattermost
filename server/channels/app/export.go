@@ -1260,32 +1260,32 @@ func (a *App) ListExports() ([]string, *model.AppError) {
 }
 
 func (a *App) GeneratePresignURLForExport(name string) (*model.PresignURLResponse, *model.AppError) {
-	if !a.Config().FeatureFlags.EnableExportDirectDownload {
-		return nil, model.NewAppError("GeneratePresignURLForExport", "app.eport.generate_presigned_url.featureflag.app_error", nil, "", http.StatusInternalServerError)
+	if !a.License().IsCloud() {
+		return nil, model.NewAppError("GeneratePresignURLForExport", "app.export.generate_presigned_url.direct_download.app_error", nil, "", http.StatusForbidden)
 	}
 
 	if !*a.Config().FileSettings.DedicatedExportStore {
-		return nil, model.NewAppError("GeneratePresignURLForExport", "app.eport.generate_presigned_url.config.app_error", nil, "", http.StatusInternalServerError)
+		return nil, model.NewAppError("GeneratePresignURLForExport", "app.export.generate_presigned_url.config.app_error", nil, "", http.StatusInternalServerError)
 	}
 
 	b := a.ExportFileBackend()
 	backend, ok := b.(filestore.FileBackendWithLinkGenerator)
 	if !ok {
-		return nil, model.NewAppError("GeneratePresignURLForExport", "app.eport.generate_presigned_url.driver.app_error", nil, "", http.StatusInternalServerError)
+		return nil, model.NewAppError("GeneratePresignURLForExport", "app.export.generate_presigned_url.driver.app_error", nil, "", http.StatusInternalServerError)
 	}
 
 	p := path.Join(*a.Config().ExportSettings.Directory, filepath.Base(name))
 	found, err := b.FileExists(p)
 	if err != nil {
-		return nil, model.NewAppError("GeneratePresignURLForExport", "app.eport.generate_presigned_url.fileexist.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return nil, model.NewAppError("GeneratePresignURLForExport", "app.export.generate_presigned_url.fileexist.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	if !found {
-		return nil, model.NewAppError("GeneratePresignURLForExport", "app.eport.generate_presigned_url.notfound.app_error", nil, "", http.StatusInternalServerError)
+		return nil, model.NewAppError("GeneratePresignURLForExport", "app.export.generate_presigned_url.notfound.app_error", nil, "", http.StatusInternalServerError)
 	}
 
 	link, exp, err := backend.GeneratePublicLink(p)
 	if err != nil {
-		return nil, model.NewAppError("GeneratePresignURLForExport", "app.eport.generate_presigned_url.link.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return nil, model.NewAppError("GeneratePresignURLForExport", "app.export.generate_presigned_url.link.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return &model.PresignURLResponse{

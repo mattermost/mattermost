@@ -27,7 +27,7 @@ This is the default and recommended database to use with Mattermost. No addition
 
 ```
 MM_SQLSETTINGS_DRIVERNAME=postgres
-MM_SQLSETTINGS_DATASOURCE=postgres://mmuser:mostest@localhost:5432/mattermost_test?sslmode=disable\u0026connect_timeout=10
+MM_SQLSETTINGS_DATASOURCE=postgres://mmuser:mostest_password@localhost:5432/mattermost_test?sslmode=disable\u0026connect_timeout=10
 ```
 
 ## mysql
@@ -41,7 +41,7 @@ This is an alternate database supported by Mattermost, but not recommended for n
 To use with Mattermost, be sure to configure the following settings:
 ```
 MM_SQLSETTINGS_DRIVERNAME=mysql
-MM_SQLSETTINGS_DATASOURCE=mmuser:mostest@tcp(localhost:3306)/mattermost_test?charset=utf8mb4,utf8\u0026readTimeout=30s\u0026writeTimeout=30s
+MM_SQLSETTINGS_DATASOURCE=mmuser:mostest_password@tcp(localhost:3306)/mattermost_test?charset=utf8mb4,utf8\u0026readTimeout=30s\u0026writeTimeout=30s
 ```
 
 ## inbucket

@@ -247,7 +247,7 @@ func (a *App) SessionHasPermissionToCategory(rctx request.CTX, session model.Ses
 	return err == nil && category != nil && category.UserId == session.UserId && category.UserId == userID && category.TeamId == teamID
 }
 
-func (a *App) SessionHasPermissionToUser(session model.Session, userID string) bool {
+func (a *App) SessionHasPermissionToUser(rctx request.CTX, session model.Session, userID string) bool {
 	if userID == "" {
 		return false
 	}
@@ -263,7 +263,7 @@ func (a *App) SessionHasPermissionToUser(session model.Session, userID string) b
 		return false
 	}
 
-	user, err := a.GetUser(userID)
+	user, err := a.GetUser(rctx, userID)
 	if err != nil {
 		return false
 	}
@@ -285,15 +285,15 @@ func (a *App) SessionHasPermissionToUserOrBot(rctx request.CTX, session model.Se
 		return true
 	}
 	if err.Id == "store.sql_bot.get.missing.app_error" && err.Where == "SqlBotStore.Get" {
-		if a.SessionHasPermissionToUser(session, userID) {
+		if a.SessionHasPermissionToUser(rctx, session, userID) {
 			return true
 		}
 	}
 	return false
 }
 
-func (a *App) HasPermissionTo(askingUserId string, permission *model.Permission) bool {
-	user, err := a.GetUser(askingUserId)
+func (a *App) HasPermissionTo(rctx request.CTX, askingUserId string, permission *model.Permission) bool {
+	user, err := a.GetUser(rctx, askingUserId)
 	if err != nil {
 		return false
 	}
@@ -313,7 +313,7 @@ func (a *App) HasPermissionToTeam(rctx request.CTX, askingUserId string, teamID 
 			return true
 		}
 	}
-	return a.HasPermissionTo(askingUserId, permission)
+	return a.HasPermissionTo(rctx, askingUserId, permission)
 }
 
 // HasPermissionToChannel determines if the specified user has the given permission on the provided channel.
@@ -351,7 +351,7 @@ func (a *App) HasPermissionToChannel(rctx request.CTX, askingUserId string, chan
 		return a.HasPermissionToTeam(rctx, askingUserId, channel.TeamId, permission), isMember
 	}
 
-	return a.HasPermissionTo(askingUserId, permission), isMember
+	return a.HasPermissionTo(rctx, askingUserId, permission), isMember
 }
 
 func (a *App) HasPermissionToChannelByPost(rctx request.CTX, askingUserId string, postID string, permission *model.Permission) bool {
@@ -365,15 +365,15 @@ func (a *App) HasPermissionToChannelByPost(rctx request.CTX, askingUserId string
 		return a.HasPermissionToTeam(rctx, askingUserId, channel.TeamId, permission)
 	}
 
-	return a.HasPermissionTo(askingUserId, permission)
+	return a.HasPermissionTo(rctx, askingUserId, permission)
 }
 
-func (a *App) HasPermissionToUser(askingUserId string, userID string) bool {
+func (a *App) HasPermissionToUser(rctx request.CTX, askingUserId string, userID string) bool {
 	if askingUserId == userID {
 		return true
 	}
 
-	if a.HasPermissionTo(askingUserId, model.PermissionEditOtherUsers) {
+	if a.HasPermissionTo(rctx, askingUserId, model.PermissionEditOtherUsers) {
 		return true
 	}
 
@@ -614,13 +614,13 @@ func (a *App) hasPropertyFieldPermissionLevel(rctx request.CTX, userID string, f
 	case model.PermissionLevelNone:
 		return false
 	case model.PermissionLevelSysadmin:
-		return a.HasPermissionTo(userID, model.PermissionManageSystem)
+		return a.HasPermissionTo(rctx, userID, model.PermissionManageSystem)
 	case model.PermissionLevelMember:
 		return a.hasPropertyFieldScopeAccess(rctx, userID, field)
 	case model.PermissionLevelAdmin:
 		switch field.TargetType {
 		case string(model.PropertyFieldTargetLevelSystem):
-			return a.HasPermissionTo(userID, model.PermissionManageSystem)
+			return a.HasPermissionTo(rctx, userID, model.PermissionManageSystem)
 		case string(model.PropertyFieldTargetLevelTeam):
 			return a.HasPermissionToTeam(rctx, userID, field.TargetID, model.PermissionManageTeam)
 		case string(model.PropertyFieldTargetLevelChannel):
@@ -640,7 +640,7 @@ func (a *App) hasPropertyFieldPermissionLevel(rctx request.CTX, userID string, f
 func (a *App) hasPropertyFieldValuePermissionLevel(rctx request.CTX, userID string, field *model.PropertyField, valueTargetID string, level model.PermissionLevel) bool {
 	switch level {
 	case model.PermissionLevelSysadmin:
-		return a.HasPermissionTo(userID, model.PermissionManageSystem)
+		return a.HasPermissionTo(rctx, userID, model.PermissionManageSystem)
 	case model.PermissionLevelAdmin:
 		return a.hasPropertyFieldValueAdmin(rctx, userID, field, valueTargetID)
 	case model.PermissionLevelMember:

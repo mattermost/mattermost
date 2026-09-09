@@ -167,9 +167,9 @@ func (scs *Service) ProcessSyncMessage(rctx request.CTX, syncMsg *model.SyncMsg,
 		if syncMsg.ChannelId != post.ChannelId {
 			scs.server.Log().LogM(mlog.MlvlSharedChannelServiceWarn, "ChannelId mismatch",
 				mlog.String("remote", rc.Name),
-				mlog.String("sm.ChannelId", syncMsg.ChannelId),
-				mlog.String("sm.Post.ChannelId", post.ChannelId),
-				mlog.String("PostId", post.Id),
+				mlog.String("sm_channel_id", syncMsg.ChannelId),
+				mlog.String("sm_post_channel_id", post.ChannelId),
+				mlog.String("post_id", post.Id),
 			)
 			syncResp.PostErrors = append(syncResp.PostErrors, post.Id)
 			continue
@@ -180,8 +180,8 @@ func (scs *Service) ProcessSyncMessage(rctx request.CTX, syncMsg *model.SyncMsg,
 			team, err2 = scs.server.GetStore().Channel().GetTeamForChannel(syncMsg.ChannelId)
 			if err2 != nil {
 				scs.server.Log().LogM(mlog.MlvlSharedChannelServiceError, "Error getting Team for Channel",
-					mlog.String("ChannelId", post.ChannelId),
-					mlog.String("PostId", post.Id),
+					mlog.String("channel_id", post.ChannelId),
+					mlog.String("post_id", post.Id),
 					mlog.String("remote", rc.Name),
 					mlog.Err(err2),
 				)

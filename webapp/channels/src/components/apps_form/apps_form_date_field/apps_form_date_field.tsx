@@ -58,9 +58,9 @@ const AppsFormDateField: React.FC<Props> = ({
         setIsInteracting?.(isOpen);
     }, [setIsInteracting]);
 
-    // Resolve effective min/max dates (datetime_config takes precedence over deprecated top-level fields)
-    const effectiveMinDate = field.datetime_config?.min_date ?? field.min_date;
-    const effectiveMaxDate = field.datetime_config?.max_date ?? field.max_date;
+    // Resolve effective min/max dates
+    const effectiveMinDate = field.datetime_config?.min_date;
+    const effectiveMaxDate = field.datetime_config?.max_date;
 
     const disabledDays = useMemo(() => {
         const disabled = [];

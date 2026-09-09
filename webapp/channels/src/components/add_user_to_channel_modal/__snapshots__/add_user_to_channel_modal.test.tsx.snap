@@ -9,87 +9,84 @@ exports[`components/AddUserToChannelModal should match snapshot 1`] = `
     aria-hidden="true"
   />
   <div
-    role="none"
+    class="fade modal-backdrop in"
+  />
+  <div
+    aria-labelledby="addChannelModalLabel"
+    aria-modal="true"
+    class="fade in modal"
+    role="dialog"
+    style="display: block; padding-right: 0px;"
+    tabindex="-1"
   >
     <div
-      class="fade modal-backdrop in"
-    />
-    <div
-      aria-labelledby="addChannelModalLabel"
-      class="fade in modal"
-      role="dialog"
-      style="display: block; padding-right: 0px;"
-      tabindex="-1"
+      class="a11y__modal modal--overflow modal-dialog"
     >
       <div
-        class="a11y__modal modal--overflow modal-dialog"
+        class="modal-content"
+        role="document"
       >
         <div
-          class="modal-content"
-          role="document"
+          class="modal-header"
+        >
+          <button
+            aria-label="Close"
+            class="close"
+            type="button"
+          >
+            <span
+              aria-hidden="true"
+            >
+              ×
+            </span>
+            <span
+              class="sr-only"
+            >
+              Close
+            </span>
+          </button>
+          <h1
+            class="modal-title"
+            id="addChannelModalLabel"
+          >
+            Add Fake Person to a Channel
+          </h1>
+        </div>
+        <form
+          role="form"
         >
           <div
-            class="modal-header"
+            class="modal-body"
+          >
+            <div
+              class="modal__hint"
+            >
+              Type to find a channel. Use ↑↓ to browse, ↵ to select, ESC to dismiss.
+            </div>
+            <div
+              class="pos-relative"
+            />
+            <div />
+          </div>
+          <div
+            class="modal-footer"
           >
             <button
-              aria-label="Close"
-              class="close"
+              class="btn btn-tertiary"
               type="button"
             >
-              <span
-                aria-hidden="true"
-              >
-                ×
-              </span>
-              <span
-                class="sr-only"
-              >
-                Close
-              </span>
+              Cancel
             </button>
-            <h1
-              class="modal-title"
-              id="addChannelModalLabel"
+            <button
+              class="btn btn-primary"
+              disabled=""
+              id="add-user-to-channel-modal__add-button"
+              type="button"
             >
-              Add Fake Person to a Channel
-            </h1>
+              Add
+            </button>
           </div>
-          <form
-            role="form"
-          >
-            <div
-              class="modal-body"
-            >
-              <div
-                class="modal__hint"
-              >
-                Type to find a channel. Use ↑↓ to browse, ↵ to select, ESC to dismiss.
-              </div>
-              <div
-                class="pos-relative"
-              />
-              <div />
-            </div>
-            <div
-              class="modal-footer"
-            >
-              <button
-                class="btn btn-tertiary"
-                type="button"
-              >
-                Cancel
-              </button>
-              <button
-                class="btn btn-primary"
-                disabled=""
-                id="add-user-to-channel-modal__add-button"
-                type="button"
-              >
-                Add
-              </button>
-            </div>
-          </form>
-        </div>
+        </form>
       </div>
     </div>
   </div>

@@ -11,7 +11,8 @@ import {expect, test, testConfig} from '@mattermost/playwright-lib';
  *
  * A token is non-compliant once ServiceSettings.MaximumPersonalAccessTokenLifetimeDays > 0
  * and the token never expires, or expires beyond that cap. The policy only applies at
- * creation time, so every seeded token below is created before the cap is patched in.
+ * creation time, so every test clears the cap before seeding its tokens and patches it in
+ * afterwards. The cap is server-wide, so a test that already ran leaves it set.
  * The policy applies to user-owned bot tokens the same as regular user tokens; only
  * plugin-owned and system bot tokens are exempt. A bot created via the REST API, like
  * the one below, is owned by the creating user and is therefore not exempt.
@@ -78,7 +79,9 @@ test.describe('System Console > Integrations > Revoke non-compliant tokens @syst
 
     test('shows a violation and reveals a confirmation modal that can be dismissed without revoking', async ({pw}) => {
         const {adminUser, adminClient, user} = await pw.initSetup();
-        await adminClient.patchConfig({ServiceSettings: {EnableUserAccessTokens: true}});
+        await adminClient.patchConfig({
+            ServiceSettings: {EnableUserAccessTokens: true, MaximumPersonalAccessTokenLifetimeDays: 0},
+        });
         await adminClient.updateUserRoles(user.id, TOKEN_ROLES);
 
         // # Seed a never-expiring token while there is no cap, then enable the cap so it becomes non-compliant
@@ -122,7 +125,11 @@ test.describe('System Console > Integrations > Revoke non-compliant tokens @syst
     }) => {
         const {adminUser, adminClient, user} = await pw.initSetup();
         await adminClient.patchConfig({
-            ServiceSettings: {EnableUserAccessTokens: true, EnableBotAccountCreation: true},
+            ServiceSettings: {
+                EnableUserAccessTokens: true,
+                EnableBotAccountCreation: true,
+                MaximumPersonalAccessTokenLifetimeDays: 0,
+            },
         });
         await adminClient.updateUserRoles(user.id, TOKEN_ROLES);
 

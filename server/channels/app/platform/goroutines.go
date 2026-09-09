@@ -4,9 +4,19 @@
 package platform
 
 import (
+	"context"
 	"runtime"
 	"sync/atomic"
 )
+
+// GoContext returns a context that is cancelled when the server begins shutting down. It is
+// suitable as the parent for long-running background requests that must not outlive the server.
+func (ps *PlatformService) GoContext() context.Context {
+	if ps.goroutineCtx == nil {
+		return context.Background()
+	}
+	return ps.goroutineCtx
+}
 
 // Go creates a goroutine, but maintains a record of it to ensure that execution completes before
 // the server is shutdown.
