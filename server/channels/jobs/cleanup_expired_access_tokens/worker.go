@@ -26,7 +26,7 @@ const (
 // Defined here rather than depending on the full store interface so the
 // orchestration logic can be unit-tested with a small fake.
 type expiredTokenStore interface {
-	GetExpiredBefore(cutoff int64, limit int, includeUserOwnedTokens bool) ([]*model.UserAccessToken, error)
+	GetExpiredBefore(cutoff int64, limit int) ([]*model.UserAccessToken, error)
 	DeleteByIds(tokenIDs []string) (int64, error)
 }
 
@@ -56,7 +56,6 @@ func MakeWorker(jobServer *jobs.JobServer, clearSessionCache func(userID string)
 			jobServer.Store.UserAccessToken(),
 			clearSessionCache,
 			notifyExpired,
-			*jobServer.Config().ServiceSettings.EnableUserAccessTokens,
 			model.GetMillis(),
 			batchLimit,
 			maxBatches,
@@ -84,7 +83,6 @@ func cleanupExpired(
 	store expiredTokenStore,
 	clearSessionCache func(userID string),
 	notifyExpired func(rctx request.CTX, tokens []*model.UserAccessToken),
-	includeUserOwnedTokens bool,
 	cutoff int64,
 	limit int,
 	maxIter int,
@@ -92,7 +90,7 @@ func cleanupExpired(
 	var totalDeleted int64
 
 	for range maxIter {
-		expired, err := store.GetExpiredBefore(cutoff, limit, includeUserOwnedTokens)
+		expired, err := store.GetExpiredBefore(cutoff, limit)
 		if err != nil {
 			return err
 		}
