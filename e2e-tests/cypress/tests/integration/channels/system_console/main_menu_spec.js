@@ -43,6 +43,10 @@ describe('Main menu', () => {
                 cy.findByRole('menuitem', {name: 'Switch teams'}).should('not.exist');
             });
 
+            // # Close the header menu so its backdrop does not cover BackstageNavbar
+            cy.get('body').type('{esc}');
+            cy.findByRole('menu', {name: 'Admin Console Menu'}).should('not.exist');
+
             // * Return to team via BackstageNavbar instead
             cy.findByTestId('backstage-navbar-back').should('be.visible').click();
             cy.url().should('include', `/${DEFAULT_TEAM.name}`);
