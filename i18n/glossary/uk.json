@@ -97,8 +97,8 @@
     "note": "Neuter. Consistently used in existing translations (not 'потік' or 'гілка', though 'потік' appears in a few admin strings)."
   },
   "reply": {
-    "target": "відповідь (ім.) / відповісти (дієсл.)",
-    "note": "Noun is feminine ('відповідь', plural 'відповіді'); verb 'відповісти' (perfective) for buttons."
+    "target": "відповідь",
+    "note": "Noun is feminine (plural 'відповіді'). Verb: 'відповісти' (perfective) for buttons."
   },
   "direct message": {
     "target": "приватне повідомлення",
@@ -108,8 +108,8 @@
     "target": "групове повідомлення"
   },
   "mention": {
-    "target": "згадка (ім.) / згадати (дієсл.)",
-    "note": "Noun 'згадка' is feminine; 'згадування' also appears for the act of mentioning."
+    "target": "згадка",
+    "note": "Noun is feminine. Verb: 'згадати'; 'згадування' also appears for the act of mentioning."
   },
   "notification": {
     "target": "сповіщення",
@@ -120,8 +120,8 @@
     "note": "'unpin' = 'відкріпити'; 'pinned messages' = 'закріплені повідомлення'."
   },
   "bookmark": {
-    "target": "закладка (ім.) / додати в закладки (дієсл.)",
-    "note": "Feminine noun."
+    "target": "закладка",
+    "note": "Noun is feminine. Verb: 'додати в закладки'."
   },
   "saved messages": {
     "target": "збережені повідомлення",
@@ -237,11 +237,12 @@
     "note": "Existing strings mix 'Не слідувати за' and 'Відписатися від'; use 'припинити стежити за' for consistency with 'follow' = 'стежити'."
   },
   "favorite": {
-    "target": "обране (ім.) / додати в обране (дієсл.)",
-    "note": "'Favorites' category = 'Обране'; 'unfavorite' = 'вилучити з обраного'."
+    "target": "обране",
+    "note": "Sidebar category = 'Обране'. Verb: 'додати в обране'; 'unfavorite' = 'вилучити з обраного'."
   },
   "search": {
-    "target": "пошук (ім.) / шукати (дієсл.)"
+    "target": "пошук",
+    "note": "Verb: 'шукати'."
   },
   "integration": {
     "target": "інтеграція",
@@ -308,7 +309,8 @@
     "note": "Consistent; 'deactivated' = 'деактивовано'."
   },
   "invite": {
-    "target": "запросити (дієсл.) / запрошення (ім.)"
+    "target": "запросити",
+    "note": "Verb; noun uses 'запрошення'."
   },
   "invitation": {
     "target": "запрошення",
