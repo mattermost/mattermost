@@ -55,9 +55,6 @@
   "Elasticsearch": {
     "target": "Elasticsearch"
   },
-  "Bleve": {
-    "target": "Bleve"
-  },
   "Gossip": {
     "target": "Gossip",
     "note": "Protocol name; never render literally. The Weblate glossary row 'Klatsch und Tratsch' is a literal mistranslation and must not be used."

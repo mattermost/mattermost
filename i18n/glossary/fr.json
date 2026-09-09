@@ -56,9 +56,6 @@
   "Elasticsearch": {
     "target": "Elasticsearch"
   },
-  "Bleve": {
-    "target": "Bleve"
-  },
   "Gossip": {
     "target": "Gossip",
     "note": "Weblate glossary allows the clarification 'Bavardage (gossip protocol)'; never translate alone as 'bavardage'."

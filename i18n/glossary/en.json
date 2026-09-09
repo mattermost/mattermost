@@ -98,11 +98,6 @@
     "partOfSpeech": "noun",
     "doNotTranslate": true
   },
-  "Bleve": {
-    "definition": "Name of the embedded search engine option in the System Console; brand name.",
-    "partOfSpeech": "noun",
-    "doNotTranslate": true
-  },
   "Gossip": {
     "definition": "Name of the cluster communication protocol shown in high-availability settings; never translate literally as 'chatter'.",
     "partOfSpeech": "noun",

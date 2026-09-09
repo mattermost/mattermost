@@ -59,9 +59,6 @@
   "Elasticsearch": {
     "target": "Elasticsearch"
   },
-  "Bleve": {
-    "target": "Bleve"
-  },
   "Gossip": {
     "target": "Gossip",
     "note": "Protocol name; never translate literally (not 'plotka')."

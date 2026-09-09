@@ -61,9 +61,6 @@
   "Elasticsearch": {
     "target": "Elasticsearch"
   },
-  "Bleve": {
-    "target": "Bleve"
-  },
   "Gossip": {
     "target": "Gossip"
   },

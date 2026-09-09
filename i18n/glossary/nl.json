@@ -57,9 +57,6 @@
   "Elasticsearch": {
     "target": "Elasticsearch"
   },
-  "Bleve": {
-    "target": "Bleve"
-  },
   "Gossip": {
     "target": "Gossip",
     "note": "Protocol name; the Weblate glossary row 'Praatjes' is a mistranslation — keep English."
