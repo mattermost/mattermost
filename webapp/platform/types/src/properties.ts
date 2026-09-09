@@ -20,10 +20,11 @@ export type FieldValueType =
     'phone' |
     '';
 
-// PSAv2 access-level values. 'admin' resolves to the admin of the field's
-// target (sysadmin for system targets, team admin for team targets, channel
-// admin for channel targets) -- see server/public/model/property_field.go.
-export type PermissionLevel = 'none' | 'sysadmin' | 'member' | 'admin';
+// Mirrors model/property_field.go's PermissionLevel. 'admin' resolves to the
+// admin of the field's target (sysadmin for system targets, team admin for
+// team targets, channel admin for channel targets). Empty means the server
+// fills in the default for the field's object type.
+export type PermissionLevel = 'none' | 'sysadmin' | 'admin' | 'member' | '';
 
 export type PropertyField = {
     id: string;
@@ -40,10 +41,8 @@ export type PropertyField = {
     linked_field_id?: string;
     protected?: boolean;
 
-    // PSAv2-only. permission_values is settable via the API for a linked
-    // field (MM-69869's "Who can set the value") -- see
-    // global_attributes/utils.ts. permission_field/permission_options remain
-    // read-only from the webapp today.
+    // The server is authoritative on all three; the client reads permission_values
+    // only to decide whether to offer an editing affordance.
     permission_field?: PermissionLevel;
     permission_values?: PermissionLevel;
     permission_options?: PermissionLevel;
@@ -99,6 +98,23 @@ export type SelectPropertyField = PropertyField & {
 export const supportsOptions = (field: PropertyField) => {
     return field.type === 'select' || field.type === 'multiselect' || field.type === 'rank';
 };
+
+export const isTextField = (field: PropertyField) => {
+    return field.type === 'text';
+};
+
+// How a value may move once it is set, mirroring attrs.change_policy in
+// model/property_field_attrs_validation.go. raise_only and lower_only compare
+// option ranks, so the server strips them from any field that is not a rank.
+export const PROPERTY_CHANGE_POLICIES = ['any', 'raise_only', 'lower_only', 'never'] as const;
+
+export type PropertyChangePolicy = typeof PROPERTY_CHANGE_POLICIES[number];
+
+export const ORDERED_PROPERTY_CHANGE_POLICIES: PropertyChangePolicy[] = ['raise_only', 'lower_only'];
+
+export function isOrderedChangePolicy(policy: PropertyChangePolicy): boolean {
+    return ORDERED_PROPERTY_CHANGE_POLICIES.includes(policy);
+}
 
 // PSA v2 state types
 

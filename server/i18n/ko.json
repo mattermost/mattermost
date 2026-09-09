@@ -1154,10 +1154,6 @@
     "translation": "이 라이선스는 시스템에 {{.Count}}명의 고유 사용자들이 있을 때, {{.Users}}명의 사용자를 지원합니다. 고유 사용자는 이메일 주소로 구분됩니다. 사용자 수는 리포팅 -> 사이트 통계에서 확인할 수 있습니다."
   },
   {
-    "id": "api.license.client.old_format.app_error",
-    "translation": "클라이언트 라이선스를 위한 새로운 형식은 아직 지원하지 않습니다. 명령문에서 format=old 를 명시해 주세요."
-  },
-  {
     "id": "api.marshal_error",
     "translation": "직렬화하지 못했습니다."
   },
@@ -1474,78 +1470,6 @@
     "translation": "서버 시작중 오류, err:%v"
   },
   {
-    "id": "api.slackimport.slack_add_bot_user.unable_import",
-    "translation": "{{.Username}} 슬랙 봇 계정을 추가할 수 없습니다.\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_channels.added",
-    "translation": "\n채널 추가되었습니다:\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_channels.failed_to_add_user",
-    "translation": "슬랙 사용자 {{.Username}}을(를) 채널에 추가할 수 없습니다.\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_channels.import_failed",
-    "translation": "슬랙 채널 {{.DisplayName}}을(를) 임포트할 수 없습니다.\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_channels.merge",
-    "translation": "Slack 채널인 {{.DisplayName}}이(가) 이미 Mattermost채널에 활성 상태로 존재합니다. 두 채널은 통합되었습니다.\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_users.created",
-    "translation": "\n사용자가 생성되었습니다:\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_users.merge_existing",
-    "translation": "이메일 {{.Email}}, 사용자명 {{.Username}}을 통해 Slack 사용자와 Mattermost에 존재하는 사용자를 통합했습니다.\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_users.merge_existing_failed",
-    "translation": "이메일 {{.Email}}, 사용자명 {{.Username}}을 통해 Slack 사용자와 Mattermost에 존재하는 사용자를 통합했지만 팀에 추가하지 못했습니다.\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_users.missing_email_address",
-    "translation": "사용자 {{.Username}}은(는) Slack 추출 정보에 이메일 주소가 없습니다. 임시로 {{.Email}}을(를) 플레이스홀더로 사용합니다. 사용자는 시스템에 접속하여 전자우편 주소를 변경해야 합니다.\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_users.unable_import",
-    "translation": "불러올 수 없는 Slack사용자 입니다: {{.Username}}\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.log",
-    "translation": "Slack에서 가져오기 Log\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.note1",
-    "translation": "- 몇몇 메시지는 이 불러오기 프로그램을 지원하지 않기 때문에 불러올 수 없을 수 없습니다.\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.note2",
-    "translation": "- Slack bot 메시지는 최근 지원하지 않습니다.\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.note3",
-    "translation": "- 서버 로그에서 찾을 수 있는 추가적인 오류들.\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.notes",
-    "translation": "\n알림:\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.open.app_error",
-    "translation": "{{.Filename}} 파일을 열 수 없습니다.\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.team_fail",
-    "translation": "불러오기 할 팀을 가져올 수 없습니다.\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.zip.app_error",
-    "translation": "Slack에서 불러온 zip파일을 열 수 없습니다.\n"
-  },
-  {
     "id": "api.status.user_not_found.app_error",
     "translation": "사용자를 찾을 수 업습니다."
   },
@@ -1568,34 +1492,6 @@
   {
     "id": "api.team.get_team_icon.read_file.app_error",
     "translation": "팀 아이콘 파일을 읽을 수 없습니다."
-  },
-  {
-    "id": "api.team.import_team.array.app_error",
-    "translation": "요청의 'file' 배열이 비어있습니다."
-  },
-  {
-    "id": "api.team.import_team.integer.app_error",
-    "translation": "Filesize가 정수가 아닙니다."
-  },
-  {
-    "id": "api.team.import_team.no_file.app_error",
-    "translation": "요청의 'file' 항목에 파일이 없습니다."
-  },
-  {
-    "id": "api.team.import_team.no_import_from.app_error",
-    "translation": "잘못된 리퀘스트: importFrom필드가 존재하지 않습니다."
-  },
-  {
-    "id": "api.team.import_team.open.app_error",
-    "translation": "파일을 열 수 없습니다."
-  },
-  {
-    "id": "api.team.import_team.parse.app_error",
-    "translation": "multipart 폼을 가져올수 없습니다."
-  },
-  {
-    "id": "api.team.import_team.unavailable.app_error",
-    "translation": "잘못된 리퀘스트: filesize필드가 존재하지 않습니다."
   },
   {
     "id": "api.team.invite_members.disabled.app_error",
@@ -3022,10 +2918,6 @@
     "translation": "{{.Backend}} is not started"
   },
   {
-    "id": "ent.elasticsearch.search_posts.disabled",
-    "translation": "서버에서 Elasticsearch 검색이 비활성화되어 있습니다"
-  },
-  {
     "id": "ent.elasticsearch.search_posts.parse_matches_failed",
     "translation": "Failed to parse search result matches"
   },
@@ -3526,14 +3418,6 @@
     "translation": "Allowing cookies for subdomains requires SiteURL to be set."
   },
   {
-    "id": "model.config.is_valid.atmos_camo_image_proxy_options.app_error",
-    "translation": "Invalid RemoteImageProxyOptions for atmos/camo. Must be set to your shared key."
-  },
-  {
-    "id": "model.config.is_valid.atmos_camo_image_proxy_url.app_error",
-    "translation": "Invalid RemoteImageProxyURL for atmos/camo. Must be set to your shared key."
-  },
-  {
     "id": "model.config.is_valid.cluster_email_batching.app_error",
     "translation": "Unable to enable email batching when clustering is enabled"
   },
@@ -3592,10 +3476,6 @@
   {
     "id": "model.config.is_valid.email_security.app_error",
     "translation": "전자우편 설정의 연결 보안이 유효하지 않습니다. 이 값은 '', 'TLS' 또는 'STARTTLS'이어야 합니다."
-  },
-  {
-    "id": "model.config.is_valid.encrypt_sql.app_error",
-    "translation": "SQL 설정의 미사용 데이터 암호화 키가 유효하지 않습니다. 이 값은 32글자 이상이어야 합니다."
   },
   {
     "id": "model.config.is_valid.file_driver.app_error",
@@ -4454,24 +4334,12 @@
     "translation": "시스템"
   },
   {
-    "id": "web.command_webhook.command.app_error",
-    "translation": "채널을 찾을 수 없습니다"
-  },
-  {
-    "id": "web.command_webhook.parse.app_error",
-    "translation": "Unable to parse incoming data"
-  },
-  {
     "id": "web.get_access_token.internal_saving.app_error",
     "translation": "We couldn't update the user password"
   },
   {
     "id": "web.incoming_webhook.channel.app_error",
     "translation": "채널을 찾을 수 없습니다"
-  },
-  {
-    "id": "web.incoming_webhook.channel_locked.app_error",
-    "translation": "This webhook is not permitted to post to the requested channel"
   },
   {
     "id": "web.incoming_webhook.disabled.app_error",
@@ -5074,14 +4942,6 @@
     "translation": "채널을 불러올 수 없습니다."
   },
   {
-    "id": "app.channel.get.find.app_error",
-    "translation": "We encountered an error finding the channel"
-  },
-  {
-    "id": "app.channel.get.existing.app_error",
-    "translation": "존재하는 채널을 찾지 못했습니다."
-  },
-  {
     "id": "app.channel.delete.app_error",
     "translation": "채널을 삭제하지 못했습니다."
   },
@@ -5206,10 +5066,6 @@
     "translation": "비밀번호 복구 토큰 생성 실패"
   },
   {
-    "id": "api.templates.remove_expired_license.subject",
-    "translation": "Mattermost Enterprise license has been disabled."
-  },
-  {
     "id": "api.templates.invite_guest_subject",
     "translation": "[{{ .SiteName }}] {{ .SenderName }}님이 당신을 {{ .TeamDisplayName }} 팀에 게스트로 초대했습니다"
   },
@@ -5264,10 +5120,6 @@
   {
     "id": "api.system.id_loaded.not_available.app_error",
     "translation": "이 서버에서는 ID 로드 된 푸시 알림이 구성되거나 지원되지 않습니다."
-  },
-  {
-    "id": "api.slackimport.slack_import.zip.file_too_large",
-    "translation": "Slack 가져오기를 처리하기에 zip 파일 {{.Filename}} 용량이 너무 큽니다\n"
   },
   {
     "id": "api.push_notifications_ack.message.parse.app_error",
@@ -5484,10 +5336,6 @@
   {
     "id": "app.reaction.delete_all_with_emoji_name.get_reactions.app_error",
     "translation": "Unable to get all reactions with this emoji name"
-  },
-  {
-    "id": "app.reaction.bulk_get_for_post_ids.app_error",
-    "translation": "Unable to get reactions for post"
   },
   {
     "id": "app.audit.save.saving.app_error",
@@ -6562,10 +6410,6 @@
     "translation": "팀과 함께 Mattermost에서 협업을 시작하세요"
   },
   {
-    "id": "api.templates.email_footer_v2",
-    "translation": "© 2022 Mattermost, Inc. 530 Lytton Avenue, Second floor, Palo Alto, CA, 94301"
-  },
-  {
     "id": "api.templates.invite_body_footer.title",
     "translation": "Mattermost는 무엇인가요?"
   },
@@ -7546,10 +7390,6 @@
     "translation": "Mattermost 구독이 갱신될 예정입니다"
   },
   {
-    "id": "api.templates.license_up_for_renewal_subject",
-    "translation": "라이선스 갱신 기간 만료"
-  },
-  {
     "id": "api.templates.license_up_for_renewal_contact_sales",
     "translation": "영업팀에 문의"
   },
@@ -7572,10 +7412,6 @@
   {
     "id": "api.team.add_team_member.invalid_body.app_error",
     "translation": "요청 본문을 구문 분석할 수 없습니다."
-  },
-  {
-    "id": "api.team.import_team.unknown_import_from.app_error",
-    "translation": "알 수 없는 들여오기 원본입니다."
   },
   {
     "id": "api.team.invite_guests_to_channels.disabled.error",
@@ -8298,10 +8134,6 @@
     "translation": "워크스페이스에 액세스하는 데 문제가 있으신가요?"
   },
   {
-    "id": "api.templates.license_up_for_renewal_subtitle",
-    "translation": "{{.UserName}}, 구독이 {{.Days}}일 후에 만료될 예정입니다. Mattermost를 통해 유연하고 안전한 팀 협업을 경험하고 계시길 바랍니다. 곧 갱신하여 팀이 이러한 혜택을 계속 누릴 수 있도록 하세요."
-  },
-  {
     "id": "api.unmarshal_error",
     "translation": "마샬을 해제하지 못했습니다."
   },
@@ -8720,30 +8552,6 @@
   {
     "id": "app.email.setup_rate_limiter.app_error",
     "translation": "속도 제한기에서 오류가 발생했습니다."
-  },
-  {
-    "id": "app.eport.generate_presigned_url.config.app_error",
-    "translation": "이 작업을 수행하려면 전용 내보내기 스토어를 사용해야 합니다."
-  },
-  {
-    "id": "app.eport.generate_presigned_url.driver.app_error",
-    "translation": "내보내기 스토어 드라이버는 사전 서명 URL 생성을 지원하지 않습니다."
-  },
-  {
-    "id": "app.eport.generate_presigned_url.featureflag.app_error",
-    "translation": "이 기능은 기능 플래그에 의해 제한됩니다."
-  },
-  {
-    "id": "app.eport.generate_presigned_url.fileexist.app_error",
-    "translation": "파일의 존재 유무를 확인하지 못했습니다."
-  },
-  {
-    "id": "app.eport.generate_presigned_url.link.app_error",
-    "translation": "미리 지정한 URL을 생성할 수 없습니다."
-  },
-  {
-    "id": "app.eport.generate_presigned_url.notfound.app_error",
-    "translation": "내보내기 파일을 찾을 수 없습니다."
   },
   {
     "id": "app.export.export_attachment.copy_file.error",
@@ -9798,10 +9606,6 @@
     "translation": "데이터베이스에서 가장 오래된 엔티티(사용자, 채널 또는 게시물)를 검색할 수 없습니다."
   },
   {
-    "id": "ent.elasticsearch.max_version.app_error",
-    "translation": "{{.Backend}} 버전이 {{.Version}}의 최대 지원 버전인 {{.MaxVersion}}보다 높습니다"
-  },
-  {
     "id": "ent.elasticsearch.post.get_files_batch_for_indexing.error",
     "translation": "인덱싱할 파일 배치를 가져올 수 없습니다."
   },
@@ -10154,10 +9958,6 @@
     "translation": "캐시 유형은 lru 또는 redis여야 합니다."
   },
   {
-    "id": "model.config.is_valid.client_side_cert_enable.app_error",
-    "translation": "인증서 기반 인증이 제거되었습니다. 계속하려면 ClientSideCertEnable을 비활성화하세요."
-  },
-  {
     "id": "model.config.is_valid.content_flagging.common_reviewers_not_set.app_error",
     "translation": "'모든 팀에 동일한 검토자'를 사용하도록 설정한 경우 공통 검토자 또는 추가 검토자를 설정해야 합니다."
   },
@@ -10228,10 +10028,6 @@
   {
     "id": "model.config.is_valid.experimental_audit_settings.file_name_is_directory",
     "translation": "파일 이름은 디렉터리가 아니어야 합니다."
-  },
-  {
-    "id": "model.config.is_valid.experimental_view_archived_channels.app_error",
-    "translation": "보관된 채널 숨기기는 더 이상 지원되지 않습니다. 대신 이러한 채널을 비공개로 설정하고 멤버를 삭제하세요."
   },
   {
     "id": "model.config.is_valid.export.directory.app_error",

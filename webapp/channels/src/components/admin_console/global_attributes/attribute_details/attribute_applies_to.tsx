@@ -20,6 +20,8 @@ import type {AttributeAppliesToItemProps, ResourceObjectType, UserManagedValue} 
 import AttributeAppliesToPostItem from './attribute_applies_to_post_item';
 import AttributeAppliesToUserItem from './attribute_applies_to_user_item';
 
+import type {ChannelResourceConfig} from '../applies_to/channels/types';
+
 import './attribute_applies_to.scss';
 
 type Props = {
@@ -41,21 +43,34 @@ type Props = {
     onRemove: (type: ResourceObjectType) => void;
 
     // Users-only config, forwarded to AttributeAppliesToUserItem alone (see the
-    // render loop below) -- Channels/Posts get their own config props once
-    // they have equivalent controls to expose.
+    // render loop below) -- Posts gets its own config props once it has
+    // equivalent controls to expose.
     userVisibility?: FieldVisibility;
     onUserVisibilityChange?: (visibility: FieldVisibility) => void;
     userManaged?: UserManagedValue;
     onUserManagedChange?: (managed: UserManagedValue) => void;
+
+    // Channels only: the settings its row edits, held by the page because the
+    // linked channel field is built from them on Save.
+    channelResource: ChannelResourceConfig;
+    onChannelResourceChange: (next: ChannelResourceConfig) => void;
+
+    // Whether the attribute is rank-typed, which gates the directional change
+    // policies on the Channels row.
+    ordered?: boolean;
+
+    // Resources this server may offer. Channels is dropped below Enterprise
+    // Advanced, or with the ChannelAttributes flag off.
+    allowedTypes?: ResourceObjectType[];
 };
 
 // Every entry here must implement AttributeAppliesToItemProps exactly --
-// TypeScript rejects the map itself if any of the three row components'
-// props drift from that shared signature, rather than only failing wherever
-// they happen to get used.
-const RESOURCE_TYPE_ITEM_COMPONENTS: Record<ResourceObjectType, ComponentType<AttributeAppliesToItemProps>> = {
+// TypeScript rejects the map itself if either row component's props drift
+// from that shared signature, rather than only failing wherever they happen
+// to get used. Channels is absent: it is the one row with settings of its
+// own, so it takes props the other two have no use for.
+const RESOURCE_TYPE_ITEM_COMPONENTS: Record<Exclude<ResourceObjectType, 'channel'>, ComponentType<AttributeAppliesToItemProps>> = {
     user: AttributeAppliesToUserItem,
-    channel: AttributeAppliesToChannelItem,
     post: AttributeAppliesToPostItem,
 };
 
@@ -77,12 +92,16 @@ function AttributeAppliesTo({
     onUserVisibilityChange,
     userManaged,
     onUserManagedChange,
+    channelResource,
+    onChannelResourceChange,
+    ordered,
+    allowedTypes = ALL_RESOURCE_TYPES,
 }: Props): JSX.Element {
     const {formatMessage} = useIntl();
 
     const availableTypes = useMemo(
-        () => ALL_RESOURCE_TYPES.filter((type) => !appliesTo.includes(type)),
-        [appliesTo],
+        () => ALL_RESOURCE_TYPES.filter((type) => allowedTypes.includes(type) && !appliesTo.includes(type)),
+        [appliesTo, allowedTypes],
     );
 
     const renderAddResourceMenu = (triggerId: string, dataTestId: string, label: string, emphasis: ButtonEmphasis) => (
@@ -167,6 +186,19 @@ function AttributeAppliesTo({
                         <>
                             <div className='AttributeAppliesTo__list'>
                                 {appliesTo.map((type) => {
+                                    if (type === 'channel') {
+                                        return (
+                                            <AttributeAppliesToChannelItem
+                                                key={type}
+                                                config={channelResource}
+                                                onConfigChange={onChannelResourceChange}
+                                                ordered={ordered}
+                                                disabled={disabled}
+                                                onRemove={() => onRemove(type)}
+                                            />
+                                        );
+                                    }
+
                                     const Item = RESOURCE_TYPE_ITEM_COMPONENTS[type];
                                     const userProps = type === 'user' ? {
                                         visibility: userVisibility,

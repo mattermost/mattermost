@@ -9,6 +9,8 @@ import {AccountOutlineIcon, MessageTextOutlineIcon, ProductChannelsIcon} from '@
 import type IconProps from '@mattermost/compass-icons/components/props';
 import type {FieldVisibility} from '@mattermost/types/properties';
 
+import type {ChannelResourceConfig} from '../applies_to/channels/types';
+
 export type ResourceObjectType = 'user' | 'channel' | 'post';
 
 // Mirrors CPA's attrs.managed value domain exactly (see user_properties_dot_menu.tsx) --
@@ -46,6 +48,18 @@ export type AttributeAppliesToItemProps = {
     onVisibilityChange?: (visibility: FieldVisibility) => void;
     managed?: UserManagedValue;
     onManagedChange?: (managed: UserManagedValue) => void;
+};
+
+// Channels is the one resource with settings of its own, so its row takes the
+// shared props plus the configuration it edits. The page owns that state: it is
+// what the linked channel field is built from at save time.
+export type AttributeAppliesToChannelItemProps = AttributeAppliesToItemProps & {
+    config: ChannelResourceConfig;
+    onConfigChange: (next: ChannelResourceConfig) => void;
+
+    // Whether the attribute is rank-typed, which is what makes the directional
+    // change policies meaningful.
+    ordered?: boolean;
 };
 
 // Shared between AttributeAppliesTo (which owns the button) and AttributeDetails
