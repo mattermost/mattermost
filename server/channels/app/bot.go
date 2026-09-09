@@ -355,7 +355,7 @@ func (a *App) resolveBotOwner(rctx request.CTX, botUserId string) (owner *model.
 	if appErr != nil {
 		return nil, nil, appErr
 	}
-	if bot.Username == model.BotSystemBotUsername {
+	if bot.IsSystemOwned() {
 		return nil, bot, nil
 	}
 
@@ -381,17 +381,19 @@ func (a *App) GetBots(rctx request.CTX, options *model.BotGetOptions) (model.Bot
 }
 
 // IsBotExemptFromDMRestrictions checks if the given user ID is a bot that is
-// exempt from the RestrictDirectMessage=team enforcement. This includes the
-// system bot, bots owned by the current session's user, and plugin-owned bots.
+// exempt from the RestrictDirectMessage=team enforcement. This includes
+// protected system-owned bots, bots owned by the current session's user, and
+// plugin-owned bots.
 func (a *App) IsBotExemptFromDMRestrictions(rctx request.CTX, userID string) (bool, *model.AppError) {
 	bot, appErr := a.GetBot(rctx, userID, false)
 	if appErr != nil {
 		return false, appErr
 	}
 
-	// The system bot must be able to send messages to any user regardless of
-	// team membership (e.g. push notification tests, post reminders, etc.)
-	if bot.Username == model.BotSystemBotUsername {
+	// Protected system-owned bots must be able to send messages to any user
+	// regardless of team membership (e.g. push notification tests, post
+	// reminders, content-flagging notifications, etc.)
+	if bot.IsSystemOwned() {
 		return true, nil
 	}
 
