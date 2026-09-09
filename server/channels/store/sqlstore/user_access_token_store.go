@@ -235,15 +235,14 @@ func (s SqlUserAccessTokenStore) UpdateTokenDisable(tokenId string) (err error) 
 
 // GetExpiredBefore returns active tokens whose non-zero ExpiresAt is less than
 // or equal to the provided cutoff (Unix milliseconds), up to the given limit.
-// When includeUserOwnedTokens is false, only bots owned by a user are returned. The
-// secret Token column is intentionally NOT selected — callers use the returned
-// rows for metadata (audit logging, deletion) only.
+// The secret Token column is intentionally NOT selected — callers use the
+// returned rows for metadata (audit logging, deletion) only.
 //
 // A non-positive limit returns an empty slice without hitting the DB rather
 // than relying on the int -> uint64 cast (which would otherwise wrap a
 // negative value into an enormous unsigned limit and effectively disable the
 // bound).
-func (s SqlUserAccessTokenStore) GetExpiredBefore(cutoff int64, limit int, includeUserOwnedTokens bool) ([]*model.UserAccessToken, error) {
+func (s SqlUserAccessTokenStore) GetExpiredBefore(cutoff int64, limit int) ([]*model.UserAccessToken, error) {
 	tokens := []*model.UserAccessToken{}
 
 	if limit <= 0 {
@@ -264,14 +263,6 @@ func (s SqlUserAccessTokenStore) GetExpiredBefore(cutoff int64, limit int, inclu
 		Where(sq.Eq{"UserAccessTokens.IsActive": true}).
 		OrderBy("UserAccessTokens.ExpiresAt ASC").
 		Limit(uint64(limit))
-
-	if !includeUserOwnedTokens {
-		query = query.
-			InnerJoin("Bots ON Bots.UserId = UserAccessTokens.UserId").
-			InnerJoin("Users BotOwners ON BotOwners.Id = Bots.OwnerId").
-			InnerJoin("Users BotUsers ON BotUsers.Id = Bots.UserId").
-			Where(sq.NotEq{"BotUsers.Username": model.BotSystemBotUsername})
-	}
 
 	if err := s.GetReplica().SelectBuilder(&tokens, query); err != nil {
 		return nil, errors.Wrap(err, "failed to find expired UserAccessTokens")

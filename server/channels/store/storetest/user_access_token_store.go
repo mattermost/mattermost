@@ -321,7 +321,7 @@ func testUserAccessTokenExpiry(t *testing.T, rctx request.CTX, ss store.Store) {
 
 	// GetExpiredBefore should only return the expired token and must not leak
 	// the secret token value (the Token column is intentionally not selected).
-	expiredRows, err := ss.UserAccessToken().GetExpiredBefore(now, 100, true)
+	expiredRows, err := ss.UserAccessToken().GetExpiredBefore(now, 100)
 	require.NoError(t, err)
 	found := false
 	foundBot := false
@@ -342,17 +342,12 @@ func testUserAccessTokenExpiry(t *testing.T, rctx request.CTX, ss store.Store) {
 	require.True(t, found, "expired token should be present in GetExpiredBefore results")
 	require.True(t, foundBot, "expired bot token should be present in GetExpiredBefore results")
 
-	botRows, err := ss.UserAccessToken().GetExpiredBefore(now, 100, false)
-	require.NoError(t, err)
-	require.Contains(t, tokenIDs(botRows), expiredBot.Id)
-	require.NotContains(t, tokenIDs(botRows), expired.Id)
-
 	// Negative or zero limits short-circuit and return an empty slice without
 	// hitting the DB; verify the contract holds.
-	zeroLimit, err := ss.UserAccessToken().GetExpiredBefore(now, 0, true)
+	zeroLimit, err := ss.UserAccessToken().GetExpiredBefore(now, 0)
 	require.NoError(t, err)
 	require.Empty(t, zeroLimit)
-	negativeLimit, err := ss.UserAccessToken().GetExpiredBefore(now, -5, true)
+	negativeLimit, err := ss.UserAccessToken().GetExpiredBefore(now, -5)
 	require.NoError(t, err)
 	require.Empty(t, negativeLimit)
 
