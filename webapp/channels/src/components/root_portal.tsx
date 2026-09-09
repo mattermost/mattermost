@@ -5,7 +5,7 @@ import React, {useEffect, useRef} from 'react';
 import ReactDOM from 'react-dom';
 
 interface Props {
-    children: React.ReactNode | React.ReactNodeArray;
+    children: React.ReactNode | readonly React.ReactNode[];
 }
 
 const RootPortal = ({children}: Props) => {
