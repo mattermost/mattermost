@@ -128,6 +128,9 @@ type Server struct {
 	clusterLeaderListenerId string
 	loggerLicenseListenerId string
 
+	pushNotificationServerLicenseListenerId       string
+	pushNotificationServerClusterLeaderListenerId string
+
 	platform         *platform.PlatformService
 	platformOptions  []platform.Option
 	telemetryService *telemetry.TelemetryService
@@ -308,6 +311,8 @@ func NewServer(options ...Option) (*Server, error) {
 	// After channel is initialized set it to the App object
 	app := New(ServerConnector(channels))
 
+	s.platform.SetPostDeliveryRecorder(app.RecordBroadcastDelivery)
+
 	// Register property-service hooks AFTER s.ch is populated. The
 	// access-control and attribute-validation hooks capture s and use
 	// s.ch for plugin-status and permission lookups; registering them
@@ -334,14 +339,14 @@ func NewServer(options ...Option) (*Server, error) {
 	// Attribute validation hook — validates visibility, sort_order on fields,
 	// field-type constraints on values (options, user IDs, value_type), and
 	// managed-flag authorization + permission level enforcement.
-	permChecker := func(userID string, perm *model.Permission) bool {
+	permChecker := func(rctx request.CTX, userID string, perm *model.Permission) bool {
 		// Local-mode (unrestricted) sessions are tagged with
 		// CallerIDLocalAdmin by the HTTP layer; grant them admin
 		// permissions without a user lookup.
 		if userID == model.CallerIDLocalAdmin {
 			return true
 		}
-		return app.HasPermissionTo(userID, perm)
+		return app.HasPermissionTo(rctx, userID, perm)
 	}
 	attrValidationHook := properties.NewAccessControlAttributeValidationHook(s.propertyService, permChecker, cpaGroup.ID)
 	s.propertyService.AddHook(attrValidationHook)
@@ -415,7 +420,11 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 
 	s.pushNotificationClient = s.httpService.MakeClient(true)
+	// Slash commands and outgoing webhooks give each request a deadline derived from
+	// ServiceSettings.OutgoingIntegrationRequestsTimeout, so this client must not impose a
+	// timeout of its own that would cap a configured value above httpservice.RequestTimeout.
 	s.outgoingWebhookClient = s.httpService.MakeClient(false)
+	s.outgoingWebhookClient.Timeout = 0
 
 	if err2 := utils.TranslationsPreInit(); err2 != nil {
 		return nil, errors.Wrapf(err2, "unable to load Mattermost translation files")
@@ -465,6 +474,9 @@ func NewServer(options ...Option) (*Server, error) {
 		UserService:        s.userService,
 		Store:              s.GetStore(),
 		Logger:             s.Log(),
+		PostDeliveryRecorderFn: func(userID string, post *model.Post) {
+			app.RecordPostDelivery(request.EmptyContext(s.Log()), userID, post, model.DeliveryMechanismEmail)
+		},
 	})
 	if err != nil {
 		return nil, errors.Wrapf(err, "unable to initialize email service")
@@ -506,9 +518,11 @@ func NewServer(options ...Option) (*Server, error) {
 		}
 	}
 
-	// Start email batching because it's not like the other jobs
-	s.platform.AddConfigListener(func(_, _ *model.Config) {
-		s.EmailService.InitEmailBatching()
+	// Re-init email batching only when its enable flag or interval changes.
+	s.platform.AddConfigListener(func(oldCfg, newCfg *model.Config) {
+		if emailBatchingSettingChanged(oldCfg, newCfg) {
+			s.EmailService.InitEmailBatching()
+		}
 	})
 
 	pwd, _ := os.Getwd()
@@ -532,12 +546,30 @@ func NewServer(options ...Option) (*Server, error) {
 		mlog.Warn("AccessControlSettings.EnableAccessControlAuditLogging is enabled but no active audit log target is configured; ABAC policy-decision audit logging will have no effect. Enable ExperimentalAuditSettings.FileEnabled or configure an advanced audit logging target bound to an audit level.")
 	}
 
+	s.warnIfDeliveryAuditTargetMissing(s.platform.Config())
+	s.platform.AddConfigListener(func(oldCfg, newCfg *model.Config) {
+		if !deliveryAuditWarnInputsChanged(oldCfg, newCfg) {
+			return
+		}
+		s.warnIfDeliveryAuditTargetMissing(newCfg)
+	})
+
 	s.platform.RemoveUnlicensedLogTargets(license)
 	s.platform.EnableLoggingMetrics()
 
 	s.loggerLicenseListenerId = s.AddLicenseListener(func(oldLicense, newLicense *model.License) {
 		s.platform.RemoveUnlicensedLogTargets(newLicense)
 		s.platform.EnableLoggingMetrics()
+		s.warnIfDeliveryAuditTargetMissing(s.platform.Config())
+	})
+
+	// Keep the push notification server in sync with the license's HPNS entitlement, and let a
+	// newly-elected cluster leader repair any transition missed while another node was leader.
+	s.pushNotificationServerLicenseListenerId = s.AddLicenseListener(func(oldLicense, newLicense *model.License) {
+		s.syncPushNotificationServerWithLicense()
+	})
+	s.pushNotificationServerClusterLeaderListenerId = s.AddClusterLeaderChangedListener(func() {
+		s.syncPushNotificationServerWithLicense()
 	})
 
 	// if enabled - perform initial product notices fetch
@@ -767,6 +799,8 @@ func (s *Server) Shutdown() {
 
 	s.RemoveLicenseListener(s.loggerLicenseListenerId)
 	s.RemoveClusterLeaderChangedListener(s.clusterLeaderListenerId)
+	s.RemoveLicenseListener(s.pushNotificationServerLicenseListenerId)
+	s.RemoveClusterLeaderChangedListener(s.pushNotificationServerClusterLeaderListenerId)
 
 	var err error
 	s.serviceMux.RLock()
@@ -847,7 +881,7 @@ func (s *Server) Shutdown() {
 	timeoutCtx, timeoutCancel := context.WithTimeout(context.Background(), time.Second*15)
 	defer timeoutCancel()
 	if err = s.Log().ShutdownWithTimeout(timeoutCtx); err != nil {
-		fmt.Fprintf(os.Stderr, "Error shutting down main logger: %v", err)
+		fmt.Fprintf(os.Stderr, "Error shutting down main logger (this can happen if a log target, e.g. a remote TCP endpoint, is unreachable; check preceding connection error logs for the affected target): %v\n", err)
 	}
 }
 
@@ -1007,6 +1041,8 @@ func (s *Server) Start() error {
 			mlog.Error("Problem with file storage settings", mlog.Err(err))
 		}
 	}
+
+	s.syncPushNotificationServerWithLicense()
 
 	s.checkPushNotificationServerURL()
 
@@ -2044,4 +2080,14 @@ func (s *Server) Platform() *platform.PlatformService {
 
 func (s *Server) Log() *mlog.Logger {
 	return s.platform.Logger()
+}
+
+func emailBatchingSettingChanged(oldCfg, newCfg *model.Config) bool {
+	if oldCfg == nil || newCfg == nil {
+		return true
+	}
+	return model.SafeDereference(oldCfg.EmailSettings.EnableEmailBatching) !=
+		model.SafeDereference(newCfg.EmailSettings.EnableEmailBatching) ||
+		model.SafeDereference(oldCfg.EmailSettings.EmailBatchingInterval) !=
+			model.SafeDereference(newCfg.EmailSettings.EmailBatchingInterval)
 }

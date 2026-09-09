@@ -30,15 +30,7 @@ func (a *App) canSendPushNotifications() bool {
 	}
 
 	pushServer := *a.Config().EmailSettings.PushNotificationServer
-	// Check for MHPNS servers (both current and legacy DNS aliases)
-	isMHPNSServer := pushServer == model.MHPNS ||
-		pushServer == model.MHPNSLegacyUS ||
-		pushServer == model.MHPNSLegacyDE ||
-		pushServer == model.MHPNSGlobal ||
-		pushServer == model.MHPNSUS ||
-		pushServer == model.MHPNSEU ||
-		pushServer == model.MHPNSAP
-	if license := a.Srv().License(); isMHPNSServer && (license == nil || !*license.Features.MHPNS) {
+	if model.IsMHPNSEndpoint(pushServer) && !a.Srv().License().HasMHPNS() {
 		a.Log().LogM(mlog.MlvlNotificationWarn, "Push notifications are disabled - license missing",
 			mlog.String("status", model.NotificationStatusNotSent),
 			mlog.String("reason", "push_disabled_license"),
@@ -705,6 +697,8 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 	message.Add("team_id", team.Id)
 	message.Add("set_online", setOnline)
 
+	a.markPostDeliveryForBroadcast(rctx, message, post)
+
 	if len(post.FileIds) != 0 && fchan != nil {
 		message.Add("otherFile", "true")
 
@@ -883,6 +877,7 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 					message.Add("thread", string(payload))
 					message.Add("previous_unread_mentions", previousUnreadMentions)
 					message.Add("previous_unread_replies", previousUnreadReplies)
+					a.markPostDeliveryForBroadcast(rctx, message, userThread.Post)
 
 					auditRec := a.MakeAuditRecord(rctx, model.AuditEventWebsocketPost, model.AuditStatusSuccess)
 					defer a.LogAuditRec(rctx, auditRec, nil)
@@ -1054,6 +1049,7 @@ func (a *App) RemoveNotifications(rctx request.CTX, post *model.Post, channel *m
 				message.Add("thread", string(payload))
 				message.Add("previous_unread_mentions", previousUnreadMentions)
 				message.Add("previous_unread_replies", previousUnreadReplies)
+				a.markPostDeliveryForBroadcast(rctx, message, userThread.Post)
 
 				a.Publish(message)
 			}

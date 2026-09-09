@@ -21,6 +21,7 @@ export type Options = {
     credentials?: 'omit' | 'same-origin' | 'include';
     body?: any;
     signal?: RequestInit['signal'];
+    cache?: RequestInit['cache']; /** Per-request fetch cache mode, e.g. 'reload' to bypass a stale ETag for a single request */
     ignoreStatus?: boolean; /** If true, status codes > 300 are ignored and don't cause an error */
     duplex?: 'half'; /** Optional, but required for node clients. Must be 'half' for half-duplex fetch; 'full' is reserved for future use. See https://fetch.spec.whatwg.org/#dom-requestinit-duplex */
 };

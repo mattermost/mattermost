@@ -29,7 +29,10 @@ const SettingMobileHeader = ({
                 <span aria-hidden='true'>{'×'}</span>
             </button>
             <h4 className='modal-title'>
-                <div className='modal-back'>
+                <button
+                    className='style--none modal-back'
+                    onClick={collapseModal}
+                >
                     <i
                         className='fa fa-angle-left'
                         aria-label={
@@ -38,9 +41,8 @@ const SettingMobileHeader = ({
                                 defaultMessage: 'Collapse Icon',
                             })
                         }
-                        onClick={collapseModal}
                     />
-                </div>
+                </button>
                 {text}
             </h4>
         </div>

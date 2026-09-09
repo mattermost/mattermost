@@ -188,7 +188,8 @@ package-prep: setup-go-work
 	cp -RL fonts $(DIST_PATH)
 	cp -RL templates $(DIST_PATH)
 	rm -rf $(DIST_PATH)/templates/*.mjml $(DIST_PATH)/templates/partials/
-	cp -RL i18n $(DIST_PATH)
+	mkdir -p $(DIST_PATH)/i18n
+	cp -L i18n/*.json $(DIST_PATH)/i18n
 
 	@# Disable developer settings
 	sed -i'' -e 's|"ConsoleLevel": "DEBUG"|"ConsoleLevel": "INFO"|g' $(DIST_PATH)/config/config.json

@@ -9,7 +9,7 @@ See here for [server-specific best practices for plugins](/developers/integrate/
 
 Once a plugin is installed, Administrators have access to the plugin's configuration page in the __System Console > Plugins__ section. The configurable settings must first be defined in the plugin's manifest [setting schema](/developers/integrate/plugins/manifest-reference#settings_schema). The web app supports several basic pre-defined settings type, e.g. `bool` and `dropdown`, for which the corresponding UI components are provided in order to complete configuration in the System Console.
 
-These settings are stored within the server configuration under [`Plugins`] indexed by plugin ids. The plugin's server code can access their current configuration calling the [`getConfig`](/developers/integrate/reference/server/server-reference#API.GetConfig) API call and can also make changes as needed with [`saveConfig`](/developers/integrate/reference/server/server-reference#API.SaveConfig).
+These settings are stored within the server configuration under [`Plugins`] indexed by plugin ids. The plugin's server code can access their current configuration calling the [`getConfig`](/developers/integrate/reference/server#API.GetConfig) API call and can also make changes as needed with [`saveConfig`](/developers/integrate/reference/server#API.SaveConfig).
 
 ## How can a plugin define its own setting type?
 
@@ -29,7 +29,7 @@ A plugin could define its own type of setting with a corresponding custom user i
     }
     ```
 
-2. In the plugin's web app code, define a custom component to manage the plugin's custom setting and register it in the web app with [`registerAdminConsoleCustomSetting`](/developers/integrate/reference/webapp/webapp-reference#registerAdminConsoleCustomSetting). This component will be instantiated in the System Console with the following `props` passed in:
+2. In the plugin's web app code, define a custom component to manage the plugin's custom setting and register it in the web app with [`registerAdminConsoleCustomSetting`](/developers/integrate/reference/webapp#registerAdminConsoleCustomSetting). This component will be instantiated in the System Console with the following `props` passed in:
 
     - `id`: The setting `key` as defined in the plugin manifest within `settings_schema.settings`.
     - `label`: The text for the component label based on the setting's `displayName` defined in the manifest. 
@@ -132,7 +132,7 @@ Old servers won't do anything with new, unrecognized fields, but also won't brea
 
 ## How to expose performance metrics for a plugin?
 
-From Mattermost v9.4, a [`ServeMetrics`](/developers/integrate/reference/server/server-reference#API.ServeMetrics) hook can be used to expose performance metrics in the [open metrics format](https://openmetrics.io/) under the common HTTP listener controlled by the [`MetricsSettings.ListenAddress`](https://docs.mattermost.com/configure/environment-configuration-settings.html#listen-address-for-performance) config setting.
+From Mattermost v9.4, a [`ServeMetrics`](/developers/integrate/reference/server#API.ServeMetrics) hook can be used to expose performance metrics in the [open metrics format](https://openmetrics.io/) under the common HTTP listener controlled by the [`MetricsSettings.ListenAddress`](https://docs.mattermost.com/configure/environment-configuration-settings.html#listen-address-for-performance) config setting.
 
 Data returned by the hook's implementation through the given `http.ResponseWriter` object will be served through the `http://SITE_URL:8067/plugins/PLUGIN_ID/metrics` URL.
 

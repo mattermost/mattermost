@@ -130,7 +130,7 @@ describe('CELEditor', () => {
         await userEvent.click(screen.getByRole('button', {name: /test access rule/i}));
 
         await waitFor(() => {
-            expect(mockSearch).toHaveBeenCalledWith(expression, '', '', 50);
+            expect(mockSearch).toHaveBeenCalledWith(expression, '', '', 50, undefined);
         });
         expect(searchUsersForExpression).not.toHaveBeenCalled();
     });
@@ -202,5 +202,16 @@ describe('buildCELSchemas', () => {
 
         expect(schemas['user.attributes']).toEqual(['valid']);
         expect(schemas['user.session']).toEqual(['ip_address']);
+    });
+
+    test('skips null or undefined attribute names without throwing', () => {
+        const schemas = buildCELSchemas([
+            {attribute: null, values: [], objectType: 'user'},
+            {attribute: undefined, values: [], isNative: true},
+            {attribute: 'department', values: [], objectType: 'user'},
+        ]);
+
+        expect(schemas.user).toEqual(['attributes']);
+        expect(schemas['user.attributes']).toEqual(['department']);
     });
 });

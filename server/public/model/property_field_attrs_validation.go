@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/url"
+	"slices"
 	"strings"
 )
 
@@ -20,6 +21,16 @@ const (
 	PropertyFieldAttrSAML        = "saml"
 	PropertyFieldAttrManaged     = "managed"
 	PropertyFieldAttrDisplayName = "display_name"
+	// PropertyFieldAttrActions lists the rendering actions a field triggers.
+	PropertyFieldAttrActions = "actions"
+)
+
+// Valid action values for PropertyFieldAttrActions.
+const (
+	PropertyFieldActionDisplayBannerTop    = "display_banner_top"
+	PropertyFieldActionDisplayBannerBottom = "display_banner_bottom"
+	PropertyFieldActionDisplayLabelHeader  = "display_label_header"
+	PropertyFieldActionDisplayLabelInfo    = "display_label_info"
 )
 
 // Valid visibility values for property fields.
@@ -61,6 +72,20 @@ func IsValidPropertyFieldValueType(v string) bool {
 	default:
 		return false
 	}
+}
+
+// validPropertyFieldActions is the allow-list for PropertyFieldAttrActions, and
+// the source of the list surfaced in validation errors.
+var validPropertyFieldActions = []string{
+	PropertyFieldActionDisplayBannerTop,
+	PropertyFieldActionDisplayBannerBottom,
+	PropertyFieldActionDisplayLabelHeader,
+	PropertyFieldActionDisplayLabelInfo,
+}
+
+// IsValidPropertyFieldAction reports whether the given string is a known action value.
+func IsValidPropertyFieldAction(a string) bool {
+	return slices.Contains(validPropertyFieldActions, a)
 }
 
 // ValidatePropertyFieldVisibility checks that the visibility attr on a
@@ -110,6 +135,69 @@ func ValidatePropertyFieldSortOrder(field *PropertyField) error {
 	default:
 		return fmt.Errorf("sort_order must be numeric, got %T", raw)
 	}
+}
+
+// SanitizeAndValidatePropertyFieldActions validates the actions attr and writes
+// it back in the canonical []any form of trimmed strings, so downstream readers
+// see a single shape. An absent, nil, or empty list is removed. Unknown actions
+// and duplicates are rejected: the values drive rendering, so a typo must fail
+// loudly at write time rather than silently never render.
+func SanitizeAndValidatePropertyFieldActions(field *PropertyField) error {
+	if field.Attrs == nil {
+		return nil
+	}
+
+	raw, ok := field.Attrs[PropertyFieldAttrActions]
+	if !ok {
+		return nil
+	}
+	if raw == nil {
+		delete(field.Attrs, PropertyFieldAttrActions)
+		return nil
+	}
+
+	// Callers reach this both from JSON ([]any) and from Go code ([]string).
+	var items []string
+	switch v := raw.(type) {
+	case []string:
+		items = v
+	case []any:
+		items = make([]string, 0, len(v))
+		for i, elem := range v {
+			s, ok := elem.(string)
+			if !ok {
+				return fmt.Errorf("actions[%d] must be a string, got %T", i, elem)
+			}
+			items = append(items, s)
+		}
+	default:
+		return fmt.Errorf("actions must be an array, got %T", raw)
+	}
+
+	if len(items) == 0 {
+		delete(field.Attrs, PropertyFieldAttrActions)
+		return nil
+	}
+
+	seen := make(map[string]struct{}, len(items))
+	canonical := make([]any, 0, len(items))
+	for _, s := range items {
+		s = strings.TrimSpace(s)
+		if s == "" {
+			return fmt.Errorf("actions must not contain empty strings")
+		}
+		if !IsValidPropertyFieldAction(s) {
+			return fmt.Errorf("unknown action %q: must be one of %s", s, strings.Join(validPropertyFieldActions, ", "))
+		}
+		if _, dup := seen[s]; dup {
+			return fmt.Errorf("duplicate action %q", s)
+		}
+		seen[s] = struct{}{}
+		canonical = append(canonical, s)
+	}
+
+	field.Attrs[PropertyFieldAttrActions] = canonical
+	return nil
 }
 
 // ValidatePropertyValueForValueType validates a raw JSON value against the

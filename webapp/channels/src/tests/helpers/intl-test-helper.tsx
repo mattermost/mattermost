@@ -20,7 +20,7 @@ export const defaultIntl = createIntl({
 });
 
 // for non-mounted use cases like react-testing-library
-export function withIntl(element: ReactElement) {
+export function withIntl(element: ReactElement<any>) {
     return <IntlProvider {...defaultIntl}>{element}</IntlProvider>;
 }
 

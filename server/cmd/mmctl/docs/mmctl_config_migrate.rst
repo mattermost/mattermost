@@ -20,7 +20,7 @@ Examples
 
 ::
 
-  config migrate path/to/config.json "postgres://mmuser:mostest@localhost:5432/mattermost_test?sslmode=disable&connect_timeout=10"
+  config migrate path/to/config.json "postgres://mmuser:mostest_password@localhost:5432/mattermost_test?sslmode=disable&connect_timeout=10"
 
 Options
 ~~~~~~~

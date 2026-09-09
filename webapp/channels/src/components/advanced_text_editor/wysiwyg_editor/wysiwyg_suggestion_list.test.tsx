@@ -25,7 +25,7 @@ jest.mock('components/suggestion/command_provider/command_provider', () => ({
 
             resultCallback({
                 matchedPretext: pretext,
-                terms: mockTerms,
+                terms: [...mockTerms],
                 items: mockTerms.map((term) => ({suggestion: term})),
                 component: () => null,
             });
